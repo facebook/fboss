@@ -389,13 +389,15 @@ void FsdbPubSubManager::addStatePathSubscription(
     const MultiPath& subscribePaths,
     FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
     FsdbExtStateSubscriber::FsdbOperStateUpdateCb operStateCb,
-    FsdbStreamClient::ServerOptions&& serverOptions) {
+    FsdbStreamClient::ServerOptions&& serverOptions,
+    const std::optional<std::string>& clientIdSuffix) {
   addSubscriptionImpl<FsdbExtStateSubscriber>(
       toExtendedOperPath(subscribePaths),
       stateChangeCb,
       operStateCb,
       false /*subscribeStat*/,
-      std::move(serverOptions));
+      std::move(serverOptions),
+      clientIdSuffix);
 }
 
 template <typename SubscriberT, typename PathElement>
@@ -404,7 +406,8 @@ void FsdbPubSubManager::addSubscriptionImpl(
     FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
     typename SubscriberT::FsdbSubUnitUpdateCb subUnitAvailableCb,
     bool subscribeStats,
-    FsdbStreamClient::ServerOptions&& serverOptions) {
+    FsdbStreamClient::ServerOptions&& serverOptions,
+    const std::optional<std::string>& clientIdSuffix) {
   auto isDelta = std::disjunction_v<
       std::is_same<SubscriberT, FsdbDeltaSubscriber>,
       std::is_same<SubscriberT, FsdbExtDeltaSubscriber>>;
@@ -415,10 +418,16 @@ void FsdbPubSubManager::addSubscriptionImpl(
       subscribeStats);
   auto path2SubscriberW = path2Subscriber_.wlock();
   auto& path2Subscriber = *path2SubscriberW;
+
+  auto clientStr = folly::to<std::string>(clientId_);
+  if (clientIdSuffix.has_value()) {
+    clientStr.append(folly::to<std::string>("_", clientIdSuffix.value()));
+  }
+
   auto [itr, inserted] = path2Subscriber.emplace(std::make_pair(
       subsStr,
       std::make_unique<SubscriberT>(
-          clientId_,
+          clientStr,
           subscribePath,
           subscriberEvb_,
           reconnectEvb_,

@@ -130,7 +130,8 @@ class FsdbPubSubManager {
       const MultiPath& subscribePaths,
       FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
       FsdbExtStateSubscriber::FsdbOperStateUpdateCb operStateCb,
-      FsdbStreamClient::ServerOptions&& serverOptions);
+      FsdbStreamClient::ServerOptions&& serverOptions,
+      const std::optional<std::string>& clientIdSuffix = std::nullopt);
 
   /* Subscriber remove APIs */
   void removeStateDeltaSubscription(
@@ -211,7 +212,8 @@ class FsdbPubSubManager {
       FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
       typename SubscriberT::FsdbSubUnitUpdateCb subUnitAvailableCb,
       bool subscribeStats,
-      FsdbStreamClient::ServerOptions&& serverOptions);
+      FsdbStreamClient::ServerOptions&& serverOptions,
+      const std::optional<std::string>& clientIdSuffix = std::nullopt);
 
   const std::string clientId_;
 
