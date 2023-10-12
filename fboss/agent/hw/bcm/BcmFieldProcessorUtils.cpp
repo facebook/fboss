@@ -319,13 +319,20 @@ bcm_field_hintid_t compressFpQualifier(
 
 std::set<bcm_udf_id_t> getUdfQsetIds(int unit, bcm_field_group_t gid) {
   std::set<bcm_udf_id_t> udfIds;
+  int udfs[BCM_FIELD_USER_NUM_UDFS];
+  int count = 0;
+
   const auto& qsetInHw = getGroupQset(unit, gid);
-  // only go over the first 16 chunks i.e. first 2 bytes of the map
-  // TODO: CSP as follow up to understand the right macro to use for it
-  for (auto index = 0; index < 2; ++index) {
-    if (SHR_BITGET(qsetInHw.udf_map, index)) {
-      udfIds.insert(index + 1); // since index starts from 0
-    }
+  bcm_field_qset_id_multi_get(
+      unit,
+      qsetInHw,
+      bcmFieldQualifyUdf,
+      BCM_FIELD_USER_NUM_UDFS,
+      udfs,
+      &count);
+
+  for (int index = 0; index < count; ++index) {
+    udfIds.insert(udfs[index]);
   }
   return udfIds;
 }
