@@ -7,6 +7,7 @@ namespace py.asyncio neteng.fboss.asyncio.hw_ctrl
 
 include "fboss/agent/if/common.thrift"
 include "fboss/agent/if/fboss.thrift"
+include "fboss/agent/if/ctrl.thrift"
 
 service FbossHwCtrl {
   /*
@@ -26,4 +27,6 @@ service FbossHwCtrl {
 
   // an api  to test hw switch handler in hardware agnostic way
   common.SwitchRunState getHwSwitchRunState();
+
+  map<i64, ctrl.FabricEndpoint> getFabricReachability();
 }
