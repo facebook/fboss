@@ -178,8 +178,6 @@ void pumpTrafficAndVerifyLoadBalanced(
 cfg::UdfConfig addUdfHashConfig();
 cfg::UdfConfig addUdfAclConfig();
 
-cfg::UdfConfig addUdfAclConfig();
-
 bool isHwDeterministicSeed(
     HwSwitch* hwSwitch,
     const std::shared_ptr<SwitchState>& state,
