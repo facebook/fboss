@@ -39,6 +39,7 @@
 #include "fboss/agent/AclNexthopHandler.h"
 #include "fboss/agent/DsfSubscriber.h"
 #include "fboss/agent/FsdbSyncer.h"
+#include "fboss/agent/HwSwitchThriftClientTable.h"
 #include "fboss/agent/MPLSHandler.h"
 #include "fboss/agent/MacTableManager.h"
 #include "fboss/agent/MirrorManager.h"
@@ -161,6 +162,11 @@ DEFINE_int32(
 
 DECLARE_bool(intf_nbr_tables);
 
+DEFINE_int32(
+    hwagent_base_thrift_port,
+    5931,
+    "The first thrift server port reserved for HwAgent");
+
 namespace {
 
 /**
@@ -280,7 +286,10 @@ SwSwitch::SwSwitch(
       switchStatsObserver_(new SwitchStatsObserver(this)),
       packetStreamMap_(new MultiSwitchPacketStreamMap()),
       swSwitchWarmbootHelper_(
-          new SwSwitchWarmBootHelper(agentDirUtil_->getWarmBootDir())) {
+          new SwSwitchWarmBootHelper(agentDirUtil_->getWarmBootDir())),
+      hwSwitchThriftClientTable_(new HwSwitchThriftClientTable(
+          FLAGS_hwagent_base_thrift_port,
+          getSwitchInfoFromConfig(config))) {
   // Create the platform-specific state directories if they
   // don't exist already.
   utilCreateDir(agentDirUtil_->getVolatileStateDir());

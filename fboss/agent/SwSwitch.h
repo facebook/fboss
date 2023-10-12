@@ -90,6 +90,7 @@ class SwitchStatsObserver;
 class MultiSwitchPacketStreamMap;
 class SwSwitchWarmBootHelper;
 class AgentDirectoryUtil;
+class HwSwitchThriftClientTable;
 
 namespace fsdb {
 enum class FsdbSubscriptionState;
@@ -191,6 +192,10 @@ class SwSwitch : public HwSwitchCallback {
   }
   const SwitchIdScopeResolver* getScopeResolver() const {
     return scopeResolver_.get();
+  }
+
+  HwSwitchThriftClientTable* getHwSwitchThriftClientTable() const {
+    return hwSwitchThriftClientTable_.get();
   }
 
   /*
@@ -1177,6 +1182,7 @@ class SwSwitch : public HwSwitchCallback {
       publishedStatsToFsdbAt_;
   std::unique_ptr<MultiSwitchPacketStreamMap> packetStreamMap_;
   std::unique_ptr<SwSwitchWarmBootHelper> swSwitchWarmbootHelper_;
+  std::unique_ptr<HwSwitchThriftClientTable> hwSwitchThriftClientTable_;
   std::atomic<std::chrono::time_point<std::chrono::steady_clock>>
       lastPacketRxTime_{std::chrono::steady_clock::time_point::min()};
   folly::Synchronized<std::unique_ptr<AgentConfig>> agentConfig_;

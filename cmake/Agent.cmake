@@ -140,6 +140,7 @@ add_library(core
   fboss/agent/HwAsicTable.cpp
   fboss/agent/HwSwitch.cpp
   fboss/agent/HwSwitchConnectionStatusTable.cpp
+  fboss/agent/HwSwitchThriftClientTable.cpp
   fboss/agent/HwSwitchHandler.cpp
   fboss/agent/IPHeaderV4.cpp
   fboss/agent/IPv4Handler.cpp
@@ -238,6 +239,7 @@ target_link_libraries(core
   platform_mapping_utils
   sw_switch_warmboot_helper
   hw_write_behavior
+  hw_ctrl_cpp2
 )
 
 add_library(error
