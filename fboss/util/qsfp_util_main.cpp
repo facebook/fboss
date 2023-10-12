@@ -349,13 +349,13 @@ int main(int argc, char* argv[]) {
       if (FLAGS_prbs_start) {
         printf(
             "Starting PRBS on Module %d, this will bring down link\n", portNum);
-        setModulePrbs(evb, swPortNames, true);
+        setModulePrbs(i2cInfo, swPortNames, true);
       } else if (FLAGS_prbs_stop) {
         printf("Stopping PRBS on Module %d\n", portNum);
-        setModulePrbs(evb, swPortNames, false);
+        setModulePrbs(i2cInfo, swPortNames, false);
       } else if (FLAGS_prbs_stats) {
         printf("Showing PRBS stats for Module %d\n", portNum);
-        getModulePrbsStats(evb, swPortList);
+        getModulePrbsStats(i2cInfo, swPortList);
       }
     }
   }

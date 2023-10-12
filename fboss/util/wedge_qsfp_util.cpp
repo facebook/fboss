@@ -370,6 +370,21 @@ void fwUpgradeThreadHandler(
     std::string firmwareFilename,
     uint32_t imageHdrLen);
 
+void setModulePrbsViaService(
+    folly::EventBase& evb,
+    std::vector<std::string> portList,
+    bool start);
+void setModulePrbsDirect(
+    DirectI2cInfo i2cInfo,
+    std::vector<std::string> portList,
+    bool start);
+void getModulePrbsStatsViaService(
+    folly::EventBase& evb,
+    std::vector<PortID> portList);
+void getModulePrbsStatsDirect(
+    DirectI2cInfo i2cInfo,
+    std::vector<PortID> portList);
+
 std::ostream& operator<<(std::ostream& os, const FlagCommand& cmd) {
   gflags::CommandLineFlagInfo flagInfo;
 
@@ -3460,11 +3475,29 @@ bool getEepromCsumStatus(const DOMDataUnion& domDataUnion) {
 /*
  * setModulePrbs
  *
+ * Sets the module PRBS state. This can work with either qsfp_service or use
+ * direct_i2c calls
+ */
+void setModulePrbs(
+    DirectI2cInfo i2cInfo,
+    std::vector<std::string> portList,
+    bool start) {
+  if (QsfpServiceDetector::getInstance()->isQsfpServiceActive()) {
+    folly::EventBase& evb = QsfpUtilContainer::getInstance()->getEventBase();
+    setModulePrbsViaService(evb, portList, start);
+  } else {
+    setModulePrbsDirect(i2cInfo, portList, start);
+  }
+}
+
+/*
+ * setModulePrbsViaService
+ *
  * Starts or stops the PRBS generator and checker on a module. This function
  * needs qsfp_service running as it makes thrift call to it for setting PRBS
  * mode on a module (or list of ports). This functiuon supports PBS31Q only.
  */
-void setModulePrbs(
+void setModulePrbsViaService(
     folly::EventBase& evb,
     std::vector<std::string> portList,
     bool start) {
@@ -3490,12 +3523,41 @@ void setModulePrbs(
 }
 
 /*
- * getModulePrbsStats
+ * setModulePrbsDirect
+ *
+ * Sets the module PRBS state by using direct i2c operation. This function does
+ * not know about the port speed and profile so it operates on transceiver
+ * module rather than SW port inside the module
+ */
+void setModulePrbsDirect(
+    DirectI2cInfo /* i2cInfo */,
+    std::vector<std::string> /* portList */,
+    bool /* start */) {}
+
+/*
+ * getModulePrbsStatus
+ *
+ * This function gets the PRBS stats from the module and prints it. It either
+ * gets data from qsfp_service or uses direct I2C operations
+ */
+void getModulePrbsStats(DirectI2cInfo i2cInfo, std::vector<PortID> portList) {
+  if (QsfpServiceDetector::getInstance()->isQsfpServiceActive()) {
+    folly::EventBase& evb = QsfpUtilContainer::getInstance()->getEventBase();
+    getModulePrbsStatsViaService(evb, portList);
+  } else {
+    getModulePrbsStatsDirect(i2cInfo, portList);
+  }
+}
+
+/*
+ * getModulePrbsStatsViaService
  *
  * Prints the PRBS status (Lock status and BER values) for a module where PRBS
- * is running.
+ * is running. This function fetches data from qsfp_service
  */
-void getModulePrbsStats(folly::EventBase& evb, std::vector<PortID> portList) {
+void getModulePrbsStatsViaService(
+    folly::EventBase& evb,
+    std::vector<PortID> portList) {
   auto client = getQsfpClient(evb);
   for (auto port : portList) {
     phy::PrbsStats prbsStats;
@@ -3520,6 +3582,17 @@ void getModulePrbsStats(folly::EventBase& evb, std::vector<PortID> portList) {
     }
   }
 }
+
+/*
+ * getModulePrbsStatsDirect
+ *
+ * This function prints the PRBS stats for the module. This function does not
+ * know about the port speed and profile so it operates on transceiver module
+ * rather than SW port inside the module
+ */
+void getModulePrbsStatsDirect(
+    DirectI2cInfo /* i2cInfo */,
+    std::vector<PortID> /* portList */) {}
 
 /*
  * Verify the select command is working properly with regard to the

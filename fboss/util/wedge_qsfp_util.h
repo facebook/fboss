@@ -286,10 +286,10 @@ void bucketize(
 std::vector<int> getPidForProcess(std::string proccessName);
 
 void setModulePrbs(
-    folly::EventBase& evb,
+    DirectI2cInfo i2cInfo,
     std::vector<std::string> portList,
     bool start);
-void getModulePrbsStats(folly::EventBase& evb, std::vector<PortID> portList);
+void getModulePrbsStats(DirectI2cInfo i2cInfo, std::vector<PortID> portList);
 
 bool verifyDirectI2cCompliance();
 
