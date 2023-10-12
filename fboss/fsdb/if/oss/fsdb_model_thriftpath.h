@@ -133,7 +133,8 @@ std::pair<strings::stateMachineState, Child<::facebook::fboss::TransceiverStateM
 std::pair<strings::portNameToHostLanes, ChildThriftPath<::std::map<::std::string, ::std::vector<::std::int32_t>>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
 std::pair<strings::portNameToMediaLanes, ChildThriftPath<::std::map<::std::string, ::std::vector<::std::int32_t>>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
 std::pair<strings::timeCollected, Child<::std::int64_t, ::apache::thrift::type_class::integral>>,
-std::pair<strings::diagCapability, ChildThriftPath<::facebook::fboss::DiagsCapability, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>>;
+std::pair<strings::diagCapability, ChildThriftPath<::facebook::fboss::DiagsCapability, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
+std::pair<strings::fwUpgradeInProgress, Child<bool, ::apache::thrift::type_class::integral>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<bool, ::apache::thrift::type_class::integral>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::facebook::fboss::TransceiverType, ::apache::thrift::type_class::enumeration>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<::std::int32_t, ::apache::thrift::type_class::integral>>,
@@ -154,7 +155,8 @@ std::pair<strings::diagCapability, ChildThriftPath<::facebook::fboss::DiagsCapab
    std::pair<std::integral_constant<apache::thrift::field_id_t, 21>, ChildThriftPath<::std::map<::std::string, ::std::vector<::std::int32_t>>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 22>, ChildThriftPath<::std::map<::std::string, ::std::vector<::std::int32_t>>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 23>, Child<::std::int64_t, ::apache::thrift::type_class::integral>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 24>, ChildThriftPath<::facebook::fboss::DiagsCapability, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 24>, ChildThriftPath<::facebook::fboss::DiagsCapability, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 25>, Child<bool, ::apache::thrift::type_class::integral>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::present, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::transceiver, std::integral_constant<apache::thrift::field_id_t, 2>>,
@@ -176,7 +178,8 @@ std::pair<strings::stateMachineState, std::integral_constant<apache::thrift::fie
 std::pair<strings::portNameToHostLanes, std::integral_constant<apache::thrift::field_id_t, 21>>,
 std::pair<strings::portNameToMediaLanes, std::integral_constant<apache::thrift::field_id_t, 22>>,
 std::pair<strings::timeCollected, std::integral_constant<apache::thrift::field_id_t, 23>>,
-std::pair<strings::diagCapability, std::integral_constant<apache::thrift::field_id_t, 24>>>::template type_of<Name>;
+std::pair<strings::diagCapability, std::integral_constant<apache::thrift::field_id_t, 24>>,
+std::pair<strings::fwUpgradeInProgress, std::integral_constant<apache::thrift::field_id_t, 25>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -210,6 +213,7 @@ std::pair<strings::diagCapability, std::integral_constant<apache::thrift::field_
     STRUCT_CHILD_GETTERS(portNameToMediaLanes, 22);
     STRUCT_CHILD_GETTERS(timeCollected, 23);
     STRUCT_CHILD_GETTERS(diagCapability, 24);
+    STRUCT_CHILD_GETTERS(fwUpgradeInProgress, 25);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -234,6 +238,7 @@ std::pair<strings::diagCapability, std::integral_constant<apache::thrift::field_
     else if constexpr (__id == 22) { return portNameToMediaLanes(); }
     else if constexpr (__id == 23) { return timeCollected(); }
     else if constexpr (__id == 24) { return diagCapability(); }
+    else if constexpr (__id == 25) { return fwUpgradeInProgress(); }
   }
 
   template <typename T, T... Values>

@@ -443,6 +443,7 @@ struct TcvrState {
   22: map<string, list<i32>> portNameToMediaLanes;
   23: i64 timeCollected;
   24: DiagsCapability diagCapability;
+  25: bool fwUpgradeInProgress;
 }
 
 struct TcvrStats {

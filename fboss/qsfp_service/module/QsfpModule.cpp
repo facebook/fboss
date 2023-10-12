@@ -1507,5 +1507,11 @@ std::set<uint8_t> QsfpModule::getTcvrLanesForPort(
   return tcvrLanes;
 }
 
+TransceiverInfo QsfpModule::updateFwUpgradeStatusInTcvrInfoLocked(
+    bool upgradeInProgress) {
+  (*(info_.wlock()))->tcvrState()->fwUpgradeInProgress() = upgradeInProgress;
+  return getTransceiverInfo();
+}
+
 } // namespace fboss
 } // namespace facebook

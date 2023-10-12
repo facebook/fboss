@@ -294,6 +294,9 @@ class Transceiver {
   virtual bool upgradeFirmware(
       const std::optional<cfg::Firmware>& fw = std::nullopt) = 0;
 
+  virtual TransceiverInfo updateFwUpgradeStatusInTcvrInfoLocked(
+      bool upgradeInProgress) = 0;
+
  protected:
   virtual void latchAndReadVdmDataLocked() = 0;
   virtual bool shouldRemediateLocked() = 0;

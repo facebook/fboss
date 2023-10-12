@@ -726,6 +726,11 @@ class QsfpModule : public Transceiver {
   std::string getFwStorageHandle(const std::string& tcvrPartNumber) const;
 
   const folly::EventBase* getEvb() const override;
+
+  // Function to update the fwUpgradeInProgress field in
+  // transceiverInfo.tcvrState and return the new transceiverInfo
+  TransceiverInfo updateFwUpgradeStatusInTcvrInfoLocked(
+      bool upgradeInProgress) override;
 };
 } // namespace fboss
 } // namespace facebook
