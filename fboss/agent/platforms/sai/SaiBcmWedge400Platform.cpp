@@ -46,7 +46,7 @@ void SaiBcmWedge400Platform::initLEDs() {
   // TODO skhare
 }
 
-SaiBcmWedge400Platform::~SaiBcmWedge400Platform() {}
+SaiBcmWedge400Platform::~SaiBcmWedge400Platform() = default;
 
 std::unique_ptr<PlatformMapping>
 SaiBcmWedge400Platform::createWedge400PlatformMapping(

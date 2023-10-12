@@ -60,7 +60,7 @@ HwAsic* SaiFakePlatform::getAsic() const {
   return asic_.get();
 }
 
-SaiFakePlatform::~SaiFakePlatform() {}
+SaiFakePlatform::~SaiFakePlatform() = default;
 
 const std::set<sai_api_t>& SaiFakePlatform::getSupportedApiList() const {
   return SaiApiTable::getInstance()->getFullApiList();

@@ -42,7 +42,7 @@ HwAsic* SaiBcmWedge100Platform::getAsic() const {
   return asic_.get();
 }
 
-SaiBcmWedge100Platform::~SaiBcmWedge100Platform() {}
+SaiBcmWedge100Platform::~SaiBcmWedge100Platform() = default;
 
 void SaiBcmWedge100Platform::initLEDs() {
   // The LED mode can be reset by power cycle or by BMC push. Set the LED

@@ -128,7 +128,7 @@ SaiPlatform::SaiPlatform(
       utility::getSubsidiaryPortIDs(getPlatformPorts());
   const auto& platPorts = getPlatformPorts();
   CHECK(portsByMasterPort.size() > 1);
-  for (auto itPort : portsByMasterPort) {
+  for (const auto& itPort : portsByMasterPort) {
     if (FLAGS_hide_fabric_ports) {
       if (*platPorts.find(static_cast<int32_t>(itPort.first))
                ->second.mapping()
@@ -141,7 +141,7 @@ SaiPlatform::SaiPlatform(
   }
 }
 
-SaiPlatform::~SaiPlatform() {}
+SaiPlatform::~SaiPlatform() = default;
 
 void SaiPlatform::updatePorts(const StateDelta& delta) {
   for (const auto& entry : delta.getPortsDelta()) {

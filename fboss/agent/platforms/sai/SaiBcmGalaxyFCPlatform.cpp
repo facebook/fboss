@@ -37,5 +37,5 @@ HwAsic* SaiBcmGalaxyFCPlatform::getAsic() const {
   return asic_.get();
 }
 
-SaiBcmGalaxyFCPlatform::~SaiBcmGalaxyFCPlatform() {}
+SaiBcmGalaxyFCPlatform::~SaiBcmGalaxyFCPlatform() = default;
 } // namespace facebook::fboss

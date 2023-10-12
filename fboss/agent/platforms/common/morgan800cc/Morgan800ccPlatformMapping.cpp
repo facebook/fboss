@@ -3941,8 +3941,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
 )";
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 Morgan800ccPlatformMapping::Morgan800ccPlatformMapping()
     : PlatformMapping(kJsonPlatformMappingStr) {}
 
@@ -3950,5 +3949,4 @@ Morgan800ccPlatformMapping::Morgan800ccPlatformMapping(
     const std::string& platformMappingStr)
     : PlatformMapping(platformMappingStr) {}
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -159,8 +159,7 @@ static const std::unordered_map<
 };
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 FakeTestPlatformMapping::FakeTestPlatformMapping(
     std::vector<int> controllingPortIds,
     int portsPerSlot)
@@ -338,5 +337,4 @@ phy::RxSettings FakeTestPlatformMapping::getFakeRxSetting() {
   return rx;
 }
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

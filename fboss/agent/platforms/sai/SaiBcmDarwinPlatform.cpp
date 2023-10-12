@@ -42,6 +42,6 @@ HwAsic* SaiBcmDarwinPlatform::getAsic() const {
   return asic_.get();
 }
 
-SaiBcmDarwinPlatform::~SaiBcmDarwinPlatform() {}
+SaiBcmDarwinPlatform::~SaiBcmDarwinPlatform() = default;
 
 } // namespace facebook::fboss

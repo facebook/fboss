@@ -42,6 +42,6 @@ HwAsic* SaiBcmMontblancPlatform::getAsic() const {
   return asic_.get();
 }
 
-SaiBcmMontblancPlatform::~SaiBcmMontblancPlatform() {}
+SaiBcmMontblancPlatform::~SaiBcmMontblancPlatform() = default;
 
 } // namespace facebook::fboss

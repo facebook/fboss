@@ -44,7 +44,7 @@ HwAsic* SaiBcmWedge40Platform::getAsic() const {
   return asic_.get();
 }
 
-SaiBcmWedge40Platform::~SaiBcmWedge40Platform() {}
+SaiBcmWedge40Platform::~SaiBcmWedge40Platform() = default;
 
 void SaiBcmWedge40Platform::initLEDs() {
   initWedgeLED(0, Wedge40LedUtils::defaultLedCode());

@@ -48,6 +48,6 @@ SaiMeru800biaPlatform::getInternalSystemPortConfig() const {
   CHECK(asic_->getSwitchId()) << " Switch Id must be set before sys port info";
   return {{0, static_cast<uint32_t>(*asic_->getSwitchId()), 0, 0, 10000, 8}};
 }
-SaiMeru800biaPlatform::~SaiMeru800biaPlatform() {}
+SaiMeru800biaPlatform::~SaiMeru800biaPlatform() = default;
 
 } // namespace facebook::fboss

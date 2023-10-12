@@ -8503,8 +8503,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
 )";
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 Wedge40PlatformMapping::Wedge40PlatformMapping()
     : PlatformMapping(kJsonPlatformMappingStr) {}
 
@@ -8512,5 +8511,4 @@ Wedge40PlatformMapping::Wedge40PlatformMapping(
     const std::string& platformMappingStr)
     : PlatformMapping(platformMappingStr) {}
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

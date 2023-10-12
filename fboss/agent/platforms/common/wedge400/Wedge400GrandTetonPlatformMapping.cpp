@@ -11691,8 +11691,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
 )";
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 Wedge400GrandTetonPlatformMapping::Wedge400GrandTetonPlatformMapping()
     : PlatformMapping(kJsonPlatformMappingStr) {}
 
@@ -11700,5 +11699,4 @@ Wedge400GrandTetonPlatformMapping::Wedge400GrandTetonPlatformMapping(
     const std::string& platformMappingStr)
     : PlatformMapping(platformMappingStr) {}
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -61,7 +61,7 @@ HwAsic* SaiCloudRipperPlatform::getAsic() const {
   return asic_.get();
 }
 
-SaiCloudRipperPlatform::~SaiCloudRipperPlatform() {}
+SaiCloudRipperPlatform::~SaiCloudRipperPlatform() = default;
 
 std::vector<sai_system_port_config_t>
 SaiCloudRipperPlatform::getInternalSystemPortConfig() const {

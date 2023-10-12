@@ -92,7 +92,7 @@ std::vector<PortID> SaiPlatformPort::getSubsumedPorts(
   }
   std::vector<PortID> subsumedPortList;
   for (auto portId : *supportedProfilesIter->second.subsumedPorts()) {
-    subsumedPortList.push_back(PortID(portId));
+    subsumedPortList.emplace_back(portId);
   }
   return subsumedPortList;
 }

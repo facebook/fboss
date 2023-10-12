@@ -47,6 +47,6 @@ std::string SaiMorgan800ccPlatform::getHwConfig() {
   return *config()->thrift.platform()->get_chip().get_asic().config();
 }
 
-SaiMorgan800ccPlatform::~SaiMorgan800ccPlatform() {}
+SaiMorgan800ccPlatform::~SaiMorgan800ccPlatform() = default;
 
 } // namespace facebook::fboss

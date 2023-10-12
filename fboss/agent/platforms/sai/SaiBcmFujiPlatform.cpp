@@ -38,6 +38,6 @@ HwAsic* SaiBcmFujiPlatform::getAsic() const {
   return asic_.get();
 }
 
-SaiBcmFujiPlatform::~SaiBcmFujiPlatform() {}
+SaiBcmFujiPlatform::~SaiBcmFujiPlatform() = default;
 
 } // namespace facebook::fboss

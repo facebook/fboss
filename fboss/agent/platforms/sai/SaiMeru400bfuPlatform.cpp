@@ -42,6 +42,6 @@ HwAsic* SaiMeru400bfuPlatform::getAsic() const {
   return asic_.get();
 }
 
-SaiMeru400bfuPlatform::~SaiMeru400bfuPlatform() {}
+SaiMeru400bfuPlatform::~SaiMeru400bfuPlatform() = default;
 
 } // namespace facebook::fboss

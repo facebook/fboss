@@ -44,6 +44,6 @@ void SaiBcmYampPlatform::initLEDs() {
   // TODO skhare
 }
 
-SaiBcmYampPlatform::~SaiBcmYampPlatform() {}
+SaiBcmYampPlatform::~SaiBcmYampPlatform() = default;
 
 } // namespace facebook::fboss

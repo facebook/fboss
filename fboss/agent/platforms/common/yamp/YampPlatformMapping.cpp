@@ -12,8 +12,7 @@
 
 #include "fboss/agent/platforms/common/yamp/Yamp16QPimPlatformMapping.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 YampPlatformMapping::YampPlatformMapping(
     const std::string& platformMappingStr) {
   // current Yamp platform only supports 16Q pims
@@ -24,5 +23,4 @@ YampPlatformMapping::YampPlatformMapping(
     this->merge(yamp16Q->getPimPlatformMapping(pimID));
   }
 }
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

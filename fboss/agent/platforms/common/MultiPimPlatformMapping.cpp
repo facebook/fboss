@@ -16,8 +16,7 @@
 #include <thrift/lib/cpp/util/EnumUtils.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 MultiPimPlatformMapping::MultiPimPlatformMapping(
     const std::string& jsonPlatformMappingStr)
     : PlatformMapping(jsonPlatformMappingStr) {
@@ -31,7 +30,7 @@ MultiPimPlatformMapping::MultiPimPlatformMapping(
     pims_[portPimID]->setPlatformPort(port.first, port.second);
 
     const auto& portChips = utility::getDataPlanePhyChips(port.second, chips_);
-    for (auto itChip : portChips) {
+    for (const auto& itChip : portChips) {
       pims_[portPimID]->setChip(itChip.first, itChip.second);
     }
 
@@ -74,5 +73,4 @@ MultiPimPlatformMapping::getPimPlatformMappingUniquePtr(uint8_t pimID) {
   }
   throw FbossError("Invalid pim id:", static_cast<int>(pimID));
 }
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -50,7 +50,7 @@ std::vector<PortID> SaiBcmPlatform::getAllPortsInGroup(PortID portID) const {
     const auto& portList =
         utility::getPlatformPortsByControllingPort(platformPorts, portID);
     for (const auto& port : portList) {
-      allPortsinGroup.push_back(PortID(*port.mapping()->id()));
+      allPortsinGroup.emplace_back(*port.mapping()->id());
     }
   }
   return allPortsinGroup;

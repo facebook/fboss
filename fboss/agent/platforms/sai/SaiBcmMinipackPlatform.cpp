@@ -34,6 +34,6 @@ void SaiBcmMinipackPlatform::initLEDs() {
   // TODO skhare
 }
 
-SaiBcmMinipackPlatform::~SaiBcmMinipackPlatform() {}
+SaiBcmMinipackPlatform::~SaiBcmMinipackPlatform() = default;
 
 } // namespace facebook::fboss

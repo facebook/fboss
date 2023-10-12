@@ -41040,8 +41040,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
 )";
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 Wedge100PlatformMapping::Wedge100PlatformMapping()
     : PlatformMapping(kJsonPlatformMappingStr) {}
 
@@ -41057,5 +41056,4 @@ void Wedge100PlatformMapping::customizePlatformPortConfigOverrideFactor(
     factor->cableLengths() = {std::max(1.0, std::min(3.0, cableLength))};
   }
 }
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -41,9 +41,7 @@
 #include "fboss/agent/platforms/common/wedge400c/Wedge400CPlatformUtil.h"
 #include "fboss/agent/platforms/common/yamp/YampPlatformMapping.h"
 
-namespace facebook::fboss {
-
-namespace utility {
+namespace facebook::fboss::utility {
 
 std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
   std::string platformMappingStr;
@@ -166,6 +164,4 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
   }
   return nullptr;
 }
-} // namespace utility
-
-} // namespace facebook::fboss
+} // namespace facebook::fboss::utility

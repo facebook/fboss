@@ -33,8 +33,7 @@ constexpr auto kFbossPortNameRegex = "eth(\\d+)/(\\d+)/(\\d+)";
 const re2::RE2 portNameRegex(kFbossPortNameRegex);
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 cfg::PlatformPortConfigOverrideFactor buildPlatformPortConfigOverrideFactor(
     const TransceiverInfo& transceiverInfo) {
@@ -180,7 +179,7 @@ cfg::PlatformMapping PlatformMapping::toThrift() const {
   cfg::PlatformMapping newMapping;
   newMapping.ports() = this->platformPorts_;
   newMapping.platformSupportedProfiles() = this->platformSupportedProfiles_;
-  for (auto nameChipPair : this->chips_) {
+  for (const auto& nameChipPair : this->chips_) {
     newMapping.chips()->push_back(nameChipPair.second);
   }
   newMapping.portConfigOverrides() = this->portConfigOverrides_;
@@ -195,7 +194,7 @@ void PlatformMapping::merge(PlatformMapping* mapping) {
   }
   mapping->platformPorts_.clear();
 
-  for (auto incomingProfile : mapping->platformSupportedProfiles_) {
+  for (const auto& incomingProfile : mapping->platformSupportedProfiles_) {
     mergePlatformSupportedProfile(incomingProfile);
   }
   mapping->platformSupportedProfiles_.clear();
@@ -290,7 +289,7 @@ cfg::PortSpeed PlatformMapping::getPortMaxSpeed(PortID portID) const {
   }
 
   cfg::PortSpeed maxSpeed{cfg::PortSpeed::DEFAULT};
-  for (auto profile : *itPlatformPort->second.supportedProfiles()) {
+  for (const auto& profile : *itPlatformPort->second.supportedProfiles()) {
     if (auto profileConfig = getPortProfileConfig(
             PlatformPortProfileConfigMatcher(profile.first, portID))) {
       if (static_cast<int>(maxSpeed) <
@@ -457,7 +456,7 @@ std::vector<PortID> PlatformMapping::getSwPortListFromTransceiverId(
 
   std::vector<PortID> swPorts;
   for (auto platformPort : platformPorts) {
-    swPorts.push_back(PortID(*platformPort.mapping()->id()));
+    swPorts.emplace_back(*platformPort.mapping()->id());
   }
   return swPorts;
 }
@@ -756,7 +755,7 @@ std::optional<cfg::PortProfileID> PlatformMapping::getProfileIDBySpeedIf(
   }
 
   const auto& platformPortEntry = getPlatformPort(portID);
-  for (auto profile : *platformPortEntry.supportedProfiles()) {
+  for (const auto& profile : *platformPortEntry.supportedProfiles()) {
     auto profileID = profile.first;
     if (auto profileCfg = getPortProfileConfig(
             PlatformPortProfileConfigMatcher(profileID, portID))) {
@@ -775,5 +774,4 @@ std::optional<cfg::PortProfileID> PlatformMapping::getProfileIDBySpeedIf(
              << ", speed=" << apache::thrift::util::enumNameSafe(speed);
   return std::nullopt;
 }
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

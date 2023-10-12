@@ -15,8 +15,7 @@ namespace {
 constexpr auto kJsonPlatformMappingStr = R"()";
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 Sandia8DDPimPlatformMapping::Sandia8DDPimPlatformMapping()
     : MultiPimPlatformMapping(kJsonPlatformMappingStr) {}
 
@@ -24,5 +23,4 @@ Sandia8DDPimPlatformMapping::Sandia8DDPimPlatformMapping(
     const std::string& platformMappingStr)
     : MultiPimPlatformMapping(platformMappingStr) {}
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -14,8 +14,7 @@ namespace {
 constexpr auto kJsonPlatformMappingStr = R"()";
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 LassenPlatformMapping::LassenPlatformMapping()
     : PlatformMapping(kJsonPlatformMappingStr) {}
 
@@ -23,5 +22,4 @@ LassenPlatformMapping::LassenPlatformMapping(
     const std::string& platformMappingStr)
     : PlatformMapping(platformMappingStr) {}
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

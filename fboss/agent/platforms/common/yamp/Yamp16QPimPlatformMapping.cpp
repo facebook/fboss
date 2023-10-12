@@ -115281,8 +115281,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
 )";
 } // namespace
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 Yamp16QPimPlatformMapping::Yamp16QPimPlatformMapping()
     : MultiPimPlatformMapping(kJsonPlatformMappingStr) {}
 
@@ -115290,5 +115289,4 @@ Yamp16QPimPlatformMapping::Yamp16QPimPlatformMapping(
     const std::string& platformMappingStr)
     : MultiPimPlatformMapping(platformMappingStr) {}
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

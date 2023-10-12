@@ -37,6 +37,6 @@ HwAsic* SaiBcmElbertPlatform::getAsic() const {
   return asic_.get();
 }
 
-SaiBcmElbertPlatform::~SaiBcmElbertPlatform() {}
+SaiBcmElbertPlatform::~SaiBcmElbertPlatform() = default;
 
 } // namespace facebook::fboss
