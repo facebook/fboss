@@ -39,6 +39,10 @@ class SaiHandler : public apache::thrift::ServiceHandler<SaiCtrl> {
 
   SwitchRunState getHwSwitchRunState() override;
 
+  void getFabricReachability(
+      std::map<::std::int64_t, ::facebook::fboss::FabricEndpoint>& reachability)
+      override;
+
  private:
   const SaiSwitch* hw_;
   StreamingDiagShellServer diagShell_;

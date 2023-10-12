@@ -210,6 +210,16 @@ void HwSwitch::ensureConfigured(folly::StringPiece function) const {
       "fully configured yet");
 }
 
+void HwSwitch::ensureVoqOrFabric(folly::StringPiece function) const {
+  ensureConfigured(function);
+  if (getSwitchType() != cfg::SwitchType::VOQ &&
+      getSwitchType() != cfg::SwitchType::FABRIC) {
+    throw FbossError(
+        "switch is not a VOQ or Fabric switch and cannot process request: ",
+        function);
+  }
+}
+
 std::shared_ptr<SwitchState> HwSwitch::getMinAlpmState(
     RoutingInformationBase* rib,
     const std::shared_ptr<SwitchState>& state) {

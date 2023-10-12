@@ -60,4 +60,13 @@ SwitchRunState SaiHandler::getHwSwitchRunState() {
   return hw_->getRunState();
 }
 
+void SaiHandler::getFabricReachability(
+    std::map<::std::int64_t, ::facebook::fboss::FabricEndpoint>& reachability) {
+  hw_->ensureVoqOrFabric(__func__);
+  auto reachabilityInfo = hw_->getFabricReachability();
+  for (auto&& entry : reachabilityInfo) {
+    reachability.insert(std::move(entry));
+  }
+}
+
 } // namespace facebook::fboss

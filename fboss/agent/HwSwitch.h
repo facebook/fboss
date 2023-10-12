@@ -369,6 +369,7 @@ class HwSwitch {
           HwWriteBehaviorRAII(HwWriteBehavior::WRITE));
 
   void ensureConfigured(folly::StringPiece function) const;
+  void ensureVoqOrFabric(folly::StringPiece function) const;
 
   bool isFullyConfigured() const;
 
