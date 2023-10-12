@@ -179,7 +179,7 @@ class SffModule : public QsfpModule {
   /*
    * Gather the vendor info for thrift queries
    */
-  Vendor getVendorInfo() override;
+  virtual Vendor getVendorInfo() override;
   /*
    * Gather the cable info for thrift queries
    */
@@ -233,7 +233,7 @@ class SffModule : public QsfpModule {
   /*
    * Returns the status in bytes 1 and 2 in the lower page
    */
-  ModuleStatus getModuleStatus() override;
+  virtual ModuleStatus getModuleStatus() override;
   /*
    * Gather host side per lane configuration settings and return false when it
    * fails

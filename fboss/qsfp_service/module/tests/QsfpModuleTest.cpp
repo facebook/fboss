@@ -479,4 +479,37 @@ TEST_F(QsfpModuleTest, verifyLaneToPortMapping) {
   verify(expectedMap);
 }
 
+TEST_F(QsfpModuleTest, requiresFirmwareUpgrade) {
+  qsfp_->overrideVendorPN(getFakePartNumber());
+
+  // Test empty fw status
+  transceiverManager_->refreshStateMachines();
+  qsfp_->useActualGetTransceiverInfo();
+  EXPECT_FALSE(qsfp_->requiresFirmwareUpgrade());
+
+  // Test app fw status mismatch
+  qsfp_->setAppFwVersion(getFakeAppFwVersion());
+  transceiverManager_->refreshStateMachines();
+  qsfp_->useActualGetTransceiverInfo();
+  EXPECT_FALSE(qsfp_->requiresFirmwareUpgrade());
+
+  // Test app fw status mismatch
+  qsfp_->setAppFwVersion("foo");
+  transceiverManager_->refreshStateMachines();
+  qsfp_->useActualGetTransceiverInfo();
+  EXPECT_TRUE(qsfp_->requiresFirmwareUpgrade());
+
+  // Test dsp fw status match
+  qsfp_->setDspFwVersion(getFakeDspFwVersion());
+  transceiverManager_->refreshStateMachines();
+  qsfp_->useActualGetTransceiverInfo();
+  EXPECT_FALSE(qsfp_->requiresFirmwareUpgrade());
+
+  // Test dsp fw status mismatch
+  qsfp_->setDspFwVersion("bar");
+  transceiverManager_->refreshStateMachines();
+  qsfp_->useActualGetTransceiverInfo();
+  EXPECT_TRUE(qsfp_->requiresFirmwareUpgrade());
+}
+
 } // namespace facebook::fboss

@@ -66,6 +66,8 @@ class MockSffModule : public SffModule {
   MOCK_METHOD0(resetLowPowerMode, void());
   MOCK_METHOD0(ensureTransceiverReadyLocked, bool());
   MOCK_CONST_METHOD0(customizationSupported, bool());
+  MOCK_METHOD0(getModuleStatus, ModuleStatus());
+  MOCK_METHOD0(getVendorInfo, Vendor());
 
   // Provide way to call parent
   void actualSetCdrIfSupported(
@@ -139,6 +141,30 @@ class MockSffModule : public SffModule {
 
   bool writeTransceiver(TransceiverIOParameters param, uint8_t data) override {
     return SffModule::writeTransceiver(param, data);
+  }
+
+  void setAppFwVersion(std::string fwVersion) {
+    ModuleStatus moduleStatus;
+    FirmwareStatus fw;
+    fw.version() = fwVersion;
+    moduleStatus.fwStatus() = fw;
+    ON_CALL(*this, getModuleStatus())
+        .WillByDefault(testing::Return(moduleStatus));
+  }
+
+  void setDspFwVersion(std::string fwVersion) {
+    ModuleStatus moduleStatus;
+    FirmwareStatus fw;
+    fw.dspFwVer() = fwVersion;
+    moduleStatus.fwStatus() = fw;
+    ON_CALL(*this, getModuleStatus())
+        .WillByDefault(testing::Return(moduleStatus));
+  }
+
+  void overrideVendorPN(std::string partNumber) {
+    Vendor vendor;
+    vendor.partNumber() = partNumber;
+    ON_CALL(*this, getVendorInfo()).WillByDefault(testing::Return(vendor));
   }
 
   TransceiverInfo fakeInfo_;

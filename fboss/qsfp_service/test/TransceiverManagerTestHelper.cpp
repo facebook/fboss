@@ -14,7 +14,18 @@
 namespace facebook::fboss {
 void TransceiverManagerTestHelper::SetUp() {
   setupFakeAgentConfig(agentCfgPath);
-  setupFakeQsfpConfig(qsfpCfgPath);
+  cfg::QsfpServiceConfig qsfpCfg;
+  cfg::TransceiverFirmware fwVersions;
+  cfg::Firmware fw;
+  cfg::FirmwareVersion fwVersionApp, fwVersionDsp;
+  fwVersionApp.version() = getFakeAppFwVersion();
+  fwVersionApp.fwType() = cfg::FirmwareType::APPLICATION;
+  fwVersionDsp.version() = getFakeDspFwVersion();
+  fwVersionDsp.fwType() = cfg::FirmwareType::DSP;
+  fw.versions() = {fwVersionApp, fwVersionDsp};
+  fwVersions.versionsMap()[getFakePartNumber()] = fw;
+  qsfpCfg.transceiverFirmwareVersions() = fwVersions;
+  setupFakeQsfpConfig(qsfpCfgPath, qsfpCfg);
 
   // Set up fake qsfp_service volatile directory
   gflags::SetCommandLineOptionWithMode(

@@ -30,6 +30,18 @@ class TransceiverManagerTestHelper : public ::testing::Test {
   std::string qsfpCfgPath = qsfpSvcVolatileDir + "/fakeQsfpConfig";
 
   std::unique_ptr<MockWedgeManager> transceiverManager_;
+
+  std::string getFakePartNumber() const {
+    return "FAKE";
+  }
+
+  std::string getFakeAppFwVersion() const {
+    return "1.2";
+  }
+
+  std::string getFakeDspFwVersion() const {
+    return "2.3";
+  }
 };
 
 } // namespace facebook::fboss
