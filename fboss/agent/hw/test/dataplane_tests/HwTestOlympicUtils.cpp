@@ -681,8 +681,10 @@ void addOlympicQosMapsHelper(
     for (auto dscp : dscps) {
       qosMap.dscpMaps()[qosMapIdx].fromDscpToTrafficClass()->push_back(dscp);
     }
-    qosMap.trafficClassToQueueId()->emplace(q, q);
     ++qosMapIdx;
+  }
+  for (int q = 0; q <= kOlympicHighestSPQueueId; q++) {
+    qosMap.trafficClassToQueueId()->emplace(q, q);
   }
   cfg.qosPolicies()->resize(1);
   *cfg.qosPolicies()[0].name() = qosPolicyName;
