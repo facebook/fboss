@@ -7225,21 +7225,21 @@
     "cpuQueues": [
       {
         "id": 7,
-        "streamType": 1,
+        "streamType": 0,
         "weight": 4,
         "scheduling": 0,
         "name": "cpuQueue-high"
       },
       {
         "id": 2,
-        "streamType": 1,
+        "streamType": 0,
         "weight": 2,
         "scheduling": 0,
         "name": "cpuQueue-mid"
       },
       {
         "id": 1,
-        "streamType": 1,
+        "streamType": 0,
         "weight": 1,
         "scheduling": 0,
         "name": "cpuQueue-default",
@@ -7252,7 +7252,7 @@
       },
       {
         "id": 0,
-        "streamType": 1,
+        "streamType": 0,
         "weight": 1,
         "scheduling": 0,
         "name": "cpuQueue-low",
