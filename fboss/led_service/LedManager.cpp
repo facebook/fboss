@@ -127,11 +127,11 @@ void LedManager::setExternalLedState(
     PortLedExternalState ledState) {
   // Set the Forced on/off values in portDisplayMap_
   if (portDisplayMap_.find(portNum) == portDisplayMap_.end()) {
-    PortDisplayInfo portInfo;
-    portInfo.forcedOn = ledState == PortLedExternalState::EXTERNAL_FORCE_ON;
-    portInfo.forcedOff = ledState == PortLedExternalState::EXTERNAL_FORCE_OFF;
-    portInfo.currentLedColor = led::LedColor::UNKNOWN;
-    portDisplayMap_[portNum] = portInfo;
+    // If the PortInfo has not been updated from FSDB yet then the important
+    // info like port profile is not available so we need to bail out from
+    // this functon
+    throw FbossError(folly::sformat(
+        "setExternalLedState: Port info not available for {:d} yet", portNum));
   } else {
     portDisplayMap_[portNum].forcedOn =
         ledState == PortLedExternalState::EXTERNAL_FORCE_ON;
