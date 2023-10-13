@@ -174,6 +174,9 @@ SAI_HW_KNOWN_BAD_TESTS = (
 QSFP_KNOWN_BAD_TESTS = (
     "./share/qsfp_known_bad_tests/fboss_qsfp_known_bad_tests.materialized_JSON"
 )
+QSFP_UNSUPPORTED_TESTS = (
+    "./share/qsfp_unsupported_tests/fboss_qsfp_unsupported_tests.materialized_JSON"
+)
 LINK_KNOWN_BAD_TESTS = (
     "./share/link_known_bad_tests/fboss_link_known_bad_tests.materialized_JSON"
 )
@@ -232,6 +235,10 @@ class TestRunner(abc.ABC):
 
     @abc.abstractmethod
     def _get_known_bad_tests_file(self):
+        pass
+
+    @abc.abstractmethod
+    def _get_unsupported_tests_file(self):
         pass
 
     @abc.abstractmethod
@@ -333,6 +340,23 @@ class TestRunner(abc.ABC):
                 known_bad_tests.append(known_bad_test)
         return known_bad_tests
 
+    def _get_unsupported_test_regexes(self):
+        if not args.skip_known_bad_tests:
+            return []
+
+        unsupported_tests_file = self._get_unsupported_tests_file()
+
+        with open(unsupported_tests_file) as f:
+            unsupported_test_json = json.load(f)
+            unsupported_test_structs = unsupported_test_json["unsupported_tests"][
+                args.skip_known_bad_tests
+            ]
+            unsupported_tests = []
+            for test_struct in unsupported_test_structs:
+                unsupported_test = test_struct["test_name_regex"]
+                unsupported_tests.append(unsupported_test)
+        return unsupported_tests
+
     def _parse_list_test_output(self, output):
         ret = []
         class_name = None
@@ -382,6 +406,13 @@ class TestRunner(abc.ABC):
                 return True
         return False
 
+    def _is_unsupported_test(self, test):
+        unsupported_test_regexes = self._get_unsupported_test_regexes()
+        for unsupported_test_regex in unsupported_test_regexes:
+            if re.match(unsupported_test_regex, test):
+                return True
+        return False
+
     def _get_tests_to_run(self):
         # Filter syntax is -
         #   --filter=<include_regexes>-<exclude_regexes>
@@ -416,7 +447,7 @@ class TestRunner(abc.ABC):
         for regex in regexes:
             if "-" in regex:
                 break
-            if self._is_known_bad_test(regex):
+            if self._is_known_bad_test(regex) or self._is_unsupported_test(regex):
                 continue
             filter += f"{regex}:"
         if not filter:
@@ -687,6 +718,9 @@ class BcmTestRunner(TestRunner):
     def _get_known_bad_tests_file(self):
         return ""
 
+    def _get_unsupported_tests_file(self):
+        return ""
+
     def _get_test_binary_name(self):
         return "bcm_test"
 
@@ -723,6 +757,9 @@ class SaiTestRunner(TestRunner):
 
     def _get_known_bad_tests_file(self):
         return SAI_HW_KNOWN_BAD_TESTS
+
+    def _get_unsupported_tests_file(self):
+        return ""
 
     def _get_test_binary_name(self):
         return args.sai_bin if args.sai_bin else "sai_test-sai_impl-1.12.0"
@@ -767,6 +804,9 @@ class QsfpTestRunner(TestRunner):
     def _get_known_bad_tests_file(self):
         return QSFP_KNOWN_BAD_TESTS
 
+    def _get_unsupported_tests_file(self):
+        return QSFP_UNSUPPORTED_TESTS
+
     def _get_test_binary_name(self):
         return "qsfp_hw_test"
 
@@ -804,6 +844,9 @@ class LinkTestRunner(TestRunner):
 
     def _get_known_bad_tests_file(self):
         return LINK_KNOWN_BAD_TESTS
+
+    def _get_unsupported_tests_file(self):
+        return ""
 
     def _get_test_binary_name(self):
         return "sai_link_test-sai_impl-1.12.0"
