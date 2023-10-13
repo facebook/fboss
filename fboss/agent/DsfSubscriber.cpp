@@ -264,17 +264,9 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
   auto isInterfaceNode = [](const std::shared_ptr<DsfNode>& node) {
     return node->getType() == cfg::DsfNodeType::INTERFACE_NODE;
   };
-  auto getLoopbackIp = [](const std::shared_ptr<DsfNode>& node) {
-    auto network = folly::IPAddress::createNetwork(
-        (*node->getLoopbackIps()->cbegin())->toThrift(),
-        -1 /*default CIDR*/,
-        false /*apply mask*/);
-    return network.first.str();
-  };
 
-  auto getServerOptions = [&voqSwitchIds, getLoopbackIp](
-                              const std::shared_ptr<DsfNode>& node,
-                              const auto& state) {
+  auto getServerOptions = [&voqSwitchIds](
+                              const auto& dstIP, const auto& state) {
     // Use loopback IP of any local VOQ switch as src for FSDB subscriptions
     // TODO: Evaluate what we should do if one or more VOQ switches go down
     auto localDsfNode = state->getDsfNodes()->getNodeIf(*voqSwitchIds.begin());
@@ -287,7 +279,7 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
     //  srcIP = self inband IP
     //  priority = CRITICAL
     auto serverOptions = fsdb::FsdbStreamClient::ServerOptions(
-        getLoopbackIp(node),
+        dstIP,
         FLAGS_fsdbPort,
         (*localDsfNode->getLoopbackIpsSorted().begin()).first.str(),
         fsdb::FsdbStreamClient::Priority::CRITICAL);
@@ -303,20 +295,28 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
     }
     auto nodeName = node->getName();
     auto nodeSwitchId = node->getSwitchId();
-    // Subscription is not established until state becomes CONNECTED
-    this->sw_->stats()->failedDsfSubscription(1);
 
     dsfSessions_.wlock()->emplace(nodeName, nodeName);
-    XLOG(DBG2) << " Setting up DSF subscriptions to : " << nodeName;
-    fsdbPubSubMgr_->addStatePathSubscription(
-        getAllSubscribePaths(localNodeName_),
-        [this, nodeName](auto oldState, auto newState) {
-          handleFsdbConnectionStateUpdate(nodeName, oldState, newState);
-        },
-        [this, nodeName, nodeSwitchId](fsdb::OperSubPathUnit&& operStateUnit) {
-          handleFsdbUpdate(nodeSwitchId, nodeName, std::move(operStateUnit));
-        },
-        getServerOptions(node, stateDelta.newState()));
+    for (const auto& network : node->getLoopbackIpsSorted()) {
+      auto dstIP = network.first.str();
+      XLOG(DBG2) << "Setting up DSF subscriptions to : " << nodeName
+                 << " dstIP: " << dstIP;
+
+      // Subscription is not established until state becomes CONNECTED
+      this->sw_->stats()->failedDsfSubscription(1);
+
+      fsdbPubSubMgr_->addStatePathSubscription(
+          getAllSubscribePaths(localNodeName_),
+          [this, nodeName](auto oldState, auto newState) {
+            handleFsdbConnectionStateUpdate(nodeName, oldState, newState);
+          },
+          [this, nodeName, nodeSwitchId](
+              fsdb::OperSubPathUnit&& operStateUnit) {
+            handleFsdbUpdate(nodeSwitchId, nodeName, std::move(operStateUnit));
+          },
+          getServerOptions(dstIP, stateDelta.newState()),
+          dstIP);
+    }
   };
   auto rmDsfNode = [&](const std::shared_ptr<DsfNode>& node) {
     // No need to setup subscriptions to (local) yourself
@@ -325,16 +325,23 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
       return;
     }
     auto nodeName = node->getName();
-    XLOG(DBG2) << " Removing DSF subscriptions to : " << nodeName;
     dsfSessions_.wlock()->erase(nodeName);
-    if (fsdbPubSubMgr_->getStatePathSubsriptionState(
-            getAllSubscribePaths(localNodeName_), getLoopbackIp(node)) !=
-        fsdb::FsdbStreamClient::State::CONNECTED) {
-      // Subscription was not established - decrement failedDSF counter.
-      this->sw_->stats()->failedDsfSubscription(-1);
+
+    for (const auto& network : node->getLoopbackIpsSorted()) {
+      auto dstIP = network.first.str();
+      XLOG(DBG2) << "Removing DSF subscriptions to : " << nodeName
+                 << " dstIP: " << dstIP;
+
+      if (fsdbPubSubMgr_->getStatePathSubsriptionState(
+              getAllSubscribePaths(localNodeName_), dstIP) !=
+          fsdb::FsdbStreamClient::State::CONNECTED) {
+        // Subscription was not established - decrement failedDSF counter.
+        this->sw_->stats()->failedDsfSubscription(-1);
+      }
+
+      fsdbPubSubMgr_->removeStatePathSubscription(
+          getAllSubscribePaths(localNodeName_), dstIP);
     }
-    fsdbPubSubMgr_->removeStatePathSubscription(
-        getAllSubscribePaths(localNodeName_), getLoopbackIp(node));
   };
   DeltaFunctions::forEachChanged(
       stateDelta.getDsfNodesDelta(),

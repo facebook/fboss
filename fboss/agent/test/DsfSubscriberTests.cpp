@@ -265,7 +265,10 @@ TEST_F(DsfSubscriberTest, addSubscription) {
             /* add */ true);
         return newState;
       });
-  EXPECT_EQ(sw_->getDsfSubscriber()->getSubscriptionInfo().size(), 1);
+  EXPECT_EQ(
+      sw_->getDsfSubscriber()->getSubscriptionInfo().size(),
+      node5DsfConfig.loopbackIps()->size());
+
   EXPECT_TRUE(verifySubscriptionState(
       node5DsfConfig, sw_->getDsfSubscriber()->getSubscriptionInfo()));
   EXPECT_TRUE(verifyDsfSessionState(
@@ -281,7 +284,12 @@ TEST_F(DsfSubscriberTest, addSubscription) {
             /* add */ true);
         return newState;
       });
-  EXPECT_EQ(sw_->getDsfSubscriber()->getSubscriptionInfo().size(), 2);
+
+  EXPECT_EQ(
+      sw_->getDsfSubscriber()->getSubscriptionInfo().size(),
+      node5DsfConfig.loopbackIps()->size() +
+          node6DsfConfig.loopbackIps()->size());
+
   EXPECT_TRUE(verifySubscriptionState(
       node6DsfConfig, sw_->getDsfSubscriber()->getSubscriptionInfo()));
   EXPECT_TRUE(verifyDsfSessionState(
@@ -324,7 +332,8 @@ TEST_F(DsfSubscriberTest, failedDsfCounter) {
   counters.update();
 
   EXPECT_TRUE(counters.checkExist(failedDsfCounter));
-  EXPECT_EQ(counters.value(failedDsfCounter), 1);
+  EXPECT_EQ(
+      counters.value(failedDsfCounter), node5DsfConfig.loopbackIps()->size());
 
   auto node6DsfConfig = makeDsfNodeCfg(6);
   sw_->updateStateBlocking(
@@ -338,7 +347,10 @@ TEST_F(DsfSubscriberTest, failedDsfCounter) {
       });
   counters.update();
 
-  EXPECT_EQ(counters.value(failedDsfCounter), 2);
+  EXPECT_EQ(
+      counters.value(failedDsfCounter),
+      node5DsfConfig.loopbackIps()->size() +
+          node6DsfConfig.loopbackIps()->size());
 
   // Remove 2 IN nodes
   sw_->updateStateBlocking(
