@@ -1655,6 +1655,13 @@ void ThriftHandler::programInternalPhyPorts(
           portIds.emplace_back(port->getID());
         }
       }
+
+      if (portIds.size() == 0) {
+        XLOG(INFO) << "No ports found for transceiver " << tcvrID
+                   << ". Skip programming internal phy.";
+        return newState;
+      }
+
       if (!newTransceiver) {
         newTransceiverMap->removeNode(tcvrID);
       } else if (newTransceiverMap->getNodeIf(tcvrID)) {
