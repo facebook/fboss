@@ -270,6 +270,39 @@ void _fill(const SaiListT& src, std::vector<T>& dst) {
   std::copy(src.list, src.list + src.count, std::begin(dst));
 }
 
+inline bool compareQosMap(const sai_qos_map_t& lhs, const sai_qos_map_t& rhs) {
+  if (lhs.key.tc != rhs.key.tc) {
+    return lhs.key.tc < rhs.key.tc;
+  }
+  if (lhs.key.dscp != rhs.key.dscp) {
+    return lhs.key.dscp < rhs.key.dscp;
+  }
+  if (lhs.key.prio != rhs.key.prio) {
+    return lhs.key.prio < rhs.key.prio;
+  }
+  if (lhs.key.color != rhs.key.color) {
+    return lhs.key.color < rhs.key.color;
+  }
+  if (lhs.key.mpls_exp != rhs.key.mpls_exp) {
+    return lhs.key.mpls_exp < rhs.key.mpls_exp;
+  }
+  return false;
+}
+
+inline void _fill(std::vector<sai_qos_map_t>& src, sai_qos_map_list_t& dst) {
+  std::sort(src.begin(), src.end(), compareQosMap);
+  dst.count = src.size();
+  dst.list = src.data();
+}
+
+inline void _fill(
+    const sai_qos_map_list_t& src,
+    std::vector<sai_qos_map_t>& dst) {
+  dst.resize(src.count);
+  std::copy(src.list, src.list + src.count, std::begin(dst));
+  std::sort(dst.begin(), dst.end(), compareQosMap);
+}
+
 inline void _fill(
     const sai_acl_field_data_t& src,
     facebook::fboss::AclEntryFieldU8& dst) {

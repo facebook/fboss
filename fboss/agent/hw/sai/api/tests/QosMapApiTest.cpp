@@ -24,15 +24,15 @@ class QosMapApiTest : public ::testing::Test {
     qosMapApi = std::make_unique<QosMapApi>();
   }
   QosMapSaiId createDscpToTcQosMap(
-      const std::unordered_map<int, int>& dscpToTc) {
+      const std::vector<std::vector<int>>& dscpToTc) {
     SaiQosMapTraits::Attributes::Type typeAttribute(
         SAI_QOS_MAP_TYPE_DSCP_TO_TC);
     std::vector<sai_qos_map_t> qosMapList;
     qosMapList.resize(dscpToTc.size());
     int i = 0;
     for (const auto& mapping : dscpToTc) {
-      qosMapList[i].key.dscp = mapping.first;
-      qosMapList[i].value.tc = mapping.second;
+      qosMapList[i].key.dscp = mapping[0];
+      qosMapList[i].value.tc = mapping[1];
       ++i;
     }
     SaiQosMapTraits::Attributes::MapToValueList mapToValueListAttribute(
@@ -45,16 +45,17 @@ class QosMapApiTest : public ::testing::Test {
 
   void checkDscpToTcQosMap(
       QosMapSaiId qosMapSaiId,
-      const std::unordered_map<int, int>& dscpToTc) {
+      std::vector<std::vector<int>>& dscpToTc) {
+    std::sort(dscpToTc.begin(), dscpToTc.end());
     const auto& qm = fs->qosMapManager.get(qosMapSaiId);
-    for (const auto& mapping : qm.mapToValueList) {
-      auto expectedItr = dscpToTc.find(mapping.key.dscp);
-      EXPECT_NE(expectedItr, dscpToTc.end());
-      EXPECT_EQ(expectedItr->second, mapping.value.tc);
+    for (int i = 0; i < qm.mapToValueList.size(); i++) {
+      const auto& mapping = qm.mapToValueList[i];
+      EXPECT_EQ(dscpToTc[i][0], mapping.key.dscp);
+      EXPECT_EQ(dscpToTc[i][1], mapping.value.tc);
     }
   }
 
-  void testDscpToTcQosMap(const std::unordered_map<int, int>& dscpToTc) {
+  void testDscpToTcQosMap(std::vector<std::vector<int>>& dscpToTc) {
     auto id = createDscpToTcQosMap(dscpToTc);
     checkDscpToTcQosMap(id, dscpToTc);
   }
@@ -65,13 +66,13 @@ class QosMapApiTest : public ::testing::Test {
 };
 
 TEST_F(QosMapApiTest, create) {
-  std::unordered_map<int, int> dscpToTc{
+  std::vector<std::vector<int>> dscpToTc{
       {0, 0}, {1, 0}, {5, 2}, {2, 1}, {3, 7}, {4, 1}};
   testDscpToTcQosMap(dscpToTc);
 }
 
 TEST_F(QosMapApiTest, remove) {
-  std::unordered_map<int, int> dscpToTc{
+  std::vector<std::vector<int>> dscpToTc{
       {0, 0}, {1, 0}, {5, 2}, {2, 1}, {3, 7}, {4, 1}};
   auto id = createDscpToTcQosMap(dscpToTc);
   qosMapApi->remove(id);
@@ -94,7 +95,7 @@ TEST_F(QosMapApiTest, sai_qos_map_t_Equality) {
 }
 
 TEST_F(QosMapApiTest, getQosMapAttribute) {
-  std::unordered_map<int, int> dscpToTc{
+  std::vector<std::vector<int>> dscpToTc{
       {0, 0}, {1, 0}, {5, 2}, {2, 1}, {3, 7}, {4, 1}};
   auto qosMapId = createDscpToTcQosMap(dscpToTc);
 
@@ -108,7 +109,7 @@ TEST_F(QosMapApiTest, getQosMapAttribute) {
 }
 
 TEST_F(QosMapApiTest, setQosMapAttribute) {
-  std::unordered_map<int, int> dscpToTc{
+  std::vector<std::vector<int>> dscpToTc{
       {0, 0}, {1, 0}, {5, 2}, {2, 1}, {3, 7}, {4, 1}};
   auto qosMapId = createDscpToTcQosMap(dscpToTc);
 
