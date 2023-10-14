@@ -1398,6 +1398,11 @@ void TransceiverManager::TransceiverStateMachineHelper::stopThread() {
 void TransceiverManager::waitForAllBlockingStateUpdateDone(
     const TransceiverManager::BlockingStateUpdateResultList& results) {
   for (const auto& result : results) {
+    if (isExiting_) {
+      XLOG(INFO)
+          << "Terminating waitForAllBlockingStateUpdateDone for graceful exit";
+      return;
+    }
     result->wait();
   }
 }
@@ -1517,6 +1522,10 @@ std::pair<bool, std::vector<std::string>> TransceiverManager::areAllPortsDown(
 void TransceiverManager::triggerRemediateEvents(
     const std::vector<TransceiverID>& stableTcvrs) {
   if (stableTcvrs.empty()) {
+    return;
+  }
+  if (isExiting_) {
+    XLOG(INFO) << "Skip triggerRemediateEvents during graceful exit";
     return;
   }
   BlockingStateUpdateResultList results;
