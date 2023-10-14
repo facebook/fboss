@@ -2202,4 +2202,52 @@ TEST_F(TransceiverStateMachineTest, programMultiPortTransceiverSequentially) {
   EXPECT_TRUE(stateMachine.get_attribute(isTransceiverProgrammed));
   verifyPortToLaneMap(false /* bothPorts */);
 }
+
+TEST_F(TransceiverStateMachineTest, upgradeFirmware) {
+  for (auto multiPort : {false, true}) {
+    XLOG(INFO) << "Verifying upgradeFirmware for multiPort = " << multiPort;
+    auto allStates = getAllStates();
+    verifyStateMachine(
+        {TransceiverStateMachineState::UPGRADING,
+         TransceiverStateMachineState::DISCOVERED,
+         TransceiverStateMachineState::INACTIVE},
+        TransceiverStateMachineState::NOT_PRESENT /* expected state */,
+        allStates,
+        []() {} /* preUpdate */,
+        [this]() {
+          enableTransceiverFirmwareUpgradeTesting(true);
+          triggerFirmwareUpgradeEvents();
+        },
+        [this]() {
+          const auto& stateMachine =
+              transceiverManager_->getStateMachineForTesting(id_);
+          // We should set needToResetToNotPresent in the entry to UPGRADING
+          // state. However, we revert it to false on entry into the NOT_PRESENT
+          // state. In the verify function, the state should be NOT_PRESENT.
+          // Hence expect needToResetToNotPresent to be false
+          EXPECT_FALSE(stateMachine.get_attribute(needToResetToNotPresent));
+          enableTransceiverFirmwareUpgradeTesting(false);
+        } /* verify */,
+        multiPort,
+        TransceiverType::MOCK_CMIS,
+        kUpgradeTransceiverFnStr);
+
+    // Other states should not change even though we try to process the event
+    verifyStateUnchanged(
+        allStates,
+        [this]() {
+          enableTransceiverFirmwareUpgradeTesting(true);
+          triggerFirmwareUpgradeEvents();
+        } /* preUpdate */,
+        []() {} /* stateUpdate */,
+        [this]() {
+          enableTransceiverFirmwareUpgradeTesting(false);
+        } /* verify */,
+        multiPort,
+        TransceiverType::MOCK_CMIS,
+        kUpgradeTransceiverFnStr);
+    // Prepare for testing with next multiPort value
+    cleanup();
+  }
+}
 } // namespace facebook::fboss
