@@ -663,6 +663,12 @@ cfg::SwitchDrainState computeActualSwitchDrainState(
     int numFabricPortsUp) {
   CHECK(switchSettings);
 
+  // For non-VOQ switches, actual switch drain state is the same as desired
+  // switch drain state.
+  if (switchSettings->getSwitchIdsOfType(cfg::SwitchType::VOQ).size() == 0) {
+    return switchSettings->getSwitchDrainState();
+  }
+
   // TODO(skhare)
   // Once SwitchSettingsFields are made unique for HwSwitch,
   // SwitchSettingsFields will carry switchInfo instead of
