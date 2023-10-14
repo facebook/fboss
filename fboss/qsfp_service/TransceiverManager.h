@@ -114,6 +114,10 @@ class TransceiverManager {
       ResetType resetType,
       ResetAction resetAction);
 
+  void setForceFirmwareUpgradeForTesting(bool enable) {
+    forceFirmwareUpgradeForTesting_ = enable;
+  }
+
   /*
    * A function take a parameter representing number of seconds,
    * adding it to the time point of now and assign it to
@@ -759,6 +763,8 @@ class TransceiverManager {
   folly::Synchronized<
       std::unordered_map<const folly::EventBase*, std::vector<TransceiverID>>>
       evbsRunningFirmwareUpgrade_;
+
+  bool forceFirmwareUpgradeForTesting_{false};
 
   friend class TransceiverStateMachineTest;
 };

@@ -25,6 +25,7 @@ const auto kWarmBootAgentConfigChangedFnStr =
 const auto kColdBootAgentConfigChangedFnStr =
     "Triggering Agent config changed w/ cold boot";
 const auto kRemediateTransceiverFnStr = "Remediating transceiver";
+const auto kUpgradeTransceiverFnStr = "Upgrading transceiver firmware";
 } // namespace
 
 class MockSff8472TransceiverImpl : public Sfp10GTransceiver {
@@ -230,6 +231,7 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
   void setState(TransceiverStateMachineState state, bool multiPort) {
     // Pause remediation
     transceiverManager_->setPauseRemediation(60, nullptr);
+    enableTransceiverFirmwareUpgradeTesting(false);
 
     auto discoverTransceiver = [this]() {
       // One refresh can finish discoverring xcvr after detectPresence
@@ -311,7 +313,11 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
         setXcvtActiveState(false);
         break;
       case TransceiverStateMachineState::UPGRADING:
-        throw FbossError("Doesn't support UPGRADING state yet");
+        setXcvtActiveState(false);
+        enableTransceiverFirmwareUpgradeTesting(true);
+        transceiverManager_->updateStateBlocking(
+            id_, TransceiverStateMachineEvent::TCVR_EV_UPGRADE_FIRMWARE);
+        break;
     }
     auto curState = transceiverManager_->getCurrentState(id_);
     EXPECT_EQ(curState, state)
@@ -331,8 +337,7 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
         TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
         TransceiverStateMachineState::ACTIVE,
         TransceiverStateMachineState::INACTIVE,
-        // TODO(joseph5wu) Will support the reset states later
-        // TransceiverStateMachineState::UPGRADING,
+        TransceiverStateMachineState::UPGRADING,
     };
   }
 
@@ -571,6 +576,14 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
         "remediate_interval", "0", gflags::SET_FLAGS_DEFAULT);
   }
 
+  void enableTransceiverFirmwareUpgradeTesting(bool enable) {
+    gflags::SetCommandLineOptionWithMode(
+        "firmware_upgrade_supported",
+        enable ? "1" : "0",
+        gflags::SET_FLAGS_DEFAULT);
+    transceiverManager_->setForceFirmwareUpgradeForTesting(enable);
+  }
+
   void triggerAgentConfigChanged(bool isAgentColdBoot) {
     // Override ConfigAppliedInfo
     ConfigAppliedInfo configAppliedInfo;
@@ -588,6 +601,11 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
 
   void triggerRemediateEvents() {
     transceiverManager_->triggerRemediateEvents(stableXcvrIds_);
+  }
+
+  void triggerFirmwareUpgradeEvents() {
+    std::unordered_set<TransceiverID> tcvrs = {id_};
+    transceiverManager_->triggerFirmwareUpgradeEvents(tcvrs);
   }
 
   void setMockCmisPresence(bool isPresent) {
@@ -1150,7 +1168,8 @@ TEST_F(TransceiverStateMachineTest, removeTransceiver) {
          TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED,
          TransceiverStateMachineState::TRANSCEIVER_READY,
          TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
-         TransceiverStateMachineState::ACTIVE},
+         TransceiverStateMachineState::ACTIVE,
+         TransceiverStateMachineState::UPGRADING},
         TransceiverStateMachineEvent::TCVR_EV_REMOVE_TRANSCEIVER,
         TransceiverStateMachineState::NOT_PRESENT /* expected state */,
         allStates,
@@ -1821,7 +1840,8 @@ TEST_F(TransceiverStateMachineTest, agentConfigChangedWarmBootOnAbsentXcvr) {
        TransceiverStateMachineState::TRANSCEIVER_READY,
        TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
        TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED,
-       TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED},
+       TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED,
+       TransceiverStateMachineState::UPGRADING},
       TransceiverStateMachineState::NOT_PRESENT /* expected state */,
       allStates,
       [this]() {
@@ -1866,7 +1886,8 @@ TEST_F(TransceiverStateMachineTest, agentConfigChangedColdBootOnAbsentXcvr) {
        TransceiverStateMachineState::TRANSCEIVER_READY,
        TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
        TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED,
-       TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED},
+       TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED,
+       TransceiverStateMachineState::UPGRADING},
       TransceiverStateMachineState::NOT_PRESENT /* expected state */,
       allStates,
       [this]() {

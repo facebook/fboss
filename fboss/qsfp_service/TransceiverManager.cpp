@@ -261,8 +261,9 @@ bool TransceiverManager::firmwareUpgradeRequired(TransceiverID id) {
   auto lockedTransceivers = transceivers_.rlock();
   auto tcvrIt = lockedTransceivers->find(id);
 
-  if (tcvrIt != lockedTransceivers->end() && tcvrIt->second->isPresent() &&
-      tcvrIt->second->requiresFirmwareUpgrade()) {
+  if (forceFirmwareUpgradeForTesting_ ||
+      (tcvrIt != lockedTransceivers->end() && tcvrIt->second->isPresent() &&
+       tcvrIt->second->requiresFirmwareUpgrade())) {
     // If we are here, it means that this transceiver is present and has the
     // firmware version mismatch and hence requires upgrade
     // We also need to check that at any time one i2c evb should run firmware
