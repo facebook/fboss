@@ -458,6 +458,7 @@ BOOST_MSM_EUML_TRANSITION_TABLE((
     IPHY_PORTS_PROGRAMMED  + REMOVE_TRANSCEIVER     [isSafeToRemove]           / logStateChanged == NOT_PRESENT,
     DISCOVERED             + REMOVE_TRANSCEIVER                                / logStateChanged == NOT_PRESENT,
     PRESENT                + REMOVE_TRANSCEIVER                                / logStateChanged == NOT_PRESENT,
+    UPGRADING              + REMOVE_TRANSCEIVER                                / logStateChanged == NOT_PRESENT,
     // Remediate transciever if all ports are down
     INACTIVE               + REMEDIATE_TRANSCEIVER  [tryRemediateTransceiver]  / logStateChanged == XPHY_PORTS_PROGRAMMED,
     // As we allow programming events for not present transceiver, we might have the transceiver finish all programming
