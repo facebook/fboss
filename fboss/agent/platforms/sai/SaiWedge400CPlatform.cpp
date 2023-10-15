@@ -35,7 +35,7 @@ void SaiWedge400CPlatform::setupAsic(
     std::optional<cfg::Range64> systemPortRange,
     folly::MacAddress& mac) {
   std::optional<cfg::SdkVersion> sdkVersion;
-#if defined(TAJO_SDK_VERSION_1_65_0)
+#if defined(TAJO_SDK_VERSION_1_65_0) || defined(TAJO_SDK_VERSION_1_68_0)
   /*
    * HwAsic table instance in the sw switch reads the SDK version
    * from the agent config for prod and from sai switch ensemble

@@ -45,7 +45,7 @@ SaiSwitchTraits::Attributes::AttributeDllPathWrapper::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeRestartIssuWrapper::operator()() {
-#if defined(TAJO_SDK_VERSION_1_65_0)
+#if defined(TAJO_SDK_VERSION_1_65_0) || defined(TAJO_SDK_VERSION_1_68_0)
   return SAI_SWITCH_ATTR_EXT_RESTART_ISSU;
 #else
   return std::nullopt;
