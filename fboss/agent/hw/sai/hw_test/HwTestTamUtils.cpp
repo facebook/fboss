@@ -36,7 +36,7 @@ void triggerBcmJerichoParityError(HwSwitchEnsemble* ensemble) {
   ensemble->runDiagCommand("w CGM_QSPM 0 1 0\n", out);
   ensemble->runDiagCommand(
       "m ECI_GLOBAL_MEM_OPTIONS CPU_BYPASS_ECC_PAR=1\n", out);
-  ensemble->runDiagCommand("w CGM_QSPM 0 1 0\n", out);
+  ensemble->runDiagCommand("w CGM_QSPM 0 1 1\n", out);
   ensemble->runDiagCommand(
       "m ECI_GLOBAL_MEM_OPTIONS CPU_BYPASS_ECC_PAR=0\n", out);
   ensemble->runDiagCommand("d raw disable_cache CGM_QSPM 0 1\n", out);
