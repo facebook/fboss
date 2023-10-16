@@ -556,3 +556,10 @@ target_link_libraries(sw_agent_initializer
   setup_thrift
   utils
 )
+
+add_library(agent_netwhoami
+  fboss/agent/AgentNetWhoAmI.h
+  fboss/agent/oss/AgentNetWhoAmI.cpp
+)
+
+target_link_libraries(agent_netwhoami)
