@@ -10,6 +10,7 @@
 
 #include "fboss/agent/hw/test/HwTestUdfUtils.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
+#include "fboss/agent/hw/bcm/BcmFieldProcessorUtils.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmUdfManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
@@ -113,6 +114,12 @@ int getHwUdfPacketMatcherId(
   return static_cast<const BcmSwitch*>(hw)
       ->getUdfMgr()
       ->getBcmUdfPacketMatcherId(udfPackeMatchName);
+}
+
+void validateUdfIdsSetInQset(const HwSwitch* hw, const int aclGroupId) {
+  const auto& udf_ids =
+      getUdfQsetIds(static_cast<const BcmSwitch*>(hw)->getUnit(), aclGroupId);
+  EXPECT_TRUE(udf_ids.size() > 0);
 }
 
 } // namespace facebook::fboss::utility

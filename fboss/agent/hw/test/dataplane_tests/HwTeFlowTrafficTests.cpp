@@ -16,6 +16,7 @@
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/HwTestTeFlowUtils.h"
+#include "fboss/agent/hw/test/HwTestUdfUtils.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
 #include "fboss/agent/packet/PktFactory.h"
@@ -280,6 +281,9 @@ class HwTeFlowTrafficTest : public HwLinkStateDependentTest {
     auto verifyPostWB = [&]() {
       if (udfAclEnabled) {
         _validateTeFlow();
+        utility::validateUdfIdsSetInQset(
+            getHwSwitch(),
+            getHwSwitch()->getPlatform()->getAsic()->getDefaultACLGroupID());
       }
     };
 

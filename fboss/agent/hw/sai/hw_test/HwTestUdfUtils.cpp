@@ -132,4 +132,10 @@ int getHwUdfPacketMatcherId(
       "Cannot find UdfMatch " + udfPackeMatchName + " in Sai Switch");
 }
 
+void validateUdfIdsSetInQset(
+    const HwSwitch* /* unused */,
+    const int /*aclGroupId*/) {
+  // not supported on SAI yet.
+  EXPECT_TRUE(false);
+}
 } // namespace facebook::fboss::utility
