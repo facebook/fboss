@@ -170,24 +170,56 @@ void SaiAclTableManager::removeAclTable(
   handles_.erase(aclTableName);
 }
 
+bool SaiAclTableManager::needsAclTableRecreate(
+    const std::shared_ptr<AclTable>& oldAclTable,
+    const std::shared_ptr<AclTable>& newAclTable) {
+  if (oldAclTable->getActionTypes() != newAclTable->getActionTypes() ||
+      oldAclTable->getPriority() != newAclTable->getPriority() ||
+      oldAclTable->getQualifiers() != newAclTable->getQualifiers()) {
+    return true;
+  }
+  return false;
+}
+
+void SaiAclTableManager::removeAclEntriesFromTable(
+    const std::shared_ptr<AclTable>& aclTable) {
+  auto aclMap = aclTable->getAclMap().unwrap();
+  for (auto const& iter : std::as_const(*aclMap)) {
+    const auto& entry = iter.second;
+    auto aclEntry = aclMap->getEntry(entry->getID());
+    removeAclEntry(aclEntry, aclTable->getID());
+  }
+}
+
+void SaiAclTableManager::addAclEntriesToTable(
+    const std::shared_ptr<AclTable>& aclTable,
+    std::shared_ptr<AclMap>& aclMap) {
+  for (auto const& iter : std::as_const(*aclMap)) {
+    const auto& entry = iter.second;
+    auto aclEntry = aclMap->getEntry(entry->getID());
+    addAclEntry(aclEntry, aclTable->getID());
+  }
+}
+
 void SaiAclTableManager::changedAclTable(
     const std::shared_ptr<AclTable>& oldAclTable,
     const std::shared_ptr<AclTable>& newAclTable,
     cfg::AclStage aclStage) {
   /*
-   * TODO(skhare)
-   * Extend SwitchState to carry AclTable, and then process it to change
-   * AclTable.
-   * (We would likely have to removeAclTable() and re addAclTable() due to ASIC
-   * limitations.
-   */
+   * If the only change in acl table is in acl entries, then the acl entry delta
+   * processing will take care of changing those.
+   * Changes to ACL table properties will need a remove and readd
+   * Ensure that the newly added table also adds the old acls*/
+  if (needsAclTableRecreate(oldAclTable, newAclTable)) {
+    // Remove acl entries from old acl table before removing the table
+    removeAclEntriesFromTable(oldAclTable);
+    removeAclTable(oldAclTable, aclStage);
+    addAclTable(newAclTable, aclStage);
 
-  /*
-   * TODO(saranicholas)
-   * Modify this to process acl entries delta, instead of removing and re adding
-   */
-  removeAclTable(oldAclTable, aclStage);
-  addAclTable(newAclTable, aclStage);
+    // Add the old acl Entries back to new acl table
+    auto oldAclMap = oldAclTable->getAclMap().unwrap();
+    addAclEntriesToTable(newAclTable, oldAclMap);
+  }
 }
 
 const SaiAclTableHandle* FOLLY_NULLABLE

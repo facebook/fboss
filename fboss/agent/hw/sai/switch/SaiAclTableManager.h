@@ -115,6 +115,13 @@ class SaiAclTableManager {
       const std::shared_ptr<AclTable>& oldAclTable,
       const std::shared_ptr<AclTable>& newAclTable,
       cfg::AclStage aclStage);
+  bool needsAclTableRecreate(
+      const std::shared_ptr<AclTable>& oldAclTable,
+      const std::shared_ptr<AclTable>& newAclTable);
+  void removeAclEntriesFromTable(const std::shared_ptr<AclTable>& aclTable);
+  void addAclEntriesToTable(
+      const std::shared_ptr<AclTable>& aclTable,
+      std::shared_ptr<AclMap>& aclMap);
 
   const SaiAclTableHandle* FOLLY_NULLABLE
   getAclTableHandle(const std::string& aclTableName) const;
