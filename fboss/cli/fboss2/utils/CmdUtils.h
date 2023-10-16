@@ -390,6 +390,7 @@ std::optional<std::string> getMyHostname(const std::string& hostname);
 std::string getCmdToRun(const std::string& hostname, const std::string& cmd);
 std::string runCmd(const std::string& cmd);
 std::vector<std::string> getBgpDrainedInterafces(const HostInfo& hostInfo);
+std::string getBgpSwitchDrainState(const HostInfo& hostInfo);
 
 std::string getSubscriptionPathStr(const fsdb::OperSubscriberInfo& subscriber);
 
