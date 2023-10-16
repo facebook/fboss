@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTeFlowTestUtils.h"
+#include "fboss/agent/hw/test/HwTestAclUtils.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/HwTestTeFlowUtils.h"
@@ -43,6 +44,8 @@ static std::string kCounterID2("counter2");
 static int kPrefixLength1(56);
 static std::string kDstIpStart = "100";
 static uint16_t kScaleTeFlowEntries(8192);
+static std::string kUdfAclName("foo");
+static std::string kUdfAclStatName("fooStat");
 } // namespace
 
 class HwTeFlowTrafficTest : public HwLinkStateDependentTest {
@@ -162,60 +165,7 @@ class HwTeFlowTrafficTest : public HwLinkStateDependentTest {
         srcMac);
   }
 
-  std::string getCounterId(int index) {
-    return fmt::format("counter{}", index + 1);
-  }
-
-  std::string getDstIp(std::string& dstIpStart, int index) {
-    auto i = int(index / 256);
-    auto j = index % 256;
-    std::string prefix = fmt::format("{}:{}:{}::", dstIpStart, i, j);
-    return prefix;
-  }
-
-  std::unique_ptr<utility::EcmpSetupTargetedPorts6> ecmpHelper_;
-};
-
-TEST_F(HwTeFlowTrafficTest, validateTeFlow) {
-  if (this->skipTest()) {
-#if defined(GTEST_SKIP)
-    GTEST_SKIP();
-#endif
-    return;
-  }
-
-  auto setup = [=]() {
-    ecmpHelper_ = std::make_unique<utility::EcmpSetupTargetedPorts6>(
-        getProgrammedState(), RouterID(0));
-    setExactMatchCfg(getHwSwitchEnsemble(), kPrefixLength1);
-    // Add 100::/32 lpm route entry
-    this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[0]));
-    this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[1]));
-    this->addRoute(kAddr1, 32, PortDescriptor(masterLogicalPortIds()[0]));
-
-    // Add three TeFlow EM entries so that stats increments on non zero
-    // action index for TH4.
-    auto flowEntry0 = makeFlowEntry(
-        "102::", kNhopAddrB, kIfName2, masterLogicalPortIds()[0], kCounterID1);
-    addFlowEntry(getHwSwitchEnsemble(), flowEntry0);
-
-    auto flowEntry1 = makeFlowEntry(
-        "101::", kNhopAddrB, kIfName2, masterLogicalPortIds()[0], kCounterID2);
-    addFlowEntry(getHwSwitchEnsemble(), flowEntry1);
-
-    auto flowEntry2 = makeFlowEntry(
-        "100::", kNhopAddrB, kIfName2, masterLogicalPortIds()[0], kCounterID0);
-    addFlowEntry(getHwSwitchEnsemble(), flowEntry2);
-
-    // verfiy the EM entry programming
-    EXPECT_EQ(utility::getNumTeFlowEntries(getHwSwitch()), 3);
-    utility::checkSwHwTeFlowMatch(
-        getHwSwitch(),
-        getProgrammedState(),
-        makeFlowKey("100::", masterLogicalPortIds()[0]));
-  };
-
-  auto verify = [=]() {
+  void _validateTeFlow() {
     // Send a packet to hit lpm route entry and verify
     auto outPktsBefore0 = getPortOutPkts(
         this->getLatestPortStats(this->masterLogicalPortIds()[0]));
@@ -259,7 +209,97 @@ TEST_F(HwTeFlowTrafficTest, validateTeFlow) {
             byteCountBefore,
 
         expectedLen);
-  };
+  }
+
+  std::string getCounterId(int index) {
+    return fmt::format("counter{}", index + 1);
+  }
+
+  std::string getDstIp(std::string& dstIpStart, int index) {
+    auto i = int(index / 256);
+    auto j = index % 256;
+    std::string prefix = fmt::format("{}:{}:{}::", dstIpStart, i, j);
+    return prefix;
+  }
+
+  void _setupTeFlow() {
+    ecmpHelper_ = std::make_unique<utility::EcmpSetupTargetedPorts6>(
+        getProgrammedState(), RouterID(0));
+    setExactMatchCfg(getHwSwitchEnsemble(), kPrefixLength1);
+    // Add 100::/32 lpm route entry
+    this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[0]));
+    this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[1]));
+    this->addRoute(kAddr1, 32, PortDescriptor(masterLogicalPortIds()[0]));
+
+    // Add three TeFlow EM entries so that stats increments on non zero
+    // action index for TH4.
+    auto flowEntry0 = makeFlowEntry(
+        "102::", kNhopAddrB, kIfName2, masterLogicalPortIds()[0], kCounterID1);
+    addFlowEntry(getHwSwitchEnsemble(), flowEntry0);
+
+    auto flowEntry1 = makeFlowEntry(
+        "101::", kNhopAddrB, kIfName2, masterLogicalPortIds()[0], kCounterID2);
+    addFlowEntry(getHwSwitchEnsemble(), flowEntry1);
+
+    auto flowEntry2 = makeFlowEntry(
+        "100::", kNhopAddrB, kIfName2, masterLogicalPortIds()[0], kCounterID0);
+    addFlowEntry(getHwSwitchEnsemble(), flowEntry2);
+
+    // verfiy the EM entry programming
+    EXPECT_EQ(utility::getNumTeFlowEntries(getHwSwitch()), 3);
+    utility::checkSwHwTeFlowMatch(
+        getHwSwitch(),
+        getProgrammedState(),
+        makeFlowKey("100::", masterLogicalPortIds()[0]));
+  }
+
+  void testHwTeFlow(bool udfAclEnabled = false) {
+    auto setup = [&]() { _setupTeFlow(); };
+
+    auto verify = [&]() { _validateTeFlow(); };
+
+    auto setupPostWB = [&]() {
+      if (udfAclEnabled) {
+        auto newCfg = initialConfig();
+
+        // remember to add the em table cfg back in
+        cfg::ExactMatchTableConfig exactMatchTableConfigs;
+        std::string teFlowTableName(
+            cfg::switch_config_constants::TeFlowTableName());
+        exactMatchTableConfigs.name() = teFlowTableName;
+        exactMatchTableConfigs.dstPrefixLength() = kPrefixLength1;
+        newCfg.switchSettings()->exactMatchTableConfigs() = {
+            exactMatchTableConfigs};
+
+        utility::delAcl(&newCfg, kUdfAclName);
+        utility::delAclStat(&newCfg, kUdfAclName, kUdfAclStatName);
+        applyNewConfig(newCfg);
+      }
+    };
+
+    auto verifyPostWB = [&]() {
+      if (udfAclEnabled) {
+        _validateTeFlow();
+      }
+    };
+
+    verifyAcrossWarmBoots(setup, verify, setupPostWB, verifyPostWB);
+  }
+
+  std::unique_ptr<utility::EcmpSetupTargetedPorts6> ecmpHelper_;
+};
+
+TEST_F(HwTeFlowTrafficTest, validateTeFlow) {
+  if (this->skipTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
+    return;
+  }
+
+  auto setup = [=]() { _setupTeFlow(); };
+
+  auto verify = [=]() { _validateTeFlow(); };
 
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -464,4 +504,29 @@ TEST_F(HwTeFlowTrafficTest, verifyTeFlowScale) {
 
   verifyAcrossWarmBoots(setup, verify);
 }
+
+class HwUdfAclTeFlowTrafficTest : public HwTeFlowTrafficTest {
+ protected:
+  cfg::SwitchConfig initialConfig() const override {
+    std::vector<PortID> ports = {
+        masterLogicalPortIds()[0],
+        masterLogicalPortIds()[1],
+    };
+    auto cfg = utility::onePortPerInterfaceConfig(
+        getHwSwitch(), std::move(ports), getAsic()->desiredLoopbackModes());
+    utility::setTTLZeroCpuConfig(getAsic(), cfg);
+    // run exact match with UDF acls
+    cfg.udfConfig() = utility::addUdfAclConfig();
+    auto acl = utility::addAcl(&cfg, kUdfAclName);
+    acl->udfGroups() = {utility::kUdfRoceOpcodeAclGroupName};
+    acl->roceOpcode() = utility::kUdfRoceOpcode;
+    utility::addAclStat(&cfg, kUdfAclName, kUdfAclStatName);
+    return cfg;
+  }
+};
+
+TEST_F(HwUdfAclTeFlowTrafficTest, validateAddDelTeFlowsWithUdfAcl) {
+  testHwTeFlow(true /* udf enabled */);
+}
+
 } // namespace facebook::fboss
