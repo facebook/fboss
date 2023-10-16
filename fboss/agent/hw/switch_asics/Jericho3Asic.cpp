@@ -184,7 +184,16 @@ int Jericho3Asic::getDefaultNumPortQueues(
   }
   switch (streamType) {
     case cfg::StreamType::UNICAST:
-      return portType == cfg::PortType::CPU_PORT ? 2 : 8;
+      switch (portType) {
+        case cfg::PortType::CPU_PORT:
+        case cfg::PortType::RECYCLE_PORT:
+          return 2;
+        case cfg::PortType::INTERFACE_PORT:
+          return 8;
+        case cfg::PortType::FABRIC_PORT:
+          break;
+      }
+      break;
     case cfg::StreamType::MULTICAST:
       break;
     case cfg::StreamType::FABRIC_TX:
