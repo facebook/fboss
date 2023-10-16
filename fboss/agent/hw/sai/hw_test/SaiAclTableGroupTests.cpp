@@ -618,4 +618,44 @@ TEST_F(SaiAclTableGroupTest, AddAclEntriesToAclTablesPostWarmboot) {
 
   verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
 }
+
+/*
+ * This tests the ability to change acl table properties and adding acl entries
+ * post warmboot. Add Acl table 1 with qph qualifiers and acl entries and acl
+ * table 2 with ttl on warmboot, add DSCP qualifier and dscp acl entries to
+ * table 1. Verify that all entries are present.
+ */
+TEST_F(
+    SaiAclTableGroupTest,
+    AddAclEntriesAndQualifiersToAclTablesPostWarmboot) {
+  ASSERT_TRUE(isSupported());
+
+  auto setup = [this]() {
+    // Retrieve the multi acl config with DSCP qualifier not added to table 1
+    auto newCfg = getMultiAclConfig(false);
+    applyNewConfig(newCfg);
+  };
+
+  auto verify = [=]() {
+    ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch(), kQphDscpTable()));
+    ASSERT_TRUE(utility::isAclTableEnabled(
+        getHwSwitch(), utility::getTtlAclTableName()));
+  };
+
+  auto setupPostWarmboot = [=]() {
+    // Add DSCP qualifier and DSCP acl entry to table 1 post warmboot
+    auto newCfg = getMultiAclConfig(true);
+    utility::addDscpAclEntryWithCounter(&newCfg, kQphDscpTable(), getAsic());
+    applyNewConfig(newCfg);
+  };
+
+  auto verifyPostWarmboot = [=]() {
+    EXPECT_EQ(
+        utility::getAclTableNumAclEntries(getHwSwitch(), kQphDscpTable()), 36);
+    EXPECT_EQ(
+        utility::getAclTableNumAclEntries(getHwSwitch(), "acl-table-ttl"), 1);
+  };
+
+  verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
+}
 } // namespace facebook::fboss
