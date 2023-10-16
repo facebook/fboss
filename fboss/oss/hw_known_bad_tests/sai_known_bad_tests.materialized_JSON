@@ -245,6 +245,9 @@
           "test_name_regex": "SaiAclTableGroupTrafficTest.*"
         },
         {
+          "test_name_regex": "SaiAclTableGroupTrafficTest/[01].*"
+        },
+        {
           "test_name_regex": "HwEmptyTest.*"
         },
         {
@@ -623,6 +626,9 @@
         },
         {
           "test_name_regex": "SaiAclTableGroupTrafficTest.*"
+        },
+        {
+          "test_name_regex": "SaiAclTableGroupTrafficTest/[01].*"
         },
         {
           "test_name_regex": "HwEmptyTest.*"
@@ -2904,7 +2910,13 @@
           "test_name_regex": "warm_boot.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableCpu"
         },
         {
+          "test_name_regex": "warm_boot.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableCpu"
+        },
+        {
           "test_name_regex": "warm_boot.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableFrontPanel"
+        },
+        {
+          "test_name_regex": "warm_boot.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableFrontPanel"
         }
     ],
     "brcm/7.2.0.0_odp/7.2.0.0_odp/tomahawk3": [
@@ -3470,7 +3482,13 @@
           "test_name_regex": "warm_boot.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableCpu"
         },
         {
+          "test_name_regex": "warm_boot.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableCpu"
+        },
+        {
           "test_name_regex": "warm_boot.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableFrontPanel"
+        },
+        {
+          "test_name_regex": "warm_boot.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableFrontPanel"
         },
         {
           "test_name_regex": "HwTrafficPfcTest.*"
@@ -3740,6 +3758,9 @@
         },
         {
           "test_name_regex": "SaiAclTableGroupTrafficTest.*"
+        },
+        {
+          "test_name_regex": "SaiAclTableGroupTrafficTest/[01].*"
         },
         {
           "test_name_regex": "HwEcmpTest.Ucmp.*"
@@ -4377,7 +4398,13 @@
           "test_name_regex": "warm_boot.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableCpu"
         },
         {
+          "test_name_regex": "warm_boot.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableCpu"
+        },
+        {
           "test_name_regex": "warm_boot.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableFrontPanel"
+        },
+        {
+          "test_name_regex": "warm_boot.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableFrontPanel"
         },
         {
           "test_name_regex": "HwUdfTest.*"
@@ -4976,7 +5003,13 @@
           "test_name_regex": "warm_boot.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableCpu"
         },
         {
+          "test_name_regex": "warm_boot.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableCpu"
+        },
+        {
           "test_name_regex": "warm_boot.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableFrontPanel"
+        },
+        {
+          "test_name_regex": "warm_boot.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableFrontPanel"
         },
         {
           "test_name_regex": "HwUdfTest.*"
@@ -5303,6 +5336,9 @@
         },
         {
           "test_name_regex": "SaiAclTableGroupTrafficTest.*"
+        },
+        {
+          "test_name_regex": "SaiAclTableGroupTrafficTest/[01].*"
         },
         {
           "test_name_regex": "HwEcmpTest.Ucmp.*"
@@ -5949,7 +5985,13 @@
           "test_name_regex": "warm_boot.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableCpu"
         },
         {
+          "test_name_regex": "warm_boot.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableCpu"
+        },
+        {
           "test_name_regex": "warm_boot.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableFrontPanel"
+        },
+        {
+          "test_name_regex": "warm_boot.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableFrontPanel"
         },
         {
           "test_name_regex": "HwUdfTest.*"
@@ -6524,7 +6566,13 @@
           "test_name_regex": "warm_boot.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableCpu"
         },
         {
+          "test_name_regex": "warm_boot.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableCpu"
+        },
+        {
           "test_name_regex": "warm_boot.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableFrontPanel"
+        },
+        {
+          "test_name_regex": "warm_boot.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableFrontPanel"
         },
         {
           "test_name_regex": "HwUdfTest.*"
@@ -7320,6 +7368,9 @@
           "test_name_regex": "SaiAclTableGroupTrafficTest.*"
         },
         {
+          "test_name_regex": "SaiAclTableGroupTrafficTest/[01].*"
+        },
+        {
           "test_name_regex": "HwEcmpTest.Ucmp.*"
         },
         {
@@ -7964,7 +8015,13 @@
           "test_name_regex": "warm_boot.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableCpu"
         },
         {
+          "test_name_regex": "warm_boot.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableCpu"
+        },
+        {
           "test_name_regex": "warm_boot.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableFrontPanel"
+        },
+        {
+          "test_name_regex": "warm_boot.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableFrontPanel"
         },
         {
           "test_name_regex": "HwUdfTest.*"
@@ -8563,7 +8620,13 @@
           "test_name_regex": "warm_boot.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableCpu"
         },
         {
+          "test_name_regex": "warm_boot.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableCpu"
+        },
+        {
           "test_name_regex": "warm_boot.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableFrontPanel"
+        },
+        {
+          "test_name_regex": "warm_boot.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableFrontPanel"
         },
         {
           "test_name_regex": "HwUdfTest.*"
@@ -9405,6 +9468,9 @@
         },
         {
           "test_name_regex": "SaiAclTableGroupTrafficTest.*"
+        },
+        {
+          "test_name_regex": "SaiAclTableGroupTrafficTest/[01].*"
         },
         {
           "test_name_regex": "HwEcmpTest.Ucmp.*"
@@ -10680,7 +10746,13 @@
           "test_name_regex": "warm_boot.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableCpu"
         },
         {
+          "test_name_regex": "warm_boot.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableCpu"
+        },
+        {
           "test_name_regex": "warm_boot.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableFrontPanel"
+        },
+        {
+          "test_name_regex": "warm_boot.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableFrontPanel"
         },
         {
           "test_name_regex": "HwUdfTest.*"
@@ -11255,7 +11327,13 @@
           "test_name_regex": "warm_boot.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableCpu"
         },
         {
+          "test_name_regex": "warm_boot.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableCpu"
+        },
+        {
           "test_name_regex": "warm_boot.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableFrontPanel"
+        },
+        {
+          "test_name_regex": "warm_boot.SaiAclTableGroupTrafficTest/[01].VerifyDscpMarkingAndTtlAclTableFrontPanel"
         },
         {
           "test_name_regex": "HwUdfTest.*"
@@ -12054,6 +12132,9 @@
           "test_name_regex": "SaiAclTableGroupTrafficTest.*"
         },
         {
+          "test_name_regex": "SaiAclTableGroupTrafficTest/[01].*"
+        },
+        {
           "test_name_regex": "HwEcmpTest.Ucmp.*"
         },
         {
@@ -12267,6 +12348,9 @@
         },
         {
           "test_name_regex": "SaiAclTableGroupTrafficTest.*$"
+        },
+        {
+          "test_name_regex": "SaiAclTableGroupTrafficTest/[01].*$"
         },
         {
           "test_name_regex": "HwAqmTest.verifyEcn$"
@@ -12652,6 +12736,9 @@
           "test_name_regex": "SaiAclTableGroupTrafficTest.*$"
         },
         {
+          "test_name_regex": "SaiAclTableGroupTrafficTest/[01].*$"
+        },
+        {
           "test_name_regex": "HwAqmTest.verifyEcn$"
         },
         {
@@ -12950,6 +13037,9 @@
         },
         {
           "test_name_regex": "SaiAclTableGroupTrafficTest.*$"
+        },
+        {
+          "test_name_regex": "SaiAclTableGroupTrafficTest/[01].*$"
         },
         {
           "test_name_regex": "HwJumboFramesTest.JumboFramesGetThrough$"
@@ -13312,6 +13402,9 @@
         },
         {
           "test_name_regex": "SaiAclTableGroupTrafficTest.*$"
+        },
+        {
+          "test_name_regex": "SaiAclTableGroupTrafficTest/[01].*$"
         },
         {
           "test_name_regex": "HwAqmTest.verifyEcn$"
