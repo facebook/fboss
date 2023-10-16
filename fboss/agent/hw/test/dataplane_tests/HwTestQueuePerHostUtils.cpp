@@ -222,14 +222,26 @@ void addTtlAclEntry(
 }
 
 // Utility to add TTL ACL table to a multi acl table group
-void addTtlAclTable(cfg::SwitchConfig* config, int16_t priority) {
+void addTtlAclTable(
+    cfg::SwitchConfig* config,
+    int16_t priority,
+    bool addExtraQualifier) {
+  std::vector<cfg::AclTableQualifier> qualifiers = {
+      cfg::AclTableQualifier::TTL, cfg::AclTableQualifier::DSCP};
+  if (addExtraQualifier) {
+    /*
+     * This field is used to modify the properties of the ACL table.
+     * This will force a recreate of the acl table during delta processing.
+     */
+    qualifiers.push_back(cfg::AclTableQualifier::OUT_PORT);
+  }
   utility::addAclTable(
       config,
       getTtlAclTableName(),
       priority, // priority
       {cfg::AclTableActionType::PACKET_ACTION,
        cfg::AclTableActionType::COUNTER},
-      {cfg::AclTableQualifier::TTL});
+      qualifiers);
 
   addTtlAclEntry(config, getTtlAclTableName());
 }

@@ -109,7 +109,10 @@ void updateRoutesClassID(
     RouteUpdateWrapper* updater);
 
 void addTtlAclEntry(cfg::SwitchConfig* config, const std::string& aclTableName);
-void addTtlAclTable(cfg::SwitchConfig* config, int16_t priority);
+void addTtlAclTable(
+    cfg::SwitchConfig* config,
+    int16_t priority,
+    bool addExtraQualifier = false);
 void deleteTtlCounters(cfg::SwitchConfig* config);
 void addQueuePerHostAclEntry(
     cfg::SwitchConfig* config,
