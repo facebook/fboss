@@ -50,14 +50,10 @@ TEST_F(DataCorralServiceTest, getUncachedFruid) {
 }
 
 TEST_F(DataCorralServiceTest, testThrift) {
-  folly::SocketAddress addr("::1", FLAGS_thrift_port);
-  auto server = std::make_unique<apache::thrift::ScopedServerInterfaceThread>(
-      thriftHandler_, folly::SocketAddress("::1", FLAGS_thrift_port));
-  auto resolverEvb = std::make_unique<folly::EventBase>();
-  auto clientPtr =
-      server->newClient<apache::thrift::Client<DataCorralServiceThrift>>(
-          resolverEvb.get());
+  apache::thrift::ScopedServerInterfaceThread server(thriftHandler_);
+  auto client =
+      server.newClient<apache::thrift::Client<DataCorralServiceThrift>>();
   DataCorralFruidReadResponse response;
-  clientPtr->sync_getFruid(response, false);
+  client->sync_getFruid(response, false);
   EXPECT_GT(response.fruidData()->size(), 0);
 }
