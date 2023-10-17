@@ -77,12 +77,14 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::BUFFER_POOL:
     case HwAsic::Feature::PFC:
     case HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET:
+      return getAsicMode() != AsicMode::ASIC_MODE_SIM;
     case HwAsic::Feature::L3_QOS:
     case HwAsic::Feature::VOQ:
     case HwAsic::Feature::TC_TO_QUEUE_QOS_MAP_ON_SYSTEM_PORT:
     case HwAsic::Feature::FABRIC_TX_QUEUES:
     case HwAsic::Feature::DRAM_ENQUEUE_DEQUEUE_STATS:
-      return getAsicMode() != AsicMode::ASIC_MODE_SIM;
+      // TODO fix once queue stats are available on J3
+      return false;
 
     case HwAsic::Feature::SAI_PORT_ETHER_STATS:
     case HwAsic::Feature::SLOW_STAT_UPDATE:
@@ -179,7 +181,10 @@ std::set<cfg::StreamType> Jericho3Asic::getQueueStreamTypes(
 int Jericho3Asic::getDefaultNumPortQueues(
     cfg::StreamType streamType,
     cfg::PortType portType) const {
-  if (getAsicMode() == AsicMode::ASIC_MODE_SIM) {
+  if (true || getAsicMode() == AsicMode::ASIC_MODE_SIM) {
+    // TODO skip returning 0 unconditionally here once J3 SDK
+    // supports queue stats on HW. SIM will continue to have
+    // no queues though.
     return 0;
   }
   switch (streamType) {
