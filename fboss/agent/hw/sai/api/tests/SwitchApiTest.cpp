@@ -639,17 +639,15 @@ TEST_F(SwitchApiTest, setGetCreditWatchdog) {
 }
 
 TEST_F(SwitchApiTest, setGetPfcDlrPacketAction) {
-  SaiSwitchTraits::Attributes::PfcDlrPacketAction pktActionDef{
-      SAI_PACKET_ACTION_DROP};
   EXPECT_EQ(
       switchApi->getAttribute(
           switchId, SaiSwitchTraits::Attributes::PfcDlrPacketAction{}),
-      pktActionDef);
+      SAI_PACKET_ACTION_DROP);
   SaiSwitchTraits::Attributes::PfcDlrPacketAction pktAction{
       SAI_PACKET_ACTION_FORWARD};
   switchApi->setAttribute(switchId, pktAction);
   EXPECT_EQ(
       switchApi->getAttribute(
           switchId, SaiSwitchTraits::Attributes::PfcDlrPacketAction{}),
-      pktAction);
+      SAI_PACKET_ACTION_FORWARD);
 }
