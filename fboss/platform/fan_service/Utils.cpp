@@ -69,6 +69,11 @@ bool Utils::isValidConfig(const FanServiceConfig& config) {
     }
   }
 
+  if (*config.pwmTransitionValue() <= 0) {
+    XLOG(ERR) << "Transitional PWM value must be greater than 0";
+    return false;
+  }
+
   for (const auto& fan : *config.fans()) {
     if (!accessMethodTypes.count(*fan.rpmAccess()->accessType())) {
       XLOG(ERR) << "Invalid rpmAccess method: "
