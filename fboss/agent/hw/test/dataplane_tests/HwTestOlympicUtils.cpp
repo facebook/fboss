@@ -100,6 +100,16 @@ kGetWredConfig(int minLength, int maxLength, int probability) {
   return wredAQM;
 }
 
+int getTrafficClassToCpuEgressQueueId(const HwAsic* hwAsic, int trafficClass) {
+  if (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
+    // Jericho3 only has two egress queues for cpu port and recycle port
+    // match default/low/med to queue 0, high to 1
+    return trafficClass == kOlympicNCQueueId ? 1 : 0;
+  }
+  // same one-to-one tc to queue mapping for other platforms
+  return trafficClass;
+}
+
 cfg::PortQueue&
 getPortQueueConfig(cfg::SwitchConfig* config, const int queueId, bool isVoq) {
   auto& queueConfig = isVoq ? *config->defaultVoqConfig()
@@ -671,7 +681,8 @@ const std::vector<int> kOlympicAllSPQueueIds(const HwAsic* hwAsic) {
 void addOlympicQosMapsHelper(
     cfg::SwitchConfig& cfg,
     const std::map<int, std::vector<uint8_t>>& queueToDscpMap,
-    const std::string& qosPolicyName) {
+    const std::string& qosPolicyName,
+    const HwAsic* hwAsic) {
   cfg::QosMap qosMap;
   qosMap.dscpMaps()->resize(queueToDscpMap.size());
   ssize_t qosMapIdx = 0;
@@ -683,29 +694,51 @@ void addOlympicQosMapsHelper(
     }
     ++qosMapIdx;
   }
+  std::map<int16_t, int16_t> tc2Voq;
   for (int q = 0; q <= kOlympicHighestSPQueueId; q++) {
+    if (hwAsic->isSupported(HwAsic::Feature::VOQ)) {
+      tc2Voq.emplace(q, q);
+    }
     qosMap.trafficClassToQueueId()->emplace(q, q);
   }
+  qosMap.trafficClassToVoqId() = std::move(tc2Voq);
   cfg.qosPolicies()->resize(1);
   *cfg.qosPolicies()[0].name() = qosPolicyName;
   cfg.qosPolicies()[0].qosMap() = qosMap;
+
+  // configure cpu qos policy
+  std::string cpuQosPolicyName = qosPolicyName;
+  if (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
+    // create and apply a separate qos policy for Jericho3 cpu port
+    cpuQosPolicyName = qosPolicyName + "_cpu";
+    cfg::QosMap cpuQosMap = qosMap;
+    cpuQosMap.trafficClassToQueueId()->clear();
+    for (int q = 0; q <= kOlympicHighestSPQueueId; q++) {
+      cpuQosMap.trafficClassToQueueId()->emplace(
+          q, getTrafficClassToCpuEgressQueueId(hwAsic, q));
+    }
+    cfg.qosPolicies()->resize(2);
+    *cfg.qosPolicies()[1].name() = cpuQosPolicyName;
+    cfg.qosPolicies()[1].qosMap() = cpuQosMap;
+  }
 
   cfg::TrafficPolicyConfig dataPlaneTrafficPolicy;
   dataPlaneTrafficPolicy.defaultQosPolicy() = qosPolicyName;
   cfg.dataPlaneTrafficPolicy() = dataPlaneTrafficPolicy;
   cfg::CPUTrafficPolicyConfig cpuConfig;
   cfg::TrafficPolicyConfig cpuTrafficPolicy;
-  cpuTrafficPolicy.defaultQosPolicy() = qosPolicyName;
+  cpuTrafficPolicy.defaultQosPolicy() = cpuQosPolicyName;
   cpuConfig.trafficPolicy() = cpuTrafficPolicy;
   cfg.cpuTrafficPolicy() = cpuConfig;
 }
 
 void addOlympicQosMaps(cfg::SwitchConfig& cfg, const HwAsic* hwAsic) {
-  addOlympicQosMapsHelper(cfg, kOlympicQueueToDscp(hwAsic), "olympic");
+  addOlympicQosMapsHelper(cfg, kOlympicQueueToDscp(hwAsic), "olympic", hwAsic);
 }
 
 void addOlympicV2QosMaps(cfg::SwitchConfig& cfg, const HwAsic* hwAsic) {
-  addOlympicQosMapsHelper(cfg, kOlympicV2QueueToDscp(hwAsic), "olympic_v2");
+  addOlympicQosMapsHelper(
+      cfg, kOlympicV2QueueToDscp(hwAsic), "olympic_v2", hwAsic);
 }
 
 int getMaxWeightWRRQueue(const std::map<int, uint8_t>& queueToWeight) {
