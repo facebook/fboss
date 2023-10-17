@@ -691,13 +691,13 @@ class PortStatusDetailCmd:
 
         print(
             "Vendor:  {:<16}  Part Number:  {:<16}".format(
-                info.vendor.name, info.vendor.partNumber
+                info.tcvrState.vendor.name, info.tcvrState.vendor.partNumber
             )
         )
-        print("Serial:  {:<16}  ".format(info.vendor.serialNumber), end="")
+        print("Serial:  {:<16}  ".format(info.tcvrState.vendor.serialNumber), end="")
         print(
             "Date Code:  {:<8}  Revision: {:<2}".format(
-                info.vendor.dateCode, info.vendor.rev
+                info.tcvrState.vendor.dateCode, info.tcvrState.vendor.rev
             )
         )
 
@@ -706,35 +706,39 @@ class PortStatusDetailCmd:
 
         print(
             "CDR Tx: {}\tCDR Rx: {}".format(
-                transceiver_ttypes.FeatureState._VALUES_TO_NAMES[info.settings.cdrTx],
-                transceiver_ttypes.FeatureState._VALUES_TO_NAMES[info.settings.cdrRx],
+                transceiver_ttypes.FeatureState._VALUES_TO_NAMES[
+                    info.tcvrState.settings.cdrTx
+                ],
+                transceiver_ttypes.FeatureState._VALUES_TO_NAMES[
+                    info.tcvrState.settings.cdrRx
+                ],
             )
         )
         print(
             "Rate select: {}".format(
                 transceiver_ttypes.RateSelectState._VALUES_TO_NAMES[
-                    info.settings.rateSelect
+                    info.tcvrState.settings.rateSelect
                 ]
             )
         )
         print(
             "\tOptimised for: {}".format(
                 transceiver_ttypes.RateSelectSetting._VALUES_TO_NAMES[
-                    info.settings.rateSelectSetting
+                    info.tcvrState.settings.rateSelectSetting
                 ]
             )
         )
         print(
             "Power measurement: {}".format(
                 transceiver_ttypes.FeatureState._VALUES_TO_NAMES[
-                    info.settings.powerMeasurement
+                    info.tcvrState.settings.powerMeasurement
                 ]
             )
         )
         print(
             "Power control: {}".format(
                 transceiver_ttypes.PowerControlState._VALUES_TO_NAMES[
-                    info.settings.powerControl
+                    info.tcvrState.settings.powerControl
                 ]
             )
         )
@@ -748,12 +752,14 @@ class PortStatusDetailCmd:
 
         Cable = collections.namedtuple("Cable", "length type unit")
         cable_info_obtained = (
-            Cable(length=info.cable.copper, type="Copper", unit="m"),
-            Cable(length=info.cable.om1, type="OM1", unit="m"),
-            Cable(length=info.cable.om2, type="OM2", unit="m"),
-            Cable(length=info.cable.om3, type="OM3", unit="m"),
-            Cable(length=info.cable.singleMode, type="singleMode", unit="m"),
-            Cable(length=info.cable.singleModeKm, type="singleModeKm", unit="km"),
+            Cable(length=info.tcvrState.cable.copper, type="Copper", unit="m"),
+            Cable(length=info.tcvrState.cable.om1, type="OM1", unit="m"),
+            Cable(length=info.tcvrState.cable.om2, type="OM2", unit="m"),
+            Cable(length=info.tcvrState.cable.om3, type="OM3", unit="m"),
+            Cable(length=info.tcvrState.cable.singleMode, type="singleMode", unit="m"),
+            Cable(
+                length=info.tcvrState.cable.singleModeKm, type="singleModeKm", unit="km"
+            ),
         )
 
         cables_found = []
