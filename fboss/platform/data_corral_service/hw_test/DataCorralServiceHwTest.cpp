@@ -21,7 +21,7 @@
 using namespace facebook::fboss::platform::data_corral_service;
 
 namespace {
-class DataCorralServiceTest : public ::testing::Test {
+class DataCorralServiceHwTest : public ::testing::Test {
  public:
   void SetUp() override {
     thriftHandler_ = std::make_shared<DataCorralServiceThriftHandler>(
@@ -41,15 +41,15 @@ class DataCorralServiceTest : public ::testing::Test {
 };
 } // namespace
 
-TEST_F(DataCorralServiceTest, getCachedFruid) {
+TEST_F(DataCorralServiceHwTest, getCachedFruid) {
   EXPECT_GT(getFruid(false).fruidData()->size(), 0);
 }
 
-TEST_F(DataCorralServiceTest, getUncachedFruid) {
+TEST_F(DataCorralServiceHwTest, getUncachedFruid) {
   EXPECT_GT(getFruid(true).fruidData()->size(), 0);
 }
 
-TEST_F(DataCorralServiceTest, testThrift) {
+TEST_F(DataCorralServiceHwTest, testThrift) {
   apache::thrift::ScopedServerInterfaceThread server(thriftHandler_);
   auto client =
       server.newClient<apache::thrift::Client<DataCorralServiceThrift>>();
