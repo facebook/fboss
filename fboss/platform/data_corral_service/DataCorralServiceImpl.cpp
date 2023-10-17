@@ -32,7 +32,7 @@ int kRefreshIntervalInMs = 10000;
 
 using namespace facebook::fboss;
 
-DEFINE_bool(use_led_manager, false, "Whether to use new LedManager class");
+DEFINE_bool(use_led_manager, true, "Whether to use new LedManager class");
 
 namespace facebook::fboss::platform::data_corral_service {
 
