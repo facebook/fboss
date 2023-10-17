@@ -11,6 +11,8 @@
 
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 
+DECLARE_bool(wedge400c_new_lane_pm);
+
 namespace facebook {
 namespace fboss {
 
@@ -24,5 +26,6 @@ class Wedge400CPlatformMapping : public PlatformMapping {
   Wedge400CPlatformMapping(Wedge400CPlatformMapping const&) = delete;
   Wedge400CPlatformMapping& operator=(Wedge400CPlatformMapping const&) = delete;
 };
+
 } // namespace fboss
 } // namespace facebook
