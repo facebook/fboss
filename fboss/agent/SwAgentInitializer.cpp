@@ -199,8 +199,8 @@ void SwAgentInitializer::stopAgent(bool setupWarmboot) {
 }
 
 int SwAgentInitializer::initAgent() {
-  CHECK_NE(sw_.get(), nullptr);
-  CHECK_NE(initializer_.get(), nullptr);
+  CHECK_NE(sw_.get() != nullptr, (false));
+  CHECK_NE((initializer_.get() != nullptr), (false));
   return initAgent(sw_.get());
 }
 
