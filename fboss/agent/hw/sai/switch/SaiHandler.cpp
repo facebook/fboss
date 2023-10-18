@@ -60,7 +60,7 @@ SwitchRunState SaiHandler::getHwSwitchRunState() {
   return hw_->getRunState();
 }
 
-void SaiHandler::getFabricReachability(
+void SaiHandler::getHwFabricReachability(
     std::map<::std::int64_t, ::facebook::fboss::FabricEndpoint>& reachability) {
   hw_->ensureVoqOrFabric(__func__);
   auto reachabilityInfo = hw_->getFabricReachability();

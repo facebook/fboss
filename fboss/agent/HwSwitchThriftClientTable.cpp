@@ -80,7 +80,7 @@ HwSwitchThriftClientTable::getFabricReachability(SwitchID switchId) {
   std::map<::std::int64_t, FabricEndpoint> reachability;
   auto client = getClient(switchId);
   try {
-    client->sync_getFabricReachability(reachability);
+    client->sync_getHwFabricReachability(reachability);
   } catch (const std::exception& ex) {
     XLOG(ERR) << "Failed to get fabric reachability for switch : " << switchId
               << " error: " << ex.what();

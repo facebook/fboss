@@ -28,5 +28,5 @@ service FbossHwCtrl {
   // an api  to test hw switch handler in hardware agnostic way
   common.SwitchRunState getHwSwitchRunState();
 
-  map<i64, ctrl.FabricEndpoint> getFabricReachability();
+  map<i64, ctrl.FabricEndpoint> getHwFabricReachability();
 }
