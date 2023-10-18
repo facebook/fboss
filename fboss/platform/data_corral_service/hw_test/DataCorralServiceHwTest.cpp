@@ -13,7 +13,6 @@
 #include <thrift/lib/cpp2/util/ScopedServerInterfaceThread.h>
 
 #include "fboss/platform/data_corral_service/DataCorralServiceThriftHandler.h"
-#include "fboss/platform/data_corral_service/Flags.h"
 #include "fboss/platform/data_corral_service/if/gen-cpp2/DataCorralServiceThrift.h"
 #include "fboss/platform/data_corral_service/if/gen-cpp2/data_corral_service_types.h"
 
