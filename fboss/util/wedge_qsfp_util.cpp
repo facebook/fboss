@@ -378,12 +378,14 @@ void setModulePrbsDirect(
     DirectI2cInfo i2cInfo,
     std::vector<std::string> portList,
     bool start);
+void setModulePrbsDirectCmis(TransceiverI2CApi* bus, int module, bool start);
 void getModulePrbsStatsViaService(
     folly::EventBase& evb,
     std::vector<PortID> portList);
 void getModulePrbsStatsDirect(
     DirectI2cInfo i2cInfo,
     std::vector<PortID> portList);
+void getModulePrbsStatsDirectCmis(TransceiverI2CApi* bus, int module);
 
 std::ostream& operator<<(std::ostream& os, const FlagCommand& cmd) {
   gflags::CommandLineFlagInfo flagInfo;
@@ -3530,9 +3532,53 @@ void setModulePrbsViaService(
  * module rather than SW port inside the module
  */
 void setModulePrbsDirect(
-    DirectI2cInfo /* i2cInfo */,
-    std::vector<std::string> /* portList */,
-    bool /* start */) {}
+    DirectI2cInfo i2cInfo,
+    std::vector<std::string> portList,
+    bool start) {
+  auto bus = i2cInfo.bus;
+  auto wedgeManager = i2cInfo.transceiverManager;
+
+  for (auto& portName : portList) {
+    auto module = wedgeManager->getPortNameToModuleMap().at(portName) + 1;
+    auto managementInterface = getModuleTypeDirect(bus, module);
+    if (managementInterface == TransceiverManagementInterface::CMIS) {
+      setModulePrbsDirectCmis(bus, module, start);
+    }
+  }
+}
+
+/*
+ * setModulePrbsDirectCmis
+ *
+ * Sets/resets the PRBS generator and/or checker on a CMIS module
+ */
+void setModulePrbsDirectCmis(TransceiverI2CApi* bus, int module, bool start) {
+  // Set the page first
+  uint8_t prbsPage = 0x13;
+  bus->moduleWrite(module, {TransceiverI2CApi::ADDR_QSFP, 127, 1}, &prbsPage);
+
+  // Set the PRBS generator and/or checker pattern type - PRBS31Q
+  if (start) {
+    uint8_t pattern[4] = {0x00, 0x00, 0x00, 0x00};
+    if (FLAGS_generator) {
+      bus->moduleWrite(module, {TransceiverI2CApi::ADDR_QSFP, 156, 4}, pattern);
+    }
+    if (FLAGS_checker) {
+      bus->moduleWrite(module, {TransceiverI2CApi::ADDR_QSFP, 172, 4}, pattern);
+    }
+  }
+
+  // Set/Reset the PRBS generator and/or checker
+  if (FLAGS_generator) {
+    uint8_t generator = start ? 0xff : 0x00;
+    bus->moduleWrite(
+        module, {TransceiverI2CApi::ADDR_QSFP, 152, 1}, &generator);
+  }
+  if (FLAGS_checker) {
+    uint8_t checker = start ? 0xff : 0x00;
+    bus->moduleWrite(module, {TransceiverI2CApi::ADDR_QSFP, 168, 1}, &checker);
+  }
+}
 
 /*
  * getModulePrbsStatus
