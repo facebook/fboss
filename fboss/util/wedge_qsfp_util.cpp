@@ -3717,7 +3717,8 @@ void getModulePrbsStatsDirectCmis(TransceiverI2CApi* bus, int module) {
   usleep(2 * 1000 * 1000); // @lint-ignore CLANGTIDY
 
   std::array<uint8_t, 16> berData;
-  bus->moduleRead(module, {TransceiverI2CApi::ADDR_QSFP, 208, 16}, berData);
+  bus->moduleRead(
+      module, {TransceiverI2CApi::ADDR_QSFP, 208, 16}, berData.data());
 
   for (int i = 0; i < 8; i++) {
     int exponent = berData[i * 2] >> 3;
@@ -3734,7 +3735,8 @@ void getModulePrbsStatsDirectCmis(TransceiverI2CApi* bus, int module) {
   usleep(2 * 1000 * 1000); // @lint-ignore CLANGTIDY
 
   std::array<uint8_t, 16> snrData;
-  bus->moduleRead(module, {TransceiverI2CApi::ADDR_QSFP, 240, 16}, snrData);
+  bus->moduleRead(
+      module, {TransceiverI2CApi::ADDR_QSFP, 240, 16}, snrData.data());
 
   for (int i = 0; i < 8; i++) {
     mediaSnr[i] = snrData[i * 2] / 256.0 + snrData[(i * 2) + 1];
