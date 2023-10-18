@@ -154,12 +154,15 @@ include "fboss/platform/platform_manager/platform_manager_presence.thrift"
 // `isEeprom`: Indicates whether this device is an EEPROM. If not specified, it
 // defaults to false.
 //
-// `hasBmcMac`: Indicates whether this EEPROM has BMC MAC address in it.
+// `hasBmcMac`: Whether this has BMC MAC address (applies only to EEPROM)
 //
-// `hasCpuMac`: Indicates whether this EEPROM has CPU MAC address in it.
+// `hasCpuMac`: Whether this has CPU MAC address (applies only to EEPROM)
 //
-// `hasExtendedMac`: Indicates whether this EEPROM has Extended MAC addresses
-// (ASIC MAC addresses) in it.
+// `hasSwitchAsicMac`: Whether this has Switch ASIC MAC addresses (applies
+// only to EEPROM)
+//
+// `hasReservedMac`: Whether this has Reserved MAC addresses (applies only to
+// EEPROM)
 //
 // For example, the three i2c devices in the below Sample PmUnit will be modeled
 // as follows
@@ -195,7 +198,8 @@ struct I2cDeviceConfig {
   6: bool isEeprom;
   7: bool hasBmcMac;
   8: bool hasCpuMac;
-  9: bool hasExtendedMac;
+  9: bool hasSwitchAsicMac;
+  10: bool hasReservedMac;
 }
 
 // The IDPROM which contains information about the PmUnit
