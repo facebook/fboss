@@ -23,10 +23,6 @@ class HwParityErrorTest : public HwLinkStateDependentTest {
     return {HwSwitchEnsemble::LINKSCAN, HwSwitchEnsemble::TAM_NOTIFY};
   }
 
-  void generateParityError() {
-    utility::triggerParityError(getHwSwitchEnsemble());
-  }
-
   int64_t getCorrectedParityErrorCount() const {
     // Aggregate TL stats. In HwTests we don't start a TL aggregation thread.
     fb303::ThreadCachedServiceData::get()->publishStats();
@@ -39,7 +35,7 @@ TEST_F(HwParityErrorTest, verifyParityError) {
   auto setup = [=]() { applyNewConfig(initialConfig()); };
   auto verify = [=]() {
     EXPECT_EQ(getCorrectedParityErrorCount(), 0);
-    generateParityError();
+    utility::triggerParityError(getHwSwitchEnsemble());
     WITH_RETRIES({ EXPECT_EVENTUALLY_GT(getCorrectedParityErrorCount(), 0); });
   };
   verifyAcrossWarmBoots(setup, verify);
