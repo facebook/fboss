@@ -90,15 +90,29 @@ void LedManager::updateLedStatus(
       portInfo.cablingError = switchStateUpdate.ledExternalState.value() ==
           PortLedExternalState::CABLING_ERROR;
     }
-    portInfo.currentLedColor =
-        (portDisplayMap_.find(portId) == portDisplayMap_.end())
-        ? led::LedColor::UNKNOWN
-        : portDisplayMap_.at(portId).currentLedColor;
+    if (portDisplayMap_.find(portId) != portDisplayMap_.end()) {
+      // If the port info exists then carry the current color and port forced
+      // LED info
+      portInfo.currentLedColor = portDisplayMap_.at(portId).currentLedColor;
+      portInfo.forcedOn = portDisplayMap_.at(portId).forcedOn;
+      portInfo.forcedOff = portDisplayMap_.at(portId).forcedOff;
+    } else {
+      portInfo.currentLedColor = led::LedColor::UNKNOWN;
+    }
+
     portDisplayMap_[portId] = portInfo;
   }
 
   for (const auto& [portId, switchStateUpdate] : newSwitchState) {
     // Step 2. Update LED color if required
+
+    // If the LED state is forced by user then don't change LED color
+    if ((portDisplayMap_.find(portId) != portDisplayMap_.end()) &&
+        (portDisplayMap_[portId].forcedOn ||
+         portDisplayMap_[portId].forcedOff)) {
+      continue;
+    }
+
     auto portName = switchStateUpdate.portName;
     auto portProfile = switchStateUpdate.portProfile;
     auto portProfileEnumVal = nameToEnum<cfg::PortProfileID>(portProfile);
