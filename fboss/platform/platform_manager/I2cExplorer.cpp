@@ -1,6 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-#include "fboss/platform/platform_manager/PlatformI2cExplorer.h"
+#include "fboss/platform/platform_manager/I2cExplorer.h"
 
 #include <folly/FileUtil.h>
 #include <folly/String.h>
@@ -43,7 +43,7 @@ std::string getI2cAdapterName(const fs::path& busPath) {
 
 namespace facebook::fboss::platform::platform_manager {
 
-std::map<std::string, int16_t> PlatformI2cExplorer::getBusNums(
+std::map<std::string, int16_t> I2cExplorer::getBusNums(
     const std::vector<std::string>& i2cAdaptersFromCpu) {
   std::map<std::string, int16_t> busNums;
   auto deviceRoot = fs::path("/sys/bus/i2c/devices");
@@ -61,13 +61,11 @@ std::map<std::string, int16_t> PlatformI2cExplorer::getBusNums(
   return busNums;
 }
 
-bool PlatformI2cExplorer::isI2cDevicePresent(
-    uint16_t busNum,
-    const I2cAddr& addr) {
+bool I2cExplorer::isI2cDevicePresent(uint16_t busNum, const I2cAddr& addr) {
   return fs::exists(fs::path(getDeviceI2cPath(busNum, addr)) / "name");
 }
 
-std::optional<std::string> PlatformI2cExplorer::getI2cDeviceName(
+std::optional<std::string> I2cExplorer::getI2cDeviceName(
     uint16_t busNum,
     const I2cAddr& addr) {
   std::string deviceName{};
@@ -83,7 +81,7 @@ std::optional<std::string> PlatformI2cExplorer::getI2cDeviceName(
   return folly::trimWhitespace(deviceName).str();
 }
 
-void PlatformI2cExplorer::createI2cDevice(
+void I2cExplorer::createI2cDevice(
     const std::string& deviceName,
     uint16_t busNum,
     const I2cAddr& addr) {
@@ -128,7 +126,7 @@ void PlatformI2cExplorer::createI2cDevice(
       getDeviceI2cPath(busNum, addr));
 }
 
-std::vector<uint16_t> PlatformI2cExplorer::getMuxChannelI2CBuses(
+std::vector<uint16_t> I2cExplorer::getMuxChannelI2CBuses(
     uint16_t busNum,
     const I2cAddr& addr) {
   auto devicePath = fs::path(getDeviceI2cPath(busNum, addr));
@@ -153,7 +151,7 @@ std::vector<uint16_t> PlatformI2cExplorer::getMuxChannelI2CBuses(
   return channelBusNums;
 }
 
-std::string PlatformI2cExplorer::getDeviceI2cPath(
+std::string I2cExplorer::getDeviceI2cPath(
     uint16_t busNum,
     const I2cAddr& addr) {
   return fmt::format("/sys/bus/i2c/devices/{}-{}", busNum, addr.hex4Str());

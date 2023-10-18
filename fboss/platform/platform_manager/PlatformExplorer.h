@@ -5,8 +5,8 @@
 
 #include <folly/experimental/FunctionScheduler.h>
 
+#include "fboss/platform/platform_manager/I2cExplorer.h"
 #include "fboss/platform/platform_manager/PciExplorer.h"
-#include "fboss/platform/platform_manager/PlatformI2cExplorer.h"
 #include "fboss/platform/platform_manager/PresenceDetector.h"
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_types.h"
 
@@ -66,7 +66,7 @@ class PlatformExplorer {
  private:
   folly::FunctionScheduler scheduler_;
   PlatformConfig platformConfig_{};
-  PlatformI2cExplorer i2cExplorer_{};
+  I2cExplorer i2cExplorer_{};
   PciExplorer pciExplorer_{};
   PresenceDetector presenceDetector_{};
   // Map from <pmUnitPath, pmUnitScopeBusName> to kernel i2c bus name.

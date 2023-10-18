@@ -4,7 +4,7 @@
 
 #include <folly/logging/xlog.h>
 
-#include "fboss/platform/platform_manager/PlatformI2cExplorer.h"
+#include "fboss/platform/platform_manager/I2cExplorer.h"
 
 namespace facebook::fboss::platform::platform_manager {
 

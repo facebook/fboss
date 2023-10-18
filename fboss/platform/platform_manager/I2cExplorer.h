@@ -42,13 +42,13 @@ struct I2cAddr {
   uint16_t addr_{0};
 };
 
-class PlatformI2cExplorer {
+class I2cExplorer {
  public:
-  virtual ~PlatformI2cExplorer() {}
-  PlatformI2cExplorer(
+  virtual ~I2cExplorer() {}
+  I2cExplorer(
       const std::shared_ptr<PlatformUtils>& platformUtils =
           std::make_shared<PlatformUtils>())
-      : platformUtils_(platformUtils){};
+      : platformUtils_(platformUtils){}
 
   // This function takes as input the list of `i2cAdaptersFromCpu` defined
   // in the platform_manager_config.thrift, and provides the corresponding

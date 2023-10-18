@@ -5,18 +5,17 @@
 #include <string>
 
 #include "fboss/platform/helpers/MockPlatformUtils.h"
-#include "fboss/platform/platform_manager/PlatformI2cExplorer.h"
+#include "fboss/platform/platform_manager/I2cExplorer.h"
 
 using namespace ::testing;
 using namespace facebook::fboss::platform;
 using namespace facebook::fboss::platform::platform_manager;
 
 namespace {
-class MockPlatformI2cExplorer : public PlatformI2cExplorer {
+class MockI2cExplorer : public I2cExplorer {
  public:
-  explicit MockPlatformI2cExplorer(
-      std::shared_ptr<MockPlatformUtils> platformUtils)
-      : PlatformI2cExplorer(platformUtils) {}
+  explicit MockI2cExplorer(std::shared_ptr<MockPlatformUtils> platformUtils)
+      : I2cExplorer(platformUtils) {}
   MOCK_METHOD(bool, isI2cDevicePresent, (uint16_t, const I2cAddr&));
   MOCK_METHOD(
       std::optional<std::string>,
@@ -26,9 +25,9 @@ class MockPlatformI2cExplorer : public PlatformI2cExplorer {
 
 } // namespace
 
-TEST(PlatformI2cExplorerTest, createI2cDeviceSuccess) {
+TEST(I2cExplorerTest, createI2cDeviceSuccess) {
   auto platformUtils = std::make_shared<MockPlatformUtils>();
-  auto i2cExplorer = MockPlatformI2cExplorer(platformUtils);
+  auto i2cExplorer = MockI2cExplorer(platformUtils);
 
   // CASE-1: No device present; creation succeeds.
   EXPECT_CALL(i2cExplorer, isI2cDevicePresent(4, I2cAddr(15)))
@@ -47,9 +46,9 @@ TEST(PlatformI2cExplorerTest, createI2cDeviceSuccess) {
   EXPECT_NO_THROW(i2cExplorer.createI2cDevice("lm73", 5, I2cAddr(16)));
 }
 
-TEST(PlatformI2cExplorerTest, createI2cDeviceFailure) {
+TEST(I2cExplorerTest, createI2cDeviceFailure) {
   auto platformUtils = std::make_shared<MockPlatformUtils>();
-  auto i2cExplorer = MockPlatformI2cExplorer(platformUtils);
+  auto i2cExplorer = MockI2cExplorer(platformUtils);
   // CASE-1: echoing lm75 15 into the new_device file fails.
   EXPECT_CALL(i2cExplorer, isI2cDevicePresent(4, I2cAddr(15)))
       .WillOnce(Return(false));
@@ -69,8 +68,8 @@ TEST(PlatformI2cExplorerTest, createI2cDeviceFailure) {
       i2cExplorer.createI2cDevice("lm73", 5, I2cAddr(16)), std::runtime_error);
 }
 
-TEST(PlatformI2cExplorerTest, getDeviceI2cPath) {
-  auto i2cExplorer = PlatformI2cExplorer();
+TEST(I2cExplorerTest, getDeviceI2cPath) {
+  auto i2cExplorer = I2cExplorer();
   EXPECT_EQ(
       i2cExplorer.getDeviceI2cPath(4, I2cAddr(5)),
       "/sys/bus/i2c/devices/4-0005");
@@ -82,7 +81,7 @@ TEST(PlatformI2cExplorerTest, getDeviceI2cPath) {
       "/sys/bus/i2c/devices/5-0010");
 }
 
-TEST(PlatformI2cExplorerTest, I2cAddr) {
+TEST(I2cExplorerTest, I2cAddr) {
   EXPECT_EQ(I2cAddr("0x2f").hex2Str(), "0x2f");
   EXPECT_EQ(I2cAddr("0x2F").hex2Str(), "0x2f");
   EXPECT_EQ(I2cAddr(20).hex2Str(), "0x14");
