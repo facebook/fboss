@@ -570,9 +570,12 @@ TEST_F(HwVoqSwitchTest, sendPacketCpuAndFrontPanel) {
 
             EXPECT_EVENTUALLY_EQ(afterOutPkts - 1, beforeOutPkts);
             int extraByteOffset = 0;
-            if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2) {
+            auto asicType = getAsic()->getAsicType();
+            auto asicMode = getAsic()->getAsicMode();
+            if (asicMode == HwAsic::AsicMode::ASIC_MODE_HW &&
+                (asicType == cfg::AsicType::ASIC_TYPE_JERICHO2 ||
+                 asicType == cfg::AsicType::ASIC_TYPE_JERICHO3)) {
               // CS00012267635: debug why we get 4 extra bytes
-              // CS00012299306 why we don't get extra 4 bytes for J3
               extraByteOffset = 4;
             }
             EXPECT_EVENTUALLY_EQ(
