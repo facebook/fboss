@@ -1,6 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-#include "fboss/platform/platform_manager/PlatformValidator.h"
+#include "fboss/platform/platform_manager/ConfigValidator.h"
 
 #include <folly/logging/xlog.h>
 
@@ -8,7 +8,7 @@
 
 namespace facebook::fboss::platform::platform_manager {
 
-bool PlatformValidator::isValidSlotTypeConfig(
+bool ConfigValidator::isValidSlotTypeConfig(
     const SlotTypeConfig& slotTypeConfig) {
   if (!slotTypeConfig.idpromConfig_ref() && !slotTypeConfig.pmUnitName()) {
     XLOG(ERR) << "SlotTypeConfig must have either IDPROM or PmUnit name";
@@ -25,7 +25,7 @@ bool PlatformValidator::isValidSlotTypeConfig(
   return true;
 }
 
-bool PlatformValidator::isValidI2cDeviceConfig(
+bool ConfigValidator::isValidI2cDeviceConfig(
     const I2cDeviceConfig& i2cDeviceConfig) {
   try {
     I2cAddr(*i2cDeviceConfig.address_ref());
@@ -37,7 +37,7 @@ bool PlatformValidator::isValidI2cDeviceConfig(
   return true;
 }
 
-bool PlatformValidator::isValid(const PlatformConfig& config) {
+bool ConfigValidator::isValid(const PlatformConfig& config) {
   XLOG(INFO) << "Validating the config";
 
   // Verify presence of platform name

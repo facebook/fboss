@@ -9,7 +9,7 @@
 
 #include "fboss/platform/config_lib/ConfigLib.h"
 #include "fboss/platform/helpers/PlatformUtils.h"
-#include "fboss/platform/platform_manager/PlatformValidator.h"
+#include "fboss/platform/platform_manager/ConfigValidator.h"
 
 using namespace facebook::fboss::platform;
 
@@ -57,7 +57,7 @@ PlatformConfig Utils::getConfig(const std::string& configFile) {
   XLOG(DBG2) << apache::thrift::SimpleJSONSerializer::serialize<std::string>(
       config);
 
-  if (!PlatformValidator().isValid(config)) {
+  if (!ConfigValidator().isValid(config)) {
     XLOG(ERR) << "Invalid platform config";
     throw std::runtime_error("Invalid platform config");
   }

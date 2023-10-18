@@ -6,7 +6,7 @@
 
 namespace facebook::fboss::platform::platform_manager {
 
-class PlatformValidator {
+class ConfigValidator {
  public:
   bool isValid(const PlatformConfig& platformConfig);
   bool isValidSlotTypeConfig(const SlotTypeConfig& slotTypeConfig);
