@@ -31,7 +31,7 @@ std::vector<std::string> getBgpDrainedInterafces(const HostInfo& /*hostInfo*/) {
 }
 
 std::vector<std::string> getBgpSwitchDrainState(const HostInfo& /*hostInfo*/) {
-  return "";
+  return {};
 }
 
 } // namespace facebook::fboss::utils
