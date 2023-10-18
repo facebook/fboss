@@ -962,6 +962,11 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
             static_cast<sai_object_id_t>(*macsecFlowAction.flowId());
         aclActionMacsecFlow = SaiAclEntryTraits::Attributes::ActionMacsecFlow{
             AclEntryActionSaiObjectIdT(flowId)};
+#if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
+        // MACSec flow action should not be set along with regulation packet
+        // action otherwise packet action gets priority
+        aclActionPacketAction = std::nullopt;
+#endif
       } else if (
           *macsecFlowAction.action() == cfg::MacsecFlowPacketAction::FORWARD) {
         aclActionPacketAction =
