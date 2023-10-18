@@ -381,6 +381,9 @@
         },
         {
           "test_name_regex": "HwEcmpFlowletSwitchingTest.*"
+        },
+        {
+          "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*"
         }
     ],
     "brcm/10.0_ea_dnx_sim_odp/10.0_ea_dnx_sim_odp/jericho3/simulator": [
@@ -766,6 +769,9 @@
           "test_name_regex": "HwEcmpFlowletSwitchingTest.*"
         },
         {
+          "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*"
+        },
+        {
           "test_name_regex": "Hw2QueueToOlympicQoSTest.*"
         },
         {
@@ -1135,6 +1141,9 @@
         },
         {
           "test_name_regex": "HwEcmpFlowletSwitchingTest.*"
+        },
+        {
+          "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*"
         },
         {
           "test_name_regex": "HwUdfTest.*"
@@ -1509,6 +1518,9 @@
         },
         {
           "test_name_regex": "HwEcmpFlowletSwitchingTest.*"
+        },
+        {
+          "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*"
         },
         {
           "test_name_regex": "HwUdfTest.*"
@@ -2150,6 +2162,9 @@
         },
         {
           "test_name_regex": "HwEcmpFlowletSwitchingTest.*"
+        },
+        {
+          "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*"
         },
         {
           "test_name_regex": "HwUdfTest.*"
@@ -2805,6 +2820,9 @@
           "test_name_regex": "HwEcmpFlowletSwitchingTest.*"
         },
         {
+          "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*"
+        },
+        {
           "test_name_regex": "HwTrafficPfcTest.*"
         },
         {
@@ -3171,6 +3189,9 @@
         },
         {
           "test_name_regex": "HwEcmpFlowletSwitchingTest.*"
+        },
+        {
+          "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*"
         },
         {
           "test_name_regex": "warm_boot.HwHashPolarizationTests.fullXHalfHash"
@@ -3769,6 +3790,9 @@
           "test_name_regex": "HwEcmpFlowletSwitchingTest.*"
         },
         {
+          "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*"
+        },
+        {
           "test_name_regex": "HwTrafficPfcTest.*"
         },
         {
@@ -4323,6 +4347,9 @@
           "test_name_regex": "HwEcmpFlowletSwitchingTest.*"
         },
         {
+          "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*"
+        },
+        {
           "test_name_regex": "HwTrafficPfcTest.*"
         },
         {
@@ -4722,6 +4749,9 @@
         },
         {
           "test_name_regex": "HwEcmpFlowletSwitchingTest.*"
+        },
+        {
+          "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*"
         },
         {
           "test_name_regex": "warm_boot.HwHashPolarizationTests.fullXHalfHash"
@@ -5377,6 +5407,9 @@
           "test_name_regex": "HwEcmpFlowletSwitchingTest.*"
         },
         {
+          "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*"
+        },
+        {
           "test_name_regex": "HwTrafficPfcTest.*"
         },
         {
@@ -5940,6 +5973,9 @@
           "test_name_regex": "HwEcmpFlowletSwitchingTest.*"
         },
         {
+          "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*"
+        },
+        {
           "test_name_regex": "HwTrafficPfcTest.*"
         },
         {
@@ -6315,6 +6351,9 @@
         },
         {
           "test_name_regex": "HwEcmpFlowletSwitchingTest.*"
+        },
+        {
+          "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*"
         },
         {
           "test_name_regex": "warm_boot.HwHashPolarizationTests.fullXHalfHash"
@@ -6946,6 +6985,9 @@
           "test_name_regex": "HwEcmpFlowletSwitchingTest.*"
         },
         {
+          "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*"
+        },
+        {
           "test_name_regex": "HwUdfTest.*"
         },
         {
@@ -7447,6 +7489,9 @@
         },
         {
           "test_name_regex": "HwEcmpFlowletSwitchingTest.*"
+        },
+        {
+          "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*"
         },
         {
           "test_name_regex": "HwTrafficPfcTest.*"
@@ -8012,6 +8057,9 @@
           "test_name_regex": "HwEcmpFlowletSwitchingTest.*"
         },
         {
+          "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*"
+        },
+        {
           "test_name_regex": "HwTrafficPfcTest.*"
         },
         {
@@ -8411,6 +8459,9 @@
         },
         {
           "test_name_regex": "HwEcmpFlowletSwitchingTest.*"
+        },
+        {
+          "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*"
         },
         {
           "test_name_regex": "warm_boot.HwHashPolarizationTests.fullXHalfHash"
@@ -9066,6 +9117,9 @@
           "test_name_regex": "HwEcmpFlowletSwitchingTest.*"
         },
         {
+          "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*"
+        },
+        {
           "test_name_regex": "HwUdfTest.*"
         },
         {
@@ -9593,6 +9647,9 @@
           "test_name_regex": "HwEcmpFlowletSwitchingTest.*"
         },
         {
+          "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*"
+        },
+        {
           "test_name_regex": "HwTrafficPfcTest.*"
         },
         {
@@ -10016,6 +10073,9 @@
         },
         {
           "test_name_regex": "HwEcmpFlowletSwitchingTest.*"
+        },
+        {
+          "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*"
         },
         {
           "test_name_regex": "HwUdfTest.*"
@@ -10797,6 +10857,9 @@
           "test_name_regex": "HwEcmpFlowletSwitchingTest.*"
         },
         {
+          "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*"
+        },
+        {
           "test_name_regex": "HwTrafficPfcTest.*"
         },
         {
@@ -11172,6 +11235,9 @@
         },
         {
           "test_name_regex": "HwEcmpFlowletSwitchingTest.*"
+        },
+        {
+          "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*"
         },
         {
           "test_name_regex": "warm_boot.HwHashPolarizationTests.fullXHalfHash"
@@ -11806,6 +11872,9 @@
           "test_name_regex": "HwEcmpFlowletSwitchingTest.*"
         },
         {
+          "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*"
+        },
+        {
           "test_name_regex": "HwUdfTest.*"
         },
         {
@@ -12307,6 +12376,9 @@
         },
         {
           "test_name_regex": "HwEcmpFlowletSwitchingTest.*"
+        },
+        {
+          "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*"
         },
         {
           "test_name_regex": "HwTrafficPfcTest.*"
@@ -12848,6 +12920,9 @@
           "test_name_regex": "HwEcmpFlowletSwitchingTest.*$"
         },
         {
+          "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*$"
+        },
+        {
           "test_name_regex": "HwVoqSwitch*"
         },
         {
@@ -13234,6 +13309,9 @@
           "test_name_regex": "HwEcmpFlowletSwitchingTest.*$"
         },
         {
+          "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*$"
+        },
+        {
           "test_name_regex": "HwVoqSwitch*"
         },
         {
@@ -13556,6 +13634,9 @@
         },
         {
           "test_name_regex": "HwEcmpFlowletSwitchingTest.*$"
+        },
+        {
+          "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*$"
         }
     ],
     "leaba/1.65.0/1.65.0/gibraltar": [
@@ -13900,6 +13981,9 @@
         },
         {
           "test_name_regex": "HwEcmpFlowletSwitchingTest.*$"
+        },
+        {
+          "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*$"
         },
         {
           "test_name_regex": "HwVoqSwitch*"
