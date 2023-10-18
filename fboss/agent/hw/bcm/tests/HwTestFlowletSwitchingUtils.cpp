@@ -110,6 +110,8 @@ bool verifyEcmpForFlowletSwitching(
   }
   CHECK_EQ(existing.dynamic_age, *flowletCfg.inactivityIntervalUsecs());
   CHECK_EQ(existing.dynamic_size, *flowletCfg.flowletTableSize());
+  CHECK_GE(ecmp, 200000);
+  CHECK_LE(ecmp, 200128);
 
   auto ecmp_members = getEcmpGroupInHw(bcmSwitch, ecmp, pathsInHwCount);
   for (const auto& ecmp_member : ecmp_members) {

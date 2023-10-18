@@ -873,6 +873,14 @@ HwInitResult BcmSwitch::initImpl(
     rv = bcm_l3_enable_set(unit_, 1);
     bcmCheckError(rv, "failed to enable l3");
   }
+  // TODO: Remove #if once bcmSwitchEcmpDlbOffset support in all sdk releases
+#if defined(BCM_SDK_VERSION_GTE_6_5_26)
+  if (FLAGS_flowletSwitchingEnable) {
+    // set the Ecmp DlbOffset for ECMP to DLB
+    rv = bcm_switch_control_set(unit_, bcmSwitchEcmpDlbOffset, 0x0);
+    bcmCheckError(rv, "failed to set bcmSwitchEcmpDlbOffset");
+  }
+#endif
 
   // Trap IPv4 Address Resolution Protocol (ARP) packets.
   // TODO: We may want to trap ARP on a per-port or per-VLAN basis.
