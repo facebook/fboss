@@ -52,7 +52,6 @@ target_link_libraries(data_corral_service
 )
 
 add_executable(data_corral_service_hw_test
-  fboss/platform/data_corral_service/hw_test/Main.cpp
   fboss/platform/data_corral_service/hw_test/DataCorralServiceHwTest.cpp
 )
 

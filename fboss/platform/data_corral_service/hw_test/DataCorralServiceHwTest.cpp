@@ -10,12 +10,19 @@
 
 #include <gtest/gtest.h>
 
+#include <fb303/ServiceData.h>
+#include <fmt/format.h>
+#include <folly/FileUtil.h>
 #include <thrift/lib/cpp2/util/ScopedServerInterfaceThread.h>
 
+#include "fboss/platform/config_lib/ConfigLib.h"
 #include "fboss/platform/data_corral_service/DataCorralServiceThriftHandler.h"
+#include "fboss/platform/data_corral_service/FruPresenceExplorer.h"
 #include "fboss/platform/data_corral_service/if/gen-cpp2/DataCorralServiceThrift.h"
 #include "fboss/platform/data_corral_service/if/gen-cpp2/data_corral_service_types.h"
+#include "fboss/platform/helpers/Init.h"
 
+using namespace facebook::fboss::platform;
 using namespace facebook::fboss::platform::data_corral_service;
 
 namespace {
@@ -23,6 +30,15 @@ class DataCorralServiceHwTest : public ::testing::Test {
  public:
   void SetUp() override {
     thriftHandler_ = std::make_shared<DataCorralServiceThriftHandler>();
+
+    apache::thrift::SimpleJSONSerializer::deserialize<LedManagerConfig>(
+        ConfigLib().getLedManagerConfig(), ledManagerConfig_);
+
+    auto ledManager = std::make_shared<LedManager>(
+        *ledManagerConfig_.systemLedConfig(),
+        *ledManagerConfig_.fruTypeLedConfigs());
+    fruPresenceExplorer_ = std::make_shared<FruPresenceExplorer>(
+        *ledManagerConfig_.fruConfigs(), ledManager);
   }
 
   void TearDown() override {}
@@ -34,9 +50,51 @@ class DataCorralServiceHwTest : public ::testing::Test {
     client->sync_getFruid(resp, uncached);
     return resp;
   }
+
+  std::shared_ptr<FruPresenceExplorer> fruPresenceExplorer_;
   std::shared_ptr<DataCorralServiceThriftHandler> thriftHandler_;
+  LedManagerConfig ledManagerConfig_;
 };
 } // namespace
+
+TEST_F(DataCorralServiceHwTest, FruLedProgrammingSysfsCheck) {
+  fruPresenceExplorer_->detectFruPresence();
+
+  std::string val;
+  for (const auto& [fruType, ledConfig] :
+       *ledManagerConfig_.fruTypeLedConfigs()) {
+    folly::readFile(ledConfig.presentLedSysfsPath()->c_str(), val);
+    EXPECT_EQ(folly::to<int>(val), 1);
+    folly::readFile(ledConfig.absentLedSysfsPath()->c_str(), val);
+    EXPECT_EQ(folly::to<int>(val), 0);
+  }
+  folly::readFile(
+      ledManagerConfig_.systemLedConfig()->presentLedSysfsPath()->c_str(), val);
+  EXPECT_EQ(folly::to<int>(val), 1);
+  folly::readFile(
+      ledManagerConfig_.systemLedConfig()->absentLedSysfsPath()->c_str(), val);
+  EXPECT_EQ(folly::to<int>(val), 0);
+}
+
+TEST_F(DataCorralServiceHwTest, FruLEDProgrammingODSCheck) {
+  fruPresenceExplorer_->detectFruPresence();
+
+  for (const auto& [fruType, ledConfig] :
+       *ledManagerConfig_.fruTypeLedConfigs()) {
+    EXPECT_EQ(
+        facebook::fb303::fbData->getCounter(fmt::format(
+            "fru_presence_explorer.{}.presence_detection_fail", fruType)),
+        0);
+    EXPECT_EQ(
+        facebook::fb303::fbData->getCounter(
+            fmt::format("fru_presence_explorer.{}.program_led_fail", fruType)),
+        0);
+  }
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(
+          "fru_presence_explorer.system.program_led_fail"),
+      0);
+}
 
 TEST_F(DataCorralServiceHwTest, getCachedFruid) {
   EXPECT_GT(getFruid(false).fruidData()->size(), 0);
@@ -53,4 +111,12 @@ TEST_F(DataCorralServiceHwTest, testThrift) {
   DataCorralFruidReadResponse response;
   client->sync_getFruid(response, false);
   EXPECT_GT(response.fruidData()->size(), 0);
+}
+
+int main(int argc, char* argv[]) {
+  // Parse command line flags
+  testing::InitGoogleTest(&argc, argv);
+  facebook::fboss::platform::helpers::init(argc, argv);
+  // Run the tests
+  return RUN_ALL_TESTS();
 }
