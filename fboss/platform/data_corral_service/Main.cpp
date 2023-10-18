@@ -4,11 +4,11 @@
 #include <fb303/FollyLoggingHandler.h>
 #include <folly/experimental/FunctionScheduler.h>
 #include <folly/logging/Init.h>
+#include <gflags/gflags.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
 #include "fboss/platform/config_lib/ConfigLib.h"
 #include "fboss/platform/data_corral_service/DataCorralServiceThriftHandler.h"
-#include "fboss/platform/data_corral_service/Flags.h"
 #include "fboss/platform/data_corral_service/FruPresenceExplorer.h"
 #include "fboss/platform/data_corral_service/if/gen-cpp2/data_corral_service_types.h"
 #include "fboss/platform/helpers/Init.h"
@@ -21,6 +21,8 @@ DEFINE_int32(
     refresh_interval_ms,
     10000,
     "How often to refresh FRU and program LED.");
+
+DEFINE_int32(thrift_port, 5971, "Port for the thrift service");
 
 int main(int argc, char** argv) {
   fb303::registerFollyLoggingOptionHandlers();
