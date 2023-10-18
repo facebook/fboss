@@ -12,7 +12,6 @@
 
 #include <thrift/lib/cpp2/util/ScopedServerInterfaceThread.h>
 
-#include "fboss/platform/data_corral_service/DataCorralServiceImpl.h"
 #include "fboss/platform/data_corral_service/DataCorralServiceThriftHandler.h"
 #include "fboss/platform/data_corral_service/Flags.h"
 #include "fboss/platform/data_corral_service/if/gen-cpp2/DataCorralServiceThrift.h"
@@ -24,8 +23,7 @@ namespace {
 class DataCorralServiceHwTest : public ::testing::Test {
  public:
   void SetUp() override {
-    thriftHandler_ = std::make_shared<DataCorralServiceThriftHandler>(
-        std::make_shared<DataCorralServiceImpl>(""));
+    thriftHandler_ = std::make_shared<DataCorralServiceThriftHandler>();
   }
 
   void TearDown() override {}

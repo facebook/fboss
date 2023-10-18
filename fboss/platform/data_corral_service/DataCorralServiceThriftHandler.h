@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include "fboss/platform/data_corral_service/DataCorralServiceImpl.h"
 #include "fboss/platform/data_corral_service/if/gen-cpp2/DataCorralServiceThrift.h"
 
 #include <memory>
@@ -21,9 +20,7 @@ namespace facebook::fboss::platform::data_corral_service {
 
 class DataCorralServiceThriftHandler : public DataCorralServiceThriftSvIf {
  public:
-  explicit DataCorralServiceThriftHandler(
-      std::shared_ptr<DataCorralServiceImpl> dataCorralService)
-      : dataCorralService_(dataCorralService) {}
+  explicit DataCorralServiceThriftHandler() {}
 
 #if FOLLY_HAS_COROUTINES
   folly::coro::Task<std::unique_ptr<DataCorralFruidReadResponse>> co_getFruid(
@@ -35,11 +32,8 @@ class DataCorralServiceThriftHandler : public DataCorralServiceThriftSvIf {
 #endif
   void getFruid(DataCorralFruidReadResponse& response, bool force) override;
 
-  DataCorralServiceImpl* getServiceImpl() {
-    return dataCorralService_.get();
-  }
-
  private:
-  std::shared_ptr<DataCorralServiceImpl> dataCorralService_;
+  // Cached Fruid
+  std::vector<std::pair<std::string, std::string>> fruid_{};
 };
 } // namespace facebook::fboss::platform::data_corral_service

@@ -28,11 +28,6 @@ add_library(data_corral_service_lib
   fboss/platform/data_corral_service/DataCorralServiceImpl.cpp
   fboss/platform/data_corral_service/DataCorralServiceThriftHandler.cpp
   fboss/platform/data_corral_service/Flags.cpp
-  fboss/platform/data_corral_service/ChassisManager.cpp
-  fboss/platform/data_corral_service/oss/ChassisManager.cpp
-  fboss/platform/data_corral_service/darwin/DarwinChassisManager.cpp
-  fboss/platform/data_corral_service/darwin/DarwinPlatformConfig.cpp
-  fboss/platform/data_corral_service/darwin/DarwinFruModule.cpp
   fboss/platform/data_corral_service/FruPresenceExplorer.cpp
   fboss/platform/data_corral_service/LedManager.cpp
 )

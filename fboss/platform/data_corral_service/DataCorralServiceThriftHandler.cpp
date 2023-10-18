@@ -9,8 +9,11 @@
  */
 
 #include "fboss/platform/data_corral_service/DataCorralServiceThriftHandler.h"
+
 #include <folly/logging/xlog.h>
+
 #include "fboss/lib/LogThriftCall.h"
+#include "fboss/platform/weutil/Weutil.h"
 
 namespace facebook::fboss::platform::data_corral_service {
 
@@ -18,6 +21,20 @@ void DataCorralServiceThriftHandler::getFruid(
     DataCorralFruidReadResponse& response,
     bool uncached) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  response.fruidData() = dataCorralService_->getFruid(uncached);
+
+  std::vector<FruIdData> vData;
+
+  if (uncached || fruid_.empty()) {
+    fruid_ = get_plat_weutil("chassis", "")->getInfo();
+  }
+
+  for (const auto& it : fruid_) {
+    FruIdData data;
+    data.name() = it.first;
+    data.value() = it.second;
+    vData.emplace_back(data);
+  }
+
+  response.fruidData() = vData;
 }
 } // namespace facebook::fboss::platform::data_corral_service

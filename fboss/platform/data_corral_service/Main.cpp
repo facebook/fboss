@@ -4,6 +4,7 @@
 #include <fb303/FollyLoggingHandler.h>
 #include <folly/logging/Init.h>
 
+#include "fboss/platform/data_corral_service/DataCorralServiceImpl.h"
 #include "fboss/platform/data_corral_service/DataCorralServiceThriftHandler.h"
 #include "fboss/platform/data_corral_service/Flags.h"
 #include "fboss/platform/helpers/Init.h"
@@ -18,7 +19,7 @@ int main(int argc, char** argv) {
 
   auto serviceImpl = std::make_shared<DataCorralServiceImpl>();
   auto server = std::make_shared<apache::thrift::ThriftServer>();
-  auto handler = std::make_shared<DataCorralServiceThriftHandler>(serviceImpl);
+  auto handler = std::make_shared<DataCorralServiceThriftHandler>();
 
   server->setPort(FLAGS_thrift_port);
   server->setInterface(handler);
