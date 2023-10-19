@@ -12923,6 +12923,9 @@
           "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*$"
         },
         {
+          "test_name_regex": "HwMacLearningAndNeighborResolutionTest/[0-7].flapMacAndNeighbors$"
+        },
+        {
           "test_name_regex": "HwVoqSwitch*"
         },
         {
@@ -13312,6 +13315,9 @@
           "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*$"
         },
         {
+          "test_name_regex": "HwMacLearningAndNeighborResolutionTest/[0-7].flapMacAndNeighbors$"
+        },
+        {
           "test_name_regex": "HwVoqSwitch*"
         },
         {
@@ -13493,9 +13499,6 @@
         },
         {
           "test_name_regex": "warm_boot.HwMacLearningAndMyStationInteractionTest.*$"
-        },
-        {
-          "test_name_regex": "HwMacLearningAndNeighborResolutionTest/[02].*$"
         },
         {
           "test_name_regex": "HwMPLSTest.*$"
@@ -13984,6 +13987,9 @@
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*$"
+        },
+        {
+          "test_name_regex": "HwMacLearningAndNeighborResolutionTest/[0-7].flapMacAndNeighbors$"
         },
         {
           "test_name_regex": "HwVoqSwitch*"
