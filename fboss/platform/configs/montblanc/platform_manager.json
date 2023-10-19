@@ -19,6 +19,15 @@
   "pmUnitConfigs": {
     "MCB": {
       "pluggedInSlotType": "MCB_SLOT",
+      "pciDeviceConfigs": [
+        {
+          "pmUnitScopedName": "MCB_IOB",
+          "vendorId": "0x1d9b",
+          "deviceId": "0x0011",
+          "subSystemVendorId": "0x10ee",
+          "subSystemDeviceId": "0x0007"
+        }
+      ],
       "i2cDeviceConfigs": [],
       "outgoingSlotConfigs": {}
     }

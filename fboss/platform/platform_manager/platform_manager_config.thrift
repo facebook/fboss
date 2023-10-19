@@ -238,7 +238,7 @@ struct FpgaIpBlockConfig {
 //
 // `fpgaIpBlockConfig`: See FgpaIpBlockConfig above
 //
-// `numberOfI2cAdapters`: Number of I2C Adapters created by this block.
+// `numberOfAdapters`: Number of I2C Adapters created by this block.
 struct I2cAdapterConfig {
   1: FpgaIpBlockConfig fpgaIpBlockConfig;
   2: i32 numberOfAdapters;

@@ -160,39 +160,48 @@ void PlatformExplorer::explorePciDevices(
     const std::string& slotPath,
     const std::vector<PciDeviceConfig>& pciDeviceConfigs) {
   for (const auto& pciDeviceConfig : pciDeviceConfigs) {
-    PciDevice device{
-        *pciDeviceConfig.pmUnitScopedName(),
+    auto pciDevPath = pciExplorer_.getDevicePath(
         *pciDeviceConfig.vendorId(),
         *pciDeviceConfig.deviceId(),
         *pciDeviceConfig.subSystemVendorId(),
-        *pciDeviceConfig.subSystemDeviceId()};
+        *pciDeviceConfig.subSystemDeviceId());
+    if (!pciDevPath) {
+      XLOG(ERR) << fmt::format(
+          "Could not find PCI device path for {}",
+          *pciDeviceConfig.pmUnitScopedName());
+      continue;
+    }
+    XLOG(INFO) << fmt::format(
+        "Found PCI device {} at {}",
+        *pciDeviceConfig.pmUnitScopedName(),
+        *pciDevPath);
     for (const auto& [i2cAdapterName, i2cAdapterConfig] :
          *pciDeviceConfig.i2cAdapterConfigs()) {
-      pciExplorer_.createI2cAdapter(device, i2cAdapterConfig);
+      pciExplorer_.createI2cAdapter(*pciDevPath, i2cAdapterConfig);
     }
     for (const auto& [spiMasterName, spiMasterConfig] :
          *pciDeviceConfig.spiMasterConfigs()) {
-      pciExplorer_.createSpiMaster(device, spiMasterConfig);
+      pciExplorer_.createSpiMaster(*pciDevPath, spiMasterConfig);
     }
     for (const auto& [name, fpgaIpBlockConfig] :
          *pciDeviceConfig.gpioChipConfigs()) {
-      pciExplorer_.create(device, fpgaIpBlockConfig);
+      pciExplorer_.create(*pciDevPath, fpgaIpBlockConfig);
     }
     for (const auto& [name, fpgaIpBlockConfig] :
          *pciDeviceConfig.watchdogConfigs()) {
-      pciExplorer_.create(device, fpgaIpBlockConfig);
+      pciExplorer_.create(*pciDevPath, fpgaIpBlockConfig);
     }
     for (const auto& [name, fpgaIpBlockConfig] :
          *pciDeviceConfig.fanTachoPwmConfigs()) {
-      pciExplorer_.create(device, fpgaIpBlockConfig);
+      pciExplorer_.create(*pciDevPath, fpgaIpBlockConfig);
     }
     for (const auto& [name, fpgaIpBlockConfig] :
          *pciDeviceConfig.ledCtrlConfigs()) {
-      pciExplorer_.createLedCtrl(device, fpgaIpBlockConfig);
+      pciExplorer_.createLedCtrl(*pciDevPath, fpgaIpBlockConfig);
     }
     for (const auto& [name, xcvrCtrlConfig] :
          *pciDeviceConfig.xcvrCtrlConfigs()) {
-      pciExplorer_.createXcvrCtrl(device, xcvrCtrlConfig);
+      pciExplorer_.createXcvrCtrl(*pciDevPath, xcvrCtrlConfig);
     }
   }
 }
