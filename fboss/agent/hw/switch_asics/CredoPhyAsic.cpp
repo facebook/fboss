@@ -12,6 +12,10 @@ bool CredoPhyAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::PORT_EYE_VALUES:
     case HwAsic::Feature::FEC:
     case HwAsic::Feature::XPHY_PORT_STATE_TOGGLE:
+    case HwAsic::Feature::PMD_RX_SIGNAL_DETECT:
+    case HwAsic::Feature::PMD_RX_LOCK_STATUS:
+    case HwAsic::Feature::FEC_AM_LOCK_STATUS:
+    case HwAsic::Feature::PCS_RX_LINK_STATUS:
       return true;
     default:
       return false;
