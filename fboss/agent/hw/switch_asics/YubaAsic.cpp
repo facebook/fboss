@@ -154,6 +154,7 @@ bool YubaAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::SAI_EAPOL_TRAP:
     case HwAsic::Feature::SAI_USER_DEFINED_TRAP:
     case HwAsic::Feature::CREDIT_WATCHDOG:
+    case HwAsic::Feature::ECMP_DLB_OFFSET:
       return false;
   }
   return false;

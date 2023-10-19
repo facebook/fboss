@@ -159,6 +159,7 @@ class HwAsic {
     SAI_USER_DEFINED_TRAP,
     ACL_COUNTER_LABEL,
     CREDIT_WATCHDOG,
+    ECMP_DLB_OFFSET,
   };
 
   enum class AsicMode {

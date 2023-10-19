@@ -158,6 +158,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_USER_DEFINED_TRAP:
     case HwAsic::Feature::PORT_EYE_VALUES:
     case HwAsic::Feature::CREDIT_WATCHDOG:
+    case HwAsic::Feature::ECMP_DLB_OFFSET:
       return false;
   }
   return false;

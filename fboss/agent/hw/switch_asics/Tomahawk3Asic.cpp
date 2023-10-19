@@ -146,6 +146,7 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::DRAM_ENQUEUE_DEQUEUE_STATS:
     case HwAsic::Feature::FLOWLET_PORT_ATTRIBUTES:
     case HwAsic::Feature::CREDIT_WATCHDOG:
+    case HwAsic::Feature::ECMP_DLB_OFFSET:
       return false;
   }
   return false;

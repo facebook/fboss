@@ -876,9 +876,11 @@ HwInitResult BcmSwitch::initImpl(
   // TODO: Remove #if once bcmSwitchEcmpDlbOffset support in all sdk releases
 #if defined(BCM_SDK_VERSION_GTE_6_5_26)
   if (FLAGS_flowletSwitchingEnable) {
-    // set the Ecmp DlbOffset for ECMP to DLB
-    rv = bcm_switch_control_set(unit_, bcmSwitchEcmpDlbOffset, 0x0);
-    bcmCheckError(rv, "failed to set bcmSwitchEcmpDlbOffset");
+    if (platform_->getAsic()->isSupported(HwAsic::Feature::ECMP_DLB_OFFSET)) {
+      // set the Ecmp DlbOffset for ECMP to DLB
+      rv = bcm_switch_control_set(unit_, bcmSwitchEcmpDlbOffset, 0x0);
+      bcmCheckError(rv, "failed to set bcmSwitchEcmpDlbOffset");
+    }
   }
 #endif
 
