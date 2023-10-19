@@ -50,8 +50,8 @@
       "pciDeviceConfigs": [
         {
           "name": "IOB1 FPGA",
-          "vendorId": "83xf",
-          "deviceId": "ab87",
+          "vendorId": "0x83bf",
+          "deviceId": "0xab87",
           "i2cAdapterConfigs": {
             "SCM_IOB1_I2C_0": {
               "deviceName": "i2c-smb",
@@ -101,8 +101,8 @@
       "pciDevices": [
         {
           "name": "IOB2 FPGA",
-          "vendorId": "1132",
-          "deviceId": "hg56",
+          "vendorId": "0x1132",
+          "deviceId": "0xab56",
           "i2cAdapterConfigs": {
             "SCM_IOB2_I2C_0": {
               "deviceName": "i2c-smb",
@@ -187,8 +187,8 @@
       "pciDevices": [
         {
           "name": "IOB2 FPGA",
-          "vendorId": "1132",
-          "deviceId": "hg56",
+          "vendorId": "0x1132",
+          "deviceId": "0xab56",
           "i2cAdapterConfigs": {
             "SCM_IOB2_I2C_2": {
               "deviceName": "i2c-smb",

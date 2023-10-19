@@ -51,6 +51,26 @@ TEST(ConfigValidatorTest, SlotTypeConfig) {
   EXPECT_FALSE(ConfigValidator().isValidSlotTypeConfig(slotTypeConfig));
 }
 
+TEST(ConfigValidatorTest, PciDeviceConfig) {
+  auto pciDevConfig = PciDeviceConfig{};
+  EXPECT_FALSE(ConfigValidator().isValidPciDeviceConfig(pciDevConfig));
+  pciDevConfig.vendorId() = "0xab29";
+  pciDevConfig.deviceId() = "0xaf29";
+  EXPECT_TRUE(ConfigValidator().isValidPciDeviceConfig(pciDevConfig));
+  pciDevConfig.subSystemVendorId() = "0xa329";
+  pciDevConfig.subSystemDeviceId() = "0x1b29";
+  EXPECT_TRUE(ConfigValidator().isValidPciDeviceConfig(pciDevConfig));
+  pciDevConfig.vendorId() = "0xAb29";
+  pciDevConfig.deviceId() = "0xaf2x";
+  EXPECT_FALSE(ConfigValidator().isValidPciDeviceConfig(pciDevConfig));
+  pciDevConfig.deviceId() = "0xaf29";
+  pciDevConfig.subSystemVendorId() = "0xa3F9";
+  EXPECT_FALSE(ConfigValidator().isValidPciDeviceConfig(pciDevConfig));
+  pciDevConfig.subSystemVendorId() = "0xa329";
+  pciDevConfig.subSystemDeviceId() = "0x1b";
+  EXPECT_FALSE(ConfigValidator().isValidPciDeviceConfig(pciDevConfig));
+}
+
 TEST(ConfigValidatorTest, I2cDeviceConfig) {
   auto i2cConfig = I2cDeviceConfig{};
   EXPECT_FALSE(ConfigValidator().isValidI2cDeviceConfig(i2cConfig));

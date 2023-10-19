@@ -3,8 +3,10 @@
 #include "fboss/platform/platform_manager/ConfigValidator.h"
 
 #include <folly/logging/xlog.h>
+#include <re2/re2.h>
 
 #include "fboss/platform/platform_manager/I2cExplorer.h"
+#include "fboss/platform/platform_manager/PciExplorer.h"
 
 namespace facebook::fboss::platform::platform_manager {
 
@@ -21,6 +23,35 @@ bool ConfigValidator::isValidSlotTypeConfig(
       XLOG(ERR) << "IDPROM has invalid address " << e.what();
       return false;
     }
+  }
+  return true;
+}
+
+bool ConfigValidator::isValidPciDeviceConfig(
+    const PciDeviceConfig& pciDeviceConfig) {
+  if (!re2::RE2::FullMatch(
+          *pciDeviceConfig.vendorId(), PciExplorer().kPciIdRegex)) {
+    XLOG(ERR) << "Invalid PCI vendor id : " << *pciDeviceConfig.vendorId();
+    return false;
+  }
+  if (!re2::RE2::FullMatch(
+          *pciDeviceConfig.deviceId(), PciExplorer().kPciIdRegex)) {
+    XLOG(ERR) << "Invalid PCI device id : " << *pciDeviceConfig.deviceId();
+    return false;
+  }
+  if (!pciDeviceConfig.subSystemDeviceId()->empty() &&
+      !re2::RE2::FullMatch(
+          *pciDeviceConfig.subSystemVendorId(), PciExplorer().kPciIdRegex)) {
+    XLOG(ERR) << "Invalid PCI subsystem vendor id : "
+              << *pciDeviceConfig.subSystemVendorId();
+    return false;
+  }
+  if (!pciDeviceConfig.subSystemVendorId()->empty() &&
+      !re2::RE2::FullMatch(
+          *pciDeviceConfig.subSystemDeviceId(), PciExplorer().kPciIdRegex)) {
+    XLOG(ERR) << "Invalid PCI subsystem device id : "
+              << *pciDeviceConfig.subSystemDeviceId();
+    return false;
   }
   return true;
 }
@@ -45,8 +76,6 @@ bool ConfigValidator::isValid(const PlatformConfig& config) {
     return false;
   }
 
-  // TODO: Validate platformName matches what is set in dmidecode on BIOS
-
   // Validate SlotTypeConfigs.
   for (const auto& [slotName, slotTypeConfig] : *config.slotTypeConfigs()) {
     if (!isValidSlotTypeConfig(slotTypeConfig)) {
@@ -54,8 +83,15 @@ bool ConfigValidator::isValid(const PlatformConfig& config) {
     }
   }
 
-  // Validate I2cDeviceConfigs
   for (const auto& [name, pmUnitConfig] : *config.pmUnitConfigs()) {
+    // Validate PciDeviceConfigs
+    for (const auto& pciDeviceConfig : *pmUnitConfig.pciDeviceConfigs_ref()) {
+      if (!isValidPciDeviceConfig(pciDeviceConfig)) {
+        return false;
+      }
+    }
+
+    // Validate I2cDeviceConfigs
     for (const auto& i2cDeviceConfig : *pmUnitConfig.i2cDeviceConfigs_ref()) {
       if (!isValidI2cDeviceConfig(i2cDeviceConfig)) {
         return false;

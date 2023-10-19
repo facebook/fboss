@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <re2/re2.h>
+
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_types.h"
 
 namespace facebook::fboss::platform::platform_manager {
@@ -16,6 +18,7 @@ struct PciDevice {
 
 class PciExplorer {
  public:
+  const re2::RE2 kPciIdRegex{"0x[0-9a-f]{4}"};
   // Create the I2C Adapter based on the given i2cAdapterConfig residing
   // at the given PciDevice. It returns the the kernel assigned i2c bus
   // number(s) for the created adapter(s). Throw std::runtime_error on failure.
