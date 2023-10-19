@@ -33,7 +33,6 @@ bool ConfigValidator::isValidI2cDeviceConfig(
     XLOG(ERR) << "IDPROM has invalid address " << e.what();
     return false;
   }
-
   return true;
 }
 

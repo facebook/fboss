@@ -83,9 +83,12 @@ TEST(I2cExplorerTest, getDeviceI2cPath) {
 
 TEST(I2cExplorerTest, I2cAddr) {
   EXPECT_EQ(I2cAddr("0x2f").hex2Str(), "0x2f");
-  EXPECT_EQ(I2cAddr("0x2F").hex2Str(), "0x2f");
   EXPECT_EQ(I2cAddr(20).hex2Str(), "0x14");
   EXPECT_THROW(I2cAddr("0xGF"), std::invalid_argument);
   EXPECT_THROW(I2cAddr("20"), std::invalid_argument);
   EXPECT_THROW(I2cAddr("0x"), std::invalid_argument);
+  EXPECT_THROW(I2cAddr("0x2F"), std::invalid_argument);
+  EXPECT_THROW(I2cAddr("0xf"), std::invalid_argument);
+  EXPECT_NO_THROW(I2cAddr("0x0f"));
+  EXPECT_NO_THROW(I2cAddr("0xaf"));
 }

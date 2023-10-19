@@ -5,7 +5,6 @@
 #include <folly/FileUtil.h>
 #include <folly/String.h>
 #include <folly/logging/xlog.h>
-#include <re2/re2.h>
 
 #include <filesystem>
 #include <stdexcept>
@@ -14,7 +13,7 @@ namespace fs = std::filesystem;
 
 namespace {
 
-const re2::RE2 kI2cBusNameRegex("i2c-\\d+");
+const re2::RE2 kI2cBusNameRegex{"i2c-\\d+"};
 
 int32_t extractBusNumFromPath(const fs::path& busPath) {
   if (!re2::RE2::FullMatch(busPath.filename().string(), kI2cBusNameRegex)) {

@@ -63,7 +63,7 @@ TEST(ConfigValidatorTest, I2cDeviceConfig) {
   i2cConfig.address_ref() = "0x2f";
   EXPECT_TRUE(ConfigValidator().isValidI2cDeviceConfig(i2cConfig));
   i2cConfig.address_ref() = "0x2F";
-  EXPECT_TRUE(ConfigValidator().isValidI2cDeviceConfig(i2cConfig));
+  EXPECT_FALSE(ConfigValidator().isValidI2cDeviceConfig(i2cConfig));
   i2cConfig.address_ref() = "0x20";
   EXPECT_TRUE(ConfigValidator().isValidI2cDeviceConfig(i2cConfig));
 }

@@ -10,6 +10,8 @@
 
 #include <fmt/format.h>
 #include <folly/String.h>
+#include <folly/logging/xlog.h>
+#include <re2/re2.h>
 
 #include "fboss/platform/helpers/PlatformUtils.h"
 
@@ -20,10 +22,8 @@ struct I2cAddr {
   explicit I2cAddr(uint16_t addr) : addr_(addr) {}
   explicit I2cAddr(const std::string& addr)
       : addr_(std::stoi(addr, nullptr, 16 /* base */)) {
-    std::string lcAddr = addr;
-    folly::toLowerAscii(lcAddr);
-    if (hex2Str() != lcAddr) {
-      throw std::invalid_argument("Invalid I2C Address. " + addr);
+    if (!re2::RE2::FullMatch(addr, re2::RE2{"0x[0-9a-f]{2}"})) {
+      throw std::invalid_argument("Invalid i2c addr: " + addr);
     }
   }
   bool operator==(const I2cAddr& b) const {
