@@ -61,7 +61,8 @@ HwSwitchFb303Stats* HwSwitch::getSwitchStats() const {
   if (!hwSwitchStats_) {
     hwSwitchStats_.reset(new HwSwitchFb303Stats(
         fb303::ThreadCachedServiceData::get()->getThreadStats(),
-        getPlatform()->getAsic()->getVendor()));
+        getPlatform()->getAsic()->getVendor(),
+        getPlatform()->getMultiSwitchStatsPrefix()));
   }
   return hwSwitchStats_.get();
 }

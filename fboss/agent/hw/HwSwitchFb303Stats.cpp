@@ -18,96 +18,84 @@ using facebook::fb303::SUM;
 
 namespace facebook::fboss {
 
+std::string HwSwitchFb303Stats::getCounterPrefix() const {
+  return statsPrefix_
+      ? folly::to<std::string>(*statsPrefix_, SwitchStats::kCounterPrefix)
+      : SwitchStats::kCounterPrefix;
+}
+
 HwSwitchFb303Stats::HwSwitchFb303Stats(
     ThreadLocalStatsMap* map,
-    const std::string& vendor)
-    : txPktAlloc_(
+    const std::string& vendor,
+    std::optional<std::string> statsPrefix)
+    : statsPrefix_(statsPrefix),
+      txPktAlloc_(
           map,
-          SwitchStats::kCounterPrefix + vendor + ".tx.pkt.allocated",
+          getCounterPrefix() + vendor + ".tx.pkt.allocated",
           SUM,
           RATE),
-      txPktFree_(
-          map,
-          SwitchStats::kCounterPrefix + vendor + ".tx.pkt.freed",
-          SUM,
-          RATE),
-      txSent_(
-          map,
-          SwitchStats::kCounterPrefix + vendor + ".tx.pkt.sent",
-          SUM,
-          RATE),
+      txPktFree_(map, getCounterPrefix() + vendor + ".tx.pkt.freed", SUM, RATE),
+      txSent_(map, getCounterPrefix() + vendor + ".tx.pkt.sent", SUM, RATE),
       txSentDone_(
           map,
-          SwitchStats::kCounterPrefix + vendor + ".tx.pkt.sent.done",
+          getCounterPrefix() + vendor + ".tx.pkt.sent.done",
           SUM,
           RATE),
-      txErrors_(
-          map,
-          SwitchStats::kCounterPrefix + vendor + ".tx.errors",
-          SUM,
-          RATE),
+      txErrors_(map, getCounterPrefix() + vendor + ".tx.errors", SUM, RATE),
       txPktAllocErrors_(
           map,
-          SwitchStats::kCounterPrefix + vendor + ".tx.pkt.allocation.errors",
+          getCounterPrefix() + vendor + ".tx.pkt.allocation.errors",
           SUM,
           RATE),
       txQueued_(
           map,
-          SwitchStats::kCounterPrefix + vendor + ".tx.pkt.queued_us",
+          getCounterPrefix() + vendor + ".tx.pkt.queued_us",
           100,
           0,
           1000),
       parityErrors_(
           map,
-          SwitchStats::kCounterPrefix + vendor + ".parity.errors",
+          getCounterPrefix() + vendor + ".parity.errors",
           SUM,
           RATE),
       corrParityErrors_(
           map,
-          SwitchStats::kCounterPrefix + vendor + ".parity.corr",
+          getCounterPrefix() + vendor + ".parity.corr",
           SUM,
           RATE),
       uncorrParityErrors_(
           map,
-          SwitchStats::kCounterPrefix + vendor + ".parity.uncorr",
+          getCounterPrefix() + vendor + ".parity.uncorr",
           SUM,
           RATE),
-      asicErrors_(
-          map,
-          SwitchStats::kCounterPrefix + vendor + ".asic.error",
-          SUM,
-          RATE),
-      globalDrops_(
-          map,
-          SwitchStats::kCounterPrefix + "global_drops",
-          SUM,
-          RATE),
+      asicErrors_(map, getCounterPrefix() + vendor + ".asic.error", SUM, RATE),
+      globalDrops_(map, getCounterPrefix() + "global_drops", SUM, RATE),
       globalReachDrops_(
           map,
-          SwitchStats::kCounterPrefix + "global_reachability_drops",
+          getCounterPrefix() + "global_reachability_drops",
           SUM,
           RATE),
       packetIntegrityDrops_(
           map,
-          SwitchStats::kCounterPrefix + "packet_integrity_drops",
+          getCounterPrefix() + "packet_integrity_drops",
           SUM,
           RATE),
       dramEnqueuedBytes_(
           map,
-          SwitchStats::kCounterPrefix + "dram_enqueued_bytes",
+          getCounterPrefix() + "dram_enqueued_bytes",
           SUM,
           RATE),
       dramDequeuedBytes_(
           map,
-          SwitchStats::kCounterPrefix + "dram_dequeued_bytes",
+          getCounterPrefix() + "dram_dequeued_bytes",
           SUM,
           RATE),
       fabricReachabilityMissingCount_(
           map,
-          SwitchStats::kCounterPrefix + "fabric_reachability_missing"),
+          getCounterPrefix() + "fabric_reachability_missing"),
       fabricReachabilityMismatchCount_(
           map,
-          SwitchStats::kCounterPrefix + "fabric_reachability_mismatch") {}
+          getCounterPrefix() + "fabric_reachability_mismatch") {}
 
 void HwSwitchFb303Stats::update(const HwSwitchDropStats& dropStats) {
   if (dropStats.globalDrops().has_value()) {
