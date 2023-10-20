@@ -242,3 +242,23 @@ struct HwSwitchDramStats {
   1: optional i64 dramEnqueuedBytes;
   2: optional i64 dramDequeuedBytes;
 }
+
+struct HwSwitchFb303GlobalStats {
+  1: i64 tx_pkt_allocated;
+  2: i64 tx_pkt_freed;
+  3: i64 tx_pkt_sent;
+  4: i64 tx_pkt_sent_done;
+  5: i64 tx_errors;
+  6: i64 tx_pkt_allocation_errors;
+  7: i64 parity_errors;
+  8: i64 parity_corr;
+  9: i64 parity_uncorr;
+  10: i64 asic_error;
+  11: i64 global_drops;
+  12: i64 global_reachability_drops;
+  13: i64 packet_integrity_drops;
+  14: i64 dram_enqueued_bytes;
+  15: i64 dram_dequeued_bytes;
+  16: i64 fabric_reachability_missing;
+  17: i64 fabric_reachability_mismatch;
+}

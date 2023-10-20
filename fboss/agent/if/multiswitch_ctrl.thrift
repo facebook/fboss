@@ -54,6 +54,7 @@ struct HwSwitchStats {
   7: hardware_stats.TeFlowStats teFlowStats;
   8: hardware_stats.HwBufferPoolStats bufferPoolStats;
   9: hardware_stats.FabricReachabilityStats fabricReachabilityStats;
+  10: hardware_stats.HwSwitchFb303GlobalStats fb303GlobalStats;
 }
 
 service MultiSwitchCtrl {

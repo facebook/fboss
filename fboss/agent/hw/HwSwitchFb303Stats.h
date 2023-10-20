@@ -107,6 +107,7 @@ class HwSwitchFb303Stats {
 
   HwAsicErrors getHwAsicErrors() const;
   FabricReachabilityStats getFabricReachabilityStats();
+  HwSwitchFb303GlobalStats getAllFb303Stats() const;
 
  private:
   // Forbidden copy constructor and assignment operator

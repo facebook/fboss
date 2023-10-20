@@ -163,4 +163,31 @@ int64_t HwSwitchFb303Stats::getFabricReachabilityMissingCount() const {
   return counterVal ? *counterVal : 0;
 }
 
+HwSwitchFb303GlobalStats HwSwitchFb303Stats::getAllFb303Stats() const {
+  HwSwitchFb303GlobalStats hwFb303Stats;
+  hwFb303Stats.tx_pkt_allocated() = getCumulativeValue(txPktAlloc_);
+  hwFb303Stats.tx_pkt_freed() = getCumulativeValue(txPktFree_);
+  hwFb303Stats.tx_pkt_sent() = getCumulativeValue(txSent_);
+  hwFb303Stats.tx_pkt_sent_done() = getCumulativeValue(txSentDone_);
+  hwFb303Stats.tx_errors() = getCumulativeValue(txErrors_);
+  hwFb303Stats.tx_pkt_allocation_errors() =
+      getCumulativeValue(txPktAllocErrors_);
+  hwFb303Stats.parity_errors() = getCumulativeValue(parityErrors_);
+  hwFb303Stats.parity_corr() = getCumulativeValue(corrParityErrors_);
+  hwFb303Stats.parity_uncorr() = getCumulativeValue(uncorrParityErrors_);
+  hwFb303Stats.asic_error() = getCumulativeValue(asicErrors_);
+  hwFb303Stats.global_drops() = getCumulativeValue(globalDrops_);
+  hwFb303Stats.global_reachability_drops() =
+      getCumulativeValue(globalReachDrops_);
+  hwFb303Stats.packet_integrity_drops() =
+      getCumulativeValue(packetIntegrityDrops_);
+  hwFb303Stats.dram_enqueued_bytes() = getCumulativeValue(dramEnqueuedBytes_);
+  hwFb303Stats.dram_dequeued_bytes() = getCumulativeValue(dramDequeuedBytes_);
+  hwFb303Stats.fabric_reachability_missing() =
+      getFabricReachabilityMismatchCount();
+  hwFb303Stats.fabric_reachability_mismatch() =
+      getFabricReachabilityMissingCount();
+  return hwFb303Stats;
+}
+
 } // namespace facebook::fboss
