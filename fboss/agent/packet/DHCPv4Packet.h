@@ -56,7 +56,7 @@ struct DHCPv4Packet {
     options.clear();
   }
   static constexpr size_t minSize() {
-    return kFixedPartBytes + kOptionsCookieSize;
+    return (size_t)kFixedPartBytes + (size_t)kOptionsCookieSize;
   }
   static bool isOptionWithoutLength(uint8_t op);
 

@@ -128,11 +128,11 @@ void DHCPv6Packet::parse(Cursor* cursor) {
 size_t DHCPv6Packet::computePacketLength() const {
   if (isDHCPv6Relay()) {
     // type + hopcount + la + pa + options
-    return TYPE_BYTES + HOPCOUNT_BYTES + LINKADDR_BYTES + PEERADDR_BYTES +
-        options.size();
+    return (size_t)TYPE_BYTES + (size_t)HOPCOUNT_BYTES + LINKADDR_BYTES +
+        PEERADDR_BYTES + options.size();
   } else {
     // type + transaction id + options
-    return TYPE_BYTES + TRANSACTIONID_BYTES + options.size();
+    return (size_t)TYPE_BYTES + (size_t)TRANSACTIONID_BYTES + options.size();
   }
 }
 
