@@ -837,8 +837,8 @@ uint16_t
 CP2112::featureReportIn(ReportID report, uint8_t* buf, uint16_t length) {
   CHECK(isOpen());
   uint8_t bRequestType =
-      (LIBUSB_ENDPOINT_IN | LIBUSB_REQUEST_TYPE_CLASS |
-       LIBUSB_RECIPIENT_INTERFACE);
+      ((uint8_t)LIBUSB_ENDPOINT_IN | (uint8_t)LIBUSB_REQUEST_TYPE_CLASS |
+       (uint8_t)LIBUSB_RECIPIENT_INTERFACE);
   uint8_t bRequest = Hid::GET_REPORT;
   uint16_t wValue = ReportType::FEATURE | static_cast<uint16_t>(report);
   uint16_t wIndex = 0; // the interface index
@@ -880,8 +880,8 @@ void CP2112::featureReportOut(
     const uint8_t* buf,
     uint16_t length) {
   uint8_t bRequestType =
-      (LIBUSB_ENDPOINT_OUT | LIBUSB_REQUEST_TYPE_CLASS |
-       LIBUSB_RECIPIENT_INTERFACE);
+      ((uint8_t)LIBUSB_ENDPOINT_OUT | (uint8_t)LIBUSB_REQUEST_TYPE_CLASS |
+       (uint8_t)LIBUSB_RECIPIENT_INTERFACE);
   uint8_t bRequest = Hid::SET_REPORT;
   uint16_t wValue = ReportType::FEATURE | static_cast<uint16_t>(report);
   uint16_t wIndex = 0; // the interface index
