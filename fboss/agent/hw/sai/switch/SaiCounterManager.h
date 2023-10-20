@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/hw/sai/store/SaiObjectWithCounters.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/agent/platforms/sai/SaiPlatform.h"
 
 #include "fboss/lib/RefMap.h"
 
@@ -53,7 +54,8 @@ class SaiCounterManager {
       SaiManagerTable* managerTable,
       SaiPlatform* platform)
       : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {
-    routeStats_ = std::make_shared<HwFb303Stats>(std::nullopt);
+    routeStats_ =
+        std::make_shared<HwFb303Stats>(platform->getMultiSwitchStatsPrefix());
   }
 
   std::shared_ptr<HwFb303Stats> getRouteStatsMapRef() {
