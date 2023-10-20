@@ -165,6 +165,10 @@ class SwitchIdScopeResolver {
     return l3SwitchMatcher_ != nullptr;
   }
 
+  bool hasMultipleSwitches() const {
+    return allSwitchMatcher().switchIds().size() > 1;
+  }
+
  private:
   void checkL3() const;
   void checkVoq() const;

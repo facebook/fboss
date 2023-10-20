@@ -10,6 +10,7 @@
 #pragma once
 
 #include <folly/Range.h>
+#include <optional>
 
 namespace facebook::fboss {
 
@@ -75,10 +76,15 @@ constexpr folly::StringPiece kVoqsFree{"voqs_free"};
 
 class HwResourceStatsPublisher {
  public:
+  explicit HwResourceStatsPublisher(
+      std::optional<std::string> statsPrefix = std::nullopt)
+      : statsPrefix_{statsPrefix} {}
   void publish(const HwResourceStats& stats) const;
 
  private:
   void publish(folly::StringPiece name, int64_t value) const;
+
+  std::optional<std::string> statsPrefix_;
 };
 
 } // namespace facebook::fboss

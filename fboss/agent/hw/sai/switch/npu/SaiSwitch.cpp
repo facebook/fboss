@@ -89,7 +89,8 @@ void SaiSwitch::updateStatsImpl() {
   }
   {
     std::lock_guard<std::mutex> locked(saiSwitchMutex_);
-    HwResourceStatsPublisher().publish(hwResourceStats_);
+    HwResourceStatsPublisher(getPlatform()->getMultiSwitchStatsPrefix())
+        .publish(hwResourceStats_);
   }
   {
     std::lock_guard<std::mutex> locked(saiSwitchMutex_);

@@ -22,7 +22,8 @@ void HwResourceStatsPublisher::publish(folly::StringPiece name, int64_t value)
   if (value == hardware_stats_constants::STAT_UNINITIALIZED()) {
     return;
   }
-  fb303::fbData->setCounter(name, value);
+  fb303::fbData->setCounter(
+      statsPrefix_ ? fmt::format("{}{}", *statsPrefix_, name) : name, value);
 }
 
 void HwResourceStatsPublisher::publish(const HwResourceStats& stats) const {

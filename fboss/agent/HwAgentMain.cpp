@@ -21,8 +21,6 @@
 
 #include <chrono>
 
-DEFINE_int32(switchIndex, 0, "Switch Index for Asic");
-
 DEFINE_int32(
     hwagent_port_base,
     5931,

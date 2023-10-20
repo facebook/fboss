@@ -25,6 +25,8 @@
 
 DECLARE_bool(hide_fabric_ports);
 
+DECLARE_int32(switchIndex);
+
 namespace facebook::fboss {
 
 struct AgentConfig;
@@ -250,6 +252,17 @@ class Platform {
 
   virtual const AgentDirectoryUtil* getDirectoryUtil() const {
     return agentDirUtil_.get();
+  }
+
+  bool hasMultipleSwitches() const {
+    return scopeResolver_.hasMultipleSwitches();
+  }
+
+  std::optional<std::string> getMultiSwitchStatsPrefix() const {
+    return hasMultipleSwitches()
+        ? std::optional<std::string>(
+              folly::to<std::string>("switch.", FLAGS_switchIndex, "."))
+        : std::optional<std::string>();
   }
 
  private:
