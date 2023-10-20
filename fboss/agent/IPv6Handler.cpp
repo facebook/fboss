@@ -631,11 +631,13 @@ void IPv6Handler::sendICMPv6TimeExceeded(
    *  - The unused field of the ICMP header;
    *  - The original IPv6 header and its payload.
    */
-  uint32_t icmpPayloadLength =
-      ICMPHdr::ICMPV6_UNUSED_LEN + IPv6Hdr::SIZE + cursor.totalLength();
+  uint32_t icmpPayloadLength = (uint32_t)ICMPHdr::ICMPV6_UNUSED_LEN +
+      (uint32_t)IPv6Hdr::SIZE + cursor.totalLength();
   // This payload and the IPv6/ICMPv6 headers must fit the IPv6 MTU
-  icmpPayloadLength =
-      std::min(icmpPayloadLength, IPV6_MIN_MTU - IPv6Hdr::SIZE - ICMPHdr::SIZE);
+  icmpPayloadLength = std::min(
+      icmpPayloadLength,
+      (uint32_t)IPV6_MIN_MTU - (uint32_t)IPv6Hdr::SIZE -
+          (uint32_t)ICMPHdr::SIZE);
 
   auto serializeBody = [&](RWPrivateCursor* sendCursor) {
     // ICMPv6 unused field
@@ -691,8 +693,8 @@ void IPv6Handler::sendICMPv6PacketTooBig(
   // this is upper limit of bodyLength
   uint32_t bodyLengthLimit = IPV6_MIN_MTU - ICMPHdr::computeTotalLengthV6(0);
   // this is when we add the whole input L3 packet
-  uint32_t fullPacketLength =
-      ICMPHdr::ICMPV6_MTU_LEN + IPv6Hdr::SIZE + cursor.totalLength();
+  uint32_t fullPacketLength = (uint32_t)ICMPHdr::ICMPV6_MTU_LEN +
+      (uint32_t)IPv6Hdr::SIZE + cursor.totalLength();
   auto bodyLength = std::min(bodyLengthLimit, fullPacketLength);
 
   auto serializeBody = [&](RWPrivateCursor* sendCursor) {
