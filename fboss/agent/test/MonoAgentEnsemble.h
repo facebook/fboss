@@ -18,6 +18,7 @@ class MonoAgentEnsemble : public AgentEnsemble {
       uint32_t hwFeaturesDesired,
       PlatformInitFn initPlatform) override;
   void reloadPlatformConfig() override;
+  bool isSai() const override;
 
  private:
   MonolithicAgentInitializer agentInitializer_{};

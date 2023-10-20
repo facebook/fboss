@@ -241,6 +241,9 @@ class Platform {
     return 0;
   }
   virtual HwSwitchWarmBootHelper* getWarmBootHelper() = 0;
+  virtual bool isSai() const {
+    return false;
+  }
 
   const SwitchIdScopeResolver* scopeResolver() const {
     return &scopeResolver_;

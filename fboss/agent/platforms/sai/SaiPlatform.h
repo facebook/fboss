@@ -81,6 +81,10 @@ class SaiPlatform : public Platform, public StateObserver {
     return true;
   }
 
+  bool isSai() const override {
+    return true;
+  }
+
   virtual bool supportInterfaceType() const = 0;
 
   virtual std::optional<sai_port_interface_type_t> getInterfaceType(

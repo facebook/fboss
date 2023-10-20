@@ -2,8 +2,12 @@
 
 #include "fboss/agent/test/SplitAgentEnsemble.h"
 
-namespace facebook::fboss {
+DEFINE_bool(
+    is_sai,
+    true,
+    "Flag to indicate multi-switch agent tests running in Sai or non-Sai.");
 
+namespace facebook::fboss {
 SplitAgentEnsemble::~SplitAgentEnsemble() {
   agentInitializer_->stopAgent(false);
 }
@@ -30,6 +34,10 @@ void SplitAgentEnsemble::createSwitch(
 void SplitAgentEnsemble::reloadPlatformConfig() {
   // No-op for Split Agent Ensemble.
   return;
+}
+
+bool SplitAgentEnsemble::isSai() const {
+  return FLAGS_is_sai;
 }
 
 std::unique_ptr<AgentEnsemble> createAgentEnsemble(

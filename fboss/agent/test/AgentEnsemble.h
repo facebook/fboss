@@ -78,6 +78,7 @@ class AgentEnsemble : public TestEnsembleIf {
       uint32_t hwFeaturesDesired,
       PlatformInitFn initPlatform) = 0;
   virtual void reloadPlatformConfig() = 0;
+  virtual bool isSai() const = 0;
 
   std::shared_ptr<SwitchState> applyNewState(
       std::shared_ptr<SwitchState> state,

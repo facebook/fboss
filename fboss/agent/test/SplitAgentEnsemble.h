@@ -18,6 +18,7 @@ class SplitAgentEnsemble : public AgentEnsemble {
       uint32_t hwFeaturesDesired,
       PlatformInitFn initPlatform) override;
   void reloadPlatformConfig() override;
+  bool isSai() const override;
 
  private:
   std::unique_ptr<SplitSwAgentInitializer> agentInitializer_;

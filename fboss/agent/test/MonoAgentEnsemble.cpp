@@ -28,6 +28,10 @@ void MonoAgentEnsemble::reloadPlatformConfig() {
   agentInitializer_.platform()->reloadConfig();
 }
 
+bool MonoAgentEnsemble::isSai() const {
+  return agentInitializer_.platform()->isSai();
+}
+
 std::unique_ptr<AgentEnsemble> createAgentEnsemble(
     AgentEnsembleSwitchConfigFn initialConfigFn,
     AgentEnsemblePlatformConfigFn platformConfigFn,
