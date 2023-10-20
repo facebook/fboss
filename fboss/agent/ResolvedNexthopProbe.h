@@ -24,11 +24,11 @@ class ResolvedNextHopProbe : public folly::AsyncTimeout {
   }
 
   void start() {
-    evb_->runImmediatelyOrRunInEventBaseThreadAndWait([=]() { _start(); });
+    evb_->runImmediatelyOrRunInEventBaseThreadAndWait([this]() { _start(); });
   }
 
   void stop() {
-    evb_->runImmediatelyOrRunInEventBaseThreadAndWait([=]() { _stop(); });
+    evb_->runImmediatelyOrRunInEventBaseThreadAndWait([this]() { _stop(); });
   }
 
  private:
