@@ -32,6 +32,7 @@
 #include <folly/experimental/coro/Timeout.h>
 #include <folly/experimental/coro/UnboundedQueue.h>
 #include <folly/portability/GTest.h>
+#include <memory>
 
 #include "common/thrift/cpp/server/code_frameworks/testing/Server.h"
 
@@ -53,10 +54,13 @@ class MultiSwitchThriftHandlerMock;
 class ThriftServerTest : public ::testing::Test {
  public:
   void SetUp() override {
-    auto config = testConfigA();
-    handle_ = createTestHandle(&config);
+    cfg::AgentConfig agentConfig;
+    agentConfig.defaultCommandLineArgs()->insert({"multi_switch", "true"});
+    agentConfig.sw() = testConfigA();
+    handle_ = createTestHandle(&agentConfig.sw().value());
     sw_ = handle_->getSw();
     sw_->initialConfigApplied(std::chrono::steady_clock::now());
+    sw_->setConfig(std::make_unique<AgentConfig>(std::move(agentConfig)));
   }
 
   void setupServerAndClients() {
@@ -356,8 +360,16 @@ CO_TEST_F(ThriftServerTest, statsUpdate) {
   auto getTestStatUpdate = []() {
     multiswitch::HwSwitchStats stats;
     stats.timestamp() = 1000;
+    HwPortStats portStats;
+    portStats.inBytes_() = 10000;
+    stats.hwPortStats() = {{"eth1", std::move(portStats)}};
+    stats.hwResourceStats()->acl_counters_free() = 50;
+    HwSysPortStats sysPortStats;
+    sysPortStats.queueOutBytes_() = {{1, 10}, {2, 20}};
+    stats.sysPortStats() = {{"eth1", std::move(sysPortStats)}};
     return stats;
   };
+  uint16_t switchIndex = 0;
 
   // Send packets to server using sink
   auto result = co_await multiSwitchClient_->co_syncHwStats(0);
@@ -366,5 +378,14 @@ CO_TEST_F(ThriftServerTest, statsUpdate) {
         co_yield getTestStatUpdate();
       }());
   EXPECT_TRUE(ret);
-  EXPECT_EQ(sw_->getHwSwitchStatsWithCopy(0), getTestStatUpdate());
+  EXPECT_EQ(sw_->getHwSwitchStatsWithCopy(switchIndex), getTestStatUpdate());
+  auto agentStats = sw_->fillFsdbStats();
+  EXPECT_EQ(agentStats.hwPortStats()["eth1"].inBytes_().value(), 10000);
+  EXPECT_EQ(agentStats.sysPortStats()["eth1"].queueOutBytes_().value()[1], 10);
+  // CHECK entry in switchIndex map
+  EXPECT_EQ(
+      agentStats.hwResourceStatsMap()[switchIndex].acl_counters_free().value(),
+      50);
+  // Check old global entry
+  EXPECT_EQ(agentStats.hwResourceStats()->acl_counters_free().value(), 50);
 }

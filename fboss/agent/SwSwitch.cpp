@@ -234,6 +234,16 @@ std::string getDrainStateChangedStr(
             "(UNCHANGED)");
 }
 
+void accumulateHwAsicErrorStats(
+    facebook::fboss::HwAsicErrors& accumulated,
+    const facebook::fboss::HwAsicErrors& toAdd) {
+  *accumulated.parityErrors() += toAdd.parityErrors().value();
+  *accumulated.correctedParityErrors() += toAdd.correctedParityErrors().value();
+  *accumulated.uncorrectedParityErrors() +=
+      toAdd.uncorrectedParityErrors().value();
+  *accumulated.asicErrors() += toAdd.asicErrors().value();
+}
+
 } // anonymous namespace
 
 namespace facebook::fboss {
@@ -574,18 +584,64 @@ void SwSwitch::updateLldpStats() {
   stats()->LldpNeighborsSize(lldpManager_->getDB()->pruneExpiredNeighbors());
 }
 
-void SwSwitch::publishStatsToFsdb() {
+AgentStats SwSwitch::fillFsdbStats() {
   AgentStats agentStats;
-  agentStats.hwPortStats() = multiHwSwitchHandler_->getPortStats();
-  agentStats.sysPortStats() = multiHwSwitchHandler_->getSysPortStats();
+  auto runMode = (*agentConfig_.rlock())->getRunMode();
+  if (runMode == cfg::AgentRunMode::MONO) {
+    multiswitch::HwSwitchStats hwStats;
+    hwStats.hwPortStats() = multiHwSwitchHandler_->getPortStats();
+    hwStats.sysPortStats() = multiHwSwitchHandler_->getSysPortStats();
 
-  if (auto hwSwitchStats = multiHwSwitchHandler_->getSwitchStats()) {
-    agentStats.hwAsicErrors() = hwSwitchStats->getHwAsicErrors();
+    if (auto hwSwitchStats = multiHwSwitchHandler_->getSwitchStats()) {
+      hwStats.hwAsicErrors() = hwSwitchStats->getHwAsicErrors();
+    }
+    hwStats.teFlowStats() = getTeFlowStats();
+    hwStats.bufferPoolStats() = getBufferPoolStats();
+    updateHwSwitchStats(0 /*switchIndex*/, std::move(hwStats));
   }
-  agentStats.teFlowStats() = getTeFlowStats();
-  stats()->fillAgentStats(agentStats);
-  agentStats.bufferPoolStats() = getBufferPoolStats();
+  {
+    auto lockedStats = hwSwitchStats_.wlock();
+    // fill stats using hwswitch exported data if available
+    if (lockedStats->empty()) {
+      return agentStats;
+    }
+    for (auto& [switchIdx, hwSwitchStats] : *lockedStats) {
+      // accumulate error stats from all switches in global values
+      accumulateHwAsicErrorStats(
+          *agentStats.hwAsicErrors(), *hwSwitchStats.hwAsicErrors());
 
+      for (auto&& statEntry : *hwSwitchStats.hwPortStats()) {
+        agentStats.hwPortStats()->insert(statEntry);
+      }
+      for (auto&& statEntry : *hwSwitchStats.hwTrunkStats()) {
+        agentStats.hwTrunkStats()->insert(statEntry);
+      }
+      agentStats.hwResourceStatsMap()->insert(
+          {switchIdx, std::move(*hwSwitchStats.hwResourceStats())});
+      agentStats.hwAsicErrorsMap()->insert(
+          {switchIdx, std::move(*hwSwitchStats.hwAsicErrors())});
+      agentStats.teFlowStatsMap()->insert(
+          {switchIdx, std::move(*hwSwitchStats.teFlowStats())});
+      agentStats.bufferPoolStatsMap()->insert(
+          {switchIdx, std::move(*hwSwitchStats.bufferPoolStats())});
+      agentStats.sysPortStatsMap()->insert(
+          {switchIdx, std::move(*hwSwitchStats.sysPortStats())});
+    }
+    lockedStats->clear();
+  }
+  stats()->fillAgentStats(agentStats);
+  // fill old fields using first switch values for backward compatibility
+  agentStats.hwResourceStats() =
+      agentStats.hwResourceStatsMap()->begin()->second;
+  agentStats.teFlowStats() = agentStats.teFlowStatsMap()->begin()->second;
+  agentStats.bufferPoolStats() =
+      agentStats.bufferPoolStatsMap()->begin()->second;
+  agentStats.sysPortStats() = agentStats.sysPortStatsMap()->begin()->second;
+  return agentStats;
+}
+
+void SwSwitch::publishStatsToFsdb() {
+  auto agentStats = fillFsdbStats();
   runFsdbSyncFunction([&agentStats](auto& syncer) {
     syncer->statsUpdated(std::move(agentStats));
   });

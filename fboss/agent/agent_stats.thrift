@@ -24,4 +24,5 @@ struct AgentStats {
   11: map<i16, hardware_stats.HwAsicErrors> hwAsicErrorsMap;
   12: map<i16, hardware_stats.TeFlowStats> teFlowStatsMap;
   13: map<i16, hardware_stats.HwBufferPoolStats> bufferPoolStatsMap;
+  14: map<i16, map<string, hardware_stats.HwSysPortStats>> sysPortStatsMap;
 }

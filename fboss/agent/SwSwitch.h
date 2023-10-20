@@ -16,6 +16,7 @@
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/SwitchInfoTable.h"
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/gen-cpp2/agent_stats_types.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
@@ -251,6 +252,8 @@ class SwSwitch : public HwSwitchCallback {
   void updateLldpStats();
 
   void publishStatsToFsdb();
+
+  AgentStats fillFsdbStats();
 
   void updateStats();
 
