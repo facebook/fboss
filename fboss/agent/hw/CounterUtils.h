@@ -55,7 +55,8 @@ void deleteCounter(const folly::StringPiece oldCounterName);
 std::string counterTypeToString(cfg::CounterType type);
 std::string statNameFromCounterType(
     const std::string& statPrefix,
-    cfg::CounterType counterType);
+    cfg::CounterType counterType,
+    std::optional<std::string> mutiSwitchPrefix = std::nullopt);
 
 class ExportedCounter {
  public:

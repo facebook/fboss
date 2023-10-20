@@ -29,6 +29,7 @@ class HwBasePortFb303Stats {
       QueueId2Name queueId2Name = {},
       std::vector<PfcPriority> enabledPfcPriorities = {})
       : portName_(portName),
+        portCounters_(HwFb303Stats(std::nullopt)),
         queueId2Name_(queueId2Name),
         enabledPfcPriorities_(enabledPfcPriorities) {}
 

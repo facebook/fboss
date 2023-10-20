@@ -20,6 +20,8 @@ namespace facebook::fboss {
 
 class HwFb303Stats {
  public:
+  explicit HwFb303Stats(std::optional<std::string> multiSwitchStatsPrefix)
+      : multiSwitchStatsPrefix_(multiSwitchStatsPrefix) {}
   ~HwFb303Stats();
 
   int64_t getCounterLastIncrement(const std::string& statName) const;
@@ -43,7 +45,9 @@ class HwFb303Stats {
   facebook::stats::MonotonicCounter* getCounterIf(const std::string& statName);
   const facebook::stats::MonotonicCounter* getCounterIf(
       const std::string& statName) const;
+  const std::string getMonotonicCounterName(const std::string& statName) const;
 
   folly::F14FastMap<std::string, facebook::stats::MonotonicCounter> counters_;
+  std::optional<std::string> multiSwitchStatsPrefix_;
 };
 } // namespace facebook::fboss

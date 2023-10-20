@@ -33,7 +33,10 @@ SaiHostifManager::SaiHostifManager(
     : saiStore_(saiStore),
       managerTable_(managerTable),
       platform_(platform),
-      concurrentIndices_(concurrentIndices) {
+      concurrentIndices_(concurrentIndices),
+      cpuStats_(HwCpuFb303Stats(
+          {} /*queueId2Name*/,
+          platform->getMultiSwitchStatsPrefix())) {
   if (platform_->getAsic()->isSupported(HwAsic::Feature::CPU_PORT)) {
     loadCpuPort();
   }

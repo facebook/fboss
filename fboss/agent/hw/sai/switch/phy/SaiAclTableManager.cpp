@@ -24,6 +24,7 @@ SaiAclTableManager::SaiAclTableManager(
     : saiStore_(saiStore),
       managerTable_(managerTable),
       platform_(platform),
+      aclStats_(HwFb303Stats(std::nullopt)),
       aclEntryMinimumPriority_(
           (platform->getAsic()->getAsicType() ==
            cfg::AsicType::ASIC_TYPE_SANDIA_PHY)

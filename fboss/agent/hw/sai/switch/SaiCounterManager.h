@@ -53,7 +53,7 @@ class SaiCounterManager {
       SaiManagerTable* managerTable,
       SaiPlatform* platform)
       : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {
-    routeStats_ = std::make_shared<HwFb303Stats>();
+    routeStats_ = std::make_shared<HwFb303Stats>(std::nullopt);
   }
 
   std::shared_ptr<HwFb303Stats> getRouteStatsMapRef() {

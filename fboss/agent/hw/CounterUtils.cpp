@@ -77,9 +77,13 @@ std::string counterTypeToString(cfg::CounterType type) {
 
 std::string statNameFromCounterType(
     const std::string& statPrefix,
-    cfg::CounterType counterType) {
+    cfg::CounterType counterType,
+    std::optional<std::string> multiSwitchPrefix) {
   return folly::to<std::string>(
-      statPrefix, ".", counterTypeToString(counterType));
+      multiSwitchPrefix ? *multiSwitchPrefix : "",
+      statPrefix,
+      ".",
+      counterTypeToString(counterType));
 }
 
 ExportedCounter::ExportedCounter(

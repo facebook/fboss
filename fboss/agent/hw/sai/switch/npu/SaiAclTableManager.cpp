@@ -29,6 +29,7 @@ SaiAclTableManager::SaiAclTableManager(
     : saiStore_(saiStore),
       managerTable_(managerTable),
       platform_(platform),
+      aclStats_(HwFb303Stats(std::nullopt)),
       aclEntryMinimumPriority_(
           SaiApiTable::getInstance()->switchApi().getAttribute(
               managerTable_->switchManager().getSwitchSaiId(),

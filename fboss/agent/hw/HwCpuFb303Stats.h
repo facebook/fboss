@@ -23,8 +23,10 @@ namespace facebook::fboss {
 class HwCpuFb303Stats {
  public:
   using QueueId2Name = folly::F14FastMap<int, std::string>;
-  explicit HwCpuFb303Stats(QueueId2Name queueId2Name = {})
-      : queueId2Name_(queueId2Name) {
+  HwCpuFb303Stats(
+      QueueId2Name queueId2Name = {},
+      std::optional<std::string> statsPrefix = std::nullopt)
+      : queueCounters_(HwFb303Stats(statsPrefix)), queueId2Name_(queueId2Name) {
     setupStats();
   }
   void updateStats(

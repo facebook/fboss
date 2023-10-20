@@ -195,6 +195,20 @@ TEST(HwCpuFb303Stats, queueNameChangeResetsValue) {
   }
 }
 
+TEST(HwCpuFb303Stats, queueNameWithSwitchId) {
+  std::string switchIdPrefix("switch.0.");
+  HwCpuFb303Stats cpuStats(kQueue2Name, switchIdPrefix);
+  updateStats(cpuStats);
+  for (auto counterName : HwCpuFb303Stats::kQueueStatKeys()) {
+    for (const auto& queueIdAndName : kQueue2Name) {
+      EXPECT_TRUE(fbData->getStatMap()->contains(
+          switchIdPrefix +
+          HwCpuFb303Stats::statName(
+              counterName, queueIdAndName.first, queueIdAndName.second)));
+    }
+  }
+}
+
 TEST(HwCpuFb303Stats, getCpuStats) {
   HwCpuFb303Stats cpuStats(kQueue2Name);
   updateStats(cpuStats);

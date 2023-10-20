@@ -50,14 +50,17 @@ void HwFb303Stats::reinitStat(
       return;
     }
     auto stat = getCounterIf(*oldStatName);
-    stats::MonotonicCounter newStat{statName, fb303::SUM, fb303::RATE};
+    stats::MonotonicCounter newStat{
+        getMonotonicCounterName(statName), fb303::SUM, fb303::RATE};
     stat->swap(newStat);
     utility::deleteCounter(newStat.getName());
     counters_.insert(std::make_pair(statName, std::move(*stat)));
     counters_.erase(*oldStatName);
   } else {
     counters_.emplace(
-        statName, stats::MonotonicCounter(statName, fb303::SUM, fb303::RATE));
+        statName,
+        stats::MonotonicCounter(
+            getMonotonicCounterName(statName), fb303::SUM, fb303::RATE));
   }
 }
 
@@ -67,7 +70,7 @@ void HwFb303Stats::removeStat(const std::string& statName) {
     XLOG(ERR) << "Counter with " << statName << " missing";
     return;
   }
-  utility::deleteCounter(stat->getName());
+  utility::deleteCounter(getMonotonicCounterName(stat->getName()));
   counters_.erase(stat->getName());
 }
 
@@ -78,6 +81,12 @@ void HwFb303Stats::updateStat(
   auto stat = getCounterIf(statName);
   CHECK(stat);
   stat->updateValue(now, val);
+}
+
+const std::string HwFb303Stats::getMonotonicCounterName(
+    const std::string& statName) const {
+  return folly::to<std::string>(
+      multiSwitchStatsPrefix_ ? *multiSwitchStatsPrefix_ : "", statName);
 }
 
 } // namespace facebook::fboss
