@@ -171,7 +171,8 @@ CpuPortStats NonMonolithicHwSwitchHandler::getCpuPortStats() const {
 
 std::map<PortID, FabricEndpoint>
 NonMonolithicHwSwitchHandler::getFabricReachability() const {
-  throw FbossError("getFabricReachability not implemented");
+  // TODO - retire this after clients move to HwAgent thrift api
+  return std::map<PortID, FabricEndpoint>();
 }
 
 std::vector<PortID> NonMonolithicHwSwitchHandler::getSwitchReachability(

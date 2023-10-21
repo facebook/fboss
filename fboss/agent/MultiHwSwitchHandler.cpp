@@ -328,8 +328,7 @@ void MultiHwSwitchHandler::platformStop() {
 }
 
 std::map<PortID, FabricEndpoint> MultiHwSwitchHandler::getFabricReachability() {
-  // TODO - support with multiple switches
-  CHECK_EQ(hwSwitchSyncers_.size(), 1);
+  // TODO - retire this api after migrating clients to HwAgent api
   return hwSwitchSyncers_.begin()->second->getFabricReachability();
 }
 
