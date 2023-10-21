@@ -249,7 +249,7 @@ std::shared_ptr<SwitchState> HwSwitch::getMinAlpmState(
 std::shared_ptr<SwitchState> HwSwitch::programMinAlpmState(
     RoutingInformationBase* rib) {
   return programMinAlpmState(
-      rib, [=](const StateDelta& delta) { return stateChanged(delta); });
+      rib, [this](const StateDelta& delta) { return stateChanged(delta); });
 }
 
 std::shared_ptr<SwitchState> HwSwitch::programMinAlpmState(
