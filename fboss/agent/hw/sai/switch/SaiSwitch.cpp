@@ -1988,7 +1988,7 @@ void SaiSwitch::initLinkScanLocked(
     initThread("fbossSaiLnkScnBH");
     linkStateBottomHalfEventBase_.loopForever();
   });
-  linkStateBottomHalfEventBase_.runInEventBaseThread([=]() {
+  linkStateBottomHalfEventBase_.runInEventBaseThread([=, this]() {
     auto& switchApi = SaiApiTable::getInstance()->switchApi();
     switchApi.registerPortStateChangeCallback(
         saiSwitchId_, __glinkStateChangedNotification);
