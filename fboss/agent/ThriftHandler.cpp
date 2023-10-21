@@ -2353,7 +2353,7 @@ void ThriftHandler::addMplsRoutes(
   if (FLAGS_mpls_rib) {
     return addMplsRibRoutes(clientId, std::move(mplsRoutes), false /* sync */);
   }
-  auto updateFn = [=, routes = std::move(*mplsRoutes)](
+  auto updateFn = [=, routes = std::move(*mplsRoutes), this](
                       const std::shared_ptr<SwitchState>& state) {
     auto newState = state->clone();
 
@@ -2493,7 +2493,7 @@ void ThriftHandler::deleteMplsRoutes(
   if (FLAGS_mpls_rib) {
     return deleteMplsRibRoutes(clientId, std::move(topLabels));
   }
-  auto updateFn = [=, topLabels = std::move(*topLabels)](
+  auto updateFn = [=, topLabels = std::move(*topLabels), this](
                       const std::shared_ptr<SwitchState>& state) {
     auto newState = state->clone();
     for (const auto topLabel : topLabels) {
@@ -2535,7 +2535,7 @@ void ThriftHandler::syncMplsFib(
   if (FLAGS_mpls_rib) {
     return addMplsRibRoutes(clientId, std::move(mplsRoutes), true /* sync */);
   }
-  auto updateFn = [=, routes = std::move(*mplsRoutes)](
+  auto updateFn = [=, routes = std::move(*mplsRoutes), this](
                       const std::shared_ptr<SwitchState>& state) {
     auto newState = purgeEntriesForClient(
         *(sw_->getScopeResolver()), state, ClientID(clientId));
@@ -2803,7 +2803,7 @@ void ThriftHandler::addTeFlows(
     std::unique_ptr<std::vector<FlowEntry>> teFlowEntries) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  auto updateFn = [=, teFlows = std::move(*teFlowEntries)](
+  auto updateFn = [=, teFlows = std::move(*teFlowEntries), this](
                       const std::shared_ptr<SwitchState>& state) {
     TeFlowSyncer teFlowSyncer;
     auto newState = teFlowSyncer.programFlowEntries(
@@ -2828,7 +2828,7 @@ void ThriftHandler::deleteTeFlows(
     std::unique_ptr<std::vector<TeFlow>> teFlows) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  auto updateFn = [=, flows = std::move(*teFlows)](
+  auto updateFn = [=, flows = std::move(*teFlows), this](
                       const std::shared_ptr<SwitchState>& state) {
     TeFlowSyncer teFlowSyncer;
     auto newState = teFlowSyncer.programFlowEntries(
@@ -2846,7 +2846,7 @@ void ThriftHandler::syncTeFlows(
     std::unique_ptr<std::vector<FlowEntry>> teFlowEntries) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  auto updateFn = [=, teFlows = std::move(*teFlowEntries)](
+  auto updateFn = [=, teFlows = std::move(*teFlowEntries), this](
                       const std::shared_ptr<SwitchState>& state)
       -> shared_ptr<SwitchState> {
     TeFlowSyncer teFlowSyncer;
