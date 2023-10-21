@@ -163,7 +163,7 @@ NextHopGroupMember::NextHopGroupMember(
     NextHopWeight nextHopWeight,
     bool fixedWidthMode) {
   std::visit(
-      [=](auto managedNextHop) {
+      [=, this](auto managedNextHop) {
         using ObjectTraits = typename std::decay_t<
             decltype(managedNextHop)>::element_type::ObjectTraits;
         auto key = managedNextHop->adapterHostKey();
