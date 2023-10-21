@@ -552,7 +552,7 @@ void RoutingInformationBase::setClassIDImpl(
     void* cookie,
     bool async) {
   ensureRunning();
-  auto updateFn = [=]() {
+  auto updateFn = [=, this]() {
     ribTables_.setClassID(
         resolver, rid, prefixes, fibUpdateCallback, classId, cookie);
   };
