@@ -1006,12 +1006,12 @@ void SwSwitch::registerStateObserver(
     const string& name) {
   XLOG(DBG2) << "Registering state observer: " << name;
   updateEventBase_.runImmediatelyOrRunInEventBaseThreadAndWait(
-      [=]() { addStateObserver(observer, name); });
+      [=, this]() { addStateObserver(observer, name); });
 }
 
 void SwSwitch::unregisterStateObserver(StateObserver* observer) {
   updateEventBase_.runImmediatelyOrRunInEventBaseThreadAndWait(
-      [=]() { removeStateObserver(observer); });
+      [=, this]() { removeStateObserver(observer); });
 }
 
 bool SwSwitch::stateObserverRegistered(StateObserver* observer) {
@@ -1637,7 +1637,8 @@ void SwSwitch::linkStateChanged(
   }
 
   // Schedule an update for port's operational status
-  auto updateOperStateFn = [=](const std::shared_ptr<SwitchState>& state) {
+  auto updateOperStateFn = [=,
+                            this](const std::shared_ptr<SwitchState>& state) {
     std::shared_ptr<SwitchState> newState(state);
     auto* port = newState->getPorts()->getNodeIf(portId).get();
 
@@ -1694,21 +1695,21 @@ void SwSwitch::linkStateChanged(
 
 void SwSwitch::startThreads() {
   backgroundThread_.reset(new std::thread(
-      [=] { this->threadLoop("fbossBgThread", &backgroundEventBase_); }));
+      [this] { this->threadLoop("fbossBgThread", &backgroundEventBase_); }));
   updateThread_.reset(new std::thread(
-      [=] { this->threadLoop("fbossUpdateThread", &updateEventBase_); }));
+      [this] { this->threadLoop("fbossUpdateThread", &updateEventBase_); }));
   packetTxThread_.reset(new std::thread(
-      [=] { this->threadLoop("fbossPktTxThread", &packetTxEventBase_); }));
-  pcapDistributionThread_.reset(new std::thread([=] {
+      [this] { this->threadLoop("fbossPktTxThread", &packetTxEventBase_); }));
+  pcapDistributionThread_.reset(new std::thread([this] {
     this->threadLoop(
         "fbossPcapDistributionThread", &pcapDistributionEventBase_);
   }));
-  neighborCacheThread_.reset(new std::thread([=] {
+  neighborCacheThread_.reset(new std::thread([this] {
     this->threadLoop("fbossNeighborCacheThread", &neighborCacheEventBase_);
   }));
   // start LACP thread, start before creating LinkAggregationManager
   lacpThread_.reset(new std::thread(
-      [=] { this->threadLoop("fbossLacpThread", &lacpEventBase_); }));
+      [this] { this->threadLoop("fbossLacpThread", &lacpEventBase_); }));
 }
 
 void SwSwitch::postInit(const HwInitResult* hwInitResult) {
@@ -2216,7 +2217,7 @@ bool SwSwitch::sendPacketToHost(
 }
 
 void SwSwitch::applyConfig(const std::string& reason, bool reload) {
-  auto applyAgentConfig = [=](const AgentConfig* agentConfig) {
+  auto applyAgentConfig = [=, this](const AgentConfig* agentConfig) {
     const auto& newConfig = *agentConfig->thrift.sw();
     applyConfigImpl(reason, newConfig);
     agentConfig->dumpConfig(agentDirUtil_->getRunningConfigDumpFile());
