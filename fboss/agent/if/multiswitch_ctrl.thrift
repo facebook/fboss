@@ -76,7 +76,7 @@ service MultiSwitchCtrl {
     2: StateOperDelta prevOperResult,
     /* indicates whether HwSwitch is syncing for first time */
     3: bool initialSync,
-  );
+  ) (priority = 'HIGH');
 
   /* HwAgent graceful shutdown notification */
   void gracefulExit(1: i64 switchId);
