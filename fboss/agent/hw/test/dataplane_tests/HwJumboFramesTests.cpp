@@ -99,13 +99,7 @@ TEST_F(HwJumboFramesTest, JumboFramesGetThrough) {
 }
 
 TEST_F(HwJumboFramesTest, SuperJumboFramesGetDropped) {
-  // PKTIO has an internal check in src/bcm/esw/pktio/pktio.c
-  // disallowing frame over "#define MAX_FRAME_SIZE_DEF (9472)
-  // The max frame in our system is 9412.
-  // Setting the jumbo packet size to the max of PKTIO max
-  // makes it exceed MTU and get dropped.
-  // This test works in both PKTIO and non-PKTIO cases.
-  runJumboFrameTest(9472, true);
+  runJumboFrameTest(10472, true);
 }
 
 } // namespace facebook::fboss
