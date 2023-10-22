@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/HwAgentMain.h"
+#include <folly/logging/Init.h>
 #include <folly/logging/xlog.h>
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/CommonInit.h"
@@ -20,6 +21,12 @@
 #include "fboss/agent/mnpu/SplitAgentThriftSyncer.h"
 
 #include <chrono>
+
+#ifdef IS_OSS
+FOLLY_INIT_LOGGING_CONFIG("DBG2; default:async=true");
+#else
+FOLLY_INIT_LOGGING_CONFIG("fboss=DBG2; default:async=true");
+#endif
 
 DEFINE_int32(
     hwagent_port_base,
