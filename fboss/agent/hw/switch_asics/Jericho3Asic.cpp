@@ -14,7 +14,6 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::MPLS_ECMP:
     case HwAsic::Feature::ERSPANv6:
     case HwAsic::Feature::SFLOWv6:
-    case HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION:
     case HwAsic::Feature::ECN:
     case HwAsic::Feature::SCHEDULER_PPS:
     case HwAsic::Feature::NEXTHOP_TTL_DECREMENT_DISABLE:
@@ -35,7 +34,6 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::DEFAULT_VLAN:
     case HwAsic::Feature::L2_LEARNING:
     case HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER:
-    case HwAsic::Feature::TRAFFIC_HASHING:
     case HwAsic::Feature::CPU_PORT:
     case HwAsic::Feature::VRF:
     case HwAsic::Feature::SAI_HASH_FIELDS_CLEAR_BEFORE_SET:
@@ -46,8 +44,6 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::PORT_TX_DISABLE:
     case HwAsic::Feature::SAI_PORT_ERR_STATUS:
     case HwAsic::Feature::ROUTE_PROGRAMMING:
-    case HwAsic::Feature::ECMP_HASH_V4:
-    case HwAsic::Feature::ECMP_HASH_V6:
     case HwAsic::Feature::FABRIC_PORTS:
     case HwAsic::Feature::LINK_TRAINING:
     case HwAsic::Feature::FEC:
@@ -73,11 +69,12 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ACL_COUNTER_LABEL:
       return true;
 
-    case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:
-    case HwAsic::Feature::BUFFER_POOL:
-    case HwAsic::Feature::PFC:
-    case HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET:
-      return getAsicMode() != AsicMode::ASIC_MODE_SIM;
+    // FIXME - make true when J3-AI supports these features
+    case HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION:
+    case HwAsic::Feature::ECMP_HASH_V4:
+    case HwAsic::Feature::ECMP_HASH_V6:
+    case HwAsic::Feature::TRAFFIC_HASHING:
+      return getAsicMode() != AsicMode::ASIC_MODE_HW_AI;
     case HwAsic::Feature::L3_QOS:
     case HwAsic::Feature::VOQ:
     case HwAsic::Feature::TC_TO_QUEUE_QOS_MAP_ON_SYSTEM_PORT:
@@ -86,6 +83,11 @@ bool Jericho3Asic::isSupported(Feature feature) const {
       // TODO fix once queue stats are available on J3
       return false;
 
+    case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:
+    case HwAsic::Feature::BUFFER_POOL:
+    case HwAsic::Feature::PFC:
+    case HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET:
+      return getAsicMode() != AsicMode::ASIC_MODE_SIM;
     case HwAsic::Feature::SAI_PORT_ETHER_STATS:
     case HwAsic::Feature::SLOW_STAT_UPDATE:
       // supported only on the SIM
