@@ -141,6 +141,21 @@ function(BUILD_SAI_WEDGE_AGENT SAI_IMPL_NAME SAI_IMPL_ARG)
       -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
     )
 
+  add_executable(wedge_hwagent-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
+    fboss/agent/platforms/sai/WedgeHwAgent.cpp
+  )
+
+  target_link_libraries(wedge_hwagent-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
+    -Wl,--whole-archive
+    hwagent-main
+    fboss_common_init
+    load_agent_config
+    sai_platform
+    hwagent
+    ${SAI_IMPL_ARG}
+    -Wl,--no-whole-archive
+  )
+
 endfunction()
 
 # If libsai_impl is provided, build wedge_agent linking with it
@@ -158,4 +173,7 @@ if(SAI_IMPL)
   install(
     TARGETS
     wedge_agent-sai_impl-${SAI_VER_SUFFIX})
+  install(
+    TARGETS
+    wedge_hwagent-sai_impl-${SAI_VER_SUFFIX})
 endif()
