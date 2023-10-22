@@ -802,16 +802,10 @@
           "test_name_regex": "HwJumboFramesTest.*"
         },
         {
-          "test_name_regex": "HwLoopBackTest.*"
-        },
-        {
           "test_name_regex": "HwLoadBalancerTestV[46].*"
         },
         {
           "test_name_regex": "HwVoqSwitchTest.dramEnqueueDequeueBytes"
-        },
-        {
-          "test_name_regex": "HwL4PortBlackHolingTest.v[46]UDP"
         },
         {
           "test_name_regex": "HwOlympicQosSchedulerTest.*"
@@ -3383,16 +3377,10 @@
           "test_name_regex": "HwJumboFramesTest.*"
         },
         {
-          "test_name_regex": "HwLoopBackTest.*"
-        },
-        {
           "test_name_regex": "HwLoadBalancerTestV[46].*"
         },
         {
           "test_name_regex": "HwVoqSwitchTest.dramEnqueueDequeueBytes"
-        },
-        {
-          "test_name_regex": "HwL4PortBlackHolingTest.v[46]UDP"
         },
         {
           "test_name_regex": "HwOlympicQosSchedulerTest.*"
