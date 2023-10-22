@@ -84,6 +84,7 @@ bool Jericho2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::WARMBOOT:
     case HwAsic::Feature::ACL_COUNTER_LABEL:
     case HwAsic::Feature::CREDIT_WATCHDOG:
+    case HwAsic::Feature::ECMP_MEMBER_WIDTH_INTROSPECTION:
       return true;
 
     case HwAsic::Feature::UDF_HASH_FIELD_QUERY:
@@ -117,7 +118,6 @@ bool Jericho2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER:
     case HwAsic::Feature::EXACT_MATCH:
     case HwAsic::Feature::RX_FREQUENCY_PPM:
-    case HwAsic::Feature::ECMP_MEMBER_WIDTH_INTROSPECTION:
     case HwAsic::Feature::SAI_FIRMWARE_PATH:
     // On Jericho2 ASIC we don't create any vlans but rather
     // associate RIFs directly with ports. Hence no bridge port
