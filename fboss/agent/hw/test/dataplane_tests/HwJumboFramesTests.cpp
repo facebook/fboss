@@ -20,6 +20,7 @@
 #include "fboss/agent/packet/IPv6Hdr.h"
 #include "fboss/agent/packet/UDPHeader.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/lib/CommonUtils.h"
 
 #include <folly/IPAddress.h>
 
@@ -54,7 +55,7 @@ class HwJumboFramesTest : public HwLinkStateDependentTest {
         0,
         255,
         std::vector<uint8_t>(payloadSize, 0xff));
-    getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(txPacket));
+    getHwSwitch()->sendPacketSwitchedAsync(std::move(txPacket));
   }
 
  protected:
@@ -73,19 +74,21 @@ class HwJumboFramesTest : public HwLinkStateDependentTest {
       auto pktsBefore = getPortOutPkts(portStatsBefore);
       auto bytesBefore = *portStatsBefore.outBytes_();
       sendPkt(payloadSize);
-      auto portStatsAfter = getLatestPortStats(port);
-      auto pktsAfter = getPortOutPkts(portStatsAfter);
-      auto bytesAfter = *portStatsAfter.outBytes_();
-      if (expectPacketDrop) {
-        EXPECT_EQ(pktsBefore, pktsAfter);
-        EXPECT_EQ(bytesBefore, bytesAfter);
-      } else {
-        EXPECT_EQ(pktsBefore + 1, pktsAfter);
-        EXPECT_EQ(
-            bytesBefore + EthHdr::SIZE + IPv6Hdr::SIZE + UDPHeader::size() +
-                payloadSize,
-            bytesAfter);
-      }
+      WITH_RETRIES({
+        auto portStatsAfter = getLatestPortStats(port);
+        auto pktsAfter = getPortOutPkts(portStatsAfter);
+        auto bytesAfter = *portStatsAfter.outBytes_();
+        if (expectPacketDrop) {
+          EXPECT_EVENTUALLY_EQ(pktsBefore, pktsAfter);
+          EXPECT_EVENTUALLY_EQ(bytesBefore, bytesAfter);
+        } else {
+          EXPECT_EVENTUALLY_EQ(pktsBefore + 1, pktsAfter);
+          EXPECT_EVENTUALLY_EQ(
+              bytesBefore + EthHdr::SIZE + IPv6Hdr::SIZE + UDPHeader::size() +
+                  payloadSize,
+              bytesAfter);
+        }
+      });
     };
     verifyAcrossWarmBoots(setup, verify);
   }
