@@ -38,6 +38,7 @@ struct OperSubscriberInfo {
   3: optional fsdb_oper.OperPath path;
   4: bool isStats;
   5: optional list<fsdb_oper.ExtendedOperPath> extendedPaths;
+  6: optional i64 subscribedSince;
 }
 
 // ----------------------------------------------------------------------------
