@@ -778,18 +778,6 @@
           "test_name_regex": "Hw2QueueToOlympicQoSTest.*"
         },
         {
-          "test_name_regex": "HwAclCounterTest.VerifyCounterBumpOnSportHitCpu"
-        },
-        {
-          "test_name_regex": "HwAclCounterTest.VerifyCounterBumpOnSportHitFrontPanel"
-        },
-        {
-          "test_name_regex": "HwAclCounterTest.VerifyCounterBumpOnTtlHitCpu"
-        },
-        {
-          "test_name_regex": "HwAclCounterTest.VerifyCounterBumpOnTtlHitFrontPanel"
-        },
-        {
           "test_name_regex": "HwAqmTest.*"
         },
         {
@@ -806,9 +794,6 @@
         },
         {
           "test_name_regex": "HwIngressBufferTest.*"
-        },
-        {
-          "test_name_regex": "HwInPauseDiscardsCounterTest.*"
         },
         {
           "test_name_regex": "HwInDiscardsCounterTest.*"
@@ -3374,18 +3359,6 @@
           "test_name_regex": "Hw2QueueToOlympicQoSTest.*"
         },
         {
-          "test_name_regex": "HwAclCounterTest.VerifyCounterBumpOnSportHitCpu"
-        },
-        {
-          "test_name_regex": "HwAclCounterTest.VerifyCounterBumpOnSportHitFrontPanel"
-        },
-        {
-          "test_name_regex": "HwAclCounterTest.VerifyCounterBumpOnTtlHitCpu"
-        },
-        {
-          "test_name_regex": "HwAclCounterTest.VerifyCounterBumpOnTtlHitFrontPanel"
-        },
-        {
           "test_name_regex": "HwAqmTest.*"
         },
         {
@@ -3402,9 +3375,6 @@
         },
         {
           "test_name_regex": "HwIngressBufferTest.*"
-        },
-        {
-          "test_name_regex": "HwInPauseDiscardsCounterTest.*"
         },
         {
           "test_name_regex": "HwInDiscardsCounterTest.*"
