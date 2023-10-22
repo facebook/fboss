@@ -12,6 +12,7 @@
 
 #include "fboss/agent/ArpHandler.h"
 #include "fboss/agent/FbossHwUpdateError.h"
+#include "fboss/agent/MultiSwitchFb303Stats.h"
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/PortStats.h"
 #include "fboss/agent/SwitchStats.h"
@@ -222,6 +223,18 @@ TEST_F(SwSwitchTest, overlappingUpdatesWithExit) {
   done = true;
   nonCoaelescingUpdates.join();
   blockingUpdates.join();
+}
+
+TEST_F(SwSwitchTest, multiSwitchFb303Stats) {
+  std::map<SwitchID, const HwAsic*> asicMap;
+  HwSwitchFb303GlobalStats globalStats;
+  asicMap[SwitchID(0)] = handle->getPlatform()->getAsic();
+  auto multiSwitchStats = std::make_unique<MultiSwitchFb303Stats>(asicMap);
+  globalStats.tx_pkt_allocated() = 100;
+  multiSwitchStats->updateStats(globalStats);
+  // fb303 stat should have gotten an update
+  EXPECT_EQ(
+      multiSwitchStats->getHwSwitchFb303GlobalStats().getTxPktAllocCount(), 1);
 }
 
 template <bool enableIntfNbrTable>

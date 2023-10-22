@@ -108,6 +108,8 @@ class HwSwitchFb303Stats {
   HwAsicErrors getHwAsicErrors() const;
   FabricReachabilityStats getFabricReachabilityStats();
   HwSwitchFb303GlobalStats getAllFb303Stats() const;
+  // Used in SwAgent to update stats based on HwSwitch synced counters
+  void updateStats(HwSwitchFb303GlobalStats& globalStats);
 
  private:
   // Forbidden copy constructor and assignment operator

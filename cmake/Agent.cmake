@@ -162,6 +162,7 @@ add_library(core
   fboss/agent/MirrorManagerImpl.cpp
   fboss/agent/MPLSHandler.cpp
   fboss/agent/MultiHwSwitchHandler.cpp
+  fboss/agent/MultiSwitchFb303Stats.cpp
   fboss/agent/MultiSwitchPacketStreamMap.cpp
   fboss/agent/NdpCache.cpp
   fboss/agent/NeighborUpdater.cpp

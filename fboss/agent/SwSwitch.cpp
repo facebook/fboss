@@ -44,6 +44,7 @@
 #include "fboss/agent/MacTableManager.h"
 #include "fboss/agent/MirrorManager.h"
 #include "fboss/agent/MultiHwSwitchHandler.h"
+#include "fboss/agent/MultiSwitchFb303Stats.h"
 #include "fboss/agent/MultiSwitchPacketStreamMap.h"
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/PacketLogger.h"
@@ -244,6 +245,33 @@ void accumulateHwAsicErrorStats(
   *accumulated.asicErrors() += toAdd.asicErrors().value();
 }
 
+void accumulateFb303GlobalStats(
+    facebook::fboss::HwSwitchFb303GlobalStats& accumulated,
+    const facebook::fboss::HwSwitchFb303GlobalStats& toAdd) {
+  *accumulated.tx_pkt_allocated() += toAdd.tx_pkt_allocated().value();
+  *accumulated.tx_pkt_freed() += toAdd.tx_pkt_freed().value();
+  *accumulated.tx_pkt_sent() += toAdd.tx_pkt_sent().value();
+  *accumulated.tx_pkt_sent_done() += toAdd.tx_pkt_sent_done().value();
+  *accumulated.tx_errors() += toAdd.tx_errors().value();
+  *accumulated.tx_pkt_allocation_errors() +=
+      toAdd.tx_pkt_allocation_errors().value();
+  *accumulated.parity_errors() += toAdd.parity_errors().value();
+  *accumulated.parity_corr() += toAdd.parity_corr().value();
+  *accumulated.parity_uncorr() += toAdd.parity_uncorr().value();
+  *accumulated.asic_error() += toAdd.asic_error().value();
+  *accumulated.global_drops() += toAdd.global_drops().value();
+  *accumulated.global_reachability_drops() +=
+      toAdd.global_reachability_drops().value();
+  *accumulated.packet_integrity_drops() +=
+      toAdd.packet_integrity_drops().value();
+  *accumulated.dram_enqueued_bytes() += toAdd.dram_enqueued_bytes().value();
+  *accumulated.dram_dequeued_bytes() += toAdd.dram_dequeued_bytes().value();
+  *accumulated.fabric_reachability_missing() +=
+      toAdd.fabric_reachability_missing().value();
+  *accumulated.fabric_reachability_mismatch() +=
+      toAdd.fabric_reachability_mismatch().value();
+}
+
 } // anonymous namespace
 
 namespace facebook::fboss {
@@ -311,6 +339,10 @@ SwSwitch::SwSwitch(
   } catch (const std::exception& ex) {
     // Expected when fruid file is not of a switch (eg: on devservers)
     XLOG(INFO) << "Couldn't initialize platform mapping " << ex.what();
+  }
+  if (getScopeResolver()->hasMultipleSwitches()) {
+    multiSwitchFb303Stats_ =
+        std::make_unique<MultiSwitchFb303Stats>(getHwAsicTable()->getHwAsics());
   }
   if (initialState) {
     initialState->publish();
@@ -670,6 +702,7 @@ void SwSwitch::updateStats() {
     stats()->updateStatsException();
     XLOG(ERR) << "Error running updateStats: " << folly::exceptionStr(ex);
   }
+  updateMultiSwitchGlobalFb303Stats();
   // Determine if collect phy info
   auto now =
       std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
@@ -683,6 +716,27 @@ void SwSwitch::updateStats() {
       XLOG(ERR) << "Error running updatePhyInfos: " << folly::exceptionStr(ex);
     }
   }
+}
+
+void SwSwitch::updateMultiSwitchGlobalFb303Stats() {
+  // Stats aggregation done only when multiple switches are present
+  if (!getScopeResolver()->hasMultipleSwitches()) {
+    return;
+  }
+  HwSwitchFb303GlobalStats globalStats;
+  {
+    auto lockedStats = hwSwitchStats_.rlock();
+    if (lockedStats->empty()) {
+      return;
+    }
+    for (auto& [switchIdx, hwSwitchStats] : *lockedStats) {
+      // accumulate error stats from all switches in global values
+      accumulateFb303GlobalStats(
+          globalStats, *hwSwitchStats.fb303GlobalStats());
+    }
+  }
+  CHECK(multiSwitchFb303Stats_);
+  multiSwitchFb303Stats_->updateStats(globalStats);
 }
 
 TeFlowStats SwSwitch::getTeFlowStats() {
