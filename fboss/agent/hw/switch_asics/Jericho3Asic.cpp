@@ -51,7 +51,6 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::PMD_RX_LOCK_STATUS:
     case HwAsic::Feature::PMD_RX_SIGNAL_DETECT:
     case HwAsic::Feature::MEDIA_TYPE:
-    case HwAsic::Feature::RESOURCE_USAGE_STATS:
     case HwAsic::Feature::PORT_FABRIC_ISOLATE:
     case HwAsic::Feature::QUEUE_ECN_COUNTER:
     case HwAsic::Feature::SAI_ECN_WRED:
@@ -74,6 +73,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::MULTIPLE_ACL_TABLES:
     case HwAsic::Feature::ACL_COPY_TO_CPU:
     case HwAsic::Feature::ACL_COUNTER_LABEL:
+    case HwAsic::Feature::RESOURCE_USAGE_STATS:
       return getAsicMode() != AsicMode::ASIC_MODE_HW_AI;
     case HwAsic::Feature::L3_QOS:
     case HwAsic::Feature::VOQ:
