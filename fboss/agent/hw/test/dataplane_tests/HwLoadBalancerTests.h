@@ -76,11 +76,6 @@
 #define RUN_HW_LOAD_BALANCER_TEST_FOR_DLB(                                   \
     TEST_FIXTURE, MULTIPATH_TYPE, HASH_TYPE, TRAFFIC_TYPE)                   \
   TEST_F(TEST_FIXTURE, TEST_NAME(MULTIPATH_TYPE, HASH_TYPE, TRAFFIC_TYPE)) { \
-    if (BOOST_PP_STRINGIZE(MULTIPATH_TYPE) == std::string{"WideUcmp"} &&                    \
-            !getPlatform()->getAsic()->isSupported(                          \
-                HwAsic::Feature::WIDE_ECMP)) {                               \
-      return;                                                                \
-    }                                                                        \
     static bool kLoopThroughFrontPanelPort =                                 \
         (BOOST_PP_STRINGIZE(TRAFFIC_TYPE) != std::string{"Cpu"});            \
     runDynamicLoadBalanceTest(                                               \
@@ -91,6 +86,21 @@
         kLoopThroughFrontPanelPort,                                          \
         true,                                                                \
         35);                                                                 \
+  }
+
+#define RUN_HW_LOAD_BALANCER_TEST_FOR_ECMP_TO_DLB(                           \
+    TEST_FIXTURE, MULTIPATH_TYPE, HASH_TYPE, TRAFFIC_TYPE)                   \
+  TEST_F(TEST_FIXTURE, TEST_NAME(MULTIPATH_TYPE, HASH_TYPE, TRAFFIC_TYPE)) { \
+    static bool kLoopThroughFrontPanelPort =                                 \
+        (BOOST_PP_STRINGIZE(TRAFFIC_TYPE) != std::string{"Cpu"});            \
+    runLoadBalanceTest(                                                      \
+        8,                                                                   \
+        facebook::fboss::utility::getEcmp##HASH_TYPE##HashConfig(            \
+            *getPlatform()->getAsic()),                                      \
+        facebook::fboss::utility::kHwTest##MULTIPATH_TYPE##Weights(),        \
+        kLoopThroughFrontPanelPort,                                          \
+        false, /* since ECMP expected to send traffic on single link */      \
+        35 /* DLB needs 30% deviation */);                                   \
   }
 
 #define RUN_SHRINK_EXPAND_HW_LOAD_BALANCER_TEST(TEST_FIXTURE, HASH_TYPE) \
@@ -230,13 +240,6 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
     }
     auto setup = [=]() { programECMP(ecmpWidth, loadBalancer, weights); };
     auto verify = [=]() {
-      // DLB engine can not detect port member hardware status
-      // when in "phy" loopback mode.
-      // Hence we are setting it forcibly here again for all the ecmp members.
-      if (FLAGS_flowletSwitchingEnable) {
-        XLOG(DBG3) << "setting ECMP Member Status: ";
-        utility::setEcmpMemberStatus(getHwSwitch());
-      }
       pumpTrafficPortAndVerifyLoadBalanced(
           ecmpWidth,
           weights,
@@ -244,7 +247,31 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
           deviation,
           loadBalanceExpected);
     };
-    verifyAcrossWarmBoots(setup, verify);
+
+    auto setupPostWB = [&]() {
+      if (FLAGS_flowletSwitchingEnable) {
+        auto cfg = initialConfig();
+        // Add flowlet config to convert ECMP to DLB
+        utility::addFlowletConfigs(cfg, masterLogicalPortIds());
+        applyNewConfig(cfg);
+      }
+    };
+
+    auto verifyPostWB = [&]() {
+      if (FLAGS_flowletSwitchingEnable) {
+        XLOG(DBG3) << "setting ECMP Member Status: ";
+        utility::setEcmpMemberStatus(getHwSwitch());
+        loadBalanceExpected = true;
+        pumpTrafficPortAndVerifyLoadBalanced(
+            ecmpWidth,
+            weights,
+            loopThroughFrontPanel,
+            deviation,
+            loadBalanceExpected);
+      }
+    };
+
+    verifyAcrossWarmBoots(setup, verify, setupPostWB, verifyPostWB);
   }
 
   void runEcmpShrinkExpandLoadBalanceTest(

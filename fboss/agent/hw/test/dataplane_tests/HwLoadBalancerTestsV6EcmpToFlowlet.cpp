@@ -15,7 +15,7 @@
 
 namespace facebook::fboss {
 
-class HwLoadBalancerTestV6Flowlet
+class HwLoadBalancerTestV6EcmpToFlowlet
     : public HwLoadBalancerTest<utility::HwIpV6RoCEEcmpDataPlaneTestUtil> {
   std::unique_ptr<utility::HwIpV6RoCEEcmpDataPlaneTestUtil> getECMPHelper()
       override {
@@ -28,7 +28,6 @@ class HwLoadBalancerTestV6Flowlet
     auto hwSwitch = getHwSwitch();
     auto cfg = utility::onePortPerInterfaceConfig(
         hwSwitch, masterLogicalPortIds(), getAsic()->desiredLoopbackModes());
-    utility::addFlowletConfigs(cfg, masterLogicalPortIds());
     return cfg;
   }
 
@@ -38,8 +37,8 @@ class HwLoadBalancerTestV6Flowlet
   }
 };
 
-RUN_HW_LOAD_BALANCER_TEST_FOR_DLB(
-    HwLoadBalancerTestV6Flowlet,
+RUN_HW_LOAD_BALANCER_TEST_FOR_ECMP_TO_DLB(
+    HwLoadBalancerTestV6EcmpToFlowlet,
     Ecmp,
     Full,
     FrontPanel)

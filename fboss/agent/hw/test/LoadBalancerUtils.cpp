@@ -16,6 +16,7 @@
 #include "fboss/agent/LoadBalancerConfigApplier.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
+#include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/packet/PktFactory.h"
@@ -179,6 +180,28 @@ cfg::FlowletSwitchingConfig getDefaultFlowletSwitchingConfig(void) {
   flowletCfg.dynamicEgressMaxThresholdBytes() = 10000;
   flowletCfg.dynamicPhysicalQueueExponent() = 4;
   return flowletCfg;
+}
+
+void addFlowletConfigs(
+    cfg::SwitchConfig& cfg,
+    const std::vector<PortID>& ports) {
+  cfg::FlowletSwitchingConfig flowletCfg =
+      utility::getDefaultFlowletSwitchingConfig();
+  cfg.flowletSwitchingConfig() = flowletCfg;
+
+  std::map<std::string, cfg::PortFlowletConfig> portFlowletCfgMap;
+  cfg::PortFlowletConfig portFlowletConfig;
+  portFlowletConfig.scalingFactor() = kScalingFactor;
+  portFlowletConfig.loadWeight() = kLoadWeight;
+  portFlowletConfig.queueWeight() = kQueueWeight;
+  portFlowletCfgMap.insert(std::make_pair("default", portFlowletConfig));
+  cfg.portFlowletConfigs() = portFlowletCfgMap;
+
+  std::vector<PortID> portIds(ports.begin(), ports.begin() + ports.size());
+  for (auto portId : portIds) {
+    auto portCfg = utility::findCfgPort(cfg, portId);
+    portCfg->flowletConfigName() = "default";
+  }
 }
 
 static cfg::UdfConfig addUdfConfig(

@@ -45,6 +45,9 @@ inline const int kUdfAclRoceOpcodeFieldSizeInBytes(1);
 inline const int kUdfL4DstPort(4791);
 inline const int kRandomUdfL4SrcPort(62946);
 inline const int kUdfRoceOpcode(11);
+inline const int kScalingFactor(100);
+inline const int kLoadWeight(70);
+inline const int kQueueWeight(30);
 
 cfg::LoadBalancer getEcmpHalfHashConfig(const HwAsic& asic);
 cfg::LoadBalancer getEcmpFullHashConfig(const HwAsic& asic);
@@ -184,5 +187,8 @@ bool isHwDeterministicSeed(
     LoadBalancerID id);
 
 cfg::FlowletSwitchingConfig getDefaultFlowletSwitchingConfig();
+void addFlowletConfigs(
+    cfg::SwitchConfig& cfg,
+    const std::vector<PortID>& ports);
 
 } // namespace facebook::fboss::utility
