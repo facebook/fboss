@@ -225,13 +225,14 @@ struct IdpromConfig {
 // corresponding device. It should one of the compatible strings specified in
 // the kernel driver.
 //
-// `iobufOffset`: It is the iobuf register offset of the SPI Master in the FPGA.
+// `iobufOffset`: It is the iobuf register hex offset of the SPI Master in the
+// FPGA.
 //
-// `csrOffset`: It is the csr register offset of the SPI Master in the FPGA.
+// `csrOffset`: It is the csr register hex offset of the SPI Master in the FPGA.
 struct FpgaIpBlockConfig {
   1: string deviceName;
-  2: i32 iobufOffset;
-  3: i32 csrOffset;
+  2: string iobufOffset;
+  3: string csrOffset;
 }
 
 // Defines the I2C Adapter config in FPGAs.

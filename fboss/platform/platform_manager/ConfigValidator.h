@@ -10,6 +10,7 @@ class ConfigValidator {
  public:
   bool isValid(const PlatformConfig& platformConfig);
   bool isValidSlotTypeConfig(const SlotTypeConfig& slotTypeConfig);
+  bool isValidFpgaIpBlockConfig(const FpgaIpBlockConfig& fpgaIpBlockConfig);
   bool isValidPciDeviceConfig(const PciDeviceConfig& pciDeviceConfig);
   bool isValidI2cDeviceConfig(const I2cDeviceConfig& i2cDeviceConfig);
 };

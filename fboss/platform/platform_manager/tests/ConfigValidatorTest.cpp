@@ -51,6 +51,21 @@ TEST(ConfigValidatorTest, SlotTypeConfig) {
   EXPECT_FALSE(ConfigValidator().isValidSlotTypeConfig(slotTypeConfig));
 }
 
+TEST(ConfigValidatorTest, FpgaIpBlockConfig) {
+  auto fpgaIpBlockConfig = FpgaIpBlockConfig{};
+  EXPECT_TRUE(ConfigValidator().isValidFpgaIpBlockConfig(fpgaIpBlockConfig));
+  fpgaIpBlockConfig.iobufOffset() = "0xab29";
+  fpgaIpBlockConfig.csrOffset() = "0xaf29";
+  EXPECT_TRUE(ConfigValidator().isValidFpgaIpBlockConfig(fpgaIpBlockConfig));
+  fpgaIpBlockConfig.csrOffset() = "0xaf2";
+  EXPECT_TRUE(ConfigValidator().isValidFpgaIpBlockConfig(fpgaIpBlockConfig));
+  fpgaIpBlockConfig.csrOffset() = "0xaF2";
+  EXPECT_FALSE(ConfigValidator().isValidFpgaIpBlockConfig(fpgaIpBlockConfig));
+  fpgaIpBlockConfig.iobufOffset() = "";
+  fpgaIpBlockConfig.csrOffset() = "0xaf20";
+  EXPECT_TRUE(ConfigValidator().isValidFpgaIpBlockConfig(fpgaIpBlockConfig));
+}
+
 TEST(ConfigValidatorTest, PciDeviceConfig) {
   auto pciDevConfig = PciDeviceConfig{};
   EXPECT_FALSE(ConfigValidator().isValidPciDeviceConfig(pciDevConfig));

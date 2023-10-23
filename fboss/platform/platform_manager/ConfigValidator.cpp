@@ -8,6 +8,10 @@
 #include "fboss/platform/platform_manager/I2cExplorer.h"
 #include "fboss/platform/platform_manager/PciExplorer.h"
 
+namespace {
+const re2::RE2 kPciDevOffsetRegex{"0x[0-9a-f]+"};
+}
+
 namespace facebook::fboss::platform::platform_manager {
 
 bool ConfigValidator::isValidSlotTypeConfig(
@@ -23,6 +27,23 @@ bool ConfigValidator::isValidSlotTypeConfig(
       XLOG(ERR) << "IDPROM has invalid address " << e.what();
       return false;
     }
+  }
+  return true;
+}
+
+bool ConfigValidator::isValidFpgaIpBlockConfig(
+    const FpgaIpBlockConfig& fpgaIpBlockConfig) {
+  if (!fpgaIpBlockConfig.csrOffset()->empty() &&
+      !re2::RE2::FullMatch(
+          *fpgaIpBlockConfig.csrOffset(), kPciDevOffsetRegex)) {
+    XLOG(ERR) << "Invalid CSR Offset : " << *fpgaIpBlockConfig.csrOffset();
+    return false;
+  }
+  if (!fpgaIpBlockConfig.iobufOffset()->empty() &&
+      !re2::RE2::FullMatch(
+          *fpgaIpBlockConfig.iobufOffset(), kPciDevOffsetRegex)) {
+    XLOG(ERR) << "Invalid IOBuf Offset : " << *fpgaIpBlockConfig.iobufOffset();
+    return false;
   }
   return true;
 }
@@ -53,6 +74,44 @@ bool ConfigValidator::isValidPciDeviceConfig(
               << *pciDeviceConfig.subSystemDeviceId();
     return false;
   }
+  for (const auto& [_, i2cAdapterConfig] :
+       *pciDeviceConfig.i2cAdapterConfigs()) {
+    if (!isValidFpgaIpBlockConfig(*i2cAdapterConfig.fpgaIpBlockConfig())) {
+      return false;
+    }
+  }
+  for (const auto& [_, spiMasterConfig] : *pciDeviceConfig.spiMasterConfigs()) {
+    if (!isValidFpgaIpBlockConfig(*spiMasterConfig.fpgaIpBlockConfig())) {
+      return false;
+    }
+  }
+  for (const auto& [_, gpioChipConfig] : *pciDeviceConfig.gpioChipConfigs()) {
+    if (!isValidFpgaIpBlockConfig(gpioChipConfig)) {
+      return false;
+    }
+  }
+  for (const auto& [_, watchdogConfig] : *pciDeviceConfig.watchdogConfigs()) {
+    if (!isValidFpgaIpBlockConfig(watchdogConfig)) {
+      return false;
+    }
+  }
+  for (const auto& [_, fanTachoPwmConfig] :
+       *pciDeviceConfig.fanTachoPwmConfigs()) {
+    if (!isValidFpgaIpBlockConfig(fanTachoPwmConfig)) {
+      return false;
+    }
+  }
+  for (const auto& [_, ledCtrlConfig] : *pciDeviceConfig.ledCtrlConfigs()) {
+    if (!isValidFpgaIpBlockConfig(*ledCtrlConfig.fpgaIpBlockConfig())) {
+      return false;
+    }
+  }
+  for (const auto& [_, xcvrCtrlConfig] : *pciDeviceConfig.xcvrCtrlConfigs()) {
+    if (!isValidFpgaIpBlockConfig(*xcvrCtrlConfig.fpgaIpBlockConfig())) {
+      return false;
+    }
+  }
+
   return true;
 }
 

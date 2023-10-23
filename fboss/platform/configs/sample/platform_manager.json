@@ -55,21 +55,21 @@
           "i2cAdapterConfigs": {
             "SCM_IOB1_I2C_0": {
               "deviceName": "i2c-smb",
-              "iobufOffset": 23
+              "iobufOffset": "0x0023"
             }
           },
           "spiMasterConfigs": {
             "SCM_IOB1_SPI_0": {
               "fpgaIpBlockConfig": {
                 "deviceName": "spi",
-                "iobufOffset": 34
+                "iobufOffset": "0x0034"
               },
               "numberOfCsPins": 1
             },
             "SCM_IOB1_SPI_1": {
               "fpgaIpBlockConfig": {
                 "deviceName": "spi",
-                "iobufOffset": 334
+                "iobufOffset": "0x0334"
               },
               "numberOfCsPins": 1
             }
@@ -106,11 +106,11 @@
           "i2cAdapterConfigs": {
             "SCM_IOB2_I2C_0": {
               "deviceName": "i2c-smb",
-              "iobufOffset": 67
+              "iobufOffset": "0x0067"
             },
             "SCM_IOB2_I2C_1": {
               "deviceName": "i2c-smb",
-              "iobufOffset": 87
+              "iobufOffset": "0x0087"
             }
           }
         }
@@ -192,7 +192,7 @@
           "i2cAdapterConfigs": {
             "SCM_IOB2_I2C_2": {
               "deviceName": "i2c-smb",
-              "iobufOffset": 198
+              "iobufOffset": "0x0198"
             }
           }
         }
