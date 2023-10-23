@@ -99,6 +99,7 @@ multiswitch::HwSwitchStats HwSwitch::getHwSwitchStats() {
   hwSwitchStats.fabricReachabilityStats() = getFabricReachabilityStats();
   hwSwitchStats.sysPortStats() = getSysPortStats();
   hwSwitchStats.fb303GlobalStats() = getSwitchStats()->getAllFb303Stats();
+  hwSwitchStats.cpuPortStats() = getCpuPortStats();
   return hwSwitchStats;
 }
 
