@@ -32,6 +32,7 @@ class HwCpuFb303Stats {
   void updateStats(
       const HwPortStats& latestStats,
       const std::chrono::seconds& retrievedAt);
+  void updateStats(const CpuPortStats& latestStats);
 
   void queueChanged(int queueId, const std::string& queueName);
   void queueRemoved(int queueId);

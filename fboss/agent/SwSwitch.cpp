@@ -272,6 +272,20 @@ void accumulateFb303GlobalStats(
       toAdd.fabric_reachability_mismatch().value();
 }
 
+void accumulateGlobalCpuStats(
+    facebook::fboss::CpuPortStats& accumulated,
+    const facebook::fboss::CpuPortStats& toAdd) {
+  for (const auto& [queue, value] : toAdd.queueInPackets_().value()) {
+    (*accumulated.queueInPackets_())[queue] += value;
+  }
+  for (const auto& [queue, value] : toAdd.queueInPackets_().value()) {
+    (*accumulated.queueDiscardPackets_())[queue] += value;
+  }
+  for (const auto& [queue, name] : toAdd.queueToName_().value()) {
+    (*accumulated.queueToName_())[queue] = name;
+  }
+}
+
 } // anonymous namespace
 
 namespace facebook::fboss {
@@ -724,6 +738,7 @@ void SwSwitch::updateMultiSwitchGlobalFb303Stats() {
     return;
   }
   HwSwitchFb303GlobalStats globalStats;
+  CpuPortStats globalCpuPortStats;
   {
     auto lockedStats = hwSwitchStats_.rlock();
     if (lockedStats->empty()) {
@@ -733,10 +748,13 @@ void SwSwitch::updateMultiSwitchGlobalFb303Stats() {
       // accumulate error stats from all switches in global values
       accumulateFb303GlobalStats(
           globalStats, *hwSwitchStats.fb303GlobalStats());
+      accumulateGlobalCpuStats(
+          globalCpuPortStats, *hwSwitchStats.cpuPortStats());
     }
   }
   CHECK(multiSwitchFb303Stats_);
   multiSwitchFb303Stats_->updateStats(globalStats);
+  multiSwitchFb303Stats_->updateStats(globalCpuPortStats);
 }
 
 TeFlowStats SwSwitch::getTeFlowStats() {

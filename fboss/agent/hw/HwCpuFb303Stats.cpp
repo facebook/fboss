@@ -120,4 +120,32 @@ CpuPortStats HwCpuFb303Stats::getCpuPortStats() const {
   }
   return cpuPortStats;
 }
+
+void HwCpuFb303Stats::updateStats(const CpuPortStats& curPortStats) {
+  for (const auto& [queueId, queueName] : *curPortStats.queueToName_()) {
+    auto oldQueueName = queueId2Name_.find(queueId);
+    if (oldQueueName == queueId2Name_.end() ||
+        queueName != oldQueueName->second) {
+      queueChanged(queueId, queueName);
+    }
+    queueCounters_.updateStat(
+        timeRetrieved_,
+        statName(kInDroppedPkts(), queueId, queueId2Name_[queueId]),
+        curPortStats.queueDiscardPackets_()->at(queueId));
+    queueCounters_.updateStat(
+        timeRetrieved_,
+        statName(kInPkts(), queueId, queueId2Name_[queueId]),
+        curPortStats.queueInPackets_()->at(queueId));
+  }
+  for (auto iter = queueId2Name_.cbegin(); iter != queueId2Name_.cend();) {
+    if (curPortStats.queueToName_()->find(iter->first) ==
+        curPortStats.queueToName_()->end()) {
+      auto queueId = iter->first;
+      iter++;
+      queueRemoved(queueId);
+    } else {
+      ++iter;
+    }
+  }
+}
 } // namespace facebook::fboss

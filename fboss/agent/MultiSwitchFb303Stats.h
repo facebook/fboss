@@ -12,6 +12,7 @@
 #include <string>
 
 #include "fboss/agent/HwAsicTable.h"
+#include "fboss/agent/hw/HwCpuFb303Stats.h"
 #include "fboss/agent/hw/HwSwitchFb303Stats.h"
 #include "fboss/agent/types.h"
 
@@ -21,11 +22,13 @@ class MultiSwitchFb303Stats {
   explicit MultiSwitchFb303Stats(
       const std::map<SwitchID, const HwAsic*>& asicsMap);
   void updateStats(HwSwitchFb303GlobalStats& globalStats);
+  void updateStats(CpuPortStats& cpuStats);
   const HwSwitchFb303Stats& getHwSwitchFb303GlobalStats() const {
     return hwSwitchFb303GlobalStats_;
   }
 
  private:
   HwSwitchFb303Stats hwSwitchFb303GlobalStats_;
+  HwCpuFb303Stats hwSwitchFb303CpuStats_;
 };
 } // namespace facebook::fboss

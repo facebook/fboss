@@ -131,6 +131,34 @@ TEST(HwCpuFb303Stats, UpdateStats) {
   updateStats(cpuStats);
   verifyUpdatedStats(cpuStats);
 }
+
+TEST(HwCpuFb303Stats, UpdateCpuFb303Stats) {
+  HwCpuFb303Stats cpuStats(kQueue2Name);
+  // To get last increment from monotonic counter we need to update it twice
+  CpuPortStats empty{};
+  *empty.queueDiscardPackets_() =
+      *empty.queueInPackets_() = {{1, 0}, {2, 0}, {3, 0}};
+  *empty.queueToName_() = {
+      {1, "high"},
+      {2, "low"},
+      {3, "mid"},
+  };
+  CpuPortStats initedStats{};
+  *initedStats.queueToName_() = {
+      {1, "high"},
+      {2, "low"},
+  };
+  *initedStats.queueDiscardPackets_() = {{1, 2}, {2, 2}};
+  *initedStats.queueInPackets_() = {{1, 1}, {2, 1}};
+  cpuStats.updateStats(empty);
+  cpuStats.updateStats(initedStats);
+  verifyUpdatedStats(cpuStats);
+  for (auto statKey : HwCpuFb303Stats::kQueueStatKeys()) {
+    EXPECT_FALSE(fbData->getStatMap()->contains(
+        HwCpuFb303Stats::statName(statKey, 3, "mid")));
+  }
+}
+
 TEST(HwCpuFb303StatsTest, RenameQueue) {
   HwCpuFb303Stats stats(kQueue2Name);
   stats.queueChanged(1, "very_high");

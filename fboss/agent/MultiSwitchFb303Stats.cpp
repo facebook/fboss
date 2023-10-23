@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/MultiSwitchFb303Stats.h"
+#include <chrono>
 
 #include "fboss/agent/FbossError.h"
 
@@ -35,10 +36,15 @@ MultiSwitchFb303Stats::MultiSwitchFb303Stats(
     const std::map<SwitchID, const HwAsic*>& asicsMap)
     : hwSwitchFb303GlobalStats_(
           fb303::ThreadCachedServiceData::get()->getThreadStats(),
-          getAsicVendor(asicsMap)) {}
+          getAsicVendor(asicsMap)),
+      hwSwitchFb303CpuStats_({}, std::nullopt) {}
 
 void MultiSwitchFb303Stats::updateStats(HwSwitchFb303GlobalStats& globalStats) {
   hwSwitchFb303GlobalStats_.updateStats(globalStats);
+}
+
+void MultiSwitchFb303Stats::updateStats(CpuPortStats& cpuPortStats) {
+  hwSwitchFb303CpuStats_.updateStats(cpuPortStats);
 }
 
 } // namespace facebook::fboss
