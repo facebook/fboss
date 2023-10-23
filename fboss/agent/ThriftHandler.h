@@ -401,6 +401,7 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   bool isSwitchDrained() override;
   void getActualSwitchDrainState(std::map<int64_t, cfg::SwitchDrainState>&
                                      switchId2ActualSwitchDrainState) override;
+  void getMultiSwitchRunState(MultiSwitchRunState& runState) override;
 
  protected:
   void addMplsRoutesImpl(

@@ -700,6 +700,12 @@ struct DsfSessionThrift {
   4: optional i64 lastDisconnectedAt;
 }
 
+struct MultiSwitchRunState {
+  1: SwitchRunState swSwitchRunState;
+  // SwitchIndex to SwitchRunState
+  2: map<i32, SwitchRunState> hwIndexToRunState;
+}
+
 service FbossCtrl extends phy.FbossCommonPhyCtrl {
   /*
    * Retrieve up-to-date counters from the hardware, and publish all
@@ -1155,6 +1161,8 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
   * Switch run state
   */
   SwitchRunState getSwitchRunState();
+
+  MultiSwitchRunState getMultiSwitchRunState();
 
   SSLType getSSLPolicy() throws (1: fboss.FbossBaseError error);
 
