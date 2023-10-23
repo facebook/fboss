@@ -99,7 +99,13 @@ TEST_F(HwJumboFramesTest, JumboFramesGetThrough) {
 }
 
 TEST_F(HwJumboFramesTest, SuperJumboFramesGetDropped) {
-  runJumboFrameTest(10472, true);
+  if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
+    // Jericho3 supports larger frame size
+    runJumboFrameTest(10472, true);
+  } else {
+    // 10k frame size leads to pkt buffer allocation failure on TH3/TH4
+    runJumboFrameTest(9472, true);
+  }
 }
 
 } // namespace facebook::fboss
