@@ -47,6 +47,7 @@ int main(int argc, char** argv) {
   auto handler = std::make_shared<PlatformManagerHandler>();
   server->setPort(FLAGS_thrift_port);
   server->setInterface(handler);
+  server->setSSLPolicy(apache::thrift::SSLPolicy::DISABLED);
   server->setAllowPlaintextOnLoopback(true);
   helpers::runThriftService(
       server, handler, "PlatformManagerService", FLAGS_thrift_port);

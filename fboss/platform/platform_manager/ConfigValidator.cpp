@@ -74,40 +74,38 @@ bool ConfigValidator::isValidPciDeviceConfig(
               << *pciDeviceConfig.subSystemDeviceId();
     return false;
   }
-  for (const auto& [_, i2cAdapterConfig] :
-       *pciDeviceConfig.i2cAdapterConfigs()) {
-    if (!isValidFpgaIpBlockConfig(*i2cAdapterConfig.fpgaIpBlockConfig())) {
+
+  std::vector<FpgaIpBlockConfig> fpgaIpBlockConfigs{};
+  for (const auto& config : *pciDeviceConfig.i2cAdapterConfigs()) {
+    fpgaIpBlockConfigs.push_back(*config.fpgaIpBlockConfig());
+  }
+  for (const auto& config : *pciDeviceConfig.spiMasterConfigs()) {
+    fpgaIpBlockConfigs.push_back(*config.fpgaIpBlockConfig());
+  }
+  for (const auto& config : *pciDeviceConfig.gpioChipConfigs()) {
+    fpgaIpBlockConfigs.push_back(config);
+  }
+  for (const auto& config : *pciDeviceConfig.watchdogConfigs()) {
+    fpgaIpBlockConfigs.push_back(config);
+  }
+  for (const auto& config : *pciDeviceConfig.fanTachoPwmConfigs()) {
+    fpgaIpBlockConfigs.push_back(config);
+  }
+  for (const auto& config : *pciDeviceConfig.ledCtrlConfigs()) {
+    fpgaIpBlockConfigs.push_back(*config.fpgaIpBlockConfig());
+  }
+  for (const auto& config : *pciDeviceConfig.xcvrCtrlConfigs()) {
+    fpgaIpBlockConfigs.push_back(*config.fpgaIpBlockConfig());
+  }
+
+  std::set<std::string> uniqueNames{};
+  for (const auto& config : fpgaIpBlockConfigs) {
+    auto [it, inserted] = uniqueNames.insert(*config.pmUnitScopedName());
+    if (!inserted) {
+      XLOG(ERR) << "Duplicate pmUnitScopedName: " << *config.pmUnitScopedName();
       return false;
     }
-  }
-  for (const auto& [_, spiMasterConfig] : *pciDeviceConfig.spiMasterConfigs()) {
-    if (!isValidFpgaIpBlockConfig(*spiMasterConfig.fpgaIpBlockConfig())) {
-      return false;
-    }
-  }
-  for (const auto& [_, gpioChipConfig] : *pciDeviceConfig.gpioChipConfigs()) {
-    if (!isValidFpgaIpBlockConfig(gpioChipConfig)) {
-      return false;
-    }
-  }
-  for (const auto& [_, watchdogConfig] : *pciDeviceConfig.watchdogConfigs()) {
-    if (!isValidFpgaIpBlockConfig(watchdogConfig)) {
-      return false;
-    }
-  }
-  for (const auto& [_, fanTachoPwmConfig] :
-       *pciDeviceConfig.fanTachoPwmConfigs()) {
-    if (!isValidFpgaIpBlockConfig(fanTachoPwmConfig)) {
-      return false;
-    }
-  }
-  for (const auto& [_, ledCtrlConfig] : *pciDeviceConfig.ledCtrlConfigs()) {
-    if (!isValidFpgaIpBlockConfig(*ledCtrlConfig.fpgaIpBlockConfig())) {
-      return false;
-    }
-  }
-  for (const auto& [_, xcvrCtrlConfig] : *pciDeviceConfig.xcvrCtrlConfigs()) {
-    if (!isValidFpgaIpBlockConfig(*xcvrCtrlConfig.fpgaIpBlockConfig())) {
+    if (!isValidFpgaIpBlockConfig(config)) {
       return false;
     }
   }

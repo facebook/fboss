@@ -87,6 +87,20 @@ TEST(ConfigValidatorTest, PciDeviceConfig) {
   EXPECT_FALSE(ConfigValidator().isValidPciDeviceConfig(pciDevConfig));
   pciDevConfig.subSystemDeviceId() = "0x1b29";
   EXPECT_TRUE(ConfigValidator().isValidPciDeviceConfig(pciDevConfig));
+  auto fpgaIpBlockConfig = FpgaIpBlockConfig{};
+  fpgaIpBlockConfig.iobufOffset() = "0xab29";
+  fpgaIpBlockConfig.csrOffset() = "0xaf29";
+  fpgaIpBlockConfig.pmUnitScopedName() = "MCB_WDOG_1";
+  pciDevConfig.watchdogConfigs()->push_back(fpgaIpBlockConfig);
+  fpgaIpBlockConfig.iobufOffset() = "0xab20";
+  fpgaIpBlockConfig.csrOffset() = "0xaf39";
+  fpgaIpBlockConfig.pmUnitScopedName() = "MCB_WDOG_1";
+  pciDevConfig.watchdogConfigs()->push_back(fpgaIpBlockConfig);
+  EXPECT_FALSE(ConfigValidator().isValidPciDeviceConfig(pciDevConfig));
+  pciDevConfig.watchdogConfigs()->pop_back();
+  fpgaIpBlockConfig.pmUnitScopedName() = "MCB_WDOG_2";
+  pciDevConfig.watchdogConfigs()->push_back(fpgaIpBlockConfig);
+  EXPECT_TRUE(ConfigValidator().isValidPciDeviceConfig(pciDevConfig));
 }
 
 TEST(ConfigValidatorTest, I2cDeviceConfig) {

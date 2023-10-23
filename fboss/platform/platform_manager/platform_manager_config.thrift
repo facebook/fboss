@@ -221,6 +221,9 @@ struct IdpromConfig {
 
 // Defines a generic IP block in the FPGA
 //
+// `pmUnitScopedName`: The name used to refer to this device. It should be
+// be unique within the PmUnit.
+//
 // `deviceName`: It is the name used in the ioctl system call to create the
 // corresponding device. It should one of the compatible strings specified in
 // the kernel driver.
@@ -230,9 +233,10 @@ struct IdpromConfig {
 //
 // `csrOffset`: It is the csr register hex offset of the SPI Master in the FPGA.
 struct FpgaIpBlockConfig {
-  1: string deviceName;
-  2: string iobufOffset;
-  3: string csrOffset;
+  1: string pmUnitScopedName;
+  2: string deviceName;
+  3: string iobufOffset;
+  4: string csrOffset;
 }
 
 // Defines the I2C Adapter config in FPGAs.
@@ -318,13 +322,13 @@ struct PciDeviceConfig {
   3: string deviceId;
   4: string subSystemVendorId;
   5: string subSystemDeviceId;
-  6: map<string, I2cAdapterConfig> i2cAdapterConfigs;
-  7: map<string, SpiMasterConfig> spiMasterConfigs;
-  8: map<string, FpgaIpBlockConfig> gpioChipConfigs;
-  9: map<string, FpgaIpBlockConfig> watchdogConfigs;
-  10: map<string, FpgaIpBlockConfig> fanTachoPwmConfigs;
-  11: map<string, LedCtrlConfig> ledCtrlConfigs;
-  12: map<string, XcvrCtrlConfig> xcvrCtrlConfigs;
+  6: list<I2cAdapterConfig> i2cAdapterConfigs;
+  7: list<SpiMasterConfig> spiMasterConfigs;
+  8: list<FpgaIpBlockConfig> gpioChipConfigs;
+  9: list<FpgaIpBlockConfig> watchdogConfigs;
+  10: list<FpgaIpBlockConfig> fanTachoPwmConfigs;
+  11: list<LedCtrlConfig> ledCtrlConfigs;
+  12: list<XcvrCtrlConfig> xcvrCtrlConfigs;
 }
 
 // These are the PmUnit slot types. Examples: "PIM_SLOT", "PSU_SLOT" and

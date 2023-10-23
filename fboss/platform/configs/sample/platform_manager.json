@@ -52,28 +52,31 @@
           "name": "IOB1 FPGA",
           "vendorId": "0x83bf",
           "deviceId": "0xab87",
-          "i2cAdapterConfigs": {
-            "SCM_IOB1_I2C_0": {
+          "i2cAdapterConfigs": [
+            {
+              "pmUnitScopedName": "SCM_IOB1_I2C_0",
               "deviceName": "i2c-smb",
               "iobufOffset": "0x0023"
             }
-          },
-          "spiMasterConfigs": {
-            "SCM_IOB1_SPI_0": {
+          ],
+          "spiMasterConfigs": [
+            {
               "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SCM_IOB1_SPI_0",
                 "deviceName": "spi",
                 "iobufOffset": "0x0034"
               },
               "numberOfCsPins": 1
             },
-            "SCM_IOB1_SPI_1": {
+            {
               "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SCM_IOB1_SPI_1",
                 "deviceName": "spi",
                 "iobufOffset": "0x0334"
               },
               "numberOfCsPins": 1
             }
-          }
+          ]
         }
       ],
       "i2cDeviceConfigs": [
@@ -103,16 +106,22 @@
           "name": "IOB2 FPGA",
           "vendorId": "0x1132",
           "deviceId": "0xab56",
-          "i2cAdapterConfigs": {
-            "SCM_IOB2_I2C_0": {
-              "deviceName": "i2c-smb",
-              "iobufOffset": "0x0067"
+          "i2cAdapterConfigs": [
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SCM_IOB2_I2C_0",
+                "deviceName": "i2c-smb",
+                "iobufOffset": "0x0067"
+              }
             },
-            "SCM_IOB2_I2C_1": {
-              "deviceName": "i2c-smb",
-              "iobufOffset": "0x0087"
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SCM_IOB2_I2C_1",
+                "deviceName": "i2c-smb",
+                "iobufOffset": "0x0087"
+              }
             }
-          }
+          ]
         }
       ],
       "i2cDeviceConfigs": [
@@ -189,12 +198,15 @@
           "name": "IOB2 FPGA",
           "vendorId": "0x1132",
           "deviceId": "0xab56",
-          "i2cAdapterConfigs": {
-            "SCM_IOB2_I2C_2": {
-              "deviceName": "i2c-smb",
-              "iobufOffset": "0x0198"
+          "i2cAdapterConfigs": [
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SCM_IOB2_I2C_2",
+                "deviceName": "i2c-smb",
+                "iobufOffset": "0x0198"
+              }
             }
-          }
+          ]
         }
       ],
       "outgoingSlotConfigs": {

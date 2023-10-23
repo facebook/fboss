@@ -175,32 +175,26 @@ void PlatformExplorer::explorePciDevices(
         "Found PCI device {} at {}",
         *pciDeviceConfig.pmUnitScopedName(),
         *pciDevPath);
-    for (const auto& [i2cAdapterName, i2cAdapterConfig] :
-         *pciDeviceConfig.i2cAdapterConfigs()) {
+    for (const auto& i2cAdapterConfig : *pciDeviceConfig.i2cAdapterConfigs()) {
       pciExplorer_.createI2cAdapter(*pciDevPath, i2cAdapterConfig);
     }
-    for (const auto& [spiMasterName, spiMasterConfig] :
-         *pciDeviceConfig.spiMasterConfigs()) {
+    for (const auto& spiMasterConfig : *pciDeviceConfig.spiMasterConfigs()) {
       pciExplorer_.createSpiMaster(*pciDevPath, spiMasterConfig);
     }
-    for (const auto& [name, fpgaIpBlockConfig] :
-         *pciDeviceConfig.gpioChipConfigs()) {
+    for (const auto& fpgaIpBlockConfig : *pciDeviceConfig.gpioChipConfigs()) {
       pciExplorer_.create(*pciDevPath, fpgaIpBlockConfig);
     }
-    for (const auto& [name, fpgaIpBlockConfig] :
-         *pciDeviceConfig.watchdogConfigs()) {
+    for (const auto& fpgaIpBlockConfig : *pciDeviceConfig.watchdogConfigs()) {
       pciExplorer_.create(*pciDevPath, fpgaIpBlockConfig);
     }
-    for (const auto& [name, fpgaIpBlockConfig] :
+    for (const auto& fpgaIpBlockConfig :
          *pciDeviceConfig.fanTachoPwmConfigs()) {
       pciExplorer_.create(*pciDevPath, fpgaIpBlockConfig);
     }
-    for (const auto& [name, fpgaIpBlockConfig] :
-         *pciDeviceConfig.ledCtrlConfigs()) {
+    for (const auto& fpgaIpBlockConfig : *pciDeviceConfig.ledCtrlConfigs()) {
       pciExplorer_.createLedCtrl(*pciDevPath, fpgaIpBlockConfig);
     }
-    for (const auto& [name, xcvrCtrlConfig] :
-         *pciDeviceConfig.xcvrCtrlConfigs()) {
+    for (const auto& xcvrCtrlConfig : *pciDeviceConfig.xcvrCtrlConfigs()) {
       pciExplorer_.createXcvrCtrl(*pciDevPath, xcvrCtrlConfig);
     }
   }
