@@ -42,10 +42,11 @@ void MultiHwSwitchHandler::stop() {
   }
   // Cancel any pending waits for HwSwitch connect calls
   connectionStatusTable_.cancelWait();
+  // set stop flag so that there are no more accesses to syncers
+  stopped_.store(true);
   for (auto& entry : hwSwitchSyncers_) {
     entry.second.reset();
   }
-  stopped_.store(true);
 }
 
 std::shared_ptr<SwitchState> MultiHwSwitchHandler::stateChanged(
@@ -460,6 +461,17 @@ void MultiHwSwitchHandler::notifyHwSwitchDisconnected(int64_t switchId) {
 
 bool MultiHwSwitchHandler::waitUntilHwSwitchConnected() {
   return connectionStatusTable_.waitUntilHwSwitchConnected();
+}
+
+std::map<int32_t, SwitchRunState> MultiHwSwitchHandler::getHwSwitchRunStates() {
+  std::map<int32_t, SwitchRunState> runStates;
+  if (!isRunning()) {
+    throw FbossError("multi hw switch handler not started");
+  }
+  for (const auto& [switchId, syncer] : hwSwitchSyncers_) {
+    runStates[static_cast<int32_t>(switchId)] = syncer->getHwSwitchRunState();
+  }
+  return runStates;
 }
 
 } // namespace facebook::fboss

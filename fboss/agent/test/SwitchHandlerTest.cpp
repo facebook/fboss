@@ -14,6 +14,7 @@
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/mnpu/NonMonolithicHwSwitchHandler.h"
 #include "fboss/agent/test/TestUtils.h"
+#include "fboss/lib/CommonUtils.h"
 
 #include <algorithm>
 
@@ -408,6 +409,64 @@ TEST_F(SwSwitchHandlerTest, reconnectingHwSwitch) {
           EXPECT_EQ(operDelta.operDelta(), fsdb::OperDelta());
         }
       };
+
+  std::thread clientRequestThread1([&]() { clientThreadBody(0); });
+  std::thread clientRequestThread2([&]() { clientThreadBody(1); });
+
+  stateUpdateThread.join();
+  clientRequestThread1.join();
+  clientRequestThread2.join();
+}
+
+TEST_F(SwSwitchHandlerTest, switchRunStateTest) {
+  auto stateV0 = std::make_shared<SwitchState>();
+  auto stateV1 = getInitialTestState();
+
+  auto delta = StateDelta(stateV0, stateV1);
+  std::thread stateUpdateThread([this, &delta, &stateV1]() {
+    auto checkState = [&](auto state) {
+      WITH_RETRIES({
+        auto hwSwitchState = hwSwitchHandler_->getHwSwitchRunStates();
+        for (const auto& [id, runState] : hwSwitchState) {
+          EXPECT_EVENTUALLY_EQ(runState, state);
+        }
+      });
+    };
+    hwSwitchHandler_->waitUntilHwSwitchConnected();
+    checkState(SwitchRunState::INITIALIZED);
+    auto stateReturned = hwSwitchHandler_->stateChanged(delta, true);
+    EXPECT_EQ(stateReturned, stateV1);
+    checkState(SwitchRunState::CONFIGURED);
+    stateReturned = hwSwitchHandler_->stateChanged(delta, true);
+    EXPECT_EQ(stateReturned, stateV1);
+    hwSwitchHandler_->notifyHwSwitchGracefulExit(0);
+    hwSwitchHandler_->notifyHwSwitchGracefulExit(1);
+    checkState(SwitchRunState::EXITING);
+    hwSwitchHandler_->stop();
+  });
+
+  auto clientThreadBody = [this, &delta](int64_t switchId) {
+    OperDeltaFilter filter((SwitchID(switchId)));
+    // connect and get next state delta
+    auto getEmptyOper = []() {
+      auto operDelta = std::make_unique<multiswitch::StateOperDelta>();
+      operDelta->operDelta() = fsdb::OperDelta();
+      return operDelta;
+    };
+    auto operDelta = hwSwitchHandler_->getNextStateOperDelta(
+        switchId, getEmptyOper(), true /*initialSync*/);
+    EXPECT_EQ(operDelta.operDelta(), *filter.filter(delta.getOperDelta(), 1));
+    // request next state delta. the empty oper passed serves as success
+    // indicator for previous delta
+    operDelta = hwSwitchHandler_->getNextStateOperDelta(
+        switchId, getEmptyOper(), false /*initialSync*/);
+    EXPECT_EQ(operDelta.operDelta(), *filter.filter(delta.getOperDelta(), 1));
+    // this request will be cancelled
+    operDelta = hwSwitchHandler_->getNextStateOperDelta(
+        switchId, getEmptyOper(), false /*initialSync*/);
+    // this request will be cancelled
+    EXPECT_EQ(operDelta.operDelta(), fsdb::OperDelta());
+  };
 
   std::thread clientRequestThread1([&]() { clientThreadBody(0); });
   std::thread clientRequestThread2([&]() { clientThreadBody(1); });

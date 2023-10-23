@@ -220,4 +220,8 @@ void MonolithicHwSwitchHandler::notifyHwSwitchDisconnected() {
   throw FbossError("Not supported");
 }
 
+SwitchRunState MonolithicHwSwitchHandler::getHwSwitchRunState() {
+  return hw_->getRunState();
+}
+
 } // namespace facebook::fboss

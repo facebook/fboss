@@ -333,4 +333,24 @@ NonMonolithicHwSwitchHandler::getHwSwitchOperDeltaSyncState() {
   return operDeltaSyncState_;
 }
 
+SwitchRunState NonMonolithicHwSwitchHandler::getHwSwitchRunState() {
+  HwSwitchOperDeltaSyncState syncState;
+  {
+    std::unique_lock<std::mutex> lk(stateUpdateMutex_);
+    syncState = getOperSyncState();
+  }
+
+  switch (syncState) {
+    case HwSwitchOperDeltaSyncState::DISCONNECTED:
+      return SwitchRunState::UNINITIALIZED;
+    case HwSwitchOperDeltaSyncState::WAITING_INITIAL_SYNC:
+    case HwSwitchOperDeltaSyncState::INITIAL_OPER_SENT:
+      return SwitchRunState::INITIALIZED;
+    case HwSwitchOperDeltaSyncState::OPER_SYNCED:
+      return SwitchRunState::CONFIGURED;
+    case HwSwitchOperDeltaSyncState::CANCELLED:
+      return SwitchRunState::EXITING;
+  }
+}
+
 } // namespace facebook::fboss

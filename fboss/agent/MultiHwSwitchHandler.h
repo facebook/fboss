@@ -144,6 +144,8 @@ class MultiHwSwitchHandler {
    */
   bool waitUntilHwSwitchConnected();
 
+  std::map<int32_t, SwitchRunState> getHwSwitchRunStates();
+
  private:
   HwSwitchHandler* getHwSwitchHandler(SwitchID id);
 

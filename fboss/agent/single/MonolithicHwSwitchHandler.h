@@ -128,6 +128,8 @@ class MonolithicHwSwitchHandler : public HwSwitchHandler {
     return HwSwitchOperDeltaSyncState::OPER_SYNCED;
   }
 
+  SwitchRunState getHwSwitchRunState() override;
+
  private:
   Platform* platform_;
   HwSwitch* hw_;

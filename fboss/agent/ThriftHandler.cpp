@@ -3033,8 +3033,10 @@ void ThriftHandler::getFabricReachabilityStats(
       sw_->getHwSwitchHandler()->getFabricReachabilityStats();
 }
 
-void ThriftHandler::getMultiSwitchRunState(MultiSwitchRunState& /*runState*/) {
-  // TODO - implement this function
+void ThriftHandler::getMultiSwitchRunState(MultiSwitchRunState& runState) {
+  runState.swSwitchRunState() = sw_->getSwitchRunState();
+  runState.hwIndexToRunState() =
+      sw_->getHwSwitchHandler()->getHwSwitchRunStates();
 }
 
 } // namespace facebook::fboss

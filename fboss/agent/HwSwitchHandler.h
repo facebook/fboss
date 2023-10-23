@@ -162,6 +162,8 @@ class HwSwitchHandler {
   }
   virtual HwSwitchOperDeltaSyncState getHwSwitchOperDeltaSyncState() = 0;
 
+  virtual SwitchRunState getHwSwitchRunState() = 0;
+
  private:
   HwSwitchStateUpdateResult stateChangedImpl(const HwSwitchStateUpdate& update);
 

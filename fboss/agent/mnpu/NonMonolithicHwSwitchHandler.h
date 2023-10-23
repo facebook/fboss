@@ -115,10 +115,15 @@ class NonMonolithicHwSwitchHandler : public HwSwitchHandler {
       std::optional<PortID> portID = std::nullopt,
       std::optional<uint8_t> queue = std::nullopt);
 
+  SwitchRunState getHwSwitchRunState() override;
+
  private:
   bool isOperSyncState(HwSwitchOperDeltaSyncState state) const;
   void setOperSyncState(HwSwitchOperDeltaSyncState state) {
     operDeltaSyncState_ = state;
+  }
+  HwSwitchOperDeltaSyncState getOperSyncState() {
+    return operDeltaSyncState_;
   }
 
   SwSwitch* sw_;
