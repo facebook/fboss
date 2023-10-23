@@ -63,12 +63,15 @@ TEST(ConfigValidatorTest, PciDeviceConfig) {
   pciDevConfig.vendorId() = "0xAb29";
   pciDevConfig.deviceId() = "0xaf2x";
   EXPECT_FALSE(ConfigValidator().isValidPciDeviceConfig(pciDevConfig));
+  pciDevConfig.vendorId() = "0xab29";
   pciDevConfig.deviceId() = "0xaf29";
   pciDevConfig.subSystemVendorId() = "0xa3F9";
   EXPECT_FALSE(ConfigValidator().isValidPciDeviceConfig(pciDevConfig));
   pciDevConfig.subSystemVendorId() = "0xa329";
   pciDevConfig.subSystemDeviceId() = "0x1b";
   EXPECT_FALSE(ConfigValidator().isValidPciDeviceConfig(pciDevConfig));
+  pciDevConfig.subSystemDeviceId() = "0x1b29";
+  EXPECT_TRUE(ConfigValidator().isValidPciDeviceConfig(pciDevConfig));
 }
 
 TEST(ConfigValidatorTest, I2cDeviceConfig) {
