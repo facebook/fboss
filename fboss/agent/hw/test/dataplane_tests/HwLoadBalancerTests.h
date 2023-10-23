@@ -6,6 +6,7 @@
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTestFlowletSwitchingUtils.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
+#include "fboss/agent/hw/test/ProdConfigFactory.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwEcmpDataPlaneTestUtil.h"
 
 #include <boost/preprocessor/cat.hpp>
@@ -82,7 +83,7 @@
     }                                                                        \
     static bool kLoopThroughFrontPanelPort =                                 \
         (BOOST_PP_STRINGIZE(TRAFFIC_TYPE) != std::string{"Cpu"});            \
-    runLoadBalanceTest(                                                      \
+    runDynamicLoadBalanceTest(                                               \
         8,                                                                   \
         facebook::fboss::utility::getEcmp##HASH_TYPE##HashConfig(            \
             *getPlatform()->getAsic()),                                      \
@@ -292,6 +293,62 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
     };
     setup();
     verify();
+  }
+
+  void runDynamicLoadBalanceTest(
+      unsigned int ecmpWidth,
+      const cfg::LoadBalancer& loadBalancer,
+      const std::vector<NextHopWeight>& weights,
+      bool loopThroughFrontPanel = false,
+      bool loadBalanceExpected = true,
+      uint8_t deviation = 25) {
+    if (skipTest()) {
+#if defined(GTEST_SKIP)
+      GTEST_SKIP();
+#endif
+      return;
+    }
+    auto setup = [=]() { programECMP(ecmpWidth, loadBalancer, weights); };
+    auto verify = [=]() {
+      // DLB engine can not detect port member hardware status
+      // when in "phy" loopback mode.
+      // Hence we are setting it forcibly here again for all the ecmp members.
+      if (FLAGS_flowletSwitchingEnable) {
+        XLOG(DBG3) << "setting ECMP Member Status: ";
+        utility::setEcmpMemberStatus(getHwSwitch());
+      }
+      pumpTrafficPortAndVerifyLoadBalanced(
+          ecmpWidth,
+          weights,
+          loopThroughFrontPanel,
+          deviation,
+          loadBalanceExpected);
+    };
+
+    auto setupPostWB = [&]() {
+      auto cfg = utility::onePortPerInterfaceConfig(
+          getHwSwitch(),
+          masterLogicalPortIds(),
+          getAsic()->desiredLoopbackModes());
+      addLoadBalancerToConfig(cfg, getHwSwitch(), utility::LBHash::FULL_HASH);
+      // Remove the flowlet configs
+      applyNewConfig(cfg);
+    };
+
+    auto verifyPostWB = [&]() {
+      // DLB config is removed. Since it is a single stream,
+      // all the traffic will move via single ECMP path.
+      // Hence set the loadBalanceExpected as false.
+      loadBalanceExpected = false;
+      pumpTrafficPortAndVerifyLoadBalanced(
+          ecmpWidth,
+          weights,
+          loopThroughFrontPanel,
+          deviation,
+          loadBalanceExpected);
+    };
+
+    verifyAcrossWarmBoots(setup, verify, setupPostWB, verifyPostWB);
   }
 
   EcmpTestHelperT* getEcmpSetupHelper() const {
