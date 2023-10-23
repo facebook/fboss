@@ -74,7 +74,7 @@ void PlatformExplorer::exploreSlot(
   XLOG(INFO) << fmt::format("Exploring SlotPath {}", childSlotPath);
 
   if (slotConfig.presenceDetection() &&
-      presenceDetector_.isPresent(*slotConfig.presenceDetection())) {
+      !presenceDetector_.isPresent(*slotConfig.presenceDetection())) {
     XLOG(INFO) << fmt::format(
         "No device could be detected in SlotPath {}", childSlotPath);
   }
