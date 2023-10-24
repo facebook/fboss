@@ -520,6 +520,15 @@ void SaiHostifManager::loadCpuPortQueues() {
 void SaiHostifManager::loadCpuPort() {
   cpuPortHandle_ = std::make_unique<SaiCpuPortHandle>();
   cpuPortHandle_->cpuPortId = managerTable_->switchManager().getCpuPort();
+  XLOG(DBG5) << "Got cpu sai port ID " << cpuPortHandle_->cpuPortId;
+  const auto& portApi = SaiApiTable::getInstance()->portApi();
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::VOQ)) {
+    auto attr = SaiPortTraits::Attributes::SystemPort{};
+    cpuPortHandle_->cpuSystemPortId =
+        portApi.getAttribute(cpuPortHandle_->cpuPortId, attr);
+    XLOG(DBG5) << "Got cpu sai system port ID "
+               << cpuPortHandle_->cpuSystemPortId.value();
+  }
   loadCpuPortQueues();
 }
 
@@ -630,18 +639,20 @@ void SaiHostifManager::setQosPolicy() {
                               HwAsic::AsicVendor::ASIC_VENDOR_BCM)
       ? SAI_NULL_OBJECT_ID
       : globalTcToQueueQosMap_->adapterKey();
-  setCpuQosPolicy(
+  setCpuPortQosPolicy(
       globalDscpToTcQosMap_->adapterKey(), QosMapSaiId(tcToQueueAdapterKey));
+  // TODO(daiweix): add setCpuSystemPortQosPolicy()
 }
 
 void SaiHostifManager::clearQosPolicy() {
-  setCpuQosPolicy(
+  setCpuPortQosPolicy(
       QosMapSaiId(SAI_NULL_OBJECT_ID), QosMapSaiId(SAI_NULL_OBJECT_ID));
+  setCpuSystemPortQosPolicy(QosMapSaiId(SAI_NULL_OBJECT_ID));
   globalDscpToTcQosMap_.reset();
   globalTcToQueueQosMap_.reset();
 }
 
-void SaiHostifManager::setCpuQosPolicy(
+void SaiHostifManager::setCpuPortQosPolicy(
     QosMapSaiId dscpToTc,
     QosMapSaiId tcToQueue) {
   auto& portApi = SaiApiTable::getInstance()->portApi();
@@ -650,6 +661,16 @@ void SaiHostifManager::setCpuQosPolicy(
       SaiPortTraits::Attributes::QosDscpToTcMap{dscpToTc});
   portApi.setAttribute(
       cpuPortHandle_->cpuPortId,
+      SaiPortTraits::Attributes::QosTcToQueueMap{tcToQueue});
+}
+
+void SaiHostifManager::setCpuSystemPortQosPolicy(QosMapSaiId tcToQueue) {
+  if (!cpuPortHandle_->cpuSystemPortId) {
+    return;
+  }
+  auto& systemPortApi = SaiApiTable::getInstance()->systemPortApi();
+  systemPortApi.setAttribute(
+      cpuPortHandle_->cpuSystemPortId.value(),
       SaiPortTraits::Attributes::QosTcToQueueMap{tcToQueue});
 }
 

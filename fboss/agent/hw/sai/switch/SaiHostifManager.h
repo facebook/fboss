@@ -41,6 +41,7 @@ using SaiHostifUserDefinedTrap = SaiObject<SaiHostifUserDefinedTrapTraits>;
 
 struct SaiCpuPortHandle {
   PortSaiId cpuPortId;
+  std::optional<SystemPortSaiId> cpuSystemPortId;
   SaiQueueHandles queues;
   std::vector<SaiQueueHandle*> configuredQueues;
 };
@@ -109,7 +110,8 @@ class SaiHostifManager {
   uint32_t getMaxCpuQueues() const;
   void setQosPolicy();
   void clearQosPolicy();
-  void setCpuQosPolicy(QosMapSaiId dscpToTc, QosMapSaiId tcToQueue);
+  void setCpuPortQosPolicy(QosMapSaiId dscpToTc, QosMapSaiId tcToQueue);
+  void setCpuSystemPortQosPolicy(QosMapSaiId tcToQueue);
   std::shared_ptr<SaiHostifTrapGroup> ensureHostifTrapGroup(uint32_t queueId);
   void processQueueDelta(const DeltaValue<ControlPlane>& delta);
   void processRxReasonToQueueDelta(const DeltaValue<ControlPlane>& delta);

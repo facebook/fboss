@@ -963,6 +963,9 @@ sai_status_t get_port_attribute_fn(
         attr[i].value.u32range.max = std::numeric_limits<uint32_t>::max();
         break;
 #endif
+      case SAI_PORT_ATTR_SYSTEM_PORT:
+        attr[i].value.u16 = port.systemPortId;
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
