@@ -3,7 +3,7 @@
 #pragma once
 
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
-#include "fboss/agent/test/SplitAgentEnsemble.h"
+#include "fboss/agent/test/AgentEnsemble.h"
 
 #include <gflags/gflags.h>
 #include <gtest/gtest.h>

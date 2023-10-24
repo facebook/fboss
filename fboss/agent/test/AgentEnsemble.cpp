@@ -45,7 +45,6 @@ void AgentEnsemble::setupEnsemble(
     // creating a switch
     writeConfig(agentConf, FLAGS_config);
   }
-  setVersionInfo();
   createSwitch(
       AgentConfig::fromDefaultFile(), hwFeaturesDesired, kPlatformInitFn);
 
