@@ -48,6 +48,8 @@ class SaiTajoPlatform : public SaiPlatform {
 
   const std::unordered_map<std::string, std::string>
   getSaiProfileVendorExtensionValues() const override;
+
+  std::string getHwConfig() override;
 };
 
 } // namespace facebook::fboss

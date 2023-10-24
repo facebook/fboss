@@ -22,7 +22,6 @@ class SaiWedge400CPlatform : public SaiTajoPlatform {
       folly::MacAddress localMac,
       const std::string& platformMappingStr);
   ~SaiWedge400CPlatform() override;
-  std::string getHwConfig() override;
   HwAsic* getAsic() const override;
   std::vector<sai_system_port_config_t> getInternalSystemPortConfig()
       const override;

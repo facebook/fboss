@@ -53,10 +53,6 @@ void SaiCloudRipperPlatform::setupAsic(
       switchType, switchId, switchIndex, systemPortRange, mac, sdkVersion);
 }
 
-std::string SaiCloudRipperPlatform::getHwConfig() {
-  return *config()->thrift.platform()->get_chip().get_asic().config();
-}
-
 HwAsic* SaiCloudRipperPlatform::getAsic() const {
   return asic_.get();
 }

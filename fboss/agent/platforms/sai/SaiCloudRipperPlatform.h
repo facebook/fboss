@@ -24,7 +24,6 @@ class SaiCloudRipperPlatform : public SaiTajoPlatform {
   ~SaiCloudRipperPlatform() override;
   HwAsic* getAsic() const override;
 
-  std::string getHwConfig() override;
   std::vector<sai_system_port_config_t> getInternalSystemPortConfig()
       const override;
 

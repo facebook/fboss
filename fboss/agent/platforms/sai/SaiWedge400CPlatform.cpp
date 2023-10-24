@@ -58,10 +58,6 @@ HwAsic* SaiWedge400CPlatform::getAsic() const {
   return asic_.get();
 }
 
-std::string SaiWedge400CPlatform::getHwConfig() {
-  return *config()->thrift.platform()->get_chip().get_asic().config();
-}
-
 std::vector<sai_system_port_config_t>
 SaiWedge400CPlatform::getInternalSystemPortConfig() const {
   CHECK(asic_) << " Asic must be set before getting sys port info";
