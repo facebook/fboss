@@ -2,11 +2,6 @@
 
 #include "fboss/agent/test/SplitAgentEnsemble.h"
 
-DEFINE_bool(
-    is_sai,
-    true,
-    "Flag to indicate multi-switch agent tests running in Sai or non-Sai.");
-
 namespace facebook::fboss {
 SplitAgentEnsemble::~SplitAgentEnsemble() {
   agentInitializer_->stopAgent(false);
@@ -37,7 +32,10 @@ void SplitAgentEnsemble::reloadPlatformConfig() {
 }
 
 bool SplitAgentEnsemble::isSai() const {
-  return FLAGS_is_sai;
+  // MultiSwitch Agent ensemble requires config to provide SDK version.
+  auto sdkVersion = getSw()->getSdkVersion();
+  CHECK(sdkVersion.has_value() && sdkVersion.value().asicSdk().has_value());
+  return sdkVersion.value().saiSdk().has_value();
 }
 
 std::unique_ptr<AgentEnsemble> createAgentEnsemble(
