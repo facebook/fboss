@@ -7,9 +7,9 @@
 
 namespace facebook::fboss {
 
-class SplitAgentEnsemble : public AgentEnsemble {
+class MultiSwitchAgentEnsemble : public AgentEnsemble {
  public:
-  ~SplitAgentEnsemble() override;
+  ~MultiSwitchAgentEnsemble() override;
 
   const SwAgentInitializer* agentInitializer() const override;
   SwAgentInitializer* agentInitializer() override;

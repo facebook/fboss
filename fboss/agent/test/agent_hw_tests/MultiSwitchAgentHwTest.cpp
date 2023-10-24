@@ -1,6 +1,6 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
-#include "fboss/agent/test/SplitAgentEnsemble.h"
+#include "fboss/agent/test/MultiSwitchAgentEnsemble.h"
 
 #include <folly/logging/Init.h>
 #include <gtest/gtest.h>
