@@ -24,7 +24,7 @@ class SaiBcmWedge400PlatformPort : public SaiBcmPlatformPort {
 
  private:
   void setLedStatus(FbDomFpga::LedColor state) const;
-  FbDomFpga::LedColor currentLedState_;
+  FbDomFpga::LedColor currentLedState_{FbDomFpga::LedColor::OFF};
 };
 
 } // namespace facebook::fboss

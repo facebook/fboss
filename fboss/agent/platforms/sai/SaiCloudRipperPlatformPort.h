@@ -26,7 +26,7 @@ class SaiCloudRipperPlatformPort : public SaiTajoPlatformPort {
 
  private:
   FbDomFpga::LedColor getLedState(bool up, bool adminUp) const;
-  FbDomFpga::LedColor currentLedState_;
+  FbDomFpga::LedColor currentLedState_{FbDomFpga::LedColor::OFF};
 };
 
 } // namespace facebook::fboss
