@@ -4,6 +4,7 @@
 #pragma once
 
 #include <folly/experimental/FunctionScheduler.h>
+#include <string>
 
 #include "fboss/platform/platform_manager/I2cExplorer.h"
 #include "fboss/platform/platform_manager/PciExplorer.h"
@@ -63,6 +64,13 @@ class PlatformExplorer {
       const std::string& pmUnitScopeBusName,
       uint16_t busNum);
 
+  // Get the instance id base for the FPGA at the given slotPath and
+  // PmUnitScopedName. The instance id base is unique for each fpga hardware
+  // discovered in the platform.
+  uint32_t getFpgaInstanceId(
+      const std::string& slotPath,
+      const std::string& pm);
+
  private:
   folly::FunctionScheduler scheduler_;
   PlatformConfig platformConfig_{};
@@ -78,6 +86,9 @@ class PlatformExplorer {
   // entry <"/MCB_SLOT@0/PIM_SLOT@1", "INCOMING@1"> -> i2c-52
   std::map<std::pair<std::optional<std::string>, std::string>, uint16_t>
       i2cBusNums_{};
+
+  // Map from <slotPath, PmUnitScopedName> to instance ids for FPGAs.
+  std::map<std::pair<std::string, std::string>, int32_t> fpgaInstanceIds_{};
 };
 
 } // namespace facebook::fboss::platform::platform_manager

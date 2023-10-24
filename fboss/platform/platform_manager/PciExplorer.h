@@ -25,31 +25,36 @@ class PciExplorer {
   // number(s) for the created adapter(s). Throw std::runtime_error on failure.
   std::vector<uint16_t> createI2cAdapter(
       const std::string& pciDevPath,
-      const I2cAdapterConfig& i2cAdapterConfig);
+      const I2cAdapterConfig& i2cAdapterConfig,
+      uint32_t instanceId);
 
   // Create the SPI Master based on the given spiMasterConfig residing
   // at the given PciDevice path. Throw std::runtime_error on failure.
   void createSpiMaster(
       const std::string& pciDevPath,
-      const SpiMasterConfig& spiMasterConfig);
+      const SpiMasterConfig& spiMasterConfig,
+      uint32_t instanceId);
 
   // Create the LED Controller based on the given ledCtrlConfig residing
   // at the given PciDevice path. Throw std::runtime_error on failure.
   void createLedCtrl(
       const std::string& pciDevPath,
-      const LedCtrlConfig& ledCtrlConfig);
+      const LedCtrlConfig& ledCtrlConfig,
+      uint32_t instanceId);
 
   // Create the Transceiver block based on the given xcvrCtrlConfig residing
   // at the given PciDevice path. Throw std::runtime_error on failure.
   void createXcvrCtrl(
       const std::string& pciDevPath,
-      const XcvrCtrlConfig& xcvrCtrlConfig);
+      const XcvrCtrlConfig& xcvrCtrlConfig,
+      uint32_t instanceId);
 
   // Create the device based on the given fpgaIpBlockConfig residing
   // at the given PciDevice. Throw std::runtime_error on failure.
   void create(
       const std::string& pciDevPath,
-      const FpgaIpBlockConfig& fpgaIpBlock);
+      const FpgaIpBlockConfig& fpgaIpBlock,
+      uint32_t instanceId);
 };
 
 } // namespace facebook::fboss::platform::platform_manager

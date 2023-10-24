@@ -2,6 +2,8 @@
 #include <chrono>
 #include <exception>
 #include <stdexcept>
+#include <string>
+#include <utility>
 
 #include <folly/logging/xlog.h>
 
@@ -175,27 +177,29 @@ void PlatformExplorer::explorePciDevices(
         "Found PCI device {} at {}",
         *pciDeviceConfig.pmUnitScopedName(),
         *pciDevPath);
+    auto instId =
+        getFpgaInstanceId(slotPath, *pciDeviceConfig.pmUnitScopedName());
     for (const auto& i2cAdapterConfig : *pciDeviceConfig.i2cAdapterConfigs()) {
-      pciExplorer_.createI2cAdapter(*pciDevPath, i2cAdapterConfig);
+      pciExplorer_.createI2cAdapter(*pciDevPath, i2cAdapterConfig, instId++);
     }
     for (const auto& spiMasterConfig : *pciDeviceConfig.spiMasterConfigs()) {
-      pciExplorer_.createSpiMaster(*pciDevPath, spiMasterConfig);
+      pciExplorer_.createSpiMaster(*pciDevPath, spiMasterConfig, instId++);
     }
     for (const auto& fpgaIpBlockConfig : *pciDeviceConfig.gpioChipConfigs()) {
-      pciExplorer_.create(*pciDevPath, fpgaIpBlockConfig);
+      pciExplorer_.create(*pciDevPath, fpgaIpBlockConfig, instId++);
     }
     for (const auto& fpgaIpBlockConfig : *pciDeviceConfig.watchdogConfigs()) {
-      pciExplorer_.create(*pciDevPath, fpgaIpBlockConfig);
+      pciExplorer_.create(*pciDevPath, fpgaIpBlockConfig, instId++);
     }
     for (const auto& fpgaIpBlockConfig :
          *pciDeviceConfig.fanTachoPwmConfigs()) {
-      pciExplorer_.create(*pciDevPath, fpgaIpBlockConfig);
+      pciExplorer_.create(*pciDevPath, fpgaIpBlockConfig, instId++);
     }
     for (const auto& fpgaIpBlockConfig : *pciDeviceConfig.ledCtrlConfigs()) {
-      pciExplorer_.createLedCtrl(*pciDevPath, fpgaIpBlockConfig);
+      pciExplorer_.createLedCtrl(*pciDevPath, fpgaIpBlockConfig, instId++);
     }
     for (const auto& xcvrCtrlConfig : *pciDeviceConfig.xcvrCtrlConfigs()) {
-      pciExplorer_.createXcvrCtrl(*pciDevPath, xcvrCtrlConfig);
+      pciExplorer_.createXcvrCtrl(*pciDevPath, xcvrCtrlConfig, instId++);
     }
   }
 }
@@ -222,6 +226,17 @@ void PlatformExplorer::updateI2cBusNum(
       busNum,
       busNum);
   i2cBusNums_[std::make_pair(slotPath, pmUnitScopeBusName)] = busNum;
+}
+
+uint32_t PlatformExplorer::getFpgaInstanceId(
+    const std::string& slotPath,
+    const std::string& fpgaName) {
+  auto key = std::make_pair(slotPath, fpgaName);
+  auto it = fpgaInstanceIds_.find(key);
+  if (it == fpgaInstanceIds_.end()) {
+    fpgaInstanceIds_[key] = 1000 * (fpgaInstanceIds_.size() + 1);
+  }
+  return fpgaInstanceIds_[key];
 }
 
 } // namespace facebook::fboss::platform::platform_manager

@@ -22,31 +22,36 @@ std::optional<std::string> PciExplorer::getDevicePath(
 
 std::vector<uint16_t> PciExplorer::createI2cAdapter(
     const std::string& /* pciDevPath */,
-    const I2cAdapterConfig& /* i2cAdapterConfig */) {
+    const I2cAdapterConfig& /* i2cAdapterConfig */,
+    uint32_t /* instanceId */) {
   throw std::runtime_error("Not implemented");
 }
 
 void PciExplorer::createSpiMaster(
     const std::string& /* pciDevPath */,
-    const SpiMasterConfig& /* spiMasterConfig */) {
+    const SpiMasterConfig& /* spiMasterConfig */,
+    uint32_t /* instanceId */) {
   throw std::runtime_error("Not implemented");
 }
 
 void PciExplorer::createLedCtrl(
     const std::string& /* pciDevPath */,
-    const LedCtrlConfig& /* ledCtrlConfig */) {
+    const LedCtrlConfig& /* ledCtrlConfig */,
+    uint32_t /* instanceId */) {
   throw std::runtime_error("Not implemented");
 }
 
 void PciExplorer::createXcvrCtrl(
     const std::string& /* pciDevPath */,
-    const XcvrCtrlConfig& /* xcvrCtrlConfig */) {
+    const XcvrCtrlConfig& /* xcvrCtrlConfig */,
+    uint32_t /* instanceId */) {
   throw std::runtime_error("Not implemented");
 }
 
 void PciExplorer::create(
     const std::string& /* pciDevPath */,
-    const FpgaIpBlockConfig& /* fpgaIpBlock */) {
+    const FpgaIpBlockConfig& /* fpgaIpBlock */,
+    uint32_t /* instanceId */) {
   throw std::runtime_error("Not implemented");
 }
 
