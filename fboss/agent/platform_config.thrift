@@ -10,6 +10,7 @@ namespace php fboss_platform_config
 
 include "fboss/agent/hw/bcm/bcm_config.thrift"
 include "fboss/agent/hw/sai/config/asic_config.thrift"
+include "fboss/agent/hw/config/asic_config_v2.thrift"
 include "fboss/lib/phy/phy.thrift"
 include "fboss/agent/switch_config.thrift"
 include "fboss/qsfp_service/if/transceiver.thrift"
@@ -22,6 +23,7 @@ enum PlatformAttributes {
 union ChipConfig {
   1: bcm_config.BcmConfig bcm;
   2: asic_config.AsicConfig asic;
+  3: asic_config_v2.AsicConfig asicConfig;
 }
 
 struct PlatformConfig {
