@@ -5,6 +5,8 @@
 #include "fboss/agent/mnpu/SplitSwAgentInitializer.h"
 #include "fboss/agent/test/AgentEnsemble.h"
 
+DECLARE_bool(multi_switch);
+
 namespace facebook::fboss {
 
 class MultiSwitchAgentEnsemble : public AgentEnsemble {

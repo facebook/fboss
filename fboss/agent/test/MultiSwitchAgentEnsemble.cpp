@@ -42,6 +42,8 @@ std::unique_ptr<AgentEnsemble> createAgentEnsemble(
     AgentEnsembleSwitchConfigFn initialConfigFn,
     AgentEnsemblePlatformConfigFn platformConfigFn,
     uint32_t featuresDesired) {
+  // Set multi switch flag to true for MultiSwitchAgentEnsemble
+  FLAGS_multi_switch = true;
   std::unique_ptr<AgentEnsemble> ensemble =
       std::make_unique<MultiSwitchAgentEnsemble>();
   ensemble->setupEnsemble(featuresDesired, initialConfigFn, platformConfigFn);
