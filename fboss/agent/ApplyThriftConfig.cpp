@@ -1309,7 +1309,7 @@ shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
           platformPort.mapping()->attachedCorePortIndex().value());
       sysPort->setSpeedMbps(static_cast<int>(port.second->getSpeed()));
       sysPort->setNumVoqs(kNumVoqs);
-      sysPort->setEnabled(port.second->isEnabled());
+      sysPort->setEnabled(true);
       sysPort->setQosPolicy(port.second->getQosPolicy());
       sysPort->resetPortQueues(switchSettings->getDefaultVoqConfig());
       sysPorts->addSystemPort(std::move(sysPort));

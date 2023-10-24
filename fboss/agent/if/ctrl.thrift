@@ -388,7 +388,7 @@ struct SystemPortThrift {
   5: i64 corePortIndex;
   6: i64 speedMbps;
   7: i64 numVoqs;
-  9: bool enabled;
+  9: bool enabled = true;
   10: optional string qosPolicy;
   11: list<PortQueueFields> queues;
 }
