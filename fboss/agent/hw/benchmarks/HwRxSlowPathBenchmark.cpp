@@ -54,6 +54,7 @@ BENCHMARK(RxSlowPathBenchmark) {
         utility::addCpuQueueConfig(
             config,
             asic,
+            ensemble.isSai(),
             /* setQueueRate */ false);
 
         return config;

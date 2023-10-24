@@ -194,7 +194,7 @@ void initandExitBenchmarkHelper(
             uplinkSpeed,
             downlinkSpeed,
             asic->desiredLoopbackModes());
-        utility::addProdFeaturesToConfig(config, asic);
+        utility::addProdFeaturesToConfig(config, asic, ensemble.isSai());
         return config;
       };
 

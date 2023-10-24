@@ -21,6 +21,8 @@ namespace {
 constexpr int kDownlinkBaseVlanId = 2000;
 constexpr uint32_t kCoppLowPriReservedBytes = 1040;
 constexpr uint32_t kCoppDefaultPriReservedBytes = 1040;
+constexpr uint32_t kBcmCoppLowPriSharedBytes = 10192;
+constexpr uint32_t kBcmCoppDefaultPriSharedBytes = 10192;
 } // unnamed namespace
 
 namespace facebook::fboss::utility {
@@ -156,6 +158,7 @@ cfg::PortQueueRate setPortQueueRate(const HwAsic* hwAsic, uint16_t queueId) {
 void addCpuQueueConfig(
     cfg::SwitchConfig& config,
     const HwAsic* hwAsic,
+    bool isSai,
     bool setQueueRate) {
   std::vector<cfg::PortQueue> cpuQueues;
 
@@ -171,7 +174,7 @@ void addCpuQueueConfig(
   if (!hwAsic->mmuQgroupsEnabled()) {
     queue0.reservedBytes() = kCoppLowPriReservedBytes;
   }
-  setPortQueueSharedBytes(queue0);
+  setPortQueueSharedBytes(queue0, isSai);
   cpuQueues.push_back(queue0);
 
   cfg::PortQueue queue1;
@@ -186,7 +189,7 @@ void addCpuQueueConfig(
   if (!hwAsic->mmuQgroupsEnabled()) {
     queue1.reservedBytes() = kCoppDefaultPriReservedBytes;
   }
-  setPortQueueSharedBytes(queue1);
+  setPortQueueSharedBytes(queue1, isSai);
   cpuQueues.push_back(queue1);
 
   cfg::PortQueue queue2;
@@ -505,5 +508,17 @@ void setTTLZeroCpuConfig(const HwAsic* hwAsic, cfg::SwitchConfig& config) {
   cfg::CPUTrafficPolicyConfig cpuConfig;
   cpuConfig.rxReasonToQueueOrderedList() = {std::move(ttlRxReasonToQueue)};
   config.cpuTrafficPolicy() = cpuConfig;
+}
+
+void setPortQueueSharedBytes(cfg::PortQueue& queue, bool isSai) {
+  // Setting Shared Bytes for SAI is a no-op
+  if (!isSai) {
+    // Set sharedBytes for Low and Default Pri-Queue
+    if (queue.id() == kCoppLowPriQueueId) {
+      queue.sharedBytes() = kBcmCoppLowPriSharedBytes;
+    } else if (queue.id() == kCoppDefaultPriQueueId) {
+      queue.sharedBytes() = kBcmCoppDefaultPriSharedBytes;
+    }
+  }
 }
 } // namespace facebook::fboss::utility

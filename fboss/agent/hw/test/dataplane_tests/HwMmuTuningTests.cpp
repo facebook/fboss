@@ -43,7 +43,7 @@ class HwMmuTuningTest : public HwLinkStateDependentTest {
               ->getAsic()
               ->scalingFactorBasedDynamicThresholdSupported());
     }
-    utility::addCpuQueueConfig(cfg, getAsic());
+    utility::addCpuQueueConfig(cfg, getAsic(), getHwSwitchEnsemble()->isSai());
     return cfg;
   }
   void setup() {

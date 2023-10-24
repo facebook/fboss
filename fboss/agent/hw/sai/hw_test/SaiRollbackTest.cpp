@@ -19,7 +19,9 @@ cfg::SwitchConfig SaiRollbackTest::initialConfig() const {
       utility::onePortPerInterfaceConfig(getHwSwitch(), masterLogicalPortIds());
   cfg.switchSettings()->l2LearningMode() = cfg::L2LearningMode::SOFTWARE;
   utility::addProdFeaturesToConfig(
-      cfg, getHwSwitch()->getPlatform()->getAsic());
+      cfg,
+      getHwSwitch()->getPlatform()->getAsic(),
+      getHwSwitchEnsemble()->isSai());
   return cfg;
 }
 

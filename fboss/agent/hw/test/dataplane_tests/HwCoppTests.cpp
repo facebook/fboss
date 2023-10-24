@@ -84,7 +84,7 @@ class HwCoppTest : public HwLinkStateDependentTest {
         true /*interfaceHasSubnet*/);
     utility::addOlympicQosMaps(cfg, getAsic());
     utility::setDefaultCpuTrafficPolicyConfig(cfg, getAsic());
-    utility::addCpuQueueConfig(cfg, getAsic());
+    utility::addCpuQueueConfig(cfg, getAsic(), getHwSwitchEnsemble()->isSai());
     return cfg;
   }
 
@@ -95,7 +95,8 @@ class HwCoppTest : public HwLinkStateDependentTest {
         masterLogicalPortIds()[1],
         getAsic()->desiredLoopbackModes());
     utility::setDefaultCpuTrafficPolicyConfig(cfg, this->getAsic());
-    utility::addCpuQueueConfig(cfg, this->getAsic());
+    utility::addCpuQueueConfig(
+        cfg, this->getAsic(), getHwSwitchEnsemble()->isSai());
     utility::addAggPort(
         1, {masterLogicalPortIds()[0], masterLogicalPortIds()[1]}, &cfg);
     return cfg;

@@ -215,7 +215,8 @@ class MultiNodeOpenrTest : public MultiNodeTest {
         false /*setInterfaceMac*/);
 
     utility::setDefaultCpuTrafficPolicyConfig(config, platform()->getAsic());
-    utility::addCpuQueueConfig(config, platform()->getAsic());
+    utility::addCpuQueueConfig(
+        config, platform()->getAsic(), platform()->isSai());
 
     return config;
   }

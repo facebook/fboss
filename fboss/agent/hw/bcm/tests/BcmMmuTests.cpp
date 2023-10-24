@@ -58,7 +58,8 @@ class BcmMmuTests : public BcmTest {
         cfg::StreamType::MULTICAST, cfg::PortType::CPU_PORT);
     std::vector<cfg::PortQueue> cpuQueues;
 
-    utility::addCpuQueueConfig(cfg, this->getAsic());
+    utility::addCpuQueueConfig(
+        cfg, this->getAsic(), this->getHwSwitchEnsemble()->isSai());
     for (auto cpuQueue : *cfg_.cpuQueues()) {
       if (*cpuQueue.id() == utility::kCoppLowPriQueueId ||
           *cpuQueue.id() == utility::kCoppMidPriQueueId ||

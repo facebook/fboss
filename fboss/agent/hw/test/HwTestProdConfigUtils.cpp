@@ -18,11 +18,14 @@
 
 namespace facebook::fboss::utility {
 
-void addProdFeaturesToConfig(cfg::SwitchConfig& config, const HwAsic* hwAsic) {
+void addProdFeaturesToConfig(
+    cfg::SwitchConfig& config,
+    const HwAsic* hwAsic,
+    bool isSai) {
   /*
    * Configures port queue for cpu port
    */
-  utility::addCpuQueueConfig(config, hwAsic);
+  utility::addCpuQueueConfig(config, hwAsic, isSai);
   if (hwAsic->isSupported(HwAsic::Feature::L3_QOS)) {
     /*
      * Enable Olympic QOS

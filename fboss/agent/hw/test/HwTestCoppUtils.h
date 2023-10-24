@@ -61,6 +61,7 @@ constexpr uint16_t kNonSpecialPort2 = 60001;
 void addCpuQueueConfig(
     cfg::SwitchConfig& config,
     const HwAsic* hwAsic,
+    bool isSai,
     bool setQueueRate = true);
 
 folly::CIDRNetwork kIPv6LinkLocalMcastNetwork();
@@ -120,7 +121,7 @@ HwPortStats getCpuQueueWatermarkStats(HwSwitch* hwSwitch);
 std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueues(
     const HwAsic* hwAsic);
 
-void setPortQueueSharedBytes(cfg::PortQueue& queue);
+void setPortQueueSharedBytes(cfg::PortQueue& queue, bool isSai);
 
 std::unique_ptr<facebook::fboss::TxPacket> createUdpPkt(
     const HwSwitch* hwSwitch,

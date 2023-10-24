@@ -21,8 +21,6 @@
 #include "fboss/agent/LacpTypes.h"
 
 namespace {
-constexpr uint32_t kCoppLowPriSharedBytes = 10192;
-constexpr uint32_t kCoppDefaultPriSharedBytes = 10192;
 const std::string kMplsDestNoMatchAclName = "cpuPolicing-mpls-dest-nomatch";
 const std::string kMplsDestNoMatchCounterName = "mpls-dest-nomatch-counter";
 } // unnamed namespace
@@ -239,15 +237,6 @@ std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueues(
     rxReasonToQueues.push_back(rxReasonToQueue);
   }
   return rxReasonToQueues;
-}
-
-void setPortQueueSharedBytes(cfg::PortQueue& queue) {
-  // Set sharedBytes for Low and Default Pri-Queue
-  if (queue.id() == kCoppLowPriQueueId) {
-    queue.sharedBytes() = kCoppLowPriSharedBytes;
-  } else if (queue.id() == kCoppDefaultPriQueueId) {
-    queue.sharedBytes() = kCoppDefaultPriSharedBytes;
-  }
 }
 
 } // namespace facebook::fboss::utility

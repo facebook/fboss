@@ -23,6 +23,9 @@ namespace utility {
 /*
  * Add a representative set of prod features to config
  */
-void addProdFeaturesToConfig(cfg::SwitchConfig& config, const HwAsic* hwAsic);
+void addProdFeaturesToConfig(
+    cfg::SwitchConfig& config,
+    const HwAsic* hwAsic,
+    bool isSai);
 } // namespace utility
 } // namespace facebook::fboss
