@@ -692,6 +692,13 @@
                 "csrOffset": "0x4c100"
               }
             }
+          ],
+          "gpioChipConfigs": [
+            {
+              "pmUnitScopedName": "MCB_GPIO_CHIP_1",
+              "deviceName": "gpiochip",
+              "csrOffset": "0x0400"
+            }
           ]
         }
       ],
