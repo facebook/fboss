@@ -831,6 +831,10 @@ class SwSwitch : public HwSwitchCallback {
 
   void setFibSyncTimeForClient(ClientID clientId);
 
+  std::optional<cfg::SdkVersion> getSdkVersion() {
+    return sdkVersion_;
+  }
+
   /*
    * Public use only in tests
    */
@@ -1037,6 +1041,7 @@ class SwSwitch : public HwSwitchCallback {
 
   void updateMultiSwitchGlobalFb303Stats();
 
+  std::optional<cfg::SdkVersion> sdkVersion_;
   std::unique_ptr<MultiHwSwitchHandler> multiHwSwitchHandler_;
   const AgentDirectoryUtil* agentDirUtil_;
   bool supportsAddRemovePort_;

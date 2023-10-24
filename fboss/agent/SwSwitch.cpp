@@ -296,11 +296,12 @@ SwSwitch::SwSwitch(
     bool supportsAddRemovePort,
     const AgentConfig* config,
     const std::shared_ptr<SwitchState>& initialState)
-    : multiHwSwitchHandler_(new MultiHwSwitchHandler(
+    : sdkVersion_(getSdkVersionFromConfig(config)),
+      multiHwSwitchHandler_(new MultiHwSwitchHandler(
           getSwitchInfoFromConfig(config),
           std::move(hwSwitchHandlerInitFn),
           this,
-          getSdkVersionFromConfig(config))),
+          sdkVersion_)),
       agentDirUtil_(agentDirUtil),
       supportsAddRemovePort_(supportsAddRemovePort),
       platformProductInfo_(
@@ -330,9 +331,8 @@ SwSwitch::SwSwitch(
       teFlowNextHopHandler_(new TeFlowNexthopHandler(this)),
       dsfSubscriber_(new DsfSubscriber(this)),
       switchInfoTable_(getSwitchInfoFromConfig(config)),
-      hwAsicTable_(new HwAsicTable(
-          getSwitchInfoFromConfig(config),
-          getSdkVersionFromConfig(config))),
+      hwAsicTable_(
+          new HwAsicTable(getSwitchInfoFromConfig(config), sdkVersion_)),
       scopeResolver_(
           new SwitchIdScopeResolver(getSwitchInfoFromConfig(config))),
       switchStatsObserver_(new SwitchStatsObserver(this)),
