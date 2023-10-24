@@ -58,21 +58,23 @@ BENCHMARK(HwStatsCollection) {
   int numRouteCounters = 255;
 
   AgentEnsembleSwitchConfigFn initialConfigFn =
-      [numPortsToCollectStats, numRouteCounters](
-          SwSwitch* swSwitch, const std::vector<PortID>& ports) {
+      [numPortsToCollectStats,
+       numRouteCounters](const AgentEnsemble& ensemble) {
         // Disable stats collection thread.
         FLAGS_enable_stats_update_thread = false;
 
         // Before m-mpu agent test, use first Asic for initialization.
-        auto switchIds = swSwitch->getHwAsicTable()->getSwitchIDs();
+        auto switchIds = ensemble.getSw()->getHwAsicTable()->getSwitchIDs();
         CHECK_GE(switchIds.size(), 1);
-        auto asic = swSwitch->getHwAsicTable()->getHwAsic(*switchIds.cbegin());
+        auto asic =
+            ensemble.getSw()->getHwAsicTable()->getHwAsic(*switchIds.cbegin());
 
+        auto ports = ensemble.masterLogicalPortIds();
         auto portsNew = ports;
         portsNew.resize(std::min((int)ports.size(), numPortsToCollectStats));
 
         auto config = utility::onePortPerInterfaceConfig(
-            swSwitch->getPlatformMapping(),
+            ensemble.getSw()->getPlatformMapping(),
             asic,
             portsNew,
             asic->desiredLoopbackModes());

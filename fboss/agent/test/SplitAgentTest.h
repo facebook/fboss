@@ -108,8 +108,7 @@ class SplitAgentTest : public ::testing::Test {
   virtual bool hideFabricPorts() const;
 
   virtual cfg::SwitchConfig initialConfig(
-      SwSwitch* swSwitch,
-      const std::vector<PortID>& ports) const = 0;
+      const AgentEnsemble& ensemble) const = 0;
 
   AgentEnsemblePlatformConfigFn platformConfigFn_ = nullptr;
   std::unique_ptr<AgentEnsemble> agentEnsemble_;

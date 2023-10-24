@@ -163,17 +163,20 @@ void initandExitBenchmarkHelper(
   std::unique_ptr<AgentEnsemble> ensemble{};
 
   AgentEnsembleSwitchConfigFn initialConfig =
-      [uplinkSpeed, downlinkSpeed](
-          SwSwitch* swSwitch, const std::vector<PortID>& ports) {
+      [uplinkSpeed, downlinkSpeed](const AgentEnsemble& ensemble) {
+        auto ports = ensemble.masterLogicalPortIds();
         auto numUplinks = getUplinksCount(
-            swSwitch->getPlatformType(), uplinkSpeed, downlinkSpeed);
+            ensemble.getSw()->getPlatformType(), uplinkSpeed, downlinkSpeed);
         // Before m-mpu agent test, use first Asic for initialization.
-        auto switchIds = swSwitch->getHwAsicTable()->getSwitchIDs();
+        auto switchIds = ensemble.getSw()->getHwAsicTable()->getSwitchIDs();
         CHECK_GE(switchIds.size(), 1);
-        auto asic = swSwitch->getHwAsicTable()->getHwAsic(*switchIds.cbegin());
+        auto asic =
+            ensemble.getSw()->getHwAsicTable()->getHwAsic(*switchIds.cbegin());
         if (!numUplinks) {
           return utility::oneL3IntfNPortConfig(
-              swSwitch->getPlatformMapping(), asic, ports);
+              ensemble.getSw()->getPlatformMapping(),
+              asic,
+              ensemble.masterLogicalPortIds());
         }
         /*
          * Based on the uplink/downlink speed, use the ConfigFactory to create
@@ -182,11 +185,11 @@ void initandExitBenchmarkHelper(
          */
 
         auto config = utility::createUplinkDownlinkConfig(
-            swSwitch->getPlatformMapping(),
+            ensemble.getSw()->getPlatformMapping(),
             asic,
-            swSwitch->getPlatformType(),
-            swSwitch->getPlatformSupportsAddRemovePort(),
-            ports,
+            ensemble.getSw()->getPlatformType(),
+            ensemble.getSw()->getPlatformSupportsAddRemovePort(),
+            ensemble.masterLogicalPortIds(),
             numUplinks.value(),
             uplinkSpeed,
             downlinkSpeed,

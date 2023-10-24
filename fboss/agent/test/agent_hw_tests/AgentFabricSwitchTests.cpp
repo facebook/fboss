@@ -13,24 +13,24 @@ namespace facebook::fboss {
 class AgentFabricSwitchTest : public SplitAgentTest {
  public:
   cfg::SwitchConfig initialConfig(
-      SwSwitch* swSwitch,
-      const std::vector<PortID>& ports) const override {
+      const AgentEnsemble& ensemble) const override {
     // Disable sw stats update thread
     FLAGS_enable_stats_update_thread = false;
     // Before m-mpu agent test, use first Asic for initialization.
-    auto switchIds = swSwitch->getHwAsicTable()->getSwitchIDs();
+    auto switchIds = ensemble.getSw()->getHwAsicTable()->getSwitchIDs();
     CHECK_GE(switchIds.size(), 1);
-    auto asic = swSwitch->getHwAsicTable()->getHwAsic(*switchIds.cbegin());
+    auto asic =
+        ensemble.getSw()->getHwAsicTable()->getHwAsic(*switchIds.cbegin());
     auto config = utility::onePortPerInterfaceConfig(
-        swSwitch->getPlatformMapping(),
+        ensemble.getSw()->getPlatformMapping(),
         asic,
-        ports,
+        ensemble.masterLogicalPortIds(),
         asic->desiredLoopbackModes(),
         false /*interfaceHasSubnet*/,
         false /*setInterfaceMac*/,
         utility::kBaseVlanId,
         true /*enable fabric ports*/);
-    populatePortExpectedNeighbors(ports, config);
+    populatePortExpectedNeighbors(ensemble.masterLogicalPortIds(), config);
     return config;
   }
 
@@ -68,7 +68,7 @@ TEST_F(AgentFabricSwitchTest, init) {
 
 TEST_F(AgentFabricSwitchTest, checkFabricReachabilityStats) {
   auto setup = [=]() {
-    auto newCfg = initialConfig(getSw(), masterLogicalPortIds());
+    auto newCfg = getSw()->getConfig();
     // reset the neighbor reachability information
     for (const auto& portID : masterLogicalPortIds()) {
       auto portCfg = utility::findCfgPort(newCfg, portID);
@@ -103,7 +103,7 @@ TEST_F(AgentFabricSwitchTest, checkFabricReachability) {
 
 TEST_F(AgentFabricSwitchTest, fabricIsolate) {
   auto setup = [=]() {
-    auto newCfg = initialConfig(getSw(), masterLogicalPortIds());
+    auto newCfg = getSw()->getConfig();
     auto fabricPortId =
         PortID(masterLogicalPortIds({cfg::PortType::FABRIC_PORT})[0]);
     for (auto& portCfg : *newCfg.ports()) {
@@ -126,9 +126,7 @@ TEST_F(AgentFabricSwitchTest, fabricIsolate) {
 
 TEST_F(AgentFabricSwitchTest, fabricSwitchIsolate) {
   auto setup = [=]() {
-    setSwitchDrainState(
-        initialConfig(getSw(), masterLogicalPortIds()),
-        cfg::SwitchDrainState::DRAINED);
+    setSwitchDrainState(getSw()->getConfig(), cfg::SwitchDrainState::DRAINED);
   };
 
   auto verify = [=]() {

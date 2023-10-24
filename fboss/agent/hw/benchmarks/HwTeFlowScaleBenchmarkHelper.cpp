@@ -41,15 +41,17 @@ void teFlowAddDelEntriesBenchmarkHelper(bool measureAdd) {
   folly::BenchmarkSuspender suspender;
 
   AgentEnsembleSwitchConfigFn initialConfigFn =
-      [](SwSwitch* swSwitch, const std::vector<PortID>& ports) {
+      [](const AgentEnsemble& ensemble) {
+        auto ports = ensemble.masterLogicalPortIds();
         CHECK_GT(ports.size(), 0);
 
         // Before m-mpu agent test, use first Asic for initialization.
-        auto switchIds = swSwitch->getHwAsicTable()->getSwitchIDs();
+        auto switchIds = ensemble.getSw()->getHwAsicTable()->getSwitchIDs();
         CHECK_GE(switchIds.size(), 1);
-        auto asic = swSwitch->getHwAsicTable()->getHwAsic(*switchIds.cbegin());
+        auto asic =
+            ensemble.getSw()->getHwAsicTable()->getHwAsic(*switchIds.cbegin());
         return utility::onePortPerInterfaceConfig(
-            swSwitch->getPlatformMapping(),
+            ensemble.getSw()->getPlatformMapping(),
             asic,
             {ports[0], ports[1]},
             asic->desiredLoopbackModes());

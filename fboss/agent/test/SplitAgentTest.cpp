@@ -20,9 +20,7 @@ void SplitAgentTest::SetUp() {
   FLAGS_update_watermark_stats_interval_s = 0;
 
   AgentEnsembleSwitchConfigFn initialConfigFn =
-      [this](SwSwitch* swSwitch, const std::vector<PortID>& ports) {
-        return initialConfig(swSwitch, ports);
-      };
+      [this](const AgentEnsemble& ensemble) { return initialConfig(ensemble); };
   agentEnsemble_ = createAgentEnsemble(initialConfigFn);
 }
 

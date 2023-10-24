@@ -38,16 +38,18 @@ const std::string kDstIp = "2620:0:1cfe:face:b00c::4";
 BENCHMARK(RxSlowPathBenchmark) {
   constexpr int kEcmpWidth = 1;
   AgentEnsembleSwitchConfigFn initialConfigFn =
-      [](SwSwitch* swSwitch, const std::vector<PortID>& ports) {
+      [](const AgentEnsemble& ensemble) {
+        auto ports = ensemble.masterLogicalPortIds();
         CHECK_GE(ports.size(), 1);
         auto portUsed = ports[0];
 
         // Before m-mpu agent test, use first Asic for initialization.
-        auto switchIds = swSwitch->getHwAsicTable()->getSwitchIDs();
+        auto switchIds = ensemble.getSw()->getHwAsicTable()->getSwitchIDs();
         CHECK_GE(switchIds.size(), 1);
-        auto asic = swSwitch->getHwAsicTable()->getHwAsic(*switchIds.cbegin());
+        auto asic =
+            ensemble.getSw()->getHwAsicTable()->getHwAsic(*switchIds.cbegin());
         auto config = utility::oneL3IntfConfig(
-            swSwitch->getPlatformMapping(), asic, portUsed);
+            ensemble.getSw()->getPlatformMapping(), asic, portUsed);
         // We don't want to set queue rate that limits the number of rx pkts
         utility::addCpuQueueConfig(
             config,
@@ -64,8 +66,7 @@ BENCHMARK(RxSlowPathBenchmark) {
       static_cast<MonolithicAgentInitializer*>(ensemble->agentInitializer())
           ->platform()
           ->getHwSwitch();
-  auto config =
-      initialConfigFn(ensemble->getSw(), ensemble->masterLogicalPortIds());
+  auto config = initialConfigFn(*ensemble);
   // capture packet exiting port 0 (entering due to loopback)
   auto trapDstIp = folly::CIDRNetwork{kDstIp, 128};
   auto packetCapture = HwTestPacketTrapEntry(hwSwitch, trapDstIp);

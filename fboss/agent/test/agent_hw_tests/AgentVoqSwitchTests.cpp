@@ -12,18 +12,19 @@ namespace facebook::fboss {
 class AgentVoqSwitchTest : public SplitAgentTest {
  public:
   cfg::SwitchConfig initialConfig(
-      SwSwitch* swSwitch,
-      const std::vector<PortID>& ports) const override {
+      const AgentEnsemble& ensemble) const override {
     // Disable sw stats update thread
     FLAGS_enable_stats_update_thread = false;
+
     // Before m-mpu agent test, use first Asic for initialization.
-    auto switchIds = swSwitch->getHwAsicTable()->getSwitchIDs();
+    auto switchIds = ensemble.getSw()->getHwAsicTable()->getSwitchIDs();
     CHECK_GE(switchIds.size(), 1);
-    auto asic = swSwitch->getHwAsicTable()->getHwAsic(*switchIds.cbegin());
+    auto asic =
+        ensemble.getSw()->getHwAsicTable()->getHwAsic(*switchIds.cbegin());
     auto config = utility::onePortPerInterfaceConfig(
-        swSwitch->getPlatformMapping(),
+        ensemble.getSw()->getPlatformMapping(),
         asic,
-        ports,
+        ensemble.masterLogicalPortIds(),
         asic->desiredLoopbackModes(),
         true /*interfaceHasSubnet*/);
     const auto& cpuStreamTypes =
@@ -91,24 +92,24 @@ class AgentVoqSwitchTest : public SplitAgentTest {
 class AgentVoqSwitchWithFabricPortsTest : public AgentVoqSwitchTest {
  public:
   cfg::SwitchConfig initialConfig(
-      SwSwitch* swSwitch,
-      const std::vector<PortID>& ports) const override {
+      const AgentEnsemble& ensemble) const override {
     // Disable sw stats update thread
     FLAGS_enable_stats_update_thread = false;
     // Before m-mpu agent test, use first Asic for initialization.
-    auto switchIds = swSwitch->getHwAsicTable()->getSwitchIDs();
+    auto switchIds = ensemble.getSw()->getHwAsicTable()->getSwitchIDs();
     CHECK_GE(switchIds.size(), 1);
-    auto asic = swSwitch->getHwAsicTable()->getHwAsic(*switchIds.cbegin());
+    auto asic =
+        ensemble.getSw()->getHwAsicTable()->getHwAsic(*switchIds.cbegin());
     auto config = utility::onePortPerInterfaceConfig(
-        swSwitch->getPlatformMapping(),
+        ensemble.getSw()->getPlatformMapping(),
         asic,
-        ports,
+        ensemble.masterLogicalPortIds(),
         asic->desiredLoopbackModes(),
         true, /*interfaceHasSubnet*/
         true, /*setInterfaceMac*/
         utility::kBaseVlanId,
         true /*enable fabric ports*/);
-    populatePortExpectedNeighbors(ports, config);
+    populatePortExpectedNeighbors(ensemble.masterLogicalPortIds(), config);
     return config;
   }
 

@@ -26,15 +26,16 @@ namespace facebook::fboss {
 BENCHMARK(RibSyncFibBenchmark) {
   folly::BenchmarkSuspender suspender;
   AgentEnsembleSwitchConfigFn initialConfigFn =
-      [](SwSwitch* swSwitch, const std::vector<PortID>& ports) {
+      [](const AgentEnsemble& ensemble) {
         // Before m-mpu agent test, use first Asic for initialization.
-        auto switchIds = swSwitch->getHwAsicTable()->getSwitchIDs();
+        auto switchIds = ensemble.getSw()->getHwAsicTable()->getSwitchIDs();
         CHECK_GE(switchIds.size(), 1);
-        auto asic = swSwitch->getHwAsicTable()->getHwAsic(*switchIds.cbegin());
+        auto asic =
+            ensemble.getSw()->getHwAsicTable()->getHwAsic(*switchIds.cbegin());
         return utility::onePortPerInterfaceConfig(
-            swSwitch->getPlatformMapping(),
+            ensemble.getSw()->getPlatformMapping(),
             asic,
-            ports,
+            ensemble.masterLogicalPortIds(),
             asic->desiredLoopbackModes());
       };
 

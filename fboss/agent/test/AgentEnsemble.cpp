@@ -68,7 +68,7 @@ void AgentEnsemble::setupEnsemble(
       masterLogicalPortIds_.push_back(port.first);
     }
   }
-  initialConfig_ = initialConfigFn(getSw(), masterLogicalPortIds_);
+  initialConfig_ = initialConfigFn(*this);
   applyInitialConfig(initialConfig_);
   // reload the new config
   reloadPlatformConfig();
