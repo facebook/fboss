@@ -138,6 +138,9 @@ include "fboss/platform/platform_manager/platform_manager_presence.thrift"
 
 // ============================================================================
 
+const string DEVICE_TYPE_SENSOR = "SENSOR";
+const string DEVICE_TYPE_EEPROM = "EEPROM";
+
 // `I2cDeviceConfig` defines a i2c device within any PmUnit.
 //
 // `busName`: Refer to Bus Naming Convention above.
@@ -149,10 +152,9 @@ include "fboss/platform/platform_manager/platform_manager_presence.thrift"
 // `pmUnitScopedName`: The name assigned to the device in the config, unique
 // within the scope of PmUnit.
 //
-// `numOutgoingChannels`: Number of outgoing channels (applies only for mux)
+// `deviceType`: Type of the device (e.g eeprom, sensor).
 //
-// `isEeprom`: Indicates whether this device is an EEPROM. If not specified, it
-// defaults to false.
+// `numOutgoingChannels`: Number of outgoing channels (applies only for mux)
 //
 // `hasBmcMac`: Whether this has BMC MAC address (applies only to EEPROM)
 //
@@ -194,8 +196,8 @@ struct I2cDeviceConfig {
   2: string address;
   3: string kernelDeviceName;
   4: string pmUnitScopedName;
-  5: optional i32 numOutgoingChannels;
-  6: bool isEeprom;
+  5: string deviceType;
+  6: optional i32 numOutgoingChannels;
   7: bool hasBmcMac;
   8: bool hasCpuMac;
   9: bool hasSwitchAsicMac;

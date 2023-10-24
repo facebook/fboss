@@ -7,6 +7,17 @@
 
 #include "fboss/platform/platform_manager/I2cExplorer.h"
 #include "fboss/platform/platform_manager/PciExplorer.h"
+#include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_constants.h"
+
+namespace {
+using constants = facebook::fboss::platform::platform_manager::
+    platform_manager_config_constants;
+
+std::unordered_set<std::string> deviceTypes = {
+    constants::DEVICE_TYPE_SENSOR(),
+    constants::DEVICE_TYPE_EEPROM()};
+
+} // namespace
 
 namespace {
 const re2::RE2 kPciDevOffsetRegex{"0x[0-9a-f]+"};
@@ -121,6 +132,13 @@ bool ConfigValidator::isValidI2cDeviceConfig(
     XLOG(ERR) << "IDPROM has invalid address " << e.what();
     return false;
   }
+
+  if (!i2cDeviceConfig.deviceType()->empty() &&
+      !deviceTypes.count(*i2cDeviceConfig.deviceType())) {
+    XLOG(INFO) << "Invalid device type: " << *i2cDeviceConfig.deviceType();
+    return false;
+  }
+
   return true;
 }
 

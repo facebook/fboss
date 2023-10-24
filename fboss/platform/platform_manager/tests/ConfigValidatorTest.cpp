@@ -119,3 +119,17 @@ TEST(ConfigValidatorTest, I2cDeviceConfig) {
   i2cConfig.address_ref() = "0x20";
   EXPECT_TRUE(ConfigValidator().isValidI2cDeviceConfig(i2cConfig));
 }
+
+TEST(ConfigValidatorTest, I2CDeviceType) {
+  auto i2cConfig = I2cDeviceConfig{};
+  i2cConfig.address() = "0x2f";
+  EXPECT_TRUE(ConfigValidator().isValidI2cDeviceConfig(i2cConfig));
+  i2cConfig.deviceType() = "SENSOR";
+  EXPECT_TRUE(ConfigValidator().isValidI2cDeviceConfig(i2cConfig));
+  i2cConfig.deviceType() = "EEPROM";
+  EXPECT_TRUE(ConfigValidator().isValidI2cDeviceConfig(i2cConfig));
+  i2cConfig.deviceType() = "";
+  EXPECT_TRUE(ConfigValidator().isValidI2cDeviceConfig(i2cConfig));
+  i2cConfig.deviceType() = "something_invalid";
+  EXPECT_FALSE(ConfigValidator().isValidI2cDeviceConfig(i2cConfig));
+}
