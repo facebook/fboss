@@ -853,6 +853,9 @@
           "test_name_regex": "HwVoqSwitchWithMultipleDsfNodesTest.stressAddRemoveObjects"
         },
         {
+          "test_name_regex": "HwVoqSwitchWithMultipleDsfNodesTest.voqTailDropCounter"
+        },
+        {
           "test_name_regex": "HwVoqSwitchWithFabricPortsTest.checkFabricReachability"
         },
         {
@@ -871,16 +874,7 @@
           "test_name_regex": "HwVoqSwitchWithFabricPortsTest.collectStats"
         },
         {
-          "test_name_regex": "HwVoqSwitchWithMultipleDsfNodesTest.voqTailDropCounter"
-        },
-        {
-          "test_name_regex": "HwVoqSwitchTest.localForwardingPostIsolate"
-        },
-        {
           "test_name_regex": "HwVoqSwitchTest.rxPacketToCpu.*"
-        },
-        {
-          "test_name_regex": "HwVoqSwitchTest.stressLocalForwardingPostIsolate"
         },
         {
           "test_name_regex": "HwVoqSwitchTest.voqDelete"
@@ -3425,6 +3419,9 @@
           "test_name_regex": "HwVoqSwitchWithMultipleDsfNodesTest.stressAddRemoveObjects"
         },
         {
+          "test_name_regex": "HwVoqSwitchWithMultipleDsfNodesTest.voqTailDropCounter"
+        },
+        {
           "test_name_regex": "HwVoqSwitchWithFabricPortsTest.checkFabricReachability"
         },
         {
@@ -3443,16 +3440,7 @@
           "test_name_regex": "HwVoqSwitchWithFabricPortsTest.collectStats"
         },
         {
-          "test_name_regex": "HwVoqSwitchWithMultipleDsfNodesTest.voqTailDropCounter"
-        },
-        {
-          "test_name_regex": "HwVoqSwitchTest.localForwardingPostIsolate"
-        },
-        {
           "test_name_regex": "HwVoqSwitchTest.rxPacketToCpu.*"
-        },
-        {
-          "test_name_regex": "HwVoqSwitchTest.stressLocalForwardingPostIsolate"
         },
         {
           "test_name_regex": "HwVoqSwitchTest.voqDelete"
