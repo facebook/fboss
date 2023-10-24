@@ -33,7 +33,7 @@ class QosMapManagerTest : public ManagerTestBase {
     ManagerTestBase::SetUp();
   }
   void validateQosPolicy(
-      SaiQosMapHandle* saiQosMapHandle,
+      const SaiQosMapHandle* saiQosMapHandle,
       TestQosPolicy testQosPolicy) {
     EXPECT_TRUE(saiQosMapHandle);
     EXPECT_TRUE(saiQosMapHandle->dscpToTcMap);

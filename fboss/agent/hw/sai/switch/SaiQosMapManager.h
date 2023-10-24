@@ -49,7 +49,6 @@ class SaiQosMapManager {
       const std::shared_ptr<QosPolicy>& oldQosPolicy,
       const std::shared_ptr<QosPolicy>& newQosPolicy);
 
-  SaiQosMapHandle* getQosMap();
   const SaiQosMapHandle* getQosMap() const;
 
  private:
@@ -70,7 +69,6 @@ class SaiQosMapManager {
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
-  SaiQosMapHandle* getQosMapImpl() const;
   // Only one QoS Map because we only manage the default, switch-wide, qos map
   std::unique_ptr<SaiQosMapHandle> handle_;
 };

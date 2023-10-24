@@ -213,16 +213,9 @@ void SaiQosMapManager::changeQosMap(
 }
 
 const SaiQosMapHandle* SaiQosMapManager::getQosMap() const {
-  return getQosMapImpl();
-}
-SaiQosMapHandle* SaiQosMapManager::getQosMap() {
-  return getQosMapImpl();
-}
-SaiQosMapHandle* SaiQosMapManager::getQosMapImpl() const {
   if (!handle_) {
     return nullptr;
   }
   return handle_.get();
 }
-
 } // namespace facebook::fboss
