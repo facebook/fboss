@@ -410,7 +410,9 @@ cfg::SwitchConfig genPortVlanCfg(
   switchInfo.switchIndex() = 0;
   switchInfo.switchType() = switchType;
   switchInfo.asicType() = asicType;
-  if (asicType == cfg::AsicType::ASIC_TYPE_EBRO) {
+  if (asicType == cfg::AsicType::ASIC_TYPE_RAMON) {
+    switchInfo.connectionHandle() = "0c:00";
+  } else if (asicType == cfg::AsicType::ASIC_TYPE_EBRO) {
     switchInfo.connectionHandle() = "/dev/uio0";
   }
   if (asic->getSystemPortRange().has_value()) {
