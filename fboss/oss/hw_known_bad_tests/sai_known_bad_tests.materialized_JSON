@@ -817,7 +817,7 @@
           "test_name_regex": "HwPfcTest.*"
         },
         {
-          "test_name_regex": "HwPacketSendTest.PortTxEnableTest"
+          "test_name_regex": "HwPacketSendTest.*"
         },
         {
           "test_name_regex": "HwProdInvariantsRswTest.verifyInvariants"
@@ -838,9 +838,6 @@
           "test_name_regex": "HwRouteTest/[01].verifyCpuRouteChange"
         },
         {
-          "test_name_regex": "HwRxReasonTests.InsertAndRemoveRxReason"
-        },
-        {
           "test_name_regex": "HwSendPacketToQueueTest.*"
         },
         {
@@ -850,7 +847,7 @@
           "test_name_regex": "HwVoqSwitchFullScaleDsfNodesTest.*"
         },
         {
-          "test_name_regex": "HwVoqSwitchTest, stressLocalForwardingPostIsolate"
+          "test_name_regex": "HwVoqSwitchTest.stressLocalForwardingPostIsolate"
         },
         {
           "test_name_regex": "HwVoqSwitchWithMultipleDsfNodesTest.stressAddRemoveObjects"
@@ -3392,7 +3389,7 @@
           "test_name_regex": "HwPfcTest.*"
         },
         {
-          "test_name_regex": "HwPacketSendTest.PortTxEnableTest"
+          "test_name_regex": "HwPacketSendTest.*"
         },
         {
           "test_name_regex": "HwProdInvariantsRswTest.verifyInvariants"
@@ -3413,9 +3410,6 @@
           "test_name_regex": "HwRouteTest/[01].verifyCpuRouteChange"
         },
         {
-          "test_name_regex": "HwRxReasonTests.InsertAndRemoveRxReason"
-        },
-        {
           "test_name_regex": "HwSendPacketToQueueTest.*"
         },
         {
@@ -3425,7 +3419,7 @@
           "test_name_regex": "HwVoqSwitchFullScaleDsfNodesTest.*"
         },
         {
-          "test_name_regex": "HwVoqSwitchTest, stressLocalForwardingPostIsolate"
+          "test_name_regex": "HwVoqSwitchTest.stressLocalForwardingPostIsolate"
         },
         {
           "test_name_regex": "HwVoqSwitchWithMultipleDsfNodesTest.stressAddRemoveObjects"
