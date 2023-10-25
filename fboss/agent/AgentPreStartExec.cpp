@@ -7,6 +7,8 @@
 #include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
+#include "fboss/agent/facebook/AgentPreStartConfig.h"
+
 namespace facebook::fboss {
 
 namespace {
@@ -20,6 +22,8 @@ static auto constexpr kPreStartSh = "/dev/shm/fboss/pre_start.sh";
 void AgentPreStartExec::run() {
   if (checkFileExists(kWrapperRefactorFeatureOn)) {
     runAndRemoveScript(kPreStartSh);
+    AgentPreStartConfig preStartConfig;
+    preStartConfig.run();
   }
 
   auto config = AgentConfig::fromDefaultFile();
