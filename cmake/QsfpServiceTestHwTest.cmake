@@ -43,6 +43,7 @@ add_executable(qsfp_hw_test
   fboss/qsfp_service/test/hw_test/HwI2cSelectTest.cpp
   fboss/qsfp_service/test/hw_test/HwStateMachineTest.cpp
   fboss/qsfp_service/test/hw_test/HwTransceiverTest.cpp
+  fboss/qsfp_service/test/hw_test/OpticsFwUpgradeTest.cpp
   fboss/agent/test/oss/Main.cpp
 )
 
