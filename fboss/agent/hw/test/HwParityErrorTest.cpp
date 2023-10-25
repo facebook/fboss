@@ -16,7 +16,7 @@ class HwParityErrorTest : public HwLinkStateDependentTest {
  protected:
   cfg::SwitchConfig initialConfig() const override {
     return utility::onePortPerInterfaceConfig(
-        getHwSwitch(), {masterLogicalPortIds()[0]});
+        getHwSwitch(), masterLogicalPortIds());
   }
 
   HwSwitchEnsemble::Features featuresDesired() const override {
