@@ -58,11 +58,6 @@ class CmdShowSystemPort
         systemportEntries, queriedSystemPorts.data(), systemportEntryStats);
   }
 
-  std::unordered_map<std::string, std::vector<std::string>>
-  getAcceptedFilterValues() {
-    return {{"adminState", {"Enabled", "Disabled"}}};
-  }
-
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
     std::vector<std::string> detailedOutput;
     auto opt = CmdGlobalOptions::getInstance();
@@ -75,8 +70,6 @@ class CmdShowSystemPort
         detailedOutput.emplace_back(fmt::format(
             "ID:           \t\t {}",
             folly::to<std::string>(systemportInfo.get_id())));
-        detailedOutput.emplace_back(fmt::format(
-            "Admin State:  \t\t {}", systemportInfo.get_adminState()));
         detailedOutput.emplace_back(
             fmt::format("Speed:        \t\t {}", systemportInfo.get_speed()));
         detailedOutput.emplace_back(fmt::format(
@@ -131,7 +124,6 @@ class CmdShowSystemPort
       table.setHeader(
           {"ID",
            "Name",
-           "AdminState",
            "Speed",
            "NumVoqs",
            "QosPolicy",
@@ -142,7 +134,6 @@ class CmdShowSystemPort
         table.addRow(
             {folly::to<std::string>(systemportInfo.get_id()),
              systemportInfo.get_name(),
-             systemportInfo.get_adminState(),
              systemportInfo.get_speed(),
              folly::to<std::string>(systemportInfo.get_numVoqs()),
              systemportInfo.get_qosPolicy(),
@@ -151,10 +142,6 @@ class CmdShowSystemPort
       }
       out << table << std::endl;
     }
-  }
-
-  std::string getAdminStateStr(bool adminState) {
-    return (adminState ? "Enabled" : "Disabled");
   }
 
   RetType createModel(
@@ -174,9 +161,6 @@ class CmdShowSystemPort
         cli::SystemPortEntry systemPortDetails;
         systemPortDetails.id() = systemPortInfo.get_portId();
         systemPortDetails.name() = systemPortInfo.get_portName();
-        // TODO - stop displaying deprecated enabled field
-        systemPortDetails.adminState() =
-            getAdminStateStr(systemPortInfo.get_enabled_DEPRECATED());
         systemPortDetails.speed() =
             utils::getSpeedGbps(systemPortInfo.get_speedMbps());
         systemPortDetails.numVoqs() = systemPortInfo.get_numVoqs();

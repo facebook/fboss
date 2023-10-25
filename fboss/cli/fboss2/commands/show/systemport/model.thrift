@@ -11,7 +11,7 @@ struct SystemPortEntry {
   4: i64 corePortIndex;
   5: string speed;
   6: i64 numVoqs;
-  7: string adminState;
+  7: string adminState_DEPRECATED;
   8: string qosPolicy;
   9: SystemPortHwStatsEntry hwPortStats;
 }
