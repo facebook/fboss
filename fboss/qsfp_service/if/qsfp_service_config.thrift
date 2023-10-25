@@ -53,6 +53,7 @@ struct CabledTestPair {
 
 struct QsfpTestConfig {
   1: list<CabledTestPair> cabledPortPairs;
+  2: TransceiverFirmware firmwareForUpgradeTest;
 }
 
 enum FirmwareType {
