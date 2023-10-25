@@ -135,6 +135,8 @@ class SaiPlatform : public Platform, public StateObserver {
   virtual std::vector<sai_system_port_config_t> getInternalSystemPortConfig()
       const;
 
+  std::string getHwAsicConfig();
+
  protected:
   std::unique_ptr<SaiSwitch> saiSwitch_;
   virtual void updatePorts(const StateDelta& delta);
