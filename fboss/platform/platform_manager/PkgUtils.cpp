@@ -14,21 +14,16 @@ namespace facebook::fboss::platform::platform_manager {
 
 void PkgUtils::run(const PlatformConfig& config) {
   XLOG(INFO) << "Installing BSP Kmods";
-  runImpl(
+  installRpm(
       fmt::format(
           "{}-{}-{}",
           *config.bspKmodsRpmName(),
           kHostKernelVersion,
           *config.bspKmodsRpmVersion()),
       3 /* maxAttempts */);
-
-  XLOG(INFO) << "Installing udev rules";
-  runImpl(
-      fmt::format("{}-{}", *config.udevRpmName(), *config.udevRpmVersion()),
-      3 /* maxAttempts */);
 }
 
-void PkgUtils::runImpl(const std::string& rpmFullName, int maxAttempts) {
+void PkgUtils::installRpm(const std::string& rpmFullName, int maxAttempts) {
   int exitStatus{0}, attempt{1};
   std::string standardOut{};
   auto cmd = fmt::format("dnf install {} --assumeyes", rpmFullName);

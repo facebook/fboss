@@ -418,8 +418,4 @@ struct PlatformConfig {
   // Name and version of the rpm containing the BSP kmods for this platform
   21: string bspKmodsRpmName;
   22: string bspKmodsRpmVersion;
-
-  // Name and version of the rpm containing the udev rules for this platform
-  23: string udevRpmName;
-  24: string udevRpmVersion;
 }
