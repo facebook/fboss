@@ -949,7 +949,6 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
     sysPort->setCorePortIndex(recyclePortInfo.corePortIndex);
     sysPort->setSpeedMbps(recyclePortInfo.speedMbps); // 10G
     sysPort->setNumVoqs(8);
-    sysPort->setEnabled(true);
     auto sysPorts = new_->getRemoteSystemPorts()->modify(&new_);
     sysPorts->addNode(sysPort, scopeResolver_.scope(sysPort));
     CHECK(node->getMac().has_value());
@@ -1309,7 +1308,6 @@ shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
           platformPort.mapping()->attachedCorePortIndex().value());
       sysPort->setSpeedMbps(static_cast<int>(port.second->getSpeed()));
       sysPort->setNumVoqs(kNumVoqs);
-      sysPort->setEnabled(true);
       sysPort->setQosPolicy(port.second->getQosPolicy());
       sysPort->resetPortQueues(switchSettings->getDefaultVoqConfig());
       sysPorts->addSystemPort(std::move(sysPort));

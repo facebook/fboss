@@ -331,7 +331,6 @@ std::shared_ptr<SystemPort> makeSysPort(
   sysPort->setCorePortIndex(24);
   sysPort->setSpeedMbps(10000);
   sysPort->setNumVoqs(8);
-  sysPort->setEnabled(true);
   sysPort->setQosPolicy(qosPolicy);
   return sysPort;
 }

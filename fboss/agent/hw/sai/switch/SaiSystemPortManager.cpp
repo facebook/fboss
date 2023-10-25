@@ -338,6 +338,7 @@ void SaiSystemPortManager::updateStats(
       configuredQueues, curPortStats, updateWatermarks);
   portStats_[portId]->updateStats(curPortStats, now);
 }
+
 std::shared_ptr<SystemPortMap> SaiSystemPortManager::constructSystemPorts(
     const std::shared_ptr<MultiSwitchPortMap>& ports,
     int64_t switchId,
@@ -362,7 +363,6 @@ std::shared_ptr<SystemPortMap> SaiSystemPortManager::constructSystemPorts(
       sysPort->setCorePortIndex(*platformPort->getCorePortIndex());
       sysPort->setSpeedMbps(static_cast<int>(port.second->getSpeed()));
       sysPort->setNumVoqs(8);
-      sysPort->setEnabled(true);
       sysPort->setQosPolicy(port.second->getQosPolicy());
       sysPortMap->addSystemPort(std::move(sysPort));
     }

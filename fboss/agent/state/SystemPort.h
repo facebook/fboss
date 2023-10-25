@@ -84,9 +84,6 @@ class SystemPort
   bool getEnabled() const {
     return cref<ctrl_if_tags::enabled_DEPRECATED>()->toThrift();
   }
-  void setEnabled(bool enabled) {
-    set<ctrl_if_tags::enabled_DEPRECATED>(enabled);
-  }
   std::optional<std::string> getQosPolicy() const {
     if (const auto& policy = cref<ctrl_if_tags::qosPolicy>()) {
       return policy->toThrift();

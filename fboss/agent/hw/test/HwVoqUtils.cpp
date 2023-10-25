@@ -76,7 +76,6 @@ std::shared_ptr<SwitchState> addRemoteSysPort(
   remoteSysPort->setCoreIndex(localPort->getCoreIndex());
   remoteSysPort->setCorePortIndex(localPort->getCorePortIndex());
   remoteSysPort->setSpeedMbps(localPort->getSpeedMbps());
-  remoteSysPort->setEnabled(true);
   remoteSystemPorts->addNode(remoteSysPort, scopeResolver.scope(remoteSysPort));
   return newState;
 }

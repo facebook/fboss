@@ -460,7 +460,6 @@ TEST_F(QueueManagerTest, portDisableStopsCounterExport) {
 TEST_F(QueueManagerTest, sysPortDisableStopsVoQStatsExport) {
   auto sysPort = firstSysPort();
   auto newSysPort = sysPort->clone();
-  newSysPort->setEnabled(false);
   saiManagerTable->systemPortManager().changeSystemPort(sysPort, newSysPort);
   saiManagerTable->systemPortManager().updateStats(newSysPort->getID(), true);
   auto portStat = saiManagerTable->systemPortManager().getLastPortStats(
@@ -502,30 +501,4 @@ TEST_F(QueueManagerTest, portReenableRestartsCounterExport) {
   EXPECT_NE(portStat, nullptr);
   checkCounterExportAndValue(
       evenNewerPort->getName(), queueConfig, ExpectExport::EXPORT, portStat);
-}
-
-TEST_F(QueueManagerTest, sysPortReenableRestartsVoQStatsExport) {
-  auto sysPort = firstSysPort();
-  CHECK(sysPort->isPublished());
-  auto newSysPort = sysPort->clone();
-  newSysPort->setEnabled(false);
-  newSysPort->publish();
-  saiManagerTable->systemPortManager().changeSystemPort(sysPort, newSysPort);
-  saiManagerTable->systemPortManager().updateStats(newSysPort->getID(), true);
-  auto portStat = saiManagerTable->systemPortManager().getLastPortStats(
-      newSysPort->getID());
-  checkCounterExportAndValue(
-      sysPortStatName(newSysPort->getPortName()),
-      voqIds(newSysPort->getID()),
-      ExpectExport::NO_EXPORT,
-      portStat);
-  // Reverse previous change to re-enable sys port
-  saiManagerTable->systemPortManager().changeSystemPort(newSysPort, sysPort);
-  portStat =
-      saiManagerTable->systemPortManager().getLastPortStats(sysPort->getID());
-  checkCounterExportAndValue(
-      sysPortStatName(sysPort->getPortName()),
-      voqIds(sysPort->getID()),
-      ExpectExport::EXPORT,
-      portStat);
 }
