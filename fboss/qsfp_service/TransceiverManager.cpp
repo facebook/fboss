@@ -44,6 +44,11 @@ DEFINE_bool(
     false,
     "Set to true to enable firmware upgrade support");
 
+DEFINE_int32(
+    max_concurrent_evb_fw_upgrade,
+    1,
+    "How many transceivers sharing the same evb to schedule a firmware upgrade on at a time");
+
 namespace {
 constexpr auto kForceColdBootFileName = "cold_boot_once_qsfp_service";
 constexpr auto kWarmBootFlag = "can_warm_boot";
@@ -55,8 +60,6 @@ constexpr auto kAgentConfigLastColdbootAppliedInMsKey =
     "agentConfigLastColdbootAppliedInMs";
 static constexpr auto kStateMachineThreadHeartbeatMissed =
     "state_machine_thread_heartbeat_missed";
-
-static const auto kMaxConcurrentEvbFirmwareUpgrades = 1;
 
 std::map<int, facebook::fboss::NpuPortStatus> getNpuPortStatus(
     const std::map<int32_t, facebook::fboss::PortStatus>& portStatus) {
@@ -277,7 +280,7 @@ bool TransceiverManager::firmwareUpgradeRequired(TransceiverID id) {
         fwEvbWLock->emplace(moduleEvb, std::vector<TransceiverID>());
       }
       if (fwEvbWLock->at(moduleEvb).size() <
-          kMaxConcurrentEvbFirmwareUpgrades) {
+          FLAGS_max_concurrent_evb_fw_upgrade) {
         fwEvbWLock->at(moduleEvb).push_back(id);
         canUpgrade = true;
       } else {
