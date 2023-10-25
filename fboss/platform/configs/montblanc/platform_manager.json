@@ -1671,5 +1671,5 @@
     }
   },
   "bspKmodsRpmName": "fboss_bsp_kmods",
-  "bspKmodsRpmVersion": "0.5.0-1"
+  "bspKmodsRpmVersion": "0.6.0-1"
 }
