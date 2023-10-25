@@ -173,10 +173,12 @@ std::shared_ptr<SwitchState> setupRemoteIntfAndSysPorts(
       const PortDescriptor portDesc(remoteSysPortId);
       const uint64_t encapEndx = 0x200001 + i;
 
-      // Use subnet 100:(dsfNodeId):(localIntfId)::1/64
-      // and 100.(dsfNodeId).(localIntfId).1/24
+      // Use subnet 100+(dsfNodeId/256):(dsfNodeId%256):(localIntfId)::1/64
+      // and 100+(dsfNodeId/256).(dsfNodeId%256).(localIntfId).1/24
+      auto firstOctet = 100 + remoteSwitchId / 256;
+      auto secondOctet = remoteSwitchId % 256;
       folly::IPAddressV6 neighborIp(
-          folly::to<std::string>("100:", remoteSwitchId, ":", i, "::2"));
+          folly::to<std::string>(firstOctet, ":", secondOctet, ":", i, "::2"));
 
       newState = addRemoteSysPort(
           newState, scopeResolver, remoteSysPortId, SwitchID(remoteSwitchId));
@@ -186,10 +188,10 @@ std::shared_ptr<SwitchState> setupRemoteIntfAndSysPorts(
           remoteIntfId,
           {
               {folly::IPAddress(folly::to<std::string>(
-                   "100:", remoteSwitchId, ":", i, "::1")),
+                   firstOctet, ":", secondOctet, ":", i, "::1")),
                64},
               {folly::IPAddress(folly::to<std::string>(
-                   "100.", remoteSwitchId, ".", i, ".1")),
+                   firstOctet, ".", secondOctet, ".", i, ".1")),
                24},
           });
       newState = addRemoveRemoteNeighbor(
