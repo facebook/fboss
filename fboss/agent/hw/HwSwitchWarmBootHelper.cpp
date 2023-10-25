@@ -10,6 +10,7 @@
 
 #include "fboss/agent/hw/HwSwitchWarmBootHelper.h"
 
+#include "fboss/agent/AgentDirectoryUtil.h"
 #include "fboss/agent/AsyncLogger.h"
 #include "fboss/agent/SysError.h"
 #include "fboss/agent/Utils.h"
@@ -100,8 +101,11 @@ std::string HwSwitchWarmBootHelper::warmBootDataPath() const {
 }
 
 std::string HwSwitchWarmBootHelper::forceColdBootOnceFlag() const {
-  return folly::to<std::string>(
-      warmBootDir_, "/", forceColdBootPrefix, switchId_);
+  auto rc =
+      folly::to<std::string>(warmBootDir_, "/", forceColdBootPrefix, switchId_);
+  CHECK_EQ(
+      AgentDirectoryUtil().getHwColdBootOnceFile(warmBootDir_, switchId_), rc);
+  return rc;
 }
 
 std::string HwSwitchWarmBootHelper::startupSdkDumpFile() const {

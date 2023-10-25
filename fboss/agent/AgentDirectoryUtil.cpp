@@ -85,4 +85,33 @@ std::string AgentDirectoryUtil::getCrashThriftSwitchStateFile() const {
   return getCrashInfoDir() + "/" + FLAGS_crash_thrift_switch_state_file;
 }
 
+std::string AgentDirectoryUtil::getSwColdBootOnceFile() const {
+  return getSwColdBootOnceFile(getWarmBootDir());
+}
+
+std::string AgentDirectoryUtil::getHwColdBootOnceFile(int switchIndex) const {
+  return getHwColdBootOnceFile(getWarmBootDir(), switchIndex);
+}
+
+std::string AgentDirectoryUtil::getSwColdBootOnceFile(
+    const std::string& shmDir) const {
+  return shmDir + "/" + "sw_cold_boot_once";
+}
+
+std::string AgentDirectoryUtil::getHwColdBootOnceFile(
+    const std::string& shmDir,
+    int switchIndex) const {
+  return shmDir + "/" + "hw_cold_boot_once_" +
+      folly::to<std::string>(switchIndex);
+}
+
+std::string AgentDirectoryUtil::getColdBootOnceFile() const {
+  return getColdBootOnceFile(getWarmBootDir());
+}
+
+std::string AgentDirectoryUtil::getColdBootOnceFile(
+    const std::string& shmDir) const {
+  return shmDir + "/" + "cold_boot_once_0";
+}
+
 } // namespace facebook::fboss

@@ -102,6 +102,19 @@ class AgentDirectoryUtil {
    */
   std::string getCrashThriftSwitchStateFile() const;
 
+  std::string getColdBootOnceFile() const;
+
+  std::string getSwColdBootOnceFile() const;
+
+  std::string getHwColdBootOnceFile(int switchIndex) const;
+
+  std::string getSwColdBootOnceFile(const std::string& shmDir) const;
+
+  std::string getHwColdBootOnceFile(const std::string& shmDir, int switchIndex)
+      const;
+
+  std::string getColdBootOnceFile(const std::string& shmDir) const;
+
  private:
   std::string volatileStateDir_;
   std::string persistentStateDir_;

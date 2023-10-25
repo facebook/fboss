@@ -5,6 +5,7 @@
 #include <folly/FileUtil.h>
 #include <folly/logging/xlog.h>
 
+#include "fboss/agent/AgentDirectoryUtil.h"
 #include "fboss/agent/AsyncLogger.h"
 #include "fboss/agent/SysError.h"
 #include "fboss/agent/Utils.h"
@@ -83,7 +84,9 @@ bool SwSwitchWarmBootHelper::checkAndClearWarmBootFlags() {
 }
 
 std::string SwSwitchWarmBootHelper::forceColdBootOnceFlag() const {
-  return folly::to<std::string>(warmBootDir_, "/", forceColdBootFlag);
+  auto rc = folly::to<std::string>(warmBootDir_, "/", forceColdBootFlag);
+  CHECK_EQ(rc, AgentDirectoryUtil().getSwColdBootOnceFile(warmBootDir_));
+  return rc;
 }
 
 std::string SwSwitchWarmBootHelper::warmBootThriftSwitchStateFile() const {
