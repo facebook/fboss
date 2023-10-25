@@ -153,7 +153,7 @@ class StressRouteInsertion:
             input("\n\n\nTest Done -- press return to cleanup: ")
 
 
-if __name__ == "__main__":
+def main() -> None:
     parser = argparse.ArgumentParser(description="Port Testing")
     parser.add_argument(
         "--port",
@@ -206,3 +206,7 @@ if __name__ == "__main__":
         test.run_test()
     finally:
         test.clean_up()
+
+
+if __name__ == "__main__":
+    main()

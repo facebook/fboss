@@ -50,7 +50,7 @@ def get_logged_attributes():
     return logged_attributes
 
 
-if __name__ == "__main__":
+def main() -> None:
     used_attributes = get_used_attributes()
     logged_attributes = get_logged_attributes()
     diff = used_attributes - logged_attributes
@@ -62,3 +62,7 @@ if __name__ == "__main__":
     else:
         print("No missing attribute from Sai Replayer")
         sys.exit(0)
+
+
+if __name__ == "__main__":
+    main()

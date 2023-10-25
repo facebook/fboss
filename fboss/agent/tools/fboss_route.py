@@ -177,7 +177,7 @@ def get_qsfp_client(args, timeout=5.0):
     transport.close()
 
 
-if __name__ == "__main__":
+def main() -> None:
     ap = ArgumentParser()
     ap.add_argument(
         "--port", "-p", type=int, default=5909, help="the controller thrift port"
@@ -289,3 +289,7 @@ if __name__ == "__main__":
 
     args = ap.parse_args()
     args.func(args)
+
+
+if __name__ == "__main__":
+    main()

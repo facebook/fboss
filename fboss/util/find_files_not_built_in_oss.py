@@ -61,8 +61,12 @@ def get_built_oss_files():
     return sorted(set(built_oss_files))
 
 
-if __name__ == "__main__":
+def main() -> None:
     not_built_in_oss = set(get_expected_oss_files()) - set(get_built_oss_files())
     print(f"Number of OSS files not built in OSS: {len(not_built_in_oss)}")
     print("List of missing files:")
     print(*not_built_in_oss, sep="\n")
+
+
+if __name__ == "__main__":
+    main()
