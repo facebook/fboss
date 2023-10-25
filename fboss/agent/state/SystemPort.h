@@ -81,9 +81,6 @@ class SystemPort
   void setNumVoqs(int64_t numVoqs) {
     set<ctrl_if_tags::numVoqs>(numVoqs);
   }
-  bool getEnabled() const {
-    return cref<ctrl_if_tags::enabled_DEPRECATED>()->toThrift();
-  }
   std::optional<std::string> getQosPolicy() const {
     if (const auto& policy = cref<ctrl_if_tags::qosPolicy>()) {
       return policy->toThrift();
