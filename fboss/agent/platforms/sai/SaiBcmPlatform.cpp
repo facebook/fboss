@@ -33,15 +33,24 @@ std::string SaiBcmPlatform::getHwConfig() {
     }
     throw FbossError("Failed to get bcm yaml config from agent config");
   }
-  auto& cfg = *config()->thrift.platform()->chip()->get_bcm().config();
-  std::vector<std::string> nameValStrs;
-  for (const auto& entry : cfg) {
-    nameValStrs.emplace_back(
-        folly::to<std::string>(entry.first, '=', entry.second));
-    hwConfig_.emplace(std::make_pair(entry.first, entry.second));
+  try {
+    auto hwConfig = getHwAsicConfig();
+    return hwConfig;
+  } catch (const FbossError& e) {
+    /*
+     * (TODO): Once asic config v2 is rolled out to the fleet, we
+     * should remove this fallback and always use the config v2
+    */
+    auto& cfg = *config()->thrift.platform()->chip()->get_bcm().config();
+    std::vector<std::string> nameValStrs;
+    for (const auto& entry : cfg) {
+      nameValStrs.emplace_back(
+          folly::to<std::string>(entry.first, '=', entry.second));
+      hwConfig_.emplace(entry.first, entry.second);
+    }
+    auto hwConfig = folly::join('\n', nameValStrs);
+    return hwConfig;
   }
-  auto hwConfig = folly::join('\n', nameValStrs);
-  return hwConfig;
 }
 
 std::vector<PortID> SaiBcmPlatform::getAllPortsInGroup(PortID portID) const {
