@@ -564,7 +564,7 @@ void QsfpModule::cacheSignalFlags(const SignalFlags& signalflag) {
 void QsfpModule::cacheStatusFlags(const ModuleStatus& status) {
   if (moduleStatusCache_.cmisStateChanged() && status.cmisStateChanged()) {
     moduleStatusCache_.cmisStateChanged() =
-        *status.cmisStateChanged() | *moduleStatusCache_.cmisStateChanged();
+        *status.cmisStateChanged() || *moduleStatusCache_.cmisStateChanged();
   } else {
     moduleStatusCache_.cmisStateChanged().copy_from(status.cmisStateChanged());
   }
