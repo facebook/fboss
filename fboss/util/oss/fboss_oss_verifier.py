@@ -28,6 +28,7 @@ import glob
 import os
 import shutil
 import subprocess
+import tarfile
 from datetime import datetime
 from enum import Enum
 from typing import Optional
@@ -41,6 +42,16 @@ CLONE_OSS_REPO_CMD = r"""git clone https://github.com/facebook/fboss fboss.git""
 RUN_BUILD_HELPER_CMD = r"""./build-helper.py {0} {1} {2}"""
 VERIFY_STABLE_COMMIT_CMD = r"""source ./setup_fboss_env; ./run_test.py sai --sai-bin {0} --config {1} --mgmt-if eth0 --filter {2} --simulator {3} --coldboot_only"""
 LIBRARIES = ["gflags", "glog", "libevent", "libsodium", "python"]
+REPOS = [
+    ("fboss", "facebook"),
+    ("fatal", "facebook"),
+    ("fb303", "facebook"),
+    ("fbthrift", "facebook"),
+    ("folly", "facebook"),
+    ("wangle", "facebook"),
+    ("mvfst", "facebook"),
+    ("fizz", "facebookincubator"),
+]
 
 
 class ResultType(Enum):
@@ -59,17 +70,83 @@ class FBOSSOSSVerifier:
         self._git_dir = os.path.join(self._oss_dir, "fboss.git")
         self._scripts_dir = os.path.join(self._git_dir, "fboss", "oss", "scripts")
         self._test_config = os.path.join(self._oss_dir, "fuji.materialized_JSON")
-        self._commit = ""
         self._test_results = ""
+        self._timestamp = ""
+
+    def update_stable_commit_hashes(self):
+        current_stable_commit_git_path = os.path.join(
+            self._git_dir,
+            "fboss",
+            "oss",
+            "stable_commits",
+            "latest_stable_hashes.tar.gz",
+        )
+        current_stable_commit_path = os.path.join(
+            self._oss_dir, "current_stable_hashes.tar.gz"
+        )
+        shutil.copy(current_stable_commit_git_path, current_stable_commit_path)
+        with tarfile.open(current_stable_commit_path, "r:gz") as tf:
+            tf.extractall(self._git_dir)
+        if os.path.exists(current_stable_commit_path):
+            os.remove(current_stable_commit_path)
+        for repo, repo_type in REPOS:
+            repo_path = os.path.join(
+                self._scratch_dir, "repos", f"github.com-{repo_type}-{repo}.git"
+            )
+            new_stable_commit_hash_output = subprocess.run(
+                f"git -C {repo_path} rev-parse HEAD",
+                stdout=subprocess.PIPE,
+                shell=True,
+            )
+            new_stable_commit_hash = new_stable_commit_hash_output.stdout.decode(
+                "utf-8"
+            ).strip()
+            stable_commit_path = os.path.join(
+                self._git_dir,
+                "build",
+                "deps",
+                "github_hashes",
+                repo_type,
+                f"{repo}-rev.txt",
+            )
+            current_stable_commit_output = subprocess.run(
+                f"cat {stable_commit_path}",
+                stdout=subprocess.PIPE,
+                shell=True,
+            )
+            current_stable_commit_hash = (
+                current_stable_commit_output.stdout.decode("utf-8")
+                .strip()
+                .split(" ")[2]
+            )
+            print(
+                f"Updating stable commit hash {current_stable_commit_hash} to {new_stable_commit_hash} for repo {repo}"
+            )
+            with open(stable_commit_path, "w") as f:
+                f.write(f"Subproject commit {new_stable_commit_hash}")
+                f.close()
+        if os.path.exists(
+            os.path.join(self._git_dir, "build", "fbcode_builder", "manifests")
+        ):
+            shutil.rmtree(
+                os.path.join(self._git_dir, "build", "fbcode_builder", "manifests")
+            )
+        shutil.copytree(
+            os.path.join(self._oss_dir, "manifests"),
+            os.path.join(self._git_dir, "build", "fbcode_builder", "manifests"),
+        )
+        file_timestamp = self._timestamp.replace(" ", "_")
+        tarfile_name = f"latest_stable_hashes_{file_timestamp}.tar.gz"
+        with tarfile.open(tarfile_name, "w:gz") as tf:
+            tf.add(os.path.join(self._git_dir, "build"))
 
     def print_result(self, build_result, verify_result=ResultType.FAILED):
-        timestamp = datetime.fromtimestamp(
+        self._timestamp = datetime.fromtimestamp(
             datetime.now().timestamp(), pytz.timezone("US/Pacific")
-        ).strftime("%Y-%m-%d %H:%M:%S PDT")
+        ).strftime("%Y-%m-%d %H:%M:%S")
         print(
             f"RESULTS:\n"
-            f"Commit: {self._commit}\n"
-            f"Timestamp: {timestamp}\n"
+            f"Timestamp: {self._timestamp} PDT\n"
             f"Build: {build_result.value}"
         )
         if build_result == ResultType.OK:
@@ -196,12 +273,10 @@ class FBOSSOSSVerifier:
     def clone(self):
         subprocess.run(CLONE_OSS_REPO_CMD, shell=True)
         print("Cloned FBOSS git repo successfully")
-        output = subprocess.run(
-            f"git -C {self._git_dir} rev-parse HEAD",
-            stdout=subprocess.PIPE,
-            shell=True,
+        shutil.copytree(
+            os.path.join(self._git_dir, "build", "fbcode_builder", "manifests"),
+            os.path.join(self._oss_dir, "manifests"),
         )
-        self._commit = output.stdout.decode("utf-8").strip()
 
     def clean(self):
         if os.path.exists(self._scratch_dir):
@@ -212,6 +287,8 @@ class FBOSSOSSVerifier:
             shutil.rmtree(self._built_bcmsim_sai_dir)
         if os.path.exists(self._test_pkg_dir):
             shutil.rmtree(self._test_pkg_dir)
+        if os.path.exists(os.path.join(self._oss_dir, "manifests")):
+            shutil.rmtree(os.path.join(self._oss_dir, "manifests"))
 
     def setup_env(self):
         env_dict = {
@@ -251,6 +328,8 @@ class FBOSSOSSVerifier:
         self.post_build()
         verify_result = self.verify_stable_commit()
         self.print_result(build_result, verify_result)
+        if verify_result == ResultType.OK:
+            self.update_stable_commit_hashes()
 
 
 if __name__ == "__main__":
