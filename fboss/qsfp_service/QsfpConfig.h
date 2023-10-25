@@ -4,6 +4,8 @@
 
 #include "fboss/qsfp_service/if/gen-cpp2/qsfp_service_config_types.h"
 
+DECLARE_string(qsfp_config);
+
 namespace facebook::fboss {
 
 struct QsfpConfig {

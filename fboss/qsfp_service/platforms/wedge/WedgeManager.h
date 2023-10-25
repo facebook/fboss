@@ -150,6 +150,8 @@ class WedgeManager : public TransceiverManager {
       std::string&& portName,
       phy::PhyStats&& stat) const override;
 
+  void loadConfig() override;
+
  protected:
   void initTransceiverMap() override;
 
@@ -174,8 +176,6 @@ class WedgeManager : public TransceiverManager {
   // Forbidden copy constructor and assignment operator
   WedgeManager(WedgeManager const&) = delete;
   WedgeManager& operator=(WedgeManager const&) = delete;
-
-  void loadConfig() override;
 
   using LockedTransceiversPtr = folly::Synchronized<
       std::map<TransceiverID, std::unique_ptr<Transceiver>>>::WLockedPtr;
