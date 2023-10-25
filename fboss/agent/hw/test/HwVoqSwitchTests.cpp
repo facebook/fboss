@@ -1151,7 +1151,8 @@ class HwVoqSwitchFullScaleDsfNodesTest
 
  protected:
   int getMaxEcmpWidth(const HwAsic* asic) const {
-    return asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2 ? 128 : 512;
+    // J2 and J3 only supports variable width
+    return asic->getMaxVariableWidthEcmpSize();
   }
 
   int getMaxEcmpGroup() const {

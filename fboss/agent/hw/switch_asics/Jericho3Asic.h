@@ -81,7 +81,7 @@ class Jericho3Asic : public BroadcomAsic {
     return 40;
   }
   uint32_t getMaxVariableWidthEcmpSize() const override {
-    return 128;
+    return 512;
   }
   uint32_t getMaxEcmpSize() const override {
     return 4096;
