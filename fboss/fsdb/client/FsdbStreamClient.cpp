@@ -7,7 +7,7 @@
 #include <folly/logging/xlog.h>
 #include "common/time/Time.h"
 #ifndef IS_OSS
-#include "fboss/fsdb/client/facebook/Client.h"
+#include "fboss/fsdb/client/Client.h"
 #endif
 
 DEFINE_int32(
