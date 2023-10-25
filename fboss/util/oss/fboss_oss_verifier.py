@@ -182,6 +182,13 @@ class FBOSSOSSVerifier:
                 self._test_results += f"{test_name}: {test_result}\n"
                 if "OK" not in line:
                     result_type = ResultType.FAILED
+        pid_output = subprocess.run(
+            "cat runner.pid", stdout=subprocess.PIPE, shell=True
+        )
+        pid = pid_output.stdout.decode("utf-8").strip()
+        if pid:
+            print("Stopping BCMSIM...")
+            subprocess.run(f"kill -9 {pid}", shell=True)
         return result_type
 
     def post_build(self):
@@ -229,8 +236,8 @@ class FBOSSOSSVerifier:
     def build(self):
         os.chdir(os.path.join(self._git_dir, "build", "fbcode_builder"))
         build_fboss_oss_cmd = f'time ./getdeps.py build --allow-system-packages --scratch-path {self._scratch_dir} fboss --extra-cmake-defines \'{{"CMAKE_BUILD_TYPE": "MinSizeRel"}}\''
-        output = subprocess.run(build_fboss_oss_cmd, shell=True)
-        if output.returncode != 0:
+        build_output = subprocess.run(build_fboss_oss_cmd, shell=True)
+        if build_output.returncode != 0:
             return ResultType.FAILED
         else:
             return ResultType.OK
