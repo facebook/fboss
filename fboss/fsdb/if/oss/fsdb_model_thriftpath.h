@@ -3697,7 +3697,7 @@ std::pair<strings::coreIndex, Child<::std::int64_t, ::apache::thrift::type_class
 std::pair<strings::corePortIndex, Child<::std::int64_t, ::apache::thrift::type_class::integral>>,
 std::pair<strings::speedMbps, Child<::std::int64_t, ::apache::thrift::type_class::integral>>,
 std::pair<strings::numVoqs, Child<::std::int64_t, ::apache::thrift::type_class::integral>>,
-std::pair<strings::enabled, Child<bool, ::apache::thrift::type_class::integral>>,
+std::pair<strings::enabled_DEPRECATED, Child<bool, ::apache::thrift::type_class::integral>>,
 std::pair<strings::qosPolicy, Child<::std::string, ::apache::thrift::type_class::string>>,
 std::pair<strings::queues, ChildThriftPath<::std::vector<::facebook::fboss::PortQueueFields>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::std::int64_t, ::apache::thrift::type_class::integral>>,
@@ -3718,7 +3718,7 @@ std::pair<strings::coreIndex, std::integral_constant<apache::thrift::field_id_t,
 std::pair<strings::corePortIndex, std::integral_constant<apache::thrift::field_id_t, 5>>,
 std::pair<strings::speedMbps, std::integral_constant<apache::thrift::field_id_t, 6>>,
 std::pair<strings::numVoqs, std::integral_constant<apache::thrift::field_id_t, 7>>,
-std::pair<strings::enabled, std::integral_constant<apache::thrift::field_id_t, 9>>,
+std::pair<strings::enabled_DEPRECATED, std::integral_constant<apache::thrift::field_id_t, 9>>,
 std::pair<strings::qosPolicy, std::integral_constant<apache::thrift::field_id_t, 10>>,
 std::pair<strings::queues, std::integral_constant<apache::thrift::field_id_t, 11>>>::template type_of<Name>;
 
@@ -3740,7 +3740,7 @@ std::pair<strings::queues, std::integral_constant<apache::thrift::field_id_t, 11
     STRUCT_CHILD_GETTERS(corePortIndex, 5);
     STRUCT_CHILD_GETTERS(speedMbps, 6);
     STRUCT_CHILD_GETTERS(numVoqs, 7);
-    STRUCT_CHILD_GETTERS(enabled, 9);
+    STRUCT_CHILD_GETTERS(enabled_DEPRECATED, 9);
     STRUCT_CHILD_GETTERS(qosPolicy, 10);
     STRUCT_CHILD_GETTERS(queues, 11);
 
@@ -3753,7 +3753,7 @@ std::pair<strings::queues, std::integral_constant<apache::thrift::field_id_t, 11
     else if constexpr (__id == 5) { return corePortIndex(); }
     else if constexpr (__id == 6) { return speedMbps(); }
     else if constexpr (__id == 7) { return numVoqs(); }
-    else if constexpr (__id == 9) { return enabled(); }
+    else if constexpr (__id == 9) { return enabled_DEPRECATED(); }
     else if constexpr (__id == 10) { return qosPolicy(); }
     else if constexpr (__id == 11) { return queues(); }
   }

@@ -388,7 +388,8 @@ struct SystemPortThrift {
   5: i64 corePortIndex;
   6: i64 speedMbps;
   7: i64 numVoqs;
-  9: bool enabled = true;
+  // System ports are always enabled
+  9: bool enabled_DEPRECATED = true;
   10: optional string qosPolicy;
   11: list<PortQueueFields> queues;
 }

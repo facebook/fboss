@@ -174,8 +174,9 @@ class CmdShowSystemPort
         cli::SystemPortEntry systemPortDetails;
         systemPortDetails.id() = systemPortInfo.get_portId();
         systemPortDetails.name() = systemPortInfo.get_portName();
+        // TODO - stop displaying deprecated enabled field
         systemPortDetails.adminState() =
-            getAdminStateStr(systemPortInfo.get_enabled());
+            getAdminStateStr(systemPortInfo.get_enabled_DEPRECATED());
         systemPortDetails.speed() =
             utils::getSpeedGbps(systemPortInfo.get_speedMbps());
         systemPortDetails.numVoqs() = systemPortInfo.get_numVoqs();
