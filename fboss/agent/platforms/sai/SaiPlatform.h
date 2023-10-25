@@ -56,6 +56,7 @@ class SaiPlatform : public Platform, public StateObserver {
   PlatformPort* getPlatformPort(PortID port) const override;
   void initPorts() override;
   virtual std::string getHwConfig() = 0;
+  std::string getHwConfigDumpFile_deprecated();
   std::string getHwConfigDumpFile();
   void generateHwConfigFile();
   virtual sai_service_method_table_t* getServiceMethodTable() const;

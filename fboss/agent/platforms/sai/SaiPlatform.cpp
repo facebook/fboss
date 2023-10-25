@@ -38,6 +38,7 @@
 #include "fboss/agent/platforms/sai/SaiMorgan800ccPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiWedge400CPlatformPort.h"
 #include "fboss/agent/state/Port.h"
+#include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
 #include "fboss/agent/hw/sai/switch/SaiHandler.h"
@@ -181,6 +182,11 @@ TransceiverIdxThrift SaiPlatform::getPortMapping(
 }
 
 std::string SaiPlatform::getHwConfigDumpFile() {
+  return getDirectoryUtil()->getVolatileStateDir() + "/" +
+      FLAGS_hw_config_file + "_idx" + std::to_string(FLAGS_switchIndex);
+}
+
+std::string SaiPlatform::getHwConfigDumpFile_deprecated() {
   return getDirectoryUtil()->getVolatileStateDir() + "/" + FLAGS_hw_config_file;
 }
 
