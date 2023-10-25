@@ -129,4 +129,29 @@ class OpticsFwUpgradeTest : public HwTest {
     }
   }
 };
+
+TEST_F(OpticsFwUpgradeTest, noUpgradeForSameVersion) {
+  // In this test, firmware versions in qsfp config is not changed. Hence, the
+  // firmware upgrade shouldn't be triggered under any circumstances After
+  // Coldboot init, verify there were no upgrades done during cold boot After
+  // Warmboot init, verify there were no upgrades done during warm boot Force
+  // links to go down and verify there are no upgrades done
+
+  auto verify = [&]() {
+    CHECK(verifyUpgrade(
+        false /* upgradeExpected */, 0 /* upgradeSinceTsSec */, {} /* tcvrs */))
+        << "No upgrades expected during cold/warm boot";
+    // Force link up
+    setPortStatus(true);
+    CHECK(verifyUpgrade(
+        false /* upgradeExpected */, 0 /* upgradeSinceTsSec */, {} /* tcvrs */))
+        << "No upgrades expected on port up";
+    // Force link down
+    setPortStatus(false);
+    CHECK(verifyUpgrade(
+        false /* upgradeExpected */, 0 /* upgradeSinceTsSec */, {} /* tcvrs */))
+        << "No upgrades expected on port down";
+  };
+  verifyAcrossWarmBoots([]() {}, verify);
+}
 } // namespace facebook::fboss
