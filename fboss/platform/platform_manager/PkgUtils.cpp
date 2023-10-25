@@ -13,14 +13,27 @@ constexpr auto kHostKernelVersion = "`uname --kernel-release`";
 namespace facebook::fboss::platform::platform_manager {
 
 void PkgUtils::run(const PlatformConfig& config) {
-  XLOG(INFO) << "Installing BSP Kmods";
-  installRpm(
-      fmt::format(
-          "{}-{}-{}",
-          *config.bspKmodsRpmName(),
-          kHostKernelVersion,
-          *config.bspKmodsRpmVersion()),
-      3 /* maxAttempts */);
+  auto bspKmodsRpmName = fmt::format(
+      "{}-{}-{}",
+      *config.bspKmodsRpmName(),
+      kHostKernelVersion,
+      *config.bspKmodsRpmVersion());
+  if (!isRpmInstalled(bspKmodsRpmName)) {
+    XLOG(INFO) << fmt::format("Installing BSP Kmods {}", bspKmodsRpmName);
+    installRpm(bspKmodsRpmName, 3 /* maxAttempts */);
+  } else {
+    XLOG(INFO) << fmt::format(
+        "BSP Kmods {} is already installed", bspKmodsRpmName);
+  }
+}
+
+bool PkgUtils::isRpmInstalled(const std::string& rpmFullName) {
+  XLOG(INFO) << fmt::format(
+      "Checking whether BSP Kmods {} is installed", rpmFullName);
+  auto cmd = fmt::format("dnf list {} --installed", rpmFullName);
+  XLOG(INFO) << fmt::format("Running command ({})", cmd);
+  auto [exitStatus, standardOut] = PlatformUtils().execCommand(cmd);
+  return exitStatus == 0;
 }
 
 void PkgUtils::installRpm(const std::string& rpmFullName, int maxAttempts) {

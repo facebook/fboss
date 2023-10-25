@@ -11,6 +11,7 @@ class PkgUtils {
   void run(const PlatformConfig& config);
 
  private:
+  bool isRpmInstalled(const std::string& rpmFullName);
   void installRpm(const std::string& rpmFullName, int maxAttempts);
 };
 
