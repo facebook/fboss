@@ -72,7 +72,7 @@ class HwQsfpEnsemble {
 
   bool isXphyPlatform() const;
   bool didWarmBoot() const {
-    return warmBoot_;
+    return getWedgeManager()->canWarmBoot();
   }
   void setupForWarmboot();
 
@@ -81,6 +81,5 @@ class HwQsfpEnsemble {
  private:
   std::shared_ptr<QsfpServiceHandler> qsfpServiceHandler_;
   std::shared_ptr<apache::thrift::ThriftServer> server_;
-  bool warmBoot_{false};
 };
 } // namespace facebook::fboss

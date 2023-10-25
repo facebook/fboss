@@ -59,8 +59,10 @@ class HwTest : public ::testing::Test {
 
   std::vector<int> getCabledOpticalTransceiverIDs();
 
- private:
+ protected:
   bool didWarmBoot() const;
+
+ private:
   void setupForWarmboot() const;
   // Forbidden copy constructor and assignment operator
   HwTest(HwTest const&) = delete;
