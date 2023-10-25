@@ -25,6 +25,17 @@ void runShellCommand(const std::string& command, bool throwOnError) {
   }
 }
 
+void runCommand(const std::string& command) {
+  try {
+    folly::Subprocess proc{command};
+    proc.waitChecked();
+  } catch (const std::exception& e) {
+    XLOG(ERR) << "Exception while running shell command: " << command << ": "
+              << e.what();
+    throw;
+  }
+}
+
 void runAndRemoveScript(
     const std::string& script,
     const std::vector<std::string>& args) {
