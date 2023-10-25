@@ -20,7 +20,7 @@ union AsicConfigEntry {
 
 struct AsicConfig {
   1: AsicConfigEntry common;
-  2: optional map<i64, AsicConfigEntry> multinpu;
+  2: optional map<i64, AsicConfigEntry> npuEntries;
 }
 
 struct AsicConfigParameters {

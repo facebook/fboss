@@ -7513,12 +7513,12 @@ class ChildThriftPath<::facebook::fboss::cfg::AsicConfig, ::facebook::fboss::fsd
     Self
   >;
   using Children = fatal::tuple<std::pair<strings::common, ChildThriftPath<::facebook::fboss::cfg::AsicConfigEntry, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
-std::pair<strings::multinpu, ChildThriftPath<::std::map<::std::int64_t, ::facebook::fboss::cfg::AsicConfigEntry>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>>;
+std::pair<strings::npuEntries, ChildThriftPath<::std::map<::std::int64_t, ::facebook::fboss::cfg::AsicConfigEntry>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, ChildThriftPath<::facebook::fboss::cfg::AsicConfigEntry, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, ChildThriftPath<::std::map<::std::int64_t, ::facebook::fboss::cfg::AsicConfigEntry>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::common, std::integral_constant<apache::thrift::field_id_t, 1>>,
-std::pair<strings::multinpu, std::integral_constant<apache::thrift::field_id_t, 2>>>::template type_of<Name>;
+std::pair<strings::npuEntries, std::integral_constant<apache::thrift::field_id_t, 2>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -7532,12 +7532,12 @@ std::pair<strings::multinpu, std::integral_constant<apache::thrift::field_id_t, 
    Parent>(std::move(tokens), std::move(idTokens)) {}
   
     STRUCT_CHILD_GETTERS(common, 1);
-    STRUCT_CHILD_GETTERS(multinpu, 2);
+    STRUCT_CHILD_GETTERS(npuEntries, 2);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
     if constexpr (__id == 1) { return common(); }
-    else if constexpr (__id == 2) { return multinpu(); }
+    else if constexpr (__id == 2) { return npuEntries(); }
   }
 
   template <typename T, T... Values>
