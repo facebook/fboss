@@ -18,6 +18,7 @@ bool Ramon3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_FEC_COUNTERS:
     case HwAsic::Feature::SWITCH_DROP_STATS:
     case HwAsic::Feature::SAI_CONFIGURE_SIX_TAP:
+    case HwAsic::Feature::TELEMETRY_AND_MONITORING:
       return true;
     case HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET:
     case HwAsic::Feature::FABRIC_TX_QUEUES:
