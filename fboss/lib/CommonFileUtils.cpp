@@ -3,6 +3,7 @@
 #include "fboss/lib/CommonFileUtils.h"
 #include <boost/filesystem/operations.hpp>
 #include <folly/logging/xlog.h>
+#include <filesystem>
 #include <fstream>
 #include <sstream>
 #include "fboss/agent/SysError.h"
@@ -83,6 +84,22 @@ bool writeSysfs(const std::string& path, const std::string& val) {
     success = false;
   }
   return success;
+}
+
+void createSymLink(const std::string& link, const std::string& target) {
+  std::filesystem::path tmpLinkPath(link);
+  std::filesystem::path targetPath(target);
+  if (!tmpLinkPath.is_absolute()) {
+    throw FbossError("Link path must be absolute");
+  }
+  if (!targetPath.is_absolute()) {
+    throw FbossError("Target path must be absolute");
+  }
+  auto tmpLinkName =
+      folly::to<std::string>(".", tmpLinkPath.filename().string());
+  tmpLinkPath.replace_filename(tmpLinkName);
+  std::filesystem::create_symlink(targetPath, tmpLinkPath);
+  std::filesystem::rename(tmpLinkPath, std::filesystem::path(link));
 }
 
 } // namespace facebook::fboss
