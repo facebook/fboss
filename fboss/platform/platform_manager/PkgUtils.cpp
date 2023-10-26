@@ -21,6 +21,11 @@ void PkgUtils::run(const PlatformConfig& config) {
   if (!isRpmInstalled(bspKmodsRpmName)) {
     XLOG(INFO) << fmt::format("Installing BSP Kmods {}", bspKmodsRpmName);
     installRpm(bspKmodsRpmName, 3 /* maxAttempts */);
+    XLOG(INFO) << "Reloading Kernel Modules";
+    reloadKMod("fbiob-pci");
+    reloadKMod("i2c-fbiob");
+    reloadKMod("spi-fbiob");
+    reloadKMod("gpio-fbiob");
   } else {
     XLOG(INFO) << fmt::format(
         "BSP Kmods {} is already installed", bspKmodsRpmName);
@@ -53,6 +58,31 @@ void PkgUtils::installRpm(const std::string& rpmFullName, int maxAttempts) {
         "Failed to install rpm ({}) with exit code {}",
         rpmFullName,
         exitStatus));
+  }
+}
+
+void PkgUtils::reloadKMod(const std::string& moduleName) {
+  int exitStatus{0};
+  std::string standardOut{};
+  auto unloadCmd = fmt::format("modprobe --remove {}", moduleName);
+  auto loadCmd = fmt::format("modprobe {}", moduleName);
+  XLOG(INFO) << fmt::format("Running command ({})", unloadCmd);
+  std::tie(exitStatus, standardOut) = PlatformUtils().execCommand(unloadCmd);
+  if (exitStatus != 0) {
+    XLOG(ERR) << fmt::format(
+        "Command ({}) failed with exit code {}", unloadCmd, exitStatus);
+    throw std::runtime_error(fmt::format(
+        "Failed to unload kmod ({}) with exit code {}",
+        moduleName,
+        exitStatus));
+  }
+  XLOG(INFO) << fmt::format("Running command ({})", loadCmd);
+  std::tie(exitStatus, standardOut) = PlatformUtils().execCommand(loadCmd);
+  if (exitStatus != 0) {
+    XLOG(ERR) << fmt::format(
+        "Command ({}) failed with exit code {}", loadCmd, exitStatus);
+    throw std::runtime_error(fmt::format(
+        "Failed to load kmod ({}) with exit code {}", moduleName, exitStatus));
   }
 }
 
