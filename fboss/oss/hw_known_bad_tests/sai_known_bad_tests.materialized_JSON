@@ -302,16 +302,10 @@
           "test_name_regex": "HwDiagShellStressTest.*"
         },
         {
-          "test_name_regex": "HwParityErrorTest.*"
-        },
-        {
           "test_name_regex": "HwFlowletSwitchingTest.*"
         },
         {
           "test_name_regex": "HwOverflowTest.*"
-        },
-        {
-          "test_name_regex": "HwSwitchStatsTxCounterTest.*"
         },
         {
           "test_name_regex": "HwPacketSendReceiveTest.*"
@@ -375,9 +369,6 @@
         },
         {
           "test_name_regex": "HwConfigVerifyQosTest.*"
-        },
-        {
-          "test_name_regex": "HwVoqSwitchTest.voqDelete"
         },
         {
           "test_name_regex": "HwEcmpFlowletSwitchingTest.*"
@@ -688,16 +679,10 @@
           "test_name_regex": "HwDiagShellStressTest.*"
         },
         {
-          "test_name_regex": "HwParityErrorTest.*"
-        },
-        {
           "test_name_regex": "HwFlowletSwitchingTest.*"
         },
         {
           "test_name_regex": "HwOverflowTest.*"
-        },
-        {
-          "test_name_regex": "HwSwitchStatsTxCounterTest.*"
         },
         {
           "test_name_regex": "HwPacketSendReceiveTest.*"
@@ -761,9 +746,6 @@
         },
         {
           "test_name_regex": "HwConfigVerifyQosTest.*"
-        },
-        {
-          "test_name_regex": "HwVoqSwitchTest.voqDelete"
         },
         {
           "test_name_regex": "HwEcmpFlowletSwitchingTest.*"
@@ -1188,16 +1170,10 @@
           "test_name_regex": "HwDiagShellStressTest.*"
         },
         {
-          "test_name_regex": "HwParityErrorTest.*"
-        },
-        {
           "test_name_regex": "HwFlowletSwitchingTest.*"
         },
         {
           "test_name_regex": "HwOverflowTest.*"
-        },
-        {
-          "test_name_regex": "HwSwitchStatsTxCounterTest.*"
         },
         {
           "test_name_regex": "HwPacketSendReceiveTest.*"
@@ -1261,9 +1237,6 @@
         },
         {
           "test_name_regex": "HwConfigVerifyQosTest.*"
-        },
-        {
-          "test_name_regex": "HwVoqSwitchTest.voqDelete"
         },
         {
           "test_name_regex": "HwEcmpFlowletSwitchingTest.*"
@@ -3254,16 +3227,10 @@
           "test_name_regex": "HwDiagShellStressTest.*"
         },
         {
-          "test_name_regex": "HwParityErrorTest.*"
-        },
-        {
           "test_name_regex": "HwFlowletSwitchingTest.*"
         },
         {
           "test_name_regex": "HwOverflowTest.*"
-        },
-        {
-          "test_name_regex": "HwSwitchStatsTxCounterTest.*"
         },
         {
           "test_name_regex": "HwPacketSendReceiveTest.*"
@@ -3327,9 +3294,6 @@
         },
         {
           "test_name_regex": "HwConfigVerifyQosTest.*"
-        },
-        {
-          "test_name_regex": "HwVoqSwitchTest.voqDelete"
         },
         {
           "test_name_regex": "HwEcmpFlowletSwitchingTest.*"
@@ -3754,16 +3718,10 @@
           "test_name_regex": "HwDiagShellStressTest.*"
         },
         {
-          "test_name_regex": "HwParityErrorTest.*"
-        },
-        {
           "test_name_regex": "HwFlowletSwitchingTest.*"
         },
         {
           "test_name_regex": "HwOverflowTest.*"
-        },
-        {
-          "test_name_regex": "HwSwitchStatsTxCounterTest.*"
         },
         {
           "test_name_regex": "HwPacketSendReceiveTest.*"
@@ -3827,9 +3785,6 @@
         },
         {
           "test_name_regex": "HwConfigVerifyQosTest.*"
-        },
-        {
-          "test_name_regex": "HwVoqSwitchTest.voqDelete"
         },
         {
           "test_name_regex": "HwEcmpFlowletSwitchingTest.*"
