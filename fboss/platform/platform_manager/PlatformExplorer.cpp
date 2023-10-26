@@ -162,44 +162,35 @@ void PlatformExplorer::explorePciDevices(
     const std::string& slotPath,
     const std::vector<PciDeviceConfig>& pciDeviceConfigs) {
   for (const auto& pciDeviceConfig : pciDeviceConfigs) {
-    auto pciDevPath = pciExplorer_.getDevicePath(
+    auto charDevPath = pciExplorer_.getCharDevPath(
+        *pciDeviceConfig.pmUnitScopedName(),
         *pciDeviceConfig.vendorId(),
         *pciDeviceConfig.deviceId(),
         *pciDeviceConfig.subSystemVendorId(),
         *pciDeviceConfig.subSystemDeviceId());
-    if (!pciDevPath) {
-      XLOG(ERR) << fmt::format(
-          "Could not find PCI device path for {}",
-          *pciDeviceConfig.pmUnitScopedName());
-      continue;
-    }
-    XLOG(INFO) << fmt::format(
-        "Found PCI device {} at {}",
-        *pciDeviceConfig.pmUnitScopedName(),
-        *pciDevPath);
     auto instId =
         getFpgaInstanceId(slotPath, *pciDeviceConfig.pmUnitScopedName());
     for (const auto& i2cAdapterConfig : *pciDeviceConfig.i2cAdapterConfigs()) {
-      pciExplorer_.createI2cAdapter(*pciDevPath, i2cAdapterConfig, instId++);
+      pciExplorer_.createI2cAdapter(charDevPath, i2cAdapterConfig, instId++);
     }
     for (const auto& spiMasterConfig : *pciDeviceConfig.spiMasterConfigs()) {
-      pciExplorer_.createSpiMaster(*pciDevPath, spiMasterConfig, instId++);
+      pciExplorer_.createSpiMaster(charDevPath, spiMasterConfig, instId++);
     }
     for (const auto& fpgaIpBlockConfig : *pciDeviceConfig.gpioChipConfigs()) {
-      pciExplorer_.create(*pciDevPath, fpgaIpBlockConfig, instId++);
+      pciExplorer_.create(charDevPath, fpgaIpBlockConfig, instId++);
     }
     for (const auto& fpgaIpBlockConfig : *pciDeviceConfig.watchdogConfigs()) {
-      pciExplorer_.create(*pciDevPath, fpgaIpBlockConfig, instId++);
+      pciExplorer_.create(charDevPath, fpgaIpBlockConfig, instId++);
     }
     for (const auto& fpgaIpBlockConfig :
          *pciDeviceConfig.fanTachoPwmConfigs()) {
-      pciExplorer_.create(*pciDevPath, fpgaIpBlockConfig, instId++);
+      pciExplorer_.create(charDevPath, fpgaIpBlockConfig, instId++);
     }
     for (const auto& fpgaIpBlockConfig : *pciDeviceConfig.ledCtrlConfigs()) {
-      pciExplorer_.createLedCtrl(*pciDevPath, fpgaIpBlockConfig, instId++);
+      pciExplorer_.createLedCtrl(charDevPath, fpgaIpBlockConfig, instId++);
     }
     for (const auto& xcvrCtrlConfig : *pciDeviceConfig.xcvrCtrlConfigs()) {
-      pciExplorer_.createXcvrCtrl(*pciDevPath, xcvrCtrlConfig, instId++);
+      pciExplorer_.createXcvrCtrl(charDevPath, xcvrCtrlConfig, instId++);
     }
   }
 }

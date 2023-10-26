@@ -2,6 +2,7 @@
 #include "fboss/platform/platform_manager/PciExplorer.h"
 
 #include <sys/ioctl.h>
+#include <filesystem>
 
 #include <folly/FileUtil.h>
 #include <folly/String.h>
@@ -9,19 +10,27 @@
 
 #include "fboss/platform/platform_manager/uapi/fbiob-ioctl.h"
 
-using namespace facebook::fboss::platform::platform_manager;
+namespace fs = std::filesystem;
 
 namespace facebook::fboss::platform::platform_manager {
 
-std::optional<std::string> PciExplorer::getDevicePath(
+std::string PciExplorer::getCharDevPath(
+    const std::string& name,
     const std::string& vendorId,
     const std::string& deviceId,
     const std::string& subSystemVendorId,
     const std::string& subSystemDeviceId) {
-  return fmt::format(
+  auto charDevPath = fmt::format(
       "/dev/fbiob_{}_{}",
       std::string(vendorId, 2, 4),
       std::string(deviceId, 2, 4));
+  if (!fs::exists(charDevPath)) {
+    throw std::runtime_error(fmt::format(
+        "No character device found at {} for {}", charDevPath, name));
+  }
+  XLOG(INFO) << fmt::format(
+      "Found character device {} for {}", charDevPath, name);
+  return charDevPath;
 }
 
 std::vector<uint16_t> PciExplorer::createI2cAdapter(

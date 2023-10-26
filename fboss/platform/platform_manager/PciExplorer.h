@@ -12,9 +12,9 @@ class PciExplorer {
  public:
   const re2::RE2 kPciIdRegex{"0x[0-9a-f]{4}"};
 
-  // Returns the device path of the given pci device at /sys/bus/pci/devices/.
-  // If not found, returns std::nullopt.
-  std::optional<std::string> getDevicePath(
+  // Returns the character device path of the given pci device at /dev/
+  std::string getCharDevPath(
+      const std::string& name,
       const std::string& vendorId,
       const std::string& deviceId,
       const std::string& subSystemVendorId,
