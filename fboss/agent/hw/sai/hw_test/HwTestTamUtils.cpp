@@ -64,6 +64,23 @@ void triggerBcmJericho3ParityError(HwSwitchEnsemble* ensemble) {
   std::ignore = out;
 }
 
+void triggerBcmRamonParityError(HwSwitchEnsemble* ensemble) {
+  std::string out;
+  ensemble->runDiagCommand("\n", out);
+  ensemble->runDiagCommand("debug bcm intr +\n", out);
+  ensemble->runDiagCommand("s RTP_INTERRUPT_MASK_REGISTER -1\n", out);
+  ensemble->runDiagCommand("s RTP_ENABLE_DYNAMIC_MEMORY_ACCESS 1\n", out);
+  ensemble->runDiagCommand("w RTP_TOTSF 0 1 0\n", out);
+  ensemble->runDiagCommand(
+      "m ECI_GLOBAL_MEM_OPTIONS CPU_BYPASS_ECC_PAR=1\n", out);
+  ensemble->runDiagCommand("w RTP_TOTSF 0 1 1\n", out);
+  ensemble->runDiagCommand(
+      "m ECI_GLOBAL_MEM_OPTIONS CPU_BYPASS_ECC_PAR=0\n", out);
+  ensemble->runDiagCommand("d raw disable_cache RTP_TOTSF 0 1\n", out);
+  ensemble->runDiagCommand("quit\n", out);
+  std::ignore = out;
+}
+
 void triggerCiscoParityError(HwSwitchEnsemble* ensemble) {
   SaiSwitchEnsemble* saiEnsemble = static_cast<SaiSwitchEnsemble*>(ensemble);
 
@@ -84,10 +101,11 @@ void triggerParityError(HwSwitchEnsemble* ensemble) {
     case cfg::AsicType::ASIC_TYPE_MOCK:
     case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
     case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
-    case cfg::AsicType::ASIC_TYPE_RAMON:
-    case cfg::AsicType::ASIC_TYPE_RAMON3:
       XLOG(FATAL) << "Unsupported HwAsic: "
                   << ensemble->getPlatform()->getAsic()->getAsicTypeStr();
+    case cfg::AsicType::ASIC_TYPE_RAMON:
+    case cfg::AsicType::ASIC_TYPE_RAMON3:
+      triggerBcmRamonParityError(ensemble);
       break;
     case cfg::AsicType::ASIC_TYPE_EBRO:
     case cfg::AsicType::ASIC_TYPE_GARONNE:
