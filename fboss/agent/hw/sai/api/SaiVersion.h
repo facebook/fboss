@@ -48,12 +48,16 @@
 #if defined(SAI_VERSION_8_2_0_0_ODP) ||                                        \
     defined(SAI_VERSION_8_2_0_0_SIM_ODP) ||                                    \
     defined(SAI_VERSION_9_2_0_0_ODP) || defined(SAI_VERSION_9_0_EA_SIM_ODP) || \
-    defined(SAI_VERSION_10_0_EA_ODP) || defined(SAI_VERSION_10_0_EA_SIM_ODP)
+    defined(SAI_VERSION_10_0_EA_ODP) ||                                        \
+    defined(SAI_VERSION_10_0_EA_SIM_ODP) ||                                    \
+    defined(SAI_VERSION_11_0_EA_ODP) || defined(SAI_VERSION_11_0_EA_SIM_ODP)
 #define BRCM_SAI_SDK_XGS
 #endif
 
-#if defined(SAI_VERSION_10_0_EA_DNX_ODP) || \
-    defined(SAI_VERSION_10_0_EA_DNX_SIM_ODP)
+#if defined(SAI_VERSION_10_0_EA_DNX_ODP) ||     \
+    defined(SAI_VERSION_10_0_EA_DNX_SIM_ODP) || \
+    defined(SAI_VERSION_11_0_EA_DNX_ODP) ||     \
+    defined(SAI_VERSION_11_0_EA_DNX_SIM_ODP)
 #define BRCM_SAI_SDK_DNX
 #endif
 
@@ -61,14 +65,21 @@
 #define BRCM_SAI_SDK_XGS_AND_DNX
 #endif
 
-#if defined(SAI_VERSION_10_0_EA_ODP) ||     \
-    defined(SAI_VERSION_10_0_EA_SIM_ODP) || \
-    defined(SAI_VERSION_10_0_EA_DNX_ODP) || \
+#if defined(SAI_VERSION_11_0_EA_ODP) ||     \
+    defined(SAI_VERSION_11_0_EA_SIM_ODP) || \
+    defined(SAI_VERSION_11_0_EA_DNX_ODP) || \
+    defined(SAI_VERSION_11_0_EA_DNX_SIM_ODP)
+#define BRCM_SAI_SDK_GTE_11_0
+#endif
+
+#if defined BCM_SAI_SDK_GTE_11_0 || defined(SAI_VERSION_10_0_EA_ODP) || \
+    defined(SAI_VERSION_10_0_EA_SIM_ODP) ||                             \
+    defined(SAI_VERSION_10_0_EA_DNX_ODP) ||                             \
     defined(SAI_VERSION_10_0_EA_DNX_SIM_ODP)
 #define BRCM_SAI_SDK_GTE_10_0
 #endif
 
-#if defined(BRCM_SAI_SDK_GTE_10_0) || defined(SAI_VERSION_9_2_0_0_ODP) || \
-    defined(SAI_VERSION_9_0_EA_SIM_ODP)
+#if defined(BRCM_SAI_SDK_GTE_10_0) || defined BRCM_SAI_GTE_11_0 || \
+    defined(SAI_VERSION_9_2_0_0_ODP) || defined(SAI_VERSION_9_0_EA_SIM_ODP)
 #define BRCM_SAI_SDK_GTE_9_2
 #endif
