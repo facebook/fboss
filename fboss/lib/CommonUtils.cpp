@@ -14,8 +14,7 @@ namespace facebook::fboss {
 void runShellCommand(const std::string& command, bool throwOnError) {
   try {
     auto shellCommand = "{}"_shellify(command);
-    folly::Subprocess proc{shellCommand};
-    proc.waitChecked();
+    runCommand(shellCommand);
   } catch (const std::exception& e) {
     XLOG(ERR) << "Exception while running shell command: " << command << ": "
               << e.what();
@@ -25,13 +24,13 @@ void runShellCommand(const std::string& command, bool throwOnError) {
   }
 }
 
-void runCommand(const std::string& command) {
+void runCommand(const std::vector<std::string>& argv) {
   try {
-    folly::Subprocess proc{command};
+    folly::Subprocess proc{argv};
     proc.waitChecked();
   } catch (const std::exception& e) {
-    XLOG(ERR) << "Exception while running shell command: " << command << ": "
-              << e.what();
+    XLOG(ERR) << "Exception while running shell command: "
+              << folly::join(" ", argv) << ": " << e.what();
     throw;
   }
 }
