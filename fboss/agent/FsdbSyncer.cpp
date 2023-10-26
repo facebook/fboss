@@ -6,7 +6,6 @@
 #include "fboss/facebook/bitsflow/BitsflowHelper.h"
 #endif
 
-
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/fsdb/client/FsdbPubSubManager.h"

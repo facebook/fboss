@@ -40,7 +40,7 @@ std::string SaiBcmPlatform::getHwConfig() {
     /*
      * (TODO): Once asic config v2 is rolled out to the fleet, we
      * should remove this fallback and always use the config v2
-    */
+     */
     auto& cfg = *config()->thrift.platform()->chip()->get_bcm().config();
     std::vector<std::string> nameValStrs;
     for (const auto& entry : cfg) {
