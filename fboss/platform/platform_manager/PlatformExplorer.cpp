@@ -19,7 +19,18 @@ PlatformExplorer::PlatformExplorer(
     std::chrono::seconds exploreInterval,
     const PlatformConfig& config)
     : platformConfig_(config) {
-  scheduler_.addFunction([this]() { explore(); }, exploreInterval);
+  scheduler_.addFunction(
+      [this, exploreInterval]() {
+        try {
+          explore();
+        } catch (const std::exception& ex) {
+          XLOG(ERR) << fmt::format(
+              "Exception while exploring platform: {}. Will retry after {} seconds.",
+              folly::exceptionStr(ex),
+              exploreInterval.count());
+        }
+      },
+      exploreInterval);
   scheduler_.start();
 }
 
