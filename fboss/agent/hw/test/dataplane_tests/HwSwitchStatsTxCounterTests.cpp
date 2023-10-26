@@ -23,9 +23,9 @@ namespace facebook::fboss {
 class HwSwitchStatsTxCounterTest : public HwTest {
  protected:
   cfg::SwitchConfig initialConfig() const {
-    return utility::oneL3IntfConfig(
+    return utility::onePortPerInterfaceConfig(
         getHwSwitch(),
-        masterLogicalPortIds()[0],
+        masterLogicalPortIds(),
         getAsic()->desiredLoopbackModes());
   }
   void checkTxCounters();
@@ -37,7 +37,7 @@ void HwSwitchStatsTxCounterTest::checkTxCounters() {
     const PortID port = PortID(masterLogicalPortIds()[0]);
     bool isOutOfPort = true;
     auto hwSwitch = getHwSwitch();
-    auto vlanId = utility::firstVlanID(initialConfig());
+    auto vlanId = utility::firstVlanID(getProgrammedState());
     auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     for (int i = 0; i < 2; i++) {
       isOutOfPort = !isOutOfPort;
