@@ -1102,7 +1102,7 @@ class BcmSwitch : public BcmSwitchIf {
   void processControlPlaneEntryRemoved(
       const std::shared_ptr<ControlPlane>& oldCPU);
 
-  void processDefaultAclgroupForUdf();
+  void processDefaultAclgroupForUdf(std::set<bcm_udf_id_t>& udfAclIds);
   void initialStateApplied() override;
 
   /*

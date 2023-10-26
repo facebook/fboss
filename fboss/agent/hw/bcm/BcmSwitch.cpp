@@ -1486,9 +1486,6 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImplLocked(
 
   processLoadBalancerChanges(delta);
 
-  // remove any udf after we are done processing load balancer
-  processUdfRemove(delta);
-
   // remove all routes to be deleted
   processRemovedRoutes(delta);
 
@@ -1576,6 +1573,9 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImplLocked(
 
   // Any ACL changes
   processAclChanges(delta);
+
+  // remove any udf after we are done processing load balancer and ACL
+  processUdfRemove(delta);
 
   // Any TeFlow changes
   processTeFlowChanges(delta, &appliedState);
@@ -3162,6 +3162,8 @@ void BcmSwitch::processLoadBalancerChanges(const StateDelta& delta) {
 }
 
 void BcmSwitch::processUdfAdd(const StateDelta& delta) {
+  std::set<bcm_udf_id_t> udfAclIds;
+
   forEachAdded(
       delta.getUdfPacketMatcherDelta(),
       &BcmSwitch::processAddedUdfPacketMatcher,
@@ -3169,6 +3171,8 @@ void BcmSwitch::processUdfAdd(const StateDelta& delta) {
 
   forEachAdded(
       delta.getUdfGroupDelta(), &BcmSwitch::processAddedUdfGroup, this);
+  udfManager_->getUdfAclGroupIds(udfAclIds);
+  processDefaultAclgroupForUdf(udfAclIds);
 }
 
 void BcmSwitch::processAddedUdfPacketMatcher(
@@ -3180,24 +3184,14 @@ void BcmSwitch::processAddedUdfPacketMatcher(
 void BcmSwitch::processAddedUdfGroup(const shared_ptr<UdfGroup>& udfGroup) {
   XLOG(DBG2) << "Adding udf group: " << udfGroup->getID();
   udfManager_->createUdfGroup(udfGroup);
-
-  // once all udf are finalized i.e. add->remove
-  processDefaultAclgroupForUdf();
 }
 
-void BcmSwitch::processDefaultAclgroupForUdf() {
-  std::set<bcm_udf_id_t> udfAclIds;
-  udfManager_->getUdfAclGroupIds(udfAclIds);
-
+void BcmSwitch::processDefaultAclgroupForUdf(
+    std::set<bcm_udf_id_t>& udfAclIds) {
   const auto& udfQsetIdsInHW = getUdfQsetIds(
       unit_,
       static_cast<bcm_field_group_t>(
           platform_->getAsic()->getDefaultACLGroupID()));
-  if (udfAclIds == udfQsetIdsInHW) {
-    // nothing to update here
-    XLOG(DBG2) << "UDF ACL id no change in HW";
-    return;
-  }
 
   auto aclIdsToString = [](const std::set<bcm_udf_id_t> udfSet) {
     std::string udfAclsIds;
@@ -3208,6 +3202,13 @@ void BcmSwitch::processDefaultAclgroupForUdf() {
     return udfAclsIds;
   };
 
+  if (udfAclIds == udfQsetIdsInHW) {
+    // nothing to update here
+    XLOG(DBG2) << "UDF ACL id no change in HW" << aclIdsToString(udfQsetIdsInHW)
+               << ", cfg acl set is: " << aclIdsToString(udfAclIds);
+    return;
+  }
+
   XLOG(DBG2) << "Udf id mismatch in default acl qset. Hw acl set is "
              << aclIdsToString(udfQsetIdsInHW) << ", cfg acl set is "
              << aclIdsToString(udfAclIds);
@@ -3216,9 +3217,25 @@ void BcmSwitch::processDefaultAclgroupForUdf() {
   createAclGroup(
       udfAclIds.size() ? std::optional<std::set<bcm_udf_id_t>>(udfAclIds)
                        : std::nullopt);
+  writableAclTable()->reprogramAclTable(
+      platform_->getAsic()->getDefaultACLGroupID());
 }
 
 void BcmSwitch::processUdfRemove(const StateDelta& delta) {
+  std::set<bcm_udf_id_t> udfAclIds;
+  udfManager_->getUdfAclGroupIds(udfAclIds);
+  // We would like to collect the latest set of udfGroups with type ACL after
+  // udfRemove so that we can reprogram the default acl group with the correct
+  // set of udfGroups inside  processDefaultAclgroupForUdf.
+  forEachRemoved(
+      delta.getUdfGroupDelta(), [&](const std::shared_ptr<UdfGroup>& udfGroup) {
+        if (udfManager_->getUdfGroupType(udfGroup->getID()) ==
+            cfg::UdfGroupType::ACL) {
+          udfAclIds.erase(udfManager_->getBcmUdfGroupId(udfGroup->getID()));
+        }
+      });
+
+  processDefaultAclgroupForUdf(udfAclIds);
   forEachRemoved(
       delta.getUdfGroupDelta(), &BcmSwitch::processRemovedUdfGroup, this);
 
@@ -3236,10 +3253,8 @@ void BcmSwitch::processRemovedUdfPacketMatcher(
 
 void BcmSwitch::processRemovedUdfGroup(const shared_ptr<UdfGroup>& udfGroup) {
   XLOG(DBG2) << "Removing udf group: " << udfGroup->getID();
-  udfManager_->deleteUdfGroup(udfGroup);
 
-  // once all udf are finalized i.e. add->remove
-  processDefaultAclgroupForUdf();
+  udfManager_->deleteUdfGroup(udfGroup);
 }
 
 void BcmSwitch::processChangedLoadBalancer(
@@ -3515,6 +3530,7 @@ void BcmSwitch::createAclGroup(
     updateUdfQset(unit_, qset, udfIds.value());
     enableQsetCompression = true;
   }
+
   createFPGroup(
       unit_,
       qset,

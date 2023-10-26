@@ -58,8 +58,13 @@ class BcmAclEntry {
       MirrorAction action,
       MirrorDirection direction);
 
- private:
+  int getGroupId() const {
+    return gid_;
+  }
+
   void createNewAclEntry();
+
+ private:
   void createAclQualifiers();
   void createAclActions();
   void createAclStat();

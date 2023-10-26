@@ -30,6 +30,15 @@ void BcmAclTable::releaseAcls() {
   aclStatMap_.clear();
 }
 
+void BcmAclTable::reprogramAclTable(const int groupId) {
+  for (const auto& aclEntry : aclEntryMap_) {
+    if (aclEntry.second->getGroupId() == groupId) {
+      XLOG(DBG3) << "Create acl entry" << aclEntry.second->getGroupId();
+      aclEntry.second->createNewAclEntry();
+    }
+  }
+}
+
 void BcmAclTable::processAddedAcl(
     const int groupId,
     const std::shared_ptr<AclEntry>& acl) {
