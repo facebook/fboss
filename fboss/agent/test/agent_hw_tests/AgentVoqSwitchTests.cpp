@@ -34,8 +34,7 @@ class AgentVoqSwitchTest : public SplitAgentTest {
               cpuStreamType, cfg::PortType::CPU_PORT)) {
         // cpu queues supported
         addCpuTrafficPolicy(config, asic);
-        utility::addCpuQueueConfig(
-            config, asic, this->getAgentEnsemble()->isSai());
+        utility::addCpuQueueConfig(config, asic, ensemble.isSai());
         break;
       }
     }
