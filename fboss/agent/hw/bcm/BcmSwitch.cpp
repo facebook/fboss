@@ -3204,14 +3204,15 @@ void BcmSwitch::processDefaultAclgroupForUdf(
 
   if (udfAclIds == udfQsetIdsInHW) {
     // nothing to update here
-    XLOG(DBG2) << "UDF ACL id no change in HW" << aclIdsToString(udfQsetIdsInHW)
-               << ", cfg acl set is: " << aclIdsToString(udfAclIds);
+    XLOG(DBG2) << "UDF ACL id no change. HW ids: "
+               << aclIdsToString(udfQsetIdsInHW)
+               << ". Config ids: " << aclIdsToString(udfAclIds);
     return;
   }
 
-  XLOG(DBG2) << "Udf id mismatch in default acl qset. Hw acl set is "
-             << aclIdsToString(udfQsetIdsInHW) << ", cfg acl set is "
-             << aclIdsToString(udfAclIds);
+  XLOG(DBG2) << "Udf id mismatch in qset. Hw ids: "
+             << aclIdsToString(udfQsetIdsInHW)
+             << " .Config ids: " << aclIdsToString(udfAclIds);
 
   clearFPGroup(unit_, platform_->getAsic()->getDefaultACLGroupID());
   createAclGroup(

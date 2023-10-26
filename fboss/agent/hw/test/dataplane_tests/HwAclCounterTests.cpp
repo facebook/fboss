@@ -329,4 +329,11 @@ TEST_F(HwUdfAclCounterTest, VerifyUdf) {
       true /* bump on hit */, true /* front panel port */, {AclType::UDF});
 }
 
+TEST_F(HwUdfAclCounterTest, VerifyUdfWithOtherAcls) {
+  counterBumpOnHitHelper(
+      true /* bump on hit */,
+      true /* front panel port */,
+      {AclType::UDF, AclType::SRC_PORT});
+}
+
 } // namespace facebook::fboss
