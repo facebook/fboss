@@ -38,6 +38,7 @@ DEFINE_int32(swswitch_port, 5959, "Port for SwSwitch");
 DEFINE_bool(enable_stats_update_thread, true, "Run stats update thread");
 
 using namespace std::chrono;
+using facebook::fboss::SwitchRunState;
 
 namespace {
 
@@ -47,9 +48,11 @@ namespace {
 void updateStats(
     facebook::fboss::HwSwitch* hw,
     facebook::fboss::SplitAgentThriftSyncer* syncer) {
-  hw->updateStats();
-  auto hwSwitchStats = hw->getHwSwitchStats();
-  syncer->updateHwSwitchStats(std::move(hwSwitchStats));
+  if (hw->getRunState() >= SwitchRunState::CONFIGURED) {
+    hw->updateStats();
+    auto hwSwitchStats = hw->getHwSwitchStats();
+    syncer->updateHwSwitchStats(std::move(hwSwitchStats));
+  }
 }
 } // namespace
 
@@ -99,6 +102,9 @@ int hwAgentMain(
 
   auto ret =
       hwAgent->initAgent(true /* failHwCallsOnWarmboot */, thriftSyncer.get());
+
+  hwAgent->getPlatform()->getHwSwitch()->switchRunStateChanged(
+      SwitchRunState::INITIALIZED);
 
   restart_time::init(
       hwAgent->getPlatform()->getDirectoryUtil()->getWarmBootDir(),
