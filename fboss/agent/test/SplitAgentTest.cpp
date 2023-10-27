@@ -6,8 +6,14 @@
 DEFINE_bool(run_forever, false, "run the test forever");
 DEFINE_bool(run_forever_on_failure, false, "run the test forever on failure");
 
+namespace {
+int kArgc;
+char** kArgv;
+} // namespace
+
 namespace facebook::fboss {
 void SplitAgentTest::SetUp() {
+  fbossCommonInit(kArgc, kArgv);
   FLAGS_verify_apply_oper_delta = true;
   FLAGS_hide_fabric_ports = hideFabricPorts();
   // Reset any global state being tracked in singletons
@@ -102,6 +108,12 @@ bool SplitAgentTest::hideFabricPorts() const {
   // we want to skip over fabric ports in a overwhelming
   // majority of test cases. Make this the default HwTest mode
   return true;
+}
+
+void initAgentHwTest(int argc, char* argv[], PlatformInitFn initPlatform) {
+  initEnsemble(initPlatform);
+  kArgc = argc;
+  kArgv = argv;
 }
 
 } // namespace facebook::fboss

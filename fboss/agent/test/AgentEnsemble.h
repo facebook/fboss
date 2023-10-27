@@ -185,7 +185,7 @@ class AgentEnsemble : public TestEnsembleIf {
   cfg::PortLoopbackMode mode_{cfg::PortLoopbackMode::MAC};
 };
 
-int ensembleMain(int argc, char* argv[], PlatformInitFn initPlatform);
+void initEnsemble(PlatformInitFn initPlatform);
 
 std::unique_ptr<AgentEnsemble> createAgentEnsemble(
     AgentEnsembleSwitchConfigFn initialConfigFn,

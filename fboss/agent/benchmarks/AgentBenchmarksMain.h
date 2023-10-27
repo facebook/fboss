@@ -6,6 +6,6 @@
 
 namespace facebook::fboss {
 
-void initBenchmarks(int argc, char* argv[]);
+void initBenchmarks();
 
 } // namespace facebook::fboss

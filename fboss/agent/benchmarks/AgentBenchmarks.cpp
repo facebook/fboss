@@ -2,12 +2,13 @@
 
 #include "fboss/agent/benchmarks/AgentBenchmarks.h"
 
-#include <folly/Benchmark.h>
+#include <gtest/gtest.h>
 
 namespace facebook::fboss {
 
-void benchmarksMain(int argc, char* argv[], PlatformInitFn initPlatform) {
-  ensembleMain(argc, argv, initPlatform);
+int benchmarksMain(PlatformInitFn initPlatform) {
+  initEnsemble(initPlatform);
+  return RUN_ALL_TESTS();
 }
 
 } // namespace facebook::fboss

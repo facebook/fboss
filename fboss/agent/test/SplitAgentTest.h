@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "fboss/agent/FbossInit.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/test/AgentEnsemble.h"
 
@@ -113,4 +114,7 @@ class SplitAgentTest : public ::testing::Test {
   AgentEnsemblePlatformConfigFn platformConfigFn_ = nullptr;
   std::unique_ptr<AgentEnsemble> agentEnsemble_;
 };
+
+void initAgentHwTest(int argc, char* argv[], PlatformInitFn initPlatform);
+
 } // namespace facebook::fboss

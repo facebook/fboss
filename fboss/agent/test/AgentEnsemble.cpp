@@ -23,7 +23,6 @@ DEFINE_bool(
 namespace {
 facebook::fboss::PlatformInitFn kPlatformInitFn;
 static std::string kInputConfigFile;
-
 } // namespace
 
 namespace facebook::fboss {
@@ -239,10 +238,8 @@ std::string AgentEnsemble::getInputConfigFile() {
   return kInputConfigFile;
 }
 
-int ensembleMain(int argc, char* argv[], PlatformInitFn initPlatform) {
-  fbossCommonInit(argc, argv);
+void initEnsemble(PlatformInitFn initPlatform) {
   kPlatformInitFn = std::move(initPlatform);
-  return RUN_ALL_TESTS();
 }
 
 std::map<PortID, HwPortStats> AgentEnsemble::getLatestPortStats(

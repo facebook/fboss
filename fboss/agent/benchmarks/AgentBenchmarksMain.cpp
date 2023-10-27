@@ -29,7 +29,8 @@ int main(int argc, char* argv[]) {
   struct rusage startUsage, endUsage;
   getrusage(RUSAGE_SELF, &startUsage);
   testing::InitGoogleTest(&argc, argv);
-  facebook::fboss::initBenchmarks(argc, argv);
+  facebook::fboss::fbossCommonInit(argc, argv);
+  facebook::fboss::initBenchmarks();
   folly::runBenchmarks();
 
   getrusage(RUSAGE_SELF, &endUsage);

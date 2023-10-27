@@ -7,8 +7,8 @@
 
 namespace facebook::fboss {
 
-void initBenchmarks(int argc, char* argv[]) {
-  benchmarksMain(argc, argv, initWedgePlatform);
+void initBenchmarks() {
+  benchmarksMain(initWedgePlatform);
 }
 
 } // namespace facebook::fboss
