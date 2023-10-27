@@ -383,6 +383,9 @@ SaiAclTableManager::cfgActionTypeListToSaiActionTypeList(
       case cfg::AclTableActionType::MIRROR_EGRESS:
         saiActionType = SAI_ACL_ACTION_TYPE_MIRROR_EGRESS;
         break;
+      case cfg::AclTableActionType::SET_USER_DEFINED_TRAP:
+        saiActionType = SAI_ACL_ACTION_TYPE_SET_USER_TRAP_ID;
+        break;
       default:
         // should return in one of the cases
         throw FbossError("Unsupported Acl Table action type");
@@ -853,14 +856,57 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
           AclEntryActionSaiObjectIdT(
               AclCounterSaiId{saiAclCounter->adapterKey()})};
     }
-
+    // SaiAclTableManager assumes queueId is always equal to tcVal when
+    // programming aclActionSetTC. We will remove this assumption by directly
+    // using the tc value from setTcAction instead. Before changing prod
+    // config to use setTc, we still need to keep sendToQueueAction logics
+    // temporaily.
+    std::optional<sai_uint8_t> tc = std::nullopt;
+    std::optional<bool> sendToCpu = std::nullopt;
     if (matchAction.getSendToQueue()) {
       auto sendToQueue = matchAction.getSendToQueue().value();
-      bool sendToCpu = sendToQueue.second;
+      tc = static_cast<sai_uint8_t>(*sendToQueue.first.queueId());
+      sendToCpu = sendToQueue.second;
+    }
+    if (matchAction.getSetTc()) {
+      auto setTc = matchAction.getSetTc().value();
+      tc = static_cast<sai_uint8_t>(*setTc.first.tcValue());
+      if (sendToCpu != std::nullopt && sendToCpu != setTc.second) {
+        throw FbossError(
+            "Inconsistent actions between sendToQueue with sendToCpu ",
+            (sendToCpu ? "true" : "false"),
+            " and setTc with sendToCpu ",
+            (setTc.second ? "true" : "false"));
+      }
+      sendToCpu = setTc.second;
+    }
+
+    auto setCopyOrTrap = [&aclActionPacketAction](
+                             bool supportCopyToCpu,
+                             const MatchAction& matchAction) {
+      if (matchAction.getToCpuAction()) {
+        switch (matchAction.getToCpuAction().value()) {
+          case cfg::ToCpuAction::COPY:
+            if (!supportCopyToCpu) {
+              throw FbossError("COPY_TO_CPU is not supported on this ASIC");
+            }
+            aclActionPacketAction =
+                SaiAclEntryTraits::Attributes::ActionPacketAction{
+                    SAI_PACKET_ACTION_COPY};
+            break;
+          case cfg::ToCpuAction::TRAP:
+            aclActionPacketAction =
+                SaiAclEntryTraits::Attributes::ActionPacketAction{
+                    SAI_PACKET_ACTION_TRAP};
+            break;
+        }
+      }
+    };
+
+    if (tc != std::nullopt) {
       if (!sendToCpu) {
-        auto queueId = static_cast<sai_uint8_t>(*sendToQueue.first.queueId());
         aclActionSetTC = SaiAclEntryTraits::Attributes::ActionSetTC{
-            AclEntryActionU8(queueId)};
+            AclEntryActionU8(tc.value())};
       } else {
         /*
          * When sendToCpu is set, a copy of the packet will be sent
@@ -874,52 +920,40 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
          * Tajo claims to map TC i to Queue i by default as well.
          * However, explicitly set the QoS Map and associate with the CPU port.
          */
-
-        auto setCopyOrTrap = [&aclActionPacketAction, &aclActionSetTC](
-                                 const MatchAction::SendToQueue& sendToQueue,
-                                 sai_uint32_t packetAction) {
-          aclActionPacketAction =
-              SaiAclEntryTraits::Attributes::ActionPacketAction{packetAction};
-
-          auto queueId = static_cast<sai_uint8_t>(*sendToQueue.first.queueId());
-          aclActionSetTC = SaiAclEntryTraits::Attributes::ActionSetTC{
-              AclEntryActionU8(queueId)};
-        };
-
-        if (matchAction.getToCpuAction()) {
-          switch (matchAction.getToCpuAction().value()) {
-            case cfg::ToCpuAction::COPY:
-              if (!platform_->getAsic()->isSupported(
-                      HwAsic::Feature::ACL_COPY_TO_CPU)) {
-                throw FbossError("COPY_TO_CPU is not supported on this ASIC");
-              }
-
-              setCopyOrTrap(sendToQueue, SAI_PACKET_ACTION_COPY);
-              break;
-            case cfg::ToCpuAction::TRAP:
-              setCopyOrTrap(sendToQueue, SAI_PACKET_ACTION_TRAP);
-              break;
-          }
-        }
-
-        if (platform_->getAsic()->isSupported(
-                HwAsic::Feature::SAI_USER_DEFINED_TRAP) &&
-            FLAGS_sai_user_defined_trap) {
-          // Some platform requires implementing ACL copy/trap to cpu action
-          // along with user defined trap action mapping to the desrited cpu
-          // queue, so as to make ACL rule take precedence over hostif trap
-          // rule.
-#if !defined(TAJO_SDK)
-          userDefinedTrap =
-              managerTable_->hostifManager().ensureHostifUserDefinedTrap(
-                  *sendToQueue.first.queueId());
-          aclActionSetUserTrap =
-              SaiAclEntryTraits::Attributes::ActionSetUserTrap{
-                  AclEntryActionSaiObjectIdT(
-                      userDefinedTrap->trap->adapterKey())};
-#endif
-        }
+        setCopyOrTrap(
+            platform_->getAsic()->isSupported(HwAsic::Feature::ACL_COPY_TO_CPU),
+            matchAction);
+        aclActionSetTC = SaiAclEntryTraits::Attributes::ActionSetTC{
+            AclEntryActionU8(tc.value())};
       }
+    }
+
+    if (platform_->getAsic()->isSupported(
+            HwAsic::Feature::SAI_USER_DEFINED_TRAP) &&
+        FLAGS_sai_user_defined_trap) {
+      // Some platform requires implementing ACL copy/trap to cpu action
+      // along with user defined trap action mapping to the desrited cpu
+      // queue, so as to make ACL rule take precedence over hostif trap
+      // rule.
+#if !defined(TAJO_SDK)
+      if (matchAction.getUserDefinedTrap()) {
+        auto queueId = *matchAction.getUserDefinedTrap().value().queueId();
+        if (tc != std::nullopt && tc != queueId) {
+          throw FbossError(
+              "Inconsistent ACL action between set tc value",
+              tc.value(),
+              " and set user defined trap with queue id ",
+              queueId);
+        }
+        userDefinedTrap =
+            managerTable_->hostifManager().ensureHostifUserDefinedTrap(queueId);
+        aclActionSetUserTrap = SaiAclEntryTraits::Attributes::ActionSetUserTrap{
+            AclEntryActionSaiObjectIdT(userDefinedTrap->trap->adapterKey())};
+        setCopyOrTrap(
+            platform_->getAsic()->isSupported(HwAsic::Feature::ACL_COPY_TO_CPU),
+            matchAction);
+      }
+#endif
     }
 
     if (matchAction.getIngressMirror().has_value()) {

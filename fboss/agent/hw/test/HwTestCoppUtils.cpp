@@ -252,6 +252,13 @@ cfg::MatchAction createQueueMatchAction(
   cfg::QueueMatchAction queueAction;
   queueAction.queueId() = queueId;
   action.sendToQueue() = queueAction;
+  cfg::UserDefinedTrapAction userDefinedTrap;
+  userDefinedTrap.queueId() = queueId;
+  action.userDefinedTrap() = userDefinedTrap;
+  // assume tc i maps to queue i for all i on sai switches
+  cfg::SetTcAction setTc;
+  setTc.tcValue() = queueId;
+  action.setTc() = setTc;
 
   switch (toCpuAction) {
     case cfg::ToCpuAction::COPY:
