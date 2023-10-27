@@ -41,6 +41,7 @@ constexpr int kUsecBetweenPowerModeFlap = 100000;
 constexpr int kUsecBetweenLaneInit = 10000;
 constexpr int kUsecVdmLatchHold = 100000;
 constexpr int kUsecDiagSelectLatchWait = 10000;
+constexpr int kUsecAfterAppProgramming = 500000;
 
 std::array<std::string, 9> channelConfigErrorMsg = {
     "No status available, config under progress",
@@ -1983,6 +1984,13 @@ void CmisModule::setApplicationCodeLocked(
     // we need to deactivate all the lanes when we switch to an application with
     // a different lane count. CMIS4.0-8.8.4
     resetDataPathWithFunc(setApplicationSelectCode, hostLaneMask);
+    // Certain OSFP Modules require a long time to finish application
+    // programming. The modules say config is accepted and applied, but
+    // internally the module will still be processing the config. If we don't
+    // have a delay here, the next application programming on a different lane
+    // gets rejected.
+    /* sleep override */
+    usleep(kUsecAfterAppProgramming);
 
     // Check if the config has been applied correctly or not
     if (!checkLaneConfigError(startHostLane, numHostLanes)) {

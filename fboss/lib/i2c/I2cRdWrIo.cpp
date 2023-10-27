@@ -38,12 +38,7 @@ void I2cRdWrIo::write(
   packets.msgs = messages;
   packets.nmsgs = 1;
 
-  if (ioctl(fd(), I2C_RDWR, &packets) >= 0) {
-    // Replicate a 50 ms delay after each write from YampI2c class to avoid
-    // invalidating previously qualified transceivers per review with HW optics
-    const auto usDelay = 50000;
-    /* sleep override */ usleep(usDelay);
-  } else {
+  if (ioctl(fd(), I2C_RDWR, &packets) < 0) {
     throw I2cDevImplError(fmt::format(
         "write() failed to write to {}, errno = {}",
         devName(),
@@ -68,12 +63,7 @@ void I2cRdWrIo::read(uint8_t addr, uint8_t offset, uint8_t* buf, int len) {
   packets.msgs = messages;
   packets.nmsgs = 2;
 
-  if (ioctl(fd(), I2C_RDWR, &packets) >= 0) {
-    // Replicate a 1 ms delay after each read from YampI2c class to avoid
-    // invalidating previously qualified transceivers per review with HW optics
-    const auto usDelay = 1000;
-    /* sleep override */ usleep(usDelay);
-  } else {
+  if (ioctl(fd(), I2C_RDWR, &packets) < 0) {
     throw I2cDevImplError(fmt::format(
         "read() failed to read from port {}, errno = {}",
         devName(),
