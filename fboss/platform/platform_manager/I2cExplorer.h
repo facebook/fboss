@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <filesystem>
 #include <map>
 #include <memory>
 #include <optional>
@@ -50,10 +51,17 @@ class I2cExplorer {
           std::make_shared<PlatformUtils>())
       : platformUtils_(platformUtils) {}
 
+  const re2::RE2 kI2cBusNameRegex{"i2c-\\d+"};
+
+  // Given a filepath to an i2c bus, this function returns the bus number.
+  // The i2c filepath should end in kI2cBusNameRegex, otherwise it throws
+  // an exception.
+  uint16_t extractBusNumFromPath(const std::filesystem::path& busPath);
+
   // This function takes as input the list of `i2cAdaptersFromCpu` defined
   // in the platform_manager_config.thrift, and provides the corresponding
   // kernel assigned bus numbers.
-  std::map<std::string, int16_t> getBusNums(
+  std::map<std::string, uint16_t> getBusNums(
       const std::vector<std::string>& i2cAdaptersFromCpu);
 
   // Checks if a I2c devices is present at `addr` on `busNum`.

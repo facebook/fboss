@@ -6,23 +6,9 @@
 #include <folly/String.h>
 #include <folly/logging/xlog.h>
 
-#include <filesystem>
-#include <stdexcept>
-
 namespace fs = std::filesystem;
 
 namespace {
-
-const re2::RE2 kI2cBusNameRegex{"i2c-\\d+"};
-
-int32_t extractBusNumFromPath(const fs::path& busPath) {
-  if (!re2::RE2::FullMatch(busPath.filename().string(), kI2cBusNameRegex)) {
-    XLOG(ERR) << "Invalid i2c bus path: " << busPath.string();
-    throw std::runtime_error("Invalid i2c bus path: " + busPath.string());
-  }
-  return folly::to<int32_t>(
-      busPath.string().substr(busPath.string().find_last_of("-") + 1));
-}
 
 std::string getI2cAdapterName(const fs::path& busPath) {
   auto nameFile = busPath / "name";
@@ -42,12 +28,22 @@ std::string getI2cAdapterName(const fs::path& busPath) {
 
 namespace facebook::fboss::platform::platform_manager {
 
-std::map<std::string, int16_t> I2cExplorer::getBusNums(
+uint16_t I2cExplorer::extractBusNumFromPath(const fs::path& busPath) {
+  if (!re2::RE2::FullMatch(busPath.filename().string(), kI2cBusNameRegex)) {
+    throw std::runtime_error(
+        fmt::format("Invalid path to i2c bus: {}", busPath.string()));
+  }
+  return folly::to<uint16_t>(
+      busPath.string().substr(busPath.string().find_last_of("-") + 1));
+}
+
+std::map<std::string, uint16_t> I2cExplorer::getBusNums(
     const std::vector<std::string>& i2cAdaptersFromCpu) {
-  std::map<std::string, int16_t> busNums;
+  std::map<std::string, uint16_t> busNums;
   auto deviceRoot = fs::path("/sys/bus/i2c/devices");
   for (const auto& dirEntry : fs::directory_iterator(deviceRoot)) {
-    if (dirEntry.path().filename().string().rfind("i2c-", 0) == 0) {
+    if (re2::RE2::FullMatch(
+            dirEntry.path().filename().string(), kI2cBusNameRegex)) {
       auto i2cAdapterName = getI2cAdapterName(dirEntry.path());
       if (std::find(
               i2cAdaptersFromCpu.begin(),
