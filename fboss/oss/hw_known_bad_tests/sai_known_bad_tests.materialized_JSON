@@ -317,25 +317,25 @@
           "test_name_regex": "HwCoppTest/1.*"
         },
         {
-          "test_name_regex": "HwCoppTest/0.Ipv6LinkLocalUcastToMidPriQ"
+          "test_name_regex": "HwCoppTest/0.VerifyCoppPpsLowPri"
         },
         {
           "test_name_regex": "HwCoppTest/0.EapolToHighPriQ"
         },
         {
-          "test_name_regex": "HwCoppTest/0.Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ"
-        },
-        {
           "test_name_regex": "HwCoppTest/0.DstIpNetworkControlDscpToHighPriQ"
         },
         {
-          "test_name_regex": "HwCoppTest/0.NdpSolicitNeighbor"
+          "test_name_regex": "HwCoppTest/0.UnresolvedRoutesToLowPriQueue"
         },
         {
-          "test_name_regex": "HwCoppTest/0.NdpAdvertisementToHighPriQ"
+          "test_name_regex": "HwCoppTest/0.JumboFramesToQueues"
         },
         {
-          "test_name_regex": "HwCoppTest/0.DHCPv6SolicitToMidPriQ"
+          "test_name_regex": "HwCoppTest/0.Ttl1PacketToLowPriQ"
+        },
+        {
+          "test_name_regex": "HwCoppTest/0.L3MTUErrorToLowPriQ"
         },
         {
           "test_name_regex": "HwPacketSendTest.LldpToFrontPanelOutOfPort"
@@ -348,9 +348,6 @@
         },
         {
           "test_name_regex": "HwRouteStatTest.*"
-        },
-        {
-          "test_name_regex": "HwCoppTest/0.VerifyCoppPpsLowPri"
         },
         {
           "test_name_regex": "HwDscpMarkingTest.*"
@@ -694,25 +691,25 @@
           "test_name_regex": "HwCoppTest/1.*"
         },
         {
-          "test_name_regex": "HwCoppTest/0.Ipv6LinkLocalUcastToMidPriQ"
+          "test_name_regex": "HwCoppTest/0.VerifyCoppPpsLowPri"
         },
         {
           "test_name_regex": "HwCoppTest/0.EapolToHighPriQ"
         },
         {
-          "test_name_regex": "HwCoppTest/0.Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ"
-        },
-        {
           "test_name_regex": "HwCoppTest/0.DstIpNetworkControlDscpToHighPriQ"
         },
         {
-          "test_name_regex": "HwCoppTest/0.NdpSolicitNeighbor"
+          "test_name_regex": "HwCoppTest/0.UnresolvedRoutesToLowPriQueue"
         },
         {
-          "test_name_regex": "HwCoppTest/0.NdpAdvertisementToHighPriQ"
+          "test_name_regex": "HwCoppTest/0.JumboFramesToQueues"
         },
         {
-          "test_name_regex": "HwCoppTest/0.DHCPv6SolicitToMidPriQ"
+          "test_name_regex": "HwCoppTest/0.Ttl1PacketToLowPriQ"
+        },
+        {
+          "test_name_regex": "HwCoppTest/0.L3MTUErrorToLowPriQ"
         },
         {
           "test_name_regex": "HwPacketSendTest.LldpToFrontPanelOutOfPort"
@@ -725,9 +722,6 @@
         },
         {
           "test_name_regex": "HwRouteStatTest.*"
-        },
-        {
-          "test_name_regex": "HwCoppTest/0.VerifyCoppPpsLowPri"
         },
         {
           "test_name_regex": "HwDscpMarkingTest.*"
@@ -1185,25 +1179,25 @@
           "test_name_regex": "HwCoppTest/1.*"
         },
         {
-          "test_name_regex": "HwCoppTest/0.Ipv6LinkLocalUcastToMidPriQ"
+          "test_name_regex": "HwCoppTest/0.VerifyCoppPpsLowPri"
         },
         {
           "test_name_regex": "HwCoppTest/0.EapolToHighPriQ"
         },
         {
-          "test_name_regex": "HwCoppTest/0.Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ"
-        },
-        {
           "test_name_regex": "HwCoppTest/0.DstIpNetworkControlDscpToHighPriQ"
         },
         {
-          "test_name_regex": "HwCoppTest/0.NdpSolicitNeighbor"
+          "test_name_regex": "HwCoppTest/0.UnresolvedRoutesToLowPriQueue"
         },
         {
-          "test_name_regex": "HwCoppTest/0.NdpAdvertisementToHighPriQ"
+          "test_name_regex": "HwCoppTest/0.JumboFramesToQueues"
         },
         {
-          "test_name_regex": "HwCoppTest/0.DHCPv6SolicitToMidPriQ"
+          "test_name_regex": "HwCoppTest/0.Ttl1PacketToLowPriQ"
+        },
+        {
+          "test_name_regex": "HwCoppTest/0.L3MTUErrorToLowPriQ"
         },
         {
           "test_name_regex": "HwPacketSendTest.LldpToFrontPanelOutOfPort"
@@ -1216,9 +1210,6 @@
         },
         {
           "test_name_regex": "HwRouteStatTest.*"
-        },
-        {
-          "test_name_regex": "HwCoppTest/0.VerifyCoppPpsLowPri"
         },
         {
           "test_name_regex": "HwDscpMarkingTest.*"
@@ -1521,9 +1512,6 @@
         },
         {
           "test_name_regex": "HwRouteScaleTest.turboFabricScaleTest"
-        },
-        {
-          "test_name_regex": "HwCoppTest.L3MTUErrorToLowPriQ"
         },
         {
           "test_name_regex": "HwCoppTest/0.L3MTUErrorToLowPriQ"
@@ -1898,9 +1886,6 @@
         },
         {
           "test_name_regex": "HwRouteScaleTest.turboFabricScaleTest"
-        },
-        {
-          "test_name_regex": "HwCoppTest.L3MTUErrorToLowPriQ"
         },
         {
           "test_name_regex": "HwCoppTest/0.L3MTUErrorToLowPriQ"
@@ -2542,9 +2527,6 @@
         },
         {
           "test_name_regex": "HwRouteScaleTest.turboFabricScaleTest"
-        },
-        {
-          "test_name_regex": "HwCoppTest.L3MTUErrorToLowPriQ"
         },
         {
           "test_name_regex": "HwCoppTest/0.L3MTUErrorToLowPriQ"
@@ -3245,25 +3227,25 @@
           "test_name_regex": "HwCoppTest/1.*"
         },
         {
-          "test_name_regex": "HwCoppTest/0.Ipv6LinkLocalUcastToMidPriQ"
+          "test_name_regex": "HwCoppTest/0.VerifyCoppPpsLowPri"
         },
         {
           "test_name_regex": "HwCoppTest/0.EapolToHighPriQ"
         },
         {
-          "test_name_regex": "HwCoppTest/0.Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ"
-        },
-        {
           "test_name_regex": "HwCoppTest/0.DstIpNetworkControlDscpToHighPriQ"
         },
         {
-          "test_name_regex": "HwCoppTest/0.NdpSolicitNeighbor"
+          "test_name_regex": "HwCoppTest/0.UnresolvedRoutesToLowPriQueue"
         },
         {
-          "test_name_regex": "HwCoppTest/0.NdpAdvertisementToHighPriQ"
+          "test_name_regex": "HwCoppTest/0.JumboFramesToQueues"
         },
         {
-          "test_name_regex": "HwCoppTest/0.DHCPv6SolicitToMidPriQ"
+          "test_name_regex": "HwCoppTest/0.Ttl1PacketToLowPriQ"
+        },
+        {
+          "test_name_regex": "HwCoppTest/0.L3MTUErrorToLowPriQ"
         },
         {
           "test_name_regex": "HwPacketSendTest.LldpToFrontPanelOutOfPort"
@@ -3276,9 +3258,6 @@
         },
         {
           "test_name_regex": "HwRouteStatTest.*"
-        },
-        {
-          "test_name_regex": "HwCoppTest/0.VerifyCoppPpsLowPri"
         },
         {
           "test_name_regex": "HwDscpMarkingTest.*"
@@ -3736,25 +3715,25 @@
           "test_name_regex": "HwCoppTest/1.*"
         },
         {
-          "test_name_regex": "HwCoppTest/0.Ipv6LinkLocalUcastToMidPriQ"
+          "test_name_regex": "HwCoppTest/0.VerifyCoppPpsLowPri"
         },
         {
           "test_name_regex": "HwCoppTest/0.EapolToHighPriQ"
         },
         {
-          "test_name_regex": "HwCoppTest/0.Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ"
-        },
-        {
           "test_name_regex": "HwCoppTest/0.DstIpNetworkControlDscpToHighPriQ"
         },
         {
-          "test_name_regex": "HwCoppTest/0.NdpSolicitNeighbor"
+          "test_name_regex": "HwCoppTest/0.UnresolvedRoutesToLowPriQueue"
         },
         {
-          "test_name_regex": "HwCoppTest/0.NdpAdvertisementToHighPriQ"
+          "test_name_regex": "HwCoppTest/0.JumboFramesToQueues"
         },
         {
-          "test_name_regex": "HwCoppTest/0.DHCPv6SolicitToMidPriQ"
+          "test_name_regex": "HwCoppTest/0.Ttl1PacketToLowPriQ"
+        },
+        {
+          "test_name_regex": "HwCoppTest/0.L3MTUErrorToLowPriQ"
         },
         {
           "test_name_regex": "HwPacketSendTest.LldpToFrontPanelOutOfPort"
@@ -3767,9 +3746,6 @@
         },
         {
           "test_name_regex": "HwRouteStatTest.*"
-        },
-        {
-          "test_name_regex": "HwCoppTest/0.VerifyCoppPpsLowPri"
         },
         {
           "test_name_regex": "HwDscpMarkingTest.*"
@@ -4212,9 +4188,6 @@
           "test_name_regex": "HwRouteScaleTest.turboFabricScaleTest"
         },
         {
-          "test_name_regex": "HwCoppTest.L3MTUErrorToLowPriQ"
-        },
-        {
           "test_name_regex": "HwCoppTest/0.L3MTUErrorToLowPriQ"
         },
         {
@@ -4581,9 +4554,6 @@
         },
         {
           "test_name_regex": "HwRouteScaleTest.turboFabricScaleTest"
-        },
-        {
-          "test_name_regex": "HwCoppTest.L3MTUErrorToLowPriQ"
         },
         {
           "test_name_regex": "HwCoppTest/0.L3MTUErrorToLowPriQ"
@@ -5182,9 +5152,6 @@
           "test_name_regex": "HwRouteScaleTest.turboFabricScaleTest"
         },
         {
-          "test_name_regex": "HwCoppTest.L3MTUErrorToLowPriQ"
-        },
-        {
           "test_name_regex": "HwCoppTest/0.L3MTUErrorToLowPriQ"
         },
         {
@@ -5739,9 +5706,6 @@
           "test_name_regex": "HwRouteScaleTest.turboFabricScaleTest"
         },
         {
-          "test_name_regex": "HwCoppTest.L3MTUErrorToLowPriQ"
-        },
-        {
           "test_name_regex": "HwCoppTest/0.L3MTUErrorToLowPriQ"
         },
         {
@@ -6141,9 +6105,6 @@
         },
         {
           "test_name_regex": "HwRouteScaleTest.turboFabricScaleTest"
-        },
-        {
-          "test_name_regex": "HwCoppTest.L3MTUErrorToLowPriQ"
         },
         {
           "test_name_regex": "HwCoppTest/0.L3MTUErrorToLowPriQ"
@@ -6799,9 +6760,6 @@
           "test_name_regex": "HwRouteScaleTest.turboFabricScaleTest"
         },
         {
-          "test_name_regex": "HwCoppTest.L3MTUErrorToLowPriQ"
-        },
-        {
           "test_name_regex": "HwCoppTest/0.L3MTUErrorToLowPriQ"
         },
         {
@@ -7365,9 +7323,6 @@
           "test_name_regex": "HwRouteScaleTest.turboFabricScaleTest"
         },
         {
-          "test_name_regex": "HwCoppTest.L3MTUErrorToLowPriQ"
-        },
-        {
           "test_name_regex": "HwCoppTest/0.L3MTUErrorToLowPriQ"
         },
         {
@@ -7743,9 +7698,6 @@
         },
         {
           "test_name_regex": "HwRouteScaleTest.turboFabricScaleTest"
-        },
-        {
-          "test_name_regex": "HwCoppTest.L3MTUErrorToLowPriQ"
         },
         {
           "test_name_regex": "HwCoppTest/0.L3MTUErrorToLowPriQ"
@@ -8377,9 +8329,6 @@
           "test_name_regex": "HwRouteScaleTest.turboFabricScaleTest"
         },
         {
-          "test_name_regex": "HwCoppTest.L3MTUErrorToLowPriQ"
-        },
-        {
           "test_name_regex": "HwCoppTest/0.L3MTUErrorToLowPriQ"
         },
         {
@@ -8881,9 +8830,6 @@
         },
         {
           "test_name_regex": "HwRouteScaleTest.turboFabricScaleTest"
-        },
-        {
-          "test_name_regex": "HwCoppTest.L3MTUErrorToLowPriQ"
         },
         {
           "test_name_regex": "HwCoppTest/0.L3MTUErrorToLowPriQ"
@@ -9449,9 +9395,6 @@
           "test_name_regex": "HwRouteScaleTest.turboFabricScaleTest"
         },
         {
-          "test_name_regex": "HwCoppTest.L3MTUErrorToLowPriQ"
-        },
-        {
           "test_name_regex": "HwCoppTest/0.L3MTUErrorToLowPriQ"
         },
         {
@@ -9851,9 +9794,6 @@
         },
         {
           "test_name_regex": "HwRouteScaleTest.turboFabricScaleTest"
-        },
-        {
-          "test_name_regex": "HwCoppTest.L3MTUErrorToLowPriQ"
         },
         {
           "test_name_regex": "HwCoppTest/0.L3MTUErrorToLowPriQ"
@@ -10509,9 +10449,6 @@
           "test_name_regex": "HwRouteScaleTest.turboFabricScaleTest"
         },
         {
-          "test_name_regex": "HwCoppTest.L3MTUErrorToLowPriQ"
-        },
-        {
           "test_name_regex": "HwCoppTest/0.L3MTUErrorToLowPriQ"
         },
         {
@@ -11039,9 +10976,6 @@
           "test_name_regex": "HwRouteScaleTest.turboFabricScaleTest"
         },
         {
-          "test_name_regex": "HwCoppTest.L3MTUErrorToLowPriQ"
-        },
-        {
           "test_name_regex": "HwCoppTest/0.L3MTUErrorToLowPriQ"
         },
         {
@@ -11465,9 +11399,6 @@
         },
         {
           "test_name_regex": "HwRouteScaleTest.turboFabricScaleTest"
-        },
-        {
-          "test_name_regex": "HwCoppTest.L3MTUErrorToLowPriQ"
         },
         {
           "test_name_regex": "HwCoppTest/0.L3MTUErrorToLowPriQ"
@@ -12249,9 +12180,6 @@
           "test_name_regex": "HwRouteScaleTest.turboFabricScaleTest"
         },
         {
-          "test_name_regex": "HwCoppTest.L3MTUErrorToLowPriQ"
-        },
-        {
           "test_name_regex": "HwCoppTest/0.L3MTUErrorToLowPriQ"
         },
         {
@@ -12627,9 +12555,6 @@
         },
         {
           "test_name_regex": "HwRouteScaleTest.turboFabricScaleTest"
-        },
-        {
-          "test_name_regex": "HwCoppTest.L3MTUErrorToLowPriQ"
         },
         {
           "test_name_regex": "HwCoppTest/0.L3MTUErrorToLowPriQ"
@@ -13264,9 +13189,6 @@
           "test_name_regex": "HwRouteScaleTest.turboFabricScaleTest"
         },
         {
-          "test_name_regex": "HwCoppTest.L3MTUErrorToLowPriQ"
-        },
-        {
           "test_name_regex": "HwCoppTest/0.L3MTUErrorToLowPriQ"
         },
         {
@@ -13768,9 +13690,6 @@
         },
         {
           "test_name_regex": "HwRouteScaleTest.turboFabricScaleTest"
-        },
-        {
-          "test_name_regex": "HwCoppTest.L3MTUErrorToLowPriQ"
         },
         {
           "test_name_regex": "HwCoppTest/0.L3MTUErrorToLowPriQ"
