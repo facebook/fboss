@@ -88,7 +88,7 @@ class PlatformExplorer {
       i2cBusNums_{};
 
   // Map from <slotPath, PmUnitScopedName> to instance ids for FPGAs.
-  std::map<std::pair<std::string, std::string>, int32_t> fpgaInstanceIds_{};
+  std::map<std::pair<std::string, std::string>, uint32_t> fpgaInstanceIds_{};
 };
 
 } // namespace facebook::fboss::platform::platform_manager
