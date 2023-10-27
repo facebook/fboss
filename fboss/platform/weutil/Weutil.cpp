@@ -1,13 +1,5 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
-
 #include "fboss/platform/weutil/Weutil.h"
-
-#include <folly/FileUtil.h>
-#include <folly/logging/xlog.h>
-#include <thrift/lib/cpp2/protocol/Serializer.h>
-#include <ios>
-#include <string>
-
 #include "fboss/lib/platforms/PlatformMode.h"
 #include "fboss/lib/platforms/PlatformProductInfo.h"
 #include "fboss/platform/config_lib/ConfigLib.h"
@@ -15,9 +7,15 @@
 #include "fboss/platform/weutil/WeutilImpl.h"
 #include "fboss/platform/weutil/if/gen-cpp2/weutil_config_types.h"
 
+#include <folly/FileUtil.h>
+#include <folly/logging/xlog.h>
+#include <thrift/lib/cpp2/protocol/Serializer.h>
+#include <ios>
+#include <string>
+
 namespace facebook::fboss::platform {
 
-PlainWeutilConfig parseConfig(const std::string& configFile) {
+WeutilInfo parseConfig(std::string eeprom, std::string configFile) {
   // In this method, we get the config file from ConfigLib,
   // then translate that thrift structure to a plain structure.
   // The reason of this is because we will share the same WeutilImpl
@@ -27,9 +25,7 @@ PlainWeutilConfig parseConfig(const std::string& configFile) {
   // to be translated as the plain config above
   weutil_config::WeutilConfig thriftConfig;
 
-  // And, the following is struct based config datastructure, that
-  // will be used inside WeutilImpl
-  PlainWeutilConfig config;
+  WeutilInfo info;
 
   // First, get the config file as string (JSON format)
   std::string weutilConfigJson;
@@ -51,19 +47,25 @@ PlainWeutilConfig parseConfig(const std::string& configFile) {
   XLOG(INFO) << apache::thrift::SimpleJSONSerializer::serialize<std::string>(
       thriftConfig);
 
-  // Finally, translate the thrift struct to a plain struct
-  config.chassisEeprom = *thriftConfig.chassisEepromName();
+  // Now, if the eeprom name is empty, use the chassis eeprom name
+  if (eeprom.empty()) {
+    eeprom = *thriftConfig.chassisEepromName();
+  }
+  std::transform(eeprom.begin(), eeprom.end(), eeprom.begin(), ::tolower);
+
+  // Finally, translate the module name into the actual eeprom path
   for (auto& [eepromName, eepromConfig] : *thriftConfig.fruEepromList()) {
     std::string fruName = eepromName;
     std::transform(fruName.begin(), fruName.end(), fruName.begin(), ::tolower);
-    std::string path = *eepromConfig.path();
-    int offset = *eepromConfig.offset();
-    int version = int(*eepromConfig.idEepromFormatVer());
-    config.configEntry[fruName] = {path, offset, version};
+    if (fruName == eeprom) {
+      info.eepromPath = *eepromConfig.path();
+      info.offset = *eepromConfig.offset();
+    }
+    info.modules.push_back(fruName);
   }
 
-  // Then return the plain struct.
-  return config;
+  // Then return the info.
+  return info;
 }
 
 std::unique_ptr<WeutilInterface> get_plat_weutil(
@@ -82,9 +84,9 @@ std::unique_ptr<WeutilInterface> get_plat_weutil(
       return nullptr;
     }
   } else {
-    PlainWeutilConfig config = parseConfig(configFile);
+    WeutilInfo info = parseConfig(eeprom, configFile);
     std::unique_ptr<WeutilImpl> pWeutilImpl =
-        std::make_unique<WeutilImpl>(eeprom, config);
+        std::make_unique<WeutilImpl>(info);
     if (pWeutilImpl->getEepromPath()) {
       return std::move(pWeutilImpl);
     } else {
@@ -98,12 +100,14 @@ std::unique_ptr<WeutilInterface> get_plat_weutil(
 }
 
 std::unique_ptr<WeutilInterface> get_meta_eeprom_handler(std::string path) {
-  // Absolute path is given. No config needed. Use dummy config instead.
-  PlainWeutilConfig dummyConfig;
   // Note that we pass path as the eeprom name, since we will skip the
   // eeprom name to the path translation (done by calling verify option method.)
-  std::unique_ptr<WeutilImpl> pWeutilImpl =
-      std::make_unique<WeutilImpl>(path, dummyConfig);
+  WeutilInfo info;
+  info.eepromPath = std::move(path);
+  // Offset is not used in this execution path,
+  // but we need to make our infer bot happy.
+  info.offset = 0;
+  std::unique_ptr<WeutilImpl> pWeutilImpl = std::make_unique<WeutilImpl>(info);
   return std::move(pWeutilImpl);
 }
 

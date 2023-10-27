@@ -16,6 +16,7 @@ add_library(weutil_lib
   fboss/platform/weutil/WeutilImpl.cpp
   fboss/platform/weutil/prefdl/Prefdl.cpp
   fboss/platform/weutil/Weutil.cpp
+  fboss/platform/weutil/FbossEepromParser.cpp
 )
 
 target_link_libraries(weutil_lib
