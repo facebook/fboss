@@ -2173,8 +2173,27 @@ void SaiSwitch::packetRxCallbackPort(
         : "None";
   };
 
+  uint32_t bufferOffset = 0;
+  if (platform_->getAsic()->getAsicType() ==
+      cfg::AsicType::ASIC_TYPE_JERICHO3) {
+    /*
+     * This is a temporary workaround for Jericho3 and will be removed
+     * once the issue is fixed. The packet received to CPU on the
+     * recycle port contains an extra 3 bytes before the actual packet data.
+     * This offset needs to be removed before passing the packet to sw.
+     */
+    auto recyclePortSaiId = managerTable_->switchManager().getCpuRecyclePort();
+    if (portSaiId == recyclePortSaiId) {
+      bufferOffset = 3;
+    }
+  }
   auto rxPacket = std::make_unique<SaiRxPacket>(
-      buffer_size, buffer, PortID(0), VlanID(0), rxReason, queueId);
+      buffer_size - bufferOffset,
+      (void*)((char*)(buffer) + bufferOffset),
+      PortID(0),
+      VlanID(0),
+      rxReason,
+      queueId);
   const auto portItr = concurrentIndices_->portIds.find(portSaiId);
   /*
    * When a packet is received with source port as cpu port, do the following:
