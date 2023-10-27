@@ -949,6 +949,11 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
     sysPort->setCorePortIndex(recyclePortInfo.corePortIndex);
     sysPort->setSpeedMbps(recyclePortInfo.speedMbps); // 10G
     sysPort->setNumVoqs(8);
+    if (auto cpuTrafficPolicy = cfg_->cpuTrafficPolicy()) {
+      if (auto trafficPolicy = cpuTrafficPolicy->trafficPolicy()) {
+        sysPort->setQosPolicy(*trafficPolicy->defaultQosPolicy());
+      }
+    }
     auto sysPorts = new_->getRemoteSystemPorts()->modify(&new_);
     sysPorts->addNode(sysPort, scopeResolver_.scope(sysPort));
     CHECK(node->getMac().has_value());
