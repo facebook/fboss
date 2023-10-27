@@ -12,26 +12,21 @@ using namespace folly::literals::shell_literals;
 namespace facebook::fboss {
 
 void runShellCommand(const std::string& command, bool throwOnError) {
-  try {
-    auto shellCommand = "{}"_shellify(command);
-    runCommand(shellCommand);
-  } catch (const std::exception& e) {
-    XLOG(ERR) << "Exception while running shell command: " << command << ": "
-              << e.what();
-    if (throwOnError) {
-      throw;
-    }
-  }
+  auto shellCommand = "{}"_shellify(command);
+  runCommand(shellCommand, throwOnError);
 }
 
-void runCommand(const std::vector<std::string>& argv) {
+void runCommand(const std::vector<std::string>& argv, bool throwOnError) {
+  XLOG(INFO) << "Running command: " << folly::join(" ", argv);
   try {
     folly::Subprocess proc{argv};
     proc.waitChecked();
   } catch (const std::exception& e) {
-    XLOG(ERR) << "Exception while running shell command: "
-              << folly::join(" ", argv) << ": " << e.what();
-    throw;
+    XLOG(ERR) << "Exception while running command: " << folly::join(" ", argv)
+              << ": " << e.what();
+    if (throwOnError) {
+      throw;
+    }
   }
 }
 
