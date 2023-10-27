@@ -11,26 +11,83 @@
 #include "fboss/platform/platform_manager/uapi/fbiob-ioctl.h"
 
 namespace fs = std::filesystem;
+using namespace facebook::fboss::platform::platform_manager;
+
+namespace {
+bool isSamePciId(const std::string& id1, const std::string& id2) {
+  return RE2::FullMatch(id1, PciExplorer().kPciIdRegex) &&
+      RE2::FullMatch(id2, PciExplorer().kPciIdRegex) && id1 == id2;
+}
+} // namespace
 
 namespace facebook::fboss::platform::platform_manager {
 
-std::string PciExplorer::getCharDevPath(
+PciDevice::PciDevice(
     const std::string& name,
     const std::string& vendorId,
     const std::string& deviceId,
     const std::string& subSystemVendorId,
     const std::string& subSystemDeviceId) {
-  auto charDevPath = fmt::format(
+  charDevPath_ = fmt::format(
       "/dev/fbiob_{}_{}",
       std::string(vendorId, 2, 4),
       std::string(deviceId, 2, 4));
-  if (!fs::exists(charDevPath)) {
+  if (!fs::exists(charDevPath_)) {
     throw std::runtime_error(fmt::format(
-        "No character device found at {} for {}", charDevPath, name));
+        "No character device found at {} for {}", charDevPath_, name));
   }
   XLOG(INFO) << fmt::format(
-      "Found character device {} for {}", charDevPath, name);
-  return charDevPath;
+      "Found character device {} for {}", charDevPath_, name);
+
+  for (const auto& dirEntry : fs::directory_iterator("/sys/bus/pci/devices")) {
+    std::string vendor, device, subSystemVendor, subSystemDevice;
+    auto deviceFilePath = dirEntry.path() / "device";
+    auto vendorFilePath = dirEntry.path() / "vendor";
+    auto subSystemVendorFilePath = dirEntry.path() / "subsystem_vendor";
+    auto subSystemDeviceFilePath = dirEntry.path() / "subsystem_device";
+    if (!folly::readFile(vendorFilePath.c_str(), vendor)) {
+      XLOG(ERR) << "Failed to read vendor file from " << dirEntry.path();
+    }
+    if (!folly::readFile(deviceFilePath.c_str(), device)) {
+      XLOG(ERR) << "Failed to read device file from " << dirEntry.path();
+    }
+    if (!folly::readFile(subSystemVendorFilePath.c_str(), subSystemVendor)) {
+      XLOG(ERR) << "Failed to read subsystem_vendor file from "
+                << dirEntry.path();
+    }
+    if (!folly::readFile(subSystemDeviceFilePath.c_str(), subSystemDevice)) {
+      XLOG(ERR) << "Failed to read subsystem_device file from "
+                << dirEntry.path();
+    }
+    if (isSamePciId(folly::trimWhitespace(vendor).str(), vendorId) &&
+        isSamePciId(folly::trimWhitespace(device).str(), deviceId) &&
+        isSamePciId(
+            folly::trimWhitespace(subSystemVendor).str(), subSystemVendorId) &&
+        isSamePciId(
+            folly::trimWhitespace(subSystemDevice).str(), subSystemDeviceId)) {
+      sysfsPath_ = dirEntry.path().string();
+      XLOG(INFO) << fmt::format(
+          "Found sysfs path {} for device {}", sysfsPath_, name);
+    }
+  }
+  if (sysfsPath_.empty()) {
+    throw std::runtime_error(fmt::format(
+        "No sysfs path found for {} with vendorId: {}, deviceId: {}, "
+        "subSystemVendorId: {}, subSystemDeviceId: {}",
+        name,
+        vendorId,
+        deviceId,
+        subSystemVendorId,
+        subSystemDeviceId));
+  }
+}
+
+std::string PciDevice::sysfsPath() const {
+  return sysfsPath_;
+}
+
+std::string PciDevice::charDevPath() const {
+  return charDevPath_;
 }
 
 std::vector<uint16_t> PciExplorer::createI2cAdapter(

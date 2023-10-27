@@ -8,17 +8,29 @@
 
 namespace facebook::fboss::platform::platform_manager {
 
-class PciExplorer {
+struct PciDevice {
  public:
-  const re2::RE2 kPciIdRegex{"0x[0-9a-f]{4}"};
-
-  // Returns the character device path of the given pci device at /dev/
-  std::string getCharDevPath(
+  PciDevice(
       const std::string& name,
       const std::string& vendorId,
       const std::string& deviceId,
       const std::string& subSystemVendorId,
       const std::string& subSystemDeviceId);
+  std::string sysfsPath() const;
+  std::string charDevPath() const;
+
+ private:
+  std::string vendorId_{};
+  std::string deviceId_{};
+  std::string subSystemVendorId_{};
+  std::string subSystemDeviceId_{};
+  std::string charDevPath_{};
+  std::string sysfsPath_{};
+};
+
+class PciExplorer {
+ public:
+  const re2::RE2 kPciIdRegex{"0x[0-9a-f]{4}"};
 
   // Create the I2C Adapter based on the given i2cAdapterConfig residing
   // at the given PciDevice path. It returns the the kernel assigned i2c bus

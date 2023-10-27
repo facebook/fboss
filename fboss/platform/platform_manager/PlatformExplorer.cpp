@@ -173,12 +173,13 @@ void PlatformExplorer::explorePciDevices(
     const std::string& slotPath,
     const std::vector<PciDeviceConfig>& pciDeviceConfigs) {
   for (const auto& pciDeviceConfig : pciDeviceConfigs) {
-    auto charDevPath = pciExplorer_.getCharDevPath(
+    auto pciDevice = PciDevice(
         *pciDeviceConfig.pmUnitScopedName(),
         *pciDeviceConfig.vendorId(),
         *pciDeviceConfig.deviceId(),
         *pciDeviceConfig.subSystemVendorId(),
         *pciDeviceConfig.subSystemDeviceId());
+    auto charDevPath = pciDevice.charDevPath();
     auto instId =
         getFpgaInstanceId(slotPath, *pciDeviceConfig.pmUnitScopedName());
     for (const auto& i2cAdapterConfig : *pciDeviceConfig.i2cAdapterConfigs()) {
