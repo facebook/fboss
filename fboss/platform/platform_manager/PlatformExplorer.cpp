@@ -11,7 +11,17 @@
 
 namespace {
 constexpr auto kRootSlotPath = "/";
+
+std::string getSlotPath(
+    const std::string& parentSlotPath,
+    const std::string& slotName) {
+  if (parentSlotPath == kRootSlotPath) {
+    return fmt::format("{}{}", kRootSlotPath, slotName);
+  } else {
+    return fmt::format("{}/{}", parentSlotPath, slotName);
+  }
 }
+} // namespace
 
 namespace facebook::fboss::platform::platform_manager {
 
@@ -83,7 +93,7 @@ void PlatformExplorer::exploreSlot(
     const std::string& parentSlotPath,
     const std::string& slotName,
     const SlotConfig& slotConfig) {
-  std::string childSlotPath = fmt::format("{}/{}", parentSlotPath, slotName);
+  std::string childSlotPath = getSlotPath(parentSlotPath, slotName);
   XLOG(INFO) << fmt::format("Exploring SlotPath {}", childSlotPath);
 
   if (slotConfig.presenceDetection() &&
