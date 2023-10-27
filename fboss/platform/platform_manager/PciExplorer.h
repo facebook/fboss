@@ -36,7 +36,7 @@ class PciExplorer {
   // at the given PciDevice path. It returns the the kernel assigned i2c bus
   // number(s) for the created adapter(s). Throw std::runtime_error on failure.
   std::vector<uint16_t> createI2cAdapter(
-      const std::string& pciDevPath,
+      const PciDevice& pciDevice,
       const I2cAdapterConfig& i2cAdapterConfig,
       uint32_t instanceId);
 

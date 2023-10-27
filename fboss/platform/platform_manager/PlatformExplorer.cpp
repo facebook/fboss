@@ -183,7 +183,14 @@ void PlatformExplorer::explorePciDevices(
     auto instId =
         getFpgaInstanceId(slotPath, *pciDeviceConfig.pmUnitScopedName());
     for (const auto& i2cAdapterConfig : *pciDeviceConfig.i2cAdapterConfigs()) {
-      pciExplorer_.createI2cAdapter(charDevPath, i2cAdapterConfig, instId++);
+      auto busNums =
+          pciExplorer_.createI2cAdapter(pciDevice, i2cAdapterConfig, instId++);
+      // Note: Support for multiple buses per adapter is not yet added.
+      CHECK_EQ(busNums.size(), 1);
+      updateI2cBusNum(
+          slotPath,
+          *i2cAdapterConfig.fpgaIpBlockConfig()->pmUnitScopedName(),
+          busNums[0]);
     }
     for (const auto& spiMasterConfig : *pciDeviceConfig.spiMasterConfigs()) {
       pciExplorer_.createSpiMaster(charDevPath, spiMasterConfig, instId++);

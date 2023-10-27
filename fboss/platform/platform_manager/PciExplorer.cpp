@@ -8,6 +8,7 @@
 #include <folly/String.h>
 #include <folly/logging/xlog.h>
 
+#include "fboss/platform/platform_manager/I2cExplorer.h"
 #include "fboss/platform/platform_manager/uapi/fbiob-ioctl.h"
 
 namespace fs = std::filesystem;
@@ -18,6 +19,16 @@ bool isSamePciId(const std::string& id1, const std::string& id2) {
   return RE2::FullMatch(id1, PciExplorer().kPciIdRegex) &&
       RE2::FullMatch(id2, PciExplorer().kPciIdRegex) && id1 == id2;
 }
+
+bool hasEnding(std::string const& input, std::string const& ending) {
+  if (input.length() >= ending.length()) {
+    return input.compare(
+               input.length() - ending.length(), ending.length(), ending) == 0;
+  } else {
+    return false;
+  }
+}
+
 } // namespace
 
 namespace facebook::fboss::platform::platform_manager {
@@ -91,10 +102,33 @@ std::string PciDevice::charDevPath() const {
 }
 
 std::vector<uint16_t> PciExplorer::createI2cAdapter(
-    const std::string& pciDevPath,
+    const PciDevice& pciDevice,
     const I2cAdapterConfig& i2cAdapterConfig,
     uint32_t instanceId) {
-  create(pciDevPath, *i2cAdapterConfig.fpgaIpBlockConfig(), instanceId);
+  create(
+      pciDevice.charDevPath(),
+      *i2cAdapterConfig.fpgaIpBlockConfig(),
+      instanceId);
+  std::string expectedEnding = fmt::format(
+      ".{}.{}",
+      *i2cAdapterConfig.fpgaIpBlockConfig()->deviceName(),
+      instanceId);
+  for (const auto& dirEntry : fs::directory_iterator(pciDevice.sysfsPath())) {
+    if (hasEnding(dirEntry.path().string(), expectedEnding)) {
+      for (const auto& childDirEntry :
+           fs::directory_iterator(dirEntry.path())) {
+        if (re2::RE2::FullMatch(
+                childDirEntry.path().filename().string(),
+                I2cExplorer().kI2cBusNameRegex)) {
+          return {I2cExplorer().extractBusNumFromPath(childDirEntry.path())};
+        }
+      }
+    }
+  }
+  XLOG(ERR) << fmt::format(
+      "Could not find any I2C buses under {} for {}",
+      pciDevice.sysfsPath(),
+      *i2cAdapterConfig.fpgaIpBlockConfig()->deviceName());
   return {};
 }
 
