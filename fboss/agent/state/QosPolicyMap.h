@@ -78,8 +78,8 @@ class MultiSwitchQosPolicyMap : public ThriftMultiSwitchMapNode<
       MultiSwitchQosPolicyMapTraits>;
   using BaseT::modify;
 
-  MultiSwitchQosPolicyMap() {}
-  virtual ~MultiSwitchQosPolicyMap() {}
+  MultiSwitchQosPolicyMap() = default;
+  virtual ~MultiSwitchQosPolicyMap() = default;
 
   MultiSwitchQosPolicyMap* modify(std::shared_ptr<SwitchState>* state);
 

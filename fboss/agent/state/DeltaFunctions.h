@@ -35,9 +35,7 @@ enum class LoopAction : uint32_t {
  * Notably, these are the forEachChanged(), forEachAdded(), and
  * forEachRemoved() functions.
  */
-namespace facebook::fboss {
-
-namespace DeltaFunctions {
+namespace facebook::fboss::DeltaFunctions {
 
 /*
  * Invoke the specified functions for each modified, added, and removed node.
@@ -154,6 +152,4 @@ bool isEmpty(const Delta& delta) {
   return empty;
 }
 
-} // namespace DeltaFunctions
-
-} // namespace facebook::fboss
+} // namespace facebook::fboss::DeltaFunctions

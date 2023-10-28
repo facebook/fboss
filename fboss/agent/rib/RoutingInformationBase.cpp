@@ -246,7 +246,7 @@ void RibRouteTables::reconfigure(
   // parallelizing this loop. Converting this loop to use task-level
   // parallelism should be straightfoward because it has been written to avoid
   // dependencies across different iterations of the loop.
-  for (auto vrf : existingVrfs) {
+  for (const auto& vrf : existingVrfs) {
     // First handle the VRFs for which no interface routes exist
     if (configRouterIDToInterfaceRoutes.find(vrf) !=
         configRouterIDToInterfaceRoutes.end()) {

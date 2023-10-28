@@ -26,7 +26,8 @@ ForwardingInformationBaseContainer::ForwardingInformationBaseContainer(
   set<switch_state_tags::vrf>(vrf);
 }
 
-ForwardingInformationBaseContainer::~ForwardingInformationBaseContainer() {}
+ForwardingInformationBaseContainer::~ForwardingInformationBaseContainer() =
+    default;
 
 RouterID ForwardingInformationBaseContainer::getID() const {
   return RouterID(get<switch_state_tags::vrf>()->cref());

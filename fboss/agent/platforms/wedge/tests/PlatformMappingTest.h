@@ -16,9 +16,7 @@
 #include <gtest/gtest.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
 
-namespace facebook {
-namespace fboss {
-namespace test {
+namespace facebook::fboss::test {
 class PlatformMappingTest : public ::testing::Test {
  public:
   void SetUp() override {}
@@ -188,6 +186,4 @@ class PlatformMappingTest : public ::testing::Test {
   int expectedNumTcvr_{0};
   std::vector<cfg::PlatformPortConfigFactor> expectedProfileFactors_;
 };
-} // namespace test
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss::test

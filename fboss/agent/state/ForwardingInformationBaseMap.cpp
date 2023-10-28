@@ -16,9 +16,9 @@
 
 namespace facebook::fboss {
 
-ForwardingInformationBaseMap::ForwardingInformationBaseMap() {}
+ForwardingInformationBaseMap::ForwardingInformationBaseMap() = default;
 
-ForwardingInformationBaseMap::~ForwardingInformationBaseMap() {}
+ForwardingInformationBaseMap::~ForwardingInformationBaseMap() = default;
 
 std::shared_ptr<ForwardingInformationBaseContainer>
 ForwardingInformationBaseMap::getFibContainerIf(RouterID vrf) const {

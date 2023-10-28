@@ -15,9 +15,9 @@
 
 namespace facebook::fboss {
 
-PortMap::PortMap() {}
+PortMap::PortMap() = default;
 
-PortMap::~PortMap() {}
+PortMap::~PortMap() = default;
 
 std::shared_ptr<Port> MultiSwitchPortMap::getPort(
     const std::string& name) const {
@@ -30,8 +30,8 @@ std::shared_ptr<Port> MultiSwitchPortMap::getPort(
 
 std::shared_ptr<Port> MultiSwitchPortMap::getPortIf(
     const std::string& name) const {
-  for (auto portMap : std::as_const(*this)) {
-    for (auto port : std::as_const(*portMap.second)) {
+  for (const auto& portMap : std::as_const(*this)) {
+    for (const auto& port : std::as_const(*portMap.second)) {
       if (name == port.second->getName()) {
         return port.second;
       }

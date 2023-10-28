@@ -64,7 +64,7 @@ const std::shared_ptr<Interface> InterfaceMap::getInterfaceInVlan(
 const std::shared_ptr<Interface> InterfaceMap::getIntfToReach(
     RouterID router,
     const folly::IPAddress& dest) const {
-  for (auto itr : std::as_const(*this)) {
+  for (const auto& itr : std::as_const(*this)) {
     const auto& intf = itr.second;
     if (intf->getRouterID() == router && intf->canReachAddress(dest)) {
       return intf;

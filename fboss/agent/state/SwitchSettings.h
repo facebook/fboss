@@ -102,8 +102,7 @@ class SwitchSettings
           iter->cref<switch_state_tags::blockNeighborVlanID>()->toThrift());
       auto blockedNeighborIP = network::toIPAddress(
           iter->cref<switch_state_tags::blockNeighborIP>()->toThrift());
-      blockedNeighbors.push_back(
-          std::make_pair(blockedVlanID, blockedNeighborIP));
+      blockedNeighbors.emplace_back(blockedVlanID, blockedNeighborIP);
     }
     return blockedNeighbors;
   }
@@ -145,7 +144,7 @@ class SwitchSettings
           iter->cref<switch_state_tags::macAddrToBlockVlanID>()->toThrift());
       auto blockedMac = folly::MacAddress(
           iter->cref<switch_state_tags::macAddrToBlockAddr>()->toThrift());
-      macAddrs.push_back(std::make_pair(blockedVlanID, blockedMac));
+      macAddrs.emplace_back(blockedVlanID, blockedMac);
     }
     return macAddrs;
   }
@@ -455,7 +454,7 @@ class SwitchSettings
 
   void setDefaultVoqConfig(const QueueConfig& queues) {
     std::vector<PortQueueFields> queuesThrift{};
-    for (auto queue : queues) {
+    for (const auto& queue : queues) {
       queuesThrift.push_back(queue->toThrift());
     }
     set<switch_state_tags::defaultVoqConfig>(std::move(queuesThrift));
@@ -505,8 +504,8 @@ class MultiSwitchSettings
   using BaseT = ThriftMapNode<MultiSwitchSettings, MultiSwitchSettingsTraits>;
   using BaseT::modify;
 
-  MultiSwitchSettings() {}
-  virtual ~MultiSwitchSettings() {}
+  MultiSwitchSettings() = default;
+  virtual ~MultiSwitchSettings() = default;
 
  private:
   // Inherit the constructors required for clone()

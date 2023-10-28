@@ -60,7 +60,7 @@ class MultiControlPlane;
  */
 class StateDelta {
  public:
-  StateDelta() {}
+  StateDelta() = default;
   StateDelta(
       std::shared_ptr<SwitchState> oldState,
       std::shared_ptr<SwitchState> newState);

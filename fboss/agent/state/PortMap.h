@@ -74,8 +74,8 @@ class MultiSwitchPortMap : public ThriftMultiSwitchMapNode<
   std::shared_ptr<Port> getPort(const std::string& name) const;
   std::shared_ptr<Port> getPortIf(const std::string& name) const;
 
-  MultiSwitchPortMap() {}
-  virtual ~MultiSwitchPortMap() {}
+  MultiSwitchPortMap() = default;
+  virtual ~MultiSwitchPortMap() = default;
 
  private:
   // Inherit the constructors required for clone()

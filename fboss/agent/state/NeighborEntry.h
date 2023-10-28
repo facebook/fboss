@@ -28,7 +28,7 @@ enum class NeighborState { UNVERIFIED, PENDING, REACHABLE };
 // TODO: retire  NeighborEntryFields and use state::NeighborEntryFields direcly
 template <typename IPADDR>
 struct NeighborEntryFields {
-  typedef IPADDR AddressType;
+  using AddressType = IPADDR;
 
   NeighborEntryFields(
       AddressType ip,
@@ -120,7 +120,7 @@ template <typename IPADDR, typename SUBCLASS>
 class NeighborEntry
     : public ThriftStructNode<SUBCLASS, state::NeighborEntryFields> {
  public:
-  typedef IPADDR AddressType;
+  using AddressType = IPADDR;
 
   NeighborEntry(
       AddressType ip,
@@ -273,7 +273,7 @@ class NeighborEntry
   std::string str() const;
 
  private:
-  typedef ThriftStructNode<SUBCLASS, state::NeighborEntryFields> Parent;
+  using Parent = ThriftStructNode<SUBCLASS, state::NeighborEntryFields>;
   // Inherit the constructors required for clone()
   using Parent::Parent;
   friend class CloneAllocator;

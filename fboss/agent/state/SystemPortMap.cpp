@@ -15,9 +15,9 @@
 
 namespace facebook::fboss {
 
-SystemPortMap::SystemPortMap() {}
+SystemPortMap::SystemPortMap() = default;
 
-SystemPortMap::~SystemPortMap() {}
+SystemPortMap::~SystemPortMap() = default;
 
 std::shared_ptr<SystemPort> SystemPortMap::getSystemPort(
     const std::string& name) const {

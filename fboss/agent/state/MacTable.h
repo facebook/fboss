@@ -18,7 +18,6 @@
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/types.h"
 
-#include <folly/MacAddress.h>
 #include <string>
 
 namespace facebook::fboss {

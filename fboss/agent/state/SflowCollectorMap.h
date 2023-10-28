@@ -72,8 +72,8 @@ class MultiSwitchSflowCollectorMap : public ThriftMultiSwitchMapNode<
       MultiSwitchSflowCollectorMapTraits>;
   using BaseT::modify;
 
-  MultiSwitchSflowCollectorMap() {}
-  virtual ~MultiSwitchSflowCollectorMap() {}
+  MultiSwitchSflowCollectorMap() = default;
+  virtual ~MultiSwitchSflowCollectorMap() = default;
   MultiSwitchSflowCollectorMap* modify(std::shared_ptr<SwitchState>* state);
 
  private:

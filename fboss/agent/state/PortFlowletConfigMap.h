@@ -38,8 +38,8 @@ class PortFlowletCfgMap
  public:
   using Base = ThriftMapNode<PortFlowletCfgMap, PortFlowletCfgMapTraits>;
   using Traits = PortFlowletCfgMapTraits;
-  PortFlowletCfgMap() {}
-  virtual ~PortFlowletCfgMap() {}
+  PortFlowletCfgMap() = default;
+  virtual ~PortFlowletCfgMap() = default;
 
  private:
   // Inherit the constructors required for clone()
@@ -72,8 +72,8 @@ class MultiSwitchPortFlowletCfgMap : public ThriftMultiSwitchMapNode<
       MultiSwitchPortFlowletCfgMapTraits>;
   using BaseT::modify;
 
-  MultiSwitchPortFlowletCfgMap() {}
-  virtual ~MultiSwitchPortFlowletCfgMap() {}
+  MultiSwitchPortFlowletCfgMap() = default;
+  virtual ~MultiSwitchPortFlowletCfgMap() = default;
 
   MultiSwitchPortFlowletCfgMap* modify(std::shared_ptr<SwitchState>* state);
 

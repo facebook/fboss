@@ -25,7 +25,7 @@ class FlowletSwitchingConfig : public ThriftStructNode<
  public:
   using BaseT =
       ThriftStructNode<FlowletSwitchingConfig, cfg::FlowletSwitchingConfig>;
-  explicit FlowletSwitchingConfig() {}
+  explicit FlowletSwitchingConfig() = default;
 
   void setInactivityIntervalUsecs(const uint16_t inactivityIntervalUsecs) {
     set<switch_config_tags::inactivityIntervalUsecs>(inactivityIntervalUsecs);

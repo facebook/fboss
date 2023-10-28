@@ -51,7 +51,7 @@ class SystemPort
   void resetPortQueues(const QueueConfig& queues) {
     // TODO: change type to ThriftListNode
     std::vector<PortQueueFields> queuesThrift{};
-    for (auto queue : queues) {
+    for (const auto& queue : queues) {
       queuesThrift.push_back(queue->toThrift());
     }
     set<switch_state_tags::queues>(std::move(queuesThrift));

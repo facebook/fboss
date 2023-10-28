@@ -20,9 +20,9 @@ auto constexpr kLabelNextHop = "labelNextHop";
 auto constexpr kLabelNextHopsByClient = "labelNextHopMulti";
 } // namespace
 
-LabelForwardingInformationBase::LabelForwardingInformationBase() {}
+LabelForwardingInformationBase::LabelForwardingInformationBase() = default;
 
-LabelForwardingInformationBase::~LabelForwardingInformationBase() {}
+LabelForwardingInformationBase::~LabelForwardingInformationBase() = default;
 
 bool MultiLabelForwardingInformationBase::isValidNextHopSet(
     const LabelNextHopSet& nexthops) {

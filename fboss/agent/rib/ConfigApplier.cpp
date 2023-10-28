@@ -95,7 +95,7 @@ void ConfigApplier::apply() {
     RouteNextHopEntry nextHop(
         static_cast<NextHop>(resolvedNextHop),
         AdminDistance::DIRECTLY_CONNECTED);
-    interfaceRoutes.push_back({network, nextHop});
+    interfaceRoutes.emplace_back(network, nextHop);
   }
   updater.update(
       {{ClientID::STATIC_ROUTE, staticRoutes},

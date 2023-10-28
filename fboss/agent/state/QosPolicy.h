@@ -24,7 +24,7 @@ namespace facebook::fboss {
 template <typename QosAttrT>
 class TrafficClassToQosAttributeMap {
  public:
-  TrafficClassToQosAttributeMap() {}
+  TrafficClassToQosAttributeMap() = default;
   explicit TrafficClassToQosAttributeMap(
       const state::TrafficClassToQosAttributeMap& map) {
     this->writableData() = map;
@@ -83,7 +83,7 @@ class TrafficClassToQosAttributeMap {
 
 class ExpMap : public TrafficClassToQosAttributeMap<EXP> {
  public:
-  ExpMap() {}
+  ExpMap() = default;
   explicit ExpMap(std::vector<cfg::ExpQosMap> cfg);
   explicit ExpMap(const state::TrafficClassToQosAttributeMap& map)
       : TrafficClassToQosAttributeMap(map) {}
@@ -91,7 +91,7 @@ class ExpMap : public TrafficClassToQosAttributeMap<EXP> {
 
 class DscpMap : public TrafficClassToQosAttributeMap<DSCP> {
  public:
-  DscpMap() {}
+  DscpMap() = default;
   explicit DscpMap(std::vector<cfg::DscpQosMap> cfg);
   explicit DscpMap(const state::TrafficClassToQosAttributeMap& map)
       : TrafficClassToQosAttributeMap(map) {}

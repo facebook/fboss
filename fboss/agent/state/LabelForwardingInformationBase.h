@@ -7,7 +7,6 @@
 #include <fboss/agent/state/LabelForwardingEntry.h>
 #include <cstdint>
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
-#include "fboss/agent/state/LabelForwardingEntry.h"
 #include "fboss/agent/state/NodeMap.h"
 #include "fboss/agent/state/Route.h"
 
@@ -78,8 +77,8 @@ class MultiLabelForwardingInformationBase
       MultiLabelForwardingInformationBaseTraits>;
   using BaseT::modify;
 
-  MultiLabelForwardingInformationBase() {}
-  virtual ~MultiLabelForwardingInformationBase() {}
+  MultiLabelForwardingInformationBase() = default;
+  virtual ~MultiLabelForwardingInformationBase() = default;
 
   static bool isValidNextHopSet(const LabelNextHopSet& nexthops);
 

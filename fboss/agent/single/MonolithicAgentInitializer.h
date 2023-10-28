@@ -20,11 +20,9 @@
 #include <mutex>
 #include <string>
 
-namespace apache {
-namespace thrift {
+namespace apache::thrift {
 class ThriftServer;
-}
-} // namespace apache
+} // namespace apache::thrift
 
 namespace facebook::fboss {
 
@@ -46,7 +44,7 @@ class MonolithicSwSwitchInitializer : public SwSwitchInitializer {
 
 class MonolithicAgentInitializer : public SwAgentInitializer {
  public:
-  MonolithicAgentInitializer() {}
+  MonolithicAgentInitializer() = default;
   MonolithicAgentInitializer(
       std::unique_ptr<AgentConfig> config,
       uint32_t hwFeaturesDesired,
@@ -55,7 +53,7 @@ class MonolithicAgentInitializer : public SwAgentInitializer {
     return hwAgent_->getPlatform();
   }
 
-  virtual ~MonolithicAgentInitializer() override {}
+  virtual ~MonolithicAgentInitializer() override = default;
   void createSwitch(
       std::unique_ptr<AgentConfig> config,
       uint32_t hwFeaturesDesired,

@@ -62,8 +62,8 @@ template <typename IPADDR, typename ENTRY, typename SUBCLASS>
 class NeighborTable
     : public ThriftMapNode<SUBCLASS, NbrTableTraits<SUBCLASS, ENTRY>> {
  public:
-  typedef IPADDR AddressType;
-  typedef ENTRY Entry;
+  using AddressType = IPADDR;
+  using Entry = ENTRY;
   using ThriftMapNode<SUBCLASS, NbrTableTraits<SUBCLASS, ENTRY>>::modify;
   NeighborTable();
 

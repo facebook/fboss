@@ -66,11 +66,7 @@ class AclTtl {
     return std::tie(value_, mask_) == std::tie(ttl.value_, ttl.mask_);
   }
 
-  AclTtl& operator=(const AclTtl& ttl) {
-    value_ = ttl.value_;
-    mask_ = ttl.mask_;
-    return *this;
-  }
+  AclTtl& operator=(const AclTtl& ttl) = default;
 
   state::AclTtl toThrift() const;
   static AclTtl fromThrift(state::AclTtl const& entry);

@@ -48,8 +48,8 @@ class ForwardingInformationBase
           ForwardingInformationBase<AddressT>,
           ForwardingInformationBaseTraits<AddressT>> {
  public:
-  ForwardingInformationBase() {}
-  virtual ~ForwardingInformationBase() override {}
+  ForwardingInformationBase() = default;
+  virtual ~ForwardingInformationBase() override = default;
 
   using Base = ThriftMapNode<
       ForwardingInformationBase<AddressT>,

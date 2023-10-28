@@ -66,7 +66,7 @@ std::optional<cfg::SwitchType> SwitchSettings::l3SwitchType() const {
   }
   CHECK(l3SwitchTypes.size() <= 1)
       << "Only one type of l3 switch type must be present";
-  if (l3SwitchTypes.size()) {
+  if (!l3SwitchTypes.empty()) {
     return *l3SwitchTypes.begin();
   }
   return std::nullopt;
@@ -84,7 +84,7 @@ std::unordered_set<SwitchID> SwitchSettings::getSwitchIdsOfType(
 }
 
 bool SwitchSettings::vlansSupported() const {
-  return getSwitchIdsOfType(cfg::SwitchType::NPU).size() > 0;
+  return !getSwitchIdsOfType(cfg::SwitchType::NPU).empty();
 }
 
 template class ThriftStructNode<SwitchSettings, state::SwitchSettingsFields>;

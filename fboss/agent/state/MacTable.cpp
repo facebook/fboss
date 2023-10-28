@@ -14,9 +14,9 @@
 
 namespace facebook::fboss {
 
-MacTable::MacTable() {}
+MacTable::MacTable() = default;
 
-MacTable::~MacTable() {}
+MacTable::~MacTable() = default;
 
 MacTable* MacTable::modify(Vlan** vlan, std::shared_ptr<SwitchState>* state) {
   if (!isPublished()) {

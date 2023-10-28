@@ -16,9 +16,9 @@
 
 namespace facebook::fboss {
 
-AclTableGroupMap::AclTableGroupMap() {}
+AclTableGroupMap::AclTableGroupMap() = default;
 
-AclTableGroupMap::~AclTableGroupMap() {}
+AclTableGroupMap::~AclTableGroupMap() = default;
 
 std::shared_ptr<AclTableGroupMap>
 AclTableGroupMap::createDefaultAclTableGroupMapFromThrift(

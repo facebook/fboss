@@ -55,9 +55,9 @@ template <typename IPADDR, typename ENTRY, typename SUBCLASS>
 class NeighborResponseTable
     : public ThriftMapNode<SUBCLASS, NbrResponseTableTraits<SUBCLASS, ENTRY>> {
  public:
-  typedef IPADDR AddressType;
+  using AddressType = IPADDR;
 
-  NeighborResponseTable() {}
+  NeighborResponseTable() = default;
 
   std::shared_ptr<ENTRY> getEntry(AddressType ip) const {
     return this->getNodeIf(ip.str());

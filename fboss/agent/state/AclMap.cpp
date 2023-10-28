@@ -16,9 +16,9 @@
 
 namespace facebook::fboss {
 
-AclMap::AclMap() {}
+AclMap::AclMap() = default;
 
-AclMap::~AclMap() {}
+AclMap::~AclMap() = default;
 
 std::set<cfg::AclTableQualifier> PrioAclMap::requiredQualifiers() const {
   std::set<cfg::AclTableQualifier> qualifiers{};

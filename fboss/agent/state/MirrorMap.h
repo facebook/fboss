@@ -28,8 +28,8 @@ class MirrorMap : public ThriftMapNode<MirrorMap, MirrorMapTraits> {
  public:
   using Traits = MirrorMapTraits;
   using BaseT = ThriftMapNode<MirrorMap, MirrorMapTraits>;
-  MirrorMap() {}
-  virtual ~MirrorMap() {}
+  MirrorMap() = default;
+  virtual ~MirrorMap() = default;
 
   static std::shared_ptr<MirrorMap> fromThrift(
       const std::map<std::string, state::MirrorFields>& mirrors);

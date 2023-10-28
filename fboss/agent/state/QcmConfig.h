@@ -21,8 +21,8 @@ namespace facebook::fboss {
 
 class SwitchState;
 
-typedef std::map<int, int> WeightMap;
-typedef std::map<int, std::set<int>> Port2QosQueueIdMap;
+using WeightMap = std::map<int, int>;
+using Port2QosQueueIdMap = std::map<int, std::set<int>>;
 
 USE_THRIFT_COW(QcmCfg);
 

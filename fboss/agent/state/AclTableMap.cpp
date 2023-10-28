@@ -20,9 +20,9 @@ constexpr auto kAclTable1 = "AclTable1";
 
 namespace facebook::fboss {
 
-AclTableMap::AclTableMap() {}
+AclTableMap::AclTableMap() = default;
 
-AclTableMap::~AclTableMap() {}
+AclTableMap::~AclTableMap() = default;
 
 std::shared_ptr<AclTableMap> AclTableMap::createDefaultAclTableMapFromThrift(
     std::map<std::string, state::AclEntryFields> const& thriftMap) {

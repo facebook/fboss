@@ -36,19 +36,11 @@ class MatchAction {
   using SetTc = std::pair<cfg::SetTcAction, bool>;
   using UserDefinedTrap = cfg::UserDefinedTrapAction;
 
-  MatchAction() {}
+  MatchAction() = default;
 
   MatchAction(const MatchAction& action)
-      : sendToQueue_(action.sendToQueue_),
-        trafficCounter_(action.trafficCounter_),
-        setDscp_(action.setDscp_),
-        ingressMirror_(action.ingressMirror_),
-        egressMirror_(action.egressMirror_),
-        toCpuAction_(action.toCpuAction_),
-        macsecFlow_(action.macsecFlow_),
-        redirectToNextHop_(action.redirectToNextHop_),
-        setTc_(action.setTc_),
-        userDefinedTrap_(action.userDefinedTrap_) {}
+
+      = default;
 
   std::optional<SendToQueue> getSendToQueue() const {
     return sendToQueue_;

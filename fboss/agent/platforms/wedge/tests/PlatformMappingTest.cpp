@@ -111,10 +111,10 @@ TEST_F(PlatformMappingTest, VerifyWedge400PortIphyPinConfigs) {
         profiles.end()) {
       continue;
     }
-    for (auto profile : profiles) {
+    for (const auto& profile : profiles) {
       auto pinCfgs = mapping->getPortIphyPinConfigs(
           PlatformPortProfileConfigMatcher(profile.first, PortID(port.first)));
-      EXPECT_TRUE(pinCfgs.size() > 0);
+      EXPECT_TRUE(!pinCfgs.empty());
 
       auto itProfileCfg = mapping->getPortProfileConfig(
           PlatformPortProfileConfigMatcher(PlatformPortProfileConfigMatcher(
@@ -169,7 +169,7 @@ TEST_F(PlatformMappingTest, VerifyWedge400PortIphyPinConfigs) {
       {PortID(137), {0, -6, 92, -24, 0, 0}},
   };
 
-  for (auto uplinkTx : uplinkTxMapForProfile23) {
+  for (const auto& uplinkTx : uplinkTxMapForProfile23) {
     // this is profile 23
     const auto& pinCfgs =
         mapping->getPortIphyPinConfigs(PlatformPortProfileConfigMatcher(
@@ -224,7 +224,7 @@ TEST_F(PlatformMappingTest, VerifyWedge400PortIphyPinConfigs) {
       {PortID(132), {0, -6, 94, -22, 0, 0}},
   };
 
-  for (auto uplinkTx : downlinkTxMapForProfile23) {
+  for (const auto& uplinkTx : downlinkTxMapForProfile23) {
     // this is profile 23
     const auto& pinCfgs =
         mapping->getPortIphyPinConfigs(PlatformPortProfileConfigMatcher(
@@ -389,7 +389,7 @@ TEST_F(PlatformMappingTest, VerifyWedge400PortIphyPinConfigs) {
           },
       };
 
-  for (auto laneToUplinkTxSettingsToPortMap : uplinkTxMapForProfile25) {
+  for (const auto& laneToUplinkTxSettingsToPortMap : uplinkTxMapForProfile25) {
     // this is profile 25
     const auto& pinCfgs =
         mapping->getPortIphyPinConfigs(PlatformPortProfileConfigMatcher(
@@ -637,7 +637,7 @@ TEST_F(PlatformMappingTest, VerifyWedge400PortIphyPinConfigs) {
           },
       };
 
-  for (auto laneToUplinkTxSettingsToPortMap : uplinkTxMapForProfile26) {
+  for (const auto& laneToUplinkTxSettingsToPortMap : uplinkTxMapForProfile26) {
     const auto& pinCfgs =
         mapping->getPortIphyPinConfigs(PlatformPortProfileConfigMatcher(
             cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N_OPTICAL,
@@ -730,7 +730,7 @@ TEST_F(PlatformMappingTest, VerifyMinipack2PortPhyPinConfigs) {
 TEST_F(PlatformMappingTest, VerifyYampPortProfileConfigOverride) {
   auto mapping = std::make_unique<YampPlatformMapping>("");
   cfg::PlatformPortConfigOverrideFactor factor;
-  for (auto port : mapping->getPlatformPorts()) {
+  for (const auto& port : mapping->getPlatformPorts()) {
     factor.mediaInterfaceCode() = MediaInterfaceCode::CWDM4_100G;
     auto portProfileConfig =
         mapping->getPortProfileConfig(PlatformPortProfileConfigMatcher(
@@ -772,7 +772,7 @@ TEST_F(PlatformMappingTest, VerifyYampPortXphyLinePinConfigOverride) {
   std::array<int, 6> YampPort100GSffXphyLinePinConfig = {0, -4, 23, -12, 0, 0};
   std::array<int, 6> YampPort100GCmisXphyLinePinConfig = {0, -2, 15, -7, 0, 0};
 
-  for (auto port : mapping->getPlatformPorts()) {
+  for (const auto& port : mapping->getPlatformPorts()) {
     factor.transceiverManagementInterface() =
         TransceiverManagementInterface::SFF;
     auto portXphyLinePinConfigs = mapping->getPortXphySidePinConfigs(
@@ -1071,7 +1071,7 @@ TEST_F(PlatformMappingTest, VerifyWedge100DownlinkPortIphyPinConfigs) {
     }
 
     const auto& profiles = *port.second.supportedProfiles();
-    for (auto profile : profiles) {
+    for (const auto& profile : profiles) {
       // skip uplink profiles
       if (downlinkProfiles.find(profile.first) == downlinkProfiles.end()) {
         continue;
@@ -1179,7 +1179,7 @@ TEST_F(PlatformMappingTest, VerifyWedge100UplinkPortIphyPinConfigs) {
       continue;
     }
     const auto& profiles = *port.second.supportedProfiles();
-    for (auto profile : profiles) {
+    for (const auto& profile : profiles) {
       auto pinCfgs = mapping->getPortIphyPinConfigs(
           PlatformPortProfileConfigMatcher(profile.first, PortID(port.first)));
       for (auto pinCfg : pinCfgs) {

@@ -100,7 +100,7 @@ StateDelta::StateDelta(
   new_->publish();
 }
 
-StateDelta::~StateDelta() {}
+StateDelta::~StateDelta() = default;
 
 MultiSwitchMapDelta<MultiSwitchPortMap> StateDelta::getPortsDelta() const {
   return MultiSwitchMapDelta<MultiSwitchPortMap>(

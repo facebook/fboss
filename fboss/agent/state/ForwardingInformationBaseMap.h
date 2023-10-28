@@ -95,8 +95,8 @@ class MultiSwitchForwardingInformationBaseMap
       MultiSwitchForwardingInformationBaseMapTraits>;
   using BaseT::modify;
 
-  MultiSwitchForwardingInformationBaseMap() {}
-  virtual ~MultiSwitchForwardingInformationBaseMap() {}
+  MultiSwitchForwardingInformationBaseMap() = default;
+  virtual ~MultiSwitchForwardingInformationBaseMap() = default;
 
   void updateForwardingInformationBaseContainer(
       const std::shared_ptr<ForwardingInformationBaseContainer>& fibContainer,

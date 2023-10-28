@@ -25,9 +25,8 @@ namespace facebook::fboss {
 
 class FunctionStateUpdate : public StateUpdate {
  public:
-  typedef std::function<std::shared_ptr<SwitchState>(
-      const std::shared_ptr<SwitchState>&)>
-      StateUpdateFn;
+  using StateUpdateFn = std::function<std::shared_ptr<SwitchState>(
+      const std::shared_ptr<SwitchState>&)>;
 
   FunctionStateUpdate(
       folly::StringPiece name,
@@ -96,9 +95,8 @@ class BlockingUpdateResult {
 
 class BlockingStateUpdate : public StateUpdate {
  public:
-  typedef std::function<std::shared_ptr<SwitchState>(
-      const std::shared_ptr<SwitchState>&)>
-      StateUpdateFn;
+  using StateUpdateFn = std::function<std::shared_ptr<SwitchState>(
+      const std::shared_ptr<SwitchState>&)>;
 
   BlockingStateUpdate(
       folly::StringPiece name,

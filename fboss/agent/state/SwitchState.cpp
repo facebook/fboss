@@ -147,7 +147,7 @@ SwitchState::SwitchState() {
   resetSwitchSettings(std::make_shared<MultiSwitchSettings>());
 }
 
-SwitchState::~SwitchState() {}
+SwitchState::~SwitchState() = default;
 
 void SwitchState::modify(std::shared_ptr<SwitchState>* state) {
   if (!(*state)->isPublished()) {

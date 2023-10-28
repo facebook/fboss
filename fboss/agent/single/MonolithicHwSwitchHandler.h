@@ -20,7 +20,7 @@ class MonolithicHwSwitchHandler : public HwSwitchHandler {
       const cfg::SwitchInfo& info,
       SwSwitch* sw);
 
-  virtual ~MonolithicHwSwitchHandler() override {}
+  virtual ~MonolithicHwSwitchHandler() override = default;
 
   void exitFatal() const override;
 

@@ -89,8 +89,8 @@ class MultiSwitchAggregatePortMap : public ThriftMultiSwitchMapNode<
       MultiSwitchAggregatePortMapTraits>;
   using BaseT::modify;
 
-  MultiSwitchAggregatePortMap() {}
-  virtual ~MultiSwitchAggregatePortMap() {}
+  MultiSwitchAggregatePortMap() = default;
+  virtual ~MultiSwitchAggregatePortMap() = default;
 
   MultiSwitchAggregatePortMap* modify(std::shared_ptr<SwitchState>* state);
 

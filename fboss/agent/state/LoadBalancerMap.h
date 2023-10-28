@@ -44,8 +44,8 @@ class LoadBalancerMap
 
   using Base::Base;
 
-  LoadBalancerMap() {}
-  ~LoadBalancerMap() override {}
+  LoadBalancerMap() = default;
+  ~LoadBalancerMap() override = default;
   std::shared_ptr<LoadBalancer> getLoadBalancerIf(LoadBalancerID id) const;
 
   void addLoadBalancer(std::shared_ptr<LoadBalancer> loadBalancer);

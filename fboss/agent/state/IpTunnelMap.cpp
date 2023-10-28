@@ -8,9 +8,9 @@
 
 namespace facebook::fboss {
 
-IpTunnelMap::IpTunnelMap() {}
+IpTunnelMap::IpTunnelMap() = default;
 
-IpTunnelMap::~IpTunnelMap() {}
+IpTunnelMap::~IpTunnelMap() = default;
 
 void IpTunnelMap::addTunnel(const std::shared_ptr<IpTunnel>& tunnel) {
   addNode(tunnel);

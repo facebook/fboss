@@ -17,9 +17,9 @@
 
 namespace facebook::fboss {
 
-AggregatePortMap::AggregatePortMap() {}
+AggregatePortMap::AggregatePortMap() = default;
 
-AggregatePortMap::~AggregatePortMap() {}
+AggregatePortMap::~AggregatePortMap() = default;
 
 std::shared_ptr<AggregatePort> AggregatePortMap::getAggregatePortForPortImpl(
     PortID port) const {

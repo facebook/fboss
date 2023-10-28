@@ -72,8 +72,8 @@ class MultiSwitchBufferPoolCfgMap : public ThriftMultiSwitchMapNode<
       MultiSwitchBufferPoolCfgMapTraits>;
   using BaseT::modify;
 
-  MultiSwitchBufferPoolCfgMap() {}
-  virtual ~MultiSwitchBufferPoolCfgMap() {}
+  MultiSwitchBufferPoolCfgMap() = default;
+  virtual ~MultiSwitchBufferPoolCfgMap() = default;
 
   MultiSwitchBufferPoolCfgMap* modify(std::shared_ptr<SwitchState>* state);
 

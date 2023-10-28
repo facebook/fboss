@@ -63,7 +63,7 @@ class InterfaceMap : public ThriftMapNode<InterfaceMap, InterfaceMapTraits> {
       RouterID router,
       const folly::IPAddress& ip) const;
 
-  typedef std::vector<std::shared_ptr<Interface>> Interfaces;
+  using Interfaces = std::vector<std::shared_ptr<Interface>>;
 
   /*
    *  Get interface which has the given vlan. If multiple

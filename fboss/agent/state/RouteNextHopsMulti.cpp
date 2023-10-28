@@ -39,7 +39,7 @@ std::vector<ClientAndNextHops> RouteNextHopsMulti::toThriftLegacy() const {
 }
 
 std::string RouteNextHopsMulti::strLegacy() const {
-  std::string ret = "";
+  std::string ret;
   auto mapRef = map();
   for (auto const& row : *mapRef) {
     ClientID clientid = row.first;
@@ -151,7 +151,7 @@ void RouteNextHopsMulti::update(
 ClientID RouteNextHopsMulti::findLowestAdminDistance(
     const state::RouteNextHopsMulti& nexthopsmulti) {
   const auto& map = *nexthopsmulti.client2NextHopEntry();
-  if (map.size() == 0) {
+  if (map.empty()) {
     // We'll set it on the next add
     return ClientID(-1);
   }

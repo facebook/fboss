@@ -110,8 +110,8 @@ class MultiSwitchAclTableGroupMap : public ThriftMultiSwitchMapNode<
       MultiSwitchAclTableGroupMapTraits>;
   using BaseT::modify;
 
-  MultiSwitchAclTableGroupMap() {}
-  virtual ~MultiSwitchAclTableGroupMap() {}
+  MultiSwitchAclTableGroupMap() = default;
+  virtual ~MultiSwitchAclTableGroupMap() = default;
 
  private:
   // Inherit the constructors required for clone()

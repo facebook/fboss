@@ -61,7 +61,7 @@ struct LegacyAggregatePortFields {
       boost::container::flat_map<PortID, ParticipantInfo>;
 
   struct Subport {
-    Subport() {}
+    Subport() = default;
     Subport(
         PortID id,
         uint16_t pri,

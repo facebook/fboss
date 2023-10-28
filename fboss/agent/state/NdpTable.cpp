@@ -13,7 +13,7 @@
 
 namespace facebook::fboss {
 
-typedef NeighborTableTraits<folly::IPAddressV6, NdpEntry> NdpTableTraits;
+using NdpTableTraits = NeighborTableTraits<folly::IPAddressV6, NdpEntry>;
 template class NeighborTable<folly::IPAddressV6, NdpEntry, NdpTable>;
 
 } // namespace facebook::fboss

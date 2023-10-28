@@ -22,7 +22,7 @@ class GalaxyPlatform : public WedgeTomahawkPlatform {
  public:
   using WedgeTomahawkPlatform::WedgeTomahawkPlatform;
 
-  ~GalaxyPlatform() override {}
+  ~GalaxyPlatform() override = default;
 
  private:
   GalaxyPlatform(GalaxyPlatform const&) = delete;

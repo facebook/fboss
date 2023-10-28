@@ -15,9 +15,9 @@
 
 namespace facebook::fboss {
 
-QosPolicyMap::QosPolicyMap() {}
+QosPolicyMap::QosPolicyMap() = default;
 
-QosPolicyMap::~QosPolicyMap() {}
+QosPolicyMap::~QosPolicyMap() = default;
 
 MultiSwitchQosPolicyMap* MultiSwitchQosPolicyMap::modify(
     std::shared_ptr<SwitchState>* state) {

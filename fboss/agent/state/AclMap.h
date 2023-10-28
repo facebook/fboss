@@ -124,8 +124,8 @@ struct PrioAclMapTraits {
 
 class PrioAclMap : public NodeMapT<PrioAclMap, PrioAclMapTraits> {
  public:
-  PrioAclMap() {}
-  ~PrioAclMap() override {}
+  PrioAclMap() = default;
+  ~PrioAclMap() override = default;
 
   void addAcls(const std::shared_ptr<const AclMap>& acls) {
     for (const auto& iter : *acls) {

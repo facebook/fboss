@@ -26,7 +26,7 @@ struct NodeMapFields {
   using ExtraFields = typename TraitsT::ExtraFields;
   using NodeContainer = typename TraitsT::NodeContainer;
 
-  NodeMapFields() {}
+  NodeMapFields() = default;
   NodeMapFields(NodeContainer nodes) : nodes(std::move(nodes)) {}
   NodeMapFields(const NodeMapFields& other, NodeContainer nodes)
       : nodes(std::move(nodes)), extra(other.extra) {}

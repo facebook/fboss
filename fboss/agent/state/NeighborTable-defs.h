@@ -22,7 +22,7 @@
 namespace facebook::fboss {
 
 template <typename IPADDR, typename ENTRY, typename SUBCLASS>
-NeighborTable<IPADDR, ENTRY, SUBCLASS>::NeighborTable() {}
+NeighborTable<IPADDR, ENTRY, SUBCLASS>::NeighborTable() = default;
 
 template <typename IPADDR, typename ENTRY, typename SUBCLASS>
 SUBCLASS* NeighborTable<IPADDR, ENTRY, SUBCLASS>::modify(

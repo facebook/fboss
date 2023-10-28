@@ -13,7 +13,6 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/if/gen-cpp2/mpls_types.h"
-#include "fboss/agent/state/RouteNextHop.h"
 #include "folly/IPAddress.h"
 
 namespace facebook::fboss {

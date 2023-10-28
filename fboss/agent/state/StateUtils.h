@@ -13,9 +13,7 @@
 
 #include "fboss/agent/types.h"
 
-namespace facebook::fboss {
-
-namespace util {
+namespace facebook::fboss::util {
 
 /**
  * Utility functions for InterfaceID <-> ifName (on host)
@@ -34,6 +32,4 @@ auto getFirstNodeIf(const std::shared_ptr<MultiSwitchMapT>& map) {
   return map->size() ? map->cbegin()->second : nullptr;
 }
 
-} // namespace util
-
-} // namespace facebook::fboss
+} // namespace facebook::fboss::util

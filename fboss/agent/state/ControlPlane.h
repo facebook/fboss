@@ -43,14 +43,14 @@ class ControlPlane
 
   using RxReasonToQueue = std::vector<cfg::PacketRxReasonToQueue>;
 
-  ControlPlane() {}
+  ControlPlane() = default;
 
   const auto& getQueues() const {
     return cref<switch_state_tags::queues>();
   }
   void resetQueues(QueueConfig& queues) {
     std::vector<PortQueueFields> queuesThrift{};
-    for (auto queue : queues) {
+    for (const auto& queue : queues) {
       queuesThrift.push_back(queue->toThrift());
     }
     set<switch_state_tags::queues>(std::move(queuesThrift));
@@ -113,8 +113,8 @@ class MultiControlPlane
   using BaseT = ThriftMapNode<MultiControlPlane, MultiControlPlaneTraits>;
   using BaseT::modify;
 
-  MultiControlPlane() {}
-  virtual ~MultiControlPlane() {}
+  MultiControlPlane() = default;
+  virtual ~MultiControlPlane() = default;
 
   std::shared_ptr<ControlPlane> getControlPlane() const;
 

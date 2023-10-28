@@ -226,7 +226,7 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
   // THRIFT_COPY
   RxSaks getRxSaksMap() const {
     RxSaks rxSecureAssociationKeys;
-    for (auto rxSak :
+    for (const auto& rxSak :
          *(safe_cref<switch_state_tags::rxSecureAssociationKeys>())) {
       rxSecureAssociationKeys.emplace(
           PortFields::rxSakFromThrift(rxSak->toThrift()));
@@ -303,7 +303,7 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
   void resetPortQueues(QueueConfig& queues) {
     // TODO(zecheng): change type to ThriftListNode
     std::vector<PortQueueFields> queuesThrift{};
-    for (auto queue : queues) {
+    for (const auto& queue : queues) {
       queuesThrift.push_back(queue->toThrift());
     }
     set<switch_state_tags::queues>(std::move(queuesThrift));
@@ -340,7 +340,7 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
       return;
     }
     std::vector<state::PortPgFields> pgConfigThrift{};
-    for (auto pgConfig : pgConfigs.value()) {
+    for (const auto& pgConfig : pgConfigs.value()) {
       pgConfigThrift.push_back(pgConfig->toThrift());
     }
     set<switch_state_tags::pgConfigs>(std::move(pgConfigThrift));
