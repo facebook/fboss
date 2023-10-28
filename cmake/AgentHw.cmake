@@ -92,6 +92,7 @@ target_link_libraries(hw_cpu_fb303_stats
   hardware_stats_cpp2
   Folly::folly
   switch_config_cpp2
+  hw_fb303_stats
 )
 
 target_link_libraries(hw_trunk_counters

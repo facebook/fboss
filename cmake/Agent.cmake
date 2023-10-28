@@ -202,6 +202,7 @@ target_link_libraries(core
   diag_cmd_filter
   hardware_stats_cpp2
   hw_switch_fb303_stats
+  hw_cpu_fb303_stats
   switch_asics
   switchid_scope_resolver
   ctrl_cpp2

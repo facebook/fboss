@@ -105,7 +105,6 @@ add_library(agent_hw_test_lib
 target_link_libraries(agent_hw_test_lib
   agent_test_lib
   main
-  fboss_agent
   config_factory
   fboss_config_utils
   ${GTEST}
@@ -132,7 +131,6 @@ add_library(multinode_tests
 target_link_libraries(multinode_tests
   agent_test_lib
   main
-  fboss_agent
   config_factory
   trunk_utils
   fboss_config_utils
@@ -153,9 +151,9 @@ add_library(agent_ensemble
 )
 
 target_link_libraries(agent_ensemble
+  hw_link_state_toggler
   route_distribution_gen
   main
-  fboss_agent
   config_factory
   fboss_config_utils
   test_ensemble_if
@@ -168,4 +166,5 @@ add_library(mono_agent_ensemble
 
 target_link_libraries(mono_agent_ensemble
   agent_ensemble
+  monolithic_agent_initializer
 )
