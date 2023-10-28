@@ -160,6 +160,7 @@ class HwAsic {
     ACL_COUNTER_LABEL,
     CREDIT_WATCHDOG,
     ECMP_DLB_OFFSET,
+    SAI_FEC_CORRECTED_BITS,
   };
 
   enum class AsicMode {
