@@ -126,7 +126,7 @@ UnresolvedNextHop::UnresolvedNextHop(
     const NextHopWeight& weight,
     const std::optional<LabelForwardingAction>& action)
     : addr_(addr), weight_(weight), labelForwardingAction_(action) {
-  if (addr.isV6() and addr.isLinkLocal()) {
+  if (addr_.isV6() and addr_.isLinkLocal()) {
     throw FbossError(
         "Missing interface scoping for link-local nexthop ", addr.str());
   }
@@ -139,7 +139,7 @@ UnresolvedNextHop::UnresolvedNextHop(
     : addr_(std::move(addr)),
       weight_(weight),
       labelForwardingAction_(std::move(action)) {
-  if (addr.isV6() and addr.isLinkLocal()) {
+  if (addr_.isV6() and addr_.isLinkLocal()) {
     throw FbossError(
         "Missing interface scoping for link-local nexthop ", addr.str());
   }
