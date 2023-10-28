@@ -187,6 +187,11 @@ void fillHwPortStats(
         hwPortStats.fecUncorrectableErrors() =
             *hwPortStats.fecUncorrectableErrors() + value;
         break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+      case SAI_PORT_STAT_IF_IN_FEC_CORRECTED_BITS:
+        hwPortStats.fecCorrectedBits_() = value;
+        break;
+#endif
       case SAI_PORT_STAT_PFC_0_RX_PKTS:
       case SAI_PORT_STAT_PFC_1_RX_PKTS:
       case SAI_PORT_STAT_PFC_2_RX_PKTS:
@@ -1281,6 +1286,17 @@ bool SaiPortManager::fecStatsSupported(PortID portId) const {
   return false;
 }
 
+bool SaiPortManager::fecCorrectedBitsSupported(PortID portId) const {
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::SAI_FEC_CORRECTED_BITS) &&
+      utility::isReedSolomonFec(getFECMode(portId))) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+    return true;
+#endif
+  }
+  return false;
+}
+
 std::vector<PortID> SaiPortManager::getFabricReachabilityForSwitch(
     const SwitchID& switchId) const {
   std::vector<PortID> reachablePorts;
@@ -1391,6 +1407,12 @@ void SaiPortManager::updateStats(PortID portId, bool updateWatermarks) {
          SAI_PORT_STAT_IF_IN_FEC_NOT_CORRECTABLE_FRAMES},
         SAI_STATS_MODE_READ_AND_CLEAR);
   }
+#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+  if (fecCorrectedBitsSupported(portId)) {
+    handle->port->updateStats(
+        {SAI_PORT_STAT_IF_IN_FEC_CORRECTED_BITS}, SAI_STATS_MODE_READ);
+  }
+#endif
   const auto& counters = handle->port->getStats();
   fillHwPortStats(
       counters, managerTable_->debugCounterManager(), curPortStats, platform_);

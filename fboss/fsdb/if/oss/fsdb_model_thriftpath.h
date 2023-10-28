@@ -20223,6 +20223,7 @@ std::pair<strings::inPfcXon_, ChildThriftPath<::std::map<::std::int16_t, ::std::
 std::pair<strings::outPfc_, ChildThriftPath<::std::map<::std::int16_t, ::std::int64_t>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
 std::pair<strings::queueWredDroppedPackets_, ChildThriftPath<::std::map<::std::int16_t, ::std::int64_t>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
 std::pair<strings::queueEcnMarkedPackets_, ChildThriftPath<::std::map<::std::int16_t, ::std::int64_t>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
+std::pair<strings::fecCorrectedBits_, Child<::std::int64_t, ::apache::thrift::type_class::integral>>,
 std::pair<strings::timestamp_, Child<::std::int64_t, ::apache::thrift::type_class::integral>>,
 std::pair<strings::portName_, Child<::std::string, ::apache::thrift::type_class::string>>,
 std::pair<strings::macsecStats, ChildThriftPath<::facebook::fboss::MacsecStats, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
@@ -20264,6 +20265,7 @@ std::pair<strings::inCongestionDiscards_, Child<::std::int64_t, ::apache::thrift
    std::pair<std::integral_constant<apache::thrift::field_id_t, 33>, ChildThriftPath<::std::map<::std::int16_t, ::std::int64_t>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 34>, ChildThriftPath<::std::map<::std::int16_t, ::std::int64_t>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 35>, ChildThriftPath<::std::map<::std::int16_t, ::std::int64_t>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 36>, Child<::std::int64_t, ::apache::thrift::type_class::integral>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 50>, Child<::std::int64_t, ::apache::thrift::type_class::integral>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 51>, Child<::std::string, ::apache::thrift::type_class::string>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 52>, ChildThriftPath<::facebook::fboss::MacsecStats, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
@@ -20306,6 +20308,7 @@ std::pair<strings::inPfcXon_, std::integral_constant<apache::thrift::field_id_t,
 std::pair<strings::outPfc_, std::integral_constant<apache::thrift::field_id_t, 33>>,
 std::pair<strings::queueWredDroppedPackets_, std::integral_constant<apache::thrift::field_id_t, 34>>,
 std::pair<strings::queueEcnMarkedPackets_, std::integral_constant<apache::thrift::field_id_t, 35>>,
+std::pair<strings::fecCorrectedBits_, std::integral_constant<apache::thrift::field_id_t, 36>>,
 std::pair<strings::timestamp_, std::integral_constant<apache::thrift::field_id_t, 50>>,
 std::pair<strings::portName_, std::integral_constant<apache::thrift::field_id_t, 51>>,
 std::pair<strings::macsecStats, std::integral_constant<apache::thrift::field_id_t, 52>>,
@@ -20359,6 +20362,7 @@ std::pair<strings::inCongestionDiscards_, std::integral_constant<apache::thrift:
     STRUCT_CHILD_GETTERS(outPfc_, 33);
     STRUCT_CHILD_GETTERS(queueWredDroppedPackets_, 34);
     STRUCT_CHILD_GETTERS(queueEcnMarkedPackets_, 35);
+    STRUCT_CHILD_GETTERS(fecCorrectedBits_, 36);
     STRUCT_CHILD_GETTERS(timestamp_, 50);
     STRUCT_CHILD_GETTERS(portName_, 51);
     STRUCT_CHILD_GETTERS(macsecStats, 52);
@@ -20403,6 +20407,7 @@ std::pair<strings::inCongestionDiscards_, std::integral_constant<apache::thrift:
     else if constexpr (__id == 33) { return outPfc_(); }
     else if constexpr (__id == 34) { return queueWredDroppedPackets_(); }
     else if constexpr (__id == 35) { return queueEcnMarkedPackets_(); }
+    else if constexpr (__id == 36) { return fecCorrectedBits_(); }
     else if constexpr (__id == 50) { return timestamp_(); }
     else if constexpr (__id == 51) { return portName_(); }
     else if constexpr (__id == 52) { return macsecStats(); }
