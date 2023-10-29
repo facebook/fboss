@@ -637,6 +637,16 @@ void SaiSwitchManager::updateStats() {
     HwSwitchDropStats dropStats;
     fillHwSwitchDropStats(switch_->getStats(switchDropStats), dropStats);
     platform_->getHwSwitch()->getSwitchStats()->update(dropStats);
+    // Accumulate switch drop stats
+    switchDropStats_.globalDrops() =
+        switchDropStats_.globalDrops().value_or(0) +
+        dropStats.globalDrops().value_or(0);
+    switchDropStats_.globalReachabilityDrops() =
+        switchDropStats_.globalReachabilityDrops().value_or(0) +
+        dropStats.globalReachabilityDrops().value_or(0);
+    switchDropStats_.packetIntegrityDrops() =
+        switchDropStats_.packetIntegrityDrops().value_or(0) +
+        dropStats.packetIntegrityDrops().value_or(0);
   }
   auto switchDramStats = supportedDramStats();
   if (switchDramStats.size()) {
