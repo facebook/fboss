@@ -56,6 +56,7 @@ struct HwSwitchStats {
   9: hardware_stats.FabricReachabilityStats fabricReachabilityStats;
   10: hardware_stats.HwSwitchFb303GlobalStats fb303GlobalStats;
   11: hardware_stats.CpuPortStats cpuPortStats;
+  12: hardware_stats.HwSwitchDropStats switchDropStats;
 }
 
 service MultiSwitchCtrl {

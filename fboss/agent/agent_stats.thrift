@@ -25,4 +25,5 @@ struct AgentStats {
   12: map<i16, hardware_stats.TeFlowStats> teFlowStatsMap;
   13: map<i16, hardware_stats.HwBufferPoolStats> bufferPoolStatsMap;
   14: map<i16, map<string, hardware_stats.HwSysPortStats>> sysPortStatsMap;
+  15: map<i16, hardware_stats.HwSwitchDropStats> switchDropStatsMap;
 }
