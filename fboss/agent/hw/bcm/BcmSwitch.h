@@ -401,6 +401,10 @@ class BcmSwitch : public BcmSwitchIf {
   uint64_t getDeviceWatermarkBytes() const override;
 
   TeFlowStats getTeFlowStats() const override;
+  HwSwitchDropStats getSwitchDropStats() const override {
+    // No HwSwitchDropStats collected
+    return HwSwitchDropStats{};
+  }
 
   /*
    * Wrapper functions to register and unregister a BCM event callbacks.  These

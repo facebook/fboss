@@ -112,6 +112,10 @@ class SaiSwitch : public HwSwitch {
   std::map<std::string, HwSysPortStats> getSysPortStats() const override;
   FabricReachabilityStats getFabricReachabilityStats() const override;
   CpuPortStats getCpuPortStats() const override;
+  HwSwitchDropStats getSwitchDropStats() const override {
+    // TODO
+    return HwSwitchDropStats{};
+  }
 
   uint64_t getDeviceWatermarkBytes() const override;
 
