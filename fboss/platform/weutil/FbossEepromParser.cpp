@@ -300,7 +300,7 @@ parsedEepromEntry FbossEepromParser::getAllInfo(
     const int offset) {
   unsigned char buffer[kMaxEepromSize + 1] = {};
 
-  int readCount = loadEeprom(eepromPath_, buffer, offset, kMaxEepromSize);
+  int readCount = loadEeprom(eeprom, buffer, offset, kMaxEepromSize);
 
   // Ensure that this is EEPROM v4 or later
   std::unordered_map<int, std::string> parsedValue;

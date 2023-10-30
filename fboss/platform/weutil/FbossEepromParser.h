@@ -12,7 +12,6 @@ typedef std::vector<std::pair<std::string, std::string>> parsedEepromEntry;
 
 class FbossEepromParser {
  private:
-  std::string eepromPath_;
   int loadEeprom(
       const std::string& eeprom,
       unsigned char* output,
