@@ -32,6 +32,15 @@ SaiPortTraits::Attributes::AttributeDiagModeEnable::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeFdrEnable::operator()() {
+#if defined(BRCM_SAI_SDK_XGS) && defined(BRCM_SAI_SDK_GTE_10_0)
+  return SAI_PORT_ATTR_FDR_ENABLE;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeRxLaneSquelchEnable::operator()() {
 #if defined(BRCM_SAI_SDK_GTE_9_2) && !defined(SAI_VERSION_10_0_EA_DNX_SIM_ODP)
   return SAI_PORT_ATTR_RX_LANE_SQUELCH_ENABLE;

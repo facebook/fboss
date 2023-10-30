@@ -540,6 +540,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         interFrameGap, // Inter Frame Gap
 #endif
         linkTrainingEnable,
+        std::nullopt, // FDR Enable,
         std::nullopt, // Rx Lane Squelch Enable
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
         std::nullopt, // PFC Deadlock Detection Interval

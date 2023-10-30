@@ -54,4 +54,5 @@ typedef enum _sai_port_extensions_attr_t {
   SAI_PORT_ATTR_SERDES_LANE_LIST,
   SAI_PORT_ATTR_DIAGNOSTICS_MODE_ENABLE,
   SAI_PORT_ATTR_RX_LANE_SQUELCH_ENABLE,
+  SAI_PORT_ATTR_FDR_ENABLE,
 } sai_port_extensions_attr_t;

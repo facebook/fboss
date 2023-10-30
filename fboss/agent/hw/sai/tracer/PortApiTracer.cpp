@@ -103,6 +103,7 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(Port, SystemPortId)
   SAI_EXT_ATTR_MAP(Port, SerdesLaneList)
   SAI_EXT_ATTR_MAP(Port, DiagModeEnable)
+  SAI_EXT_ATTR_MAP(Port, FdrEnable)
   SAI_EXT_ATTR_MAP(Port, RxLaneSquelchEnable)
   SAI_EXT_ATTR_MAP(PortSerdes, RxCtleCode)
   SAI_EXT_ATTR_MAP(PortSerdes, RxDspMode)

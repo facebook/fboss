@@ -70,6 +70,7 @@ sai_status_t create_port_fn(
   std::optional<sai_uint32_t> interFrameGap;
 #endif
   std::optional<bool> linkTrainingEnable;
+  std::optional<bool> fdrEnable;
   std::optional<bool> rxLaneSquelchEnable;
   std::vector<sai_map_t> pfcTcDldInterval;
   std::vector<sai_map_t> pfcTcDlrInterval;
@@ -223,6 +224,9 @@ sai_status_t create_port_fn(
       case SAI_PORT_ATTR_LINK_TRAINING_ENABLE:
         linkTrainingEnable = attr_list[i].value.booldata;
         break;
+      case SAI_PORT_ATTR_FDR_ENABLE:
+        fdrEnable = attr_list[i].value.booldata;
+        break;
       case SAI_PORT_ATTR_RX_LANE_SQUELCH_ENABLE:
         rxLaneSquelchEnable = attr_list[i].value.booldata;
         break;
@@ -353,6 +357,9 @@ sai_status_t create_port_fn(
 #endif
   if (linkTrainingEnable.has_value()) {
     port.linkTrainingEnable = linkTrainingEnable.value();
+  }
+  if (fdrEnable.has_value()) {
+    port.fdrEnable = fdrEnable.value();
   }
   if (rxLaneSquelchEnable.has_value()) {
     port.rxLaneSquelchEnable = rxLaneSquelchEnable.value();
@@ -628,6 +635,9 @@ sai_status_t set_port_attribute_fn(
 #endif
     case SAI_PORT_ATTR_LINK_TRAINING_ENABLE:
       port.linkTrainingEnable = attr->value.booldata;
+      break;
+    case SAI_PORT_ATTR_FDR_ENABLE:
+      port.fdrEnable = attr->value.booldata;
       break;
     case SAI_PORT_ATTR_RX_LANE_SQUELCH_ENABLE:
       port.rxLaneSquelchEnable = attr->value.booldata;
@@ -906,6 +916,9 @@ sai_status_t get_port_attribute_fn(
 #endif
       case SAI_PORT_ATTR_LINK_TRAINING_ENABLE:
         attr->value.booldata = port.linkTrainingEnable;
+        break;
+      case SAI_PORT_ATTR_FDR_ENABLE:
+        attr->value.booldata = port.fdrEnable;
         break;
       case SAI_PORT_ATTR_RX_LANE_SQUELCH_ENABLE:
         attr->value.booldata = port.rxLaneSquelchEnable;

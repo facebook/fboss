@@ -151,7 +151,8 @@ class PortManagerTest : public ManagerTestBase {
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
           std::nullopt, // Inter Frame Gap
 #endif
-          std::nullopt, // Link Training Enable
+          std::nullopt, // Link Training Enable,
+          std::nullopt, // FDR Enable
           std::nullopt, // Rx Lane Squelch Enable
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
           std::nullopt, // PFC Deadlock Detection Interval

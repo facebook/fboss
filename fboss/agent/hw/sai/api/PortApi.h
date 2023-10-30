@@ -50,6 +50,10 @@ struct SaiPortTraits {
       std::optional<sai_attr_id_t> operator()();
     };
     using DiagModeEnable = SaiExtensionAttribute<bool, AttributeDiagModeEnable>;
+    struct AttributeFdrEnable {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using FdrEnable = SaiExtensionAttribute<bool, AttributeFdrEnable>;
     using Speed = SaiAttribute<EnumType, SAI_PORT_ATTR_SPEED, sai_uint32_t>;
     using Type = SaiAttribute<EnumType, SAI_PORT_ATTR_TYPE, sai_int32_t>;
     using QosNumberOfQueues = SaiAttribute<
@@ -428,6 +432,7 @@ struct SaiPortTraits {
       std::optional<Attributes::InterFrameGap>,
 #endif
       std::optional<Attributes::LinkTrainingEnable>,
+      std::optional<Attributes::FdrEnable>,
       std::optional<Attributes::RxLaneSquelchEnable>
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
       ,
@@ -538,6 +543,7 @@ SAI_ATTRIBUTE_NAME(Port, InterFrameGap)
 SAI_ATTRIBUTE_NAME(Port, LinkTrainingEnable)
 SAI_ATTRIBUTE_NAME(Port, SerdesLaneList)
 SAI_ATTRIBUTE_NAME(Port, DiagModeEnable)
+SAI_ATTRIBUTE_NAME(Port, FdrEnable)
 SAI_ATTRIBUTE_NAME(Port, FabricAttached);
 SAI_ATTRIBUTE_NAME(Port, FabricAttachedPortIndex);
 SAI_ATTRIBUTE_NAME(Port, FabricAttachedSwitchId);
