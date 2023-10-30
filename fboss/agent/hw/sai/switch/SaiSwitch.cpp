@@ -3314,4 +3314,8 @@ TeFlowStats SaiSwitch::getTeFlowStats() const {
   return TeFlowStats();
 }
 
+HwSwitchDropStats SaiSwitch::getSwitchDropStats() const {
+  std::lock_guard<std::mutex> lk(saiSwitchMutex_);
+  return managerTable_->switchManager().getSwitchDropStats();
+}
 } // namespace facebook::fboss

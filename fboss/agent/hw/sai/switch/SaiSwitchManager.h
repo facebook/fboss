@@ -86,6 +86,9 @@ class SaiSwitchManager {
   void updateStats();
 
   void setSwitchIsolate(bool isolate);
+  HwSwitchDropStats getSwitchDropStats() const {
+    return switchDropStats_;
+  }
 
  private:
   void programEcmpLoadBalancerParams(
