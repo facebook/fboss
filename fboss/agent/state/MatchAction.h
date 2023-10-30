@@ -134,6 +134,14 @@ class MatchAction {
     userDefinedTrap_ = userDefinedTrap;
   }
 
+  std::optional<cfg::FlowletAction> getFlowletAction() const {
+    return flowletAction_;
+  }
+
+  void setFlowletAction(const cfg::FlowletAction& flowletAction) {
+    flowletAction_ = flowletAction;
+  }
+
   bool operator==(const MatchAction& action) const {
     return std::tie(
                sendToQueue_,
@@ -145,7 +153,8 @@ class MatchAction {
                macsecFlow_,
                redirectToNextHop_,
                setTc_,
-               userDefinedTrap_) ==
+               userDefinedTrap_,
+               flowletAction_) ==
         std::tie(
                action.sendToQueue_,
                action.ingressMirror_,
@@ -156,7 +165,8 @@ class MatchAction {
                action.macsecFlow_,
                action.redirectToNextHop_,
                action.setTc_,
-               action.userDefinedTrap_);
+               action.userDefinedTrap_,
+               action.flowletAction_);
   }
 
   MatchAction& operator=(const MatchAction& action) {
@@ -170,7 +180,8 @@ class MatchAction {
         macsecFlow_,
         redirectToNextHop_,
         setTc_,
-        userDefinedTrap_) =
+        userDefinedTrap_,
+        flowletAction_) =
         std::tie(
             action.sendToQueue_,
             action.ingressMirror_,
@@ -181,7 +192,8 @@ class MatchAction {
             action.macsecFlow_,
             action.redirectToNextHop_,
             action.setTc_,
-            action.userDefinedTrap_);
+            action.userDefinedTrap_,
+            action.flowletAction_);
     return *this;
   }
 
@@ -199,6 +211,7 @@ class MatchAction {
   std::optional<RedirectToNextHopAction> redirectToNextHop_{std::nullopt};
   std::optional<SetTc> setTc_{std::nullopt};
   std::optional<UserDefinedTrap> userDefinedTrap_{std::nullopt};
+  std::optional<cfg::FlowletAction> flowletAction_{std::nullopt};
 };
 
 } // namespace facebook::fboss

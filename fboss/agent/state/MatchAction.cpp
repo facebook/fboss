@@ -70,6 +70,7 @@ state::MatchAction MatchAction::toThrift() const {
     matchAction.setTc() = setTc;
   }
   matchAction.userDefinedTrap().from_optional(userDefinedTrap_);
+  matchAction.flowletAction().from_optional(flowletAction_);
   return matchAction;
 }
 
@@ -103,6 +104,7 @@ MatchAction MatchAction::fromThrift(state::MatchAction const& ma) {
     matchAction.setTc_ = setTcVal;
   }
   matchAction.userDefinedTrap_ = ma.userDefinedTrap().to_optional();
+  matchAction.flowletAction_ = ma.flowletAction().to_optional();
   return matchAction;
 }
 

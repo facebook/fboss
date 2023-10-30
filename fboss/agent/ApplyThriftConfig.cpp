@@ -2891,6 +2891,9 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAclsImpl(
         if (auto toCpuAction = mta.action()->toCpuAction()) {
           matchAction.setToCpuAction(*toCpuAction);
         }
+        if (auto flowletAction = mta.action()->flowletAction()) {
+          matchAction.setFlowletAction(*flowletAction);
+        }
         bool enableAcl = true;
         if (auto redirectToNextHop = mta.action()->redirectToNextHop()) {
           matchAction.setRedirectToNextHop(
