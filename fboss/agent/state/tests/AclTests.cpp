@@ -38,6 +38,8 @@ HwSwitchMatcher scope() {
 }
 
 const std::vector<std::string> kUdfList = {"foo1", "foo2"};
+static int kUdpProto(17);
+static int kUdpDstPort(4791);
 } // namespace
 
 cfg::UdfConfig makeUdfConfig(const std::vector<std::string>& udfNameList) {
@@ -445,7 +447,7 @@ TEST(Acl, AclGeneration) {
   preparedMockPortConfig(config.ports()[0], 1);
   preparedMockPortConfig(config.ports()[1], 2);
 
-  config.acls()->resize(5);
+  config.acls()->resize(6);
   *config.acls()[0].name() = "acl1";
   *config.acls()[0].actionType() = cfg::AclActionType::DENY;
   config.acls()[0].srcIp() = "192.168.0.1";
@@ -461,10 +463,13 @@ TEST(Acl, AclGeneration) {
   *config.acls()[4].name() = "acl5";
   config.acls()[4].srcIp() = "2401:db00:21:7147:face:0:7:0/128";
   config.acls()[4].srcPort() = 5;
+  *config.acls()[5].name() = "acl6";
+  config.acls()[5].proto() = kUdpProto;
+  config.acls()[5].l4DstPort() = kUdpDstPort;
 
   config.dataPlaneTrafficPolicy() = cfg::TrafficPolicyConfig();
   config.dataPlaneTrafficPolicy()->matchToAction()->resize(
-      3, cfg::MatchToAction());
+      4, cfg::MatchToAction());
   *config.dataPlaneTrafficPolicy()->matchToAction()[0].matcher() = "acl2";
   *config.dataPlaneTrafficPolicy()->matchToAction()[0].action() =
       cfg::MatchAction();
@@ -496,6 +501,14 @@ TEST(Acl, AclGeneration) {
        ->setDscp()
        ->dscpValue() = 8;
 
+  *config.dataPlaneTrafficPolicy()->matchToAction()[3].matcher() = "acl6";
+  *config.dataPlaneTrafficPolicy()->matchToAction()[3].action() =
+      cfg::MatchAction();
+  config.dataPlaneTrafficPolicy()
+      ->matchToAction()[3]
+      .action()
+      ->flowletAction() = cfg::FlowletAction::FORWARD;
+
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(stateV1, nullptr);
   auto acls = stateV1->getAcls();
@@ -505,6 +518,7 @@ TEST(Acl, AclGeneration) {
   EXPECT_NE(acls->getNodeIf("acl2"), nullptr);
   EXPECT_NE(acls->getNodeIf("acl3"), nullptr);
   EXPECT_NE(acls->getNodeIf("acl5"), nullptr);
+  EXPECT_NE(acls->getNodeIf("acl6"), nullptr);
 
   EXPECT_EQ(
       acls->getNodeIf("acl1")->getPriority(),
@@ -521,6 +535,9 @@ TEST(Acl, AclGeneration) {
   EXPECT_EQ(
       acls->getNodeIf("acl5")->getPriority(),
       AclTable::kDataplaneAclMaxPriority + 4);
+  EXPECT_EQ(
+      acls->getNodeIf("acl6")->getPriority(),
+      AclTable::kDataplaneAclMaxPriority + 5);
 
   // Ensure that the global actions in global traffic policy has been added to
   // the ACL entries
@@ -531,6 +548,14 @@ TEST(Acl, AclGeneration) {
           ->getAclAction()
           ->cref<switch_state_tags::setDscp>()
           ->cref<switch_config_tags::dscpValue>()
+          ->cref());
+  // Ensure Flowlet action is added to ACL entries
+  EXPECT_TRUE(acls->getNodeIf("acl6")->getAclAction() != nullptr);
+  EXPECT_EQ(
+      cfg::FlowletAction::FORWARD,
+      acls->getNodeIf("acl6")
+          ->getAclAction()
+          ->cref<switch_state_tags::flowletAction>()
           ->cref());
 }
 
