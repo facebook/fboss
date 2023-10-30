@@ -832,6 +832,9 @@
           "test_name_regex": "HwVoqSwitchWithMultipleDsfNodesTest.voqTailDropCounter"
         },
         {
+          "test_name_regex": "HwVoqSwitchTest.packetIntegrityError"
+        },
+        {
           "test_name_regex": "HwVoqSwitchWithFabricPortsTest.checkFabricReachability"
         },
         {
@@ -1336,6 +1339,9 @@
         },
         {
           "test_name_regex": "HwVoqSwitchWithMultipleDsfNodesTest.stressAddRemoveObjects"
+        },
+        {
+          "test_name_regex": "HwVoqSwitchTest.packetIntegrityError"
         },
         {
           "test_name_regex": "HwVoqSwitchWithFabricPortsTest.checkFabricReachability"
@@ -3368,6 +3374,9 @@
           "test_name_regex": "HwVoqSwitchWithMultipleDsfNodesTest.voqTailDropCounter"
         },
         {
+          "test_name_regex": "HwVoqSwitchTest.packetIntegrityError"
+        },
+        {
           "test_name_regex": "HwVoqSwitchWithFabricPortsTest.checkFabricReachability"
         },
         {
@@ -3872,6 +3881,9 @@
         },
         {
           "test_name_regex": "HwVoqSwitchWithMultipleDsfNodesTest.stressAddRemoveObjects"
+        },
+        {
+          "test_name_regex": "HwVoqSwitchTest.packetIntegrityError"
         },
         {
           "test_name_regex": "HwVoqSwitchWithFabricPortsTest.checkFabricReachability"
