@@ -257,6 +257,12 @@ std::map<std::string, HwSysPortStats> MultiHwSwitchHandler::getSysPortStats() {
   return hwSwitchSyncers_.begin()->second->getSysPortStats();
 }
 
+HwSwitchDropStats MultiHwSwitchHandler::getSwitchDropStats() const {
+  // TODO - support with multiple switches
+  CHECK_EQ(hwSwitchSyncers_.size(), 1);
+  return hwSwitchSyncers_.begin()->second->getSwitchDropStats();
+}
+
 void MultiHwSwitchHandler::updateStats() {
   return hwSwitchSyncers_.begin()->second->updateStats();
 }

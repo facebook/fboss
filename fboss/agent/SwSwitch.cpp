@@ -637,6 +637,7 @@ AgentStats SwSwitch::fillFsdbStats() {
     multiswitch::HwSwitchStats hwStats;
     hwStats.hwPortStats() = multiHwSwitchHandler_->getPortStats();
     hwStats.sysPortStats() = multiHwSwitchHandler_->getSysPortStats();
+    hwStats.switchDropStats() = multiHwSwitchHandler_->getSwitchDropStats();
 
     if (auto hwSwitchStats = multiHwSwitchHandler_->getSwitchStats()) {
       hwStats.hwAsicErrors() = hwSwitchStats->getHwAsicErrors();

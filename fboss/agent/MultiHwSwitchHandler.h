@@ -95,6 +95,7 @@ class MultiHwSwitchHandler {
   CpuPortStats getCpuPortStats();
 
   std::map<std::string, HwSysPortStats> getSysPortStats();
+  HwSwitchDropStats getSwitchDropStats() const;
 
   void updateStats();
 
