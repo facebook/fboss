@@ -161,6 +161,7 @@ class HwAsic {
     CREDIT_WATCHDOG,
     ECMP_DLB_OFFSET,
     SAI_FEC_CORRECTED_BITS,
+    SAI_FEC_CODEWORDS_STATS,
   };
 
   enum class AsicMode {
