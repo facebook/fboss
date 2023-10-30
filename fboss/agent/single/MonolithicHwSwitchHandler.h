@@ -50,6 +50,7 @@ class MonolithicHwSwitchHandler : public HwSwitchHandler {
   folly::F14FastMap<std::string, HwPortStats> getPortStats() const override;
 
   std::map<std::string, HwSysPortStats> getSysPortStats() const override;
+  HwSwitchDropStats getSwitchDropStats() const override;
 
   void updateStats() override;
 

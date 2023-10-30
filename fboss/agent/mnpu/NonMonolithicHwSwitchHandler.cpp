@@ -106,6 +106,11 @@ NonMonolithicHwSwitchHandler::getSysPortStats() const {
   return {};
 }
 
+HwSwitchDropStats NonMonolithicHwSwitchHandler::getSwitchDropStats() const {
+  // TODO: implement this
+  return HwSwitchDropStats{};
+}
+
 // not used in split
 void NonMonolithicHwSwitchHandler::updateStats() {}
 

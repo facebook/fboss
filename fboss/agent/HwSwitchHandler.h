@@ -97,6 +97,7 @@ class HwSwitchHandler {
 
   virtual std::map<std::string, HwSysPortStats> getSysPortStats() const = 0;
 
+  virtual HwSwitchDropStats getSwitchDropStats() const = 0;
   virtual void updateStats() = 0;
 
   virtual std::map<PortID, phy::PhyInfo> updateAllPhyInfo() = 0;

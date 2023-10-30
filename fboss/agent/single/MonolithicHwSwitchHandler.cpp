@@ -109,6 +109,10 @@ void MonolithicHwSwitchHandler::updateStats() {
   return hw_->updateStats();
 }
 
+HwSwitchDropStats MonolithicHwSwitchHandler::getSwitchDropStats() const {
+  return hw_->getSwitchDropStats();
+}
+
 std::map<PortID, phy::PhyInfo> MonolithicHwSwitchHandler::updateAllPhyInfo() {
   return hw_->updateAllPhyInfo();
 }
