@@ -625,6 +625,13 @@ struct RedirectToNextHopAction {
   2: list<RedirectNextHop> redirectNextHops;
 }
 
+enum FlowletAction {
+  /**
+  * Forward the packet to DLB engine.
+  */
+  FORWARD = 1,
+}
+
 struct MatchAction {
   1: optional QueueMatchAction sendToQueue;
   2: optional PacketCounterMatchAction packetCounter_DEPRECATED;
@@ -637,6 +644,7 @@ struct MatchAction {
   9: optional RedirectToNextHopAction redirectToNextHop;
   10: optional SetTcAction setTc;
   11: optional UserDefinedTrapAction userDefinedTrap;
+  12: optional FlowletAction flowletAction;
 }
 
 struct MatchToAction {

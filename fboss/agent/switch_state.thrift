@@ -155,6 +155,7 @@ struct MatchAction {
   8: optional RedirectToNextHopAction redirectToNextHop;
   9: optional SetTc setTc;
   10: optional switch_config.UserDefinedTrapAction userDefinedTrap;
+  11: optional switch_config.FlowletAction flowletAction;
 }
 
 struct AclEntryFields {
