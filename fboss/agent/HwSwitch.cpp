@@ -100,6 +100,7 @@ multiswitch::HwSwitchStats HwSwitch::getHwSwitchStats() {
   hwSwitchStats.sysPortStats() = getSysPortStats();
   hwSwitchStats.fb303GlobalStats() = getSwitchStats()->getAllFb303Stats();
   hwSwitchStats.cpuPortStats() = getCpuPortStats();
+  hwSwitchStats.switchDropStats() = getSwitchDropStats();
   return hwSwitchStats;
 }
 
