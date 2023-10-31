@@ -2529,6 +2529,41 @@ TEST_F(ThriftTest, getCurrentStateJSON) {
       FbossError);
 }
 
+TEST_F(ThriftTest, getCurrentStateJSONForPaths) {
+  ThriftHandler handler(sw_);
+  std::map<std::string, std::string> pathToState;
+  std::string in = "portMaps/id=0/1";
+  std::vector<std::string> paths = {in};
+  handler.getCurrentStateJSONForPaths(
+      pathToState, std::make_unique<std::vector<std::string>>(paths));
+  ASSERT_TRUE(pathToState.find(in) != pathToState.end());
+  auto dyn = folly::parseJson(pathToState[in]);
+  EXPECT_EQ(dyn["portId"], 1);
+  EXPECT_EQ(dyn["portName"], "port1");
+  EXPECT_EQ(dyn["portState"], "ENABLED");
+
+  in = "portMaps/id=0/1/portOperState";
+  paths = {in};
+  handler.getCurrentStateJSONForPaths(
+      pathToState, std::make_unique<std::vector<std::string>>(paths));
+  ASSERT_TRUE(pathToState.find(in) != pathToState.end());
+  EXPECT_EQ(pathToState[in], "false");
+
+  // Empty thrift path
+  paths = {""};
+  EXPECT_THROW(
+      handler.getCurrentStateJSONForPaths(
+          pathToState, std::make_unique<std::vector<std::string>>(paths)),
+      FbossError);
+
+  // Invalid thrift path
+  paths = {"invalid/path"};
+  EXPECT_THROW(
+      handler.getCurrentStateJSONForPaths(
+          pathToState, std::make_unique<std::vector<std::string>>(paths)),
+      FbossError);
+}
+
 template <bool enableIntfNbrTable>
 struct EnableIntfNbrTable {
   static constexpr auto intfNbrTable = enableIntfNbrTable;
