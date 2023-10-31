@@ -38,12 +38,29 @@ class CmdShowMirror : public CmdHandler<CmdShowMirror, CmdShowMirrorTraits> {
   RetType queryClient(
       const HostInfo& hostInfo,
       const ObjectArgType& queriedMirrors) {
-    std::string mirrorMaps;
-    std::map<int32_t, PortInfoThrift> portInfoEntries;
     auto client =
         utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
-    client->sync_getCurrentStateJSON(mirrorMaps, "mirrorMaps");
+
+    std::map<std::string, std::string> pathToState;
+    std::string mirrorMaps;
+
+    try {
+      client->sync_getCurrentStateJSONForPaths(pathToState, {"mirrorMaps"});
+      auto it = pathToState.find("mirrorMaps");
+      if (it == pathToState.end()) {
+        throw std::runtime_error("No mirrorMaps found in Switch State");
+      }
+      mirrorMaps = it->second;
+    } catch (...) {
+      // Fallback to old getCurrentStateJSON till Agent version that supports
+      // getCurrentStateJSONForPaths is rolled out. Then, this fallback logic
+      // can be removed.
+      client->sync_getCurrentStateJSON(mirrorMaps, "mirrorMaps");
+    }
+
+    std::map<int32_t, PortInfoThrift> portInfoEntries;
     client->sync_getAllPortInfo(portInfoEntries);
+
     return createModel(mirrorMaps, portInfoEntries, queriedMirrors);
   }
 
