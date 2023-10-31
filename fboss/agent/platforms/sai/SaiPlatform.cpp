@@ -469,19 +469,22 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
         }
         switch (*dsfNode.asicType()) {
           case cfg::AsicType::ASIC_TYPE_JERICHO2:
-            systemCores = id * j2.getNumCores();
+            systemCores =
+                std::max(systemCores, uint32_t((id + 1) * j2.getNumCores()));
             // for directly connected interface nodes we don't expect
             // asic type to change across dsf nodes
             maxCoreCount = std::max(j2.getNumCores(), maxCoreCount);
             break;
           case cfg::AsicType::ASIC_TYPE_JERICHO3:
-            systemCores = id * j3.getNumCores();
+            systemCores =
+                std::max(systemCores, uint32_t((id + 1) * j3.getNumCores()));
             // for directly connected interface nodes we don't expect
             // asic type to change across dsf nodes
             maxCoreCount = std::max(j3.getNumCores(), maxCoreCount);
             break;
           case cfg::AsicType::ASIC_TYPE_EBRO:
-            systemCores = id * ebro.getNumCores();
+            systemCores =
+                std::max(systemCores, uint32_t((id + 1) * ebro.getNumCores()));
             break;
           default:
             throw FbossError("Unexpected asic type: ", *dsfNode.asicType());
