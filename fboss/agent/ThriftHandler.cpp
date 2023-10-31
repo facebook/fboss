@@ -104,11 +104,6 @@ using facebook::network::toIPAddress;
 
 using namespace facebook::fboss;
 
-DEFINE_bool(
-    enable_running_config_mutations,
-    false,
-    "Allow external mutations of running config");
-
 DECLARE_bool(intf_nbr_tables);
 
 namespace facebook::fboss {
