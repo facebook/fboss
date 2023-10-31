@@ -21,11 +21,6 @@
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
 
-DEFINE_bool(
-    queue_per_physical_host,
-    false,
-    "Flag to enable allocating separate queue for each physical host. This flag is applicable only when Queue-Per-Host feature is enabled.");
-
 namespace {
 
 int getClassIDIndexFromMac(folly::MacAddress mac) {
@@ -237,10 +232,8 @@ void LookupClassUpdater::updateNeighborClassID(
 
     if (setDropClassID) {
       classID = cfg::AclLookupClass::CLASS_DROP;
-    } else if (FLAGS_queue_per_physical_host) {
-      classID = getClassIDwithQueuePerPhysicalHost(classID2Count, mac);
     } else {
-      classID = getClassIDwithMinimumNeighbors(classID2Count);
+      classID = getClassIDwithQueuePerPhysicalHost(classID2Count, mac);
     }
     macAndVlan2ClassIDAndRefCnt.insert(std::make_pair(
         std::make_pair(mac, vlanID),
@@ -795,6 +788,8 @@ void LookupClassUpdater::updateStateObserverLocalCache(
       }
     }
   }
+
+  populateMacOuis(switchState, vendorMacOuis_, metaMacOuis_);
 }
 
 template <typename AddrT>
@@ -1049,11 +1044,12 @@ void LookupClassUpdater::removeAndUpdateClassIDForMacVlan(
       switchState, vlan, macAddress);
 }
 
-void LookupClassUpdater::processMacOuis(const StateDelta& stateDelta) {
-  std::set<uint64_t> newVendorMacOuis;
-  std::set<uint64_t> newMetaMacOuis;
-  auto populateMacOuis = [](const auto& macOuisFromState,
-                            std::set<uint64_t>& macOuis) {
+void LookupClassUpdater::populateMacOuis(
+    const std::shared_ptr<SwitchState>& switchState,
+    std::set<uint64_t>& vendorMacOuis,
+    std::set<uint64_t>& metaMacOuis) {
+  auto populateFunc = [](const auto& macOuisFromState,
+                         std::set<uint64_t>& macOuis) {
     for (const auto& iter : macOuisFromState) {
       auto macStr = iter->toThrift();
       auto macAddress = folly::MacAddress(macStr);
@@ -1061,13 +1057,20 @@ void LookupClassUpdater::processMacOuis(const StateDelta& stateDelta) {
       XLOG(DBG4) << "insert mac OUI " << macStr;
     }
   };
+
   for ([[maybe_unused]] const auto& [_, switchSettings] :
-       std::as_const(*stateDelta.newState()->getSwitchSettings())) {
+       std::as_const(*switchState->getSwitchSettings())) {
     XLOG(DBG4) << "populate vendor mac OUIs";
-    populateMacOuis(*(switchSettings->getVendorMacOuis()), newVendorMacOuis);
+    populateFunc(*(switchSettings->getVendorMacOuis()), vendorMacOuis);
     XLOG(DBG4) << "populate meta mac OUIs";
-    populateMacOuis(*(switchSettings->getMetaMacOuis()), newMetaMacOuis);
+    populateFunc(*(switchSettings->getMetaMacOuis()), metaMacOuis);
   }
+}
+
+void LookupClassUpdater::processMacOuis(const StateDelta& stateDelta) {
+  std::set<uint64_t> newVendorMacOuis;
+  std::set<uint64_t> newMetaMacOuis;
+  populateMacOuis(stateDelta.newState(), newVendorMacOuis, newMetaMacOuis);
 
   std::set<uint64_t> updatedVendorMacOuis;
   std::set_symmetric_difference(
@@ -1092,7 +1095,8 @@ void LookupClassUpdater::processMacOuis(const StateDelta& stateDelta) {
   }
 
   // update classID
-  if (FLAGS_queue_per_physical_host) {
+  if (!newVendorMacOuis.empty()) {
+    XLOG(DBG2) << "queue_per_physical_host feature is enabled";
     std::vector<std::pair<folly::MacAddress, VlanID>> macAndVlanToUpdate;
     for (const auto& [port, macAndVlan2ClassIDAndRefCnt] :
          port2MacAndVlanEntries_) {
@@ -1125,6 +1129,9 @@ void LookupClassUpdater::processMacOuis(const StateDelta& stateDelta) {
   // rebalance when max(cnt in classID2Cnt) - min(cnt in classID2Cnt) > 1,
   // because getClassIDwithMinimumNeighbors() should not produce
   // such imbalanced assignment results in normal scenario
+  XLOG(DBG2) << "queue_per_physical_host feature is disabled";
+  vendorMacOuis_ = newVendorMacOuis;
+  metaMacOuis_ = newMetaMacOuis;
   for (const auto& [portID, classID2Count] : getPort2ClassIDAndCount()) {
     int maxCnt = 0;
     int minCnt = INT_MAX;
@@ -1139,8 +1146,6 @@ void LookupClassUpdater::processMacOuis(const StateDelta& stateDelta) {
           stateDelta, stateDelta.newState()->getPorts()->getNodeIf(portID));
     }
   }
-  vendorMacOuis_ = newVendorMacOuis;
-  metaMacOuis_ = newMetaMacOuis;
 }
 
 void LookupClassUpdater::updateMaxNumHostsPerQueueCounter() {

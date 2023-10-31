@@ -193,6 +193,11 @@ class LookupClassUpdater : public StateObserver {
 
   void processMacOuis(const StateDelta& stateDelta);
 
+  void populateMacOuis(
+      const std::shared_ptr<SwitchState>& switchState,
+      std::set<uint64_t>& vendorMacOuis,
+      std::set<uint64_t>& metaMacOuis);
+
   /*
    * Methods to iterate over MacTable, ArpTable or NdpTable or table deltas.
    */

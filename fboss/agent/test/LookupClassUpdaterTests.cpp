@@ -28,8 +28,6 @@ using folly::IPAddressV4;
 using folly::IPAddressV6;
 using folly::MacAddress;
 
-DECLARE_bool(queue_per_physical_host);
-
 namespace facebook::fboss {
 
 template <typename AddrType, bool enableIntfNbrTable>
@@ -822,7 +820,6 @@ TYPED_TEST(LookupClassUpdaterNeighborTest, VerifyMaxNumHostsPerQueue) {
 }
 
 TYPED_TEST(LookupClassUpdaterNeighborTest, VerifyQueuePerPhysicalHost) {
-  FLAGS_queue_per_physical_host = true;
   auto verifyClassIDs =
       [this](IPAddress ip, MacAddress mac, cfg::AclLookupClass queue) {
         this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
@@ -888,7 +885,6 @@ TYPED_TEST(LookupClassUpdaterNeighborTest, VerifyQueuePerPhysicalHost) {
 }
 
 TYPED_TEST(LookupClassUpdaterNeighborTest, VerifyMacOuiUpdate) {
-  FLAGS_queue_per_physical_host = true;
   auto verifyClassIDs =
       [this](IPAddress ip, MacAddress mac, cfg::AclLookupClass queue) {
         this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
@@ -1003,55 +999,20 @@ TYPED_TEST(LookupClassUpdaterNeighborTest, VerifyMacOuiUpdate) {
       this->getIpAddressN(9),
       this->kMacAddressN(8),
       cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+  auto lookupClassUpdater = this->sw_->getLookupClassUpdater();
+  auto& classID2Cnt =
+      lookupClassUpdater->getPort2ClassIDAndCount()[this->kPortID()];
+  EXPECT_FALSE(this->isBalanced(classID2Cnt));
 
   // remove mac ouis
   this->updateMacOuis(false);
 
   // all macs should be rebalanced in old way
-  verifyClassIDs(
-      this->getIpAddressN(3),
-      hostMacs[3],
-      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3);
-  verifyClassIDs(
-      this->getIpAddressN(2),
-      hostMacs[2],
-      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_2);
-  verifyClassIDs(
-      this->getIpAddressN(4),
-      oobMac,
-      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_4);
-  verifyClassIDs(
-      this->getIpAddressN(1),
-      hostMacs[1],
-      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
-  verifyClassIDs(
-      this->getIpAddressN(0),
-      hostMacs[0],
-      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_4);
-  verifyClassIDs(
-      this->getIpAddressN(5),
-      metaMac,
-      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
-  verifyClassIDs(
-      this->getIpAddressN(6),
-      localAdministeredMac,
-      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
-  verifyClassIDs(
-      this->getIpAddressN(7),
-      outlierMac,
-      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_2);
-  verifyClassIDs(
-      this->getIpAddressN(8),
-      localAdministeredMac2,
-      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3);
-  verifyClassIDs(
-      this->getIpAddressN(9),
-      this->kMacAddressN(8),
-      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+  classID2Cnt = lookupClassUpdater->getPort2ClassIDAndCount()[this->kPortID()];
+  EXPECT_TRUE(this->isBalanced(classID2Cnt));
 }
 
 TYPED_TEST(LookupClassUpdaterNeighborTest, VerifyRebalanceByMacOuiUpdate) {
-  FLAGS_queue_per_physical_host = true;
   this->updateMacOuis();
   auto verifyClassIDs =
       [this](IPAddress ip, MacAddress mac, cfg::AclLookupClass queue) {
@@ -1081,13 +1042,12 @@ TYPED_TEST(LookupClassUpdaterNeighborTest, VerifyRebalanceByMacOuiUpdate) {
     this->resolve(this->getIpAddressN(i), macs[i]);
     verifyClassIDs(this->getIpAddressN(i), macs[i], queueId);
   }
-  FLAGS_queue_per_physical_host = false;
   this->updateMacOuis(false);
   auto lookupClassUpdater = this->sw_->getLookupClassUpdater();
   auto& classID2Cnt =
       lookupClassUpdater->getPort2ClassIDAndCount()[this->kPortID()];
   // macs should be balanced by old classID assignment when
-  // queue_per_physical_host is disabled
+  // queue_per_physical_host is disabled (empty vendorMacOuis)
   EXPECT_TRUE(this->isBalanced(classID2Cnt));
 }
 
@@ -1943,10 +1903,6 @@ class LookupClassUpdaterWarmbootWithQueuePerPhysicalHostTest
                               ->getNode(matcher.matcherString())
                               ->modify(&newState);
 
-    switchSettings->setVendorMacOuis({this->kVendorMacOui()});
-    switchSettings->setMetaMacOuis({this->kMetaMacOui()});
-
-    FLAGS_queue_per_physical_host = true;
     this->handle_ = createTestHandle(newState);
     this->sw_ = this->handle_->getSw();
   }
@@ -1967,6 +1923,9 @@ TYPED_TEST_SUITE(
 TYPED_TEST(
     LookupClassUpdaterWarmbootWithQueuePerPhysicalHostTest,
     VerifyUpdateClassID) {
+  // add mac ouis
+  this->updateMacOuis();
+
   // meta Mac address should still be assigned to the first queue 0
   this->resolveNeighbor(this->getIpAddress2(), this->kMetaMacAddress());
   // vendor Mac address endin with 6 should be re-assigned to queue (6>>1)=3
@@ -1993,9 +1952,8 @@ TYPED_TEST(
 
 /*
  * This test verifies if the class id assignment is imblanaced before warmboot,
- * when the next warmboot init has flag queue_per_physical_host disabled, class
- * id re-assignment logics should be triggered to re-balance mac -> class id
- * mapping.
+ * when the next warmboot without queue_per_physical_host (empty vendorMacOuis),
+ * class id re-assignment logics should be triggered to re-balance mac->classId
  */
 template <typename IpAddrAndEnableIntfNbrTableT>
 class LookupClassUpdaterWarmbootRebalanceTest
@@ -2075,6 +2033,9 @@ class LookupClassUpdaterWarmbootRebalanceTest
 TYPED_TEST_SUITE(LookupClassUpdaterWarmbootRebalanceTest, TestTypesNeighbor);
 
 TYPED_TEST(LookupClassUpdaterWarmbootRebalanceTest, VerifyRebalance) {
+  // remove mac ouis
+  this->updateMacOuis(false);
+
   this->verifyStateUpdate([=]() {
     this->verifyNeighborClassIDHelper(
         this->getIpAddrN(0),
