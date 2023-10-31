@@ -44,6 +44,9 @@ std::unique_ptr<WedgeManager> createElbertWedgeManager(
 
 bool isElbert8DD();
 
+std::string getDeviceDatacenter();
+std::string getDeviceHostnameScheme();
+
 std::unique_ptr<WedgeManager> createSandiaWedgeManager(
     const std::string& platformMappingStr);
 

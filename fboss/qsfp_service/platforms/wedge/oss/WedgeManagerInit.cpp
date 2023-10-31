@@ -48,6 +48,14 @@ bool isElbert8DD() {
   return false;
 }
 
+std::string getDeviceDatacenter() {
+  return "";
+}
+
+std::string getDeviceHostnameScheme() {
+  return "";
+}
+
 std::unique_ptr<WedgeManager> createSandiaWedgeManager(
     const std::string& /* platformMappingStr */) {
   return std::unique_ptr<WedgeManager>{};
