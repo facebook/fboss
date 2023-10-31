@@ -1294,6 +1294,15 @@ void ThriftHandler::getCurrentStateJSON(
   }
 }
 
+void ThriftHandler::getCurrentStateJSONForPaths(
+    std::map<std::string, std::string>& pathToState,
+    std::unique_ptr<std::vector<std::string>> paths) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured(__func__);
+
+  // TODO
+}
+
 void ThriftHandler::patchCurrentStateJSON(
     std::unique_ptr<std::string> jsonPointerStr,
     std::unique_ptr<std::string> jsonPatchStr) {
