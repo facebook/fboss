@@ -1311,7 +1311,9 @@ void ThriftHandler::getCurrentStateJSONForPaths(
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
 
-  // TODO
+  for (auto& path : *paths) {
+    pathToState[path] = getCurrentStateJSONForPath(path);
+  }
 }
 
 void ThriftHandler::patchCurrentStateJSON(
