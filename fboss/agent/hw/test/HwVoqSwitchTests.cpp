@@ -725,9 +725,11 @@ TEST_F(HwVoqSwitchTest, packetIntegrityError) {
     getHwSwitchEnsemble()->runDiagCommand(
         "m SPB_FORCE_CRC_ERROR FORCE_CRC_ERROR_ON_DATA=1 FORCE_CRC_ERROR_ON_CRC=1\n",
         out);
+    getHwSwitchEnsemble()->runDiagCommand("quit\n", out);
     sendPacket(dstIp, std::nullopt, std::vector<uint8_t>(1024, 0xff));
     WITH_RETRIES({
       getHwSwitch()->updateStats();
+      fb303::ThreadCachedServiceData::get()->publishStats();
       auto pktIntegrityDrops =
           getHwSwitch()->getSwitchStats()->getPacketIntegrityDrops();
       XLOG(INFO) << " Packet integrity drops: " << pktIntegrityDrops;
