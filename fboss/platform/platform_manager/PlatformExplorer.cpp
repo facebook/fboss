@@ -129,6 +129,7 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
     auto idpromConfig = *slotTypeConfig.idpromConfig_ref();
     auto eepromI2cBusNum = getI2cBusNum(slotPath, *idpromConfig.busName());
     i2cExplorer_.createI2cDevice(
+        "IDPROM",
         *idpromConfig.kernelDeviceName(),
         eepromI2cBusNum,
         I2cAddr(*idpromConfig.address()));
@@ -161,6 +162,7 @@ void PlatformExplorer::exploreI2cDevices(
     const std::vector<I2cDeviceConfig>& i2cDeviceConfigs) {
   for (const auto& i2cDeviceConfig : i2cDeviceConfigs) {
     i2cExplorer_.createI2cDevice(
+        *i2cDeviceConfig.pmUnitScopedName(),
         *i2cDeviceConfig.kernelDeviceName(),
         getI2cBusNum(slotPath, *i2cDeviceConfig.busName()),
         I2cAddr(*i2cDeviceConfig.address()));

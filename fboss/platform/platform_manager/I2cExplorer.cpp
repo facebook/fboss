@@ -79,6 +79,7 @@ std::optional<std::string> I2cExplorer::getI2cDeviceName(
 }
 
 void I2cExplorer::createI2cDevice(
+    const std::string& pmUnitScopedName,
     const std::string& deviceName,
     uint16_t busNum,
     const I2cAddr& addr) {
@@ -86,15 +87,18 @@ void I2cExplorer::createI2cDevice(
     auto existingDeviceName = getI2cDeviceName(busNum, addr);
     if (existingDeviceName && existingDeviceName.value() == deviceName) {
       XLOG(INFO) << fmt::format(
-          "Device {} already exists at bus: {}, addr: {}. Skipping creation.",
+          "Device {} ({}) already exists at bus: {}, addr: {}. "
+          "Skipping creation.",
+          pmUnitScopedName,
           deviceName,
           busNum,
           addr.hex2Str());
       return;
     }
     XLOG(ERR) << fmt::format(
-        "Creation of i2c device {} at bus: {}, addr: {} failed. "
+        "Creation of i2c device {} ({}) at bus: {}, addr: {} failed. "
         "Another device already present",
+        pmUnitScopedName,
         deviceName,
         busNum,
         addr.hex2Str());
@@ -109,8 +113,9 @@ void I2cExplorer::createI2cDevice(
   XLOG_IF(INFO, !standardOut.empty()) << standardOut;
   if (exitStatus != 0) {
     XLOG(ERR) << fmt::format(
-        "Creation of i2c device for {} at bus: {}, addr: {} "
+        "Creation of i2c device for {} ({}) at bus: {}, addr: {} "
         "failed with exit status {}",
+        pmUnitScopedName,
         deviceName,
         busNum,
         addr.hex2Str(),
@@ -118,7 +123,8 @@ void I2cExplorer::createI2cDevice(
     throw std::runtime_error("Creation of i2c device failed");
   }
   XLOG(INFO) << fmt::format(
-      "Created i2c device {} at {}",
+      "Created i2c device {} ({}) at {}",
+      pmUnitScopedName,
       deviceName,
       getDeviceI2cPath(busNum, addr));
 }

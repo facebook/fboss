@@ -74,6 +74,7 @@ class I2cExplorer {
 
   // Creates an i2c device for `deviceName` on `busNum` and `addr`.
   void createI2cDevice(
+      const std::string& pmUnitScopedName,
       const std::string& deviceName,
       uint16_t busNum,
       const I2cAddr& addr);
