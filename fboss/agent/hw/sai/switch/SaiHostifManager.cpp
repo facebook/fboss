@@ -647,7 +647,7 @@ void SaiHostifManager::setQosPolicy() {
 void SaiHostifManager::clearQosPolicy() {
   setCpuPortQosPolicy(
       QosMapSaiId(SAI_NULL_OBJECT_ID), QosMapSaiId(SAI_NULL_OBJECT_ID));
-  setCpuSystemPortQosPolicy(QosMapSaiId(SAI_NULL_OBJECT_ID));
+  // TODO(daweix): setCpuSystemPortQosPolicy(QosMapSaiId(SAI_NULL_OBJECT_ID));
   globalDscpToTcQosMap_.reset();
   globalTcToQueueQosMap_.reset();
 }
