@@ -4,7 +4,7 @@
 # cmake/FooBar.cmake
 
 add_library(morgan_platform_mapping
-    fboss/agent/platforms/common/morgan800cc/Morgan800ccPlatformMapping.cpp
+    fboss/agent/platforms/common/morgan800cc/oss/Morgan800ccPlatformMapping.cpp
 )
 
 target_link_libraries(morgan_platform_mapping
