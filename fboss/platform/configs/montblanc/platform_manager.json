@@ -23,6 +23,15 @@
         "kernelDeviceName": "24c04"
       },
       "pmUnitName": "PSU"
+    },
+    "SMB_SLOT": {
+      "numOutgoingI2cBuses": 8,
+      "idpromConfig": {
+        "busName": "INCOMING@3",
+        "address": "0x50",
+        "kernelDeviceName": "24c64"
+      },
+      "pmUnitName": "SMB"
     }
   },
   "i2cAdaptersFromCpu": [
@@ -1713,6 +1722,19 @@
           "outgoingI2cBusNames": [
             "MCB_IOB_I2C_MASTER_6"
           ]
+        },
+        "SMB_SLOT@0": {
+          "slotType": "SMB_SLOT",
+          "outgoingI2cBusNames": [
+            "MCB_IOB_I2C_MASTER_4",
+            "MCB_IOB_I2C_MASTER_7",
+            "MCB_IOB_I2C_MASTER_9",
+            "MCB_IOB_I2C_MASTER_10",
+            "MCB_IOB_I2C_MASTER_11",
+            "MCB_IOB_I2C_MASTER_12",
+            "MCB_DOM1_I2C_MASTER_34",
+            "MCB_DOM2_I2C_MASTER_34"
+          ]
         }
       }
     },
@@ -1750,6 +1772,78 @@
           "address": "0x59",
           "kernelDeviceName": "pmbus",
           "pmUnitScopedName": "PSU_PMBUS"
+        }
+      ],
+      "outgoingSlotConfigs": {}
+    },
+    "SMB": {
+      "pluggedInSlotType": "SMB_SLOT",
+      "i2cDeviceConfigs": [
+        {
+          "busName": "INCOMING@0",
+          "address": "0x76",
+          "kernelDeviceName": "pmbus",
+          "pmUnitScopedName": "SMB_VRM1"
+        },
+        {
+          "busName": "INCOMING@1",
+          "address": "0x1d",
+          "kernelDeviceName": "adc128d818",
+          "pmUnitScopedName": "SMB_VOLTAGE_MONITOR1"
+        },
+        {
+          "busName": "INCOMING@1",
+          "address": "0x1f",
+          "kernelDeviceName": "adc128d818",
+          "pmUnitScopedName": "SMB_VOLTAGE_MONITOR2"
+        },
+        {
+          "busName": "INCOMING@2",
+          "address": "0x35",
+          "kernelDeviceName": "adc128d818",
+          "pmUnitScopedName": "SMB_VOLTAGE_MONITOR3"
+        },
+        {
+          "busName": "INCOMING@3",
+          "address": "0x3e",
+          "kernelDeviceName": "smbcpld",
+          "pmUnitScopedName": "SMB_CPLD"
+        },
+        {
+          "busName": "INCOMING@4",
+          "address": "0x7d",
+          "kernelDeviceName": "mp2975",
+          "pmUnitScopedName": "SMB_VRM2"
+        },
+        {
+          "busName": "INCOMING@5",
+          "address": "0x7b",
+          "kernelDeviceName": "mp2975",
+          "pmUnitScopedName": "SMB_VRM3"
+        },
+        {
+          "busName": "INCOMING@6",
+          "address": "0x48",
+          "kernelDeviceName": "tmp1075",
+          "pmUnitScopedName": "SMB_TSENSOR1"
+        },
+        {
+          "busName": "INCOMING@6",
+          "address": "0x49",
+          "kernelDeviceName": "tmp1075",
+          "pmUnitScopedName": "SMB_TSENSOR2"
+        },
+        {
+          "busName": "INCOMING@7",
+          "address": "0x4a",
+          "kernelDeviceName": "tmp1075",
+          "pmUnitScopedName": "SMB_TSENSOR3"
+        },
+        {
+          "busName": "INCOMING@7",
+          "address": "0x4b",
+          "kernelDeviceName": "tmp1075",
+          "pmUnitScopedName": "SMB_TSENSOR4"
         }
       ],
       "outgoingSlotConfigs": {}
