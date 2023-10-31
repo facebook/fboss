@@ -12,6 +12,7 @@
 #include "common/logging/logging.h"
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/ArpHandler.h"
+#include "fboss/agent/DsfStateUpdaterUtil.h"
 #include "fboss/agent/DsfSubscriber.h"
 #include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/FibHelpers.h"
@@ -1338,8 +1339,23 @@ void ThriftHandler::patchCurrentStateJSONForPaths(
     throw FbossError("Running switch state mutations are not allowed");
   }
 
-  std::shared_ptr<SystemPortMap> newRemoteSystemPorts{nullptr};
-  std::shared_ptr<InterfaceMap> newRemoteRifs{nullptr};
+  /*
+   * The caller (thrift client) must get localSystPorts/localIntfs from every
+   * other RDSW in the DSF cluster, set isLocal = false for every neighbor,
+   * merge localSysPorts/localRifs in one flat list and then call this API by
+   * passing these lists as remoteSysPorts/remoteRifs.
+   *
+   * The implementation works as follows:
+   *  - Break the flat list of remoteSysPorts/remoteRifs into per switchID map.
+   *  - Build a new desired state by iterating over the map and invoking
+   *    DsfStateUpdaterUtil::getUpdatedState
+   *  - This is the same util that is invoked when FSDB is running and we
+   *    receive state update from a peer DSF node.
+   *  - Apply the state.
+   */
+
+  std::map<SwitchID, std::shared_ptr<SystemPortMap>> switchId2SystemPorts;
+  std::map<SwitchID, std::shared_ptr<InterfaceMap>> switchId2Rifs;
 
   for (const auto& [path, jsonPatch] : *pathToJsonPatch) {
     if (path == "remoteSystemPortMaps") {
@@ -1348,22 +1364,69 @@ void ThriftHandler::patchCurrentStateJSONForPaths(
                                  MultiSwitchSystemPortMapTypeClass,
                                  MultiSwitchSystemPortMapThriftType>(
           fsdb::OperProtocol::SIMPLE_JSON, jsonPatch));
-      newRemoteSystemPorts = mswitchSysPorts.getAllNodes();
+      for (const auto& systemPortMap : mswitchSysPorts) {
+        // A given port belongs to exactly one switch
+        auto matcher = HwSwitchMatcher(systemPortMap.first);
+        switchId2SystemPorts[matcher.switchId()] = systemPortMap.second;
+      }
     } else if (path == "remoteInterfaceMaps") {
       MultiSwitchInterfaceMap mswitchIntfs;
       mswitchIntfs.fromThrift(thrift_cow::deserialize<
                               MultiSwitchInterfaceMapTypeClass,
                               MultiSwitchInterfaceMapThriftType>(
           fsdb::OperProtocol::SIMPLE_JSON, jsonPatch));
-      newRemoteRifs = mswitchIntfs.getAllNodes();
+      for (const auto& remoteIntfMap : mswitchIntfs) {
+        auto matcher = HwSwitchMatcher(remoteIntfMap.first);
+        // Pick first switchId for now, may need to revise when we support
+        // Multi NPU VOQ switches.
+        auto switchId = *matcher.switchIds().cbegin();
+        switchId2Rifs[switchId] = remoteIntfMap.second;
+      }
     } else {
       throw FbossError(
           "Running switch state mutation not supported for: ", path);
     }
   }
 
-  // TODO
-  // Update state based on newRemoteSystemPorts, newRemoteRifs
+  if (switchId2SystemPorts.size() != switchId2Rifs.size()) {
+    // This size check + check in updateDsfStateFn guarantee this
+    throw FbossError(
+        "Both remoteSystemPorts and remoteRifs must be provided together for every switchID");
+  }
+
+  auto updateDsfStateFn = [this, switchId2SystemPorts, switchId2Rifs](
+                              const std::shared_ptr<SwitchState>& in) {
+    auto currState = in;
+    for (const auto& [switchId, newSysPorts] : switchId2SystemPorts) {
+      auto it = switchId2Rifs.find(switchId);
+      if (it == switchId2Rifs.end()) {
+        throw FbossError(
+            "Both remoteSystemPorts and remoteRifs must be provided together for every switchID");
+      }
+
+      auto newRifs = it->second;
+      auto dsfNode = currState->getDsfNodes()->getNodeIf(switchId);
+      if (!dsfNode) {
+        throw FbossError("Could not find dsfNode for switchId: ", switchId);
+      }
+
+      auto newState = DsfStateUpdaterUtil::getUpdatedState(
+          currState,
+          sw_->getScopeResolver(),
+          newSysPorts,
+          newRifs,
+          dsfNode->getName(),
+          switchId);
+
+      currState = newState;
+    }
+
+    return currState;
+  };
+
+  sw_->updateState(
+      folly::sformat("Update state by patchCurrentStateJSONForPaths: "),
+      std::move(updateDsfStateFn));
 }
 
 void ThriftHandler::getPortStatusImpl(
