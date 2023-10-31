@@ -16,6 +16,7 @@ extern "C" {
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/bcm/BcmAclStat.h"
 #include "fboss/agent/hw/bcm/types.h"
+#include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 
 namespace facebook::fboss {
@@ -72,6 +73,8 @@ class BcmAclEntry {
       const RouteNextHopSet& nexthops,
       bool isWarmBoot,
       bcm_vrf_t vrf = 0);
+  void applyFlowletAction(
+      const std::optional<facebook::fboss::MatchAction>& action);
 
   BcmSwitch* hw_;
   int gid_;

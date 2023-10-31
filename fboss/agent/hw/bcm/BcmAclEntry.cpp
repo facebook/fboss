@@ -22,7 +22,6 @@
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmUdfManager.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
-#include "fboss/agent/state/AclEntry.h"
 
 #include <folly/MacAddress.h>
 #include <folly/logging/xlog.h>
@@ -389,6 +388,28 @@ void BcmAclEntry::createAclActions() {
               true),
           false /* isWarmBoot */);
     }
+
+    if (hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::DLB)) {
+      if (matchAction->getFlowletAction()) {
+        XLOG(DBG2) << "Adding flowlet action for handle :" << handle_;
+        applyFlowletAction(matchAction);
+      }
+    }
+  }
+}
+
+void BcmAclEntry::applyFlowletAction(
+    const std::optional<facebook::fboss::MatchAction>& action) {
+  int rv;
+  auto flowletAction = action->getFlowletAction().value();
+  switch (flowletAction) {
+    case cfg::FlowletAction::FORWARD:
+      rv = bcm_field_action_add(
+          hw_->getUnit(), handle_, bcmFieldActionDynamicEcmpEnable, 0, 0);
+      bcmCheckError(rv, "failed to add dynamic ecmp enable action");
+      break;
+    default:
+      throw FbossError("Unrecognized flowlet action ", flowletAction);
   }
 }
 
