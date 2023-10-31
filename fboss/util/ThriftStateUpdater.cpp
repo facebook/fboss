@@ -8,6 +8,33 @@
  *
  */
 
+/*
+ * Sample util script to illustrate how to establish end to end ping in DSF
+ * topology without FSDB.
+ *
+ *
+ * Consider a setup: RDSW A <=> FDSWs <=> RDSW B
+ * During the normal mode of operation, any neighbors resolved by RDSW A
+ * will be sync'ed to RDSW B wedge_agent via RDSW A FSDB and vice-versa.
+ *
+ * This script achieves similar effect when FSDB is not running:
+ *  - Get system ports, interfaces from RDSW A.
+ *  - Set those as remote system ports, remote interfaces on RDSW B.
+ *  - RDSW B can then send unidirectional traffic from RDSW B to RDSW A, as
+ *    neighbors directly resolved by RDSW A are now programmed and reachable
+ *    from RDSW B.
+ *
+ * This is a sample script to illustrate the workflow. A test orchestrator for
+ * a DSF test cluster without FSDB will need a more comprehensive functionality
+ * on the lines below:
+ *
+ * Periodically run below logic for every RDSW R in the DSF cluster:
+ *    - get localSysPorts, localIntfs for every other RDSW in the DSF cluster.
+ *    - set isLocal = false for every neighbor in localIntf neighbor table.
+ *    - merge all the localSysPorts/localIntfs received into respective lists.
+ *    - set these lists as remoteSysPorts, remoteIntfs for R.
+ */
+
 #include <iostream>
 
 #include <thrift/lib/cpp2/async/HeaderClientChannel.h>
