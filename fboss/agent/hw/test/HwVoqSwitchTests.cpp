@@ -729,7 +729,7 @@ TEST_F(HwVoqSwitchTest, packetIntegrityError) {
     WITH_RETRIES({
       getHwSwitch()->updateStats();
       auto pktIntegrityDrops =
-          getHwSwitch()->getSwitchStats()->getPacketIntegrityDropsCount();
+          getHwSwitch()->getSwitchStats()->getPacketIntegrityDrops();
       XLOG(INFO) << " Packet integrity drops: " << pktIntegrityDrops;
       EXPECT_EVENTUALLY_GT(pktIntegrityDrops, 0);
     });
