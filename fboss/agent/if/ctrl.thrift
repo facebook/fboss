@@ -1164,6 +1164,12 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
   void patchCurrentStateJSON(1: string jsonPointer, 2: string jsonPatch);
 
   /*
+   * Apply every json Patch to specified path.
+   * json Patch must be a valid JSON object string.
+   */
+  void patchCurrentStateJSONForPaths(1: map<string, string> pathToJsonPatch);
+
+  /*
   * Switch run state
   */
   SwitchRunState getSwitchRunState();
