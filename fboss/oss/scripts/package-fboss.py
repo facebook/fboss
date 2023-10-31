@@ -8,8 +8,6 @@ import shutil
 import subprocess
 import tempfile
 
-import git
-
 
 OPT_ARG_SCRATCH_PATH = "--scratch-path"
 
@@ -36,8 +34,6 @@ class PackageFboss:
     FBOSS_BINS = "fboss_bins-1"
     FBOSS_BIN_TAR = "fboss_bins.tar.gz"
 
-    SCRIPT_DIR_ABS = os.path.dirname(os.path.realpath(__file__))
-
     BIN = "bin"
     LIB = "lib"
     DATA = "share"
@@ -58,6 +54,9 @@ class PackageFboss:
     def __init__(self):
 
         self.scratch_path = args.scratch_path
+        self.git_path = os.path.join(
+            self.scratch_path, "repos/github.com-facebook-fboss.git"
+        )
         self.tmp_dir_name = tempfile.mkdtemp(
             prefix=PackageFboss.FBOSS_BINS, dir=args.scratch_path
         )
@@ -83,12 +82,8 @@ class PackageFboss:
             .split("\n")[-1]
         )
 
-    def _get_git_root(self, path):
-        git_repo = git.Repo(path, search_parent_directories=True)
-        return git_repo.git.rev_parse("--show-toplevel")
-
     def _copy_run_scripts(self, tmp_dir_name):
-        run_scripts_path = os.path.join(PackageFboss.SCRIPT_DIR_ABS, "run_scripts")
+        run_scripts_path = os.path.join(self.git_path, "fboss/oss/scripts/run_scripts")
         src_files = os.listdir(run_scripts_path)
         for file_name in src_files:
             full_file_name = os.path.join(run_scripts_path, file_name)
@@ -97,7 +92,7 @@ class PackageFboss:
             shutil.copy(full_file_name, script_pkg_path)
 
     def _copy_run_configs(self, tmp_dir_name):
-        run_configs_path = os.path.join(PackageFboss.SCRIPT_DIR_ABS, "run_configs")
+        run_configs_path = os.path.join(self.git_path, "fboss/oss/scripts/run_configs")
         src_files = os.listdir(run_configs_path)
         for file_name in src_files:
             full_file_name = os.path.join(run_configs_path, file_name)
@@ -107,17 +102,15 @@ class PackageFboss:
             shutil.copytree(full_file_name, full_config_name)
 
     def _copy_configs(self, tmp_dir_name):
-        hw_test_configs_path = os.path.join(
-            self._get_git_root(__file__), "fboss/oss/hw_test_configs"
-        )
+        hw_test_configs_path = os.path.join(self.git_path, "fboss/oss/hw_test_configs")
         qsfp_test_configs_path = os.path.join(
-            self._get_git_root(__file__), "fboss/oss/qsfp_test_configs"
+            self.git_path, "fboss/oss/qsfp_test_configs"
         )
         link_test_configs_path = os.path.join(
-            self._get_git_root(__file__), "fboss/oss/link_test_configs"
+            self.git_path, "fboss/oss/link_test_configs"
         )
         hw_sanity_test_configs_path = os.path.join(
-            self._get_git_root(__file__), "fboss/oss/hw_sanity_tests"
+            self.git_path, "fboss/oss/hw_sanity_tests"
         )
         print(f"Copying {hw_test_configs_path} to {tmp_dir_name}")
         shutil.copytree(
@@ -140,25 +133,15 @@ class PackageFboss:
             os.path.join(tmp_dir_name, PackageFboss.DATA, "hw_sanity_tests"),
         )
 
-    def _copy_unsupported_tests(self, tmp_dir_name):
-        qsfp_unsupported_tests_path = os.path.join(
-            self._get_git_root(__file__), "fboss/oss/qsfp_unsupported_tests"
-        )
-        print(f"Copying {qsfp_unsupported_tests_path} to {tmp_dir_name}")
-        shutil.copytree(
-            "fboss/oss/qsfp_unsupported_tests",
-            os.path.join(tmp_dir_name, PackageFboss.DATA, "qsfp_unsupported_tests"),
-        )
-
     def _copy_known_bad_tests(self, tmp_dir_name):
         hw_known_bad_tests_path = os.path.join(
-            self._get_git_root(__file__), "fboss/oss/hw_known_bad_tests"
+            self.git_path, "fboss/oss/hw_known_bad_tests"
         )
         qsfp_known_bad_tests_path = os.path.join(
-            self._get_git_root(__file__), "fboss/oss/qsfp_known_bad_tests"
+            self.git_path, "fboss/oss/qsfp_known_bad_tests"
         )
         link_known_bad_tests_path = os.path.join(
-            self._get_git_root(__file__), "fboss/oss/link_known_bad_tests"
+            self.git_path, "fboss/oss/link_known_bad_tests"
         )
         print(f"Copying {hw_known_bad_tests_path} to {tmp_dir_name}")
         print(f"Copying {qsfp_known_bad_tests_path} to {tmp_dir_name}")
@@ -174,6 +157,16 @@ class PackageFboss:
         shutil.copytree(
             "fboss/oss/link_known_bad_tests",
             os.path.join(tmp_dir_name, PackageFboss.DATA, "link_known_bad_tests"),
+        )
+
+    def _copy_unsupported_tests(self, tmp_dir_name):
+        qsfp_unsupported_tests_path = os.path.join(
+            self.git_path, "fboss/oss/qsfp_unsupported_tests"
+        )
+        print(f"Copying {qsfp_unsupported_tests_path} to {tmp_dir_name}")
+        shutil.copytree(
+            "fboss/oss/qsfp_unsupported_tests",
+            os.path.join(tmp_dir_name, PackageFboss.DATA, "qsfp_unsupported_tests"),
         )
 
     def _copy_binaries(self, tmp_dir_name):
