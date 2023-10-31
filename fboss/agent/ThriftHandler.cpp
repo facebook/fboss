@@ -1324,6 +1324,14 @@ void ThriftHandler::patchCurrentStateJSON(
       "patchCurrentStateJSON no longer supported by agent due to thrift migration");
 }
 
+void ThriftHandler::patchCurrentStateJSONForPaths(
+    std::unique_ptr<std::map<std::string, std::string>> pathToJsonPatch) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured(__func__);
+
+  // TODO
+}
+
 void ThriftHandler::getPortStatusImpl(
     std::map<int32_t, PortStatus>& statusMap,
     const std::unique_ptr<std::vector<int32_t>>& ports) const {

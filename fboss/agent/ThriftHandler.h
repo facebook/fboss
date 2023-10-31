@@ -370,6 +370,14 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
       std::unique_ptr<std::string> jsonPointer,
       std::unique_ptr<std::string> jsonPatch) override;
 
+  /*
+   * Apply every json Patch to specified path.
+   * json Patch must be a valid JSON object string.
+   */
+  void patchCurrentStateJSONForPaths(
+      std::unique_ptr<std::map<std::string, std::string>> pathToJsonPatch)
+      override;
+
   SwitchRunState getSwitchRunState() override;
 
   void setSSLPolicy(apache::thrift::SSLPolicy sslPolicy) {
