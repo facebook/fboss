@@ -1153,6 +1153,11 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
   string getCurrentStateJSON(1: string path);
 
   /*
+   * Get live serialized switch state for provided paths
+   */
+  map<string, string> getCurrentStateJSONForPaths(1: list<string> paths);
+
+  /*
    * Apply patch at given path within the state tree. jsonPatch must  be
    * a valid JSON object string
    */
