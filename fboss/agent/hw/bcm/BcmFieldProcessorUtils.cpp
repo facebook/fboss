@@ -158,6 +158,16 @@ bool isMirrorActionSame(
   return param0 == 0 && param1 == mirrorHandle;
 }
 
+bool isFlowletActionStateSame(
+    const std::optional<MatchAction>& swAction,
+    const std::string& aclMsg) {
+  if (!swAction || !swAction.value().getFlowletAction()) {
+    XLOG(ERR) << aclMsg << " has flowletValue action in h/w but not in s/w";
+    return false;
+  }
+  return true;
+}
+
 bool isActionStateSame(
     const BcmSwitch* hw,
     int unit,
@@ -166,14 +176,15 @@ bool isActionStateSame(
     const std::string& aclMsg,
     const BcmAclActionParameters& data) {
   // first we need to get all actions of current acl entry
-  std::array<bcm_field_action_t, 7> supportedActions = {
+  std::array<bcm_field_action_t, 8> supportedActions = {
       bcmFieldActionDrop,
       bcmFieldActionCosQNew,
       bcmFieldActionCosQCpuNew,
       bcmFieldActionDscpNew,
       bcmFieldActionMirrorIngress,
       bcmFieldActionMirrorEgress,
-      bcmFieldActionL3Switch};
+      bcmFieldActionL3Switch,
+      bcmFieldActionDynamicEcmpEnable};
   boost::container::flat_map<bcm_field_action_t, std::pair<uint32_t, uint32_t>>
       bcmActions;
   for (auto action : supportedActions) {
@@ -203,6 +214,9 @@ bool isActionStateSame(
       expectedAC += 1;
     }
     if (acl->getAclAction()->cref<switch_state_tags::redirectToNextHop>()) {
+      expectedAC += 1;
+    }
+    if (acl->getAclAction()->cref<switch_state_tags::flowletAction>()) {
       expectedAC += 1;
     }
   }
@@ -265,6 +279,9 @@ bool isActionStateSame(
         break;
       case bcmFieldActionL3Switch:
         isSame = isRedirectToNextHopStateSame(hw, param0, aclAction, aclMsg);
+        break;
+      case bcmFieldActionDynamicEcmpEnable:
+        isSame = isFlowletActionStateSame(aclAction, aclMsg);
         break;
       default:
         throw FbossError("Unknown action=", action->first);

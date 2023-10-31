@@ -12,6 +12,7 @@
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
+#include "fboss/agent/hw/test/HwTestAclUtils.h"
 #include "fboss/agent/hw/test/HwTestFlowletSwitchingUtils.h"
 #include "fboss/agent/hw/test/ProdConfigFactory.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
@@ -31,6 +32,9 @@ const int kInactivityIntervalUsecs1 = 128;
 const int kInactivityIntervalUsecs2 = 256;
 const int kFlowletTableSize1 = 1024;
 const int kFlowletTableSize2 = 2048;
+static int kUdpProto(17);
+static int kUdpDstPort(4791);
+constexpr auto kAclName = "flowlet";
 } // namespace
 
 namespace facebook::fboss {
@@ -50,6 +54,15 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
     return cfg;
   }
 
+  void addFlowletAcl(cfg::SwitchConfig& cfg) const {
+    auto* acl = utility::addAcl(&cfg, kAclName);
+    acl->proto() = kUdpProto;
+    acl->l4DstPort() = kUdpDstPort;
+    cfg::MatchAction matchAction = cfg::MatchAction();
+    matchAction.flowletAction() = cfg::FlowletAction::FORWARD;
+    utility::addMatcher(&cfg, kAclName, matchAction);
+  }
+
   void updateFlowletConfigs(cfg::SwitchConfig& cfg) const {
     auto flowletCfg = getFlowletSwitchingConfig(
         kInactivityIntervalUsecs1, kFlowletTableSize1);
@@ -63,6 +76,7 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
       auto portCfg = utility::findCfgPort(cfg, portId);
       portCfg->flowletConfigName() = "default";
     }
+    addFlowletAcl(cfg);
   }
 
   cfg::SwitchConfig getDefaultConfig() const {
@@ -174,6 +188,8 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
         utility::validateFlowletSwitchingEnabled(getHwSwitch(), flowletCfg));
     EXPECT_TRUE(utility::verifyEcmpForFlowletSwitching(
         getHwSwitch(), kAddr1Prefix, flowletCfg, true));
+
+    utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), kAclName);
   }
 
   void verifyModifiedConfig() {
