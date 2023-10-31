@@ -115,6 +115,12 @@ class AgentDirectoryUtil {
 
   std::string getColdBootOnceFile(const std::string& shmDir) const;
 
+  std::string getDrainDeviceFlagFile() const;
+
+  std::string getRoutingProtocolColdBootDrainTimeFile() const;
+
+  std::string getSwSwitchCanWarmBootFile() const;
+
  private:
   std::string volatileStateDir_;
   std::string persistentStateDir_;

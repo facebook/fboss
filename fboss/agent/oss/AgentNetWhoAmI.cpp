@@ -48,4 +48,8 @@ bool AgentNetWhoAmI::hasBgpRoutingProtocol() const {
   return false;
 }
 
+bool AgentNetWhoAmI::isUnDrainable() const {
+  return true;
+}
+
 } // namespace facebook::fboss

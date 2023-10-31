@@ -337,8 +337,7 @@ SwSwitch::SwSwitch(
           new SwitchIdScopeResolver(getSwitchInfoFromConfig(config))),
       switchStatsObserver_(new SwitchStatsObserver(this)),
       packetStreamMap_(new MultiSwitchPacketStreamMap()),
-      swSwitchWarmbootHelper_(
-          new SwSwitchWarmBootHelper(agentDirUtil_->getWarmBootDir())),
+      swSwitchWarmbootHelper_(new SwSwitchWarmBootHelper(agentDirUtil_)),
       hwSwitchThriftClientTable_(new HwSwitchThriftClientTable(
           FLAGS_hwagent_base_thrift_port,
           getSwitchInfoFromConfig(config))) {

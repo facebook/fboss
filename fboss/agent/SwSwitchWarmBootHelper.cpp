@@ -15,7 +15,6 @@
 
 namespace {
 constexpr auto forceColdBootFlag = "sw_cold_boot_once";
-constexpr auto wbFlag = "can_warm_boot";
 } // namespace
 
 DEFINE_bool(can_warm_boot, true, "Enable/disable warm boot functionality");
@@ -26,8 +25,10 @@ DEFINE_string(
 
 namespace facebook::fboss {
 
-SwSwitchWarmBootHelper::SwSwitchWarmBootHelper(const std::string& warmBootDir)
-    : warmBootDir_(warmBootDir) {
+SwSwitchWarmBootHelper::SwSwitchWarmBootHelper(
+    const AgentDirectoryUtil* directoryUtil)
+    : directoryUtil_(directoryUtil),
+      warmBootDir_(directoryUtil_->getWarmBootDir()) {
   if (!warmBootDir_.empty()) {
     // Make sure the warm boot directory exists.
     utilCreateDir(warmBootDir_);
@@ -95,7 +96,7 @@ std::string SwSwitchWarmBootHelper::warmBootThriftSwitchStateFile() const {
 }
 
 std::string SwSwitchWarmBootHelper::warmBootFlag() const {
-  return folly::to<std::string>(warmBootDir_, "/", wbFlag);
+  return directoryUtil_->getSwSwitchCanWarmBootFile();
 }
 
 void SwSwitchWarmBootHelper::setCanWarmBoot() {

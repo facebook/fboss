@@ -13,10 +13,11 @@ namespace facebook::fboss {
 
 class SwitchState;
 class RoutingInformationBase;
+class AgentDirectoryUtil;
 
 class SwSwitchWarmBootHelper {
  public:
-  explicit SwSwitchWarmBootHelper(const std::string& warmBootDir);
+  explicit SwSwitchWarmBootHelper(const AgentDirectoryUtil* directoryUtil);
   bool canWarmBoot() const;
   void storeWarmBootState(const state::WarmbootState& switchStateThrift);
   state::WarmbootState getWarmBootState() const;
@@ -40,6 +41,7 @@ class SwSwitchWarmBootHelper {
   std::string warmBootFlagLegacy() const;
   void setCanWarmBoot();
 
+  const AgentDirectoryUtil* directoryUtil_;
   const std::string warmBootDir_;
   bool canWarmBoot_{false};
 };
