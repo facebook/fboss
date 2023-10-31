@@ -1206,8 +1206,11 @@ void LookupClassUpdater::stateUpdated(const StateDelta& stateDelta) {
 
   if (!inited_) {
     updateStateObserverLocalCache(stateDelta.newState());
+  } else {
+    // upgrade classID only when inited, at which point neighbor caches are
+    // already populated in neighborUpdater
+    processMacOuis(stateDelta);
   }
-  processMacOuis(stateDelta);
   NeighborTableDeltaCallbackGenerator::genCallbacks(stateDelta, *this);
   processPortUpdates(stateDelta);
   processBlockNeighborUpdates(stateDelta);
