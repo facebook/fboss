@@ -10,6 +10,8 @@ namespace fs = std::filesystem;
 
 namespace {
 
+const re2::RE2 kI2cMuxChannelRegex{"channel-\\d+"};
+
 std::string getI2cAdapterName(const fs::path& busPath) {
   auto nameFile = busPath / "name";
   if (!fs::exists(nameFile)) {
@@ -121,7 +123,7 @@ void I2cExplorer::createI2cDevice(
       getDeviceI2cPath(busNum, addr));
 }
 
-std::vector<uint16_t> I2cExplorer::getMuxChannelI2CBuses(
+std::map<uint16_t, uint16_t> I2cExplorer::getMuxChannelI2CBuses(
     uint16_t busNum,
     const I2cAddr& addr) {
   auto devicePath = fs::path(getDeviceI2cPath(busNum, addr));
@@ -132,15 +134,20 @@ std::vector<uint16_t> I2cExplorer::getMuxChannelI2CBuses(
   // This is an implementation of
   // find [devicePath] -type l -name channel* -exec readlink -f {} \; |
   // xargs --max-args 1 basename"
-  std::vector<uint16_t> channelBusNums;
+  std::map<uint16_t, uint16_t> channelBusNums;
   for (const auto& dirEntry : fs::directory_iterator(devicePath)) {
-    if (dirEntry.path().filename().string().rfind("channel-", 0) == 0) {
+    if (re2::RE2::FullMatch(
+            dirEntry.path().filename().string(), kI2cMuxChannelRegex)) {
       if (!dirEntry.is_symlink()) {
         throw std::runtime_error(
             fmt::format("{} is not a symlink.", dirEntry.path().string()));
       }
-      channelBusNums.push_back(
-          extractBusNumFromPath(fs::read_symlink(dirEntry).filename()));
+      auto channelNum =
+          folly::to<uint16_t>(dirEntry.path().filename().string().substr(
+              dirEntry.path().filename().string().find_last_of("-") + 1));
+      auto channelBusNum =
+          extractBusNumFromPath(fs::read_symlink(dirEntry).filename());
+      channelBusNums[channelNum] = channelBusNum;
     }
   }
   return channelBusNums;

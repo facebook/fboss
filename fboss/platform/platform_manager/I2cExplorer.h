@@ -79,11 +79,11 @@ class I2cExplorer {
       const I2cAddr& addr);
 
   // Returns the I2C Buses which were created for the channels behind the I2C
-  // Mux at `busNum`@`addr`. They are listed in the ascending order of
-  // channels. It reads the children of /sys/bus/i2c/devices/`busNum`-`addr`/
-  // to obtain this. This function needs to be called after `createI2cMux()` for
-  // the mux. Otherwise it throws an exception.
-  std::vector<uint16_t> getMuxChannelI2CBuses(
+  // Mux at `busNum`@`addr`. It reads the children of
+  // /sys/bus/i2c/devices/`busNum`-`addr`/ to obtain this. This function needs
+  // to be called after `createI2cMux()` for the mux. Otherwise it throws an
+  // exception. The key is channel number and value is the bus number.
+  std::map<uint16_t, uint16_t> getMuxChannelI2CBuses(
       uint16_t busNum,
       const I2cAddr& addr);
 

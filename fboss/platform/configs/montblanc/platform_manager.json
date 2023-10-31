@@ -10,6 +10,10 @@
         "kernelDeviceName": "24c02"
       },
       "pmUnitName": "MCB"
+    },
+    "SCM_SLOT": {
+      "numOutgoingI2cBuses": 3,
+      "pmUnitName": "SCM"
     }
   },
   "i2cAdaptersFromCpu": [
@@ -1667,6 +1671,35 @@
         }
       ],
       "i2cDeviceConfigs": [],
+      "outgoingSlotConfigs": {
+        "SCM_SLOT@0": {
+          "slotType": "SCM_SLOT",
+          "outgoingI2cBusNames": [
+            "MCB_IOB_I2C_MASTER_1",
+            "MCB_IOB_I2C_MASTER_2",
+            "MCB_IOB_I2C_MASTER_3"
+          ]
+        }
+      }
+    },
+    "SCM": {
+      "pluggedInSlotType": "SCM_SLOT",
+      "i2cDeviceConfigs": [
+        {
+          "busName": "INCOMING@0",
+          "address": "0x70",
+          "kernelDeviceName": "pca9548",
+          "pmUnitScopedName": "SCM_MUX1",
+          "numOutgoingChannels": 8
+        },
+        {
+          "busName": "INCOMING@1",
+          "address": "0x70",
+          "kernelDeviceName": "pca9546",
+          "pmUnitScopedName": "SCM_MUX2",
+          "numOutgoingChannels": 4
+        }
+      ],
       "outgoingSlotConfigs": {}
     }
   },

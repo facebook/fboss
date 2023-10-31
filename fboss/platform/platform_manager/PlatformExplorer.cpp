@@ -165,15 +165,16 @@ void PlatformExplorer::exploreI2cDevices(
         getI2cBusNum(slotPath, *i2cDeviceConfig.busName()),
         I2cAddr(*i2cDeviceConfig.address()));
     if (i2cDeviceConfig.numOutgoingChannels()) {
-      auto channelBusNums = i2cExplorer_.getMuxChannelI2CBuses(
+      auto channelToBusNums = i2cExplorer_.getMuxChannelI2CBuses(
           getI2cBusNum(slotPath, *i2cDeviceConfig.busName()),
           I2cAddr(*i2cDeviceConfig.address()));
-      assert(channelBusNums.size() == i2cDeviceConfig.numOutgoingChannels());
-      for (int i = 0; i < i2cDeviceConfig.numOutgoingChannels(); ++i) {
+      assert(channelToBusNums.size() == i2cDeviceConfig.numOutgoingChannels());
+      for (const auto& [channelNum, busNum] : channelToBusNums) {
         updateI2cBusNum(
             slotPath,
-            fmt::format("{}@{}", *i2cDeviceConfig.pmUnitScopedName(), i),
-            channelBusNums[i]);
+            fmt::format(
+                "{}@{}", *i2cDeviceConfig.pmUnitScopedName(), channelNum),
+            busNum);
       }
     }
   }
