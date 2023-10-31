@@ -127,10 +127,10 @@ SaiSwitchManager::SaiSwitchManager(
     if (asic->isSupported(HwAsic::Feature::ECMP_HASH_V6)) {
       resetLoadBalancer<SaiSwitchTraits::Attributes::EcmpHashV6>();
     }
-    if (asic->isSupported(HwAsic::Feature::SAI_LAG_HASH)) {
-      resetLoadBalancer<SaiSwitchTraits::Attributes::LagHashV4>();
-      resetLoadBalancer<SaiSwitchTraits::Attributes::LagHashV6>();
-    }
+#if defined(SAI_VERSION_7_0_0_2_ODP)
+    resetLoadBalancer<SaiSwitchTraits::Attributes::LagHashV4>();
+    resetLoadBalancer<SaiSwitchTraits::Attributes::LagHashV6>();
+#endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
     if (asic->isSupported(HwAsic::Feature::ECMP_MEMBER_WIDTH_INTROSPECTION)) {
       auto maxEcmpCount = SaiApiTable::getInstance()->switchApi().getAttribute(
