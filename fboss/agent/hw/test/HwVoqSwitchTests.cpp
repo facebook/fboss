@@ -732,6 +732,8 @@ TEST_F(HwVoqSwitchTest, packetIntegrityError) {
           getHwSwitch()->getSwitchStats()->getPacketIntegrityDrops();
       XLOG(INFO) << " Packet integrity drops: " << pktIntegrityDrops;
       EXPECT_EVENTUALLY_GT(pktIntegrityDrops, 0);
+      EXPECT_EVENTUALLY_GT(
+          getHwSwitch()->getSwitchDropStats().packetIntegrityDrops(), 0);
     });
   };
   verifyAcrossWarmBoots(setup, verify);
