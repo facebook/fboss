@@ -14,6 +14,15 @@
     "SCM_SLOT": {
       "numOutgoingI2cBuses": 3,
       "pmUnitName": "SCM"
+    },
+    "PSU_SLOT": {
+      "numOutgoingI2cBuses": 1,
+      "idpromConfig": {
+        "busName": "INCOMING@0",
+        "address": "0x51",
+        "kernelDeviceName": "24c04"
+      },
+      "pmUnitName": "PSU"
     }
   },
   "i2cAdaptersFromCpu": [
@@ -1670,7 +1679,20 @@
           ]
         }
       ],
-      "i2cDeviceConfigs": [],
+      "i2cDeviceConfigs": [
+        {
+          "busName": "MCB_IOB_I2C_MASTER_5",
+          "address": "0x48",
+          "kernelDeviceName": "tmp1075",
+          "pmUnitScopedName": "PDB-L-TSENSOR"
+        },
+        {
+          "busName": "MCB_IOB_I2C_MASTER_6",
+          "address": "0x48",
+          "kernelDeviceName": "tmp1075",
+          "pmUnitScopedName": "PDB-R-TSENSOR"
+        }
+      ],
       "outgoingSlotConfigs": {
         "SCM_SLOT@0": {
           "slotType": "SCM_SLOT",
@@ -1678,6 +1700,18 @@
             "MCB_IOB_I2C_MASTER_1",
             "MCB_IOB_I2C_MASTER_2",
             "MCB_IOB_I2C_MASTER_3"
+          ]
+        },
+        "PSU_SLOT@0": {
+          "slotType": "PSU_SLOT",
+          "outgoingI2cBusNames": [
+            "MCB_IOB_I2C_MASTER_5"
+          ]
+        },
+        "PSU_SLOT@1": {
+          "slotType": "PSU_SLOT",
+          "outgoingI2cBusNames": [
+            "MCB_IOB_I2C_MASTER_6"
           ]
         }
       }
@@ -1698,6 +1732,24 @@
           "kernelDeviceName": "pca9546",
           "pmUnitScopedName": "SCM_MUX2",
           "numOutgoingChannels": 4
+        },
+        {
+          "busName": "INCOMING@2",
+          "address": "0x35",
+          "kernelDeviceName": "scmcpld",
+          "pmUnitScopedName": "SCM_CPLD"
+        }
+      ],
+      "outgoingSlotConfigs": {}
+    },
+    "PSU": {
+      "pluggedInSlotType": "PSU_SLOT",
+      "i2cDeviceConfigs": [
+        {
+          "busName": "INCOMING@0",
+          "address": "0x59",
+          "kernelDeviceName": "pmbus",
+          "pmUnitScopedName": "PSU_PMBUS"
         }
       ],
       "outgoingSlotConfigs": {}
