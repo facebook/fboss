@@ -1700,6 +1700,30 @@
           "address": "0x48",
           "kernelDeviceName": "tmp1075",
           "pmUnitScopedName": "PDB-R-TSENSOR"
+        },
+        {
+          "busName": "MCB_IOB_I2C_MASTER_13",
+          "address": "0x4e",
+          "kernelDeviceName": "tmp1075",
+          "pmUnitScopedName": "MCB_TSENSOR"
+        },
+        {
+          "busName": "MCB_IOB_I2C_MASTER_14",
+          "address": "0x33",
+          "kernelDeviceName": "fancpld",
+          "pmUnitScopedName": "MCB_FAN_CPLD"
+        },
+        {
+          "busName": "MCB_IOB_I2C_MASTER_14",
+          "address": "0x60",
+          "kernelDeviceName": "mcbcpld",
+          "pmUnitScopedName": "MCB_CPLD"
+        },
+        {
+          "busName": "MCB_IOB_I2C_MASTER_27",
+          "address": "0x37",
+          "kernelDeviceName": "adc128d818",
+          "pmUnitScopedName": "MCB_VOLTAGE_MONITOR"
         }
       ],
       "outgoingSlotConfigs": {
