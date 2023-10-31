@@ -104,6 +104,11 @@ using facebook::network::toIPAddress;
 
 using namespace facebook::fboss;
 
+DEFINE_bool(
+    allow_running_switch_state_mutations,
+    false, // false => Prevents such mutations in prod
+    "Allow mutations of running switch state by external thrift calls");
+
 DECLARE_bool(intf_nbr_tables);
 
 namespace facebook::fboss {
@@ -1328,6 +1333,10 @@ void ThriftHandler::patchCurrentStateJSONForPaths(
     std::unique_ptr<std::map<std::string, std::string>> pathToJsonPatch) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
+
+  if (!FLAGS_allow_running_switch_state_mutations) {
+    throw FbossError("Running switch state mutations are not allowed");
+  }
 
   // TODO
 }
