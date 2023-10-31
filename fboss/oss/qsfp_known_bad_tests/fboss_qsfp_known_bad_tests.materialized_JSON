@@ -8,6 +8,9 @@
           "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
         },
         {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
+        },
+        {
           "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
         },
         {
@@ -20,6 +23,9 @@
         },
         {
           "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
         },
         {
           "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
@@ -36,6 +42,9 @@
           "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
         },
         {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
+        },
+        {
           "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
         }
     ],
@@ -45,6 +54,9 @@
         },
         {
           "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
         },
         {
           "test_name_regex": "HwXphyPortStatsCollectionTest.*$"
@@ -73,6 +85,9 @@
           "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
         },
         {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
+        },
+        {
           "test_name_regex": "HwXphyPortStatsCollectionTest.*$"
         },
         {
@@ -99,6 +114,9 @@
           "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
         },
         {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
+        },
+        {
           "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
         }
     ],
@@ -108,6 +126,9 @@
         },
         {
           "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
         },
         {
           "test_name_regex": "HwTest_PROFILE_10G_1_NRZ_NOFEC_OPTICAL.TestProfile$"
@@ -142,6 +163,9 @@
           "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
         },
         {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
+        },
+        {
           "test_name_regex": "HwTest_PROFILE_10G_1_NRZ_NOFEC_OPTICAL.TestProfile$"
         },
         {
@@ -169,6 +193,9 @@
         },
         {
           "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
         }
     ],
     "meru400biu/physdk-credo-0.7.2/credo-0.7.2": [
@@ -177,6 +204,9 @@
         },
         {
           "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
         }
     ],
     "meru800bfa/physdk-credo-0.7.2/credo-0.7.2": [
@@ -185,6 +215,9 @@
         },
         {
           "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
         },
         {
           "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_RS528_OPTICAL.TestProfile$"
@@ -219,6 +252,9 @@
           "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
         },
         {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
+        },
+        {
           "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_RS528_OPTICAL.TestProfile$"
         },
         {
@@ -251,6 +287,9 @@
           "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
         },
         {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
+        },
+        {
           "test_name_regex": "HwTest.cmisPageChange$"
         },
         {
@@ -263,6 +302,9 @@
         },
         {
           "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
         },
         {
           "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_RS528_COPPER.TestProfile$"
@@ -285,6 +327,9 @@
           "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
         },
         {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
+        },
+        {
           "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_RS528.TestProfile$"
         },
         {
@@ -302,6 +347,9 @@
           "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
         },
         {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
+        },
+        {
           "test_name_regex": "HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER.TestProfile$"
         },
         {
@@ -317,6 +365,9 @@
         },
         {
           "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
         },
         {
           "test_name_regex": "HwTest_PROFILE_10G_1_NRZ_NOFEC_OPTICAL.TestProfile$"
@@ -340,6 +391,9 @@
         },
         {
           "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
         },
         {
           "test_name_regex": "HwTransceiverResetTest.verifyResetControl$"
