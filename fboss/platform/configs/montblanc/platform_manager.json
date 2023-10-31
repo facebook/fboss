@@ -32,6 +32,15 @@
         "kernelDeviceName": "24c64"
       },
       "pmUnitName": "SMB"
+    },
+    "FCB_SLOT": {
+      "numOutgoingI2cBuses": 3,
+      "idpromConfig": {
+        "busName": "INCOMING@0",
+        "address": "0x53",
+        "kernelDeviceName": "24c64"
+      },
+      "pmUnitName": "FCB"
     }
   },
   "i2cAdaptersFromCpu": [
@@ -1759,6 +1768,14 @@
             "MCB_DOM1_I2C_MASTER_34",
             "MCB_DOM2_I2C_MASTER_34"
           ]
+        },
+        "FCB_SLOT@0": {
+          "slotType": "FCB_SLOT",
+          "outgoingI2cBusNames": [
+            "MCB_IOB_I2C_MASTER_15",
+            "MCB_IOB_I2C_MASTER_16",
+            "MCB_IOB_I2C_MASTER_17"
+          ]
         }
       }
     },
@@ -1785,8 +1802,7 @@
           "kernelDeviceName": "scmcpld",
           "pmUnitScopedName": "SCM_CPLD"
         }
-      ],
-      "outgoingSlotConfigs": {}
+      ]
     },
     "PSU": {
       "pluggedInSlotType": "PSU_SLOT",
@@ -1797,8 +1813,7 @@
           "kernelDeviceName": "pmbus",
           "pmUnitScopedName": "PSU_PMBUS"
         }
-      ],
-      "outgoingSlotConfigs": {}
+      ]
     },
     "SMB": {
       "pluggedInSlotType": "SMB_SLOT",
@@ -1869,8 +1884,36 @@
           "kernelDeviceName": "tmp1075",
           "pmUnitScopedName": "SMB_TSENSOR4"
         }
-      ],
-      "outgoingSlotConfigs": {}
+      ]
+    },
+    "FCB": {
+      "pluggedInSlotType": "FCB_SLOT",
+      "i2cDeviceConfigs": [
+        {
+          "busName": "INCOMING@1",
+          "address": "0x49",
+          "kernelDeviceName": "tmp1075",
+          "pmUnitScopedName": "FCB_T_TSENSOR1"
+        },
+        {
+          "busName": "INCOMING@1",
+          "address": "0x4b",
+          "kernelDeviceName": "tmp1075",
+          "pmUnitScopedName": "FCB_T_TSENSOR2"
+        },
+        {
+          "busName": "INCOMING@2",
+          "address": "0x49",
+          "kernelDeviceName": "tmp1075",
+          "pmUnitScopedName": "FCB_B_TSENSOR1"
+        },
+        {
+          "busName": "INCOMING@2",
+          "address": "0x4b",
+          "kernelDeviceName": "tmp1075",
+          "pmUnitScopedName": "FCB_B_TSENSOR2"
+        }
+      ]
     }
   },
   "bspKmodsRpmName": "fboss_bsp_kmods",
