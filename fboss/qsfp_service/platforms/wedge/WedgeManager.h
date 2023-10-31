@@ -152,6 +152,14 @@ class WedgeManager : public TransceiverManager {
 
   void loadConfig() override;
 
+  std::string getSwitchDataCenter() {
+    return dataCenter_;
+  }
+
+  std::string getSwitchRole() {
+    return hostnameScheme_;
+  }
+
  protected:
   void initTransceiverMap() override;
 
@@ -181,5 +189,7 @@ class WedgeManager : public TransceiverManager {
       std::map<TransceiverID, std::unique_ptr<Transceiver>>>::WLockedPtr;
 
   std::unique_ptr<QsfpFsdbSyncManager> fsdbSyncManager_;
+  std::string dataCenter_{""};
+  std::string hostnameScheme_{""};
 };
 } // namespace facebook::fboss

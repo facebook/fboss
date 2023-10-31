@@ -13,6 +13,7 @@
 #include "fboss/qsfp_service/module/cmis/CmisModule.h"
 #include "fboss/qsfp_service/module/sff/Sff8472Module.h"
 #include "fboss/qsfp_service/module/sff/SffModule.h"
+#include "fboss/qsfp_service/platforms/wedge/WedgeManagerInit.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeQsfp.h"
 #include "folly/futures/Future.h"
 
@@ -60,6 +61,8 @@ WedgeManager::WedgeManager(
   if (FLAGS_publish_state_to_fsdb || FLAGS_publish_stats_to_fsdb) {
     fsdbSyncManager_ = std::make_unique<QsfpFsdbSyncManager>();
   }
+  dataCenter_ = getDeviceDatacenter();
+  hostnameScheme_ = getDeviceHostnameScheme();
 }
 
 WedgeManager::~WedgeManager() {
