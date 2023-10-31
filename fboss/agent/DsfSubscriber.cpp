@@ -192,8 +192,7 @@ void DsfSubscriber::scheduleUpdate(
                         clonedNode, scopeResolver->scope(clonedNode));
                   } else {
                     mapToUpdate->updateNode(
-                        clonedNode,
-                        scopeResolver->scope(clonedNode, sw_->getState()));
+                        clonedNode, scopeResolver->scope(clonedNode, in));
                   }
                   changed = true;
                 }
@@ -206,8 +205,7 @@ void DsfSubscriber::scheduleUpdate(
                       clonedNode, scopeResolver->scope(clonedNode));
                 } else {
                   mapToUpdate->addNode(
-                      clonedNode,
-                      scopeResolver->scope(clonedNode, sw_->getState()));
+                      clonedNode, scopeResolver->scope(clonedNode, in));
                 }
                 changed = true;
               },
