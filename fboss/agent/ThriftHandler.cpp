@@ -1338,7 +1338,32 @@ void ThriftHandler::patchCurrentStateJSONForPaths(
     throw FbossError("Running switch state mutations are not allowed");
   }
 
+  std::shared_ptr<SystemPortMap> newRemoteSystemPorts{nullptr};
+  std::shared_ptr<InterfaceMap> newRemoteRifs{nullptr};
+
+  for (const auto& [path, jsonPatch] : *pathToJsonPatch) {
+    if (path == "remoteSystemPortMaps") {
+      MultiSwitchSystemPortMap mswitchSysPorts;
+      mswitchSysPorts.fromThrift(thrift_cow::deserialize<
+                                 MultiSwitchSystemPortMapTypeClass,
+                                 MultiSwitchSystemPortMapThriftType>(
+          fsdb::OperProtocol::SIMPLE_JSON, jsonPatch));
+      newRemoteSystemPorts = mswitchSysPorts.getAllNodes();
+    } else if (path == "remoteInterfaceMaps") {
+      MultiSwitchInterfaceMap mswitchIntfs;
+      mswitchIntfs.fromThrift(thrift_cow::deserialize<
+                              MultiSwitchInterfaceMapTypeClass,
+                              MultiSwitchInterfaceMapThriftType>(
+          fsdb::OperProtocol::SIMPLE_JSON, jsonPatch));
+      newRemoteRifs = mswitchIntfs.getAllNodes();
+    } else {
+      throw FbossError(
+          "Running switch state mutation not supported for: ", path);
+    }
+  }
+
   // TODO
+  // Update state based on newRemoteSystemPorts, newRemoteRifs
 }
 
 void ThriftHandler::getPortStatusImpl(
