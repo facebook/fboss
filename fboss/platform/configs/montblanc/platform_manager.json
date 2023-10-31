@@ -15,6 +15,15 @@
       "numOutgoingI2cBuses": 3,
       "pmUnitName": "SCM"
     },
+    "RUNBMC_SLOT": {
+      "numOutgoingI2cBuses": 1,
+      "idpromConfig": {
+        "busName": "INCOMING@0",
+        "address": "0x51",
+        "kernelDeviceName": "24c64"
+      },
+      "pmUnitName": "RUNBMC"
+    },
     "PSU_SLOT": {
       "numOutgoingI2cBuses": 1,
       "idpromConfig": {
@@ -1786,14 +1795,14 @@
           "busName": "INCOMING@0",
           "address": "0x70",
           "kernelDeviceName": "pca9548",
-          "pmUnitScopedName": "SCM_MUX1",
+          "pmUnitScopedName": "SCM_MUX_A",
           "numOutgoingChannels": 8
         },
         {
           "busName": "INCOMING@1",
           "address": "0x70",
           "kernelDeviceName": "pca9546",
-          "pmUnitScopedName": "SCM_MUX2",
+          "pmUnitScopedName": "SCM_MUX_B",
           "numOutgoingChannels": 4
         },
         {
@@ -1801,8 +1810,55 @@
           "address": "0x35",
           "kernelDeviceName": "scmcpld",
           "pmUnitScopedName": "SCM_CPLD"
+        },
+        {
+          "busName": "SCM_MUX_A@0",
+          "address": "0x10",
+          "kernelDeviceName": "adm1278",
+          "pmUnitScopedName": "SCM_SENSOR"
+        },
+        {
+          "busName": "SCM_MUX_A@1",
+          "address": "0x4c",
+          "kernelDeviceName": "lm75b",
+          "pmUnitScopedName": "SCM_TSENSOR1"
+        },
+        {
+          "busName": "SCM_MUX_A@1",
+          "address": "0x4d",
+          "kernelDeviceName": "lm75b",
+          "pmUnitScopedName": "SCM_TSENSOR2"
+        },
+        {
+          "busName": "SCM_MUX_A@2",
+          "address": "0x37",
+          "kernelDeviceName": "adc128d818",
+          "pmUnitScopedName": "SCM_VOLTAGE_MONITOR"
+        },
+        {
+          "busName": "SCM_MUX_A@3",
+          "address": "0x54",
+          "kernelDeviceName": "24c64",
+          "pmUnitScopedName": "SCM_EEPROM"
+        },
+        {
+          "busName": "SCM_MUX_A@7",
+          "address": "0x4a",
+          "kernelDeviceName": "lm75b",
+          "pmUnitScopedName": "SCM_SOME_SENSOR"
         }
-      ]
+      ],
+      "outgoingSlotConfigs": {
+        "RUNBMC_SLOT@0": {
+          "slotType": "RUNBMC_SLOT",
+          "outgoingI2cBusNames": [
+            "SCM_MUX_A@7"
+          ]
+        }
+      }
+    },
+    "RUNBMC": {
+      "pluggedInSlotType": "RUNBMC_SLOT"
     },
     "PSU": {
       "pluggedInSlotType": "PSU_SLOT",
