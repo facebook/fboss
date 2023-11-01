@@ -15,11 +15,11 @@
 using namespace std::chrono;
 
 namespace {
-// Default max rsyslog line length is 8k (currently qsfp_service allows up to
+// Default max rsyslog line length is 12k (currently qsfp_service allows up to
 // 16k, but we shouldn't actually have lines that long anymore)
 // Set it a bit lower to account for extra data from logging library
 // (e.g. date+timestamp)
-constexpr auto kMaxLogLineLength = 8000;
+constexpr auto kMaxLogLineLength = 12000;
 } // namespace
 
 namespace facebook::fboss {
