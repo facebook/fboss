@@ -824,7 +824,7 @@ TEST_F(PlatformMappingTest, VerifyYampPlatformMapping) {
   verify(mapping.get());
 }
 
-TEST_F(PlatformMappingTest, VerifyMinipack16QPlatformMapping) {
+TEST_F(PlatformMappingTest, VerifyMinipackMiln4_2_16QPlatformMapping) {
   // supported profiles
   std::vector<cfg::PortProfileID> expectedProfiles = {
       cfg::PortProfileID::PROFILE_40G_4_NRZ_NOFEC,
@@ -834,12 +834,25 @@ TEST_F(PlatformMappingTest, VerifyMinipack16QPlatformMapping) {
   // 32 TH3 Blackhawk cores + 128 transceivers + 32 xphy
   setExpectation(128, 32, 32, 128, expectedProfiles);
 
-  // both xphy version should pass the same standard
-  for (auto xphyVersion :
-       {ExternalPhyVersion::MILN4_2, ExternalPhyVersion::MILN5_2}) {
-    auto mapping = std::make_unique<Minipack16QPimPlatformMapping>(xphyVersion);
-    verify(mapping.get());
-  }
+  auto mapping = std::make_unique<Minipack16QPimPlatformMapping>(
+      ExternalPhyVersion::MILN4_2);
+  verify(mapping.get());
+}
+
+TEST_F(PlatformMappingTest, VerifyMinipackMiln5_2_16QPlatformMapping) {
+  // supported profiles
+  std::vector<cfg::PortProfileID> expectedProfiles = {
+      cfg::PortProfileID::PROFILE_40G_4_NRZ_NOFEC,
+      cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528,
+      cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N};
+
+  // Minipack16Q has 128 ports
+  // 32 TH3 Blackhawk cores + 128 transceivers + 32 xphy
+  setExpectation(128, 32, 32, 128, expectedProfiles);
+
+  auto mapping = std::make_unique<Minipack16QPimPlatformMapping>(
+      ExternalPhyVersion::MILN5_2);
+  verify(mapping.get());
 }
 
 TEST_F(PlatformMappingTest, VerifyOverrideMerge) {
@@ -853,7 +866,7 @@ TEST_F(PlatformMappingTest, VerifyOverrideMerge) {
   }
 
   // Now 4.2 should be exactly the same as 5.2
-  EXPECT_EQ(miln4_2->getPortConfigOverrides().size(), 1);
+  EXPECT_EQ(miln4_2->getPortConfigOverrides().size(), 2);
   for (auto miln4_2Override : miln4_2->getPortConfigOverrides()) {
     auto overrideProfileList = miln4_2Override.factor()->profiles();
     EXPECT_TRUE(overrideProfileList);
@@ -862,7 +875,12 @@ TEST_F(PlatformMappingTest, VerifyOverrideMerge) {
             overrideProfileList->begin(),
             overrideProfileList->end(),
             cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528) !=
-        overrideProfileList->end());
+            overrideProfileList->end() ||
+        std::find(
+            overrideProfileList->begin(),
+            overrideProfileList->end(),
+            cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N) !=
+            overrideProfileList->end());
 
     auto overridePortList = miln4_2Override.factor()->ports();
     EXPECT_EQ(overridePortList->size(), miln4_2->getPlatformPorts().size());
