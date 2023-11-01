@@ -331,13 +331,14 @@ TEST_F(HwTransceiverResetTest, verifyResetControl) {
     // 2. Do IO and verify it fails on above transceiver
     // For SFF, failure means IO fails when transceiver is in reset
     // For CMIS, failure means module state is unknown when transceiver is in
-    // reset
+    // reset or the IO fails
     WITH_RETRIES_N_TIMED(
         10 /* retries */,
         std::chrono::milliseconds(1000) /* msBetweenRetry */,
         {
           if (isCmis(tcvrID)) {
             EXPECT_EVENTUALLY_TRUE(
+                readAndVerifyByte0(tcvrID, false /* valid */) ||
                 verifyCmisModuleState(tcvrID, true /* expectInReset */));
           } else {
             EXPECT_EVENTUALLY_TRUE(
@@ -381,6 +382,7 @@ TEST_F(HwTransceiverResetTest, verifyResetControl) {
         {
           if (isCmis(tcvrID)) {
             EXPECT_EVENTUALLY_TRUE(
+                readAndVerifyByte0(tcvrID, true /* valid */) &&
                 verifyCmisModuleState(tcvrID, false /* expectInReset */));
           } else {
             EXPECT_EVENTUALLY_TRUE(
