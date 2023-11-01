@@ -9,6 +9,7 @@
 #include "fboss/lib/bsp/meru800bfa/Meru800bfaBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru800bia/Meru800biaBspPlatformMapping.h"
 #include "fboss/lib/bsp/montblanc/MontblancBspPlatformMapping.h"
+#include "fboss/lib/bsp/morgan800cc/Morgan800ccBspPlatformMapping.h"
 
 DEFINE_string(
     bsp_platform_mapping_override_path,
@@ -89,6 +90,15 @@ template <>
 std::shared_ptr<MontblancSystemContainer>
 MontblancSystemContainer::getInstance() {
   return _montblancSystemContainer.try_get();
+}
+
+using Morgan800ccSystemContainer =
+    BspGenericSystemContainer<Morgan800ccBspPlatformMapping>;
+folly::Singleton<Morgan800ccSystemContainer> _morgan800ccSystemContainer;
+template <>
+std::shared_ptr<Morgan800ccSystemContainer>
+Morgan800ccSystemContainer::getInstance() {
+  return _morgan800ccSystemContainer.try_get();
 }
 
 } // namespace fboss
