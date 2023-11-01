@@ -16,20 +16,14 @@ extern "C" {
 #define FBIOB_INVALID_OFFSET	((__u32)-1)
 
 /*
- * I2C bus timing settings.
+ * I2C Controller settings.
  *
- * It's an optional argument:
- *   1. If the I2C controller driver supports the argument:
- *      - if <bus_freq_hz> is valid, the timing settings will be applied
- *        at controller setup time.
- *      - if <bus_freq_hz> is invalid (out of range), the value will be
- *        ignored and the default timing settings is applied.
- *
- *   2. If the I2C controller driver doesn't support customized timing,
- *      <bus_freq_hz> is simply ignored.
+ * Both "bus_freq_hz" and "num_channels" are optional: set them to 0 if
+ * they are not applicable to the I2C controller.
  */
 struct fbiob_i2c_data {
 	__u32 bus_freq_hz;
+	__u32 num_channels;
 };
 
 /*
@@ -50,6 +44,36 @@ struct spi_dev_info {
 struct fbiob_spi_data {
 	unsigned int num_spidevs;
 	struct spi_dev_info spidevs[FBIOB_SPIDEV_MAX];
+};
+
+/*
+ * LED specific settings:
+ *   - "port_num" is only applicable to port LEDs.
+ *      Set the value to -1 for other LED types.
+ *   - "led_idx" is to support multiple LED instances per port/type.
+ *     Set the value to -1 if not applicable.
+ *   - Both "port_num" and "led_idx" must be 1-based.
+ */
+struct fbiob_led_data {
+	int port_num;
+	int led_idx;
+};
+
+/*
+ * XCVR specific settings.
+ *   - This is only consumed by "xcvr_ctrl" driver, which exports sysfs
+ *     entries for XCVR reset, low_power, etc.
+ *   - "port_num" must be 1-based.
+ */
+struct fbiob_xcvr_data {
+	__u32 port_num;
+};
+
+/*
+ * Fan/PWM controller data.
+ */
+struct fbiob_fan_data {
+	__u32 num_fans;
 };
 
 /*
@@ -79,8 +103,11 @@ struct fbiob_aux_data {
 	 * parsed in the I/O controller driver.
 	 */
 	union {
-		struct fbiob_spi_data spi_data;
+		struct fbiob_fan_data fan_data;
 		struct fbiob_i2c_data i2c_data;
+		struct fbiob_led_data led_data;
+		struct fbiob_spi_data spi_data;
+		struct fbiob_xcvr_data xcvr_data;
 	};
 };
 
