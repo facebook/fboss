@@ -15,6 +15,7 @@
 #include <folly/logging/xlog.h>
 #include "fboss/lib/CommonUtils.h"
 #include "fboss/qsfp_service/module/QsfpModule.h"
+#include "fboss/qsfp_service/module/cmis/CmisFieldInfo.h"
 #include "fboss/qsfp_service/test/hw_test/HwPortUtils.h"
 #include "fboss/qsfp_service/test/hw_test/HwQsfpEnsemble.h"
 #include "fboss/qsfp_service/test/hw_test/HwTransceiverTest.h"
@@ -64,18 +65,20 @@ class HwTransceiverResetTest : public HwTransceiverTest {
         std::make_unique<ReadRequest>(request);
     wedgeManager->readTransceiverRegister(
         currentResponse, std::move(readRequest));
-    EXPECT_TRUE(currentResponse.find(cmisTcvrID) != currentResponse.end());
-    auto curr = currentResponse[cmisTcvrID];
-    EXPECT_TRUE(*curr.valid());
-
-    if (expectInReset &&
-        curr.get_data().data()[0] !=
-            static_cast<uint8_t>(CmisModuleState::UNKNOWN)) {
+    if (currentResponse.find(cmisTcvrID) == currentResponse.end()) {
       return false;
     }
-    if (!expectInReset &&
-        curr.get_data().data()[0] ==
-            static_cast<uint8_t>(CmisModuleState::UNKNOWN)) {
+    auto curr = currentResponse[cmisTcvrID];
+    if (!curr.get_valid()) {
+      return false;
+    }
+    auto moduleState =
+        (CmisModuleState)((curr.get_data().data()[0] & MODULE_STATUS_MASK) >> MODULE_STATUS_BITSHIFT);
+
+    if (expectInReset && moduleState != CmisModuleState::UNKNOWN) {
+      return false;
+    }
+    if (!expectInReset && moduleState == CmisModuleState::UNKNOWN) {
       return false;
     }
 
