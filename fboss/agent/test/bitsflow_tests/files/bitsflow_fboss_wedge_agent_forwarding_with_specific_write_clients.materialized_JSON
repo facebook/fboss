@@ -415,7 +415,7 @@
       "metadata": ""
     },
     {
-      "action": "FbossCtrl.patchCurrentStateJSON",
+      "action": "FbossCtrl.patchCurrentStateJSONForPaths",
       "entries": [
         {
           "identity": {
