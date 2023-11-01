@@ -118,7 +118,7 @@ std::shared_ptr<SwitchState> removeRemoteInterface(
   auto newState = currState;
   auto newRemoteInterfaces = newState->getRemoteInterfaces()->modify(&newState);
   newRemoteInterfaces->removeNode(intfId);
-  return currState;
+  return newState;
 }
 
 std::shared_ptr<SwitchState> addRemoveRemoteNeighbor(
