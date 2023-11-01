@@ -871,16 +871,7 @@
           "test_name_regex": "HwVoqSwitchFullScaleDsfNodesTest.*"
         },
         {
-          "test_name_regex": "HwVoqSwitchTest.stressLocalForwardingPostIsolate"
-        },
-        {
-          "test_name_regex": "HwVoqSwitchWithMultipleDsfNodesTest.stressAddRemoveObjects"
-        },
-        {
           "test_name_regex": "HwVoqSwitchWithMultipleDsfNodesTest.voqTailDropCounter"
-        },
-        {
-          "test_name_regex": "HwVoqSwitchTest.packetIntegrityError"
         },
         {
           "test_name_regex": "HwVoqSwitchWithFabricPortsTest.checkFabricReachability"
@@ -1417,9 +1408,6 @@
         },
         {
           "test_name_regex": "HwVoqSwitchFullScaleDsfNodesTest.*"
-        },
-        {
-          "test_name_regex": "HwVoqSwitchTest, stressLocalForwardingPostIsolate"
         },
         {
           "test_name_regex": "HwVoqSwitchWithMultipleDsfNodesTest.stressAddRemoveObjects"
@@ -3572,16 +3560,7 @@
           "test_name_regex": "HwVoqSwitchFullScaleDsfNodesTest.*"
         },
         {
-          "test_name_regex": "HwVoqSwitchTest.stressLocalForwardingPostIsolate"
-        },
-        {
-          "test_name_regex": "HwVoqSwitchWithMultipleDsfNodesTest.stressAddRemoveObjects"
-        },
-        {
           "test_name_regex": "HwVoqSwitchWithMultipleDsfNodesTest.voqTailDropCounter"
-        },
-        {
-          "test_name_regex": "HwVoqSwitchTest.packetIntegrityError"
         },
         {
           "test_name_regex": "HwVoqSwitchWithFabricPortsTest.checkFabricReachability"
@@ -4118,9 +4097,6 @@
         },
         {
           "test_name_regex": "HwVoqSwitchFullScaleDsfNodesTest.*"
-        },
-        {
-          "test_name_regex": "HwVoqSwitchTest, stressLocalForwardingPostIsolate"
         },
         {
           "test_name_regex": "HwVoqSwitchWithMultipleDsfNodesTest.stressAddRemoveObjects"
@@ -16091,6 +16067,15 @@
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*$"
+        },
+        {
+          "test_name_regex": "HwAclCounterTest/1.*$"
+        },
+        {
+          "test_name_regex": "HwAclMatchActionsTest/1.*$"
+        },
+        {
+          "test_name_regex": "HwAclStatTest/1.*$"
         }
     ],
     "leaba/1.65.0/1.65.0/gibraltar": [
