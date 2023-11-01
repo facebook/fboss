@@ -1322,14 +1322,6 @@ void ThriftHandler::getCurrentStateJSONForPaths(
   }
 }
 
-void ThriftHandler::patchCurrentStateJSON(
-    std::unique_ptr<std::string> jsonPointerStr,
-    std::unique_ptr<std::string> jsonPatchStr) {
-  auto log = LOG_THRIFT_CALL(DBG1, *jsonPointerStr, *jsonPatchStr);
-  throw FbossError(
-      "patchCurrentStateJSON no longer supported by agent due to thrift migration");
-}
-
 void ThriftHandler::patchCurrentStateJSONForPaths(
     std::unique_ptr<std::map<std::string, std::string>> pathToJsonPatch) {
   auto log = LOG_THRIFT_CALL(DBG1);

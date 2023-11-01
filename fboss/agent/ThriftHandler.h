@@ -362,14 +362,6 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
       std::map<std::string, std::string>& pathToState,
       std::unique_ptr<std::vector<std::string>> paths) override;
 
-  /**
-   * Patch live running switch state at path pointed by jsonPointer using the
-   * JSON merge patch supplied in jsonPatch
-   */
-  void patchCurrentStateJSON(
-      std::unique_ptr<std::string> jsonPointer,
-      std::unique_ptr<std::string> jsonPatch) override;
-
   /*
    * Apply every json Patch to specified path.
    * json Patch must be a valid JSON object string.
