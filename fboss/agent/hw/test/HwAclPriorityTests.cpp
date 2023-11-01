@@ -159,11 +159,7 @@ TEST_F(HwAclPriorityTest, Reprioritize) {
     cfg::CPUTrafficPolicyConfig cpuConfig;
     cfg::TrafficPolicyConfig trafficConfig;
     trafficConfig.matchToAction()->resize(2);
-    cfg::MatchAction matchAction;
-    cfg::QueueMatchAction queueAction;
-    queueAction.queueId() = 1;
-    matchAction.sendToQueue() = queueAction;
-    matchAction.toCpuAction() = cfg::ToCpuAction::TRAP;
+    cfg::MatchAction matchAction = getToQueueAction(1, cfg::ToCpuAction::TRAP);
     for (int i = 0; i < 2; i++) {
       trafficConfig.matchToAction()[i].matcher() = *config.acls()[i].name();
       trafficConfig.matchToAction()[i].action() = matchAction;
@@ -181,11 +177,7 @@ TEST_F(HwAclPriorityTest, Reprioritize) {
     cfg::CPUTrafficPolicyConfig cpuConfig;
     cfg::TrafficPolicyConfig trafficConfig;
     trafficConfig.matchToAction()->resize(2);
-    cfg::MatchAction matchAction;
-    cfg::QueueMatchAction queueAction;
-    queueAction.queueId() = 1;
-    matchAction.sendToQueue() = queueAction;
-    matchAction.toCpuAction() = cfg::ToCpuAction::TRAP;
+    cfg::MatchAction matchAction = getToQueueAction(1, cfg::ToCpuAction::TRAP);
     for (int i = 0; i < 2; i++) {
       trafficConfig.matchToAction()[i].matcher() = *config.acls()[i].name();
       trafficConfig.matchToAction()[i].action() = matchAction;

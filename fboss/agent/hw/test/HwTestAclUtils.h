@@ -126,4 +126,14 @@ uint64_t getAclInOutBytes(
 
 std::vector<cfg::CounterType> getAclCounterTypes(const HwSwitch* hwSwitch);
 
+cfg::MatchAction getToQueueAction(
+    const int queueId,
+    const std::optional<cfg::ToCpuAction> toCpuAction = std::nullopt);
+
+void checkSwAclSendToQueue(
+    std::shared_ptr<SwitchState> state,
+    const std::string& aclName,
+    bool sendToCPU,
+    int queueId);
+
 } // namespace facebook::fboss::utility

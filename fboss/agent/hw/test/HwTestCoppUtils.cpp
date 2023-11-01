@@ -12,6 +12,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/hw/test/HwTestAclUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -248,30 +249,11 @@ void setDefaultCpuTrafficPolicyConfig(
 cfg::MatchAction createQueueMatchAction(
     int queueId,
     cfg::ToCpuAction toCpuAction) {
-  cfg::MatchAction action;
-  cfg::QueueMatchAction queueAction;
-  queueAction.queueId() = queueId;
-  action.sendToQueue() = queueAction;
-  cfg::UserDefinedTrapAction userDefinedTrap;
-  userDefinedTrap.queueId() = queueId;
-  action.userDefinedTrap() = userDefinedTrap;
-  // assume tc i maps to queue i for all i on sai switches
-  cfg::SetTcAction setTc;
-  setTc.tcValue() = queueId;
-  action.setTc() = setTc;
-
-  switch (toCpuAction) {
-    case cfg::ToCpuAction::COPY:
-      action.toCpuAction() = cfg::ToCpuAction::COPY;
-      break;
-    case cfg::ToCpuAction::TRAP:
-      action.toCpuAction() = cfg::ToCpuAction::TRAP;
-      break;
-    default:
-      throw FbossError("Unsupported CounterType for ACL");
+  if (toCpuAction != cfg::ToCpuAction::COPY &&
+      toCpuAction != cfg::ToCpuAction::TRAP) {
+    throw FbossError("Unsupported CounterType for ACL");
   }
-
-  return action;
+  return utility::getToQueueAction(queueId, toCpuAction);
 }
 
 void addNoActionAclForNw(

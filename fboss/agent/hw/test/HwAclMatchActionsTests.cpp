@@ -21,28 +21,6 @@ using namespace facebook::fboss;
 
 namespace {
 
-void checkSwAclSendToQueue(
-    std::shared_ptr<SwitchState> state,
-    const std::string& aclName,
-    bool sendToCPU,
-    int queueId) {
-  auto acl = state->getAcls()->getNodeIf(aclName);
-  ASSERT_TRUE(acl->getAclAction());
-  ASSERT_TRUE(acl->getAclAction()->cref<switch_state_tags::sendToQueue>());
-  ASSERT_EQ(
-      acl->getAclAction()
-          ->cref<switch_state_tags::sendToQueue>()
-          ->cref<switch_state_tags::sendToCPU>()
-          ->cref(),
-      sendToCPU);
-  ASSERT_EQ(
-      acl->getAclAction()
-          ->cref<switch_state_tags::sendToQueue>()
-          ->cref<switch_state_tags::action>()
-          ->cref<switch_config_tags::queueId>()
-          ->cref(),
-      queueId);
-}
 void popOneMatchToAction(cfg::SwitchConfig* config) {
   config->dataPlaneTrafficPolicy()->matchToAction()->pop_back();
 }
@@ -97,7 +75,8 @@ TEST_F(HwAclMatchActionsTest, AddTrafficPolicy) {
   auto verify = [this]() {
     EXPECT_EQ(utility::getAclTableNumAclEntries(getHwSwitch()), 1);
     utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "acl1");
-    checkSwAclSendToQueue(getProgrammedState(), "acl1", false, kQueueId);
+    utility::checkSwAclSendToQueue(
+        getProgrammedState(), "acl1", false, kQueueId);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -134,7 +113,7 @@ TEST_F(HwAclMatchActionsTest, AddSameMatcherTwice) {
   auto verify = [this]() {
     EXPECT_EQ(utility::getAclTableNumAclEntries(getHwSwitch()), 2);
     utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "acl1");
-    checkSwAclSendToQueue(getProgrammedState(), "acl1", false, 0);
+    utility::checkSwAclSendToQueue(getProgrammedState(), "acl1", false, 0);
     utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "acl2");
     checkSwActionDscpValue(getProgrammedState(), "acl2", 8);
   };
@@ -156,7 +135,7 @@ TEST_F(HwAclMatchActionsTest, AddMultipleActions) {
     EXPECT_EQ(utility::getAclTableNumAclEntries(getHwSwitch()), 3);
     for (const auto& matcher : {"acl1", "acl2"}) {
       utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), matcher);
-      checkSwAclSendToQueue(getProgrammedState(), matcher, false, 0);
+      utility::checkSwAclSendToQueue(getProgrammedState(), matcher, false, 0);
     }
     utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "acl3");
     checkSwActionDscpValue(getProgrammedState(), "acl3", 8);
@@ -199,7 +178,7 @@ TEST_F(HwAclMatchActionsTest, AddTrafficPolicyMultipleRemoveOne) {
   auto verify = [this]() {
     EXPECT_EQ(utility::getAclTableNumAclEntries(getHwSwitch()), 1);
     utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "acl1");
-    checkSwAclSendToQueue(getProgrammedState(), "acl1", false, 0);
+    utility::checkSwAclSendToQueue(getProgrammedState(), "acl1", false, 0);
   };
   verifyAcrossWarmBoots(setup, verify);
 }

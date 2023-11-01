@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/hw/test/TrafficPolicyUtils.h"
+#include "fboss/agent/hw/test/HwTestAclUtils.h"
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
 
@@ -51,17 +52,12 @@ void addSetDscpAndEgressQueueActionToCfg(
     const std::string& aclName,
     uint8_t dscp,
     int queueId) {
-  cfg::MatchAction matchAction = cfg::MatchAction();
+  cfg::MatchAction matchAction = utility::getToQueueAction(queueId);
 
   // set specific dscp value action
   cfg::SetDscpMatchAction setDscpMatchAction;
   setDscpMatchAction.dscpValue() = dscp;
   matchAction.setDscp() = setDscpMatchAction;
-
-  // egress via specific queue action
-  cfg::QueueMatchAction queueAction;
-  queueAction.queueId() = queueId;
-  matchAction.sendToQueue() = queueAction;
 
   utility::addMatcher(config, aclName, matchAction);
 }
@@ -149,10 +145,7 @@ void addQueueMatcher(
     const std::string& matcherName,
     int queueId,
     const std::optional<std::string>& counterName) {
-  cfg::QueueMatchAction queueAction;
-  *queueAction.queueId() = queueId;
-  cfg::MatchAction matchAction = cfg::MatchAction();
-  matchAction.sendToQueue() = queueAction;
+  cfg::MatchAction matchAction = utility::getToQueueAction(queueId);
 
   if (counterName.has_value()) {
     matchAction.counter() = counterName.value();

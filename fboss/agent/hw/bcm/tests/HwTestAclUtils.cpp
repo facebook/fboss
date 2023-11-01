@@ -266,4 +266,40 @@ uint64_t getAclInOutPackets(
   return getAclCounterStats(hw, statName, cfg::CounterType::PACKETS);
 }
 
+cfg::MatchAction getToQueueAction(
+    const int queueId,
+    const std::optional<cfg::ToCpuAction> toCpuAction) {
+  cfg::MatchAction action;
+  cfg::QueueMatchAction queueAction;
+  queueAction.queueId() = queueId;
+  action.sendToQueue() = queueAction;
+  if (toCpuAction) {
+    action.toCpuAction() = toCpuAction.value();
+  }
+  return action;
+}
+
+void checkSwAclSendToQueue(
+    std::shared_ptr<SwitchState> state,
+    const std::string& aclName,
+    bool sendToCPU,
+    int queueId) {
+  auto acl = state->getAcls()->getNodeIf(aclName);
+  ASSERT_TRUE(acl->getAclAction());
+  ASSERT_TRUE(acl->getAclAction()->cref<switch_state_tags::sendToQueue>());
+  ASSERT_EQ(
+      acl->getAclAction()
+          ->cref<switch_state_tags::sendToQueue>()
+          ->cref<switch_state_tags::sendToCPU>()
+          ->cref(),
+      sendToCPU);
+  ASSERT_EQ(
+      acl->getAclAction()
+          ->cref<switch_state_tags::sendToQueue>()
+          ->cref<switch_state_tags::action>()
+          ->cref<switch_config_tags::queueId>()
+          ->cref(),
+      queueId);
+}
+
 } // namespace facebook::fboss::utility

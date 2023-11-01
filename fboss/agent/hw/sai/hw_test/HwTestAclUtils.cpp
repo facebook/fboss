@@ -338,17 +338,16 @@ void checkSwHwAclMatch(
   if (action) {
     // THRIFT_COPY
     auto matchAction = MatchAction::fromThrift(action->toThrift());
-    if (matchAction.getSendToQueue()) {
-      auto sendToQueue = matchAction.getSendToQueue().value();
-      bool sendToCpu = sendToQueue.second;
+    if (matchAction.getSetTc()) {
+      auto setTc = matchAction.getSetTc().value();
+      bool sendToCpu = setTc.second;
       if (!sendToCpu) {
-        auto expectedQueueId =
-            static_cast<sai_uint8_t>(*sendToQueue.first.queueId());
+        auto expectedTcValue = static_cast<sai_uint8_t>(*setTc.first.tcValue());
         auto aclActionSetTCGot =
             SaiApiTable::getInstance()->aclApi().getAttribute(
                 aclEntryId, SaiAclEntryTraits::Attributes::ActionSetTC());
-        auto queueIdGot = aclActionSetTCGot.getData();
-        EXPECT_EQ(queueIdGot, expectedQueueId);
+        auto tcValueGot = aclActionSetTCGot.getData();
+        EXPECT_EQ(tcValueGot, expectedTcValue);
       }
     }
 
@@ -677,6 +676,52 @@ uint64_t getAclInOutPackets(
       SaiAclCounterTraits::Attributes::CounterPackets());
 
   return counterPackets;
+}
+
+cfg::MatchAction getToQueueAction(
+    const int queueId,
+    const std::optional<cfg::ToCpuAction> toCpuAction) {
+  cfg::MatchAction action;
+  cfg::UserDefinedTrapAction userDefinedTrap;
+  userDefinedTrap.queueId() = queueId;
+  action.userDefinedTrap() = userDefinedTrap;
+  // assume tc i maps to queue i for all i on sai switches
+  cfg::SetTcAction setTc;
+  setTc.tcValue() = queueId;
+  action.setTc() = setTc;
+  if (toCpuAction) {
+    action.toCpuAction() = toCpuAction.value();
+  }
+  return action;
+}
+
+void checkSwAclSendToQueue(
+    std::shared_ptr<SwitchState> state,
+    const std::string& aclName,
+    bool sendToCPU,
+    int queueId) {
+  auto acl = state->getAcls()->getNodeIf(aclName);
+  ASSERT_TRUE(acl->getAclAction());
+  ASSERT_TRUE(acl->getAclAction()->cref<switch_state_tags::setTc>());
+  ASSERT_EQ(
+      acl->getAclAction()
+          ->cref<switch_state_tags::userDefinedTrap>()
+          ->cref<switch_config_tags::queueId>()
+          ->cref(),
+      queueId);
+  ASSERT_EQ(
+      acl->getAclAction()
+          ->cref<switch_state_tags::setTc>()
+          ->cref<switch_state_tags::sendToCPU>()
+          ->cref(),
+      sendToCPU);
+  ASSERT_EQ(
+      acl->getAclAction()
+          ->cref<switch_state_tags::setTc>()
+          ->cref<switch_state_tags::action>()
+          ->cref<switch_config_tags::tcValue>()
+          ->cref(),
+      queueId);
 }
 
 } // namespace facebook::fboss::utility
