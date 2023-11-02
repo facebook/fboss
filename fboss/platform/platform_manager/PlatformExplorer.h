@@ -72,6 +72,10 @@ class PlatformExplorer {
       const std::string& pm);
 
  private:
+  void createDeviceSymLink(
+      const std::string& linkPath,
+      const std::string& pmDevicePath);
+
   folly::FunctionScheduler scheduler_;
   PlatformConfig platformConfig_{};
   I2cExplorer i2cExplorer_{};

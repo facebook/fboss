@@ -264,4 +264,8 @@ uint32_t PlatformExplorer::getFpgaInstanceId(
   return fpgaInstanceIds_[key];
 }
 
+void PlatformExplorer::createDeviceSymLink(
+    const std::string& linkPath,
+    const std::string& pmDevicePath) {}
+
 } // namespace facebook::fboss::platform::platform_manager
