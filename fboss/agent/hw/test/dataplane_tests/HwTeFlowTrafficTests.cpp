@@ -301,15 +301,15 @@ TEST_F(HwTeFlowTrafficTest, validateTeFlow) {
     return;
   }
 
-  auto setup = [=]() { _setupTeFlow(); };
+  auto setup = [=, this]() { _setupTeFlow(); };
 
-  auto verify = [=]() { _validateTeFlow(); };
+  auto verify = [=, this]() { _validateTeFlow(); };
 
   verifyAcrossWarmBoots(setup, verify);
 }
 
 TEST_F(HwTeFlowTrafficTest, validateAddDelTeFlows) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     ecmpHelper_ = std::make_unique<utility::EcmpSetupTargetedPorts6>(
         getProgrammedState(), RouterID(0));
     setExactMatchCfg(getHwSwitchEnsemble(), kPrefixLength1);
@@ -332,7 +332,7 @@ TEST_F(HwTeFlowTrafficTest, validateAddDelTeFlows) {
     EXPECT_EQ(utility::getNumTeFlowEntries(getHwSwitch()), 3);
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     // Read counters before sending a packet
     auto byteCountBefore =
         utility::getTeFlowOutBytes(getHwSwitch(), kCounterID0);
@@ -383,7 +383,7 @@ TEST_F(HwTeFlowTrafficTest, validateAddDelTeFlows) {
 }
 
 TEST_F(HwTeFlowTrafficTest, validateSyncTeFlows) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     ecmpHelper_ = std::make_unique<utility::EcmpSetupTargetedPorts6>(
         getProgrammedState(), getIntfMac());
     setExactMatchCfg(getHwSwitchEnsemble(), kPrefixLength1);
@@ -408,7 +408,7 @@ TEST_F(HwTeFlowTrafficTest, validateSyncTeFlows) {
     disableTTLDecrements(*ecmpHelper_);
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     // Pump line rate traffic to destIp kAddr1 via src Port 1
     // should  forward the packets via EM entry to Port 1
     this->createL3DataplaneFlood(

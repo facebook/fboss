@@ -457,11 +457,11 @@ class HwAqmTest : public HwLinkStateDependentTest {
 #endif
       return;
     }
-    auto setup = [=]() {
+    auto setup = [=, this]() {
       applyNewConfig(wredDropConfig());
       setupEcmpTraffic();
     };
-    auto verify = [=]() {
+    auto verify = [=, this]() {
       // Send packets to queue0 and queue2 (both configured to the same weight).
       // Queue0 is configured with 0% drop probability and queue2 is configured
       // with 5% drop probability.
@@ -601,7 +601,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
                 getHwSwitch(), thresholdBytes, roundUp) /
             utility::getEffectiveBytesPerPacket(getHwSwitch(), kTxPacketLen)) +
         expectedMarkedOrDroppedPacketCount;
-    auto setup = [=]() {
+    auto setup = [=, this]() {
       auto config{initialConfig()};
       // Configure both WRED and ECN thresholds
       queueEcnWredThresholdSetup(isEct(ecnVal), {kQueueId}, config);
@@ -620,7 +620,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
       resolveNeigborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
     };
 
-    auto verify = [=]() {
+    auto verify = [=, this]() {
       XLOG(DBG3) << "Rounded threshold: "
                  << utility::getRoundedBufferThreshold(
                         getHwSwitch(), thresholdBytes, roundUp)
@@ -632,7 +632,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
                  << ", expected marked/dropped pkts: "
                  << expectedMarkedOrDroppedPacketCount;
 
-      auto sendPackets = [=](PortID /* port */, int numPacketsToSend) {
+      auto sendPackets = [=, this](PortID /* port */, int numPacketsToSend) {
         // Single port config, traffic gets forwarded out of the same!
         sendPkts(
             utility::kOlympicQueueToDscp(getAsic()).at(kQueueId).front(),
@@ -738,7 +738,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
     const int queueId = utility::getOlympicQueueId(
         getAsic(), utility::OlympicQueueType::SILVER);
 
-    auto setup = [=]() {
+    auto setup = [=, this]() {
       auto config{initialConfig()};
       queueEcnWredThresholdSetup(true /*isEcn*/, {queueId}, config);
       queueEcnWredThresholdSetup(false /*isEcn*/, {queueId}, config);
@@ -756,7 +756,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
           kNumPacketsToSend);
     };
 
-    auto verify = [=]() {
+    auto verify = [=, this]() {
       getHwSwitchEnsemble()->waitForLineRateOnPort(portId);
 
       // Get stats to verify if additional packets are getting ECN marked
@@ -812,14 +812,14 @@ class HwAqmTest : public HwLinkStateDependentTest {
         utility::getOlympicQueueId(getAsic(), utility::OlympicQueueType::GOLD),
         utility::getOlympicQueueId(getAsic(), utility::OlympicQueueType::ECN1)};
 
-    auto setup = [=]() {
+    auto setup = [=, this]() {
       auto config{initialConfig()};
       queueEcnWredThresholdSetup(kNotECT, wredQueueIds, config);
       applyNewConfig(config);
       setupEcmpTraffic();
     };
 
-    auto verify = [=]() {
+    auto verify = [=, this]() {
       // Using delta stats in this function, so get the stats before starting
       auto beforeStats = getHwSwitchEnsemble()->getLatestPortStats(
           masterLogicalInterfacePortIds()[0]);
@@ -910,8 +910,8 @@ class HwAqmTest : public HwLinkStateDependentTest {
     auto numPacketsToSend = 12000;
     int kPayloadLength = 200;
 
-    auto setup = [=]() { applyNewConfig(multiplePortConfig()); };
-    auto verify = [=]() {
+    auto setup = [=, this]() { applyNewConfig(multiplePortConfig()); };
+    auto verify = [=, this]() {
       // Only use 10 ports
       std::vector<PortID> ports = masterLogicalPortIds();
       ports.resize(10);

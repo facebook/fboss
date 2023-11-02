@@ -240,7 +240,7 @@ void HwPortBandwidthTest::verifyRate(
     return;
   }
 
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto newCfg{initialConfig()};
     _configureBandwidth(
         &newCfg, kMaxPpsValues().front(), kMaxKbpsValues().front());
@@ -249,14 +249,14 @@ void HwPortBandwidthTest::verifyRate(
     setupHelper();
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     sendUdpPkts(dscpVal);
     EXPECT_TRUE(verifyRateHelper(testType, maxRate, getQueueOutCntFunc));
   };
 
-  auto setupPostWB = [=]() {};
+  auto setupPostWB = []() {};
 
-  auto verifyPostWB = [=]() {
+  auto verifyPostWB = [=, this]() {
     sendUdpPkts(dscpVal);
     EXPECT_TRUE(verifyRateHelper(testType, maxRate, getQueueOutCntFunc));
 
@@ -282,9 +282,9 @@ void HwPortBandwidthTest::verifyRateDynamicChanges(
     return;
   }
 
-  auto setup = [=]() { setupHelper(); };
+  auto setup = [=, this]() { setupHelper(); };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     sendUdpPkts(dscpVal);
 
     // Rate before any bandwidth limit was configured
@@ -321,7 +321,7 @@ void HwPortBandwidthTest::verifyQueueShaper() {
   constexpr auto kMhnicPerHostBandwidthKbps{
       static_cast<uint64_t>(cfg::PortSpeed::TWENTYFIVEG) * 1000};
 
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto newCfg{initialConfig()};
     auto isVoq =
         getPlatform()->getAsic()->getSwitchType() == cfg::SwitchType::VOQ;
@@ -349,7 +349,7 @@ void HwPortBandwidthTest::verifyQueueShaper() {
     setupHelper();
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     constexpr auto kPayloadLength{1200};
     constexpr auto kWaitTimeForSpecificRate{30};
     auto pktsToSend = getHwSwitchEnsemble()->getMinPktsForLineRate(

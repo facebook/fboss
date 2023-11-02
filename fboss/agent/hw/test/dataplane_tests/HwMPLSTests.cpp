@@ -392,7 +392,7 @@ TYPED_TEST(HwMPLSTest, Push) {
 #endif
     return;
   }
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     this->setup();
     // setup ip2mpls route to 2401::201:ab00/120 through
     // port 0 w/ stack {101, 102}
@@ -402,7 +402,7 @@ TYPED_TEST(HwMPLSTest, Push) {
         this->getPortDescriptor(0),
         {101, 102});
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto expectedMplsHdr = MPLSHdr({
         MPLSHdr::Label{102, 5, 0, 254}, // exp = 5 for tc = 2
         MPLSHdr::Label{101, 5, 1, 254}, // exp = 5 for tc = 2
@@ -433,11 +433,11 @@ TYPED_TEST(HwMPLSTest, Swap) {
 #endif
     return;
   }
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     this->setup();
     this->addRoute(LabelID(1101), this->getPortDescriptor(0), {11});
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     uint32_t expectedOutLabel = utility::getLabelSwappedWithForTopLabel(
         this->getHwSwitch(), kTopLabel.value());
     auto expectedMplsHdr = MPLSHdr({
@@ -469,9 +469,9 @@ TYPED_TEST(HwMPLSTest, MplsNoMatchPktsToLowPriQ) {
 #endif
     return;
   }
-  auto setup = [=]() { this->setup(); };
+  auto setup = [=, this]() { this->setup(); };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto statBefore = utility::getMplsDestNoMatchCounter(
         this->getHwSwitchEnsemble(),
         this->getProgrammedState(),
@@ -507,12 +507,12 @@ TYPED_TEST(HwMPLSTest, MplsMatchPktsNottrapped) {
 #endif
     return;
   }
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     this->setup();
     this->addRoute(LabelID(1101), this->getPortDescriptor(0), {11});
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     const auto& mplsNoMatchCounter = utility::getMplsDestNoMatchCounterName();
     auto statBefore = utility::getAclInOutPackets(
         this->getHwSwitch(),
@@ -541,7 +541,7 @@ TYPED_TEST(HwMPLSTest, Pop) {
 #endif
     return;
   }
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     this->setup();
     // pop and lookup 1101
     this->addRoute(
@@ -553,7 +553,7 @@ TYPED_TEST(HwMPLSTest, Pop) {
     this->addRoute(
         folly::IPAddressV6("2001::"), 128, this->getPortDescriptor(0));
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto outPktsBefore = getPortOutPkts(
         this->getLatestPortStats(this->masterLogicalPortIds()[0]));
     // send mpls packet with label and let it pop
@@ -573,7 +573,7 @@ TYPED_TEST(HwMPLSTest, Php) {
 #endif
     return;
   }
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     this->setup();
     // php to exit out of port 0
     this->addRoute(
@@ -582,7 +582,7 @@ TYPED_TEST(HwMPLSTest, Php) {
         {},
         LabelForwardingAction::LabelForwardingType::PHP);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto outPktsBefore = getPortOutPkts(
         this->getLatestPortStats(this->masterLogicalPortIds()[0]));
     // send mpls packet with label and let it forward with php
@@ -602,7 +602,7 @@ TYPED_TEST(HwMPLSTest, Pop2Cpu) {
 #endif
     return;
   }
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     this->setup();
     // pop and lookup 1101
     this->addRoute(
@@ -611,7 +611,7 @@ TYPED_TEST(HwMPLSTest, Pop2Cpu) {
         {},
         LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     HwTestPacketSnooper snooper(
         this->getHwSwitchEnsemble(), this->masterLogicalPortIds()[1]);
 
@@ -649,13 +649,13 @@ TYPED_TEST(HwMPLSTest, punt2Cpu) {
 #endif
     return;
   }
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     this->setup();
     LabelNextHopEntry nexthop{
         LabelNextHopEntry::Action::TO_CPU, AdminDistance::MAX_ADMIN_DISTANCE};
     this->addRoute(LabelID(1101), nexthop);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     HwTestPacketSnooper snooper(
         this->getHwSwitchEnsemble(), this->masterLogicalPortIds()[1]);
 
@@ -677,11 +677,11 @@ TYPED_TEST(HwMPLSTest, punt2Cpu) {
 }
 
 TYPED_TEST(HwMPLSTest, ExpiringTTL) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     this->setup();
     this->addRoute(LabelID(1101), this->getPortDescriptor(0), {11});
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     this->sendMplsPktAndVerifyTrappedCpuQueue(
         utility::kCoppLowPriQueueId, 1101, 1, 1, 1);
   };
@@ -695,7 +695,7 @@ TYPED_TEST(HwMPLSTest, AclRedirectToNexthop) {
 #endif
     return;
   }
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     this->setup();
     std::string dstIp{"2401::201:ab00"};
     uint8_t mask = 120;
@@ -716,7 +716,7 @@ TYPED_TEST(HwMPLSTest, AclRedirectToNexthop) {
     this->addRedirectToNexthopAcl(
         kAclName, ingressVlan, dstPrefix, {"1000::1"}, portIntfs, {{201, 202}});
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     // Use different labels from that of the rib route to verify that the
     // redirect ACL is in effect
     auto expectedMplsHdr = MPLSHdr({
@@ -747,7 +747,7 @@ TYPED_TEST(HwMPLSTest, AclRedirectToNexthopDrop) {
 #endif
     return;
   }
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     this->setup();
     std::string dstIp{"2401::201:ab00"};
     uint8_t mask = 120;
@@ -764,7 +764,7 @@ TYPED_TEST(HwMPLSTest, AclRedirectToNexthopDrop) {
     this->addRedirectToNexthopAcl(
         kAclName, ingressVlan, dstPrefix, {"1000::1"}, portIntfs, {});
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto outPktsBefore = getPortOutPkts(
         this->getLatestPortStats(this->masterLogicalPortIds()[0]));
     this->sendL3Packet(
@@ -787,7 +787,7 @@ TYPED_TEST(HwMPLSTest, AclRedirectToNexthopMismatch) {
 #endif
     return;
   }
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     this->setup();
     std::string dstIp{"2401::201:ab00"};
     uint8_t mask = 120;
@@ -808,7 +808,7 @@ TYPED_TEST(HwMPLSTest, AclRedirectToNexthopMismatch) {
     this->addRedirectToNexthopAcl(
         kAclName, ingressVlan, dstPrefix, {"1000::1"}, portIntfs, {{201, 202}});
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto expectedMplsHdr = MPLSHdr({
         MPLSHdr::Label{102, 5, 0, 254},
         MPLSHdr::Label{101, 5, 1, 254},
@@ -838,7 +838,7 @@ TYPED_TEST(HwMPLSTest, AclRedirectToNexthopMultipleNexthops) {
 #endif
     return;
   }
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     this->setup();
     std::string dstIp{"2401::201:ab00"};
     uint8_t mask = 120;
@@ -863,7 +863,7 @@ TYPED_TEST(HwMPLSTest, AclRedirectToNexthopMultipleNexthops) {
         portIntfs,
         {{201, 202}, {301, 302}});
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     std::vector<PortID> ports{
         this->masterLogicalPortIds()[0], this->masterLogicalPortIds()[1]};
     auto outPktsBefore = getPortOutPkts(this->getLatestPortStats(ports));

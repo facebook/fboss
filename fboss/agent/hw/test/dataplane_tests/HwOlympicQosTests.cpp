@@ -34,7 +34,7 @@ class HwOlympicQosTests : public HwLinkStateDependentTest {
   }
 
   void verifyDscpQueueMapping(bool frontPanel) {
-    auto setup = [=]() {
+    auto setup = [=, this]() {
       resolveNeigborAndProgramRoutes(*helper_, kEcmpWidth);
 
       auto newCfg{initialConfig()};
@@ -42,7 +42,7 @@ class HwOlympicQosTests : public HwLinkStateDependentTest {
       applyNewConfig(newCfg);
     };
 
-    auto verify = [=]() {
+    auto verify = [=, this]() {
       auto portId = helper_->ecmpPortDescriptorAt(0).phyPortID();
       auto portStatsBefore = getLatestPortStats(portId);
       for (const auto& q2dscps : utility::kOlympicQueueToDscp(getAsic())) {
