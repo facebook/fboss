@@ -356,6 +356,7 @@ SwitchRunState NonMonolithicHwSwitchHandler::getHwSwitchRunState() {
     case HwSwitchOperDeltaSyncState::CANCELLED:
       return SwitchRunState::EXITING;
   }
+  throw FbossError("Unknown hw switch run state");
 }
 
 } // namespace facebook::fboss
