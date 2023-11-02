@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 #include <chrono>
 #include <exception>
+#include <filesystem>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -56,6 +57,10 @@ void PlatformExplorer::explore() {
       *rootPmUnitConfig.pluggedInSlotType(), kRootSlotPath);
   CHECK(pmUnitName == *platformConfig_.rootPmUnitName());
   explorePmUnit(kRootSlotPath, *platformConfig_.rootPmUnitName());
+  for (const auto& [linkPath, pmDevicePath] :
+       *platformConfig_.symbolicLinkToDevicePath()) {
+    createDeviceSymLink(linkPath, pmDevicePath);
+  }
 }
 
 void PlatformExplorer::explorePmUnit(
@@ -266,6 +271,17 @@ uint32_t PlatformExplorer::getFpgaInstanceId(
 
 void PlatformExplorer::createDeviceSymLink(
     const std::string& linkPath,
-    const std::string& pmDevicePath) {}
+    const std::string& /*pmDevicePath*/) {
+  std::error_code errCode;
+  auto linkParentPath = std::filesystem::path(linkPath).parent_path();
+  std::filesystem::create_directories(linkParentPath, errCode);
+  if (errCode.value() != 0) {
+    XLOG(ERR) << fmt::format(
+        "Failed to create the parent path ({}) with error code {}",
+        linkParentPath.string(),
+        errCode.value());
+    return;
+  }
+}
 
 } // namespace facebook::fboss::platform::platform_manager
