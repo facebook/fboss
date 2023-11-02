@@ -3,6 +3,7 @@
 #include <gtest/gtest.h>
 
 #include <folly/logging/xlog.h>
+#include "common/time/Time.h"
 #include "fboss/qsfp_service/test/hw_test/HwPortUtils.h"
 #include "fboss/qsfp_service/test/hw_test/HwTest.h"
 
@@ -132,24 +133,35 @@ class OpticsFwUpgradeTest : public HwTest {
 
 TEST_F(OpticsFwUpgradeTest, noUpgradeForSameVersion) {
   // In this test, firmware versions in qsfp config is not changed. Hence, the
-  // firmware upgrade shouldn't be triggered under any circumstances After
-  // Coldboot init, verify there were no upgrades done during cold boot After
-  // Warmboot init, verify there were no upgrades done during warm boot Force
-  // links to go down and verify there are no upgrades done
+  // firmware upgrade shouldn't be triggered under any circumstances.
+  // 1. Coldboot init might still trigger firmware upgrade depending on what the
+  // firmware version was before the test started and what the firmware version
+  // is in the qsfp config the test is run with
+  // 2. Warmboot init, verify there were no upgrades done during warm boot.
+  // 3. Force links to go down and verify there are no upgrades done
 
+  long initDoneTimestampSec = facebook::WallClockUtil::NowInSecFast();
   auto verify = [&]() {
-    CHECK(verifyUpgrade(
-        false /* upgradeExpected */, 0 /* upgradeSinceTsSec */, {} /* tcvrs */))
-        << "No upgrades expected during cold/warm boot";
+    if (didWarmBoot()) {
+      CHECK(verifyUpgrade(
+          false /* upgradeExpected */,
+          0 /* upgradeSinceTsSec */,
+          {} /* tcvrs */))
+          << "No upgrades expected during warm boot";
+    }
     // Force link up
     setPortStatus(true);
     CHECK(verifyUpgrade(
-        false /* upgradeExpected */, 0 /* upgradeSinceTsSec */, {} /* tcvrs */))
+        false /* upgradeExpected */,
+        initDoneTimestampSec /* upgradeSinceTsSec */,
+        {} /* tcvrs */))
         << "No upgrades expected on port up";
     // Force link down
     setPortStatus(false);
     CHECK(verifyUpgrade(
-        false /* upgradeExpected */, 0 /* upgradeSinceTsSec */, {} /* tcvrs */))
+        false /* upgradeExpected */,
+        initDoneTimestampSec /* upgradeSinceTsSec */,
+        {} /* tcvrs */))
         << "No upgrades expected on port down";
   };
   verifyAcrossWarmBoots([]() {}, verify);
