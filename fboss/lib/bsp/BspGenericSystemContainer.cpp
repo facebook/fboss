@@ -3,6 +3,7 @@
 #include "fboss/lib/bsp/BspGenericSystemContainer.h"
 #include <folly/FileUtil.h>
 #include <folly/Singleton.h>
+#include "fboss/lib/bsp/janga/JangaBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru400bfu/Meru400bfuBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru400bia/Meru400biaBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru400biu/Meru400biuBspPlatformMapping.h"
@@ -99,6 +100,12 @@ template <>
 std::shared_ptr<Morgan800ccSystemContainer>
 Morgan800ccSystemContainer::getInstance() {
   return _morgan800ccSystemContainer.try_get();
+}
+using JangaSystemContainer = BspGenericSystemContainer<JangaBspPlatformMapping>;
+folly::Singleton<JangaSystemContainer> _jangaSystemContainer;
+template <>
+std::shared_ptr<JangaSystemContainer> JangaSystemContainer::getInstance() {
+  return _jangaSystemContainer.try_get();
 }
 
 } // namespace fboss

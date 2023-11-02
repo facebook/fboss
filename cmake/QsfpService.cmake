@@ -115,6 +115,15 @@ target_link_libraries(morgan800cc_bsp
   FBThrift::thriftcpp2
 )
 
+add_library(janga_bsp
+  fboss/lib/bsp/janga/JangaBspPlatformMapping.cpp
+)
+
+target_link_libraries(janga_bsp
+  bsp_platform_mapping_cpp2
+  FBThrift::thriftcpp2
+)
+
 add_library(qsfp_bsp_core
   fboss/lib/bsp/BspGenericSystemContainer.cpp
   fboss/lib/bsp/BspIOBus.cpp
@@ -144,6 +153,7 @@ target_link_libraries(qsfp_bsp_core
   meru800bfa_bsp
   montblanc_bsp
   morgan800cc_bsp
+  janga_bsp
   device_mdio
   fpga_device
   phy_management_base

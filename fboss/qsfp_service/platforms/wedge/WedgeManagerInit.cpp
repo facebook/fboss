@@ -9,6 +9,7 @@
  */
 #include "fboss/qsfp_service/platforms/wedge/WedgeManagerInit.h"
 
+#include "fboss/agent/platforms/common/janga/JangaPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru400bfu/Meru400bfuPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru400bia/Meru400biaPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru400biu/Meru400biuPlatformMapping.h"
@@ -17,6 +18,7 @@
 #include "fboss/agent/platforms/common/montblanc/MontblancPlatformMapping.h"
 #include "fboss/agent/platforms/common/morgan800cc/Morgan800ccPlatformMapping.h"
 #include "fboss/lib/bsp/BspGenericSystemContainer.h"
+#include "fboss/lib/bsp/janga/JangaBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru400bfu/Meru400bfuBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru400bia/Meru400biaBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru400biu/Meru400biuBspPlatformMapping.h"
@@ -85,6 +87,8 @@ std::unique_ptr<WedgeManager> createWedgeManager() {
     return createMorgan800ccWedgeManager(platformMappingStr);
   } else if (mode == PlatformType::PLATFORM_WEDGE400C) {
     return std::make_unique<Wedge400CManager>(platformMappingStr);
+  } else if (mode == PlatformType::PLATFORM_JANGA) {
+    return createJangaWedgeManager(platformMappingStr);
   } else if (
       mode == PlatformType::PLATFORM_FUJI ||
       mode == PlatformType::PLATFORM_MINIPACK ||
@@ -191,6 +195,18 @@ std::unique_ptr<WedgeManager> createMorgan800ccWedgeManager(
           ? std::make_unique<Morgan800ccPlatformMapping>()
           : std::make_unique<Morgan800ccPlatformMapping>(platformMappingStr),
       PlatformType::PLATFORM_MORGAN800CC);
+}
+std::unique_ptr<WedgeManager> createJangaWedgeManager(
+    const std::string& platformMappingStr) {
+  auto systemContainer =
+      BspGenericSystemContainer<JangaBspPlatformMapping>::getInstance().get();
+  return std::make_unique<BspWedgeManager>(
+      systemContainer,
+      std::make_unique<BspTransceiverApi>(systemContainer),
+      platformMappingStr.empty()
+          ? std::make_unique<JangaPlatformMapping>()
+          : std::make_unique<JangaPlatformMapping>(platformMappingStr),
+      PlatformType::PLATFORM_JANGA);
 }
 } // namespace fboss
 } // namespace facebook
