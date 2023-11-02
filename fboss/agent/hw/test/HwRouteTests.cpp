@@ -154,7 +154,7 @@ using IpTypes = ::testing::Types<folly::IPAddressV4, folly::IPAddressV6>;
 TYPED_TEST_SUITE(HwRouteTest, IpTypes);
 
 TYPED_TEST(HwRouteTest, VerifyClassID) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     // 3 routes r0, r1, r2. r0 & r1 have classID, r2 does not.
     this->addRoutes(
         this->getProgrammedState(),
@@ -187,7 +187,7 @@ TYPED_TEST(HwRouteTest, VerifyClassID) {
         false /*sync*/);
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     this->verifyClassIDHelper(this->kGetRoutePrefix0(), this->kLookupClass());
     this->verifyClassIDHelper(this->kGetRoutePrefix1(), std::nullopt);
     this->verifyClassIDHelper(this->kGetRoutePrefix2(), this->kLookupClass());
@@ -197,7 +197,7 @@ TYPED_TEST(HwRouteTest, VerifyClassID) {
 }
 
 TYPED_TEST(HwRouteTest, VerifyClassIdWithNhopResolutionFlap) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     this->addRoutes(this->getProgrammedState(), {this->kGetRoutePrefix0()});
     auto updater = this->getHwSwitchEnsemble()->getRouteUpdater();
     updater.programClassID(
@@ -219,7 +219,7 @@ TYPED_TEST(HwRouteTest, VerifyClassIdWithNhopResolutionFlap) {
     this->applyNewState(
         ecmpHelper.resolveNextHops(this->getProgrammedState(), kEcmpWidth));
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     this->verifyClassIDHelper(this->kGetRoutePrefix0(), this->kLookupClass());
   };
 
@@ -229,7 +229,7 @@ TYPED_TEST(HwRouteTest, VerifyClassIdWithNhopResolutionFlap) {
 TYPED_TEST(HwRouteTest, UnresolvedAndResolvedNextHop) {
   using AddrT = typename TestFixture::Type;
   auto ports = this->portDescs();
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(
         this->getProgrammedState(), this->kRouterID());
     ecmpHelper.programRoutes(
@@ -240,7 +240,7 @@ TYPED_TEST(HwRouteTest, UnresolvedAndResolvedNextHop) {
     ecmpHelper.programRoutes(
         this->getRouteUpdater(), {ports[1]}, {this->kGetRoutePrefix1()});
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto routePrefix0 = this->kGetRoutePrefix0();
     auto cidr0 =
         folly::CIDRNetwork(routePrefix0.network(), routePrefix0.mask());
@@ -268,7 +268,7 @@ TYPED_TEST(HwRouteTest, UnresolvedAndResolvedNextHop) {
 TYPED_TEST(HwRouteTest, UnresolveResolvedNextHop) {
   using AddrT = typename TestFixture::Type;
 
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     utility::EcmpSetupAnyNPorts<AddrT> ecmpHelper(
         this->getProgrammedState(), this->kRouterID());
     this->applyNewState(
@@ -279,7 +279,7 @@ TYPED_TEST(HwRouteTest, UnresolveResolvedNextHop) {
     this->applyNewState(
         ecmpHelper.unresolveNextHops(this->getProgrammedState(), 1));
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto routePrefix = this->kGetRoutePrefix0();
     auto cidr = folly::CIDRNetwork(routePrefix.network(), routePrefix.mask());
     EXPECT_TRUE(
@@ -293,7 +293,7 @@ TYPED_TEST(HwRouteTest, UnresolveResolvedNextHop) {
 TYPED_TEST(HwRouteTest, UnresolvedAndResolvedMultiNextHop) {
   using AddrT = typename TestFixture::Type;
   auto ports = this->portDescs();
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(
         this->getProgrammedState(), this->kRouterID());
     ecmpHelper.programRoutes(
@@ -308,7 +308,7 @@ TYPED_TEST(HwRouteTest, UnresolvedAndResolvedMultiNextHop) {
         {ports[2], ports[3]},
         {this->kGetRoutePrefix1()});
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto routePrefix0 = this->kGetRoutePrefix0();
     auto cidr0 =
         folly::CIDRNetwork(routePrefix0.network(), routePrefix0.mask());
@@ -353,7 +353,7 @@ TYPED_TEST(HwRouteTest, UnresolvedAndResolvedMultiNextHop) {
 TYPED_TEST(HwRouteTest, ResolvedMultiNexthopToUnresolvedSingleNexthop) {
   auto ports = this->portDescs();
   using AddrT = typename TestFixture::Type;
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(
         this->getProgrammedState(), this->kRouterID());
     this->applyNewState(ecmpHelper.resolveNextHops(
@@ -397,7 +397,7 @@ TYPED_TEST(HwRouteTest, ResolvedMultiNexthopToUnresolvedSingleNexthop) {
 TYPED_TEST(HwRouteTest, StaticIp2MplsRoutes) {
   using AddrT = typename TestFixture::Type;
 
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto config = this->initialConfig();
 
     config.staticIp2MplsRoutes()->resize(1);
@@ -429,7 +429,7 @@ TYPED_TEST(HwRouteTest, StaticIp2MplsRoutes) {
         {PortDescriptor(this->masterLogicalInterfacePortIds()[0]),
          PortDescriptor(this->masterLogicalInterfacePortIds()[1])}));
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     // prefix 1 subnet reachable via prefix 0 with mpls stack over this stack
     utility::verifyProgrammedStack<AddrT>(
         this->getHwSwitch(),
@@ -458,7 +458,7 @@ TYPED_TEST(HwRouteTest, VerifyRouting) {
   using AddrT = typename TestFixture::Type;
   auto constexpr isV4 = std::is_same_v<AddrT, folly::IPAddressV4>;
   auto ports = this->portDescs();
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(
         this->getProgrammedState(), this->kRouterID());
     this->applyNewState(
@@ -466,7 +466,7 @@ TYPED_TEST(HwRouteTest, VerifyRouting) {
     ecmpHelper.programRoutes(
         this->getRouteUpdater(), {ports[0]}, {this->kDefaultPrefix()});
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     const auto egressPort = ports[0].phyPortID();
     auto vlanId = utility::firstVlanID(this->initialConfig());
     auto intfMac = utility::getFirstInterfaceMac(this->getProgrammedState());
@@ -525,7 +525,7 @@ TYPED_TEST(HwRouteTest, verifyHostRouteChange) {
   using AddrT = typename TestFixture::Type;
   auto ports = this->portDescs();
 
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(
         this->getProgrammedState(), this->kRouterID());
     this->applyNewState(ecmpHelper.resolveNextHops(
@@ -538,7 +538,7 @@ TYPED_TEST(HwRouteTest, verifyHostRouteChange) {
         {this->kGetRoutePrefix3()});
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto routePrefix = this->kGetRoutePrefix3();
     auto cidr = folly::CIDRNetwork(routePrefix.network(), routePrefix.mask());
     utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(
@@ -571,7 +571,7 @@ TYPED_TEST(HwRouteTest, verifyCpuRouteChange) {
   using AddrT = typename TestFixture::Type;
   auto ports = this->portDescs();
 
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(
         this->getProgrammedState(), this->kRouterID());
     // Next hops unresolved - route should point to CPU
@@ -579,7 +579,7 @@ TYPED_TEST(HwRouteTest, verifyCpuRouteChange) {
         this->getRouteUpdater(), {ports[1]}, {this->kGetRoutePrefix3()});
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto routePrefix = this->kGetRoutePrefix3();
     auto cidr = folly::CIDRNetwork(routePrefix.network(), routePrefix.mask());
     EXPECT_TRUE(
@@ -632,7 +632,7 @@ TYPED_TEST(HwRouteTest, verifyCpuRouteChange) {
 }
 
 TYPED_TEST(HwRouteTest, VerifyDefaultRoute) {
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     // default routes should exist always.
     utility::isHwRoutePresent(
         this->getHwSwitch(), this->kRouterID(), {folly::IPAddress("::"), 0});
@@ -677,7 +677,7 @@ TYPED_TEST_SUITE(HwRouteNeighborTest, NeighborTableTypes);
 
 TYPED_TEST(HwRouteNeighborTest, AddHostRouteAndNeighbor) {
   using AddrT = typename TestFixture::Type;
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto ip = this->kGetRoutePrefix3().network();
     auto portId = this->masterLogicalInterfacePortIds()[0];
     auto port = this->getProgrammedState()->getPort(portId);
@@ -724,7 +724,7 @@ TYPED_TEST(HwRouteNeighborTest, AddHostRouteAndNeighbor) {
         RouteNextHopEntry(nexthops, AdminDistance::EBGP));
     updater.program();
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     utility::isHwRoutePresent(
         this->getHwSwitch(),
         this->kRouterID(),

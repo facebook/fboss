@@ -344,9 +344,9 @@ TEST_F(HwVoqSwitchWithFabricPortsTest, checkFabricReachability) {
 }
 
 TEST_F(HwVoqSwitchWithFabricPortsTest, fabricIsolate) {
-  auto setup = [=]() { applyNewConfig(initialConfig()); };
+  auto setup = [=, this]() { applyNewConfig(initialConfig()); };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
     getHwSwitch()->updateStats();
     auto fabricPortId =
@@ -364,14 +364,14 @@ TEST_F(HwVoqSwitchWithFabricPortsTest, fabricIsolate) {
 }
 
 TEST_F(HwVoqSwitchWithFabricPortsTest, switchIsolate) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto newCfg = initialConfig();
     *newCfg.switchSettings()->switchDrainState() =
         cfg::SwitchDrainState::DRAINED;
     applyNewConfig(newCfg);
   };
 
-  auto verify = [=]() { checkFabricReachability(getHwSwitchEnsemble()); };
+  auto verify = [=, this]() { checkFabricReachability(getHwSwitchEnsemble()); };
   verifyAcrossWarmBoots(setup, verify);
 }
 
@@ -684,12 +684,12 @@ TEST_F(HwVoqSwitchTest, AclQualifiersWithCounter) {
 TEST_F(HwVoqSwitchTest, voqDelete) {
   utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
   auto port = ecmpHelper.ecmpPortDescriptorAt(0);
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     addRemoveNeighbor(port, true /*add*/);
     // Disable port TX
     utility::setPortTx(getHwSwitch(), port.phyPortID(), false);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto getVoQDeletedPkts = [port, this]() {
       if (!getAsic()->isSupported(HwAsic::Feature::VOQ_DELETE_COUNTER)) {
         return 0L;
@@ -718,8 +718,8 @@ TEST_F(HwVoqSwitchTest, voqDelete) {
 TEST_F(HwVoqSwitchTest, packetIntegrityError) {
   utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
   auto port = ecmpHelper.ecmpPortDescriptorAt(0);
-  auto setup = [=]() { addRemoveNeighbor(port, true /*add*/); };
-  auto verify = [=]() {
+  auto setup = [=, this]() { addRemoveNeighbor(port, true /*add*/); };
+  auto verify = [=, this]() {
     const auto dstIp = ecmpHelper.ip(port);
     std::string out;
     getHwSwitchEnsemble()->runDiagCommand(
@@ -880,7 +880,7 @@ class HwVoqSwitchWithMultipleDsfNodesTest : public HwVoqSwitchTest {
   void assertVoqTailDrops(
       const folly::IPAddressV6& nbrIp,
       const SystemPortID& sysPortId) {
-    auto sendPkts = [=]() {
+    auto sendPkts = [=, this]() {
       for (auto i = 0; i < 1000; ++i) {
         sendPacket(nbrIp, std::nullopt);
       }
@@ -1011,7 +1011,7 @@ TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, addRemoveRemoteNeighbor) {
 }
 
 TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, stressAddRemoveObjects) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     // Disable credit watchdog
     utility::enableCreditWatchdog(getHwSwitch(), false);
   };
@@ -1103,7 +1103,7 @@ TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, voqTailDropCounter) {
   folly::IPAddressV6 kNeighborIp("100::2");
   auto constexpr remotePortId = 401;
   const SystemPortID kRemoteSysPortId(remotePortId);
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     // in addRemoteDsfNodeCfg, we use numCores to calculate the remoteSwitchId
     // keeping remote switch id passed below in sync with it
     int numCores = getAsic()->getNumCores();
@@ -1136,7 +1136,9 @@ TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, voqTailDropCounter) {
         dummyEncapIndex));
   };
 
-  auto verify = [=]() { assertVoqTailDrops(kNeighborIp, kRemoteSysPortId); };
+  auto verify = [=, this]() {
+    assertVoqTailDrops(kNeighborIp, kRemoteSysPortId);
+  };
   verifyAcrossWarmBoots(setup, verify);
 };
 

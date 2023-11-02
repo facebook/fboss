@@ -229,7 +229,7 @@ class HwAclQualifierTest : public HwTest {
 };
 
 TEST_F(HwAclQualifierTest, AclIp4TcpQualifiers) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto newCfg = initialConfig();
     auto* acl1 = utility::addAcl(&newCfg, "ip4_tcp", cfg::AclActionType::DENY);
     configureAllHwQualifiers(acl1, true);
@@ -239,7 +239,7 @@ TEST_F(HwAclQualifierTest, AclIp4TcpQualifiers) {
     applyNewConfig(newCfg);
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch()));
     EXPECT_EQ(utility::getAclTableNumAclEntries(getHwSwitch()), 1);
     utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "ip4_tcp");
@@ -249,7 +249,7 @@ TEST_F(HwAclQualifierTest, AclIp4TcpQualifiers) {
 }
 
 TEST_F(HwAclQualifierTest, AclIp6TcpQualifiers) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto newCfg = initialConfig();
     auto* acl1 = utility::addAcl(&newCfg, "ip6_tcp", cfg::AclActionType::DENY);
     configureAllHwQualifiers(acl1, true);
@@ -259,7 +259,7 @@ TEST_F(HwAclQualifierTest, AclIp6TcpQualifiers) {
     applyNewConfig(newCfg);
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch()));
     EXPECT_EQ(utility::getAclTableNumAclEntries(getHwSwitch()), 1);
     utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "ip6_tcp");
@@ -269,7 +269,7 @@ TEST_F(HwAclQualifierTest, AclIp6TcpQualifiers) {
 }
 
 TEST_F(HwAclQualifierTest, AclIcmp4Qualifiers) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto newCfg = initialConfig();
     auto* acl1 = utility::addAcl(&newCfg, "icmp4", cfg::AclActionType::DENY);
     configureAllHwQualifiers(acl1, true);
@@ -278,7 +278,7 @@ TEST_F(HwAclQualifierTest, AclIcmp4Qualifiers) {
     applyNewConfig(newCfg);
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch()));
     EXPECT_EQ(utility::getAclTableNumAclEntries(getHwSwitch()), 1);
     utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "icmp4");
@@ -288,7 +288,7 @@ TEST_F(HwAclQualifierTest, AclIcmp4Qualifiers) {
 }
 
 TEST_F(HwAclQualifierTest, AclIcmp6Qualifiers) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto newCfg = initialConfig();
     auto* acl1 = utility::addAcl(&newCfg, "icmp6", cfg::AclActionType::DENY);
     configureAllHwQualifiers(acl1, true);
@@ -297,7 +297,7 @@ TEST_F(HwAclQualifierTest, AclIcmp6Qualifiers) {
     applyNewConfig(newCfg);
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch()));
     EXPECT_EQ(utility::getAclTableNumAclEntries(getHwSwitch()), 1);
     utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "icmp6");
@@ -307,7 +307,7 @@ TEST_F(HwAclQualifierTest, AclIcmp6Qualifiers) {
 }
 
 TEST_F(HwAclQualifierTest, AclRemove) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto newCfg = initialConfig();
     auto* acl0 = utility::addAcl(&newCfg, "acl0", cfg::AclActionType::DENY);
     acl0->proto() = 6;
@@ -319,7 +319,7 @@ TEST_F(HwAclQualifierTest, AclRemove) {
     applyNewConfig(newCfg);
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch()));
     EXPECT_EQ(utility::getAclTableNumAclEntries(getHwSwitch()), 1);
     utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "acl1");
@@ -329,7 +329,7 @@ TEST_F(HwAclQualifierTest, AclRemove) {
 }
 
 TEST_F(HwAclQualifierTest, AclModifyQualifier) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto newCfg = initialConfig();
     auto* acl = utility::addAcl(&newCfg, "acl0", cfg::AclActionType::DENY);
     // icmp6
@@ -347,7 +347,7 @@ TEST_F(HwAclQualifierTest, AclModifyQualifier) {
     applyNewConfig(newCfg);
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch()));
     EXPECT_EQ(utility::getAclTableNumAclEntries(getHwSwitch()), 1);
     utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "acl0");
@@ -359,7 +359,7 @@ TEST_F(HwAclQualifierTest, AclModifyQualifier) {
 }
 
 TEST_F(HwAclQualifierTest, AclEmptyCodeIcmp) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto newCfg = initialConfig();
     auto* acl = utility::addAcl(&newCfg, "acl0", cfg::AclActionType::DENY);
     // add a icmp rule w/ type and code value
@@ -375,7 +375,7 @@ TEST_F(HwAclQualifierTest, AclEmptyCodeIcmp) {
     applyNewConfig(newCfg);
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     EXPECT_EQ(utility::getAclTableNumAclEntries(getHwSwitch()), 1);
     utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "acl0");
   };
@@ -384,7 +384,7 @@ TEST_F(HwAclQualifierTest, AclEmptyCodeIcmp) {
 }
 
 TEST_F(HwAclQualifierTest, AclVlanIDQualifier) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto newCfg = initialConfig();
     if (getPlatform()->getAsic()->getAsicType() ==
         cfg::AsicType::ASIC_TYPE_TRIDENT2) {
@@ -399,7 +399,7 @@ TEST_F(HwAclQualifierTest, AclVlanIDQualifier) {
     applyNewConfig(newCfg);
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     if (getPlatform()->getAsic()->getAsicType() ==
         cfg::AsicType::ASIC_TYPE_TRIDENT2) {
       return;
@@ -412,14 +412,14 @@ TEST_F(HwAclQualifierTest, AclVlanIDQualifier) {
 }
 
 TEST_F(HwAclQualifierTest, AclIp4Qualifiers) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto newCfg = initialConfig();
     auto* acl = utility::addAcl(&newCfg, "ip4", cfg::AclActionType::DENY);
     configureIp4QualifiersHelper(acl);
     applyNewConfig(newCfg);
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch()));
     EXPECT_EQ(utility::getAclTableNumAclEntries(getHwSwitch()), 1);
     utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "ip4");
@@ -429,14 +429,14 @@ TEST_F(HwAclQualifierTest, AclIp4Qualifiers) {
 }
 
 TEST_F(HwAclQualifierTest, AclIp6Qualifiers) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto newCfg = initialConfig();
     auto* acl = utility::addAcl(&newCfg, "ip6", cfg::AclActionType::DENY);
     configureIp6QualifiersHelper(acl);
     applyNewConfig(newCfg);
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch()));
     EXPECT_EQ(utility::getAclTableNumAclEntries(getHwSwitch()), 1);
     utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "ip6");
@@ -446,61 +446,61 @@ TEST_F(HwAclQualifierTest, AclIp6Qualifiers) {
 }
 
 TEST_F(HwAclQualifierTest, AclIp4LookupClassL2) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     aclSetupHelper(true /* isIpV4 */, QualifierType::LOOKUPCLASS_L2);
   };
 
-  auto verify = [=]() { aclVerifyHelper(); };
+  auto verify = [=, this]() { aclVerifyHelper(); };
 
   verifyAcrossWarmBoots(setup, verify);
 }
 
 TEST_F(HwAclQualifierTest, AclIp4LookupClassNeighbor) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     aclSetupHelper(true /* isIpV4 */, QualifierType::LOOKUPCLASS_NEIGHBOR);
   };
 
-  auto verify = [=]() { aclVerifyHelper(); };
+  auto verify = [=, this]() { aclVerifyHelper(); };
 
   verifyAcrossWarmBoots(setup, verify);
 }
 
 TEST_F(HwAclQualifierTest, AclIp4LookupClassRoute) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     aclSetupHelper(true /* isIpV4 */, QualifierType::LOOKUPCLASS_ROUTE);
   };
 
-  auto verify = [=]() { aclVerifyHelper(); };
+  auto verify = [=, this]() { aclVerifyHelper(); };
 
   verifyAcrossWarmBoots(setup, verify);
 }
 
 TEST_F(HwAclQualifierTest, AclIp6LookupClassL2) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     aclSetupHelper(false /* isIpV6 */, QualifierType::LOOKUPCLASS_L2);
   };
 
-  auto verify = [=]() { aclVerifyHelper(); };
+  auto verify = [=, this]() { aclVerifyHelper(); };
 
   verifyAcrossWarmBoots(setup, verify);
 }
 
 TEST_F(HwAclQualifierTest, AclIp6LookupClassNeighbor) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     aclSetupHelper(false /* isIpV6 */, QualifierType::LOOKUPCLASS_NEIGHBOR);
   };
 
-  auto verify = [=]() { aclVerifyHelper(); };
+  auto verify = [=, this]() { aclVerifyHelper(); };
 
   verifyAcrossWarmBoots(setup, verify);
 }
 
 TEST_F(HwAclQualifierTest, AclIp6LookupClassRoute) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     aclSetupHelper(false /* isIpV6 */, QualifierType::LOOKUPCLASS_ROUTE);
   };
 
-  auto verify = [=]() { aclVerifyHelper(); };
+  auto verify = [=, this]() { aclVerifyHelper(); };
 
   verifyAcrossWarmBoots(setup, verify);
 }

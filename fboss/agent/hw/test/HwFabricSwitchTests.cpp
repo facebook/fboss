@@ -52,7 +52,7 @@ TEST_F(HwFabricSwitchTest, init) {
 }
 
 TEST_F(HwFabricSwitchTest, checkFabricReachabilityStats) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto newCfg = initialConfig();
     // reset the neighbor reachability information
     for (const auto& portID : masterLogicalPortIds()) {
@@ -87,7 +87,7 @@ TEST_F(HwFabricSwitchTest, checkFabricReachability) {
 }
 
 TEST_F(HwFabricSwitchTest, fabricIsolate) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto newCfg = initialConfig();
     auto fabricPortId =
         PortID(masterLogicalPortIds({cfg::PortType::FABRIC_PORT})[0]);
@@ -100,7 +100,7 @@ TEST_F(HwFabricSwitchTest, fabricIsolate) {
     applyNewConfig(newCfg);
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
     auto fabricPortId =
         PortID(masterLogicalPortIds({cfg::PortType::FABRIC_PORT})[0]);
@@ -110,11 +110,11 @@ TEST_F(HwFabricSwitchTest, fabricIsolate) {
 }
 
 TEST_F(HwFabricSwitchTest, fabricSwitchIsolate) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     setSwitchDrainState(initialConfig(), cfg::SwitchDrainState::DRAINED);
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
     checkFabricReachability(getHwSwitchEnsemble());
   };

@@ -30,7 +30,7 @@ class HwTrunkTest : public HwLinkStateDependentTest {
 };
 
 TEST_F(HwTrunkTest, TrunkCreateHighLowKeyIds) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto cfg = initialConfig();
     utility::addAggPort(
         std::numeric_limits<AggregatePortID>::max(),
@@ -39,7 +39,7 @@ TEST_F(HwTrunkTest, TrunkCreateHighLowKeyIds) {
     utility::addAggPort(1, {masterLogicalPortIds()[1]}, &cfg);
     applyConfigAndEnableTrunks(cfg);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     utility::verifyAggregatePortCount(getHwSwitchEnsemble(), 2);
     utility::verifyAggregatePort(
         getHwSwitchEnsemble(), AggregatePortID(1)
@@ -62,7 +62,7 @@ TEST_F(HwTrunkTest, TrunkCreateHighLowKeyIds) {
 }
 
 TEST_F(HwTrunkTest, TrunkCheckIngressPktAggPort) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto cfg = initialConfig();
     utility::addAggPort(
         std::numeric_limits<AggregatePortID>::max(),
@@ -70,7 +70,7 @@ TEST_F(HwTrunkTest, TrunkCheckIngressPktAggPort) {
         &cfg);
     applyConfigAndEnableTrunks(cfg);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     utility::verifyPktFromAggregatePort(
         getHwSwitchEnsemble(),
         AggregatePortID(std::numeric_limits<AggregatePortID>::max()));
@@ -81,7 +81,7 @@ TEST_F(HwTrunkTest, TrunkCheckIngressPktAggPort) {
 TEST_F(HwTrunkTest, TrunkMemberPortDownMinLinksViolated) {
   auto aggId = AggregatePortID(std::numeric_limits<AggregatePortID>::max());
 
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto cfg = initialConfig();
     utility::addAggPort(
         aggId, {masterLogicalPortIds()[0], masterLogicalPortIds()[1]}, &cfg);
@@ -90,7 +90,7 @@ TEST_F(HwTrunkTest, TrunkMemberPortDownMinLinksViolated) {
     bringDownPort(PortID(masterLogicalPortIds()[0]));
     // Member port count should drop to 1 now.
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     utility::verifyAggregatePortCount(getHwSwitchEnsemble(), 1);
     utility::verifyAggregatePort(getHwSwitchEnsemble(), aggId);
     utility::verifyAggregatePortMemberCount(getHwSwitchEnsemble(), aggId, 2, 1);
@@ -110,7 +110,7 @@ TEST_F(HwTrunkTest, TrunkPortStatsWithMplsPush) {
 #endif
     return;
   }
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto cfg = initialConfig();
     utility::addAggPort(1, {masterLogicalPortIds()[1]}, &cfg);
     applyConfigAndEnableTrunks(cfg);
@@ -122,7 +122,7 @@ TEST_F(HwTrunkTest, TrunkPortStatsWithMplsPush) {
         {PortDescriptor(AggregatePortID(1))},
         {{PortDescriptor(AggregatePortID(1)), {1001, 1002}}});
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto vlanId = VlanID(utility::kBaseVlanId);
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     for (auto throughPort : {false, true}) {
@@ -170,7 +170,7 @@ TEST_F(HwTrunkTest, TrunkPortStats) {
 #endif
     return;
   }
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto cfg = initialConfig();
     utility::addAggPort(1, {masterLogicalPortIds()[1]}, &cfg);
     applyConfigAndEnableTrunks(cfg);
@@ -180,7 +180,7 @@ TEST_F(HwTrunkTest, TrunkPortStats) {
     ecmpHelper.programRoutes(
         getRouteUpdater(), {PortDescriptor(AggregatePortID(1))});
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto vlanId = VlanID(utility::kBaseVlanId);
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     for (auto throughPort : {false, true}) {

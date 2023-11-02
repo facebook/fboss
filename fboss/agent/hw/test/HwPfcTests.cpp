@@ -141,13 +141,13 @@ class HwPfcTest : public HwTest {
 
   // Cross check PFC watchdog HW programming with SW config
   void runPfcWatchdogTest(const cfg::PfcWatchdog& pfcWatchdogConfig) {
-    auto setup = [=]() {
+    auto setup = [=, this]() {
       currentConfig = initialConfig();
       setupPfcAndPfcWatchdog(
           masterLogicalInterfacePortIds()[0], pfcWatchdogConfig);
     };
 
-    auto verify = [=]() {
+    auto verify = [=, this]() {
       utility::pfcWatchdogProgrammingMatchesConfig(
           getHwSwitch(),
           masterLogicalInterfacePortIds()[0],
@@ -160,9 +160,9 @@ class HwPfcTest : public HwTest {
 
   // Test to verify PFC is not configured in HW
   void runPfcNotConfiguredTest(bool rxEnabled, bool txEnabled) {
-    auto setup = [=]() { setupBaseConfig(); };
+    auto setup = [=, this]() { setupBaseConfig(); };
 
-    auto verify = [=]() {
+    auto verify = [=, this]() {
       bool pfcRx = false;
       bool pfcTx = false;
 
@@ -177,12 +177,12 @@ class HwPfcTest : public HwTest {
 
   // Test to verify PFC watchdog is not configured in HW
   void runPfcWatchdogNotConfiguredTest() {
-    auto setup = [=]() {
+    auto setup = [=, this]() {
       currentConfig = initialConfig();
       setupPfc(masterLogicalInterfacePortIds()[0], true, true);
     };
 
-    auto verify = [=]() {
+    auto verify = [=, this]() {
       cfg::PfcWatchdog defaultPfcWatchdogConfig{};
 
       XLOG(DBG0)
@@ -217,12 +217,12 @@ class HwPfcTest : public HwTest {
 
   // Run the various enabled/disabled combinations of PFC RX/TX
   void runPfcTest(bool rxEnabled, bool txEnabled) {
-    auto setup = [=]() {
+    auto setup = [=, this]() {
       currentConfig = initialConfig();
       setupPfc(masterLogicalInterfacePortIds()[0], rxEnabled, txEnabled);
     };
 
-    auto verify = [=]() {
+    auto verify = [=, this]() {
       bool pfcRx = false;
       bool pfcTx = false;
 
@@ -241,13 +241,13 @@ class HwPfcTest : public HwTest {
   void runPfcWatchdogGranularityTest(
       const cfg::PfcWatchdog& pfcWatchdogConfig,
       const int expectedBcmGranularity) {
-    auto setup = [=]() {
+    auto setup = [=, this]() {
       currentConfig = initialConfig();
       setupPfcAndPfcWatchdog(
           masterLogicalInterfacePortIds()[0], pfcWatchdogConfig);
     };
 
-    auto verify = [=]() {
+    auto verify = [=, this]() {
       auto portId = masterLogicalInterfacePortIds()[0];
       utility::pfcWatchdogProgrammingMatchesConfig(
           getHwSwitch(), portId, true, pfcWatchdogConfig);
