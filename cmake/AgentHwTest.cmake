@@ -162,6 +162,7 @@ target_link_libraries(load_balancer_utils
   packet_factory
   state
   Folly::folly
+  config_factory
 )
 
 add_library(prod_config_utils
