@@ -413,6 +413,34 @@ void FsdbPubSubManager::addStatePathSubscription(
       clientIdSuffix);
 }
 
+void FsdbPubSubManager::addStatePathSubscription(
+    FsdbStateSubscriber::SubscriptionOptions&& subscriptionOptions,
+    const Path& subscribePath,
+    FsdbStateSubscriber::FsdbSubscriptionStateChangeCb stateChangeCb,
+    FsdbStateSubscriber::FsdbOperStateUpdateCb operStateCb,
+    FsdbStreamClient::ServerOptions&& serverOptions) {
+  addSubscriptionImpl<FsdbStateSubscriber>(
+      std::move(subscriptionOptions),
+      subscribePath,
+      stateChangeCb,
+      operStateCb,
+      std::move(serverOptions));
+}
+
+void FsdbPubSubManager::addStatePathSubscription(
+    FsdbExtStateSubscriber::SubscriptionOptions&& subscriptionOptions,
+    const MultiPath& subscribePaths,
+    FsdbExtStateSubscriber::FsdbSubscriptionStateChangeCb stateChangeCb,
+    FsdbExtStateSubscriber::FsdbOperStateUpdateCb operStateCb,
+    FsdbStreamClient::ServerOptions&& serverOptions) {
+  addSubscriptionImpl<FsdbExtStateSubscriber>(
+      std::move(subscriptionOptions),
+      toExtendedOperPath(subscribePaths),
+      stateChangeCb,
+      operStateCb,
+      std::move(serverOptions));
+}
+
 template <typename SubscriberT, typename PathElement>
 void FsdbPubSubManager::addSubscriptionImpl(
     const std::vector<PathElement>& subscribePath,
@@ -446,6 +474,41 @@ void FsdbPubSubManager::addSubscriptionImpl(
           reconnectEvb_,
           subUnitAvailableCb,
           subscribeStats,
+          stateChangeCb)));
+  if (!inserted) {
+    throw std::runtime_error(
+        "Subscription at : " + subsStr + " already exists");
+  }
+  XLOG(DBG2) << " Added subscription for: " << subsStr;
+  itr->second->setServerOptions(std::move(serverOptions));
+}
+
+template <typename SubscriberT, typename PathElement>
+void FsdbPubSubManager::addSubscriptionImpl(
+    typename SubscriberT::SubscriptionOptions&& subscriptionOptions,
+    const std::vector<PathElement>& subscribePath,
+    typename SubscriberT::FsdbSubscriptionStateChangeCb stateChangeCb,
+    typename SubscriberT::FsdbSubUnitUpdateCb subUnitAvailableCb,
+    FsdbStreamClient::ServerOptions&& serverOptions) {
+  auto isDelta = std::disjunction_v<
+      std::is_same<SubscriberT, FsdbDeltaSubscriber>,
+      std::is_same<SubscriberT, FsdbExtDeltaSubscriber>>;
+  auto subsStr = toSubscriptionStr(
+      serverOptions.dstAddr.getAddressStr(),
+      subscribePath,
+      isDelta,
+      subscriptionOptions.subscribeStats_);
+  auto path2SubscriberW = path2Subscriber_.wlock();
+  auto& path2Subscriber = *path2SubscriberW;
+
+  auto [itr, inserted] = path2Subscriber.emplace(std::make_pair(
+      subsStr,
+      std::make_unique<SubscriberT>(
+          std::move(subscriptionOptions),
+          subscribePath,
+          subscriberEvb_,
+          reconnectEvb_,
+          subUnitAvailableCb,
           stateChangeCb)));
   if (!inserted) {
     throw std::runtime_error(
