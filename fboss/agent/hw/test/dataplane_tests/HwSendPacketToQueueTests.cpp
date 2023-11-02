@@ -39,7 +39,7 @@ class HwSendPacketToQueueTest : public HwLinkStateDependentTest {
 void HwSendPacketToQueueTest::checkSendPacket(
     std::optional<uint8_t> ucQueue,
     bool isOutOfPort) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     if (!isOutOfPort) {
       // need to set up ecmp for switching
       auto kEcmpWidthForTest = 1;
@@ -48,7 +48,7 @@ void HwSendPacketToQueueTest::checkSendPacket(
     }
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState()};
     auto port = ecmpHelper6.nhop(0).portDesc.phyPortID();
     const uint8_t queueID = ucQueue ? *ucQueue : kDefaultQueue;

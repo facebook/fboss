@@ -145,11 +145,11 @@ TYPED_TEST(HwQueuePerHostRouteTest, VerifyHostToQueueMappingClassIDCpu) {
     return;
   }
 
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     this->setupHelper(false /* blockNeighbor */);
     this->bringDownPort(this->masterLogicalPortIds()[1]);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     this->verifyHelper(false /* cpu port */, false /* block neighbor */);
   };
 
@@ -164,8 +164,8 @@ TYPED_TEST(HwQueuePerHostRouteTest, VerifyHostToQueueMappingClassIDFrontPanel) {
     return;
   }
 
-  auto setup = [=]() { this->setupHelper(false /*blockNeighbor */); };
-  auto verify = [=]() {
+  auto setup = [=, this]() { this->setupHelper(false /*blockNeighbor */); };
+  auto verify = [=, this]() {
     this->verifyHelper(true /* front panel port */, false /* block neighbor */);
   };
 
@@ -180,11 +180,11 @@ TYPED_TEST(HwQueuePerHostRouteTest, VerifyHostToQueueMappingClassIDCpuBlock) {
     return;
   }
 
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     this->setupHelper(true /* blockNeighbor */);
     this->bringDownPort(this->masterLogicalPortIds()[1]);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     this->verifyHelper(false /* cpu port */, true /* block neighbor */);
   };
 
@@ -201,8 +201,8 @@ TYPED_TEST(
     return;
   }
 
-  auto setup = [=]() { this->setupHelper(true /*blockNeighbor */); };
-  auto verify = [=]() {
+  auto setup = [=, this]() { this->setupHelper(true /*blockNeighbor */); };
+  auto verify = [=, this]() {
     this->verifyHelper(true /* front panel port */, true /*block neighbor */);
   };
 

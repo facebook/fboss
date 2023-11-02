@@ -327,12 +327,12 @@ TEST_F(HwProdInvariantsMmuLosslessTest, ValidateMmuLosslessMode) {
 }
 
 TEST_F(HwProdInvariantsMmuLosslessTest, ValidateWarmBootNoDiscards) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     // run the loop, so traffic continues running
     sendTrafficInLoop();
   };
 
-  auto verify = [=]() { verifyNoDiscards(); };
+  auto verify = [=, this]() { verifyNoDiscards(); };
   verifyAcrossWarmBoots(setup, verify);
 }
 

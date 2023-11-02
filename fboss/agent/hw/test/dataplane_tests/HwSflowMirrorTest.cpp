@@ -265,7 +265,7 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
 #endif
       return;
     }
-    auto setup = [=]() {
+    auto setup = [=, this]() {
       auto config = initialConfig();
       configMirror(&config, false);
       configSampling(&config, FLAGS_sflow_test_rate);
@@ -273,7 +273,7 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
       setupRoutes();
       resolveMirror();
     };
-    auto verify = [=]() {
+    auto verify = [=, this]() {
       generateTraffic(payloadSize);
       std::this_thread::sleep_for(std::chrono::seconds(FLAGS_sflow_test_time));
       auto ports = getPortsForSampling();
@@ -351,7 +351,7 @@ TEST_F(HwSflowMirrorTest, StressMirrorSessionConfigUnconfig) {
 #endif
     return;
   }
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto config = initialConfig();
     configMirror(&config, false);
     configSampling(&config, 1);
@@ -363,7 +363,7 @@ TEST_F(HwSflowMirrorTest, StressMirrorSessionConfigUnconfig) {
     // Setup regular mirror session to ensure traffic is good
     resolveMirror();
   };
-  auto verify = [=]() { verifySampledPacket(); };
+  auto verify = [=, this]() { verifySampledPacket(); };
   verifyAcrossWarmBoots(setup, verify);
 }
 
@@ -374,14 +374,14 @@ TEST_F(HwSflowMirrorTest, VerifySampledPacket) {
 #endif
     return;
   }
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto config = initialConfig();
     configMirror(&config, false);
     configSampling(&config, 1);
     applyNewConfig(config);
     resolveMirror();
   };
-  auto verify = [=]() { verifySampledPacket(); };
+  auto verify = [=, this]() { verifySampledPacket(); };
   verifyAcrossWarmBoots(setup, verify);
 }
 
@@ -394,14 +394,14 @@ TEST_F(HwSflowMirrorTest, VerifySampledPacketWithTruncateV4) {
 #endif
     return;
   }
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto config = initialConfig();
     configMirror(&config, true);
     configSampling(&config, 1);
     applyNewConfig(config);
     resolveMirror();
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto ports = getPortsForSampling();
     bringDownPorts(std::vector<PortID>(ports.begin() + 2, ports.end()));
     auto pkt = genPacket(1, 8000);
@@ -440,14 +440,14 @@ TEST_F(HwSflowMirrorTest, VerifySampledPacketWithTruncateV6) {
 #endif
     return;
   }
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto config = initialConfig();
     configMirror(&config, true, false);
     configSampling(&config, 1);
     applyNewConfig(config);
     resolveMirror();
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto ports = getPortsForSampling();
     bringDownPorts(std::vector<PortID>(ports.begin() + 2, ports.end()));
     auto pkt = genPacket(1, 8000);
@@ -500,7 +500,7 @@ TEST_F(HwSflowMirrorTest, VerifySampledPacketWithLagMemberAsEgressPort) {
 #endif
     return;
   }
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto config = initialConfig();
     configTrunk(&config);
     configMirror(&config, true /* truncate */, false /* isv6 */);
@@ -509,7 +509,7 @@ TEST_F(HwSflowMirrorTest, VerifySampledPacketWithLagMemberAsEgressPort) {
     applyNewState(utility::enableTrunkPorts(state));
     resolveMirror();
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto ports = getPortsForSampling();
     bringDownPorts(std::vector<PortID>(ports.begin() + 2, ports.end()));
     auto pkt = genPacket(1, 8000);

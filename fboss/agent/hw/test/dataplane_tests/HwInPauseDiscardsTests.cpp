@@ -51,7 +51,7 @@ class HwInPauseDiscardsCounterTest : public HwLinkStateDependentTest {
 
  protected:
   void runTest(bool enableRxPause) {
-    auto setup = [=]() {
+    auto setup = [=, this]() {
       if (enableRxPause) {
         auto newState = getProgrammedState()->clone();
         auto portMap = newState->getPorts()->modify(&newState);
@@ -65,7 +65,7 @@ class HwInPauseDiscardsCounterTest : public HwLinkStateDependentTest {
         applyNewState(newState);
       }
     };
-    auto verify = [=]() {
+    auto verify = [=, this]() {
       auto portStatsBefore =
           getLatestPortStats(masterLogicalInterfacePortIds()[0]);
       pumpTraffic();
