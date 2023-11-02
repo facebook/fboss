@@ -8,6 +8,7 @@
 #include <folly/logging/xlog.h>
 #include <chrono>
 #include <memory>
+#include <utility>
 
 namespace facebook::fboss::fsdb {
 
@@ -93,6 +94,33 @@ FsdbPublisher<PubUnit>::createGenerator() {
   }
 }
 #endif
+
+template <typename PubUnit>
+bool FsdbPublisher<PubUnit>::disconnectForGR() {
+#if FOLLY_HAS_COROUTINES
+  // Mark the client as cancelling gracefully, and let the service loop know
+  // that it should send GR disconnect.
+  auto baton = folly::Baton<>();
+  setGracefulServiceLoopCompletion([&baton]() { baton.post(); });
+  // To inform the service loop, we will send an empty PubUnit to the pipe
+  // as we can't write anything other than PubUnit to the pipe.
+  {
+    auto pipeUPtr = asyncPipe_.ulock();
+    if (!(*pipeUPtr)) {
+      XLOG(ERR) << "asyncPipe_.ulock() failed, nullptr";
+      return false;
+    }
+    PubUnit emptyPubUnit;
+    if (!(*pipeUPtr)->second.try_write(std::move(emptyPubUnit))) {
+      XLOG(DBG2) << "pipe.try_write() failed, can ignore failure";
+    }
+  }
+  // wait for the service loop to complete, and then cancel the client
+  baton.wait();
+  cancel();
+#endif
+  return true;
+}
 
 template class FsdbPublisher<OperDelta>;
 template class FsdbPublisher<OperState>;

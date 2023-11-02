@@ -7,6 +7,7 @@
 #include <folly/experimental/coro/AsyncScope.h>
 #include <folly/io/async/AsyncSocketTransport.h>
 #include <folly/io/async/ScopedEventBaseThread.h>
+#include <folly/synchronization/Baton.h>
 #include <gtest/gtest_prod.h>
 #include <thrift/lib/cpp2/async/ClientBufferedStream.h>
 #include <thrift/lib/cpp2/async/RpcOptions.h>
@@ -16,6 +17,7 @@
 #ifndef IS_OSS
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 #endif
+#include "fboss/fsdb/common/Utils.h"
 #include "fboss/lib/CommonThriftUtils.h"
 
 #include <atomic>
@@ -43,6 +45,14 @@ class FsdbStreamClient : public ReconnectingThriftClient {
  public:
   using FsdbStreamStateChangeCb = std::function<void(State, State)>;
 
+  class FsdbClientGRDisconnectException : public FsdbException {
+   public:
+    explicit FsdbClientGRDisconnectException(std::string msg) {
+      this->message_ref() = std::move(msg);
+      this->errorCode_ref() = FsdbErrorCode::PUBLISHER_GR_DISCONNECT;
+    }
+  };
+
   FsdbStreamClient(
       const std::string& clientId,
       folly::EventBase* streamEvb,
@@ -58,6 +68,9 @@ class FsdbStreamClient : public ReconnectingThriftClient {
   }
   bool isStats() const {
     return isStats_;
+  }
+  fsdb::FsdbErrorCode getDisconnectReason() const {
+    return *disconnectReason_.rlock();
   }
 
 #ifndef IS_OSS
@@ -94,6 +107,20 @@ class FsdbStreamClient : public ReconnectingThriftClient {
 #endif
 
  protected:
+  void setDisconnectReason(FsdbErrorCode reason) {
+    auto disconnectReason = disconnectReason_.wlock();
+    *disconnectReason = reason;
+  }
+  virtual void setState(State state) override {
+    if (state == State::CONNECTED) {
+      setDisconnectReason(FsdbErrorCode::NONE);
+    }
+    ReconnectingThriftClient::setState(state);
+  }
+  void setStateDisconnectedWithReason(fsdb::FsdbErrorCode reason) {
+    setDisconnectReason(reason);
+    setState(State::DISCONNECTED);
+  }
 #ifndef IS_OSS
   std::unique_ptr<apache::thrift::Client<FsdbService>> client_;
 #endif
@@ -101,6 +128,7 @@ class FsdbStreamClient : public ReconnectingThriftClient {
   apache::thrift::RpcOptions& getRpcOptions() {
     return rpcOptions_;
   }
+  folly::Synchronized<FsdbErrorCode> disconnectReason_{FsdbErrorCode::NONE};
 
  private:
   folly::EventBase* streamEvb_;

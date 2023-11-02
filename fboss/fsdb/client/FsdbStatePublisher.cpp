@@ -34,6 +34,12 @@ folly::coro::Task<void> FsdbStatePublisher::serveStream(StreamT&& stream) {
             XLOG(DBG2) << " Detected cancellation";
             break;
           }
+          if (isGracefulServiceLoopCompletionRequested()) {
+            XLOG(ERR) << "Detected GR cancellation";
+            throw FsdbClientGRDisconnectException(
+                "StatePublisher disconnectReason: GR");
+            break;
+          }
           co_yield *pubUnit;
         }
         co_return;

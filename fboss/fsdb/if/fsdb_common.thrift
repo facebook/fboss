@@ -43,6 +43,7 @@ enum FsdbErrorCode {
   ALL_PUBLISHERS_GONE = 13,
   DISCONNECTED = 14,
   PUBLISHER_NOT_READY = 15,
+  PUBLISHER_GR_DISCONNECT = 16,
 }
 
 exception FsdbException {

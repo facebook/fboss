@@ -341,11 +341,11 @@ target_link_libraries(sflow_shim_utils
 
 add_library(fsdb_helper
   fboss/agent/oss/FsdbHelper.cpp
-  fboss/fsdb/common/Utils.cpp
 )
 
 target_link_libraries(fsdb_helper
   fsdb_oper_cpp2
+  fsdb_utils
   state
 )
 

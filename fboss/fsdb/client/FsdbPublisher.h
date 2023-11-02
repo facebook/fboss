@@ -79,6 +79,8 @@ class FsdbPublisher : public FsdbStreamClient {
 
   bool write(PubUnit&& pubUnit);
 
+  bool disconnectForGR();
+
   ssize_t queueSize() const {
     return queueSize_;
   }

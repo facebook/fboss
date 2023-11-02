@@ -14,6 +14,7 @@ add_library(fsdb_stream_client
 )
 
 target_link_libraries(fsdb_stream_client
+  fsdb_utils
   Folly::folly
   FBThrift::thriftcpp2
   common_thrift_utils
