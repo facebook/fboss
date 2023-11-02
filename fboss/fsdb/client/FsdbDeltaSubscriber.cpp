@@ -47,6 +47,9 @@ FsdbDeltaSubscriberImpl<SubUnit, PathElement>::serveStream(StreamT&& stream) {
     if (!delta->changes()->size()) {
       continue;
     }
+    if (this->getSubscriptionState() != BaseT::SubscriptionState::CONNECTED) {
+      BaseT::updateSubscriptionState(BaseT::SubscriptionState::CONNECTED);
+    }
     SubUnitT tmp(*delta);
     this->operSubUnitUpdate_(std::move(tmp));
   }
