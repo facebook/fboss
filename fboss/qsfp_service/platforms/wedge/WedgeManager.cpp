@@ -978,6 +978,17 @@ QsfpToBmcSyncData WedgeManager::getQsfpToBmcSyncData() const {
       continue;
     }
 
+    // Skip non-optical modules
+    if (tcvrInfo.tcvrState().value().cable().has_value() &&
+        tcvrInfo.tcvrState()
+                .value()
+                .cable()
+                .value()
+                .transmitterTech()
+                .value() != TransmitterTechnology::OPTICAL) {
+      continue;
+    }
+
     if (tcvrInfo.tcvrStats().value().sensor().has_value() &&
         tcvrInfo.tcvrState().value().moduleMediaInterface().has_value()) {
       double temp = tcvrInfo.tcvrStats()
