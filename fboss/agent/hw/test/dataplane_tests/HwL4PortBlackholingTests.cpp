@@ -62,7 +62,7 @@ class HwL4PortBlackHolingTest : public HwLinkStateDependentTest {
 
  protected:
   void runTest(bool isV6) {
-    auto setup = [=]() {
+    auto setup = [=, this]() {
       auto cfg = initialConfig();
       const RouterID kRid{0};
       resolveNeigborAndProgramRoutes(
@@ -70,7 +70,7 @@ class HwL4PortBlackHolingTest : public HwLinkStateDependentTest {
       resolveNeigborAndProgramRoutes(
           utility::EcmpSetupAnyNPorts4(getProgrammedState(), kRid), 1);
     };
-    auto verify = [=]() {
+    auto verify = [=, this]() {
       auto originalPortStats =
           getLatestPortStats(masterLogicalInterfacePortIds());
       int numL4Ports = kNumL4Ports();

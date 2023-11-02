@@ -59,13 +59,13 @@ class HwJumboFramesTest : public HwLinkStateDependentTest {
 
  protected:
   void runJumboFrameTest(int payloadSize, bool expectPacketDrop) {
-    auto setup = [=]() {
+    auto setup = [=, this]() {
       utility::EcmpSetupAnyNPorts6 ecmpHelper(
           getProgrammedState(), RouterID(0));
       resolveNeigborAndProgramRoutes(ecmpHelper, 1);
     };
 
-    auto verify = [=]() {
+    auto verify = [=, this]() {
       utility::EcmpSetupAnyNPorts6 ecmpHelper(
           getProgrammedState(), RouterID(0));
       auto port = ecmpHelper.ecmpPortDescriptorAt(0).phyPortID();

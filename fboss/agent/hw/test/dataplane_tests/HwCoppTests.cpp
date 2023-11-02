@@ -377,7 +377,7 @@ class HwCoppTest : public HwLinkStateDependentTest {
       const int numPktsToSend = 1,
       const int expectedPktDelta = 1,
       std::optional<std::vector<uint8_t>> payload = std::nullopt) {
-    auto sendPkts = [=]() {
+    auto sendPkts = [=, this]() {
       sendTcpPkts(
           numPktsToSend,
           dstIpAddress,
@@ -842,9 +842,9 @@ class HwCoppQueueStuckTest : public HwCoppQosTest {
 TYPED_TEST_SUITE(HwCoppTest, TestTypes);
 
 TYPED_TEST(HwCoppTest, VerifyCoppPpsLowPri) {
-  auto setup = [=]() { this->setup(); };
+  auto setup = [=, this]() { this->setup(); };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto kNumPktsToSend = 60000;
     auto kMinDurationInSecs = 12;
     const double kVariance = 0.30; // i.e. + or -30%
@@ -904,9 +904,9 @@ TYPED_TEST(HwCoppTest, VerifyCoppPpsLowPri) {
 }
 
 TYPED_TEST(HwCoppTest, LocalDstIpBgpPortToHighPriQ) {
-  auto setup = [=]() { this->setup(); };
+  auto setup = [=, this]() { this->setup(); };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     /*
      * XXX BCM_GPORT_LOCAL_CPU (335544320) does not work as it is different
      * from * portGport (134217728)?
@@ -931,9 +931,9 @@ TYPED_TEST(HwCoppTest, LocalDstIpBgpPortToHighPriQ) {
 }
 
 TYPED_TEST(HwCoppTest, LocalDstIpNonBgpPortToMidPriQ) {
-  auto setup = [=]() { this->setup(); };
+  auto setup = [=, this]() { this->setup(); };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     for (const auto& ipAddress : this->getIpAddrsToSendPktsTo()) {
       this->sendPktAndVerifyCpuQueue(
           utility::kCoppMidPriQueueId,
@@ -955,9 +955,9 @@ TYPED_TEST(HwCoppTest, LocalDstIpNonBgpPortToMidPriQ) {
 }
 
 TYPED_TEST(HwCoppTest, Ipv6LinkLocalMcastToMidPriQ) {
-  auto setup = [=]() { this->setup(); };
+  auto setup = [=, this]() { this->setup(); };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     const auto addresses = folly::make_array(
         kIPv6LinkLocalMcastAbsoluteAddress, kIPv6LinkLocalMcastAddress);
     for (const auto& address : addresses) {
@@ -981,9 +981,9 @@ TYPED_TEST(HwCoppTest, Ipv6LinkLocalMcastToMidPriQ) {
 }
 
 TYPED_TEST(HwCoppTest, Ipv6LinkLocalMcastTxFromCpu) {
-  auto setup = [=]() { this->setup(); };
+  auto setup = [=, this]() { this->setup(); };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     // Intent of this test is to verify that
     // link local ipv6 address is not looped back when sent from CPU
     this->sendUdpPktAndVerify(
@@ -998,9 +998,9 @@ TYPED_TEST(HwCoppTest, Ipv6LinkLocalMcastTxFromCpu) {
 }
 
 TYPED_TEST(HwCoppTest, Ipv6LinkLocalUcastToMidPriQ) {
-  auto setup = [=]() { this->setup(); };
+  auto setup = [=, this]() { this->setup(); };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     // Device link local unicast address should use mid-pri queue
     {
       const folly::IPAddressV6 linkLocalAddr = folly::IPAddressV6(
@@ -1041,9 +1041,9 @@ TYPED_TEST(HwCoppTest, Ipv6LinkLocalUcastToMidPriQ) {
 }
 
 TYPED_TEST(HwCoppTest, SlowProtocolsMacToHighPriQ) {
-  auto setup = [=]() { this->setup(); };
+  auto setup = [=, this]() { this->setup(); };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     this->sendPktAndVerifyEthPacketsCpuQueue(
         utility::getCoppHighPriQueueId(this->getAsic()),
         facebook::fboss::ETHERTYPE::ETHERTYPE_SLOW_PROTOCOLS,
@@ -1054,9 +1054,9 @@ TYPED_TEST(HwCoppTest, SlowProtocolsMacToHighPriQ) {
 }
 
 TYPED_TEST(HwCoppTest, EapolToHighPriQ) {
-  auto setup = [=]() { this->setup(); };
+  auto setup = [=, this]() { this->setup(); };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     this->sendPktAndVerifyEthPacketsCpuQueue(
         utility::getCoppHighPriQueueId(this->getAsic()),
         facebook::fboss::ETHERTYPE::ETHERTYPE_EAPOL,
@@ -1067,9 +1067,9 @@ TYPED_TEST(HwCoppTest, EapolToHighPriQ) {
 }
 
 TYPED_TEST(HwCoppTest, DstIpNetworkControlDscpToHighPriQ) {
-  auto setup = [=]() { this->setup(); };
+  auto setup = [=, this]() { this->setup(); };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     for (const auto& ipAddress : this->getIpAddrsToSendPktsTo()) {
       this->sendPktAndVerifyCpuQueue(
           utility::getCoppHighPriQueueId(this->getAsic()),
@@ -1096,9 +1096,9 @@ TYPED_TEST(HwCoppTest, DstIpNetworkControlDscpToHighPriQ) {
 }
 
 TYPED_TEST(HwCoppTest, Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ) {
-  auto setup = [=]() { this->setup(); };
+  auto setup = [=, this]() { this->setup(); };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     // Device link local unicast address + kNetworkControlDscp should use
     // high-pri queue
     {
@@ -1132,9 +1132,9 @@ TYPED_TEST(HwCoppTest, Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ) {
 }
 
 TYPED_TEST(HwCoppTest, Ipv6LinkLocalMcastNetworkControlDscpToHighPriQ) {
-  auto setup = [=]() { this->setup(); };
+  auto setup = [=, this]() { this->setup(); };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     const auto addresses = folly::make_array(
         kIPv6LinkLocalMcastAbsoluteAddress, kIPv6LinkLocalMcastAddress);
     for (const auto& address : addresses) {
@@ -1151,11 +1151,11 @@ TYPED_TEST(HwCoppTest, Ipv6LinkLocalMcastNetworkControlDscpToHighPriQ) {
 }
 
 TYPED_TEST(HwCoppTest, L3MTUErrorToLowPriQ) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     this->setup();
     this->setupEcmp();
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     // Make sure all packets packet with large payload (> MTU)
     // are sent to cpu low priority queue.
     // Port Max Frame size is set to 9412 and L3 MTU is set as 9000
@@ -1176,8 +1176,8 @@ TYPED_TEST(HwCoppTest, L3MTUErrorToLowPriQ) {
 }
 
 TYPED_TEST(HwCoppTest, ArpRequestAndReplyToHighPriQ) {
-  auto setup = [=]() { this->setup(); };
-  auto verify = [=]() {
+  auto setup = [=, this]() { this->setup(); };
+  auto verify = [=, this]() {
     this->sendPktAndVerifyArpPacketsCpuQueue(
         utility::getCoppHighPriQueueId(this->getAsic()),
         folly::IPAddressV4("1.1.1.5"),
@@ -1191,8 +1191,8 @@ TYPED_TEST(HwCoppTest, ArpRequestAndReplyToHighPriQ) {
 }
 
 TYPED_TEST(HwCoppTest, NdpSolicitationToHighPriQ) {
-  auto setup = [=]() { this->setup(); };
-  auto verify = [=]() {
+  auto setup = [=, this]() { this->setup(); };
+  auto verify = [=, this]() {
     XLOG(DBG2) << "verifying solicitation";
     this->sendPktAndVerifyNdpPacketsCpuQueue(
         utility::getCoppHighPriQueueId(this->getAsic()),
@@ -1224,8 +1224,8 @@ TYPED_TEST(HwCoppTest, NdpSolicitNeighbor) {
   // again.
 
   // More explanation in the test plan section of - D34782575
-  auto setup = [=]() { this->setup(); };
-  auto verify = [=]() {
+  auto setup = [=, this]() { this->setup(); };
+  auto verify = [=, this]() {
     XLOG(DBG2) << "verifying solicitation";
     this->sendPktAndVerifyNdpPacketsCpuQueue(
         utility::getCoppHighPriQueueId(this->getAsic()),
@@ -1240,8 +1240,8 @@ TYPED_TEST(HwCoppTest, NdpSolicitNeighbor) {
 }
 
 TYPED_TEST(HwCoppTest, NdpAdvertisementToHighPriQ) {
-  auto setup = [=]() { this->setup(); };
-  auto verify = [=]() {
+  auto setup = [=, this]() { this->setup(); };
+  auto verify = [=, this]() {
     XLOG(DBG2) << "verifying advertisement";
     this->sendPktAndVerifyNdpPacketsCpuQueue(
         utility::getCoppHighPriQueueId(this->getAsic()),
@@ -1252,13 +1252,13 @@ TYPED_TEST(HwCoppTest, NdpAdvertisementToHighPriQ) {
 }
 
 TYPED_TEST(HwCoppTest, UnresolvedRoutesToLowPriQueue) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     this->setup();
     utility::EcmpSetupAnyNPorts6 ecmp6(this->getProgrammedState());
     ecmp6.programRoutes(this->getRouteUpdater(), 1);
   };
   auto randomIP = folly::IPAddressV6("2::2");
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     this->sendPktAndVerifyCpuQueue(
         utility::kCoppLowPriQueueId,
         randomIP,
@@ -1273,9 +1273,9 @@ TYPED_TEST(HwCoppTest, UnresolvedRoutesToLowPriQueue) {
 }
 
 TYPED_TEST(HwCoppTest, JumboFramesToQueues) {
-  auto setup = [=]() { this->setup(); };
+  auto setup = [=, this]() { this->setup(); };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     std::vector<uint8_t> jumboPayload(7000, 0xff);
     for (const auto& ipAddress : this->getIpAddrsToSendPktsTo()) {
       // High pri queue
@@ -1320,7 +1320,7 @@ TEST_F(HwCoppQueueStuckTest, CpuQueueHighRateTraffic) {
   constexpr int kTestIterations = 6;
   constexpr int kTestIterationWaitInSeconds = 5;
 
-  auto setup = [=]() { setupEcmpDataplaneLoop(); };
+  auto setup = [=, this]() { setupEcmpDataplaneLoop(); };
 
   auto verify = [&]() {
     const auto ipForLowPriorityQueue = folly::IPAddress("4::1");
@@ -1378,7 +1378,7 @@ TEST_F(HwCoppQosTest, HighVsLowerPriorityCpuQueueTrafficPrioritization) {
   constexpr int packetsPerBurst = 1000;
   std::map<folly::IPAddress, uint64_t> rxPktCountMap{};
 
-  auto setup = [=]() { setupEcmpDataplaneLoop(); };
+  auto setup = [=, this]() { setupEcmpDataplaneLoop(); };
 
   auto pktReceiveHandler = [&](RxPacket* pkt) {
     auto destinationAddress = getDestinationIpIfValid(pkt);
@@ -1493,9 +1493,9 @@ TEST_F(HwCoppQosTest, HighVsLowerPriorityCpuQueueTrafficPrioritization) {
 }
 
 TYPED_TEST(HwCoppTest, LldpProtocolToMidPriQ) {
-  auto setup = [=]() { this->setup(); };
+  auto setup = [=, this]() { this->setup(); };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     this->sendPktAndVerifyLldpPacketsCpuQueue(utility::kCoppMidPriQueueId);
   };
 
@@ -1503,9 +1503,9 @@ TYPED_TEST(HwCoppTest, LldpProtocolToMidPriQ) {
 }
 
 TYPED_TEST(HwCoppTest, Ttl1PacketToLowPriQ) {
-  auto setup = [=]() { this->setup(); };
+  auto setup = [=, this]() { this->setup(); };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto randomIP = folly::IPAddressV6("2::2");
     this->sendUdpPktAndVerify(
         utility::kCoppLowPriQueueId,
@@ -1522,9 +1522,9 @@ TYPED_TEST(HwCoppTest, Ttl1PacketToLowPriQ) {
 }
 
 TYPED_TEST(HwCoppTest, DhcpPacketToMidPriQ) {
-  auto setup = [=]() { this->setup(); };
+  auto setup = [=, this]() { this->setup(); };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     std::array<folly::IPAddress, 2> randomSrcIP{
         folly::IPAddress("1.1.1.10"), folly::IPAddress("1::10")};
     std::array<std::pair<int, int>, 2> dhcpPortPairs{
@@ -1554,8 +1554,8 @@ TYPED_TEST(HwCoppTest, DhcpPacketToMidPriQ) {
 }
 
 TYPED_TEST(HwCoppTest, DHCPv6SolicitToMidPriQ) {
-  auto setup = [=]() { this->setup(); };
-  auto verify = [=]() {
+  auto setup = [=, this]() { this->setup(); };
+  auto verify = [=, this]() {
     XLOG(DBG2) << "verifying DHCPv6 solicitation with TTL 1";
     this->sendPktAndVerifyDHCPv6PacketsCpuQueue(
         utility::kCoppMidPriQueueId, DHCPv6Type::DHCPv6_SOLICIT);
@@ -1567,8 +1567,8 @@ TYPED_TEST(HwCoppTest, DHCPv6SolicitToMidPriQ) {
 }
 
 TYPED_TEST(HwCoppTest, DHCPv6AdvertiseToMidPriQ) {
-  auto setup = [=]() { this->setup(); };
-  auto verify = [=]() {
+  auto setup = [=, this]() { this->setup(); };
+  auto verify = [=, this]() {
     XLOG(DBG2) << "verifying DHCPv6 Advertise with TTL 1";
     this->sendPktAndVerifyDHCPv6PacketsCpuQueue(
         utility::kCoppMidPriQueueId, DHCPv6Type::DHCPv6_ADVERTISE);
