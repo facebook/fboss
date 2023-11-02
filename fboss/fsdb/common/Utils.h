@@ -4,9 +4,59 @@
 
 #include <fboss/thrift_cow/storage/CowStorage.h>
 #include <fboss/thrift_cow/visitors/DeltaVisitor.h>
+#include <folly/container/F14Map.h>
+#include <folly/container/F14Set.h>
+#include <folly/logging/xlog.h>
+#include <thrift/lib/cpp/util/EnumUtils.h>
+#include <string>
+#include "fboss/fsdb/common/Types.h"
+#include "fboss/fsdb/if/gen-cpp2/fsdb_common_types.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 
 namespace facebook::fboss::fsdb {
+
+class Utils {
+ public:
+  template <typename... Args>
+  static FsdbException createFsdbException(
+      FsdbErrorCode errorCode,
+      Args... args) {
+    const auto message = folly::to<std::string>(args...);
+    XLOG(ERR) << "Creating FsdbException with code "
+              << apache::thrift::util::enumNameSafe(errorCode) << ": "
+              << message;
+    FsdbException e;
+    e.message() = std::move(message);
+    e.errorCode() = errorCode;
+    return e;
+  }
+
+  template <typename T>
+  static bool isPrefixOf(const std::vector<T>& v1, const std::vector<T>& v2) {
+    if (v1.size() > v2.size()) {
+      return false;
+    }
+    return v1.end() == std::mismatch(v1.begin(), v1.end(), v2.begin()).first;
+  }
+
+  static int64_t getNowSec();
+
+  static std::string stringifyTimestampSec(int64_t timestampSec);
+
+  static std::tuple<Metric, int64_t> decomposeKey(const std::string& key);
+
+  static FqMetric getFqMetric(
+      const PublisherId& publisherId,
+      const Metric& metric);
+
+  // TODO: some entries in P152478620 have only the "" and ".60" suffixes -
+  // handle that
+  static constexpr std::array<std::string_view, 4> kDurationSuffixes = {
+      "",
+      ".60",
+      ".600",
+      ".3600"};
+};
 
 template <typename NodeT>
 OperDeltaUnit buildOperDeltaUnit(
