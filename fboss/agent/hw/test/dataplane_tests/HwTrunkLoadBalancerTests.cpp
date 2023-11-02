@@ -244,9 +244,9 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
       AggPortInfo aggInfo,
       int deviation) {
     utility::pumpTrafficAndVerifyLoadBalanced(
-        [=]() { pumpIPTraffic(isV6, loopThroughFrontPanel, aggInfo); },
-        [=]() { clearPortStats(aggInfo); },
-        [=]() {
+        [=, this]() { pumpIPTraffic(isV6, loopThroughFrontPanel, aggInfo); },
+        [=, this]() { clearPortStats(aggInfo); },
+        [=, this]() {
           return utility::isLoadBalanced(
               getHwSwitchEnsemble(), getPhysicalPorts(aggInfo), deviation);
         });
@@ -260,15 +260,15 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
       AggPortInfo aggInfo,
       int deviation) {
     utility::pumpTrafficAndVerifyLoadBalanced(
-        [=]() {
+        [=, this]() {
           if (isV6) {
             pumpMPLSTraffic(isV6, labelV6, loopThroughFrontPanel, aggInfo);
           } else {
             pumpMPLSTraffic(isV6, labelV4, loopThroughFrontPanel, aggInfo);
           }
         },
-        [=]() { clearPortStats(aggInfo); },
-        [=]() {
+        [=, this]() { clearPortStats(aggInfo); },
+        [=, this]() {
           return utility::isLoadBalanced(
               getHwSwitchEnsemble(), getPhysicalPorts(aggInfo), deviation);
         });
@@ -280,7 +280,7 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
       AggPortInfo aggInfo,
       bool loopThroughFrontPanel,
       int deviation) {
-    auto setup = [=]() {
+    auto setup = [=, this]() {
       auto config = configureAggregatePorts(aggInfo);
       applyConfigAndEnableTrunks(config);
       setupIPECMP(aggInfo);
@@ -299,7 +299,7 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
             getHwSwitch(), getProgrammedState(), LoadBalancerID::ECMP));
       }
     };
-    auto verify = [=]() {
+    auto verify = [=, this]() {
       pumpIPTrafficAndVerifyLoadBalanced(
           isV6, loopThroughFrontPanel, aggInfo, deviation);
     };
@@ -318,14 +318,14 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
 #endif
       return;
     }
-    auto setup = [=]() {
+    auto setup = [=, this]() {
       auto config = configureAggregatePorts(aggInfo);
       applyConfigAndEnableTrunks(config);
       setupIP2MPLSECMP(aggInfo);
       applyNewState(utility::addLoadBalancers(
           getPlatform(), getProgrammedState(), loadBalancers, scopeResolver()));
     };
-    auto verify = [=]() {
+    auto verify = [=, this]() {
       pumpIPTrafficAndVerifyLoadBalanced(
           isV6, loopThroughFrontPanel, aggInfo, deviation);
     };
@@ -352,14 +352,14 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
     uint32_t labelV6 =
         (type == LabelForwardingAction::LabelForwardingType::SWAP ? kV6TopSwap
                                                                   : kV6TopPhp);
-    auto setup = [=]() {
+    auto setup = [=, this]() {
       auto config = configureAggregatePorts(aggInfo);
       applyConfigAndEnableTrunks(config);
       setupMPLSECMP(aggInfo);
       applyNewState(utility::addLoadBalancers(
           getPlatform(), getProgrammedState(), loadBalancers, scopeResolver()));
     };
-    auto verify = [=]() {
+    auto verify = [=, this]() {
       pumpMPLSTrafficAndVerifyLoadBalanced(
           isV6, labelV4, labelV6, loopThroughFrontPanel, aggInfo, 25);
     };
@@ -378,14 +378,14 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
     uint32_t labelV6 =
         (type == LabelForwardingAction::LabelForwardingType::SWAP ? kV6TopSwap
                                                                   : kV6TopPhp);
-    auto setup = [=]() {
+    auto setup = [=, this]() {
       auto config = configureAggregatePorts(aggInfo);
       applyNewConfig(config);
       setupMPLSECMP(aggInfo);
       applyNewState(utility::addLoadBalancers(
           getPlatform(), getProgrammedState(), loadBalancers, scopeResolver()));
     };
-    auto verify = [=]() {
+    auto verify = [=, this]() {
       pumpMPLSTrafficAndVerifyLoadBalanced(
           isV6, labelV4, labelV6, loopThroughFrontPanel, aggInfo, 25);
     };

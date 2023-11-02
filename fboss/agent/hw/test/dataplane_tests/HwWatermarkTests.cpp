@@ -473,7 +473,7 @@ TEST_F(HwWatermarkTest, VerifyQueueWatermarkAccuracy) {
     // Clear any watermark stats
     getQueueWatermarks(masterLogicalInterfacePortIds()[0], isVoq);
 
-    auto sendPackets = [=](PortID /*port*/, int numPacketsToSend) {
+    auto sendPackets = [=, this](PortID /*port*/, int numPacketsToSend) {
       // Send packets out on port1, so that it gets looped back, and
       // forwarded in the pipeline to egress port0 where the watermark
       // will be validated.

@@ -151,7 +151,7 @@ TEST_F(HwRouteStatTest, RouteEntryTest) {
 #endif
     return;
   }
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     addRoute(
         kAddr1, 120, PortDescriptor(masterLogicalPortIds()[0]), kCounterID1);
     addRoute(
@@ -161,7 +161,7 @@ TEST_F(HwRouteStatTest, RouteEntryTest) {
     addRoute(
         kAddr4, 24, PortDescriptor(masterLogicalPortIds()[0]), kCounterID2);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     // verify unique counters
     auto count1Before = utility::getRouteStat(getHwSwitch(), kCounterID1);
     auto count2Before = utility::getRouteStat(getHwSwitch(), kCounterID2);
@@ -194,13 +194,13 @@ TEST_F(HwRouteStatTest, CounterModify) {
 #endif
     return;
   }
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     addRoute(
         kAddr1, 120, PortDescriptor(masterLogicalPortIds()[0]), kCounterID1);
     addRoute(
         kAddr2, 120, PortDescriptor(masterLogicalPortIds()[0]), kCounterID2);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto countBefore = utility::getRouteStat(getHwSwitch(), kCounterID1);
     auto counter1Expected = sendL3Packet(kAddr1, masterLogicalPortIds()[1]);
     auto countAfter = utility::getRouteStat(getHwSwitch(), kCounterID1);

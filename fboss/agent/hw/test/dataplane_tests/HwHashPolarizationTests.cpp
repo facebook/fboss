@@ -154,7 +154,8 @@ class HwHashPolarizationTests : public HwLinkStateDependentTest {
     // Set second hash
     applyNewState(utility::addLoadBalancers(
         getPlatform(), getProgrammedState(), secondHashes, scopeResolver()));
-    auto makeTxPacket = [=](folly::MacAddress srcMac, const auto& ipPayload) {
+    auto makeTxPacket = [=, this](
+                            folly::MacAddress srcMac, const auto& ipPayload) {
       return utility::makeUDPTxPacket(
           getHwSwitch(),
           firstVlan,
@@ -252,7 +253,7 @@ struct HwHashPolarizationTestForAsic : public HwHashPolarizationTests {
       programRoutes<folly::IPAddressV4>();
       programRoutes<folly::IPAddressV6>();
     };
-    auto verify = [=]() {
+    auto verify = [=, this]() {
       auto secondHashes =
           utility::getEcmpFullTrunkHalfHashConfig(*getPlatform()->getAsic());
       secondHashes[0].seed() = getHwSwitch()->generateDeterministicSeed(
@@ -632,7 +633,8 @@ class HwHashTrunkPolarizationTests : public HwHashPolarizationTests {
     // Set second hash
     applyNewState(utility::addLoadBalancers(
         getPlatform(), getProgrammedState(), secondHashes, scopeResolver()));
-    auto makeTxPacket = [=](folly::MacAddress srcMac, const auto& ipPayload) {
+    auto makeTxPacket = [=, this](
+                            folly::MacAddress srcMac, const auto& ipPayload) {
       return utility::makeUDPTxPacket(
           getHwSwitch(),
           firstVlan,

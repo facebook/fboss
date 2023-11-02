@@ -32,8 +32,8 @@ class HwSwitchStatsTxCounterTest : public HwTest {
 };
 
 void HwSwitchStatsTxCounterTest::checkTxCounters() {
-  auto setup = [=]() { applyNewConfig(initialConfig()); };
-  auto verify = [=]() {
+  auto setup = [=, this]() { applyNewConfig(initialConfig()); };
+  auto verify = [=, this]() {
     const PortID port = PortID(masterLogicalPortIds()[0]);
     bool isOutOfPort = true;
     auto hwSwitch = getHwSwitch();

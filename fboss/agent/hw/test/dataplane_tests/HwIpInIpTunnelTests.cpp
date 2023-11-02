@@ -121,7 +121,7 @@ TEST_F(HwIpInIpTunnelTest, TunnelDecapForwarding) {
         afterInBytes - beforeInBytes - IPv6Hdr::SIZE,
         afterOutBytes - beforeOutBytes);
   };
-  this->verifyAcrossWarmBoots([=, this] {}, verify);
+  this->verifyAcrossWarmBoots([=] {}, verify);
 }
 
 TEST_F(HwIpInIpTunnelTest, TunnelTermEntryMiss) {
@@ -140,7 +140,7 @@ TEST_F(HwIpInIpTunnelTest, TunnelTermEntryMiss) {
     EXPECT_NE(afterOutBytes, beforeOutBytes);
     EXPECT_EQ(afterInBytes - beforeInBytes, afterOutBytes - beforeOutBytes);
   };
-  this->verifyAcrossWarmBoots([=, this] {}, verify);
+  this->verifyAcrossWarmBoots([=] {}, verify);
 }
 
 TEST_F(HwIpInIpTunnelTest, IpinIpNoTunnelConfigured) {
@@ -192,7 +192,7 @@ TEST_F(HwIpInIpTunnelTest, DecapPacketParsing) {
     EXPECT_EQ(udpPkt->header().dstPort, 20000);
   };
 
-  this->verifyAcrossWarmBoots([=, this] {}, verify);
+  this->verifyAcrossWarmBoots([=] {}, verify);
 }
 
 } // namespace facebook::fboss

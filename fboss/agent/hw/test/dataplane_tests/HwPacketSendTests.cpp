@@ -183,7 +183,7 @@ class HwPacketFloodTest : public HwLinkStateDependentTest {
 };
 
 TEST_F(HwPacketSendTest, LldpToFrontPanelOutOfPort) {
-  auto setup = [=, this]() {};
+  auto setup = [=]() {};
   auto verify = [=, this]() {
     auto portStatsBefore =
         getLatestPortStats(masterLogicalInterfacePortIds()[0]);
@@ -224,7 +224,7 @@ TEST_F(HwPacketSendTest, LldpToFrontPanelOutOfPort) {
 }
 
 TEST_F(HwPacketSendTest, LldpToFrontPanelWithBufClone) {
-  auto setup = [=, this]() {};
+  auto setup = [=]() {};
   auto verify = [=, this]() {
     auto portStatsBefore =
         getLatestPortStats(masterLogicalInterfacePortIds()[0]);
@@ -278,7 +278,7 @@ TEST_F(HwPacketSendTest, LldpToFrontPanelWithBufClone) {
 }
 
 TEST_F(HwPacketSendTest, ArpRequestToFrontPanelPortSwitched) {
-  auto setup = [=, this]() {};
+  auto setup = [=]() {};
   auto verify = [=, this]() {
     auto portStatsBefore =
         getLatestPortStats(masterLogicalInterfacePortIds()[0]);
@@ -316,7 +316,7 @@ TEST_F(HwPacketSendTest, ArpRequestToFrontPanelPortSwitched) {
 }
 
 TEST_F(HwPacketSendTest, PortTxEnableTest) {
-  auto setup = [=, this]() {};
+  auto setup = [=]() {};
   auto verify = [=, this]() {
     constexpr auto kNumPacketsToSend{100};
     auto vlanId = utility::firstVlanID(initialConfig());
@@ -403,7 +403,7 @@ TEST_F(HwPacketSendTest, PortTxEnableTest) {
 }
 
 TEST_F(HwPacketSendReceiveTest, LldpPacketReceiveSrcPort) {
-  auto setup = [=, this]() {};
+  auto setup = [=]() {};
   auto verify = [=, this]() {
     if (!isSupported(HwAsic::Feature::PKTIO)) {
       return;
@@ -476,7 +476,7 @@ TEST_F(HwPacketSendReceiveLagTest, LacpPacketReceiveSrcPort) {
 }
 
 TEST_F(HwPacketFloodTest, ArpRequestFloodTest) {
-  auto setup = [=, this]() {};
+  auto setup = [=]() {};
   auto verify = [=, this]() {
     auto portStatsBefore = getLatestPortStats(masterLogicalPortIds());
     auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
@@ -500,7 +500,7 @@ TEST_F(HwPacketFloodTest, ArpRequestFloodTest) {
 }
 
 TEST_F(HwPacketFloodTest, NdpFloodTest) {
-  auto setup = [=, this]() {};
+  auto setup = [=]() {};
   auto verify = [=, this]() {
     auto retries = 5;
     auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
