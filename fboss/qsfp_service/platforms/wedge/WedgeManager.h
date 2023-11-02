@@ -160,6 +160,8 @@ class WedgeManager : public TransceiverManager {
     return hostnameScheme_;
   }
 
+  QsfpToBmcSyncData getQsfpToBmcSyncData() const;
+
  protected:
   void initTransceiverMap() override;
 
