@@ -76,7 +76,7 @@ bool Tomahawk5Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ROUTE_METADATA:
     case HwAsic::Feature::NON_UNICAST_HASH:
     case HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER:
-    case HwAsic::Feature::DLB:
+    case HwAsic::Feature::FLOWLET:
     case HwAsic::Feature::IN_PAUSE_INCREMENTS_DISCARDS:
     case HwAsic::Feature::WARMBOOT:
     case HwAsic::Feature::SAI_CONFIGURE_SIX_TAP:

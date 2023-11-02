@@ -127,7 +127,7 @@ bool YubaAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::SAI_PORT_VCO_CHANGE:
     case HwAsic::Feature::SAI_TTL0_PACKET_FORWARD_ENABLE:
     case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:
-    case HwAsic::Feature::DLB:
+    case HwAsic::Feature::FLOWLET:
     case HwAsic::Feature::TC_TO_QUEUE_QOS_MAP_ON_SYSTEM_PORT:
     case HwAsic::Feature::PORT_FABRIC_ISOLATE:
     case HwAsic::Feature::CPU_TX_VIA_RECYCLE_PORT:

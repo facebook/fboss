@@ -135,7 +135,7 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
   }
 
   bool skipTest() {
-    return !getPlatform()->getAsic()->isSupported(HwAsic::Feature::DLB);
+    return !getPlatform()->getAsic()->isSupported(HwAsic::Feature::FLOWLET);
   }
 
   std::vector<NextHopWeight> swSwitchWeights_ = {

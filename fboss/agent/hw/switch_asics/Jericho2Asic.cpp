@@ -132,7 +132,7 @@ bool Jericho2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_PORT_GET_PMD_LANES:
     case HwAsic::Feature::SAI_PORT_VCO_CHANGE:
     case HwAsic::Feature::ROUTE_METADATA:
-    case HwAsic::Feature::DLB:
+    case HwAsic::Feature::FLOWLET:
     case HwAsic::Feature::P4_WARMBOOT:
     case HwAsic::Feature::FEC_AM_LOCK_STATUS:
     case HwAsic::Feature::PCS_RX_LINK_STATUS:
