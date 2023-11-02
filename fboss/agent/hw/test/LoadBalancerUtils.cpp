@@ -18,6 +18,7 @@
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
+#include "fboss/agent/hw/test/HwTestAclUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/packet/PktUtil.h"
@@ -182,6 +183,15 @@ cfg::FlowletSwitchingConfig getDefaultFlowletSwitchingConfig(void) {
   return flowletCfg;
 }
 
+void addFlowletAcl(cfg::SwitchConfig& cfg) {
+  auto* acl = utility::addAcl(&cfg, "flowlet");
+  acl->proto() = 17;
+  acl->l4DstPort() = 4791;
+  cfg::MatchAction matchAction = cfg::MatchAction();
+  matchAction.flowletAction() = cfg::FlowletAction::FORWARD;
+  utility::addMatcher(&cfg, "flowlet", matchAction);
+}
+
 void addFlowletConfigs(
     cfg::SwitchConfig& cfg,
     const std::vector<PortID>& ports) {
@@ -202,6 +212,7 @@ void addFlowletConfigs(
     auto portCfg = utility::findCfgPort(cfg, portId);
     portCfg->flowletConfigName() = "default";
   }
+  addFlowletAcl(cfg);
 }
 
 static cfg::UdfConfig addUdfConfig(

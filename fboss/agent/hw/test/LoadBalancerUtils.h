@@ -187,6 +187,7 @@ bool isHwDeterministicSeed(
     LoadBalancerID id);
 
 cfg::FlowletSwitchingConfig getDefaultFlowletSwitchingConfig();
+void addFlowletAcl(cfg::SwitchConfig& cfg);
 void addFlowletConfigs(
     cfg::SwitchConfig& cfg,
     const std::vector<PortID>& ports);

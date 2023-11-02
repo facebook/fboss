@@ -1352,9 +1352,7 @@ void BcmSwitch::processDynamicPhysicalQueueExponentChanged(
   }
 }
 
-void BcmSwitch::setEgressEcmpEtherType(
-    uint32_t etherTypeEligiblity,
-    int ecmpRandomSeed) {
+void BcmSwitch::setEgressEcmpEtherType(uint32_t etherTypeEligiblity) {
   XLOG(DBG3) << "Flowlet switching setting ether type";
   int ecmp_dlb_ethtypes[] = {0x0800, 0x86DD};
   auto rv = bcm_l3_egress_ecmp_ethertype_set(
@@ -1363,9 +1361,12 @@ void BcmSwitch::setEgressEcmpEtherType(
       (sizeof(ecmp_dlb_ethtypes) / sizeof(ecmp_dlb_ethtypes[0])),
       ecmp_dlb_ethtypes);
   bcmCheckError(rv, "failed to set bcm_l3_egress_ecmp_ethertype_set");
+}
 
+void BcmSwitch::setEcmpDynamicRandomSeed(int ecmpRandomSeed) {
+  XLOG(DBG3) << "Flowlet switching setting random seed";
   // seed value is as recommended by BCM
-  rv = bcm_switch_control_set(
+  auto rv = bcm_switch_control_set(
       unit_, bcmSwitchEcmpDynamicRandomSeed, ecmpRandomSeed);
   bcmCheckError(rv, "failed to set bcmSwitchEcmpDynamicRandomSeed");
 }
@@ -1379,19 +1380,24 @@ void BcmSwitch::processFlowletSwitchingConfigChanges(const StateDelta& delta) {
     XLOG(DBG4) << "Flowlet switching config is null";
     return;
   }
+  // Set ethertype eligibility to 0 for DLB-DLB and DLB-ECMP
+  // work as expected with flowlet ACL for existing DLB enabled switches.
+  setEgressEcmpEtherType(0);
+
   if (oldFlowletSwitching && newFlowletSwitching &&
       *oldFlowletSwitching == *newFlowletSwitching) {
     XLOG(DBG4) << "Flowlet switching config is same";
     return;
   }
+
   if (oldFlowletSwitching && !newFlowletSwitching) {
     XLOG(DBG2) << "Flowlet switching config is removed";
-    setEgressEcmpEtherType(0, 0);
+    setEcmpDynamicRandomSeed(0);
   }
 
   if (!oldFlowletSwitching && newFlowletSwitching) {
     XLOG(DBG2) << "Flowlet switching config enabled";
-    setEgressEcmpEtherType(BCM_L3_ECMP_DYNAMIC_ETHERTYPE_ELIGIBLE, 0x5555);
+    setEcmpDynamicRandomSeed(0x5555);
   }
 
   processDynamicEgressLoadExponentChanged(

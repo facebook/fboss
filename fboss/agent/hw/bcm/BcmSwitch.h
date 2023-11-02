@@ -861,7 +861,9 @@ class BcmSwitch : public BcmSwitchIf {
       const std::shared_ptr<FlowletSwitchingConfig>& oldFlowletSwitching,
       const std::shared_ptr<FlowletSwitchingConfig>& newFlowletSwitching);
 
-  void setEgressEcmpEtherType(uint32_t etherTypeEligiblity, int ecmpRandomSeed);
+  void setEgressEcmpEtherType(uint32_t etherTypeEligiblity);
+
+  void setEcmpDynamicRandomSeed(int ecmpRandomSeed);
 
   /*
    * linkStateChangedHwNotLocked is in the call chain started by link scan

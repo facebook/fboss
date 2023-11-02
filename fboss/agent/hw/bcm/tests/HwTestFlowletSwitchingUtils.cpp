@@ -23,7 +23,7 @@ const RouterID kRid(0);
 
 namespace facebook::fboss::utility {
 
-void verifyEgressEcmpEthertype(const BcmSwitch* bcmSwitch, bool enabled) {
+void verifyEgressEcmpEthertype(const BcmSwitch* bcmSwitch) {
   uint32 flags = 0;
   int ethertype_max = 2;
   int ethertype_count = 0;
@@ -34,11 +34,7 @@ void verifyEgressEcmpEthertype(const BcmSwitch* bcmSwitch, bool enabled) {
       ethertype_max,
       ethertype_array,
       &ethertype_count);
-  if (enabled) {
-    CHECK_EQ(flags, BCM_L3_ECMP_DYNAMIC_ETHERTYPE_ELIGIBLE);
-  } else {
-    CHECK_EQ(flags, 0);
-  }
+  CHECK_EQ(flags, 0);
   CHECK_EQ(ethertype_count, 2);
   CHECK_EQ(ethertype_array[0], 0x0800);
   CHECK_EQ(ethertype_array[1], 0x86DD);
@@ -86,7 +82,7 @@ bool validateFlowletSwitchingEnabled(
       *flowletCfg.dynamicPhysicalQueueExponent());
   utility::assertSwitchControl(bcmSwitchEcmpDynamicRandomSeed, 0x5555);
 
-  verifyEgressEcmpEthertype(bcmSwitch, true);
+  verifyEgressEcmpEthertype(bcmSwitch);
   return true;
 }
 
@@ -159,7 +155,7 @@ bool validateFlowletSwitchingDisabled(const facebook::fboss::HwSwitch* hw) {
       bcmSwitchEcmpDynamicPhysicalQueuedBytesExponent, 0);
   utility::assertSwitchControl(bcmSwitchEcmpDynamicRandomSeed, 0);
 
-  verifyEgressEcmpEthertype(bcmSwitch, false);
+  verifyEgressEcmpEthertype(bcmSwitch);
   return true;
 }
 
