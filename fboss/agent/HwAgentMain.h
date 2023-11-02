@@ -34,6 +34,8 @@ class SplitHwAgentSignalHandler : public SignalHandler {
   HwAgent* hwAgent_;
 };
 
+void setSDKVersionInfo();
+
 std::string getSDKVersion();
 
 int hwAgentMain(

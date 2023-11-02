@@ -143,6 +143,7 @@ function(BUILD_SAI_WEDGE_AGENT SAI_IMPL_NAME SAI_IMPL_ARG)
 
   add_executable(wedge_hwagent-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
     fboss/agent/platforms/sai/WedgeHwAgent.cpp
+    fboss/agent/platforms/sai/oss/WedgeHwAgent.cpp
   )
 
   target_link_libraries(wedge_hwagent-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
