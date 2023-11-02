@@ -169,9 +169,9 @@ class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
 
   void verifyWRRAndSP(const std::vector<int>& queueIds, int trafficQueueId) {
     utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
-    auto setup = [=]() { _setup(ecmpHelper6, queueIds); };
+    auto setup = [=, this]() { _setup(ecmpHelper6, queueIds); };
 
-    auto verify = [=]() {
+    auto verify = [=, this]() {
       sendUdpPktsForAllQueues(
           queueIds, utility::kOlympicQueueToDscp(getAsic()));
       EXPECT_TRUE(verifySPHelper(trafficQueueId));
@@ -314,11 +314,11 @@ bool HwOlympicQosSchedulerTest::verifySPHelper(int trafficQueueId) {
 void HwOlympicQosSchedulerTest::verifyWRR() {
   utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
 
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     _setup(ecmpHelper6, utility::kOlympicWRRQueueIds(getAsic()));
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     sendUdpPktsForAllQueues(
         utility::kOlympicWRRQueueIds(getAsic()),
         utility::kOlympicQueueToDscp(getAsic()));
@@ -334,11 +334,11 @@ void HwOlympicQosSchedulerTest::verifyWRR() {
 void HwOlympicQosSchedulerTest::verifySP(bool frontPanelTraffic) {
   utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
 
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     _setup(ecmpHelper6, utility::kOlympicSPQueueIds(getAsic()));
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     sendUdpPktsForAllQueues(
         utility::kOlympicSPQueueIds(getAsic()),
         utility::kOlympicQueueToDscp(getAsic()),
@@ -377,15 +377,15 @@ void HwOlympicQosSchedulerTest::verifyWRRAndNC() {
 void HwOlympicQosSchedulerTest::verifyWRRToAllSPDscpToQueue() {
   utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
 
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     resolveNeigborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     _verifyDscpQueueMappingHelper(utility::kOlympicQueueToDscp(getAsic()));
   };
 
-  auto setupPostWarmboot = [=]() {
+  auto setupPostWarmboot = [=, this]() {
     auto newCfg{initialConfig()};
     auto streamType = *(getPlatform()
                             ->getAsic()
@@ -397,7 +397,7 @@ void HwOlympicQosSchedulerTest::verifyWRRToAllSPDscpToQueue() {
     applyNewConfig(newCfg);
   };
 
-  auto verifyPostWarmboot = [=]() {
+  auto verifyPostWarmboot = [=, this]() {
     _verifyDscpQueueMappingHelper(utility::kOlympicV2QueueToDscp(getAsic()));
   };
 
@@ -412,13 +412,13 @@ void HwOlympicQosSchedulerTest::verifyWRRToAllSPDscpToQueue() {
 void HwOlympicQosSchedulerTest::verifyWRRToAllSPTraffic() {
   utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
 
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     _setup(ecmpHelper6, utility::kOlympicWRRQueueIds(getAsic()));
   };
 
   auto verify = [=]() {};
 
-  auto setupPostWarmboot = [=]() {
+  auto setupPostWarmboot = [=, this]() {
     auto newCfg{initialConfig()};
     auto streamType = *(getPlatform()
                             ->getAsic()
@@ -430,7 +430,7 @@ void HwOlympicQosSchedulerTest::verifyWRRToAllSPTraffic() {
     applyNewConfig(newCfg);
   };
 
-  auto verifyPostWarmboot = [=]() {
+  auto verifyPostWarmboot = [=, this]() {
     sendUdpPktsForAllQueues(
         utility::kOlympicAllSPQueueIds(getAsic()),
         utility::kOlympicV2QueueToDscp(getAsic()));
@@ -453,17 +453,17 @@ void HwOlympicQosSchedulerTest::verifyWRRToAllSPTraffic() {
 void HwOlympicQosSchedulerTest::verifyDscpToQueueOlympicToOlympicV2() {
   utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
 
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     resolveNeigborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     _verifyDscpQueueMappingHelper(utility::kOlympicQueueToDscp(getAsic()));
   };
 
-  auto setupPostWarmboot = [=]() { _setupOlympicV2Queues(); };
+  auto setupPostWarmboot = [=, this]() { _setupOlympicV2Queues(); };
 
-  auto verifyPostWarmboot = [=]() {
+  auto verifyPostWarmboot = [=, this]() {
     // Verify DSCP to Queue mapping
     _verifyDscpQueueMappingHelper(utility::kOlympicV2QueueToDscp(getAsic()));
   };
@@ -479,15 +479,15 @@ void HwOlympicQosSchedulerTest::verifyDscpToQueueOlympicToOlympicV2() {
 void HwOlympicQosSchedulerTest::verifyWRRForOlympicToOlympicV2() {
   utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
 
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     _setup(ecmpHelper6, utility::kOlympicWRRQueueIds(getAsic()));
   };
 
   auto verify = [=]() {};
 
-  auto setupPostWarmboot = [=]() { _setupOlympicV2Queues(); };
+  auto setupPostWarmboot = [=, this]() { _setupOlympicV2Queues(); };
 
-  auto verifyPostWarmboot = [=]() {
+  auto verifyPostWarmboot = [=, this]() {
     /*
      * Verify whether the WRR weights are being honored
      */
@@ -511,16 +511,16 @@ void HwOlympicQosSchedulerTest::verifyWRRForOlympicToOlympicV2() {
 void HwOlympicQosSchedulerTest::verifyDscpToQueueOlympicV2ToOlympic() {
   utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
 
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     resolveNeigborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
     _setupOlympicV2Queues();
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     _verifyDscpQueueMappingHelper(utility::kOlympicV2QueueToDscp(getAsic()));
   };
 
-  auto setupPostWarmboot = [=]() {
+  auto setupPostWarmboot = [=, this]() {
     auto newCfg{initialConfig()};
     auto streamType = *(getPlatform()
                             ->getAsic()
@@ -532,7 +532,7 @@ void HwOlympicQosSchedulerTest::verifyDscpToQueueOlympicV2ToOlympic() {
     applyNewConfig(newCfg);
   };
 
-  auto verifyPostWarmboot = [=]() {
+  auto verifyPostWarmboot = [=, this]() {
     _verifyDscpQueueMappingHelper(utility::kOlympicQueueToDscp(getAsic()));
   };
 
@@ -547,14 +547,14 @@ void HwOlympicQosSchedulerTest::verifyDscpToQueueOlympicV2ToOlympic() {
 void HwOlympicQosSchedulerTest::verifyOlympicV2WRRToAllSPTraffic() {
   utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
 
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     _setup(ecmpHelper6, utility::kOlympicV2WRRQueueIds(getAsic()));
     _setupOlympicV2Queues();
   };
 
   auto verify = [=]() {};
 
-  auto setupPostWarmboot = [=]() {
+  auto setupPostWarmboot = [=, this]() {
     auto newCfg{initialConfig()};
     auto streamType = *(getPlatform()
                             ->getAsic()
@@ -566,7 +566,7 @@ void HwOlympicQosSchedulerTest::verifyOlympicV2WRRToAllSPTraffic() {
     applyNewConfig(newCfg);
   };
 
-  auto verifyPostWarmboot = [=]() {
+  auto verifyPostWarmboot = [=, this]() {
     sendUdpPktsForAllQueues(
         utility::kOlympicAllSPQueueIds(getAsic()),
         utility::kOlympicV2QueueToDscp(getAsic()));
@@ -589,7 +589,7 @@ void HwOlympicQosSchedulerTest::verifyOlympicV2WRRToAllSPTraffic() {
 void HwOlympicQosSchedulerTest::verifyOlympicV2AllSPTrafficToWRR() {
   utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
 
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     _setup(ecmpHelper6, utility::kOlympicV2WRRQueueIds(getAsic()));
     auto newCfg{initialConfig()};
     auto streamType = *(getPlatform()
@@ -604,9 +604,9 @@ void HwOlympicQosSchedulerTest::verifyOlympicV2AllSPTrafficToWRR() {
 
   auto verify = [=]() {};
 
-  auto setupPostWarmboot = [=]() { _setupOlympicV2Queues(); };
+  auto setupPostWarmboot = [=, this]() { _setupOlympicV2Queues(); };
 
-  auto verifyPostWarmboot = [=]() {
+  auto verifyPostWarmboot = [=, this]() {
     // Verify whether the WRR weights are being honored
     sendUdpPktsForAllQueues(
         utility::kOlympicV2WRRQueueIds(getAsic()),

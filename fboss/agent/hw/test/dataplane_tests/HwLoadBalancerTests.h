@@ -179,8 +179,8 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
       uint8_t deviation,
       bool loadBalanceExpected) {
     utility::pumpTrafficAndVerifyLoadBalanced(
-        [=]() { helper_->pumpTraffic(ecmpWidth, loopThroughFrontPanel); },
-        [=]() {
+        [=, this]() { helper_->pumpTraffic(ecmpWidth, loopThroughFrontPanel); },
+        [=, this]() {
           auto helper = helper_->ecmpSetupHelper();
           auto portDescs = helper->getPortDescs(ecmpWidth);
           auto ports = std::make_unique<std::vector<int32_t>>();
@@ -191,7 +191,7 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
           }
           getHwSwitch()->clearPortStats(ports);
         },
-        [=]() {
+        [=, this]() {
           return helper_->isLoadBalanced(ecmpWidth, weights, deviation);
         },
         loadBalanceExpected);
@@ -238,8 +238,8 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
 #endif
       return;
     }
-    auto setup = [=]() { programECMP(ecmpWidth, loadBalancer, weights); };
-    auto verify = [=]() {
+    auto setup = [=, this]() { programECMP(ecmpWidth, loadBalancer, weights); };
+    auto verify = [=, this]() {
       pumpTrafficPortAndVerifyLoadBalanced(
           ecmpWidth,
           weights,
@@ -285,10 +285,10 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
       return;
     }
     unsigned int minLinksLoadbalanceTest = 1;
-    auto setup = [=]() {
+    auto setup = [=, this]() {
       programECMP(ecmpWidth, loadBalancer, {} /*weights*/);
     };
-    auto verify = [=]() {
+    auto verify = [=, this]() {
       unsigned int width = ecmpWidth;
 
       while (width > minLinksLoadbalanceTest) {
@@ -335,8 +335,8 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
 #endif
       return;
     }
-    auto setup = [=]() { programECMP(ecmpWidth, loadBalancer, weights); };
-    auto verify = [=]() {
+    auto setup = [=, this]() { programECMP(ecmpWidth, loadBalancer, weights); };
+    auto verify = [=, this]() {
       // DLB engine can not detect port member hardware status
       // when in "phy" loopback mode.
       // Hence we are setting it forcibly here again for all the ecmp members.

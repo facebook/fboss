@@ -48,7 +48,7 @@ void HwOverflowTest::startPacketTxRxVerify() {
   auto dstIp = folly::IPAddress::createNetwork(
                    initialConfig().interfaces()[0].ipAddresses()[0])
                    .first;
-  auto sendBgpPktToMe = [=]() {
+  auto sendBgpPktToMe = [=, this]() {
     utility::sendTcpPkts(
         getHwSwitch(),
         1 /*numPktsToSend*/,
