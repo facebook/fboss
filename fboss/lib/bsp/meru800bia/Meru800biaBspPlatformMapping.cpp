@@ -30,7 +30,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp1_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -65,12 +65,12 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp2_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
               "io": {
-                "controllerId": "1",
+                "controllerId": "2",
                 "type": 1,
                 "devicePath": "/run/devmap/i2c-busses/MERU800BIA_SMB_FPGA_SMBUS1_CH1"
               },
@@ -100,12 +100,12 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp3_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
               "io": {
-                "controllerId": "1",
+                "controllerId": "3",
                 "type": 1,
                 "devicePath": "/run/devmap/i2c-busses/MERU800BIA_SMB_FPGA_SMBUS1_CH2"
               },
@@ -135,12 +135,12 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp4_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
               "io": {
-                "controllerId": "1",
+                "controllerId": "4",
                 "type": 1,
                 "devicePath": "/run/devmap/i2c-busses/MERU800BIA_SMB_FPGA_SMBUS1_CH3"
               },
@@ -170,12 +170,12 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp5_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
               "io": {
-                "controllerId": "1",
+                "controllerId": "5",
                 "type": 1,
                 "devicePath": "/run/devmap/i2c-busses/MERU800BIA_SMB_FPGA_SMBUS1_CH4"
               },
@@ -205,12 +205,12 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp6_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
               "io": {
-                "controllerId": "1",
+                "controllerId": "6",
                 "type": 1,
                 "devicePath": "/run/devmap/i2c-busses/MERU800BIA_SMB_FPGA_SMBUS1_CH5"
               },
@@ -240,12 +240,12 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp7_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
               "io": {
-                "controllerId": "1",
+                "controllerId": "7",
                 "type": 1,
                 "devicePath": "/run/devmap/i2c-busses/MERU800BIA_SMB_FPGA_SMBUS1_CH6"
               },
@@ -275,12 +275,12 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp8_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
               "io": {
-                "controllerId": "1",
+                "controllerId": "8",
                 "type": 1,
                 "devicePath": "/run/devmap/i2c-busses/MERU800BIA_SMB_FPGA_SMBUS1_CH7"
               },
@@ -310,12 +310,12 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp9_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
               "io": {
-                "controllerId": "1",
+                "controllerId": "9",
                 "type": 1,
                 "devicePath": "/run/devmap/i2c-busses/MERU800BIA_SMB_FPGA_SMBUS2_CH0"
               },
@@ -345,12 +345,12 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp10_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
               "io": {
-                "controllerId": "1",
+                "controllerId": "10",
                 "type": 1,
                 "devicePath": "/run/devmap/i2c-busses/MERU800BIA_SMB_FPGA_SMBUS2_CH1"
               },
@@ -380,12 +380,12 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp11_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
               "io": {
-                "controllerId": "1",
+                "controllerId": "11",
                 "type": 1,
                 "devicePath": "/run/devmap/i2c-busses/MERU800BIA_SMB_FPGA_SMBUS2_CH2"
               },
@@ -415,12 +415,12 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp12_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
               "io": {
-                "controllerId": "1",
+                "controllerId": "12",
                 "type": 1,
                 "devicePath": "/run/devmap/i2c-busses/MERU800BIA_SMB_FPGA_SMBUS2_CH3"
               },
@@ -450,12 +450,12 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp13_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
               "io": {
-                "controllerId": "1",
+                "controllerId": "13",
                 "type": 1,
                 "devicePath": "/run/devmap/i2c-busses/MERU800BIA_SMB_FPGA_SMBUS2_CH4"
               },
@@ -485,12 +485,12 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp14_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
               "io": {
-                "controllerId": "1",
+                "controllerId": "14",
                 "type": 1,
                 "devicePath": "/run/devmap/i2c-busses/MERU800BIA_SMB_FPGA_SMBUS2_CH5"
               },
@@ -520,12 +520,12 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp15_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
               "io": {
-                "controllerId": "1",
+                "controllerId": "15",
                 "type": 1,
                 "devicePath": "/run/devmap/i2c-busses/MERU800BIA_SMB_FPGA_SMBUS2_CH6"
               },
@@ -555,12 +555,12 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp16_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
               "io": {
-                "controllerId": "1",
+                "controllerId": "16",
                 "type": 1,
                 "devicePath": "/run/devmap/i2c-busses/MERU800BIA_SMB_FPGA_SMBUS2_CH7"
               },
@@ -590,12 +590,12 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp17_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
               "io": {
-                "controllerId": "1",
+                "controllerId": "17",
                 "type": 1,
                 "devicePath": "/run/devmap/i2c-busses/MERU800BIA_SMB_FPGA_SMBUS3_CH0"
               },
@@ -625,12 +625,12 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp18_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
               "io": {
-                "controllerId": "1",
+                "controllerId": "18",
                 "type": 1,
                 "devicePath": "/run/devmap/i2c-busses/MERU800BIA_SMB_FPGA_SMBUS3_CH1"
               },
@@ -660,12 +660,12 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp19_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
               "io": {
-                "controllerId": "1",
+                "controllerId": "19",
                 "type": 1,
                 "devicePath": "/run/devmap/i2c-busses/MERU800BIA_SMB_FPGA_SMBUS3_CH2"
               },
@@ -695,12 +695,12 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp20_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
               "io": {
-                "controllerId": "1",
+                "controllerId": "20",
                 "type": 1,
                 "devicePath": "/run/devmap/i2c-busses/MERU800BIA_SMB_FPGA_SMBUS3_CH3"
               },
@@ -730,12 +730,12 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp21_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
               "io": {
-                "controllerId": "1",
+                "controllerId": "21",
                 "type": 1,
                 "devicePath": "/run/devmap/i2c-busses/MERU800BIA_SMB_FPGA_SMBUS3_CH4"
               },
@@ -765,12 +765,12 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp22_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
               "io": {
-                "controllerId": "1",
+                "controllerId": "22",
                 "type": 1,
                 "devicePath": "/run/devmap/i2c-busses/MERU800BIA_SMB_FPGA_SMBUS3_CH5"
               },
@@ -800,12 +800,12 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp23_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
               "io": {
-                "controllerId": "1",
+                "controllerId": "23",
                 "type": 1,
                 "devicePath": "/run/devmap/i2c-busses/MERU800BIA_SMB_FPGA_SMBUS3_CH6"
               },
@@ -835,12 +835,12 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp24_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
               "io": {
-                "controllerId": "1",
+                "controllerId": "24",
                 "type": 1,
                 "devicePath": "/run/devmap/i2c-busses/MERU800BIA_SMB_FPGA_SMBUS3_CH7"
               },
@@ -870,12 +870,12 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp25_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
               "io": {
-                "controllerId": "1",
+                "controllerId": "25",
                 "type": 1,
                 "devicePath": "/run/devmap/i2c-busses/MERU800BIA_SMB_FPGA_SMBUS4_CH0"
               },
@@ -905,12 +905,12 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp26_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
               "io": {
-                "controllerId": "1",
+                "controllerId": "26",
                 "type": 1,
                 "devicePath": "/run/devmap/i2c-busses/MERU800BIA_SMB_FPGA_SMBUS4_CH1"
               },
@@ -940,12 +940,12 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp27_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
               "io": {
-                "controllerId": "1",
+                "controllerId": "27",
                 "type": 1,
                 "devicePath": "/run/devmap/i2c-busses/MERU800BIA_SMB_FPGA_SMBUS4_CH2"
               },
@@ -975,12 +975,12 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp28_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
               "io": {
-                "controllerId": "1",
+                "controllerId": "28",
                 "type": 1,
                 "devicePath": "/run/devmap/i2c-busses/MERU800BIA_SMB_FPGA_SMBUS4_CH3"
               },
@@ -1010,12 +1010,12 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp29_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
               "io": {
-                "controllerId": "1",
+                "controllerId": "29",
                 "type": 1,
                 "devicePath": "/run/devmap/i2c-busses/MERU800BIA_SMB_FPGA_SMBUS4_CH4"
               },
@@ -1045,12 +1045,12 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp30_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
               "io": {
-                "controllerId": "1",
+                "controllerId": "30",
                 "type": 1,
                 "devicePath": "/run/devmap/i2c-busses/MERU800BIA_SMB_FPGA_SMBUS4_CH5"
               },
@@ -1080,12 +1080,12 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp31_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
               "io": {
-                "controllerId": "1",
+                "controllerId": "31",
                 "type": 1,
                 "devicePath": "/run/devmap/i2c-busses/MERU800BIA_SMB_FPGA_SMBUS4_CH6"
               },
@@ -1115,12 +1115,12 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp32_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
               "io": {
-                "controllerId": "1",
+                "controllerId": "32",
                 "type": 1,
                 "devicePath": "/run/devmap/i2c-busses/MERU800BIA_SMB_FPGA_SMBUS4_CH7"
               },
@@ -1150,12 +1150,12 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp33_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
               "io": {
-                "controllerId": "1",
+                "controllerId": "33",
                 "type": 1,
                 "devicePath": "/run/devmap/i2c-busses/MERU800BIA_SMB_FPGA_SMBUS5_CH0"
               },
@@ -1185,12 +1185,12 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp34_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
               "io": {
-                "controllerId": "1",
+                "controllerId": "34",
                 "type": 1,
                 "devicePath": "/run/devmap/i2c-busses/MERU800BIA_SMB_FPGA_SMBUS5_CH1"
               },
@@ -1220,12 +1220,12 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp35_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
               "io": {
-                "controllerId": "1",
+                "controllerId": "35",
                 "type": 1,
                 "devicePath": "/run/devmap/i2c-busses/MERU800BIA_SMB_FPGA_SMBUS5_CH2"
               },
@@ -1255,12 +1255,12 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp36_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
               "io": {
-                "controllerId": "1",
+                "controllerId": "36",
                 "type": 1,
                 "devicePath": "/run/devmap/i2c-busses/MERU800BIA_SMB_FPGA_SMBUS5_CH3"
               },
@@ -1290,12 +1290,12 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp37_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
               "io": {
-                "controllerId": "1",
+                "controllerId": "37",
                 "type": 1,
                 "devicePath": "/run/devmap/i2c-busses/MERU800BIA_SMB_FPGA_SMBUS5_CH4"
               },
@@ -1325,12 +1325,12 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/osfp38_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
               "io": {
-                "controllerId": "1",
+                "controllerId": "38",
                 "type": 1,
                 "devicePath": "/run/devmap/i2c-busses/MERU800BIA_SMB_FPGA_SMBUS5_CH5"
               },
@@ -1360,12 +1360,12 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-xcvr.0/qsfp1_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
               "io": {
-                "controllerId": "1",
+                "controllerId": "39",
                 "type": 1,
                 "devicePath": "/run/devmap/i2c-busses/MERU800BIA_SMB_FPGA_SMBUS0_CH4"
               },

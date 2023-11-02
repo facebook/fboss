@@ -95,10 +95,11 @@ bool BspTransceiverCpldAccess::isPresent() {
 
   try {
     auto status = std::stoi(readSysfs(presencePath), nullptr, 16);
+    auto presenceBits = status & presenceMask;
     if (presentHoldHi) {
-      retVal = !(status & presenceMask);
+      retVal = presenceBits;
     } else {
-      retVal = status & presenceMask;
+      retVal = !presenceBits;
     }
   } catch (std::exception& ex) {
     XLOG(ERR) << fmt::format(

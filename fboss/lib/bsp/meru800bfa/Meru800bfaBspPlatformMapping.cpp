@@ -30,7 +30,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp1_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -65,7 +65,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp2_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -100,7 +100,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp3_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -135,7 +135,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp4_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -170,7 +170,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp5_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -205,7 +205,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp6_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -240,7 +240,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp7_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -275,7 +275,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp8_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -310,7 +310,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp9_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -345,7 +345,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp10_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -380,7 +380,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp11_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -415,7 +415,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp12_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -450,7 +450,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp13_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -485,7 +485,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp14_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -520,7 +520,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp15_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -555,7 +555,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp16_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -590,7 +590,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp17_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -625,7 +625,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp18_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -660,7 +660,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp19_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -695,7 +695,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp20_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -730,7 +730,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp21_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -765,7 +765,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp22_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -800,7 +800,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp23_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -835,7 +835,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp24_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -870,7 +870,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp25_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -905,7 +905,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp26_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -940,7 +940,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp27_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -975,7 +975,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp28_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -1010,7 +1010,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp29_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -1045,7 +1045,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp30_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -1080,7 +1080,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp31_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -1115,7 +1115,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp32_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -1150,7 +1150,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp33_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -1185,7 +1185,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp34_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -1220,7 +1220,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp35_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -1255,7 +1255,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp36_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -1290,7 +1290,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp37_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -1325,7 +1325,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp38_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -1360,7 +1360,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp39_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -1395,7 +1395,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp40_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -1430,7 +1430,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp41_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -1465,7 +1465,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp42_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -1500,7 +1500,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp43_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -1535,7 +1535,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp44_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -1570,7 +1570,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp45_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -1605,7 +1605,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp46_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -1640,7 +1640,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp47_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -1675,7 +1675,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp48_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -1710,7 +1710,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp49_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -1745,7 +1745,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp50_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -1780,7 +1780,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp51_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -1815,7 +1815,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp52_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -1850,7 +1850,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp53_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -1885,7 +1885,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp54_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -1920,7 +1920,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp55_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -1955,7 +1955,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp56_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -1990,7 +1990,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp57_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -2025,7 +2025,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp58_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -2060,7 +2060,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp59_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -2095,7 +2095,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp60_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -2130,7 +2130,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp61_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -2165,7 +2165,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp62_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -2200,7 +2200,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp63_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -2235,7 +2235,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp64_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -2270,7 +2270,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp65_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -2305,7 +2305,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp66_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -2340,7 +2340,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp67_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -2375,7 +2375,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp68_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -2410,7 +2410,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp69_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -2445,7 +2445,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp70_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -2480,7 +2480,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp71_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -2515,7 +2515,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp72_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -2550,7 +2550,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp73_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -2585,7 +2585,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp74_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -2620,7 +2620,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp75_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -2655,7 +2655,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp76_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -2690,7 +2690,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp77_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -2725,7 +2725,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp78_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -2760,7 +2760,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp79_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -2795,7 +2795,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp80_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -2830,7 +2830,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp81_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -2865,7 +2865,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp82_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -2900,7 +2900,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp83_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -2935,7 +2935,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp84_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -2970,7 +2970,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp85_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -3005,7 +3005,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp86_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -3040,7 +3040,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp87_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -3075,7 +3075,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp88_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -3110,7 +3110,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp89_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -3145,7 +3145,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp90_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -3180,7 +3180,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp91_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -3215,7 +3215,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp92_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -3250,7 +3250,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp93_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -3285,7 +3285,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp94_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -3320,7 +3320,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp95_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -3355,7 +3355,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp96_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -3390,7 +3390,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp97_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -3425,7 +3425,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp98_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -3460,7 +3460,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp99_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -3495,7 +3495,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp100_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -3530,7 +3530,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp101_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -3565,7 +3565,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp102_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -3600,7 +3600,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp103_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -3635,7 +3635,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp104_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -3670,7 +3670,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp105_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -3705,7 +3705,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp106_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -3740,7 +3740,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp107_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -3775,7 +3775,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp108_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -3810,7 +3810,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp109_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -3845,7 +3845,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp110_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -3880,7 +3880,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp111_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -3915,7 +3915,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp112_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -3950,7 +3950,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp113_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -3985,7 +3985,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp114_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -4020,7 +4020,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp115_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -4055,7 +4055,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp116_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -4090,7 +4090,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp117_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -4125,7 +4125,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp118_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -4160,7 +4160,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp119_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -4195,7 +4195,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp120_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -4230,7 +4230,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp121_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -4265,7 +4265,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp122_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -4300,7 +4300,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp123_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -4335,7 +4335,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp124_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -4370,7 +4370,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp125_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -4405,7 +4405,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp126_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -4440,7 +4440,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp127_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -4475,7 +4475,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp128_present",
                   "mask": 1,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },

@@ -30,7 +30,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/sys/bus/i2c/devices/2-0032/cpld_qsfpdd_port_status_0",
                   "mask": 2,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -58,7 +58,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/sys/bus/i2c/devices/2-0032/cpld_qsfpdd_port_status_1",
                   "mask": 2,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -86,7 +86,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/sys/bus/i2c/devices/2-0032/cpld_qsfpdd_port_status_2",
                   "mask": 2,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -114,7 +114,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/sys/bus/i2c/devices/2-0032/cpld_qsfpdd_port_status_3",
                   "mask": 2,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -142,7 +142,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/sys/bus/i2c/devices/2-0032/cpld_qsfpdd_port_status_4",
                   "mask": 2,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -170,7 +170,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/sys/bus/i2c/devices/2-0032/cpld_qsfpdd_port_status_5",
                   "mask": 2,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -198,7 +198,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/sys/bus/i2c/devices/2-0032/cpld_qsfpdd_port_status_6",
                   "mask": 2,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -226,7 +226,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/sys/bus/i2c/devices/2-0032/cpld_qsfpdd_port_status_7",
                   "mask": 2,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -254,7 +254,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/sys/bus/i2c/devices/2-0032/cpld_qsfpdd_port_status_8",
                   "mask": 2,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -282,7 +282,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/sys/bus/i2c/devices/2-0032/cpld_qsfpdd_port_status_9",
                   "mask": 2,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -310,7 +310,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/sys/bus/i2c/devices/2-0032/cpld_qsfpdd_port_status_10",
                   "mask": 2,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -338,7 +338,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/sys/bus/i2c/devices/2-0032/cpld_qsfpdd_port_status_11",
                   "mask": 2,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -366,7 +366,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/sys/bus/i2c/devices/2-0033/cpld_qsfpdd_port_status_0",
                   "mask": 2,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -394,7 +394,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/sys/bus/i2c/devices/2-0033/cpld_qsfpdd_port_status_1",
                   "mask": 2,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -422,7 +422,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/sys/bus/i2c/devices/2-0033/cpld_qsfpdd_port_status_2",
                   "mask": 2,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -450,7 +450,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/sys/bus/i2c/devices/2-0033/cpld_qsfpdd_port_status_3",
                   "mask": 2,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -478,7 +478,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/sys/bus/i2c/devices/2-0033/cpld_qsfpdd_port_status_4",
                   "mask": 2,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -506,7 +506,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/sys/bus/i2c/devices/2-0033/cpld_qsfpdd_port_status_5",
                   "mask": 2,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -534,7 +534,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/sys/bus/i2c/devices/2-0033/cpld_qsfpdd_port_status_6",
                   "mask": 2,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -562,7 +562,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/sys/bus/i2c/devices/2-0033/cpld_qsfpdd_port_status_7",
                   "mask": 2,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -590,7 +590,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/sys/bus/i2c/devices/2-0033/cpld_qsfpdd_port_status_8",
                   "mask": 2,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -618,7 +618,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/sys/bus/i2c/devices/2-0033/cpld_qsfpdd_port_status_9",
                   "mask": 2,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -646,7 +646,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/sys/bus/i2c/devices/2-0033/cpld_qsfpdd_port_status_10",
                   "mask": 2,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -674,7 +674,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/sys/bus/i2c/devices/2-0033/cpld_qsfpdd_port_status_11",
                   "mask": 2,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -702,7 +702,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/sys/bus/i2c/devices/2-0030/cpld_qsfpdd_port_status_0",
                   "mask": 2,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -730,7 +730,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/sys/bus/i2c/devices/2-0030/cpld_qsfpdd_port_status_1",
                   "mask": 2,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -758,7 +758,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/sys/bus/i2c/devices/2-0030/cpld_qsfpdd_port_status_2",
                   "mask": 2,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -786,7 +786,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/sys/bus/i2c/devices/2-0030/cpld_qsfpdd_port_status_3",
                   "mask": 2,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -814,7 +814,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/sys/bus/i2c/devices/2-0030/cpld_qsfpdd_port_status_4",
                   "mask": 2,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -842,7 +842,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/sys/bus/i2c/devices/2-0030/cpld_qsfpdd_port_status_5",
                   "mask": 2,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -870,7 +870,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/sys/bus/i2c/devices/2-0030/cpld_qsfpdd_port_status_6",
                   "mask": 2,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -898,7 +898,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/sys/bus/i2c/devices/2-0030/cpld_qsfpdd_port_status_7",
                   "mask": 2,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -926,7 +926,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/sys/bus/i2c/devices/2-0030/cpld_qsfpdd_port_status_8",
                   "mask": 2,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -954,7 +954,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/sys/bus/i2c/devices/2-0030/cpld_qsfpdd_port_status_9",
                   "mask": 2,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -982,7 +982,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/sys/bus/i2c/devices/2-0030/cpld_qsfpdd_port_status_10",
                   "mask": 2,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -1010,7 +1010,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/sys/bus/i2c/devices/2-0030/cpld_qsfpdd_port_status_11",
                   "mask": 2,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -1038,7 +1038,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/sys/bus/i2c/devices/2-0031/cpld_qsfpdd_port_status_0",
                   "mask": 2,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -1066,7 +1066,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/sys/bus/i2c/devices/2-0031/cpld_qsfpdd_port_status_1",
                   "mask": 2,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -1094,7 +1094,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/sys/bus/i2c/devices/2-0031/cpld_qsfpdd_port_status_2",
                   "mask": 2,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -1122,7 +1122,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/sys/bus/i2c/devices/2-0031/cpld_qsfpdd_port_status_3",
                   "mask": 2,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -1150,7 +1150,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/sys/bus/i2c/devices/2-0031/cpld_qsfpdd_port_status_4",
                   "mask": 2,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -1178,7 +1178,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/sys/bus/i2c/devices/2-0031/cpld_qsfpdd_port_status_5",
                   "mask": 2,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -1206,7 +1206,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/sys/bus/i2c/devices/2-0031/cpld_qsfpdd_port_status_6",
                   "mask": 2,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -1234,7 +1234,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/sys/bus/i2c/devices/2-0031/cpld_qsfpdd_port_status_7",
                   "mask": 2,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -1262,7 +1262,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/sys/bus/i2c/devices/2-0031/cpld_qsfpdd_port_status_8",
                   "mask": 2,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -1290,7 +1290,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/sys/bus/i2c/devices/2-0031/cpld_qsfpdd_port_status_9",
                   "mask": 2,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -1318,7 +1318,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/sys/bus/i2c/devices/2-0031/cpld_qsfpdd_port_status_10",
                   "mask": 2,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -1346,7 +1346,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "sysfsPath": "/sys/bus/i2c/devices/2-0031/cpld_qsfpdd_port_status_11",
                   "mask": 2,
                   "gpioOffset": 0,
-                  "presentHoldHi": 1
+                  "presentHoldHi": 0
                 },
                 "gpioChip": ""
               },
@@ -1367,7 +1367,294 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
 
         },
         "ledMapping": {
-
+          "1": {
+              "id": 1,
+              "bluePath": "",
+              "yellowPath": "",
+              "transceiverId": 1
+          },
+          "2": {
+              "id": 2,
+              "bluePath": "",
+              "yellowPath": "",
+              "transceiverId": 2
+          },
+          "3": {
+              "id": 3,
+              "bluePath": "",
+              "yellowPath": "",
+              "transceiverId": 3
+          },
+          "4": {
+              "id": 4,
+              "bluePath": "",
+              "yellowPath": "",
+              "transceiverId": 4
+          },
+          "5": {
+              "id": 5,
+              "bluePath": "",
+              "yellowPath": "",
+              "transceiverId": 5
+          },
+          "6": {
+              "id": 6,
+              "bluePath": "",
+              "yellowPath": "",
+              "transceiverId": 6
+          },
+          "7": {
+              "id": 7,
+              "bluePath": "",
+              "yellowPath": "",
+              "transceiverId": 7
+          },
+          "8": {
+              "id": 8,
+              "bluePath": "",
+              "yellowPath": "",
+              "transceiverId": 8
+          },
+          "9": {
+              "id": 9,
+              "bluePath": "",
+              "yellowPath": "",
+              "transceiverId": 9
+          },
+          "10": {
+              "id": 10,
+              "bluePath": "",
+              "yellowPath": "",
+              "transceiverId": 10
+          },
+          "11": {
+              "id": 11,
+              "bluePath": "",
+              "yellowPath": "",
+              "transceiverId": 11
+          },
+          "12": {
+              "id": 12,
+              "bluePath": "",
+              "yellowPath": "",
+              "transceiverId": 12
+          },
+          "13": {
+              "id": 13,
+              "bluePath": "",
+              "yellowPath": "",
+              "transceiverId": 13
+          },
+          "14": {
+              "id": 14,
+              "bluePath": "",
+              "yellowPath": "",
+              "transceiverId": 14
+          },
+          "15": {
+              "id": 15,
+              "bluePath": "",
+              "yellowPath": "",
+              "transceiverId": 15
+          },
+          "16": {
+              "id": 16,
+              "bluePath": "",
+              "yellowPath": "",
+              "transceiverId": 16
+          },
+          "17": {
+              "id": 17,
+              "bluePath": "",
+              "yellowPath": "",
+              "transceiverId": 17
+          },
+          "18": {
+              "id": 18,
+              "bluePath": "",
+              "yellowPath": "",
+              "transceiverId": 18
+          },
+          "19": {
+              "id": 19,
+              "bluePath": "",
+              "yellowPath": "",
+              "transceiverId": 19
+          },
+          "20": {
+              "id": 20,
+              "bluePath": "",
+              "yellowPath": "",
+              "transceiverId": 20
+          },
+          "21": {
+              "id": 21,
+              "bluePath": "",
+              "yellowPath": "",
+              "transceiverId": 21
+          },
+          "22": {
+              "id": 22,
+              "bluePath": "",
+              "yellowPath": "",
+              "transceiverId": 22
+          },
+          "23": {
+              "id": 23,
+              "bluePath": "",
+              "yellowPath": "",
+              "transceiverId": 23
+          },
+          "24": {
+              "id": 24,
+              "bluePath": "",
+              "yellowPath": "",
+              "transceiverId": 24
+          },
+          "25": {
+              "id": 25,
+              "bluePath": "",
+              "yellowPath": "",
+              "transceiverId": 25
+          },
+          "26": {
+              "id": 26,
+              "bluePath": "",
+              "yellowPath": "",
+              "transceiverId": 26
+          },
+          "27": {
+              "id": 27,
+              "bluePath": "",
+              "yellowPath": "",
+              "transceiverId": 27
+          },
+          "28": {
+              "id": 28,
+              "bluePath": "",
+              "yellowPath": "",
+              "transceiverId": 28
+          },
+          "29": {
+              "id": 29,
+              "bluePath": "",
+              "yellowPath": "",
+              "transceiverId": 29
+          },
+          "30": {
+              "id": 30,
+              "bluePath": "",
+              "yellowPath": "",
+              "transceiverId": 30
+          },
+          "31": {
+              "id": 31,
+              "bluePath": "",
+              "yellowPath": "",
+              "transceiverId": 31
+          },
+          "32": {
+              "id": 32,
+              "bluePath": "",
+              "yellowPath": "",
+              "transceiverId": 32
+          },
+          "33": {
+              "id": 33,
+              "bluePath": "",
+              "yellowPath": "",
+              "transceiverId": 33
+          },
+          "34": {
+              "id": 34,
+              "bluePath": "",
+              "yellowPath": "",
+              "transceiverId": 34
+          },
+          "35": {
+              "id": 35,
+              "bluePath": "",
+              "yellowPath": "",
+              "transceiverId": 35
+          },
+          "36": {
+              "id": 36,
+              "bluePath": "",
+              "yellowPath": "",
+              "transceiverId": 36
+          },
+          "37": {
+              "id": 37,
+              "bluePath": "",
+              "yellowPath": "",
+              "transceiverId": 37
+          },
+          "38": {
+              "id": 38,
+              "bluePath": "",
+              "yellowPath": "",
+              "transceiverId": 38
+          },
+          "39": {
+              "id": 39,
+              "bluePath": "",
+              "yellowPath": "",
+              "transceiverId": 39
+          },
+          "40": {
+              "id": 40,
+              "bluePath": "",
+              "yellowPath": "",
+              "transceiverId": 40
+          },
+          "41": {
+              "id": 41,
+              "bluePath": "",
+              "yellowPath": "",
+              "transceiverId": 41
+          },
+          "42": {
+              "id": 42,
+              "bluePath": "",
+              "yellowPath": "",
+              "transceiverId": 42
+          },
+          "43": {
+              "id": 43,
+              "bluePath": "",
+              "yellowPath": "",
+              "transceiverId": 43
+          },
+          "44": {
+              "id": 44,
+              "bluePath": "",
+              "yellowPath": "",
+              "transceiverId": 44
+          },
+          "45": {
+              "id": 45,
+              "bluePath": "",
+              "yellowPath": "",
+              "transceiverId": 45
+          },
+          "46": {
+              "id": 46,
+              "bluePath": "",
+              "yellowPath": "",
+              "transceiverId": 46
+          },
+          "47": {
+              "id": 47,
+              "bluePath": "",
+              "yellowPath": "",
+              "transceiverId": 47
+          },
+          "48": {
+              "id": 48,
+              "bluePath": "",
+              "yellowPath": "",
+              "transceiverId": 48
+          }
         }
     }
   }
