@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/test/TrafficPolicyUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
+#include "fboss/lib/CommonUtils.h"
 
 namespace facebook::fboss {
 
@@ -64,22 +65,28 @@ class HwDscpQueueMappingTest : public HwLinkStateDependentTest {
               .get_queueOutPackets_()
               .at(kQueueId());
 
+      XLOG(DBG2) << "beforeQueueOutPkts = " << beforeQueueOutPkts;
+
       sendPacket(frontPanel);
 
-      auto afterQueueOutPkts =
-          getLatestPortStats(masterLogicalInterfacePortIds()[0])
-              .get_queueOutPackets_()
-              .at(kQueueId());
+      WITH_RETRIES({
+        auto afterQueueOutPkts =
+            getLatestPortStats(masterLogicalInterfacePortIds()[0])
+                .get_queueOutPackets_()
+                .at(kQueueId());
 
-      /*
-       * Packet from CPU / looped back from front panel port (with pipeline
-       * bypass), hits ACL and increments counter (queue2Count = 1).
-       * On some platforms, looped back packets for unknown MACs are flooded
-       * and counted on queue *before* the split horizon check.
-       * This packet will match the DSCP based ACL and thus increment the
-       * queue2Count = 2.
-       */
-      EXPECT_GE(afterQueueOutPkts - beforeQueueOutPkts, 1);
+        XLOG(DBG2) << "afterQueueOutPkts = " << afterQueueOutPkts;
+
+        /*
+         * Packet from CPU / looped back from front panel port (with pipeline
+         * bypass), hits ACL and increments counter (queue2Count = 1).
+         * On some platforms, looped back packets for unknown MACs are flooded
+         * and counted on queue *before* the split horizon check.
+         * This packet will match the DSCP based ACL and thus increment the
+         * queue2Count = 2.
+         */
+        EXPECT_EVENTUALLY_GE(afterQueueOutPkts - beforeQueueOutPkts, 1);
+      });
     };
 
     verifyAcrossWarmBoots(setup, verify);
@@ -125,17 +132,25 @@ class HwDscpQueueMappingTest : public HwLinkStateDependentTest {
       auto beforeAclInOutPkts = utility::getAclInOutPackets(
           getHwSwitch(), getProgrammedState(), "acl0", kCounterName());
 
+      XLOG(DBG2) << "beforeQueueOutPkts = " << beforeQueueOutPkts
+                 << " beforeAclInOutPkts = " << beforeAclInOutPkts;
+
       sendPacket(frontPanel, 255 /* ttl, > 127 to match ACL */);
 
-      auto afterQueueOutPkts =
-          getLatestPortStats(masterLogicalInterfacePortIds()[0])
-              .get_queueOutPackets_()
-              .at(kQueueId());
-      auto afterAclInOutPkts = utility::getAclInOutPackets(
-          getHwSwitch(), getProgrammedState(), "acl0", kCounterName());
+      WITH_RETRIES({
+        auto afterQueueOutPkts =
+            getLatestPortStats(masterLogicalInterfacePortIds()[0])
+                .get_queueOutPackets_()
+                .at(kQueueId());
+        auto afterAclInOutPkts = utility::getAclInOutPackets(
+            getHwSwitch(), getProgrammedState(), "acl0", kCounterName());
 
-      EXPECT_EQ(1, afterQueueOutPkts - beforeQueueOutPkts);
-      EXPECT_EQ(2, afterAclInOutPkts - beforeAclInOutPkts);
+        XLOG(DBG2) << "afterQueueOutPkts = " << afterQueueOutPkts
+                   << " afterAclInOutPkts = " << afterAclInOutPkts;
+
+        EXPECT_EVENTUALLY_EQ(1, afterQueueOutPkts - beforeQueueOutPkts);
+        EXPECT_EVENTUALLY_EQ(2, afterAclInOutPkts - beforeAclInOutPkts);
+      });
     };
 
     verifyAcrossWarmBoots(setup, verify);
@@ -184,34 +199,45 @@ class HwDscpQueueMappingTest : public HwLinkStateDependentTest {
       auto beforeAclInOutPkts = utility::getAclInOutPackets(
           getHwSwitch(), getProgrammedState(), "acl0", kCounterName());
 
+      XLOG(DBG2) << "beforeQueueOutPktsAcl = " << beforeQueueOutPktsAcl
+                 << " beforeQueueOutPktsQosMap = " << beforeQueueOutPktsQosMap
+                 << " beforeAclInOutPkts = " << beforeAclInOutPkts;
+
       sendPacket(frontPanel);
 
-      auto afterQueueOutPktsAcl =
-          getLatestPortStats(masterLogicalInterfacePortIds()[0])
-              .get_queueOutPackets_()
-              .at(kQueueIdAcl());
-      auto afterQueueOutPktsQosMap =
-          getLatestPortStats(masterLogicalInterfacePortIds()[0])
-              .get_queueOutPackets_()
-              .at(kQueueIdQosMap());
+      WITH_RETRIES({
+        auto afterQueueOutPktsAcl =
+            getLatestPortStats(masterLogicalInterfacePortIds()[0])
+                .get_queueOutPackets_()
+                .at(kQueueIdAcl());
+        auto afterQueueOutPktsQosMap =
+            getLatestPortStats(masterLogicalInterfacePortIds()[0])
+                .get_queueOutPackets_()
+                .at(kQueueIdQosMap());
 
-      auto afterAclInOutPkts = utility::getAclInOutPackets(
-          getHwSwitch(), getProgrammedState(), "acl0", kCounterName());
+        auto afterAclInOutPkts = utility::getAclInOutPackets(
+            getHwSwitch(), getProgrammedState(), "acl0", kCounterName());
 
-      // The ACL overrides the decision of the QoS map
-      EXPECT_EQ(0, afterQueueOutPktsQosMap - beforeQueueOutPktsQosMap);
+        XLOG(DBG2) << "afterQueueOutPktsAcl = " << afterQueueOutPktsAcl
+                   << " afterQueueOutPktsQosMap = " << afterQueueOutPktsQosMap
+                   << " afterAclInOutPkts = " << afterAclInOutPkts;
 
-      /*
-       * Packet from CPU / looped back from front panel port (with pipeline
-       * bypass), hits ACL and increments counter (queue2Count = 1).
-       * On some platforms, looped back packets for unknown MACs are flooded
-       * and counted on queue *before* the split horizon check.
-       * This packet will match the DSCP based ACL and thus increment the
-       * queue2Count = 2.
-       */
-      EXPECT_GE(afterQueueOutPktsAcl - beforeQueueOutPktsAcl, 1);
+        // The ACL overrides the decision of the QoS map
+        EXPECT_EVENTUALLY_EQ(
+            0, afterQueueOutPktsQosMap - beforeQueueOutPktsQosMap);
 
-      EXPECT_EQ(2, afterAclInOutPkts - beforeAclInOutPkts);
+        /*
+         * Packet from CPU / looped back from front panel port (with pipeline
+         * bypass), hits ACL and increments counter (queue2Count = 1).
+         * On some platforms, looped back packets for unknown MACs are flooded
+         * and counted on queue *before* the split horizon check.
+         * This packet will match the DSCP based ACL and thus increment the
+         * queue2Count = 2.
+         */
+        EXPECT_EVENTUALLY_GE(afterQueueOutPktsAcl - beforeQueueOutPktsAcl, 1);
+
+        EXPECT_EVENTUALLY_EQ(2, afterAclInOutPkts - beforeAclInOutPkts);
+      });
     };
 
     verifyAcrossWarmBoots(setup, verify);
