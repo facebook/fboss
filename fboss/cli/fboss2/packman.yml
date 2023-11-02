@@ -1,3 +1,5 @@
+options:
+  macro-file: oscore/disable_debuginfo.rpmmacros
 packages:
   fb-fboss2-cli:
     packager: fboss_agent
