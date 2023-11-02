@@ -30,6 +30,23 @@ class ReconnectingThriftClient {
     CONNECTED,
     CANCELLED
   };
+
+  static std::string connectionStateToString(State state) {
+    switch (state) {
+      case State::CONNECTING:
+        return "CONNECTING";
+      case State::CONNECTED:
+        return "CONNECTED";
+      case State::DISCONNECTED:
+        return "DISCONNECTED";
+      case State::CANCELLED:
+        return "CANCELLED";
+    }
+    throw std::runtime_error(
+        "Unhandled ReconnectingThriftClient::State::" +
+        std::to_string(static_cast<int>(state)));
+  }
+
   using StreamStateChangeCb = std::function<void(State, State)>;
 
   enum class Priority : uint8_t { NORMAL, CRITICAL };
@@ -90,12 +107,27 @@ class ReconnectingThriftClient {
   bool isConnectedToServer() const;
 
  protected:
-  void setState(State state);
+  virtual void setState(State state);
   void scheduleTimeout();
   std::string getConnectedCounterName() {
     return counterPrefix_ + ".connected";
   }
   virtual void connectToServer(const ServerOptions& options) = 0;
+
+  void setGracefulServiceLoopCompletion(const std::function<void()>& cb) {
+    auto requested = gracefulServiceLoopCompletionCb_.wlock();
+    *requested = cb;
+  }
+  bool isGracefulServiceLoopCompletionRequested() {
+    auto requested = gracefulServiceLoopCompletionCb_.rlock();
+    return requested->has_value();
+  }
+  void notifyGracefulServiceLoopCompletion() {
+    auto requested = gracefulServiceLoopCompletionCb_.rlock();
+    if (requested->has_value()) {
+      (*requested).value()();
+    }
+  }
 
 #if FOLLY_HAS_COROUTINES
   virtual folly::coro::Task<void> serviceLoopWrapper() = 0;
@@ -116,5 +148,7 @@ class ReconnectingThriftClient {
   std::unique_ptr<folly::AsyncTimeout> timer_;
   uint32_t reconnectTimeout_;
   std::string connectionLogStr_;
+  folly::Synchronized<std::optional<std::function<void()>>>
+      gracefulServiceLoopCompletionCb_;
 };
 }; // namespace facebook::fboss
