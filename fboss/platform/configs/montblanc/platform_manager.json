@@ -1840,12 +1840,6 @@
           "address": "0x54",
           "kernelDeviceName": "24c64",
           "pmUnitScopedName": "SCM_EEPROM"
-        },
-        {
-          "busName": "SCM_MUX_A@7",
-          "address": "0x4a",
-          "kernelDeviceName": "lm75b",
-          "pmUnitScopedName": "SCM_SOME_SENSOR"
         }
       ],
       "outgoingSlotConfigs": {
@@ -1858,7 +1852,15 @@
       }
     },
     "RUNBMC": {
-      "pluggedInSlotType": "RUNBMC_SLOT"
+      "pluggedInSlotType": "RUNBMC_SLOT",
+      "i2cDeviceConfigs": [
+        {
+          "busName": "INCOMING@0",
+          "address": "0x4a",
+          "kernelDeviceName": "lm75b",
+          "pmUnitScopedName": "RUNBMC_THERMAL_SENSOR"
+        }
+      ]
     },
     "PSU": {
       "pluggedInSlotType": "PSU_SLOT",
