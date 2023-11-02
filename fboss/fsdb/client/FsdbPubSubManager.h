@@ -36,6 +36,7 @@ class FsdbPubSubManager {
     bool isStats;
     std::vector<std::string> paths;
     FsdbStreamClient::State state;
+    FsdbErrorCode disconnectReason;
   };
 
   /* Publisher create APIs */
@@ -57,10 +58,10 @@ class FsdbPubSubManager {
       int32_t fsdbPort = FLAGS_fsdbPort);
 
   /* Publisher remove APIs */
-  void removeStateDeltaPublisher();
-  void removeStatePathPublisher();
-  void removeStatDeltaPublisher();
-  void removeStatPathPublisher();
+  void removeStateDeltaPublisher(bool gracefulRestart = false);
+  void removeStatePathPublisher(bool gracefulRestart = false);
+  void removeStatDeltaPublisher(bool gracefulRestart = false);
+  void removeStatPathPublisher(bool gracefulRestart = false);
 
   /* Publisher APIs */
   void publishState(OperDelta&& pubUnit);

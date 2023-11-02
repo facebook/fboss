@@ -4,6 +4,7 @@
 
 #include <folly/String.h>
 #include <folly/logging/xlog.h>
+#include <cstddef>
 #include <string>
 #include "FsdbPubSubManager.h"
 #include "FsdbStreamClient.h"
@@ -215,20 +216,32 @@ void FsdbPubSubManager::createStatPathPublisher(
       fsdbPort);
 }
 
-void FsdbPubSubManager::removeStateDeltaPublisher() {
+void FsdbPubSubManager::removeStateDeltaPublisher(bool gracefulRestart) {
   std::lock_guard<std::mutex> lk(publisherMutex_);
+  if (gracefulRestart && stateDeltaPublisher_) {
+    stateDeltaPublisher_->disconnectForGR();
+  }
   stateDeltaPublisher_.reset();
 }
-void FsdbPubSubManager::removeStatePathPublisher() {
+void FsdbPubSubManager::removeStatePathPublisher(bool gracefulRestart) {
   std::lock_guard<std::mutex> lk(publisherMutex_);
+  if (gracefulRestart && statePathPublisher_) {
+    statePathPublisher_->disconnectForGR();
+  }
   statePathPublisher_.reset();
 }
-void FsdbPubSubManager::removeStatDeltaPublisher() {
+void FsdbPubSubManager::removeStatDeltaPublisher(bool gracefulRestart) {
   std::lock_guard<std::mutex> lk(publisherMutex_);
+  if (gracefulRestart && statDeltaPublisher_) {
+    statDeltaPublisher_->disconnectForGR();
+  }
   statDeltaPublisher_.reset();
 }
-void FsdbPubSubManager::removeStatPathPublisher() {
+void FsdbPubSubManager::removeStatPathPublisher(bool gracefulRestart) {
   std::lock_guard<std::mutex> lk(publisherMutex_);
+  if (gracefulRestart && statPathPublisher_) {
+    statPathPublisher_->disconnectForGR();
+  }
   statPathPublisher_.reset();
 }
 
@@ -453,7 +466,8 @@ FsdbPubSubManager::getSubscriptionInfo() const {
          delta == kDelta,
          stats == kStats,
          paths,
-         streamClient->getState()});
+         streamClient->getState(),
+         streamClient->getDisconnectReason()});
   }
   return subscriptionInfo;
 }
