@@ -24,7 +24,7 @@ class GalaxyManager : public WedgeManager {
   ~GalaxyManager() override {}
 
   // This is the front panel ports count
-  int getNumQsfpModules() override {
+  int getNumQsfpModules() const override {
     return 16;
   }
 

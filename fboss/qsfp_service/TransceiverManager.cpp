@@ -765,7 +765,7 @@ void TransceiverManager::programExternalPhyPorts(
   }
 }
 
-TransceiverInfo TransceiverManager::getTransceiverInfo(TransceiverID id) {
+TransceiverInfo TransceiverManager::getTransceiverInfo(TransceiverID id) const {
   auto lockedTransceivers = transceivers_.rlock();
   if (auto it = lockedTransceivers->find(id); it != lockedTransceivers->end()) {
     return it->second->getTransceiverInfo();

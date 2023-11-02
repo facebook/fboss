@@ -21,7 +21,7 @@ class BspWedgeManager : public WedgeManager {
       PlatformType type);
   ~BspWedgeManager() override {}
 
-  int getNumQsfpModules() override;
+  int getNumQsfpModules() const override;
 
   std::unique_ptr<TransceiverI2CApi> getI2CBus() override;
 

@@ -20,7 +20,7 @@ class Wedge100Manager : public WedgeManager {
  public:
   explicit Wedge100Manager(const std::string& platformMappingStr);
   ~Wedge100Manager() override {}
-  int getNumQsfpModules() override {
+  int getNumQsfpModules() const override {
     return 32;
   }
 

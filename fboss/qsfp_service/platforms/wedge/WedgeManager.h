@@ -52,7 +52,7 @@ class WedgeManager : public TransceiverManager {
     return platformType_;
   }
 
-  int getNumQsfpModules() override {
+  int getNumQsfpModules() const override {
     return 16;
   }
   std::vector<TransceiverID> refreshTransceivers() override;
@@ -152,11 +152,11 @@ class WedgeManager : public TransceiverManager {
 
   void loadConfig() override;
 
-  std::string getSwitchDataCenter() {
+  std::string getSwitchDataCenter() const {
     return dataCenter_;
   }
 
-  std::string getSwitchRole() {
+  std::string getSwitchRole() const {
     return hostnameScheme_;
   }
 

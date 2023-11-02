@@ -24,7 +24,7 @@ std::unique_ptr<TransceiverI2CApi> BspWedgeManager::getI2CBus() {
   return std::make_unique<BspIOBus>(systemContainer_);
 }
 
-int BspWedgeManager::getNumQsfpModules() {
+int BspWedgeManager::getNumQsfpModules() const {
   return systemContainer_->getNumTransceivers();
 }
 

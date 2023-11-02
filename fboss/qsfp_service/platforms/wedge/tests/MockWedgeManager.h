@@ -77,7 +77,7 @@ class MockWedgeManager : public WedgeManager {
     throw FbossError("Can't find Transceiver=", id);
   }
 
-  int getNumQsfpModules() override {
+  int getNumQsfpModules() const override {
     return numModules_;
   }
 

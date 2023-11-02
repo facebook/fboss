@@ -93,7 +93,7 @@ class TransceiverManager {
   bool isValidTransceiver(int32_t id) {
     return id < getNumQsfpModules() && id >= 0;
   }
-  virtual int getNumQsfpModules() = 0;
+  virtual int getNumQsfpModules() const = 0;
 
   virtual std::vector<TransceiverID> refreshTransceivers() = 0;
   // Refresh specified Transceivers
@@ -352,7 +352,7 @@ class TransceiverManager {
 
   // If the transceiver doesn't exit, it will still return a TransceiverInfo
   // with present filed is false.
-  TransceiverInfo getTransceiverInfo(TransceiverID id);
+  TransceiverInfo getTransceiverInfo(TransceiverID id) const;
 
   // Function to convert port name string to software port id
   std::optional<PortID> getPortIDByPortName(const std::string& portName) const;
