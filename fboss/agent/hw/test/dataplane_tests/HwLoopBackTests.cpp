@@ -63,13 +63,13 @@ class HwLoopBackTest : public HwLinkStateDependentTest {
 
  protected:
   void runTest(bool frontPanel) {
-    auto setup = [=]() {
+    auto setup = [=, this]() {
       auto kEcmpWidthForTest = 1;
       utility::EcmpSetupAnyNPorts6 ecmpHelper6{
           getProgrammedState(), getIntfMac()};
       resolveNeigborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
     };
-    auto verify = [=]() {
+    auto verify = [=, this]() {
       auto beforePortStats =
           getLatestPortStats(masterLogicalInterfacePortIds()[0]);
       sendPkt(frontPanel, pktTtl);

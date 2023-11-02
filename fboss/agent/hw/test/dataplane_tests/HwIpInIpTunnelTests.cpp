@@ -106,7 +106,7 @@ class HwIpInIpTunnelTest : public HwLinkStateDependentTest {
 };
 
 TEST_F(HwIpInIpTunnelTest, TunnelDecapForwarding) {
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto beforeInBytes =
         getLatestPortStats(masterLogicalPortIds()[1]).get_inBytes_();
     auto beforeOutBytes =
@@ -121,11 +121,11 @@ TEST_F(HwIpInIpTunnelTest, TunnelDecapForwarding) {
         afterInBytes - beforeInBytes - IPv6Hdr::SIZE,
         afterOutBytes - beforeOutBytes);
   };
-  this->verifyAcrossWarmBoots([=] {}, verify);
+  this->verifyAcrossWarmBoots([=, this] {}, verify);
 }
 
 TEST_F(HwIpInIpTunnelTest, TunnelTermEntryMiss) {
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto beforeInBytes =
         getLatestPortStats(masterLogicalPortIds()[1]).get_inBytes_();
     auto beforeOutBytes =
@@ -140,17 +140,17 @@ TEST_F(HwIpInIpTunnelTest, TunnelTermEntryMiss) {
     EXPECT_NE(afterOutBytes, beforeOutBytes);
     EXPECT_EQ(afterInBytes - beforeInBytes, afterOutBytes - beforeOutBytes);
   };
-  this->verifyAcrossWarmBoots([=] {}, verify);
+  this->verifyAcrossWarmBoots([=, this] {}, verify);
 }
 
 TEST_F(HwIpInIpTunnelTest, IpinIpNoTunnelConfigured) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto cfg{this->initialConfig()};
     //  no tunnel configured
     this->applyNewConfig(cfg);
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto beforeInBytes =
         getLatestPortStats(masterLogicalPortIds()[1]).get_inBytes_();
     auto beforeOutBytes =
@@ -169,7 +169,7 @@ TEST_F(HwIpInIpTunnelTest, IpinIpNoTunnelConfigured) {
 }
 
 TEST_F(HwIpInIpTunnelTest, DecapPacketParsing) {
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto packetCapture = HwTestPacketTrapEntry(
         getHwSwitch(), std::set<PortID>({masterLogicalPortIds()[0]}));
     HwTestPacketSnooper snooper(getHwSwitchEnsemble());
@@ -192,7 +192,7 @@ TEST_F(HwIpInIpTunnelTest, DecapPacketParsing) {
     EXPECT_EQ(udpPkt->header().dstPort, 20000);
   };
 
-  this->verifyAcrossWarmBoots([=] {}, verify);
+  this->verifyAcrossWarmBoots([=, this] {}, verify);
 }
 
 } // namespace facebook::fboss

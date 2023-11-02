@@ -260,29 +260,29 @@ class HwDataPlaneMirrorTest : public HwLinkStateDependentTest {
   }
 
   void testPortMirror(const std::string& mirrorName) {
-    auto setup = [=]() {
+    auto setup = [=, this]() {
       this->setupDataPlaneWithMirror(mirrorName);
       this->mirrorPort(mirrorName);
     };
-    auto verify = [=]() { this->verify(mirrorName); };
+    auto verify = [=, this]() { this->verify(mirrorName); };
     this->verifyAcrossWarmBoots(setup, verify);
   }
 
   void testAclMirror(const std::string& mirrorName) {
-    auto setup = [=]() {
+    auto setup = [=, this]() {
       this->setupDataPlaneWithMirror(mirrorName);
       this->mirrorAcl(mirrorName);
     };
-    auto verify = [=]() { this->verify(mirrorName); };
+    auto verify = [=, this]() { this->verify(mirrorName); };
     this->verifyAcrossWarmBoots(setup, verify);
   }
 
   void testPortMirrorWithLargePacket(const std::string& mirrorName) {
-    auto setup = [=]() {
+    auto setup = [=, this]() {
       this->setupDataPlaneWithMirror(mirrorName, true /* truncate */);
       this->mirrorPort(mirrorName);
     };
-    auto verify = [=]() {
+    auto verify = [=, this]() {
       auto statsBefore = getLatestPortStats(mirrorToPort_);
       this->verify(mirrorName, 8000);
       auto statsAfter = getLatestPortStats(mirrorToPort_);
@@ -366,7 +366,7 @@ TYPED_TEST(HwDataPlaneMirrorTest, ErspanMirrorWithLagMember) {
 #endif
     return;
   }
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto config = this->initialConfig();
 
     utility::addAggPort(AggregatePortID(1), {this->mirrorToPort_}, &config);
@@ -378,7 +378,7 @@ TYPED_TEST(HwDataPlaneMirrorTest, ErspanMirrorWithLagMember) {
     this->setupDataPlaneWithMirror(kErspan);
     this->mirrorPort(kErspan);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     utility::verifyAggregatePortCount(this->getHwSwitchEnsemble(), 1);
     utility::verifyAggregatePort(
         this->getHwSwitchEnsemble(), AggregatePortID(1));
