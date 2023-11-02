@@ -287,7 +287,7 @@ void QsfpCache::syncAllPresentTransceivers() {
 
 AutoInitQsfpCache::AutoInitQsfpCache() {
   init(&evb_);
-  thread_.reset(new std::thread([=] { evb_.loopForever(); }));
+  thread_.reset(new std::thread([=, this] { evb_.loopForever(); }));
 }
 
 AutoInitQsfpCache::~AutoInitQsfpCache() {

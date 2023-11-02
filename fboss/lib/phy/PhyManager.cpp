@@ -213,7 +213,8 @@ PhyManager::PimEventMultiThreading::PimEventMultiThreading(PimID pimID) {
   pim = pimID;
   eventBase = std::make_unique<folly::EventBase>();
   // start pim thread
-  thread = std::make_unique<std::thread>([=] { eventBase->loopForever(); });
+  thread =
+      std::make_unique<std::thread>([=, this] { eventBase->loopForever(); });
   XLOG(DBG2) << "Created PimEventMultiThreading for pim="
              << static_cast<int>(pimID);
 }

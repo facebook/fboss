@@ -358,7 +358,7 @@ void TransceiverManager::startThreads() {
 
   XLOG(DBG2) << "Started TransceiverStateMachineUpdateThread";
   updateEventBase_ = std::make_unique<folly::EventBase>();
-  updateThread_.reset(new std::thread([=] {
+  updateThread_.reset(new std::thread([=, this] {
     this->threadLoop(
         "TransceiverStateMachineUpdateThread", updateEventBase_.get());
   }));
