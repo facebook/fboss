@@ -64,6 +64,8 @@ void PlatformExplorer::explorePmUnit(
   auto pmUnitConfig = platformConfig_.pmUnitConfigs()->at(pmUnitName);
   XLOG(INFO) << fmt::format("Exploring PmUnit {} at {}", pmUnitName, slotPath);
 
+  slotPathToPmUnitName_[slotPath] = pmUnitName;
+
   XLOG(INFO) << fmt::format(
       "Exploring PCI Devices for PmUnit {} at SlotPath {}. Count {}",
       pmUnitName,
