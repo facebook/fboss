@@ -100,8 +100,8 @@ class HwDiagShellStressTest : public HwLinkStateDependentTest {
 };
 
 TEST_F(HwDiagShellStressTest, stressDiagCmds) {
-  auto setup = [=]() { applyNewConfig(initialConfig()); };
-  auto verify = [=]() { runDiagCmds(); };
+  auto setup = [=, this]() { applyNewConfig(initialConfig()); };
+  auto verify = [=, this]() { runDiagCmds(); };
   verifyAcrossWarmBoots(setup, verify);
 }
 

@@ -57,7 +57,7 @@ TEST_F(HwPtpTcTest, VerifyPtpTcEnable) {
     return;
   }
 
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     setupHelper();
     setPtpTc(true);
   };
@@ -80,7 +80,7 @@ TEST_F(HwPtpTcTest, VerifyPtpTcToggle) {
     return;
   }
 
-  auto setup = [=]() { setupHelper(); };
+  auto setup = [=, this]() { setupHelper(); };
   auto enabled = false;
   auto verify = [&]() {
     EXPECT_EQ(enabled, utility::getPtpTcEnabled(getHwSwitch()));

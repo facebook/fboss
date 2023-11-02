@@ -75,7 +75,7 @@ class HwL2ClassIDTest : public HwTest {
 };
 
 TEST_F(HwL2ClassIDTest, VerifyClassID) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     applyNewConfig(initialConfig());
     associateClassID();
     EXPECT_TRUE(l2EntryHasClassID(kClassID()));
@@ -86,7 +86,7 @@ TEST_F(HwL2ClassIDTest, VerifyClassID) {
     associateClassID();
   };
 
-  auto verify = [=]() { EXPECT_TRUE(l2EntryHasClassID(kClassID())); };
+  auto verify = [=, this]() { EXPECT_TRUE(l2EntryHasClassID(kClassID())); };
 
   verifyAcrossWarmBoots(setup, verify);
 }

@@ -32,8 +32,8 @@ class HwParityErrorTest : public HwLinkStateDependentTest {
 };
 
 TEST_F(HwParityErrorTest, verifyParityError) {
-  auto setup = [=]() { applyNewConfig(initialConfig()); };
-  auto verify = [=]() {
+  auto setup = [=, this]() { applyNewConfig(initialConfig()); };
+  auto verify = [=, this]() {
     EXPECT_EQ(getCorrectedParityErrorCount(), 0);
     utility::triggerParityError(getHwSwitchEnsemble());
     WITH_RETRIES({ EXPECT_EVENTUALLY_GT(getCorrectedParityErrorCount(), 0); });

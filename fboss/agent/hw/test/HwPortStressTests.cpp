@@ -32,9 +32,9 @@ class HwPortStressTest : public HwLinkStateDependentTest {
 };
 
 TEST_F(HwPortStressTest, adminStateToggle) {
-  auto setup = [=]() { applyNewConfig(initialConfig()); };
+  auto setup = [=, this]() { applyNewConfig(initialConfig()); };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto firstPortId = PortID(masterLogicalPortIds()[0]);
     for (auto i = 0; i < 500; ++i) {
       auto newState = getProgrammedState();
@@ -50,9 +50,9 @@ TEST_F(HwPortStressTest, adminStateToggle) {
 }
 
 TEST_F(HwPortStressTest, linkStateToggle) {
-  auto setup = [=]() { applyNewConfig(initialConfig()); };
+  auto setup = [=, this]() { applyNewConfig(initialConfig()); };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto firstPortId = PortID(masterLogicalPortIds()[0]);
     for (auto i = 0; i < 500; ++i) {
       getHwSwitchEnsemble()->getLinkToggler()->bringDownPorts({firstPortId});

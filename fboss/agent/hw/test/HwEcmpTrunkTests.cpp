@@ -58,7 +58,7 @@ class HwEcmpTrunkTest : public HwLinkStateDependentTest {
   }
 
   void runEcmpWithTrunkMinLinks(uint8_t minlinks) {
-    auto setup = [=]() {
+    auto setup = [=, this]() {
       auto state = enableTrunkPorts(getProgrammedState());
       applyNewState(utility::setTrunkMinLinkCount(state, minlinks));
       applyNewState(
@@ -66,7 +66,7 @@ class HwEcmpTrunkTest : public HwLinkStateDependentTest {
       ecmpHelper_->programRoutes(getRouteUpdater(), getEcmpPorts());
     };
 
-    auto verify = [=]() {
+    auto verify = [=, this]() {
       // We programmed the default route picked by EcmpSetupAnyNPorts so lookup
       // the ECMP group for it
       ASSERT_EQ(
@@ -113,7 +113,7 @@ TEST_F(HwEcmpTrunkTest, TrunkNotRemovedFromEcmpWithMinLinks) {
 // is seen on HwEcmpTrunkTest switches.
 TEST_F(HwEcmpTrunkTest, TrunkMemberRemoveWithRouteTest) {
   uint8_t minlinks = 2;
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto state = enableTrunkPorts(getProgrammedState());
     applyNewState(utility::setTrunkMinLinkCount(state, minlinks));
 
@@ -135,7 +135,7 @@ TEST_F(HwEcmpTrunkTest, TrunkMemberRemoveWithRouteTest) {
     ecmpHelper_->programRoutes(getRouteUpdater(), getEcmpPorts(), v6Prefixes);
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto trunkMembers = getTrunkMemberPorts();
     auto trunkMemberCount = trunkMembers.size();
     auto activeMemberCount = trunkMemberCount;
@@ -165,7 +165,7 @@ TEST_F(
     TrunkL2ResolveNhopThenLinkAndLACPDownThenUpThenStateUp) {
   uint8_t minlinks = 2;
   uint8_t numEcmpMembersToExclude = 1;
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto state = enableTrunkPorts(getProgrammedState());
     applyNewState(utility::setTrunkMinLinkCount(state, minlinks));
     applyNewState(
@@ -197,7 +197,7 @@ TEST_F(
     applyNewState(state);
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     // Ecmp should shrink based on the aggCount since the number of ports
     // in Agg is less than min-links.
     ASSERT_EQ(
@@ -212,7 +212,7 @@ TEST_F(
         minlinks - numEcmpMembersToExclude);
   };
 
-  auto setupPostWarmboot = [=]() {
+  auto setupPostWarmboot = [=, this]() {
     // neighbor gets removed due to  link toggle
     applyNewState(ecmpHelper_->unresolveNextHops(
         getProgrammedState(), {PortDescriptor(kAggId)}));
@@ -232,7 +232,7 @@ TEST_F(
         minlinks - numEcmpMembersToExclude);
   };
 
-  auto verifyPostWarmboot = [=]() {
+  auto verifyPostWarmboot = [=, this]() {
     // LACP enables link post warm boot
     auto state = enableTrunkPorts(getProgrammedState());
     applyNewState(state);
@@ -267,7 +267,7 @@ TEST_F(
 TEST_F(HwEcmpTrunkTest, TrunkL2ResolveNhopThenLinkDownThenUpThenStateUp) {
   uint8_t minlinks = 2;
   uint8_t numEcmpMembersToExclude = 1;
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto state = enableTrunkPorts(getProgrammedState());
     applyNewState(utility::setTrunkMinLinkCount(state, minlinks));
     applyNewState(
@@ -288,7 +288,7 @@ TEST_F(HwEcmpTrunkTest, TrunkL2ResolveNhopThenLinkDownThenUpThenStateUp) {
     bringDownPort(PortID(getTrunkMemberPorts()[0]));
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     // Ecmp should shrink based on the aggCount since the number of ports
     // in Agg is less than min-links.
     ASSERT_EQ(
@@ -301,7 +301,7 @@ TEST_F(HwEcmpTrunkTest, TrunkL2ResolveNhopThenLinkDownThenUpThenStateUp) {
         getHwSwitchEnsemble(), kAggId, minlinks, 1);
   };
 
-  auto setupPostWarmboot = [=]() {
+  auto setupPostWarmboot = [=, this]() {
     // neighbor gets removed due to  link toggle
     applyNewState(ecmpHelper_->unresolveNextHops(
         getProgrammedState(), {PortDescriptor(kAggId)}));
@@ -325,7 +325,7 @@ TEST_F(HwEcmpTrunkTest, TrunkL2ResolveNhopThenLinkDownThenUpThenStateUp) {
         getHwSwitchEnsemble(), kAggId, minlinks, 1);
   };
 
-  auto verifyPostWarmboot = [=]() {
+  auto verifyPostWarmboot = [=, this]() {
     // LACP enables link when state machine converges
     auto state = enableTrunkPorts(getProgrammedState());
     applyNewState(state);
@@ -357,7 +357,7 @@ TEST_F(
     TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit) {
   uint8_t minlinks = 2;
   uint8_t numEcmpMembersToExclude = 1;
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto state = enableTrunkPorts(getProgrammedState());
     applyNewState(utility::setTrunkMinLinkCount(state, minlinks));
     applyNewState(
@@ -391,7 +391,7 @@ TEST_F(
     bringUpPort(PortID(getTrunkMemberPorts()[0]));
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     // Ecmp should shrink based on the aggCount since the number of ports
     // in Agg is less than min-links.
     ASSERT_EQ(
@@ -406,7 +406,7 @@ TEST_F(
 
   auto setupPostWarmboot = [=]() {};
 
-  auto verifyPostWarmboot = [=]() {
+  auto verifyPostWarmboot = [=, this]() {
     // LACP enables link post warm boot
     auto state = enableTrunkPorts(getProgrammedState());
     applyNewState(state);
@@ -435,7 +435,7 @@ TEST_F(
 TEST_F(HwEcmpTrunkTest, TrunkL2ResolveNhopThenLinkUpDownUpBeforeReinit) {
   uint8_t minlinks = 2;
   uint8_t numEcmpMembersToExclude = 1;
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto state = enableTrunkPorts(getProgrammedState());
     applyNewState(utility::setTrunkMinLinkCount(state, minlinks));
     applyNewState(
@@ -473,7 +473,7 @@ TEST_F(HwEcmpTrunkTest, TrunkL2ResolveNhopThenLinkUpDownUpBeforeReinit) {
 
   auto setupPostWarmboot = [=]() {};
 
-  auto verifyPostWarmboot = [=]() {
+  auto verifyPostWarmboot = [=, this]() {
     // ECMP should expand on warmboot restore since ARP/ND entry is
     // present and port is up.
     ASSERT_EQ(

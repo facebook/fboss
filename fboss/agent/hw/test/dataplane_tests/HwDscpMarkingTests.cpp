@@ -65,7 +65,7 @@ class HwDscpMarkingTest : public HwLinkStateDependentTest {
      *   - Hits ACL1 again, and thus counter incremented twice.
      */
 
-    auto setup = [=]() {
+    auto setup = [=, this]() {
       resolveNeigborAndProgramRoutes(*helper_, kEcmpWidth);
 
       auto newCfg{initialConfig()};
@@ -76,7 +76,7 @@ class HwDscpMarkingTest : public HwLinkStateDependentTest {
       applyNewConfig(newCfg);
     };
 
-    auto verify = [=]() {
+    auto verify = [=, this]() {
       auto portId = helper_->ecmpPortDescriptorAt(0).phyPortID();
       auto portStatsBefore = getLatestPortStats(portId);
 

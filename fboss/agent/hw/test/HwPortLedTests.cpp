@@ -19,8 +19,8 @@ class HwPortLedTest : public HwLinkStateDependentTest {
 };
 
 TEST_F(HwPortLedTest, TestLed) {
-  auto setup = [=]() { applyNewConfig(initialConfig()); };
-  auto verify = [=]() {
+  auto setup = [=, this]() { applyNewConfig(initialConfig()); };
+  auto verify = [=, this]() {
     auto portID = masterLogicalPortIds()[0];
     bringUpPort(portID);
     WITH_RETRIES({
@@ -37,8 +37,8 @@ TEST_F(HwPortLedTest, TestLed) {
 }
 
 TEST_F(HwPortLedTest, TestLedFromSwitchState) {
-  auto setup = [=]() { applyNewConfig(initialConfig()); };
-  auto verify = [=]() {
+  auto setup = [=, this]() { applyNewConfig(initialConfig()); };
+  auto verify = [=, this]() {
     auto portID = masterLogicalPortIds()[0];
     bringUpPort(portID);
     WITH_RETRIES({
