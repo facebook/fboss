@@ -629,3 +629,18 @@ enum TransceiverStateMachineState {
   UPGRADING = 8,
   TRANSCEIVER_READY = 9,
 }
+
+struct SwitchDeploymentInfo {
+  1: string dataCenter;
+  2: string hostnameScheme;
+}
+struct TransceiverThermalData {
+  1: string moduleMediaInterface;
+  2: i32 temperature;
+}
+
+struct QsfpToBmcSyncData {
+  1: string syncDataStructVersion;
+  2: SwitchDeploymentInfo switchDeploymentInfo;
+  3: map<i16, TransceiverThermalData> transceiverThermalData;
+}
