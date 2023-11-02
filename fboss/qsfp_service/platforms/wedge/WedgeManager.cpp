@@ -1012,5 +1012,11 @@ QsfpToBmcSyncData WedgeManager::getQsfpToBmcSyncData() const {
   return qsfpToBmcData;
 }
 
+std::string WedgeManager::getQsfpToBmcSyncDataSerialized() const {
+  auto qsfpToBmcData = getQsfpToBmcSyncData();
+  return apache::thrift::SimpleJSONSerializer::serialize<std::string>(
+      qsfpToBmcData);
+}
+
 } // namespace fboss
 } // namespace facebook

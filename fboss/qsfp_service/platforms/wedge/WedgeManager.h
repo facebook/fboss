@@ -162,6 +162,8 @@ class WedgeManager : public TransceiverManager {
 
   QsfpToBmcSyncData getQsfpToBmcSyncData() const;
 
+  std::string getQsfpToBmcSyncDataSerialized() const;
+
  protected:
   void initTransceiverMap() override;
 
