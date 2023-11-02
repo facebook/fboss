@@ -158,11 +158,11 @@ class HwLabelSwitchRouteTest : public HwLinkStateDependentTest {
 TYPED_TEST_SUITE(HwLabelSwitchRouteTest, TestTypes);
 
 TYPED_TEST(HwLabelSwitchRouteTest, Push) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     this->setupLabelSwitchActionWithOneNextHop(
         LabelForwardingAction::LabelForwardingType::PUSH);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     this->verifyLabelSwitchAction(
         LabelForwardingAction::LabelForwardingType::PUSH);
   };
@@ -170,11 +170,11 @@ TYPED_TEST(HwLabelSwitchRouteTest, Push) {
 }
 
 TYPED_TEST(HwLabelSwitchRouteTest, Swap) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     this->setupLabelSwitchActionWithOneNextHop(
         LabelForwardingAction::LabelForwardingType::SWAP);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     this->verifyLabelSwitchAction(
         LabelForwardingAction::LabelForwardingType::SWAP);
   };
@@ -188,11 +188,11 @@ TYPED_TEST(HwLabelSwitchRouteTest, EcmpPush) {
 #endif
     return;
   }
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     this->setupLabelSwitchActionWithMultiNextHop(
         LabelForwardingAction::LabelForwardingType::PUSH);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     this->verifyMultiPathLabelSwitchAction(
         LabelForwardingAction::LabelForwardingType::PUSH);
   };
@@ -206,11 +206,11 @@ TYPED_TEST(HwLabelSwitchRouteTest, EcmpSwap) {
 #endif
     return;
   }
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     this->setupLabelSwitchActionWithMultiNextHop(
         LabelForwardingAction::LabelForwardingType::SWAP);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     this->verifyMultiPathLabelSwitchAction(
         LabelForwardingAction::LabelForwardingType::SWAP);
   };
@@ -224,7 +224,7 @@ TYPED_TEST(HwLabelSwitchRouteTest, EcmpModify) {
 #endif
     return;
   }
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     // set up initial ecmp with width 2
     this->setupLabelSwitchActionWithMultiNextHop(
         LabelForwardingAction::LabelForwardingType::SWAP, 2);
@@ -233,7 +233,7 @@ TYPED_TEST(HwLabelSwitchRouteTest, EcmpModify) {
     this->setupLabelSwitchActionWithMultiNextHop(
         LabelForwardingAction::LabelForwardingType::SWAP);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     this->verifyMultiPathLabelSwitchAction(
         LabelForwardingAction::LabelForwardingType::SWAP);
   };
@@ -241,11 +241,11 @@ TYPED_TEST(HwLabelSwitchRouteTest, EcmpModify) {
 }
 
 TYPED_TEST(HwLabelSwitchRouteTest, Php) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     this->setupLabelSwitchActionWithOneNextHop(
         LabelForwardingAction::LabelForwardingType::PHP);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     this->verifyLabelSwitchAction(
         LabelForwardingAction::LabelForwardingType::PHP);
   };
@@ -253,11 +253,11 @@ TYPED_TEST(HwLabelSwitchRouteTest, Php) {
 }
 
 TYPED_TEST(HwLabelSwitchRouteTest, EcmpPhp) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     this->setupLabelSwitchActionWithMultiNextHop(
         LabelForwardingAction::LabelForwardingType::PHP);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     this->verifyMultiPathLabelSwitchAction(
         LabelForwardingAction::LabelForwardingType::PHP);
   };
@@ -265,11 +265,11 @@ TYPED_TEST(HwLabelSwitchRouteTest, EcmpPhp) {
 }
 
 TYPED_TEST(HwLabelSwitchRouteTest, Pop) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     this->setupLabelSwitchActionWithOneNextHop(
         LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     this->verifyLabelSwitchAction(
         LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP);
   };
@@ -283,14 +283,14 @@ TYPED_TEST(HwLabelSwitchRouteTest, ConfigPush) {
 #endif
     return;
   }
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto config = this->initialConfig();
     this->configureStaticMplsRoute(
         config, LabelForwardingAction::LabelForwardingType::PUSH);
     this->applyNewConfig(config);
     this->resolveNeighbors();
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     this->verifyMultiPathLabelSwitchAction(
         LabelForwardingAction::LabelForwardingType::PUSH);
   };
@@ -304,14 +304,14 @@ TYPED_TEST(HwLabelSwitchRouteTest, ConfigSwap) {
 #endif
     return;
   }
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto config = this->initialConfig();
     this->configureStaticMplsRoute(
         config, LabelForwardingAction::LabelForwardingType::SWAP);
     this->applyNewConfig(config);
     this->resolveNeighbors();
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     this->verifyMultiPathLabelSwitchAction(
         LabelForwardingAction::LabelForwardingType::SWAP);
   };
@@ -319,14 +319,14 @@ TYPED_TEST(HwLabelSwitchRouteTest, ConfigSwap) {
 }
 
 TYPED_TEST(HwLabelSwitchRouteTest, ConfigPhp) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto config = this->initialConfig();
     this->configureStaticMplsRoute(
         config, LabelForwardingAction::LabelForwardingType::PHP);
     this->applyNewConfig(config);
     this->resolveNeighbors();
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     this->verifyMultiPathLabelSwitchAction(
         LabelForwardingAction::LabelForwardingType::PHP);
   };
@@ -334,14 +334,14 @@ TYPED_TEST(HwLabelSwitchRouteTest, ConfigPhp) {
 }
 
 TYPED_TEST(HwLabelSwitchRouteTest, ConfigPop) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto config = this->initialConfig();
     this->configureStaticMplsRoute(
         config, LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP);
     this->applyNewConfig(config);
     this->resolveNeighbors();
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     this->verifyLabelSwitchAction(
         LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP);
   };
@@ -355,7 +355,7 @@ TYPED_TEST(HwLabelSwitchRouteTest, Swap2Php) {
 #endif
     return;
   }
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     // set up initial ecmp with width 2
     this->setupLabelSwitchActionWithMultiNextHop(
         LabelForwardingAction::LabelForwardingType::SWAP);
@@ -364,7 +364,7 @@ TYPED_TEST(HwLabelSwitchRouteTest, Swap2Php) {
     this->setupLabelSwitchActionWithMultiNextHop(
         LabelForwardingAction::LabelForwardingType::PHP);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     this->verifyMultiPathLabelSwitchAction(
         LabelForwardingAction::LabelForwardingType::PHP);
   };

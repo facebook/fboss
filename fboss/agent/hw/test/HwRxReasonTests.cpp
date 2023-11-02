@@ -43,7 +43,7 @@ class HwRxReasonTests : public HwLinkStateDependentTest {
 
 TEST_F(HwRxReasonTests, InsertAndRemoveRxReason) {
   auto setup = [=]() {};
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto cfg = initialConfig();
     applyNewConfig(cfg);
     cfg.cpuTrafficPolicy()->rxReasonToQueueOrderedList() =

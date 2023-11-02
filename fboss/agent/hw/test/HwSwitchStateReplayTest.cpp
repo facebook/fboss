@@ -65,7 +65,7 @@ class HwSwitchStateReplayTest : public HwTest {
 
  protected:
   void runTest() {
-    auto setup = [=]() {
+    auto setup = [=, this]() {
       auto wbState = getWarmBootState();
       for (auto portMap : std::as_const(*wbState->getPorts())) {
         for (auto port : std::as_const(*portMap.second)) {
