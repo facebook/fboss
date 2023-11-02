@@ -162,7 +162,7 @@ class HwWideEcmpTest : public HwEcmpTest {
 };
 
 TEST_F(HwEcmpTest, L2ResolveOneNhopThenLinkDownThenUp) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     programRouteWithUnresolvedNhops();
     resolveNhops(1);
 
@@ -172,17 +172,17 @@ TEST_F(HwEcmpTest, L2ResolveOneNhopThenLinkDownThenUp) {
     bringDownPort(nhop.portDesc.phyPortID());
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     // ECMP shrunk on port down
     EXPECT_EQ(0, getEcmpSizeInHw());
   };
 
-  auto setupPostWarmboot = [=]() {
+  auto setupPostWarmboot = [=, this]() {
     auto nhop = ecmpHelper_->nhop(0);
     bringUpPort(nhop.portDesc.phyPortID());
   };
 
-  auto verifyPostWarmboot = [=]() {
+  auto verifyPostWarmboot = [=, this]() {
     auto nhop = ecmpHelper_->nhop(0);
     // ECMP stays shrunk on port up
     EXPECT_EQ(0, getEcmpSizeInHw());
@@ -226,7 +226,7 @@ TEST_F(HwEcmpTest, ecmpToDropToEcmp) {
 }
 
 TEST_F(HwEcmpTest, L2ResolveOneNhopThenLinkDownThenUpThenL2ResolveNhop) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     programRouteWithUnresolvedNhops();
     auto nhop = ecmpHelper_->nhop(0);
     resolveNhops(1);
@@ -242,7 +242,7 @@ TEST_F(HwEcmpTest, L2ResolveOneNhopThenLinkDownThenUpThenL2ResolveNhop) {
     resolveNhops(1);
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     // ECMP  expands post resolution
     EXPECT_EQ(1, getEcmpSizeInHw());
   };
@@ -251,8 +251,8 @@ TEST_F(HwEcmpTest, L2ResolveOneNhopThenLinkDownThenUpThenL2ResolveNhop) {
 }
 
 TEST_F(HwEcmpTest, L2UnresolvedNhopsECMPInHWEmpty) {
-  auto setup = [=]() { programRouteWithUnresolvedNhops(); };
-  auto verify = [=]() { EXPECT_EQ(0, getEcmpSizeInHw()); };
+  auto setup = [=, this]() { programRouteWithUnresolvedNhops(); };
+  auto verify = [=, this]() { EXPECT_EQ(0, getEcmpSizeInHw()); };
   verifyAcrossWarmBoots(setup, verify);
 }
 
@@ -526,7 +526,7 @@ class HwEcmpNeighborTest : public HwEcmpTest {
 TYPED_TEST_SUITE(HwEcmpNeighborTest, NeighborTableTypes);
 
 TYPED_TEST(HwEcmpNeighborTest, ResolvePendingResolveNexthop) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     this->resolveNhops(2);
     std::map<PortDescriptor, std::shared_ptr<NdpEntry>> entries;
 
@@ -557,7 +557,7 @@ TYPED_TEST(HwEcmpNeighborTest, ResolvePendingResolveNexthop) {
     this->applyNewState(state1);
     this->ecmpHelper_->programRoutes(this->getRouteUpdater(), 2);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     /* ecmp is resolved */
     EXPECT_EQ(
         utility::getEcmpSizeInHw(

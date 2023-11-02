@@ -212,7 +212,7 @@ class HwPortProfileTest : public HwTest {
       return;
     }
     utility::enableSixtapProgramming();
-    auto setup = [=]() {
+    auto setup = [=, this]() {
       auto config = initialConfig(availablePorts);
       for (auto port : {availablePorts[0], availablePorts[1]}) {
         auto hwSwitch = getHwSwitch();

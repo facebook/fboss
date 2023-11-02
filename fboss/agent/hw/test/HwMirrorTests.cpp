@@ -194,12 +194,12 @@ class HwMirrorTest : public HwTest {
 TYPED_TEST_SUITE(HwMirrorTest, TestTypes);
 
 TYPED_TEST(HwMirrorTest, ResolvedSpanMirror) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto cfg = this->initialConfig();
     cfg.mirrors()->push_back(this->getSpanMirror());
     this->applyNewConfig(cfg);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kSpan);
     utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
   };
@@ -208,12 +208,12 @@ TYPED_TEST(HwMirrorTest, ResolvedSpanMirror) {
 }
 
 TYPED_TEST(HwMirrorTest, DscpHasDefault) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto cfg = this->initialConfig();
     cfg.mirrors()->push_back(this->getSpanMirror(kSpan, kDscpDefault));
     this->applyNewConfig(cfg);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kSpan);
     EXPECT_EQ(mirror->getDscp(), kDscpDefault);
     utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
@@ -223,12 +223,12 @@ TYPED_TEST(HwMirrorTest, DscpHasDefault) {
 }
 
 TYPED_TEST(HwMirrorTest, DscpHasSetValue) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto cfg = this->initialConfig();
     cfg.mirrors()->push_back(this->getSpanMirror(kSpan, kDscp));
     this->applyNewConfig(cfg);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kSpan);
     EXPECT_EQ(mirror->getDscp(), kDscp);
     utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
@@ -245,12 +245,12 @@ TYPED_TEST(HwMirrorTest, MirrorWithTruncation) {
 #endif
     return;
   }
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto cfg = this->initialConfig();
     cfg.mirrors()->push_back(this->getSpanMirror(kSpan, kDscp, true));
     this->applyNewConfig(cfg);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kSpan);
     EXPECT_EQ(mirror->getDscp(), kDscp);
     utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
@@ -260,7 +260,7 @@ TYPED_TEST(HwMirrorTest, MirrorWithTruncation) {
 }
 
 TYPED_TEST(HwMirrorTest, ResolvedErspanMirror) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
     cfg.mirrors()->push_back(this->getErspanMirror());
@@ -279,7 +279,7 @@ TYPED_TEST(HwMirrorTest, ResolvedErspanMirror) {
         params.macAddrs[1]));
     this->updateMirror(newMirror);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kErspan);
     utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
   };
@@ -293,7 +293,7 @@ TYPED_TEST(HwMirrorTest, ResolvedErspanMirror) {
 }
 
 TYPED_TEST(HwMirrorTest, ResolvedSflowMirror) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
     cfg.mirrors()->push_back(this->getSflowMirror());
@@ -314,7 +314,7 @@ TYPED_TEST(HwMirrorTest, ResolvedSflowMirror) {
         newMirror->getTunnelUdpPorts().value()));
     this->updateMirror(newMirror);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kSflow);
     utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
   };
@@ -328,12 +328,12 @@ TYPED_TEST(HwMirrorTest, ResolvedSflowMirror) {
 }
 
 TYPED_TEST(HwMirrorTest, UnresolvedErspanMirror) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto cfg = this->initialConfig();
     cfg.mirrors()->push_back(this->getErspanMirror());
     this->applyNewConfig(cfg);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kErspan);
     utility::verifyUnResolvedMirror(this->getHwSwitch(), mirror);
   };
@@ -347,7 +347,7 @@ TYPED_TEST(HwMirrorTest, UnresolvedErspanMirror) {
 }
 
 TYPED_TEST(HwMirrorTest, MirrorRemoved) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto cfg = this->initialConfig();
     cfg.mirrors()->push_back(this->getSpanMirror());
     cfg.mirrors()->push_back(this->getErspanMirror());
@@ -359,7 +359,7 @@ TYPED_TEST(HwMirrorTest, MirrorRemoved) {
     mnpuMirrors->removeNode(mirror);
     this->applyNewState(newState);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto local = this->getProgrammedState()->getMirrors()->getNodeIf(kSpan);
     EXPECT_EQ(local, nullptr);
     auto erspan = this->getProgrammedState()->getMirrors()->getNodeIf(kErspan);
@@ -375,7 +375,7 @@ TYPED_TEST(HwMirrorTest, MirrorRemoved) {
 }
 
 TYPED_TEST(HwMirrorTest, UnresolvedToUnresolvedUpdate) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
     cfg.mirrors()->push_back(this->getSpanMirror());
@@ -388,7 +388,7 @@ TYPED_TEST(HwMirrorTest, UnresolvedToUnresolvedUpdate) {
         std::optional<folly::IPAddress>(folly::IPAddress(params.ipAddrs[3])));
     this->updateMirror(newMirror);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto local = this->getProgrammedState()->getMirrors()->getNodeIf(kSpan);
     utility::verifyResolvedMirror(this->getHwSwitch(), local);
     auto erspan = this->getProgrammedState()->getMirrors()->getNodeIf(kErspan);
@@ -404,7 +404,7 @@ TYPED_TEST(HwMirrorTest, UnresolvedToUnresolvedUpdate) {
 }
 
 TYPED_TEST(HwMirrorTest, ResolvedToResolvedUpdate) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
     cfg.mirrors()->push_back(this->getErspanMirror());
@@ -432,7 +432,7 @@ TYPED_TEST(HwMirrorTest, ResolvedToResolvedUpdate) {
         params.macAddrs[3]));
     this->updateMirror(updatedMirror);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kErspan);
     utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
   };
@@ -446,7 +446,7 @@ TYPED_TEST(HwMirrorTest, ResolvedToResolvedUpdate) {
 }
 
 TYPED_TEST(HwMirrorTest, ResolvedToUnresolvedUpdate) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
     cfg.mirrors()->push_back(this->getErspanMirror());
@@ -468,7 +468,7 @@ TYPED_TEST(HwMirrorTest, ResolvedToUnresolvedUpdate) {
         mirror->getID(), mirror->getEgressPort(), mirror->getDestinationIp());
     this->updateMirror(updatedMirror);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kErspan);
     utility::verifyUnResolvedMirror(this->getHwSwitch(), mirror);
   };
@@ -482,7 +482,7 @@ TYPED_TEST(HwMirrorTest, ResolvedToUnresolvedUpdate) {
 }
 
 TYPED_TEST(HwMirrorTest, NoPortMirroringIfUnResolved) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto cfg = this->initialConfig();
     cfg.mirrors()->push_back(this->getErspanMirror());
     auto portCfg = utility::findCfgPort(cfg, this->masterLogicalPortIds()[0]);
@@ -490,7 +490,7 @@ TYPED_TEST(HwMirrorTest, NoPortMirroringIfUnResolved) {
     portCfg->egressMirror() = kErspan;
     this->applyNewConfig(cfg);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kErspan);
     utility::verifyUnResolvedMirror(this->getHwSwitch(), mirror);
     utility::verifyPortNoMirrorDestination(
@@ -512,7 +512,7 @@ TYPED_TEST(HwMirrorTest, NoPortMirroringIfUnResolved) {
 }
 
 TYPED_TEST(HwMirrorTest, PortMirroringIfResolved) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
     cfg.mirrors()->push_back(this->getErspanMirror());
@@ -532,7 +532,7 @@ TYPED_TEST(HwMirrorTest, PortMirroringIfResolved) {
         params.macAddrs[3]));
     this->updateMirror(updatedMirror);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kErspan);
     utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
     std::vector<uint64_t> destinations;
@@ -560,7 +560,7 @@ TYPED_TEST(HwMirrorTest, PortMirroringIfResolved) {
 }
 
 TYPED_TEST(HwMirrorTest, PortMirrorUpdateIfMirrorUpdate) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
     cfg.mirrors()->push_back(this->getErspanMirror());
@@ -591,7 +591,7 @@ TYPED_TEST(HwMirrorTest, PortMirrorUpdateIfMirrorUpdate) {
         params.macAddrs[2]));
     this->updateMirror(updatedMirror);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kErspan);
     utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
     std::vector<uint64_t> destinations;
@@ -614,7 +614,7 @@ TYPED_TEST(HwMirrorTest, PortMirrorUpdateIfMirrorUpdate) {
 }
 
 TYPED_TEST(HwMirrorTest, PortMirror) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
     cfg.mirrors()->push_back(this->getErspanMirror());
@@ -635,7 +635,7 @@ TYPED_TEST(HwMirrorTest, PortMirror) {
         params.macAddrs[3]));
     this->updateMirror(newMirror);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kErspan);
     utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
     std::vector<uint64_t> destinations;
@@ -658,7 +658,7 @@ TYPED_TEST(HwMirrorTest, PortMirror) {
 }
 
 TYPED_TEST(HwMirrorTest, UpdatePortMirror) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
     cfg.mirrors()->push_back(this->getErspanMirror());
@@ -687,7 +687,7 @@ TYPED_TEST(HwMirrorTest, UpdatePortMirror) {
     portCfg->egressMirror() = kSpan;
     this->applyNewConfig(cfg);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kSpan);
     utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
     std::vector<uint64_t> destinations;
@@ -724,7 +724,7 @@ TYPED_TEST(HwMirrorTest, UpdatePortMirror) {
 }
 
 TYPED_TEST(HwMirrorTest, RemovePortMirror) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
     cfg.mirrors()->push_back(this->getErspanMirror());
@@ -748,7 +748,7 @@ TYPED_TEST(HwMirrorTest, RemovePortMirror) {
     portCfg->egressMirror().reset();
     this->applyNewConfig(cfg);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kErspan);
     utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
     std::vector<uint64_t> destinations;
@@ -774,13 +774,13 @@ TYPED_TEST(HwMirrorTest, RemovePortMirror) {
 }
 
 TYPED_TEST(HwMirrorTest, HwMirrorStat) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto cfg = this->initialConfig();
     cfg.mirrors()->push_back(this->getSpanMirror());
     cfg.mirrors()->push_back(this->getErspanMirror());
     this->applyNewConfig(cfg);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto stats = utility::getHwTableStats(this->getHwSwitch());
     EXPECT_EQ(*stats.mirrors_used(), 1);
     EXPECT_EQ(*stats.mirrors_span(), 1);
@@ -796,7 +796,7 @@ TYPED_TEST(HwMirrorTest, HwMirrorStat) {
 }
 
 TYPED_TEST(HwMirrorTest, HwResolvedMirrorStat) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
     cfg.mirrors()->resize(3);
@@ -833,7 +833,7 @@ TYPED_TEST(HwMirrorTest, HwResolvedMirrorStat) {
         sflowMirror->getTunnelUdpPorts().value()));
     this->updateMirror(newSflowMirror);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto stats = utility::getHwTableStats(this->getHwSwitch());
     auto span = this->getProgrammedState()->getMirrors()->getNodeIf(kSpan);
     auto erspan = this->getProgrammedState()->getMirrors()->getNodeIf(kErspan);
@@ -859,7 +859,7 @@ TYPED_TEST(HwMirrorTest, HwResolvedMirrorStat) {
 }
 
 TYPED_TEST(HwMirrorTest, HwUnresolvedMirrorStat) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
     cfg.mirrors()->resize(3);
@@ -909,7 +909,7 @@ TYPED_TEST(HwMirrorTest, HwUnresolvedMirrorStat) {
     EXPECT_TRUE(!unresolvedSflowMirror->isResolved());
     this->updateMirror(unresolvedSflowMirror);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto stats = utility::getHwTableStats(this->getHwSwitch());
     auto span = this->getProgrammedState()->getMirrors()->getNodeIf(kSpan);
     auto erspan = this->getProgrammedState()->getMirrors()->getNodeIf(kErspan);
@@ -932,7 +932,7 @@ TYPED_TEST(HwMirrorTest, HwUnresolvedMirrorStat) {
 }
 
 TYPED_TEST(HwMirrorTest, AclMirror) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
     cfg.mirrors()->push_back(this->getErspanMirror());
@@ -955,7 +955,7 @@ TYPED_TEST(HwMirrorTest, AclMirror) {
         params.macAddrs[3]));
     this->updateMirror(newMirror);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kErspan);
     utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
     utility::verifyAclMirrorDestination(this->getHwSwitch(), kErspan);
@@ -970,7 +970,7 @@ TYPED_TEST(HwMirrorTest, AclMirror) {
 }
 
 TYPED_TEST(HwMirrorTest, UpdateAclMirror) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
     cfg.mirrors()->push_back(this->getSpanMirror());
@@ -1004,7 +1004,7 @@ TYPED_TEST(HwMirrorTest, UpdateAclMirror) {
     }
     this->applyNewConfig(cfg);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto erspan = this->getProgrammedState()->getMirrors()->getNodeIf(kErspan);
     EXPECT_EQ(erspan, nullptr);
 
@@ -1022,7 +1022,7 @@ TYPED_TEST(HwMirrorTest, UpdateAclMirror) {
 }
 
 TYPED_TEST(HwMirrorTest, RemoveAclMirror) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
     cfg.mirrors()->push_back(this->getErspanMirror());
@@ -1053,7 +1053,7 @@ TYPED_TEST(HwMirrorTest, RemoveAclMirror) {
     }
     this->applyNewConfig(cfg);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kErspan);
     utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
     utility::verifyNoAclMirrorDestination(this->getHwSwitch(), kErspan);
@@ -1091,7 +1091,7 @@ TYPED_TEST(HwMirrorTest, HwMirrorLimitExceeded) {
 }
 
 TYPED_TEST(HwMirrorTest, SampleOnePort) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
     /* sampling one port and send traffic to sflow mirror */
@@ -1120,7 +1120,7 @@ TYPED_TEST(HwMirrorTest, SampleOnePort) {
         newMirror->getTunnelUdpPorts().value()));
     this->updateMirror(newMirror);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kSflow);
     utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
     std::vector<uint64_t> destinations;
@@ -1144,7 +1144,7 @@ TYPED_TEST(HwMirrorTest, SampleOnePort) {
 TYPED_TEST(HwMirrorTest, SampleAllPorts) {
   /* Setup sample destination to mirror for all ports, and mirror only one port
   this will ensure all port traffic is sampled and sent to that mirror */
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
     /* sampling all ports and send traffic to sflow mirror */
@@ -1174,7 +1174,7 @@ TYPED_TEST(HwMirrorTest, SampleAllPorts) {
         newMirror->getTunnelUdpPorts().value()));
     this->updateMirror(newMirror);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kSflow);
     utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
     std::vector<uint64_t> destinations;
@@ -1198,7 +1198,7 @@ TYPED_TEST(HwMirrorTest, SampleAllPorts) {
 }
 
 TYPED_TEST(HwMirrorTest, SflowMirrorWithErspanMirror) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
     cfg.mirrors()->push_back(this->getSflowMirror());
@@ -1252,7 +1252,7 @@ TYPED_TEST(HwMirrorTest, SflowMirrorWithErspanMirror) {
     }
     this->updateMirrors(updatedMirrors);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     for (auto mniter :
          std::as_const(*this->getProgrammedState()->getMirrors())) {
       for (auto iter : std::as_const(*mniter.second)) {
@@ -1301,7 +1301,7 @@ TYPED_TEST(HwMirrorTest, SflowMirrorWithErspanMirror) {
 }
 
 TYPED_TEST(HwMirrorTest, SflowMirrorWithErspanMirrorOnePortSflow) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
     cfg.mirrors()->push_back(this->getSflowMirror());
@@ -1361,7 +1361,7 @@ TYPED_TEST(HwMirrorTest, SflowMirrorWithErspanMirrorOnePortSflow) {
     portCfg->ingressMirror().reset();
     this->applyNewConfig(cfg);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     for (auto mniter :
          std::as_const(*this->getProgrammedState()->getMirrors())) {
       for (auto iter : std::as_const(*mniter.second)) {
@@ -1410,7 +1410,7 @@ TYPED_TEST(HwMirrorTest, SflowMirrorWithErspanMirrorOnePortSflow) {
 }
 
 TYPED_TEST(HwMirrorTest, SflowMirrorWithErspanMirrorNoPortSflow) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
     cfg.mirrors()->push_back(this->getSflowMirror());
@@ -1474,7 +1474,7 @@ TYPED_TEST(HwMirrorTest, SflowMirrorWithErspanMirrorNoPortSflow) {
     }
     this->applyNewConfig(cfg);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     for (auto mniter :
          std::as_const(*this->getProgrammedState()->getMirrors())) {
       for (auto iter : std::as_const(*mniter.second)) {
@@ -1521,7 +1521,7 @@ TYPED_TEST(HwMirrorTest, SflowMirrorWithErspanMirrorNoPortSflow) {
 }
 
 TYPED_TEST(HwMirrorTest, SampleAllPortsMirrorUnresolved) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
     /* sampling all ports and send traffic to sflow mirror */
@@ -1563,7 +1563,7 @@ TYPED_TEST(HwMirrorTest, SampleAllPortsMirrorUnresolved) {
 
     this->updateMirror(newMirror);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kSflow);
     utility::verifyUnResolvedMirror(this->getHwSwitch(), mirror);
     std::vector<uint64_t> destinations;
@@ -1588,7 +1588,7 @@ TYPED_TEST(HwMirrorTest, SampleAllPortsMirrorUnresolved) {
 }
 
 TYPED_TEST(HwMirrorTest, SampleAllPortsMirrorUnresolvedResolved) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
     /* sampling all ports and send traffic to sflow mirror */
@@ -1647,7 +1647,7 @@ TYPED_TEST(HwMirrorTest, SampleAllPortsMirrorUnresolvedResolved) {
         newMirror->getTunnelUdpPorts().value()));
     this->updateMirror(newMirror);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kSflow);
     utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
     std::vector<uint64_t> destinations;
@@ -1671,7 +1671,7 @@ TYPED_TEST(HwMirrorTest, SampleAllPortsMirrorUnresolvedResolved) {
 }
 
 TYPED_TEST(HwMirrorTest, SampleAllPortsMirrorUpdate) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
     /* sampling all ports and send traffic to sflow mirror */
@@ -1701,7 +1701,7 @@ TYPED_TEST(HwMirrorTest, SampleAllPortsMirrorUpdate) {
         newMirror->getTunnelUdpPorts().value()));
     this->updateMirror(newMirror);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kSflow);
     utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
     std::vector<uint64_t> destinations;
@@ -1715,7 +1715,7 @@ TYPED_TEST(HwMirrorTest, SampleAllPortsMirrorUpdate) {
           destinations[0]);
     }
   };
-  auto setupPostWb = [=] {
+  auto setupPostWb = [=, this] {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
     cfg.mirrors()->push_back(this->getSflowMirror());
@@ -1761,7 +1761,7 @@ TYPED_TEST(HwMirrorTest, SampleAllPortsMirrorUpdate) {
 }
 
 TYPED_TEST(HwMirrorTest, RemoveSampleAllPorts) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
     /* sampling all ports and send traffic to sflow mirror */
@@ -1795,7 +1795,7 @@ TYPED_TEST(HwMirrorTest, RemoveSampleAllPorts) {
     cfg = this->initialConfig();
     this->applyNewConfig(cfg);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kSflow);
     EXPECT_EQ(mirror, nullptr);
     std::vector<uint64_t> destinations;
@@ -1818,7 +1818,7 @@ TYPED_TEST(HwMirrorTest, RemoveSampleAllPorts) {
 }
 
 TYPED_TEST(HwMirrorTest, RemoveSampleAllPortsAfterWarmBoot) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
     /* sampling all ports and send traffic to sflow mirror */
@@ -1848,7 +1848,7 @@ TYPED_TEST(HwMirrorTest, RemoveSampleAllPortsAfterWarmBoot) {
         newMirror->getTunnelUdpPorts().value()));
     this->updateMirror(newMirror);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kSflow);
     utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
     std::vector<uint64_t> destinations;
@@ -1862,11 +1862,11 @@ TYPED_TEST(HwMirrorTest, RemoveSampleAllPortsAfterWarmBoot) {
           destinations[0]);
     }
   };
-  auto setupPostWb = [=]() {
+  auto setupPostWb = [=, this]() {
     /* reset all config */
     this->applyNewConfig(this->initialConfig());
   };
-  auto verifyPostWb = [=]() {
+  auto verifyPostWb = [=, this]() {
     auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kSflow);
     EXPECT_EQ(mirror, nullptr);
     std::vector<uint64_t> destinations;
@@ -1891,7 +1891,7 @@ TYPED_TEST(HwMirrorTest, RemoveSampleAllPortsAfterWarmBoot) {
 TYPED_TEST(HwMirrorTest, SampleAllPortsReloadConfig) {
   /* Setup sample destination to mirror for all ports, and mirror only one port
   this will ensure all port traffic is sampled and sent to that mirror */
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
     /* sampling all ports and send traffic to sflow mirror */
@@ -1924,7 +1924,7 @@ TYPED_TEST(HwMirrorTest, SampleAllPortsReloadConfig) {
     // reload config and verify mirror stays resolved
     this->applyNewConfig(cfg);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kSflow);
     utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
     std::vector<uint64_t> destinations;
@@ -1948,7 +1948,7 @@ TYPED_TEST(HwMirrorTest, SampleAllPortsReloadConfig) {
 }
 
 TYPED_TEST(HwMirrorTest, ResolvedErspanMirrorOnTrunk) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto params = this->testParams();
     auto cfg = this->initialConfig();
 
@@ -1972,7 +1972,7 @@ TYPED_TEST(HwMirrorTest, ResolvedErspanMirrorOnTrunk) {
         params.macAddrs[1]));
     this->updateMirror(newMirror);
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto mirror = this->getProgrammedState()->getMirrors()->getNodeIf(kErspan);
     utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
   };

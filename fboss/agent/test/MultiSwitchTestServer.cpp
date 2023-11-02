@@ -13,7 +13,7 @@ MultiSwitchTestServer::MultiSwitchTestServer(
         handlers,
     uint16_t port) {
   folly::Baton<> serverStartedBaton;
-  thriftThread_ = std::make_unique<std::thread>([=, &serverStartedBaton] {
+  thriftThread_ = std::make_unique<std::thread>([=, this, &serverStartedBaton] {
     // Uniquify SF name for different test runs, since they may run in
     // parallel
     std::string sfName = folly::to<std::string>(

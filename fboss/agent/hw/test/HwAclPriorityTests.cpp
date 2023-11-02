@@ -68,7 +68,7 @@ TEST_F(HwAclPriorityTest, CheckAclPriorityOrder) {
     applyNewConfig(newCfg);
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     for (auto acl : {"A", "B"}) {
       checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), acl);
     }
@@ -91,7 +91,7 @@ TEST_F(HwAclPriorityTest, CheckAclPriortyOrderInsertMiddle) {
     applyNewConfig(newCfg);
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     for (auto acl : {"A", "B", "C"}) {
       checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), acl);
     }
@@ -151,7 +151,7 @@ TEST_F(HwAclPriorityTest, AclsChanged) {
 }
 
 TEST_F(HwAclPriorityTest, Reprioritize) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     auto config = initialConfig();
     addPermitIpAcl(config, "B", folly::IPAddress("1::2"));
     addPermitIpAcl(config, "A", folly::IPAddress("1::3"));
@@ -169,7 +169,7 @@ TEST_F(HwAclPriorityTest, Reprioritize) {
     applyNewConfig(config);
   };
 
-  auto setupPostWb = [=]() {
+  auto setupPostWb = [=, this]() {
     auto config = initialConfig();
     addPermitIpAcl(config, "A", folly::IPAddress("1::3"));
     addPermitIpAcl(config, "B", folly::IPAddress("1::2"));

@@ -12,7 +12,7 @@ void HwTestLearningUpdateObserver::startObserving(HwSwitchEnsemble* ensemble) {
   std::lock_guard<std::mutex> lock(mtx_);
   ensemble_ = ensemble;
 
-  applyStateUpdateThread_ = std::make_unique<std::thread>([=]() {
+  applyStateUpdateThread_ = std::make_unique<std::thread>([=, this]() {
     initThread("apply state");
     applyStateUpdateEventBase_.loopForever();
   });

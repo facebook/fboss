@@ -298,7 +298,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, OneLabel) {
   // test that route is setup to labeled egress
   auto params = this->testParams(0);
   this->makeEcmpHelper(0, 1, params.nexthop, params.prefix.mask());
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     this->setupL3Route(
         ClientID::BGPD,
         params.prefix.network(),
@@ -309,7 +309,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, OneLabel) {
         params.nexthop, params.prefix.mask(), params.label.value());
     this->getProgrammedState();
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     this->verifyLabeledNextHop(params.prefix, params.label);
     for (const auto& port : this->labeledEgressPorts()) {
       this->verifyProgrammedStackOnPort(
@@ -333,7 +333,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, MaxLabels) {
   auto maxSize = this->getPlatform()->getAsic()->getMaxLabelStackDepth();
   auto params = this->testParams(0);
   this->makeEcmpHelper(0, 1, params.nexthop, params.prefix.mask());
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     // program l3 route with stack of size one less than maximum supported
     // additional label is adjacency label, which completes stack depth
     this->setupL3Route(
@@ -350,7 +350,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, MaxLabels) {
         params.label.value()); // apply adjacency label
     this->getProgrammedState();
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     // prepare expected stack
     // adjacency/tunnel label will be on top,
     // other labels will at the bottom of stack
@@ -378,7 +378,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, ExceedMaxLabels) {
   auto maxSize = this->getPlatform()->getAsic()->getMaxLabelStackDepth();
   auto params = this->testParams(0);
   this->makeEcmpHelper(0, 1, params.nexthop, params.prefix.mask());
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     this->setupL3Route(
         ClientID::BGPD,
         params.prefix.network(),
@@ -401,7 +401,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, HalfPathsWithLabels) {
   // test that labeled egress is associated with tunnel
   auto params = this->testParams(0);
   this->makeEcmpHelper(1, 1, params.nexthop, params.prefix.mask());
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     // program l3 route with stack of size one less than maximum supported
     // additional label is adjacency label, which completes stack depth
     this->setupL3Route(
@@ -415,7 +415,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, HalfPathsWithLabels) {
         params.nexthop, params.prefix.mask(), params.label.value());
     this->getProgrammedState();
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     std::map<PortDescriptor, LabelForwardingAction::LabelStack> stacks;
 
     for (const auto& unLabeledPort : this->unLabeledEgressPorts()) {
@@ -447,7 +447,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, PathWithDifferentTunnelLabels) {
   auto maxSize = this->getPlatform()->getAsic()->getMaxLabelStackDepth();
   auto params = this->testParams(0);
   this->makeEcmpHelper(0, 2, params.nexthop, params.prefix.mask());
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     this->setupL3Route(
         ClientID::BGPD,
         params.prefix.network(),
@@ -460,7 +460,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, PathWithDifferentTunnelLabels) {
         params.nexthop, params.prefix.mask(), params.label.value());
     this->getProgrammedState();
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     std::map<PortDescriptor, LabelForwardingAction::LabelStack> stacks;
     auto i = 0;
     for (auto labeledPort : this->labeledEgressPorts()) {
@@ -498,7 +498,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, PathsWithDifferentLabelStackSameTunnelLabel) {
   this->makeEcmpHelper(0, 2, params[1].nexthop, params[1].prefix.mask());
 
   Label tunnelLabel{511};
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     for (auto i = 0; i < params.size(); i++) {
       this->setupL3Route(
           ClientID::BGPD,
@@ -515,7 +515,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, PathsWithDifferentLabelStackSameTunnelLabel) {
     }
     this->getProgrammedState();
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     for (auto i = 0; i < params.size(); i++) {
       std::map<PortDescriptor, LabelForwardingAction::LabelStack> stacks;
       auto localTunnelLabel = tunnelLabel;
@@ -549,7 +549,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, PathsWithSameLabelStackDifferentTunnelLabel) {
   this->makeEcmpHelper(0, 2, params[0].nexthop, params[0].prefix.mask());
   this->makeEcmpHelper(0, 2, params[1].nexthop, params[1].prefix.mask());
 
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     for (auto i = 0; i < params.size(); i++) {
       this->setupL3Route(
           ClientID::BGPD,
@@ -566,7 +566,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, PathsWithSameLabelStackDifferentTunnelLabel) {
     }
     this->getProgrammedState();
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     for (auto i = 0; i < params.size(); i++) {
       std::map<PortDescriptor, LabelForwardingAction::LabelStack> stacks;
       auto j = 0;
@@ -604,7 +604,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, RoutesToSameNextHopWithDifferentStack) {
   };
   this->makeEcmpHelper(0, 2, params[0].nexthop, params[0].prefix.mask());
 
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     for (auto i = 0; i < params.size(); i++) {
       this->setupL3Route(
           ClientID::BGPD,
@@ -621,7 +621,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, RoutesToSameNextHopWithDifferentStack) {
         params[0].nexthop, params[0].prefix.mask(), params[0].label.value());
     this->getProgrammedState();
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     for (auto i = 0; i < params.size(); i++) {
       std::map<PortDescriptor, LabelForwardingAction::LabelStack> stacks;
 
@@ -646,7 +646,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, UnresolvedNextHops) {
   this->makeEcmpHelper(
       0, 2, params.nexthop, params.prefix.mask()); // two labeled ports
 
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     this->setupL3Route(
         ClientID::BGPD,
         params.prefix.network(),
@@ -658,7 +658,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, UnresolvedNextHops) {
         params.nexthop, params.prefix.mask(), params.label.value());
     this->getProgrammedState();
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     for (auto i = 0; i < 2; i++) {
       LabelForwardingAction::LabelStack stack{
           params.stack->begin(), params.stack->begin() + maxSize - 1};
@@ -676,7 +676,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, UnresolveResolvedNextHops) {
   this->makeEcmpHelper(
       0, 2, params.nexthop, params.prefix.mask()); // two labeled ports
 
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     this->setupL3Route(
         ClientID::BGPD,
         params.prefix.network(),
@@ -690,7 +690,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, UnresolveResolvedNextHops) {
     this->unresolveLabeledNextHops(params.nexthop, params.prefix.mask());
     this->getProgrammedState();
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     for (auto i = 0; i < 2; i++) {
       LabelForwardingAction::LabelStack stack{
           params.stack->begin(), params.stack->begin() + maxSize - 1};
@@ -707,7 +707,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, UnresolvedHybridNextHops) {
   auto params = this->testParams(0);
   this->makeEcmpHelper(1, 1, params.nexthop, params.prefix.mask());
 
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     this->setupL3Route(
         ClientID::BGPD,
         params.prefix.network(),
@@ -723,7 +723,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, UnresolvedHybridNextHops) {
     this->unresolveUnLabeledNextHops(params.nexthop, params.prefix.mask());
     this->getProgrammedState();
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     for (auto i = 0; i < 2; i++) {
       if (!i) {
         LabelForwardingAction::LabelStack stack{
@@ -747,7 +747,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, UnresolvedAndResolvedNextHopMultiPathGroup) {
   auto params = this->testParams(0);
   this->makeEcmpHelper(1, 1, params.nexthop, params.prefix.mask());
 
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     this->setupL3Route(
         ClientID::BGPD,
         params.prefix.network(),
@@ -760,7 +760,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, UnresolvedAndResolvedNextHopMultiPathGroup) {
     this->resolveUnLabeledNextHops(params.nexthop, params.prefix.mask());
     this->getProgrammedState();
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     for (auto i = 0; i < 2; i++) {
       if (!i) {
         LabelForwardingAction::LabelStack stack{
@@ -791,7 +791,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, UpdateRouteLabels) {
   this->makeEcmpHelper(0, 2, params[1].nexthop, params[1].prefix.mask());
 
   auto maxSize = this->getPlatform()->getAsic()->getMaxLabelStackDepth();
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     for (auto i = 0; i < 2; i++) {
       this->setupL3Route(
           ClientID::BGPD,
@@ -815,7 +815,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, UpdateRouteLabels) {
             params[0].stack->begin(), params[0].stack->begin() + maxSize - 1));
     this->getProgrammedState();
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     for (auto i = 0; i < 2; i++) {
       std::map<PortDescriptor, LabelForwardingAction::LabelStack> stacks;
       auto j = 0;
@@ -849,7 +849,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, UpdatePortLabel) {
   this->makeEcmpHelper(0, 2, params[1].nexthop, params[1].prefix.mask());
 
   auto maxSize = this->getPlatform()->getAsic()->getMaxLabelStackDepth();
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     for (auto i = 0; i < 2; i++) {
       this->setupL3Route(
           ClientID::BGPD,
@@ -874,7 +874,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, UpdatePortLabel) {
             params[1].stack->begin(), params[1].stack->begin() + maxSize - 1));
     this->getProgrammedState();
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     for (auto i = 0; i < 2; i++) {
       std::map<PortDescriptor, LabelForwardingAction::LabelStack> stacks;
       auto j = 0;
@@ -903,7 +903,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, RecursiveStackResolution) {
   auto halfSize = (maxSize >>= 1); // half label stack
   this->makeEcmpHelper(0, 2, params[1].nexthop, params[1].nexthop.bitCount());
 
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     this->setupL3Route(
         ClientID::BGPD,
         params[0].prefix.network(),
@@ -925,7 +925,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, RecursiveStackResolution) {
         params[1].label.value());
     this->getProgrammedState();
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     std::map<PortDescriptor, LabelForwardingAction::LabelStack> stacks;
     auto j = 0;
     for (auto labeledPort : this->labeledEgressPorts()) {
@@ -959,7 +959,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, TunnelRefTest) {
   this->makeEcmpHelper(0, 2, params[0].nexthop, params[0].nexthop.bitCount());
   this->makeEcmpHelper(0, 2, params[1].nexthop, params[1].nexthop.bitCount());
 
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     for (auto i = 0; i < 2; i++) {
       LabelForwardingAction::LabelStack stack{
           params[i].stack->begin(), params[i].stack->begin() + 1};
@@ -984,7 +984,7 @@ TYPED_TEST(HwLabelEdgeRouteTest, TunnelRefTest) {
     }
     this->getProgrammedState();
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     for (auto i = 0; i < 1; i++) {
       std::map<PortDescriptor, LabelForwardingAction::LabelStack> stacks;
       auto j = 0;

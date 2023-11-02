@@ -87,7 +87,7 @@ class Hw2QueueToOlympicQoSTest : public HwLinkStateDependentTest {
 
  protected:
   void runTest(bool frontPanel) {
-    auto setup = [=]() {
+    auto setup = [=, this]() {
       resolveNeigborAndProgramRoutes(*helper_, kEcmpWidth);
       auto newCfg{initialConfig()};
       auto streamType =
@@ -105,11 +105,11 @@ class Hw2QueueToOlympicQoSTest : public HwLinkStateDependentTest {
       applyNewConfig(newCfg);
     };
 
-    auto verify = [=]() {
+    auto verify = [=, this]() {
       _verifyDscpQueueMappingHelper(utility::k2QueueToDscp(), frontPanel);
     };
 
-    auto setupPostWarmboot = [=]() {
+    auto setupPostWarmboot = [=, this]() {
       auto newCfg{initialConfig()};
       auto streamType =
           *(getPlatform()
@@ -122,7 +122,7 @@ class Hw2QueueToOlympicQoSTest : public HwLinkStateDependentTest {
       applyNewConfig(newCfg);
     };
 
-    auto verifyPostWarmboot = [=]() {
+    auto verifyPostWarmboot = [=, this]() {
       _verifyDscpQueueMappingHelper(
           utility::kOlympicQueueToDscp(getPlatform()->getAsic()), frontPanel);
     };
