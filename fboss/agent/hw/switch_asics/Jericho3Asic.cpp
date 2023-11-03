@@ -45,7 +45,6 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::FEC:
     case HwAsic::Feature::FEC_CORRECTED_BITS:
     case HwAsic::Feature::RECYCLE_PORTS:
-    case HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE:
     case HwAsic::Feature::SAI_FEC_COUNTERS:
     case HwAsic::Feature::SAI_TTL0_PACKET_FORWARD_ENABLE:
     case HwAsic::Feature::PMD_RX_LOCK_STATUS:
@@ -74,6 +73,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ACL_COPY_TO_CPU:
     case HwAsic::Feature::ACL_COUNTER_LABEL:
     case HwAsic::Feature::RESOURCE_USAGE_STATS:
+    case HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE:
       return getAsicMode() != AsicMode::ASIC_MODE_HW_AI;
     case HwAsic::Feature::L3_QOS:
     case HwAsic::Feature::VOQ:
