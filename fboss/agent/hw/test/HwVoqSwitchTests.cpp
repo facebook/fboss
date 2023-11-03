@@ -481,7 +481,9 @@ TEST_F(HwVoqSwitchTest, sendPacketCpuAndFrontPanel) {
   const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
 
   auto setup = [this, kPort, ecmpHelper]() {
-    addDscpAclWithCounter();
+    if (isSupported(HwAsic::Feature::ACL_TABLE_GROUP)) {
+      addDscpAclWithCounter();
+    }
     addRemoveNeighbor(kPort, true /* add neighbor*/);
   };
 
@@ -531,7 +533,8 @@ TEST_F(HwVoqSwitchTest, sendPacketCpuAndFrontPanel) {
       }
 
       auto [beforeOutPkts, beforeOutBytes] = getPortOutPktsBytes();
-      auto beforeAclPkts = getAclPackets();
+      auto beforeAclPkts =
+          isSupported(HwAsic::Feature::ACL_TABLE_GROUP) ? getAclPackets() : 0;
       std::optional<PortID> frontPanelPort;
       if (isFrontPanel) {
         frontPanelPort = ecmpHelper.ecmpPortDescriptorAt(1).phyPortID();
@@ -547,7 +550,9 @@ TEST_F(HwVoqSwitchTest, sendPacketCpuAndFrontPanel) {
               std::tie(afterQueueOutPkts, afterQueueOutBytes) =
                   getQueueOutPktsBytes();
             }
-            auto afterAclPkts = getAclPackets();
+            auto afterAclPkts = isSupported(HwAsic::Feature::ACL_TABLE_GROUP)
+                ? getAclPackets()
+                : 0;
             auto portOutPktsAndBytes = getPortOutPktsBytes();
             auto afterOutPkts = portOutPktsAndBytes.first;
             auto afterOutBytes = portOutPktsAndBytes.second;
@@ -587,7 +592,9 @@ TEST_F(HwVoqSwitchTest, sendPacketCpuAndFrontPanel) {
               // txPacketSize is 322
               EXPECT_EVENTUALLY_GE(afterQueueOutBytes, beforeQueueOutBytes);
             }
-            EXPECT_EVENTUALLY_GT(afterAclPkts, beforeAclPkts);
+            if (isSupported(HwAsic::Feature::ACL_TABLE_GROUP)) {
+              EXPECT_EVENTUALLY_GT(afterAclPkts, beforeAclPkts);
+            }
             if (getAsic()->isSupported(HwAsic::Feature::VOQ)) {
               EXPECT_EVENTUALLY_GT(afterVoQOutBytes, beforeVoQOutBytes);
             }
