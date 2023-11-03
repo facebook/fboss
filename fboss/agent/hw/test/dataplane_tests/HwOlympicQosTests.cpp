@@ -33,7 +33,7 @@ class HwOlympicQosTests : public HwLinkStateDependentTest {
     return cfg;
   }
 
-  void verifyDscpQueueMapping(bool frontPanel) {
+  void verifyDscpQueueMapping() {
     auto setup = [=, this]() {
       resolveNeigborAndProgramRoutes(*helper_, kEcmpWidth);
 
@@ -44,17 +44,21 @@ class HwOlympicQosTests : public HwLinkStateDependentTest {
 
     auto verify = [=, this]() {
       auto portId = helper_->ecmpPortDescriptorAt(0).phyPortID();
-      auto portStatsBefore = getLatestPortStats(portId);
-      for (const auto& q2dscps : utility::kOlympicQueueToDscp(getAsic())) {
-        for (auto dscp : q2dscps.second) {
-          sendPacket(dscp, frontPanel);
+      for (bool frontPanel : {false, true}) {
+        XLOG(DBG2) << "verify send packets "
+                   << (frontPanel ? "out of port" : "switched");
+        auto portStatsBefore = getLatestPortStats(portId);
+        for (const auto& q2dscps : utility::kOlympicQueueToDscp(getAsic())) {
+          for (auto dscp : q2dscps.second) {
+            sendPacket(dscp, frontPanel);
+          }
         }
+        EXPECT_TRUE(utility::verifyQueueMappings(
+            portStatsBefore,
+            utility::kOlympicQueueToDscp(getAsic()),
+            getHwSwitchEnsemble(),
+            portId));
       }
-      EXPECT_TRUE(utility::verifyQueueMappings(
-          portStatsBefore,
-          utility::kOlympicQueueToDscp(getAsic()),
-          getHwSwitchEnsemble(),
-          portId));
     };
     verifyAcrossWarmBoots(setup, verify);
   }
@@ -92,16 +96,10 @@ class HwOlympicQosTests : public HwLinkStateDependentTest {
   std::unique_ptr<utility::EcmpSetupAnyNPorts6> helper_;
 };
 
-// Verify that traffic arriving on a front panel port is qos mapped to the
+// Verify that traffic arriving on a front panel/cpu port is qos mapped to the
 // correct queue for each olympic dscp value.
-TEST_F(HwOlympicQosTests, VerifyDscpQueueMappingFrontPanel) {
-  verifyDscpQueueMapping(true);
-}
-
-// Verify that traffic originating on the CPU is qos mapped to the correct
-// queue for each olympic dscp value.
-TEST_F(HwOlympicQosTests, VerifyDscpQueueMappingCpu) {
-  verifyDscpQueueMapping(false);
+TEST_F(HwOlympicQosTests, VerifyDscpQueueMapping) {
+  verifyDscpQueueMapping();
 }
 
 } // namespace facebook::fboss
