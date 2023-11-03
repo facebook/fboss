@@ -195,5 +195,6 @@ class WedgeManager : public TransceiverManager {
   std::unique_ptr<QsfpFsdbSyncManager> fsdbSyncManager_;
   std::string dataCenter_{""};
   std::string hostnameScheme_{""};
+  time_t nextOpticsToBmcSyncTime_{0};
 };
 } // namespace facebook::fboss

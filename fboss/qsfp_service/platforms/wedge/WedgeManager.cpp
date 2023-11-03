@@ -31,6 +31,11 @@ DEFINE_bool(
     false,
     "Override wedge_agent programInternalPhyPorts(). For test only");
 
+DEFINE_bool(
+    optics_thermal_data_post,
+    false,
+    "Enable qsfp_service to post optics thermal data to BMC");
+
 namespace facebook {
 namespace fboss {
 
@@ -41,6 +46,8 @@ constexpr int kSecAfterModuleOutOfReset = 2;
 static const std::unordered_set<TransceiverID> kEmptryTransceiverIDs = {};
 
 static const std::string kQsfpToBmcSyncDataVersion{"1.0"};
+
+static const int kOpticsThermalSyncInterval = 600;
 
 } // namespace
 
@@ -380,7 +387,20 @@ std::vector<TransceiverID> WedgeManager::refreshTransceivers() {
   updateTransceiverMap();
 
   // Finally refresh all transceivers without specifying any ids
-  return TransceiverManager::refreshTransceivers(kEmptryTransceiverIDs);
+  auto refreshedTransceivers =
+      TransceiverManager::refreshTransceivers(kEmptryTransceiverIDs);
+
+  // Send the optical thermal data to BMC if needed
+  auto currTime = std::time(nullptr);
+  if (FLAGS_optics_thermal_data_post &&
+      (nextOpticsToBmcSyncTime_ <= currTime)) {
+    // Post the optics thermal data to BMC
+    auto qsfpToBmcSyncData = getQsfpToBmcSyncDataSerialized();
+    // TODO(rajank): Post data to BMC
+    nextOpticsToBmcSyncTime_ = currTime + kOpticsThermalSyncInterval;
+  }
+
+  return refreshedTransceivers;
 }
 
 void WedgeManager::updateTcvrStateInFsdb(
