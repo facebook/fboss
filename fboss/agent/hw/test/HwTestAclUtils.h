@@ -82,6 +82,9 @@ void addAclTableGroup(
     cfg::AclStage aclStage,
     const std::string& aclTableGroupName = "AclTableGroup1");
 
+std::string kDefaultAclTable();
+void addDefaultAclTable(cfg::SwitchConfig& cfg);
+
 cfg::AclTable* addAclTable(
     cfg::SwitchConfig* cfg,
     const std::string& aclTableName,

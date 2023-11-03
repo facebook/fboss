@@ -66,14 +66,6 @@ class SaiAclTableGroupTest : public HwTest {
     return multipleAclTableSupport;
   }
 
-  void addDefaultAclTable(cfg::SwitchConfig& cfg) {
-    /* Create default ACL table similar to whats being done in Agent today */
-    std::vector<cfg::AclTableQualifier> qualifiers = {};
-    std::vector<cfg::AclTableActionType> actions = {};
-    utility::addAclTable(
-        &cfg, kDefaultAclTable(), 0 /* priority */, actions, qualifiers);
-  }
-
   void addAclTable1(cfg::SwitchConfig& cfg) {
     std::vector<cfg::AclTableQualifier> qualifiers = {
         cfg::AclTableQualifier::DSCP};
@@ -135,10 +127,6 @@ class SaiAclTableGroupTest : public HwTest {
     ASSERT_TRUE(isAclTableGroupEnabled(getHwSwitch(), SAI_ACL_STAGE_INGRESS));
     verifyAclTableHelper(kAclTable1(), kAclTable1Entry1(), 1);
     verifyAclTableHelper(kAclTable2(), kAclTable2Entry1(), 1);
-  }
-
-  std::string kDefaultAclTable() const {
-    return "AclTable1";
   }
 
   std::string kAclTable1() const {
@@ -719,15 +707,15 @@ TEST_F(SaiAclTableGroupTest, TestAclTableGroupRoundtrip) {
     auto newCfg = initialConfig();
 
     utility::addAclTableGroup(&newCfg, kAclStage(), "ingress-ACL-Table-Group");
-    addDefaultAclTable(newCfg);
+    utility::addDefaultAclTable(newCfg);
     applyNewConfig(newCfg);
 
-    addAclTable1Entry1(newCfg, kDefaultAclTable());
+    addAclTable1Entry1(newCfg, utility::kDefaultAclTable());
     applyNewConfig(newCfg);
   };
 
   auto verify = [=]() {
-    verifyAclTableHelper(kDefaultAclTable(), kAclTable1Entry1(), 1);
+    verifyAclTableHelper(utility::kDefaultAclTable(), kAclTable1Entry1(), 1);
   };
 
   verifyAcrossWarmBoots(setup, verify);

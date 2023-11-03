@@ -13,15 +13,38 @@
 #include "fboss/agent/hw/test/HwTestAclUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwTestQueuePerHostUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/lib/CommonUtils.h"
 
+namespace {
+enum AclType {
+  TCP_TTLD,
+  UDP_TTLD,
+  SRC_PORT,
+  UDF,
+};
+}
+
 namespace facebook::fboss {
 
+template <bool enableMultiAclTable>
+struct EnableMultiAclTableT {
+  static constexpr auto multiAclTableEnabled = enableMultiAclTable;
+};
+
+using TestTypes =
+    ::testing::Types<EnableMultiAclTableT<false>, EnableMultiAclTableT<true>>;
+
+template <typename EnableMultiAclTableT>
 class HwAclCounterTest : public HwLinkStateDependentTest {
+  static auto constexpr isMultiAclEnabled =
+      EnableMultiAclTableT::multiAclTableEnabled;
+
  protected:
   void SetUp() override {
+    FLAGS_enable_acl_table_group = isMultiAclEnabled;
     HwLinkStateDependentTest::SetUp();
     helper_ = std::make_unique<utility::EcmpSetupAnyNPorts6>(
         getProgrammedState(), RouterID(0));
@@ -31,14 +54,13 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
         getHwSwitch(),
         masterLogicalPortIds(),
         getAsic()->desiredLoopbackModes());
+    if (isMultiAclEnabled) {
+      utility::addAclTableGroup(
+          &cfg, cfg::AclStage::INGRESS, utility::getAclTableGroupName());
+      utility::addDefaultAclTable(cfg);
+    }
     return cfg;
   }
-  enum AclType {
-    TCP_TTLD,
-    UDP_TTLD,
-    SRC_PORT,
-    UDF,
-  };
 
   std::string getAclName(AclType aclType) const {
     std::string aclName{};
@@ -271,48 +293,55 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
   std::unique_ptr<utility::EcmpSetupAnyNPorts6> helper_;
 };
 
+TYPED_TEST_SUITE(HwAclCounterTest, TestTypes);
+
 // Verify that traffic arrive on a front panel port increments ACL counter.
-TEST_F(HwAclCounterTest, VerifyCounterBumpOnTtlHitFrontPanel) {
-  counterBumpOnHitHelper(
+TYPED_TEST(HwAclCounterTest, VerifyCounterBumpOnTtlHitFrontPanel) {
+  this->counterBumpOnHitHelper(
       true /* bump on hit */,
       true /* front panel port */,
       {AclType::TCP_TTLD, AclType::UDP_TTLD});
 }
 
-TEST_F(HwAclCounterTest, VerifyCounterBumpOnSportHitFrontPanel) {
-  counterBumpOnHitHelper(
+TYPED_TEST(HwAclCounterTest, VerifyCounterBumpOnSportHitFrontPanel) {
+  this->counterBumpOnHitHelper(
       true /* bump on hit */, true /* front panel port */, {AclType::SRC_PORT});
 }
 // Verify that traffic originating on the CPU increments ACL counter.
-TEST_F(HwAclCounterTest, VerifyCounterBumpOnTtlHitCpu) {
-  counterBumpOnHitHelper(
+TYPED_TEST(HwAclCounterTest, VerifyCounterBumpOnTtlHitCpu) {
+  this->counterBumpOnHitHelper(
       true /* bump on hit */,
       false /* cpu port */,
       {AclType::TCP_TTLD, AclType::UDP_TTLD});
 }
 
-TEST_F(HwAclCounterTest, VerifyCounterBumpOnSportHitCpu) {
-  counterBumpOnHitHelper(
+TYPED_TEST(HwAclCounterTest, VerifyCounterBumpOnSportHitCpu) {
+  this->counterBumpOnHitHelper(
       true /* bump on hit */, false /* cpu port */, {AclType::SRC_PORT});
 }
 
 // Verify that traffic arrive on a front panel port increments ACL counter.
-TEST_F(HwAclCounterTest, VerifyCounterNoTtlHitNoBumpFrontPanel) {
-  counterBumpOnHitHelper(
+TYPED_TEST(HwAclCounterTest, VerifyCounterNoTtlHitNoBumpFrontPanel) {
+  this->counterBumpOnHitHelper(
       false /* no hit, no bump */,
       true /* front panel port */,
       {AclType::TCP_TTLD, AclType::UDP_TTLD});
 }
 
 // Verify that traffic originating on the CPU increments ACL counter.
-TEST_F(HwAclCounterTest, VerifyCounterNoHitNoBumpCpu) {
-  counterBumpOnHitHelper(
+TYPED_TEST(HwAclCounterTest, VerifyCounterNoHitNoBumpCpu) {
+  this->counterBumpOnHitHelper(
       false /* no hit, no bump */,
       false /* cpu port */,
       {AclType::TCP_TTLD, AclType::UDP_TTLD});
 }
 
-class HwUdfAclCounterTest : public HwAclCounterTest {
+/*
+ * UDF Acls are not supported on SAI and multi ACL. So we only test with
+ * multi acl disabled for now.
+ */
+class HwUdfAclCounterTest
+    : public HwAclCounterTest<EnableMultiAclTableT<false>> {
  protected:
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = utility::onePortPerInterfaceConfig(

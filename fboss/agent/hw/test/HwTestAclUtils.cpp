@@ -65,7 +65,9 @@ cfg::AclEntry* addAcl(
   *acl.actionType() = aclActionType;
 
   if (FLAGS_enable_acl_table_group) {
-    int tableNumber = getAclTableIndex(cfg, tableName);
+    auto aclTableName =
+        tableName.has_value() ? tableName.value() : kDefaultAclTable();
+    int tableNumber = getAclTableIndex(cfg, aclTableName);
     cfg->aclTableGroup()->aclTables()[tableNumber].aclEntries()->push_back(acl);
     return &cfg->aclTableGroup()->aclTables()[tableNumber].aclEntries()->back();
   } else {
@@ -100,6 +102,17 @@ void addAclTableGroup(
   cfg->aclTableGroup() = cfgTableGroup;
   cfg->aclTableGroup()->name() = aclTableGroupName;
   cfg->aclTableGroup()->stage() = aclStage;
+}
+
+std::string kDefaultAclTable() {
+  return "AclTable1";
+}
+
+void addDefaultAclTable(cfg::SwitchConfig& cfg) {
+  /* Create default ACL table similar to whats being done in Agent today */
+  std::vector<cfg::AclTableQualifier> qualifiers = {};
+  std::vector<cfg::AclTableActionType> actions = {};
+  addAclTable(&cfg, kDefaultAclTable(), 0 /* priority */, actions, qualifiers);
 }
 
 cfg::AclTable* addAclTable(
