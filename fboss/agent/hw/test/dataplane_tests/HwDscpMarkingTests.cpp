@@ -36,7 +36,7 @@ class HwDscpMarkingTest : public HwLinkStateDependentTest {
     return cfg;
   }
 
-  void verifyDscpMarking(bool frontPanel) {
+  void verifyDscpMarking() {
     if (!isSupported(HwAsic::Feature::L3_QOS)) {
 #if defined(GTEST_SKIP)
       GTEST_SKIP();
@@ -80,67 +80,71 @@ class HwDscpMarkingTest : public HwLinkStateDependentTest {
       auto portId = helper_->ecmpPortDescriptorAt(0).phyPortID();
       auto portStatsBefore = getLatestPortStats(portId);
 
-      auto beforeAclInOutPkts = utility::getAclInOutPackets(
-          getHwSwitch(),
-          getProgrammedState(),
-          utility::kDscpCounterAclName(),
-          utility::kCounterName());
+      for (bool frontPanel : {false, true}) {
+        XLOG(DBG2) << "verify send packets "
+                   << (frontPanel ? "out of port" : "switched");
+        auto beforeAclInOutPkts = utility::getAclInOutPackets(
+            getHwSwitch(),
+            getProgrammedState(),
+            utility::kDscpCounterAclName(),
+            utility::kCounterName());
 
-      sendAllPackets(
-          0 /* No Dscp */,
-          frontPanel,
-          IP_PROTO::IP_PROTO_UDP,
-          utility::kUdpPorts());
-      sendAllPackets(
-          0 /* No Dscp */,
-          frontPanel,
-          IP_PROTO::IP_PROTO_TCP,
-          utility::kTcpPorts());
+        sendAllPackets(
+            0 /* No Dscp */,
+            frontPanel,
+            IP_PROTO::IP_PROTO_UDP,
+            utility::kUdpPorts());
+        sendAllPackets(
+            0 /* No Dscp */,
+            frontPanel,
+            IP_PROTO::IP_PROTO_TCP,
+            utility::kTcpPorts());
 
-      auto afterAclInOutPkts = utility::getAclInOutPackets(
-          getHwSwitch(),
-          getProgrammedState(),
-          utility::kDscpCounterAclName(),
-          utility::kCounterName());
+        auto afterAclInOutPkts = utility::getAclInOutPackets(
+            getHwSwitch(),
+            getProgrammedState(),
+            utility::kDscpCounterAclName(),
+            utility::kCounterName());
 
-      // See detailed comment block at the beginning of this function
-      EXPECT_EQ(
-          afterAclInOutPkts - beforeAclInOutPkts,
-          (1 /* ACL hit once */ * 2 /* l4SrcPort, l4DstPort */ *
-           utility::kUdpPorts().size()) +
-              (1 /* ACL hit once */ * 2 /* l4SrcPort, l4DstPort */ *
-               utility::kTcpPorts().size()));
+        // See detailed comment block at the beginning of this function
+        EXPECT_EQ(
+            afterAclInOutPkts - beforeAclInOutPkts,
+            (1 /* ACL hit once */ * 2 /* l4SrcPort, l4DstPort */ *
+             utility::kUdpPorts().size()) +
+                (1 /* ACL hit once */ * 2 /* l4SrcPort, l4DstPort */ *
+                 utility::kTcpPorts().size()));
 
-      EXPECT_TRUE(utility::verifyQueueMappings(
-          portStatsBefore,
-          {{utility::kOlympicICPQueueId, {utility::kIcpDscp(getAsic())}}},
-          getHwSwitchEnsemble(),
-          portId));
+        EXPECT_TRUE(utility::verifyQueueMappings(
+            portStatsBefore,
+            {{utility::kOlympicICPQueueId, {utility::kIcpDscp(getAsic())}}},
+            getHwSwitchEnsemble(),
+            portId));
 
-      sendAllPackets(
-          utility::kIcpDscp(getAsic()),
-          frontPanel,
-          IP_PROTO::IP_PROTO_UDP,
-          utility::kUdpPorts());
-      sendAllPackets(
-          utility::kIcpDscp(getAsic()),
-          frontPanel,
-          IP_PROTO::IP_PROTO_TCP,
-          utility::kTcpPorts());
+        sendAllPackets(
+            utility::kIcpDscp(getAsic()),
+            frontPanel,
+            IP_PROTO::IP_PROTO_UDP,
+            utility::kUdpPorts());
+        sendAllPackets(
+            utility::kIcpDscp(getAsic()),
+            frontPanel,
+            IP_PROTO::IP_PROTO_TCP,
+            utility::kTcpPorts());
 
-      auto afterAclInOutPkts2 = utility::getAclInOutPackets(
-          getHwSwitch(),
-          getProgrammedState(),
-          utility::kDscpCounterAclName(),
-          utility::kCounterName());
+        auto afterAclInOutPkts2 = utility::getAclInOutPackets(
+            getHwSwitch(),
+            getProgrammedState(),
+            utility::kDscpCounterAclName(),
+            utility::kCounterName());
 
-      // See detailed comment block at the beginning of this function
-      EXPECT_EQ(
-          afterAclInOutPkts2 - afterAclInOutPkts,
-          (2 /* ACL hit twice */ * 2 /* l4SrcPort, l4DstPort */ *
-           utility::kUdpPorts().size()) +
-              (2 /* ACL hit twice */ * 2 /* l4SrcPort, l4DstPort */ *
-               utility::kTcpPorts().size()));
+        // See detailed comment block at the beginning of this function
+        EXPECT_EQ(
+            afterAclInOutPkts2 - afterAclInOutPkts,
+            (2 /* ACL hit twice */ * 2 /* l4SrcPort, l4DstPort */ *
+             utility::kUdpPorts().size()) +
+                (2 /* ACL hit twice */ * 2 /* l4SrcPort, l4DstPort */ *
+                 utility::kTcpPorts().size()));
+      }
     };
 
     verifyAcrossWarmBoots(setup, verify);
@@ -227,17 +231,10 @@ class HwDscpMarkingTest : public HwLinkStateDependentTest {
 };
 
 // Verify that the DSCP unmarked traffic to specific L4 src/dst ports that
-// arrives on a forntl panel port is DSCP marked correctly as well as egresses
-// via the right QoS queue.
-TEST_F(HwDscpMarkingTest, VerifyDscpMarkingFrontPanel) {
-  verifyDscpMarking(true);
-}
-
-// Verify that the DSCP unmarked traffic to specific L4 src/dst ports that
-// originates from a CPU port is  DSCP marked correctly as well as egresses
-// via the right QoS queue.
-TEST_F(HwDscpMarkingTest, VerifyDscpMarkingCpu) {
-  verifyDscpMarking(false);
+// arrives on a forntl panel/cpu port is DSCP marked correctly as well as
+// egresses via the right QoS queue.
+TEST_F(HwDscpMarkingTest, VerifyDscpMarking) {
+  verifyDscpMarking();
 }
 
 } // namespace facebook::fboss
