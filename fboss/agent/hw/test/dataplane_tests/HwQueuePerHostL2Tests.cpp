@@ -60,15 +60,17 @@ class HwQueuePerHostL2Test : public HwLinkStateDependentTest {
               .at(queueId);
     }
 
-    auto txPacket = createL3Pkt(64 /* ttl < 128 */);
-    auto txPacket2 = createL3Pkt(128 /* ttl >= 128 */);
+    auto txPacket = createL3Pkt(64 /* ttl < 128 */, useFrontPanel);
+    auto txPacket2 = createL3Pkt(128 /* ttl >= 128 */, useFrontPanel);
 
     if (useFrontPanel) {
+      XLOG(DBG2) << "verify send packets out of port";
       getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
           std::move(txPacket), PortID(masterLogicalPortIds()[1]));
       getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
           std::move(txPacket2), PortID(masterLogicalPortIds()[1]));
     } else {
+      XLOG(DBG2) << "verify send packets switched";
       getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(txPacket));
       getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(txPacket2));
     }
@@ -142,11 +144,14 @@ class HwQueuePerHostL2Test : public HwLinkStateDependentTest {
         getHwSwitchEnsemble()->waitStatsCondition(aclStatsMatch, updateStats));
   }
 
-  std::unique_ptr<facebook::fboss::TxPacket> createL3Pkt(uint8_t ttl) {
+  std::unique_ptr<facebook::fboss::TxPacket> createL3Pkt(
+      uint8_t ttl,
+      bool useFrontPanel) {
+    auto srcMac = useFrontPanel ? kMac1() : utility::kLocalCpuMac();
     return utility::makeUDPTxPacket(
         getHwSwitch(),
         VlanID(*initialConfig().vlanPorts()[0].vlanID()),
-        kMac1(),
+        srcMac,
         kMac0(), // dstMac: packet to port0 (from CPU/port1)
         folly::IPAddressV6("1::1"), // srcIPv6
         folly::IPAddressV6("1::10"), // dstIPv6
@@ -223,29 +228,14 @@ TEST_F(HwQueuePerHostL2Test, VerifyHostToQueueMappingClassIDCpu) {
   auto setup = [this]() {
     addOrUpdateMacEntry(
         kMac0(), kPhysPortDescr0(), kClassID0(), MacEntryType::STATIC_ENTRY);
-  };
-
-  auto verify = [this]() { verifyHelper(false /* cpu port */); };
-
-  verifyAcrossWarmBoots(setup, verify);
-}
-
-TEST_F(HwQueuePerHostL2Test, VerifyHostToQueueMappingClassIDFrontPanel) {
-  if (!isSupported(HwAsic::Feature::L3_QOS)) {
-#if defined(GTEST_SKIP)
-    GTEST_SKIP();
-#endif
-    return;
-  }
-
-  auto setup = [this]() {
-    addOrUpdateMacEntry(
-        kMac0(), kPhysPortDescr0(), kClassID0(), MacEntryType::STATIC_ENTRY);
     addOrUpdateMacEntry(
         kMac1(), kPhysPortDescr1(), kClassID1(), MacEntryType::STATIC_ENTRY);
   };
 
-  auto verify = [this]() { verifyHelper(true /* front panel port */); };
+  auto verify = [this]() {
+    verifyHelper(false /* cpu port */);
+    verifyHelper(true /* front panel port */);
+  };
 
   verifyAcrossWarmBoots(setup, verify);
 }
