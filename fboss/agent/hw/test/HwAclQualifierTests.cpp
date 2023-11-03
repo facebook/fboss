@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTest.h"
 #include "fboss/agent/hw/test/HwTestAclUtils.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwTestQueuePerHostUtils.h"
 #include "fboss/agent/state/SwitchState.h"
 
 #include <string>
@@ -110,7 +111,19 @@ void configureAllIcmpQualifiers(
 
 namespace facebook::fboss {
 
+template <bool enableMultiAclTable>
+struct EnableMultiAclTableT {
+  static constexpr auto multiAclTableEnabled = enableMultiAclTable;
+};
+
+using TestTypes =
+    ::testing::Types<EnableMultiAclTableT<false>, EnableMultiAclTableT<true>>;
+
+template <typename EnableMultiAclTableT>
 class HwAclQualifierTest : public HwTest {
+  static auto constexpr isMultiAclEnabled =
+      EnableMultiAclTableT::multiAclTableEnabled;
+
  public:
   void configureAllHwQualifiers(cfg::AclEntry* acl, bool enable) {
     configureQualifier(
@@ -177,9 +190,9 @@ class HwAclQualifierTest : public HwTest {
     auto* acl = utility::addAcl(&newCfg, kAclName(), cfg::AclActionType::DENY);
 
     if (isIpV4) {
-      configureIp4QualifiersHelper(acl);
+      this->configureIp4QualifiersHelper(acl);
     } else {
-      configureIp6QualifiersHelper(acl);
+      this->configureIp6QualifiersHelper(acl);
     }
 
     switch (lookupClassType) {
@@ -220,173 +233,204 @@ class HwAclQualifierTest : public HwTest {
   }
 
  protected:
+  void SetUp() override {
+    FLAGS_enable_acl_table_group = isMultiAclEnabled;
+    HwTest::SetUp();
+    // Skip multi acl tests for fake sdk
+    if ((this->getPlatform()->getAsic()->getAsicType() ==
+         cfg::AsicType::ASIC_TYPE_FAKE) &&
+        (isMultiAclEnabled)) {
+      GTEST_SKIP();
+    }
+  }
+
   cfg::SwitchConfig initialConfig() const {
-    return utility::onePortPerInterfaceConfig(
+    auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         masterLogicalPortIds(),
         getAsic()->desiredLoopbackModes());
+    if (isMultiAclEnabled) {
+      utility::addAclTableGroup(
+          &cfg, cfg::AclStage::INGRESS, utility::getAclTableGroupName());
+      utility::addDefaultAclTable(cfg);
+    }
+    return cfg;
   }
 };
 
-TEST_F(HwAclQualifierTest, AclIp4TcpQualifiers) {
+TYPED_TEST_SUITE(HwAclQualifierTest, TestTypes);
+
+TYPED_TEST(HwAclQualifierTest, AclIp4TcpQualifiers) {
   auto setup = [=, this]() {
-    auto newCfg = initialConfig();
+    auto newCfg = this->initialConfig();
     auto* acl1 = utility::addAcl(&newCfg, "ip4_tcp", cfg::AclActionType::DENY);
-    configureAllHwQualifiers(acl1, true);
-    configureAllL2QualifiersHelper(acl1);
-    configureAllIpQualifiers(acl1, true, cfg::IpType::IP4, getAsicType());
-    configureAllTcpQualifiers(acl1, true, getAsicType());
-    applyNewConfig(newCfg);
+    this->configureAllHwQualifiers(acl1, true);
+    this->configureAllL2QualifiersHelper(acl1);
+    configureAllIpQualifiers(acl1, true, cfg::IpType::IP4, this->getAsicType());
+    configureAllTcpQualifiers(acl1, true, this->getAsicType());
+    this->applyNewConfig(newCfg);
   };
 
   auto verify = [=, this]() {
-    ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch()));
-    EXPECT_EQ(utility::getAclTableNumAclEntries(getHwSwitch()), 1);
-    utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "ip4_tcp");
+    ASSERT_TRUE(utility::isAclTableEnabled(this->getHwSwitch()));
+    EXPECT_EQ(utility::getAclTableNumAclEntries(this->getHwSwitch()), 1);
+    utility::checkSwHwAclMatch(
+        this->getHwSwitch(), this->getProgrammedState(), "ip4_tcp");
   };
 
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwAclQualifierTest, AclIp6TcpQualifiers) {
+TYPED_TEST(HwAclQualifierTest, AclIp6TcpQualifiers) {
   auto setup = [=, this]() {
-    auto newCfg = initialConfig();
+    auto newCfg = this->initialConfig();
     auto* acl1 = utility::addAcl(&newCfg, "ip6_tcp", cfg::AclActionType::DENY);
-    configureAllHwQualifiers(acl1, true);
-    configureAllL2QualifiersHelper(acl1);
-    configureAllIpQualifiers(acl1, true, cfg::IpType::IP6, getAsicType());
-    configureAllTcpQualifiers(acl1, true, getAsicType());
-    applyNewConfig(newCfg);
+    this->configureAllHwQualifiers(acl1, true);
+    this->configureAllL2QualifiersHelper(acl1);
+    configureAllIpQualifiers(acl1, true, cfg::IpType::IP6, this->getAsicType());
+    configureAllTcpQualifiers(acl1, true, this->getAsicType());
+    this->applyNewConfig(newCfg);
   };
 
   auto verify = [=, this]() {
-    ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch()));
-    EXPECT_EQ(utility::getAclTableNumAclEntries(getHwSwitch()), 1);
-    utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "ip6_tcp");
+    ASSERT_TRUE(utility::isAclTableEnabled(this->getHwSwitch()));
+    EXPECT_EQ(utility::getAclTableNumAclEntries(this->getHwSwitch()), 1);
+    utility::checkSwHwAclMatch(
+        this->getHwSwitch(), this->getProgrammedState(), "ip6_tcp");
   };
 
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwAclQualifierTest, AclIcmp4Qualifiers) {
+TYPED_TEST(HwAclQualifierTest, AclIcmp4Qualifiers) {
   auto setup = [=, this]() {
-    auto newCfg = initialConfig();
+    auto newCfg = this->initialConfig();
     auto* acl1 = utility::addAcl(&newCfg, "icmp4", cfg::AclActionType::DENY);
-    configureAllHwQualifiers(acl1, true);
-    configureAllL2QualifiersHelper(acl1);
-    configureAllIcmpQualifiers(acl1, true, cfg::IpType::IP4, getAsicType());
-    applyNewConfig(newCfg);
+    this->configureAllHwQualifiers(acl1, true);
+    this->configureAllL2QualifiersHelper(acl1);
+    configureAllIcmpQualifiers(
+        acl1, true, cfg::IpType::IP4, this->getAsicType());
+    this->applyNewConfig(newCfg);
   };
 
   auto verify = [=, this]() {
-    ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch()));
-    EXPECT_EQ(utility::getAclTableNumAclEntries(getHwSwitch()), 1);
-    utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "icmp4");
+    ASSERT_TRUE(utility::isAclTableEnabled(this->getHwSwitch()));
+    EXPECT_EQ(utility::getAclTableNumAclEntries(this->getHwSwitch()), 1);
+    utility::checkSwHwAclMatch(
+        this->getHwSwitch(), this->getProgrammedState(), "icmp4");
   };
 
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwAclQualifierTest, AclIcmp6Qualifiers) {
+TYPED_TEST(HwAclQualifierTest, AclIcmp6Qualifiers) {
   auto setup = [=, this]() {
-    auto newCfg = initialConfig();
+    auto newCfg = this->initialConfig();
     auto* acl1 = utility::addAcl(&newCfg, "icmp6", cfg::AclActionType::DENY);
-    configureAllHwQualifiers(acl1, true);
-    configureAllL2QualifiersHelper(acl1);
-    configureAllIcmpQualifiers(acl1, true, cfg::IpType::IP6, getAsicType());
-    applyNewConfig(newCfg);
+    this->configureAllHwQualifiers(acl1, true);
+    this->configureAllL2QualifiersHelper(acl1);
+    configureAllIcmpQualifiers(
+        acl1, true, cfg::IpType::IP6, this->getAsicType());
+    this->applyNewConfig(newCfg);
   };
 
   auto verify = [=, this]() {
-    ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch()));
-    EXPECT_EQ(utility::getAclTableNumAclEntries(getHwSwitch()), 1);
-    utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "icmp6");
+    ASSERT_TRUE(utility::isAclTableEnabled(this->getHwSwitch()));
+    EXPECT_EQ(utility::getAclTableNumAclEntries(this->getHwSwitch()), 1);
+    utility::checkSwHwAclMatch(
+        this->getHwSwitch(), this->getProgrammedState(), "icmp6");
   };
 
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwAclQualifierTest, AclRemove) {
+TYPED_TEST(HwAclQualifierTest, AclRemove) {
   auto setup = [=, this]() {
-    auto newCfg = initialConfig();
+    auto newCfg = this->initialConfig();
     auto* acl0 = utility::addAcl(&newCfg, "acl0", cfg::AclActionType::DENY);
     acl0->proto() = 6;
     auto* acl1 = utility::addAcl(&newCfg, "acl1", cfg::AclActionType::DENY);
     acl1->proto() = 58;
-    applyNewConfig(newCfg);
+    this->applyNewConfig(newCfg);
 
     utility::delAcl(&newCfg, "acl0");
-    applyNewConfig(newCfg);
+    this->applyNewConfig(newCfg);
   };
 
   auto verify = [=, this]() {
-    ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch()));
-    EXPECT_EQ(utility::getAclTableNumAclEntries(getHwSwitch()), 1);
-    utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "acl1");
+    ASSERT_TRUE(utility::isAclTableEnabled(this->getHwSwitch()));
+    EXPECT_EQ(utility::getAclTableNumAclEntries(this->getHwSwitch()), 1);
+    utility::checkSwHwAclMatch(
+        this->getHwSwitch(), this->getProgrammedState(), "acl1");
   };
 
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwAclQualifierTest, AclModifyQualifier) {
+TYPED_TEST(HwAclQualifierTest, AclModifyQualifier) {
   auto setup = [=, this]() {
-    auto newCfg = initialConfig();
+    auto newCfg = this->initialConfig();
     auto* acl = utility::addAcl(&newCfg, "acl0", cfg::AclActionType::DENY);
     // icmp6
-    configureAllHwQualifiers(acl, true);
-    configureAllL2QualifiersHelper(acl);
-    configureAllIcmpQualifiers(acl, true, cfg::IpType::IP6, getAsicType());
-    applyNewConfig(newCfg);
+    this->configureAllHwQualifiers(acl, true);
+    this->configureAllL2QualifiersHelper(acl);
+    configureAllIcmpQualifiers(
+        acl, true, cfg::IpType::IP6, this->getAsicType());
+    this->applyNewConfig(newCfg);
     // ip6 tcp
-    configureAllIcmpQualifiers(acl, false, cfg::IpType::IP6, getAsicType());
-    configureAllIpQualifiers(acl, true, cfg::IpType::IP6, getAsicType());
-    applyNewConfig(newCfg);
+    configureAllIcmpQualifiers(
+        acl, false, cfg::IpType::IP6, this->getAsicType());
+    configureAllIpQualifiers(acl, true, cfg::IpType::IP6, this->getAsicType());
+    this->applyNewConfig(newCfg);
     // imcp6
-    configureAllIpQualifiers(acl, false, cfg::IpType::IP6, getAsicType());
-    configureAllIcmpQualifiers(acl, true, cfg::IpType::IP6, getAsicType());
-    applyNewConfig(newCfg);
+    configureAllIpQualifiers(acl, false, cfg::IpType::IP6, this->getAsicType());
+    configureAllIcmpQualifiers(
+        acl, true, cfg::IpType::IP6, this->getAsicType());
+    this->applyNewConfig(newCfg);
   };
 
   auto verify = [=, this]() {
-    ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch()));
-    EXPECT_EQ(utility::getAclTableNumAclEntries(getHwSwitch()), 1);
-    utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "acl0");
+    ASSERT_TRUE(utility::isAclTableEnabled(this->getHwSwitch()));
+    EXPECT_EQ(utility::getAclTableNumAclEntries(this->getHwSwitch()), 1);
+    utility::checkSwHwAclMatch(
+        this->getHwSwitch(), this->getProgrammedState(), "acl0");
     EXPECT_FALSE(utility::isQualifierPresent<cfg::IpFragMatch>(
-        getHwSwitch(), getProgrammedState(), "acl0"));
+        this->getHwSwitch(), this->getProgrammedState(), "acl0"));
   };
 
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwAclQualifierTest, AclEmptyCodeIcmp) {
+TYPED_TEST(HwAclQualifierTest, AclEmptyCodeIcmp) {
   auto setup = [=, this]() {
-    auto newCfg = initialConfig();
+    auto newCfg = this->initialConfig();
     auto* acl = utility::addAcl(&newCfg, "acl0", cfg::AclActionType::DENY);
     // add a icmp rule w/ type and code value
     // Destination Unreachable(type=3):Source host isolated(code=8)
     acl->proto() = 58;
     acl->icmpType() = 3;
     acl->icmpCode() = 8;
-    applyNewConfig(newCfg);
+    this->applyNewConfig(newCfg);
     // change the rule to empty code icmp rule
     // Reserved for security(type=19 code is unset)
     acl->icmpType() = 19;
     acl->icmpCode().reset();
-    applyNewConfig(newCfg);
+    this->applyNewConfig(newCfg);
   };
 
   auto verify = [=, this]() {
-    EXPECT_EQ(utility::getAclTableNumAclEntries(getHwSwitch()), 1);
-    utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "acl0");
+    EXPECT_EQ(utility::getAclTableNumAclEntries(this->getHwSwitch()), 1);
+    utility::checkSwHwAclMatch(
+        this->getHwSwitch(), this->getProgrammedState(), "acl0");
   };
 
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwAclQualifierTest, AclVlanIDQualifier) {
+TYPED_TEST(HwAclQualifierTest, AclVlanIDQualifier) {
   auto setup = [=, this]() {
-    auto newCfg = initialConfig();
-    if (getPlatform()->getAsic()->getAsicType() ==
+    auto newCfg = this->initialConfig();
+    if (this->getPlatform()->getAsic()->getAsicType() ==
         cfg::AsicType::ASIC_TYPE_TRIDENT2) {
 #if defined(GTEST_SKIP)
       GTEST_SKIP();
@@ -396,113 +440,118 @@ TEST_F(HwAclQualifierTest, AclVlanIDQualifier) {
     auto* acl = utility::addAcl(&newCfg, "acl0", cfg::AclActionType::DENY);
 
     acl->vlanID() = 2001;
-    applyNewConfig(newCfg);
+    this->applyNewConfig(newCfg);
   };
 
   auto verify = [=, this]() {
-    if (getPlatform()->getAsic()->getAsicType() ==
+    if (this->getPlatform()->getAsic()->getAsicType() ==
         cfg::AsicType::ASIC_TYPE_TRIDENT2) {
       return;
     }
-    EXPECT_EQ(utility::getAclTableNumAclEntries(getHwSwitch()), 1);
-    utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "acl0");
+    EXPECT_EQ(utility::getAclTableNumAclEntries(this->getHwSwitch()), 1);
+    utility::checkSwHwAclMatch(
+        this->getHwSwitch(), this->getProgrammedState(), "acl0");
   };
 
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwAclQualifierTest, AclIp4Qualifiers) {
+TYPED_TEST(HwAclQualifierTest, AclIp4Qualifiers) {
   auto setup = [=, this]() {
-    auto newCfg = initialConfig();
+    auto newCfg = this->initialConfig();
     auto* acl = utility::addAcl(&newCfg, "ip4", cfg::AclActionType::DENY);
-    configureIp4QualifiersHelper(acl);
-    applyNewConfig(newCfg);
+    this->configureIp4QualifiersHelper(acl);
+    this->applyNewConfig(newCfg);
   };
 
   auto verify = [=, this]() {
-    ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch()));
-    EXPECT_EQ(utility::getAclTableNumAclEntries(getHwSwitch()), 1);
-    utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "ip4");
+    ASSERT_TRUE(utility::isAclTableEnabled(this->getHwSwitch()));
+    EXPECT_EQ(utility::getAclTableNumAclEntries(this->getHwSwitch()), 1);
+    utility::checkSwHwAclMatch(
+        this->getHwSwitch(), this->getProgrammedState(), "ip4");
   };
 
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwAclQualifierTest, AclIp6Qualifiers) {
+TYPED_TEST(HwAclQualifierTest, AclIp6Qualifiers) {
   auto setup = [=, this]() {
-    auto newCfg = initialConfig();
+    auto newCfg = this->initialConfig();
     auto* acl = utility::addAcl(&newCfg, "ip6", cfg::AclActionType::DENY);
-    configureIp6QualifiersHelper(acl);
-    applyNewConfig(newCfg);
+    this->configureIp6QualifiersHelper(acl);
+    this->applyNewConfig(newCfg);
   };
 
   auto verify = [=, this]() {
-    ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch()));
-    EXPECT_EQ(utility::getAclTableNumAclEntries(getHwSwitch()), 1);
-    utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "ip6");
+    ASSERT_TRUE(utility::isAclTableEnabled(this->getHwSwitch()));
+    EXPECT_EQ(utility::getAclTableNumAclEntries(this->getHwSwitch()), 1);
+    utility::checkSwHwAclMatch(
+        this->getHwSwitch(), this->getProgrammedState(), "ip6");
   };
 
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwAclQualifierTest, AclIp4LookupClassL2) {
+TYPED_TEST(HwAclQualifierTest, AclIp4LookupClassL2) {
   auto setup = [=, this]() {
-    aclSetupHelper(true /* isIpV4 */, QualifierType::LOOKUPCLASS_L2);
+    this->aclSetupHelper(true /* isIpV4 */, QualifierType::LOOKUPCLASS_L2);
   };
 
-  auto verify = [=, this]() { aclVerifyHelper(); };
+  auto verify = [=, this]() { this->aclVerifyHelper(); };
 
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwAclQualifierTest, AclIp4LookupClassNeighbor) {
+TYPED_TEST(HwAclQualifierTest, AclIp4LookupClassNeighbor) {
   auto setup = [=, this]() {
-    aclSetupHelper(true /* isIpV4 */, QualifierType::LOOKUPCLASS_NEIGHBOR);
+    this->aclSetupHelper(
+        true /* isIpV4 */, QualifierType::LOOKUPCLASS_NEIGHBOR);
   };
 
-  auto verify = [=, this]() { aclVerifyHelper(); };
+  auto verify = [=, this]() { this->aclVerifyHelper(); };
 
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwAclQualifierTest, AclIp4LookupClassRoute) {
+TYPED_TEST(HwAclQualifierTest, AclIp4LookupClassRoute) {
   auto setup = [=, this]() {
-    aclSetupHelper(true /* isIpV4 */, QualifierType::LOOKUPCLASS_ROUTE);
+    this->aclSetupHelper(true /* isIpV4 */, QualifierType::LOOKUPCLASS_ROUTE);
   };
 
-  auto verify = [=, this]() { aclVerifyHelper(); };
+  auto verify = [=, this]() { this->aclVerifyHelper(); };
 
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwAclQualifierTest, AclIp6LookupClassL2) {
+TYPED_TEST(HwAclQualifierTest, AclIp6LookupClassL2) {
   auto setup = [=, this]() {
-    aclSetupHelper(false /* isIpV6 */, QualifierType::LOOKUPCLASS_L2);
+    this->aclSetupHelper(false /* isIpV6 */, QualifierType::LOOKUPCLASS_L2);
   };
 
-  auto verify = [=, this]() { aclVerifyHelper(); };
+  auto verify = [=, this]() { this->aclVerifyHelper(); };
 
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwAclQualifierTest, AclIp6LookupClassNeighbor) {
+TYPED_TEST(HwAclQualifierTest, AclIp6LookupClassNeighbor) {
   auto setup = [=, this]() {
-    aclSetupHelper(false /* isIpV6 */, QualifierType::LOOKUPCLASS_NEIGHBOR);
+    this->aclSetupHelper(
+        false /* isIpV6 */, QualifierType::LOOKUPCLASS_NEIGHBOR);
   };
 
-  auto verify = [=, this]() { aclVerifyHelper(); };
+  auto verify = [=, this]() { this->aclVerifyHelper(); };
 
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwAclQualifierTest, AclIp6LookupClassRoute) {
+TYPED_TEST(HwAclQualifierTest, AclIp6LookupClassRoute) {
   auto setup = [=, this]() {
-    aclSetupHelper(false /* isIpV6 */, QualifierType::LOOKUPCLASS_ROUTE);
+    this->aclSetupHelper(false /* isIpV6 */, QualifierType::LOOKUPCLASS_ROUTE);
   };
 
-  auto verify = [=, this]() { aclVerifyHelper(); };
+  auto verify = [=, this]() { this->aclVerifyHelper(); };
 
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
 } // namespace facebook::fboss
