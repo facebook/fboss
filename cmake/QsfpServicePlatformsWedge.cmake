@@ -6,6 +6,7 @@
 add_library(qsfp_platforms_wedge
   fboss/qsfp_service/platforms/wedge/BspWedgeManager.cpp
   fboss/qsfp_service/platforms/wedge/WedgeManager.cpp
+  fboss/qsfp_service/platforms/wedge/QsfpRestClient.cpp
   fboss/qsfp_service/platforms/wedge/WedgeQsfp.cpp
   fboss/qsfp_service/platforms/wedge/Wedge100Manager.cpp
   fboss/qsfp_service/platforms/wedge/GalaxyManager.cpp
