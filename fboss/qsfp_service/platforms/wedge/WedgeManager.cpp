@@ -102,7 +102,13 @@ void WedgeManager::loadConfig() {
   qsfpConfig_ = QsfpConfig::fromDefaultFile();
   if (FLAGS_publish_state_to_fsdb) {
     fsdbSyncManager_->updateConfig(qsfpConfig_->thrift);
-    fsdbSyncManager_->start();
+    // We should only start the fsdbSyncManager_ once. isSystemInitialized is
+    // the flag for us to know whether this is the first time or not. In tests,
+    // we call loadConfig again and adding this check avoids the sync manager to
+    // start again (and subsequently throw an exception).
+    if (!isSystemInitialized()) {
+      fsdbSyncManager_->start();
+    }
   }
 }
 
