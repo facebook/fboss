@@ -38,12 +38,13 @@ TEST(ThreadHeartbeatTest, WatchDogTest) {
   testWd.start();
 
   // monitor 1 second, should be no missed heartbeats
-  sleep(1.0);
+  sleep(1.0); /* sleep override */
   EXPECT_TRUE(misses == 0);
   EXPECT_TRUE(heartbeats > 0);
 
   // emaulate thread got stuck, and expect missed heartbeats
   testEvb.runInEventBaseThreadAndWait([]() {
+    /* sleep override */
     std::this_thread::sleep_for(
         std::chrono::milliseconds(heartbeatInterval * 20));
   });
@@ -52,8 +53,30 @@ TEST(ThreadHeartbeatTest, WatchDogTest) {
   // continue monitoring another second, and expect no more missed
   // heartbeats
   auto missesBefore = misses.load();
-  sleep(1.0);
+  sleep(1.0); /* sleep override */
   EXPECT_TRUE(misses == missesBefore);
+
+  // pause monitoring thread, emulate thread got stuck, and expect no missed
+  // heartbeats
+  misses = 0;
+  testWd.pauseMonitoringHeartbeat(testHb);
+  testEvb.runInEventBaseThreadAndWait([]() {
+    /* sleep override */
+    std::this_thread::sleep_for(
+        std::chrono::milliseconds(heartbeatInterval * 20));
+  });
+  EXPECT_EQ(misses, 0);
+
+  // resume monitoring thread, emulate thread got stuck, and expect missed
+  // heartbeats again
+  misses = 0;
+  testWd.resumeMonitoringHeartbeat(testHb);
+  testEvb.runInEventBaseThreadAndWait([]() {
+    /* sleep override */
+    std::this_thread::sleep_for(
+        std::chrono::milliseconds(heartbeatInterval * 20));
+  });
+  EXPECT_GT(misses, 0);
 
   testWd.stop();
   testHb.reset();

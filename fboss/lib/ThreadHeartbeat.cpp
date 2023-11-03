@@ -37,13 +37,23 @@ void ThreadHeartbeatWatchdog::watchdogLoop() {
   while (running_) {
     for (auto& heartbeat : heartbeats_) {
       auto timestamp = heartbeat.first->getTimestamp();
+      auto paused = heartbeat.first->getMonitoringPaused();
       if (timestamp <= heartbeat.second &&
           timestamp != std::chrono::steady_clock::time_point::min()) {
         XLOG(ERR) << heartbeat.first->getThreadName()
                   << "thread heartbeat missed!";
-        heartbeatMissFunc_();
+        if (!paused) {
+          heartbeatMissFunc_();
+        } else {
+          XLOG(INFO)
+              << heartbeat.first->getThreadName()
+              << "thread heartbeat monitoring paused. Not reporting the missed heartbeat";
+        }
       }
-      heartbeats_.assign(heartbeat.first, timestamp);
+      // Update the timestamp only if we are monitoring this thread
+      if (!paused) {
+        heartbeats_.assign(heartbeat.first, timestamp);
+      }
     }
     std::unique_lock<std::mutex> l(m_);
     cv_.wait_for(l, intervalMsecs_, [this]() { return !running_; });

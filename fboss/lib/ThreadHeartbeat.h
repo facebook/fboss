@@ -51,6 +51,14 @@ class ThreadHeartbeat : private folly::AsyncTimeout {
     return threadName_;
   }
 
+  void setMonitoringPaused(bool pause) {
+    monitoringPaused_ = pause;
+  }
+
+  bool getMonitoringPaused() const {
+    return monitoringPaused_;
+  }
+
  private:
   void timeoutExpired() noexcept override;
 
@@ -69,6 +77,7 @@ class ThreadHeartbeat : private folly::AsyncTimeout {
   // XXX: these thresholds could be made configurable if needed
   int delayThresholdMsecs_ = 1000;
   int backlogThreshold_ = 10;
+  std::atomic_bool monitoringPaused_{false};
 };
 
 // monitor thread heartbeats, and alarm if heartbeat timestamp
@@ -98,6 +107,24 @@ class ThreadHeartbeatWatchdog {
           heartbeat->getThreadName());
     }
     heartbeats_.insert(heartbeat, std::chrono::steady_clock::time_point::min());
+  }
+
+  void pauseMonitoringHeartbeat(std::shared_ptr<ThreadHeartbeat> heartbeat) {
+    if (heartbeats_.find(heartbeat) == heartbeats_.end()) {
+      throw std::runtime_error(
+          "Heartbeat not yet monitored for thread " +
+          heartbeat->getThreadName());
+    }
+    heartbeat->setMonitoringPaused(true);
+  }
+
+  void resumeMonitoringHeartbeat(std::shared_ptr<ThreadHeartbeat> heartbeat) {
+    if (heartbeats_.find(heartbeat) == heartbeats_.end()) {
+      throw std::runtime_error(
+          "Heartbeat not yet monitored for thread " +
+          heartbeat->getThreadName());
+    }
+    heartbeat->setMonitoringPaused(false);
   }
 
   // start to monitor
