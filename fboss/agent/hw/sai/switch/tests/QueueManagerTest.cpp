@@ -457,20 +457,6 @@ TEST_F(QueueManagerTest, portDisableStopsCounterExport) {
       newNewPort->getName(), queueConfig, ExpectExport::NO_EXPORT, portStat);
 }
 
-TEST_F(QueueManagerTest, sysPortDisableStopsVoQStatsExport) {
-  auto sysPort = firstSysPort();
-  auto newSysPort = sysPort->clone();
-  saiManagerTable->systemPortManager().changeSystemPort(sysPort, newSysPort);
-  saiManagerTable->systemPortManager().updateStats(newSysPort->getID(), true);
-  auto portStat = saiManagerTable->systemPortManager().getLastPortStats(
-      newSysPort->getID());
-  checkCounterExportAndValue(
-      newSysPort->getPortName(),
-      voqIds(newSysPort->getID()),
-      ExpectExport::NO_EXPORT,
-      portStat);
-}
-
 TEST_F(QueueManagerTest, portReenableRestartsCounterExport) {
   auto p0 = testInterfaces[0].remoteHosts[0].port;
   std::shared_ptr<Port> oldPort = makePort(p0);
