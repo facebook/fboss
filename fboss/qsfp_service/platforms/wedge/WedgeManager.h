@@ -11,6 +11,7 @@
 #include "fboss/lib/usb/WedgeI2CBus.h"
 #include "fboss/qsfp_service/TransceiverManager.h"
 #include "fboss/qsfp_service/fsdb/QsfpFsdbSyncManager.h"
+#include "fboss/qsfp_service/platforms/wedge/QsfpRestClient.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.h"
 
 DECLARE_bool(override_program_iphy_ports_for_test);
@@ -193,6 +194,7 @@ class WedgeManager : public TransceiverManager {
       std::map<TransceiverID, std::unique_ptr<Transceiver>>>::WLockedPtr;
 
   std::unique_ptr<QsfpFsdbSyncManager> fsdbSyncManager_;
+  std::unique_ptr<QsfpRestClient> qsfpRestClient_;
   std::string dataCenter_{""};
   std::string hostnameScheme_{""};
   time_t nextOpticsToBmcSyncTime_{0};

@@ -47,7 +47,7 @@ static const std::unordered_set<TransceiverID> kEmptryTransceiverIDs = {};
 
 static const std::string kQsfpToBmcSyncDataVersion{"1.0"};
 
-static const int kOpticsThermalSyncInterval = 600;
+static const int kOpticsThermalSyncInterval = 300;
 
 } // namespace
 
@@ -70,8 +70,12 @@ WedgeManager::WedgeManager(
   if (FLAGS_publish_state_to_fsdb || FLAGS_publish_stats_to_fsdb) {
     fsdbSyncManager_ = std::make_unique<QsfpFsdbSyncManager>();
   }
+
   dataCenter_ = getDeviceDatacenter();
   hostnameScheme_ = getDeviceHostnameScheme();
+  if (FLAGS_optics_thermal_data_post) {
+    qsfpRestClient_ = std::make_unique<QsfpRestClient>();
+  }
 }
 
 WedgeManager::~WedgeManager() {
@@ -396,7 +400,19 @@ std::vector<TransceiverID> WedgeManager::refreshTransceivers() {
       (nextOpticsToBmcSyncTime_ <= currTime)) {
     // Post the optics thermal data to BMC
     auto qsfpToBmcSyncData = getQsfpToBmcSyncDataSerialized();
-    // TODO(rajank): Post data to BMC
+    // Post data to BMC using usb0 Rest endpoint
+    try {
+      auto ret = qsfpRestClient_->postQsfpThermalData(qsfpToBmcSyncData);
+      if (!ret) {
+        XLOG(ERR)
+            << "Failed to send QsfpThermal data to Rest endpoint, will try in "
+            << kOpticsThermalSyncInterval << " seconds again";
+      }
+    } catch (const FbossError& e) {
+      XLOG(ERR) << "Failed to send QsfpThermal data to Rest endpoint, will try "
+                << "in " << kOpticsThermalSyncInterval << " seconds again"
+                << ", error=" << e.what();
+    }
     nextOpticsToBmcSyncTime_ = currTime + kOpticsThermalSyncInterval;
   }
 
