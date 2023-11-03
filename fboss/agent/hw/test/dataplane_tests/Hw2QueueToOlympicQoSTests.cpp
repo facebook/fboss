@@ -86,7 +86,7 @@ class Hw2QueueToOlympicQoSTest : public HwLinkStateDependentTest {
   }
 
  protected:
-  void runTest(bool frontPanel) {
+  void runTest() {
     auto setup = [=, this]() {
       resolveNeigborAndProgramRoutes(*helper_, kEcmpWidth);
       auto newCfg{initialConfig()};
@@ -106,7 +106,10 @@ class Hw2QueueToOlympicQoSTest : public HwLinkStateDependentTest {
     };
 
     auto verify = [=, this]() {
-      _verifyDscpQueueMappingHelper(utility::k2QueueToDscp(), frontPanel);
+      XLOG(DBG2) << "verify send packets switched";
+      _verifyDscpQueueMappingHelper(utility::k2QueueToDscp(), false);
+      XLOG(DBG2) << "verify send packets out of port";
+      _verifyDscpQueueMappingHelper(utility::k2QueueToDscp(), true);
     };
 
     auto setupPostWarmboot = [=, this]() {
@@ -123,8 +126,12 @@ class Hw2QueueToOlympicQoSTest : public HwLinkStateDependentTest {
     };
 
     auto verifyPostWarmboot = [=, this]() {
+      XLOG(DBG2) << "verify send packets switched";
       _verifyDscpQueueMappingHelper(
-          utility::kOlympicQueueToDscp(getPlatform()->getAsic()), frontPanel);
+          utility::kOlympicQueueToDscp(getPlatform()->getAsic()), false);
+      XLOG(DBG2) << "verify send packets out of port";
+      _verifyDscpQueueMappingHelper(
+          utility::kOlympicQueueToDscp(getPlatform()->getAsic()), true);
     };
 
     verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
@@ -133,12 +140,8 @@ class Hw2QueueToOlympicQoSTest : public HwLinkStateDependentTest {
   std::unique_ptr<utility::EcmpSetupAnyNPorts6> helper_;
 };
 
-TEST_F(Hw2QueueToOlympicQoSTest, verifyDscpToQueueMappingCpu) {
-  runTest(false);
-}
-
-TEST_F(Hw2QueueToOlympicQoSTest, verifyDscpToQueueMappingFrontPanel) {
-  runTest(true);
+TEST_F(Hw2QueueToOlympicQoSTest, verifyDscpToQueueMapping) {
+  runTest();
 }
 
 } // namespace facebook::fboss
