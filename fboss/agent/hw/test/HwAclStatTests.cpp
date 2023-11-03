@@ -15,6 +15,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/CounterUtils.h"
 #include "fboss/agent/hw/test/HwTestAclUtils.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwTestQueuePerHostUtils.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 
@@ -24,13 +25,45 @@
 
 namespace facebook::fboss {
 
+template <bool enableMultiAclTable>
+struct EnableMultiAclTableT {
+  static constexpr auto multiAclTableEnabled = enableMultiAclTable;
+};
+
+using TestTypes =
+    ::testing::Types<EnableMultiAclTableT<false>, EnableMultiAclTableT<true>>;
+
+template <typename EnableMultiAclTableT>
 class HwAclStatTest : public HwTest {
+  static auto constexpr isMultiAclEnabled =
+      EnableMultiAclTableT::multiAclTableEnabled;
+
  protected:
+  void SetUp() override {
+    FLAGS_enable_acl_table_group = isMultiAclEnabled;
+    HwTest::SetUp();
+    /*
+     * Native SDK does not support multi acl feature.
+     * So skip multi acl tests for fake bcm sdk
+     */
+    if ((this->getPlatform()->getAsic()->getAsicType() ==
+         cfg::AsicType::ASIC_TYPE_FAKE) &&
+        (isMultiAclEnabled)) {
+      GTEST_SKIP();
+    }
+  }
+
   cfg::SwitchConfig initialConfig() const {
-    return utility::onePortPerInterfaceConfig(
+    auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         masterLogicalPortIds(),
         getAsic()->desiredLoopbackModes());
+    if (isMultiAclEnabled) {
+      utility::addAclTableGroup(
+          &cfg, cfg::AclStage::INGRESS, utility::getAclTableGroupName());
+      utility::addDefaultAclTable(cfg);
+    }
+    return cfg;
   }
 
   cfg::AclEntry* addDscpAcl(
@@ -44,686 +77,791 @@ class HwAclStatTest : public HwTest {
   }
 };
 
-TEST_F(HwAclStatTest, AclStatCreate) {
+TYPED_TEST_SUITE(HwAclStatTest, TestTypes);
+
+TYPED_TEST(HwAclStatTest, AclStatCreate) {
   auto setup = [=, this]() {
-    auto newCfg = initialConfig();
-    addDscpAcl(&newCfg, "acl0");
+    auto newCfg = this->initialConfig();
+    this->addDscpAcl(&newCfg, "acl0");
     utility::addAclStat(
-        &newCfg, "acl0", "stat0", utility::getAclCounterTypes(getHwSwitch()));
-    applyNewConfig(newCfg);
+        &newCfg,
+        "acl0",
+        "stat0",
+        utility::getAclCounterTypes(this->getHwSwitch()));
+    this->applyNewConfig(newCfg);
   };
 
   auto verify = [=, this]() {
     utility::checkAclEntryAndStatCount(
-        getHwSwitch(),
+        this->getHwSwitch(),
         /*ACLs*/ 1,
         /*stats*/ 1,
-        /*counters*/ utility::getAclCounterTypes(getHwSwitch()).size());
+        /*counters*/ utility::getAclCounterTypes(this->getHwSwitch()).size());
     utility::checkAclStat(
-        getHwSwitch(),
-        getProgrammedState(),
+        this->getHwSwitch(),
+        this->getProgrammedState(),
         {"acl0"},
         "stat0",
-        utility::getAclCounterTypes(getHwSwitch()));
+        utility::getAclCounterTypes(this->getHwSwitch()));
   };
 
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwAclStatTest, AclStatCreateDeleteCreate) {
+TYPED_TEST(HwAclStatTest, AclStatCreateDeleteCreate) {
   auto setup = [=, this]() {
-    auto newCfg = initialConfig();
-    addDscpAcl(&newCfg, "acl0");
+    auto newCfg = this->initialConfig();
+    this->addDscpAcl(&newCfg, "acl0");
     utility::addAclStat(
-        &newCfg, "acl0", "stat0", utility::getAclCounterTypes(getHwSwitch()));
-    applyNewConfig(newCfg);
+        &newCfg,
+        "acl0",
+        "stat0",
+        utility::getAclCounterTypes(this->getHwSwitch()));
+    this->applyNewConfig(newCfg);
   };
 
   auto verify = [=, this]() {
     EXPECT_TRUE(facebook::fb303::fbData->getStatMap()->contains(
         utility::statNameFromCounterType("stat0", cfg::CounterType::PACKETS)));
 
-    auto newCfg = initialConfig();
-    applyNewConfig(newCfg);
+    auto newCfg = this->initialConfig();
+    this->applyNewConfig(newCfg);
     EXPECT_FALSE(facebook::fb303::fbData->getStatMap()->contains(
         utility::statNameFromCounterType("stat0", cfg::CounterType::PACKETS)));
 
-    auto newCfg2 = initialConfig();
-    addDscpAcl(&newCfg2, "acl0");
+    auto newCfg2 = this->initialConfig();
+    this->addDscpAcl(&newCfg2, "acl0");
     utility::addAclStat(
-        &newCfg2, "acl0", "stat0", utility::getAclCounterTypes(getHwSwitch()));
-    applyNewConfig(newCfg2);
+        &newCfg2,
+        "acl0",
+        "stat0",
+        utility::getAclCounterTypes(this->getHwSwitch()));
+    this->applyNewConfig(newCfg2);
     EXPECT_TRUE(facebook::fb303::fbData->getStatMap()->contains(
         utility::statNameFromCounterType("stat0", cfg::CounterType::PACKETS)));
   };
 
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwAclStatTest, AclStatMultipleCounters) {
+TYPED_TEST(HwAclStatTest, AclStatMultipleCounters) {
   auto setup = [=, this]() {
-    auto newCfg = initialConfig();
-    addDscpAcl(&newCfg, "acl0");
+    auto newCfg = this->initialConfig();
+    this->addDscpAcl(&newCfg, "acl0");
     utility::addAclStat(
         &newCfg,
         "acl0",
         "stat0",
         {cfg::CounterType::BYTES, cfg::CounterType::PACKETS});
-    applyNewConfig(newCfg);
+    this->applyNewConfig(newCfg);
   };
 
   auto verify = [=, this]() {
     utility::checkAclEntryAndStatCount(
-        getHwSwitch(), /*ACLs*/ 1, /*stats*/ 1, /*counters*/ 2);
+        this->getHwSwitch(), /*ACLs*/ 1, /*stats*/ 1, /*counters*/ 2);
     utility::checkAclStat(
-        getHwSwitch(),
-        getProgrammedState(),
+        this->getHwSwitch(),
+        this->getProgrammedState(),
         {"acl0"},
         "stat0",
         {cfg::CounterType::BYTES, cfg::CounterType::PACKETS});
   };
 
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwAclStatTest, AclStatChangeCounterType) {
+TYPED_TEST(HwAclStatTest, AclStatChangeCounterType) {
   auto setup = [=, this]() {
-    auto newCfg = initialConfig();
-    addDscpAcl(&newCfg, "acl0");
+    auto newCfg = this->initialConfig();
+    this->addDscpAcl(&newCfg, "acl0");
     utility::addAclStat(&newCfg, "acl0", "stat0", {cfg::CounterType::PACKETS});
-    applyNewConfig(newCfg);
+    this->applyNewConfig(newCfg);
   };
 
   auto verify = [=, this]() {
     utility::checkAclEntryAndStatCount(
-        getHwSwitch(), /*ACLs*/ 1, /*stats*/ 1, /*counters*/ 1);
+        this->getHwSwitch(), /*ACLs*/ 1, /*stats*/ 1, /*counters*/ 1);
     utility::checkAclStat(
-        getHwSwitch(),
-        getProgrammedState(),
+        this->getHwSwitch(),
+        this->getProgrammedState(),
         {"acl0"},
         "stat0",
         {cfg::CounterType::PACKETS});
   };
 
   auto setupPostWB = [&]() {
-    auto newCfg = initialConfig();
-    addDscpAcl(&newCfg, "acl0");
+    auto newCfg = this->initialConfig();
+    this->addDscpAcl(&newCfg, "acl0");
     utility::addAclStat(&newCfg, "acl0", "stat0", {cfg::CounterType::BYTES});
-    applyNewConfig(newCfg);
+    this->applyNewConfig(newCfg);
   };
 
   auto verifyPostWB = [=, this]() {
     utility::checkAclEntryAndStatCount(
-        getHwSwitch(), /*ACLs*/ 1, /*stats*/ 1, /*counters*/ 1);
+        this->getHwSwitch(), /*ACLs*/ 1, /*stats*/ 1, /*counters*/ 1);
     utility::checkAclStat(
-        getHwSwitch(),
-        getProgrammedState(),
+        this->getHwSwitch(),
+        this->getProgrammedState(),
         {"acl0"},
         "stat0",
         {cfg::CounterType::BYTES});
   };
 
-  verifyAcrossWarmBoots(setup, verify, setupPostWB, verifyPostWB);
+  this->verifyAcrossWarmBoots(setup, verify, setupPostWB, verifyPostWB);
 }
 
-TEST_F(HwAclStatTest, AclStatCreateShared) {
+TYPED_TEST(HwAclStatTest, AclStatCreateShared) {
   auto setup = [=, this]() {
-    auto newCfg = initialConfig();
-    addDscpAcl(&newCfg, "acl0");
-    addDscpAcl(&newCfg, "acl1");
+    auto newCfg = this->initialConfig();
+    this->addDscpAcl(&newCfg, "acl0");
+    this->addDscpAcl(&newCfg, "acl1");
     utility::addAclStat(
-        &newCfg, "acl0", "stat", utility::getAclCounterTypes(getHwSwitch()));
+        &newCfg,
+        "acl0",
+        "stat",
+        utility::getAclCounterTypes(this->getHwSwitch()));
     utility::addAclStat(
-        &newCfg, "acl1", "stat", utility::getAclCounterTypes(getHwSwitch()));
-    applyNewConfig(newCfg);
+        &newCfg,
+        "acl1",
+        "stat",
+        utility::getAclCounterTypes(this->getHwSwitch()));
+    this->applyNewConfig(newCfg);
   };
 
   auto verify = [=, this]() {
     utility::checkAclEntryAndStatCount(
-        getHwSwitch(),
+        this->getHwSwitch(),
         /*ACLs*/ 2,
         /*stats*/ 1,
-        /*counters*/ utility::getAclCounterTypes(getHwSwitch()).size());
+        /*counters*/ utility::getAclCounterTypes(this->getHwSwitch()).size());
     utility::checkAclStat(
-        getHwSwitch(),
-        getProgrammedState(),
+        this->getHwSwitch(),
+        this->getProgrammedState(),
         {"acl0", "acl1"},
         "stat",
-        utility::getAclCounterTypes(getHwSwitch()));
+        utility::getAclCounterTypes(this->getHwSwitch()));
   };
 
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwAclStatTest, AclStatCreateMultiple) {
+TYPED_TEST(HwAclStatTest, AclStatCreateMultiple) {
   auto setup = [=, this]() {
-    auto newCfg = initialConfig();
-    addDscpAcl(&newCfg, "acl0");
-    addDscpAcl(&newCfg, "acl1");
+    auto newCfg = this->initialConfig();
+    this->addDscpAcl(&newCfg, "acl0");
+    this->addDscpAcl(&newCfg, "acl1");
     utility::addAclStat(
-        &newCfg, "acl0", "stat0", utility::getAclCounterTypes(getHwSwitch()));
+        &newCfg,
+        "acl0",
+        "stat0",
+        utility::getAclCounterTypes(this->getHwSwitch()));
     utility::addAclStat(
-        &newCfg, "acl1", "stat1", utility::getAclCounterTypes(getHwSwitch()));
-    applyNewConfig(newCfg);
+        &newCfg,
+        "acl1",
+        "stat1",
+        utility::getAclCounterTypes(this->getHwSwitch()));
+    this->applyNewConfig(newCfg);
   };
 
   auto verify = [=, this]() {
     utility::checkAclEntryAndStatCount(
-        getHwSwitch(),
+        this->getHwSwitch(),
         /*ACLs*/ 2,
         /*stats*/ 2,
-        /*counters*/ 2 * utility::getAclCounterTypes(getHwSwitch()).size());
+        /*counters*/ 2 *
+            utility::getAclCounterTypes(this->getHwSwitch()).size());
     utility::checkAclStat(
-        getHwSwitch(),
-        getProgrammedState(),
+        this->getHwSwitch(),
+        this->getProgrammedState(),
         {"acl0"},
         "stat0",
-        utility::getAclCounterTypes(getHwSwitch()));
+        utility::getAclCounterTypes(this->getHwSwitch()));
     utility::checkAclStat(
-        getHwSwitch(),
-        getProgrammedState(),
+        this->getHwSwitch(),
+        this->getProgrammedState(),
         {"acl1"},
         "stat1",
-        utility::getAclCounterTypes(getHwSwitch()));
+        utility::getAclCounterTypes(this->getHwSwitch()));
   };
 
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwAclStatTest, AclStatMultipleActions) {
+TYPED_TEST(HwAclStatTest, AclStatMultipleActions) {
   auto setup = [=, this]() {
-    auto newCfg = initialConfig();
-    addDscpAcl(&newCfg, "acl0");
+    auto newCfg = this->initialConfig();
+    this->addDscpAcl(&newCfg, "acl0");
     /* The ACL will have 2 actions: a counter and a queue */
     utility::addAclStat(
-        &newCfg, "acl0", "stat0", utility::getAclCounterTypes(getHwSwitch()));
+        &newCfg,
+        "acl0",
+        "stat0",
+        utility::getAclCounterTypes(this->getHwSwitch()));
     cfg::MatchAction matchAction = utility::getToQueueAction(0);
     cfg::MatchToAction action = cfg::MatchToAction();
     *action.matcher() = "acl0";
     *action.action() = matchAction;
     newCfg.dataPlaneTrafficPolicy()->matchToAction()->push_back(action);
-    applyNewConfig(newCfg);
+    this->applyNewConfig(newCfg);
   };
 
   auto verify = [=, this]() {
     utility::checkAclEntryAndStatCount(
-        getHwSwitch(),
+        this->getHwSwitch(),
         /*ACLs*/ 1,
         /*stats*/ 1,
-        /*counters*/ utility::getAclCounterTypes(getHwSwitch()).size());
+        /*counters*/ utility::getAclCounterTypes(this->getHwSwitch()).size());
     utility::checkAclStat(
-        getHwSwitch(),
-        getProgrammedState(),
+        this->getHwSwitch(),
+        this->getProgrammedState(),
         {"acl0"},
         "stat0",
-        utility::getAclCounterTypes(getHwSwitch()));
+        utility::getAclCounterTypes(this->getHwSwitch()));
   };
 
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwAclStatTest, AclStatDelete) {
+TYPED_TEST(HwAclStatTest, AclStatDelete) {
   auto setup = [=, this]() {
-    auto newCfg = initialConfig();
-    addDscpAcl(&newCfg, "acl0");
+    auto newCfg = this->initialConfig();
+    this->addDscpAcl(&newCfg, "acl0");
     utility::addAclStat(
-        &newCfg, "acl0", "stat0", utility::getAclCounterTypes(getHwSwitch()));
-    applyNewConfig(newCfg);
+        &newCfg,
+        "acl0",
+        "stat0",
+        utility::getAclCounterTypes(this->getHwSwitch()));
+    this->applyNewConfig(newCfg);
   };
 
   auto verify = [=, this]() {
     utility::checkAclEntryAndStatCount(
-        getHwSwitch(),
+        this->getHwSwitch(),
         /* ACLs */ 1,
         /* Stats */ 1,
-        /*counters*/ utility::getAclCounterTypes(getHwSwitch()).size());
+        /*counters*/ utility::getAclCounterTypes(this->getHwSwitch()).size());
     utility::checkAclStat(
-        getHwSwitch(),
-        getProgrammedState(),
+        this->getHwSwitch(),
+        this->getProgrammedState(),
         {"acl0"},
         "stat0",
-        utility::getAclCounterTypes(getHwSwitch()));
+        utility::getAclCounterTypes(this->getHwSwitch()));
   };
 
   auto setupPostWB = [&]() {
-    auto newCfg = initialConfig();
-    applyNewConfig(newCfg);
+    auto newCfg = this->initialConfig();
+    this->applyNewConfig(newCfg);
   };
 
   auto verifyPostWB = [=, this]() {
     utility::checkAclEntryAndStatCount(
-        getHwSwitch(), /*ACLs*/ 0, /*stats*/ 0, /*counters*/ 0);
-    utility::checkAclStatDeleted(getHwSwitch(), "stat0");
+        this->getHwSwitch(), /*ACLs*/ 0, /*stats*/ 0, /*counters*/ 0);
+    utility::checkAclStatDeleted(this->getHwSwitch(), "stat0");
   };
 
-  verifyAcrossWarmBoots(setup, verify, setupPostWB, verifyPostWB);
+  this->verifyAcrossWarmBoots(setup, verify, setupPostWB, verifyPostWB);
 }
 
-TEST_F(HwAclStatTest, AclStatCreatePostWarmBoot) {
+TYPED_TEST(HwAclStatTest, AclStatCreatePostWarmBoot) {
   auto setup = [=, this]() {
-    auto newCfg = initialConfig();
-    applyNewConfig(newCfg);
+    auto newCfg = this->initialConfig();
+    this->applyNewConfig(newCfg);
   };
 
   auto verify = [=]() {};
 
   auto setupPostWB = [&]() {
-    auto newCfg = initialConfig();
-    addDscpAcl(&newCfg, "acl0");
+    auto newCfg = this->initialConfig();
+    this->addDscpAcl(&newCfg, "acl0");
     utility::addAclStat(
-        &newCfg, "acl0", "stat0", utility::getAclCounterTypes(getHwSwitch()));
-    applyNewConfig(newCfg);
+        &newCfg,
+        "acl0",
+        "stat0",
+        utility::getAclCounterTypes(this->getHwSwitch()));
+    this->applyNewConfig(newCfg);
   };
 
   auto verifyPostWB = [=, this]() {
-    const auto& aclCounter = utility::getAclCounterTypes(getHwSwitch());
+    const auto& aclCounter = utility::getAclCounterTypes(this->getHwSwitch());
     utility::checkAclEntryAndStatCount(
-        getHwSwitch(),
+        this->getHwSwitch(),
         /*ACLs*/ 1,
         /*stats*/ 1,
         /*counters*/ 1 * aclCounter.size());
     utility::checkAclStat(
-        getHwSwitch(), getProgrammedState(), {"acl0"}, "stat0", aclCounter);
+        this->getHwSwitch(),
+        this->getProgrammedState(),
+        {"acl0"},
+        "stat0",
+        aclCounter);
   };
 
-  verifyAcrossWarmBoots(setup, verify, setupPostWB, verifyPostWB);
+  this->verifyAcrossWarmBoots(setup, verify, setupPostWB, verifyPostWB);
 }
 
-TEST_F(HwAclStatTest, AclStatDeleteSharedPostWarmBoot) {
+TYPED_TEST(HwAclStatTest, AclStatDeleteSharedPostWarmBoot) {
   auto setup = [=, this]() {
-    auto newCfg = initialConfig();
-    addDscpAcl(&newCfg, "acl0");
-    addDscpAcl(&newCfg, "acl1");
+    auto newCfg = this->initialConfig();
+    this->addDscpAcl(&newCfg, "acl0");
+    this->addDscpAcl(&newCfg, "acl1");
     utility::addAclStat(
-        &newCfg, "acl0", "stat", utility::getAclCounterTypes(getHwSwitch()));
+        &newCfg,
+        "acl0",
+        "stat",
+        utility::getAclCounterTypes(this->getHwSwitch()));
     utility::addAclStat(
-        &newCfg, "acl1", "stat", utility::getAclCounterTypes(getHwSwitch()));
-    applyNewConfig(newCfg);
+        &newCfg,
+        "acl1",
+        "stat",
+        utility::getAclCounterTypes(this->getHwSwitch()));
+    this->applyNewConfig(newCfg);
   };
 
   auto verify = [=, this]() {
     utility::checkAclEntryAndStatCount(
-        getHwSwitch(),
+        this->getHwSwitch(),
         /* ACLs */ 2,
         /* Stats */ 1,
-        /*counters*/ utility::getAclCounterTypes(getHwSwitch()).size());
+        /*counters*/ utility::getAclCounterTypes(this->getHwSwitch()).size());
     utility::checkAclStat(
-        getHwSwitch(),
-        getProgrammedState(),
+        this->getHwSwitch(),
+        this->getProgrammedState(),
         {"acl0", "acl1"},
         "stat",
-        utility::getAclCounterTypes(getHwSwitch()));
+        utility::getAclCounterTypes(this->getHwSwitch()));
   };
 
   auto setupPostWB = [&]() {
-    auto newCfg = initialConfig();
-    applyNewConfig(newCfg);
+    auto newCfg = this->initialConfig();
+    this->applyNewConfig(newCfg);
   };
 
   auto verifyPostWB = [=, this]() {
     utility::checkAclEntryAndStatCount(
-        getHwSwitch(), /*ACLs*/ 0, /*stats*/ 0, /*counters*/ 0);
-    utility::checkAclStatDeleted(getHwSwitch(), "stat0");
+        this->getHwSwitch(), /*ACLs*/ 0, /*stats*/ 0, /*counters*/ 0);
+    utility::checkAclStatDeleted(this->getHwSwitch(), "stat0");
   };
 
-  verifyAcrossWarmBoots(setup, verify, setupPostWB, verifyPostWB);
+  this->verifyAcrossWarmBoots(setup, verify, setupPostWB, verifyPostWB);
 }
 
-TEST_F(HwAclStatTest, AclStatCreateSharedPostWarmBoot) {
+TYPED_TEST(HwAclStatTest, AclStatCreateSharedPostWarmBoot) {
   auto setup = [=, this]() {
-    auto newCfg = initialConfig();
-    applyNewConfig(newCfg);
+    auto newCfg = this->initialConfig();
+    this->applyNewConfig(newCfg);
   };
 
   auto verify = [=]() {};
 
   auto setupPostWB = [=, this]() {
-    auto newCfg = initialConfig();
-    addDscpAcl(&newCfg, "acl0");
-    addDscpAcl(&newCfg, "acl1");
+    auto newCfg = this->initialConfig();
+    this->addDscpAcl(&newCfg, "acl0");
+    this->addDscpAcl(&newCfg, "acl1");
     utility::addAclStat(
-        &newCfg, "acl0", "stat", utility::getAclCounterTypes(getHwSwitch()));
+        &newCfg,
+        "acl0",
+        "stat",
+        utility::getAclCounterTypes(this->getHwSwitch()));
     utility::addAclStat(
-        &newCfg, "acl1", "stat", utility::getAclCounterTypes(getHwSwitch()));
-    applyNewConfig(newCfg);
+        &newCfg,
+        "acl1",
+        "stat",
+        utility::getAclCounterTypes(this->getHwSwitch()));
+    this->applyNewConfig(newCfg);
   };
 
   auto verifyPostWB = [=, this]() {
     utility::checkAclEntryAndStatCount(
-        getHwSwitch(),
+        this->getHwSwitch(),
         /*ACLs*/ 2,
         /*stats*/ 1,
-        /*counters*/ utility::getAclCounterTypes(getHwSwitch()).size());
+        /*counters*/ utility::getAclCounterTypes(this->getHwSwitch()).size());
     utility::checkAclStat(
-        getHwSwitch(),
-        getProgrammedState(),
+        this->getHwSwitch(),
+        this->getProgrammedState(),
         {"acl0", "acl1"},
         "stat",
-        utility::getAclCounterTypes(getHwSwitch()));
+        utility::getAclCounterTypes(this->getHwSwitch()));
   };
 
-  verifyAcrossWarmBoots(setup, verify, setupPostWB, verifyPostWB);
+  this->verifyAcrossWarmBoots(setup, verify, setupPostWB, verifyPostWB);
 }
 
-TEST_F(HwAclStatTest, AclStatDeleteShared) {
+TYPED_TEST(HwAclStatTest, AclStatDeleteShared) {
   auto setup = [=, this]() {
-    auto newCfg = initialConfig();
-    addDscpAcl(&newCfg, "acl0");
-    addDscpAcl(&newCfg, "acl1");
+    auto newCfg = this->initialConfig();
+    this->addDscpAcl(&newCfg, "acl0");
+    this->addDscpAcl(&newCfg, "acl1");
     utility::addAclStat(
-        &newCfg, "acl0", "stat", utility::getAclCounterTypes(getHwSwitch()));
+        &newCfg,
+        "acl0",
+        "stat",
+        utility::getAclCounterTypes(this->getHwSwitch()));
     utility::addAclStat(
-        &newCfg, "acl1", "stat", utility::getAclCounterTypes(getHwSwitch()));
-    applyNewConfig(newCfg);
+        &newCfg,
+        "acl1",
+        "stat",
+        utility::getAclCounterTypes(this->getHwSwitch()));
+    this->applyNewConfig(newCfg);
   };
 
   auto verify = [=, this]() {
     utility::checkAclEntryAndStatCount(
-        getHwSwitch(),
+        this->getHwSwitch(),
         /* ACLs */ 2,
         /* Stats */ 1,
-        /*counters*/ utility::getAclCounterTypes(getHwSwitch()).size());
+        /*counters*/ utility::getAclCounterTypes(this->getHwSwitch()).size());
     utility::checkAclStat(
-        getHwSwitch(),
-        getProgrammedState(),
+        this->getHwSwitch(),
+        this->getProgrammedState(),
         {"acl0", "acl1"},
         "stat",
-        utility::getAclCounterTypes(getHwSwitch()));
+        utility::getAclCounterTypes(this->getHwSwitch()));
   };
 
   auto setupPostWB = [=, this]() {
-    auto newCfg = initialConfig();
-    addDscpAcl(&newCfg, "acl1");
+    auto newCfg = this->initialConfig();
+    this->addDscpAcl(&newCfg, "acl1");
     utility::addAclStat(
-        &newCfg, "acl1", "stat", utility::getAclCounterTypes(getHwSwitch()));
-    applyNewConfig(newCfg);
+        &newCfg,
+        "acl1",
+        "stat",
+        utility::getAclCounterTypes(this->getHwSwitch()));
+    this->applyNewConfig(newCfg);
   };
 
   auto verifyPostWB = [=, this]() {
     utility::checkAclEntryAndStatCount(
-        getHwSwitch(),
+        this->getHwSwitch(),
         /*ACLs*/ 1,
         /*stats*/ 1,
-        /*counters*/ utility::getAclCounterTypes(getHwSwitch()).size());
+        /*counters*/ utility::getAclCounterTypes(this->getHwSwitch()).size());
     utility::checkAclStat(
-        getHwSwitch(),
-        getProgrammedState(),
+        this->getHwSwitch(),
+        this->getProgrammedState(),
         {"acl1"},
         "stat",
-        utility::getAclCounterTypes(getHwSwitch()));
+        utility::getAclCounterTypes(this->getHwSwitch()));
   };
 
-  verifyAcrossWarmBoots(setup, verify, setupPostWB, verifyPostWB);
+  this->verifyAcrossWarmBoots(setup, verify, setupPostWB, verifyPostWB);
 }
 
-TEST_F(HwAclStatTest, AclStatRename) {
+TYPED_TEST(HwAclStatTest, AclStatRename) {
   auto setup = [=, this]() {
-    auto newCfg = initialConfig();
-    addDscpAcl(&newCfg, "acl0");
+    auto newCfg = this->initialConfig();
+    this->addDscpAcl(&newCfg, "acl0");
     utility::addAclStat(
-        &newCfg, "acl0", "stat0", utility::getAclCounterTypes(getHwSwitch()));
-    applyNewConfig(newCfg);
+        &newCfg,
+        "acl0",
+        "stat0",
+        utility::getAclCounterTypes(this->getHwSwitch()));
+    this->applyNewConfig(newCfg);
   };
 
   auto verify = [=, this]() {
     utility::checkAclEntryAndStatCount(
-        getHwSwitch(),
+        this->getHwSwitch(),
         /* ACLs */ 1,
         /* Stats */ 1,
-        /*counters*/ utility::getAclCounterTypes(getHwSwitch()).size());
+        /*counters*/ utility::getAclCounterTypes(this->getHwSwitch()).size());
     utility::checkAclStat(
-        getHwSwitch(),
-        getProgrammedState(),
+        this->getHwSwitch(),
+        this->getProgrammedState(),
         {"acl0"},
         "stat0",
-        utility::getAclCounterTypes(getHwSwitch()));
+        utility::getAclCounterTypes(this->getHwSwitch()));
   };
 
   auto setupPostWB = [=, this]() {
-    auto newCfg = initialConfig();
-    addDscpAcl(&newCfg, "acl0");
+    auto newCfg = this->initialConfig();
+    this->addDscpAcl(&newCfg, "acl0");
     utility::addAclStat(
-        &newCfg, "acl0", "stat1", utility::getAclCounterTypes(getHwSwitch()));
-    applyNewConfig(newCfg);
+        &newCfg,
+        "acl0",
+        "stat1",
+        utility::getAclCounterTypes(this->getHwSwitch()));
+    this->applyNewConfig(newCfg);
   };
 
   auto verifyPostWB = [=, this]() {
     utility::checkAclEntryAndStatCount(
-        getHwSwitch(),
+        this->getHwSwitch(),
         /*ACLs*/ 1,
         /*stats*/ 1,
-        /*counters*/ utility::getAclCounterTypes(getHwSwitch()).size());
+        /*counters*/ utility::getAclCounterTypes(this->getHwSwitch()).size());
     utility::checkAclStat(
-        getHwSwitch(),
-        getProgrammedState(),
+        this->getHwSwitch(),
+        this->getProgrammedState(),
         {"acl0"},
         "stat1",
-        utility::getAclCounterTypes(getHwSwitch()));
-    utility::checkAclStatDeleted(getHwSwitch(), "stat0");
+        utility::getAclCounterTypes(this->getHwSwitch()));
+    utility::checkAclStatDeleted(this->getHwSwitch(), "stat0");
   };
 
-  verifyAcrossWarmBoots(setup, verify, setupPostWB, verifyPostWB);
+  this->verifyAcrossWarmBoots(setup, verify, setupPostWB, verifyPostWB);
 }
 
-TEST_F(HwAclStatTest, AclStatRenameShared) {
+TYPED_TEST(HwAclStatTest, AclStatRenameShared) {
   auto setup = [=, this]() {
-    auto newCfg = initialConfig();
-    addDscpAcl(&newCfg, "acl0");
-    addDscpAcl(&newCfg, "acl1");
+    auto newCfg = this->initialConfig();
+    this->addDscpAcl(&newCfg, "acl0");
+    this->addDscpAcl(&newCfg, "acl1");
     utility::addAclStat(
-        &newCfg, "acl0", "stat0", utility::getAclCounterTypes(getHwSwitch()));
+        &newCfg,
+        "acl0",
+        "stat0",
+        utility::getAclCounterTypes(this->getHwSwitch()));
     utility::addAclStat(
-        &newCfg, "acl1", "stat0", utility::getAclCounterTypes(getHwSwitch()));
-    applyNewConfig(newCfg);
+        &newCfg,
+        "acl1",
+        "stat0",
+        utility::getAclCounterTypes(this->getHwSwitch()));
+    this->applyNewConfig(newCfg);
   };
 
   auto verify = [=, this]() {
     utility::checkAclEntryAndStatCount(
-        getHwSwitch(),
+        this->getHwSwitch(),
         /* ACLs */ 2,
         /* Stats */ 1,
-        /*counters*/ utility::getAclCounterTypes(getHwSwitch()).size());
+        /*counters*/ utility::getAclCounterTypes(this->getHwSwitch()).size());
     utility::checkAclStat(
-        getHwSwitch(),
-        getProgrammedState(),
+        this->getHwSwitch(),
+        this->getProgrammedState(),
         {"acl0", "acl1"},
         "stat0",
-        utility::getAclCounterTypes(getHwSwitch()));
+        utility::getAclCounterTypes(this->getHwSwitch()));
   };
 
   auto setupPostWB = [=, this]() {
-    auto newCfg = initialConfig();
-    addDscpAcl(&newCfg, "acl0");
-    addDscpAcl(&newCfg, "acl1");
+    auto newCfg = this->initialConfig();
+    this->addDscpAcl(&newCfg, "acl0");
+    this->addDscpAcl(&newCfg, "acl1");
     utility::addAclStat(
-        &newCfg, "acl0", "stat0", utility::getAclCounterTypes(getHwSwitch()));
+        &newCfg,
+        "acl0",
+        "stat0",
+        utility::getAclCounterTypes(this->getHwSwitch()));
     utility::addAclStat(
-        &newCfg, "acl1", "stat1", utility::getAclCounterTypes(getHwSwitch()));
-    applyNewConfig(newCfg);
+        &newCfg,
+        "acl1",
+        "stat1",
+        utility::getAclCounterTypes(this->getHwSwitch()));
+    this->applyNewConfig(newCfg);
   };
 
   auto verifyPostWB = [=, this]() {
     utility::checkAclEntryAndStatCount(
-        getHwSwitch(),
+        this->getHwSwitch(),
         /*ACLs*/ 2,
         /*stats*/ 2,
-        /*counters*/ 2 * utility::getAclCounterTypes(getHwSwitch()).size());
+        /*counters*/ 2 *
+            utility::getAclCounterTypes(this->getHwSwitch()).size());
     utility::checkAclStat(
-        getHwSwitch(),
-        getProgrammedState(),
+        this->getHwSwitch(),
+        this->getProgrammedState(),
         {"acl0"},
         "stat0",
-        utility::getAclCounterTypes(getHwSwitch()));
+        utility::getAclCounterTypes(this->getHwSwitch()));
     utility::checkAclStat(
-        getHwSwitch(),
-        getProgrammedState(),
+        this->getHwSwitch(),
+        this->getProgrammedState(),
         {"acl1"},
         "stat1",
-        utility::getAclCounterTypes(getHwSwitch()));
+        utility::getAclCounterTypes(this->getHwSwitch()));
   };
 
-  verifyAcrossWarmBoots(setup, verify, setupPostWB, verifyPostWB);
+  this->verifyAcrossWarmBoots(setup, verify, setupPostWB, verifyPostWB);
 }
 
-TEST_F(HwAclStatTest, AclStatCreateSameTwice) {
-  auto state = getProgrammedState();
-  auto newCfg = initialConfig();
-  addDscpAcl(&newCfg, "acl0");
+TYPED_TEST(HwAclStatTest, AclStatCreateSameTwice) {
+  auto state = this->getProgrammedState();
+  auto newCfg = this->initialConfig();
+  this->addDscpAcl(&newCfg, "acl0");
   utility::addAclStat(
-      &newCfg, "acl0", "stat0", utility::getAclCounterTypes(getHwSwitch()));
-  applyNewConfig(newCfg);
-  StateDelta delta(state, getProgrammedState());
+      &newCfg,
+      "acl0",
+      "stat0",
+      utility::getAclCounterTypes(this->getHwSwitch()));
+  this->applyNewConfig(newCfg);
+  StateDelta delta(state, this->getProgrammedState());
   if (FLAGS_enable_state_oper_delta) {
     // adding same ACL twice with oper delta and state maintained in HW switch
     // leads to process change. not process added.
-    EXPECT_NO_THROW(getHwSwitch()->stateChanged(delta));
+    EXPECT_NO_THROW(this->getHwSwitch()->stateChanged(delta));
   } else {
-    EXPECT_THROW(getHwSwitch()->stateChanged(delta), FbossError);
+    EXPECT_THROW(this->getHwSwitch()->stateChanged(delta), FbossError);
   }
 }
 
-TEST_F(HwAclStatTest, AclStatDeleteNonExistent) {
-  auto newCfg = initialConfig();
-  addDscpAcl(&newCfg, "acl0");
+TYPED_TEST(HwAclStatTest, AclStatDeleteNonExistent) {
+  auto newCfg = this->initialConfig();
+  this->addDscpAcl(&newCfg, "acl0");
   utility::addAclStat(
-      &newCfg, "acl0", "stat0", utility::getAclCounterTypes(getHwSwitch()));
-  applyNewConfig(newCfg);
+      &newCfg,
+      "acl0",
+      "stat0",
+      utility::getAclCounterTypes(this->getHwSwitch()));
+  this->applyNewConfig(newCfg);
 
-  auto state = getProgrammedState();
+  auto state = this->getProgrammedState();
   utility::delAcl(&newCfg, "acl0");
   utility::delAclStat(&newCfg, "acl0", "stat0");
-  applyNewConfig(newCfg);
-  StateDelta delta(state, getProgrammedState());
+  this->applyNewConfig(newCfg);
+  StateDelta delta(state, this->getProgrammedState());
 
   // TODO(pshaikh): uncomment next release
   // EXPECT_THROW(getHwSwitch()->stateChanged(delta), FbossError);
 }
 
-TEST_F(HwAclStatTest, AclStatModify) {
+TYPED_TEST(HwAclStatTest, AclStatModify) {
   auto setup = [=, this]() {
-    auto newCfg = initialConfig();
-    addDscpAcl(&newCfg, "acl0");
+    auto newCfg = this->initialConfig();
+    this->addDscpAcl(&newCfg, "acl0");
     utility::addAclStat(
-        &newCfg, "acl0", "stat0", utility::getAclCounterTypes(getHwSwitch()));
-    applyNewConfig(newCfg);
+        &newCfg,
+        "acl0",
+        "stat0",
+        utility::getAclCounterTypes(this->getHwSwitch()));
+    this->applyNewConfig(newCfg);
   };
 
   auto verify = [=, this]() {
     utility::checkAclEntryAndStatCount(
-        getHwSwitch(),
+        this->getHwSwitch(),
         /* ACLs */ 1,
         /* Stats */ 1,
-        /*counters*/ utility::getAclCounterTypes(getHwSwitch()).size());
+        /*counters*/ utility::getAclCounterTypes(this->getHwSwitch()).size());
     utility::checkAclStat(
-        getHwSwitch(),
-        getProgrammedState(),
+        this->getHwSwitch(),
+        this->getProgrammedState(),
         {"acl0"},
         "stat0",
-        utility::getAclCounterTypes(getHwSwitch()));
+        utility::getAclCounterTypes(this->getHwSwitch()));
   };
 
   auto setupPostWB = [=, this]() {
-    auto newCfg = initialConfig();
-    auto acl = addDscpAcl(&newCfg, "acl0");
+    auto newCfg = this->initialConfig();
+    auto acl = this->addDscpAcl(&newCfg, "acl0");
     acl->proto() = 58;
     utility::addAclStat(
-        &newCfg, "acl0", "stat0", utility::getAclCounterTypes(getHwSwitch()));
-    applyNewConfig(newCfg);
+        &newCfg,
+        "acl0",
+        "stat0",
+        utility::getAclCounterTypes(this->getHwSwitch()));
+    this->applyNewConfig(newCfg);
   };
 
-  verifyAcrossWarmBoots(setup, verify, setupPostWB, verify);
+  this->verifyAcrossWarmBoots(setup, verify, setupPostWB, verify);
 }
 
-TEST_F(HwAclStatTest, AclStatShuffle) {
+TYPED_TEST(HwAclStatTest, AclStatShuffle) {
   auto setup = [=, this]() {
-    auto newCfg = initialConfig();
-    addDscpAcl(&newCfg, "acl0");
-    addDscpAcl(&newCfg, "acl1");
+    auto newCfg = this->initialConfig();
+    this->addDscpAcl(&newCfg, "acl0");
+    this->addDscpAcl(&newCfg, "acl1");
     utility::addAclStat(
-        &newCfg, "acl0", "stat0", utility::getAclCounterTypes(getHwSwitch()));
+        &newCfg,
+        "acl0",
+        "stat0",
+        utility::getAclCounterTypes(this->getHwSwitch()));
     utility::addAclStat(
-        &newCfg, "acl1", "stat1", utility::getAclCounterTypes(getHwSwitch()));
-    applyNewConfig(newCfg);
+        &newCfg,
+        "acl1",
+        "stat1",
+        utility::getAclCounterTypes(this->getHwSwitch()));
+    this->applyNewConfig(newCfg);
   };
 
   auto verify = [=, this]() {
     utility::checkAclEntryAndStatCount(
-        getHwSwitch(),
+        this->getHwSwitch(),
         /* ACLs */ 2,
         /* Stats */ 2,
-        /*counters*/ 2 * utility::getAclCounterTypes(getHwSwitch()).size());
+        /*counters*/ 2 *
+            utility::getAclCounterTypes(this->getHwSwitch()).size());
     utility::checkAclStat(
-        getHwSwitch(),
-        getProgrammedState(),
+        this->getHwSwitch(),
+        this->getProgrammedState(),
         {"acl0"},
         "stat0",
-        utility::getAclCounterTypes(getHwSwitch()));
+        utility::getAclCounterTypes(this->getHwSwitch()));
     utility::checkAclStat(
-        getHwSwitch(),
-        getProgrammedState(),
+        this->getHwSwitch(),
+        this->getProgrammedState(),
         {"acl1"},
         "stat1",
-        utility::getAclCounterTypes(getHwSwitch()));
+        utility::getAclCounterTypes(this->getHwSwitch()));
   };
 
   auto setupPostWB = [=, this]() {
-    auto newCfg = initialConfig();
-    addDscpAcl(&newCfg, "acl1");
-    addDscpAcl(&newCfg, "acl0");
+    auto newCfg = this->initialConfig();
+    this->addDscpAcl(&newCfg, "acl1");
+    this->addDscpAcl(&newCfg, "acl0");
     utility::addAclStat(
-        &newCfg, "acl1", "stat1", utility::getAclCounterTypes(getHwSwitch()));
+        &newCfg,
+        "acl1",
+        "stat1",
+        utility::getAclCounterTypes(this->getHwSwitch()));
     utility::addAclStat(
-        &newCfg, "acl0", "stat0", utility::getAclCounterTypes(getHwSwitch()));
-    applyNewConfig(newCfg);
+        &newCfg,
+        "acl0",
+        "stat0",
+        utility::getAclCounterTypes(this->getHwSwitch()));
+    this->applyNewConfig(newCfg);
   };
 
-  verifyAcrossWarmBoots(setup, verify, setupPostWB, verify);
+  this->verifyAcrossWarmBoots(setup, verify, setupPostWB, verify);
 }
 
-TEST_F(HwAclStatTest, StatNumberOfCounters) {
+TYPED_TEST(HwAclStatTest, StatNumberOfCounters) {
   auto setup = [=, this]() {
-    auto newCfg = initialConfig();
-    addDscpAcl(&newCfg, "acl0");
+    auto newCfg = this->initialConfig();
+    this->addDscpAcl(&newCfg, "acl0");
     utility::addAclStat(
-        &newCfg, "acl0", "stat0", utility::getAclCounterTypes(getHwSwitch()));
-    applyNewConfig(newCfg);
+        &newCfg,
+        "acl0",
+        "stat0",
+        utility::getAclCounterTypes(this->getHwSwitch()));
+    this->applyNewConfig(newCfg);
   };
 
   auto verify = [=, this]() {
     utility::checkAclEntryAndStatCount(
-        getHwSwitch(),
+        this->getHwSwitch(),
         /* ACLs */ 1,
         /* Stats */ 1,
-        /*counters*/ utility::getAclCounterTypes(getHwSwitch()).size());
+        /*counters*/ utility::getAclCounterTypes(this->getHwSwitch()).size());
     utility::checkAclStat(
-        getHwSwitch(),
-        getProgrammedState(),
+        this->getHwSwitch(),
+        this->getProgrammedState(),
         {"acl0"},
         "stat0",
-        utility::getAclCounterTypes(getHwSwitch()));
+        utility::getAclCounterTypes(this->getHwSwitch()));
   };
 
   auto setupPostWB = [=]() {};
 
   auto verifyPostWB = [=, this]() {
     verify();
-    utility::checkAclStatSize(getHwSwitch(), "stat0");
+    utility::checkAclStatSize(this->getHwSwitch(), "stat0");
   };
-  verifyAcrossWarmBoots(setup, verify, setupPostWB, verifyPostWB);
+  this->verifyAcrossWarmBoots(setup, verify, setupPostWB, verifyPostWB);
 }
 
-TEST_F(HwAclStatTest, EmptyAclCheck) {
+TYPED_TEST(HwAclStatTest, EmptyAclCheck) {
   // TODO(joseph5wu) Current this test failed on TH4 because of CS00011697882
   auto setup = [this]() {
-    auto newCfg = initialConfig();
-    applyNewConfig(newCfg);
+    auto newCfg = this->initialConfig();
+    this->applyNewConfig(newCfg);
   };
   auto verify = [this]() {
-    EXPECT_EQ(utility::getAclTableNumAclEntries(getHwSwitch()), 0);
+    EXPECT_EQ(utility::getAclTableNumAclEntries(this->getHwSwitch()), 0);
     utility::checkAclEntryAndStatCount(
-        getHwSwitch(), /*ACLs*/ 0, /*stats*/ 0, /*counters*/ 0);
+        this->getHwSwitch(), /*ACLs*/ 0, /*stats*/ 0, /*counters*/ 0);
   };
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
 } // namespace facebook::fboss
