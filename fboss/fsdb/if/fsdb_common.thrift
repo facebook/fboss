@@ -44,6 +44,7 @@ enum FsdbErrorCode {
   DISCONNECTED = 14,
   PUBLISHER_NOT_READY = 15,
   PUBLISHER_GR_DISCONNECT = 16,
+  SUBSCRIPTION_NOT_PERMITTED = 17,
 }
 
 exception FsdbException {
