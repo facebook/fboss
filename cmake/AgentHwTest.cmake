@@ -148,6 +148,16 @@ target_link_libraries(hw_switch_ensemble
   split_agent_thrift_syncer
 )
 
+add_library(hw_test_acl_utils
+    fboss/agent/hw/test/HwTestAclUtils.cpp
+)
+
+target_link_libraries(hw_test_acl_utils
+  hw_switch
+  switch_asics
+  state
+)
+
 add_library(load_balancer_utils
   fboss/agent/hw/test/LoadBalancerUtils.cpp
 )
@@ -163,6 +173,7 @@ target_link_libraries(load_balancer_utils
   state
   Folly::folly
   config_factory
+  hw_test_acl_utils
 )
 
 add_library(prod_config_utils
