@@ -184,65 +184,119 @@ class CmdShowInterfacePhy
       pmdLanes.insert(it.first);
     }
     if (!pmdLanes.empty()) {
-      Table pmdTable;
-      pmdTable.setHeader(
-          {prefix + "PMD",
-           "Lane",
-           "RX Signal Detect Live",
-           "RX Signal Detect Changed",
-           "RX CDR Lock Live",
-           "RX CDR Lock Changed",
-           "Eye Heights",
-           "Eye Widths",
-           "Rx PPM"});
-      for (auto pmdLane : pmdLanes) {
-        auto laneState = (*sideState.pmd()->lanes())[pmdLane];
-        auto laneStat = (*sideStats.pmd()->lanes())[pmdLane];
-        std::string sigDetLive = "N/A";
-        std::string cdrLockLive = "N/A";
-        std::string sigDetChanged = "N/A";
-        std::string cdrLockChanged = "N/A";
-        std::string rxPPM = "N/A";
-        std::vector<float> eyeHeights = {};
-        std::vector<float> eyeWidths = {};
-        if (auto rxSigDetLive = laneState.signalDetectLive()) {
-          sigDetLive = std::to_string(*rxSigDetLive);
-        }
-        if (auto rxSigDetChanged = laneStat.signalDetectChangedCount()) {
-          sigDetChanged = std::to_string(*rxSigDetChanged);
-        }
-        if (auto rxCdrLockLive = laneState.cdrLockLive()) {
-          cdrLockLive = std::to_string(*rxCdrLockLive);
-        }
-        if (auto rxCdrLockChanged = laneStat.cdrLockChangedCount()) {
-          cdrLockChanged = std::to_string(*rxCdrLockChanged);
-        }
-        if (auto rxFreqPPM = laneState.rxFrequencyPPM()) {
-          rxPPM = std::to_string(*rxFreqPPM);
-        }
-        if (auto eyes = laneStat.eyes()) {
-          for (const auto& eye : *eyes) {
-            if (auto eyeW = eye.width()) {
-              eyeWidths.push_back(*eyeW);
-            }
-            if (auto eyeH = eye.height()) {
-              eyeHeights.push_back(*eyeH);
-            }
+      printPmdLaneRxInfo(out, sideState, sideStats, pmdLanes, prefix);
+      printPmdLaneTxInfo(out, sideState, pmdLanes, prefix);
+    }
+  }
+
+  void printPmdLaneRxInfo(
+      std::ostream& out,
+      phy::PhySideState& sideState,
+      phy::PhySideStats& sideStats,
+      const std::set<int>& pmdLanes,
+      const std::string& prefix) {
+    Table pmdRxTable;
+    pmdRxTable.setHeader(
+        {prefix + "RX PMD",
+         "Lane",
+         "RX Signal Detect Live",
+         "RX Signal Detect Changed",
+         "RX CDR Lock Live",
+         "RX CDR Lock Changed",
+         "Eye Heights",
+         "Eye Widths",
+         "Rx PPM"});
+    for (auto pmdLane : pmdLanes) {
+      auto laneState = (*sideState.pmd()->lanes())[pmdLane];
+      auto laneStat = (*sideStats.pmd()->lanes())[pmdLane];
+      std::string sigDetLive = "N/A";
+      std::string cdrLockLive = "N/A";
+      std::string sigDetChanged = "N/A";
+      std::string cdrLockChanged = "N/A";
+      std::string rxPPM = "N/A";
+      std::vector<float> eyeHeights = {};
+      std::vector<float> eyeWidths = {};
+      if (auto rxSigDetLive = laneState.signalDetectLive()) {
+        sigDetLive = std::to_string(*rxSigDetLive);
+      }
+      if (auto rxSigDetChanged = laneStat.signalDetectChangedCount()) {
+        sigDetChanged = std::to_string(*rxSigDetChanged);
+      }
+      if (auto rxCdrLockLive = laneState.cdrLockLive()) {
+        cdrLockLive = std::to_string(*rxCdrLockLive);
+      }
+      if (auto rxCdrLockChanged = laneStat.cdrLockChangedCount()) {
+        cdrLockChanged = std::to_string(*rxCdrLockChanged);
+      }
+      if (auto rxFreqPPM = laneState.rxFrequencyPPM()) {
+        rxPPM = std::to_string(*rxFreqPPM);
+      }
+      if (auto eyes = laneStat.eyes()) {
+        for (const auto& eye : *eyes) {
+          if (auto eyeW = eye.width()) {
+            eyeWidths.push_back(*eyeW);
+          }
+          if (auto eyeH = eye.height()) {
+            eyeHeights.push_back(*eyeH);
           }
         }
-        pmdTable.addRow(
-            {"",
-             std::to_string(pmdLane),
-             makeColorCellForLiveFlag(sigDetLive),
-             sigDetChanged,
-             makeColorCellForLiveFlag(cdrLockLive),
-             cdrLockChanged,
-             folly::join(",", eyeHeights),
-             folly::join(",", eyeWidths),
-             rxPPM});
       }
-      out << pmdTable;
+      pmdRxTable.addRow(
+          {"",
+           std::to_string(pmdLane),
+           makeColorCellForLiveFlag(sigDetLive),
+           sigDetChanged,
+           makeColorCellForLiveFlag(cdrLockLive),
+           cdrLockChanged,
+           folly::join(",", eyeHeights),
+           folly::join(",", eyeWidths),
+           rxPPM});
     }
+    out << pmdRxTable;
+  }
+
+  void printPmdLaneTxInfo(
+      std::ostream& out,
+      phy::PhySideState& sideState,
+      const std::set<int>& pmdLanes,
+      const std::string& prefix) {
+    Table pmdTxTable;
+    pmdTxTable.setHeader(
+        {prefix + "TX PMD",
+         "Lane",
+         "Pre3",
+         "Pre2",
+         "Pre1",
+         "Main",
+         "Post1",
+         "Post2",
+         "Post3"});
+    for (auto pmdLane : pmdLanes) {
+      auto laneState = (*sideState.pmd()->lanes())[pmdLane];
+      auto txSettings = *laneState.txSettings();
+      std::string pre3 = "N/A";
+      auto txPre3 = txSettings.pre3();
+      if (txPre3.has_value()) {
+        pre3 = std::to_string(*txPre3);
+      }
+      std::string pre2 = std::to_string(*txSettings.pre2());
+      std::string pre = std::to_string(*txSettings.pre());
+      std::string main = std::to_string(*txSettings.main());
+      std::string post = std::to_string(*txSettings.post());
+      std::string post2 = std::to_string(*txSettings.post2());
+      std::string post3 = std::to_string(*txSettings.post3());
+      pmdTxTable.addRow(
+          {"",
+           std::to_string(pmdLane),
+           pre3,
+           pre2,
+           pre,
+           main,
+           post,
+           post2,
+           post3});
+    }
+    out << pmdTxTable;
   }
 
   Table::StyledCell makeColorCellForLiveFlag(const std::string& flag) {
