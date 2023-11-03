@@ -56,8 +56,9 @@ class I2cError : public std::exception {
  */
 class TransceiverI2CApi {
  public:
-  TransceiverI2CApi(){};
-  virtual ~TransceiverI2CApi() {}
+  TransceiverI2CApi() = default;
+  ;
+  virtual ~TransceiverI2CApi() = default;
 
   virtual void open() = 0;
   virtual void close() = 0;

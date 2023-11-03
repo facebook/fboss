@@ -24,7 +24,7 @@ void Rackmon::loadInterface(const nlohmann::json& config) {
   if (scanThread_ != nullptr || monitorThread_ != nullptr) {
     throw std::runtime_error("Cannot load configuration when started");
   }
-  if (interfaces_.size() > 0) {
+  if (!interfaces_.empty()) {
     throw std::runtime_error("Interfaces already loaded");
   }
   for (const auto& ifaceConf : config["interfaces"]) {
@@ -135,7 +135,7 @@ void Rackmon::recoverDormant() {
   }
 }
 
-void Rackmon::monitor(void) {
+void Rackmon::monitor() {
   std::shared_lock lock(devicesMutex_);
   for (const auto& dev_it : devices_) {
     if (!dev_it.second->isActive()) {

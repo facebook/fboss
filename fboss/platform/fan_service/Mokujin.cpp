@@ -32,7 +32,6 @@ void Mokujin::openIOFiles(std::string iFileName, std::string oFileName) {
     float dummyF;
     getNextSensorEvent(0, dummyS, dummyF);
   }
-  return;
 }
 Mokujin::~Mokujin() {
   closeFiles();
@@ -50,7 +49,6 @@ void Mokujin::closeFiles() {
   } catch (std::exception& e) {
     XLOG(ERR) << "Failed to close the output file : " << e.what();
   }
-  return;
 }
 
 void Mokujin::setTimeStamp(uint64_t stp) {
@@ -78,7 +76,6 @@ void Mokujin::getSensorData(std::shared_ptr<SensorData> pSensorData) {
       XLOG(ERR) << "Failed to read sensor : " << *sensor->sensorName();
     }
   }
-  return;
 }
 int Mokujin::emergencyShutdown(bool /* enable */) {
   int rc = 0;
@@ -139,8 +136,9 @@ int Mokujin::getNextEventTime() {
 }
 
 bool Mokujin::hasAnyMoreEvent(uint64_t timeInSec) {
-  if (nextEventTimeSec_ <= timeInSec)
+  if (nextEventTimeSec_ <= timeInSec) {
     return true;
+  }
   return false;
 }
 bool Mokujin::getNextSensorEvent(
@@ -148,10 +146,12 @@ bool Mokujin::getNextSensorEvent(
     std::string& key,
     float& value) {
   currentTimeStampSec_ = timeSec;
-  if (isEof())
+  if (isEof()) {
     return false;
-  if (!hasAnyMoreEvent(timeSec))
+  }
+  if (!hasAnyMoreEvent(timeSec)) {
     return false;
+  }
   if (nextEventDeadSensor_) {
     // If the event is to kill the sensor,
     // we return "" as sensor name, and remove the entry from hash table,
@@ -177,13 +177,13 @@ bool Mokujin::getNextSensorEvent(
     std::string nextLine;
     getline(iFs_, nextLine);
     std::vector<std::string> token;
-    for (auto i = strtok(&nextLine[0], "::"); i != NULL;
-         i = strtok(NULL, "::")) {
-      token.push_back(i);
+    for (auto i = strtok(nextLine.data(), "::"); i != nullptr;
+         i = strtok(nullptr, "::")) {
+      token.emplace_back(i);
     }
     nextEventTimeSec_ = (uint64_t)stoi(token[0]);
     nextEventSensor_ = token[1];
-    std::string lowerStr = "";
+    std::string lowerStr;
     for (int i = 0; i < token[2].size(); i++) {
       lowerStr += tolower(token[2][i]);
     }
@@ -207,7 +207,7 @@ bool Mokujin::getNextSensorEvent(
 }
 
 bool Mokujin::isEof() {
-  return ((nextEventSensor_ == "") && (iFs_.eof()));
+  return ((nextEventSensor_.empty()) && (iFs_.eof()));
 }
 
 bool Mokujin::bothFileOpen() {
@@ -248,7 +248,6 @@ void Mokujin::getOpticsData(std::shared_ptr<SensorData> pSensorData) {
       opticData->calculatedPwm = 0;
     }
   }
-  return;
 }
 
 } // namespace facebook::fboss::platform::fan_service

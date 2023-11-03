@@ -45,7 +45,7 @@ struct ReadHoldingRegistersReq : public Request {
       uint8_t deviceAddr,
       uint16_t registerOffset,
       uint16_t registerCount);
-  ReadHoldingRegistersReq() {}
+  ReadHoldingRegistersReq() = default;
 };
 
 struct ReadHoldingRegistersResp : public Response {
@@ -77,7 +77,7 @@ struct WriteSingleRegisterReq : public Request {
       uint8_t deviceAddr,
       uint16_t registerOffset,
       uint16_t value);
-  WriteSingleRegisterReq() {}
+  WriteSingleRegisterReq() = default;
 };
 
 struct WriteSingleRegisterResp : public Response {
@@ -96,7 +96,7 @@ struct WriteSingleRegisterResp : public Response {
       uint8_t deviceAddr,
       uint16_t registerOffset,
       uint16_t expectedValue);
-  WriteSingleRegisterResp() {}
+  WriteSingleRegisterResp() = default;
   uint16_t writtenValue() const {
     return value_;
   }
@@ -118,7 +118,7 @@ struct WriteMultipleRegistersReq : public Request {
 
  public:
   WriteMultipleRegistersReq(uint8_t deviceAddr, uint16_t registerOffset);
-  WriteMultipleRegistersReq() {}
+  WriteMultipleRegistersReq() = default;
 };
 
 struct WriteMultipleRegistersResp : public Response {
@@ -135,7 +135,7 @@ struct WriteMultipleRegistersResp : public Response {
       uint8_t deviceAddr,
       uint16_t registerOffset,
       uint16_t registerCount);
-  WriteMultipleRegistersResp() {}
+  WriteMultipleRegistersResp() = default;
 };
 
 //---------- Read File Record ----------------
@@ -143,7 +143,7 @@ struct FileRecord {
   uint16_t fileNum = 0;
   uint16_t recordNum = 0;
   std::vector<uint16_t> data{};
-  FileRecord() {}
+  FileRecord() = default;
   explicit FileRecord(size_t num) : data(num) {}
   explicit FileRecord(uint16_t file, uint16_t record, size_t num)
       : fileNum(file), recordNum(record), data(num) {}

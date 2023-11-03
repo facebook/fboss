@@ -34,8 +34,8 @@ vector<Prefix6> insertVec6;
 vector<Prefix6> matchVec6;
 vector<int> valueSet;
 
-typedef array<RadixTree<IPAddressV4, int>, kTreeCount> V4Trees_t;
-typedef array<RadixTree<IPAddressV6, int>, kTreeCount> V6Trees_t;
+using V4Trees_t = array<RadixTree<IPAddressV4, int>, kTreeCount>;
+using V6Trees_t = array<RadixTree<IPAddressV6, int>, kTreeCount>;
 
 V4Trees_t v4Trees;
 V6Trees_t v6Trees;
@@ -144,7 +144,7 @@ void radixTreeLongestMatch6() {
 }
 
 void fillV4MatchVec() {
-  if (matchVec4.size()) {
+  if (!matchVec4.empty()) {
     return;
   }
   set<Prefix4> matchSet;
@@ -156,7 +156,7 @@ void fillV4MatchVec() {
 }
 
 void fillV6MatchVec() {
-  if (matchVec6.size()) {
+  if (!matchVec6.empty()) {
     return;
   }
   set<Prefix6> matchSet;
@@ -178,7 +178,7 @@ int main(int argc, char* argv[]) {
       ip = ip.mask(mask);
       if (inserted4.insert(Prefix4(ip, mask)).second) {
         valueSet.push_back(mask);
-        insertVec4.push_back(Prefix4(ip, mask));
+        insertVec4.emplace_back(ip, mask);
       }
     }
     if (FLAGS_v4Inserts) {
@@ -204,13 +204,13 @@ int main(int argc, char* argv[]) {
     while (inserted6.size() < kInsertCount) {
       auto mask = folly::Random::rand32(128);
       ByteArray16 ba;
-      *(uint64_t*)(&ba[0]) = folly::Random::rand64();
+      *(uint64_t*)(ba.data()) = folly::Random::rand64();
       *(uint64_t*)(&ba[8]) = folly::Random::rand64();
       auto ip = IPAddressV6(ba);
       ip = ip.mask(mask);
       if (inserted6.insert(Prefix6(ip, mask)).second) {
         valueSet.push_back(mask);
-        insertVec6.push_back(Prefix6(ip, mask));
+        insertVec6.emplace_back(ip, mask);
       }
     }
     if (FLAGS_v6Inserts) {

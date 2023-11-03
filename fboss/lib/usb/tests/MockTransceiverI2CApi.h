@@ -12,8 +12,8 @@ namespace facebook::fboss {
 
 class MockTransceiverI2CApi : public TransceiverI2CApi {
  public:
-  MockTransceiverI2CApi() {}
-  ~MockTransceiverI2CApi() override {}
+  MockTransceiverI2CApi() = default;
+  ~MockTransceiverI2CApi() override = default;
   MOCK_METHOD0(open, void());
   MOCK_METHOD0(close, void());
   MOCK_METHOD1(verifyBus, void(bool));

@@ -33,8 +33,9 @@ class FakeModbus : public Modbus {
     EXPECT_EQ(b, baud);
     // We are mocking a system with only one available
     // address, exp_addr. So, throw an exception for others.
-    if (req.addr != exp_addr)
+    if (req.addr != exp_addr) {
       throw TimeoutException();
+    }
     // There is really no reason at this point for rackmon
     // to be sending any message other than read-holding-regs
     // TODO When adding support for baudrate negotitation etc
@@ -316,7 +317,8 @@ TEST_F(RackmonTest, BasicScanFoundOneMon) {
   EXPECT_EQ(
       std::get<std::string>(data[0].registerList[0].history[0].value),
       "abcdefghijklmnop");
-  EXPECT_NEAR(data[0].registerList[0].history[0].timestamp, std::time(0), 10);
+  EXPECT_NEAR(
+      data[0].registerList[0].history[0].timestamp, std::time(nullptr), 10);
 
   ModbusDeviceFilter filter1, filter2, filter3, filter4;
   ModbusRegisterFilter rFilter1, rFilter2;

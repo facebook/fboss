@@ -201,7 +201,7 @@ void Bsp::processOpticEntries(
     // 2. Config file specified the port entries we care, but this port
     //    does not belong to the ports we care.
     if (((temp == 0.0)) ||
-        ((opticsGroup.portList()->size() != 0) &&
+        ((!opticsGroup.portList()->empty()) &&
          (std::find(
               opticsGroup.portList()->begin(),
               opticsGroup.portList()->end(),
@@ -388,7 +388,6 @@ void Bsp::getOpticsData(std::shared_ptr<SensorData> pSensorData) {
           "Invalid way for fetching optics temperature!");
     }
   }
-  return;
 }
 
 uint64_t Bsp::getCurrentTime() const {

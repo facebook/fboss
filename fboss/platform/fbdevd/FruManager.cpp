@@ -1,6 +1,6 @@
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 
-#include <string.h>
+#include <cstring>
 
 #include "fboss/platform/fbdevd/FruManager.h"
 #include "fboss/platform/fbdevd/I2cController.h"

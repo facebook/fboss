@@ -4,7 +4,5 @@
 #include "fboss/platform/platform_manager/PlatformManagerHandler.h"
 
 namespace facebook::fboss::platform::platform_manager {
-void PlatformManagerHandler::getPlatformSnapshot(PlatformSnapshot&) {
-  return;
-}
+void PlatformManagerHandler::getPlatformSnapshot(PlatformSnapshot&) {}
 } // namespace facebook::fboss::platform::platform_manager

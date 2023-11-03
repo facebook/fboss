@@ -194,7 +194,6 @@ void ControlLogic::updateTargetPwm(const Sensor& sensor) {
   } else if (readCache.targetPwmCache < *config_.pwmLowerThreshold()) {
     readCache.targetPwmCache = *config_.pwmLowerThreshold();
   }
-  return;
 }
 
 void ControlLogic::getSensorUpdate() {
@@ -247,7 +246,7 @@ void ControlLogic::getSensorUpdate() {
     }
 
     // 1.b If adjustment table exists, adjust the raw value
-    if (sensor.adjustmentTable()->size() == 0) {
+    if (sensor.adjustmentTable()->empty()) {
       adjustedValue = rawValue;
     } else {
       float offset = 0;
@@ -332,7 +331,6 @@ void ControlLogic::getSensorUpdate() {
     XLOG(INFO) << *sensor.sensorName() << " has the target PWM of "
                << readCache.targetPwmCache;
   }
-  return;
 }
 
 void ControlLogic::getOpticsUpdate() {
@@ -400,7 +398,7 @@ bool ControlLogic::isFanPresentInDevice(const Fan& fan) {
 
   // If no access method is listed in config,
   // skip any check and return true
-  if (*fan.presenceAccess()->path() == "") {
+  if ((*fan.presenceAccess()->path()).empty()) {
     return true;
   }
 

@@ -11,7 +11,7 @@ namespace facebook::fboss::platform::fbdevd {
 class FruManager {
  public:
   explicit FruManager(const FruModule& fru);
-  ~FruManager() {}
+  ~FruManager() = default;
 
   // Test if the FRU is present/connected or not.
   bool isPresent();

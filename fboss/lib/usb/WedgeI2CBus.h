@@ -18,7 +18,7 @@ namespace facebook::fboss {
 class WedgeI2CBus : public BaseWedgeI2CBus {
  public:
   WedgeI2CBus();
-  ~WedgeI2CBus() override {}
+  ~WedgeI2CBus() override = default;
 
  protected:
   void initBus() override;

@@ -11,9 +11,7 @@
 
 #include <cstdint>
 
-namespace facebook {
-namespace fboss {
-namespace phy {
+namespace facebook::fboss::phy {
 
 using PhyAddress = uint8_t; // 5b, 0-31
 using Cl22RegisterAddress = uint8_t; // 5b, 0-31
@@ -22,6 +20,4 @@ using Cl45DeviceAddress = uint8_t; // 5b, 0-31
 using Cl45RegisterAddress = uint16_t; // 16b
 using Cl45Data = uint16_t; // 16b
 
-} // namespace phy
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss::phy

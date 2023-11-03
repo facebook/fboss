@@ -8,7 +8,6 @@
  *
  */
 #include "fboss/mdio/BspDeviceMdio.h"
-#include <errno.h>
 #include <fcntl.h>
 #include <folly/Format.h>
 #include <folly/Range.h>
@@ -19,10 +18,11 @@
 #include <linux/mii.h>
 #include <linux/sockios.h>
 #include <net/if.h>
-#include <stdint.h>
 #include <sys/ioctl.h>
 #include <algorithm>
+#include <cerrno>
 #include <chrono>
+#include <cstdint>
 #include "fboss/mdio/MdioError.h"
 
 // TODO(rajank):

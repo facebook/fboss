@@ -6,9 +6,7 @@
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 
-namespace facebook {
-namespace fboss {
-namespace mka {
+namespace facebook::fboss::mka {
 
 // Handler that configures the macsec interfaces and other macsec options
 class MacsecHandler {
@@ -105,6 +103,4 @@ class MacsecHandler {
   MacsecHandler& operator=(const MacsecHandler&) = delete;
 };
 
-} // namespace mka
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss::mka

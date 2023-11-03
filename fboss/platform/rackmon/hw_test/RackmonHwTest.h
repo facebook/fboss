@@ -36,7 +36,7 @@ class RackmonThriftService {
 
 class RackmonHwTest : public ::testing::Test {
  public:
-  ~RackmonHwTest() override {}
+  ~RackmonHwTest() override = default;
 
   void SetUp() override;
 

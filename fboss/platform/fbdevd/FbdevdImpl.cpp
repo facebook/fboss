@@ -30,6 +30,6 @@ void FbdevdImpl::initPlatformConfig() {
       fbdevdConfig_);
 }
 
-FbdevdImpl::~FbdevdImpl() {}
+FbdevdImpl::~FbdevdImpl() = default;
 
 } // namespace facebook::fboss::platform::fbdevd

@@ -26,7 +26,7 @@ constexpr auto kValidSensorReadsThreshold = 0.5;
 
 namespace facebook::fboss::platform::sensor_service {
 
-SensorServiceHwTest::~SensorServiceHwTest() {}
+SensorServiceHwTest::~SensorServiceHwTest() = default;
 
 void SensorServiceHwTest::SetUp() {
   sensorServiceImpl_ = std::make_shared<SensorServiceImpl>("");

@@ -118,8 +118,9 @@ TEST(Msg, TestOverflow) {
   Msg msg;
   // Almost fill it out with just 1 byte to spare.
   // all this should work.
-  for (size_t i = 0; i < 252; i++)
+  for (size_t i = 0; i < 252; i++) {
     msg << uint8_t(0xff);
+  }
   // Try to push a 16bit value, it should throw but
   // not change the state of msg.
   EXPECT_THROW(msg << uint16_t(0xffff), std::overflow_error);

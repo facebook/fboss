@@ -36,7 +36,7 @@ class Modbus {
   }
 
  public:
-  explicit Modbus() {}
+  explicit Modbus() = default;
   virtual ~Modbus() {
     if (healthCheckThread_) {
       healthCheckThread_->stop();

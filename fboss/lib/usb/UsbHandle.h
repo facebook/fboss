@@ -21,7 +21,7 @@ namespace facebook::fboss {
  */
 class UsbHandle {
  public:
-  UsbHandle() {}
+  UsbHandle() = default;
   explicit UsbHandle(libusb_device_handle* handle) : handle_(handle) {}
   ~UsbHandle() {
     close();

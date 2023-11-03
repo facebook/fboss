@@ -29,7 +29,7 @@ void QsfpMux::clear(bool force) {
 
   for (uint8_t channel = 0; selected; selected >>= 1, ++channel) {
     if (selected % 2 == 1) {
-      if (children(channel).size() > 0) {
+      if (!children(channel).empty()) {
         if (!mux_.isSelected(channel)) {
           select(channel);
         }

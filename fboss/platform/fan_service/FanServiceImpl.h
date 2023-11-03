@@ -19,7 +19,7 @@ namespace facebook::fboss::platform::fan_service {
 class FanServiceImpl {
  public:
   explicit FanServiceImpl(const std::string& configFile);
-  ~FanServiceImpl() {} // Make compiler happy in handling smart pointers
+  ~FanServiceImpl() = default; // Make compiler happy in handling smart pointers
   // Runs Fan PWM control logic
   int controlFan();
   void getSensorDataThrift(std::shared_ptr<SensorData> pSensorData) const {

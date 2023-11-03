@@ -14,8 +14,7 @@
 #include <stdexcept>
 #include <string>
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class MdioError : public std::exception {
  public:
@@ -31,5 +30,4 @@ class MdioError : public std::exception {
   std::string what_;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

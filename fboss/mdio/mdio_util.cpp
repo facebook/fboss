@@ -13,9 +13,9 @@
 
 #include <gflags/gflags.h>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 FOLLY_INIT_LOGGING_CONFIG("fboss=DBG2; default:async=true");
 

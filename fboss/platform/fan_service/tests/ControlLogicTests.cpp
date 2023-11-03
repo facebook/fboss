@@ -66,7 +66,7 @@ class ControlLogicTests : public testing::Test {
       value = 30.0;
       auto opticData = std::vector<std::pair<std::string, float>>();
       for (const auto& [opticType, tempToPwm] : *optic.tempToPwmMaps()) {
-        opticData.push_back(std::make_pair(opticType, value));
+        opticData.emplace_back(opticType, value);
         value += 12.0;
       }
       sensorData_->setOpticEntry(

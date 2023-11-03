@@ -23,8 +23,7 @@ namespace {
 constexpr auto kMdioLockFilePath = "/var/lock/mdio";
 }
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 /*
  * Base classes for managing MDIO reads and writes. There are the
@@ -52,7 +51,7 @@ namespace fboss {
 
 class Mdio {
  public:
-  virtual ~Mdio() {}
+  virtual ~Mdio() = default;
 
   virtual void init(bool /* forceReset */) {}
 
@@ -241,5 +240,4 @@ struct MdioDevice {
   const phy::PhyAddress address{0};
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

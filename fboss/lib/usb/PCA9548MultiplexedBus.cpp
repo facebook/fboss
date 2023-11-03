@@ -31,7 +31,6 @@ void PCA9548MultiplexedBus::initBus() {
 void PCA9548MultiplexedBus::verifyBus(bool) {
   // TODO(klahey):  Determine appropriate read from SYSCPLD or EEPROM
   //                for verification.
-  return;
 }
 
 void PCA9548MultiplexedBus::selectQsfpImpl(unsigned int port) {

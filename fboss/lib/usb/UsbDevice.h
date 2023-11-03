@@ -25,7 +25,7 @@ class UsbHandle;
  */
 class UsbDevice {
  public:
-  UsbDevice() {}
+  UsbDevice() = default;
   /*
    * Create a new UsbDevice from a libusb_device.
    *

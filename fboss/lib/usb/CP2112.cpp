@@ -277,7 +277,7 @@ void CP2112::read(uint8_t address, MutableByteRange buf, milliseconds timeout) {
     LOG(ERROR) << "I2c read parameter error";
     throw UsbError("cannot read more than 512 bytes at once");
   }
-  if (buf.size() < 1) {
+  if (buf.empty()) {
     // As far as I can tell, CP2112 doesn't support 0-length "quick" reads.
     // The docs indicate that 0-lengths reads will be ignored.  The transfer
     // status after issuing a 0-length read appears to confirm this.
@@ -315,7 +315,7 @@ void CP2112::write(uint8_t address, ByteRange buf, milliseconds timeout) {
     LOG(ERROR) << "I2c write parameter error";
     throw UsbError("cannot write more than 61 bytes at once");
   }
-  if (buf.size() < 1) {
+  if (buf.empty()) {
     // As far as I can tell, CP2112 doesn't support 0-length "quick" writes.
     // The docs indicate that 0-lengths writes will be ignored.  The transfer
     // status after issuing a 0-length write appears to confirm this.
@@ -366,7 +366,7 @@ void CP2112::writeReadUnsafe(
         "cannot write more than 16 bytes at once for "
         "read-after-write");
   }
-  if (writeBuf.size() < 1) {
+  if (writeBuf.empty()) {
     LOG(ERROR) << "I2c write parameter error";
     throw UsbError("must write at least 1 byte for read-after-write");
   }
@@ -374,7 +374,7 @@ void CP2112::writeReadUnsafe(
     LOG(ERROR) << "I2c read parameter error";
     throw UsbError("cannot read more than 512 bytes at once");
   }
-  if (readBuf.size() < 1) {
+  if (readBuf.empty()) {
     LOG(ERROR) << "I2c read parameter error";
     throw UsbError("0-length reads are not allowed");
   }

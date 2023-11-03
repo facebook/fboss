@@ -58,7 +58,7 @@ struct PyRadixNodeAccessor {
 // Code to compare our radix tree and py-radix tree
 template <typename IPAddrType, typename T>
 struct RadixTreeNodeAccessor {
-  typedef RadixTreeNode<IPAddrType, T> TreeNode;
+  using TreeNode = RadixTreeNode<IPAddrType, T>;
   static IPAddrType ipAddress(const TreeNode& node) {
     return node.ipAddress();
   }
@@ -196,7 +196,7 @@ vector<Prefix4> setupTestTree4(RadixTree<IPAddressV4, int>& rtree) {
   vector<Prefix4> inserted;
   // First node insert 128/2 should become the root
   rtree.insert(ip128_0_0_0, 2, 1);
-  inserted.push_back({ip128_0_0_0, 2});
+  inserted.emplace_back(ip128_0_0_0, 2);
   // Insert 128/1
   // Tests 2 things
   // - 128/1 should become the new root. So this tests a to be inserted
@@ -204,28 +204,28 @@ vector<Prefix4> setupTestTree4(RadixTree<IPAddressV4, int>& rtree) {
   // - Tests inserting a ip, for which the same ip with a different mask
   //   already exists in the tree
   rtree.insert(ip128_0_0_0, 1, 2);
-  inserted.push_back({ip128_0_0_0, 1});
+  inserted.emplace_back(ip128_0_0_0, 1);
   // Inserting 80/4. Tests creation of a new non value node as root.
   // 0/0 should become the new root
   rtree.insert(ip80_0_0_0, 4, 3);
-  inserted.push_back({ip80_0_0_0, 4});
+  inserted.emplace_back(ip80_0_0_0, 4);
   // Test inserting a node which becomes a parent of a existing node.
   // Here 64/3 should be inserted as a parent of 80/4, which should be
   // the right child of 64/3. Tests insertion of a node b/w 2 existing
   // nodes. Test the code path where we did not need to construct a
   // extra internal node for accommodating 64/3.
   rtree.insert(ip64_0_0_0, 3, 4);
-  inserted.push_back({ip64_0_0_0, 3});
+  inserted.emplace_back(ip64_0_0_0, 3);
   // 160/3 should become the right child of 128/2. Tests adding a leaf
   rtree.insert(ip160_0_0_0, 3, 5);
   /// 0/1 should become the left child of root (0/0). Tests adding a
   // node b/w 2 existing nodes, again w/o needing to create a extra
   // internal node.
   rtree.insert(ip0_0_0_0, 1, 6);
-  inserted.push_back({ip0_0_0_0, 1});
+  inserted.emplace_back(ip0_0_0_0, 1);
   // 72/6 should become the left child of 64/3. Tests adding a leaf
   rtree.insert(ip72_0_0_0, 6, 7);
-  inserted.push_back({ip72_0_0_0, 6});
+  inserted.emplace_back(ip72_0_0_0, 6);
   // 48/5 should become the left child of 0/1. Tests adding a leaf
   rtree.insert(ip48_0_0_0, 5, 8);
   // 0/4 should cause creation of a internal node 0/2 as a left
@@ -233,7 +233,7 @@ vector<Prefix4> setupTestTree4(RadixTree<IPAddressV4, int>& rtree) {
   // and right children. Tests creation of new internal node, and
   // linking it in the tree.
   rtree.insert(ip0_0_0_0, 4, 9);
-  inserted.push_back({ip0_0_0_0, 4});
+  inserted.emplace_back(ip0_0_0_0, 4);
   /*
    * Thus the tree should look like so
    * - All prefixes have 0's in the last 3 octets
@@ -255,7 +255,7 @@ vector<Prefix6> setupTestTree6(RadixTree<IPAddressV6, int>& rtree) {
   vector<Prefix6> inserted;
   // First node insert 8000::/2 should become the root
   rtree.insert(ip6_128, 2, 1);
-  inserted.push_back({ip6_128, 2});
+  inserted.emplace_back(ip6_128, 2);
   // Insert 8000::/1
   // Tests 2 things
   // - 8000::/1 should become the new root. So this tests a to be inserted
@@ -263,28 +263,28 @@ vector<Prefix6> setupTestTree6(RadixTree<IPAddressV6, int>& rtree) {
   // - Tests inserting a ip, for which the same ip with a different mask
   //   already exists in the tree
   rtree.insert(ip6_128, 1, 2);
-  inserted.push_back({ip6_128, 1});
+  inserted.emplace_back(ip6_128, 1);
   /// Inserting 5000::/4. Tests creation of a new non value node as root.
   // ::/0 should become the new root
   rtree.insert(ip6_80, 4, 3);
-  inserted.push_back({ip6_80, 4});
+  inserted.emplace_back(ip6_80, 4);
   // Test inserting a node which becomes a parent of a existing node.
   // Here 4000::/3 should be inserted as a parent of 5000::/4, which should be
   // the right child of 4000::/3. Tests insertion of a node b/w 2 existing
   // nodes. Test the code path where we did not need to construct a
   // extra internal node for accommodating 4000::/3.
   rtree.insert(ip6_64, 3, 4);
-  inserted.push_back({ip6_64, 3});
+  inserted.emplace_back(ip6_64, 3);
   // a000::/3 should become the right child of 8000::/2. Tests adding a leaf
   rtree.insert(ip6_160, 3, 5);
   // ::/1 should become the left child of root (::/0). Tests adding a
   // node b/w 2 existing nodes, again w/o needing to create a extra
   // internal node.
   rtree.insert(ip6_0, 1, 6);
-  inserted.push_back({ip6_0, 1});
+  inserted.emplace_back(ip6_0, 1);
   // 4800::/6 should become the left child of 4000::/3. Tests adding a leaf
   rtree.insert(ip6_72, 6, 7);
-  inserted.push_back({ip6_72, 6});
+  inserted.emplace_back(ip6_72, 6);
   // 3000::/5 should become the left child of ::/1. Tests adding a leaf
   rtree.insert(ip6_48, 5, 8);
   // ::/4 should cause creation of a internal node ::/2 as a left
@@ -292,7 +292,7 @@ vector<Prefix6> setupTestTree6(RadixTree<IPAddressV6, int>& rtree) {
   // and right children. Tests creation of new internal node, and
   // linking it in the tree.
   rtree.insert(ip6_0, 4, 9);
-  inserted.push_back({ip6_0, 4});
+  inserted.emplace_back(ip6_0, 4);
   /* Thus the tree should look like so
    * - All prefixes have 0's in the last 3 octets
    * - Parenthesis contain value stored on node or * for non value nodes
@@ -646,8 +646,9 @@ TEST(RadixTree, Iterator4) {
   for (auto pfx : prefixesInserted) {
     auto iitr = rtree.exactMatch(pfx.ip, pfx.mask);
     auto jitr = rtree.begin();
-    for (; jitr != rtree.end() && jitr != iitr; ++jitr)
+    for (; jitr != rtree.end() && jitr != iitr; ++jitr) {
       ;
+    }
     EXPECT_EQ(iitr, jitr);
     for (; iitr != rtree.end() && jitr != rtree.end(); ++iitr, ++jitr) {
       EXPECT_EQ(iitr, jitr);
@@ -1003,8 +1004,9 @@ TEST(RadixTree, Iterator6) {
   for (auto pfx : prefixesInserted) {
     auto iitr = rtree.exactMatch(pfx.ip, pfx.mask);
     auto jitr = rtree.begin();
-    for (; jitr != rtree.end() && jitr != iitr; ++jitr)
+    for (; jitr != rtree.end() && jitr != iitr; ++jitr) {
       ;
+    }
     EXPECT_EQ(iitr, jitr);
     for (; iitr != rtree.end() && jitr != rtree.end(); ++iitr, ++jitr) {
       EXPECT_EQ(iitr, jitr);
@@ -1032,7 +1034,7 @@ TEST(RadixTree, CombinedV4AndV6) {
         IPAddress::fromBinary(folly::ByteRange(v4entry.ipAddress().bytes(), 4)),
         v4entry.masklen(),
         v4entry.value());
-    v4Prefixes.push_back(Prefix4(v4entry.ipAddress(), v4entry.masklen()));
+    v4Prefixes.emplace_back(v4entry.ipAddress(), v4entry.masklen());
   }
   for (auto& v6entry : v6Tree) {
     ipTree.insert(
@@ -1040,7 +1042,7 @@ TEST(RadixTree, CombinedV4AndV6) {
             folly::ByteRange(v6entry.ipAddress().bytes(), 16)),
         v6entry.masklen(),
         v6entry.value());
-    v6Prefixes.push_back(Prefix6(v6entry.ipAddress(), v6entry.masklen()));
+    v6Prefixes.emplace_back(v6entry.ipAddress(), v6entry.masklen());
   }
   EXPECT_EQ(v4Tree.size() + v6Tree.size(), ipTree.size());
   const auto& ipCtree = ipTree;
@@ -1233,7 +1235,7 @@ TEST(RadixTree, CompositeEmptyV6) {
         IPAddress::fromBinary(folly::ByteRange(v4entry.ipAddress().bytes(), 4)),
         v4entry.masklen(),
         v4entry.value());
-    v4Prefixes.push_back(Prefix4(v4entry.ipAddress(), v4entry.masklen()));
+    v4Prefixes.emplace_back(v4entry.ipAddress(), v4entry.masklen());
   }
   EXPECT_EQ(v4Prefixes.size(), v4Tree.size());
   EXPECT_EQ(v4Tree.size(), ipTree.size());
@@ -1261,7 +1263,7 @@ TEST(RadixTree, CompositeEmptyV4) {
             folly::ByteRange(v6entry.ipAddress().bytes(), 16)),
         v6entry.masklen(),
         v6entry.value());
-    v6Prefixes.push_back(Prefix6(v6entry.ipAddress(), v6entry.masklen()));
+    v6Prefixes.emplace_back(v6entry.ipAddress(), v6entry.masklen());
   }
   EXPECT_EQ(v6Prefixes.size(), v6Tree.size());
   EXPECT_EQ(v6Tree.size(), ipTree.size());
@@ -1312,7 +1314,7 @@ TEST(RadixTree, MoveConstructible) {
     ++i;
     rtree.insert(ip, mask, std::make_unique<int>(i));
     ipRtree.insert(IPAddress(ip), mask, std::make_unique<int>(i));
-    inserted.emplace_back(std::make_pair(ip, mask));
+    inserted.emplace_back(ip, mask);
   }
   EXPECT_EQ(kInsertCount, rtree.size());
   EXPECT_EQ(
@@ -1362,7 +1364,7 @@ TEST(RadixTree, Clone) {
         IPAddress::fromBinary(folly::ByteRange(v4entry.ipAddress().bytes(), 4)),
         v4entry.masklen(),
         v4entry.value());
-    v4Prefixes.push_back(Prefix4(v4entry.ipAddress(), v4entry.masklen()));
+    v4Prefixes.emplace_back(v4entry.ipAddress(), v4entry.masklen());
   }
   for (auto& v6entry : v6Tree) {
     ipTree.insert(
@@ -1370,7 +1372,7 @@ TEST(RadixTree, Clone) {
             folly::ByteRange(v6entry.ipAddress().bytes(), 16)),
         v6entry.masklen(),
         v6entry.value());
-    v6Prefixes.push_back(Prefix6(v6entry.ipAddress(), v6entry.masklen()));
+    v6Prefixes.emplace_back(v6entry.ipAddress(), v6entry.masklen());
   }
   auto v4TreeCopy = v4Tree.clone();
   auto v6TreeCopy = v6Tree.clone();
@@ -1414,7 +1416,7 @@ TEST(RadixTree, PyRadixCompare) {
     ++i;
     rtree.insert(ip, mask, NoDefaultConstructibleInt(i));
     pyrtree.insert(ip, mask, NoDefaultConstructibleInt(i));
-    inserted.emplace_back(std::make_pair(ip, mask));
+    inserted.emplace_back(ip, mask);
   }
   EXPECT_EQ(kInsertCount, rtree.size());
   // Compare the trees

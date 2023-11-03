@@ -15,7 +15,7 @@ namespace facebook::fboss::platform::fbdevd {
 class I2cController {
  public:
   explicit I2cController(const std::string& busName);
-  ~I2cController() {}
+  ~I2cController() = default;
 
   // Test if I2C client device at given "addr" was already created.
   bool isDeviceCreated(uint16_t addr);

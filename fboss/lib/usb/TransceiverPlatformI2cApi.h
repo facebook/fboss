@@ -32,7 +32,7 @@ class TransceiverPlatformI2cApi : public TransceiverPlatformApi {
   // stored raw pointer
   TransceiverPlatformI2cApi(TransceiverI2CApi* i2cBus) : i2cBus_(i2cBus) {}
 
-  ~TransceiverPlatformI2cApi() {}
+  ~TransceiverPlatformI2cApi() = default;
 
   // For platforms having i2c based qsfp control, the qsfp reset will be done
   // by the i2c object's qsfp reset implementation. The i2c object pointer is

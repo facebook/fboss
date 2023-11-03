@@ -20,7 +20,7 @@ namespace facebook::fboss::platform::data_corral_service {
 
 class DataCorralServiceThriftHandler : public DataCorralServiceThriftSvIf {
  public:
-  explicit DataCorralServiceThriftHandler() {}
+  explicit DataCorralServiceThriftHandler() = default;
 
 #if FOLLY_HAS_COROUTINES
   folly::coro::Task<std::unique_ptr<DataCorralFruidReadResponse>> co_getFruid(

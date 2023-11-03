@@ -101,8 +101,9 @@ class ModbusTest : public ::testing::Test {
         std::make_unique<MockUARTDevice>("/dev/ttyUSB0", 19200);
     EXPECT_CALL(*ptr, open()).Times(1);
     // Expect setAttribute to be called since the baud calling is different.
-    if (baud != 19200)
+    if (baud != 19200) {
       EXPECT_CALL(*ptr, setAttribute(true, baud, _)).Times(1);
+    }
     // This is tricky one, we want to check if write() was called with our bytes
     // including the CRC tail.
     EXPECT_CALL(

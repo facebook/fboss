@@ -10,7 +10,7 @@
 #include "fboss/lib/usb/PCA9548.h"
 #include "fboss/lib/usb/CP2112.h"
 
-#include <stdint.h>
+#include <cstdint>
 
 namespace facebook::fboss {
 void PCA9548::commit(uint8_t selector) {

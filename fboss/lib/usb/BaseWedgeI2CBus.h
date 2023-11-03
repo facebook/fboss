@@ -25,7 +25,7 @@ class BaseWedgeI2CBus : public TransceiverI2CApi {
   explicit BaseWedgeI2CBus(std::unique_ptr<CP2112Intf> dev = nullptr) {
     dev_ = (dev) ? std::move(dev) : std::make_unique<CP2112>();
   }
-  ~BaseWedgeI2CBus() override {}
+  ~BaseWedgeI2CBus() override = default;
   void open() override;
   void close() override;
   void moduleRead(

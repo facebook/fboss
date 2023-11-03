@@ -45,7 +45,7 @@ struct I2cAddr {
 
 class I2cExplorer {
  public:
-  virtual ~I2cExplorer() {}
+  virtual ~I2cExplorer() = default;
   I2cExplorer(
       const std::shared_ptr<PlatformUtils>& platformUtils =
           std::make_shared<PlatformUtils>())

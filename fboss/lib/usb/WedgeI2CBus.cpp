@@ -17,7 +17,7 @@ using folly::MutableByteRange;
 using std::lock_guard;
 
 namespace facebook::fboss {
-WedgeI2CBus::WedgeI2CBus() {}
+WedgeI2CBus::WedgeI2CBus() = default;
 
 void WedgeI2CBus::initBus() {
   dev_->writeByte(ADDR_SWITCH_1, 0);

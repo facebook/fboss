@@ -1,7 +1,7 @@
 //  Copyright 2021-present Facebook. All Rights Reserved.
 
-#include <string.h>
 #include <sysexits.h>
+#include <cstring>
 #include <iostream>
 #include <memory>
 

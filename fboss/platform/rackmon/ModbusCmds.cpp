@@ -45,7 +45,7 @@ ReadHoldingRegistersResp::ReadHoldingRegistersResp(
     uint8_t deviceAddr,
     std::vector<uint16_t>& regs)
     : expectedDeviceAddr_(deviceAddr), regs_(regs) {
-  if (!regs.size()) {
+  if (regs.empty()) {
     throw std::underflow_error("Response too small");
   }
   // addr(1), func(1), bytecount(1), <2 * count regs>, crc(2)

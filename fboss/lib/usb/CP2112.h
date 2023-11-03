@@ -27,7 +27,7 @@ class CP2112Intf : public I2cController {
  public:
   CP2112Intf()
       : I2cController(folly::to<std::string>("i2cController.cp2112")) {}
-  virtual ~CP2112Intf() {}
+  virtual ~CP2112Intf() = default;
 
   virtual void open(bool setSmbusConfig = true) = 0;
   virtual void close() = 0;
@@ -103,7 +103,7 @@ class CP2112 : public CP2112Intf {
   };
 
   struct VersionInfo {
-    VersionInfo() {}
+    VersionInfo() = default;
     VersionInfo(uint8_t pn, uint8_t vers) : partNumber(pn), version(vers) {}
 
     /*
@@ -132,7 +132,7 @@ class CP2112 : public CP2112Intf {
    * and the MSB referring to GPIO 7.
    */
   struct GpioConfig {
-    GpioConfig() {}
+    GpioConfig() = default;
     GpioConfig(uint8_t d, uint8_t pp, uint8_t s, uint8_t cd)
         : direction(d), pushPull(pp), special(s), clockDivider(cd) {}
 

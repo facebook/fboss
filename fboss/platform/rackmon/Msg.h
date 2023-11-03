@@ -24,7 +24,7 @@ struct Msg {
   size_t len = 0;
   uint8_t& addr = raw[0];
 
-  virtual ~Msg() {}
+  virtual ~Msg() = default;
 
   void clear() {
     len = 0;
@@ -65,7 +65,7 @@ struct Msg {
   auto end() const noexcept {
     return raw.cbegin() + len;
   }
-  Msg() {}
+  Msg() = default;
   Msg(const Msg& other) {
     len = other.len;
     std::copy(other.begin(), other.end(), begin());
@@ -188,7 +188,7 @@ auto operator"" _M() {
 #ifdef __TEST__
 class Encoder {
  public:
-  Encoder() {}
+  Encoder() = default;
   static void encode(Msg& msg) {
     msg.encode();
   }

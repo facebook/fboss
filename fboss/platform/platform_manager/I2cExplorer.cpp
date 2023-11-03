@@ -36,7 +36,7 @@ uint16_t I2cExplorer::extractBusNumFromPath(const fs::path& busPath) {
         fmt::format("Invalid path to i2c bus: {}", busPath.string()));
   }
   return folly::to<uint16_t>(
-      busPath.string().substr(busPath.string().find_last_of("-") + 1));
+      busPath.string().substr(busPath.string().find_last_of('-') + 1));
 }
 
 std::map<std::string, uint16_t> I2cExplorer::getBusNums(
@@ -150,7 +150,7 @@ std::map<uint16_t, uint16_t> I2cExplorer::getMuxChannelI2CBuses(
       }
       auto channelNum =
           folly::to<uint16_t>(dirEntry.path().filename().string().substr(
-              dirEntry.path().filename().string().find_last_of("-") + 1));
+              dirEntry.path().filename().string().find_last_of('-') + 1));
       auto channelBusNum =
           extractBusNumFromPath(fs::read_symlink(dirEntry).filename());
       channelBusNums[channelNum] = channelBusNum;

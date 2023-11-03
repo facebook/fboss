@@ -46,7 +46,7 @@ class ModbusSpecialHandler : public SpecialHandlerInfo {
 
  public:
   ModbusSpecialHandler(uint8_t deviceAddress) : deviceAddress_(deviceAddress) {}
-  virtual ~ModbusSpecialHandler() {}
+  virtual ~ModbusSpecialHandler() = default;
   void handle(ModbusDevice& dev);
 };
 

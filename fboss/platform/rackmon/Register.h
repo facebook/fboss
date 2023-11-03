@@ -88,7 +88,7 @@ struct RegisterValue {
   // The timestamp of when the value was read
   uint32_t timestamp = 0;
 
-  RegisterValue() {}
+  RegisterValue() = default;
   explicit RegisterValue(
       const std::vector<uint16_t>& reg,
       const RegisterDescriptor& desc,
@@ -296,7 +296,7 @@ void from_json(const nlohmann::json& j, BaudrateConfig& m);
 struct AddrRange {
   // pair of start and end address.
   std::pair<uint8_t, uint8_t> range{};
-  AddrRange() {}
+  AddrRange() = default;
   explicit AddrRange(uint8_t a, uint8_t b) : range(a, b) {}
   explicit AddrRange(uint8_t a) : range(a, a) {}
 

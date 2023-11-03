@@ -13,7 +13,7 @@ using namespace rackmon;
 class Mock2Modbus : public Modbus {
  public:
   Mock2Modbus() : Modbus() {}
-  ~Mock2Modbus() {}
+  ~Mock2Modbus() = default;
   MOCK_METHOD1(initialize, void(const nlohmann::json&));
   MOCK_METHOD5(command, void(Msg&, Msg&, uint32_t, ModbusTime, Parity));
 };

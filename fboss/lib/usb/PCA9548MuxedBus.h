@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include <stdint.h>
+#include <cstdint>
 #include <deque>
 #include <memory>
 #include <vector>
@@ -24,7 +24,7 @@ namespace facebook::fboss {
 class QsfpMux;
 
 struct MuxChannel {
-  MuxChannel() {}
+  MuxChannel() = default;
   MuxChannel(QsfpMux* mux_, uint8_t channel_) : mux(mux_), channel(channel_) {}
 
   std::string str() const {

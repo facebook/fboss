@@ -207,7 +207,7 @@ int main(int /*argc*/, char* /*argv*/[]) {
     ip = ip.mask(mask);
     if (insertSet4.insert(Prefix4(ip, mask)).second) {
       valueSet.push_back(ip.toLong());
-      inserted4.push_back(Prefix4(ip, mask));
+      inserted4.emplace_back(ip, mask);
     }
   }
   while (eraseSet4.size() < FLAGS_erase_count) {
@@ -230,12 +230,12 @@ int main(int /*argc*/, char* /*argv*/[]) {
   while (insertSet6.size() < FLAGS_insert_count) {
     auto mask = folly::Random::rand32(128);
     ByteArray16 ba;
-    *(uint64_t*)(&ba[0]) = folly::Random::rand64();
+    *(uint64_t*)(ba.data()) = folly::Random::rand64();
     *(uint64_t*)(&ba[8]) = folly::Random::rand64();
     auto ip = IPAddressV6(ba);
     ip = ip.mask(mask);
     if (insertSet6.insert(Prefix6(ip, mask)).second) {
-      inserted6.push_back(Prefix6(ip, mask));
+      inserted6.emplace_back(ip, mask);
     }
   }
   while (eraseSet6.size() < FLAGS_erase_count) {

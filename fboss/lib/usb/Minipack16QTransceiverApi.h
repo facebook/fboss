@@ -18,7 +18,7 @@ namespace facebook::fboss {
 class Minipack16QTransceiverApi : public TransceiverPlatformApi {
  public:
   Minipack16QTransceiverApi();
-  ~Minipack16QTransceiverApi() override {}
+  ~Minipack16QTransceiverApi() override = default;
 
   /* Trigger the QSFP hard reset for a given QSFP module in the minipack chassis
    * switch. For that module, this function getsthe PIM module id, PIM port id
