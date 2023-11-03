@@ -12,15 +12,18 @@
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
 
+DECLARE_bool(enable_acl_table_group);
+
 namespace facebook::fboss::utility {
 void addDscpAclToCfg(
     cfg::SwitchConfig* config,
     const std::string& aclName,
     uint32_t dscp) {
-  auto numCfgAcls = config->acls()->size();
-  config->acls()->resize(numCfgAcls + 1);
-  *config->acls()[numCfgAcls].name() = aclName;
-  config->acls()[numCfgAcls].dscp() = dscp;
+  auto acl = cfg::AclEntry();
+  *acl.name() = aclName;
+  acl.dscp() = dscp;
+
+  utility::addAclEntry(config, acl, utility::kDefaultAclTable());
 }
 
 void addL4SrcPortAclToCfg(

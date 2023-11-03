@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/hw/test/HwTestAclUtils.h"
+#include <memory>
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 #include "fboss/agent/state/SwitchState.h"
@@ -17,10 +18,27 @@ DECLARE_bool(enable_acl_table_group);
 
 namespace facebook::fboss::utility {
 
+std::shared_ptr<AclEntry> getAclEntryByName(
+    const std::shared_ptr<SwitchState> state,
+    const std::string& aclName) {
+  std::shared_ptr<AclEntry> swAcl;
+  if (FLAGS_enable_acl_table_group) {
+    auto aclMap = state->getAclsForTable(
+        cfg::AclStage::INGRESS, utility::kDefaultAclTable());
+    if (aclMap) {
+      swAcl = aclMap->getNodeIf(aclName);
+    }
+  } else {
+    swAcl = state->getAcl(aclName);
+  }
+
+  return swAcl;
+}
+
 std::optional<cfg::TrafficCounter> getAclTrafficCounter(
     const std::shared_ptr<SwitchState> state,
     const std::string& aclName) {
-  auto swAcl = state->getAcl(aclName);
+  auto swAcl = getAclEntryByName(state, aclName);
   if (swAcl && swAcl->getAclAction()) {
     return swAcl->getAclAction()
         ->cref<switch_state_tags::trafficCounter>()
@@ -55,15 +73,10 @@ int getAclTableIndex(
   return tableIndex;
 }
 
-cfg::AclEntry* addAcl(
+cfg::AclEntry* addAclEntry(
     cfg::SwitchConfig* cfg,
-    const std::string& aclName,
-    const cfg::AclActionType& aclActionType,
+    cfg::AclEntry& acl,
     const std::optional<std::string>& tableName) {
-  auto acl = cfg::AclEntry();
-  *acl.name() = aclName;
-  *acl.actionType() = aclActionType;
-
   if (FLAGS_enable_acl_table_group) {
     auto aclTableName =
         tableName.has_value() ? tableName.value() : kDefaultAclTable();
@@ -76,15 +89,37 @@ cfg::AclEntry* addAcl(
   }
 }
 
+cfg::AclEntry* addAcl(
+    cfg::SwitchConfig* cfg,
+    const std::string& aclName,
+    const cfg::AclActionType& aclActionType,
+    const std::optional<std::string>& tableName) {
+  auto acl = cfg::AclEntry();
+  *acl.name() = aclName;
+  *acl.actionType() = aclActionType;
+
+  return addAclEntry(cfg, acl, tableName);
+}
+
+std::vector<cfg::AclEntry>& getAcls(
+    cfg::SwitchConfig* cfg,
+    const std::optional<std::string>& tableName) {
+  auto aclTableName =
+      tableName.has_value() ? tableName.value() : kDefaultAclTable();
+  auto& acls = FLAGS_enable_acl_table_group
+      ? *cfg->aclTableGroup()
+             ->aclTables()[getAclTableIndex(cfg, aclTableName)]
+             .aclEntries()
+      : *cfg->acls();
+
+  return acls;
+}
+
 void delAcl(
     cfg::SwitchConfig* cfg,
     const std::string& aclName,
     const std::optional<std::string>& tableName) {
-  auto& acls = FLAGS_enable_acl_table_group
-      ? *cfg->aclTableGroup()
-             ->aclTables()[getAclTableIndex(cfg, tableName)]
-             .aclEntries()
-      : *cfg->acls();
+  auto& acls = getAcls(cfg, tableName);
 
   acls.erase(
       std::remove_if(
@@ -92,6 +127,11 @@ void delAcl(
           acls.end(),
           [&](cfg::AclEntry const& acl) { return *acl.name() == aclName; }),
       acls.end());
+}
+
+void delLastAddedAcl(cfg::SwitchConfig* cfg) {
+  auto& acls = getAcls(cfg, std::nullopt);
+  acls.pop_back();
 }
 
 void addAclTableGroup(

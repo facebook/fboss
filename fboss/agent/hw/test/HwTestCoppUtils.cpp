@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
+#include <vector>
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/HwSwitch.h"
@@ -17,6 +18,8 @@
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
+
+DECLARE_bool(enable_acl_table_group);
 
 namespace {
 constexpr int kDownlinkBaseVlanId = 2000;
@@ -216,11 +219,9 @@ void setDefaultCpuTrafficPolicyConfig(
     cfg::SwitchConfig& config,
     const HwAsic* hwAsic) {
   auto cpuAcls = utility::defaultCpuAcls(hwAsic, config);
-  // insert cpu acls into global acl field
-  int curNumAcls = config.acls()->size();
-  config.acls()->resize(curNumAcls + cpuAcls.size());
+
   for (int i = 0; i < cpuAcls.size(); i++) {
-    config.acls()[curNumAcls + i] = cpuAcls[i].first;
+    utility::addAclEntry(&config, cpuAcls[i].first, std::nullopt);
   }
 
   // prepare cpu traffic config

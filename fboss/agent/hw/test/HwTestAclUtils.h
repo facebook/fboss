@@ -46,6 +46,10 @@ void checkAclEntryAndStatCount(
     int counterCount,
     const std::optional<std::string>& aclTableName = std::nullopt);
 
+std::shared_ptr<AclEntry> getAclEntryByName(
+    const std::shared_ptr<SwitchState> state,
+    const std::string& aclName);
+
 std::optional<cfg::TrafficCounter> getAclTrafficCounter(
     const std::shared_ptr<SwitchState> state,
     const std::string& aclName);
@@ -66,16 +70,27 @@ int getAclTableIndex(
     cfg::SwitchConfig* cfg,
     const std::optional<std::string>& tableName);
 
+cfg::AclEntry* addAclEntry(
+    cfg::SwitchConfig* cfg,
+    cfg::AclEntry& acl,
+    const std::optional<std::string>& tableName);
+
 cfg::AclEntry* addAcl(
     cfg::SwitchConfig* cfg,
     const std::string& aclName,
     const cfg::AclActionType& aclActionType = cfg::AclActionType::PERMIT,
     const std::optional<std::string>& tableName = std::nullopt);
 
+std::vector<cfg::AclEntry>& getAcls(
+    cfg::SwitchConfig* cfg,
+    const std::optional<std::string>& tableName);
+
 void delAcl(
     cfg::SwitchConfig* cfg,
     const std::string& aclName,
     const std::optional<std::string>& tableName = std::nullopt);
+
+void delLastAddedAcl(cfg::SwitchConfig* cfg);
 
 void addAclTableGroup(
     cfg::SwitchConfig* cfg,

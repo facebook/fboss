@@ -491,7 +491,7 @@ void checkAclStat(
     std::vector<cfg::CounterType> counterTypes,
     const std::optional<std::string>& aclTableName) {
   for (const auto& aclName : acls) {
-    auto swAcl = state->getAcl(aclName);
+    auto swAcl = getAclEntryByName(state, aclName);
     auto swTrafficCounter = getAclTrafficCounter(state, aclName);
     ASSERT_TRUE(swTrafficCounter);
     ASSERT_EQ(statName, *swTrafficCounter->name());
@@ -700,7 +700,7 @@ void checkSwAclSendToQueue(
     const std::string& aclName,
     bool sendToCPU,
     int queueId) {
-  auto acl = state->getAcls()->getNodeIf(aclName);
+  auto acl = getAclEntryByName(state, aclName);
   ASSERT_TRUE(acl->getAclAction());
   ASSERT_TRUE(acl->getAclAction()->cref<switch_state_tags::setTc>());
   ASSERT_EQ(
