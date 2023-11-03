@@ -678,6 +678,7 @@ class TransceiverManager {
    */
   std::unique_ptr<std::thread> updateThread_;
   std::unique_ptr<folly::EventBase> updateEventBase_;
+  std::shared_ptr<ThreadHeartbeat> updateThreadHeartbeat_;
 
   // TODO(joseph5wu) Will add heartbeat watchdog later
 

@@ -364,11 +364,12 @@ void TransceiverManager::startThreads() {
   }));
 
   auto heartbeatStatsFunc = [this](int /* delay */, int /* backLog */) {};
-  heartbeats_.push_back(std::make_shared<ThreadHeartbeat>(
+  updateThreadHeartbeat_ = std::make_shared<ThreadHeartbeat>(
       updateEventBase_.get(),
       "updateThreadHeartbeat",
       FLAGS_state_machine_update_thread_heartbeat_ms,
-      heartbeatStatsFunc));
+      heartbeatStatsFunc);
+  heartbeats_.push_back(updateThreadHeartbeat_);
 
   // Create a watchdog that will monitor the heartbeats of all the threads and
   // increment the missed counter when there is no heartbeat on at least one
@@ -1082,10 +1083,13 @@ void TransceiverManager::triggerFirmwareUpgradeEvents(
   for (auto tcvrID : tcvrs) {
     TransceiverStateMachineEvent event =
         TransceiverStateMachineEvent::TCVR_EV_UPGRADE_FIRMWARE;
+    heartbeatWatchdog_->pauseMonitoringHeartbeat(
+        stateMachines_.find(tcvrID)->second->getThreadHeartbeat());
     if (auto result = updateStateBlockingWithoutWait(tcvrID, event)) {
       results.push_back(result);
     }
   }
+  heartbeatWatchdog_->pauseMonitoringHeartbeat(updateThreadHeartbeat_);
   waitForAllBlockingStateUpdateDone(results);
 
   resetUpgradedTransceiversToNotPresent();
@@ -1255,6 +1259,14 @@ void TransceiverManager::refreshStateMachines() {
     }
   }
   triggerRemediateEvents(stableTcvrs);
+
+  // Resume heartbeats at the end of refresh loop in case they were paused by
+  // any of the operations above
+  for (auto& stateMachine : stateMachines_) {
+    heartbeatWatchdog_->resumeMonitoringHeartbeat(
+        stateMachine.second->getThreadHeartbeat());
+  }
+  heartbeatWatchdog_->resumeMonitoringHeartbeat(updateThreadHeartbeat_);
 
   if (!isFullyInitialized_) {
     isFullyInitialized_ = true;
