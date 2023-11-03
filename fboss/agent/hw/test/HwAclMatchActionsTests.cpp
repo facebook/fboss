@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/test/HwTest.h"
 #include "fboss/agent/hw/test/HwTestAclUtils.h"
 #include "fboss/agent/hw/test/TrafficPolicyUtils.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwTestQueuePerHostUtils.h"
 #include "fboss/agent/state/SwitchState.h"
 
 #include <string>
@@ -28,7 +29,7 @@ void checkSwActionDscpValue(
     std::shared_ptr<SwitchState> state,
     const std::string& aclName,
     int32_t dscpValue) {
-  auto acl = state->getAcls()->getNodeIf(aclName);
+  auto acl = utility::getAclEntryByName(state, aclName);
   ASSERT_TRUE(acl->getAclAction());
   ASSERT_TRUE(acl->getAclAction()->cref<switch_state_tags::setDscp>());
   ASSERT_EQ(
@@ -52,135 +53,179 @@ void addSetDscpAction(
 
 namespace facebook::fboss {
 
+template <bool enableMultiAclTable>
+struct EnableMultiAclTableT {
+  static constexpr auto multiAclTableEnabled = enableMultiAclTable;
+};
+
+using TestTypes =
+    ::testing::Types<EnableMultiAclTableT<false>, EnableMultiAclTableT<true>>;
+
+template <typename EnableMultiAclTableT>
 class HwAclMatchActionsTest : public HwTest {
+  static auto constexpr isMultiAclEnabled =
+      EnableMultiAclTableT::multiAclTableEnabled;
+
  protected:
+  void SetUp() override {
+    FLAGS_enable_acl_table_group = isMultiAclEnabled;
+    HwTest::SetUp();
+    /*
+     * Native SDK does not support multi acl feature.
+     * So skip multi acl tests for fake bcm sdk
+     */
+    if ((this->getPlatform()->getAsic()->getAsicType() ==
+         cfg::AsicType::ASIC_TYPE_FAKE) &&
+        (isMultiAclEnabled)) {
+      GTEST_SKIP();
+    }
+  }
+
   cfg::SwitchConfig initialConfig() const {
-    return utility::onePortPerInterfaceConfig(
+    auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         masterLogicalPortIds(),
         getAsic()->desiredLoopbackModes());
+    if (isMultiAclEnabled) {
+      utility::addAclTableGroup(
+          &cfg, cfg::AclStage::INGRESS, utility::getAclTableGroupName());
+      utility::addDefaultAclTable(cfg);
+    }
+    return cfg;
   }
 };
 
-TEST_F(HwAclMatchActionsTest, AddTrafficPolicy) {
+TYPED_TEST_SUITE(HwAclMatchActionsTest, TestTypes);
+
+TYPED_TEST(HwAclMatchActionsTest, AddTrafficPolicy) {
   constexpr uint32_t kDscp = 0x24;
   constexpr int kQueueId = 4;
 
   auto setup = [this]() {
-    auto newCfg = initialConfig();
+    auto newCfg = this->initialConfig();
     utility::addDscpAclToCfg(&newCfg, "acl1", kDscp);
     utility::addQueueMatcher(&newCfg, "acl1", kQueueId);
-    applyNewConfig(newCfg);
+    this->applyNewConfig(newCfg);
   };
   auto verify = [this]() {
-    EXPECT_EQ(utility::getAclTableNumAclEntries(getHwSwitch()), 1);
-    utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "acl1");
+    EXPECT_EQ(utility::getAclTableNumAclEntries(this->getHwSwitch()), 1);
+    utility::checkSwHwAclMatch(
+        this->getHwSwitch(), this->getProgrammedState(), "acl1");
     utility::checkSwAclSendToQueue(
-        getProgrammedState(), "acl1", false, kQueueId);
+        this->getProgrammedState(), "acl1", false, kQueueId);
   };
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwAclMatchActionsTest, SetDscpMatchAction) {
+TYPED_TEST(HwAclMatchActionsTest, SetDscpMatchAction) {
   constexpr uint32_t kDscp = 0x24;
   constexpr uint32_t kDscp2 = 0x8;
 
   auto setup = [this]() {
-    auto newCfg = initialConfig();
+    auto newCfg = this->initialConfig();
     utility::addDscpAclToCfg(&newCfg, "acl1", kDscp);
     addSetDscpAction(&newCfg, "acl1", kDscp2);
-    applyNewConfig(newCfg);
+    this->applyNewConfig(newCfg);
   };
   auto verify = [this]() {
-    EXPECT_EQ(utility::getAclTableNumAclEntries(getHwSwitch()), 1);
-    utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "acl1");
-    checkSwActionDscpValue(getProgrammedState(), "acl1", kDscp2);
+    EXPECT_EQ(utility::getAclTableNumAclEntries(this->getHwSwitch()), 1);
+    utility::checkSwHwAclMatch(
+        this->getHwSwitch(), this->getProgrammedState(), "acl1");
+    checkSwActionDscpValue(this->getProgrammedState(), "acl1", kDscp2);
   };
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwAclMatchActionsTest, AddSameMatcherTwice) {
+TYPED_TEST(HwAclMatchActionsTest, AddSameMatcherTwice) {
   auto setup = [this]() {
-    auto newCfg = initialConfig();
+    auto newCfg = this->initialConfig();
     utility::addDscpAclToCfg(&newCfg, "acl1", 0);
     utility::addQueueMatcher(&newCfg, "acl1", 0);
     utility::addQueueMatcher(&newCfg, "acl1", 0);
     utility::addDscpAclToCfg(&newCfg, "acl2", 0);
     addSetDscpAction(&newCfg, "acl2", 8);
     addSetDscpAction(&newCfg, "acl2", 8);
-    applyNewConfig(newCfg);
+    this->applyNewConfig(newCfg);
   };
   auto verify = [this]() {
-    EXPECT_EQ(utility::getAclTableNumAclEntries(getHwSwitch()), 2);
-    utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "acl1");
-    utility::checkSwAclSendToQueue(getProgrammedState(), "acl1", false, 0);
-    utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "acl2");
-    checkSwActionDscpValue(getProgrammedState(), "acl2", 8);
+    EXPECT_EQ(utility::getAclTableNumAclEntries(this->getHwSwitch()), 2);
+    utility::checkSwHwAclMatch(
+        this->getHwSwitch(), this->getProgrammedState(), "acl1");
+    utility::checkSwAclSendToQueue(
+        this->getProgrammedState(), "acl1", false, 0);
+    utility::checkSwHwAclMatch(
+        this->getHwSwitch(), this->getProgrammedState(), "acl2");
+    checkSwActionDscpValue(this->getProgrammedState(), "acl2", 8);
   };
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwAclMatchActionsTest, AddMultipleActions) {
+TYPED_TEST(HwAclMatchActionsTest, AddMultipleActions) {
   auto setup = [this]() {
-    auto newCfg = initialConfig();
+    auto newCfg = this->initialConfig();
     utility::addDscpAclToCfg(&newCfg, "acl1", 0);
     utility::addDscpAclToCfg(&newCfg, "acl2", 0);
     utility::addDscpAclToCfg(&newCfg, "acl3", 0);
     utility::addQueueMatcher(&newCfg, "acl1", 0);
     utility::addQueueMatcher(&newCfg, "acl2", 0);
     addSetDscpAction(&newCfg, "acl3", 8);
-    applyNewConfig(newCfg);
+    this->applyNewConfig(newCfg);
   };
   auto verify = [this]() {
-    EXPECT_EQ(utility::getAclTableNumAclEntries(getHwSwitch()), 3);
+    EXPECT_EQ(utility::getAclTableNumAclEntries(this->getHwSwitch()), 3);
     for (const auto& matcher : {"acl1", "acl2"}) {
-      utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), matcher);
-      utility::checkSwAclSendToQueue(getProgrammedState(), matcher, false, 0);
+      utility::checkSwHwAclMatch(
+          this->getHwSwitch(), this->getProgrammedState(), matcher);
+      utility::checkSwAclSendToQueue(
+          this->getProgrammedState(), matcher, false, 0);
     }
-    utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "acl3");
-    checkSwActionDscpValue(getProgrammedState(), "acl3", 8);
+    utility::checkSwHwAclMatch(
+        this->getHwSwitch(), this->getProgrammedState(), "acl3");
+    checkSwActionDscpValue(this->getProgrammedState(), "acl3", 8);
   };
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwAclMatchActionsTest, AddRemoveActions) {
+TYPED_TEST(HwAclMatchActionsTest, AddRemoveActions) {
   auto setup = [this]() {
-    auto newCfg = initialConfig();
+    auto newCfg = this->initialConfig();
     utility::addDscpAclToCfg(&newCfg, "acl1", 0);
     utility::addQueueMatcher(&newCfg, "acl1", 0);
     utility::addDscpAclToCfg(&newCfg, "acl2", 0);
     addSetDscpAction(&newCfg, "acl2", 8);
-    applyNewConfig(newCfg);
+    this->applyNewConfig(newCfg);
 
     popOneMatchToAction(&newCfg);
     popOneMatchToAction(&newCfg);
-    applyNewConfig(newCfg);
+    this->applyNewConfig(newCfg);
   };
 
   auto verify = [this]() {
-    EXPECT_EQ(utility::getAclTableNumAclEntries(getHwSwitch()), 0);
+    EXPECT_EQ(utility::getAclTableNumAclEntries(this->getHwSwitch()), 0);
   };
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwAclMatchActionsTest, AddTrafficPolicyMultipleRemoveOne) {
+TYPED_TEST(HwAclMatchActionsTest, AddTrafficPolicyMultipleRemoveOne) {
   auto setup = [this]() {
-    auto newCfg = initialConfig();
+    auto newCfg = this->initialConfig();
     utility::addDscpAclToCfg(&newCfg, "acl1", 0);
     utility::addQueueMatcher(&newCfg, "acl1", 0);
     utility::addDscpAclToCfg(&newCfg, "acl2", 0);
     utility::addQueueMatcher(&newCfg, "acl2", 0);
-    applyNewConfig(newCfg);
+    this->applyNewConfig(newCfg);
 
     popOneMatchToAction(&newCfg);
-    applyNewConfig(newCfg);
+    this->applyNewConfig(newCfg);
   };
   auto verify = [this]() {
-    EXPECT_EQ(utility::getAclTableNumAclEntries(getHwSwitch()), 1);
-    utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "acl1");
-    utility::checkSwAclSendToQueue(getProgrammedState(), "acl1", false, 0);
+    EXPECT_EQ(utility::getAclTableNumAclEntries(this->getHwSwitch()), 1);
+    utility::checkSwHwAclMatch(
+        this->getHwSwitch(), this->getProgrammedState(), "acl1");
+    utility::checkSwAclSendToQueue(
+        this->getProgrammedState(), "acl1", false, 0);
   };
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
 } // namespace facebook::fboss
