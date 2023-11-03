@@ -631,3 +631,10 @@ add_dependencies(fboss_platform_services
   led_service
   data_corral_service
 )
+
+add_custom_target(qsfp_targets)
+add_dependencies(qsfp_targets
+  qsfp_service
+  qsfp_hw_test
+  wedge_qsfp_util
+)
