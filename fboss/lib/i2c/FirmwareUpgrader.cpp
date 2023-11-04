@@ -107,6 +107,9 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
       moduleId_,
       imageLen);
 
+  // Start the IO profiling
+  bus_->i2cTimeProfilingStart(moduleId_);
+
   // Set the password to let the privileged operation of firmware download
   bus_->moduleWrite(
       moduleId_,
@@ -333,6 +336,15 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
       moduleId_,
       {TransceiverI2CApi::ADDR_QSFP, kModulePasswordEntryReg, 4},
       msaPassword_.data());
+
+  // Print IO profiling info
+  auto ioTiming = bus_->getI2cTimeProfileMsec(moduleId_);
+  XLOG(INFO) << folly::sformat(
+      "cmisModuleFirmwareDownload: Mod{:d}: Total IO access - Read time = {:d} ms, Write time = {:d} ms",
+      moduleId_,
+      ioTiming.first,
+      ioTiming.second);
+  bus_->i2cTimeProfilingEnd(moduleId_);
 
   return true;
 }
