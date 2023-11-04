@@ -80,4 +80,30 @@ void BspIOBus::initTransceivers() {
   systemContainer_->initAllTransceivers();
 }
 
+/*
+ * Start the I2c read/write time profiling
+ */
+void BspIOBus::i2cTimeProfilingStart(unsigned int module) const {
+  CHECK(module >= 1 && module <= systemContainer_->getNumTransceivers());
+  systemContainer_->i2cTimeProfilingStart(module);
+}
+
+/*
+ * Stop the I2c read/write time profiling
+ */
+void BspIOBus::i2cTimeProfilingEnd(unsigned int module) const {
+  CHECK(module >= 1 && module <= systemContainer_->getNumTransceivers());
+  systemContainer_->i2cTimeProfilingEnd(module);
+}
+
+/*
+ * Return the result of i2c timing profiling in the format of
+ * <readTimeMsec, writeTimeMsec>
+ */
+std::pair<uint64_t, uint64_t> BspIOBus::getI2cTimeProfileMsec(
+    unsigned int module) const {
+  CHECK(module >= 1 && module <= systemContainer_->getNumTransceivers());
+  return systemContainer_->getI2cTimeProfileMsec(module);
+}
+
 } // namespace facebook::fboss

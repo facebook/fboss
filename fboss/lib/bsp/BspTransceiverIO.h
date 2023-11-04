@@ -18,7 +18,7 @@ class BspTransceiverIOError : public I2cError {
 class BspTransceiverIO : public I2cController {
  public:
   BspTransceiverIO(uint32_t tcvr, BspTransceiverMapping& tcvrMapping);
-  ~BspTransceiverIO() {}
+  virtual ~BspTransceiverIO() {}
   void read(const TransceiverAccessParameter& param, uint8_t* buf);
   void write(const TransceiverAccessParameter& param, const uint8_t* buf);
 

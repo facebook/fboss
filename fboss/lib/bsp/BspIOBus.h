@@ -37,6 +37,12 @@ class BspIOBus : public TransceiverI2CApi {
     return systemContainer_->getPimContainerFromTcvrID(module)->getIOEventBase(
         module);
   }
+
+  void i2cTimeProfilingStart(unsigned int module) const override;
+  void i2cTimeProfilingEnd(unsigned int module) const override;
+  std::pair<uint64_t, uint64_t> getI2cTimeProfileMsec(
+      unsigned int module) const override;
+
   // Forbidden copy constructor and assignment operator
   BspIOBus(BspIOBus const&) = delete;
   BspIOBus& operator=(BspIOBus const&) = delete;

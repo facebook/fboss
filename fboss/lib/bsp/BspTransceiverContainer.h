@@ -25,6 +25,9 @@ class BspTransceiverContainer {
   void tcvrWrite(const TransceiverAccessParameter& param, const uint8_t* buf)
       const;
   const I2cControllerStats getI2cControllerStats() const;
+  void i2cTimeProfilingStart() const;
+  void i2cTimeProfilingEnd() const;
+  std::pair<uint64_t, uint64_t> getI2cTimeProfileMsec() const;
 
  private:
   BspTransceiverMapping tcvrMapping_;

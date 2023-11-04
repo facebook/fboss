@@ -21,7 +21,7 @@ class I2cController {
   I2cController(std::string name) {
     *i2cControllerPlatformStats_.controllerName_() = name;
   }
-  ~I2cController() {}
+  virtual ~I2cController() {}
 
   // Reset all i2c stats
   void resetStats() {
@@ -62,6 +62,12 @@ class I2cController {
   const I2cControllerStats getI2cControllerPlatformStats() const {
     // return the structre reference of latest i2c transaction stats
     return i2cControllerPlatformStats_;
+  }
+
+  virtual void i2cTimeProfilingStart() {}
+  virtual void i2cTimeProfilingEnd() {}
+  virtual std::pair<uint64_t, uint64_t> getI2cTimeProfileMsec() {
+    return std::make_pair(0, 0);
   }
 
  private:

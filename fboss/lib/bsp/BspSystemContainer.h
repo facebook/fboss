@@ -101,6 +101,11 @@ class BspSystemContainer {
     return phyMgr_->getExternalPhy(phyMgr_->getGlobalXphyID(info));
   }
 
+  void i2cTimeProfilingStart(unsigned int tcvrID) const;
+  void i2cTimeProfilingEnd(unsigned int tcvrID) const;
+  std::pair<uint64_t, uint64_t> getI2cTimeProfileMsec(
+      unsigned int tcvrID) const;
+
   virtual ~BspSystemContainer() {}
 
  private:

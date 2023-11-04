@@ -37,6 +37,11 @@ class BspPimContainer : public MultiPimPlatformPimContainer {
       const TransceiverAccessParameter& param,
       const uint8_t* buf) const;
   const I2cControllerStats getI2cControllerStats(int tcvrID) const;
+  void i2cTimeProfilingStart(unsigned int tcvrID) const;
+  void i2cTimeProfilingEnd(unsigned int tcvrID) const;
+  std::pair<uint64_t, uint64_t> getI2cTimeProfileMsec(
+      unsigned int tcvrID) const;
+
   virtual bool isPimPresent() const override {
     return true;
   };

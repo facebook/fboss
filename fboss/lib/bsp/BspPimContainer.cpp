@@ -151,6 +151,19 @@ const I2cControllerStats BspPimContainer::getI2cControllerStats(
   return getTransceiverContainer(tcvrID)->getI2cControllerStats();
 }
 
+void BspPimContainer::i2cTimeProfilingStart(unsigned int tcvrID) const {
+  getTransceiverContainer(tcvrID)->i2cTimeProfilingStart();
+}
+
+void BspPimContainer::i2cTimeProfilingEnd(unsigned int tcvrID) const {
+  getTransceiverContainer(tcvrID)->i2cTimeProfilingEnd();
+}
+
+std::pair<uint64_t, uint64_t> BspPimContainer::getI2cTimeProfileMsec(
+    unsigned int tcvrID) const {
+  return getTransceiverContainer(tcvrID)->getI2cTimeProfileMsec();
+}
+
 BspPimContainer::~BspPimContainer() {
   for (auto& evb : ioToEvbThread_) {
     evb.second.first->terminateLoopSoon();

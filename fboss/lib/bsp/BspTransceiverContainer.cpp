@@ -48,5 +48,18 @@ const I2cControllerStats BspTransceiverContainer::getI2cControllerStats()
   return tcvrIO_->getI2cControllerPlatformStats();
 }
 
+void BspTransceiverContainer::i2cTimeProfilingStart() const {
+  tcvrIO_->i2cTimeProfilingStart();
+}
+
+void BspTransceiverContainer::i2cTimeProfilingEnd() const {
+  tcvrIO_->i2cTimeProfilingEnd();
+}
+
+std::pair<uint64_t, uint64_t> BspTransceiverContainer::getI2cTimeProfileMsec()
+    const {
+  return tcvrIO_->getI2cTimeProfileMsec();
+}
+
 } // namespace fboss
 } // namespace facebook

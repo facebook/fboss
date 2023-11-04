@@ -102,6 +102,19 @@ const I2cControllerStats BspSystemContainer::getI2cControllerStats(
   return getPimContainerFromTcvrID(tcvrID)->getI2cControllerStats(tcvrID);
 }
 
+void BspSystemContainer::i2cTimeProfilingStart(unsigned int tcvrID) const {
+  getPimContainerFromTcvrID(tcvrID)->i2cTimeProfilingStart(tcvrID);
+}
+
+void BspSystemContainer::i2cTimeProfilingEnd(unsigned int tcvrID) const {
+  getPimContainerFromTcvrID(tcvrID)->i2cTimeProfilingEnd(tcvrID);
+}
+
+std::pair<uint64_t, uint64_t> BspSystemContainer::getI2cTimeProfileMsec(
+    unsigned int tcvrID) const {
+  return getPimContainerFromTcvrID(tcvrID)->getI2cTimeProfileMsec(tcvrID);
+}
+
 std::map<uint32_t, LedIO*> BspSystemContainer::getLedController(
     int tcvrID) const {
   std::map<uint32_t, LedIO*> ledControllers;

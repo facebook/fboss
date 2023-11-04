@@ -119,6 +119,16 @@ class TransceiverI2CApi {
     return dummyStat;
   }
 
+  /*
+   * Functions to do i2c operation time profiling
+   */
+  virtual void i2cTimeProfilingStart(unsigned int /* module */) const {}
+  virtual void i2cTimeProfilingEnd(unsigned int /* module */) const {}
+  virtual std::pair<uint64_t, uint64_t> getI2cTimeProfileMsec(
+      unsigned int /* module */) const {
+    return std::make_pair(0, 0);
+  }
+
   // Addresses to be queried by external callers:
   enum : uint8_t {
     ADDR_QSFP = 0x50,
