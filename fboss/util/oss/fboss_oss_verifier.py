@@ -125,25 +125,19 @@ class FBOSSOSSVerifier:
             with open(stable_commit_path, "w") as f:
                 f.write(f"Subproject commit {new_stable_commit_hash}")
                 f.close()
-        if os.path.exists(
-            os.path.join(self._git_dir, "build", "fbcode_builder", "manifests")
-        ):
-            shutil.rmtree(
-                os.path.join(self._git_dir, "build", "fbcode_builder", "manifests")
-            )
-        shutil.copytree(
-            os.path.join(self._oss_dir, "manifests"),
-            os.path.join(self._git_dir, "build", "fbcode_builder", "manifests"),
-        )
         file_timestamp = self._timestamp.replace(" ", "_")
-        tarfile_name = f"latest_stable_hashes_{file_timestamp}.tar.gz"
+        file_timestamp = file_timestamp.replace(":", "")
+        file_timestamp = file_timestamp.replace("-", "")
+        tarfile_name = f"github_hashes_{file_timestamp}.tar.gz"
         with tarfile.open(tarfile_name, "w:gz") as tf:
-            tf.add(os.path.join(self._git_dir, "build"))
+            os.chdir(self._git_dir)
+            tf.add("build/deps/github_hashes/facebook")
+            tf.add("build/deps/github_hashes/facebookincubator")
 
     def print_result(self, build_result, verify_result=ResultType.FAILED):
         self._timestamp = datetime.fromtimestamp(
             datetime.now().timestamp(), pytz.timezone("US/Pacific")
-        ).strftime("%Y-%m-%d %H:%M:%S")
+        ).strftime("%m-%d-%Y %H:%M:%S")
         print(
             f"RESULTS:\n"
             f"Timestamp: {self._timestamp} PDT\n"
