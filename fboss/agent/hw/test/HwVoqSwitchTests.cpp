@@ -578,10 +578,12 @@ TEST_F(HwVoqSwitchTest, sendPacketCpuAndFrontPanel) {
             int extraByteOffset = 0;
             auto asicType = getAsic()->getAsicType();
             auto asicMode = getAsic()->getAsicMode();
-            if (asicMode == HwAsic::AsicMode::ASIC_MODE_HW &&
+            if (asicMode != HwAsic::AsicMode::ASIC_MODE_SIM &&
                 (asicType == cfg::AsicType::ASIC_TYPE_JERICHO2 ||
                  asicType == cfg::AsicType::ASIC_TYPE_JERICHO3)) {
               // CS00012267635: debug why we get 4 extra bytes
+              // Most likely this is the Ethernet FCS being counted
+              // in TX out bytes.
               extraByteOffset = 4;
             }
             EXPECT_EVENTUALLY_EQ(
