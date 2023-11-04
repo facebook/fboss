@@ -59,6 +59,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::PACKET_INTEGRITY_DROP_STATS:
     case HwAsic::Feature::LINK_STATE_BASED_ISOLATE:
     case HwAsic::Feature::SAI_CONFIGURE_SIX_TAP:
+    case HwAsic::Feature::DRAM_ENQUEUE_DEQUEUE_STATS:
       return true;
 
     // FIXME - make true when J3-AI supports these features
@@ -79,7 +80,6 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::VOQ:
     case HwAsic::Feature::TC_TO_QUEUE_QOS_MAP_ON_SYSTEM_PORT:
     case HwAsic::Feature::FABRIC_TX_QUEUES:
-    case HwAsic::Feature::DRAM_ENQUEUE_DEQUEUE_STATS:
       // TODO fix once queue stats are available on J3
       return false;
 
