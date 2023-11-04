@@ -77,7 +77,6 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE:
       return getAsicMode() != AsicMode::ASIC_MODE_HW_AI;
     case HwAsic::Feature::L3_QOS:
-    case HwAsic::Feature::VOQ:
     case HwAsic::Feature::TC_TO_QUEUE_QOS_MAP_ON_SYSTEM_PORT:
     case HwAsic::Feature::FABRIC_TX_QUEUES:
       // TODO fix once queue stats are available on J3
@@ -87,6 +86,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::BUFFER_POOL:
     case HwAsic::Feature::PFC:
     case HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET:
+    case HwAsic::Feature::VOQ:
       return getAsicMode() != AsicMode::ASIC_MODE_SIM;
     case HwAsic::Feature::SAI_PORT_ETHER_STATS:
     case HwAsic::Feature::SLOW_STAT_UPDATE:
@@ -186,7 +186,7 @@ std::set<cfg::StreamType> Jericho3Asic::getQueueStreamTypes(
 int Jericho3Asic::getDefaultNumPortQueues(
     cfg::StreamType streamType,
     cfg::PortType portType) const {
-  if (true || getAsicMode() == AsicMode::ASIC_MODE_SIM) {
+  if (getAsicMode() == AsicMode::ASIC_MODE_SIM) {
     // TODO skip returning 0 unconditionally here once J3 SDK
     // supports queue stats on HW. SIM will continue to have
     // no queues though.
@@ -197,7 +197,9 @@ int Jericho3Asic::getDefaultNumPortQueues(
       switch (portType) {
         case cfg::PortType::CPU_PORT:
         case cfg::PortType::RECYCLE_PORT:
-          return 2;
+          // TODO - update to 8 once TC object support
+          // for channelized support is added.
+          return 0;
         case cfg::PortType::INTERFACE_PORT:
           return 8;
         case cfg::PortType::FABRIC_PORT:

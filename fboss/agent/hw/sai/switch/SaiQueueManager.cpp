@@ -250,7 +250,9 @@ void SaiQueueManager::changeQueue(
   auto queueType = GET_ATTR(Queue, Type, queueHandle->queue->attributes());
   if ((queueType != SAI_QUEUE_TYPE_UNICAST_VOQ) &&
       (queueType != SAI_QUEUE_TYPE_MULTICAST_VOQ)) {
-    changeQueueScheduler(queueHandle, newPortQueue);
+    if (platform_->getAsic()->isSupported(HwAsic::Feature::L3_QOS)) {
+      changeQueueScheduler(queueHandle, newPortQueue);
+    }
   }
   if (platform_->getAsic()->isSupported(HwAsic::Feature::SAI_ECN_WRED)) {
     changeQueueEcnWred(queueHandle, newPortQueue);
