@@ -78,7 +78,6 @@ bool Jericho3Asic::isSupported(Feature feature) const {
       return getAsicMode() != AsicMode::ASIC_MODE_HW_AI;
     case HwAsic::Feature::L3_QOS:
     case HwAsic::Feature::TC_TO_QUEUE_QOS_MAP_ON_SYSTEM_PORT:
-    case HwAsic::Feature::FABRIC_TX_QUEUES:
       // TODO fix once queue stats are available on J3
       return false;
 
@@ -87,6 +86,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::PFC:
     case HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET:
     case HwAsic::Feature::VOQ:
+    case HwAsic::Feature::FABRIC_TX_QUEUES:
       return getAsicMode() != AsicMode::ASIC_MODE_SIM;
     case HwAsic::Feature::SAI_PORT_ETHER_STATS:
     case HwAsic::Feature::SLOW_STAT_UPDATE:
