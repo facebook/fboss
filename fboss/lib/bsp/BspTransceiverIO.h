@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <chrono>
 #include "fboss/lib/bsp/gen-cpp2/bsp_platform_mapping_types.h"
 #include "fboss/lib/i2c/I2cController.h"
 #include "fboss/lib/i2c/I2cDevIo.h"
@@ -22,10 +23,17 @@ class BspTransceiverIO : public I2cController {
   void read(const TransceiverAccessParameter& param, uint8_t* buf);
   void write(const TransceiverAccessParameter& param, const uint8_t* buf);
 
+  void i2cTimeProfilingStart() override;
+  void i2cTimeProfilingEnd() override;
+  std::pair<uint64_t, uint64_t> getI2cTimeProfileMsec() override;
+
  private:
   std::unique_ptr<I2cDevIo> i2cDev_;
   BspTransceiverMapping tcvrMapping_;
   int tcvrID_;
+  bool ioRdWrProfilingInProgress_{false};
+  std::chrono::duration<uint32_t, std::milli> ioWriteProfilingTime_{0};
+  std::chrono::duration<uint32_t, std::milli> ioReadProfilingTime_{0};
 };
 
 } // namespace fboss
