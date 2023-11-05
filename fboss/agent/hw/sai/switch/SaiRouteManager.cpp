@@ -135,8 +135,7 @@ bool SaiRouteManager::validRoute(const std::shared_ptr<Route<AddrT>>& swRoute) {
   // N.B., for now, this code looks a bit silly (could just do direct return)
   // but we use this style to suggest the possibility of future extension
   // with other conditions for invalid routes.
-  if (!FLAGS_disable_valid_route_check && swRoute->isConnected() &&
-      swRoute->isHostRoute()) {
+  if (swRoute->isConnected() && swRoute->isHostRoute()) {
     return false;
   }
   return true;
@@ -346,6 +345,10 @@ template <typename AddrT>
 void SaiRouteManager::removeRoute(
     const std::shared_ptr<Route<AddrT>>& swRoute,
     RouterID routerId) {
+  if (!validRoute(swRoute)) {
+    XLOG(DBG3) << "Not a valid route, don't remove: " << swRoute->str();
+    return;
+  }
   XLOG(DBG3) << "Remove route: " << swRoute->str();
   SaiRouteTraits::RouteEntry entry = routeEntryFromSwRoute(routerId, swRoute);
   size_t count = handles_.erase(entry);
