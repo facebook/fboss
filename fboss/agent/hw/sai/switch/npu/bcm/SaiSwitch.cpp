@@ -98,47 +98,10 @@ void SaiSwitch::switchEventCallback(
 void SaiSwitch::tamEventCallback(
     sai_object_id_t /*tam_event_id*/,
     sai_size_t /*buffer_size*/,
-    const void* buffer,
-    uint32_t attr_count,
-    const sai_attribute_t* attr_list) {
-  SaiTamEventTraits::Attributes::SwitchEventId eventID{};
-  const sai_switch_ser_log_info_t* eventInfo =
-      static_cast<const sai_switch_ser_log_info_t*>(buffer);
-  for (auto i = 0; i < attr_count; i++) {
-    if (attr_list[i].id == eventID.id()) {
-      eventID =
-          SaiTamEventTraits::Attributes::SwitchEventId(attr_list[i].value.u32);
-    }
-  }
-
-  std::stringstream sstream;
-  sstream << "received switch event: " << eventName(eventID.value())
-          << ", event info(";
-  bool correctible = true;
-  if (eventInfo) {
-    sstream << "correction type=" << correctionType(eventInfo->correction_type)
-            << " , flags=" << std::hex << eventInfo->correction_type;
-    correctible =
-        (eventInfo->correction_type !=
-         SAI_SWITCH_CORRECTION_TYPE_FAIL_TO_CORRECT);
-  }
-  sstream << ")";
-  XLOG(WARNING) << sstream.str();
-  switch (eventID.value()) {
-    case SAI_SWITCH_EVENT_TYPE_STABLE_FULL:
-    case SAI_SWITCH_EVENT_TYPE_STABLE_ERROR:
-    case SAI_SWITCH_EVENT_TYPE_UNCONTROLLED_SHUTDOWN:
-    case SAI_SWITCH_EVENT_TYPE_WARM_BOOT_DOWNGRADE:
-      getSwitchStats()->asicError();
-      break;
-    case SAI_SWITCH_EVENT_TYPE_PARITY_ERROR:
-      if (correctible) {
-        getSwitchStats()->corrParityError();
-      } else {
-        getSwitchStats()->uncorrParityError();
-      }
-      break;
-  }
+    const void* /*buffer*/,
+    uint32_t /*attr_count*/,
+    const sai_attribute_t* /*attr_list*/) {
+  // no-op
 }
 
 } // namespace facebook::fboss
