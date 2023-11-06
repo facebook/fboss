@@ -7466,7 +7466,6 @@
           "appl_enable_sniff_ports.BCM8885X": "0",
           "bcm_stat_interval.BCM8885X_ADAPTER": "0",
           "custom_feature_adapter_do_collect_enable.BCM8885X_ADAPTER": "1",
-          "custom_feature_fabric_cgm_ddc_th_tune.BCM8885X": "1",
           "custom_feature_kbp_multithread_en.BCM8885X": "0",
           "custom_feature_mesh_topology_sync_mode": "1",
           "custom_feature_multithread_en.BCM8885X": "1",
