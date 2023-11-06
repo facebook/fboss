@@ -229,4 +229,4 @@ uint32_t getQueueLimitBytes(
   return queueLimitBytes;
 }
 
-} // namespace facebook::fboss::utility
+}; // namespace facebook::fboss::utility

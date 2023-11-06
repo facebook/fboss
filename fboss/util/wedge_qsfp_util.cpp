@@ -355,7 +355,7 @@ struct ModulePartInfo_s modulePartInfo[] = {
 // clang-format on
 constexpr uint8_t kNumModuleInfo =
     sizeof(modulePartInfo) / sizeof(struct ModulePartInfo_s);
-} // namespace
+}; // namespace
 
 namespace facebook::fboss {
 

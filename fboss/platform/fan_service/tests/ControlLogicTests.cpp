@@ -24,7 +24,7 @@ float kDefaultRpm = 31;
 // So kExpectedPwms is production outputs of the given test inputs.
 std::array<int, 5> kExpectedPwms = std::array<int, 5>{51, 51, 52, 52, 53};
 
-} // namespace
+}; // namespace
 
 namespace facebook::fboss::platform {
 class MockBsp : public Bsp {

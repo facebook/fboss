@@ -41,4 +41,4 @@ struct FakeSystemPort {
 using FakeSystemPortManager = FakeManager<sai_object_id_t, FakeSystemPort>;
 
 void populate_system_port_api(sai_system_port_api_t** system_port_api);
-} // namespace facebook::fboss
+}; // namespace facebook::fboss

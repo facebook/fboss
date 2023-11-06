@@ -187,6 +187,6 @@ class BcmStatUpdater {
   folly::Synchronized<
       std::map<BcmRouteCounterID, std::unique_ptr<MonotonicCounter>>>
       routeStats_;
-} // namespace facebook::fboss
+}; // namespace facebook::fboss
 
 } // namespace facebook::fboss

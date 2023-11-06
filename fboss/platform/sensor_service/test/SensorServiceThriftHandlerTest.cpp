@@ -58,4 +58,4 @@ TEST_F(
   }
 }
 
-} // namespace facebook::fboss::platform::sensor_service
+}; // namespace facebook::fboss::platform::sensor_service

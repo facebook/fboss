@@ -25,4 +25,4 @@ class HwWriteBehaviorRAII {
  private:
   HwWriteBehavior prevBehavior_;
 };
-} // namespace facebook::fboss
+}; // namespace facebook::fboss

@@ -751,4 +751,4 @@ int getMaxWeightWRRQueue(const std::map<int, uint8_t>& queueToWeight) {
   return maxItr->first;
 }
 
-} // namespace facebook::fboss::utility
+}; // namespace facebook::fboss::utility

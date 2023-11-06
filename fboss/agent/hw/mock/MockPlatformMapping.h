@@ -21,4 +21,4 @@ class MockPlatformMapping : public Wedge100PlatformMapping {
   ~MockPlatformMapping() override = default;
 };
 
-} // namespace facebook::fboss
+}; // namespace facebook::fboss

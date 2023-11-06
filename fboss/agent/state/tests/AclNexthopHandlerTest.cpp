@@ -44,7 +44,7 @@ HwSwitchMatcher scope() {
   return HwSwitchMatcher{std::unordered_set<SwitchID>{SwitchID(0)}};
 }
 
-} // namespace
+}; // namespace
 
 template <typename AddrType>
 class AclNexthopHandlerTest : public ::testing::Test {

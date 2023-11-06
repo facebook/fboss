@@ -45,6 +45,6 @@ namespace restart_time {
 void init(const std::string& warmBootDir, bool warmBoot);
 void mark(RestartEvent event);
 void stop();
-} // namespace restart_time
+}; // namespace restart_time
 
 } // namespace facebook::fboss
