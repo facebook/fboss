@@ -26,6 +26,9 @@ class LedServiceTest : public ::testing::Test {
     return ensemble_.get();
   }
 
+  std::vector<TransceiverID> getAllTransceivers(
+      const PlatformMapping* platformMapping) const;
+
   void SetUp() override;
   void TearDown() override;
 

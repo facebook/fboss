@@ -36,6 +36,19 @@ void LedServiceTest::TearDown() {
   ensemble_.reset();
 }
 
+std::vector<TransceiverID> LedServiceTest::getAllTransceivers(
+    const PlatformMapping* platformMapping) const {
+  std::vector<TransceiverID> transceivers;
+  const auto& chips = platformMapping->getChips();
+  for (auto chip : chips) {
+    if (*chip.second.type() == phy::DataPlanePhyChipType::TRANSCEIVER) {
+      auto tcvrID = TransceiverID(*chip.second.physicalID());
+      transceivers.push_back(tcvrID);
+    }
+  }
+  return transceivers;
+}
+
 /*
  * Set the LED state by updating the LED manager and check if the LED color
  * changes accordingly
