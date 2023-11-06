@@ -56,53 +56,57 @@ std::vector<TransceiverID> LedServiceTest::getAllTransceivers(
 TEST_F(LedServiceTest, checkLedColorChange) {
   auto ledManager = getLedEnsemble()->getLedManager();
 
-  // Test on the first module port
+  // Test for all the modules
   // Use the ports max speed and profile
   auto platformMap = ledManager->getPlatformMapping();
-  auto swPorts = platformMap->getSwPortListFromTransceiverId(0);
-  CHECK_GT(swPorts.size(), 0);
-  auto swPort = swPorts[0];
+  auto transceivers = getAllTransceivers(platformMap);
 
-  // The setExternalLedState will throw because first update from FSDB has not
-  // happened to the LedManager
-  EXPECT_THROW(
-      ledManager->setExternalLedState(
-          swPort, PortLedExternalState::EXTERNAL_FORCE_OFF),
-      FbossError);
+  for (auto tcvr : transceivers) {
+    auto swPorts = platformMap->getSwPortListFromTransceiverId(tcvr);
+    CHECK_GT(swPorts.size(), 0);
+    auto swPort = swPorts[0];
 
-  // Do the first update from FSDB to LedService
-  auto maxSpeed = platformMap->getPortMaxSpeed(swPort);
-  auto profile = platformMap->getProfileIDBySpeed(swPort, maxSpeed);
-  LedManager::LedSwitchStateUpdate ledUpdate = {
-      static_cast<short>(swPort),
-      "",
-      enumToName<cfg::PortProfileID>(profile),
-      false};
+    // The setExternalLedState will throw because first update from FSDB has not
+    // happened to the LedManager
+    EXPECT_THROW(
+        ledManager->setExternalLedState(
+            swPort, PortLedExternalState::EXTERNAL_FORCE_OFF),
+        FbossError);
 
-  std::map<short, LedManager::LedSwitchStateUpdate> switchUpdate_0;
-  switchUpdate_0[swPort] = ledUpdate;
-  ledManager->updateLedStatus(switchUpdate_0);
+    // Do the first update from FSDB to LedService
+    auto maxSpeed = platformMap->getPortMaxSpeed(swPort);
+    auto profile = platformMap->getProfileIDBySpeed(swPort, maxSpeed);
+    LedManager::LedSwitchStateUpdate ledUpdate = {
+        static_cast<short>(swPort),
+        "",
+        enumToName<cfg::PortProfileID>(profile),
+        false};
 
-  // Now the setting of external LED state should be successful
-  EXPECT_NO_THROW(ledManager->setExternalLedState(
-      swPort, PortLedExternalState::EXTERNAL_FORCE_OFF));
+    std::map<short, LedManager::LedSwitchStateUpdate> switchUpdate_0;
+    switchUpdate_0[swPort] = ledUpdate;
+    ledManager->updateLedStatus(switchUpdate_0);
 
-  // Verify link Down, the expected LED color is OFF
-  auto offLedColor = ledManager->getCurrentLedColor(swPort);
-  EXPECT_EQ(offLedColor, led::LedColor::OFF);
+    // Now the setting of external LED state should be successful
+    EXPECT_NO_THROW(ledManager->setExternalLedState(
+        swPort, PortLedExternalState::EXTERNAL_FORCE_OFF));
 
-  // Verify link Up, the expected LED color is either Blue or Green
-  ledManager->setExternalLedState(
-      swPort, PortLedExternalState::EXTERNAL_FORCE_ON);
-  auto onLedColorCurrent = ledManager->getCurrentLedColor(swPort);
-  auto onLedColorExpected = ledManager->onColor();
-  EXPECT_EQ(onLedColorCurrent, onLedColorExpected);
+    // Verify link Down, the expected LED color is OFF
+    auto offLedColor = ledManager->getCurrentLedColor(swPort);
+    EXPECT_EQ(offLedColor, led::LedColor::OFF);
 
-  // Put it back to Off state and check again
-  ledManager->setExternalLedState(
-      swPort, PortLedExternalState::EXTERNAL_FORCE_OFF);
-  offLedColor = ledManager->getCurrentLedColor(swPort);
-  EXPECT_EQ(offLedColor, led::LedColor::OFF);
+    // Verify link Up, the expected LED color is either Blue or Green
+    ledManager->setExternalLedState(
+        swPort, PortLedExternalState::EXTERNAL_FORCE_ON);
+    auto onLedColorCurrent = ledManager->getCurrentLedColor(swPort);
+    auto onLedColorExpected = ledManager->onColor();
+    EXPECT_EQ(onLedColorCurrent, onLedColorExpected);
+
+    // Put it back to Off state and check again
+    ledManager->setExternalLedState(
+        swPort, PortLedExternalState::EXTERNAL_FORCE_OFF);
+    offLedColor = ledManager->getCurrentLedColor(swPort);
+    EXPECT_EQ(offLedColor, led::LedColor::OFF);
+  }
 }
 
 } // namespace facebook::fboss
