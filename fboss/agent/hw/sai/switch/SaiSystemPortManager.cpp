@@ -73,16 +73,6 @@ SaiSystemPortManager::attributesFromSwSystemPort(
       config, true /*enabled*/, std::nullopt};
 }
 
-std::string SaiSystemPortManager::portNameForStats(
-    const SystemPort& port) const {
-  /* On multi asic systems, same sys ports will get created
-   * on each ASIC on the system. To uniquify sys port/VOQ
-   * stats from each ASIC prepend switch index to port name
-   */
-  return folly::to<std::string>(
-      port.getPortName(), "_", platform_->getAsic()->getSwitchIndex());
-}
-
 SystemPortSaiId SaiSystemPortManager::addSystemPort(
     const std::shared_ptr<SystemPort>& swSystemPort) {
   auto systemPortHandle = getSystemPortHandle(swSystemPort->getID());
@@ -98,7 +88,10 @@ SystemPortSaiId SaiSystemPortManager::addSystemPort(
 
   portStats_.emplace(
       swSystemPort->getID(),
-      std::make_unique<HwSysPortFb303Stats>(portNameForStats(*swSystemPort)));
+      std::make_unique<HwSysPortFb303Stats>(
+          swSystemPort->getPortName(),
+          HwBasePortFb303Stats::QueueId2Name(),
+          platform_->getMultiSwitchStatsPrefix()));
   auto handle = std::make_unique<SaiSystemPortHandle>();
 
   auto& systemPortStore = saiStore_->get<SaiSystemPortTraits>();
@@ -197,10 +190,10 @@ void SaiSystemPortManager::changeSystemPort(
     addSystemPort(newSystemPort);
   } else {
     handle->systemPort->setAttributes(newAttributes);
-    if (portNameForStats(*oldSystemPort) != portNameForStats(*newSystemPort)) {
+    if (oldSystemPort->getPortName() != newSystemPort->getPortName()) {
       // Port name changed - update stats
       portStats_.find(newSystemPort->getID())
-          ->second->portNameChanged(portNameForStats(*newSystemPort));
+          ->second->portNameChanged(newSystemPort->getPortName());
     }
     // TODO:
     // Compare qos queues changing and if so update qosmap

@@ -25,8 +25,13 @@ class HwSysPortFb303Stats : public HwBasePortFb303Stats {
  public:
   explicit HwSysPortFb303Stats(
       const std::string& portName,
-      QueueId2Name queueId2Name = {})
-      : HwBasePortFb303Stats(portName, queueId2Name) {
+      QueueId2Name queueId2Name = {},
+      std::optional<std::string> multiSwitchStatsPrefix = std::nullopt)
+      : HwBasePortFb303Stats(
+            portName,
+            queueId2Name,
+            {} /*enabledPfcPriorities*/,
+            multiSwitchStatsPrefix) {
     portStats_.portName_() = portName;
     reinitStats(std::nullopt);
   }

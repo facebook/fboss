@@ -78,6 +78,22 @@ TEST(HwSysPortFb303StatsTest, StatName) {
       folly::to<std::string>(kPortName, '.', "queue1.gold.", kOutBytes()));
 }
 
+TEST(HwSysPortFb303StatsTest, StatNameMultiSwitch) {
+  std::string switchIdPrefix("switch.0.");
+  HwSysPortFb303Stats stats(kPortName, kQueue2Name, switchIdPrefix);
+  for (auto statKey : stats.kQueueStatKeys()) {
+    for (const auto& queueIdAndName : kQueue2Name) {
+      EXPECT_TRUE(fbData->getStatMap()->contains(
+          switchIdPrefix +
+          HwSysPortFb303Stats::statName(
+              statKey,
+              kPortName,
+              queueIdAndName.first,
+              queueIdAndName.second)));
+    }
+  }
+}
+
 TEST(HwSysPortFb303StatsTest, StatsInit) {
   HwSysPortFb303Stats stats(kPortName, kQueue2Name);
   for (auto statKey : stats.kQueueStatKeys()) {
