@@ -63,7 +63,7 @@ const std::vector<sai_stat_id_t>& SaiSwitchTraits::dramStats() {
   return stats;
 }
 
-void SwitchApi::registerParityErrorSwitchEventCallback(
+void SwitchApi::registerSwitchEventCallback(
     SwitchSaiId /*id*/,
     void* /*switch_event_cb*/) const {}
 

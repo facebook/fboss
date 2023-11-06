@@ -2356,7 +2356,7 @@ void SaiSwitch::unregisterCallbacksLocked(
   }
   if (isFeatureSetupLocked(FeaturesDesired::TAM_EVENT_NOTIFY_DESIRED, lock)) {
 #if defined(BRCM_SAI_SDK_XGS_AND_DNX)
-    switchApi.unregisterParityErrorSwitchEventCallback(saiSwitchId_);
+    switchApi.unregisterSwitchEventCallback(saiSwitchId_);
 #else
     switchApi.unregisterTamEventCallback(saiSwitchId_);
 #endif
@@ -2653,7 +2653,7 @@ void SaiSwitch::switchRunStateChangedImplLocked(
       if (getFeaturesDesired() & FeaturesDesired::TAM_EVENT_NOTIFY_DESIRED) {
         auto& switchApi = SaiApiTable::getInstance()->switchApi();
 #if defined(BRCM_SAI_SDK_XGS_AND_DNX)
-        switchApi.registerParityErrorSwitchEventCallback(
+        switchApi.registerSwitchEventCallback(
             saiSwitchId_, (void*)__gParityErrorSwitchEventCallback);
 #else
         switchApi.registerTamEventCallback(saiSwitchId_, __gTamEventCallback);

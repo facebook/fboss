@@ -78,7 +78,7 @@ const std::vector<sai_stat_id_t>& SaiSwitchTraits::dramStats() {
   return stats;
 }
 
-void SwitchApi::registerParityErrorSwitchEventCallback(
+void SwitchApi::registerSwitchEventCallback(
     SwitchSaiId id,
     void* switch_event_cb) const {
 #if defined(BRCM_SAI_SDK_XGS_AND_DNX)
