@@ -151,4 +151,4 @@ class ReconnectingThriftClient {
   folly::Synchronized<std::optional<std::function<void()>>>
       gracefulServiceLoopCompletionCb_;
 };
-}; // namespace facebook::fboss
+} // namespace facebook::fboss

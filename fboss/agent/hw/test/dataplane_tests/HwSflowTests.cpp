@@ -103,7 +103,7 @@ class HwSflowTest : public HwLinkStateDependentTest {
   HwSwitchEnsemble::Features featuresDesired() const override {
     return {HwSwitchEnsemble::LINKSCAN, HwSwitchEnsemble::PACKET_RX};
   }
-}; // namespace facebook::fboss
+} // namespace facebook::fboss
 
 TEST_F(HwSflowTest, SflowSamplingEnabled) {
   runTest(true);

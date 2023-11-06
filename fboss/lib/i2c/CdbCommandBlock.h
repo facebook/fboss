@@ -10,7 +10,7 @@ namespace {
 // CMIS firmware related register offsets
 constexpr uint8_t kModulePasswordEntryReg = 122;
 constexpr uint8_t kPageSelectReg = 127;
-}; // namespace
+} // namespace
 
 namespace facebook::fboss {
 

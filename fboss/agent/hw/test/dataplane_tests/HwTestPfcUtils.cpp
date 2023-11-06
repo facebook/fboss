@@ -220,4 +220,4 @@ void addUplinkDownlinkPfcConfig(
   enableBufferPoolConfig(cfg, mmuCellBytes, hwSwitch);
 }
 
-}; // namespace facebook::fboss::utility
+} // namespace facebook::fboss::utility

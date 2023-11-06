@@ -27,7 +27,7 @@ static constexpr folly::StringPiece kIPv6Fields{"v6Fields"};
 static constexpr folly::StringPiece kTransportFields{"transportFields"};
 static constexpr folly::StringPiece kMPLSFields{"mplsFields"};
 static constexpr folly::StringPiece kUdfGroupIds{"udfGroupIds"};
-}; // namespace
+} // namespace
 
 namespace facebook::fboss {
 

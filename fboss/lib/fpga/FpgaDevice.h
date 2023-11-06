@@ -92,6 +92,6 @@ class FpgaDevice {
  private:
   std::unique_ptr<PhyMem> phyMem_;
   std::unique_ptr<PciDevice> pciDevice_;
-}; // namespace facebook::fboss
+} // namespace facebook::fboss
 
 } // namespace facebook::fboss
