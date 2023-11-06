@@ -44,8 +44,8 @@ std::shared_ptr<SaiQosMap> SaiQosMapManager::setDscpToTcQosMap(
   SaiQosMapTraits::Attributes::MapToValueList mapToValueListAttribute{
       mapToValueList};
   auto& store = saiStore_->get<SaiQosMapTraits>();
-  SaiQosMapTraits::AdapterHostKey k{typeAttribute};
-  SaiQosMapTraits::CreateAttributes c{typeAttribute, mapToValueListAttribute};
+  SaiQosMapTraits::AdapterHostKey k{typeAttribute, mapToValueListAttribute};
+  SaiQosMapTraits::CreateAttributes c = k;
   return store.setObject(k, c);
 }
 
@@ -70,8 +70,8 @@ std::shared_ptr<SaiQosMap> SaiQosMapManager::setExpToTcQosMap(
   SaiQosMapTraits::Attributes::MapToValueList mapToValueListAttribute{
       mapToValueList};
   auto& store = saiStore_->get<SaiQosMapTraits>();
-  SaiQosMapTraits::AdapterHostKey k{typeAttribute};
-  SaiQosMapTraits::CreateAttributes c{typeAttribute, mapToValueListAttribute};
+  SaiQosMapTraits::AdapterHostKey k{typeAttribute, mapToValueListAttribute};
+  SaiQosMapTraits::CreateAttributes c = k;
   return store.setObject(k, c);
 }
 
@@ -97,8 +97,8 @@ std::shared_ptr<SaiQosMap> SaiQosMapManager::setTcToExpQosMap(
   SaiQosMapTraits::Attributes::MapToValueList mapToValueListAttribute{
       mapToValueList};
   auto& store = saiStore_->get<SaiQosMapTraits>();
-  SaiQosMapTraits::AdapterHostKey k{typeAttribute};
-  SaiQosMapTraits::CreateAttributes c{typeAttribute, mapToValueListAttribute};
+  SaiQosMapTraits::AdapterHostKey k{typeAttribute, mapToValueListAttribute};
+  SaiQosMapTraits::CreateAttributes c = k;
   return store.setObject(k, c);
 }
 
@@ -119,8 +119,8 @@ std::shared_ptr<SaiQosMap> SaiQosMapManager::setTcToQueueQosMap(
   SaiQosMapTraits::Attributes::MapToValueList mapToValueListAttribute{
       mapToValueList};
   auto& store = saiStore_->get<SaiQosMapTraits>();
-  SaiQosMapTraits::AdapterHostKey k{typeAttribute};
-  SaiQosMapTraits::CreateAttributes c{typeAttribute, mapToValueListAttribute};
+  SaiQosMapTraits::AdapterHostKey k{typeAttribute, mapToValueListAttribute};
+  SaiQosMapTraits::CreateAttributes c = k;
   return store.setObject(k, c);
 }
 
@@ -141,8 +141,8 @@ std::shared_ptr<SaiQosMap> SaiQosMapManager::setTcToPgQosMap(
   SaiQosMapTraits::Attributes::MapToValueList mapToValueListAttribute{
       mapToValueList};
   auto& store = saiStore_->get<SaiQosMapTraits>();
-  SaiQosMapTraits::AdapterHostKey k{typeAttribute};
-  SaiQosMapTraits::CreateAttributes c{typeAttribute, mapToValueListAttribute};
+  SaiQosMapTraits::AdapterHostKey k{typeAttribute, mapToValueListAttribute};
+  SaiQosMapTraits::CreateAttributes c = k;
   return store.setObject(k, c);
 }
 
@@ -164,8 +164,8 @@ std::shared_ptr<SaiQosMap> SaiQosMapManager::setPfcPriorityToQueueQosMap(
   SaiQosMapTraits::Attributes::MapToValueList mapToValueListAttribute{
       mapToValueList};
   auto& store = saiStore_->get<SaiQosMapTraits>();
-  SaiQosMapTraits::AdapterHostKey k{typeAttribute};
-  SaiQosMapTraits::CreateAttributes c{typeAttribute, mapToValueListAttribute};
+  SaiQosMapTraits::AdapterHostKey k{typeAttribute, mapToValueListAttribute};
+  SaiQosMapTraits::CreateAttributes c = k;
   return store.setObject(k, c);
 }
 

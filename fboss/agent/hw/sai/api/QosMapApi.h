@@ -48,9 +48,9 @@ struct SaiQosMapTraits {
   };
 
   using AdapterKey = QosMapSaiId;
-  using AdapterHostKey = std::tuple<Attributes::Type>;
   using CreateAttributes =
       std::tuple<Attributes::Type, Attributes::MapToValueList>;
+  using AdapterHostKey = CreateAttributes;
 };
 
 SAI_ATTRIBUTE_NAME(QosMap, Type)
@@ -89,3 +89,11 @@ class QosMapApi : public SaiApi<QosMapApi> {
 };
 
 } // namespace facebook::fboss
+
+namespace std {
+template <>
+struct hash<facebook::fboss::SaiQosMapTraits::AdapterHostKey> {
+  size_t operator()(
+      const facebook::fboss::SaiQosMapTraits::AdapterHostKey& n) const;
+};
+} // namespace std

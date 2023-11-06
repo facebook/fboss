@@ -39,8 +39,8 @@ TEST_F(QosMapStoreTest, loadQosMaps) {
   s.reload();
   auto& store = s.get<SaiQosMapTraits>();
 
-  SaiQosMapTraits::AdapterHostKey k1{SAI_QOS_MAP_TYPE_DSCP_TO_TC};
-  SaiQosMapTraits::AdapterHostKey k2{SAI_QOS_MAP_TYPE_TC_TO_QUEUE};
+  SaiQosMapTraits::AdapterHostKey k1{SAI_QOS_MAP_TYPE_DSCP_TO_TC, {}};
+  SaiQosMapTraits::AdapterHostKey k2{SAI_QOS_MAP_TYPE_TC_TO_QUEUE, {}};
   auto got = store.get(k1);
   EXPECT_EQ(got->adapterKey(), qosMapSaiId1);
   got = store.get(k2);
@@ -58,7 +58,7 @@ TEST_F(QosMapStoreTest, qosMapLoadCtor) {
 
 TEST_F(QosMapStoreTest, qosMapCreateCtor) {
   std::vector<sai_qos_map_t> mapping;
-  SaiQosMapTraits::AdapterHostKey k{SAI_QOS_MAP_TYPE_DSCP_TO_TC};
+  SaiQosMapTraits::AdapterHostKey k{SAI_QOS_MAP_TYPE_DSCP_TO_TC, mapping};
   SaiQosMapTraits::CreateAttributes c{SAI_QOS_MAP_TYPE_DSCP_TO_TC, mapping};
   auto obj = createObj<SaiQosMapTraits>(k, c, 0);
   EXPECT_EQ(
@@ -67,7 +67,7 @@ TEST_F(QosMapStoreTest, qosMapCreateCtor) {
 
 TEST_F(QosMapStoreTest, qosMapSetMapping) {
   std::vector<sai_qos_map_t> mapping;
-  SaiQosMapTraits::AdapterHostKey k{SAI_QOS_MAP_TYPE_DSCP_TO_TC};
+  SaiQosMapTraits::AdapterHostKey k{SAI_QOS_MAP_TYPE_DSCP_TO_TC, mapping};
   SaiQosMapTraits::CreateAttributes c{SAI_QOS_MAP_TYPE_DSCP_TO_TC, mapping};
   auto obj = createObj<SaiQosMapTraits>(k, c, 0);
   EXPECT_EQ(
