@@ -435,7 +435,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
   }
   std::optional<SaiSwitchTraits::Attributes::SwitchType> switchType;
   std::optional<SaiSwitchTraits::Attributes::SwitchId> switchId;
-  std::optional<SaiSwitchTraits::Attributes::MaxSystemCores> cores;
+  std::optional<SaiSwitchTraits::Attributes::MaxSystemCores> maxSystemCores;
   std::optional<SaiSwitchTraits::Attributes::MaxCores> maxCores;
   std::optional<SaiSwitchTraits::Attributes::SysPortConfigList> sysPortConfigs;
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
@@ -454,8 +454,8 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
     if (swType == cfg::SwitchType::VOQ) {
       auto agentCfg = config();
       CHECK(agentCfg) << " agent config must be set ";
-      uint32_t systemCores = 0;
       uint32_t maxCoreCount = 0;
+      uint32_t maxSystemCoreCount = 0;
       auto localMac = getLocalMac();
       const EbroAsic ebro(
           cfg::SwitchType::VOQ, 0, 0, std::nullopt, localMac, std::nullopt);
@@ -469,29 +469,28 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
         }
         switch (*dsfNode.asicType()) {
           case cfg::AsicType::ASIC_TYPE_JERICHO2:
-            systemCores =
-                std::max(systemCores, uint32_t((id + 1) * j2.getNumCores()));
             // for directly connected interface nodes we don't expect
             // asic type to change across dsf nodes
             maxCoreCount = std::max(j2.getNumCores(), maxCoreCount);
+            maxSystemCoreCount =
+                std::max(maxSystemCoreCount, uint32_t(id + j2.getNumCores()));
             break;
           case cfg::AsicType::ASIC_TYPE_JERICHO3:
-            systemCores =
-                std::max(systemCores, uint32_t((id + 1) * j3.getNumCores()));
             // for directly connected interface nodes we don't expect
             // asic type to change across dsf nodes
             maxCoreCount = std::max(j3.getNumCores(), maxCoreCount);
+            maxSystemCoreCount =
+                std::max(maxSystemCoreCount, uint32_t(id + j3.getNumCores()));
             break;
           case cfg::AsicType::ASIC_TYPE_EBRO:
-            systemCores =
-                std::max(systemCores, uint32_t((id + 1) * ebro.getNumCores()));
             break;
           default:
             throw FbossError("Unexpected asic type: ", *dsfNode.asicType());
         }
       }
+
       maxCores = maxCoreCount;
-      cores = systemCores;
+      maxSystemCores = maxSystemCoreCount;
       sysPortConfigs = SaiSwitchTraits::Attributes::SysPortConfigList{
           getInternalSystemPortConfig()};
     }
@@ -558,7 +557,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
         std::nullopt, // Platform context
         std::nullopt, // Switch profile id
         switchId, // Switch id
-        cores,
+        maxSystemCores,
         sysPortConfigs, // System port config list
         switchType,
         std::nullopt, // Read function
