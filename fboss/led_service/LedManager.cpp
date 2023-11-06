@@ -116,14 +116,19 @@ void LedManager::updateLedStatus(
     auto portName = switchStateUpdate.portName;
     auto portProfile = switchStateUpdate.portProfile;
     auto portProfileEnumVal = nameToEnum<cfg::PortProfileID>(portProfile);
-    auto newLedColor = calculateLedColor(portId, portProfileEnumVal);
-    if (newLedColor != portDisplayMap_[portId].currentLedColor) {
-      setLedColor(portId, portProfileEnumVal, newLedColor);
-      portDisplayMap_[portId].currentLedColor = newLedColor;
-      XLOG(DBG2) << folly::sformat(
-          "Port {:s} LED color changed to {:s}",
-          portName,
-          enumToName<led::LedColor>(newLedColor));
+    try {
+      auto newLedColor = calculateLedColor(portId, portProfileEnumVal);
+      if (newLedColor != portDisplayMap_[portId].currentLedColor) {
+        setLedColor(portId, portProfileEnumVal, newLedColor);
+        portDisplayMap_[portId].currentLedColor = newLedColor;
+        XLOG(DBG2) << folly::sformat(
+            "Port {:s} LED color changed to {:s}",
+            portName,
+            enumToName<led::LedColor>(newLedColor));
+      }
+    } catch (const std::exception& ex) {
+      XLOG(ERR) << "Failed to update LED color for port " << portName << ": "
+                << ex.what();
     }
   }
 }
