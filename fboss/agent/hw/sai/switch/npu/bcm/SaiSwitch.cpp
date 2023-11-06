@@ -59,7 +59,7 @@ std::string correctionType(sai_switch_correction_type_t type) {
 
 namespace facebook::fboss {
 
-void SaiSwitch::parityErrorSwitchEventCallback(
+void SaiSwitch::switchEventCallback(
     sai_size_t /*buffer_size*/,
     const void* buffer,
     uint32_t event_type) {

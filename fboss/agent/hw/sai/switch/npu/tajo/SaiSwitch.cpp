@@ -118,7 +118,7 @@ void SaiSwitch::tamEventCallback(
   XLOG(WARNING) << sstream.str();
 }
 
-void SaiSwitch::parityErrorSwitchEventCallback(
+void SaiSwitch::switchEventCallback(
     sai_size_t /*buffer_size*/,
     const void* /*buffer*/,
     uint32_t /*event_type*/) {

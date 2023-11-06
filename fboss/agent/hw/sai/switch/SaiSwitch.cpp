@@ -191,11 +191,11 @@ void __glinkStateChangedNotification(
       count, data);
 }
 
-void __gParityErrorSwitchEventCallback(
+void __gSwitchEventCallback(
     sai_size_t buffer_size,
     const void* buffer,
     uint32_t event_type) {
-  __gSaiIdToSwitch.begin()->second->parityErrorSwitchEventCallback(
+  __gSaiIdToSwitch.begin()->second->switchEventCallback(
       buffer_size, buffer, event_type);
 }
 
@@ -2654,7 +2654,7 @@ void SaiSwitch::switchRunStateChangedImplLocked(
         auto& switchApi = SaiApiTable::getInstance()->switchApi();
 #if defined(BRCM_SAI_SDK_XGS_AND_DNX)
         switchApi.registerSwitchEventCallback(
-            saiSwitchId_, (void*)__gParityErrorSwitchEventCallback);
+            saiSwitchId_, (void*)__gSwitchEventCallback);
 #else
         switchApi.registerTamEventCallback(saiSwitchId_, __gTamEventCallback);
 #endif

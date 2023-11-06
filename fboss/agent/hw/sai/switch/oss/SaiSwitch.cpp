@@ -15,7 +15,7 @@ void SaiSwitch::tamEventCallback(
   // noop;
 }
 
-void SaiSwitch::parityErrorSwitchEventCallback(
+void SaiSwitch::switchEventCallback(
     sai_size_t /*buffer_size*/,
     const void* /*buffer*/,
     uint32_t /*event_type*/) {
