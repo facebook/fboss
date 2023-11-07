@@ -48,5 +48,7 @@ boost::filesystem::recursive_directory_iterator recursive_directory_iterator(
     const std::string& path);
 
 void createSymLink(const std::string& linkPath, const std::string& targetPath);
+
+void touchFile(const std::string& path);
 } // namespace fboss
 } // namespace facebook

@@ -102,4 +102,10 @@ void createSymLink(const std::string& link, const std::string& target) {
   std::filesystem::rename(tmpLinkPath, std::filesystem::path(link));
 }
 
+void touchFile(const std::string& path) {
+  if (!checkFileExists(path)) {
+    createFile(path);
+  }
+}
+
 } // namespace facebook::fboss
