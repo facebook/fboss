@@ -5,6 +5,7 @@
 
 #include <folly/logging/xlog.h>
 #include "fboss/agent/AgentCommandExecutor.h"
+#include "fboss/agent/AgentNetWhoAmI.h"
 #include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
@@ -22,17 +23,23 @@ void AgentPreStartExec::run() {
   AgentCommandExecutor executor;
   auto cppWedgeAgentWrapper = checkFileExists(kWrapperRefactorFeatureOn);
   auto config = AgentConfig::fromDefaultFile();
-  run(&executor, dirUtil, std::move(config), cppWedgeAgentWrapper);
+  run(&executor,
+      std::make_unique<AgentNetWhoAmI>(),
+      dirUtil,
+      std::move(config),
+      cppWedgeAgentWrapper);
 }
 
 void AgentPreStartExec::run(
     AgentCommandExecutor* executor,
+    std::unique_ptr<AgentNetWhoAmI> whoami,
     const AgentDirectoryUtil& dirUtil,
     std::unique_ptr<AgentConfig> config,
     bool cppWedgeAgentWrapper) {
   if (cppWedgeAgentWrapper) {
     runAndRemoveScript(dirUtil.getPreStartShellScript());
-    AgentPreStartConfig preStartConfig;
+    AgentPreStartConfig preStartConfig(
+        std::move(whoami), config.get(), dirUtil);
     preStartConfig.run(executor);
   }
 

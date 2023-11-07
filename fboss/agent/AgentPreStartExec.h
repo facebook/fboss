@@ -9,6 +9,7 @@ namespace facebook::fboss {
 class AgentDirectoryUtil;
 class AgentConfig;
 class AgentCommandExecutor;
+class AgentNetWhoAmI;
 
 class AgentPreStartExec {
  public:
@@ -16,6 +17,7 @@ class AgentPreStartExec {
   void run();
   void run(
       AgentCommandExecutor* commandExecutor,
+      std::unique_ptr<AgentNetWhoAmI> whoami,
       const AgentDirectoryUtil& dirUtil,
       std::unique_ptr<AgentConfig> config,
       bool cppWedgeAgentWrapper);
