@@ -4,6 +4,7 @@
 
 #include "fboss/agent/test/MockAgentCommandExecutor.h"
 #include "fboss/agent/test/MockAgentNetWhoAmI.h"
+#include "fboss/agent/test/MockAgentPreExecDrainer.h"
 
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/AgentDirectoryUtil.h"
@@ -93,6 +94,8 @@ class AgentPreStartExecTests : public ::testing::Test {
     MockAgentCommandExecutor executor;
     AgentPreStartExec exec;
     auto netwhoami = std::make_unique<MockAgentNetWhoAmI>();
+    MockAgentPreExecDrainer drainer(&util_);
+
     ON_CALL(*netwhoami, isSai()).WillByDefault(Return(TestAttr::kSai));
     ON_CALL(*netwhoami, isBcmSaiPlatform())
         .WillByDefault(Return(TestAttr::kBrcm && TestAttr::kSai));
@@ -133,6 +136,10 @@ class AgentPreStartExecTests : public ::testing::Test {
       EXPECT_CALL(*netwhoami, isFdsw()).WillOnce(Return(fdsw));
       EXPECT_CALL(*netwhoami, isUnDrainable()).WillOnce(Return(false));
       EXPECT_CALL(*netwhoami, isFdsw()).WillOnce(Return(fdsw));
+      if (drain && !fdsw) {
+        // device to be marked for draining
+        EXPECT_CALL(drainer, drain()).Times(1);
+      }
       EXPECT_CALL(*netwhoami, isBcmPlatform())
           .WillOnce(Return(TestAttr::kBrcm));
       if (!TestAttr::kBrcm) {
@@ -195,6 +202,7 @@ class AgentPreStartExecTests : public ::testing::Test {
 
     exec.run(
         &executor,
+        &drainer,
         std::move(netwhoami),
         util_,
         std::make_unique<AgentConfig>(getConfig()),
@@ -226,10 +234,6 @@ class AgentPreStartExecTests : public ::testing::Test {
               util_.getHwColdBootOnceFile(info.switchIndex().value())));
         }
         EXPECT_FALSE(checkFileExists(util_.getColdBootOnceFile()));
-        if (drain && !fdsw) {
-          // device to be marked for draining
-          EXPECT_TRUE(checkFileExists(util_.getDrainDeviceFlagFile()));
-        }
       }
       auto drained = !checkFileExists(util_.getUndrainedFlag());
       checkFileExists(util_.getStartupConfig());
@@ -250,6 +254,7 @@ class AgentPreStartExecTests : public ::testing::Test {
     MockAgentCommandExecutor executor;
     AgentPreStartExec exec;
     auto netwhoami = std::make_unique<MockAgentNetWhoAmI>();
+    MockAgentPreExecDrainer drainer(&util_);
     ON_CALL(*netwhoami, isFdsw()).WillByDefault(::testing::Return(true));
     if (removeLiveConfig) {
       removeFile(util_.getAgentLiveConfig());
@@ -261,6 +266,7 @@ class AgentPreStartExecTests : public ::testing::Test {
       EXPECT_THROW(
           exec.run(
               &executor,
+              &drainer,
               std::move(netwhoami),
               util_,
               std::make_unique<AgentConfig>(getConfig()),
@@ -269,6 +275,7 @@ class AgentPreStartExecTests : public ::testing::Test {
     } else {
       exec.run(
           &executor,
+          &drainer,
           std::move(netwhoami),
           util_,
           std::make_unique<AgentConfig>(getConfig()),

@@ -2,6 +2,7 @@
 
 #include "fboss/agent/AgentPreStartExec.h"
 #include "fboss/agent/AgentConfig.h"
+#include "fboss/agent/facebook/AgentPreExecDrainer.h"
 
 #include <folly/logging/xlog.h>
 #include "fboss/agent/AgentCommandExecutor.h"
@@ -23,7 +24,9 @@ void AgentPreStartExec::run() {
   AgentCommandExecutor executor;
   auto cppWedgeAgentWrapper = checkFileExists(kWrapperRefactorFeatureOn);
   auto config = AgentConfig::fromDefaultFile();
+  AgentPreExecDrainer preExecDrainer(&dirUtil);
   run(&executor,
+      &preExecDrainer,
       std::make_unique<AgentNetWhoAmI>(),
       dirUtil,
       std::move(config),
@@ -32,6 +35,7 @@ void AgentPreStartExec::run() {
 
 void AgentPreStartExec::run(
     AgentCommandExecutor* executor,
+    AgentPreExecDrainer* preExecDrainer,
     std::unique_ptr<AgentNetWhoAmI> whoami,
     const AgentDirectoryUtil& dirUtil,
     std::unique_ptr<AgentConfig> config,
@@ -40,7 +44,7 @@ void AgentPreStartExec::run(
     runAndRemoveScript(dirUtil.getPreStartShellScript());
     AgentPreStartConfig preStartConfig(
         std::move(whoami), config.get(), dirUtil);
-    preStartConfig.run(executor);
+    preStartConfig.run(executor, preExecDrainer);
   }
 
   if (config->getRunMode() != cfg::AgentRunMode::MULTI_SWITCH) {
