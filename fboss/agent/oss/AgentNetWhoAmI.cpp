@@ -4,13 +4,7 @@
 
 namespace facebook::fboss {
 
-namespace detail {
-struct AgentNetWhoAmIImpl {};
-} // namespace detail
-
-AgentNetWhoAmI::AgentNetWhoAmI() {
-  impl_ = std::make_unique<detail::AgentNetWhoAmIImpl>();
-}
+AgentNetWhoAmI::AgentNetWhoAmI() {}
 
 bool AgentNetWhoAmI::isSai() const {
   return false;

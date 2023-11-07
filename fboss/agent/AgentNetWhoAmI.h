@@ -6,10 +6,6 @@
 
 namespace facebook::fboss {
 
-namespace detail {
-struct AgentNetWhoAmIImpl;
-}
-
 class AgentNetWhoAmI {
  public:
   AgentNetWhoAmI();
@@ -23,9 +19,6 @@ class AgentNetWhoAmI {
   bool isUnDrainable() const;
   bool hasRoutingProtocol() const;
   bool hasBgpRoutingProtocol() const;
-
- private:
-  std::unique_ptr<detail::AgentNetWhoAmIImpl> impl_;
 };
 
 } // namespace facebook::fboss
