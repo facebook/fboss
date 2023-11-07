@@ -186,10 +186,13 @@ void SaiSwitch::switchEventCallback(
       }
       break;
 #if defined BRCM_SAI_SDK_GTE_11_0
-    case SAI_SWITCH_EVENT_TYPE_INTERRUPT:
-      XLOG(ERR) << " Got interrupt event, is IRE: "
-                << isIreErrorType(eventInfo->error_type);
-      break;
+    case SAI_SWITCH_EVENT_TYPE_INTERRUPT: {
+      auto ireError = isIreErrorType(eventInfo->error_type);
+      XLOG(ERR) << " Got interrupt event, is IRE: " << ireError;
+      if (ireError) {
+        getSwitchStats()->ireError();
+      }
+    } break;
 #endif
   }
 }

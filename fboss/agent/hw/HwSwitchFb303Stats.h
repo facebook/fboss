@@ -62,6 +62,9 @@ class HwSwitchFb303Stats {
   void asicError() {
     asicErrors_.addValue(1);
   }
+  void ireError() {
+    ireErrors_.addValue(1);
+  }
 
   void fabricReachabilityMissingCount(int64_t value);
   void fabricReachabilityMismatchCount(int64_t value);
@@ -153,6 +156,7 @@ class HwSwitchFb303Stats {
   // fabric reachability errors
   TLCounter fabricReachabilityMissingCount_;
   TLCounter fabricReachabilityMismatchCount_;
+  TLTimeseries ireErrors_;
 };
 
 } // namespace facebook::fboss
