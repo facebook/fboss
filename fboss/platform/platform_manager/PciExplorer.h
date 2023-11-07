@@ -5,6 +5,7 @@
 #include <re2/re2.h>
 
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_types.h"
+#include "fboss/platform/platform_manager/uapi/fbiob-ioctl.h"
 
 namespace facebook::fboss::platform::platform_manager {
 
@@ -61,12 +62,19 @@ class PciExplorer {
       const XcvrCtrlConfig& xcvrCtrlConfig,
       uint32_t instanceId);
 
-  // Create the device based on the given fpgaIpBlockConfig residing
+  // Create the generic device block based on the given FpgaIpBlockConfig
+  // residing at the given PciDevice path. Throw std::runtime_error on failure.
+  void createFpgaIpBlock(
+      const std::string& pciDevPath,
+      const FpgaIpBlockConfig& fpgaIpBlockConfig,
+      uint32_t instanceId);
+
+  // Create the device based on the given fbiob_aux_data residing
   // at the given PciDevice. Throw std::runtime_error on failure.
   void create(
+      const std::string& devName,
       const std::string& pciDevPath,
-      const FpgaIpBlockConfig& fpgaIpBlock,
-      uint32_t instanceId);
+      const struct fbiob_aux_data& auxData);
 };
 
 } // namespace facebook::fboss::platform::platform_manager

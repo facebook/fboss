@@ -216,14 +216,14 @@ void PlatformExplorer::explorePciDevices(
       pciExplorer_.createSpiMaster(charDevPath, spiMasterConfig, instId++);
     }
     for (const auto& fpgaIpBlockConfig : *pciDeviceConfig.gpioChipConfigs()) {
-      pciExplorer_.create(charDevPath, fpgaIpBlockConfig, instId++);
+      pciExplorer_.createFpgaIpBlock(charDevPath, fpgaIpBlockConfig, instId++);
     }
     for (const auto& fpgaIpBlockConfig : *pciDeviceConfig.watchdogConfigs()) {
-      pciExplorer_.create(charDevPath, fpgaIpBlockConfig, instId++);
+      pciExplorer_.createFpgaIpBlock(charDevPath, fpgaIpBlockConfig, instId++);
     }
     for (const auto& fpgaIpBlockConfig :
          *pciDeviceConfig.fanTachoPwmConfigs()) {
-      pciExplorer_.create(charDevPath, fpgaIpBlockConfig, instId++);
+      pciExplorer_.createFpgaIpBlock(charDevPath, fpgaIpBlockConfig, instId++);
     }
     for (const auto& fpgaIpBlockConfig : *pciDeviceConfig.ledCtrlConfigs()) {
       pciExplorer_.createLedCtrl(charDevPath, fpgaIpBlockConfig, instId++);
