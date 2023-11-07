@@ -62,6 +62,14 @@ std::string correctionType(sai_switch_correction_type_t type) {
 
 std::string errorType(sai_switch_error_type_t type) {
   switch (type) {
+    case SAI_SWITCH_ERROR_TYPE_UNKNOWN:
+      return "SAI_SWITCH_ERROR_TYPE_UNKNOWN";
+    case SAI_SWITCH_ERROR_TYPE_PARITY:
+      return "SAI_SWITCH_ERROR_TYPE_PARITY";
+    case SAI_SWITCH_ERROR_TYPE_ECC_SINGLE_BIT:
+      return "SAI_SWITCH_ERROR_TYPE_ECC_SINGLE_BIT";
+    case SAI_SWITCH_ERROR_TYPE_ECC_DOUBLE_BIT:
+      return "SAI_SWITCH_ERROR_TYPE_ECC_DOUBLE_BIT";
 #if defined BRCM_SAI_SDK_GTE_11_0
     case SAI_SWITCH_ERROR_TYPE_IRE_ECC:
       return "SAI_SWITCH_ERROR_TYPE_IRE_ECC";
@@ -125,7 +133,7 @@ void SaiSwitch::switchEventCallback(
   bool correctible = true;
   if (eventInfo) {
     sstream << "correction type=" << correctionType(eventInfo->correction_type)
-            << " , flags=" << std::hex << eventInfo->flags;
+            << ", flags=" << std::hex << eventInfo->flags;
     correctible =
         (eventInfo->correction_type !=
          SAI_SWITCH_CORRECTION_TYPE_FAIL_TO_CORRECT);
