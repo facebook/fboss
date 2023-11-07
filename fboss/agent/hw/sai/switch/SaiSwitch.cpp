@@ -907,18 +907,15 @@ void SaiSwitch::updateResourceUsage(const LockPolicyT& lockPolicy) {
     // TODO - compute used resource stats from internal data structures and
     // populate them here
 
-    // TODO(skhare) Add resource usage support for multiple ACL tables
-    if (!FLAGS_enable_acl_table_group) {
-      auto aclTableHandle =
-          managerTable_->aclTableManager().getAclTableHandle(kAclTable1);
-      auto aclTableId = aclTableHandle->aclTable->adapterKey();
-      auto& aclApi = SaiApiTable::getInstance()->aclApi();
-
-      hwResourceStats_.acl_entries_free() = aclApi.getAttribute(
-          aclTableId, SaiAclTableTraits::Attributes::AvailableEntry{});
-      hwResourceStats_.acl_counters_free() = aclApi.getAttribute(
-          aclTableId, SaiAclTableTraits::Attributes::AvailableCounter{});
-    }
+    /*
+     * Loop through all tables and sum the resource used. This way,
+     * irrespective of however many acl tables there are in the config,
+     * the resource will be calculated properly
+     */
+    auto aclResourceUsage =
+        managerTable_->aclTableManager().getAclResourceUsage();
+    hwResourceStats_.acl_entries_free() = aclResourceUsage.first;
+    hwResourceStats_.acl_counters_free() = aclResourceUsage.second;
 
     auto& switchApi = SaiApiTable::getInstance()->switchApi();
     hwResourceStats_.lpm_ipv4_free() = switchApi.getAttribute(

@@ -27,6 +27,7 @@
 
 #include <folly/MacAddress.h>
 #include <chrono>
+#include <cstdint>
 #include <memory>
 
 using namespace std::chrono;
@@ -1251,6 +1252,22 @@ void SaiAclTableManager::updateStats() {
       }
     }
   }
+}
+
+// Loop through all the ACL tables and compute the free entries and counters
+std::pair<int32_t, int32_t> SaiAclTableManager::getAclResourceUsage() {
+  int32_t aclEntriesFree = 0, aclCountersFree = 0;
+  for (const auto& handle : handles_) {
+    auto aclTableHandle = handle.second.get();
+    auto aclTableId = aclTableHandle->aclTable->adapterKey();
+    auto& aclApi = SaiApiTable::getInstance()->aclApi();
+
+    aclEntriesFree += aclApi.getAttribute(
+        aclTableId, SaiAclTableTraits::Attributes::AvailableEntry{});
+    aclCountersFree += aclApi.getAttribute(
+        aclTableId, SaiAclTableTraits::Attributes::AvailableCounter{});
+  }
+  return std::make_pair(aclEntriesFree, aclCountersFree);
 }
 
 std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet()

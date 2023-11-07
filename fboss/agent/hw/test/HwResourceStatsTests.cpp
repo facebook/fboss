@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTestAclUtils.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwTestQueuePerHostUtils.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
@@ -28,11 +29,34 @@ using namespace facebook::fb303;
 
 namespace facebook::fboss {
 
+template <bool enableMultiAclTable>
+struct EnableMultiAclTableT {
+  static constexpr auto multiAclTableEnabled = enableMultiAclTable;
+};
+
+using TestTypes =
+    ::testing::Types<EnableMultiAclTableT<false>, EnableMultiAclTableT<true>>;
+
+template <typename EnableMultiAclTableT>
 class HwResourceStatsTest : public HwLinkStateDependentTest {
+  static auto constexpr isMultiAclEnabled =
+      EnableMultiAclTableT::multiAclTableEnabled;
+
  protected:
+  void SetUp() override {
+    FLAGS_enable_acl_table_group = isMultiAclEnabled;
+    HwTest::SetUp();
+  }
+
   cfg::SwitchConfig initialConfig() const override {
-    return utility::onePortPerInterfaceConfig(
+    auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(), masterLogicalPortIds());
+    if (isMultiAclEnabled) {
+      utility::addAclTableGroup(
+          &cfg, cfg::AclStage::INGRESS, utility::getAclTableGroupName());
+      utility::addDefaultAclTable(cfg);
+    }
+    return cfg;
   }
   using Prefix6 = typename Route<folly::IPAddressV6>::Prefix;
   using Prefix4 = typename Route<folly::IPAddressV4>::Prefix;
@@ -44,8 +68,10 @@ class HwResourceStatsTest : public HwLinkStateDependentTest {
   }
 };
 
-TEST_F(HwResourceStatsTest, l3Stats) {
-  if (!isSupported(HwAsic::Feature::RESOURCE_USAGE_STATS)) {
+TYPED_TEST_SUITE(HwResourceStatsTest, TestTypes);
+
+TYPED_TEST(HwResourceStatsTest, l3Stats) {
+  if (!this->isSupported(HwAsic::Feature::RESOURCE_USAGE_STATS)) {
 #if defined(GTEST_SKIP)
     GTEST_SKIP();
 #endif
@@ -53,11 +79,14 @@ TEST_F(HwResourceStatsTest, l3Stats) {
   }
   auto setup = [] {};
   auto verify = [this] {
+    auto newCfg = this->initialConfig();
+    this->applyNewConfig(newCfg);
     // Trigger a stats collection
-    getHwSwitchEnsemble()->getLatestPortStats(masterLogicalPortIds());
+    this->getHwSwitchEnsemble()->getLatestPortStats(
+        this->masterLogicalPortIds());
     auto constexpr kEcmpWidth = 2;
-    utility::EcmpSetupAnyNPorts4 ecmp4(getProgrammedState());
-    utility::EcmpSetupAnyNPorts6 ecmp6(getProgrammedState());
+    utility::EcmpSetupAnyNPorts4 ecmp4(this->getProgrammedState());
+    utility::EcmpSetupAnyNPorts6 ecmp6(this->getProgrammedState());
     auto getStatsFn = [] {
       EXPECT_EQ(0, fbData->getCounter(kHwTableStatsStale));
       return std::make_tuple(
@@ -77,12 +106,17 @@ TEST_F(HwResourceStatsTest, l3Stats) {
          v6NextHopsFreeBefore,
          v4HostFreeBefore,
          v6HostFreeBefore] = getStatsFn();
-    ecmp4.programRoutes(getRouteUpdater(), kEcmpWidth, {kPrefix4()});
-    ecmp6.programRoutes(getRouteUpdater(), kEcmpWidth, {kPrefix6()});
-    applyNewState(ecmp4.resolveNextHops(getProgrammedState(), kEcmpWidth));
-    applyNewState(ecmp6.resolveNextHops(getProgrammedState(), kEcmpWidth));
+    ecmp4.programRoutes(
+        this->getRouteUpdater(), kEcmpWidth, {this->kPrefix4()});
+    ecmp6.programRoutes(
+        this->getRouteUpdater(), kEcmpWidth, {this->kPrefix6()});
+    this->applyNewState(
+        ecmp4.resolveNextHops(this->getProgrammedState(), kEcmpWidth));
+    this->applyNewState(
+        ecmp6.resolveNextHops(this->getProgrammedState(), kEcmpWidth));
     // Trigger a stats collection
-    getHwSwitchEnsemble()->getLatestPortStats(masterLogicalPortIds());
+    this->getHwSwitchEnsemble()->getLatestPortStats(
+        this->masterLogicalPortIds());
     auto
         [v6RouteFreeAfter,
          v4RouteFreeAfter,
@@ -97,23 +131,25 @@ TEST_F(HwResourceStatsTest, l3Stats) {
     EXPECT_LT(v4RouteFreeAfter, v4RouteFreeBefore);
     EXPECT_LT(v6NextHopsFreeAfter, v6NextHopsFreeBefore);
     EXPECT_LT(v4NextHopsFreeAfter, v4NextHopsFreeBefore);
-    if (getHwSwitch()->getPlatform()->getAsic()->isSupported(
+    if (this->getHwSwitch()->getPlatform()->getAsic()->isSupported(
             HwAsic::Feature::HOSTTABLE)) {
       EXPECT_LT(v6HostFreeAfter, v6HostFreeBefore);
       EXPECT_LT(v4HostFreeAfter, v4HostFreeBefore);
     }
     EXPECT_EQ(ecmpFreeAfter, ecmpFreeBefore - 2);
     // Unresolve so we can rerun verify for many (warmboot) iterations
-    ecmp4.unprogramRoutes(getRouteUpdater(), {kPrefix4()});
-    ecmp6.unprogramRoutes(getRouteUpdater(), {kPrefix6()});
-    applyNewState(ecmp4.unresolveNextHops(getProgrammedState(), kEcmpWidth));
-    applyNewState(ecmp6.unresolveNextHops(getProgrammedState(), kEcmpWidth));
+    ecmp4.unprogramRoutes(this->getRouteUpdater(), {this->kPrefix4()});
+    ecmp6.unprogramRoutes(this->getRouteUpdater(), {this->kPrefix6()});
+    this->applyNewState(
+        ecmp4.unresolveNextHops(this->getProgrammedState(), kEcmpWidth));
+    this->applyNewState(
+        ecmp6.unresolveNextHops(this->getProgrammedState(), kEcmpWidth));
   };
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 };
 
-TEST_F(HwResourceStatsTest, aclStats) {
-  if (!isSupported(HwAsic::Feature::RESOURCE_USAGE_STATS)) {
+TYPED_TEST(HwResourceStatsTest, aclStats) {
+  if (!this->isSupported(HwAsic::Feature::RESOURCE_USAGE_STATS)) {
 #if defined(GTEST_SKIP)
     GTEST_SKIP();
 #endif
@@ -122,28 +158,35 @@ TEST_F(HwResourceStatsTest, aclStats) {
   auto setup = [] {};
   auto verify = [this] {
     // Trigger a stats collection
-    getHwSwitchEnsemble()->getLatestPortStats(masterLogicalPortIds());
+    this->getHwSwitchEnsemble()->getLatestPortStats(
+        this->masterLogicalPortIds());
     auto getStatsFn = [] {
       EXPECT_EQ(0, fbData->getCounter(kHwTableStatsStale));
       return std::make_pair(
           fbData->getCounter(kAclEntriesFree),
           fbData->getCounter(kAclCountersFree));
     };
+    // Add Acl Table before querying stats so the stats are retrieved
+    auto newCfg = this->initialConfig();
+    this->applyNewConfig(newCfg);
+    // Trigger a stats collection
+    this->getHwSwitchEnsemble()->getLatestPortStats(
+        this->masterLogicalPortIds());
     auto [aclEntriesFreeBefore, aclCountersFreeBefore] = getStatsFn();
-    auto newCfg = initialConfig();
     auto acl = utility::addAcl(&newCfg, "acl0");
     acl->dscp() = 0x10;
     utility::addAclStat(&newCfg, "acl0", "stat0");
-    applyNewConfig(newCfg);
+    this->applyNewConfig(newCfg);
     // Trigger a stats collection
-    getHwSwitchEnsemble()->getLatestPortStats(masterLogicalPortIds());
+    this->getHwSwitchEnsemble()->getLatestPortStats(
+        this->masterLogicalPortIds());
     auto [aclEntriesFreeAfter, aclCountersFreeAfter] = getStatsFn();
     EXPECT_EQ(aclEntriesFreeAfter, aclEntriesFreeBefore - 1);
     // More than one h/w resource gets consumed on configuring
     // a counter
     EXPECT_LT(aclCountersFreeAfter, aclCountersFreeBefore);
-    applyNewConfig(initialConfig());
+    this->applyNewConfig(this->initialConfig());
   };
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 } // namespace facebook::fboss

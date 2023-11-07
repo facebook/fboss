@@ -176,6 +176,8 @@ class SaiAclTableManager {
 
   void updateStats();
 
+  std::pair<int32_t, int32_t> getAclResourceUsage();
+
   std::set<cfg::AclTableQualifier> getSupportedQualifierSet() const;
 
   void addDefaultAclTable();
