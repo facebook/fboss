@@ -4,8 +4,6 @@
 
 namespace facebook::fboss {
 
-AgentNetWhoAmI::AgentNetWhoAmI() {}
-
 bool AgentNetWhoAmI::isSai() const {
   return false;
 }
