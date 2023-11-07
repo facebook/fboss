@@ -672,7 +672,7 @@ void SaiHostifManager::setCpuSystemPortQosPolicy(QosMapSaiId tcToQueue) {
   auto& systemPortApi = SaiApiTable::getInstance()->systemPortApi();
   systemPortApi.setAttribute(
       cpuPortHandle_->cpuSystemPortId.value(),
-      SaiPortTraits::Attributes::QosTcToQueueMap{tcToQueue});
+      SaiSystemPortTraits::Attributes::QosTcToQueueMap{tcToQueue});
 #endif
 }
 
