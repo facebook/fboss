@@ -227,6 +227,7 @@ class AgentPreStartExecTests : public ::testing::Test {
           EXPECT_TRUE(checkFileExists(util_.getDrainDeviceFlagFile()));
         }
       }
+      checkFileExists(util_.getStartupConfig());
     }
   }
 
