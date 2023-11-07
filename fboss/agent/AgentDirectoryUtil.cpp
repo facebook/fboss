@@ -144,10 +144,6 @@ std::string AgentDirectoryUtil::getColdBootOnceFile(
   return shmDir + "/" + "cold_boot_once_0";
 }
 
-std::string AgentDirectoryUtil::getDrainDeviceFlagFile() const {
-  return getVolatileStateDir() + "/drain_device";
-}
-
 std::string AgentDirectoryUtil::getRoutingProtocolColdBootDrainTimeFile()
     const {
   return getVolatileStateDir() + "/routing_protocol_cold_boot_drain_time";
