@@ -12,20 +12,18 @@
 namespace facebook::fboss {
 
 namespace {
-static constexpr auto kMultiSwitchAgentPreStartScript =
-    "/etc/packages/neteng-fboss-wedge_agent/current/multi_switch_agent_scripts/pre_multi_switch_agent_start.par";
 static constexpr auto kWrapperRefactorFeatureOn =
     "/etc/fboss/features/cpp_wedge_agent_wrapper/current/on";
-static auto constexpr kPreStartSh = "/dev/shm/fboss/pre_start.sh";
-static auto constexpr kSwAgentServiceUnit =
-    "/etc/systemd/system/fboss_sw_agent.service";
-static auto constexpr kHwAgentServiceUnit =
-    "/etc/systemd/system/fboss_hw_agent@.service";
 } // namespace
 
 void AgentPreStartExec::run() {
+  AgentDirectoryUtil dirUtil;
+  run(dirUtil);
+}
+
+void AgentPreStartExec::run(const AgentDirectoryUtil& dirUtil) {
   if (checkFileExists(kWrapperRefactorFeatureOn)) {
-    runAndRemoveScript(kPreStartSh);
+    runAndRemoveScript(dirUtil.getPreStartShellScript());
     AgentPreStartConfig preStartConfig;
     preStartConfig.run();
   }
@@ -34,14 +32,14 @@ void AgentPreStartExec::run() {
   if (config->getRunMode() != cfg::AgentRunMode::MULTI_SWITCH) {
     XLOG(INFO)
         << "Agent run mode is not MULTI_SWITCH, skip MULTI_SWITCH pre-start execution";
-    if (checkFileExists(kSwAgentServiceUnit)) {
+    if (checkFileExists(dirUtil.getSwAgentServiceSymLink())) {
       XLOG(INFO) << "Stop and disable fboss_sw_agent service";
       runCommand({"/usr/bin/systemctl", "stop", "fboss_sw_agent"}, false);
       runCommand({"/usr/bin/systemctl", "disable", "fboss_sw_agent"}, false);
       runCommand({"/usr/bin/pkill", "fboss_sw_agent"}, false);
     }
 
-    if (checkFileExists(kHwAgentServiceUnit)) {
+    if (checkFileExists(dirUtil.getHwAgentServiceTemplateSymLink())) {
       XLOG(INFO) << "Stop and disable all instances of fboss_hw_agent@ service";
       for (auto iter :
            *config->thrift.sw()->switchSettings()->switchIdToSwitchInfo()) {
@@ -60,7 +58,7 @@ void AgentPreStartExec::run() {
       << "Agent run mode is MULTI_SWITCH, perform MULTI_SWITCH pre-start execution";
   // TODO: do pre-initialization for MULTI_SWITCH mode agent
   try {
-    runShellCommand(kMultiSwitchAgentPreStartScript);
+    runShellCommand(dirUtil.getMultiSwitchPreStartScript());
   } catch (const std::exception& ex) {
     XLOG(ERR) << "Failed to execute pre-start script: " << ex.what();
     exit(2);

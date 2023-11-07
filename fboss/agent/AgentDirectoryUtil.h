@@ -28,8 +28,17 @@ class AgentDirectoryUtil {
   AgentDirectoryUtil();
 
   AgentDirectoryUtil(
-      std::string volatileStateDir,
-      std::string persistentStateDir);
+      const std::string& volatileStateDir,
+      const std::string& persistentStateDir);
+
+  AgentDirectoryUtil(
+      const std::string& volatileStateDir,
+      const std::string& persistentStateDir,
+      const std::string& packageDirectory,
+      const std::string& systemdDirectory,
+      const std::string& configDirectory,
+      const std::string& drainConfigDirectory);
+
   /*
    * Get the path to a directory where persistent state can be stored.
    *
@@ -121,9 +130,47 @@ class AgentDirectoryUtil {
 
   std::string getSwSwitchCanWarmBootFile() const;
 
+  std::string getPackageDirectory() const;
+
+  std::string getMultiSwitchScriptsDirectory() const;
+
+  std::string getSystemdDirectory() const;
+
+  std::string getConfigDirectory() const;
+
+  std::string getDrainConfigDirectory() const;
+
+  std::string getAgentLiveConfig() const;
+
+  std::string getAgentDrainConfig() const;
+
+  std::string getSwAgentServicePath() const;
+
+  std::string getSwAgentServiceSymLink() const;
+
+  std::string getHwAgentServiceTemplatePath() const;
+
+  std::string getHwAgentServiceInstance(int switchIndex) const;
+
+  std::string getHwAgentServiceTemplateSymLink() const;
+
+  std::string getHwAgentServiceInstanceSymLink(int switchIndex) const;
+
+  std::string getUndrainedFlag() const;
+
+  std::string getStartupConfig() const;
+
+  std::string getMultiSwitchPreStartScript() const;
+
+  std::string getPreStartShellScript() const;
+
  private:
   std::string volatileStateDir_;
   std::string persistentStateDir_;
+  std::string packageDirectory_;
+  std::string systemdDirectory_;
+  std::string configDirectory_;
+  std::string drainConfigDirectory_;
 };
 
 } // namespace facebook::fboss

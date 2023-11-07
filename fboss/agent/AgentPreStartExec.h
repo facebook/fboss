@@ -4,10 +4,13 @@
 
 namespace facebook::fboss {
 
+class AgentDirectoryUtil;
+
 class AgentPreStartExec {
  public:
   AgentPreStartExec() {}
   void run();
+  void run(const AgentDirectoryUtil& dirUtil);
 };
 
 } // namespace facebook::fboss

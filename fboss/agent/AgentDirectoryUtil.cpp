@@ -53,17 +53,47 @@ DEFINE_string(
 
 using namespace std;
 
+namespace {
+static auto constexpr kPkgDir =
+    "/etc/packages/neteng-fboss-wedge_agent/current";
+static auto constexpr kSystemdDir = "/etc/systemd/system";
+static auto constexpr kCoopAgentDir = "/etc/coop/agent";
+static auto constexpr kCoopAgentDrainDir = "/etc/coop/agent_drain";
+static auto constexpr kSwAgentService = "fboss_sw_agent.service";
+static auto constexpr kHwAgentService = "fboss_hw_agent@.service";
+} // namespace
+
 namespace facebook::fboss {
 
 AgentDirectoryUtil::AgentDirectoryUtil(
-    std::string volatileStateDir,
-    std::string persistentStateDir)
-    : volatileStateDir_(std::move(volatileStateDir)),
-      persistentStateDir_(std::move(persistentStateDir)) {}
+    const std::string& volatileStateDir,
+    const std::string& persistentStateDir)
+    : AgentDirectoryUtil(
+          volatileStateDir,
+          persistentStateDir,
+          kPkgDir, // packageDirectory_
+          kSystemdDir, // systemdDirectory_
+          kCoopAgentDir, // configDirectory_
+          kCoopAgentDrainDir // drainConfigDirectory_
+      ) {}
 
 AgentDirectoryUtil::AgentDirectoryUtil()
     : AgentDirectoryUtil(FLAGS_volatile_state_dir, FLAGS_persistent_state_dir) {
 }
+
+AgentDirectoryUtil::AgentDirectoryUtil(
+    const std::string& volatileStateDir,
+    const std::string& persistentStateDir,
+    const std::string& packageDirectory,
+    const std::string& systemdDirectory,
+    const std::string& configDirectory,
+    const std::string& drainConfigDirectory)
+    : volatileStateDir_(volatileStateDir),
+      persistentStateDir_(persistentStateDir),
+      packageDirectory_(packageDirectory),
+      systemdDirectory_(systemdDirectory),
+      configDirectory_(configDirectory),
+      drainConfigDirectory_(drainConfigDirectory) {}
 
 string AgentDirectoryUtil::getVolatileStateDir() const {
   return volatileStateDir_;
@@ -127,4 +157,73 @@ std::string AgentDirectoryUtil::getSwSwitchCanWarmBootFile() const {
   return getWarmBootDir() + "/can_warm_boot";
 }
 
+std::string AgentDirectoryUtil::getPackageDirectory() const {
+  return packageDirectory_;
+}
+
+std::string AgentDirectoryUtil::getMultiSwitchScriptsDirectory() const {
+  return packageDirectory_ + "/multi_switch_agent_scripts";
+}
+
+std::string AgentDirectoryUtil::getSystemdDirectory() const {
+  return systemdDirectory_;
+}
+
+std::string AgentDirectoryUtil::getConfigDirectory() const {
+  return configDirectory_;
+}
+
+std::string AgentDirectoryUtil::getDrainConfigDirectory() const {
+  return drainConfigDirectory_;
+}
+
+std::string AgentDirectoryUtil::getAgentLiveConfig() const {
+  return getConfigDirectory() + "/current";
+}
+
+std::string AgentDirectoryUtil::getAgentDrainConfig() const {
+  return getDrainConfigDirectory() + "/current";
+}
+
+std::string AgentDirectoryUtil::getSwAgentServicePath() const {
+  return getMultiSwitchScriptsDirectory() + "/" + kSwAgentService;
+}
+
+std::string AgentDirectoryUtil::getSwAgentServiceSymLink() const {
+  return getSystemdDirectory() + "/" + kSwAgentService;
+}
+
+std::string AgentDirectoryUtil::getHwAgentServiceTemplatePath() const {
+  return getMultiSwitchScriptsDirectory() + "/" + kHwAgentService;
+}
+
+std::string AgentDirectoryUtil::getHwAgentServiceInstance(
+    int switchIndex) const {
+  return "fboss_hw_agent@" + folly::to<std::string>(switchIndex) + ".service";
+}
+
+std::string AgentDirectoryUtil::getHwAgentServiceTemplateSymLink() const {
+  return getSystemdDirectory() + "/" + kHwAgentService;
+}
+
+std::string AgentDirectoryUtil::getHwAgentServiceInstanceSymLink(
+    int switchIndex) const {
+  return getSystemdDirectory() + "/" + getHwAgentServiceInstance(switchIndex);
+}
+
+std::string AgentDirectoryUtil::getUndrainedFlag() const {
+  return getVolatileStateDir() + "/UNDRAINED";
+}
+
+std::string AgentDirectoryUtil::getStartupConfig() const {
+  return getVolatileStateDir() + "/agent_startup_config";
+}
+
+std::string AgentDirectoryUtil::getMultiSwitchPreStartScript() const {
+  return getMultiSwitchScriptsDirectory() + "/pre_multi_switch_agent_start.par";
+}
+
+std::string AgentDirectoryUtil::getPreStartShellScript() const {
+  return getVolatileStateDir() + "/pre_start.sh";
+}
 } // namespace facebook::fboss
