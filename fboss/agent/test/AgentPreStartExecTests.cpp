@@ -103,7 +103,7 @@ class AgentPreStartExecTests : public ::testing::Test {
         .WillByDefault(Return(!TestAttr::kBrcm));
     ON_CALL(*netwhoami, isBcmVoqPlatform()).WillByDefault(Return(false));
     ON_CALL(*netwhoami, isFdsw()).WillByDefault(Return(false));
-    ON_CALL(*netwhoami, isUnDrainable()).WillByDefault(Return(true));
+    ON_CALL(*netwhoami, isUnDrainable()).WillByDefault(Return(false));
     ON_CALL(*netwhoami, hasRoutingProtocol()).WillByDefault(Return(false));
     ON_CALL(*netwhoami, hasBgpRoutingProtocol()).WillByDefault(Return(false));
     if (!TestAttr::kCppRefactor) {
@@ -117,7 +117,8 @@ class AgentPreStartExecTests : public ::testing::Test {
       ::testing::InSequence seq;
       EXPECT_CALL(*netwhoami, isFdsw()).WillOnce(Return(false));
       EXPECT_CALL(*netwhoami, isFdsw()).WillOnce(Return(false));
-      EXPECT_CALL(*netwhoami, isUnDrainable()).WillOnce(Return(true));
+      EXPECT_CALL(*netwhoami, isUnDrainable()).WillOnce(Return(false));
+      EXPECT_CALL(*netwhoami, isFdsw()).WillOnce(Return(false));
       EXPECT_CALL(*netwhoami, isBcmPlatform())
           .WillOnce(Return(TestAttr::kBrcm));
       if (!TestAttr::kBrcm) {
