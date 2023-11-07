@@ -87,7 +87,7 @@ class AgentPreStartExecTests : public ::testing::Test {
     return config;
   }
 
-  void run(bool coldBoot = false) {
+  void run(bool coldBoot = false, bool drain = false) {
     using ::testing::Return;
 
     MockAgentCommandExecutor executor;
@@ -110,6 +110,11 @@ class AgentPreStartExecTests : public ::testing::Test {
       // touch cold_boot_once_0
       createDirectoryTree(util_.getWarmBootDir());
       touchFile(util_.getColdBootOnceFile());
+    }
+    if (drain) {
+      // touch undrained flag
+      createDirectoryTree(util_.getVolatileStateDir());
+      touchFile(util_.getUndrainedFlag());
     }
     if (!TestAttr::kCppRefactor) {
       if (TestAttr::kMultiSwitch) {
@@ -217,6 +222,10 @@ class AgentPreStartExecTests : public ::testing::Test {
               util_.getHwColdBootOnceFile(info.switchIndex().value())));
         }
         EXPECT_FALSE(checkFileExists(util_.getColdBootOnceFile()));
+        if (drain) {
+          // device to be marked for draining
+          EXPECT_TRUE(checkFileExists(util_.getDrainDeviceFlagFile()));
+        }
       }
     }
   }
@@ -308,10 +317,13 @@ class AgentPreStartExecTests : public ::testing::Test {
 #define TestFixtureName(NAME)                                    \
   class NAME : public AgentPreStartExecTests<TestAttr##NAME> {}; \
   TEST_F(NAME, PreStartExec) {                                   \
-    run();                                                       \
+    run(false, false);                                           \
   }                                                              \
   TEST_F(NAME, PreStartExecColdBoot) {                           \
     run(true);                                                   \
+  }                                                              \
+  TEST_F(NAME, PreStartExecColdBootAndDrain) {                   \
+    run(true, true);                                             \
   }
 
 /* TODO: retire NoCpp refactor subsequently */
