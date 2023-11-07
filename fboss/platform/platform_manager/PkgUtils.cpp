@@ -22,13 +22,12 @@ void PkgUtils::run(const PlatformConfig& config) {
     XLOG(INFO) << fmt::format("Installing BSP Kmods {}", bspKmodsRpmName);
     installRpm(bspKmodsRpmName, 3 /* maxAttempts */);
     XLOG(INFO) << "Reloading Kernel Modules";
-    reloadKMod("fbiob-pci");
-    reloadKMod("i2c-fbiob");
-    reloadKMod("spi-fbiob");
-    reloadKMod("gpio-fbiob");
   } else {
     XLOG(INFO) << fmt::format(
         "BSP Kmods {} is already installed", bspKmodsRpmName);
+  }
+  for (auto& kmod : *config.kmodsToReload()) {
+    reloadKMod(kmod);
   }
 }
 

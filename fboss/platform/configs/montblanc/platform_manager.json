@@ -1992,5 +1992,11 @@
     "/run/devmap/eeproms/FCB_EEPROM": "/FCB_SLOT@0/[IDPROM]"
   },
   "bspKmodsRpmName": "fboss_bsp_kmods",
-  "bspKmodsRpmVersion": "0.6.0-1"
+  "bspKmodsRpmVersion": "0.6.0-1",
+  "kmodsToReload": [
+    "fbiob-pci",
+    "i2c-fbiob",
+    "spi-fbiob",
+    "gpio-fbiob"
+  ]
 }

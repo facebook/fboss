@@ -418,4 +418,7 @@ struct PlatformConfig {
   // Name and version of the rpm containing the BSP kmods for this platform
   21: string bspKmodsRpmName;
   22: string bspKmodsRpmVersion;
+
+  // Specify the list of names of kmods to be reloaded on new rpm installation.
+  23: list<string> kmodsToReload;
 }
