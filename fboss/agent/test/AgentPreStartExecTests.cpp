@@ -87,7 +87,7 @@ class AgentPreStartExecTests : public ::testing::Test {
     return config;
   }
 
-  void run(bool coldBoot = false, bool drain = false) {
+  void run(bool coldBoot = false, bool drain = false, bool fdsw = false) {
     using ::testing::Return;
 
     MockAgentCommandExecutor executor;
@@ -102,7 +102,7 @@ class AgentPreStartExecTests : public ::testing::Test {
     ON_CALL(*netwhoami, isCiscoPlatform())
         .WillByDefault(Return(!TestAttr::kBrcm));
     ON_CALL(*netwhoami, isBcmVoqPlatform()).WillByDefault(Return(false));
-    ON_CALL(*netwhoami, isFdsw()).WillByDefault(Return(false));
+    ON_CALL(*netwhoami, isFdsw()).WillByDefault(Return(fdsw));
     ON_CALL(*netwhoami, isUnDrainable()).WillByDefault(Return(false));
     ON_CALL(*netwhoami, hasRoutingProtocol()).WillByDefault(Return(false));
     ON_CALL(*netwhoami, hasBgpRoutingProtocol()).WillByDefault(Return(false));
@@ -116,6 +116,10 @@ class AgentPreStartExecTests : public ::testing::Test {
       createDirectoryTree(util_.getVolatileStateDir());
       touchFile(util_.getUndrainedFlag());
     }
+    if (fdsw) {
+      // drain config needed for fdsw
+      touchFile(util_.getAgentDrainConfig());
+    }
     if (!TestAttr::kCppRefactor) {
       if (TestAttr::kMultiSwitch) {
         EXPECT_CALL(
@@ -125,10 +129,10 @@ class AgentPreStartExecTests : public ::testing::Test {
       }
     } else {
       ::testing::InSequence seq;
-      EXPECT_CALL(*netwhoami, isFdsw()).WillOnce(Return(false));
-      EXPECT_CALL(*netwhoami, isFdsw()).WillOnce(Return(false));
+      EXPECT_CALL(*netwhoami, isFdsw()).WillOnce(Return(fdsw));
+      EXPECT_CALL(*netwhoami, isFdsw()).WillOnce(Return(fdsw));
       EXPECT_CALL(*netwhoami, isUnDrainable()).WillOnce(Return(false));
-      EXPECT_CALL(*netwhoami, isFdsw()).WillOnce(Return(false));
+      EXPECT_CALL(*netwhoami, isFdsw()).WillOnce(Return(fdsw));
       EXPECT_CALL(*netwhoami, isBcmPlatform())
           .WillOnce(Return(TestAttr::kBrcm));
       if (!TestAttr::kBrcm) {
@@ -222,12 +226,21 @@ class AgentPreStartExecTests : public ::testing::Test {
               util_.getHwColdBootOnceFile(info.switchIndex().value())));
         }
         EXPECT_FALSE(checkFileExists(util_.getColdBootOnceFile()));
-        if (drain) {
+        if (drain && !fdsw) {
           // device to be marked for draining
           EXPECT_TRUE(checkFileExists(util_.getDrainDeviceFlagFile()));
         }
       }
+      auto drained = !checkFileExists(util_.getUndrainedFlag());
       checkFileExists(util_.getStartupConfig());
+      auto actualStartUpConfig =
+          std::filesystem::read_symlink(util_.getStartupConfig());
+      auto expectedTarget = util_.getConfigDirectory() + "/current";
+
+      if (fdsw && drained) {
+        expectedTarget = util_.getDrainConfigDirectory() + "/current";
+      }
+      EXPECT_EQ(actualStartUpConfig.string(), expectedTarget);
     }
   }
 
@@ -327,6 +340,17 @@ class AgentPreStartExecTests : public ::testing::Test {
     run(true, true);                                             \
   }
 
+#define TestFixtureNameFdsw(NAME)                  \
+  TEST_F(NAME, PreStartExecFdsw) {                 \
+    run(false, false, true);                       \
+  }                                                \
+  TEST_F(NAME, PreStartExecFdswColdBoot) {         \
+    run(true, false, true);                        \
+  }                                                \
+  TEST_F(NAME, PreStartExecFdswColdBootAndDrain) { \
+    run(true, true, true);                         \
+  }
+
 /* TODO: retire NoCpp refactor subsequently */
 TestFixtureName(NoMultiSwitchNoCppRefactorNoSaiBrcm);
 TestFixtureName(NoMultiSwitchNoCppRefactorSaiBrcm);
@@ -343,5 +367,8 @@ TestFixtureName(MultiSwitchNoCppRefactorSaiNoBrcm);
 TestFixtureName(MultiSwitchCppRefactorNoSaiBrcm);
 TestFixtureName(MultiSwitchCppRefactorSaiBrcm);
 TestFixtureName(MultiSwitchCppRefactorSaiNoBrcm);
+
+TestFixtureNameFdsw(MultiSwitchNoCppRefactorSaiBrcm);
+TestFixtureNameFdsw(MultiSwitchCppRefactorSaiBrcm);
 
 } // namespace facebook::fboss
