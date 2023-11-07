@@ -115,7 +115,7 @@ std::string errorType(sai_switch_error_type_t type) {
     default:
       break;
   }
-  return folly::sformat("Uknown error type: {} ", static_cast<int>(type));
+  return folly::sformat("Unknown error type: {} ", static_cast<int>(type));
 }
 
 bool isIreErrorType(sai_switch_error_type_t type) {
