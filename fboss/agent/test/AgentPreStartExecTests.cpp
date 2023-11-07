@@ -82,12 +82,12 @@ class AgentPreStartExecTests : public ::testing::Test {
     if constexpr (TestAttr::kMultiSwitch) {
       // set the multi switch mode in config
       setMultiSwitchMode(config.defaultCommandLineArgs().value());
-      setSwitchIdToSwitchInfo(config.sw().value());
     }
+    setSwitchIdToSwitchInfo(config.sw().value());
     return config;
   }
 
-  void run() {
+  void run(bool coldBoot = false) {
     using ::testing::Return;
 
     MockAgentCommandExecutor executor;
@@ -106,6 +106,11 @@ class AgentPreStartExecTests : public ::testing::Test {
     ON_CALL(*netwhoami, isUnDrainable()).WillByDefault(Return(false));
     ON_CALL(*netwhoami, hasRoutingProtocol()).WillByDefault(Return(false));
     ON_CALL(*netwhoami, hasBgpRoutingProtocol()).WillByDefault(Return(false));
+    if (coldBoot) {
+      // touch cold_boot_once_0
+      createDirectoryTree(util_.getWarmBootDir());
+      touchFile(util_.getColdBootOnceFile());
+    }
     if (!TestAttr::kCppRefactor) {
       if (TestAttr::kMultiSwitch) {
         EXPECT_CALL(
@@ -202,6 +207,17 @@ class AgentPreStartExecTests : public ::testing::Test {
           TestAttr::kSai && TestAttr::kBrcm
               ? getSaiSdkVersion(getSdkVersion())
               : getAsicSdkVersion(getSdkVersion()));
+
+      if (coldBoot) {
+        EXPECT_TRUE(checkFileExists(util_.getSwColdBootOnceFile()));
+        auto cfg = getConfig();
+        for (auto [id, info] :
+             *(cfg.sw()->switchSettings()->switchIdToSwitchInfo())) {
+          EXPECT_TRUE(checkFileExists(
+              util_.getHwColdBootOnceFile(info.switchIndex().value())));
+        }
+        EXPECT_FALSE(checkFileExists(util_.getColdBootOnceFile()));
+      }
     }
   }
 
@@ -239,7 +255,8 @@ class AgentPreStartExecTests : public ::testing::Test {
 
   void setSwitchIdToSwitchInfo(cfg::SwitchConfig& config) {
     std::map<int64_t, cfg::SwitchInfo> switchIdToSwitchInfo;
-    for (auto i = 0; i < 2; ++i) {
+    auto numSwitches = TestAttr::kMultiSwitch ? 2 : 1;
+    for (auto i = 0; i < numSwitches; ++i) {
       switchIdToSwitchInfo.emplace(i, getSwitchInfo(i));
     }
     config.switchSettings()->switchIdToSwitchInfo() = switchIdToSwitchInfo;
@@ -292,6 +309,9 @@ class AgentPreStartExecTests : public ::testing::Test {
   class NAME : public AgentPreStartExecTests<TestAttr##NAME> {}; \
   TEST_F(NAME, PreStartExec) {                                   \
     run();                                                       \
+  }                                                              \
+  TEST_F(NAME, PreStartExecColdBoot) {                           \
+    run(true);                                                   \
   }
 
 /* TODO: retire NoCpp refactor subsequently */
