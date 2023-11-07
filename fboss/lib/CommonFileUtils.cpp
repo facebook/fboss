@@ -2,7 +2,9 @@
 
 #include "fboss/lib/CommonFileUtils.h"
 #include <boost/filesystem/operations.hpp>
+#include <folly/String.h>
 #include <folly/logging/xlog.h>
+#include <cstdio>
 #include <filesystem>
 #include <fstream>
 #include <sstream>
@@ -87,17 +89,19 @@ bool writeSysfs(const std::string& path, const std::string& val) {
 }
 
 void createSymLink(const std::string& link, const std::string& target) {
-  std::filesystem::path tmpLinkPath(link);
+  std::filesystem::path linkPath(link);
   std::filesystem::path targetPath(target);
-  if (!tmpLinkPath.is_absolute()) {
+  if (!linkPath.is_absolute()) {
     throw FbossError("Link path must be absolute");
   }
   if (!targetPath.is_absolute()) {
     throw FbossError("Target path must be absolute");
   }
-  auto tmpLinkName =
-      folly::to<std::string>(".", tmpLinkPath.filename().string());
-  tmpLinkPath.replace_filename(tmpLinkName);
+  std::string tmpLinkName =
+      std::filesystem::path(std::string(std::tmpnam(nullptr)))
+          .filename()
+          .string();
+  std::filesystem::path tmpLinkPath = linkPath.parent_path() / tmpLinkName;
   std::filesystem::create_symlink(targetPath, tmpLinkPath);
   std::filesystem::rename(tmpLinkPath, std::filesystem::path(link));
 }
@@ -106,6 +110,32 @@ void touchFile(const std::string& path) {
   if (!checkFileExists(path)) {
     createFile(path);
   }
+}
+
+namespace {
+void _createDirectoryTree(
+    const std::vector<folly::StringPiece>& elements,
+    size_t size) {
+  if (size == 0) {
+    return;
+  }
+  _createDirectoryTree(elements, size - 1);
+  std::string _path;
+  folly::join("/", elements.begin(), elements.begin() + size, _path);
+  if (_path.size() == 0) {
+    return;
+  }
+  XLOG(DBG3) << "Creating directory " << _path << ", size " << size;
+  if (!std::filesystem::exists(_path)) {
+    std::filesystem::create_directory(_path);
+  }
+}
+} // namespace
+
+void createDirectoryTree(const std::string& path) {
+  std::vector<folly::StringPiece> elements;
+  folly::split('/', path, elements);
+  _createDirectoryTree(elements, elements.size());
 }
 
 } // namespace facebook::fboss
