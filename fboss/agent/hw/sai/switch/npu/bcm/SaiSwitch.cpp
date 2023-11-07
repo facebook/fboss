@@ -32,6 +32,10 @@ std::string eventName(uint32_t eventID) {
       return "SAI_SWITCH_EVENT_TYPE_UNCONTROLLED_SHUTDOWN";
     case SAI_SWITCH_EVENT_TYPE_PARITY_ERROR:
       return "SAI_SWITCH_EVENT_TYPE_PARITY_ERROR";
+#if defined BRCM_SAI_SDK_GTE_11_0
+    case SAI_SWITCH_EVENT_TYPE_INTERRUPT:
+      return "SAI_SWITCH_EVENT_TYPE_INTERRUPT";
+#endif
   }
   return folly::to<std::string>("unknown event type: ", eventID);
 }
@@ -92,6 +96,11 @@ void SaiSwitch::switchEventCallback(
         getSwitchStats()->uncorrParityError();
       }
       break;
+#if defined BRCM_SAI_SDK_GTE_11_0
+    case SAI_SWITCH_EVENT_TYPE_INTERRUPT:
+      XLOG(ERR) << " Got interrupt event";
+      break;
+#endif
   }
 }
 
