@@ -244,6 +244,38 @@ class AgentPreStartExecTests : public ::testing::Test {
     }
   }
 
+  void runWithoutConfig(
+      bool removeLiveConfig = false,
+      bool removeDrainConfig = false) {
+    MockAgentCommandExecutor executor;
+    AgentPreStartExec exec;
+    auto netwhoami = std::make_unique<MockAgentNetWhoAmI>();
+    ON_CALL(*netwhoami, isFdsw()).WillByDefault(::testing::Return(true));
+    if (removeLiveConfig) {
+      removeFile(util_.getAgentLiveConfig());
+    }
+    if (removeDrainConfig) {
+      removeFile(util_.getAgentLiveConfig());
+    }
+    if (removeLiveConfig || removeDrainConfig) {
+      EXPECT_THROW(
+          exec.run(
+              &executor,
+              std::move(netwhoami),
+              util_,
+              std::make_unique<AgentConfig>(getConfig()),
+              TestAttr::kCppRefactor),
+          FbossError);
+    } else {
+      exec.run(
+          &executor,
+          std::move(netwhoami),
+          util_,
+          std::make_unique<AgentConfig>(getConfig()),
+          TestAttr::kCppRefactor);
+    }
+  }
+
  private:
   void setSdkVersion(cfg::SwitchConfig& config) {
     config.sdkVersion() = getSdkVersion();
@@ -349,6 +381,12 @@ class AgentPreStartExecTests : public ::testing::Test {
   }                                                \
   TEST_F(NAME, PreStartExecFdswColdBootAndDrain) { \
     run(true, true, true);                         \
+  }                                                \
+  TEST_F(NAME, PreStartExecFdswNoLiveConfig) {     \
+    runWithoutConfig(true, false);                 \
+  }                                                \
+  TEST_F(NAME, PreStartExecFdswNoDrainConfig) {    \
+    runWithoutConfig(false, true);                 \
   }
 
 /* TODO: retire NoCpp refactor subsequently */
@@ -368,7 +406,9 @@ TestFixtureName(MultiSwitchCppRefactorNoSaiBrcm);
 TestFixtureName(MultiSwitchCppRefactorSaiBrcm);
 TestFixtureName(MultiSwitchCppRefactorSaiNoBrcm);
 
-TestFixtureNameFdsw(MultiSwitchNoCppRefactorSaiBrcm);
+TestFixtureNameFdsw(NoMultiSwitchCppRefactorSaiBrcm);
+TestFixtureNameFdsw(NoMultiSwitchCppRefactorNoSaiBrcm);
+TestFixtureNameFdsw(NoMultiSwitchCppRefactorSaiNoBrcm);
 TestFixtureNameFdsw(MultiSwitchCppRefactorSaiBrcm);
 
 } // namespace facebook::fboss

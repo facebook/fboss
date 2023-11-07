@@ -74,7 +74,6 @@ void AgentPreStartExec::run(
     executor->runShellCommand(dirUtil.getMultiSwitchPreStartScript());
   } catch (const std::exception& ex) {
     XLOG(ERR) << "Failed to execute pre-start script: " << ex.what();
-    exit(2);
   }
 }
 
