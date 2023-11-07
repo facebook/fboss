@@ -18,17 +18,21 @@ static constexpr auto kWrapperRefactorFeatureOn =
 
 void AgentPreStartExec::run() {
   AgentDirectoryUtil dirUtil;
-  run(dirUtil);
+  auto cppWedgeAgentWrapper = checkFileExists(kWrapperRefactorFeatureOn);
+  auto config = AgentConfig::fromDefaultFile();
+  run(dirUtil, std::move(config), cppWedgeAgentWrapper);
 }
 
-void AgentPreStartExec::run(const AgentDirectoryUtil& dirUtil) {
-  if (checkFileExists(kWrapperRefactorFeatureOn)) {
+void AgentPreStartExec::run(
+    const AgentDirectoryUtil& dirUtil,
+    std::unique_ptr<AgentConfig> config,
+    bool cppWedgeAgentWrapper) {
+  if (cppWedgeAgentWrapper) {
     runAndRemoveScript(dirUtil.getPreStartShellScript());
     AgentPreStartConfig preStartConfig;
     preStartConfig.run();
   }
 
-  auto config = AgentConfig::fromDefaultFile();
   if (config->getRunMode() != cfg::AgentRunMode::MULTI_SWITCH) {
     XLOG(INFO)
         << "Agent run mode is not MULTI_SWITCH, skip MULTI_SWITCH pre-start execution";
