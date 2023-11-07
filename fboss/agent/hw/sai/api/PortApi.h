@@ -53,7 +53,8 @@ struct SaiPortTraits {
     struct AttributeFdrEnable {
       std::optional<sai_attr_id_t> operator()();
     };
-    using FdrEnable = SaiExtensionAttribute<bool, AttributeFdrEnable>;
+    using FdrEnable =
+        SaiExtensionAttribute<bool, AttributeFdrEnable, SaiBoolDefaultFalse>;
     using Speed = SaiAttribute<EnumType, SAI_PORT_ATTR_SPEED, sai_uint32_t>;
     using Type = SaiAttribute<EnumType, SAI_PORT_ATTR_TYPE, sai_int32_t>;
     using QosNumberOfQueues = SaiAttribute<
