@@ -22,6 +22,7 @@
 #include "fboss/agent/hw/test/HwTestStatUtils.h"
 #include "fboss/agent/hw/test/HwVoqUtils.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwTestQueuePerHostUtils.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -57,9 +58,14 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
         break;
       }
     }
+    utility::addAclTableGroup(
+        &cfg, cfg::AclStage::INGRESS, utility::getAclTableGroupName());
+    utility::addDefaultAclTable(cfg);
     return cfg;
   }
   void SetUp() override {
+    // VOQ switches will run SAI from day 1. so enable Multi acl for VOQ tests
+    FLAGS_enable_acl_table_group = true;
     HwLinkStateDependentTest::SetUp();
     ASSERT_EQ(getHwSwitch()->getSwitchType(), cfg::SwitchType::VOQ);
     ASSERT_TRUE(getHwSwitch()->getSwitchId().has_value());
