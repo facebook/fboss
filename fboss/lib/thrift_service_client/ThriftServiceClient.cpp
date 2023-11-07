@@ -14,6 +14,7 @@ DEFINE_string(wedge_agent_host, "::1", "Host running wedge_agent");
 DEFINE_int32(wedge_agent_port, 5909, "Port running wedge_agent");
 DEFINE_string(qsfp_service_host, "::1", "Host running qsfp_service");
 DEFINE_int32(qsfp_service_port, 5910, "Port running qsfp_service");
+DEFINE_int32(bgp_service_port, 6909, "Port running bgpd");
 
 namespace facebook::fboss::utils {
 

@@ -22,7 +22,7 @@ DECLARE_string(wedge_agent_host);
 DECLARE_int32(wedge_agent_port);
 DECLARE_string(qsfp_service_host);
 DECLARE_int32(qsfp_service_port);
-
+DECLARE_int32(bgp_service_port);
 namespace facebook::fboss::utils {
 
 auto constexpr kConnTimeout = 1000;
