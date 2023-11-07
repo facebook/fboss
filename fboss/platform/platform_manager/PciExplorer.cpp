@@ -2,6 +2,7 @@
 #include "fboss/platform/platform_manager/PciExplorer.h"
 
 #include <sys/ioctl.h>
+#include <cstdint>
 #include <filesystem>
 
 #include <folly/FileUtil.h>
@@ -132,23 +133,46 @@ std::vector<uint16_t> PciExplorer::createI2cAdapter(
       ".{}.{}",
       *i2cAdapterConfig.fpgaIpBlockConfig()->deviceName(),
       instanceId);
+  fs::directory_entry fpgaI2cDir{};
   for (const auto& dirEntry : fs::directory_iterator(pciDevice.sysfsPath())) {
     if (hasEnding(dirEntry.path().string(), expectedEnding)) {
-      for (const auto& childDirEntry :
-           fs::directory_iterator(dirEntry.path())) {
-        if (re2::RE2::FullMatch(
-                childDirEntry.path().filename().string(),
-                I2cExplorer().kI2cBusNameRegex)) {
-          return {I2cExplorer().extractBusNumFromPath(childDirEntry.path())};
-        }
-      }
+      fpgaI2cDir = dirEntry;
     }
   }
-  XLOG(ERR) << fmt::format(
-      "Could not find any I2C buses under {} for {}",
-      pciDevice.sysfsPath(),
-      *i2cAdapterConfig.fpgaIpBlockConfig()->deviceName());
-  return {};
+  if (fpgaI2cDir.path().empty()) {
+    throw std::runtime_error(fmt::format(
+        "Could not find FPGA I2C directory ending with {}", expectedEnding));
+  }
+  if (*i2cAdapterConfig.numberOfAdapters() > 1) {
+    // If more than 1 bus exists for this i2c master, then we have to use the
+    // channel symlinks to find the appropriate kernel assigned bus numbers.
+    std::vector<uint16_t> busNumbers;
+    for (auto channelNum = 0; channelNum < *i2cAdapterConfig.numberOfAdapters();
+         ++channelNum) {
+      auto channelFile =
+          fpgaI2cDir.path() / fmt::format("channel-{}", channelNum);
+      if (!fs::exists(channelFile) || !fs::is_symlink(channelFile)) {
+        throw std::runtime_error(fmt::format(
+            "{} does not exist or not a symlink.", channelFile.string()));
+      }
+      busNumbers.push_back(I2cExplorer().extractBusNumFromPath(
+          fs::read_symlink(channelFile).filename()));
+    }
+    return busNumbers;
+  } else {
+    // If the config does not specify bus count for the i2cAdapterConfig, or if
+    // it is specified as 1, we just look for the file named 'i2c-N'.
+    for (const auto& childDirEntry :
+         fs::directory_iterator(fpgaI2cDir.path())) {
+      if (re2::RE2::FullMatch(
+              childDirEntry.path().filename().string(),
+              I2cExplorer().kI2cBusNameRegex)) {
+        return {I2cExplorer().extractBusNumFromPath(childDirEntry.path())};
+      }
+    }
+    throw std::runtime_error(fmt::format(
+        "Could not find any I2C buses in {}", fpgaI2cDir.path().string()));
+  }
 }
 
 void PciExplorer::createSpiMaster(
