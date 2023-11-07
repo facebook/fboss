@@ -96,7 +96,7 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
       fabricReachabilityMismatchCount_(
           map,
           getCounterPrefix() + "fabric_reachability_mismatch"),
-      ireErrors_(map, getCounterPrefix() + vendor + ".ire.errors", SUM, RATE) {}
+      ireErrors_(map, getCounterPrefix() + vendor + "ire_errors", SUM, RATE) {}
 
 void HwSwitchFb303Stats::update(const HwSwitchDropStats& dropStats) {
   if (dropStats.globalDrops().has_value()) {

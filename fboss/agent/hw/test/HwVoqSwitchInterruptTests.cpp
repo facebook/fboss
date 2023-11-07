@@ -54,6 +54,7 @@ TEST_F(HwVoqSwitchInterruptTest, ireError) {
                            .value_or(0);
       XLOG(INFO) << " IRE Errors: " << ireErrors;
       EXPECT_EVENTUALLY_GT(ireErrors, 0);
+      EXPECT_EVENTUALLY_GT(getHwSwitch()->getSwitchStats()->getIreErrors(), 0);
     });
   };
   verifyAcrossWarmBoots([]() {}, verify);
