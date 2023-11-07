@@ -163,12 +163,12 @@ class AgentDirectoryUtil {
   std::string getPreStartShellScript() const;
 
  private:
-  std::string volatileStateDir_;
-  std::string persistentStateDir_;
-  std::string packageDirectory_;
-  std::string systemdDirectory_;
-  std::string configDirectory_;
-  std::string drainConfigDirectory_;
+  const std::string volatileStateDir_;
+  const std::string persistentStateDir_;
+  const std::string packageDirectory_;
+  const std::string systemdDirectory_;
+  const std::string configDirectory_;
+  const std::string drainConfigDirectory_;
 };
 
 } // namespace facebook::fboss

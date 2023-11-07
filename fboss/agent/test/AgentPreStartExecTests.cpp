@@ -61,7 +61,7 @@ class AgentPreStartExecTests : public ::testing::Test {
     std::string configDir = folly::to<std::string>(tmpDir_, "/coop/agent");
     std::string drainConfigDir =
         folly::to<std::string>(tmpDir_, "/coop/agent_drain");
-    util_ = AgentDirectoryUtil(
+    util_ = std::make_unique<AgentDirectoryUtil>(
         volatileDir,
         persistentDir,
         packageDirectory,
@@ -70,7 +70,7 @@ class AgentPreStartExecTests : public ::testing::Test {
         drainConfigDir);
     removeDirectories(tmpDir_);
     setupDirectories();
-    touchFile(util_.getAgentLiveConfig());
+    touchFile(util_->getAgentLiveConfig());
   }
 
   void TearDown() override {
@@ -94,7 +94,7 @@ class AgentPreStartExecTests : public ::testing::Test {
     MockAgentCommandExecutor executor;
     AgentPreStartExec exec;
     auto netwhoami = std::make_unique<MockAgentNetWhoAmI>();
-    MockAgentPreExecDrainer drainer(&util_);
+    MockAgentPreExecDrainer drainer(util_.get());
 
     ON_CALL(*netwhoami, isSai()).WillByDefault(Return(TestAttr::kSai));
     ON_CALL(*netwhoami, isBcmSaiPlatform())
@@ -111,23 +111,23 @@ class AgentPreStartExecTests : public ::testing::Test {
     ON_CALL(*netwhoami, hasBgpRoutingProtocol()).WillByDefault(Return(false));
     if (coldBoot) {
       // touch cold_boot_once_0
-      createDirectoryTree(util_.getWarmBootDir());
-      touchFile(util_.getColdBootOnceFile());
+      createDirectoryTree(util_->getWarmBootDir());
+      touchFile(util_->getColdBootOnceFile());
     }
     if (drain) {
       // touch undrained flag
-      createDirectoryTree(util_.getVolatileStateDir());
-      touchFile(util_.getUndrainedFlag());
+      createDirectoryTree(util_->getVolatileStateDir());
+      touchFile(util_->getUndrainedFlag());
     }
     if (fdsw) {
       // drain config needed for fdsw
-      touchFile(util_.getAgentDrainConfig());
+      touchFile(util_->getAgentDrainConfig());
     }
     if (!TestAttr::kCppRefactor) {
       if (TestAttr::kMultiSwitch) {
         EXPECT_CALL(
             executor,
-            runShellCommand(util_.getMultiSwitchPreStartScript(), true))
+            runShellCommand(util_->getMultiSwitchPreStartScript(), true))
             .Times(1);
       }
     } else {
@@ -168,7 +168,7 @@ class AgentPreStartExecTests : public ::testing::Test {
                 std::vector<std::string>{
                     "/usr/bin/systemctl",
                     "enable",
-                    util_.getSwAgentServicePath()},
+                    util_->getSwAgentServicePath()},
                 true));
         EXPECT_CALL(
             executor,
@@ -176,7 +176,7 @@ class AgentPreStartExecTests : public ::testing::Test {
                 std::vector<std::string>{
                     "/usr/bin/systemctl",
                     "enable",
-                    util_.getHwAgentServiceInstance(0)},
+                    util_->getHwAgentServiceInstance(0)},
                 true));
 
         EXPECT_CALL(
@@ -185,7 +185,7 @@ class AgentPreStartExecTests : public ::testing::Test {
                 std::vector<std::string>{
                     "/usr/bin/systemctl",
                     "enable",
-                    util_.getHwAgentServiceInstance(1)},
+                    util_->getHwAgentServiceInstance(1)},
                 true));
       }
       // update-buildinfo
@@ -195,7 +195,7 @@ class AgentPreStartExecTests : public ::testing::Test {
       if (TestAttr::kMultiSwitch) {
         EXPECT_CALL(
             executor,
-            runShellCommand(util_.getMultiSwitchPreStartScript(), true))
+            runShellCommand(util_->getMultiSwitchPreStartScript(), true))
             .Times(1);
       }
     }
@@ -204,17 +204,17 @@ class AgentPreStartExecTests : public ::testing::Test {
         &executor,
         &drainer,
         std::move(netwhoami),
-        util_,
+        *util_,
         std::make_unique<AgentConfig>(getConfig()),
         TestAttr::kCppRefactor);
 
     if (TestAttr::kCppRefactor) {
       auto verifySymLink = [&](const std::string& name,
                                const std::string& sdk) {
-        auto agentSymLink = util_.getPackageDirectory() + "/" + name;
+        auto agentSymLink = util_->getPackageDirectory() + "/" + name;
         auto actualTarget = std::filesystem::read_symlink(agentSymLink);
         auto expectedTarget =
-            util_.getPackageDirectory() + "/" + sdk + "/" + name;
+            util_->getPackageDirectory() + "/" + sdk + "/" + name;
         EXPECT_EQ(actualTarget.string(), expectedTarget);
       };
       verifySymLink(
@@ -226,23 +226,23 @@ class AgentPreStartExecTests : public ::testing::Test {
               : getAsicSdkVersion(getSdkVersion()));
 
       if (coldBoot) {
-        EXPECT_TRUE(checkFileExists(util_.getSwColdBootOnceFile()));
+        EXPECT_TRUE(checkFileExists(util_->getSwColdBootOnceFile()));
         auto cfg = getConfig();
         for (auto [id, info] :
              *(cfg.sw()->switchSettings()->switchIdToSwitchInfo())) {
           EXPECT_TRUE(checkFileExists(
-              util_.getHwColdBootOnceFile(info.switchIndex().value())));
+              util_->getHwColdBootOnceFile(info.switchIndex().value())));
         }
-        EXPECT_FALSE(checkFileExists(util_.getColdBootOnceFile()));
+        EXPECT_FALSE(checkFileExists(util_->getColdBootOnceFile()));
       }
-      auto drained = !checkFileExists(util_.getUndrainedFlag());
-      checkFileExists(util_.getStartupConfig());
+      auto drained = !checkFileExists(util_->getUndrainedFlag());
+      checkFileExists(util_->getStartupConfig());
       auto actualStartUpConfig =
-          std::filesystem::read_symlink(util_.getStartupConfig());
-      auto expectedTarget = util_.getConfigDirectory() + "/current";
+          std::filesystem::read_symlink(util_->getStartupConfig());
+      auto expectedTarget = util_->getConfigDirectory() + "/current";
 
       if (fdsw && drained) {
-        expectedTarget = util_.getDrainConfigDirectory() + "/current";
+        expectedTarget = util_->getDrainConfigDirectory() + "/current";
       }
       EXPECT_EQ(actualStartUpConfig.string(), expectedTarget);
     }
@@ -254,13 +254,13 @@ class AgentPreStartExecTests : public ::testing::Test {
     MockAgentCommandExecutor executor;
     AgentPreStartExec exec;
     auto netwhoami = std::make_unique<MockAgentNetWhoAmI>();
-    MockAgentPreExecDrainer drainer(&util_);
+    MockAgentPreExecDrainer drainer(util_.get());
     ON_CALL(*netwhoami, isFdsw()).WillByDefault(::testing::Return(true));
     if (removeLiveConfig) {
-      removeFile(util_.getAgentLiveConfig());
+      removeFile(util_->getAgentLiveConfig());
     }
     if (removeDrainConfig) {
-      removeFile(util_.getAgentLiveConfig());
+      removeFile(util_->getAgentLiveConfig());
     }
     if (removeLiveConfig || removeDrainConfig) {
       EXPECT_THROW(
@@ -268,7 +268,7 @@ class AgentPreStartExecTests : public ::testing::Test {
               &executor,
               &drainer,
               std::move(netwhoami),
-              util_,
+              *util_,
               std::make_unique<AgentConfig>(getConfig()),
               TestAttr::kCppRefactor),
           FbossError);
@@ -277,7 +277,7 @@ class AgentPreStartExecTests : public ::testing::Test {
           &executor,
           &drainer,
           std::move(netwhoami),
-          util_,
+          *util_,
           std::make_unique<AgentConfig>(getConfig()),
           TestAttr::kCppRefactor);
     }
@@ -343,27 +343,26 @@ class AgentPreStartExecTests : public ::testing::Test {
   }
 
   void setupDirectories() {
-    createDirectory(util_.getPackageDirectory());
+    createDirectory(util_->getPackageDirectory());
     if (TestAttr::kMultiSwitch) {
-      createDirectory(util_.getMultiSwitchScriptsDirectory());
-      touchFile(util_.getSwAgentServicePath());
-      touchFile(util_.getHwAgentServiceTemplatePath());
+      createDirectory(util_->getMultiSwitchScriptsDirectory());
+      touchFile(util_->getSwAgentServicePath());
+      touchFile(util_->getHwAgentServiceTemplatePath());
     }
-    createDirectory(util_.getSystemdDirectory());
-    createDirectory(util_.getConfigDirectory());
-    createDirectory(util_.getDrainConfigDirectory());
+    createDirectory(util_->getSystemdDirectory());
+    createDirectory(util_->getConfigDirectory());
+    createDirectory(util_->getDrainConfigDirectory());
     auto sdkVersion = getSdkVersion();
-    std::string binDir = util_.getPackageDirectory() + "/" +
+    std::string binDir = util_->getPackageDirectory() + "/" +
         ((TestAttr::kSai && TestAttr::kBrcm) ? getSaiSdkVersion(sdkVersion)
                                              : getAsicSdkVersion(sdkVersion));
     createDirectoryTree(binDir);
     touchFile(binDir + "/wedge_agent");
     touchFile(binDir + "/wedge_hwagent");
-    touchFile(util_.getPackageDirectory() + "/fboss_sw_agent");
+    touchFile(util_->getPackageDirectory() + "/fboss_sw_agent");
   }
 
-  AgentDirectoryUtil getAgentDirectoryUtil() {}
-  AgentDirectoryUtil util_;
+  std::unique_ptr<AgentDirectoryUtil> util_;
   std::string tmpDir_;
 };
 
