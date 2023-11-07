@@ -123,7 +123,14 @@ class AgentPreStartExecTests : public ::testing::Test {
       if (!TestAttr::kBrcm) {
         EXPECT_CALL(*netwhoami, isCiscoPlatform()).WillOnce(Return(true));
       }
-      EXPECT_CALL(executor, runCommand(::testing::_, ::testing::_)).Times(1);
+
+      std::string kmodsInstaller = (TestAttr::kBrcm)
+          ? "/usr/local/bin/fboss_bcm_kmods"
+          : "/usr/local/bin/fboss_leaba_kmods";
+      std::string kmodVersion = getAsicSdkVersion(getSdkVersion());
+      std::vector<std::string> installKmod{
+          kmodsInstaller, "install", "--sdk-upgrade", kmodVersion};
+      EXPECT_CALL(executor, runCommand(installKmod, true)).Times(1);
       EXPECT_CALL(*netwhoami, isBcmSaiPlatform())
           .WillOnce(Return(TestAttr::kSai && TestAttr::kBrcm));
       if (TestAttr::kMultiSwitch) {
@@ -133,12 +140,35 @@ class AgentPreStartExecTests : public ::testing::Test {
       }
       EXPECT_CALL(*netwhoami, isBcmVoqPlatform()).WillOnce(Return(false));
       if (TestAttr::kMultiSwitch) {
-        EXPECT_CALL(executor, runCommand(::testing::_, ::testing::_));
-        EXPECT_CALL(executor, runCommand(::testing::_, ::testing::_));
-        EXPECT_CALL(executor, runCommand(::testing::_, ::testing::_));
+        EXPECT_CALL(
+            executor,
+            runCommand(
+                std::vector<std::string>{
+                    "/usr/bin/systemctl",
+                    "enable",
+                    util_.getSwAgentServicePath()},
+                true));
+        EXPECT_CALL(
+            executor,
+            runCommand(
+                std::vector<std::string>{
+                    "/usr/bin/systemctl",
+                    "enable",
+                    util_.getHwAgentServiceInstance(0)},
+                true));
+
+        EXPECT_CALL(
+            executor,
+            runCommand(
+                std::vector<std::string>{
+                    "/usr/bin/systemctl",
+                    "enable",
+                    util_.getHwAgentServiceInstance(1)},
+                true));
       }
       // update-buildinfo
-      EXPECT_CALL(executor, runShellCommand(::testing::_, ::testing::_))
+      EXPECT_CALL(
+          executor, runShellCommand("/usr/local/bin/fboss-build-info", false))
           .Times(1);
       if (TestAttr::kMultiSwitch) {
         EXPECT_CALL(
