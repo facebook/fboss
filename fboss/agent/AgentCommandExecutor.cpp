@@ -24,4 +24,28 @@ void AgentCommandExecutor::runAndRemoveScript(
   return ::facebook::fboss::runAndRemoveScript(cmd, args);
 }
 
+void AgentCommandExecutor::enableService(
+    const std::string& serviceName,
+    bool throwOnError) {
+  runCommand({"/usr/bin/systemctl", "enable", serviceName}, throwOnError);
+}
+
+void AgentCommandExecutor::disableService(
+    const std::string& serviceName,
+    bool throwOnError) {
+  runCommand({"/usr/bin/systemctl", "disable", serviceName}, throwOnError);
+}
+
+void AgentCommandExecutor::startService(
+    const std::string& serviceName,
+    bool throwOnError) {
+  runCommand({"/usr/bin/systemctl", "start", serviceName}, throwOnError);
+}
+
+void AgentCommandExecutor::stopService(
+    const std::string& serviceName,
+    bool throwOnError) {
+  runCommand({"/usr/bin/systemctl", "stop", serviceName}, throwOnError);
+}
+
 } // namespace facebook::fboss

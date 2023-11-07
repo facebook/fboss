@@ -33,7 +33,7 @@ void AgentPreStartExec::run(
   if (cppWedgeAgentWrapper) {
     runAndRemoveScript(dirUtil.getPreStartShellScript());
     AgentPreStartConfig preStartConfig;
-    preStartConfig.run();
+    preStartConfig.run(executor);
   }
 
   if (config->getRunMode() != cfg::AgentRunMode::MULTI_SWITCH) {
@@ -41,10 +41,8 @@ void AgentPreStartExec::run(
         << "Agent run mode is not MULTI_SWITCH, skip MULTI_SWITCH pre-start execution";
     if (checkFileExists(dirUtil.getSwAgentServiceSymLink())) {
       XLOG(INFO) << "Stop and disable fboss_sw_agent service";
-      executor->runCommand(
-          {"/usr/bin/systemctl", "stop", "fboss_sw_agent"}, false);
-      executor->runCommand(
-          {"/usr/bin/systemctl", "disable", "fboss_sw_agent"}, false);
+      executor->stopService("fboss_sw_agent", false);
+      executor->disableService("fboss_sw_agent", false);
       executor->runCommand({"/usr/bin/pkill", "fboss_sw_agent"}, false);
     }
 
@@ -55,10 +53,9 @@ void AgentPreStartExec::run(
         auto& switchInfo = iter.second;
         auto unitName =
             fmt::format("fboss_hw_agent@{}.service", *switchInfo.switchIndex());
-        executor->runCommand({"/usr/bin/systemctl", "stop", unitName}, false);
+        executor->stopService(unitName, false);
       }
-      executor->runCommand(
-          {"/usr/bin/systemctl", "disable", "fboss_hw_agent@.service"}, false);
+      executor->disableService("fboss_hw_agent@.service", false);
       executor->runCommand({"/usr/bin/pkill", "wedge_hwagent"}, false);
     }
     return;
