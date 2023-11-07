@@ -184,6 +184,24 @@ class AgentPreStartExecTests : public ::testing::Test {
         util_,
         std::make_unique<AgentConfig>(getConfig()),
         TestAttr::kCppRefactor);
+
+    if (TestAttr::kCppRefactor) {
+      auto verifySymLink = [&](const std::string& name,
+                               const std::string& sdk) {
+        auto agentSymLink = util_.getPackageDirectory() + "/" + name;
+        auto actualTarget = std::filesystem::read_symlink(agentSymLink);
+        auto expectedTarget =
+            util_.getPackageDirectory() + "/" + sdk + "/" + name;
+        EXPECT_EQ(actualTarget.string(), expectedTarget);
+      };
+      verifySymLink(
+          "wedge_agent",
+          // sai + brcm has directories with sai sdk version
+          // non-sai + brcm and non-brcm has directories with asic sdk version
+          TestAttr::kSai && TestAttr::kBrcm
+              ? getSaiSdkVersion(getSdkVersion())
+              : getAsicSdkVersion(getSdkVersion()));
+    }
   }
 
  private:
