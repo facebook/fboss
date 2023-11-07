@@ -23,6 +23,7 @@ DEFINE_bool(
 namespace {
 facebook::fboss::PlatformInitFn kPlatformInitFn;
 static std::string kInputConfigFile;
+std::optional<facebook::fboss::cfg::StreamType> kStreamTypeOpt{std::nullopt};
 } // namespace
 
 namespace facebook::fboss {
@@ -48,7 +49,10 @@ void AgentEnsemble::setupEnsemble(
       AgentConfig::fromDefaultFile(), hwFeaturesDesired, kPlatformInitFn);
 
   // TODO: Handle multiple Asics
-  auto asic = getSw()->getHwAsicTable()->getHwAsics().cbegin()->second;
+  HwAsic* asic = getHwAsicTable()->getHwAsicIf(SwitchID(0));
+  if (kStreamTypeOpt.has_value()) {
+    asic->setDefaultStreamType(kStreamTypeOpt.value());
+  }
 
   utility::setPortToDefaultProfileIDMap(
       std::make_shared<MultiSwitchPortMap>(),
@@ -238,8 +242,11 @@ std::string AgentEnsemble::getInputConfigFile() {
   return kInputConfigFile;
 }
 
-void initEnsemble(PlatformInitFn initPlatform) {
+void initEnsemble(
+    PlatformInitFn initPlatform,
+    std::optional<cfg::StreamType> streamType) {
   kPlatformInitFn = std::move(initPlatform);
+  kStreamTypeOpt = streamType;
 }
 
 std::map<PortID, HwPortStats> AgentEnsemble::getLatestPortStats(

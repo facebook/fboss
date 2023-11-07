@@ -8,6 +8,8 @@ DECLARE_bool(json);
 
 namespace facebook::fboss {
 
-int benchmarksMain(PlatformInitFn initPlatform);
+int benchmarksMain(
+    PlatformInitFn initPlatform,
+    std::optional<facebook::fboss::cfg::StreamType> streamType = std::nullopt);
 
 } // namespace facebook::fboss

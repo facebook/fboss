@@ -6,8 +6,10 @@
 
 namespace facebook::fboss {
 
-int benchmarksMain(PlatformInitFn initPlatform) {
-  initEnsemble(initPlatform);
+int benchmarksMain(
+    PlatformInitFn initPlatform,
+    std::optional<facebook::fboss::cfg::StreamType> streamType) {
+  initEnsemble(initPlatform, streamType);
   return RUN_ALL_TESTS();
 }
 

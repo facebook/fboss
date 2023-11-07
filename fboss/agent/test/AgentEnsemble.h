@@ -185,7 +185,9 @@ class AgentEnsemble : public TestEnsembleIf {
   cfg::PortLoopbackMode mode_{cfg::PortLoopbackMode::MAC};
 };
 
-void initEnsemble(PlatformInitFn initPlatform);
+void initEnsemble(
+    PlatformInitFn initPlatform,
+    std::optional<cfg::StreamType> streamType = std::nullopt);
 
 std::unique_ptr<AgentEnsemble> createAgentEnsemble(
     AgentEnsembleSwitchConfigFn initialConfigFn,
