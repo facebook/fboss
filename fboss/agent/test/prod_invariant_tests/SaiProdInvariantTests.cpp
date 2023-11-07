@@ -4,6 +4,10 @@
 
 #include "fboss/agent/SetupThrift.h"
 
+#include <folly/logging/Init.h>
+
+FOLLY_INIT_LOGGING_CONFIG("DBG2; default:async=true");
+
 namespace facebook::fboss {
 void verifyHwSwitchHandler() {
   std::shared_ptr<folly::ScopedEventBaseThread> evbThread;
