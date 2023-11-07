@@ -328,6 +328,8 @@ class TestRunner(abc.ABC):
             return []
 
         known_bad_tests_file = self._get_known_bad_tests_file()
+        if not os.path.exists(known_bad_tests_file):
+            return []
 
         with open(known_bad_tests_file) as f:
             known_bad_test_json = json.load(f)
@@ -345,6 +347,8 @@ class TestRunner(abc.ABC):
             return []
 
         unsupported_tests_file = self._get_unsupported_tests_file()
+        if not os.path.exists(unsupported_tests_file):
+            return []
 
         with open(unsupported_tests_file) as f:
             unsupported_test_json = json.load(f)
