@@ -59,6 +59,56 @@ std::string correctionType(sai_switch_correction_type_t type) {
   }
   return "correction-type-unknown";
 }
+
+std::string errorType(sai_switch_error_type_t type) {
+  switch (type) {
+#if defined BRCM_SAI_SDK_GTE_11_0
+    case SAI_SWITCH_ERROR_TYPE_IRE_ECC:
+      return "SAI_SWITCH_ERROR_TYPE_IRE_ECC";
+    case SAI_SWITCH_ERROR_TYPE_IRE_RCY_INTERFACE:
+      return "SAI_SWITCH_ERROR_TYPE_IRE_RCY_INTERFACE";
+    case SAI_SWITCH_ERROR_TYPE_IRE_INTERNAL_INTERFACE:
+      return "SAI_SWITCH_ERROR_TYPE_IRE_INTERNAL_INTERFACE";
+    case SAI_SWITCH_ERROR_TYPE_IRE_NIF:
+      return "SAI_SWITCH_ERROR_TYPE_IRE_NIF";
+    case SAI_SWITCH_ERROR_TYPE_IRE_UNEXPECTED_SOP:
+      return "SAI_SWITCH_ERROR_TYPE_IRE_UNEXPECTED_SOP";
+    case SAI_SWITCH_ERROR_TYPE_IRE_UNEXPECTED_MOP:
+      return "SAI_SWITCH_ERROR_TYPE_IRE_UNEXPECTED_MOP";
+    case SAI_SWITCH_ERROR_TYPE_IRE_NEGATIVE_DELTA:
+      return "SAI_SWITCH_ERROR_TYPE_IRE_NEGATIVE_DELTA";
+    case SAI_SWITCH_ERROR_TYPE_IRE_INCOMPLETE_WORD:
+      return "SAI_SWITCH_ERROR_TYPE_IRE_INCOMPLETE_WORD";
+    case SAI_SWITCH_ERROR_TYPE_IRE_BAD_REASSEMBLY_CONTEXT:
+      return "SAI_SWITCH_ERROR_TYPE_IRE_BAD_REASSEMBLY_CONTEXT";
+    case SAI_SWITCH_ERROR_TYPE_IRE_INVALID_REASSEMBLY_CONTEXT:
+      return "SAI_SWITCH_ERROR_TYPE_IRE_INVALID_REASSEMBLY_CONTEXT";
+    case SAI_SWITCH_ERROR_TYPE_IRE_TDM_DOC_NAME_0:
+      return "SAI_SWITCH_ERROR_TYPE_IRE_TDM_DOC_NAME_0";
+    case SAI_SWITCH_ERROR_TYPE_IRE_TDM_DOC_NAME_1:
+      return "SAI_SWITCH_ERROR_TYPE_IRE_TDM_DOC_NAME_1";
+    case SAI_SWITCH_ERROR_TYPE_IRE_TDM_DOC_NAME_2:
+      return "SAI_SWITCH_ERROR_TYPE_IRE_TDM_DOC_NAME_2";
+    case SAI_SWITCH_ERROR_TYPE_IRE_TDM_DOC_NAME_3:
+      return "SAI_SWITCH_ERROR_TYPE_IRE_TDM_DOC_NAME_3";
+    case SAI_SWITCH_ERROR_TYPE_IRE_REASSEMBLY_CONTEXT:
+      return "SAI_SWITCH_ERROR_TYPE_IRE_REASSEMBLY_CONTEXT";
+    case SAI_SWITCH_ERROR_TYPE_IRE_BYTE_NUM:
+      return "SAI_SWITCH_ERROR_TYPE_IRE_BYTE_NUM";
+    case SAI_SWITCH_ERROR_TYPE_IRE_TIMEOUT:
+      return "SAI_SWITCH_ERROR_TYPE_IRE_TIMEOUT";
+    case SAI_SWITCH_ERROR_TYPE_IRE_REASSEMBLY:
+      return "SAI_SWITCH_ERROR_TYPE_IRE_REASSEMBLY";
+    case SAI_SWITCH_ERROR_TYPE_IRE_FIFO:
+      return "SAI_SWITCH_ERROR_TYPE_IRE_FIFO";
+    case SAI_SWITCH_ERROR_TYPE_IRE_DATA_PATH_CRC:
+      return "SAI_SWITCH_ERROR_TYPE_IRE_DATA_PATH_CRC";
+#endif
+    default:
+      break;
+  }
+  return folly::sformat("Uknown error type: {} ", static_cast<int>(type));
+}
 } // namespace
 
 namespace facebook::fboss {
@@ -79,6 +129,7 @@ void SaiSwitch::switchEventCallback(
     correctible =
         (eventInfo->correction_type !=
          SAI_SWITCH_CORRECTION_TYPE_FAIL_TO_CORRECT);
+    sstream << ", error type= " << errorType(eventInfo->error_type);
   }
   sstream << ")";
   XLOG(WARNING) << sstream.str();
