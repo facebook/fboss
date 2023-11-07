@@ -131,6 +131,10 @@ int64_t HwSwitchFb303Stats::getPacketIntegrityDrops() const {
   return getCumulativeValue(packetIntegrityDrops_);
 }
 
+int64_t HwSwitchFb303Stats::getIreErrors() const {
+  return getCumulativeValue(ireErrors_);
+}
+
 HwAsicErrors HwSwitchFb303Stats::getHwAsicErrors() const {
   HwAsicErrors asicErrors;
   asicErrors.parityErrors() = getCumulativeValue(parityErrors_);
