@@ -207,4 +207,30 @@ led::LedColor LedManager::getCurrentLedColor(int32_t portNum) const {
   return ledColor;
 }
 
+/*
+ * getLedState
+ *
+ * Returns the LED state information for a given SW port. It reads from local
+ * LED cache and throws if the cache is not updated yet from FSDB. The function
+ * expects to be called under Led Manager event base.
+ */
+led::LedState LedManager::getLedState(const std::string& swPortName) const {
+  led::LedState ledState;
+
+  auto portId = platformMapping_->getPortID(swPortName);
+  if (portDisplayMap_.find(portId) == portDisplayMap_.end()) {
+    // If the PortInfo has not been updated from FSDB yet
+    throw FbossError(folly::sformat(
+        "getLedState: Port info not available for {:s} yet", swPortName));
+  }
+
+  ledState.swPortId() = portId;
+  ledState.swPortName() = swPortName;
+  ledState.currentLedColor() = portDisplayMap_.at(portId).currentLedColor;
+  ledState.forcedOnState() = portDisplayMap_.at(portId).forcedOn;
+  ledState.forcedOffState() = portDisplayMap_.at(portId).forcedOff;
+
+  return ledState;
+}
+
 } // namespace facebook::fboss
