@@ -22,6 +22,12 @@ class LedServiceHandler : public facebook::fboss::led_service::LedServiceSvIf {
     service_->setExternalLedState(portNum, ledState);
   }
 
+  void getLedState(
+      led::LedState& returnState,
+      std::unique_ptr<std::string> swPortName) override {
+    returnState = service_->getLedState(*swPortName);
+  }
+
  private:
   // Internal pointer for LedService
   std::unique_ptr<LedService> service_{nullptr};

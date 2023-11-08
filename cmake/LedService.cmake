@@ -22,6 +22,7 @@ add_fbthrift_cpp_library(
   DEPENDS
     fboss_cpp2
     ctrl_cpp2
+    led_structs_types_cpp2
 )
 
 add_library(led_config

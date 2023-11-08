@@ -17,3 +17,11 @@ enum LedColor {
   GREEN = 0x9,
   YELLOW = 0xA,
 }
+
+struct LedState {
+  1: i16 swPortId;
+  2: string swPortName;
+  3: LedColor currentLedColor;
+  4: bool forcedOnState;
+  5: bool forcedOffState;
+}
