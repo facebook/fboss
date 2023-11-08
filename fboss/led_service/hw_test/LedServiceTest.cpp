@@ -65,6 +65,8 @@ TEST_F(LedServiceTest, checkLedColorChange) {
     auto swPorts = platformMap->getSwPortListFromTransceiverId(tcvr);
     CHECK_GT(swPorts.size(), 0);
     auto swPort = swPorts[0];
+    auto swPortName = platformMap->getPortNameByPortId(swPort);
+    CHECK(swPortName.has_value());
 
     // The setExternalLedState will throw because first update from FSDB has not
     // happened to the LedManager
@@ -92,20 +94,29 @@ TEST_F(LedServiceTest, checkLedColorChange) {
 
     // Verify link Down, the expected LED color is OFF
     auto offLedColor = ledManager->getCurrentLedColor(swPort);
+    auto ledState = ledManager->getLedState(swPortName.value());
     EXPECT_EQ(offLedColor, led::LedColor::OFF);
+    EXPECT_EQ(ledState.currentLedColor().value(), led::LedColor::OFF);
+    EXPECT_TRUE(ledState.forcedOffState().value());
 
     // Verify link Up, the expected LED color is either Blue or Green
     ledManager->setExternalLedState(
         swPort, PortLedExternalState::EXTERNAL_FORCE_ON);
     auto onLedColorCurrent = ledManager->getCurrentLedColor(swPort);
     auto onLedColorExpected = ledManager->onColor();
+    ledState = ledManager->getLedState(swPortName.value());
     EXPECT_EQ(onLedColorCurrent, onLedColorExpected);
+    EXPECT_EQ(ledState.currentLedColor().value(), onLedColorExpected);
+    EXPECT_TRUE(ledState.forcedOnState().value());
 
     // Put it back to Off state and check again
     ledManager->setExternalLedState(
         swPort, PortLedExternalState::EXTERNAL_FORCE_OFF);
     offLedColor = ledManager->getCurrentLedColor(swPort);
+    ledState = ledManager->getLedState(swPortName.value());
     EXPECT_EQ(offLedColor, led::LedColor::OFF);
+    EXPECT_EQ(ledState.currentLedColor().value(), led::LedColor::OFF);
+    EXPECT_TRUE(ledState.forcedOffState().value());
   }
 }
 
