@@ -382,21 +382,52 @@ bool SaiSwitch::transactionsSupported() const {
   return true;
 }
 
-void SaiSwitch::rollback(
-    const std::shared_ptr<SwitchState>& knownGoodState) noexcept {
+void SaiSwitch::rollback(const StateDelta& delta) noexcept {
+  const auto& knownGoodState = delta.oldState();
   auto curBootType = getBootType();
   // Attempt rollback
   // Detailed design is in the sai_switch_transactions wiki, but at a high
-  // level the steps of the rollback are 1) Clear out our internal data
-  // structures (stores, managers) in SW, while throttling writes to HW 2)
-  // Reinit managers and SaiStores. SaiStore* will now have all the HW state
-  // 3) Replay StateDelta(emptySwitchState, delta.oldState()) to get us to
-  // the pre transaction state 4) Clear out any remaining handles in
-  // SaiStore to flush state left in HW due to the failed transaction Steps
-  // 2-4 are exactly the same as what we do for warmboot and piggy back
-  // heavily on it for both code reuse and correctness
+  // level the steps of the rollback are 0) Remove any added entries in the new
+  // state (currently routes) 1) Clear out our internal data structures (stores,
+  // managers) in SW, while throttling writes to HW 2) Reinit managers and
+  // SaiStores. SaiStore* will now have all the HW state 3) Replay
+  // StateDelta(emptySwitchState, delta.oldState()) to get us to the pre
+  // transaction state 4) Clear out any remaining handles in SaiStore to flush
+  // state left in HW due to the failed transaction Steps 2-4 are exactly the
+  // same as what we do for warmboot and piggy back heavily on it for both code
+  // reuse and correctness
   try {
     CoarseGrainedLockPolicy lockPolicy(saiSwitchMutex_);
+
+    // Remove any potentially added routes in the new State.
+    // Imagine the scenario where a device supports 4 route entries in the hw.
+    // Old state has route {A, B}, and new state has route {B, C, D, E, F}.
+    // When new state is being applied, say route A is deleted and route C, D, E
+    // is added, addition of route F would trigger TABLE_FULL error and sai
+    // switch starts rollback.
+    // Note that routes {B, C, D, E} are still in ASIC, and at step 3 we tried
+    // to reapply old state, which leads to the addition of route A and causing
+    // rollback failure. Routes C, D and E are not deleted until step 4 of
+    // removing unclaimed entries.
+    // To avoid such rollback failure, remove added routes in new state as step
+    // 0. This would ensure enough room in the hardware for replaying old state.
+    for (const auto& routeDelta : delta.getFibsDelta()) {
+      auto routerID = routeDelta.getOld() ? routeDelta.getOld()->getID()
+                                          : routeDelta.getNew()->getID();
+      processAddedDelta(
+          routeDelta.getFibDelta<folly::IPAddressV4>(),
+          managerTable_->routeManager(),
+          lockPolicy,
+          &SaiRouteManager::removeRouteForRollback<folly::IPAddressV4>,
+          routerID);
+      processAddedDelta(
+          routeDelta.getFibDelta<folly::IPAddressV6>(),
+          managerTable_->routeManager(),
+          lockPolicy,
+          &SaiRouteManager::removeRouteForRollback<folly::IPAddressV6>,
+          routerID);
+    }
+
     auto hwSwitchJson = toFollyDynamicLocked(lockPolicy.lock());
     {
       HwWriteBehaviorRAII writeBehavior{HwWriteBehavior::SKIP};
@@ -3124,10 +3155,9 @@ phy::FecMode SaiSwitch::getPortFECMode(PortID portId) const {
   return managerTable_->portManager().getFECMode(portId);
 }
 
-void SaiSwitch::rollbackInTest(
-    const std::shared_ptr<SwitchState>& knownGoodState) {
-  rollback(knownGoodState);
-  setProgrammedState(knownGoodState);
+void SaiSwitch::rollbackInTest(const StateDelta& delta) {
+  rollback(delta);
+  setProgrammedState(delta.oldState());
 }
 
 template <typename LockPolicyT>

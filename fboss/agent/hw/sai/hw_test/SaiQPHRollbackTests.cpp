@@ -37,7 +37,7 @@ TEST_F(SaiQPHRollbackTest, rollback) {
   }
   auto verify = [this] {
     auto origState = getProgrammedState();
-    rollback(origState);
+    rollback(StateDelta(origState, origState));
     EXPECT_EQ(origState, getProgrammedState());
   };
   verifyAcrossWarmBoots([]() {}, verify);

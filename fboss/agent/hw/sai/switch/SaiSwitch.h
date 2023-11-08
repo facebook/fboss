@@ -211,7 +211,7 @@ class SaiSwitch : public HwSwitch {
   std::map<PortID, FabricEndpoint> getFabricReachability() const override;
   std::vector<PortID> getSwitchReachability(SwitchID switchId) const override;
 
-  void rollbackInTest(const std::shared_ptr<SwitchState>& knownGoodState);
+  void rollbackInTest(const StateDelta& delta);
 
  private:
   void gracefulExitImpl() override;
@@ -220,8 +220,7 @@ class SaiSwitch : public HwSwitch {
   std::shared_ptr<SwitchState> stateChangedImplLocked(
       const StateDelta& delta,
       const LockPolicyT& lk);
-  void rollback(
-      const std::shared_ptr<SwitchState>& knownGoodState) noexcept override;
+  void rollback(const StateDelta& delta) noexcept override;
   std::string listObjectsLocked(
       const std::vector<sai_object_type_t>& objects,
       bool cached,

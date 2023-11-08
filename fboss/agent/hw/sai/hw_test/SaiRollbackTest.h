@@ -26,7 +26,7 @@ class SaiRollbackTest : public HwLinkStateDependentTest {
   HwSwitchEnsemble::Features featuresDesired() const override {
     return HwProdInvariantHelper::featuresDesired();
   }
-  void rollback(const std::shared_ptr<SwitchState>& state);
+  void rollback(const StateDelta& delta);
 
  private:
   std::unique_ptr<HwProdInvariantHelper> prodInvariants_;

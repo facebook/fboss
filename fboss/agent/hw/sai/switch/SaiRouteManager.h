@@ -115,6 +115,11 @@ class SaiRouteManager {
       const std::shared_ptr<Route<AddrT>>& swRoute,
       RouterID routerId);
 
+  template <typename AddrT>
+  void removeRouteForRollback(
+      const std::shared_ptr<Route<AddrT>>& swRoute,
+      RouterID routerId);
+
   SaiRouteHandle* getRouteHandle(const SaiRouteTraits::RouteEntry& entry);
   const SaiRouteHandle* getRouteHandle(
       const SaiRouteTraits::RouteEntry& entry) const;

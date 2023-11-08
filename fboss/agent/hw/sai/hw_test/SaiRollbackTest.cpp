@@ -32,9 +32,9 @@ void SaiRollbackTest::SetUp() {
   prodInvariants_->setupEcmp();
 }
 
-void SaiRollbackTest::rollback(const std::shared_ptr<SwitchState>& state) {
-  static_cast<SaiSwitch*>(getHwSwitch())->rollbackInTest(state);
-  getHwSwitchEnsemble()->programmedState_ = state;
+void SaiRollbackTest::rollback(const StateDelta& delta) {
+  static_cast<SaiSwitch*>(getHwSwitch())->rollbackInTest(delta);
+  getHwSwitchEnsemble()->programmedState_ = delta.oldState();
   getHwSwitchEnsemble()->programmedState_->publish();
 }
 } // namespace facebook::fboss

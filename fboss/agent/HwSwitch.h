@@ -165,8 +165,7 @@ class HwSwitch {
       const StateDelta& delta,
       const HwWriteBehaviorRAII& behavior =
           HwWriteBehaviorRAII(HwWriteBehavior::WRITE));
-  virtual void rollback(
-      const std::shared_ptr<SwitchState>& knownGoodState) noexcept;
+  virtual void rollback(const StateDelta& delta) noexcept;
 
   virtual bool transactionsSupported() const {
     return false;

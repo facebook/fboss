@@ -128,7 +128,7 @@ std::shared_ptr<SwitchState> HwSwitch::stateChangedTransaction(
     } catch (const FbossError& e) {
       XLOG(WARNING) << " Transaction failed with error : " << *e.message()
                     << " attempting rollback";
-      this->rollback(delta.oldState());
+      this->rollback(delta);
       setProgrammedState(delta.oldState());
     }
     return getProgrammedState();
@@ -141,8 +141,7 @@ std::shared_ptr<SwitchState> HwSwitch::stateChangedTransaction(
   return delta.newState();
 }
 
-void HwSwitch::rollback(
-    const std::shared_ptr<SwitchState>& /*knownGoodState*/) noexcept {
+void HwSwitch::rollback(const StateDelta& /*delta*/) noexcept {
   XLOG(FATAL)
       << "Transactions is supported but rollback is implemented on this switch";
 }
@@ -187,7 +186,7 @@ fsdb::OperDelta HwSwitch::stateChangedTransaction(
   } catch (const FbossError& e) {
     XLOG(WARNING) << " Transaction failed with error : " << *e.message()
                   << " attempting rollback";
-    this->rollback(goodKnownState);
+    this->rollback(StateDelta(getProgrammedState(), delta));
     setProgrammedState(goodKnownState);
     return delta;
   }

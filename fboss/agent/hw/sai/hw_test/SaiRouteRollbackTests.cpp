@@ -151,14 +151,14 @@ class SaiRouteRollbackTest : public SaiRollbackTest {
         programNonEcmp();
         // Rollback
         if (rollbackEcmp && rollbackNonEcmp) {
-          rollback(noRouteState);
+          rollback(StateDelta(noRouteState, getProgrammedState()));
           routesRemoved = allNetworks();
         } else if (rollbackEcmp) {
-          rollback(nonEcmpRoutesOnlyState);
+          rollback(StateDelta(nonEcmpRoutesOnlyState, getProgrammedState()));
           routesRemoved = ecmpNetworks();
           routesPresent = nonEcmpNetworks();
         } else if (rollbackNonEcmp) {
-          rollback(ecmpRoutesOnlyState);
+          rollback(StateDelta(ecmpRoutesOnlyState, getProgrammedState()));
           routesRemoved = nonEcmpNetworks();
           routesPresent = ecmpNetworks();
         }

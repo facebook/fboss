@@ -358,6 +358,15 @@ void SaiRouteManager::removeRoute(
   }
 }
 
+template <typename AddrT>
+void SaiRouteManager::removeRouteForRollback(
+    const std::shared_ptr<Route<AddrT>>& swRoute,
+    RouterID routerId) {
+  XLOG(DBG3) << "Remove route for rollback: " << swRoute->str();
+  SaiRouteTraits::RouteEntry entry = routeEntryFromSwRoute(routerId, swRoute);
+  handles_.erase(entry);
+}
+
 SaiRouteHandle* SaiRouteManager::getRouteHandle(
     const SaiRouteTraits::RouteEntry& entry) {
   return getRouteHandleImpl(entry);
@@ -581,6 +590,13 @@ template void SaiRouteManager::removeRoute<folly::IPAddressV6>(
     const std::shared_ptr<Route<folly::IPAddressV6>>& swEntry,
     RouterID routerId);
 template void SaiRouteManager::removeRoute<folly::IPAddressV4>(
+    const std::shared_ptr<Route<folly::IPAddressV4>>& swEntry,
+    RouterID routerId);
+
+template void SaiRouteManager::removeRouteForRollback<folly::IPAddressV6>(
+    const std::shared_ptr<Route<folly::IPAddressV6>>& swEntry,
+    RouterID routerId);
+template void SaiRouteManager::removeRouteForRollback<folly::IPAddressV4>(
     const std::shared_ptr<Route<folly::IPAddressV4>>& swEntry,
     RouterID routerId);
 
