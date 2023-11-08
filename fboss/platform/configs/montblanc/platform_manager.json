@@ -1989,7 +1989,8 @@
     "/run/devmap/eeproms/PSU2_EEPROM": "/PSU_SLOT@1/[IDPROM]",
     "/run/devmap/eeproms/RUNBMC_EEPROM": "/SCM_SLOT@0/RUNBMC_SLOT@0/[IDPROM]",
     "/run/devmap/eeproms/SMB_EEPROM": "/SMB_SLOT@0/[IDPROM]",
-    "/run/devmap/eeproms/FCB_EEPROM": "/FCB_SLOT@0/[IDPROM]"
+    "/run/devmap/eeproms/FCB_EEPROM": "/FCB_SLOT@0/[IDPROM]",
+    "/run/devmap/eeproms/SCM_EEPROM": "/SCM_SLOT@0/[SCM_EEPROM]"
   },
   "bspKmodsRpmName": "fboss_bsp_kmods",
   "bspKmodsRpmVersion": "0.7.0-2",
