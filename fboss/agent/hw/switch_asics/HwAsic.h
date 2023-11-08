@@ -167,7 +167,6 @@ class HwAsic {
   enum class AsicMode {
     ASIC_MODE_SIM,
     ASIC_MODE_HW,
-    ASIC_MODE_HW_AI,
   };
 
   enum class AsicVendor {

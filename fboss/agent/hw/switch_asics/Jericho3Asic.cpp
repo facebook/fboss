@@ -273,11 +273,8 @@ Jericho3Asic::desiredLoopbackModes() const {
 
 HwAsic::AsicMode Jericho3Asic::getAsicMode() const {
   static const char* kSimPath = std::getenv("BCM_SIM_PATH");
-  static const char* kAiMode = std::getenv("J3_AI");
   if (kSimPath) {
     return AsicMode::ASIC_MODE_SIM;
-  } else if (kAiMode) {
-    return AsicMode::ASIC_MODE_HW_AI;
   }
   return AsicMode::ASIC_MODE_HW;
 }
