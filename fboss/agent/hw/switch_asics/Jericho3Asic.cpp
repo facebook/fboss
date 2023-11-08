@@ -7,13 +7,6 @@ namespace facebook::fboss {
 
 bool Jericho3Asic::isSupported(Feature feature) const {
   switch (feature) {
-    case HwAsic::Feature::SPAN:
-    case HwAsic::Feature::ERSPANv4:
-    case HwAsic::Feature::SFLOWv4:
-    case HwAsic::Feature::MPLS:
-    case HwAsic::Feature::MPLS_ECMP:
-    case HwAsic::Feature::ERSPANv6:
-    case HwAsic::Feature::SFLOWv6:
     case HwAsic::Feature::ECN:
     case HwAsic::Feature::SCHEDULER_PPS:
     case HwAsic::Feature::NEXTHOP_TTL_DECREMENT_DISABLE:
@@ -126,7 +119,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::RX_FREQUENCY_PPM:
     case HwAsic::Feature::ECMP_MEMBER_WIDTH_INTROSPECTION:
     case HwAsic::Feature::SAI_FIRMWARE_PATH:
-    // On Jericho2 ASIC we don't create any vlans but rather
+    // On Jericho3 ASIC we don't create any vlans but rather
     // associate RIFs directly with ports. Hence no bridge port
     // is created (or supported for now).
     case HwAsic::Feature::BRIDGE_PORT_8021Q:
@@ -163,6 +156,13 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ECMP_DLB_OFFSET:
     case HwAsic::Feature::SAI_FEC_CORRECTED_BITS:
     case HwAsic::Feature::SAI_FEC_CODEWORDS_STATS:
+    case HwAsic::Feature::SPAN:
+    case HwAsic::Feature::ERSPANv4:
+    case HwAsic::Feature::SFLOWv4:
+    case HwAsic::Feature::MPLS:
+    case HwAsic::Feature::MPLS_ECMP:
+    case HwAsic::Feature::ERSPANv6:
+    case HwAsic::Feature::SFLOWv6:
       return false;
   }
   return false;
