@@ -193,6 +193,7 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
   target_link_libraries(sai_stats_collection_speed-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
     -Wl,--whole-archive
     hw_stats_collection_speed
+    sai_agent_benchmarks_main
     ${SAI_IMPL_ARG}
     -Wl,--no-whole-archive
   )
