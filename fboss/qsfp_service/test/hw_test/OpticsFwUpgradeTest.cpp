@@ -2,8 +2,11 @@
 
 #include <gtest/gtest.h>
 
+#include <folly/experimental/TestUtil.h>
 #include <folly/logging/xlog.h>
 #include "common/time/Time.h"
+#include "fboss/lib/CommonUtils.h"
+#include "fboss/qsfp_service/QsfpConfig.h"
 #include "fboss/qsfp_service/test/hw_test/HwPortUtils.h"
 #include "fboss/qsfp_service/test/hw_test/HwTest.h"
 
@@ -165,5 +168,110 @@ TEST_F(OpticsFwUpgradeTest, noUpgradeForSameVersion) {
         << "No upgrades expected on port down";
   };
   verifyAcrossWarmBoots([]() {}, verify);
+}
+
+TEST_F(OpticsFwUpgradeTest, upgradeOnLinkDown) {
+  /*
+   * This test verifies that a link down event successfully triggers and
+   * completes the firmware upgrade
+   * ------------------------------------------------------------------------
+   * Coldboot
+   * - Create a new QSFP config with qsfpConfig.transceiverFirmwareVersions =
+   * qsfpConfig.qsfpTestConfig.firmwareForUpgradeTest
+   * - Load the new config. This ensures that the current operational firmware
+   * is different than the one in the config, making this optic eligible for
+   * firmware upgrade
+   * - Set link status to up, verify upgrade DOES NOT happen
+   * - Set link status to down, verify upgrade happens
+   * ------------------------------------------------------------------------
+   * Warmboot with the original config (i.e.
+   * qsfpConfig.transceiverFirmwareVersions again changes)
+   * - Verify upgrade did not happen during warm boot
+   * - Set link status to up, verify upgrade DOES NOT happen
+   * - Set link status to down, verify upgrade happens
+   */
+
+  long initDoneTimestampSec = facebook::WallClockUtil::NowInSecFast();
+  std::vector<int32_t> tcvrsToTest;
+  auto allTransceivers = utility::legacyTransceiverIds(
+      utility::getCabledPortTranceivers(getHwQsfpEnsemble()));
+  auto& qsfpTestCfg = *getHwQsfpEnsemble()
+                           ->getWedgeManager()
+                           ->getQsfpConfig()
+                           ->thrift.qsfpTestConfig();
+
+  // Gather all transceivers that we need to include as part of this test
+  // The criteria is that the qsfp test config defines a firmware version for
+  // the transceiver part number
+  for (auto tcvrID : allTransceivers) {
+    auto tcvrInfo = getHwQsfpEnsemble()->getWedgeManager()->getTransceiverInfo(
+        TransceiverID(tcvrID));
+    auto& vendorPN = *tcvrInfo.tcvrState()->vendor().ensure().partNumber();
+    if (qsfpTestCfg.firmwareForUpgradeTest()->versionsMap()->find(vendorPN) !=
+        qsfpTestCfg.firmwareForUpgradeTest()->versionsMap()->end()) {
+      tcvrsToTest.push_back(tcvrID);
+    }
+  }
+
+  // Setup function is only called for cold boot iteration of the test
+  // The setup below will create a new qsfp config with the different firmware
+  // version and then load the new config
+  auto setup = [&]() {
+    // During cold boot setup, update the firmware versions in the config
+    auto qsfpCfg =
+        getHwQsfpEnsemble()->getWedgeManager()->getQsfpConfig()->thrift;
+    qsfpCfg.transceiverFirmwareVersions() =
+        *qsfpCfg.qsfpTestConfig()->firmwareForUpgradeTest();
+    std::string newCfgStr =
+        apache::thrift::SimpleJSONSerializer::serialize<std::string>(qsfpCfg);
+    auto newQsfpCfg = QsfpConfig::fromRawConfig(newCfgStr);
+    folly::test::TemporaryDirectory tmpDir = folly::test::TemporaryDirectory();
+    std::string newCfgPath =
+        tmpDir.path().string() + "/optics_upgrade_test_config";
+    newQsfpCfg->dumpConfig(newCfgPath);
+    FLAGS_qsfp_config = newCfgPath;
+    getHwQsfpEnsemble()->getWedgeManager()->loadConfig();
+  };
+
+  // Verify function is called for both cold boot and warm boot iterations of
+  // the test
+  auto verify = [&, tcvrsToTest]() {
+    if (didWarmBoot()) {
+      CHECK(verifyUpgrade(
+          false /* upgradeExpected */,
+          0 /* upgradeSinceTsSec */,
+          {} /* tcvrs */))
+          << "No upgrades expected during warm boot";
+      // Cold boot might do an upgrade depending on what the firmware
+      // was left on the transceiver at the end of the last test
+    } else {
+      CHECK(verifyUpgrade(
+          false /* upgradeExpected */,
+          initDoneTimestampSec /* upgradeSinceTsSec */,
+          {} /* tcvrs */))
+          << "No upgrades expected during cold boot";
+      // Cold boot might do an upgrade depending on what the firmware
+      // was left on the transceiver at the end of the last test
+    }
+    // Force link up
+    setPortStatus(true);
+    CHECK(verifyUpgrade(
+        false /* upgradeExpected */,
+        initDoneTimestampSec /* upgradeSinceTsSec */,
+        {} /* tcvrs */))
+        << "No upgrades expected on port up";
+    // Force link down
+    setPortStatus(false);
+    WITH_RETRIES_N_TIMED(
+        8 /* retries */, std::chrono::milliseconds(1000) /* msBetweenRetry */, {
+          getHwQsfpEnsemble()->getWedgeManager()->refreshStateMachines();
+          EXPECT_EVENTUALLY_TRUE(verifyUpgrade(
+              true /* upgradeExpected */,
+              initDoneTimestampSec /* upgradeSinceTsSec */,
+              tcvrsToTest /* tcvrs */));
+        });
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
 }
 } // namespace facebook::fboss
