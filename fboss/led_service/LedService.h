@@ -35,7 +35,12 @@ class LedService {
   }
 
   void setExternalLedState(int32_t portNum, PortLedExternalState ledState) {
-    pLedManager_->setExternalLedState(portNum, ledState);
+    auto evb = pLedManager_->getEventBase();
+    if (!evb) {
+      throw FbossError("Event base not available for Led Manager");
+    }
+    folly::via(evb).thenValue(
+        [=](auto&&) { pLedManager_->setExternalLedState(portNum, ledState); });
   }
 
   led::LedState getLedState(const std::string& swPortName) {
