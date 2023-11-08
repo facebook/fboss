@@ -171,6 +171,28 @@ bool isIreErrorType(sai_switch_error_type_t type) {
   }
   return false;
 }
+bool isItppError(sai_switch_error_type_t type) {
+  switch (type) {
+#if defined BRCM_SAI_SDK_GTE_11_0
+    case SAI_SWITCH_ERROR_TYPE_ITPP_ECC:
+    case SAI_SWITCH_ERROR_TYPE_ITPP_PSIZE_TYPE_0_MISMATCH:
+    case SAI_SWITCH_ERROR_TYPE_ITPP_PSIZE_TYPE_1_MISMATCH:
+    case SAI_SWITCH_ERROR_TYPE_ITPP_PSIZE_TYPE_2_MISMATCH:
+    case SAI_SWITCH_ERROR_TYPE_ITPP_PSIZE_TYPE_3_MISMATCH:
+    case SAI_SWITCH_ERROR_TYPE_ITPP_PSIZE_TYPE_4_MISMATCH:
+    case SAI_SWITCH_ERROR_TYPE_ITPPD_ECC:
+    case SAI_SWITCH_ERROR_TYPE_ITPPD_PSIZE_TYPE_0_MISMATCH:
+    case SAI_SWITCH_ERROR_TYPE_ITPPD_PSIZE_TYPE_1_MISMATCH:
+    case SAI_SWITCH_ERROR_TYPE_ITPPD_PSIZE_TYPE_2_MISMATCH:
+    case SAI_SWITCH_ERROR_TYPE_ITPPD_PSIZE_TYPE_3_MISMATCH:
+    case SAI_SWITCH_ERROR_TYPE_ITPPD_PSIZE_TYPE_4_MISMATCH:
+      return true;
+#endif
+    default:
+      break;
+  }
+  return false;
+}
 
 } // namespace
 
@@ -213,9 +235,12 @@ void SaiSwitch::switchEventCallback(
 #if defined BRCM_SAI_SDK_GTE_11_0
     case SAI_SWITCH_EVENT_TYPE_INTERRUPT: {
       auto ireError = isIreErrorType(eventInfo->error_type);
+      auto itppError = isItppError(eventInfo->error_type);
       XLOG(ERR) << " Got interrupt event, is IRE: " << ireError;
       if (ireError) {
         getSwitchStats()->ireError();
+      } else if (itppError) {
+        // TODO
       }
     } break;
 #endif
