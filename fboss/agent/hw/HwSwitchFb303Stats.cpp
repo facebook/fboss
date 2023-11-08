@@ -149,6 +149,8 @@ HwAsicErrors HwSwitchFb303Stats::getHwAsicErrors() const {
       getCumulativeValue(uncorrParityErrors_);
   asicErrors.asicErrors() = getCumulativeValue(asicErrors_);
   asicErrors.ingressReceiveEditorErrors() = getCumulativeValue(ireErrors_);
+  asicErrors.ingressTransmitPipelineErrors() = getCumulativeValue(itppErrors_);
+
   return asicErrors;
 }
 
