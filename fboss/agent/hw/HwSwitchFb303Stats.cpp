@@ -96,7 +96,9 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
       fabricReachabilityMismatchCount_(
           map,
           getCounterPrefix() + "fabric_reachability_mismatch"),
-      ireErrors_(map, getCounterPrefix() + vendor + "ire_errors", SUM, RATE) {}
+      ireErrors_(map, getCounterPrefix() + vendor + "ire_errors", SUM, RATE),
+      itppErrors_(map, getCounterPrefix() + vendor + "itpp_errors", SUM, RATE) {
+}
 
 void HwSwitchFb303Stats::update(const HwSwitchDropStats& dropStats) {
   if (dropStats.globalDrops().has_value()) {
@@ -133,6 +135,10 @@ int64_t HwSwitchFb303Stats::getPacketIntegrityDrops() const {
 
 int64_t HwSwitchFb303Stats::getIreErrors() const {
   return getCumulativeValue(ireErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getItppErrors() const {
+  return getCumulativeValue(itppErrors_);
 }
 
 HwAsicErrors HwSwitchFb303Stats::getHwAsicErrors() const {

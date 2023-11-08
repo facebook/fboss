@@ -65,6 +65,9 @@ class HwSwitchFb303Stats {
   void ireError() {
     ireErrors_.addValue(1);
   }
+  void itppError() {
+    itppErrors_.addValue(1);
+  }
 
   void fabricReachabilityMissingCount(int64_t value);
   void fabricReachabilityMismatchCount(int64_t value);
@@ -109,6 +112,7 @@ class HwSwitchFb303Stats {
   int64_t getDramEnqueuedBytes() const;
   int64_t getDramDequeuedBytes() const;
   int64_t getIreErrors() const;
+  int64_t getItppErrors() const;
 
   HwAsicErrors getHwAsicErrors() const;
   FabricReachabilityStats getFabricReachabilityStats();
@@ -158,6 +162,7 @@ class HwSwitchFb303Stats {
   TLCounter fabricReachabilityMissingCount_;
   TLCounter fabricReachabilityMismatchCount_;
   TLTimeseries ireErrors_;
+  TLTimeseries itppErrors_;
 };
 
 } // namespace facebook::fboss
