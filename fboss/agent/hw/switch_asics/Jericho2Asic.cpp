@@ -7,13 +7,6 @@ namespace facebook::fboss {
 
 bool Jericho2Asic::isSupported(Feature feature) const {
   switch (feature) {
-    case HwAsic::Feature::SPAN:
-    case HwAsic::Feature::ERSPANv4:
-    case HwAsic::Feature::SFLOWv4:
-    case HwAsic::Feature::MPLS:
-    case HwAsic::Feature::MPLS_ECMP:
-    case HwAsic::Feature::ERSPANv6:
-    case HwAsic::Feature::SFLOWv6:
     case HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION:
     case HwAsic::Feature::ECN:
     case HwAsic::Feature::L3_QOS:
@@ -154,6 +147,13 @@ bool Jericho2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ECMP_DLB_OFFSET:
     case HwAsic::Feature::SAI_FEC_CORRECTED_BITS:
     case HwAsic::Feature::SAI_FEC_CODEWORDS_STATS:
+    case HwAsic::Feature::SPAN:
+    case HwAsic::Feature::ERSPANv4:
+    case HwAsic::Feature::SFLOWv4:
+    case HwAsic::Feature::MPLS:
+    case HwAsic::Feature::MPLS_ECMP:
+    case HwAsic::Feature::ERSPANv6:
+    case HwAsic::Feature::SFLOWv6:
       return false;
   }
   return false;
