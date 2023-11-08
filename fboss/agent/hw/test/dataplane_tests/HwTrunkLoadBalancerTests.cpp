@@ -247,7 +247,7 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
         [=, this]() { pumpIPTraffic(isV6, loopThroughFrontPanel, aggInfo); },
         [=, this]() { clearPortStats(aggInfo); },
         [=, this]() {
-          return utility::isLoadBalanced(
+          return utility::isLoadBalanced<PortID, HwPortStats>(
               getHwSwitchEnsemble(), getPhysicalPorts(aggInfo), deviation);
         });
   }
@@ -269,7 +269,7 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
         },
         [=, this]() { clearPortStats(aggInfo); },
         [=, this]() {
-          return utility::isLoadBalanced(
+          return utility::isLoadBalanced<PortID, HwPortStats>(
               getHwSwitchEnsemble(), getPhysicalPorts(aggInfo), deviation);
         });
   }

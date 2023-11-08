@@ -202,10 +202,10 @@ void ProdInvariantTest::verifyCopp() {
 }
 
 void ProdInvariantTest::verifyLoadBalancing() {
-  auto getPortStatsFn =
-      [&](const std::vector<PortID>& portIds) -> std::map<PortID, HwPortStats> {
-    return getLatestPortStats(portIds);
-  };
+  std::function<std::map<PortID, HwPortStats>(const std::vector<PortID>&)>
+      getPortStatsFn = [&](const std::vector<PortID>& portIds) {
+        return getLatestPortStats(portIds);
+      };
   utility::pumpTrafficAndVerifyLoadBalanced(
       [=]() { sendTraffic(); },
       [=]() {

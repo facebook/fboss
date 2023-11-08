@@ -68,7 +68,8 @@ bool HwEcmpDataPlaneTestUtil<EcmpSetupHelperT>::isLoadBalanced(
     const std::vector<NextHopWeight>& weights,
     uint8_t deviation) {
   auto ecmpPorts = helper_->ecmpPortDescs(ecmpWidth);
-  return utility::isLoadBalanced(ensemble_, ecmpPorts, weights, deviation);
+  return utility::isLoadBalanced<PortID, HwPortStats>(
+      ensemble_, ecmpPorts, weights, deviation);
 }
 
 template <typename EcmpSetupHelperT>
@@ -76,7 +77,8 @@ bool HwEcmpDataPlaneTestUtil<EcmpSetupHelperT>::isLoadBalanced(
     const std::vector<PortDescriptor>& portDescs,
     const std::vector<NextHopWeight>& weights,
     uint8_t deviation) {
-  return utility::isLoadBalanced(ensemble_, portDescs, weights, deviation);
+  return utility::isLoadBalanced<PortID, HwPortStats>(
+      ensemble_, portDescs, weights, deviation);
 }
 
 template <typename AddrT>

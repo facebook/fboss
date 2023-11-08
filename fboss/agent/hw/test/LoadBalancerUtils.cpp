@@ -17,7 +17,6 @@
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
-#include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/hw/test/HwTestAclUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/packet/PktFactory.h"
@@ -40,6 +39,7 @@ DEFINE_string(
 namespace facebook::fboss::utility {
 namespace {
 
+constexpr uint8_t kDefaultQueue = 0;
 std::vector<std::string> kTrafficFields = {"sip", "dip", "sport", "dport"};
 
 cfg::Fields getHalfHashFields() {
@@ -618,9 +618,9 @@ void pumpMplsTraffic(
   }
 }
 
-template <typename IdT>
+template <typename PortIdT, typename PortStatsT>
 bool isLoadBalancedImpl(
-    const std::map<IdT, HwPortStats>& portIdToStats,
+    const std::map<PortIdT, PortStatsT>& portIdToStats,
     const std::vector<NextHopWeight>& weights,
     int maxDeviationPct,
     bool noTrafficOk) {
@@ -628,12 +628,19 @@ bool isLoadBalancedImpl(
       folly::gen::map([](const auto& portIdAndStats) {
                      return portIdAndStats.first;
                    }) |
-      folly::gen::as<std::vector<IdT>>();
+      folly::gen::as<std::vector<PortIdT>>();
 
-  auto portBytes = folly::gen::from(portIdToStats) |
+  auto portBytes =
+      folly::gen::from(portIdToStats) |
       folly::gen::map([](const auto& portIdAndStats) {
-                     return *portIdAndStats.second.outBytes_();
-                   }) |
+        if constexpr (std::is_same_v<PortStatsT, HwPortStats>) {
+          return *portIdAndStats.second.outBytes_();
+        } else if constexpr (std::is_same_v<PortStatsT, HwSysPortStats>) {
+          return portIdAndStats.second.queueOutDiscardBytes_()->at(
+              kDefaultQueue);
+        }
+        throw FbossError("Unsupported port stats type in isLoadBalancedImpl");
+      }) |
       folly::gen::as<std::set<uint64_t>>();
 
   auto lowest = *portBytes.begin();
@@ -645,7 +652,16 @@ bool isLoadBalancedImpl(
   if (!weights.empty()) {
     auto maxWeight = *(std::max_element(weights.begin(), weights.end()));
     for (auto i = 0; i < portIdToStats.size(); ++i) {
-      auto portOutBytes = *portIdToStats.find(ecmpPorts[i])->second.outBytes_();
+      uint64_t portOutBytes;
+      if constexpr (std::is_same_v<PortStatsT, HwPortStats>) {
+        portOutBytes = *portIdToStats.find(ecmpPorts[i])->second.outBytes_();
+      } else if constexpr (std::is_same_v<PortStatsT, HwSysPortStats>) {
+        portOutBytes = portIdToStats.find(ecmpPorts[i])
+                           ->second.queueOutDiscardBytes_()
+                           ->at(kDefaultQueue);
+      } else {
+        throw FbossError("Unsupported port stats type in isLoadBalancedImpl");
+      }
       auto weightPercent = (static_cast<float>(weights[i]) / maxWeight) * 100.0;
       auto portOutBytesPercent =
           (static_cast<float>(portOutBytes) / highest) * 100.0;
@@ -667,77 +683,6 @@ bool isLoadBalancedImpl(
     }
   }
   return true;
-}
-
-bool isLoadBalanced(
-    const std::map<PortID, HwPortStats>& portStats,
-    const std::vector<NextHopWeight>& weights,
-    int maxDeviationPct,
-    bool noTrafficOk) {
-  return isLoadBalancedImpl(portStats, weights, maxDeviationPct, noTrafficOk);
-}
-bool isLoadBalanced(
-    const std::map<PortID, HwPortStats>& portStats,
-    int maxDeviationPct) {
-  return isLoadBalanced(
-      portStats, std::vector<NextHopWeight>(), maxDeviationPct);
-}
-
-bool isLoadBalanced(
-    const std::map<std::string, HwPortStats>& portStats,
-    const std::vector<NextHopWeight>& weights,
-    int maxDeviationPct,
-    bool noTrafficOk) {
-  return isLoadBalancedImpl(portStats, weights, maxDeviationPct, noTrafficOk);
-}
-
-bool isLoadBalanced(
-    const std::map<std::string, HwPortStats>& portStats,
-    int maxDeviationPct) {
-  return isLoadBalanced(
-      portStats, std::vector<NextHopWeight>(), maxDeviationPct);
-}
-
-bool isLoadBalanced(
-    const std::vector<PortDescriptor>& ecmpPorts,
-    const std::vector<NextHopWeight>& weights,
-    std::function<std::map<PortID, HwPortStats>(const std::vector<PortID>&)>
-        getPortStatsFn,
-    int maxDeviationPct,
-    bool noTrafficOk) {
-  auto portIDs = folly::gen::from(ecmpPorts) |
-      folly::gen::map([](const auto& portDesc) {
-                   CHECK(portDesc.isPhysicalPort());
-                   return portDesc.phyPortID();
-                 }) |
-      folly::gen::as<std::vector<PortID>>();
-  auto portIdToStats = getPortStatsFn(portIDs);
-  return isLoadBalanced(portIdToStats, weights, maxDeviationPct, noTrafficOk);
-}
-
-bool isLoadBalanced(
-    HwSwitchEnsemble* hwSwitchEnsemble,
-    const std::vector<PortDescriptor>& ecmpPorts,
-    const std::vector<NextHopWeight>& weights,
-    int maxDeviationPct,
-    bool noTrafficOk) {
-  auto getPortStatsFn =
-      [&](const std::vector<PortID>& portIds) -> std::map<PortID, HwPortStats> {
-    return hwSwitchEnsemble->getLatestPortStats(portIds);
-  };
-  return isLoadBalanced(
-      ecmpPorts, weights, getPortStatsFn, maxDeviationPct, noTrafficOk);
-}
-
-bool isLoadBalanced(
-    HwSwitchEnsemble* hwSwitchEnsemble,
-    const std::vector<PortDescriptor>& ecmpPorts,
-    int maxDeviationPct) {
-  return isLoadBalanced(
-      hwSwitchEnsemble,
-      ecmpPorts,
-      std::vector<NextHopWeight>(),
-      maxDeviationPct);
 }
 
 void pumpTrafficAndVerifyLoadBalanced(
@@ -766,5 +711,29 @@ bool isHwDeterministicSeed(
   auto lb = state->getLoadBalancers()->getNode(id);
   return lb->getSeed() == hwSwitch->generateDeterministicSeed(id);
 }
+
+template bool isLoadBalancedImpl<SystemPortID, HwSysPortStats>(
+    const std::map<SystemPortID, HwSysPortStats>& portIdToStats,
+    const std::vector<NextHopWeight>& weights,
+    int maxDeviationPct,
+    bool noTrafficOk);
+
+template bool isLoadBalancedImpl<PortID, HwPortStats>(
+    const std::map<PortID, HwPortStats>& portIdToStats,
+    const std::vector<NextHopWeight>& weights,
+    int maxDeviationPct,
+    bool noTrafficOk);
+
+template bool isLoadBalancedImpl<std::string, HwPortStats>(
+    const std::map<std::string, HwPortStats>& portIdToStats,
+    const std::vector<NextHopWeight>& weights,
+    int maxDeviationPct,
+    bool noTrafficOk);
+
+template bool isLoadBalancedImpl<std::string, HwSysPortStats>(
+    const std::map<std::string, HwSysPortStats>& portIdToStats,
+    const std::vector<NextHopWeight>& weights,
+    int maxDeviationPct,
+    bool noTrafficOk);
 
 } // namespace facebook::fboss::utility
