@@ -21,7 +21,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "1",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_1",
+                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_1",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -56,7 +56,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "2",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_2",
+                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_2",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -91,7 +91,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "3",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_3",
+                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_3",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -126,7 +126,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "4",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_4",
+                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_4",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -161,7 +161,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "5",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_5",
+                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_5",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -196,7 +196,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "6",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_6",
+                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_6",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -231,7 +231,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "7",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_7",
+                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_7",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -266,7 +266,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "8",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_8",
+                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_8",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -301,7 +301,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "9",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_9",
+                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_9",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -336,7 +336,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "10",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_10",
+                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_10",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -371,7 +371,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "11",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_11",
+                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_11",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -406,7 +406,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "12",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_12",
+                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_12",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -441,7 +441,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "13",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_13",
+                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_13",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -476,7 +476,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "14",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_14",
+                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_14",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -511,7 +511,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "15",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_15",
+                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_15",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -546,7 +546,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "16",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_16",
+                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_16",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -581,7 +581,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "17",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_17",
+                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_17",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -616,7 +616,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "18",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_18",
+                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_18",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -651,7 +651,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "19",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_19",
+                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_19",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -686,7 +686,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "20",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_20",
+                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_20",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -721,7 +721,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "21",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_21",
+                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_21",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -756,7 +756,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "22",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_22",
+                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_22",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -791,7 +791,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "23",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_23",
+                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_23",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -826,7 +826,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "24",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_24",
+                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_24",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -861,7 +861,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "25",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_25",
+                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_25",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -896,7 +896,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "26",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_26",
+                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_26",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -931,7 +931,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "27",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_27",
+                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_27",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -966,7 +966,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "28",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_28",
+                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_28",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -1001,7 +1001,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "29",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_29",
+                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_29",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -1036,7 +1036,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "30",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_30",
+                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_30",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -1071,7 +1071,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "31",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_31",
+                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_31",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -1106,7 +1106,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "32",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_32",
+                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_32",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -1141,7 +1141,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "33",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_33",
+                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_33",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -1176,7 +1176,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "34",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_34",
+                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_34",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -1211,7 +1211,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "35",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_35",
+                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_35",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -1246,7 +1246,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "36",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_36",
+                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_36",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -1281,7 +1281,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "37",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_37",
+                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_37",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -1316,7 +1316,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "38",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_38",
+                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_38",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -1351,7 +1351,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "39",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_39",
+                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_39",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -1386,7 +1386,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "40",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_40",
+                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_40",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -1421,7 +1421,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "41",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_41",
+                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_41",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -1452,7 +1452,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "42",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_42",
+                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_42",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -1487,7 +1487,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "43",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_43",
+                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_43",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -1522,7 +1522,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "44",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_44",
+                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_44",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -1553,7 +1553,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "45",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_45",
+                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_45",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -1588,7 +1588,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "46",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/IOB_FPGA/xcvr_reset_46",
+                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_46",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
