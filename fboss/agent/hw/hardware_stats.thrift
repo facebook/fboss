@@ -205,6 +205,7 @@ struct HwAsicErrors {
   4: i64 asicErrors;
   // DNX specific errors
   5: optional i64 ingressReceiveEditorErrors;
+  6: optional i64 ingressTransmitPipelineErrors;
 }
 
 struct HwTeFlowStats {
