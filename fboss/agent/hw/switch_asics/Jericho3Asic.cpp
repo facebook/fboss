@@ -55,20 +55,6 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::DRAM_ENQUEUE_DEQUEUE_STATS:
       return true;
 
-    // FIXME - make true when J3-AI supports these features
-    case HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION:
-    case HwAsic::Feature::ECMP_HASH_V4:
-    case HwAsic::Feature::ECMP_HASH_V6:
-    case HwAsic::Feature::TRAFFIC_HASHING:
-    case HwAsic::Feature::SWITCH_ATTR_INGRESS_ACL:
-    case HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER:
-    case HwAsic::Feature::ACL_TABLE_GROUP:
-    case HwAsic::Feature::MULTIPLE_ACL_TABLES:
-    case HwAsic::Feature::ACL_COPY_TO_CPU:
-    case HwAsic::Feature::ACL_COUNTER_LABEL:
-    case HwAsic::Feature::RESOURCE_USAGE_STATS:
-    case HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE:
-      return getAsicMode() != AsicMode::ASIC_MODE_HW_AI;
     case HwAsic::Feature::L3_QOS:
     case HwAsic::Feature::TC_TO_QUEUE_QOS_MAP_ON_SYSTEM_PORT:
       // TODO fix once queue stats are available on J3
@@ -81,6 +67,24 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::VOQ:
     case HwAsic::Feature::FABRIC_TX_QUEUES:
       return getAsicMode() != AsicMode::ASIC_MODE_SIM;
+    // FIXME - make true when J3-AI supports these features
+    // For now these are only supported on J3 SIM and J3 HW
+    // For HW we only run in J3-AI mode, hence marking these
+    // features as SIM only
+    case HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION:
+    case HwAsic::Feature::ECMP_HASH_V4:
+    case HwAsic::Feature::ECMP_HASH_V6:
+    case HwAsic::Feature::TRAFFIC_HASHING:
+    case HwAsic::Feature::SWITCH_ATTR_INGRESS_ACL:
+    case HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER:
+    case HwAsic::Feature::ACL_TABLE_GROUP:
+    case HwAsic::Feature::MULTIPLE_ACL_TABLES:
+    case HwAsic::Feature::ACL_COPY_TO_CPU:
+    case HwAsic::Feature::ACL_COUNTER_LABEL:
+    case HwAsic::Feature::RESOURCE_USAGE_STATS:
+    case HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE:
+      return getAsicMode() == AsicMode::ASIC_MODE_SIM;
+    // SIM specific features.
     case HwAsic::Feature::SAI_PORT_ETHER_STATS:
     case HwAsic::Feature::SLOW_STAT_UPDATE:
       // supported only on the SIM
