@@ -12,6 +12,7 @@
 
 namespace {
 constexpr auto kRootSlotPath = "/";
+constexpr auto kIdprom = "IDPROM";
 
 std::string getSlotPath(
     const std::string& parentSlotPath,
@@ -283,7 +284,7 @@ uint32_t PlatformExplorer::getFpgaInstanceId(
 
 void PlatformExplorer::createDeviceSymLink(
     const std::string& linkPath,
-    const std::string& /*pmDevicePath*/) {
+    const std::string& pmDevicePath) {
   std::error_code errCode;
   auto linkParentPath = std::filesystem::path(linkPath).parent_path();
   std::filesystem::create_directories(linkParentPath, errCode);
@@ -294,6 +295,70 @@ void PlatformExplorer::createDeviceSymLink(
         errCode.value());
     return;
   }
+
+  re2::RE2 re("(?P<SlotPath>.*)\\[(?P<DeviceName>.*)\\]", re2::RE2::Options{});
+  auto nsubmatch = re.NumberOfCapturingGroups() + 1;
+  std::vector<re2::StringPiece> submatches(nsubmatch);
+  re.Match(
+      pmDevicePath,
+      0,
+      pmDevicePath.length(),
+      re2::RE2::UNANCHORED,
+      submatches.data(),
+      nsubmatch);
+  std::string slotPath = submatches[1].as_string();
+  std::string deviceName = submatches[2].as_string();
+  // Remove trailling '/' (e.g /abc/dfg/)
+  if (slotPath.length() > 1) {
+    slotPath.pop_back();
+  }
+
+  if (slotPathToPmUnitName_.find(slotPath) == std::end(slotPathToPmUnitName_)) {
+    XLOG(ERR) << fmt::format(
+        "({}) doesn't have associated pm unit name", slotPath);
+    return;
+  }
+  auto pmUnitName = slotPathToPmUnitName_[slotPath];
+  auto pmUnitConfig = platformConfig_.pmUnitConfigs()->at(pmUnitName);
+
+  std::optional<std::filesystem::path> i2cTargetPath = std::nullopt;
+  std::optional<uint16_t> busNum = std::nullopt;
+  std::optional<I2cAddr> i2cAddr = std::nullopt;
+  std::string subDir = "";
+  if (deviceName == kIdprom) {
+    auto slotTypeConfig = platformConfig_.slotTypeConfigs()->at(
+        *pmUnitConfig.pluggedInSlotType());
+    CHECK(slotTypeConfig.idpromConfig());
+
+    busNum = getI2cBusNum(slotPath, *slotTypeConfig.idpromConfig()->busName());
+    i2cAddr = I2cAddr(*slotTypeConfig.idpromConfig()->address());
+    subDir = "eeprom";
+  }
+
+  if (!busNum || !i2cAddr) {
+    XLOG(ERR) << fmt::format("Unable to resolve i2c address of {}", deviceName);
+    return;
+  }
+
+  if (!i2cExplorer_.isI2cDevicePresent(*busNum, *i2cAddr)) {
+    XLOG(ERR) << fmt::format("{} is not detected on the platform", deviceName);
+    return;
+  }
+
+  i2cTargetPath =
+      std::filesystem::path(i2cExplorer_.getDeviceI2cPath(*busNum, *i2cAddr)) /
+      subDir;
+
+  XLOG(INFO) << fmt::format(
+      "Creating symlink from {} to {}", linkPath, i2cTargetPath->string());
+  auto cmd = fmt::format("ln -sfv {} {}", i2cTargetPath->string(), linkPath);
+  auto [exitStatus, standardOut] = PlatformUtils().execCommand(cmd);
+  if (exitStatus != 0) {
+    XLOG(ERR) << fmt::format("Failed to run command ({})", cmd);
+    return;
+  }
+  XLOG(INFO) << fmt::format(
+      "{} resolves to {}", linkPath, i2cTargetPath->string());
 }
 
 } // namespace facebook::fboss::platform::platform_manager

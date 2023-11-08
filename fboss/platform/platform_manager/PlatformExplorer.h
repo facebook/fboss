@@ -93,6 +93,7 @@ class PlatformExplorer {
 
   // Map from <slotPath, PmUnitScopedName> to instance ids for FPGAs.
   std::map<std::pair<std::string, std::string>, uint32_t> fpgaInstanceIds_{};
+
   // This stores the PmUnit name which has been discovered at each SlotPath.
   std::map<std::string, std::string> slotPathToPmUnitName_{};
 };
