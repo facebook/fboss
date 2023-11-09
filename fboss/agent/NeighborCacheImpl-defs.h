@@ -226,7 +226,9 @@ SwSwitch::StateUpdateFn NeighborCacheImpl<NTable>::getUpdateFnToProgramEntry(
       CHECK(systemPortID.has_value());
       nbrEntry.portId() =
           PortDescriptor(SystemPortID(systemPortID.value())).toThrift();
-      nbrEntry.encapIndex() = fields.encapIndex.value();
+      if (fields.encapIndex.has_value()) {
+        nbrEntry.encapIndex() = fields.encapIndex.value();
+      }
       nbrEntry.isLocal() = fields.isLocal;
     } else {
       nbrEntry.portId() = ncachehelpers::getNeighborPortDescriptor(fields.port);
