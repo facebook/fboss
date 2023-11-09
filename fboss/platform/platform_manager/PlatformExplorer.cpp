@@ -420,6 +420,19 @@ void PlatformExplorer::createDeviceSymLink(
           "Couldn't resolve target path for ({})", deviceName);
       return;
     }
+  } else if (linkParentPath.string() == "/run/devmap/fpgas") {
+    if (pciDeviceConfig == pmUnitConfig.pciDeviceConfigs()->end()) {
+      XLOG(ERR) << fmt::format(
+          "Couldn't find PCI device config for ({})", deviceName);
+      return;
+    }
+    auto pciDevice = PciDevice(
+        *pciDeviceConfig->pmUnitScopedName(),
+        *pciDeviceConfig->vendorId(),
+        *pciDeviceConfig->deviceId(),
+        *pciDeviceConfig->subSystemVendorId(),
+        *pciDeviceConfig->subSystemDeviceId());
+    targetPath = std::filesystem::path(pciDevice.sysfsPath());
   }
 
   XLOG(INFO) << fmt::format(
