@@ -1810,6 +1810,9 @@ struct FlowletSwitchingConfig {
   9: i32 dynamicEgressMaxThresholdBytes;
   // EWMA of historical member bytes in physical queue
   10: i16 dynamicPhysicalQueueExponent;
+  // maximum links used for flowlet switching.
+  // Needed for scaling flowset table
+  11: i16 maxLinks;
 }
 
 /**
