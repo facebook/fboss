@@ -1,0 +1,370 @@
+{
+  "bspType" : 1,
+  "pwmBoostOnNumDeadFan" : 1,
+  "pwmBoostOnNumDeadSensor" : 0,
+  "pwmBoostOnNoQsfpAfterInSec" : 0,
+  "pwmBoostValue" : 60,
+  "pwmTransitionValue" : 50,
+  "pwmLowerThreshold" : 24,
+  "pwmUpperThreshold" : 100,
+  "optics" : [
+  ],
+  "sensors" : [
+    {
+      "sensorName": "SMB_INLET_TEMP",
+      "access" : {
+        "accessType" : "ACCESS_TYPE_THRIFT"
+      },
+      "alarm" : {
+        "highMajor" : 95.0,
+        "highMinor" : 85.0,
+        "minorSoakSeconds" : 15
+      },
+      "pwmCalcType" : "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
+      "scale" : 1.0,
+      "normalUpTable" : {
+        "15" : 30,
+        "110" : 100
+      },
+      "normalDownTable" : {
+        "15" : 30,
+        "110" : 100
+      },
+      "failUpTable" : {
+        "15" : 30,
+        "110" : 100
+      },
+      "failDownTable" : {
+        "15" : 30,
+        "110" : 100
+      }
+    }
+  ],
+  "fans" : [
+    {
+      "fanName" : "fan_1",
+      "rpmAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD0/fan1_input"
+      },
+      "pwmAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD0/pwm1"
+      },
+      "presenceAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD0/fan1_present"
+      },
+      "ledAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD0/fan1_led"
+      },
+      "pwmMin" : 1,
+      "pwmMax" : 255,
+      "fanPresentVal" : 1,
+      "fanMissingVal" : 0,
+      "fanGoodLedVal" : 1,
+      "fanFailLedVal" : 2
+    },
+    {
+      "fanName" : "fan_2",
+      "rpmAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD0/fan2_input"
+      },
+      "pwmAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD0/pwm2"
+      },
+      "presenceAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD0/fan2_present"
+      },
+      "ledAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD0/fan2_led"
+      },
+      "pwmMin" : 1,
+      "pwmMax" : 255,
+      "fanPresentVal" : 1,
+      "fanMissingVal" : 0,
+      "fanGoodLedVal" : 1,
+      "fanFailLedVal" : 2
+    },
+    {
+      "fanName" : "fan_3",
+      "rpmAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD0/fan3_input"
+      },
+      "pwmAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD0/pwm3"
+      },
+      "presenceAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD0/fan3_present"
+      },
+      "ledAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD0/fan3_led"
+      },
+      "pwmMin" : 1,
+      "pwmMax" : 255,
+      "fanPresentVal" : 1,
+      "fanMissingVal" : 0,
+      "fanGoodLedVal" : 1,
+      "fanFailLedVal" : 2
+    },
+    {
+      "fanName" : "fan_4",
+      "rpmAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD0/fan4_input"
+      },
+      "pwmAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD0/pwm4"
+      },
+      "presenceAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD0/fan4_present"
+      },
+      "ledAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD0/fan4_led"
+      },
+      "pwmMin" : 1,
+      "pwmMax" : 255,
+      "fanPresentVal" : 1,
+      "fanMissingVal" : 0,
+      "fanGoodLedVal" : 1,
+      "fanFailLedVal" : 2
+    },
+    {
+      "fanName" : "fan_5",
+      "rpmAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD1/fan1_input"
+      },
+      "pwmAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD1/pwm1"
+      },
+      "presenceAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD1/fan1_present"
+      },
+      "ledAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD1/fan1_led"
+      },
+      "pwmMin" : 1,
+      "pwmMax" : 255,
+      "fanPresentVal" : 1,
+      "fanMissingVal" : 0,
+      "fanGoodLedVal" : 1,
+      "fanFailLedVal" : 2
+    },
+    {
+      "fanName" : "fan_6",
+      "rpmAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD1/fan2_input"
+      },
+      "pwmAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD1/pwm2"
+      },
+      "presenceAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD1/fan2_present"
+      },
+      "ledAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD1/fan2_led"
+      },
+      "pwmMin" : 1,
+      "pwmMax" : 255,
+      "fanPresentVal" : 1,
+      "fanMissingVal" : 0,
+      "fanGoodLedVal" : 1,
+      "fanFailLedVal" : 2
+    },
+    {
+      "fanName" : "fan_7",
+      "rpmAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD1/fan3_input"
+      },
+      "pwmAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD1/pwm3"
+      },
+      "presenceAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD1/fan3_present"
+      },
+      "ledAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD1/fan3_led"
+      },
+      "pwmMin" : 1,
+      "pwmMax" : 255,
+      "fanPresentVal" : 1,
+      "fanMissingVal" : 0,
+      "fanGoodLedVal" : 1,
+      "fanFailLedVal" : 2
+    },
+    {
+      "fanName" : "fan_8",
+      "rpmAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD1/fan4_input"
+      },
+      "pwmAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD1/pwm4"
+      },
+      "presenceAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD1/fan4_present"
+      },
+      "ledAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD1/fan4_led"
+      },
+      "pwmMin" : 1,
+      "pwmMax" : 255,
+      "fanPresentVal" : 1,
+      "fanMissingVal" : 0,
+      "fanGoodLedVal" : 1,
+      "fanFailLedVal" : 2
+    },
+    {
+      "fanName" : "fan_9",
+      "rpmAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD2/fan1_input"
+      },
+      "pwmAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD2/pwm1"
+      },
+      "presenceAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD2/fan1_present"
+      },
+      "ledAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD2/fan1_led"
+      },
+      "pwmMin" : 1,
+      "pwmMax" : 255,
+      "fanPresentVal" : 1,
+      "fanMissingVal" : 0,
+      "fanGoodLedVal" : 1,
+      "fanFailLedVal" : 2
+    },
+    {
+      "fanName" : "fan_10",
+      "rpmAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD2/fan2_input"
+      },
+      "pwmAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD2/pwm2"
+      },
+      "presenceAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD2/fan2_present"
+      },
+      "ledAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD2/fan2_led"
+      },
+      "pwmMin" : 1,
+      "pwmMax" : 255,
+      "fanPresentVal" : 1,
+      "fanMissingVal" : 0,
+      "fanGoodLedVal" : 1,
+      "fanFailLedVal" : 2
+    },
+    {
+      "fanName" : "fan_11",
+      "rpmAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD2/fan3_input"
+      },
+      "pwmAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD2/pwm3"
+      },
+      "presenceAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD2/fan3_present"
+      },
+      "ledAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD2/fan3_led"
+      },
+      "pwmMin" : 1,
+      "pwmMax" : 255,
+      "fanPresentVal" : 1,
+      "fanMissingVal" : 0,
+      "fanGoodLedVal" : 1,
+      "fanFailLedVal" : 2
+
+    },
+    {
+      "fanName" : "fan_12",
+      "rpmAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD2/fan4_input"
+      },
+      "pwmAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD2/pwm4"
+      },
+      "presenceAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD2/fan4_present"
+      },
+      "ledAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/sensors/FAN_CPLD2/fan4_led"
+      },
+      "pwmMin" : 1,
+      "pwmMax" : 255,
+      "fanPresentVal" : 1,
+      "fanMissingVal" : 0,
+      "fanGoodLedVal" : 1,
+      "fanFailLedVal" : 2
+    }
+  ],
+  "zones": [
+    {
+      "zoneType" : "ZONE_TYPE_MAX",
+      "zoneName" : "zone1",
+      "sensorNames" : [
+         "SMB_INLET_TEMP"
+      ],
+      "fanNames" : [
+        "fan_1",
+        "fan_2",
+        "fan_3",
+        "fan_4",
+        "fan_5",
+        "fan_6",
+        "fan_7",
+        "fan_8",
+        "fan_9",
+        "fan_10",
+        "fan_11",
+        "fan_12"
+      ],
+      "slope" : 3
+    }
+  ]
+}
