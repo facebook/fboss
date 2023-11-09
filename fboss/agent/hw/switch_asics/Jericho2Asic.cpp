@@ -143,7 +143,7 @@ bool Jericho2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::L3_MTU_ERROR_TRAP:
     case HwAsic::Feature::SAI_USER_DEFINED_TRAP:
     case HwAsic::Feature::PORT_EYE_VALUES:
-    case HwAsic::Feature::QUEUE_PRIORITY_LOWER_VAL_IS_HIGH_PRI:
+
     case HwAsic::Feature::ECMP_DLB_OFFSET:
     case HwAsic::Feature::SAI_FEC_CORRECTED_BITS:
     case HwAsic::Feature::SAI_FEC_CODEWORDS_STATS:
