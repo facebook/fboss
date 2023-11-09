@@ -16,6 +16,7 @@
 namespace {
 constexpr auto kRootSlotPath = "/";
 constexpr auto kIdprom = "IDPROM";
+const re2::RE2 kValidHwmonDirName{"hwmon[0-9]+"};
 
 std::string getSlotPath(
     const std::string& parentSlotPath,
@@ -326,68 +327,81 @@ void PlatformExplorer::createDeviceSymLink(
   auto pmUnitName = slotPathToPmUnitName_[slotPath];
   auto pmUnitConfig = platformConfig_.pmUnitConfigs()->at(pmUnitName);
 
-  std::optional<std::filesystem::path> i2cTargetPath = std::nullopt;
-  std::optional<uint16_t> busNum = std::nullopt;
-  std::optional<I2cAddr> i2cAddr = std::nullopt;
-  std::string subDir = "";
-  if (deviceName == kIdprom) {
-    auto slotTypeConfig = platformConfig_.slotTypeConfigs()->at(
-        *pmUnitConfig.pluggedInSlotType());
-    CHECK(slotTypeConfig.idpromConfig());
+  auto idpromConfig = platformConfig_.slotTypeConfigs()
+                          ->at(*pmUnitConfig.pluggedInSlotType())
+                          .idpromConfig();
+  auto i2cDeviceConfig = std::find_if(
+      pmUnitConfig.i2cDeviceConfigs()->begin(),
+      pmUnitConfig.i2cDeviceConfigs()->end(),
+      [&](auto i2cDeviceConfig) {
+        return *i2cDeviceConfig.pmUnitScopedName() == deviceName;
+      });
 
-    busNum = getI2cBusNum(slotPath, *slotTypeConfig.idpromConfig()->busName());
-    i2cAddr = I2cAddr(*slotTypeConfig.idpromConfig()->address());
-    subDir = "eeprom";
-  } else {
-    auto i2cDeviceConfigIt = std::find_if(
-        pmUnitConfig.i2cDeviceConfigs()->begin(),
-        pmUnitConfig.i2cDeviceConfigs()->end(),
-        [&](auto i2cDeviceConfig) {
-          return *i2cDeviceConfig.pmUnitScopedName() == deviceName;
-        });
-    if (i2cDeviceConfigIt == pmUnitConfig.i2cDeviceConfigs()->end()) {
+  std::optional<std::filesystem::path> targetPath = std::nullopt;
+  if (linkParentPath.string() == "/run/devmap/eeproms") {
+    if (deviceName == kIdprom) {
+      CHECK(idpromConfig);
+      targetPath = std::filesystem::path(i2cExplorer_.getDeviceI2cPath(
+          getI2cBusNum(slotPath, *idpromConfig->busName()),
+          I2cAddr(*idpromConfig->address())));
+    } else {
+      if (i2cDeviceConfig == pmUnitConfig.i2cDeviceConfigs()->end()) {
+        XLOG(ERR) << fmt::format(
+            "Couldn't find i2c device config for ({})", deviceName);
+      }
+      auto busNum = getI2cBusNum(slotPath, *i2cDeviceConfig->busName());
+      auto i2cAddr = I2cAddr(*i2cDeviceConfig->address());
+      if (!i2cExplorer_.isI2cDevicePresent(busNum, i2cAddr)) {
+        XLOG(ERR) << fmt::format(
+            "{} is not plugged-in to the platform", deviceName);
+        return;
+      }
+      targetPath = std::filesystem::path(
+                       i2cExplorer_.getDeviceI2cPath(busNum, i2cAddr)) /
+          "eeprom";
+    }
+  } else if (linkParentPath.string() == "/run/devmap/sensors") {
+    if (i2cDeviceConfig == pmUnitConfig.i2cDeviceConfigs()->end()) {
       XLOG(ERR) << fmt::format(
           "Couldn't find i2c device config for ({})", deviceName);
-      return;
     }
-    auto i2cDeviceConfig = *i2cDeviceConfigIt;
-    busNum = getI2cBusNum(slotPath, *i2cDeviceConfig.busName());
-    i2cAddr = I2cAddr(*i2cDeviceConfig.address());
-
-    if (*i2cDeviceConfig.deviceType() == constants::DEVICE_TYPE_EEPROM()) {
-      subDir = "eeprom";
-    } else {
+    auto busNum = getI2cBusNum(slotPath, *i2cDeviceConfig->busName());
+    auto i2cAddr = I2cAddr(*i2cDeviceConfig->address());
+    if (!i2cExplorer_.isI2cDevicePresent(busNum, i2cAddr)) {
       XLOG(ERR) << fmt::format(
-          "Unsuppored i2c device type {} for symlink creation",
-          *i2cDeviceConfig.deviceType());
+          "{} is not plugged-in to the platform", deviceName);
       return;
     }
+    targetPath =
+        std::filesystem::path(i2cExplorer_.getDeviceI2cPath(busNum, i2cAddr)) /
+        "hwmon";
+    std::string hwmonSubDir = "";
+    for (const auto& dirEntry :
+         std::filesystem::directory_iterator(*targetPath)) {
+      auto dirName = dirEntry.path().filename();
+      if (re2::RE2::FullMatch(dirName.string(), kValidHwmonDirName)) {
+        hwmonSubDir = dirName.string();
+        break;
+      }
+    }
+    if (hwmonSubDir.empty()) {
+      XLOG(ERR) << fmt::format(
+          "Couldn't find hwmon[num] folder within ({})", targetPath->string());
+      return;
+    }
+    targetPath = *targetPath / hwmonSubDir;
   }
-
-  if (!busNum || !i2cAddr) {
-    XLOG(ERR) << fmt::format("Unable to resolve i2c address of {}", deviceName);
-    return;
-  }
-
-  if (!i2cExplorer_.isI2cDevicePresent(*busNum, *i2cAddr)) {
-    XLOG(ERR) << fmt::format("{} is not detected on the platform", deviceName);
-    return;
-  }
-
-  i2cTargetPath =
-      std::filesystem::path(i2cExplorer_.getDeviceI2cPath(*busNum, *i2cAddr)) /
-      subDir;
 
   XLOG(INFO) << fmt::format(
-      "Creating symlink from {} to {}", linkPath, i2cTargetPath->string());
-  auto cmd = fmt::format("ln -sfv {} {}", i2cTargetPath->string(), linkPath);
+      "Creating symlink from {} to {}", linkPath, targetPath->string());
+  auto cmd = fmt::format("ln -sfnv {} {}", targetPath->string(), linkPath);
   auto [exitStatus, standardOut] = PlatformUtils().execCommand(cmd);
   if (exitStatus != 0) {
     XLOG(ERR) << fmt::format("Failed to run command ({})", cmd);
     return;
   }
   XLOG(INFO) << fmt::format(
-      "{} resolves to {}", linkPath, i2cTargetPath->string());
+      "{} resolves to {}", linkPath, targetPath->string());
 }
 
 } // namespace facebook::fboss::platform::platform_manager
