@@ -474,8 +474,10 @@ std::string FbossEepromParser::parseV4Mac(int len, unsigned char* ptr) {
   std::string retVal = "";
   // We convert char array to string only upto len or null pointer
   int juice = 0;
-  while ((juice < len) && (ptr[juice] != 0)) {
-    unsigned int val = ptr[juice];
+  while (juice < len) {
+    // In V4 EEPROM, all fields are little endian, even the MAC address
+    // therefore we parse it in the LE way (not the network byte order)
+    unsigned int val = ptr[len - juice - 1];
     std::ostringstream ss;
     ss << std::hex << val;
     std::string strElement = ss.str();
