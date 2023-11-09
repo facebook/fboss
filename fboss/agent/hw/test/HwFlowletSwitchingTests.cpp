@@ -35,6 +35,7 @@ const int kFlowletTableSize2 = 2048;
 static int kUdpProto(17);
 static int kUdpDstPort(4791);
 constexpr auto kAclName = "flowlet";
+constexpr auto kAclCounterName = "flowletStat";
 } // namespace
 
 namespace facebook::fboss {
@@ -60,6 +61,13 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
     acl->l4DstPort() = kUdpDstPort;
     cfg::MatchAction matchAction = cfg::MatchAction();
     matchAction.flowletAction() = cfg::FlowletAction::FORWARD;
+    matchAction.counter() = kAclCounterName;
+    std::vector<cfg::CounterType> counterTypes{
+        cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
+    auto counter = cfg::TrafficCounter();
+    *counter.name() = kAclCounterName;
+    *counter.types() = counterTypes;
+    cfg.trafficCounters()->push_back(counter);
     utility::addMatcher(&cfg, kAclName, matchAction);
   }
 
@@ -190,6 +198,14 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
         getHwSwitch(), kAddr1Prefix, flowletCfg, true));
 
     utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), kAclName);
+    std::vector<cfg::CounterType> counterTypes{
+        cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
+    utility::checkAclStat(
+        getHwSwitch(),
+        getProgrammedState(),
+        {kAclName},
+        kAclCounterName,
+        counterTypes);
   }
 
   void verifyModifiedConfig() {

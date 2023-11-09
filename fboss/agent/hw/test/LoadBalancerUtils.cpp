@@ -189,6 +189,13 @@ void addFlowletAcl(cfg::SwitchConfig& cfg) {
   acl->l4DstPort() = 4791;
   cfg::MatchAction matchAction = cfg::MatchAction();
   matchAction.flowletAction() = cfg::FlowletAction::FORWARD;
+  matchAction.counter() = "flowletStat";
+  std::vector<cfg::CounterType> counterTypes{
+      cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
+  auto counter = cfg::TrafficCounter();
+  *counter.name() = "flowletStat";
+  *counter.types() = counterTypes;
+  cfg.trafficCounters()->push_back(counter);
   utility::addMatcher(&cfg, "flowlet", matchAction);
 }
 
