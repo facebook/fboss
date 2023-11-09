@@ -433,6 +433,9 @@ void PlatformExplorer::createDeviceSymLink(
         *pciDeviceConfig->subSystemVendorId(),
         *pciDeviceConfig->subSystemDeviceId());
     targetPath = std::filesystem::path(pciDevice.sysfsPath());
+  } else if (linkParentPath.string() == "/run/devmap/i2c-busses") {
+    targetPath = std::filesystem::path(
+        fmt::format("/dev/i2c-{}", getI2cBusNum(slotPath, deviceName)));
   }
 
   XLOG(INFO) << fmt::format(
