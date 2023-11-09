@@ -47,12 +47,12 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::QUEUE_ECN_COUNTER:
     case HwAsic::Feature::SAI_ECN_WRED:
     case HwAsic::Feature::CPU_TX_VIA_RECYCLE_PORT:
-
     case HwAsic::Feature::SWITCH_DROP_STATS:
     case HwAsic::Feature::PACKET_INTEGRITY_DROP_STATS:
     case HwAsic::Feature::LINK_STATE_BASED_ISOLATE:
     case HwAsic::Feature::SAI_CONFIGURE_SIX_TAP:
     case HwAsic::Feature::DRAM_ENQUEUE_DEQUEUE_STATS:
+    case HwAsic::Feature::DEBUG_COUNTER:
       return true;
 
     case HwAsic::Feature::L3_QOS:
@@ -128,7 +128,6 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     // is created (or supported for now).
     case HwAsic::Feature::BRIDGE_PORT_8021Q:
     // TODO - get the features working on Jericho2 ASIC
-    case HwAsic::Feature::DEBUG_COUNTER:
     case HwAsic::Feature::FABRIC_PORT_MTU:
     case HwAsic::Feature::EXTENDED_FEC:
     case HwAsic::Feature::SAI_RX_REASON_COUNTER:
