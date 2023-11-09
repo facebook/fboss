@@ -1399,7 +1399,7 @@
       "pluggedInSlotType": "SMB_SLOT",
       "pciDeviceConfigs": [
         {
-          "pmUnitScopedName": "MCB_IOB",
+          "pmUnitScopedName": "SMB_DOM",
           "vendorId": "0x1d9b",
           "deviceId": "0x0011",
           "subSystemVendorId": "0x10ee",
@@ -2036,7 +2036,8 @@
     "/run/devmap/sensors/FCB_B_TSENSOR2": "/FCB_SLOT@0/[FCB_B_TSENSOR2]",
     "/run/devmap/cplds/MCB_CPLD": "/[MCB_CPLD]",
     "/run/devmap/cplds/SCM_CPLD": "/SCM_SLOT@0/[SCM_CPLD]",
-    "/run/devmap/cplds/SMB_CPLD": "/SMB_SLOT@0/[SMB_CPLD]"
+    "/run/devmap/cplds/SMB_CPLD": "/SMB_SLOT@0/[SMB_CPLD]",
+    "/run/devmap/fpgas/MCB_IOB": "/[MCB_IOB]"
   },
   "bspKmodsRpmName": "fboss_bsp_kmods",
   "bspKmodsRpmVersion": "0.7.0-2",
