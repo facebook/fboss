@@ -40,7 +40,7 @@ void addDscpAclEntryWithCounter(
 void addDscpAclTable(
     cfg::SwitchConfig* config,
     int16_t priority,
-    bool addTtlQualifier,
+    bool addAllQualifiers,
     const HwAsic* hwAsic);
 void delDscpMatchers(cfg::SwitchConfig* config);
 } // namespace facebook::fboss::utility

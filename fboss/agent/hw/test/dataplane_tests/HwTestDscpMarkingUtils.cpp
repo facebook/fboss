@@ -181,7 +181,7 @@ void addDscpAclEntryWithCounter(
 void addDscpAclTable(
     cfg::SwitchConfig* config,
     int16_t priority,
-    bool addTtlQualifier,
+    bool addAllQualifiers,
     const HwAsic* hwAsic) {
   std::vector<cfg::AclTableQualifier> qualifiers = {
       cfg::AclTableQualifier::L4_SRC_PORT,
@@ -192,8 +192,10 @@ void addDscpAclTable(
       cfg::AclTableQualifier::ICMPV6_TYPE,
       cfg::AclTableQualifier::ICMPV6_CODE,
       cfg::AclTableQualifier::DSCP};
-  if (addTtlQualifier) {
+  if (addAllQualifiers) {
+    // Add the extra qualifiers needed for Cisco Key profile
     qualifiers.push_back(cfg::AclTableQualifier::TTL);
+    qualifiers.push_back(cfg::AclTableQualifier::DSCP);
   }
   utility::addAclTable(
       config,

@@ -120,7 +120,7 @@ void addQueuePerHostAclEntry(
 void addQueuePerHostAclTables(
     cfg::SwitchConfig* config,
     int16_t priority,
-    bool addTtlQualifier);
+    bool addAllQualifiers);
 void deleteQueuePerHostMatchers(cfg::SwitchConfig* config);
 
 } // namespace facebook::fboss::utility

@@ -289,7 +289,7 @@ void addQueuePerHostAclEntry(
 void addQueuePerHostAclTables(
     cfg::SwitchConfig* config,
     int16_t priority,
-    bool addTtlQualifier) {
+    bool addAllQualifiers) {
   std::vector<cfg::AclTableQualifier> qualifiers = {
       cfg::AclTableQualifier::LOOKUP_CLASS_L2,
       cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR,
@@ -297,8 +297,10 @@ void addQueuePerHostAclTables(
   std::vector<cfg::AclTableActionType> actions = {
       cfg::AclTableActionType::PACKET_ACTION, cfg::AclTableActionType::SET_TC};
 
-  if (addTtlQualifier) {
+  if (addAllQualifiers) {
+    // Add the extra qualifiers needed for Cisco Key profile
     qualifiers.push_back(cfg::AclTableQualifier::TTL);
+    qualifiers.push_back(cfg::AclTableQualifier::DSCP);
     actions.push_back(cfg::AclTableActionType::COUNTER);
   }
 

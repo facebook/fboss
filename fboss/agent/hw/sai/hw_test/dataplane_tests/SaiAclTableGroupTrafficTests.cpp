@@ -388,14 +388,14 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
        * superset of all the qualifiers/action types of all the tables. If key
        * profile is absent, the first table's attributes will be taken as the
        * key profile. Hence, the first table is always set with the superset of
-       * qualifiers. addTtlQualifier is used in Tajo SDK versions which support
-       * Multi ACL table to add the superset of qualifiers/action types in first
-       * table
+       * qualifiers. addAllQualifiers is used in Tajo SDK versions which
+       * support Multi ACL table to add the superset of qualifiers/action types
+       * in first table
        */
-      bool addTtlQualifier = false;
+      bool addAllQualifiers = false;
       resolveNeigborAndProgramRoutes(*helper_, kEcmpWidth);
 #if defined(TAJO_SDK_VERSION_1_65_0) || defined(TAJO_SDK_VERSION_1_68_0)
-      addTtlQualifier = true;
+      addAllQualifiers = true;
 #endif
 
       auto state1 = addResolvedNeighborWithClassID<folly::IPAddressV4>(
@@ -407,7 +407,7 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
         auto newCfg{initialConfig()};
         utility::addQueuePerHostQueueConfig(&newCfg);
         utility::addQueuePerHostAclTables(
-            &newCfg, 1 /*priority*/, addTtlQualifier);
+            &newCfg, 1 /*priority*/, addAllQualifiers);
         utility::addTtlAclTable(&newCfg, 2 /*priority*/);
         applyNewConfig(newCfg);
       }
@@ -553,10 +553,10 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
        * Refer to the detailed comment in setup of verifyMultipleAclTablesHelper
        * for the reason behind this flag
        */
-      bool addTtlQualifier = false;
+      bool addAllQualifiers = false;
       resolveNeigborAndProgramRoutes(*helper_, kEcmpWidth);
 #if defined(TAJO_SDK_VERSION_1_65_0) || defined(TAJO_SDK_VERSION_1_68_0)
-      addTtlQualifier = true;
+      addAllQualifiers = true;
 #endif
 
       auto state1 = addResolvedNeighborWithClassID<folly::IPAddressV4>(
@@ -568,7 +568,7 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
         auto newCfg{initialConfig()};
         utility::addOlympicQosMaps(newCfg, getAsic());
         utility::addDscpAclTable(
-            &newCfg, 1 /*priority*/, addTtlQualifier, getAsic());
+            &newCfg, 1 /*priority*/, addAllQualifiers, getAsic());
         utility::addTtlAclTable(&newCfg, 2);
         applyNewConfig(newCfg);
       }
