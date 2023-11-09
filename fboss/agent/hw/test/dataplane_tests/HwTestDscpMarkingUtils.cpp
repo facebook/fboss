@@ -47,7 +47,7 @@ std::string kCounterName() {
 
 uint8_t kIcpDscp(const HwAsic* hwAsic) {
   return utility::kOlympicQueueToDscp(hwAsic)
-      .at(utility::getOlympicQueueId(hwAsic, utility::OlympicQueueType::ICP))
+      .at(utility::getOlympicQueueId(utility::OlympicQueueType::ICP))
       .front();
 }
 
@@ -74,7 +74,7 @@ void addDscpMarkingAclsHelper(
         config,
         l4SrcPortAclName,
         kIcpDscp(hwAsic),
-        utility::getOlympicQueueId(hwAsic, utility::OlympicQueueType::ICP));
+        utility::getOlympicQueueId(utility::OlympicQueueType::ICP));
 
     auto l4DstPortAclName = getDscpAclName(proto, "dst", port);
     utility::addL4DstPortAclToCfg(config, l4DstPortAclName, proto, port);
@@ -82,7 +82,7 @@ void addDscpMarkingAclsHelper(
         config,
         l4DstPortAclName,
         kIcpDscp(hwAsic),
-        utility::getOlympicQueueId(hwAsic, utility::OlympicQueueType::ICP));
+        utility::getOlympicQueueId(utility::OlympicQueueType::ICP));
   }
 }
 
@@ -137,7 +137,7 @@ void addDscpMarkingAclsTableHelper(
         config,
         l4SrcPortAclName,
         kIcpDscp(hwAsic),
-        utility::getOlympicQueueId(hwAsic, utility::OlympicQueueType::ICP));
+        utility::getOlympicQueueId(utility::OlympicQueueType::ICP));
 
     auto l4DstPortAclName = getDscpAclName(proto, "dst", port);
     auto dscpDstMarkingAcl = utility::addAcl(
@@ -148,7 +148,7 @@ void addDscpMarkingAclsTableHelper(
         config,
         l4DstPortAclName,
         kIcpDscp(hwAsic),
-        utility::getOlympicQueueId(hwAsic, utility::OlympicQueueType::ICP));
+        utility::getOlympicQueueId(utility::OlympicQueueType::ICP));
   }
 }
 

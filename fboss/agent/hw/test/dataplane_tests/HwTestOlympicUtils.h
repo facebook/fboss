@@ -213,10 +213,10 @@ void addQueueBurstSizeConfig(
     const uint32_t minKbits,
     const uint32_t maxKbits);
 
-int getOlympicQueueId(const HwAsic* hwAsic, OlympicQueueType queueType);
+int getOlympicQueueId(OlympicQueueType queueType);
 
-int getOlympicV2QueueId(const HwAsic* hwAsic, OlympicV2QueueType queueType);
+int getOlympicV2QueueId(OlympicV2QueueType queueType);
 
-int getNetworkAIQueueId(const HwAsic* hwAsic, NetworkAIQueueType queueType);
+int getNetworkAIQueueId(NetworkAIQueueType queueType);
 
 } // namespace facebook::fboss::utility

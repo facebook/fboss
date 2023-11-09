@@ -398,8 +398,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
       return;
     }
 
-    auto kQueueId =
-        utility::getOlympicQueueId(getAsic(), utility::OlympicQueueType::ECN1);
+    auto kQueueId = utility::getOlympicQueueId(utility::OlympicQueueType::ECN1);
     // For VoQ switch, AQM stats are collected from queue!
     auto useQueueStatsForAqm =
         getPlatform()->getAsic()->getSwitchType() == cfg::SwitchType::VOQ;
@@ -560,8 +559,8 @@ class HwAqmTest : public HwLinkStateDependentTest {
           void(cfg::SwitchConfig&, std::vector<int>, const int txPacketLen)>>
           setupFn = std::nullopt,
       int maxQueueFillLevel = 0) {
-    auto kQueueId = utility::getOlympicQueueId(
-        getAsic(), utility::OlympicQueueType::SILVER);
+    auto kQueueId =
+        utility::getOlympicQueueId(utility::OlympicQueueType::SILVER);
     /*
      * Good to keep the payload size such that the whole packet with
      * headers can fit in a single buffer in ASIC to keep computation
@@ -735,8 +734,8 @@ class HwAqmTest : public HwLinkStateDependentTest {
 
   void runPerQueueEcnMarkedStatsTest() {
     const auto portId = masterLogicalInterfacePortIds()[0];
-    const int queueId = utility::getOlympicQueueId(
-        getAsic(), utility::OlympicQueueType::SILVER);
+    const int queueId =
+        utility::getOlympicQueueId(utility::OlympicQueueType::SILVER);
 
     auto setup = [=, this]() {
       auto config{initialConfig()};
@@ -807,10 +806,9 @@ class HwAqmTest : public HwLinkStateDependentTest {
 
   void runPerQueueWredDropStatsTest() {
     const std::vector<int> wredQueueIds = {
-        utility::getOlympicQueueId(
-            getAsic(), utility::OlympicQueueType::SILVER),
-        utility::getOlympicQueueId(getAsic(), utility::OlympicQueueType::GOLD),
-        utility::getOlympicQueueId(getAsic(), utility::OlympicQueueType::ECN1)};
+        utility::getOlympicQueueId(utility::OlympicQueueType::SILVER),
+        utility::getOlympicQueueId(utility::OlympicQueueType::GOLD),
+        utility::getOlympicQueueId(utility::OlympicQueueType::ECN1)};
 
     auto setup = [=, this]() {
       auto config{initialConfig()};
@@ -925,8 +923,8 @@ class HwAqmTest : public HwLinkStateDependentTest {
       }
 
       // Send 12K packets to each port
-      auto queueId = utility::getOlympicQueueId(
-          getAsic(), utility::OlympicQueueType::SILVER);
+      auto queueId =
+          utility::getOlympicQueueId(utility::OlympicQueueType::SILVER);
       for (auto const& port : ports) {
         sendPkts(
             utility::kOlympicQueueToDscp(getAsic()).at(queueId).front(),

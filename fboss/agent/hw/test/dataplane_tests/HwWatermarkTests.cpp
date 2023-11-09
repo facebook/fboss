@@ -320,11 +320,11 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
 };
 
 TEST_F(HwWatermarkTest, VerifyDefaultQueue) {
-  runTest(getOlympicQueueId(getAsic(), utility::OlympicQueueType::SILVER));
+  runTest(getOlympicQueueId(utility::OlympicQueueType::SILVER));
 }
 
 TEST_F(HwWatermarkTest, VerifyNonDefaultQueue) {
-  runTest(getOlympicQueueId(getAsic(), utility::OlympicQueueType::GOLD));
+  runTest(getOlympicQueueId(utility::OlympicQueueType::GOLD));
 }
 
 // TODO - merge device watermark checking into the tests
@@ -364,15 +364,13 @@ TEST_F(HwWatermarkTest, VerifyDeviceWatermarkHigherThanQueueWatermark) {
     // Sending traffic on 2 queues
     sendUdpPkts(
         utility::kOlympicQueueToDscp(getAsic())
-            .at(utility::getOlympicQueueId(
-                getAsic(), utility::OlympicQueueType::SILVER))
+            .at(utility::getOlympicQueueId(utility::OlympicQueueType::SILVER))
             .front(),
         kDestIp1(),
         minPktsForLineRate / 2);
     sendUdpPkts(
         utility::kOlympicQueueToDscp(getAsic())
-            .at(utility::getOlympicQueueId(
-                getAsic(), utility::OlympicQueueType::GOLD))
+            .at(utility::getOlympicQueueId(utility::OlympicQueueType::GOLD))
             .front(),
         kDestIp1(),
         minPktsForLineRate / 2);
@@ -387,9 +385,9 @@ TEST_F(HwWatermarkTest, VerifyDeviceWatermarkHigherThanQueueWatermark) {
       return;
     }
     auto queueIdGold =
-        utility::getOlympicQueueId(getAsic(), utility::OlympicQueueType::GOLD);
-    auto queueIdSilver = utility::getOlympicQueueId(
-        getAsic(), utility::OlympicQueueType::SILVER);
+        utility::getOlympicQueueId(utility::OlympicQueueType::GOLD);
+    auto queueIdSilver =
+        utility::getOlympicQueueId(utility::OlympicQueueType::SILVER);
     auto queueWatermarkNonZero =
         [queueIdGold,
          queueIdSilver](std::map<int16_t, int64_t>& queueWaterMarks) {
@@ -462,8 +460,8 @@ TEST_F(HwWatermarkTest, VerifyQueueWatermarkAccuracy) {
      * the watermark reported is as expected by the computed watermark
      * based on the number of bytes we expect in the queue.
      */
-    auto kQueueId = utility::getOlympicQueueId(
-        getAsic(), utility::OlympicQueueType::SILVER);
+    auto kQueueId =
+        utility::getOlympicQueueId(utility::OlympicQueueType::SILVER);
     constexpr auto kTxPacketPayloadLen{200};
     constexpr auto kNumberOfPacketsToSend{100};
     const bool isVoq =

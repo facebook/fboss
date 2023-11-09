@@ -347,7 +347,7 @@ void HwOlympicQosSchedulerTest::verifySP(bool frontPanelTraffic) {
         // SP queue with highest queueId
         // should starve other SP queues
         // altogether
-        utility::getOlympicQueueId(getAsic(), utility::OlympicQueueType::NC)));
+        utility::getOlympicQueueId(utility::OlympicQueueType::NC)));
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -357,16 +357,16 @@ void HwOlympicQosSchedulerTest::verifyWRRAndICP() {
   verifyWRRAndSP(
       utility::kOlympicWRRAndICPQueueIds(getAsic()),
       utility::getOlympicQueueId(
-          getAsic(), utility::OlympicQueueType::ICP)); // SP should starve WRR
-                                                       // queues altogether
+          utility::OlympicQueueType::ICP)); // SP should starve WRR
+                                            // queues altogether
 }
 
 void HwOlympicQosSchedulerTest::verifyWRRAndNC() {
   verifyWRRAndSP(
       utility::kOlympicWRRAndNCQueueIds(getAsic()),
       utility::getOlympicQueueId(
-          getAsic(), utility::OlympicQueueType::NC)); // SP should starve WRR
-                                                      // queues altogether
+          utility::OlympicQueueType::NC)); // SP should starve WRR
+                                           // queues altogether
 }
 
 /*
@@ -438,8 +438,7 @@ void HwOlympicQosSchedulerTest::verifyWRRToAllSPTraffic() {
         // SP queue with highest queueId
         // should starve other SP queues
         // altogether
-        utility::getOlympicV2QueueId(
-            getAsic(), utility::OlympicV2QueueType::NC)));
+        utility::getOlympicV2QueueId(utility::OlympicV2QueueType::NC)));
   };
 
   verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
@@ -574,8 +573,7 @@ void HwOlympicQosSchedulerTest::verifyOlympicV2WRRToAllSPTraffic() {
         // SP queue with highest queueId
         // should starve other SP queues
         // altogether
-        utility::getOlympicV2QueueId(
-            getAsic(), utility::OlympicV2QueueType::NC)));
+        utility::getOlympicV2QueueId(utility::OlympicV2QueueType::NC)));
   };
 
   verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
@@ -649,10 +647,8 @@ TEST_F(HwOlympicQosSchedulerTest, VerifySPPreemptionCPUTraffic) {
   // preemption we want lower pri (ICP) queue to go before
   // higher pri queue (NC).
   ASSERT_LT(
-      getQueueIndex(
-          getOlympicQueueId(getAsic(), utility::OlympicQueueType::ICP)),
-      getQueueIndex(
-          getOlympicQueueId(getAsic(), utility::OlympicQueueType::NC)));
+      getQueueIndex(getOlympicQueueId(utility::OlympicQueueType::ICP)),
+      getQueueIndex(getOlympicQueueId(utility::OlympicQueueType::NC)));
 
   verifySP(false /*frontPanelTraffic*/);
 }
