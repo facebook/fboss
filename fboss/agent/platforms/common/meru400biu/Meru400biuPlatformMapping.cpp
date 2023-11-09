@@ -109,7 +109,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 2
+          "attachedCorePortIndex": 2,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "22": {
@@ -275,6 +276,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth1/1",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC49",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/1",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC49",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/1",
+                      "lane": 0
                     }
                   }
                 ]
@@ -339,7 +380,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 3
+          "attachedCorePortIndex": 3,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "22": {
@@ -505,6 +547,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth1/3",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC50",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/3",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC50",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/3",
+                      "lane": 0
                     }
                   }
                 ]
@@ -569,7 +651,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 4
+          "attachedCorePortIndex": 4,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "22": {
@@ -735,6 +818,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth1/4",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC51",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/4",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC51",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/4",
+                      "lane": 0
                     }
                   }
                 ]
@@ -799,7 +922,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 5
+          "attachedCorePortIndex": 5,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "22": {
@@ -965,6 +1089,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth1/5",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC52",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/5",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC52",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/5",
+                      "lane": 0
                     }
                   }
                 ]
@@ -1029,7 +1193,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 6
+          "attachedCorePortIndex": 6,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "22": {
@@ -1195,6 +1360,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth1/6",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC53",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/6",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC53",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/6",
+                      "lane": 0
                     }
                   }
                 ]
@@ -1259,7 +1464,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 7
+          "attachedCorePortIndex": 7,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "22": {
@@ -1425,6 +1631,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth1/7",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC54",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/7",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC54",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/7",
+                      "lane": 0
                     }
                   }
                 ]
@@ -1489,7 +1735,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 8
+          "attachedCorePortIndex": 8,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "22": {
@@ -1655,6 +1902,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth1/8",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC55",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/8",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC55",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/8",
+                      "lane": 0
                     }
                   }
                 ]
@@ -1719,7 +2006,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 9
+          "attachedCorePortIndex": 9,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "22": {
@@ -1885,6 +2173,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth1/9",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC56",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/9",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC56",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/9",
+                      "lane": 0
                     }
                   }
                 ]
@@ -1949,7 +2277,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 10
+          "attachedCorePortIndex": 10,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "22": {
@@ -2115,6 +2444,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth1/10",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC57",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/10",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC57",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/10",
+                      "lane": 0
                     }
                   }
                 ]
@@ -2179,7 +2548,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 11
+          "attachedCorePortIndex": 11,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "22": {
@@ -2345,6 +2715,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth1/11",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC58",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/11",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC58",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/11",
+                      "lane": 0
                     }
                   }
                 ]
@@ -2409,7 +2819,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 12
+          "attachedCorePortIndex": 12,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "22": {
@@ -2575,6 +2986,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth1/12",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC59",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/12",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC59",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/12",
+                      "lane": 0
                     }
                   }
                 ]
@@ -2639,7 +3090,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 13
+          "attachedCorePortIndex": 13,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "22": {
@@ -2805,6 +3257,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth1/13",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC60",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/13",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC60",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/13",
+                      "lane": 0
                     }
                   }
                 ]
@@ -2869,7 +3361,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 14
+          "attachedCorePortIndex": 14,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "22": {
@@ -3035,6 +3528,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth1/14",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC61",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/14",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC61",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/14",
+                      "lane": 0
                     }
                   }
                 ]
@@ -3099,7 +3632,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 15
+          "attachedCorePortIndex": 15,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "22": {
@@ -3265,6 +3799,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth1/15",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC62",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/15",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC62",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/15",
+                      "lane": 0
                     }
                   }
                 ]
@@ -3329,7 +3903,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 16
+          "attachedCorePortIndex": 16,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "22": {
@@ -3495,6 +4070,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth1/16",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC63",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/16",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC63",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/16",
+                      "lane": 0
                     }
                   }
                 ]
@@ -3559,7 +4174,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 17
+          "attachedCorePortIndex": 17,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "22": {
@@ -3725,6 +4341,46 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth1/17",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "43": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC64",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/17",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          },
+          "44": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC64",
+                      "lane": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/17",
+                      "lane": 0
                     }
                   }
                 ]
@@ -16859,6 +17515,38 @@ constexpr auto kJsonPlatformMappingStr = R"(
     },
     {
       "factor": {
+        "profileID": 44
+      },
+      "profile": {
+        "speed": 50000,
+        "iphy": {
+          "numLanes": 1,
+          "modulation": 2,
+          "fec": 544,
+          "medium": 2,
+          "interfaceMode": 1,
+          "interfaceType": 1
+        }
+      }
+    },
+    {
+      "factor": {
+        "profileID": 43
+      },
+      "profile": {
+        "speed": 50000,
+        "iphy": {
+          "numLanes": 1,
+          "modulation": 2,
+          "fec": 544,
+          "medium": 1,
+          "interfaceMode": 10,
+          "interfaceType": 10
+        }
+      }
+    },
+    {
+      "factor": {
         "profileID": 22
       },
       "profile": {
@@ -17020,7 +17708,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 2
+          "attachedCorePortIndex": 2,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "22": {
@@ -17254,7 +17943,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 3
+          "attachedCorePortIndex": 3,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -17320,7 +18010,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 4
+          "attachedCorePortIndex": 4,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -17386,7 +18077,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 5
+          "attachedCorePortIndex": 5,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -17452,7 +18144,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 6
+          "attachedCorePortIndex": 6,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -17518,7 +18211,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 7
+          "attachedCorePortIndex": 7,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -17584,7 +18278,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 8
+          "attachedCorePortIndex": 8,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -17650,7 +18345,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 9
+          "attachedCorePortIndex": 9,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -17752,7 +18448,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 10
+          "attachedCorePortIndex": 10,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "22": {
@@ -17986,7 +18683,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 11
+          "attachedCorePortIndex": 11,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -18052,7 +18750,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 12
+          "attachedCorePortIndex": 12,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -18118,7 +18817,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 13
+          "attachedCorePortIndex": 13,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -18184,7 +18884,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 14
+          "attachedCorePortIndex": 14,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -18250,7 +18951,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 15
+          "attachedCorePortIndex": 15,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -18316,7 +19018,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 16
+          "attachedCorePortIndex": 16,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -18382,7 +19085,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 17
+          "attachedCorePortIndex": 17,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -18484,7 +19188,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 18
+          "attachedCorePortIndex": 18,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "22": {
@@ -18718,7 +19423,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 19
+          "attachedCorePortIndex": 19,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -18784,7 +19490,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 20
+          "attachedCorePortIndex": 20,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -18850,7 +19557,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 21
+          "attachedCorePortIndex": 21,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -18916,7 +19624,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 22
+          "attachedCorePortIndex": 22,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -18982,7 +19691,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 23
+          "attachedCorePortIndex": 23,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -19048,7 +19758,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 24
+          "attachedCorePortIndex": 24,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -19114,7 +19825,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 25
+          "attachedCorePortIndex": 25,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -19216,7 +19928,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 26
+          "attachedCorePortIndex": 26,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "22": {
@@ -19450,7 +20163,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 27
+          "attachedCorePortIndex": 27,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -19516,7 +20230,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 28
+          "attachedCorePortIndex": 28,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -19582,7 +20297,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 29
+          "attachedCorePortIndex": 29,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -19648,7 +20364,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 30
+          "attachedCorePortIndex": 30,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -19714,7 +20431,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 31
+          "attachedCorePortIndex": 31,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -19780,7 +20498,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 32
+          "attachedCorePortIndex": 32,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -19846,7 +20565,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 33
+          "attachedCorePortIndex": 33,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -19948,7 +20668,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 34
+          "attachedCorePortIndex": 34,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "22": {
@@ -20182,7 +20903,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 35
+          "attachedCorePortIndex": 35,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -20248,7 +20970,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 36
+          "attachedCorePortIndex": 36,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -20314,7 +21037,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 37
+          "attachedCorePortIndex": 37,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -20380,7 +21104,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 38
+          "attachedCorePortIndex": 38,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -20446,7 +21171,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 39
+          "attachedCorePortIndex": 39,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -20512,7 +21238,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 40
+          "attachedCorePortIndex": 40,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -20578,7 +21305,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 41
+          "attachedCorePortIndex": 41,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -20680,7 +21408,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 42
+          "attachedCorePortIndex": 42,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "22": {
@@ -20914,7 +21643,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 43
+          "attachedCorePortIndex": 43,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -20980,7 +21710,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 44
+          "attachedCorePortIndex": 44,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -21046,7 +21777,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 45
+          "attachedCorePortIndex": 45,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -21112,7 +21844,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 46
+          "attachedCorePortIndex": 46,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -21178,7 +21911,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 47
+          "attachedCorePortIndex": 47,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -21244,7 +21978,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 48
+          "attachedCorePortIndex": 48,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -21310,7 +22045,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 49
+          "attachedCorePortIndex": 49,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -21412,7 +22148,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 50
+          "attachedCorePortIndex": 50,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "22": {
@@ -21646,7 +22383,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 51
+          "attachedCorePortIndex": 51,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -21712,7 +22450,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 52
+          "attachedCorePortIndex": 52,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -21778,7 +22517,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 53
+          "attachedCorePortIndex": 53,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -21844,7 +22584,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 54
+          "attachedCorePortIndex": 54,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -21910,7 +22651,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 55
+          "attachedCorePortIndex": 55,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -21976,7 +22718,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 56
+          "attachedCorePortIndex": 56,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -22042,7 +22785,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 57
+          "attachedCorePortIndex": 57,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -22144,7 +22888,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 58
+          "attachedCorePortIndex": 58,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "22": {
@@ -22378,7 +23123,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 59
+          "attachedCorePortIndex": 59,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -22444,7 +23190,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 60
+          "attachedCorePortIndex": 60,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -22510,7 +23257,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 61
+          "attachedCorePortIndex": 61,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -22576,7 +23324,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 62
+          "attachedCorePortIndex": 62,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -22642,7 +23391,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 63
+          "attachedCorePortIndex": 63,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -22708,7 +23458,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 64
+          "attachedCorePortIndex": 64,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -22774,7 +23525,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 65
+          "attachedCorePortIndex": 65,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -22876,7 +23628,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 66
+          "attachedCorePortIndex": 66,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "22": {
@@ -23110,7 +23863,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 67
+          "attachedCorePortIndex": 67,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -23176,7 +23930,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 68
+          "attachedCorePortIndex": 68,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -23242,7 +23997,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 69
+          "attachedCorePortIndex": 69,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -23308,7 +24064,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 70
+          "attachedCorePortIndex": 70,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -23374,7 +24131,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 71
+          "attachedCorePortIndex": 71,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -23440,7 +24198,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 72
+          "attachedCorePortIndex": 72,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -23506,7 +24265,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 73
+          "attachedCorePortIndex": 73,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -23608,7 +24368,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 74
+          "attachedCorePortIndex": 74,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "22": {
@@ -23842,7 +24603,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 75
+          "attachedCorePortIndex": 75,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -23908,7 +24670,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 76
+          "attachedCorePortIndex": 76,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -23974,7 +24737,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 77
+          "attachedCorePortIndex": 77,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -24040,7 +24804,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 78
+          "attachedCorePortIndex": 78,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -24106,7 +24871,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 79
+          "attachedCorePortIndex": 79,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -24172,7 +24938,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 80
+          "attachedCorePortIndex": 80,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -24238,7 +25005,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 81
+          "attachedCorePortIndex": 81,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -24340,7 +25108,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 82
+          "attachedCorePortIndex": 82,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "22": {
@@ -24574,7 +25343,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 83
+          "attachedCorePortIndex": 83,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -24640,7 +25410,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 84
+          "attachedCorePortIndex": 84,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -24706,7 +25477,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 85
+          "attachedCorePortIndex": 85,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -24772,7 +25544,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 86
+          "attachedCorePortIndex": 86,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -24838,7 +25611,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 87
+          "attachedCorePortIndex": 87,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -24904,7 +25678,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 88
+          "attachedCorePortIndex": 88,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -24970,7 +25745,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 89
+          "attachedCorePortIndex": 89,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -25072,7 +25848,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 90
+          "attachedCorePortIndex": 90,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "22": {
@@ -25306,7 +26083,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 91
+          "attachedCorePortIndex": 91,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -25372,7 +26150,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 92
+          "attachedCorePortIndex": 92,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -25438,7 +26217,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 93
+          "attachedCorePortIndex": 93,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -25504,7 +26284,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 94
+          "attachedCorePortIndex": 94,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -25570,7 +26351,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 95
+          "attachedCorePortIndex": 95,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -25636,7 +26418,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 96
+          "attachedCorePortIndex": 96,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -25702,7 +26485,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 97
+          "attachedCorePortIndex": 97,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -25804,7 +26588,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 98
+          "attachedCorePortIndex": 98,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "22": {
@@ -26038,7 +26823,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 99
+          "attachedCorePortIndex": 99,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -26104,7 +26890,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 100
+          "attachedCorePortIndex": 100,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -26170,7 +26957,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 101
+          "attachedCorePortIndex": 101,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -26236,7 +27024,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 102
+          "attachedCorePortIndex": 102,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -26302,7 +27091,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 103
+          "attachedCorePortIndex": 103,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -26368,7 +27158,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 104
+          "attachedCorePortIndex": 104,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -26434,7 +27225,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 105
+          "attachedCorePortIndex": 105,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -26536,7 +27328,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 106
+          "attachedCorePortIndex": 106,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "22": {
@@ -26770,7 +27563,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 107
+          "attachedCorePortIndex": 107,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -26836,7 +27630,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 108
+          "attachedCorePortIndex": 108,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -26902,7 +27697,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 109
+          "attachedCorePortIndex": 109,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -26968,7 +27764,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 110
+          "attachedCorePortIndex": 110,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -27034,7 +27831,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 111
+          "attachedCorePortIndex": 111,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -27100,7 +27898,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 112
+          "attachedCorePortIndex": 112,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -27166,7 +27965,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 113
+          "attachedCorePortIndex": 113,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -27268,7 +28068,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 114
+          "attachedCorePortIndex": 114,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "22": {
@@ -27502,7 +28303,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 115
+          "attachedCorePortIndex": 115,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -27568,7 +28370,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 116
+          "attachedCorePortIndex": 116,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -27634,7 +28437,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 117
+          "attachedCorePortIndex": 117,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -27700,7 +28504,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 118
+          "attachedCorePortIndex": 118,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -27766,7 +28571,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 119
+          "attachedCorePortIndex": 119,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -27832,7 +28638,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 120
+          "attachedCorePortIndex": 120,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -27898,7 +28705,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 121
+          "attachedCorePortIndex": 121,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -28000,7 +28808,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 122
+          "attachedCorePortIndex": 122,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "22": {
@@ -28234,7 +29043,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 123
+          "attachedCorePortIndex": 123,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -28300,7 +29110,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 124
+          "attachedCorePortIndex": 124,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -28366,7 +29177,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 125
+          "attachedCorePortIndex": 125,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -28432,7 +29244,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 126
+          "attachedCorePortIndex": 126,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -28498,7 +29311,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 127
+          "attachedCorePortIndex": 127,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -28564,7 +29378,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 128
+          "attachedCorePortIndex": 128,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -28630,7 +29445,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 129
+          "attachedCorePortIndex": 129,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -28732,7 +29548,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 130
+          "attachedCorePortIndex": 130,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "22": {
@@ -28966,7 +29783,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 131
+          "attachedCorePortIndex": 131,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -29032,7 +29850,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 132
+          "attachedCorePortIndex": 132,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -29098,7 +29917,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 133
+          "attachedCorePortIndex": 133,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -29164,7 +29984,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 134
+          "attachedCorePortIndex": 134,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -29230,7 +30051,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 135
+          "attachedCorePortIndex": 135,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -29296,7 +30118,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 136
+          "attachedCorePortIndex": 136,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -29362,7 +30185,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 137
+          "attachedCorePortIndex": 137,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -29464,7 +30288,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 138
+          "attachedCorePortIndex": 138,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "22": {
@@ -29698,7 +30523,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 139
+          "attachedCorePortIndex": 139,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -29764,7 +30590,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 140
+          "attachedCorePortIndex": 140,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -29830,7 +30657,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 141
+          "attachedCorePortIndex": 141,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -29896,7 +30724,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 142
+          "attachedCorePortIndex": 142,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -29962,7 +30791,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 143
+          "attachedCorePortIndex": 143,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -30028,7 +30858,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 144
+          "attachedCorePortIndex": 144,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
@@ -30094,7 +30925,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 145
+          "attachedCorePortIndex": 145,
+          "virtualDeviceId": 0
         },
         "supportedProfiles": {
           "43": {
