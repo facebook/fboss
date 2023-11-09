@@ -57,6 +57,7 @@ TEST(FlowletSwitching, addUpdate) {
   flowletCfg.dynamicEgressMinThresholdBytes() = 1000;
   flowletCfg.dynamicEgressMaxThresholdBytes() = 10000;
   flowletCfg.dynamicPhysicalQueueExponent() = 3;
+  flowletCfg.maxLinks() = 9;
 
   flowletSwitchingConfig->fromThrift(flowletCfg);
   switchSettings = std::make_shared<SwitchSettings>();
@@ -77,6 +78,7 @@ TEST(FlowletSwitching, addUpdate) {
   EXPECT_EQ(flowletCfg2->getDynamicEgressMinThresholdBytes(), 1000);
   EXPECT_EQ(flowletCfg2->getDynamicEgressMaxThresholdBytes(), 10000);
   EXPECT_EQ(flowletCfg2->getDynamicPhysicalQueueExponent(), 3);
+  EXPECT_EQ(flowletCfg2->getMaxLinks(), 9);
 }
 
 TEST(FlowletSwitching, publish) {
@@ -112,6 +114,7 @@ TEST(FlowletSwitching, serDeserSwitchState) {
   flowletCfg.dynamicEgressMinThresholdBytes() = 1000;
   flowletCfg.dynamicEgressMaxThresholdBytes() = 10000;
   flowletCfg.dynamicPhysicalQueueExponent() = 3;
+  flowletCfg.maxLinks() = 7;
 
   // convert to state
   flowletSwitchingConfig->fromThrift(flowletCfg);

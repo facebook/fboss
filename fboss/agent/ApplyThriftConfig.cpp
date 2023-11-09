@@ -3617,6 +3617,7 @@ ThriftConfigApplier::createFlowletSwitchingConfig(
       *config.dynamicEgressMaxThresholdBytes());
   newFlowletSwitchingConfig->setDynamicPhysicalQueueExponent(
       *config.dynamicPhysicalQueueExponent());
+  newFlowletSwitchingConfig->setMaxLinks(*config.maxLinks());
   return newFlowletSwitchingConfig;
 }
 

@@ -118,6 +118,14 @@ class FlowletSwitchingConfig : public ThriftStructNode<
     return get<switch_config_tags::dynamicPhysicalQueueExponent>()->cref();
   }
 
+  void setMaxLinks(const uint16_t maxLinks) {
+    set<switch_config_tags::maxLinks>(maxLinks);
+  }
+
+  uint16_t getMaxLinks() const {
+    return get<switch_config_tags::maxLinks>()->cref();
+  }
+
  private:
   // Inherit the constructors required for clone()
   using BaseT::BaseT;
