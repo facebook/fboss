@@ -1,4 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
+
+#include "fboss/platform/platform_manager/PlatformExplorer.h"
+
 #include <chrono>
 #include <exception>
 #include <filesystem>
@@ -8,7 +11,7 @@
 
 #include <folly/logging/xlog.h>
 
-#include "fboss/platform/platform_manager/PlatformExplorer.h"
+#include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_constants.h"
 
 namespace {
 constexpr auto kRootSlotPath = "/";
@@ -26,6 +29,8 @@ std::string getSlotPath(
 } // namespace
 
 namespace facebook::fboss::platform::platform_manager {
+
+using constants = platform_manager_config_constants;
 
 PlatformExplorer::PlatformExplorer(
     std::chrono::seconds exploreInterval,
@@ -333,6 +338,30 @@ void PlatformExplorer::createDeviceSymLink(
     busNum = getI2cBusNum(slotPath, *slotTypeConfig.idpromConfig()->busName());
     i2cAddr = I2cAddr(*slotTypeConfig.idpromConfig()->address());
     subDir = "eeprom";
+  } else {
+    auto i2cDeviceConfigIt = std::find_if(
+        pmUnitConfig.i2cDeviceConfigs()->begin(),
+        pmUnitConfig.i2cDeviceConfigs()->end(),
+        [&](auto i2cDeviceConfig) {
+          return *i2cDeviceConfig.pmUnitScopedName() == deviceName;
+        });
+    if (i2cDeviceConfigIt == pmUnitConfig.i2cDeviceConfigs()->end()) {
+      XLOG(ERR) << fmt::format(
+          "Couldn't find i2c device config for ({})", deviceName);
+      return;
+    }
+    auto i2cDeviceConfig = *i2cDeviceConfigIt;
+    busNum = getI2cBusNum(slotPath, *i2cDeviceConfig.busName());
+    i2cAddr = I2cAddr(*i2cDeviceConfig.address());
+
+    if (*i2cDeviceConfig.deviceType() == constants::DEVICE_TYPE_EEPROM()) {
+      subDir = "eeprom";
+    } else {
+      XLOG(ERR) << fmt::format(
+          "Unsuppored i2c device type {} for symlink creation",
+          *i2cDeviceConfig.deviceType());
+      return;
+    }
   }
 
   if (!busNum || !i2cAddr) {
