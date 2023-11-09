@@ -2017,7 +2017,6 @@
     "/run/devmap/sensors/SCM_TSENSOR1": "/SCM_SLOT@0/[SCM_TSENSOR1]",
     "/run/devmap/sensors/SCM_TSENSOR2": "/SCM_SLOT@0/[SCM_TSENSOR2]",
     "/run/devmap/sensors/SCM_VOLTAGE_MONITOR": "/SCM_SLOT@0/[SCM_VOLTAGE_MONITOR]",
-    "/run/devmap/sensors/SCM_SOME_SENSOR": "/SCM_SLOT@0/[SCM_SOME_SENSOR]",
     "/run/devmap/sensors/PSU1_PMBUS": "/PSU_SLOT@0/[PSU_PMBUS]",
     "/run/devmap/sensors/PSU2_PMBUS": "/PSU_SLOT@1/[PSU_PMBUS]",
     "/run/devmap/sensors/SMB_VRM1": "/SMB_SLOT@0/[SMB_VRM1]",
@@ -2034,7 +2033,10 @@
     "/run/devmap/sensors/FCB_T_TSENSOR1": "/FCB_SLOT@0/[FCB_T_TSENSOR1]",
     "/run/devmap/sensors/FCB_T_TSENSOR2": "/FCB_SLOT@0/[FCB_T_TSENSOR2]",
     "/run/devmap/sensors/FCB_B_TSENSOR1": "/FCB_SLOT@0/[FCB_B_TSENSOR1]",
-    "/run/devmap/sensors/FCB_B_TSENSOR2": "/FCB_SLOT@0/[FCB_B_TSENSOR2]"
+    "/run/devmap/sensors/FCB_B_TSENSOR2": "/FCB_SLOT@0/[FCB_B_TSENSOR2]",
+    "/run/devmap/cplds/MCB_CPLD": "/[MCB_CPLD]",
+    "/run/devmap/cplds/SCM_CPLD": "/SCM_SLOT@0/[SCM_CPLD]",
+    "/run/devmap/cplds/SMB_CPLD": "/SMB_SLOT@0/[SMB_CPLD]"
   },
   "bspKmodsRpmName": "fboss_bsp_kmods",
   "bspKmodsRpmVersion": "0.7.0-2",
