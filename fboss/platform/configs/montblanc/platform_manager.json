@@ -1889,67 +1889,78 @@
           "busName": "INCOMING@0",
           "address": "0x76",
           "kernelDeviceName": "pmbus",
-          "pmUnitScopedName": "SMB_VRM1"
+          "pmUnitScopedName": "SMB_VRM1",
+          "deviceType": "SENSOR"
         },
         {
           "busName": "INCOMING@1",
           "address": "0x1d",
           "kernelDeviceName": "adc128d818",
-          "pmUnitScopedName": "SMB_VOLTAGE_MONITOR1"
+          "pmUnitScopedName": "SMB_VOLTAGE_MONITOR1",
+          "deviceType": "SENSOR"
         },
         {
           "busName": "INCOMING@1",
           "address": "0x1f",
           "kernelDeviceName": "adc128d818",
-          "pmUnitScopedName": "SMB_VOLTAGE_MONITOR2"
+          "pmUnitScopedName": "SMB_VOLTAGE_MONITOR2",
+          "deviceType": "SENSOR"
         },
         {
           "busName": "INCOMING@2",
           "address": "0x35",
           "kernelDeviceName": "adc128d818",
-          "pmUnitScopedName": "SMB_VOLTAGE_MONITOR3"
+          "pmUnitScopedName": "SMB_VOLTAGE_MONITOR3",
+          "deviceType": "SENSOR"
         },
         {
           "busName": "INCOMING@3",
           "address": "0x3e",
           "kernelDeviceName": "smbcpld",
-          "pmUnitScopedName": "SMB_CPLD"
+          "pmUnitScopedName": "SMB_CPLD",
+          "deviceType": "SENSOR"
         },
         {
           "busName": "INCOMING@4",
           "address": "0x7d",
           "kernelDeviceName": "mp2975",
-          "pmUnitScopedName": "SMB_VRM2"
+          "pmUnitScopedName": "SMB_VRM2",
+          "deviceType": "SENSOR"
         },
         {
           "busName": "INCOMING@5",
           "address": "0x7b",
           "kernelDeviceName": "mp2975",
-          "pmUnitScopedName": "SMB_VRM3"
+          "pmUnitScopedName": "SMB_VRM3",
+          "deviceType": "SENSOR"
         },
         {
           "busName": "SMB_DOM1_I2C_MASTER_34",
           "address": "0x48",
           "kernelDeviceName": "tmp1075",
-          "pmUnitScopedName": "SMB_TSENSOR1"
+          "pmUnitScopedName": "SMB_TSENSOR1",
+          "deviceType": "SENSOR"
         },
         {
           "busName": "SMB_DOM1_I2C_MASTER_34",
           "address": "0x49",
           "kernelDeviceName": "tmp1075",
-          "pmUnitScopedName": "SMB_TSENSOR2"
+          "pmUnitScopedName": "SMB_TSENSOR2",
+          "deviceType": "SENSOR"
         },
         {
           "busName": "SMB_DOM2_I2C_MASTER_34",
           "address": "0x4a",
           "kernelDeviceName": "tmp1075",
-          "pmUnitScopedName": "SMB_TSENSOR3"
+          "pmUnitScopedName": "SMB_TSENSOR3",
+          "deviceType": "SENSOR"
         },
         {
           "busName": "SMB_DOM2_I2C_MASTER_34",
           "address": "0x4b",
           "kernelDeviceName": "tmp1075",
-          "pmUnitScopedName": "SMB_TSENSOR4"
+          "pmUnitScopedName": "SMB_TSENSOR4",
+          "deviceType": "SENSOR"
         }
       ]
     },
@@ -1960,25 +1971,29 @@
           "busName": "INCOMING@1",
           "address": "0x49",
           "kernelDeviceName": "tmp1075",
-          "pmUnitScopedName": "FCB_T_TSENSOR1"
+          "pmUnitScopedName": "FCB_T_TSENSOR1",
+          "deviceType": "SENSOR"
         },
         {
           "busName": "INCOMING@1",
           "address": "0x4b",
           "kernelDeviceName": "tmp1075",
-          "pmUnitScopedName": "FCB_T_TSENSOR2"
+          "pmUnitScopedName": "FCB_T_TSENSOR2",
+          "deviceType": "SENSOR"
         },
         {
           "busName": "INCOMING@2",
           "address": "0x49",
           "kernelDeviceName": "tmp1075",
-          "pmUnitScopedName": "FCB_B_TSENSOR1"
+          "pmUnitScopedName": "FCB_B_TSENSOR1",
+          "deviceType": "SENSOR"
         },
         {
           "busName": "INCOMING@2",
           "address": "0x4b",
           "kernelDeviceName": "tmp1075",
-          "pmUnitScopedName": "FCB_B_TSENSOR2"
+          "pmUnitScopedName": "FCB_B_TSENSOR2",
+          "deviceType": "SENSOR"
         }
       ]
     }
@@ -1990,7 +2005,36 @@
     "/run/devmap/eeproms/RUNBMC_EEPROM": "/SCM_SLOT@0/RUNBMC_SLOT@0/[IDPROM]",
     "/run/devmap/eeproms/SMB_EEPROM": "/SMB_SLOT@0/[IDPROM]",
     "/run/devmap/eeproms/FCB_EEPROM": "/FCB_SLOT@0/[IDPROM]",
-    "/run/devmap/eeproms/SCM_EEPROM": "/SCM_SLOT@0/[SCM_EEPROM]"
+    "/run/devmap/eeproms/SCM_EEPROM": "/SCM_SLOT@0/[SCM_EEPROM]",
+    "/run/devmap/sensors/PDB-L-TSENSOR": "/[PDB-L-TSENSOR]",
+    "/run/devmap/sensors/PDB-R-TSENSOR": "/[PDB-R-TSENSOR]",
+    "/run/devmap/sensors/MCB_TSENSOR": "/[MCB_TSENSOR]",
+    "/run/devmap/sensors/MCB_FAN_CPLD": "/[MCB_FAN_CPLD]",
+    "/run/devmap/sensors/MCB_CPLD": "/[MCB_CPLD]",
+    "/run/devmap/sensors/MCB_VOLTAGE_MONITOR": "/[MCB_VOLTAGE_MONITOR]",
+    "/run/devmap/sensors/SCM_CPLD": "/SCM_SLOT@0/[SCM_CPLD]",
+    "/run/devmap/sensors/SCM_SENSOR": "/SCM_SLOT@0/[SCM_SENSOR]",
+    "/run/devmap/sensors/SCM_TSENSOR1": "/SCM_SLOT@0/[SCM_TSENSOR1]",
+    "/run/devmap/sensors/SCM_TSENSOR2": "/SCM_SLOT@0/[SCM_TSENSOR2]",
+    "/run/devmap/sensors/SCM_VOLTAGE_MONITOR": "/SCM_SLOT@0/[SCM_VOLTAGE_MONITOR]",
+    "/run/devmap/sensors/SCM_SOME_SENSOR": "/SCM_SLOT@0/[SCM_SOME_SENSOR]",
+    "/run/devmap/sensors/PSU1_PMBUS": "/PSU_SLOT@0/[PSU_PMBUS]",
+    "/run/devmap/sensors/PSU2_PMBUS": "/PSU_SLOT@1/[PSU_PMBUS]",
+    "/run/devmap/sensors/SMB_VRM1": "/SMB_SLOT@0/[SMB_VRM1]",
+    "/run/devmap/sensors/SMB_VOLTAGE_MONITOR1": "/SMB_SLOT@0/[SMB_VOLTAGE_MONITOR1]",
+    "/run/devmap/sensors/SMB_VOLTAGE_MONITOR2": "/SMB_SLOT@0/[SMB_VOLTAGE_MONITOR2]",
+    "/run/devmap/sensors/SMB_VOLTAGE_MONITOR3": "/SMB_SLOT@0/[SMB_VOLTAGE_MONITOR3]",
+    "/run/devmap/sensors/SMB_CPLD": "/SMB_SLOT@0/[SMB_CPLD]",
+    "/run/devmap/sensors/SMB_VRM2": "/SMB_SLOT@0/[SMB_VRM2]",
+    "/run/devmap/sensors/SMB_VRM3": "/SMB_SLOT@0/[SMB_VRM3]",
+    "/run/devmap/sensors/SMB_TSENSOR1": "/SMB_SLOT@0/[SMB_TSENSOR1]",
+    "/run/devmap/sensors/SMB_TSENSOR2": "/SMB_SLOT@0/[SMB_TSENSOR2]",
+    "/run/devmap/sensors/SMB_TSENSOR3": "/SMB_SLOT@0/[SMB_TSENSOR3]",
+    "/run/devmap/sensors/SMB_TSENSOR4": "/SMB_SLOT@0/[SMB_TSENSOR4]",
+    "/run/devmap/sensors/FCB_T_TSENSOR1": "/FCB_SLOT@0/[FCB_T_TSENSOR1]",
+    "/run/devmap/sensors/FCB_T_TSENSOR2": "/FCB_SLOT@0/[FCB_T_TSENSOR2]",
+    "/run/devmap/sensors/FCB_B_TSENSOR1": "/FCB_SLOT@0/[FCB_B_TSENSOR1]",
+    "/run/devmap/sensors/FCB_B_TSENSOR2": "/FCB_SLOT@0/[FCB_B_TSENSOR2]"
   },
   "bspKmodsRpmName": "fboss_bsp_kmods",
   "bspKmodsRpmVersion": "0.7.0-2",
