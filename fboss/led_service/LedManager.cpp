@@ -180,7 +180,7 @@ void LedManager::setExternalLedState(
  * - If the led.conf file exist then return the value of boolean
  *   ledControlledThroughService from that file
  */
-bool LedManager::isLedControlledThroughService() {
+bool LedManager::isLedControlledThroughService() const {
   if (ledConfig_.get()) {
     return ledConfig_->thriftConfig_.ledControlledThroughService().value();
   }

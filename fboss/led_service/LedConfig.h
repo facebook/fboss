@@ -4,6 +4,8 @@
 
 #include "fboss/led_service/if/gen-cpp2/led_service_config_types.h"
 
+DECLARE_string(led_config);
+
 namespace facebook::fboss {
 
 struct LedConfig {
