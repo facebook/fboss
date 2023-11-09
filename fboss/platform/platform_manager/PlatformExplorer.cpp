@@ -336,6 +336,12 @@ void PlatformExplorer::createDeviceSymLink(
       [&](auto i2cDeviceConfig) {
         return *i2cDeviceConfig.pmUnitScopedName() == deviceName;
       });
+  auto pciDeviceConfig = std::find_if(
+      pmUnitConfig.pciDeviceConfigs()->begin(),
+      pmUnitConfig.pciDeviceConfigs()->end(),
+      [&](auto pciDeviceConfig) {
+        return *pciDeviceConfig.pmUnitScopedName() == deviceName;
+      });
 
   std::optional<std::filesystem::path> targetPath = std::nullopt;
   if (linkParentPath.string() == "/run/devmap/eeproms") {
@@ -390,6 +396,30 @@ void PlatformExplorer::createDeviceSymLink(
       return;
     }
     targetPath = *targetPath / hwmonSubDir;
+  } else if (linkParentPath.string() == "/run/devmap/cplds") {
+    if (i2cDeviceConfig != pmUnitConfig.i2cDeviceConfigs()->end()) {
+      auto busNum = getI2cBusNum(slotPath, *i2cDeviceConfig->busName());
+      auto i2cAddr = I2cAddr(*i2cDeviceConfig->address());
+      if (!i2cExplorer_.isI2cDevicePresent(busNum, i2cAddr)) {
+        XLOG(ERR) << fmt::format(
+            "{} is not plugged-in to the platform", deviceName);
+        return;
+      }
+      targetPath =
+          std::filesystem::path(i2cExplorer_.getDeviceI2cPath(busNum, i2cAddr));
+    } else if (pciDeviceConfig != pmUnitConfig.pciDeviceConfigs()->end()) {
+      auto pciDevice = PciDevice(
+          *pciDeviceConfig->pmUnitScopedName(),
+          *pciDeviceConfig->vendorId(),
+          *pciDeviceConfig->deviceId(),
+          *pciDeviceConfig->subSystemVendorId(),
+          *pciDeviceConfig->subSystemDeviceId());
+      targetPath = std::filesystem::path(pciDevice.sysfsPath());
+    } else {
+      XLOG(ERR) << fmt::format(
+          "Couldn't resolve target path for ({})", deviceName);
+      return;
+    }
   }
 
   XLOG(INFO) << fmt::format(
