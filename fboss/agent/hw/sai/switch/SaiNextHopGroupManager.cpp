@@ -220,7 +220,8 @@ void ManagedSaiNextHopGroupMember<NextHopTraits>::createObject(
     // notify nhgroup to bulk program correct weight
     nhgroup_->memberAdded({adapterHostKey, weight_}, bulkUpdate);
   }
-  XLOG(DBG2) << "ManagedSaiNextHopGroupMember::createObject: " << toString();
+  XLOG(DBG2) << "ManagedSaiNextHopGroupMember::createObject: " << toString()
+             << " weight " << weight_.value();
 }
 
 template <typename NextHopTraits>
