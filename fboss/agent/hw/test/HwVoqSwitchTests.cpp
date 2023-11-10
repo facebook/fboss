@@ -1096,9 +1096,7 @@ TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, stressAddRemoveObjects) {
             getProgrammedState(), kRemoteSysPortId));
       }
     }
-    if (isSupported(HwAsic::Feature::L3_QOS)) {
-      assertVoqTailDrops(kNeighborIp, kRemoteSysPortId);
-    }
+    assertVoqTailDrops(kNeighborIp, kRemoteSysPortId);
     auto beforePkts =
         getLatestPortStats(kPort.phyPortID()).get_outUnicastPkts_();
     // CPU send

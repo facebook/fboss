@@ -146,7 +146,7 @@ std::shared_ptr<SwitchState> addRemoveRemoteNeighbor(
     if (encapIndex) {
       ndp.encapIndex() = *encapIndex;
     }
-    ndp.isLocal() = encapIndex == std::nullopt;
+    ndp.isLocal() = false;
     ndpTable->emplace(neighborIp.str(), std::move(ndp));
   } else {
     ndpTable->remove(neighborIp.str());
