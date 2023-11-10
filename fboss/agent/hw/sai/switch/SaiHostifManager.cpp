@@ -668,12 +668,10 @@ void SaiHostifManager::setCpuSystemPortQosPolicy(QosMapSaiId tcToQueue) {
   if (!cpuPortHandle_->cpuSystemPortId) {
     return;
   }
-#if defined BRCM_SAI_SDK_GTE_11_0
   auto& systemPortApi = SaiApiTable::getInstance()->systemPortApi();
   systemPortApi.setAttribute(
       cpuPortHandle_->cpuSystemPortId.value(),
       SaiSystemPortTraits::Attributes::QosTcToQueueMap{tcToQueue});
-#endif
 }
 
 } // namespace facebook::fboss
