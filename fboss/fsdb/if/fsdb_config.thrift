@@ -24,9 +24,12 @@ struct SubscriberConfig {
 struct Config {
   @cpp.Type{template = "std::unordered_map"}
   1: map<string, string> defaultCommandLineArgs;
-  // TODO: deprecate operPublishers config in lieu of publishers{} after 1 push.
   @cpp.Type{template = "std::unordered_map"}
-  2: map<fsdb_common.PublisherId, list<fsdb_oper.OperPath>> operPublishers = {};
+  // operPublishers is replaced by publishers map.
+  2: map<
+    fsdb_common.PublisherId,
+    list<fsdb_oper.OperPath>
+  > operPublishers_DEPRECATED = {};
   // trustedSubnets in CIDRNetwork format. Used for server side enforcement of transport privileges.
   // only clients from trustedSubnets are allowed to connect with TC marking enabled
   3: list<string> trustedSubnets = [];
