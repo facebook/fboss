@@ -123,6 +123,7 @@ void SaiSwitch::tamEventCallback(
       XLOG(ERR) << lackOfResourceType(eventDesc->event.switch_event.data
                                           .lack_of_resources.err_type)
                 << " error detected by SDK!";
+      getSwitchStats()->asicError();
       break;
 #endif
     case SAI_SWITCH_EVENT_TYPE_ALL:
