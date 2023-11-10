@@ -30,6 +30,12 @@ DEFINE_bool(
     true,
     "Enable download and installation of the BSP and udev rpms");
 
+DEFINE_bool(
+    run_once,
+    false,
+    "Setup platform once and exit. If set to false, the program will explore "
+    "the platform every explore_interval_s.");
+
 int main(int argc, char** argv) {
   fb303::registerFollyLoggingOptionHandlers();
   helpers::init(argc, argv);
@@ -41,7 +47,12 @@ int main(int argc, char** argv) {
   }
 
   PlatformExplorer platformExplorer(
-      std::chrono::seconds(FLAGS_explore_interval_s), config);
+      std::chrono::seconds(FLAGS_explore_interval_s), config, FLAGS_run_once);
+
+  // If it is a one time setup, we don't have to run the thrift service.
+  if (FLAGS_run_once) {
+    return 0;
+  }
 
   auto server = std::make_shared<apache::thrift::ThriftServer>();
   auto handler = std::make_shared<PlatformManagerHandler>();

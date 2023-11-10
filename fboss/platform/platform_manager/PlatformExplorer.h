@@ -16,7 +16,8 @@ class PlatformExplorer {
  public:
   explicit PlatformExplorer(
       std::chrono::seconds exploreInterval,
-      const PlatformConfig& config);
+      const PlatformConfig& config,
+      bool runOnce = false);
 
   // Explore the platform.
   void explore();
