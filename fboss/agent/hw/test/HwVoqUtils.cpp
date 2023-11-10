@@ -11,11 +11,16 @@
 #include "fboss/agent/hw/test/HwVoqUtils.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 
-namespace {
-constexpr auto kSystemPortCountPerNode = 15;
-}
-
 namespace facebook::fboss::utility {
+
+namespace {
+int getPerNodeSysPorts(cfg::AsicType asicType) {
+  return asicType == cfg::AsicType::ASIC_TYPE_JERICHO2 ? 20 : 40;
+}
+int getPerNodeSysPorts(const HwAsic* asic) {
+  return getPerNodeSysPorts(asic->getAsicType());
+}
+} // namespace
 
 int getDsfNodeCount(const HwAsic* asic) {
   return asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2 ? 128 : 256;
@@ -46,14 +51,12 @@ std::optional<std::map<int64_t, cfg::DsfNode>> addRemoteDsfNodeCfg(
                                               : getDsfNodeCount(asic.get());
   for (int remoteSwitchId = numCores; remoteSwitchId < totalNodes * numCores;
        remoteSwitchId += numCores) {
-    // Ideally there's no need to add extra offset if each dsfNode has 15
-    // ports. However, local switch already used 1 CPU, 1 recyle and 16 system
-    // ports. Adding an extra offset of 5 for remote system ports.
     const auto systemPortMin =
-        (remoteSwitchId / numCores) * kSystemPortCountPerNode + 5;
+        (remoteSwitchId / numCores) * getPerNodeSysPorts(asic.get());
     cfg::Range64 systemPortRange;
     systemPortRange.minimum() = systemPortMin;
-    systemPortRange.maximum() = systemPortMin + kSystemPortCountPerNode - 1;
+    systemPortRange.maximum() =
+        systemPortMin + getPerNodeSysPorts(asic.get()) - 1;
     auto remoteDsfNodeCfg =
         dsfNodeConfig(*asic, SwitchID(remoteSwitchId), systemPortMin);
     dsfNodes.insert({remoteSwitchId, remoteDsfNodeCfg});
@@ -168,7 +171,7 @@ std::shared_ptr<SwitchState> setupRemoteIntfAndSysPorts(
     CHECK(dsfNode.systemPortRange().has_value());
     const auto minPortID = *dsfNode.systemPortRange()->minimum();
     // 0th port for CPU and 1st port for recycle port
-    for (int i = 2; i < kSystemPortCountPerNode; i++) {
+    for (int i = 2; i < getPerNodeSysPorts(*dsfNode.asicType()); i++) {
       const auto newSysPortId = minPortID + i;
       const SystemPortID remoteSysPortId(newSysPortId);
       const InterfaceID remoteIntfId(newSysPortId);
