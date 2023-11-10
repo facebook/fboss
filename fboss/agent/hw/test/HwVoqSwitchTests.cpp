@@ -737,9 +737,18 @@ TEST_F(HwVoqSwitchTest, packetIntegrityError) {
   auto verify = [=, this]() {
     const auto dstIp = ecmpHelper.ip(port);
     std::string out;
-    getHwSwitchEnsemble()->runDiagCommand(
-        "m SPB_FORCE_CRC_ERROR FORCE_CRC_ERROR_ON_DATA=1 FORCE_CRC_ERROR_ON_CRC=1\n",
-        out);
+    if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2) {
+      getHwSwitchEnsemble()->runDiagCommand(
+          "m SPB_FORCE_CRC_ERROR FORCE_CRC_ERROR_ON_DATA=1 FORCE_CRC_ERROR_ON_CRC=1\n",
+          out);
+    } else if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
+      getHwSwitchEnsemble()->runDiagCommand(
+          "m IRE_FORCE_CRC_ERROR FORCE_CRC_ERROR_ON_CRC=1\n", out);
+    } else {
+      throw FbossError(
+          "Unsupported ASIC type: ",
+          apache::thrift::util::enumNameSafe(getAsic()->getAsicType()));
+    }
     getHwSwitchEnsemble()->runDiagCommand("quit\n", out);
     sendPacket(dstIp, std::nullopt, std::vector<uint8_t>(1024, 0xff));
     WITH_RETRIES({
