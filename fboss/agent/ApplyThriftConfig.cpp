@@ -919,10 +919,8 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
       }
     }
     intf->setAddresses(std::move(addresses));
-    if (dsfNodeAsic->isSupported(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE)) {
-      intf->setArpTable(std::move(arpTable));
-      intf->setNdpTable(std::move(ndpTable));
-    }
+    intf->setArpTable(std::move(arpTable));
+    intf->setNdpTable(std::move(ndpTable));
     intfs->updateNode(intf, scopeResolver_.scope(intf, new_));
   };
   auto addDsfNode = [&](const std::shared_ptr<DsfNode>& node) {
