@@ -901,6 +901,13 @@ class HwVoqSwitchWithMultipleDsfNodesTest : public HwVoqSwitchTest {
   }
 
  protected:
+  std::optional<uint64_t> getDummyEncapIndex() const {
+    std::optional<uint64_t> dummyEncapIndex;
+    if (isSupported(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE)) {
+      dummyEncapIndex = 0x200001;
+    }
+    return dummyEncapIndex;
+  }
   void assertVoqTailDrops(
       const folly::IPAddressV6& nbrIp,
       const SystemPortID& sysPortId) {
@@ -1010,7 +1017,6 @@ TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, addRemoveRemoteNeighbor) {
             {folly::IPAddress("100.0.0.1"), 24},
         }));
     folly::IPAddressV6 kNeighborIp("100::2");
-    uint64_t dummyEncapIndex = 0x200001;
     PortDescriptor kPort(kRemoteSysPortId);
     // Add neighbor
     applyNewState(utility::addRemoveRemoteNeighbor(
@@ -1020,7 +1026,7 @@ TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, addRemoveRemoteNeighbor) {
         kIntfId,
         kPort,
         true,
-        dummyEncapIndex));
+        getDummyEncapIndex()));
     // Remove neighbor
     applyNewState(utility::addRemoveRemoteNeighbor(
         getProgrammedState(),
@@ -1029,7 +1035,7 @@ TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, addRemoveRemoteNeighbor) {
         kIntfId,
         kPort,
         false,
-        dummyEncapIndex));
+        getDummyEncapIndex()));
   };
   verifyAcrossWarmBoots(setup, [] {});
 }
@@ -1051,7 +1057,6 @@ TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, stressAddRemoveObjects) {
     const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
     const InterfaceID kIntfId(remotePortId);
     PortDescriptor kRemotePort(kRemoteSysPortId);
-    uint64_t dummyEncapIndex = 0x200001;
     auto addObjects = [&]() {
       // add local neighbor
       addRemoveNeighbor(kPort, true /* add neighbor*/);
@@ -1082,7 +1087,7 @@ TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, stressAddRemoveObjects) {
           kIntfId,
           kRemotePort,
           true,
-          dummyEncapIndex));
+          getDummyEncapIndex()));
     };
     auto removeObjects = [&]() {
       addRemoveNeighbor(kPort, false /* remove neighbor*/);
@@ -1094,7 +1099,7 @@ TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, stressAddRemoveObjects) {
           kIntfId,
           kRemotePort,
           false,
-          dummyEncapIndex));
+          getDummyEncapIndex()));
       // Remove rif
       applyNewState(
           utility::removeRemoteInterface(getProgrammedState(), kIntfId));
@@ -1153,7 +1158,6 @@ TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, voqTailDropCounter) {
             {folly::IPAddress("100::1"), 64},
             {folly::IPAddress("100.0.0.1"), 24},
         }));
-    uint64_t dummyEncapIndex = 0x200001;
     PortDescriptor kPort(kRemoteSysPortId);
     // Add neighbor
     applyNewState(utility::addRemoveRemoteNeighbor(
@@ -1163,7 +1167,7 @@ TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, voqTailDropCounter) {
         kIntfId,
         kPort,
         true,
-        dummyEncapIndex));
+        getDummyEncapIndex()));
   };
 
   auto verify = [=, this]() {
