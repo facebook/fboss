@@ -53,19 +53,21 @@ class HwRouteScaleTest : public HwTest {
 };
 
 TEST_F(HwRouteScaleTest, rswRouteScale) {
-  runTest<utility::RSWRouteScaleGenerator>(
-      {PlatformType::PLATFORM_WEDGE,
-       PlatformType::PLATFORM_WEDGE100,
-       PlatformType::PLATFORM_GALAXY_LC,
-       PlatformType::PLATFORM_GALAXY_FC,
-       PlatformType::PLATFORM_MINIPACK,
-       PlatformType::PLATFORM_YAMP,
-       PlatformType::PLATFORM_WEDGE400,
-       PlatformType::PLATFORM_WEDGE400C,
-       PlatformType::PLATFORM_MORGAN800CC,
-       PlatformType::PLATFORM_CLOUDRIPPER,
-       PlatformType::PLATFORM_ELBERT,
-       PlatformType::PLATFORM_FUJI});
+  runTest<utility::RSWRouteScaleGenerator>({
+      PlatformType::PLATFORM_WEDGE,
+      PlatformType::PLATFORM_WEDGE100,
+      PlatformType::PLATFORM_GALAXY_LC,
+      PlatformType::PLATFORM_GALAXY_FC,
+      PlatformType::PLATFORM_MINIPACK,
+      PlatformType::PLATFORM_YAMP,
+      PlatformType::PLATFORM_WEDGE400,
+      PlatformType::PLATFORM_WEDGE400C,
+      PlatformType::PLATFORM_MORGAN800CC,
+      PlatformType::PLATFORM_CLOUDRIPPER,
+      PlatformType::PLATFORM_ELBERT,
+      PlatformType::PLATFORM_FUJI,
+      PlatformType::PLATFORM_MERU800BIA,
+  });
 }
 
 TEST_F(HwRouteScaleTest, fswRouteScale) {
@@ -80,41 +82,48 @@ TEST_F(HwRouteScaleTest, fswRouteScale) {
        PlatformType::PLATFORM_MORGAN800CC,
        PlatformType::PLATFORM_CLOUDRIPPER,
        PlatformType::PLATFORM_ELBERT,
-       PlatformType::PLATFORM_FUJI});
+       PlatformType::PLATFORM_FUJI,
+       PlatformType::PLATFORM_MERU800BIA});
 }
 
 TEST_F(HwRouteScaleTest, thAlpmScale) {
-  runTest<utility::THAlpmRouteScaleGenerator>(
-      {PlatformType::PLATFORM_WEDGE100,
-       PlatformType::PLATFORM_GALAXY_LC,
-       PlatformType::PLATFORM_GALAXY_FC,
-       PlatformType::PLATFORM_WEDGE400C,
-       PlatformType::PLATFORM_MORGAN800CC,
-       PlatformType::PLATFORM_CLOUDRIPPER});
+  runTest<utility::THAlpmRouteScaleGenerator>({
+      PlatformType::PLATFORM_WEDGE100,
+      PlatformType::PLATFORM_GALAXY_LC,
+      PlatformType::PLATFORM_GALAXY_FC,
+      PlatformType::PLATFORM_WEDGE400C,
+      PlatformType::PLATFORM_MORGAN800CC,
+      PlatformType::PLATFORM_CLOUDRIPPER,
+      PlatformType::PLATFORM_MERU800BIA,
+  });
 }
 
 TEST_F(HwRouteScaleTest, hgridDuScaleTest) {
-  runTest<utility::HgridDuRouteScaleGenerator>(
-      {PlatformType::PLATFORM_MINIPACK,
-       PlatformType::PLATFORM_YAMP,
-       PlatformType::PLATFORM_WEDGE400,
-       PlatformType::PLATFORM_WEDGE400C,
-       PlatformType::PLATFORM_MORGAN800CC,
-       PlatformType::PLATFORM_CLOUDRIPPER,
-       PlatformType::PLATFORM_ELBERT,
-       PlatformType::PLATFORM_FUJI});
+  runTest<utility::HgridDuRouteScaleGenerator>({
+      PlatformType::PLATFORM_MINIPACK,
+      PlatformType::PLATFORM_YAMP,
+      PlatformType::PLATFORM_WEDGE400,
+      PlatformType::PLATFORM_WEDGE400C,
+      PlatformType::PLATFORM_MORGAN800CC,
+      PlatformType::PLATFORM_CLOUDRIPPER,
+      PlatformType::PLATFORM_ELBERT,
+      PlatformType::PLATFORM_FUJI,
+      PlatformType::PLATFORM_MERU800BIA,
+  });
 }
 
 TEST_F(HwRouteScaleTest, hgridUuScaleTest) {
-  runTest<utility::HgridUuRouteScaleGenerator>(
-      {PlatformType::PLATFORM_MINIPACK,
-       PlatformType::PLATFORM_YAMP,
-       PlatformType::PLATFORM_WEDGE400,
-       PlatformType::PLATFORM_WEDGE400C,
-       PlatformType::PLATFORM_MORGAN800CC,
-       PlatformType::PLATFORM_CLOUDRIPPER,
-       PlatformType::PLATFORM_ELBERT,
-       PlatformType::PLATFORM_FUJI});
+  runTest<utility::HgridUuRouteScaleGenerator>({
+      PlatformType::PLATFORM_MINIPACK,
+      PlatformType::PLATFORM_YAMP,
+      PlatformType::PLATFORM_WEDGE400,
+      PlatformType::PLATFORM_WEDGE400C,
+      PlatformType::PLATFORM_MORGAN800CC,
+      PlatformType::PLATFORM_CLOUDRIPPER,
+      PlatformType::PLATFORM_ELBERT,
+      PlatformType::PLATFORM_FUJI,
+      PlatformType::PLATFORM_MERU800BIA,
+  });
 }
 
 TEST_F(HwRouteScaleTest, turboFabricScaleTest) {
@@ -127,14 +136,16 @@ TEST_F(HwRouteScaleTest, turboFabricScaleTest) {
 }
 
 TEST_F(HwRouteScaleTest, anticipatedRouteScaleGenerator) {
-  runTest<utility::AnticipatedRouteScaleGenerator>(
-      {PlatformType::PLATFORM_MINIPACK,
-       PlatformType::PLATFORM_YAMP,
-       PlatformType::PLATFORM_WEDGE400,
-       PlatformType::PLATFORM_WEDGE400C,
-       PlatformType::PLATFORM_MORGAN800CC,
-       PlatformType::PLATFORM_CLOUDRIPPER,
-       PlatformType::PLATFORM_ELBERT,
-       PlatformType::PLATFORM_FUJI});
+  runTest<utility::AnticipatedRouteScaleGenerator>({
+      PlatformType::PLATFORM_MINIPACK,
+      PlatformType::PLATFORM_YAMP,
+      PlatformType::PLATFORM_WEDGE400,
+      PlatformType::PLATFORM_WEDGE400C,
+      PlatformType::PLATFORM_MORGAN800CC,
+      PlatformType::PLATFORM_CLOUDRIPPER,
+      PlatformType::PLATFORM_ELBERT,
+      PlatformType::PLATFORM_FUJI,
+      PlatformType::PLATFORM_MERU800BIA,
+  });
 }
 } // namespace facebook::fboss
