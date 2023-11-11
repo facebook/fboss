@@ -189,11 +189,12 @@ void addNetworkAIQueueConfig(
   }
 }
 
-void addVoqQueueConfig(
+void addVoqAqmConfig(
     cfg::SwitchConfig* config,
     cfg::StreamType streamType,
     const HwAsic* asic,
-    bool addWredConfig) {
+    bool addWredConfig,
+    bool addEcnConfig) {
   std::vector<cfg::PortQueue> voqConfig;
   std::vector<OlympicQueueType> kQueueTypes{
       OlympicQueueType::SILVER,
@@ -216,7 +217,9 @@ void addVoqQueueConfig(
 
     if (queueId == getOlympicQueueId(OlympicQueueType::ECN1)) {
       queue.aqms() = {};
-      queue.aqms()->push_back(kGetOlympicEcnConfig());
+      if (addEcnConfig) {
+        queue.aqms()->push_back(kGetOlympicEcnConfig());
+      }
       if (addWredConfig) {
         queue.aqms()->push_back(kGetWredConfig());
       }
@@ -327,9 +330,9 @@ void addOlympicQueueOptionalEcnWredConfigWithSchedulingHelper(
       port.portQueueConfigName() = "queue_config";
     }
   }
-  // For VoQ switches, add the default VoQ queue config as well!
+  // For VoQ switches, add AQM config to VoQ as well.
   if (asic->getSwitchType() == cfg::SwitchType::VOQ) {
-    addVoqQueueConfig(config, streamType, asic, addWredConfig);
+    addVoqAqmConfig(config, streamType, asic, addWredConfig, addEcnConfig);
   }
 }
 
