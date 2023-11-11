@@ -664,11 +664,13 @@ class HwAqmTest : public HwLinkStateDependentTest {
           kExpectedOutPackets,
           expectedMarkedOrDroppedPacketCount,
           before);
-      auto afterPortStats = getHwSwitchEnsemble()->getLatestPortStats(
-          masterLogicalInterfacePortIds()[0]);
-      AqmTestStats after{};
-      extractAqmTestStats(
-          afterPortStats, kQueueId, false /*useQueueStatsForAqm*/, after);
+      auto useQueueStatsForAqm =
+          getPlatform()->getAsic()->getSwitchType() == cfg::SwitchType::VOQ;
+      auto after = getAqmTestStats(
+          ecnVal,
+          masterLogicalInterfacePortIds()[0],
+          kQueueId,
+          useQueueStatsForAqm);
       auto deltaOutPackets = after.outPackets - before.outPackets;
 
       /*
