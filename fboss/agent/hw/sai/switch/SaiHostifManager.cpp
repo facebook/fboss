@@ -608,40 +608,21 @@ void SaiHostifManager::setQosPolicy() {
   // We allow only a single QoS policy right now, so
   // pick that up.
   auto qosMapHandle = qosMapManager.getQosMap();
+
+  // TODO(daiweix): has to clear and set tcToQueueMap. Simply set
+  // new tcToQueueMap will cause object in use error when cleaning
+  // old tcToQueueMap. Investigate why.
+  setCpuPortQosPolicy(
+      QosMapSaiId(SAI_NULL_OBJECT_ID), QosMapSaiId(SAI_NULL_OBJECT_ID));
+  setCpuPortQosPolicy(
+      qosMapHandle->dscpToTcMap->adapterKey(),
+      qosMapHandle->tcToQueueMap->adapterKey());
+  // TODO(daiweix): add setCpuSystemPortQosPolicy()
+
+  // update qos map shared pointers at last to keep
+  // new qos map objects and release unused ones
   globalDscpToTcQosMap_ = qosMapHandle->dscpToTcMap;
   globalTcToQueueQosMap_ = qosMapHandle->tcToQueueMap;
-
-  /*
-   * TODO(skhare)
-   *
-   * DSCP to Queue and Queue to TC mapping is a per port config. When FBOSS
-   * sets it on a particular port, the expectation is that this configuration
-   * will take effect for packets ingress on that port.
-   *
-   * However, when FBOSS applies this configuration on the CPU port, a bug in
-   * BRCM-SAI means that the configuration is applied for packets *egress* to
-   * CPU port. The fix is involved and may not be available immediately. Thus,
-   * as a workaround, skip setting this configuration the CPU port:
-   *
-   *  - By default, BRCM SAI maps TC 0 through 9 to Queue 0 through 9
-   *    respectively.
-   *  - OpenR ACL has action to set TC to 9, so in conjunction with the default
-   *    TC to Queue mapping, it could steer OpenR packets to the right queue
-   *    (high priority queue 9).
-   *  - Packets ingress from CPU port continue to follow Olympic model since
-   *    CPU port shares the cos map configuration on other front panel port
-   *    (BRCM ASIC behavior).
-   *
-   * Once the longer term fix is available to BRCM-SAI, this diff will be
-   * reverted.
-   */
-  auto tcToQueueAdapterKey = (platform_->getAsic()->getAsicVendor() ==
-                              HwAsic::AsicVendor::ASIC_VENDOR_BCM)
-      ? SAI_NULL_OBJECT_ID
-      : globalTcToQueueQosMap_->adapterKey();
-  setCpuPortQosPolicy(
-      globalDscpToTcQosMap_->adapterKey(), QosMapSaiId(tcToQueueAdapterKey));
-  // TODO(daiweix): add setCpuSystemPortQosPolicy()
 }
 
 void SaiHostifManager::clearQosPolicy() {
