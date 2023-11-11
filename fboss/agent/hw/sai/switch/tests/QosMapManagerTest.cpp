@@ -107,7 +107,7 @@ TEST_F(QosMapManagerTest, removeQosMap) {
   saiManagerTable->qosMapManager().addQosMap(qp);
   auto saiQosMapHandle = saiManagerTable->qosMapManager().getQosMap();
   EXPECT_TRUE(saiQosMapHandle);
-  saiManagerTable->qosMapManager().removeQosMap();
+  saiManagerTable->qosMapManager().removeQosMap(qp);
   saiQosMapHandle = saiManagerTable->qosMapManager().getQosMap();
   EXPECT_FALSE(saiQosMapHandle);
 }

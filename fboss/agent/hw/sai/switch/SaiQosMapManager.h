@@ -43,13 +43,18 @@ class SaiQosMapManager {
       SaiStore* saiStore,
       SaiManagerTable* managerTable,
       const SaiPlatform* platform);
-  void addQosMap(const std::shared_ptr<QosPolicy>& newQosPolicy);
-  void removeQosMap();
+  void addQosMap(
+      const std::shared_ptr<QosPolicy>& newQosPolicy,
+      bool isDefault = true);
+  void removeQosMap(const std::shared_ptr<QosPolicy>& oldQosPolicy);
   void changeQosMap(
       const std::shared_ptr<QosPolicy>& oldQosPolicy,
       const std::shared_ptr<QosPolicy>& newQosPolicy);
 
-  const SaiQosMapHandle* getQosMap() const;
+  SaiQosMapHandle* FOLLY_NULLABLE
+  getQosMap(const std::optional<std::string>& qosPolicyName = std::nullopt);
+  const SaiQosMapHandle* FOLLY_NULLABLE getQosMap(
+      const std::optional<std::string>& qosPolicyName = std::nullopt) const;
 
  private:
   std::shared_ptr<SaiQosMap> setDscpToTcQosMap(
@@ -69,8 +74,10 @@ class SaiQosMapManager {
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
-  // Only one QoS Map because we only manage the default, switch-wide, qos map
-  std::unique_ptr<SaiQosMapHandle> handle_;
+  SaiQosMapHandle* FOLLY_NULLABLE
+  getQosMapImpl(const std::optional<std::string>& qosPolicyName) const;
+  std::unordered_map<std::string, std::unique_ptr<SaiQosMapHandle>> handles_;
+  std::string defaultQosPolicyName_;
 };
 
 } // namespace facebook::fboss

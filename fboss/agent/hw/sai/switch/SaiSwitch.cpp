@@ -314,14 +314,14 @@ void SaiSwitch::processDefaultDataPlanePolicyDelta(
         portManager.clearQosPolicy();
         systemPortManager.clearQosPolicy();
         switchManager.clearQosPolicy();
-        qosMapManager.removeQosMap();
-        qosMapManager.addQosMap(qosDelta.getNew());
+        qosMapManager.removeQosMap(qosDelta.getOld());
+        qosMapManager.addQosMap(qosDelta.getNew(), true);
         portManager.setQosPolicy();
         systemPortManager.setQosPolicy();
         switchManager.setQosPolicy();
       }
     } else if (qosDelta.getNew()) {
-      qosMapManager.addQosMap(qosDelta.getNew());
+      qosMapManager.addQosMap(qosDelta.getNew(), true);
       portManager.setQosPolicy();
       systemPortManager.setQosPolicy();
       switchManager.setQosPolicy();
@@ -329,7 +329,7 @@ void SaiSwitch::processDefaultDataPlanePolicyDelta(
       portManager.clearQosPolicy();
       systemPortManager.clearQosPolicy();
       switchManager.clearQosPolicy();
-      qosMapManager.removeQosMap();
+      qosMapManager.removeQosMap(qosDelta.getOld());
     }
   }
 }

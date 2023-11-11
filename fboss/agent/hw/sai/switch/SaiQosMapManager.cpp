@@ -171,51 +171,75 @@ std::shared_ptr<SaiQosMap> SaiQosMapManager::setPfcPriorityToQueueQosMap(
 
 void SaiQosMapManager::setQosMaps(
     const std::shared_ptr<QosPolicy>& newQosPolicy) {
-  XLOG(DBG2) << "Setting global QoS map: " << newQosPolicy->getName();
-  handle_ = std::make_unique<SaiQosMapHandle>();
-  handle_->dscpToTcMap = setDscpToTcQosMap(newQosPolicy);
-  handle_->tcToQueueMap = setTcToQueueQosMap(newQosPolicy);
-  handle_->expToTcMap = setExpToTcQosMap(newQosPolicy);
-  handle_->tcToExpMap = setTcToExpQosMap(newQosPolicy);
+  std::string qosPolicyName = newQosPolicy->getName();
+  XLOG(DBG2) << "Setting QoS map: " << qosPolicyName;
+  std::unique_ptr<SaiQosMapHandle> handle = std::make_unique<SaiQosMapHandle>();
+  handle->dscpToTcMap = setDscpToTcQosMap(newQosPolicy);
+  handle->tcToQueueMap = setTcToQueueQosMap(newQosPolicy);
+  handle->expToTcMap = setExpToTcQosMap(newQosPolicy);
+  handle->tcToExpMap = setTcToExpQosMap(newQosPolicy);
   if (platform_->getAsic()->isSupported(HwAsic::Feature::PFC)) {
     if (newQosPolicy->getTrafficClassToPgId()) {
-      handle_->tcToPgMap = setTcToPgQosMap(newQosPolicy);
+      handle->tcToPgMap = setTcToPgQosMap(newQosPolicy);
     }
     if (newQosPolicy->getPfcPriorityToQueueId()) {
-      handle_->pfcPriorityToQueueMap =
-          setPfcPriorityToQueueQosMap(newQosPolicy);
+      handle->pfcPriorityToQueueMap = setPfcPriorityToQueueQosMap(newQosPolicy);
     }
   }
+  handles_[qosPolicyName] = std::move(handle);
 }
 
 void SaiQosMapManager::addQosMap(
-    const std::shared_ptr<QosPolicy>& newQosPolicy) {
-  if (handle_) {
+    const std::shared_ptr<QosPolicy>& newQosPolicy,
+    bool isDefault) {
+  std::string qosPolicyName = newQosPolicy->getName();
+  if (handles_.find(qosPolicyName) != handles_.end()) {
     throw FbossError("Failed to add QoS map: already programmed");
+  }
+  if (isDefault) {
+    defaultQosPolicyName_ = qosPolicyName;
   }
   return setQosMaps(newQosPolicy);
 }
 
-void SaiQosMapManager::removeQosMap() {
-  if (!handle_) {
+void SaiQosMapManager::removeQosMap(
+    const std::shared_ptr<QosPolicy>& oldQosPolicy) {
+  std::string qosPolicyName = oldQosPolicy->getName();
+  if (handles_.find(qosPolicyName) == handles_.end()) {
     throw FbossError("Failed to remove QoS map: none programmed");
   }
-  handle_.reset();
+  handles_.erase(qosPolicyName);
 }
 
 void SaiQosMapManager::changeQosMap(
     const std::shared_ptr<QosPolicy>& oldQosPolicy,
     const std::shared_ptr<QosPolicy>& newQosPolicy) {
-  if (!handle_) {
+  std::string qosPolicyName = newQosPolicy->getName();
+  if (handles_.find(qosPolicyName) == handles_.end()) {
     throw FbossError("Failed to change QoS map: none programmed");
   }
   return setQosMaps(newQosPolicy);
 }
 
-const SaiQosMapHandle* SaiQosMapManager::getQosMap() const {
-  if (!handle_) {
+const SaiQosMapHandle* FOLLY_NULLABLE SaiQosMapManager::getQosMap(
+    const std::optional<std::string>& qosPolicyName) const {
+  return getQosMapImpl(qosPolicyName);
+}
+SaiQosMapHandle* FOLLY_NULLABLE
+SaiQosMapManager::getQosMap(const std::optional<std::string>& qosPolicyName) {
+  return getQosMapImpl(qosPolicyName);
+}
+SaiQosMapHandle* FOLLY_NULLABLE SaiQosMapManager::getQosMapImpl(
+    const std::optional<std::string>& qosPolicyName) const {
+  std::string name;
+  if (!qosPolicyName) {
+    name = defaultQosPolicyName_;
+  } else {
+    name = qosPolicyName.value();
+  }
+  if (handles_.find(name) == handles_.end()) {
     return nullptr;
   }
-  return handle_.get();
+  return handles_.at(name).get();
 }
 } // namespace facebook::fboss
