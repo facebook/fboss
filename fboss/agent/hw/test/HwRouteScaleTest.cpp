@@ -67,6 +67,7 @@ TEST_F(HwRouteScaleTest, rswRouteScale) {
       PlatformType::PLATFORM_ELBERT,
       PlatformType::PLATFORM_FUJI,
       PlatformType::PLATFORM_MERU800BIA,
+      PlatformType::PLATFORM_MERU400BIU,
   });
 }
 
@@ -83,7 +84,8 @@ TEST_F(HwRouteScaleTest, fswRouteScale) {
        PlatformType::PLATFORM_CLOUDRIPPER,
        PlatformType::PLATFORM_ELBERT,
        PlatformType::PLATFORM_FUJI,
-       PlatformType::PLATFORM_MERU800BIA});
+       PlatformType::PLATFORM_MERU800BIA,
+       PlatformType::PLATFORM_MERU400BIU});
 }
 
 TEST_F(HwRouteScaleTest, thAlpmScale) {
@@ -95,6 +97,7 @@ TEST_F(HwRouteScaleTest, thAlpmScale) {
       PlatformType::PLATFORM_MORGAN800CC,
       PlatformType::PLATFORM_CLOUDRIPPER,
       PlatformType::PLATFORM_MERU800BIA,
+      PlatformType::PLATFORM_MERU400BIU,
   });
 }
 
@@ -109,6 +112,7 @@ TEST_F(HwRouteScaleTest, hgridDuScaleTest) {
       PlatformType::PLATFORM_ELBERT,
       PlatformType::PLATFORM_FUJI,
       PlatformType::PLATFORM_MERU800BIA,
+      PlatformType::PLATFORM_MERU400BIU,
   });
 }
 
@@ -123,6 +127,7 @@ TEST_F(HwRouteScaleTest, hgridUuScaleTest) {
       PlatformType::PLATFORM_ELBERT,
       PlatformType::PLATFORM_FUJI,
       PlatformType::PLATFORM_MERU800BIA,
+      PlatformType::PLATFORM_MERU400BIU,
   });
 }
 
@@ -146,6 +151,7 @@ TEST_F(HwRouteScaleTest, anticipatedRouteScaleGenerator) {
       PlatformType::PLATFORM_ELBERT,
       PlatformType::PLATFORM_FUJI,
       PlatformType::PLATFORM_MERU800BIA,
+      PlatformType::PLATFORM_MERU400BIU,
   });
 }
 } // namespace facebook::fboss
