@@ -155,9 +155,11 @@ void BcmEgressManager::processFlowletSwitchingConfigChanged(
         newFlowletSwitching->getInactivityIntervalUsecs();
     bcmFlowletConfig_.flowletTableSize =
         newFlowletSwitching->getFlowletTableSize();
+    bcmFlowletConfig_.maxLinks = newFlowletSwitching->getMaxLinks();
   } else {
     bcmFlowletConfig_.inactivityIntervalUsecs = 0;
     bcmFlowletConfig_.flowletTableSize = 0;
+    bcmFlowletConfig_.maxLinks = 0;
   }
   // update the all the ecmps in the hw
   // if the flowlet switching config changed

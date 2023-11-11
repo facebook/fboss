@@ -320,6 +320,26 @@ BcmEcmpEgress::BcmEcmpEgress(
   program();
 }
 
+static int getFlowletSizeWithScalingFactor(
+    const int flowSetTableSize,
+    const int numPaths,
+    const int maxPaths) {
+  // default table size is 2k
+  if (numPaths >= std::ceil(maxPaths * 0.75)) {
+    // Allow upto 4 links down
+    // with 32k flowset table max, this allows us upto 16 ECMP objects (default
+    // table size is 2k)
+    return flowSetTableSize;
+  } else if (numPaths >= std::ceil(maxPaths * 0.6)) {
+    // DLB is running in degraded state. Shrink the table.
+    // this allows upto 64 ECMP obejcts
+    return (flowSetTableSize >> 2);
+  } else {
+    // don't do DLB anymore
+    return 0;
+  }
+}
+
 void BcmEcmpEgress::setEgressEcmpMemberStatus(
     const BcmSwitchIf* hw,
     const EgressId2Weight& egressId2Weight) {
@@ -341,6 +361,7 @@ bool BcmEcmpEgress::isFlowletConfigUpdateNeeded() {
   bcm_l3_egress_ecmp_t_init(&obj);
   obj.ecmp_intf = id_;
   int pathsInHwCount = -1;
+  bool updateNeeded = false;
   bcm_l3_ecmp_member_t membersInHw[kMaxWeightedEcmpPaths];
   bcm_if_t pathsInHw[kMaxWeightedEcmpPaths];
   int ret = 0;
@@ -363,9 +384,21 @@ bool BcmEcmpEgress::isFlowletConfigUpdateNeeded() {
   }
   bcmCheckError(ret, "Unable to get ECMP:  ", id_);
   auto bcmEcmpFlowletConfig = hw_->getEgressManager()->getBcmFlowletConfig();
-  return obj.dynamic_age != bcmEcmpFlowletConfig.inactivityIntervalUsecs ||
-      obj.dynamic_size != bcmEcmpFlowletConfig.flowletTableSize ||
-      obj.dynamic_mode != BCM_L3_ECMP_DYNAMIC_MODE_NORMAL;
+
+  const auto neededDynamicSize = getFlowletSizeWithScalingFactor(
+      bcmEcmpFlowletConfig.flowletTableSize,
+      pathsInHwCount,
+      bcmEcmpFlowletConfig.maxLinks);
+  if ((obj.dynamic_age != bcmEcmpFlowletConfig.inactivityIntervalUsecs) ||
+      (obj.dynamic_size != neededDynamicSize)) {
+    updateNeeded = true;
+  }
+  if ((neededDynamicSize != 0) &&
+      (obj.dynamic_mode != BCM_L3_ECMP_DYNAMIC_MODE_NORMAL)) {
+    updateNeeded = true;
+  }
+
+  return updateNeeded;
 }
 
 void BcmEcmpEgress::program() {
@@ -422,11 +455,14 @@ void BcmEcmpEgress::program() {
     if (FLAGS_flowletSwitchingEnable) {
       auto bcmFlowletConfig = hw_->getEgressManager()->getBcmFlowletConfig();
       obj.dynamic_age = bcmFlowletConfig.inactivityIntervalUsecs;
-      if (bcmFlowletConfig.flowletTableSize) {
-        obj.dynamic_size = bcmFlowletConfig.flowletTableSize;
+      obj.dynamic_size = getFlowletSizeWithScalingFactor(
+          bcmFlowletConfig.flowletTableSize,
+          numPaths,
+          bcmFlowletConfig.maxLinks);
+      if (obj.dynamic_size > 0) {
         obj.dynamic_mode = BCM_L3_ECMP_DYNAMIC_MODE_NORMAL;
-        addOrUpdateEcmp = true;
       }
+      addOrUpdateEcmp = true;
       XLOG(DBG2) << "Programmed FlowletTableSize=" << obj.dynamic_size
                  << " InactivityIntervalUsecs=" << obj.dynamic_age;
     }
