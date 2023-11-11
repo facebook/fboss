@@ -2133,7 +2133,7 @@
     "/run/devmap/i2c-busses/SMB_DOM2_I2C_MASTER_32": "/SMB_SLOT@0/[SMB_DOM2_I2C_MASTER_32]",
     "/run/devmap/i2c-busses/SMB_DOM2_I2C_MASTER_33": "/SMB_SLOT@0/[SMB_DOM2_I2C_MASTER_33]",
     "/run/devmap/i2c-busses/SMB_DOM2_I2C_MASTER_34": "/SMB_SLOT@0/[SMB_DOM2_I2C_MASTER_34]",
-    "/run/devmap/gpio/MCB_GPIO_CHIP_1": "/[MCB_GPIO_CHIP_1]"
+    "/run/devmap/gpiochips/MCB_GPIO_CHIP_1": "/[MCB_GPIO_CHIP_1]"
   },
   "bspKmodsRpmName": "fboss_bsp_kmods",
   "bspKmodsRpmVersion": "0.7.0-2",

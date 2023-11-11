@@ -15,6 +15,9 @@ namespace fs = std::filesystem;
 using namespace facebook::fboss::platform::platform_manager;
 
 namespace {
+const std::string kGpioChip = "gpiochip";
+const re2::RE2 kGpioChipNameRe{"gpiochip\\d+"};
+
 bool isSamePciId(const std::string& id1, const std::string& id2) {
   return RE2::FullMatch(id1, PciExplorer().kPciIdRegex) &&
       RE2::FullMatch(id2, PciExplorer().kPciIdRegex) && id1 == id2;
@@ -183,6 +186,33 @@ void PciExplorer::createSpiMaster(
   auxData.spi_data.num_spidevs = *spiMasterConfig.numberOfCsPins();
   create(
       *spiMasterConfig.fpgaIpBlockConfig()->deviceName(), pciDevPath, auxData);
+}
+
+uint16_t PciExplorer::createGpioChip(
+    const PciDevice& pciDevice,
+    const FpgaIpBlockConfig& fpgaIpBlockConfig,
+    uint32_t instanceId) {
+  auto auxData = getAuxData(fpgaIpBlockConfig, instanceId);
+  create(*fpgaIpBlockConfig.deviceName(), pciDevice.charDevPath(), auxData);
+  std::string expectedEnding =
+      fmt::format(".{}.{}", *fpgaIpBlockConfig.deviceName(), instanceId);
+  for (const auto& dirEntry : fs::directory_iterator(pciDevice.sysfsPath())) {
+    if (hasEnding(dirEntry.path().string(), expectedEnding)) {
+      for (const auto& childDirEntry :
+           std::filesystem::directory_iterator(dirEntry)) {
+        if (re2::RE2::FullMatch(
+                childDirEntry.path().filename().string(), kGpioChipNameRe)) {
+          return folly::to<uint16_t>(
+              childDirEntry.path().filename().string().substr(
+                  kGpioChip.length()));
+        }
+      }
+    }
+  }
+  throw std::runtime_error(fmt::format(
+      "Couldn't find gpio chip under {} for {}",
+      pciDevice.sysfsPath(),
+      *fpgaIpBlockConfig.deviceName()));
 }
 
 void PciExplorer::createLedCtrl(

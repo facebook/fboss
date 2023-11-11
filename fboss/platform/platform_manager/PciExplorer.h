@@ -48,6 +48,13 @@ class PciExplorer {
       const SpiMasterConfig& spiMasterConfig,
       uint32_t instanceId);
 
+  // Create GPIO chip based on the given gpio's FpgaIpblockConfig residing
+  // at the given PciDevicePath. Throw std::runtime_error on failure.
+  uint16_t createGpioChip(
+      const PciDevice& pciDevice,
+      const FpgaIpBlockConfig& fpgaIpBlockConfig,
+      uint32_t instanceId);
+
   // Create the LED Controller based on the given ledCtrlConfig residing
   // at the given PciDevice path. Throw std::runtime_error on failure.
   void createLedCtrl(
