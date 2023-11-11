@@ -407,6 +407,15 @@ void addQueueWredDropConfig(
   for (auto& port : *config->ports()) {
     port.portQueueConfigName() = "queue_config";
   }
+  // For VoQ switches, add AQM config to VoQ as well.
+  if (asic->getSwitchType() == cfg::SwitchType::VOQ) {
+    addVoqAqmConfig(
+        config,
+        streamType,
+        asic,
+        true /*addWredConfig*/,
+        false /*addEcnConfig*/);
+  }
 }
 
 const std::map<OlympicV2QueueType, std::string>&
