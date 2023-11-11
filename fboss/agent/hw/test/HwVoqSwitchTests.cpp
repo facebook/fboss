@@ -98,6 +98,13 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
   }
 
  protected:
+  std::optional<uint64_t> getDummyEncapIndex() const {
+    std::optional<uint64_t> dummyEncapIndex;
+    if (isSupported(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE)) {
+      dummyEncapIndex = 0x200001;
+    }
+    return dummyEncapIndex;
+  }
   std::string kDscpAclName() const {
     return "dscp_acl";
   }
@@ -901,13 +908,6 @@ class HwVoqSwitchWithMultipleDsfNodesTest : public HwVoqSwitchTest {
   }
 
  protected:
-  std::optional<uint64_t> getDummyEncapIndex() const {
-    std::optional<uint64_t> dummyEncapIndex;
-    if (isSupported(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE)) {
-      dummyEncapIndex = 0x200001;
-    }
-    return dummyEncapIndex;
-  }
   void assertVoqTailDrops(
       const folly::IPAddressV6& nbrIp,
       const SystemPortID& sysPortId) {
@@ -1217,10 +1217,7 @@ class HwVoqSwitchFullScaleDsfNodesTest
     auto currState = getProgrammedState();
     for (const auto& sysPortDesc : sysPortDescs) {
       currState = ecmpHelper.resolveNextHops(
-          currState,
-          {sysPortDesc},
-          false,
-          /* encapIndex */ 0x200001);
+          currState, {sysPortDesc}, false, getDummyEncapIndex());
     }
     applyNewState(currState);
     return sysPortDescs;
