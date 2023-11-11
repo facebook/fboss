@@ -54,17 +54,20 @@ Optionally enable building with address sanitizer options turned on
 ```
 export WITH_ASAN=1
 ```
-Optionally enable building SAI binaries only
-```
-export SAI_ONLY=1
-```
 Optionally configure option to install benchmark binaries. Requires larger disk space.
 ```
 export BENCHMARK_INSTALL=1
 ```
-Build
+Build Dependencies (one time)
 ```
 cd fboss.git
 ./build/fbcode_builder/getdeps.py install-system-deps --recursive fboss # onetime
+```
+Build all fboss binaries
+```
 ./build/fbcode_builder/getdeps.py build --allow-system-packages fboss
+```
+Build only a specific fboss binary/library by passing `--cmake-target`. For example, if you want to build only `platform_manager` binary
+```
+./build/fbcode_builder/getdeps.py build --allow-system-packages fboss --cmake-target platform_manager
 ```
