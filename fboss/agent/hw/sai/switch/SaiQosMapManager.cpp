@@ -103,8 +103,10 @@ std::shared_ptr<SaiQosMap> SaiQosMapManager::setTcToExpQosMap(
 }
 
 std::shared_ptr<SaiQosMap> SaiQosMapManager::setTcToQueueQosMap(
-    const std::shared_ptr<QosPolicy>& qosPolicy) {
-  const auto& newTcToQueueIdMap = qosPolicy->getTrafficClassToQueueId();
+    const std::shared_ptr<QosPolicy>& qosPolicy,
+    bool voq = false) {
+  const auto& newTcToQueueIdMap = voq ? qosPolicy->getTrafficClassToVoqId()
+                                      : qosPolicy->getTrafficClassToQueueId();
   std::vector<sai_qos_map_t> mapToValueList;
   mapToValueList.reserve(newTcToQueueIdMap->size());
   for (const auto& [tc, queue] : std::as_const(*newTcToQueueIdMap)) {
@@ -185,6 +187,10 @@ void SaiQosMapManager::setQosMaps(
     if (newQosPolicy->getPfcPriorityToQueueId()) {
       handle->pfcPriorityToQueueMap = setPfcPriorityToQueueQosMap(newQosPolicy);
     }
+  }
+  if (newQosPolicy->getTrafficClassToVoqId() &&
+      !newQosPolicy->getTrafficClassToVoqId()->empty()) {
+    handle->tcToVoqMap = setTcToQueueQosMap(newQosPolicy, true);
   }
   handles_[qosPolicyName] = std::move(handle);
 }

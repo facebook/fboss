@@ -684,12 +684,12 @@ void addOlympicQosMapsHelper(
   }
   std::map<int16_t, int16_t> tc2Voq;
   for (int q = 0; q <= kOlympicHighestSPQueueId; q++) {
-    if (hwAsic->isSupported(HwAsic::Feature::VOQ)) {
-      tc2Voq.emplace(q, q);
-    }
+    tc2Voq.emplace(q, q);
     qosMap.trafficClassToQueueId()->emplace(q, q);
   }
-  qosMap.trafficClassToVoqId() = std::move(tc2Voq);
+  if (hwAsic->isSupported(HwAsic::Feature::VOQ)) {
+    qosMap.trafficClassToVoqId() = std::move(tc2Voq);
+  }
   cfg.qosPolicies()->resize(1);
   *cfg.qosPolicies()[0].name() = qosPolicyName;
   cfg.qosPolicies()[0].qosMap() = qosMap;

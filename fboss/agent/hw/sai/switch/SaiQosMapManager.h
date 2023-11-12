@@ -35,6 +35,7 @@ struct SaiQosMapHandle {
   std::shared_ptr<SaiQosMap> tcToExpMap;
   std::shared_ptr<SaiQosMap> tcToPgMap;
   std::shared_ptr<SaiQosMap> pfcPriorityToQueueMap;
+  std::shared_ptr<SaiQosMap> tcToVoqMap;
 };
 
 class SaiQosMapManager {
@@ -60,7 +61,8 @@ class SaiQosMapManager {
   std::shared_ptr<SaiQosMap> setDscpToTcQosMap(
       const std::shared_ptr<QosPolicy>& qosPolicy);
   std::shared_ptr<SaiQosMap> setTcToQueueQosMap(
-      const std::shared_ptr<QosPolicy>& qosPolicy);
+      const std::shared_ptr<QosPolicy>& qosPolicy,
+      bool voq);
   std::shared_ptr<SaiQosMap> setExpToTcQosMap(
       const std::shared_ptr<QosPolicy>& qosPolicy);
   std::shared_ptr<SaiQosMap> setTcToExpQosMap(
