@@ -18,6 +18,12 @@ std::unique_ptr<facebook::fboss::FbossCtrlAsyncClient> createClient(
 }
 
 template <>
+std::unique_ptr<apache::thrift::Client<FbossHwCtrl>> createClient(
+    const HostInfo& hostInfo) {
+  return utils::createHwAgentClient(hostInfo);
+}
+
+template <>
 std::unique_ptr<facebook::fboss::QsfpServiceAsyncClient> createClient(
     const HostInfo& hostInfo) {
   return utils::createQsfpClient(hostInfo);

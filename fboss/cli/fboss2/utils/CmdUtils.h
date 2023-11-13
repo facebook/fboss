@@ -393,5 +393,8 @@ std::vector<std::string> getBgpDrainedInterafces(const HostInfo& hostInfo);
 std::string getBgpSwitchDrainState(const HostInfo& hostInfo);
 
 std::string getSubscriptionPathStr(const fsdb::OperSubscriberInfo& subscriber);
+bool isFbossFeatureEnabled(
+    const std::string& hostname,
+    const std::string& feature);
 
 } // namespace facebook::fboss::utils

@@ -272,6 +272,18 @@ std::string runCmd(const std::string& cmd) {
   return result;
 }
 
+bool isFbossFeatureEnabled(
+    const std::string& hostname,
+    const std::string& feature) {
+  auto featureCheckCmd = utils::getCmdToRun(
+      hostname,
+      folly::to<std::string>(
+          "file -b /etc/coop/.METADATA/features/", feature, "/current/on"));
+  auto result = utils::runCmd(featureCheckCmd);
+  // An empty file should be present if the feature is enabled
+  return result.find("empty") != std::string::npos ? true : false;
+}
+
 std::string getSubscriptionPathStr(const fsdb::OperSubscriberInfo& subscriber) {
   if (subscriber.get_path()) {
     return folly::join("/", subscriber.get_path()->get_raw());

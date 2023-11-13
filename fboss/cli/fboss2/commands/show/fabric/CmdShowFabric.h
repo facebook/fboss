@@ -14,6 +14,7 @@
 #include <string>
 #include <unordered_set>
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/agent/if/gen-cpp2/hw_ctrl_types.h"
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/fabric/gen-cpp2/model_types.h"
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
@@ -39,11 +40,15 @@ class CmdShowFabric : public CmdHandler<CmdShowFabric, CmdShowFabricTraits> {
 
   RetType queryClient(const HostInfo& hostInfo) {
     std::map<std::string, FabricEndpoint> entries;
-    auto client =
-        utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
-
-    client->sync_getFabricReachability(entries);
-
+    if (utils::isFbossFeatureEnabled(hostInfo.getName(), "multi_switch")) {
+      auto client =
+          utils::createClient<apache::thrift::Client<FbossHwCtrl>>(hostInfo);
+      client->sync_getHwFabricConnectivity(entries);
+    } else {
+      auto client =
+          utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
+      client->sync_getFabricReachability(entries);
+    }
     return createModel(entries);
   }
 
