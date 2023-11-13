@@ -12,7 +12,7 @@
 namespace facebook::fboss {
 void checkFabricReachability(TestEnsembleIf* ensemble) {
   ensemble->updateStats();
-  auto reachability = ensemble->getFabricReachability();
+  auto reachability = ensemble->getFabricConnectivity();
   EXPECT_GT(reachability.size(), 0);
   for (auto [port, endpoint] : reachability) {
     if (!*endpoint.isAttached()) {
@@ -49,7 +49,7 @@ void checkFabricReachability(TestEnsembleIf* ensemble) {
 
 void checkFabricReachabilityStats(TestEnsembleIf* ensemble) {
   ensemble->updateStats();
-  auto reachability = ensemble->getFabricReachability();
+  auto reachability = ensemble->getFabricConnectivity();
   int count = 0;
   for (auto [_, endpoint] : reachability) {
     if (!*endpoint.isAttached()) {
@@ -86,7 +86,7 @@ void populatePortExpectedNeighbors(
 
 void checkPortFabricReachability(TestEnsembleIf* ensemble, PortID portId) {
   ensemble->updateStats();
-  auto reachability = ensemble->getFabricReachability();
+  auto reachability = ensemble->getFabricConnectivity();
   auto itr = reachability.find(portId);
   ASSERT_TRUE(itr != reachability.end());
   auto endpoint = itr->second;

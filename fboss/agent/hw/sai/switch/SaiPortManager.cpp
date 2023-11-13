@@ -1349,7 +1349,7 @@ std::optional<FabricEndpoint> SaiPortManager::getFabricReachabilityForPort(
   return endpoint;
 }
 
-std::map<PortID, FabricEndpoint> SaiPortManager::getFabricReachability() const {
+std::map<PortID, FabricEndpoint> SaiPortManager::getFabricConnectivity() const {
   std::map<PortID, FabricEndpoint> port2FabricEndpoint;
   for (const auto& portIdAndHandle : handles_) {
     if (auto endpoint = getFabricReachabilityForPort(

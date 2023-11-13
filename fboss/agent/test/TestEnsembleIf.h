@@ -34,7 +34,7 @@ class TestEnsembleIf : public HwSwitchCallback {
   virtual void switchRunStateChanged(SwitchRunState runState) = 0;
   virtual const SwitchIdScopeResolver& scopeResolver() const = 0;
   virtual HwAsicTable* getHwAsicTable() = 0;
-  virtual std::map<PortID, FabricEndpoint> getFabricReachability() const = 0;
+  virtual std::map<PortID, FabricEndpoint> getFabricConnectivity() const = 0;
   virtual FabricReachabilityStats getFabricReachabilityStats() const = 0;
   virtual void updateStats() = 0;
 };

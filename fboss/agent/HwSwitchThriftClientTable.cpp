@@ -76,7 +76,7 @@ apache::thrift::Client<FbossHwCtrl>* HwSwitchThriftClientTable::getClient(
 }
 
 std::optional<std::map<::std::int64_t, FabricEndpoint>>
-HwSwitchThriftClientTable::getFabricReachability(SwitchID switchId) {
+HwSwitchThriftClientTable::getFabricConnectivity(SwitchID switchId) {
   std::map<::std::int64_t, FabricEndpoint> reachability;
   auto client = getClient(switchId);
   try {

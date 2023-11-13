@@ -277,6 +277,8 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
       std::map<std::string, std::int64_t>& routeCounters) override;
 
   void getTeFlowTableDetails(std::vector<TeFlowDetails>& flowTable) override;
+  void getFabricConnectivity(
+      std::map<std::string, FabricEndpoint>& connectivity) override;
   void getFabricReachability(
       std::map<std::string, FabricEndpoint>& reachability) override;
   void getSwitchReachability(

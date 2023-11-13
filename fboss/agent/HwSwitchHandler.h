@@ -134,7 +134,7 @@ class HwSwitchHandler {
 
   virtual void platformStop() = 0;
 
-  virtual std::map<PortID, FabricEndpoint> getFabricReachability() const = 0;
+  virtual std::map<PortID, FabricEndpoint> getFabricConnectivity() const = 0;
 
   virtual FabricReachabilityStats getFabricReachabilityStats() const = 0;
 

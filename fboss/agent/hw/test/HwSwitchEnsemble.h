@@ -143,8 +143,8 @@ class HwSwitchEnsemble : public TestEnsembleIf {
       const override {
     return getPlatform()->getPlatformPorts();
   }
-  std::map<PortID, FabricEndpoint> getFabricReachability() const override {
-    return getHwSwitch()->getFabricReachability();
+  std::map<PortID, FabricEndpoint> getFabricConnectivity() const override {
+    return getHwSwitch()->getFabricConnectivity();
   }
   FabricReachabilityStats getFabricReachabilityStats() const override {
     return getHwSwitch()->getFabricReachabilityStats();

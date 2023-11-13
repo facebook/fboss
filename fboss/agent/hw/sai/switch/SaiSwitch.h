@@ -208,7 +208,7 @@ class SaiSwitch : public HwSwitch {
       folly::MacAddress mac) const override;
 
   phy::FecMode getPortFECMode(PortID port) const override;
-  std::map<PortID, FabricEndpoint> getFabricReachability() const override;
+  std::map<PortID, FabricEndpoint> getFabricConnectivity() const override;
   std::vector<PortID> getSwitchReachability(SwitchID switchId) const override;
 
   void rollbackInTest(const StateDelta& delta);

@@ -1488,7 +1488,7 @@ void SaiSwitch::updateRsInfo(
   }
 }
 
-std::map<PortID, FabricEndpoint> SaiSwitch::getFabricReachability() const {
+std::map<PortID, FabricEndpoint> SaiSwitch::getFabricConnectivity() const {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
   return getFabricReachabilityLocked();
 }

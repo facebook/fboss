@@ -165,8 +165,8 @@ CpuPortStats MonolithicHwSwitchHandler::getCpuPortStats() const {
 }
 
 std::map<PortID, FabricEndpoint>
-MonolithicHwSwitchHandler::getFabricReachability() const {
-  return hw_->getFabricReachability();
+MonolithicHwSwitchHandler::getFabricConnectivity() const {
+  return hw_->getFabricConnectivity();
 }
 
 std::vector<PortID> MonolithicHwSwitchHandler::getSwitchReachability(

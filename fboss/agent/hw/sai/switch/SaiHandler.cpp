@@ -63,7 +63,7 @@ SwitchRunState SaiHandler::getHwSwitchRunState() {
 void SaiHandler::getHwFabricReachability(
     std::map<::std::int64_t, ::facebook::fboss::FabricEndpoint>& reachability) {
   hw_->ensureVoqOrFabric(__func__);
-  auto reachabilityInfo = hw_->getFabricReachability();
+  auto reachabilityInfo = hw_->getFabricConnectivity();
   for (auto&& entry : reachabilityInfo) {
     reachability.insert(std::move(entry));
   }
@@ -72,7 +72,7 @@ void SaiHandler::getHwFabricReachability(
 void SaiHandler::getHwFabricConnectivity(
     std::map<::std::string, ::facebook::fboss::FabricEndpoint>& connectivity) {
   hw_->ensureVoqOrFabric(__func__);
-  auto connectivityInfo = hw_->getFabricReachability();
+  auto connectivityInfo = hw_->getFabricConnectivity();
   for (auto& entry : connectivityInfo) {
     auto port = hw_->getProgrammedState()->getPorts()->getNodeIf(entry.first);
     if (port) {

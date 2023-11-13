@@ -239,7 +239,7 @@ class HwSwitch {
   virtual void fetchL2Table(std::vector<L2EntryThrift>* l2Table) const = 0;
 
   virtual std::map<PortID, phy::PhyInfo> updateAllPhyInfo() = 0;
-  virtual std::map<PortID, FabricEndpoint> getFabricReachability() const = 0;
+  virtual std::map<PortID, FabricEndpoint> getFabricConnectivity() const = 0;
   virtual std::vector<PortID> getSwitchReachability(
       SwitchID switchId) const = 0;
   virtual std::map<std::string, HwSysPortStats> getSysPortStats() const = 0;

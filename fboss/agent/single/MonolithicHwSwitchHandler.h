@@ -104,7 +104,7 @@ class MonolithicHwSwitchHandler : public HwSwitchHandler {
 
   CpuPortStats getCpuPortStats() const override;
 
-  std::map<PortID, FabricEndpoint> getFabricReachability() const override;
+  std::map<PortID, FabricEndpoint> getFabricConnectivity() const override;
 
   FabricReachabilityStats getFabricReachabilityStats() const override;
 

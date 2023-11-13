@@ -334,9 +334,9 @@ void MultiHwSwitchHandler::platformStop() {
   }
 }
 
-std::map<PortID, FabricEndpoint> MultiHwSwitchHandler::getFabricReachability() {
+std::map<PortID, FabricEndpoint> MultiHwSwitchHandler::getFabricConnectivity() {
   // TODO - retire this api after migrating clients to HwAgent api
-  return hwSwitchSyncers_.begin()->second->getFabricReachability();
+  return hwSwitchSyncers_.begin()->second->getFabricConnectivity();
 }
 
 FabricReachabilityStats MultiHwSwitchHandler::getFabricReachabilityStats() {

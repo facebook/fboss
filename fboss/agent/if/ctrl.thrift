@@ -1336,6 +1336,10 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
   list<TeFlowDetails> getTeFlowTableDetails() throws (
     1: fboss.FbossBaseError error,
   );
+  map<string, FabricEndpoint> getFabricConnectivity() throws (
+    1: fboss.FbossBaseError error,
+  );
+  # Deprecated. To be deleted after migrating clients
   map<string, FabricEndpoint> getFabricReachability() throws (
     1: fboss.FbossBaseError error,
   );

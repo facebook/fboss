@@ -3000,17 +3000,22 @@ void ThriftHandler::getTeFlowTableDetails(
 }
 
 void ThriftHandler::getFabricReachability(
-    std::map<std::string, FabricEndpoint>& reachability) {
+    std::map<std::string, FabricEndpoint>& connectivity) {
+  return getFabricConnectivity(connectivity);
+}
+
+void ThriftHandler::getFabricConnectivity(
+    std::map<std::string, FabricEndpoint>& connectivity) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureVoqOrFabric(__func__);
   // get cached data as stored in the fabric manager
   auto portId2FabricEndpoint =
-      sw_->getHwSwitchHandler()->getFabricReachability();
+      sw_->getHwSwitchHandler()->getFabricConnectivity();
   auto state = sw_->getState();
 
   for (auto [portId, fabricEndpoint] : portId2FabricEndpoint) {
     auto portName = state->getPorts()->getNodeIf(portId)->getName();
-    reachability.insert({portName, fabricEndpoint});
+    connectivity.insert({portName, fabricEndpoint});
   }
 }
 

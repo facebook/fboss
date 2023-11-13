@@ -132,7 +132,7 @@ class SimSwitch : public HwSwitch {
   std::map<PortID, phy::PhyInfo> updateAllPhyInfo() override {
     return {};
   }
-  std::map<PortID, FabricEndpoint> getFabricReachability() const override {
+  std::map<PortID, FabricEndpoint> getFabricConnectivity() const override {
     return {};
   }
   std::vector<PortID> getSwitchReachability(SwitchID switchId) const override {

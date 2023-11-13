@@ -297,7 +297,7 @@ bool LinkTest::checkReachabilityOnAllCabledPorts() const {
     }
     if (portType == cfg::PortType::FABRIC_PORT) {
       auto fabricReachabilityEntries =
-          platform()->getHwSwitch()->getFabricReachability();
+          platform()->getHwSwitch()->getFabricConnectivity();
       auto fabricPortEndPoint = fabricReachabilityEntries.find(port);
       if (fabricPortEndPoint == fabricReachabilityEntries.end() ||
           !*fabricPortEndPoint->second.isAttached()) {

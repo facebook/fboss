@@ -122,7 +122,7 @@ class MultiHwSwitchHandler {
 
   void platformStop();
 
-  std::map<PortID, FabricEndpoint> getFabricReachability();
+  std::map<PortID, FabricEndpoint> getFabricConnectivity();
 
   FabricReachabilityStats getFabricReachabilityStats();
 
