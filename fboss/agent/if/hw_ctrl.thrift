@@ -29,4 +29,5 @@ service FbossHwCtrl {
   common.SwitchRunState getHwSwitchRunState();
 
   map<i64, ctrl.FabricEndpoint> getHwFabricReachability();
+  map<string, ctrl.FabricEndpoint> getHwFabricConnectivity();
 }

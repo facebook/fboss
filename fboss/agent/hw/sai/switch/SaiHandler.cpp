@@ -69,4 +69,15 @@ void SaiHandler::getHwFabricReachability(
   }
 }
 
+void SaiHandler::getHwFabricConnectivity(
+    std::map<::std::string, ::facebook::fboss::FabricEndpoint>& connectivity) {
+  hw_->ensureVoqOrFabric(__func__);
+  auto connectivityInfo = hw_->getFabricReachability();
+  for (auto& entry : connectivityInfo) {
+    auto port = hw_->getProgrammedState()->getPorts()->getNodeIf(entry.first);
+    if (port) {
+      connectivity.insert({port->getName(), entry.second});
+    }
+  }
+}
 } // namespace facebook::fboss
