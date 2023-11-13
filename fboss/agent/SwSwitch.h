@@ -927,6 +927,8 @@ class SwSwitch : public HwSwitchCallback {
   multiswitch::HwSwitchStats getHwSwitchStatsWithCopy(
       uint16_t switchIndex) const;
 
+  FabricReachabilityStats getFabricReachabilityStats();
+
  private:
   std::optional<folly::MacAddress> getSourceMac(
       const std::shared_ptr<Interface>& intf) const;
@@ -1040,6 +1042,7 @@ class SwSwitch : public HwSwitchCallback {
   void postInit(const HwInitResult* HwInitResult = nullptr);
 
   void updateMultiSwitchGlobalFb303Stats();
+  void updateFabricReachabilityStats();
 
   std::optional<cfg::SdkVersion> sdkVersion_;
   std::unique_ptr<MultiHwSwitchHandler> multiHwSwitchHandler_;
@@ -1200,5 +1203,6 @@ class SwSwitch : public HwSwitchCallback {
   folly::Synchronized<std::unique_ptr<AgentConfig>> agentConfig_;
   folly::Synchronized<std::map<uint16_t, multiswitch::HwSwitchStats>>
       hwSwitchStats_;
+  folly::Synchronized<FabricReachabilityStats> fabricReachabilityStats_;
 };
 } // namespace facebook::fboss

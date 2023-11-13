@@ -717,6 +717,7 @@ void SwSwitch::updateStats() {
     XLOG(ERR) << "Error running updateStats: " << folly::exceptionStr(ex);
   }
   updateMultiSwitchGlobalFb303Stats();
+  updateFabricReachabilityStats();
   // Determine if collect phy info
   auto now =
       std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
@@ -755,6 +756,24 @@ void SwSwitch::updateMultiSwitchGlobalFb303Stats() {
   CHECK(multiSwitchFb303Stats_);
   multiSwitchFb303Stats_->updateStats(globalStats);
   multiSwitchFb303Stats_->updateStats(globalCpuPortStats);
+}
+
+void SwSwitch::updateFabricReachabilityStats() {
+  FabricReachabilityStats fabricReachabilityStats;
+  auto runMode = (*agentConfig_.rlock())->getRunMode();
+  if (runMode == cfg::AgentRunMode::MULTI_SWITCH) {
+    auto lockedStats = hwSwitchStats_.rlock();
+    for (auto& [switchIdx, hwSwitchStats] : *lockedStats) {
+      fabricReachabilityStats.mismatchCount() =
+          hwSwitchStats.fabricReachabilityStats()->mismatchCount().value();
+      fabricReachabilityStats.missingCount() =
+          hwSwitchStats.fabricReachabilityStats()->missingCount().value();
+    }
+  } else {
+    fabricReachabilityStats =
+        getHwSwitchHandler()->getFabricReachabilityStats();
+  }
+  *fabricReachabilityStats_.wlock() = fabricReachabilityStats;
 }
 
 TeFlowStats SwSwitch::getTeFlowStats() {
@@ -2806,6 +2825,15 @@ multiswitch::HwSwitchStats SwSwitch::getHwSwitchStatsWithCopy(
     throw FbossError("No stats for switch index ", switchIndex);
   }
   return lockedStats->at(switchIndex);
+}
+
+FabricReachabilityStats SwSwitch::getFabricReachabilityStats() {
+  auto runMode = (*agentConfig_.rlock())->getRunMode();
+  if (runMode == cfg::AgentRunMode::MULTI_SWITCH) {
+    return *fabricReachabilityStats_.rlock();
+  } else {
+    return getHwSwitchHandler()->getFabricReachabilityStats();
+  }
 }
 
 } // namespace facebook::fboss

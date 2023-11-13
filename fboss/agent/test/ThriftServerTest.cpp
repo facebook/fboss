@@ -367,6 +367,10 @@ CO_TEST_F(ThriftServerTest, statsUpdate) {
     HwSysPortStats sysPortStats;
     sysPortStats.queueOutBytes_() = {{1, 10}, {2, 20}};
     stats.sysPortStats() = {{"eth1", std::move(sysPortStats)}};
+    FabricReachabilityStats reachabilityStats;
+    reachabilityStats.mismatchCount() = 10;
+    reachabilityStats.missingCount() = 20;
+    stats.fabricReachabilityStats() = std::move(reachabilityStats);
     return stats;
   };
   uint16_t switchIndex = 0;
@@ -379,6 +383,9 @@ CO_TEST_F(ThriftServerTest, statsUpdate) {
       }());
   EXPECT_TRUE(ret);
   EXPECT_EQ(sw_->getHwSwitchStatsWithCopy(switchIndex), getTestStatUpdate());
+  sw_->updateStats();
+  EXPECT_EQ(sw_->getFabricReachabilityStats().mismatchCount().value(), 10);
+  EXPECT_EQ(sw_->getFabricReachabilityStats().missingCount().value(), 20);
   auto agentStats = sw_->fillFsdbStats();
   EXPECT_EQ(agentStats.hwPortStats()["eth1"].inBytes_().value(), 10000);
   EXPECT_EQ(agentStats.sysPortStats()["eth1"].queueOutBytes_().value()[1], 10);

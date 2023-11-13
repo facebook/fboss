@@ -3148,8 +3148,7 @@ void ThriftHandler::getFabricReachabilityStats(
     FabricReachabilityStats& fabricReachabilityStats) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  fabricReachabilityStats =
-      sw_->getHwSwitchHandler()->getFabricReachabilityStats();
+  fabricReachabilityStats = sw_->getFabricReachabilityStats();
 }
 
 void ThriftHandler::getMultiSwitchRunState(MultiSwitchRunState& runState) {
