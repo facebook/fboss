@@ -16,10 +16,8 @@ namespace facebook::fboss {
 class HwConfigVerifyQosTest : public HwConfigSetupTest {
  private:
   cfg::SwitchConfig getFallbackConfig() const override {
-    return utility::oneL3IntfConfig(
-        getHwSwitch(),
-        masterLogicalPortIds()[0],
-        getAsic()->desiredLoopbackModes());
+    return utility::onePortPerInterfaceConfig(
+        getHwSwitch(), masterLogicalPortIds());
   }
 };
 
