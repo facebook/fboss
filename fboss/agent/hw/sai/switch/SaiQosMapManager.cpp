@@ -172,7 +172,8 @@ std::shared_ptr<SaiQosMap> SaiQosMapManager::setPfcPriorityToQueueQosMap(
 }
 
 void SaiQosMapManager::setQosMaps(
-    const std::shared_ptr<QosPolicy>& newQosPolicy) {
+    const std::shared_ptr<QosPolicy>& newQosPolicy,
+    bool isDefault) {
   std::string qosPolicyName = newQosPolicy->getName();
   XLOG(DBG2) << "Setting QoS map: " << qosPolicyName;
   std::unique_ptr<SaiQosMapHandle> handle = std::make_unique<SaiQosMapHandle>();
@@ -192,6 +193,7 @@ void SaiQosMapManager::setQosMaps(
       !newQosPolicy->getTrafficClassToVoqId()->empty()) {
     handle->tcToVoqMap = setTcToQueueQosMap(newQosPolicy, true);
   }
+  handle->isDefault = isDefault;
   handles_[qosPolicyName] = std::move(handle);
 }
 
@@ -202,14 +204,12 @@ void SaiQosMapManager::addQosMap(
   if (handles_.find(qosPolicyName) != handles_.end()) {
     throw FbossError("Failed to add QoS map: already programmed");
   }
-  if (isDefault) {
-    defaultQosPolicyName_ = qosPolicyName;
-  }
-  return setQosMaps(newQosPolicy);
+  return setQosMaps(newQosPolicy, isDefault);
 }
 
 void SaiQosMapManager::removeQosMap(
-    const std::shared_ptr<QosPolicy>& oldQosPolicy) {
+    const std::shared_ptr<QosPolicy>& oldQosPolicy,
+    bool /*isDefault*/) {
   std::string qosPolicyName = oldQosPolicy->getName();
   if (handles_.find(qosPolicyName) == handles_.end()) {
     throw FbossError("Failed to remove QoS map: none programmed");
@@ -219,12 +219,14 @@ void SaiQosMapManager::removeQosMap(
 
 void SaiQosMapManager::changeQosMap(
     const std::shared_ptr<QosPolicy>& oldQosPolicy,
-    const std::shared_ptr<QosPolicy>& newQosPolicy) {
-  std::string qosPolicyName = newQosPolicy->getName();
+    const std::shared_ptr<QosPolicy>& newQosPolicy,
+    bool newPolicyIsDefault) {
+  std::string qosPolicyName = oldQosPolicy->getName();
   if (handles_.find(qosPolicyName) == handles_.end()) {
     throw FbossError("Failed to change QoS map: none programmed");
   }
-  return setQosMaps(newQosPolicy);
+  removeQosMap(oldQosPolicy, newPolicyIsDefault);
+  addQosMap(newQosPolicy, newPolicyIsDefault);
 }
 
 const SaiQosMapHandle* FOLLY_NULLABLE SaiQosMapManager::getQosMap(
@@ -237,15 +239,20 @@ SaiQosMapManager::getQosMap(const std::optional<std::string>& qosPolicyName) {
 }
 SaiQosMapHandle* FOLLY_NULLABLE SaiQosMapManager::getQosMapImpl(
     const std::optional<std::string>& qosPolicyName) const {
-  std::string name;
-  if (!qosPolicyName) {
-    name = defaultQosPolicyName_;
-  } else {
-    name = qosPolicyName.value();
+  if (qosPolicyName && handles_.find(qosPolicyName.value()) != handles_.end()) {
+    return handles_.at(qosPolicyName.value()).get();
   }
-  if (handles_.find(name) == handles_.end()) {
+  if (qosPolicyName) {
+    XLOG(DBG2) << "unable to find QoS policy " << qosPolicyName.value();
     return nullptr;
   }
-  return handles_.at(name).get();
+  // if name is null, return default QoS policy
+  for (const auto& handle : handles_) {
+    if (handle.second->isDefault) {
+      return handle.second.get();
+    }
+  }
+  XLOG(DBG2) << "unable to find default QoS policy";
+  return nullptr;
 }
 } // namespace facebook::fboss

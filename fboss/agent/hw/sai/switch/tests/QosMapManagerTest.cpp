@@ -88,7 +88,7 @@ class QosMapManagerTest : public ManagerTestBase {
 TEST_F(QosMapManagerTest, addQosMap) {
   TestQosPolicy testQosPolicy{{10, 0, 2}, {42, 1, 4}};
   auto qp = makeQosPolicy("default", testQosPolicy);
-  saiManagerTable->qosMapManager().addQosMap(qp);
+  saiManagerTable->qosMapManager().addQosMap(qp, true);
   auto saiQosMapHandle = saiManagerTable->qosMapManager().getQosMap();
   validateQosPolicy(saiQosMapHandle, testQosPolicy);
 }
@@ -104,10 +104,10 @@ TEST_F(QosMapManagerTest, addQosMapDelta) {
 TEST_F(QosMapManagerTest, removeQosMap) {
   TestQosPolicy testQosPolicy{{10, 0, 2}, {42, 1, 4}};
   auto qp = makeQosPolicy("default", testQosPolicy);
-  saiManagerTable->qosMapManager().addQosMap(qp);
+  saiManagerTable->qosMapManager().addQosMap(qp, true);
   auto saiQosMapHandle = saiManagerTable->qosMapManager().getQosMap();
   EXPECT_TRUE(saiQosMapHandle);
-  saiManagerTable->qosMapManager().removeQosMap(qp);
+  saiManagerTable->qosMapManager().removeQosMap(qp, true);
   saiQosMapHandle = saiManagerTable->qosMapManager().getQosMap();
   EXPECT_FALSE(saiQosMapHandle);
 }
@@ -127,13 +127,13 @@ TEST_F(QosMapManagerTest, removeQosMapDelta) {
 TEST_F(QosMapManagerTest, changeQosMap) {
   TestQosPolicy testQosPolicy{{10, 0, 2}, {42, 1, 4}};
   auto qp = makeQosPolicy("default", testQosPolicy);
-  saiManagerTable->qosMapManager().addQosMap(qp);
+  saiManagerTable->qosMapManager().addQosMap(qp, true);
   auto saiQosMapHandle = saiManagerTable->qosMapManager().getQosMap();
   EXPECT_TRUE(saiQosMapHandle);
 
   TestQosPolicy testQosPolicy2{{11, 2, 4}, {43, 0, 4}, {1, 1, 1}};
   auto qp2 = makeQosPolicy("default", testQosPolicy2);
-  saiManagerTable->qosMapManager().changeQosMap(qp, qp2);
+  saiManagerTable->qosMapManager().changeQosMap(qp, qp2, true);
   saiQosMapHandle = saiManagerTable->qosMapManager().getQosMap();
   EXPECT_TRUE(saiQosMapHandle);
   validateQosPolicy(saiQosMapHandle, testQosPolicy2);

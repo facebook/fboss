@@ -36,6 +36,7 @@ struct SaiQosMapHandle {
   std::shared_ptr<SaiQosMap> tcToPgMap;
   std::shared_ptr<SaiQosMap> pfcPriorityToQueueMap;
   std::shared_ptr<SaiQosMap> tcToVoqMap;
+  bool isDefault;
 };
 
 class SaiQosMapManager {
@@ -46,11 +47,14 @@ class SaiQosMapManager {
       const SaiPlatform* platform);
   void addQosMap(
       const std::shared_ptr<QosPolicy>& newQosPolicy,
-      bool isDefault = true);
-  void removeQosMap(const std::shared_ptr<QosPolicy>& oldQosPolicy);
+      bool isDefault);
+  void removeQosMap(
+      const std::shared_ptr<QosPolicy>& oldQosPolicy,
+      bool isDefault);
   void changeQosMap(
       const std::shared_ptr<QosPolicy>& oldQosPolicy,
-      const std::shared_ptr<QosPolicy>& newQosPolicy);
+      const std::shared_ptr<QosPolicy>& newQosPolicy,
+      bool newPolicyIsDefault);
 
   SaiQosMapHandle* FOLLY_NULLABLE
   getQosMap(const std::optional<std::string>& qosPolicyName = std::nullopt);
@@ -71,7 +75,9 @@ class SaiQosMapManager {
       const std::shared_ptr<QosPolicy>& qosPolicy);
   std::shared_ptr<SaiQosMap> setPfcPriorityToQueueQosMap(
       const std::shared_ptr<QosPolicy>& qosPolicy);
-  void setQosMaps(const std::shared_ptr<QosPolicy>& newQosPolicy);
+  void setQosMaps(
+      const std::shared_ptr<QosPolicy>& newQosPolicy,
+      bool isDefault);
 
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
@@ -79,7 +85,6 @@ class SaiQosMapManager {
   SaiQosMapHandle* FOLLY_NULLABLE
   getQosMapImpl(const std::optional<std::string>& qosPolicyName) const;
   std::unordered_map<std::string, std::unique_ptr<SaiQosMapHandle>> handles_;
-  std::string defaultQosPolicyName_;
 };
 
 } // namespace facebook::fboss

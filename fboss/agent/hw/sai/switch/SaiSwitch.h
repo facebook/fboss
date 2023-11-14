@@ -363,6 +363,11 @@ class SaiSwitch : public HwSwitch {
       const LockPolicyT& lk);
 
   template <typename LockPolicyT>
+  void processDefaultDataPlanePolicyDeltaForPorts(
+      const StateDelta& delta,
+      const LockPolicyT& lk);
+
+  template <typename LockPolicyT>
   void processLinkStateChangeDelta(
       const StateDelta& delta,
       const LockPolicyT& lockPolicy);
