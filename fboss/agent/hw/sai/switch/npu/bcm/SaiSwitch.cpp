@@ -142,9 +142,9 @@ std::string errorType(sai_switch_error_type_t type) {
   return folly::sformat("Unknown error type: {} ", static_cast<int>(type));
 }
 
+#if defined BRCM_SAI_SDK_GTE_11_0
 bool isIreErrorType(sai_switch_error_type_t type) {
   switch (type) {
-#if defined BRCM_SAI_SDK_GTE_11_0
     case SAI_SWITCH_ERROR_TYPE_IRE_ECC:
     case SAI_SWITCH_ERROR_TYPE_IRE_RCY_INTERFACE:
     case SAI_SWITCH_ERROR_TYPE_IRE_INTERNAL_INTERFACE:
@@ -165,15 +165,16 @@ bool isIreErrorType(sai_switch_error_type_t type) {
     case SAI_SWITCH_ERROR_TYPE_IRE_FIFO:
     case SAI_SWITCH_ERROR_TYPE_IRE_DATA_PATH_CRC:
       return true;
-#endif
     default:
       break;
   }
   return false;
 }
+#endif
+
+#if defined BRCM_SAI_SDK_GTE_11_0
 bool isItppError(sai_switch_error_type_t type) {
   switch (type) {
-#if defined BRCM_SAI_SDK_GTE_11_0
     case SAI_SWITCH_ERROR_TYPE_ITPP_ECC:
     case SAI_SWITCH_ERROR_TYPE_ITPP_PSIZE_TYPE_0_MISMATCH:
     case SAI_SWITCH_ERROR_TYPE_ITPP_PSIZE_TYPE_1_MISMATCH:
@@ -187,12 +188,12 @@ bool isItppError(sai_switch_error_type_t type) {
     case SAI_SWITCH_ERROR_TYPE_ITPPD_PSIZE_TYPE_3_MISMATCH:
     case SAI_SWITCH_ERROR_TYPE_ITPPD_PSIZE_TYPE_4_MISMATCH:
       return true;
-#endif
     default:
       break;
   }
   return false;
 }
+#endif
 
 } // namespace
 
