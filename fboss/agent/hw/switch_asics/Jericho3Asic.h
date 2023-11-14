@@ -46,7 +46,9 @@ class Jericho3Asic : public BroadcomAsic {
     return 9;
   }
   uint64_t getMMUSizeBytes() const override {
-    return 64 * 1024 * 1024;
+    // DRAM utilization is 75%, ie. only 75% of the total
+    // OBM+HBM is available to user of the total ~12G.
+    return uint64_t(9) * 1024 * 1024 * 1024;
   }
   uint32_t getMMUCellSize() const {
     return 254;
