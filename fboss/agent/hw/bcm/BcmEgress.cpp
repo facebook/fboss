@@ -11,6 +11,7 @@
 
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/hw/bcm/BcmEcmpUtils.h"
 #include "fboss/agent/hw/bcm/BcmEgressManager.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmHost.h"
@@ -320,26 +321,6 @@ BcmEcmpEgress::BcmEcmpEgress(
   program();
 }
 
-static int getFlowletSizeWithScalingFactor(
-    const int flowSetTableSize,
-    const int numPaths,
-    const int maxPaths) {
-  // default table size is 2k
-  if (numPaths >= std::ceil(maxPaths * 0.75)) {
-    // Allow upto 4 links down
-    // with 32k flowset table max, this allows us upto 16 ECMP objects (default
-    // table size is 2k)
-    return flowSetTableSize;
-  } else if (numPaths >= std::ceil(maxPaths * 0.6)) {
-    // DLB is running in degraded state. Shrink the table.
-    // this allows upto 64 ECMP obejcts
-    return (flowSetTableSize >> 2);
-  } else {
-    // don't do DLB anymore
-    return 0;
-  }
-}
-
 void BcmEcmpEgress::setEgressEcmpMemberStatus(
     const BcmSwitchIf* hw,
     const EgressId2Weight& egressId2Weight) {
@@ -385,7 +366,7 @@ bool BcmEcmpEgress::isFlowletConfigUpdateNeeded() {
   bcmCheckError(ret, "Unable to get ECMP:  ", id_);
   auto bcmEcmpFlowletConfig = hw_->getEgressManager()->getBcmFlowletConfig();
 
-  const auto neededDynamicSize = getFlowletSizeWithScalingFactor(
+  const auto neededDynamicSize = utility::getFlowletSizeWithScalingFactor(
       bcmEcmpFlowletConfig.flowletTableSize,
       pathsInHwCount,
       bcmEcmpFlowletConfig.maxLinks);
@@ -455,7 +436,7 @@ void BcmEcmpEgress::program() {
     if (FLAGS_flowletSwitchingEnable) {
       auto bcmFlowletConfig = hw_->getEgressManager()->getBcmFlowletConfig();
       obj.dynamic_age = bcmFlowletConfig.inactivityIntervalUsecs;
-      obj.dynamic_size = getFlowletSizeWithScalingFactor(
+      obj.dynamic_size = utility::getFlowletSizeWithScalingFactor(
           bcmFlowletConfig.flowletTableSize,
           numPaths,
           bcmFlowletConfig.maxLinks);

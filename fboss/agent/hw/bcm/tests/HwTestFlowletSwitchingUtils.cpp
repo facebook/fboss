@@ -90,7 +90,8 @@ bool verifyEcmpForFlowletSwitching(
     const facebook::fboss::HwSwitch* hw,
     const folly::CIDRNetwork& prefix,
     const cfg::FlowletSwitchingConfig& flowletCfg,
-    bool flowletEnable) {
+    const bool flowletEnable,
+    const bool expectFlowsetSizeZero) {
   const auto bcmSwitch = static_cast<const BcmSwitch*>(hw);
   auto ecmp = getEgressIdForRoute(bcmSwitch, prefix.first, prefix.second, kRid);
   bcm_l3_egress_ecmp_t existing;
@@ -99,13 +100,17 @@ bool verifyEcmpForFlowletSwitching(
   existing.flags |= BCM_L3_WITH_ID;
   int pathsInHwCount;
   bcm_l3_ecmp_get(bcmSwitch->getUnit(), &existing, 0, nullptr, &pathsInHwCount);
-  if (flowletEnable) {
+  const int flowletTableSize = getFlowletSizeWithScalingFactor(
+      *flowletCfg.flowletTableSize(), pathsInHwCount, *flowletCfg.maxLinks());
+  if (flowletEnable && flowletTableSize > 0) {
     CHECK_EQ(existing.dynamic_mode, BCM_L3_ECMP_DYNAMIC_MODE_NORMAL);
+    CHECK_EQ(existing.dynamic_age, *flowletCfg.inactivityIntervalUsecs());
+    CHECK_EQ(expectFlowsetSizeZero, 0);
   } else {
     CHECK_EQ(existing.dynamic_mode, 0);
+    CHECK_EQ(expectFlowsetSizeZero, 1);
   }
-  CHECK_EQ(existing.dynamic_age, *flowletCfg.inactivityIntervalUsecs());
-  CHECK_EQ(existing.dynamic_size, *flowletCfg.flowletTableSize());
+  CHECK_EQ(existing.dynamic_size, flowletTableSize);
   CHECK_GE(ecmp, 200000);
   CHECK_LE(ecmp, 200128);
 

@@ -151,6 +151,14 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
     cfg.flowletSwitchingConfig() = flowletCfg;
   }
 
+  void modifyFlowletSwitchingMaxLinks(
+      cfg::SwitchConfig& cfg,
+      const int maxLinks) const {
+    if (cfg.flowletSwitchingConfig().has_value()) {
+      cfg.flowletSwitchingConfig()->maxLinks() = maxLinks;
+    }
+  }
+
   bool skipTest() {
     return !getPlatform()->getAsic()->isSupported(HwAsic::Feature::FLOWLET);
   }
@@ -195,16 +203,19 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
     }
   }
 
-  void verifyInitialConfig() {
+  void verifyConfig(
+      const cfg::SwitchConfig& cfg,
+      bool expectFlowsetSizeZero = false) {
     verifyPortFlowletConfig(kScalingFactor1, kLoadWeight1, kQueueWeight1);
 
-    auto flowletCfg = getFlowletSwitchingConfig(
-        kInactivityIntervalUsecs1, kFlowletTableSize1);
-
-    EXPECT_TRUE(
-        utility::validateFlowletSwitchingEnabled(getHwSwitch(), flowletCfg));
+    EXPECT_TRUE(utility::validateFlowletSwitchingEnabled(
+        getHwSwitch(), *cfg.flowletSwitchingConfig()));
     EXPECT_TRUE(utility::verifyEcmpForFlowletSwitching(
-        getHwSwitch(), kAddr1Prefix, flowletCfg, true));
+        getHwSwitch(),
+        kAddr1Prefix,
+        *cfg.flowletSwitchingConfig(),
+        true,
+        expectFlowsetSizeZero));
 
     utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), kAclName);
     std::vector<cfg::CounterType> counterTypes{
@@ -236,7 +247,7 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
 
     EXPECT_TRUE(utility::validateFlowletSwitchingDisabled(getHwSwitch()));
     EXPECT_TRUE(utility::verifyEcmpForFlowletSwitching(
-        getHwSwitch(), kAddr1Prefix, flowletCfg, false));
+        getHwSwitch(), kAddr1Prefix, flowletCfg, false, true));
   }
 
   std::unique_ptr<utility::EcmpSetupAnyNPorts<folly::IPAddressV6>> ecmpHelper_;
@@ -253,6 +264,41 @@ class HwEcmpFlowletSwitchingTest : public HwFlowletSwitchingTest {
     return cfg;
   }
 };
+
+TEST_F(HwFlowletSwitchingTest, VerifyFlowletSizeScaling) {
+  if (this->skipTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
+    return;
+  }
+
+  auto setup = [&]() { resolveNextHopsAddRoute(kMaxLinks); };
+
+  auto verify = [&]() {
+    // verify the flowlet config
+    auto cfg = initialConfig();
+    verifyConfig(cfg);
+
+    // its hard to recreate new ECMP object with lesser egress objectss
+    // another way to test is to increate the maxLinks instead, so that
+    // current links fall below the threshold
+    modifyFlowletSwitchingMaxLinks(cfg, 2 * kMaxLinks);
+    applyNewConfig(cfg);
+    verifyConfig(cfg, true);
+
+    // snap back and ensure that changes get propagated
+    modifyFlowletSwitchingMaxLinks(cfg, kMaxLinks);
+    applyNewConfig(cfg);
+    verifyConfig(cfg);
+
+    //
+    // Modify to initial config to verify after warmboot
+    applyNewConfig(initialConfig());
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
 
 TEST_F(HwFlowletSwitchingTest, VerifyFlowletSwitchingEnable) {
   if (this->skipTest()) {
@@ -271,17 +317,18 @@ TEST_F(HwFlowletSwitchingTest, VerifyFlowletSwitchingEnable) {
 
   auto verify = [&]() {
     // verify the flowlet config
-    verifyInitialConfig();
+    const auto& cfg = initialConfig();
+    verifyConfig(cfg);
 
     // Shrink egress and verify
     this->unresolveNextHop(PortDescriptor(masterLogicalPortIds()[3]));
 
-    verifyInitialConfig();
+    verifyConfig(cfg);
 
     // Expand egress and verify
     this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[3]));
 
-    verifyInitialConfig();
+    verifyConfig(cfg);
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -298,8 +345,8 @@ TEST_F(HwFlowletSwitchingTest, VerifyPortFlowletConfigChange) {
   auto setup = [&]() { resolveNextHopsAddRoute(kMaxLinks); };
 
   auto verify = [&]() {
-    verifyInitialConfig();
     auto cfg = initialConfig();
+    verifyConfig(cfg);
     // Modify the port flowlet config and verify
     updatePortFlowletConfigs(cfg, kScalingFactor2, kLoadWeight2, kQueueWeight2);
     applyNewConfig(cfg);
@@ -322,8 +369,8 @@ TEST_F(HwFlowletSwitchingTest, VerifyFlowletConfigChange) {
   auto setup = [&]() { resolveNextHopsAddRoute(kMaxLinks); };
 
   auto verify = [&]() {
-    verifyInitialConfig();
     auto cfg = initialConfig();
+    verifyConfig(cfg);
     // Modify the flowlet config
     modifyFlowletSwitchingConfig(cfg);
     // Modify the port flowlet config
@@ -348,8 +395,8 @@ TEST_F(HwFlowletSwitchingTest, VerifyFlowletConfigRemoval) {
   auto setup = [&]() { resolveNextHopsAddRoute(kMaxLinks); };
 
   auto verify = [&]() {
-    verifyInitialConfig();
     auto cfg = initialConfig();
+    verifyConfig(cfg);
     // Modify the flowlet config
     modifyFlowletSwitchingConfig(cfg);
     // Modify the port flowlet config
@@ -385,7 +432,7 @@ TEST_F(HwEcmpFlowletSwitchingTest, VerifyEcmpFlowletSwitchingEnable) {
     updateFlowletConfigs(cfg);
     applyNewConfig(cfg);
     // verify the flowlet config
-    verifyInitialConfig();
+    verifyConfig(cfg);
     // Remove the flowlet configs
     cfg = getDefaultConfig();
     applyNewConfig(cfg);

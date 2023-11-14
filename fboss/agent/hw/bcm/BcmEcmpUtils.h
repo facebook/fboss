@@ -30,6 +30,10 @@ class BcmSwitch;
 namespace facebook::fboss::utility {
 
 int getEcmpSizeInHw(const BcmSwitch* hw, bcm_if_t ecmp, int sizeInSw);
+int getFlowletSizeWithScalingFactor(
+    const int flowSetTableSize,
+    const int numPaths,
+    const int maxPaths);
 std::multiset<bcm_if_t>
 getEcmpGroupInHw(const BcmSwitch* hw, bcm_if_t ecmp, int sizeInSw);
 

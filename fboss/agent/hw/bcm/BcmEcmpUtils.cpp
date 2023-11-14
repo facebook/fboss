@@ -49,6 +49,26 @@ getEcmpGroupInHw(const BcmSwitch* hw, bcm_if_t ecmp, int sizeInSw) {
   return ecmpGroup;
 }
 
+int getFlowletSizeWithScalingFactor(
+    const int flowSetTableSize,
+    const int numPaths,
+    const int maxPaths) {
+  // default table size is 2k
+  if (numPaths >= std::ceil(maxPaths * 0.75)) {
+    // Allow upto 4 links down
+    // with 32k flowset table max, this allows us upto 16 ECMP objects (default
+    // table size is 2k)
+    return flowSetTableSize;
+  } else if (numPaths >= std::ceil(maxPaths * 0.6)) {
+    // DLB is running in degraded state. Shrink the table.
+    // this allows upto 64 ECMP obejcts''
+    return (flowSetTableSize >> 2);
+  } else {
+    // don't do DLB anymore
+    return 0;
+  }
+}
+
 int getEcmpSizeInHw(const BcmSwitch* hw, bcm_if_t ecmp, int sizeInSw) {
   return getEcmpGroupInHw(hw, ecmp, sizeInSw).size();
 }
