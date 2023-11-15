@@ -526,6 +526,15 @@ TEST_F(HwVoqSwitchTest, sendPacketCpuAndFrontPanel) {
             kDscpAclCounterName());
       };
 
+      auto printQueueStats = [](std::string queueStatDesc,
+                                std::string packetsOrBytes,
+                                std::map<int16_t, int64_t> queueStatsMap) {
+        for (const auto& [queueId, pktsOrBytes] : queueStatsMap) {
+          XLOG(DBG2) << queueStatDesc << ": Queue ID: " << queueId << ", "
+                     << packetsOrBytes << ": " << pktsOrBytes;
+        }
+      };
+
       int64_t beforeQueueOutPkts = 0, beforeQueueOutBytes = 0;
       int64_t afterQueueOutPkts = 0, afterQueueOutBytes = 0;
       int64_t beforeVoQOutBytes = 0, afterVoQOutBytes = 0;
@@ -534,10 +543,13 @@ TEST_F(HwVoqSwitchTest, sendPacketCpuAndFrontPanel) {
         auto beforeAllQueueOut = getAllQueueOutPktsBytes();
         beforeQueueOutPkts = beforeAllQueueOut.first.at(kDefaultQueue);
         beforeQueueOutBytes = beforeAllQueueOut.second.at(kDefaultQueue);
+        printQueueStats("Before Queue Out", "Packets", beforeAllQueueOut.first);
+        printQueueStats("Before Queue Out", "Bytes", beforeAllQueueOut.second);
       }
 
       auto beforeAllVoQOutBytes = getAllVoQOutBytes();
       beforeVoQOutBytes = beforeAllVoQOutBytes.at(kDefaultQueue);
+      printQueueStats("Before VoQ Out", "Bytes", beforeAllVoQOutBytes);
 
       auto [beforeOutPkts, beforeOutBytes] = getPortOutPktsBytes();
       auto beforeAclPkts =
@@ -554,6 +566,8 @@ TEST_F(HwVoqSwitchTest, sendPacketCpuAndFrontPanel) {
           maxRetryCount, std::chrono::milliseconds(sleepTimeMsecs), {
             auto afterAllVoQOutBytes = getAllVoQOutBytes();
             afterVoQOutBytes = afterAllVoQOutBytes.at(kDefaultQueue);
+            printQueueStats("After VoQ Out", "Bytes", afterAllVoQOutBytes);
+
             if (getAsic()->isSupported(HwAsic::Feature::L3_QOS)) {
               auto afterAllQueueOut = getAllQueueOutPktsBytes();
               afterQueueOutPkts = afterAllQueueOut.first.at(kDefaultQueue);
