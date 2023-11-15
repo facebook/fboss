@@ -1,6 +1,6 @@
 {
   "fwConfigs" : {
-    "bios" : {
+    "BIOS" : {
       "preUpgradeCmd" : "printf 'A00000:FFFFFF normal\n400000:9EFFFF fallback\n9FA000:9FEFFF aboot_conf\n000000:FFFFFF total\n001000:01EFFF prefdl' > /home/bios_spi_layout;flashrom -p internal 2>&1 > /home/flashrom-output.txt; grep -w 'MX25L12805D' /home/flashrom-output.txt && echo 'MX25L12805D' > /home/chip.txt || grep 'N25Q128..3E' /home/flashrom-output.txt && echo 'N25Q128..3E' > /home/chip.txt || echo '****** error finding chip ****** ...'",
       "getVersionCmd" : "cat /sys/devices/virtual/dmi/id/bios_version | cut -d ':' -f 2 | cut -d '-' -f 3",
       "priority" : 1,
@@ -9,21 +9,21 @@
       "verifyFwCmd" : "chip=$(head -n 1 /home/chip.txt); bios_filename=$(head -n 1 /home/bios_filename.txt); flashrom -p internal -c $chip -l /home/bios_spi_layout -i normal -i fallback -i aboot_conf --noverify-all -v $bios_filename",
       "readFwCmd" : "chip=$(head -n 1 /home/chip.txt); bios_filename=$(head -n 1 /home/bios_filename.txt); flashrom -p internal -c $chip -l /home/bios_spi_layout -i normal -i fallback -i aboot_conf --noverify-all -r $bios_filename"
     },
-    "cpu_cpld" : {
+    "CPU_CPLD" : {
       "preUpgradeCmd" : "scBus=$(i2cdetect -l | grep '0000:ff:0b.3 SMBus master 2 bus 0' | cut -d '-' -f 2 | grep -o '^[0-9]*');i2cset -f -y $scBus 0x23 0x0c 0x00",
       "getVersionCmd" : "cpu_cpld_ver=$((`cat /sys/bus/pci/drivers/scd/0000:ff:0b.3/fpga_ver`));cpu_cpld_subver=$((`cat /sys/bus/pci/drivers/scd/0000:ff:0b.3/fpga_sub_ver`));echo $cpu_cpld_ver'.'$cpu_cpld_subver",
       "priority" : 2,
       "upgradeCmd" : "cpu_cpld_filename=$(head -n 1 /home/cpu_cpld_filename.txt);/usr/bin/jam -aprogram -fcpu_cpld -v $cpu_cpld_filename",
       "postUpgradeCmd" : "scBus=$(i2cdetect -l | grep '0000:ff:0b.3 SMBus master 2 bus 0' | cut -d '-' -f 2 | grep -o '^[0-9]*');i2cset -f -y $scBus 0x23 0x0c 0x00"
     },
-    "sc_cpld" : {
+    "SC_CPLD" : {
       "preUpgradeCmd" : "scBus=$(i2cdetect -l | grep '0000:ff:0b.3 SMBus master 2 bus 0' | cut -d '-' -f 2 | grep -o '^[0-9]*');i2cset -f -y $scBus 0x23 0x0c 0x00",
       "getVersionCmd" : "sc_cpld_ver=$((`cat /sys/bus/i2c/drivers/blackhawk-cpld/*/cpld_ver | head -1`));sc_cpld_subver=$((`cat /sys/bus/i2c/drivers/blackhawk-cpld/*/cpld_sub_ver | head -1`));echo $sc_cpld_ver'.'$sc_cpld_subver",
       "priority" : 7,
       "upgradeCmd" : "sc_cpld_filename=$(head -n 1 /home/sc_cpld_filename.txt);/usr/bin/jam -aprogram -fsc_cpld -v $sc_cpld_filename",
       "postUpgradeCmd" : "scBus=$(i2cdetect -l | grep '0000:ff:0b.3 SMBus master 2 bus 0' | cut -d '-' -f 2 | grep -o '^[0-9]*');i2cset -f -y $scBus 0x23 0x0c 0x00"
     },
-    "sc_scd" : {
+    "SC_SCD" : {
       "preUpgradeCmd" : "scBus=$(i2cdetect -l | grep '0000:ff:0b.3 SMBus master 2 bus 0' | cut -d '-' -f 2 | grep -o '^[0-9]*');i2cset -f -y $scBus 0x23 0x0c 0x01",
       "getVersionCmd" : "sc_fpga_ver=$((`cat /sys/bus/pci/devices/0000:07:00.0/fpga_ver`));sc_fpga_subver=$((`cat /sys/bus/pci/devices/0000:07:00.0/fpga_sub_ver`));echo $sc_fpga_ver'.'$sc_fpga_subver",
       "priority" : 3,
@@ -31,7 +31,7 @@
       "postUpgradeCmd" : "scBus=$(i2cdetect -l | grep '0000:ff:0b.3 SMBus master 2 bus 0' | cut -d '-' -f 2 | grep -o '^[0-9]*');i2cset -f -y $scBus 0x23 0x0c 0x00"
 
     },
-    "sc_sat_cpld0" : {
+    "SC_SAT_CPLD0" : {
       "preUpgradeCmd" : "scBus=$(i2cdetect -l | grep '0000:ff:0b.3 SMBus master 2 bus 0' | cut -d '-' -f 2 | grep -o '^[0-9]*');i2cset -f -y $scBus 0x23 0x0c 0x02",
       "getVersionCmd" : "sat0_cpld_ver=$((`cat /sys/bus/pci/devices/0000:07:00.0/sat0_cpld_ver`));sat0_cpld_subver=$((`cat /sys/bus/pci/devices/0000:07:00.0/sat0_cpld_sub_ver`));echo $sat0_cpld_ver'.'$sat0_cpld_subver",
       "priority" : 4,
@@ -39,7 +39,7 @@
       "postUpgradeCmd" : "scBus=$(i2cdetect -l | grep '0000:ff:0b.3 SMBus master 2 bus 0' | cut -d '-' -f 2 | grep -o '^[0-9]*');i2cset -f -y $scBus 0x23 0x0c 0x00"
 
     },
-    "sc_sat_cpld1" : {
+    "SC_SAT_CPLD1" : {
       "preUpgradeCmd" : "scBus=$(i2cdetect -l | grep '0000:ff:0b.3 SMBus master 2 bus 0' | cut -d '-' -f 2 | grep -o '^[0-9]*');i2cset -f -y $scBus 0x23 0x0c 0x04",
       "getVersionCmd" : "sat1_cpld_ver=$((`cat /sys/bus/pci/devices/0000:07:00.0/sat1_cpld_ver`));sat1_cpld_subver=$((`cat /sys/bus/pci/devices/0000:07:00.0/sat1_cpld_sub_ver`));echo $sat1_cpld_ver'.'$sat1_cpld_subver",
       "priority" : 5,
@@ -47,7 +47,7 @@
       "postUpgradeCmd" : "scBus=$(i2cdetect -l | grep '0000:ff:0b.3 SMBus master 2 bus 0' | cut -d '-' -f 2 | grep -o '^[0-9]*');i2cset -f -y $scBus 0x23 0x0c 0x00"
 
     },
-    "fan_cpld" : {
+    "FAN_CPLD" : {
       "getVersionCmd" : "fanCpld_ver=$((`cat /sys/bus/i2c/drivers/rook-fan-cpld/*/*/*/cpld_ver`));fanCpld_subver=$((`cat /sys/bus/i2c/drivers/rook-fan-cpld/*/*/*/cpld_sub_ver`));echo $fanCpld_ver'.'$fanCpld_subver",
       "priority" : 6
     }
