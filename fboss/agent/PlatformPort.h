@@ -19,6 +19,8 @@
 #include "fboss/agent/types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
+DECLARE_bool(led_controlled_through_led_service);
+
 namespace facebook::fboss {
 
 class Platform;

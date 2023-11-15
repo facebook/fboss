@@ -18,6 +18,11 @@
 #include <re2/re2.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
 
+DEFINE_bool(
+    led_controlled_through_led_service,
+    false,
+    "LED is controlled through led_service");
+
 namespace facebook::fboss {
 
 PlatformPort::PlatformPort(PortID id, Platform* platform)
