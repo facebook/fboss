@@ -7278,7 +7278,10 @@
               "sendToQueue": {
                 "queueId": 7
               },
-              "toCpuAction": 1
+              "toCpuAction": 1,
+              "setTc": {
+                "tcValue": 7
+              }
             }
           },
           {
@@ -7287,7 +7290,10 @@
               "sendToQueue": {
                 "queueId": 7
               },
-              "toCpuAction": 1
+              "toCpuAction": 1,
+              "setTc": {
+                "tcValue": 7
+              }
             }
           },
           {
@@ -7296,7 +7302,10 @@
               "sendToQueue": {
                 "queueId": 2
               },
-              "toCpuAction": 1
+              "toCpuAction": 1,
+              "setTc": {
+                "tcValue": 2
+              }
             }
           },
           {
@@ -7305,7 +7314,10 @@
               "sendToQueue": {
                 "queueId": 2
               },
-              "toCpuAction": 1
+              "toCpuAction": 1,
+              "setTc": {
+                "tcValue": 2
+              }
             }
           }
         ]
@@ -7423,7 +7435,7 @@
             },
             "systemPortRange": {
               "minimum": 100,
-              "maximum": 300
+              "maximum": 120
             },
             "switchMac": "02:00:00:00:00:01",
             "connectionHandle": "68:00"
@@ -7446,7 +7458,7 @@
           ],
           "systemPortRange": {
             "minimum": 100,
-            "maximum": 300
+            "maximum": 120
           },
           "nodeMac": "02:00:00:00:0F:0B",
           "asicType": 11,
@@ -7480,6 +7492,7 @@
           "dma_desc_aggregator_enable_specific_MDB_LPM.BCM8885X": "1",
           "dma_desc_aggregator_timeout_usec.BCM8885X": "1000",
           "dport_map_direct.BCM8885X": "1",
+          "dpp_db_path": "/tmp/db",
           "dtm_flow_mapping_mode_region_257.BCM8885X": "3",
           "dtm_flow_mapping_mode_region_258.BCM8885X": "3",
           "dtm_flow_mapping_mode_region_259.BCM8885X": "3",
@@ -7568,9 +7581,42 @@
           "dtm_flow_nof_remote_cores_region_59.BCM8885X": "2",
           "dtm_flow_nof_remote_cores_region_6.BCM8885X": "2",
           "dtm_flow_nof_remote_cores_region_60.BCM8885X": "2",
+          "dtm_flow_nof_remote_cores_region_61.BCM8885X": "2",
+          "dtm_flow_nof_remote_cores_region_62.BCM8885X": "2",
+          "dtm_flow_nof_remote_cores_region_63.BCM8885X": "2",
+          "dtm_flow_nof_remote_cores_region_64.BCM8885X": "2",
+          "dtm_flow_nof_remote_cores_region_65.BCM8885X": "2",
+          "dtm_flow_nof_remote_cores_region_66.BCM8885X": "2",
+          "dtm_flow_nof_remote_cores_region_67.BCM8885X": "2",
+          "dtm_flow_nof_remote_cores_region_68.BCM8885X": "2",
+          "dtm_flow_nof_remote_cores_region_69.BCM8885X": "2",
           "dtm_flow_nof_remote_cores_region_7.BCM8885X": "2",
+          "dtm_flow_nof_remote_cores_region_70.BCM8885X": "2",
+          "dtm_flow_nof_remote_cores_region_71.BCM8885X": "2",
+          "dtm_flow_nof_remote_cores_region_72.BCM8885X": "2",
+          "dtm_flow_nof_remote_cores_region_73.BCM8885X": "2",
+          "dtm_flow_nof_remote_cores_region_74.BCM8885X": "2",
+          "dtm_flow_nof_remote_cores_region_75.BCM8885X": "2",
+          "dtm_flow_nof_remote_cores_region_76.BCM8885X": "2",
+          "dtm_flow_nof_remote_cores_region_77.BCM8885X": "2",
+          "dtm_flow_nof_remote_cores_region_78.BCM8885X": "2",
+          "dtm_flow_nof_remote_cores_region_79.BCM8885X": "2",
           "dtm_flow_nof_remote_cores_region_8.BCM8885X": "2",
+          "dtm_flow_nof_remote_cores_region_80.BCM8885X": "2",
+          "dtm_flow_nof_remote_cores_region_81.BCM8885X": "2",
+          "dtm_flow_nof_remote_cores_region_82.BCM8885X": "2",
+          "dtm_flow_nof_remote_cores_region_83.BCM8885X": "2",
+          "dtm_flow_nof_remote_cores_region_84.BCM8885X": "2",
+          "dtm_flow_nof_remote_cores_region_85.BCM8885X": "2",
+          "dtm_flow_nof_remote_cores_region_86.BCM8885X": "2",
           "dtm_flow_nof_remote_cores_region_9.BCM8885X": "2",
+          "dtm_flow_nof_remote_cores_region_90.BCM8885X": "2",
+          "dtm_flow_nof_remote_cores_region_91.BCM8885X": "2",
+          "dtm_flow_nof_remote_cores_region_92.BCM8885X": "2",
+          "dtm_flow_nof_remote_cores_region_93.BCM8885X": "2",
+          "dtm_flow_nof_remote_cores_region_94.BCM8885X": "2",
+          "dtm_flow_nof_remote_cores_region_95.BCM8885X": "2",
+          "dtm_flow_nof_remote_cores_region_96.BCM8885X": "2",
           "eventor_sbus_dma_channels.BCM8885X": "1,0,1,1",
           "fabric_connect_mode": "FE",
           "fabric_connectivity_based_on_integrity": "0",
@@ -9739,20 +9785,20 @@
           "ucode_port_1.BCM88803": "CGE8:core_0.1",
           "ucode_port_1.BCM88806": "CGE4:core_0.1",
           "ucode_port_1.BCM8885X": "RCY.21:core_0.1",
-          "ucode_port_10.BCM8885X": "CGE16:core_0.10",
-          "ucode_port_11.BCM8885X": "CGE14:core_0.11",
-          "ucode_port_12.BCM8885X": "CGE12:core_0.12",
+          "ucode_port_10.BCM8885X": "CGE16:core_0.2",
+          "ucode_port_11.BCM8885X": "CGE14:core_0.3",
+          "ucode_port_12.BCM8885X": "CGE12:core_0.4",
           "ucode_port_13.BCM88482": "IGNORE",
-          "ucode_port_13.BCM8885X": "CGE10:core_0.13",
+          "ucode_port_13.BCM8885X": "CGE10:core_0.5",
           "ucode_port_14.BCM88482": "IGNORE",
-          "ucode_port_14.BCM8885X": "CGE8:core_0.14",
+          "ucode_port_14.BCM8885X": "CGE8:core_0.6",
           "ucode_port_15.BCM88482": "IGNORE",
-          "ucode_port_15.BCM8885X": "CGE6:core_0.15",
+          "ucode_port_15.BCM8885X": "CGE6:core_0.7",
           "ucode_port_16.BCM88482": "IGNORE",
-          "ucode_port_16.BCM8885X": "CGE4:core_0.16",
+          "ucode_port_16.BCM8885X": "CGE4:core_0.8",
           "ucode_port_17.BCM88280": "CGE6:core_0.17",
           "ucode_port_17.BCM88287": "IGNORE",
-          "ucode_port_17.BCM8885X": "CGE2:core_0.17",
+          "ucode_port_17.BCM8885X": "CGE2:core_0.9",
           "ucode_port_2.BCM8885X": "CGE20:core_1.2",
           "ucode_port_20.BCM88485": "IGNORE",
           "ucode_port_20.BCM88487": "IGNORE",
