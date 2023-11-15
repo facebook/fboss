@@ -509,24 +509,15 @@ TEST_F(HwVoqSwitchTest, sendPacketCpuAndFrontPanel) {
             getLatestPortStats(kPort.phyPortID()).get_outBytes_());
       };
 
-      auto getQueueOutPktsBytes = [kPort, this]() {
+      auto getAllQueueOutPktsBytes = [kPort, this]() {
         return std::make_pair(
-            getLatestPortStats(kPort.phyPortID())
-                .get_queueOutPackets_()
-                .at(kDefaultQueue),
-            getLatestPortStats(kPort.phyPortID())
-                .get_queueOutBytes_()
-                .at(kDefaultQueue));
+            getLatestPortStats(kPort.phyPortID()).get_queueOutPackets_(),
+            getLatestPortStats(kPort.phyPortID()).get_queueOutBytes_());
       };
-      auto getVoQOutBytes = [kPort, this]() {
-        if (!getAsic()->isSupported(HwAsic::Feature::VOQ)) {
-          return 0L;
-        }
+      auto getAllVoQOutBytes = [kPort, this]() {
         return getLatestSysPortStats(getSystemPortID(kPort))
-            .get_queueOutBytes_()
-            .at(kDefaultQueue);
+            .get_queueOutBytes_();
       };
-
       auto getAclPackets = [this]() {
         return utility::getAclInOutPackets(
             getHwSwitch(),
@@ -537,13 +528,16 @@ TEST_F(HwVoqSwitchTest, sendPacketCpuAndFrontPanel) {
 
       int64_t beforeQueueOutPkts = 0, beforeQueueOutBytes = 0;
       int64_t afterQueueOutPkts = 0, afterQueueOutBytes = 0;
+      int64_t beforeVoQOutBytes = 0, afterVoQOutBytes = 0;
 
-      auto beforeVoQOutBytes = getVoQOutBytes();
       if (getAsic()->isSupported(HwAsic::Feature::L3_QOS)) {
-        auto beforeQueueOut = getQueueOutPktsBytes();
-        beforeQueueOutPkts = beforeQueueOut.first;
-        beforeQueueOutBytes = beforeQueueOut.second;
+        auto beforeAllQueueOut = getAllQueueOutPktsBytes();
+        beforeQueueOutPkts = beforeAllQueueOut.first.at(kDefaultQueue);
+        beforeQueueOutBytes = beforeAllQueueOut.second.at(kDefaultQueue);
       }
+
+      auto beforeAllVoQOutBytes = getAllVoQOutBytes();
+      beforeVoQOutBytes = beforeAllVoQOutBytes.at(kDefaultQueue);
 
       auto [beforeOutPkts, beforeOutBytes] = getPortOutPktsBytes();
       auto beforeAclPkts =
@@ -558,10 +552,12 @@ TEST_F(HwVoqSwitchTest, sendPacketCpuAndFrontPanel) {
           utility::getRetryCountAndDelay(getAsic());
       WITH_RETRIES_N_TIMED(
           maxRetryCount, std::chrono::milliseconds(sleepTimeMsecs), {
-            auto afterVoQOutBytes = getVoQOutBytes();
+            auto afterAllVoQOutBytes = getAllVoQOutBytes();
+            afterVoQOutBytes = afterAllVoQOutBytes.at(kDefaultQueue);
             if (getAsic()->isSupported(HwAsic::Feature::L3_QOS)) {
-              std::tie(afterQueueOutPkts, afterQueueOutBytes) =
-                  getQueueOutPktsBytes();
+              auto afterAllQueueOut = getAllQueueOutPktsBytes();
+              afterQueueOutPkts = afterAllQueueOut.first.at(kDefaultQueue);
+              afterQueueOutBytes = afterAllQueueOut.second.at(kDefaultQueue);
             }
             auto afterAclPkts = isSupported(HwAsic::Feature::ACL_TABLE_GROUP)
                 ? getAclPackets()
