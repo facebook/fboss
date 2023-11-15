@@ -36,6 +36,7 @@ struct SaiQosMapHandle {
   std::shared_ptr<SaiQosMap> tcToPgMap;
   std::shared_ptr<SaiQosMap> pfcPriorityToQueueMap;
   std::shared_ptr<SaiQosMap> tcToVoqMap;
+  std::string name;
   bool isDefault;
 };
 

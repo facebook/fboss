@@ -86,6 +86,9 @@ struct SaiPortHandle {
   std::vector<SaiQueueHandle*> configuredQueues;
   std::shared_ptr<SaiSamplePacket> ingressSamplePacket;
   std::shared_ptr<SaiSamplePacket> egressSamplePacket;
+  std::shared_ptr<SaiQosMap> dscpToTcQosMap;
+  std::shared_ptr<SaiQosMap> tcToQueueQosMap;
+  std::optional<std::string> qosPolicy;
   SaiQueueHandles queues;
 
   void resetQueues();
@@ -162,7 +165,11 @@ class SaiPortManager {
   Handles::const_iterator end() const {
     return handles_.end();
   }
-  void setQosPolicy();
+
+  void setQosPolicy(PortID portID, const std::optional<std::string>& qosPolicy);
+  void setQosPolicy(const std::shared_ptr<QosPolicy>& qosPolicy);
+  void clearQosPolicy(PortID portID);
+  void clearQosPolicy(const std::shared_ptr<QosPolicy>& qosPolicy);
   void clearQosPolicy();
 
   std::shared_ptr<MultiSwitchPortMap> reconstructPortsFromStore(
@@ -237,14 +244,13 @@ class SaiPortManager {
   void releasePorts();
   void releasePortPfcBuffers();
 
-  void setQosMaps(
-      std::vector<std::pair<sai_qos_map_type_t, QosMapSaiId>>& qosMaps,
-      const folly::F14FastSet<PortID>& ports);
   std::vector<std::pair<sai_qos_map_type_t, QosMapSaiId>>
   getNullSaiIdsForQosMaps();
-  std::vector<std::pair<sai_qos_map_type_t, QosMapSaiId>> getSaiIdsForQosMaps();
+  std::vector<std::pair<sai_qos_map_type_t, QosMapSaiId>> getSaiIdsForQosMaps(
+      const SaiQosMapHandle* qosMapHandle);
 
-  void setQosMapsOnAllPorts(
+  void setQosMapsOnPort(
+      const SaiPortHandle* portHandle,
       std::vector<std::pair<sai_qos_map_type_t, QosMapSaiId>>& qosMaps);
   const std::vector<sai_stat_id_t>& supportedStats(PortID port);
   void fillInSupportedStats(PortID port);
@@ -344,6 +350,9 @@ class SaiPortManager {
   void changeZeroPreemphasis(
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort);
+  void changeQosPolicy(
+      const std::shared_ptr<Port>& oldPort,
+      const std::shared_ptr<Port>& newPort);
 
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
@@ -356,8 +365,6 @@ class SaiPortManager {
   // retain removed port handle so it does not invoke remove port api.
   Handles removedHandles_;
   Stats portStats_;
-  std::shared_ptr<SaiQosMap> globalDscpToTcQosMap_;
-  std::shared_ptr<SaiQosMap> globalTcToQueueQosMap_;
 
   std::optional<SaiPortTraits::Attributes::PtpMode> getPtpMode() const;
   std::unordered_map<PortID, cfg::PortType> port2PortType_;
@@ -365,6 +372,7 @@ class SaiPortManager {
   std::unordered_map<PortID, std::shared_ptr<Port>> pendingNewPorts_;
   bool hwLaneListIsPmdLaneList_;
   bool tcToQueueMapAllowedOnPort_;
+  bool globalQosMapSupported_;
 };
 
 } // namespace facebook::fboss

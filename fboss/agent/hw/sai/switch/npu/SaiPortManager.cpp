@@ -221,12 +221,7 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
       swPort->getIngressMirror(), swPort->getEgressMirror(), samplingMirror};
   handle->mirrorInfo = mirrorInfo;
   handles_.emplace(swPort->getID(), std::move(handle));
-  if (globalDscpToTcQosMap_) {
-    // Both global maps must exist in one of them exists
-    CHECK(globalTcToQueueQosMap_);
-    auto qosMaps = getSaiIdsForQosMaps();
-    setQosMaps(qosMaps, {swPort->getID()});
-  }
+  setQosPolicy(swPort->getID(), swPort->getQosPolicy());
 
   addSamplePacket(swPort);
   addNode(swPort);
@@ -328,6 +323,7 @@ void SaiPortManager::changePortImpl(
       newPort,
       oldPort->getPortQueues()->impl(),
       newPort->getPortQueues()->impl());
+  changeQosPolicy(oldPort, newPort);
 }
 
 void SaiPortManager::attributesFromSaiStore(

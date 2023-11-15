@@ -115,6 +115,13 @@ void ManagerTestBase::setupSaiPlatform() {
   }
 
   HwSwitchMatcher scope(std::unordered_set<SwitchID>({SwitchID(0)}));
+  TestQosPolicy testQosPolicy{{10, 0, 2}, {42, 1, 4}};
+  auto qp = makeQosPolicy("default", testQosPolicy);
+  auto switchSettings = setupState->getSwitchSettings()
+                            ->getNode(scope.matcherString())
+                            ->modify(&setupState);
+  switchSettings->setDefaultDataPlaneQosPolicy(qp);
+
   if (setupStage & SetupStage::PORT) {
     auto* ports = setupState->getPorts()->modify(&setupState);
     for (const auto& testInterface : testInterfaces) {

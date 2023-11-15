@@ -333,7 +333,9 @@ SaiPortManager::SaiPortManager(
       concurrentIndices_(concurrentIndices),
       hwLaneListIsPmdLaneList_(true),
       tcToQueueMapAllowedOnPort_(!platform_->getAsic()->isSupported(
-          HwAsic::Feature::TC_TO_QUEUE_QOS_MAP_ON_SYSTEM_PORT)) {
+          HwAsic::Feature::TC_TO_QUEUE_QOS_MAP_ON_SYSTEM_PORT)),
+      globalQosMapSupported_(
+          managerTable_->switchManager().isGlobalQoSMapSupported()) {
 #if defined(BRCM_SAI_SDK_XGS)
   auto& portStore = saiStore_->get<SaiPortTraits>();
   auto saiPort = portStore.objects().begin()->second.lock();
@@ -364,9 +366,7 @@ SaiPortHandle::~SaiPortHandle() {
 }
 
 SaiPortManager::~SaiPortManager() {
-  if (globalDscpToTcQosMap_) {
-    clearQosPolicy();
-  }
+  clearQosPolicy();
   releasePortPfcBuffers();
   releasePorts();
 }
@@ -907,13 +907,12 @@ void SaiPortManager::removePort(const std::shared_ptr<Port>& swPort) {
   if (itr == handles_.end()) {
     throw FbossError("Attempted to remove non-existent port: ", swId);
   }
-  auto qosMaps = getNullSaiIdsForQosMaps();
-  setQosMaps(qosMaps, {swPort->getID()});
 
   removeMirror(swPort);
   removeSamplePacket(swPort);
   removePfcBuffers(swPort);
   removePfc(swPort);
+  clearQosPolicy(swId);
 
   concurrentIndices_->portIds.erase(itr->second->port->adapterKey());
   concurrentIndices_->portSaiIds.erase(swId);
@@ -1510,72 +1509,51 @@ std::shared_ptr<MultiSwitchPortMap> SaiPortManager::reconstructPortsFromStore(
   return portMap;
 }
 
-void SaiPortManager::setQosMaps(
-    std::vector<std::pair<sai_qos_map_type_t, QosMapSaiId>>& qosMaps,
-    const folly::F14FastSet<PortID>& ports) {
-  if (!qosMaps.size()) {
-    return;
-  }
-
-  for (auto& portIdAndHandle : handles_) {
-    if (ports.find(portIdAndHandle.first) == ports.end()) {
-      continue;
-    }
-    auto& port = portIdAndHandle.second->port;
-    for (auto qosMapTypeToSaiId : qosMaps) {
-      auto mapping = qosMapTypeToSaiId.second;
-      switch (qosMapTypeToSaiId.first) {
-        case SAI_QOS_MAP_TYPE_DSCP_TO_TC:
-          port->setOptionalAttribute(
-              SaiPortTraits::Attributes::QosDscpToTcMap{mapping});
-          break;
-        case SAI_QOS_MAP_TYPE_TC_TO_QUEUE:
-          /*
-           * On certain platforms, applying TC to QUEUE mapping on front panel
-           * port will be applied on system port by the underlying SDK.
-           * It can applied in either of them - Front panel port or on system
-           * port. We decided to go with system port for two reasons 1) Remote
-           * system port on a local device also need to be applied with this TC
-           * to Queue Map 2) Cleaner approach to have the separation of applying
-           * TC to Queue map on all system ports in VOQ mode
-           */
-          if (tcToQueueMapAllowedOnPort_) {
-            port->setOptionalAttribute(
-                SaiPortTraits::Attributes::QosTcToQueueMap{mapping});
-          }
-          break;
-        case SAI_QOS_MAP_TYPE_TC_TO_PRIORITY_GROUP:
-          port->setOptionalAttribute(
-              SaiPortTraits::Attributes::QosTcToPriorityGroupMap{mapping});
-          break;
-        case SAI_QOS_MAP_TYPE_PFC_PRIORITY_TO_QUEUE:
-          port->setOptionalAttribute(
-              SaiPortTraits::Attributes::QosPfcPriorityToQueueMap{mapping});
-          break;
-        default:
-          throw FbossError("Unhandled qos map ", qosMapTypeToSaiId.first);
-      }
-    }
-  }
-}
-
-void SaiPortManager::setQosMapsOnAllPorts(
+void SaiPortManager::setQosMapsOnPort(
+    const SaiPortHandle* portHandle,
     std::vector<std::pair<sai_qos_map_type_t, QosMapSaiId>>& qosMaps) {
-  folly::F14FastSet<PortID> allPorts;
-  for (const auto& portIdAndHandle : handles_) {
-    // For all non fabric ports
-    if (getPortType(portIdAndHandle.first) != cfg::PortType::FABRIC_PORT) {
-      allPorts.insert(portIdAndHandle.first);
+  auto& port = portHandle->port;
+  for (auto qosMapTypeToSaiId : qosMaps) {
+    auto mapping = qosMapTypeToSaiId.second;
+    switch (qosMapTypeToSaiId.first) {
+      case SAI_QOS_MAP_TYPE_DSCP_TO_TC:
+        port->setOptionalAttribute(
+            SaiPortTraits::Attributes::QosDscpToTcMap{mapping});
+        break;
+      case SAI_QOS_MAP_TYPE_TC_TO_QUEUE:
+        /*
+         * On certain platforms, applying TC to QUEUE mapping on front panel
+         * port will be applied on system port by the underlying SDK.
+         * It can applied in either of them - Front panel port or on system
+         * port. We decided to go with system port for two reasons 1) Remote
+         * system port on a local device also need to be applied with this TC
+         * to Queue Map 2) Cleaner approach to have the separation of applying
+         * TC to Queue map on all system ports in VOQ mode
+         */
+        if (tcToQueueMapAllowedOnPort_) {
+          port->setOptionalAttribute(
+              SaiPortTraits::Attributes::QosTcToQueueMap{mapping});
+        }
+        break;
+      case SAI_QOS_MAP_TYPE_TC_TO_PRIORITY_GROUP:
+        port->setOptionalAttribute(
+            SaiPortTraits::Attributes::QosTcToPriorityGroupMap{mapping});
+        break;
+      case SAI_QOS_MAP_TYPE_PFC_PRIORITY_TO_QUEUE:
+        port->setOptionalAttribute(
+            SaiPortTraits::Attributes::QosPfcPriorityToQueueMap{mapping});
+        break;
+      default:
+        throw FbossError("Unhandled qos map ", qosMapTypeToSaiId.first);
     }
   }
-  setQosMaps(qosMaps, allPorts);
 }
 
 std::vector<std::pair<sai_qos_map_type_t, QosMapSaiId>>
 SaiPortManager::getNullSaiIdsForQosMaps() {
   std::vector<std::pair<sai_qos_map_type_t, QosMapSaiId>> qosMaps{};
   auto nullObjId = QosMapSaiId(SAI_NULL_OBJECT_ID);
-  if (!managerTable_->switchManager().isGlobalQoSMapSupported()) {
+  if (!globalQosMapSupported_) {
     qosMaps.push_back({SAI_QOS_MAP_TYPE_DSCP_TO_TC, nullObjId});
     qosMaps.push_back({SAI_QOS_MAP_TYPE_TC_TO_QUEUE, nullObjId});
   }
@@ -1594,50 +1572,100 @@ SaiPortManager::getNullSaiIdsForQosMaps() {
 }
 
 std::vector<std::pair<sai_qos_map_type_t, QosMapSaiId>>
-SaiPortManager::getSaiIdsForQosMaps() {
-  auto qosMapHandle = managerTable_->qosMapManager().getQosMap();
+SaiPortManager::getSaiIdsForQosMaps(const SaiQosMapHandle* qosMapHandle) {
   std::vector<std::pair<sai_qos_map_type_t, QosMapSaiId>> qosMaps{};
-  if (!managerTable_->switchManager().isGlobalQoSMapSupported()) {
+  if (!globalQosMapSupported_) {
     qosMaps.push_back(
-        {SAI_QOS_MAP_TYPE_DSCP_TO_TC, globalDscpToTcQosMap_->adapterKey()});
+        {SAI_QOS_MAP_TYPE_DSCP_TO_TC, qosMapHandle->dscpToTcMap->adapterKey()});
     qosMaps.push_back(
-        {SAI_QOS_MAP_TYPE_TC_TO_QUEUE, globalTcToQueueQosMap_->adapterKey()});
+        {SAI_QOS_MAP_TYPE_TC_TO_QUEUE,
+         qosMapHandle->tcToQueueMap->adapterKey()});
   }
-  if (qosMapHandle) {
-    if (qosMapHandle->tcToPgMap) {
-      qosMaps.push_back(
-          {SAI_QOS_MAP_TYPE_TC_TO_PRIORITY_GROUP,
-           qosMapHandle->tcToPgMap->adapterKey()});
-    }
-    if (qosMapHandle->pfcPriorityToQueueMap) {
-      qosMaps.push_back(
-          {SAI_QOS_MAP_TYPE_PFC_PRIORITY_TO_QUEUE,
-           qosMapHandle->pfcPriorityToQueueMap->adapterKey()});
-    }
+  if (qosMapHandle->tcToPgMap) {
+    qosMaps.push_back(
+        {SAI_QOS_MAP_TYPE_TC_TO_PRIORITY_GROUP,
+         qosMapHandle->tcToPgMap->adapterKey()});
+  }
+  if (qosMapHandle->pfcPriorityToQueueMap) {
+    qosMaps.push_back(
+        {SAI_QOS_MAP_TYPE_PFC_PRIORITY_TO_QUEUE,
+         qosMapHandle->pfcPriorityToQueueMap->adapterKey()});
   }
   return qosMaps;
 }
 
-void SaiPortManager::setQosPolicy() {
-  if (!managerTable_->switchManager().isGlobalQoSMapSupported()) {
-    auto& qosMapManager = managerTable_->qosMapManager();
-    auto qosMapHandle = qosMapManager.getQosMap();
-    globalDscpToTcQosMap_ = qosMapHandle->dscpToTcMap;
-    globalTcToQueueQosMap_ = qosMapHandle->tcToQueueMap;
+void SaiPortManager::setQosPolicy(
+    PortID portID,
+    const std::optional<std::string>& qosPolicy) {
+  XLOG(DBG2) << "set QoS policy " << (qosPolicy ? qosPolicy.value() : "null")
+             << " for port " << portID;
+  auto qosMapHandle = managerTable_->qosMapManager().getQosMap(qosPolicy);
+  if (!qosMapHandle) {
+    if (qosPolicy) {
+      throw FbossError(
+          "QosMap handle is null for QoS policy: ", qosPolicy.value());
+    }
+    XLOG(DBG2)
+        << "skip programming QoS policy on port " << portID
+        << " because applied QoS policy is null and default QoS policy is absent";
+    return;
   }
+  auto qosMaps = getSaiIdsForQosMaps(qosMapHandle);
+  auto handle = getPortHandle(portID);
+  if (!globalQosMapSupported_) {
+    handle->dscpToTcQosMap = qosMapHandle->dscpToTcMap;
+    handle->tcToQueueQosMap = qosMapHandle->tcToQueueMap;
+    handle->qosPolicy = qosMapHandle->name;
+  }
+  setQosMapsOnPort(handle, qosMaps);
+}
 
-  auto qosMaps = getSaiIdsForQosMaps();
-  if (qosMaps.size()) {
-    XLOG(DBG2) << "Set qos maps";
-    setQosMapsOnAllPorts(qosMaps);
+void SaiPortManager::setQosPolicy(const std::shared_ptr<QosPolicy>& qosPolicy) {
+  for (const auto& portIdAndHandle : handles_) {
+    if (portIdAndHandle.second->qosPolicy == qosPolicy->getName()) {
+      setQosPolicy(portIdAndHandle.first, qosPolicy->getName());
+    }
+  }
+}
+
+void SaiPortManager::clearQosPolicy(PortID portID) {
+  XLOG(DBG2) << "clear QoS policy "
+             << " for port " << portID;
+  auto handle = getPortHandle(portID);
+  if (handle->qosPolicy) {
+    auto qosMaps = getNullSaiIdsForQosMaps();
+    setQosMapsOnPort(handle, qosMaps);
+    handle->dscpToTcQosMap.reset();
+    handle->tcToQueueQosMap.reset();
+    handle->qosPolicy.reset();
+  }
+}
+
+void SaiPortManager::clearQosPolicy(
+    const std::shared_ptr<QosPolicy>& qosPolicy) {
+  for (const auto& portIdAndHandle : handles_) {
+    if (portIdAndHandle.second->qosPolicy == qosPolicy->getName()) {
+      clearQosPolicy(portIdAndHandle.first);
+    }
   }
 }
 
 void SaiPortManager::clearQosPolicy() {
+  // clear qos policy for all ports
   auto qosMaps = getNullSaiIdsForQosMaps();
-  setQosMapsOnAllPorts(qosMaps);
-  globalDscpToTcQosMap_.reset();
-  globalTcToQueueQosMap_.reset();
+  for (const auto& portIdAndHandle : handles_) {
+    clearQosPolicy(portIdAndHandle.first);
+  }
+}
+
+void SaiPortManager::changeQosPolicy(
+    const std::shared_ptr<Port>& oldPort,
+    const std::shared_ptr<Port>& newPort) {
+  if (oldPort->getQosPolicy() == newPort->getQosPolicy()) {
+    return;
+  }
+  clearQosPolicy(oldPort->getID());
+  setQosPolicy(newPort->getID(), newPort->getQosPolicy());
 }
 
 void SaiPortManager::programSampling(

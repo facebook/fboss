@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/sai/api/QosMapApi.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
+#include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
@@ -194,6 +195,7 @@ void SaiQosMapManager::setQosMaps(
     handle->tcToVoqMap = setTcToQueueQosMap(newQosPolicy, true);
   }
   handle->isDefault = isDefault;
+  handle->name = qosPolicyName;
   handles_[qosPolicyName] = std::move(handle);
 }
 
@@ -201,10 +203,13 @@ void SaiQosMapManager::addQosMap(
     const std::shared_ptr<QosPolicy>& newQosPolicy,
     bool isDefault) {
   std::string qosPolicyName = newQosPolicy->getName();
+  XLOG(DBG2) << "add QoS policy " << qosPolicyName;
   if (handles_.find(qosPolicyName) != handles_.end()) {
-    throw FbossError("Failed to add QoS map: already programmed");
+    XLOG(DBG2) << "QoS policy " << qosPolicyName
+               << " already programmed, update it";
   }
-  return setQosMaps(newQosPolicy, isDefault);
+  setQosMaps(newQosPolicy, isDefault);
+  managerTable_->portManager().setQosPolicy(newQosPolicy);
 }
 
 void SaiQosMapManager::removeQosMap(
@@ -212,8 +217,11 @@ void SaiQosMapManager::removeQosMap(
     bool /*isDefault*/) {
   std::string qosPolicyName = oldQosPolicy->getName();
   if (handles_.find(qosPolicyName) == handles_.end()) {
-    throw FbossError("Failed to remove QoS map: none programmed");
+    throw FbossError(
+        "Failed to remove QoS map: none programmed ", qosPolicyName);
   }
+  XLOG(DBG2) << "remove QoS policy " << qosPolicyName;
+  managerTable_->portManager().clearQosPolicy(oldQosPolicy);
   handles_.erase(qosPolicyName);
 }
 
@@ -221,11 +229,17 @@ void SaiQosMapManager::changeQosMap(
     const std::shared_ptr<QosPolicy>& oldQosPolicy,
     const std::shared_ptr<QosPolicy>& newQosPolicy,
     bool newPolicyIsDefault) {
-  std::string qosPolicyName = oldQosPolicy->getName();
-  if (handles_.find(qosPolicyName) == handles_.end()) {
+  std::string oldName = oldQosPolicy->getName();
+  std::string newName = newQosPolicy->getName();
+  XLOG(DBG2) << "change QoS policy old " << oldName << " new " << newName;
+  if (handles_.find(oldName) == handles_.end()) {
     throw FbossError("Failed to change QoS map: none programmed");
   }
-  removeQosMap(oldQosPolicy, newPolicyIsDefault);
+  // When old name and new name are the same, only call addQosMap() to
+  // update QoS map object and the corresponding port QoS mapping attributes
+  if (oldName != newName) {
+    removeQosMap(oldQosPolicy, newPolicyIsDefault);
+  }
   addQosMap(newQosPolicy, newPolicyIsDefault);
 }
 
