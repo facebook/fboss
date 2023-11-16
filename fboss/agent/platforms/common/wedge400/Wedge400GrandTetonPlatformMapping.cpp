@@ -1155,6 +1155,110 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "35": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC2",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC2",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC2",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC2",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC2",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC2",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC2",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC2",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/6",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/6",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/6",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/6",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/6",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/6",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/6",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/6",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -2467,6 +2571,110 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth1/2",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "35": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC6",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC6",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC6",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC6",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC6",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC6",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC6",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC6",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/2",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/2",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/2",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/2",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/2",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/2",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/2",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/2",
+                      "lane": 7
                     }
                   }
                 ]
@@ -3787,6 +3995,110 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "35": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC10",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC10",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC10",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC10",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC10",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC10",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC10",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC10",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/4",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/4",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/4",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/4",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/4",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/4",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/4",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/4",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -5103,6 +5415,110 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "35": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC14",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC14",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC14",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC14",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC14",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC14",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC14",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC14",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/8",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/8",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/8",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/8",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/8",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/8",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/8",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/8",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -6415,6 +6831,110 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth1/10",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "35": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC18",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC18",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC18",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC18",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC18",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC18",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC18",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC18",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/10",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/10",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/10",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/10",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/10",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/10",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/10",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/10",
+                      "lane": 7
                     }
                   }
                 ]
@@ -9155,6 +9675,110 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "35": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC27",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC27",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC27",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC27",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC27",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC27",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC27",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC27",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/16",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/16",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/16",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/16",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/16",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/16",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/16",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/16",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -10467,6 +11091,110 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth1/12",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "35": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC31",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC31",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC31",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC31",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC31",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC31",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC31",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC31",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "eth1/12",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/12",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/12",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/12",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/12",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/12",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/12",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/12",
+                      "lane": 7
                     }
                   }
                 ]
