@@ -803,7 +803,9 @@ void ThriftHandler::syncFibInVrf(
     int16_t client,
     std::unique_ptr<std::vector<UnicastRoute>> routes,
     int32_t vrf) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto clientId = static_cast<ClientID>(client);
+  auto clientName = apache::thrift::util::enumNameSafe(clientId);
+  auto log = LOG_THRIFT_CALL(DBG1, clientName);
   ensureConfigured(__func__);
   if (!sw_->getSwitchInfoTable().haveL3Switches()) {
     if (routes->size()) {
@@ -814,10 +816,7 @@ void ThriftHandler::syncFibInVrf(
   // Only route updates in first syncFib for each client are logged
   auto firstClientSync =
       syncedFibClients.find(client) == syncedFibClients.end();
-  auto clientId = static_cast<ClientID>(client);
-  auto clientName = apache::thrift::TEnumTraits<ClientID>::findName(clientId);
-  auto clientIdentifier =
-      "fboss-agent-warmboot-" + (clientName ? string(clientName) : "DEFAULT");
+  auto clientIdentifier = "fboss-agent-warmboot-" + clientName;
   if (firstClientSync && sw_->getBootType() == BootType::WARM_BOOT) {
     sw_->logRouteUpdates("::", 0, clientIdentifier);
     sw_->logRouteUpdates("0.0.0.0", 0, clientIdentifier);
@@ -839,7 +838,8 @@ void ThriftHandler::syncFibInVrf(
 void ThriftHandler::syncFib(
     int16_t client,
     std::unique_ptr<std::vector<UnicastRoute>> routes) {
-  auto log = LOG_THRIFT_CALL(DBG1);
+  auto clientName = apache::thrift::util::enumNameSafe(ClientID(client));
+  auto log = LOG_THRIFT_CALL(DBG1, clientName);
   ensureConfigured(__func__);
   syncFibInVrf(client, std::move(routes), 0);
 }
