@@ -170,7 +170,7 @@ class PortManagerTest : public ManagerTestBase {
     saiManagerTable->portManager().addPort(swPort);
     SaiPlatformPort* platformPort = saiPlatform->getPort(swPort->getID());
     EXPECT_TRUE(platformPort);
-    auto subsumedPorts = platformPort->getSubsumedPorts(speed);
+    auto subsumedPorts = platformPort->getSubsumedPorts(swPort->getProfileID());
     EXPECT_EQ(subsumedPorts, expectedPorts);
     saiManagerTable->portManager().removePort(swPort);
   }

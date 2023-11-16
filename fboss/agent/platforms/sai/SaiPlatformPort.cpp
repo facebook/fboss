@@ -73,8 +73,7 @@ std::vector<uint32_t> SaiPlatformPort::getHwPortLanes(
 }
 
 std::vector<PortID> SaiPlatformPort::getSubsumedPorts(
-    cfg::PortSpeed speed) const {
-  auto profileID = getProfileIDBySpeed(speed);
+    cfg::PortProfileID profileID) const {
   const auto& platformPortEntry = getPlatformPortEntry();
   auto supportedProfilesIter =
       platformPortEntry.supportedProfiles()->find(profileID);
