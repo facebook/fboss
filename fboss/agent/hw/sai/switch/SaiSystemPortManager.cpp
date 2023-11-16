@@ -51,8 +51,10 @@ SaiSystemPortManager::SaiSystemPortManager(
       managerTable_(managerTable),
       platform_(platform),
       concurrentIndices_(concurrentIndices),
-      tcToQueueMapAllowedOnSystemPort_(platform_->getAsic()->isSupported(
-          HwAsic::Feature::TC_TO_QUEUE_QOS_MAP_ON_SYSTEM_PORT)) {}
+      tcToQueueMapAllowedOnSystemPort_(
+          platform_->getAsic()->getSwitchType() == cfg::SwitchType::VOQ &&
+          platform_->getAsic()->isSupported(
+              HwAsic::Feature::TC_TO_QUEUE_QOS_MAP_ON_SYSTEM_PORT)) {}
 
 SaiSystemPortManager::~SaiSystemPortManager() {}
 
@@ -107,6 +109,7 @@ SystemPortSaiId SaiSystemPortManager::addSystemPort(
   concurrentIndices_->sysPortSaiIds.insert(
       {swSystemPort->getID(), saiSystemPort->adapterKey()});
   configureQueues(swSystemPort, swSystemPort->getPortQueues()->impl());
+  setQosPolicy(swSystemPort->getID(), swSystemPort->getQosPolicy());
   return saiSystemPort->adapterKey();
 }
 
@@ -205,6 +208,7 @@ void SaiSystemPortManager::changeSystemPort(
         newSystemPort,
         oldSystemPort->getPortQueues()->impl(),
         newSystemPort->getPortQueues()->impl());
+    changeQosPolicy(oldSystemPort, newSystemPort);
   }
 }
 
@@ -262,6 +266,7 @@ void SaiSystemPortManager::removeSystemPort(
   if (itr == handles_.end()) {
     throw FbossError("Attempted to remove non-existent system port: ", swId);
   }
+  clearQosPolicy(swSystemPort->getID());
   concurrentIndices_->sysPortSaiIds.erase(swId);
   concurrentIndices_->sysPortIds.erase(itr->second->systemPort->adapterKey());
   itr->second->resetQueues();
@@ -348,42 +353,93 @@ std::shared_ptr<SystemPortMap> SaiSystemPortManager::constructSystemPorts(
   return sysPortMap;
 }
 
-void SaiSystemPortManager::setQosMapOnAllSystemPorts(QosMapSaiId qosMapId) {
-  for (const auto& systemPortIdAndHandle : handles_) {
-    systemPortIdAndHandle.second->systemPort->setOptionalAttribute(
+void SaiSystemPortManager::setQosMapOnSystemPort(
+    const SaiQosMapHandle* qosMapHandle,
+    SystemPortID swId) {
+  auto handle = getSystemPortHandle(swId);
+  if (qosMapHandle) {
+    // set qos policy
+    auto qosMap = qosMapHandle->tcToVoqMap;
+    auto qosMapId = qosMap->adapterKey();
+    handle->systemPort->setOptionalAttribute(
         SaiSystemPortTraits::Attributes::QosTcToQueueMap{qosMapId});
+    handle->tcToQueueQosMap = qosMap;
+    handle->qosPolicy = qosMapHandle->name;
+  } else {
+    // clear qos policy
+    auto qosMapId = QosMapSaiId(SAI_NULL_OBJECT_ID);
+    handle->systemPort->setOptionalAttribute(
+        SaiSystemPortTraits::Attributes::QosTcToQueueMap{qosMapId});
+    handle->tcToQueueQosMap.reset();
+    handle->qosPolicy.reset();
   }
 }
 
-void SaiSystemPortManager::setQosPolicy() {
-  if (platform_->getAsic()->getSwitchType() != cfg::SwitchType::VOQ) {
-    return;
-  }
+void SaiSystemPortManager::setQosPolicy(
+    SystemPortID portId,
+    const std::optional<std::string>& qosPolicy) {
   if (!tcToQueueMapAllowedOnSystemPort_) {
     return;
   }
-  auto& qosMapManager = managerTable_->qosMapManager();
-  auto qosMapHandle = qosMapManager.getQosMap();
-  globalTcToQueueQosMap_ = qosMapHandle->tcToQueueMap;
-  setQosMapOnAllSystemPorts(globalTcToQueueQosMap_->adapterKey());
+  XLOG(DBG2) << "set QoS policy " << (qosPolicy ? qosPolicy.value() : "null")
+             << " for system port " << portId;
+  auto qosMapHandle = managerTable_->qosMapManager().getQosMap(qosPolicy);
+  if (!qosMapHandle) {
+    if (qosPolicy) {
+      throw FbossError(
+          "QosMap handle is null for QoS policy: ", qosPolicy.value());
+    }
+    XLOG(DBG2)
+        << "skip programming QoS policy on system port " << portId
+        << " because applied QoS policy is null and default QoS policy is absent";
+    return;
+  }
+  setQosMapOnSystemPort(qosMapHandle, portId);
 }
 
-void SaiSystemPortManager::clearQosPolicy() {
-  if (platform_->getAsic()->getSwitchType() != cfg::SwitchType::VOQ) {
-    return;
+void SaiSystemPortManager::setQosPolicy(
+    const std::shared_ptr<QosPolicy>& qosPolicy) {
+  for (const auto& portIdAndHandle : handles_) {
+    if (portIdAndHandle.second->qosPolicy == qosPolicy->getName()) {
+      setQosPolicy(portIdAndHandle.first, qosPolicy->getName());
+    }
   }
+}
+
+void SaiSystemPortManager::clearQosPolicy(SystemPortID portId) {
   if (!tcToQueueMapAllowedOnSystemPort_) {
     return;
   }
-  setQosMapOnAllSystemPorts(QosMapSaiId(SAI_NULL_OBJECT_ID));
-  globalTcToQueueQosMap_.reset();
+  XLOG(DBG2) << "clear QoS policy for system port " << portId;
+  setQosMapOnSystemPort(nullptr, portId);
+}
+
+void SaiSystemPortManager::clearQosPolicy(
+    const std::shared_ptr<QosPolicy>& qosPolicy) {
+  for (const auto& portIdAndHandle : handles_) {
+    if (portIdAndHandle.second->qosPolicy == qosPolicy->getName()) {
+      clearQosPolicy(portIdAndHandle.first);
+    }
+  }
+}
+
+void SaiSystemPortManager::changeQosPolicy(
+    const std::shared_ptr<SystemPort>& oldSystemPort,
+    const std::shared_ptr<SystemPort>& newSystemPort) {
+  if (oldSystemPort->getQosPolicy() == newSystemPort->getQosPolicy()) {
+    return;
+  }
+  clearQosPolicy(oldSystemPort->getID());
+  setQosPolicy(newSystemPort->getID(), newSystemPort->getQosPolicy());
 }
 
 void SaiSystemPortManager::resetQosMaps() {
   if (!tcToQueueMapAllowedOnSystemPort_) {
     return;
   }
-  setQosMapOnAllSystemPorts(QosMapSaiId(SAI_NULL_OBJECT_ID));
+  for (const auto& systemPortIdAndHandle : handles_) {
+    clearQosPolicy(systemPortIdAndHandle.first);
+  }
 }
 
 } // namespace facebook::fboss

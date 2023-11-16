@@ -328,21 +328,16 @@ void SaiSwitch::processDefaultDataPlanePolicyDeltaForPorts(
     const LockPolicyT& lockPolicy) {
   auto qosDelta = delta.getDefaultDataPlaneQosPolicyDelta();
   auto& switchManager = managerTable_->switchManager();
-  auto& systemPortManager = managerTable_->systemPortManager();
   if ((qosDelta.getOld() != qosDelta.getNew())) {
     [[maybe_unused]] const auto& lock = lockPolicy.lock();
     if (qosDelta.getOld() && qosDelta.getNew()) {
       if (*qosDelta.getOld() != *qosDelta.getNew()) {
-        systemPortManager.clearQosPolicy();
         switchManager.clearQosPolicy();
-        systemPortManager.setQosPolicy();
         switchManager.setQosPolicy();
       }
     } else if (qosDelta.getNew()) {
-      systemPortManager.setQosPolicy();
       switchManager.setQosPolicy();
     } else if (qosDelta.getOld()) {
-      systemPortManager.clearQosPolicy();
       switchManager.clearQosPolicy();
     }
   }

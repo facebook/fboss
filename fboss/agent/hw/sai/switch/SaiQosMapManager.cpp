@@ -16,6 +16,7 @@
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
+#include "fboss/agent/hw/sai/switch/SaiSystemPortManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -210,6 +211,7 @@ void SaiQosMapManager::addQosMap(
   }
   setQosMaps(newQosPolicy, isDefault);
   managerTable_->portManager().setQosPolicy(newQosPolicy);
+  managerTable_->systemPortManager().setQosPolicy(newQosPolicy);
 }
 
 void SaiQosMapManager::removeQosMap(
@@ -222,6 +224,7 @@ void SaiQosMapManager::removeQosMap(
   }
   XLOG(DBG2) << "remove QoS policy " << qosPolicyName;
   managerTable_->portManager().clearQosPolicy(oldQosPolicy);
+  managerTable_->systemPortManager().clearQosPolicy(oldQosPolicy);
   handles_.erase(qosPolicyName);
 }
 

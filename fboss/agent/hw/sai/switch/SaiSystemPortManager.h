@@ -33,6 +33,8 @@ using SaiSystemPort = SaiObject<SaiSystemPortTraits>;
 
 struct SaiSystemPortHandle {
   std::shared_ptr<SaiSystemPort> systemPort;
+  std::shared_ptr<SaiQosMap> tcToQueueQosMap;
+  std::optional<std::string> qosPolicy;
   SaiQueueHandles queues;
 
   void resetQueues();
@@ -82,9 +84,15 @@ class SaiSystemPortManager {
   }
   void updateStats(SystemPortID portId, bool updateWatermarks);
 
-  void setQosPolicy();
-
-  void clearQosPolicy();
+  void setQosPolicy(
+      SystemPortID portId,
+      const std::optional<std::string>& qosPolicy);
+  void setQosPolicy(const std::shared_ptr<QosPolicy>& qosPolicy);
+  void clearQosPolicy(SystemPortID portId);
+  void clearQosPolicy(const std::shared_ptr<QosPolicy>& qosPolicy);
+  void changeQosPolicy(
+      const std::shared_ptr<SystemPort>& oldSystemPort,
+      const std::shared_ptr<SystemPort>& newSystemPort);
 
   void resetQosMaps();
 
@@ -106,14 +114,15 @@ class SaiSystemPortManager {
       const QueueConfig& newQueueConfig);
 
   SaiSystemPortHandle* getSystemPortHandleImpl(SystemPortID swId) const;
-  void setQosMapOnAllSystemPorts(QosMapSaiId qosMapId);
+  void setQosMapOnSystemPort(
+      const SaiQosMapHandle* qosMapHandle,
+      SystemPortID swId);
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   SaiPlatform* platform_;
   Handles handles_;
   ConcurrentIndices* concurrentIndices_;
   Stats portStats_;
-  std::shared_ptr<SaiQosMap> globalTcToQueueQosMap_;
   bool tcToQueueMapAllowedOnSystemPort_;
 };
 
