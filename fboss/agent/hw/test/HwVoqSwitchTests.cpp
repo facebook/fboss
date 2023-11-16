@@ -713,40 +713,6 @@ TEST_F(HwVoqSwitchTest, AclQualifiersWithCounter) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwVoqSwitchTest, voqDelete) {
-  utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
-  auto port = ecmpHelper.ecmpPortDescriptorAt(0);
-  auto setup = [=, this]() {
-    addRemoveNeighbor(port, true /*add*/);
-    // Disable port TX
-    utility::setPortTx(getHwSwitch(), port.phyPortID(), false);
-  };
-  auto verify = [=, this]() {
-    auto getVoQDeletedPkts = [port, this]() {
-      if (!getAsic()->isSupported(HwAsic::Feature::VOQ_DELETE_COUNTER)) {
-        return 0L;
-      }
-      return getLatestSysPortStats(getSystemPortID(port))
-          .get_queueCreditWatchdogDeletedPackets_()
-          .at(kDefaultQueue);
-    };
-
-    auto voqDeletedPktsBefore = getVoQDeletedPkts();
-    const auto dstIp = ecmpHelper.ip(port);
-    for (auto i = 0; i < 100; ++i) {
-      // Send pkts via front panel
-      sendPacket(dstIp, ecmpHelper.ecmpPortDescriptorAt(1).phyPortID());
-    }
-    WITH_RETRIES({
-      auto voqDeletedPktsAfter = getVoQDeletedPkts();
-      XLOG(INFO) << "Voq deleted pkts, before: " << voqDeletedPktsBefore
-                 << " after: " << voqDeletedPktsAfter;
-      EXPECT_EVENTUALLY_EQ(voqDeletedPktsBefore + 100, voqDeletedPktsAfter);
-    });
-  };
-  verifyAcrossWarmBoots(setup, verify);
-}
-
 TEST_F(HwVoqSwitchTest, packetIntegrityError) {
   utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
   auto port = ecmpHelper.ecmpPortDescriptorAt(0);
@@ -1048,6 +1014,71 @@ TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, addRemoveRemoteNeighbor) {
         getDummyEncapIndex()));
   };
   verifyAcrossWarmBoots(setup, [] {});
+}
+
+TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, voqDelete) {
+  auto constexpr remotePortId = 401;
+  const SystemPortID kRemoteSysPortId(remotePortId);
+  folly::IPAddressV6 kNeighborIp("100::2");
+  auto setup = [=, this]() {
+    // in addRemoteDsfNodeCfg, we use numCores to calculate the remoteSwitchId
+    // keeping remote switch id passed below in sync with it
+    int numCores = getAsic()->getNumCores();
+    applyNewState(utility::addRemoteSysPort(
+        getProgrammedState(),
+        scopeResolver(),
+        kRemoteSysPortId,
+        static_cast<SwitchID>(numCores)));
+    const InterfaceID kIntfId(remotePortId);
+    applyNewState(utility::addRemoteInterface(
+        getProgrammedState(),
+        scopeResolver(),
+        kIntfId,
+        // TODO - following assumes we haven't
+        // already used up the subnets below for
+        // local interfaces. In that sense it
+        // has a implicit coupling with how ConfigFactory
+        // generates subnets for local interfaces
+        {
+            {folly::IPAddress("100::1"), 64},
+            {folly::IPAddress("100.0.0.1"), 24},
+        }));
+    PortDescriptor kPort(kRemoteSysPortId);
+    // Add neighbor
+    applyNewState(utility::addRemoveRemoteNeighbor(
+        getProgrammedState(),
+        scopeResolver(),
+        kNeighborIp,
+        kIntfId,
+        kPort,
+        true,
+        getDummyEncapIndex()));
+  };
+  auto verify = [=, this]() {
+    auto getVoQDeletedPkts = [=, this]() {
+      if (!getAsic()->isSupported(HwAsic::Feature::VOQ_DELETE_COUNTER)) {
+        return 0L;
+      }
+      return getLatestSysPortStats(kRemoteSysPortId)
+          .get_queueCreditWatchdogDeletedPackets_()
+          .at(kDefaultQueue);
+    };
+
+    auto voqDeletedPktsBefore = getVoQDeletedPkts();
+    utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+    auto frontPanelPort = ecmpHelper.ecmpPortDescriptorAt(1).phyPortID();
+    for (auto i = 0; i < 100; ++i) {
+      // Send pkts via front panel
+      sendPacket(kNeighborIp, frontPanelPort, std::vector<uint8_t>(1024, 0xff));
+    }
+    WITH_RETRIES({
+      auto voqDeletedPktsAfter = getVoQDeletedPkts();
+      XLOG(INFO) << "Voq deleted pkts, before: " << voqDeletedPktsBefore
+                 << " after: " << voqDeletedPktsAfter;
+      EXPECT_EVENTUALLY_EQ(voqDeletedPktsBefore + 100, voqDeletedPktsAfter);
+    });
+  };
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, stressAddRemoveObjects) {

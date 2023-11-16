@@ -67,6 +67,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET:
     case HwAsic::Feature::VOQ:
     case HwAsic::Feature::FABRIC_TX_QUEUES:
+    case HwAsic::Feature::VOQ_DELETE_COUNTER:
       return getAsicMode() != AsicMode::ASIC_MODE_SIM;
     // FIXME - make true when J3-AI supports these features
     // For now these are only supported on J3 SIM and J3 HW
@@ -149,7 +150,6 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::PTP_TC_PCS:
     case HwAsic::Feature::INGRESS_PRIORITY_GROUP_HEADROOM_WATERMARK:
     case HwAsic::Feature::RX_LANE_SQUELCH_ENABLE:
-    case HwAsic::Feature::VOQ_DELETE_COUNTER:
     case HwAsic::Feature::SEPARATE_BYTE_AND_PACKET_ACL_COUNTER:
     case HwAsic::Feature::FLOWLET_PORT_ATTRIBUTES:
     case HwAsic::Feature::SAI_EAPOL_TRAP:
