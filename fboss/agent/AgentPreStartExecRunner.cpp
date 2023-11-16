@@ -4,6 +4,7 @@
 
 #include "fboss/agent/FbossError.h"
 
+#include <folly/init/Init.h>
 #include <folly/logging/Init.h>
 #include <folly/logging/xlog.h>
 #include <gflags/gflags.h>
@@ -18,6 +19,7 @@ FOLLY_INIT_LOGGING_CONFIG("fboss=DBG2; default:async=true");
 int main(int argc, char* argv[]) {
   gflags::ParseCommandLineFlags(&argc, &argv, false);
   facebook::fboss::AgentPreStartExec preStartExec;
+  folly::Init init{&argc, &argv, true};
   try {
     preStartExec.run();
   } catch (const facebook::fboss::FbossError& error) {
