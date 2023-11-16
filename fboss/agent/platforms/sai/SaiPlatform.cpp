@@ -386,8 +386,9 @@ PortID SaiPlatform::findPortID(
     PortSaiId portSaiId) const {
   for (const auto& portMapping : portMapping_) {
     const auto& platformPort = portMapping.second;
-    if (!platformPort->getProfileIDBySpeedIf(speed) ||
-        platformPort->getHwPortLanes(speed) != lanes) {
+    auto profileID = platformPort->getProfileIDBySpeedIf(speed);
+    if (!profileID.has_value() ||
+        platformPort->getHwPortLanes(*profileID) != lanes) {
       continue;
     }
     return platformPort->getPortID();

@@ -395,7 +395,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   auto portID = swPort->getID();
   auto platformPort = platform_->getPort(portID);
   auto speed = swPort->getSpeed();
-  auto hwLaneList = platformPort->getHwPortLanes(speed);
+  auto hwLaneList = platformPort->getHwPortLanes(swPort->getProfileID());
   if (!hwLaneListIsPmdLaneList_) {
     // On Tomahawk4, HwLaneList means physical port list instead of pmd lane
     // list for now. One physical port maps to two pmd lanes. So, do the

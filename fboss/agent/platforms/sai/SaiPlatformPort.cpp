@@ -54,12 +54,6 @@ bool SaiPlatformPort::checkSupportsTransceiver() const {
 }
 
 std::vector<uint32_t> SaiPlatformPort::getHwPortLanes(
-    cfg::PortSpeed speed) const {
-  auto profileID = getProfileIDBySpeed(speed);
-  return getHwPortLanes(profileID);
-}
-
-std::vector<uint32_t> SaiPlatformPort::getHwPortLanes(
     cfg::PortProfileID profileID) const {
   const auto& platformPortEntry = getPlatformPortEntry();
   auto& dataPlanePhyChips = getPlatform()->getDataPlanePhyChips();
