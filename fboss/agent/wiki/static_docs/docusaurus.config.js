@@ -4,7 +4,10 @@
 
 const lightCodeTheme = require('prism-react-renderer/themes/github');
 const darkCodeTheme = require('prism-react-renderer/themes/dracula');
-const {fbContent} = require('docusaurus-plugin-internaldocs-fb/internal');
+const {
+  fbContent,
+  fbInternalOnly
+} = require('docusaurus-plugin-internaldocs-fb/internal');
 
 // With JSDoc @type annotations, IDEs can provide config autocompletion
 /** @type {import('@docusaurus/types').DocusaurusConfig} */
@@ -17,8 +20,12 @@ const {fbContent} = require('docusaurus-plugin-internaldocs-fb/internal');
   onBrokenMarkdownLinks: 'throw',
   trailingSlash: true,
   favicon: 'img/favicon.ico',
-  organizationName: 'facebook',
+  organizationName: 'meta',
   projectName: 'fboss_agent',
+  i18n: {
+    defaultLocale: 'en',
+    locales: ['en']
+  },
   customFields: {
     fbRepoName: 'fbsource',
     ossRepoPath: 'fbcode/fboss/agent/wiki/static_docs',
@@ -59,7 +66,10 @@ const {fbContent} = require('docusaurus-plugin-internaldocs-fb/internal');
           alt: 'FBOSS Agent',
           src: 'img/FBOSS_Agent.png',
         },
-        items: [],
+        items: fbInternalOnly([{
+          label: 'Docs',
+          to: 'docs'
+        }]),
       },
       footer: {
         style: 'dark',
