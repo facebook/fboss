@@ -1,0 +1,92 @@
+---
+id: Features_tunnel-intfs
+title: Tunnel interfaces
+---
+
+# Feature Description
+
+## Overview
+
+Tunnel interfaces (TUN) are virtual network interfaces (implemented entirely in software) that operate with layer 3 packets like IP Packets.
+
+## Design
+
+From network hardware perspective, an FBOSS switch has two types of ports - Physical NIC port - NPU ports Tunnel interface are virtual network interfaces created to provide connectivity over NPU ports
+
+## Scale
+
+There is no hard limit on tunnel interfaces since it is a software construct. It is limited to the number of physical ports or subports from use case perspective.
+
+# Usecase
+
+## Management Interface
+
+The physical NIC is the management interface that shows up as eth0. Ping or ssh to the switch uses this interface. The management interface is typically connected to a non-FBOSS switch. The management interface provides out-of-band (without using FBOSS) way to connect to an FBOSS switch. This is useful for debugging in production as well as development since an FBOSS failure cannot lock us out of the switch.
+
+## Inband Interfaces
+
+Inband tunnel interfaces provides reachability to the switch through the ports on the NPU. These interfaces are created by wedge agent and are used by protocols such as BGP to send and receive packets with peer.
+
+# Configuration
+
+Tunnel interfaces are part of agent configuration. The isVirtual flag is set for tunnel interfaces.
+
+```
+"interfaces": [
+  {
+    "intfID": 10,
+    "routerID": 0,
+    "vlanID": 10,
+    "ipAddresses": [
+      "1.1.1.0/32",
+      "1:1111:111::1:0/128"
+    ],
+    "mtu": 9000,
+    "isVirtual": true,
+  }
+```
+# Build and Test
+
+Unit tests: fboss/agent/tests/TunInterfacesTest*
+
+# Debug
+
+## Management
+
+* ethtool -i eth0  # returns corresponding driver e.g. igb
+
+* lspci | grep \<NIC manufacturer\> e.g. I210 Gigabit Network Connection (rev 03)
+
+* ping6/ssh to switch using management interface. For example, run ip addr show eth0 from the switch and ping6 rsw1ay.07.ftw1.facebook.com from outside the switch The global IPv6 address in ip addr show output matches the IP address used by ping6.
+
+
+## Inband
+
+* lspci | grep Broadcom # e.g. BCM56960 on wedge100
+
+* Inband ping uses inband interface. For example, run ip addr show fboss10 from the switch and, ping6 rsw1ay-inband.07.ftw1.facebook.com from outside the switch The global IPv6 address in ip addr show output matches the IP address used by ping6.
+
+
+# Sample Output
+
+## Management
+
+```
+[user@switch ~]$ lspci | grep Intel | grep Ether
+03:00.0 Ethernet controller: Intel Corporation Ethernet Connection X552 10 GbE Backplane
+03:00.1 Ethernet controller: Intel Corporation Ethernet Connection X552 10 GbE Backplane
+[user@switch ~]$ ifconfig eth0
+eth0: flags=4163\<UP,BROADCAST,RUNNING,MULTICAST\>  mtu 1500
+```
+## Inband
+
+```
+[user@switch ~]$ lspci | grep Broadcom
+01:00.0 Ethernet controller: Broadcom Inc. and subsidiaries NetXtreme BCM5720 Gigabit Ethernet PCIe
+01:00.1 Ethernet controller: Broadcom Inc. and subsidiaries NetXtreme BCM5720 Gigabit Ethernet PCIe
+05:00.0 Ethernet controller: Broadcom Inc. and subsidiaries Device b980 (rev 11)
+[user@switch ~]$ ifconfig fboss10
+fboss10: flags=4305\<UP,POINTOPOINT,RUNNING,NOARP,MULTICAST\>  mtu 9000
+```
+<div>
+Sphinx Source: [fbsource/fbcode:fboss/agent/wiki/concepts/features/tunnel_intfs.rst](https://internalfb.com/intern/diffusion/FBS/browse/master/fbcode/fboss/agent/wiki/concepts/features/tunnel_intfs.rst)</div>
