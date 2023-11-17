@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "fboss/platform/rackmon/PollThread.h"
 #include "fboss/platform/rackmon/Rackmon.h"
 #include "fboss/platform/rackmon/RackmonPlsManager.h"
 #include "fboss/platform/rackmon/if/gen-cpp2/RackmonCtrl.h"
@@ -38,8 +39,12 @@ class ThriftHandler : virtual public RackmonCtrlSvIf {
       const rackmon::RegisterValue& value);
   RackmonStatusCode exceptionToStatusCode(std::exception& baseException);
 
+  std::shared_ptr<rackmon::PollThread<ThriftHandler>> monThread_;
+
  public:
   ThriftHandler();
+
+  void serviceMonitor();
 
   void listModbusDevices(
       std::vector<rackmonsvc::ModbusDeviceInfo>& devices) override;

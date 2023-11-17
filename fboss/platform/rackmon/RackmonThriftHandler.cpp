@@ -12,7 +12,21 @@
 #include <glog/logging.h>
 #include "fboss/platform/rackmon/RackmonConfig.h"
 
+#include <fb303/ServiceData.h>
+
 namespace rackmonsvc {
+
+auto constexpr kDevCRCErrors = "rackmon.{}.crc_errors";
+auto constexpr kDevTimeouts = "rackmon.{}.timeouts";
+auto constexpr kDevMiscErrors = "rackmon.{}.misc_errors";
+auto constexpr kDevDeviceErrors = "rackmon.{}.device_errors";
+auto constexpr kDevIsActive = "rackmon.{}.is_active";
+auto constexpr kTotalCRCErrors = "rackmon.crc_errors";
+auto constexpr kTotalTimeouts = "rackmon.timeouts";
+auto constexpr kTotalMiscErrors = "rackmon.misc_errors";
+auto constexpr kTotalDeviceErrors = "rackmon.device_errors";
+auto constexpr kTotalActive = "rackmon.num_active";
+auto constexpr kTotalDormant = "rackmon.num_dormant";
 
 ModbusDeviceType typeFromString(const std::string& str) {
   if (str == "ORV2_PSU") {
@@ -161,6 +175,42 @@ RackmonStatusCode ThriftHandler::exceptionToStatusCode(
   return RackmonStatusCode::ERR_IO_FAILURE;
 }
 
+void ThriftHandler::serviceMonitor() {
+  auto devs = rackmond_.listDevices();
+  uint32_t crcErrors = 0;
+  uint32_t timeouts = 0;
+  uint32_t miscErrors = 0;
+  uint32_t devErrors = 0;
+  uint32_t numActive = 0;
+  uint32_t numDormant = 0;
+  for (auto& dev : devs) {
+    uint32_t active = dev.mode == rackmon::ModbusDeviceMode::ACTIVE ? 1 : 0;
+    uint32_t devAddress = +dev.deviceAddress;
+    facebook::fb303::fbData->setCounter(
+        fmt::format(kDevCRCErrors, devAddress), dev.crcErrors);
+    facebook::fb303::fbData->setCounter(
+        fmt::format(kDevTimeouts, devAddress), dev.timeouts);
+    facebook::fb303::fbData->setCounter(
+        fmt::format(kDevMiscErrors, devAddress), dev.miscErrors);
+    facebook::fb303::fbData->setCounter(
+        fmt::format(kDevDeviceErrors, devAddress), dev.deviceErrors);
+    facebook::fb303::fbData->setCounter(
+        fmt::format(kDevIsActive, devAddress), active);
+    crcErrors += dev.crcErrors;
+    timeouts += dev.timeouts;
+    miscErrors += dev.miscErrors;
+    devErrors += dev.deviceErrors;
+    numActive += active;
+    numDormant += active ? 0 : 1;
+  }
+  facebook::fb303::fbData->setCounter(kTotalCRCErrors, crcErrors);
+  facebook::fb303::fbData->setCounter(kTotalMiscErrors, miscErrors);
+  facebook::fb303::fbData->setCounter(kTotalDeviceErrors, devErrors);
+  facebook::fb303::fbData->setCounter(kTotalTimeouts, timeouts);
+  facebook::fb303::fbData->setCounter(kTotalActive, numActive);
+  facebook::fb303::fbData->setCounter(kTotalDormant, numDormant);
+}
+
 ThriftHandler::ThriftHandler() {
   rackmond_.loadInterface(nlohmann::json::parse(getInterfaceConfig()));
   const std::vector<std::string> regMaps = getRegisterMapConfig();
@@ -170,6 +220,10 @@ ThriftHandler::ThriftHandler() {
   rackmond_.start();
 
   plsManager_.loadPlsConfig(nlohmann::json::parse(getRackmonPlsConfig()));
+
+  monThread_ = std::make_shared<rackmon::PollThread<ThriftHandler>>(
+      &ThriftHandler::serviceMonitor, this, rackmon::PollThreadTime(10));
+  monThread_->start();
 }
 
 void ThriftHandler::listModbusDevices(std::vector<ModbusDeviceInfo>& devices) {
