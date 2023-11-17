@@ -503,10 +503,10 @@ TEST_F(HwVoqSwitchTest, sendPacketCpuAndFrontPanel) {
   auto verify = [this, kPort, ecmpHelper]() {
     auto sendPacketCpuFrontPanelHelper = [this, kPort, ecmpHelper](
                                              bool isFrontPanel) {
-      auto getPortOutPktsBytes = [kPort, this]() {
+      auto getPortOutPktsBytes = [this](PortID port) {
         return std::make_pair(
-            getLatestPortStats(kPort.phyPortID()).get_outUnicastPkts_(),
-            getLatestPortStats(kPort.phyPortID()).get_outBytes_());
+            getLatestPortStats(port).get_outUnicastPkts_(),
+            getLatestPortStats(port).get_outBytes_());
       };
 
       auto getAllQueueOutPktsBytes = [kPort, this]() {
@@ -551,12 +551,16 @@ TEST_F(HwVoqSwitchTest, sendPacketCpuAndFrontPanel) {
       beforeVoQOutBytes = beforeAllVoQOutBytes.at(kDefaultQueue);
       printQueueStats("Before VoQ Out", "Bytes", beforeAllVoQOutBytes);
 
-      auto [beforeOutPkts, beforeOutBytes] = getPortOutPktsBytes();
+      auto [beforeOutPkts, beforeOutBytes] =
+          getPortOutPktsBytes(kPort.phyPortID());
       auto beforeAclPkts =
           isSupported(HwAsic::Feature::ACL_TABLE_GROUP) ? getAclPackets() : 0;
       std::optional<PortID> frontPanelPort;
+      uint64_t beforeFrontPanelOutBytes{0}, beforeFrontPanelOutPkts{0};
       if (isFrontPanel) {
         frontPanelPort = ecmpHelper.ecmpPortDescriptorAt(1).phyPortID();
+        std::tie(beforeFrontPanelOutPkts, beforeFrontPanelOutBytes) =
+            getPortOutPktsBytes(*frontPanelPort);
       }
       auto txPacketSize = sendPacket(ecmpHelper.ip(kPort), frontPanelPort);
 
@@ -576,9 +580,14 @@ TEST_F(HwVoqSwitchTest, sendPacketCpuAndFrontPanel) {
             auto afterAclPkts = isSupported(HwAsic::Feature::ACL_TABLE_GROUP)
                 ? getAclPackets()
                 : 0;
-            auto portOutPktsAndBytes = getPortOutPktsBytes();
+            auto portOutPktsAndBytes = getPortOutPktsBytes(kPort.phyPortID());
             auto afterOutPkts = portOutPktsAndBytes.first;
             auto afterOutBytes = portOutPktsAndBytes.second;
+            uint64_t afterFrontPanelOutBytes{0}, afterFrontPanelOutPkts{0};
+            if (isFrontPanel) {
+              std::tie(afterFrontPanelOutPkts, afterFrontPanelOutBytes) =
+                  getPortOutPktsBytes(*frontPanelPort);
+            }
 
             XLOG(DBG2) << "Verifying: "
                        << (isFrontPanel ? "Send Packet from Front Panel Port"
@@ -589,13 +598,17 @@ TEST_F(HwVoqSwitchTest, sendPacketCpuAndFrontPanel) {
                        << " beforeQueueOutBytes: " << beforeQueueOutBytes
                        << " beforeVoQOutBytes: " << beforeVoQOutBytes
                        << " beforeAclPkts: " << beforeAclPkts
+                       << " beforeFrontPanelPkts: " << beforeFrontPanelOutPkts
+                       << " beforeFrontPanelBytes: " << beforeFrontPanelOutBytes
                        << " txPacketSize: " << txPacketSize
                        << " afterOutPkts: " << afterOutPkts
                        << " afterOutBytes: " << afterOutBytes
                        << " afterQueueOutPkts: " << afterQueueOutPkts
                        << " afterQueueOutBytes: " << afterQueueOutBytes
                        << " afterVoQOutBytes: " << afterVoQOutBytes
-                       << " afterAclPkts: " << afterAclPkts;
+                       << " afterAclPkts: " << afterAclPkts
+                       << " afterFrontPanelPkts: " << afterFrontPanelOutPkts
+                       << " afterFrontPanelBytes: " << afterFrontPanelOutBytes;
 
             EXPECT_EVENTUALLY_EQ(afterOutPkts - 1, beforeOutPkts);
             int extraByteOffset = 0;
@@ -622,6 +635,13 @@ TEST_F(HwVoqSwitchTest, sendPacketCpuAndFrontPanel) {
             }
             if (getAsic()->isSupported(HwAsic::Feature::VOQ)) {
               EXPECT_EVENTUALLY_GT(afterVoQOutBytes, beforeVoQOutBytes);
+            }
+            if (frontPanelPort) {
+              EXPECT_EVENTUALLY_GT(
+                  afterFrontPanelOutBytes, beforeFrontPanelOutBytes);
+
+              EXPECT_EVENTUALLY_GT(
+                  afterFrontPanelOutPkts, beforeFrontPanelOutPkts);
             }
           });
     };
