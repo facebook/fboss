@@ -51,6 +51,10 @@ constexpr uint32_t kCpuPacketOverheadBytes = 52;
 constexpr uint32_t kCoppTajoLowPriPktsPerSec = 10000;
 constexpr uint32_t kCoppTajoDefaultPriPktsPerSec = 20000;
 
+// DNX supports higher PPS to CPU
+constexpr uint32_t kCoppDnxLowPriPktsPerSec = 12000;
+constexpr uint32_t kCoppDnxDefaultPriPktsPerSec = 24000;
+
 constexpr uint16_t kBgpPort = 179;
 
 // There should be no ACL/rxreasons matching this port

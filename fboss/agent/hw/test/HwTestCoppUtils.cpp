@@ -122,6 +122,14 @@ uint32_t getCoppQueuePps(const HwAsic* hwAsic, uint16_t queueId) {
     } else {
       throw FbossError("Unexpected queue id ", queueId);
     }
+  } else if (hwAsic->getSwitchType() == cfg::SwitchType::VOQ) {
+    if (queueId == kCoppLowPriQueueId) {
+      pps = kCoppDnxLowPriPktsPerSec;
+    } else if (queueId == kCoppDefaultPriQueueId) {
+      pps = kCoppDnxDefaultPriPktsPerSec;
+    } else {
+      throw FbossError("Unexpected queue id ", queueId);
+    }
   } else {
     if (queueId == kCoppLowPriQueueId) {
       pps = kCoppLowPriPktsPerSec;
