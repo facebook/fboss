@@ -40,7 +40,7 @@ bool AgentNetWhoAmI::hasBgpRoutingProtocol() const {
   return false;
 }
 
-bool AgentNetWhoAmI::isUnDrainable() const {
+bool AgentNetWhoAmI::isNotDrainable() const {
   return true;
 }
 

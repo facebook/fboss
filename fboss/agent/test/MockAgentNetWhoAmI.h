@@ -17,7 +17,7 @@ class MockAgentNetWhoAmI : public AgentNetWhoAmI {
   MOCK_CONST_METHOD0(isCiscoPlatform, bool());
   MOCK_CONST_METHOD0(isBcmVoqPlatform, bool());
   MOCK_CONST_METHOD0(isFdsw, bool());
-  MOCK_CONST_METHOD0(isUnDrainable, bool());
+  MOCK_CONST_METHOD0(isNotDrainable, bool());
   MOCK_CONST_METHOD0(hasRoutingProtocol, bool());
   MOCK_CONST_METHOD0(hasBgpRoutingProtocol, bool());
 };

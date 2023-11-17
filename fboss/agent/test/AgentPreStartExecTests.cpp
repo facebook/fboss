@@ -110,7 +110,7 @@ class AgentPreStartExecTests : public ::testing::Test {
         .WillByDefault(Return(!TestAttr::kBrcm));
     ON_CALL(*netwhoami, isBcmVoqPlatform()).WillByDefault(Return(false));
     ON_CALL(*netwhoami, isFdsw()).WillByDefault(Return(fdsw));
-    ON_CALL(*netwhoami, isUnDrainable()).WillByDefault(Return(false));
+    ON_CALL(*netwhoami, isNotDrainable()).WillByDefault(Return(false));
     ON_CALL(*netwhoami, hasRoutingProtocol()).WillByDefault(Return(false));
     ON_CALL(*netwhoami, hasBgpRoutingProtocol()).WillByDefault(Return(false));
     ON_CALL(*netwhoami, isBcmVoqPlatform()).WillByDefault(Return(voq));
@@ -140,7 +140,7 @@ class AgentPreStartExecTests : public ::testing::Test {
       ::testing::InSequence seq;
       EXPECT_CALL(*netwhoami, isFdsw()).WillOnce(Return(fdsw));
       EXPECT_CALL(*netwhoami, isFdsw()).WillOnce(Return(fdsw));
-      EXPECT_CALL(*netwhoami, isUnDrainable()).WillOnce(Return(false));
+      EXPECT_CALL(*netwhoami, isNotDrainable()).WillOnce(Return(false));
       EXPECT_CALL(*netwhoami, isFdsw()).WillOnce(Return(fdsw));
       if (drain && !fdsw) {
         // device to be marked for draining

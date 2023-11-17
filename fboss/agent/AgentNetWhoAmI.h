@@ -17,7 +17,7 @@ class AgentNetWhoAmI {
   virtual bool isCiscoPlatform() const;
   virtual bool isBcmVoqPlatform() const;
   virtual bool isFdsw() const;
-  virtual bool isUnDrainable() const;
+  virtual bool isNotDrainable() const;
   virtual bool hasRoutingProtocol() const;
   virtual bool hasBgpRoutingProtocol() const;
 };
