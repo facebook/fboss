@@ -88,7 +88,11 @@ class AgentPreStartExecTests : public ::testing::Test {
     return config;
   }
 
-  void run(bool coldBoot = false, bool drain = false, bool fdsw = false) {
+  void run(
+      bool coldBoot = false,
+      bool drain = false,
+      bool fdsw = false,
+      bool voq = false) {
     using ::testing::Return;
 
     MockAgentCommandExecutor executor;
@@ -109,6 +113,8 @@ class AgentPreStartExecTests : public ::testing::Test {
     ON_CALL(*netwhoami, isUnDrainable()).WillByDefault(Return(false));
     ON_CALL(*netwhoami, hasRoutingProtocol()).WillByDefault(Return(false));
     ON_CALL(*netwhoami, hasBgpRoutingProtocol()).WillByDefault(Return(false));
+    ON_CALL(*netwhoami, isBcmVoqPlatform()).WillByDefault(Return(voq));
+
     if (coldBoot) {
       // touch cold_boot_once_0
       createDirectoryTree(util_->getWarmBootDir());
@@ -160,7 +166,7 @@ class AgentPreStartExecTests : public ::testing::Test {
         EXPECT_CALL(*netwhoami, isBcmSaiPlatform())
             .WillOnce(Return(TestAttr::kSai && TestAttr::kBrcm));
       }
-      EXPECT_CALL(*netwhoami, isBcmVoqPlatform()).WillOnce(Return(false));
+      EXPECT_CALL(*netwhoami, isBcmVoqPlatform()).WillOnce(Return(voq));
       if (TestAttr::kMultiSwitch) {
         EXPECT_CALL(
             executor,
@@ -245,6 +251,9 @@ class AgentPreStartExecTests : public ::testing::Test {
         expectedTarget = util_->getDrainConfigDirectory() + "/current";
       }
       EXPECT_EQ(actualStartUpConfig.string(), expectedTarget);
+      if (voq) {
+        EXPECT_TRUE(checkFileExists(util_->getPackageDirectory() + "/db"));
+      }
     }
   }
 
@@ -359,6 +368,7 @@ class AgentPreStartExecTests : public ::testing::Test {
     createDirectoryTree(binDir);
     touchFile(binDir + "/wedge_agent");
     touchFile(binDir + "/wedge_hwagent");
+    createDirectory(binDir + "/db");
     touchFile(util_->getPackageDirectory() + "/fboss_sw_agent");
   }
 
@@ -376,6 +386,18 @@ class AgentPreStartExecTests : public ::testing::Test {
   }                                                              \
   TEST_F(NAME, PreStartExecColdBootAndDrain) {                   \
     run(true, true);                                             \
+  }                                                              \
+  TEST_F(NAME, PreStartExecVoqColdBoot) {                        \
+    run(true, false, false, true);                               \
+  }                                                              \
+  TEST_F(NAME, PreStartExecVoqDrainColdBoot) {                   \
+    run(true, true, false, true);                                \
+  }                                                              \
+  TEST_F(NAME, PreStartExecVoqWarmBoot) {                        \
+    run(false, false, false, true);                              \
+  }                                                              \
+  TEST_F(NAME, PreStartExecVoqDrainWarmBoot) {                   \
+    run(false, true, false, true);                               \
   }
 
 #define TestFixtureNameFdsw(NAME)                  \
