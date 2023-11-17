@@ -65,11 +65,19 @@ const {
         logo: {
           alt: 'FBOSS Agent',
           src: 'img/FBOSS_Agent.png',
+          href: 'https://www.internalfb.com/intern/wiki/FBOSS_Agent/',
         },
-        items: fbInternalOnly([{
+        items: fbInternalOnly([
+        {
+          href: 'https://www.internalfb.com/intern/wiki/FBOSS_Agent/',
+          label: 'Home',
+          position: 'left',
+        },
+        {
           label: 'Docs',
           to: 'docs'
-        }]),
+        },
+      ]),
       },
       footer: {
         style: 'dark',

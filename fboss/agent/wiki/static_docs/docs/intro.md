@@ -1,8 +1,8 @@
 ---
 slug: /
 sidebar_position: -1
-sidebar_label: Home
-title: Welcome to FBOSS Agent docs
+sidebar_label: Intro to Static Docs/Docusaurus
+title: Intro to Static Docs/Docusaurus
 ---
 
 export const Highlight = ({children, color}) => (
@@ -18,8 +18,6 @@ export const Highlight = ({children, color}) => (
     {children}
   </span>
 );
-
-# Welcome to the FBOSS Agent docs
 
 ## Why static docs?
 
@@ -77,7 +75,7 @@ Start by running this:
 sudo feature install ttls_fwdproxy && sudo chefctl -i
 ```
 
-Then from the root directory of the project `FBSOURCE:fbcode/dc_push/dc_push_docs/`:
+Then from the root directory of the project `FBSOURCE:fbcode/fboss/agent/wiki/static_docs/`:
 ```bash
 yarn config set proxy http://fwdproxy:8080
 yarn config set https-proxy http://fwdproxy:8080
@@ -100,7 +98,7 @@ et $USER.sb:8080 -t 3000:3000
 
 ### Step 3: Build with `yarn`
 
-From the root directory of the project `FBSOURCE:fbcode/dc_push/dc_push_docs/`
+From the root directory of the project `FBSOURCE:fbcode/fboss/agent/wiki/static_docs/`
 ```bash
 yarn
 yarn build-fb
