@@ -306,39 +306,21 @@ void SaiSwitch::processDefaultDataPlanePolicyDelta(
   // SwitchState::switchSettingsMap::defaultDataPlaneQosPolicy
   auto qosDelta = delta.getDefaultDataPlaneQosPolicyDelta();
   auto& qosMapManager = managerTable_->qosMapManager();
-  if ((qosDelta.getOld() != qosDelta.getNew())) {
-    [[maybe_unused]] const auto& lock = lockPolicy.lock();
-    if (qosDelta.getOld() && qosDelta.getNew()) {
-      if (*qosDelta.getOld() != *qosDelta.getNew()) {
-        qosMapManager.changeQosMap(qosDelta.getOld(), qosDelta.getNew(), true);
-      }
-    } else if (qosDelta.getNew()) {
-      qosMapManager.addQosMap(qosDelta.getNew(), true);
-    } else if (qosDelta.getOld()) {
-      qosMapManager.removeQosMap(qosDelta.getOld(), true);
-    }
-  }
-}
-
-// TODO(daiweix): move these logics into the corresponding
-// process port/systemPort/switch state delta codes
-template <typename LockPolicyT>
-void SaiSwitch::processDefaultDataPlanePolicyDeltaForPorts(
-    const StateDelta& delta,
-    const LockPolicyT& lockPolicy) {
-  auto qosDelta = delta.getDefaultDataPlaneQosPolicyDelta();
   auto& switchManager = managerTable_->switchManager();
   if ((qosDelta.getOld() != qosDelta.getNew())) {
     [[maybe_unused]] const auto& lock = lockPolicy.lock();
     if (qosDelta.getOld() && qosDelta.getNew()) {
       if (*qosDelta.getOld() != *qosDelta.getNew()) {
         switchManager.clearQosPolicy();
+        qosMapManager.changeQosMap(qosDelta.getOld(), qosDelta.getNew(), true);
         switchManager.setQosPolicy();
       }
     } else if (qosDelta.getNew()) {
+      qosMapManager.addQosMap(qosDelta.getNew(), true);
       switchManager.setQosPolicy();
     } else if (qosDelta.getOld()) {
       switchManager.clearQosPolicy();
+      qosMapManager.removeQosMap(qosDelta.getOld(), true);
     }
   }
 }
@@ -673,7 +655,6 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
           managerTable_->lagManager().addBridgePort(newAggPort);
         });
   }
-  processDefaultDataPlanePolicyDeltaForPorts(delta, lockPolicy);
   processDelta(
       delta.getIntfsDelta(),
       managerTable_->routerInterfaceManager(),
