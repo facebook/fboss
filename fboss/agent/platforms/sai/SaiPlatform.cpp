@@ -177,8 +177,8 @@ SaiPlatform::createHandler() {
 
 TransceiverIdxThrift SaiPlatform::getPortMapping(
     PortID portId,
-    cfg::PortSpeed speed) const {
-  return getPort(portId)->getTransceiverMapping(speed);
+    cfg::PortProfileID profileID) const {
+  return getPort(portId)->getTransceiverMapping(profileID);
 }
 
 std::string SaiPlatform::getHwConfigDumpFile() {

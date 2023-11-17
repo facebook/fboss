@@ -64,8 +64,9 @@ class WedgePlatform : public BcmPlatform, public StateObserver {
   }
   WedgePort* getPort(PortID id) const;
   std::vector<WedgePort*> getPortsByTransceiverID(TransceiverID id) const;
-  TransceiverIdxThrift getPortMapping(PortID port, cfg::PortSpeed /* speed */)
-      const override;
+  TransceiverIdxThrift getPortMapping(
+      PortID port,
+      cfg::PortProfileID /* profileID */) const override;
   PlatformPort* getPlatformPort(PortID id) const override;
 
  protected:

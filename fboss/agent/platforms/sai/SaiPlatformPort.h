@@ -52,7 +52,7 @@ class SaiPlatformPort : public PlatformPort {
   virtual uint32_t getPhysicalLaneId(uint32_t chipId, uint32_t logicalLane)
       const = 0;
   bool checkSupportsTransceiver() const;
-  TransceiverIdxThrift getTransceiverMapping(cfg::PortSpeed speed);
+  TransceiverIdxThrift getTransceiverMapping(cfg::PortProfileID profileID);
 
   std::shared_ptr<TransceiverSpec> getTransceiverSpec() const override;
 

@@ -86,8 +86,9 @@ TEST_F(LinkTest, getTransceivers) {
     WITH_RETRIES({
       auto ports = getCabledPorts();
       for (const auto& port : ports) {
-        auto speed = sw()->getState()->getPorts()->getNode(port)->getSpeed();
-        auto transceiverIndx0 = platform()->getPortMapping(port, speed);
+        auto profileID =
+            sw()->getState()->getPorts()->getNode(port)->getProfileID();
+        auto transceiverIndx0 = platform()->getPortMapping(port, profileID);
         auto transceiverIndx1 = sw()->getTransceiverIdxThrift(port);
         EXPECT_EVENTUALLY_TRUE(isEqual(transceiverIndx0, transceiverIndx1));
       }

@@ -134,7 +134,7 @@ std::unique_ptr<BaseWedgeI2CBus> WedgePlatform::getI2CBus() {
 
 TransceiverIdxThrift WedgePlatform::getPortMapping(
     PortID portId,
-    cfg::PortSpeed /* speed */) const {
+    cfg::PortProfileID /* profileID */) const {
   return getPort(portId)->getTransceiverMapping();
 }
 

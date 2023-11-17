@@ -55,7 +55,7 @@ class MockPlatform : public Platform {
   MOCK_METHOD1(getProductInfo, void(ProductInfo& productInfo));
   MOCK_CONST_METHOD2(
       getPortMapping,
-      TransceiverIdxThrift(PortID port, cfg::PortSpeed speed));
+      TransceiverIdxThrift(PortID port, cfg::PortProfileID profileID));
   MOCK_METHOD0(stop, void());
   MOCK_METHOD1(onHwInitialized, void(HwSwitchCallback* sw));
   MOCK_METHOD1(onInitialConfigApplied, void(HwSwitchCallback* sw));

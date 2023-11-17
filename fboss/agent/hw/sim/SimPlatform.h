@@ -36,7 +36,7 @@ class SimPlatform : public Platform {
 
   TransceiverIdxThrift getPortMapping(
       PortID /* unused */,
-      cfg::PortSpeed /* speed */) const override {
+      cfg::PortProfileID /* profileID */) const override {
     return TransceiverIdxThrift();
   }
   PlatformPort* getPlatformPort(PortID id) const override;

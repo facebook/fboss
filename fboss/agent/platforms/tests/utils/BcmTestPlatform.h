@@ -54,7 +54,7 @@ class BcmTestPlatform : public BcmPlatform {
   }
   TransceiverIdxThrift getPortMapping(
       PortID /* unused */,
-      cfg::PortSpeed /* speed */) const override {
+      cfg::PortProfileID /* profileID */) const override {
     return TransceiverIdxThrift();
   }
   bool isBcmShellSupported() const override {

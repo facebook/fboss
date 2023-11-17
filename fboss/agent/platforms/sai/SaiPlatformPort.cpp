@@ -91,11 +91,10 @@ std::vector<PortID> SaiPlatformPort::getSubsumedPorts(
 }
 
 TransceiverIdxThrift SaiPlatformPort::getTransceiverMapping(
-    cfg::PortSpeed speed) {
+    cfg::PortProfileID profileID) {
   if (!checkSupportsTransceiver()) {
     return TransceiverIdxThrift();
   }
-  auto profileID = getProfileIDBySpeed(speed);
   const auto& platformPortEntry = getPlatformPortEntry();
   std::vector<int32_t> lanes;
   auto transceiverLanes = utility::getTransceiverLanes(
