@@ -37,7 +37,6 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::LINK_TRAINING:
     case HwAsic::Feature::FEC:
     case HwAsic::Feature::FEC_CORRECTED_BITS:
-    case HwAsic::Feature::RECYCLE_PORTS:
     case HwAsic::Feature::SAI_FEC_COUNTERS:
     case HwAsic::Feature::SAI_TTL0_PACKET_FORWARD_ENABLE:
     case HwAsic::Feature::PMD_RX_LOCK_STATUS:
@@ -56,9 +55,11 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::CREDIT_WATCHDOG:
       return true;
 
+    // TODO fix once queue stats are available on J3
     case HwAsic::Feature::L3_QOS:
     case HwAsic::Feature::TC_TO_QUEUE_QOS_MAP_ON_SYSTEM_PORT:
-      // TODO fix once queue stats are available on J3
+    // TODO: Remove once rcy port stats work on J3
+    case HwAsic::Feature::RECYCLE_PORT_STATS:
       return false;
 
     case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:

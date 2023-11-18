@@ -929,9 +929,6 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
       return;
     }
     auto dsfNodeAsic = getDsfNodeAsic(node);
-    if (!dsfNodeAsic->isSupported(HwAsic::Feature::RECYCLE_PORTS)) {
-      return;
-    }
     if (isLocal(node)) {
       processLoopbacks(node, dsfNodeAsic.get());
       // For local asic recycle port and sys port information will come

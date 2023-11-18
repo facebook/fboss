@@ -115,7 +115,7 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_MPLS_INSEGMENT:
     case HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE:
     case HwAsic::Feature::VOQ:
-    case HwAsic::Feature::RECYCLE_PORTS:
+    case HwAsic::Feature::RECYCLE_PORT_STATS:
     case HwAsic::Feature::XPHY_PORT_STATE_TOGGLE:
     case HwAsic::Feature::SAI_PORT_GET_PMD_LANES:
     case HwAsic::Feature::FABRIC_TX_QUEUES:

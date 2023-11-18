@@ -50,7 +50,7 @@ bool Jericho2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::FEC:
     case HwAsic::Feature::FEC_CORRECTED_BITS:
     case HwAsic::Feature::VOQ:
-    case HwAsic::Feature::RECYCLE_PORTS:
+    case HwAsic::Feature::RECYCLE_PORT_STATS:
     case HwAsic::Feature::FABRIC_TX_QUEUES:
     case HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE:
     case HwAsic::Feature::ACL_TABLE_GROUP:
