@@ -43,7 +43,7 @@ SaiHostifManager::SaiHostifManager(
 }
 
 SaiHostifManager::~SaiHostifManager() {
-  if (globalDscpToTcQosMap_) {
+  if (qosPolicy_) {
     clearQosPolicy();
   }
   // clear all user defined trap
@@ -287,7 +287,7 @@ void SaiHostifManager::processQosDelta(
   auto newQos = controlPlaneDelta.getNew()->getQosPolicy();
   if (oldQos != newQos) {
     if (newQos) {
-      setQosPolicy();
+      setCpuQosPolicy(newQos->cref());
     } else if (oldQos) {
       clearQosPolicy();
     }
@@ -602,12 +602,25 @@ SaiHostifTrapHandle* SaiHostifManager::getHostifTrapHandle(
   return getHostifTrapHandleImpl(rxReason);
 }
 
-void SaiHostifManager::setQosPolicy() {
+void SaiHostifManager::qosPolicyUpdated(const std::string& qosPolicy) {
+  if (qosPolicy_ == qosPolicy) {
+    // On J3 platforms, different qos policies are applied to frontpanel
+    // ports and cpu port. So, set new qos policy only when the qos policy
+    // applied to cpu is updated.
+    setCpuQosPolicy(qosPolicy_);
+  }
+}
+
+void SaiHostifManager::setCpuQosPolicy(
+    const std::optional<std::string>& qosPolicy) {
   auto& qosMapManager = managerTable_->qosMapManager();
-  XLOG(DBG2) << "Set cpu qos map";
+  XLOG(DBG2) << "Set cpu qos map " << (qosPolicy ? qosPolicy.value() : "null");
   // We allow only a single QoS policy right now, so
   // pick that up.
-  auto qosMapHandle = qosMapManager.getQosMap();
+  auto qosMapHandle = qosMapManager.getQosMap(qosPolicy);
+  if (!qosMapHandle) {
+    throw FbossError("empty qos map handle for cpu port");
+  }
 
   // TODO(daiweix): has to clear and set tcToQueueMap. Simply set
   // new tcToQueueMap will cause object in use error when cleaning
@@ -617,20 +630,27 @@ void SaiHostifManager::setQosPolicy() {
   setCpuPortQosPolicy(
       qosMapHandle->dscpToTcMap->adapterKey(),
       qosMapHandle->tcToQueueMap->adapterKey());
-  // TODO(daiweix): add setCpuSystemPortQosPolicy()
-
+  if (qosMapHandle->tcToVoqMap) {
+    setCpuSystemPortQosPolicy(qosMapHandle->tcToVoqMap->adapterKey());
+  }
   // update qos map shared pointers at last to keep
   // new qos map objects and release unused ones
-  globalDscpToTcQosMap_ = qosMapHandle->dscpToTcMap;
-  globalTcToQueueQosMap_ = qosMapHandle->tcToQueueMap;
+  dscpToTcQosMap_ = qosMapHandle->dscpToTcMap;
+  tcToQueueQosMap_ = qosMapHandle->tcToQueueMap;
+  tcToVoqMap_ = qosMapHandle->tcToVoqMap;
+  qosPolicy_ = qosMapHandle->name;
 }
 
 void SaiHostifManager::clearQosPolicy() {
   setCpuPortQosPolicy(
       QosMapSaiId(SAI_NULL_OBJECT_ID), QosMapSaiId(SAI_NULL_OBJECT_ID));
-  // TODO(daweix): setCpuSystemPortQosPolicy(QosMapSaiId(SAI_NULL_OBJECT_ID));
-  globalDscpToTcQosMap_.reset();
-  globalTcToQueueQosMap_.reset();
+  if (tcToVoqMap_) {
+    setCpuSystemPortQosPolicy(QosMapSaiId(SAI_NULL_OBJECT_ID));
+  }
+  dscpToTcQosMap_.reset();
+  tcToQueueQosMap_.reset();
+  tcToVoqMap_.reset();
+  qosPolicy_.reset();
 }
 
 void SaiHostifManager::setCpuPortQosPolicy(

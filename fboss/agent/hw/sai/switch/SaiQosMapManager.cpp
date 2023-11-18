@@ -13,6 +13,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/sai/api/QosMapApi.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
+#include "fboss/agent/hw/sai/switch/SaiHostifManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
@@ -244,6 +245,7 @@ void SaiQosMapManager::changeQosMap(
     removeQosMap(oldQosPolicy, newPolicyIsDefault);
   }
   addQosMap(newQosPolicy, newPolicyIsDefault);
+  managerTable_->hostifManager().qosPolicyUpdated(newName);
 }
 
 const SaiQosMapHandle* FOLLY_NULLABLE SaiQosMapManager::getQosMap(

@@ -1636,9 +1636,10 @@ void SaiPortManager::clearQosPolicy(PortID portID) {
   if (getPortType(portID) == cfg::PortType::FABRIC_PORT) {
     return;
   }
-  XLOG(DBG2) << "clear QoS policy "
-             << " for port " << portID;
   auto handle = getPortHandle(portID);
+  XLOG(DBG2) << "clear QoS policy "
+             << (handle->qosPolicy ? handle->qosPolicy.value() : "null")
+             << " for port " << portID;
   if (handle->qosPolicy) {
     auto qosMaps = getNullSaiIdsForQosMaps();
     setQosMapsOnPort(handle, qosMaps);

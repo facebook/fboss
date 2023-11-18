@@ -105,10 +105,11 @@ class SaiHostifManager {
   SaiHostifTrapHandle* getHostifTrapHandle(cfg::PacketRxReason rxReason);
   std::shared_ptr<SaiHostifTrapCounter> createHostifTrapCounter(
       cfg::PacketRxReason rxReason);
+  void qosPolicyUpdated(const std::string& qosPolicy);
 
  private:
   uint32_t getMaxCpuQueues() const;
-  void setQosPolicy();
+  void setCpuQosPolicy(const std::optional<std::string>& qosPolicy);
   void clearQosPolicy();
   void setCpuPortQosPolicy(QosMapSaiId dscpToTc, QosMapSaiId tcToQueue);
   void setCpuSystemPortQosPolicy(QosMapSaiId tcToQueue);
@@ -135,13 +136,13 @@ class SaiHostifManager {
   ConcurrentIndices* concurrentIndices_;
   folly::F14FastMap<cfg::PacketRxReason, std::unique_ptr<SaiHostifTrapHandle>>
       handles_;
-  /*
-   * We only permit a single QoS policy across the
-   * front panel and CPU ports. So when set, these
-   * pointers hold references to that policy
-   */
-  std::shared_ptr<SaiQosMap> globalDscpToTcQosMap_;
-  std::shared_ptr<SaiQosMap> globalTcToQueueQosMap_;
+
+  // single QoS policy applied accross the front panel ports and cpu port
+  // on all platforms except for J3 right now.
+  std::shared_ptr<SaiQosMap> dscpToTcQosMap_;
+  std::shared_ptr<SaiQosMap> tcToQueueQosMap_;
+  std::shared_ptr<SaiQosMap> tcToVoqMap_;
+  std::optional<std::string> qosPolicy_;
   std::unique_ptr<SaiCpuPortHandle> cpuPortHandle_;
   HwCpuFb303Stats cpuStats_;
   HwRxReasonStats rxReasonStats_;
