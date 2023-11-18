@@ -82,6 +82,11 @@ void SaiPortManager::fillInSupportedStats(PortID port) {
       };
       return counterIds;
     }
+    if (getPortType(port) == cfg::PortType::RECYCLE_PORT) {
+      return std::vector<sai_stat_id_t>{
+          SAI_PORT_STAT_IF_IN_UCAST_PKTS,
+      };
+    }
     if ((platform_->getAsic()->getAsicType() ==
          cfg::AsicType::ASIC_TYPE_JERICHO2) ||
         (platform_->getAsic()->getAsicType() ==
