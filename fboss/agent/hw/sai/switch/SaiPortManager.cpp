@@ -1374,6 +1374,10 @@ void SaiPortManager::updateStats(PortID portId, bool updateWatermarks) {
   if (handlesItr == handles_.end()) {
     return;
   }
+  if (getPortType(portId) == cfg::PortType::RECYCLE_PORT &&
+      !platform_->getAsic()->isSupported(HwAsic::Feature::RECYCLE_PORT_STATS)) {
+    return;
+  }
   auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
   auto* handle = handlesItr->second.get();
   auto portStatItr = portStats_.find(portId);
