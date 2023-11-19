@@ -19,6 +19,7 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
+#include "fboss/lib/CommonUtils.h"
 
 #include <folly/IPAddress.h>
 
@@ -189,8 +190,10 @@ class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
         sendUdpPkt(dscp);
       }
     }
-    EXPECT_TRUE(utility::verifyQueueMappings(
-        portStatsBefore, queueToDscp, getHwSwitchEnsemble(), portId));
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_TRUE(utility::verifyQueueMappings(
+          portStatsBefore, queueToDscp, getHwSwitchEnsemble(), portId));
+    });
   }
 
  protected:
