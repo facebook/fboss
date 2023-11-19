@@ -591,9 +591,7 @@ void IPv6Handler::handleNeighborAdvertisement(
    * Unsolicited nbr adv are sent to mcast (typically all nodes mcast) address.
    * RFC (rfc2461)  explicitly allows for unsolicited ndp advertisments
    */
-  auto skipCheckMine =
-      FLAGS_accept_unsolicited_neighbor_adv && dstIP.isMulticast();
-  if (!skipCheckMine) {
+  if (!dstIP.isMulticast()) {
     // Check to see if this IP address is in our NDP response table.
     auto entry = vlanOrIntf->getNdpResponseTable()->getEntry(hdr.ipv6->dstAddr);
     if (!entry) {
