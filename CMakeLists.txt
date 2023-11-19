@@ -85,7 +85,7 @@ if (SAI_BRCM_IMPL)
   add_definitions (-DIS_OSS_BRCM_SAI=true)
   # Build for BCM DNX by default. For XGS, set the ENV variable SAI_SDK_VERSION
   # to build for BCM XGS.
-  set(SAI_SDK_VERSION "SAI_VERSION_10_0_EA_DNX_ODP")
+  set(SAI_SDK_VERSION "SAI_VERSION_11_0_EA_DNX_ODP")
 endif()
 
 set(SAI_VER_MAJOR "1")
