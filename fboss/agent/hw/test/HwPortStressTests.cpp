@@ -35,10 +35,12 @@ TEST_F(HwPortStressTest, adminStateToggle) {
   auto setup = [=, this]() { applyNewConfig(initialConfig()); };
 
   auto verify = [=, this]() {
-    auto firstPortId = PortID(masterLogicalPortIds()[0]);
+    // Use 2nd port as on some platforms, first port is rcy port
+    // which will never flap in practice
+    auto portId = PortID(masterLogicalPortIds()[1]);
     for (auto i = 0; i < 500; ++i) {
       auto newState = getProgrammedState();
-      auto port = newState->getPorts()->getNodeIf(firstPortId);
+      auto port = newState->getPorts()->getNodeIf(portId);
       auto newPort = port->modify(&newState);
       auto newAdminState = newPort->isEnabled() ? cfg::PortState::DISABLED
                                                 : cfg::PortState::ENABLED;
@@ -53,10 +55,12 @@ TEST_F(HwPortStressTest, linkStateToggle) {
   auto setup = [=, this]() { applyNewConfig(initialConfig()); };
 
   auto verify = [=, this]() {
-    auto firstPortId = PortID(masterLogicalPortIds()[0]);
+    // Use 2nd port as on some platforms, first port is rcy port
+    // which will never flap in practice
+    auto portId = PortID(masterLogicalPortIds()[1]);
     for (auto i = 0; i < 500; ++i) {
-      getHwSwitchEnsemble()->getLinkToggler()->bringDownPorts({firstPortId});
-      getHwSwitchEnsemble()->getLinkToggler()->bringUpPorts({firstPortId});
+      getHwSwitchEnsemble()->getLinkToggler()->bringDownPorts({portId});
+      getHwSwitchEnsemble()->getLinkToggler()->bringUpPorts({portId});
     }
   };
   verifyAcrossWarmBoots(setup, verify);
