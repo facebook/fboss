@@ -357,7 +357,7 @@ void SaiSystemPortManager::setQosMapOnSystemPort(
     const SaiQosMapHandle* qosMapHandle,
     SystemPortID swId) {
   auto handle = getSystemPortHandle(swId);
-  if (qosMapHandle) {
+  if (qosMapHandle && qosMapHandle->tcToVoqMap) {
     // set qos policy
     auto qosMap = qosMapHandle->tcToVoqMap;
     auto qosMapId = qosMap->adapterKey();
