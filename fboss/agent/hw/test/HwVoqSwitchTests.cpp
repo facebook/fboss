@@ -855,12 +855,12 @@ TEST_F(HwVoqSwitchTest, dramEnqueueDequeueBytes) {
   const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
   auto setup = [this, kPort]() {
     addRemoveNeighbor(kPort, true /* add neighbor*/);
-    // Disable both port TX and credit watchdog
-    utility::setCreditWatchdogAndPortTx(
-        getHwSwitch(), kPort.phyPortID(), false);
   };
 
   auto verify = [this, kPort, &ecmpHelper]() {
+    // Disable both port TX and credit watchdog
+    utility::setCreditWatchdogAndPortTx(
+        getHwSwitch(), kPort.phyPortID(), false);
     auto sendPkts = [this, kPort, &ecmpHelper]() {
       for (auto i = 0; i < 1000; ++i) {
         sendPacket(ecmpHelper.ip(kPort), std::nullopt);
@@ -877,7 +877,7 @@ TEST_F(HwVoqSwitchTest, dramEnqueueDequeueBytes) {
       EXPECT_EVENTUALLY_GT(dramEnqueuedBytes, 0);
     });
     // Enable port TX
-    utility::setPortTx(getHwSwitch(), kPort.phyPortID(), false);
+    utility::setPortTx(getHwSwitch(), kPort.phyPortID(), true);
     WITH_RETRIES({
       getHwSwitch()->updateStats();
       fb303::ThreadCachedServiceData::get()->publishStats();
