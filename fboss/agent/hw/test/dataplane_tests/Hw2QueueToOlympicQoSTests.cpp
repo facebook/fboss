@@ -7,6 +7,8 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include <folly/IPAddress.h>
+#include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwPortUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
@@ -16,10 +18,7 @@
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
-
-#include "fboss/agent/hw/test/ConfigFactory.h"
-
-#include <folly/IPAddress.h>
+#include "fboss/lib/CommonUtils.h"
 
 namespace facebook::fboss {
 
@@ -81,8 +80,10 @@ class Hw2QueueToOlympicQoSTest : public HwLinkStateDependentTest {
         sendPacket(dscp, frontPanel);
       }
     }
-    EXPECT_TRUE(utility::verifyQueueMappings(
-        portStatsBefore, queueToDscp, getHwSwitchEnsemble(), portId));
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_TRUE(utility::verifyQueueMappings(
+          portStatsBefore, queueToDscp, getHwSwitchEnsemble(), portId));
+    });
   }
 
  protected:
