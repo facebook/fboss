@@ -182,7 +182,6 @@ class CmdShowTransceiver
       std::map<int32_t, facebook::fboss::PortInfoThrift> portEntries) const {
     RetType model;
 
-    // TODO: sort here?
     for (const auto& [portId, portEntry] : portStatusEntries) {
       cli::TransceiverDetail details;
       details.name() = portEntries[portId].get_name();
@@ -246,7 +245,7 @@ class CmdShowTransceiver
         details.rxPower() = rxPower;
         details.rxSnr() = rxSnr;
       }
-      model.transceivers()->emplace(portId, std::move(details));
+      model.transceivers()->emplace(transceiverId, std::move(details));
     }
 
     return model;

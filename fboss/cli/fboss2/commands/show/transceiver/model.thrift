@@ -1,6 +1,7 @@
 namespace cpp2 facebook.fboss.cli
 
 struct ShowTransceiverModel {
+  /* key: transceiverId, value: TransceiverDetail */
   1: map<i32, TransceiverDetail> transceivers;
 }
 
