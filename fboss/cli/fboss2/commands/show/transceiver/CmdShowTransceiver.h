@@ -65,6 +65,8 @@ class CmdShowTransceiver
          "Vendor",
          "Serial",
          "Part Number",
+         "FW App Version",
+         "FW DSP Version",
          "Temperature (C)",
          "Voltage (V)",
          "Current (mA)",
@@ -80,6 +82,8 @@ class CmdShowTransceiver
           details.get_vendor(),
           details.get_serial(),
           details.get_partNumber(),
+          details.get_appFwVer(),
+          details.get_dspFwVer(),
           fmt::format("{:.2f}", details.get_temperature()),
           fmt::format("{:.2f}", details.get_voltage()),
           listToString(
@@ -200,6 +204,12 @@ class CmdShowTransceiver
         details.temperature() = tcvrStats.get_sensor()->get_temp().get_value();
         details.voltage() = tcvrStats.get_sensor()->get_vcc().get_value();
 
+        if (const auto& moduleStatus = tcvrState.status()) {
+          if (const auto& fwStatus = moduleStatus->fwStatus()) {
+            details.appFwVer() = fwStatus->version().value_or("N/A");
+            details.dspFwVer() = fwStatus->dspFwVer().value_or("N/A");
+          }
+        }
         std::vector<double> current;
         std::vector<double> txPower;
         std::vector<double> rxPower;

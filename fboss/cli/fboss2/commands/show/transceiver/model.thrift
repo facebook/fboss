@@ -17,4 +17,6 @@ struct TransceiverDetail {
   10: list<double> txPower;
   11: list<double> rxPower;
   12: list<double> rxSnr;
+  13: string appFwVer;
+  14: string dspFwVer;
 }
