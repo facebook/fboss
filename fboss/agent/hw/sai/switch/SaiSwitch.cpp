@@ -2417,11 +2417,15 @@ bool SaiSwitch::isValidStateUpdateLocked(
   }
 
   auto qosDelta = delta.getQosPoliciesDelta();
-  // TODO(daiweix): relax this assumption on J3 after adding per port
-  // qos map support to apply different qos policies to regular port
-  // and cpu/recycle port
-  if (qosDelta.getNew()->numNodes() > 0) {
-    XLOG(ERR) << "Only default data plane qos policy is supported";
+
+  // Default QoS policy is stored at switchSettings::defaultDataPlaneQosPolicy.
+  // qosDelta.getNew()->numNodes() gives the number of non-default QoS policies
+  // stored at qosPolicyMaps in SwitchState. Only J3 needs non-default Qos
+  // policy for control plane right now.
+  if (getSwitchType() != cfg::SwitchType::VOQ &&
+      qosDelta.getNew()->numNodes() > 0) {
+    XLOG(ERR)
+        << "Only default data plane qos policy is supported on non-VOQ switch type";
     return false;
   }
 

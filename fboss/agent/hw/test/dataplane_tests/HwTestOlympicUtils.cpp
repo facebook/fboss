@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/hw/test/TrafficPolicyUtils.h"
 
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 
@@ -718,6 +719,12 @@ void addOlympicQosMapsHelper(
   cpuTrafficPolicy.defaultQosPolicy() = cpuQosPolicyName;
   cpuConfig.trafficPolicy() = cpuTrafficPolicy;
   cfg.cpuTrafficPolicy() = cpuConfig;
+
+  if (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
+    // also apply cpu qos policy for recycle port
+    PortID kRecyclePort(1);
+    overrideQosPolicy(&cfg, kRecyclePort, cpuQosPolicyName);
+  }
 }
 
 void addOlympicQosMaps(cfg::SwitchConfig& cfg, const HwAsic* hwAsic) {
