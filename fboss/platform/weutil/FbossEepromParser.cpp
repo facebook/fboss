@@ -469,15 +469,12 @@ std::string FbossEepromParser::parseString(int len, unsigned char* ptr) {
   return retVal;
 }
 
-// For EEPROM V4, Parse MAC with the format XX:XX:XX:XX:XX:XX
-std::string FbossEepromParser::parseV4Mac(int len, unsigned char* ptr) {
+std::string parseMacHelper(int len, unsigned char* ptr, bool useBigEndian) {
   std::string retVal = "";
   // We convert char array to string only upto len or null pointer
   int juice = 0;
   while (juice < len) {
-    // In V4 EEPROM, all fields are little endian, even the MAC address
-    // therefore we parse it in the LE way (not the network byte order)
-    unsigned int val = ptr[len - juice - 1];
+    unsigned int val = useBigEndian ? ptr[juice] : ptr[len - juice - 1];
     std::ostringstream ss;
     ss << std::hex << val;
     std::string strElement = ss.str();
@@ -491,13 +488,21 @@ std::string FbossEepromParser::parseV4Mac(int len, unsigned char* ptr) {
   return retVal;
 }
 
+// For EEPROM V4, Parse MAC with the format XX:XX:XX:XX:XX:XX
+std::string FbossEepromParser::parseV4Mac(int len, unsigned char* ptr) {
+  // In V4 EEPROM, all fields are little endian, even the MAC address
+  // therefore we parse it in the LE way (not the network byte order
+  return parseMacHelper(len, ptr, false);
+}
+
 // For EEPROM V5, Parse MAC with the format XX:XX:XX:XX:XX:XX, along with two
 // bytes MAC size
 std::string FbossEepromParser::parseV5Mac(int len, unsigned char* ptr) {
   std::string retVal = "";
   // Pack two string with "," in between. This will be unpacked in the
   // dump functions.
-  retVal = parseV4Mac(len - 2, ptr) + "," + parseBeUint(2, &ptr[len - 2]);
+  retVal =
+      parseMacHelper(len - 2, ptr, true) + "," + parseBeUint(2, &ptr[len - 2]);
   return retVal;
 }
 
