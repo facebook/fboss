@@ -2860,11 +2860,21 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAclsImpl(
         if (auto sendToQueue = mta.action()->sendToQueue()) {
           matchAction.setSendToQueue(std::make_pair(*sendToQueue, isCoppAcl));
         }
-        if (auto setTc = mta.action()->setTc()) {
-          matchAction.setSetTc(std::make_pair(*setTc, isCoppAcl));
-        }
-        if (auto userDefinedTrap = mta.action()->userDefinedTrap()) {
-          matchAction.setUserDefinedTrap(*userDefinedTrap);
+        // TODO(daiweix): set setTc and userDefinedTrap actions only when
+        // disruptive feature sai_user_defined_trap is enabled. Otherwise,
+        // although these actions will not take effect and programmed ACL won't
+        // change. Switch switch change will still trigger
+        // SaiAclTableManager::changedAclEntry() to remove and re-program the
+        // same ACL during warmboot. This is unnecessary and caused programming
+        // issue on platforms like TH4. Avoiding this issue by skip setting
+        // setTc and userDefinedTrap for now.
+        if (FLAGS_sai_user_defined_trap) {
+          if (auto setTc = mta.action()->setTc()) {
+            matchAction.setSetTc(std::make_pair(*setTc, isCoppAcl));
+          }
+          if (auto userDefinedTrap = mta.action()->userDefinedTrap()) {
+            matchAction.setUserDefinedTrap(*userDefinedTrap);
+          }
         }
         if (auto actionCounter = mta.action()->counter()) {
           auto counter = counterByName.find(*actionCounter);

@@ -53,6 +53,7 @@
 
 DECLARE_bool(enable_acl_table_group);
 DECLARE_bool(emStatOnlyMode);
+DECLARE_bool(sai_user_defined_trap);
 
 namespace facebook::fboss {
 

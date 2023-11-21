@@ -39,10 +39,6 @@ DEFINE_bool(
     flowletSwitchingEnable,
     false,
     "Flag to turn on flowlet switching for DLB");
-DEFINE_bool(
-    sai_user_defined_trap,
-    false,
-    "Flag to use user defined trap when programming ACL action to punt packets to cpu queue. This is only applicable to brcm sai switches");
 
 namespace facebook::fboss {
 
