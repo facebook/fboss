@@ -143,14 +143,6 @@ void SaiVlanManager::changeVlan(
       compareIds);
   for (const auto& swPortId : removed) {
     handle->vlanMembers.erase(SaiPortDescriptor(PortID(swPortId.first)));
-    SaiPortHandle* portHandle =
-        managerTable_->portManager().getPortHandle(PortID(swPortId.first));
-    if (!portHandle) {
-      throw FbossError(
-          "Failed to remove vlan member: "
-          "no port handle matching vlan member port: ",
-          swPortId.first);
-    }
   }
   Vlan::MemberPorts added;
   std::set_difference(
