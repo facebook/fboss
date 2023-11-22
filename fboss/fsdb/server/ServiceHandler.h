@@ -9,12 +9,12 @@
 #include <folly/container/F14Map.h>
 #include <folly/io/async/ScopedEventBaseThread.h>
 #include <thrift/lib/cpp/server/TServerEventHandler.h>
-#include "fboss/facebook/fsdb/oper/DbWriter.h"
-#include "fboss/facebook/fsdb/oper/instantiations/FsdbNaivePeriodicSubscribableStorage.h"
 #include "fboss/fsdb/if/FsdbModel.h"
 #include "fboss/fsdb/if/gen-cpp2/FsdbService.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_common_types.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
+#include "fboss/fsdb/oper/DbWriter.h"
+#include "fboss/fsdb/oper/instantiations/FsdbNaivePeriodicSubscribableStorage.h"
 #include "fboss/fsdb/server/FsdbConfig.h"
 #include "fboss/fsdb/server/FsdbOperTreeMetadataTracker.h"
 #include "fboss/fsdb/server/RocksDb.h"

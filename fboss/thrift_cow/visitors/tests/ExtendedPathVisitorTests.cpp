@@ -10,7 +10,7 @@
 #include <fboss/thrift_cow/visitors/ExtendedPathVisitor.h>
 #include <thrift/lib/cpp2/reflection/folly_dynamic.h>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
-#include "fboss/facebook/fsdb/oper/ExtendedPathBuilder.h"
+#include "fboss/fsdb/oper/ExtendedPathBuilder.h"
 #include "fboss/thrift_cow/nodes/Types.h"
 #include "fboss/thrift_cow/nodes/tests/gen-cpp2/test_fatal_types.h"
 

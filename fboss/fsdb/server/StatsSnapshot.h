@@ -4,10 +4,10 @@
 
 #include <thrift/lib/cpp2/protocol/BinaryProtocol.h>
 #include <string>
-#include "fboss/facebook/fsdb/utils/Utils.h"
 #include "fboss/fsdb/common/Utils.h"
 #include "fboss/fsdb/if/FsdbModel.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_common_types.h"
+#include "fboss/fsdb/utils/Utils.h"
 
 namespace facebook::fboss::fsdb {
 

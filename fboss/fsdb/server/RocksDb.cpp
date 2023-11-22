@@ -1,8 +1,8 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
 #include "fboss/fsdb/server/RocksDb.h"
-#include "fboss/facebook/fsdb/utils/Utils.h"
 #include "fboss/fsdb/common/Utils.h"
+#include "fboss/fsdb/utils/Utils.h"
 
 // TODO: use a better default dir
 DEFINE_string(
