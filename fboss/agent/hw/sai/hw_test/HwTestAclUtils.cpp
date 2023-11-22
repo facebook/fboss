@@ -21,6 +21,7 @@
 #include <optional>
 
 DECLARE_bool(enable_acl_table_group);
+DECLARE_bool(sai_user_defined_trap);
 
 namespace facebook::fboss::utility {
 
@@ -682,13 +683,19 @@ cfg::MatchAction getToQueueAction(
     const int queueId,
     const std::optional<cfg::ToCpuAction> toCpuAction) {
   cfg::MatchAction action;
-  cfg::UserDefinedTrapAction userDefinedTrap;
-  userDefinedTrap.queueId() = queueId;
-  action.userDefinedTrap() = userDefinedTrap;
-  // assume tc i maps to queue i for all i on sai switches
-  cfg::SetTcAction setTc;
-  setTc.tcValue() = queueId;
-  action.setTc() = setTc;
+  if (FLAGS_sai_user_defined_trap) {
+    cfg::UserDefinedTrapAction userDefinedTrap;
+    userDefinedTrap.queueId() = queueId;
+    action.userDefinedTrap() = userDefinedTrap;
+    // assume tc i maps to queue i for all i on sai switches
+    cfg::SetTcAction setTc;
+    setTc.tcValue() = queueId;
+    action.setTc() = setTc;
+  } else {
+    cfg::QueueMatchAction queueAction;
+    queueAction.queueId() = queueId;
+    action.sendToQueue() = queueAction;
+  }
   if (toCpuAction) {
     action.toCpuAction() = toCpuAction.value();
   }
@@ -702,26 +709,28 @@ void checkSwAclSendToQueue(
     int queueId) {
   auto acl = getAclEntryByName(state, aclName);
   ASSERT_TRUE(acl->getAclAction());
-  ASSERT_TRUE(acl->getAclAction()->cref<switch_state_tags::setTc>());
-  ASSERT_EQ(
-      acl->getAclAction()
-          ->cref<switch_state_tags::userDefinedTrap>()
-          ->cref<switch_config_tags::queueId>()
-          ->cref(),
-      queueId);
-  ASSERT_EQ(
-      acl->getAclAction()
-          ->cref<switch_state_tags::setTc>()
-          ->cref<switch_state_tags::sendToCPU>()
-          ->cref(),
-      sendToCPU);
-  ASSERT_EQ(
-      acl->getAclAction()
-          ->cref<switch_state_tags::setTc>()
-          ->cref<switch_state_tags::action>()
-          ->cref<switch_config_tags::tcValue>()
-          ->cref(),
-      queueId);
+  if (FLAGS_sai_user_defined_trap) {
+    ASSERT_TRUE(acl->getAclAction()->cref<switch_state_tags::setTc>());
+    ASSERT_EQ(
+        acl->getAclAction()
+            ->cref<switch_state_tags::userDefinedTrap>()
+            ->cref<switch_config_tags::queueId>()
+            ->cref(),
+        queueId);
+    ASSERT_EQ(
+        acl->getAclAction()
+            ->cref<switch_state_tags::setTc>()
+            ->cref<switch_state_tags::sendToCPU>()
+            ->cref(),
+        sendToCPU);
+    ASSERT_EQ(
+        acl->getAclAction()
+            ->cref<switch_state_tags::setTc>()
+            ->cref<switch_state_tags::action>()
+            ->cref<switch_config_tags::tcValue>()
+            ->cref(),
+        queueId);
+  }
 }
 
 } // namespace facebook::fboss::utility
