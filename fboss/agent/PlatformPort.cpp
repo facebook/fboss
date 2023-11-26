@@ -189,6 +189,32 @@ std::optional<cfg::PortProfileID> PlatformPort::getProfileIDBySpeedIf(
   return std::nullopt;
 }
 
+std::vector<cfg::PortProfileID> PlatformPort::getAllProfileIDsForSpeed(
+    cfg::PortSpeed speed) const {
+  if (speed == cfg::PortSpeed::DEFAULT) {
+    return {cfg::PortProfileID::PROFILE_DEFAULT};
+  }
+
+  std::vector<cfg::PortProfileID> profiles;
+  const auto& platformPortEntry = getPlatformPortEntry();
+  for (auto profile : *platformPortEntry.supportedProfiles()) {
+    auto profileID = profile.first;
+    if (auto profileCfg = platform_->getPortProfileConfig(
+            PlatformPortProfileConfigMatcher(profileID, getPortID()))) {
+      if (*profileCfg->speed() == speed) {
+        profiles.push_back(profileID);
+      }
+    } else {
+      throw FbossError(
+          "Platform port ",
+          getPortID(),
+          " has invalid profile ",
+          apache::thrift::util::enumNameSafe(profileID));
+    }
+  }
+  return profiles;
+}
+
 const phy::PortProfileConfig PlatformPort::getPortProfileConfig(
     cfg::PortProfileID profileID) const {
   auto profile = getPortProfileConfigIf(profileID);

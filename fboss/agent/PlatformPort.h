@@ -64,6 +64,8 @@ class PlatformPort {
   cfg::PortProfileID getProfileIDBySpeed(cfg::PortSpeed speed) const;
   std::optional<cfg::PortProfileID> getProfileIDBySpeedIf(
       cfg::PortSpeed speed) const;
+  std::vector<cfg::PortProfileID> getAllProfileIDsForSpeed(
+      cfg::PortSpeed speed) const;
 
   /*
    * Helper functions for getting port profiles. Platform port generall should
