@@ -1134,7 +1134,7 @@ std::shared_ptr<Port> SaiPortManager::swPortFromAttributes(
     portType = SaiApiTable::getInstance()->portApi().getAttribute(
         portSaiId, SaiPortTraits::Attributes::Type{});
   }
-  auto portID = platform_->findPortID(speed, lanes, portSaiId);
+  auto [portID, _] = platform_->findPortIDAndProfiles(speed, lanes, portSaiId);
   auto platformPort = platform_->getPort(portID);
   state::PortFields portFields;
   portFields.portId() = portID;

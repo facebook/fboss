@@ -380,18 +380,23 @@ HwSwitchWarmBootHelper* SaiPlatform::getWarmBootHelper() {
   return wbHelper_.get();
 }
 
-PortID SaiPlatform::findPortID(
+std::pair<PortID, std::vector<cfg::PortProfileID>>
+SaiPlatform::findPortIDAndProfiles(
     cfg::PortSpeed speed,
     std::vector<uint32_t> lanes,
     PortSaiId portSaiId) const {
+  std::vector<cfg::PortProfileID> matchingProfiles;
   for (const auto& portMapping : portMapping_) {
     const auto& platformPort = portMapping.second;
-    auto profileID = platformPort->getProfileIDBySpeedIf(speed);
-    if (!profileID.has_value() ||
-        platformPort->getHwPortLanes(*profileID) != lanes) {
-      continue;
+    auto profiles = platformPort->getAllProfileIDsForSpeed(speed);
+    for (auto profileID : profiles) {
+      if (platformPort->getHwPortLanes(profileID) == lanes) {
+        matchingProfiles.push_back(profileID);
+      }
     }
-    return platformPort->getPortID();
+    if (matchingProfiles.size() > 0) {
+      return std::make_pair(platformPort->getPortID(), matchingProfiles);
+    }
   }
   throw FbossError(
       "platform port not found ", (PortID)portSaiId, " speed: ", (int)speed);

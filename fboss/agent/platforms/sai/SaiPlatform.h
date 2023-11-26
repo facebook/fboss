@@ -73,7 +73,11 @@ class SaiPlatform : public Platform, public StateObserver {
     return masterLogicalPortIds_;
   }
 
-  virtual PortID findPortID(
+  /*
+   * Get the portID and all the profiles matching the given speed and lane list
+   */
+  virtual std::pair<PortID, std::vector<cfg::PortProfileID>>
+  findPortIDAndProfiles(
       cfg::PortSpeed speed,
       std::vector<uint32_t> lanes,
       PortSaiId portSaiId) const;
