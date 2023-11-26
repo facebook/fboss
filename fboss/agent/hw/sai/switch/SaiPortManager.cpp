@@ -1134,8 +1134,28 @@ std::shared_ptr<Port> SaiPortManager::swPortFromAttributes(
     portType = SaiApiTable::getInstance()->portApi().getAttribute(
         portSaiId, SaiPortTraits::Attributes::Type{});
   }
-  auto [portID, _] = platform_->findPortIDAndProfiles(speed, lanes, portSaiId);
-  auto platformPort = platform_->getPort(portID);
+  auto [portID, allProfiles] =
+      platform_->findPortIDAndProfiles(speed, lanes, portSaiId);
+  if (allProfiles.empty()) {
+    throw FbossError(
+        "No port profiles found for port ",
+        portID,
+        ", speed ",
+        (int)speed,
+        ", lanes ",
+        folly::join(",", lanes));
+  }
+  // We don't have enough information here to match the SDK's state with one of
+  // the supported profiles for this platform. We ideally need medium as well,
+  // but SDK could default to any medium and then the platform may not
+  // necessarily support a profileID that matches SDK's speed + lanes + medium.
+  // Therefore, we'll just pick the first profile in the list and update the SAI
+  // store later with properties (speed, lanes, medium, fec etc) of this
+  // profile. Later at applyThriftConfig time, we'll find out exactly which
+  // profile should be used and then update SAI with the new profile if
+  // different than what we picked here
+  auto profileID = allProfiles[0];
+
   state::PortFields portFields;
   portFields.portId() = portID;
   portFields.portName() = folly::to<std::string>(portID);
@@ -1158,7 +1178,7 @@ std::shared_ptr<Port> SaiPortManager::swPortFromAttributes(
       break;
   }
   // speed, hw lane list, fec mode
-  port->setProfileId(platformPort->getProfileIDBySpeed(speed));
+  port->setProfileId(profileID);
   PlatformPortProfileConfigMatcher matcher{port->getProfileID(), portID};
   if (auto profileConfig = platform_->getPortProfileConfig(matcher)) {
     port->setProfileConfig(*profileConfig->iphy());
