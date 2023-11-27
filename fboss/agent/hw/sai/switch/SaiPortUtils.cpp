@@ -139,6 +139,7 @@ sai_port_media_type_t getSaiPortMediaFromInterfaceType(
     case phy::InterfaceType::CR:
     case phy::InterfaceType::CR2:
     case phy::InterfaceType::CR4:
+    case phy::InterfaceType::CR8:
       return SAI_PORT_MEDIA_TYPE_COPPER;
 
     case phy::InterfaceType::SR:

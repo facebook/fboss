@@ -85,6 +85,7 @@ enum InterfaceType {
   CR = 10,
   CR2 = 11,
   CR4 = 12,
+  CR8 = 13,
   // Optics
   SR = 20,
   SR4 = 21,

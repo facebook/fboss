@@ -33,6 +33,7 @@ void validateInterfaceAndMedium(
                phy::InterfaceType::CR,
                phy::InterfaceType::CR2,
                phy::InterfaceType::CR4,
+               phy::InterfaceType::CR8,
                // Seems to only be expected on copper per BcmPortUtils.cpp
                phy::InterfaceType::GMII,
                phy::InterfaceType::SFI, // On fabric ports
