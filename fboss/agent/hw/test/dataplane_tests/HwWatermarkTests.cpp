@@ -490,6 +490,7 @@ TEST_F(HwWatermarkTest, VerifyQueueWatermarkAccuracy) {
         kNumberOfPacketsToSend);
 
     uint64_t expectedWatermarkBytes;
+    uint64_t roundedWatermarkBytes;
     if (getPlatform()->getAsic()->getAsicType() ==
         cfg::AsicType::ASIC_TYPE_JERICHO2) {
       // For Jericho2, there is a limitation that one packet less than
@@ -497,13 +498,15 @@ TEST_F(HwWatermarkTest, VerifyQueueWatermarkAccuracy) {
       expectedWatermarkBytes =
           utility::getEffectiveBytesPerPacket(getHwSwitch(), txPacketLen) *
           (kNumberOfPacketsToSend - 1);
+      // Watermarks read in are accurate, no rounding needed
+      roundedWatermarkBytes = expectedWatermarkBytes;
     } else {
       expectedWatermarkBytes =
           utility::getEffectiveBytesPerPacket(getHwSwitch(), txPacketLen) *
           kNumberOfPacketsToSend;
+      roundedWatermarkBytes = utility::getRoundedBufferThreshold(
+          getHwSwitch(), expectedWatermarkBytes);
     }
-    auto roundedWatermarkBytes = utility::getRoundedBufferThreshold(
-        getHwSwitch(), expectedWatermarkBytes);
     std::map<int16_t, int64_t> queueWaterMarks;
     int64_t maxWatermarks = 0;
     WITH_RETRIES_N_TIMED(5, std::chrono::milliseconds(1000), {
