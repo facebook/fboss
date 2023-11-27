@@ -164,24 +164,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core0",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core0",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core0",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core0",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -208,6 +244,185 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip19",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "35": {
+              "subsumedPorts": [
+                3
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core0",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core0",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core0",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core0",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core0",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core0",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core0",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core0",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip19",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip19",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip19",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip19",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip19",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip19",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip19",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip19",
+                      "lane": 7
                     }
                   }
                 ]
@@ -634,24 +849,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core0",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core0",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core0",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core0",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -981,24 +1232,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core1",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core1",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core1",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core1",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -1025,6 +1312,185 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip16",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "35": {
+              "subsumedPorts": [
+                5
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core1",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core1",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core1",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core1",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core1",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core1",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core1",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core1",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip16",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip16",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip16",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip16",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip16",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip16",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip16",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip16",
+                      "lane": 7
                     }
                   }
                 ]
@@ -1447,24 +1913,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core1",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core1",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core1",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core1",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -1790,24 +2292,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core2",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core2",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core2",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core2",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -1834,6 +2372,185 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip18",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "35": {
+              "subsumedPorts": [
+                7
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core2",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core2",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core2",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core2",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core2",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core2",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core2",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core2",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip18",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip18",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip18",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip18",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip18",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip18",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip18",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip18",
+                      "lane": 7
                     }
                   }
                 ]
@@ -2256,24 +2973,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core2",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core2",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core2",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core2",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -2599,24 +3352,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core3",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core3",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core3",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core3",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -2643,6 +3432,185 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip15",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "35": {
+              "subsumedPorts": [
+                9
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core3",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core3",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core3",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core3",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core3",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core3",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core3",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core3",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip15",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip15",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip15",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip15",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip15",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip15",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip15",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip15",
+                      "lane": 7
                     }
                   }
                 ]
@@ -3065,24 +4033,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core3",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core3",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core3",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core3",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -3408,24 +4412,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core4",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core4",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core4",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core4",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -3452,6 +4492,185 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip17",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "35": {
+              "subsumedPorts": [
+                11
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core4",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core4",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core4",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core4",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core4",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core4",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core4",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core4",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip17",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip17",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip17",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip17",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip17",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip17",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip17",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip17",
+                      "lane": 7
                     }
                   }
                 ]
@@ -3874,24 +5093,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core4",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core4",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core4",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core4",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -4217,24 +5472,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core5",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core5",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core5",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core5",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -4261,6 +5552,185 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip13",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "35": {
+              "subsumedPorts": [
+                13
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core5",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core5",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core5",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core5",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core5",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core5",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core5",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core5",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip13",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip13",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip13",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip13",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip13",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip13",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip13",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip13",
+                      "lane": 7
                     }
                   }
                 ]
@@ -4683,24 +6153,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core5",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core5",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core5",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core5",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -5026,24 +6532,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core6",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core6",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core6",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core6",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -5070,6 +6612,185 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip11",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "35": {
+              "subsumedPorts": [
+                15
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core6",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core6",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core6",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core6",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core6",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core6",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core6",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core6",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip11",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip11",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip11",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip11",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip11",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip11",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip11",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip11",
+                      "lane": 7
                     }
                   }
                 ]
@@ -5492,24 +7213,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core6",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core6",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core6",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core6",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -5835,24 +7592,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core7",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core7",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core7",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core7",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -5879,6 +7672,185 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip14",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "35": {
+              "subsumedPorts": [
+                17
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core7",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core7",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core7",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core7",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core7",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core7",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core7",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core7",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip14",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip14",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip14",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip14",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip14",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip14",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip14",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip14",
+                      "lane": 7
                     }
                   }
                 ]
@@ -6301,24 +8273,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core7",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core7",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core7",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core7",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -6644,24 +8652,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core8",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core8",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core8",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core8",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -6688,6 +8732,185 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip12",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "35": {
+              "subsumedPorts": [
+                19
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core8",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core8",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core8",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core8",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core8",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core8",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core8",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core8",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip12",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip12",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip12",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip12",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip12",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip12",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip12",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip12",
+                      "lane": 7
                     }
                   }
                 ]
@@ -7110,24 +9333,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core8",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core8",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core8",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core8",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -7453,24 +9712,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core9",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core9",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core9",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core9",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -7497,6 +9792,185 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip20",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "35": {
+              "subsumedPorts": [
+                21
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core9",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core9",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core9",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core9",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core9",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core9",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core9",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core9",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip20",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip20",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip20",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip20",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip20",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip20",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip20",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip20",
+                      "lane": 7
                     }
                   }
                 ]
@@ -7919,24 +10393,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core9",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core9",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core9",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core9",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -8262,24 +10772,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core10",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core10",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core10",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core10",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -8306,6 +10852,185 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip22",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "35": {
+              "subsumedPorts": [
+                23
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core10",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core10",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core10",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core10",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core10",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core10",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core10",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core10",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip22",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip22",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip22",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip22",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip22",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip22",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip22",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip22",
+                      "lane": 7
                     }
                   }
                 ]
@@ -8728,24 +11453,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core10",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core10",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core10",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core10",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -9071,24 +11832,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core11",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core11",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core11",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core11",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -9115,6 +11912,185 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip21",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "35": {
+              "subsumedPorts": [
+                25
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core11",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core11",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core11",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core11",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core11",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core11",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core11",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core11",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip21",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip21",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip21",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip21",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip21",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip21",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip21",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip21",
+                      "lane": 7
                     }
                   }
                 ]
@@ -9537,24 +12513,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core11",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core11",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core11",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core11",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -9880,24 +12892,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core12",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core12",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core12",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core12",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -9924,6 +12972,185 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip24",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "35": {
+              "subsumedPorts": [
+                27
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core12",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core12",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core12",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core12",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core12",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core12",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core12",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core12",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip24",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip24",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip24",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip24",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip24",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip24",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip24",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip24",
+                      "lane": 7
                     }
                   }
                 ]
@@ -10346,24 +13573,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core12",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core12",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core12",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core12",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -10689,24 +13952,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core13",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core13",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core13",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core13",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -10733,6 +14032,185 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip27",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "35": {
+              "subsumedPorts": [
+                29
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core13",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core13",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core13",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core13",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core13",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core13",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core13",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core13",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip27",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip27",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip27",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip27",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip27",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip27",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip27",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip27",
+                      "lane": 7
                     }
                   }
                 ]
@@ -11155,24 +14633,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core13",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core13",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core13",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core13",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -11498,24 +15012,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core14",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core14",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core14",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core14",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -11542,6 +15092,185 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip28",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "35": {
+              "subsumedPorts": [
+                31
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core14",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core14",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core14",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core14",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core14",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core14",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core14",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core14",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip28",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip28",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip28",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip28",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip28",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip28",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip28",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip28",
+                      "lane": 7
                     }
                   }
                 ]
@@ -11964,24 +15693,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core14",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core14",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core14",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core14",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -12307,24 +16072,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core15",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core15",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core15",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core15",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -12351,6 +16152,185 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip25",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "35": {
+              "subsumedPorts": [
+                33
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core15",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core15",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core15",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core15",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core15",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core15",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core15",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core15",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip25",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip25",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip25",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip25",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip25",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip25",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip25",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip25",
+                      "lane": 7
                     }
                   }
                 ]
@@ -12773,24 +16753,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core15",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core15",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core15",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core15",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -13116,24 +17132,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core16",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core16",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core16",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core16",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -13160,6 +17212,185 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip26",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "35": {
+              "subsumedPorts": [
+                35
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core16",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core16",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core16",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core16",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core16",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core16",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core16",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core16",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip26",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip26",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip26",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip26",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip26",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip26",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip26",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip26",
+                      "lane": 7
                     }
                   }
                 ]
@@ -13582,24 +17813,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core16",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core16",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core16",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core16",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -13925,24 +18192,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core17",
                       "lane": 0
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core17",
                       "lane": 1
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core17",
                       "lane": 2
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core17",
                       "lane": 3
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -13969,6 +18272,185 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip23",
                       "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "35": {
+              "subsumedPorts": [
+                37
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core17",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core17",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core17",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core17",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core17",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core17",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core17",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J3_NIF-slot1/chip1/core17",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip23",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip23",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip23",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip23",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip23",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip23",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip23",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip23",
+                      "lane": 7
                     }
                   }
                 ]
@@ -14391,24 +18873,60 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core17",
                       "lane": 4
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core17",
                       "lane": 5
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core17",
                       "lane": 6
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "NPU-J3_NIF-slot1/chip1/core17",
                       "lane": 7
+                    },
+                    "tx": {
+                      "pre": -24,
+                      "pre2": 4,
+                      "main": 130,
+                      "post": -12,
+                      "post2": 0,
+                      "post3": 0,
+                      "pre3": 0
                     }
                   }
                 ],
@@ -34367,6 +38885,21 @@ constexpr auto kJsonPlatformMappingStr = R"(
     }
   ],
   "platformSupportedProfiles": [
+    {
+      "factor": {
+        "profileID": 35
+      },
+      "profile": {
+        "speed": 400000,
+        "iphy": {
+          "numLanes": 8,
+          "modulation": 2,
+          "fec": 11,
+          "medium": 1,
+          "interfaceType": 13
+        }
+      }
+    },
     {
       "factor": {
         "profileID": 36
