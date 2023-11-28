@@ -8,19 +8,30 @@
 
 namespace facebook::fboss {
 
+namespace {
+auto makeHwSwitchSyncers(
+    SwSwitch* sw,
+    const std::map<int64_t, cfg::SwitchInfo>& switchInfoMap,
+    HwSwitchHandlerInitFn hwSwitchHandlerInitFn) {
+  std::map<SwitchID, std::unique_ptr<HwSwitchHandler>> syncers;
+  for (auto entry : switchInfoMap) {
+    syncers.emplace(
+        SwitchID(entry.first),
+        hwSwitchHandlerInitFn(SwitchID(entry.first), entry.second, sw));
+  }
+  return syncers;
+}
+} // namespace
+
 MultiHwSwitchHandler::MultiHwSwitchHandler(
     const std::map<int64_t, cfg::SwitchInfo>& switchInfoMap,
     HwSwitchHandlerInitFn hwSwitchHandlerInitFn,
     SwSwitch* sw,
     std::optional<cfg::SdkVersion> sdkVersion)
-    : sw_(sw) {
-  for (auto entry : switchInfoMap) {
-    hwSwitchSyncers_.emplace(
-        SwitchID(entry.first),
-        hwSwitchHandlerInitFn(SwitchID(entry.first), entry.second, sw_));
-  }
-  transactionsSupported_ = transactionsSupported(sdkVersion);
-}
+    : sw_(sw),
+      hwSwitchSyncers_(
+          makeHwSwitchSyncers(sw, switchInfoMap, hwSwitchHandlerInitFn)),
+      transactionsSupported_(transactionsSupported(sdkVersion)) {}
 
 MultiHwSwitchHandler::~MultiHwSwitchHandler() {
   stop();

@@ -171,7 +171,7 @@ class MultiHwSwitchHandler {
   std::map<SwitchID, std::unique_ptr<HwSwitchHandler>> hwSwitchSyncers_;
   std::atomic<bool> stopped_{true};
   HwSwitchConnectionStatusTable connectionStatusTable_;
-  bool transactionsSupported_;
+  const bool transactionsSupported_;
 };
 
 } // namespace facebook::fboss
