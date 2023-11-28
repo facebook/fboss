@@ -741,9 +741,7 @@ TEST_F(HwTrafficPfcTest, PfcWatchdog) {
     triggerPfcDeadlockDetection(masterLogicalInterfacePortIds()[0]);
     validatePfcWatchdogCounters(masterLogicalInterfacePortIds()[0]);
   };
-  // warmboot support to be added in next step
-  setup();
-  verify();
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 // intent of this test is to setup watchdog for PFC
