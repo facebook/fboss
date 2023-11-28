@@ -59,10 +59,10 @@ class DsfSubscriber : public StateObserver {
       const std::shared_ptr<InterfaceMap>& newRifs,
       const std::string& nodeName,
       SwitchID nodeSwitchId);
-  void handleFsdbConnectionStateUpdate(
+  void handleFsdbSubscriptionStateUpdate(
       const std::string& nodeName,
-      fsdb::FsdbStreamClient::State oldState,
-      fsdb::FsdbStreamClient::State newState);
+      fsdb::FsdbExtStateSubscriber::SubscriptionState oldState,
+      fsdb::FsdbExtStateSubscriber::SubscriptionState newState);
   void handleFsdbUpdate(
       SwitchID nodeSwitchId,
       const std::string& nodeName,

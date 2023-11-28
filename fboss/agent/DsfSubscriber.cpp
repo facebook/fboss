@@ -26,6 +26,10 @@ DEFINE_bool(
     dsf_subscriber_cache_updated_state,
     false,
     "Cache switch state after update by dsf subsriber");
+DEFINE_uint32(
+    dsf_gr_hold_time,
+    0,
+    "GR hold time for FSDB DsfSubscription in sec");
 
 namespace {
 const thriftpath::RootThriftPath<facebook::fboss::fsdb::FsdbOperStateRoot>
@@ -180,17 +184,22 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
       // Subscription is not established until state becomes CONNECTED
       this->sw_->stats()->failedDsfSubscription(1);
 
+      auto subscriberId = folly::sformat("{}_{}:agent", localNodeName_, dstIP);
+      fsdb::FsdbExtStateSubscriber::SubscriptionOptions opts{
+          subscriberId, false /* subscribeStats */, FLAGS_dsf_gr_hold_time};
       fsdbPubSubMgr_->addStatePathSubscription(
+          std::move(opts),
           getAllSubscribePaths(localNodeName_),
-          [this, nodeName](auto oldState, auto newState) {
-            handleFsdbConnectionStateUpdate(nodeName, oldState, newState);
+          [this, nodeName](
+              fsdb::FsdbExtStateSubscriber::SubscriptionState oldState,
+              fsdb::FsdbExtStateSubscriber::SubscriptionState newState) {
+            handleFsdbSubscriptionStateUpdate(nodeName, oldState, newState);
           },
           [this, nodeName, nodeSwitchId](
               fsdb::OperSubPathUnit&& operStateUnit) {
             handleFsdbUpdate(nodeSwitchId, nodeName, std::move(operStateUnit));
           },
-          getServerOptions(dstIP, stateDelta.newState()),
-          dstIP);
+          getServerOptions(dstIP, stateDelta.newState()));
     }
   };
   auto rmDsfNode = [&](const std::shared_ptr<DsfNode>& node) {
@@ -228,31 +237,22 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
       rmDsfNode);
 }
 
-void DsfSubscriber::handleFsdbConnectionStateUpdate(
+void DsfSubscriber::handleFsdbSubscriptionStateUpdate(
     const std::string& nodeName,
-    fsdb::FsdbStreamClient::State oldState,
-    fsdb::FsdbStreamClient::State newState) {
+    fsdb::FsdbExtStateSubscriber::SubscriptionState oldState,
+    fsdb::FsdbExtStateSubscriber::SubscriptionState newState) {
   if (XLOG_IS_ON(DBG2)) {
-    switch (newState) {
-      case fsdb::FsdbStreamClient::State::CONNECTING:
-        XLOG(DBG2) << "Try connecting to " << nodeName;
-        break;
-      case fsdb::FsdbStreamClient::State::CONNECTED:
-        XLOG(DBG2) << "Connected to " << nodeName;
-        break;
-      case fsdb::FsdbStreamClient::State::DISCONNECTED:
-        XLOG(DBG2) << "Disconnected from " << nodeName;
-        break;
-      case fsdb::FsdbStreamClient::State::CANCELLED:
-        XLOG(DBG2) << "Cancelled " << nodeName;
-        break;
-    }
+    XLOG(DBG2)
+        << "DsfSubscriber: " << nodeName << ": subscription state changed "
+        << fsdb::FsdbExtStateSubscriber::subscriptionStateToString(oldState)
+        << " -> "
+        << fsdb::FsdbExtStateSubscriber::subscriptionStateToString(newState);
   }
 
-  auto oldThriftState = (oldState == fsdb::FsdbStreamClient::State::CONNECTED)
+  auto oldThriftState = fsdb::FsdbExtStateSubscriber::isConnected(oldState)
       ? fsdb::FsdbSubscriptionState::CONNECTED
       : fsdb::FsdbSubscriptionState::DISCONNECTED;
-  auto newThriftState = (newState == fsdb::FsdbStreamClient::State::CONNECTED)
+  auto newThriftState = fsdb::FsdbExtStateSubscriber::isConnected(newState)
       ? fsdb::FsdbSubscriptionState::CONNECTED
       : fsdb::FsdbSubscriptionState::DISCONNECTED;
 
