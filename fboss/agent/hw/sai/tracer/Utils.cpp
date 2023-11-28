@@ -549,6 +549,44 @@ void u32RangeAttr(
       to<string>(prefix, "max=", attr_list[i].value.u32range.max));
 }
 
+void mapListAttr(
+    const sai_attribute_t* attr_list,
+    int i,
+    uint32_t listIndex,
+    std::vector<std::string>& attrLines,
+    bool logEntry) {
+  // Make sure we have enough lists for use
+  uint32_t listLimit = SaiTracer::getInstance()->checkListCount(
+      listIndex + 1, sizeof(sai_map_t), attr_list[i].value.maplist.count);
+
+  string prefix = to<string>("s_a", "[", i, "].value.maplist.");
+  attrLines.push_back(
+      to<string>(prefix, "count=", attr_list[i].value.maplist.count));
+  attrLines.push_back(
+      to<string>(prefix, "list=(sai_map_t*)(list_", listIndex, ")"));
+  if (logEntry && attr_list[i].value.maplist.list) {
+    for (int j = 0; j < std::min(attr_list[i].value.maplist.count, listLimit);
+         ++j) {
+      // Key
+      attrLines.push_back(to<string>(
+          prefix,
+          "list[",
+          j,
+          "].key=",
+          attr_list[i].value.maplist.list[j].key));
+      // Value
+      attrLines.push_back(to<string>(
+          prefix,
+          "list[",
+          j,
+          "].value=",
+          attr_list[i].value.maplist.list[j].value));
+    }
+  } else {
+    attrLines.push_back(to<string>(prefix, "list=NULL"));
+  }
+}
+
 void qosMapListAttr(
     const sai_attribute_t* attr_list,
     int i,

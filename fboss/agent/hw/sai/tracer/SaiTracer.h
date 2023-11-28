@@ -285,6 +285,7 @@ class SaiTracer {
         {TYPE_INDEX(std::vector<sai_uint32_t>), &u32ListAttr},
         {TYPE_INDEX(std::vector<sai_int32_t>), &s32ListAttr},
         {TYPE_INDEX(std::vector<sai_qos_map_t>), &qosMapListAttr},
+        {TYPE_INDEX(std::vector<sai_map_t>), &mapListAttr},
         {TYPE_INDEX(AclEntryActionSaiObjectIdList),
          &aclEntryActionSaiObjectIdListAttr},
         {TYPE_INDEX(std::vector<sai_system_port_config_t>),

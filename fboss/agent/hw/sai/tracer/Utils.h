@@ -159,6 +159,13 @@ void qosMapListAttr(
     std::vector<std::string>& attrLines,
     bool logEntry = true);
 
+void mapListAttr(
+    const sai_attribute_t* attr_list,
+    int i,
+    uint32_t listIndex,
+    std::vector<std::string>& attrLines,
+    bool logEntry = true);
+
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 3) || defined(TAJO_SDK_VERSION_1_42_8)
 void latchStatusAttr(
     const sai_attribute_t* attr_list,
