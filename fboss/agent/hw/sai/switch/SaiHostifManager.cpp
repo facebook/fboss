@@ -624,9 +624,14 @@ void SaiHostifManager::setCpuQosPolicy(
 
   // TODO(daiweix): has to clear and set tcToQueueMap. Simply set
   // new tcToQueueMap will cause object in use error when cleaning
-  // old tcToQueueMap. Investigate why.
-  setCpuPortQosPolicy(
-      QosMapSaiId(SAI_NULL_OBJECT_ID), QosMapSaiId(SAI_NULL_OBJECT_ID));
+  // old tcToQueueMap on XGS, investigating in CS00012322624.
+  // In contrast, Jericho3 will complain setting SAI_NULL_OBJECT_ID
+  // for tcToQueue map, also need to investigate.
+  if (platform_->getAsic()->getAsicType() !=
+      cfg::AsicType::ASIC_TYPE_JERICHO3) {
+    setCpuPortQosPolicy(
+        QosMapSaiId(SAI_NULL_OBJECT_ID), QosMapSaiId(SAI_NULL_OBJECT_ID));
+  }
   setCpuPortQosPolicy(
       qosMapHandle->dscpToTcMap->adapterKey(),
       qosMapHandle->tcToQueueMap->adapterKey());
