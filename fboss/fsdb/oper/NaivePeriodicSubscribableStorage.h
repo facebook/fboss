@@ -23,6 +23,7 @@
 #include "fboss/fsdb/oper/SubscriptionMetadataServer.h"
 #include "fboss/fsdb/server/FsdbOperTreeMetadataTracker.h"
 #include "fboss/fsdb/server/OperPathToPublisherRoot.h"
+#include "fboss/lib/ThreadHeartbeat.h"
 
 /*
   Patch apis require the need for a couple new visitor types which end up
@@ -40,6 +41,7 @@ inline constexpr std::string_view kServeSubNum{"storage.serve_sub_num"};
 inline constexpr std::string_view kRss{"rss"};
 
 DECLARE_bool(serveHeartbeats);
+DECLARE_int32(storage_thread_heartbeat_ms);
 
 template <typename Storage, typename SubscribeManager>
 class NaivePeriodicSubscribableStorage
@@ -119,6 +121,14 @@ class NaivePeriodicSubscribableStorage
       evb_.loopForever();
     });
 
+    XLOG(DBG1) << "Starting subscribable storage thread heartbeat";
+    auto heartbeatStatsFunc = [](int /* delay */, int /* backLog */) {};
+    thread_heartbeat_ = std::make_shared<ThreadHeartbeat>(
+        &evb_,
+        "ServeSubscriptions",
+        FLAGS_storage_thread_heartbeat_ms,
+        heartbeatStatsFunc);
+
     // serve first heartbeat 1 interval away
     lastHeartbeatTime = std::chrono::steady_clock::now();
 
@@ -179,6 +189,12 @@ class NaivePeriodicSubscribableStorage
       // That causes subscriptionServingThread_->join to later deadlock
       *runningLocked = false;
     }
+
+    if (thread_heartbeat_) {
+      XLOG(DBG1) << "Stopping subscribable storage thread heartbeat";
+      thread_heartbeat_.reset();
+    }
+
     if (wasRunning) {
       XLOG(DBG1) << "Cancelling background scope";
       folly::coro::blockingWait(backgroundScope_.cancelAndJoinAsync());
@@ -545,6 +561,10 @@ class NaivePeriodicSubscribableStorage
     subscriptions_.wlock()->useIdPaths(convertToIDPaths);
   }
 
+  std::shared_ptr<ThreadHeartbeat> getThreadHeartbeat() {
+    return thread_heartbeat_;
+  }
+
  private:
   // delete copy constructors
   NaivePeriodicSubscribableStorage(NaivePeriodicSubscribableStorage const&) =
@@ -656,6 +676,7 @@ class NaivePeriodicSubscribableStorage
   folly::coro::CancellableAsyncScope backgroundScope_;
   std::unique_ptr<std::thread> subscriptionServingThread_;
   folly::EventBase evb_;
+  std::shared_ptr<ThreadHeartbeat> thread_heartbeat_;
   const std::chrono::milliseconds subscriptionServeInterval_;
   const std::chrono::milliseconds subscriptionHeartbeatInterval_;
   folly::Synchronized<std::unique_ptr<FsdbOperTreeMetadataTracker>>

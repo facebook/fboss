@@ -9,4 +9,8 @@ DEFINE_bool(
     false,
     "Whether or not to serve hearbeats in subscription streams");
 
+DEFINE_int32(
+    storage_thread_heartbeat_ms,
+    10000,
+    "subscribable storage thread's heartbeat interval (ms)");
 } // namespace facebook::fboss::fsdb

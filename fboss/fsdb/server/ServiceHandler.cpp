@@ -156,6 +156,19 @@ ServiceHandler::ServiceHandler(
   operStorage_.start();
   operStatsStorage_.start();
 
+  // Create a watchdog that will monitor operStorage_ and operStatsStorage_
+  // increment the missed counter when there is no heartbeat on at least one
+  // thread in the last FLAGS_storage_thread_heartbeat_ms * 10 time
+  XLOG(DBG1) << "Starting fsdb ServiceHandler thread heartbeat watchdog";
+  heartbeatWatchdog_ = std::make_unique<ThreadHeartbeatWatchdog>(
+      std::chrono::milliseconds(FLAGS_storage_thread_heartbeat_ms * 10),
+      [this]() { watchdogThreadHeartbeatMissedCount_ += 1; });
+  heartbeatWatchdog_->startMonitoringHeartbeat(
+      operStorage_.getThreadHeartbeat());
+  heartbeatWatchdog_->startMonitoringHeartbeat(
+      operStatsStorage_.getThreadHeartbeat());
+  heartbeatWatchdog_->start();
+
   if (FLAGS_enableOperDB) {
     rocksDbs_ = options_.useFakeRocksDb_CAUTION_DO_NOT_USE_IN_PRODUCTION
         ? createIfNeededAndOpenRocksDbs<RocksDbFake>(
@@ -192,6 +205,11 @@ ServiceHandler::createIfNeededAndOpenRocksDbs(
 }
 
 ServiceHandler::~ServiceHandler() {
+  if (heartbeatWatchdog_) {
+    XLOG(DBG1) << "Stopping fsdb ServiceHandler thread heartbeat watchdog";
+    heartbeatWatchdog_->stop();
+    heartbeatWatchdog_.reset();
+  }
   XLOG(INFO) << "Destroying ServiceHandler";
   num_instances_.incrementValue(-1);
 }
