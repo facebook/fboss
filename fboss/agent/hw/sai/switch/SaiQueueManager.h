@@ -17,6 +17,7 @@
 #include "fboss/agent/hw/sai/switch/SaiBufferManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSchedulerManager.h"
 #include "fboss/agent/hw/sai/switch/SaiWredManager.h"
+#include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortQueue.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/types.h"
@@ -65,6 +66,12 @@ class SaiQueueManager {
   void changeQueueScheduler(
       SaiQueueHandle* queueHandle,
       const PortQueue& newPortQueue);
+  void changeQueueDeadlockEnable(
+      SaiQueueHandle* queueHandle,
+      const std::shared_ptr<Port>& swPort);
+  void queuePfcDeadlockDetectionRecoveryEnable(
+      SaiQueueHandle* queueHandle,
+      const bool portPfcWdEnabled);
   void ensurePortQueueConfig(
       PortSaiId portSaiId,
       const SaiQueueHandles& queueHandles,

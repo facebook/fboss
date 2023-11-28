@@ -243,6 +243,41 @@ void SaiQueueManager::changeQueueScheduler(
   }
 }
 
+void SaiQueueManager::queuePfcDeadlockDetectionRecoveryEnable(
+    SaiQueueHandle* queueHandle,
+    const bool portPfcWdEnabled) {
+  // FIXME: Move to GET_ATTR() once EnablePfcDldr is part of createAttr
+  bool enabled = SaiApiTable::getInstance()->queueApi().getAttribute(
+      queueHandle->queue->adapterKey(),
+      SaiQueueTraits::Attributes::EnablePfcDldr{});
+  if (enabled != portPfcWdEnabled) {
+    SaiApiTable::getInstance()->queueApi().setAttribute(
+        queueHandle->queue->adapterKey(),
+        SaiQueueTraits::Attributes::EnablePfcDldr{portPfcWdEnabled});
+  }
+}
+
+void SaiQueueManager::changeQueueDeadlockEnable(
+    SaiQueueHandle* queueHandle,
+    const std::shared_ptr<Port>& swPort) {
+  if (swPort && swPort->getPfc().has_value()) {
+    // Enabled PFC priorities cannot be changed without a cold boot
+    // and hence in this flow, just take care of a case where PFC
+    // WD is being enabled or disabled for queues.
+    auto pfcPris = swPort->getPfcPriorities();
+    auto queueId = GET_ATTR(Queue, Index, queueHandle->queue->attributes());
+    if (pfcPris.size() &&
+        (std::find(pfcPris.begin(), pfcPris.end(), queueId) != pfcPris.end())) {
+      // Assume 1:1 mapping between queue ID and PFC priorities
+      bool portPfcWdEnabled = swPort->getPfc()->watchdog().has_value();
+      queuePfcDeadlockDetectionRecoveryEnable(queueHandle, portPfcWdEnabled);
+      auto pfcWdEnabledStatus = portPfcWdEnabled ? "enabled" : "disabled";
+      XLOG(DBG3) << "PFC WD " << pfcWdEnabledStatus << " on queue" << queueId
+                 << " of " << swPort->getName();
+    }
+  }
+}
+
 void SaiQueueManager::changeQueue(
     SaiQueueHandle* queueHandle,
     const PortQueue& newPortQueue) {

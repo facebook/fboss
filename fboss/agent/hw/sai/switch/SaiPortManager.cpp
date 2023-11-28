@@ -622,9 +622,8 @@ void SaiPortManager::programPfcWatchdogPerQueueEnable(
     // Assume 1:1 mapping b/w pfcPriority and queueId
     auto queueHandle =
         getQueueHandle(swPort->getID(), static_cast<uint8_t>(pfcPri));
-    SaiApiTable::getInstance()->queueApi().setAttribute(
-        queueHandle->queue->adapterKey(),
-        SaiQueueTraits::Attributes::EnablePfcDldr{portPfcWdEnabled});
+    managerTable_->queueManager().queuePfcDeadlockDetectionRecoveryEnable(
+        queueHandle, portPfcWdEnabled);
   }
 }
 
