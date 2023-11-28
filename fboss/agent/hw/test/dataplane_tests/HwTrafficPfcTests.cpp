@@ -16,6 +16,8 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 
+#include "fboss/lib/CommonUtils.h"
+
 using folly::IPAddress;
 using folly::IPAddressV6;
 using std::string;
@@ -39,6 +41,18 @@ static constexpr auto kLosslessPriority{2};
 static constexpr auto kNumberOfPortsToEnablePfcOn{2};
 static const std::vector<int> kLosslessPgIds{2, 3};
 static const std::vector<int> kLossyPgIds{0};
+// Hardcoding register value to force PFC generation for port 2,
+// kLosslessPriority for DNX. This needs to be modified if the
+// port used in test or PFC priority changes! Details of how to
+// compute the value to use for a port/priority is captured in
+// CS00012321021. To summarize,
+//    value = 1 << ((port_first_phy - core_first_phy)*8 + priority,
+// with port_first_phy from "port management dump full port=<>",
+// core_first_phy from "dnx data dump nif.phys.nof_phys_per_core".
+static const std::map<std::tuple<int, int>, std::string>
+    kRegValToForcePfcTxForPriorityOnPortDnx = {
+        {std::make_tuple(2, 2), "0x40000000000000000"},
+};
 
 struct PfcBufferParams {
   int globalShared = kGlobalSharedBytes;
@@ -543,22 +557,21 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
   }
 
   void validatePfcWatchdogCounters(const PortID& port) {
-    int deadlockCtr = 0, recoveryCtr = 0;
-    int retries = 10;
-    bool countersHit = false;
-    while (retries--) {
-      std::this_thread::sleep_for(std::chrono::seconds(1));
-      deadlockCtr =
+    int deadlockCtrBefore =
+        getHwSwitchEnsemble()->readPfcDeadlockDetectionCounter(port);
+    int recoveryCtrBefore =
+        getHwSwitchEnsemble()->readPfcDeadlockRecoveryCounter(port);
+    WITH_RETRIES_N_TIMED(10, std::chrono::milliseconds(1000), {
+      int deadlockCtr =
           getHwSwitchEnsemble()->readPfcDeadlockDetectionCounter(port);
-      recoveryCtr = getHwSwitchEnsemble()->readPfcDeadlockRecoveryCounter(port);
-      if (deadlockCtr > 0 && recoveryCtr > 0) {
-        countersHit = true;
-        break;
-      }
-    }
-    XLOG(DBG0) << "For port: " << port << " deadlockCtr = " << deadlockCtr
-               << " recoveryCtr = " << recoveryCtr;
-    EXPECT_TRUE(countersHit);
+      int recoveryCtr =
+          getHwSwitchEnsemble()->readPfcDeadlockRecoveryCounter(port);
+      XLOG(DBG0) << "For port: " << port << " deadlockCtr = " << deadlockCtr
+                 << " recoveryCtr = " << recoveryCtr;
+      EXPECT_EVENTUALLY_TRUE(
+          (deadlockCtr > deadlockCtrBefore) &&
+          (recoveryCtr > recoveryCtrBefore));
+    });
   }
 
   void validateRxPfcCounterIncrement(
@@ -578,6 +591,26 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
       }
     }
     EXPECT_TRUE(0);
+  }
+
+  void triggerPfcDeadlockDetection(const PortID& port) {
+    if ((getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2) ||
+        (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3)) {
+      // As traffic cannot trigger deadlock for DNX, force back
+      // to back PFC frame generation which causes a deadlock!
+      auto iter = kRegValToForcePfcTxForPriorityOnPortDnx.find(
+          std::make_tuple(static_cast<int>(port), kLosslessPriority));
+      EXPECT_FALSE(iter == kRegValToForcePfcTxForPriorityOnPortDnx.end());
+      std::string out;
+      getHwSwitchEnsemble()->runDiagCommand(
+          "modreg CFC_FRC_NIF_ETH_PFC FRC_NIF_ETH_PFC=" + iter->second +
+              "\nquit\nmodreg CFC_FRC_NIF_ETH_PFC FRC_NIF_ETH_PFC=0\nquit\n",
+          out);
+    } else {
+      // Send traffic to trigger deadlock
+      pumpTraffic(kLosslessTrafficClass);
+      validateRxPfcCounterIncrement(port, kLosslessPriority);
+    }
   }
 
   std::map<int, int> tc2PgOverride = {};
@@ -705,10 +738,7 @@ TEST_F(HwTrafficPfcTest, PfcWatchdog) {
     setupWatchdog(true /* enable watchdog */);
   };
   auto verify = [&]() {
-    validatePfcWatchdogCountersReset(masterLogicalInterfacePortIds()[0]);
-    pumpTraffic(kLosslessTrafficClass);
-    validateRxPfcCounterIncrement(
-        masterLogicalInterfacePortIds()[0], kLosslessPriority);
+    triggerPfcDeadlockDetection(masterLogicalInterfacePortIds()[0]);
     validatePfcWatchdogCounters(masterLogicalInterfacePortIds()[0]);
   };
   // warmboot support to be added in next step
