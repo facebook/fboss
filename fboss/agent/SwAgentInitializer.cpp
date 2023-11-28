@@ -193,7 +193,7 @@ void SwAgentInitializer::stopAgent(bool setupWarmboot) {
     auto revertToMinAlpmState =
         sw_->getHwAsicTable()->isFeatureSupportedOnAnyAsic(
             HwAsic::Feature::ROUTE_PROGRAMMING);
-    sw_->stop(revertToMinAlpmState);
+    sw_->stop(false /* gracefulStop */, revertToMinAlpmState);
     initializer_.reset();
   }
 }

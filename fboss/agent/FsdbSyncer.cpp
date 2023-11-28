@@ -82,10 +82,10 @@ FsdbSyncer::~FsdbSyncer() {
   CHECK(!readyForStatPublishing_.load());
 }
 
-void FsdbSyncer::stop() {
+void FsdbSyncer::stop(bool gracefulStop) {
   // Disable state updates in updateEvb, so this synchronizes
   // with any inflight updates happening in updateEvb
-  agentFsdbSyncManager_->stop();
+  agentFsdbSyncManager_->stop(gracefulStop);
   agentFsdbSyncManager_.reset();
   readyForStatPublishing_.store(false);
   fsdbPubSubMgr_.reset();

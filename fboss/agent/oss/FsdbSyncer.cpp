@@ -39,7 +39,7 @@ FsdbSyncer::FsdbSyncer(SwSwitch* /*sw*/) {}
 
 FsdbSyncer::~FsdbSyncer() {}
 
-void FsdbSyncer::stop() {}
+void FsdbSyncer::stop(bool gracefulStop) {}
 
 void FsdbSyncer::stateUpdated(const StateDelta& /*stateDelta*/) {}
 

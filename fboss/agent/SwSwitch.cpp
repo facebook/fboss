@@ -168,6 +168,11 @@ DEFINE_int32(
     5931,
     "The first thrift server port reserved for HwAgent");
 
+DEFINE_bool(
+    dsf_publisher_GR,
+    false,
+    "Flag to turn on GR behavior for DSF publisher");
+
 namespace {
 
 /**
@@ -384,7 +389,7 @@ SwSwitch::~SwSwitch() {
   if (getSwitchRunState() < SwitchRunState::EXITING) {
     // If we didn't already stop (say via gracefulExit call), begin
     // exit
-    stop();
+    stop(false /* gracefulStop */);
     restart_time::stop();
   }
 }
@@ -399,11 +404,11 @@ bool SwSwitch::fsdbStatePublishReady() const {
       [](const auto& syncer) { return syncer->isReadyForStatePublishing(); });
 }
 
-void SwSwitch::stop(bool revertToMinAlpmState) {
+void SwSwitch::stop(bool isGracefulStop, bool revertToMinAlpmState) {
   // Clean up connections to FSDB before stopping
   // packet flow.
-  runFsdbSyncFunction([](auto& syncer) {
-    syncer->stop();
+  runFsdbSyncFunction([isGracefulStop](auto& syncer) {
+    syncer->stop(isGracefulStop);
     syncer.reset();
   });
   setSwitchRunState(SwitchRunState::EXITING);
@@ -577,7 +582,8 @@ void SwSwitch::gracefulExit() {
         << "[Exit] Neighbor flood time "
         << duration_cast<duration<float>>(neighborFloodDone - begin).count();
     // Stop handlers and threads before uninitializing h/w
-    stop();
+    bool canWarmBoot{FLAGS_dsf_publisher_GR};
+    stop(canWarmBoot);
     steady_clock::time_point stopThreadsAndHandlersDone = steady_clock::now();
     XLOG(DBG2) << "[Exit] Stop thread and handlers time "
                << duration_cast<duration<float>>(

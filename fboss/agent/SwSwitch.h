@@ -838,7 +838,7 @@ class SwSwitch : public HwSwitchCallback {
   /*
    * Public use only in tests
    */
-  void stop(bool revertToMinAlpmState = false);
+  void stop(bool isGracefulStop = true, bool revertToMinAlpmState = false);
 
   void publishPhyInfoSnapshots(PortID portID) const;
 

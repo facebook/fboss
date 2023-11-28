@@ -95,11 +95,12 @@ class FsdbSyncManager {
     }
   }
 
-  void stop() {
-    storage_.getEventBase()->runInEventBaseThreadAndWait([this]() {
-      readyForPublishing_.store(false);
-      stopInternal();
-    });
+  void stop(bool gracefulStop = false) {
+    storage_.getEventBase()->runInEventBaseThreadAndWait(
+        [this, gracefulStop]() {
+          readyForPublishing_.store(false);
+          stopInternal(gracefulStop);
+        });
   }
 
   //  update internal storage of SyncManager which will then automatically be
@@ -183,18 +184,18 @@ class FsdbSyncManager {
     }
   }
 
-  void stopInternal() {
+  void stopInternal(bool gracefulStop = false) {
     if (isStats_ && FLAGS_publish_stats_to_fsdb) {
       if (publishDeltas_) {
-        pubSubMgr_->removeStatDeltaPublisher();
+        pubSubMgr_->removeStatDeltaPublisher(gracefulStop);
       } else {
-        pubSubMgr_->removeStatPathPublisher();
+        pubSubMgr_->removeStatPathPublisher(gracefulStop);
       }
     } else if (!isStats_ && FLAGS_publish_state_to_fsdb) {
       if (publishDeltas_) {
-        pubSubMgr_->removeStateDeltaPublisher();
+        pubSubMgr_->removeStateDeltaPublisher(gracefulStop);
       } else {
-        pubSubMgr_->removeStatePathPublisher();
+        pubSubMgr_->removeStatePathPublisher(gracefulStop);
       }
     }
     pubSubMgr_.reset();
