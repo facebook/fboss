@@ -203,7 +203,7 @@ int Jericho3Asic::getDefaultNumPortQueues(
         case cfg::PortType::RECYCLE_PORT:
           // TODO - update to 8 once TC object support
           // for channelized support is added.
-          return 0;
+          return 2;
         case cfg::PortType::INTERFACE_PORT:
           return 8;
         case cfg::PortType::FABRIC_PORT:
