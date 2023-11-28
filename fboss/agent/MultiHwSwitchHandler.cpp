@@ -124,7 +124,7 @@ std::shared_ptr<SwitchState> MultiHwSwitchHandler::rollbackStateChange(
 
 std::map<SwitchID, HwSwitchStateUpdateResult>
 MultiHwSwitchHandler::stateChanged(
-    std::map<SwitchID, const StateDelta&>& deltas,
+    const std::map<SwitchID, const StateDelta&>& deltas,
     bool transaction) {
   std::vector<SwitchID> switchIds;
   std::vector<folly::Future<HwSwitchStateUpdateResult>> futures;
@@ -148,8 +148,8 @@ folly::Future<HwSwitchStateUpdateResult> MultiHwSwitchHandler::stateChanged(
 
 std::map<SwitchID, HwSwitchStateUpdateResult>
 MultiHwSwitchHandler::getStateUpdateResult(
-    std::vector<SwitchID>& switchIds,
-    std::vector<folly::Future<HwSwitchStateUpdateResult>>& futures) {
+    const std::vector<SwitchID>& switchIds,
+    std::vector<folly::Future<HwSwitchStateUpdateResult>>& futures) const {
   std::map<SwitchID, HwSwitchStateUpdateResult> hwUpdateResults;
 
   auto results = folly::collectAll(futures).wait();
