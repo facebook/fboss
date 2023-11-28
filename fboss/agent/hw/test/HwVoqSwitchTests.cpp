@@ -1244,6 +1244,7 @@ class HwVoqSwitchFullScaleDsfNodesTest
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = HwVoqSwitchTest::initialConfig();
     cfg.dsfNodes() = *overrideDsfNodes(*cfg.dsfNodes());
+    cfg.loadBalancers()->push_back(utility::getEcmpFullHashConfig(*getAsic()));
     return cfg;
   }
 
