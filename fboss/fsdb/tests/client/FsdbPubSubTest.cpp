@@ -281,6 +281,12 @@ TYPED_TEST(FsdbPubSubTest, connectAndCancel) {
   }
   this->setupConnections();
   this->cancelConnections();
+
+  // In tests, we don't start the publisher threads
+  fb303::ThreadCachedServiceData::get()->publishStats();
+  EXPECT_EQ(
+      fb303::ServiceData::get()->getCounter("watchdog_thread_heartbeat_missed"),
+      0);
 }
 
 TYPED_TEST(FsdbPubSubTest, rePublishSubscribe) {

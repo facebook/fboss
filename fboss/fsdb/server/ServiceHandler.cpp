@@ -69,6 +69,9 @@ DEFINE_bool(
     false,
     "whether to enforce PublisherConfig for publish stream requests");
 
+static constexpr auto kWatchdogThreadHeartbeatMissed =
+    "watchdog_thread_heartbeat_missed";
+
 namespace {
 
 using facebook::fboss::fsdb::OperPubRequest;
@@ -155,6 +158,7 @@ ServiceHandler::ServiceHandler(
 
   operStorage_.start();
   operStatsStorage_.start();
+  tcData().setCounter(kWatchdogThreadHeartbeatMissed, 0);
 
   // Create a watchdog that will monitor operStorage_ and operStatsStorage_
   // increment the missed counter when there is no heartbeat on at least one
@@ -162,7 +166,12 @@ ServiceHandler::ServiceHandler(
   XLOG(DBG1) << "Starting fsdb ServiceHandler thread heartbeat watchdog";
   heartbeatWatchdog_ = std::make_unique<ThreadHeartbeatWatchdog>(
       std::chrono::milliseconds(FLAGS_storage_thread_heartbeat_ms * 10),
-      [this]() { watchdogThreadHeartbeatMissedCount_ += 1; });
+      [this]() {
+        watchdogThreadHeartbeatMissedCount_ += 1;
+        tcData().setCounter(
+            kWatchdogThreadHeartbeatMissed,
+            watchdogThreadHeartbeatMissedCount_);
+      });
   heartbeatWatchdog_->startMonitoringHeartbeat(
       operStorage_.getThreadHeartbeat());
   heartbeatWatchdog_->startMonitoringHeartbeat(
