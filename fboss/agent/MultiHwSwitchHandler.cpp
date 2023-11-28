@@ -223,12 +223,12 @@ folly::dynamic MultiHwSwitchHandler::toFollyDynamic() {
   return hwSwitchSyncers_.begin()->second->toFollyDynamic();
 }
 
-bool MultiHwSwitchHandler::transactionsSupported() {
+bool MultiHwSwitchHandler::transactionsSupported() const {
   return transactionsSupported_;
 }
 
 bool MultiHwSwitchHandler::transactionsSupported(
-    std::optional<cfg::SdkVersion> sdkVersion) {
+    std::optional<cfg::SdkVersion> sdkVersion) const {
   for (auto& entry : hwSwitchSyncers_) {
     if (!entry.second->transactionsSupported(sdkVersion)) {
       return false;

@@ -84,9 +84,7 @@ class MultiHwSwitchHandler {
 
   std::optional<uint32_t> getHwLogicalPortId(PortID portID);
 
-  bool transactionsSupported();
-
-  bool transactionsSupported(std::optional<cfg::SdkVersion> sdkVersion);
+  bool transactionsSupported() const;
 
   HwSwitchFb303Stats* getSwitchStats();
 
@@ -148,6 +146,8 @@ class MultiHwSwitchHandler {
   std::map<int32_t, SwitchRunState> getHwSwitchRunStates();
 
  private:
+  bool transactionsSupported(std::optional<cfg::SdkVersion> sdkVersion) const;
+
   HwSwitchHandler* getHwSwitchHandler(SwitchID id);
 
   folly::Future<HwSwitchStateUpdateResult> stateChanged(
