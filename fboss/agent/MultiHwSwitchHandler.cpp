@@ -76,6 +76,11 @@ std::shared_ptr<SwitchState> MultiHwSwitchHandler::stateChanged(
     if (transactionsSupported()) {
       return rollbackStateChange(results, delta.oldState(), transaction);
     } else {
+      /*
+       * For deployments where we don't support transactions - e.g. legacy
+       * BCMSwitch implementations. We never expect more than one
+       * HwSwitch/HwSwitchSyncer
+       */
       CHECK_EQ(hwSwitchSyncers_.size(), 1);
       return results[SwitchID(0)].first;
     }
@@ -88,10 +93,10 @@ std::shared_ptr<SwitchState> MultiHwSwitchHandler::stateChanged(
 }
 
 std::shared_ptr<SwitchState> MultiHwSwitchHandler::rollbackStateChange(
-    std::map<SwitchID, HwSwitchStateUpdateResult>& updateResults,
+    const std::map<SwitchID, HwSwitchStateUpdateResult>& updateResults,
     std::shared_ptr<SwitchState> desiredState,
     bool transaction) {
-  std::map<SwitchID, const StateDelta&> switchIdAnddeltas;
+  std::map<SwitchID, const StateDelta&> switchIdAndDeltas;
   std::shared_ptr<SwitchState> newState{nullptr};
   std::set<std::unique_ptr<StateDelta>> deltas;
   int index{0};
@@ -101,12 +106,12 @@ std::shared_ptr<SwitchState> MultiHwSwitchHandler::rollbackStateChange(
     auto currentState = entry.second.first;
     if (status != HwSwitchStateUpdateStatus::HWSWITCH_STATE_UPDATE_CANCELLED) {
       auto delta = std::make_unique<StateDelta>(currentState, desiredState);
-      switchIdAnddeltas.emplace(switchId, *delta);
+      switchIdAndDeltas.emplace(switchId, *delta);
       deltas.insert(std::move(delta));
     }
     index++;
   }
-  auto results = stateChanged(switchIdAnddeltas, transaction);
+  auto results = stateChanged(switchIdAndDeltas, transaction);
   for (const auto& result : results) {
     if (result.second.second ==
         HwSwitchStateUpdateStatus::HWSWITCH_STATE_UPDATE_FAILED) {

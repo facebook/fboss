@@ -163,7 +163,7 @@ class MultiHwSwitchHandler {
       std::vector<folly::Future<HwSwitchStateUpdateResult>>& futures);
 
   std::shared_ptr<SwitchState> rollbackStateChange(
-      std::map<SwitchID, HwSwitchStateUpdateResult>& updateResults,
+      const std::map<SwitchID, HwSwitchStateUpdateResult>& updateResults,
       std::shared_ptr<SwitchState> desiredState,
       bool transaction);
 
