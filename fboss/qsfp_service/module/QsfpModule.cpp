@@ -273,21 +273,49 @@ bool QsfpModule::upgradeFirmwareLocked(const std::optional<cfg::Firmware>& fw) {
   }
 
   bool fwUpgradeResult = true;
-  lastFwUpgradeStartTime_ = std::time(nullptr);
-  for (const auto& fwVersion : *fwToUpgrade.versions()) {
-    QSFP_LOG(INFO, this) << folly::sformat(
-        "Upgrading module firmware. Type={:s}, Version={:s}",
-        apache::thrift::util::enumNameSafe(*fwVersion.fwType()),
-        *fwVersion.version());
 
-    std::unique_ptr<FbossFirmware> fbossFw =
-        getTransceiverManager()->fwStorage()->getFirmware(
-            fwStorageHandleName, *fwVersion.version());
-    fwUpgradeResult &= upgradeFirmwareLockedImpl(std::move(fbossFw));
+  if (getPortNameToHostLanes().empty()) {
+    QSFP_LOG(ERR, this) << "Couldn't find a port managed by this module";
+    return false;
   }
 
-  // Trigger a hard reset of the transceiver to kick start the new firmware
-  triggerModuleResetLocked();
+  lastFwUpgradeStartTime_ = std::time(nullptr);
+  { // Start of firmware upgrade
+    // Disable TX before upgrading the firmware. This helps keeps the link down
+    // during upgrade and avoid noise
+    auto anyPortName = getPortNameToHostLanes().begin()->first;
+    try {
+      auto txDisableStatus = setTransceiverTxLocked(
+          anyPortName /* portName */,
+          phy::Side::LINE /* side */,
+          std::nullopt /* channelMask */,
+          false /* enable */);
+      if (!txDisableStatus) {
+        QSFP_LOG(ERR, this)
+            << "Failed to disable tx on port. Still continuing with firmware upgrade";
+      } else {
+        QSFP_LOG(INFO, this) << "TX Disabled successfully";
+      }
+    } catch (const FbossError& e) {
+      QSFP_LOG(ERR, this) << "Failed to disable tx on port : " << e.what()
+                          << " : Still continuing with firmware upgrade";
+    }
+
+    for (const auto& fwVersion : *fwToUpgrade.versions()) {
+      QSFP_LOG(INFO, this) << folly::sformat(
+          "Upgrading module firmware. Type={:s}, Version={:s}",
+          apache::thrift::util::enumNameSafe(*fwVersion.fwType()),
+          *fwVersion.version());
+
+      std::unique_ptr<FbossFirmware> fbossFw =
+          getTransceiverManager()->fwStorage()->getFirmware(
+              fwStorageHandleName, *fwVersion.version());
+      fwUpgradeResult &= upgradeFirmwareLockedImpl(std::move(fbossFw));
+    }
+
+    // Trigger a hard reset of the transceiver to kick start the new firmware
+    triggerModuleResetLocked();
+  } // End of firmware upgrade
 
   lastFwUpgradeEndTime_ = std::time(nullptr);
   auto elapsedSeconds = lastFwUpgradeEndTime_ - lastFwUpgradeStartTime_;
