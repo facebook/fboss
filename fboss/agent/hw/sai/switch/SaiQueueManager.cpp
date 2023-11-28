@@ -259,7 +259,7 @@ void SaiQueueManager::queuePfcDeadlockDetectionRecoveryEnable(
 
 void SaiQueueManager::changeQueueDeadlockEnable(
     SaiQueueHandle* queueHandle,
-    const std::shared_ptr<Port>& swPort) {
+    const Port* swPort) {
   if (swPort && swPort->getPfc().has_value()) {
     // Enabled PFC priorities cannot be changed without a cold boot
     // and hence in this flow, just take care of a case where PFC
@@ -280,7 +280,8 @@ void SaiQueueManager::changeQueueDeadlockEnable(
 
 void SaiQueueManager::changeQueue(
     SaiQueueHandle* queueHandle,
-    const PortQueue& newPortQueue) {
+    const PortQueue& newPortQueue,
+    const Port* swPort) {
   CHECK(queueHandle);
   auto queueType = GET_ATTR(Queue, Type, queueHandle->queue->attributes());
   if ((queueType != SAI_QUEUE_TYPE_UNICAST_VOQ) &&
@@ -296,12 +297,16 @@ void SaiQueueManager::changeQueue(
       (queueType != SAI_QUEUE_TYPE_FABRIC_TX)) {
     changeQueueBufferProfile(queueHandle, newPortQueue);
   }
+  if (queueType == SAI_QUEUE_TYPE_UNICAST) {
+    changeQueueDeadlockEnable(queueHandle, swPort);
+  }
 }
 
 void SaiQueueManager::ensurePortQueueConfig(
     PortSaiId portSaiId,
     const SaiQueueHandles& queueHandles,
-    const QueueConfig& queues) {
+    const QueueConfig& queues,
+    const Port* swPort) {
   for (const auto& portQueue : queues) {
     SaiQueueTraits::CreateAttributes attributes =
         detail::makeQueueAttributes(portSaiId, *portQueue);
@@ -321,7 +326,7 @@ void SaiQueueManager::ensurePortQueueConfig(
       throw FbossError(
           "failed to find queue handle for queue id: ", (*portQueue).getID());
     }
-    changeQueue(queueHandleEntry->second.get(), *portQueue);
+    changeQueue(queueHandleEntry->second.get(), *portQueue, swPort);
   }
 }
 

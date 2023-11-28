@@ -472,7 +472,7 @@ void SaiPortManager::loadPortQueues(const Port& swPort) {
     updatedPortQueue.push_back(clonedPortQueue);
   }
   managerTable_->queueManager().ensurePortQueueConfig(
-      saiPort->adapterKey(), portHandle->queues, updatedPortQueue);
+      saiPort->adapterKey(), portHandle->queues, updatedPortQueue, &swPort);
 }
 
 void SaiPortManager::addNode(const std::shared_ptr<Port>& swPort) {
@@ -608,6 +608,7 @@ void SaiPortManager::programPfcWatchdogTimers(
       preparePfcDeadlockQueueTimers(enabledPfcPriorities, recoveryTimeMsecs);
   portHandle->port->setOptionalAttribute(
       SaiPortTraits::Attributes::PfcTcDlrInterval{pfcDlrTimerMap});
+  XLOG(DBG3) << "PFC WD timer programmed for " << swPort->getName();
 #endif
 }
 
@@ -625,20 +626,9 @@ void SaiPortManager::programPfcWatchdogPerQueueEnable(
     managerTable_->queueManager().queuePfcDeadlockDetectionRecoveryEnable(
         queueHandle, portPfcWdEnabled);
   }
-}
-
-void SaiPortManager::programPfcWatchdog(
-    const std::shared_ptr<Port>& swPort,
-    std::vector<PfcPriority>& enabledPfcPriorities,
-    const bool portPfcWdEnabled) {
-  // Program PFC watchdog timers per port/queue
-  programPfcWatchdogTimers(swPort, enabledPfcPriorities, portPfcWdEnabled);
-
-  // Enable/disable PFC watchdog per queue
-  programPfcWatchdogPerQueueEnable(
-      swPort, enabledPfcPriorities, portPfcWdEnabled);
   auto pfcWdEnabledStatus = portPfcWdEnabled ? "enabled" : "disabled";
-  XLOG(DBG3) << "PFC WD " << pfcWdEnabledStatus << " for " << swPort->getName();
+  XLOG(DBG3) << "PFC WD " << pfcWdEnabledStatus << " on queues for "
+             << swPort->getName();
 }
 
 void SaiPortManager::addPfc(const std::shared_ptr<Port>& swPort) {
@@ -683,7 +673,8 @@ void SaiPortManager::removePfc(const std::shared_ptr<Port>& swPort) {
 void SaiPortManager::addPfcWatchdog(const std::shared_ptr<Port>& swPort) {
   if (swPort->getPfc()->watchdog().has_value()) {
     auto pfcEnabledPriorities = swPort->getPfcPriorities();
-    programPfcWatchdog(swPort, pfcEnabledPriorities, true /* wdEnabled */);
+    programPfcWatchdogTimers(
+        swPort, pfcEnabledPriorities, true /* wdEnabled */);
   }
 }
 
@@ -700,7 +691,8 @@ void SaiPortManager::changePfcWatchdog(
   if ((oldPfcWd.has_value() != newPfcWd.has_value()) ||
       (newPfcWd.has_value() && (newPfcWd.value() != oldPfcWd.value()))) {
     auto pfcEnabledPriorities = newPort->getPfcPriorities();
-    programPfcWatchdog(newPort, pfcEnabledPriorities, newPfcWd.has_value());
+    programPfcWatchdogTimers(
+        newPort, pfcEnabledPriorities, newPfcWd.has_value());
   } else {
     XLOG(DBG4) << "PFC watchdog setting unchanged for " << newPort->getName();
   }
@@ -709,7 +701,10 @@ void SaiPortManager::changePfcWatchdog(
 void SaiPortManager::removePfcWatchdog(const std::shared_ptr<Port>& swPort) {
   if (swPort->getPfc()->watchdog()) {
     auto pfcEnabledPriorities = swPort->getPfcPriorities();
-    programPfcWatchdog(swPort, pfcEnabledPriorities, false /* wdEnabled */);
+    programPfcWatchdogTimers(
+        swPort, pfcEnabledPriorities, false /* wdEnabled */);
+    programPfcWatchdogPerQueueEnable(
+        swPort, pfcEnabledPriorities, false /* wdEnabled */);
   }
 }
 
@@ -973,7 +968,8 @@ void SaiPortManager::changeQueue(
         newPortQueue->getReservedBytes() || newPortQueue->getScalingFactor()) {
       throw FbossError("Reserved bytes, scaling factor setting not supported");
     }
-    managerTable_->queueManager().changeQueue(queueHandle, *portQueue);
+    managerTable_->queueManager().changeQueue(
+        queueHandle, *portQueue, swPort.get());
     auto queueName = newPortQueue->getName()
         ? *newPortQueue->getName()
         : folly::to<std::string>("queue", newPortQueue->getID());

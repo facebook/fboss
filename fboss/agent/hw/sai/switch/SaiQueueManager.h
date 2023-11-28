@@ -56,7 +56,10 @@ class SaiQueueManager {
       SaiManagerTable* managerTable,
       const SaiPlatform* platform);
   SaiQueueHandles loadQueues(const std::vector<QueueSaiId>& queueSaiIds);
-  void changeQueue(SaiQueueHandle* queueHandle, const PortQueue& newPortQueue);
+  void changeQueue(
+      SaiQueueHandle* queueHandle,
+      const PortQueue& newPortQueue,
+      const Port* swPort = nullptr);
   void changeQueueBufferProfile(
       SaiQueueHandle* queueHandle,
       const PortQueue& newPortQueue);
@@ -68,14 +71,15 @@ class SaiQueueManager {
       const PortQueue& newPortQueue);
   void changeQueueDeadlockEnable(
       SaiQueueHandle* queueHandle,
-      const std::shared_ptr<Port>& swPort);
+      const Port* swPort);
   void queuePfcDeadlockDetectionRecoveryEnable(
       SaiQueueHandle* queueHandle,
       const bool portPfcWdEnabled);
   void ensurePortQueueConfig(
       PortSaiId portSaiId,
       const SaiQueueHandles& queueHandles,
-      const QueueConfig& queues);
+      const QueueConfig& queues,
+      const facebook::fboss::Port* swPort = nullptr);
   void updateStats(
       const std::vector<SaiQueueHandle*>& queues,
       HwPortStats& stats,
