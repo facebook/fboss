@@ -2392,6 +2392,9 @@ void SaiSwitch::unregisterCallbacksLocked(
 #endif
   }
   switchApi.unregisterFdbEventCallback(saiSwitchId_);
+  if (pfcDeadlockEnabled_) {
+    switchApi.unregisterQueuePfcDeadlockNotificationCallback(saiSwitchId_);
+  }
 }
 
 bool SaiSwitch::isValidStateUpdateLocked(
@@ -3248,25 +3251,25 @@ void SaiSwitch::initialStateApplied() {
 }
 
 void SaiSwitch::processPfcDeadlockNotificationCallback(
-    std::optional<cfg::PfcWatchdogRecoveryAction> oldRecoveryAction,
+    std::optional<cfg::PfcWatchdogRecoveryAction> /*oldRecoveryAction*/,
     std::optional<cfg::PfcWatchdogRecoveryAction> newRecoveryAction) {
   // Needed if PFC watchdog enabled status changes at device level
-  if (oldRecoveryAction.has_value() == newRecoveryAction.has_value()) {
-    XLOG(DBG4) << "PFC deadlock notification callback unchanged!";
-    return;
-  }
-  auto& switchApi = SaiApiTable::getInstance()->switchApi();
-  if (newRecoveryAction.has_value()) {
-    // Register the PFC deadlock recovery callback function
-    switchApi.registerQueuePfcDeadlockNotificationCallback(
-        saiSwitchId_, _gPfcDeadlockNotificationCallback);
+  if (newRecoveryAction.has_value() != pfcDeadlockEnabled_) {
+    pfcDeadlockEnabled_ = newRecoveryAction.has_value();
+    auto& switchApi = SaiApiTable::getInstance()->switchApi();
+    if (pfcDeadlockEnabled_) {
+      // Register the PFC deadlock recovery callback function
+      switchApi.registerQueuePfcDeadlockNotificationCallback(
+          saiSwitchId_, _gPfcDeadlockNotificationCallback);
+    } else {
+      // Unregister the PFC deadlock recovery callback function
+      switchApi.unregisterQueuePfcDeadlockNotificationCallback(saiSwitchId_);
+    }
+    auto registration = pfcDeadlockEnabled_ ? "registered" : "unregistered";
+    XLOG(DBG4) << "PFC deadlock notification callback " << registration;
   } else {
-    // Unregister the PFC deadlock recovery callback function
-    switchApi.unregisterQueuePfcDeadlockNotificationCallback(saiSwitchId_);
+    XLOG(DBG4) << "PFC deadlock notification callback unchanged!";
   }
-  auto registration =
-      newRecoveryAction.has_value() ? "registered" : "unregistered";
-  XLOG(DBG2) << "PFC deadlock notification callback " << registration;
 }
 
 void SaiSwitch::processPfcDeadlockRecoveryAction(

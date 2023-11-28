@@ -541,6 +541,7 @@ class SaiSwitch : public HwSwitch {
 
   std::map<PortID, phy::PhyInfo> lastPhyInfos_;
   std::unique_ptr<FabricReachabilityManager> fabricReachabilityManager_;
+  bool pfcDeadlockEnabled_{false};
 };
 
 } // namespace facebook::fboss
