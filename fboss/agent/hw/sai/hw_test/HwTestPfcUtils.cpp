@@ -157,6 +157,10 @@ void checkSwHwPgCfgMatch(
                         ->managerTable()
                         ->portManager()
                         .getPortHandle(PortID(swPort->getID()));
+  // Ensure that both SW and HW has the same number of PG IDs
+  EXPECT_EQ(
+      portHandle->configuredIngressPriorityGroups.size(),
+      swPort->getPortPgConfigs()->size());
   for (const auto& pgConfig : std::as_const(*swPgConfig)) {
     auto id = pgConfig->cref<switch_state_tags::id>()->cref();
     auto iter = portHandle->configuredIngressPriorityGroups.find(
@@ -234,13 +238,4 @@ void checkSwHwPgCfgMatch(
   }
 }
 
-void checkSwHwPgIdSetMatch(
-    const HwSwitch* /* unused */,
-    const std::shared_ptr<Port>& /* unused */,
-    std::set<int>& /* unused */) {
-  EXPECT_TRUE(false);
-  // This function is not implemented yet.
-  // If the test is running on SAI Switches,
-  // it should throw an error.
-}
 } // namespace facebook::fboss::utility

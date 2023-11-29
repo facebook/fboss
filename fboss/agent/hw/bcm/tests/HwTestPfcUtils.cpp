@@ -11,7 +11,6 @@
 #include "fboss/agent/hw/test/HwTestPfcUtils.h"
 #include <gtest/gtest.h>
 #include "fboss/agent/hw/bcm/BcmError.h"
-#include "fboss/agent/hw/bcm/BcmPortIngressBufferManager.h"
 #include "fboss/agent/hw/bcm/BcmPortUtils.h"
 #include "fboss/agent/hw/bcm/tests/BcmTest.h"
 #include "fboss/agent/platforms/tests/utils/BcmTestPlatform.h"
@@ -244,18 +243,6 @@ void checkSwHwPgCfgMatch(
     EXPECT_EQ(bcmPort->getProgrammedPfcStatusInPg(id), pfcEnable ? 1 : 0);
     i++;
   }
-}
-
-void checkSwHwPgIdSetMatch(
-    const HwSwitch* hw,
-    const std::shared_ptr<Port>& swPort,
-    std::set<int>& pgIdSetExpected) {
-  auto bcmSwitch = static_cast<const BcmSwitch*>(hw);
-  const PortID portId = swPort->getID();
-  // retrive the PG list thats explicitly programmed
-  auto bcmPort = bcmSwitch->getPortTable()->getBcmPort(portId);
-  const auto& pgList = bcmPort->getIngressBufferManager()->getPgIdListInHw();
-  EXPECT_EQ(pgList, pgIdSetExpected);
 }
 
 } // namespace facebook::fboss::utility
