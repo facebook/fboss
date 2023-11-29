@@ -45,7 +45,6 @@
 
 #include "fboss/thrift_cow/nodes/Types.h"
 
-DECLARE_bool(enable_state_oper_delta);
 DECLARE_bool(verify_apply_oper_delta);
 
 namespace facebook::fboss {
