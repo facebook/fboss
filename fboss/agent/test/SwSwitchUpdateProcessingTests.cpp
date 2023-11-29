@@ -166,11 +166,7 @@ TEST_P(SwSwitchUpdateProcessingTest, BackToBackHwFailureProtectedUpdates) {
   auto protectedState1 = this->addMirror(startState);
   protectedState1->publish();
   auto protectedState2 = this->changeMirror(protectedState1);
-  if (handle->getHwSwitch()->transactionsSupported()) {
-    EXPECT_STATE_UPDATE_TRANSACTION_TIMES(sw, 2);
-  } else {
-    EXPECT_STATE_UPDATE_TIMES(sw, 2);
-  }
+  EXPECT_STATE_UPDATE_TIMES(sw, 2);
   auto protectedState1UpdateFn =
       [=](const std::shared_ptr<SwitchState>& state) {
         EXPECT_EQ(state, startState);
