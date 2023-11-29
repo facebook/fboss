@@ -114,21 +114,6 @@ void HwSwitch::gracefulExit(const state::WarmbootState& thriftSwitchState) {
 std::shared_ptr<SwitchState> HwSwitch::stateChangedTransaction(
     const StateDelta& delta,
     const HwWriteBehaviorRAII& behavior) {
-  if (!FLAGS_enable_state_oper_delta) {
-    // failback to move away from oper delta
-    if (!transactionsSupported()) {
-      throw FbossError("Transactions not supported on this switch");
-    }
-    try {
-      setProgrammedState(stateChanged(delta));
-    } catch (const FbossError& e) {
-      XLOG(WARNING) << " Transaction failed with error : " << *e.message()
-                    << " attempting rollback";
-      this->rollback(delta);
-      setProgrammedState(delta.oldState());
-    }
-    return getProgrammedState();
-  }
   auto result = stateChangedTransaction(delta.getOperDelta(), behavior);
   if (!result.changes()->empty()) {
     // changes have been rolled back to last good known state
