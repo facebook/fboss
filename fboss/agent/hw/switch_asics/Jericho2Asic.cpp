@@ -2,6 +2,7 @@
 
 #include "fboss/agent/hw/switch_asics/Jericho2Asic.h"
 #include <thrift/lib/cpp/util/EnumUtils.h>
+#include "fboss/agent/AgentFeatures.h"
 
 namespace facebook::fboss {
 
@@ -179,7 +180,14 @@ int Jericho2Asic::getDefaultNumPortQueues(
     cfg::PortType portType) const {
   switch (streamType) {
     case cfg::StreamType::UNICAST:
-      return 8;
+      /*
+       * 4K setup may have 9 x 8 50G = 72 ports on a single core.
+       * With 8 egress queues, total egress queues = 72 * 8 = 576.
+       * However, the max number of egress queues per core is 512.
+       * Thus, use 4 egress queues  on 4k setup.
+       * 4 queues are adequate for the current qos scheme.
+       */
+      return FLAGS_dsf_4k ? 4 : 8;
     case cfg::StreamType::MULTICAST:
       if (portType == cfg::PortType::CPU_PORT) {
         break;
