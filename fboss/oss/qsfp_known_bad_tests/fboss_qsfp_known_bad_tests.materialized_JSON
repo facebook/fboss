@@ -319,6 +319,29 @@
           "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N_OPTICAL.TestProfile$"
         }
     ],
+    "morgan800cc/physdk-credo-0.7.2/credo-0.7.2": [
+        {
+          "test_name_regex": "HwTransceiverTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_RS528_COPPER.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_RS528_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N_COPPER.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N_OPTICAL.TestProfile$"
+        }
+    ],
     "wedge100s/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "HwTransceiverTest.resetTranscieverAndDetectStateChanged$"
