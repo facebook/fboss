@@ -96,7 +96,8 @@ void fillHwPortStats(
     const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
     const SaiDebugCounterManager& debugCounterManager,
     HwPortStats& hwPortStats,
-    const SaiPlatform* platform) {
+    const SaiPlatform* platform,
+    const cfg::PortType& portType) {
   // TODO fill these in when we have debug counter support in SAI
   hwPortStats.inDstNullDiscards_() = 0;
   bool isEtherStatsSupported =
@@ -111,7 +112,15 @@ void fillHwPortStats(
         if (!isEtherStatsSupported) {
           // when ether stats is supported, skip updating as ether counterpart
           // will populate these stats
-          hwPortStats.inUnicastPkts_() = value;
+          if (portType == cfg::PortType::RECYCLE_PORT) {
+            // RECYCLE port ucast pkts is clear on read on all
+            // platforms that have rcy ports
+            setUninitializedStatsToZero(*hwPortStats.inUnicastPkts_());
+            hwPortStats.inUnicastPkts_() =
+                *hwPortStats.inUnicastPkts_() + value;
+          } else {
+            hwPortStats.inUnicastPkts_() = value;
+          }
         }
         break;
       case SAI_PORT_STAT_ETHER_STATS_RX_NO_ERRORS:
@@ -1391,7 +1400,8 @@ void SaiPortManager::updateStats(PortID portId, bool updateWatermarks) {
   if (handlesItr == handles_.end()) {
     return;
   }
-  if (getPortType(portId) == cfg::PortType::RECYCLE_PORT &&
+  auto portType = getPortType(portId);
+  if (portType == cfg::PortType::RECYCLE_PORT &&
       !platform_->getAsic()->isSupported(HwAsic::Feature::RECYCLE_PORT_STATS)) {
     return;
   }
@@ -1432,7 +1442,11 @@ void SaiPortManager::updateStats(PortID portId, bool updateWatermarks) {
 #endif
   const auto& counters = handle->port->getStats();
   fillHwPortStats(
-      counters, managerTable_->debugCounterManager(), curPortStats, platform_);
+      counters,
+      managerTable_->debugCounterManager(),
+      curPortStats,
+      platform_,
+      portType);
   std::vector<utility::CounterPrevAndCur> toSubtractFromInDiscardsRaw = {
       {*prevPortStats.inDstNullDiscards_(),
        *curPortStats.inDstNullDiscards_()}};
