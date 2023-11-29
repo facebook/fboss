@@ -686,13 +686,9 @@ TYPED_TEST(HwAclStatTest, AclStatCreateSameTwice) {
       utility::getAclCounterTypes(this->getHwSwitch()));
   this->applyNewConfig(newCfg);
   StateDelta delta(state, this->getProgrammedState());
-  if (FLAGS_enable_state_oper_delta) {
-    // adding same ACL twice with oper delta and state maintained in HW switch
-    // leads to process change. not process added.
-    EXPECT_NO_THROW(this->getHwSwitch()->stateChanged(delta));
-  } else {
-    EXPECT_THROW(this->getHwSwitch()->stateChanged(delta), FbossError);
-  }
+  // adding same ACL twice with oper delta and state maintained in HW switch
+  // leads to process change, not process added.
+  EXPECT_NO_THROW(this->getHwSwitch()->stateChanged(delta));
 }
 
 TYPED_TEST(HwAclStatTest, AclStatDeleteNonExistent) {
