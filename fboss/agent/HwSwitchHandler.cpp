@@ -12,11 +12,8 @@ HwSwitchStateUpdate::HwSwitchStateUpdate(
     bool transaction)
     : oldState(delta.oldState()),
       newState(delta.newState()),
-      isTransaction(transaction) {
-  if (FLAGS_enable_state_oper_delta) {
-    inDelta = delta.getOperDelta();
-  }
-}
+      inDelta(delta.getOperDelta()),
+      isTransaction(transaction) {}
 
 HwSwitchHandler::HwSwitchHandler(
     const SwitchID& switchId,
@@ -63,19 +60,6 @@ folly::Future<HwSwitchStateUpdateResult> HwSwitchHandler::stateChanged(
 
 HwSwitchStateUpdateResult HwSwitchHandler::stateChangedImpl(
     const HwSwitchStateUpdate& update) {
-  if (!FLAGS_enable_state_oper_delta) {
-    StateDelta stateDelta(update.oldState, update.newState);
-    /*
-     * For monolithic, return success for update since SwSwitch should not
-     * do rollback for partial update failure. In monolithic SwSwitch
-     * transitions the state returned by HwSwitch to applied state.
-     * Non oper delta based hw state update is supprted only on monolithic agent
-     */
-    return {
-        stateChanged(stateDelta, update.isTransaction),
-        HwSwitchStateUpdateStatus::HWSWITCH_STATE_UPDATE_SUCCEEDED};
-  }
-
   auto operDeltaSyncState = getHwSwitchOperDeltaSyncState();
 
   if (operDeltaSyncState == HwSwitchOperDeltaSyncState::DISCONNECTED ||
