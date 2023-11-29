@@ -176,11 +176,11 @@ class HwSwitchHandler {
 
   void stop();
 
-  SwitchID switchId_;
-  cfg::SwitchInfo info_;
+  const SwitchID switchId_;
+  const cfg::SwitchInfo info_;
   folly::EventBase hwSwitchManagerEvb_;
   std::unique_ptr<std::thread> hwSwitchManagerThread_;
-  OperDeltaFilter operDeltaFilter_;
+  const OperDeltaFilter operDeltaFilter_;
 };
 
 } // namespace facebook::fboss
