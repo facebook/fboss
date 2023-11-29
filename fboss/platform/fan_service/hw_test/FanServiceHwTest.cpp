@@ -109,6 +109,10 @@ TEST_F(FanServiceHwTest, ODSCounters) {
           fb303::fbData->getCounter(fmt::format(
               "fan_write.{}.{}.failure", *zone.zoneName(), *fan.fanName())),
           0);
+      EXPECT_EQ(
+          fb303::fbData->getCounter(
+              fmt::format("fan.{}.absent", *fan.fanName())),
+          0);
     }
   }
 }

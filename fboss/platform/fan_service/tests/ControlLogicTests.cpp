@@ -144,6 +144,8 @@ TEST_F(ControlLogicTests, UpdateControlSuccess) {
     EXPECT_EQ(*fanStatus.rpm(), kDefaultRpm);
     EXPECT_GE(*fanStatus.lastSuccessfulAccessTime(), startTime);
     EXPECT_EQ(*fanStatus.pwmToProgram(), kExpectedPwms[i++]);
+    EXPECT_EQ(
+        fb303::fbData->getCounter(fmt::format("fan.{}.absent", fanName)), 0);
   }
 }
 
@@ -171,10 +173,12 @@ TEST_F(ControlLogicTests, UpdateControlFailureDueToMissingFans) {
     EXPECT_EQ(fanStatus.rpm().has_value(), false);
     EXPECT_EQ(*fanStatus.lastSuccessfulAccessTime(), 0);
     EXPECT_EQ(*fanStatus.pwmToProgram(), kExpectedPwms[i++]);
+    EXPECT_EQ(
+        fb303::fbData->getCounter(fmt::format("fan.{}.absent", fanName)), 1);
   }
 }
 
-TEST_F(ControlLogicTests, UpdateControlFailureAfterFanUnaccessibleFirstTime) {
+TEST_F(ControlLogicTests, UpdateControlFailureDueToFanInaccessible) {
   EXPECT_CALL(*mockBsp_, checkIfInitialSensorDataRead()).WillOnce(Return(true));
   for (const auto& fan : *fanServiceConfig_.fans()) {
     EXPECT_CALL(*mockBsp_, setFanPwmSysfs(*fan.pwmAccess()->path(), _))
@@ -200,10 +204,14 @@ TEST_F(ControlLogicTests, UpdateControlFailureAfterFanUnaccessibleFirstTime) {
     EXPECT_EQ(fanStatus.rpm().has_value(), false);
     EXPECT_EQ(*fanStatus.lastSuccessfulAccessTime(), 0);
     EXPECT_EQ(*fanStatus.pwmToProgram(), kExpectedPwms[i++]);
+    EXPECT_EQ(
+        fb303::fbData->getCounter(fmt::format("fan.{}.absent", fanName)), 0);
   }
 }
 
-TEST_F(ControlLogicTests, UpdateControlSuccessAfterFanUnaccessibleLTThreshold) {
+TEST_F(
+    ControlLogicTests,
+    UpdateControlFailureDueToFanInaccessibleAfterSuccessLTThreshold) {
   EXPECT_CALL(*mockBsp_, checkIfInitialSensorDataRead())
       .Times(2)
       .WillRepeatedly(Return(true));
@@ -235,6 +243,8 @@ TEST_F(ControlLogicTests, UpdateControlSuccessAfterFanUnaccessibleLTThreshold) {
     EXPECT_EQ(*fanStatus.fanFailed(), false);
     EXPECT_EQ(fanStatus.rpm().has_value(), false);
     EXPECT_GE(*fanStatus.lastSuccessfulAccessTime(), startTime);
+    EXPECT_EQ(
+        fb303::fbData->getCounter(fmt::format("fan.{}.absent", fanName)), 0);
   }
 }
 } // namespace facebook::fboss::platform

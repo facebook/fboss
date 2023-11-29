@@ -13,6 +13,7 @@
 
 namespace {
 auto constexpr kFanWriteFailure = "fan_write.{}.{}.failure";
+auto constexpr kFanAbsent = "fan.{}.absent";
 auto constexpr kFanFailThresholdInSec = 300;
 auto constexpr kSensorFailThresholdInSec = 300;
 
@@ -421,20 +422,19 @@ bool ControlLogic::isFanPresentInDevice(const Fan& fan) {
     if (readSuccessful) {
       pSensor_->updateEntryFloat(presenceKey, readVal, nowSec);
     }
-    readSuccessful = true;
   } else {
     throw facebook::fboss::FbossError(
         "Only Thrift and sysfs are supported for fan presence detection!");
   }
-  XLOG(INFO) << "Control :: " << presenceKey << " : " << readVal << " vs good "
-             << *fan.fanPresentVal() << " - bad " << *fan.fanMissingVal();
 
-  if (readSuccessful) {
-    if (readVal == *fan.fanPresentVal()) {
-      return true;
-    }
-  }
-  return false;
+  auto fanPresent = (readSuccessful && readVal == *fan.fanPresentVal());
+  XLOG(INFO) << fmt::format(
+      "Control :: {} is {} in the host",
+      *fan.fanName(),
+      fanPresent ? "present" : "absent");
+  fb303::fbData->setCounter(
+      fmt::format(kFanAbsent, *fan.fanName()), !fanPresent);
+  return fanPresent;
 }
 
 std::pair<bool, float> ControlLogic::programFan(
