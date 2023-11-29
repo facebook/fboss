@@ -288,7 +288,8 @@ TEST_F(HwIngressBufferTest, validatePGQueueChanges) {
   auto verify = [&]() {
     utility::checkSwHwPgCfgMatch(
         getHwSwitch(),
-        getProgrammedState()->getPort(PortID(masterLogicalPortIds()[0])),
+        getProgrammedState()->getPort(
+            PortID(masterLogicalInterfacePortIds()[0])),
         true /*pfcEnable*/);
 
     std::set<int> pgIdSetExpected = {1};
