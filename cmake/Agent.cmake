@@ -566,3 +566,9 @@ add_library(agent_netwhoami
 )
 
 target_link_libraries(agent_netwhoami)
+
+add_library(agent_features
+  fboss/agent/AgentFeatures.cpp
+)
+
+target_link_libraries(agent_features)
