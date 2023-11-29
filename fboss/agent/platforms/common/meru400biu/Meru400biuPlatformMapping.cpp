@@ -10,7 +10,7 @@
 
 #include "fboss/agent/platforms/common/meru400biu/Meru400biuPlatformMapping.h"
 
-DEFINE_bool(dsf_4k, false, "Enable DSF Scale Test config");
+#include "fboss/agent/AgentFeatures.h"
 
 namespace facebook::fboss {
 namespace {

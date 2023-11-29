@@ -9,4 +9,5 @@ add_library(meru400biu_platform_mapping
 
 target_link_libraries(meru400biu_platform_mapping
   platform_mapping
+  agent_features
 )
