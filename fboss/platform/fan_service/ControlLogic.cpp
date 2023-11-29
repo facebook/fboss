@@ -12,8 +12,9 @@
 #include "fboss/platform/fan_service/if/gen-cpp2/fan_service_config_types.h"
 
 namespace {
-auto constexpr kFanWriteFailure = "fan_write.{}.{}.failure";
-auto constexpr kFanAbsent = "fan.{}.absent";
+auto constexpr kFanWriteFailure = "{}.{}.write_pwm_failure";
+auto constexpr kFanAbsent = "{}.absent";
+auto constexpr kFanReadRpmFailure = "{}.read_rpm_failure";
 auto constexpr kFanFailThresholdInSec = 300;
 auto constexpr kSensorFailThresholdInSec = 300;
 
@@ -44,37 +45,33 @@ ControlLogic::ControlLogic(
 
 std::tuple<bool, int, uint64_t> ControlLogic::readFanRpm(const Fan& fan) {
   std::string fanName = *fan.fanName();
-  auto rpmAccessType = *fan.rpmAccess()->accessType();
-  XLOG(INFO) << "Control :: Fan name " << *fan.fanName()
-             << " Access type : " << rpmAccessType;
-  bool fanAccessFailed = false;
+  XLOG(INFO) << fmt::format("Control :: Reading {} rpm", fanName);
+
+  bool fanRpmReadSuccess = false;
   int fanRpm = 0;
   uint64_t rpmTimeStamp = 0;
-
-  if (!isFanPresentInDevice(fan)) {
-    XLOG(INFO) << "Control :: Fan is absent for " << *fan.fanName();
-    return std::make_tuple(true, 0, 0);
-  }
-
-  if (rpmAccessType == constants::ACCESS_TYPE_SYSFS()) {
+  if (isFanPresentInDevice(fan)) {
+    if (*fan.rpmAccess()->accessType() != constants::ACCESS_TYPE_SYSFS()) {
+      facebook::fboss::FbossError("Invalid rpm access type for fan :", fanName);
+    }
     try {
       fanRpm = pBsp_->readSysfs(*fan.rpmAccess()->path());
       rpmTimeStamp = pBsp_->getCurrentTime();
+      fanRpmReadSuccess = true;
     } catch (std::exception& e) {
       XLOG(ERR) << "Fan RPM access failed " << *fan.rpmAccess()->path();
-      // Obvious. Sysfs fail means access fail
-      fanAccessFailed = true;
     }
-  } else {
-    facebook::fboss::FbossError(
-        "Unable to fetch Fan RPM due to invalide RPM sensor entry type :",
-        fanName);
   }
 
-  XLOG(INFO) << "Control :: RPM :" << fanRpm
-             << " Failed : " << (fanAccessFailed ? "Yes" : "No");
-
-  return std::make_tuple(fanAccessFailed, fanRpm, rpmTimeStamp);
+  fb303::fbData->setCounter(
+      fmt::format(kFanReadRpmFailure, fanName), !fanRpmReadSuccess);
+  if (fanRpmReadSuccess) {
+    XLOG(INFO) << fmt::format(
+        "Control :: {}'s latest rpm is {}", fanName, fanRpm);
+  } else {
+    XLOG(INFO) << fmt::format("Control :: Failed to read {}'s rpm", fanName);
+  }
+  return std::make_tuple(!fanRpmReadSuccess, fanRpm, rpmTimeStamp);
 }
 
 void ControlLogic::updateTargetPwm(const Sensor& sensor) {

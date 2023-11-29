@@ -144,8 +144,10 @@ TEST_F(ControlLogicTests, UpdateControlSuccess) {
     EXPECT_EQ(*fanStatus.rpm(), kDefaultRpm);
     EXPECT_GE(*fanStatus.lastSuccessfulAccessTime(), startTime);
     EXPECT_EQ(*fanStatus.pwmToProgram(), kExpectedPwms[i++]);
+    EXPECT_EQ(fb303::fbData->getCounter(fmt::format("{}.absent", fanName)), 0);
     EXPECT_EQ(
-        fb303::fbData->getCounter(fmt::format("fan.{}.absent", fanName)), 0);
+        fb303::fbData->getCounter(fmt::format("{}.read_rpm_failure", fanName)),
+        0);
   }
 }
 
@@ -173,8 +175,10 @@ TEST_F(ControlLogicTests, UpdateControlFailureDueToMissingFans) {
     EXPECT_EQ(fanStatus.rpm().has_value(), false);
     EXPECT_EQ(*fanStatus.lastSuccessfulAccessTime(), 0);
     EXPECT_EQ(*fanStatus.pwmToProgram(), kExpectedPwms[i++]);
+    EXPECT_EQ(fb303::fbData->getCounter(fmt::format("{}.absent", fanName)), 1);
     EXPECT_EQ(
-        fb303::fbData->getCounter(fmt::format("fan.{}.absent", fanName)), 1);
+        fb303::fbData->getCounter(fmt::format("{}.read_rpm_failure", fanName)),
+        1);
   }
 }
 
@@ -204,8 +208,10 @@ TEST_F(ControlLogicTests, UpdateControlFailureDueToFanInaccessible) {
     EXPECT_EQ(fanStatus.rpm().has_value(), false);
     EXPECT_EQ(*fanStatus.lastSuccessfulAccessTime(), 0);
     EXPECT_EQ(*fanStatus.pwmToProgram(), kExpectedPwms[i++]);
+    EXPECT_EQ(fb303::fbData->getCounter(fmt::format("{}.absent", fanName)), 0);
     EXPECT_EQ(
-        fb303::fbData->getCounter(fmt::format("fan.{}.absent", fanName)), 0);
+        fb303::fbData->getCounter(fmt::format("{}.read_rpm_failure", fanName)),
+        1);
   }
 }
 
@@ -243,8 +249,10 @@ TEST_F(
     EXPECT_EQ(*fanStatus.fanFailed(), false);
     EXPECT_EQ(fanStatus.rpm().has_value(), false);
     EXPECT_GE(*fanStatus.lastSuccessfulAccessTime(), startTime);
+    EXPECT_EQ(fb303::fbData->getCounter(fmt::format("{}.absent", fanName)), 0);
     EXPECT_EQ(
-        fb303::fbData->getCounter(fmt::format("fan.{}.absent", fanName)), 0);
+        fb303::fbData->getCounter(fmt::format("{}.read_rpm_failure", fanName)),
+        1);
   }
 }
 } // namespace facebook::fboss::platform
