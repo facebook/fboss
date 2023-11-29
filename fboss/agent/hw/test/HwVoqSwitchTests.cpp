@@ -425,6 +425,10 @@ TEST_F(HwVoqSwitchWithFabricPortsTest, checkFabricPortSprayWithIsolate) {
       auto fabricBytes = 0;
       for (const auto& idAndStats : fabricPortStats) {
         fabricBytes += idAndStats.second.get_outBytes_();
+        if (idAndStats.first != fabricPortId) {
+          EXPECT_EVENTUALLY_GT(idAndStats.second.get_outBytes_(), 0);
+          EXPECT_EVENTUALLY_GT(idAndStats.second.get_inBytes_(), 0);
+        }
       }
       XLOG(DBG2) << "NIF bytes: " << nifBytes
                  << " Fabric bytes: " << fabricBytes;
