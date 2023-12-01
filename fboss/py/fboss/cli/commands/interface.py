@@ -86,6 +86,10 @@ def get_interface_summary(agent_client, qsfp_client) -> List[Interface]:
     # Getting the port/agg to VLAN map in order to display them
     vlan_port_map = utils.get_vlan_port_map(agent_client, qsfp_client=qsfp_client)
     vlan_aggregate_port_map = utils.get_vlan_aggregate_port_map(agent_client)
+    try:
+        sys_port_map = utils.get_system_port_map(agent_client, qsfp_client)
+    except Exception:
+        sys_port_map = None
 
     interface_summary: List[Interface] = []
     for interface in agent_client.getAllInterfaces().values():
@@ -104,6 +108,13 @@ def get_interface_summary(agent_client, qsfp_client) -> List[Interface]:
             ):
                 port_list = vlan_port_map[interface.vlanId][root_port]
                 ports += " ".join(port_list) + "\n"
+        elif sys_port_map:
+            for root_port in sorted(
+                sys_port_map[interface.interfaceId].keys(), key=sort_key
+            ):
+                port_list = sys_port_map[interface.interfaceId][root_port]
+                ports += " ".join(port_list) + "\n"
+
         vlan = interface.vlanId
         interface_name = interface.interfaceName
         mtu = interface.mtu

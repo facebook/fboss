@@ -260,7 +260,7 @@ def get_system_port_map(
         if not port_summary:
             continue
 
-        sys_port_map[sys_port.portId][port.portId].append(port_summary)
+        sys_port_map[sys_port.portId][port.name].append(port_summary)
 
     return sys_port_map
 
