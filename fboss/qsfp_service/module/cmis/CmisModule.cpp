@@ -3081,14 +3081,16 @@ void CmisModule::resetDataPathWithFunc(
   uint8_t dataPathDeInit = dataPathDeInitReg | hostLaneMask;
   writeCmisField(CmisField::DATA_PATH_DEINIT, &dataPathDeInit);
 
-  // Lambda to check if lanes datapath are deactivated
-  auto isDatapathDeactivated = [&](uint8_t laneMask) -> bool {
+  // Lambda to check if the datapath for the lanes has been updated to one of
+  // the desired states
+  auto isDatapathUpdated = [&](uint8_t laneMask,
+                               std::vector<CmisLaneState> state) -> bool {
     for (uint8_t lane = 0; lane < numHostLanes(); lane++) {
       if (!((1 << lane) & laneMask)) {
         continue;
       }
-      if (getDatapathLaneStateLocked(lane, false) !=
-          CmisLaneState::DEACTIVATED) {
+      auto dpState = getDatapathLaneStateLocked(lane, false);
+      if (std::find(state.begin(), state.end(), dpState) == state.end()) {
         return false;
       }
     }
@@ -3101,12 +3103,12 @@ void CmisModule::resetDataPathWithFunc(
   while (retries++ < maxRetries) {
     /* sleep override */
     usleep(kUsecBetweenLaneInit);
-    if (isDatapathDeactivated(hostLaneMask)) {
+    if (isDatapathUpdated(hostLaneMask, {CmisLaneState::DEACTIVATED})) {
       break;
     }
   }
   if (retries >= maxRetries) {
-    XLOG(ERR) << fmt::format(
+    QSFP_LOG(ERR, this) << fmt::format(
         "Datapath could not deactivate even after waiting {:d} uSec",
         kUsecBetweenLaneInit * maxRetries);
   }
