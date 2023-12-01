@@ -38,7 +38,7 @@ import pytz
 OUTPUT_DIR = "x86-xgsall-bcmsim-deb-static-fboss"
 SAI_SDK_VERSION = "SAI_VERSION_10_0_EA_SIM_ODP"
 SAI_TEST_BINARY = "sai_test-sai_impl"
-CLONE_OSS_REPO_CMD = r"""git clone https://github.com/facebook/fboss fboss.git"""
+CLONE_OSS_REPO_CMD = r"""git clone https://github.com/facebook/fboss {0}"""
 RUN_BUILD_HELPER_CMD = r"""./build-helper.py {0} {1} {2}"""
 VERIFY_STABLE_COMMIT_CMD = r"""source ./setup_fboss_env; ./run_test.py sai --sai-bin {0} --config {1} --mgmt-if eth0 --filter {2} --simulator {3} --coldboot_only"""
 LIBRARIES = ["gflags", "glog", "libevent", "libsodium", "python"]
@@ -62,7 +62,7 @@ class ResultType(Enum):
 class FBOSSOSSVerifier:
     def __init__(self) -> None:
         self._args: Optional[argparse.Namespace] = None
-        self._oss_dir = os.getcwd()
+        self._oss_dir = "/var/FBOSS"
         self._bcm_sai_dir = os.path.join(self._oss_dir, "bcm_sai")
         self._built_bcmsim_sai_dir = os.path.join(self._oss_dir, "built-bcmsim-sai")
         self._scratch_dir = os.path.join(self._oss_dir, "tmp_bld_dir")
@@ -125,6 +125,16 @@ class FBOSSOSSVerifier:
             with open(stable_commit_path, "w") as f:
                 f.write(f"Subproject commit {new_stable_commit_hash}")
                 f.close()
+        if os.path.exists(
+            os.path.join(self._git_dir, "build", "fbcode_builder", "manifests")
+        ):
+            shutil.rmtree(
+                os.path.join(self._git_dir, "build", "fbcode_builder", "manifests")
+            )
+        shutil.copytree(
+            os.path.join(self._oss_dir, "manifests"),
+            os.path.join(self._git_dir, "build", "fbcode_builder", "manifests"),
+        )
         file_timestamp = self._timestamp.replace(" ", "_")
         file_timestamp = file_timestamp.replace(":", "")
         file_timestamp = file_timestamp.replace("-", "")
@@ -133,6 +143,7 @@ class FBOSSOSSVerifier:
             os.chdir(self._git_dir)
             tf.add("build/deps/github_hashes/facebook")
             tf.add("build/deps/github_hashes/facebookincubator")
+            tf.add("build/fbcode_builder/manifests")
 
     def print_result(self, build_result, verify_result=ResultType.FAILED):
         self._timestamp = datetime.fromtimestamp(
@@ -272,7 +283,7 @@ class FBOSSOSSVerifier:
         print("Build helper script ran successfully")
 
     def clone(self):
-        subprocess.run(CLONE_OSS_REPO_CMD, shell=True)
+        subprocess.run(CLONE_OSS_REPO_CMD.format(self._git_dir), shell=True)
         print("Cloned FBOSS git repo successfully")
         shutil.copytree(
             os.path.join(self._git_dir, "build", "fbcode_builder", "manifests"),
