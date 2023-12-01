@@ -120,7 +120,10 @@ cfg::SwitchConfig createSwitchConfig(
   *config.interfaces()[1].vlanID() = 1;
   config.interfaces()[1].name() = "DefaultHWInterface";
   config.interfaces()[1].mtu() = 9000;
-  config.interfaces()[1].ipAddresses()->resize(0);
+  config.interfaces()[1].ipAddresses()->resize(3);
+  config.interfaces()[1].ipAddresses()[0] = "20.164.4.10/24";
+  config.interfaces()[1].ipAddresses()[1] = "3401:db00:2110:3004::a/64";
+  config.interfaces()[1].ipAddresses()[2] = "fe80::face:b00c/64";
 
   if (ndpTimeout.count() > 0) {
     *config.arpTimeoutSeconds() = ndpTimeout.count();
@@ -548,6 +551,59 @@ TYPED_TEST(NdpTest, UnsolicitedRequest) {
   counters.update();
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.ndp.sum", 1);
+}
+
+TYPED_TEST(NdpTest, NeighborSoliciationNotMine) {
+  auto handle = this->setupTestHandle();
+  auto sw = handle->getSw();
+
+  // Create an neighbor solicitation request
+  auto pkt = PktUtil::parseHexData(
+      // dst mac, src mac
+      "33 33 ff 00 00 0a  02 05 73 f9 46 fc"
+      // 802.1q, VLAN 5
+      "81 00 00 05"
+      // IPv6
+      "86 dd"
+      // Version 6, traffic class, flow label
+      "6e 00 00 00"
+      // Payload length: 32
+      "00 20"
+      // Next Header: 58 (ICMPv6), Hop Limit (255)
+      "3a ff"
+      // src addr (::0)
+      "34 01 00 00 00 00 00 00 00 00 00 00 00 00 00 0b"
+      // dst addr (3401:db00:2110:3004::a)
+      "34 01 db 00 21 10 30 04 00 00 00 00 00 00 00 0a"
+      // type: neighbor solicitation
+      "87"
+      // code
+      "00"
+      // checksum
+      "C6 5C"
+      // reserved
+      "00 00 00 00"
+      // target address (3401:db00:2110:3004::a)
+      "34 01 db 00 21 10 30 04 00 00 00 00 00 00 00 0a"
+      // Src link layer (mac) option
+      "01"
+      // Option len
+      "01"
+      // Src link layer address (mac)
+      "02 05 73 f9 46 fc");
+
+  // Cache the current stats
+  CounterCache counters(sw);
+
+  // Send the packet to the SwSwitch
+  handle->rxPacket(make_unique<IOBuf>(pkt), PortID(1), VlanID(5));
+
+  // Check the new stats
+  counters.update();
+  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.drops.sum", 1);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.ndp.sum", 1);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "ipv6.ndp.not_mine.sum", 1);
 }
 
 TYPED_TEST(NdpTest, TriggerSolicitation) {
