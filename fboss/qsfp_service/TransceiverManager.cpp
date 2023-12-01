@@ -201,6 +201,30 @@ void TransceiverManager::restoreAgentConfigAppliedInfo() {
   }
 }
 
+void TransceiverManager::triggerQsfpHardReset(int idx) {
+  // This api accepts 1 based module id however the module id in
+  // TransceiverManager is 0 based.
+  XLOG(INFO) << "triggerQsfpHardReset called for Transceiver: " << idx;
+  qsfpPlatApi_->triggerQsfpHardReset(idx + 1);
+  bool removeTransceiver = false;
+  {
+    // Read Lock to trigger all state machine changes
+    auto lockedTransceivers = transceivers_.rlock();
+    if (auto it = lockedTransceivers->find(TransceiverID(idx));
+        it != lockedTransceivers->end()) {
+      it->second->removeTransceiver();
+      removeTransceiver = true;
+    }
+  }
+
+  if (removeTransceiver) {
+    // Write lock to remove the transceiver
+    auto lockedTransceivers = transceivers_.wlock();
+    auto it = lockedTransceivers->find(TransceiverID(idx));
+    lockedTransceivers->erase(it);
+  }
+}
+
 void TransceiverManager::gracefulExit() {
   steady_clock::time_point begin = steady_clock::now();
   XLOG(INFO) << "[Exit] Starting TransceiverManager graceful exit";

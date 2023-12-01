@@ -364,6 +364,11 @@ class TransceiverManager {
 
   virtual void triggerVdmStatsCapture(std::vector<int32_t>& ids) = 0;
 
+  // This function will trigger a hard reset on the specific transceiver, making
+  // use of the specific implementation from each platform.
+  // It will also remove the transceiver from the transceivers_ map.
+  void triggerQsfpHardReset(int idx);
+
   void publishLinkSnapshots(std::string portName);
 
   void getInterfacePhyInfo(

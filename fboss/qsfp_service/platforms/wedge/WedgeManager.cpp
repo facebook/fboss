@@ -487,30 +487,6 @@ void WedgeManager::clearAllTransceiverReset() {
   sleep(kSecAfterModuleOutOfReset);
 }
 
-void WedgeManager::triggerQsfpHardReset(int idx) {
-  // This api accepts 1 based module id however the module id in
-  // WedgeManager is 0 based.
-  XLOG(INFO) << "triggerQsfpHardReset called for " << idx;
-  qsfpPlatApi_->triggerQsfpHardReset(idx + 1);
-  bool removeTransceiver = false;
-  {
-    // Read Lock to trigger all state machine changes
-    auto lockedTransceivers = transceivers_.rlock();
-    if (auto it = lockedTransceivers->find(TransceiverID(idx));
-        it != lockedTransceivers->end()) {
-      it->second->removeTransceiver();
-      removeTransceiver = true;
-    }
-  }
-
-  if (removeTransceiver) {
-    // Write lock to remove the transceiver
-    auto lockedTransceivers = transceivers_.wlock();
-    auto it = lockedTransceivers->find(TransceiverID(idx));
-    lockedTransceivers->erase(it);
-  }
-}
-
 std::unique_ptr<TransceiverI2CApi> WedgeManager::getI2CBus() {
   return std::make_unique<WedgeI2CBusLock>(std::make_unique<WedgeI2CBus>());
 }
