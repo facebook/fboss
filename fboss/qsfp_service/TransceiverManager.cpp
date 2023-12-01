@@ -104,6 +104,13 @@ TransceiverManager::TransceiverManager(
     XLOG(ERR) << "Couldn't create FbossFwStorage instance: "
               << folly::exceptionStr(ex);
   }
+
+  // Initialize the resetFunctionMap_ with proper function
+  // per reset type/action. map is better than multiple switch
+  // statements when we support more reset types.
+  resetFunctionMap_[std::make_pair(
+      ResetType::HARD_RESET, ResetAction::RESET_THEN_CLEAR)] =
+      &TransceiverManager::triggerQsfpHardReset;
 }
 
 TransceiverManager::~TransceiverManager() {
@@ -222,6 +229,9 @@ void TransceiverManager::triggerQsfpHardReset(int idx) {
     auto lockedTransceivers = transceivers_.wlock();
     auto it = lockedTransceivers->find(TransceiverID(idx));
     lockedTransceivers->erase(it);
+    XLOG(INFO)
+        << "triggerQsfpHardReset triggered reset and remove transceiver: "
+        << idx;
   }
 }
 
@@ -2083,9 +2093,37 @@ std::vector<TransceiverID> TransceiverManager::refreshTransceivers(
 }
 
 void TransceiverManager::resetTransceiver(
-    std::unique_ptr<std::vector<std::string>> /* portNames */,
-    ResetType /* resetType */,
-    ResetAction /* resetAction */) {}
+    std::unique_ptr<std::vector<std::string>> portNames,
+    ResetType resetType,
+    ResetAction resetAction) {
+  if (!portNames || portNames->empty()) {
+    throw FbossError("Invalid portNames argument");
+  }
+
+  // Check that the ResetType and ResetAction pair have a valid function
+  // call associated with TransceiverPlatformApi.
+  auto itr = resetFunctionMap_.find(std::make_pair(resetType, resetAction));
+  if (itr == resetFunctionMap_.end()) {
+    throw FbossError(
+        "Unsupported reset Type and reset action ", resetType, resetAction);
+  }
+
+  // Validate all transceivers before any reset action.
+  std::vector<int> transceivers;
+  for (auto portName : *portNames) {
+    auto itr2 = portNameToModule_.find(portName);
+    if (itr2 == portNameToModule_.end()) {
+      throw FbossError(
+          "Can't find transceiver module for port name: ", portName);
+    }
+    transceivers.push_back(itr2->second);
+  }
+
+  // Perform the proper reset action/type on each port.
+  for (auto transceiver : transceivers) {
+    itr->second(this, transceiver);
+  }
+}
 
 void TransceiverManager::setPauseRemediation(
     int32_t timeout,

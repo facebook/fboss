@@ -32,6 +32,7 @@
 #include <folly/IntrusiveList.h>
 #include <folly/SpinLock.h>
 #include <folly/Synchronized.h>
+#include <functional>
 #include <map>
 #include <vector>
 
@@ -771,6 +772,11 @@ class TransceiverManager {
       evbsRunningFirmwareUpgrade_;
 
   bool forceFirmwareUpgradeForTesting_{false};
+
+  std::map<
+      std::pair<ResetType, ResetAction>,
+      std::function<void(TransceiverManager* const, int)>>
+      resetFunctionMap_;
 
   friend class TransceiverStateMachineTest;
 };
