@@ -94,7 +94,6 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(Switch, ForceTrafficOverFabric)
   SAI_EXT_ATTR_MAP(Switch, WarmBootTargetVersion)
   SAI_EXT_ATTR_MAP(Switch, SwitchIsolate)
-  SAI_EXT_ATTR_MAP(Switch, MaxCores)
 }
 
 } // namespace
