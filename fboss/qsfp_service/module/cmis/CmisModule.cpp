@@ -42,6 +42,8 @@ constexpr int kUsecBetweenLaneInit = 10000;
 constexpr int kUsecVdmLatchHold = 100000;
 constexpr int kUsecDiagSelectLatchWait = 10000;
 constexpr int kUsecAfterAppProgramming = 500000;
+constexpr int kUsecDatapathStateUpdateTime = 5000000; // 5 seconds
+constexpr int kUsecDatapathStatePollTime = 500000; // 500 ms
 
 std::array<std::string, 9> channelConfigErrorMsg = {
     "No status available, config under progress",
@@ -3098,11 +3100,11 @@ void CmisModule::resetDataPathWithFunc(
   };
 
   // Wait for all datapath state machines to get Deactivated
-  auto maxRetries = 10;
+  auto maxRetries = kUsecDatapathStateUpdateTime / kUsecDatapathStatePollTime;
   auto retries = 0;
   while (retries++ < maxRetries) {
     /* sleep override */
-    usleep(kUsecBetweenLaneInit);
+    usleep(kUsecDatapathStatePollTime);
     if (isDatapathUpdated(hostLaneMask, {CmisLaneState::DEACTIVATED})) {
       break;
     }
@@ -3110,7 +3112,7 @@ void CmisModule::resetDataPathWithFunc(
   if (retries >= maxRetries) {
     QSFP_LOG(ERR, this) << fmt::format(
         "Datapath could not deactivate even after waiting {:d} uSec",
-        kUsecBetweenLaneInit * maxRetries);
+        kUsecDatapathStateUpdateTime);
   }
 
   // Call the afterDataPathDeinitFunc() after detactivate all lanes
