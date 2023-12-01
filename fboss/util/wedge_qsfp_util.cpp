@@ -206,9 +206,18 @@ DEFINE_bool(
     false,
     "Read Transceiver info from i2c bus instead of qsfp_service");
 DEFINE_bool(qsfp_hard_reset, false, "Issue a hard reset to port QSFP");
-DEFINE_bool(qsfp_reset, false, "Issue reset to QSFP ports");
-DEFINE_string(qsfp_reset_type, "INVALID", "HARD_RESET");
-DEFINE_string(qsfp_reset_action, "INVALID", "RESET_THEN_CLEAR");
+DEFINE_bool(
+    qsfp_reset,
+    false,
+    "Issue reset to QSFP ports. Will go through qsfp_service unless direct_i2c is specified.");
+DEFINE_string(
+    qsfp_reset_type,
+    "HARD_RESET",
+    "Reset via qsfp_service. Options supported are HARD_RESET");
+DEFINE_string(
+    qsfp_reset_action,
+    "RESET_THEN_CLEAR",
+    "Reset via qsfp_service. Options supported are RESET_THEN_CLEAR");
 DEFINE_bool(
     electrical_loopback,
     false,
@@ -2443,7 +2452,10 @@ int resetQsfp(const std::vector<std::string>& ports, folly::EventBase& evb) {
   try {
     auto client = getQsfpClient(evb);
     client->sync_resetTransceiver(ports, resetType, resetAction);
-    XLOG(INFO) << "Successfully reset ports";
+    XLOG(INFO) << fmt::format(
+        "Successfully reset ports via qsfp_service with resetType {} resetAction {}",
+        FLAGS_qsfp_reset_type,
+        FLAGS_qsfp_reset_action);
   } catch (const std::exception& ex) {
     XLOG(ERR) << fmt::format("Error reseting ports: {:s}", ex.what());
     return EX_SOFTWARE;
@@ -3772,7 +3784,7 @@ bool verifyDirectI2cCompliance() {
       FLAGS_get_remediation_until_time || FLAGS_read_reg || FLAGS_write_reg ||
       FLAGS_update_module_firmware || FLAGS_update_bulk_module_fw ||
       FLAGS_set_40g || FLAGS_set_100g || FLAGS_electrical_loopback ||
-      FLAGS_optical_loopback || FLAGS_clear_loopback) {
+      FLAGS_optical_loopback || FLAGS_clear_loopback || FLAGS_qsfp_reset) {
     if (FLAGS_direct_i2c) {
       if (QsfpServiceDetector::getInstance()->isQsfpServiceActive()) {
         XLOG(ERR)

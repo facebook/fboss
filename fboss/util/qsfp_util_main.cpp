@@ -3,11 +3,12 @@
 #include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h" // @manual=//fboss/qsfp_service/platforms/wedge:wedge-platform-default
 #include "fboss/qsfp_service/platforms/wedge/WedgeManagerInit.h" // @manual=//fboss/qsfp_service/platforms/wedge:wedge-platform-default
+#include "fboss/util/qsfp/QsfpServiceDetector.h"
 #include "fboss/util/qsfp/QsfpUtilContainer.h"
 #include "fboss/util/qsfp/QsfpUtilTx.h"
 #include "fboss/util/wedge_qsfp_util.h"
-#include "folly/gen/Base.h"
 
+#include <folly/gen/Base.h>
 #include <folly/init/Init.h>
 #include <gflags/gflags.h>
 #include <glog/logging.h>
@@ -128,10 +129,6 @@ int main(int argc, char* argv[]) {
     return EX_USAGE;
   }
 
-  if (FLAGS_qsfp_reset) {
-    return resetQsfp(portNames, evb);
-  }
-
   if (FLAGS_pause_remediation) {
     try {
       setPauseRemediation(evb, portNames);
@@ -170,7 +167,7 @@ int main(int argc, char* argv[]) {
         FLAGS_app_sel || FLAGS_cdb_command || FLAGS_update_bulk_module_fw ||
         FLAGS_vdm_info || FLAGS_prbs_start || FLAGS_prbs_stop ||
         FLAGS_prbs_stats || FLAGS_module_io_stats || FLAGS_batch_ops ||
-        FLAGS_capabilities);
+        FLAGS_capabilities || FLAGS_qsfp_reset);
 
   if (FLAGS_direct_i2c || !printInfo) {
     try {
@@ -356,6 +353,33 @@ int main(int argc, char* argv[]) {
       } else if (FLAGS_prbs_stats) {
         printf("Showing PRBS stats for Module %d\n", portNum);
         getModulePrbsStats(i2cInfo, swPortList);
+      }
+    }
+  }
+
+  if (FLAGS_qsfp_reset) {
+    // Do a reset for the chosen ports.
+    if (FLAGS_direct_i2c) {
+      // Do a direct qsfp hard reset via the CPLD/GPIO.
+      for (unsigned int portNum : ports) {
+        if (doQsfpHardReset(bus, portNum)) {
+          printf("QSFP %d: Hard reset directly via HW done\n", portNum);
+        } else {
+          fprintf(
+              stderr, "QSFP %d: Hard reset directly via HW failed\n", portNum);
+        }
+      }
+    } else {
+      // Do a QSFP reset through the qsfp_service.
+      // The reset will depend on the flags: FLAGS_qsfp_reset_type and
+      // FLAGS_qsfp_reset_action which are defaulted to HARD_RESET and
+      // RESET_THEN_CLEAR.
+      retcode = resetQsfp(portNames, evb);
+      if (retcode != EX_OK) {
+        fprintf(stderr, "Failed to reset QSFP modules via qsfp_service\n");
+        return retcode;
+      } else {
+        printf("Successfully reset QSFP modules via qsfp_service\n");
       }
     }
   }
