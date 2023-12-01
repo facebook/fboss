@@ -67,6 +67,11 @@ std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeSdkBootTimeWrapper::operator()() {
+  return SAI_SWITCH_ATTR_CUSTOM_RANGE_START + 1;
+}
+
 const std::vector<sai_stat_id_t>& SaiSwitchTraits::dramStats() {
 #if defined(BRCM_SAI_SDK_DNX)
   static const std::vector<sai_stat_id_t> stats{

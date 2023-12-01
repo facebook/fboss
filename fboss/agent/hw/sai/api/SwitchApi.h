@@ -456,6 +456,13 @@ struct SaiSwitchTraits {
         sai_uint32_t,
         AttributeMaxCoresWrapper,
         SaiIntDefault<uint32_t>>;
+    struct AttributeSdkBootTimeWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using SdkBootTime = SaiExtensionAttribute<
+        sai_uint32_t,
+        AttributeSdkBootTimeWrapper,
+        SaiIntDefault<uint32_t>>;
     using PfcDlrPacketAction = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_PFC_DLR_PACKET_ACTION,
@@ -625,6 +632,7 @@ SAI_ATTRIBUTE_NAME(Switch, CreditWdTimer)
 #endif
 SAI_ATTRIBUTE_NAME(Switch, MaxCores)
 SAI_ATTRIBUTE_NAME(Switch, PfcDlrPacketAction)
+SAI_ATTRIBUTE_NAME(Switch, SdkBootTime)
 
 template <>
 struct SaiObjectHasStats<SaiSwitchTraits> : public std::true_type {};
