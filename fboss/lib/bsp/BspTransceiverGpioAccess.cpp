@@ -60,8 +60,6 @@ bool BspTransceiverGpioAccess::isPresent() {
 void BspTransceiverGpioAccess::init(bool forceReset) {
   if (forceReset) {
     holdReset();
-    /* sleep override */
-    usleep(100);
   }
   releaseReset();
 }
@@ -74,6 +72,8 @@ void BspTransceiverGpioAccess::holdReset() {
         chip_, *gpioOffset, fmt::format("QSFP {}  Reset GPIO", tcvrID_));
 
     reset.setValue(kBspGpioInactiveLow, kBspGpioActiveLow);
+    /* sleep override */
+    usleep(100);
   } catch (std::exception& ex) {
     throw BspTransceiverGpioAccessError(
         fmt::format("QSFP {}: hold reset fails with {}", tcvrID_, ex.what()));

@@ -27,8 +27,6 @@ BspTransceiverCpldAccess::BspTransceiverCpldAccess(
 void BspTransceiverCpldAccess::init(bool forceReset) {
   if (forceReset) {
     holdReset();
-    /* sleep override */
-    usleep(100);
   }
   releaseReset();
 }
@@ -51,6 +49,8 @@ void BspTransceiverCpldAccess::holdReset() {
       status = status & ~resetMask;
     }
     writeSysfs(resetPath, std::to_string(status));
+    /* sleep override */
+    usleep(100);
   } catch (std::exception& ex) {
     XLOG(ERR) << fmt::format(
         "BspTransceiverCpldAccessTrace: init() failed to hold reset TCVR {:d} (1 base)",
