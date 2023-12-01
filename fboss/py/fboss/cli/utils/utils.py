@@ -278,7 +278,7 @@ def get_port_summary(
 ) -> str:
     """build the port summary output taking into account various state"""
     COLOR_RED, COLOR_GREEN, COLOR_RESET = get_colors() if colors else ("", "", "")
-    port_speed_display = get_port_speed_display(speed, enabled, up) if details else ""
+    port_speed_display = get_port_speed_display(speed) if details else ""
     # port has channels assigned with sfp present or fab port, is enabled/up
     if ((channels and qsfp_present) or fab_port) and enabled and up:
         return f"{COLOR_GREEN}{port_name}{COLOR_RESET} {port_speed_display}"
@@ -292,17 +292,8 @@ def get_port_summary(
     return ""
 
 
-def get_port_speed_display(speed, enabled, up):
-    if not enabled:
-        return ""
-    if enabled and not up:
-        return "()"
-    if enabled and up:
-        return f"({speed}G)"
-
-    raise RuntimeError(
-        f"Invalid port state: speed - {speed}, enabled - {enabled}, up - {up}"
-    )
+def get_port_speed_display(speed):
+    return f"({speed}G)"
 
 
 @retryable(num_tries=3, sleep_time=0.1)
