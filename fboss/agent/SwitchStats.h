@@ -244,6 +244,10 @@ class SwitchStats : public boost::noncopyable {
     dstLookupFailureV6_.addValue(1);
     dstLookupFailure_.addValue(1);
   }
+  void ipv6NdpNotMine() {
+    ipv6NdpNotMine_.addValue(1);
+    trapPktDrops_.addValue(1);
+  }
 
   void stateUpdate(std::chrono::microseconds us) {
     updateState_.addValue(us.count());
@@ -460,6 +464,7 @@ class SwitchStats : public boost::noncopyable {
   // IPv6 Neighbor Discovery Protocol packets
   TLTimeseries trapPktNdp_;
   TLTimeseries ipv6NdpBad_;
+  TLTimeseries ipv6NdpNotMine_;
 
   // IPv4 Packets
   TLTimeseries ipv4Rx_;

@@ -48,6 +48,7 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map)
       arpBadOp_(map, kCounterPrefix + "arp.bad_op", SUM, RATE),
       trapPktNdp_(map, kCounterPrefix + "trapped.ndp", SUM, RATE),
       ipv6NdpBad_(map, kCounterPrefix + "ipv6.ndp.bad", SUM, RATE),
+      ipv6NdpNotMine_(map, kCounterPrefix + "ipv6.ndp.not_mine", SUM, RATE),
       ipv4Rx_(map, kCounterPrefix + "trapped.ipv4", SUM, RATE),
       ipv4TooSmall_(map, kCounterPrefix + "ipv4.too_small", SUM, RATE),
       ipv4WrongVer_(map, kCounterPrefix + "ipv4.wrong_version", SUM, RATE),
