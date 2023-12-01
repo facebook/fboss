@@ -1093,6 +1093,7 @@ void IPv6Handler::receivedNdpNotMine(
     PortDescriptor port,
     ICMPv6Type type,
     uint32_t flags) {
+  sw_->stats()->ipv6NdpNotMine();
   auto updater = sw_->getNeighborUpdater();
   if constexpr (std::is_same_v<VlanOrIntfT, Vlan>) {
     updater->receivedNdpNotMine(
