@@ -309,6 +309,10 @@ std::unordered_map<int, std::string> FbossEepromParser::parseEepromBlobTLV(
     parsedValue[itemCode] = value;
     // Increment the cursor
     cursor += itemLen + 2;
+    // the CRC16 is the last content, parsing must stop.
+    if (key == "CRC16") {
+      break;
+    }
   }
   return parsedValue;
 }
