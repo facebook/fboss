@@ -130,7 +130,7 @@ void LinkAggregationManager::handlePacket(
 void LinkAggregationManager::stateUpdated(const StateDelta& delta) {
   CHECK(sw_->getUpdateEvb()->inRunningEventBaseThread());
 
-  folly::SharedMutexWritePriority::WriteHolder writeGuard(&controllersLock_);
+  folly::SharedMutexWritePriority::WriteHolder writeGuard(controllersLock_);
 
   DeltaFunctions::forEachChanged(
       delta.getAggregatePortsDelta(),
