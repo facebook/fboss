@@ -39,4 +39,7 @@
 #if (BCM_SDK_VERSION >= BCM_VERSION(6, 5, 28))
 #define BCM_SDK_VERSION_GTE_6_5_28
 #endif
+#if (BCM_SDK_VERSION >= BCM_VERSION(6, 5, 29))
+#define BCM_SDK_VERSION_GTE_6_5_29
+#endif
 #endif

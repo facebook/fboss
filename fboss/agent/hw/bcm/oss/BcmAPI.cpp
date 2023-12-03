@@ -30,6 +30,9 @@ namespace facebook::fboss {
  */
 void BcmAPI::initImpl() {}
 void BcmAPI::bdeCreateSim() {}
+#if defined(BCM_SDK_VERSION_GTE_6_5_29)
+void BcmAPI::bdeDestroySim() {}
+#endif
 void BcmAPI::initHSDKImpl(const std::string& /* yamlConfig */) {}
 bool BcmAPI::isHwUsingHSDK() {
   return false;

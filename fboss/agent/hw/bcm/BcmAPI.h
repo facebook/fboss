@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "fboss/agent/hw/bcm/BcmSdkVer.h"
 #include "fboss/agent/hw/bcm/types.h"
 #include "fboss/agent/platforms/common/utils/BcmYamlConfig.h"
 
@@ -174,6 +175,10 @@ class BcmAPI {
 
   static bool isHwUsingHSDK();
 
+#if defined(BCM_SDK_VERSION_GTE_6_5_29)
+  static void bdeDestroy();
+#endif
+
  private:
   // Forbidden copy constructor and assignment operator
   BcmAPI(BcmAPI const&) = delete;
@@ -194,6 +199,9 @@ class BcmAPI {
 
   static void bdeCreate();
   static void bdeCreateSim();
+#if defined(BCM_SDK_VERSION_GTE_6_5_29)
+  static void bdeDestroySim();
+#endif
 
   static void initHSDKImpl(const std::string& yamlConfig);
 

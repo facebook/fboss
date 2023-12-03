@@ -362,6 +362,20 @@ bool BcmAPI::isHwInSimMode() {
   return isSimMode_;
 }
 
+#if defined(BCM_SDK_VERSION_GTE_6_5_29)
+void BcmAPI::bdeDestroy() {
+  int rv = 0;
+
+  if (!isHwInSimMode()) {
+    rv = linux_bde_destroy(bde);
+    bcmCheckError(rv, "failed to destroy BDE");
+  } else {
+    XLOG(DBG2) << "BCM running in SIM mode";
+    bdeDestroySim();
+  }
+}
+#endif
+
 std::unique_ptr<BcmUnit> BcmAPI::createOnlyUnit(BcmPlatform* platform) {
   auto numDevices = BcmAPI::getNumSwitches();
   if (numDevices == 0) {

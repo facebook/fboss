@@ -249,6 +249,13 @@ void BcmUnit::deleteBcmUnitImpl() {
         bcmCheckError(
             rv, "failed to clean up SDK state during warm boot shutdown");
       }
+
+#if defined(BCM_SDK_VERSION_GTE_6_5_29)
+      // Starting from SDK 6.5.29, there is no implicit BDE
+      // destroy support in native SDK for non-LTSW devices. So,
+      // application has to destory the BDE once SOC is shutdown.
+      BcmAPI::bdeDestroy();
+#endif
     }
 
     steady_clock::time_point bcmShutdownDone = steady_clock::now();
