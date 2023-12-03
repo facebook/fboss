@@ -1741,6 +1741,16 @@ void SwSwitch::linkStateChanged(
 
     if (port) {
       if (port->isUp() != up) {
+        port = port->modify(&newState);
+        port->setOperState(up);
+        if (iPhyFaultStatus) {
+          port->setIPhyLinkFaultStatus(*iPhyFaultStatus);
+        }
+        // Log event and update counters if there is a change
+        logLinkStateEvent(portId, up);
+        setPortStatusCounter(portId, up);
+        portStats(portId)->linkStateChange(up);
+
         auto matcher = getScopeResolver()->scope(portId);
         auto numUpFabricPorts =
             getNumUpPorts(newState, matcher, cfg::PortType::FABRIC_PORT);
@@ -1765,22 +1775,12 @@ void SwSwitch::linkStateChanged(
         }
 
         XLOG(DBG2) << "SW Link state changed: " << port->getName() << " ["
-                   << (port->isUp() ? "UP" : "DOWN") << "->"
-                   << (up ? "UP" : "DOWN") << "]"
+                   << (!up ? "UP" : "DOWN") << "->" << (up ? "UP" : "DOWN")
+                   << "]"
                    << " SwitchIDs: " << matcher.matcherString()
                    << " numUpFabricPorts: " << numUpFabricPorts
                    << " Switch Drain state: "
                    << getDrainStateChangedStr(getState(), newState, matcher);
-
-        port = port->modify(&newState);
-        port->setOperState(up);
-        if (iPhyFaultStatus) {
-          port->setIPhyLinkFaultStatus(*iPhyFaultStatus);
-        }
-        // Log event and update counters if there is a change
-        logLinkStateEvent(portId, up);
-        setPortStatusCounter(portId, up);
-        portStats(portId)->linkStateChange(up);
       }
     }
 
