@@ -1454,11 +1454,16 @@ void SaiSwitch::updatePcsInfo(
       lastRsFec = *lastPcs->rsFec();
     }
 
+    std::optional<uint64_t> correctedBitsFromHw = std::nullopt;
+    if (managerTable_->portManager().fecCorrectedBitsSupported(swPort)) {
+      correctedBitsFromHw = *(fb303PortStat->portStats().fecCorrectedBits_());
+    }
+
     auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
     utility::updateCorrectedBitsAndPreFECBer(
         rsFec, /* current RsFecInfo to update */
         lastRsFec, /* previous RsFecInfo */
-        std::nullopt, /* counter not available from hardware */
+        correctedBitsFromHw, /* correctedBitsFromHw */
         now.count() -
             *lastPhyInfo.state()->timeCollected(), /* timeDeltaInSeconds */
         fecMode, /* operational FecMode */
