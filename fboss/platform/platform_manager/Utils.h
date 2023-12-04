@@ -9,6 +9,11 @@ namespace facebook::fboss::platform::platform_manager {
 class Utils {
  public:
   PlatformConfig getConfig(const std::string& configFile);
+  // Recursively create directories for the given path.
+  // - for given /x/y/z, directory y/z if x already exists.
+  // No-op if parent directories already exist.
+  // Returns true if created or already exist, otherwise false.
+  bool createDirectories(const std::string& path);
 };
 
 } // namespace facebook::fboss::platform::platform_manager

@@ -2,15 +2,18 @@
 
 #include "fboss/platform/platform_manager/Utils.h"
 
+#include <filesystem>
+#include <stdexcept>
+
 #include <folly/FileUtil.h>
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
-#include <stdexcept>
 
 #include "fboss/platform/config_lib/ConfigLib.h"
 #include "fboss/platform/helpers/PlatformUtils.h"
 #include "fboss/platform/platform_manager/ConfigValidator.h"
 
+namespace fs = std::filesystem;
 using namespace facebook::fboss::platform;
 
 namespace {
@@ -62,6 +65,16 @@ PlatformConfig Utils::getConfig(const std::string& configFile) {
     throw std::runtime_error("Invalid platform config");
   }
   return config;
+}
+
+bool Utils::createDirectories(const std::string& path) {
+  std::error_code errCode;
+  std::filesystem::create_directories(fs::path(path), errCode);
+  if (errCode.value() != 0) {
+    XLOG(ERR) << fmt::format(
+        "Received error code {} from creating path {}", errCode.value(), path);
+  }
+  return errCode.value() == 0;
 }
 
 } // namespace facebook::fboss::platform::platform_manager

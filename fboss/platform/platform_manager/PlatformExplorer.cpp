@@ -11,6 +11,7 @@
 
 #include <folly/logging/xlog.h>
 
+#include "fboss/platform/platform_manager/Utils.h"
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_constants.h"
 
 namespace {
@@ -320,14 +321,10 @@ void PlatformExplorer::updateGpioChipNum(
 void PlatformExplorer::createDeviceSymLink(
     const std::string& linkPath,
     const std::string& pmDevicePath) {
-  std::error_code errCode;
   auto linkParentPath = std::filesystem::path(linkPath).parent_path();
-  std::filesystem::create_directories(linkParentPath, errCode);
-  if (errCode.value() != 0) {
+  if (!Utils().createDirectories(linkParentPath.string())) {
     XLOG(ERR) << fmt::format(
-        "Failed to create the parent path ({}) with error code {}",
-        linkParentPath.string(),
-        errCode.value());
+        "Failed to create the parent path ({})", linkParentPath.string());
     return;
   }
 
