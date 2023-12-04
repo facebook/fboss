@@ -778,6 +778,8 @@ class TransceiverManager {
       std::function<void(TransceiverManager* const, int)>>
       resetFunctionMap_;
 
+  void initPortToModuleMap();
+
   friend class TransceiverStateMachineTest;
 };
 } // namespace facebook::fboss

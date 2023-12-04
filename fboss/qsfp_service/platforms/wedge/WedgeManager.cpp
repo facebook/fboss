@@ -85,30 +85,6 @@ WedgeManager::~WedgeManager() {
 }
 
 void WedgeManager::loadConfig() {
-  const auto& platformPorts = platformMapping_->getPlatformPorts();
-  for (const auto& it : platformPorts) {
-    auto port = it.second;
-    // Get the transceiver id based on the port info from config.
-    auto portId = *port.mapping()->id();
-    auto transceiverId = getTransceiverID(PortID(portId));
-    if (!transceiverId) {
-      XLOG(ERR) << "Did not find transceiver id for port id " << portId;
-      continue;
-    }
-    // Add the port to the transceiver indexed port group.
-    auto portGroupIt = portGroupMap_.find(transceiverId.value());
-    if (portGroupIt == portGroupMap_.end()) {
-      portGroupMap_[transceiverId.value()] =
-          std::set<cfg::PlatformPortEntry>{port};
-    } else {
-      portGroupIt->second.insert(port);
-    }
-    std::string portName = *port.mapping()->name();
-    portNameToModule_[portName] = transceiverId.value();
-    XLOG(INFO) << "Added port " << portName << " with portId " << portId
-               << " to transceiver " << transceiverId.value();
-  }
-
   // Process QSFP config here
   qsfpConfig_ = QsfpConfig::fromDefaultFile();
   if (FLAGS_publish_state_to_fsdb) {
