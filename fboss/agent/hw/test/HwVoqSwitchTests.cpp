@@ -652,6 +652,8 @@ TEST_F(HwVoqSwitchTest, sendPacketCpuAndFrontPanel) {
 
               EXPECT_EVENTUALLY_GT(
                   afterFrontPanelOutPkts, beforeFrontPanelOutPkts);
+            } else {
+              EXPECT_EVENTUALLY_EQ(beforeRecyclePkts + 1, afterRecyclePkts);
             }
           });
     };
