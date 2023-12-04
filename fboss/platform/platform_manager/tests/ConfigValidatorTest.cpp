@@ -133,3 +133,26 @@ TEST(ConfigValidatorTest, I2CDeviceType) {
   i2cConfig.deviceType() = "something_invalid";
   EXPECT_FALSE(ConfigValidator().isValidI2cDeviceConfig(i2cConfig));
 }
+
+TEST(ConfigValidatorTest, Symlink) {
+  EXPECT_FALSE(ConfigValidator().isValidSymlink(""));
+  EXPECT_FALSE(ConfigValidator().isValidSymlink("/run/devma/sensors/sensor1"));
+  EXPECT_FALSE(ConfigValidator().isValidSymlink("run/devmap/sensors/sensor2"));
+  EXPECT_FALSE(ConfigValidator().isValidSymlink("/run/devmap/sensor/sensor2"));
+  EXPECT_FALSE(ConfigValidator().isValidSymlink("/run/devmap/gpio/sensor2"));
+  EXPECT_FALSE(ConfigValidator().isValidSymlink("/run/devmap/eeproms"));
+  EXPECT_FALSE(ConfigValidator().isValidSymlink("/run/devmap/eeproms/"));
+  EXPECT_TRUE(ConfigValidator().isValidSymlink("/run/devmap/eeproms/EEPROM"));
+  EXPECT_TRUE(ConfigValidator().isValidSymlink("/run/devmap/sensors/sensor1"));
+  EXPECT_TRUE(ConfigValidator().isValidSymlink("/run/devmap/i2c-busses/bus"));
+}
+
+TEST(ConfigValidatorTest, DevicePath) {
+  EXPECT_FALSE(ConfigValidator().isValidDevicePath("/[]"));
+  EXPECT_FALSE(ConfigValidator().isValidDevicePath("/SCM_SLOT@1/[a"));
+  EXPECT_FALSE(ConfigValidator().isValidDevicePath("/SMB_SLOT@1/SCM_SLOT/[a]"));
+  EXPECT_TRUE(ConfigValidator().isValidDevicePath("/[chassis_eeprom]"));
+  EXPECT_TRUE(ConfigValidator().isValidDevicePath("/SMB_SLOT@0/[MCB_MUX_1]"));
+  EXPECT_TRUE(
+      ConfigValidator().isValidDevicePath("/SMB_SLOT@0/SCM_SLOT@1/[sensor]"));
+}

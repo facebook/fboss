@@ -21,7 +21,11 @@ std::unordered_set<std::string> deviceTypes = {
 
 namespace {
 const re2::RE2 kPciDevOffsetRegex{"0x[0-9a-f]+"};
-}
+const re2::RE2 kSymlinkRegex{"^/run/devmap/(?P<SymlinkDirs>[a-z0-9-]+)/.+"};
+const re2::RE2 kDevPathRegex{"/([A-Z]+_SLOT@[0-9]+/)*\\[.+\\]"};
+constexpr auto kSymlinkDirs =
+    {"eeproms", "sensors", "cplds", "fpgas", "i2c-busses", "gpiochips"};
+} // namespace
 
 namespace facebook::fboss::platform::platform_manager {
 
@@ -142,6 +146,29 @@ bool ConfigValidator::isValidI2cDeviceConfig(
   return true;
 }
 
+bool ConfigValidator::isValidSymlink(const std::string& symlink) {
+  std::string dir;
+  if (!re2::RE2::FullMatch(symlink, kSymlinkRegex, &dir)) {
+    XLOG(ERR) << fmt::format("\"{}\" is invalid symlink", symlink);
+    return false;
+  }
+  if (std::find(kSymlinkDirs.begin(), kSymlinkDirs.end(), dir) ==
+      kSymlinkDirs.end()) {
+    XLOG(ERR) << fmt::format(
+        "{} in {} is not predefined symlink directory", dir, symlink);
+    return false;
+  }
+  return true;
+}
+
+bool ConfigValidator::isValidDevicePath(const std::string& devicePath) {
+  if (!re2::RE2::FullMatch(devicePath, kDevPathRegex)) {
+    XLOG(ERR) << fmt::format("Invalid device path {}", devicePath);
+    return false;
+  }
+  return true;
+}
+
 bool ConfigValidator::isValid(const PlatformConfig& config) {
   XLOG(INFO) << "Validating the config";
 
@@ -174,7 +201,12 @@ bool ConfigValidator::isValid(const PlatformConfig& config) {
     }
   }
 
+  for (const auto& [symlink, devicePath] : *config.symbolicLinkToDevicePath()) {
+    if (!isValidSymlink(symlink) || !isValidDevicePath(devicePath)) {
+      return false;
+    }
+  }
+
   return true;
 }
-
 } // namespace facebook::fboss::platform::platform_manager

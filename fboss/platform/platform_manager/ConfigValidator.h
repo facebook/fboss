@@ -13,6 +13,8 @@ class ConfigValidator {
   bool isValidFpgaIpBlockConfig(const FpgaIpBlockConfig& fpgaIpBlockConfig);
   bool isValidPciDeviceConfig(const PciDeviceConfig& pciDeviceConfig);
   bool isValidI2cDeviceConfig(const I2cDeviceConfig& i2cDeviceConfig);
+  bool isValidDevicePath(const std::string& devicePath);
+  bool isValidSymlink(const std::string& symlink);
 };
 
 } // namespace facebook::fboss::platform::platform_manager

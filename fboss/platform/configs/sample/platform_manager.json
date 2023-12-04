@@ -301,9 +301,9 @@
     "/run/devmap/fpgas/SCM_IOB": "/[SCM_IOB]",
     "/run/devmap/fpgas/SMB_IOB": "/SMB_SLOT@0/[SMB_IOB]",
     "/run/devmap/fpgas/DOM_FPGA": "/SMB_SLOT@0/YOLO_SLOT@0/[DOM_FPGA]",
-    "/run/devmap/i2c_busses/SCM_IOB_MASTER_0": "/[SCM_IOB_I2C_0]",
-    "/run/devmap/i2c_busses/SMB_IOB_MASTER_0": "/SMB_SLOT@0/[SMB_IOB_I2C_0]",
-    "/run/devmap/i2c_busses/SMB_IOB_MASTER_1": "/SMB_SLOT@0/[SMB_IOB_I2C_1]",
-    "/run/devmap/i2c_busses/DOM_MASTER_0": "/SMB_SLOT@0/YOLO_SLOT@0/[YOLO_DOM_I2C_0]"
+    "/run/devmap/i2c-busses/SCM_IOB_MASTER_0": "/[SCM_IOB_I2C_0]",
+    "/run/devmap/i2c-busses/SMB_IOB_MASTER_0": "/SMB_SLOT@0/[SMB_IOB_I2C_0]",
+    "/run/devmap/i2c-busses/SMB_IOB_MASTER_1": "/SMB_SLOT@0/[SMB_IOB_I2C_1]",
+    "/run/devmap/i2c-busses/DOM_MASTER_0": "/SMB_SLOT@0/YOLO_SLOT@0/[YOLO_DOM_I2C_0]"
   }
 }
