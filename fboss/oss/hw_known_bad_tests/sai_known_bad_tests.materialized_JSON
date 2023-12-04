@@ -2567,9 +2567,6 @@
           "test_name_regex": "HwVoqSwitchTest.AclQualifiersWithCounter"
         },
         {
-          "test_name_regex": "SaiAclTableRecreateTests.*"
-        },
-        {
           "test_name_regex": "HwSflowMirrorTest.*"
         },
         {
