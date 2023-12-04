@@ -53,13 +53,11 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::DRAM_ENQUEUE_DEQUEUE_STATS:
     case HwAsic::Feature::DEBUG_COUNTER:
     case HwAsic::Feature::CREDIT_WATCHDOG:
-    case HwAsic::Feature::RECYCLE_PORT_STATS:
       return true;
 
     // TODO fix once queue stats are available on J3
     case HwAsic::Feature::L3_QOS:
     case HwAsic::Feature::TC_TO_QUEUE_QOS_MAP_ON_SYSTEM_PORT:
-    // TODO: Remove once rcy port stats work on J3
       return false;
 
     case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:
