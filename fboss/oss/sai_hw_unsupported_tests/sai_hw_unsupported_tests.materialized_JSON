@@ -8,9 +8,6 @@
           "test_name_regex": "HwLoadBalancerTestV[46].*Ucmp.*"
         },
         {
-          "test_name_regex": "HwVlanTest.VlanApplyConfig"
-        },
-        {
           "test_name_regex": "HwPacketFloodTest.ArpRequest*"
         },
         {
@@ -270,9 +267,6 @@
           "test_name_regex": "HwLoadBalancerTestV[46].*Ucmp.*"
         },
         {
-          "test_name_regex": "HwVlanTest.VlanApplyConfig"
-        },
-        {
           "test_name_regex": "HwPacketFloodTest.ArpRequest*"
         },
         {
@@ -510,9 +504,6 @@
         },
         {
           "test_name_regex": "HwLoadBalancerTestV[46].*Ucmp.*"
-        },
-        {
-          "test_name_regex": "HwVlanTest.VlanApplyConfig"
         },
         {
           "test_name_regex": "HwPacketFloodTest.ArpRequest*"
