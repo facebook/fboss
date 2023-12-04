@@ -77,7 +77,7 @@ class CmdShowTransceiver
     for (const auto& [portId, details] : model.get_transceivers()) {
       outTable.addRow({
           details.get_name(),
-          (details.get_isUp()) ? "Up" : "Down",
+          statusToString(details.get_isUp()),
           (details.get_isPresent()) ? "Present" : "Absent",
           details.get_vendor(),
           details.get_serial(),
@@ -125,6 +125,14 @@ class CmdShowTransceiver
       }
     }
     return filteredPortEntries;
+  }
+
+  Table::StyledCell statusToString(bool isUp) const {
+    Table::Style cellStyle = Table::Style::GOOD;
+    if (!isUp) {
+      cellStyle = Table::Style::ERROR;
+    }
+    return Table::StyledCell(isUp ? "Up" : "Down", cellStyle);
   }
 
   Table::StyledCell listToString(
