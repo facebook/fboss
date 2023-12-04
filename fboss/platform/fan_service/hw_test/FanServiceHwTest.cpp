@@ -97,6 +97,8 @@ TEST_F(FanServiceHwTest, FanStatusesThrift) {
 }
 
 TEST_F(FanServiceHwTest, ODSCounters) {
+  fanServiceImpl_->controlFan();
+
   for (const auto& zone : *fanServiceConfig_.zones()) {
     for (const auto& fan : *fanServiceConfig_.fans()) {
       if (std::find(
