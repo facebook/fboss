@@ -538,6 +538,9 @@ TEST_F(HwVoqSwitchTest, sendPacketCpuAndFrontPanel) {
                      << packetsOrBytes << ": " << pktsOrBytes;
         }
       };
+      auto getRecyclePortPkts = [this]() {
+        return *getLatestPortStats(PortID(1)).inUnicastPkts_();
+      };
 
       int64_t beforeQueueOutPkts = 0, beforeQueueOutBytes = 0;
       int64_t afterQueueOutPkts = 0, afterQueueOutBytes = 0;
@@ -566,6 +569,7 @@ TEST_F(HwVoqSwitchTest, sendPacketCpuAndFrontPanel) {
         std::tie(beforeFrontPanelOutPkts, beforeFrontPanelOutBytes) =
             getPortOutPktsBytes(*frontPanelPort);
       }
+      auto beforeRecyclePkts = getRecyclePortPkts();
       auto txPacketSize = sendPacket(ecmpHelper.ip(kPort), frontPanelPort);
 
       auto [maxRetryCount, sleepTimeMsecs] =
@@ -592,7 +596,7 @@ TEST_F(HwVoqSwitchTest, sendPacketCpuAndFrontPanel) {
               std::tie(afterFrontPanelOutPkts, afterFrontPanelOutBytes) =
                   getPortOutPktsBytes(*frontPanelPort);
             }
-
+            auto afterRecyclePkts = getRecyclePortPkts();
             XLOG(DBG2) << "Verifying: "
                        << (isFrontPanel ? "Send Packet from Front Panel Port"
                                         : "Send Packet from CPU Port")
@@ -604,6 +608,7 @@ TEST_F(HwVoqSwitchTest, sendPacketCpuAndFrontPanel) {
                        << " beforeAclPkts: " << beforeAclPkts
                        << " beforeFrontPanelPkts: " << beforeFrontPanelOutPkts
                        << " beforeFrontPanelBytes: " << beforeFrontPanelOutBytes
+                       << " beforeRecyclePkts: " << beforeRecyclePkts
                        << " txPacketSize: " << txPacketSize
                        << " afterOutPkts: " << afterOutPkts
                        << " afterOutBytes: " << afterOutBytes
@@ -612,7 +617,8 @@ TEST_F(HwVoqSwitchTest, sendPacketCpuAndFrontPanel) {
                        << " afterVoQOutBytes: " << afterVoQOutBytes
                        << " afterAclPkts: " << afterAclPkts
                        << " afterFrontPanelPkts: " << afterFrontPanelOutPkts
-                       << " afterFrontPanelBytes: " << afterFrontPanelOutBytes;
+                       << " afterFrontPanelBytes: " << afterFrontPanelOutBytes
+                       << " afterRecyclePkts: " << afterRecyclePkts;
 
             EXPECT_EVENTUALLY_EQ(afterOutPkts - 1, beforeOutPkts);
             int extraByteOffset = 0;
