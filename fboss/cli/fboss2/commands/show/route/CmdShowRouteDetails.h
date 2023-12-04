@@ -41,7 +41,33 @@ class CmdShowRouteDetails
         utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(hostInfo);
 
     client->sync_getRouteTableDetails(entries);
-    return createModel(entries, queriedRoutes);
+
+    // queriedRoutes can take 2 forms, ip address or network address
+    // Treat the address as IP only if no mask is provided. Lookup the
+    // network address for this IP and add it to a new list for output
+    std::vector<std::string> finalRoutes;
+    std::transform(
+        queriedRoutes.begin(),
+        queriedRoutes.end(),
+        std::back_inserter(finalRoutes),
+        [&client](std::string queryRoute) -> std::string {
+          if (queryRoute.find("/") == std::string::npos) {
+            facebook::fboss::RouteDetails route;
+            auto addr =
+                facebook::network::toAddress(folly::IPAddress(queryRoute));
+            client->sync_getIpRouteDetails(route, addr, 0);
+            if (route.get_nextHopMulti().size() > 0) {
+              auto ipStr = utils::getAddrStr(*route.dest()->ip());
+              auto ipPrefix =
+                  ipStr + "/" + std::to_string(*route.dest()->prefixLength());
+              return ipPrefix;
+            }
+          }
+          return queryRoute;
+        });
+
+    ObjectArgType finalQueriedRoutes(finalRoutes);
+    return createModel(entries, finalQueriedRoutes);
   }
 
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
