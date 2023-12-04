@@ -143,7 +143,7 @@
           "test_name_regex": "HwVoqSwitchInterruptTest.*"
         },
         {
-          "test_name_regex": "HwSplitAgentCallbackTest.txPacket"
+          "test_name_regex": "HwSplitAgentCallbackTest.*"
         }
     ],
     "brcm/10.0_ea_dnx_sim_odp/10.0_ea_dnx_sim_odp/jericho3/simulator": [
@@ -2502,7 +2502,7 @@
           "test_name_regex": "HwVoqSwitchInterruptTest.*"
         },
         {
-          "test_name_regex": "HwSplitAgentCallbackTest.txPacket"
+          "test_name_regex": "HwSplitAgentCallbackTest.*"
         }
     ],
     "brcm/11.0_ea_dnx_odp/11.0_ea_dnx_odp/jericho3": [
@@ -2543,103 +2543,28 @@
           "test_name_regex": "HwInDiscardsCounterTest.*"
         },
         {
-          "test_name_regex": "HwAclStatTest.AclStatChangeCounterType"
+          "test_name_regex": "HwAclStatTest/[01].*"
         },
         {
-          "test_name_regex": "HwAclStatTest/[01].AclStatChangeCounterType"
+          "test_name_regex": "SaiAclTableGroupTest.*"
         },
         {
-          "test_name_regex": "SaiAclTableGroupTest.AddSecondTableAfterWarmboot"
-        },
-        {
-          "test_name_regex": "SaiAclTableGroupTest.AddTwoTablesDeleteAddSecond"
-        },
-        {
-          "test_name_regex": "SaiAclTableGroupTest.DeleteFirstTableAfterWarmboot"
-        },
-        {
-          "test_name_regex": "SaiAclTableGroupTest.DeleteSecondTableAfterWarmboot"
-        },
-        {
-          "test_name_regex": "SaiAclTableGroupTest.AddTwoTablesDeleteFirst"
-        },
-        {
-          "test_name_regex": "SaiAclTableGroupTest.AddTwoTablesDeleteSecond"
-        },
-        {
-          "test_name_regex": "SaiAclTableGroupTest.AddTwoTablesDeleteAddFirst"
-        },
-        {
-          "test_name_regex": "SaiAclTableGroupTest.AddTwoTablesDeleteAddSecond"
-        },
-        {
-          "test_name_regex": "SaiAclTableGroupTest.AddAclEntriesToAclTablesPostWarmboot"
-        },
-        {
-          "test_name_regex": "SaiAclTableGroupTest.AddAclEntriesAndQualifiersToAclTablesPostWarmboot"
-        },
-        {
-          "test_name_regex": "HwAclQualifierTest.*Ip4*"
-        },
-        {
-          "test_name_regex": "HwAclQualifierTest/[01].*Ip4*"
-        },
-        {
-          "test_name_regex": "HwAclQualifierTest.*Tcp*"
-        },
-        {
-          "test_name_regex": "HwAclQualifierTest/[01].*Tcp*"
-        },
-        {
-          "test_name_regex": "HwAclQualifierTest.*Icmp*"
-        },
-        {
-          "test_name_regex": "HwAclQualifierTest/[01].*Icmp*"
-        },
-        {
-          "test_name_regex": "HwAclQualifierTest.*AclModifyQualifier"
-        },
-        {
-          "test_name_regex": "HwAclQualifierTest/[01].*AclModifyQualifier"
-        },
-        {
-          "test_name_regex": "HwAclQualifierTest.*VlanID*"
-        },
-        {
-          "test_name_regex": "HwAclQualifierTest/[01].*VlanID*"
-        },
-        {
-          "test_name_regex": "HwAclQualifierTest.*LookupClass*"
-        },
-        {
-          "test_name_regex": "HwAclQualifierTest/[01].*LookupClass*"
+          "test_name_regex": "HwAclQualifierTest/[01].*"
         },
         {
           "test_name_regex": "SaiAclTableGroupTrafficTest/[01].*"
         },
         {
-          "test_name_regex": "HwAclCounterTest.VerifyCounterBumpOnSportHitCpu"
+          "test_name_regex": "HwAclCounterTest/[01].*"
         },
         {
-          "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnSportHitCpu"
+          "test_name_regex": "HwAclMatchActionsTest/[01].*"
         },
         {
-          "test_name_regex": "HwAclCounterTest.VerifyCounterBumpOnSportHitFrontPanel"
+          "test_name_regex": "HwAclPriorityTest/[01].*"
         },
         {
-          "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnSportHitFrontPanel"
-        },
-        {
-          "test_name_regex": "HwAclCounterTest.VerifyCounterBumpOnTtlHitCpu"
-        },
-        {
-          "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnTtlHitCpu"
-        },
-        {
-          "test_name_regex": "HwAclCounterTest.VerifyCounterBumpOnTtlHitFrontPanel"
-        },
-        {
-          "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnTtlHitFrontPanel"
+          "test_name_regex": "HwVoqSwitchTest.AclQualifiersWithCounter"
         },
         {
           "test_name_regex": "HwSflowMirrorTest.*"
@@ -2721,6 +2646,9 @@
         },
         {
           "test_name_regex": "HwPacketSendReceiveTest.*"
+        },
+        {
+          "test_name_regex": "HwVoqSwitchTest.trapPktsOnPort"
         },
         {
           "test_name_regex": "HwDscpMarkingTest.*"
