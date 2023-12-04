@@ -37,6 +37,10 @@ class HostInfo {
     return ip_.str();
   }
 
+  bool isLocalHost() const {
+    return ip_.isLinkLocal();
+  }
+
  private:
   const std::string name_;
   const std::string oob_;
