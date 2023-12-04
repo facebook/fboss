@@ -127,7 +127,7 @@ void TransceiverManager::initPortToModuleMap() {
   const auto& platformPorts = platformMapping_->getPlatformPorts();
   for (const auto& it : platformPorts) {
     auto port = it.second;
-    // Get the transceiver id based on the port info from config.
+    // Get the transceiver id based on the port info from platform mapping.
     auto portId = *port.mapping()->id();
     auto transceiverId = getTransceiverID(PortID(portId));
     if (!transceiverId) {
