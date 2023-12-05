@@ -1561,6 +1561,10 @@ void SaiTracer::setRouteEntry(
       to<string>("r_e.switch_id=", getVariable(route_entry->switch_id)));
   lines.push_back(to<string>("r_e.vr_id=", getVariable(route_entry->vr_id)));
 
+  auto [ipAddr, mask] =
+      facebook::fboss::fromSaiIpPrefix(route_entry->destination);
+  lines.push_back(to<string>("// ", ipAddr.str(), "/", mask));
+
   if (route_entry->destination.addr_family == SAI_IP_ADDR_FAMILY_IPV4) {
     lines.push_back("r_e.destination.addr_family=SAI_IP_ADDR_FAMILY_IPV4");
     lines.push_back(to<string>(
