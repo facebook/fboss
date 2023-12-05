@@ -215,6 +215,10 @@ void BcmIntf::program(const shared_ptr<Interface>& intf) {
     if (vlanMac2IntfItr != warmBootCache->vlanAndMac2Intf_end()) {
       const auto& existingIntf = vlanMac2IntfItr->second;
       bcmIfId_ = existingIntf.l3a_intf_id;
+      if (hw_->getPlatform()->getAsic()->isSupported(
+              HwAsic::Feature::INGRESS_L3_INTERFACE)) {
+        bcmIngIfId_ = bcmIfId_;
+      }
       if (updateIntfIfNeeded(ifParams, existingIntf)) {
         // Set add interface to true, we will no issue the call to add
         // but with the above flags set this will cause the entry to be
