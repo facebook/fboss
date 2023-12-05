@@ -14,6 +14,10 @@
 namespace facebook::fboss::utility {
 
 namespace {
+
+constexpr auto kNumPortPerCore = 10;
+constexpr auto kNifPortOffset = 2;
+
 int getPerNodeSysPorts(cfg::AsicType asicType) {
   return asicType == cfg::AsicType::ASIC_TYPE_JERICHO2 ? 20 : 40;
 }
@@ -68,7 +72,9 @@ std::shared_ptr<SwitchState> addRemoteSysPort(
     std::shared_ptr<SwitchState> currState,
     const SwitchIdScopeResolver& scopeResolver,
     SystemPortID portId,
-    SwitchID remoteSwitchId) {
+    SwitchID remoteSwitchId,
+    int coreIndex,
+    int corePortIndex) {
   auto newState = currState->clone();
   const auto& localPorts = newState->getSystemPorts()->cbegin()->second;
   auto localPort = localPorts->cbegin()->second;
@@ -78,8 +84,8 @@ std::shared_ptr<SwitchState> addRemoteSysPort(
       "hwTestSwitch", remoteSwitchId, ":eth/", portId, "/1"));
   remoteSysPort->setSwitchId(remoteSwitchId);
   remoteSysPort->setNumVoqs(localPort->getNumVoqs());
-  remoteSysPort->setCoreIndex(localPort->getCoreIndex());
-  remoteSysPort->setCorePortIndex(localPort->getCorePortIndex());
+  remoteSysPort->setCoreIndex(coreIndex);
+  remoteSysPort->setCorePortIndex(corePortIndex);
   remoteSysPort->setSpeedMbps(localPort->getSpeedMbps());
   remoteSystemPorts->addNode(remoteSysPort, scopeResolver.scope(remoteSysPort));
   return newState;
@@ -171,7 +177,8 @@ std::shared_ptr<SwitchState> setupRemoteIntfAndSysPorts(
     CHECK(dsfNode.systemPortRange().has_value());
     const auto minPortID = *dsfNode.systemPortRange()->minimum();
     // 0th port for CPU and 1st port for recycle port
-    for (int i = 2; i < getPerNodeSysPorts(*dsfNode.asicType()); i++) {
+    for (int i = kNifPortOffset; i < getPerNodeSysPorts(*dsfNode.asicType());
+         i++) {
       const auto newSysPortId = minPortID + i;
       const SystemPortID remoteSysPortId(newSysPortId);
       const InterfaceID remoteIntfId(newSysPortId);
@@ -186,7 +193,12 @@ std::shared_ptr<SwitchState> setupRemoteIntfAndSysPorts(
           folly::to<std::string>(firstOctet, ":", secondOctet, ":", i, "::2"));
 
       newState = addRemoteSysPort(
-          newState, scopeResolver, remoteSysPortId, SwitchID(remoteSwitchId));
+          newState,
+          scopeResolver,
+          remoteSysPortId,
+          SwitchID(remoteSwitchId),
+          (i - kNifPortOffset) / kNumPortPerCore,
+          (i - kNifPortOffset) % kNumPortPerCore + kNifPortOffset);
       newState = addRemoteInterface(
           newState,
           scopeResolver,

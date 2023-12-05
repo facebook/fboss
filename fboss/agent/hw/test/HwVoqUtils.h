@@ -23,7 +23,9 @@ std::shared_ptr<SwitchState> addRemoteSysPort(
     std::shared_ptr<SwitchState> currState,
     const SwitchIdScopeResolver& scopeResolver,
     SystemPortID portId,
-    SwitchID remoteSwitchId);
+    SwitchID remoteSwitchId,
+    int coreIndex = 0,
+    int corePortIndex = 1);
 
 std::shared_ptr<SwitchState> removeRemoteSysPort(
     std::shared_ptr<SwitchState> currState,
