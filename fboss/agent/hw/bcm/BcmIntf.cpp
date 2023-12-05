@@ -233,15 +233,28 @@ void BcmIntf::program(const shared_ptr<Interface>& intf) {
       addInterface = true;
     }
     if (addInterface) {
+      auto rc = bcm_l3_intf_create(hw_->getUnit(), &ifParams);
+      bcmCheckError(rc, "failed to create L3 interface ", intf->getID());
+      bcmIfId_ = ifParams.l3a_intf_id;
       bool updateIngress = true;
       if (vlanMac2IntfItr == warmBootCache->vlanAndMac2Intf_end()) {
         XLOG(DBG1) << "Adding interface for vlan : " << intf->getVlanID()
                    << " and mac: " << intf->getMac();
-        updateIngress = false;
+        // Todo : This is a temporary workaround to avoid crashing on
+        // the RTSWs where l3_ingress config is present in asic due to a
+        // bug. On enabling the "sidelinks" feature via warmboot upgrade on
+        // these RTSWs l3_ingress is created again which causes a crash.
+        // The bug has been fixed by D51830932. Once "sidelinks" feature is
+        // enabled on the RTSWs with the bug, this code can be removed.
+        // and we would add updateIngress = false; back here.
+        bcm_l3_ingress_t l3_ingress;
+        bcm_l3_ingress_t_init(&l3_ingress);
+        bcm_if_t ingress_if = bcmIfId_;
+        rc = bcm_l3_ingress_get(hw_->getUnit(), ingress_if, &l3_ingress);
+        if (rc != BCM_E_NONE) {
+          updateIngress = false;
+        }
       }
-      auto rc = bcm_l3_intf_create(hw_->getUnit(), &ifParams);
-      bcmCheckError(rc, "failed to create L3 interface ", intf->getID());
-      bcmIfId_ = ifParams.l3a_intf_id;
       programIngressIfNeeded(intf, updateIngress);
     }
     if (vlanMac2IntfItr != warmBootCache->vlanAndMac2Intf_end()) {
