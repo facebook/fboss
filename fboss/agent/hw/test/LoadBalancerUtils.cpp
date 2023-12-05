@@ -630,7 +630,8 @@ bool isLoadBalancedImpl(
     const std::map<PortIdT, PortStatsT>& portIdToStats,
     const std::vector<NextHopWeight>& weights,
     int maxDeviationPct,
-    bool noTrafficOk) {
+    bool noTrafficOk,
+    std::optional<int> pktSize) {
   auto ecmpPorts = folly::gen::from(portIdToStats) |
       folly::gen::map([](const auto& portIdAndStats) {
                      return portIdAndStats.first;
@@ -639,12 +640,16 @@ bool isLoadBalancedImpl(
 
   auto portBytes =
       folly::gen::from(portIdToStats) |
-      folly::gen::map([](const auto& portIdAndStats) {
+      folly::gen::map([&](const auto& portIdAndStats) {
         if constexpr (std::is_same_v<PortStatsT, HwPortStats>) {
           return *portIdAndStats.second.outBytes_();
         } else if constexpr (std::is_same_v<PortStatsT, HwSysPortStats>) {
-          return portIdAndStats.second.queueOutDiscardBytes_()->at(
-              kDefaultQueue);
+          CHECK(pktSize.has_value());
+          const auto& stats = portIdAndStats.second;
+          return stats.queueOutBytes_()->at(kDefaultQueue) +
+              stats.queueOutDiscardBytes_()->at(kDefaultQueue) +
+              stats.queueCreditWatchdogDeletedPackets_()->at(kDefaultQueue) *
+              pktSize.value();
         }
         throw FbossError("Unsupported port stats type in isLoadBalancedImpl");
       }) |
@@ -663,9 +668,12 @@ bool isLoadBalancedImpl(
       if constexpr (std::is_same_v<PortStatsT, HwPortStats>) {
         portOutBytes = *portIdToStats.find(ecmpPorts[i])->second.outBytes_();
       } else if constexpr (std::is_same_v<PortStatsT, HwSysPortStats>) {
-        portOutBytes = portIdToStats.find(ecmpPorts[i])
-                           ->second.queueOutDiscardBytes_()
-                           ->at(kDefaultQueue);
+        CHECK(pktSize.has_value());
+        const auto& stats = portIdToStats.find(ecmpPorts[i])->second;
+        portOutBytes = stats.queueOutBytes_()->at(kDefaultQueue) +
+            stats.queueOutDiscardBytes_()->at(kDefaultQueue) +
+            stats.queueCreditWatchdogDeletedPackets_()->at(kDefaultQueue) *
+                pktSize.value();
       } else {
         throw FbossError("Unsupported port stats type in isLoadBalancedImpl");
       }
@@ -723,24 +731,28 @@ template bool isLoadBalancedImpl<SystemPortID, HwSysPortStats>(
     const std::map<SystemPortID, HwSysPortStats>& portIdToStats,
     const std::vector<NextHopWeight>& weights,
     int maxDeviationPct,
-    bool noTrafficOk);
+    bool noTrafficOk,
+    std::optional<int> pktSize);
 
 template bool isLoadBalancedImpl<PortID, HwPortStats>(
     const std::map<PortID, HwPortStats>& portIdToStats,
     const std::vector<NextHopWeight>& weights,
     int maxDeviationPct,
-    bool noTrafficOk);
+    bool noTrafficOk,
+    std::optional<int> pktSize);
 
 template bool isLoadBalancedImpl<std::string, HwPortStats>(
     const std::map<std::string, HwPortStats>& portIdToStats,
     const std::vector<NextHopWeight>& weights,
     int maxDeviationPct,
-    bool noTrafficOk);
+    bool noTrafficOk,
+    std::optional<int> pktSize);
 
 template bool isLoadBalancedImpl<std::string, HwSysPortStats>(
     const std::map<std::string, HwSysPortStats>& portIdToStats,
     const std::vector<NextHopWeight>& weights,
     int maxDeviationPct,
-    bool noTrafficOk);
+    bool noTrafficOk,
+    std::optional<int> pktSize);
 
 } // namespace facebook::fboss::utility

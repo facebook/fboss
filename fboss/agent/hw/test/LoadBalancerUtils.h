@@ -135,7 +135,8 @@ bool isLoadBalancedImpl(
     const std::map<PortIdT, PortStatsT>& portIdToStats,
     const std::vector<NextHopWeight>& weights,
     int maxDeviationPct,
-    bool noTrafficOk);
+    bool noTrafficOk,
+    std::optional<int> pktSize = std::nullopt);
 
 template <typename PortIdT, typename PortStatsT>
 bool isLoadBalanced(
@@ -164,7 +165,8 @@ bool isLoadBalanced(
     const std::function<std::map<PortIdT, PortStatsT>(
         const std::vector<PortIdT>&)>& getPortStatsFn,
     int maxDeviationPct,
-    bool noTrafficOk = false) {
+    bool noTrafficOk = false,
+    std::optional<int> pktSize = std::nullopt) {
   auto portIDs =
       folly::gen::from(ecmpPorts) | folly::gen::map([](const auto& portDesc) {
         if constexpr (std::is_same_v<PortStatsT, HwPortStats>) {
@@ -176,7 +178,8 @@ bool isLoadBalanced(
       }) |
       folly::gen::as<std::vector<PortIdT>>();
   auto portIdToStats = getPortStatsFn(portIDs);
-  return isLoadBalanced(portIdToStats, weights, maxDeviationPct, noTrafficOk);
+  return isLoadBalancedImpl(
+      portIdToStats, weights, maxDeviationPct, noTrafficOk, pktSize);
 }
 
 template <typename PortIdT, typename PortStatsT>
