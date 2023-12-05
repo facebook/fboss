@@ -17,6 +17,7 @@ include "fboss/agent/platform_config.thrift"
 include "fboss/lib/phy/phy.thrift"
 include "fboss/agent/hw/hardware_stats.thrift"
 include "thrift/annotation/python.thrift"
+include "thrift/annotation/cpp.thrift"
 
 typedef common.fbbinary fbbinary
 typedef common.fbstring fbstring
@@ -869,9 +870,8 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
     1: fboss.FbossBaseError error,
   );
   // DEPRECATED: API will no longer work in agent
-  void registerForNeighborChanged() throws (1: fboss.FbossBaseError error) (
-    thread = 'eb',
-  );
+  @cpp.ProcessInEbThreadUnsafe
+  void registerForNeighborChanged() throws (1: fboss.FbossBaseError error);
   list<string> getInterfaceList() throws (1: fboss.FbossBaseError error);
   /*
    * TODO (allwync): get rid of getRouteTable after agent code with thrift

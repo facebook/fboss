@@ -6,6 +6,9 @@ namespace py neteng.fboss
 namespace py3 neteng.fboss
 namespace py.asyncio neteng.asyncio.fboss
 
+include "thrift/annotation/thrift.thrift"
+
 exception FbossBaseError {
+  @thrift.ExceptionMessage
   1: string message;
-} (cpp.virtual, message = "message")
+} (cpp.virtual)

@@ -10,6 +10,7 @@ include "fboss/agent/if/ctrl.thrift"
 include "thrift/annotation/cpp.thrift"
 include "fboss/lib/phy/phy.thrift"
 include "fboss/agent/hw/hardware_stats.thrift"
+include "thrift/annotation/thrift.thrift"
 
 @cpp.Type{name = "std::unique_ptr<folly::IOBuf>"}
 typedef binary fbbinary
@@ -73,18 +74,18 @@ service MultiSwitchCtrl {
   stream<TxPacket> getTxPackets(1: i64 switchId);
 
   /* get next oper delta from SwSwitch */
+  @thrift.Priority{level = thrift.RpcPriority.HIGH}
   StateOperDelta getNextStateOperDelta(
     1: i64 switchId,
     2: StateOperDelta prevOperResult,
     /* indicates whether HwSwitch is syncing for first time */
     3: bool initialSync,
-  ) (priority = 'HIGH');
+  );
 
   /* HwAgent graceful shutdown notification */
   void gracefulExit(1: i64 switchId);
 
   /* send hardware stats through sink */
-  sink<HwSwitchStats, bool> syncHwStats(1: i16 switchIndex) (
-    priority = 'BEST_EFFORT',
-  );
+  @thrift.Priority{level = thrift.RpcPriority.BEST_EFFORT}
+  sink<HwSwitchStats, bool> syncHwStats(1: i16 switchIndex);
 }

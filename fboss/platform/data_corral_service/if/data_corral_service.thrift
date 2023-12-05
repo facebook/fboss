@@ -19,5 +19,5 @@ service DataCorralServiceThrift {
   // flash/eeprom instead of cached value
   DataCorralFruidReadResponse getFruid(1: bool uncached) throws (
     1: fboss.FbossBaseError error,
-  ) (cpp.coroutine);
+  );
 }

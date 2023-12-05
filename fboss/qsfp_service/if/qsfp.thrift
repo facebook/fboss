@@ -195,53 +195,51 @@ service QsfpService extends phy.FbossCommonPhyCtrl {
   bool sakInstallRx(
     1: mka_structs.MKASak sak,
     2: mka_structs.MKASci sciToAdd,
-  ) throws (1: mka_structs.MKAServiceException ex) (cpp.coroutine);
+  ) throws (1: mka_structs.MKAServiceException ex);
 
   bool sakInstallTx(1: mka_structs.MKASak sak) throws (
     1: mka_structs.MKAServiceException ex,
-  ) (cpp.coroutine);
+  );
 
   bool sakDeleteRx(
     1: mka_structs.MKASak sak,
     2: mka_structs.MKASci sciToRemove,
-  ) throws (1: mka_structs.MKAServiceException ex) (cpp.coroutine);
+  ) throws (1: mka_structs.MKAServiceException ex);
 
   bool sakDelete(1: mka_structs.MKASak sak) throws (
     1: mka_structs.MKAServiceException ex,
-  ) (cpp.coroutine);
+  );
 
   mka_structs.MKASakHealthResponse sakHealthCheck(
     1: mka_structs.MKASak sak,
-  ) throws (1: mka_structs.MKAServiceException ex) (cpp.coroutine);
+  ) throws (1: mka_structs.MKAServiceException ex);
 
   mka_structs.MacsecPortPhyMap macsecGetPhyPortInfo(
     1: list<string> portNames = [],
-  ) throws (1: fboss.FbossBaseError error) (cpp.coroutine);
+  ) throws (1: fboss.FbossBaseError error);
 
   ctrl.PortOperState macsecGetPhyLinkInfo(1: string portName) throws (
     1: fboss.FbossBaseError error,
-  ) (cpp.coroutine);
+  );
 
   phy.PhyInfo getPhyInfo(1: string portName) throws (
     1: fboss.FbossBaseError error,
-  ) (cpp.coroutine);
-
-  bool deleteAllSc(1: string portName) throws (1: fboss.FbossBaseError error) (
-    cpp.coroutine,
   );
+
+  bool deleteAllSc(1: string portName) throws (1: fboss.FbossBaseError error);
 
   bool setupMacsecState(
     1: list<string> portList,
     2: bool macsecDesired = false,
     3: bool dropUnencrypted = false,
-  ) throws (1: fboss.FbossBaseError error) (cpp.coroutine);
+  ) throws (1: fboss.FbossBaseError error);
 
   map<string, hardware_stats.MacsecStats> getAllMacsecPortStats(
     1: bool readFromHw = false,
-  ) throws (1: fboss.FbossBaseError error) (cpp.coroutine);
+  ) throws (1: fboss.FbossBaseError error);
 
   map<string, hardware_stats.MacsecStats> getMacsecPortStats(
     1: list<string> portNames,
     2: bool readFromHw = false,
-  ) throws (1: fboss.FbossBaseError error) (cpp.coroutine);
+  ) throws (1: fboss.FbossBaseError error);
 }
