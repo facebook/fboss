@@ -28,7 +28,7 @@ DEFINE_string(
 DEFINE_bool(
     enable_pkg_mgmnt,
     true,
-    "Enable download and installation of the BSP and udev rpms");
+    "Enable download and installation of the BSP rpm");
 
 DEFINE_bool(
     run_once,
@@ -43,8 +43,9 @@ int main(int argc, char** argv) {
   auto config = Utils().getConfig(FLAGS_config_file);
 
   if (FLAGS_enable_pkg_mgmnt) {
-    PkgUtils().run(config);
+    PkgUtils().processRpms(config);
   }
+  PkgUtils().processKmods(config);
 
   PlatformExplorer platformExplorer(
       std::chrono::seconds(FLAGS_explore_interval_s), config, FLAGS_run_once);

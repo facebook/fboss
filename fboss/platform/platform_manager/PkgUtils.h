@@ -8,12 +8,13 @@ namespace facebook::fboss::platform::platform_manager {
 
 class PkgUtils {
  public:
-  void run(const PlatformConfig& config);
+  void processRpms(const PlatformConfig& config) const;
+  void processKmods(const PlatformConfig& config) const;
 
  private:
-  bool isRpmInstalled(const std::string& rpmFullName);
-  void installRpm(const std::string& rpmFullName, int maxAttempts);
-  void reloadKMod(const std::string& moduleName);
+  void reloadKmod(const std::string& moduleName) const;
+  bool isRpmInstalled(const std::string& rpmFullName) const;
+  void installRpm(const std::string& rpmFullName, int maxAttempts) const;
 };
 
 } // namespace facebook::fboss::platform::platform_manager
