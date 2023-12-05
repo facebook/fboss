@@ -29,7 +29,7 @@ const std::string kddComands = "dd if=" + kPathPrefix + "/bios of=" + kPredfl +
     " bs=1 skip=8192 count=61440 > /dev/null 2>&1";
 
 // Map eeprom_dev_type to symlink of sysfs path
-const std::unordered_map<std::string, std::string> eeprom_dev_mapping{
+const std::unordered_map<std::string, std::string> eepromDevMapping_{
     {"pem", "/run/devmap/eeproms/PEM_EEPROM"},
     {"fanspinner", "/run/devmap/eeproms/FANSPINNER_EEPROM"},
     {"rackmon", "/run/devmap/eeproms/RACKMON_EEPROM"},
@@ -47,6 +47,33 @@ const std::unordered_map<std::string, std::string> kMapping{
     {"System Manufacturing Date", "MfgTime2"},
     {"Local MAC", "MAC"},
     {"Product Serial Number", "SerialNumber"},
+};
+
+// weutil output fields and default value for all FBOSS switches w/wo OpenBMC
+const std::vector<std::pair<std::string, std::string>> weFields_{
+    {"Wedge EEPROM", "CHASSIS"},
+    {"Version", "0"},
+    {"Product Name", ""},
+    {"Product Part Number", ""},
+    {"System Assembly Part Number", ""},
+    {"Facebook PCBA Part Number", ""},
+    {"Facebook PCB Part Number", ""},
+    {"ODM PCBA Part Number", ""},
+    {"ODM PCBA Serial Number", ""},
+    {"Product Production State", "0"},
+    {"Product Version", ""},
+    {"Product Sub-Version", ""},
+    {"Product Serial Number", ""},
+    {"Product Asset Tag", ""},
+    {"System Manufacturer", ""},
+    {"System Manufacturing Date", ""},
+    {"PCB Manufacturer", ""},
+    {"Assembled At", ""},
+    {"Local MAC", ""},
+    {"Extended MAC Base", ""},
+    {"Extended MAC Address Size", ""},
+    {"Location on Fabric", ""},
+    {"CRC8", "0x0"},
 };
 
 const std::unordered_set<std::string> kFlashType = {
@@ -71,8 +98,8 @@ WeutilDarwin::WeutilDarwin(const std::string& eeprom) : eeprom_(eeprom) {
     genSpiPrefdlFile();
   } else {
     // the symblink file should be created by udev rule already.
-    auto _it = eeprom_dev_mapping.find(eeprom_);
-    if (_it != eeprom_dev_mapping.end()) {
+    auto _it = eepromDevMapping_.find(eeprom_);
+    if (_it != eepromDevMapping_.end()) {
       if (!std::filesystem::exists(_it->second)) {
         throw std::runtime_error(
             "eeprom device: " + _it->second + " does not exist!");
@@ -156,8 +183,8 @@ void WeutilDarwin::printInfo() {
   std::unique_ptr<PrefdlBase> pPrefdl;
 
   if (eeprom_ != "") {
-    auto _it = eeprom_dev_mapping.find(eeprom_);
-    if (_it == eeprom_dev_mapping.end()) {
+    auto _it = eepromDevMapping_.find(eeprom_);
+    if (_it == eepromDevMapping_.end()) {
       throw std::runtime_error("invalid eeprom type: " + eeprom_);
     }
     pPrefdl = std::make_unique<PrefdlBase>(_it->second);
@@ -184,8 +211,8 @@ void WeutilDarwin::printInfoJson() {
   folly::dynamic wedgeInfo = folly::dynamic::object;
 
   if (eeprom_ != "") {
-    auto _it = eeprom_dev_mapping.find(eeprom_);
-    if (_it == eeprom_dev_mapping.end()) {
+    auto _it = eepromDevMapping_.find(eeprom_);
+    if (_it == eepromDevMapping_.end()) {
       throw std::runtime_error("invalid eeprom type: " + eeprom_);
     }
     pPrefdl = std::make_unique<PrefdlBase>(_it->second);
