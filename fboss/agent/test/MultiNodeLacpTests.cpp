@@ -292,6 +292,7 @@ class MultiNodeLacpTest : public MultiNodeTest {
             vlan,
             std::nullopt,
             255,
+            10000,
             srcMac);
       }
     }

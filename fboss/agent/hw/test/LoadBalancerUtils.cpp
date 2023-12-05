@@ -349,7 +349,7 @@ size_t pumpRoCETraffic(
  *
  *   Please see P827101297 for an example of how this file should be formatted.
  */
-void pumpTrafficWithSourceFile(
+size_t pumpTrafficWithSourceFile(
     HwSwitch* hw,
     folly::MacAddress dstMac,
     std::optional<VlanID> vlan,
@@ -361,6 +361,7 @@ void pumpTrafficWithSourceFile(
   folly::MacAddress srcMac(
       srcMacAddr.has_value() ? *srcMacAddr
                              : MacAddressGenerator().get(dstMac.u64HBO() + 1));
+  size_t pktSize = 0;
   // Use source file to generate traffic
   if (!FLAGS_load_balance_traffic_src.empty()) {
     std::ifstream srcFile(FLAGS_load_balance_traffic_src);
@@ -403,6 +404,7 @@ void pumpTrafficWithSourceFile(
           folly::to<uint16_t>(parsedLine[indices[3]]),
           0,
           hopLimit);
+      pktSize = pkt->buf()->length();
       if (frontPanelPortToLoopTraffic) {
         hw->sendPacketOutOfPortSync(
             std::move(pkt), frontPanelPortToLoopTraffic.value());
@@ -414,30 +416,32 @@ void pumpTrafficWithSourceFile(
     throw FbossError(
         "Using pumpTrafficWithSourceFile without source file specified");
   }
+  return pktSize;
 }
 
-void pumpTraffic(
+size_t pumpTraffic(
     bool isV6,
     HwSwitch* hw,
     folly::MacAddress dstMac,
     std::optional<VlanID> vlan,
     std::optional<PortID> frontPanelPortToLoopTraffic,
     int hopLimit,
+    int numPackets,
     std::optional<folly::MacAddress> srcMacAddr) {
   if (!FLAGS_load_balance_traffic_src.empty()) {
-    pumpTrafficWithSourceFile(
+    return pumpTrafficWithSourceFile(
         hw, dstMac, vlan, frontPanelPortToLoopTraffic, hopLimit, srcMacAddr);
-    return;
   }
+  size_t pktSize = 0;
   folly::MacAddress srcMac(
       srcMacAddr.has_value() ? *srcMacAddr
                              : MacAddressGenerator().get(dstMac.u64HBO() + 1));
-  for (auto i = 0; i < 100; ++i) {
-    auto srcIp = folly::IPAddress(
-        folly::sformat(isV6 ? "1001::{}" : "100.0.0.{}", i + 1));
-    for (auto j = 0; j < 100; ++j) {
-      auto dstIp = folly::IPAddress(
-          folly::sformat(isV6 ? "2001::{}" : "201.0.0.{}", j + 1));
+  for (auto i = 0; i < int(std::sqrt(numPackets)); ++i) {
+    auto srcIp = folly::IPAddress(folly::sformat(
+        isV6 ? "1001::{}:{}" : "100.0.{}.{}", (i + 1) / 256, (i + 1) % 256));
+    for (auto j = 0; j < int(numPackets / std::sqrt(numPackets)); ++j) {
+      auto dstIp = folly::IPAddress(folly::sformat(
+          isV6 ? "2001::{}:{}" : "201.0.{}.{}", (j + 1) / 256, (j + 1) % 256));
       auto pkt = makeUDPTxPacket(
           hw,
           vlan,
@@ -449,6 +453,7 @@ void pumpTraffic(
           20000 + j,
           0,
           hopLimit);
+      pktSize = pkt->buf()->length();
       if (frontPanelPortToLoopTraffic) {
         hw->sendPacketOutOfPortSync(
             std::move(pkt), frontPanelPortToLoopTraffic.value());
@@ -457,6 +462,7 @@ void pumpTraffic(
       }
     }
   }
+  return pktSize;
 }
 
 void pumpTraffic(

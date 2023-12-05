@@ -97,6 +97,7 @@ class MacLearningTest : public LinkTest {
         sw()->getState()->getVlans()->getFirstVlanID(),
         txPort,
         255,
+        10000,
         srcMac);
     // no additional discards after pump traffic
     assertNoInDiscards(maxDiscards);
