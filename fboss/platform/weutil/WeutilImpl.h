@@ -26,8 +26,7 @@ class WeutilImpl : public WeutilInterface {
   // This method will translate EEPROM blob to human readable format by
   // firstly translate it into <field_id, value> pair, then to
   // <key, value> pair
-  std::vector<std::pair<std::string, std::string>> getInfo(
-      const std::string& eeprom = "") override;
+  std::vector<std::pair<std::string, std::string>> getInfo() override;
   void printInfo() override;
   void printInfoJson() override;
   bool getEepromPath(void) override;

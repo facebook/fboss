@@ -163,8 +163,7 @@ void WeutilDarwin::genSpiPrefdlFile(void) {
   }
 }
 
-std::vector<std::pair<std::string, std::string>> WeutilDarwin::getInfo(
-    const std::string&) {
+std::vector<std::pair<std::string, std::string>> WeutilDarwin::getInfo() {
   PrefdlBase prefdl(kPredfl);
 
   std::vector<std::pair<std::string, std::string>> ret;

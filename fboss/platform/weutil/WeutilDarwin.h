@@ -7,8 +7,7 @@ namespace facebook::fboss::platform {
 class WeutilDarwin : public WeutilInterface {
  public:
   WeutilDarwin(const std::string& eeprom = "");
-  std::vector<std::pair<std::string, std::string>> getInfo(
-      const std::string& eeprom = "") override;
+  std::vector<std::pair<std::string, std::string>> getInfo() override;
   void printInfo() override;
   void printInfoJson() override;
   bool getEepromPath(void) override;

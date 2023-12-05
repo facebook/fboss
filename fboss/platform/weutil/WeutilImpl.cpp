@@ -21,8 +21,7 @@ namespace facebook::fboss::platform {
 
 WeutilImpl::WeutilImpl(const WeutilInfo info) : info_(info) {}
 
-std::vector<std::pair<std::string, std::string>> WeutilImpl::getInfo(
-    const std::string& eeprom) {
+std::vector<std::pair<std::string, std::string>> WeutilImpl::getInfo() {
   return eepromParser.getEeprom(info_.eepromPath, info_.offset);
 }
 
