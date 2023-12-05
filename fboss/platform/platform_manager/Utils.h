@@ -14,6 +14,12 @@ class Utils {
   // No-op if parent directories already exist.
   // Returns true if created or already exist, otherwise false.
   bool createDirectories(const std::string& path);
+
+  // Extract (SlotPath, DeviceName) from DevicePath.
+  // Returns a pair of (SlotPath, DeviceName). Throws if DevicePath is invalid.
+  // Eg: /MCB_SLOT@0/[IDPROM] will return std::pair("/MCB_SLOT@0", "IDPROM")
+  std::pair<std::string, std::string> parseDevicePath(
+      const std::string& devicePath);
 };
 
 } // namespace facebook::fboss::platform::platform_manager

@@ -7,6 +7,7 @@
 
 #include <folly/FileUtil.h>
 #include <folly/logging/xlog.h>
+#include <re2/re2.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
 #include "fboss/platform/config_lib/ConfigLib.h"
@@ -17,6 +18,7 @@ namespace fs = std::filesystem;
 using namespace facebook::fboss::platform;
 
 namespace {
+const re2::RE2 kPmDeviceParseRe{"(?P<SlotPath>.*)\\[(?P<DeviceName>.*)\\]"};
 
 std::string getPlatformNameFromBios() {
   XLOG(INFO) << "Getting platform name from bios using dmedicode ...";
@@ -75,6 +77,21 @@ bool Utils::createDirectories(const std::string& path) {
         "Received error code {} from creating path {}", errCode.value(), path);
   }
   return errCode.value() == 0;
+}
+
+std::pair<std::string, std::string> Utils::parseDevicePath(
+    const std::string& devicePath) {
+  if (!ConfigValidator().isValidDevicePath(devicePath)) {
+    throw std::runtime_error(fmt::format("Invalid DevicePath {}", devicePath));
+  }
+  std::string slotPath, deviceName;
+  CHECK(RE2::FullMatch(devicePath, kPmDeviceParseRe, &slotPath, &deviceName));
+  // Remove trailling '/' (e.g /abc/dfg/)
+  CHECK_EQ(slotPath.back(), '/');
+  if (slotPath.length() > 1) {
+    slotPath.pop_back();
+  }
+  return {slotPath, deviceName};
 }
 
 } // namespace facebook::fboss::platform::platform_manager

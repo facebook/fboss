@@ -71,9 +71,9 @@ void PlatformExplorer::explore() {
   CHECK(pmUnitName == *platformConfig_.rootPmUnitName());
   explorePmUnit(kRootSlotPath, *platformConfig_.rootPmUnitName());
   XLOG(INFO) << "Creating symbolic links ...";
-  for (const auto& [linkPath, pmDevicePath] :
+  for (const auto& [linkPath, devicePath] :
        *platformConfig_.symbolicLinkToDevicePath()) {
-    createDeviceSymLink(linkPath, pmDevicePath);
+    createDeviceSymLink(linkPath, devicePath);
   }
   XLOG(INFO) << "SUCCESS. Completed setting up all the devices.";
 }
@@ -320,7 +320,7 @@ void PlatformExplorer::updateGpioChipNum(
 
 void PlatformExplorer::createDeviceSymLink(
     const std::string& linkPath,
-    const std::string& pmDevicePath) {
+    const std::string& devicePath) {
   auto linkParentPath = std::filesystem::path(linkPath).parent_path();
   if (!Utils().createDirectories(linkParentPath.string())) {
     XLOG(ERR) << fmt::format(
@@ -328,23 +328,7 @@ void PlatformExplorer::createDeviceSymLink(
     return;
   }
 
-  re2::RE2 re("(?P<SlotPath>.*)\\[(?P<DeviceName>.*)\\]", re2::RE2::Options{});
-  auto nsubmatch = re.NumberOfCapturingGroups() + 1;
-  std::vector<re2::StringPiece> submatches(nsubmatch);
-  re.Match(
-      pmDevicePath,
-      0,
-      pmDevicePath.length(),
-      re2::RE2::UNANCHORED,
-      submatches.data(),
-      nsubmatch);
-  std::string slotPath = submatches[1].as_string();
-  std::string deviceName = submatches[2].as_string();
-  // Remove trailling '/' (e.g /abc/dfg/)
-  if (slotPath.length() > 1) {
-    slotPath.pop_back();
-  }
-
+  const auto [slotPath, deviceName] = Utils().parseDevicePath(devicePath);
   if (slotPathToPmUnitName_.find(slotPath) == std::end(slotPathToPmUnitName_)) {
     XLOG(ERR) << fmt::format(
         "({}) doesn't have associated pm unit name", slotPath);
@@ -359,14 +343,14 @@ void PlatformExplorer::createDeviceSymLink(
   auto i2cDeviceConfig = std::find_if(
       pmUnitConfig.i2cDeviceConfigs()->begin(),
       pmUnitConfig.i2cDeviceConfigs()->end(),
-      [&](auto i2cDeviceConfig) {
-        return *i2cDeviceConfig.pmUnitScopedName() == deviceName;
+      [deviceNameCopy = deviceName](auto i2cDeviceConfig) {
+        return *i2cDeviceConfig.pmUnitScopedName() == deviceNameCopy;
       });
   auto pciDeviceConfig = std::find_if(
       pmUnitConfig.pciDeviceConfigs()->begin(),
       pmUnitConfig.pciDeviceConfigs()->end(),
-      [&](auto pciDeviceConfig) {
-        return *pciDeviceConfig.pmUnitScopedName() == deviceName;
+      [deviceNameCopy = deviceName](auto pciDeviceConfig) {
+        return *pciDeviceConfig.pmUnitScopedName() == deviceNameCopy;
       });
 
   std::optional<std::filesystem::path> targetPath = std::nullopt;
@@ -474,7 +458,7 @@ void PlatformExplorer::createDeviceSymLink(
       "Creating symlink from {} to {}. DevicePath: {}",
       linkPath,
       targetPath->string(),
-      pmDevicePath);
+      devicePath);
   auto cmd = fmt::format("ln -sfnv {} {}", targetPath->string(), linkPath);
   auto [exitStatus, standardOut] = PlatformUtils().execCommand(cmd);
   if (exitStatus != 0) {
