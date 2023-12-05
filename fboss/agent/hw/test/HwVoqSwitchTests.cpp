@@ -1307,8 +1307,10 @@ TEST_F(HwVoqSwitchFullScaleDsfNodesTest, systemPortScaleTest) {
 }
 
 TEST_F(HwVoqSwitchFullScaleDsfNodesTest, remoteNeighborWithEcmpGroup) {
-  auto kEcmpWidth = getMaxEcmpWidth(getAsic());
+  const auto kEcmpWidth = getMaxEcmpWidth(getAsic());
+  const auto kMaxDeviation = 25;
   FLAGS_ecmp_width = kEcmpWidth;
+  std::vector<PortDescriptor> sysPortDescs;
   auto setup = [&]() {
     applyNewState(utility::setupRemoteIntfAndSysPorts(
         getProgrammedState(), scopeResolver(), initialConfig()));
@@ -1318,11 +1320,12 @@ TEST_F(HwVoqSwitchFullScaleDsfNodesTest, remoteNeighborWithEcmpGroup) {
     applyNewConfig(initialConfig());
 
     // Resolve remote nhops and get a list of remote sysPort descriptors
-    auto sysPortDescs = resolveRemoteNhops(ecmpHelper);
+    sysPortDescs = resolveRemoteNhops(ecmpHelper);
 
     for (int i = 0; i < getMaxEcmpGroup(); i++) {
       auto prefix = RoutePrefixV6{
-          folly::IPAddressV6(folly::to<std::string>(i + 1, "::", i + 1)), 128};
+          folly::IPAddressV6(folly::to<std::string>(i, "::", i)),
+          static_cast<uint8_t>(i == 0 ? 0 : 128)};
       ecmpHelper.programRoutes(
           getRouteUpdater(),
           flat_set<PortDescriptor>(
@@ -1331,8 +1334,46 @@ TEST_F(HwVoqSwitchFullScaleDsfNodesTest, remoteNeighborWithEcmpGroup) {
           {prefix});
     }
   };
-  // TODO: Send and verify packets across voq drops.
-  verifyAcrossWarmBoots(setup, [] {});
+  auto verify = [&]() {
+    // Send and verify packets across voq drops.
+    auto defaultRouteSysPorts = std::vector<PortDescriptor>(
+        sysPortDescs.begin(), sysPortDescs.begin() + kEcmpWidth);
+    std::function<std::map<SystemPortID, HwSysPortStats>(
+        const std::vector<SystemPortID>&)>
+        getSysPortStatsFn = [&](const std::vector<SystemPortID>& portIds) {
+          return getLatestSysPortStats(portIds);
+        };
+    size_t pktSize = 0;
+    utility::pumpTrafficAndVerifyLoadBalanced(
+        [&]() {
+          pktSize = utility::pumpTraffic(
+              true, /* isV6 */
+              getHwSwitch(), /* hw */
+              utility::kLocalCpuMac(), /* dstMac */
+              std::nullopt, /* vlan */
+              std::nullopt, /* frontPanelPortToLoopTraffic */
+              255, /* hopLimit */
+              1000000 /* numPackets */);
+        },
+        [&]() {
+          auto ports = std::make_unique<std::vector<int32_t>>();
+          for (auto sysPortDecs : defaultRouteSysPorts) {
+            ports->push_back(static_cast<int32_t>(sysPortDecs.sysPortID()));
+          }
+          getHwSwitch()->clearPortStats(ports);
+        },
+        [&]() {
+          WITH_RETRIES(EXPECT_EVENTUALLY_TRUE(utility::isLoadBalanced(
+              defaultRouteSysPorts,
+              {},
+              getSysPortStatsFn,
+              kMaxDeviation,
+              false,
+              pktSize)));
+          return true;
+        });
+  };
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 TEST_F(HwVoqSwitchFullScaleDsfNodesTest, stressProgramEcmpRoutes) {
