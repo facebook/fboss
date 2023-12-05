@@ -1296,6 +1296,26 @@ class HwVoqSwitchFullScaleDsfNodesTest
     applyNewState(currState);
     return sysPortDescs;
   }
+
+  // Resolve and return list of local nhops (excluding recycle port)
+  std::vector<PortDescriptor> resolveLocalNhops(
+      utility::EcmpSetupTargetedPorts6& ecmpHelper) {
+    auto ports = getProgrammedState()->getSystemPorts()->getAllNodes();
+    std::vector<PortDescriptor> portDescs;
+    std::for_each(
+        ports->begin(), ports->end(), [&portDescs](const auto& idAndPort) {
+          if (idAndPort.second->getCorePortIndex() != 1) {
+            portDescs.push_back(
+                PortDescriptor(static_cast<SystemPortID>(idAndPort.first)));
+          }
+        });
+    auto currState = getProgrammedState();
+    for (const auto& portDesc : portDescs) {
+      currState = ecmpHelper.resolveNextHops(currState, {portDesc});
+    }
+    applyNewState(currState);
+    return portDescs;
+  }
 };
 
 TEST_F(HwVoqSwitchFullScaleDsfNodesTest, systemPortScaleTest) {
