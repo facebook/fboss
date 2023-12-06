@@ -71,5 +71,8 @@ std::unique_ptr<WedgeManager> createMorgan800ccWedgeManager(
 std::unique_ptr<WedgeManager> createJanga800bicWedgeManager(
     const std::string& platformMappingStr);
 
+std::unique_ptr<WedgeManager> createTahan800bcWedgeManager(
+    const std::string& platformMappingStr);
+
 } // namespace fboss
 } // namespace facebook

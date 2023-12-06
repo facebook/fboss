@@ -32,6 +32,7 @@
 #include "fboss/agent/platforms/common/montblanc/MontblancPlatformMapping.h"
 #include "fboss/agent/platforms/common/morgan800cc/Morgan800ccPlatformMapping.h"
 #include "fboss/agent/platforms/common/sandia/SandiaPlatformMapping.h"
+#include "fboss/agent/platforms/common/tahan800bc/Tahan800bcPlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge100/Wedge100PlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge40/Wedge40PlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge400/Wedge400GrandTetonPlatformMapping.h"
@@ -126,6 +127,10 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
       return platformMappingStr.empty()
           ? std::make_unique<Janga800bicPlatformMapping>()
           : std::make_unique<Janga800bicPlatformMapping>(platformMappingStr);
+    case PlatformType::PLATFORM_TAHAN800BC:
+      return platformMappingStr.empty()
+          ? std::make_unique<Tahan800bcPlatformMapping>()
+          : std::make_unique<Tahan800bcPlatformMapping>(platformMappingStr);
     case PlatformType::PLATFORM_FAKE_WEDGE:
     case PlatformType::PLATFORM_FAKE_WEDGE40:
       return platformMappingStr.empty()

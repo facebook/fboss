@@ -104,6 +104,8 @@ TEST_F(HwOverflowTest, overflowRoutes) {
       break;
     case PlatformType::PLATFORM_JANGA800BIC:
       break;
+    case PlatformType::PLATFORM_TAHAN800BC:
+      break;
   }
   if (routeChunks.size() == 0) {
     return;

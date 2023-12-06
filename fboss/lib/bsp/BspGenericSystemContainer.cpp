@@ -11,6 +11,7 @@
 #include "fboss/lib/bsp/meru800bia/Meru800biaBspPlatformMapping.h"
 #include "fboss/lib/bsp/montblanc/MontblancBspPlatformMapping.h"
 #include "fboss/lib/bsp/morgan800cc/Morgan800ccBspPlatformMapping.h"
+#include "fboss/lib/bsp/tahan800bc/Tahan800bcBspPlatformMapping.h"
 
 DEFINE_string(
     bsp_platform_mapping_override_path,
@@ -101,6 +102,7 @@ std::shared_ptr<Morgan800ccSystemContainer>
 Morgan800ccSystemContainer::getInstance() {
   return _morgan800ccSystemContainer.try_get();
 }
+
 using Janga800bicSystemContainer =
     BspGenericSystemContainer<Janga800bicBspPlatformMapping>;
 folly::Singleton<Janga800bicSystemContainer> _janga800bicSystemContainer;
@@ -108,6 +110,15 @@ template <>
 std::shared_ptr<Janga800bicSystemContainer>
 Janga800bicSystemContainer::getInstance() {
   return _janga800bicSystemContainer.try_get();
+}
+
+using Tahan800bcSystemContainer =
+    BspGenericSystemContainer<Tahan800bcBspPlatformMapping>;
+folly::Singleton<Tahan800bcSystemContainer> _tahan800bcSystemContainer;
+template <>
+std::shared_ptr<Tahan800bcSystemContainer>
+Tahan800bcSystemContainer::getInstance() {
+  return _tahan800bcSystemContainer.try_get();
 }
 
 } // namespace fboss
