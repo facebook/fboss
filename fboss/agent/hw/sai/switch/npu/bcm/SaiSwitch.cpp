@@ -358,7 +358,7 @@ void SaiSwitch::switchEventCallback(
       } else if (epniError) {
         getSwitchStats()->epniError();
       } else if (alignerError) {
-        // TODO
+        getSwitchStats()->alignerError();
       }
     } break;
 #endif
