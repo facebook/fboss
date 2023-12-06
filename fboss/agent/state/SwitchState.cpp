@@ -57,11 +57,6 @@ DEFINE_bool(
     false,
     "Allow multiple acl tables (acl table group)");
 
-DEFINE_bool(
-    sai_user_defined_trap,
-    false,
-    "Flag to use user defined trap when programming ACL action to punt packets to cpu queue.");
-
 /*
  * VOQ switches require that the packets are not tagged with VLAN.
  * We are gradually enhancing the wedge_agent to handle tagged as well as
