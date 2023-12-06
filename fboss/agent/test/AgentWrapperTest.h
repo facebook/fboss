@@ -6,6 +6,8 @@
 
 namespace facebook::fboss {
 
+class AgentNetWhoAmI;
+
 class AgentWrapperTest : public ::testing::Test {
  public:
   void SetUp() override;
@@ -22,5 +24,6 @@ class AgentWrapperTest : public ::testing::Test {
   void waitForStop();
 
   AgentDirectoryUtil util_;
+  std::unique_ptr<AgentNetWhoAmI> whoami_;
 };
 } // namespace facebook::fboss

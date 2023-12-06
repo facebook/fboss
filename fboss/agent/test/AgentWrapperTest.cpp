@@ -6,20 +6,31 @@
 #include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 #include "tupperware/agent/system/systemd/Service.h"
 
+#include <folly/FileUtil.h>
 #include <folly/init/Init.h>
 #include <folly/logging/Init.h>
 #include <folly/logging/xlog.h>
 
 #include "fboss/lib/CommonUtils.h"
 
+#include "fboss/agent/AgentNetWhoAmI.h"
+#include "fboss/lib/CommonFileUtils.h"
+
+#include <thread>
+
 DEFINE_int32(num_retries, 5, "number of retries for agent to start");
-DEFINE_int32(wait_timeout, 5, "number of seconds to wait before retry");
+DEFINE_int32(wait_timeout, 15, "number of seconds to wait before retry");
 
 namespace facebook::fboss {
 
-void AgentWrapperTest::SetUp() {}
+void AgentWrapperTest::SetUp() {
+  whoami_ = std::make_unique<AgentNetWhoAmI>();
+  createDirectoryTree(util_.getWarmBootDir());
+}
 
-void AgentWrapperTest::TearDown() {}
+void AgentWrapperTest::TearDown() {
+  stop();
+}
 
 void AgentWrapperTest::start() {
   AgentCommandExecutor executor;
@@ -78,7 +89,32 @@ void AgentWrapperTest::waitForStop() {
       });
 }
 
-TEST_F(AgentWrapperTest, StartAndStop) {
+TEST_F(AgentWrapperTest, ColdBootStartAndStop) {
+  auto drainTimeFile = util_.getRoutingProtocolColdBootDrainTimeFile();
+  std::vector<char> data = {'0', '5'};
+  if (!whoami_->isNotDrainable() && !whoami_->isFdsw()) {
+    touchFile(drainTimeFile);
+    folly::writeFile(data, drainTimeFile.c_str());
+  }
+  touchFile(util_.getColdBootOnceFile());
+  touchFile(util_.getUndrainedFlag());
+  start();
+  waitForStart();
+  if (!whoami_->isNotDrainable() && !whoami_->isFdsw()) {
+    EXPECT_FALSE(checkFileExists(drainTimeFile));
+  }
+  stop();
+  waitForStop();
+  removeFile(util_.getRoutingProtocolColdBootDrainTimeFile());
+  removeFile(util_.getUndrainedFlag());
+}
+
+TEST_F(AgentWrapperTest, StartAndStopAndStart) {
+  touchFile(util_.getColdBootOnceFile());
+  start();
+  waitForStart();
+  stop();
+  waitForStop();
   start();
   waitForStart();
   stop();
