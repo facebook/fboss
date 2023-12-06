@@ -241,9 +241,6 @@ bool QsfpModule::upgradeFirmware(const std::optional<cfg::Firmware>& fw) {
 bool QsfpModule::upgradeFirmwareLocked(const std::optional<cfg::Firmware>& fw) {
   QSFP_LOG(INFO, this) << "Upgrading firmware";
 
-  // Mark the module dirty so that we can refresh the entire cache later
-  dirty_ = true;
-
   cfg::Firmware fwToUpgrade;
   if (fw.has_value()) {
     fwToUpgrade = fw.value();
@@ -298,6 +295,10 @@ bool QsfpModule::upgradeFirmwareLocked(const std::optional<cfg::Firmware>& fw) {
       QSFP_LOG(ERR, this) << "Failed to disable tx on port : " << e.what()
                           << " : Still continuing with firmware upgrade";
     }
+
+    // Mark the module dirty so that we can refresh the entire cache
+    // later
+    dirty_ = true;
 
     for (const auto& fwVersion : *fwToUpgrade.versions()) {
       QSFP_LOG(INFO, this) << folly::sformat(
