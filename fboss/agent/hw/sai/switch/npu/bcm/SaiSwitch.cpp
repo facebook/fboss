@@ -202,9 +202,7 @@ bool isIreErrorType(sai_switch_error_type_t type) {
   }
   return false;
 }
-#endif
 
-#if defined BRCM_SAI_SDK_GTE_11_0
 bool isItppError(sai_switch_error_type_t type) {
   switch (type) {
     case SAI_SWITCH_ERROR_TYPE_ITPP_ECC:
@@ -219,6 +217,31 @@ bool isItppError(sai_switch_error_type_t type) {
     case SAI_SWITCH_ERROR_TYPE_ITPPD_PSIZE_TYPE_2_MISMATCH:
     case SAI_SWITCH_ERROR_TYPE_ITPPD_PSIZE_TYPE_3_MISMATCH:
     case SAI_SWITCH_ERROR_TYPE_ITPPD_PSIZE_TYPE_4_MISMATCH:
+      return true;
+    default:
+      break;
+  }
+  return false;
+}
+
+bool isEpniError(sai_switch_error_type_t type) {
+  switch (type) {
+    case SAI_SWITCH_ERROR_TYPE_EPNI_ERROR_ECC:
+    case SAI_SWITCH_ERROR_TYPE_EPNI_POST_MIRR_OVF_INT:
+    case SAI_SWITCH_ERROR_TYPE_EPNI_RCYM_OVF_INT:
+    case SAI_SWITCH_ERROR_TYPE_EPNI_POST_MIRR_DROP_INT:
+    case SAI_SWITCH_ERROR_TYPE_EPNI_IRE_WFQ_SAT_INT:
+    case SAI_SWITCH_ERROR_TYPE_EPNI_IRE_WFQ_UDP_INT:
+    case SAI_SWITCH_ERROR_TYPE_EPNI_FIFO_UNDERFLOW_INT:
+    case SAI_SWITCH_ERROR_TYPE_EPNI_FIFO_OVERFLOW_INT:
+    case SAI_SWITCH_ERROR_TYPE_EPNI_RXI_OVERFLOW_INT:
+    case SAI_SWITCH_ERROR_TYPE_EPNI_FWD_APPEND_HEADER_INT:
+    case SAI_SWITCH_ERROR_TYPE_EPNI_RCY_APPEND_HEADER_INT:
+    case SAI_SWITCH_ERROR_TYPE_EPNI_SMALL_PACKET_HEADER_STRIP:
+    case SAI_SWITCH_ERROR_TYPE_EPNI_ILLEGAL_IFC_NUMBER_INT:
+    case SAI_SWITCH_ERROR_TYPE_EPNI_VISIBILITY_PACKET_ENDED:
+    case SAI_SWITCH_ERROR_TYPE_EPNI_ECC_ECC_1B_ERR_INT:
+    case SAI_SWITCH_ERROR_TYPE_EPNI_ECC_ECC_2B_ERR_INT:
       return true;
     default:
       break;
