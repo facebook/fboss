@@ -10,6 +10,7 @@
 #include "fboss/lib/bsp/meru800bfa/Meru800bfaBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru800bia/Meru800biaBspPlatformMapping.h"
 #include "fboss/lib/bsp/morgan800cc/Morgan800ccBspPlatformMapping.h"
+#include "fboss/lib/bsp/tahan800bc/Tahan800bcBspPlatformMapping.h"
 #include "fboss/lib/fpga/Wedge400I2CBus.h"
 #include "fboss/lib/fpga/Wedge400TransceiverApi.h"
 #include "fboss/lib/platforms/PlatformMode.h"
@@ -79,6 +80,12 @@ std::pair<std::unique_ptr<TransceiverI2CApi>, int> getTransceiverAPI() {
       auto systemContainer = BspGenericSystemContainer<
                                  Janga800bicBspPlatformMapping>::getInstance()
                                  .get();
+      auto ioBus = std::make_unique<BspIOBus>(systemContainer);
+      return std::make_pair(std::move(ioBus), 0);
+    } else if (FLAGS_platform == "tahan800bc") {
+      auto systemContainer =
+          BspGenericSystemContainer<Tahan800bcBspPlatformMapping>::getInstance()
+              .get();
       auto ioBus = std::make_unique<BspIOBus>(systemContainer);
       return std::make_pair(std::move(ioBus), 0);
     } else {
@@ -166,6 +173,8 @@ getTransceiverPlatformAPI(TransceiverI2CApi* i2cBus) {
       mode = PlatformType::PLATFORM_WEDGE400C;
     } else if (FLAGS_platform == "janga800bic") {
       mode = PlatformType::PLATFORM_JANGA800BIC;
+    } else if (FLAGS_platform == "tahan800bc") {
+      mode = PlatformType::PLATFORM_TAHAN800BC;
     }
   } else {
     // If the platform is not provided by the user then use current hardware's
