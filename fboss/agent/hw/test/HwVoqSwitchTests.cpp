@@ -147,6 +147,44 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
     return SystemPortID(port.intID() + *sysPortRange->minimum());
   }
 
+  // API to send a local service discovery packet which is an IPv6
+  // multicast paket with UDP payload. This packet with a destination
+  // MAC as the unicast NIF port MAC helps recreate CS00012323788.
+  void sendLocalServiceDiscoveryMulticastPacket(
+      const PortID outPort,
+      const int numPackets) {
+    auto vlanId = utility::firstVlanID(initialConfig());
+    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto srcIp = folly::IPAddressV6("fe80::ff:fe00:f0b");
+    auto dstIp = folly::IPAddressV6("ff15::efc0:988f");
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+    std::vector<uint8_t> serviceDiscoveryPayload = {
+        0x42, 0x54, 0x2d, 0x53, 0x45, 0x41, 0x52, 0x43, 0x48, 0x20, 0x2a, 0x20,
+        0x48, 0x54, 0x54, 0x50, 0x2f, 0x31, 0x2e, 0x31, 0x0d, 0x0a, 0x48, 0x6f,
+        0x73, 0x74, 0x3a, 0x20, 0x5b, 0x66, 0x66, 0x31, 0x35, 0x3a, 0x3a, 0x65,
+        0x66, 0x63, 0x30, 0x3a, 0x39, 0x38, 0x38, 0x66, 0x5d, 0x3a, 0x36, 0x37,
+        0x37, 0x31, 0x0d, 0x0a, 0x50, 0x6f, 0x72, 0x74, 0x3a, 0x20, 0x36, 0x38,
+        0x38, 0x31, 0x0d, 0x0a, 0x49, 0x6e, 0x66, 0x6f, 0x68, 0x61, 0x73, 0x68,
+        0x3a, 0x20, 0x61, 0x66, 0x31, 0x37, 0x34, 0x36, 0x35, 0x39, 0x64, 0x37,
+        0x31, 0x31, 0x38, 0x64, 0x32, 0x34, 0x34, 0x61, 0x30, 0x36, 0x31, 0x33};
+    for (int i = 0; i < numPackets; i++) {
+      auto txPacket = utility::makeUDPTxPacket(
+          getHwSwitch(),
+          vlanId,
+          srcMac,
+          intfMac,
+          srcIp,
+          dstIp,
+          6771,
+          6771,
+          0,
+          254,
+          serviceDiscoveryPayload);
+      getHwSwitch()->sendPacketOutOfPortSync(std::move(txPacket), outPort);
+      ;
+    }
+  }
+
   int sendPacket(
       const folly::IPAddressV6& dstIp,
       std::optional<PortID> frontPanelPort,
