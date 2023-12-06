@@ -519,6 +519,38 @@ TEST_F(HwVoqSwitchWithFabricPortsTest, checkFabricPortSpray) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(HwVoqSwitchWithFabricPortsTest, verifyNifMulticastTrafficDropped) {
+  constexpr static auto kNumPacketsToSend{1000};
+  auto setup = []() {};
+
+  auto verify = [this]() {
+    auto beforePkts = getLatestPortStats(masterLogicalInterfacePortIds()[0])
+                          .get_outUnicastPkts_();
+    sendLocalServiceDiscoveryMulticastPacket(
+        masterLogicalInterfacePortIds()[0], kNumPacketsToSend);
+    WITH_RETRIES({
+      auto afterPkts = getLatestPortStats(masterLogicalInterfacePortIds()[0])
+                           .get_outUnicastPkts_();
+      XLOG(DBG2) << "Before pkts: " << beforePkts
+                 << " After pkts: " << afterPkts;
+      EXPECT_EVENTUALLY_GE(afterPkts, beforePkts + kNumPacketsToSend);
+    });
+
+    // Wait for some time and make sure that fabric stats dont increment.
+    sleep(5);
+    auto fabricPortStats = getLatestPortStats(masterLogicalFabricPortIds());
+    auto fabricBytes = 0;
+    for (const auto& idAndStats : fabricPortStats) {
+      fabricBytes += idAndStats.second.get_outBytes_();
+    }
+    // Even though NIF will see RX/TX bytes, fabric will always be zero
+    // as these packets are expected to be dropped without being sent
+    // out on fabric.
+    EXPECT_EQ(fabricBytes, 0);
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 TEST_F(HwVoqSwitchTest, addRemoveNeighbor) {
   auto setup = [this]() {
     const PortDescriptor kPort(
