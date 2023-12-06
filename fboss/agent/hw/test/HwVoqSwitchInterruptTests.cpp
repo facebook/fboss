@@ -124,4 +124,41 @@ TEST_F(HwVoqSwitchInterruptTest, epniError) {
   verifyAcrossWarmBoots([]() {}, verify);
 }
 
+TEST_F(HwVoqSwitchInterruptTest, alignerError) {
+  auto verify = [=, this]() {
+    constexpr auto kAlignerErrorIncjectorCintStr = R"(
+  cint_reset();
+  bcm_switch_event_control_t event_ctrl;
+  event_ctrl.event_id = 8;  // JR3_INT_ALIGNER_PKT_SIZE_EOP_MISMATCH_INT
+  event_ctrl.index = 0; /* core ID */
+  event_ctrl.action = bcmSwitchEventForce;
+  print bcm_switch_event_control_set(0, BCM_SWITCH_EVENT_DEVICE_INTERRUPT, event_ctrl, 1);
+  )";
+    folly::test::TemporaryFile file;
+    XLOG(INFO) << " Cint file " << file.path().c_str();
+    folly::writeFull(
+        file.fd(),
+        kAlignerErrorIncjectorCintStr,
+        std::strlen(kAlignerErrorIncjectorCintStr));
+    std::string out;
+    getHwSwitchEnsemble()->runDiagCommand(
+        folly::sformat("cint {}\n", file.path().c_str()), out);
+    getHwSwitchEnsemble()->runDiagCommand("quit\n", out);
+    WITH_RETRIES({
+      getHwSwitch()->updateStats();
+      fb303::ThreadCachedServiceData::get()->publishStats();
+      auto alignerErrors = getHwSwitch()
+                               ->getSwitchStats()
+                               ->getHwAsicErrors()
+                               .alignerErrors()
+                               .value_or(0);
+      XLOG(INFO) << " Aligner Errors: " << alignerErrors;
+      EXPECT_EVENTUALLY_GT(alignerErrors, 0);
+      EXPECT_EVENTUALLY_GT(
+          getHwSwitch()->getSwitchStats()->getAlignerErrors(), 0);
+    });
+  };
+  verifyAcrossWarmBoots([]() {}, verify);
+}
+
 } // namespace facebook::fboss
