@@ -292,12 +292,15 @@ void SaiSwitch::switchEventCallback(
     case SAI_SWITCH_EVENT_TYPE_INTERRUPT: {
       auto ireError = isIreErrorType(eventInfo->error_type);
       auto itppError = isItppError(eventInfo->error_type);
+      auto epniError = isEpniError(eventInfo->error_type);
       XLOG(ERR) << " Got interrupt event, is IRE: " << ireError
-                << " is ITPP: " << itppError;
+                << " is ITPP: " << itppError << " is EPNI: " << epniError;
       if (ireError) {
         getSwitchStats()->ireError();
       } else if (itppError) {
         getSwitchStats()->itppError();
+      } else if (epniError) {
+        getSwitchStats()->epniError();
       }
     } break;
 #endif
