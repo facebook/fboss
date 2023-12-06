@@ -273,8 +273,9 @@ bool QsfpModule::upgradeFirmwareLocked(const std::optional<cfg::Firmware>& fw) {
 
   lastFwUpgradeStartTime_ = std::time(nullptr);
   { // Start of firmware upgrade
-    // Disable TX before upgrading the firmware. This helps keeps the link down
-    // during upgrade and avoid noise
+
+    // Step 1: Disable TX before upgrading the firmware. This helps keeps the
+    // link down during upgrade and avoid noise
     try {
       std::set<uint8_t> allTcvrLineLanes;
       for (uint8_t lane = 0; lane < numMediaLanes(); lane++) {
@@ -296,10 +297,15 @@ bool QsfpModule::upgradeFirmwareLocked(const std::optional<cfg::Firmware>& fw) {
                           << " : Still continuing with firmware upgrade";
     }
 
-    // Mark the module dirty so that we can refresh the entire cache
+    // Step 2: First ensure the module is out of lower mode
+    TransceiverSettings settings = getTransceiverSettingsInfo();
+    setPowerOverrideIfSupportedLocked(*settings.powerControl());
+
+    // Step 3: Mark the module dirty so that we can refresh the entire cache
     // later
     dirty_ = true;
 
+    // Step 4: Upgrade Firmware
     for (const auto& fwVersion : *fwToUpgrade.versions()) {
       QSFP_LOG(INFO, this) << folly::sformat(
           "Upgrading module firmware. Type={:s}, Version={:s}",
