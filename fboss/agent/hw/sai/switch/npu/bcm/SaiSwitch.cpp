@@ -278,6 +278,30 @@ bool isEpniError(sai_switch_error_type_t type) {
   }
   return false;
 }
+
+bool isAlignerErrorType(sai_switch_error_type_t type) {
+  switch (type) {
+    case SAI_SWITCH_ERROR_TYPE_ALIGNER_ERROR_ECC:
+    case SAI_SWITCH_ERROR_TYPE_ALIGNER_ETPP_INC_ABOVE_TH_INT:
+    case SAI_SWITCH_ERROR_TYPE_ALIGNER_ETPP_SOP_DEC_ABOVE_TH_INT:
+    case SAI_SWITCH_ERROR_TYPE_ALIGNER_ETPP_EOP_DEC_ABOVE_TH_INT:
+    case SAI_SWITCH_ERROR_TYPE_ALIGNER_ETPP_TAIL_ABOVE_INC_INT:
+    case SAI_SWITCH_ERROR_TYPE_ALIGNER_ETPP_TOTAL_DEC_ABOVE_PKT_SIZE_INT:
+    case SAI_SWITCH_ERROR_TYPE_ALIGNER_ETPP_PKT_INC_ABOVE_MAX_PKT_SIZE_INT:
+    case SAI_SWITCH_ERROR_TYPE_ALIGNER_ETPP_TAIL_ABOVE_TH_INT:
+    case SAI_SWITCH_ERROR_TYPE_ALIGNER_PKT_SIZE_EOP_MISMATCH_INT:
+    case SAI_SWITCH_ERROR_TYPE_ALIGNER_ETPP_TOO_SMALL_AFTER_EDIT:
+    case SAI_SWITCH_ERROR_TYPE_ALIGNER_SMALL_CROPPED_MIRR_HEADER:
+    case SAI_SWITCH_ERROR_TYPE_ALIGNER_FIFO_UNDERFLOW_INT:
+    case SAI_SWITCH_ERROR_TYPE_ALIGNER_FIFO_OVERFLOW_INT:
+    case SAI_SWITCH_ERROR_TYPE_ALIGNER_ECC_ECC_1B_ERR_INT:
+    case SAI_SWITCH_ERROR_TYPE_ALIGNER_ECC_ECC_2B_ERR_INT:
+      return true;
+    default:
+      break;
+  }
+  return false;
+}
 #endif
 
 } // namespace
@@ -323,14 +347,18 @@ void SaiSwitch::switchEventCallback(
       auto ireError = isIreErrorType(eventInfo->error_type);
       auto itppError = isItppError(eventInfo->error_type);
       auto epniError = isEpniError(eventInfo->error_type);
+      auto alignerError = isAlignerErrorType(eventInfo->error_type);
       XLOG(ERR) << " Got interrupt event, is IRE: " << ireError
-                << " is ITPP: " << itppError << " is EPNI: " << epniError;
+                << " is ITPP: " << itppError << " is EPNI: " << epniError
+                << " is Aligner: " << alignerError;
       if (ireError) {
         getSwitchStats()->ireError();
       } else if (itppError) {
         getSwitchStats()->itppError();
       } else if (epniError) {
         getSwitchStats()->epniError();
+      } else if (alignerError) {
+        // TODO
       }
     } break;
 #endif
