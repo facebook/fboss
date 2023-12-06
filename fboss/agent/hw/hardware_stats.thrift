@@ -207,6 +207,7 @@ struct HwAsicErrors {
   5: optional i64 ingressReceiveEditorErrors;
   6: optional i64 ingressTransmitPipelineErrors;
   7: optional i64 egressPacketNetworkInterfaceErrors;
+  8: optional i64 alignerErrors;
 }
 
 struct HwTeFlowStats {

@@ -18224,14 +18224,16 @@ std::pair<strings::uncorrectedParityErrors, Child<::std::int64_t, ::apache::thri
 std::pair<strings::asicErrors, Child<::std::int64_t, ::apache::thrift::type_class::integral>>,
 std::pair<strings::ingressReceiveEditorErrors, Child<::std::int64_t, ::apache::thrift::type_class::integral>>,
 std::pair<strings::ingressTransmitPipelineErrors, Child<::std::int64_t, ::apache::thrift::type_class::integral>>,
-std::pair<strings::egressPacketNetworkInterfaceErrors, Child<::std::int64_t, ::apache::thrift::type_class::integral>>>;
+std::pair<strings::egressPacketNetworkInterfaceErrors, Child<::std::int64_t, ::apache::thrift::type_class::integral>>,
+std::pair<strings::alignerErrors, Child<::std::int64_t, ::apache::thrift::type_class::integral>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::std::int64_t, ::apache::thrift::type_class::integral>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::std::int64_t, ::apache::thrift::type_class::integral>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<::std::int64_t, ::apache::thrift::type_class::integral>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 4>, Child<::std::int64_t, ::apache::thrift::type_class::integral>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 5>, Child<::std::int64_t, ::apache::thrift::type_class::integral>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 6>, Child<::std::int64_t, ::apache::thrift::type_class::integral>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 7>, Child<::std::int64_t, ::apache::thrift::type_class::integral>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 7>, Child<::std::int64_t, ::apache::thrift::type_class::integral>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 8>, Child<::std::int64_t, ::apache::thrift::type_class::integral>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::parityErrors, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::correctedParityErrors, std::integral_constant<apache::thrift::field_id_t, 2>>,
@@ -18239,7 +18241,8 @@ std::pair<strings::uncorrectedParityErrors, std::integral_constant<apache::thrif
 std::pair<strings::asicErrors, std::integral_constant<apache::thrift::field_id_t, 4>>,
 std::pair<strings::ingressReceiveEditorErrors, std::integral_constant<apache::thrift::field_id_t, 5>>,
 std::pair<strings::ingressTransmitPipelineErrors, std::integral_constant<apache::thrift::field_id_t, 6>>,
-std::pair<strings::egressPacketNetworkInterfaceErrors, std::integral_constant<apache::thrift::field_id_t, 7>>>::template type_of<Name>;
+std::pair<strings::egressPacketNetworkInterfaceErrors, std::integral_constant<apache::thrift::field_id_t, 7>>,
+std::pair<strings::alignerErrors, std::integral_constant<apache::thrift::field_id_t, 8>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -18259,6 +18262,7 @@ std::pair<strings::egressPacketNetworkInterfaceErrors, std::integral_constant<ap
     STRUCT_CHILD_GETTERS(ingressReceiveEditorErrors, 5);
     STRUCT_CHILD_GETTERS(ingressTransmitPipelineErrors, 6);
     STRUCT_CHILD_GETTERS(egressPacketNetworkInterfaceErrors, 7);
+    STRUCT_CHILD_GETTERS(alignerErrors, 8);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -18269,6 +18273,7 @@ std::pair<strings::egressPacketNetworkInterfaceErrors, std::integral_constant<ap
     else if constexpr (__id == 5) { return ingressReceiveEditorErrors(); }
     else if constexpr (__id == 6) { return ingressTransmitPipelineErrors(); }
     else if constexpr (__id == 7) { return egressPacketNetworkInterfaceErrors(); }
+    else if constexpr (__id == 8) { return alignerErrors(); }
   }
 
   template <typename T, T... Values>
