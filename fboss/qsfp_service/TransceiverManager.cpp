@@ -1154,7 +1154,7 @@ void TransceiverManager::triggerFirmwareUpgradeEvents(
   heartbeatWatchdog_->pauseMonitoringHeartbeat(updateThreadHeartbeat_);
   waitForAllBlockingStateUpdateDone(results);
 
-  resetUpgradedTransceiversToNotPresent();
+  resetUpgradedTransceiversToDiscovered();
 }
 
 void TransceiverManager::updateTransceiverActiveState(
@@ -1239,24 +1239,24 @@ void TransceiverManager::updateTransceiverActiveState(
       << " transceivers need to update port status.";
 }
 
-void TransceiverManager::resetUpgradedTransceiversToNotPresent() {
+void TransceiverManager::resetUpgradedTransceiversToDiscovered() {
   BlockingStateUpdateResultList results;
   std::vector<TransceiverID> tcvrsToReset;
   for (auto& stateMachine : stateMachines_) {
     const auto& lockedStateMachine =
         stateMachine.second->getStateMachine().rlock();
-    if (lockedStateMachine->get_attribute(needToResetToNotPresent)) {
+    if (lockedStateMachine->get_attribute(needToResetToDiscovered)) {
       tcvrsToReset.push_back(stateMachine.first);
     }
   }
 
   if (!tcvrsToReset.empty()) {
     XLOG(INFO)
-        << "Resetting the following transceivers to NOT_PRESENT since they were recently upgraded: "
+        << "Resetting the following transceivers to DISCOVERED since they were recently upgraded: "
         << folly::join(",", tcvrsToReset);
     for (auto tcvrID : tcvrsToReset) {
       TransceiverStateMachineEvent event =
-          TransceiverStateMachineEvent::TCVR_EV_RESET_TO_NOT_PRESENT;
+          TransceiverStateMachineEvent::TCVR_EV_RESET_TO_DISCOVERED;
       if (auto result = updateStateBlockingWithoutWait(tcvrID, event)) {
         results.push_back(result);
       }

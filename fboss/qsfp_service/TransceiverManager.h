@@ -461,7 +461,7 @@ class TransceiverManager {
 
   void doTransceiverFirmwareUpgrade(TransceiverID tcvrID);
 
-  void resetUpgradedTransceiversToNotPresent();
+  void resetUpgradedTransceiversToDiscovered();
 
   FbossFwStorage* fwStorage() const {
     return fwStorage_.get();

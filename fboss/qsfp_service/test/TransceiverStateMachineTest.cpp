@@ -1751,7 +1751,8 @@ TEST_F(TransceiverStateMachineTest, agentConfigChangedWarmBoot) {
        TransceiverStateMachineState::TRANSCEIVER_READY,
        TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
        TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED,
-       TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED},
+       TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED,
+       TransceiverStateMachineState::UPGRADING},
       TransceiverStateMachineState::DISCOVERED /* expected state */,
       allStates,
       []() {} /* preUpdate */,
@@ -1792,7 +1793,8 @@ TEST_F(TransceiverStateMachineTest, agentConfigChangedColdBoot) {
        TransceiverStateMachineState::TRANSCEIVER_READY,
        TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED,
        TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED,
-       TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED},
+       TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED,
+       TransceiverStateMachineState::UPGRADING},
       TransceiverStateMachineState::DISCOVERED /* expected state */,
       allStates,
       [this]() {
@@ -2209,9 +2211,8 @@ TEST_F(TransceiverStateMachineTest, upgradeFirmware) {
     auto allStates = getAllStates();
     verifyStateMachine(
         {TransceiverStateMachineState::UPGRADING,
-         TransceiverStateMachineState::DISCOVERED,
          TransceiverStateMachineState::INACTIVE},
-        TransceiverStateMachineState::NOT_PRESENT /* expected state */,
+        TransceiverStateMachineState::DISCOVERED /* expected state */,
         allStates,
         []() {} /* preUpdate */,
         [this]() {
@@ -2221,11 +2222,11 @@ TEST_F(TransceiverStateMachineTest, upgradeFirmware) {
         [this]() {
           const auto& stateMachine =
               transceiverManager_->getStateMachineForTesting(id_);
-          // We should set needToResetToNotPresent in the entry to UPGRADING
+          // We should set needToResetToDiscovered in the entry to UPGRADING
           // state. However, we revert it to false on entry into the NOT_PRESENT
           // state. In the verify function, the state should be NOT_PRESENT.
-          // Hence expect needToResetToNotPresent to be false
-          EXPECT_FALSE(stateMachine.get_attribute(needToResetToNotPresent));
+          // Hence expect needToResetToDiscovered to be false
+          EXPECT_FALSE(stateMachine.get_attribute(needToResetToDiscovered));
           enableTransceiverFirmwareUpgradeTesting(false);
         } /* verify */,
         multiPort,
