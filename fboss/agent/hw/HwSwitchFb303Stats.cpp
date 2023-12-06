@@ -97,7 +97,8 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           map,
           getCounterPrefix() + "fabric_reachability_mismatch"),
       ireErrors_(map, getCounterPrefix() + vendor + "ire_errors", SUM, RATE),
-      itppErrors_(map, getCounterPrefix() + vendor + "itpp_errors", SUM, RATE) {
+      itppErrors_(map, getCounterPrefix() + vendor + "itpp_errors", SUM, RATE),
+      epniErrors_(map, getCounterPrefix() + vendor + "epni_errors", SUM, RATE) {
 }
 
 void HwSwitchFb303Stats::update(const HwSwitchDropStats& dropStats) {
@@ -141,6 +142,10 @@ int64_t HwSwitchFb303Stats::getItppErrors() const {
   return getCumulativeValue(itppErrors_);
 }
 
+int64_t HwSwitchFb303Stats::getEpniErrors() const {
+  return getCumulativeValue(epniErrors_);
+}
+
 HwAsicErrors HwSwitchFb303Stats::getHwAsicErrors() const {
   HwAsicErrors asicErrors;
   asicErrors.parityErrors() = getCumulativeValue(parityErrors_);
@@ -150,7 +155,8 @@ HwAsicErrors HwSwitchFb303Stats::getHwAsicErrors() const {
   asicErrors.asicErrors() = getCumulativeValue(asicErrors_);
   asicErrors.ingressReceiveEditorErrors() = getCumulativeValue(ireErrors_);
   asicErrors.ingressTransmitPipelineErrors() = getCumulativeValue(itppErrors_);
-
+  asicErrors.egressPacketNetworkInterfaceErrors() =
+      getCumulativeValue(epniErrors_);
   return asicErrors;
 }
 

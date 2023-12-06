@@ -68,13 +68,15 @@ class HwSwitchFb303Stats {
   void itppError() {
     itppErrors_.addValue(1);
   }
+  void epniError() {
+    epniErrors_.addValue(1);
+  }
 
   void fabricReachabilityMissingCount(int64_t value);
   void fabricReachabilityMismatchCount(int64_t value);
 
   void update(const HwSwitchDramStats& dramStats);
   void update(const HwSwitchDropStats& dropStats);
-  // TODO: FSDB needs to support count() method on stats
 
   int64_t getTxPktAllocCount() const {
     return txPktAlloc_.count();
@@ -113,6 +115,7 @@ class HwSwitchFb303Stats {
   int64_t getDramDequeuedBytes() const;
   int64_t getIreErrors() const;
   int64_t getItppErrors() const;
+  int64_t getEpniErrors() const;
 
   HwAsicErrors getHwAsicErrors() const;
   FabricReachabilityStats getFabricReachabilityStats();
@@ -163,6 +166,7 @@ class HwSwitchFb303Stats {
   TLCounter fabricReachabilityMismatchCount_;
   TLTimeseries ireErrors_;
   TLTimeseries itppErrors_;
+  TLTimeseries epniErrors_;
 };
 
 } // namespace facebook::fboss
