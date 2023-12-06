@@ -3239,7 +3239,21 @@ bool CmisModule::setTransceiverTxLocked(
   // Get the list of lanes to disable/enable the Tx output
   auto tcvrLanes = getTcvrLanesForPort(portName, side);
   if (tcvrLanes.empty()) {
-    XLOG(ERR) << fmt::format("Empty lane list for port {:s}", portName);
+    QSFP_LOG(ERR, this) << fmt::format(
+        "Empty lane list for port {:s}", portName);
+    return false;
+  }
+
+  return setTransceiverTxImplLocked(tcvrLanes, side, userChannelMask, enable);
+}
+
+bool CmisModule::setTransceiverTxImplLocked(
+    const std::set<uint8_t>& tcvrLanes,
+    phy::Side side,
+    std::optional<uint8_t> userChannelMask,
+    bool enable) {
+  if (tcvrLanes.empty()) {
+    QSFP_LOG(ERR, this) << "Empty lane list";
     return false;
   }
 
@@ -3247,7 +3261,7 @@ bool CmisModule::setTransceiverTxLocked(
   if (!isTransceiverFeatureSupported(TransceiverFeature::TX_DISABLE, side)) {
     throw FbossError(fmt::format(
         "Module {:s} does not support transceiver TX output control on {:s}",
-        portName,
+        qsfpImpl_->getName(),
         ((side == phy::Side::LINE) ? "Line" : "System")));
   }
 
@@ -3290,7 +3304,7 @@ void CmisModule::setTransceiverLoopbackLocked(
   // Get the list of lanes to disable/enable the loopback
   auto tcvrLanes = getTcvrLanesForPort(portName, side);
   if (tcvrLanes.empty()) {
-    XLOG(ERR) << fmt::format(
+    QSFP_LOG(ERR, this) << fmt::format(
         "No {:s} lanes available for port {:s}",
         (side == phy::Side::SYSTEM ? "HOST" : "LINE"),
         portName);

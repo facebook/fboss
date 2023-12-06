@@ -345,10 +345,16 @@ class CmisModule : public QsfpModule {
       uint8_t startHostLane) const override;
 
   /*
-   * Set the Transceiver Tx channel endbale/disable
+   * Set the Transceiver Tx channel enable/disable
    */
   virtual bool setTransceiverTxLocked(
       const std::string& portName,
+      phy::Side side,
+      std::optional<uint8_t> userChannelMask,
+      bool enable) override;
+
+  virtual bool setTransceiverTxImplLocked(
+      const std::set<uint8_t>& tcvrLanes,
       phy::Side side,
       std::optional<uint8_t> userChannelMask,
       bool enable) override;

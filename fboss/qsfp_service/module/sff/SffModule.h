@@ -277,6 +277,12 @@ class SffModule : public QsfpModule {
       std::optional<uint8_t> userChannelMask,
       bool enable) override;
 
+  virtual bool setTransceiverTxImplLocked(
+      const std::set<uint8_t>& tcvrLanes,
+      phy::Side side,
+      std::optional<uint8_t> userChannelMask,
+      bool enable) override;
+
   /*
    * Set the Transceiver loopback system/line side
    */

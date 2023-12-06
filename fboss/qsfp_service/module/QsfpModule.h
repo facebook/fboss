@@ -571,6 +571,14 @@ class QsfpModule : public Transceiver {
     return false;
   }
 
+  virtual bool setTransceiverTxImplLocked(
+      const std::set<uint8_t>& /* tcvrLanes */,
+      phy::Side /* side */,
+      std::optional<uint8_t> /* userChannelMask */,
+      bool /* enable */) {
+    return false;
+  }
+
   virtual void setTransceiverLoopbackLocked(
       const std::string& /* portName */,
       phy::Side /* side */,
