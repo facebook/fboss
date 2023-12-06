@@ -96,12 +96,12 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
       fabricReachabilityMismatchCount_(
           map,
           getCounterPrefix() + "fabric_reachability_mismatch"),
-      ireErrors_(map, getCounterPrefix() + vendor + "ire_errors", SUM, RATE),
-      itppErrors_(map, getCounterPrefix() + vendor + "itpp_errors", SUM, RATE),
-      epniErrors_(map, getCounterPrefix() + vendor + "epni_errors", SUM, RATE),
+      ireErrors_(map, getCounterPrefix() + vendor + ".ire.errors", SUM, RATE),
+      itppErrors_(map, getCounterPrefix() + vendor + ".itpp.errors", SUM, RATE),
+      epniErrors_(map, getCounterPrefix() + vendor + ".epni.errors", SUM, RATE),
       alignerErrors_(
           map,
-          getCounterPrefix() + vendor + "aligner_errors",
+          getCounterPrefix() + vendor + ".aligner.errors",
           SUM,
           RATE) {}
 
