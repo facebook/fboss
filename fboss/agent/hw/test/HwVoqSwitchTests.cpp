@@ -337,7 +337,10 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
  private:
   folly::Synchronized<pktReceivedCb, std::mutex> pktReceivedCallback_;
   HwSwitchEnsemble::Features featuresDesired() const override {
-    return {HwSwitchEnsemble::LINKSCAN, HwSwitchEnsemble::PACKET_RX};
+    return {
+        HwSwitchEnsemble::LINKSCAN,
+        HwSwitchEnsemble::PACKET_RX,
+        HwSwitchEnsemble::TAM_NOTIFY};
   }
 };
 
