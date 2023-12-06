@@ -99,20 +99,27 @@ bool verifyEcmpForFlowletSwitching(
   existing.ecmp_intf = ecmp;
   existing.flags |= BCM_L3_WITH_ID;
   int pathsInHwCount;
+  bool isVerified = true;
   bcm_l3_ecmp_get(bcmSwitch->getUnit(), &existing, 0, nullptr, &pathsInHwCount);
   const int flowletTableSize = getFlowletSizeWithScalingFactor(
       *flowletCfg.flowletTableSize(), pathsInHwCount, *flowletCfg.maxLinks());
   if (flowletEnable && flowletTableSize > 0) {
-    CHECK_EQ(existing.dynamic_mode, BCM_L3_ECMP_DYNAMIC_MODE_NORMAL);
-    CHECK_EQ(existing.dynamic_age, *flowletCfg.inactivityIntervalUsecs());
-    CHECK_EQ(expectFlowsetSizeZero, 0);
+    if ((existing.dynamic_mode != BCM_L3_ECMP_DYNAMIC_MODE_NORMAL) ||
+        (existing.dynamic_age != *flowletCfg.inactivityIntervalUsecs()) ||
+        (existing.dynamic_size != flowletTableSize) ||
+        (expectFlowsetSizeZero != 0)) {
+      isVerified = false;
+    }
   } else {
-    CHECK_EQ(existing.dynamic_mode, 0);
-    CHECK_EQ(expectFlowsetSizeZero, 1);
+    if ((existing.dynamic_mode != BCM_L3_ECMP_DYNAMIC_MODE_DISABLED) ||
+        (expectFlowsetSizeZero != 1) ||
+        (existing.dynamic_size != flowletTableSize)) {
+      isVerified = false;
+    }
   }
-  CHECK_EQ(existing.dynamic_size, flowletTableSize);
-  CHECK_GE(ecmp, 200000);
-  CHECK_LE(ecmp, 200128);
+  if ((ecmp > 200128) || (ecmp < 200000)) {
+    isVerified = false;
+  }
 
   auto ecmp_members = getEcmpGroupInHw(bcmSwitch, ecmp, pathsInHwCount);
   for (const auto& ecmp_member : ecmp_members) {
@@ -120,10 +127,12 @@ bool verifyEcmpForFlowletSwitching(
     bcm_l3_egress_ecmp_member_status_get(
         bcmSwitch->getUnit(), ecmp_member, &status);
     if (flowletEnable) {
-      CHECK_GE(status, BCM_L3_ECMP_DYNAMIC_MEMBER_HW);
+      if (status < BCM_L3_ECMP_DYNAMIC_MEMBER_HW) {
+        isVerified = false;
+      }
     }
   }
-  return true;
+  return isVerified;
 }
 
 bool validatePortFlowletQuality(
