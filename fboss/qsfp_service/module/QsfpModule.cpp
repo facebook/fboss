@@ -274,19 +274,17 @@ bool QsfpModule::upgradeFirmwareLocked(const std::optional<cfg::Firmware>& fw) {
 
   bool fwUpgradeResult = true;
 
-  if (getPortNameToHostLanes().empty()) {
-    QSFP_LOG(ERR, this) << "Couldn't find a port managed by this module";
-    return false;
-  }
-
   lastFwUpgradeStartTime_ = std::time(nullptr);
   { // Start of firmware upgrade
     // Disable TX before upgrading the firmware. This helps keeps the link down
     // during upgrade and avoid noise
-    auto anyPortName = getPortNameToHostLanes().begin()->first;
     try {
-      auto txDisableStatus = setTransceiverTxLocked(
-          anyPortName /* portName */,
+      std::set<uint8_t> allTcvrLineLanes;
+      for (uint8_t lane = 0; lane < numMediaLanes(); lane++) {
+        allTcvrLineLanes.insert(lane);
+      }
+      auto txDisableStatus = setTransceiverTxImplLocked(
+          allTcvrLineLanes /* tcvrLanes */,
           phy::Side::LINE /* side */,
           std::nullopt /* channelMask */,
           false /* enable */);
