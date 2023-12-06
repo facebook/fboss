@@ -22,6 +22,17 @@ class HwVoqSwitchInterruptTest : public HwLinkStateDependentTest {
         getAsic()->desiredLoopbackModes(),
         true /*interfaceHasSubnet*/);
   }
+
+ protected:
+  void runCint(const std::string cintStr) {
+    folly::test::TemporaryFile file;
+    XLOG(INFO) << " Cint file " << file.path().c_str();
+    folly::writeFull(file.fd(), cintStr.c_str(), cintStr.size());
+    std::string out;
+    getHwSwitchEnsemble()->runDiagCommand(
+        folly::sformat("cint {}\n", file.path().c_str()), out);
+    getHwSwitchEnsemble()->runDiagCommand("quit\n", out);
+  }
 };
 
 TEST_F(HwVoqSwitchInterruptTest, ireError) {
@@ -34,16 +45,7 @@ TEST_F(HwVoqSwitchInterruptTest, ireError) {
   event_ctrl.action = bcmSwitchEventForce;
   print bcm_switch_event_control_set(0, BCM_SWITCH_EVENT_DEVICE_INTERRUPT, event_ctrl, 1);
   )";
-    folly::test::TemporaryFile file;
-    XLOG(INFO) << " Cint file " << file.path().c_str();
-    folly::writeFull(
-        file.fd(),
-        kIreErrorIncjectorCintStr,
-        std::strlen(kIreErrorIncjectorCintStr));
-    std::string out;
-    getHwSwitchEnsemble()->runDiagCommand(
-        folly::sformat("cint {}\n", file.path().c_str()), out);
-    getHwSwitchEnsemble()->runDiagCommand("quit\n", out);
+    runCint(kIreErrorIncjectorCintStr);
     WITH_RETRIES({
       getHwSwitch()->updateStats();
       fb303::ThreadCachedServiceData::get()->publishStats();
@@ -98,16 +100,7 @@ TEST_F(HwVoqSwitchInterruptTest, epniError) {
   event_ctrl.action = bcmSwitchEventForce;
   print bcm_switch_event_control_set(0, BCM_SWITCH_EVENT_DEVICE_INTERRUPT, event_ctrl, 1);
   )";
-    folly::test::TemporaryFile file;
-    XLOG(INFO) << " Cint file " << file.path().c_str();
-    folly::writeFull(
-        file.fd(),
-        kEpniErrorIncjectorCintStr,
-        std::strlen(kEpniErrorIncjectorCintStr));
-    std::string out;
-    getHwSwitchEnsemble()->runDiagCommand(
-        folly::sformat("cint {}\n", file.path().c_str()), out);
-    getHwSwitchEnsemble()->runDiagCommand("quit\n", out);
+    runCint(kEpniErrorIncjectorCintStr);
     WITH_RETRIES({
       getHwSwitch()->updateStats();
       fb303::ThreadCachedServiceData::get()->publishStats();
@@ -134,16 +127,7 @@ TEST_F(HwVoqSwitchInterruptTest, alignerError) {
   event_ctrl.action = bcmSwitchEventForce;
   print bcm_switch_event_control_set(0, BCM_SWITCH_EVENT_DEVICE_INTERRUPT, event_ctrl, 1);
   )";
-    folly::test::TemporaryFile file;
-    XLOG(INFO) << " Cint file " << file.path().c_str();
-    folly::writeFull(
-        file.fd(),
-        kAlignerErrorIncjectorCintStr,
-        std::strlen(kAlignerErrorIncjectorCintStr));
-    std::string out;
-    getHwSwitchEnsemble()->runDiagCommand(
-        folly::sformat("cint {}\n", file.path().c_str()), out);
-    getHwSwitchEnsemble()->runDiagCommand("quit\n", out);
+    runCint(kAlignerErrorIncjectorCintStr);
     WITH_RETRIES({
       getHwSwitch()->updateStats();
       fb303::ThreadCachedServiceData::get()->publishStats();
