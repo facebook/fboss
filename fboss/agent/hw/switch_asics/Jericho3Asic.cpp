@@ -53,6 +53,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::DRAM_ENQUEUE_DEQUEUE_STATS:
     case HwAsic::Feature::DEBUG_COUNTER:
     case HwAsic::Feature::CREDIT_WATCHDOG:
+    case HwAsic::Feature::RESOURCE_USAGE_STATS:
       return true;
 
     // TODO fix once queue stats are available on J3
@@ -82,7 +83,6 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::MULTIPLE_ACL_TABLES:
     case HwAsic::Feature::ACL_COPY_TO_CPU:
     case HwAsic::Feature::ACL_COUNTER_LABEL:
-    case HwAsic::Feature::RESOURCE_USAGE_STATS:
     case HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE:
       return getAsicMode() == AsicMode::ASIC_MODE_SIM;
     // SIM specific features.
