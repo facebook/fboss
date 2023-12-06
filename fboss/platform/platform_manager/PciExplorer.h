@@ -79,6 +79,7 @@ class PciExplorer {
   // Create the device based on the given fbiob_aux_data residing
   // at the given PciDevice. Throw std::runtime_error on failure.
   void create(
+      const std::string& pmUnitScopedName,
       const std::string& devName,
       const std::string& pciDevPath,
       const struct fbiob_aux_data& auxData);

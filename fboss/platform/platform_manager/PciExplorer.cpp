@@ -129,6 +129,7 @@ std::vector<uint16_t> PciExplorer::createI2cAdapter(
   auto auxData = getAuxData(*i2cAdapterConfig.fpgaIpBlockConfig(), instanceId);
   auxData.i2c_data.num_channels = *i2cAdapterConfig.numberOfAdapters();
   create(
+      *i2cAdapterConfig.fpgaIpBlockConfig()->pmUnitScopedName(),
       *i2cAdapterConfig.fpgaIpBlockConfig()->deviceName(),
       pciDevice.charDevPath(),
       auxData);
@@ -185,7 +186,10 @@ void PciExplorer::createSpiMaster(
   auto auxData = getAuxData(*spiMasterConfig.fpgaIpBlockConfig(), instanceId);
   auxData.spi_data.num_spidevs = *spiMasterConfig.numberOfCsPins();
   create(
-      *spiMasterConfig.fpgaIpBlockConfig()->deviceName(), pciDevPath, auxData);
+      *spiMasterConfig.fpgaIpBlockConfig()->pmUnitScopedName(),
+      *spiMasterConfig.fpgaIpBlockConfig()->deviceName(),
+      pciDevPath,
+      auxData);
 }
 
 uint16_t PciExplorer::createGpioChip(
@@ -193,7 +197,11 @@ uint16_t PciExplorer::createGpioChip(
     const FpgaIpBlockConfig& fpgaIpBlockConfig,
     uint32_t instanceId) {
   auto auxData = getAuxData(fpgaIpBlockConfig, instanceId);
-  create(*fpgaIpBlockConfig.deviceName(), pciDevice.charDevPath(), auxData);
+  create(
+      *fpgaIpBlockConfig.pmUnitScopedName(),
+      *fpgaIpBlockConfig.deviceName(),
+      pciDevice.charDevPath(),
+      auxData);
   std::string expectedEnding =
       fmt::format(".{}.{}", *fpgaIpBlockConfig.deviceName(), instanceId);
   for (const auto& dirEntry : fs::directory_iterator(pciDevice.sysfsPath())) {
@@ -222,7 +230,11 @@ void PciExplorer::createLedCtrl(
   auto auxData = getAuxData(*ledCtrlConfig.fpgaIpBlockConfig(), instanceId);
   auxData.led_data.led_idx = *ledCtrlConfig.ledId();
   auxData.led_data.port_num = *ledCtrlConfig.portNumber();
-  create(*ledCtrlConfig.fpgaIpBlockConfig()->deviceName(), pciDevPath, auxData);
+  create(
+      *ledCtrlConfig.fpgaIpBlockConfig()->pmUnitScopedName(),
+      *ledCtrlConfig.fpgaIpBlockConfig()->deviceName(),
+      pciDevPath,
+      auxData);
 }
 
 void PciExplorer::createXcvrCtrl(
@@ -232,7 +244,10 @@ void PciExplorer::createXcvrCtrl(
   auto auxData = getAuxData(*xcvrCtrlConfig.fpgaIpBlockConfig(), instanceId);
   auxData.xcvr_data.port_num = *xcvrCtrlConfig.portNumber();
   create(
-      *xcvrCtrlConfig.fpgaIpBlockConfig()->deviceName(), pciDevPath, auxData);
+      *xcvrCtrlConfig.fpgaIpBlockConfig()->pmUnitScopedName(),
+      *xcvrCtrlConfig.fpgaIpBlockConfig()->deviceName(),
+      pciDevPath,
+      auxData);
 }
 
 void PciExplorer::createFpgaIpBlock(
@@ -240,16 +255,22 @@ void PciExplorer::createFpgaIpBlock(
     const FpgaIpBlockConfig& fpgaIpBlockConfig,
     uint32_t instanceId) {
   auto auxData = getAuxData(fpgaIpBlockConfig, instanceId);
-  create(*fpgaIpBlockConfig.deviceName(), pciDevPath, auxData);
+  create(
+      *fpgaIpBlockConfig.pmUnitScopedName(),
+      *fpgaIpBlockConfig.deviceName(),
+      pciDevPath,
+      auxData);
 }
 
 void PciExplorer::create(
+    const std::string& pmUnitScopedName,
     const std::string& devName,
     const std::string& pciDevPath,
     const struct fbiob_aux_data& auxData) {
   XLOG(INFO) << fmt::format(
-      "Creating a new device using: {}, deviceName: {} instanceId: {}, "
-      "csrOffset: {}, iobufOffset: {}",
+      "Creating device {} in {}. Args - deviceName: {} instanceId: {}, "
+      "csrOffset: {:#x}, iobufOffset: {:#x}",
+      pmUnitScopedName,
       pciDevPath,
       devName,
       auxData.id.id,
