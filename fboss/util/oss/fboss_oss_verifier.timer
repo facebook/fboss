@@ -1,0 +1,10 @@
+[Unit]
+Description=Hourly Timer for FBOSS OSS Verifier
+
+[Timer]
+OnCalendar=*-*-* *:00:00
+Persistent=true
+Unit=fboss_oss_verifier.service
+
+[Install]
+WantedBy=multi-user.target

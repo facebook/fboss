@@ -1,0 +1,8 @@
+[Unit]
+Description=Service for FBOSS OSS Verifier
+
+[Service]
+ExecStart=/bin/bash /usr/local/bin/fboss_oss_verifier.sh
+
+[Install]
+WantedBy=multi-user.target
