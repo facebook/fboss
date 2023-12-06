@@ -69,6 +69,9 @@ class FBOSSOSSVerifier:
         self._test_pkg_dir = os.path.join(self._oss_dir, "fboss_oss_verifier")
         self._git_dir = os.path.join(self._oss_dir, "fboss.git")
         self._scripts_dir = os.path.join(self._git_dir, "fboss", "oss", "scripts")
+        self._stable_commit_hashes_dir = os.path.join(
+            self._oss_dir, "stable_commit_hashes"
+        )
         self._test_config = os.path.join(self._oss_dir, "fuji.materialized_JSON")
         self._test_results = ""
         self._timestamp = ""
@@ -144,6 +147,10 @@ class FBOSSOSSVerifier:
             tf.add("build/deps/github_hashes/facebook")
             tf.add("build/deps/github_hashes/facebookincubator")
             tf.add("build/fbcode_builder/manifests")
+        shutil.copy(
+            os.path.join(self._test_pkg_dir, tarfile_name),
+            os.path.join(self._stable_commit_hashes_dir, tarfile_name),
+        )
 
     def print_result(self, build_result, verify_result=ResultType.FAILED):
         self._timestamp = datetime.fromtimestamp(
