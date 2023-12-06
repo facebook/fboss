@@ -68,7 +68,7 @@ std::unique_ptr<WedgeManager> createMontblancWedgeManager(
 std::unique_ptr<WedgeManager> createMorgan800ccWedgeManager(
     const std::string& platformMappingStr);
 
-std::unique_ptr<WedgeManager> createJangaWedgeManager(
+std::unique_ptr<WedgeManager> createJanga800bicWedgeManager(
     const std::string& platformMappingStr);
 
 } // namespace fboss

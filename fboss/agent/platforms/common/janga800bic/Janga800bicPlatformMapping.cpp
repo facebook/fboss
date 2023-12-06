@@ -8,7 +8,7 @@
  *
  */
 
-#include "fboss/agent/platforms/common/janga/JangaPlatformMapping.h"
+#include "fboss/agent/platforms/common/janga800bic/Janga800bicPlatformMapping.h"
 
 namespace {
 constexpr auto kJsonPlatformMappingStr = R"(
@@ -15929,10 +15929,10 @@ constexpr auto kJsonPlatformMappingStr = R"(
 } // namespace
 
 namespace facebook::fboss {
-JangaPlatformMapping::JangaPlatformMapping()
+Janga800bicPlatformMapping::Janga800bicPlatformMapping()
     : PlatformMapping(kJsonPlatformMappingStr) {}
 
-JangaPlatformMapping::JangaPlatformMapping(
+Janga800bicPlatformMapping::Janga800bicPlatformMapping(
     const std::string& platformMappingStr)
     : PlatformMapping(platformMappingStr) {}
 

@@ -9,7 +9,7 @@
  */
 #include "fboss/qsfp_service/platforms/wedge/WedgeManagerInit.h"
 
-#include "fboss/agent/platforms/common/janga/JangaPlatformMapping.h"
+#include "fboss/agent/platforms/common/janga800bic/Janga800bicPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru400bfu/Meru400bfuPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru400bia/Meru400biaPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru400biu/Meru400biuPlatformMapping.h"
@@ -18,7 +18,7 @@
 #include "fboss/agent/platforms/common/montblanc/MontblancPlatformMapping.h"
 #include "fboss/agent/platforms/common/morgan800cc/Morgan800ccPlatformMapping.h"
 #include "fboss/lib/bsp/BspGenericSystemContainer.h"
-#include "fboss/lib/bsp/janga/JangaBspPlatformMapping.h"
+#include "fboss/lib/bsp/janga800bic/Janga800bicBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru400bfu/Meru400bfuBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru400bia/Meru400biaBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru400biu/Meru400biuBspPlatformMapping.h"
@@ -87,8 +87,8 @@ std::unique_ptr<WedgeManager> createWedgeManager() {
     return createMorgan800ccWedgeManager(platformMappingStr);
   } else if (mode == PlatformType::PLATFORM_WEDGE400C) {
     return std::make_unique<Wedge400CManager>(platformMappingStr);
-  } else if (mode == PlatformType::PLATFORM_JANGA) {
-    return createJangaWedgeManager(platformMappingStr);
+  } else if (mode == PlatformType::PLATFORM_JANGA800BIC) {
+    return createJanga800bicWedgeManager(platformMappingStr);
   } else if (
       mode == PlatformType::PLATFORM_FUJI ||
       mode == PlatformType::PLATFORM_MINIPACK ||
@@ -196,17 +196,18 @@ std::unique_ptr<WedgeManager> createMorgan800ccWedgeManager(
           : std::make_unique<Morgan800ccPlatformMapping>(platformMappingStr),
       PlatformType::PLATFORM_MORGAN800CC);
 }
-std::unique_ptr<WedgeManager> createJangaWedgeManager(
+std::unique_ptr<WedgeManager> createJanga800bicWedgeManager(
     const std::string& platformMappingStr) {
   auto systemContainer =
-      BspGenericSystemContainer<JangaBspPlatformMapping>::getInstance().get();
+      BspGenericSystemContainer<Janga800bicBspPlatformMapping>::getInstance()
+          .get();
   return std::make_unique<BspWedgeManager>(
       systemContainer,
       std::make_unique<BspTransceiverApi>(systemContainer),
       platformMappingStr.empty()
-          ? std::make_unique<JangaPlatformMapping>()
-          : std::make_unique<JangaPlatformMapping>(platformMappingStr),
-      PlatformType::PLATFORM_JANGA);
+          ? std::make_unique<Janga800bicPlatformMapping>()
+          : std::make_unique<Janga800bicPlatformMapping>(platformMappingStr),
+      PlatformType::PLATFORM_JANGA800BIC);
 }
 } // namespace fboss
 } // namespace facebook

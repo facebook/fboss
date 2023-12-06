@@ -102,7 +102,7 @@ TEST_F(HwOverflowTest, overflowRoutes) {
       break;
     case PlatformType::PLATFORM_MONTBLANC:
       break;
-    case PlatformType::PLATFORM_JANGA:
+    case PlatformType::PLATFORM_JANGA800BIC:
       break;
   }
   if (routeChunks.size() == 0) {

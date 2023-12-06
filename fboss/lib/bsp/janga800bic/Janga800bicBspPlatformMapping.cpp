@@ -1,6 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-#include "fboss/lib/bsp/janga/JangaBspPlatformMapping.h"
+#include "fboss/lib/bsp/janga800bic/Janga800bicBspPlatformMapping.h"
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include "fboss/lib/bsp/BspPlatformMapping.h"
 #include "fboss/lib/bsp/gen-cpp2/bsp_platform_mapping_types.h"
@@ -2171,7 +2171,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
 }
 )";
 
-static BspPlatformMappingThrift buildJangaPlatformMapping(
+static BspPlatformMappingThrift buildJanga800bicPlatformMapping(
     const std::string& platformMappingStr) {
   return apache::thrift::SimpleJSONSerializer::deserialize<
       BspPlatformMappingThrift>(platformMappingStr);
@@ -2182,13 +2182,13 @@ static BspPlatformMappingThrift buildJangaPlatformMapping(
 namespace facebook {
 namespace fboss {
 
-JangaBspPlatformMapping::JangaBspPlatformMapping()
+Janga800bicBspPlatformMapping::Janga800bicBspPlatformMapping()
     : BspPlatformMapping(
-          buildJangaPlatformMapping(kJsonBspPlatformMappingStr)) {}
+          buildJanga800bicPlatformMapping(kJsonBspPlatformMappingStr)) {}
 
-JangaBspPlatformMapping::JangaBspPlatformMapping(
+Janga800bicBspPlatformMapping::Janga800bicBspPlatformMapping(
     const std::string& platformMappingStr)
-    : BspPlatformMapping(buildJangaPlatformMapping(platformMappingStr)) {}
+    : BspPlatformMapping(buildJanga800bicPlatformMapping(platformMappingStr)) {}
 
 } // namespace fboss
 } // namespace facebook

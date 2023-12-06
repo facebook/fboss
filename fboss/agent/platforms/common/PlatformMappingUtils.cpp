@@ -21,7 +21,7 @@
 #include "fboss/agent/platforms/common/fuji/FujiPlatformMapping.h"
 #include "fboss/agent/platforms/common/galaxy/GalaxyFCPlatformMapping.h"
 #include "fboss/agent/platforms/common/galaxy/GalaxyLCPlatformMapping.h"
-#include "fboss/agent/platforms/common/janga/JangaPlatformMapping.h"
+#include "fboss/agent/platforms/common/janga800bic/Janga800bicPlatformMapping.h"
 #include "fboss/agent/platforms/common/lassen/LassenPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru400bfu/Meru400bfuPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru400bia/Meru400biaPlatformMapping.h"
@@ -122,10 +122,10 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
       return platformMappingStr.empty()
           ? std::make_unique<MontblancPlatformMapping>()
           : std::make_unique<MontblancPlatformMapping>(platformMappingStr);
-    case PlatformType::PLATFORM_JANGA:
+    case PlatformType::PLATFORM_JANGA800BIC:
       return platformMappingStr.empty()
-          ? std::make_unique<JangaPlatformMapping>()
-          : std::make_unique<JangaPlatformMapping>(platformMappingStr);
+          ? std::make_unique<Janga800bicPlatformMapping>()
+          : std::make_unique<Janga800bicPlatformMapping>(platformMappingStr);
     case PlatformType::PLATFORM_FAKE_WEDGE:
     case PlatformType::PLATFORM_FAKE_WEDGE40:
       return platformMappingStr.empty()

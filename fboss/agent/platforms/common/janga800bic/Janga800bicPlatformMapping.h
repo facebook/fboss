@@ -14,15 +14,16 @@
 namespace facebook {
 namespace fboss {
 
-class JangaPlatformMapping : public PlatformMapping {
+class Janga800bicPlatformMapping : public PlatformMapping {
  public:
-  JangaPlatformMapping();
-  explicit JangaPlatformMapping(const std::string& platformMappingStr);
+  Janga800bicPlatformMapping();
+  explicit Janga800bicPlatformMapping(const std::string& platformMappingStr);
 
  private:
   // Forbidden copy constructor and assignment operator
-  JangaPlatformMapping(JangaPlatformMapping const&) = delete;
-  JangaPlatformMapping& operator=(JangaPlatformMapping const&) = delete;
+  Janga800bicPlatformMapping(Janga800bicPlatformMapping const&) = delete;
+  Janga800bicPlatformMapping& operator=(Janga800bicPlatformMapping const&) =
+      delete;
 };
 } // namespace fboss
 } // namespace facebook

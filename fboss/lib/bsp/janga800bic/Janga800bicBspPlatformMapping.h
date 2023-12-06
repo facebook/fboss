@@ -7,10 +7,10 @@
 namespace facebook {
 namespace fboss {
 
-class JangaBspPlatformMapping : public BspPlatformMapping {
+class Janga800bicBspPlatformMapping : public BspPlatformMapping {
  public:
-  JangaBspPlatformMapping();
-  explicit JangaBspPlatformMapping(const std::string& platformMappingStr);
+  Janga800bicBspPlatformMapping();
+  explicit Janga800bicBspPlatformMapping(const std::string& platformMappingStr);
 };
 
 } // namespace fboss

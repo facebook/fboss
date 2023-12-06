@@ -47,7 +47,7 @@ TEST_F(HwTest, CheckDefaultXphyFirmwareVersion) {
     case PlatformType::PLATFORM_MERU400BFU:
     case PlatformType::PLATFORM_MONTBLANC:
     case PlatformType::PLATFORM_MORGAN800CC:
-    case PlatformType::PLATFORM_JANGA:
+    case PlatformType::PLATFORM_JANGA800BIC:
       throw FbossError("No xphys to check FW version on");
     case PlatformType::PLATFORM_ELBERT:
       desiredFw.version() = 1;

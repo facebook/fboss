@@ -159,8 +159,8 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_MORGAN800CC;
     } else if (modelName.find("FAKE_SAI") == 0) {
       type_ = PlatformType::PLATFORM_FAKE_SAI;
-    } else if (modelName.find("JANGA") == 0) {
-      type_ = PlatformType::PLATFORM_JANGA;
+    } else if (modelName.find("JANGA800BIC") == 0) {
+      type_ = PlatformType::PLATFORM_JANGA800BIC;
     } else {
       throw std::runtime_error("invalid model name " + modelName);
     }
@@ -217,8 +217,8 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_MONTBLANC;
     } else if (FLAGS_mode == "fake_sai") {
       type_ = PlatformType::PLATFORM_FAKE_SAI;
-    } else if (FLAGS_mode == "janga") {
-      type_ = PlatformType::PLATFORM_JANGA;
+    } else if (FLAGS_mode == "janga800bic") {
+      type_ = PlatformType::PLATFORM_JANGA800BIC;
     } else {
       throw std::runtime_error("invalid mode " + FLAGS_mode);
     }
