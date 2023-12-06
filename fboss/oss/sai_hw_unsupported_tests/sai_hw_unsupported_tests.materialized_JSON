@@ -239,6 +239,9 @@
           "test_name_regex": "HwDataPlaneMirrorTest/[01].*"
         },
         {
+          "test_name_regex": "HwSplitAgentCallbackTest.*"
+        },
+        {
           "test_name_regex": "HwIngressBufferTest.validatePGQueueChanges$"
         }
     ],
@@ -501,6 +504,9 @@
           "test_name_regex": "HwDataPlaneMirrorTest/[01].*"
         },
         {
+          "test_name_regex": "HwSplitAgentCallbackTest.*"
+        },
+        {
           "test_name_regex": "HwIngressBufferTest.validatePGQueueChanges$"
         }
     ],
@@ -741,6 +747,9 @@
         },
         {
           "test_name_regex": "HwDataPlaneMirrorTest/[01].*"
+        },
+        {
+          "test_name_regex": "HwSplitAgentCallbackTest.*"
         },
         {
           "test_name_regex": "HwIngressBufferTest.validatePGQueueChanges$"
