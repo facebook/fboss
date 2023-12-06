@@ -21,7 +21,7 @@ class AgentWrapperTest : public ::testing::Test {
   void stop();
   void wait(bool started);
   void waitForStart();
-  void waitForStop();
+  void waitForStop(bool crash = false);
 
   AgentDirectoryUtil util_;
   std::unique_ptr<AgentNetWhoAmI> whoami_;

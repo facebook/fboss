@@ -29,6 +29,8 @@
 
 #include <chrono>
 
+#include "fboss/lib/CommonFileUtils.h"
+
 DEFINE_bool(flexports, false, "Load the agent with flexport support enabled");
 DEFINE_int32(
     update_watermark_stats_interval_s,
@@ -106,6 +108,20 @@ uint32_t HwSwitch::generateDeterministicSeed(LoadBalancerID loadBalancerID) {
 }
 
 void HwSwitch::gracefulExit(const state::WarmbootState& thriftSwitchState) {
+  auto* dirUtil = getPlatform()->getDirectoryUtil();
+  auto switchIndex = getPlatform()->getAsic()->getSwitchIndex();
+  auto sleepOnSigTermFile = dirUtil->sleepHwSwitchOnSigTermFile(switchIndex);
+  if (checkFileExists(sleepOnSigTermFile)) {
+    SCOPE_EXIT {
+      removeFile(sleepOnSigTermFile);
+    };
+    std::string timeStr;
+    if (folly::readFile(sleepOnSigTermFile.c_str(), timeStr)) {
+      // @lint-ignore CLANGTIDY
+      std::this_thread::sleep_for(
+          std::chrono::seconds(folly::to<uint32_t>(timeStr)));
+    }
+  }
   if (getPlatform()->getAsic()->isSupported(HwAsic::Feature::WARMBOOT)) {
     gracefulExitImpl();
   }

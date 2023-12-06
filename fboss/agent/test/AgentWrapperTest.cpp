@@ -77,7 +77,7 @@ void AgentWrapperTest::waitForStart() {
       });
 }
 
-void AgentWrapperTest::waitForStop() {
+void AgentWrapperTest::waitForStop(bool crash) {
   WITH_RETRIES_N_TIMED(
       FLAGS_num_retries, std::chrono::seconds(FLAGS_wait_timeout), {
         facebook::tupperware::systemd::Service service{"wedge_agent.service"};
@@ -86,6 +86,9 @@ void AgentWrapperTest::waitForStop() {
         EXPECT_EVENTUALLY_EQ(
             status.value().serviceState,
             facebook::tupperware::systemd::ProcessStatus::ServiceState::EXITED);
+        if (crash) {
+          EXPECT_EVENTUALLY_EQ(status.value().exitCode, CLD_DUMPED);
+        }
       });
 }
 
@@ -119,6 +122,20 @@ TEST_F(AgentWrapperTest, StartAndStopAndStart) {
   waitForStart();
   stop();
   waitForStop();
+}
+
+TEST_F(AgentWrapperTest, StartAndCrash) {
+  start();
+  waitForStart();
+  touchFile(util_.sleepSwSwitchOnSigTermFile());
+  std::vector<char> sleepTime = {'3', '0', '0'};
+  folly::writeFile(sleepTime, util_.sleepSwSwitchOnSigTermFile().c_str());
+  auto maxPostSignalWaitTime = util_.getMaxPostSignalWaitTimeFile();
+  touchFile(maxPostSignalWaitTime);
+  std::vector<char> data = {'1'};
+  folly::writeFile(data, maxPostSignalWaitTime.c_str());
+  stop();
+  waitForStop(true /* expect sigabrt to crash */);
 }
 
 } // namespace facebook::fboss

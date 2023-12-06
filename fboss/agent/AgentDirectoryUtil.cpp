@@ -222,4 +222,19 @@ std::string AgentDirectoryUtil::getMultiSwitchPreStartScript() const {
 std::string AgentDirectoryUtil::getPreStartShellScript() const {
   return getVolatileStateDir() + "/pre_start.sh";
 }
+
+std::string AgentDirectoryUtil::sleepSwSwitchOnSigTermFile() const {
+  return getVolatileStateDir() + "/sw_sleep_on_sigterm";
+}
+
+std::string AgentDirectoryUtil::sleepHwSwitchOnSigTermFile(
+    int switchIndex) const {
+  return getVolatileStateDir() + "/hw_sleep_on_sigterm" +
+      folly::to<std::string>(switchIndex);
+}
+
+std::string AgentDirectoryUtil::getMaxPostSignalWaitTimeFile() const {
+  return getVolatileStateDir() + "/max_post_signal_wait_time_wedge_agent";
+}
+
 } // namespace facebook::fboss
