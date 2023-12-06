@@ -16,6 +16,8 @@
 #include "fboss/agent/AgentNetWhoAmI.h"
 #include "fboss/lib/CommonFileUtils.h"
 
+#include "fboss/agent/AgentConfig.h"
+
 #include <thread>
 
 DEFINE_int32(num_retries, 5, "number of retries for agent to start");
@@ -25,6 +27,7 @@ namespace facebook::fboss {
 
 void AgentWrapperTest::SetUp() {
   whoami_ = std::make_unique<AgentNetWhoAmI>();
+  config_ = AgentConfig::fromFile("/etc/coop/agent/current");
   createDirectoryTree(util_.getWarmBootDir());
 }
 
@@ -50,10 +53,10 @@ void AgentWrapperTest::wait(bool started) {
   }
 }
 
-void AgentWrapperTest::waitForStart() {
+void AgentWrapperTest::waitForStart(const std::string& unit) {
   WITH_RETRIES_N_TIMED(
       FLAGS_num_retries, std::chrono::seconds(FLAGS_wait_timeout), {
-        facebook::tupperware::systemd::Service service{"wedge_agent.service"};
+        facebook::tupperware::systemd::Service service{unit};
         auto status = service.getStatus();
         EXPECT_EVENTUALLY_EQ(
             status.value().serviceState,
@@ -77,19 +80,43 @@ void AgentWrapperTest::waitForStart() {
       });
 }
 
-void AgentWrapperTest::waitForStop(bool crash) {
+void AgentWrapperTest::waitForStart() {
+  auto multiSwitch = config_->getRunMode() == cfg::AgentRunMode::MULTI_SWITCH;
+  if (multiSwitch) {
+    // TODO: wait for hw_agent as well
+    waitForStart("fboss_sw_agent.service");
+  } else {
+    waitForStart("wedge_agent.service");
+  }
+}
+
+void AgentWrapperTest::waitForStop(const std::string& unit, bool crash) {
   WITH_RETRIES_N_TIMED(
       FLAGS_num_retries, std::chrono::seconds(FLAGS_wait_timeout), {
-        facebook::tupperware::systemd::Service service{"wedge_agent.service"};
+        facebook::tupperware::systemd::Service service{unit};
         auto status = service.waitForExit(
             std::chrono::microseconds(FLAGS_wait_timeout * 1000000));
         EXPECT_EVENTUALLY_EQ(
             status.value().serviceState,
             facebook::tupperware::systemd::ProcessStatus::ServiceState::EXITED);
         if (crash) {
-          EXPECT_EVENTUALLY_EQ(status.value().exitCode, CLD_DUMPED);
+          if (config_->getRunMode() == cfg::AgentRunMode::MULTI_SWITCH) {
+            EXPECT_EVENTUALLY_EQ(status.value().exitCode, CLD_DUMPED);
+          } else {
+            EXPECT_EVENTUALLY_EQ(status.value().exitStatus, 255);
+          }
         }
       });
+}
+
+void AgentWrapperTest::waitForStop(bool crash) {
+  auto multiSwitch = (config_->getRunMode() == cfg::AgentRunMode::MULTI_SWITCH);
+  if (multiSwitch) {
+    waitForStop("fboss_sw_agent.service", crash);
+    // TODO: wait for hw_agent as well
+  } else {
+    waitForStop("wedge_agent.service", crash);
+  }
 }
 
 TEST_F(AgentWrapperTest, ColdBootStartAndStop) {

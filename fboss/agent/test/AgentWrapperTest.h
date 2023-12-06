@@ -7,6 +7,7 @@
 namespace facebook::fboss {
 
 class AgentNetWhoAmI;
+class AgentConfig;
 
 class AgentWrapperTest : public ::testing::Test {
  public:
@@ -21,8 +22,11 @@ class AgentWrapperTest : public ::testing::Test {
   void stop();
   void wait(bool started);
   void waitForStart();
+  void waitForStart(const std::string& unit);
   void waitForStop(bool crash = false);
+  void waitForStop(const std::string& unit, bool crash = false);
 
+  std::unique_ptr<AgentConfig> config_;
   AgentDirectoryUtil util_;
   std::unique_ptr<AgentNetWhoAmI> whoami_;
 };
