@@ -193,6 +193,24 @@ add_library(core
   fboss/agent/oss/FsdbSyncer.cpp
 )
 
+if (FBOSS_CENTOS9)
+add_library(
+   agent_fsdb_sync_manager
+   fboss/agent/AgentFsdbSyncManager.cpp
+   fboss/agent/AgentFsdbSyncManager-computeOperDelta.cpp
+)
+
+target_link_libraries(
+  agent_fsdb_sync_manager
+  fsdb_syncer
+  hwswitch_matcher
+  state
+  fsdb_model
+  tuple_utils
+  switch_state_cpp2
+)
+endif()
+
 target_link_libraries(core
   agent_config_cpp2
   switchinfo_utils
