@@ -14,15 +14,10 @@
 
 namespace facebook::fboss {
 
-namespace {
-static constexpr auto kWrapperRefactorFeatureOn =
-    "/etc/fboss/features/cpp_wedge_agent_wrapper/current/on";
-} // namespace
-
 void AgentPreStartExec::run() {
   AgentDirectoryUtil dirUtil;
   AgentCommandExecutor executor;
-  auto cppWedgeAgentWrapper = checkFileExists(kWrapperRefactorFeatureOn);
+  auto cppWedgeAgentWrapper = checkFileExists(dirUtil.getWrapperRefactorFlag());
   auto config = AgentConfig::fromDefaultFile();
   AgentPreExecDrainer preExecDrainer(&dirUtil);
   run(&executor,

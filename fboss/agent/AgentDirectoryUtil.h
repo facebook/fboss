@@ -169,6 +169,8 @@ class AgentDirectoryUtil {
 
   std::string getMaxPostSignalWaitTimeFile() const;
 
+  std::string getWrapperRefactorFlag() const;
+
  private:
   const std::string volatileStateDir_;
   const std::string persistentStateDir_;

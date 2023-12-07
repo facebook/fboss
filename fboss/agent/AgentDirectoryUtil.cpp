@@ -237,4 +237,8 @@ std::string AgentDirectoryUtil::getMaxPostSignalWaitTimeFile() const {
   return getVolatileStateDir() + "/max_post_signal_wait_time_wedge_agent";
 }
 
+std::string AgentDirectoryUtil::getWrapperRefactorFlag() const {
+  return "/etc/fboss/features/cpp_wedge_agent_wrapper/current/on";
+}
+
 } // namespace facebook::fboss
