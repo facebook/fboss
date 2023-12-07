@@ -6,7 +6,7 @@
 
 #include <folly/logging/xlog.h>
 #include "common/time/Time.h"
-#ifndef IS_OSS
+#if (!defined(IS_OSS)) || (defined(IS_OSS) && defined(IS_OSS_FBOSS_CENTOS9))
 #include "fboss/fsdb/client/Client.h"
 #endif
 
