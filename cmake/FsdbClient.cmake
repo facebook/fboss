@@ -32,7 +32,7 @@ add_library(fsdb_pub_sub
   fboss/fsdb/client/FsdbPubSubManager.cpp
 )
 
-target_link_libraries(fsdb_pub_sub
+set(fsdb_pub_sub_libs
   fsdb_common_cpp2
   fsdb_flags
   fsdb_oper_cpp2
@@ -41,6 +41,12 @@ target_link_libraries(fsdb_pub_sub
   FBThrift::thriftcpp2
   fb303::fb303
 )
+
+if (FBOSS_CENTOS9)
+  list(APPEND fsdb_pub_sub_libs fsdb_cpp2)
+endif()
+
+target_link_libraries(fsdb_pub_sub ${fsdb_pub_sub_libs})
 
 add_library(fsdb_syncer
   fboss/fsdb/client/FsdbSyncManager.h
