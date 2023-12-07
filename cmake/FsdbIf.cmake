@@ -21,7 +21,20 @@ add_fbthrift_cpp_library(
     fsdb_common_cpp2
 )
 
-
+if (FBOSS_CENTOS9)
+add_fbthrift_cpp_library(
+  fsdb_cpp2
+  fboss/fsdb/if/fsdb.thrift
+  SERVICES
+    FsdbService
+  OPTIONS
+    json
+    reflection
+  DEPENDS
+    fsdb_common_cpp2
+    fsdb_oper_cpp2
+)
+else()
 add_fbthrift_cpp_library(
   fsdb_cpp2
   fboss/fsdb/if/fsdb.thrift
@@ -32,6 +45,7 @@ add_fbthrift_cpp_library(
     fsdb_common_cpp2
     fsdb_oper_cpp2
 )
+endif()
 
 add_fbthrift_cpp_library(
   fsdb_model_cpp2
