@@ -7196,6 +7196,11 @@
         "actionType": 1
       },
       {
+        "dscp": 48,
+        "name": "cpuPolicing-high-NetworkControl-dstLocal-127.0.0.1/32",
+        "actionType": 1
+      },
+      {
         "dstIp": "fe80::/10",
         "name": "cpuPolicing-mid-linkLocal-v6",
         "actionType": 1
@@ -7297,6 +7302,18 @@
             }
           },
           {
+            "matcher": "cpuPolicing-high-NetworkControl-dstLocal-127.0.0.1/32",
+            "action": {
+              "sendToQueue": {
+                "queueId": 7
+              },
+              "toCpuAction": 1,
+              "setTc": {
+                "tcValue": 7
+              }
+            }
+          },
+          {
             "matcher": "cpuPolicing-mid-linkLocal-v6",
             "action": {
               "sendToQueue": {
@@ -7374,7 +7391,30 @@
       ]
     },
     "loadBalancers": [
-      
+      {
+        "id": 1,
+        "fieldSelection": {
+          "ipv4Fields": [
+            1,
+            2
+          ],
+          "ipv6Fields": [
+            1,
+            2
+          ],
+          "transportFields": [
+            1,
+            2
+          ],
+          "mplsFields": [
+            
+          ],
+          "udfGroups": [
+            
+          ]
+        },
+        "algorithm": 1
+      }
     ],
     "mirrors": [
       
