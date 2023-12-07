@@ -26,11 +26,22 @@ endif()
 
 target_link_libraries(fsdb_stream_client ${fsdb_stream_client_libs})
 
-add_library(fsdb_pub_sub
+set(fsdb_pub_sub_files
   fboss/fsdb/client/FsdbSubscriber.cpp
   fboss/fsdb/client/FsdbPublisher.cpp
   fboss/fsdb/client/FsdbPubSubManager.cpp
 )
+
+if (FBOSS_CENTOS9)
+  list(APPEND fsdb_pub_sub_files
+    fboss/fsdb/client/FsdbDeltaPublisher.cpp
+    fboss/fsdb/client/FsdbDeltaSubscriber.cpp
+    fboss/fsdb/client/FsdbStatePublisher.cpp
+    fboss/fsdb/client/FsdbStateSubscriber.cpp
+  )
+endif()
+
+add_library(fsdb_pub_sub ${fsdb_pub_sub_files})
 
 set(fsdb_pub_sub_libs
   fsdb_common_cpp2
