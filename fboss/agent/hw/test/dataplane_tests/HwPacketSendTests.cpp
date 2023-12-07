@@ -36,7 +36,7 @@ class HwPacketSendTest : public HwLinkStateDependentTest {
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
-        {masterLogicalPortIds()[0]},
+        masterLogicalPortIds(),
         getAsic()->desiredLoopbackModes());
     return cfg;
   }
@@ -206,9 +206,10 @@ TEST_F(HwPacketSendTest, LldpToFrontPanelOutOfPort) {
                << ", after pkts:" << *portStatsAfter.outMulticastPkts_()
                << ", before bytes:" << *portStatsBefore.outBytes_()
                << ", after bytes:" << *portStatsAfter.outBytes_();
-    EXPECT_EQ(
-        pktLengthSent,
-        *portStatsAfter.outBytes_() - *portStatsBefore.outBytes_());
+    // GE as some platforms include FCS in outBytes count
+    EXPECT_GE(
+        *portStatsAfter.outBytes_() - *portStatsBefore.outBytes_(),
+        pktLengthSent);
     if (getAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_EBRO &&
         getAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_YUBA) {
       EXPECT_EQ(
@@ -260,9 +261,10 @@ TEST_F(HwPacketSendTest, LldpToFrontPanelWithBufClone) {
                << ", before bytes:" << *portStatsBefore.outBytes_()
                << ", after bytes:" << *portStatsAfter.outBytes_();
     auto pktLengthSent = (EthHdr::SIZE + payLoadSize) * numPkts;
-    EXPECT_EQ(
-        pktLengthSent,
-        *portStatsAfter.outBytes_() - *portStatsBefore.outBytes_());
+    // GE as some platforms include FCS in outBytes count
+    EXPECT_GE(
+        *portStatsAfter.outBytes_() - *portStatsBefore.outBytes_(),
+        pktLengthSent);
     if (getAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_EBRO &&
         getAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_YUBA) {
       EXPECT_EQ(
