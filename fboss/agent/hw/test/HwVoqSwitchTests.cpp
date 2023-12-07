@@ -703,7 +703,7 @@ TEST_F(HwVoqSwitchTest, sendPacketCpuAndFrontPanel) {
               // CS00012267635: debug why we get 4 extra bytes
               // Most likely this is the Ethernet FCS being counted
               // in TX out bytes.
-              extraByteOffset = 4;
+              extraByteOffset = utility::EthFrame::FCS_SIZE;
             }
             EXPECT_EVENTUALLY_EQ(
                 afterOutBytes - txPacketSize - extraByteOffset, beforeOutBytes);
