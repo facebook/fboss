@@ -14,7 +14,7 @@
 #include <thrift/lib/cpp2/async/Sink.h>
 #include <optional>
 #include <string>
-#ifndef IS_OSS
+#if (!defined(IS_OSS)) || (defined(IS_OSS) && defined(IS_OSS_FBOSS_CENTOS9))
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 #endif
 #include "fboss/fsdb/common/Utils.h"
@@ -100,7 +100,8 @@ class FsdbStreamClient : public ReconnectingThriftClient {
   void connectToServer(const ServerOptions& options) override;
   void timeoutExpired() noexcept;
 
-#if FOLLY_HAS_COROUTINES && !defined(IS_OSS)
+#if (FOLLY_HAS_COROUTINES && !defined(IS_OSS)) || \
+    (defined(IS_OSS) && defined(IS_OSS_FBOSS_CENTOS9))
   folly::coro::Task<void> serviceLoopWrapper() override;
   virtual folly::coro::Task<StreamT> setupStream() = 0;
   virtual folly::coro::Task<void> serveStream(StreamT&& stream) = 0;
@@ -121,7 +122,7 @@ class FsdbStreamClient : public ReconnectingThriftClient {
     setDisconnectReason(reason);
     setState(State::DISCONNECTED);
   }
-#ifndef IS_OSS
+#if (!defined(IS_OSS)) || (defined(IS_OSS) && defined(IS_OSS_FBOSS_CENTOS9))
   std::unique_ptr<apache::thrift::Client<FsdbService>> client_;
 #endif
 
