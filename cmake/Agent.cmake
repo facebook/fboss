@@ -211,7 +211,7 @@ target_link_libraries(
 )
 endif()
 
-target_link_libraries(core
+set(core_libs
   agent_config_cpp2
   switchinfo_utils
   stats
@@ -262,6 +262,12 @@ target_link_libraries(core
   hw_write_behavior
   hw_ctrl_cpp2
 )
+
+if (FBOSS_CENTOS9)
+  list(APPEND core_libs agent_fsdb_sync_manager)
+endif()
+
+target_link_libraries(core ${core_libs})
 
 add_library(error
   fboss/agent/FbossError.h
