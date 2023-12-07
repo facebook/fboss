@@ -9,6 +9,9 @@
  */
 
 #include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
+#if defined(IS_OSS) && defined(IS_OSS_FBOSS_CENTOS9)
+#include "fboss/fsdb/if/gen-cpp2/FsdbService.h"
+#endif
 
 namespace facebook::fboss::utils {
 
@@ -34,4 +37,13 @@ tryCreateEncryptedClient(
     const std::optional<folly::SocketAddress>& srcAddr,
     folly::EventBase* eb,
     std::optional<uint8_t> tos);
+#if defined(IS_OSS) && defined(IS_OSS_FBOSS_CENTOS9)
+template std::unique_ptr<
+    apache::thrift::Client<facebook::fboss::fsdb::FsdbService>>
+tryCreateEncryptedClient(
+    const folly::SocketAddress& dstAddr,
+    const std::optional<folly::SocketAddress>& srcAddr,
+    folly::EventBase* eb,
+    std::optional<uint8_t> tos);
+#endif
 } // namespace facebook::fboss::utils
