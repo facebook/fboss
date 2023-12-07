@@ -13,12 +13,18 @@ add_library(fsdb_stream_client
   fboss/fsdb/client/oss/FsdbStreamClient.cpp
 )
 
-target_link_libraries(fsdb_stream_client
+set(fsdb_stream_client_libs
   fsdb_utils
   Folly::folly
   FBThrift::thriftcpp2
   common_thrift_utils
 )
+
+if (FBOSS_CENTOS9)
+  list(APPEND fsdb_stream_client_libs fsdb_oper_cpp2 fsdb_cpp2)
+endif()
+
+target_link_libraries(fsdb_stream_client ${fsdb_stream_client_libs})
 
 add_library(fsdb_pub_sub
   fboss/fsdb/client/FsdbSubscriber.cpp
