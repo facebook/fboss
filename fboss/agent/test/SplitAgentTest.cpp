@@ -2,6 +2,7 @@
 
 #include "fboss/agent/test/SplitAgentTest.h"
 #include "fboss/agent/HwAsicTable.h"
+#include "fboss/agent/hw/test/ConfigFactory.h"
 
 DEFINE_bool(run_forever, false, "run the test forever");
 DEFINE_bool(run_forever_on_failure, false, "run the test forever on failure");
@@ -108,6 +109,21 @@ bool SplitAgentTest::hideFabricPorts() const {
   // we want to skip over fabric ports in a overwhelming
   // majority of test cases. Make this the default HwTest mode
   return true;
+}
+
+cfg::SwitchConfig SplitAgentTest::initialConfig(
+    const AgentEnsemble& ensemble) const {
+  // Before m-mpu agent test, use first Asic for initialization.
+  auto switchIds = ensemble.getSw()->getHwAsicTable()->getSwitchIDs();
+  CHECK_GE(switchIds.size(), 1);
+  auto asic =
+      ensemble.getSw()->getHwAsicTable()->getHwAsic(*switchIds.cbegin());
+  return utility::onePortPerInterfaceConfig(
+      ensemble.getSw()->getPlatformMapping(),
+      asic,
+      ensemble.masterLogicalPortIds(),
+      asic->desiredLoopbackModes(),
+      true /*interfaceHasSubnet*/);
 }
 
 void initAgentHwTest(int argc, char* argv[], PlatformInitFn initPlatform) {
