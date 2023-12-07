@@ -36,6 +36,14 @@ if (BUILD_SAI_FAKE_BENCHMARKS)
   message(STATUS "Building benchmarks binaries for fake_sai")
 endif()
 
+option(IS_OSS_FBOSS_CENTOS9 "Building FBOSS in Centos9" OFF)
+if ($ENV{IS_OSS_FBOSS_CENTOS9})
+  message(STATUS "ENV FBOSS_CENTOS9 is set")
+  set (FBOSS_CENTOS9 ON)
+  add_definitions (-DIS_OSS_FBOSS_CENTOS9=true)
+endif()
+
+
 option(SKIP_ALL_INSTALL "Installation of fboss binaries" OFF)
 if ($ENV{SKIP_ALL_INSTALL})
   message(STATUS "ENV SKIP_ALL_INSTALL is set")
