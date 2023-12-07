@@ -8,6 +8,18 @@ include_directories(
     ${GTEST_INCLUDE_DIRS}
 )
 
+if (FBOSS_CENTOS9)
+add_library(fsdb_client
+  fboss/fsdb/client/Client.cpp
+)
+
+target_link_libraries(fsdb_client
+  fsdb_cpp2
+  Folly::folly
+  thrift_service_client
+)
+endif()
+
 add_library(fsdb_stream_client
   fboss/fsdb/client/FsdbStreamClient.cpp
   fboss/fsdb/client/oss/FsdbStreamClient.cpp
@@ -21,7 +33,7 @@ set(fsdb_stream_client_libs
 )
 
 if (FBOSS_CENTOS9)
-  list(APPEND fsdb_stream_client_libs fsdb_oper_cpp2 fsdb_cpp2)
+  list(APPEND fsdb_stream_client_libs fsdb_oper_cpp2 fsdb_cpp2 fsdb_client)
 endif()
 
 target_link_libraries(fsdb_stream_client ${fsdb_stream_client_libs})
