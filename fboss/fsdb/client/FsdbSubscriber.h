@@ -9,6 +9,8 @@
 #include <folly/String.h>
 #include <folly/experimental/coro/AsyncGenerator.h>
 
+#include <folly/logging/xlog.h>
+
 #include <functional>
 
 namespace facebook::fboss::fsdb {
