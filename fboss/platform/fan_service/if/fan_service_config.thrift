@@ -80,7 +80,6 @@ enum BspType {
   kBspDarwin = 1,
   kBspLassen = 2,
   kBspMinipack3 = 3,
-  kBspMokujin = 4,
 }
 
 struct Sensor {

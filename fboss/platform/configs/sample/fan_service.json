@@ -1,12 +1,4 @@
-// Copyright (c) 2004-present, Meta Platforms, Inc. and affiliates.
-// All Rights Reserved.
-
-#include <string>
-
-namespace facebook::fboss::platform::fan_service {
-
-std::string getMokujinFSConfig() {
-  return R"({
+{
   "bspType" : 4,
   "watchdog" : {
     "access" : {
@@ -15,8 +7,8 @@ std::string getMokujinFSConfig() {
     },
     "value" : 1
   },
-  "pwmBoostOnNumDeadFan" : true,
-  "pwmBoostOnNumDeadSensor" : false,
+  "pwmBoostOnNumDeadFan" : 1,
+  "pwmBoostOnNumDeadSensor" : 0,
   "pwmBoostOnNoQsfpAfterInSec" : 90,
   "pwmBoostValue" : 70,
   "pwmLowerThreshold" : 10,
@@ -165,7 +157,7 @@ std::string getMokujinFSConfig() {
       "sensorName" : "test_sensor_3",
       "scale" : 1000.0,
       "access" : {
-        "accessType" : "ACCESS_TYPE_THRIFT",
+        "accessType" : "ACCESS_TYPE_THRIFT"
       },
       "adjustmentTable" : {
         "60" : 0,
@@ -195,7 +187,7 @@ std::string getMokujinFSConfig() {
       "sensorName" : "test_sensor_4",
       "scale" : 1000.0,
       "access" : {
-        "accessType" : "ACCESS_TYPE_THRIFT",
+        "accessType" : "ACCESS_TYPE_THRIFT"
       },
       "adjustmentTable" : {
         "60" : 0,
@@ -332,6 +324,4 @@ std::string getMokujinFSConfig() {
       "slope" : 3
     }
   ]
-})";
 }
-} // namespace facebook::fboss::platform::fan_service

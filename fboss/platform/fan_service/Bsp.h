@@ -4,8 +4,7 @@
 //
 // Role : Take care of all the I/O and other board specific details
 //        such as, emergency_shutdown, sysfs read, thrift read, util read
-//        A base class where it can be extended by platform specific class or
-//        overridden by mock Bsp (Mokujin)
+//        A base class where it can be extended by platform specific class.
 #pragma once
 
 #include <cstdint>
@@ -85,7 +84,7 @@ class Bsp {
       std::string original,
       std::string src,
       std::string tgt) const;
-  // This attribute is accessed by internal function and Mock class (Mokujin)
+  // This attribute is accessed by internal function.
   void setEmergencyState(bool state);
 
   const FanServiceConfig config_;

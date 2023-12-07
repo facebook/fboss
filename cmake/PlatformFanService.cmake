@@ -27,8 +27,6 @@ add_library(fan_service_lib
   fboss/platform/fan_service/FanServiceImpl.cpp
   fboss/platform/fan_service/FanServiceHandler.cpp
   fboss/platform/fan_service/FsdbSensorSubscriber.cpp
-  fboss/platform/fan_service/Mokujin.cpp
-  fboss/platform/fan_service/MokujinFSConfig.cpp
   fboss/platform/fan_service/SensorData.cpp
   fboss/platform/fan_service/Utils.cpp
   fboss/platform/fan_service/oss/FsdbSensorSubscriber.cpp

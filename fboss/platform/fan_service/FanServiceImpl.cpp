@@ -84,10 +84,6 @@ std::shared_ptr<Bsp> FanServiceImpl::BspFactory() {
     case BspType::kBspMinipack3:
       returnVal = new Bsp(config_);
       break;
-    // For unit testing, we use Mock (Mokujin) BSP.
-    case BspType::kBspMokujin:
-      returnVal = static_cast<Bsp*>(new Mokujin(config_));
-      break;
 
     default:
       facebook::fboss::FbossError("Invalid BSP Type given to BSP Factory!");
