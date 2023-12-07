@@ -33,6 +33,7 @@ add_fbthrift_cpp_library(
   DEPENDS
     fsdb_common_cpp2
     fsdb_oper_cpp2
+    fb303_cpp2
 )
 else()
 add_fbthrift_cpp_library(
@@ -44,6 +45,7 @@ add_fbthrift_cpp_library(
   DEPENDS
     fsdb_common_cpp2
     fsdb_oper_cpp2
+    fb303_cpp2
 )
 endif()
 
