@@ -135,6 +135,16 @@ ServiceHandler::ServiceHandler(
           folly::to<std::string>(
               fsdb_common_constants::kFsdbServiceHandlerNativeStatsPrefix(),
               "num_publisher_path_requests_rejected")),
+      num_dropped_stats_changes_(
+          fb303::ThreadCachedServiceData::get()->getThreadStats(),
+          folly::to<std::string>(
+              fsdb_common_constants::kFsdbServiceHandlerNativeStatsPrefix(),
+              "num_dropped_stats_changes")),
+      num_dropped_state_changes_(
+          fb303::ThreadCachedServiceData::get()->getThreadStats(),
+          folly::to<std::string>(
+              fsdb_common_constants::kFsdbServiceHandlerNativeStatsPrefix(),
+              "num_dropped_state_changes")),
       operStorage_(
           {},
           FLAGS_stateSubscriptionServe_ms,
@@ -339,6 +349,7 @@ ServiceHandler::makeSinkConsumer(
               // than fsdb
               auto isPathValid = isStats ? PathValidator::isStatsPathValid
                                          : PathValidator::isStatePathValid;
+              auto numChanges = chunk->changes()->size();
               chunk->changes()->erase(
                   std::remove_if(
                       chunk->changes()->begin(),
@@ -352,6 +363,17 @@ ServiceHandler::makeSinkConsumer(
                 operStatsStorage_.patch(*chunk);
               } else {
                 operStorage_.patch(*chunk);
+              }
+              auto numDropped = numChanges - chunk->changes()->size();
+              if (numDropped) {
+                XLOG(DBG2) << "Dropping " << numDropped << " changes from "
+                           << (isStats ? "stats" : "state")
+                           << " chunk with invalid path";
+                if (isStats) {
+                  num_dropped_stats_changes_.incrementValue(numDropped);
+                } else {
+                  num_dropped_state_changes_.incrementValue(numDropped);
+                }
               }
             }
           }

@@ -244,6 +244,8 @@ class ServiceHandler : public FsdbServiceSvIf,
   TLCounter num_subscriptions_rejected_;
   TLCounter num_publisher_unknown_requests_rejected_;
   TLCounter num_publisher_path_requests_rejected_;
+  TLCounter num_dropped_stats_changes_;
+  TLCounter num_dropped_state_changes_;
   FsdbNaivePeriodicSubscribableStorage operStorage_;
   DbWriter operDbWriter_;
   // TODO - decide on right DB abstraction for stats
