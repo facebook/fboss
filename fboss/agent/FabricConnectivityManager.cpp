@@ -37,6 +37,18 @@ void FabricConnectivityManager::removePort(
   currentNeighborConnectivity_.erase(swPort->getID());
 }
 
+void FabricConnectivityManager::addDsfNode(
+    const std::shared_ptr<DsfNode>& dsfNode) {
+  switchIdToDsfNode_[dsfNode->getID()] = dsfNode;
+  switchNameToSwitchIDs_[dsfNode->getName()].insert(dsfNode->getSwitchId());
+}
+
+void FabricConnectivityManager::removeDsfNode(
+    const std::shared_ptr<DsfNode>& dsfNode) {
+  switchIdToDsfNode_.erase(dsfNode->getID());
+  switchNameToSwitchIDs_[dsfNode->getName()].erase(dsfNode->getSwitchId());
+}
+
 void FabricConnectivityManager::updatePorts(const StateDelta& delta) {
   forEachChanged(
       delta.getPortsDelta(),
@@ -49,8 +61,25 @@ void FabricConnectivityManager::updatePorts(const StateDelta& delta) {
       [&](const std::shared_ptr<Port>& deletePort) { removePort(deletePort); });
 }
 
+void FabricConnectivityManager::updateDsfNodes(const StateDelta& delta) {
+  forEachChanged(
+      delta.getDsfNodesDelta(),
+      [&](const std::shared_ptr<DsfNode> oldDsfNode,
+          const std::shared_ptr<DsfNode> newDsfNode) {
+        removeDsfNode(oldDsfNode);
+        addDsfNode(newDsfNode);
+      },
+      [&](const std::shared_ptr<DsfNode> newDsfNode) {
+        addDsfNode(newDsfNode);
+      },
+      [&](const std::shared_ptr<DsfNode> deleteDsfNode) {
+        removeDsfNode(deleteDsfNode);
+      });
+}
+
 void FabricConnectivityManager::stateUpdated(const StateDelta& delta) {
   updatePorts(delta);
+  updateDsfNodes(delta);
 }
 
 FabricEndpoint FabricConnectivityManager::processConnectivityInfoForPort(

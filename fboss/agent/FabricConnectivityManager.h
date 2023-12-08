@@ -28,6 +28,10 @@ class FabricConnectivityManager {
   void removePort(const std::shared_ptr<Port>& swPort);
   void updatePorts(const StateDelta& delta);
 
+  void addDsfNode(const std::shared_ptr<DsfNode>& dsfNode);
+  void removeDsfNode(const std::shared_ptr<DsfNode>& dsfNode);
+  void updateDsfNodes(const StateDelta& delta);
+
   std::unordered_map<uint64_t, std::shared_ptr<DsfNode>> switchIdToDsfNode_;
   std::unordered_map<std::string, std::set<uint64_t>> switchNameToSwitchIDs_;
   std::map<PortID, FabricEndpoint> currentNeighborConnectivity_;
