@@ -441,3 +441,90 @@ TEST(IPv4HdrTest, inequality_operator) {
       dstAddr);
   EXPECT_NE(lhs, rhs);
 }
+
+TEST(IPv4HdrTest, decrementTTL) {
+  uint8_t version = IPV4_VERSION;
+  uint8_t ihl = 5;
+  uint8_t dscp = 0;
+  uint8_t ecn = 0;
+  uint16_t length = 20;
+  uint16_t id = 0;
+  bool dontFragment = false;
+  bool moreFragments = false;
+  uint16_t fragmentOffset = 0;
+  uint8_t ttl = 64;
+  uint8_t protocol = static_cast<uint8_t>(IP_PROTO::IP_PROTO_TCP);
+  uint16_t csum = 0;
+  IPAddressV4 srcAddr("10.0.0.15");
+  IPAddressV4 dstAddr("10.0.0.1");
+  IPv4Hdr ipv4Hdr(
+      version,
+      ihl,
+      dscp,
+      ecn,
+      length,
+      id,
+      dontFragment,
+      moreFragments,
+      fragmentOffset,
+      ttl,
+      protocol,
+      csum,
+      srcAddr,
+      dstAddr);
+  ipv4Hdr.computeChecksum();
+  auto ipv4Hdr2(ipv4Hdr);
+  ipv4Hdr2.decrementTTL();
+  EXPECT_NE(ipv4Hdr2, ipv4Hdr);
+  EXPECT_EQ(ipv4Hdr2.version, ipv4Hdr.version);
+  EXPECT_EQ(ipv4Hdr2.ihl, ipv4Hdr.ihl);
+  EXPECT_EQ(ipv4Hdr2.dscp, ipv4Hdr.dscp);
+  EXPECT_EQ(ipv4Hdr2.ecn, ipv4Hdr.ecn);
+  EXPECT_EQ(ipv4Hdr2.length, ipv4Hdr.length);
+  EXPECT_EQ(ipv4Hdr2.id, ipv4Hdr.id);
+  EXPECT_EQ(ipv4Hdr2.dontFragment, ipv4Hdr.dontFragment);
+  EXPECT_EQ(ipv4Hdr2.moreFragments, ipv4Hdr.moreFragments);
+  EXPECT_EQ(ipv4Hdr2.fragmentOffset, ipv4Hdr.fragmentOffset);
+  EXPECT_EQ(ipv4Hdr2.protocol, ipv4Hdr.protocol);
+  EXPECT_EQ(ipv4Hdr2.srcAddr, ipv4Hdr.srcAddr);
+  EXPECT_EQ(ipv4Hdr2.dstAddr, ipv4Hdr.dstAddr);
+  // TTL and csum should be updated
+  EXPECT_NE(ipv4Hdr2.csum, ipv4Hdr.csum);
+  EXPECT_EQ(ipv4Hdr2.ttl, ipv4Hdr.ttl - 1);
+}
+
+TEST(IPv4HdrTest, decrementTTL0) {
+  uint8_t version = IPV4_VERSION;
+  uint8_t ihl = 5;
+  uint8_t dscp = 0;
+  uint8_t ecn = 0;
+  uint16_t length = 20;
+  uint16_t id = 0;
+  bool dontFragment = false;
+  bool moreFragments = false;
+  uint16_t fragmentOffset = 0;
+  uint8_t ttl = 0;
+  uint8_t protocol = static_cast<uint8_t>(IP_PROTO::IP_PROTO_TCP);
+  uint16_t csum = 0;
+  IPAddressV4 srcAddr("10.0.0.15");
+  IPAddressV4 dstAddr("10.0.0.1");
+  IPv4Hdr ipv4Hdr(
+      version,
+      ihl,
+      dscp,
+      ecn,
+      length,
+      id,
+      dontFragment,
+      moreFragments,
+      fragmentOffset,
+      ttl,
+      protocol,
+      csum,
+      srcAddr,
+      dstAddr);
+  ipv4Hdr.computeChecksum();
+  auto ipv4Hdr2(ipv4Hdr);
+  ipv4Hdr2.decrementTTL();
+  EXPECT_EQ(ipv4Hdr2, ipv4Hdr);
+}

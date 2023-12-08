@@ -298,3 +298,57 @@ TEST(IPv6HdrTest, inequality_operator) {
       dstAddr2);
   EXPECT_NE(lhs, rhs);
 }
+
+TEST(IPv6HdrTest, decrementTTL) {
+  uint8_t version = IPV6_VERSION;
+  uint8_t trafficClass = 0;
+  uint32_t flowLabel = 0;
+  uint16_t payloadLength = 0;
+  uint8_t nextHeader = static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6_NONXT);
+  uint8_t hopLimit = 64;
+  IPAddressV6 srcAddr("2620:0:1cfe:face:b00c::3");
+  IPAddressV6 dstAddr("2620:0:1cfe:face:b00c::4");
+  IPv6Hdr hdr(
+      version,
+      trafficClass,
+      flowLabel,
+      payloadLength,
+      nextHeader,
+      hopLimit,
+      srcAddr,
+      dstAddr);
+  auto hdr2 = hdr;
+  hdr2.decrementTTL();
+  EXPECT_NE(hdr2, hdr);
+  EXPECT_EQ(hdr2.version, hdr.version);
+  EXPECT_EQ(hdr2.trafficClass, hdr.trafficClass);
+  EXPECT_EQ(hdr2.flowLabel, hdr.flowLabel);
+  EXPECT_EQ(hdr2.payloadLength, hdr.payloadLength);
+  EXPECT_EQ(hdr2.nextHeader, hdr.nextHeader);
+  EXPECT_EQ(hdr2.hopLimit, hdr.hopLimit - 1);
+  EXPECT_EQ(hdr2.srcAddr, hdr.srcAddr);
+  EXPECT_EQ(hdr2.dstAddr, hdr.dstAddr);
+}
+
+TEST(IPv6HdrTest, decrementTTL0) {
+  uint8_t version = IPV6_VERSION;
+  uint8_t trafficClass = 0;
+  uint32_t flowLabel = 0;
+  uint16_t payloadLength = 0;
+  uint8_t nextHeader = static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6_NONXT);
+  uint8_t hopLimit = 0;
+  IPAddressV6 srcAddr("2620:0:1cfe:face:b00c::3");
+  IPAddressV6 dstAddr("2620:0:1cfe:face:b00c::4");
+  IPv6Hdr hdr(
+      version,
+      trafficClass,
+      flowLabel,
+      payloadLength,
+      nextHeader,
+      hopLimit,
+      srcAddr,
+      dstAddr);
+  auto hdr2 = hdr;
+  hdr2.decrementTTL();
+  EXPECT_EQ(hdr2, hdr);
+}
