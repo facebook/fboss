@@ -234,9 +234,62 @@ FabricEndpoint FabricConnectivityManager::processConnectivityInfoForPort(
   return iter->second;
 }
 
+// Detect mismatch in expected vs. actual connectivity.
+// Points to cabling issues: no or wrong connection.
 bool FabricConnectivityManager::isConnectivityInfoMismatch(
     const PortID& portId) {
-  return true;
+  const auto& iter = currentNeighborConnectivity_.find(portId);
+  if (iter != currentNeighborConnectivity_.end()) {
+    auto isStringMismatch = [](const std::string& nameA,
+                               const std::string& nameB) {
+      if (nameA != nameB) {
+        return true;
+      }
+      return false;
+    };
+
+    const auto& endpoint = iter->second;
+    if (!*endpoint.isAttached()) {
+      // endpoint not attached, points to cabling connectivity issues
+      // unless in cfg also we don't expect it to be present
+      if (!endpoint.expectedSwitchId().has_value() &&
+          !endpoint.expectedPortId().has_value()) {
+        // not attached, not expected to be attached ..thse are fabric ports
+        // which are down and only contribute to the noise.
+        return false;
+      }
+      return true;
+    }
+    if (endpoint.expectedSwitchId().has_value() &&
+        (endpoint.switchId() != endpoint.expectedSwitchId().value())) {
+      return true;
+    }
+    if (endpoint.expectedPortId().has_value() &&
+        (endpoint.portId() != endpoint.expectedPortId().value())) {
+      return true;
+    }
+
+    if (isStringMismatch(
+            endpoint.switchName().has_value() ? *endpoint.switchName() : "none",
+            endpoint.expectedSwitchName().has_value()
+                ? *endpoint.expectedSwitchName()
+                : "none")) {
+      // mismatch
+      return true;
+    }
+
+    if (isStringMismatch(
+            endpoint.portName().has_value() ? *endpoint.portName() : "none",
+            endpoint.expectedPortName().has_value()
+                ? *endpoint.expectedPortName()
+                : "none")) {
+      // mismatch
+      return true;
+    }
+  }
+
+  // no mismatch
+  return false;
 }
 
 bool FabricConnectivityManager::isConnectivityInfoMissing(
