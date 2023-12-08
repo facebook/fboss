@@ -51,6 +51,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin/bcm/asicsdk-6.5.24/6.5.24/physdk-credo-0.7.2/credo-0.7.2": [
@@ -104,6 +107,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin/bcm/asicsdk-6.5.24/6.5.26": [
@@ -157,6 +163,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin/bcm/asicsdk-6.5.24/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
@@ -210,6 +219,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin/bcm/asicsdk-6.5.24/6.5.28": [
@@ -263,6 +275,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin/bcm/asicsdk-6.5.24/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
@@ -316,6 +331,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin/bcm/asicsdk-6.5.26/6.5.26": [
@@ -369,6 +387,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin/bcm/asicsdk-6.5.26/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
@@ -422,6 +443,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin/bcm/asicsdk-6.5.28/6.5.28": [
@@ -475,6 +499,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin/bcm/asicsdk-6.5.28/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
@@ -528,6 +555,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin/bcm/asicsdk-6.5.29/6.5.29": [
@@ -581,6 +611,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin/bcm/asicsdk-6.5.29/6.5.29/physdk-credo-0.7.2/credo-0.7.2": [
@@ -634,6 +667,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin/sai/asicsdk-10.0_ea_odp/10.0_ea_odp": [
@@ -693,6 +729,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin/sai/asicsdk-10.0_ea_odp/10.0_ea_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -752,6 +791,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp": [
@@ -811,6 +853,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -870,6 +915,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin/sai/asicsdk-8.2.0.0_odp/9.2.0.0_odp": [
@@ -929,6 +977,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin/sai/asicsdk-8.2.0.0_odp/9.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -988,6 +1039,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin/sai/asicsdk-9.2.0.0_odp/9.2.0.0_odp": [
@@ -1047,6 +1101,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin/sai/asicsdk-9.2.0.0_odp/9.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -1106,6 +1163,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin_mix/bcm/asicsdk-6.5.24/6.5.24": [
@@ -1159,6 +1219,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin_mix/bcm/asicsdk-6.5.24/6.5.24/physdk-credo-0.7.2/credo-0.7.2": [
@@ -1212,6 +1275,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin_mix/bcm/asicsdk-6.5.24/6.5.26": [
@@ -1265,6 +1331,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin_mix/bcm/asicsdk-6.5.24/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
@@ -1318,6 +1387,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin_mix/bcm/asicsdk-6.5.24/6.5.28": [
@@ -1371,6 +1443,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin_mix/bcm/asicsdk-6.5.24/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
@@ -1424,6 +1499,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin_mix/bcm/asicsdk-6.5.26/6.5.26": [
@@ -1477,6 +1555,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin_mix/bcm/asicsdk-6.5.26/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
@@ -1530,6 +1611,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin_mix/bcm/asicsdk-6.5.28/6.5.28": [
@@ -1583,6 +1667,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin_mix/bcm/asicsdk-6.5.28/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
@@ -1636,6 +1723,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin_mix/bcm/asicsdk-6.5.29/6.5.29": [
@@ -1689,6 +1779,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin_mix/bcm/asicsdk-6.5.29/6.5.29/physdk-credo-0.7.2/credo-0.7.2": [
@@ -1742,6 +1835,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin_mix/sai/asicsdk-10.0_ea_odp/10.0_ea_odp": [
@@ -1801,6 +1897,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin_mix/sai/asicsdk-10.0_ea_odp/10.0_ea_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -1860,6 +1959,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin_mix/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp": [
@@ -1919,6 +2021,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin_mix/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -1978,6 +2083,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin_mix/sai/asicsdk-8.2.0.0_odp/9.2.0.0_odp": [
@@ -2037,6 +2145,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin_mix/sai/asicsdk-8.2.0.0_odp/9.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -2096,6 +2207,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin_mix/sai/asicsdk-9.2.0.0_odp/9.2.0.0_odp": [
@@ -2155,6 +2269,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin_mix/sai/asicsdk-9.2.0.0_odp/9.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -2214,6 +2331,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin_original/bcm/asicsdk-6.5.24/6.5.24": [
@@ -2267,6 +2387,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin_original/bcm/asicsdk-6.5.24/6.5.24/physdk-credo-0.7.2/credo-0.7.2": [
@@ -2320,6 +2443,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin_original/bcm/asicsdk-6.5.24/6.5.26": [
@@ -2373,6 +2499,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin_original/bcm/asicsdk-6.5.24/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
@@ -2426,6 +2555,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin_original/bcm/asicsdk-6.5.24/6.5.28": [
@@ -2479,6 +2611,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin_original/bcm/asicsdk-6.5.24/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
@@ -2532,6 +2667,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin_original/bcm/asicsdk-6.5.26/6.5.26": [
@@ -2585,6 +2723,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin_original/bcm/asicsdk-6.5.26/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
@@ -2638,6 +2779,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin_original/bcm/asicsdk-6.5.28/6.5.28": [
@@ -2691,6 +2835,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin_original/bcm/asicsdk-6.5.28/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
@@ -2744,6 +2891,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin_original/bcm/asicsdk-6.5.29/6.5.29": [
@@ -2797,6 +2947,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin_original/bcm/asicsdk-6.5.29/6.5.29/physdk-credo-0.7.2/credo-0.7.2": [
@@ -2850,6 +3003,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin_original/sai/asicsdk-10.0_ea_odp/10.0_ea_odp": [
@@ -2909,6 +3065,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin_original/sai/asicsdk-10.0_ea_odp/10.0_ea_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -2968,6 +3127,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin_original/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp": [
@@ -3027,6 +3189,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin_original/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -3086,6 +3251,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin_original/sai/asicsdk-8.2.0.0_odp/9.2.0.0_odp": [
@@ -3145,6 +3313,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin_original/sai/asicsdk-8.2.0.0_odp/9.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -3204,6 +3375,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin_original/sai/asicsdk-9.2.0.0_odp/9.2.0.0_odp": [
@@ -3263,6 +3437,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "darwin_original/sai/asicsdk-9.2.0.0_odp/9.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -3322,6 +3499,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "elbert_2x16Q_6x8DD/bcm/asicsdk-6.5.24/6.5.24": [
@@ -3372,6 +3552,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "elbert_2x16Q_6x8DD/bcm/asicsdk-6.5.24/6.5.24/physdk-credo-0.7.2/credo-0.7.2": [
@@ -3422,6 +3605,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "elbert_2x16Q_6x8DD/bcm/asicsdk-6.5.24/6.5.26": [
@@ -3472,6 +3658,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "elbert_2x16Q_6x8DD/bcm/asicsdk-6.5.24/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
@@ -3522,6 +3711,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "elbert_2x16Q_6x8DD/bcm/asicsdk-6.5.24/6.5.28": [
@@ -3572,6 +3764,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "elbert_2x16Q_6x8DD/bcm/asicsdk-6.5.24/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
@@ -3622,6 +3817,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "elbert_2x16Q_6x8DD/bcm/asicsdk-6.5.26/6.5.26": [
@@ -3672,6 +3870,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "elbert_2x16Q_6x8DD/bcm/asicsdk-6.5.26/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
@@ -3722,6 +3923,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "elbert_2x16Q_6x8DD/bcm/asicsdk-6.5.28/6.5.28": [
@@ -3772,6 +3976,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "elbert_2x16Q_6x8DD/bcm/asicsdk-6.5.28/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
@@ -3822,6 +4029,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "elbert_2x16Q_6x8DD/bcm/asicsdk-6.5.29/6.5.29": [
@@ -3872,6 +4082,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "elbert_2x16Q_6x8DD/bcm/asicsdk-6.5.29/6.5.29/physdk-credo-0.7.2/credo-0.7.2": [
@@ -3922,6 +4135,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "elbert_2x16Q_6x8DD/sai/asicsdk-10.0_ea_odp/10.0_ea_odp": [
@@ -3978,6 +4194,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "elbert_2x16Q_6x8DD/sai/asicsdk-10.0_ea_odp/10.0_ea_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -4034,6 +4253,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "elbert_2x16Q_6x8DD/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp": [
@@ -4090,6 +4312,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "elbert_2x16Q_6x8DD/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -4146,6 +4371,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "elbert_2x16Q_6x8DD/sai/asicsdk-8.2.0.0_odp/9.2.0.0_odp": [
@@ -4202,6 +4430,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "elbert_2x16Q_6x8DD/sai/asicsdk-8.2.0.0_odp/9.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -4258,6 +4489,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "elbert_2x16Q_6x8DD/sai/asicsdk-9.2.0.0_odp/9.2.0.0_odp": [
@@ -4314,6 +4548,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "elbert_2x16Q_6x8DD/sai/asicsdk-9.2.0.0_odp/9.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -4370,6 +4607,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "elbert_5x16Q_3x8DD/bcm/asicsdk-6.5.24/6.5.24": [
@@ -4420,6 +4660,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "elbert_5x16Q_3x8DD/bcm/asicsdk-6.5.24/6.5.24/physdk-credo-0.7.2/credo-0.7.2": [
@@ -4470,6 +4713,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "elbert_5x16Q_3x8DD/bcm/asicsdk-6.5.24/6.5.26": [
@@ -4520,6 +4766,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "elbert_5x16Q_3x8DD/bcm/asicsdk-6.5.24/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
@@ -4570,6 +4819,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "elbert_5x16Q_3x8DD/bcm/asicsdk-6.5.24/6.5.28": [
@@ -4620,6 +4872,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "elbert_5x16Q_3x8DD/bcm/asicsdk-6.5.24/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
@@ -4670,6 +4925,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "elbert_5x16Q_3x8DD/bcm/asicsdk-6.5.26/6.5.26": [
@@ -4720,6 +4978,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "elbert_5x16Q_3x8DD/bcm/asicsdk-6.5.26/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
@@ -4770,6 +5031,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "elbert_5x16Q_3x8DD/bcm/asicsdk-6.5.28/6.5.28": [
@@ -4820,6 +5084,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "elbert_5x16Q_3x8DD/bcm/asicsdk-6.5.28/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
@@ -4870,6 +5137,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "elbert_5x16Q_3x8DD/bcm/asicsdk-6.5.29/6.5.29": [
@@ -4920,6 +5190,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "elbert_5x16Q_3x8DD/bcm/asicsdk-6.5.29/6.5.29/physdk-credo-0.7.2/credo-0.7.2": [
@@ -4970,6 +5243,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "elbert_5x16Q_3x8DD/sai/asicsdk-10.0_ea_odp/10.0_ea_odp": [
@@ -5026,6 +5302,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "elbert_5x16Q_3x8DD/sai/asicsdk-10.0_ea_odp/10.0_ea_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -5082,6 +5361,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "elbert_5x16Q_3x8DD/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp": [
@@ -5138,6 +5420,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "elbert_5x16Q_3x8DD/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -5194,6 +5479,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "elbert_5x16Q_3x8DD/sai/asicsdk-8.2.0.0_odp/9.2.0.0_odp": [
@@ -5250,6 +5538,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "elbert_5x16Q_3x8DD/sai/asicsdk-8.2.0.0_odp/9.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -5306,6 +5597,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "elbert_5x16Q_3x8DD/sai/asicsdk-9.2.0.0_odp/9.2.0.0_odp": [
@@ -5362,6 +5656,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "elbert_5x16Q_3x8DD/sai/asicsdk-9.2.0.0_odp/9.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -5418,6 +5715,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "elbert_8x16Q/bcm/asicsdk-6.5.24/6.5.24": [
@@ -5480,6 +5780,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "elbert_8x16Q/bcm/asicsdk-6.5.24/6.5.24/physdk-credo-0.7.2/credo-0.7.2": [
@@ -5542,6 +5845,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "elbert_8x16Q/bcm/asicsdk-6.5.24/6.5.26": [
@@ -5604,6 +5910,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "elbert_8x16Q/bcm/asicsdk-6.5.24/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
@@ -5666,6 +5975,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "elbert_8x16Q/bcm/asicsdk-6.5.24/6.5.28": [
@@ -5728,6 +6040,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "elbert_8x16Q/bcm/asicsdk-6.5.24/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
@@ -5790,6 +6105,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "elbert_8x16Q/bcm/asicsdk-6.5.26/6.5.26": [
@@ -5852,6 +6170,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "elbert_8x16Q/bcm/asicsdk-6.5.26/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
@@ -5914,6 +6235,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "elbert_8x16Q/bcm/asicsdk-6.5.28/6.5.28": [
@@ -5976,6 +6300,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "elbert_8x16Q/bcm/asicsdk-6.5.28/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
@@ -6038,6 +6365,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "elbert_8x16Q/bcm/asicsdk-6.5.29/6.5.29": [
@@ -6100,6 +6430,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "elbert_8x16Q/bcm/asicsdk-6.5.29/6.5.29/physdk-credo-0.7.2/credo-0.7.2": [
@@ -6162,6 +6495,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "elbert_8x16Q/sai/asicsdk-10.0_ea_odp/10.0_ea_odp": [
@@ -6753,6 +7089,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "fuji_5x16Q/bcm/asicsdk-6.5.24/6.5.24/physdk-barchetta2-5.2/barchetta2-5.2": [
@@ -6800,6 +7139,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "fuji_5x16Q/bcm/asicsdk-6.5.24/6.5.26": [
@@ -6847,6 +7189,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "fuji_5x16Q/bcm/asicsdk-6.5.24/6.5.26/physdk-barchetta2-5.2/barchetta2-5.2": [
@@ -6894,6 +7239,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "fuji_5x16Q/bcm/asicsdk-6.5.24/6.5.28": [
@@ -6941,6 +7289,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "fuji_5x16Q/bcm/asicsdk-6.5.24/6.5.28/physdk-barchetta2-5.2/barchetta2-5.2": [
@@ -6988,6 +7339,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "fuji_5x16Q/bcm/asicsdk-6.5.26/6.5.26": [
@@ -7035,6 +7389,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "fuji_5x16Q/bcm/asicsdk-6.5.26/6.5.26/physdk-barchetta2-5.2/barchetta2-5.2": [
@@ -7082,6 +7439,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "fuji_5x16Q/bcm/asicsdk-6.5.28/6.5.28": [
@@ -7129,6 +7489,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "fuji_5x16Q/bcm/asicsdk-6.5.28/6.5.28/physdk-barchetta2-5.2/barchetta2-5.2": [
@@ -7176,6 +7539,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "fuji_5x16Q/bcm/asicsdk-6.5.29/6.5.29": [
@@ -7223,6 +7589,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "fuji_5x16Q/bcm/asicsdk-6.5.29/6.5.29/physdk-barchetta2-5.2/barchetta2-5.2": [
@@ -7270,6 +7639,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "fuji_5x16Q/sai/asicsdk-10.0_ea_odp/10.0_ea_odp": [
@@ -7323,6 +7695,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "fuji_5x16Q/sai/asicsdk-10.0_ea_odp/10.0_ea_odp/physdk-barchetta2-5.2/barchetta2-5.2": [
@@ -7376,6 +7751,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "fuji_5x16Q/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp": [
@@ -7429,6 +7807,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "fuji_5x16Q/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp/physdk-barchetta2-5.2/barchetta2-5.2": [
@@ -7482,6 +7863,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "fuji_5x16Q/sai/asicsdk-8.2.0.0_odp/9.2.0.0_odp": [
@@ -7535,6 +7919,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "fuji_5x16Q/sai/asicsdk-8.2.0.0_odp/9.2.0.0_odp/physdk-barchetta2-5.2/barchetta2-5.2": [
@@ -7588,6 +7975,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "fuji_5x16Q/sai/asicsdk-9.2.0.0_odp/9.2.0.0_odp": [
@@ -7641,6 +8031,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "fuji_5x16Q/sai/asicsdk-9.2.0.0_odp/9.2.0.0_odp/physdk-barchetta2-5.2/barchetta2-5.2": [
@@ -7694,6 +8087,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "fuji_8x16Q/bcm/asicsdk-6.5.24/6.5.24": [
@@ -7741,6 +8137,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "fuji_8x16Q/bcm/asicsdk-6.5.24/6.5.24/physdk-barchetta2-5.2/barchetta2-5.2": [
@@ -7788,6 +8187,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "fuji_8x16Q/bcm/asicsdk-6.5.24/6.5.26": [
@@ -7835,6 +8237,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "fuji_8x16Q/bcm/asicsdk-6.5.24/6.5.26/physdk-barchetta2-5.2/barchetta2-5.2": [
@@ -7882,6 +8287,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "fuji_8x16Q/bcm/asicsdk-6.5.24/6.5.28": [
@@ -7929,6 +8337,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "fuji_8x16Q/bcm/asicsdk-6.5.24/6.5.28/physdk-barchetta2-5.2/barchetta2-5.2": [
@@ -7976,6 +8387,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "fuji_8x16Q/bcm/asicsdk-6.5.26/6.5.26": [
@@ -8023,6 +8437,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "fuji_8x16Q/bcm/asicsdk-6.5.26/6.5.26/physdk-barchetta2-5.2/barchetta2-5.2": [
@@ -8070,6 +8487,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "fuji_8x16Q/bcm/asicsdk-6.5.28/6.5.28": [
@@ -8117,6 +8537,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "fuji_8x16Q/bcm/asicsdk-6.5.28/6.5.28/physdk-barchetta2-5.2/barchetta2-5.2": [
@@ -8164,6 +8587,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "fuji_8x16Q/bcm/asicsdk-6.5.29/6.5.29": [
@@ -8211,6 +8637,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "fuji_8x16Q/bcm/asicsdk-6.5.29/6.5.29/physdk-barchetta2-5.2/barchetta2-5.2": [
@@ -8258,6 +8687,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "fuji_8x16Q/sai/asicsdk-10.0_ea_odp/10.0_ea_odp": [
@@ -8311,6 +8743,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "fuji_8x16Q/sai/asicsdk-10.0_ea_odp/10.0_ea_odp/physdk-barchetta2-5.2/barchetta2-5.2": [
@@ -8364,6 +8799,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "fuji_8x16Q/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp": [
@@ -8417,6 +8855,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "fuji_8x16Q/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp/physdk-barchetta2-5.2/barchetta2-5.2": [
@@ -8470,6 +8911,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "fuji_8x16Q/sai/asicsdk-8.2.0.0_odp/9.2.0.0_odp": [
@@ -8523,6 +8967,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "fuji_8x16Q/sai/asicsdk-8.2.0.0_odp/9.2.0.0_odp/physdk-barchetta2-5.2/barchetta2-5.2": [
@@ -8576,6 +9023,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "fuji_8x16Q/sai/asicsdk-9.2.0.0_odp/9.2.0.0_odp": [
@@ -8629,6 +9079,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "fuji_8x16Q/sai/asicsdk-9.2.0.0_odp/9.2.0.0_odp/physdk-barchetta2-5.2/barchetta2-5.2": [
@@ -8682,6 +9135,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "meru400bfu/sai/asicsdk-10.0_ea_dnx_odp/10.0_ea_dnx_odp": [
@@ -8756,6 +9212,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "meru400bfu/sai/asicsdk-10.0_ea_dnx_odp/10.0_ea_dnx_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -8830,6 +9289,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "meru400bfu/sai/asicsdk-10.0_ea_dnx_odp/11.0_ea_dnx_odp": [
@@ -8904,6 +9366,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "meru400bfu/sai/asicsdk-10.0_ea_dnx_odp/11.0_ea_dnx_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -8978,6 +9443,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "meru400bfu/sai/asicsdk-11.0_ea_dnx_odp/11.0_ea_dnx_odp": [
@@ -9052,6 +9520,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "meru400bfu/sai/asicsdk-11.0_ea_dnx_odp/11.0_ea_dnx_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -9126,6 +9597,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "meru400biu/sai/asicsdk-10.0_ea_dnx_odp/10.0_ea_dnx_odp": [
@@ -9197,6 +9671,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "meru400biu/sai/asicsdk-10.0_ea_dnx_odp/10.0_ea_dnx_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -9268,6 +9745,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "meru400biu/sai/asicsdk-10.0_ea_dnx_odp/11.0_ea_dnx_odp": [
@@ -9339,6 +9819,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "meru400biu/sai/asicsdk-10.0_ea_dnx_odp/11.0_ea_dnx_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -9410,6 +9893,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "meru400biu/sai/asicsdk-11.0_ea_dnx_odp/11.0_ea_dnx_odp": [
@@ -9481,6 +9967,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "meru400biu/sai/asicsdk-11.0_ea_dnx_odp/11.0_ea_dnx_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -9552,6 +10041,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "meru800bfa/sai/asicsdk-10.0_ea_dnx_odp/10.0_ea_dnx_odp": [
@@ -9626,6 +10118,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "meru800bfa/sai/asicsdk-10.0_ea_dnx_odp/10.0_ea_dnx_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -9700,6 +10195,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "meru800bfa/sai/asicsdk-10.0_ea_dnx_odp/11.0_ea_dnx_odp": [
@@ -9774,6 +10272,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "meru800bfa/sai/asicsdk-10.0_ea_dnx_odp/11.0_ea_dnx_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -9848,6 +10349,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "meru800bfa/sai/asicsdk-11.0_ea_dnx_odp/11.0_ea_dnx_odp": [
@@ -9922,6 +10426,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "meru800bfa/sai/asicsdk-11.0_ea_dnx_odp/11.0_ea_dnx_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -9996,6 +10503,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "meru800bia/sai/asicsdk-10.0_ea_dnx_odp/10.0_ea_dnx_odp": [
@@ -10067,6 +10577,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "meru800bia/sai/asicsdk-10.0_ea_dnx_odp/10.0_ea_dnx_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -10138,6 +10651,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "meru800bia/sai/asicsdk-10.0_ea_dnx_odp/11.0_ea_dnx_odp": [
@@ -10209,6 +10725,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "meru800bia/sai/asicsdk-10.0_ea_dnx_odp/11.0_ea_dnx_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -10280,6 +10799,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "meru800bia/sai/asicsdk-11.0_ea_dnx_odp/11.0_ea_dnx_odp": [
@@ -10351,6 +10873,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "meru800bia/sai/asicsdk-11.0_ea_dnx_odp/11.0_ea_dnx_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -10422,6 +10947,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "minipack_7x16Q_1x16O/bcm/asicsdk-6.5.24/6.5.24": [
@@ -10466,6 +10994,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "minipack_7x16Q_1x16O/bcm/asicsdk-6.5.24/6.5.24/physdk-millenio-5.5/millenio-5.5": [
@@ -10510,6 +11041,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "minipack_7x16Q_1x16O/bcm/asicsdk-6.5.24/6.5.26": [
@@ -10554,6 +11088,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "minipack_7x16Q_1x16O/bcm/asicsdk-6.5.24/6.5.26/physdk-millenio-5.5/millenio-5.5": [
@@ -10598,6 +11135,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "minipack_7x16Q_1x16O/bcm/asicsdk-6.5.24/6.5.28": [
@@ -10642,6 +11182,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "minipack_7x16Q_1x16O/bcm/asicsdk-6.5.24/6.5.28/physdk-millenio-5.5/millenio-5.5": [
@@ -10686,6 +11229,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "minipack_7x16Q_1x16O/bcm/asicsdk-6.5.26/6.5.26": [
@@ -10730,6 +11276,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "minipack_7x16Q_1x16O/bcm/asicsdk-6.5.26/6.5.26/physdk-millenio-5.5/millenio-5.5": [
@@ -10774,6 +11323,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "minipack_7x16Q_1x16O/bcm/asicsdk-6.5.28/6.5.28": [
@@ -10818,6 +11370,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "minipack_7x16Q_1x16O/bcm/asicsdk-6.5.28/6.5.28/physdk-millenio-5.5/millenio-5.5": [
@@ -10862,6 +11417,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "minipack_7x16Q_1x16O/bcm/asicsdk-6.5.29/6.5.29": [
@@ -10906,6 +11464,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "minipack_7x16Q_1x16O/bcm/asicsdk-6.5.29/6.5.29/physdk-millenio-5.5/millenio-5.5": [
@@ -10950,6 +11511,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "minipack_7x16Q_1x16O/sai/asicsdk-10.0_ea_odp/10.0_ea_odp": [
@@ -11000,6 +11564,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "minipack_7x16Q_1x16O/sai/asicsdk-10.0_ea_odp/10.0_ea_odp/physdk-millenio-5.5/millenio-5.5": [
@@ -11050,6 +11617,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "minipack_7x16Q_1x16O/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp": [
@@ -11100,6 +11670,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "minipack_7x16Q_1x16O/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp/physdk-millenio-5.5/millenio-5.5": [
@@ -11150,6 +11723,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "minipack_7x16Q_1x16O/sai/asicsdk-8.2.0.0_odp/9.2.0.0_odp": [
@@ -11200,6 +11776,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "minipack_7x16Q_1x16O/sai/asicsdk-8.2.0.0_odp/9.2.0.0_odp/physdk-millenio-5.5/millenio-5.5": [
@@ -11250,6 +11829,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "minipack_7x16Q_1x16O/sai/asicsdk-9.2.0.0_odp/9.2.0.0_odp": [
@@ -11300,6 +11882,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "minipack_7x16Q_1x16O/sai/asicsdk-9.2.0.0_odp/9.2.0.0_odp/physdk-millenio-5.5/millenio-5.5": [
@@ -11350,6 +11935,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "montblanc/bcm/asicsdk-6.5.24/6.5.24": [
@@ -11403,6 +11991,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "montblanc/bcm/asicsdk-6.5.24/6.5.24/physdk-credo-0.7.2/credo-0.7.2": [
@@ -11456,6 +12047,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "montblanc/bcm/asicsdk-6.5.24/6.5.26": [
@@ -11509,6 +12103,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "montblanc/bcm/asicsdk-6.5.24/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
@@ -11562,6 +12159,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "montblanc/bcm/asicsdk-6.5.24/6.5.28": [
@@ -11615,6 +12215,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "montblanc/bcm/asicsdk-6.5.24/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
@@ -11668,6 +12271,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "montblanc/bcm/asicsdk-6.5.26/6.5.26": [
@@ -11721,6 +12327,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "montblanc/bcm/asicsdk-6.5.26/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
@@ -11774,6 +12383,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "montblanc/bcm/asicsdk-6.5.28/6.5.28": [
@@ -11827,6 +12439,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "montblanc/bcm/asicsdk-6.5.28/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
@@ -11880,6 +12495,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "montblanc/bcm/asicsdk-6.5.29/6.5.29": [
@@ -11933,6 +12551,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "montblanc/bcm/asicsdk-6.5.29/6.5.29/physdk-credo-0.7.2/credo-0.7.2": [
@@ -11986,6 +12607,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "montblanc/sai/asicsdk-10.0_ea_odp/10.0_ea_odp": [
@@ -12045,6 +12669,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "montblanc/sai/asicsdk-10.0_ea_odp/10.0_ea_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -12104,6 +12731,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "montblanc/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp": [
@@ -12163,6 +12793,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "montblanc/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -12222,6 +12855,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "montblanc/sai/asicsdk-8.2.0.0_odp/9.2.0.0_odp": [
@@ -12281,6 +12917,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "montblanc/sai/asicsdk-8.2.0.0_odp/9.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -12340,6 +12979,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "montblanc/sai/asicsdk-9.2.0.0_odp/9.2.0.0_odp": [
@@ -12399,6 +13041,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "montblanc/sai/asicsdk-9.2.0.0_odp/9.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -12458,6 +13103,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "morgan800cc/sai/asicsdk-1.42.8/1.42.8": [
@@ -12523,6 +13171,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "morgan800cc/sai/asicsdk-1.42.8/1.42.8/physdk-credo-0.7.2/credo-0.7.2": [
@@ -12588,6 +13239,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "morgan800cc/sai/asicsdk-1.42.8/1.65.0": [
@@ -12653,6 +13307,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "morgan800cc/sai/asicsdk-1.42.8/1.65.0/physdk-credo-0.7.2/credo-0.7.2": [
@@ -12718,6 +13375,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "morgan800cc/sai/asicsdk-1.65.0/1.65.0": [
@@ -12783,6 +13443,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "morgan800cc/sai/asicsdk-1.65.0/1.65.0/physdk-credo-0.7.2/credo-0.7.2": [
@@ -12848,6 +13511,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "wedge100s/bcm/asicsdk-6.5.24/6.5.24": [
@@ -12907,6 +13573,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "wedge100s/bcm/asicsdk-6.5.24/6.5.24/physdk-credo-0.7.2/credo-0.7.2": [
@@ -12966,6 +13635,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "wedge100s/bcm/asicsdk-6.5.24/6.5.26": [
@@ -13025,6 +13697,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "wedge100s/bcm/asicsdk-6.5.24/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
@@ -13084,6 +13759,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "wedge100s/bcm/asicsdk-6.5.24/6.5.28": [
@@ -13143,6 +13821,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "wedge100s/bcm/asicsdk-6.5.24/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
@@ -13202,6 +13883,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "wedge100s/bcm/asicsdk-6.5.26/6.5.26": [
@@ -13261,6 +13945,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "wedge100s/bcm/asicsdk-6.5.26/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
@@ -13320,6 +14007,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "wedge100s/bcm/asicsdk-6.5.28/6.5.28": [
@@ -13379,6 +14069,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "wedge100s/bcm/asicsdk-6.5.28/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
@@ -13438,6 +14131,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "wedge100s/bcm/asicsdk-6.5.29/6.5.29": [
@@ -13497,6 +14193,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "wedge100s/bcm/asicsdk-6.5.29/6.5.29/physdk-credo-0.7.2/credo-0.7.2": [
@@ -13556,6 +14255,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "wedge100s/sai/asicsdk-10.0_ea_odp/10.0_ea_odp": [
@@ -13621,6 +14323,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "wedge100s/sai/asicsdk-10.0_ea_odp/10.0_ea_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -13686,6 +14391,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "wedge100s/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp": [
@@ -13751,6 +14459,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "wedge100s/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -13816,6 +14527,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "wedge100s/sai/asicsdk-8.2.0.0_odp/9.2.0.0_odp": [
@@ -13881,6 +14595,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "wedge100s/sai/asicsdk-8.2.0.0_odp/9.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -13946,6 +14663,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "wedge100s/sai/asicsdk-9.2.0.0_odp/9.2.0.0_odp": [
@@ -14011,6 +14731,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "wedge100s/sai/asicsdk-9.2.0.0_odp/9.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -14076,6 +14799,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "wedge400/bcm/asicsdk-6.5.24/6.5.24": [
@@ -14144,6 +14870,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "wedge400/bcm/asicsdk-6.5.24/6.5.24/physdk-credo-0.7.2/credo-0.7.2": [
@@ -14212,6 +14941,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "wedge400/bcm/asicsdk-6.5.24/6.5.26": [
@@ -14280,6 +15012,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "wedge400/bcm/asicsdk-6.5.24/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
@@ -14348,6 +15083,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "wedge400/bcm/asicsdk-6.5.24/6.5.28": [
@@ -14416,6 +15154,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "wedge400/bcm/asicsdk-6.5.24/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
@@ -14484,6 +15225,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "wedge400/bcm/asicsdk-6.5.26/6.5.26": [
@@ -14552,6 +15296,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "wedge400/bcm/asicsdk-6.5.26/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
@@ -14620,6 +15367,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "wedge400/bcm/asicsdk-6.5.28/6.5.28": [
@@ -14688,6 +15438,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "wedge400/bcm/asicsdk-6.5.28/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
@@ -14756,6 +15509,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "wedge400/bcm/asicsdk-6.5.29/6.5.29": [
@@ -14824,6 +15580,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "wedge400/bcm/asicsdk-6.5.29/6.5.29/physdk-credo-0.7.2/credo-0.7.2": [
@@ -14892,6 +15651,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "wedge400/sai/asicsdk-10.0_ea_odp/10.0_ea_odp": [
@@ -14966,6 +15728,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "wedge400/sai/asicsdk-10.0_ea_odp/10.0_ea_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -15040,6 +15805,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "wedge400/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp": [
@@ -15114,6 +15882,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "wedge400/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -15188,6 +15959,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "wedge400/sai/asicsdk-8.2.0.0_odp/9.2.0.0_odp": [
@@ -15262,6 +16036,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "wedge400/sai/asicsdk-8.2.0.0_odp/9.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -15336,6 +16113,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "wedge400/sai/asicsdk-9.2.0.0_odp/9.2.0.0_odp": [
@@ -15410,6 +16190,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "wedge400/sai/asicsdk-9.2.0.0_odp/9.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -15484,6 +16267,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "wedge400c/sai/asicsdk-1.42.8/1.42.8": [
@@ -15546,6 +16332,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "wedge400c/sai/asicsdk-1.42.8/1.42.8/physdk-credo-0.7.2/credo-0.7.2": [
@@ -15608,6 +16397,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "wedge400c/sai/asicsdk-1.42.8/1.65.0": [
@@ -15670,6 +16462,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "wedge400c/sai/asicsdk-1.42.8/1.65.0/physdk-credo-0.7.2/credo-0.7.2": [
@@ -15732,6 +16527,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "wedge400c/sai/asicsdk-1.65.0/1.65.0": [
@@ -15794,6 +16592,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "wedge400c/sai/asicsdk-1.65.0/1.65.0/physdk-credo-0.7.2/credo-0.7.2": [
@@ -15856,6 +16657,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "yamp_8x16Q/bcm/asicsdk-6.5.24/6.5.24": [
@@ -15915,6 +16719,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "yamp_8x16Q/bcm/asicsdk-6.5.24/6.5.24/physdk-credo-0.7.2/credo-0.7.2": [
@@ -15974,6 +16781,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "yamp_8x16Q/bcm/asicsdk-6.5.24/6.5.26": [
@@ -16033,6 +16843,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "yamp_8x16Q/bcm/asicsdk-6.5.24/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
@@ -16092,6 +16905,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "yamp_8x16Q/bcm/asicsdk-6.5.24/6.5.28": [
@@ -16151,6 +16967,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "yamp_8x16Q/bcm/asicsdk-6.5.24/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
@@ -16210,6 +17029,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "yamp_8x16Q/bcm/asicsdk-6.5.26/6.5.26": [
@@ -16269,6 +17091,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "yamp_8x16Q/bcm/asicsdk-6.5.26/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
@@ -16328,6 +17153,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "yamp_8x16Q/bcm/asicsdk-6.5.28/6.5.28": [
@@ -16387,6 +17215,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "yamp_8x16Q/bcm/asicsdk-6.5.28/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
@@ -16446,6 +17277,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "yamp_8x16Q/bcm/asicsdk-6.5.29/6.5.29": [
@@ -16505,6 +17339,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "yamp_8x16Q/bcm/asicsdk-6.5.29/6.5.29/physdk-credo-0.7.2/credo-0.7.2": [
@@ -16564,6 +17401,9 @@
         },
         {
           "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "yamp_8x16Q/sai/asicsdk-10.0_ea_odp/10.0_ea_odp": [
@@ -16629,6 +17469,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "yamp_8x16Q/sai/asicsdk-10.0_ea_odp/10.0_ea_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -16694,6 +17537,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "yamp_8x16Q/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp": [
@@ -16759,6 +17605,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "yamp_8x16Q/sai/asicsdk-8.2.0.0_odp/8.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -16824,6 +17673,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "yamp_8x16Q/sai/asicsdk-8.2.0.0_odp/9.2.0.0_odp": [
@@ -16889,6 +17741,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "yamp_8x16Q/sai/asicsdk-8.2.0.0_odp/9.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -16954,6 +17809,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "yamp_8x16Q/sai/asicsdk-9.2.0.0_odp/9.2.0.0_odp": [
@@ -17019,6 +17877,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
     "yamp_8x16Q/sai/asicsdk-9.2.0.0_odp/9.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
@@ -17084,6 +17945,9 @@
         },
         {
           "test_name_regex": "LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ]
   }
