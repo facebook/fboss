@@ -9,26 +9,26 @@
 
 namespace facebook::fboss {
 
-void FabricReachabilityManager::stateUpdated(const StateDelta& delta) {}
+void FabricConnectivityManager::stateUpdated(const StateDelta& delta) {}
 
-FabricEndpoint FabricReachabilityManager::processReachabilityInfoForPort(
+FabricEndpoint FabricConnectivityManager::processConnectivityInfoForPort(
     const PortID& portId,
     const FabricEndpoint& hwEndpoint) {
   return FabricEndpoint{};
 }
 
-bool FabricReachabilityManager::isReachabilityInfoMismatch(
+bool FabricConnectivityManager::isConnectivityInfoMismatch(
     const PortID& portId) {
   return true;
 }
 
-bool FabricReachabilityManager::isReachabilityInfoMissing(
+bool FabricConnectivityManager::isConnectivityInfoMissing(
     const PortID& portId) {
   return false;
 }
 
 std::map<PortID, FabricEndpoint>
-FabricReachabilityManager::getReachabilityInfo() {
+FabricConnectivityManager::getConnectivityInfo() {
   return {};
 }
 

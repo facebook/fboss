@@ -230,8 +230,8 @@ SaiSwitch::SaiSwitch(SaiPlatform* platform, uint32_t featuresDesired)
     : HwSwitch(featuresDesired),
       platform_(platform),
       saiStore_(std::make_unique<SaiStore>()),
-      fabricReachabilityManager_(
-          std::make_unique<FabricReachabilityManager>()) {
+      fabricConnectivityManager_(
+          std::make_unique<FabricConnectivityManager>()) {
   utilCreateDir(platform_->getDirectoryUtil()->getVolatileStateDir());
   utilCreateDir(platform_->getDirectoryUtil()->getPersistentStateDir());
 }
@@ -602,7 +602,7 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
   {
     // this is specific for fabric/voq switches for now
     [[maybe_unused]] const auto& lock = lockPolicy.lock();
-    fabricReachabilityManager_->stateUpdated(delta);
+    fabricConnectivityManager_->stateUpdated(delta);
   }
 
   // LAGs
@@ -1502,7 +1502,7 @@ std::map<PortID, FabricEndpoint> SaiSwitch::getFabricConnectivity() const {
 
 std::map<PortID, FabricEndpoint> SaiSwitch::getFabricReachabilityLocked()
     const {
-  return fabricReachabilityManager_->getReachabilityInfo();
+  return fabricConnectivityManager_->getConnectivityInfo();
 }
 
 std::vector<PortID> SaiSwitch::getSwitchReachability(SwitchID switchId) const {

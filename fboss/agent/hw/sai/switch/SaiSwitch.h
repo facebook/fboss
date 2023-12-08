@@ -34,7 +34,7 @@ namespace facebook::fboss {
 
 struct ConcurrentIndices;
 class SaiStore;
-class FabricReachabilityManager;
+class FabricConnectivityManager;
 
 /*
  * This is equivalent to sai_fdb_event_notification_data_t. Copy only the
@@ -540,7 +540,7 @@ class SaiSwitch : public HwSwitch {
   cfg::AsicType asicType_;
 
   std::map<PortID, phy::PhyInfo> lastPhyInfos_;
-  std::unique_ptr<FabricReachabilityManager> fabricReachabilityManager_;
+  std::unique_ptr<FabricConnectivityManager> fabricConnectivityManager_;
   bool pfcDeadlockEnabled_{false};
 };
 

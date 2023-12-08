@@ -12,15 +12,15 @@ namespace facebook::fboss {
 class SwitchState;
 class PlatformMapping;
 
-class FabricReachabilityManager {
+class FabricConnectivityManager {
  public:
-  explicit FabricReachabilityManager() {}
+  explicit FabricConnectivityManager() {}
   void stateUpdated(const StateDelta& stateDelta);
-  std::map<PortID, FabricEndpoint> getReachabilityInfo();
-  FabricEndpoint processReachabilityInfoForPort(
+  std::map<PortID, FabricEndpoint> getConnectivityInfo();
+  FabricEndpoint processConnectivityInfoForPort(
       const PortID& portId,
-      const FabricEndpoint& hwReachability);
-  bool isReachabilityInfoMissing(const PortID& portId);
-  bool isReachabilityInfoMismatch(const PortID& portId);
+      const FabricEndpoint& hwConnectivity);
+  bool isConnectivityInfoMissing(const PortID& portId);
+  bool isConnectivityInfoMismatch(const PortID& portId);
 };
 } // namespace facebook::fboss
