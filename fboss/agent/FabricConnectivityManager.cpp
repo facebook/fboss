@@ -72,6 +72,55 @@ uint32_t getRemotePortOffset(const PlatformType platformType) {
 
 namespace facebook::fboss {
 
+void FabricConnectivityManager::updateExpectedSwitchIdAndPortIdForPort(
+    PortID portID) {
+  auto& fabricEndpoint = currentNeighborConnectivity_[portID];
+  if (!fabricEndpoint.expectedSwitchName().has_value() ||
+      !fabricEndpoint.expectedPortName().has_value()) {
+    return;
+  }
+
+  auto expectedSwitchName = fabricEndpoint.expectedSwitchName().value();
+  auto expectedPortName = fabricEndpoint.expectedPortName().value();
+
+  auto it = switchNameToSwitchIDs_.find(expectedSwitchName);
+  if (it == switchNameToSwitchIDs_.end()) {
+    fabricEndpoint.expectedSwitchId().reset();
+    fabricEndpoint.expectedPortId().reset();
+    return;
+  }
+
+  if (it->second.size() == 0) {
+    throw FbossError("No switchID for switch: ", expectedSwitchName);
+  }
+
+  auto baseSwitchId = *it->second.begin();
+  const auto platformMapping = getPlatformMappingForDsfNode(
+      switchIdToDsfNode_[baseSwitchId]->getPlatformType());
+
+  if (!platformMapping) {
+    throw FbossError("Unable to find platform mapping for port: ", portID);
+  }
+
+  auto virtualDeviceId = platformMapping->getVirtualDeviceID(expectedPortName);
+  if (!virtualDeviceId.has_value()) {
+    throw FbossError("Unable to find virtual device id for port: ", portID);
+  }
+
+  fabricEndpoint.expectedSwitchId() = baseSwitchId + virtualDeviceId.value();
+  fabricEndpoint.expectedPortId() =
+      platformMapping->getPortID(expectedPortName) -
+      getRemotePortOffset(switchIdToDsfNode_[baseSwitchId]->getPlatformType());
+
+  XLOG(DBG2) << "Local port: " << static_cast<int>(portID)
+             << " Expected Peer SwitchName: " << expectedSwitchName
+             << " Expected Peer PortName: " << expectedPortName
+             << " Expected Peer SwitchID: "
+             << fabricEndpoint.expectedSwitchId().value()
+             << " Expected Peer PortID: "
+             << fabricEndpoint.expectedPortId().value();
+}
+
 void FabricConnectivityManager::addPort(const std::shared_ptr<Port>& swPort) {
   // Non-Faric port connectivity is handled by LLDP
   if (swPort->getPortType() != cfg::PortType::FABRIC_PORT) {

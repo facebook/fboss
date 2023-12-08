@@ -24,6 +24,8 @@ class FabricConnectivityManager {
   bool isConnectivityInfoMismatch(const PortID& portId);
 
  private:
+  void updateExpectedSwitchIdAndPortIdForPort(PortID portID);
+
   void addPort(const std::shared_ptr<Port>& swPort);
   void removePort(const std::shared_ptr<Port>& swPort);
   void updatePorts(const StateDelta& delta);
