@@ -153,6 +153,39 @@ static const HwAsic& getHwAsicForAsicType(const cfg::AsicType& asicType) {
   throw FbossError(
       "Invalid Asic Type: ", apache::thrift::util::enumNameSafe(asicType));
 }
+
+uint32_t getFabricPortsPerVirtualDevice(const cfg::AsicType asicType) {
+  switch (asicType) {
+    case cfg::AsicType::ASIC_TYPE_JERICHO2:
+      return 192;
+    case cfg::AsicType::ASIC_TYPE_RAMON:
+      return 192;
+    case cfg::AsicType::ASIC_TYPE_JERICHO3:
+      return 160;
+    case cfg::AsicType::ASIC_TYPE_RAMON3:
+      return 256;
+    case cfg::AsicType::ASIC_TYPE_FAKE:
+    case cfg::AsicType::ASIC_TYPE_MOCK:
+    case cfg::AsicType::ASIC_TYPE_TRIDENT2:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
+    case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
+    case cfg::AsicType::ASIC_TYPE_EBRO:
+    case cfg::AsicType::ASIC_TYPE_GARONNE:
+    case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
+    case cfg::AsicType::ASIC_TYPE_YUBA:
+    default:
+      throw FbossError(
+          "Fabric ports are not applicable for: ",
+          apache::thrift::util::enumNameSafe(asicType));
+  }
+
+  throw FbossError(
+      "Invalid Asic Type: ", apache::thrift::util::enumNameSafe(asicType));
+}
+
 } // namespace
 
 namespace facebook::fboss {
