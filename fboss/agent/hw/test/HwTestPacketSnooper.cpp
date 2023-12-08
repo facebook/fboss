@@ -10,8 +10,9 @@ namespace facebook::fboss {
 
 HwTestPacketSnooper::HwTestPacketSnooper(
     HwSwitchEnsemble* ensemble,
-    std::optional<PortID> port)
-    : ensemble_(ensemble), port_(port) {
+    std::optional<PortID> port,
+    std::optional<utility::EthFrame> expectedFrame)
+    : ensemble_(ensemble), port_(port), expectedFrame_(expectedFrame) {
   ensemble_->addHwEventObserver(this);
 }
 
