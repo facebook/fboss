@@ -292,8 +292,36 @@ bool FabricConnectivityManager::isConnectivityInfoMismatch(
   return false;
 }
 
+// Detect missing info. Points to configuration issue where expected
+// connectivity info is not populated.
 bool FabricConnectivityManager::isConnectivityInfoMissing(
     const PortID& portId) {
+  const auto& iter = currentNeighborConnectivity_.find(portId);
+  if (iter == currentNeighborConnectivity_.end()) {
+    // specific port is missing from the reachability DB
+    // treat it like mimssing info
+    return true;
+  }
+
+  const auto& endpoint = iter->second;
+  if (!*endpoint.isAttached()) {
+    // absence of attached point implies issue with connectivity/cabling
+    // but can be tracked by mismatch check above
+    return false;
+  }
+
+  // if any of these parameters are not populated, we have missing
+  // reachability info
+  if (!(endpoint.expectedSwitchId().has_value() &&
+        endpoint.expectedPortId().has_value() &&
+        endpoint.switchName().has_value() &&
+        endpoint.expectedSwitchName().has_value() &&
+        endpoint.portName().has_value() &&
+        endpoint.expectedPortName().has_value())) {
+    return true;
+  }
+
+  // nothing missing
   return false;
 }
 
