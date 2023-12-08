@@ -26,7 +26,7 @@ DEFINE_int32(thrift_port, 5971, "Port for the thrift service");
 
 int main(int argc, char** argv) {
   fb303::registerFollyLoggingOptionHandlers();
-  helpers::init(argc, argv);
+  helpers::init(&argc, &argv);
 
   LedManagerConfig config;
   auto configJson = ConfigLib().getLedManagerConfig();

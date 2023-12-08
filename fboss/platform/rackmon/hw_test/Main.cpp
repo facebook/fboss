@@ -23,7 +23,7 @@ int main(int argc, char* argv[]) {
   google::InitGoogleLogging("rackmon_hw_test");
   // Parse command line flags
   testing::InitGoogleTest(&argc, argv);
-  facebook::fboss::platform::helpers::init(argc, argv);
+  facebook::fboss::platform::helpers::init(&argc, &argv);
   FLAGS_minloglevel = 4;
   rackmonsvc::RackmonThriftService service;
   // Run the tests

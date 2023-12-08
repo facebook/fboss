@@ -116,7 +116,7 @@ TEST_F(DataCorralServiceHwTest, testThrift) {
 int main(int argc, char* argv[]) {
   // Parse command line flags
   testing::InitGoogleTest(&argc, argv);
-  facebook::fboss::platform::helpers::init(argc, argv);
+  facebook::fboss::platform::helpers::init(&argc, &argv);
   // Run the tests
   return RUN_ALL_TESTS();
 }

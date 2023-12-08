@@ -33,6 +33,6 @@ TEST_F(WeutilTest, getWedgeInfo) {
 
 int main(int argc, char* argv[]) {
   testing::InitGoogleTest(&argc, argv);
-  facebook::fboss::platform::helpers::init(argc, argv);
+  facebook::fboss::platform::helpers::init(&argc, &argv);
   return RUN_ALL_TESTS();
 }

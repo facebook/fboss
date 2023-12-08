@@ -38,7 +38,7 @@ DEFINE_bool(
 
 int main(int argc, char** argv) {
   fb303::registerFollyLoggingOptionHandlers();
-  helpers::init(argc, argv);
+  helpers::init(&argc, &argv);
 
   auto config = Utils().getConfig(FLAGS_config_file);
 

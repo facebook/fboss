@@ -7,8 +7,8 @@
 
 namespace facebook::fboss::platform::helpers {
 
-void init(int argc, char** argv) {
-  folly::init(&argc, &argv, true);
+void init(int* argc, char*** argv) {
+  folly::init(argc, argv, true);
 }
 
 void runThriftService(

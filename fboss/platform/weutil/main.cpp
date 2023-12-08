@@ -23,7 +23,7 @@ FOLLY_INIT_LOGGING_CONFIG(".=FATAL; default:async=true");
 
 // This utility program will output Chassis info for Darwin
 int main(int argc, char* argv[]) {
-  helpers::init(argc, argv);
+  helpers::init(&argc, &argv);
   std::unique_ptr<WeutilInterface> weutilInstance;
 
   // Usually, we auto-detect the platform type and load
