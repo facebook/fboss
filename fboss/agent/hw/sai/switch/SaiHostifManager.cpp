@@ -627,18 +627,8 @@ void SaiHostifManager::setCpuQosPolicy(
   //  - Setting tcToQueueMap to non SAI_NULL_OBJECT_ID fails.
   //  - Instead, we need to clear (SAI_NULL_OBJECT_ID) and set tcToQueueMap.
   //  - CS00012322624 to debug.
-  //  DNX:
-  //  - Setting tcToqueueMap to SAI_NULL_OBJECT_ID fails on:
-  //    - J3
-  //    - J2 if using 4 CPU queues
-  //    - CS00012325228 to debug.
-  if (!(platform_->getAsic()->getAsicType() ==
-            cfg::AsicType::ASIC_TYPE_JERICHO2 ||
-        platform_->getAsic()->getAsicType() ==
-            cfg::AsicType::ASIC_TYPE_JERICHO3)) {
-    setCpuPortQosPolicy(
-        QosMapSaiId(SAI_NULL_OBJECT_ID), QosMapSaiId(SAI_NULL_OBJECT_ID));
-  }
+  setCpuPortQosPolicy(
+      QosMapSaiId(SAI_NULL_OBJECT_ID), QosMapSaiId(SAI_NULL_OBJECT_ID));
 
   setCpuPortQosPolicy(
       qosMapHandle->dscpToTcMap->adapterKey(),
