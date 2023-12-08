@@ -11,9 +11,6 @@ namespace {
 using constants =
     facebook::fboss::platform::fan_service::fan_service_config_constants;
 
-std::unordered_set<std::string> rangeCheckActions = {
-    constants::RANGE_CHECK_ACTION_SHUTDOWN()};
-
 std::unordered_set<std::string> accessMethodTypes = {
     constants::ACCESS_TYPE_SYSFS(),
     constants::ACCESS_TYPE_UTIL(),
@@ -43,14 +40,6 @@ std::unordered_set<std::string> sensorPwmCalcTypes = {
 namespace facebook::fboss::platform::fan_service {
 bool Utils::isValidConfig(const FanServiceConfig& config) {
   for (const auto& sensor : *config.sensors()) {
-    if (sensor.rangeCheck()) {
-      if (!rangeCheckActions.count(
-              *sensor.rangeCheck()->invalidRangeAction())) {
-        XLOG(ERR) << "Invalid range check action: "
-                  << *sensor.rangeCheck()->invalidRangeAction();
-        return false;
-      }
-    }
     if (!accessMethodTypes.count(*sensor.access()->accessType())) {
       XLOG(ERR) << "Invalid access method: " << *sensor.access()->accessType();
       return false;
