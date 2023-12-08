@@ -130,6 +130,9 @@ class IPv6Hdr {
   size_t payloadSize() const {
     return payloadLength;
   }
+  void decrementTTL() {
+    hopLimit = hopLimit > 0 ? hopLimit - 1 : hopLimit;
+  }
 
  public:
   /*

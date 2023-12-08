@@ -119,6 +119,9 @@ class IPPacket {
   bool operator==(const IPPacket<AddrT>& that) const {
     return std::tie(hdr_, udpPayLoad_) == std::tie(that.hdr_, that.udpPayLoad_);
   }
+  void decrementTTL() {
+    hdr_.decrementTTL();
+  }
 
  private:
   void setUDPCheckSum(folly::IOBuf* buffer) const;
@@ -169,6 +172,15 @@ class MPLSPacket {
   bool operator==(const MPLSPacket& that) const {
     return std::tie(hdr_, v4PayLoad_, v6PayLoad_) ==
         std::tie(that.hdr_, that.v4PayLoad_, that.v6PayLoad_);
+  }
+
+  void decrementTTL() {
+    hdr_.decrementTTL();
+    if (v6PayLoad_.has_value()) {
+      v6PayLoad_->decrementTTL();
+    } else if (v4PayLoad_.has_value()) {
+      v4PayLoad_->decrementTTL();
+    }
   }
 
  private:
@@ -247,6 +259,15 @@ class EthFrame {
     return std::tie(hdr_, v4PayLoad_, v6PayLoad_, mplsPayLoad_) ==
         std::tie(
                that.hdr_, that.v4PayLoad_, that.v6PayLoad_, that.mplsPayLoad_);
+  }
+  void decrementTTL() {
+    if (mplsPayLoad_.has_value()) {
+      mplsPayLoad_->decrementTTL();
+    } else if (v6PayLoad_.has_value()) {
+      v6PayLoad_->decrementTTL();
+    } else if (v4PayLoad_.has_value()) {
+      v4PayLoad_->decrementTTL();
+    }
   }
 
  private:

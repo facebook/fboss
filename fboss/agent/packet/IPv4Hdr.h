@@ -119,12 +119,15 @@ class IPv4Hdr {
     protocol = rhs.protocol;
     csum = rhs.csum;
     srcAddr = rhs.srcAddr;
-    ;
     dstAddr = rhs.dstAddr;
     return *this;
   }
 
   void computeChecksum();
+  void decrementTTL() {
+    ttl = ttl > 0 ? ttl - 1 : ttl;
+    computeChecksum();
+  }
   template <typename CursorType>
   void write(CursorType* cursor) const;
   template <typename CursorType>
