@@ -246,7 +246,7 @@ bool FabricConnectivityManager::isConnectivityInfoMissing(
 
 std::map<PortID, FabricEndpoint>
 FabricConnectivityManager::getConnectivityInfo() {
-  return {};
+  return currentNeighborConnectivity_;
 }
 
 } // namespace facebook::fboss
