@@ -75,22 +75,7 @@ unsigned int FanServiceImpl::getSensorFetchFrequency() const {
 }
 
 std::shared_ptr<Bsp> FanServiceImpl::BspFactory() {
-  Bsp* returnVal = nullptr;
-  switch (*config_.bspType()) {
-    // In many cases, generic BSP is enough.
-    case BspType::kBspGeneric:
-    case BspType::kBspDarwin:
-    case BspType::kBspLassen:
-    case BspType::kBspMinipack3:
-      returnVal = new Bsp(config_);
-      break;
-
-    default:
-      facebook::fboss::FbossError("Invalid BSP Type given to BSP Factory!");
-      break;
-  }
-  std::shared_ptr<Bsp> returnValShared(returnVal);
-  return returnValShared;
+  return std::make_shared<Bsp>(config_);
 }
 
 int FanServiceImpl::controlFan(/*folly::EventBase* evb*/) {

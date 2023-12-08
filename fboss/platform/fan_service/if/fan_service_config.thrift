@@ -67,13 +67,6 @@ struct Watchdog {
   2: i32 value;
 }
 
-enum BspType {
-  kBspGeneric = 0,
-  kBspDarwin = 1,
-  kBspLassen = 2,
-  kBspMinipack3 = 3,
-}
-
 struct Sensor {
   1: string sensorName;
   2: AccessMethod access;
@@ -93,7 +86,6 @@ struct Sensor {
 }
 
 struct FanServiceConfig {
-  1: BspType bspType;
   2: string shutdownCmd;
   3: list<Zone> zones;
   4: list<Sensor> sensors;

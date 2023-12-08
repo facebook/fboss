@@ -1,5 +1,4 @@
 {
-  "bspType" : 4,
   "watchdog" : {
     "access" : {
       "accessType" : "ACCESS_TYPE_SYSFS",

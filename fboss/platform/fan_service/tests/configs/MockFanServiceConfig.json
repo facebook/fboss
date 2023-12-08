@@ -1,5 +1,4 @@
 {
-  "bspType": 1,
   "pwmBoostOnNumDeadFan": 1,
   "pwmBoostOnNumDeadSensor": 0,
   "pwmBoostOnNoQsfpAfterInSec": 90,
