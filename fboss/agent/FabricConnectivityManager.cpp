@@ -1,6 +1,6 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-#include "fboss/agent/FabricReachabilityManager.h"
+#include "fboss/agent/FabricConnectivityManager.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/DsfNode.h"

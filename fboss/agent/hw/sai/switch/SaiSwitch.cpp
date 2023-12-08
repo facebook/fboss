@@ -63,7 +63,7 @@
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 
-#include "fboss/agent/FabricReachabilityManager.h"
+#include "fboss/agent/FabricConnectivityManager.h"
 #include "fboss/agent/hw/HwSwitchWarmBootHelper.h"
 #include "fboss/agent/hw/UnsupportedFeatureManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
