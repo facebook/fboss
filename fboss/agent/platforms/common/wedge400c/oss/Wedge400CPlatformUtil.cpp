@@ -10,7 +10,7 @@
 #include "fboss/agent/platforms/common/wedge400c/Wedge400CPlatformUtil.h"
 
 namespace facebook::fboss::utility {
-bool isWedge400CPlatformRackTypeGrandTeton() {
+bool isWedge400CPlatformRackTypeInference() {
   return false;
 }
 

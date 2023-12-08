@@ -13,7 +13,7 @@ namespace facebook::fboss {
 namespace utility {
 
 bool isWedge400PlatformRackTypeAcadia();
-bool isWedge400PlatformRackTypeGrandTeton();
+bool isWedge400PlatformRackTypeInference();
 
 } // namespace utility
 } // namespace facebook::fboss

@@ -87,7 +87,7 @@ SaiWedge400CPlatform::~SaiWedge400CPlatform() {}
 std::unique_ptr<PlatformMapping>
 SaiWedge400CPlatform::createWedge400CPlatformMapping(
     const std::string& platformMappingStr) {
-  if (utility::isWedge400CPlatformRackTypeGrandTeton()) {
+  if (utility::isWedge400CPlatformRackTypeInference()) {
     return platformMappingStr.empty()
         ? std::make_unique<Wedge400CGrandTetonPlatformMapping>()
         : std::make_unique<Wedge400CGrandTetonPlatformMapping>(

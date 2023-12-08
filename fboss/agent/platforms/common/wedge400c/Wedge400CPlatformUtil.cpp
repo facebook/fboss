@@ -13,20 +13,21 @@
 #include "neteng/netwhoami/lib/cpp/Recover.h"
 
 namespace facebook::fboss::utility {
-bool isRackTypeGrandTeton(auto rackType) {
+bool isRackTypeInference(auto rackType) {
   if (rackType &&
       ((*rackType == facebook::netwhoami::RackType::GRAND_TETON) ||
        (*rackType == facebook::netwhoami::RackType::GRAND_TETON_INFERENCE) ||
        (*rackType == facebook::netwhoami::RackType::GRAND_TETON_TRAINING_IB) ||
        (*rackType == facebook::netwhoami::RackType::GENOA_INFERENCE) ||
        (*rackType == facebook::netwhoami::RackType::GRACE_HOPPER_INFERENCE))) {
+    XLOG(DBG2) << "Inference platform found based on netwhoami";
     return true;
   }
 
   return false;
 }
 
-bool isWedge400CPlatformRackTypeGrandTeton() {
+bool isWedge400CPlatformRackTypeInference() {
   try {
     auto whoami = facebook::netwhoami::recoverWhoAmI();
     if (auto rackType = whoami.rack_type()) {
@@ -35,7 +36,7 @@ bool isWedge400CPlatformRackTypeGrandTeton() {
                  << (int)(*rackType) << "role: " << (int)(*role);
       // Checking both role and rack type to determine which
       // wedge 400c platform mapping to pick
-      if (isRackTypeGrandTeton(rackType) &&
+      if (isRackTypeInference(rackType) &&
           (*role == facebook::netwhoami::Role::RSW)) {
         return true;
       }
