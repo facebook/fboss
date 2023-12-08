@@ -28,6 +28,8 @@ DEFINE_bool(
     false,
     "use multi-npu platform mapping for applicable platforms");
 
+DEFINE_int32(platform_mapping_profile, 0, "Platform mapping profile");
+
 namespace {
 constexpr auto kFbossPortNameRegex = "eth(\\d+)/(\\d+)/(\\d+)";
 const re2::RE2 portNameRegex(kFbossPortNameRegex);

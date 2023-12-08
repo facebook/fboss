@@ -10,6 +10,8 @@
 #include "fboss/agent/platforms/common/wedge400c/Wedge400CPlatformUtil.h"
 #include <folly/logging/xlog.h>
 #include "configerator/structs/neteng/netwhoami/gen-cpp2/netwhoami_types.h"
+#include "fboss/agent/gen-cpp2/platform_config_types.h"
+#include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "neteng/netwhoami/lib/cpp/Recover.h"
 
 namespace facebook::fboss::utility {
@@ -27,7 +29,7 @@ bool isRackTypeInference(auto rackType) {
   return false;
 }
 
-bool isWedge400CPlatformRackTypeInference() {
+bool isWedge400CPlatformRackTypeInferenceNetwhoami() {
   try {
     auto whoami = facebook::netwhoami::recoverWhoAmI();
     if (auto rackType = whoami.rack_type()) {
@@ -49,6 +51,16 @@ bool isWedge400CPlatformRackTypeInference() {
         << "Error running netwhoami on the switch. Switch to default behavior.";
   }
   return false;
+}
+
+bool isWedge400CPlatformRackTypeInference() {
+  if (FLAGS_platform_mapping_profile ==
+      static_cast<int32_t>(cfg::PlatformMappingProfile::INFERENCE)) {
+    XLOG(INFO) << "Inference platform gflag set";
+    return true;
+  } else {
+    return isWedge400CPlatformRackTypeInferenceNetwhoami();
+  }
 }
 
 } // namespace facebook::fboss::utility
