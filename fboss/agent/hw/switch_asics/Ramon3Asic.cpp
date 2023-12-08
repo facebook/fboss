@@ -127,4 +127,8 @@ Ramon3Asic::desiredLoopbackModes() const {
       {cfg::PortType::FABRIC_PORT, cfg::PortLoopbackMode::MAC}};
   return kLoopbackMode;
 }
+
+uint32_t Ramon3Asic::getVirtualDevices() const {
+  return 2;
+}
 }; // namespace facebook::fboss

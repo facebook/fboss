@@ -330,6 +330,7 @@ class HwAsic {
       cfg::PortType portType = cfg::PortType::INTERFACE_PORT) const;
 
   virtual uint32_t getMaxPorts() const;
+  virtual uint32_t getVirtualDevices() const;
 
  protected:
   static cfg::Range64 makeRange(int64_t min, int64_t max);

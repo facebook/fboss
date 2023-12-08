@@ -77,5 +77,6 @@ class Ramon3Asic : public BroadcomAsic {
       cfg::MMUScalingFactor scalingFactor) const override;
   uint32_t getStaticQueueLimitBytes() const override;
   uint32_t getNumMemoryBuffers() const override;
+  uint32_t getVirtualDevices() const override;
 };
 } // namespace facebook::fboss
