@@ -26,15 +26,17 @@ void HwTestPacketSnooper::packetReceived(RxPacket* pkt) noexcept {
     // packet arrived on port not of interest.
     return;
   }
+  auto data = pkt->buf()->clone();
+  folly::io::Cursor cursor{data.get()};
   std::lock_guard<std::mutex> lock(mtx_);
-  data_ = pkt->buf()->clone();
+  receivedFrame_ = std::make_unique<utility::EthFrame>(cursor);
   cv_.notify_all();
 }
 
 std::optional<utility::EthFrame> HwTestPacketSnooper::waitForPacket(
     uint32_t timeout_s) {
   std::unique_lock<std::mutex> lock(mtx_);
-  while (!data_) {
+  while (!receivedFrame_) {
     if (timeout_s > 0) {
       if (cv_.wait_for(lock, std::chrono::seconds(timeout_s)) ==
           std::cv_status::timeout) {
@@ -44,8 +46,7 @@ std::optional<utility::EthFrame> HwTestPacketSnooper::waitForPacket(
       cv_.wait(lock);
     }
   }
-  folly::io::Cursor cursor{data_.get()};
-  return utility::EthFrame{cursor};
+  return *receivedFrame_;
 }
 
 } // namespace facebook::fboss

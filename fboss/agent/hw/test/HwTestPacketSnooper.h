@@ -37,7 +37,7 @@ class HwTestPacketSnooper : public HwSwitchEnsemble::HwSwitchEventObserverIf {
   std::optional<utility::EthFrame> expectedFrame_;
   std::mutex mtx_;
   std::condition_variable cv_;
-  std::unique_ptr<folly::IOBuf> data_;
+  std::unique_ptr<utility::EthFrame> receivedFrame_;
 };
 
 } // namespace facebook::fboss
