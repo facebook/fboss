@@ -48,6 +48,10 @@ bool ConfigValidator::isValidSlotTypeConfig(
 
 bool ConfigValidator::isValidFpgaIpBlockConfig(
     const FpgaIpBlockConfig& fpgaIpBlockConfig) {
+  if (fpgaIpBlockConfig.pmUnitScopedName()->empty()) {
+    XLOG(ERR) << "PmUnitScopedName must be a non-empty string";
+    return false;
+  }
   if (!fpgaIpBlockConfig.csrOffset()->empty() &&
       !re2::RE2::FullMatch(
           *fpgaIpBlockConfig.csrOffset(), kPciDevOffsetRegex)) {
@@ -65,6 +69,10 @@ bool ConfigValidator::isValidFpgaIpBlockConfig(
 
 bool ConfigValidator::isValidPciDeviceConfig(
     const PciDeviceConfig& pciDeviceConfig) {
+  if (pciDeviceConfig.pmUnitScopedName()->empty()) {
+    XLOG(ERR) << "PmUnitScopedName must be a non-empty string";
+    return false;
+  }
   if (!re2::RE2::FullMatch(
           *pciDeviceConfig.vendorId(), PciExplorer().kPciIdRegex)) {
     XLOG(ERR) << "Invalid PCI vendor id : " << *pciDeviceConfig.vendorId();
@@ -131,18 +139,20 @@ bool ConfigValidator::isValidPciDeviceConfig(
 bool ConfigValidator::isValidI2cDeviceConfig(
     const I2cDeviceConfig& i2cDeviceConfig) {
   try {
-    I2cAddr(*i2cDeviceConfig.address_ref());
+    I2cAddr(*i2cDeviceConfig.address());
   } catch (std::invalid_argument& e) {
     XLOG(ERR) << "IDPROM has invalid address " << e.what();
     return false;
   }
-
   if (!i2cDeviceConfig.deviceType()->empty() &&
       !deviceTypes.count(*i2cDeviceConfig.deviceType())) {
-    XLOG(INFO) << "Invalid device type: " << *i2cDeviceConfig.deviceType();
+    XLOG(ERR) << "Invalid device type: " << *i2cDeviceConfig.deviceType();
     return false;
   }
-
+  if (i2cDeviceConfig.pmUnitScopedName()->empty()) {
+    XLOG(ERR) << "PmUnitScopedName must be a non-empty string";
+    return false;
+  }
   return true;
 }
 

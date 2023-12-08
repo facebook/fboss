@@ -53,14 +53,16 @@ TEST(ConfigValidatorTest, SlotTypeConfig) {
 
 TEST(ConfigValidatorTest, FpgaIpBlockConfig) {
   auto fpgaIpBlockConfig = FpgaIpBlockConfig{};
-  EXPECT_TRUE(ConfigValidator().isValidFpgaIpBlockConfig(fpgaIpBlockConfig));
+  EXPECT_FALSE(ConfigValidator().isValidFpgaIpBlockConfig(fpgaIpBlockConfig));
   fpgaIpBlockConfig.iobufOffset() = "0xab29";
   fpgaIpBlockConfig.csrOffset() = "0xaf29";
-  EXPECT_TRUE(ConfigValidator().isValidFpgaIpBlockConfig(fpgaIpBlockConfig));
-  fpgaIpBlockConfig.csrOffset() = "0xaf2";
+  EXPECT_FALSE(ConfigValidator().isValidFpgaIpBlockConfig(fpgaIpBlockConfig));
+  fpgaIpBlockConfig.pmUnitScopedName() = "pm_unit";
   EXPECT_TRUE(ConfigValidator().isValidFpgaIpBlockConfig(fpgaIpBlockConfig));
   fpgaIpBlockConfig.csrOffset() = "0xaF2";
   EXPECT_FALSE(ConfigValidator().isValidFpgaIpBlockConfig(fpgaIpBlockConfig));
+  fpgaIpBlockConfig.csrOffset() = "0xaf2";
+  EXPECT_TRUE(ConfigValidator().isValidFpgaIpBlockConfig(fpgaIpBlockConfig));
   fpgaIpBlockConfig.iobufOffset() = "";
   fpgaIpBlockConfig.csrOffset() = "0xaf20";
   EXPECT_TRUE(ConfigValidator().isValidFpgaIpBlockConfig(fpgaIpBlockConfig));
@@ -69,12 +71,6 @@ TEST(ConfigValidatorTest, FpgaIpBlockConfig) {
 TEST(ConfigValidatorTest, PciDeviceConfig) {
   auto pciDevConfig = PciDeviceConfig{};
   EXPECT_FALSE(ConfigValidator().isValidPciDeviceConfig(pciDevConfig));
-  pciDevConfig.vendorId() = "0xab29";
-  pciDevConfig.deviceId() = "0xaf29";
-  EXPECT_TRUE(ConfigValidator().isValidPciDeviceConfig(pciDevConfig));
-  pciDevConfig.subSystemVendorId() = "0xa329";
-  pciDevConfig.subSystemDeviceId() = "0x1b29";
-  EXPECT_TRUE(ConfigValidator().isValidPciDeviceConfig(pciDevConfig));
   pciDevConfig.vendorId() = "0xAb29";
   pciDevConfig.deviceId() = "0xaf2x";
   EXPECT_FALSE(ConfigValidator().isValidPciDeviceConfig(pciDevConfig));
@@ -85,6 +81,13 @@ TEST(ConfigValidatorTest, PciDeviceConfig) {
   pciDevConfig.subSystemVendorId() = "0xa329";
   pciDevConfig.subSystemDeviceId() = "0x1b";
   EXPECT_FALSE(ConfigValidator().isValidPciDeviceConfig(pciDevConfig));
+  pciDevConfig.vendorId() = "0xab29";
+  pciDevConfig.deviceId() = "0xaf29";
+  EXPECT_FALSE(ConfigValidator().isValidPciDeviceConfig(pciDevConfig));
+  pciDevConfig.pmUnitScopedName() = "pm_unit";
+  pciDevConfig.subSystemVendorId() = "0xa329";
+  pciDevConfig.subSystemDeviceId() = "0x1b29";
+  EXPECT_TRUE(ConfigValidator().isValidPciDeviceConfig(pciDevConfig));
   pciDevConfig.subSystemDeviceId() = "0x1b29";
   EXPECT_TRUE(ConfigValidator().isValidPciDeviceConfig(pciDevConfig));
   auto fpgaIpBlockConfig = FpgaIpBlockConfig{};
@@ -112,16 +115,19 @@ TEST(ConfigValidatorTest, I2cDeviceConfig) {
   EXPECT_FALSE(ConfigValidator().isValidI2cDeviceConfig(i2cConfig));
   i2cConfig.address_ref() = "0x";
   EXPECT_FALSE(ConfigValidator().isValidI2cDeviceConfig(i2cConfig));
-  i2cConfig.address_ref() = "0x2f";
-  EXPECT_TRUE(ConfigValidator().isValidI2cDeviceConfig(i2cConfig));
   i2cConfig.address_ref() = "0x2F";
   EXPECT_FALSE(ConfigValidator().isValidI2cDeviceConfig(i2cConfig));
+  i2cConfig.address_ref() = "0x2f";
+  EXPECT_FALSE(ConfigValidator().isValidI2cDeviceConfig(i2cConfig));
+  i2cConfig.pmUnitScopedName() = "pm_unit";
+  EXPECT_TRUE(ConfigValidator().isValidI2cDeviceConfig(i2cConfig));
   i2cConfig.address_ref() = "0x20";
   EXPECT_TRUE(ConfigValidator().isValidI2cDeviceConfig(i2cConfig));
 }
 
 TEST(ConfigValidatorTest, I2CDeviceType) {
   auto i2cConfig = I2cDeviceConfig{};
+  i2cConfig.pmUnitScopedName() = "pm_unit";
   i2cConfig.address() = "0x2f";
   EXPECT_TRUE(ConfigValidator().isValidI2cDeviceConfig(i2cConfig));
   i2cConfig.deviceType() = "SENSOR";

@@ -49,14 +49,16 @@
       "pluggedInSlotType": "SCM_SLOT",
       "pciDeviceConfigs": [
         {
-          "name": "SCM_IOB",
+          "pmUnitScopedName": "SCM_IOB",
           "vendorId": "0x83bf",
           "deviceId": "0xab87",
           "i2cAdapterConfigs": [
             {
-              "pmUnitScopedName": "SCM_IOB_I2C_0",
-              "deviceName": "i2c-smb",
-              "iobufOffset": "0x0023"
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SCM_IOB_I2C_0",
+                "deviceName": "i2c-smb",
+                "iobufOffset": "0x0023"
+              }
             }
           ],
           "spiMasterConfigs": [
@@ -84,7 +86,7 @@
           "busName": "CPU@1",
           "address": "0x50",
           "kernelDeviceName": "pca9x44",
-          "pmUnitScopeName": "scm_mux1",
+          "pmUnitScopedName": "scm_mux1",
           "deviceType": "",
           "numOutgoingChannels": 4
         }
@@ -104,7 +106,7 @@
       "pluggedInSlotType": "SMB_SLOT",
       "pciDevices": [
         {
-          "name": "SMB_IOB",
+          "pmUnitScopedName": "SMB_IOB",
           "vendorId": "0x1132",
           "deviceId": "0xab56",
           "i2cAdapterConfigs": [
@@ -130,28 +132,28 @@
           "busName": "SMB_IOB_I2C_0",
           "address": "0x54",
           "kernelDeviceName": "lm75",
-          "pmUnitScopeName": "inlet_sensor",
+          "pmUnitScopedName": "inlet_sensor",
           "deviceType": "SENSOR"
         },
         {
           "busName": "SMB_IOB_I2C_1",
           "address": "0x55",
           "kernelDeviceName": "lm75",
-          "pmUnitScopeName": "outlet_sensor",
+          "pmUnitScopedName": "outlet_sensor",
           "deviceType": "SENSOR"
         },
         {
           "busName": "SMB_IOB_I2C_1",
           "address": "0x54",
           "kernelDeviceName": "lm75",
-          "pmUnitScopeName": "asic_sensor",
+          "pmUnitScopedName": "asic_sensor",
           "deviceType": "SENSOR"
         },
         {
           "busName": "INCOMING@2",
           "address": "0x11",
           "kernelDeviceName": "24c02",
-          "pmUnitScopeName": "chassis_eeprom",
+          "pmUnitScopedName": "chassis_eeprom",
           "deviceType": "EEPROM",
           "isChassisEeprom": true
         }
@@ -174,14 +176,14 @@
           "busName": "INCOMING@0",
           "address": "0x12",
           "kernelDeviceName": "lm75",
-          "pmUnitScopeName": "yolo_sensor1",
+          "pmUnitScopedName": "yolo_sensor1",
           "deviceType": "SENSOR"
         },
         {
           "busName": "INCOMING@1",
           "address": "0x55",
           "kernelDeviceName": "pca9x44",
-          "pmUnitScopeName": "yolo_mux1",
+          "pmUnitScopedName": "yolo_mux1",
           "deviceType": "",
           "numOutgoingChannels": 4
         },
@@ -189,7 +191,7 @@
           "busName": "INCOMING@2",
           "address": "0x54",
           "kernelDeviceName": "pca9x42",
-          "pmUnitScopeName": "yolo_mux2",
+          "pmUnitScopedName": "yolo_mux2",
           "deviceType": "",
           "numOutgoingChannels": 2
         },
@@ -197,13 +199,13 @@
           "busName": "yolo_mux2@1",
           "address": "0x12",
           "kernelDeviceName": "lm75",
-          "pmUnitScopeName": "yolo_sensor2",
+          "pmUnitScopedName": "yolo_sensor2",
           "deviceType": "SENSOR"
         }
       ],
       "pciDevices": [
         {
-          "name": "DOM_FPGA",
+          "pmUnitScopedName": "DOM_FPGA",
           "vendorId": "0x1132",
           "deviceId": "0xab56",
           "i2cAdapterConfigs": [
@@ -253,7 +255,7 @@
           "busName": "INCOMING@0",
           "address": "0x12",
           "kernelDeviceName": "lm75",
-          "pmUnitScopeName": "psu_2gh_sensor",
+          "pmUnitScopedName": "psu_2gh_sensor",
           "deviceType": "SENSOR"
         }
       ],
@@ -270,7 +272,7 @@
           "busName": "INCOMING@0",
           "address": "0x15",
           "kernelDeviceName": "pca9x42",
-          "pmUnitScopeName": "pim_mux",
+          "pmUnitScopedName": "pim_mux",
           "deviceType": "",
           "numOutgoingChannels": 2
         }
