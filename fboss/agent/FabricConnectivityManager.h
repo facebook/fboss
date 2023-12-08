@@ -22,5 +22,10 @@ class FabricConnectivityManager {
       const FabricEndpoint& hwConnectivity);
   bool isConnectivityInfoMissing(const PortID& portId);
   bool isConnectivityInfoMismatch(const PortID& portId);
+
+ private:
+  std::unordered_map<uint64_t, std::shared_ptr<DsfNode>> switchIdToDsfNode_;
+  std::unordered_map<std::string, std::set<uint64_t>> switchNameToSwitchIDs_;
+  std::map<PortID, FabricEndpoint> currentNeighborConnectivity_;
 };
 } // namespace facebook::fboss
