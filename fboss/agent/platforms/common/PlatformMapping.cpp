@@ -653,6 +653,19 @@ std::optional<std::string> PlatformMapping::getPortNameByPortId(
   return std::nullopt;
 }
 
+std::optional<int32_t> PlatformMapping::getVirtualDeviceID(
+    const std::string& portName) const {
+  for (const auto& platPortEntry : platformPorts_) {
+    if (*platPortEntry.second.mapping()->name() == portName) {
+      return platPortEntry.second.mapping()->virtualDeviceId()
+          ? *platPortEntry.second.mapping()->virtualDeviceId()
+          : std::optional<int32_t>();
+    }
+  }
+
+  throw FbossError("No PlatformPortEntry found for portName: ", portName);
+}
+
 const cfg::PlatformPortConfig& PlatformMapping::getPlatformPortConfig(
     PortID id,
     cfg::PortProfileID profileID) const {

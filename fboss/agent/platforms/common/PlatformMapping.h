@@ -158,6 +158,8 @@ class PlatformMapping {
 
   std::optional<std::string> getPortNameByPortId(PortID portId) const;
 
+  std::optional<int32_t> getVirtualDeviceID(const std::string& portName) const;
+
   /*
    * Some platforms need customize their raw override factor generated from
    * Transceiver or Chip to match their PlatformMapping PortConfigOverrides
