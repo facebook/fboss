@@ -25,12 +25,6 @@ std::vector<std::pair<std::string, std::string>> WeutilImpl::getInfo() {
   return eepromParser.getEeprom(info_.eepromPath, info_.offset);
 }
 
-bool WeutilImpl::getEepromPath() {
-  // The eeprom path is verified / replaced by underlying logic.
-  // So, let the control move forward by returning true
-  return true;
-}
-
 void WeutilImpl::printInfo() {
   EepromEntry info = eepromParser.getEeprom(info_.eepromPath, info_.offset);
   std::cout << "Wedge EEPROM : " << info_.eepromPath << std::endl;

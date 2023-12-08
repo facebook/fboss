@@ -72,31 +72,18 @@ std::unique_ptr<WeutilInterface> get_plat_weutil(
     const std::string& eeprom,
     const std::string& configFile) {
   facebook::fboss::PlatformProductInfo prodInfo{FLAGS_fruid_filepath};
-
   prodInfo.initialize();
 
-  if (prodInfo.getType() == PlatformType::PLATFORM_DARWIN) {
-    std::unique_ptr<WeutilDarwin> pDarwinIntf;
-    pDarwinIntf = std::make_unique<WeutilDarwin>(eeprom);
-    if (pDarwinIntf->getEepromPath()) {
-      return std::move(pDarwinIntf);
-    } else {
-      return nullptr;
-    }
-  } else {
-    WeutilInfo info = parseConfig(eeprom, configFile);
-    std::unique_ptr<WeutilImpl> pWeutilImpl =
-        std::make_unique<WeutilImpl>(info);
-    if (pWeutilImpl->getEepromPath()) {
-      return std::move(pWeutilImpl);
-    } else {
-      return nullptr;
-    }
-  }
+  switch (prodInfo.getType()) {
+    case PlatformType::PLATFORM_DARWIN:
+      return std::make_unique<WeutilDarwin>(eeprom);
+      break;
 
-  XLOG(INFO) << "The platform (" << toString(prodInfo.getType())
-             << ") is not supported" << std::endl;
-  return nullptr;
+    default:
+      WeutilInfo info = parseConfig(eeprom, configFile);
+      return std::make_unique<WeutilImpl>(info);
+      break;
+  }
 }
 
 std::unique_ptr<WeutilInterface> get_meta_eeprom_handler(std::string path) {
