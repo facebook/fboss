@@ -138,6 +138,7 @@ void FabricConnectivityManager::addPort(const std::shared_ptr<Port>& swPort) {
   }
 
   currentNeighborConnectivity_[swPort->getID()] = expectedEndpoint;
+  updateExpectedSwitchIdAndPortIdForPort(swPort->getID());
 }
 
 void FabricConnectivityManager::removePort(
@@ -183,6 +184,17 @@ void FabricConnectivityManager::updateDsfNodes(const StateDelta& delta) {
       [&](const std::shared_ptr<DsfNode> deleteDsfNode) {
         removeDsfNode(deleteDsfNode);
       });
+
+  /*
+   * If the dsfNodeMap is updated, switchIdToDsfNode_ and switchNameToSwitchIDs_
+   * would be updated. Thus, recompute expected {switchId, portId} for ports
+   * from expected {switchName, portName}.
+   */
+  if (!DeltaFunctions::isEmpty(delta.getDsfNodesDelta())) {
+    for (const auto& [portID, fabricEndpoint] : currentNeighborConnectivity_) {
+      updateExpectedSwitchIdAndPortIdForPort(portID);
+    }
+  }
 }
 
 void FabricConnectivityManager::stateUpdated(const StateDelta& delta) {
