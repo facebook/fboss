@@ -205,7 +205,33 @@ void FabricConnectivityManager::stateUpdated(const StateDelta& delta) {
 FabricEndpoint FabricConnectivityManager::processConnectivityInfoForPort(
     const PortID& portId,
     const FabricEndpoint& hwEndpoint) {
-  return FabricEndpoint{};
+  const auto& iter = currentNeighborConnectivity_.find(portId);
+  if (iter != currentNeighborConnectivity_.end()) {
+    // Populate actual isAttached, switchId, switchName, portId, portName
+    iter->second.isAttached() = *hwEndpoint.isAttached();
+    iter->second.switchId() = *hwEndpoint.switchId();
+    iter->second.portId() = *hwEndpoint.portId();
+
+    // updateExpectedSwitchIdAndPortIdForPort uses platform, virtualDeviceId to
+    // derive expected{Switch, Port}Id from expected{Switch, Port}Name.
+    // Thus, if actual{Switch, Port}Id matches expected{Switch, Port}Id,
+    // expected matches actual and thus we can use expected{Switch, Port}Name to
+    // populate actual{Switch, Port}Name.
+
+    if (iter->second.expectedSwitchId().has_value() &&
+        iter->second.expectedSwitchId().value() == iter->second.switchId() &&
+        iter->second.expectedSwitchName().has_value()) {
+      iter->second.switchName() = iter->second.expectedSwitchName().value();
+    }
+
+    if (iter->second.expectedPortId().has_value() &&
+        iter->second.expectedPortId().value() == iter->second.portId() &&
+        iter->second.expectedPortName().has_value()) {
+      iter->second.portName() = iter->second.expectedPortName().value();
+    }
+  }
+
+  return iter->second;
 }
 
 bool FabricConnectivityManager::isConnectivityInfoMismatch(
