@@ -7,9 +7,50 @@
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 
+#include "fboss/agent/platforms/common/meru400bfu/Meru400bfuPlatformMapping.h"
+#include "fboss/agent/platforms/common/meru400bia/Meru400biaPlatformMapping.h"
+#include "fboss/agent/platforms/common/meru400biu/Meru400biuPlatformMapping.h"
+#include "fboss/agent/platforms/common/meru800bfa/Meru800bfaPlatformMapping.h"
+#include "fboss/agent/platforms/common/meru800bia/Meru800biaPlatformMapping.h"
+
 using facebook::fboss::DeltaFunctions::forEachAdded;
 using facebook::fboss::DeltaFunctions::forEachChanged;
 using facebook::fboss::DeltaFunctions::forEachRemoved;
+
+namespace {
+
+using namespace facebook::fboss;
+
+static const PlatformMapping* FOLLY_NULLABLE
+getPlatformMappingForDsfNode(const PlatformType platformType) {
+  switch (platformType) {
+    case PlatformType::PLATFORM_MERU400BIU: {
+      static Meru400biuPlatformMapping meru400biu;
+      return &meru400biu;
+    }
+    case PlatformType::PLATFORM_MERU400BIA: {
+      static Meru400biaPlatformMapping meru400bia;
+      return &meru400bia;
+    }
+    case PlatformType::PLATFORM_MERU400BFU: {
+      static Meru400bfuPlatformMapping meru400bfu;
+      return &meru400bfu;
+    }
+    case PlatformType::PLATFORM_MERU800BFA: {
+      static Meru800bfaPlatformMapping meru800bfa;
+      return &meru800bfa;
+    }
+    case PlatformType::PLATFORM_MERU800BIA: {
+      static Meru800biaPlatformMapping meru800bia;
+      return &meru800bia;
+    }
+    default:
+      break;
+  }
+  return nullptr;
+}
+
+} // namespace
 
 namespace facebook::fboss {
 
