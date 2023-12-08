@@ -1554,11 +1554,6 @@ struct SwitchInfo {
   7: optional string connectionHandle;
 }
 
-enum PlatformMappingProfile {
-  DEFAULT = 0,
-  INFERENCE = 1,
-}
-
 /*
  * Switch specific settings: global to the switch
  */

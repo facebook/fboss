@@ -20,6 +20,11 @@ enum PlatformAttributes {
   MAC = 2,
 }
 
+enum PlatformMappingProfile {
+  DEFAULT = 0,
+  INFERENCE = 1,
+}
+
 union ChipConfig {
   1: bcm_config.BcmConfig bcm;
   2: asic_config.AsicConfig asic;
