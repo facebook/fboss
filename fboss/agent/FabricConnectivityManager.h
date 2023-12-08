@@ -24,6 +24,10 @@ class FabricConnectivityManager {
   bool isConnectivityInfoMismatch(const PortID& portId);
 
  private:
+  void addPort(const std::shared_ptr<Port>& swPort);
+  void removePort(const std::shared_ptr<Port>& swPort);
+  void updatePorts(const StateDelta& delta);
+
   std::unordered_map<uint64_t, std::shared_ptr<DsfNode>> switchIdToDsfNode_;
   std::unordered_map<std::string, std::set<uint64_t>> switchNameToSwitchIDs_;
   std::map<PortID, FabricEndpoint> currentNeighborConnectivity_;
