@@ -9,6 +9,7 @@
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss {
+class HwAsic;
 class SwitchState;
 class PlatformMapping;
 

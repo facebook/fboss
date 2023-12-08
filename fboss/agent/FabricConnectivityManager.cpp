@@ -2,6 +2,7 @@
 
 #include "fboss/agent/FabricConnectivityManager.h"
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/DsfNode.h"
 #include "fboss/agent/state/StateDelta.h"
@@ -12,6 +13,11 @@
 #include "fboss/agent/platforms/common/meru400biu/Meru400biuPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru800bfa/Meru800bfaPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru800bia/Meru800biaPlatformMapping.h"
+
+#include "fboss/agent/hw/switch_asics/Jericho2Asic.h"
+#include "fboss/agent/hw/switch_asics/Jericho3Asic.h"
+#include "fboss/agent/hw/switch_asics/Ramon3Asic.h"
+#include "fboss/agent/hw/switch_asics/RamonAsic.h"
 
 using facebook::fboss::DeltaFunctions::forEachAdded;
 using facebook::fboss::DeltaFunctions::forEachChanged;
@@ -68,6 +74,84 @@ uint32_t getRemotePortOffset(const PlatformType platformType) {
       return 0;
   }
   return 0;
+}
+
+static const HwAsic& getHwAsicForAsicType(const cfg::AsicType& asicType) {
+  /*
+   * hwAsic is used to invoke methods such as getMaxPorts,
+   * getVirtualDevices. For these methods, following attributes don't
+   * matter. Hence set to some pre-defined values.
+   * Using pre-defined values (instead of deriving dynamically from dsfNode)
+   * allows us to use static hwAsic objects here.
+   */
+  int64_t switchId = 0;
+  int16_t switchIndex = 0;
+  std::optional<cfg::Range64> systemPortRange = std::nullopt;
+  folly::MacAddress mac("02:00:00:00:0F:0B");
+
+  switch (asicType) {
+    case cfg::AsicType::ASIC_TYPE_JERICHO2: {
+      static Jericho2Asic jericho2Asic{
+          cfg::SwitchType::VOQ,
+          switchId,
+          switchIndex,
+          systemPortRange,
+          mac,
+          std::nullopt};
+      return jericho2Asic;
+    }
+    case cfg::AsicType::ASIC_TYPE_JERICHO3: {
+      static Jericho3Asic jericho3Asic{
+          cfg::SwitchType::VOQ,
+          switchId,
+          switchIndex,
+          systemPortRange,
+          mac,
+          std::nullopt};
+
+      return jericho3Asic;
+    }
+    case cfg::AsicType::ASIC_TYPE_RAMON: {
+      static RamonAsic ramonAsic{
+          cfg::SwitchType::FABRIC,
+          switchId,
+          switchIndex,
+          systemPortRange,
+          mac,
+          std::nullopt};
+
+      return ramonAsic;
+    }
+    case cfg::AsicType::ASIC_TYPE_RAMON3: {
+      static Ramon3Asic ramon3Asic{
+          cfg::SwitchType::FABRIC,
+          switchId,
+          switchIndex,
+          systemPortRange,
+          mac,
+          std::nullopt};
+
+      return ramon3Asic;
+    }
+    case cfg::AsicType::ASIC_TYPE_FAKE:
+    case cfg::AsicType::ASIC_TYPE_MOCK:
+    case cfg::AsicType::ASIC_TYPE_TRIDENT2:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
+    case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
+    case cfg::AsicType::ASIC_TYPE_EBRO:
+    case cfg::AsicType::ASIC_TYPE_GARONNE:
+    case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
+    case cfg::AsicType::ASIC_TYPE_YUBA:
+      throw FbossError(
+          "HwAsic for DSF Node is not defined for: ",
+          apache::thrift::util::enumNameSafe(asicType));
+  }
+
+  throw FbossError(
+      "Invalid Asic Type: ", apache::thrift::util::enumNameSafe(asicType));
 }
 } // namespace
 
