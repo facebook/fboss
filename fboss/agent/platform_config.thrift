@@ -52,6 +52,7 @@ struct PlatformPortMapping {
   5: switch_config.PortType portType = switch_config.PortType.INTERFACE_PORT;
   6: optional i32 attachedCoreId;
   7: optional i32 attachedCorePortIndex;
+  8: optional i32 virtualDeviceId;
 }
 
 struct PlatformPortConfig {
