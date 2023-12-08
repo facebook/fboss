@@ -15,10 +15,10 @@ class WeutilDarwin : public WeutilInterface {
   std::vector<std::pair<std::string, std::string>> getInfo() override;
   void printInfo() override;
   void printInfoJson() override;
-  void printUsage(void) override;
+  std::vector<std::string> getEepromNames() const override;
 
  private:
-  void genSpiPrefdlFile(void);
+  void genSpiPrefdlFile();
   std::string getEepromPathFromName(const std::string& name);
 
   std::unique_ptr<PrefdlBase> eepromParser_;

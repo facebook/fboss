@@ -21,6 +21,21 @@ using namespace facebook;
 
 FOLLY_INIT_LOGGING_CONFIG(".=FATAL; default:async=true");
 
+namespace {
+void printUsage(const WeutilInterface& intf) {
+  std::cout
+      << "weutil [--h] [--json] [--eeprom <eeprom-name>] [--path absolute_path_to_eeprom]"
+      << std::endl;
+  std::cout << "usage examples:" << std::endl;
+  std::cout << "    weutil" << std::endl;
+  std::cout << "    weutil --eeprom pem" << std::endl;
+  std::cout << "    weutil --path /sys/bus/i2c/devices/6-0051/eeprom"
+            << std::endl;
+  std::cout << "The <eeprom-name>s supported on this platform are: "
+            << folly::join(" ", intf.getEepromNames()) << std::endl;
+}
+} // namespace
+
 // This utility program will output Chassis info for Darwin
 int main(int argc, char* argv[]) {
   helpers::init(&argc, &argv);
@@ -45,7 +60,7 @@ int main(int argc, char* argv[]) {
 
   if (weutilInstance) {
     if (FLAGS_h) {
-      weutilInstance->printUsage();
+      printUsage(*weutilInstance);
     } else {
       try {
         if (FLAGS_json) {

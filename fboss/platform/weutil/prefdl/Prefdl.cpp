@@ -66,7 +66,7 @@ std::string PrefdlBase::getField(const std::string& fieldName) {
   return dict_[fieldName];
 }
 
-void PrefdlBase::preParse(void) {
+void PrefdlBase::preParse() {
   parseFixedField(0x0d);
   parseFixedField(0x0e);
   parseFixedField(0x0f);
@@ -108,7 +108,7 @@ bool PrefdlBase::parseTlvField() {
   return true;
 }
 
-void PrefdlBase::checkCrc(void) {
+void PrefdlBase::checkCrc() {
   // ToDo
 }
 

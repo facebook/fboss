@@ -1,6 +1,7 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
 #include <iostream>
+#include <string>
 #include <unordered_map>
 #include <utility>
 
@@ -109,12 +110,15 @@ std::string WeutilDarwin::getEepromPathFromName(const std::string& eeprom) {
         std::filesystem::exists(itr->second)) {
       return itr->second;
     } else {
-      throw std::runtime_error("Invalid eeprom name: " + eepromName);
+      throw std::runtime_error(fmt::format(
+          "Invalid eeprom name: {}. Valid eeprom names are: {}.",
+          eepromName,
+          folly::join(" ", getEepromNames())));
     }
   }
 }
 
-void WeutilDarwin::genSpiPrefdlFile(void) {
+void WeutilDarwin::genSpiPrefdlFile() {
   int exitStatus = 0;
   std::string standardOut;
 
@@ -223,14 +227,12 @@ void WeutilDarwin::printInfoJson() {
   std::cout << folly::toPrettyJson(wedgeInfo);
 }
 
-void WeutilDarwin::printUsage(void) {
-  std::cout
-      << "weutil [--h] [--json] [--eeprom pem|fanspinner|rackmon|chassis(default)]"
-      << std::endl;
-
-  std::cout << "usage examples:" << std::endl;
-  std::cout << "    weutil" << std::endl;
-  std::cout << "    weutil --eeprom pem" << std::endl;
+std::vector<std::string> WeutilDarwin::getEepromNames() const {
+  std::vector<std::string> eepromNames{};
+  for (const auto& [eepromName, eepromPath] : eepromDevMapping_) {
+    eepromNames.push_back(eepromName);
+  }
+  return eepromNames;
 }
 
 } // namespace facebook::fboss::platform

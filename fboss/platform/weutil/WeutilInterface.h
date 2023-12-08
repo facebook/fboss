@@ -15,7 +15,7 @@ class WeutilInterface {
   // get weutil info in a vector of pairs, e.g. <"Version", "x"> , etc
   virtual std::vector<std::pair<std::string, std::string>> getInfo() = 0;
   virtual ~WeutilInterface() = default;
-  virtual void printUsage() = 0;
+  virtual std::vector<std::string> getEepromNames() const = 0;
 };
 
 } // namespace facebook::fboss::platform

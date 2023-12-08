@@ -19,7 +19,6 @@ class WeutilImpl : public WeutilInterface {
  private:
   FbossEepromParser eepromParser;
   WeutilInfo info_;
-  std::vector<std::string> getModuleNames();
 
  public:
   explicit WeutilImpl(const WeutilInfo eeprom);
@@ -29,7 +28,7 @@ class WeutilImpl : public WeutilInterface {
   std::vector<std::pair<std::string, std::string>> getInfo() override;
   void printInfo() override;
   void printInfoJson() override;
-  void printUsage(void) override;
+  std::vector<std::string> getEepromNames() const override;
 };
 
 } // namespace facebook::fboss::platform

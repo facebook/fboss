@@ -20,11 +20,11 @@ class PrefdlBase {
   // ToDo: add method to get individual field
  private:
   void parseData();
-  void preParse(void);
+  void preParse();
   bool parseTlvField();
   void parseFixedField(int code);
   std::string parseMacField(const std::string& mac);
-  void checkCrc(void);
+  void checkCrc();
 
   std::stringstream strStream_;
   std::string strBuf_{"0000"};
