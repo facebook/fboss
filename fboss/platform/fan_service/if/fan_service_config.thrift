@@ -85,7 +85,6 @@ enum BspType {
 struct Sensor {
   1: string sensorName;
   2: AccessMethod access;
-  3: map<i32, i32> adjustmentTable;
   4: Alarm alarm;
   5: optional RangeCheck rangeCheck;
   6: string pwmCalcType;

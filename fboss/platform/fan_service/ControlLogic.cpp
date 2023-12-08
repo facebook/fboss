@@ -243,21 +243,11 @@ void ControlLogic::getSensorUpdate() {
       readCache.sensorFailed = false;
     }
 
-    // 1.b If adjustment table exists, adjust the raw value
-    if (sensor.adjustmentTable()->empty()) {
-      adjustedValue = rawValue;
-    } else {
-      float offset = 0;
-      for (const auto& [k, v] : *sensor.adjustmentTable()) {
-        if (rawValue >= k) {
-          offset = v;
-        }
-        adjustedValue = rawValue + offset;
-      }
-    }
+    adjustedValue = rawValue;
+
     readCache.adjustedReadCache = adjustedValue;
     XLOG(INFO) << "Control :: Adjusted Value : " << adjustedValue;
-    // 1.c Check and trigger alarm
+    // 1.b Check and trigger alarm
     bool prevMajorAlarm = readCache.majorAlarmTriggered;
     readCache.majorAlarmTriggered =
         (adjustedValue >= *sensor.alarm()->highMajor());
@@ -295,7 +285,7 @@ void ControlLogic::getSensorUpdate() {
       XLOG(WARN) << "Minor Alarm Cleared on " << *sensor.sensorName()
                  << " at value " << adjustedValue;
     }
-    // 1.d Check the range (if required), and do emergency
+    // 1.c Check the range (if required), and do emergency
     // shutdown, if the value is out of range for more than
     // the "tolerance" times
 
@@ -322,7 +312,7 @@ void ControlLogic::getSensorUpdate() {
         readCache.invalidRangeCheckCount = 0;
       }
     }
-    // 1.e Calculate the target pwm in percent
+    // 1.d Calculate the target pwm in percent
     //     (the table or incremental pid should produce
     //      percent as its output)
     updateTargetPwm(sensor);

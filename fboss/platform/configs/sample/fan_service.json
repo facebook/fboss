@@ -51,11 +51,6 @@
       "access" : {
         "accessType" : "ACCESS_TYPE_THRIFT"
       },
-      "adjustmentTable" : {
-        "10" : 5,
-        "25" : 4,
-        "30" : 1
-      },
       "pwmCalcType" : "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "normalUpTable" : {
         "28" : 30,
@@ -104,11 +99,6 @@
       "scale" : 1000.0,
       "access" : {
         "accessType" : "ACCESS_TYPE_THRIFT"
-      },
-      "adjustmentTable" : {
-        "10" : 5,
-        "25" : 4,
-        "30" : 1
       },
       "pwmCalcType" : "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "normalUpTable" : {
@@ -159,11 +149,6 @@
       "access" : {
         "accessType" : "ACCESS_TYPE_THRIFT"
       },
-      "adjustmentTable" : {
-        "60" : 0,
-        "80" : 0,
-        "95" : 0
-      },
       "pwmCalcType" : "SENSOR_PWM_CALC_TYPE_PID",
       "setPoint" : 92,
       "posHysteresis" : 0,
@@ -188,11 +173,6 @@
       "scale" : 1000.0,
       "access" : {
         "accessType" : "ACCESS_TYPE_THRIFT"
-      },
-      "adjustmentTable" : {
-        "60" : 0,
-        "80" : 0,
-        "95" : 0
       },
       "pwmCalcType" : "SENSOR_PWM_CALC_TYPE_INCREMENT_PID",
       "setPoint" : 92,
