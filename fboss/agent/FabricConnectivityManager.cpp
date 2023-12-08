@@ -226,9 +226,24 @@ void FabricConnectivityManager::updateExpectedSwitchIdAndPortIdForPort(
   }
 
   fabricEndpoint.expectedSwitchId() = baseSwitchId + virtualDeviceId.value();
-  fabricEndpoint.expectedPortId() =
-      platformMapping->getPortID(expectedPortName) -
+  auto expectedPortID = platformMapping->getPortID(expectedPortName) -
       getRemotePortOffset(switchIdToDsfNode_[baseSwitchId]->getPlatformType());
+
+  const auto& hwAsic =
+      getHwAsicForAsicType(switchIdToDsfNode_[baseSwitchId]->getAsicType());
+
+  // Find portID offset from given ASIC in a multi ASIC system
+  expectedPortID %= hwAsic.getMaxPorts();
+
+  // Find vid offset from given vid in a multi vid ASIC system
+  auto vidOffsetInAsic = virtualDeviceId.value() % hwAsic.getVirtualDevices();
+
+  // Find portID offset from given vid in a multi vid ASIC systen
+  auto portsPerVirtualDeviceId = getFabricPortsPerVirtualDevice(
+      switchIdToDsfNode_[baseSwitchId]->getAsicType());
+  expectedPortID -= portsPerVirtualDeviceId * vidOffsetInAsic;
+
+  fabricEndpoint.expectedPortId() = expectedPortID;
 
   XLOG(DBG2) << "Local port: " << static_cast<int>(portID)
              << " Expected Peer SwitchName: " << expectedSwitchName
