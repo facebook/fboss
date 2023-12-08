@@ -55,7 +55,7 @@ class CmdShowInterfaceFlaps
     // TODO - figure out why getRegexCounters fails for OSS
     client->sync_getCounters(wedgeCounters);
 #else
-    client->sync_getRegexCounters(wedgeCounters, "^eth.*flap.sum.*");
+    client->sync_getRegexCounters(wedgeCounters, "^(eth|fab).*flap.sum.*");
 #endif
     std::unordered_set<std::string> distinctInterfaceNames;
     for (const auto& counter : wedgeCounters) {
