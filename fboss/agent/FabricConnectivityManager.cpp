@@ -234,6 +234,18 @@ FabricEndpoint FabricConnectivityManager::processConnectivityInfoForPort(
   return iter->second;
 }
 
+std::map<PortID, FabricEndpoint>
+FabricConnectivityManager::processConnectivityInfo(
+    const std::map<PortID, FabricEndpoint>& hwConnectivity) {
+  // use the hw connectivity + expected connectivity info to derive if there is
+  // a match or not
+  for (const auto& hwConnectivityEntry : hwConnectivity) {
+    processConnectivityInfoForPort(
+        hwConnectivityEntry.first, hwConnectivityEntry.second);
+  }
+  return currentNeighborConnectivity_;
+}
+
 // Detect mismatch in expected vs. actual connectivity.
 // Points to cabling issues: no or wrong connection.
 bool FabricConnectivityManager::isConnectivityInfoMismatch(

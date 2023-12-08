@@ -17,6 +17,8 @@ class FabricConnectivityManager {
   explicit FabricConnectivityManager() {}
   void stateUpdated(const StateDelta& stateDelta);
   std::map<PortID, FabricEndpoint> getConnectivityInfo();
+  std::map<PortID, FabricEndpoint> processConnectivityInfo(
+      const std::map<PortID, FabricEndpoint>& hwConnectivity);
   FabricEndpoint processConnectivityInfoForPort(
       const PortID& portId,
       const FabricEndpoint& hwConnectivity);
