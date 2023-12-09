@@ -15,7 +15,6 @@ bool Ramon3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::FEC:
     case HwAsic::Feature::FEC_CORRECTED_BITS:
     case HwAsic::Feature::PORT_FABRIC_ISOLATE:
-    case HwAsic::Feature::SAI_FEC_COUNTERS:
     case HwAsic::Feature::SWITCH_DROP_STATS:
     case HwAsic::Feature::SAI_CONFIGURE_SIX_TAP:
     case HwAsic::Feature::TELEMETRY_AND_MONITORING:
@@ -26,6 +25,10 @@ bool Ramon3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::FABRIC_TX_QUEUES:
     case HwAsic::Feature::RX_LANE_SQUELCH_ENABLE:
       return getAsicMode() != AsicMode::ASIC_MODE_SIM;
+    case HwAsic::Feature::SAI_FEC_COUNTERS: // Enable after performance issues
+                                            // reported in CS00012326877 are
+                                            // fixed
+      return false;
     default:
       return false;
   }
