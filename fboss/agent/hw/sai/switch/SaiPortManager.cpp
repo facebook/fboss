@@ -2092,6 +2092,21 @@ std::vector<sai_port_lane_eye_values_t> SaiPortManager::getPortEyeValues(
       saiPortId, SaiPortTraits::Attributes::PortEyeValues{});
 }
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+std::vector<sai_port_frequency_offset_ppm_values_t> SaiPortManager::getRxPPM(
+    PortSaiId saiPortId,
+    uint8_t numPmdLanes) const {
+  if (!rxFrequencyRPMSupported()) {
+    return std::vector<sai_port_frequency_offset_ppm_values_t>();
+  }
+
+  return SaiApiTable::getInstance()->portApi().getAttribute(
+      saiPortId,
+      SaiPortTraits::Attributes::RxFrequencyPPM{
+          std::vector<sai_port_frequency_offset_ppm_values_t>(numPmdLanes)});
+}
+#endif
+
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 3) || defined(TAJO_SDK_VERSION_1_42_8)
 std::vector<sai_port_lane_latch_status_t> SaiPortManager::getRxSignalDetect(
     PortSaiId saiPortId,

@@ -1382,6 +1382,21 @@ void SaiSwitch::updatePmdInfo(
   }
 #endif
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+  auto pmdRxPPM =
+      managerTable_->portManager().getRxPPM(port->adapterKey(), numPmdLanes);
+  for (const auto& pmd : pmdRxPPM) {
+    auto laneId = pmd.lane;
+    phy::LaneState laneState;
+    if (laneStates.find(laneId) != laneStates.end()) {
+      laneState = laneStates[laneId];
+    }
+    laneState.lane() = laneId;
+    laneState.rxFrequencyPPM() = pmd.ppm;
+    laneStates[laneId] = laneState;
+  }
+#endif
+
   for (auto laneStat : laneStats) {
     sideStats.pmd()->lanes()[laneStat.first] = laneStat.second;
   }
