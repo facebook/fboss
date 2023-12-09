@@ -269,6 +269,9 @@ class EthFrame {
       v4PayLoad_->decrementTTL();
     }
   }
+  void setDstMac(const folly::MacAddress& dstMac) {
+    hdr_.setDstMac(dstMac);
+  }
 
  private:
   EthHdr hdr_;

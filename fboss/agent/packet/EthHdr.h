@@ -225,6 +225,9 @@ class EthHdr {
   uint32_t size() const {
     return getVlanTags().size() == 0 ? EthHdr::UNTAGGED_PKT_SIZE : EthHdr::SIZE;
   }
+  void setDstMac(const folly::MacAddress& dstMac) {
+    dstAddr = dstMac;
+  }
 
  public:
   /*
