@@ -207,4 +207,29 @@ TEST(MPLSHdrTest, decapsulateV4MplsPacket) {
   EXPECT_TRUE(folly::IOBufEqualTo()(ioBuf, expectedIOBuf));
 }
 
+TEST(MPLSHdrTest, decrementTTL) {
+  MPLSHdr hdr{MPLSHdr::Label{103, 4, true, 79}};
+  EXPECT_EQ(MPLSHdr::Label::kSizeBytes, hdr.size());
+  auto hdr2 = hdr;
+  hdr2.decrementTTL();
+  EXPECT_NE(hdr2, hdr);
+  const auto& label = hdr2.stack()[0];
+  EXPECT_EQ(103, label.label);
+  EXPECT_EQ(4, label.trafficClass);
+  EXPECT_EQ(1, label.bottomOfStack);
+  EXPECT_EQ(78, label.timeToLive);
+}
+
+TEST(MPLSHdrTest, decrementTTL0) {
+  MPLSHdr hdr{MPLSHdr::Label{103, 4, true, 0}};
+  EXPECT_EQ(MPLSHdr::Label::kSizeBytes, hdr.size());
+  auto hdr2 = hdr;
+  hdr2.decrementTTL();
+  EXPECT_EQ(hdr2, hdr);
+  const auto& label = hdr2.stack()[0];
+  EXPECT_EQ(103, label.label);
+  EXPECT_EQ(4, label.trafficClass);
+  EXPECT_EQ(1, label.bottomOfStack);
+  EXPECT_EQ(0, label.timeToLive);
+}
 } // namespace facebook::fboss
