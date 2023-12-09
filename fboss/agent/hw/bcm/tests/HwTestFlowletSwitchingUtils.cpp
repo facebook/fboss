@@ -90,6 +90,7 @@ bool verifyEcmpForFlowletSwitching(
     const facebook::fboss::HwSwitch* hw,
     const folly::CIDRNetwork& prefix,
     const cfg::FlowletSwitchingConfig& flowletCfg,
+    const cfg::PortFlowletConfig& cfg,
     const bool flowletEnable,
     const bool expectFlowsetSizeZero) {
   const auto bcmSwitch = static_cast<const BcmSwitch*>(hw);
@@ -130,6 +131,24 @@ bool verifyEcmpForFlowletSwitching(
       if (status < BCM_L3_ECMP_DYNAMIC_MEMBER_HW) {
         isVerified = false;
       }
+    }
+    bcm_l3_egress_t egress;
+    bcm_l3_egress_t_init(&egress);
+    bcm_l3_egress_get(0, ecmp_member, &egress);
+    if (flowletEnable &&
+        !(hw->getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::FLOWLET_PORT_ATTRIBUTES))) {
+      // verify the port flowlet config values only in TH3
+      // since this port flowlet configs are set in egress object in TH3
+      CHECK_EQ(egress.dynamic_scaling_factor, *cfg.scalingFactor());
+      CHECK_EQ(egress.dynamic_load_weight, *cfg.loadWeight());
+      CHECK_EQ(egress.dynamic_queue_size_weight, *cfg.queueWeight());
+    } else {
+      // verify the default values in TH4
+      // since this won't be set in egress object in TH4
+      CHECK_EQ(egress.dynamic_scaling_factor, -1);
+      CHECK_EQ(egress.dynamic_load_weight, -1);
+      CHECK_EQ(egress.dynamic_queue_size_weight, -1);
     }
   }
   return isVerified;

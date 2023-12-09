@@ -22,6 +22,7 @@ bool verifyEcmpForFlowletSwitching(
     const facebook::fboss::HwSwitch* hw,
     const folly::CIDRNetwork& routePrefix,
     const cfg::FlowletSwitchingConfig& flowletCfg,
+    const cfg::PortFlowletConfig& portFlowletCfg,
     const bool flowletEnable,
     const bool expectFlowsetSizeZero = false);
 

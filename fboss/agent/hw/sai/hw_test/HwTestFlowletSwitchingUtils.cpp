@@ -27,6 +27,7 @@ bool verifyEcmpForFlowletSwitching(
     const HwSwitch* /* unused */,
     const folly::CIDRNetwork& /* unused */,
     const cfg::FlowletSwitchingConfig& /* unused */,
+    const cfg::PortFlowletConfig& /* unused */,
     bool /* unused */) {
   // This function is not implemented yet.
   // If the test is running on SAI Switches,

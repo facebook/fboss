@@ -22,10 +22,13 @@ using namespace facebook::fboss::utility;
 namespace {
 static folly::IPAddressV6 kAddr1{"2803:6080:d038:3063::"};
 folly::CIDRNetwork kAddr1Prefix{folly::IPAddress("2803:6080:d038:3063::"), 64};
+const int kDefaultScalingFactor = 10;
 const int kScalingFactor1 = 100;
 const int kScalingFactor2 = 200;
+const int kDefaultLoadWeight = 100;
 const int kLoadWeight1 = 70;
 const int kLoadWeight2 = 60;
+const int kDefaultQueueWeight = 0;
 const int kQueueWeight1 = 30;
 const int kQueueWeight2 = 40;
 const int kInactivityIntervalUsecs1 = 128;
@@ -192,12 +195,9 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
     applyNewState(ecmpHelper_->resolveNextHops(getProgrammedState(), nHops));
   }
 
-  void
-  verifyPortFlowletConfig(int scalingFactor, int loadWeight, int queueWeight) {
+  void verifyPortFlowletConfig(cfg::PortFlowletConfig& portFlowletConfig) {
     if (getHwSwitch()->getPlatform()->getAsic()->isSupported(
             HwAsic::Feature::FLOWLET_PORT_ATTRIBUTES)) {
-      auto portFlowletConfig =
-          getPortFlowletConfig(scalingFactor, loadWeight, queueWeight);
       EXPECT_TRUE(utility::validatePortFlowletQuality(
           getHwSwitch(), masterLogicalPortIds()[0], portFlowletConfig));
     }
@@ -206,7 +206,9 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
   void verifyConfig(
       const cfg::SwitchConfig& cfg,
       bool expectFlowsetSizeZero = false) {
-    verifyPortFlowletConfig(kScalingFactor1, kLoadWeight1, kQueueWeight1);
+    auto portFlowletConfig =
+        getPortFlowletConfig(kScalingFactor1, kLoadWeight1, kQueueWeight1);
+    verifyPortFlowletConfig(portFlowletConfig);
 
     EXPECT_TRUE(utility::validateFlowletSwitchingEnabled(
         getHwSwitch(), *cfg.flowletSwitchingConfig()));
@@ -214,6 +216,7 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
         getHwSwitch(),
         kAddr1Prefix,
         *cfg.flowletSwitchingConfig(),
+        portFlowletConfig,
         true,
         expectFlowsetSizeZero));
 
@@ -229,7 +232,9 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
   }
 
   void verifyModifiedConfig() {
-    verifyPortFlowletConfig(kScalingFactor2, kLoadWeight2, kQueueWeight2);
+    auto portFlowletConfig =
+        getPortFlowletConfig(kScalingFactor2, kLoadWeight2, kQueueWeight2);
+    verifyPortFlowletConfig(portFlowletConfig);
 
     auto flowletCfg = getFlowletSwitchingConfig(
         kInactivityIntervalUsecs2, kFlowletTableSize2);
@@ -237,17 +242,24 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
     EXPECT_TRUE(
         utility::validateFlowletSwitchingEnabled(getHwSwitch(), flowletCfg));
     EXPECT_TRUE(utility::verifyEcmpForFlowletSwitching(
-        getHwSwitch(), kAddr1Prefix, flowletCfg, true));
+        getHwSwitch(), kAddr1Prefix, flowletCfg, portFlowletConfig, true));
   }
 
   void verifyRemoveFlowletConfig() {
-    verifyPortFlowletConfig(10, 100, 0);
+    auto portFlowletConfig = getPortFlowletConfig(
+        kDefaultScalingFactor, kDefaultLoadWeight, kDefaultQueueWeight);
+    verifyPortFlowletConfig(portFlowletConfig);
 
     auto flowletCfg = getFlowletSwitchingConfig(0, 0);
 
     EXPECT_TRUE(utility::validateFlowletSwitchingDisabled(getHwSwitch()));
     EXPECT_TRUE(utility::verifyEcmpForFlowletSwitching(
-        getHwSwitch(), kAddr1Prefix, flowletCfg, false, true));
+        getHwSwitch(),
+        kAddr1Prefix,
+        flowletCfg,
+        portFlowletConfig,
+        false,
+        true));
   }
 
   std::unique_ptr<utility::EcmpSetupAnyNPorts<folly::IPAddressV6>> ecmpHelper_;
@@ -350,7 +362,9 @@ TEST_F(HwFlowletSwitchingTest, VerifyPortFlowletConfigChange) {
     // Modify the port flowlet config and verify
     updatePortFlowletConfigs(cfg, kScalingFactor2, kLoadWeight2, kQueueWeight2);
     applyNewConfig(cfg);
-    verifyPortFlowletConfig(kScalingFactor2, kLoadWeight2, kQueueWeight2);
+    auto portFlowletConfig =
+        getPortFlowletConfig(kScalingFactor2, kLoadWeight2, kQueueWeight2);
+    verifyPortFlowletConfig(portFlowletConfig);
     // Modify to initial config to verify after warmboot
     applyNewConfig(initialConfig());
   };
