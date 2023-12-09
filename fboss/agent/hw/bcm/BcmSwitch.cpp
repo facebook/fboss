@@ -1385,19 +1385,14 @@ void BcmSwitch::processFlowletSwitchingConfigChanges(const StateDelta& delta) {
   setEgressEcmpEtherType(0);
 
   if (oldFlowletSwitching && newFlowletSwitching &&
-      *oldFlowletSwitching == *newFlowletSwitching) {
+      (*oldFlowletSwitching == *newFlowletSwitching)) {
+    // PortFlowlet config is changed but the global Flowlet config did not
+    // change then we need to update all the egress objects for TH3 here. Due to
+    // ECMP-Egress object dependency in TH3, updating egress object is done
+    // here.
+    egressManager_->updateAllEgressForFlowletSwitching();
     XLOG(DBG4) << "Flowlet switching config is same";
     return;
-  }
-
-  if (oldFlowletSwitching && !newFlowletSwitching) {
-    XLOG(DBG2) << "Flowlet switching config is removed";
-    setEcmpDynamicRandomSeed(0);
-  }
-
-  if (!oldFlowletSwitching && newFlowletSwitching) {
-    XLOG(DBG2) << "Flowlet switching config enabled";
-    setEcmpDynamicRandomSeed(0x5555);
   }
 
   processDynamicEgressLoadExponentChanged(
@@ -1415,7 +1410,22 @@ void BcmSwitch::processFlowletSwitchingConfigChanges(const StateDelta& delta) {
   processDynamicPhysicalQueueExponentChanged(
       oldFlowletSwitching, newFlowletSwitching);
 
-  egressManager_->processFlowletSwitchingConfigChanged(newFlowletSwitching);
+  if (newFlowletSwitching) {
+    if (!oldFlowletSwitching) {
+      XLOG(DBG2) << "Flowlet switching config changed";
+      setEcmpDynamicRandomSeed(0x5555);
+    }
+    // Update All egress first for flowlet config add or update
+    // This ordering is needed otherwise SDK fails for TH3
+    egressManager_->updateAllEgressForFlowletSwitching();
+    egressManager_->processFlowletSwitchingConfigChanged(newFlowletSwitching);
+  } else if (oldFlowletSwitching && !newFlowletSwitching) {
+    XLOG(DBG2) << "Flowlet switching config is removed";
+    setEcmpDynamicRandomSeed(0);
+    // Update All ecmps first for flowlet config removal
+    egressManager_->processFlowletSwitchingConfigChanged(newFlowletSwitching);
+    egressManager_->updateAllEgressForFlowletSwitching();
+  }
 }
 
 void BcmSwitch::processMacTableChanges(const StateDelta& stateDelta) {
@@ -1491,6 +1501,11 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImplLocked(
   processUdfAdd(delta);
 
   processLoadBalancerChanges(delta);
+
+  // Need to update port flowlet config for added ports
+  // before neighbor/route delta programming of egress objects
+  // after warm boot for TH3
+  processPortFlowletConfigAdd(delta);
 
   // remove all routes to be deleted
   processRemovedRoutes(delta);
@@ -1874,6 +1889,16 @@ bool BcmSwitch::processChangedPortFlowletCfg(
   }
   // no change
   return false;
+}
+
+void BcmSwitch::processPortFlowletConfigAdd(const StateDelta& delta) {
+  // To update port flowlet config in bcm port object for all added ports
+  // This will not do any hardware programming on the port.
+  forEachAdded(delta.getPortsDelta(), [&](const shared_ptr<Port>& port) {
+    auto id = port->getID();
+    auto bcmPort = portTable_->getBcmPort(id);
+    bcmPort->setPortFlowletConfig(port);
+  });
 }
 
 void BcmSwitch::processAddedPorts(const StateDelta& delta) {

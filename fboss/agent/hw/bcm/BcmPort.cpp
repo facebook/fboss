@@ -726,6 +726,7 @@ void BcmPort::program(const shared_ptr<Port>& port) {
 }
 
 void BcmPort::updatePortFlowletConfig(const std::shared_ptr<Port>& port) {
+  setPortFlowletConfig(port);
   if (hw_->getPlatform()->getAsic()->isSupported(
           HwAsic::Feature::FLOWLET_PORT_ATTRIBUTES)) {
     XLOG(DBG3) << "Updating Port flowlet config for " << port->getName();
@@ -1897,19 +1898,20 @@ void BcmPort::setEgressPortMirror(const std::string& mirrorName) {
   egressMirror_ = mirrorName;
 }
 
-cfg::PortFlowletConfig BcmPort::getPortFlowletConfig() const {
-  cfg::PortFlowletConfig flowletConfig;
-  auto port = getProgrammedSettings();
-  if (port && (port->getFlowletConfigName().has_value())) {
-    if (port->getPortFlowletConfig().has_value()) {
-      auto flowletCfgPtr = port->getPortFlowletConfig().value();
-      CHECK(flowletCfgPtr != nullptr);
-      flowletConfig.scalingFactor() = flowletCfgPtr->getScalingFactor();
-      flowletConfig.loadWeight() = flowletCfgPtr->getLoadWeight();
-      flowletConfig.queueWeight() = flowletCfgPtr->getQueueWeight();
-    }
+void BcmPort::setPortFlowletConfig(const std::shared_ptr<Port>& port) {
+  if (port->getFlowletConfigName().has_value() &&
+      port->getPortFlowletConfig().has_value()) {
+    auto flowletCfgPtr = port->getPortFlowletConfig().value();
+    CHECK(flowletCfgPtr != nullptr);
+    portFlowletConfig_.scalingFactor() = flowletCfgPtr->getScalingFactor();
+    portFlowletConfig_.loadWeight() = flowletCfgPtr->getLoadWeight();
+    portFlowletConfig_.queueWeight() = flowletCfgPtr->getQueueWeight();
+  } else {
+    portFlowletConfig_.scalingFactor() = 0;
+    portFlowletConfig_.loadWeight() = 0;
+    portFlowletConfig_.queueWeight() = 0;
   }
-  return flowletConfig;
+  XLOG(DBG3) << "Updated Port flowlet config for " << port->getName();
 }
 
 void BcmPort::destroyAllPortStatsLocked(

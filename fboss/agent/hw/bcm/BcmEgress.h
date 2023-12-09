@@ -134,6 +134,7 @@ class BcmEgress : public BcmEgressBase {
  private:
   virtual BcmWarmBootCache::EgressId2EgressCitr
   findEgress(bcm_vrf_t vrf, bcm_if_t intfId, const folly::IPAddress& ip) const;
+  void updateFlowletConfig(bcm_l3_egress_t& eObj, bcm_port_t port) const;
 
   bool alreadyExists(const bcm_l3_egress_t& newEgress) const;
   void program(

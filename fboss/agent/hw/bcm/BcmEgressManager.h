@@ -112,6 +112,8 @@ class BcmEgressManager {
     return bcmFlowletConfig_;
   }
 
+  void updateAllEgressForFlowletSwitching();
+
  private:
   /*
    * Called both while holding and not holding the hw lock.

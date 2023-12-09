@@ -765,6 +765,8 @@ class BcmSwitch : public BcmSwitchIf {
   void processRemovedAggregatePort(
       const std::shared_ptr<AggregatePort>& aggPort);
 
+  void processPortFlowletConfigAdd(const StateDelta& delta);
+
   void processLoadBalancerChanges(const StateDelta& delta);
   void processChangedLoadBalancer(
       const std::shared_ptr<LoadBalancer>& oldLoadBalancer,

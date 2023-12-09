@@ -165,4 +165,39 @@ void BcmEgressManager::processFlowletSwitchingConfigChanged(
   // if the flowlet switching config changed
   hw_->writableMultiPathNextHopTable()->updateEcmpsForFlowletSwitching();
 }
+
+void BcmEgressManager::updateAllEgressForFlowletSwitching() {
+  //  For TH4 port flowlet config is programmed in port object.
+  //  Hence skipping the update of egress objects for TH4.
+  //  TH3 needs update of all egress objects for port flowlet config changes.
+  if (hw_->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::FLOWLET_PORT_ATTRIBUTES)) {
+    return;
+  }
+
+  std::unordered_set<bcm_if_t> egressIds;
+  for (const auto& hostTableEntry : *hw_->getHostTable()) {
+    std::shared_ptr<BcmHostIf> host = hostTableEntry.second.lock();
+    auto hostKey = hostTableEntry.first;
+    auto bcmEgress = host->getEgress();
+    if (!bcmEgress) {
+      continue;
+    }
+    auto egressId = bcmEgress->getID();
+    // skip programming same egress Id more than once
+    if (!(egressIds.count(egressId)) && host->isProgrammedToNextHops()) {
+      egressIds.insert(egressId);
+      auto vrf = hostKey.getVrf();
+      auto addr = hostKey.addr();
+      auto mac = bcmEgress->getMac();
+      auto intf = bcmEgress->getIntfId();
+      auto gport = host->getSetPortAsGPort();
+      auto port = BCM_GPORT_LOCAL_GET(gport);
+      // skip for cpu port
+      if (gport != BCM_GPORT_LOCAL_CPU) {
+        bcmEgress->programToPort(intf, vrf, addr, mac, port);
+      }
+    }
+  }
+}
 } // namespace facebook::fboss
