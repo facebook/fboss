@@ -88,7 +88,8 @@ string IPv6Hdr::toString() const {
   stringstream ss;
   ss << "IPv6Hdr { srcAddr: " << srcAddr.str() << " dstAddr: " << dstAddr.str()
      << " payloadLength: " << (int)payloadLength
-     << " nextHeader: " << (int)nextHeader << " }";
+     << " nextHeader: " << (int)nextHeader << " hopLimit:  " << (int)hopLimit
+     << " }";
   return ss.str();
 }
 
