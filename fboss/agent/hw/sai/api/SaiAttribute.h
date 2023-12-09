@@ -172,6 +172,11 @@ DEFINE_extract(
     portlanelatchstatuslist);
 DEFINE_extract(sai_latch_status_t, latchstatus);
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+DEFINE_extract(
+    std::vector<sai_port_frequency_offset_ppm_values_t>,
+    portfrequencyoffsetppmlist);
+#endif
 DEFINE_extract(facebook::fboss::AclEntryFieldU8, aclfield);
 DEFINE_extract(facebook::fboss::AclEntryFieldU16, aclfield);
 DEFINE_extract(facebook::fboss::AclEntryFieldU32, aclfield);

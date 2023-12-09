@@ -535,6 +535,22 @@ sai_status_t set_port_attribute_fn(
                 .list[j];
       }
     } break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+    case SAI_PORT_ATTR_RX_FREQUENCY_OFFSET_PPM: {
+      port.portRxPPM.count = static_cast<sai_port_frequency_offset_ppm_list_t>(
+                                 attr->value.portfrequencyoffsetppmlist)
+                                 .count;
+      auto& ppmList = port.portRxPPM.list;
+      auto ppmVector = std::vector<sai_port_frequency_offset_ppm_values_t>();
+      ppmVector.resize(port.portRxPPM.count);
+      ppmList = ppmVector.data();
+      for (int j = 0; j < port.portRxPPM.count; j++) {
+        ppmList[j] = static_cast<sai_port_frequency_offset_ppm_list_t>(
+                         attr->value.portfrequencyoffsetppmlist)
+                         .list[j];
+      }
+    } break;
+#endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 3) || defined(TAJO_SDK_VERSION_1_42_8)
     case SAI_PORT_ATTR_RX_SIGNAL_DETECT: {
       port.portRxSignalDetect.count =

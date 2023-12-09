@@ -142,6 +142,13 @@ struct WrappedSaiType<sai_latch_status_t> {
 };
 #endif
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+template <>
+struct WrappedSaiType<std::vector<sai_port_frequency_offset_ppm_values_t>> {
+  using value = sai_port_frequency_offset_ppm_list_t;
+};
+#endif
+
 template <>
 struct WrappedSaiType<std::array<char, 32>> {
   using value = char[32];

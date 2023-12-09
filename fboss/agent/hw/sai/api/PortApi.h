@@ -280,6 +280,17 @@ struct SaiPortTraits {
         SAI_PORT_ATTR_PCS_RX_LINK_STATUS,
         sai_latch_status_t>;
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+    /*
+     * PPM = Parts per million
+     * RX_FREQUENCY_OFFSET_PPM => amount that a receiver serdes has to
+     * compensate for clock differences from the remote side
+     */
+    using RxFrequencyPPM = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_RX_FREQUENCY_OFFSET_PPM,
+        std::vector<sai_port_frequency_offset_ppm_values_t>>;
+#endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
     using InterFrameGap = SaiAttribute<
         EnumType,
@@ -540,6 +551,9 @@ SAI_ATTRIBUTE_NAME(Port, PcsRxLinkStatus)
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
 SAI_ATTRIBUTE_NAME(Port, InterFrameGap)
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+SAI_ATTRIBUTE_NAME(Port, RxFrequencyPPM)
 #endif
 SAI_ATTRIBUTE_NAME(Port, LinkTrainingEnable)
 SAI_ATTRIBUTE_NAME(Port, SerdesLaneList)

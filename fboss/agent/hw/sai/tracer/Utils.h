@@ -180,6 +180,15 @@ void portLaneLatchStatusListAttr(
     bool logEntry = true);
 #endif
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+void portFrequencyOffsetPpmListAttr(
+    const sai_attribute_t* attr_list,
+    int i,
+    uint32_t listIndex,
+    std::vector<std::string>& attrLines,
+    bool logEntry = true);
+#endif
+
 void systemPortConfigListAttr(
     const sai_attribute_t* attr_list,
     int i,

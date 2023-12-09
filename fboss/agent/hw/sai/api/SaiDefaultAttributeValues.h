@@ -142,6 +142,14 @@ struct SaiLatchStatusDefault {
 };
 #endif
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+struct SaiRxPPMDefault {
+  sai_port_frequency_offset_ppm_values_t operator()() const {
+    return sai_port_frequency_offset_ppm_values_t{0, 0};
+  }
+};
+#endif
+
 #if SAI_API_VERSION >= SAI_VERSION(1, 8, 1)
 struct SaiPrbsRxStateDefault {
   sai_prbs_rx_state_t operator()() const {

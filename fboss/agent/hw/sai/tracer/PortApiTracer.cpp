@@ -66,6 +66,9 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _PortMap {
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
       SAI_ATTR_MAP(Port, InterFrameGap),
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+      SAI_ATTR_MAP(Port, RxFrequencyPPM),
+#endif
       SAI_ATTR_MAP(Port, LinkTrainingEnable),
       SAI_ATTR_MAP(Port, FabricAttached),
       SAI_ATTR_MAP(Port, FabricAttachedPortIndex),
