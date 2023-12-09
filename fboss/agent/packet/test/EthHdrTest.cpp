@@ -183,3 +183,15 @@ TEST(EthHdrTest, setDstMac) {
   hdr.setDstMac(srcAddr);
   EXPECT_EQ(hdr.getDstMac(), srcAddr);
 }
+
+TEST(EthHdrTest, toString) {
+  MacAddress dstAddr("ff:ff:ff:ff:ff:ff");
+  MacAddress srcAddr("10:dd:b1:bb:5a:ef");
+  vector<VlanTag> vlanTags;
+  vlanTags.push_back(VlanTag(0x81000001));
+  vlanTags.push_back(VlanTag(0x88A80002));
+  vlanTags.push_back(VlanTag(0x88A80003));
+  uint16_t etherType = static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV6);
+  EthHdr hdr(dstAddr, srcAddr, vlanTags, etherType);
+  std::cout << hdr;
+}

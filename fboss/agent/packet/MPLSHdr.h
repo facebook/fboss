@@ -41,6 +41,7 @@ struct MPLSHdr {
     uint8_t getTTL() const {
       return timeToLive;
     }
+    std::string toString() const;
   };
 
   void decrementTTL() {
@@ -75,6 +76,7 @@ struct MPLSHdr {
   MPLSHdr::Label getLookupLabel() const {
     return stack_[0];
   }
+  std::string toString() const;
 
  private:
   union MPLSLabel {
@@ -85,6 +87,10 @@ struct MPLSHdr {
   std::vector<Label> stack_;
 };
 
+inline std::ostream& operator<<(std::ostream& os, const MPLSHdr& hdr) {
+  os << hdr.toString();
+  return os;
+}
 namespace utility {
 std::optional<ETHERTYPE> decapsulateMplsPacket(folly::IOBuf* buf);
 }

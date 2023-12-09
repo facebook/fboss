@@ -232,4 +232,9 @@ TEST(MPLSHdrTest, decrementTTL0) {
   EXPECT_EQ(1, label.bottomOfStack);
   EXPECT_EQ(0, label.timeToLive);
 }
+
+TEST(MPLSHdrTest, toString) {
+  MPLSHdr hdr{MPLSHdr::Label{103, 4, true, 79}};
+  std::cout << hdr;
+}
 } // namespace facebook::fboss

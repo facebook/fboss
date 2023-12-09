@@ -186,4 +186,9 @@ inline bool operator!=(const IPv6Hdr& lhs, const IPv6Hdr& rhs) {
   return !operator==(lhs, rhs);
 }
 
+inline std::ostream& operator<<(std::ostream& os, const IPv6Hdr& v6Hdr) {
+  os << v6Hdr.toString();
+  return os;
+}
+
 } // namespace facebook::fboss

@@ -6,6 +6,7 @@
 #include "fboss/agent/packet/IPv6Hdr.h"
 
 #include <folly/io/Cursor.h>
+#include <sstream>
 
 namespace facebook::fboss {
 
@@ -27,6 +28,21 @@ void MPLSHdr::serialize(folly::io::RWPrivateCursor* cursor) const {
   }
 }
 
+std::string MPLSHdr::Label::toString() const {
+  std::stringstream ss;
+  ss << " Label: " << getLabelValue() << " TTL: " << getTTL()
+     << " bottomOfStack: " << isbottomOfStack()
+     << " trafficClass: " << getTrafficClass();
+  return ss.str();
+}
+
+std::string MPLSHdr::toString() const {
+  std::stringstream ss;
+  for (const auto& label : stack_) {
+    ss << label.toString() << std::endl;
+  }
+  return ss.str();
+}
 namespace utility {
 std::optional<ETHERTYPE> decapsulateMplsPacket(folly::IOBuf* buf) {
   folly::io::Cursor cursor(buf);
@@ -72,5 +88,6 @@ std::optional<ETHERTYPE> decapsulateMplsPacket(folly::IOBuf* buf) {
 
   return etherType;
 }
+
 } // namespace utility
 } // namespace facebook::fboss
