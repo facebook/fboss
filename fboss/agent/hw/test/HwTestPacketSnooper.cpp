@@ -28,8 +28,13 @@ void HwTestPacketSnooper::packetReceived(RxPacket* pkt) noexcept {
   }
   auto data = pkt->buf()->clone();
   folly::io::Cursor cursor{data.get()};
+  auto frame = std::make_unique<utility::EthFrame>(cursor);
+  if (expectedFrame_.has_value() && *expectedFrame_ != *frame) {
+    XLOG(DBG2) << " Unexpected packet received ";
+    return;
+  }
   std::lock_guard<std::mutex> lock(mtx_);
-  receivedFrame_ = std::make_unique<utility::EthFrame>(cursor);
+  receivedFrame_ = std::move(frame);
   cv_.notify_all();
 }
 

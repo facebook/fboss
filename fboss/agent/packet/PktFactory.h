@@ -260,6 +260,9 @@ class EthFrame {
         std::tie(
                that.hdr_, that.v4PayLoad_, that.v6PayLoad_, that.mplsPayLoad_);
   }
+  bool operator!=(const EthFrame& that) const {
+    return !(*this == that);
+  }
   void decrementTTL() {
     if (mplsPayLoad_.has_value()) {
       mplsPayLoad_->decrementTTL();
