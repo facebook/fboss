@@ -28,5 +28,17 @@
         "profileID": 37
       }
     ]
+  },
+  "transceiverFirmwareVersions": {
+    "versionsMap": {
+      "EOLO-168HG-02-1T": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.5"
+            }
+          ]
+      }
+    }
   }
 }
