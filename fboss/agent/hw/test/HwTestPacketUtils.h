@@ -27,6 +27,7 @@
 #include "fboss/agent/packet/ICMPHdr.h"
 #include "fboss/agent/packet/NDP.h"
 #include "fboss/agent/packet/PTPHeader.h"
+#include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss {
@@ -295,5 +296,9 @@ struct RandomNumberGenerator {
   std::mt19937_64 generator;
   std::uniform_int_distribution<> distibution;
 };
+
+utility::EthFrame makeEthFrame(
+    const TxPacket& txPkt,
+    bool skipTtlDecrement = false);
 
 } // namespace facebook::fboss::utility

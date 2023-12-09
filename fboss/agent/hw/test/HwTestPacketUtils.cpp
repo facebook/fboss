@@ -938,4 +938,14 @@ uint8_t getIpHopLimit(folly::io::Cursor& cursor) {
   throw FbossError("Not a valid IP packet : ", ethHdr.etherType);
 }
 
+utility::EthFrame makeEthFrame(const TxPacket& txPkt, bool skipTtlDecrement) {
+  folly::io::Cursor cursor{txPkt.buf()};
+  utility::EthFrame frame(cursor);
+  if (skipTtlDecrement) {
+    return frame;
+  }
+  frame.decrementTTL();
+  return frame;
+}
+
 } // namespace facebook::fboss::utility
