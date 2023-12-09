@@ -11,16 +11,10 @@
           "test_name_regex": "HwVlanTest.VlanApplyConfig"
         },
         {
-          "test_name_regex": "HwPacketFloodTest.ArpRequest*"
+          "test_name_regex": "HwPacketFloodTest.*"
         },
         {
-          "test_name_regex": "HwPacketFloodTest.Lldp*"
-        },
-        {
-          "test_name_regex": "HwPacketFloodTest.NdpFloodTest"
-        },
-        {
-          "test_name_regex": "HwPacketFloodTest.NdpFloodTest"
+          "test_name_regex": "HwPacketSendTest.ArpRequestToFrontPanelPortSwitched"
         },
         {
           "test_name_regex": "HwPacketSendReceiveLagTest.LacpPacketReceiveSrcPort"
@@ -276,16 +270,10 @@
           "test_name_regex": "HwVlanTest.VlanApplyConfig"
         },
         {
-          "test_name_regex": "HwPacketFloodTest.ArpRequest*"
+          "test_name_regex": "HwPacketFloodTest.*"
         },
         {
-          "test_name_regex": "HwPacketFloodTest.Lldp*"
-        },
-        {
-          "test_name_regex": "HwPacketFloodTest.NdpFloodTest"
-        },
-        {
-          "test_name_regex": "HwPacketFloodTest.NdpFloodTest"
+          "test_name_regex": "HwPacketSendTest.ArpRequestToFrontPanelPortSwitched"
         },
         {
           "test_name_regex": "HwPacketSendReceiveLagTest.LacpPacketReceiveSrcPort"
@@ -521,16 +509,10 @@
           "test_name_regex": "HwVlanTest.VlanApplyConfig"
         },
         {
-          "test_name_regex": "HwPacketFloodTest.ArpRequest*"
+          "test_name_regex": "HwPacketFloodTest.*"
         },
         {
-          "test_name_regex": "HwPacketFloodTest.Lldp*"
-        },
-        {
-          "test_name_regex": "HwPacketFloodTest.NdpFloodTest"
-        },
-        {
-          "test_name_regex": "HwPacketFloodTest.NdpFloodTest"
+          "test_name_regex": "HwPacketSendTest.ArpRequestToFrontPanelPortSwitched"
         },
         {
           "test_name_regex": "HwPacketSendReceiveLagTest.LacpPacketReceiveSrcPort"
