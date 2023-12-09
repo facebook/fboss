@@ -948,4 +948,11 @@ utility::EthFrame makeEthFrame(const TxPacket& txPkt, bool skipTtlDecrement) {
   return frame;
 }
 
+utility::EthFrame makeEthFrame(
+    const TxPacket& txPkt,
+    folly::MacAddress dstMac) {
+  auto frame = makeEthFrame(txPkt);
+  frame.setDstMac(dstMac);
+  return frame;
+}
 } // namespace facebook::fboss::utility

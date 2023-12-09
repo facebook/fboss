@@ -301,4 +301,5 @@ utility::EthFrame makeEthFrame(
     const TxPacket& txPkt,
     bool skipTtlDecrement = false);
 
+utility::EthFrame makeEthFrame(const TxPacket& txPkt, folly::MacAddress dstMac);
 } // namespace facebook::fboss::utility
