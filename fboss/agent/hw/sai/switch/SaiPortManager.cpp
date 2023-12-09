@@ -1322,6 +1322,14 @@ bool SaiPortManager::fecCorrectedBitsSupported(PortID portId) const {
   return false;
 }
 
+bool SaiPortManager::rxFrequencyRPMSupported() const {
+#if defined(BRCM_SAI_SDK_GTE_10_0)
+  return platform_->getAsic()->isSupported(HwAsic::Feature::RX_FREQUENCY_PPM);
+#else
+  return false;
+#endif
+}
+
 std::vector<PortID> SaiPortManager::getFabricReachabilityForSwitch(
     const SwitchID& switchId) const {
   std::vector<PortID> reachablePorts;
