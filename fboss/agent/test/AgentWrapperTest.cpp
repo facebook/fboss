@@ -190,11 +190,13 @@ TYPED_TEST(AgentWrapperTest, StartAndStopAndStart) {
   this->stop();
   this->waitForStop();
   EXPECT_FALSE(checkFileExists(this->util_.getColdBootOnceFile()));
+  checkFileExists(this->util_.exitTimeFile("wedge_agent"));
   this->start();
   this->waitForStart();
   EXPECT_EQ(this->getBootType(), BootType::WARM_BOOT);
   this->stop();
   this->waitForStop();
+  checkFileExists(this->util_.restartDurationFile("wedge_agent"));
 }
 
 TYPED_TEST(AgentWrapperTest, StartAndCrash) {
