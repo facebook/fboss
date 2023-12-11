@@ -16,6 +16,8 @@
 #include <cstdio>
 #include <filesystem>
 
+using ::testing::_;
+
 namespace facebook::fboss {
 
 namespace {
@@ -140,12 +142,6 @@ class AgentPreStartExecTests : public ::testing::Test {
       ::testing::InSequence seq;
       EXPECT_CALL(*netwhoami, isFdsw()).WillOnce(Return(fdsw));
       EXPECT_CALL(*netwhoami, isFdsw()).WillOnce(Return(fdsw));
-      EXPECT_CALL(*netwhoami, isNotDrainable()).WillOnce(Return(false));
-      EXPECT_CALL(*netwhoami, isFdsw()).WillOnce(Return(fdsw));
-      if (drain && !fdsw) {
-        // device to be marked for draining
-        EXPECT_CALL(drainer, drain()).Times(1);
-      }
       EXPECT_CALL(*netwhoami, isBcmPlatform())
           .WillOnce(Return(TestAttr::kBrcm));
       if (!TestAttr::kBrcm) {
