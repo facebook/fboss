@@ -107,6 +107,14 @@ void IPPacket<AddrT>::serialize(folly::io::RWPrivateCursor& cursor) const {
   }
 }
 
+template <typename AddrT>
+std::string IPPacket<AddrT>::toString() const {
+  std::stringstream ss;
+  ss << "IP hdr: " << hdr_
+     << " UDP : " << (udpPayLoad_.has_value() ? udpPayLoad_->toString() : "");
+  return ss.str();
+}
+
 MPLSPacket::MPLSPacket(folly::io::Cursor& cursor) {
   hdr_ = MPLSHdr(&cursor);
   uint8_t ipver = 0;
@@ -149,6 +157,14 @@ void MPLSPacket::serialize(folly::io::RWPrivateCursor& cursor) const {
   } else if (v6PayLoad_) {
     v6PayLoad_->serialize(cursor);
   }
+}
+
+std::string MPLSPacket::toString() const {
+  std::stringstream ss;
+  ss << "MPLS hdr: " << hdr_.toString()
+     << " v6 : " << (v6PayLoad_.has_value() ? v6PayLoad_->toString() : "")
+     << " v4 : " << (v4PayLoad_.has_value() ? v4PayLoad_->toString() : "");
+  return ss.str();
 }
 
 EthFrame::EthFrame(folly::io::Cursor& cursor) {
@@ -297,6 +313,15 @@ EthFrame getEthFrame(
           mplsHdr,
           utility::IPPacket<AddrT>(
               ipHdr, utility::UDPDatagram(udpHdr, kDefaultPayload))));
+}
+
+std::string utility::EthFrame::toString() const {
+  std::stringstream ss;
+  ss << "Eth hdr: " << hdr_.toString()
+     << " mpls: " << (mplsPayLoad_.has_value() ? mplsPayLoad_->toString() : "")
+     << " v6 : " << (v6PayLoad_.has_value() ? v6PayLoad_->toString() : "")
+     << " v4 : " << (v4PayLoad_.has_value() ? v4PayLoad_->toString() : "");
+  return ss.str();
 }
 
 template class IPPacket<folly::IPAddressV4>;

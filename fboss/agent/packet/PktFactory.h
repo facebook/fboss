@@ -58,11 +58,19 @@ class UDPDatagram {
                that.udpHdr_.length,
                that.payload_);
   }
+  std::string toString() const {
+    return udpHdr_.toString();
+  }
 
  private:
   UDPHeader udpHdr_;
   std::vector<uint8_t> payload_{};
 };
+
+inline std::ostream& operator<<(std::ostream& os, const UDPDatagram& udp) {
+  os << udp.toString();
+  return os;
+}
 
 template <typename AddrT>
 class IPPacket {
@@ -122,6 +130,7 @@ class IPPacket {
   void decrementTTL() {
     hdr_.decrementTTL();
   }
+  std::string toString() const;
 
  private:
   void setUDPCheckSum(folly::IOBuf* buffer) const;
@@ -129,6 +138,14 @@ class IPPacket {
   std::optional<UDPDatagram> udpPayLoad_;
   // TODO: support TCP segment
 };
+
+template <typename AddrT>
+inline std::ostream& operator<<(
+    std::ostream& os,
+    const IPPacket<AddrT>& ipPkt) {
+  os << ipPkt.toString();
+  return os;
+}
 
 using IPv4Packet = IPPacket<folly::IPAddressV4>;
 using IPv6Packet = IPPacket<folly::IPAddressV6>;
@@ -183,6 +200,8 @@ class MPLSPacket {
     }
   }
 
+  std::string toString() const;
+
  private:
   void setPayLoad(IPPacket<folly::IPAddressV6> payload) {
     v6PayLoad_ = payload;
@@ -196,6 +215,11 @@ class MPLSPacket {
   std::optional<IPPacket<folly::IPAddressV4>> v4PayLoad_;
   std::optional<IPPacket<folly::IPAddressV6>> v6PayLoad_;
 };
+
+inline std::ostream& operator<<(std::ostream& os, const MPLSPacket& mplsPkt) {
+  os << mplsPkt.toString();
+  return os;
+}
 
 class EthFrame {
  public:
@@ -275,6 +299,7 @@ class EthFrame {
   void setDstMac(const folly::MacAddress& dstMac) {
     hdr_.setDstMac(dstMac);
   }
+  std::string toString() const;
 
  private:
   EthHdr hdr_;
@@ -283,6 +308,10 @@ class EthFrame {
   std::optional<MPLSPacket> mplsPayLoad_;
 };
 
+inline std::ostream& operator<<(std::ostream& os, const EthFrame& ethFrame) {
+  os << ethFrame.toString();
+  return os;
+}
 template <typename AddrT>
 EthFrame getEthFrame(
     folly::MacAddress srcMac,
