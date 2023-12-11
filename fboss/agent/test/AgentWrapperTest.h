@@ -4,6 +4,8 @@
 
 #include <gtest/gtest.h>
 
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+
 namespace facebook::fboss {
 
 class AgentNetWhoAmI;
@@ -26,6 +28,8 @@ class AgentWrapperTest : public ::testing::Test {
   void waitForStart(const std::string& unit);
   void waitForStop(bool crash = false);
   void waitForStop(const std::string& unit, bool crash = false);
+
+  BootType getBootType();
 
   std::unique_ptr<AgentConfig> config_;
   AgentDirectoryUtil util_;

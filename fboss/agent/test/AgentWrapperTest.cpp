@@ -144,6 +144,14 @@ void AgentWrapperTest<T>::waitForStop(bool crash) {
   }
 }
 
+template <typename T>
+BootType AgentWrapperTest<T>::getBootType() {
+  auto client = utils::createWedgeAgentClient();
+  apache::thrift::RpcOptions options;
+  options.setTimeout(std::chrono::seconds(1));
+  return client->sync_getBootType(options);
+}
+
 TYPED_TEST_SUITE(AgentWrapperTest, TestTypes);
 
 TYPED_TEST(AgentWrapperTest, ColdBootStartAndStop) {
@@ -166,6 +174,7 @@ TYPED_TEST(AgentWrapperTest, ColdBootStartAndStop) {
     // @lint-ignore CLANGTIDY
     EXPECT_FALSE(checkFileExists(drainTimeFile));
   }
+  EXPECT_EQ(this->getBootType(), BootType::COLD_BOOT);
   this->stop();
   this->waitForStop();
 }
@@ -177,11 +186,13 @@ TYPED_TEST(AgentWrapperTest, StartAndStopAndStart) {
   touchFile(this->util_.getColdBootOnceFile());
   this->start();
   this->waitForStart();
+  EXPECT_EQ(this->getBootType(), BootType::COLD_BOOT);
   this->stop();
   this->waitForStop();
   EXPECT_FALSE(checkFileExists(this->util_.getColdBootOnceFile()));
   this->start();
   this->waitForStart();
+  EXPECT_EQ(this->getBootType(), BootType::WARM_BOOT);
   this->stop();
   this->waitForStop();
 }
