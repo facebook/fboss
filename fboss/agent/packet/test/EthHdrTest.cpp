@@ -195,3 +195,53 @@ TEST(EthHdrTest, toString) {
   EthHdr hdr(dstAddr, srcAddr, vlanTags, etherType);
   std::cout << hdr;
 }
+
+TEST(EthHdrTest, addVlan) {
+  MacAddress dstAddr("ff:ff:ff:ff:ff:ff");
+  MacAddress srcAddr("10:dd:b1:bb:5a:ef");
+  uint16_t etherType = static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV6);
+  EthHdr hdr(dstAddr, srcAddr, {}, etherType);
+  hdr.addVlan(VlanID(1), ETHERTYPE::ETHERTYPE_VLAN);
+  EXPECT_EQ(hdr.getVlanTags(), std::vector<VlanTag>({VlanTag(0x81000001)}));
+}
+
+TEST(EthHdrTest, addVlans) {
+  MacAddress dstAddr("ff:ff:ff:ff:ff:ff");
+  MacAddress srcAddr("10:dd:b1:bb:5a:ef");
+  uint16_t etherType = static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV6);
+  EthHdr hdr(dstAddr, srcAddr, {}, etherType);
+  hdr.addVlans(
+      std::vector<VlanID>{VlanID(1), VlanID(2)}, ETHERTYPE::ETHERTYPE_VLAN);
+  EXPECT_EQ(
+      hdr.getVlanTags(),
+      std::vector<VlanTag>({VlanTag(0x81000001), VlanTag(0x81000002)}));
+}
+
+TEST(EthHdrTest, setVlan) {
+  MacAddress dstAddr("ff:ff:ff:ff:ff:ff");
+  MacAddress srcAddr("10:dd:b1:bb:5a:ef");
+  uint16_t etherType = static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV6);
+  vector<VlanTag> vlanTags;
+  vlanTags.push_back(VlanTag(0x81000001));
+  vlanTags.push_back(VlanTag(0x88A80002));
+  vlanTags.push_back(VlanTag(0x88A80003));
+  EthHdr hdr(dstAddr, srcAddr, vlanTags, etherType);
+  hdr.setVlan(VlanID(1), ETHERTYPE::ETHERTYPE_VLAN);
+  EXPECT_EQ(hdr.getVlanTags(), std::vector<VlanTag>({VlanTag(0x81000001)}));
+}
+
+TEST(EthHdrTest, setVlans) {
+  MacAddress dstAddr("ff:ff:ff:ff:ff:ff");
+  MacAddress srcAddr("10:dd:b1:bb:5a:ef");
+  uint16_t etherType = static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV6);
+  vector<VlanTag> vlanTags;
+  vlanTags.push_back(VlanTag(0x81000001));
+  vlanTags.push_back(VlanTag(0x88A80002));
+  vlanTags.push_back(VlanTag(0x88A80003));
+  EthHdr hdr(dstAddr, srcAddr, vlanTags, etherType);
+  hdr.setVlans(
+      std::vector<VlanID>{VlanID(1), VlanID(2)}, ETHERTYPE::ETHERTYPE_VLAN);
+  EXPECT_EQ(
+      hdr.getVlanTags(),
+      std::vector<VlanTag>({VlanTag(0x81000001), VlanTag(0x81000002)}));
+}

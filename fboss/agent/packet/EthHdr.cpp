@@ -44,6 +44,13 @@ EthHdr::EthHdr(Cursor& cursor) {
   }
 }
 
+void EthHdr::addVlans(const std::vector<VlanID>& vlans, ETHERTYPE ether) {
+  for (auto vlan : vlans) {
+    vlanTags.emplace_back(
+        VlanTag(static_cast<uint16_t>(vlan), static_cast<uint16_t>(ether)));
+  }
+}
+
 string VlanTag::toString() const {
   stringstream ss;
   ss << " Protocol: " << std::hex << "0x" << tpid()
