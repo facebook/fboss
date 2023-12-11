@@ -145,9 +145,7 @@ static const HwAsic& getHwAsicForAsicType(const cfg::AsicType& asicType) {
     case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
     case cfg::AsicType::ASIC_TYPE_YUBA:
-      throw FbossError(
-          "HwAsic for DSF Node is not defined for: ",
-          apache::thrift::util::enumNameSafe(asicType));
+      break;
   }
 
   throw FbossError(
@@ -176,7 +174,6 @@ uint32_t getFabricPortsPerVirtualDevice(const cfg::AsicType asicType) {
     case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
     case cfg::AsicType::ASIC_TYPE_YUBA:
-    default:
       throw FbossError(
           "Fabric ports are not applicable for: ",
           apache::thrift::util::enumNameSafe(asicType));
