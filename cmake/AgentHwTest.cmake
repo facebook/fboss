@@ -88,6 +88,20 @@ target_link_libraries(hw_qos_utils
   ${LIBGMOCK_LIBRARIES}
 )
 
+add_library(hw_acl_utils
+  fboss/agent/hw/test/HwTestAclUtils.cpp
+)
+
+target_link_libraries(hw_acl_utils
+  hw_packet_utils
+  packet_factory
+  Folly::folly
+  resourcelibutil
+  switch_config_cpp2
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+)
+
 add_library(hw_teflow_utils
   fboss/agent/hw/test/HwTeFlowTestUtils.cpp
 )
