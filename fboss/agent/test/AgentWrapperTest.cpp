@@ -147,6 +147,11 @@ void AgentWrapperTest<T>::waitForStop(bool crash) {
 TYPED_TEST_SUITE(AgentWrapperTest, TestTypes);
 
 TYPED_TEST(AgentWrapperTest, ColdBootStartAndStop) {
+  SCOPE_EXIT {
+    removeFile(this->util_.getRoutingProtocolColdBootDrainTimeFile());
+    removeFile(this->util_.getUndrainedFlag());
+    removeFile(this->util_.getColdBootOnceFile());
+  };
   auto drainTimeFile = this->util_.getRoutingProtocolColdBootDrainTimeFile();
   std::vector<char> data = {'0', '5'};
   if (!this->whoami_->isNotDrainable() && !this->whoami_->isFdsw()) {
@@ -163,16 +168,18 @@ TYPED_TEST(AgentWrapperTest, ColdBootStartAndStop) {
   }
   this->stop();
   this->waitForStop();
-  removeFile(this->util_.getRoutingProtocolColdBootDrainTimeFile());
-  removeFile(this->util_.getUndrainedFlag());
 }
 
 TYPED_TEST(AgentWrapperTest, StartAndStopAndStart) {
+  SCOPE_EXIT {
+    removeFile(this->util_.getColdBootOnceFile());
+  };
   touchFile(this->util_.getColdBootOnceFile());
   this->start();
   this->waitForStart();
   this->stop();
   this->waitForStop();
+  EXPECT_FALSE(checkFileExists(this->util_.getColdBootOnceFile()));
   this->start();
   this->waitForStart();
   this->stop();
@@ -180,6 +187,10 @@ TYPED_TEST(AgentWrapperTest, StartAndStopAndStart) {
 }
 
 TYPED_TEST(AgentWrapperTest, StartAndCrash) {
+  SCOPE_EXIT {
+    removeFile(this->util_.sleepSwSwitchOnSigTermFile());
+    removeFile(this->util_.getMaxPostSignalWaitTimeFile());
+  };
   this->start();
   this->waitForStart();
   touchFile(this->util_.sleepSwSwitchOnSigTermFile());

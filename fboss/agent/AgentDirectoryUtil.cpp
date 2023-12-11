@@ -241,4 +241,14 @@ std::string AgentDirectoryUtil::getWrapperRefactorFlag() const {
   return "/etc/fboss/features/cpp_wedge_agent_wrapper/current/on";
 }
 
+std::string AgentDirectoryUtil::exitTimeFile(
+    const std::string& processName) const {
+  return "/dev/shm/" + processName + "_last_exit_time";
+}
+
+std::string AgentDirectoryUtil::restartDurationFile(
+    const std::string& processName) const {
+  return "/dev/shm/" + processName + "_last_restart_duration";
+}
+
 } // namespace facebook::fboss
