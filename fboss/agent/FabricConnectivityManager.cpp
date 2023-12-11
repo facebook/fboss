@@ -385,14 +385,6 @@ bool FabricConnectivityManager::isConnectivityInfoMismatch(
     const PortID& portId) {
   const auto& iter = currentNeighborConnectivity_.find(portId);
   if (iter != currentNeighborConnectivity_.end()) {
-    auto isStringMismatch = [](const std::string& nameA,
-                               const std::string& nameB) {
-      if (nameA != nameB) {
-        return true;
-      }
-      return false;
-    };
-
     const auto& endpoint = iter->second;
     if (!*endpoint.isAttached()) {
       // endpoint not attached, points to cabling connectivity issues
@@ -414,20 +406,12 @@ bool FabricConnectivityManager::isConnectivityInfoMismatch(
       return true;
     }
 
-    if (isStringMismatch(
-            endpoint.switchName().has_value() ? *endpoint.switchName() : "none",
-            endpoint.expectedSwitchName().has_value()
-                ? *endpoint.expectedSwitchName()
-                : "none")) {
+    if (endpoint.switchName() != endpoint.expectedSwitchName()) {
       // mismatch
       return true;
     }
 
-    if (isStringMismatch(
-            endpoint.portName().has_value() ? *endpoint.portName() : "none",
-            endpoint.expectedPortName().has_value()
-                ? *endpoint.expectedPortName()
-                : "none")) {
+    if (endpoint.portName() != endpoint.expectedPortName()) {
       // mismatch
       return true;
     }
