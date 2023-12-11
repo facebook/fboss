@@ -334,6 +334,9 @@ EthFrame getEthFrame(
     uint16_t dPort,
     VlanID vlanId = VlanID(1));
 
+EthFrame makeEthFrame(const TxPacket& txPkt, bool skipTtlDecrement = false);
+
+EthFrame makeEthFrame(const TxPacket& txPkt, folly::MacAddress dstMac);
 } // namespace utility
 
 } // namespace facebook::fboss

@@ -324,6 +324,22 @@ std::string utility::EthFrame::toString() const {
   return ss.str();
 }
 
+EthFrame makeEthFrame(const TxPacket& txPkt, bool skipTtlDecrement) {
+  folly::io::Cursor cursor{txPkt.buf()};
+  utility::EthFrame frame(cursor);
+  if (skipTtlDecrement) {
+    return frame;
+  }
+  frame.decrementTTL();
+  return frame;
+}
+
+EthFrame makeEthFrame(const TxPacket& txPkt, folly::MacAddress dstMac) {
+  auto frame = makeEthFrame(txPkt);
+  frame.setDstMac(dstMac);
+  return frame;
+}
+
 template class IPPacket<folly::IPAddressV4>;
 template class IPPacket<folly::IPAddressV6>;
 
