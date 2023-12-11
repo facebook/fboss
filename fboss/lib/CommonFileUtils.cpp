@@ -5,6 +5,7 @@
 #include <folly/String.h>
 #include <folly/logging/xlog.h>
 #include <cstdio>
+#include <exception>
 #include <filesystem>
 #include <fstream>
 #include <sstream>
@@ -138,4 +139,16 @@ void createDirectoryTree(const std::string& path) {
   _createDirectoryTree(elements, elements.size());
 }
 
+std::string parentDirectoryTree(const std::string& path) {
+  return std::filesystem::path(path).parent_path().string();
+}
+
+void removeDir(const std::string& path) {
+  try {
+    std::filesystem::remove_all(path);
+    XLOG(DBG3) << "Removed dir " << path;
+  } catch (const std::exception& e) {
+    XLOG(ERR) << "Failed to remove dir " << path << ":" << e.what();
+  }
+}
 } // namespace facebook::fboss

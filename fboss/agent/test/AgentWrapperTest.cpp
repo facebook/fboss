@@ -19,33 +19,52 @@
 #include "fboss/agent/AgentConfig.h"
 
 #include <thread>
+#include <type_traits>
 
 DEFINE_int32(num_retries, 5, "number of retries for agent to start");
 DEFINE_int32(wait_timeout, 15, "number of seconds to wait before retry");
 
 namespace facebook::fboss {
 
-void AgentWrapperTest::SetUp() {
+namespace {
+using TestTypes = ::testing::Types<std::false_type, std::true_type>;
+}
+
+template <typename T>
+void AgentWrapperTest<T>::SetUp() {
   whoami_ = std::make_unique<AgentNetWhoAmI>();
   config_ = AgentConfig::fromFile("/etc/coop/agent/current");
   createDirectoryTree(util_.getWarmBootDir());
+  if constexpr (T()) {
+    createDirectoryTree(parentDirectoryTree(util_.getWrapperRefactorFlag()));
+    touchFile(util_.getWrapperRefactorFlag());
+  }
 }
 
-void AgentWrapperTest::TearDown() {
+template <typename T>
+void AgentWrapperTest<T>::TearDown() {
   stop();
+  if constexpr (T()) {
+    removeFile(util_.getWrapperRefactorFlag());
+    removeDir(parentDirectoryTree(util_.getWrapperRefactorFlag()));
+  }
+  removeDir(util_.getWarmBootDir());
 }
 
-void AgentWrapperTest::start() {
+template <typename T>
+void AgentWrapperTest<T>::start() {
   AgentCommandExecutor executor;
   executor.startService("wedge_agent");
 }
 
-void AgentWrapperTest::stop() {
+template <typename T>
+void AgentWrapperTest<T>::stop() {
   AgentCommandExecutor executor;
   executor.stopService("wedge_agent");
 }
 
-void AgentWrapperTest::wait(bool started) {
+template <typename T>
+void AgentWrapperTest<T>::wait(bool started) {
   if (started) {
     waitForStart();
   } else {
@@ -53,7 +72,8 @@ void AgentWrapperTest::wait(bool started) {
   }
 }
 
-void AgentWrapperTest::waitForStart(const std::string& unit) {
+template <typename T>
+void AgentWrapperTest<T>::waitForStart(const std::string& unit) {
   WITH_RETRIES_N_TIMED(
       FLAGS_num_retries, std::chrono::seconds(FLAGS_wait_timeout), {
         facebook::tupperware::systemd::Service service{unit};
@@ -80,7 +100,8 @@ void AgentWrapperTest::waitForStart(const std::string& unit) {
       });
 }
 
-void AgentWrapperTest::waitForStart() {
+template <typename T>
+void AgentWrapperTest<T>::waitForStart() {
   auto multiSwitch = config_->getRunMode() == cfg::AgentRunMode::MULTI_SWITCH;
   if (multiSwitch) {
     // TODO: wait for hw_agent as well
@@ -90,7 +111,10 @@ void AgentWrapperTest::waitForStart() {
   }
 }
 
-void AgentWrapperTest::waitForStop(const std::string& unit, bool crash) {
+template <typename T>
+void AgentWrapperTest<T>::waitForStop(const std::string& unit, bool crash) {
+  bool wrapperRefactored =
+      checkFileExists(this->util_.getWrapperRefactorFlag());
   WITH_RETRIES_N_TIMED(
       FLAGS_num_retries, std::chrono::seconds(FLAGS_wait_timeout), {
         facebook::tupperware::systemd::Service service{unit};
@@ -100,8 +124,8 @@ void AgentWrapperTest::waitForStop(const std::string& unit, bool crash) {
             status.value().serviceState,
             facebook::tupperware::systemd::ProcessStatus::ServiceState::EXITED);
         if (crash) {
-          if (config_->getRunMode() == cfg::AgentRunMode::MULTI_SWITCH) {
-            EXPECT_EVENTUALLY_EQ(status.value().exitCode, CLD_DUMPED);
+          if (wrapperRefactored) {
+            EXPECT_EVENTUALLY_EQ(status.value().exitStatus, 134);
           } else {
             EXPECT_EVENTUALLY_EQ(status.value().exitStatus, 255);
           }
@@ -109,7 +133,8 @@ void AgentWrapperTest::waitForStop(const std::string& unit, bool crash) {
       });
 }
 
-void AgentWrapperTest::waitForStop(bool crash) {
+template <typename T>
+void AgentWrapperTest<T>::waitForStop(bool crash) {
   auto multiSwitch = (config_->getRunMode() == cfg::AgentRunMode::MULTI_SWITCH);
   if (multiSwitch) {
     waitForStop("fboss_sw_agent.service", crash);
@@ -119,50 +144,53 @@ void AgentWrapperTest::waitForStop(bool crash) {
   }
 }
 
-TEST_F(AgentWrapperTest, ColdBootStartAndStop) {
-  auto drainTimeFile = util_.getRoutingProtocolColdBootDrainTimeFile();
+TYPED_TEST_SUITE(AgentWrapperTest, TestTypes);
+
+TYPED_TEST(AgentWrapperTest, ColdBootStartAndStop) {
+  auto drainTimeFile = this->util_.getRoutingProtocolColdBootDrainTimeFile();
   std::vector<char> data = {'0', '5'};
-  if (!whoami_->isNotDrainable() && !whoami_->isFdsw()) {
+  if (!this->whoami_->isNotDrainable() && !this->whoami_->isFdsw()) {
     touchFile(drainTimeFile);
     folly::writeFile(data, drainTimeFile.c_str());
   }
-  touchFile(util_.getColdBootOnceFile());
-  touchFile(util_.getUndrainedFlag());
-  start();
-  waitForStart();
-  if (!whoami_->isNotDrainable() && !whoami_->isFdsw()) {
+  touchFile(this->util_.getColdBootOnceFile());
+  touchFile(this->util_.getUndrainedFlag());
+  this->start();
+  this->waitForStart();
+  if (!this->whoami_->isNotDrainable() && !this->whoami_->isFdsw()) {
+    // @lint-ignore CLANGTIDY
     EXPECT_FALSE(checkFileExists(drainTimeFile));
   }
-  stop();
-  waitForStop();
-  removeFile(util_.getRoutingProtocolColdBootDrainTimeFile());
-  removeFile(util_.getUndrainedFlag());
+  this->stop();
+  this->waitForStop();
+  removeFile(this->util_.getRoutingProtocolColdBootDrainTimeFile());
+  removeFile(this->util_.getUndrainedFlag());
 }
 
-TEST_F(AgentWrapperTest, StartAndStopAndStart) {
-  touchFile(util_.getColdBootOnceFile());
-  start();
-  waitForStart();
-  stop();
-  waitForStop();
-  start();
-  waitForStart();
-  stop();
-  waitForStop();
+TYPED_TEST(AgentWrapperTest, StartAndStopAndStart) {
+  touchFile(this->util_.getColdBootOnceFile());
+  this->start();
+  this->waitForStart();
+  this->stop();
+  this->waitForStop();
+  this->start();
+  this->waitForStart();
+  this->stop();
+  this->waitForStop();
 }
 
-TEST_F(AgentWrapperTest, StartAndCrash) {
-  start();
-  waitForStart();
-  touchFile(util_.sleepSwSwitchOnSigTermFile());
+TYPED_TEST(AgentWrapperTest, StartAndCrash) {
+  this->start();
+  this->waitForStart();
+  touchFile(this->util_.sleepSwSwitchOnSigTermFile());
   std::vector<char> sleepTime = {'3', '0', '0'};
-  folly::writeFile(sleepTime, util_.sleepSwSwitchOnSigTermFile().c_str());
-  auto maxPostSignalWaitTime = util_.getMaxPostSignalWaitTimeFile();
+  folly::writeFile(sleepTime, this->util_.sleepSwSwitchOnSigTermFile().c_str());
+  auto maxPostSignalWaitTime = this->util_.getMaxPostSignalWaitTimeFile();
   touchFile(maxPostSignalWaitTime);
   std::vector<char> data = {'1'};
   folly::writeFile(data, maxPostSignalWaitTime.c_str());
-  stop();
-  waitForStop(true /* expect sigabrt to crash */);
+  this->stop();
+  this->waitForStop(true /* expect sigabrt to crash */);
 }
 
 } // namespace facebook::fboss
