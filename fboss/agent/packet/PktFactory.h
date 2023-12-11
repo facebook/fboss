@@ -299,6 +299,9 @@ class EthFrame {
   void setDstMac(const folly::MacAddress& dstMac) {
     hdr_.setDstMac(dstMac);
   }
+  void setVlan(VlanID vlan) {
+    hdr_.setVlan(vlan);
+  }
   std::string toString() const;
 
  private:
@@ -337,6 +340,9 @@ EthFrame getEthFrame(
 EthFrame makeEthFrame(const TxPacket& txPkt, bool skipTtlDecrement = false);
 
 EthFrame makeEthFrame(const TxPacket& txPkt, folly::MacAddress dstMac);
+
+EthFrame
+makeEthFrame(const TxPacket& txPkt, folly::MacAddress dstMac, VlanID vlan);
 } // namespace utility
 
 } // namespace facebook::fboss

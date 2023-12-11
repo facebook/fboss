@@ -340,6 +340,13 @@ EthFrame makeEthFrame(const TxPacket& txPkt, folly::MacAddress dstMac) {
   return frame;
 }
 
+EthFrame
+makeEthFrame(const TxPacket& txPkt, folly::MacAddress dstMac, VlanID vlan) {
+  auto frame = makeEthFrame(txPkt, dstMac);
+  frame.setVlan(vlan);
+  return frame;
+}
+
 template class IPPacket<folly::IPAddressV4>;
 template class IPPacket<folly::IPAddressV6>;
 
