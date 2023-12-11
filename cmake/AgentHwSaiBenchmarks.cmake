@@ -284,6 +284,7 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
     sai_agent_benchmarks_main
     hw_rx_slow_path_rate
     sai_copp_utils
+    sai_acl_utils
     sai_packet_trap_helper
     sai_qos_utils
     ${SAI_IMPL_ARG}
