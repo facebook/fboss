@@ -580,6 +580,26 @@ void LinkTest::setLinkState(bool enable, std::vector<PortID>& portIds) {
       waitForLinkStatus(portIds, enable, 60, std::chrono::milliseconds(1000)););
 }
 
+std::vector<std::pair<PortID, PortID>> LinkTest::getPortPairsForFecErrInj()
+    const {
+  auto connectedPairs = getConnectedPairs();
+  std::unordered_set<phy::FecMode> supportedFecs = {
+      phy::FecMode::RS528, phy::FecMode::RS544, phy::FecMode::RS544_2N};
+  std::vector<std::pair<PortID, PortID>> supportedPorts;
+  for (const auto& [port1, port2] : connectedPairs) {
+    auto fecPort1 = platform()->getHwSwitch()->getPortFECMode(port1);
+    auto fecPort2 = platform()->getHwSwitch()->getPortFECMode(port2);
+    if (fecPort1 != fecPort2) {
+      throw FbossError(
+          "FEC different on both ends of the link: ", fecPort1, fecPort2);
+    }
+    if (supportedFecs.find(fecPort1) != supportedFecs.end()) {
+      supportedPorts.push_back({port1, port2});
+    }
+  }
+  return supportedPorts;
+}
+
 int linkTestMain(
     int argc,
     char** argv,

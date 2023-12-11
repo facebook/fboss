@@ -129,6 +129,8 @@ class LinkTest : public AgentTest {
 
   void setLinkState(bool enable, std::vector<PortID>& portIds);
 
+  std::vector<std::pair<PortID, PortID>> getPortPairsForFecErrInj() const;
+
  private:
   void programDefaultRoute(
       const boost::container::flat_set<PortDescriptor>& ecmpPorts,
