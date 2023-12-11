@@ -30,7 +30,9 @@ void HwTestPacketSnooper::packetReceived(RxPacket* pkt) noexcept {
   folly::io::Cursor cursor{data.get()};
   auto frame = std::make_unique<utility::EthFrame>(cursor);
   if (expectedFrame_.has_value() && *expectedFrame_ != *frame) {
-    XLOG(DBG2) << " Unexpected packet received ";
+    XLOG(DBG2) << " Unexpected packet received "
+               << " expected: " << *expectedFrame_ << std::endl
+               << " got: " << *frame;
     return;
   }
   std::lock_guard<std::mutex> lock(mtx_);
