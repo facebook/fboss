@@ -127,6 +127,21 @@ set_target_properties(sai_copp_utils PROPERTIES COMPILE_FLAGS
   -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
 )
 
+add_library(sai_acl_utils
+  fboss/agent/hw/sai/hw_test/HwTestAclUtils.cpp
+)
+
+target_link_libraries(sai_acl_utils
+  sai_switch # //fboss/agent/hw/sai/switch:sai_switch
+  hw_acl_utils
+)
+
+set_target_properties(sai_acl_utils PROPERTIES COMPILE_FLAGS
+  "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
+  -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
+  -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
+)
+
 add_library(sai_packet_trap_helper
   fboss/agent/hw/sai/hw_test/HwTestPacketTrapEntry.cpp
 )
