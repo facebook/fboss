@@ -372,10 +372,10 @@ void PlatformExplorer::createDeviceSymLink(
             "{} is not plugged-in to the platform", deviceName);
         return;
       }
-      targetPath = std::filesystem::path(
-                       i2cExplorer_.getDeviceI2cPath(busNum, i2cAddr)) /
-          "eeprom";
+      targetPath =
+          std::filesystem::path(i2cExplorer_.getDeviceI2cPath(busNum, i2cAddr));
     }
+    targetPath = *targetPath / "eeprom";
   } else if (linkParentPath.string() == "/run/devmap/sensors") {
     if (i2cDeviceConfig == pmUnitConfig.i2cDeviceConfigs()->end()) {
       XLOG(ERR) << fmt::format(
