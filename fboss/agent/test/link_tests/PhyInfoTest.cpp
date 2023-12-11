@@ -9,6 +9,7 @@
 #include <thrift/lib/cpp/util/EnumUtils.h>
 #include "fboss/agent/PlatformPort.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/hw/test/HwTestPortUtils.h"
 #include "fboss/agent/test/link_tests/LinkTest.h"
 #include "fboss/lib/CommonUtils.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
@@ -361,4 +362,94 @@ TEST_F(LinkTest, xPhyInfoTest) {
         phyInfoAfter[port],
         phy::DataPlanePhyChipType::XPHY);
   }
+}
+
+/*
+ * Test injects FEC errors on the NPU on one port and expects to see FEC
+ * counters increment on the corresponding snaked port
+ */
+TEST_F(LinkTest, verifyIphyFecCounters) {
+  auto cabledPorts = getCabledPorts();
+  std::map<PortID, const phy::PhyInfo> phyInfoBefore;
+  auto startTime = std::chrono::duration_cast<std::chrono::seconds>(
+      std::chrono::system_clock::now().time_since_epoch());
+  // Make sure the stats thread had a chance to update the iphy data before
+  // starting the test
+  WITH_RETRIES_N_TIMED(
+      20 /* retries */, std::chrono::milliseconds(1000) /* msBetweenRetry */, {
+        phyInfoBefore = sw()->getIPhyInfo(cabledPorts);
+        for (const auto& port : cabledPorts) {
+          auto phyIt = phyInfoBefore.find(port);
+          ASSERT_EVENTUALLY_NE(phyIt, phyInfoBefore.end());
+          EXPECT_EVENTUALLY_GT(
+              phyIt->second.state()->timeCollected(), startTime.count());
+          EXPECT_EVENTUALLY_GT(
+              phyIt->second.stats()->timeCollected(), startTime.count());
+          EXPECT_EVENTUALLY_TRUE(
+              phyIt->second.state()->linkState().value_or({}));
+        }
+      });
+
+  // Inject FEC errors from one end of the link, expect both FEC CW and UCW to
+  // increment on the other end
+  auto portPairsForTest = getPortPairsForFecErrInj();
+  std::vector<int> hwPortsToInjectFecErrorFrom;
+  std::vector<PortID> portsToVerifyFecCountersOn;
+  for (const auto& [swPort1, swPort2] : portPairsForTest) {
+    auto hwPortID = sw()->getHwLogicalPortId(swPort1);
+    CHECK(hwPortID);
+    hwPortsToInjectFecErrorFrom.push_back(*hwPortID);
+    portsToVerifyFecCountersOn.push_back(swPort2);
+  }
+
+  CHECK(!hwPortsToInjectFecErrorFrom.empty());
+  CHECK(!portsToVerifyFecCountersOn.empty());
+  facebook::fboss::utility::injectFecError(
+      hwPortsToInjectFecErrorFrom,
+      platform()->getHwSwitch(),
+      true /* correctable */);
+  facebook::fboss::utility::injectFecError(
+      hwPortsToInjectFecErrorFrom,
+      platform()->getHwSwitch(),
+      false /* correctable */);
+
+  std::map<PortID, const phy::PhyInfo> phyInfoAfter;
+  WITH_RETRIES_N_TIMED(
+      35 /* retries */, std::chrono::milliseconds(1000) /* msBetweenRetry */, {
+        phyInfoAfter = sw()->getIPhyInfo(cabledPorts);
+        for (const auto& port : cabledPorts) {
+          auto phyIt = phyInfoAfter.find(port);
+          ASSERT_EVENTUALLY_NE(phyIt, phyInfoAfter.end());
+          EXPECT_EVENTUALLY_GE(
+              *(phyInfoAfter[port].stats()->timeCollected()) -
+                  *(phyInfoBefore[port].stats()->timeCollected()),
+              20);
+        }
+        for (auto port : portsToVerifyFecCountersOn) {
+          XLOG(INFO) << "Verifying port " << port;
+          auto fecStatsBefore = phyInfoBefore[port]
+                                    .stats()
+                                    ->line()
+                                    ->pcs()
+                                    .value_or({})
+                                    .rsFec()
+                                    .value_or({});
+          auto fecStatsAfter = phyInfoAfter[port]
+                                   .stats()
+                                   ->line()
+                                   ->pcs()
+                                   .value_or({})
+                                   .rsFec()
+                                   .value_or({});
+          EXPECT_EVENTUALLY_GT(
+              fecStatsAfter.get_correctedBits(),
+              fecStatsBefore.get_correctedBits());
+          EXPECT_EVENTUALLY_GT(
+              fecStatsAfter.get_correctedCodewords(),
+              fecStatsBefore.get_correctedCodewords());
+          EXPECT_EVENTUALLY_GT(
+              fecStatsAfter.get_uncorrectedCodewords(),
+              fecStatsBefore.get_uncorrectedCodewords());
+        }
+      });
 }
