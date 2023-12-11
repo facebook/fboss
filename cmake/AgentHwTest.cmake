@@ -281,6 +281,7 @@ set(hw_switch_test_srcs
   fboss/agent/hw/test/dataplane_tests/HwConfigSetupTest.cpp
   fboss/agent/hw/test/dataplane_tests/HwConfigVerifyQosTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwCoppTests.cpp
+  fboss/agent/hw/test/dataplane_tests/HwDeepPacketInspectionTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwDscpMarkingTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwDscpQueueMappingTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwEcmpDataPlaneTestUtil.cpp
