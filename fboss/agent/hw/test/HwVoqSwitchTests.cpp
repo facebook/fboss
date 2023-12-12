@@ -739,9 +739,12 @@ TEST_F(HwVoqSwitchTest, sendPacketCpuAndFrontPanel) {
 }
 
 TEST_F(HwVoqSwitchTest, trapPktsOnPort) {
-  auto verify = [this]() {
-    utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
-    const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
+  utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+  const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
+  auto setup = [this, kPort, &ecmpHelper]() {
+    applyNewState(ecmpHelper.resolveNextHops(getProgrammedState(), {kPort}));
+  };
+  auto verify = [this, kPort, &ecmpHelper]() {
     auto ensemble = getHwSwitchEnsemble();
     auto snooper = std::make_unique<HwTestPacketSnooper>(ensemble);
     auto entry = std::make_unique<HwTestPacketTrapEntry>(
@@ -753,7 +756,7 @@ TEST_F(HwVoqSwitchTest, trapPktsOnPort) {
       EXPECT_EVENTUALLY_TRUE(frameRx.has_value());
     });
   };
-  verifyAcrossWarmBoots([] {}, verify);
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 TEST_F(HwVoqSwitchTest, rxPacketToCpu) {
