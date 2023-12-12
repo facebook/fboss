@@ -38,7 +38,7 @@ class HostInfo {
   }
 
   bool isLocalHost() const {
-    return ip_.isLinkLocal();
+    return ip_.isLoopback();
   }
 
  private:
