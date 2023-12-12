@@ -98,7 +98,8 @@ N/A
 
 # Sample Output
 
-fb303c getCounters -s rsw001.p006.f02.snc1:5909 | grep warm_boot“warm_boot.configured.stage_duration_ms”: 1197, “warm_boot.fib_synced_bgp.stage_duration_ms”: 2625, “warm_boot.fib_synced_openr.stage_duration_ms”: 1757, “warm_boot.initialized.stage_duration_ms”: 8670, “warm_boot.parent_process_started.stage_duration_ms”: 18040, “warm_boot.process_started.stage_duration_ms”: 10000, “warm_boot.shutdown.stage_duration_ms”: 6666, “warm_boot.total_duration_ms”: 44573,
+fb303c getCounters -s rsw001.p006.f02.snc1:5909 | grep warm_boot
+"warm_boot.configured.stage_duration_ms”: 1197, “warm_boot.fib_synced_bgp.stage_duration_ms”: 2625, “warm_boot.fib_synced_openr.stage_duration_ms”: 1757, “warm_boot.initialized.stage_duration_ms”: 8670, “warm_boot.parent_process_started.stage_duration_ms”: 18040, “warm_boot.process_started.stage_duration_ms”: 10000, “warm_boot.shutdown.stage_duration_ms”: 6666, “warm_boot.total_duration_ms”: 44573,
 
 watch -n1 fb303c -s rsw001.p006.f02.snc1:5909 getCounter warm_boot.fib_synced_openr.stage_duration_ms Every 1.0s: fb303c -s rsw001.p006.f02.snc1:5909 getCounter warm_boot.fib_synced_openr.stage_duration_ms
 
