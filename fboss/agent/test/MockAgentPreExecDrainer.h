@@ -11,7 +11,7 @@ namespace facebook::fboss {
 class MockAgentPreExecDrainer : public AgentPreExecDrainer {
  public:
   using AgentPreExecDrainer::AgentPreExecDrainer;
-  MOCK_METHOD1(drain, void(const AgentNetWhoAmI&));
+  MOCK_METHOD1(drainImpl, void(uint32_t));
 };
 
 } // namespace facebook::fboss
