@@ -46,6 +46,9 @@ class DataStore {
       const std::string& slotPath,
       const std::string& pmUnitName);
 
+  // Checks if a PmUnit exists at the given SlotPath
+  bool hasPmUnit(const std::string& slotPath) const;
+
  private:
   // Map from <pmUnitPath, pmUnitScopeBusName> to kernel i2c bus name.
   // - The pmUnitPath to the rootPmUnit is /. So a bus at root PmUnit will

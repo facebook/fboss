@@ -6,6 +6,7 @@
 #include <folly/experimental/FunctionScheduler.h>
 #include <string>
 
+#include "fboss/platform/platform_manager/DataStore.h"
 #include "fboss/platform/platform_manager/I2cExplorer.h"
 #include "fboss/platform/platform_manager/PciExplorer.h"
 #include "fboss/platform/platform_manager/PresenceDetector.h"
@@ -50,21 +51,6 @@ class PlatformExplorer {
       const std::string& slotPath,
       const std::vector<PciDeviceConfig>& pciDeviceConfigs);
 
-  // Get the kernel assigned I2C bus number for the given busName.
-  // If the busName could be found in global scope (e.g., bus from CPU),
-  // then return it directly. Otherwise, check if there is a mapping in the
-  // provided slotPath.
-  uint16_t getI2cBusNum(
-      const std::optional<std::string>& slotPath,
-      const std::string& pmUnitScopeBusName) const;
-
-  // Update the kernel assigned I2C bus number for the given busName. If the
-  // bus name is of global scope, then slotPath is empty.
-  void updateI2cBusNum(
-      const std::optional<std::string>& slotPath,
-      const std::string& pmUnitScopeBusName,
-      uint16_t busNum);
-
   // Get the instance id base for the FPGA at the given slotPath and
   // PmUnitScopedName. The instance id base is unique for each fpga hardware
   // discovered in the platform.
@@ -73,15 +59,6 @@ class PlatformExplorer {
       const std::string& pm);
 
  private:
-  // Get Gpio chip number of the given chip name at the given slot path
-  uint16_t getGpioChipNum(
-      const std::string& slotPath,
-      const std::string& gpioChipDeviceName);
-  // Update Gpio chip number of the given chip name at the given slot path
-  void updateGpioChipNum(
-      const std::string& slotPath,
-      const std::string& gpioChipDeviceName,
-      uint16_t gpioChipNum);
   void createDeviceSymLink(
       const std::string& linkPath,
       const std::string& pmDevicePath);
@@ -91,6 +68,7 @@ class PlatformExplorer {
   I2cExplorer i2cExplorer_{};
   PciExplorer pciExplorer_{};
   PresenceDetector presenceDetector_{};
+  DataStore dataStore_{};
   // Map from <pmUnitPath, pmUnitScopeBusName> to kernel i2c bus name.
   // - The pmUnitPath to the rootPmUnit is /. So a bus at root PmUnit will have
   // the entry <"/", "MuxA@1"> -> i2c-54.
@@ -103,9 +81,6 @@ class PlatformExplorer {
 
   // Map from <slotPath, PmUnitScopedName> to instance ids for FPGAs.
   std::map<std::pair<std::string, std::string>, uint32_t> fpgaInstanceIds_{};
-
-  // This stores the PmUnit name which has been discovered at each SlotPath.
-  std::map<std::string, std::string> slotPathToPmUnitName_{};
 
   // Map from <SlotPath, GpioChipDeviceName> to gpio chip number.
   std::map<std::pair<std::string, std::string>, uint16_t> gpioChipNums_{};

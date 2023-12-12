@@ -77,4 +77,8 @@ void DataStore::updatePmUnitName(
   slotPathToPmUnitName_[slotPath] = pmUnitName;
 }
 
+bool DataStore::hasPmUnit(const std::string& slotPath) const {
+  return slotPathToPmUnitName_.find(slotPath) != slotPathToPmUnitName_.end();
+}
+
 } // namespace facebook::fboss::platform::platform_manager

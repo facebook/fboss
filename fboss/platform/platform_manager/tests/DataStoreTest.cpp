@@ -31,6 +31,8 @@ TEST(DataStoreTest, GpioChipNum) {
 TEST(DataStoreTest, PmUnitAtSlotPath) {
   DataStore dataStore;
   dataStore.updatePmUnitName("/", "MCB_FAN_CPLD");
+  EXPECT_TRUE(dataStore.hasPmUnit("/"));
+  EXPECT_FALSE(dataStore.hasPmUnit("/SMB_SLOT@1"));
   EXPECT_EQ(dataStore.getPmUnitName("/"), "MCB_FAN_CPLD");
   EXPECT_THROW(dataStore.getPmUnitName("/SMB_SLOT@1"), std::runtime_error);
 }

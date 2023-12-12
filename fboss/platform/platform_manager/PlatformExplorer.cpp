@@ -62,7 +62,7 @@ void PlatformExplorer::explore() {
   XLOG(INFO) << "Exploring the platform";
   for (const auto& [busName, busNum] :
        i2cExplorer_.getBusNums(*platformConfig_.i2cAdaptersFromCpu())) {
-    updateI2cBusNum(std::nullopt, busName, busNum);
+    dataStore_.updateI2cBusNum(std::nullopt, busName, busNum);
   }
   const PmUnitConfig& rootPmUnitConfig =
       platformConfig_.pmUnitConfigs()->at(*platformConfig_.rootPmUnitName());
@@ -84,7 +84,7 @@ void PlatformExplorer::explorePmUnit(
   auto pmUnitConfig = platformConfig_.pmUnitConfigs()->at(pmUnitName);
   XLOG(INFO) << fmt::format("Exploring PmUnit {} at {}", pmUnitName, slotPath);
 
-  slotPathToPmUnitName_[slotPath] = pmUnitName;
+  dataStore_.updatePmUnitName(slotPath, pmUnitName);
 
   XLOG(INFO) << fmt::format(
       "Exploring PCI Devices for PmUnit {} at SlotPath {}. Count {}",
@@ -126,8 +126,9 @@ void PlatformExplorer::exploreSlot(
 
   int i = 0;
   for (const auto& busName : *slotConfig.outgoingI2cBusNames()) {
-    auto busNum = getI2cBusNum(parentSlotPath, busName);
-    updateI2cBusNum(childSlotPath, fmt::format("INCOMING@{}", i++), busNum);
+    auto busNum = dataStore_.getI2cBusNum(parentSlotPath, busName);
+    dataStore_.updateI2cBusNum(
+        childSlotPath, fmt::format("INCOMING@{}", i++), busNum);
   }
   auto childPmUnitName =
       getPmUnitNameFromSlot(*slotConfig.slotType(), childSlotPath);
@@ -149,7 +150,8 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
   std::optional<std::string> pmUnitNameInEeprom{std::nullopt};
   if (slotTypeConfig.idpromConfig_ref()) {
     auto idpromConfig = *slotTypeConfig.idpromConfig_ref();
-    auto eepromI2cBusNum = getI2cBusNum(slotPath, *idpromConfig.busName());
+    auto eepromI2cBusNum =
+        dataStore_.getI2cBusNum(slotPath, *idpromConfig.busName());
     i2cExplorer_.createI2cDevice(
         "IDPROM",
         *idpromConfig.kernelDeviceName(),
@@ -186,15 +188,15 @@ void PlatformExplorer::exploreI2cDevices(
     i2cExplorer_.createI2cDevice(
         *i2cDeviceConfig.pmUnitScopedName(),
         *i2cDeviceConfig.kernelDeviceName(),
-        getI2cBusNum(slotPath, *i2cDeviceConfig.busName()),
+        dataStore_.getI2cBusNum(slotPath, *i2cDeviceConfig.busName()),
         I2cAddr(*i2cDeviceConfig.address()));
     if (i2cDeviceConfig.numOutgoingChannels()) {
       auto channelToBusNums = i2cExplorer_.getMuxChannelI2CBuses(
-          getI2cBusNum(slotPath, *i2cDeviceConfig.busName()),
+          dataStore_.getI2cBusNum(slotPath, *i2cDeviceConfig.busName()),
           I2cAddr(*i2cDeviceConfig.address()));
       assert(channelToBusNums.size() == i2cDeviceConfig.numOutgoingChannels());
       for (const auto& [channelNum, busNum] : channelToBusNums) {
-        updateI2cBusNum(
+        dataStore_.updateI2cBusNum(
             slotPath,
             fmt::format(
                 "{}@{}", *i2cDeviceConfig.pmUnitScopedName(), channelNum),
@@ -223,7 +225,7 @@ void PlatformExplorer::explorePciDevices(
       if (*i2cAdapterConfig.numberOfAdapters() > 1) {
         CHECK_EQ(busNums.size(), *i2cAdapterConfig.numberOfAdapters());
         for (auto i = 0; i < busNums.size(); i++) {
-          updateI2cBusNum(
+          dataStore_.updateI2cBusNum(
               slotPath,
               fmt::format(
                   "{}@{}",
@@ -233,7 +235,7 @@ void PlatformExplorer::explorePciDevices(
         }
       } else {
         CHECK_EQ(busNums.size(), 1);
-        updateI2cBusNum(
+        dataStore_.updateI2cBusNum(
             slotPath,
             *i2cAdapterConfig.fpgaIpBlockConfig()->pmUnitScopedName(),
             busNums[0]);
@@ -245,7 +247,7 @@ void PlatformExplorer::explorePciDevices(
     for (const auto& fpgaIpBlockConfig : *pciDeviceConfig.gpioChipConfigs()) {
       auto gpioNum =
           pciExplorer_.createGpioChip(pciDevice, fpgaIpBlockConfig, instId++);
-      updateGpioChipNum(
+      dataStore_.updateGpioChipNum(
           slotPath, *fpgaIpBlockConfig.pmUnitScopedName(), gpioNum);
     }
     for (const auto& fpgaIpBlockConfig : *pciDeviceConfig.watchdogConfigs()) {
@@ -264,30 +266,6 @@ void PlatformExplorer::explorePciDevices(
   }
 }
 
-uint16_t PlatformExplorer::getI2cBusNum(
-    const std::optional<std::string>& slotPath,
-    const std::string& pmUnitScopeBusName) const {
-  auto it = i2cBusNums_.find(std::make_pair(std::nullopt, pmUnitScopeBusName));
-  if (it != i2cBusNums_.end()) {
-    return it->second;
-  } else {
-    return i2cBusNums_.at(std::make_pair(slotPath, pmUnitScopeBusName));
-  }
-}
-
-void PlatformExplorer::updateI2cBusNum(
-    const std::optional<std::string>& slotPath,
-    const std::string& pmUnitScopeBusName,
-    uint16_t busNum) {
-  XLOG(INFO) << fmt::format(
-      "Updating bus {} in {} to bus number {} (i2c-{})",
-      pmUnitScopeBusName,
-      slotPath ? fmt::format("SlotPath {}", *slotPath) : "Global Scope",
-      busNum,
-      busNum);
-  i2cBusNums_[std::make_pair(slotPath, pmUnitScopeBusName)] = busNum;
-}
-
 uint32_t PlatformExplorer::getFpgaInstanceId(
     const std::string& slotPath,
     const std::string& fpgaName) {
@@ -297,25 +275,6 @@ uint32_t PlatformExplorer::getFpgaInstanceId(
     fpgaInstanceIds_[key] = 1000 * (fpgaInstanceIds_.size() + 1);
   }
   return fpgaInstanceIds_[key];
-}
-
-uint16_t PlatformExplorer::getGpioChipNum(
-    const std::string& slotPath,
-    const std::string& gpioChipDeviceName) {
-  return gpioChipNums_.at(std::make_pair(slotPath, gpioChipDeviceName));
-}
-
-void PlatformExplorer::updateGpioChipNum(
-    const std::string& slotPath,
-    const std::string& gpioChipDeviceName,
-    uint16_t gpioChipNum) {
-  XLOG(INFO) << fmt::format(
-      "Updating gpio chip {} in {} to gpio chip number {} (gpiochip{})",
-      gpioChipDeviceName,
-      slotPath,
-      gpioChipNum,
-      gpioChipNum);
-  gpioChipNums_[std::make_pair(slotPath, gpioChipDeviceName)] = gpioChipNum;
 }
 
 void PlatformExplorer::createDeviceSymLink(
@@ -329,12 +288,11 @@ void PlatformExplorer::createDeviceSymLink(
   }
 
   const auto [slotPath, deviceName] = Utils().parseDevicePath(devicePath);
-  if (slotPathToPmUnitName_.find(slotPath) == std::end(slotPathToPmUnitName_)) {
-    XLOG(ERR) << fmt::format(
-        "({}) doesn't have associated pm unit name", slotPath);
+  if (!dataStore_.hasPmUnit(slotPath)) {
+    XLOG(ERR) << fmt::format("No PmUnit exists at {}", slotPath);
     return;
   }
-  auto pmUnitName = slotPathToPmUnitName_[slotPath];
+  auto pmUnitName = dataStore_.getPmUnitName(slotPath);
   auto pmUnitConfig = platformConfig_.pmUnitConfigs()->at(pmUnitName);
 
   auto idpromConfig = platformConfig_.slotTypeConfigs()
@@ -358,14 +316,15 @@ void PlatformExplorer::createDeviceSymLink(
     if (deviceName == kIdprom) {
       CHECK(idpromConfig);
       targetPath = std::filesystem::path(i2cExplorer_.getDeviceI2cPath(
-          getI2cBusNum(slotPath, *idpromConfig->busName()),
+          dataStore_.getI2cBusNum(slotPath, *idpromConfig->busName()),
           I2cAddr(*idpromConfig->address())));
     } else {
       if (i2cDeviceConfig == pmUnitConfig.i2cDeviceConfigs()->end()) {
         XLOG(ERR) << fmt::format(
             "Couldn't find i2c device config for ({})", deviceName);
       }
-      auto busNum = getI2cBusNum(slotPath, *i2cDeviceConfig->busName());
+      auto busNum =
+          dataStore_.getI2cBusNum(slotPath, *i2cDeviceConfig->busName());
       auto i2cAddr = I2cAddr(*i2cDeviceConfig->address());
       if (!i2cExplorer_.isI2cDevicePresent(busNum, i2cAddr)) {
         XLOG(ERR) << fmt::format(
@@ -381,7 +340,8 @@ void PlatformExplorer::createDeviceSymLink(
       XLOG(ERR) << fmt::format(
           "Couldn't find i2c device config for ({})", deviceName);
     }
-    auto busNum = getI2cBusNum(slotPath, *i2cDeviceConfig->busName());
+    auto busNum =
+        dataStore_.getI2cBusNum(slotPath, *i2cDeviceConfig->busName());
     auto i2cAddr = I2cAddr(*i2cDeviceConfig->address());
     if (!i2cExplorer_.isI2cDevicePresent(busNum, i2cAddr)) {
       XLOG(ERR) << fmt::format(
@@ -408,7 +368,8 @@ void PlatformExplorer::createDeviceSymLink(
     targetPath = *targetPath / hwmonSubDir;
   } else if (linkParentPath.string() == "/run/devmap/cplds") {
     if (i2cDeviceConfig != pmUnitConfig.i2cDeviceConfigs()->end()) {
-      auto busNum = getI2cBusNum(slotPath, *i2cDeviceConfig->busName());
+      auto busNum =
+          dataStore_.getI2cBusNum(slotPath, *i2cDeviceConfig->busName());
       auto i2cAddr = I2cAddr(*i2cDeviceConfig->address());
       if (!i2cExplorer_.isI2cDevicePresent(busNum, i2cAddr)) {
         XLOG(ERR) << fmt::format(
@@ -444,11 +405,11 @@ void PlatformExplorer::createDeviceSymLink(
         *pciDeviceConfig->subSystemDeviceId());
     targetPath = std::filesystem::path(pciDevice.sysfsPath());
   } else if (linkParentPath.string() == "/run/devmap/i2c-busses") {
-    targetPath = std::filesystem::path(
-        fmt::format("/dev/i2c-{}", getI2cBusNum(slotPath, deviceName)));
+    targetPath = std::filesystem::path(fmt::format(
+        "/dev/i2c-{}", dataStore_.getI2cBusNum(slotPath, deviceName)));
   } else if (linkParentPath.string() == "/run/devmap/gpiochips") {
-    targetPath = std::filesystem::path(
-        fmt::format("/dev/gpiochip{}", getGpioChipNum(slotPath, deviceName)));
+    targetPath = std::filesystem::path(fmt::format(
+        "/dev/gpiochip{}", dataStore_.getGpioChipNum(slotPath, deviceName)));
   } else {
     XLOG(ERR) << fmt::format("Symbolic link {} is not supported.", linkPath);
     return;
