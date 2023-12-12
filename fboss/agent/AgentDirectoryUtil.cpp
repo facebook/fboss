@@ -251,4 +251,8 @@ std::string AgentDirectoryUtil::restartDurationFile(
   return "/dev/shm/" + processName + "_last_restart_duration";
 }
 
+std::string AgentDirectoryUtil::pidFile(const std::string& name) const {
+  return getVolatileStateDir() + "/." + name + ".pid";
+}
+
 } // namespace facebook::fboss

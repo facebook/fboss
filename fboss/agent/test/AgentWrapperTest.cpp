@@ -152,6 +152,33 @@ BootType AgentWrapperTest<T>::getBootType() {
   return client->sync_getBootType(options);
 }
 
+template <typename T>
+pid_t AgentWrapperTest<T>::getWedgeAgentPid() const {
+  std::string pidStr;
+  folly::readFile(util_.pidFile("wedge_agent").c_str(), pidStr);
+  return folly::to<pid_t>(pidStr);
+}
+
+template <typename T>
+std::string AgentWrapperTest<T>::getCoreDirectory() const {
+  bool wrapperRefactored =
+      checkFileExists(this->util_.getWrapperRefactorFlag());
+  auto exitStatus = wrapperRefactored ? 134 : 255;
+  return "/var/tmp/cores/fboss-cores/wedge_agent_" +
+      folly::to<std::string>(getWedgeAgentPid()) + "_" +
+      folly::to<std::string>(exitStatus);
+}
+
+template <typename T>
+std::string AgentWrapperTest<T>::getCoreFile() const {
+  return getCoreDirectory() + "/core";
+}
+
+template <typename T>
+std::string AgentWrapperTest<T>::getCoreMetaData() const {
+  return getCoreDirectory() + "/metadata";
+}
+
 TYPED_TEST_SUITE(AgentWrapperTest, TestTypes);
 
 TYPED_TEST(AgentWrapperTest, ColdBootStartAndStop) {
@@ -203,7 +230,9 @@ TYPED_TEST(AgentWrapperTest, StartAndCrash) {
   SCOPE_EXIT {
     removeFile(this->util_.sleepSwSwitchOnSigTermFile());
     removeFile(this->util_.getMaxPostSignalWaitTimeFile());
+    runCommand({"/usr/bin/systemctl", "start", "analyze_fboss_cores.timer"});
   };
+  runCommand({"/usr/bin/systemctl", "stop", "analyze_fboss_cores.timer"});
   this->start();
   this->waitForStart();
   touchFile(this->util_.sleepSwSwitchOnSigTermFile());
@@ -215,6 +244,13 @@ TYPED_TEST(AgentWrapperTest, StartAndCrash) {
   folly::writeFile(data, maxPostSignalWaitTime.c_str());
   this->stop();
   this->waitForStop(true /* expect sigabrt to crash */);
+  // core copier should copy cores here, analyze fboss core timer will remove
+  // these
+  WITH_RETRIES_N_TIMED(
+      FLAGS_num_retries, std::chrono::seconds(FLAGS_wait_timeout), {
+        EXPECT_EVENTUALLY_TRUE(checkFileExists(this->getCoreFile()));
+        EXPECT_EVENTUALLY_TRUE(checkFileExists(this->getCoreMetaData()));
+      });
 }
 
 } // namespace facebook::fboss
