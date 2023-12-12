@@ -122,6 +122,10 @@ std::optional<VlanID> firstVlanID(const std::shared_ptr<SwitchState>& state) {
   return firstVlanId;
 }
 
+VlanID getIngressVlan(const std::shared_ptr<SwitchState>& state, PortID port) {
+  return state->getPorts()->getNode(port)->getIngressVlan();
+}
+
 std::unique_ptr<facebook::fboss::TxPacket> makeEthTxPacket(
     const HwSwitch* hw,
     std::optional<VlanID> vlan,

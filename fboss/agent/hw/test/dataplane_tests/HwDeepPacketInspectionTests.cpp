@@ -68,4 +68,35 @@ class HwDeepPacketInspectionTest : public HwLinkStateDependentTest {
   }
 };
 
+TEST_F(HwDeepPacketInspectionTest, l3ForwardedPkt) {
+  utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+  const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
+  auto setup = [this, kPort, &ecmpHelper]() {
+    applyNewState(ecmpHelper.resolveNextHops(getProgrammedState(), {kPort}));
+  };
+  auto verify = [this, kPort, &ecmpHelper]() {
+    auto ensemble = getHwSwitchEnsemble();
+    auto entry = std::make_unique<HwTestPacketTrapEntry>(
+        ensemble->getHwSwitch(), kPort.phyPortID());
+    auto frontPanelPort = ecmpHelper.ecmpPortDescriptorAt(1).phyPortID();
+    auto txPacket = makePacket(ecmpHelper.ip(kPort));
+    auto nhopMac = ecmpHelper.nhop(0).mac;
+    auto switchType = ensemble->getHwSwitch()->getSwitchType();
+    auto ethFrame = switchType == cfg::SwitchType::VOQ
+        ? utility::makeEthFrame(*txPacket, nhopMac)
+        : utility::makeEthFrame(
+              *txPacket,
+              nhopMac,
+              utility::getIngressVlan(getProgrammedState(), kPort.phyPortID()));
+
+    auto snooper =
+        std::make_unique<HwTestPacketSnooper>(ensemble, std::nullopt, ethFrame);
+    sendPacket(std::move(txPacket), frontPanelPort);
+    WITH_RETRIES({
+      auto frameRx = snooper->waitForPacket(1);
+      EXPECT_EVENTUALLY_TRUE(frameRx.has_value());
+    });
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
 } // namespace facebook::fboss
