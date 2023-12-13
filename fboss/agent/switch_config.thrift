@@ -550,11 +550,13 @@ enum AclStage {
   EGRESS_MACSEC = 2,
 }
 
+// startdocs_AclTableGroup_struct
 struct AclTableGroup {
   1: string name;
   2: list<AclTable> aclTables = [];
   3: AclStage stage = AclStage.INGRESS;
 }
+// enddocs_AclTableGroup_struct
 
 /*
  * We only support unicast in FBOSS, but for completeness sake

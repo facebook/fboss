@@ -44,7 +44,7 @@ const {
           }),
         },
         experimentalXRepoSnippets: {
-          baseDir: '.',
+          baseDir: '../../../..', // fbcode root
         },
         staticDocsProject: 'fboss_agent',
         trackingFile: 'fbcode/staticdocs/WATCHED_FILES',

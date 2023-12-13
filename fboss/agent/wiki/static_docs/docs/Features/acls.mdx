@@ -75,13 +75,11 @@ With the current design, any incoming packet can only hit one ACL entry at most.
 
 Multiple ACL table can be implemented by declaring an ACL table group which can hold multiple ACL tables. ACL entries which need to be processed for the same packets need to go in different ACL tables. In the current design, the switch config contains the AclEntry list that contains the ACL entries. But with Multiple ACL table, the config will contain as AclTableGroup which contains the AclTable and the AclEntry underneath. The code snippet below shows the AclTableGroup data structure
 
+```cpp file=fboss/agent/switch_config.thrift start=startdocs_AclTableGroup_struct end=enddocs_AclTableGroup_struct
+```
 
 In the current agent code, the SwitchState contains only the ACL entries and the SAI code creates a default AclTableGroup and the default AclTable. This ensures that the hardware creates all the SAI attributes necessary to implement Multiple ACL table. So when the feature is rolled out, we can tweak the agent code to modify the SwitchState to contain the AclTableGroup instead of AclEntry and by doing so, move from non Multiple ACL table to Multple ACL table with a single table
 
 # HW Test:
 
 * HwTests: hw/sai/hw_test/SaiAclTableGroupTests.cpp, hw_test/dataplane_tests/SaiAclTableGroupTrafficTests.cpp
-
-
-<div>
-Sphinx Source: [fbsource/fbcode:fboss/agent/wiki/acls.rst](https://internalfb.com/intern/diffusion/FBS/browse/master/fbcode/fboss/agent/wiki/acls.rst)</div>
