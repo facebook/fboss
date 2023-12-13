@@ -242,6 +242,8 @@ struct HwSwitchDropStats {
   1: optional i64 globalDrops;
   2: optional i64 globalReachabilityDrops;
   3: optional i64 packetIntegrityDrops;
+  // DNX Specific drop counters
+  4: optional i64 fdrCellDrops;
 }
 
 struct HwSwitchDramStats {
