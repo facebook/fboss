@@ -39,6 +39,7 @@ class FwUtilImpl {
   void storeFilePath(const std::string&, const std::string&);
   void doPreUpgrade(const std::string&, const std::string&);
   std::string printFpdList();
+  void verifySha1sum(const std::string&, const std::string&);
 
  private:
   // Firmware config file full path

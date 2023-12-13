@@ -11,6 +11,7 @@
 #include <filesystem>
 #include <iostream>
 
+#include <fmt/core.h>
 #include <folly/FileUtil.h>
 #include <folly/String.h>
 #include <folly/dynamic.h>
@@ -157,6 +158,28 @@ void FwUtilImpl::doPreUpgrade(
   }
 }
 
+void FwUtilImpl::verifySha1sum(
+    const std::string& fpd,
+    const std::string& configSha1sum) {
+  const std::string cmd = folly::to<std::string>(
+      "sha1sum ", FLAGS_fw_binary_file, " | cut -d ' ' -f 1");
+
+  auto [exitStatus, standardOut] = PlatformUtils().execCommand(cmd);
+  if (exitStatus != 0) {
+    throw std::runtime_error("Run" + cmd + " failed!");
+  }
+  standardOut.erase(
+      std::remove(standardOut.begin(), standardOut.end(), '\n'),
+      standardOut.end());
+  if (configSha1sum != standardOut) {
+    throw std::runtime_error(fmt::format(
+        "{} config file sha1sum {} is different from current binary sha1sum of {}",
+        fpd,
+        configSha1sum,
+        standardOut));
+  }
+}
+
 void FwUtilImpl::doFirmwareAction(
     const std::string& fpd,
     const std::string& action) {
@@ -173,6 +196,14 @@ void FwUtilImpl::doFirmwareAction(
   const std::string verifyFwCmd = *iter->second.verifyFwCmd();
 
   if (action == "program" && !upgradeCmd.empty()) {
+    // Verify sha1sum of the firmware matches the one in the config json
+    // This is needed only if we are going to program a new firmware image
+    // in a respective fpd. During EVT, we will leave the config without sha1sum
+    // since the binary will change a lot. We will add the sha1sum during DVT
+    // since firmware binary is expected to start being stable at that stage.
+    if (!iter->second.sha1sum()->empty()) {
+      verifySha1sum(fpd, *iter->second.sha1sum());
+    }
     if (iter->second.preUpgradeCmd().has_value()) {
       doPreUpgrade(fpd, *iter->second.preUpgradeCmd());
     }

@@ -22,6 +22,9 @@ struct FwConfig {
 
   // command to read the firmware binary image back into a file
   7: string readFwCmd;
+
+  // sha1sum of the binary that's expected to be used to be programmed for a specific fpd
+  8: string sha1sum;
 }
 
 typedef string DeviceName
