@@ -165,6 +165,7 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
   // ports. So before we delete system ports, its required
   // to reset the queue associations.
   portManager_->resetQueues();
+  portManager_->clearQosPolicy();
   systemPortManager_.reset();
   portManager_.reset();
   // Hash manager is going away, reset hashes

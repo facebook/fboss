@@ -955,6 +955,13 @@ void SaiPortManager::changeQueue(
     SaiQueueConfig saiQueueConfig =
         std::make_pair(newPortQueue->getID(), newPortQueue->getStreamType());
     auto queueHandle = getQueueHandle(swId, saiQueueConfig);
+    if (!queueHandle) {
+      throw FbossError(
+          "unable to change non-existent queue ",
+          newPortQueue->getID(),
+          " of port ",
+          swId);
+    }
     // TODO(zecheng): Modifying switch state in hw switch is generally bad
     // practice. Need to refactor to avoid it.
     auto portQueue = newPortQueue->clone();

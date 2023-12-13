@@ -115,8 +115,10 @@ void SaiPortManager::fillInSupportedStats(PortID port) {
           SAI_PORT_STAT_IF_OUT_DISCARDS,
           SAI_PORT_STAT_IF_OUT_ERRORS,
           SAI_PORT_STAT_PAUSE_TX_PKTS,
-          SAI_PORT_STAT_ECN_MARKED_PACKETS,
       };
+      if (platform_->getAsic()->isSupported(HwAsic::Feature::ECN)) {
+        counterIds.emplace_back(SAI_PORT_STAT_ECN_MARKED_PACKETS);
+      }
       if (platform_->getAsic()->isSupported(
               HwAsic::Feature::SAI_PORT_ETHER_STATS)) {
         counterIds.emplace_back(SAI_PORT_STAT_ETHER_STATS_TX_NO_ERRORS);
