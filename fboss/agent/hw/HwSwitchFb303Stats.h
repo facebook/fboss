@@ -162,6 +162,7 @@ class HwSwitchFb303Stats {
   TLTimeseries globalDrops_;
   TLTimeseries globalReachDrops_;
   TLTimeseries packetIntegrityDrops_;
+  TLTimeseries fdrCellDrops_;
   // Dram enqueue, dequeue bytes
   TLTimeseries dramEnqueuedBytes_;
   TLTimeseries dramDequeuedBytes_;

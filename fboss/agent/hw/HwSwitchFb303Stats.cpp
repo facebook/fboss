@@ -80,6 +80,7 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           getCounterPrefix() + "packet_integrity_drops",
           SUM,
           RATE),
+      fdrCellDrops_(map, getCounterPrefix() + "fdr_cell_drops", SUM, RATE),
       dramEnqueuedBytes_(
           map,
           getCounterPrefix() + "dram_enqueued_bytes",
@@ -114,6 +115,9 @@ void HwSwitchFb303Stats::update(const HwSwitchDropStats& dropStats) {
   }
   if (dropStats.packetIntegrityDrops().has_value()) {
     packetIntegrityDrops_.addValue(*dropStats.packetIntegrityDrops());
+  }
+  if (dropStats.fdrCellDrops().has_value()) {
+    fdrCellDrops_.addValue(*dropStats.fdrCellDrops());
   }
 }
 
