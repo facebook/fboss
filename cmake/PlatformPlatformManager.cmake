@@ -50,6 +50,7 @@ add_executable(platform_manager
   fboss/platform/platform_manager/PkgUtils.cpp
   fboss/platform/platform_manager/PlatformExplorer.cpp
   fboss/platform/platform_manager/PlatformManagerHandler.cpp
+  fboss/platform/platform_manager/DevicePathResolver.cpp
   fboss/platform/platform_manager/Utils.cpp
 )
 
