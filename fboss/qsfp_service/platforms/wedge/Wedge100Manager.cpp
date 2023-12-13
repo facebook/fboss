@@ -8,7 +8,7 @@ namespace facebook {
 namespace fboss {
 Wedge100Manager::Wedge100Manager(const std::string& platformMappingStr)
     : WedgeManager(
-          std::make_unique<TransceiverPlatformI2cApi>(new Wedge100I2CBus()),
+          std::make_unique<TransceiverPlatformI2cApi>(&i2cBus_),
           platformMappingStr.empty()
               ? std::make_unique<Wedge100PlatformMapping>()
               : std::make_unique<Wedge100PlatformMapping>(platformMappingStr),

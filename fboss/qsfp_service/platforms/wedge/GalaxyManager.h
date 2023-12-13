@@ -11,6 +11,7 @@
 #pragma once
 
 #include "fboss/lib/platforms/PlatformProductInfo.h"
+#include "fboss/lib/usb/GalaxyI2CBus.h"
 #include "fboss/lib/usb/WedgeI2CBus.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
 
@@ -34,6 +35,7 @@ class GalaxyManager : public WedgeManager {
   GalaxyManager& operator=(GalaxyManager const&) = delete;
 
   std::unique_ptr<TransceiverI2CApi> getI2CBus() override;
+  GalaxyI2CBus i2cBus_;
 };
 } // namespace fboss
 } // namespace facebook

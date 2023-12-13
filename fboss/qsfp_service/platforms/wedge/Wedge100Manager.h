@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "fboss/lib/usb/Wedge100I2CBus.h"
 #include "fboss/lib/usb/WedgeI2CBus.h"
 
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
@@ -30,6 +31,8 @@ class Wedge100Manager : public WedgeManager {
   Wedge100Manager& operator=(Wedge100Manager const&) = delete;
 
   std::unique_ptr<TransceiverI2CApi> getI2CBus() override;
+
+  Wedge100I2CBus i2cBus_;
 };
 } // namespace fboss
 } // namespace facebook

@@ -13,7 +13,7 @@ GalaxyManager::GalaxyManager(
     PlatformType mode,
     const std::string& /* platformMappingStr */)
     : WedgeManager(
-          std::make_unique<TransceiverPlatformI2cApi>(new GalaxyI2CBus()),
+          std::make_unique<TransceiverPlatformI2cApi>(&i2cBus_),
           (mode == PlatformType::PLATFORM_GALAXY_LC)
               ? (std::unique_ptr<PlatformMapping>)
                     std::make_unique<GalaxyLCPlatformMapping>(
