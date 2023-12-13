@@ -269,4 +269,5 @@ struct HwSwitchFb303GlobalStats {
   15: i64 dram_dequeued_bytes;
   16: i64 fabric_reachability_missing;
   17: i64 fabric_reachability_mismatch;
+  18: i64 fdr_cell_drops;
 }

@@ -158,6 +158,10 @@ int64_t HwSwitchFb303Stats::getAlignerErrors() const {
   return getCumulativeValue(alignerErrors_);
 }
 
+int64_t HwSwitchFb303Stats::getFdrCellDrops() const {
+  return getCumulativeValue(alignerErrors_);
+}
+
 HwAsicErrors HwSwitchFb303Stats::getHwAsicErrors() const {
   HwAsicErrors asicErrors;
   asicErrors.parityErrors() = getCumulativeValue(parityErrors_);
@@ -224,6 +228,7 @@ HwSwitchFb303GlobalStats HwSwitchFb303Stats::getAllFb303Stats() const {
       getFabricReachabilityMismatchCount();
   hwFb303Stats.fabric_reachability_mismatch() =
       getFabricReachabilityMissingCount();
+  hwFb303Stats.fdr_cell_drops() = getFdrCellDrops();
   return hwFb303Stats;
 }
 
