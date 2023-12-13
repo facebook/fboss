@@ -13,7 +13,7 @@ Buffer watermark statistics is a feature that helps capture the peak buffer usag
 
 Switching ASICs can keep track of peak buffer usage until a clear-on-read for specific stats is issued. In FBOSS implementation, high-watermark stats are polled from updateStats() every 60 sec by default with clear-on-read. The implementation makes use of quantile stats for keeping track of these watermark stats. These stats are published to ODS for tracking and monitoring and is available via fb303 as well. Various watermark statistics available are as below:
 
-> * Per device high-watermark:buffer_watermark_device.p100
+* Per device high-watermark:buffer_watermark_device.p100
 
 * Per CPU queue high-watermark:buffer_watermark_cpu.queue0.p100
 
@@ -42,7 +42,7 @@ N/A
 
 In Broadcom implementation, there is an option to use watermark mode or instantaneous use count mode for BST. For FBOSS buffer watermark statistics feature, the “watermark mode” is being used and hence will be a consideration for features wanting to use the instantaneous mode or other conflicting features in the ASIC.
 
-# Usecase
+# Use Case
 
 * Understand the peak headroom and shared buffer usage with PFC enabled to ensure nodrop behavior can be achieved without running out of buffers.
 
@@ -82,6 +82,13 @@ fb303c -s $switchName:5909 getCounters | grep buffer_watermark | grep itm0
 "buffer_watermark_global_headroom.itm0.p100.60": 102108,
 "buffer_watermark_global_shared.itm0.p100": 15302738,
 "buffer_watermark_global_shared.itm0.p100.60": 13011658,
+```
+```
+fb303c -s $switchName:5909 getCounters | grep buffer_watermark | grep itm1
+  "buffer_watermark_global_headroom.itm1.p100": 0,
+  "buffer_watermark_global_headroom.itm1.p100.60": 0,
+  "buffer_watermark_global_shared.itm1.p100": 157734,
+  "buffer_watermark_global_shared.itm1.p100.60": 0,
 ```
 <div>
 Sphinx Source: [fbsource/fbcode:fboss/agent/wiki/concepts/features/watermark_stats.rst](https://internalfb.com/intern/diffusion/FBS/browse/master/fbcode/fboss/agent/wiki/concepts/features/watermark_stats.rst)</div>
