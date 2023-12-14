@@ -82,6 +82,9 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _PortMap {
       SAI_ATTR_MAP(Port, PfcTcDlrIntervalRange),
 #endif
       SAI_ATTR_MAP(Port, SystemPort),
+#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+      SAI_ATTR_MAP(Port, TxReadyStatus),
+#endif
 };
 
 std::map<int32_t, std::pair<std::string, std::size_t>> _PortSerdesMap{
