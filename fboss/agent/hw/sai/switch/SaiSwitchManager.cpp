@@ -81,10 +81,17 @@ void fillHwSwitchDropStats(
         hwSwitchDropStats.packetIntegrityDrops() = value;
         break;
 #endif
+      case SAI_SWITCH_STAT_OUT_CONFIGURED_DROP_REASONS_0_DROPPED_PKTS:
+        // TODO
+        break;
       default:
         throw FbossError("Got unexpected switch counter id: ", counterId);
     }
   }
+}
+bool isJerichoAsic(cfg::AsicType asicType) {
+  return asicType == cfg::AsicType::ASIC_TYPE_JERICHO2 ||
+      asicType == cfg::AsicType::ASIC_TYPE_JERICHO3;
 }
 } // namespace
 
@@ -609,6 +616,14 @@ const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedDropStats() const {
       stats.erase(std::find(
           stats.begin(), stats.end(), SAI_SWITCH_STAT_PACKET_INTEGRITY_DROP));
 #endif
+      if (isJerichoAsic(platform_->getAsic()->getAsicType())) {
+        static const std::vector<sai_stat_id_t> kJerichoConfigDropStats{
+            SAI_SWITCH_STAT_OUT_CONFIGURED_DROP_REASONS_0_DROPPED_PKTS};
+        stats.insert(
+            stats.end(),
+            kJerichoConfigDropStats.begin(),
+            kJerichoConfigDropStats.end());
+      }
     }
   }
   return stats;
