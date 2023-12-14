@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
+#include "fboss/agent/hw/test/HwTestPacketSnooper.h"
 #include "fboss/agent/hw/test/HwTestPacketTrapEntry.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/HwTestTrunkUtils.h"
@@ -25,6 +26,7 @@
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/types.h"
+#include "fboss/lib/CommonUtils.h"
 #include "folly/Utility.h"
 
 #include <folly/IPAddress.h>
@@ -280,7 +282,14 @@ class HwCoppTest : public HwLinkStateDependentTest {
                 DHCPv6Packet::DHCP6_SERVERAGENT_UDPPORT, // DstPort: 547
                 0 /* dscp */,
                 ttl); // sent to me
+      auto ethFrame = utility::makeEthFrame(*txPacket, true);
       sendPkt(std::move(txPacket), outOfPort);
+      auto snooper = std::make_unique<HwTestPacketSnooper>(
+          getHwSwitchEnsemble(), std::nullopt, ethFrame);
+      WITH_RETRIES({
+        auto frameRx = snooper->waitForPacket(1);
+        EXPECT_EVENTUALLY_TRUE(frameRx.has_value());
+      });
     }
   }
 
