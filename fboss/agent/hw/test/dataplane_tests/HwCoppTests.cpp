@@ -405,14 +405,12 @@ class HwCoppTest : public HwLinkStateDependentTest {
   void sendPktAndVerifyEthPacketsCpuQueue(
       int queueId,
       facebook::fboss::ETHERTYPE etherType,
-      const std::optional<folly::MacAddress>& dstMac = std::nullopt,
-      const int numPktsToSend = 1,
-      const int expectedPktDelta = 1) {
+      const std::optional<folly::MacAddress>& dstMac = std::nullopt) {
     auto beforeOutPkts = getQueueOutPacketsWithRetry(
         queueId, 0 /* retryTimes */, 0 /* expectedNumPkts */);
     static auto payload = std::vector<uint8_t>(256, 0xff);
     payload[0] = 0x1; // sub-version of lacp packet
-    sendEthPkts(numPktsToSend, etherType, dstMac, payload);
+    sendEthPkts(1, etherType, dstMac, payload);
     auto afterOutPkts = getQueueOutPacketsWithRetry(
         queueId, kGetQueueOutPktsRetryTimes, beforeOutPkts + 1);
     XLOG(DBG0) << "Packet of dstMac="
@@ -421,7 +419,7 @@ class HwCoppTest : public HwLinkStateDependentTest {
                << ". Ethertype=" << std::hex << int(etherType)
                << ". Queue=" << queueId << ", before pkts:" << beforeOutPkts
                << ", after pkts:" << afterOutPkts;
-    EXPECT_EQ(expectedPktDelta, afterOutPkts - beforeOutPkts);
+    EXPECT_EQ(1, afterOutPkts - beforeOutPkts);
   }
 
   void sendPktAndVerifyArpPacketsCpuQueue(
