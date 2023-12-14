@@ -179,11 +179,6 @@ class HwCoppTest : public HwLinkStateDependentTest {
     }
   }
 
-  /*
-  const auto  srcIp = folly::IPAddress("1::10");
-  auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
-  */
-
   void sendEthPkts(
       int numPktsToSend,
       facebook::fboss::ETHERTYPE etherType,
