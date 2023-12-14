@@ -144,7 +144,8 @@ class HwCoppTest : public HwLinkStateDependentTest {
       int l4SrcPort,
       int l4DstPort,
       uint8_t ttl,
-      bool outOfPort) {
+      bool outOfPort,
+      int expectPktTrap) {
     auto vlanId = utility::firstVlanID(getProgrammedState());
     auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     // arbit
@@ -168,7 +169,17 @@ class HwCoppTest : public HwLinkStateDependentTest {
                  << folly::hexDump(
                         txPacket->buf()->data(), txPacket->buf()->length());
 
+      auto ethFrame =
+          utility::makeEthFrame(*txPacket, true /*skipTtlDecrement*/);
+      auto snooper = std::make_unique<HwTestPacketSnooper>(
+          getHwSwitchEnsemble(), std::nullopt, ethFrame);
       sendPkt(std::move(txPacket), outOfPort);
+      if (expectPktTrap) {
+        WITH_RETRIES({
+          auto frameRx = snooper->waitForPacket(1);
+          EXPECT_EVENTUALLY_TRUE(frameRx.has_value());
+        });
+      }
     }
   }
 
@@ -345,7 +356,13 @@ class HwCoppTest : public HwLinkStateDependentTest {
     auto beforeOutPkts = getQueueOutPacketsWithRetry(
         queueId, 0 /* retryTimes */, 0 /* expectedNumPkts */);
     sendUdpPkts(
-        numPktsToSend, dstIpAddress, l4SrcPort, l4DstPort, ttl, outOfPort);
+        numPktsToSend,
+        dstIpAddress,
+        l4SrcPort,
+        l4DstPort,
+        ttl,
+        outOfPort,
+        expectedPktDelta);
     auto afterOutPkts = getQueueOutPacketsWithRetry(
         queueId, kGetQueueOutPktsRetryTimes, beforeOutPkts + 1);
     XLOG(DBG0) << "Queue=" << queueId << ", before pkts:" << beforeOutPkts
