@@ -10,6 +10,7 @@
 #include "fboss/agent/packet/IPv4Hdr.h"
 #include "fboss/agent/packet/IPv6Hdr.h"
 #include "fboss/agent/packet/MPLSHdr.h"
+#include "fboss/agent/packet/UDPDatagram.h"
 #include "fboss/agent/packet/UDPHeader.h"
 
 #include <optional>
@@ -19,58 +20,6 @@ namespace facebook::fboss {
 class HwSwitch;
 
 namespace utility {
-class UDPDatagram {
- public:
-  // read entire udp datagram, and populate payloads, useful to parse RxPacket
-  explicit UDPDatagram(folly::io::Cursor& cursor);
-
-  // set header fields, useful to construct TxPacket
-  UDPDatagram(const UDPHeader& udpHdr, std::vector<uint8_t> payload)
-      : udpHdr_(udpHdr), payload_(payload) {
-    udpHdr_.length = udpHdr_.size() + payload_.size();
-  }
-
-  size_t length() const {
-    return UDPHeader::size() + payload_.size();
-  }
-
-  UDPHeader header() const {
-    return udpHdr_;
-  }
-
-  std::vector<uint8_t> payload() const {
-    return payload_;
-  }
-
-  // construct TxPacket by encapsulating rabdom byte payload
-  std::unique_ptr<facebook::fboss::TxPacket> getTxPacket(
-      const HwSwitch* hw) const;
-
-  void serialize(folly::io::RWPrivateCursor& cursor) const;
-
-  bool operator==(const UDPDatagram& that) const {
-    /* ignore checksum, */
-    return std::tie(
-               udpHdr_.srcPort, udpHdr_.dstPort, udpHdr_.length, payload_) ==
-        std::tie(
-               that.udpHdr_.srcPort,
-               that.udpHdr_.dstPort,
-               that.udpHdr_.length,
-               that.payload_);
-  }
-  std::string toString() const {
-    return udpHdr_.toString();
-  }
-
- private:
-  UDPHeader udpHdr_;
-  std::vector<uint8_t> payload_{};
-};
-
-inline std::ostream& operator<<(std::ostream& os, const UDPDatagram& udp) {
-  os << udp.toString();
-  return os;
-}
 
 template <typename AddrT>
 class IPPacket {
