@@ -637,14 +637,14 @@ const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedDropStats() const {
       stats.erase(std::find(
           stats.begin(), stats.end(), SAI_SWITCH_STAT_PACKET_INTEGRITY_DROP));
 #endif
-      if (isJerichoAsic(platform_->getAsic()->getAsicType())) {
-        static const std::vector<sai_stat_id_t> kJerichoConfigDropStats{
-            SAI_SWITCH_STAT_OUT_CONFIGURED_DROP_REASONS_0_DROPPED_PKTS};
-        stats.insert(
-            stats.end(),
-            kJerichoConfigDropStats.begin(),
-            kJerichoConfigDropStats.end());
-      }
+    }
+    if (isJerichoAsic(platform_->getAsic()->getAsicType())) {
+      static const std::vector<sai_stat_id_t> kJerichoConfigDropStats{
+          SAI_SWITCH_STAT_OUT_CONFIGURED_DROP_REASONS_0_DROPPED_PKTS};
+      stats.insert(
+          stats.end(),
+          kJerichoConfigDropStats.begin(),
+          kJerichoConfigDropStats.end());
     }
   }
   return stats;
