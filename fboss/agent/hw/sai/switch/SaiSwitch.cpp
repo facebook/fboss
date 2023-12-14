@@ -1732,6 +1732,14 @@ void SaiSwitch::linkStateChangedCallbackBottomHalf(
   }
 }
 
+void SaiSwitch::txReadyStatusChangeCallbackTopHalf(SwitchSaiId switchId) {
+  // TODO
+}
+
+void SaiSwitch::txReadyStatusChangeCallbackBottomHalf() {
+  // TODO
+}
+
 BootType SaiSwitch::getBootType() const {
   return bootType_;
 }
@@ -2058,6 +2066,11 @@ void SaiSwitch::initLinkScanLocked(
           portIdAndHandle.first, operStatus == SAI_PORT_OPER_STATUS_UP);
     }
   });
+}
+
+void SaiSwitch::initTxReadyStatusChangeLocked(
+    const std::lock_guard<std::mutex>& /* lock */) {
+  // TODO
 }
 
 bool SaiSwitch::isMissingSrcPortAllowed(HostifTrapSaiId hostifTrapSaiId) {

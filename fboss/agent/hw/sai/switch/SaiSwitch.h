@@ -148,6 +148,8 @@ class SaiSwitch : public HwSwitch {
       sai_queue_pfc_deadlock_event_type_t deadlockEvent,
       uint32_t count);
 
+  void txReadyStatusChangeCallbackTopHalf(SwitchSaiId switchId);
+
   /**
    * Runs a diag cmd on the corresponding unit
    */
@@ -309,6 +311,7 @@ class SaiSwitch : public HwSwitch {
 
   void initLinkScanLocked(const std::lock_guard<std::mutex>& lock);
   void initRxLocked(const std::lock_guard<std::mutex>& lock);
+  void initTxReadyStatusChangeLocked(const std::lock_guard<std::mutex>& lock);
 
   bool isFeatureSetupLocked(
       FeaturesDesired feature,
@@ -344,6 +347,7 @@ class SaiSwitch : public HwSwitch {
 
   void linkStateChangedCallbackBottomHalf(
       std::vector<sai_port_oper_status_notification_t> data);
+  void txReadyStatusChangeCallbackBottomHalf();
 
   uint64_t getDeviceWatermarkBytesLocked(
       const std::lock_guard<std::mutex>& lock) const;
@@ -532,6 +536,8 @@ class SaiSwitch : public HwSwitch {
   folly::EventBase linkStateBottomHalfEventBase_;
   std::unique_ptr<std::thread> fdbEventBottomHalfThread_;
   folly::EventBase fdbEventBottomHalfEventBase_;
+  std::unique_ptr<std::thread> txReadyStatusChangeBottomHalfThread_;
+  folly::EventBase txReadyStatusChangeBottomHalfEventBase_;
 
   HwResourceStats hwResourceStats_;
   std::atomic<SwitchRunState> runState_{SwitchRunState::UNINITIALIZED};
