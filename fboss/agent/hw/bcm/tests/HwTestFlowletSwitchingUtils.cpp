@@ -11,6 +11,8 @@
 #include "fboss/agent/hw/test/HwTestFlowletSwitchingUtils.h"
 #include <fboss/agent/gen-cpp2/switch_config_types.h>
 #include "fboss/agent/hw/bcm/BcmEcmpUtils.h"
+#include "fboss/agent/hw/bcm/BcmError.h"
+#include "fboss/agent/hw/bcm/BcmSdkVer.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/tests/BcmTestUtils.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
@@ -19,6 +21,7 @@ using namespace facebook::fboss;
 
 namespace {
 const RouterID kRid(0);
+const int KMaxFlowsetTableSize(32768);
 } // namespace
 
 namespace facebook::fboss::utility {
@@ -86,6 +89,71 @@ bool validateFlowletSwitchingEnabled(
   return true;
 }
 
+bool validateFlowSetTable(
+    const facebook::fboss::HwSwitch* hw,
+    const bool expectFlowsetSizeZero,
+    const int flowletTableSize) {
+  bool isVerified = true;
+
+  XLOG(DBG3) << "validateFlowSetTable with flowletTableSize: "
+             << flowletTableSize
+             << ", expectFlowsetSizeZero:" << expectFlowsetSizeZero;
+  // not ideal but for now TH3 doesn't support this.
+  if (!hw->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::FLOWLET_PORT_ATTRIBUTES)) {
+    // short of creating yet another feature for this, just use existing DLB
+    // feature (which is only enabled for TH4) to fold it in with expectation
+    // that this will be undone soon when TH3 support is added for the calls
+    // below
+    return isVerified;
+  }
+
+#if (                                      \
+    defined(BCM_SDK_VERSION_GTE_6_5_26) && \
+    !defined(BCM_SDK_VERSION_GTE_6_5_28))
+  int maxEntries = 0;
+  const auto bcmSwitch = static_cast<const BcmSwitch*>(hw);
+
+  int rv = bcm_switch_object_count_get(
+      bcmSwitch->getUnit(), bcmSwitchObjectEcmpDynamicFlowSetMax, &maxEntries);
+  bcmCheckError(rv, "Failed to get bcmSwitchObjectEcmpDynamicFlowSetMax");
+
+  int usedEntries = 0;
+  rv = bcm_switch_object_count_get(
+      bcmSwitch->getUnit(),
+      bcmSwitchObjectEcmpDynamicFlowSetUsed,
+      &usedEntries);
+  bcmCheckError(rv, "Failed to get bcmSwitchObjectEcmpDynamicFlowSetUsed");
+
+  int freeEntries = 0;
+  rv = bcm_switch_object_count_get(
+      bcmSwitch->getUnit(),
+      bcmSwitchObjectEcmpDynamicFlowSetFree,
+      &freeEntries);
+  bcmCheckError(rv, "Failed to get bcmSwitchObjectEcmpDynamicFlowSetFree");
+
+  if (maxEntries != KMaxFlowsetTableSize) {
+    XLOG(ERR) << "Max Entries are not as expected: " << maxEntries;
+    isVerified = false;
+  }
+  if (usedEntries < flowletTableSize) {
+    // expected flowset table size zero or not, flowsetTable Size should match
+    // the used entries
+    XLOG(ERR) << "ECMP flowset table : " << flowletTableSize
+              << ",  is more than usedEntries: " << usedEntries;
+    isVerified = false;
+  }
+
+  if ((maxEntries - usedEntries) != freeEntries) {
+    XLOG(ERR) << "Free entries: " << freeEntries
+              << ", unexpected when looking at the used entries : "
+              << usedEntries << " , max entries: " << maxEntries;
+    isVerified = false;
+  }
+#endif
+  return isVerified;
+}
+
 bool verifyEcmpForFlowletSwitching(
     const facebook::fboss::HwSwitch* hw,
     const folly::CIDRNetwork& prefix,
@@ -104,6 +172,10 @@ bool verifyEcmpForFlowletSwitching(
   bcm_l3_ecmp_get(bcmSwitch->getUnit(), &existing, 0, nullptr, &pathsInHwCount);
   const int flowletTableSize = getFlowletSizeWithScalingFactor(
       *flowletCfg.flowletTableSize(), pathsInHwCount, *flowletCfg.maxLinks());
+
+  isVerified =
+      validateFlowSetTable(hw, expectFlowsetSizeZero, flowletTableSize);
+
   if (flowletEnable && flowletTableSize > 0) {
     if ((existing.dynamic_mode != BCM_L3_ECMP_DYNAMIC_MODE_NORMAL) ||
         (existing.dynamic_age != *flowletCfg.inactivityIntervalUsecs()) ||

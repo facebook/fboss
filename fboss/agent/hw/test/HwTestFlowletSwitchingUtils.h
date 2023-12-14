@@ -35,4 +35,9 @@ bool validateFlowletSwitchingDisabled(const facebook::fboss::HwSwitch* hw);
 
 void setEcmpMemberStatus(const facebook::fboss::HwSwitch* hw);
 
+bool validateFlowSetTable(
+    const facebook::fboss::HwSwitch* hw,
+    const bool expectFlowsetSizeZero,
+    const int flowSetTableSize);
+
 } // namespace facebook::fboss::utility

@@ -60,4 +60,12 @@ void setEcmpMemberStatus(const HwSwitch* /* unused */) {
   EXPECT_TRUE(false);
 }
 
+bool validateFlowSetTable(
+    const HwSwitch* /*unit*/,
+    const bool /*expectFlowsetSizeZero*/,
+    const int /*flowletTableSize*/) {
+  EXPECT_TRUE(false);
+  return false;
+}
+
 } // namespace facebook::fboss::utility
