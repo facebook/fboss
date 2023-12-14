@@ -222,6 +222,26 @@ void _gPfcDeadlockNotificationCallback(
       static_cast<PortSaiId>(portSaiId), queueId, data->event, count);
 }
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+void __gTxReadyStatusChangeNotification(
+    sai_object_id_t switch_id,
+    sai_object_id_t port_id,
+    sai_port_host_tx_ready_status_t /*host_tx_ready_status*/) {
+  // Today, SAI implementation always returns NULL portID in this callback.
+  // This is OK, as FBOSS queries which links are active vs. inactive in the
+  // callback processing.
+  if (port_id != SAI_NULL_OBJECT_ID) {
+    XLOG(ERR)
+        << "SaiSwitch " << static_cast<long>(switch_id)
+        << " received TX Ready Status changed callback with non-NULL portID: "
+        << static_cast<long>(port_id);
+  }
+
+  __gSaiIdToSwitch.begin()->second->txReadyStatusChangeCallbackTopHalf(
+      SwitchSaiId{switch_id});
+}
+#endif
+
 PortSaiId SaiSwitch::getCPUPortSaiId() const {
   return managerTable_->switchManager().getCpuPort();
 }
