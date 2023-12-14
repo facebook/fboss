@@ -354,6 +354,10 @@ struct SaiPortTraits {
         SAI_PORT_ATTR_SYSTEM_PORT,
         SaiObjectIdT,
         SaiObjectIdDefault>;
+#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+    using TxReadyStatus =
+        SaiAttribute<EnumType, SAI_PORT_ATTR_HOST_TX_READY_STATUS, sai_int32_t>;
+#endif
   };
   using AdapterKey = PortSaiId;
 
@@ -572,6 +576,9 @@ SAI_ATTRIBUTE_NAME(Port, PfcTcDldIntervalRange);
 SAI_ATTRIBUTE_NAME(Port, PfcTcDlrIntervalRange);
 #endif
 SAI_ATTRIBUTE_NAME(Port, SystemPort);
+#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+SAI_ATTRIBUTE_NAME(Port, TxReadyStatus)
+#endif
 
 template <>
 struct SaiObjectHasStats<SaiPortTraits> : public std::true_type {};
