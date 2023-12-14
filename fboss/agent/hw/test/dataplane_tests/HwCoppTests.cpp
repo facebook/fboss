@@ -138,48 +138,44 @@ class HwCoppTest : public HwLinkStateDependentTest {
     }
   }
 
-  void sendUdpPkts(
-      int numPktsToSend,
+  void sendUdpPkt(
       const folly::IPAddress& dstIpAddress,
       int l4SrcPort,
       int l4DstPort,
       uint8_t ttl,
       bool outOfPort,
-      int expectPktTrap) {
+      bool expectPktTrap) {
     auto vlanId = utility::firstVlanID(getProgrammedState());
     auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     // arbit
     const auto srcIp =
         folly::IPAddress(dstIpAddress.isV4() ? "1.1.1.2" : "1::10");
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
-    for (int i = 0; i < numPktsToSend; i++) {
-      auto txPacket = utility::makeUDPTxPacket(
-          getHwSwitch(),
-          vlanId,
-          srcMac,
-          intfMac,
-          srcIp,
-          dstIpAddress,
-          l4SrcPort,
-          l4DstPort,
-          0 /* dscp */,
-          ttl);
+    auto txPacket = utility::makeUDPTxPacket(
+        getHwSwitch(),
+        vlanId,
+        srcMac,
+        intfMac,
+        srcIp,
+        dstIpAddress,
+        l4SrcPort,
+        l4DstPort,
+        0 /* dscp */,
+        ttl);
 
-      XLOG(DBG2) << "UDP packet Dump::"
-                 << folly::hexDump(
-                        txPacket->buf()->data(), txPacket->buf()->length());
+    XLOG(DBG2) << "UDP packet Dump::"
+               << folly::hexDump(
+                      txPacket->buf()->data(), txPacket->buf()->length());
 
-      auto ethFrame =
-          utility::makeEthFrame(*txPacket, true /*skipTtlDecrement*/);
-      auto snooper = std::make_unique<HwTestPacketSnooper>(
-          getHwSwitchEnsemble(), std::nullopt, ethFrame);
-      sendPkt(std::move(txPacket), outOfPort);
-      if (expectPktTrap) {
-        WITH_RETRIES({
-          auto frameRx = snooper->waitForPacket(1);
-          EXPECT_EVENTUALLY_TRUE(frameRx.has_value());
-        });
-      }
+    auto ethFrame = utility::makeEthFrame(*txPacket, true /*skipTtlDecrement*/);
+    auto snooper = std::make_unique<HwTestPacketSnooper>(
+        getHwSwitchEnsemble(), std::nullopt, ethFrame);
+    sendPkt(std::move(txPacket), outOfPort);
+    if (expectPktTrap) {
+      WITH_RETRIES({
+        auto frameRx = snooper->waitForPacket(1);
+        EXPECT_EVENTUALLY_TRUE(frameRx.has_value());
+      });
     }
   }
 
@@ -349,20 +345,14 @@ class HwCoppTest : public HwLinkStateDependentTest {
       const folly::IPAddress& dstIpAddress,
       const int l4SrcPort,
       const int l4DstPort,
-      const int numPktsToSend = 1,
-      const int expectedPktDelta = 0,
+      bool expectPktTrap = true,
       const int ttl = 255,
       bool outOfPort = false) {
     auto beforeOutPkts = getQueueOutPacketsWithRetry(
         queueId, 0 /* retryTimes */, 0 /* expectedNumPkts */);
-    sendUdpPkts(
-        numPktsToSend,
-        dstIpAddress,
-        l4SrcPort,
-        l4DstPort,
-        ttl,
-        outOfPort,
-        expectedPktDelta);
+    auto expectedPktDelta = expectPktTrap ? 1 : 0;
+    sendUdpPkt(
+        dstIpAddress, l4SrcPort, l4DstPort, ttl, outOfPort, expectPktTrap);
     auto afterOutPkts = getQueueOutPacketsWithRetry(
         queueId, kGetQueueOutPktsRetryTimes, beforeOutPkts + 1);
     XLOG(DBG0) << "Queue=" << queueId << ", before pkts:" << beforeOutPkts
@@ -1017,8 +1007,7 @@ TYPED_TEST(HwCoppTest, Ipv6LinkLocalMcastTxFromCpu) {
         folly::IPAddressV6("ff02::1"),
         utility::kNonSpecialPort1,
         utility::kNonSpecialPort2,
-        1 /* send pkt count */,
-        0 /* expected rx count */);
+        false /* expectPktTrap */);
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
@@ -1538,8 +1527,7 @@ TYPED_TEST(HwCoppTest, Ttl1PacketToLowPriQ) {
         randomIP,
         utility::kNonSpecialPort1,
         utility::kNonSpecialPort2,
-        1 /* send pkt count */,
-        1 /* expected rx count */,
+        true /* expectPktTrap */,
         1 /* TTL */,
         true /* send out of port */);
   };
@@ -1566,8 +1554,7 @@ TYPED_TEST(HwCoppTest, DhcpPacketToMidPriQ) {
             randomSrcIP[i],
             l4SrcPort,
             l4DstPort,
-            1 /* send pkt count */,
-            1 /* expected rx count */,
+            true /* expectPktTrap */,
             255 /* TTL */,
             true /* send out of port */);
         XLOG(DBG0) << "Sending packet with src port " << l4SrcPort
