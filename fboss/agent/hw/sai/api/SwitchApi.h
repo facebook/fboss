@@ -666,6 +666,12 @@ class SwitchApi : public SaiApi<SwitchApi> {
       SwitchSaiId id,
       sai_queue_pfc_deadlock_notification_fn queue_pfc_deadlock_notification_cb)
       const;
+#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+  void registerTxReadyStatusChangeCallback(
+      SwitchSaiId id,
+      sai_port_host_tx_ready_notification_fn port_state_change_cb) const;
+#endif
+
   void unregisterRxCallback(SwitchSaiId switch_id) const {
     registerRxCallback(switch_id, nullptr);
   }
@@ -684,6 +690,11 @@ class SwitchApi : public SaiApi<SwitchApi> {
   void unregisterQueuePfcDeadlockNotificationCallback(SwitchSaiId id) const {
     registerQueuePfcDeadlockNotificationCallback(id, nullptr);
   }
+#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+  void unregisterTxReadyStatusChangeCallback(SwitchSaiId id) const {
+    registerTxReadyStatusChangeCallback(id, nullptr);
+  }
+#endif
 
  private:
   sai_status_t _create(
