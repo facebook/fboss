@@ -196,7 +196,7 @@ class HwCoppTest : public HwLinkStateDependentTest {
           dstMac ? *dstMac : intfMac,
           etherType,
           payload);
-      sendPkt(std::move(txPacket), true /*outOfPort*/);
+      sendPkt(std::move(txPacket), true /*outOfPort*/, true /*snoopAndVerify*/);
     }
   }
 
