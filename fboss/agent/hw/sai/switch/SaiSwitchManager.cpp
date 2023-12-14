@@ -64,9 +64,30 @@ sai_hash_algorithm_t toSaiHashAlgo(cfg::HashingAlgorithm algo) {
   }
 }
 
+bool isJerichoAsic(cfg::AsicType asicType) {
+  return asicType == cfg::AsicType::ASIC_TYPE_JERICHO2 ||
+      asicType == cfg::AsicType::ASIC_TYPE_JERICHO3;
+}
+
 void fillHwSwitchDropStats(
     const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
-    HwSwitchDropStats& hwSwitchDropStats) {
+    HwSwitchDropStats& hwSwitchDropStats,
+    cfg::AsicType asicType) {
+  auto fillAsicSpecificCounter = [](auto counterId,
+                                    auto val,
+                                    auto asicType,
+                                    auto& dropStats) {
+    if (!isJerichoAsic(asicType)) {
+      throw FbossError("Configured drop reason stats only supported for J2/J3");
+    }
+    switch (counterId) {
+      case SAI_SWITCH_STAT_OUT_CONFIGURED_DROP_REASONS_0_DROPPED_PKTS:
+        dropStats.fdrCellDrops() = val;
+        break;
+      default:
+        throw FbossError("Unexpected configured counter id: ", counterId);
+    }
+  };
   for (auto counterIdAndValue : counterId2Value) {
     auto [counterId, value] = counterIdAndValue;
     switch (counterId) {
@@ -82,16 +103,12 @@ void fillHwSwitchDropStats(
         break;
 #endif
       case SAI_SWITCH_STAT_OUT_CONFIGURED_DROP_REASONS_0_DROPPED_PKTS:
-        // TODO
+        fillAsicSpecificCounter(counterId, value, asicType, hwSwitchDropStats);
         break;
       default:
         throw FbossError("Got unexpected switch counter id: ", counterId);
     }
   }
-}
-bool isJerichoAsic(cfg::AsicType asicType) {
-  return asicType == cfg::AsicType::ASIC_TYPE_JERICHO2 ||
-      asicType == cfg::AsicType::ASIC_TYPE_JERICHO3;
 }
 } // namespace
 
@@ -654,7 +671,10 @@ void SaiSwitchManager::updateStats() {
   if (switchDropStats.size()) {
     switch_->updateStats(switchDropStats, SAI_STATS_MODE_READ);
     HwSwitchDropStats dropStats;
-    fillHwSwitchDropStats(switch_->getStats(switchDropStats), dropStats);
+    fillHwSwitchDropStats(
+        switch_->getStats(switchDropStats),
+        dropStats,
+        platform_->getAsic()->getAsicType());
     platform_->getHwSwitch()->getSwitchStats()->update(dropStats);
     // Accumulate switch drop stats
     switchDropStats_.globalDrops() =
