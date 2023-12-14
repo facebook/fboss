@@ -148,6 +148,7 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::FLOWLET_PORT_ATTRIBUTES:
     case HwAsic::Feature::CREDIT_WATCHDOG:
     case HwAsic::Feature::SAI_FEC_CODEWORDS_STATS:
+    case HwAsic::Feature::LINK_INACTIVE_BASED_ISOLATE:
       return false;
   }
   return false;

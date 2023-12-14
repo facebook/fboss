@@ -163,6 +163,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::MPLS_ECMP:
     case HwAsic::Feature::ERSPANv6:
     case HwAsic::Feature::SFLOWv6:
+    case HwAsic::Feature::LINK_INACTIVE_BASED_ISOLATE:
       return false;
   }
   return false;

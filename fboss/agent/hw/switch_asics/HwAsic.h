@@ -160,6 +160,8 @@ class HwAsic {
     ECMP_DLB_OFFSET,
     SAI_FEC_CORRECTED_BITS,
     SAI_FEC_CODEWORDS_STATS,
+    // TODO: Once this support is complete, remove LINK_STATE_BASED_ISOLATE
+    LINK_INACTIVE_BASED_ISOLATE,
   };
 
   enum class AsicMode {

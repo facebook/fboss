@@ -148,6 +148,7 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::CREDIT_WATCHDOG:
     case HwAsic::Feature::ECMP_DLB_OFFSET:
     case HwAsic::Feature::SAI_FEC_CODEWORDS_STATS:
+    case HwAsic::Feature::LINK_INACTIVE_BASED_ISOLATE:
       return false;
   }
   return false;

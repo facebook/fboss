@@ -78,6 +78,7 @@ bool Jericho2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ACL_COUNTER_LABEL:
     case HwAsic::Feature::CREDIT_WATCHDOG:
     case HwAsic::Feature::ECMP_MEMBER_WIDTH_INTROSPECTION:
+    case HwAsic::Feature::LINK_INACTIVE_BASED_ISOLATE:
       return true;
 
     case HwAsic::Feature::UDF_HASH_FIELD_QUERY:
