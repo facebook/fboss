@@ -311,6 +311,21 @@ void SaiSwitch::unregisterCallbacks() noexcept {
     // link scan is completely shut-off
   }
 
+  // tx ready status change is turned off and the evb loop is set to break
+  // just need to block until the last event is processed
+  if (runState_ >= SwitchRunState::CONFIGURED &&
+      (getFeaturesDesired() &
+       FeaturesDesired::LINK_ACTIVE_INACTIVE_NOTIFY_DESIRED) &&
+      platform_->getAsic()->isSupported(
+          HwAsic::Feature::LINK_INACTIVE_BASED_ISOLATE)) {
+    txReadyStatusChangeBottomHalfEventBase_.runInEventBaseThreadAndWait(
+        [this]() {
+          txReadyStatusChangeBottomHalfEventBase_.terminateLoopSoon();
+        });
+    txReadyStatusChangeBottomHalfThread_->join();
+    // tx ready status change processing is completely shut-off
+  }
+
   if (runState_ >= SwitchRunState::INITIALIZED) {
     fdbEventBottomHalfEventBase_.runInEventBaseThreadAndWait(
         [this]() { fdbEventBottomHalfEventBase_.terminateLoopSoon(); });
