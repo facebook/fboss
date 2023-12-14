@@ -115,6 +115,7 @@ template <typename T>
 void AgentWrapperTest<T>::waitForStop(const std::string& unit, bool crash) {
   bool wrapperRefactored =
       checkFileExists(this->util_.getWrapperRefactorFlag());
+  auto multiSwitch = config_->getRunMode() == cfg::AgentRunMode::MULTI_SWITCH;
   WITH_RETRIES_N_TIMED(
       FLAGS_num_retries, std::chrono::seconds(FLAGS_wait_timeout), {
         facebook::tupperware::systemd::Service service{unit};
@@ -127,7 +128,11 @@ void AgentWrapperTest<T>::waitForStop(const std::string& unit, bool crash) {
           if (wrapperRefactored) {
             EXPECT_EVENTUALLY_EQ(status.value().exitStatus, 134);
           } else {
-            EXPECT_EVENTUALLY_EQ(status.value().exitStatus, 255);
+            if (multiSwitch) {
+              EXPECT_EVENTUALLY_EQ(status.value().exitStatus, 134);
+            } else {
+              EXPECT_EVENTUALLY_EQ(status.value().exitStatus, 255);
+            }
           }
         }
       });
@@ -153,9 +158,13 @@ BootType AgentWrapperTest<T>::getBootType() {
 }
 
 template <typename T>
-pid_t AgentWrapperTest<T>::getWedgeAgentPid() const {
+pid_t AgentWrapperTest<T>::getAgentPid(const std::string& agentName) const {
   std::string pidStr;
-  folly::readFile(util_.pidFile("wedge_agent").c_str(), pidStr);
+  auto pidFile = util_.pidFile(agentName);
+  if (!checkFileExists(pidFile)) {
+    throw FbossError(pidFile, " not found");
+  }
+  folly::readFile(util_.pidFile(agentName).c_str(), pidStr);
   return folly::to<pid_t>(pidStr);
 }
 
@@ -163,10 +172,12 @@ template <typename T>
 std::string AgentWrapperTest<T>::getCoreDirectory() const {
   bool wrapperRefactored =
       checkFileExists(this->util_.getWrapperRefactorFlag());
-  auto exitStatus = wrapperRefactored ? 134 : 255;
-  return "/var/tmp/cores/fboss-cores/wedge_agent_" +
-      folly::to<std::string>(getWedgeAgentPid()) + "_" +
-      folly::to<std::string>(exitStatus);
+  auto multiSwitch = config_->getRunMode() == cfg::AgentRunMode::MULTI_SWITCH;
+  auto exitStatus = (wrapperRefactored || multiSwitch) ? "134" : "-6";
+  auto agent = multiSwitch ? "fboss_sw_agent" : "wedge_agent";
+  auto fileName = folly::to<std::string>(
+      agent, "_", getAgentPid(agent), "_", agent, "_", exitStatus);
+  return folly::to<std::string>("/var/tmp/cores/fboss-cores/", fileName);
 }
 
 template <typename T>
@@ -242,14 +253,16 @@ TYPED_TEST(AgentWrapperTest, StartAndCrash) {
   touchFile(maxPostSignalWaitTime);
   std::vector<char> data = {'1'};
   folly::writeFile(data, maxPostSignalWaitTime.c_str());
+  auto coreFile = this->getCoreFile();
+  auto coreMetaData = this->getCoreMetaData();
   this->stop();
   this->waitForStop(true /* expect sigabrt to crash */);
   // core copier should copy cores here, analyze fboss core timer will remove
   // these
   WITH_RETRIES_N_TIMED(
       FLAGS_num_retries, std::chrono::seconds(FLAGS_wait_timeout), {
-        EXPECT_EVENTUALLY_TRUE(checkFileExists(this->getCoreFile()));
-        EXPECT_EVENTUALLY_TRUE(checkFileExists(this->getCoreMetaData()));
+        EXPECT_EVENTUALLY_TRUE(checkFileExists(coreFile));
+        EXPECT_EVENTUALLY_TRUE(checkFileExists(coreMetaData));
       });
 }
 

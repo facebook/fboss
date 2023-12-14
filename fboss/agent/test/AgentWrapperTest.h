@@ -28,7 +28,7 @@ class AgentWrapperTest : public ::testing::Test {
   void waitForStart(const std::string& unit);
   void waitForStop(bool crash = false);
   void waitForStop(const std::string& unit, bool crash = false);
-  pid_t getWedgeAgentPid() const;
+  pid_t getAgentPid(const std::string& agentName) const;
   std::string getCoreDirectory() const;
   std::string getCoreFile() const;
   std::string getCoreMetaData() const;
