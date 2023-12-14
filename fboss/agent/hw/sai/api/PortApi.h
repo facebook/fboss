@@ -763,6 +763,29 @@ class PortApi : public SaiApi<PortApi> {
   sai_status_t _getAttribute(PortSaiId key, sai_attribute_t* attr) const {
     return api_->get_port_attribute(key, 1, attr);
   }
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+  sai_status_t _bulkGetAttribute(
+      PortSaiId* keys,
+      uint32_t* attrCount,
+      sai_attribute_t** attr,
+      sai_status_t* retStatus,
+      size_t objectCount) const {
+    sai_object_id_t rawIds[objectCount];
+    for (auto idx = 0; idx < objectCount; idx++) {
+      rawIds[idx] = *rawSaiId(&keys[idx]);
+    }
+
+    return api_->get_ports_attribute(
+        objectCount,
+        rawIds,
+        attrCount,
+        attr,
+        SAI_BULK_OP_ERROR_MODE_STOP_ON_ERROR,
+        retStatus);
+  }
+#endif
+
   sai_status_t _setAttribute(PortSaiId key, const sai_attribute_t* attr) const {
     return api_->set_port_attribute(key, attr);
   }
