@@ -229,6 +229,10 @@ HwSwitchFb303GlobalStats HwSwitchFb303Stats::getAllFb303Stats() const {
   hwFb303Stats.fabric_reachability_mismatch() =
       getFabricReachabilityMissingCount();
   hwFb303Stats.fdr_cell_drops() = getFdrCellDrops();
+  hwFb303Stats.ingress_receive_editor_errors() = getIreErrors();
+  hwFb303Stats.ingress_transmit_pipeline_errors() = getItppErrors();
+  hwFb303Stats.egress_packet_network_interface_errors() = getEpniErrors();
+  hwFb303Stats.aligner_errors() = getAlignerErrors();
   return hwFb303Stats;
 }
 

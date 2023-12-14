@@ -269,5 +269,10 @@ struct HwSwitchFb303GlobalStats {
   15: i64 dram_dequeued_bytes;
   16: i64 fabric_reachability_missing;
   17: i64 fabric_reachability_mismatch;
+  // DNX Specific counters
   18: i64 fdr_cell_drops;
+  19: i64 ingress_receive_editor_errors;
+  20: i64 ingress_transmit_pipeline_errors;
+  21: i64 egress_packet_network_interface_errors;
+  22: i64 aligner_errors;
 }
