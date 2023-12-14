@@ -978,6 +978,39 @@ TEST_F(HwVoqSwitchTest, dramEnqueueDequeueBytes) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(HwVoqSwitchTest, fdrCellDrops) {
+  utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+  const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
+  auto setup = [this, kPort]() {
+    addRemoveNeighbor(kPort, true /* add neighbor*/);
+    std::string out;
+    getHwSwitchEnsemble()->runDiagCommand(
+        "setreg FDA_OFM_CLASS_DROP_TH_CORE 0x001001001001001001001001\n", out);
+    getHwSwitchEnsemble()->runDiagCommand("quit\n", out);
+  };
+
+  auto verify = [this, kPort, &ecmpHelper]() {
+    auto sendPkts = [this, kPort, &ecmpHelper]() {
+      for (auto i = 0; i < 1000; ++i) {
+        sendPacket(
+            ecmpHelper.ip(kPort),
+            std::nullopt,
+            std::vector<uint8_t>(1024, 0xff));
+      }
+    };
+    int64_t fdrCellDrops = 0;
+    WITH_RETRIES({
+      sendPkts();
+      getHwSwitch()->updateStats();
+      fb303::ThreadCachedServiceData::get()->publishStats();
+      fdrCellDrops = getHwSwitch()->getSwitchStats()->getFdrCellDrops();
+      XLOG(DBG2) << "FDR Cell drops : " << fdrCellDrops;
+      EXPECT_EVENTUALLY_GT(fdrCellDrops, 0);
+    });
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 class HwVoqSwitchWithMultipleDsfNodesTest : public HwVoqSwitchTest {
  public:
   cfg::SwitchConfig initialConfig() const override {
