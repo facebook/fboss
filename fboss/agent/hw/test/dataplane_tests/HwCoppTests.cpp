@@ -125,16 +125,27 @@ class HwCoppTest : public HwLinkStateDependentTest {
     }
   }
 
-  void sendPkt(std::unique_ptr<TxPacket> pkt, bool outOfPort) {
+  void sendPkt(
+      std::unique_ptr<TxPacket> pkt,
+      bool outOfPort,
+      bool snoopAndVerify = false) {
     XLOG(DBG2) << "Packet Dump::"
                << folly::hexDump(pkt->buf()->data(), pkt->buf()->length());
 
+    auto ethFrame = utility::makeEthFrame(*pkt, true /*skipTtlDecrement*/);
+    HwTestPacketSnooper snooper(getHwSwitchEnsemble(), std::nullopt, ethFrame);
     if (outOfPort) {
       getHwSwitch()->sendPacketOutOfPortSync(
           std::move(pkt),
           masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0]);
     } else {
       getHwSwitch()->sendPacketSwitchedSync(std::move(pkt));
+    }
+    if (snoopAndVerify) {
+      WITH_RETRIES({
+        auto frameRx = snooper.waitForPacket(1);
+        EXPECT_EVENTUALLY_TRUE(frameRx.has_value());
+      });
     }
   }
 
@@ -166,17 +177,7 @@ class HwCoppTest : public HwLinkStateDependentTest {
     XLOG(DBG2) << "UDP packet Dump::"
                << folly::hexDump(
                       txPacket->buf()->data(), txPacket->buf()->length());
-
-    auto ethFrame = utility::makeEthFrame(*txPacket, true /*skipTtlDecrement*/);
-    auto snooper = std::make_unique<HwTestPacketSnooper>(
-        getHwSwitchEnsemble(), std::nullopt, ethFrame);
-    sendPkt(std::move(txPacket), outOfPort);
-    if (expectPktTrap) {
-      WITH_RETRIES({
-        auto frameRx = snooper->waitForPacket(1);
-        EXPECT_EVENTUALLY_TRUE(frameRx.has_value());
-      });
-    }
+    sendPkt(std::move(txPacket), outOfPort, expectPktTrap /*snoopAndVerify*/);
   }
 
   void sendEthPkts(
@@ -195,7 +196,7 @@ class HwCoppTest : public HwLinkStateDependentTest {
           dstMac ? *dstMac : intfMac,
           etherType,
           payload);
-      sendPkt(std::move(txPacket), true);
+      sendPkt(std::move(txPacket), true /*outOfPort*/);
     }
   }
 
@@ -284,14 +285,7 @@ class HwCoppTest : public HwLinkStateDependentTest {
                 DHCPv6Packet::DHCP6_SERVERAGENT_UDPPORT, // DstPort: 547
                 0 /* dscp */,
                 ttl); // sent to me
-      auto ethFrame = utility::makeEthFrame(*txPacket, true);
-      sendPkt(std::move(txPacket), outOfPort);
-      auto snooper = std::make_unique<HwTestPacketSnooper>(
-          getHwSwitchEnsemble(), std::nullopt, ethFrame);
-      WITH_RETRIES({
-        auto frameRx = snooper->waitForPacket(1);
-        EXPECT_EVENTUALLY_TRUE(frameRx.has_value());
-      });
+      sendPkt(std::move(txPacket), outOfPort, true /* snoopAndVerify*/);
     }
   }
 
