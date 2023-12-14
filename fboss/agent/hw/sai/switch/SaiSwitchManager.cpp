@@ -459,11 +459,15 @@ void SaiSwitchManager::removeLoadBalancer(
     const std::shared_ptr<LoadBalancer>& oldLb) {
   if (oldLb->getID() == cfg::LoadBalancerID::AGGREGATE_PORT) {
     programLagLoadBalancerParams(std::nullopt, std::nullopt);
+    resetLoadBalancer<SaiSwitchTraits::Attributes::LagHashV4>();
+    resetLoadBalancer<SaiSwitchTraits::Attributes::LagHashV6>();
     lagV4Hash_.reset();
     lagV6Hash_.reset();
     return;
   }
   programEcmpLoadBalancerParams(std::nullopt, std::nullopt);
+  resetLoadBalancer<SaiSwitchTraits::Attributes::EcmpHashV4>();
+  resetLoadBalancer<SaiSwitchTraits::Attributes::EcmpHashV6>();
   ecmpV4Hash_.reset();
   ecmpV6Hash_.reset();
 }
