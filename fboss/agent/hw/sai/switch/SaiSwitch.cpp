@@ -1768,6 +1768,17 @@ void SaiSwitch::linkStateChangedCallbackBottomHalf(
 }
 
 void SaiSwitch::txReadyStatusChangeCallbackTopHalf(SwitchSaiId switchId) {
+  if (switchId != getSaiSwitchId()) {
+    // On Multi-NPU system, each HwSwitch will independelty register TxReady
+    // callback for ports on corresp ASIC. Thus, if the callback provides a
+    // switchID not matching our own, this will point to an SDK bug.
+    // Log error, but don't process.
+    XLOG(ERR) << "SaiSwitch " << static_cast<long>(getSaiSwitchId())
+              << " received TX Ready Status changed callback for SaiSwitch "
+              << static_cast<long>(switchId);
+    return;
+  }
+
   // TODO
 }
 
