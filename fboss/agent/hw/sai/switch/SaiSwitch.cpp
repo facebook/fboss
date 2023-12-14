@@ -2090,7 +2090,18 @@ void SaiSwitch::initLinkScanLocked(
 
 void SaiSwitch::initTxReadyStatusChangeLocked(
     const std::lock_guard<std::mutex>& /* lock */) {
-  // TODO
+#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+  txReadyStatusChangeBottomHalfThread_ =
+      std::make_unique<std::thread>([this]() {
+        initThread("fbossSaiTxReadyStatusChangeStatusBH");
+        txReadyStatusChangeBottomHalfEventBase_.loopForever();
+      });
+  txReadyStatusChangeBottomHalfEventBase_.runInEventBaseThread([=, this]() {
+    auto& switchApi = SaiApiTable::getInstance()->switchApi();
+    switchApi.registerTxReadyStatusChangeCallback(
+        saiSwitchId_, __gTxReadyStatusChangeNotification);
+  });
+#endif
 }
 
 bool SaiSwitch::isMissingSrcPortAllowed(HostifTrapSaiId hostifTrapSaiId) {
@@ -2434,6 +2445,17 @@ void SaiSwitch::unregisterCallbacksLocked(
   if (pfcDeadlockEnabled_) {
     switchApi.unregisterQueuePfcDeadlockNotificationCallback(saiSwitchId_);
   }
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+  if (isFeatureSetupLocked(FeaturesDesired::LINKSCAN_DESIRED, lock)) {
+    if ((getFeaturesDesired() &
+         FeaturesDesired::LINK_ACTIVE_INACTIVE_NOTIFY_DESIRED) &&
+        platform_->getAsic()->isSupported(
+            HwAsic::Feature::LINK_INACTIVE_BASED_ISOLATE)) {
+      switchApi.unregisterTxReadyStatusChangeCallback(saiSwitchId_);
+    }
+  }
+#endif
 }
 
 bool SaiSwitch::isValidStateUpdateLocked(
@@ -2737,6 +2759,13 @@ void SaiSwitch::switchRunStateChangedImplLocked(
 #else
         switchApi.registerTamEventCallback(saiSwitchId_, __gTamEventCallback);
 #endif
+      }
+
+      if ((getFeaturesDesired() &
+           FeaturesDesired::LINK_ACTIVE_INACTIVE_NOTIFY_DESIRED) &&
+          platform_->getAsic()->isSupported(
+              HwAsic::Feature::LINK_INACTIVE_BASED_ISOLATE)) {
+        initTxReadyStatusChangeLocked(lock);
       }
     } break;
     default:
