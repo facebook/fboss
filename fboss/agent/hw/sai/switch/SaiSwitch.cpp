@@ -1779,7 +1779,8 @@ void SaiSwitch::txReadyStatusChangeCallbackTopHalf(SwitchSaiId switchId) {
     return;
   }
 
-  // TODO
+  txReadyStatusChangeBottomHalfEventBase_.runInEventBaseThread(
+      [this]() mutable { txReadyStatusChangeCallbackBottomHalf(); });
 }
 
 void SaiSwitch::txReadyStatusChangeCallbackBottomHalf() {
