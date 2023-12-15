@@ -76,6 +76,18 @@ uint16_t TCPHeader::computeChecksum(
   return computeChecksumImpl(ipv4Hdr, cursor);
 }
 
+void TCPHeader::parse(Cursor* cursor) {
+  srcPort = cursor->readBE<uint16_t>();
+  dstPort = cursor->readBE<uint16_t>();
+  sequenceNumber = cursor->readBE<uint32_t>();
+  ackNumber = cursor->readBE<uint32_t>();
+  dataOffsetAndReserved = cursor->readBE<uint8_t>();
+  flags = cursor->readBE<uint8_t>();
+  windowSize = cursor->readBE<uint16_t>();
+  csum = cursor->readBE<uint16_t>();
+  urgentPointer = cursor->readBE<uint16_t>();
+}
+
 void TCPHeader::updateChecksum(const IPv4Hdr& ipv6Hdr, const Cursor& cursor) {
   csum = computeChecksum(ipv6Hdr, cursor);
 }

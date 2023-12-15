@@ -23,6 +23,7 @@ namespace facebook::fboss {
 
 class IPv4Hdr;
 class IPv6Hdr;
+class PortStats;
 
 struct TCPHeader {
  public:
@@ -49,6 +50,7 @@ struct TCPHeader {
   static uint32_t size() {
     return 20;
   }
+  void parse(folly::io::Cursor* cursor);
   /*
    * Output as a string
    */
@@ -73,7 +75,7 @@ struct TCPHeader {
   uint32_t sequenceNumber{0};
   uint32_t ackNumber{0};
   // header length or data offset is leading 4 bits
-  // remaining 4 bits are
+  // remaining 4 bits are reserved
   uint8_t dataOffsetAndReserved{5 << 4};
   uint8_t flags{0};
   uint16_t windowSize{0};
