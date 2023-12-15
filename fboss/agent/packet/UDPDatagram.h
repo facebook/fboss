@@ -17,7 +17,7 @@ class UDPDatagram {
   explicit UDPDatagram(folly::io::Cursor& cursor);
 
   // set header fields, useful to construct TxPacket
-  UDPDatagram(const UDPHeader& udpHdr, std::vector<uint8_t> payload)
+  UDPDatagram(const UDPHeader& udpHdr, const std::vector<uint8_t>& payload)
       : udpHdr_(udpHdr), payload_(payload) {
     udpHdr_.length = udpHdr_.size() + payload_.size();
   }
@@ -27,11 +27,11 @@ class UDPDatagram {
     return UDPHeader::size() + payload_.size();
   }
 
-  UDPHeader header() const {
+  const UDPHeader& header() const {
     return udpHdr_;
   }
 
-  std::vector<uint8_t> payload() const {
+  const std::vector<uint8_t>& payload() const {
     return payload_;
   }
 
@@ -50,6 +50,9 @@ class UDPDatagram {
                that.udpHdr_.dstPort,
                that.udpHdr_.length,
                that.payload_);
+  }
+  bool operator!=(const UDPDatagram& that) const {
+    return !(*this == that);
   }
   std::string toString() const {
     return udpHdr_.toString();
