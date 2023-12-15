@@ -80,10 +80,6 @@ void SaiPortManager::fillInSupportedStats(PortID port) {
           SAI_PORT_STAT_IF_IN_ERRORS,
           SAI_PORT_STAT_IF_OUT_OCTETS,
       };
-      if (platform_->getAsic()->getSwitchType() == cfg::SwitchType::VOQ) {
-        // CS00012325433 tracking why out errors fails on FABRIC devices
-        counterIds.emplace_back(SAI_PORT_STAT_IF_OUT_ERRORS);
-      }
       return counterIds;
     }
     if (getPortType(port) == cfg::PortType::RECYCLE_PORT) {
