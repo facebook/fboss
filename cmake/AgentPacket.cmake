@@ -46,8 +46,9 @@ target_link_libraries(pktutil
 )
 
 add_library(packet_factory
-  fboss/agent/packet/UDPDatagram.cpp
   fboss/agent/packet/PktFactory.cpp
+  fboss/agent/packet/TCPPacket.cpp
+  fboss/agent/packet/UDPDatagram.cpp
 )
 
 target_link_libraries(packet_factory

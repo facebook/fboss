@@ -27,6 +27,7 @@ class PortStats;
 
 struct TCPHeader {
  public:
+  TCPHeader() = default;
   TCPHeader(uint16_t _srcPort, uint16_t _dstPort)
       : srcPort(_srcPort), dstPort(_dstPort) {}
 
@@ -47,6 +48,9 @@ struct TCPHeader {
         urgentPointer(_urgentPointer) {}
 
   bool operator==(const TCPHeader& r) const;
+  bool operator!=(const TCPHeader& r) const {
+    return !(*this == r);
+  }
   static uint32_t size() {
     return 20;
   }
