@@ -8,6 +8,9 @@
  *
  */
 #include <gtest/gtest.h>
+#include "fboss/agent/FbossError.h"
+#include "fboss/agent/PortStats.h"
+#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/packet/IPv4Hdr.h"
 #include "fboss/agent/packet/IPv6Hdr.h"
 #include "fboss/agent/packet/UDPHeader.h"
@@ -144,4 +147,30 @@ TEST(UDP, IPv6ChecksumZero) {
   Cursor cursor(&bodyBuf);
 
   EXPECT_EQ(0xffff, udp.computeChecksum(ip, cursor));
+}
+
+TEST(UDP, writeAndParse) {
+  UDPHeader udp;
+  udp.srcPort = 1234;
+  udp.dstPort = 4321;
+  udp.length = 1024;
+  udp.csum = 4242;
+  uint8_t udpSizeArr[UDPHeader::size()];
+  folly::IOBuf buf(IOBuf::WRAP_BUFFER, udpSizeArr, sizeof(udpSizeArr));
+  folly::io::RWPrivateCursor cursor(&buf);
+  udp.write(&cursor);
+  UDPHeader udp2;
+  Cursor readCursor(&buf);
+  udp2.parse(&readCursor, nullptr);
+  EXPECT_EQ(udp, udp2);
+}
+
+TEST(UDP, parseError) {
+  uint8_t udpSizeSmall[UDPHeader::size() - 1];
+  folly::IOBuf buf(IOBuf::WRAP_BUFFER, udpSizeSmall, sizeof(udpSizeSmall));
+  Cursor readCursor(&buf);
+  SwitchStats swStats;
+  PortStats portStats(PortID(1), "port1", &swStats);
+  UDPHeader udp;
+  EXPECT_THROW(udp.parse(&readCursor, &portStats), FbossError);
 }
