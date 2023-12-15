@@ -37,6 +37,11 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
     cfg::SwitchConfig& /* unused */) {
   std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> acls;
 
+  // TODO(daiweix): remove after ACL is fully supported by J3
+  if (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
+    return acls;
+  }
+
   // multicast link local dst ip
   addNoActionAclForNw(kIPv6LinkLocalMcastNetwork(), acls);
 
@@ -88,6 +93,30 @@ std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueues(
       ControlPlane::makeRxReasonToQueueEntry(
           cfg::PacketRxReason::DHCPV6, kCoppMidPriQueueId),
   };
+
+  // TODO(daiweix): remove after L4 port match is supported by J3 in 6.5.30
+  if (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
+    rxReasonToQueues = {
+        ControlPlane::makeRxReasonToQueueEntry(
+            cfg::PacketRxReason::ARP, coppHighPriQueueId),
+        ControlPlane::makeRxReasonToQueueEntry(
+            cfg::PacketRxReason::ARP_RESPONSE, coppHighPriQueueId),
+        ControlPlane::makeRxReasonToQueueEntry(
+            cfg::PacketRxReason::NDP, coppHighPriQueueId),
+        ControlPlane::makeRxReasonToQueueEntry(
+            cfg::PacketRxReason::BGP, coppHighPriQueueId),
+        ControlPlane::makeRxReasonToQueueEntry(
+            cfg::PacketRxReason::CPU_IS_NHOP, kCoppMidPriQueueId),
+        ControlPlane::makeRxReasonToQueueEntry(
+            cfg::PacketRxReason::LACP, coppHighPriQueueId),
+        ControlPlane::makeRxReasonToQueueEntry(
+            cfg::PacketRxReason::TTL_1, kCoppLowPriQueueId),
+        ControlPlane::makeRxReasonToQueueEntry(
+            cfg::PacketRxReason::LLDP, kCoppMidPriQueueId),
+        ControlPlane::makeRxReasonToQueueEntry(
+            cfg::PacketRxReason::DHCP, kCoppMidPriQueueId),
+    };
+  }
 
   if (hwAsic->isSupported(HwAsic::Feature::SAI_EAPOL_TRAP)) {
     rxReasonToQueues.push_back(ControlPlane::makeRxReasonToQueueEntry(

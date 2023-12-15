@@ -832,7 +832,9 @@ bool HwSwitchEnsemble::waitForRateOnPort(
       return true;
     } else {
       XLOG(WARNING) << ": Current rate " << rate << " bps < expected rate "
-                    << desiredBps << " bps";
+                    << desiredBps << " bps. curPortBytes " << curPortBytes
+                    << " prevPortBytes " << prevPortBytes << " curPortPackets "
+                    << curPortPackets << " prevPortPackets " << prevPortPackets;
     }
   }
   return false;

@@ -52,7 +52,7 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
       if (getAsic()->getDefaultNumPortQueues(
               cpuStreamType, cfg::PortType::CPU_PORT)) {
         // cpu queues supported
-        addCpuTrafficPolicy(cfg);
+        utility::setDefaultCpuTrafficPolicyConfig(cfg, getAsic());
         utility::addCpuQueueConfig(
             cfg, getAsic(), getHwSwitchEnsemble()->isSai());
         break;
@@ -69,32 +69,6 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
     HwLinkStateDependentTest::SetUp();
     ASSERT_EQ(getHwSwitch()->getSwitchType(), cfg::SwitchType::VOQ);
     ASSERT_TRUE(getHwSwitch()->getSwitchId().has_value());
-  }
-
- private:
-  void addCpuTrafficPolicy(cfg::SwitchConfig& cfg) const {
-    cfg::CPUTrafficPolicyConfig cpuConfig;
-    std::vector<cfg::PacketRxReasonToQueue> rxReasonToQueues;
-    std::vector<std::pair<cfg::PacketRxReason, uint16_t>>
-        rxReasonToQueueMappings = {
-            std::pair(
-                cfg::PacketRxReason::BGP,
-                utility::getCoppHighPriQueueId(this->getAsic())),
-            std::pair(
-                cfg::PacketRxReason::BGPV6,
-                utility::getCoppHighPriQueueId(this->getAsic())),
-            std::pair(
-                cfg::PacketRxReason::CPU_IS_NHOP, utility::kCoppMidPriQueueId),
-
-        };
-    for (auto rxEntry : rxReasonToQueueMappings) {
-      auto rxReasonToQueue = cfg::PacketRxReasonToQueue();
-      rxReasonToQueue.rxReason() = rxEntry.first;
-      rxReasonToQueue.queueId() = rxEntry.second;
-      rxReasonToQueues.push_back(rxReasonToQueue);
-    }
-    cpuConfig.rxReasonToQueueOrderedList() = rxReasonToQueues;
-    cfg.cpuTrafficPolicy() = cpuConfig;
   }
 
  protected:

@@ -318,7 +318,7 @@ class HwSwitchEnsemble : public TestEnsembleIf {
   bool waitForRateOnPort(
       PortID port,
       uint64_t desiredBps,
-      int secondsToWaitPerIteration = 1);
+      int secondsToWaitPerIteration = 2);
 
   std::shared_ptr<SwitchState> programmedState_{nullptr};
   std::unique_ptr<RoutingInformationBase> routingInformationBase_;
