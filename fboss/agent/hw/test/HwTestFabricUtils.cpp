@@ -30,15 +30,22 @@ void checkFabricReachability(TestEnsembleIf* ensemble) {
     }
 
     XLOG(DBG2) << " On port: " << port
-               << " got switch id: " << *endpoint.switchId()
                << " expected switch id: " << expectedSwitchId
+               << " got switch id: " << *endpoint.switchId()
                << " expected port id: " << expectedPortId
-               << " got port id: " << *endpoint.portId();
+               << " got port id: " << *endpoint.portId() << " got switch type: "
+               << apache::thrift::util::enumNameSafe(*endpoint.switchType())
+               << " expected switch type: "
+               << apache::thrift::util::enumNameSafe(
+                      ensemble->getHwAsicTable()
+                          ->getHwAsic(SwitchID(expectedSwitchId))
+                          ->getSwitchType());
+
     EXPECT_EQ(*endpoint.switchId(), expectedSwitchId);
     EXPECT_EQ(
         *endpoint.switchType(),
         ensemble->getHwAsicTable()
-            ->getHwAsic(SwitchID(*endpoint.switchId()))
+            ->getHwAsic(SwitchID(expectedSwitchId))
             ->getSwitchType());
     EXPECT_EQ(*endpoint.portId(), expectedPortId);
   }
