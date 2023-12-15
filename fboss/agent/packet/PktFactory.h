@@ -64,7 +64,8 @@ class IPPacket {
   void serialize(folly::io::RWPrivateCursor& cursor) const;
 
   bool operator==(const IPPacket<AddrT>& that) const {
-    return std::tie(hdr_, udpPayLoad_) == std::tie(that.hdr_, that.udpPayLoad_);
+    return std::tie(hdr_, udpPayLoad_, tcpPayLoad_) ==
+        std::tie(that.hdr_, that.udpPayLoad_, that.tcpPayLoad_);
   }
   void decrementTTL() {
     hdr_.decrementTTL();
