@@ -372,19 +372,18 @@ class HwCoppTest : public HwLinkStateDependentTest {
         payload);
   }
 
-  void sendPktAndVerifyCpuQueue(
+  void sendTcpPktAndVerifyCpuQueue(
       int queueId,
       const folly::IPAddress& dstIpAddress,
       const int l4SrcPort,
       const int l4DstPort,
       const std::optional<folly::MacAddress>& dstMac = std::nullopt,
       uint8_t trafficClass = 0,
-      const int numPktsToSend = 1,
-      const int expectedPktDelta = 1,
       std::optional<std::vector<uint8_t>> payload = std::nullopt) {
-    auto sendPkts = [=, this]() {
+    const auto kNumPktsToSend = 1;
+    auto sendPkt = [=, this]() {
       sendTcpPkts(
-          numPktsToSend,
+          kNumPktsToSend,
           dstIpAddress,
           l4SrcPort,
           l4DstPort,
@@ -393,7 +392,7 @@ class HwCoppTest : public HwLinkStateDependentTest {
           payload);
     };
     utility::sendPktAndVerifyCpuQueue(
-        getHwSwitch(), queueId, sendPkts, expectedPktDelta);
+        getHwSwitch(), queueId, sendPkt, kNumPktsToSend);
   }
 
   void sendPktAndVerifyEthPacketsCpuQueue(
@@ -921,7 +920,7 @@ TYPED_TEST(HwCoppTest, LocalDstIpBgpPortToHighPriQ) {
       for (int dir = 0; dir <= DST; dir++) {
         XLOG(DBG2) << "Send Pkt to: " << ipAddress
                    << " dir: " << (dir == DST ? " DST" : " SRC");
-        this->sendPktAndVerifyCpuQueue(
+        this->sendTcpPktAndVerifyCpuQueue(
             utility::getCoppHighPriQueueId(this->getAsic()),
             folly::IPAddress::createNetwork(ipAddress, -1, false).first,
             dir == SRC ? utility::kBgpPort : utility::kNonSpecialPort1,
@@ -938,7 +937,7 @@ TYPED_TEST(HwCoppTest, LocalDstIpNonBgpPortToMidPriQ) {
 
   auto verify = [=, this]() {
     for (const auto& ipAddress : this->getIpAddrsToSendPktsTo()) {
-      this->sendPktAndVerifyCpuQueue(
+      this->sendTcpPktAndVerifyCpuQueue(
           utility::kCoppMidPriQueueId,
           folly::IPAddress::createNetwork(ipAddress, -1, false).first,
           utility::kNonSpecialPort1,
@@ -964,7 +963,7 @@ TYPED_TEST(HwCoppTest, Ipv6LinkLocalMcastToMidPriQ) {
     const auto addresses = folly::make_array(
         kIPv6LinkLocalMcastAbsoluteAddress, kIPv6LinkLocalMcastAddress);
     for (const auto& address : addresses) {
-      this->sendPktAndVerifyCpuQueue(
+      this->sendTcpPktAndVerifyCpuQueue(
           utility::kCoppMidPriQueueId,
           address,
           utility::kNonSpecialPort1,
@@ -1008,7 +1007,7 @@ TYPED_TEST(HwCoppTest, Ipv6LinkLocalUcastToMidPriQ) {
       const folly::IPAddressV6 linkLocalAddr = folly::IPAddressV6(
           folly::IPAddressV6::LINK_LOCAL, this->getPlatform()->getLocalMac());
 
-      this->sendPktAndVerifyCpuQueue(
+      this->sendTcpPktAndVerifyCpuQueue(
           utility::kCoppMidPriQueueId,
           linkLocalAddr,
           utility::kNonSpecialPort1,
@@ -1024,7 +1023,7 @@ TYPED_TEST(HwCoppTest, Ipv6LinkLocalUcastToMidPriQ) {
     }
     // Non device link local unicast address should also use mid-pri queue
     {
-      this->sendPktAndVerifyCpuQueue(
+      this->sendTcpPktAndVerifyCpuQueue(
           utility::kCoppMidPriQueueId,
           kIPv6LinkLocalUcastAddress,
           utility::kNonSpecialPort1,
@@ -1073,7 +1072,7 @@ TYPED_TEST(HwCoppTest, DstIpNetworkControlDscpToHighPriQ) {
 
   auto verify = [=, this]() {
     for (const auto& ipAddress : this->getIpAddrsToSendPktsTo()) {
-      this->sendPktAndVerifyCpuQueue(
+      this->sendTcpPktAndVerifyCpuQueue(
           utility::getCoppHighPriQueueId(this->getAsic()),
           folly::IPAddress::createNetwork(ipAddress, -1, false).first,
           utility::kNonSpecialPort1,
@@ -1083,15 +1082,13 @@ TYPED_TEST(HwCoppTest, DstIpNetworkControlDscpToHighPriQ) {
     }
     // Non local dst ip with kNetworkControlDscp should not hit high pri queue
     // (since it won't even trap to cpu)
-    this->sendPktAndVerifyCpuQueue(
+    this->sendTcpPktAndVerifyCpuQueue(
         utility::getCoppHighPriQueueId(this->getAsic()),
         folly::IPAddress("2::2"),
         utility::kNonSpecialPort1,
         utility::kNonSpecialPort2,
         std::nullopt,
-        kNetworkControlDscp,
-        1, /*num pkts to send*/
-        0 /*expected delta*/);
+        kNetworkControlDscp);
   };
 
   this->verifyAcrossWarmBoots(setup, verify);
@@ -1108,7 +1105,7 @@ TYPED_TEST(HwCoppTest, Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ) {
       const folly::IPAddressV6 linkLocalAddr = folly::IPAddressV6(
           folly::IPAddressV6::LINK_LOCAL, utility::kLocalCpuMac());
 
-      this->sendPktAndVerifyCpuQueue(
+      this->sendTcpPktAndVerifyCpuQueue(
           utility::getCoppHighPriQueueId(this->getAsic()),
           linkLocalAddr,
           utility::kNonSpecialPort1,
@@ -1120,7 +1117,7 @@ TYPED_TEST(HwCoppTest, Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ) {
     // also use high-pri queue
     {
       XLOG(DBG2) << "send non-device link local packet";
-      this->sendPktAndVerifyCpuQueue(
+      this->sendTcpPktAndVerifyCpuQueue(
           utility::getCoppHighPriQueueId(this->getAsic()),
           kIPv6LinkLocalUcastAddress,
           utility::kNonSpecialPort1,
@@ -1140,7 +1137,7 @@ TYPED_TEST(HwCoppTest, Ipv6LinkLocalMcastNetworkControlDscpToHighPriQ) {
     const auto addresses = folly::make_array(
         kIPv6LinkLocalMcastAbsoluteAddress, kIPv6LinkLocalMcastAddress);
     for (const auto& address : addresses) {
-      this->sendPktAndVerifyCpuQueue(
+      this->sendTcpPktAndVerifyCpuQueue(
           utility::getCoppHighPriQueueId(this->getAsic()),
           address,
           utility::kNonSpecialPort1,
@@ -1163,15 +1160,13 @@ TYPED_TEST(HwCoppTest, L3MTUErrorToLowPriQ) {
     // Port Max Frame size is set to 9412 and L3 MTU is set as 9000
     // Thus sending a packet sized between 9000 and 9412 to cause the trap.
     auto randomIP = folly::IPAddressV6("2::2");
-    this->sendPktAndVerifyCpuQueue(
+    this->sendTcpPktAndVerifyCpuQueue(
         utility::kCoppLowPriQueueId,
         randomIP,
         utility::kNonSpecialPort1,
         utility::kNonSpecialPort2,
         std::nullopt,
-        0,
-        1, /* num pkts to send */
-        1, /* num pkts to excepted to be captured */
+        0, /* traffic class*/
         std::vector<uint8_t>(9200, 0xff));
   };
   this->verifyAcrossWarmBoots(setup, verify);
@@ -1261,15 +1256,12 @@ TYPED_TEST(HwCoppTest, UnresolvedRoutesToLowPriQueue) {
   };
   auto randomIP = folly::IPAddressV6("2::2");
   auto verify = [=, this]() {
-    this->sendPktAndVerifyCpuQueue(
+    this->sendTcpPktAndVerifyCpuQueue(
         utility::kCoppLowPriQueueId,
         randomIP,
         utility::kNonSpecialPort1,
         utility::kNonSpecialPort2,
-        std::nullopt,
-        0,
-        1, /* num pkts to send */
-        1 /* num pkts to excepted to be captured */);
+        std::nullopt);
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
@@ -1281,37 +1273,31 @@ TYPED_TEST(HwCoppTest, JumboFramesToQueues) {
     std::vector<uint8_t> jumboPayload(7000, 0xff);
     for (const auto& ipAddress : this->getIpAddrsToSendPktsTo()) {
       // High pri queue
-      this->sendPktAndVerifyCpuQueue(
+      this->sendTcpPktAndVerifyCpuQueue(
           utility::getCoppHighPriQueueId(this->getAsic()),
           folly::IPAddress::createNetwork(ipAddress, -1, false).first,
           utility::kBgpPort,
           utility::kNonSpecialPort2,
           std::nullopt, /*mac*/
           0, /* traffic class*/
-          1, /* pkts to send*/
-          1, /* expected delta*/
           jumboPayload);
       // Mid pri queue
-      this->sendPktAndVerifyCpuQueue(
+      this->sendTcpPktAndVerifyCpuQueue(
           utility::kCoppMidPriQueueId,
           folly::IPAddress::createNetwork(ipAddress, -1, false).first,
           utility::kNonSpecialPort1,
           utility::kNonSpecialPort2,
           std::nullopt, /*mac*/
           0, /* traffic class*/
-          1, /* pkts to send*/
-          1, /* expected delta*/
           jumboPayload);
     }
-    this->sendPktAndVerifyCpuQueue(
+    this->sendTcpPktAndVerifyCpuQueue(
         utility::kCoppLowPriQueueId,
         this->getInSubnetNonSwitchIP(),
         utility::kNonSpecialPort1,
         utility::kNonSpecialPort2,
         std::nullopt, /*mac*/
         0, /* traffic class*/
-        1, /* pkts to send*/
-        1, /* expected delta*/
         jumboPayload);
   };
 
