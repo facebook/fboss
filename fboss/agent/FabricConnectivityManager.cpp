@@ -341,6 +341,7 @@ FabricEndpoint FabricConnectivityManager::processConnectivityInfoForPort(
     iter->second.isAttached() = *hwEndpoint.isAttached();
     iter->second.switchId() = *hwEndpoint.switchId();
     iter->second.portId() = *hwEndpoint.portId();
+    iter->second.switchType() = *hwEndpoint.switchType();
 
     // updateExpectedSwitchIdAndPortIdForPort uses platform, virtualDeviceId to
     // derive expected{Switch, Port}Id from expected{Switch, Port}Name.
