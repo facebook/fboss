@@ -50,7 +50,7 @@ class IPPacket {
     return hdr_;
   }
 
-  const std::optional<UDPDatagram>& payload() const {
+  const std::optional<UDPDatagram>& udpPayload() const {
     return udpPayLoad_;
   }
   const std::optional<TCPPacket>& tcpPayload() const {

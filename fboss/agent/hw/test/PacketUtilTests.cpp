@@ -150,7 +150,7 @@ TEST(PacketUtilTests, IpV6Packet) {
 
   auto ip6Pkt = utility::IPv6Packet(cursor);
   auto ip6Hdr = ip6Pkt.header();
-  auto ip6Payload = ip6Pkt.payload();
+  auto ip6Payload = ip6Pkt.udpPayload();
   verifyIP6Hdr(ip6Hdr);
   auto udpPkt = ip6Payload.value();
   verifyUdp(udpPkt.header(), udpPkt.payload());
@@ -175,7 +175,7 @@ TEST(PacketUtilTests, IpV4Packet) {
 
   auto ip4Pkt = utility::IPv4Packet(cursor);
   auto ip4Hdr = ip4Pkt.header();
-  auto ip4Payload = ip4Pkt.payload();
+  auto ip4Payload = ip4Pkt.udpPayload();
   verifyIP4Hdr(ip4Hdr);
   auto udpPkt = ip4Payload.value();
   verifyUdp(udpPkt.header(), udpPkt.payload());
@@ -204,7 +204,7 @@ TEST(PacketUtilTests, MPLSPacket) {
   verifyMPLSHdr(mplsHdr);
   auto ip6Pkt = mplsPkt.v6PayLoad().value();
   auto ip6Hdr = ip6Pkt.header();
-  auto ip6Payload = ip6Pkt.payload();
+  auto ip6Payload = ip6Pkt.udpPayload();
   verifyIP6Hdr(ip6Hdr);
   auto udpPkt = ip6Payload.value();
   verifyUdp(udpPkt.header(), udpPkt.payload());
@@ -236,7 +236,7 @@ TEST(PacketUtilTests, EthFrame) {
   verifyMPLSHdr(mplsHdr);
   auto ip6Pkt = mplsPkt.v6PayLoad().value();
   auto ip6Hdr = ip6Pkt.header();
-  auto ip6Payload = ip6Pkt.payload();
+  auto ip6Payload = ip6Pkt.udpPayload();
   verifyIP6Hdr(ip6Hdr);
   auto udpPkt = ip6Payload.value();
   verifyUdp(udpPkt.header(), udpPkt.payload());

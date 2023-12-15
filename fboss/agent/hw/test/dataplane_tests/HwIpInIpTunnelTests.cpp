@@ -184,7 +184,7 @@ TEST_F(HwIpInIpTunnelTest, DecapPacketParsing) {
     // using PIPE mode: inner DSCP and ECN should not be changed
     EXPECT_EQ(hdr.trafficClass, 0xCE);
 
-    auto udpPkt = v6Pkt->payload();
+    auto udpPkt = v6Pkt->udpPayload();
     auto payload = udpPkt->payload();
     EXPECT_EQ(payload.size(), 10);
     EXPECT_EQ(payload, std::vector<uint8_t>(10, 0xff));

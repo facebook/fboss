@@ -312,7 +312,7 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
 
     auto delta = capturedPkt->length() - pkt.length();
     EXPECT_LE(delta, getSflowPacketHeaderLength());
-    auto payload = capturedPkt->v4PayLoad()->payload()->payload();
+    auto payload = capturedPkt->v4PayLoad()->udpPayload()->payload();
 
     EXPECT_EQ(getSflowPacketSrcPort(payload), getPortsForSampling()[1]);
 
@@ -424,7 +424,7 @@ TEST_F(HwSflowMirrorTest, VerifySampledPacketWithTruncateV4) {
         capturedPkt->length() - capturedHdrSize,
         getMirrorTruncateSize()); /* TODO: confirm length in CS00010399535 and
                                      CS00012130950  */
-    auto payload = capturedPkt->v4PayLoad()->payload()->payload();
+    auto payload = capturedPkt->v4PayLoad()->udpPayload()->payload();
     EXPECT_EQ(getSflowPacketSrcPort(payload), getPortsForSampling()[1]);
   };
   verifyAcrossWarmBoots(setup, verify);
@@ -470,7 +470,7 @@ TEST_F(HwSflowMirrorTest, VerifySampledPacketWithTruncateV6) {
         capturedPkt->length() - capturedHdrSize,
         getMirrorTruncateSize()); /* TODO: confirm length in CS00010399535 and
                                      CS00012130950 */
-    auto payload = capturedPkt->v6PayLoad()->payload()->payload();
+    auto payload = capturedPkt->v6PayLoad()->udpPayload()->payload();
     EXPECT_EQ(getSflowPacketSrcPort(payload), getPortsForSampling()[1]);
   };
   verifyAcrossWarmBoots(setup, verify);
@@ -532,7 +532,7 @@ TEST_F(HwSflowMirrorTest, VerifySampledPacketWithLagMemberAsEgressPort) {
         capturedPkt->length() - capturedHdrSize,
         getMirrorTruncateSize()); /* TODO: confirm length in CS00010399535 and
                                      CS00012130950 */
-    auto payload = capturedPkt->v6PayLoad()->payload()->payload();
+    auto payload = capturedPkt->v6PayLoad()->udpPayload()->payload();
     EXPECT_EQ(getSflowPacketSrcPort(payload), getPortsForSampling()[1]);
   };
   verifyAcrossWarmBoots(setup, verify);

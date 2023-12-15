@@ -163,8 +163,8 @@ class HwHashPolarizationTests : public HwLinkStateDependentTest {
           mac,
           ipPayload.header().srcAddr,
           ipPayload.header().dstAddr,
-          ipPayload.payload()->header().srcPort,
-          ipPayload.payload()->header().dstPort);
+          ipPayload.udpPayload()->header().srcPort,
+          ipPayload.udpPayload()->header().dstPort);
     };
     for (auto& ethFrame : rxPackets) {
       std::unique_ptr<TxPacket> pkt;
@@ -531,8 +531,8 @@ class HwHashTrunkPolarizationTests : public HwHashPolarizationTests {
           mac,
           ipPayload.header().srcAddr,
           ipPayload.header().dstAddr,
-          ipPayload.payload()->header().srcPort,
-          ipPayload.payload()->header().dstPort);
+          ipPayload.udpPayload()->header().srcPort,
+          ipPayload.udpPayload()->header().dstPort);
     };
 
     auto logicalPorts = masterLogicalPortIds();

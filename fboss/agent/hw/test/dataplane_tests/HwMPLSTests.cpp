@@ -632,7 +632,7 @@ TYPED_TEST(HwMPLSTest, Pop2Cpu) {
     auto v6PayLoad = frame->v6PayLoad();
     ASSERT_TRUE(v6PayLoad.has_value());
 
-    auto udpPayload = v6PayLoad->payload();
+    auto udpPayload = v6PayLoad->udpPayload();
     ASSERT_TRUE(udpPayload.has_value());
 
     auto hdr = v6PayLoad->header();
