@@ -16,17 +16,17 @@
 
 namespace rackmonsvc {
 
-auto constexpr kDevCRCErrors = "rackmon.{}.crc_errors";
-auto constexpr kDevTimeouts = "rackmon.{}.timeouts";
-auto constexpr kDevMiscErrors = "rackmon.{}.misc_errors";
-auto constexpr kDevDeviceErrors = "rackmon.{}.device_errors";
-auto constexpr kDevIsActive = "rackmon.{}.is_active";
-auto constexpr kTotalCRCErrors = "rackmon.crc_errors";
-auto constexpr kTotalTimeouts = "rackmon.timeouts";
-auto constexpr kTotalMiscErrors = "rackmon.misc_errors";
-auto constexpr kTotalDeviceErrors = "rackmon.device_errors";
-auto constexpr kTotalActive = "rackmon.num_active";
-auto constexpr kTotalDormant = "rackmon.num_dormant";
+auto constexpr kDevCRCErrors = "dev{}.crc_errors";
+auto constexpr kDevTimeouts = "dev{}.timeouts";
+auto constexpr kDevMiscErrors = "dev{}.misc_errors";
+auto constexpr kDevDeviceErrors = "dev{}.device_errors";
+auto constexpr kDevIsActive = "dev{}.is_active";
+auto constexpr kTotalCRCErrors = "rack.crc_errors";
+auto constexpr kTotalTimeouts = "rack.timeouts";
+auto constexpr kTotalMiscErrors = "rack.misc_errors";
+auto constexpr kTotalDeviceErrors = "rack.device_errors";
+auto constexpr kTotalActive = "rack.num_active";
+auto constexpr kTotalDormant = "rack.num_dormant";
 
 ModbusDeviceType typeFromString(const std::string& str) {
   if (str == "ORV2_PSU") {
