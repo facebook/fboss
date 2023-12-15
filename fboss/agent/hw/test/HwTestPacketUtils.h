@@ -197,6 +197,17 @@ std::unique_ptr<facebook::fboss::TxPacket> makeTCPTxPacket(
     std::optional<std::vector<uint8_t>> payload =
         std::optional<std::vector<uint8_t>>());
 
+std::unique_ptr<TxPacket> makeTCPTxPacket(
+    facebook::fboss::HwSwitch* hwSwitch,
+    std::optional<VlanID> vlanId,
+    folly::MacAddress dstMac,
+    const folly::IPAddress& dstIpAddress,
+    int l4SrcPort,
+    int l4DstPort,
+    uint8_t trafficClass = 0,
+    std::optional<std::vector<uint8_t>> payload =
+        std::optional<std::vector<uint8_t>>());
+
 std::unique_ptr<facebook::fboss::TxPacket> makeTCPTxPacket(
     const HwSwitch* hw,
     std::optional<VlanID> vlan,
