@@ -48,7 +48,6 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::LINK_STATE_BASED_ISOLATE:
     case HwAsic::Feature::SAI_CONFIGURE_SIX_TAP:
     case HwAsic::Feature::DRAM_ENQUEUE_DEQUEUE_STATS:
-    case HwAsic::Feature::DEBUG_COUNTER:
     case HwAsic::Feature::CREDIT_WATCHDOG:
     case HwAsic::Feature::RESOURCE_USAGE_STATS:
       return true;
@@ -82,6 +81,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ACL_COPY_TO_CPU:
     case HwAsic::Feature::ACL_COUNTER_LABEL:
     case HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE:
+    case HwAsic::Feature::DEBUG_COUNTER:
       return getAsicMode() == AsicMode::ASIC_MODE_SIM;
     // SIM specific features.
     case HwAsic::Feature::SAI_PORT_ETHER_STATS:
