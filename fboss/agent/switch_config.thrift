@@ -542,6 +542,7 @@ struct AclTable {
   3: list<AclEntry> aclEntries = [];
   4: list<AclTableActionType> actionTypes = [];
   5: list<AclTableQualifier> qualifiers = [];
+  6: optional i32 chainGroupId;
 }
 
 enum AclStage {
