@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/Ethertype.h"
 #include "fboss/agent/types.h"
@@ -10,8 +11,8 @@
 #include "fboss/agent/packet/IPv4Hdr.h"
 #include "fboss/agent/packet/IPv6Hdr.h"
 #include "fboss/agent/packet/MPLSHdr.h"
+#include "fboss/agent/packet/TCPPacket.h"
 #include "fboss/agent/packet/UDPDatagram.h"
-#include "fboss/agent/packet/UDPHeader.h"
 
 #include <optional>
 
@@ -34,37 +35,26 @@ class IPPacket {
   // set header fields, useful to construct TxPacket
   explicit IPPacket(const HdrT& hdr) : hdr_{hdr} {}
 
-  IPPacket(const HdrT& hdr, UDPDatagram payload)
+  IPPacket(const HdrT& hdr, const UDPDatagram& payload)
       : hdr_{hdr}, udpPayLoad_(payload) {
-    if constexpr (std::is_same_v<HdrT, IPv4Hdr>) {
-      hdr_.version = 4;
-      hdr_.length = length();
-      if (!hdr_.ttl) {
-        hdr_.ttl = 128;
-      }
-      hdr_.ihl = (5 > hdr_.ihl) ? 5 : hdr_.ihl;
-      hdr_.computeChecksum();
-      hdr_.protocol = 17; /* udp */
-    } else {
-      hdr_.version = 6;
-      hdr_.payloadLength = udpPayLoad_->length();
-      if (!hdr_.hopLimit) {
-        hdr_.hopLimit = 128;
-      }
-      hdr_.nextHeader = 17; /* udp */
-    }
+    fillIPHdr();
   }
-
+  IPPacket(const HdrT& hdr, const TCPPacket& payload)
+      : hdr_{hdr}, tcpPayLoad_(payload) {
+    fillIPHdr();
+  }
   size_t length() const {
-    return hdr_.size() + (udpPayLoad_ ? udpPayLoad_->length() : 0);
+    return hdr_.size() + payloadLength();
   }
-
   HdrT header() const {
     return hdr_;
   }
 
-  std::optional<UDPDatagram> payload() const {
+  const std::optional<UDPDatagram>& payload() const {
     return udpPayLoad_;
+  }
+  const std::optional<TCPPacket>& tcpPayload() const {
+    return tcpPayLoad_;
   }
 
   // construct TxPacket by encapsulating udp payload
@@ -82,10 +72,48 @@ class IPPacket {
   std::string toString() const;
 
  private:
+  size_t payloadLength() const {
+    if (udpPayLoad_) {
+      return udpPayLoad_->length();
+    } else if (tcpPayLoad_) {
+      return tcpPayLoad_->length();
+    }
+    return 0;
+  }
+
+  size_t protocol() const {
+    if (udpPayLoad_) {
+      return 17;
+    } else if (tcpPayLoad_) {
+      return 6;
+    }
+    throw FbossError("No payload set");
+  }
+
+  void fillIPHdr() {
+    if constexpr (std::is_same_v<HdrT, IPv4Hdr>) {
+      hdr_.version = 4;
+      hdr_.length = length();
+      hdr_.ihl = (5 > hdr_.ihl) ? 5 : hdr_.ihl;
+      if (!hdr_.ttl) {
+        hdr_.ttl = 128;
+      }
+      hdr_.computeChecksum();
+      hdr_.protocol = protocol();
+    } else {
+      hdr_.version = 6;
+      hdr_.payloadLength = payloadLength();
+      if (!hdr_.hopLimit) {
+        hdr_.hopLimit = 128;
+      }
+      hdr_.nextHeader = protocol();
+    }
+  }
+
   void setUDPCheckSum(folly::IOBuf* buffer) const;
   HdrT hdr_;
   std::optional<UDPDatagram> udpPayLoad_;
-  // TODO: support TCP segment
+  std::optional<TCPPacket> tcpPayLoad_;
 };
 
 template <typename AddrT>
