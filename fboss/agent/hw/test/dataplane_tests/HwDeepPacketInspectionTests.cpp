@@ -7,6 +7,7 @@
 #include "fboss/agent/hw/test/HwTestPacketSnooper.h"
 #include "fboss/agent/hw/test/HwTestPacketTrapEntry.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/lib/CommonUtils.h"
@@ -15,11 +16,13 @@ namespace facebook::fboss {
 class HwDeepPacketInspectionTest : public HwLinkStateDependentTest {
  public:
   cfg::SwitchConfig initialConfig() const override {
-    return utility::onePortPerInterfaceConfig(
+    auto config = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         masterLogicalPortIds(),
         getAsic()->desiredLoopbackModes(),
         true /*interfaceHasSubnet*/);
+    utility::addOlympicQosMaps(config, getAsic());
+    return config;
   }
 
  protected:
