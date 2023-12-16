@@ -12,6 +12,11 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/lib/CommonUtils.h"
 
+namespace {
+static folly::IPAddressV6 kSrcIp() {
+  return folly::IPAddressV6("1::1");
+}
+} // namespace
 namespace facebook::fboss {
 class HwDeepPacketInspectionTest : public HwLinkStateDependentTest {
  public:
@@ -26,19 +31,22 @@ class HwDeepPacketInspectionTest : public HwLinkStateDependentTest {
   }
 
  protected:
-  std::unique_ptr<TxPacket> makePacket(
+  utility::EcmpSetupAnyNPorts6 ecmpHelper() const {
+    return utility::EcmpSetupAnyNPorts6(getProgrammedState());
+  }
+  PortDescriptor kPort() const {
+    return ecmpHelper().ecmpPortDescriptorAt(0);
+  }
+  std::unique_ptr<TxPacket> makeUdpPacket(
       const folly::IPAddressV6& dstIp,
       std::optional<std::vector<uint8_t>> payload =
           std::optional<std::vector<uint8_t>>()) {
-    folly::IPAddressV6 kSrcIp("1::1");
-    const auto srcMac = utility::kLocalCpuMac();
-    const auto dstMac = utility::kLocalCpuMac();
     auto txPacket = utility::makeUDPTxPacket(
         getHwSwitch(),
         std::nullopt, // vlanID
-        srcMac,
-        dstMac,
-        kSrcIp,
+        utility::kLocalCpuMac(),
+        utility::kLocalCpuMac(),
+        kSrcIp(),
         dstIp,
         8000, // l4 src port
         8001, // l4 dst port
@@ -47,22 +55,35 @@ class HwDeepPacketInspectionTest : public HwLinkStateDependentTest {
         payload);
     return txPacket;
   }
-  int sendPacket(
+  void sendPacketAndVerify(
       std::unique_ptr<TxPacket> txPacket,
       std::optional<PortID> frontPanelPort) {
-    size_t txPacketSize = txPacket->buf()->length();
-
     XLOG(DBG5) << "\n"
                << folly::hexDump(
                       txPacket->buf()->data(), txPacket->buf()->length());
+    HwTestPacketTrapEntry trapEntry(getHwSwitch(), kPort().phyPortID());
+    auto nhopMac = ecmpHelper().nhop(0).mac;
+    auto switchType = getHwSwitch()->getSwitchType();
 
+    auto ethFrame = switchType == cfg::SwitchType::VOQ
+        ? utility::makeEthFrame(*txPacket, nhopMac)
+        : utility::makeEthFrame(
+              *txPacket,
+              nhopMac,
+              utility::getIngressVlan(
+                  getProgrammedState(), kPort().phyPortID()));
+
+    HwTestPacketSnooper snooper(getHwSwitchEnsemble(), std::nullopt, ethFrame);
     if (frontPanelPort.has_value()) {
       getHwSwitch()->sendPacketOutOfPortAsync(
           std::move(txPacket), *frontPanelPort);
     } else {
       getHwSwitch()->sendPacketSwitchedAsync(std::move(txPacket));
     }
-    return txPacketSize;
+    WITH_RETRIES({
+      auto frameRx = snooper.waitForPacket(1);
+      EXPECT_EVENTUALLY_TRUE(frameRx.has_value());
+    });
   }
 
  private:
@@ -72,33 +93,14 @@ class HwDeepPacketInspectionTest : public HwLinkStateDependentTest {
 };
 
 TEST_F(HwDeepPacketInspectionTest, l3ForwardedPkt) {
-  utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
-  const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
-  auto setup = [this, kPort, &ecmpHelper]() {
-    applyNewState(ecmpHelper.resolveNextHops(getProgrammedState(), {kPort}));
+  auto setup = [this]() {
+    applyNewState(
+        ecmpHelper().resolveNextHops(getProgrammedState(), {kPort()}));
   };
-  auto verify = [this, kPort, &ecmpHelper]() {
-    auto ensemble = getHwSwitchEnsemble();
-    auto entry = std::make_unique<HwTestPacketTrapEntry>(
-        ensemble->getHwSwitch(), kPort.phyPortID());
-    auto frontPanelPort = ecmpHelper.ecmpPortDescriptorAt(1).phyPortID();
-    auto txPacket = makePacket(ecmpHelper.ip(kPort));
-    auto nhopMac = ecmpHelper.nhop(0).mac;
-    auto switchType = ensemble->getHwSwitch()->getSwitchType();
-    auto ethFrame = switchType == cfg::SwitchType::VOQ
-        ? utility::makeEthFrame(*txPacket, nhopMac)
-        : utility::makeEthFrame(
-              *txPacket,
-              nhopMac,
-              utility::getIngressVlan(getProgrammedState(), kPort.phyPortID()));
-
-    auto snooper =
-        std::make_unique<HwTestPacketSnooper>(ensemble, std::nullopt, ethFrame);
-    sendPacket(std::move(txPacket), frontPanelPort);
-    WITH_RETRIES({
-      auto frameRx = snooper->waitForPacket(1);
-      EXPECT_EVENTUALLY_TRUE(frameRx.has_value());
-    });
+  auto verify = [this]() {
+    auto frontPanelPort = ecmpHelper().ecmpPortDescriptorAt(1).phyPortID();
+    auto txPacket = makeUdpPacket(ecmpHelper().ip(kPort()));
+    sendPacketAndVerify(std::move(txPacket), frontPanelPort);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
