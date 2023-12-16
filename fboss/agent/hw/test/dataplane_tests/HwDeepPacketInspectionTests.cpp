@@ -37,24 +37,37 @@ class HwDeepPacketInspectionTest : public HwLinkStateDependentTest {
   PortDescriptor kPort() const {
     return ecmpHelper().ecmpPortDescriptorAt(0);
   }
-  std::unique_ptr<TxPacket> makeUdpPacket(
+  std::unique_ptr<TxPacket> makePacket(
+      bool tcp,
       const folly::IPAddressV6& dstIp,
       std::optional<std::vector<uint8_t>> payload =
           std::optional<std::vector<uint8_t>>()) {
-    auto txPacket = utility::makeUDPTxPacket(
-        getHwSwitch(),
-        utility::firstVlanID(getProgrammedState()),
-        utility::kLocalCpuMac(),
-        utility::kLocalCpuMac(),
-        kSrcIp(),
-        dstIp,
-        8000, // l4 src port
-        8001, // l4 dst port
-        0x24 << 2, // dscp
-        255, // hopLimit
-        payload);
-    return txPacket;
+    return tcp ? utility::makeTCPTxPacket(
+                     getHwSwitch(),
+                     utility::firstVlanID(getProgrammedState()),
+                     utility::kLocalCpuMac(),
+                     utility::kLocalCpuMac(),
+                     kSrcIp(),
+                     dstIp,
+                     8000, // l4 src port
+                     8001, // l4 dst port
+                     0x24 << 2, // dscp
+                     255, // hopLimit
+                     payload)
+               : utility::makeUDPTxPacket(
+                     getHwSwitch(),
+                     utility::firstVlanID(getProgrammedState()),
+                     utility::kLocalCpuMac(),
+                     utility::kLocalCpuMac(),
+                     kSrcIp(),
+                     dstIp,
+                     8000, // l4 src port
+                     8001, // l4 dst port
+                     0x24 << 2, // dscp
+                     255, // hopLimit
+                     payload);
   }
+
   void sendPacketAndVerify(
       std::unique_ptr<TxPacket> txPacket,
       std::optional<PortID> frontPanelPort) {
@@ -100,11 +113,13 @@ TEST_F(HwDeepPacketInspectionTest, l3ForwardedPkt) {
   auto verify = [this]() {
     std::optional<PortID> frontPanelPort =
         ecmpHelper().ecmpPortDescriptorAt(1).phyPortID();
-    for (auto frontPanel : {true, false}) {
-      std::optional<PortID> outOfPort =
-          frontPanel ? frontPanelPort : std::nullopt;
-      auto txPacket = makeUdpPacket(ecmpHelper().ip(kPort()));
-      sendPacketAndVerify(std::move(txPacket), outOfPort);
+    for (bool isTcp : {true, false}) {
+      for (bool isFrontPanel : {true, false}) {
+        std::optional<PortID> outOfPort =
+            isFrontPanel ? frontPanelPort : std::nullopt;
+        auto txPacket = makePacket(isTcp, ecmpHelper().ip(kPort()));
+        sendPacketAndVerify(std::move(txPacket), outOfPort);
+      }
     }
   };
   verifyAcrossWarmBoots(setup, verify);
