@@ -2127,6 +2127,20 @@ void SaiSwitch::initTxReadyStatusChangeLocked(
     auto& switchApi = SaiApiTable::getInstance()->switchApi();
     switchApi.registerTxReadyStatusChangeCallback(
         saiSwitchId_, __gTxReadyStatusChangeNotification);
+
+    /*
+     * If we query/process before registering the callback, then callbacks
+     * after we query/process but before we register the callback could get
+     * lost.
+     *
+     * Thus, query the initial state and process after registering the
+     * callback.
+     *
+     * Moreover, query/process in the same context that registers/processes
+     * callback to guarantee that we don't miss any callbacks and those are
+     * always ordered.
+     */
+    txReadyStatusChangeCallbackBottomHalf();
   });
 #endif
 }
