@@ -33,7 +33,7 @@ IPPacket<AddrT>::IPPacket(folly::io::Cursor& cursor) {
     // if proto is udp, encapsulate udp
     udpPayLoad_ = UDPDatagram(cursor);
   } else if (nextHeader(hdr_) == static_cast<uint8_t>(IP_PROTO::IP_PROTO_TCP)) {
-    tcpPayLoad_ = TCPPacket(cursor, cursor.totalLength());
+    tcpPayLoad_ = TCPPacket(cursor, hdr_.payloadSize());
   }
 }
 
