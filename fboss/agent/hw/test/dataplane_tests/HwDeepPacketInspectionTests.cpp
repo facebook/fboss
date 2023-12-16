@@ -98,9 +98,14 @@ TEST_F(HwDeepPacketInspectionTest, l3ForwardedPkt) {
         ecmpHelper().resolveNextHops(getProgrammedState(), {kPort()}));
   };
   auto verify = [this]() {
-    auto frontPanelPort = ecmpHelper().ecmpPortDescriptorAt(1).phyPortID();
-    auto txPacket = makeUdpPacket(ecmpHelper().ip(kPort()));
-    sendPacketAndVerify(std::move(txPacket), frontPanelPort);
+    std::optional<PortID> frontPanelPort =
+        ecmpHelper().ecmpPortDescriptorAt(1).phyPortID();
+    for (auto frontPanel : {true, false}) {
+      std::optional<PortID> outOfPort =
+          frontPanel ? frontPanelPort : std::nullopt;
+      auto txPacket = makeUdpPacket(ecmpHelper().ip(kPort()));
+      sendPacketAndVerify(std::move(txPacket), outOfPort);
+    }
   };
   verifyAcrossWarmBoots(setup, verify);
 }
