@@ -84,7 +84,8 @@ template <typename AddrT>
 std::string IPPacket<AddrT>::toString() const {
   std::stringstream ss;
   ss << "IP hdr: " << hdr_
-     << " UDP : " << (udpPayLoad_.has_value() ? udpPayLoad_->toString() : "");
+     << " UDP : " << (udpPayLoad_.has_value() ? udpPayLoad_->toString() : "")
+     << " TCP: " << (tcpPayLoad_.has_value() ? tcpPayLoad_->toString() : "");
   return ss.str();
 }
 

@@ -116,8 +116,8 @@ string TCPHeader::toString() const {
   stringstream ss;
   ss << " Source port: " << srcPort << " Destination port: " << dstPort
      << " Seq Num: " << sequenceNumber << " Ack Num: " << ackNumber
-     << " Data offset and reserved: " << dataOffsetAndReserved
-     << " flags: " << flags << " Checksum: " << csum
+     << " Data offset and reserved: " << (int)dataOffsetAndReserved
+     << " flags: " << (int)flags << " Checksum: " << csum
      << " Urgent pointer: " << urgentPointer;
   return ss.str();
 }
