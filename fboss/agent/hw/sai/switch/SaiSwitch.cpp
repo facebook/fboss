@@ -74,6 +74,7 @@
 
 #include <folly/logging/xlog.h>
 
+#include <boost/range/combine.hpp>
 #include <chrono>
 #include <optional>
 
@@ -1784,7 +1785,54 @@ void SaiSwitch::txReadyStatusChangeCallbackTopHalf(SwitchSaiId switchId) {
 }
 
 void SaiSwitch::txReadyStatusChangeCallbackBottomHalf() {
+#if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
+  std::vector<SaiPortTraits::AdapterKey> adapterKeys;
+  for (const auto& [portSaiId, portInfo] :
+       concurrentIndices_->portSaiId2PortInfo) {
+    const auto& [portID, portType] = portInfo;
+    if (portType == cfg::PortType::FABRIC_PORT) {
+      adapterKeys.emplace_back(portSaiId);
+    }
+  }
+
+  auto& portApi = SaiApiTable::getInstance()->portApi();
+  std::vector<SaiPortTraits::Attributes::TxReadyStatus> txReadyStatuses(
+      adapterKeys.size());
+  auto txReadyStatusesGot =
+      portApi.bulkGetAttributes(adapterKeys, txReadyStatuses);
+  if (adapterKeys.size() != txReadyStatusesGot.size()) {
+    XLOG(ERR) << "TX Ready status queried for " << adapterKeys.size()
+              << " Fabric ports; query returned status for: "
+              << txReadyStatusesGot.size();
+    return;
+  }
+
+  auto numActiveFabricLinks = 0, numInactiveFabricLinks = 0;
+  for (auto tuple : boost::combine(adapterKeys, txReadyStatusesGot)) {
+    auto portSaiId = tuple.get<0>();
+    auto txReadyStatus = tuple.get<1>();
+
+    XLOG(DBG4) << "Fabric Port ID: " << std::hex << static_cast<long>(portSaiId)
+               << std::dec
+               << (txReadyStatus == SAI_PORT_HOST_TX_READY_STATUS_NOT_READY
+                       ? " Inactive"
+                       : " Active");
+    if (txReadyStatus == SAI_PORT_HOST_TX_READY_STATUS_NOT_READY) {
+      numInactiveFabricLinks++;
+    } else {
+      numActiveFabricLinks++;
+    }
+  }
+
+  XLOG(DBG2)
+      << "TX Ready status changed callback received:: NumActiveFabricLinks: "
+      << numActiveFabricLinks
+      << " NumInactiveFabricLinks: " << numInactiveFabricLinks;
+
   // TODO
+  // Pass per port Active/Inactive link to SwSwitch, so SwSwitch can decide
+  // to isolate/unisolate.
+#endif
 }
 
 BootType SaiSwitch::getBootType() const {
