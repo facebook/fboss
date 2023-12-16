@@ -43,7 +43,7 @@ class HwDeepPacketInspectionTest : public HwLinkStateDependentTest {
           std::optional<std::vector<uint8_t>>()) {
     auto txPacket = utility::makeUDPTxPacket(
         getHwSwitch(),
-        std::nullopt, // vlanID
+        utility::firstVlanID(getProgrammedState()),
         utility::kLocalCpuMac(),
         utility::kLocalCpuMac(),
         kSrcIp(),
