@@ -21,12 +21,20 @@ extern "C" {
 namespace facebook::fboss {
 
 struct ConcurrentIndices {
+  struct PortInfo {
+    PortID portID;
+    cfg::PortType portType;
+
+    PortInfo(PortID portID, cfg::PortType portType)
+        : portID(portID), portType(portType){};
+  };
+
   ~ConcurrentIndices();
   /*
    * portIds and vlanIds are read by rx packet processing
    * and modified by port/vlan updates
    */
-  folly::ConcurrentHashMap<PortSaiId, PortID> portIds;
+  folly::ConcurrentHashMap<PortSaiId, PortInfo> portSaiId2PortInfo;
   // indexed by port sai id(or lag sai id), not vlan sai id, until sai
   // callback supports punt with vlan id in either an attribute
   // or the frame itself

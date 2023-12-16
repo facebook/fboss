@@ -16,12 +16,12 @@
 
 namespace facebook::fboss {
 void SaiSwitch::updateStatsImpl() {
-  auto portsIter = concurrentIndices_->portIds.begin();
-  while (portsIter != concurrentIndices_->portIds.end()) {
+  auto portsIter = concurrentIndices_->portSaiId2PortInfo.begin();
+  while (portsIter != concurrentIndices_->portSaiId2PortInfo.end()) {
     {
       std::lock_guard<std::mutex> locked(saiSwitchMutex_);
       managerTable_->portManager().updateStats(
-          portsIter->second, false /*updateWatermarks*/);
+          portsIter->second.portID, false /*updateWatermarks*/);
     }
     ++portsIter;
   }

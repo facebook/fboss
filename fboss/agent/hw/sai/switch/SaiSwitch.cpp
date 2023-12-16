@@ -1677,15 +1677,15 @@ void SaiSwitch::linkStateChangedCallbackBottomHalf(
     bool up = operStatus[i].port_state == SAI_PORT_OPER_STATUS_UP;
 
     // Look up SwitchState PortID by port sai id in ConcurrentIndices
-    const auto portItr =
-        concurrentIndices_->portIds.find(PortSaiId(operStatus[i].port_id));
-    if (portItr == concurrentIndices_->portIds.cend()) {
+    const auto portItr = concurrentIndices_->portSaiId2PortInfo.find(
+        PortSaiId(operStatus[i].port_id));
+    if (portItr == concurrentIndices_->portSaiId2PortInfo.cend()) {
       XLOG(WARNING)
           << "received port notification for port with unknown sai id: "
           << operStatus[i].port_id;
       continue;
     }
-    PortID swPortId = portItr->second;
+    PortID swPortId = portItr->second.portID;
 
     std::optional<AggregatePortID> swAggPort{};
     const auto aggrItr = concurrentIndices_->memberPort2AggregatePortIds.find(
@@ -2301,7 +2301,7 @@ void SaiSwitch::packetRxCallbackPort(
       VlanID(0),
       rxReason,
       queueId);
-  const auto portItr = concurrentIndices_->portIds.find(portSaiId);
+  const auto portItr = concurrentIndices_->portSaiId2PortInfo.find(portSaiId);
   /*
    * When a packet is received with source port as cpu port, do the following:
    * 1) Check if a packet has a vlan tag and only one tag. If the packet is
@@ -2323,7 +2323,7 @@ void SaiSwitch::packetRxCallbackPort(
         getSwitchType() == cfg::SwitchType::FABRIC)) {
     if (portSaiId == getCPUPortSaiId() ||
         (allowMissingSrcPort &&
-         portItr == concurrentIndices_->portIds.cend())) {
+         portItr == concurrentIndices_->portSaiId2PortInfo.cend())) {
       folly::io::Cursor cursor(rxPacket->buf());
       EthHdr ethHdr{cursor};
       auto vlanTags = ethHdr.getVlanTags();
@@ -2336,13 +2336,13 @@ void SaiSwitch::packetRxCallbackPort(
                   << "or multiple vlan tags: 0x" << std::hex << portSaiId;
         return;
       }
-    } else if (portItr == concurrentIndices_->portIds.cend()) {
+    } else if (portItr == concurrentIndices_->portSaiId2PortInfo.cend()) {
       // TODO: add counter to keep track of spurious rx packet
       XLOG(DBG) << "RX packet had port with unknown sai id: 0x" << std::hex
                 << portSaiId;
       return;
     } else {
-      swPortId = portItr->second;
+      swPortId = portItr->second.portID;
       const auto vlanItr =
           concurrentIndices_->vlanIds.find(PortDescriptorSaiId(portSaiId));
       if (vlanItr == concurrentIndices_->vlanIds.cend()) {
@@ -2354,13 +2354,13 @@ void SaiSwitch::packetRxCallbackPort(
     }
   } else { // VOQ / FABRIC
     if (portSaiId != getCPUPortSaiId()) {
-      if (portItr == concurrentIndices_->portIds.cend()) {
+      if (portItr == concurrentIndices_->portSaiId2PortInfo.cend()) {
         // TODO: add counter to keep track of spurious rx packet
         XLOG(ERR) << "RX packet had port with unknown sai id: 0x" << std::hex
                   << portSaiId;
         return;
       } else {
-        swPortId = portItr->second;
+        swPortId = portItr->second.portID;
         XLOG(DBG6) << "VOQ RX packet with sai id: 0x" << std::hex << portSaiId
                    << " portID: " << swPortId;
       }
@@ -2415,13 +2415,14 @@ void SaiSwitch::packetRxCallbackLag(
   rxPacket->setSrcAggregatePort(swAggPortId);
   rxPacket->setSrcVlan(swVlanId);
 
-  auto swPortItr = concurrentIndices_->portIds.find(portSaiId);
-  if (swPortItr == concurrentIndices_->portIds.cend() && !allowMissingSrcPort) {
+  auto swPortItr = concurrentIndices_->portSaiId2PortInfo.find(portSaiId);
+  if (swPortItr == concurrentIndices_->portSaiId2PortInfo.cend() &&
+      !allowMissingSrcPort) {
     XLOG(ERR) << "RX packet for lag has invalid port : 0x" << std::hex
               << portSaiId;
     return;
   }
-  swPortId = swPortItr->second;
+  swPortId = swPortItr->second.portID;
   rxPacket->setSrcPort(swPortId);
   XLOG(DBG6) << "Rx packet on lag: " << swAggPortId << ", port: " << swPortId
              << " vlan: " << swVlanId
@@ -2956,10 +2957,10 @@ std::optional<L2Entry> SaiSwitch::getL2Entry(
   std::optional<PortDescriptor> portDesc{};
   switch (portDescSaiId.type()) {
     case PortDescriptorSaiId::PortType::PHYSICAL: {
-      auto portItr =
-          concurrentIndices_->portIds.find(portDescSaiId.phyPortID());
-      if (portItr != concurrentIndices_->portIds.end()) {
-        portDesc = PortDescriptor(portItr->second);
+      auto portItr = concurrentIndices_->portSaiId2PortInfo.find(
+          portDescSaiId.phyPortID());
+      if (portItr != concurrentIndices_->portSaiId2PortInfo.end()) {
+        portDesc = PortDescriptor(portItr->second.portID);
       }
     } break;
 
@@ -3420,13 +3421,13 @@ void SaiSwitch::pfcDeadlockNotificationCallback(
     uint8_t queueId,
     sai_queue_pfc_deadlock_event_type_t deadlockEvent,
     uint32_t /* count */) {
-  const auto portItr = concurrentIndices_->portIds.find(portSaiId);
-  if (portItr == concurrentIndices_->portIds.cend()) {
+  const auto portItr = concurrentIndices_->portSaiId2PortInfo.find(portSaiId);
+  if (portItr == concurrentIndices_->portSaiId2PortInfo.cend()) {
     XLOG(ERR) << "Unable to map Sai Port ID " << portSaiId
               << " in PFC deadlock notification processing to a valid port!";
     return;
   }
-  PortID portId = portItr->second;
+  PortID portId = portItr->second.portID;
   XLOG_EVERY_MS(WARNING, 5000)
       << "PFC deadlock notification callback invoked for qid: " << queueId
       << ", on port: " << portId << ", with event: " << deadlockEvent;

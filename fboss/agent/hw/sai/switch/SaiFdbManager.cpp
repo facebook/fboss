@@ -371,12 +371,12 @@ L2EntryThrift SaiFdbManager::fdbToL2Entry(
       BridgePortSaiId{bridgePortSaiId},
       SaiBridgePortTraits::Attributes::PortId{});
   const auto portItr =
-      concurrentIndices_->portIds.find(PortSaiId{portOrLagSaiId});
+      concurrentIndices_->portSaiId2PortInfo.find(PortSaiId{portOrLagSaiId});
   const auto lagItr =
       concurrentIndices_->aggregatePortIds.find(LagSaiId{portOrLagSaiId});
 
-  if (portItr != concurrentIndices_->portIds.cend()) {
-    entry.port() = portItr->second;
+  if (portItr != concurrentIndices_->portSaiId2PortInfo.cend()) {
+    entry.port() = portItr->second.portID;
   } else if (lagItr != concurrentIndices_->aggregatePortIds.cend()) {
     entry.trunk() = lagItr->second;
   } else {

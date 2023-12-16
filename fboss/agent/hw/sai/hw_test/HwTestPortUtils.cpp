@@ -30,13 +30,14 @@ void setPortLoopbackMode(
     PortID portId,
     cfg::PortLoopbackMode lbMode) {
   // Use concurrent indices to make this thread safe
-  const auto& portMapping =
-      static_cast<const SaiSwitch*>(hwSwitch)->concurrentIndices().portIds;
+  const auto& portMapping = static_cast<const SaiSwitch*>(hwSwitch)
+                                ->concurrentIndices()
+                                .portSaiId2PortInfo;
   // ConcurrentHashMap deletes copy constructor for its iterators, making it
   // impossible to use a std::find_if here. So rollout a ugly hand written loop
   auto portItr = portMapping.begin();
   for (; portItr != portMapping.end(); ++portItr) {
-    if (portItr->second == portId) {
+    if (portItr->second.portID == portId) {
       break;
     }
   }

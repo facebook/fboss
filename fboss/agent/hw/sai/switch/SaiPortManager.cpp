@@ -802,7 +802,9 @@ void SaiPortManager::programPfcBuffers(const std::shared_ptr<Port>& swPort) {
 PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
   setPortType(swPort->getID(), swPort->getPortType());
   auto portSaiId = addPortImpl(swPort);
-  concurrentIndices_->portIds.emplace(portSaiId, swPort->getID());
+  concurrentIndices_->portSaiId2PortInfo.emplace(
+      portSaiId,
+      ConcurrentIndices::PortInfo{swPort->getID(), swPort->getPortType()});
   concurrentIndices_->portSaiIds.emplace(swPort->getID(), portSaiId);
   concurrentIndices_->vlanIds.emplace(
       PortDescriptorSaiId(portSaiId), swPort->getIngressVlan());
@@ -919,7 +921,7 @@ void SaiPortManager::removePort(const std::shared_ptr<Port>& swPort) {
   removePfc(swPort);
   clearQosPolicy(swId);
 
-  concurrentIndices_->portIds.erase(itr->second->port->adapterKey());
+  concurrentIndices_->portSaiId2PortInfo.erase(itr->second->port->adapterKey());
   concurrentIndices_->portSaiIds.erase(swId);
   concurrentIndices_->vlanIds.erase(
       PortDescriptorSaiId(itr->second->port->adapterKey()));

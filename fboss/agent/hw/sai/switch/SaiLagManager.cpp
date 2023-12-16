@@ -223,9 +223,9 @@ void SaiLagManager::removeLagHandle(
   while (!handle->members.empty()) {
     auto membersIter = handle->members.begin();
     auto portSaiId = membersIter->first;
-    auto iter = concurrentIndices_->portIds.find(portSaiId);
-    CHECK(iter != concurrentIndices_->portIds.end());
-    removeMember(aggPort, iter->second);
+    auto iter = concurrentIndices_->portSaiId2PortInfo.find(portSaiId);
+    CHECK(iter != concurrentIndices_->portSaiId2PortInfo.end());
+    removeMember(aggPort, iter->second.portID);
   }
   // remove bridge port
   handle->bridgePort.reset();
@@ -333,12 +333,12 @@ void SaiLagManager::updateStats(AggregatePortID aggPort) {
   auto* handle = getLagHandle(aggPort);
   for (auto member : handle->members) {
     auto portSaiId = member.first;
-    auto portIdsIter = concurrentIndices_->portIds.find(portSaiId);
-    if (portIdsIter == concurrentIndices_->portIds.end()) {
+    auto portIdsIter = concurrentIndices_->portSaiId2PortInfo.find(portSaiId);
+    if (portIdsIter == concurrentIndices_->portSaiId2PortInfo.end()) {
       continue;
     }
-    auto fb303Stats =
-        managerTable_->portManager().getLastPortStat(portIdsIter->second);
+    auto fb303Stats = managerTable_->portManager().getLastPortStat(
+        portIdsIter->second.portID);
     if (!fb303Stats) {
       continue;
     }
