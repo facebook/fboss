@@ -379,7 +379,8 @@ class HwCoppTest : public HwLinkStateDependentTest {
       const int l4DstPort,
       const std::optional<folly::MacAddress>& dstMac = std::nullopt,
       uint8_t trafficClass = 0,
-      std::optional<std::vector<uint8_t>> payload = std::nullopt) {
+      std::optional<std::vector<uint8_t>> payload = std::nullopt,
+      bool expectQueueHit = true) {
     const auto kNumPktsToSend = 1;
     auto sendPkt = [=, this]() {
       sendTcpPkts(
@@ -392,7 +393,7 @@ class HwCoppTest : public HwLinkStateDependentTest {
           payload);
     };
     utility::sendPktAndVerifyCpuQueue(
-        getHwSwitch(), queueId, sendPkt, kNumPktsToSend);
+        getHwSwitch(), queueId, sendPkt, expectQueueHit ? kNumPktsToSend : 0);
   }
 
   void sendPktAndVerifyEthPacketsCpuQueue(
@@ -1088,7 +1089,9 @@ TYPED_TEST(HwCoppTest, DstIpNetworkControlDscpToHighPriQ) {
         utility::kNonSpecialPort1,
         utility::kNonSpecialPort2,
         std::nullopt,
-        kNetworkControlDscp);
+        kNetworkControlDscp,
+        std::nullopt,
+        false /*expectQueueHit*/);
   };
 
   this->verifyAcrossWarmBoots(setup, verify);
