@@ -27,7 +27,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "resetHoldHi": 1
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_1",
+                  "sysfsPath": "/run/devmap/cplds/TAHAN_SMB_CPLD/xcvr_present_1",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 1
@@ -62,7 +62,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "resetHoldHi": 1
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_2",
+                  "sysfsPath": "/run/devmap/cplds/TAHAN_SMB_CPLD/xcvr_present_2",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 1
@@ -97,7 +97,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "resetHoldHi": 1
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_3",
+                  "sysfsPath": "/run/devmap/cplds/TAHAN_SMB_CPLD/xcvr_present_3",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 1
@@ -132,7 +132,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "resetHoldHi": 1
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_4",
+                  "sysfsPath": "/run/devmap/cplds/TAHAN_SMB_CPLD/xcvr_present_4",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 1
@@ -167,7 +167,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "resetHoldHi": 1
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_5",
+                  "sysfsPath": "/run/devmap/cplds/TAHAN_SMB_CPLD/xcvr_present_5",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 1
@@ -202,7 +202,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "resetHoldHi": 1
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_6",
+                  "sysfsPath": "/run/devmap/cplds/TAHAN_SMB_CPLD/xcvr_present_6",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 1
@@ -237,7 +237,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "resetHoldHi": 1
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_7",
+                  "sysfsPath": "/run/devmap/cplds/TAHAN_SMB_CPLD/xcvr_present_7",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 1
@@ -272,7 +272,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "resetHoldHi": 1
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_8",
+                  "sysfsPath": "/run/devmap/cplds/TAHAN_SMB_CPLD/xcvr_present_8",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 1
@@ -307,7 +307,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "resetHoldHi": 1
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_9",
+                  "sysfsPath": "/run/devmap/cplds/TAHAN_SMB_CPLD/xcvr_present_9",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 1
@@ -342,7 +342,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "resetHoldHi": 1
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_10",
+                  "sysfsPath": "/run/devmap/cplds/TAHAN_SMB_CPLD/xcvr_present_10",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 1
@@ -377,7 +377,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "resetHoldHi": 1
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_11",
+                  "sysfsPath": "/run/devmap/cplds/TAHAN_SMB_CPLD/xcvr_present_11",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 1
@@ -412,7 +412,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "resetHoldHi": 1
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_12",
+                  "sysfsPath": "/run/devmap/cplds/TAHAN_SMB_CPLD/xcvr_present_12",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 1
@@ -447,7 +447,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "resetHoldHi": 1
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_13",
+                  "sysfsPath": "/run/devmap/cplds/TAHAN_SMB_CPLD/xcvr_present_13",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 1
@@ -482,7 +482,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "resetHoldHi": 1
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_14",
+                  "sysfsPath": "/run/devmap/cplds/TAHAN_SMB_CPLD/xcvr_present_14",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 1
@@ -517,7 +517,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "resetHoldHi": 1
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_15",
+                  "sysfsPath": "/run/devmap/cplds/TAHAN_SMB_CPLD/xcvr_present_15",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 1
@@ -552,7 +552,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "resetHoldHi": 1
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_16",
+                  "sysfsPath": "/run/devmap/cplds/TAHAN_SMB_CPLD/xcvr_present_16",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 1
@@ -587,7 +587,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "resetHoldHi": 1
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_17",
+                  "sysfsPath": "/run/devmap/cplds/TAHAN_SMB_CPLD/xcvr_present_17",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 1
@@ -622,7 +622,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "resetHoldHi": 1
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_18",
+                  "sysfsPath": "/run/devmap/cplds/TAHAN_SMB_CPLD/xcvr_present_18",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 1
@@ -657,7 +657,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "resetHoldHi": 1
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_19",
+                  "sysfsPath": "/run/devmap/cplds/TAHAN_SMB_CPLD/xcvr_present_19",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 1
@@ -692,7 +692,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "resetHoldHi": 1
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_20",
+                  "sysfsPath": "/run/devmap/cplds/TAHAN_SMB_CPLD/xcvr_present_20",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 1
@@ -727,7 +727,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "resetHoldHi": 1
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_21",
+                  "sysfsPath": "/run/devmap/cplds/TAHAN_SMB_CPLD/xcvr_present_21",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 1
@@ -762,7 +762,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "resetHoldHi": 1
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_22",
+                  "sysfsPath": "/run/devmap/cplds/TAHAN_SMB_CPLD/xcvr_present_22",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 1
@@ -797,7 +797,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "resetHoldHi": 1
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_23",
+                  "sysfsPath": "/run/devmap/cplds/TAHAN_SMB_CPLD/xcvr_present_23",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 1
@@ -832,7 +832,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "resetHoldHi": 1
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_24",
+                  "sysfsPath": "/run/devmap/cplds/TAHAN_SMB_CPLD/xcvr_present_24",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 1
@@ -867,7 +867,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "resetHoldHi": 1
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_25",
+                  "sysfsPath": "/run/devmap/cplds/TAHAN_SMB_CPLD/xcvr_present_25",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 1
@@ -902,7 +902,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "resetHoldHi": 1
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_26",
+                  "sysfsPath": "/run/devmap/cplds/TAHAN_SMB_CPLD/xcvr_present_26",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 1
@@ -937,7 +937,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "resetHoldHi": 1
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_27",
+                  "sysfsPath": "/run/devmap/cplds/TAHAN_SMB_CPLD/xcvr_present_27",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 1
@@ -972,7 +972,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "resetHoldHi": 1
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_28",
+                  "sysfsPath": "/run/devmap/cplds/TAHAN_SMB_CPLD/xcvr_present_28",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 1
@@ -1007,7 +1007,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "resetHoldHi": 1
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_29",
+                  "sysfsPath": "/run/devmap/cplds/TAHAN_SMB_CPLD/xcvr_present_29",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 1
@@ -1042,7 +1042,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "resetHoldHi": 1
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_30",
+                  "sysfsPath": "/run/devmap/cplds/TAHAN_SMB_CPLD/xcvr_present_30",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 1
@@ -1077,7 +1077,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "resetHoldHi": 1
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_31",
+                  "sysfsPath": "/run/devmap/cplds/TAHAN_SMB_CPLD/xcvr_present_31",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 1
@@ -1112,7 +1112,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "resetHoldHi": 1
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_32",
+                  "sysfsPath": "/run/devmap/cplds/TAHAN_SMB_CPLD/xcvr_present_32",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 1
@@ -1147,7 +1147,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                   "resetHoldHi": 1
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/cplds/SMB_CPLD/xcvr_present_33",
+                  "sysfsPath": "/run/devmap/cplds/TAHAN_SMB_CPLD/xcvr_present_33",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 1
@@ -1162,8 +1162,8 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "tcvrLaneToLedId": {
                 "1": 65,
                 "2": 65,
-                "3": 65,
-                "4": 65
+                "3": 66,
+                "4": 66
               }
           }
         },
@@ -1562,6 +1562,12 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
               "id": 65,
               "bluePath": "/sys/class/leds/port33_left:blue:status/brightness",
               "yellowPath": "/sys/class/leds/port33_left:yellow:status/brightness",
+              "transceiverId": 33
+          },
+          "66": {
+              "id": 66,
+              "bluePath": "/sys/class/leds/port33_right:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/port33_right:yellow:status/brightness",
               "transceiverId": 33
           }
         }
