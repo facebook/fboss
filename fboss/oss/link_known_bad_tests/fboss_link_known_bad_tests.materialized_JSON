@@ -1,341 +1,5 @@
 {
   "known_bad_tests": {
-    "darwin/bcm/asicsdk-6.5.24/6.5.24": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "darwin/bcm/asicsdk-6.5.24/6.5.24/physdk-credo-0.7.2/credo-0.7.2": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "darwin/bcm/asicsdk-6.5.24/6.5.26": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "darwin/bcm/asicsdk-6.5.24/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "darwin/bcm/asicsdk-6.5.24/6.5.28": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "darwin/bcm/asicsdk-6.5.24/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
     "darwin/bcm/asicsdk-6.5.26/6.5.26": [
         {
           "test_name_regex": "MacsecTest.*$"
@@ -393,6 +57,118 @@
         }
     ],
     "darwin/bcm/asicsdk-6.5.26/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
+        {
+          "test_name_regex": "MacsecTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecFsdbTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecStatTest.*$"
+        },
+        {
+          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "LinkTest.fabricLinkHealth$"
+        },
+        {
+          "test_name_regex": "Prbs.*$"
+        },
+        {
+          "test_name_regex": "LinkTest.xPhyInfoTest"
+        },
+        {
+          "test_name_regex": "PortStatsTest.xphySanity"
+        },
+        {
+          "test_name_regex": "PtpTests.verifyPtpTc.*$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
+        },
+        {
+          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
+        }
+    ],
+    "darwin/bcm/asicsdk-6.5.26/6.5.28": [
+        {
+          "test_name_regex": "MacsecTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecFsdbTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecStatTest.*$"
+        },
+        {
+          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "LinkTest.fabricLinkHealth$"
+        },
+        {
+          "test_name_regex": "Prbs.*$"
+        },
+        {
+          "test_name_regex": "LinkTest.xPhyInfoTest"
+        },
+        {
+          "test_name_regex": "PortStatsTest.xphySanity"
+        },
+        {
+          "test_name_regex": "PtpTests.verifyPtpTc.*$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
+        },
+        {
+          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
+        }
+    ],
+    "darwin/bcm/asicsdk-6.5.26/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -1168,342 +944,6 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "darwin_mix/bcm/asicsdk-6.5.24/6.5.24": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "darwin_mix/bcm/asicsdk-6.5.24/6.5.24/physdk-credo-0.7.2/credo-0.7.2": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "darwin_mix/bcm/asicsdk-6.5.24/6.5.26": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "darwin_mix/bcm/asicsdk-6.5.24/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "darwin_mix/bcm/asicsdk-6.5.24/6.5.28": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "darwin_mix/bcm/asicsdk-6.5.24/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
     "darwin_mix/bcm/asicsdk-6.5.26/6.5.26": [
         {
           "test_name_regex": "MacsecTest.*$"
@@ -1561,6 +1001,118 @@
         }
     ],
     "darwin_mix/bcm/asicsdk-6.5.26/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
+        {
+          "test_name_regex": "MacsecTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecFsdbTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecStatTest.*$"
+        },
+        {
+          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "LinkTest.fabricLinkHealth$"
+        },
+        {
+          "test_name_regex": "Prbs.*$"
+        },
+        {
+          "test_name_regex": "LinkTest.xPhyInfoTest"
+        },
+        {
+          "test_name_regex": "PortStatsTest.xphySanity"
+        },
+        {
+          "test_name_regex": "PtpTests.verifyPtpTc.*$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
+        },
+        {
+          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
+        }
+    ],
+    "darwin_mix/bcm/asicsdk-6.5.26/6.5.28": [
+        {
+          "test_name_regex": "MacsecTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecFsdbTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecStatTest.*$"
+        },
+        {
+          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "LinkTest.fabricLinkHealth$"
+        },
+        {
+          "test_name_regex": "Prbs.*$"
+        },
+        {
+          "test_name_regex": "LinkTest.xPhyInfoTest"
+        },
+        {
+          "test_name_regex": "PortStatsTest.xphySanity"
+        },
+        {
+          "test_name_regex": "PtpTests.verifyPtpTc.*$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
+        },
+        {
+          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
+        }
+    ],
+    "darwin_mix/bcm/asicsdk-6.5.26/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -2336,342 +1888,6 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "darwin_original/bcm/asicsdk-6.5.24/6.5.24": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "darwin_original/bcm/asicsdk-6.5.24/6.5.24/physdk-credo-0.7.2/credo-0.7.2": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "darwin_original/bcm/asicsdk-6.5.24/6.5.26": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "darwin_original/bcm/asicsdk-6.5.24/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "darwin_original/bcm/asicsdk-6.5.24/6.5.28": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "darwin_original/bcm/asicsdk-6.5.24/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
     "darwin_original/bcm/asicsdk-6.5.26/6.5.26": [
         {
           "test_name_regex": "MacsecTest.*$"
@@ -2729,6 +1945,118 @@
         }
     ],
     "darwin_original/bcm/asicsdk-6.5.26/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
+        {
+          "test_name_regex": "MacsecTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecFsdbTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecStatTest.*$"
+        },
+        {
+          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "LinkTest.fabricLinkHealth$"
+        },
+        {
+          "test_name_regex": "Prbs.*$"
+        },
+        {
+          "test_name_regex": "LinkTest.xPhyInfoTest"
+        },
+        {
+          "test_name_regex": "PortStatsTest.xphySanity"
+        },
+        {
+          "test_name_regex": "PtpTests.verifyPtpTc.*$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
+        },
+        {
+          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
+        }
+    ],
+    "darwin_original/bcm/asicsdk-6.5.26/6.5.28": [
+        {
+          "test_name_regex": "MacsecTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecFsdbTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecStatTest.*$"
+        },
+        {
+          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "LinkTest.fabricLinkHealth$"
+        },
+        {
+          "test_name_regex": "Prbs.*$"
+        },
+        {
+          "test_name_regex": "LinkTest.xPhyInfoTest"
+        },
+        {
+          "test_name_regex": "PortStatsTest.xphySanity"
+        },
+        {
+          "test_name_regex": "PtpTests.verifyPtpTc.*$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
+        },
+        {
+          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
+        }
+    ],
+    "darwin_original/bcm/asicsdk-6.5.26/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -3504,324 +2832,6 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "elbert_2x16Q_6x8DD/bcm/asicsdk-6.5.24/6.5.24": [
-        {
-          "test_name_regex": "warm_boot.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "MacsecTest.programCakIsHitless$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "elbert_2x16Q_6x8DD/bcm/asicsdk-6.5.24/6.5.24/physdk-credo-0.7.2/credo-0.7.2": [
-        {
-          "test_name_regex": "warm_boot.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "MacsecTest.programCakIsHitless$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "elbert_2x16Q_6x8DD/bcm/asicsdk-6.5.24/6.5.26": [
-        {
-          "test_name_regex": "warm_boot.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "MacsecTest.programCakIsHitless$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "elbert_2x16Q_6x8DD/bcm/asicsdk-6.5.24/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
-        {
-          "test_name_regex": "warm_boot.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "MacsecTest.programCakIsHitless$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "elbert_2x16Q_6x8DD/bcm/asicsdk-6.5.24/6.5.28": [
-        {
-          "test_name_regex": "warm_boot.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "MacsecTest.programCakIsHitless$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "elbert_2x16Q_6x8DD/bcm/asicsdk-6.5.24/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
-        {
-          "test_name_regex": "warm_boot.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "MacsecTest.programCakIsHitless$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
     "elbert_2x16Q_6x8DD/bcm/asicsdk-6.5.26/6.5.26": [
         {
           "test_name_regex": "warm_boot.*$"
@@ -3876,6 +2886,112 @@
         }
     ],
     "elbert_2x16Q_6x8DD/bcm/asicsdk-6.5.26/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
+        {
+          "test_name_regex": "warm_boot.*$"
+        },
+        {
+          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
+        },
+        {
+          "test_name_regex": "PortStatsTest.xphySanity"
+        },
+        {
+          "test_name_regex": "LinkTest.xPhyInfoTest"
+        },
+        {
+          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "LinkTest.fabricLinkHealth$"
+        },
+        {
+          "test_name_regex": "Prbs.*$"
+        },
+        {
+          "test_name_regex": "MacsecTest.programCakIsHitless$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
+        },
+        {
+          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
+        }
+    ],
+    "elbert_2x16Q_6x8DD/bcm/asicsdk-6.5.26/6.5.28": [
+        {
+          "test_name_regex": "warm_boot.*$"
+        },
+        {
+          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
+        },
+        {
+          "test_name_regex": "PortStatsTest.xphySanity"
+        },
+        {
+          "test_name_regex": "LinkTest.xPhyInfoTest"
+        },
+        {
+          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "LinkTest.fabricLinkHealth$"
+        },
+        {
+          "test_name_regex": "Prbs.*$"
+        },
+        {
+          "test_name_regex": "MacsecTest.programCakIsHitless$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
+        },
+        {
+          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
+        }
+    ],
+    "elbert_2x16Q_6x8DD/bcm/asicsdk-6.5.26/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "warm_boot.*$"
         },
@@ -4612,324 +3728,6 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "elbert_5x16Q_3x8DD/bcm/asicsdk-6.5.24/6.5.24": [
-        {
-          "test_name_regex": "warm_boot.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "MacsecTest.programCakIsHitless$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "elbert_5x16Q_3x8DD/bcm/asicsdk-6.5.24/6.5.24/physdk-credo-0.7.2/credo-0.7.2": [
-        {
-          "test_name_regex": "warm_boot.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "MacsecTest.programCakIsHitless$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "elbert_5x16Q_3x8DD/bcm/asicsdk-6.5.24/6.5.26": [
-        {
-          "test_name_regex": "warm_boot.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "MacsecTest.programCakIsHitless$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "elbert_5x16Q_3x8DD/bcm/asicsdk-6.5.24/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
-        {
-          "test_name_regex": "warm_boot.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "MacsecTest.programCakIsHitless$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "elbert_5x16Q_3x8DD/bcm/asicsdk-6.5.24/6.5.28": [
-        {
-          "test_name_regex": "warm_boot.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "MacsecTest.programCakIsHitless$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "elbert_5x16Q_3x8DD/bcm/asicsdk-6.5.24/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
-        {
-          "test_name_regex": "warm_boot.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "MacsecTest.programCakIsHitless$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
     "elbert_5x16Q_3x8DD/bcm/asicsdk-6.5.26/6.5.26": [
         {
           "test_name_regex": "warm_boot.*$"
@@ -4984,6 +3782,112 @@
         }
     ],
     "elbert_5x16Q_3x8DD/bcm/asicsdk-6.5.26/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
+        {
+          "test_name_regex": "warm_boot.*$"
+        },
+        {
+          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
+        },
+        {
+          "test_name_regex": "PortStatsTest.xphySanity"
+        },
+        {
+          "test_name_regex": "LinkTest.xPhyInfoTest"
+        },
+        {
+          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "LinkTest.fabricLinkHealth$"
+        },
+        {
+          "test_name_regex": "Prbs.*$"
+        },
+        {
+          "test_name_regex": "MacsecTest.programCakIsHitless$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
+        },
+        {
+          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
+        }
+    ],
+    "elbert_5x16Q_3x8DD/bcm/asicsdk-6.5.26/6.5.28": [
+        {
+          "test_name_regex": "warm_boot.*$"
+        },
+        {
+          "test_name_regex": "LinkTest.qsfpWarmbootIsHitLess$"
+        },
+        {
+          "test_name_regex": "PortStatsTest.xphySanity"
+        },
+        {
+          "test_name_regex": "LinkTest.xPhyInfoTest"
+        },
+        {
+          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "LinkTest.fabricLinkHealth$"
+        },
+        {
+          "test_name_regex": "Prbs.*$"
+        },
+        {
+          "test_name_regex": "MacsecTest.programCakIsHitless$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
+        },
+        {
+          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
+        }
+    ],
+    "elbert_5x16Q_3x8DD/bcm/asicsdk-6.5.26/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "warm_boot.*$"
         },
@@ -5720,396 +4624,6 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "elbert_8x16Q/bcm/asicsdk-6.5.24/6.5.24": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR1_100G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR1_100G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_200G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_400G.*$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "elbert_8x16Q/bcm/asicsdk-6.5.24/6.5.24/physdk-credo-0.7.2/credo-0.7.2": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR1_100G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR1_100G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_200G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_400G.*$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "elbert_8x16Q/bcm/asicsdk-6.5.24/6.5.26": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR1_100G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR1_100G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_200G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_400G.*$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "elbert_8x16Q/bcm/asicsdk-6.5.24/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR1_100G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR1_100G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_200G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_400G.*$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "elbert_8x16Q/bcm/asicsdk-6.5.24/6.5.28": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR1_100G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR1_100G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_200G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_400G.*$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "elbert_8x16Q/bcm/asicsdk-6.5.24/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR1_100G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR1_100G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_200G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_400G.*$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
     "elbert_8x16Q/bcm/asicsdk-6.5.26/6.5.26": [
         {
           "test_name_regex": "MacsecTest.*$"
@@ -6176,6 +4690,136 @@
         }
     ],
     "elbert_8x16Q/bcm/asicsdk-6.5.26/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
+        {
+          "test_name_regex": "MacsecTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecFsdbTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecStatTest.*$"
+        },
+        {
+          "test_name_regex": "PortStatsTest.xphySanity"
+        },
+        {
+          "test_name_regex": "LinkTest.xPhyInfoTest"
+        },
+        {
+          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "LinkTest.fabricLinkHealth$"
+        },
+        {
+          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
+        },
+        {
+          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
+        }
+    ],
+    "elbert_8x16Q/bcm/asicsdk-6.5.26/6.5.28": [
+        {
+          "test_name_regex": "MacsecTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecFsdbTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecStatTest.*$"
+        },
+        {
+          "test_name_regex": "PortStatsTest.xphySanity"
+        },
+        {
+          "test_name_regex": "LinkTest.xPhyInfoTest"
+        },
+        {
+          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "LinkTest.fabricLinkHealth$"
+        },
+        {
+          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
+        },
+        {
+          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
+        }
+    ],
+    "elbert_8x16Q/bcm/asicsdk-6.5.26/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -7044,306 +5688,6 @@
           "test_name_regex": "LacpTest.lacpFlap$"
         }
     ],
-    "fuji_5x16Q/bcm/asicsdk-6.5.24/6.5.24": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "fuji_5x16Q/bcm/asicsdk-6.5.24/6.5.24/physdk-barchetta2-5.2/barchetta2-5.2": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "fuji_5x16Q/bcm/asicsdk-6.5.24/6.5.26": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "fuji_5x16Q/bcm/asicsdk-6.5.24/6.5.26/physdk-barchetta2-5.2/barchetta2-5.2": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "fuji_5x16Q/bcm/asicsdk-6.5.24/6.5.28": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "fuji_5x16Q/bcm/asicsdk-6.5.24/6.5.28/physdk-barchetta2-5.2/barchetta2-5.2": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
     "fuji_5x16Q/bcm/asicsdk-6.5.26/6.5.26": [
         {
           "test_name_regex": "MacsecTest.*$"
@@ -7395,6 +5739,106 @@
         }
     ],
     "fuji_5x16Q/bcm/asicsdk-6.5.26/6.5.26/physdk-barchetta2-5.2/barchetta2-5.2": [
+        {
+          "test_name_regex": "MacsecTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecFsdbTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecStatTest.*$"
+        },
+        {
+          "test_name_regex": "PortStatsTest.xphySanity"
+        },
+        {
+          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "LinkTest.fabricLinkHealth$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
+        },
+        {
+          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
+        }
+    ],
+    "fuji_5x16Q/bcm/asicsdk-6.5.26/6.5.28": [
+        {
+          "test_name_regex": "MacsecTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecFsdbTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecStatTest.*$"
+        },
+        {
+          "test_name_regex": "PortStatsTest.xphySanity"
+        },
+        {
+          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "LinkTest.fabricLinkHealth$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
+        },
+        {
+          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
+        }
+    ],
+    "fuji_5x16Q/bcm/asicsdk-6.5.26/6.5.28/physdk-barchetta2-5.2/barchetta2-5.2": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -8092,306 +6536,6 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "fuji_8x16Q/bcm/asicsdk-6.5.24/6.5.24": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "fuji_8x16Q/bcm/asicsdk-6.5.24/6.5.24/physdk-barchetta2-5.2/barchetta2-5.2": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "fuji_8x16Q/bcm/asicsdk-6.5.24/6.5.26": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "fuji_8x16Q/bcm/asicsdk-6.5.24/6.5.26/physdk-barchetta2-5.2/barchetta2-5.2": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "fuji_8x16Q/bcm/asicsdk-6.5.24/6.5.28": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "fuji_8x16Q/bcm/asicsdk-6.5.24/6.5.28/physdk-barchetta2-5.2/barchetta2-5.2": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
     "fuji_8x16Q/bcm/asicsdk-6.5.26/6.5.26": [
         {
           "test_name_regex": "MacsecTest.*$"
@@ -8443,6 +6587,106 @@
         }
     ],
     "fuji_8x16Q/bcm/asicsdk-6.5.26/6.5.26/physdk-barchetta2-5.2/barchetta2-5.2": [
+        {
+          "test_name_regex": "MacsecTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecFsdbTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecStatTest.*$"
+        },
+        {
+          "test_name_regex": "PortStatsTest.xphySanity"
+        },
+        {
+          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "LinkTest.fabricLinkHealth$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
+        },
+        {
+          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
+        }
+    ],
+    "fuji_8x16Q/bcm/asicsdk-6.5.26/6.5.28": [
+        {
+          "test_name_regex": "MacsecTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecFsdbTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecStatTest.*$"
+        },
+        {
+          "test_name_regex": "PortStatsTest.xphySanity"
+        },
+        {
+          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "LinkTest.fabricLinkHealth$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
+        },
+        {
+          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
+        }
+    ],
+    "fuji_8x16Q/bcm/asicsdk-6.5.26/6.5.28/physdk-barchetta2-5.2/barchetta2-5.2": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -10952,288 +9196,6 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "minipack_7x16Q_1x16O/bcm/asicsdk-6.5.24/6.5.24": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "minipack_7x16Q_1x16O/bcm/asicsdk-6.5.24/6.5.24/physdk-millenio-5.5/millenio-5.5": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "minipack_7x16Q_1x16O/bcm/asicsdk-6.5.24/6.5.26": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "minipack_7x16Q_1x16O/bcm/asicsdk-6.5.24/6.5.26/physdk-millenio-5.5/millenio-5.5": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "minipack_7x16Q_1x16O/bcm/asicsdk-6.5.24/6.5.28": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "minipack_7x16Q_1x16O/bcm/asicsdk-6.5.24/6.5.28/physdk-millenio-5.5/millenio-5.5": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
     "minipack_7x16Q_1x16O/bcm/asicsdk-6.5.26/6.5.26": [
         {
           "test_name_regex": "MacsecTest.*$"
@@ -11282,6 +9244,100 @@
         }
     ],
     "minipack_7x16Q_1x16O/bcm/asicsdk-6.5.26/6.5.26/physdk-millenio-5.5/millenio-5.5": [
+        {
+          "test_name_regex": "MacsecTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecFsdbTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecStatTest.*$"
+        },
+        {
+          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "LinkTest.fabricLinkHealth$"
+        },
+        {
+          "test_name_regex": "Prbs.*$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
+        },
+        {
+          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
+        }
+    ],
+    "minipack_7x16Q_1x16O/bcm/asicsdk-6.5.26/6.5.28": [
+        {
+          "test_name_regex": "MacsecTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecFsdbTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecStatTest.*$"
+        },
+        {
+          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "LinkTest.fabricLinkHealth$"
+        },
+        {
+          "test_name_regex": "Prbs.*$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
+        },
+        {
+          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
+        }
+    ],
+    "minipack_7x16Q_1x16O/bcm/asicsdk-6.5.26/6.5.28/physdk-millenio-5.5/millenio-5.5": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -11940,342 +9996,6 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "montblanc/bcm/asicsdk-6.5.24/6.5.24": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "montblanc/bcm/asicsdk-6.5.24/6.5.24/physdk-credo-0.7.2/credo-0.7.2": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "montblanc/bcm/asicsdk-6.5.24/6.5.26": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "montblanc/bcm/asicsdk-6.5.24/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "montblanc/bcm/asicsdk-6.5.24/6.5.28": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "montblanc/bcm/asicsdk-6.5.24/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
     "montblanc/bcm/asicsdk-6.5.26/6.5.26": [
         {
           "test_name_regex": "MacsecTest.*$"
@@ -12333,6 +10053,118 @@
         }
     ],
     "montblanc/bcm/asicsdk-6.5.26/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
+        {
+          "test_name_regex": "MacsecTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecFsdbTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecStatTest.*$"
+        },
+        {
+          "test_name_regex": "PortStatsTest.xphySanity"
+        },
+        {
+          "test_name_regex": "LinkTest.xPhyInfoTest"
+        },
+        {
+          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "LinkTest.fabricLinkHealth$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*$"
+        },
+        {
+          "test_name_regex": "PtpTests.verifyPtpTc.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
+        },
+        {
+          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
+        }
+    ],
+    "montblanc/bcm/asicsdk-6.5.26/6.5.28": [
+        {
+          "test_name_regex": "MacsecTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecFsdbTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecStatTest.*$"
+        },
+        {
+          "test_name_regex": "PortStatsTest.xphySanity"
+        },
+        {
+          "test_name_regex": "LinkTest.xPhyInfoTest"
+        },
+        {
+          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "LinkTest.fabricLinkHealth$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*$"
+        },
+        {
+          "test_name_regex": "PtpTests.verifyPtpTc.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
+        },
+        {
+          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
+        }
+    ],
+    "montblanc/bcm/asicsdk-6.5.26/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -13516,378 +11348,6 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "wedge100s/bcm/asicsdk-6.5.24/6.5.24": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable"
-        },
-        {
-          "test_name_regex": "LinkTest.getTransceivers"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "wedge100s/bcm/asicsdk-6.5.24/6.5.24/physdk-credo-0.7.2/credo-0.7.2": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable"
-        },
-        {
-          "test_name_regex": "LinkTest.getTransceivers"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "wedge100s/bcm/asicsdk-6.5.24/6.5.26": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable"
-        },
-        {
-          "test_name_regex": "LinkTest.getTransceivers"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "wedge100s/bcm/asicsdk-6.5.24/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable"
-        },
-        {
-          "test_name_regex": "LinkTest.getTransceivers"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "wedge100s/bcm/asicsdk-6.5.24/6.5.28": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable"
-        },
-        {
-          "test_name_regex": "LinkTest.getTransceivers"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "wedge100s/bcm/asicsdk-6.5.24/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable"
-        },
-        {
-          "test_name_regex": "LinkTest.getTransceivers"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation"
-        },
-        {
-          "test_name_regex": "Prbs.*$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
     "wedge100s/bcm/asicsdk-6.5.26/6.5.26": [
         {
           "test_name_regex": "MacsecTest.*$"
@@ -13951,6 +11411,130 @@
         }
     ],
     "wedge100s/bcm/asicsdk-6.5.26/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
+        {
+          "test_name_regex": "MacsecTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecFsdbTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecStatTest.*$"
+        },
+        {
+          "test_name_regex": "LinkTest.xPhyInfoTest"
+        },
+        {
+          "test_name_regex": "PortStatsTest.xphySanity"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable"
+        },
+        {
+          "test_name_regex": "LinkTest.getTransceivers"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation"
+        },
+        {
+          "test_name_regex": "Prbs.*$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "LinkTest.fabricLinkHealth$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
+        },
+        {
+          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
+        }
+    ],
+    "wedge100s/bcm/asicsdk-6.5.26/6.5.28": [
+        {
+          "test_name_regex": "MacsecTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecFsdbTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecStatTest.*$"
+        },
+        {
+          "test_name_regex": "LinkTest.xPhyInfoTest"
+        },
+        {
+          "test_name_regex": "PortStatsTest.xphySanity"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable"
+        },
+        {
+          "test_name_regex": "LinkTest.getTransceivers"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation"
+        },
+        {
+          "test_name_regex": "Prbs.*$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "LinkTest.fabricLinkHealth$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
+        },
+        {
+          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
+        }
+    ],
+    "wedge100s/bcm/asicsdk-6.5.26/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -14804,432 +12388,6 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "wedge400/bcm/asicsdk-6.5.24/6.5.24": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR1_100G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_200G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_400G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR1_100G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_200G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_400G.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "wedge400/bcm/asicsdk-6.5.24/6.5.24/physdk-credo-0.7.2/credo-0.7.2": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR1_100G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_200G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_400G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR1_100G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_200G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_400G.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "wedge400/bcm/asicsdk-6.5.24/6.5.26": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR1_100G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_200G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_400G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR1_100G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_200G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_400G.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "wedge400/bcm/asicsdk-6.5.24/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR1_100G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_200G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_400G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR1_100G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_200G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_400G.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "wedge400/bcm/asicsdk-6.5.24/6.5.28": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR1_100G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_200G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_400G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR1_100G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_200G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_400G.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "wedge400/bcm/asicsdk-6.5.24/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR1_100G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_200G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_400G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR1_100G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_200G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_400G.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.xPhyInfoTest"
-        },
-        {
-          "test_name_regex": "PortStatsTest.xphySanity"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
     "wedge400/bcm/asicsdk-6.5.26/6.5.26": [
         {
           "test_name_regex": "MacsecTest.*$"
@@ -15302,6 +12460,148 @@
         }
     ],
     "wedge400/bcm/asicsdk-6.5.26/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
+        {
+          "test_name_regex": "MacsecTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecFsdbTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecStatTest.*$"
+        },
+        {
+          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "LinkTest.fabricLinkHealth$"
+        },
+        {
+          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "LinkTest.xPhyInfoTest"
+        },
+        {
+          "test_name_regex": "PortStatsTest.xphySanity"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
+        },
+        {
+          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
+        }
+    ],
+    "wedge400/bcm/asicsdk-6.5.26/6.5.28": [
+        {
+          "test_name_regex": "MacsecTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecFsdbTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecStatTest.*$"
+        },
+        {
+          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "LinkTest.fabricLinkHealth$"
+        },
+        {
+          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "LinkTest.xPhyInfoTest"
+        },
+        {
+          "test_name_regex": "PortStatsTest.xphySanity"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
+        },
+        {
+          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
+        }
+    ],
+    "wedge400/bcm/asicsdk-6.5.26/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -16662,378 +13962,6 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "yamp_8x16Q/bcm/asicsdk-6.5.24/6.5.24": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR1_100G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_400G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR1_100G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_200G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_400G.*$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "yamp_8x16Q/bcm/asicsdk-6.5.24/6.5.24/physdk-credo-0.7.2/credo-0.7.2": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR1_100G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_400G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR1_100G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_200G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_400G.*$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "yamp_8x16Q/bcm/asicsdk-6.5.24/6.5.26": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR1_100G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_400G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR1_100G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_200G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_400G.*$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "yamp_8x16Q/bcm/asicsdk-6.5.24/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR1_100G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_400G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR1_100G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_200G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_400G.*$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "yamp_8x16Q/bcm/asicsdk-6.5.24/6.5.28": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR1_100G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_400G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR1_100G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_200G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_400G.*$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
-    "yamp_8x16Q/bcm/asicsdk-6.5.24/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
-        {
-          "test_name_regex": "MacsecTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecFsdbTest.*$"
-        },
-        {
-          "test_name_regex": "MacsecStatTest.*$"
-        },
-        {
-          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
-        },
-        {
-          "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR1_100G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_400G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR1_100G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_200G.*$"
-        },
-        {
-          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_400G.*$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
-          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
-        },
-        {
-          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
-        },
-        {
-          "test_name_regex": "LinkTest.testOpticsRemediation$"
-        },
-        {
-          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
-        },
-        {
-          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "MacLearningTest.l2EntryFlap"
-        },
-        {
-          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
-        }
-    ],
     "yamp_8x16Q/bcm/asicsdk-6.5.26/6.5.26": [
         {
           "test_name_regex": "MacsecTest.*$"
@@ -17097,6 +14025,130 @@
         }
     ],
     "yamp_8x16Q/bcm/asicsdk-6.5.26/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
+        {
+          "test_name_regex": "MacsecTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecFsdbTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecStatTest.*$"
+        },
+        {
+          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "LinkTest.fabricLinkHealth$"
+        },
+        {
+          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
+        },
+        {
+          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
+        }
+    ],
+    "yamp_8x16Q/bcm/asicsdk-6.5.26/6.5.28": [
+        {
+          "test_name_regex": "MacsecTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecFsdbTest.*$"
+        },
+        {
+          "test_name_regex": "MacsecStatTest.*$"
+        },
+        {
+          "test_name_regex": "LinkTest.ptpEnableIsHitless$"
+        },
+        {
+          "test_name_regex": "LinkTest.fabricLinkHealth$"
+        },
+        {
+          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*TRANSCEIVER_LINE.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR1_100G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_200G.*$"
+        },
+        {
+          "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_400G.*$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsTxDisableEnable$"
+        },
+        {
+          "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "PtpTests.enablePtpPortDown.*$"
+        },
+        {
+          "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "MacLearningTest.l2EntryFlap"
+        },
+        {
+          "test_name_regex": "LinkTest.verifyIphyFecCounters$"
+        }
+    ],
+    "yamp_8x16Q/bcm/asicsdk-6.5.26/6.5.28/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
