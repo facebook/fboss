@@ -2,7 +2,6 @@
   "defaultCommandLineArgs": {
     "check_wb_handles": "true",
     "counter_refresh_interval": "0",
-    "enable_acl_table_group": "true",
     "mode": "meru400bfu",
     "sai_configure_six_tap": "true"
   },
@@ -6870,6 +6869,7 @@
           "bist_enable.BCM8879X": "0",
           "core_clock_speed_khz.BCM8879X": "1000000",
           "custom_feature_access_only.BCM8879X": "0",
+          "custom_feature_fabric_cgm_ddc_th_tune.BCM8879X": "1",
           "custom_feature_lane_swap_disable.BCM8879X": "0",
           "custom_feature_mesh_topology_sync_mode": "1",
           "custom_feature_ser_event_generate": "1",
