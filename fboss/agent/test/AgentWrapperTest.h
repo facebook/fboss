@@ -29,9 +29,11 @@ class AgentWrapperTest : public ::testing::Test {
   void waitForStop(bool crash = false);
   void waitForStop(const std::string& unit, bool crash = false);
   pid_t getAgentPid(const std::string& agentName) const;
-  std::string getCoreDirectory() const;
-  std::string getCoreFile() const;
-  std::string getCoreMetaData() const;
+  std::optional<std::string> getCoreDirectory(
+      const std::string& agentName,
+      pid_t pid) const;
+  std::string getCoreFile(const std::string& directory) const;
+  std::string getCoreMetaData(const std::string& directory) const;
   BootType getBootType();
 
   std::unique_ptr<AgentConfig> config_;

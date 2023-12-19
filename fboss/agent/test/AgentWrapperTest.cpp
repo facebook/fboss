@@ -18,6 +18,7 @@
 
 #include "fboss/agent/AgentConfig.h"
 
+#include <filesystem>
 #include <thread>
 #include <type_traits>
 
@@ -169,25 +170,37 @@ pid_t AgentWrapperTest<T>::getAgentPid(const std::string& agentName) const {
 }
 
 template <typename T>
-std::string AgentWrapperTest<T>::getCoreDirectory() const {
-  bool wrapperRefactored =
-      checkFileExists(this->util_.getWrapperRefactorFlag());
-  auto multiSwitch = config_->getRunMode() == cfg::AgentRunMode::MULTI_SWITCH;
-  auto exitStatus = (wrapperRefactored || multiSwitch) ? "134" : "-6";
-  auto agent = multiSwitch ? "fboss_sw_agent" : "wedge_agent";
-  auto fileName = folly::to<std::string>(
-      agent, "_", getAgentPid(agent), "_", agent, "_", exitStatus);
-  return folly::to<std::string>("/var/tmp/cores/fboss-cores/", fileName);
+std::optional<std::string> AgentWrapperTest<T>::getCoreDirectory(
+    const std::string& agentName,
+    pid_t pid) const {
+  auto fbossCores = std::filesystem::path("/var/tmp/cores/fboss-cores/");
+
+  if (!std::filesystem::exists(fbossCores) ||
+      !std::filesystem::is_directory(fbossCores)) {
+    return std::nullopt;
+  }
+
+  for (const auto& entry : std::filesystem::directory_iterator(fbossCores)) {
+    if (entry.path().string().find(agentName) != std::string::npos &&
+        entry.path().string().find(folly::to<std::string>(pid)) !=
+            std::string::npos) {
+      return entry.path().string();
+    }
+  }
+
+  return std::nullopt;
 }
 
 template <typename T>
-std::string AgentWrapperTest<T>::getCoreFile() const {
-  return getCoreDirectory() + "/core";
+std::string AgentWrapperTest<T>::getCoreFile(
+    const std::string& directory) const {
+  return directory + "/core";
 }
 
 template <typename T>
-std::string AgentWrapperTest<T>::getCoreMetaData() const {
-  return getCoreDirectory() + "/metadata";
+std::string AgentWrapperTest<T>::getCoreMetaData(
+    const std::string& directory) const {
+  return directory + "/metadata";
 }
 
 TYPED_TEST_SUITE(AgentWrapperTest, TestTypes);
@@ -253,14 +266,20 @@ TYPED_TEST(AgentWrapperTest, StartAndCrash) {
   touchFile(maxPostSignalWaitTime);
   std::vector<char> data = {'1'};
   folly::writeFile(data, maxPostSignalWaitTime.c_str());
-  auto coreFile = this->getCoreFile();
-  auto coreMetaData = this->getCoreMetaData();
+  auto multiSwitch =
+      this->config_->getRunMode() == cfg::AgentRunMode::MULTI_SWITCH;
+  auto agent = multiSwitch ? "fboss_sw_agent" : "wedge_agent";
+  auto pid = this->getAgentPid(agent);
   this->stop();
   this->waitForStop(true /* expect sigabrt to crash */);
   // core copier should copy cores here, analyze fboss core timer will remove
   // these
   WITH_RETRIES_N_TIMED(
       FLAGS_num_retries, std::chrono::seconds(FLAGS_wait_timeout), {
+        auto coreDir = this->getCoreDirectory(agent, pid);
+        ASSERT_EVENTUALLY_TRUE(coreDir.has_value());
+        auto coreFile = this->getCoreFile(*coreDir);
+        auto coreMetaData = this->getCoreMetaData(*coreDir);
         EXPECT_EVENTUALLY_TRUE(checkFileExists(coreFile));
         EXPECT_EVENTUALLY_TRUE(checkFileExists(coreMetaData));
       });
