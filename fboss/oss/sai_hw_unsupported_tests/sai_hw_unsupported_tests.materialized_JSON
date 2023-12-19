@@ -116,9 +116,6 @@
           "test_name_regex": "HwQueuePerHostL2Test.*"
         },
         {
-          "test_name_regex": "HwAclQualifierTest.*VlanID*"
-        },
-        {
           "test_name_regex": "HwAclQualifierTest/[01].*VlanID*"
         },
         {
@@ -147,9 +144,6 @@
         },
         {
           "test_name_regex": "HwRouteTest/[01].VerifyClassIdWithNhopResolutionFlap"
-        },
-        {
-          "test_name_regex": "HwAclQualifierTest.*LookupClass*"
         },
         {
           "test_name_regex": "HwAclQualifierTest/[01].*LookupClass*"
@@ -185,16 +179,13 @@
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
         },
         {
-          "test_name_regex": "HwFlowletSwitchingTest.*"
+          "test_name_regex": "HwFlowletSwitching.*"
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
         },
         {
-          "test_name_regex": "HwFlowletSwitchingTest.*"
-        },
-        {
-          "test_name_regex": "HwEcmpFlowletSwitchingTest.*"
+          "test_name_regex": "HwEcmpFlowletSwitching.*"
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*"
@@ -375,9 +366,6 @@
           "test_name_regex": "HwQueuePerHostL2Test.*"
         },
         {
-          "test_name_regex": "HwAclQualifierTest.*VlanID*"
-        },
-        {
           "test_name_regex": "HwAclQualifierTest/[01].*VlanID*"
         },
         {
@@ -406,9 +394,6 @@
         },
         {
           "test_name_regex": "HwRouteTest/[01].VerifyClassIdWithNhopResolutionFlap"
-        },
-        {
-          "test_name_regex": "HwAclQualifierTest.*LookupClass*"
         },
         {
           "test_name_regex": "HwAclQualifierTest/[01].*LookupClass*"
@@ -444,16 +429,13 @@
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
         },
         {
-          "test_name_regex": "HwFlowletSwitchingTest.*"
+          "test_name_regex": "HwFlowletSwitching.*"
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
         },
         {
-          "test_name_regex": "HwFlowletSwitchingTest.*"
-        },
-        {
-          "test_name_regex": "HwEcmpFlowletSwitchingTest.*"
+          "test_name_regex": "HwEcmpFlowletSwitching.*"
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*"
@@ -614,9 +596,6 @@
           "test_name_regex": "HwQueuePerHostL2Test.*"
         },
         {
-          "test_name_regex": "HwAclQualifierTest.*VlanID*"
-        },
-        {
           "test_name_regex": "HwAclQualifierTest/[01].*VlanID*"
         },
         {
@@ -645,9 +624,6 @@
         },
         {
           "test_name_regex": "HwRouteTest/[01].VerifyClassIdWithNhopResolutionFlap"
-        },
-        {
-          "test_name_regex": "HwAclQualifierTest.*LookupClass*"
         },
         {
           "test_name_regex": "HwAclQualifierTest/[01].*LookupClass*"
@@ -683,16 +659,13 @@
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
         },
         {
-          "test_name_regex": "HwFlowletSwitchingTest.*"
+          "test_name_regex": "HwFlowletSwitching.*"
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
         },
         {
-          "test_name_regex": "HwFlowletSwitchingTest.*"
-        },
-        {
-          "test_name_regex": "HwEcmpFlowletSwitchingTest.*"
+          "test_name_regex": "HwEcmpFlowletSwitching.*"
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*"
@@ -830,6 +803,12 @@
         },
         {
           "test_name_regex": "HwAclQualifierTest/1.*$"
+        },
+        {
+          "test_name_regex": "HwDeepPacketInspectionTest.*$"
+        },
+        {
+          "test_name_regex": "HwCoppTest/[01].Ipv6LinkLocalMcastNetworkControlDscpToHighPriQ$"
         }
     ],
     "leaba/1.42.8/1.42.8/simulator": [
