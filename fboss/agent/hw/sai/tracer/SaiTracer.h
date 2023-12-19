@@ -639,6 +639,26 @@ class SaiTracer {
             obj_type##_id, attr_count, attr_list);                           \
   }
 
+#define WRAP_BULK_GET_ATTR_FUNC(obj_type, sai_obj_type, api_type)              \
+  sai_status_t wrap_get_##obj_type##s_attribute(                               \
+      uint32_t object_count,                                                   \
+      const sai_object_id_t* object_id,                                        \
+      const uint32_t* attr_count,                                              \
+      sai_attribute_t** attr_list,                                             \
+      sai_bulk_op_error_mode_t mode,                                           \
+      sai_status_t* object_statuses) {                                         \
+    auto rv =                                                                  \
+        SaiTracer::getInstance()->api_type##Api_->get_##obj_type##s_attribute( \
+            object_count,                                                      \
+            object_id,                                                         \
+            attr_count,                                                        \
+            attr_list,                                                         \
+            mode,                                                              \
+            object_statuses);                                                  \
+    /* TODO add logBulkGetAttrFn */                                            \
+    return rv;                                                                 \
+  }
+
 #define WRAP_BULK_SET_ATTR_FUNC(obj_type, sai_obj_type, api_type)              \
   sai_status_t wrap_set_##obj_type##s_attribute(                               \
       uint32_t object_count,                                                   \
