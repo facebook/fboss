@@ -382,18 +382,29 @@ class HwCoppTest : public HwLinkStateDependentTest {
       std::optional<std::vector<uint8_t>> payload = std::nullopt,
       bool expectQueueHit = true) {
     const auto kNumPktsToSend = 1;
-    auto sendPkt = [=, this]() {
-      sendTcpPkts(
-          kNumPktsToSend,
+    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto destinationMac =
+        dstMac.value_or(utility::getFirstInterfaceMac(getProgrammedState()));
+    auto sendAndInspect = [=, this]() {
+      auto pkt = utility::makeTCPTxPacket(
+          getHwSwitch(),
+          vlanId,
+          destinationMac,
           dstIpAddress,
           l4SrcPort,
           l4DstPort,
-          dstMac,
           trafficClass,
           payload);
+      sendPkt(
+          std::move(pkt),
+          true /*outOfPort*/,
+          expectQueueHit /*snoopAndVerify*/);
     };
     utility::sendPktAndVerifyCpuQueue(
-        getHwSwitch(), queueId, sendPkt, expectQueueHit ? kNumPktsToSend : 0);
+        getHwSwitch(),
+        queueId,
+        sendAndInspect,
+        expectQueueHit ? kNumPktsToSend : 0);
   }
 
   void sendPktAndVerifyEthPacketsCpuQueue(
