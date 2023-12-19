@@ -343,8 +343,7 @@ SaiPortManager::SaiPortManager(
           HwAsic::Feature::REMOVE_PORTS_FOR_COLDBOOT)),
       concurrentIndices_(concurrentIndices),
       hwLaneListIsPmdLaneList_(true),
-      tcToQueueMapAllowedOnPort_(!platform_->getAsic()->isSupported(
-          HwAsic::Feature::TC_TO_QUEUE_QOS_MAP_ON_SYSTEM_PORT)),
+      tcToQueueMapAllowedOnPort_(true),
       globalQosMapSupported_(
           managerTable_->switchManager().isGlobalQoSMapSupported()) {
 #if defined(BRCM_SAI_SDK_XGS)

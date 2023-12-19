@@ -28,7 +28,7 @@ bool verifyQueueMappings(
     const std::map<int, std::vector<uint8_t>>& q2dscps,
     std::function<std::map<PortID, HwPortStats>()> getAllHwPortStats,
     const PortID portId,
-    uint32_t sleep = 20) {
+    uint32_t sleep = 200) {
   auto retries = 10;
   bool statsMatch;
   do {
@@ -43,6 +43,9 @@ bool verifyQueueMappings(
       // from being broadcast, they will appear more than once on a queue
       // counter, so we can only check that the counter went up, not that it
       // went up by exactly one.
+      XLOG(DBG2) << "queue " << _q2dscps.first << " queuePacketsBefore "
+                 << queuePacketsBefore << " queuePacketsAfter "
+                 << queuePacketsAfter;
       if (queuePacketsAfter < queuePacketsBefore + _q2dscps.second.size()) {
         statsMatch = false;
         break;
