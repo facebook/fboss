@@ -218,6 +218,8 @@ class HwQueuePerHostTest : public HwLinkStateDependentTest {
   }
 
   void _verifyHelper(bool frontPanel, bool blockNeighbor) {
+    XLOG(DBG2) << "verify send packets "
+               << (frontPanel ? "out of port" : "switched");
     auto ttlAclName = utility::getQueuePerHostTtlAclName();
     auto ttlCounterName = utility::getQueuePerHostTtlCounterName();
 
@@ -330,33 +332,31 @@ class HwQueuePerHostTest : public HwLinkStateDependentTest {
     this->applyNewState(state3);
   }
 
-  void verifyHostToQueueMappingClassIDsAfterResolveHelper(
-      bool frontPanel,
-      bool blockNeighbor) {
+  void verifyHostToQueueMappingClassIDsAfterResolveHelper(bool blockNeighbor) {
     auto setup = [this, blockNeighbor]() {
       this->classIDAfterNeighborResolveHelper(blockNeighbor);
     };
-    auto verify = [this, frontPanel, blockNeighbor]() {
-      this->_verifyHelper(frontPanel, blockNeighbor);
+    auto verify = [this, blockNeighbor]() {
+      this->_verifyHelper(false, blockNeighbor);
+      this->_verifyHelper(true, blockNeighbor);
     };
 
     verifyAcrossWarmBoots(setup, verify);
   }
 
-  void verifyHostToQueueMappingClassIDsWithResolveHelper(
-      bool frontPanel,
-      bool blockNeighbor) {
+  void verifyHostToQueueMappingClassIDsWithResolveHelper(bool blockNeighbor) {
     auto setup = [this, blockNeighbor]() {
       this->classIDWithResolveHelper(blockNeighbor);
     };
-    auto verify = [this, frontPanel, blockNeighbor]() {
-      this->_verifyHelper(frontPanel, blockNeighbor);
+    auto verify = [this, blockNeighbor]() {
+      this->_verifyHelper(false, blockNeighbor);
+      this->_verifyHelper(true, blockNeighbor);
     };
 
     verifyAcrossWarmBoots(setup, verify);
   }
 
-  void verifyTtldCounter(bool frontPanel) {
+  void verifyTtldCounter() {
     auto setup = [this]() {
       this->_setupHelper();
 
@@ -366,59 +366,61 @@ class HwQueuePerHostTest : public HwLinkStateDependentTest {
       this->applyNewState(state2);
     };
 
-    auto verify = [this, frontPanel]() {
+    auto verify = [this]() {
       auto ttlAclName = utility::getQueuePerHostTtlAclName();
       auto ttlCounterName = utility::getQueuePerHostTtlCounterName();
 
-      auto packetsBefore = utility::getAclInOutPackets(
-          getHwSwitch(),
-          this->getProgrammedState(),
-          ttlAclName,
-          ttlCounterName);
-
-      auto bytesBefore = utility::getAclInOutBytes(
-          getHwSwitch(),
-          this->getProgrammedState(),
-          ttlAclName,
-          ttlCounterName);
-
-      auto dstIP = getIpToMacAndClassID().begin()->first;
-
-      sendPacket(dstIP, frontPanel, 64 /* ttl < 128 */);
-      size_t packetSize = sendPacket(dstIP, frontPanel, 128 /* ttl >= 128 */);
-
-      auto aclStatsMatch = [&]() {
-        auto packetsAfter = utility::getAclInOutPackets(
+      for (bool frontPanel : {false, true}) {
+        auto packetsBefore = utility::getAclInOutPackets(
             getHwSwitch(),
             this->getProgrammedState(),
             ttlAclName,
             ttlCounterName);
 
-        auto bytesAfter = utility::getAclInOutBytes(
+        auto bytesBefore = utility::getAclInOutBytes(
             getHwSwitch(),
             this->getProgrammedState(),
             ttlAclName,
             ttlCounterName);
 
-        XLOG(DBG2) << "\n"
-                   << "ttlAclPacketCounter: " << std::to_string(packetsBefore)
-                   << " -> " << std::to_string(packetsAfter) << "\n"
-                   << "ttlAclBytesCounter: " << std::to_string(bytesBefore)
-                   << " -> " << std::to_string(bytesAfter);
+        auto dstIP = getIpToMacAndClassID().begin()->first;
+        sendPacket(dstIP, frontPanel, 64 /* ttl < 128 */);
+        size_t packetSize = sendPacket(dstIP, frontPanel, 128 /* ttl >= 128 */);
 
-        // counts ttl >= 128 packet only
-        if (packetsAfter - packetsBefore != 1) {
-          return false;
-        }
-        if (frontPanel) {
-          return bytesAfter - bytesBefore == packetSize;
-        }
-        // TODO: Still need to debug why we get extra 4 bytes for CPU port
-        return bytesAfter - bytesBefore >= packetSize;
-      };
-      auto updateStats = [&]() { getHwSwitch()->updateStats(); };
-      EXPECT_TRUE(getHwSwitchEnsemble()->waitStatsCondition(
-          aclStatsMatch, updateStats));
+        auto aclStatsMatch = [&]() {
+          auto packetsAfter = utility::getAclInOutPackets(
+              getHwSwitch(),
+              this->getProgrammedState(),
+              ttlAclName,
+              ttlCounterName);
+
+          auto bytesAfter = utility::getAclInOutBytes(
+              getHwSwitch(),
+              this->getProgrammedState(),
+              ttlAclName,
+              ttlCounterName);
+
+          XLOG(DBG2) << "verify send packets "
+                     << (frontPanel ? "out of port" : "switched") << "\n"
+                     << "ttlAclPacketCounter: " << std::to_string(packetsBefore)
+                     << " -> " << std::to_string(packetsAfter) << "\n"
+                     << "ttlAclBytesCounter: " << std::to_string(bytesBefore)
+                     << " -> " << std::to_string(bytesAfter);
+
+          // counts ttl >= 128 packet only
+          if (packetsAfter - packetsBefore != 1) {
+            return false;
+          }
+          if (frontPanel) {
+            return bytesAfter - bytesBefore == packetSize;
+          }
+          // TODO: Still need to debug why we get extra 4 bytes for CPU port
+          return bytesAfter - bytesBefore >= packetSize;
+        };
+        auto updateStats = [&]() { getHwSwitch()->updateStats(); };
+        EXPECT_TRUE(getHwSwitchEnsemble()->waitStatsCondition(
+            aclStatsMatch, updateStats));
+      }
     };
 
     verifyAcrossWarmBoots(setup, verify);
@@ -474,84 +476,40 @@ TYPED_TEST_SUITE(HwQueuePerHostTest, TestTypes);
 
 // Verify that traffic arriving on a front panel port gets right queue-per-host
 // queue.
-TYPED_TEST(
-    HwQueuePerHostTest,
-    VerifyHostToQueueMappingClassIDsAfterResolveFrontPanel) {
+TYPED_TEST(HwQueuePerHostTest, VerifyHostToQueueMappingClassIDsAfterResolve) {
   this->verifyHostToQueueMappingClassIDsAfterResolveHelper(
-      true /* front panel port */, false /* block neighbor */);
+      false /* block neighbor */);
 }
 
 // Verify that traffic arriving on a front panel port to a blocked neighbor gets
 // dropped.
 TYPED_TEST(
     HwQueuePerHostTest,
-    VerifyHostToQueueMappingClassIDsAfterResolveFrontPanelBlock) {
+    VerifyHostToQueueMappingClassIDsAfterResolveBlock) {
   this->verifyHostToQueueMappingClassIDsAfterResolveHelper(
-      true /* front panel port */, true /* block neighbor */);
-}
-
-// Verify that traffic originating on the CPU is gets right queue-per-host
-// queue.
-TYPED_TEST(
-    HwQueuePerHostTest,
-    VerifyHostToQueueMappingClassIDsAfterResolveCpu) {
-  this->verifyHostToQueueMappingClassIDsAfterResolveHelper(
-      false /* cpu port */, false /* block neighbor */);
-}
-
-// Verify that traffic originating on the CPU to a blocked neighbor gets
-// dropped.
-TYPED_TEST(
-    HwQueuePerHostTest,
-    VerifyHostToQueueMappingClassIDsAfterResolveCpuBlock) {
-  this->verifyHostToQueueMappingClassIDsAfterResolveHelper(
-      false /* cpu port */, true /* block neighbor */);
+      true /* block neighbor */);
 }
 
 // Verify that traffic arriving on a front panel port gets right queue-per-host
 // queue.
-TYPED_TEST(
-    HwQueuePerHostTest,
-    VerifyHostToQueueMappingClassIDsWithResolveFrontPanel) {
+TYPED_TEST(HwQueuePerHostTest, VerifyHostToQueueMappingClassIDsWithResolve) {
   this->verifyHostToQueueMappingClassIDsWithResolveHelper(
-      true /* front panel port */, false /* block neighbor */);
+      false /* block neighbor */);
 }
 
 // Verify that traffic arriving on a front panel port to a blocked neighbor gets
 // dropped.
 TYPED_TEST(
     HwQueuePerHostTest,
-    VerifyHostToQueueMappingClassIDsWithResolveFrontPanelBlock) {
+    VerifyHostToQueueMappingClassIDsWithResolveBlock) {
   this->verifyHostToQueueMappingClassIDsWithResolveHelper(
-      true /* front panel port */, true /* block neighbor */);
-}
-
-// Verify that traffic originating on the CPU is gets right queue-per-host
-// queue.
-TYPED_TEST(HwQueuePerHostTest, VerifyHostToQueueMappingClassIDsWithResolveCpu) {
-  this->verifyHostToQueueMappingClassIDsWithResolveHelper(
-      false /* cpu port */, false /* block neighbor */);
-}
-
-// Verify that traffic originating on the CPU to a blocked neighbor gets
-// dropped.
-TYPED_TEST(
-    HwQueuePerHostTest,
-    VerifyHostToQueueMappingClassIDsWithResolveCpuBlock) {
-  this->verifyHostToQueueMappingClassIDsWithResolveHelper(
-      false /* cpu port */, true /* block neighbor */);
+      true /* block neighbor */);
 }
 
 // Verify that TTLd traffic not going to queue-per-host has TTLd counter
 // incremented.
-TYPED_TEST(HwQueuePerHostTest, VerifyTtldCounterFrontPanel) {
-  this->verifyTtldCounter(true /* front panel port */);
-}
-
-// Verify that TTLd traffic not going to queue-per-host has TTLd counter
-// incremented.
-TYPED_TEST(HwQueuePerHostTest, VerifyTtldCounterCpu) {
-  this->verifyTtldCounter(false /* cpu port */);
+TYPED_TEST(HwQueuePerHostTest, VerifyTtldCounter) {
+  this->verifyTtldCounter();
 }
 
 } // namespace facebook::fboss
