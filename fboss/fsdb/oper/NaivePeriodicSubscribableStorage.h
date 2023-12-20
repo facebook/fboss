@@ -190,11 +190,6 @@ class NaivePeriodicSubscribableStorage
       *runningLocked = false;
     }
 
-    if (thread_heartbeat_) {
-      XLOG(DBG1) << "Stopping subscribable storage thread heartbeat";
-      thread_heartbeat_.reset();
-    }
-
     if (wasRunning) {
       XLOG(DBG1) << "Cancelling background scope";
       folly::coro::blockingWait(backgroundScope_.cancelAndJoinAsync());
@@ -202,6 +197,11 @@ class NaivePeriodicSubscribableStorage
       evb_.runImmediatelyOrRunInEventBaseThreadAndWait(
           [this] { evb_.terminateLoopSoon(); });
       subscriptionServingThread_->join();
+    }
+
+    if (thread_heartbeat_) {
+      XLOG(DBG1) << "Stopping subscribable storage thread heartbeat";
+      thread_heartbeat_.reset();
     }
     XLOG(INFO) << "Stopped subscribable storage";
   }
