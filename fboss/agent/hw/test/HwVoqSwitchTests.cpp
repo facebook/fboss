@@ -46,6 +46,10 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
         masterLogicalPortIds(),
         getAsic()->desiredLoopbackModes(),
         true /*interfaceHasSubnet*/);
+    // Add ACL Table group before adding any ACLs
+    utility::addAclTableGroup(
+        &cfg, cfg::AclStage::INGRESS, utility::getAclTableGroupName());
+    utility::addDefaultAclTable(cfg);
     const auto& cpuStreamTypes =
         getAsic()->getQueueStreamTypes(cfg::PortType::CPU_PORT);
     for (const auto& cpuStreamType : cpuStreamTypes) {
@@ -58,9 +62,6 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
         break;
       }
     }
-    utility::addAclTableGroup(
-        &cfg, cfg::AclStage::INGRESS, utility::getAclTableGroupName());
-    utility::addDefaultAclTable(cfg);
     return cfg;
   }
   void SetUp() override {
