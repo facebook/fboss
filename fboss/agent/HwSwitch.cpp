@@ -107,7 +107,7 @@ uint32_t HwSwitch::generateDeterministicSeed(LoadBalancerID loadBalancerID) {
       loadBalancerID, getPlatform()->getLocalMac());
 }
 
-void HwSwitch::gracefulExit(const state::WarmbootState& thriftSwitchState) {
+void HwSwitch::gracefulExit() {
   auto* dirUtil = getPlatform()->getDirectoryUtil();
   auto switchIndex = getPlatform()->getAsic()->getSwitchIndex();
   auto sleepOnSigTermFile = dirUtil->sleepHwSwitchOnSigTermFile(switchIndex);

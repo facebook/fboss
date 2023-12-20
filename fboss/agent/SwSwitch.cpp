@@ -613,7 +613,7 @@ void SwSwitch::gracefulExit() {
                       switchStateToFollyDone - stopThreadsAndHandlersDone)
                       .count();
     // Cleanup if we ever initialized
-    multiHwSwitchHandler_->gracefulExit(thriftSwitchState);
+    multiHwSwitchHandler_->gracefulExit();
     multiHwSwitchHandler_->stop();
     // writing after hwSwitch state for backward compat
     storeWarmBootState(thriftSwitchState);

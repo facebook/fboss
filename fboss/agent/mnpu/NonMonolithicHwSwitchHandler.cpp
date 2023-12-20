@@ -50,8 +50,7 @@ void NonMonolithicHwSwitchHandler::unregisterCallbacks() {
   // TODO: implement this
 }
 
-void NonMonolithicHwSwitchHandler::gracefulExit(
-    state::WarmbootState& /*thriftSwitchState*/) {
+void NonMonolithicHwSwitchHandler::gracefulExit() {
   // TODO: implement this
 }
 

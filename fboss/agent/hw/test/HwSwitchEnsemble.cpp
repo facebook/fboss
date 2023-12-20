@@ -777,7 +777,7 @@ void HwSwitchEnsemble::gracefulExit() {
   getHwSwitch()->unregisterCallbacks();
   stopObservers();
   auto thriftSwitchState = gracefulExitState();
-  getHwSwitch()->gracefulExit(thriftSwitchState);
+  getHwSwitch()->gracefulExit();
   // store or dump sw switch state
   storeWarmBootState(thriftSwitchState);
 }

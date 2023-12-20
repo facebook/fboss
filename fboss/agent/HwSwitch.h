@@ -256,7 +256,7 @@ class HwSwitch {
    * Allow hardware to perform any warm boot related cleanup
    * before we exit the application.
    */
-  void gracefulExit(const state::WarmbootState& thriftSwitchState);
+  void gracefulExit();
 
   /*
    * Get Hw Switch state in a folly::dynamic

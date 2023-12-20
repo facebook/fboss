@@ -54,9 +54,8 @@ void MonolithicHwSwitchHandler::unregisterCallbacks() {
   hw_->unregisterCallbacks();
 }
 
-void MonolithicHwSwitchHandler::gracefulExit(
-    state::WarmbootState& thriftSwitchState) {
-  hw_->gracefulExit(thriftSwitchState);
+void MonolithicHwSwitchHandler::gracefulExit() {
+  hw_->gracefulExit();
 }
 
 bool MonolithicHwSwitchHandler::getAndClearNeighborHit(

@@ -1105,13 +1105,7 @@ void SaiPhyManager::gracefulExit() {
 
       // Get SaiSwitch and SwitchState using global xphy id
       auto saiSwitch = getSaiSwitch(xphyID);
-      auto switchState = getPlatformInfo(xphyID)->getState();
-
-      // Get the current SwitchState and ThriftState which will be used to call
-      //  SaiSwitch::gracefulExit function
-      state::WarmbootState thriftSwitchState;
-      *thriftSwitchState.swSwitchState() = switchState->toThrift();
-      saiSwitch->gracefulExit(thriftSwitchState);
+      saiSwitch->gracefulExit();
     }
   }
 }

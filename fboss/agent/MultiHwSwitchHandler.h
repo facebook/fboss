@@ -76,7 +76,7 @@ class MultiHwSwitchHandler {
 
   void unregisterCallbacks();
 
-  void gracefulExit(state::WarmbootState& thriftSwitchState);
+  void gracefulExit();
 
   bool getAndClearNeighborHit(RouterID vrf, folly::IPAddress& ip);
 

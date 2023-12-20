@@ -78,7 +78,7 @@ class HwSwitchHandler {
 
   virtual void unregisterCallbacks() = 0;
 
-  virtual void gracefulExit(state::WarmbootState& thriftSwitchState) = 0;
+  virtual void gracefulExit() = 0;
 
   virtual bool getAndClearNeighborHit(RouterID vrf, folly::IPAddress& ip) = 0;
 

@@ -210,10 +210,9 @@ bool MultiHwSwitchHandler::isValidStateUpdate(const StateDelta& delta) {
   return true;
 }
 
-void MultiHwSwitchHandler::gracefulExit(
-    state::WarmbootState& thriftSwitchState) {
+void MultiHwSwitchHandler::gracefulExit() {
   for (auto& entry : hwSwitchSyncers_) {
-    entry.second->gracefulExit(thriftSwitchState);
+    entry.second->gracefulExit();
   }
 }
 

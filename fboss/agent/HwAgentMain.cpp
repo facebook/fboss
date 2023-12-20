@@ -71,7 +71,7 @@ void SplitHwAgentSignalHandler::signalReceived(int /*signum*/) noexcept {
   steady_clock::time_point servicesStopped = steady_clock::now();
   XLOG(DBG2) << "[Exit] Services stop time "
              << duration_cast<duration<float>>(servicesStopped - begin).count();
-  hwAgent_->getPlatform()->getHwSwitch()->gracefulExit(state::WarmbootState());
+  hwAgent_->getPlatform()->getHwSwitch()->gracefulExit();
   steady_clock::time_point switchGracefulExit = steady_clock::now();
   XLOG(DBG2)
       << "[Exit] Switch Graceful Exit time "
