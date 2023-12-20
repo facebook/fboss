@@ -29,14 +29,6 @@ const std::string kFlashromGetContent = " -l " + kPathPrefix +
 const std::string kddComands = "dd if=" + kPathPrefix + "/bios of=" + kPredfl +
     " bs=1 skip=8192 count=61440 > /dev/null 2>&1";
 
-// Map eeprom_dev_type to symlink of sysfs path
-const std::unordered_map<std::string, std::string> eepromDevMapping_{
-    {"pem", "/run/devmap/eeproms/PEM_EEPROM"},
-    {"fanspinner", "/run/devmap/eeproms/FANSPINNER_EEPROM"},
-    {"rackmon", "/run/devmap/eeproms/RACKMON_EEPROM"},
-    {"chassis", "/tmp/WeutilDarwin/system-prefdl-bin"},
-};
-
 // Map weutil fields to prefld fields
 const std::unordered_map<std::string, std::string> kMapping{
     {"Product Name", "SID"},
@@ -93,29 +85,15 @@ std::string getFlashType(const std::string& str) {
 } // namespace
 
 namespace facebook::fboss::platform {
-WeutilDarwin::WeutilDarwin(const std::string& eeprom) {
-  eepromParser_ = std::make_unique<PrefdlBase>(getEepromPathFromName(eeprom));
-}
-
-std::string WeutilDarwin::getEepromPathFromName(const std::string& eeprom) {
-  std::string eepromName(eeprom);
-  std::transform(
-      eepromName.begin(), eepromName.end(), eepromName.begin(), ::tolower);
-  if (eepromName == "" || eepromName == "chassis") {
+WeutilDarwin::WeutilDarwin(const std::string& eepromPath) {
+  std::string fruPath;
+  if (eepromPath == "") {
     genSpiPrefdlFile();
-    return kPredfl;
+    fruPath = kPredfl;
   } else {
-    auto itr = eepromDevMapping_.find(eepromName);
-    if (itr != eepromDevMapping_.end() &&
-        std::filesystem::exists(itr->second)) {
-      return itr->second;
-    } else {
-      throw std::runtime_error(fmt::format(
-          "Invalid eeprom name: {}. Valid eeprom names are: {}.",
-          eepromName,
-          folly::join(" ", getEepromNames())));
-    }
+    fruPath = eepromPath;
   }
+  eepromParser_ = std::make_unique<PrefdlBase>(fruPath);
 }
 
 void WeutilDarwin::genSpiPrefdlFile() {
@@ -225,14 +203,6 @@ void WeutilDarwin::printInfoJson() {
     wedgeInfo["Information"]["Extended MAC Address Size"] = "1";
   }
   std::cout << folly::toPrettyJson(wedgeInfo);
-}
-
-std::vector<std::string> WeutilDarwin::getEepromNames() const {
-  std::vector<std::string> eepromNames{};
-  for (const auto& [eepromName, eepromPath] : eepromDevMapping_) {
-    eepromNames.push_back(eepromName);
-  }
-  return eepromNames;
 }
 
 } // namespace facebook::fboss::platform

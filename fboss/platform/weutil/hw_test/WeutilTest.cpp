@@ -20,7 +20,7 @@ namespace facebook::fboss::platform {
 WeutilTest::~WeutilTest() {}
 
 void WeutilTest::SetUp() {
-  weutilInstance = get_plat_weutil();
+  weutilInstance = createWeUtilIntf("chassis", "", "");
 }
 
 void WeutilTest::TearDown() {}

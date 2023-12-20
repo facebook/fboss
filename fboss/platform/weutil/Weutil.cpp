@@ -1,5 +1,13 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 #include "fboss/platform/weutil/Weutil.h"
+
+#include <ios>
+#include <string>
+
+#include <folly/FileUtil.h>
+#include <folly/logging/xlog.h>
+#include <thrift/lib/cpp2/protocol/Serializer.h>
+
 #include "fboss/lib/platforms/PlatformMode.h"
 #include "fboss/lib/platforms/PlatformProductInfo.h"
 #include "fboss/platform/config_lib/ConfigLib.h"
@@ -7,29 +15,16 @@
 #include "fboss/platform/weutil/WeutilImpl.h"
 #include "fboss/platform/weutil/if/gen-cpp2/weutil_config_types.h"
 
-#include <folly/FileUtil.h>
-#include <folly/logging/xlog.h>
-#include <thrift/lib/cpp2/protocol/Serializer.h>
-#include <ios>
-#include <string>
-
 namespace facebook::fboss::platform {
 
-WeutilInfo parseConfig(std::string eeprom, std::string configFile) {
-  // In this method, we get the config file from ConfigLib,
-  // then translate that thrift structure to a plain structure.
-  // The reason of this is because we will share the same WeutilImpl
-  // in the BMC codebase, where we do not have access to Thrift/Folly.
-
-  // This is thrift based config datastructure,
-  // to be translated as the plain config above
+namespace {
+/*
+ * Get the WeutilConfig from configFile if specified or from ConfigLib.
+ */
+weutil_config::WeutilConfig getWeUtilConfig(const std::string& configFile) {
   weutil_config::WeutilConfig thriftConfig;
 
-  WeutilInfo info;
-
-  // First, get the config file as string (JSON format)
   std::string weutilConfigJson;
-  // Check if conf file name is set, if not, set the default name
   if (configFile.empty()) {
     XLOG(INFO) << "No config file was provided. Inferring from config_lib";
     weutilConfigJson = ConfigLib().getWeutilConfig();
@@ -41,61 +36,114 @@ WeutilInfo parseConfig(std::string eeprom, std::string configFile) {
     }
   }
 
-  // Secondly, deserialize the JSON string to thrift struct
   apache::thrift::SimpleJSONSerializer::deserialize<
       weutil_config::WeutilConfig>(weutilConfigJson, thriftConfig);
   XLOG(INFO) << apache::thrift::SimpleJSONSerializer::serialize<std::string>(
       thriftConfig);
 
-  // Now, if the eeprom name is empty, use the chassis eeprom name
-  if (eeprom.empty()) {
-    eeprom = *thriftConfig.chassisEepromName();
-  }
-  std::transform(eeprom.begin(), eeprom.end(), eeprom.begin(), ::tolower);
-
-  // Finally, translate the module name into the actual eeprom path
-  for (auto& [eepromName, eepromConfig] : *thriftConfig.fruEepromList()) {
-    std::string fruName = eepromName;
-    std::transform(fruName.begin(), fruName.end(), fruName.begin(), ::tolower);
-    if (fruName == eeprom) {
-      info.eepromPath = *eepromConfig.path();
-      info.offset = *eepromConfig.offset();
-    }
-    info.modules.push_back(fruName);
-  }
-
-  // Then return the info.
-  return info;
+  return thriftConfig;
 }
 
-std::unique_ptr<WeutilInterface> get_plat_weutil(
-    const std::string& eeprom,
+std::vector<std::string> getEepromNames(
+    const weutil_config::WeutilConfig& thriftConfig,
+    PlatformType platform) {
+  std::vector<std::string> eepromNames;
+  // Darwin does not have a dedicated chassis EEPROM. Hence it is not
+  // listed in the weutil json config. It is added here manually.
+  if (platform == PlatformType::PLATFORM_DARWIN) {
+    eepromNames.push_back("chassis");
+  }
+  for (const auto& [eepromName, eepromConfig] : *thriftConfig.fruEepromList()) {
+    std::string fruName = eepromName;
+    std::transform(fruName.begin(), fruName.end(), fruName.begin(), ::tolower);
+    eepromNames.push_back(fruName);
+  }
+  return eepromNames;
+}
+
+/*
+ * Gets the FruEepromConfig based on the eeprom name specified.
+ */
+weutil_config::FruEepromConfig getFruEepromConfig(
+    const std::string& eepromName,
+    const weutil_config::WeutilConfig& thriftConfig,
+    PlatformType platform) {
+  std::string fruName = eepromName;
+  std::transform(fruName.begin(), fruName.end(), fruName.begin(), ::toupper);
+  auto itr = thriftConfig.fruEepromList()->find(fruName);
+  if (itr == thriftConfig.fruEepromList()->end()) {
+    throw std::runtime_error(fmt::format(
+        "Invalid EEPROM name {}. Valid EEPROM names are: {}",
+        eepromName,
+        fmt::join(getEepromNames(thriftConfig, platform), ", ")));
+  }
+
+  return itr->second;
+}
+
+/*
+ * Get the path to the eeprom based on its name.
+ * The chassis eeprom has special handling:
+      For Darwin, let the path be determined by the WeutilDarwin class since
+      there is no dedicated eeprom device.
+      For other platforms, get the proper name of the chassis eeprom from the
+      config file and use that to determine the path.
+*/
+weutil_config::FruEepromConfig getFruEepromConfig(
+    const std::string& eepromName,
+    const std::string& eepromPath,
+    const std::string& configFile,
+    const PlatformType platform) {
+  weutil_config::FruEepromConfig fruEepromConfig;
+
+  if (!eepromPath.empty()) {
+    fruEepromConfig.path() = eepromPath;
+    fruEepromConfig.offset() = 0;
+  } else {
+    if (eepromName == "chassis" || eepromName.empty()) {
+      if (platform == PlatformType::PLATFORM_DARWIN) {
+        fruEepromConfig.path() = "";
+        fruEepromConfig.offset() = 0;
+      } else {
+        auto thriftConfig = getWeUtilConfig(configFile);
+        // use chassisEepromName specified in config file.
+        fruEepromConfig = getFruEepromConfig(
+            thriftConfig.chassisEepromName().value(), thriftConfig, platform);
+      }
+    } else {
+      auto thriftConfig = getWeUtilConfig(configFile);
+      fruEepromConfig = getFruEepromConfig(eepromName, thriftConfig, platform);
+    }
+  }
+  return fruEepromConfig;
+}
+} // namespace
+
+std::vector<std::string> getEepromNames() {
+  auto config = getWeUtilConfig("");
+  facebook::fboss::PlatformProductInfo prodInfo{FLAGS_fruid_filepath};
+  prodInfo.initialize();
+  return getEepromNames(config, prodInfo.getType());
+}
+
+std::unique_ptr<WeutilInterface> createWeUtilIntf(
+    const std::string& eepromName,
+    const std::string& eepromPath,
     const std::string& configFile) {
   facebook::fboss::PlatformProductInfo prodInfo{FLAGS_fruid_filepath};
   prodInfo.initialize();
-
-  switch (prodInfo.getType()) {
+  PlatformType platform = prodInfo.getType();
+  weutil_config::FruEepromConfig fruEepromConfig =
+      getFruEepromConfig(eepromName, eepromPath, configFile, platform);
+  switch (platform) {
     case PlatformType::PLATFORM_DARWIN:
-      return std::make_unique<WeutilDarwin>(eeprom);
+      return std::make_unique<WeutilDarwin>(fruEepromConfig.get_path());
       break;
-
     default:
-      WeutilInfo info = parseConfig(eeprom, configFile);
-      return std::make_unique<WeutilImpl>(info);
+      return std::make_unique<WeutilImpl>(
+          fruEepromConfig.get_path(), fruEepromConfig.get_offset());
       break;
   }
-}
-
-std::unique_ptr<WeutilInterface> get_meta_eeprom_handler(std::string path) {
-  // Note that we pass path as the eeprom name, since we will skip the
-  // eeprom name to the path translation (done by calling verify option method.)
-  WeutilInfo info;
-  info.eepromPath = std::move(path);
-  // Offset is not used in this execution path,
-  // but we need to make our infer bot happy.
-  info.offset = 0;
-  std::unique_ptr<WeutilImpl> pWeutilImpl = std::make_unique<WeutilImpl>(info);
-  return std::move(pWeutilImpl);
 }
 
 } // namespace facebook::fboss::platform

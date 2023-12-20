@@ -19,15 +19,16 @@
 
 namespace facebook::fboss::platform {
 
-WeutilImpl::WeutilImpl(const WeutilInfo info) : info_(info) {}
+WeutilImpl::WeutilImpl(const std::string& eepromPath, const int offset)
+    : eepromPath_(eepromPath), offset_(offset) {}
 
 std::vector<std::pair<std::string, std::string>> WeutilImpl::getInfo() {
-  return eepromParser.getEeprom(info_.eepromPath, info_.offset);
+  return eepromParser.getEeprom(eepromPath_, offset_);
 }
 
 void WeutilImpl::printInfo() {
-  EepromEntry info = eepromParser.getEeprom(info_.eepromPath, info_.offset);
-  std::cout << "Wedge EEPROM : " << info_.eepromPath << std::endl;
+  EepromEntry info = eepromParser.getEeprom(eepromPath_, offset_);
+  std::cout << "Wedge EEPROM : " << eepromPath_ << std::endl;
   for (const auto& item : info) {
     std::cout << item.first << ": " << item.second << std::endl;
   }
@@ -36,7 +37,7 @@ void WeutilImpl::printInfo() {
 
 void WeutilImpl::printInfoJson() {
   // Use getInfo, then go thru our table to generate JSON in order
-  EepromEntry info = eepromParser.getEeprom(info_.eepromPath, info_.offset);
+  EepromEntry info = eepromParser.getEeprom(eepromPath_, offset_);
   int vectorSize = info.size();
   int cursor = 0;
   // Manually create JSON object without using folly, so that this code
@@ -60,10 +61,6 @@ void WeutilImpl::printInfoJson() {
   // Finally, print the third part of the JSON - fixed entry
   std::cout << "}, \"Actions\": [], \"Resources\": []";
   std::cout << "}" << std::endl;
-}
-
-std::vector<std::string> WeutilImpl::getEepromNames() const {
-  return info_.modules;
 }
 
 } // namespace facebook::fboss::platform

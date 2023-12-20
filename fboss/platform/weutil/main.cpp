@@ -22,7 +22,7 @@ using namespace facebook;
 FOLLY_INIT_LOGGING_CONFIG(".=FATAL; default:async=true");
 
 namespace {
-void printUsage(const WeutilInterface& intf) {
+void printUsage() {
   std::cout
       << "weutil [--h] [--json] [--eeprom <eeprom-name>] [--path absolute_path_to_eeprom]"
       << std::endl;
@@ -32,7 +32,7 @@ void printUsage(const WeutilInterface& intf) {
   std::cout << "    weutil --path /sys/bus/i2c/devices/6-0051/eeprom"
             << std::endl;
   std::cout << "The <eeprom-name>s supported on this platform are: "
-            << folly::join(" ", intf.getEepromNames()) << std::endl;
+            << folly::join(", ", getEepromNames()) << std::endl;
 }
 } // namespace
 
@@ -61,36 +61,30 @@ int main(int argc, char* argv[]) {
   if (!validFlags(argc)) {
     return 1;
   }
+  if (FLAGS_h) {
+    printUsage();
+    return 0;
+  }
+
   try {
-    if (!FLAGS_path.empty()) {
-      // Path flag is set. We read the eeprom in the absolute path.
-      // Neither platform type detection nor config file load is needed.
-      weutilInstance = get_meta_eeprom_handler(FLAGS_path);
-    } else {
-      // Path flag is NOT set. Auto-detect the platform type and
-      // load the proper config file
-      weutilInstance = get_plat_weutil(FLAGS_eeprom, FLAGS_config_file);
-    }
+    weutilInstance =
+        createWeUtilIntf(FLAGS_eeprom, FLAGS_path, FLAGS_config_file);
   } catch (const std::exception& ex) {
     std::cout << "Failed creation of proper parser. " << ex.what() << std::endl;
     return 1;
   }
 
   if (weutilInstance) {
-    if (FLAGS_h) {
-      printUsage(*weutilInstance);
-    } else {
-      try {
-        if (FLAGS_json) {
-          weutilInstance->printInfoJson();
-        } else {
-          weutilInstance->printInfo();
-        }
-      } catch (const std::exception& ex) {
-        std::cout << ex.what() << std::endl;
-        std::cout << "ERROR: weutil finished with an exception." << std::endl;
-        return 1;
+    try {
+      if (FLAGS_json) {
+        weutilInstance->printInfoJson();
+      } else {
+        weutilInstance->printInfo();
       }
+    } catch (const std::exception& ex) {
+      std::cout << ex.what() << std::endl;
+      std::cout << "ERROR: weutil finished with an exception." << std::endl;
+      return 1;
     }
   } else {
     XLOG(INFO) << "Exiting with error code";

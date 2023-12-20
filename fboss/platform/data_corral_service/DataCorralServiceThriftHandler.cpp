@@ -25,7 +25,9 @@ void DataCorralServiceThriftHandler::getFruid(
   std::vector<FruIdData> vData;
 
   if (uncached || fruid_.empty()) {
-    fruid_ = get_plat_weutil("chassis", "")->getInfo();
+    fruid_ = createWeUtilIntf(
+                 "chassis" /*eepromName*/, "" /*eepromPath*/, "" /*configFile*/)
+                 ->getInfo();
   }
 
   for (const auto& it : fruid_) {
