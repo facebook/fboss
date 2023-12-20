@@ -780,11 +780,16 @@ TEST_F(HwVoqSwitchTest, AclQualifiersWithCounter) {
 
   auto verify = [kAclName, kAclCounterName, this]() {
     ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch()));
-    EXPECT_EQ(utility::getAclTableNumAclEntries(getHwSwitch()), 1);
+    EXPECT_EQ(
+        utility::getAclTableNumAclEntries(getHwSwitch()),
+        utility::getNumDefaultCpuAcls(getAsic()) + 1);
     utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), kAclName);
 
     utility::checkAclEntryAndStatCount(
-        getHwSwitch(), /*ACLs*/ 1, /*stats*/ 1, /*counters*/ 2);
+        getHwSwitch(),
+        /*ACLs*/ utility::getNumDefaultCpuAcls(getAsic()) + 1,
+        /*stats*/ 1,
+        /*counters*/ 2);
     utility::checkAclStat(
         getHwSwitch(),
         getProgrammedState(),

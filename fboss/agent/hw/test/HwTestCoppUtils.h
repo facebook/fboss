@@ -18,6 +18,7 @@
 #include <folly/IPAddress.h>
 #include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
+#include <cstdint>
 #include <string>
 
 /*
@@ -81,6 +82,8 @@ cfg::MatchAction createQueueMatchAction(
 std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
     const HwAsic* hwAsic,
     cfg::SwitchConfig& config);
+
+uint16_t getNumDefaultCpuAcls(const HwAsic* hwAsic);
 
 std::string getMplsDestNoMatchCounterName(void);
 

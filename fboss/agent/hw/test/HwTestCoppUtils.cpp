@@ -255,6 +255,11 @@ void setDefaultCpuTrafficPolicyConfig(
   config.cpuTrafficPolicy() = cpuConfig;
 }
 
+uint16_t getNumDefaultCpuAcls(const HwAsic* hwAsic) {
+  cfg::SwitchConfig config; // unused
+  return utility::defaultCpuAcls(hwAsic, config).size();
+}
+
 cfg::MatchAction createQueueMatchAction(
     int queueId,
     cfg::ToCpuAction toCpuAction) {
