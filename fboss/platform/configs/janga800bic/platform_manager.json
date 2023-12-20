@@ -1,0 +1,1278 @@
+{
+  "platformName": "janga800bic",
+  "rootPmUnitName": "SMB",
+  "slotTypeConfigs": {
+    "SMB_SLOT": {
+      "numOutgoingI2cBuses": 1,
+      "idpromConfig": {
+        "busName": "INCOMING@0",
+        "address": "0x11",
+        "kernelDeviceName": "24c02"
+      }
+    },
+    "RUN_BMC_SLOT": {
+      "numOutgoingI2cBuses": 1,
+      "idpromConfig": {
+        "busName": "INCOMING@0",
+        "address": "0x12",
+        "kernelDeviceName": "24c02"
+      }
+    }
+  },
+  "pmUnitConfigs": {
+    "SMB": {
+      "pluggedInSlotType": "SMB_SLOT",
+      "pciDeviceConfigs": [
+        {
+          "pmUnitScopedName": "SMB_IOB",
+          "vendorId": "0x1d9b",
+          "deviceId": "0x0011",
+          "subSystemVendorId": "0x10ee",
+          "subSystemDeviceId": "0x0007",
+          "i2cAdapterConfigs": [
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_IOB_I2C_MASTER_0",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x4000"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_IOB_I2C_MASTER_1",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x4100"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_IOB_I2C_MASTER_2",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x4200"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_IOB_I2C_MASTER_3",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x4300"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_IOB_I2C_MASTER_4",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x4400"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_IOB_I2C_MASTER_5",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x4500"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_IOB_I2C_MASTER_6",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x4600"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_IOB_I2C_MASTER_7",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x4700"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_IOB_I2C_MASTER_8",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x4800"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_IOB_I2C_MASTER_9",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x4900"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_IOB_I2C_MASTER_10",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x4a00"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_IOB_I2C_MASTER_11",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x4b00"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_IOB_I2C_MASTER_12",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x4c00"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_IOB_I2C_MASTER_13",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x4d00"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_IOB_I2C_MASTER_14",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x4e00"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_IOB_I2C_MASTER_15",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x4f00"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_IOB_I2C_MASTER_16",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x5000"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_IOB_I2C_MASTER_17",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x5100"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_IOB_I2C_MASTER_18",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x5200"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_IOB_I2C_MASTER_19",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x5300"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_IOB_I2C_MASTER_20",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x5400"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_IOB_I2C_MASTER_21",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x5500"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_IOB_I2C_MASTER_22",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x5600"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_IOB_I2C_MASTER_23",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x5700"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_IOB_I2C_MASTER_24",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x5800"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_IOB_I2C_MASTER_25",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x5900"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_IOB_I2C_MASTER_26",
+                "deviceName": "iob_i2c_master",
+                "csrOffset": "0x5a00"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_0",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x42000"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_1",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x42100"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_2",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x42200"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_3",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x42300"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_4",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x42400"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_5",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x42500"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_6",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x42600"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_7",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x42700"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_8",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x42800"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_9",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x42900"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_10",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x42a00"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_11",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x42b00"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_12",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x42c00"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_13",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x42d00"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_14",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x42e00"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_15",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x42f00"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_16",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x43000"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_17",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x43100"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_18",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x43200"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_19",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x43300"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_20",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x43400"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_21",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x43500"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_22",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x43600"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_23",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x43700"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_24",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x43800"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_25",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x43900"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_26",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x43a00"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_27",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x43b00"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_28",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x43c00"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_29",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x43d00"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_30",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x43e00"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_31",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x43f00"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_32",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x44000"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_33",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x44100"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_34",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x44200"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_35",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x44300"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_36",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x44400"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_37",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x44500"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_38",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x44600"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_39",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x44700"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_40",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x44800"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_41",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x44900"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_42",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x44a00"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_43",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x44b00"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_44",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x44c00"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_DOM1_I2C_MASTER_45",
+                "deviceName": "dom1_i2c_master",
+                "csrOffset": "0x44d00"
+              }
+            }
+          ],
+          "gpioChipConfigs": [
+            {
+              "pmUnitScopedName": "SMB_GPIO_CHIP_0",
+              "deviceName": "gpiochip",
+              "csrOffset": "0x0400"
+            }
+          ],
+          "spiMasterConfigs": [
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_SPI_MASTER_0",
+                "deviceName": "spi_master",
+                "csrOffset": "0x10000",
+                "iobufOffset": "0x12000"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_SPI_MASTER_1",
+                "deviceName": "spi_master",
+                "csrOffset": "0x10080",
+                "iobufOffset": "0x12400"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_SPI_MASTER_2",
+                "deviceName": "spi_master",
+                "csrOffset": "0x10100",
+                "iobufOffset": "0x12800"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_SPI_MASTER_3",
+                "deviceName": "spi_master",
+                "csrOffset": "0x10180",
+                "iobufOffset": "0x12c00"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_SPI_MASTER_4",
+                "deviceName": "spi_master",
+                "csrOffset": "0x10200",
+                "iobufOffset": "0x13000"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_SPI_MASTER_5",
+                "deviceName": "spi_master",
+                "csrOffset": "0x10280",
+                "iobufOffset": "0x13400"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_SPI_MASTER_6",
+                "deviceName": "spi_master",
+                "csrOffset": "0x10300",
+                "iobufOffset": "0x13800"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_SPI_MASTER_7",
+                "deviceName": "spi_master",
+                "csrOffset": "0x10380",
+                "iobufOffset": "0x13c00"
+              }
+            }
+          ],
+          "ledCtrlConfigs": [
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_LEFT_1",
+                "deviceName": "port_led_left",
+                "csrOffset": "0x40410"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_LEFT_2",
+                "deviceName": "port_led_left",
+                "csrOffset": "0x40418"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_LEFT_3",
+                "deviceName": "port_led_left",
+                "csrOffset": "0x40420"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_LEFT_4",
+                "deviceName": "port_led_left",
+                "csrOffset": "0x40428"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_LEFT_5",
+                "deviceName": "port_led_left",
+                "csrOffset": "0x40430"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_LEFT_6",
+                "deviceName": "port_led_left",
+                "csrOffset": "0x40438"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_LEFT_7",
+                "deviceName": "port_led_left",
+                "csrOffset": "0x40440"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_LEFT_8",
+                "deviceName": "port_led_left",
+                "csrOffset": "0x40448"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_LEFT_9",
+                "deviceName": "port_led_left",
+                "csrOffset": "0x40450"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_LEFT_10",
+                "deviceName": "port_led_left",
+                "csrOffset": "0x40458"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_LEFT_11",
+                "deviceName": "port_led_left",
+                "csrOffset": "0x40460"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_LEFT_12",
+                "deviceName": "port_led_left",
+                "csrOffset": "0x40468"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_LEFT_13",
+                "deviceName": "port_led_left",
+                "csrOffset": "0x40470"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_LEFT_14",
+                "deviceName": "port_led_left",
+                "csrOffset": "0x40478"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_LEFT_15",
+                "deviceName": "port_led_left",
+                "csrOffset": "0x40480"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_LEFT_16",
+                "deviceName": "port_led_left",
+                "csrOffset": "0x40488"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_LEFT_17",
+                "deviceName": "port_led_left",
+                "csrOffset": "0x40490"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_LEFT_18",
+                "deviceName": "port_led_left",
+                "csrOffset": "0x40498"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_LEFT_19",
+                "deviceName": "port_led_left",
+                "csrOffset": "0x404a0"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_LEFT_20",
+                "deviceName": "port_led_left",
+                "csrOffset": "0x404a8"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_LEFT_21",
+                "deviceName": "port_led_left",
+                "csrOffset": "0x404b0"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_LEFT_22",
+                "deviceName": "port_led_left",
+                "csrOffset": "0x404b8"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_LEFT_23",
+                "deviceName": "port_led_left",
+                "csrOffset": "0x404c0"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_LEFT_24",
+                "deviceName": "port_led_left",
+                "csrOffset": "0x404c8"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_LEFT_25",
+                "deviceName": "port_led_left",
+                "csrOffset": "0x404d0"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_LEFT_26",
+                "deviceName": "port_led_left",
+                "csrOffset": "0x404d8"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_LEFT_27",
+                "deviceName": "port_led_left",
+                "csrOffset": "0x404e0"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_LEFT_28",
+                "deviceName": "port_led_left",
+                "csrOffset": "0x404e8"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_LEFT_29",
+                "deviceName": "port_led_left",
+                "csrOffset": "0x404f0"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_LEFT_30",
+                "deviceName": "port_led_left",
+                "csrOffset": "0x404f8"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_LEFT_31",
+                "deviceName": "port_led_left",
+                "csrOffset": "0x40500"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_LEFT_32",
+                "deviceName": "port_led_left",
+                "csrOffset": "0x40508"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_LEFT_33",
+                "deviceName": "port_led_left",
+                "csrOffset": "0x48410"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_LEFT_34",
+                "deviceName": "port_led_left",
+                "csrOffset": "0x48418"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_LEFT_35",
+                "deviceName": "port_led_left",
+                "csrOffset": "0x48420"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_LEFT_36",
+                "deviceName": "port_led_left",
+                "csrOffset": "0x48428"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_LEFT_37",
+                "deviceName": "port_led_left",
+                "csrOffset": "0x48430"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_LEFT_38",
+                "deviceName": "port_led_left",
+                "csrOffset": "0x48438"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_LEFT_39",
+                "deviceName": "port_led_left",
+                "csrOffset": "0x48440"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_LEFT_40",
+                "deviceName": "port_led_left",
+                "csrOffset": "0x48448"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_LEFT_41",
+                "deviceName": "port_led_left",
+                "csrOffset": "0x48450"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_LEFT_42",
+                "deviceName": "port_led_left",
+                "csrOffset": "0x48458"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_LEFT_43",
+                "deviceName": "port_led_left",
+                "csrOffset": "0x48460"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_LEFT_44",
+                "deviceName": "port_led_left",
+                "csrOffset": "0x48468"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_LEFT_45",
+                "deviceName": "port_led_left",
+                "csrOffset": "0x48470"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_LEFT_46",
+                "deviceName": "port_led_left",
+                "csrOffset": "0x48478"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_RIGHT_1",
+                "deviceName": "port_led_right",
+                "csrOffset": "0x40414"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_RIGHT_2",
+                "deviceName": "port_led_right",
+                "csrOffset": "0x4041c"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_RIGHT_3",
+                "deviceName": "port_led_right",
+                "csrOffset": "0x40424"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_RIGHT_4",
+                "deviceName": "port_led_right",
+                "csrOffset": "0x4042c"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_RIGHT_5",
+                "deviceName": "port_led_right",
+                "csrOffset": "0x40434"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_RIGHT_6",
+                "deviceName": "port_led_right",
+                "csrOffset": "0x4043c"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_RIGHT_7",
+                "deviceName": "port_led_right",
+                "csrOffset": "0x40444"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_RIGHT_8",
+                "deviceName": "port_led_right",
+                "csrOffset": "0x4044c"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_RIGHT_9",
+                "deviceName": "port_led_right",
+                "csrOffset": "0x40454"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_RIGHT_10",
+                "deviceName": "port_led_right",
+                "csrOffset": "0x4045c"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_RIGHT_11",
+                "deviceName": "port_led_right",
+                "csrOffset": "0x40464"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_RIGHT_12",
+                "deviceName": "port_led_right",
+                "csrOffset": "0x4046c"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_RIGHT_13",
+                "deviceName": "port_led_right",
+                "csrOffset": "0x40474"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_RIGHT_14",
+                "deviceName": "port_led_right",
+                "csrOffset": "0x4047c"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_RIGHT_15",
+                "deviceName": "port_led_right",
+                "csrOffset": "0x40484"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_RIGHT_16",
+                "deviceName": "port_led_right",
+                "csrOffset": "0x4048c"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_RIGHT_17",
+                "deviceName": "port_led_right",
+                "csrOffset": "0x40494"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_RIGHT_18",
+                "deviceName": "port_led_right",
+                "csrOffset": "0x4049c"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_RIGHT_19",
+                "deviceName": "port_led_right",
+                "csrOffset": "0x404a4"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_RIGHT_20",
+                "deviceName": "port_led_right",
+                "csrOffset": "0x404ac"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_RIGHT_21",
+                "deviceName": "port_led_right",
+                "csrOffset": "0x404b4"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_RIGHT_22",
+                "deviceName": "port_led_right",
+                "csrOffset": "0x404bc"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_RIGHT_23",
+                "deviceName": "port_led_right",
+                "csrOffset": "0x404c4"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_RIGHT_24",
+                "deviceName": "port_led_right",
+                "csrOffset": "0x404cc"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_RIGHT_25",
+                "deviceName": "port_led_right",
+                "csrOffset": "0x404d4"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_RIGHT_26",
+                "deviceName": "port_led_right",
+                "csrOffset": "0x404dc"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_RIGHT_27",
+                "deviceName": "port_led_right",
+                "csrOffset": "0x404e4"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_RIGHT_28",
+                "deviceName": "port_led_right",
+                "csrOffset": "0x404ec"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_RIGHT_29",
+                "deviceName": "port_led_right",
+                "csrOffset": "0x404f4"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_RIGHT_30",
+                "deviceName": "port_led_right",
+                "csrOffset": "0x404fc"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_RIGHT_31",
+                "deviceName": "port_led_right",
+                "csrOffset": "0x40504"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_RIGHT_32",
+                "deviceName": "port_led_right",
+                "csrOffset": "0x4050c"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_RIGHT_33",
+                "deviceName": "port_led_right",
+                "csrOffset": "0x48414"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_RIGHT_34",
+                "deviceName": "port_led_right",
+                "csrOffset": "0x4841c"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_RIGHT_35",
+                "deviceName": "port_led_right",
+                "csrOffset": "0x48424"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_RIGHT_36",
+                "deviceName": "port_led_right",
+                "csrOffset": "0x4842c"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_RIGHT_37",
+                "deviceName": "port_led_right",
+                "csrOffset": "0x48434"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_RIGHT_38",
+                "deviceName": "port_led_right",
+                "csrOffset": "0x4843c"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_RIGHT_39",
+                "deviceName": "port_led_right",
+                "csrOffset": "0x48444"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_RIGHT_40",
+                "deviceName": "port_led_right",
+                "csrOffset": "0x4844c"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_RIGHT_41",
+                "deviceName": "port_led_right",
+                "csrOffset": "0x48454"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_RIGHT_42",
+                "deviceName": "port_led_right",
+                "csrOffset": "0x4845c"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_RIGHT_43",
+                "deviceName": "port_led_right",
+                "csrOffset": "0x48464"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_RIGHT_44",
+                "deviceName": "port_led_right",
+                "csrOffset": "0x4846c"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_RIGHT_45",
+                "deviceName": "port_led_right",
+                "csrOffset": "0x48474"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "SMB_PORT_LED_RIGHT_46",
+                "deviceName": "port_led_right",
+                "csrOffset": "0x4847c"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "RUNBMC": {
+      "pluggedInSlotType": "RUNBMC_SLOT"
+    }
+  },
+  "i2cAdaptersFromCpu": [
+    "SMBus I801 adapter at 5000",
+    "SMBus iSMT adapter at 20fffa7b000"
+  ],
+  "symbolicLinkToDevicePath": {
+  },
+  "bspKmodsRpmName": "fboss_bsp_kmods"
+}
