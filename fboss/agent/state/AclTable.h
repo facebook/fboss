@@ -66,6 +66,17 @@ class AclTable : public ThriftStructNode<AclTable, state::AclTableFields> {
     ref<switch_state_tags::aclMap>() = aclMap;
   }
 
+  std::optional<int> getChainGroupId() const {
+    if (auto chainGroupId = cref<switch_state_tags::chainGroupId>()) {
+      return chainGroupId->cref();
+    }
+    return std::nullopt;
+  }
+
+  void setChainGroupId(const int chainGroupId) {
+    set<switch_state_tags::chainGroupId>(chainGroupId);
+  }
+
   // THRIFT_COPY
   std::vector<cfg::AclTableActionType> getActionTypes() const {
     return cref<switch_state_tags::actionTypes>()->toThrift();

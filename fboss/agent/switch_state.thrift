@@ -529,6 +529,7 @@ struct AclTableFields {
   3: optional map<string, AclEntryFields> aclMap;
   4: list<switch_config.AclTableActionType> actionTypes;
   5: list<switch_config.AclTableQualifier> qualifiers;
+  6: optional i32 chainGroupId;
 }
 
 struct AclTableGroupFields {
