@@ -1,9 +1,11 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/SwAgentInitializer.h"
+#include "fboss/agent/AgentDirectoryUtil.h"
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/SetupThrift.h"
 #include "fboss/agent/ThriftHandler.h"
+#include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 #include <folly/io/async/EventBase.h>
@@ -161,6 +163,18 @@ void SwAgentInitializer::handleExitSignal() {
   restart_time::mark(RestartEvent::SIGNAL_RECEIVED);
   XLOG(DBG2) << "[Exit] Signal received ";
   steady_clock::time_point begin = steady_clock::now();
+  auto sleepOnSigTermFile = sw_->getDirUtil()->sleepSwSwitchOnSigTermFile();
+  if (checkFileExists(sleepOnSigTermFile)) {
+    SCOPE_EXIT {
+      removeFile(sleepOnSigTermFile);
+    };
+    std::string timeStr;
+    if (folly::readFile(sleepOnSigTermFile.c_str(), timeStr)) {
+      // @lint-ignore CLANGTIDY
+      std::this_thread::sleep_for(
+          std::chrono::seconds(folly::to<uint32_t>(timeStr)));
+    }
+  }
   stopServices();
   steady_clock::time_point servicesStopped = steady_clock::now();
   XLOG(DBG2) << "[Exit] Services stop time "

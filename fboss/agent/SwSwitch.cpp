@@ -574,19 +574,6 @@ state::WarmbootState SwSwitch::gracefulExitState() const {
 }
 
 void SwSwitch::gracefulExit() {
-  auto sleepOnSigTermFile = agentDirUtil_->sleepSwSwitchOnSigTermFile();
-  if (checkFileExists(sleepOnSigTermFile)) {
-    SCOPE_EXIT {
-      removeFile(sleepOnSigTermFile);
-    };
-    std::string timeStr;
-    if (folly::readFile(
-            agentDirUtil_->sleepSwSwitchOnSigTermFile().c_str(), timeStr)) {
-      // @lint-ignore CLANGTIDY
-      std::this_thread::sleep_for(
-          std::chrono::seconds(folly::to<uint32_t>(timeStr)));
-    }
-  }
   if (isFullyInitialized()) {
     steady_clock::time_point begin = steady_clock::now();
     XLOG(DBG2) << "[Exit] Starting SwSwitch graceful exit";
