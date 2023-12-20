@@ -255,4 +255,15 @@ std::string AgentDirectoryUtil::pidFile(const std::string& name) const {
   return getVolatileStateDir() + "/." + name + ".pid";
 }
 
+std::string AgentDirectoryUtil::exitSwSwitchForColdBootFile() const {
+  return folly::to<std::string>(
+      getVolatileStateDir(), "/exit_sw_for_cold_boot");
+}
+
+std::string AgentDirectoryUtil::exitHwSwitchForColdBootFile(
+    int switchIndex) const {
+  return folly::to<std::string>(
+      getVolatileStateDir(), "/exit_hw_for_cold_boot_", switchIndex);
+}
+
 } // namespace facebook::fboss

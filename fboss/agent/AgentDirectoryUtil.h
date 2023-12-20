@@ -177,6 +177,10 @@ class AgentDirectoryUtil {
 
   std::string pidFile(const std::string& name) const;
 
+  std::string exitSwSwitchForColdBootFile() const;
+
+  std::string exitHwSwitchForColdBootFile(int switchIndex) const;
+
  private:
   const std::string volatileStateDir_;
   const std::string persistentStateDir_;
