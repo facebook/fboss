@@ -124,6 +124,9 @@ sai_status_t sai_get_object_count(
       }
       break;
     }
+    case SAI_OBJECT_TYPE_ACL_TABLE_CHAIN_GROUP:
+      *count = fs->aclTableChainGroupManager.map().size();
+      break;
     case SAI_OBJECT_TYPE_ACL_TABLE:
       *count = fs->aclTableManager.map().size();
       break;
@@ -423,6 +426,13 @@ sai_status_t sai_get_object_key(
              aclTableGroup.second.fm().map()) {
           object_list[i++].key.object_id = aclTableGroupMember.second.id;
         }
+      }
+      break;
+    }
+    case SAI_OBJECT_TYPE_ACL_TABLE_CHAIN_GROUP: {
+      for (const auto& aclTableChainGroup :
+           fs->aclTableChainGroupManager.map()) {
+        object_list[i++].key.object_id = aclTableChainGroup.second.id;
       }
       break;
     }

@@ -26,11 +26,15 @@ class FakeAclTableGroupMember {
       sai_object_id_t tableGroupId,
       sai_object_id_t tableId,
       sai_uint32_t priority)
-      : tableGroupId(tableGroupId), tableId(tableId), priority(priority) {}
+      : tableGroupId(tableGroupId),
+        tableId(tableId),
+        priority(priority),
+        tableChainGroupId(0) {}
 
   sai_object_id_t tableGroupId;
   sai_object_id_t tableId;
   sai_uint32_t priority;
+  sai_object_id_t tableChainGroupId;
 
   sai_object_id_t id;
 };
@@ -62,6 +66,17 @@ class FakeAclTableGroup {
 
 using FakeAclTableGroupManager =
     FakeManagerWithMembers<FakeAclTableGroup, FakeAclTableGroupMember>;
+
+class FakeAclTableChainGroup {
+ public:
+  explicit FakeAclTableChainGroup(sai_int32_t stage, sai_int32_t type)
+      : stage(stage), type(type) {}
+
+  sai_object_id_t id;
+
+  sai_int32_t stage;
+  sai_int32_t type;
+};
 
 class FakeAclEntry {
  public:
@@ -316,6 +331,8 @@ class FakeAclCounter {
 using FakeAclEntryManager = FakeManager<sai_object_id_t, FakeAclEntry>;
 using FakeAclCounterManager = FakeManager<sai_object_id_t, FakeAclCounter>;
 using FakeAclTableManager = FakeManager<sai_object_id_t, FakeAclTable>;
+using FakeAclTableChainGroupManager =
+    FakeManager<sai_object_id_t, FakeAclTableChainGroup>;
 
 void populate_acl_api(sai_acl_api_t** acl_api);
 
