@@ -726,7 +726,7 @@ void SaiPortManager::removeIngressPriorityGroupMappings(
   for (const auto& ipgIndexInfo : portHandle->configuredIngressPriorityGroups) {
     const auto& ipgInfo = ipgIndexInfo.second;
     managerTable_->bufferManager().setIngressPriorityGroupBufferProfile(
-        ipgInfo.pgHandle->ingressPriorityGroup->adapterKey(), std::nullptr_t());
+        ipgInfo.pgHandle->ingressPriorityGroup, std::nullptr_t());
   }
   portHandle->configuredIngressPriorityGroups.clear();
 }
@@ -785,10 +785,9 @@ void SaiPortManager::programPfcBuffers(const std::shared_ptr<Port>& swPort) {
       auto bufferProfile =
           managerTable_->bufferManager().getOrCreateIngressProfile(
               portPgCfgThrift);
-      auto ingressPriorityGroupSaiId =
-          ingressPriorityGroupHandles[pgId]->ingressPriorityGroup->adapterKey();
       managerTable_->bufferManager().setIngressPriorityGroupBufferProfile(
-          ingressPriorityGroupSaiId, bufferProfile);
+          ingressPriorityGroupHandles[pgId]->ingressPriorityGroup,
+          bufferProfile);
       // Keep track of ingressPriorityGroupHandle and bufferProfile per PG ID
       portHandle
           ->configuredIngressPriorityGroups[static_cast<IngressPriorityGroupID>(

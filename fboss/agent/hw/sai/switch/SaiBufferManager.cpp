@@ -509,15 +509,17 @@ void SaiBufferManager::createIngressBufferPool(
 }
 
 void SaiBufferManager::setIngressPriorityGroupBufferProfile(
-    IngressPriorityGroupSaiId pgId,
+    const std::shared_ptr<SaiIngressPriorityGroup> ingressPriorityGroup,
     std::shared_ptr<SaiBufferProfile> bufferProfile) {
-  SaiIngressPriorityGroupTraits::Attributes::BufferProfile bufferProfileId{
-      SAI_NULL_OBJECT_ID};
   if (bufferProfile) {
-    bufferProfileId = SaiIngressPriorityGroupTraits::Attributes::BufferProfile{
-        bufferProfile->adapterKey()};
+    ingressPriorityGroup->setOptionalAttribute(
+        SaiIngressPriorityGroupTraits::Attributes::BufferProfile{
+            bufferProfile->adapterKey()});
+  } else {
+    ingressPriorityGroup->setOptionalAttribute(
+        SaiIngressPriorityGroupTraits::Attributes::BufferProfile{
+            SAI_NULL_OBJECT_ID});
   }
-  SaiApiTable::getInstance()->bufferApi().setAttribute(pgId, bufferProfileId);
 }
 
 SaiIngressPriorityGroupHandles SaiBufferManager::loadIngressPriorityGroups(

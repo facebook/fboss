@@ -77,7 +77,7 @@ class SaiBufferManager {
   }
   static uint64_t getMaxEgressPoolBytes(const SaiPlatform* platform);
   void setIngressPriorityGroupBufferProfile(
-      IngressPriorityGroupSaiId pdId,
+      const std::shared_ptr<SaiIngressPriorityGroup> ingressPriorityGroup,
       std::shared_ptr<SaiBufferProfile> bufferProfile);
   SaiIngressPriorityGroupHandles loadIngressPriorityGroups(
       const std::vector<IngressPriorityGroupSaiId>& ingressPriorityGroupSaiIds);
