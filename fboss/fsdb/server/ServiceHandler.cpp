@@ -1034,7 +1034,11 @@ void ServiceHandler::validateOperPublishPermissions(
     // path is configured, so we have permission to publish
     return;
   } catch (const fsdb::FsdbException& ex) {
-    num_publisher_unknown_requests_rejected_.incrementValue(1);
+    if (ex.errorCode() == FsdbErrorCode::PUBLISHER_NOT_PERMITTED) {
+      num_publisher_path_requests_rejected_.incrementValue(1);
+    } else {
+      num_publisher_unknown_requests_rejected_.incrementValue(1);
+    }
     if (FLAGS_enforcePublisherConfig) {
       throw;
     }
