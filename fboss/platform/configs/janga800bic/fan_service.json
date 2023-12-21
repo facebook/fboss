@@ -1,0 +1,310 @@
+{
+  "pwmBoostOnNumDeadFan" : 1,
+  "pwmBoostOnNumDeadSensor" : 0,
+  "pwmBoostOnNoQsfpAfterInSec" : 80,
+  "pwmBoostValue" : 80,
+  "pwmLowerThreshold" : 30,
+  "pwmUpperThreshold" : 80,
+  "sensors" : [
+    {
+      "sensorName" : "SMB_U80_TH5_TEMP",
+      "scale" : 1000.0,
+      "access" : {
+        "source" : "ACCESS_TYPE_THRIFT"
+      },
+      "pwmCalcType" : "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
+      "normalUpTable" : {
+        "28" : 60
+      },
+      "normalDownTable" : {
+        "28" : 60
+      },
+      "failUpTable" : {
+        "28" : 60
+      },
+      "failDownTable" : {
+        "28" : 60
+      },
+      "alarm" : {
+        "highMajor" : 70.0,
+        "highMinor" : 65.0,
+        "minorSoakSeconds" : 300
+      }
+    },
+    {
+      "sensorName" : "SCM_U36_LM75_TEMP",
+      "scale" : 1000.0,
+      "access" : {
+        "source" : "ACCESS_TYPE_THRIFT"
+      },
+      "pwmCalcType" : "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
+      "normalUpTable" : {
+        "24" : 30,
+        "25" : 35,
+        "28" : 40,
+        "31" : 45,
+        "35" : 55
+      },
+      "normalDownTable" : {
+        "22" : 30,
+        "23" : 35,
+        "26" : 40,
+        "29" : 45,
+        "33" : 55
+      },
+      "failUpTable" : {
+        "24" : 30,
+        "25" : 35,
+        "28" : 40,
+        "31" : 45,
+        "35" : 55
+      },
+      "failDownTable" : {
+        "22" : 30,
+        "23" : 35,
+        "26" : 40,
+        "29" : 45,
+        "33" : 55
+      },
+      "alarm" : {
+        "highMajor" : 45.0,
+        "highMinor" : 40.0,
+        "minorSoakSeconds" : 300
+      }
+    },
+    {
+      "sensorName" : "SOC_THERM_MARGIN_TEMP",
+      "scale" : 1000.0,
+      "access" : {
+        "source" : "ACCESS_TYPE_THRIFT"
+      },
+      "pwmCalcType" : "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
+      "normalUpTable" : {
+        "28" : 60
+      },
+      "normalDownTable" : {
+        "28" : 60
+      },
+      "failUpTable" : {
+        "28" : 60
+      },
+      "failDownTable" : {
+        "28" : 60
+      },
+      "alarm" : {
+        "highMajor" : 70.0,
+        "highMinor" : 65.0,
+        "minorSoakSeconds" : 300
+      }
+    }
+  ],
+
+  "fans" : [
+    {
+      "fanName" : "fan_1",
+      "rpmAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/fans/FAN1_INPUT"
+      },
+      "pwmAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/fans/PWM1"
+      },
+      "presenceAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/fans/FAN1_PRESENT"
+      },
+      "ledAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/fans/FAN1_LED"
+      },
+      "fanPresentVal" : 1,
+      "fanMissingVal" : 0,
+      "fanGoodLedVal" : 2,
+      "fanFailLedVal" : 1
+    },
+    {
+      "fanName" : "fan_2",
+      "rpmAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/fans/FAN2_INPUT"
+      },
+      "pwmAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/fans/PWM2"
+      },
+      "presenceAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/fans/FAN2_PRESENT"
+      },
+      "ledAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/fans/FAN2_LED"
+      },
+      "fanPresentVal" : 1,
+      "fanMissingVal" : 0,
+      "fanGoodLedVal" : 2,
+      "fanFailLedVal" : 1
+    },
+    {
+      "fanName" : "fan_3",
+      "rpmAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/fans/FAN3_INPUT"
+      },
+      "pwmAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/fans/PWM3"
+      },
+      "presenceAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/fans/FAN3_PRESENT"
+      },
+      "ledAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/fans/FAN3_LED"
+      },
+      "fanPresentVal" : 1,
+      "fanMissingVal" : 0,
+      "fanGoodLedVal" : 2,
+      "fanFailLedVal" : 1
+    },
+    {
+      "fanName" : "fan_4",
+      "rpmAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/fans/FAN4_INPUT"
+      },
+      "pwmAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/fans/PWM4"
+      },
+      "presenceAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/fans/FAN4_PRESENT"
+      },
+      "ledAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/fans/FAN4_LED"
+      },
+      "fanPresentVal" : 1,
+      "fanMissingVal" : 0,
+      "fanGoodLedVal" : 2,
+      "fanFailLedVal" : 1
+    },
+    {
+      "fanName" : "fan_5",
+      "rpmAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/fans/FAN5_INPUT"
+      },
+      "pwmAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/fans/PWM5"
+      },
+      "presenceAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/fans/FAN5_PRESENT"
+      },
+      "ledAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/fans/FAN5_LED"
+      },
+      "fanPresentVal" : 1,
+      "fanMissingVal" : 0,
+      "fanGoodLedVal" : 2,
+      "fanFailLedVal" : 1
+    },
+    {
+      "fanName" : "fan_6",
+      "rpmAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/fans/FAN6_INPUT"
+      },
+      "pwmAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/fans/PWM6"
+      },
+      "presenceAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/fans/FAN6_PRESENT"
+      },
+      "ledAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/fans/FAN6_LED"
+      },
+      "fanPresentVal" : 1,
+      "fanMissingVal" : 0,
+      "fanGoodLedVal" : 2,
+      "fanFailLedVal" : 1
+    },
+    {
+      "fanName" : "fan_7",
+      "rpmAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/fans/FAN7_INPUT"
+      },
+      "pwmAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/fans/PWM7"
+      },
+      "presenceAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/fans/FAN7_PRESENT"
+      },
+      "ledAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/fans/FAN7_LED"
+      },
+      "fanPresentVal" : 1,
+      "fanMissingVal" : 0,
+      "fanGoodLedVal" : 2,
+      "fanFailLedVal" : 1
+    },
+    {
+      "fanName" : "fan_8",
+      "rpmAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/fans/FAN8_INPUT"
+      },
+      "pwmAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/fans/PWM8"
+      },
+      "presenceAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/fans/FAN8_PRESENT"
+      },
+      "ledAccess" : {
+        "accessType" : "ACCESS_TYPE_SYSFS",
+        "path" : "/run/devmap/fans/FAN8_LED"
+      },
+      "fanPresentVal" : 1,
+      "fanMissingVal" : 0,
+      "fanGoodLedVal" : 2,
+      "fanFailLedVal" : 1
+    }
+  ],
+  "zones": [
+    {
+      "zoneType" : "ZONE_TYPE_MAX",
+      "zoneName" : "zone1",
+      "sensorNames" : [
+        "SMB_U80_TH5_TEMP",
+        "SCM_U36_LM75_TEMP",
+        "SOC_THERM_MARGIN_TEMP"
+      ],
+      "fanNames" : [
+        "fan_1",
+        "fan_2",
+        "fan_3",
+        "fan_4",
+        "fan_5",
+        "fan_6",
+        "fan_7",
+        "fan_8"
+      ],
+      "slope" : 3
+    }
+  ]
+}
