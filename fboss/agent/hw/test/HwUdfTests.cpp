@@ -124,9 +124,10 @@ TEST_F(HwUdfTest, deleteUdfAclConfig) {
     utility::validateRemoveUdfPacketMatcher(
         getHwSwitch(), utility::kUdfPktMatcherName, udfPacketMatcherId);
     // Verify that UdfGroupIds in Qset is deleted
-    utility::validateUdfIdsMissingInQset(
+    utility::validateUdfIdsInQset(
         getHwSwitch(),
-        getHwSwitch()->getPlatform()->getAsic()->getDefaultACLGroupID());
+        getHwSwitch()->getPlatform()->getAsic()->getDefaultACLGroupID(),
+        false);
   };
   verifyAcrossWarmBoots(setup, verify);
 }

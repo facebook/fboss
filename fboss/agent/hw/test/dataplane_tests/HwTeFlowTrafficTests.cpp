@@ -281,9 +281,10 @@ class HwTeFlowTrafficTest : public HwLinkStateDependentTest {
     auto verifyPostWB = [&]() {
       if (udfAclEnabled) {
         _validateTeFlow();
-        utility::validateUdfIdsSetInQset(
+        utility::validateUdfIdsInQset(
             getHwSwitch(),
-            getHwSwitch()->getPlatform()->getAsic()->getDefaultACLGroupID());
+            getHwSwitch()->getPlatform()->getAsic()->getDefaultACLGroupID(),
+            true);
       }
     };
 

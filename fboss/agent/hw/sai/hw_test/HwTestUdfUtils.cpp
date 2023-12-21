@@ -132,9 +132,10 @@ int getHwUdfPacketMatcherId(
       "Cannot find UdfMatch " + udfPackeMatchName + " in Sai Switch");
 }
 
-void validateUdfIdsSetInQset(
+void validateUdfIdsInQset(
     const HwSwitch* /* unused */,
-    const int /*aclGroupId*/) {
+    const int /*aclGroupId*/,
+    const bool /*isSet*/) {
   // not supported on SAI yet.
   EXPECT_TRUE(false);
 }

@@ -40,9 +40,10 @@ int getHwUdfPacketMatcherId(
     const HwSwitch* hw,
     const std::string& udfPackeMatchName);
 
-void validateUdfIdsSetInQset(const HwSwitch* hw, const int aclGroupId);
-
-void validateUdfIdsMissingInQset(const HwSwitch* hw, const int aclGroupId);
+void validateUdfIdsInQset(
+    const HwSwitch* hw,
+    const int aclGroupId,
+    const bool isSet);
 
 } // namespace utility
 } // namespace facebook::fboss
