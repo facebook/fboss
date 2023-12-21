@@ -4,6 +4,7 @@
 #include "fboss/agent/MultiSwitchThriftHandler.h"
 #include "fboss/agent/TunManager.h"
 #include "fboss/agent/mnpu/NonMonolithicHwSwitchHandler.h"
+#include "fboss/lib/CommonFileUtils.h"
 
 #include <thread>
 
@@ -40,7 +41,24 @@ void SplitSwAgentInitializer::handleExitSignal() {
         << "[Exit] Signal received before initializing sw switch, waiting for initialization to finish.";
   }
   initializer()->waitForInitDone();
-  SwAgentInitializer::handleExitSignal();
+  {
+    auto exitForColdBootFile =
+        agentDirectoryUtil_.exitSwSwitchForColdBootFile();
+    SCOPE_EXIT {
+      removeFile(exitForColdBootFile);
+    };
+    if (checkFileExists(exitForColdBootFile)) {
+      stopServices();
+      // hardware agents are expected to terminate after software agents
+      // so revert to min-alpm state
+      sw_->stop(false /* gracefulStop */, true /* revertToMinAlpmState */);
+      sw_->getHwSwitchHandler()->stop();
+      initializer_.reset();
+    } else {
+      /* graceful exit to shutdown for warm boot*/
+      SwAgentInitializer::handleExitSignal();
+    }
+  }
   exit(0);
 }
 

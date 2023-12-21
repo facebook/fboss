@@ -602,7 +602,6 @@ void SwSwitch::gracefulExit() {
     // Cleanup if we ever initialized
     multiHwSwitchHandler_->gracefulExit();
     multiHwSwitchHandler_->stop();
-    // writing after hwSwitch state for backward compat
     storeWarmBootState(thriftSwitchState);
     XLOG(DBG2)
         << "[Exit] SwSwitch Graceful Exit time "
