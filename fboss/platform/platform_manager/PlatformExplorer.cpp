@@ -263,6 +263,9 @@ void PlatformExplorer::explorePciDevices(
     for (const auto& xcvrCtrlConfig : *pciDeviceConfig.xcvrCtrlConfigs()) {
       pciExplorer_.createXcvrCtrl(charDevPath, xcvrCtrlConfig, instId++);
     }
+    for (const auto& fpgaIpBlockConfig : *pciDeviceConfig.miscCtrlConfigs()) {
+      pciExplorer_.createFpgaIpBlock(charDevPath, fpgaIpBlockConfig, instId++);
+    }
   }
 }
 
