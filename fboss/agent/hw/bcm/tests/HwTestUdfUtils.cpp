@@ -122,4 +122,10 @@ void validateUdfIdsSetInQset(const HwSwitch* hw, const int aclGroupId) {
   EXPECT_TRUE(udf_ids.size() > 0);
 }
 
+void validateUdfIdsMissingInQset(const HwSwitch* hw, const int aclGroupId) {
+  const auto& udf_ids =
+      getUdfQsetIds(static_cast<const BcmSwitch*>(hw)->getUnit(), aclGroupId);
+  EXPECT_TRUE(udf_ids.size() == 0);
+}
+
 } // namespace facebook::fboss::utility

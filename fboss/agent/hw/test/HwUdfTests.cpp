@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTest.h"
+#include "fboss/agent/hw/test/HwTestAclUtils.h"
 #include "fboss/agent/hw/test/HwTestUdfUtils.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
 
@@ -16,6 +17,15 @@ namespace facebook::fboss {
 
 class HwUdfTest : public HwTest {
  protected:
+  cfg::SwitchConfig initialConfig() const {
+    auto cfg = utility::onePortPerInterfaceConfig(
+        getHwSwitch(),
+        masterLogicalPortIds(),
+        getAsic()->desiredLoopbackModes());
+
+    return cfg;
+  }
+
   std::shared_ptr<SwitchState> setupUdfConfiguration(
       bool addConfig,
       bool udfHash = true) {
@@ -61,7 +71,7 @@ TEST_F(HwUdfTest, checkUdfAclConfiguration) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwUdfTest, deleteUdfConfig) {
+TEST_F(HwUdfTest, deleteUdfHashConfig) {
   int udfGroupId;
   int udfPacketMatcherId;
   auto setup = [&]() {
@@ -77,6 +87,46 @@ TEST_F(HwUdfTest, deleteUdfConfig) {
         getHwSwitch(), utility::kUdfHashGroupName, udfGroupId);
     utility::validateRemoveUdfPacketMatcher(
         getHwSwitch(), utility::kUdfPktMatcherName, udfPacketMatcherId);
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+// This test is to verify that UdfGroup(roceOpcode) for UdfAcl and associated
+// PacketMatcher can be successfully deleted.
+TEST_F(HwUdfTest, deleteUdfAclConfig) {
+  int udfGroupId;
+  int udfPacketMatcherId;
+  auto setup = [&]() {
+    auto newCfg{initialConfig()};
+    // Add UdfGroup and PacketMatcher configuration for UDF ACL
+    newCfg.udfConfig() = utility::addUdfAclConfig();
+
+    // Add ACL configuration
+    auto acl = utility::addAcl(&newCfg, "test-udf-acl");
+    acl->udfGroups() = {utility::kUdfRoceOpcodeAclGroupName};
+    acl->roceOpcode() = utility::kUdfRoceOpcode;
+    applyNewConfig(newCfg);
+
+    // Get UdfGroup and PacketMatcher Ids for verify
+    udfGroupId = utility::getHwUdfGroupId(
+        getHwSwitch(), utility::kUdfRoceOpcodeAclGroupName);
+    udfPacketMatcherId = utility::getHwUdfPacketMatcherId(
+        getHwSwitch(), utility::kUdfPktMatcherName);
+
+    // Delete UdfGroup and PacketMatcher configuration for UDF ACL
+    applyNewState(setupUdfConfiguration(false, false));
+  };
+
+  auto verify = [=]() {
+    // Verify that UdfGroup and PacketMatcher are deleted
+    utility::validateRemoveUdfGroup(
+        getHwSwitch(), utility::kUdfRoceOpcodeAclGroupName, udfGroupId);
+    utility::validateRemoveUdfPacketMatcher(
+        getHwSwitch(), utility::kUdfPktMatcherName, udfPacketMatcherId);
+    // Verify that UdfGroupIds in Qset is deleted
+    utility::validateUdfIdsMissingInQset(
+        getHwSwitch(),
+        getHwSwitch()->getPlatform()->getAsic()->getDefaultACLGroupID());
   };
   verifyAcrossWarmBoots(setup, verify);
 }
