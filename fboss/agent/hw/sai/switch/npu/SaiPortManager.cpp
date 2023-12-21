@@ -628,6 +628,8 @@ void SaiPortManager::programSerdes(
     std::shared_ptr<Port> swPort,
     SaiPortHandle* portHandle) {
   if (!platform_->isSerdesApiSupported() ||
+      !platform_->getAsic()->isSupported(
+          HwAsic::Feature::SAI_PORT_SERDES_PROGRAMMING) ||
       swPort->getPortType() == cfg::PortType::RECYCLE_PORT) {
     return;
   }

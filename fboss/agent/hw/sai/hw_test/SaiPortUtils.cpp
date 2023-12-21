@@ -202,7 +202,9 @@ void verifyTxSettting(
     Platform* platform,
     const std::vector<phy::PinConfig>& expectedPinConfigs) {
   auto* saiPlatform = static_cast<SaiPlatform*>(platform);
-  if (!saiPlatform->isSerdesApiSupported()) {
+  if (!saiPlatform->isSerdesApiSupported() ||
+      !saiPlatform->getAsic()->isSupported(
+          HwAsic::Feature::SAI_PORT_SERDES_PROGRAMMING)) {
     return;
   }
 
@@ -356,7 +358,9 @@ void verifyRxSettting(
     Platform* platform,
     const std::vector<phy::PinConfig>& expectedPinConfigs) {
   auto* saiPlatform = static_cast<SaiPlatform*>(platform);
-  if (!saiPlatform->isSerdesApiSupported()) {
+  if (!saiPlatform->isSerdesApiSupported() ||
+      !saiPlatform->getAsic()->isSupported(
+          HwAsic::Feature::SAI_PORT_SERDES_PROGRAMMING)) {
     return;
   }
 

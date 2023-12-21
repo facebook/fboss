@@ -2304,7 +2304,9 @@ void SaiPortManager::changeZeroPreemphasis(
           SaiPortSerdesTraits::Attributes::Preemphasis{},
           preemphasisVal);
     }
-    if (platform_->isSerdesApiSupported()) {
+    if (platform_->isSerdesApiSupported() &&
+        platform_->getAsic()->isSupported(
+            HwAsic::Feature::SAI_PORT_SERDES_PROGRAMMING)) {
       portHandle->serdes->setAttributes(serDesAttributes);
     }
   }
