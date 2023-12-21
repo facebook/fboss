@@ -217,7 +217,7 @@ class HwQueuePerHostL2Test : public HwLinkStateDependentTest {
   }
 };
 
-TEST_F(HwQueuePerHostL2Test, VerifyHostToQueueMappingClassIDCpu) {
+TEST_F(HwQueuePerHostL2Test, VerifyHostToQueueMappingClassID) {
   if (!isSupported(HwAsic::Feature::L3_QOS)) {
 #if defined(GTEST_SKIP)
     GTEST_SKIP();
