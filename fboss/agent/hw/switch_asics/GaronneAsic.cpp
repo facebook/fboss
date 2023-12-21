@@ -63,6 +63,7 @@ bool GaronneAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SEPARATE_BYTE_AND_PACKET_ACL_COUNTER:
     case HwAsic::Feature::L3_MTU_ERROR_TRAP:
     case HwAsic::Feature::ACL_COUNTER_LABEL:
+    case HwAsic::Feature::SAI_PORT_SERDES_PROGRAMMING:
       return true;
     case HwAsic::Feature::HOSTTABLE:
     case HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION:

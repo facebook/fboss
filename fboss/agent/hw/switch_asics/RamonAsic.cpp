@@ -22,6 +22,7 @@ bool RamonAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::RX_LANE_SQUELCH_ENABLE:
     case HwAsic::Feature::WARMBOOT:
     case HwAsic::Feature::TELEMETRY_AND_MONITORING:
+    case HwAsic::Feature::SAI_PORT_SERDES_PROGRAMMING:
       return true;
     default:
       return false;

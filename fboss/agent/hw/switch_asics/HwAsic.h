@@ -162,6 +162,7 @@ class HwAsic {
     SAI_FEC_CODEWORDS_STATS,
     // TODO: Once this support is complete, remove LINK_STATE_BASED_ISOLATE
     LINK_INACTIVE_BASED_ISOLATE,
+    SAI_PORT_SERDES_PROGRAMMING,
   };
 
   enum class AsicMode {
