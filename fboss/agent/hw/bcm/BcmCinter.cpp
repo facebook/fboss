@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/bcm/BcmSdkVer.h"
 
 #include <array>
+#include <iomanip>
 #include <iterator>
 #include <string>
 #include <tuple>
@@ -193,8 +194,19 @@ void BcmCinter::writeCintLine(const std::string& cint) {
   writeCintLines(array<string, 1>{cint});
 }
 
+inline std::string BcmCinter::getCurrentTimestamp() const {
+  auto now = std::chrono::system_clock::now();
+  auto timer = std::chrono::system_clock::to_time_t(now);
+  std::tm tm;
+  localtime_r(&timer, &tm);
+  std::ostringstream oss;
+  oss << std::put_time(&tm, "%Y-%m-%d %T");
+  return oss.str();
+}
+
 vector<string> BcmCinter::wrapFunc(const string& funcCall) const {
   vector<string> cintLines = {
+      to<string>("// ", getCurrentTimestamp()),
       to<string>("rv = ", funcCall),
       // NOTE this is approximate line number in particular it
       // will point to line number just before the lines written

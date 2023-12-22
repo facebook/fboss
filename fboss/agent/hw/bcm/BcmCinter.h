@@ -2007,6 +2007,11 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
   std::string getNextEthertypeVar();
 
   /*
+   * Get the current timestamp
+   */
+  std::string getCurrentTimestamp() const;
+
+  /*
    * Wrap a generated cint function call with return error code
    * check
    */
