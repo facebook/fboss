@@ -15,23 +15,23 @@
 
 #include "fboss/agent/CommonInit.h"
 #include "fboss/agent/FbossInit.h"
+#include "fboss/agent/HwAgent.h"
 
 namespace facebook::fboss {
-
-class HwAgent;
 
 class SplitHwAgentSignalHandler : public SignalHandler {
  public:
   SplitHwAgentSignalHandler(
       folly::EventBase* eventBase,
       SignalHandler::StopServices stopServices,
-      HwAgent* hwAgent)
-      : SignalHandler(eventBase, std::move(stopServices)), hwAgent_(hwAgent) {}
+      std::unique_ptr<HwAgent> hwAgent)
+      : SignalHandler(eventBase, std::move(stopServices)),
+        hwAgent_(std::move(hwAgent)) {}
 
   void signalReceived(int /*signum*/) noexcept override;
 
  private:
-  HwAgent* hwAgent_;
+  std::unique_ptr<HwAgent> hwAgent_;
 };
 
 void setSDKVersionInfo();

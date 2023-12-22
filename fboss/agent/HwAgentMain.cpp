@@ -13,12 +13,15 @@
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/CommonInit.h"
 #include "fboss/agent/FbossInit.h"
-#include "fboss/agent/HwAgent.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/RestartTimeTracker.h"
 #include "fboss/agent/SetupThrift.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/mnpu/SplitAgentThriftSyncer.h"
+
+#include "fboss/agent/AlpmUtils.h"
+#include "fboss/agent/state/StateDelta.h"
+#include "fboss/lib/CommonFileUtils.h"
 
 #include <chrono>
 
@@ -71,7 +74,38 @@ void SplitHwAgentSignalHandler::signalReceived(int /*signum*/) noexcept {
   steady_clock::time_point servicesStopped = steady_clock::now();
   XLOG(DBG2) << "[Exit] Services stop time "
              << duration_cast<duration<float>>(servicesStopped - begin).count();
-  hwAgent_->getPlatform()->getHwSwitch()->gracefulExit();
+  auto dirUtil = hwAgent_->getPlatform()->getDirectoryUtil();
+  auto switchIndex = hwAgent_->getPlatform()->getAsic()->getSwitchIndex();
+  auto exitForColdBootFile = dirUtil->exitHwSwitchForColdBootFile(switchIndex);
+  if (!checkFileExists(dirUtil->exitHwSwitchForColdBootFile(switchIndex))) {
+    hwAgent_->getPlatform()->getHwSwitch()->gracefulExit();
+  } else {
+    SCOPE_EXIT {
+      removeFile(exitForColdBootFile);
+    };
+    XLOG(DBG2)
+        << "[Exit] Cold boot detected, skipping warmboot, unregistering callbacks";
+    hwAgent_->getPlatform()->getHwSwitch()->unregisterCallbacks();
+    if (hwAgent_->getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::ROUTE_PROGRAMMING)) {
+      auto programmedState =
+          hwAgent_->getPlatform()->getHwSwitch()->getProgrammedState();
+      auto alpmState = getMinAlpmRouteState(programmedState);
+      XLOG(DBG2) << "[Exit] programming minimum ALPM routes";
+      // minimum ALPM state retains default routes while removes all other
+      // routes this is required because default routes can not be removed
+      // before other routes are removed and this restriction must be respected
+      // while exiting for cold boot. this is ensured by both SwAgent shutdown
+      // for cold boot and HwAgent shutdown for cold boot. this is because two
+      // agents may indepdently shutdown for cold boot and regardless of the
+      // order of shutdown this constraint must be satisfied.
+      hwAgent_->getPlatform()->getHwSwitch()->stateChanged(
+          StateDelta(programmedState, alpmState));
+    }
+    // invoke destructors
+    XLOG(DBG2) << "[Exit] destryoing hardware agent";
+    hwAgent_.reset();
+  }
   steady_clock::time_point switchGracefulExit = steady_clock::now();
   XLOG(DBG2)
       << "[Exit] Switch Graceful Exit time "
@@ -139,13 +173,17 @@ int hwAgentMain(
 
   SplitHwAgentSignalHandler signalHandler(
       &eventBase,
-      [&thriftSyncer, &fs]() {
+      [&thriftSyncer, &fs, &server]() {
+        XLOG(DBG2) << "[Exit] Stopping Thrift Syncer";
         thriftSyncer->stop();
+        XLOG(DBG2) << "[Exit] Stopping Thrift Server";
+        server->stop();
         if (fs) {
+          XLOG(DBG2) << "[Exit] Stopping Function Scheduler";
           fs->shutdown();
         }
       },
-      hwAgent.get());
+      std::move(hwAgent));
 
   restart_time::mark(RestartEvent::INITIALIZED);
 
