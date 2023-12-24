@@ -37,7 +37,7 @@ std::vector<FlagCommand> kCommands = {
     {"cdr_enable", {}},
     {"cdr_disable", {}},
     {"qsfp_hard_reset", {}},
-    {"qsfp_reset", {"reset_type", "reset_action"}},
+    {"qsfp_reset", {"qsfp_reset_type", "qsfp_reset_action"}},
     {"electrical_loopback", {}},
     {"optical_loopback", {}},
     {"clear_loopback", {}},
