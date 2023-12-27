@@ -1504,6 +1504,23 @@ void SaiPortManager::updateStats(PortID portId, bool updateWatermarks) {
         {SAI_PORT_STAT_IF_IN_FEC_CORRECTED_BITS}, SAI_STATS_MODE_READ);
   }
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
+  if (fecCodewordsStatsSupported(portId)) {
+    // maxFecCounterId should ideally be derived from SAI attribute
+    // SAI_PORT_ATTR_MAX_FEC_SYMBOL_ERRORS_DETECTABLE but this attribute isn't
+    // supported yet
+    sai_stat_id_t maxFecCounterId = getFECMode(portId) == phy::FecMode::RS528
+        ? SAI_PORT_STAT_IF_IN_FEC_CODEWORD_ERRORS_S8
+        : SAI_PORT_STAT_IF_IN_FEC_CODEWORD_ERRORS_S15;
+    std::vector<sai_stat_id_t> fecCodewordsToRead;
+    for (int counterId = SAI_PORT_STAT_IF_IN_FEC_CODEWORD_ERRORS_S0;
+         counterId <= (int)maxFecCounterId;
+         counterId++) {
+      fecCodewordsToRead.push_back(static_cast<sai_stat_id_t>(counterId));
+    }
+    handle->port->updateStats(fecCodewordsToRead, SAI_STATS_MODE_READ);
+  }
+#endif
   const auto& counters = handle->port->getStats();
   fillHwPortStats(
       counters,
