@@ -147,6 +147,11 @@ template <>
 struct WrappedSaiType<std::vector<sai_port_frequency_offset_ppm_values_t>> {
   using value = sai_port_frequency_offset_ppm_list_t;
 };
+
+template <>
+struct WrappedSaiType<std::vector<sai_port_snr_values_t>> {
+  using value = sai_port_snr_list_t;
+};
 #endif
 
 template <>

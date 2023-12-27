@@ -290,6 +290,10 @@ struct SaiPortTraits {
         EnumType,
         SAI_PORT_ATTR_RX_FREQUENCY_OFFSET_PPM,
         std::vector<sai_port_frequency_offset_ppm_values_t>>;
+    using RxSNR = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_RX_SNR,
+        std::vector<sai_port_snr_values_t>>;
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
     using InterFrameGap = SaiAttribute<
@@ -558,6 +562,7 @@ SAI_ATTRIBUTE_NAME(Port, InterFrameGap)
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
 SAI_ATTRIBUTE_NAME(Port, RxFrequencyPPM)
+SAI_ATTRIBUTE_NAME(Port, RxSNR)
 #endif
 SAI_ATTRIBUTE_NAME(Port, LinkTrainingEnable)
 SAI_ATTRIBUTE_NAME(Port, SerdesLaneList)

@@ -187,6 +187,13 @@ void portFrequencyOffsetPpmListAttr(
     uint32_t listIndex,
     std::vector<std::string>& attrLines,
     bool logEntry = true);
+
+void portSnrListAttr(
+    const sai_attribute_t* attr_list,
+    int i,
+    uint32_t listIndex,
+    std::vector<std::string>& attrLines,
+    bool logEntry = true);
 #endif
 
 void systemPortConfigListAttr(

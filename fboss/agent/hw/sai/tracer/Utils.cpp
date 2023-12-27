@@ -455,6 +455,46 @@ void portFrequencyOffsetPpmListAttr(
     attrLines.push_back(to<string>(prefix, "list=NULL"));
   }
 }
+
+void portSnrListAttr(
+    const sai_attribute_t* attr_list,
+    int i,
+    uint32_t listIndex,
+    vector<string>& attrLines,
+    bool logEntry) {
+  // First make sure we have enough lists for use
+  uint32_t listLimit = SaiTracer::getInstance()->checkListCount(
+      listIndex + 1,
+      sizeof(sai_uint32_t),
+      attr_list[i].value.portsnrlist.count);
+
+  string prefix = to<string>("s_a", "[", i, "].value.portsnrlist.");
+  attrLines.push_back(
+      to<string>(prefix, "count=", attr_list[i].value.portsnrlist.count));
+  if (logEntry && attr_list[i].value.portsnrlist.list) {
+    attrLines.push_back(to<string>(
+        prefix, "list=(sai_port_snr_values_t*)(list_", listIndex, ")"));
+    for (int j = 0;
+         j < std::min(attr_list[i].value.portsnrlist.count, listLimit);
+         ++j) {
+      attrLines.push_back(to<string>(
+          prefix,
+          "list[",
+          j,
+          "].",
+          "lane=",
+          attr_list[i].value.portsnrlist.list[j].lane));
+      attrLines.push_back(to<string>(
+          prefix,
+          "list[",
+          j,
+          "].snr=",
+          attr_list[i].value.portsnrlist.list[j].snr));
+    }
+  } else {
+    attrLines.push_back(to<string>(prefix, "list=NULL"));
+  }
+}
 #endif
 
 std::string boolAttr(const sai_attribute_t* attr_list, int i) {

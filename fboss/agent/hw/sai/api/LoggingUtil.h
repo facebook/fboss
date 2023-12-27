@@ -335,6 +335,25 @@ struct formatter<sai_port_frequency_offset_ppm_values_t> {
         ppmValues.ppm);
   }
 };
+
+template <>
+struct formatter<sai_port_snr_values_t> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext& ctx) const {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const sai_port_snr_values_t& snrValues, FormatContext& ctx)
+      const {
+    return format_to(
+        ctx.out(),
+        "(rx_snr: rx_snr.lane: {}, "
+        "rx_snr.value: {}",
+        snrValues.lane,
+        snrValues.snr);
+  }
+};
 #endif
 
 // Formatting for AclEntryField<T>

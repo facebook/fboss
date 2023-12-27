@@ -176,6 +176,7 @@ DEFINE_extract(sai_latch_status_t, latchstatus);
 DEFINE_extract(
     std::vector<sai_port_frequency_offset_ppm_values_t>,
     portfrequencyoffsetppmlist);
+DEFINE_extract(std::vector<sai_port_snr_values_t>, portsnrlist);
 #endif
 DEFINE_extract(facebook::fboss::AclEntryFieldU8, aclfield);
 DEFINE_extract(facebook::fboss::AclEntryFieldU16, aclfield);

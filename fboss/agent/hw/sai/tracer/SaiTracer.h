@@ -297,6 +297,7 @@ class SaiTracer {
 #if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
         {TYPE_INDEX(std::vector<sai_port_frequency_offset_ppm_values_t>),
          &portFrequencyOffsetPpmListAttr},
+        {TYPE_INDEX(std::vector<sai_port_snr_values_t>), &portSnrListAttr},
 #endif
   };
 

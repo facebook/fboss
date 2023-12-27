@@ -550,6 +550,18 @@ sai_status_t set_port_attribute_fn(
                          .list[j];
       }
     } break;
+    case SAI_PORT_ATTR_RX_SNR: {
+      port.portRxSNR.count =
+          static_cast<sai_port_snr_list_t>(attr->value.portsnrlist).count;
+      auto& snrList = port.portRxSNR.list;
+      auto snrVector = std::vector<sai_port_snr_values_t>();
+      snrVector.resize(port.portRxSNR.count);
+      snrList = snrVector.data();
+      for (int j = 0; j < port.portRxSNR.count; j++) {
+        snrList[j] =
+            static_cast<sai_port_snr_list_t>(attr->value.portsnrlist).list[j];
+      }
+    } break;
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 3) || defined(TAJO_SDK_VERSION_1_42_8)
     case SAI_PORT_ATTR_RX_SIGNAL_DETECT: {
