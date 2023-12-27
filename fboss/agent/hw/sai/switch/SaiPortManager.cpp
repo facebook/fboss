@@ -1337,6 +1337,14 @@ bool SaiPortManager::rxFrequencyRPMSupported() const {
 #endif
 }
 
+bool SaiPortManager::rxSNRSupported() const {
+#if defined(BRCM_SAI_SDK_GTE_10_0)
+  return platform_->getAsic()->isSupported(HwAsic::Feature::RX_SNR);
+#else
+  return false;
+#endif
+}
+
 std::vector<PortID> SaiPortManager::getFabricReachabilityForSwitch(
     const SwitchID& switchId) const {
   std::vector<PortID> reachablePorts;
@@ -2111,6 +2119,19 @@ std::vector<sai_port_frequency_offset_ppm_values_t> SaiPortManager::getRxPPM(
       saiPortId,
       SaiPortTraits::Attributes::RxFrequencyPPM{
           std::vector<sai_port_frequency_offset_ppm_values_t>(numPmdLanes)});
+}
+
+std::vector<sai_port_snr_values_t> SaiPortManager::getRxSNR(
+    PortSaiId saiPortId,
+    uint8_t numPmdLanes) const {
+  if (!rxSNRSupported()) {
+    return std::vector<sai_port_snr_values_t>();
+  }
+
+  return SaiApiTable::getInstance()->portApi().getAttribute(
+      saiPortId,
+      SaiPortTraits::Attributes::RxSNR{
+          std::vector<sai_port_snr_values_t>(numPmdLanes)});
 }
 #endif
 

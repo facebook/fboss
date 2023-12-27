@@ -206,6 +206,9 @@ class SaiPortManager {
   std::vector<sai_port_frequency_offset_ppm_values_t> getRxPPM(
       PortSaiId saiPortId,
       uint8_t numPmdLanes) const;
+  std::vector<sai_port_snr_values_t> getRxSNR(
+      PortSaiId saiPortId,
+      uint8_t numPmdLanes) const;
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 3) || defined(TAJO_SDK_VERSION_1_42_8)
   std::vector<sai_port_lane_latch_status_t> getRxSignalDetect(
@@ -239,6 +242,7 @@ class SaiPortManager {
   cfg::PortType getPortType(PortID portId) const;
   bool fecCorrectedBitsSupported(PortID portID) const;
   bool rxFrequencyRPMSupported() const;
+  bool rxSNRSupported() const;
 
  private:
   PortSaiId addPortImpl(const std::shared_ptr<Port>& swPort);
