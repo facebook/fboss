@@ -205,7 +205,8 @@ class CmdShowInterfacePhy
          "RX CDR Lock Changed",
          "Eye Heights",
          "Eye Widths",
-         "Rx PPM"});
+         "Rx PPM",
+         "RX SNR"});
     for (auto pmdLane : pmdLanes) {
       auto laneState = (*sideState.pmd()->lanes())[pmdLane];
       auto laneStat = (*sideStats.pmd()->lanes())[pmdLane];
@@ -214,6 +215,7 @@ class CmdShowInterfacePhy
       std::string sigDetChanged = "N/A";
       std::string cdrLockChanged = "N/A";
       std::string rxPPM = "N/A";
+      std::string rxSNR = "N/A";
       std::vector<float> eyeHeights = {};
       std::vector<float> eyeWidths = {};
       if (auto rxSigDetLive = laneState.signalDetectLive()) {
@@ -230,6 +232,9 @@ class CmdShowInterfacePhy
       }
       if (auto rxFreqPPM = laneState.rxFrequencyPPM()) {
         rxPPM = std::to_string(*rxFreqPPM);
+      }
+      if (auto rxLaneSNR = laneStat.snr()) {
+        rxSNR = std::to_string(*rxLaneSNR);
       }
       if (auto eyes = laneStat.eyes()) {
         for (const auto& eye : *eyes) {
@@ -250,7 +255,8 @@ class CmdShowInterfacePhy
            cdrLockChanged,
            folly::join(",", eyeHeights),
            folly::join(",", eyeWidths),
-           rxPPM});
+           rxPPM,
+           rxSNR});
     }
     out << pmdRxTable;
   }
