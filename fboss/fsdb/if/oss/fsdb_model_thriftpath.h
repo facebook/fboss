@@ -18950,16 +18950,19 @@ class ChildThriftPath<::facebook::fboss::phy::RsFecInfo, ::facebook::fboss::fsdb
   using Children = fatal::tuple<std::pair<strings::correctedCodewords, Child<::std::int64_t, ::apache::thrift::type_class::integral>>,
 std::pair<strings::uncorrectedCodewords, Child<::std::int64_t, ::apache::thrift::type_class::integral>>,
 std::pair<strings::correctedBits, Child<::std::int64_t, ::apache::thrift::type_class::integral>>,
-std::pair<strings::preFECBer, Child<double, ::apache::thrift::type_class::floating_point>>>;
+std::pair<strings::preFECBer, Child<double, ::apache::thrift::type_class::floating_point>>,
+std::pair<strings::codewordStats, ChildThriftPath<::std::map<::std::int16_t, ::std::int64_t>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::std::int64_t, ::apache::thrift::type_class::integral>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::std::int64_t, ::apache::thrift::type_class::integral>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<::std::int64_t, ::apache::thrift::type_class::integral>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 4>, Child<double, ::apache::thrift::type_class::floating_point>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 4>, Child<double, ::apache::thrift::type_class::floating_point>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 5>, ChildThriftPath<::std::map<::std::int16_t, ::std::int64_t>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::correctedCodewords, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::uncorrectedCodewords, std::integral_constant<apache::thrift::field_id_t, 2>>,
 std::pair<strings::correctedBits, std::integral_constant<apache::thrift::field_id_t, 3>>,
-std::pair<strings::preFECBer, std::integral_constant<apache::thrift::field_id_t, 4>>>::template type_of<Name>;
+std::pair<strings::preFECBer, std::integral_constant<apache::thrift::field_id_t, 4>>,
+std::pair<strings::codewordStats, std::integral_constant<apache::thrift::field_id_t, 5>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -18976,6 +18979,7 @@ std::pair<strings::preFECBer, std::integral_constant<apache::thrift::field_id_t,
     STRUCT_CHILD_GETTERS(uncorrectedCodewords, 2);
     STRUCT_CHILD_GETTERS(correctedBits, 3);
     STRUCT_CHILD_GETTERS(preFECBer, 4);
+    STRUCT_CHILD_GETTERS(codewordStats, 5);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -18983,6 +18987,7 @@ std::pair<strings::preFECBer, std::integral_constant<apache::thrift::field_id_t,
     else if constexpr (__id == 2) { return uncorrectedCodewords(); }
     else if constexpr (__id == 3) { return correctedBits(); }
     else if constexpr (__id == 4) { return preFECBer(); }
+    else if constexpr (__id == 5) { return codewordStats(); }
   }
 
   template <typename T, T... Values>

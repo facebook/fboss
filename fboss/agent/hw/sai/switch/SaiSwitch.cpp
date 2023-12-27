@@ -1504,6 +1504,7 @@ void SaiSwitch::updatePcsInfo(
         *(fb303PortStat->portStats().fecCorrectableErrors());
     rsFec.uncorrectedCodewords() =
         *(fb303PortStat->portStats().fecUncorrectableErrors());
+    rsFec.codewordStats() = *(fb303PortStat->portStats().fecCodewords_());
 
     phy::RsFecInfo lastRsFec;
     std::optional<phy::PcsStats> lastPcs;

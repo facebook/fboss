@@ -389,6 +389,9 @@ struct RsFecInfo {
   // This also means that the preFECBer could be approximated as well.
   3: i64 correctedBits;
   4: double preFECBer;
+  // Map of symbol error to number of codewords with that many symbol errors.
+  // Stores cumulative counts
+  5: map<i16, i64> codewordStats;
 }
 
 struct PmdInfo {
