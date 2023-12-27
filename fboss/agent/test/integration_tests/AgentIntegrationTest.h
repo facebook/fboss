@@ -9,12 +9,12 @@
  */
 
 #include "fboss/agent/Main.h"
-#include "fboss/agent/test/AgentHwTest.h"
+#include "fboss/agent/test/AgentIntegrationTestBase.h"
 
 DECLARE_string(config);
 
 namespace facebook::fboss {
-class AgentIntegrationTest : public AgentHwTest {
+class AgentIntegrationTest : public AgentIntegrationTestBase {
  protected:
   void SetUp() override;
   cfg::SwitchConfig initialConfig() const override;

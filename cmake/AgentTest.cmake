@@ -98,11 +98,11 @@ target_link_libraries(agent_test_lib
   ${LIBGMOCK_LIBRARIES}
 )
 
-add_library(agent_hw_test_lib
-  fboss/agent/test/AgentHwTest.cpp
+add_library(agent_integration_test_base
+  fboss/agent/test/AgentIntegrationTestBase.cpp
 )
 
-target_link_libraries(agent_hw_test_lib
+target_link_libraries(agent_integration_test_base
   agent_test_lib
   main
   config_factory

@@ -1,6 +1,6 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-#include "fboss/agent/test/AgentHwTest.h"
+#include "fboss/agent/test/AgentIntegrationTestBase.h"
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/gen-cpp2/agent_config_types.h"
@@ -13,7 +13,7 @@
 
 namespace facebook::fboss {
 
-void AgentHwTest::setupConfigFlag() {
+void AgentIntegrationTestBase::setupConfigFlag() {
   utility::setPortToDefaultProfileIDMap(
       std::make_shared<MultiSwitchPortMap>(),
       platform()->getPlatformMapping(),
@@ -47,7 +47,7 @@ void AgentHwTest::setupConfigFlag() {
   }
 }
 
-void AgentHwTest::SetUp() {
+void AgentIntegrationTestBase::SetUp() {
   AgentTest::SetUp();
   if (sw()->getBootType() != BootType::WARM_BOOT) {
     if (platform()->getAsic()->isSupported(
@@ -91,7 +91,7 @@ void AgentHwTest::SetUp() {
   }
 }
 
-void AgentHwTest::TearDown() {
+void AgentIntegrationTestBase::TearDown() {
   dumpRunningConfig(getTestConfigPath());
   AgentTest::TearDown();
 }

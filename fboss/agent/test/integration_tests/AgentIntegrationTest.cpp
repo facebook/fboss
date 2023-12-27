@@ -23,7 +23,7 @@
 namespace facebook::fboss {
 
 void AgentIntegrationTest::SetUp() {
-  AgentHwTest::SetUp();
+  AgentIntegrationTestBase::SetUp();
 }
 
 cfg::SwitchConfig AgentIntegrationTest::initialConfig() const {

@@ -14,7 +14,7 @@ DECLARE_string(config);
 namespace facebook::fboss {
 
 // Base class for sw+hw integration tests that can run on single nodes
-class AgentHwTest : public AgentTest {
+class AgentIntegrationTestBase : public AgentTest {
  public:
   void SetUp() override;
   void TearDown() override;
