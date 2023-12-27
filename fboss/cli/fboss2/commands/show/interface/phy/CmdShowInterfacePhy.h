@@ -127,12 +127,15 @@ class CmdShowInterfacePhy
           hasPcsData = true;
         }
         if (auto rsFecState = sideState.pcs()->rsFecState()) {
-          rsFecStateTable.setHeader(
-              {prefix + "RS FEC State",
-               "Lane",
-               "Alignment Lock Live",
-               "Alignment Lock Changed"});
           for (auto& fecLaneState : *rsFecState->lanes()) {
+            if (!hasRsFecState) {
+              // Display the header only once
+              rsFecStateTable.setHeader(
+                  {prefix + "RS FEC State",
+                   "Lane",
+                   "Alignment Lock Live",
+                   "Alignment Lock Changed"});
+            }
             std::string fecAmLive = "N/A";
             std::string fecAmChanged = "N/A";
             if (auto fecAmLiveState =
@@ -148,8 +151,8 @@ class CmdShowInterfacePhy
                  std::to_string(*(fecLaneState.second.lane())),
                  makeColorCellForLiveFlag(fecAmLive),
                  fecAmChanged});
+            hasRsFecState = true;
           }
-          hasRsFecState = true;
         }
       }
       if (sideStats.pcs().has_value()) {
