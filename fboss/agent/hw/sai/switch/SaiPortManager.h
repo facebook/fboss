@@ -243,6 +243,7 @@ class SaiPortManager {
   bool fecCorrectedBitsSupported(PortID portID) const;
   bool rxFrequencyRPMSupported() const;
   bool rxSNRSupported() const;
+  bool fecCodewordsStatsSupported(PortID portID) const;
 
  private:
   PortSaiId addPortImpl(const std::shared_ptr<Port>& swPort);

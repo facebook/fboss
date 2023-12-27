@@ -1345,6 +1345,16 @@ bool SaiPortManager::rxSNRSupported() const {
 #endif
 }
 
+bool SaiPortManager::fecCodewordsStatsSupported(PortID portId) const {
+#if defined(BRCM_SAI_SDK_GTE_10_0)
+  return platform_->getAsic()->isSupported(
+             HwAsic::Feature::SAI_FEC_CODEWORDS_STATS) &&
+      utility::isReedSolomonFec(getFECMode(portId));
+#else
+  return false;
+#endif
+}
+
 std::vector<PortID> SaiPortManager::getFabricReachabilityForSwitch(
     const SwitchID& switchId) const {
   std::vector<PortID> reachablePorts;
