@@ -1317,6 +1317,8 @@ void SaiSwitch::updatePmdInfo(
     std::shared_ptr<SaiPort> port,
     [[maybe_unused]] phy::PmdState& lastPmdState,
     [[maybe_unused]] phy::PmdStats& lastPmdStats) {
+  // In SAI spec, SNR is encoded in units of 1/256 dB
+  constexpr auto snrScalingFactor = 256.0;
   uint32_t numPmdLanes;
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::SAI_PORT_GET_PMD_LANES)) {
@@ -1430,6 +1432,19 @@ void SaiSwitch::updatePmdInfo(
     laneState.lane() = laneId;
     laneState.rxFrequencyPPM() = pmd.ppm;
     laneStates[laneId] = laneState;
+  }
+
+  auto pmdRxSNR =
+      managerTable_->portManager().getRxSNR(port->adapterKey(), numPmdLanes);
+  for (const auto& pmd : pmdRxSNR) {
+    auto laneId = pmd.lane;
+    phy::LaneStats laneStat;
+    if (laneStats.find(laneId) != laneStats.end()) {
+      laneStat = laneStats[laneId];
+    }
+    laneStat.lane() = laneId;
+    laneStat.snr() = pmd.snr / snrScalingFactor;
+    laneStats[laneId] = laneStat;
   }
 #endif
 
