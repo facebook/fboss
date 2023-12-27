@@ -92,6 +92,18 @@ uint16_t getPriorityFromPfcPktCounterId(sai_stat_id_t counterId) {
   throw FbossError("Got unexpected port counter id: ", counterId);
 }
 
+uint16_t getFecSymbolCountFromCounterId(sai_stat_id_t counterId) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
+  if (counterId < SAI_PORT_STAT_IF_IN_FEC_CODEWORD_ERRORS_S0 ||
+      counterId > SAI_PORT_STAT_IF_IN_FEC_CODEWORD_ERRORS_S16) {
+    throw FbossError("Got unexpected FEC codeword counter id: ", counterId);
+  }
+  return counterId - SAI_PORT_STAT_IF_IN_FEC_CODEWORD_ERRORS_S0;
+#else
+  throw FbossError("FEC codewords not supported on this SAI version");
+#endif
+}
+
 void fillHwPortStats(
     const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
     const SaiDebugCounterManager& debugCounterManager,
@@ -237,6 +249,29 @@ void fillHwPortStats(
         hwPortStats.inPfcXon_()[priority] = value;
         break;
       }
+#if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
+      case SAI_PORT_STAT_IF_IN_FEC_CODEWORD_ERRORS_S0:
+      case SAI_PORT_STAT_IF_IN_FEC_CODEWORD_ERRORS_S1:
+      case SAI_PORT_STAT_IF_IN_FEC_CODEWORD_ERRORS_S2:
+      case SAI_PORT_STAT_IF_IN_FEC_CODEWORD_ERRORS_S3:
+      case SAI_PORT_STAT_IF_IN_FEC_CODEWORD_ERRORS_S4:
+      case SAI_PORT_STAT_IF_IN_FEC_CODEWORD_ERRORS_S5:
+      case SAI_PORT_STAT_IF_IN_FEC_CODEWORD_ERRORS_S6:
+      case SAI_PORT_STAT_IF_IN_FEC_CODEWORD_ERRORS_S7:
+      case SAI_PORT_STAT_IF_IN_FEC_CODEWORD_ERRORS_S8:
+      case SAI_PORT_STAT_IF_IN_FEC_CODEWORD_ERRORS_S9:
+      case SAI_PORT_STAT_IF_IN_FEC_CODEWORD_ERRORS_S10:
+      case SAI_PORT_STAT_IF_IN_FEC_CODEWORD_ERRORS_S11:
+      case SAI_PORT_STAT_IF_IN_FEC_CODEWORD_ERRORS_S12:
+      case SAI_PORT_STAT_IF_IN_FEC_CODEWORD_ERRORS_S13:
+      case SAI_PORT_STAT_IF_IN_FEC_CODEWORD_ERRORS_S14:
+      case SAI_PORT_STAT_IF_IN_FEC_CODEWORD_ERRORS_S15:
+      case SAI_PORT_STAT_IF_IN_FEC_CODEWORD_ERRORS_S16: {
+        auto symbolCount = getFecSymbolCountFromCounterId(counterId);
+        hwPortStats.fecCodewords_()[symbolCount] = value;
+        break;
+      }
+#endif
       default:
         if (counterId ==
             debugCounterManager.getPortL3BlackHoleCounterStatId()) {

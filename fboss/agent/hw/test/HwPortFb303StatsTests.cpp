@@ -133,6 +133,7 @@ HwPortStats getInitedStats() {
       {{1, 5}, {2, 5}}, // queueWredDroppedPackets
       {{1, 6}, {2, 6}}, // queueEcnMarkedPackets
       0, // fecCorrectedBits_
+      {{0, 100}, {1, 10}, {2, 1}}, // fecCodewords
       0, // timestamp
       "test", // portName
       macsecStats,

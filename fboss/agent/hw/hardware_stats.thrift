@@ -69,6 +69,11 @@ struct HwPortStats {
   34: map<i16, i64> queueWredDroppedPackets_ = {};
   35: map<i16, i64> queueEcnMarkedPackets_ = {};
   36: i64 fecCorrectedBits_ = STAT_UNINITIALIZED;
+  /* Map of codewords received (value) with different counts of symbol errors (key).
+   * fecCodewords_[0] = number of codewords with 0 symbol errors
+   * fecCodewords_[1] = number of codewords with 1 symbol errors etc..
+   */
+  37: map<i16, i64> fecCodewords_ = {};
 
   // seconds from epoch
   50: i64 timestamp_ = STAT_UNINITIALIZED;
