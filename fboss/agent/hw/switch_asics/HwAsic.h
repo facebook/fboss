@@ -163,6 +163,7 @@ class HwAsic {
     // TODO: Once this support is complete, remove LINK_STATE_BASED_ISOLATE
     LINK_INACTIVE_BASED_ISOLATE,
     SAI_PORT_SERDES_PROGRAMMING,
+    RX_SNR,
   };
 
   enum class AsicMode {
