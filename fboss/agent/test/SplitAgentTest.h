@@ -5,6 +5,7 @@
 #include "fboss/agent/FbossInit.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/test/AgentEnsemble.h"
+#include "fboss/agent/test/gen-cpp2/production_features_types.h"
 
 #include <gflags/gflags.h>
 #include <gtest/gtest.h>
@@ -109,6 +110,10 @@ class SplitAgentTest : public ::testing::Test {
   virtual bool hideFabricPorts() const;
 
   virtual cfg::SwitchConfig initialConfig(const AgentEnsemble& ensemble) const;
+
+  virtual std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const = 0;
+  void printAsicFeatures() const;
 
   AgentEnsemblePlatformConfigFn platformConfigFn_ = nullptr;
   std::unique_ptr<AgentEnsemble> agentEnsemble_;

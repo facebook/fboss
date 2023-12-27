@@ -5,7 +5,13 @@
 
 namespace facebook::fboss {
 
-class AgentEmptyTest : public SplitAgentTest {};
+class AgentEmptyTest : public SplitAgentTest {
+ public:
+  std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const override {
+    return {};
+  }
+};
 
 TEST_F(AgentEmptyTest, CheckInit) {
   verifyAcrossWarmBoots([]() {}, []() {});

@@ -36,10 +36,17 @@ class AgentFabricSwitchTest : public SplitAgentTest {
 
   void SetUp() override {
     SplitAgentTest::SetUp();
-    ASSERT_TRUE(
-        std::any_of(getAsics().begin(), getAsics().end(), [](auto& iter) {
-          return iter.second->getSwitchType() == cfg::SwitchType::FABRIC;
-        }));
+    if (!IsSkipped()) {
+      ASSERT_TRUE(
+          std::any_of(getAsics().begin(), getAsics().end(), [](auto& iter) {
+            return iter.second->getSwitchType() == cfg::SwitchType::FABRIC;
+          }));
+    }
+  }
+
+  std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const override {
+    return {production_features::ProductionFeature::FABRIC};
   }
 
  private:

@@ -43,10 +43,17 @@ class AgentVoqSwitchTest : public SplitAgentTest {
 
   void SetUp() override {
     SplitAgentTest::SetUp();
-    ASSERT_TRUE(
-        std::any_of(getAsics().begin(), getAsics().end(), [](auto& iter) {
-          return iter.second->getSwitchType() == cfg::SwitchType::VOQ;
-        }));
+    if (!IsSkipped()) {
+      ASSERT_TRUE(
+          std::any_of(getAsics().begin(), getAsics().end(), [](auto& iter) {
+            return iter.second->getSwitchType() == cfg::SwitchType::VOQ;
+          }));
+    }
+  }
+
+  std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const override {
+    return {production_features::ProductionFeature::VOQ};
   }
 
  private:

@@ -6,6 +6,10 @@
 
 DEFINE_bool(run_forever, false, "run the test forever");
 DEFINE_bool(run_forever_on_failure, false, "run the test forever on failure");
+DEFINE_bool(
+    list_asic_feature,
+    false,
+    "list asic feature needed for every single test");
 
 namespace {
 int kArgc;
@@ -14,6 +18,11 @@ char** kArgv;
 
 namespace facebook::fboss {
 void SplitAgentTest::SetUp() {
+  gflags::ParseCommandLineFlags(&kArgc, &kArgv, false);
+  if (FLAGS_list_asic_feature) {
+    printAsicFeatures();
+    return;
+  }
   fbossCommonInit(kArgc, kArgv);
   FLAGS_verify_apply_oper_delta = true;
   FLAGS_hide_fabric_ports = hideFabricPorts();
@@ -124,6 +133,15 @@ cfg::SwitchConfig SplitAgentTest::initialConfig(
       ensemble.masterLogicalPortIds(),
       asic->desiredLoopbackModes(),
       true /*interfaceHasSubnet*/);
+}
+
+void SplitAgentTest::printAsicFeatures() const {
+  std::vector<std::string> asicFeatures;
+  for (const auto& feature : getProductionFeaturesVerified()) {
+    asicFeatures.push_back(apache::thrift::util::enumNameSafe(feature));
+  }
+  std::cout << "Feature List: " << folly::join(",", asicFeatures) << "\n";
+  GTEST_SKIP();
 }
 
 void initAgentHwTest(int argc, char* argv[], PlatformInitFn initPlatform) {
