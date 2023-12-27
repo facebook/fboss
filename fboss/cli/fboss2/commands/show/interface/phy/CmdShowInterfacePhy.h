@@ -110,7 +110,9 @@ class CmdShowInterfacePhy
       Table pcsTable;
       Table rsFecTable;
       Table rsFecStateTable;
-      bool hasPcsData{false}, hasRsFecData{false}, hasRsFecState{false};
+      Table rsFecCodewordStatsTable;
+      bool hasPcsData{false}, hasRsFecData{false}, hasRsFecState{false},
+          hasRsFecCodewordStats{false};
       if (sideState.pcs().has_value()) {
         if (auto pcsRxStatusLive = sideState.pcs()->pcsRxStatusLive()) {
           pcsTable.setHeader({prefix + "PCS", ""});
@@ -163,12 +165,26 @@ class CmdShowInterfacePhy
           outStringStream << *rsFec->preFECBer();
           rsFecTable.addRow({prefix + "Pre-FEC BER", outStringStream.str()});
           hasRsFecData = true;
+          if (!rsFec->codewordStats()->empty()) {
+            rsFecCodewordStatsTable.setHeader(
+                {prefix + "Codeword stats", "Symbol Errors", "# of codewords"});
+            for (auto& [symbolErrors, numCodewords] : *rsFec->codewordStats()) {
+              rsFecCodewordStatsTable.addRow(
+                  {"",
+                   std::to_string(symbolErrors),
+                   std::to_string(numCodewords)});
+            }
+            hasRsFecCodewordStats = true;
+          }
         }
         if (hasPcsData) {
           out << pcsTable;
         }
         if (hasRsFecData) {
           out << rsFecTable;
+        }
+        if (hasRsFecCodewordStats) {
+          out << rsFecCodewordStatsTable;
         }
         if (hasRsFecState) {
           out << rsFecStateTable;
