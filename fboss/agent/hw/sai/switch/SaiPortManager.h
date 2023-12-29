@@ -364,6 +364,9 @@ class SaiPortManager {
   void changeQosPolicy(
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort);
+  void reloadSixTapAttributes(
+      SaiPortHandle* portHandle,
+      SaiPortSerdesTraits::CreateAttributes& attr);
 
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;

@@ -2348,6 +2348,47 @@ void SaiPortManager::changeRxLaneSquelch(
   }
 }
 
+void SaiPortManager::reloadSixTapAttributes(
+    SaiPortHandle* portHandle,
+    SaiPortSerdesTraits::CreateAttributes& attr) {
+  const auto& portApi = SaiApiTable::getInstance()->portApi();
+  auto setTxRxAttr = [](auto& attrs, auto type, const auto& val) {
+    auto& attr = std::get<std::optional<std::decay_t<decltype(type)>>>(attrs);
+    if (!val.empty()) {
+      attr = val;
+    }
+  };
+  auto txPre1 = portApi.getAttribute(
+      portHandle->serdes->adapterKey(),
+      SaiPortSerdesTraits::Attributes::TxFirPre1{});
+  auto main = portApi.getAttribute(
+      portHandle->serdes->adapterKey(),
+      SaiPortSerdesTraits::Attributes::TxFirMain{});
+  auto txPost1 = portApi.getAttribute(
+      portHandle->serdes->adapterKey(),
+      SaiPortSerdesTraits::Attributes::TxFirPost1{});
+  setTxRxAttr(attr, SaiPortSerdesTraits::Attributes::TxFirPre1{}, txPre1);
+  setTxRxAttr(attr, SaiPortSerdesTraits::Attributes::TxFirMain{}, main);
+  setTxRxAttr(attr, SaiPortSerdesTraits::Attributes::TxFirPost1{}, txPost1);
+
+  if (FLAGS_sai_configure_six_tap &&
+      platform_->getAsic()->isSupported(
+          HwAsic::Feature::SAI_CONFIGURE_SIX_TAP)) {
+    auto txPost2 = portApi.getAttribute(
+        portHandle->serdes->adapterKey(),
+        SaiPortSerdesTraits::Attributes::TxFirPost2{});
+    auto txPost3 = portApi.getAttribute(
+        portHandle->serdes->adapterKey(),
+        SaiPortSerdesTraits::Attributes::TxFirPost3{});
+    auto txPre2 = portApi.getAttribute(
+        portHandle->serdes->adapterKey(),
+        SaiPortSerdesTraits::Attributes::TxFirPre2{});
+    setTxRxAttr(attr, SaiPortSerdesTraits::Attributes::TxFirPost2{}, txPost2);
+    setTxRxAttr(attr, SaiPortSerdesTraits::Attributes::TxFirPost3{}, txPost3);
+    setTxRxAttr(attr, SaiPortSerdesTraits::Attributes::TxFirPre2{}, txPre2);
+  }
+}
+
 void SaiPortManager::changeZeroPreemphasis(
     const std::shared_ptr<Port>& oldPort,
     const std::shared_ptr<Port>& newPort) {
@@ -2391,6 +2432,12 @@ void SaiPortManager::changeZeroPreemphasis(
         platform_->getAsic()->isSupported(
             HwAsic::Feature::SAI_PORT_SERDES_PROGRAMMING)) {
       portHandle->serdes->setAttributes(serDesAttributes);
+
+      // Read from HW to see if six-tap attribute changes after setting
+      // preemphasis. Then update sai store only.
+      reloadSixTapAttributes(portHandle, serDesAttributes);
+      portHandle->serdes->setAttributes(
+          serDesAttributes, /* skipHwWrite */ true);
     }
   }
 }
