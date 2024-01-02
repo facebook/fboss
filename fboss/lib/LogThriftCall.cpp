@@ -36,7 +36,8 @@ LogThriftCall::LogThriftCall(
       func_(func),
       file_(file),
       line_(line),
-      start_(std::chrono::steady_clock::now()) {
+      start_(std::chrono::steady_clock::now()),
+      paramsStr_(paramsStr) {
   std::string client = kUnknown;
   std::optional<std::string> identity;
   if (ctx) {
@@ -71,8 +72,16 @@ LogThriftCall::~LogThriftCall() {
       std::chrono::steady_clock::now() - start_);
   auto result =
       (std::uncaught_exceptions() || failed_) ? "failed" : "succeeded";
-  FB_LOG_RAW_WITH_CONTEXT(logger_, level_, file_, line_, "")
-      << func_ << " thrift request " << result << " in " << ms.count() << "ms";
+  if (paramsStr_.empty()) {
+    FB_LOG_RAW_WITH_CONTEXT(logger_, level_, file_, line_, "")
+        << func_ << " thrift request " << result << " in " << ms.count()
+        << "ms";
+  } else {
+    FB_LOG_RAW_WITH_CONTEXT(logger_, level_, file_, line_, "")
+        << func_ << " thrift request " << result << " in " << ms.count()
+        << "ms. "
+        << "params: " << paramsStr_;
+  }
 }
 
 } // namespace facebook::fboss
