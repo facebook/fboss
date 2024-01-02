@@ -787,6 +787,18 @@
     ],
     "leaba/1.42.8/1.42.8/gibraltar": [
         {
+          "test_name_regex": "HwDscpQueueMappingTest.VerifyAclAndQosMapConflict$"
+        },
+        {
+          "test_name_regex": ".*VerifyHostToQueueMappingClassID$"
+        },
+        {
+          "test_name_regex": ".*VerifyHostToQueueMappingClassIDsWithResolve$"
+        },
+        {
+          "test_name_regex": ".*VerifyHostToQueueMappingClassIDsAfterResolve$"
+        },
+        {
           "test_name_regex": "HwAclCounterTest/1.*$"
         },
         {
