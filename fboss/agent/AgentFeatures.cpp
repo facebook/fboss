@@ -8,5 +8,3 @@ DEFINE_bool(
     sai_user_defined_trap,
     false,
     "Flag to use user defined trap when programming ACL action to punt packets to cpu queue.");
-
-DEFINE_bool(enable_acl_table_chain_group, false, "Allow ACL table chaining");

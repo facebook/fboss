@@ -19,7 +19,6 @@
 #include <string>
 
 #include "fboss/agent/AclNexthopHandler.h"
-#include "fboss/agent/AgentFeatures.h"
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/HwAsicTable.h"
@@ -2755,35 +2754,8 @@ std::shared_ptr<AclTable> ThriftConfigApplier::updateAclTable(
     if (!newTableEntries && newTablePriority == origTable->getPriority() &&
         newActionTypes == origTable->getActionTypes() &&
         newQualifiers == origTable->getQualifiers()) {
-      // TODO(rvantipalli): this code can be simplified once chain groups are
-      // enabled by default
-      auto newChainGroupId = configTable.chainGroupId();
-      auto oldChainGroupId = origTable->getChainGroupId();
-      if (FLAGS_enable_acl_table_chain_group) {
-        // mandatory for flag and new config to be passed together
-        if (!newChainGroupId.has_value()) {
-          throw FbossError(
-              "Invalid config: missing chainGroup config with option");
-        }
-        // when upgrading, old config may be absent, so check for validity
-        if (oldChainGroupId.has_value() &&
-            (newChainGroupId.value() == oldChainGroupId.value())) {
-          return nullptr;
-        }
-      } else {
-        if (newChainGroupId.has_value()) {
-          throw FbossError(
-              "Invalid config: ChainGroupId cannot be set when FLAGS_enable_acl_table_chain_group is disabled");
-        }
-
-        if (oldChainGroupId.has_value()) {
-          // for rollback scenario, when prior config had flag enabled
-          // ignore the chainGroup when creating new config
-        } else {
-          // Original table exists with same attributes.
-          return nullptr;
-        }
-      }
+      // Original table exists with same attributes.
+      return nullptr;
     }
   }
 
@@ -2800,11 +2772,6 @@ std::shared_ptr<AclTable> ThriftConfigApplier::updateAclTable(
   } else {
     // original table does not exist, and new table is empty
     newTable->setAclMap(std::make_shared<AclMap>());
-  }
-
-  if (FLAGS_enable_acl_table_chain_group &&
-      configTable.chainGroupId().has_value()) {
-    newTable->setChainGroupId(configTable.chainGroupId().value());
   }
 
   newTable->setActionTypes(newActionTypes);
