@@ -5,7 +5,7 @@
 // HACK: This is referencing a python library's (py-radix)
 // C code implementation
 extern "C" {
-#include "radix.h"
+#include "radix.h" // @manual=fbsource//third-party/pypi/py-radix:radix
 void* PyMem_Malloc(size_t n) {
   return malloc(n);
 }
