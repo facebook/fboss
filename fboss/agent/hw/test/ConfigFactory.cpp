@@ -182,7 +182,7 @@ cfg::DsfNode dsfNodeConfig(
       dsfNode.type() = cfg::DsfNodeType::INTERFACE_NODE;
       CHECK(otherAsic->getSystemPortRange().has_value());
       dsfNode.systemPortRange() = *otherAsic->getSystemPortRange();
-      dsfNode.nodeMac() = "02:00:00:00:0F:0B";
+      dsfNode.nodeMac() = kLocalCpuMac().toString();
       dsfNode.loopbackIps() = getLoopbackIps(SwitchID(*dsfNode.switchId()));
       break;
     case cfg::SwitchType::FABRIC:
