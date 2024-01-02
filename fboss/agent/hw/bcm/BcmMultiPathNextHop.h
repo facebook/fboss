@@ -80,6 +80,7 @@ class BcmMultiPathNextHopTable : public BcmMultiPathNextHopTableBase {
 
   long getEcmpEgressCount() const;
   void updateEcmpsForFlowletSwitching();
+  bool updateEcmpsForFlowletTableLocked();
 
  private:
   bool ucmpSupported_{false};

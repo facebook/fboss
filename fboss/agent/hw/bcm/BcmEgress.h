@@ -179,6 +179,7 @@ class BcmEcmpEgress : public BcmEgressBase {
     throw FbossError("mac requested on multipath egress");
   }
   void programForFlowletSwitching();
+  bool updateEcmpDynamicMode();
   /*
    * Update ecmp egress entries in HW
    */

@@ -9,7 +9,9 @@
  */
 #include "fboss/agent/hw/bcm/BcmEcmpUtils.h"
 
+#include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmRoute.h"
+#include "fboss/agent/hw/bcm/BcmSdkVer.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 
 #include <folly/IPAddress.h>
@@ -50,19 +52,43 @@ getEcmpGroupInHw(const BcmSwitch* hw, bcm_if_t ecmp, int sizeInSw) {
 }
 
 int getFlowletSizeWithScalingFactor(
+    const BcmSwitch* hw,
     const int flowSetTableSize,
     const int numPaths,
     const int maxPaths) {
-  // default table size is 2k
+  int adjustedFlowSetTableSize = flowSetTableSize;
+  if (hw->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::FLOWLET_PORT_ATTRIBUTES)) {
+#if (                                      \
+    defined(BCM_SDK_VERSION_GTE_6_5_26) && \
+    !defined(BCM_SDK_VERSION_GTE_6_5_28))
+    int freeEntries = 0;
+    int rv = bcm_switch_object_count_get(
+        hw->getUnit(), bcmSwitchObjectEcmpDynamicFlowSetFree, &freeEntries);
+    bcmCheckError(rv, "Failed to get bcmSwitchObjectEcmpDynamicFlowSetFree");
+
+    if (flowSetTableSize > freeEntries) {
+      XLOG(INFO)
+          << "Not enough DLB flowset resource available for flowlet size: "
+          << flowSetTableSize << ". Free entries: " << freeEntries;
+      adjustedFlowSetTableSize = 0;
+    }
+    XLOG(INFO) << "freeEntries: " << adjustedFlowSetTableSize;
+    return adjustedFlowSetTableSize;
+#endif
+  }
+
+  // TODO: plan to deprecate the below when TH3 support is added for the API
+  // above default table size is 2k
   if (numPaths >= std::ceil(maxPaths * 0.75)) {
     // Allow upto 4 links down
     // with 32k flowset table max, this allows us upto 16 ECMP objects (default
     // table size is 2k)
-    return flowSetTableSize;
+    return adjustedFlowSetTableSize;
   } else if (numPaths >= std::ceil(maxPaths * 0.6)) {
     // DLB is running in degraded state. Shrink the table.
     // this allows upto 64 ECMP obejcts''
-    return (flowSetTableSize >> 2);
+    return (adjustedFlowSetTableSize >> 2);
   } else {
     // don't do DLB anymore
     return 0;

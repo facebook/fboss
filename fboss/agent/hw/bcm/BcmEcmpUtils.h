@@ -31,6 +31,7 @@ namespace facebook::fboss::utility {
 
 int getEcmpSizeInHw(const BcmSwitch* hw, bcm_if_t ecmp, int sizeInSw);
 int getFlowletSizeWithScalingFactor(
+    const BcmSwitch* hw,
     const int flowSetTableSize,
     const int numPaths,
     const int maxPaths);

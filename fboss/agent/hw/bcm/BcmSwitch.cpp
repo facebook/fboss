@@ -1384,6 +1384,13 @@ void BcmSwitch::processFlowletSwitchingConfigChanges(const StateDelta& delta) {
   // work as expected with flowlet ACL for existing DLB enabled switches.
   setEgressEcmpEtherType(0);
 
+  // flowlet is enabled here. lets walk through all ecmp objects to ensure
+  // things look ok for most purposes, this will be a no-op
+  const bool updateSuccess =
+      writableMultiPathNextHopTable()->updateEcmpsForFlowletTableLocked();
+  XLOG(DBG3) << "Update of the flowlet table: " << std::boolalpha
+             << updateSuccess;
+
   if (oldFlowletSwitching && newFlowletSwitching &&
       (*oldFlowletSwitching == *newFlowletSwitching)) {
     // PortFlowlet config is changed but the global Flowlet config did not

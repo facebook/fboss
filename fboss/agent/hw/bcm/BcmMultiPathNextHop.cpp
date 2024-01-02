@@ -87,6 +87,26 @@ void BcmMultiPathNextHopTable::updateEcmpsForFlowletSwitching() {
   }
 }
 
+bool BcmMultiPathNextHopTable::updateEcmpsForFlowletTableLocked() {
+  bool updateCompleted = true;
+  std::unordered_set<bcm_if_t> egressIds;
+  for (const auto& nextHopsAndEcmpHostInfo : getNextHops()) {
+    auto& weakPtr = nextHopsAndEcmpHostInfo.second;
+    auto ecmpHost = weakPtr.lock();
+    auto ecmpEgress = ecmpHost->getEgress();
+    if (!ecmpEgress) {
+      continue;
+    }
+    if (!egressIds.count(ecmpEgress->getID())) {
+      // update is complete when all the ECMP flowlet objects made are dynamic
+      // if not so already done
+      updateCompleted = ecmpEgress->updateEcmpDynamicMode();
+      egressIds.insert(ecmpEgress->getID());
+    }
+  }
+  return updateCompleted;
+}
+
 void BcmMultiPathNextHopTable::egressResolutionChangedHwLocked(
     const BcmEcmpEgress::EgressIdSet& affectedEgressIds,
     BcmEcmpEgress::Action action) {

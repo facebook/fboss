@@ -278,7 +278,9 @@ class HwEcmpFlowletSwitchingTest : public HwFlowletSwitchingTest {
 };
 
 TEST_F(HwFlowletSwitchingTest, VerifyFlowletSizeScaling) {
-  if (this->skipTest()) {
+  if (this->skipTest() ||
+      getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::FLOWLET_PORT_ATTRIBUTES)) {
 #if defined(GTEST_SKIP)
     GTEST_SKIP();
 #endif
@@ -362,6 +364,7 @@ TEST_F(HwFlowletSwitchingTest, VerifyPortFlowletConfigChange) {
     // Modify the port flowlet config and verify
     updatePortFlowletConfigs(cfg, kScalingFactor2, kLoadWeight2, kQueueWeight2);
     applyNewConfig(cfg);
+
     auto portFlowletConfig =
         getPortFlowletConfig(kScalingFactor2, kLoadWeight2, kQueueWeight2);
     verifyPortFlowletConfig(portFlowletConfig);
