@@ -26,7 +26,7 @@ class HwMemoryRegister : public HwMemoryRegion<IO> {
   }
 
   void writeRegister(uint32_t value) {
-    folly::SharedMutex::WriteHolder g(*mutex_);
+    std::unique_lock g(*mutex_);
     write(0, value);
   }
 
