@@ -130,7 +130,7 @@ void LinkAggregationManager::handlePacket(
 void LinkAggregationManager::stateUpdated(const StateDelta& delta) {
   CHECK(sw_->getUpdateEvb()->inRunningEventBaseThread());
 
-  folly::SharedMutexWritePriority::WriteHolder writeGuard(controllersLock_);
+  std::unique_lock writeGuard(controllersLock_);
 
   DeltaFunctions::forEachChanged(
       delta.getAggregatePortsDelta(),
@@ -140,7 +140,8 @@ void LinkAggregationManager::stateUpdated(const StateDelta& delta) {
       this);
 
   // Downgrade to a reader lock
-  folly::SharedMutexWritePriority::ReadHolder readGuard(std::move(writeGuard));
+  std::shared_lock readGuard(
+      folly::transition_lock<std::shared_lock>(writeGuard));
 
   DeltaFunctions::forEachChanged(
       delta.getPortsDelta(), &LinkAggregationManager::portChanged, this);
