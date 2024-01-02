@@ -1223,7 +1223,6 @@ sai_status_t create_acl_table_group_member_fn(
   std::optional<sai_object_id_t> tableGroupId;
   std::optional<sai_object_id_t> tableId;
   std::optional<sai_uint32_t> priority;
-  std::optional<sai_object_id_t> tableChainGroupId;
 
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
@@ -1235,9 +1234,6 @@ sai_status_t create_acl_table_group_member_fn(
         break;
       case SAI_ACL_TABLE_GROUP_MEMBER_ATTR_PRIORITY:
         priority = attr_list[i].value.u32;
-        break;
-      case SAI_ACL_TABLE_GROUP_MEMBER_ATTR_ACL_TABLE_CHAIN_GROUP_ID:
-        tableChainGroupId = attr_list[i].value.oid;
         break;
     }
   }
@@ -1252,12 +1248,6 @@ sai_status_t create_acl_table_group_member_fn(
       tableId.value(),
       priority.value());
 
-  if (tableChainGroupId.has_value()) {
-    auto& aclTableGroupMember =
-        fs->aclTableGroupManager.getMember(*acl_table_group_member_id);
-    aclTableGroupMember.tableChainGroupId = tableChainGroupId.value();
-  }
-
   return SAI_STATUS_SUCCESS;
 }
 
@@ -1269,16 +1259,11 @@ sai_status_t remove_acl_table_group_member_fn(
 }
 
 sai_status_t set_acl_table_group_member_attribute_fn(
-    sai_object_id_t acl_table_group_member_id,
+    sai_object_id_t /*acl_table_group_member_id*/,
     const sai_attribute_t* attr) {
-  auto fs = FakeSai::getInstance();
-  auto& aclTableGroupMember =
-      fs->aclTableGroupManager.getMember(acl_table_group_member_id);
+  return SAI_STATUS_NOT_IMPLEMENTED;
 
   switch (attr->id) {
-    case SAI_ACL_TABLE_GROUP_MEMBER_ATTR_ACL_TABLE_CHAIN_GROUP_ID:
-      aclTableGroupMember.tableChainGroupId = attr->value.oid;
-      break;
     default:
       // SAI spec does not support setting any attribute for ACL table group
       // memeber post creation.
@@ -1306,83 +1291,6 @@ sai_status_t get_acl_table_group_member_attribute_fn(
         break;
       case SAI_ACL_TABLE_GROUP_MEMBER_ATTR_PRIORITY:
         attr_list[i].value.u32 = aclTableGroupMember.priority;
-        break;
-      case SAI_ACL_TABLE_GROUP_MEMBER_ATTR_ACL_TABLE_CHAIN_GROUP_ID:
-        attr_list[i].value.oid = aclTableGroupMember.tableChainGroupId;
-        break;
-      default:
-        return SAI_STATUS_NOT_SUPPORTED;
-    }
-  }
-  return SAI_STATUS_SUCCESS;
-}
-
-sai_status_t create_acl_table_chain_group_fn(
-    sai_object_id_t* acl_table_chain_group_id,
-    sai_object_id_t /*switch_id*/,
-    uint32_t attr_count,
-    const sai_attribute_t* attr_list) {
-  auto fs = FakeSai::getInstance();
-
-  std::optional<sai_int32_t> stage;
-  std::optional<sai_int32_t> type;
-
-  for (int i = 0; i < attr_count; ++i) {
-    switch (attr_list[i].id) {
-      case SAI_ACL_TABLE_CHAIN_GROUP_ATTR_TYPE:
-        type = attr_list[i].value.s32;
-        break;
-      case SAI_ACL_TABLE_CHAIN_GROUP_ATTR_STAGE:
-        stage = attr_list[i].value.s32;
-        break;
-    }
-  }
-
-  if (!stage || !type) {
-    return SAI_STATUS_INVALID_PARAMETER;
-  }
-
-  *acl_table_chain_group_id =
-      fs->aclTableChainGroupManager.create(stage.value(), type.value());
-
-  return SAI_STATUS_SUCCESS;
-}
-
-sai_status_t remove_acl_table_chain_group_fn(
-    sai_object_id_t acl_table_chain_group_id) {
-  auto fs = FakeSai::getInstance();
-  fs->aclTableChainGroupManager.remove(acl_table_chain_group_id);
-  return SAI_STATUS_SUCCESS;
-}
-
-sai_status_t set_acl_table_chain_group_attribute_fn(
-    sai_object_id_t /*acl_table_chain_group_id*/,
-    const sai_attribute_t* attr) {
-  switch (attr->id) {
-    default:
-      // SAI spec does not support setting any attribute for ACL table chain
-      // group post creation.
-      return SAI_STATUS_NOT_SUPPORTED;
-  }
-
-  return SAI_STATUS_SUCCESS;
-}
-
-sai_status_t get_acl_table_chain_group_attribute_fn(
-    sai_object_id_t acl_table_chain_group_id,
-    uint32_t attr_count,
-    sai_attribute_t* attr_list) {
-  auto fs = FakeSai::getInstance();
-  auto& aclTableChainGroup =
-      fs->aclTableChainGroupManager.get(acl_table_chain_group_id);
-
-  for (int i = 0; i < attr_count; ++i) {
-    switch (attr_list[i].id) {
-      case SAI_ACL_TABLE_CHAIN_GROUP_ATTR_STAGE:
-        attr_list[i].value.s32 = aclTableChainGroup.stage;
-        break;
-      case SAI_ACL_TABLE_CHAIN_GROUP_ATTR_TYPE:
-        attr_list[i].value.s32 = aclTableChainGroup.type;
         break;
       default:
         return SAI_STATUS_NOT_SUPPORTED;
@@ -1418,11 +1326,7 @@ sai_acl_api_t* FakeAclTable::kApi() {
       &create_acl_table_group_member_fn,
       &remove_acl_table_group_member_fn,
       &set_acl_table_group_member_attribute_fn,
-      &get_acl_table_group_member_attribute_fn,
-      &create_acl_table_chain_group_fn,
-      &remove_acl_table_chain_group_fn,
-      &set_acl_table_chain_group_attribute_fn,
-      &get_acl_table_chain_group_attribute_fn};
+      &get_acl_table_group_member_attribute_fn};
 
   return &kAclApi;
 }
