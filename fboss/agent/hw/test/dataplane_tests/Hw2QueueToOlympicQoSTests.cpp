@@ -102,7 +102,7 @@ class Hw2QueueToOlympicQoSTest : public HwLinkStateDependentTest {
           getPlatform()
               ->getAsic()
               ->scalingFactorBasedDynamicThresholdSupported());
-      utility::add2QueueQosMaps(newCfg);
+      utility::add2QueueQosMaps(newCfg, getPlatform()->getAsic());
       applyNewConfig(newCfg);
     };
 

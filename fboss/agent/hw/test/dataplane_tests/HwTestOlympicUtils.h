@@ -156,6 +156,11 @@ void addQueueWredDropConfig(
     cfg::StreamType streamType,
     const HwAsic* asic);
 
+void addQosMapsHelper(
+    cfg::SwitchConfig& cfg,
+    const std::map<int, std::vector<uint8_t>>& queueToDscpMap,
+    const std::string& qosPolicyName,
+    const HwAsic* hwAsic);
 void addOlympicQosMaps(cfg::SwitchConfig& cfg, const HwAsic* hwAsic);
 
 std::string getOlympicCounterNameForDscp(uint8_t dscp);

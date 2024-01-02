@@ -10,6 +10,7 @@
 
 #pragma once
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.h"
 #include "fboss/agent/types.h"
 
 #include <string>
@@ -36,7 +37,7 @@ void add2QueueConfig(
     cfg::SwitchConfig* config,
     cfg::StreamType streamType,
     bool scalingFactorSupported);
-void add2QueueQosMaps(cfg::SwitchConfig& cfg);
+void add2QueueQosMaps(cfg::SwitchConfig& cfg, const HwAsic* hwAsic);
 
 std::string get2QueueCounterNameForDscp(uint8_t dscp);
 

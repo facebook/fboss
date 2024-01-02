@@ -11,6 +11,7 @@
 
 #include "fboss/agent/hw/test/TrafficPolicyUtils.h"
 
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 
 namespace facebook::fboss::utility {
@@ -68,27 +69,8 @@ std::string get2QueueCounterNameForDscp(uint8_t dscp) {
   return folly::to<std::string>("dscp", dscp, "_counter");
 }
 
-void add2QueueQosMaps(cfg::SwitchConfig& cfg) {
-  cfg::QosMap qosMap;
-  auto queueToDscpMap = k2QueueToDscp();
-  qosMap.dscpMaps()->resize(queueToDscpMap.size());
-  ssize_t qosMapIdx = 0;
-  for (const auto& q2dscps : queueToDscpMap) {
-    auto [q, dscps] = q2dscps;
-    *qosMap.dscpMaps()[qosMapIdx].internalTrafficClass() = q;
-    for (auto dscp : dscps) {
-      qosMap.dscpMaps()[qosMapIdx].fromDscpToTrafficClass()->push_back(dscp);
-    }
-    qosMap.trafficClassToQueueId()->emplace(q, q);
-    ++qosMapIdx;
-  }
-  cfg.qosPolicies()->resize(1);
-  *cfg.qosPolicies()[0].name() = "2queue";
-  cfg.qosPolicies()[0].qosMap() = qosMap;
-
-  cfg::TrafficPolicyConfig dataPlaneTrafficPolicy;
-  dataPlaneTrafficPolicy.defaultQosPolicy() = "2queue";
-  cfg.dataPlaneTrafficPolicy() = dataPlaneTrafficPolicy;
+void add2QueueQosMaps(cfg::SwitchConfig& cfg, const HwAsic* hwAsic) {
+  addQosMapsHelper(cfg, k2QueueToDscp(), "2queue", hwAsic);
 }
 
 const std::map<int, std::vector<uint8_t>>& k2QueueToDscp() {
