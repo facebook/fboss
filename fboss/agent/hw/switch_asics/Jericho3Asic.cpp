@@ -35,8 +35,6 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::FABRIC_PORTS:
     case HwAsic::Feature::LINK_TRAINING:
     case HwAsic::Feature::FEC:
-    case HwAsic::Feature::FEC_CORRECTED_BITS:
-    case HwAsic::Feature::SAI_FEC_COUNTERS:
     case HwAsic::Feature::SAI_TTL0_PACKET_FORWARD_ENABLE:
     case HwAsic::Feature::PMD_RX_LOCK_STATUS:
     case HwAsic::Feature::PMD_RX_SIGNAL_DETECT:
@@ -166,6 +164,8 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SFLOWv6:
     case HwAsic::Feature::LINK_INACTIVE_BASED_ISOLATE:
     case HwAsic::Feature::RX_SNR:
+    case HwAsic::Feature::FEC_CORRECTED_BITS:
+    case HwAsic::Feature::SAI_FEC_COUNTERS:
       return false;
   }
   return false;
