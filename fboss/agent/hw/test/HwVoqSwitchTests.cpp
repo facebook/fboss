@@ -1452,10 +1452,9 @@ TEST_F(HwVoqSwitchFullScaleDsfNodesTest, remoteNeighborWithEcmpGroup) {
         getSysPortStatsFn = [&](const std::vector<SystemPortID>& portIds) {
           return getLatestSysPortStats(portIds);
         };
-    size_t pktSize = 0;
     utility::pumpTrafficAndVerifyLoadBalanced(
         [&]() {
-          pktSize = utility::pumpTraffic(
+          utility::pumpTraffic(
               true, /* isV6 */
               getHwSwitch(), /* hw */
               utility::kLocalCpuMac(), /* dstMac */
@@ -1477,8 +1476,7 @@ TEST_F(HwVoqSwitchFullScaleDsfNodesTest, remoteNeighborWithEcmpGroup) {
               {},
               getSysPortStatsFn,
               kMaxDeviation,
-              false,
-              pktSize)));
+              false)));
           return true;
         });
   };
@@ -1526,10 +1524,9 @@ TEST_F(HwVoqSwitchFullScaleDsfNodesTest, remoteAndLocalLoadBalance) {
         getSysPortStatsFn = [&](const std::vector<SystemPortID>& portIds) {
           return getLatestSysPortStats(portIds);
         };
-    size_t pktSize = 0;
     utility::pumpTrafficAndVerifyLoadBalanced(
         [&]() {
-          pktSize = utility::pumpTraffic(
+          utility::pumpTraffic(
               true, /* isV6 */
               getHwSwitch(), /* hw */
               utility::kLocalCpuMac(), /* dstMac */
@@ -1547,12 +1544,7 @@ TEST_F(HwVoqSwitchFullScaleDsfNodesTest, remoteAndLocalLoadBalance) {
         },
         [&]() {
           WITH_RETRIES(EXPECT_EVENTUALLY_TRUE(utility::isLoadBalanced(
-              sysPortDescs,
-              {},
-              getSysPortStatsFn,
-              kMaxDeviation,
-              false,
-              pktSize)));
+              sysPortDescs, {}, getSysPortStatsFn, kMaxDeviation, false)));
           return true;
         });
   };
