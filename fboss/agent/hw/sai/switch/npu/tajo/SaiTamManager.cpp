@@ -29,6 +29,26 @@ SaiTamManager::SaiTamManager(
           HwAsic::Feature::TELEMETRY_AND_MONITORING)) {
     return;
   }
+
+  // To address SMS out of bank error seen in S337271, TAJO has a new
+  // notification which will notify FBOSS agent on SMS out of bank
+  // errors in the fleet via SAI_SWITCH_EVENT_TYPE_LACK_OF_RESOURCES.
+  // However, this would need the SwitchEventType to be modified and
+  // TAJO has a limitation that only one TAM object can be created at
+  // any time. This means, warm boot upgrade is not possible to a new
+  // version which will try to create a new TAM object as that would
+  // end up with 2 TAM objects being created and the create would fail.
+  // The work around is to delete the TAM object and creating a new one.
+  if (platform_->getHwSwitch()->getBootType() == BootType::WARM_BOOT) {
+    saiStore_->get<SaiTamTraits>().removeUnexpectedUnclaimedWarmbootHandles();
+    saiStore_->get<SaiTamEventTraits>()
+        .removeUnexpectedUnclaimedWarmbootHandles();
+    saiStore_->get<SaiTamEventActionTraits>()
+        .removeUnexpectedUnclaimedWarmbootHandles();
+    saiStore_->get<SaiTamReportTraits>()
+        .removeUnexpectedUnclaimedWarmbootHandles();
+  }
+
   // create report
   auto& reportStore = saiStore_->get<SaiTamReportTraits>();
   auto reportTraits =
