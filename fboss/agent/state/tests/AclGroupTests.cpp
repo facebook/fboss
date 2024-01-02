@@ -8,7 +8,6 @@
  *
  */
 
-#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
@@ -67,10 +66,6 @@ const std::vector<cfg::AclTableQualifier> kQualifiers = {
     cfg::AclTableQualifier::DST_IPV6,
     cfg::AclTableQualifier::SRC_IPV4,
     cfg::AclTableQualifier::DST_IPV4};
-
-auto constexpr kChainGroupStage1 = 1;
-auto constexpr kChainGroupStage2 = 2;
-auto constexpr kChainGroupStage3 = 3;
 
 namespace {
 
@@ -189,22 +184,15 @@ TEST(AclGroup, TestEquality) {
   table1->setAclMap(map1);
   table1->setActionTypes(kActionTypes);
   table1->setQualifiers(kQualifiers);
-  table1->setChainGroupId(kChainGroupStage1);
   auto table2 = std::make_shared<AclTable>(2, kTable1);
   table2->setAclMap(map2);
   table2->setActionTypes(kActionTypes);
   table2->setQualifiers(kQualifiers);
-  table2->setChainGroupId(kChainGroupStage1);
   validateNodeSerialization(*table1);
   validateNodeSerialization(*table2);
 
   EXPECT_NE(*table1, *table2);
   table2->setPriority(1);
-  EXPECT_EQ(*table1, *table2);
-
-  table2->setChainGroupId(kChainGroupStage2);
-  EXPECT_NE(*table1, *table2);
-  table2->setChainGroupId(kChainGroupStage1);
   EXPECT_EQ(*table1, *table2);
 
   // test AclTableMap equality
@@ -303,7 +291,6 @@ TEST(AclGroup, SerializeAclTable) {
   table->setAclMap(map);
   table->setActionTypes(kActionTypes);
   table->setQualifiers(kQualifiers);
-  table->setChainGroupId(kChainGroupStage1);
   validateNodeSerialization(*table);
 
   auto serialized = table->toThrift();
@@ -315,15 +302,10 @@ TEST(AclGroup, SerializeAclTable) {
   EXPECT_EQ(*(tableBack->getAclMap()), *map);
   EXPECT_EQ(tableBack->getActionTypes(), kActionTypes);
   EXPECT_EQ(tableBack->getQualifiers(), kQualifiers);
-  EXPECT_EQ(tableBack->getChainGroupId(), kChainGroupStage1);
 
   // change the priority
   table->setPriority(2);
   EXPECT_EQ(table->getPriority(), 2);
-
-  // change the chain group
-  table->setChainGroupId(kChainGroupStage2);
-  EXPECT_EQ(table->getChainGroupId(), kChainGroupStage2);
 
   serialized = table->toThrift();
   tableBack = std::make_shared<AclTable>(serialized);
@@ -334,7 +316,6 @@ TEST(AclGroup, SerializeAclTable) {
   EXPECT_EQ(*(tableBack->getAclMap()), *map);
   EXPECT_EQ(tableBack->getActionTypes(), kActionTypes);
   EXPECT_EQ(tableBack->getQualifiers(), kQualifiers);
-  EXPECT_EQ(tableBack->getChainGroupId(), kChainGroupStage2);
 }
 
 TEST(AclGroup, SerializeAclTableMap) {
@@ -472,10 +453,8 @@ TEST(AclGroup, SerializeMultiSwitchAclTableGroupMap) {
 
 TEST(AclGroup, ApplyConfigColdbootMultipleAclTable) {
   FLAGS_enable_acl_table_group = true;
-  FLAGS_enable_acl_table_chain_group = false;
   int priority1 = AclTable::kDataplaneAclMaxPriority;
   int priority2 = AclTable::kDataplaneAclMaxPriority;
-  int priority3 = AclTable::kDataplaneAclMaxPriority;
 
   auto platform = createMockPlatform();
   auto stateEmpty = make_shared<SwitchState>();
@@ -611,56 +590,10 @@ TEST(AclGroup, ApplyConfigColdbootMultipleAclTable) {
       *table2);
   EXPECT_EQ(
       *(stateV2->getAclTableGroups()->getNodeIf(kAclStage1)), *tableGroup);
-
-  // Config contains 3 acl tables
-  auto entry3a = make_shared<AclEntry>(priority3, kAcl3a);
-  entry3a->setActionType(cfg::AclActionType::DENY);
-  entry3a->setEnabled(true);
-  auto map3 = std::make_shared<AclMap>();
-  map3->addEntry(entry3a);
-  auto table3 = std::make_shared<AclTable>(3, kTable3);
-  table3->setAclMap(map3);
-  newTableMap = tableGroup->getAclTableMap()->clone();
-  newTableMap->addTable(table3);
-  tableGroup->setAclTableMap(newTableMap);
-  validateNodeSerialization(*table3);
-
-  FLAGS_enable_acl_table_chain_group = false;
-  cfg::AclTable cfgTable3;
-  cfgTable3.name_ref() = kTable3;
-  cfgTable3.priority_ref() = 3;
-  cfgTable3.aclEntries_ref()->resize(1);
-  cfgTable3.aclEntries_ref()[0].name_ref() = kAcl3a;
-  cfgTable3.aclEntries_ref()[0].actionType_ref() = cfg::AclActionType::DENY;
-  cfgTable3.chainGroupId_ref() = 3;
-  config.aclTableGroup_ref()->aclTables_ref()->resize(3);
-  config.aclTableGroup_ref()->aclTables_ref()[2] = cfgTable3;
-
-  // chain group feature off, new state would not include chain grp info
-  auto stateV3 = publishAndApplyConfig(stateEmpty, &config, platform.get());
-  EXPECT_NE(nullptr, stateV3);
-  EXPECT_EQ(
-      *(stateV3->getAclTableGroups()
-            ->getNodeIf(kAclStage1)
-            ->getAclTableMap()
-            ->getTableIf(table3->getID())),
-      *table3);
-
-  FLAGS_enable_acl_table_chain_group = true;
-  auto stateV4 = publishAndApplyConfig(stateEmpty, &config, platform.get());
-  EXPECT_NE(nullptr, stateV4);
-  table3->setChainGroupId(kChainGroupStage3);
-  EXPECT_EQ(
-      *(stateV4->getAclTableGroups()
-            ->getNodeIf(kAclStage1)
-            ->getAclTableMap()
-            ->getTableIf(table3->getID())),
-      *table3);
 }
 
 TEST(AclGroup, ApplyConfigWarmbootMultipleAclTable) {
   FLAGS_enable_acl_table_group = true;
-  FLAGS_enable_acl_table_chain_group = false;
   int priority1 = AclTable::kDataplaneAclMaxPriority;
   int priority2 = AclTable::kDataplaneAclMaxPriority;
   auto platform = createMockPlatform();
@@ -930,95 +863,4 @@ TEST(AclGroup, ApplyConfigWarmbootMultipleAclTable) {
 
   EXPECT_EQ(
       *(stateV8->getAclTableGroups()->getNodeIf(kAclStage1)), *tableGroup1);
-}
-
-TEST(AclGroup, ApplyConfigWarmbootChainedGroup) {
-  FLAGS_enable_acl_table_group = true;
-  int priority1 = AclTable::kDataplaneAclMaxPriority;
-  auto platform = createMockPlatform();
-
-  auto entry1a = make_shared<AclEntry>(priority1++, kAcl1a);
-  entry1a->setActionType(cfg::AclActionType::DENY);
-  entry1a->setEnabled(true);
-  auto map1 = std::make_shared<AclMap>();
-  map1->addEntry(entry1a);
-  auto table1 = std::make_shared<AclTable>(1, kTable1);
-  table1->setAclMap(map1);
-  validateNodeSerialization(*table1);
-
-  auto tableMap = make_shared<AclTableMap>();
-  tableMap->addTable(table1);
-  auto tableGroup = make_shared<AclTableGroup>(kAclStage1);
-  tableGroup->setAclTableMap(tableMap);
-  tableGroup->setName(kGroup1);
-  validateNodeSerialization(*tableGroup);
-
-  cfg::AclTable cfgTable1;
-  cfgTable1.name_ref() = kTable1;
-  cfgTable1.priority_ref() = 1;
-  cfgTable1.aclEntries_ref()->resize(1);
-  cfgTable1.aclEntries_ref()[0].name_ref() = kAcl1a;
-  cfgTable1.aclEntries_ref()[0].actionType_ref() = cfg::AclActionType::DENY;
-
-  cfg::SwitchConfig config;
-  cfg::AclTableGroup cfgTableGroup;
-  config.aclTableGroup_ref() = cfgTableGroup;
-  config.aclTableGroup_ref()->name_ref() = kGroup1;
-  config.aclTableGroup_ref()->stage_ref() = kAclStage1;
-  config.aclTableGroup_ref()->aclTables_ref()->resize(1);
-  config.aclTableGroup_ref()->aclTables_ref()[0] = cfgTable1;
-
-  cfg::SwitchConfig emptyCfg{};
-  auto stateV0 = publishAndApplyConfig(
-      std::make_shared<SwitchState>(), &config, platform.get());
-  EXPECT_EQ(
-      *(stateV0->getAclTableGroups())->getNodeIf(kAclStage1), *tableGroup);
-
-  // State unchanged
-  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
-  EXPECT_EQ(nullptr, stateV1);
-
-  auto origTable = table1->clone();
-
-  FLAGS_enable_acl_table_chain_group = true;
-
-  // no chainGroupId in old but added in new
-  config.aclTableGroup_ref()->aclTables_ref()[0].chainGroupId_ref() =
-      kChainGroupStage2;
-  auto stateV2 = publishAndApplyConfig(stateV0, &config, platform.get());
-  EXPECT_NE(nullptr, stateV2);
-
-  table1->setChainGroupId(kChainGroupStage2);
-  EXPECT_EQ(
-      *(stateV2->getAclTableGroups()
-            ->getNodeIf(kAclStage1)
-            ->getAclTableMap()
-            ->getTableIf(table1->getID())),
-      *table1);
-
-  // chainGroupId in both old and new but different values
-  config.aclTableGroup_ref()->aclTables_ref()[0].chainGroupId_ref() =
-      kChainGroupStage3;
-  auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
-  EXPECT_NE(nullptr, stateV3);
-
-  table1->setChainGroupId(kChainGroupStage3);
-  EXPECT_EQ(
-      *(stateV3->getAclTableGroups()
-            ->getNodeIf(kAclStage1)
-            ->getAclTableMap()
-            ->getTableIf(table1->getID())),
-      *table1);
-
-  // chainGroupId in old but not in new
-  FLAGS_enable_acl_table_chain_group = false;
-  config.aclTableGroup_ref()->aclTables_ref()[0].chainGroupId_ref().reset();
-  auto stateV4 = publishAndApplyConfig(stateV3, &config, platform.get());
-  EXPECT_NE(nullptr, stateV4);
-  EXPECT_EQ(
-      *(stateV4->getAclTableGroups()
-            ->getNodeIf(kAclStage1)
-            ->getAclTableMap()
-            ->getTableIf(table1->getID())),
-      *origTable);
 }

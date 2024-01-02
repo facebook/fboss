@@ -8,7 +8,6 @@
  *
  */
 
-#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
@@ -57,15 +56,8 @@ cfg::UdfConfig makeUdfConfig(const std::vector<std::string>& udfNameList) {
   return udf;
 }
 
-class AclTest : public ::testing::TestWithParam<std::tuple<bool, bool>> {
- protected:
-  void SetUp() override {
-    FLAGS_enable_acl_table_group = std::get<0>(GetParam());
-    FLAGS_enable_acl_table_chain_group = std::get<1>(GetParam());
-  }
-};
-
-TEST(AclTest, applyConfig) {
+TEST(Acl, applyConfig) {
+  FLAGS_enable_acl_table_group = false;
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
   auto aclEntry = make_shared<AclEntry>(0, std::string("acl0"));
@@ -263,7 +255,8 @@ TEST(AclTest, applyConfig) {
   EXPECT_FALSE(aclV11->getVlanID());
 }
 
-TEST(AclTest, stateDelta) {
+TEST(Acl, stateDelta) {
+  FLAGS_enable_acl_table_group = false;
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
 
@@ -328,7 +321,8 @@ TEST(AclTest, stateDelta) {
   EXPECT_EQ(iter, aclDelta45.end());
 }
 
-TEST(AclTest, Udf) {
+TEST(Acl, Udf) {
+  FLAGS_enable_acl_table_group = false;
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
   std::vector<std::string> udfList = {"foo1", "foo2"};
@@ -377,7 +371,8 @@ TEST(AclTest, Udf) {
   EXPECT_EQ(aclV2->getUdfGroups().value(), newUdfList);
 }
 
-TEST(AclTest, Icmp) {
+TEST(Acl, Icmp) {
+  FLAGS_enable_acl_table_group = false;
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
 
@@ -411,13 +406,13 @@ TEST(AclTest, Icmp) {
       publishAndApplyConfig(stateV1, &config, platform.get()), FbossError);
 }
 
-TEST(AclTest, aclModifyUnpublished) {
+TEST(Acl, aclModifyUnpublished) {
   auto state = make_shared<SwitchState>();
   auto acls = state->getAcls();
   EXPECT_EQ(acls.get(), acls->modify(&state));
 }
 
-TEST(AclTest, aclModifyPublished) {
+TEST(Acl, aclModifyPublished) {
   auto state = make_shared<SwitchState>();
   state->publish();
   auto acls = state->getAcls();
@@ -425,14 +420,14 @@ TEST(AclTest, aclModifyPublished) {
   EXPECT_NE(acls.get(), acls->modify(&state));
 }
 
-TEST(AclTest, aclEntryModifyUnpublished) {
+TEST(Acl, aclEntryModifyUnpublished) {
   auto state = make_shared<SwitchState>();
   auto aclEntry = make_shared<AclEntry>(0, std::string("acl0"));
   state->getAcls()->addNode(aclEntry, scope());
   EXPECT_EQ(aclEntry.get(), aclEntry->modify(&state, scope()));
 }
 
-TEST(AclTest, aclEntryModifyPublished) {
+TEST(Acl, aclEntryModifyPublished) {
   auto state = make_shared<SwitchState>();
   auto aclEntry = make_shared<AclEntry>(0, std::string("acl0"));
   state->getAcls()->addNode(aclEntry, scope());
@@ -440,7 +435,8 @@ TEST(AclTest, aclEntryModifyPublished) {
   EXPECT_NE(aclEntry.get(), aclEntry->modify(&state, scope()));
 }
 
-TEST(AclTest, AclGeneration) {
+TEST(Acl, AclGeneration) {
+  FLAGS_enable_acl_table_group = false;
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
   registerPort(stateV0, PortID(1), "port1", scope());
@@ -563,7 +559,7 @@ TEST(AclTest, AclGeneration) {
           ->cref());
 }
 
-TEST(AclTest, SerializeAclEntry) {
+TEST(Acl, SerializeAclEntry) {
   auto entry = std::make_unique<AclEntry>(0, std::string("dscp1"));
   entry->setDscp(1);
   entry->setL4SrcPort(179);
@@ -618,7 +614,7 @@ TEST(AclTest, SerializeAclEntry) {
       3);
 }
 
-TEST(AclTest, SerializeRedirectToNextHop) {
+TEST(Acl, SerializeRedirectToNextHop) {
   auto entry = std::make_unique<AclEntry>(0, std::string("stat0"));
   MatchAction action = MatchAction();
   auto cfgRedirectToNextHop = cfg::RedirectToNextHopAction();
@@ -729,7 +725,7 @@ TEST(AclTest, SerializeRedirectToNextHop) {
   verifyEntries(*entry, nexthops, nhset);
 }
 
-TEST(AclTest, SerializePacketCounter) {
+TEST(Acl, SerializePacketCounter) {
   auto entry = std::make_unique<AclEntry>(0, std::string("stat0"));
   MatchAction action = MatchAction();
   auto counter = cfg::TrafficCounter();
@@ -809,7 +805,8 @@ TEST(AclTest, SerializePacketCounter) {
       *counter.types());
 }
 
-TEST(AclTest, Ttl) {
+TEST(Acl, Ttl) {
+  FLAGS_enable_acl_table_group = false;
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
 
@@ -846,7 +843,7 @@ TEST(AclTest, Ttl) {
       publishAndApplyConfig(stateV1, &config, platform.get()), FbossError);
 }
 
-TEST(AclTest, TtlSerialization) {
+TEST(Acl, TtlSerialization) {
   auto entry = std::make_unique<AclEntry>(0, std::string("stat0"));
   entry->setTtl(AclTtl(42, 0xff));
   auto action = MatchAction();
@@ -874,7 +871,7 @@ TEST(AclTest, TtlSerialization) {
   EXPECT_THROW(ttl.setMask(-1), FbossError);
 }
 
-TEST(AclTest, PacketLookupResultSerialization) {
+TEST(Acl, PacketLookupResultSerialization) {
   auto entry = std::make_unique<AclEntry>(0, std::string("stat0"));
   entry->setPacketLookupResult(
       cfg::PacketLookupResultType::PACKET_LOOKUP_RESULT_MPLS_NO_MATCH);
@@ -895,7 +892,7 @@ TEST(AclTest, PacketLookupResultSerialization) {
       cfg::PacketLookupResultType::PACKET_LOOKUP_RESULT_MPLS_NO_MATCH);
 }
 
-TEST(AclTest, VlanIDSerialization) {
+TEST(Acl, VlanIDSerialization) {
   auto entry = std::make_unique<AclEntry>(0, std::string("stat0"));
   entry->setVlanID(2001);
   auto action = MatchAction();
@@ -913,7 +910,8 @@ TEST(AclTest, VlanIDSerialization) {
   EXPECT_EQ(entryBack->getVlanID().value(), 2001);
 }
 
-TEST(AclTest, IpType) {
+TEST(Acl, IpType) {
+  FLAGS_enable_acl_table_group = false;
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
 
@@ -933,7 +931,8 @@ TEST(AclTest, IpType) {
   EXPECT_EQ(aclV1->getIpType().value(), ipType);
 }
 
-TEST(AclTest, LookupClass) {
+TEST(Acl, LookupClass) {
+  FLAGS_enable_acl_table_group = false;
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
 
@@ -979,7 +978,7 @@ TEST(AclTest, LookupClass) {
   EXPECT_EQ(aclV4->getLookupClassRoute().value(), lookupClassRoute);
 }
 
-TEST(AclTest, LookupClassSerialization) {
+TEST(Acl, LookupClassSerialization) {
   auto action = MatchAction();
   auto counter = cfg::TrafficCounter();
   *counter.name() = "stat0.c";
@@ -1029,7 +1028,8 @@ TEST(AclTest, LookupClassSerialization) {
   EXPECT_EQ(entryBackRoute->getLookupClassRoute().value(), lookupClassRoute);
 }
 
-TEST(AclTest, InvalidTrafficCounter) {
+TEST(Acl, InvalidTrafficCounter) {
+  FLAGS_enable_acl_table_group = false;
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
 
@@ -1047,7 +1047,7 @@ TEST(AclTest, InvalidTrafficCounter) {
       publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
 }
 
-TEST(AclTest, GetRequiredAclTableQualifiers) {
+TEST(Acl, GetRequiredAclTableQualifiers) {
   cfg::SwitchConfig config;
   config.acls();
   config.acls()->resize(2);
@@ -1139,8 +1139,3 @@ TEST(AclTest, GetRequiredAclTableQualifiers) {
   EXPECT_EQ(q0, qualifiers0);
   EXPECT_EQ(q1, qualifiers1);
 }
-
-INSTANTIATE_TEST_CASE_P(
-    AclParameterizedTests,
-    AclTest,
-    ::testing::Values(std::make_tuple(false, false)));
