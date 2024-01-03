@@ -14,6 +14,8 @@
 
 namespace facebook::fboss::utility {
 
+const int KMaxFlowsetTableSize = 32768;
+
 bool validateFlowletSwitchingEnabled(
     const facebook::fboss::HwSwitch* hw,
     const cfg::FlowletSwitchingConfig& flowletCfg);

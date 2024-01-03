@@ -21,7 +21,6 @@ using namespace facebook::fboss;
 
 namespace {
 const RouterID kRid(0);
-const int KMaxFlowsetTableSize(32768);
 } // namespace
 
 namespace facebook::fboss::utility {

@@ -82,9 +82,11 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
     utility::addMatcher(&cfg, kAclName, matchAction);
   }
 
-  void updateFlowletConfigs(cfg::SwitchConfig& cfg) const {
-    auto flowletCfg = getFlowletSwitchingConfig(
-        kInactivityIntervalUsecs1, kFlowletTableSize1);
+  void updateFlowletConfigs(
+      cfg::SwitchConfig& cfg,
+      const int flowletTableSize = kFlowletTableSize1) const {
+    auto flowletCfg =
+        getFlowletSwitchingConfig(kInactivityIntervalUsecs1, flowletTableSize);
     cfg.flowletSwitchingConfig() = flowletCfg;
     updatePortFlowletConfigs(cfg, kScalingFactor1, kLoadWeight1, kQueueWeight1);
 
@@ -132,7 +134,7 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
 
   cfg::FlowletSwitchingConfig getFlowletSwitchingConfig(
       uint16_t inactivityIntervalUsecs,
-      uint16_t flowletTableSize) const {
+      int flowletTableSize) const {
     cfg::FlowletSwitchingConfig flowletCfg;
     flowletCfg.inactivityIntervalUsecs() = inactivityIntervalUsecs;
     flowletCfg.flowletTableSize() = flowletTableSize;
@@ -276,6 +278,67 @@ class HwEcmpFlowletSwitchingTest : public HwFlowletSwitchingTest {
     return cfg;
   }
 };
+
+class HwFlowletSwitchingFlowsetTests : public HwFlowletSwitchingTest {
+ protected:
+  void SetUp() override {
+    HwFlowletSwitchingTest::SetUp();
+  }
+
+  cfg::SwitchConfig initialConfig() const override {
+    auto cfg = getDefaultConfig();
+    // go one higher than max allowed
+    updateFlowletConfigs(cfg, utility::KMaxFlowsetTableSize + 1);
+    return cfg;
+  }
+};
+
+// Test intends to excercise the scenario where we run out of the
+// flowset table because size is too big
+// (1) Ensure that ECMP object is created but in non dynamic mode
+// (2) Once the size if fixed through the cfg, its modified to go
+// back to dynamic mode
+TEST_F(HwFlowletSwitchingFlowsetTests, ValidateFlowsetExceed) {
+  if (this->skipTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
+    return;
+  }
+
+  auto setup = [&]() { resolveNextHopsAddRoute(kMaxLinks); };
+
+  auto verify = [&]() {
+    auto cfg = initialConfig();
+    const auto& portFlowletCfgMap = *cfg.portFlowletConfigs();
+    const auto& iter = portFlowletCfgMap.find("default");
+    ASSERT_TRUE(iter != portFlowletCfgMap.end());
+
+    // ensure that DLB is not programmed as we started with high flowset limits
+    // we expect flowset size is zero
+    utility::verifyEcmpForFlowletSwitching(
+        getHwSwitch(),
+        kAddr1Prefix,
+        *cfg.flowletSwitchingConfig(),
+        iter->second,
+        true /* flowletEnable */,
+        true /* expectFlowsetSizeZero */);
+
+    // modify the flowlet cfg to fix the flowlet
+    cfg = initialConfig();
+    modifyFlowletSwitchingConfig(cfg);
+    applyNewConfig(cfg);
+
+    utility::verifyEcmpForFlowletSwitching(
+        getHwSwitch(),
+        kAddr1Prefix,
+        *cfg.flowletSwitchingConfig(),
+        iter->second,
+        true,
+        false /* expectFlowsetSizeZero */);
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
 
 TEST_F(HwFlowletSwitchingTest, VerifyFlowletSizeScaling) {
   if (this->skipTest() ||

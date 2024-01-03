@@ -1177,7 +1177,8 @@ bool BcmEcmpEgress::updateEcmpDynamicMode() {
   bcmCheckError(ret, "Unable to get ECMP:  ", id_);
 
   if (obj.dynamic_mode == BCM_L3_ECMP_DYNAMIC_MODE_NORMAL) {
-    XLOG(DBG3) << "ECMP: " << id_ << " is already in dynamic mode";
+    XLOG(DBG3) << "ECMP: " << id_
+               << " is already in dynamic mode. Skip dynamic mode update.";
     return updateComplete;
   }
 
