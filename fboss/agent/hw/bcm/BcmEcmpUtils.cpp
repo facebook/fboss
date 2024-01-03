@@ -68,12 +68,11 @@ int getFlowletSizeWithScalingFactor(
     bcmCheckError(rv, "Failed to get bcmSwitchObjectEcmpDynamicFlowSetFree");
 
     if (flowSetTableSize > freeEntries) {
-      XLOG(INFO)
+      XLOG(WARN)
           << "Not enough DLB flowset resource available for flowlet size: "
           << flowSetTableSize << ". Free entries: " << freeEntries;
       adjustedFlowSetTableSize = 0;
     }
-    XLOG(INFO) << "freeEntries: " << adjustedFlowSetTableSize;
     return adjustedFlowSetTableSize;
 #endif
   }

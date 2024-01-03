@@ -423,8 +423,9 @@ TEST_F(
     ecmpHelper_->unprogramRoutes(
         getRouteUpdater(), {RoutePrefixV6{kAddr1, 64}});
 
-    // ensure that DLB is  programmed as we started with high flowset limits
-    // we expect flowset size is non zero = FLAGS_override_flowset_size
+    // ensure that DLB is  programmed as we started with more ECMP objects
+    // we expect flowset size is non zero now, that there are fewer ECMP objects
+    // and they should fit in
     utility::verifyEcmpForFlowletSwitching(
         getHwSwitch(),
         kAddr2Prefix,

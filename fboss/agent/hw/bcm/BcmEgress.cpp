@@ -461,7 +461,10 @@ void BcmEcmpEgress::program() {
         enableFlowletMemberStatus = true;
       }
       XLOG(DBG2) << "Programmed FlowletTableSize=" << obj.dynamic_size
-                 << " InactivityIntervalUsecs=" << obj.dynamic_age;
+                 << " InactivityIntervalUsecs=" << obj.dynamic_age
+                 << " for ECMP object "
+                 << ((id_ != INVALID) ? folly::to<std::string>(id_)
+                                      : "(invalid id)");
     }
 
     if (useHsdk_) {
