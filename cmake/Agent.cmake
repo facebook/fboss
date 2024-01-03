@@ -173,6 +173,7 @@ add_library(core
   fboss/agent/ResolvedNexthopMonitor.cpp
   fboss/agent/ResolvedNexthopProbe.cpp
   fboss/agent/ResolvedNexthopProbeScheduler.cpp
+  fboss/agent/ResourceAccountant.cpp
   fboss/agent/RouteUpdateLogger.cpp
   fboss/agent/RouteUpdateLoggingPrefixTracker.cpp
   fboss/agent/StaticL2ForNeighborObserver.cpp
