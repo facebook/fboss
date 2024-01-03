@@ -21,7 +21,9 @@ using namespace facebook::fboss::utility;
 
 namespace {
 static folly::IPAddressV6 kAddr1{"2803:6080:d038:3063::"};
+static folly::IPAddressV6 kAddr2{"2803:6080:d038:3000::"};
 folly::CIDRNetwork kAddr1Prefix{folly::IPAddress("2803:6080:d038:3063::"), 64};
+folly::CIDRNetwork kAddr2Prefix{folly::IPAddress("2803:6080:d038:3000::"), 64};
 const int kDefaultScalingFactor = 10;
 const int kScalingFactor1 = 100;
 const int kScalingFactor2 = 200;
@@ -64,6 +66,17 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
       this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[i]));
     }
     this->addRoute(kAddr1, 64);
+  }
+
+  void resolveNextHopsAddRoute(
+      std::vector<PortID> masterLogicalPortsIds,
+      const folly::IPAddressV6 addr) {
+    std::vector<PortDescriptor> portDescriptorIds;
+    for (auto& portId : masterLogicalPortsIds) {
+      this->resolveNextHop(PortDescriptor(portId));
+      portDescriptorIds.push_back(PortDescriptor(portId));
+    }
+    this->addRoute(addr, 64, portDescriptorIds);
   }
 
   void addFlowletAcl(cfg::SwitchConfig& cfg) const {
@@ -195,6 +208,18 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
         std::vector<NextHopWeight>(
             swSwitchWeights_.begin(), swSwitchWeights_.begin() + nHops));
     applyNewState(ecmpHelper_->resolveNextHops(getProgrammedState(), nHops));
+  }
+
+  void addRoute(
+      const folly::IPAddressV6 prefix,
+      uint8_t mask,
+      const std::vector<PortDescriptor>& ports) {
+    ecmpHelper_->programRoutes(
+        getRouteUpdater(),
+        flat_set<PortDescriptor>(
+            std::make_move_iterator(ports.begin()),
+            std::make_move_iterator(ports.begin() + ports.size())),
+        {RoutePrefixV6{prefix, mask}});
   }
 
   void verifyPortFlowletConfig(cfg::PortFlowletConfig& portFlowletConfig) {
@@ -335,6 +360,77 @@ TEST_F(HwFlowletSwitchingFlowsetTests, ValidateFlowsetExceed) {
         *cfg.flowletSwitchingConfig(),
         iter->second,
         true,
+        false /* expectFlowsetSizeZero */);
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+class HwFlowletSwitchingFlowsetMultipleEcmpTests
+    : public HwFlowletSwitchingTest {
+ protected:
+  void SetUp() override {
+    HwFlowletSwitchingTest::SetUp();
+  }
+
+  cfg::SwitchConfig initialConfig() const override {
+    auto cfg = getDefaultConfig();
+    // just enough on flowset to succeed for first ECMP group, but fail for
+    // others
+    updateFlowletConfigs(cfg, utility::KMaxFlowsetTableSize);
+    return cfg;
+  }
+};
+
+// This is as close to real case as possible
+// Ensure that when multiple ECMP objects are created and flowset table gets
+// full things snap back in when first ECMP object is removed, enough space is
+// created for the second object to insert itself
+TEST_F(
+    HwFlowletSwitchingFlowsetMultipleEcmpTests,
+    ValidateFlowsetExceedForceFix) {
+  if (this->skipTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
+    return;
+  }
+
+  auto setup = [&]() {
+    // create 2 different ECMP objects
+    resolveNextHopsAddRoute(
+        {masterLogicalPortIds()[0], masterLogicalPortIds()[1]}, kAddr1);
+    resolveNextHopsAddRoute(
+        {masterLogicalPortIds()[2], masterLogicalPortIds()[3]}, kAddr2);
+  };
+
+  auto verify = [&]() {
+    auto cfg = initialConfig();
+    const auto& portFlowletCfgMap = *cfg.portFlowletConfigs();
+    const auto& iter = portFlowletCfgMap.find("default");
+    ASSERT_TRUE(iter != portFlowletCfgMap.end());
+
+    // ensure that DLB is not programmed for second route as we started with
+    // high flowset limits we expect flowset size is zero for the second object
+    utility::verifyEcmpForFlowletSwitching(
+        getHwSwitch(),
+        kAddr2Prefix, // second route
+        *cfg.flowletSwitchingConfig(),
+        iter->second,
+        true /* flowletEnable */,
+        true /* expectFlowsetSizeZero */);
+
+    // remove ECMP object for the first route
+    ecmpHelper_->unprogramRoutes(
+        getRouteUpdater(), {RoutePrefixV6{kAddr1, 64}});
+
+    // ensure that DLB is  programmed as we started with high flowset limits
+    // we expect flowset size is non zero = FLAGS_override_flowset_size
+    utility::verifyEcmpForFlowletSwitching(
+        getHwSwitch(),
+        kAddr2Prefix,
+        *cfg.flowletSwitchingConfig(),
+        iter->second,
+        true /* flowletEnable */,
         false /* expectFlowsetSizeZero */);
   };
   verifyAcrossWarmBoots(setup, verify);
