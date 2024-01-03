@@ -801,8 +801,7 @@ SaiPortManager::getIngressPriorityGroupSaiIds(
 }
 
 void SaiPortManager::programPfcBuffers(const std::shared_ptr<Port>& swPort) {
-  if (!platform_->getAsic()->isSupported(HwAsic::Feature::BUFFER_POOL) ||
-      !swPort->getPfc().has_value()) {
+  if (!platform_->getAsic()->isSupported(HwAsic::Feature::BUFFER_POOL)) {
     return;
   }
   managerTable_->bufferManager().createIngressBufferPool(swPort);
