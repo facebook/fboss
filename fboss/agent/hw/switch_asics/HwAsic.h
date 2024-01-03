@@ -283,6 +283,14 @@ class HwAsic {
 
   virtual uint32_t getMaxEcmpSize() const = 0;
 
+  virtual std::optional<uint32_t> getMaxEcmpGroups() const {
+    return std::nullopt;
+  }
+
+  virtual std::optional<uint32_t> getMaxEcmpMembers() const {
+    return std::nullopt;
+  }
+
   virtual bool scalingFactorBasedDynamicThresholdSupported() const = 0;
 
   virtual int getBufferDynThreshFromScalingFactor(
