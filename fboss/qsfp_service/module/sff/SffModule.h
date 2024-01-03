@@ -212,10 +212,6 @@ class SffModule : public QsfpModule {
    */
   PowerControlState getPowerControlValue() override;
   /*
-   * Return TransceiverStats
-   */
-  std::optional<TransceiverStats> getTransceiverStats();
-  /*
    * Return SignalFlag which contains Tx/Rx LOS/LOL
    */
   virtual SignalFlags getSignalFlagInfo() override;

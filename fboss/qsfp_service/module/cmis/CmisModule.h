@@ -242,10 +242,6 @@ class CmisModule : public QsfpModule {
    */
   PowerControlState getPowerControlValue() override;
   /*
-   * Return TransceiverStats
-   */
-  bool getTransceiverStats(TransceiverStats& stats);
-  /*
    * Return SignalFlag which contains Tx/Rx LOS/LOL
    */
   virtual SignalFlags getSignalFlagInfo() override;
