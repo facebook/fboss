@@ -134,7 +134,16 @@ void WedgeManager::initTransceiverMap() {
   // FLAGS_override_program_iphy_ports_for_test true.
   setOverrideTcvrToPortAndProfileForTesting();
 
+  initQsfpImplMap();
+
   refreshTransceivers();
+}
+
+void WedgeManager::initQsfpImplMap() {
+  // Create WedgeQsfp for each QSFP module present in the system
+  for (int idx = 0; idx < getNumQsfpModules(); idx++) {
+    qsfpImpls_.push_back(std::make_unique<WedgeQsfp>(idx, wedgeI2cBus_.get()));
+  }
 }
 
 void WedgeManager::getTransceiversInfo(
