@@ -22,8 +22,8 @@ class MockCmisModule : public CmisModule {
   template <typename XcvrImplT>
   explicit MockCmisModule(
       TransceiverManager* transceiverManager,
-      std::unique_ptr<XcvrImplT> qsfpImpl)
-      : CmisModule(transceiverManager, std::move(qsfpImpl)) {
+      XcvrImplT* qsfpImpl)
+      : CmisModule(transceiverManager, qsfpImpl) {
     ON_CALL(*this, getModuleStateChanged).WillByDefault([this]() {
       // Only return true for the first read so that we can mimic the clear
       // on read register
@@ -49,7 +49,7 @@ class CmisTest : public TransceiverManagerTestHelper {
       TransceiverID id,
       TransceiverModuleIdentifier identifier =
           TransceiverModuleIdentifier::QSFP_PLUS_CMIS) {
-    auto xcvrImpl = std::make_unique<XcvrImplT>(id);
+    qsfpImpls_.push_back(std::make_unique<XcvrImplT>(id));
     // This override function use ids starting from 1
     transceiverManager_->overrideMgmtInterface(
         static_cast<int>(id) + 1, uint8_t(identifier));
@@ -58,7 +58,7 @@ class CmisTest : public TransceiverManagerTestHelper {
         transceiverManager_->overrideTransceiverForTesting(
             id,
             std::make_unique<MockCmisModule>(
-                transceiverManager_.get(), std::move(xcvrImpl))));
+                transceiverManager_.get(), qsfpImpls_.back().get())));
 
     // Refresh once to make sure the override transceiver finishes refresh
     transceiverManager_->refreshStateMachines();

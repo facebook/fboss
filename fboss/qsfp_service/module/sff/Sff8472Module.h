@@ -20,7 +20,7 @@ class Sff8472Module : public QsfpModule {
  public:
   explicit Sff8472Module(
       TransceiverManager* transceiverManager,
-      std::unique_ptr<TransceiverImpl> qsfpImpl);
+      TransceiverImpl* qsfpImpl);
   virtual ~Sff8472Module() override;
 
   /*

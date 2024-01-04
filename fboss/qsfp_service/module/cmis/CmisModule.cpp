@@ -476,8 +476,8 @@ CmisModule::getApplicationField(uint8_t application, uint8_t startHostLane)
 
 CmisModule::CmisModule(
     TransceiverManager* transceiverManager,
-    std::unique_ptr<TransceiverImpl> qsfpImpl)
-    : QsfpModule(transceiverManager, std::move(qsfpImpl)) {}
+    TransceiverImpl* qsfpImpl)
+    : QsfpModule(transceiverManager, qsfpImpl) {}
 
 CmisModule::~CmisModule() {}
 

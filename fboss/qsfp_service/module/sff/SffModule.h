@@ -25,7 +25,7 @@ class SffModule : public QsfpModule {
  public:
   explicit SffModule(
       TransceiverManager* transceiverManager,
-      std::unique_ptr<TransceiverImpl> qsfpImpl);
+      TransceiverImpl* qsfpImpl);
   virtual ~SffModule() override;
 
   /*

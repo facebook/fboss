@@ -71,7 +71,7 @@ class QsfpModule : public Transceiver {
 
   explicit QsfpModule(
       TransceiverManager* transceiverManager,
-      std::unique_ptr<TransceiverImpl> qsfpImpl);
+      TransceiverImpl* qsfpImpl);
   virtual ~QsfpModule() override;
 
   /*
@@ -299,7 +299,7 @@ class QsfpModule : public Transceiver {
 
  protected:
   /* Qsfp Internal Implementation */
-  std::unique_ptr<TransceiverImpl> qsfpImpl_;
+  TransceiverImpl* qsfpImpl_;
   // Flat memory systems don't support paged access to extra data
   bool flatMem_{false};
   /* This counter keeps track of the number of times

@@ -39,15 +39,15 @@ class MockSff8472Module : public Sff8472Module {
  public:
   explicit MockSff8472Module(
       TransceiverManager* transceiverManager,
-      std::unique_ptr<MockSff8472TransceiverImpl> qsfpImpl)
-      : Sff8472Module(transceiverManager, std::move(qsfpImpl)) {
+      MockSff8472TransceiverImpl* qsfpImpl)
+      : Sff8472Module(transceiverManager, qsfpImpl) {
     ON_CALL(*this, ensureTransceiverReadyLocked())
         .WillByDefault(testing::Return(true));
     ON_CALL(*this, numHostLanes()).WillByDefault(testing::Return(1));
   }
 
   MockSff8472TransceiverImpl* getTransceiverImpl() {
-    return static_cast<MockSff8472TransceiverImpl*>(qsfpImpl_.get());
+    return static_cast<MockSff8472TransceiverImpl*>(qsfpImpl_);
   }
 
   MOCK_METHOD1(configureModule, void(uint8_t));
@@ -81,8 +81,8 @@ class MockCmisModule : public CmisModule {
  public:
   explicit MockCmisModule(
       TransceiverManager* transceiverManager,
-      std::unique_ptr<MockCmisTransceiverImpl> qsfpImpl)
-      : CmisModule(transceiverManager, std::move(qsfpImpl)) {
+      MockCmisTransceiverImpl* qsfpImpl)
+      : CmisModule(transceiverManager, qsfpImpl) {
     ON_CALL(*this, updateQsfpData(testing::_))
         .WillByDefault(testing::Assign(&dirty_, false));
     ON_CALL(*this, ensureTransceiverReadyLocked())
@@ -93,7 +93,7 @@ class MockCmisModule : public CmisModule {
   }
 
   MockCmisTransceiverImpl* getTransceiverImpl() {
-    return static_cast<MockCmisTransceiverImpl*>(qsfpImpl_.get());
+    return static_cast<MockCmisTransceiverImpl*>(qsfpImpl_);
   }
 
   MOCK_METHOD1(configureModule, void(uint8_t));
@@ -150,30 +150,32 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
           uint8_t(TransceiverModuleIdentifier::QSFP_PLUS_CMIS));
       if (isMock) {
         XLOG(INFO) << "Making Mock CMIS QSFP for " << id_;
-        auto xcvrImpl = std::make_unique<MockCmisTransceiverImpl>(id_);
-        EXPECT_CALL(*xcvrImpl.get(), detectTransceiver())
+        cmisQsfpImpls_.push_back(
+            std::make_unique<MockCmisTransceiverImpl>(id_));
+        EXPECT_CALL(*cmisQsfpImpls_.back().get(), detectTransceiver())
             .WillRepeatedly(::testing::Return(true));
         return transceiverManager_->overrideTransceiverForTesting(
             id_,
             std::make_unique<MockCmisModule>(
-                transceiverManager_.get(), std::move(xcvrImpl)));
+                transceiverManager_.get(), cmisQsfpImpls_.back().get()));
       } else {
         XLOG(INFO) << "Making CMIS QSFP for " << id_;
         std::unique_ptr<FakeTransceiverImpl> xcvrImpl;
         if (multiPort) {
-          xcvrImpl = std::make_unique<Cmis400GFr4MultiPortTransceiver>(id_);
+          qsfpImpls_.push_back(
+              std::make_unique<Cmis400GFr4MultiPortTransceiver>(id_));
         } else {
-          xcvrImpl = std::make_unique<Cmis200GTransceiver>(id_);
+          qsfpImpls_.push_back(std::make_unique<Cmis200GTransceiver>(id_));
         }
         return transceiverManager_->overrideTransceiverForTesting(
             id_,
             std::make_unique<CmisModule>(
-                transceiverManager_.get(), std::move(xcvrImpl)));
+                transceiverManager_.get(), qsfpImpls_.back().get()));
       }
     };
 
     auto overrideSffModule = [this]() {
-      auto xcvrImpl = std::make_unique<SffCwdm4Transceiver>(id_);
+      qsfpImpls_.push_back(std::make_unique<SffCwdm4Transceiver>(id_));
       // This override function use ids starting from 1
       transceiverManager_->overrideMgmtInterface(
           static_cast<int>(id_) + 1,
@@ -182,7 +184,7 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
       auto xcvr = transceiverManager_->overrideTransceiverForTesting(
           id_,
           std::make_unique<MockSffModule>(
-              transceiverManager_.get(), std::move(xcvrImpl)));
+              transceiverManager_.get(), qsfpImpls_.back().get()));
       return xcvr;
     };
 
@@ -191,13 +193,14 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
           static_cast<int>(id_) + 1,
           uint8_t(TransceiverModuleIdentifier::SFP_PLUS));
       XLOG(INFO) << "Making Mock SFF8472 SFP for " << id_;
-      auto xcvrImpl = std::make_unique<MockSff8472TransceiverImpl>(id_);
-      EXPECT_CALL(*xcvrImpl.get(), detectTransceiver())
+      sff8472QsfpImpls_.push_back(
+          std::make_unique<MockSff8472TransceiverImpl>(id_));
+      EXPECT_CALL(*sff8472QsfpImpls_.back().get(), detectTransceiver())
           .WillRepeatedly(::testing::Return(true));
       return transceiverManager_->overrideTransceiverForTesting(
           id_,
           std::make_unique<MockSff8472Module>(
-              transceiverManager_.get(), std::move(xcvrImpl)));
+              transceiverManager_.get(), sff8472QsfpImpls_.back().get()));
     };
 
     Transceiver* xcvr;
@@ -644,6 +647,8 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
            }}};
   const TransceiverManager::OverrideTcvrToPortAndProfile
       emptyOverrideTcvrToPortAndProfile_ = {};
+  std::vector<std::unique_ptr<MockCmisTransceiverImpl>> cmisQsfpImpls_;
+  std::vector<std::unique_ptr<MockSff8472TransceiverImpl>> sff8472QsfpImpls_;
 };
 
 TEST_F(TransceiverStateMachineTest, defaultState) {
@@ -2004,14 +2009,14 @@ TEST_F(TransceiverStateMachineTest, reseatTransceiver) {
       transceiverManager_->overrideMgmtInterface(
           static_cast<int>(id_) + 1,
           uint8_t(TransceiverModuleIdentifier::QSFP_PLUS_CMIS));
-      auto xcvrImpl = std::make_unique<MockCmisTransceiverImpl>(id_);
-      EXPECT_CALL(*xcvrImpl.get(), detectTransceiver())
+      cmisQsfpImpls_.push_back(std::make_unique<MockCmisTransceiverImpl>(id_));
+      EXPECT_CALL(*cmisQsfpImpls_.back().get(), detectTransceiver())
           .WillRepeatedly(::testing::Return(true));
       xcvr_ = static_cast<QsfpModule*>(
           transceiverManager_->overrideTransceiverForTesting(
               id_,
               std::make_unique<MockCmisModule>(
-                  transceiverManager_.get(), std::move(xcvrImpl))));
+                  transceiverManager_.get(), cmisQsfpImpls_.back().get())));
     }
 
     // Check this refreshStateMachines will:

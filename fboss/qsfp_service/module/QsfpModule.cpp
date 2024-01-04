@@ -94,9 +94,9 @@ FlagLevels QsfpModule::getQsfpFlags(const uint8_t* data, int offset) {
 
 QsfpModule::QsfpModule(
     TransceiverManager* transceiverManager,
-    std::unique_ptr<TransceiverImpl> qsfpImpl)
+    TransceiverImpl* qsfpImpl)
     : Transceiver(transceiverManager),
-      qsfpImpl_(std::move(qsfpImpl)),
+      qsfpImpl_(qsfpImpl),
       snapshots_(
           TransceiverSnapshotCache(transceiverManager->getPortNames(getID()))) {
   markLastDownTime();

@@ -37,11 +37,12 @@ class QsfpModuleTest : public TransceiverManagerTestHelper {
     auto transceiverImpl = std::make_unique<NiceMock<MockTransceiverImpl>>();
     // So we can check what happens during testing
     transImpl_ = transceiverImpl.get();
+    qsfpImpls_.push_back(std::move(transceiverImpl));
     qsfp_ = static_cast<MockSffModule*>(
         transceiverManager_->overrideTransceiverForTesting(
             kTcvrID,
             std::make_unique<MockSffModule>(
-                transceiverManager_.get(), std::move(transceiverImpl))));
+                transceiverManager_.get(), qsfpImpls_.back().get())));
     qsfp_->setVendorPN();
 
     gflags::SetCommandLineOptionWithMode(

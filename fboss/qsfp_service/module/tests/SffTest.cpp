@@ -22,13 +22,13 @@ class SffTest : public TransceiverManagerTestHelper {
  public:
   template <typename XcvrImplT>
   SffModule* overrideSffModule(TransceiverID id, bool willRefresh = true) {
-    auto xcvrImpl = std::make_unique<XcvrImplT>(id);
+    qsfpImpls_.push_back(std::make_unique<XcvrImplT>(id));
 
     auto xcvr = static_cast<SffModule*>(
         transceiverManager_->overrideTransceiverForTesting(
             id,
             std::make_unique<SffModule>(
-                transceiverManager_.get(), std::move(xcvrImpl))));
+                transceiverManager_.get(), qsfpImpls_.back().get())));
 
     if (willRefresh) {
       // Refresh once to make sure the override transceiver finishes refresh
@@ -314,7 +314,7 @@ class SfpTest : public TransceiverManagerTestHelper {
  public:
   template <typename XcvrImplT>
   Sff8472Module* overrideSfpModule(TransceiverID id) {
-    auto xcvrImpl = std::make_unique<XcvrImplT>(id);
+    qsfpImpls_.push_back(std::make_unique<XcvrImplT>(id));
     // This override function use ids starting from 1
     transceiverManager_->overrideMgmtInterface(
         static_cast<int>(id) + 1,
@@ -324,7 +324,7 @@ class SfpTest : public TransceiverManagerTestHelper {
         transceiverManager_->overrideTransceiverForTesting(
             id,
             std::make_unique<Sff8472Module>(
-                transceiverManager_.get(), std::move(xcvrImpl))));
+                transceiverManager_.get(), qsfpImpls_.back().get())));
     // Refresh once to make sure the override transceiver finishes refresh
     transceiverManager_->refreshStateMachines();
 

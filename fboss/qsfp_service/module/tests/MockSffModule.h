@@ -34,8 +34,8 @@ class MockSffModule : public SffModule {
  public:
   explicit MockSffModule(
       TransceiverManager* transceiverManager,
-      std::unique_ptr<TransceiverImpl> qsfpImpl)
-      : SffModule(transceiverManager, std::move(qsfpImpl)) {
+      TransceiverImpl* qsfpImpl)
+      : SffModule(transceiverManager, qsfpImpl) {
     ON_CALL(*this, updateQsfpData(testing::_))
         .WillByDefault(testing::Assign(&dirty_, false));
     ON_CALL(*this, ensureTransceiverReadyLocked())
