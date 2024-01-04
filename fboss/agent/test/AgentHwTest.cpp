@@ -1,6 +1,6 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
-#include "fboss/agent/test/SplitAgentTest.h"
+#include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 
@@ -17,7 +17,7 @@ char** kArgv;
 } // namespace
 
 namespace facebook::fboss {
-void SplitAgentTest::SetUp() {
+void AgentHwTest::SetUp() {
   gflags::ParseCommandLineFlags(&kArgc, &kArgv, false);
   if (FLAGS_list_asic_feature) {
     printAsicFeatures();
@@ -39,7 +39,7 @@ void SplitAgentTest::SetUp() {
   agentEnsemble_ = createAgentEnsemble(initialConfigFn);
 }
 
-void SplitAgentTest::TearDown() {
+void AgentHwTest::TearDown() {
   if (FLAGS_run_forever ||
       (::testing::Test::HasFailure() && FLAGS_run_forever_on_failure)) {
     runForever();
@@ -47,7 +47,7 @@ void SplitAgentTest::TearDown() {
   tearDownAgentEnsemble();
 }
 
-void SplitAgentTest::tearDownAgentEnsemble(bool doWarmboot) {
+void AgentHwTest::tearDownAgentEnsemble(bool doWarmboot) {
   if (!agentEnsemble_) {
     return;
   }
@@ -61,51 +61,51 @@ void SplitAgentTest::tearDownAgentEnsemble(bool doWarmboot) {
   agentEnsemble_.reset();
 }
 
-void SplitAgentTest::runForever() const {
-  XLOG(DBG2) << "SplitAgentTest run forever...";
+void AgentHwTest::runForever() const {
+  XLOG(DBG2) << "AgentHwTest run forever...";
   while (true) {
     sleep(1);
-    XLOG_EVERY_MS(DBG2, 5000) << "SplitAgentTest running forever";
+    XLOG_EVERY_MS(DBG2, 5000) << "AgentHwTest running forever";
   }
 }
 
-std::shared_ptr<SwitchState> SplitAgentTest::applyNewConfig(
+std::shared_ptr<SwitchState> AgentHwTest::applyNewConfig(
     const cfg::SwitchConfig& config) {
   return agentEnsemble_->applyNewConfig(config);
 }
 
-SwSwitch* SplitAgentTest::getSw() const {
+SwSwitch* AgentHwTest::getSw() const {
   return agentEnsemble_->getSw();
 }
 
-const std::map<SwitchID, const HwAsic*> SplitAgentTest::getAsics() const {
+const std::map<SwitchID, const HwAsic*> AgentHwTest::getAsics() const {
   return agentEnsemble_->getSw()->getHwAsicTable()->getHwAsics();
 }
 
-bool SplitAgentTest::isSupportedOnAllAsics(HwAsic::Feature feature) const {
+bool AgentHwTest::isSupportedOnAllAsics(HwAsic::Feature feature) const {
   // All Asics supporting the feature
   return agentEnsemble_->getSw()->getHwAsicTable()->isFeatureSupportedOnAllAsic(
       feature);
 }
 
-AgentEnsemble* SplitAgentTest::getAgentEnsemble() const {
+AgentEnsemble* AgentHwTest::getAgentEnsemble() const {
   return agentEnsemble_.get();
 }
 
-const std::shared_ptr<SwitchState> SplitAgentTest::getProgrammedState() const {
+const std::shared_ptr<SwitchState> AgentHwTest::getProgrammedState() const {
   return getAgentEnsemble()->getProgrammedState();
 }
 
-std::vector<PortID> SplitAgentTest::masterLogicalPortIds() const {
+std::vector<PortID> AgentHwTest::masterLogicalPortIds() const {
   return getAgentEnsemble()->masterLogicalPortIds();
 }
 
-std::vector<PortID> SplitAgentTest::masterLogicalPortIds(
+std::vector<PortID> AgentHwTest::masterLogicalPortIds(
     const std::set<cfg::PortType>& portTypes) const {
   return getAgentEnsemble()->masterLogicalPortIds(portTypes);
 }
 
-void SplitAgentTest::setSwitchDrainState(
+void AgentHwTest::setSwitchDrainState(
     const cfg::SwitchConfig& curConfig,
     cfg::SwitchDrainState drainState) {
   auto newCfg = curConfig;
@@ -113,14 +113,14 @@ void SplitAgentTest::setSwitchDrainState(
   applyNewConfig(newCfg);
 }
 
-bool SplitAgentTest::hideFabricPorts() const {
+bool AgentHwTest::hideFabricPorts() const {
   // Due to the speedup in test run time (6m->21s on meru400biu)
   // we want to skip over fabric ports in a overwhelming
   // majority of test cases. Make this the default HwTest mode
   return true;
 }
 
-cfg::SwitchConfig SplitAgentTest::initialConfig(
+cfg::SwitchConfig AgentHwTest::initialConfig(
     const AgentEnsemble& ensemble) const {
   // Before m-mpu agent test, use first Asic for initialization.
   auto switchIds = ensemble.getSw()->getHwAsicTable()->getSwitchIDs();
@@ -135,7 +135,7 @@ cfg::SwitchConfig SplitAgentTest::initialConfig(
       true /*interfaceHasSubnet*/);
 }
 
-void SplitAgentTest::printAsicFeatures() const {
+void AgentHwTest::printAsicFeatures() const {
   std::vector<std::string> asicFeatures;
   for (const auto& feature : getProductionFeaturesVerified()) {
     asicFeatures.push_back(apache::thrift::util::enumNameSafe(feature));

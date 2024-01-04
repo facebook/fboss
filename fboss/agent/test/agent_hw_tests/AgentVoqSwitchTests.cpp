@@ -3,13 +3,13 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestFabricUtils.h"
+#include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
-#include "fboss/agent/test/SplitAgentTest.h"
 
 DECLARE_bool(enable_stats_update_thread);
 
 namespace facebook::fboss {
-class AgentVoqSwitchTest : public SplitAgentTest {
+class AgentVoqSwitchTest : public AgentHwTest {
  public:
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
@@ -42,7 +42,7 @@ class AgentVoqSwitchTest : public SplitAgentTest {
   }
 
   void SetUp() override {
-    SplitAgentTest::SetUp();
+    AgentHwTest::SetUp();
     if (!IsSkipped()) {
       ASSERT_TRUE(
           std::any_of(getAsics().begin(), getAsics().end(), [](auto& iter) {

@@ -1,11 +1,11 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
-#include "fboss/agent/test/SplitAgentTest.h"
+#include "fboss/agent/test/AgentHwTest.h"
 
 namespace facebook::fboss {
 
-class AgentEmptyTest : public SplitAgentTest {
+class AgentEmptyTest : public AgentHwTest {
  public:
   std::vector<production_features::ProductionFeature>
   getProductionFeaturesVerified() const override {

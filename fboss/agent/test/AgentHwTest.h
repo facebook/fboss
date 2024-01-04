@@ -15,16 +15,16 @@ DECLARE_int32(update_watermark_stats_interval_s);
 namespace facebook::fboss {
 
 /*
- * SplitAgentTest is the base class for agent tests running in mono or split
+ * AgentHwTest is the base class for agent tests running in mono or split
  * mode. At early phases, the tests will be running in both mono and split mode
  * to assist migration. This should eventually be named as AgentTest as all
  * Agent/Hw tests are migrated to this framework.
  */
 
-class SplitAgentTest : public ::testing::Test {
+class AgentHwTest : public ::testing::Test {
  public:
-  SplitAgentTest() = default;
-  ~SplitAgentTest() override = default;
+  AgentHwTest() = default;
+  ~AgentHwTest() override = default;
   void SetUp() override;
   void TearDown() override;
   void tearDownAgentEnsemble(bool doWarmboot = false);

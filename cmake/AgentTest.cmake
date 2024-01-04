@@ -111,11 +111,11 @@ target_link_libraries(agent_integration_test_base
   ${LIBGMOCK_LIBRARIES}
 )
 
-add_library(split_agent_test_lib
-  fboss/agent/test/SplitAgentTest.cpp
+add_library(agent_hw_test
+  fboss/agent/test/AgentHwTest.cpp
 )
 
-target_link_libraries(split_agent_test_lib
+target_link_libraries(agent_hw_test
   mono_agent_ensemble
   core
   switch_asics
