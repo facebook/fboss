@@ -15,6 +15,10 @@
 #include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/test/TestUtils.h"
 
+namespace {
+constexpr auto ecmpWeight = 1;
+}
+
 namespace facebook::fboss {
 
 class ResourceAccountantTest : public ::testing::Test {
@@ -26,6 +30,7 @@ class ResourceAccountantTest : public ::testing::Test {
         std::make_unique<HwAsicTable>(switchIdToSwitchInfo, std::nullopt);
     resourceAccountant_ =
         std::make_unique<ResourceAccountant>(asicTable_.get());
+    FLAGS_ecmp_width = getMaxEcmpMembers();
   }
 
   const std::shared_ptr<Route<folly::IPAddressV6>> makeV6Route(
@@ -42,13 +47,19 @@ class ResourceAccountantTest : public ::testing::Test {
     return maxEcmpGroups.value();
   }
 
+  uint64_t getMaxEcmpMembers() {
+    auto maxEcmpMembers =
+        asicTable_->getHwAsic(SwitchID(0))->getMaxEcmpMembers();
+    CHECK(maxEcmpMembers.has_value());
+    return maxEcmpMembers.value();
+  }
+
   std::unique_ptr<ResourceAccountant> resourceAccountant_;
   std::unique_ptr<HwAsicTable> asicTable_;
 };
 
 TEST_F(ResourceAccountantTest, getMemberCountForEcmpGroup) {
-  constexpr auto ecmpWeight = 1;
-  constexpr auto ecmpWidth = 36;
+  const auto ecmpWidth = (getMaxEcmpMembers() / 2) + 1;
 
   RouteNextHopSet ecmpNexthops;
   for (int i = 0; i < ecmpWidth; i++) {
@@ -88,9 +99,8 @@ TEST_F(ResourceAccountantTest, checkEcmpResource) {
   EXPECT_TRUE(this->resourceAccountant_->checkEcmpResource(
       false /* intermediateState */));
 
-  // Add one ECMP group with 36 members
-  constexpr auto ecmpWeight = 1;
-  constexpr auto ecmpWidth = 36;
+  // Add one ECMP group with half of ECMP members limit plus 1
+  const auto ecmpWidth = (getMaxEcmpMembers() / 2) + 1;
   RouteNextHopSet ecmpNexthops0;
   for (int i = 0; i < ecmpWidth; i++) {
     ecmpNexthops0.insert(ResolvedNextHop(
@@ -105,7 +115,7 @@ TEST_F(ResourceAccountantTest, checkEcmpResource) {
   EXPECT_TRUE(this->resourceAccountant_->checkEcmpResource(
       false /* intermediateState */));
 
-  // Add another ECMP group with 36 members
+  // Add another ECMP group with half of ECMP members limit plus 1
   RouteNextHopSet ecmpNexthops1;
   for (int i = 0; i < ecmpWidth; i++) {
     ecmpNexthops1.insert(ResolvedNextHop(
@@ -171,9 +181,8 @@ TEST_F(ResourceAccountantTest, checkEcmpResource) {
 }
 
 TEST_F(ResourceAccountantTest, checkAndUpdateEcmpResource) {
-  // Add one ECMP group with 36 members
-  constexpr auto ecmpWeight = 1;
-  constexpr auto ecmpWidth = 36;
+  // Add one ECMP group with half of ECMP members limit plus 1
+  const auto ecmpWidth = (getMaxEcmpMembers() / 2) + 1;
   RouteNextHopSet ecmpNexthops0;
   for (int i = 0; i < ecmpWidth; i++) {
     ecmpNexthops0.insert(ResolvedNextHop(
@@ -188,7 +197,7 @@ TEST_F(ResourceAccountantTest, checkAndUpdateEcmpResource) {
       this->resourceAccountant_->checkAndUpdateEcmpResource<folly::IPAddressV6>(
           route0, true /* add */));
 
-  // Add another ECMP group with 36 members
+  // Add another ECMP group with half of ECMP members limit plus 1
   RouteNextHopSet ecmpNexthops1;
   for (int i = 0; i < ecmpWidth; i++) {
     ecmpNexthops1.insert(ResolvedNextHop(

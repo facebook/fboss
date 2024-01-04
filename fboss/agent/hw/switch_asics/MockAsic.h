@@ -139,7 +139,7 @@ class MockAsic : public HwAsic {
     return 4;
   }
   std::optional<uint32_t> getMaxEcmpMembers() const override {
-    return 64;
+    return 128;
   }
   AsicVendor getAsicVendor() const override {
     return HwAsic::AsicVendor::ASIC_VENDOR_MOCK;
