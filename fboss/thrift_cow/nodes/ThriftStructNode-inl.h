@@ -116,7 +116,7 @@ struct CopyToMember {
 
 // Invoke a function on each child. Expects functions that take a raw
 // pointer to a node.
-template <typename FieldsT>
+template <typename FieldsT, bool withName = false>
 struct ChildInvoke {
   using NamedMemberTypes = typename FieldsT::NamedMemberTypes;
 
@@ -126,7 +126,11 @@ struct ChildInvoke {
         typename NamedMemberTypes::template type_of<typename T::name>;
     ChildType value = storage.template get<typename T::name>();
     if (value) {
-      fn(value.get());
+      if constexpr (!withName) {
+        fn(value.get());
+      } else {
+        fn(value.get(), typename T::name());
+      }
     }
   }
 };
@@ -338,6 +342,14 @@ struct ThriftStructFields {
   void forEachChild(Fn fn) {
     fatal::foreach<ChildrenTypes>(
         struct_helpers::ChildInvoke<Self>(), storage_, std::forward<Fn>(fn));
+  }
+
+  template <typename Fn>
+  void forEachChildName(Fn fn) {
+    fatal::foreach<ChildrenTypes>(
+        struct_helpers::ChildInvoke<Self, true>(),
+        storage_,
+        std::forward<Fn>(fn));
   }
 
   folly::fbstring encode(fsdb::OperProtocol proto) const {

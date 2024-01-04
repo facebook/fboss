@@ -123,4 +123,6 @@ class StateDelta {
   mutable std::optional<fsdb::OperDelta> operDelta_;
 };
 
+bool isStateDeltaEmpty(const StateDelta& stateDelta);
+
 } // namespace facebook::fboss

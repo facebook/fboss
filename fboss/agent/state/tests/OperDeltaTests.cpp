@@ -18,6 +18,8 @@
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/fsdb/common/Utils.h"
 
+#include "fboss/agent/state/DeltaFunctions.h"
+
 #include <boost/container/flat_map.hpp>
 #include <gtest/gtest.h>
 
@@ -75,4 +77,26 @@ TEST(OperDeltaTests, OperDeltaProcess) {
   EXPECT_EQ(stateV0->getGeneration(), 0);
   EXPECT_EQ(stateV1->getGeneration(), 1);
   EXPECT_EQ(stateV2->getGeneration(), 1);
+}
+
+TEST(OperDeltaTests, DeltaCompare) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  auto config = testConfigA();
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(nullptr, stateV1);
+
+  auto operDelta =
+      fsdb::computeOperDelta(stateV0, stateV1, switchStateRootPath(), true);
+  auto delta1 = StateDelta(stateV0, operDelta);
+  auto delta2 = StateDelta(stateV0, operDelta);
+  auto delta3 = StateDelta(delta1.newState(), delta2.newState());
+  // port delta processing happens here
+  EXPECT_FALSE(DeltaFunctions::isEmpty(delta3.getPortsDelta()));
+  {
+    DeltaComparison::PolicyRAII policy(DeltaComparison::Policy::DEEP);
+    // port delta processing does not here as, deep comparison between same
+    // objects
+    EXPECT_TRUE(DeltaFunctions::isEmpty(delta3.getPortsDelta()));
+  }
 }

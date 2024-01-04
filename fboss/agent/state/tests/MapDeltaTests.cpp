@@ -27,7 +27,16 @@ class MapDeltaTest : public ::testing::Test {
       const std::map<int, std::string>& newMap) {
     DeltaFunctions::forEachChanged(
         MapDelta(&oldMap, &newMap),
-        [&](auto /*oldStr*/, auto newStr) { changed.push_back(*newStr); },
+        [&](auto, auto newStr) { changed.push_back(*newStr); },
+        [&](auto addStr) { added.push_back(*addStr); },
+        [&](auto rmStr) { removed.push_back(*rmStr); });
+  }
+  void computeDelta(
+      const std::map<int, std::shared_ptr<std::string>>& oldMap,
+      const std::map<int, std::shared_ptr<std::string>>& newMap) {
+    DeltaFunctions::forEachChanged(
+        MapDelta(&oldMap, &newMap),
+        [&](auto, auto newStr) { changed.push_back(*newStr); },
         [&](auto addStr) { added.push_back(*addStr); },
         [&](auto rmStr) { removed.push_back(*rmStr); });
   }
@@ -86,4 +95,34 @@ TEST_F(MapDeltaTest, noChange) {
   EXPECT_EQ(added.size(), 0);
   EXPECT_EQ(removed.size(), 0);
   EXPECT_EQ(changed.size(), 0);
+}
+
+TEST_F(MapDeltaTest, comapreDeep) {
+  std::map<int, std::shared_ptr<std::string>> oldMap{
+      {1, std::make_shared<std::string>("one")}};
+  std::map<int, std::shared_ptr<std::string>> newMap{
+      {1, std::make_shared<std::string>("one")}};
+  EXPECT_EQ(DeltaComparison::policy(), DeltaComparison::Policy::SHALLOW);
+  {
+    DeltaComparison::PolicyRAII policyGuard{DeltaComparison::Policy::DEEP};
+    computeDelta(oldMap, newMap);
+    EXPECT_EQ(added.size(), 0);
+    EXPECT_EQ(removed.size(), 0);
+    EXPECT_EQ(changed.size(), 0);
+  }
+  EXPECT_EQ(DeltaComparison::policy(), DeltaComparison::Policy::SHALLOW);
+}
+
+TEST_F(MapDeltaTest, comapreShallow) {
+  std::string oldStr{"one"};
+  std::string newStr{"one"};
+  std::map<int, std::shared_ptr<std::string>> oldMap{
+      {1, std::make_shared<std::string>("one")}};
+  std::map<int, std::shared_ptr<std::string>> newMap{
+      {1, std::make_shared<std::string>("one")}};
+  computeDelta(oldMap, newMap);
+  EXPECT_EQ(DeltaComparison::policy(), DeltaComparison::Policy::SHALLOW);
+  EXPECT_EQ(added.size(), 0);
+  EXPECT_EQ(removed.size(), 0);
+  EXPECT_EQ(changed.size(), 1);
 }
