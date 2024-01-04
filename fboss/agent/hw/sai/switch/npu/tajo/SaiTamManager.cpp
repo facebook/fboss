@@ -40,6 +40,11 @@ SaiTamManager::SaiTamManager(
   // end up with 2 TAM objects being created and the create would fail.
   // The work around is to delete the TAM object and creating a new one.
   if (platform_->getHwSwitch()->getBootType() == BootType::WARM_BOOT) {
+    // Reset the tam object to start with.
+    // TODO: As of now, resetTamObject() API fails for TAJO, while this
+    // is being fixed in MT-665, using the work around to setTamObject()
+    // with empty vector to reset.
+    managerTable_->switchManager().setTamObject({});
     saiStore_->get<SaiTamTraits>().removeUnexpectedUnclaimedWarmbootHandles();
     saiStore_->get<SaiTamEventTraits>()
         .removeUnexpectedUnclaimedWarmbootHandles();
