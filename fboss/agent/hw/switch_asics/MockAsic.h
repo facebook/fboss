@@ -41,6 +41,7 @@ class MockAsic : public HwAsic {
       case Feature::EGRESS_QUEUE_FLEX_COUNTER:
       case Feature::WIDE_ECMP:
       case HwAsic::Feature::LINK_TRAINING:
+      case HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER:
         return false;
       case Feature::CPU_PORT:
         return getSwitchType() != cfg::SwitchType::FABRIC;

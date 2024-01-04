@@ -17,6 +17,27 @@ DEFINE_int32(
 namespace facebook::fboss {
 
 ResourceAccountant::ResourceAccountant(const HwAsicTable* asicTable)
-    : asicTable_(asicTable) {}
+    : asicTable_(asicTable) {
+  CHECK_EQ(
+      asicTable->isFeatureSupportedOnAnyAsic(
+          HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER),
+      asicTable->isFeatureSupportedOnAllAsic(
+          HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER));
+  nativeWeightedEcmp_ = asicTable->isFeatureSupportedOnAllAsic(
+      HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER);
+}
+
+int ResourceAccountant::getMemberCountForEcmpGroup(
+    const RouteNextHopEntry& fwd) const {
+  if (nativeWeightedEcmp_) {
+    // TODO: Compute different table usage for different ASICs (e.g. TH4)
+    return fwd.getNextHopSet().size();
+  }
+  auto totalWeight = 0;
+  for (const auto& nhop : fwd.normalizedNextHops()) {
+    totalWeight += nhop.weight() ? nhop.weight() : 1;
+  }
+  return totalWeight;
+}
 
 } // namespace facebook::fboss
