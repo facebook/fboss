@@ -24,6 +24,34 @@ enum class LoopAction : uint32_t {
   CONTINUE,
 };
 
+struct DeltaComparison {
+  enum class Policy : uint32_t {
+    SHALLOW,
+    DEEP,
+  };
+  struct PolicyRAII {
+    // thread unsafe in favor of avoiding synchronization and better run time,
+    // must be invoked in context of single state delta processing thread
+    explicit PolicyRAII(const Policy& policy)
+        : previousComparison_(comparison_) {
+      comparison_ = policy;
+    }
+    ~PolicyRAII() {
+      comparison_ = previousComparison_;
+    }
+
+   private:
+    const Policy previousComparison_;
+  };
+  static inline Policy policy() {
+    return comparison_;
+  }
+
+ private:
+  friend PolicyRAII;
+  static inline Policy comparison_{Policy::SHALLOW};
+};
+
 } // namespace facebook::fboss
 
 #include "fboss/agent/state/DeltaFunctions-detail.h"
@@ -64,6 +92,13 @@ forEachChanged(
     LoopAction action;
     if (oldNode) {
       if (newNode) {
+        if (DeltaComparison::policy() == DeltaComparison::Policy::DEEP) {
+          if (*oldNode == *newNode) {
+            // when delta comparison policy is deep, compare contents
+            // this is an expensive operation, and must be used carefully
+            continue;
+          }
+        }
         action = detail::invokeFn(changedFn, args..., oldNode, newNode);
       } else {
         action = detail::invokeFn(removedFn, args..., oldNode);
@@ -88,6 +123,13 @@ forEachChanged(const Delta& delta, ChangedFn changedFn, const Args&... args) {
     const auto& oldNode = entry.getOld();
     const auto& newNode = entry.getNew();
     if (oldNode && newNode) {
+      if (DeltaComparison::policy() == DeltaComparison::Policy::DEEP) {
+        if (*oldNode == *newNode) {
+          // when delta comparison policy is deep, compare contents
+          // this is an expensive operation, and must be used carefully
+          continue;
+        }
+      }
       LoopAction action =
           detail::invokeFn(changedFn, args..., oldNode, newNode);
       if (action == LoopAction::BREAK) {

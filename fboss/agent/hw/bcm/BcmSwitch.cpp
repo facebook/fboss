@@ -2786,6 +2786,12 @@ void BcmSwitch::processNeighborTableDelta(
         } else if (optype == REMOVED && !newEntry) {
           processRemovedNeighborEntry(oldEntry);
         } else if (optype == CHANGED && oldEntry && newEntry) {
+          if (DeltaComparison::policy() == DeltaComparison::Policy::DEEP &&
+              *oldEntry == *newEntry) {
+            XLOG(DBG2)
+                << "ignoring unchanged neighbor entry with deep delta comparison policy";
+            continue;
+          }
           processChangedNeighborEntry(oldEntry, newEntry);
         }
       } catch (const BcmError& error) {
@@ -2887,6 +2893,12 @@ void BcmSwitch::processRouteTableDelta(
       [&](RouterID id,
           const shared_ptr<RouteT>& oldRoute,
           const shared_ptr<RouteT>& newRoute) {
+        if (DeltaComparison::policy() == DeltaComparison::Policy::DEEP &&
+            *oldRoute == *newRoute) {
+          XLOG(DBG2)
+              << "ignoring unchanged route entry with deep delta comparison policy";
+          return;
+        }
         try {
           processChangedRoute(id, oldRoute, newRoute);
         } catch (const BcmError& e) {
