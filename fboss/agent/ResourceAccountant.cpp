@@ -9,6 +9,9 @@
  */
 #include "fboss/agent/ResourceAccountant.h"
 
+#include "fboss/agent/state/DeltaFunctions.h"
+#include "fboss/agent/state/SwitchState.h"
+
 DEFINE_int32(
     ecmp_resource_percentage,
     75,
@@ -94,6 +97,65 @@ bool ResourceAccountant::checkAndUpdateEcmpResource(
     return checkEcmpResource(true /* intermediateState */);
   }
   return true;
+}
+
+bool ResourceAccountant::stateChangedImpl(const StateDelta& delta) {
+  bool validRouteUpdate = true;
+
+  auto processRoutesDelta = [&](const auto& routesDelta) {
+    DeltaFunctions::forEachChanged(
+        routesDelta,
+        [&](const auto& oldRoute, const auto& newRoute) {
+          validRouteUpdate &= checkAndUpdateEcmpResource(newRoute, true);
+          validRouteUpdate &= checkAndUpdateEcmpResource(oldRoute, false);
+          return LoopAction::CONTINUE;
+        },
+        [&](const auto& newRoute) {
+          validRouteUpdate &= checkAndUpdateEcmpResource(newRoute, true);
+          return LoopAction::CONTINUE;
+        },
+        [&](const auto& delRoute) {
+          validRouteUpdate &= checkAndUpdateEcmpResource(delRoute, false);
+          return LoopAction::CONTINUE;
+        });
+  };
+
+  for (const auto& routeDelta : delta.getFibsDelta()) {
+    processRoutesDelta(routeDelta.getFibDelta<folly::IPAddressV4>());
+    processRoutesDelta(routeDelta.getFibDelta<folly::IPAddressV6>());
+  }
+
+  // Ensure new state usage does not exceed ecmp_resource_percentage
+  validRouteUpdate &= checkEcmpResource(false /* intermediateState */);
+  return validRouteUpdate;
+}
+
+bool ResourceAccountant::isValidRouteUpdate(const StateDelta& delta) {
+  bool validRouteUpdate = stateChangedImpl(delta);
+  if (!validRouteUpdate) {
+    XLOG(WARNING)
+        << "Invalid route update - exceeding ECMP resource limits. New state consumes "
+        << ecmpMemberUsage_ << " ECMP members and " << ecmpGroupRefMap_.size()
+        << " ECMP groups.";
+    for (const auto& [switchId, hwAsic] : asicTable_->getHwAsics()) {
+      const auto ecmpGroupLimit = hwAsic->getMaxEcmpGroups();
+      const auto ecmpMemberLimit = hwAsic->getMaxEcmpMembers();
+      XLOG(WARNING) << "ECMP resource limits for Switch " << switchId
+                    << ": max ECMP groups="
+                    << (ecmpGroupLimit.has_value()
+                            ? folly::to<std::string>(ecmpGroupLimit.value())
+                            : "None")
+                    << ", max ECMP members="
+                    << (ecmpMemberLimit.has_value()
+                            ? folly::to<std::string>(ecmpMemberLimit.value())
+                            : "None");
+    }
+  }
+  return validRouteUpdate;
+}
+
+void ResourceAccountant::stateChanged(const StateDelta& delta) {
+  stateChangedImpl(delta);
 }
 
 template bool

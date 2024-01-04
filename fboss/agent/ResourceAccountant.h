@@ -12,6 +12,7 @@
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
+#include "fboss/agent/state/StateDelta.h"
 
 #include <gtest/gtest.h>
 
@@ -21,9 +22,13 @@ class ResourceAccountant {
  public:
   explicit ResourceAccountant(const HwAsicTable* asicTable);
 
+  bool isValidRouteUpdate(const StateDelta& delta);
+  void stateChanged(const StateDelta& delta);
+
  private:
   int getMemberCountForEcmpGroup(const RouteNextHopEntry& fwd) const;
   bool checkEcmpResource(bool intermediateState) const;
+  bool stateChangedImpl(const StateDelta& delta);
 
   template <typename AddrT>
   bool checkAndUpdateEcmpResource(
