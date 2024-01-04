@@ -68,4 +68,42 @@ bool ResourceAccountant::checkEcmpResource(bool intermediateState) const {
   return true;
 }
 
+template <typename AddrT>
+bool ResourceAccountant::checkAndUpdateEcmpResource(
+    const std::shared_ptr<Route<AddrT>>& route,
+    bool add) {
+  const auto& fwd = route->getForwardInfo();
+
+  // Forwarding to nextHops and more than one nextHop - use ECMP
+  if (fwd.getAction() == RouteForwardAction::NEXTHOPS &&
+      fwd.getNextHopSet().size() > 1) {
+    const auto& nhSet = fwd.getNextHopSet();
+    if (auto it = ecmpGroupRefMap_.find(nhSet); it != ecmpGroupRefMap_.end()) {
+      it->second = it->second + (add ? 1 : -1);
+      CHECK(it->second >= 0);
+      if (!add && it->second == 0) {
+        ecmpGroupRefMap_.erase(it);
+        ecmpMemberUsage_ -= getMemberCountForEcmpGroup(fwd);
+      }
+      return true;
+    }
+    // ECMP group does not exists in hw - Check if any usage exceeds ASIC limit
+    CHECK(add);
+    ecmpGroupRefMap_[nhSet] = 1;
+    ecmpMemberUsage_ += getMemberCountForEcmpGroup(fwd);
+    return checkEcmpResource(true /* intermediateState */);
+  }
+  return true;
+}
+
+template bool
+ResourceAccountant::checkAndUpdateEcmpResource<folly::IPAddressV6>(
+    const std::shared_ptr<Route<folly::IPAddressV6>>& route,
+    bool add);
+
+template bool
+ResourceAccountant::checkAndUpdateEcmpResource<folly::IPAddressV4>(
+    const std::shared_ptr<Route<folly::IPAddressV4>>& route,
+    bool add);
+
 } // namespace facebook::fboss

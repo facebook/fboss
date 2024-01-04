@@ -10,6 +10,7 @@
 #pragma once
 
 #include "fboss/agent/HwAsicTable.h"
+#include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 
 #include <gtest/gtest.h>
@@ -24,6 +25,11 @@ class ResourceAccountant {
   int getMemberCountForEcmpGroup(const RouteNextHopEntry& fwd) const;
   bool checkEcmpResource(bool intermediateState) const;
 
+  template <typename AddrT>
+  bool checkAndUpdateEcmpResource(
+      const std::shared_ptr<Route<AddrT>>& route,
+      bool add);
+
   uint32_t ecmpMemberUsage_{0};
   std::map<RouteNextHopEntry::NextHopSet, uint32_t> ecmpGroupRefMap_;
 
@@ -32,5 +38,6 @@ class ResourceAccountant {
 
   FRIEND_TEST(ResourceAccountantTest, getMemberCountForEcmpGroup);
   FRIEND_TEST(ResourceAccountantTest, checkEcmpResource);
+  FRIEND_TEST(ResourceAccountantTest, checkAndUpdateEcmpResource);
 };
 } // namespace facebook::fboss
