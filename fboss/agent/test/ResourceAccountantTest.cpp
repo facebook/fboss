@@ -67,4 +67,93 @@ TEST_F(ResourceAccountantTest, getMemberCountForEcmpGroup) {
       this->resourceAccountant_->getMemberCountForEcmpGroup(ucmpNextHopEntry));
 }
 
+TEST_F(ResourceAccountantTest, checkEcmpResource) {
+  // MockAsic is configured to support 4 group and 64 members.
+  EXPECT_TRUE(this->resourceAccountant_->checkEcmpResource(
+      true /* intermediateState */));
+  EXPECT_TRUE(this->resourceAccountant_->checkEcmpResource(
+      false /* intermediateState */));
+
+  // Add one ECMP group with 36 members
+  constexpr auto ecmpWeight = 1;
+  constexpr auto ecmpWidth = 36;
+  RouteNextHopSet ecmpNexthops0;
+  for (int i = 0; i < ecmpWidth; i++) {
+    ecmpNexthops0.insert(ResolvedNextHop(
+        folly::IPAddress(folly::to<std::string>("1.1.1.", i + 1)),
+        InterfaceID(i + 1),
+        ecmpWeight));
+  }
+  this->resourceAccountant_->ecmpGroupRefMap_[ecmpNexthops0] = 1;
+  this->resourceAccountant_->ecmpMemberUsage_ += ecmpWidth;
+  EXPECT_TRUE(this->resourceAccountant_->checkEcmpResource(
+      true /* intermediateState */));
+  EXPECT_TRUE(this->resourceAccountant_->checkEcmpResource(
+      false /* intermediateState */));
+
+  // Add another ECMP group with 36 members
+  RouteNextHopSet ecmpNexthops1;
+  for (int i = 0; i < ecmpWidth; i++) {
+    ecmpNexthops1.insert(ResolvedNextHop(
+        folly::IPAddress(folly::to<std::string>("2.1.1.", i + 1)),
+        InterfaceID(i + 1),
+        ecmpWeight));
+  }
+  this->resourceAccountant_->ecmpGroupRefMap_[ecmpNexthops1] = 1;
+  this->resourceAccountant_->ecmpMemberUsage_ += ecmpWidth;
+  EXPECT_FALSE(this->resourceAccountant_->checkEcmpResource(
+      true /* intermediateState */));
+  EXPECT_FALSE(this->resourceAccountant_->checkEcmpResource(
+      false /* intermediateState */));
+
+  // Remove ecmpGroup1
+  this->resourceAccountant_->ecmpGroupRefMap_.erase(ecmpNexthops1);
+  this->resourceAccountant_->ecmpMemberUsage_ -= ecmpWidth;
+  EXPECT_TRUE(this->resourceAccountant_->checkEcmpResource(
+      true /* intermediateState */));
+  EXPECT_TRUE(this->resourceAccountant_->checkEcmpResource(
+      false /* intermediateState */));
+
+  // Add three groups (with width = 2 each) and remove ecmpGroup0
+  std::vector<RouteNextHopSet> ecmpNexthopsList;
+  for (int i = 0; i < 3; i++) {
+    ecmpNexthopsList.push_back(RouteNextHopSet{
+        ResolvedNextHop(
+            folly::IPAddress(folly::to<std::string>("1.1.1.", i + 1)),
+            InterfaceID(i + 1),
+            ecmpWeight),
+        ResolvedNextHop(
+            folly::IPAddress(folly::to<std::string>("1.1.1.", i + 2)),
+            InterfaceID(i + 2),
+            ecmpWeight)});
+  }
+  for (const auto& nhopSet : ecmpNexthopsList) {
+    this->resourceAccountant_->ecmpGroupRefMap_[nhopSet] = 1;
+    this->resourceAccountant_->ecmpMemberUsage_ += 2;
+  }
+  this->resourceAccountant_->ecmpGroupRefMap_.erase(ecmpNexthops0);
+  this->resourceAccountant_->ecmpMemberUsage_ -= ecmpWidth;
+  EXPECT_TRUE(this->resourceAccountant_->checkEcmpResource(
+      true /* intermediateState */));
+  EXPECT_TRUE(this->resourceAccountant_->checkEcmpResource(
+      false /* intermediateState */));
+
+  // Add one more group to exceed group limit
+  RouteNextHopSet ecmpNexthops2 = RouteNextHopSet{
+      ResolvedNextHop(
+          folly::IPAddress(folly::to<std::string>("3.1.1.1")),
+          InterfaceID(1),
+          ecmpWeight),
+      ResolvedNextHop(
+          folly::IPAddress(folly::to<std::string>("3.1.1.2")),
+          InterfaceID(2),
+          ecmpWeight)};
+  this->resourceAccountant_->ecmpGroupRefMap_[ecmpNexthops2] = 1;
+  this->resourceAccountant_->ecmpMemberUsage_ += 2;
+  EXPECT_TRUE(this->resourceAccountant_->checkEcmpResource(
+      true /* intermediateState */));
+  EXPECT_FALSE(this->resourceAccountant_->checkEcmpResource(
+      false /* intermediateState */));
+}
+
 } // namespace facebook::fboss

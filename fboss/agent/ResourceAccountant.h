@@ -22,10 +22,15 @@ class ResourceAccountant {
 
  private:
   int getMemberCountForEcmpGroup(const RouteNextHopEntry& fwd) const;
+  bool checkEcmpResource(bool intermediateState) const;
+
+  uint32_t ecmpMemberUsage_{0};
+  std::map<RouteNextHopEntry::NextHopSet, uint32_t> ecmpGroupRefMap_;
 
   const HwAsicTable* asicTable_;
   bool nativeWeightedEcmp_{true};
 
   FRIEND_TEST(ResourceAccountantTest, getMemberCountForEcmpGroup);
+  FRIEND_TEST(ResourceAccountantTest, checkEcmpResource);
 };
 } // namespace facebook::fboss
