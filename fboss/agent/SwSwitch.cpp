@@ -29,6 +29,7 @@
 #include "fboss/agent/LldpManager.h"
 #include "fboss/agent/LookupClassRouteUpdater.h"
 #include "fboss/agent/LookupClassUpdater.h"
+#include "fboss/agent/ResourceAccountant.h"
 #include "fboss/agent/SwitchInfoUtils.h"
 #include "fboss/agent/hw/HwSwitchWarmBootHelper.h"
 #include "fboss/agent/state/StateUtils.h"
@@ -343,6 +344,7 @@ SwSwitch::SwSwitch(
       scopeResolver_(
           new SwitchIdScopeResolver(getSwitchInfoFromConfig(config))),
       switchStatsObserver_(new SwitchStatsObserver(this)),
+      resourceAccountant_(new ResourceAccountant(hwAsicTable_.get())),
       packetStreamMap_(new MultiSwitchPacketStreamMap()),
       swSwitchWarmbootHelper_(new SwSwitchWarmBootHelper(agentDirUtil_)),
       hwSwitchThriftClientTable_(new HwSwitchThriftClientTable(
@@ -1411,6 +1413,12 @@ std::shared_ptr<SwitchState> SwSwitch::applyUpdate(
     return oldState;
   }
 
+  if (!resourceAccountant_->isValidRouteUpdate(delta)) {
+    // Notify resource account to revert back to previous state
+    resourceAccountant_->stateChanged(StateDelta(newState, oldState));
+    return oldState;
+  }
+
   std::shared_ptr<SwitchState> newAppliedState;
 
   // Inform the HwSwitch of the change.
@@ -1444,6 +1452,9 @@ std::shared_ptr<SwitchState> SwSwitch::applyUpdate(
 
   // Notifies all observers of the current state update.
   notifyStateObservers(StateDelta(oldState, newAppliedState));
+
+  // Notifies resource accountant of new applied state.
+  resourceAccountant_->stateChanged(StateDelta(newState, newAppliedState));
 
   auto end = std::chrono::steady_clock::now();
   auto duration =

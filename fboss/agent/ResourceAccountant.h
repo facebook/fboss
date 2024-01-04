@@ -29,6 +29,7 @@ class ResourceAccountant {
   int getMemberCountForEcmpGroup(const RouteNextHopEntry& fwd) const;
   bool checkEcmpResource(bool intermediateState) const;
   bool stateChangedImpl(const StateDelta& delta);
+  bool shouldCheckRouteUpdate() const;
 
   template <typename AddrT>
   bool checkAndUpdateEcmpResource(
@@ -40,6 +41,7 @@ class ResourceAccountant {
 
   const HwAsicTable* asicTable_;
   bool nativeWeightedEcmp_{true};
+  bool checkRouteUpdate_;
 
   FRIEND_TEST(ResourceAccountantTest, getMemberCountForEcmpGroup);
   FRIEND_TEST(ResourceAccountantTest, checkEcmpResource);

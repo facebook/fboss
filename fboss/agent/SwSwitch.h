@@ -93,6 +93,7 @@ class MultiSwitchPacketStreamMap;
 class SwSwitchWarmBootHelper;
 class AgentDirectoryUtil;
 class HwSwitchThriftClientTable;
+class ResourceAccountant;
 
 namespace fsdb {
 enum class FsdbSubscriptionState;
@@ -1190,6 +1191,7 @@ class SwSwitch : public HwSwitchCallback {
   std::unique_ptr<HwAsicTable> hwAsicTable_;
   std::unique_ptr<SwitchIdScopeResolver> scopeResolver_;
   std::unique_ptr<SwitchStatsObserver> switchStatsObserver_;
+  std::unique_ptr<ResourceAccountant> resourceAccountant_;
 
   folly::Synchronized<ConfigAppliedInfo> configAppliedInfo_;
   std::optional<std::chrono::time_point<std::chrono::steady_clock>>

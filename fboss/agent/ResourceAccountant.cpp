@@ -32,6 +32,7 @@ ResourceAccountant::ResourceAccountant(const HwAsicTable* asicTable)
           HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER));
   nativeWeightedEcmp_ = asicTable->isFeatureSupportedOnAllAsic(
       HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER);
+  checkRouteUpdate_ = shouldCheckRouteUpdate();
 }
 
 int ResourceAccountant::getMemberCountForEcmpGroup(
@@ -99,7 +100,20 @@ bool ResourceAccountant::checkAndUpdateEcmpResource(
   return true;
 }
 
+bool ResourceAccountant::shouldCheckRouteUpdate() const {
+  for (const auto& [_, hwAsic] : asicTable_->getHwAsics()) {
+    if (hwAsic->getMaxEcmpGroups().has_value() ||
+        hwAsic->getMaxEcmpMembers().has_value()) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool ResourceAccountant::stateChangedImpl(const StateDelta& delta) {
+  if (!checkRouteUpdate_) {
+    return true;
+  }
   bool validRouteUpdate = true;
 
   auto processRoutesDelta = [&](const auto& routesDelta) {
