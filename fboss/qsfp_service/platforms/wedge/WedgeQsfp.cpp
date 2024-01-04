@@ -169,8 +169,7 @@ TransceiverManagementInterface WedgeQsfp::getTransceiverManagementInterface() {
 
   for (int i = 0; i < kNumInterfaceDetectionRetries; ++i) {
     try {
-      threadSafeI2CBus_->moduleRead(
-          module_ + 1, {TransceiverI2CApi::ADDR_QSFP, 0, 1}, buf.data());
+      readTransceiver({TransceiverI2CApi::ADDR_QSFP, 0, 1}, buf.data());
       XLOG(DBG3) << folly::sformat(
           "Transceiver {:d}  identifier: {:#x}", module_, buf[0]);
       TransceiverManagementInterface modInterfaceType =
@@ -235,26 +234,18 @@ std::array<uint8_t, 16> WedgeQsfp::getModulePartNo() {
 
   // Read 16 byte part no from page 0 reg 148 for  CMIS and page 0 reg 168 for
   // SFF module. Restore the page in the end
-  threadSafeI2CBus_->moduleRead(
-      module_ + 1,
-      {TransceiverI2CApi::ADDR_QSFP, kCommonModulePageReg, 1},
-      &savedPage);
+  readTransceiver(
+      {TransceiverI2CApi::ADDR_QSFP, kCommonModulePageReg, 1}, &savedPage);
   if (savedPage != page) {
-    threadSafeI2CBus_->moduleWrite(
-        module_ + 1,
-        {TransceiverI2CApi::ADDR_QSFP, kCommonModulePageReg, 1},
-        &page);
+    writeTransceiver(
+        {TransceiverI2CApi::ADDR_QSFP, kCommonModulePageReg, 1}, &page);
   }
 
-  threadSafeI2CBus_->moduleRead(
-      module_ + 1,
-      {TransceiverI2CApi::ADDR_QSFP, partNoRegOffset, 16},
-      partNo.data());
+  readTransceiver(
+      {TransceiverI2CApi::ADDR_QSFP, partNoRegOffset, 16}, partNo.data());
   if (savedPage != page) {
-    threadSafeI2CBus_->moduleWrite(
-        module_ + 1,
-        {TransceiverI2CApi::ADDR_QSFP, kCommonModulePageReg, 1},
-        &savedPage);
+    writeTransceiver(
+        {TransceiverI2CApi::ADDR_QSFP, kCommonModulePageReg, 1}, &savedPage);
   }
 
   return partNo;
@@ -270,10 +261,8 @@ std::array<uint8_t, 2> WedgeQsfp::getFirmwareVer() {
   }
 
   // Read 2 byte firmware version from base page reg 39-40 for CMIS module
-  threadSafeI2CBus_->moduleRead(
-      module_ + 1,
-      {TransceiverI2CApi::ADDR_QSFP, kCommonModuleFwVerReg, 2},
-      fwVer.data());
+  readTransceiver(
+      {TransceiverI2CApi::ADDR_QSFP, kCommonModuleFwVerReg, 2}, fwVer.data());
   return fwVer;
 }
 
