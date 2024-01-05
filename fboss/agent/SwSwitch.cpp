@@ -220,29 +220,6 @@ facebook::fboss::PortStatus fillInPortStatus(
 
 auto constexpr kHwUpdateFailures = "hw_update_failures";
 
-std::string getDrainStateChangedStr(
-    const std::shared_ptr<facebook::fboss::SwitchState>& oldState,
-    const std::shared_ptr<facebook::fboss::SwitchState>& newState,
-    const facebook::fboss::HwSwitchMatcher& matcher) {
-  auto oldActualSwitchDrainState = oldState->getSwitchSettings()
-                                       ->getNodeIf(matcher.matcherString())
-                                       ->getActualSwitchDrainState();
-  auto newActualSwitchDrainState = newState->getSwitchSettings()
-                                       ->getNodeIf(matcher.matcherString())
-                                       ->getActualSwitchDrainState();
-
-  return oldActualSwitchDrainState != newActualSwitchDrainState
-      ? folly::to<std::string>(
-            "[",
-            apache::thrift::util::enumNameSafe(oldActualSwitchDrainState),
-            "->",
-            apache::thrift::util::enumNameSafe(newActualSwitchDrainState),
-            "]")
-      : folly::to<std::string>(
-            apache::thrift::util::enumNameSafe(oldActualSwitchDrainState),
-            "(UNCHANGED)");
-}
-
 void accumulateHwAsicErrorStats(
     facebook::fboss::HwAsicErrors& accumulated,
     const facebook::fboss::HwAsicErrors& toAdd) {
@@ -1779,43 +1756,16 @@ void SwSwitch::linkStateChanged(
         setPortStatusCounter(portId, up);
         portStats(portId)->linkStateChange(up);
 
-        auto matcher = getScopeResolver()->scope(portId);
-        auto numUpFabricPorts =
-            getNumUpPorts(newState, matcher, cfg::PortType::FABRIC_PORT);
-        auto switchSettings =
-            state->getSwitchSettings()->getNodeIf(matcher.matcherString());
-
-        // TODO(skhare)
-        // Once SwitchSettingsFields are made unique for HwSwitch,
-        // SwitchSettingsFields will carry switchInfo instead of
-        // switchIdToSwitchInfo. At that time, change the if-check to compare
-        // SwitchType to VOQ.
-        if (switchSettings->getSwitchIdsOfType(cfg::SwitchType::VOQ).size() !=
-            0) {
-          auto newActualSwitchDrainState =
-              computeActualSwitchDrainState(switchSettings, numUpFabricPorts);
-          if (newActualSwitchDrainState !=
-              switchSettings->getActualSwitchDrainState()) {
-            auto newSwitchSettings = switchSettings->modify(&newState);
-            newSwitchSettings->setActualSwitchDrainState(
-                newActualSwitchDrainState);
-          }
-        }
-
         XLOG(DBG2) << "SW Link state changed: " << port->getName() << " ["
                    << (!up ? "UP" : "DOWN") << "->" << (up ? "UP" : "DOWN")
-                   << "]"
-                   << " SwitchIDs: " << matcher.matcherString()
-                   << " numUpFabricPorts: " << numUpFabricPorts
-                   << " Switch Drain state: "
-                   << getDrainStateChangedStr(getState(), newState, matcher);
+                   << "]";
       }
     }
 
     return newState;
   };
   updateStateNoCoalescing(
-      "Port OperState Update", std::move(updateOperStateFn));
+      "Port OperState (UP/DOWN) Update", std::move(updateOperStateFn));
 }
 
 void SwSwitch::linkActiveStateChanged(
