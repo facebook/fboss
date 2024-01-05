@@ -1852,9 +1852,7 @@ void SaiSwitch::txReadyStatusChangeCallbackBottomHalf() {
       << numActiveFabricLinks
       << " NumInactiveFabricLinks: " << numInactiveFabricLinks;
 
-  // TODO
-  // Pass per port Active/Inactive link to SwSwitch, so SwSwitch can decide
-  // to isolate/unisolate.
+  callback_->linkActiveStateChanged(port2IsActive);
 #endif
 }
 
