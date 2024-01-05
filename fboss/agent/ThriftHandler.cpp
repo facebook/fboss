@@ -334,6 +334,11 @@ void getPortInfoHelper(
   *portInfo.operState() =
       PortOperState(port->getOperState() == Port::OperState::UP);
 
+  if (port->getActiveState().has_value()) {
+    portInfo.activeState() = PortActiveState(
+        port->getActiveState().value() == Port::ActiveState::ACTIVE);
+  }
+
   *portInfo.profileID() = apache::thrift::util::enumName(port->getProfileID());
 
   if (port->isEnabled()) {
