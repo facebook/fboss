@@ -81,6 +81,8 @@ class HwSwitchEnsemble : public TestEnsembleIf {
    private:
     virtual void packetReceived(RxPacket* pkt) noexcept = 0;
     virtual void linkStateChanged(PortID port, bool up) = 0;
+    virtual void linkActiveStateChanged(
+        const std::map<PortID, bool>& port2IsActive) = 0;
     virtual void l2LearningUpdateReceived(
         L2Entry l2Entry,
         L2EntryUpdateType l2EntryUpdateType) = 0;
@@ -164,6 +166,8 @@ class HwSwitchEnsemble : public TestEnsembleIf {
       bool up,
       std::optional<phy::LinkFaultStatus> iPhyFaultStatus =
           std::nullopt) override;
+  void linkActiveStateChanged(
+      const std::map<PortID, bool>& /*port2IsActive */) override;
   void l2LearningUpdateReceived(
       L2Entry l2Entry,
       L2EntryUpdateType l2EntryUpdateType) override;

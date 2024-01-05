@@ -410,6 +410,11 @@ void HwSwitchEnsemble::linkStateChanged(
       [port, up](auto observer) { observer->changeLinkState(port, up); });
 }
 
+void HwSwitchEnsemble::linkActiveStateChanged(
+    const std::map<PortID, bool>& /*port2IsActive */) {
+  // TODO
+}
+
 void HwSwitchEnsemble::packetReceived(std::unique_ptr<RxPacket> pkt) noexcept {
   auto hwEventObservers = hwEventObservers_.rlock();
   std::for_each(

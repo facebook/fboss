@@ -33,12 +33,19 @@ class HwSwitchCallback {
 
   /*
    * linkStateChanged() is invoked by the HwSwitch whenever the link
-   * status changes on a port.
+   * up/down status changes on a port.
    */
   virtual void linkStateChanged(
       PortID port,
       bool up,
       std::optional<phy::LinkFaultStatus> iPhyFaultStatus = std::nullopt) = 0;
+
+  /*
+   * linkActiveStateChanged() is invoked by the HwSwitch whenever the link
+   * active/inactive status changes on a port.
+   */
+  virtual void linkActiveStateChanged(
+      const std::map<PortID, bool>& port2IsActive) = 0;
 
   /*
    * l2LearningUpdateReceived() is invoked by the HwSwitch when there is

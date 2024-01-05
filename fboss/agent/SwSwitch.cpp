@@ -1818,6 +1818,11 @@ void SwSwitch::linkStateChanged(
       "Port OperState Update", std::move(updateOperStateFn));
 }
 
+void SwSwitch::linkActiveStateChanged(
+    const std::map<PortID, bool>& port2IsActive) {
+  // TODO
+}
+
 void SwSwitch::startThreads() {
   backgroundThread_.reset(new std::thread(
       [this] { this->threadLoop("fbossBgThread", &backgroundEventBase_); }));

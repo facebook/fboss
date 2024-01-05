@@ -65,6 +65,8 @@ class HwTest : public ::testing::Test,
 
   void packetReceived(RxPacket* /*pkt*/) noexcept override {}
   void linkStateChanged(PortID /*port*/, bool /*up*/) override {}
+  void linkActiveStateChanged(
+      const std::map<PortID, bool>& /*port2IsActive */) override {}
   void l2LearningUpdateReceived(
       L2Entry /*l2Entry*/,
       L2EntryUpdateType /*l2EntryUpdateType*/) override {}

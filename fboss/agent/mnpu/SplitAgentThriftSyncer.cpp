@@ -78,6 +78,11 @@ void SplitAgentThriftSyncer::linkStateChanged(
   linkEventSinkClient_->enqueue(std::move(event));
 }
 
+void SplitAgentThriftSyncer::linkActiveStateChanged(
+    const std::map<PortID, bool>& port2IsActive) {
+  // TODO
+}
+
 void SplitAgentThriftSyncer::l2LearningUpdateReceived(
     L2Entry l2Entry,
     L2EntryUpdateType l2EntryUpdateType) {
