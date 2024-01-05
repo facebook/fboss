@@ -47,6 +47,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_CONFIGURE_SIX_TAP:
     case HwAsic::Feature::DRAM_ENQUEUE_DEQUEUE_STATS:
     case HwAsic::Feature::RESOURCE_USAGE_STATS:
+    case HwAsic::Feature::LINK_INACTIVE_BASED_ISOLATE:
       return true;
     // TODO: enable after ECN is supported
     case HwAsic::Feature::ECN:
@@ -162,7 +163,6 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::MPLS_ECMP:
     case HwAsic::Feature::ERSPANv6:
     case HwAsic::Feature::SFLOWv6:
-    case HwAsic::Feature::LINK_INACTIVE_BASED_ISOLATE:
     case HwAsic::Feature::RX_SNR:
     case HwAsic::Feature::FEC_CORRECTED_BITS:
     case HwAsic::Feature::SAI_FEC_COUNTERS:
