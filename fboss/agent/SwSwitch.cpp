@@ -946,8 +946,17 @@ void SwSwitch::init(
   initialState->publish();
   auto emptyState = std::make_shared<SwitchState>();
   emptyState->publish();
-  multiHwSwitchHandler_->stateChanged(
-      StateDelta(emptyState, initialState), false);
+  const auto initialStateDelta = StateDelta(emptyState, initialState);
+
+  // Notify resource accountant of the initial state.
+  if (!resourceAccountant_->isValidRouteUpdate(initialStateDelta)) {
+    throw FbossError(
+        "Not enough resource to apply initialState. ",
+        "This should not happen given the state was previously applied, ",
+        "but possible if calculation or threshold changes across warmboot.");
+  }
+
+  multiHwSwitchHandler_->stateChanged(initialStateDelta, false);
   // For cold boot there will be discripancy between applied state and state
   // that exists in hardware. this discrepancy is until config is applied, after
   // that the two states are in sync. tolerating this discrepancy for now
@@ -1006,9 +1015,16 @@ void SwSwitch::init(SwitchFlags flags) {
   if (!getHwSwitchHandler()->waitUntilHwSwitchConnected()) {
     throw FbossError("Waiting for HwSwitch to be connected cancelled");
   }
+  const auto initialStateDelta = StateDelta(emptyState, initialState);
+  // Notify resource accountant of the initial state.
+  if (!resourceAccountant_->isValidRouteUpdate(initialStateDelta)) {
+    throw FbossError(
+        "Not enough resource to apply initialState. ",
+        "This should not happen given the state was previously applied, ",
+        "but possible if calculation or threshold changes across warmboot.");
+  }
   try {
-    getHwSwitchHandler()->stateChanged(
-        StateDelta(emptyState, initialState), false);
+    getHwSwitchHandler()->stateChanged(initialStateDelta, false);
   } catch (const std::exception& ex) {
     throw FbossError("Failed to sync initial state to HwSwitch: ", ex.what());
   }
