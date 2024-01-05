@@ -271,6 +271,11 @@ enum PortOperState {
   UP = 1,
 }
 
+enum PortActiveState {
+  INACTIVE = 0,
+  ACTIVE = 1,
+}
+
 enum PortLoopbackMode {
   NONE = 0,
   MAC = 1,
@@ -352,6 +357,7 @@ struct PortInfoThrift {
   22: optional TransceiverIdxThrift transceiverIdx;
   23: optional i32 hwLogicalPortId;
   24: bool isDrained;
+  25: optional PortActiveState activeState;
 }
 
 // Port queueing configuration
