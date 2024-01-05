@@ -82,7 +82,10 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
   std::unordered_map<std::string, std::vector<std::string>>
   getAcceptedFilterValues() {
     return {
-        {"linkState", {"Up", "Down"}}, {"adminState", {"Enabled", "Disabled"}}};
+        {"adminState", {"Enabled", "Disabled"}},
+        {"linkState", {"Up", "Down"}},
+        {"activeState", {"Active", "Inactive", "--"}},
+    };
   }
 
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
@@ -231,6 +234,7 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
            "Name",
            "AdminState",
            "LinkState",
+           "ActiveState",
            "Transceiver",
            "TcvrID",
            "Speed",
@@ -248,6 +252,7 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
              portInfo.get_name(),
              portInfo.get_adminState(),
              getStyledLinkState(portInfo.get_linkState()),
+             getStyledActiveState(portInfo.get_activeState()),
              portInfo.get_tcvrPresent(),
              folly::to<std::string>(portInfo.get_tcvrID()),
              portInfo.get_speed(),
@@ -295,6 +300,35 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
         std::to_string(static_cast<int>(operState)));
   }
 
+  Table::StyledCell getStyledActiveState(std::string activeState) {
+    if (activeState == "Inactive") {
+      return Table::StyledCell("Inactive", Table::Style::ERROR);
+    } else if (activeState == "Active") {
+      return Table::StyledCell("Active", Table::Style::GOOD);
+    } else {
+      return Table::StyledCell("--", Table::Style::NONE);
+    }
+
+    throw std::runtime_error("Unsupported ActiveState: " + activeState);
+  }
+
+  std::string getActiveStateStr(PortActiveState* activeState) {
+    if (activeState) {
+      switch (*activeState) {
+        case PortActiveState::INACTIVE:
+          return "Inactive";
+        case PortActiveState::ACTIVE:
+          return "Active";
+      }
+
+      throw std::runtime_error(
+          "Unsupported ActiveState: " +
+          std::to_string(static_cast<int>(*activeState)));
+    } else {
+      return "--";
+    }
+  }
+
   std::string getTransceiverStr(
       std::map<int32_t, facebook::fboss::TransceiverInfo>& transceiverEntries,
       int32_t transceiverId) {
@@ -321,6 +355,7 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
       auto portInfo = entry.second;
       auto portName = portInfo.get_name();
       auto operState = getOperStateStr(portInfo.get_operState());
+      auto activeState = getActiveStateStr(portInfo.get_activeState());
 
       if (queriedPorts.size() == 0 || queriedSet.count(portName)) {
         cli::PortEntry portDetails;
@@ -328,6 +363,7 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
         portDetails.name() = portInfo.get_name();
         portDetails.adminState() = getAdminStateStr(portInfo.get_adminState());
         portDetails.linkState() = operState;
+        portDetails.activeState() = activeState;
         portDetails.speed() = utils::getSpeedGbps(portInfo.get_speedMbps());
         portDetails.profileId() = portInfo.get_profileID();
         if (auto hwLogicalPortId = portInfo.hwLogicalPortId()) {

@@ -183,6 +183,7 @@ cli::ShowPortModel createPortModel() {
   entry1.name() = "eth1/5/1";
   entry1.adminState() = "Enabled";
   entry1.linkState() = "Down";
+  entry1.activeState() = "--";
   entry1.speed() = "100G";
   entry1.profileId() = "PROFILE_100G_4_NRZ_CL91_COPPER";
   entry1.tcvrID() = 0;
@@ -197,6 +198,7 @@ cli::ShowPortModel createPortModel() {
   entry2.name() = "eth1/5/2";
   entry2.adminState() = "Disabled";
   entry2.linkState() = "Down";
+  entry2.activeState() = "--";
   entry2.speed() = "25G";
   entry2.profileId() = "PROFILE_25G_1_NRZ_CL74_COPPER";
   entry2.tcvrID() = 1;
@@ -210,6 +212,7 @@ cli::ShowPortModel createPortModel() {
   entry3.name() = "eth1/5/3";
   entry3.adminState() = "Enabled";
   entry3.linkState() = "Up";
+  entry3.activeState() = "--";
   entry3.speed() = "100G";
   entry3.profileId() = "PROFILE_100G_4_NRZ_CL91_COPPER";
   entry3.tcvrID() = 2;
@@ -223,6 +226,7 @@ cli::ShowPortModel createPortModel() {
   entry4.name() = "fab402/9/1";
   entry4.adminState() = "Enabled";
   entry4.linkState() = "Up";
+  entry4.activeState() = "--";
   entry4.speed() = "100G";
   entry4.profileId() = "PROFILE_100G_4_NRZ_NOFEC_COPPER";
   entry4.tcvrID() = 3;
@@ -236,6 +240,7 @@ cli::ShowPortModel createPortModel() {
   entry5.name() = "eth1/10/2";
   entry5.adminState() = "Enabled";
   entry5.linkState() = "Up";
+  entry5.activeState() = "--";
   entry5.speed() = "100G";
   entry5.profileId() = "PROFILE_100G_4_NRZ_CL91_OPTICAL";
   entry5.tcvrID() = 4;
@@ -249,6 +254,7 @@ cli::ShowPortModel createPortModel() {
   entry6.name() = "eth1/4/1";
   entry6.adminState() = "Enabled";
   entry6.linkState() = "Up";
+  entry6.activeState() = "--";
   entry6.speed() = "100G";
   entry6.profileId() = "PROFILE_100G_4_NRZ_CL91_OPTICAL";
   entry6.tcvrID() = 5;
@@ -353,14 +359,14 @@ TEST_F(CmdShowPortTestFixture, printOutput) {
 
   std::string output = ss.str();
   std::string expectOutput =
-      " ID  Name        AdminState  LinkState  Transceiver  TcvrID  Speed  ProfileID                        HwLogicalPortId  Drained \n"
-      "-----------------------------------------------------------------------------------------------------------------------------------------\n"
-      " 9   eth1/4/1    Enabled     Up         Present      5       100G   PROFILE_100G_4_NRZ_CL91_OPTICAL  9                Yes     \n"
-      " 1   eth1/5/1    Enabled     Down       Present      0       100G   PROFILE_100G_4_NRZ_CL91_COPPER   1                Yes     \n"
-      " 2   eth1/5/2    Disabled    Down       Present      1       25G    PROFILE_25G_1_NRZ_CL74_COPPER    2                No      \n"
-      " 3   eth1/5/3    Enabled     Up         Absent       2       100G   PROFILE_100G_4_NRZ_CL91_COPPER   3                No      \n"
-      " 7   eth1/10/2   Enabled     Up         Present      4       100G   PROFILE_100G_4_NRZ_CL91_OPTICAL  7                No      \n"
-      " 8   fab402/9/1  Enabled     Up         Absent       3       100G   PROFILE_100G_4_NRZ_NOFEC_COPPER  8                Yes     \n\n";
+      " ID  Name        AdminState  LinkState  ActiveState  Transceiver  TcvrID  Speed  ProfileID                        HwLogicalPortId  Drained \n"
+      "-------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+      " 9   eth1/4/1    Enabled     Up         --           Present      5       100G   PROFILE_100G_4_NRZ_CL91_OPTICAL  9                Yes     \n"
+      " 1   eth1/5/1    Enabled     Down       --           Present      0       100G   PROFILE_100G_4_NRZ_CL91_COPPER   1                Yes     \n"
+      " 2   eth1/5/2    Disabled    Down       --           Present      1       25G    PROFILE_25G_1_NRZ_CL74_COPPER    2                No      \n"
+      " 3   eth1/5/3    Enabled     Up         --           Absent       2       100G   PROFILE_100G_4_NRZ_CL91_COPPER   3                No      \n"
+      " 7   eth1/10/2   Enabled     Up         --           Present      4       100G   PROFILE_100G_4_NRZ_CL91_OPTICAL  7                No      \n"
+      " 8   fab402/9/1  Enabled     Up         --           Absent       3       100G   PROFILE_100G_4_NRZ_NOFEC_COPPER  8                Yes     \n\n";
 
   EXPECT_EQ(output, expectOutput);
 }

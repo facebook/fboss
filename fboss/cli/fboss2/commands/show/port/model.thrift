@@ -20,6 +20,7 @@ struct PortEntry {
   13: PortHwStatsEntry hwPortStats;
   14: map<i16, string> queueIdToName;
   15: string isDrained;
+  16: string activeState;
 }
 
 struct PortHwStatsEntry {
