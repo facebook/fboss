@@ -54,6 +54,9 @@ struct PortFields {
   3: string portDescription;
   // TODO: use switch_config.PortState?
   4: string portState = "DISABLED";
+  // portOperState::
+  //  false => port is DOWN
+  //  true => port is UP
   5: bool portOperState = false;
   6: i32 ingressVlan;
   // TODO: use switch_config.PortSpeed?
@@ -113,6 +116,19 @@ struct PortFields {
   46: optional ctrl.PortLedExternalState portLedExternalState;
   47: bool rxLaneSquelch = false;
   48: bool zeroPreemphasis = false;
+
+  // Set only for ASICs that distinguish UP from ACTIVE e.g. J2, J3 etc.
+  // On those ASICs, an UP port is ACTIVE only if bi-directional connectivity
+  // is established and ports on both sides are ready to send data traffic.
+  //
+  // When set, portActiveState::
+  //  false => port is INACTIVE
+  //  true => port is ACTIVE
+  //
+  // When portActiveState is set,
+  //  - if portOperState is DOWN, portActiveState is always INACTIVE
+  //  - if portOperState is UP, portActiveState is either ACTIVE or INACTIVE.
+  49: optional bool portActiveState;
 }
 
 typedef ctrl.SystemPortThrift SystemPortFields

@@ -16014,7 +16014,8 @@ std::pair<strings::flowletConfigName, Child<::std::string, ::apache::thrift::typ
 std::pair<strings::flowletConfig, ChildThriftPath<::facebook::fboss::state::PortFlowletFields, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
 std::pair<strings::portLedExternalState, Child<::facebook::fboss::PortLedExternalState, ::apache::thrift::type_class::enumeration>>,
 std::pair<strings::rxLaneSquelch, Child<bool, ::apache::thrift::type_class::integral>>,
-std::pair<strings::zeroPreemphasis, Child<bool, ::apache::thrift::type_class::integral>>>;
+std::pair<strings::zeroPreemphasis, Child<bool, ::apache::thrift::type_class::integral>>,
+std::pair<strings::portActiveState, Child<bool, ::apache::thrift::type_class::integral>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::std::int32_t, ::apache::thrift::type_class::integral>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::std::string, ::apache::thrift::type_class::string>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<::std::string, ::apache::thrift::type_class::string>>,
@@ -16060,7 +16061,8 @@ std::pair<strings::zeroPreemphasis, Child<bool, ::apache::thrift::type_class::in
    std::pair<std::integral_constant<apache::thrift::field_id_t, 45>, ChildThriftPath<::facebook::fboss::state::PortFlowletFields, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 46>, Child<::facebook::fboss::PortLedExternalState, ::apache::thrift::type_class::enumeration>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 47>, Child<bool, ::apache::thrift::type_class::integral>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 48>, Child<bool, ::apache::thrift::type_class::integral>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 48>, Child<bool, ::apache::thrift::type_class::integral>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 49>, Child<bool, ::apache::thrift::type_class::integral>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::portId, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::portName, std::integral_constant<apache::thrift::field_id_t, 2>>,
@@ -16107,7 +16109,8 @@ std::pair<strings::flowletConfigName, std::integral_constant<apache::thrift::fie
 std::pair<strings::flowletConfig, std::integral_constant<apache::thrift::field_id_t, 45>>,
 std::pair<strings::portLedExternalState, std::integral_constant<apache::thrift::field_id_t, 46>>,
 std::pair<strings::rxLaneSquelch, std::integral_constant<apache::thrift::field_id_t, 47>>,
-std::pair<strings::zeroPreemphasis, std::integral_constant<apache::thrift::field_id_t, 48>>>::template type_of<Name>;
+std::pair<strings::zeroPreemphasis, std::integral_constant<apache::thrift::field_id_t, 48>>,
+std::pair<strings::portActiveState, std::integral_constant<apache::thrift::field_id_t, 49>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -16166,6 +16169,7 @@ std::pair<strings::zeroPreemphasis, std::integral_constant<apache::thrift::field
     STRUCT_CHILD_GETTERS(portLedExternalState, 46);
     STRUCT_CHILD_GETTERS(rxLaneSquelch, 47);
     STRUCT_CHILD_GETTERS(zeroPreemphasis, 48);
+    STRUCT_CHILD_GETTERS(portActiveState, 49);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -16215,6 +16219,7 @@ std::pair<strings::zeroPreemphasis, std::integral_constant<apache::thrift::field
     else if constexpr (__id == 46) { return portLedExternalState(); }
     else if constexpr (__id == 47) { return rxLaneSquelch(); }
     else if constexpr (__id == 48) { return zeroPreemphasis(); }
+    else if constexpr (__id == 49) { return portActiveState(); }
   }
 
   template <typename T, T... Values>
