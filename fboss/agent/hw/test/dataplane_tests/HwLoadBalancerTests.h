@@ -166,8 +166,12 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
       const cfg::LoadBalancer& loadBalancer,
       const std::vector<NextHopWeight>& weights) {
     getEcmpSetupHelper()->programRoutes(ecmpWidth, weights);
-    applyNewState(utility::setLoadBalancer(
-        getPlatform(), getProgrammedState(), loadBalancer, scopeResolver()));
+    applyNewState(utility::addLoadBalancers(
+        getPlatform(),
+        getProgrammedState(),
+        {loadBalancer,
+         utility::getTrunkHalfHashConfig(*getPlatform()->getAsic())},
+        scopeResolver()));
   }
 
   virtual std::unique_ptr<EcmpTestHelperT> getECMPHelper() = 0;

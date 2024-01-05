@@ -90,8 +90,10 @@ class HwHashPolarizationTests : public HwLinkStateDependentTest {
       const cfg::LoadBalancer& firstHash,
       const cfg::LoadBalancer& secondHash,
       bool expectPolarization) {
-    std::vector<cfg::LoadBalancer> firstHashes = {firstHash};
-    std::vector<cfg::LoadBalancer> secondHashes = {secondHash};
+    std::vector<cfg::LoadBalancer> firstHashes = {
+        firstHash, utility::getTrunkHalfHashConfig(*getPlatform()->getAsic())};
+    std::vector<cfg::LoadBalancer> secondHashes = {
+        secondHash, utility::getTrunkHalfHashConfig(*getPlatform()->getAsic())};
     runTest(firstHashes, secondHashes, expectPolarization);
   }
 

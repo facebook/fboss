@@ -102,13 +102,13 @@ cfg::LoadBalancer getFullHashUdfConfig(
   *loadBalancer.algorithm() = cfg::HashingAlgorithm::CRC16_CCITT;
   return loadBalancer;
 }
+} // namespace
 cfg::LoadBalancer getTrunkHalfHashConfig(const HwAsic& asic) {
   return getHalfHashConfig(asic, cfg::LoadBalancerID::AGGREGATE_PORT);
 }
 cfg::LoadBalancer getTrunkFullHashConfig(const HwAsic& asic) {
   return getFullHashConfig(asic, cfg::LoadBalancerID::AGGREGATE_PORT);
 }
-} // namespace
 cfg::LoadBalancer getEcmpHalfHashConfig(const HwAsic& asic) {
   return getHalfHashConfig(asic, cfg::LoadBalancerID::ECMP);
 }

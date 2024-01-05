@@ -50,6 +50,7 @@ inline const int kScalingFactor(100);
 inline const int kLoadWeight(70);
 inline const int kQueueWeight(30);
 
+cfg::LoadBalancer getTrunkHalfHashConfig(const HwAsic& asic);
 cfg::LoadBalancer getEcmpHalfHashConfig(const HwAsic& asic);
 cfg::LoadBalancer getEcmpFullHashConfig(const HwAsic& asic);
 cfg::LoadBalancer getEcmpFullUdfHashConfig(const HwAsic& asic);
