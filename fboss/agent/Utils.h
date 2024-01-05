@@ -343,11 +343,6 @@ AdminDistance getAdminDistanceForClientId(
     const cfg::SwitchConfig& config,
     int clientId);
 
-size_t getNumUpPorts(
-    const std::shared_ptr<SwitchState>& state,
-    const HwSwitchMatcher& matcher,
-    cfg::PortType portType);
-
 size_t getNumActiveFabricPorts(
     const std::shared_ptr<SwitchState>& state,
     const HwSwitchMatcher& matcher);
