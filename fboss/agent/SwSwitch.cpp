@@ -1811,11 +1811,17 @@ void SwSwitch::linkActiveStateChanged(
         }
 
         if (port->isActive() != isActive) {
+          auto getActiveStr = [](std::optional<bool> isActive) {
+            return isActive.has_value()
+                ? (isActive.value() ? "ACTIVE" : "INACTIVE")
+                : "NONE";
+          };
+          XLOG(DBG2) << "SW Link state changed: " << port->getName() << " ["
+                     << getActiveStr(port->isActive()) << "->"
+                     << getActiveStr(isActive) << "]";
+
           port = port->modify(&newState);
           port->setActiveState(isActive);
-          XLOG(DBG2) << "SW Link state changed: " << port->getName() << " ["
-                     << (!isActive ? "ACTIVE" : "INACTIVE") << "->"
-                     << (isActive ? "ACTIVE" : "INACTIVE") << "]";
         }
       }
     }
