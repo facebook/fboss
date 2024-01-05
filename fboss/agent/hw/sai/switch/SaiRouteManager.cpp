@@ -90,13 +90,12 @@ std::vector<std::shared_ptr<SaiRoute>> SaiRouteManager::makeInterfaceToMeRoutes(
   toMeRoutes.reserve(swInterface->getAddresses()->size());
   // Compute per-address information
   for (auto iter : std::as_const(*swInterface->getAddresses())) {
-    folly::CIDRNetwork address(
-        folly::IPAddress(iter.first), iter.second->cref());
+    folly::IPAddress ipAddress(iter.first);
     // empty next hop group -- this route will not manage the
     // lifetime of a next hop group
     std::shared_ptr<SaiNextHopGroupHandle> nextHopGroup;
     // destination
-    folly::CIDRNetwork destination{address.first, address.first.bitCount()};
+    folly::CIDRNetwork destination{ipAddress, ipAddress.bitCount()};
     SaiRouteTraits::RouteEntry entry{switchId, virtualRouterId, destination};
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
     SaiRouteTraits::CreateAttributes attributes{
