@@ -220,6 +220,29 @@ facebook::fboss::PortStatus fillInPortStatus(
 
 auto constexpr kHwUpdateFailures = "hw_update_failures";
 
+std::string getDrainStateChangedStr(
+    const std::shared_ptr<facebook::fboss::SwitchState>& oldState,
+    const std::shared_ptr<facebook::fboss::SwitchState>& newState,
+    const facebook::fboss::HwSwitchMatcher& matcher) {
+  auto oldActualSwitchDrainState = oldState->getSwitchSettings()
+                                       ->getNodeIf(matcher.matcherString())
+                                       ->getActualSwitchDrainState();
+  auto newActualSwitchDrainState = newState->getSwitchSettings()
+                                       ->getNodeIf(matcher.matcherString())
+                                       ->getActualSwitchDrainState();
+
+  return oldActualSwitchDrainState != newActualSwitchDrainState
+      ? folly::to<std::string>(
+            "[",
+            apache::thrift::util::enumNameSafe(oldActualSwitchDrainState),
+            "->",
+            apache::thrift::util::enumNameSafe(newActualSwitchDrainState),
+            "]")
+      : folly::to<std::string>(
+            apache::thrift::util::enumNameSafe(oldActualSwitchDrainState),
+            "(UNCHANGED)");
+}
+
 void accumulateHwAsicErrorStats(
     facebook::fboss::HwAsicErrors& accumulated,
     const facebook::fboss::HwAsicErrors& toAdd) {
@@ -1770,7 +1793,63 @@ void SwSwitch::linkStateChanged(
 
 void SwSwitch::linkActiveStateChanged(
     const std::map<PortID, bool>& port2IsActive) {
-  // TODO
+  if (!isFullyInitialized()) {
+    XLOG(ERR)
+        << "Ignore link active state change event before we are fully initialized...";
+    return;
+  }
+
+  auto updateActiveStateFn = [=,
+                              this](const std::shared_ptr<SwitchState>& state) {
+    std::shared_ptr<SwitchState> newState(state);
+    auto numActiveFabricPorts = 0;
+    for (const auto& [portID, isActive] : port2IsActive) {
+      auto* port = newState->getPorts()->getNodeIf(portID).get();
+      if (port) {
+        if (isActive) {
+          numActiveFabricPorts++;
+        }
+
+        if (port->isActive() != isActive) {
+          port = port->modify(&newState);
+          port->setActiveState(isActive);
+          XLOG(DBG2) << "SW Link state changed: " << port->getName() << " ["
+                     << (!isActive ? "ACTIVE" : "INACTIVE") << "->"
+                     << (isActive ? "ACTIVE" : "INACTIVE") << "]";
+        }
+      }
+    }
+
+    if (port2IsActive.size() == 0) {
+      return newState;
+    }
+
+    // Pick matcher for any port.
+    // This is OK because the matcher is used to retrieve switchSettings which
+    // are same for all the ports of a HwSwitch.
+    // And, SwSwitch::linkActiveStateChanged is invoked by a HwSwitch and thus
+    // passed port2IsActive always contains ports from a single HwSwitch.
+    auto matcher = getScopeResolver()->scope(port2IsActive.cbegin()->first);
+    auto switchSettings =
+        state->getSwitchSettings()->getNodeIf(matcher.matcherString());
+    auto newActualSwitchDrainState =
+        computeActualSwitchDrainState(switchSettings, numActiveFabricPorts);
+    if (newActualSwitchDrainState !=
+        switchSettings->getActualSwitchDrainState()) {
+      auto newSwitchSettings = switchSettings->modify(&newState);
+      newSwitchSettings->setActualSwitchDrainState(newActualSwitchDrainState);
+    }
+
+    XLOG(DBG2) << "SwitchIDs: " << matcher.matcherString()
+               << " numActiveFabricPorts: " << numActiveFabricPorts
+               << " Switch Drain state: "
+               << getDrainStateChangedStr(getState(), newState, matcher);
+
+    return newState;
+  };
+  updateStateNoCoalescing(
+      "Port ActiveState (ACTIVE/INACTIVE) Update",
+      std::move(updateActiveStateFn));
 }
 
 void SwSwitch::startThreads() {
