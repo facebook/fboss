@@ -24,8 +24,8 @@ void HwLinkStateDependentTest::SetUp() {
     getHwSwitchEnsemble()->applyInitialConfig(initialConfig());
   }
 
-  if (isSupported(HwAsic::Feature::LINK_STATE_BASED_ISOLATE)) {
-    // For switches that support LINK_STATE_BASED_ISOLATE, force
+  if (isSupported(HwAsic::Feature::LINK_INACTIVE_BASED_ISOLATE)) {
+    // For switches that support LINK_INACTIVE_BASED_ISOLATE, force
     // switch to come out of isolate post setup. This is required
     // for data plane to work.
     //

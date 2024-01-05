@@ -528,7 +528,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
 
   std::optional<SaiSwitchTraits::Attributes::SwitchIsolate> switchIsolate{
       std::nullopt};
-  if (getAsic()->isSupported(HwAsic::Feature::LINK_STATE_BASED_ISOLATE)) {
+  if (getAsic()->isSupported(HwAsic::Feature::LINK_INACTIVE_BASED_ISOLATE)) {
     switchIsolate = true;
   }
 
