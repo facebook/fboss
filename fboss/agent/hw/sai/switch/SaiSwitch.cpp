@@ -1824,19 +1824,26 @@ void SaiSwitch::txReadyStatusChangeCallbackBottomHalf() {
   }
 
   auto numActiveFabricLinks = 0, numInactiveFabricLinks = 0;
+  std::map<PortID, bool> port2IsActive;
   for (auto tuple : boost::combine(adapterKeys, txReadyStatusesGot)) {
     auto portSaiId = tuple.get<0>();
     auto txReadyStatus = tuple.get<1>();
 
-    XLOG(DBG4) << "Fabric Port ID: " << std::hex << static_cast<long>(portSaiId)
-               << std::dec
-               << (txReadyStatus == SAI_PORT_HOST_TX_READY_STATUS_NOT_READY
-                       ? " Inactive"
-                       : " Active");
-    if (txReadyStatus == SAI_PORT_HOST_TX_READY_STATUS_NOT_READY) {
-      numInactiveFabricLinks++;
-    } else {
+    const auto portItr = concurrentIndices_->portSaiId2PortInfo.find(portSaiId);
+    CHECK(portItr != concurrentIndices_->portSaiId2PortInfo.cend());
+    auto portID = portItr->second.portID;
+    auto isActive = (txReadyStatus == SAI_PORT_HOST_TX_READY_STATUS_READY);
+
+    XLOG(DBG4) << "Fabric Port SAI ID: " << std::hex
+               << static_cast<long>(portSaiId) << std::dec
+               << " PortID: " << static_cast<int>(portID)
+               << (isActive ? " ACTIVE" : " INACTIVE");
+    port2IsActive[portID] = isActive;
+
+    if (isActive) {
       numActiveFabricLinks++;
+    } else {
+      numInactiveFabricLinks++;
     }
   }
 
