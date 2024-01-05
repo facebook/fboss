@@ -354,7 +354,7 @@ size_t getNumActiveFabricPorts(
 
 cfg::SwitchDrainState computeActualSwitchDrainState(
     const std::shared_ptr<SwitchSettings>& switchSettings,
-    int numFabricPortsUp);
+    int numActiveFabricPorts);
 
 uint64_t getMacOui(const folly::MacAddress macAddress);
 

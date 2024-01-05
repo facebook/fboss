@@ -669,7 +669,7 @@ size_t getNumActiveFabricPorts(
  * SwitchDrainState can be modified from configuration.
  * However, some VOQ switch implementations require that the switch must be
  * initialized as DRAINED and can be in UNDRAINED state iff certain
- * number (pre-configured threshold) of fabric links are up.
+ * number (pre-configured threshold) of fabric links are ACTIVE.
  *
  * Thus, if configured switch state is
  *    - DRAINED => return DRAINED.
@@ -678,7 +678,7 @@ size_t getNumActiveFabricPorts(
  */
 cfg::SwitchDrainState computeActualSwitchDrainState(
     const std::shared_ptr<SwitchSettings>& switchSettings,
-    int numFabricPortsUp) {
+    int numActiveFabricPorts) {
   CHECK(switchSettings);
 
   // For non-VOQ switches, actual switch drain state is the same as desired
@@ -706,7 +706,7 @@ cfg::SwitchDrainState computeActualSwitchDrainState(
       switch (switchSettings->getActualSwitchDrainState()) {
         case cfg::SwitchDrainState::UNDRAINED:
           if (switchSettings->getMinLinksToRemainInVOQDomain().has_value() &&
-              numFabricPortsUp <
+              numActiveFabricPorts <
                   switchSettings->getMinLinksToRemainInVOQDomain().value()) {
             newSwitchDrainState = cfg::SwitchDrainState::DRAINED;
           } else {
@@ -715,7 +715,7 @@ cfg::SwitchDrainState computeActualSwitchDrainState(
           break;
         case cfg::SwitchDrainState::DRAINED:
           if (switchSettings->getMinLinksToJoinVOQDomain().has_value() &&
-              numFabricPortsUp >=
+              numActiveFabricPorts >=
                   switchSettings->getMinLinksToJoinVOQDomain().value()) {
             newSwitchDrainState = cfg::SwitchDrainState::UNDRAINED;
           } else {
