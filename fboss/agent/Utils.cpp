@@ -647,6 +647,24 @@ size_t getNumUpPorts(
       });
 }
 
+size_t getNumActiveFabricPorts(
+    const std::shared_ptr<SwitchState>& state,
+    const HwSwitchMatcher& matcher) {
+  auto portMap = state->getPorts()->getMapNodeIf(matcher);
+  if (!portMap) {
+    return 0;
+  }
+
+  return std::count_if(
+      std::begin(std::as_const(*portMap)),
+      std::end(std::as_const(*portMap)),
+      [](const auto& port) {
+        return port.second->getPortType() == cfg::PortType::FABRIC_PORT &&
+            port.second->isActive().has_value() &&
+            port.second->isActive().value() == true;
+      });
+}
+
 /*
  * SwitchDrainState can be modified from configuration.
  * However, some VOQ switch implementations require that the switch must be

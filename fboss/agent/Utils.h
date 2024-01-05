@@ -348,6 +348,10 @@ size_t getNumUpPorts(
     const HwSwitchMatcher& matcher,
     cfg::PortType portType);
 
+size_t getNumActiveFabricPorts(
+    const std::shared_ptr<SwitchState>& state,
+    const HwSwitchMatcher& matcher);
+
 cfg::SwitchDrainState computeActualSwitchDrainState(
     const std::shared_ptr<SwitchSettings>& switchSettings,
     int numFabricPortsUp);
