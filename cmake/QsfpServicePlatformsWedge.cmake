@@ -37,4 +37,5 @@ target_link_libraries(qsfp_platforms_wedge
   platform_base
   qsfp_config
   wedge400_i2c
+  io_stats_recorder
 )

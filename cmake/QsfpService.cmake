@@ -30,6 +30,7 @@ target_link_libraries(qsfp_lib
     fsdb_model
     qsfp_bsp_core
     thrift_cow_serializer
+    io_stats_recorder
 )
 
 add_library(qsfp_config

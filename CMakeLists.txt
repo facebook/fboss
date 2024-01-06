@@ -499,6 +499,11 @@ add_fbthrift_cpp_library(
 )
 
 add_fbthrift_cpp_library(
+  io_stats_cpp2
+  fboss/lib/if/io_stats.thrift
+)
+
+add_fbthrift_cpp_library(
   led_mapping_cpp2
   fboss/lib/led/led_mapping.thrift
   OPTIONS
