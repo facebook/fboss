@@ -166,12 +166,18 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
       const cfg::LoadBalancer& loadBalancer,
       const std::vector<NextHopWeight>& weights) {
     getEcmpSetupHelper()->programRoutes(ecmpWidth, weights);
-    applyNewState(utility::addLoadBalancers(
-        getPlatform(),
-        getProgrammedState(),
-        {loadBalancer,
-         utility::getTrunkHalfHashConfig(*getPlatform()->getAsic())},
-        scopeResolver()));
+    if (getHwSwitchEnsemble()->isSai()) {
+      // always program half lag hash for sai switches, see CS00012317640
+      applyNewState(utility::addLoadBalancers(
+          getPlatform(),
+          getProgrammedState(),
+          {loadBalancer,
+           utility::getTrunkHalfHashConfig(*getPlatform()->getAsic())},
+          scopeResolver()));
+    } else {
+      applyNewState(utility::setLoadBalancer(
+          getPlatform(), getProgrammedState(), loadBalancer, scopeResolver()));
+    }
   }
 
   virtual std::unique_ptr<EcmpTestHelperT> getECMPHelper() = 0;
