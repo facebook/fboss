@@ -11,6 +11,8 @@ add_library(mdio
 
 target_link_libraries(mdio
   Folly::folly
+  io_stats_recorder
+  io_stats_cpp2
 )
 
 add_library(device_mdio
