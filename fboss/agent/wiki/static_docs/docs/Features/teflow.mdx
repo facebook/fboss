@@ -17,6 +17,10 @@ The Broadcom NPU does exact match lookup in parallel to LPM lookups without any 
 
 Wedge agent supports a Traffic Engineering Flow Table using exact match solution. Clients can use thrift APIs to install and manage TE flow entries. Each TE flow entry can attach a shared or unique counter to obtain flow bandwidth usage information. The flow stats are exported periodically to FSDB and clients can obtain stats information from FSDB through a pub-sub interface.
 
+## FHTEv2 Solution
+FHTEv2 Solution implemented to improve the scaling (to support 32K GPU jobs) and performance (sub optimal performance on non all to all jobs).
+As part of the FHTEv2 solution to support the flow matrix to calculate traffic rate on each RTSW switch a new feature emStatOnlyMode implemented in FBOSS wedge agent. emStatOnlyMode will allocate hardware counters for inactive flows(no next hop EM entries). These counters are used by flow matrix to determine the traffic rate on each switch which in turn fed into the controller's CSPF algorithm for optimal routes.
+
 ## Design
 
 Detailed design can be found on the following link.
