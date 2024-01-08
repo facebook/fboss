@@ -281,4 +281,5 @@ struct HwSwitchFb303GlobalStats {
   20: optional i64 ingress_transmit_pipeline_errors;
   21: optional i64 egress_packet_network_interface_errors;
   22: optional i64 aligner_errors;
+  23: optional i64 forwarding_queue_processor_errors;
 }
