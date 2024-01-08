@@ -1197,7 +1197,6 @@ void LookupClassUpdater::updateMaxNumHostsPerQueueCounter() {
                << " physical hosts are allocated to port " << maxPortID
                << " classID " << (int)maxClassID;
   }
-  sw_->stats()->maxNumOfPhysicalHostsPerQueue(maxNumHostsPerQueue_);
 }
 
 void LookupClassUpdater::stateUpdated(const StateDelta& stateDelta) {

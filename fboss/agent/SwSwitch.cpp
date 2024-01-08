@@ -740,6 +740,8 @@ void SwSwitch::updateStats() {
       XLOG(ERR) << "Error running updatePhyInfos: " << folly::exceptionStr(ex);
     }
   }
+  stats()->maxNumOfPhysicalHostsPerQueue(
+      getLookupClassUpdater()->getMaxNumHostsPerQueue());
 }
 
 void SwSwitch::updateMultiSwitchGlobalFb303Stats() {
