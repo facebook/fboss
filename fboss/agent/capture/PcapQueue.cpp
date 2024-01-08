@@ -102,9 +102,7 @@ bool PcapQueue::wait(std::vector<PcapPkt>* swapQueue) {
   swapQueue->reserve(pktCapacity_);
 
   std::unique_lock<std::mutex> guard(mutex_);
-  while (queue_.empty() && !finished_) {
-    cv_.wait(guard);
-  }
+  cv_.wait(guard, [&]() { return !queue_.empty() || finished_; });
   if (queue_.empty()) {
     DCHECK(finished_);
     queue_.shrink_to_fit();
