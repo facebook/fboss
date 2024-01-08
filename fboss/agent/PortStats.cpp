@@ -21,6 +21,7 @@ const std::string kNameKeySeperator = ".";
 const std::string kUp = "up";
 const std::string kLinkStateFlap = "link_state.flap";
 const std::string kActive = "active";
+const std::string kLinkActiveStateFlap = "link_active_state.flap";
 const std::string kPfcDeadlockDetectionCount = "pfc_deadlock_detection";
 const std::string kPfcDeadlockRecoveryCount = "pfc_deadlock_recovery";
 
@@ -31,6 +32,7 @@ PortStats::PortStats(
     : portID_(portID), portName_(portName), switchStats_(switchStats) {
   if (!portName_.empty()) {
     tcData().addStatValue(getCounterKey(kLinkStateFlap), 0, SUM);
+    tcData().addStatValue(getCounterKey(kLinkActiveStateFlap), 0, SUM);
   }
 }
 
@@ -166,6 +168,16 @@ void PortStats::linkStateChange(bool isUp) {
     }
   }
   switchStats_->linkStateChange();
+}
+
+void PortStats::linkActiveStateChange(bool isActive) {
+  if (!portName_.empty()) {
+    tcData().addStatValue(getCounterKey(kLinkActiveStateFlap), 1, SUM);
+    if (auto normalizer = Normalizer::getInstance()) {
+      normalizer->processLinkActiveStateChange(portName_, isActive);
+    }
+  }
+  switchStats_->linkActiveStateChange();
 }
 
 void PortStats::pfcDeadlockDetectionCount() {
