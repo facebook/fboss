@@ -168,7 +168,7 @@ int64_t HwSwitchFb303Stats::getForwardingQueueProcessorErrors() const {
 }
 
 int64_t HwSwitchFb303Stats::getFdrCellDrops() const {
-  return getCumulativeValue(alignerErrors_);
+  return getCumulativeValue(fdrCellDrops_);
 }
 
 HwAsicErrors HwSwitchFb303Stats::getHwAsicErrors() const {
