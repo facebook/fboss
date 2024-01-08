@@ -104,6 +104,11 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           map,
           getCounterPrefix() + vendor + ".aligner.errors",
           SUM,
+          RATE),
+      forwardingQueueProcessorErrors_(
+          map,
+          getCounterPrefix() + vendor + ".forwardingQueueProcessor.errors",
+          SUM,
           RATE) {}
 
 void HwSwitchFb303Stats::update(const HwSwitchDropStats& dropStats) {
@@ -156,6 +161,10 @@ int64_t HwSwitchFb303Stats::getEpniErrors() const {
 
 int64_t HwSwitchFb303Stats::getAlignerErrors() const {
   return getCumulativeValue(alignerErrors_);
+}
+
+int64_t HwSwitchFb303Stats::getForwardingQueueProcessorErrors() const {
+  return getCumulativeValue(forwardingQueueProcessorErrors_);
 }
 
 int64_t HwSwitchFb303Stats::getFdrCellDrops() const {

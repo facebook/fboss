@@ -74,6 +74,9 @@ class HwSwitchFb303Stats {
   void alignerError() {
     alignerErrors_.addValue(1);
   }
+  void forwardingQueueProcessorError() {
+    forwardingQueueProcessorErrors_.addValue(1);
+  }
 
   void fabricReachabilityMissingCount(int64_t value);
   void fabricReachabilityMismatchCount(int64_t value);
@@ -121,6 +124,7 @@ class HwSwitchFb303Stats {
   int64_t getEpniErrors() const;
   int64_t getAlignerErrors() const;
   int64_t getFdrCellDrops() const;
+  int64_t getForwardingQueueProcessorErrors() const;
 
   HwAsicErrors getHwAsicErrors() const;
   FabricReachabilityStats getFabricReachabilityStats();
@@ -174,6 +178,7 @@ class HwSwitchFb303Stats {
   TLTimeseries itppErrors_;
   TLTimeseries epniErrors_;
   TLTimeseries alignerErrors_;
+  TLTimeseries forwardingQueueProcessorErrors_;
 };
 
 } // namespace facebook::fboss
