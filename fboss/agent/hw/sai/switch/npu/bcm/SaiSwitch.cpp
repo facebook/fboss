@@ -320,6 +320,22 @@ bool isAlignerErrorType(sai_switch_error_type_t type) {
   }
   return false;
 }
+
+bool isFqpError(sai_switch_error_type_t type) {
+  switch (type) {
+    case SAI_SWITCH_ERROR_TYPE_FQP_ERROR_ECC:
+    case SAI_SWITCH_ERROR_TYPE_FQP_TXQ_OVF_INT:
+    case SAI_SWITCH_ERROR_TYPE_FQP_TXQ_READ_CONJESTED_INT:
+    case SAI_SWITCH_ERROR_TYPE_FQP_TXQ_WRITE_CONJESTED_INT:
+    case SAI_SWITCH_ERROR_TYPE_FQP_ECC_ECC_1B_ERR_INT:
+    case SAI_SWITCH_ERROR_TYPE_FQP_ECC_ECC_2B_ERR_INT:
+      return true;
+    default:
+      break;
+  }
+  return false;
+}
+
 #endif
 
 } // namespace
@@ -366,9 +382,10 @@ void SaiSwitch::switchEventCallback(
       auto itppError = isItppError(eventInfo->error_type);
       auto epniError = isEpniError(eventInfo->error_type);
       auto alignerError = isAlignerErrorType(eventInfo->error_type);
+      auto fqpError = isFqpError(eventInfo->error_type);
       XLOG(ERR) << " Got interrupt event, is IRE: " << ireError
                 << " is ITPP: " << itppError << " is EPNI: " << epniError
-                << " is Aligner: " << alignerError;
+                << " is Aligner: " << alignerError << " is FQP: " << fqpError;
       if (ireError) {
         getSwitchStats()->ireError();
       } else if (itppError) {
