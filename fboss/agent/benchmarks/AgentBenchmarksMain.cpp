@@ -36,7 +36,7 @@ int main(int argc, char* argv[]) {
   getrusage(RUSAGE_SELF, &endUsage);
   auto cpuTime =
       (timevalToUsec(endUsage.ru_stime) - timevalToUsec(startUsage.ru_stime)) +
-      (timevalToUsec(endUsage.ru_utime) - timevalToUsec(endUsage.ru_utime));
+      (timevalToUsec(endUsage.ru_utime) - timevalToUsec(startUsage.ru_utime));
 
   folly::dynamic rusageJson = folly::dynamic::object;
   rusageJson["cpu_time_usec"] = cpuTime;
