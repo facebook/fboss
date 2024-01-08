@@ -237,17 +237,194 @@
     ],
     "brcm/10.0_ea_odp/10.0_ea_odp/tomahawk5": [
         {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
+        },
+        {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
         }
     ],
     "brcm/10.0_ea_sim_odp/10.0_ea_sim_odp/tomahawk4/simulator": [
         {
-          "test_name_regex": "HwLoadBalancerTestV[46].Ucmp.*$"
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
+        },
+        {
+          "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.*"
+        },
+        {
+          "test_name_regex": "Hw2QueueToOlympicQoSTest.*"
+        },
+        {
+          "test_name_regex": "HwAqmTest.*"
+        },
+        {
+          "test_name_regex": "HwJumboFramesTest.*"
+        },
+        {
+          "test_name_regex": "HwMmuTuningTest.*"
+        },
+        {
+          "test_name_regex": "HwOlympicQosSchedulerTest.*"
+        },
+        {
+          "test_name_regex": "HwParityErrorTest.*"
+        },
+        {
+          "test_name_regex": "HwPortBandwidthTest.*"
+        },
+        {
+          "test_name_regex": "HwWatermarkTest.*"
+        },
+        {
+          "test_name_regex": "HwCoppTest.*"
+        },
+        {
+          "test_name_regex": "HwDscpMarkingTest.*"
+        },
+        {
+          "test_name_regex": "HwInPauseDiscardsCounterTest.*"
+        },
+        {
+          "test_name_regex": "HwLoopBackTest.*"
+        },
+        {
+          "test_name_regex": "HwOlympicQosTests.*"
+        },
+        {
+          "test_name_regex": "HwPacketSendTest.PortTxEnableTest"
+        },
+        {
+          "test_name_regex": "HwPfcTest.*"
+        },
+        {
+          "test_name_regex": "HwPtpTcTest.*"
+        },
+        {
+          "test_name_regex": "HwRouteCounterOverflowTest.overflowRouteCounters"
+        },
+        {
+          "test_name_regex": "HwTrafficPfcTest.*"
+        },
+        {
+          "test_name_regex": "SaiAclTableGroupTest.AddSecondTableAfterWarmboot"
+        },
+        {
+          "test_name_regex": "HwIngressBufferTest.*"
+        },
+        {
+          "test_name_regex": "HwProdInvariantsRswTest.verifyInvariants"
+        },
+        {
+          "test_name_regex": "HwProdInvariantsRswStrictPriorityTest.verifyInvariants"
+        },
+        {
+          "test_name_regex": "HwDataPlaneMirrorTest.*"
+        },
+        {
+          "test_name_regex": "HwFlexPortTest.*"
+        },
+        {
+          "test_name_regex": "HwSflowMirrorTest.*"
+        },
+        {
+          "test_name_regex": "HwSflowTest.*"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE.*"
         }
     ],
     "brcm/10.0_ea_sim_odp/10.0_ea_sim_odp/tomahawk5/simulator": [
         {
-          "test_name_regex": "HwLoadBalancerTestV[46].Ucmp.*$"
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
+        },
+        {
+          "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.*"
+        },
+        {
+          "test_name_regex": "Hw2QueueToOlympicQoSTest.*"
+        },
+        {
+          "test_name_regex": "HwAqmTest.*"
+        },
+        {
+          "test_name_regex": "HwJumboFramesTest.*"
+        },
+        {
+          "test_name_regex": "HwMmuTuningTest.*"
+        },
+        {
+          "test_name_regex": "HwOlympicQosSchedulerTest.*"
+        },
+        {
+          "test_name_regex": "HwParityErrorTest.*"
+        },
+        {
+          "test_name_regex": "HwPortBandwidthTest.*"
+        },
+        {
+          "test_name_regex": "HwWatermarkTest.*"
+        },
+        {
+          "test_name_regex": "HwCoppTest.*"
+        },
+        {
+          "test_name_regex": "HwDscpMarkingTest.*"
+        },
+        {
+          "test_name_regex": "HwInPauseDiscardsCounterTest.*"
+        },
+        {
+          "test_name_regex": "HwLoopBackTest.*"
+        },
+        {
+          "test_name_regex": "HwOlympicQosTests.*"
+        },
+        {
+          "test_name_regex": "HwPacketSendTest.PortTxEnableTest"
+        },
+        {
+          "test_name_regex": "HwPfcTest.*"
+        },
+        {
+          "test_name_regex": "HwPtpTcTest.*"
+        },
+        {
+          "test_name_regex": "HwRouteCounterOverflowTest.overflowRouteCounters"
+        },
+        {
+          "test_name_regex": "HwTrafficPfcTest.*"
+        },
+        {
+          "test_name_regex": "SaiAclTableGroupTest.AddSecondTableAfterWarmboot"
+        },
+        {
+          "test_name_regex": "HwIngressBufferTest.*"
+        },
+        {
+          "test_name_regex": "HwProdInvariantsRswTest.verifyInvariants"
+        },
+        {
+          "test_name_regex": "HwProdInvariantsRswStrictPriorityTest.verifyInvariants"
+        },
+        {
+          "test_name_regex": "HwDataPlaneMirrorTest.*"
+        },
+        {
+          "test_name_regex": "HwFlexPortTest.*"
+        },
+        {
+          "test_name_regex": "HwSflowMirrorTest.*"
+        },
+        {
+          "test_name_regex": "HwSflowTest.*"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE.*"
         }
     ],
     "brcm/11.0_ea_dnx_odp/11.0_ea_dnx_odp/jericho2": [
@@ -717,70 +894,196 @@
     ],
     "brcm/7.2.0.0_odp/7.2.0.0_odp/tomahawk": [
         {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
+        },
+        {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
         }
     ],
     "brcm/7.2.0.0_odp/7.2.0.0_odp/tomahawk3": [
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
+        },
         {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
         }
     ],
     "brcm/7.2.0.0_odp/8.2.0.0_odp/tomahawk": [
         {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
+        },
+        {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
         }
     ],
     "brcm/7.2.0.0_odp/8.2.0.0_odp/tomahawk3": [
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
+        },
         {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
         }
     ],
     "brcm/8.2.0.0_odp/8.2.0.0_odp/tomahawk": [
         {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
+        },
+        {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
         }
     ],
     "brcm/8.2.0.0_odp/8.2.0.0_odp/tomahawk3": [
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
+        },
         {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
         }
     ],
     "brcm/8.2.0.0_odp/8.2.0.0_odp/tomahawk4": [
         {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
+        },
+        {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
         }
     ],
     "brcm/8.2.0.0_odp/9.2.0.0_odp/tomahawk": [
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
+        },
         {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
         }
     ],
     "brcm/8.2.0.0_odp/9.2.0.0_odp/tomahawk3": [
         {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
+        },
+        {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
         }
     ],
     "brcm/8.2.0.0_odp/9.2.0.0_odp/tomahawk4": [
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
+        },
         {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
         }
     ],
     "brcm/8.2.0.0_sim_odp/8.2.0.0_sim_odp/tomahawk4/simulator": [
         {
-          "test_name_regex": "HwLoadBalancerTestV[46].Ucmp.*$"
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
+        },
+        {
+          "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.*"
+        },
+        {
+          "test_name_regex": "Hw2QueueToOlympicQoSTest.*"
+        },
+        {
+          "test_name_regex": "HwAqmTest.*"
+        },
+        {
+          "test_name_regex": "HwJumboFramesTest.*"
+        },
+        {
+          "test_name_regex": "HwMmuTuningTest.*"
+        },
+        {
+          "test_name_regex": "HwOlympicQosSchedulerTest.*"
+        },
+        {
+          "test_name_regex": "HwParityErrorTest.*"
+        },
+        {
+          "test_name_regex": "HwPortBandwidthTest.*"
+        },
+        {
+          "test_name_regex": "HwWatermarkTest.*"
+        },
+        {
+          "test_name_regex": "HwCoppTest.*"
+        },
+        {
+          "test_name_regex": "HwDscpMarkingTest.*"
+        },
+        {
+          "test_name_regex": "HwInPauseDiscardsCounterTest.*"
+        },
+        {
+          "test_name_regex": "HwLoopBackTest.*"
+        },
+        {
+          "test_name_regex": "HwOlympicQosTests.*"
+        },
+        {
+          "test_name_regex": "HwPacketSendTest.PortTxEnableTest"
+        },
+        {
+          "test_name_regex": "HwPfcTest.*"
+        },
+        {
+          "test_name_regex": "HwPtpTcTest.*"
+        },
+        {
+          "test_name_regex": "HwRouteCounterOverflowTest.overflowRouteCounters"
+        },
+        {
+          "test_name_regex": "HwTrafficPfcTest.*"
+        },
+        {
+          "test_name_regex": "SaiAclTableGroupTest.AddSecondTableAfterWarmboot"
+        },
+        {
+          "test_name_regex": "HwIngressBufferTest.*"
+        },
+        {
+          "test_name_regex": "HwProdInvariantsRswTest.verifyInvariants"
+        },
+        {
+          "test_name_regex": "HwProdInvariantsRswStrictPriorityTest.verifyInvariants"
+        },
+        {
+          "test_name_regex": "HwDataPlaneMirrorTest.*"
+        },
+        {
+          "test_name_regex": "HwFlexPortTest.*"
+        },
+        {
+          "test_name_regex": "HwSflowMirrorTest.*"
+        },
+        {
+          "test_name_regex": "HwSflowTest.*"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE.*"
         }
     ],
     "brcm/9.2.0.0_odp/9.2.0.0_odp/tomahawk": [
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
+        },
         {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
         }
     ],
     "brcm/9.2.0.0_odp/9.2.0.0_odp/tomahawk3": [
         {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
+        },
+        {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
         }
     ],
     "brcm/9.2.0.0_odp/9.2.0.0_odp/tomahawk4": [
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
+        },
         {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
         }
@@ -824,10 +1127,14 @@
         }
     ],
     "leaba/1.42.8/1.42.8/simulator": [
-        
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
+        }
     ],
     "leaba/1.65.0/1.65.0/gibraltar": [
-        
+        {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
+        }
     ]
   }
 }
