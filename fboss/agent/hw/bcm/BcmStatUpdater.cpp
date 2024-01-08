@@ -166,7 +166,6 @@ uint64_t BcmStatUpdater::getBcmFlexRouteTrafficStats(
     BcmRouteCounterID routeCounterId) {
   uint64_t byteCounterValue{0};
   uint32 counterOffset = routeCounterId.getHwOffset();
-#if defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_20)
   bcm_flexctr_counter_value_t counterValue{};
   auto rc = bcm_flexctr_stat_get(
       hw_->getUnit(),
@@ -181,7 +180,6 @@ uint64_t BcmStatUpdater::getBcmFlexRouteTrafficStats(
     XLOG(DBG3) << "Failed to read route counter " << routeCounterId.str()
                << " rc: " << rc;
   }
-#endif
   return byteCounterValue;
 }
 

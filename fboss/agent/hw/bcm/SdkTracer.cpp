@@ -5661,7 +5661,6 @@ int __wrap_bcm_l3_route_stat_attach(
 #endif
 }
 
-#if defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_20)
 int __wrap_bcm_l3_route_flexctr_object_set(
     int unit,
     bcm_l3_route_t* info,
@@ -5672,14 +5671,6 @@ int __wrap_bcm_l3_route_flexctr_object_set(
   return 0;
 #endif
 }
-#else
-int __wrap_bcm_l3_route_flexctr_object_set(
-    int /* unit*/,
-    bcm_l3_route_t* /*info*/,
-    uint32 /*value*/) {
-  return 0;
-}
-#endif
 
 int __wrap_bcm_l3_route_stat_detach(int unit, bcm_l3_route_t* info) {
 #ifndef BCM_SDK_TYPE_DNX_ONLY

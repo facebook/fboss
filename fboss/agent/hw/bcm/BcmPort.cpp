@@ -43,7 +43,6 @@
 #include "fboss/agent/hw/bcm/BcmPrbs.h"
 #include "fboss/agent/hw/bcm/BcmQosPolicyTable.h"
 #include "fboss/agent/hw/bcm/BcmQosUtils.h"
-#include "fboss/agent/hw/bcm/BcmSdkVer.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
@@ -825,7 +824,6 @@ uint8_t BcmPort::determinePipe() const {
   auto rv = bcm_info_get(unit_, &info);
   bcmCheckError(rv, "failed to get unit info");
 
-#if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_20))
   if (info.num_pipes > BCM_PIPES_MAX) {
     // Tomahawk4 has 16 data pipes larger than old BCM_PIPES_MAX(8)
     bcm_pbmp_t pbmp;
@@ -838,7 +836,6 @@ uint8_t BcmPort::determinePipe() const {
     }
     throw FbossError("Port ", port_, " not associated w/ any pipe");
   }
-#endif
 
   bcm_port_config_t portConfig;
   bcm_port_config_t_init(&portConfig);
