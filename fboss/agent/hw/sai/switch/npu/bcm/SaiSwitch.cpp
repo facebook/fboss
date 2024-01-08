@@ -394,6 +394,8 @@ void SaiSwitch::switchEventCallback(
         getSwitchStats()->epniError();
       } else if (alignerError) {
         getSwitchStats()->alignerError();
+      } else if (fqpError) {
+        getSwitchStats()->forwardingQueueProcessorError();
       }
     } break;
 #endif
