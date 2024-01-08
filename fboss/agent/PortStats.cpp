@@ -20,6 +20,7 @@ namespace facebook::fboss {
 const std::string kNameKeySeperator = ".";
 const std::string kUp = "up";
 const std::string kLinkStateFlap = "link_state.flap";
+const std::string kActive = "active";
 const std::string kPfcDeadlockDetectionCount = "pfc_deadlock_detection";
 const std::string kPfcDeadlockRecoveryCount = "pfc_deadlock_recovery";
 
@@ -36,11 +37,13 @@ PortStats::PortStats(
 PortStats::~PortStats() {
   // clear counter
   clearPortStatusCounter();
+  clearPortActiveStatusCounter();
 }
 
 void PortStats::setPortName(const std::string& portName) {
   // clear counter
   clearPortStatusCounter();
+  clearPortActiveStatusCounter();
   portName_ = portName;
 }
 
@@ -196,6 +199,18 @@ void PortStats::setPortStatus(bool isUp) {
 void PortStats::clearPortStatusCounter() {
   if (!portName_.empty()) {
     tcData().clearCounter(getCounterKey(kUp));
+  }
+}
+
+void PortStats::setPortActiveStatus(bool isActive) {
+  if (!portName_.empty()) {
+    tcData().setCounter(getCounterKey(kActive), isActive);
+  }
+}
+
+void PortStats::clearPortActiveStatusCounter() {
+  if (!portName_.empty()) {
+    tcData().clearCounter(getCounterKey(kActive));
   }
 }
 

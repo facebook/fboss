@@ -67,6 +67,9 @@ class PortStats {
   void setPortStatus(bool isUp);
   void clearPortStatusCounter();
 
+  void setPortActiveStatus(bool isActive);
+  void clearPortActiveStatusCounter();
+
   void pktTooBig();
 
   void setPortName(const std::string& portName);
