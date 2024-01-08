@@ -314,7 +314,6 @@ BcmRouteFlexCounterTable::BcmRouteFlexCounterTable(BcmSwitch* hw)
  * needs to be withdrawn and readded from application.
  */
 void BcmFlexCounterAction::createFlexCounterAction() {
-#if defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_20)
   bcm_flexctr_action_t action;
   bcm_flexctr_index_operation_t* index_op;
   bcm_flexctr_value_operation_t* value_a_op;
@@ -352,16 +351,13 @@ void BcmFlexCounterAction::createFlexCounterAction() {
   auto rc = bcm_flexctr_action_create(hw_->getUnit(), 0, &action, &actionId_);
 
   bcmCheckError(rc, "failed to create bcm flex counter action");
-#endif
 }
 
 BcmFlexCounterAction::~BcmFlexCounterAction() {
-#if defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_20)
   if (actionId_) {
     auto rc = bcm_flexctr_action_destroy(hw_->getUnit(), actionId_);
     bcmLogFatal(rc, hw_, "failed to destroy flexctr action id ", actionId_);
   }
-#endif
 }
 
 uint16_t BcmFlexCounterAction::allocateOffset() {
