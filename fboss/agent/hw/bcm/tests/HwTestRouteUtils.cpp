@@ -74,7 +74,6 @@ uint64_t getBcmRouteCounter(
   auto counterIndex = hwCounterId.getHwId();
   if (bcmSwitch->getPlatform()->getAsic()->isSupported(
           HwAsic::Feature::ROUTE_FLEX_COUNTERS)) {
-#if defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_20)
     uint32 counterOffset = hwCounterId.getHwOffset();
     bcm_flexctr_counter_value_t counterValue;
     CHECK_EQ(
@@ -85,9 +84,6 @@ uint64_t getBcmRouteCounter(
                << " offset: " << counterIndex
                << " bytes: " << COMPILER_64_LO(counterValue.value[1]);
     return COMPILER_64_LO(counterValue.value[1]);
-#else
-    return 0;
-#endif
   } else {
     CHECK_EQ(
         bcm_stat_flex_counter_sync_get(
