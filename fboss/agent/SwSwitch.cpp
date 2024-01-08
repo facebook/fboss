@@ -1380,6 +1380,9 @@ void SwSwitch::handlePendingUpdates() {
             << " Failed to apply update to HW and the update is not marked for "
                "HW failure protection";
       }
+    } else {
+      // Update successful, update hw update counter to zero.
+      fb303::fbData->setCounter(kHwUpdateFailures, 0);
     }
   }
   updatePtpTcCounter();

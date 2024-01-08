@@ -121,15 +121,27 @@ TEST_P(SwSwitchUpdateProcessingTest, HwRejectsUpdateThenAccepts) {
       FbossHwUpdateError);
   counters.update();
   counters.checkDelta(SwitchStats::kCounterPrefix + "hw_update_failures", 1);
+  CHECK_EQ(
+      counters.value(SwitchStats::kCounterPrefix + "hw_update_failures"), 1);
+  // Another rejected update
+  EXPECT_THROW(
+      sw->updateStateWithHwFailureProtection("Reject update", stateUpdateFn),
+      FbossHwUpdateError);
+  counters.update();
+  counters.checkDelta(SwitchStats::kCounterPrefix + "hw_update_failures", 1);
+  CHECK_EQ(
+      counters.value(SwitchStats::kCounterPrefix + "hw_update_failures"), 2);
   // Have HwSwitch now accept this update
   setStateChangedReturn([](const StateDelta& delta) {
     CHECK(delta.newState() != delta.oldState());
     return delta.newState();
   });
-  sw->updateState("Accept update", stateUpdateFn);
+  sw->updateStateBlocking("Accept update", stateUpdateFn);
   // No increament on successful updates
   counters.update();
-  counters.checkDelta(SwitchStats::kCounterPrefix + "hw_update_failures", 0);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "hw_update_failures", -2);
+  CHECK_EQ(
+      counters.value(SwitchStats::kCounterPrefix + "hw_update_failures"), 0);
   waitForStateUpdates(sw);
 }
 
