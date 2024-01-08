@@ -1019,6 +1019,7 @@ class SwSwitch : public HwSwitchCallback {
 
   // Sets the counter that tracks port status
   void setPortStatusCounter(PortID port, bool up);
+  void setPortActiveStatusCounter(PortID port, bool isActive);
 
   void updateConfigAppliedInfo();
 

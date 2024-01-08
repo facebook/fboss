@@ -1576,6 +1576,16 @@ void SwSwitch::setPortStatusCounter(PortID port, bool up) {
   portStats(port)->setPortStatus(up);
 }
 
+void SwSwitch::setPortActiveStatusCounter(PortID port, bool isActive) {
+  auto state = getState();
+  if (!state) {
+    // Make sure the state actually exists, this could be an issue if
+    // called during initialization
+    return;
+  }
+  portStats(port)->setPortActiveStatus(isActive);
+}
+
 void SwSwitch::packetReceived(std::unique_ptr<RxPacket> pkt) noexcept {
   PortID port = pkt->getSrcPort();
   try {
@@ -1813,6 +1823,8 @@ void SwSwitch::linkActiveStateChanged(
         }
 
         if (port->isActive() != isActive) {
+          setPortActiveStatusCounter(portID, isActive);
+
           auto getActiveStr = [](std::optional<bool> isActive) {
             return isActive.has_value()
                 ? (isActive.value() ? "ACTIVE" : "INACTIVE")
