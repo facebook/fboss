@@ -1824,6 +1824,7 @@ void SwSwitch::linkActiveStateChanged(
 
         if (port->isActive() != isActive) {
           setPortActiveStatusCounter(portID, isActive);
+          portStats(portID)->linkActiveStateChange(isActive);
 
           auto getActiveStr = [](std::optional<bool> isActive) {
             return isActive.has_value()
