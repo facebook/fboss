@@ -72,6 +72,19 @@ void Normalizer::processLinkStateChange(
       DBG6, "port {} link state changed to {}", portName, isUp ? "UP" : "DOWN");
 }
 
+void Normalizer::processLinkActiveStateChange(
+    const std::string& portName,
+    bool isActive) {
+  if (!FLAGS_enable_counter_normalization) {
+    return;
+  }
+  XLOGF(
+      DBG6,
+      "port {} link active state changed to {}",
+      portName,
+      isActive ? "ACTIVE" : "INACTIVE");
+}
+
 void Normalizer::reloadCounterTags(const cfg::SwitchConfig& curConfig) {
   counterTagManager_->reloadCounterTags(curConfig);
 }

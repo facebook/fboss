@@ -32,6 +32,7 @@ class Normalizer {
       const folly::F14FastMap<std::string, HwPortStats>& hwStatsMap);
 
   void processLinkStateChange(const std::string& portName, bool isUp);
+  void processLinkActiveStateChange(const std::string& portName, bool isActive);
 
   // delegate to CounterTagManager
   void reloadCounterTags(const cfg::SwitchConfig& curConfig);
