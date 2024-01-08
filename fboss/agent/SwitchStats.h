@@ -314,6 +314,10 @@ class SwitchStats : public boost::noncopyable {
     linkStateChange_.addValue(1);
   }
 
+  void linkActiveStateChange() {
+    linkActiveStateChange_.addValue(1);
+  }
+
   void pcapDistFailure() {
     pcapDistFailure_.incrementValue(1);
   }
@@ -584,6 +588,11 @@ class SwitchStats : public boost::noncopyable {
    * Link state up/down change count
    */
   TLTimeseries linkStateChange_;
+
+  /**
+   * Link state active/inactive change count
+   */
+  TLTimeseries linkActiveStateChange_;
 
   // Individual port stats objects, indexed by PortID
   PortStatsMap ports_;

@@ -192,6 +192,10 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map)
           200,
           AVG),
       linkStateChange_(map, kCounterPrefix + "link_state.flap", SUM),
+      linkActiveStateChange_(
+          map,
+          kCounterPrefix + "link_active_state.flap",
+          SUM),
       pcapDistFailure_(map, kCounterPrefix + "pcap_dist_failure.error"),
       updateStatsExceptions_(
           map,
