@@ -288,24 +288,11 @@ int BcmControlPlane::rxCosqMappingExtendedGet(
     int unit,
     bcm_rx_cosq_mapping_t* rx_cosq_mapping,
     bool byIndex) {
-#if (!defined(IS_OPENNSA)) && (!defined(BCM_SDK_VERSION_GTE_6_5_20))
-  return bcm_rx_cosq_mapping_get(
-      unit,
-      rx_cosq_mapping->index,
-      &rx_cosq_mapping->reasons,
-      &rx_cosq_mapping->reasons_mask,
-      &rx_cosq_mapping->int_prio,
-      &rx_cosq_mapping->int_prio_mask,
-      &rx_cosq_mapping->packet_type,
-      &rx_cosq_mapping->packet_type_mask,
-      &rx_cosq_mapping->cosq);
-#else
   bcm_rx_reasons_t reasons;
   auto targetIndex = rx_cosq_mapping->index;
   bcm_rx_reasons_t targetReasons = rx_cosq_mapping->reasons;
   bcm_rx_cosq_mapping_t_init(rx_cosq_mapping);
   int rv;
-#if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_22))
   if (BcmAPI::isPriorityKeyUsedInRxCosqMapping()) {
     if (byIndex) {
       rx_cosq_mapping->priority = getPriorityFromIndex(targetIndex);
@@ -329,7 +316,6 @@ int BcmControlPlane::rxCosqMappingExtendedGet(
     }
     return BCM_E_NOT_FOUND;
   }
-#endif
 
   for (std::set<cfg::PacketRxReason>::iterator it = kSupportedRxReasons.begin();
        it != kSupportedRxReasons.end();
@@ -344,7 +330,6 @@ int BcmControlPlane::rxCosqMappingExtendedGet(
     }
   }
   return BCM_E_NOT_FOUND;
-#endif
 }
 
 // wrapper for bcm_rx_cosq_mapping_extended_set
@@ -358,22 +343,9 @@ int BcmControlPlane::rxCosqMappingExtendedSet(
     uint32 packet_type,
     uint32 packet_type_mask,
     bcm_cos_queue_t cosq) {
-#if (!defined(IS_OPENNSA)) && (!defined(BCM_SDK_VERSION_GTE_6_5_20))
-  return bcm_rx_cosq_mapping_set(
-      unit,
-      index,
-      reasons,
-      reasons_mask,
-      int_prio,
-      int_prio_mask, // internal priority match & mask
-      packet_type,
-      packet_type_mask, // packet type match & mask
-      cosq);
-#else
   bcm_rx_cosq_mapping_t cosqMap;
   bcm_rx_cosq_mapping_t_init(&cosqMap);
 
-#if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_22))
   if (BcmAPI::isPriorityKeyUsedInRxCosqMapping()) {
     // use bcm_rx_cosq_mapping_extended_set
     cosqMap.reasons = reasons;
@@ -392,7 +364,6 @@ int BcmControlPlane::rxCosqMappingExtendedSet(
     cosqMap.cosq = cosq;
     return bcm_rx_cosq_mapping_extended_set(unit, 0, &cosqMap);
   } // else use bcm_rx_cosq_mapping_extended_add
-#endif
 
   // remove existing entry with the table index to be used
   cosqMap.index = index;
@@ -421,18 +392,13 @@ int BcmControlPlane::rxCosqMappingExtendedSet(
   cosqMap.packet_type_mask = packet_type_mask;
   cosqMap.cosq = cosq;
   return bcm_rx_cosq_mapping_extended_add(unit, options, &cosqMap);
-#endif
 }
 
 // wrapper for bcm_rx_cosq_mapping_extended_delete
 int BcmControlPlane::rxCosqMappingExtendedDelete(
     int unit,
     bcm_rx_cosq_mapping_t* rx_cosq_mapping) {
-#if (!defined(IS_OPENNSA)) && (!defined(BCM_SDK_VERSION_GTE_6_5_20))
-  return bcm_rx_cosq_mapping_delete(unit, rx_cosq_mapping->index);
-#else
   return bcm_rx_cosq_mapping_extended_delete(unit, rx_cosq_mapping);
-#endif
 }
 
 void BcmControlPlane::updateQueueWatermarks(HwPortStats* portStats) {
