@@ -19,10 +19,8 @@
 #include <thrift/lib/cpp/util/EnumUtils.h>
 
 extern "C" {
-#include <bcm/port.h>
-#if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_20))
 #include <bcm/flexctr.h>
-#endif
+#include <bcm/port.h>
 }
 
 namespace {
@@ -47,7 +45,6 @@ uint8_t getMask(int value) {
   return std::max(static_cast<int>(ceil(log2(value))), 1);
 }
 
-#if defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_20)
 // Broadcom provided some reference code in CS00011199690 to implement the
 // details of egress queue counters.
 // TODO(joseph5wu) Need to ask Broadcom why using 1 here but 16 in IFP
@@ -252,7 +249,6 @@ void detachFromHW(int unit, bcm_gport_t gPort, uint32_t counterID) {
   XLOG(DBG1) << "Detached Egress Queue FlexCounter:" << counterID
              << " from port:" << gPort << " on Hardware";
 }
-#endif
 } // namespace
 
 namespace facebook::fboss {
@@ -275,7 +271,6 @@ BcmEgressQueueFlexCounter::BcmEgressQueueFlexCounter(
         numQueuesPerPort,
         ", which needs to be >= 1");
   }
-#if defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_20)
   // With FlexCounter feature in the new SDK, we can create one counter for all
   // queues of ports or cpu. Technically we can create one flex counter for each
   // port, but this doesn't utilize the new FlexCounter mechanism thoroughly.
@@ -311,19 +306,12 @@ BcmEgressQueueFlexCounter::BcmEgressQueueFlexCounter(
       totalIndexes);
   XLOG(DBG1) << "Successfully created Egress Queue FlexCounter:" << counterID_
              << " for total index num:" << totalIndexes;
-#if !defined(IS_OPENNSA) && defined(BCM_SDK_VERSION_GTE_6_5_22)
   if (!isForCPU_) {
     rv = bcm_pktio_txpmd_stat_attach(unit_, counterID_);
     bcmCheckError(
         rv,
         "Failed to attach egress queue flex counter to SOBMH packets sent from control plane");
   }
-#endif
-
-#else
-  throw FbossError(
-      "Current SDK version doesn't support creating Egress Queue FlexCounter");
-#endif
 }
 
 BcmEgressQueueFlexCounter::BcmEgressQueueFlexCounter(
@@ -339,7 +327,6 @@ BcmEgressQueueFlexCounter::BcmEgressQueueFlexCounter(
       isForCPU_(isForCPU) {}
 
 BcmEgressQueueFlexCounter::~BcmEgressQueueFlexCounter() {
-#if defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_20)
   // Unfortunately Brcm SDK is not able to provide an api to return the attached
   // ports of a specific flex counter, and our statsDataMap is only populated
   // after we call the attach() function during BcmPort initialization.
@@ -360,18 +347,14 @@ BcmEgressQueueFlexCounter::~BcmEgressQueueFlexCounter() {
     bcmCheckError(rv, "Failed to get gport for BCM port ", idx);
     detachFromHW(hw_->getUnit(), gPort, counterID_);
   }
-#if !defined(IS_OPENNSA) && defined(BCM_SDK_VERSION_GTE_6_5_22)
   if (!isForCPU_) {
     rv = bcm_pktio_txpmd_stat_detach(hw_->getUnit());
     bcmCheckError(
         rv, "Failed to detach egress queue flex counter from SOBMH packets");
   }
-#endif
-#endif
 }
 
 void BcmEgressQueueFlexCounter::attach(bcm_gport_t gPort) {
-#if defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_20)
   // It's safe to call the attach function even if the counter is already
   // attached to the port. Always call atach function here, so we can always
   // make sure the flex counter is attached in HW
@@ -422,16 +405,9 @@ void BcmEgressQueueFlexCounter::attach(bcm_gport_t gPort) {
     XLOG(DBG2) << "Attached EgressQueue FlexCounter:" << counterID_
                << " to port:" << gPort;
   }
-#else
-  throw FbossError(
-      "Current SDK version doesn't support ",
-      "attach Egress Queue FlexCounter to port:",
-      gPort);
-#endif
 }
 
 void BcmEgressQueueFlexCounter::detach(bcm_gport_t gPort) {
-#if defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_20)
   auto& statsDataMap = getStatsDataMap(isForCPU_);
   auto cachedPortIt = statsDataMap.find(gPort);
   if (cachedPortIt == statsDataMap.end()) {
@@ -454,18 +430,11 @@ void BcmEgressQueueFlexCounter::detach(bcm_gport_t gPort) {
     XLOG(DBG2) << "Detached EgressQueue FlexCounter:" << counterID_
                << " from port:" << gPort;
   }
-#else
-  throw FbossError(
-      "Current SDK version doesn't support ",
-      "detach Egress Queue FlexCounter from port:",
-      gPort);
-#endif
 }
 
 void BcmEgressQueueFlexCounter::getStats(
     bcm_gport_t gPort,
     [[maybe_unused]] BcmEgressQueueTrafficCounterStats& stats) {
-#if defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_20)
   auto& statsDataMap = getStatsDataMap(isForCPU_);
   auto statDataItr = statsDataMap.find(gPort);
   if (statDataItr == statsDataMap.end()) {
@@ -527,12 +496,6 @@ void BcmEgressQueueFlexCounter::getStats(
         (*queuesStatData)->indexes.size() - 1,
         cfg::StreamType::MULTICAST);
   }
-#else
-  throw FbossError(
-      "Current SDK version doesn't support ",
-      "get Egress Queue FlexCounter stats for port:",
-      gPort);
-#endif
 }
 
 bool BcmEgressQueueFlexCounter::isSupported(BcmCosQueueStatType type) {
@@ -570,13 +533,11 @@ BcmEgressQueueFlexCounterManager::BcmEgressQueueFlexCounterManager(
   BcmGetEgressQueueFlexCounterManagerData userData;
   setupFlexCounterData(userData.cpu, kNumCPUReservedPorts, numCPUQueues);
   setupFlexCounterData(userData.port, numPorts, numQueuesPerPort);
-#if defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_20)
   auto rv = bcm_flexctr_action_traverse(
       hw->getUnit(),
       &getEgressQueueFlexCountersCallback,
       static_cast<void*>(&userData));
   bcmCheckError(rv, "Failed to traverse flex counters for Egress Queue");
-#endif
 
   // Create a BcmEgressQueueFlexCounter only for cpu
   if (userData.cpu.counterID == 0) {
