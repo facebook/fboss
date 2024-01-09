@@ -125,21 +125,6 @@ TEST(ConfigValidatorTest, I2cDeviceConfig) {
   EXPECT_TRUE(ConfigValidator().isValidI2cDeviceConfig(i2cConfig));
 }
 
-TEST(ConfigValidatorTest, I2CDeviceType) {
-  auto i2cConfig = I2cDeviceConfig{};
-  i2cConfig.pmUnitScopedName() = "pm_unit";
-  i2cConfig.address() = "0x2f";
-  EXPECT_TRUE(ConfigValidator().isValidI2cDeviceConfig(i2cConfig));
-  i2cConfig.deviceType() = "SENSOR";
-  EXPECT_TRUE(ConfigValidator().isValidI2cDeviceConfig(i2cConfig));
-  i2cConfig.deviceType() = "EEPROM";
-  EXPECT_TRUE(ConfigValidator().isValidI2cDeviceConfig(i2cConfig));
-  i2cConfig.deviceType() = "";
-  EXPECT_TRUE(ConfigValidator().isValidI2cDeviceConfig(i2cConfig));
-  i2cConfig.deviceType() = "something_invalid";
-  EXPECT_FALSE(ConfigValidator().isValidI2cDeviceConfig(i2cConfig));
-}
-
 TEST(ConfigValidatorTest, Symlink) {
   EXPECT_FALSE(ConfigValidator().isValidSymlink(""));
   EXPECT_FALSE(ConfigValidator().isValidSymlink("/run/devma/sensors/sensor1"));

@@ -195,7 +195,7 @@ struct I2cDeviceConfig {
   2: string address;
   3: string kernelDeviceName;
   4: string pmUnitScopedName;
-  5: string deviceType;
+  5: bool isGpioChip;
   6: optional i32 numOutgoingChannels;
   7: bool hasBmcMac;
   8: bool hasCpuMac;

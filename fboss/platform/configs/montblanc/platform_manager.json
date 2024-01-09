@@ -2145,78 +2145,67 @@
           "busName": "INCOMING@0",
           "address": "0x76",
           "kernelDeviceName": "pmbus",
-          "pmUnitScopedName": "SMB_VRM1",
-          "deviceType": "SENSOR"
+          "pmUnitScopedName": "SMB_VRM1"
         },
         {
           "busName": "INCOMING@1",
           "address": "0x1d",
           "kernelDeviceName": "adc128d818",
-          "pmUnitScopedName": "SMB_VOLTAGE_MONITOR1",
-          "deviceType": "SENSOR"
+          "pmUnitScopedName": "SMB_VOLTAGE_MONITOR1"
         },
         {
           "busName": "INCOMING@1",
           "address": "0x1f",
           "kernelDeviceName": "adc128d818",
-          "pmUnitScopedName": "SMB_VOLTAGE_MONITOR2",
-          "deviceType": "SENSOR"
+          "pmUnitScopedName": "SMB_VOLTAGE_MONITOR2"
         },
         {
           "busName": "INCOMING@2",
           "address": "0x35",
           "kernelDeviceName": "adc128d818",
-          "pmUnitScopedName": "SMB_VOLTAGE_MONITOR3",
-          "deviceType": "SENSOR"
+          "pmUnitScopedName": "SMB_VOLTAGE_MONITOR3"
         },
         {
           "busName": "INCOMING@3",
           "address": "0x3e",
           "kernelDeviceName": "smbcpld",
-          "pmUnitScopedName": "SMB_CPLD",
-          "deviceType": "SENSOR"
+          "pmUnitScopedName": "SMB_CPLD"
         },
         {
           "busName": "INCOMING@4",
           "address": "0x7d",
           "kernelDeviceName": "mp2975",
-          "pmUnitScopedName": "SMB_VRM2",
-          "deviceType": "SENSOR"
+          "pmUnitScopedName": "SMB_VRM2"
         },
         {
           "busName": "INCOMING@5",
           "address": "0x7b",
           "kernelDeviceName": "mp2975",
-          "pmUnitScopedName": "SMB_VRM3",
-          "deviceType": "SENSOR"
+          "pmUnitScopedName": "SMB_VRM3"
         },
         {
           "busName": "SMB_DOM1_I2C_MASTER_34",
           "address": "0x48",
           "kernelDeviceName": "tmp1075",
-          "pmUnitScopedName": "SMB_TSENSOR1",
-          "deviceType": "SENSOR"
+          "pmUnitScopedName": "SMB_TSENSOR1"
         },
         {
           "busName": "SMB_DOM1_I2C_MASTER_34",
           "address": "0x49",
           "kernelDeviceName": "tmp1075",
-          "pmUnitScopedName": "SMB_TSENSOR2",
-          "deviceType": "SENSOR"
+          "pmUnitScopedName": "SMB_TSENSOR2"
         },
         {
           "busName": "SMB_DOM2_I2C_MASTER_34",
           "address": "0x4a",
           "kernelDeviceName": "tmp1075",
-          "pmUnitScopedName": "SMB_TSENSOR3",
-          "deviceType": "SENSOR"
+          "pmUnitScopedName": "SMB_TSENSOR3"
         },
         {
           "busName": "SMB_DOM2_I2C_MASTER_34",
           "address": "0x4b",
           "kernelDeviceName": "tmp1075",
-          "pmUnitScopedName": "SMB_TSENSOR4",
-          "deviceType": "SENSOR"
+          "pmUnitScopedName": "SMB_TSENSOR4"
         }
       ]
     },
@@ -2227,29 +2216,25 @@
           "busName": "INCOMING@1",
           "address": "0x49",
           "kernelDeviceName": "tmp1075",
-          "pmUnitScopedName": "FCB_T_TSENSOR1",
-          "deviceType": "SENSOR"
+          "pmUnitScopedName": "FCB_T_TSENSOR1"
         },
         {
           "busName": "INCOMING@1",
           "address": "0x4b",
           "kernelDeviceName": "tmp1075",
-          "pmUnitScopedName": "FCB_T_TSENSOR2",
-          "deviceType": "SENSOR"
+          "pmUnitScopedName": "FCB_T_TSENSOR2"
         },
         {
           "busName": "INCOMING@2",
           "address": "0x49",
           "kernelDeviceName": "tmp1075",
-          "pmUnitScopedName": "FCB_B_TSENSOR1",
-          "deviceType": "SENSOR"
+          "pmUnitScopedName": "FCB_B_TSENSOR1"
         },
         {
           "busName": "INCOMING@2",
           "address": "0x4b",
           "kernelDeviceName": "tmp1075",
-          "pmUnitScopedName": "FCB_B_TSENSOR2",
-          "deviceType": "SENSOR"
+          "pmUnitScopedName": "FCB_B_TSENSOR2"
         }
       ]
     }
