@@ -29,10 +29,7 @@ namespace facebook::fboss::platform::fan_service {
 class FanServiceHwTest : public ::testing::Test {
  public:
   void SetUp() override {
-    EXPECT_NO_THROW(
-        fanServiceImpl_ =
-            std::make_unique<FanServiceImpl>("" /*use ConfigLib()*/));
-
+    EXPECT_NO_THROW(fanServiceImpl_ = std::make_unique<FanServiceImpl>());
     auto fanServiceConfJson = ConfigLib().getFanServiceConfig();
     EXPECT_NO_THROW(
         apache::thrift::SimpleJSONSerializer::deserialize<FanServiceConfig>(

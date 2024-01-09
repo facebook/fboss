@@ -7,13 +7,12 @@
 
 namespace facebook::fboss::platform {
 /*
- * Creates an instance of WeutilInterface based on the eeprom name or path.
- * If path is specified, we ignore the eepromName and configFile.
+ * Creates an instance of WeutilInterface based on the eeprom name or
+ * eepromPath. If eepromPath is specified, we ignore the eepromName.
  */
 std::unique_ptr<WeutilInterface> createWeUtilIntf(
     const std::string& eepromName,
-    const std::string& eepromPath,
-    const std::string& configFile);
+    const std::string& eepromPath);
 
 /*
  * Get the EEPROM Names based on the default config of the platform.

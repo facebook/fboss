@@ -12,10 +12,7 @@
 #include <iostream>
 
 #include <fmt/core.h>
-#include <folly/FileUtil.h>
 #include <folly/String.h>
-#include <folly/dynamic.h>
-#include <folly/json.h>
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
@@ -28,18 +25,7 @@ using namespace folly::literals::shell_literals;
 namespace facebook::fboss::platform::fw_util {
 
 void FwUtilImpl::init() {
-  std::string fwUtilConfJson;
-  // Check if conf file name is set, if not, set the default name
-  if (confFileName_.empty()) {
-    XLOG(INFO) << "No config file was provided. Inferring from config_lib";
-    fwUtilConfJson = ConfigLib().getFwUtilConfig();
-  } else {
-    XLOG(INFO) << "Using config file: " << confFileName_;
-    if (!folly::readFile(confFileName_.c_str(), fwUtilConfJson)) {
-      throw std::runtime_error(
-          "Can not find firmware config file: " + confFileName_);
-    }
-  }
+  std::string fwUtilConfJson = ConfigLib().getFwUtilConfig();
   apache::thrift::SimpleJSONSerializer::deserialize<FwUtilConfig>(
       fwUtilConfJson, fwUtilConfig_);
 

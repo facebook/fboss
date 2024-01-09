@@ -19,12 +19,6 @@ DEFINE_int32(
     60,
     "Frequency at which the platform needs to be explored");
 
-DEFINE_string(
-    config_file,
-    "",
-    "Optional platform manager config file. "
-    "If this is empty, we pick the platform default config");
-
 DEFINE_bool(
     enable_pkg_mgmnt,
     true,
@@ -40,7 +34,7 @@ int main(int argc, char** argv) {
   fb303::registerFollyLoggingOptionHandlers();
   helpers::init(&argc, &argv);
 
-  auto config = Utils().getConfig(FLAGS_config_file);
+  auto config = Utils().getConfig();
 
   if (FLAGS_enable_pkg_mgmnt) {
     PkgUtils().processRpms(config);

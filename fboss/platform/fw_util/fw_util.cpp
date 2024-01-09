@@ -27,7 +27,7 @@ int main(int argc, char* argv[]) {
 
   helpers::init(&argc, &argv);
 
-  FwUtilImpl fwUtilImpl(FLAGS_config_file);
+  FwUtilImpl fwUtilImpl;
 
   // TODO: To be removed once XFN change the commands in their codes
   if (FLAGS_fw_action.empty()) {

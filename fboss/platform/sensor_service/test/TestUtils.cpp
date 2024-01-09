@@ -4,6 +4,7 @@
 #include <folly/dynamic.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
+#include "fboss/platform/config_lib/ConfigLib.h"
 #include "fboss/platform/sensor_service/test/TestUtils.h"
 
 using namespace facebook::fboss::platform::sensor_service;
@@ -86,8 +87,9 @@ std::string mockSensorData(const std::string& tmpPath) {
 std::unique_ptr<SensorServiceImpl> createSensorServiceImplForTest(
     const std::string& tmpDirPath,
     const std::string& source) {
-  return std::make_unique<SensorServiceImpl>(
-      mockSensorConfig(tmpDirPath, source));
+  auto mockSensorConfigFileName = mockSensorConfig(tmpDirPath, source);
+  FLAGS_config_file = mockSensorConfigFileName;
+  return std::make_unique<SensorServiceImpl>();
 }
 
 std::string createMockSensorDataFile(const std::string& tmpDirPath) {

@@ -56,7 +56,7 @@ void restartSensorService() {
 class FanSensorFsdbIntegrationTests : public ::testing::Test {
  public:
   void SetUp() override {
-    fanServiceImpl_ = std::make_unique<FanServiceImpl>("");
+    fanServiceImpl_ = std::make_unique<FanServiceImpl>();
   }
 
   void TearDown() override {

@@ -25,8 +25,7 @@ using namespace facebook::fboss::platform::fw_util_config;
 
 class FwUtilImpl {
  public:
-  explicit FwUtilImpl(const std::string& confFileName)
-      : confFileName_{confFileName} {
+  explicit FwUtilImpl() {
     init();
   }
   void printVersion(const std::string&);
@@ -42,9 +41,6 @@ class FwUtilImpl {
   void verifySha1sum(const std::string&, const std::string&);
 
  private:
-  // Firmware config file full path
-  std::string confFileName_{};
-
   FwUtilConfig fwUtilConfig_{};
 
   void init();

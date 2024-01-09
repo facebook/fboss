@@ -20,7 +20,7 @@ int main(int argc, char** argv) {
 
   helpers::init(&argc, &argv);
 
-  auto serviceImpl = std::make_shared<SensorServiceImpl>(FLAGS_config_file);
+  auto serviceImpl = std::make_shared<SensorServiceImpl>();
 
   // Fetch sensor data once to warmup
   serviceImpl->fetchSensorData();

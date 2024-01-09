@@ -45,7 +45,7 @@ struct SensorLiveData {
 
 class SensorServiceImpl {
  public:
-  explicit SensorServiceImpl(std::string confFileName);
+  explicit SensorServiceImpl();
   ~SensorServiceImpl();
 
   std::vector<SensorData> getSensorsData(
@@ -58,9 +58,6 @@ class SensorServiceImpl {
   }
 
  private:
-  // Sensor config file full path
-  std::string confFileName_{};
-
   SensorSource sensorSource_{SensorSource::LMSENSOR};
 
   SensorConfig sensorTable_{};

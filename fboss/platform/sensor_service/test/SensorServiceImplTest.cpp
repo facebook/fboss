@@ -7,6 +7,7 @@
 #include <gtest/gtest.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
+#include "fboss/platform/config_lib/ConfigLib.h"
 #include "fboss/platform/sensor_service/SensorServiceImpl.h"
 #include "fboss/platform/sensor_service/Utils.h"
 #include "fboss/platform/sensor_service/test/TestUtils.h"
@@ -65,7 +66,8 @@ TEST_F(SensorServiceImplTest, fetchAndCheckSensorDataSuccess) {
 
 TEST_F(SensorServiceImplTest, fetchAndCheckSensorDataSYFSFailure) {
   auto confFileName = mockSensorConfig(tmpDir_.path().string(), "sysfs");
-  auto sensorServiceImpl = std::make_shared<SensorServiceImpl>(confFileName);
+  FLAGS_config_file = confFileName;
+  auto sensorServiceImpl = std::make_shared<SensorServiceImpl>();
 
   // Test that sensor reads work as expected
   testFetchAndCheckSensorData(sensorServiceImpl, true);

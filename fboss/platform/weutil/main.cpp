@@ -67,8 +67,7 @@ int main(int argc, char* argv[]) {
   }
 
   try {
-    weutilInstance =
-        createWeUtilIntf(FLAGS_eeprom, FLAGS_path, FLAGS_config_file);
+    weutilInstance = createWeUtilIntf(FLAGS_eeprom, FLAGS_path);
   } catch (const std::exception& ex) {
     std::cout << "Failed creation of proper parser. " << ex.what() << std::endl;
     return 1;

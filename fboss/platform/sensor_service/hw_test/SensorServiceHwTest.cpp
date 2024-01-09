@@ -25,7 +25,7 @@ namespace facebook::fboss::platform::sensor_service {
 SensorServiceHwTest::~SensorServiceHwTest() = default;
 
 void SensorServiceHwTest::SetUp() {
-  sensorServiceImpl_ = std::make_shared<SensorServiceImpl>("");
+  sensorServiceImpl_ = std::make_shared<SensorServiceImpl>();
   sensorServiceHandler_ =
       std::make_shared<SensorServiceThriftHandler>(sensorServiceImpl_);
 

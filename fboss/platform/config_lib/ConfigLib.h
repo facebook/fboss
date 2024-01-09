@@ -5,6 +5,10 @@
 #include <optional>
 #include <string>
 
+#include <gflags/gflags.h>
+
+DECLARE_string(config_file);
+
 namespace facebook::fboss::platform {
 
 class ConfigLib {

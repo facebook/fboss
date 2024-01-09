@@ -8,19 +8,12 @@ using namespace facebook::fboss::platform::fbdevd;
 
 class FbdevdImpl {
  public:
-  FbdevdImpl() {
-    initPlatformConfig();
-  }
   ~FbdevdImpl();
-  explicit FbdevdImpl(const std::string& confFileName)
-      : confFileName_{confFileName} {
+  explicit FbdevdImpl() {
     initPlatformConfig();
   }
 
  private:
-  // Fbdevd config file full path
-  std::string confFileName_{};
-
   FbdevdConfig fbdevdConfig_;
 
   void initPlatformConfig();

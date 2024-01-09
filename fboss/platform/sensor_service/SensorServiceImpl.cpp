@@ -50,21 +50,8 @@ auto constexpr kHasReadFailure = "sensor_read.has.failures";
 } // namespace
 namespace facebook::fboss::platform::sensor_service {
 
-SensorServiceImpl::SensorServiceImpl(std::string confFileName)
-    : confFileName_(std::move(confFileName)) {
-  std::string sensorConfJson;
-  // Check if conf file name is set, if not, set the default name
-  if (confFileName_.empty()) {
-    XLOG(INFO) << "No config file was provided. Inferring from config_lib";
-    sensorConfJson = ConfigLib().getSensorServiceConfig();
-  } else {
-    XLOG(INFO) << "Using config file: " << confFileName_;
-    if (!folly::readFile(confFileName_.c_str(), sensorConfJson)) {
-      throw std::runtime_error(
-          "Can not find sensor config file: " + confFileName_);
-    }
-  }
-
+SensorServiceImpl::SensorServiceImpl() {
+  std::string sensorConfJson = ConfigLib().getSensorServiceConfig();
   XLOG(DBG2) << "Read sensor config: " << sensorConfJson;
 
   apache::thrift::SimpleJSONSerializer::deserialize<SensorConfig>(
@@ -77,8 +64,8 @@ SensorServiceImpl::SensorServiceImpl(std::string confFileName)
   } else if (sensorTable_.source() == kSourceSysfs) {
     sensorSource_ = SensorSource::SYSFS;
   } else {
-    throw std::runtime_error(folly::to<std::string>(
-        "Invalid source in ", confFileName_, " : ", *sensorTable_.source()));
+    throw std::runtime_error(
+        folly::to<std::string>("Invalid source : ", *sensorTable_.source()));
   }
 
   liveDataTable_.withWLock([&](auto& table) {

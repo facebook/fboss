@@ -35,7 +35,6 @@ add_fbthrift_cpp_library(
 
 add_library(fbdevd_lib
   fboss/platform/fbdevd/FbdevdImpl.cpp
-  fboss/platform/fbdevd/Flags.cpp
   fboss/platform/fbdevd/FruManager.cpp
   fboss/platform/fbdevd/I2cController.cpp
 )

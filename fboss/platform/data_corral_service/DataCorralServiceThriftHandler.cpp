@@ -25,8 +25,7 @@ void DataCorralServiceThriftHandler::getFruid(
   std::vector<FruIdData> vData;
 
   if (uncached || fruid_.empty()) {
-    fruid_ = createWeUtilIntf(
-                 "chassis" /*eepromName*/, "" /*eepromPath*/, "" /*configFile*/)
+    fruid_ = createWeUtilIntf("chassis" /*eepromName*/, "" /*eepromPath*/)
                  ->getInfo();
   }
 

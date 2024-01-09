@@ -17,7 +17,7 @@ namespace facebook::fboss::platform::fan_service {
 
 class FanServiceImpl {
  public:
-  explicit FanServiceImpl(const std::string& configFile);
+  explicit FanServiceImpl();
   ~FanServiceImpl() = default; // Make compiler happy in handling smart pointers
   // Runs Fan PWM control logic
   int controlFan();
@@ -51,7 +51,6 @@ class FanServiceImpl {
   uint64_t lastControlExecutionTimeSec_{0};
   // The timestamp of the last sensor data fetch
   uint64_t lastSensorFetchTimeSec_{0};
-  std::string confFileName_{};
 
   // The factory method to return the proper BSP object,
   // based on the platform type specified in config file

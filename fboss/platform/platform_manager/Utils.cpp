@@ -5,7 +5,6 @@
 #include <filesystem>
 #include <stdexcept>
 
-#include <folly/FileUtil.h>
 #include <folly/logging/xlog.h>
 #include <re2/re2.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
@@ -36,21 +35,9 @@ std::string getPlatformNameFromBios() {
 
 namespace facebook::fboss::platform::platform_manager {
 
-PlatformConfig Utils::getConfig(const std::string& configFile) {
-  std::string configJson;
-  if (configFile.empty()) {
-    XLOG(INFO) << "No config file was provided";
-    configJson =
-        ConfigLib().getPlatformManagerConfig(getPlatformNameFromBios());
-  } else {
-    XLOG(INFO) << "Using config file: " << configFile;
-    if (!folly::readFile(configFile.c_str(), configJson)) {
-      XLOG(ERR) << "Can not find platform_manager config file: " + configFile;
-      throw std::runtime_error(
-          "Can not find platform_manager config file: " + configFile);
-    }
-  }
-
+PlatformConfig Utils::getConfig() {
+  std::string configJson =
+      ConfigLib().getPlatformManagerConfig(getPlatformNameFromBios());
   PlatformConfig config;
   try {
     apache::thrift::SimpleJSONSerializer::deserialize<PlatformConfig>(

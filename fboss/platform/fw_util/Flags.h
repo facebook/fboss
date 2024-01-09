@@ -12,7 +12,6 @@
 
 #include <gflags/gflags.h>
 
-DECLARE_string(config_file);
 DECLARE_string(fw_target_name);
 DECLARE_string(fw_action);
 DECLARE_string(fw_binary_file);

@@ -23,11 +23,6 @@ DEFINE_int32(
     control_interval,
     5,
     "How often we will read sensors and change fan pwm");
-DEFINE_string(
-    config_file,
-    "",
-    "Optional platform fan service configuration file. "
-    "If not specified, default platform config will be used");
 
 FOLLY_INIT_LOGGING_CONFIG("fboss=DBG2; default:async=true");
 
@@ -36,7 +31,7 @@ int main(int argc, char** argv) {
   helpers::init(&argc, &argv);
 
   auto server = std::make_shared<apache::thrift::ThriftServer>();
-  auto fanServiceImpl = std::make_unique<FanServiceImpl>(FLAGS_config_file);
+  auto fanServiceImpl = std::make_unique<FanServiceImpl>();
   auto handler = std::make_shared<FanServiceHandler>(std::move(fanServiceImpl));
 
   folly::FunctionScheduler scheduler;

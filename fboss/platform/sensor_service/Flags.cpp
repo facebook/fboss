@@ -21,9 +21,3 @@ DEFINE_int32(
     "Interval (in seconds) for publishing stats");
 
 DEFINE_int32(thrift_port, 5970, "Port for the thrift service");
-
-DEFINE_string(
-    config_file,
-    "",
-    "Optional platform sensor configuration file. "
-    "If empty we pick the platform default config");

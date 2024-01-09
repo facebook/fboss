@@ -15,4 +15,3 @@
 DECLARE_uint32(sensor_fetch_interval);
 DECLARE_int32(stats_publish_interval);
 DECLARE_int32(thrift_port);
-DECLARE_string(config_file);

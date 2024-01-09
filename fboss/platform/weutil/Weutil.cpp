@@ -1,10 +1,6 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 #include "fboss/platform/weutil/Weutil.h"
 
-#include <ios>
-#include <string>
-
-#include <folly/FileUtil.h>
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
@@ -18,24 +14,10 @@
 namespace facebook::fboss::platform {
 
 namespace {
-/*
- * Get the WeutilConfig from configFile if specified or from ConfigLib.
- */
-weutil_config::WeutilConfig getWeUtilConfig(const std::string& configFile) {
+
+weutil_config::WeutilConfig getWeUtilConfig() {
   weutil_config::WeutilConfig thriftConfig;
-
-  std::string weutilConfigJson;
-  if (configFile.empty()) {
-    XLOG(INFO) << "No config file was provided. Inferring from config_lib";
-    weutilConfigJson = ConfigLib().getWeutilConfig();
-  } else {
-    XLOG(INFO) << "Using config file: " << configFile;
-    if (!folly::readFile(configFile.c_str(), weutilConfigJson)) {
-      throw std::runtime_error(
-          "Can not find weutil config file: " + configFile);
-    }
-  }
-
+  std::string weutilConfigJson = ConfigLib().getWeutilConfig();
   apache::thrift::SimpleJSONSerializer::deserialize<
       weutil_config::WeutilConfig>(weutilConfigJson, thriftConfig);
   XLOG(INFO) << apache::thrift::SimpleJSONSerializer::serialize<std::string>(
@@ -92,7 +74,6 @@ weutil_config::FruEepromConfig getFruEepromConfig(
 weutil_config::FruEepromConfig getFruEepromConfig(
     const std::string& eepromName,
     const std::string& eepromPath,
-    const std::string& configFile,
     const PlatformType platform) {
   weutil_config::FruEepromConfig fruEepromConfig;
 
@@ -105,13 +86,13 @@ weutil_config::FruEepromConfig getFruEepromConfig(
         fruEepromConfig.path() = "";
         fruEepromConfig.offset() = 0;
       } else {
-        auto thriftConfig = getWeUtilConfig(configFile);
+        auto thriftConfig = getWeUtilConfig();
         // use chassisEepromName specified in config file.
         fruEepromConfig = getFruEepromConfig(
             thriftConfig.chassisEepromName().value(), thriftConfig, platform);
       }
     } else {
-      auto thriftConfig = getWeUtilConfig(configFile);
+      auto thriftConfig = getWeUtilConfig();
       fruEepromConfig = getFruEepromConfig(eepromName, thriftConfig, platform);
     }
   }
@@ -120,7 +101,7 @@ weutil_config::FruEepromConfig getFruEepromConfig(
 } // namespace
 
 std::vector<std::string> getEepromNames() {
-  auto config = getWeUtilConfig("");
+  auto config = getWeUtilConfig();
   facebook::fboss::PlatformProductInfo prodInfo{FLAGS_fruid_filepath};
   prodInfo.initialize();
   return getEepromNames(config, prodInfo.getType());
@@ -128,13 +109,12 @@ std::vector<std::string> getEepromNames() {
 
 std::unique_ptr<WeutilInterface> createWeUtilIntf(
     const std::string& eepromName,
-    const std::string& eepromPath,
-    const std::string& configFile) {
+    const std::string& eepromPath) {
   facebook::fboss::PlatformProductInfo prodInfo{FLAGS_fruid_filepath};
   prodInfo.initialize();
   PlatformType platform = prodInfo.getType();
   weutil_config::FruEepromConfig fruEepromConfig =
-      getFruEepromConfig(eepromName, eepromPath, configFile, platform);
+      getFruEepromConfig(eepromName, eepromPath, platform);
   switch (platform) {
     case PlatformType::PLATFORM_DARWIN:
       return std::make_unique<WeutilDarwin>(fruEepromConfig.get_path());

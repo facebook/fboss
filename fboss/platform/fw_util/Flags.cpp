@@ -10,12 +10,6 @@
 
 #include "fboss/platform/fw_util/Flags.h"
 
-DEFINE_string(
-    config_file,
-    "",
-    "Optional platform fw_util configuration file. "
-    "If empty we pick the platform default config");
-
 DEFINE_string(fw_target_name, "", "The fpd name that needs to be programmed");
 DEFINE_string(
     fw_action,

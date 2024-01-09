@@ -1,13 +1,9 @@
 // Copyright 2021- Facebook. All rights reserved.
 
-// Implementation of FanServiceImpl class. Refer to .h file
-// for functional description
 #include "fboss/platform/fan_service/FanServiceImpl.h"
 
-#include <folly/FileUtil.h>
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
-#include <stdexcept>
 
 #include "common/time/Time.h"
 #include "fboss/platform/config_lib/ConfigLib.h"
@@ -21,26 +17,12 @@ auto constexpr kDefaultFanControlFrequencyInSec = 30;
 
 namespace facebook::fboss::platform::fan_service {
 
-FanServiceImpl::FanServiceImpl(const std::string& configFile)
-    : confFileName_(configFile) {
-  // Read Config
-  std::string fanServiceConfJson;
-  if (confFileName_.empty()) {
-    XLOG(INFO) << "No config file was provided. Inferring from config_lib";
-    fanServiceConfJson = ConfigLib().getFanServiceConfig();
-  } else {
-    XLOG(INFO) << "Using config file: " << confFileName_;
-    if (!folly::readFile(confFileName_.c_str(), fanServiceConfJson)) {
-      throw std::runtime_error(
-          "Can not find sensor config file: " + confFileName_);
-    }
-  }
-
+FanServiceImpl::FanServiceImpl() {
+  std::string fanServiceConfJson = ConfigLib().getFanServiceConfig();
   apache::thrift::SimpleJSONSerializer::deserialize<FanServiceConfig>(
       fanServiceConfJson, config_);
   XLOG(INFO) << apache::thrift::SimpleJSONSerializer::serialize<std::string>(
       config_);
-
   if (!Utils().isValidConfig(config_)) {
     XLOG(ERR) << "Invalid config! Aborting...";
     throw std::runtime_error("Invalid Config.  Aborting...");
