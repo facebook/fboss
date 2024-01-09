@@ -1341,15 +1341,8 @@ SaiQueueHandle* SaiPortManager::getQueueHandle(PortID swId, uint8_t queueId)
 }
 
 bool SaiPortManager::fecStatsSupported(PortID portId) const {
-  if (platform_->getAsic()->isSupported(HwAsic::Feature::SAI_FEC_COUNTERS) &&
-      utility::isReedSolomonFec(getFECMode(portId))) {
-#if defined(BRCM_SAI_SDK_XGS_AND_DNX) || defined(TAJO_SDK_VERSION_1_42_4) || \
-    defined(TAJO_SDK_VERSION_1_42_8) || defined(TAJO_SDK_VERSION_1_65_0) ||  \
-    defined(TAJO_SDK_VERSION_1_68_0)
-    return true;
-#endif
-  }
-  return false;
+  return platform_->getAsic()->isSupported(HwAsic::Feature::SAI_FEC_COUNTERS) &&
+      utility::isReedSolomonFec(getFECMode(portId));
 }
 
 bool SaiPortManager::fecCorrectedBitsSupported(PortID portId) const {
