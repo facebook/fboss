@@ -477,7 +477,6 @@ TEST_F(BcmPortTest, AssertL3Enabled) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-#if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_21))
 TEST_F(BcmPortTest, PortFdrStats) {
   // Feature supported in Tomahawk4 and above. This test is marked known bad
   // in platforms with unsupported ASICs.
@@ -498,7 +497,6 @@ TEST_F(BcmPortTest, PortFdrStats) {
   };
   verifyAcrossWarmBoots(setup, verify);
 }
-#endif
 
 TEST_F(BcmPortTest, SetInterPacketGapBits) {
   if (!getPlatform()->getPlatformMapping()->supportsInterPacketGapBits()) {

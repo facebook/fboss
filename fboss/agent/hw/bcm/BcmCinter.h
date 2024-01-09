@@ -694,12 +694,10 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       bcm_gport_t gPort,
       uint32 counterID) override;
   int bcm_stat_clear(int unit, bcm_port_t port) override;
-#if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_21))
   int bcm_port_fdr_config_set(
       int unit,
       bcm_port_t port,
       bcm_port_fdr_config_t* fdr_config) override;
-#endif
   int bcm_port_speed_set(int unit, bcm_port_t port, int speed) override;
   int bcm_l3_egress_destroy(int unit, bcm_if_t intf) override;
   int bcm_l3_egress_multipath_add(int unit, bcm_if_t mpintf, bcm_if_t intf)
@@ -1915,7 +1913,6 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
     return 0;
   }
 
-#if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_21))
   int bcm_port_fdr_config_get(
       int /* unit */,
       bcm_port_t /* port */,
@@ -1929,7 +1926,6 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       bcm_port_fdr_stats_t* /* fdr_stats */) override {
     return 0;
   }
-#endif
 
   int bcm_port_ifg_get(
       int /* unit */,
@@ -2153,10 +2149,8 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
 
   std::vector<std::string> cintForHint(bcm_field_hint_t hint);
 
-#if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_21))
   std::vector<std::string> cintForPortFdrConfig(
       bcm_port_fdr_config_t fdr_config);
-#endif
 
   /*
    * Synchronize access to data structures for access from multiple

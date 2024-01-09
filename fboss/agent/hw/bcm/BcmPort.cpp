@@ -79,7 +79,6 @@ using facebook::stats::MonotonicCounter;
 
 namespace {
 constexpr int kPfcDeadlockDetectionTimeMsecMax = 1500;
-#if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_21))
 /**
  * Size of a single page of codeword errors from bcm_port_fdr_stats_get()
  *
@@ -90,7 +89,6 @@ constexpr int kPfcDeadlockDetectionTimeMsecMax = 1500;
  * future.
  */
 static constexpr int kCodewordErrorsPageSize = 8;
-#endif
 
 bool hasPortQueueChanges(
     const shared_ptr<facebook::fboss::Port>& oldPort,
@@ -168,7 +166,6 @@ static void fdrStatConfigure(
     __attribute__((unused)) bcm_port_t port,
     __attribute__((unused)) bool enable,
     __attribute__((unused)) int symbErrSel = 0) {
-#if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_21))
   // See Broadcom case for PDF doc of FDR APIs: 12196665
   //
   // Normally, FEC corrects errors and counts code words it cannot correct.
@@ -223,7 +220,6 @@ static void fdrStatConfigure(
     bcm_port_fdr_stats_t fdr_stats;
     bcm_port_fdr_stats_get(unit, port, &fdr_stats);
   }
-#endif
 }
 
 static const std::string getFdrStatsKey(int errorsPerCodeword) {
@@ -1553,7 +1549,6 @@ void BcmPort::updateFecStats(
 }
 
 void BcmPort::updateFdrStats(__attribute__((unused)) std::chrono::seconds now) {
-#if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_21))
   if (!hw_->getPlatform()->getAsic()->isSupported(
           HwAsic::Feature::FEC_DIAG_COUNTERS)) {
     return;
@@ -1605,7 +1600,6 @@ void BcmPort::updateFdrStats(__attribute__((unused)) std::chrono::seconds now) {
     codewordErrorsPage_ = (codewordErrorsPage_ + 1) % pages;
     fdrStatConfigure(unit_, port_, true, codewordErrorsPage_);
   }
-#endif
 }
 
 void BcmPort::BcmPortStats::setQueueWaterMarks(
@@ -2398,7 +2392,6 @@ phy::FecMode BcmPort::getFECMode() const {
 }
 
 bool BcmPort::getFdrEnabled() const {
-#if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_21))
   if (!hw_->getPlatform()->getAsic()->isSupported(
           HwAsic::Feature::FEC_DIAG_COUNTERS)) {
     return false;
@@ -2414,9 +2407,6 @@ bool BcmPort::getFdrEnabled() const {
       port_);
 
   return fdr_config.fdr_enable;
-#else
-  return false;
-#endif
 }
 
 void BcmPort::initCustomStats() const {

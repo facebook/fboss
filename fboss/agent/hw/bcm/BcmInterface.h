@@ -254,7 +254,6 @@ class BcmInterface {
   virtual int
   bcm_port_stat_enable_set(int unit, bcm_gport_t port, int enable) = 0;
 
-#if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_21))
   virtual int bcm_port_fdr_config_set(
       int unit,
       bcm_port_t port,
@@ -269,7 +268,6 @@ class BcmInterface {
       int unit,
       bcm_port_t port,
       bcm_port_fdr_stats_t* fdr_stats) = 0;
-#endif
 
   virtual int bcm_vlan_default_get(int unit, bcm_vlan_t* vid_ptr) = 0;
 

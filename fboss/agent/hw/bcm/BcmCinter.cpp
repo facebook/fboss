@@ -172,12 +172,10 @@ void BcmCinter::setupGlobals() {
   };
   writeCintLines(std::move(pktioGlobals));
 #endif
-#if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_21))
   array<string, 1> fdrGlobals = {
       "bcm_port_fdr_config_t fdr_config",
   };
   writeCintLines(std::move(fdrGlobals));
-#endif
 }
 
 template <typename C>
@@ -576,14 +574,12 @@ vector<string> BcmCinter::cintForMirrorDestination(
   cintLines.push_back(to<string>(
       "mirror_dest.encap_truncate_profile_id = ",
       mirror_dest->encap_truncate_profile_id));
-#if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_21))
   cintLines.push_back(
       to<string>("mirror_dest.duplicate_pri = ", mirror_dest->duplicate_pri));
   cintLines.push_back(
       to<string>("mirror_dest.ip_proto = ", mirror_dest->ip_proto));
   cintLines.push_back(
       to<string>("mirror_dest.switch_id = ", mirror_dest->switch_id));
-#endif
 
   string srcMac, dstMac;
   string srcMacName, dstMacName;
@@ -915,30 +911,28 @@ vector<string> BcmCinter::cintForFlexctrConfig(
 vector<string> BcmCinter::cintForFlexCtrTrigger(
     bcm_flexctr_trigger_t& flexctr_trigger) {
   vector<string> cintLines = {
-    to<string>("flexctr_trigger.trigger_type=", flexctr_trigger.trigger_type),
-    to<string>("flexctr_trigger.period_num=", flexctr_trigger.period_num),
-    to<string>("flexctr_trigger.interval=", flexctr_trigger.interval),
-    to<string>("flexctr_trigger.object=", flexctr_trigger.object),
-    to<string>(
-        "flexctr_trigger.object_value_start=",
-        flexctr_trigger.object_value_start),
-    to<string>(
-        "flexctr_trigger.object_value_stop=",
-        flexctr_trigger.object_value_stop),
-    to<string>(
-        "flexctr_trigger.object_value_mask=",
-        flexctr_trigger.object_value_mask),
-#if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_21))
-    to<string>(
-        "flexctr_trigger.interval_shift=", flexctr_trigger.interval_shift),
-    to<string>("flexctr_trigger.interval_size=", flexctr_trigger.interval_size),
-    to<string>("flexctr_trigger.object_id=", flexctr_trigger.object_id),
-    to<string>(
-        "flexctr_trigger.action_count_stop=",
-        flexctr_trigger.action_count_stop),
-    to<string>("flexctr_trigger.flags=", flexctr_trigger.flags)
-#endif
-  };
+      to<string>("flexctr_trigger.trigger_type=", flexctr_trigger.trigger_type),
+      to<string>("flexctr_trigger.period_num=", flexctr_trigger.period_num),
+      to<string>("flexctr_trigger.interval=", flexctr_trigger.interval),
+      to<string>("flexctr_trigger.object=", flexctr_trigger.object),
+      to<string>(
+          "flexctr_trigger.object_value_start=",
+          flexctr_trigger.object_value_start),
+      to<string>(
+          "flexctr_trigger.object_value_stop=",
+          flexctr_trigger.object_value_stop),
+      to<string>(
+          "flexctr_trigger.object_value_mask=",
+          flexctr_trigger.object_value_mask),
+      to<string>(
+          "flexctr_trigger.interval_shift=", flexctr_trigger.interval_shift),
+      to<string>(
+          "flexctr_trigger.interval_size=", flexctr_trigger.interval_size),
+      to<string>("flexctr_trigger.object_id=", flexctr_trigger.object_id),
+      to<string>(
+          "flexctr_trigger.action_count_stop=",
+          flexctr_trigger.action_count_stop),
+      to<string>("flexctr_trigger.flags=", flexctr_trigger.flags)};
   return cintLines;
 }
 
@@ -951,38 +945,41 @@ vector<string> BcmCinter::cintForFlexCtrValueOperation(
   };
   for (int i = 0; i < BCM_FLEXCTR_OPERATION_OBJECT_SIZE; i++) {
     vector<string> operationCint = {
-      to<string>(
-          "flexctr_action.",
-          varname,
-          ".object[",
-          i,
-          "]=",
-          operation->object[i]),
-      to<string>(
-          "flexctr_action.",
-          varname,
-          ".quant_id[",
-          i,
-          "]=",
-          operation->quant_id[i]),
-      to<string>(
-          "flexctr_action.",
-          varname,
-          ".mask_size[",
-          i,
-          "]=",
-          operation->mask_size[i]),
-      to<string>(
-          "flexctr_action.", varname, ".shift[", i, "]=", operation->shift[i]),
-#if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_21))
-      to<string>(
-          "flexctr_action.",
-          varname,
-          ".object_id[",
-          i,
-          "]=",
-          operation->object_id[i]),
-#endif
+        to<string>(
+            "flexctr_action.",
+            varname,
+            ".object[",
+            i,
+            "]=",
+            operation->object[i]),
+        to<string>(
+            "flexctr_action.",
+            varname,
+            ".quant_id[",
+            i,
+            "]=",
+            operation->quant_id[i]),
+        to<string>(
+            "flexctr_action.",
+            varname,
+            ".mask_size[",
+            i,
+            "]=",
+            operation->mask_size[i]),
+        to<string>(
+            "flexctr_action.",
+            varname,
+            ".shift[",
+            i,
+            "]=",
+            operation->shift[i]),
+        to<string>(
+            "flexctr_action.",
+            varname,
+            ".object_id[",
+            i,
+            "]=",
+            operation->object_id[i]),
     };
     cintLines.insert(
         cintLines.end(),
@@ -1003,24 +1000,22 @@ vector<string> BcmCinter::cintForFlexCtrAction(
       make_move_iterator(pbmpCint.begin()),
       make_move_iterator(pbmpCint.end()));
   vector<string> structLines = {
-    "bcm_flexctr_action_t_init(&flexctr_action)",
-    to<string>("flexctr_action.flags=", flexctr_action->flags),
-    to<string>("flexctr_action.source=", flexctr_action->source),
-    to<string>("flexctr_action.ports=", pbmp),
-    to<string>("flexctr_action.hint=", flexctr_action->hint),
-    to<string>(
-        "flexctr_action.drop_count_mode=", flexctr_action->drop_count_mode),
-    to<string>(
-        "flexctr_action.exception_drop_count_enable=",
-        flexctr_action->exception_drop_count_enable),
-    to<string>(
-        "flexctr_action.egress_mirror_count_enable=",
-        flexctr_action->egress_mirror_count_enable),
-    to<string>("flexctr_action.mode=", flexctr_action->mode),
-#if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_21))
-    to<string>("flexctr_action.hint_ext=", flexctr_action->hint_ext),
-    to<string>("flexctr_action.index_num=", flexctr_action->index_num),
-#endif
+      "bcm_flexctr_action_t_init(&flexctr_action)",
+      to<string>("flexctr_action.flags=", flexctr_action->flags),
+      to<string>("flexctr_action.source=", flexctr_action->source),
+      to<string>("flexctr_action.ports=", pbmp),
+      to<string>("flexctr_action.hint=", flexctr_action->hint),
+      to<string>(
+          "flexctr_action.drop_count_mode=", flexctr_action->drop_count_mode),
+      to<string>(
+          "flexctr_action.exception_drop_count_enable=",
+          flexctr_action->exception_drop_count_enable),
+      to<string>(
+          "flexctr_action.egress_mirror_count_enable=",
+          flexctr_action->egress_mirror_count_enable),
+      to<string>("flexctr_action.mode=", flexctr_action->mode),
+      to<string>("flexctr_action.hint_ext=", flexctr_action->hint_ext),
+      to<string>("flexctr_action.index_num=", flexctr_action->index_num),
   };
   cintLines.insert(
       cintLines.end(),
@@ -1029,33 +1024,31 @@ vector<string> BcmCinter::cintForFlexCtrAction(
   // index_operation
   for (int i = 0; i < BCM_FLEXCTR_OPERATION_OBJECT_SIZE; i++) {
     vector<string> indexOperationCint = {
-      to<string>(
-          "flexctr_action.index_operation.object[",
-          i,
-          "]=",
-          flexctr_action->index_operation.object[i]),
-      to<string>(
-          "flexctr_action.index_operation.quant_id[",
-          i,
-          "]=",
-          flexctr_action->index_operation.quant_id[i]),
-      to<string>(
-          "flexctr_action.index_operation.mask_size[",
-          i,
-          "]=",
-          flexctr_action->index_operation.mask_size[i]),
-      to<string>(
-          "flexctr_action.index_operation.shift[",
-          i,
-          "]=",
-          flexctr_action->index_operation.shift[i]),
-#if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_21))
-      to<string>(
-          "flexctr_action.index_operation.object_id[",
-          i,
-          "]=",
-          flexctr_action->index_operation.object_id[i]),
-#endif
+        to<string>(
+            "flexctr_action.index_operation.object[",
+            i,
+            "]=",
+            flexctr_action->index_operation.object[i]),
+        to<string>(
+            "flexctr_action.index_operation.quant_id[",
+            i,
+            "]=",
+            flexctr_action->index_operation.quant_id[i]),
+        to<string>(
+            "flexctr_action.index_operation.mask_size[",
+            i,
+            "]=",
+            flexctr_action->index_operation.mask_size[i]),
+        to<string>(
+            "flexctr_action.index_operation.shift[",
+            i,
+            "]=",
+            flexctr_action->index_operation.shift[i]),
+        to<string>(
+            "flexctr_action.index_operation.object_id[",
+            i,
+            "]=",
+            flexctr_action->index_operation.object_id[i]),
     };
     cintLines.insert(
         cintLines.end(),
@@ -1083,7 +1076,6 @@ vector<string> BcmCinter::cintForFlexCtrAction(
       make_move_iterator(triggerCint.begin()),
       make_move_iterator(triggerCint.end()));
   cintLines.push_back(to<string>("flexctr_action.trigger=flexctr_trigger"));
-#if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_21))
   structLines = {
       to<string>("flexctr_action.hint_type=", flexctr_action->hint_type),
       to<string>("flexctr_action.base_pool_id=", flexctr_action->base_pool_id),
@@ -1093,7 +1085,6 @@ vector<string> BcmCinter::cintForFlexCtrAction(
       cintLines.end(),
       make_move_iterator(structLines.begin()),
       make_move_iterator(structLines.end()));
-#endif
   return cintLines;
 }
 
@@ -3620,7 +3611,6 @@ int BcmCinter::bcm_field_hints_get(
   return 0;
 }
 
-#if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_21))
 std::vector<std::string> BcmCinter::cintForPortFdrConfig(
     bcm_port_fdr_config_t fdr_config) {
   return {
@@ -3645,7 +3635,6 @@ int BcmCinter::bcm_port_fdr_config_set(
   }
   return 0;
 }
-#endif
 
 int BcmCinter::bcm_cosq_bst_stat_clear(
     int unit,
