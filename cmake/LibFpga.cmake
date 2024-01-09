@@ -30,6 +30,7 @@ target_link_libraries(fb_fpga_i2c
   facebook_fpga
   utils
   Folly::folly
+  i2c_controller_stats_cpp2
 )
 
 add_library(wedge400_fpga
