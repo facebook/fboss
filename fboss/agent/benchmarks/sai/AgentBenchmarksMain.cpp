@@ -9,7 +9,7 @@ namespace facebook::fboss {
 
 void initBenchmarks() {
   std::optional<facebook::fboss::cfg::StreamType> streamType = std::nullopt;
-#if defined(TAJO_SDK_VERSION_1_65_0)
+#if defined(TAJO_SDK_GTE_1_65_0)
   streamType = facebook::fboss::cfg::StreamType::UNICAST;
 #endif
   benchmarksMain(initSaiPlatform, streamType);

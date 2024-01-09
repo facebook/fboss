@@ -24,16 +24,14 @@ bool rxLockStatusSupportedInSdk() {
 }
 
 bool pcsRxLinkStatusSupportedInSdk() {
-#if defined(TAJO_SDK_VERSION_1_42_8) || defined(TAJO_SDK_VERSION_1_65_0) || \
-    defined(TAJO_SDK_VERSION_1_68_0)
+#if defined(TAJO_SAI_SDK)
   return true;
 #endif
   return false;
 }
 
 bool fecAlignmentLockSupportedInSdk() {
-#if defined(TAJO_SDK_VERSION_1_42_8) || defined(TAJO_SDK_VERSION_1_65_0) || \
-    defined(TAJO_SDK_VERSION_1_68_0)
+#if defined(TAJO_SAI_SDK)
   return true;
 #endif
   return false;

@@ -394,7 +394,7 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
        */
       bool addAllQualifiers = false;
       resolveNeigborAndProgramRoutes(*helper_, kEcmpWidth);
-#if defined(TAJO_SDK_VERSION_1_65_0) || defined(TAJO_SDK_VERSION_1_68_0)
+#if defined(TAJO_SDK_GTE_1_65_0)
       addAllQualifiers = true;
 #endif
 
@@ -555,7 +555,7 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
        */
       bool addAllQualifiers = false;
       resolveNeigborAndProgramRoutes(*helper_, kEcmpWidth);
-#if defined(TAJO_SDK_VERSION_1_65_0) || defined(TAJO_SDK_VERSION_1_68_0)
+#if defined(TAJO_SDK_GTE_1_65_0)
       addAllQualifiers = true;
 #endif
 
