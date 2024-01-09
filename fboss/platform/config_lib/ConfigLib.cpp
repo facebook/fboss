@@ -24,7 +24,13 @@ namespace {
 #ifndef IS_OSS
 std::string getPlatformName(const std::optional<std::string>& platformName) {
   if (platformName) {
-    return *platformName;
+    std::string platformNameLowerCase = *platformName;
+    std::transform(
+        platformNameLowerCase.begin(),
+        platformNameLowerCase.end(),
+        platformNameLowerCase.begin(),
+        ::tolower);
+    return platformNameLowerCase;
   }
   facebook::fboss::PlatformProductInfo productInfo(FLAGS_fruid_filepath);
   productInfo.initialize();
