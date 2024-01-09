@@ -2059,52 +2059,52 @@ int BcmCinter::bcm_udf_destroy(int unit, bcm_udf_id_t udf_id) {
 vector<string> BcmCinter::cintForBcmUdfPktFormatInfo(
     const bcm_udf_pkt_format_info_t& pktFormat) {
   vector<string> cintLines = {
-    "bcm_udf_pkt_format_info_t_init(&pktFormat)",
-    to<string>("pktFormat.prio=", pktFormat.prio),
-    to<string>("pktFormat.ethertype=", pktFormat.ethertype),
-    to<string>("pktFormat.ethertype_mask=", pktFormat.ethertype_mask),
-    to<string>("pktFormat.ip_protocol=", pktFormat.ip_protocol),
-    to<string>("pktFormat.ip_protocol_mask=", pktFormat.ip_protocol_mask),
-    to<string>("pktFormat.l2=", pktFormat.l2),
-    to<string>("pktFormat.vlan_tag=", pktFormat.vlan_tag),
-    to<string>("pktFormat.outer_ip=", pktFormat.outer_ip),
-    to<string>("pktFormat.inner_ip=", pktFormat.inner_ip),
-    to<string>("pktFormat.tunnel=", pktFormat.tunnel),
-    to<string>("pktFormat.mpls=", pktFormat.mpls),
-    to<string>("pktFormat.fibre_chan_outer=", pktFormat.fibre_chan_outer),
-    to<string>("pktFormat.fibre_chan_inner=", pktFormat.fibre_chan_inner),
-    to<string>("pktFormat.higig=", pktFormat.higig),
-    to<string>("pktFormat.vntag=", pktFormat.vntag),
-    to<string>("pktFormat.etag=", pktFormat.etag),
-    to<string>("pktFormat.cntag=", pktFormat.cntag),
-    to<string>("pktFormat.icnm=", pktFormat.icnm),
-    to<string>("pktFormat.subport_tag=", pktFormat.subport_tag),
-    to<string>("pktFormat.class_id=", pktFormat.class_id),
-    to<string>("pktFormat.inner_protocol=", pktFormat.inner_protocol),
-    to<string>("pktFormat.inner_protocol_mask=", pktFormat.inner_protocol_mask),
-    to<string>("pktFormat.l4_dst_port=", pktFormat.l4_dst_port),
-    to<string>("pktFormat.l4_dst_port_mask=", pktFormat.l4_dst_port_mask),
-    to<string>("pktFormat.opaque_tag_type=", pktFormat.opaque_tag_type),
-    to<string>(
-        "pktFormat.opaque_tag_type_mask=", pktFormat.opaque_tag_type_mask),
-    to<string>("pktFormat.int_pkt=", pktFormat.int_pkt),
-    to<string>("pktFormat.src_port=", pktFormat.src_port),
-    to<string>("pktFormat.src_port_mask=", pktFormat.src_port_mask),
-    to<string>("pktFormat.lb_pkt_type=", pktFormat.lb_pkt_type),
-    to<string>(
-        "pktFormat.first_2bytes_after_mpls_bos=",
-        pktFormat.first_2bytes_after_mpls_bos),
-    to<string>(
-        "pktFormat.first_2bytes_after_mpls_bos_mask=",
-        pktFormat.first_2bytes_after_mpls_bos_mask),
-    to<string>("pktFormat.outer_ifa=", pktFormat.outer_ifa),
-    to<string>("pktFormat.inner_ifa=", pktFormat.inner_ifa),
-#if (defined(BCM_SDK_VERSION_GTE_6_5_24))
-    to<string>("pktFormat.ip_gre_first_2bytes=", pktFormat.ip_gre_first_2bytes),
-    to<string>(
-        "pktFormat.ip_gre_first_2bytes_mask=",
-        pktFormat.ip_gre_first_2bytes_mask),
-#endif
+      "bcm_udf_pkt_format_info_t_init(&pktFormat)",
+      to<string>("pktFormat.prio=", pktFormat.prio),
+      to<string>("pktFormat.ethertype=", pktFormat.ethertype),
+      to<string>("pktFormat.ethertype_mask=", pktFormat.ethertype_mask),
+      to<string>("pktFormat.ip_protocol=", pktFormat.ip_protocol),
+      to<string>("pktFormat.ip_protocol_mask=", pktFormat.ip_protocol_mask),
+      to<string>("pktFormat.l2=", pktFormat.l2),
+      to<string>("pktFormat.vlan_tag=", pktFormat.vlan_tag),
+      to<string>("pktFormat.outer_ip=", pktFormat.outer_ip),
+      to<string>("pktFormat.inner_ip=", pktFormat.inner_ip),
+      to<string>("pktFormat.tunnel=", pktFormat.tunnel),
+      to<string>("pktFormat.mpls=", pktFormat.mpls),
+      to<string>("pktFormat.fibre_chan_outer=", pktFormat.fibre_chan_outer),
+      to<string>("pktFormat.fibre_chan_inner=", pktFormat.fibre_chan_inner),
+      to<string>("pktFormat.higig=", pktFormat.higig),
+      to<string>("pktFormat.vntag=", pktFormat.vntag),
+      to<string>("pktFormat.etag=", pktFormat.etag),
+      to<string>("pktFormat.cntag=", pktFormat.cntag),
+      to<string>("pktFormat.icnm=", pktFormat.icnm),
+      to<string>("pktFormat.subport_tag=", pktFormat.subport_tag),
+      to<string>("pktFormat.class_id=", pktFormat.class_id),
+      to<string>("pktFormat.inner_protocol=", pktFormat.inner_protocol),
+      to<string>(
+          "pktFormat.inner_protocol_mask=", pktFormat.inner_protocol_mask),
+      to<string>("pktFormat.l4_dst_port=", pktFormat.l4_dst_port),
+      to<string>("pktFormat.l4_dst_port_mask=", pktFormat.l4_dst_port_mask),
+      to<string>("pktFormat.opaque_tag_type=", pktFormat.opaque_tag_type),
+      to<string>(
+          "pktFormat.opaque_tag_type_mask=", pktFormat.opaque_tag_type_mask),
+      to<string>("pktFormat.int_pkt=", pktFormat.int_pkt),
+      to<string>("pktFormat.src_port=", pktFormat.src_port),
+      to<string>("pktFormat.src_port_mask=", pktFormat.src_port_mask),
+      to<string>("pktFormat.lb_pkt_type=", pktFormat.lb_pkt_type),
+      to<string>(
+          "pktFormat.first_2bytes_after_mpls_bos=",
+          pktFormat.first_2bytes_after_mpls_bos),
+      to<string>(
+          "pktFormat.first_2bytes_after_mpls_bos_mask=",
+          pktFormat.first_2bytes_after_mpls_bos_mask),
+      to<string>("pktFormat.outer_ifa=", pktFormat.outer_ifa),
+      to<string>("pktFormat.inner_ifa=", pktFormat.inner_ifa),
+      to<string>(
+          "pktFormat.ip_gre_first_2bytes=", pktFormat.ip_gre_first_2bytes),
+      to<string>(
+          "pktFormat.ip_gre_first_2bytes_mask=",
+          pktFormat.ip_gre_first_2bytes_mask),
 
   };
   return cintLines;

@@ -1253,7 +1253,6 @@ phy::PhyInfo BcmPort::updateIPhyInfo() {
     }
     pmdState.lanes_ref()[lane] = laneState;
   }
-#if defined(BCM_SDK_VERSION_GTE_6_5_24)
   if (hw_->getPlatform()->getAsic()->isSupported(
           HwAsic::Feature::PMD_RX_LOCK_STATUS)) {
     bcm_port_pmd_rx_lock_status_t lock_status;
@@ -1274,7 +1273,6 @@ phy::PhyInfo BcmPort::updateIPhyInfo() {
                 << bcm_errmsg(rv);
     }
   }
-#endif
 #if defined(BCM_SDK_VERSION_GTE_6_5_26)
   if (hw_->getPlatform()->getAsic()->isSupported(
           HwAsic::Feature::PMD_RX_SIGNAL_DETECT)) {
