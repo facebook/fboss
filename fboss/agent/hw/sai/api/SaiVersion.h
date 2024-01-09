@@ -30,20 +30,20 @@
 #endif
 
 /*
- *  Aggregate BRCM_SAI flags
+ *  Aggregate SDK Version flags
  *
  *  Purpose of this is try to minimize the SDK version flags scattering around
  * the code base. It's error prone and hard to maintain.
  *
- *  High-level flags:
+*  Apart from these, individual flags are available for versions greater than
+ * certain SDK. They will be useful for features being supported since a
+ * particular SDK version.
+
+ /*
+ *  High-level BCM-SDK flags:
  *   - BRCM_SAI_SDK_XGS: Flags for all XGS SDK versions
  *   - BRCM_SAI_SDK_DNX: Flags for DNX SDK versions
  *   - BRCM_SAI_SDK_XGS_AND_DNX: Flags for all BRCM-SAI SDK versions
- *
- *  Apart from these, individual flags are available for versions greater than
- * certain SDK. They will be useful for features being supported since a
- * particular SDK version.
- *
  */
 #if defined(SAI_VERSION_8_2_0_0_ODP) ||                                        \
     defined(SAI_VERSION_8_2_0_0_SIM_ODP) ||                                    \
@@ -84,4 +84,33 @@
 #if defined(BRCM_SAI_SDK_GTE_10_0) || defined BRCM_SAI_GTE_11_0 || \
     defined(SAI_VERSION_9_2_0_0_ODP) || defined(SAI_VERSION_9_0_EA_SIM_ODP)
 #define BRCM_SAI_SDK_GTE_9_2
+#endif
+
+/*
+ /*
+ *  High-level TAJO flags:
+ *   - TAJO_SDK_EBRO: Flags for all EBRO(GB) SDK
+ *   - TAJO_SDK_MORGAN: Flags for Morgan(G200) SDK
+ *   - TAJO_P4_WB_SDK: Flags for P4 WB SDK
+ *   - TAJO_SDK_GTE_1_65_0: Flags for SDK >= 1.65.0
+ *   - TAJO_SDK: Flags for all TAJO SDK
+ */
+#if defined(TAJO_SDK_VERSION_1_65_0)
+#define TAJO_P4_WB_SDK
+#endif
+
+#if defined(TAJO_SDK_VERSION_1_68_0)
+#define TAJO_SDK_MORGAN
+#endif
+
+#if defined(TAJO_SDK_VERSION_1_42_8) || defined(TAJO_SDK_VERSION_1_65_0)
+#define TAJO_SDK_EBRO
+#endif
+
+#if defined(TAJO_SDK_VERSION_1_65_0) || defined(TAJO_SDK_VERSION_1_68_0)
+#define TAJO_SDK_GTE_1_65_0
+#endif
+
+#if defined(TAJO_SDK_EBRO) || defined(TAJO_SDK_MORGAN)
+#define TAJO_SAI_SDK
 #endif
