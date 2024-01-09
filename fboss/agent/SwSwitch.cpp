@@ -776,6 +776,23 @@ void SwSwitch::updateTeFlowStats() {
       SwitchStats::kCounterPrefix + "teflows.inactive", inactiveFlows);
 }
 
+void SwSwitch::updatePortInfo() {
+  auto state = getState();
+  if (!state) {
+    return;
+  }
+  for (const auto& portMap : std::as_const(*state->getPorts())) {
+    for (const auto& port : std::as_const(*portMap.second)) {
+      fb303::fbData->setCounter(
+          "port." + port.second->getName() + ".speed",
+          static_cast<int64_t>(port.second->getSpeed()) * 1'000'000ul);
+      std::string idKey =
+          folly::to<std::string>("port.", port.second->getID(), ".name");
+      fb303::fbData->setExportedValue(idKey, port.second->getName());
+    }
+  }
+}
+
 void SwSwitch::updateMultiSwitchGlobalFb303Stats() {
   // Stats aggregation done only when multiple switches are present
   if (!getScopeResolver()->hasMultipleSwitches()) {
