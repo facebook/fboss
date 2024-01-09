@@ -10,6 +10,7 @@
 #include "fboss/qsfp_service/StatsPublisher.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
 #include "fboss/qsfp_service/test/hw_test/HwExternalPhyPortTest.h"
+#include "fboss/qsfp_service/test/hw_test/HwPortUtils.h"
 #include "fboss/qsfp_service/test/hw_test/HwQsfpEnsemble.h"
 #include "fboss/qsfp_service/test/hw_test/HwTest.h"
 
@@ -35,6 +36,17 @@ int getSleepSeconds(PlatformType platformMode) {
     sleepSeconds = 60;
   }
   return sleepSeconds;
+}
+
+std::string ioStatsString(const TransceiverStats& stats) {
+  return folly::sformat(
+      "numReadAttempted = {}, numReadFailed = {}, numWriteAttempted = {}, numWriteFailed = {}, readDownTime = {}, writeDownTime = {}",
+      stats.get_numReadAttempted(),
+      stats.get_numReadFailed(),
+      stats.get_numWriteAttempted(),
+      stats.get_numWriteFailed(),
+      stats.get_readDownTime(),
+      stats.get_writeDownTime());
 }
 } // namespace
 
@@ -282,5 +294,70 @@ TEST_F(HwXphyPrbsStatsCollectionTest, getSystemPrbsStats) {
 }
 TEST_F(HwXphyPrbsStatsCollectionTest, getLinePrbsStats) {
   runTest(phy::Side::LINE);
+}
+
+TEST_F(HwTest, transceiverIOStats) {
+  /*
+   * 1. Refresh transceivers
+   * 2. Get the transceiver IO stats
+   * 3. Refresh transceivers again
+   * 4. Get the transceiver IO stats again
+   * 5. Compare the stats.
+   *    The read attempted counters should increment for all transceivers.
+   *    The write attempted counters should increment only for CMIS optics as we
+   *    change pages during refresh on them.
+   *    readFailed and writeFailed should not increment at all
+   */
+  auto wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
+  wedgeManager->refreshStateMachines();
+  auto tcvrs = utility::legacyTransceiverIds(
+      utility::getCabledPortTranceivers(getHwQsfpEnsemble()));
+
+  std::unordered_map<int32_t, TransceiverStats> tcvrStatsBefore;
+
+  for (auto tcvrID : tcvrs) {
+    auto tcvrInfo = getHwQsfpEnsemble()->getWedgeManager()->getTransceiverInfo(
+        TransceiverID(tcvrID));
+    auto& tcvrStats = *tcvrInfo.tcvrStats();
+    CHECK(tcvrStats.stats());
+    tcvrStatsBefore[tcvrID] = *tcvrStats.stats();
+  }
+
+  wedgeManager->refreshStateMachines();
+  for (auto tcvrID : tcvrs) {
+    auto tcvrInfo = getHwQsfpEnsemble()->getWedgeManager()->getTransceiverInfo(
+        TransceiverID(tcvrID));
+    auto& tcvrState = *tcvrInfo.tcvrState();
+    auto& tcvrStats = *tcvrInfo.tcvrStats();
+    auto& mgmtInterface = tcvrState.transceiverManagementInterface().ensure();
+    auto& cable = tcvrState.cable().ensure();
+    TransceiverStats& tcvrStatsAfter = tcvrStats.stats().ensure();
+
+    XLOG(DBG3) << "tcvrID: " << tcvrID << " Stats Before Refresh: "
+               << ioStatsString(tcvrStatsBefore[tcvrID]);
+    XLOG(DBG3) << "tcvrID: " << tcvrID
+               << " Stats After Refresh: " << ioStatsString(tcvrStatsAfter);
+    EXPECT_EQ(tcvrStatsAfter.get_readDownTime(), 0);
+    EXPECT_EQ(tcvrStatsAfter.get_writeDownTime(), 0);
+    EXPECT_EQ(
+        tcvrStatsAfter.get_numReadFailed(),
+        tcvrStatsBefore[tcvrID].get_numReadFailed());
+    EXPECT_EQ(
+        tcvrStatsAfter.get_numWriteFailed(),
+        tcvrStatsBefore[tcvrID].get_numWriteFailed());
+    EXPECT_GT(
+        tcvrStatsAfter.get_numReadAttempted(),
+        tcvrStatsBefore[tcvrID].get_numReadAttempted());
+    if (mgmtInterface == TransceiverManagementInterface::CMIS &&
+        cable.get_transmitterTech() == TransmitterTechnology::OPTICAL) {
+      EXPECT_GT(
+          tcvrStatsAfter.get_numWriteAttempted(),
+          tcvrStatsBefore[tcvrID].get_numWriteAttempted());
+    } else {
+      EXPECT_GE(
+          tcvrStatsAfter.get_numWriteAttempted(),
+          tcvrStatsBefore[tcvrID].get_numWriteAttempted());
+    }
+  }
 }
 } // namespace facebook::fboss
