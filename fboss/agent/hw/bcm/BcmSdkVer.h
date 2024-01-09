@@ -18,9 +18,6 @@
   (100000 * (major) + 1000 * (minor) + (micro))
 #define BCM_SDK_VERSION \
   BCM_VERSION(BCM_VER_MAJOR, BCM_VER_MINOR, BCM_VER_RELEASE)
-#if (BCM_SDK_VERSION >= BCM_VERSION(6, 5, 22))
-#define BCM_SDK_VERSION_GTE_6_5_22
-#endif
 #if (BCM_SDK_VERSION >= BCM_VERSION(6, 5, 24))
 #define BCM_SDK_VERSION_GTE_6_5_24
 #endif

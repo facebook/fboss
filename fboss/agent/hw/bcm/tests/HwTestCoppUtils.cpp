@@ -195,15 +195,7 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
       std::vector<cfg::CounterType> counterTypes{cfg::CounterType::PACKETS};
       utility::addTrafficCounter(
           &config, kMplsDestNoMatchCounterName, counterTypes);
-#if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_22))
       auto queue = utility::kCoppLowPriQueueId;
-#else
-      // TODO: Due to an sdk bug (CS00012171265), cannot use queue 0 (low pri)
-      // in TH4 until 6.5.22. Remove this hack once we fully upgrade to 6.5.22
-      auto queue = hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK4
-          ? utility::kCoppMidPriQueueId
-          : utility::kCoppLowPriQueueId;
-#endif
       auto action = createQueueMatchAction(queue, getCpuActionType(hwAsic));
       action.counter() = kMplsDestNoMatchCounterName;
       acls.emplace_back(acl, action);
