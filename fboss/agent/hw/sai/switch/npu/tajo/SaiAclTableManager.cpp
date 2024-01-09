@@ -15,7 +15,7 @@ sai_uint32_t SaiAclTableManager::swPriorityToSaiPriority(int priority) const {
    * https://github.com/opencomputeproject/SAI/blob/master/doc/SAI-Proposal-ACL-1.md
    */
   sai_uint32_t saiPriority;
-#if defined(TAJO_SDK_VERSION_1_42_1) || defined(TAJO_SDK_VERSION_1_42_8)
+#if defined(TAJO_SDK_VERSION_1_42_8)
   /*
    * For pre SDK1.6x based code for TAJO, maintain status quo. This is
    * to avoid a disruption during warm boot due to priority change of
@@ -84,7 +84,7 @@ sai_uint32_t SaiAclTableManager::swPriorityToSaiPriority(int priority) const {
 #endif
 
   if (saiPriority < aclEntryMinimumPriority_
-#if !defined(TAJO_SDK_VERSION_1_42_1) && !defined(TAJO_SDK_VERSION_1_42_8)
+#if !defined(TAJO_SDK_VERSION_1_42_8)
       || saiPriority > aclEntryMaximumPriority_
 #endif
   ) {

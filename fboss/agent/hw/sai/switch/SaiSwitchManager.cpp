@@ -614,7 +614,7 @@ bool SaiSwitchManager::isGlobalQoSMapSupported() const {
 }
 
 bool SaiSwitchManager::isMplsQoSMapSupported() const {
-#if defined(TAJO_SDK_VERSION_1_42_1) || defined(TAJO_SDK_VERSION_1_42_8)
+#if defined(TAJO_SDK_VERSION_1_42_8)
   return false;
 #endif
   return platform_->getAsic()->isSupported(HwAsic::Feature::SAI_MPLS_QOS);

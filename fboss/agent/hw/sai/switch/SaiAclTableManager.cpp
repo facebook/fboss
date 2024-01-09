@@ -1042,7 +1042,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   if (fieldSrcPort.has_value()) {
     auto srcPortQualifierSupported = platform_->getAsic()->isSupported(
         HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER);
-#if defined(TAJO_SDK_VERSION_1_42_1) || defined(TAJO_SDK_VERSION_1_42_8)
+#if defined(TAJO_SDK_VERSION_1_42_8)
     srcPortQualifierSupported = false;
 #endif
     matcherIsValid &= srcPortQualifierSupported;
@@ -1554,7 +1554,7 @@ void SaiAclTableManager::recreateAclTable(
     const SaiAclTableTraits::CreateAttributes& newAttributes) {
   bool aclTableUpdateSupport =
       platform_->getAsic()->isSupported(HwAsic::Feature::SAI_ACL_TABLE_UPDATE);
-#if defined(TAJO_SDK_VERSION_1_42_1) || defined(TAJO_SDK_VERSION_1_42_8)
+#if defined(TAJO_SDK_VERSION_1_42_8)
   aclTableUpdateSupport = false;
 #endif
   if (!aclTableUpdateSupport) {

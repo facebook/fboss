@@ -124,7 +124,7 @@ std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueues(
   }
 
   if (hwAsic->isSupported(HwAsic::Feature::SAI_MPLS_TTL_1_TRAP)) {
-#if !defined(TAJO_SDK_VERSION_1_42_1) && !defined(TAJO_SDK_VERSION_1_42_8)
+#if !defined(TAJO_SDK_VERSION_1_42_8)
     rxReasonToQueues.push_back(ControlPlane::makeRxReasonToQueueEntry(
         cfg::PacketRxReason::MPLS_TTL_1, kCoppLowPriQueueId));
 #endif

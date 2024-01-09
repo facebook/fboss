@@ -47,7 +47,7 @@ void SaiDebugCounterManager::setupPortL3BlackHoleCounter() {
 void SaiDebugCounterManager::setupMPLSLookupFailedCounter() {
   bool mplsLookupFailCounterSupport = platform_->getAsic()->isSupported(
       HwAsic::Feature::SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER);
-#if defined(TAJO_SDK_VERSION_1_42_1) || defined(TAJO_SDK_VERSION_1_42_8)
+#if defined(TAJO_SDK_VERSION_1_42_8)
   mplsLookupFailCounterSupport = false;
 #endif
   if (!mplsLookupFailCounterSupport) {

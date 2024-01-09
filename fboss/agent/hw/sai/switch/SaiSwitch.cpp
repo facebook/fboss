@@ -896,7 +896,7 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
 
   bool multipleAclTableSupport =
       platform_->getAsic()->isSupported(HwAsic::Feature::MULTIPLE_ACL_TABLES);
-#if defined(TAJO_SDK_VERSION_1_42_1) || defined(TAJO_SDK_VERSION_1_42_8)
+#if defined(TAJO_SDK_VERSION_1_42_8)
   multipleAclTableSupport = false;
 #endif
   if (FLAGS_enable_acl_table_group && multipleAclTableSupport) {
@@ -928,7 +928,7 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
     }
     bool aclTableUpdateSupport = platform_->getAsic()->isSupported(
         HwAsic::Feature::SAI_ACL_TABLE_UPDATE);
-#if defined(TAJO_SDK_VERSION_1_42_1) || defined(TAJO_SDK_VERSION_1_42_8)
+#if defined(TAJO_SDK_VERSION_1_42_8)
     aclTableUpdateSupport = false;
 #endif
     if (!oldRequiredQualifiers.empty() &&
