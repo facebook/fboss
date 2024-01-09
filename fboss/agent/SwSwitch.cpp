@@ -744,6 +744,38 @@ void SwSwitch::updateStats() {
       getLookupClassUpdater()->getMaxNumHostsPerQueue());
 }
 
+void SwSwitch::updateRouteStats() {
+  // updateRouteStats() could be called before we are getting the first state
+  auto state = getState();
+  if (!state) {
+    return;
+  }
+  auto [v4Count, v6Count] = getRouteCount(state);
+  fb303::fbData->setCounter(SwitchStats::kCounterPrefix + "routes.v4", v4Count);
+  fb303::fbData->setCounter(SwitchStats::kCounterPrefix + "routes.v6", v6Count);
+}
+
+void SwSwitch::updateTeFlowStats() {
+  // updateTeFlowStats() could be called before we are getting the first state
+  auto state = getState();
+  if (!state) {
+    return;
+  }
+  auto multiTeFlowTable = state->getTeFlowTable();
+  fb303::fbData->setCounter(
+      SwitchStats::kCounterPrefix + "teflows", multiTeFlowTable->numNodes());
+  auto inactiveFlows = 0;
+  for (const auto& [_, teFlowTable] : std::as_const(*multiTeFlowTable)) {
+    for (const auto& [flowStr, flow] : std::as_const(*teFlowTable)) {
+      if (!flow->getEnabled()) {
+        inactiveFlows++;
+      }
+    }
+  }
+  fb303::fbData->setCounter(
+      SwitchStats::kCounterPrefix + "teflows.inactive", inactiveFlows);
+}
+
 void SwSwitch::updateMultiSwitchGlobalFb303Stats() {
   // Stats aggregation done only when multiple switches are present
   if (!getScopeResolver()->hasMultipleSwitches()) {
