@@ -7,6 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include "fboss/lib/CommonUtils.h"
 #include "fboss/qsfp_service/StatsPublisher.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
 #include "fboss/qsfp_service/test/hw_test/HwExternalPhyPortTest.h"
@@ -38,7 +39,8 @@ int getSleepSeconds(PlatformType platformMode) {
   return sleepSeconds;
 }
 
-std::string ioStatsString(const TransceiverStats& stats) {
+template <typename IOStatsType>
+std::string ioStatsString(const IOStatsType& stats) {
   return folly::sformat(
       "numReadAttempted = {}, numReadFailed = {}, numWriteAttempted = {}, numWriteFailed = {}, readDownTime = {}, writeDownTime = {}",
       stats.get_numReadAttempted(),
@@ -334,9 +336,9 @@ TEST_F(HwTest, transceiverIOStats) {
     TransceiverStats& tcvrStatsAfter = tcvrStats.stats().ensure();
 
     XLOG(DBG3) << "tcvrID: " << tcvrID << " Stats Before Refresh: "
-               << ioStatsString(tcvrStatsBefore[tcvrID]);
-    XLOG(DBG3) << "tcvrID: " << tcvrID
-               << " Stats After Refresh: " << ioStatsString(tcvrStatsAfter);
+               << ioStatsString<TransceiverStats>(tcvrStatsBefore[tcvrID]);
+    XLOG(DBG3) << "tcvrID: " << tcvrID << " Stats After Refresh: "
+               << ioStatsString<TransceiverStats>(tcvrStatsAfter);
     EXPECT_EQ(tcvrStatsAfter.get_readDownTime(), 0);
     EXPECT_EQ(tcvrStatsAfter.get_writeDownTime(), 0);
     EXPECT_EQ(
@@ -358,6 +360,95 @@ TEST_F(HwTest, transceiverIOStats) {
           tcvrStatsAfter.get_numWriteAttempted(),
           tcvrStatsBefore[tcvrID].get_numWriteAttempted());
     }
+  }
+}
+
+class PhyIOTest : public HwExternalPhyPortTest {
+ public:
+  const std::vector<phy::ExternalPhy::Feature>& neededFeatures()
+      const override {
+    static const std::vector<phy::ExternalPhy::Feature> kNeededFeatures = {
+        phy::ExternalPhy::Feature::PORT_STATS};
+    return kNeededFeatures;
+  }
+};
+
+TEST_F(PhyIOTest, phyIOStats) {
+  /*
+   * 1. Update all phy stats
+   * 2. Get the phy IO stats
+   * 3. Update all phy stats again
+   * 4. Get the phy IO stats again
+   * 5. Compare the stats.
+   *    The read and write attempted counters should increment
+   *    readFailed and writeFailed should not increment at all
+   */
+  auto wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
+
+  std::unordered_map<PortID, phy::PhyInfo> phyInfoBefore;
+  const auto& availableXphyPorts = findAvailableXphyPorts();
+
+  auto allPhyStatsUpdated =
+      [&](std::unordered_map<PortID, phy::PhyInfo>& phyInfoToCompare) {
+        for (auto [portID, _] : availableXphyPorts) {
+          try {
+            auto phyInfo = wedgeManager->getXphyInfo(portID);
+            // Make sure the timestamp advances
+            if (phyInfoToCompare.find(portID) != phyInfoToCompare.end() &&
+                phyInfo.stats()->get_timeCollected() <=
+                    phyInfoToCompare[portID].stats()->get_timeCollected()) {
+              return false;
+            }
+          } catch (...) {
+            return false;
+          }
+        }
+        return true;
+      };
+  auto waitForAllPhyStatsToBeUpdated =
+      [allPhyStatsUpdated](
+          std::unordered_map<PortID, phy::PhyInfo>& phyInfoToCompare) {
+        WITH_RETRIES_N_TIMED(
+            20 /* retries */,
+            std::chrono::milliseconds(10000) /* msBetweenRetry */,
+            { ASSERT_EVENTUALLY_TRUE(allPhyStatsUpdated(phyInfoToCompare)); });
+      };
+
+  wedgeManager->updateAllXphyPortsStats();
+  // updateAllXphyPortsStats asynchronously updates phy stats, so wait until
+  // stats are updated
+  waitForAllPhyStatsToBeUpdated(phyInfoBefore);
+
+  for (auto [portID, _] : availableXphyPorts) {
+    phyInfoBefore[portID] = wedgeManager->getXphyInfo(portID);
+  }
+
+  wedgeManager->updateAllXphyPortsStats();
+  // updateAllXphyPortsStats asynchronously updates phy stats, so wait until
+  // stats are updated
+  waitForAllPhyStatsToBeUpdated(phyInfoBefore);
+  for (auto [portID, _] : availableXphyPorts) {
+    auto phyInfo = wedgeManager->getXphyInfo(portID);
+    auto& phyStats = *phyInfo.stats();
+    auto ioStatsAfter = *phyStats.ioStats();
+    auto ioStatsBefore = *phyInfoBefore[portID].stats()->ioStats();
+
+    XLOG(DBG3) << "portID: " << portID
+               << " Stats Before: " << ioStatsString<IOStats>(ioStatsBefore);
+    XLOG(DBG3) << "portID: " << portID
+               << " Stats After: " << ioStatsString<IOStats>(ioStatsAfter);
+    EXPECT_EQ(ioStatsAfter.get_readDownTime(), 0);
+    EXPECT_EQ(ioStatsAfter.get_writeDownTime(), 0);
+    EXPECT_EQ(
+        ioStatsAfter.get_numReadFailed(), ioStatsBefore.get_numReadFailed());
+    EXPECT_EQ(
+        ioStatsAfter.get_numWriteFailed(), ioStatsBefore.get_numWriteFailed());
+    EXPECT_GT(
+        ioStatsAfter.get_numReadAttempted(),
+        ioStatsBefore.get_numReadAttempted());
+    EXPECT_GT(
+        ioStatsAfter.get_numWriteAttempted(),
+        ioStatsBefore.get_numWriteAttempted());
   }
 }
 } // namespace facebook::fboss
