@@ -622,6 +622,7 @@ void PhyManager::updatePortStats(
               xphy->getPortInfo(systemLanes, lineLanes, lastPhyInfo);
           xphyPortInfo.state()->name() = getPortName(portID);
           xphyPortInfo.state()->speed() = programmedSpeed;
+          xphyPortInfo.stats()->ioStats() = xphy->getIOStats();
           stats = phy::ExternalPhyPortStats::fromPhyInfo(xphyPortInfo);
           updateXphyInfo(portID, std::move(xphyPortInfo));
         } else {

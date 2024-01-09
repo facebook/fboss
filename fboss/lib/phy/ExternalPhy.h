@@ -18,6 +18,7 @@
 #include "fboss/agent/gen-cpp2/platform_config_types.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/AlertLogger.h"
+#include "fboss/lib/IOStatsRecorder.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "folly/dynamic.h"
 
@@ -208,6 +209,10 @@ class ExternalPhy {
   virtual ExternalPhyPortStats getPortStats(
       const std::vector<LaneID>& sysLanes,
       const std::vector<LaneID>& lineLanes) = 0;
+
+  virtual IOStats getIOStats() {
+    return IOStats();
+  }
 
   virtual PhyInfo getPortInfo(
       const std::vector<LaneID>& /* sysLanes */,

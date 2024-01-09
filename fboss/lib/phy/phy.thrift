@@ -13,6 +13,7 @@ include "fboss/qsfp_service/if/transceiver.thrift"
 include "common/fb303/if/fb303.thrift"
 include "fboss/agent/if/fboss.thrift"
 include "fboss/lib/phy/prbs.thrift"
+include "fboss/lib/if/io_stats.thrift"
 
 enum IpModulation {
   NRZ = 1,
@@ -468,6 +469,7 @@ struct PhyStats {
   1: optional PhySideStats system;
   2: PhySideStats line;
   3: optional i64 linkFlapCount;
+  9: io_stats.IOStats ioStats;
   10: i32 timeCollected;
 }
 

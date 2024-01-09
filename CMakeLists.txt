@@ -367,6 +367,7 @@ add_fbthrift_cpp_library(
     transceiver_cpp2
     fboss_cpp2
     fb303_cpp2
+    io_stats_cpp2
 )
 add_fbthrift_cpp_library(
   optic_cpp2
@@ -501,6 +502,9 @@ add_fbthrift_cpp_library(
 add_fbthrift_cpp_library(
   io_stats_cpp2
   fboss/lib/if/io_stats.thrift
+  OPTIONS
+    json
+    reflection
 )
 
 add_fbthrift_cpp_library(
