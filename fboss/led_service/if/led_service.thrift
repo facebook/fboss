@@ -17,4 +17,6 @@ service LedService {
   led_structs.LedState getLedState(1: string swPortName) throws (
     1: fboss.FbossBaseError error,
   );
+
+  i64 serviceRunningForMsec();
 }

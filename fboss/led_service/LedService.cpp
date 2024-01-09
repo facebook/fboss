@@ -18,6 +18,7 @@ void LedService::kickStart() {
   }
 
   pLedManager_->initLedManager();
+  serviceStartTime_ = std::chrono::steady_clock::now();
 }
 
 } // namespace facebook::fboss
