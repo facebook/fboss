@@ -109,7 +109,19 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           map,
           getCounterPrefix() + vendor + ".forwardingQueueProcessor.errors",
           SUM,
-          RATE) {}
+          RATE),
+      hwInitializedTimeMs_(
+          map,
+          getCounterPrefix() + vendor + ".hw_initialized_time_ms",
+          SUM,
+          RATE),
+      bootTimeMs_(
+          map,
+          getCounterPrefix() + vendor + ".hw_boot_time_ms",
+          SUM,
+          RATE)
+
+{}
 
 void HwSwitchFb303Stats::update(const HwSwitchDropStats& dropStats) {
   if (dropStats.globalDrops().has_value()) {

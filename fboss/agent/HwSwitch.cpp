@@ -306,8 +306,10 @@ HwInitResult HwSwitch::initLight(
   using std::chrono::steady_clock;
   steady_clock::time_point begin = steady_clock::now();
   auto ret = initLightImpl(callback, failHwCallsOnWarmboot);
-  ret.bootTime =
-      duration_cast<duration<float>>(steady_clock::now() - begin).count();
+  auto end = steady_clock::now();
+  ret.bootTime = duration_cast<duration<float>>(end - begin).count();
+  getSwitchStats()->bootTime(
+      duration_cast<std::chrono::milliseconds>(end - begin).count());
   return ret;
 }
 
@@ -331,8 +333,10 @@ HwInitResult HwSwitch::initLightImpl(
   // initialize hardware switch
   auto ret = initImpl(callback, bootType, failHwCallsOnWarmboot);
   ret.bootType = bootType;
-  ret.initializedTime =
-      duration_cast<duration<float>>(steady_clock::now() - begin).count();
+  auto end = steady_clock::now();
+  ret.initializedTime = duration_cast<duration<float>>(end - begin).count();
+  getSwitchStats()->hwInitializedTime(
+      duration_cast<std::chrono::milliseconds>(end - begin).count());
   if (ret.bootType == BootType::WARM_BOOT) {
     // on warm boot, no need to apply minimum alpm state
     // wait for state to be injected by SwSwitch
