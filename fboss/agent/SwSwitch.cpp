@@ -1950,7 +1950,7 @@ void SwSwitch::postInit(const HwInitResult* hwInitResult) {
 
   if (flags_ & SwitchFlags::PUBLISH_STATS && hwInitResult) {
     publishSwitchInfoCommon(*hwInitResult);
-    publishSwitchInfo(*hwInitResult);
+    publishSwitchInfo();
   }
 
   auto bgHeartbeatStatsFunc = [this](int delay, int backLog) {

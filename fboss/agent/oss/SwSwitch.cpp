@@ -15,7 +15,7 @@
 
 namespace facebook::fboss {
 
-void SwSwitch::publishSwitchInfo(const HwInitResult& /*hwInitRet*/) {}
+void SwSwitch::publishSwitchInfo() {}
 
 void SwSwitch::logLinkStateEvent(PortID port, bool up) {
   std::string logMsg = folly::sformat(
