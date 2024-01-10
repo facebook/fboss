@@ -119,7 +119,9 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           map,
           getCounterPrefix() + vendor + ".hw_boot_time_ms",
           SUM,
-          RATE)
+          RATE),
+      coldBoot_(map, getCounterPrefix() + vendor + ".hw_cold_boot", SUM, RATE),
+      warmBoot_(map, getCounterPrefix() + vendor + ".hw_warm_boot", SUM, RATE)
 
 {}
 

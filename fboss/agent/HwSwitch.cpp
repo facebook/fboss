@@ -341,8 +341,10 @@ HwInitResult HwSwitch::initLightImpl(
     // on warm boot, no need to apply minimum alpm state
     // wait for state to be injected by SwSwitch
     setProgrammedState(std::make_shared<SwitchState>());
+    getSwitchStats()->warmBoot();
     return ret;
   }
+  getSwitchStats()->coldBoot();
   if (switchType_ != cfg::SwitchType::NPU &&
       switchType_ != cfg::SwitchType::VOQ) {
     // no route programming, no need to apply minimum alpm state

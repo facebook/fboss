@@ -83,7 +83,12 @@ class HwSwitchFb303Stats {
   void bootTime(uint64_t ms) {
     bootTimeMs_.addValue(ms);
   }
-
+  void coldBoot() {
+    coldBoot_.addValue(1);
+  }
+  void warmBoot() {
+    warmBoot_.addValue(1);
+  }
   void fabricReachabilityMissingCount(int64_t value);
   void fabricReachabilityMismatchCount(int64_t value);
 
@@ -187,6 +192,8 @@ class HwSwitchFb303Stats {
   TLTimeseries forwardingQueueProcessorErrors_;
   TLTimeseries hwInitializedTimeMs_;
   TLTimeseries bootTimeMs_;
+  TLTimeseries coldBoot_;
+  TLTimeseries warmBoot_;
 };
 
 } // namespace facebook::fboss
