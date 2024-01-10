@@ -269,7 +269,12 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map)
       remoteResolvedArp_(map, kCounterPrefix + "remoteResolvedArp"),
       failedDsfSubscription_(map, kCounterPrefix + "failedDsfSubscription"),
       coldBoot_(map, kCounterPrefix + "cold_boot", SUM, RATE),
-      warmBoot_(map, kCounterPrefix + "warm_boot", SUM, RATE) {}
+      warmBoot_(map, kCounterPrefix + "warm_boot", SUM, RATE),
+      switchConfiguredMs_(
+          map,
+          kCounterPrefix + "switch_configured_ms",
+          SUM,
+          RATE) {}
 
 PortStats* FOLLY_NULLABLE SwitchStats::port(PortID portID) {
   auto it = ports_.find(portID);

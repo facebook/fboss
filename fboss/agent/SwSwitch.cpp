@@ -1136,10 +1136,9 @@ void SwSwitch::initialConfigApplied(const steady_clock::time_point& startTime) {
   }
 
   if (flags_ & SwitchFlags::PUBLISH_STATS) {
-    publishInitTimes(
-        "fboss.agent.switch_configured",
-        duration_cast<duration<float>>(steady_clock::now() - startTime)
-            .count());
+    stats()->switchConfiguredMs(duration_cast<std::chrono::milliseconds>(
+                                    steady_clock::now() - startTime)
+                                    .count());
   }
 #if FOLLY_HAS_COROUTINES
   if (flags_ & SwitchFlags::ENABLE_MACSEC) {

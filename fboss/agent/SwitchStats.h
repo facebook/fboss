@@ -429,6 +429,10 @@ class SwitchStats : public boost::noncopyable {
     coldBoot_.addValue(1);
   }
 
+  void switchConfiguredMs(uint64_t ms) {
+    switchConfiguredMs_.addValue(ms);
+  }
+
  private:
   // Forbidden copy constructor and assignment operator
   SwitchStats(SwitchStats const&) = delete;
@@ -675,6 +679,7 @@ class SwitchStats : public boost::noncopyable {
 
   TLTimeseries coldBoot_;
   TLTimeseries warmBoot_;
+  TLTimeseries switchConfiguredMs_;
 };
 
 } // namespace facebook::fboss
