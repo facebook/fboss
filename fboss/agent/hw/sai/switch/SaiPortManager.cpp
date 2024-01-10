@@ -596,7 +596,7 @@ void SaiPortManager::programPfc(
 }
 
 std::pair<sai_uint8_t, sai_uint8_t> SaiPortManager::preparePfcConfigs(
-    const std::shared_ptr<Port>& swPort) {
+    const std::shared_ptr<Port>& swPort) const {
   auto pfc = swPort->getPfc();
   sai_uint8_t txPfc = 0;
   sai_uint8_t rxPfc = 0;
@@ -611,6 +611,41 @@ std::pair<sai_uint8_t, sai_uint8_t> SaiPortManager::preparePfcConfigs(
     rxPfc = (*pfc->rx()) ? enabledPriorities : 0;
   }
   return std::pair(txPfc, rxPfc);
+}
+
+SaiPortPfcInfo SaiPortManager::getPfcAttributes(
+    sai_uint8_t txPfc,
+    sai_uint8_t rxPfc) const {
+  if (txPfc == rxPfc) {
+    // Set the pfcTxRx to be txPfc as txPfc == rxPfc
+    return SaiPortPfcInfo(
+        SAI_PORT_PRIORITY_FLOW_CONTROL_MODE_COMBINED,
+        std::nullopt,
+        std::nullopt,
+        txPfc);
+  } else {
+#if defined(TAJO_SDK)
+    // PFC tx enabled / rx disabled and vice versa is unsupported
+    // in the current TAJO implementation, tracked via WDG400C-448!
+    throw FbossError("PFC TX and RX configured differently is unsupported!");
+#else
+    return SaiPortPfcInfo(
+        SAI_PORT_PRIORITY_FLOW_CONTROL_MODE_SEPARATE,
+        txPfc,
+        rxPfc,
+        std::nullopt);
+#endif
+  }
+}
+
+SaiPortPfcInfo SaiPortManager::getPortPfcAttributes(
+    const std::shared_ptr<Port>& swPort) const {
+  if (!swPort->getPfc().has_value()) {
+    return SaiPortPfcInfo();
+  }
+  sai_uint8_t txPfc, rxPfc;
+  std::tie(txPfc, rxPfc) = preparePfcConfigs(swPort);
+  return getPfcAttributes(txPfc, rxPfc);
 }
 
 std::vector<sai_map_t> SaiPortManager::preparePfcDeadlockQueueTimers(
@@ -1192,15 +1227,15 @@ std::shared_ptr<Port> SaiPortManager::swPortFromAttributes(
         ", lanes ",
         folly::join(",", lanes));
   }
-  // We don't have enough information here to match the SDK's state with one of
-  // the supported profiles for this platform. We ideally need medium as well,
-  // but SDK could default to any medium and then the platform may not
-  // necessarily support a profileID that matches SDK's speed + lanes + medium.
-  // Therefore, we'll just pick the first profile in the list and update the SAI
-  // store later with properties (speed, lanes, medium, fec etc) of this
-  // profile. Later at applyThriftConfig time, we'll find out exactly which
-  // profile should be used and then update SAI with the new profile if
-  // different than what we picked here
+  // We don't have enough information here to match the SDK's state with one
+  // of the supported profiles for this platform. We ideally need medium as
+  // well, but SDK could default to any medium and then the platform may not
+  // necessarily support a profileID that matches SDK's speed + lanes +
+  // medium. Therefore, we'll just pick the first profile in the list and
+  // update the SAI store later with properties (speed, lanes, medium, fec
+  // etc) of this profile. Later at applyThriftConfig time, we'll find out
+  // exactly which profile should be used and then update SAI with the new
+  // profile if different than what we picked here
   auto profileID = allProfiles[0];
 
   state::PortFields portFields;
@@ -2034,8 +2069,8 @@ void SaiPortManager::programMacsec(
   } else if (
       newMacsecDesired &&
       (!oldMacsecDesired || (oldDropUnencrypted != newDropUnencrypted))) {
-    // If MacsecDesired changed to True or the dropUnencrypted value has changed
-    // then configure dropUnencrypted as per the config
+    // If MacsecDesired changed to True or the dropUnencrypted value has
+    // changed then configure dropUnencrypted as per the config
     macsecManager.setMacsecState(portId, true, newDropUnencrypted);
     XLOG(DBG2) << "programMacsec with macsecDesired=true on port = "
                << newPort->getName() << ", setting dropUnencrypted = "
@@ -2065,10 +2100,10 @@ void SaiPortManager::programMacsec(
       std::optional<MacsecSASaiId> oldTxSaAdapter{std::nullopt};
 
       if (oldTxSak) {
-        // The old Tx SAK is present and new Tx SAK needs to be added. This new
-        // Tx SAK may or may not have same Sci as old one and this may or may
-        // not have same AN as the old one. So delete the old Tx SAK first and
-        // then add new Tx SAK
+        // The old Tx SAK is present and new Tx SAK needs to be added. This
+        // new Tx SAK may or may not have same Sci as old one and this may or
+        // may not have same AN as the old one. So delete the old Tx SAK first
+        // and then add new Tx SAK
         auto oldSak = *oldTxSak;
         oldTxSaAdapter = macsecManager.getMacsecSaAdapterKey(
             portId,
@@ -2109,8 +2144,8 @@ void SaiPortManager::programMacsec(
     const auto& [key, sak] = keyAndSak;
     auto kitr = oldRxSaks.find(key);
     if (kitr == oldRxSaks.end() || sak != kitr->second) {
-      // Either no SAK RX for this key before. Or the previous SAK with the same
-      // key did not match the new SAK
+      // Either no SAK RX for this key before. Or the previous SAK with the
+      // same key did not match the new SAK
       if (kitr != oldRxSaks.end()) {
         // There was a prev SAK with the same key. Delete it
         macsecManager.deleteMacsec(
@@ -2144,7 +2179,8 @@ void SaiPortManager::programMacsec(
     macsecManager.deleteMacsec(
         portId, sak, key.sci, SAI_MACSEC_DIRECTION_INGRESS);
   }
-  // If macsecDesired changed to False then cleanup Macsec states including ACL
+  // If macsecDesired changed to False then cleanup Macsec states including
+  // ACL
   if (oldMacsecDesired && !newMacsecDesired) {
     macsecManager.setMacsecState(portId, false, false);
   }
@@ -2318,11 +2354,11 @@ void SaiPortManager::changeRxLaneSquelch(
     const std::shared_ptr<Port>& oldPort,
     const std::shared_ptr<Port>& newPort) {
   if (oldPort->getRxLaneSquelch() != newPort->getRxLaneSquelch()) {
-    // On DNX platforms, fabric ports come up when the RX alone is UP. In these
-    // platforms, setting preemphasis to 0 doesn't bring the port down when
-    // there is an active remote partner. If the RX_LANE_SQUELCH_ENABLE is
-    // supported, set that true which will cutoff any signal coming from the
-    // remote side and bring down the local link
+    // On DNX platforms, fabric ports come up when the RX alone is UP. In
+    // these platforms, setting preemphasis to 0 doesn't bring the port down
+    // when there is an active remote partner. If the RX_LANE_SQUELCH_ENABLE
+    // is supported, set that true which will cutoff any signal coming from
+    // the remote side and bring down the local link
     if ((newPort->getPortType() == cfg::PortType::FABRIC_PORT ||
          newPort->getPortType() == cfg::PortType::INTERFACE_PORT) &&
         platform_->getAsic()->isSupported(

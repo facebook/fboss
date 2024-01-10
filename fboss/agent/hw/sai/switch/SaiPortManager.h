@@ -70,6 +70,23 @@ struct SaiPortMirrorInfo {
 };
 
 /*
+ * Keep track of port PFC settings
+ */
+struct SaiPortPfcInfo {
+  std::optional<sai_int32_t> pfcMode;
+  std::optional<sai_uint8_t> pfcTx;
+  std::optional<sai_uint8_t> pfcRx;
+  std::optional<sai_uint8_t> pfcTxRx;
+
+  SaiPortPfcInfo(
+      std::optional<sai_int32_t> pfcMode = std::nullopt,
+      std::optional<sai_uint8_t> pfcTx = std::nullopt,
+      std::optional<sai_uint8_t> pfcRx = std::nullopt,
+      std::optional<sai_uint8_t> pfcTxRx = std::nullopt)
+      : pfcMode(pfcMode), pfcTx(pfcTx), pfcRx(pfcRx), pfcTxRx(pfcTxRx) {}
+};
+
+/*
  * For Xphy we create system side port, line side port and a port connector
  * associating these two. The Line side port is used for all subsequent MacSec
  * programming and it is kept in PortHandle's port, the system side Sai port is
@@ -308,6 +325,9 @@ class SaiPortManager {
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort);
   void resetSamplePacket(SaiPortHandle* portHandle);
+  SaiPortPfcInfo getPfcAttributes(sai_uint8_t txPfc, sai_uint8_t rxPfc) const;
+  SaiPortPfcInfo getPortPfcAttributes(
+      const std::shared_ptr<Port>& swPort) const;
   void programPfc(
       const std::shared_ptr<Port>& swPort,
       sai_uint8_t txPfc,
@@ -325,7 +345,7 @@ class SaiPortManager {
       std::vector<PfcPriority>& enabledPfcPriorities,
       const bool portPfcWdEnabled);
   std::pair<sai_uint8_t, sai_uint8_t> preparePfcConfigs(
-      const std::shared_ptr<Port>& swPort);
+      const std::shared_ptr<Port>& swPort) const;
   std::vector<sai_map_t> preparePfcDeadlockQueueTimers(
       std::vector<PfcPriority>& enabledPfcPriorities,
       uint32_t timerVal);
