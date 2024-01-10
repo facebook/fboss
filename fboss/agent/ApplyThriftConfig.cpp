@@ -1291,16 +1291,16 @@ shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
 
     auto dsfNode = cfg_->dsfNodes()->find(switchId)->second;
     auto nodeName = *dsfNode.name();
-    CHECK(dsfNode.systemPortRange());
-    auto systemPortRange = *dsfNode.systemPortRange();
 
     for (const auto& port : std::as_const(*portMap)) {
       if (kCreateSysPortsFor.find(port.second->getPortType()) ==
           kCreateSysPortsFor.end()) {
         continue;
       }
-      auto sysPort = std::make_shared<SystemPort>(
-          SystemPortID{*systemPortRange.minimum() + port.second->getID()});
+      auto sysPort = std::make_shared<SystemPort>(getSystemPortID(
+          port.second->getID(),
+          switchSettings->getSwitchIdToSwitchInfo(),
+          switchId));
       sysPort->setSwitchId(SwitchID(switchId));
       sysPort->setPortName(
           folly::sformat("{}:{}", nodeName, port.second->getName()));
