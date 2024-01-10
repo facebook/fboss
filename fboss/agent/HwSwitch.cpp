@@ -27,6 +27,7 @@
 #include <folly/experimental/TestUtil.h>
 #include <folly/logging/xlog.h>
 
+#include <re2/re2.h>
 #include <chrono>
 
 #include "fboss/lib/CommonFileUtils.h"
@@ -42,6 +43,70 @@ DEFINE_bool(
     false,
     "Flag to turn on flowlet switching for DLB");
 
+namespace {
+constexpr auto kBuildSdkVersion = "SDK Version";
+
+/* This function takes a silicon SDK version string and converts it into
+   integers that can be sent to external systems such as ODS. The conversion is
+   performed as follows: First, the input string is matched against a regex to
+   make sure it has the right syntax: "BCM SDK Version: sdk-A.B.C" where A is an
+   integer representing the major version, B the minor version and C the release
+   version. Then integers are combined into a single number by multiplying major
+   by 10,000, minor by 100 and then adding all of them.
+   e.g:  For input "BCM SDK Version: sdk-6.4.3", returned value is 60403.
+   e.g:  For input "BCM SDK Version: sdk-6.11.10", returned value is 61110.
+   Returns an unsigned integer greater than zero, or zero on error.
+
+   Update - After logging SDK version instead of Bcm version, the string stored
+   within fb303 becomes
+   Bcm Switch: "  BCM SDK Version: sdk-6.5.17"
+   Bcm Sai Switch: "  SAI Version: 1.6.5  BCM-SAI SDK Version: 4.2.2.7  BCM SDK
+   Version: sdk-6.5.19"
+   Leaba Sai switch: "  LEABA-SAI SDK Version: 1.40.0"
+   This function will match each type of sdk and produce results accordingly.
+   */
+std::tuple<int, int, int> normalizeSdkVersion(std::string sdkVersion) {
+  /* Matches broadcom SDK version strings (e.g: BCM SDK Version: sdk-6.5.17) */
+  constexpr auto bcmSdkVerRegex =
+      "BCM SDK Version: sdk-([0-9]{1,2})\\.([0-9]{1,2})\\.([0-9]{1,2})";
+  static const re2::RE2 bcmSdkVersionRegex(bcmSdkVerRegex);
+  /* Broadcom SAI SDK version strings (e.g: BCM-SAI SDK Version: 4.2.2.7) */
+  constexpr auto bcmSaiSdkVerRegex =
+      "BCM-SAI SDK Version: ([0-9]{1,2})\\.([0-9]{1,2})\\.([0-9]{1,2})\\.([0-9]{1,2})";
+  static const re2::RE2 bcmSaiSdkVersionRegex(bcmSaiSdkVerRegex);
+  /* Leaba SAI SDK version strings (e.g: LEABA-SAI SDK Version: 1.40.0) */
+  constexpr auto leabaSaiSdkVerRegex =
+      "LEABA-SAI SDK Version: ([0-9]{1,2})\\.([0-9]{1,2})\\.([0-9]{1,2})";
+  static const re2::RE2 leabaSaiSdkVersionRegex(leabaSaiSdkVerRegex);
+
+  /* Only process versions that match the regex */
+  int major, minor, build, release;
+  int bcmVer = 0, bcmSaiVer = 0, leabaSaiVer = 0;
+  if (re2::RE2::PartialMatch(
+          sdkVersion, bcmSdkVerRegex, &major, &minor, &release)) {
+    bcmVer = major * 10000 + minor * 100 + release;
+  } else {
+    XLOG(WARNING) << "Failed to match bcm SDK version to int (" << sdkVersion
+                  << ")";
+  }
+  if (re2::RE2::PartialMatch(
+          sdkVersion, bcmSaiSdkVerRegex, &major, &minor, &build, &release)) {
+    bcmSaiVer = major * 1000000 + minor * 10000 + build * 100 + release;
+  } else {
+    XLOG(WARNING) << "Failed to match bcm sai SDK version to int ("
+                  << sdkVersion << ")";
+  }
+  if (re2::RE2::PartialMatch(
+          sdkVersion, leabaSaiSdkVerRegex, &major, &minor, &release)) {
+    leabaSaiVer = major * 10000 + minor * 100 + release;
+  } else {
+    XLOG(WARNING) << "Failed to match leaba sai SDK version to int ("
+                  << sdkVersion << ")";
+  }
+  return std::make_tuple(bcmVer, bcmSaiVer, leabaSaiVer);
+}
+
+} // namespace
 namespace facebook::fboss {
 
 std::string HwSwitch::getDebugDump() const {
@@ -306,6 +371,24 @@ HwInitResult HwSwitch::initLight(
   using std::chrono::steady_clock;
   steady_clock::time_point begin = steady_clock::now();
   auto ret = initLightImpl(callback, failHwCallsOnWarmboot);
+  /* Merchant Silicon SDK Version */
+  std::string buildSdkVersion;
+  fb303::fbData->getExportedValue(buildSdkVersion, kBuildSdkVersion);
+  /* Remove newline in SDK version */
+  buildSdkVersion.erase(
+      std::remove(buildSdkVersion.begin(), buildSdkVersion.end(), '\n'),
+      buildSdkVersion.end());
+  /* Tuple of <bcmVersion, bcmSaiVersion, leabaSaiVersion> */
+  auto [bcmVer, bcmSaiVer, leabaSaiVer] = normalizeSdkVersion(buildSdkVersion);
+  if (bcmVer) {
+    getSwitchStats()->bcmSdkVer(bcmVer);
+  }
+  if (bcmSaiVer) {
+    getSwitchStats()->bcmSaiSdkVer(bcmSaiVer);
+  }
+  if (leabaSaiVer) {
+    getSwitchStats()->leabaSdkVer(leabaSaiVer);
+  }
   auto end = steady_clock::now();
   ret.bootTime = duration_cast<duration<float>>(end - begin).count();
   getSwitchStats()->bootTime(
