@@ -1120,23 +1120,26 @@ void ThriftConfigApplier::processInterfaceForPortForVoqSwitches(
   CHECK(dsfNodeItr != cfg_->dsfNodes()->end());
   CHECK(dsfNodeItr->second.systemPortRange().has_value());
   auto systemPortRange = dsfNodeItr->second.systemPortRange();
+  CHECK(systemPortRange);
   for (const auto& portCfg : *cfg_->ports()) {
     auto portType = *portCfg.portType();
     auto portID = PortID(*portCfg.logicalID());
-
-    switch (portType) {
-      case cfg::PortType::INTERFACE_PORT:
-      case cfg::PortType::RECYCLE_PORT: {
-        // system port is 1:1 with every interface and recycle port.
-        // interface is 1:1 with system port.
-        // InterfaceID is chosen to be the same as systemPortID. Thus:
-        auto interfaceID = SystemPortID{*systemPortRange->minimum() + portID};
-        port2InterfaceId_[portID].push_back(interfaceID);
-      } break;
-      case cfg::PortType::FABRIC_PORT:
-      case cfg::PortType::CPU_PORT:
-        // no interface for fabric/cpu port
-        break;
+    // Only process ports belonging to the passed switchId
+    if (scopeResolver_.scope(portCfg).has(SwitchID(switchId))) {
+      switch (portType) {
+        case cfg::PortType::INTERFACE_PORT:
+        case cfg::PortType::RECYCLE_PORT: {
+          // system port is 1:1 with every interface and recycle port.
+          // interface is 1:1 with system port.
+          // InterfaceID is chosen to be the same as systemPortID. Thus:
+          auto interfaceID = SystemPortID{*systemPortRange->minimum() + portID};
+          port2InterfaceId_[portID].push_back(interfaceID);
+        } break;
+        case cfg::PortType::FABRIC_PORT:
+        case cfg::PortType::CPU_PORT:
+          // no interface for fabric/cpu port
+          break;
+      }
     }
   }
 }
