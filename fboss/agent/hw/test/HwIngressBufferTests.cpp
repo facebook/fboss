@@ -123,6 +123,7 @@ class HwIngressBufferTest : public HwTest {
     cfg::PortPfc pfc;
     pfc.portPgConfigName() = "foo";
     pfc.tx() = pfcEnable;
+    pfc.rx() = pfcEnable;
     portCfg->pfc() = pfc;
   }
 
