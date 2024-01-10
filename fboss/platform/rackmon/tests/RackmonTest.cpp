@@ -353,7 +353,7 @@ TEST_F(RackmonTest, BasicScanFoundOneMon) {
 }
 
 TEST_F(RackmonTest, DormantRecovery) {
-  bool commandTimeout = false;
+  std::atomic<bool> commandTimeout{false};
   MockRackmon mon;
   auto make_flaky = [&commandTimeout]() {
     json exp = R"({
