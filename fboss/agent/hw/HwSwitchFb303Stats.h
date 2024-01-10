@@ -92,6 +92,10 @@ class HwSwitchFb303Stats {
   void fabricReachabilityMissingCount(int64_t value);
   void fabricReachabilityMismatchCount(int64_t value);
 
+  void bcmSdkVer(int64_t ver);
+  void bcmSaiSdkVer(int64_t ver);
+  void leabaSdkVer(int64_t ver);
+
   void update(const HwSwitchDramStats& dramStats);
   void update(const HwSwitchDropStats& dropStats);
 
@@ -194,6 +198,9 @@ class HwSwitchFb303Stats {
   TLTimeseries bootTimeMs_;
   TLTimeseries coldBoot_;
   TLTimeseries warmBoot_;
+  TLCounter bcmSdkVer_;
+  TLCounter bcmSaiSdkVer_;
+  TLCounter leabaSdkVer_;
 };
 
 } // namespace facebook::fboss

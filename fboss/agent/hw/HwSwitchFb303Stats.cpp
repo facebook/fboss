@@ -121,9 +121,14 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           SUM,
           RATE),
       coldBoot_(map, getCounterPrefix() + vendor + ".hw_cold_boot", SUM, RATE),
-      warmBoot_(map, getCounterPrefix() + vendor + ".hw_warm_boot", SUM, RATE)
-
-{}
+      warmBoot_(map, getCounterPrefix() + vendor + ".hw_warm_boot", SUM, RATE),
+      /*
+       * Omit vendor prefix for SDK/SAI version in name since
+       * the backward compatible name already has the vendor name
+       */
+      bcmSdkVer_(map, getCounterPrefix() + "bcm_sdk_version"),
+      bcmSaiSdkVer_(map, getCounterPrefix() + "bcm_sai_sdk_version"),
+      leabaSdkVer_(map, getCounterPrefix() + "leaba_sai_sdk_version") {}
 
 void HwSwitchFb303Stats::update(const HwSwitchDropStats& dropStats) {
   if (dropStats.globalDrops().has_value()) {
@@ -215,6 +220,17 @@ void HwSwitchFb303Stats::fabricReachabilityMissingCount(int64_t value) {
 
 void HwSwitchFb303Stats::fabricReachabilityMismatchCount(int64_t value) {
   fb303::fbData->setCounter(fabricReachabilityMismatchCount_.name(), value);
+}
+
+void HwSwitchFb303Stats::bcmSdkVer(int64_t ver) {
+  fb303::fbData->setCounter(bcmSdkVer_.name(), ver);
+}
+void HwSwitchFb303Stats::bcmSaiSdkVer(int64_t ver) {
+  fb303::fbData->setCounter(bcmSaiSdkVer_.name(), ver);
+}
+
+void HwSwitchFb303Stats::leabaSdkVer(int64_t ver) {
+  fb303::fbData->setCounter(leabaSdkVer_.name(), ver);
 }
 
 int64_t HwSwitchFb303Stats::getFabricReachabilityMismatchCount() const {
