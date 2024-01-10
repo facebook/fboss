@@ -378,7 +378,11 @@ void TransceiverManager::doTransceiverFirmwareUpgrade(TransceiverID tcvrID) {
   };
 
   updateStateInFsdb(true);
-  tcvrIt->second->upgradeFirmware();
+  if (tcvrIt->second->upgradeFirmware()) {
+    successfulOpticsFwUpgradeCount_++;
+  } else {
+    failedOpticsFwUpgradeCount_++;
+  }
   updateStateInFsdb(false);
 }
 

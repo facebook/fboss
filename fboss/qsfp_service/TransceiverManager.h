@@ -91,6 +91,14 @@ class TransceiverManager {
 
   virtual PlatformType getPlatformType() const = 0;
 
+  int getSuccessfulOpticsFwUpgradeCount() const {
+    return successfulOpticsFwUpgradeCount_;
+  }
+
+  int getFailedOpticsFwUpgradeCount() const {
+    return failedOpticsFwUpgradeCount_;
+  }
+
   bool isValidTransceiver(int32_t id) {
     return id < getNumQsfpModules() && id >= 0;
   }
@@ -779,6 +787,9 @@ class TransceiverManager {
       resetFunctionMap_;
 
   void initPortToModuleMap();
+
+  int successfulOpticsFwUpgradeCount_{0};
+  int failedOpticsFwUpgradeCount_{0};
 
   friend class TransceiverStateMachineTest;
 };
