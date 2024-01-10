@@ -1949,8 +1949,16 @@ void SwSwitch::postInit(const HwInitResult* hwInitResult) {
   }
 
   if (flags_ & SwitchFlags::PUBLISH_STATS && hwInitResult) {
-    publishSwitchInfoCommon(*hwInitResult);
-    publishSwitchInfo();
+    switch (hwInitResult->bootType) {
+      case BootType::COLD_BOOT:
+        stats()->coldBoot();
+        break;
+      case BootType::WARM_BOOT:
+        stats()->warmBoot();
+        break;
+      case BootType::UNINITIALIZED:
+        CHECK(0);
+    }
   }
 
   auto bgHeartbeatStatsFunc = [this](int delay, int backLog) {
@@ -2013,19 +2021,6 @@ void SwSwitch::postInit(const HwInitResult* hwInitResult) {
   heartbeatWatchdog_->start();
 
   setSwitchRunState(SwitchRunState::INITIALIZED);
-}
-
-void SwSwitch::publishSwitchInfoCommon(const HwInitResult& hwInitRet) {
-  switch (hwInitRet.bootType) {
-    case BootType::COLD_BOOT:
-      stats()->coldBoot();
-      break;
-    case BootType::WARM_BOOT:
-      stats()->warmBoot();
-      break;
-    case BootType::UNINITIALIZED:
-      CHECK(0);
-  }
 }
 
 void SwSwitch::stopThreads() {
