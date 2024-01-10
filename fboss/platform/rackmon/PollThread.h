@@ -23,9 +23,9 @@ class PollThread {
   PollThreadTime sleepTime_{5};
 
   void worker() {
-    std::unique_lock lk(eventMutex_);
     // Call once at start
     func_(obj_);
+    std::unique_lock lk(eventMutex_);
     while (started_.load()) {
       eventCV_.wait_for(lk, sleepTime_, [this]() {
         return !started_.load() || tick_.load();
