@@ -65,7 +65,7 @@ class I2cExplorer {
       const std::vector<std::string>& i2cAdaptersFromCpu);
 
   // Checks if a I2c devices is present at `addr` on `busNum`.
-  virtual bool isI2cDevicePresent(uint16_t busNum, const I2cAddr& addr);
+  virtual bool isI2cDevicePresent(uint16_t busNum, const I2cAddr& addr) const;
 
   // Returns the i2c device name if present at `addr` on `busNum`.
   virtual std::optional<std::string> getI2cDeviceName(

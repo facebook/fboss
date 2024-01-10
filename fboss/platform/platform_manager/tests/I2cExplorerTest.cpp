@@ -16,7 +16,7 @@ class MockI2cExplorer : public I2cExplorer {
  public:
   explicit MockI2cExplorer(std::shared_ptr<MockPlatformUtils> platformUtils)
       : I2cExplorer(platformUtils) {}
-  MOCK_METHOD(bool, isI2cDevicePresent, (uint16_t, const I2cAddr&));
+  MOCK_METHOD(bool, isI2cDevicePresent, (uint16_t, const I2cAddr&), (const));
   MOCK_METHOD(
       std::optional<std::string>,
       getI2cDeviceName,

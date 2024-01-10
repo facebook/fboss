@@ -58,7 +58,8 @@ std::map<std::string, uint16_t> I2cExplorer::getBusNums(
   return busNums;
 }
 
-bool I2cExplorer::isI2cDevicePresent(uint16_t busNum, const I2cAddr& addr) {
+bool I2cExplorer::isI2cDevicePresent(uint16_t busNum, const I2cAddr& addr)
+    const {
   return fs::exists(fs::path(getDeviceI2cPath(busNum, addr)) / "name");
 }
 
