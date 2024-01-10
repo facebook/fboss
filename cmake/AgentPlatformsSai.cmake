@@ -115,11 +115,11 @@ function(BUILD_SAI_WEDGE_AGENT SAI_IMPL_NAME SAI_IMPL_ARG)
 
   message(STATUS "Building Sai WedgeAgent SAI_IMPL_NAME: ${SAI_IMPL_NAME} SAI_IMPL_ARG: ${SAI_IMPL_ARG}")
 
-  add_executable(wedge_agent-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
+  add_executable(wedge_agent-${SAI_IMPL_NAME}
     fboss/agent/platforms/sai/wedge_agent.cpp
   )
 
-  target_link_libraries(wedge_agent-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
+  target_link_libraries(wedge_agent-${SAI_IMPL_NAME}
     -Wl,--whole-archive
     main
     monolithic_agent_initializer
@@ -131,24 +131,24 @@ function(BUILD_SAI_WEDGE_AGENT SAI_IMPL_NAME SAI_IMPL_ARG)
   )
 
   if (SAI_BRCM_IMPL)
-    target_link_libraries(wedge_agent-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
+    target_link_libraries(wedge_agent-${SAI_IMPL_NAME}
       ${YAML}
     )
   endif()
 
-  set_target_properties(wedge_agent-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
+  set_target_properties(wedge_agent-${SAI_IMPL_NAME}
       PROPERTIES COMPILE_FLAGS
       "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
       -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
       -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
     )
 
-  add_executable(wedge_hwagent-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
+  add_executable(wedge_hwagent-${SAI_IMPL_NAME}
     fboss/agent/platforms/sai/WedgeHwAgent.cpp
     fboss/agent/platforms/sai/oss/WedgeHwAgent.cpp
   )
 
-  target_link_libraries(wedge_hwagent-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
+  target_link_libraries(wedge_hwagent-${SAI_IMPL_NAME}
     -Wl,--whole-archive
     hwagent-main
     fboss_common_init
@@ -175,8 +175,8 @@ if(SAI_IMPL)
   BUILD_SAI_WEDGE_AGENT("sai_impl" ${SAI_IMPL})
   install(
     TARGETS
-    wedge_agent-sai_impl-${SAI_VER_SUFFIX})
+    wedge_agent-sai_impl)
   install(
     TARGETS
-    wedge_hwagent-sai_impl-${SAI_VER_SUFFIX})
+    wedge_hwagent-sai_impl)
 endif()
