@@ -509,6 +509,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       platform_->getAsic()->isSupported(HwAsic::Feature::FABRIC_PORT_MTU)) {
     mtu = swPort->getMaxFrameSize();
   }
+  auto portPfcInfo = getPortPfcAttributes(swPort);
   return SaiPortTraits::CreateAttributes {
 #if defined(BRCM_SAI_SDK_DNX)
     getPortTypeFromCfg(swPort->getPortType()),
@@ -537,11 +538,11 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         std::nullopt, // Egress MacSec ACL
         systemPortId, // System Port Id
         ptpStatusOpt, // PTP Mode, can be std::nullopt
-        std::nullopt, // PFC Mode
-        std::nullopt, // PFC Priorities
+        portPfcInfo.pfcMode, // PFC Mode
+        portPfcInfo.pfcTxRx, // PFC Priorities
 #if !defined(TAJO_SDK)
-        std::nullopt, // PFC Rx Priorities
-        std::nullopt, // PFC Tx Priorities
+        portPfcInfo.pfcRx, // PFC Rx Priorities
+        portPfcInfo.pfcTx, // PFC Tx Priorities
 #endif
         std::nullopt, // TC to Priority Group map
         std::nullopt, // PFC Priority to Queue map
