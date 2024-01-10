@@ -15,7 +15,6 @@
 
 namespace facebook::fboss {
 
-void SwSwitch::publishInitTimes(std::string /*name*/, const float& /*time*/) {}
 void SwSwitch::publishSwitchInfo(const HwInitResult& /*hwInitRet*/) {}
 
 void SwSwitch::logLinkStateEvent(PortID port, bool up) {
