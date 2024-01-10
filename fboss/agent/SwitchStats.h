@@ -421,6 +421,14 @@ class SwitchStats : public boost::noncopyable {
   void fillFabricReachabilityStats(
       FabricReachabilityStats& fabricReachabilityStats) const;
 
+  void warmBoot() {
+    warmBoot_.addValue(1);
+  }
+
+  void coldBoot() {
+    coldBoot_.addValue(1);
+  }
+
  private:
   // Forbidden copy constructor and assignment operator
   SwitchStats(SwitchStats const&) = delete;
@@ -664,6 +672,9 @@ class SwitchStats : public boost::noncopyable {
   TLCounter remoteResolvedArp_;
   // Failed Dsf subscriptions
   TLCounter failedDsfSubscription_;
+
+  TLTimeseries coldBoot_;
+  TLTimeseries warmBoot_;
 };
 
 } // namespace facebook::fboss

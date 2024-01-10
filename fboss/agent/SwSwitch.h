@@ -966,6 +966,7 @@ class SwSwitch : public HwSwitchCallback {
   void updateRouteStats();
   void updateTeFlowStats();
   void publishSwitchInfo(const HwInitResult& hwInitRet);
+  void publishSwitchInfoCommon(const HwInitResult& hwInitRet);
   void setSwitchRunState(SwitchRunState desiredState);
   SwitchStats* createSwitchStats();
 
