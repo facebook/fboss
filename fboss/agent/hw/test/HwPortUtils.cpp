@@ -87,7 +87,7 @@ cfg::PortSpeed getDefaultInterfaceSpeed(const cfg::AsicType& asicType) {
     case cfg::AsicType::ASIC_TYPE_JERICHO2:
       return cfg::PortSpeed::HUNDREDG;
     case cfg::AsicType::ASIC_TYPE_JERICHO3:
-      return cfg::PortSpeed::TWOHUNDREDG;
+      return cfg::PortSpeed::FOURHUNDREDG;
     default:
       throw FbossError(
           "Unsupported interface speed for asic type: ", (int)asicType);
