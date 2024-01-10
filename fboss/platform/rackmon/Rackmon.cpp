@@ -21,6 +21,7 @@ using namespace std::literals;
 namespace rackmon {
 
 void Rackmon::loadInterface(const nlohmann::json& config) {
+  std::shared_lock lk(threadMutex_);
   if (scanThread_ != nullptr || monitorThread_ != nullptr) {
     throw std::runtime_error("Cannot load configuration when started");
   }
@@ -34,6 +35,7 @@ void Rackmon::loadInterface(const nlohmann::json& config) {
 }
 
 void Rackmon::loadRegisterMap(const nlohmann::json& config) {
+  std::shared_lock lk(threadMutex_);
   if (scanThread_ != nullptr || monitorThread_ != nullptr) {
     throw std::runtime_error("Cannot load configuration when started");
   }
@@ -187,8 +189,9 @@ void Rackmon::fullScan() {
   }
   // When scan is complete, request for a monitor.
   if (atLeastOne) {
-    if (auto monThread = monitorThread_; monThread) {
-      monThread->tick(true);
+    std::shared_lock lk(threadMutex_);
+    if (monitorThread_) {
+      monitorThread_->tick(true);
     }
   }
   reqForceScan_ = false;
@@ -204,8 +207,9 @@ void Rackmon::scan() {
   // Probe for the address only if we already dont know it.
   if (!isDeviceKnown(*nextDeviceToProbe_)) {
     if (probe(*nextDeviceToProbe_)) {
-      if (auto monThread = monitorThread_; monThread) {
-        monThread->tick(true);
+      std::shared_lock lk(threadMutex_);
+      if (monitorThread_) {
+        monitorThread_->tick(true);
       }
     }
     lastScanTime_ = std::time(nullptr);
@@ -225,6 +229,7 @@ std::shared_ptr<PollThread<Rackmon>> Rackmon::makeThread(
 }
 
 void Rackmon::start(PollThreadTime interval) {
+  std::unique_lock lk(threadMutex_);
   logInfo << "Start was requested" << std::endl;
   if (scanThread_ != nullptr || monitorThread_ != nullptr) {
     throw std::runtime_error("Already running");
@@ -239,6 +244,7 @@ void Rackmon::start(PollThreadTime interval) {
 }
 
 void Rackmon::stop(bool forceStop) {
+  std::unique_lock lk(threadMutex_);
   logInfo << "Stop was requested" << std::endl;
   for (auto& dev_it : devices_) {
     dev_it.second->setExclusiveMode(true);
@@ -261,9 +267,9 @@ void Rackmon::stop(bool forceStop) {
 void Rackmon::forceScan() {
   logInfo << "Force Scan was requested" << std::endl;
   reqForceScan_ = true;
-  auto scanThread = scanThread_;
-  if (scanThread) {
-    scanThread->tick(true);
+  std::shared_lock lk(threadMutex_);
+  if (scanThread_) {
+    scanThread_->tick(true);
   }
 }
 
