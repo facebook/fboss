@@ -7,12 +7,12 @@ function(BUILD_SAI_REPLAYER SAI_IMPL_NAME SAI_IMPL_ARG)
 
   message(STATUS "Building Sai Replayer SAI_IMPL_NAME: ${SAI_IMPL_NAME} SAI_IMPL_ARG: ${SAI_IMPL_ARG}")
 
-  add_executable(sai_replayer-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
+  add_executable(sai_replayer-${SAI_IMPL_NAME}
     fboss/agent/hw/sai/tracer/run/Main.cpp
     fboss/agent/hw/sai/tracer/run/SaiLog.cpp
   )
 
-  target_link_libraries(sai_replayer-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
+  target_link_libraries(sai_replayer-${SAI_IMPL_NAME}
     # This is needed for 'dlsym', 'dlopen' etc.
     -Wl,--no-as-needed -ldl
     -lz
@@ -20,7 +20,7 @@ function(BUILD_SAI_REPLAYER SAI_IMPL_NAME SAI_IMPL_ARG)
     ${CMAKE_THREAD_LIBS_INIT}
   )
 
-  set_target_properties(sai_replayer-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
+  set_target_properties(sai_replayer-${SAI_IMPL_NAME}
       PROPERTIES COMPILE_FLAGS
       "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
       -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
@@ -33,7 +33,7 @@ if(BUILD_SAI_FAKE)
 BUILD_SAI_REPLAYER("fake" fake_sai)
 install(
   TARGETS
-  sai_replayer-fake-${SAI_VER_SUFFIX})
+  sai_replayer-fake)
 endif()
 
 # If libsai_impl is provided, build sai replayer linking with it
@@ -50,5 +50,5 @@ if(SAI_IMPL)
   BUILD_SAI_REPLAYER("sai_impl" ${SAI_IMPL})
   install(
     TARGETS
-    sai_replayer-sai_impl-${SAI_VER_SUFFIX})
+    sai_replayer-sai_impl)
 endif()
