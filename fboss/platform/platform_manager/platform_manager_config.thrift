@@ -137,9 +137,6 @@ include "fboss/platform/platform_manager/platform_manager_presence.thrift"
 
 // ============================================================================
 
-const string DEVICE_TYPE_SENSOR = "SENSOR";
-const string DEVICE_TYPE_EEPROM = "EEPROM";
-
 // `I2cDeviceConfig` defines a i2c device within any PmUnit.
 //
 // `busName`: Refer to Bus Naming Convention above.
@@ -151,7 +148,7 @@ const string DEVICE_TYPE_EEPROM = "EEPROM";
 // `pmUnitScopedName`: The name assigned to the device in the config, unique
 // within the scope of PmUnit.
 //
-// `deviceType`: Type of the device (e.g eeprom, sensor).
+// `isGpioChip`: Whether this I2C Device is a GpioChip
 //
 // `numOutgoingChannels`: Number of outgoing channels (applies only for mux)
 //

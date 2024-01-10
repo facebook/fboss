@@ -18,6 +18,8 @@ namespace {
 constexpr auto kRootSlotPath = "/";
 constexpr auto kIdprom = "IDPROM";
 const re2::RE2 kValidHwmonDirName{"hwmon[0-9]+"};
+const re2::RE2 kGpioChipNameRe{"gpiochip\\d+"};
+const std::string kGpioChip = "gpiochip";
 
 std::string getSlotPath(
     const std::string& parentSlotPath,
@@ -202,6 +204,29 @@ void PlatformExplorer::exploreI2cDevices(
                 "{}@{}", *i2cDeviceConfig.pmUnitScopedName(), channelNum),
             busNum);
       }
+    }
+    if (*i2cDeviceConfig.isGpioChip()) {
+      auto i2cDevicePath = i2cExplorer_.getDeviceI2cPath(
+          dataStore_.getI2cBusNum(slotPath, *i2cDeviceConfig.busName()),
+          I2cAddr(*i2cDeviceConfig.address()));
+      std::optional<uint16_t> gpioNum{std::nullopt};
+      for (const auto& childDirEntry :
+           std::filesystem::directory_iterator(i2cDevicePath)) {
+        if (re2::RE2::FullMatch(
+                childDirEntry.path().filename().string(), kGpioChipNameRe)) {
+          gpioNum = folly::to<uint16_t>(
+              childDirEntry.path().filename().string().substr(
+                  kGpioChip.length()));
+        }
+      }
+      if (!gpioNum) {
+        throw std::runtime_error(fmt::format(
+            "No GPIO chip found in {} for {}",
+            i2cDevicePath,
+            *i2cDeviceConfig.pmUnitScopedName()));
+      }
+      dataStore_.updateGpioChipNum(
+          slotPath, *i2cDeviceConfig.pmUnitScopedName(), *gpioNum);
     }
   }
 }
