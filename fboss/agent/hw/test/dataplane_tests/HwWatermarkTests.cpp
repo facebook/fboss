@@ -95,7 +95,11 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
       portName = getProgrammedState()->getPorts()->getNodeIf(portId)->getName();
 
     } else {
-      auto systemPortId = getSystemPortID(portId, getProgrammedState());
+      auto systemPortId = getSystemPortID(
+          portId,
+          util::getFirstNodeIf(getProgrammedState()->getSwitchSettings())
+              ->getSwitchIdToSwitchInfo(),
+          getPlatform()->getHwSwitch()->getSwitchID());
       portName = getProgrammedState()
                      ->getSystemPorts()
                      ->getNodeIf(systemPortId)
@@ -221,7 +225,11 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
       bool isVoq) {
     if (getPlatform()->getAsic()->getSwitchType() == cfg::SwitchType::VOQ &&
         isVoq) {
-      auto sysPortId = getSystemPortID(portId, getProgrammedState());
+      auto sysPortId = getSystemPortID(
+          portId,
+          util::getFirstNodeIf(getProgrammedState()->getSwitchSettings())
+              ->getSwitchIdToSwitchInfo(),
+          getPlatform()->getHwSwitch()->getSwitchID());
       return *getHwSwitchEnsemble()
                   ->getLatestSysPortStats(sysPortId)
                   .queueWatermarkBytes_();

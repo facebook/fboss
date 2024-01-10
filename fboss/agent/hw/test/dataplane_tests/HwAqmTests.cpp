@@ -373,7 +373,11 @@ class HwAqmTest : public HwLinkStateDependentTest {
     if (getPlatform()->getAsic()->getSwitchType() == cfg::SwitchType::VOQ) {
       // Gets watermarks + WRED drops in case of non-ECN traffic and
       // watermarks for ECN traffic for VoQ switches.
-      auto sysPortId = getSystemPortID(portId, getProgrammedState());
+      auto sysPortId = getSystemPortID(
+          portId,
+          util::getFirstNodeIf(getProgrammedState()->getSwitchSettings())
+              ->getSwitchIdToSwitchInfo(),
+          getPlatform()->getHwSwitch()->getSwitchID());
       auto sysPortStats =
           getHwSwitchEnsemble()->getLatestSysPortStats(sysPortId);
       extractAqmTestStats(sysPortStats, portStats, queueId, stats);
