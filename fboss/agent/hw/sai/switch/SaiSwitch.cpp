@@ -1919,8 +1919,8 @@ std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() {
     auto multiSysPorts = std::make_shared<MultiSwitchSystemPortMap>();
     auto sysPorts = managerTable_->systemPortManager().constructSystemPorts(
         state->getPorts(),
-        getSwitchId().value(),
-        platform_->getAsic()->getSystemPortRange());
+        scopeResolver->switchIdToSwitchInfo(),
+        getSwitchId().value());
 
     for (auto iter : std::as_const(*sysPorts)) {
       multiSysPorts->addNode(iter.second, scopeResolver->scope(iter.second));

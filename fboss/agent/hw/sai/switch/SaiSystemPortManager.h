@@ -62,8 +62,8 @@ class SaiSystemPortManager {
       const std::shared_ptr<SystemPort>& newSystemPort);
   std::shared_ptr<SystemPortMap> constructSystemPorts(
       const std::shared_ptr<MultiSwitchPortMap>& ports,
-      int64_t switchId,
-      std::optional<cfg::Range64> systemPortRange);
+      const std::map<int64_t, cfg::SwitchInfo>& switchIdToSwitchInfo,
+      int64_t switchId);
 
   const Stats& getLastPortStats() const {
     return portStats_;

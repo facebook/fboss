@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/HwSysPortFb303Stats.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
@@ -323,10 +324,9 @@ void SaiSystemPortManager::updateStats(
 
 std::shared_ptr<SystemPortMap> SaiSystemPortManager::constructSystemPorts(
     const std::shared_ptr<MultiSwitchPortMap>& ports,
-    int64_t switchId,
-    std::optional<cfg::Range64> systemPortRange) {
+    const std::map<int64_t, cfg::SwitchInfo>& switchIdToSwitchInfo,
+    int64_t switchId) {
   auto sysPortMap = std::make_shared<SystemPortMap>();
-  CHECK(systemPortRange);
   const std::set<cfg::PortType> kCreateSysPortsFor = {
       cfg::PortType::INTERFACE_PORT, cfg::PortType::RECYCLE_PORT};
   for (const auto& portMap : std::as_const(*ports)) {
@@ -335,8 +335,8 @@ std::shared_ptr<SystemPortMap> SaiSystemPortManager::constructSystemPorts(
           kCreateSysPortsFor.end()) {
         continue;
       }
-      auto sysPort = std::make_shared<SystemPort>(
-          SystemPortID{*systemPortRange->minimum() + port.second->getID()});
+      auto sysPort = std::make_shared<SystemPort>(getSystemPortID(
+          port.second->getID(), switchIdToSwitchInfo, switchId));
       sysPort->setSwitchId(SwitchID(switchId));
       sysPort->setPortName(
           folly::sformat("{}:{}", switchId, port.second->getName()));
