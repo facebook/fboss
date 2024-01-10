@@ -379,6 +379,14 @@ void SaiPortManager::attributesFromSaiStore(
       port->attributes(),
       attributes,
       SaiPortTraits::Attributes::QosTcToQueueMap{});
+  getAndSetAttribute(
+      port->attributes(),
+      attributes,
+      SaiPortTraits::Attributes::QosTcToPriorityGroupMap{});
+  getAndSetAttribute(
+      port->attributes(),
+      attributes,
+      SaiPortTraits::Attributes::QosPfcPriorityToQueueMap{});
 }
 
 SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
