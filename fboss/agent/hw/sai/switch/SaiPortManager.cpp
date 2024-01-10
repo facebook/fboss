@@ -564,35 +564,26 @@ void SaiPortManager::programPfc(
     sai_uint8_t rxPfc) {
   auto portHandle = getPortHandle(swPort->getID());
 
-  if (txPfc == rxPfc) {
+  auto pfcInfo = getPfcAttributes(txPfc, rxPfc);
+
+  portHandle->port->setOptionalAttribute(
+      SaiPortTraits::Attributes::PriorityFlowControlMode{*pfcInfo.pfcMode});
+  if (*pfcInfo.pfcMode == SAI_PORT_PRIORITY_FLOW_CONTROL_MODE_COMBINED) {
     portHandle->port->setOptionalAttribute(
-        SaiPortTraits::Attributes::PriorityFlowControlMode{
-            SAI_PORT_PRIORITY_FLOW_CONTROL_MODE_COMBINED});
-    portHandle->port->setOptionalAttribute(
-        SaiPortTraits::Attributes::PriorityFlowControl{txPfc});
+        SaiPortTraits::Attributes::PriorityFlowControl{*pfcInfo.pfcTxRx});
+    XLOG(DBG3) << "Successfully enabled PFC on " << swPort->getName()
+               << ", TX/RX=" << std::hex << *pfcInfo.pfcTxRx;
+#if not defined(TAJO_SDK)
   } else {
-#if defined(TAJO_SDK)
-    /*
-     * PFC tx enabled / rx disabled and vice versa is unsupported in the
-     * current TAJO implementation, tracked via WDG400C-448!
-     */
-    throw FbossError("PFC TX and RX configured differently is unsupported!");
-#else
     portHandle->port->setOptionalAttribute(
-        SaiPortTraits::Attributes::PriorityFlowControlMode{
-            SAI_PORT_PRIORITY_FLOW_CONTROL_MODE_SEPARATE});
+        SaiPortTraits::Attributes::PriorityFlowControlRx{*pfcInfo.pfcRx});
     portHandle->port->setOptionalAttribute(
-        SaiPortTraits::Attributes::PriorityFlowControlRx{rxPfc});
-    portHandle->port->setOptionalAttribute(
-        SaiPortTraits::Attributes::PriorityFlowControlTx{txPfc});
+        SaiPortTraits::Attributes::PriorityFlowControlTx{*pfcInfo.pfcTx});
+    XLOG(DBG3) << "Successfully enabled PFC on " << swPort->getName()
+               << ", TX=" << std::hex << *pfcInfo.pfcTx << ", Rx=" << std::hex
+               << *pfcInfo.pfcRx;
 #endif
   }
-  auto logHelper = [](uint8_t tx, uint8_t rx) {
-    return folly::to<std::string>(
-        tx ? "True/" : "False/", rx ? "True" : "False");
-  };
-  XLOG(DBG3) << "Successfully enabled PFC on " << swPort->getName()
-             << ", TX/RX = " << logHelper(txPfc, rxPfc);
 }
 
 std::pair<sai_uint8_t, sai_uint8_t> SaiPortManager::preparePfcConfigs(
