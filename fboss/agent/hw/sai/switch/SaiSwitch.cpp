@@ -2130,9 +2130,6 @@ void SaiSwitch::initStoreAndManagersLocked(
     if (getPlatform()->getAsic()->isSupported(HwAsic::Feature::DEBUG_COUNTER)) {
       managerTable_->debugCounterManager().setupDebugCounters();
     }
-    if (platform_->getAsic()->isSupported(HwAsic::Feature::BUFFER_POOL)) {
-      managerTable_->bufferManager().setupBufferPool();
-    }
     if (platform_->getAsic()->isSupported(
             HwAsic::Feature::COUNTER_REFRESH_INTERVAL)) {
       managerTable_->switchManager().setupCounterRefreshInterval();
