@@ -39,7 +39,6 @@
  * certain SDK. They will be useful for features being supported since a
  * particular SDK version.
 
- /*
  *  High-level BCM-SDK flags:
  *   - BRCM_SAI_SDK_XGS: Flags for all XGS SDK versions
  *   - BRCM_SAI_SDK_DNX: Flags for DNX SDK versions
@@ -87,7 +86,6 @@
 #endif
 
 /*
- /*
  *  High-level TAJO flags:
  *   - TAJO_SDK_EBRO: Flags for all EBRO(GB) SDK
  *   - TAJO_SDK_MORGAN: Flags for Morgan(G200) SDK
