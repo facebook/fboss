@@ -66,6 +66,11 @@ void ModbusDevice::handleCommandFailure(std::exception& baseException) {
   }
 }
 
+std::tuple<uint32_t, Parity> ModbusDevice::getDeviceConfig() {
+  std::shared_lock lk(infoMutex_);
+  return {info_.baudrate, info_.parity};
+}
+
 void ModbusDevice::command(Msg& req, Msg& resp, ModbusTime timeout) {
   size_t reqLen = req.len;
   size_t respLen = resp.len;
@@ -74,13 +79,16 @@ void ModbusDevice::command(Msg& req, Msg& resp, ModbusTime timeout) {
   // the last retry) in case the user wants to handle them
   // in a special way.
   int numRetries = exclusiveMode_ ? 1 : numCommandRetries_;
+  auto [baudrate, parity] = getDeviceConfig();
   for (int retries = 0; retries < numRetries; retries++) {
     try {
-      interface_.command(req, resp, info_.baudrate, timeout, info_.parity);
+      interface_.command(req, resp, baudrate, timeout, parity);
+      std::unique_lock lk(infoMutex_);
       info_.numConsecutiveFailures = 0;
       info_.lastActive = getCurrentTime();
       break;
     } catch (std::exception& ex) {
+      std::unique_lock lk(infoMutex_);
       handleCommandFailure(ex);
       if (retries == (numRetries - 1)) {
         throw;
@@ -130,17 +138,27 @@ void ModbusDevice::readFileRecord(
   command(req, resp, timeout);
 }
 
+bool ModbusDevice::setBaudrateAllowed(uint32_t baud) {
+  std::shared_lock lk(infoMutex_);
+  if (!setBaudEnabled_ || !baudConfig_.isSet || baud == info_.baudrate) {
+    return false;
+  }
+  return true;
+}
+
 void ModbusDevice::setBaudrate(uint32_t baud) {
   // Return early if earlier setBaud failed, or
   // we dont have configuration or if we already
   // are at the requested baudrate.
-  if (!setBaudEnabled_ || !baudConfig_.isSet || baud == info_.baudrate) {
+  if (!setBaudrateAllowed(baud)) {
     return;
   }
   try {
     writeSingleRegister(baudConfig_.reg, baudConfig_.baudValueMap.at(baud));
+    std::unique_lock lk(infoMutex_);
     info_.baudrate = baud;
   } catch (std::exception&) {
+    std::unique_lock lk(infoMutex_);
     setBaudEnabled_ = false;
     logError << "Failed to set baudrate to " << baud << std::endl;
   }
@@ -212,6 +230,7 @@ void ModbusDevice::reloadRegisters() {
 }
 
 void ModbusDevice::setActive() {
+  std::unique_lock lk(infoMutex_);
   // Enable any disabled registers. Assumption is
   // that the device might be unplugged and replugged
   // with a newer version. Thus, prepare for the
@@ -227,11 +246,13 @@ void ModbusDevice::setActive() {
 }
 
 ModbusDeviceRawData ModbusDevice::getRawData() {
+  std::shared_lock lk(infoMutex_);
   // Makes a deep copy.
   return info_;
 }
 
 ModbusDeviceInfo ModbusDevice::getInfo() {
+  std::shared_lock lk(infoMutex_);
   return info_;
 }
 
@@ -239,6 +260,7 @@ ModbusDeviceValueData ModbusDevice::getValueData(
     const ModbusRegisterFilter& filter,
     bool latestValueOnly) const {
   ModbusDeviceValueData data;
+  std::shared_lock lk(infoMutex_);
   data.ModbusDeviceInfo::operator=(info_);
   auto shouldPickRegister = [&filter](const RegisterStore& reg) {
     return !filter || filter.contains(reg.regAddr()) ||

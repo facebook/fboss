@@ -5,6 +5,7 @@
 #include <iostream>
 #include <optional>
 #include <set>
+#include <shared_mutex>
 #include "Modbus.h"
 #include "ModbusCmds.h"
 #include "Register.h"
@@ -85,14 +86,18 @@ class ModbusDevice {
   Modbus& interface_;
   int numCommandRetries_;
   ModbusDeviceRawData info_;
+  mutable std::shared_mutex infoMutex_{};
   std::vector<ModbusSpecialHandler> specialHandlers_{};
   const BaudrateConfig& baudConfig_;
   bool setBaudEnabled_ = true;
-  bool singleShotReload_ = false;
+  std::atomic<bool> singleShotReload_{false};
   std::atomic<bool> exclusiveMode_{false};
 
   void handleCommandFailure(std::exception& baseException);
 
+  std::tuple<uint32_t, Parity> getDeviceConfig();
+
+  bool setBaudrateAllowed(uint32_t baud);
   void setBaudrate(uint32_t baud);
   void setDefaultBaudrate() {
     setBaudrate(info_.defaultBaudrate);
