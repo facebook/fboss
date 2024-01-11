@@ -61,34 +61,15 @@ folly::Future<HwSwitchStateUpdateResult> HwSwitchHandler::stateChanged(
 
 HwSwitchStateUpdateResult HwSwitchHandler::stateChangedImpl(
     const HwSwitchStateUpdate& update) {
-  auto operDeltaSyncState = getHwSwitchOperDeltaSyncState();
-
-  if (operDeltaSyncState == HwSwitchOperDeltaSyncState::DISCONNECTED ||
-      operDeltaSyncState == HwSwitchOperDeltaSyncState::CANCELLED) {
-    return {
-        update.oldState,
-        HwSwitchStateUpdateStatus::HWSWITCH_STATE_UPDATE_CANCELLED};
-  }
-
-  std::optional<fsdb::OperDelta> inDelta;
-  if (operDeltaSyncState == HwSwitchOperDeltaSyncState::WAITING_INITIAL_SYNC) {
-    auto initialUpdate = HwSwitchStateUpdate(
-        StateDelta(std::make_shared<SwitchState>(), update.newState),
-        update.isTransaction);
-    // filter out deltas that don't apply to this switch from initial update
-    inDelta = operDeltaFilter_.filter(initialUpdate.inDelta, 1);
-  } else {
-    // filter out deltas that don't apply to this switch from incremental update
-    inDelta = operDeltaFilter_.filter(update.inDelta, 1);
-  }
-
+  auto inDelta = operDeltaFilter_.filterWithSwitchStateRootPath(update.inDelta);
   if (!inDelta) {
     // no-op
     return {
         update.newState,
         HwSwitchStateUpdateStatus::HWSWITCH_STATE_UPDATE_SUCCEEDED};
   }
-  auto stateUpdateResult = stateChangedImpl(*inDelta, update.isTransaction);
+  auto stateUpdateResult =
+      stateChangedImpl(*inDelta, update.isTransaction, update.newState);
   auto outDelta = stateUpdateResult.first;
   if (outDelta.changes()->empty()) {
     return {update.newState, stateUpdateResult.second};
@@ -104,8 +85,15 @@ HwSwitchStateUpdateResult HwSwitchHandler::stateChangedImpl(
 
 HwSwitchStateOperUpdateResult HwSwitchHandler::stateChangedImpl(
     const fsdb::OperDelta& delta,
-    bool transaction) {
-  return stateChanged(delta, transaction);
+    bool transaction,
+    const std::shared_ptr<SwitchState>& newState) {
+  return stateChanged(delta, transaction, newState);
+}
+
+std::optional<fsdb::OperDelta> HwSwitchHandler::getFullSyncOperDelta(
+    const std::shared_ptr<SwitchState>& state) const {
+  auto delta = StateDelta(std::make_shared<SwitchState>(), state);
+  return operDeltaFilter_.filterWithSwitchStateRootPath(delta.getOperDelta());
 }
 
 } // namespace facebook::fboss

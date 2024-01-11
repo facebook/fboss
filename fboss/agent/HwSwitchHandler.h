@@ -36,10 +36,10 @@ enum HwSwitchStateUpdateStatus {
 
 enum HwSwitchOperDeltaSyncState {
   DISCONNECTED, /* initial state */
-  WAITING_INITIAL_SYNC, /* Got first getOper request */
-  INITIAL_OPER_SENT, /* waiting for initial sync response */
-  OPER_SYNCED, /* initial sync completed */
-  CANCELLED, /* cancelled */
+  INITIAL_SYNC_SENT, /* initial sync sent, waiting for ack */
+  CONNECTED, /* ready for incremental updates */
+  CANCELLED, /* indicates client disconnecting or server graceful
+                shutdown */
 };
 
 using HwSwitchStateUpdateResult =
@@ -127,7 +127,8 @@ class HwSwitchHandler {
 
   virtual HwSwitchStateOperUpdateResult stateChanged(
       const fsdb::OperDelta& delta,
-      bool transaction) = 0;
+      bool transaction,
+      const std::shared_ptr<SwitchState>& initialState) = 0;
 
   // platform access apis
   virtual void onHwInitialized(HwSwitchCallback* callback) = 0;
@@ -169,12 +170,17 @@ class HwSwitchHandler {
 
   virtual void cancelOperDeltaSync() = 0;
 
+ protected:
+  std::optional<fsdb::OperDelta> getFullSyncOperDelta(
+      const std::shared_ptr<SwitchState>& state) const;
+
  private:
   HwSwitchStateUpdateResult stateChangedImpl(const HwSwitchStateUpdate& update);
 
   HwSwitchStateOperUpdateResult stateChangedImpl(
       const fsdb::OperDelta& delta,
-      bool transaction);
+      bool transaction,
+      const std::shared_ptr<SwitchState>& newState);
 
   void run();
 

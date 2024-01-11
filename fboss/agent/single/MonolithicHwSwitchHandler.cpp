@@ -201,7 +201,8 @@ bool MonolithicHwSwitchHandler::needL2EntryForNeighbor(
 std::pair<fsdb::OperDelta, HwSwitchStateUpdateStatus>
 MonolithicHwSwitchHandler::stateChanged(
     const fsdb::OperDelta& delta,
-    bool transaction) {
+    bool transaction,
+    const std::shared_ptr<SwitchState>& /*newState*/) {
   auto operResult = transaction ? hw_->stateChangedTransaction(delta)
                                 : hw_->stateChanged(delta);
   /*

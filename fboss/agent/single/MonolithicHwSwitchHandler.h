@@ -87,7 +87,8 @@ class MonolithicHwSwitchHandler : public HwSwitchHandler {
 
   std::pair<fsdb::OperDelta, HwSwitchStateUpdateStatus> stateChanged(
       const fsdb::OperDelta& delta,
-      bool transaction) override;
+      bool transaction,
+      const std::shared_ptr<SwitchState>& newState) override;
 
   bool transactionsSupported(
       std::optional<cfg::SdkVersion> sdkVersion) const override;
@@ -126,7 +127,7 @@ class MonolithicHwSwitchHandler : public HwSwitchHandler {
   void notifyHwSwitchDisconnected() override;
 
   HwSwitchOperDeltaSyncState getHwSwitchOperDeltaSyncState() override {
-    return HwSwitchOperDeltaSyncState::OPER_SYNCED;
+    return HwSwitchOperDeltaSyncState::CONNECTED;
   }
 
   SwitchRunState getHwSwitchRunState() override;

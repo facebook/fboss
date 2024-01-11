@@ -104,9 +104,6 @@ TEST_F(SwSwitchHandlerTest, GetOperDelta) {
     addRandomDelay();
     auto stateReturned = getHwSwitchHandler()->stateChanged(delta, true);
     EXPECT_EQ(stateReturned, stateV1);
-    stateReturned = getHwSwitchHandler()->stateChanged(delta, true);
-    EXPECT_EQ(stateReturned, stateV1);
-    addRandomDelay();
     // Switch 1 cancels request
     getHwSwitchHandler()->notifyHwSwitchGracefulExit(0);
     // Switch 2 has pending request but server stops
@@ -125,13 +122,11 @@ TEST_F(SwSwitchHandlerTest, GetOperDelta) {
     };
     auto operDelta = getHwSwitchHandler()->getNextStateOperDelta(
         switchId, getEmptyOper(), ackNum++);
-    EXPECT_EQ(operDelta.operDelta(), *filter.filter(delta.getOperDelta(), 1));
+    EXPECT_EQ(
+        operDelta.operDelta(),
+        *filter.filterWithSwitchStateRootPath(delta.getOperDelta()));
     // request next state delta. the empty oper passed serves as success
     // indicator for previous delta
-    operDelta = getHwSwitchHandler()->getNextStateOperDelta(
-        switchId, getEmptyOper(), ackNum++);
-    EXPECT_EQ(operDelta.operDelta(), *filter.filter(delta.getOperDelta(), 1));
-    // this request will be cancelled
     operDelta = getHwSwitchHandler()->getNextStateOperDelta(
         switchId, getEmptyOper(), ackNum++);
     // this request will be cancelled
@@ -162,8 +157,9 @@ TEST_F(SwSwitchHandlerTest, cancelHwSwitchWait) {
  *   client 1 gets an incremental update.
  */
 TEST_F(SwSwitchHandlerTest, partialUpdateAndFullSync) {
-  folly::Baton<> client1Baton;
-  folly::Baton<> client2Baton;
+  folly::Baton<> client1UpdateCompletedBaton;
+  folly::Baton<> client2FinishedBaton;
+  folly::Baton<> client1InitialSyncBaton;
   auto stateV0 = std::make_shared<SwitchState>();
   stateV0->publish();
   auto stateV1 = getInitialTestState();
@@ -180,64 +176,91 @@ TEST_F(SwSwitchHandlerTest, partialUpdateAndFullSync) {
   /* full update delta */
   auto delta3 = StateDelta(stateV0, stateV2);
 
-  std::thread stateUpdateThread(
-      [this, &delta, &stateV1, &delta2, &stateV2, &client2Baton]() {
-        /* client 1 connects */
-        getHwSwitchHandler()->waitUntilHwSwitchConnected();
-        /* state update should succeed */
-        auto stateReturned = getHwSwitchHandler()->stateChanged(delta, true);
-        EXPECT_EQ(stateReturned, stateV1);
-        /* let client2 start. it should get full sync */
-        client2Baton.wait();
-        auto stateReturned2 = getHwSwitchHandler()->stateChanged(delta2, true);
-        EXPECT_EQ(stateReturned2, stateV2);
-        getHwSwitchHandler()->stop();
-      });
+  getHwSwitchHandler()->connected(SwitchID(0));
+  sw_->init(SwitchFlags::DEFAULT);
+  sw_->initialConfigApplied(std::chrono::steady_clock::now());
 
-  auto clientThreadBody =
-      [this, &delta, &delta2, &delta3, &client1Baton, &client2Baton](
-          int64_t switchId) {
-        int64_t ackNum{0};
-        OperDeltaFilter filter((SwitchID(switchId)));
-        // connect and get next state delta
-        auto getEmptyOper = []() {
-          auto operDelta = std::make_unique<multiswitch::StateOperDelta>();
-          operDelta->operDelta() = fsdb::OperDelta();
-          return operDelta;
-        };
-        if (switchId == 1) {
-          // wait for first client to send request
-          client1Baton.wait();
-          // signal to server that second client is ready
-          client2Baton.post();
-        }
-        auto operDelta = getHwSwitchHandler()->getNextStateOperDelta(
-            switchId, getEmptyOper(), ackNum++);
-        // should get a valid result
-        CHECK(operDelta.operDelta().is_set());
-        if (switchId == 0) {
-          // initial request from client 1 completed. client2 starts now
-          client1Baton.post();
+  std::thread stateUpdateThread([this,
+                                 &delta,
+                                 &stateV1,
+                                 &delta2,
+                                 &stateV2,
+                                 &client2FinishedBaton,
+                                 &client1InitialSyncBaton]() {
+    // wait for client 1 to do initial sync
+    client1InitialSyncBaton.wait();
+    /* state update should succeed */
+    auto stateReturned = getHwSwitchHandler()->stateChanged(delta, true);
+    EXPECT_EQ(stateReturned, stateV1);
+    auto stateReturned2 = getHwSwitchHandler()->stateChanged(delta2, true);
+    EXPECT_EQ(stateReturned2, stateV2);
+    // wait for client 2 to do full sync
+    client2FinishedBaton.wait();
+    getHwSwitchHandler()->stop();
+  });
 
-          // client 1 should get initial oper delta
-          EXPECT_EQ(
-              operDelta.operDelta(), *filter.filter(delta.getOperDelta(), 1));
-
-          // request next oper delta for client 1
-          operDelta = getHwSwitchHandler()->getNextStateOperDelta(
-              switchId, getEmptyOper(), ackNum++);
-          CHECK(operDelta.operDelta().is_set());
-          // client 1 should get incremental update
-          EXPECT_EQ(
-              operDelta.operDelta(), *filter.filter(delta2.getOperDelta(), 1));
-        } else {
-          // client 2 should get full oper delta as this is the first update
-          EXPECT_EQ(
-              operDelta.operDelta(), *filter.filter(delta3.getOperDelta(), 1));
-        }
-        operDelta = getHwSwitchHandler()->getNextStateOperDelta(
-            switchId, getEmptyOper(), ackNum++);
-      };
+  auto clientThreadBody = [this,
+                           &delta,
+                           &delta2,
+                           &delta3,
+                           &client1UpdateCompletedBaton,
+                           &client2FinishedBaton,
+                           &client1InitialSyncBaton](int64_t switchId) {
+    int64_t ackNum{0};
+    OperDeltaFilter filter((SwitchID(switchId)));
+    auto getEmptyOper = []() {
+      auto operDelta = std::make_unique<multiswitch::StateOperDelta>();
+      operDelta->operDelta() = fsdb::OperDelta();
+      return operDelta;
+    };
+    // connect and get next state delta
+    if (switchId == 1) {
+      // wait for first client to send request
+      client1UpdateCompletedBaton.wait();
+    }
+    // initial sync request
+    auto operDelta = getHwSwitchHandler()->getNextStateOperDelta(
+        switchId, getEmptyOper(), ackNum++);
+    // should get a valid result
+    EXPECT_TRUE(operDelta.operDelta().is_set());
+    if (switchId == 0) {
+      auto initialDelta =
+          StateDelta(std::make_shared<SwitchState>(), sw_->getState());
+      EXPECT_EQ(
+          operDelta.operDelta(),
+          *filter.filterWithSwitchStateRootPath(initialDelta.getOperDelta()));
+      // signal to server to start further updates
+      client1InitialSyncBaton.post();
+      // request next delta which also serves as ack for initial delta
+      operDelta = getHwSwitchHandler()->getNextStateOperDelta(
+          switchId, getEmptyOper(), ackNum++);
+      // client 1 should get incremental oper delta
+      EXPECT_EQ(
+          operDelta.operDelta(),
+          *filter.filterWithSwitchStateRootPath(delta.getOperDelta()));
+      operDelta = getHwSwitchHandler()->getNextStateOperDelta(
+          switchId, getEmptyOper(), ackNum++);
+      // client 1 should get next incremental oper delta
+      EXPECT_EQ(
+          operDelta.operDelta(),
+          *filter.filterWithSwitchStateRootPath(delta2.getOperDelta()));
+      // signal client 2 to start
+      client1UpdateCompletedBaton.post();
+      // ack for previous oper delta
+      operDelta = getHwSwitchHandler()->getNextStateOperDelta(
+          switchId, getEmptyOper(), ackNum++);
+    } else {
+      // client 2 should get full oper delta
+      EXPECT_EQ(
+          operDelta.operDelta(),
+          *filter.filterWithSwitchStateRootPath(delta3.getOperDelta()));
+      // client 2 done. sever can shut down
+      client2FinishedBaton.post();
+      // ack for initial delta
+      operDelta = getHwSwitchHandler()->getNextStateOperDelta(
+          switchId, getEmptyOper(), ackNum++);
+    }
+  };
   std::thread clientRequestThread1([&]() { clientThreadBody(0); });
   std::thread clientRequestThread2([&]() { clientThreadBody(1); });
 
@@ -275,49 +298,53 @@ TEST_F(SwSwitchHandlerTest, rollbackFailedHwSwitchUpdate) {
     EXPECT_EQ(stateReturned, stateV0);
     getHwSwitchHandler()->stop();
   });
-  auto clientThreadBody =
-      [this, &stateV0, &stateV1, &stateV2, &delta2, &delta3](int64_t switchId) {
-        int64_t ackNum{0};
-        OperDeltaFilter filter((SwitchID(switchId)));
-        // connect and get next state delta
-        auto getEmptyOper = []() {
-          auto operDelta = std::make_unique<multiswitch::StateOperDelta>();
-          operDelta->operDelta() = fsdb::OperDelta();
-          return operDelta;
-        };
-        auto operDelta = getHwSwitchHandler()->getNextStateOperDelta(
-            switchId, getEmptyOper(), ackNum++);
-        CHECK(operDelta.operDelta().is_set());
-        if (switchId == 0) {
-          /* return success */
-          operDelta = getHwSwitchHandler()->getNextStateOperDelta(
-              switchId, getEmptyOper(), ackNum++);
-          // server should return rollback oper delta
-          CHECK(operDelta.operDelta().is_set());
-          auto expectedDelta = StateDelta(stateV1, stateV0);
-          EXPECT_EQ(
-              operDelta.operDelta(),
-              *filter.filter(expectedDelta.getOperDelta(), 1));
-          operDelta = getHwSwitchHandler()->getNextStateOperDelta(
-              switchId, getEmptyOper(), ackNum++);
-        } else {
-          /* return failure with partial oper delta */
-          auto operDeltaRet = std::make_unique<multiswitch::StateOperDelta>();
-          operDeltaRet->operDelta() = delta2.getOperDelta();
-          operDelta = getHwSwitchHandler()->getNextStateOperDelta(
-              switchId, std::move(operDeltaRet), ackNum++);
-          CHECK(operDelta.operDelta().is_set());
+  auto clientThreadBody = [this,
+                           &stateV0,
+                           &stateV1,
+                           &stateV2,
+                           &delta2,
+                           &delta3](int64_t switchId) {
+    int64_t ackNum{0};
+    OperDeltaFilter filter((SwitchID(switchId)));
+    // connect and get next state delta
+    auto getEmptyOper = []() {
+      auto operDelta = std::make_unique<multiswitch::StateOperDelta>();
+      operDelta->operDelta() = fsdb::OperDelta();
+      return operDelta;
+    };
+    auto operDelta = getHwSwitchHandler()->getNextStateOperDelta(
+        switchId, getEmptyOper(), ackNum++);
+    CHECK(operDelta.operDelta().is_set());
+    if (switchId == 0) {
+      /* return success */
+      operDelta = getHwSwitchHandler()->getNextStateOperDelta(
+          switchId, getEmptyOper(), ackNum++);
+      // server should return rollback oper delta
+      CHECK(operDelta.operDelta().is_set());
+      auto expectedDelta = StateDelta(stateV1, stateV0);
+      EXPECT_EQ(
+          operDelta.operDelta(),
+          *filter.filterWithSwitchStateRootPath(expectedDelta.getOperDelta()));
+      operDelta = getHwSwitchHandler()->getNextStateOperDelta(
+          switchId, getEmptyOper(), ackNum++);
+    } else {
+      /* return failure with partial oper delta */
+      auto operDeltaRet = std::make_unique<multiswitch::StateOperDelta>();
+      operDeltaRet->operDelta() = delta2.getOperDelta();
+      operDelta = getHwSwitchHandler()->getNextStateOperDelta(
+          switchId, std::move(operDeltaRet), ackNum++);
+      CHECK(operDelta.operDelta().is_set());
 
-          // server should return a rollback oper which remove the partial
-          // update
-          auto expectedDelta = StateDelta(stateV2, stateV0);
-          EXPECT_EQ(
-              operDelta.operDelta(),
-              *filter.filter(expectedDelta.getOperDelta(), 1));
-          operDelta = getHwSwitchHandler()->getNextStateOperDelta(
-              switchId, getEmptyOper(), ackNum++);
-        }
-      };
+      // server should return a rollback oper which remove the partial
+      // update
+      auto expectedDelta = StateDelta(stateV2, stateV0);
+      EXPECT_EQ(
+          operDelta.operDelta(),
+          *filter.filterWithSwitchStateRootPath(expectedDelta.getOperDelta()));
+      operDelta = getHwSwitchHandler()->getNextStateOperDelta(
+          switchId, getEmptyOper(), ackNum++);
+    }
+  };
   std::thread clientRequestThread1([&]() { clientThreadBody(0); });
   std::thread clientRequestThread2([&]() { clientThreadBody(1); });
 
@@ -333,8 +360,11 @@ TEST_F(SwSwitchHandlerTest, rollbackFailedHwSwitchUpdate) {
  * - Client 1 reconnects and gets a full oper sync
  */
 TEST_F(SwSwitchHandlerTest, reconnectingHwSwitch) {
-  folly::Baton<> serverBaton;
+  folly::Baton<> serverUpdateCompletedBaton;
   folly::Baton<> serverRestartBaton;
+  folly::Baton<> client1InitialSyncBaton;
+  folly::Baton<> client2InitialSyncBaton;
+  folly::Baton<> clientResyncBaton;
   auto stateV0 = std::make_shared<SwitchState>();
   stateV0->publish();
   auto stateV1 = getInitialTestState();
@@ -351,8 +381,14 @@ TEST_F(SwSwitchHandlerTest, reconnectingHwSwitch) {
   stateV3->publish();
   auto delta = StateDelta(stateV0, stateV1);
   auto delta2 = StateDelta(stateV1, stateV2);
+  auto delta2Full = StateDelta(stateV0, stateV2);
   auto delta3 = StateDelta(stateV2, stateV3);
   auto delta4 = StateDelta(stateV0, stateV3);
+
+  getHwSwitchHandler()->connected(SwitchID(0));
+  getHwSwitchHandler()->connected(SwitchID(1));
+  sw_->init(SwitchFlags::DEFAULT);
+  sw_->initialConfigApplied(std::chrono::steady_clock::now());
 
   auto agentConfig = createAgentConfig();
   auto agentDirUtil = AgentDirectoryUtil(
@@ -370,10 +406,15 @@ TEST_F(SwSwitchHandlerTest, reconnectingHwSwitch) {
                                  &stateV1,
                                  &stateV2,
                                  &stateV3,
-                                 &serverBaton,
+                                 &serverUpdateCompletedBaton,
                                  &serverRestartBaton,
+                                 &client1InitialSyncBaton,
+                                 &client2InitialSyncBaton,
+                                 &clientResyncBaton,
                                  &newHwSwitchHandler]() {
-    getHwSwitchHandler()->waitUntilHwSwitchConnected();
+    // wait for initial sync to complete on both switches
+    client1InitialSyncBaton.wait();
+    client2InitialSyncBaton.wait();
     auto stateReturned = getHwSwitchHandler()->stateChanged(delta, true);
     EXPECT_EQ(stateReturned, stateV1);
     // Switch 2 cancels request
@@ -381,14 +422,15 @@ TEST_F(SwSwitchHandlerTest, reconnectingHwSwitch) {
     // Switch 1 continues to operate
     stateReturned = getHwSwitchHandler()->stateChanged(delta2, true);
     EXPECT_EQ(stateReturned, stateV2);
-    // wait for switch 2 to reconnect
-    serverBaton.post();
+    serverUpdateCompletedBaton.post();
+    // wait for client 2 to resync
+    clientResyncBaton.wait();
+    // resume normal updates
     stateReturned = getHwSwitchHandler()->stateChanged(delta3, true);
     EXPECT_EQ(stateReturned, stateV3);
     getHwSwitchHandler()->stop();
     // server restarts
     serverRestartBaton.post();
-    newHwSwitchHandler->waitUntilHwSwitchConnected();
     stateReturned = newHwSwitchHandler->stateChanged(delta4, true);
     newHwSwitchHandler->stop();
   });
@@ -396,10 +438,14 @@ TEST_F(SwSwitchHandlerTest, reconnectingHwSwitch) {
   auto clientThreadBody = [this,
                            &delta,
                            &delta2,
+                           &delta2Full,
                            &delta3,
                            &delta4,
-                           &serverBaton,
+                           &serverUpdateCompletedBaton,
                            &serverRestartBaton,
+                           &client1InitialSyncBaton,
+                           &client2InitialSyncBaton,
+                           &clientResyncBaton,
                            &newHwSwitchHandler](int64_t switchId) {
     int64_t ackNum{0};
     OperDeltaFilter filter((SwitchID(switchId)));
@@ -411,54 +457,87 @@ TEST_F(SwSwitchHandlerTest, reconnectingHwSwitch) {
     };
     auto operDelta = getHwSwitchHandler()->getNextStateOperDelta(
         switchId, getEmptyOper(), ackNum++);
-    EXPECT_EQ(operDelta.operDelta(), *filter.filter(delta.getOperDelta(), 1));
+    auto initialDelta =
+        StateDelta(std::make_shared<SwitchState>(), sw_->getState());
+    EXPECT_EQ(
+        operDelta.operDelta(),
+        *filter.filterWithSwitchStateRootPath(initialDelta.getOperDelta()));
 
     if (switchId == 0) {
+      client1InitialSyncBaton.post();
       // request next state delta. the empty oper passed serves as success
       // indicator for previous delta
       operDelta = getHwSwitchHandler()->getNextStateOperDelta(
           switchId, getEmptyOper(), ackNum++);
       EXPECT_EQ(
-          operDelta.operDelta(), *filter.filter(delta2.getOperDelta(), 1));
+          operDelta.operDelta(),
+          *filter.filterWithSwitchStateRootPath(delta.getOperDelta()));
       operDelta = getHwSwitchHandler()->getNextStateOperDelta(
           switchId, getEmptyOper(), ackNum++);
       EXPECT_EQ(
-          operDelta.operDelta(), *filter.filter(delta3.getOperDelta(), 1));
+          operDelta.operDelta(),
+          *filter.filterWithSwitchStateRootPath(delta2.getOperDelta()));
+      operDelta = getHwSwitchHandler()->getNextStateOperDelta(
+          switchId, getEmptyOper(), ackNum++);
+      EXPECT_EQ(
+          operDelta.operDelta(),
+          *filter.filterWithSwitchStateRootPath(delta3.getOperDelta()));
       // this request will be cancelled
       operDelta = getHwSwitchHandler()->getNextStateOperDelta(
           switchId, getEmptyOper(), ackNum++);
       EXPECT_EQ(operDelta.operDelta(), fsdb::OperDelta());
     } else {
-      // response for cancelled oper request
+      client2InitialSyncBaton.post();
+      // request next state delta. the empty oper passed serves as success
+      // indicator for previous delta
       operDelta = getHwSwitchHandler()->getNextStateOperDelta(
           switchId, getEmptyOper(), ackNum++);
+      EXPECT_EQ(
+          operDelta.operDelta(),
+          *filter.filterWithSwitchStateRootPath(delta.getOperDelta()));
+      // ack for previous request. this request will be cancelled
+      operDelta = getHwSwitchHandler()->getNextStateOperDelta(
+          switchId, getEmptyOper(), ackNum++);
+      // response for cancelled oper request
       EXPECT_EQ(operDelta.operDelta(), fsdb::OperDelta());
 
       // wait for server to finish second update which updates
       // only client1
-      serverBaton.wait();
+      serverUpdateCompletedBaton.wait();
       // switch 2 reconnects
       operDelta = getHwSwitchHandler()->getNextStateOperDelta(
           switchId, getEmptyOper(), 0 /*lastUpdateSeqNum*/);
       // expect full response
       EXPECT_EQ(
-          operDelta.operDelta(), *filter.filter(delta4.getOperDelta(), 1));
+          operDelta.operDelta(),
+          *filter.filterWithSwitchStateRootPath(delta2Full.getOperDelta()));
       // Server should continue from last update seqnum
       EXPECT_EQ(operDelta.seqNum().value(), ackNum);
+
+      clientResyncBaton.post();
+      // normal update resumes
+      operDelta = getHwSwitchHandler()->getNextStateOperDelta(
+          switchId, getEmptyOper(), operDelta.seqNum().value());
+      EXPECT_EQ(
+          operDelta.operDelta(),
+          *filter.filterWithSwitchStateRootPath(delta3.getOperDelta()));
 
       // this request will be cancelled
       operDelta = getHwSwitchHandler()->getNextStateOperDelta(
           switchId, getEmptyOper(), operDelta.seqNum().value());
       EXPECT_EQ(operDelta.operDelta(), fsdb::OperDelta());
+
+      // wait for server to restart
       serverRestartBaton.wait();
       operDelta = newHwSwitchHandler->getNextStateOperDelta(
           switchId, getEmptyOper(), operDelta.seqNum().value());
       // server should send full response again
       EXPECT_EQ(
-          operDelta.operDelta(), *filter.filter(delta4.getOperDelta(), 1));
+          operDelta.operDelta(),
+          *filter.filterWithSwitchStateRootPath(delta4.getOperDelta()));
       // seq number will reset
       EXPECT_EQ(operDelta.seqNum().value(), 1);
-      // this request will be cancelled
+      // ack - this request will be cancelled
       operDelta = newHwSwitchHandler->getNextStateOperDelta(
           switchId, getEmptyOper(), operDelta.seqNum().value());
       EXPECT_EQ(operDelta.operDelta(), fsdb::OperDelta());
@@ -476,23 +555,33 @@ TEST_F(SwSwitchHandlerTest, reconnectingHwSwitch) {
 TEST_F(SwSwitchHandlerTest, switchRunStateTest) {
   auto stateV0 = std::make_shared<SwitchState>();
   auto stateV1 = getInitialTestState();
+  folly::Baton<> client1StartBaton;
+  folly::Baton<> client2StartBaton;
 
   auto delta = StateDelta(stateV0, stateV1);
-  std::thread stateUpdateThread([this, &delta, &stateV1]() {
-    auto checkState = [&](auto state) {
-      WITH_RETRIES({
-        auto hwSwitchState = getHwSwitchHandler()->getHwSwitchRunStates();
-        for (const auto& [id, runState] : hwSwitchState) {
-          EXPECT_EVENTUALLY_EQ(runState, state);
-        }
-      });
-    };
+  auto checkState = [&](auto state) {
+    WITH_RETRIES({
+      auto hwSwitchState = getHwSwitchHandler()->getHwSwitchRunStates();
+      for (const auto& [id, runState] : hwSwitchState) {
+        EXPECT_EVENTUALLY_EQ(runState, state);
+      }
+    });
+  };
+  checkState(SwitchRunState::UNINITIALIZED);
+  getHwSwitchHandler()->stateChanged(delta, true);
+
+  std::thread stateUpdateThread([this,
+                                 &delta,
+                                 &stateV1,
+                                 &checkState,
+                                 &client1StartBaton,
+                                 &client2StartBaton]() {
     getHwSwitchHandler()->waitUntilHwSwitchConnected();
     checkState(SwitchRunState::INITIALIZED);
-    auto stateReturned = getHwSwitchHandler()->stateChanged(delta, true);
-    EXPECT_EQ(stateReturned, stateV1);
+    client1StartBaton.post();
+    client2StartBaton.post();
     checkState(SwitchRunState::CONFIGURED);
-    stateReturned = getHwSwitchHandler()->stateChanged(delta, true);
+    auto stateReturned = getHwSwitchHandler()->stateChanged(delta, true);
     EXPECT_EQ(stateReturned, stateV1);
     getHwSwitchHandler()->notifyHwSwitchGracefulExit(0);
     getHwSwitchHandler()->notifyHwSwitchGracefulExit(1);
@@ -500,34 +589,137 @@ TEST_F(SwSwitchHandlerTest, switchRunStateTest) {
     getHwSwitchHandler()->stop();
   });
 
-  auto clientThreadBody = [this, &delta](int64_t switchId) {
-    int64_t ackNum{0};
-    OperDeltaFilter filter((SwitchID(switchId)));
-    // connect and get next state delta
-    auto getEmptyOper = []() {
-      auto operDelta = std::make_unique<multiswitch::StateOperDelta>();
-      operDelta->operDelta() = fsdb::OperDelta();
-      return operDelta;
-    };
-    auto operDelta = getHwSwitchHandler()->getNextStateOperDelta(
-        switchId, getEmptyOper(), ackNum++);
-    EXPECT_EQ(operDelta.operDelta(), *filter.filter(delta.getOperDelta(), 1));
-    // request next state delta. the empty oper passed serves as success
-    // indicator for previous delta
-    operDelta = getHwSwitchHandler()->getNextStateOperDelta(
-        switchId, getEmptyOper(), ackNum++);
-    EXPECT_EQ(operDelta.operDelta(), *filter.filter(delta.getOperDelta(), 1));
-    // this request will be cancelled
-    operDelta = getHwSwitchHandler()->getNextStateOperDelta(
-        switchId, getEmptyOper(), ackNum++);
-    // this request will be cancelled
-    EXPECT_EQ(operDelta.operDelta(), fsdb::OperDelta());
-  };
+  auto clientThreadBody =
+      [this, &delta, &client1StartBaton, &client2StartBaton](int64_t switchId) {
+        int64_t ackNum{0};
+        OperDeltaFilter filter((SwitchID(switchId)));
+        // connect and get next state delta
+        auto getEmptyOper = []() {
+          auto operDelta = std::make_unique<multiswitch::StateOperDelta>();
+          operDelta->operDelta() = fsdb::OperDelta();
+          return operDelta;
+        };
+        auto operDelta = getHwSwitchHandler()->getNextStateOperDelta(
+            switchId, getEmptyOper(), ackNum++);
+        EXPECT_EQ(
+            operDelta.operDelta(),
+            *filter.filterWithSwitchStateRootPath(delta.getOperDelta()));
+        if (switchId == 0) {
+          client1StartBaton.wait();
+        } else {
+          client2StartBaton.wait();
+        }
+        // request next state delta. the empty oper passed serves as success
+        // indicator for previous delta
+        operDelta = getHwSwitchHandler()->getNextStateOperDelta(
+            switchId, getEmptyOper(), ackNum++);
+        EXPECT_EQ(
+            operDelta.operDelta(),
+            *filter.filterWithSwitchStateRootPath(delta.getOperDelta()));
+        // this request will be cancelled
+        operDelta = getHwSwitchHandler()->getNextStateOperDelta(
+            switchId, getEmptyOper(), ackNum++);
+        // this request will be cancelled
+        EXPECT_EQ(operDelta.operDelta(), fsdb::OperDelta());
+      };
 
   std::thread clientRequestThread1([&]() { clientThreadBody(0); });
   std::thread clientRequestThread2([&]() { clientThreadBody(1); });
 
   stateUpdateThread.join();
+  clientRequestThread1.join();
+  clientRequestThread2.join();
+}
+
+// client should be able to get full sync when switch is in configured
+// state without having to wait for next state delta
+TEST_F(SwSwitchHandlerTest, initialSync) {
+  folly::Baton<> client1Baton;
+  folly::Baton<> client2Baton;
+  auto sw = sw_.get();
+  getHwSwitchHandler()->connected(SwitchID(0));
+  sw_->init(SwitchFlags::DEFAULT);
+  sw_->initialConfigApplied(std::chrono::steady_clock::now());
+
+  auto clientThreadBody =
+      [&sw, &client1Baton, &client2Baton](int64_t switchId) {
+        int64_t ackNum{0};
+        OperDeltaFilter filter((SwitchID(switchId)));
+        // connect and get next state delta
+        auto getEmptyOper = []() {
+          auto operDelta = std::make_unique<multiswitch::StateOperDelta>();
+          operDelta->operDelta() = fsdb::OperDelta();
+          return operDelta;
+        };
+        auto operDelta = sw->getHwSwitchHandler()->getNextStateOperDelta(
+            switchId, getEmptyOper(), ackNum++);
+        auto initialDelta =
+            StateDelta(std::make_shared<SwitchState>(), sw->getState());
+        EXPECT_EQ(
+            operDelta.operDelta(),
+            *filter.filterWithSwitchStateRootPath(initialDelta.getOperDelta()));
+        if (switchId == 0) {
+          client1Baton.post();
+        } else {
+          client2Baton.post();
+        }
+        // ack for initial delta
+        operDelta = sw->getHwSwitchHandler()->getNextStateOperDelta(
+            switchId, getEmptyOper(), ackNum++);
+      };
+
+  std::thread clientRequestThread1([&]() { clientThreadBody(0); });
+  std::thread clientRequestThread2([&]() { clientThreadBody(1); });
+  client1Baton.wait();
+  client2Baton.wait();
+  sw->getHwSwitchHandler()->stop();
+  clientRequestThread1.join();
+  clientRequestThread2.join();
+}
+
+// client should be able to get full sync in the following case
+// - swswitch is not ready when client connects
+// - swswitch moves to configured state and client gets a full sync
+TEST_F(SwSwitchHandlerTest, initialSyncSwSwitchNotConfigured) {
+  folly::Baton<> client1Baton;
+  folly::Baton<> client2Baton;
+  auto sw = sw_.get();
+
+  auto clientThreadBody =
+      [&sw, &client1Baton, &client2Baton](int64_t switchId) {
+        int64_t ackNum{0};
+        OperDeltaFilter filter((SwitchID(switchId)));
+        // connect and get next state delta
+        auto getEmptyOper = []() {
+          auto operDelta = std::make_unique<multiswitch::StateOperDelta>();
+          operDelta->operDelta() = fsdb::OperDelta();
+          return operDelta;
+        };
+        auto initialOperDelta = sw->getHwSwitchHandler()->getNextStateOperDelta(
+            switchId, getEmptyOper(), ackNum++);
+        if (switchId == 0) {
+          client1Baton.post();
+        } else {
+          client2Baton.post();
+        }
+        // ack for initial delta
+        auto operDelta = sw->getHwSwitchHandler()->getNextStateOperDelta(
+            switchId, getEmptyOper(), ackNum++);
+        auto initialDelta =
+            StateDelta(std::make_shared<SwitchState>(), sw->getState());
+        EXPECT_EQ(
+            initialOperDelta.operDelta(),
+            *filter.filterWithSwitchStateRootPath(initialDelta.getOperDelta()));
+      };
+
+  std::thread clientRequestThread1([&]() { clientThreadBody(0); });
+  std::thread clientRequestThread2([&]() { clientThreadBody(1); });
+  getHwSwitchHandler()->waitUntilHwSwitchConnected();
+  sw_->init(SwitchFlags::DEFAULT);
+  sw_->initialConfigApplied(std::chrono::steady_clock::now());
+  client1Baton.wait();
+  client2Baton.wait();
+  sw->getHwSwitchHandler()->stop();
   clientRequestThread1.join();
   clientRequestThread2.join();
 }
