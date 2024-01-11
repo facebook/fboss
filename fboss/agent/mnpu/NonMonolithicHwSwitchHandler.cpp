@@ -291,9 +291,15 @@ NonMonolithicHwSwitchHandler::stateChanged(
 multiswitch::StateOperDelta NonMonolithicHwSwitchHandler::getNextStateOperDelta(
     std::unique_ptr<multiswitch::StateOperDelta> prevOperResult,
     int64_t lastUpdateSeqNum) {
+  SCOPE_EXIT {
+    std::unique_lock<std::mutex> lk(stateUpdateMutex_);
+    operRequestInProgress_ = false;
+  };
   // check whether it is a new connection.
   {
     std::unique_lock<std::mutex> lk(stateUpdateMutex_);
+    CHECK(!operRequestInProgress_);
+    operRequestInProgress_ = true;
     if (lastUpdateSeqNum == lastAckedOperDeltaSeqNum_) {
       // HwSwitch has resent an ack for the previous delta. This indicates
       // that hwswitch timedout waiting for a new oper delta to be available.

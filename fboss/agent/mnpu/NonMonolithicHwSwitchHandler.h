@@ -150,6 +150,7 @@ class NonMonolithicHwSwitchHandler : public HwSwitchHandler {
   HwSwitchOperDeltaSyncState operDeltaSyncState_{DISCONNECTED};
   int64_t currOperDeltaSeqNum_{0};
   int64_t lastAckedOperDeltaSeqNum_{-1};
+  bool operRequestInProgress_{false};
 };
 
 } // namespace facebook::fboss
