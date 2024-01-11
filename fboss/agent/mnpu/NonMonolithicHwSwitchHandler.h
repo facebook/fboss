@@ -132,7 +132,9 @@ class NonMonolithicHwSwitchHandler : public HwSwitchHandler {
     return operDeltaSyncState_;
   }
   /* wait for ack. returns false if cancelled */
-  bool waitForOperSyncAck(std::unique_lock<std::mutex>& lk);
+  bool waitForOperSyncAck(
+      std::unique_lock<std::mutex>& lk,
+      uint64_t timeoutInSec);
   /*
    * wait for oper delta to be ready from swswitch.
    * returns false if cancelled or timedout

@@ -7,6 +7,8 @@
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/TxPacket.h"
 
+DEFINE_int32(oper_delta_ack_timeout, 600, "Oper delta ack timeout in seconds");
+
 namespace facebook::fboss {
 
 NonMonolithicHwSwitchHandler::NonMonolithicHwSwitchHandler(
@@ -254,7 +256,8 @@ NonMonolithicHwSwitchHandler::stateChanged(
         prevOperDeltaResult_ = nullptr;
       };
       // Wait for initial sync to complete
-      if (!waitForOperSyncAck(lk)) {
+      if (!waitForOperSyncAck(lk, FLAGS_oper_delta_ack_timeout)) {
+        setOperSyncStateLocked(HwSwitchOperDeltaSyncState::CANCELLED, lk);
         // initial sync was cancelled
         return {
             delta, HwSwitchStateUpdateStatus::HWSWITCH_STATE_UPDATE_CANCELLED};
@@ -270,7 +273,7 @@ NonMonolithicHwSwitchHandler::stateChanged(
     SCOPE_EXIT {
       nextOperDelta_ = nullptr;
     };
-    if (waitForOperSyncAck(lk)) {
+    if (waitForOperSyncAck(lk, FLAGS_oper_delta_ack_timeout)) {
       SCOPE_EXIT {
         prevOperDeltaResult_ = nullptr;
       };
@@ -281,6 +284,7 @@ NonMonolithicHwSwitchHandler::stateChanged(
               ? HwSwitchStateUpdateStatus::HWSWITCH_STATE_UPDATE_SUCCEEDED
               : HwSwitchStateUpdateStatus::HWSWITCH_STATE_UPDATE_FAILED};
     } else {
+      setOperSyncStateLocked(HwSwitchOperDeltaSyncState::CANCELLED, lk);
       // return incoming delta to indicate that none of the changes were applied
       return {
           delta, HwSwitchStateUpdateStatus::HWSWITCH_STATE_UPDATE_CANCELLED};
@@ -305,7 +309,8 @@ multiswitch::StateOperDelta NonMonolithicHwSwitchHandler::getNextStateOperDelta(
       // that hwswitch timedout waiting for a new oper delta to be available.
       // Wait for a new delta to be available.
     } else if (
-        !lastUpdateSeqNum || (lastUpdateSeqNum != currOperDeltaSeqNum_)) {
+        !lastUpdateSeqNum || (lastUpdateSeqNum != currOperDeltaSeqNum_) ||
+        checkOperSyncStateLocked(HwSwitchOperDeltaSyncState::CANCELLED, lk)) {
       // Mark initial sync needed if seq number from client is 0 or
       // mismatches with the current expected sequence number
       XLOG(DBG2) << "Need resync for hwswitch:" << getSwitchId()
@@ -417,12 +422,20 @@ SwitchRunState NonMonolithicHwSwitchHandler::getHwSwitchRunState() {
 }
 
 bool NonMonolithicHwSwitchHandler::waitForOperSyncAck(
-    std::unique_lock<std::mutex>& lk) {
-  stateUpdateCV_.wait(lk, [this, &lk] {
-    return (
-        prevOperDeltaResult_ ||
-        checkOperSyncStateLocked(HwSwitchOperDeltaSyncState::CANCELLED, lk));
-  });
+    std::unique_lock<std::mutex>& lk,
+    uint64_t timeoutInSec) {
+  if (!stateUpdateCV_.wait_for(
+          lk, std::chrono::seconds(timeoutInSec), [this, &lk] {
+            return (
+                prevOperDeltaResult_ ||
+                checkOperSyncStateLocked(
+                    HwSwitchOperDeltaSyncState::CANCELLED, lk));
+          })) {
+    XLOG(DBG2) << "Timed out waiting oper delta ack from switch "
+               << getSwitchId();
+    sw_->getHwSwitchHandler()->disconnected(getSwitchId());
+    return false;
+  }
   return checkOperSyncStateLocked(HwSwitchOperDeltaSyncState::CANCELLED, lk)
       ? false
       : true;
@@ -438,7 +451,8 @@ bool NonMonolithicHwSwitchHandler::waitForOperDeltaReady(
                 checkOperSyncStateLocked(
                     HwSwitchOperDeltaSyncState::CANCELLED, lk));
           })) {
-    XLOG(DBG3) << "Timed out waiting for next state oper delta";
+    XLOG(DBG3) << "Timed out waiting for next state oper delta for switch "
+               << getSwitchId();
     return false;
   }
   return checkOperSyncStateLocked(HwSwitchOperDeltaSyncState::CANCELLED, lk)
