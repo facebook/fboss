@@ -49,7 +49,7 @@ class MultiHwSwitchHandler {
   multiswitch::StateOperDelta getNextStateOperDelta(
       int64_t switchId,
       std::unique_ptr<multiswitch::StateOperDelta> prevOperResult,
-      bool initialSync);
+      int64_t lastUpdateSeqNum);
 
   void notifyHwSwitchGracefulExit(int64_t switchId);
 
@@ -144,6 +144,14 @@ class MultiHwSwitchHandler {
   bool waitUntilHwSwitchConnected();
 
   std::map<int32_t, SwitchRunState> getHwSwitchRunStates();
+
+  void connected(SwitchID switchId) {
+    connectionStatusTable_.connected(switchId);
+  }
+
+  void disconnected(SwitchID switchId) {
+    connectionStatusTable_.disconnected(switchId);
+  }
 
  private:
   bool transactionsSupported(std::optional<cfg::SdkVersion> sdkVersion) const;

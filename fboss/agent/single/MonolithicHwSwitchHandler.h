@@ -121,7 +121,7 @@ class MonolithicHwSwitchHandler : public HwSwitchHandler {
 
   multiswitch::StateOperDelta getNextStateOperDelta(
       std::unique_ptr<multiswitch::StateOperDelta> prevOperResult,
-      bool initialSync) override;
+      int64_t lastUpdateSeqNum) override;
 
   void notifyHwSwitchDisconnected() override;
 

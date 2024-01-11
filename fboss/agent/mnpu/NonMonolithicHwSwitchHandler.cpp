@@ -235,7 +235,6 @@ NonMonolithicHwSwitchHandler::stateChanged(
   multiswitch::StateOperDelta stateDelta;
   stateDelta.operDelta() = delta;
   stateDelta.transaction() = transaction;
-  stateDelta.seqNum() = ++currOperDeltaSeqNum_;
   {
     std::unique_lock<std::mutex> lk(stateUpdateMutex_);
     if (isOperSyncState(HwSwitchOperDeltaSyncState::CANCELLED)) {
@@ -243,6 +242,7 @@ NonMonolithicHwSwitchHandler::stateChanged(
       return {
           delta, HwSwitchStateUpdateStatus::HWSWITCH_STATE_UPDATE_CANCELLED};
     }
+    stateDelta.seqNum() = ++currOperDeltaSeqNum_;
     nextOperDelta_ = &stateDelta;
     ackReceived_ = false;
     deltaReady_ = true;
@@ -273,23 +273,33 @@ NonMonolithicHwSwitchHandler::stateChanged(
 
 multiswitch::StateOperDelta NonMonolithicHwSwitchHandler::getNextStateOperDelta(
     std::unique_ptr<multiswitch::StateOperDelta> prevOperResult,
-    bool initialSync) {
+    int64_t lastUpdateSeqNum) {
+  bool initialConnection{false};
   // check whether it is a new connection.
   {
     std::unique_lock<std::mutex> lk(stateUpdateMutex_);
-    if ((isOperSyncState(HwSwitchOperDeltaSyncState::DISCONNECTED) ||
-         isOperSyncState(HwSwitchOperDeltaSyncState::CANCELLED)) &&
-        initialSync) {
+    /*
+     * Mark initial sync needed in following cases:
+     * 1. last seen seq num 0 which indicates that hwswitch is connecting for
+     * first time or restarted
+     * 2. last seen seq num is less than current seqnum. This indicates that
+     * hwswitch missed last update
+     * 3. last seen seq num is greater than current seqnum. This indicates that
+     * swswitch restarted
+     */
+    if (!lastUpdateSeqNum || (lastUpdateSeqNum != currOperDeltaSeqNum_)) {
+      initialConnection = true;
       setOperSyncState(HwSwitchOperDeltaSyncState::WAITING_INITIAL_SYNC);
     } else {
-      // For existing connections, we treat a new get request
-      // as an ack to pending state update.
       if (isOperSyncState(HwSwitchOperDeltaSyncState::INITIAL_OPER_SENT)) {
         setOperSyncState(HwSwitchOperDeltaSyncState::OPER_SYNCED);
       }
       ackReceived_ = true;
       prevOperDeltaResult_ = prevOperResult.get();
     }
+  }
+  if (initialConnection) {
+    sw_->getHwSwitchHandler()->connected(getSwitchId());
   }
   stateUpdateCV_.notify_one();
 

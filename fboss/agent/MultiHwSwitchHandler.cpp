@@ -450,17 +450,14 @@ MultiHwSwitchHandler::getHwSwitchHandlers() {
 multiswitch::StateOperDelta MultiHwSwitchHandler::getNextStateOperDelta(
     int64_t switchId,
     std::unique_ptr<multiswitch::StateOperDelta> prevOperResult,
-    bool initialSync) {
+    int64_t lastUpdateSeqNum) {
   if (!isRunning()) {
     throw FbossError("multi hw switch syncer not started");
-  }
-  if (initialSync) {
-    connectionStatusTable_.connected(SwitchID(switchId));
   }
   auto iter = hwSwitchSyncers_.find(SwitchID(switchId));
   CHECK(iter != hwSwitchSyncers_.end());
   return iter->second->getNextStateOperDelta(
-      std::move(prevOperResult), initialSync);
+      std::move(prevOperResult), lastUpdateSeqNum);
 }
 
 void MultiHwSwitchHandler::notifyHwSwitchGracefulExit(int64_t switchId) {

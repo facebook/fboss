@@ -156,7 +156,7 @@ class HwSwitchHandler {
 
   virtual multiswitch::StateOperDelta getNextStateOperDelta(
       std::unique_ptr<multiswitch::StateOperDelta> prevOperResult,
-      bool initialSync) = 0;
+      int64_t lastUpdateSeqNum) = 0;
 
   virtual void notifyHwSwitchDisconnected() = 0;
 
