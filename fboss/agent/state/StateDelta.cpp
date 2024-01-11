@@ -41,11 +41,6 @@
 using std::shared_ptr;
 
 DEFINE_bool(
-    enable_state_oper_delta,
-    true,
-    "Generate and process oper delta for state delta processing");
-
-DEFINE_bool(
     state_oper_delta_use_id_paths,
     true,
     "Generate and process oper delta for state delta processing");
