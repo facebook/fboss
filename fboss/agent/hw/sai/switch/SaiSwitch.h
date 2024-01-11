@@ -233,6 +233,7 @@ class SaiSwitch : public HwSwitch {
   void switchRunStateChangedImpl(SwitchRunState newState) override;
 
   TeFlowStats getTeFlowStats() const override;
+  HwFlowletStats getHwFlowletStats() const override;
 
   void updateStatsImpl() override;
   template <typename LockPolicyT>

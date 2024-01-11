@@ -3529,6 +3529,11 @@ TeFlowStats SaiSwitch::getTeFlowStats() const {
   return TeFlowStats();
 }
 
+HwFlowletStats SaiSwitch::getHwFlowletStats() const {
+  // not implemented in SAI. Return empty stats
+  return HwFlowletStats{};
+}
+
 HwSwitchDropStats SaiSwitch::getSwitchDropStats() const {
   std::lock_guard<std::mutex> lk(saiSwitchMutex_);
   return managerTable_->switchManager().getSwitchDropStats();

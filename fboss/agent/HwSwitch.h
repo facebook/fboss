@@ -247,6 +247,7 @@ class HwSwitch {
   virtual FabricReachabilityStats getFabricReachabilityStats() const = 0;
   virtual TeFlowStats getTeFlowStats() const = 0;
   virtual HwSwitchDropStats getSwitchDropStats() const = 0;
+  virtual HwFlowletStats getHwFlowletStats() const = 0;
 
   /*
    * Get latest device watermark bytes

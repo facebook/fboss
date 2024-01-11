@@ -91,6 +91,7 @@ class MockHwSwitch : public HwSwitch {
       void(const std::unique_ptr<std::vector<int32_t>>&));
   MOCK_CONST_METHOD0(getBootType, BootType());
   MOCK_CONST_METHOD0(getTeFlowStats, TeFlowStats());
+  MOCK_CONST_METHOD0(getHwFlowletStats, HwFlowletStats());
 
   MockPlatform* getPlatform() const override {
     return platform_;

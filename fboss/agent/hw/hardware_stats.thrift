@@ -283,3 +283,7 @@ struct HwSwitchFb303GlobalStats {
   22: optional i64 aligner_errors;
   23: optional i64 forwarding_queue_processor_errors;
 }
+
+struct HwFlowletStats {
+  1: i64 l3EcmpDlbFailPackets;
+}
