@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/mnpu/OperDeltaSyncer.h"
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/HwSwitch.h"
 
 #include <folly/IPAddress.h>
@@ -75,8 +76,22 @@ void OperDeltaSyncer::operSyncLoop() {
       multiswitch::StateOperDelta lastOperDeltaResult;
       lastOperDeltaResult.operDelta() = lastUpdateResult;
       multiswitch::StateOperDelta stateOperDelta;
+      apache::thrift::RpcOptions options;
+      /*
+       * Set timeout in RPC call to avoid forever blocking wait when server
+       * crashes. The timeout on client is set to be more than the timeout on
+       * server side wait for next oper delta to be available so that in a
+       * normal sequence of operation, client gets an empty delta periodically
+       * and reconnects when new state update is not available. The client side
+       * timeout should happen only when the server crashes.
+       */
+      options.setTimeout(std::chrono::seconds(2 * FLAGS_oper_sync_req_timeout));
       operSyncClient_->sync_getNextStateOperDelta(
-          stateOperDelta, switchId_, lastOperDeltaResult, lastUpdateSeqNum);
+          options,
+          stateOperDelta,
+          switchId_,
+          lastOperDeltaResult,
+          lastUpdateSeqNum);
       // SwSwitch can send empty operdelta when cancelling the service on
       // shutdown
       if (operSyncRunning_.load() &&
@@ -89,6 +104,11 @@ void OperDeltaSyncer::operSyncLoop() {
         }
       }
       lastUpdateSeqNum = *stateOperDelta.seqNum();
+    } catch (const apache::thrift::transport::TTransportException& ex) {
+      if (ex.getType() ==
+          apache::thrift::transport::TTransportException::TIMED_OUT) {
+        XLOG(DBG2) << "Timed out waiting for next oper delta from swswitch";
+      }
     } catch (const std::exception& ex) {
       XLOG_EVERY_MS(ERR, 5000)
           << fmt::format("Failed to get next oper delta: {}", ex.what());

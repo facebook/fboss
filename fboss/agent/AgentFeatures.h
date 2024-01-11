@@ -30,3 +30,5 @@
  */
 
 DECLARE_bool(dsf_4k);
+DECLARE_bool(enable_acl_table_chain_group);
+DECLARE_int32(oper_sync_req_timeout);

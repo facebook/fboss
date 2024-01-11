@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/mnpu/NonMonolithicHwSwitchHandler.h"
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/MultiSwitchPacketStreamMap.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchStats.h"
@@ -278,16 +279,12 @@ multiswitch::StateOperDelta NonMonolithicHwSwitchHandler::getNextStateOperDelta(
   // check whether it is a new connection.
   {
     std::unique_lock<std::mutex> lk(stateUpdateMutex_);
-    /*
-     * Mark initial sync needed in following cases:
-     * 1. last seen seq num 0 which indicates that hwswitch is connecting for
-     * first time or restarted
-     * 2. last seen seq num is less than current seqnum. This indicates that
-     * hwswitch missed last update
-     * 3. last seen seq num is greater than current seqnum. This indicates that
-     * swswitch restarted
-     */
-    if (!lastUpdateSeqNum || (lastUpdateSeqNum != currOperDeltaSeqNum_)) {
+    if (lastUpdateSeqNum == lastAckedOperDeltaSeqNum_) {
+      // skip retries due to timeouts
+    } else if (
+        !lastUpdateSeqNum || (lastUpdateSeqNum != currOperDeltaSeqNum_)) {
+      // Mark initial sync needed if seq number from client is 0 or
+      // mismatches with the current expected sequence number
       initialConnection = true;
       setOperSyncState(HwSwitchOperDeltaSyncState::WAITING_INITIAL_SYNC);
     } else {
@@ -297,6 +294,7 @@ multiswitch::StateOperDelta NonMonolithicHwSwitchHandler::getNextStateOperDelta(
       ackReceived_ = true;
       prevOperDeltaResult_ = prevOperResult.get();
     }
+    lastAckedOperDeltaSeqNum_ = lastUpdateSeqNum;
   }
   if (initialConnection) {
     sw_->getHwSwitchHandler()->connected(getSwitchId());
@@ -306,14 +304,26 @@ multiswitch::StateOperDelta NonMonolithicHwSwitchHandler::getNextStateOperDelta(
   // wait for new delta to be available or for cancellation.
   {
     std::unique_lock<std::mutex> lk(stateUpdateMutex_);
-    stateUpdateCV_.wait(lk, [this] {
-      return (
-          deltaReady_ ||
-          isOperSyncState(HwSwitchOperDeltaSyncState::CANCELLED));
-    });
-    if (isOperSyncState(HwSwitchOperDeltaSyncState::CANCELLED)) {
-      // return empty delta to HwSwitch incase of cancellation
-      return multiswitch::StateOperDelta();
+    if (!deltaReady_) {
+      bool timedout{false};
+      // Wait for either delta to be available or for cancellation.
+      // Clients does a timed wait for response from swswitch to avoid waiting
+      // forever if the server crashes. Server also needs to do a timed wait
+      // so that the worker threads corresponding to timed out clients do not
+      // block on server forever
+      if (!stateUpdateCV_.wait_for(
+              lk, std::chrono::seconds(FLAGS_oper_sync_req_timeout), [this] {
+                return (
+                    deltaReady_ ||
+                    isOperSyncState(HwSwitchOperDeltaSyncState::CANCELLED));
+              })) {
+        XLOG(DBG3) << "Timed out waiting for next state oper delta";
+        timedout = true;
+      }
+      if (timedout || isOperSyncState(HwSwitchOperDeltaSyncState::CANCELLED)) {
+        // return empty delta to HwSwitch incase of cancellation
+        return multiswitch::StateOperDelta();
+      }
     }
     deltaReady_ = false;
     if (isOperSyncState(HwSwitchOperDeltaSyncState::WAITING_INITIAL_SYNC)) {
