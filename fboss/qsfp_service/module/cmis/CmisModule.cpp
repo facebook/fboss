@@ -365,7 +365,9 @@ static SpeedApplicationMapping speedApplicationMapping = {
      {SMFMediaInterfaceCode::FR1_100G}},
     {cfg::PortSpeed::TWOHUNDREDG, {SMFMediaInterfaceCode::FR4_200G}},
     {cfg::PortSpeed::FOURHUNDREDG,
-     {SMFMediaInterfaceCode::FR4_400G, SMFMediaInterfaceCode::LR4_10_400G}},
+     {SMFMediaInterfaceCode::FR4_400G,
+      SMFMediaInterfaceCode::LR4_10_400G,
+      SMFMediaInterfaceCode::DR4_400G}},
 };
 
 static std::map<SMFMediaInterfaceCode, MediaInterfaceCode>
@@ -375,6 +377,7 @@ static std::map<SMFMediaInterfaceCode, MediaInterfaceCode>
         {SMFMediaInterfaceCode::FR4_200G, MediaInterfaceCode::FR4_200G},
         {SMFMediaInterfaceCode::FR4_400G, MediaInterfaceCode::FR4_400G},
         {SMFMediaInterfaceCode::LR4_10_400G, MediaInterfaceCode::LR4_400G_10KM},
+        {SMFMediaInterfaceCode::DR4_400G, MediaInterfaceCode::DR4_400G},
 };
 
 constexpr uint8_t kPage0CsumRangeStart = 128;
@@ -2358,6 +2361,10 @@ MediaInterfaceCode CmisModule::getModuleMediaInterface() const {
     if (smfCode == SMFMediaInterfaceCode::FR4_400G &&
         firstModuleCapability->hostStartLanes.size() == 2) {
       moduleMediaInterface = MediaInterfaceCode::FR4_2x400G;
+    } else if (
+        smfCode == SMFMediaInterfaceCode::DR4_400G &&
+        firstModuleCapability->hostStartLanes.size() == 2) {
+      moduleMediaInterface = MediaInterfaceCode::DR4_2x400G;
     } else {
       moduleMediaInterface = mediaInterfaceMapping[smfCode];
     }

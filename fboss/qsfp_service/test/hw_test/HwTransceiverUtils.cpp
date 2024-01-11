@@ -77,10 +77,12 @@ void HwTransceiverUtils::verifyPortNameToLaneMap(
       case MediaInterfaceCode::CWDM4_100G:
       case MediaInterfaceCode::FR4_200G:
       case MediaInterfaceCode::FR4_400G:
+      case MediaInterfaceCode::DR4_400G:
       case MediaInterfaceCode::LR4_400G_10KM:
         expectedMediaLanes = {0, 1, 2, 3};
         break;
       case MediaInterfaceCode::FR4_2x400G:
+      case MediaInterfaceCode::DR4_2x400G:
         if (profile ==
             cfg::PortProfileID::PROFILE_400G_4_PAM4_RS544X2N_OPTICAL) {
           if (std::find(
@@ -360,10 +362,12 @@ void HwTransceiverUtils::verify400gProfile(
   for (const auto& mediaId : mediaInterfaces) {
     EXPECT_TRUE(
         *mediaId.media()->smfCode_ref() == SMFMediaInterfaceCode::FR4_400G ||
-        *mediaId.media()->smfCode_ref() == SMFMediaInterfaceCode::LR4_10_400G);
+        *mediaId.media()->smfCode_ref() == SMFMediaInterfaceCode::LR4_10_400G ||
+        *mediaId.media()->smfCode_ref() == SMFMediaInterfaceCode::DR4_400G);
     EXPECT_TRUE(
         *mediaId.code() == MediaInterfaceCode::FR4_400G ||
-        *mediaId.code() == MediaInterfaceCode::LR4_400G_10KM);
+        *mediaId.code() == MediaInterfaceCode::LR4_400G_10KM ||
+        *mediaId.code() == MediaInterfaceCode::DR4_400G);
   }
 }
 
@@ -500,7 +504,8 @@ void HwTransceiverUtils::verifyDiagsCapability(
             *diagsCapability->vdm(),
             (*mediaIntfCode == MediaInterfaceCode::FR4_400G ||
              *mediaIntfCode == MediaInterfaceCode::LR4_400G_10KM ||
-             *mediaIntfCode == MediaInterfaceCode::FR4_2x400G));
+             *mediaIntfCode == MediaInterfaceCode::FR4_2x400G ||
+             *mediaIntfCode == MediaInterfaceCode::DR4_2x400G));
         EXPECT_TRUE(*diagsCapability->cdb());
         EXPECT_TRUE(*diagsCapability->prbsLine());
         EXPECT_TRUE(*diagsCapability->prbsSystem());
@@ -509,7 +514,8 @@ void HwTransceiverUtils::verifyDiagsCapability(
         EXPECT_TRUE(*diagsCapability->txOutputControl());
         if (*mediaIntfCode == MediaInterfaceCode::FR4_400G ||
             *mediaIntfCode == MediaInterfaceCode::LR4_400G_10KM ||
-            *mediaIntfCode == MediaInterfaceCode::FR4_2x400G) {
+            *mediaIntfCode == MediaInterfaceCode::FR4_2x400G ||
+            *mediaIntfCode == MediaInterfaceCode::DR4_2x400G) {
           EXPECT_TRUE(*diagsCapability->rxOutputControl());
         }
       }
