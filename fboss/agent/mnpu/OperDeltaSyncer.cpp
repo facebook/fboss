@@ -88,8 +88,7 @@ void OperDeltaSyncer::operSyncLoop() {
           hw_->switchRunStateChanged(SwitchRunState::CONFIGURED);
         }
       }
-      // TODO - use seqnum from last update received
-      lastUpdateSeqNum++;
+      lastUpdateSeqNum = *stateOperDelta.seqNum();
     } catch (const std::exception& ex) {
       XLOG_EVERY_MS(ERR, 5000)
           << fmt::format("Failed to get next oper delta: {}", ex.what());

@@ -235,6 +235,7 @@ NonMonolithicHwSwitchHandler::stateChanged(
   multiswitch::StateOperDelta stateDelta;
   stateDelta.operDelta() = delta;
   stateDelta.transaction() = transaction;
+  stateDelta.seqNum() = ++currOperDeltaSeqNum_;
   {
     std::unique_lock<std::mutex> lk(stateUpdateMutex_);
     if (isOperSyncState(HwSwitchOperDeltaSyncState::CANCELLED)) {
