@@ -559,10 +559,14 @@ TEST_F(SwSwitchHandlerTest, switchRunStateTest) {
   folly::Baton<> client2StartBaton;
 
   auto delta = StateDelta(stateV0, stateV1);
-  auto checkState = [&](auto state) {
+  auto checkState = [&](auto state,
+                        std::optional<int32_t> switchId = std::nullopt) {
     WITH_RETRIES({
       auto hwSwitchState = getHwSwitchHandler()->getHwSwitchRunStates();
       for (const auto& [id, runState] : hwSwitchState) {
+        if (switchId.has_value() && id != switchId.value()) {
+          continue;
+        }
         EXPECT_EVENTUALLY_EQ(runState, state);
       }
     });
@@ -584,8 +588,7 @@ TEST_F(SwSwitchHandlerTest, switchRunStateTest) {
     auto stateReturned = getHwSwitchHandler()->stateChanged(delta, true);
     EXPECT_EQ(stateReturned, stateV1);
     getHwSwitchHandler()->notifyHwSwitchGracefulExit(0);
-    getHwSwitchHandler()->notifyHwSwitchGracefulExit(1);
-    checkState(SwitchRunState::EXITING);
+    checkState(SwitchRunState::EXITING, 0);
     getHwSwitchHandler()->stop();
   });
 

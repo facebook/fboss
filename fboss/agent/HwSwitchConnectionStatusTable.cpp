@@ -9,6 +9,8 @@
  */
 #include "fboss/agent/HwSwitchConnectionStatusTable.h"
 
+#include <folly/logging/xlog.h>
+
 namespace facebook::fboss {
 void HwSwitchConnectionStatusTable::connected(SwitchID switchId) {
   bool isFirstConnection{false};
@@ -28,6 +30,13 @@ void HwSwitchConnectionStatusTable::connected(SwitchID switchId) {
 void HwSwitchConnectionStatusTable::disconnected(SwitchID switchId) {
   std::unique_lock<std::mutex> lk(hwSwitchConnectedMutex_);
   connectedSwitches_.erase(switchId);
+  // If there are no more active connections to HwSwitch, we cannot
+  // apply any new state updates. Hence exit the SwSwitch.
+  // In normal shutdown sequence, we exit SwSwitch first before shutting
+  // down HwSwitch. Hence this condition can happen only if all HwSwitches crash
+  if (connectedSwitches_.empty()) {
+    XLOG(FATAL) << "No active HwSwitch connections";
+  }
 }
 
 bool HwSwitchConnectionStatusTable::waitUntilHwSwitchConnected() {

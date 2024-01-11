@@ -331,6 +331,10 @@ CO_TEST_F(ThriftServerTest, transmitPktHandler) {
   // setup server and clients
   setupServerAndClients();
 
+  // Mark a switch as connected so that SwSwitch won't abort while tearing down
+  // the thrift stream
+  sw_->getHwSwitchHandler()->connected(SwitchID(1));
+
   std::string payloadPad(9216 * 2, 'f'); // jumbo pkt
   auto pkt = createV4Packet(
       folly::IPAddressV4("10.0.0.2"),
