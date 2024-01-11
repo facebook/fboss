@@ -42,6 +42,7 @@ struct RxPacket {
 struct StateOperDelta {
   1: fsdb_oper.OperDelta operDelta;
   2: bool transaction;
+  3: i64 seqNum;
 }
 
 struct HwSwitchStats {
@@ -78,8 +79,8 @@ service MultiSwitchCtrl {
   StateOperDelta getNextStateOperDelta(
     1: i64 switchId,
     2: StateOperDelta prevOperResult,
-    /* indicates whether HwSwitch is syncing for first time */
-    3: bool initialSync,
+    /* sequence number of last oper delta received. 0 indicates initial sync */
+    3: i64 lastUpdateSeqNum,
   );
 
   /* HwAgent graceful shutdown notification */

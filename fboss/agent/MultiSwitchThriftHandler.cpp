@@ -155,9 +155,9 @@ void MultiSwitchThriftHandler::getNextStateOperDelta(
     multiswitch::StateOperDelta& operDelta,
     int64_t switchId,
     std::unique_ptr<multiswitch::StateOperDelta> prevOperResult,
-    bool initialSync) {
+    int64_t lastUpdateSeqNum) {
   operDelta = sw_->getHwSwitchHandler()->getNextStateOperDelta(
-      switchId, std::move(prevOperResult), initialSync);
+      switchId, std::move(prevOperResult), lastUpdateSeqNum == 0);
 }
 
 void MultiSwitchThriftHandler::gracefulExit(int64_t switchId) {

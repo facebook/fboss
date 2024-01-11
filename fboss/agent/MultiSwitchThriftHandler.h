@@ -35,7 +35,7 @@ class MultiSwitchThriftHandler
       multiswitch::StateOperDelta& operDelta,
       int64_t switchId,
       std::unique_ptr<multiswitch::StateOperDelta> prevOperResult,
-      bool initialSync) override;
+      int64_t lastUpdateSeqNum) override;
 
   void gracefulExit(int64_t switchId) override;
 
