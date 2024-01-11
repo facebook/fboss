@@ -27,7 +27,6 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::CPU_PORT:
     case HwAsic::Feature::VRF:
     case HwAsic::Feature::SAI_HASH_FIELDS_CLEAR_BEFORE_SET:
-    case HwAsic::Feature::ROUTE_COUNTERS:
     case HwAsic::Feature::SAI_WEIGHTED_NEXTHOPGROUP_MEMBER:
     case HwAsic::Feature::PORT_TX_DISABLE:
     case HwAsic::Feature::SAI_PORT_ERR_STATUS:
@@ -165,6 +164,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::RX_SNR:
     case HwAsic::Feature::FEC_CORRECTED_BITS:
     case HwAsic::Feature::SAI_FEC_COUNTERS:
+    case HwAsic::Feature::ROUTE_COUNTERS:
       return false;
   }
   return false;
