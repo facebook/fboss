@@ -7,9 +7,9 @@
 DEFINE_bool(run_forever, false, "run the test forever");
 DEFINE_bool(run_forever_on_failure, false, "run the test forever on failure");
 DEFINE_bool(
-    list_asic_feature,
+    list_production_feature,
     false,
-    "list asic feature needed for every single test");
+    "list production feature needed for every single test");
 
 namespace {
 int kArgc;
@@ -19,8 +19,8 @@ char** kArgv;
 namespace facebook::fboss {
 void AgentHwTest::SetUp() {
   gflags::ParseCommandLineFlags(&kArgc, &kArgv, false);
-  if (FLAGS_list_asic_feature) {
-    printAsicFeatures();
+  if (FLAGS_list_production_feature) {
+    printProductionFeatures();
     return;
   }
   fbossCommonInit(kArgc, kArgv);
@@ -135,7 +135,7 @@ cfg::SwitchConfig AgentHwTest::initialConfig(
       true /*interfaceHasSubnet*/);
 }
 
-void AgentHwTest::printAsicFeatures() const {
+void AgentHwTest::printProductionFeatures() const {
   std::vector<std::string> asicFeatures;
   for (const auto& feature : getProductionFeaturesVerified()) {
     asicFeatures.push_back(apache::thrift::util::enumNameSafe(feature));

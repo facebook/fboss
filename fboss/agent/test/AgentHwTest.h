@@ -113,7 +113,7 @@ class AgentHwTest : public ::testing::Test {
 
   virtual std::vector<production_features::ProductionFeature>
   getProductionFeaturesVerified() const = 0;
-  void printAsicFeatures() const;
+  void printProductionFeatures() const;
 
   AgentEnsemblePlatformConfigFn platformConfigFn_ = nullptr;
   std::unique_ptr<AgentEnsemble> agentEnsemble_;
