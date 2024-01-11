@@ -108,7 +108,7 @@ class NonMonolithicHwSwitchHandler : public HwSwitchHandler {
       bool initialSync) override;
 
   void notifyHwSwitchDisconnected() override;
-  void cancelOperDeltaSync();
+  void cancelOperDeltaSync() override;
   HwSwitchOperDeltaSyncState getHwSwitchOperDeltaSyncState() override;
 
   bool sendPacketOutViaThriftStream(

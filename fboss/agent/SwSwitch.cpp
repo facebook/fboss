@@ -465,14 +465,18 @@ void SwSwitch::stop(bool isGracefulStop, bool revertToMinAlpmState) {
   packetLogger_.reset();
   routeUpdateLogger_.reset();
 
-  heartbeatWatchdog_->stop();
-  heartbeatWatchdog_.reset();
+  if (heartbeatWatchdog_) {
+    heartbeatWatchdog_->stop();
+    heartbeatWatchdog_.reset();
+  }
   bgThreadHeartbeat_.reset();
   updThreadHeartbeat_.reset();
   packetTxThreadHeartbeat_.reset();
   lacpThreadHeartbeat_.reset();
   neighborCacheThreadHeartbeat_.reset();
-  rib_->stop();
+  if (rib_) {
+    rib_->stop();
+  }
 
   lookupClassUpdater_.reset();
   lookupClassRouteUpdater_.reset();

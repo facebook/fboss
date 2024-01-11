@@ -33,6 +33,7 @@ void HwSwitchHandler::stop() {
   if (!hwSwitchManagerThread_) {
     return;
   }
+  cancelOperDeltaSync();
   hwSwitchManagerEvb_.runInEventBaseThreadAndWait(
       [this]() { hwSwitchManagerEvb_.terminateLoopSoon(); });
   hwSwitchManagerThread_->join();

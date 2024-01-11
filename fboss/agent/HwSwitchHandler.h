@@ -54,6 +54,8 @@ class HwSwitchHandler {
 
   void start();
 
+  void stop();
+
   virtual ~HwSwitchHandler();
 
   folly::Future<HwSwitchStateUpdateResult> stateChanged(
@@ -165,6 +167,8 @@ class HwSwitchHandler {
 
   virtual SwitchRunState getHwSwitchRunState() = 0;
 
+  virtual void cancelOperDeltaSync() = 0;
+
  private:
   HwSwitchStateUpdateResult stateChangedImpl(const HwSwitchStateUpdate& update);
 
@@ -173,8 +177,6 @@ class HwSwitchHandler {
       bool transaction);
 
   void run();
-
-  void stop();
 
   const SwitchID switchId_;
   const cfg::SwitchInfo info_;

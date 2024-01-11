@@ -56,7 +56,7 @@ void MultiHwSwitchHandler::stop() {
   // set stop flag so that there are no more accesses to syncers
   stopped_.store(true);
   for (auto& entry : hwSwitchSyncers_) {
-    entry.second.reset();
+    entry.second->stop();
   }
 }
 

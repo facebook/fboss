@@ -131,6 +131,8 @@ class MonolithicHwSwitchHandler : public HwSwitchHandler {
 
   SwitchRunState getHwSwitchRunState() override;
 
+  void cancelOperDeltaSync() override {}
+
  private:
   Platform* platform_;
   HwSwitch* hw_;

@@ -613,4 +613,9 @@ void addSwitchSettingsToState(
     int64_t switchId = 0);
 
 HwSwitchInitFn mockHwSwitchInitFn(SwSwitch* sw);
+
+std::unique_ptr<SwSwitch> createSwSwitchWithMultiSwitch(
+    const AgentConfig* config,
+    AgentDirectoryUtil* dirUtil);
+
 } // namespace facebook::fboss

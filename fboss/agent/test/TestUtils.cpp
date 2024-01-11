@@ -25,6 +25,7 @@
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/RouteNextHop.h"
 
+#include "fboss/agent/mnpu/NonMonolithicHwSwitchHandler.h"
 #include "fboss/agent/single/MonolithicHwSwitchHandler.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
@@ -1202,6 +1203,24 @@ HwSwitchInitFn mockHwSwitchInitFn(SwSwitch* sw) {
   return [sw](HwSwitchCallback* callback, bool failHwCallsOnWarmboot) {
     return getMockHw(sw)->initLight(callback, failHwCallsOnWarmboot);
   };
+}
+
+std::unique_ptr<SwSwitch> createSwSwitchWithMultiSwitch(
+    const AgentConfig* config,
+    AgentDirectoryUtil* dirUtil) {
+  HwSwitchHandlerInitFn hwSwitchHandlerInitFn =
+      [](const SwitchID& switchId, const cfg::SwitchInfo& info, SwSwitch* sw) {
+        return std::make_unique<facebook::fboss::NonMonolithicHwSwitchHandler>(
+            switchId, info, sw);
+      };
+  auto sw = make_unique<SwSwitch>(
+      std::move(hwSwitchHandlerInitFn),
+      std::make_unique<MockPlatformMapping>(),
+      dirUtil,
+      false,
+      config,
+      nullptr);
+  return sw;
 }
 
 } // namespace facebook::fboss
