@@ -1078,20 +1078,26 @@ void SwSwitch::init(SwitchFlags flags) {
         "This should not happen given the state was previously applied, ",
         "but possible if calculation or threshold changes across warmboot.");
   }
-  try {
-    getHwSwitchHandler()->stateChanged(initialStateDelta, false);
-  } catch (const std::exception& ex) {
-    throw FbossError("Failed to sync initial state to HwSwitch: ", ex.what());
+  // Do not send cold boot state to hwswitch. This is to avoid
+  // deleting any cold boot state entries that hwswitch has learned from sdk
+  if (bootType_ == BootType::WARM_BOOT) {
+    try {
+      getHwSwitchHandler()->stateChanged(initialStateDelta, false);
+    } catch (const std::exception& ex) {
+      throw FbossError("Failed to sync initial state to HwSwitch: ", ex.what());
+    }
   }
   // for cold boot discrepancy may exist between applied state in software
   // switch and state that already exist in hardware. this discrepancy is until
   // config is applied, after that the two states are in sync. tolerating this
   // discrepancy for now.
   setStateInternal(initialState);
-  // Notify the state observers of the initial state
-  updateEventBase_.runInEventBaseThread([emptyState, initialState, this]() {
-    notifyStateObservers(StateDelta(emptyState, initialState));
-  });
+  if (bootType_ == BootType::WARM_BOOT) {
+    // Notify the state observers of the initial state
+    updateEventBase_.runInEventBaseThread([emptyState, initialState, this]() {
+      notifyStateObservers(StateDelta(emptyState, initialState));
+    });
+  }
   if (FLAGS_log_all_fib_updates) {
     constexpr auto kAllFibUpdates = "all_fib_updates";
     logRouteUpdates("::", 0, kAllFibUpdates);

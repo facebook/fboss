@@ -179,6 +179,8 @@ TEST_F(SwSwitchHandlerTest, partialUpdateAndFullSync) {
   getHwSwitchHandler()->connected(SwitchID(0));
   sw_->init(SwitchFlags::DEFAULT);
   sw_->initialConfigApplied(std::chrono::steady_clock::now());
+  getHwSwitchHandler()->stateChanged(
+      StateDelta(std::make_shared<SwitchState>(), sw_->getState()), false);
 
   std::thread stateUpdateThread([this,
                                  &delta,
@@ -389,6 +391,8 @@ TEST_F(SwSwitchHandlerTest, reconnectingHwSwitch) {
   getHwSwitchHandler()->connected(SwitchID(1));
   sw_->init(SwitchFlags::DEFAULT);
   sw_->initialConfigApplied(std::chrono::steady_clock::now());
+  getHwSwitchHandler()->stateChanged(
+      StateDelta(std::make_shared<SwitchState>(), sw_->getState()), false);
 
   auto agentConfig = createAgentConfig();
   auto agentDirUtil = AgentDirectoryUtil(
@@ -642,6 +646,8 @@ TEST_F(SwSwitchHandlerTest, initialSync) {
   auto sw = sw_.get();
   getHwSwitchHandler()->connected(SwitchID(0));
   sw_->init(SwitchFlags::DEFAULT);
+  getHwSwitchHandler()->stateChanged(
+      StateDelta(std::make_shared<SwitchState>(), sw->getState()), false);
   sw_->initialConfigApplied(std::chrono::steady_clock::now());
 
   auto clientThreadBody =
@@ -719,6 +725,8 @@ TEST_F(SwSwitchHandlerTest, initialSyncSwSwitchNotConfigured) {
   std::thread clientRequestThread2([&]() { clientThreadBody(1); });
   getHwSwitchHandler()->waitUntilHwSwitchConnected();
   sw_->init(SwitchFlags::DEFAULT);
+  getHwSwitchHandler()->stateChanged(
+      StateDelta(std::make_shared<SwitchState>(), sw->getState()), false);
   sw_->initialConfigApplied(std::chrono::steady_clock::now());
   client1Baton.wait();
   client2Baton.wait();
