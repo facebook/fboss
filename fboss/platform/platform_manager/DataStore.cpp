@@ -82,4 +82,21 @@ bool DataStore::hasPmUnit(const std::string& slotPath) const {
   return slotPathToPmUnitName_.find(slotPath) != slotPathToPmUnitName_.end();
 }
 
+std::string DataStore::getSysfsPath(const std::string& devicePath) {
+  auto itr = pciSubDevicePathToSysfsPath_.find(devicePath);
+  if (itr != pciSubDevicePathToSysfsPath_.end()) {
+    return itr->second;
+  }
+  throw std::runtime_error(
+      fmt::format("Could not find SysfsPath for {}", devicePath));
+}
+
+void DataStore::updateSysfsPath(
+    const std::string& devicePath,
+    const std::string& sysfsPath) {
+  XLOG(INFO) << fmt::format(
+      "Updating SysfsPath for {} to {}", devicePath, sysfsPath);
+  pciSubDevicePathToSysfsPath_[devicePath] = sysfsPath;
+}
+
 } // namespace facebook::fboss::platform::platform_manager

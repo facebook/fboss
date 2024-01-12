@@ -49,6 +49,14 @@ class DataStore {
   // Checks if a PmUnit exists at the given SlotPath
   bool hasPmUnit(const std::string& slotPath) const;
 
+  // Get SysfsPath for a given PciSubDevicePath
+  std::string getSysfsPath(const std::string& devicePath);
+
+  // Update SysfsPath for a given PciSubDevicePath
+  void updateSysfsPath(
+      const std::string& devicePath,
+      const std::string& sysfsPath);
+
  private:
   // Map from <pmUnitPath, pmUnitScopeBusName> to kernel i2c bus name.
   // - The pmUnitPath to the rootPmUnit is /. So a bus at root PmUnit will
@@ -65,5 +73,8 @@ class DataStore {
 
   // Stores the PmUnitName which has been discovered at each SlotPath.
   std::map<std::string, std::string> slotPathToPmUnitName_{};
+
+  // Map from PciSubDevicePath to SysfsPath.
+  std::map<std::string, std::string> pciSubDevicePathToSysfsPath_{};
 };
 } // namespace facebook::fboss::platform::platform_manager
