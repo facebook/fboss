@@ -443,7 +443,7 @@ class SwitchSettings
     ref<switch_state_tags::flowletSwitchingConfig>() = flowletConfig;
   }
 
-  const SwitchIdToSwitchInfo getSwitchIdToSwitchInfo() const {
+  SwitchIdToSwitchInfo getSwitchIdToSwitchInfo() const {
     // THRIFT_COPY
     return get<switch_state_tags::switchIdToSwitchInfo>()->toThrift();
   }
