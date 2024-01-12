@@ -2,6 +2,7 @@
 
 #include "fboss/platform/platform_manager/DevicePathResolver.h"
 
+#include "fboss/platform/platform_manager/PciExplorer.h"
 #include "fboss/platform/platform_manager/Utils.h"
 
 using namespace facebook::fboss::platform::platform_manager;
@@ -83,6 +84,22 @@ std::optional<std::string> DevicePathResolver::resolvePresencePath(
       return std::nullopt;
     }
     return targetPath / hwmonSubDir / presenceFileName;
+  }
+  auto pciDeviceConfig = std::find_if(
+      pmUnitConfig.pciDeviceConfigs()->begin(),
+      pmUnitConfig.pciDeviceConfigs()->end(),
+      [deviceNameCopy = deviceName](auto pciDeviceConfig) {
+        return *pciDeviceConfig.pmUnitScopedName() == deviceNameCopy;
+      });
+  if (pciDeviceConfig != pmUnitConfig.pciDeviceConfigs()->end()) {
+    auto pciDevice = PciDevice(
+        *pciDeviceConfig->pmUnitScopedName(),
+        *pciDeviceConfig->vendorId(),
+        *pciDeviceConfig->deviceId(),
+        *pciDeviceConfig->subSystemVendorId(),
+        *pciDeviceConfig->subSystemDeviceId());
+    auto targetPath = std::filesystem::path(pciDevice.sysfsPath());
+    return targetPath / presenceFileName;
   }
   return std::nullopt;
 }

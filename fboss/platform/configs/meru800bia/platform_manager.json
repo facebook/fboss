@@ -16,12 +16,18 @@
     "FAN_SLOT": {
       "numOutgoingI2cBuses": 0,
       "pmUnitName": "FAN"
+    },
+    "PSU_SLOT": {
+      "numOutgoingI2cBuses": 1,
+      "pmUnitName": "PSU"
     }
   },
   "i2cAdaptersFromCpu": [
     "SMBus I801 adapter at 1000",
     "SCD 0000:07:00.0 SMBus master 1 bus 0",
-    "SCD 0000:07:00.0 SMBus master 1 bus 3"
+    "SCD 0000:07:00.0 SMBus master 1 bus 3",
+    "SCD 0000:01:00.0 SMBus master 0 bus 5",
+    "SCD 0000:01:00.0 SMBus master 0 bus 6"
   ],
   "pmUnitConfigs": {
     "SCM": {
@@ -34,6 +40,15 @@
     },
     "SMB": {
       "pluggedInSlotType": "SMB_SLOT",
+      "pciDeviceConfigs": [
+        {
+          "pmUnitScopedName": "SMB_FPGA",
+          "vendorId": "0x3475",
+          "deviceId": "0x0001",
+          "subSystemVendorId": "0x3475",
+          "subSystemDeviceId": "0x0003"
+        }
+      ],
       "i2cDeviceConfigs": [
         {
           "busName": "SCD 0000:07:00.0 SMBus master 1 bus 0",
@@ -50,6 +65,32 @@
         }
       ],
       "outgoingSlotConfigs": {
+        "PSU_SLOT@0": {
+          "slotType": "PSU_SLOT",
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/SMB_SLOT@0/[SMB_FPGA]",
+              "presenceFileName": "psu1_present",
+              "desiredValue": 1
+            }
+          },
+          "outgoingI2cBusNames": [
+            "SCD 0000:01:00.0 SMBus master 0 bus 5"
+          ]
+        },
+        "PSU_SLOT@1": {
+          "slotType": "PSU_SLOT",
+          "presenceDetection": {
+            "sysfsFileHandle": {
+              "devicePath": "/SMB_SLOT@0/[SMB_FPGA]",
+              "presenceFileName": "psu2_present",
+              "desiredValue": 1
+            }
+          },
+          "outgoingI2cBusNames": [
+            "SCD 0000:01:00.0 SMBus master 0 bus 6"
+          ]
+        },
         "FAN_SLOT@0": {
           "slotType": "FAN_SLOT",
           "presenceDetection": {
@@ -95,6 +136,17 @@
     "FAN": {
       "pluggedInSlotType": "FAN_SLOT",
       "i2cDeviceConfigs": []
+    },
+    "PSU": {
+      "pluggedInSlotType": "PSU_SLOT",
+      "i2cDeviceConfigs": [
+        {
+          "busName": "INCOMING@0",
+          "address": "0x58",
+          "kernelDeviceName": "pmbus",
+          "pmUnitScopedName": "PSU_PMBUS"
+        }
+      ]
     }
   },
   "symbolicLinkToDevicePath": {
