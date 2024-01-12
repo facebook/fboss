@@ -62,4 +62,22 @@ SwitchID HwSwitchMatcher::switchId() const {
   return *switchIds_.begin();
 }
 
+void HwSwitchMatcher::exclude(const std::unordered_set<SwitchID>& toRemove) {
+  auto iter = switchIds_.begin();
+  while (iter != switchIds_.end()) {
+    if (toRemove.find(*iter) != toRemove.end()) {
+      iter = switchIds_.erase(iter);
+      continue;
+    }
+    iter++;
+  }
+  if (switchIds_.empty()) {
+    throw FbossError("HwSwitchMatcher: all switches were removed");
+  }
+}
+
+void HwSwitchMatcher::exclude(SwitchID switchId) {
+  return exclude(std::unordered_set<SwitchID>{switchId});
+}
+
 } // namespace facebook::fboss

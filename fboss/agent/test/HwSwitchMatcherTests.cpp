@@ -2,6 +2,8 @@
 
 #include "fboss/agent/HwSwitchMatcher.h"
 
+#include "fboss/agent/FbossError.h"
+
 #include <gtest/gtest.h>
 
 using namespace facebook::fboss;
@@ -43,4 +45,23 @@ TEST(NpuMatcherTest, Compare) {
   EXPECT_NE(matcher1, matcher2);
   EXPECT_EQ(matcher1, matcher1);
   EXPECT_EQ(matcher2, matcher2);
+}
+
+TEST(NpuMatcherTest, Exclude) {
+  HwSwitchMatcher matcher1(std::unordered_set<SwitchID>{SwitchID(1)});
+  EXPECT_EQ(matcher1.size(), 1);
+  EXPECT_THROW(
+      matcher1.exclude(std::unordered_set<SwitchID>{SwitchID(1)}), FbossError);
+
+  HwSwitchMatcher matcher2(std::unordered_set<SwitchID>{
+      SwitchID(1), SwitchID(2), SwitchID(3), SwitchID(4)});
+  EXPECT_EQ(matcher2.size(), 4);
+
+  matcher2.exclude(std::unordered_set<SwitchID>{SwitchID(1), SwitchID(2)});
+  EXPECT_EQ(matcher2.size(), 2);
+
+  matcher2.exclude(SwitchID(3));
+  EXPECT_EQ(matcher2.size(), 1);
+
+  EXPECT_THROW(matcher2.exclude(SwitchID(4)), FbossError);
 }

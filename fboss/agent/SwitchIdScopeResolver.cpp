@@ -302,4 +302,18 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(
   return scope(aggPport);
 }
 
+HwSwitchMatcher SwitchIdScopeResolver::scope(cfg::SwitchType type) const {
+  std::unordered_set<SwitchID> switchIds;
+  for (auto entry : switchIdToSwitchInfo_) {
+    if (entry.second.switchType().value() != type) {
+      continue;
+    }
+    switchIds.insert(SwitchID(entry.first));
+  }
+  if (switchIds.size() == 0) {
+    throw FbossError(
+        "No switches of type ", apache::thrift::util::enumNameSafe(type));
+  }
+  return HwSwitchMatcher(switchIds);
+}
 } // namespace facebook::fboss

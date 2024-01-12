@@ -41,6 +41,13 @@ class HwSwitchMatcher {
 
   static const std::string& defaultHwSwitchMatcherKey();
 
+  void exclude(const std::unordered_set<SwitchID>& switchIds);
+  void exclude(SwitchID switchId);
+
+  size_t size() const {
+    return switchIds_.size();
+  }
+
  private:
   std::string matcherString_;
   std::unordered_set<SwitchID> switchIds_;

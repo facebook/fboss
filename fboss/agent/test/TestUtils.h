@@ -45,10 +45,11 @@ namespace cfg {
 class SwitchConfig;
 }
 
-template <cfg::SwitchType type, bool enableIntfNbrTable>
+template <cfg::SwitchType type, bool enableIntfNbrTable, int count = 1>
 struct SwitchTypeAndEnableIntfNbrTableT {
   static constexpr auto switchType = type;
   static constexpr auto intfNbrTable = enableIntfNbrTable;
+  static constexpr auto numSwitches = count;
 };
 
 /*
@@ -62,7 +63,7 @@ struct SwitchTypeAndEnableIntfNbrTableT {
 using SwitchTypeAndEnableIntfNbrTable = ::testing::Types<
     SwitchTypeAndEnableIntfNbrTableT<cfg::SwitchType::NPU, false>,
     SwitchTypeAndEnableIntfNbrTableT<cfg::SwitchType::NPU, true>,
-    SwitchTypeAndEnableIntfNbrTableT<cfg::SwitchType::VOQ, true>,
+    SwitchTypeAndEnableIntfNbrTableT<cfg::SwitchType::VOQ, true, 2>,
     SwitchTypeAndEnableIntfNbrTableT<cfg::SwitchType::FABRIC, true>>;
 
 /*

@@ -258,3 +258,23 @@ TYPED_TEST(SwitchIdScopeResolverTest, portFlowletCfgScope) {
     this->expectL3(std::shared_ptr<PortFlowletCfg>());
   }
 }
+
+TYPED_TEST(SwitchIdScopeResolverTest, SwitchTypeScope) {
+  std::map<int64_t, cfg::SwitchInfo> infos{};
+  for (auto i = 0; i < 4; i++) {
+    cfg::SwitchInfo info{};
+    info.switchType() = this->switchType;
+    info.asicType() = cfg::AsicType::ASIC_TYPE_FAKE;
+    info.switchIndex() = i;
+    cfg::Range64 range{};
+    range.minimum() = i * 100;
+    range.maximum() = i * 100 + 64;
+    info.portIdRange() = range;
+    infos[i] = info;
+  }
+  SwitchIdScopeResolver resolver(infos);
+
+  auto switchTypeMatcher = resolver.scope(this->switchType);
+  EXPECT_EQ(switchTypeMatcher.size(), 4);
+  EXPECT_THROW(resolver.scope(cfg::SwitchType::PHY), FbossError);
+}

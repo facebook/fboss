@@ -169,6 +169,8 @@ class SwitchIdScopeResolver {
     return allSwitchMatcher().switchIds().size() > 1;
   }
 
+  HwSwitchMatcher scope(cfg::SwitchType type) const;
+
  private:
   void checkL3() const;
   void checkVoq() const;
