@@ -21,6 +21,22 @@ SlotTypeConfig getValidSlotTypeConfig() {
   slotTypeConfig.idpromConfig_ref()->address_ref() = "0x14";
   return slotTypeConfig;
 }
+
+GpioLineHandle getValidGpioLineHandle() {
+  auto gpioLineHandle = GpioLineHandle();
+  gpioLineHandle.devicePath() = "/SMB_SLOT@0/[SMB_PCA]";
+  gpioLineHandle.desiredValue() = "1";
+  gpioLineHandle.lineIndex() = 4;
+  return gpioLineHandle;
+}
+
+SysfsFileHandle getValidSysfsFileHandle() {
+  auto sysfsFileHandle = SysfsFileHandle();
+  sysfsFileHandle.devicePath() = "/SMB_SLOT@0/SMB_FPGA";
+  sysfsFileHandle.presenceFileName() = "fan1_present";
+  sysfsFileHandle.desiredValue() = "1";
+  return sysfsFileHandle;
+}
 } // namespace
 
 TEST(ConfigValidatorTest, InvalidPlatformName) {
@@ -49,6 +65,40 @@ TEST(ConfigValidatorTest, SlotTypeConfig) {
   slotTypeConfig = getValidSlotTypeConfig();
   slotTypeConfig.idpromConfig_ref()->address_ref() = "0xK4";
   EXPECT_FALSE(ConfigValidator().isValidSlotTypeConfig(slotTypeConfig));
+}
+
+TEST(ConfigValidatorTest, SlotConfig) {
+  auto slotConfig = SlotConfig();
+  slotConfig.presenceDetection() = PresenceDetection();
+  slotConfig.presenceDetection()->gpioLineHandle() = getValidGpioLineHandle();
+  EXPECT_FALSE(ConfigValidator().isValidSlotConfig(slotConfig));
+  slotConfig.slotType() = "MCB_SLOT";
+  EXPECT_TRUE(ConfigValidator().isValidSlotConfig(slotConfig));
+}
+
+TEST(ConfigValidatorTest, PresenceDetection) {
+  auto presenceDetection = PresenceDetection();
+  EXPECT_FALSE(ConfigValidator().isValidPresenceDetection(presenceDetection));
+  presenceDetection.gpioLineHandle() = getValidGpioLineHandle();
+  EXPECT_TRUE(ConfigValidator().isValidPresenceDetection(presenceDetection));
+  presenceDetection.gpioLineHandle()->devicePath() = "";
+  EXPECT_FALSE(ConfigValidator().isValidPresenceDetection(presenceDetection));
+  presenceDetection.gpioLineHandle() = getValidGpioLineHandle();
+  presenceDetection.gpioLineHandle()->desiredValue() = "";
+  EXPECT_FALSE(ConfigValidator().isValidPresenceDetection(presenceDetection));
+  presenceDetection.gpioLineHandle() = getValidGpioLineHandle();
+  presenceDetection.sysfsFileHandle() = getValidSysfsFileHandle();
+  EXPECT_FALSE(ConfigValidator().isValidPresenceDetection(presenceDetection));
+  presenceDetection.gpioLineHandle().reset();
+  EXPECT_TRUE(ConfigValidator().isValidPresenceDetection(presenceDetection));
+  presenceDetection.sysfsFileHandle()->devicePath() = "";
+  EXPECT_FALSE(ConfigValidator().isValidPresenceDetection(presenceDetection));
+  presenceDetection.sysfsFileHandle() = getValidSysfsFileHandle();
+  presenceDetection.sysfsFileHandle()->desiredValue() = "";
+  EXPECT_FALSE(ConfigValidator().isValidPresenceDetection(presenceDetection));
+  presenceDetection.sysfsFileHandle() = getValidSysfsFileHandle();
+  presenceDetection.sysfsFileHandle()->presenceFileName() = "";
+  EXPECT_FALSE(ConfigValidator().isValidPresenceDetection(presenceDetection));
 }
 
 TEST(ConfigValidatorTest, FpgaIpBlockConfig) {

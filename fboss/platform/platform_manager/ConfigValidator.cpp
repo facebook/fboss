@@ -36,6 +36,17 @@ bool ConfigValidator::isValidSlotTypeConfig(
   return true;
 }
 
+bool ConfigValidator::isValidSlotConfig(const SlotConfig& slotConfig) {
+  if (slotConfig.slotType()->empty()) {
+    XLOG(ERR) << "SlotType in SlotConfig must be a non-empty string";
+    return false;
+  }
+  if (slotConfig.presenceDetection()) {
+    return isValidPresenceDetection(*slotConfig.presenceDetection());
+  }
+  return true;
+}
+
 bool ConfigValidator::isValidFpgaIpBlockConfig(
     const FpgaIpBlockConfig& fpgaIpBlockConfig) {
   if (fpgaIpBlockConfig.pmUnitScopedName()->empty()) {
@@ -194,6 +205,13 @@ bool ConfigValidator::isValid(const PlatformConfig& config) {
         return false;
       }
     }
+
+    // Validate SlotConfigs
+    for (const auto& [_, slotConfig] : *pmUnitConfig.outgoingSlotConfigs()) {
+      if (!isValidSlotConfig(slotConfig)) {
+        return false;
+      }
+    }
   }
 
   for (const auto& [symlink, devicePath] : *config.symbolicLinkToDevicePath()) {
@@ -204,4 +222,46 @@ bool ConfigValidator::isValid(const PlatformConfig& config) {
 
   return true;
 }
+
+bool ConfigValidator::isValidPresenceDetection(
+    const PresenceDetection& presenceDetection) {
+  if (presenceDetection.gpioLineHandle() &&
+      presenceDetection.sysfsFileHandle()) {
+    XLOG(ERR)
+        << "Only one of GpioLineHandle or SysfsFileHandle must be set for PresenceDetection";
+    return false;
+  }
+  if (!presenceDetection.gpioLineHandle() &&
+      !presenceDetection.sysfsFileHandle()) {
+    XLOG(ERR)
+        << "GpioLineHandle or SysfsFileHandle must be set for PresenceDetection";
+    return false;
+  }
+  if (presenceDetection.gpioLineHandle()) {
+    if (presenceDetection.gpioLineHandle()->devicePath()->empty()) {
+      XLOG(ERR) << "devicePath for GpioLineHandle cannot be empty";
+      return false;
+    }
+    if (presenceDetection.gpioLineHandle()->desiredValue()->empty()) {
+      XLOG(ERR) << "desiredValue for GpioLineHandle cannot be empty";
+      return false;
+    }
+  }
+  if (presenceDetection.sysfsFileHandle()) {
+    if (presenceDetection.sysfsFileHandle()->devicePath()->empty()) {
+      XLOG(ERR) << "devicePath for SysfsFileHandle cannot be empty";
+      return false;
+    }
+    if (presenceDetection.sysfsFileHandle()->desiredValue()->empty()) {
+      XLOG(ERR) << "desiredValue for SysfsFileHandle cannot be empty";
+      return false;
+    }
+    if (presenceDetection.sysfsFileHandle()->presenceFileName()->empty()) {
+      XLOG(ERR) << "presenceFileName for SysfsFileHandle cannot be empty";
+      return false;
+    }
+  }
+  return true;
+}
+
 } // namespace facebook::fboss::platform::platform_manager

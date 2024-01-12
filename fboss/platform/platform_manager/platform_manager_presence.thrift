@@ -31,6 +31,6 @@ struct GpioLineHandle {
 // The presence detection can be based on GPIO registers or sysfs paths.  Only
 // one of them should be populated
 struct PresenceDetection {
-  1: optional GpioLineHandle gpioHandle;
-  2: optional SysfsFileHandle sysfsHandle;
+  1: optional GpioLineHandle gpioLineHandle;
+  2: optional SysfsFileHandle sysfsFileHandle;
 }
