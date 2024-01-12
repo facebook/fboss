@@ -360,6 +360,12 @@ void PlatformExplorer::explorePciDevices(
       pciExplorer_.createLedCtrl(charDevPath, fpgaIpBlockConfig, instId++);
     }
     for (const auto& xcvrCtrlConfig : *pciDeviceConfig.xcvrCtrlConfigs()) {
+      auto devicePath = fmt::format(
+          "{}/[{}]",
+          slotPath,
+          *xcvrCtrlConfig.fpgaIpBlockConfig()->pmUnitScopedName());
+      dataStore_.updateSysfsPath(devicePath, pciDevice.sysfsPath());
+      dataStore_.updateInstanceId(devicePath, instId);
       pciExplorer_.createXcvrCtrl(charDevPath, xcvrCtrlConfig, instId++);
     }
     for (const auto& fpgaIpBlockConfig : *pciDeviceConfig.miscCtrlConfigs()) {
