@@ -34,7 +34,7 @@ SysfsFileHandle getValidSysfsFileHandle() {
   auto sysfsFileHandle = SysfsFileHandle();
   sysfsFileHandle.devicePath() = "/SMB_SLOT@0/SMB_FPGA";
   sysfsFileHandle.presenceFileName() = "fan1_present";
-  sysfsFileHandle.desiredValue() = "1";
+  sysfsFileHandle.desiredValue() = 1;
   return sysfsFileHandle;
 }
 } // namespace
@@ -94,7 +94,7 @@ TEST(ConfigValidatorTest, PresenceDetection) {
   presenceDetection.sysfsFileHandle()->devicePath() = "";
   EXPECT_FALSE(ConfigValidator().isValidPresenceDetection(presenceDetection));
   presenceDetection.sysfsFileHandle() = getValidSysfsFileHandle();
-  presenceDetection.sysfsFileHandle()->desiredValue() = "";
+  presenceDetection.sysfsFileHandle()->desiredValue() = 0;
   EXPECT_FALSE(ConfigValidator().isValidPresenceDetection(presenceDetection));
   presenceDetection.sysfsFileHandle() = getValidSysfsFileHandle();
   presenceDetection.sysfsFileHandle()->presenceFileName() = "";

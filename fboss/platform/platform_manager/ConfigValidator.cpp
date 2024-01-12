@@ -252,8 +252,8 @@ bool ConfigValidator::isValidPresenceDetection(
       XLOG(ERR) << "devicePath for SysfsFileHandle cannot be empty";
       return false;
     }
-    if (presenceDetection.sysfsFileHandle()->desiredValue()->empty()) {
-      XLOG(ERR) << "desiredValue for SysfsFileHandle cannot be empty";
+    if (*presenceDetection.sysfsFileHandle()->desiredValue() == 0) {
+      XLOG(ERR) << "desiredValue for SysfsFileHandle cannot be 0. Typically 1";
       return false;
     }
     if (presenceDetection.sysfsFileHandle()->presenceFileName()->empty()) {
