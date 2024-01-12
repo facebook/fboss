@@ -167,15 +167,6 @@
           "test_name_regex": "HwUdfAcl.*"
         },
         {
-          "test_name_regex": "HwLoadBalancerTestV6RoCE.*"
-        },
-        {
-          "test_name_regex": "HwLoadBalancerNegativeTestV6RoCE.*"
-        },
-        {
-          "test_name_regex": "HwLoadBalancerNegativeProtocolMatchTestV6RoCE.*"
-        },
-        {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
         },
         {
@@ -594,15 +585,6 @@
           "test_name_regex": "HwUdfAcl.*"
         },
         {
-          "test_name_regex": "HwLoadBalancerTestV6RoCE.*"
-        },
-        {
-          "test_name_regex": "HwLoadBalancerNegativeTestV6RoCE.*"
-        },
-        {
-          "test_name_regex": "HwLoadBalancerNegativeProtocolMatchTestV6RoCE.*"
-        },
-        {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
         },
         {
@@ -824,15 +806,6 @@
           "test_name_regex": "HwUdfAcl.*"
         },
         {
-          "test_name_regex": "HwLoadBalancerTestV6RoCE.*"
-        },
-        {
-          "test_name_regex": "HwLoadBalancerNegativeTestV6RoCE.*"
-        },
-        {
-          "test_name_regex": "HwLoadBalancerNegativeProtocolMatchTestV6RoCE.*"
-        },
-        {
           "test_name_regex": "HwLoadBalancerTestV6Flowlet.*"
         },
         {
@@ -885,6 +858,9 @@
         },
         {
           "test_name_regex": "HwIngressBufferTest.validatePGQueueChanges$"
+        },
+        {
+          "test_name_regex": "HwLoadBalancerNegativeTestV6RoCE.*$"
         }
     ],
     "brcm/11.0_ea_dnx_sim_odp/11.0_ea_dnx_sim_odp/jericho3/simulator": [
