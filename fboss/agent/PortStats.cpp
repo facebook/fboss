@@ -11,7 +11,6 @@
 #include <fb303/ThreadCachedServiceData.h>
 #include <folly/String.h>
 #include "fboss/agent/SwitchStats.h"
-#include "fboss/agent/normalization/Normalizer.h"
 
 using facebook::fb303::SUM;
 
@@ -163,9 +162,6 @@ void PortStats::linkStateChange(bool isUp) {
   // TLTimeseries and leave ThreadLocalStats do it for us.
   if (!portName_.empty()) {
     tcData().addStatValue(getCounterKey(kLinkStateFlap), 1, SUM);
-    if (auto normalizer = Normalizer::getInstance()) {
-      normalizer->processLinkStateChange(portName_, isUp);
-    }
   }
   switchStats_->linkStateChange();
 }
@@ -173,9 +169,6 @@ void PortStats::linkStateChange(bool isUp) {
 void PortStats::linkActiveStateChange(bool isActive) {
   if (!portName_.empty()) {
     tcData().addStatValue(getCounterKey(kLinkActiveStateFlap), 1, SUM);
-    if (auto normalizer = Normalizer::getInstance()) {
-      normalizer->processLinkActiveStateChange(portName_, isActive);
-    }
   }
   switchStats_->linkActiveStateChange();
 }
