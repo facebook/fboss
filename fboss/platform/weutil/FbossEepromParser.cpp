@@ -130,16 +130,53 @@ std::vector<EepromFieldEntry> getEepromFieldDict(int version) {
   return kFieldDictionaryV5;
 };
 
+std::string parseMacHelper(int len, unsigned char* ptr, bool useBigEndian) {
+  std::string retVal = "";
+  // We convert char array to string only upto len or null pointer
+  int juice = 0;
+  while (juice < len) {
+    unsigned int val = useBigEndian ? ptr[juice] : ptr[len - juice - 1];
+    std::ostringstream ss;
+    ss << std::hex << val;
+    std::string strElement = ss.str();
+    // Pad 0 if the hex value is only 1 digit. Also,
+    // add ':' between 2 hex digits except for the last element
+    strElement =
+        (val < 16 ? "0" : "") + strElement + (juice != len - 1 ? ":" : "");
+    retVal += strElement;
+    juice = juice + 1;
+  }
+  return retVal;
+}
+
 } // namespace
 
 namespace facebook::fboss::platform {
 
-ParsedEepromEntry FbossEepromParser::getEeprom(
-    const std::string& eeprom,
-    const int offset) {
-  // If eeprom is empty, use the chassis eeprom entity from the config.
-  std::string eepromEntity = eeprom;
-  return getAllInfo(eepromEntity, offset);
+std::vector<std::pair<std::string, std::string>>
+FbossEepromParser::getContents() {
+  unsigned char buffer[kMaxEepromSize + 1] = {};
+
+  int readCount = loadEeprom(eepromPath_, buffer, offset_, kMaxEepromSize);
+
+  std::unordered_map<int, std::string> parsedValue;
+  int eepromVer = buffer[2];
+  switch (eepromVer) {
+    case 3:
+      parsedValue = parseEepromBlobLinear(buffer);
+      break;
+    case 4:
+    case 5:
+      parsedValue = parseEepromBlobTLV(
+          eepromVer, buffer, std::min(readCount, kMaxEepromSize));
+      break;
+    default:
+      throw std::runtime_error(
+          "EEPROM version is not supported. Only ver 4+ is supported.");
+      break;
+  }
+
+  return prepareEepromFieldMap(parsedValue, eepromVer);
 }
 
 /*
@@ -267,7 +304,7 @@ std::unordered_map<int, std::string> FbossEepromParser::parseEepromBlobTLV(
       break;
     }
     // Look up our table to find the itemType and field name of this itemCode
-    for (int i = 0; i < fieldDictionary.size(); i++) {
+    for (size_t i = 0; i < fieldDictionary.size(); i++) {
       if (fieldDictionary[i].typeCode == itemCode) {
         itemType = fieldDictionary[i].fieldType;
         key = fieldDictionary[i].fieldName;
@@ -381,35 +418,6 @@ FbossEepromParser::prepareEepromFieldMap(
   return result;
 }
 
-ParsedEepromEntry FbossEepromParser::getAllInfo(
-    const std::string& eeprom,
-    const int offset) {
-  unsigned char buffer[kMaxEepromSize + 1] = {};
-
-  int readCount = loadEeprom(eeprom, buffer, offset, kMaxEepromSize);
-
-  // Ensure that this is EEPROM v4 or later
-  std::unordered_map<int, std::string> parsedValue;
-  int eepromVer = buffer[2];
-
-  switch (eepromVer) {
-    case 3:
-      parsedValue = parseEepromBlobLinear(buffer);
-      break;
-    case 4:
-    case 5:
-      parsedValue = parseEepromBlobTLV(
-          eepromVer, buffer, std::min(readCount, kMaxEepromSize));
-      break;
-    default:
-      throw std::runtime_error(
-          "EEPROM version is not supported. Only ver 4+ is supported.");
-      break;
-  }
-
-  return prepareEepromFieldMap(parsedValue, eepromVer);
-}
-
 // Parse Little Endian Uint field
 std::string FbossEepromParser::parseLeUint(int len, unsigned char* ptr) {
   // For now, we only support up to 4 Bytes of data
@@ -476,25 +484,6 @@ std::string FbossEepromParser::parseString(int len, unsigned char* ptr) {
   int juice = 0;
   while ((juice < len) && (ptr[juice] != 0)) {
     retVal += (ptr[juice]);
-    juice = juice + 1;
-  }
-  return retVal;
-}
-
-std::string parseMacHelper(int len, unsigned char* ptr, bool useBigEndian) {
-  std::string retVal = "";
-  // We convert char array to string only upto len or null pointer
-  int juice = 0;
-  while (juice < len) {
-    unsigned int val = useBigEndian ? ptr[juice] : ptr[len - juice - 1];
-    std::ostringstream ss;
-    ss << std::hex << val;
-    std::string strElement = ss.str();
-    // Pad 0 if the hex value is only 1 digit. Also,
-    // add ':' between 2 hex digits except for the last element
-    strElement =
-        (val < 16 ? "0" : "") + strElement + (juice != len - 1 ? ":" : "");
-    retVal += strElement;
     juice = juice + 1;
   }
   return retVal;

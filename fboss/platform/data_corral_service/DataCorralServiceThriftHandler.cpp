@@ -26,7 +26,7 @@ void DataCorralServiceThriftHandler::getFruid(
 
   if (uncached || fruid_.empty()) {
     fruid_ = createWeUtilIntf("chassis" /*eepromName*/, "" /*eepromPath*/)
-                 ->getInfo();
+                 ->getContents();
   }
 
   for (const auto& it : fruid_) {

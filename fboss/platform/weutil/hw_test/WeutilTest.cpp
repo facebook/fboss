@@ -26,7 +26,7 @@ void WeutilTest::SetUp() {
 void WeutilTest::TearDown() {}
 
 TEST_F(WeutilTest, getWedgeInfo) {
-  EXPECT_GT(weutilInstance->getInfo().size(), 0);
+  EXPECT_GT(weutilInstance->getContents().size(), 0);
 }
 
 } // namespace facebook::fboss::platform

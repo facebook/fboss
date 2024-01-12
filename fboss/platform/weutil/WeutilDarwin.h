@@ -12,13 +12,13 @@ namespace facebook::fboss::platform {
 class WeutilDarwin : public WeutilInterface {
  public:
   explicit WeutilDarwin(const std::string& eepromPath);
-  std::vector<std::pair<std::string, std::string>> getInfo() override;
+
+  std::vector<std::pair<std::string, std::string>> getContents() override;
   void printInfo() override;
   void printInfoJson() override;
 
  private:
   void genSpiPrefdlFile();
-
   std::unique_ptr<PrefdlBase> eepromParser_;
 };
 

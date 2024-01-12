@@ -151,7 +151,7 @@ void WeutilDarwin::genSpiPrefdlFile() {
   }
 }
 
-std::vector<std::pair<std::string, std::string>> WeutilDarwin::getInfo() {
+std::vector<std::pair<std::string, std::string>> WeutilDarwin::getContents() {
   std::vector<std::pair<std::string, std::string>> ret;
   for (auto& item : weFields_) {
     auto it = kMapping.find(item.first);

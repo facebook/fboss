@@ -8,11 +8,14 @@
 
 namespace facebook::fboss::platform {
 
-using ParsedEepromEntry = std::vector<std::pair<std::string, std::string>>;
-
 class FbossEepromParser {
  public:
-  ParsedEepromEntry getEeprom(const std::string& eepromPath, const int offset);
+  explicit FbossEepromParser(
+      const std::string& eepromPath,
+      const uint16_t offset)
+      : eepromPath_(eepromPath), offset_(offset) {}
+
+  std::vector<std::pair<std::string, std::string>> getContents();
 
  private:
   int loadEeprom(
@@ -26,7 +29,7 @@ class FbossEepromParser {
       int eepromVer,
       const unsigned char* buffer,
       const int readCount);
-  ParsedEepromEntry getAllInfo(const std::string& eeprom, const int offset);
+
   // This method is a helper function to translate <field_id, value> pair
   // into <field_name, field_value> pair, so that the user of this
   // methon can parse the data into human readable screen output or
@@ -43,6 +46,9 @@ class FbossEepromParser {
   std::string parseV5Mac(int len, unsigned char* ptr);
   std::string parseLegacyMac(int len, unsigned char* ptr);
   std::string parseDate(int len, unsigned char* ptr);
+
+  std::string eepromPath_;
+  uint16_t offset_;
 };
 
 } // namespace facebook::fboss::platform

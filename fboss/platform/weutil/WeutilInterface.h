@@ -10,11 +10,11 @@ namespace facebook::fboss::platform {
 class WeutilInterface {
  public:
   WeutilInterface() {}
+  virtual ~WeutilInterface() = default;
+
+  virtual std::vector<std::pair<std::string, std::string>> getContents() = 0;
   virtual void printInfo() = 0;
   virtual void printInfoJson() = 0;
-  // get weutil info in a vector of pairs, e.g. <"Version", "x"> , etc
-  virtual std::vector<std::pair<std::string, std::string>> getInfo() = 0;
-  virtual ~WeutilInterface() = default;
 };
 
 } // namespace facebook::fboss::platform
