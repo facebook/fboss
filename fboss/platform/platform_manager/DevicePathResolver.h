@@ -19,6 +19,11 @@ class DevicePathResolver {
   // Throws a runtime exception if the DevicePath cannot be resolved.
   std::string resolveI2cDevicePath(const std::string& devicePath);
 
+  // Resolves the presenceFileName present at the given devicePath.
+  std::optional<std::string> resolvePresencePath(
+      const std::string& devicePath,
+      const std::string& presenceFileName);
+
  private:
   // Get I2cDeviceConfig for a given SlotPath and DeviceName.
   // Throws a runtime exception if the I2cDeviceConfig is not found.

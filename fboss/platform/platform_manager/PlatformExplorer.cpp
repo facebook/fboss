@@ -9,6 +9,7 @@
 #include <string>
 #include <utility>
 
+#include <folly/FileUtil.h>
 #include <folly/logging/xlog.h>
 
 #include "fboss/platform/platform_manager/Utils.h"
@@ -30,6 +31,14 @@ std::string getSlotPath(
     return fmt::format("{}/{}", parentSlotPath, slotName);
   }
 }
+
+std::optional<std::string> getPresenceFileContent(const std::string& path) {
+  std::string value{};
+  if (!folly::readFile(path.c_str(), value)) {
+    return std::nullopt;
+  }
+  return folly::trimWhitespace(value).str();
+}
 } // namespace
 
 namespace facebook::fboss::platform::platform_manager {
@@ -40,7 +49,8 @@ PlatformExplorer::PlatformExplorer(
     std::chrono::seconds exploreInterval,
     const PlatformConfig& config,
     bool runOnce)
-    : platformConfig_(config) {
+    : platformConfig_(config),
+      devicePathResolver_(platformConfig_, dataStore_, i2cExplorer_) {
   if (runOnce) {
     explore();
     return;
@@ -120,12 +130,60 @@ void PlatformExplorer::exploreSlot(
   std::string childSlotPath = getSlotPath(parentSlotPath, slotName);
   XLOG(INFO) << fmt::format("Exploring SlotPath {}", childSlotPath);
 
-  if (slotConfig.presenceDetection() &&
-      !presenceDetector_.isPresent(*slotConfig.presenceDetection())) {
-    XLOG(INFO) << fmt::format(
-        "No device could be detected in SlotPath {}", childSlotPath);
+  // If PresenceDetection is specified, proceed further only if the presence
+  // condition is satisfied
+  if (const auto presenceDetection = slotConfig.presenceDetection()) {
+    if (const auto sysfsFileHandle = presenceDetection->sysfsFileHandle()) {
+      auto presencePath = devicePathResolver_.resolvePresencePath(
+          *sysfsFileHandle->devicePath(), *sysfsFileHandle->presenceFileName());
+      if (!presencePath) {
+        XLOG(ERR) << fmt::format(
+            "No sysfs file could be found at DevicePath: {} and presenceFileName: {}",
+            *sysfsFileHandle->devicePath(),
+            *sysfsFileHandle->presenceFileName());
+        return;
+      }
+      XLOG(INFO) << fmt::format(
+          "The file {} at DevicePath {} resolves to {}",
+          *sysfsFileHandle->presenceFileName(),
+          *sysfsFileHandle->devicePath(),
+          *presencePath);
+      auto presenceFileContent = getPresenceFileContent(*presencePath);
+      if (!presenceFileContent) {
+        XLOG(ERR) << fmt::format("Could not read file {}", *presencePath);
+        return;
+      }
+      int16_t presenceValue{0};
+      try {
+        presenceValue = std::stoi(*presenceFileContent, nullptr, 0);
+      } catch (const std::exception& ex) {
+        XLOG(ERR) << fmt::format(
+            "Failed to process file content {}: {}",
+            *presenceFileContent,
+            folly::exceptionStr(ex));
+        return;
+      }
+      bool isPresent = (presenceValue == *sysfsFileHandle->desiredValue());
+      XLOG(INFO) << fmt::format(
+          "Value at {} is {}. desiredValue is {}. "
+          "Assuming {} of PmUnit at {}",
+          *presencePath,
+          *presenceFileContent,
+          *sysfsFileHandle->desiredValue(),
+          isPresent ? "presence" : "absence",
+          childSlotPath);
+      if (!isPresent) {
+        return;
+      }
+    } else {
+      XLOG(INFO) << fmt::format(
+          "Invalid PresenceDetection for {}", childSlotPath);
+      return;
+    }
   }
 
+  // Either no PresenceDetection is specified, or the presence conditions in
+  // PresenceDetection are satisfied. Setup the PmUnit in the slot.
   int i = 0;
   for (const auto& busName : *slotConfig.outgoingI2cBusNames()) {
     auto busNum = dataStore_.getI2cBusNum(parentSlotPath, busName);

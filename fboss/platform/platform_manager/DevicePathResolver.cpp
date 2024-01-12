@@ -8,6 +8,7 @@ using namespace facebook::fboss::platform::platform_manager;
 
 namespace {
 constexpr auto kIdprom = "IDPROM";
+const re2::RE2 kValidHwmonDirName{"hwmon[0-9]+"};
 } // namespace
 
 DevicePathResolver::DevicePathResolver(
@@ -37,6 +38,53 @@ std::string DevicePathResolver::resolveI2cDevicePath(
         fmt::format("{} is not plugged-in to the platform", deviceName));
   }
   return i2cExplorer_.getDeviceI2cPath(busNum, *i2cAddr);
+}
+
+std::optional<std::string> DevicePathResolver::resolvePresencePath(
+    const std::string& devicePath,
+    const std::string& presenceFileName) {
+  const auto [slotPath, deviceName] = Utils().parseDevicePath(devicePath);
+  if (!dataStore_.hasPmUnit(slotPath)) {
+    XLOG(ERR) << fmt::format("No PmUnit exists at {}", slotPath);
+    return std::nullopt;
+  }
+  auto pmUnitName = dataStore_.getPmUnitName(slotPath);
+  auto pmUnitConfig = platformConfig_.pmUnitConfigs()->at(pmUnitName);
+  auto i2cDeviceConfig = std::find_if(
+      pmUnitConfig.i2cDeviceConfigs()->begin(),
+      pmUnitConfig.i2cDeviceConfigs()->end(),
+      [deviceNameCopy = deviceName](auto i2cDeviceConfig) {
+        return *i2cDeviceConfig.pmUnitScopedName() == deviceNameCopy;
+      });
+  if (i2cDeviceConfig != pmUnitConfig.i2cDeviceConfigs()->end()) {
+    auto busNum =
+        dataStore_.getI2cBusNum(slotPath, *i2cDeviceConfig->busName());
+    auto i2cAddr = I2cAddr(*i2cDeviceConfig->address());
+    if (!i2cExplorer_.isI2cDevicePresent(busNum, i2cAddr)) {
+      XLOG(ERR) << fmt::format(
+          "{} is not plugged-in to the platform", deviceName);
+      return std::nullopt;
+    }
+    auto targetPath =
+        std::filesystem::path(i2cExplorer_.getDeviceI2cPath(busNum, i2cAddr)) /
+        "hwmon";
+    std::string hwmonSubDir = "";
+    for (const auto& dirEntry :
+         std::filesystem::directory_iterator(targetPath)) {
+      auto dirName = dirEntry.path().filename();
+      if (re2::RE2::FullMatch(dirName.string(), kValidHwmonDirName)) {
+        hwmonSubDir = dirName.string();
+        break;
+      }
+    }
+    if (hwmonSubDir.empty()) {
+      XLOG(ERR) << fmt::format(
+          "Couldn't find hwmon[num] folder within ({})", targetPath.string());
+      return std::nullopt;
+    }
+    return targetPath / hwmonSubDir / presenceFileName;
+  }
+  return std::nullopt;
 }
 
 I2cDeviceConfig DevicePathResolver::getI2cDeviceConfig(

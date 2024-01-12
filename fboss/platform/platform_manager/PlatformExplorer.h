@@ -3,13 +3,14 @@
 
 #pragma once
 
-#include <folly/experimental/FunctionScheduler.h>
 #include <string>
 
+#include <folly/experimental/FunctionScheduler.h>
+
 #include "fboss/platform/platform_manager/DataStore.h"
+#include "fboss/platform/platform_manager/DevicePathResolver.h"
 #include "fboss/platform/platform_manager/I2cExplorer.h"
 #include "fboss/platform/platform_manager/PciExplorer.h"
-#include "fboss/platform/platform_manager/PresenceDetector.h"
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_types.h"
 
 namespace facebook::fboss::platform::platform_manager {
@@ -67,8 +68,9 @@ class PlatformExplorer {
   PlatformConfig platformConfig_{};
   I2cExplorer i2cExplorer_{};
   PciExplorer pciExplorer_{};
-  PresenceDetector presenceDetector_{};
   DataStore dataStore_{};
+  DevicePathResolver devicePathResolver_;
+
   // Map from <pmUnitPath, pmUnitScopeBusName> to kernel i2c bus name.
   // - The pmUnitPath to the rootPmUnit is /. So a bus at root PmUnit will have
   // the entry <"/", "MuxA@1"> -> i2c-54.

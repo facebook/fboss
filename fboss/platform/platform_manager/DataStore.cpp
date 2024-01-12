@@ -73,7 +73,8 @@ std::string DataStore::getPmUnitName(const std::string& slotPath) const {
 void DataStore::updatePmUnitName(
     const std::string& slotPath,
     const std::string& pmUnitName) {
-  XLOG(INFO) << fmt::format("Updating PmUnit {} at {}", pmUnitName, slotPath);
+  XLOG(INFO) << fmt::format(
+      "Updating SlotPath {} to have PmUnit {}", slotPath, pmUnitName);
   slotPathToPmUnitName_[slotPath] = pmUnitName;
 }
 

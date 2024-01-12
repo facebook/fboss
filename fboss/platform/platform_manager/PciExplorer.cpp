@@ -64,6 +64,7 @@ PciDevice::PciDevice(
       std::string(deviceId, 2, 4),
       std::string(subSystemVendorId, 2, 4),
       std::string(subSystemDeviceId, 2, 4));
+
   if (!fs::exists(charDevPath_)) {
     throw std::runtime_error(fmt::format(
         "No character device found at {} for {}", charDevPath_, name));
