@@ -120,6 +120,15 @@
         },
         {
           "test_name_regex": "HwVoqSwitchWithFabricPortsTest.verifyNifMulticastTrafficDropped"
+        },
+        {
+          "test_name_regex": "HwLoadBalancerTestV6RoCE.*"
+        },
+        {
+          "test_name_regex": "HwLoadBalancerNegativeTestV6RoCE.*"
+        },
+        {
+          "test_name_regex": "HwLoadBalancerNegativeProtocolMatchTestV6RoCE.*"
         }
     ],
     "brcm/10.0_ea_dnx_sim_odp/10.0_ea_dnx_sim_odp/jericho3/simulator": [
@@ -2158,6 +2167,15 @@
         },
         {
           "test_name_regex": "HwVoqSwitchWithFabricPortsTest.verifyNifMulticastTrafficDropped"
+        },
+        {
+          "test_name_regex": "HwLoadBalancerTestV6RoCE.*"
+        },
+        {
+          "test_name_regex": "HwLoadBalancerNegativeTestV6RoCE.*"
+        },
+        {
+          "test_name_regex": "HwLoadBalancerNegativeProtocolMatchTestV6RoCE.*"
         }
     ],
     "brcm/11.0_ea_dnx_odp/11.0_ea_dnx_odp/jericho3": [
