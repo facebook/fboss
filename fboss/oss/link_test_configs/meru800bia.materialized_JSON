@@ -2832,7 +2832,7 @@
       },
       {
         "logicalID": 18,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -2852,7 +2852,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "eth1/14/1"
         },
         "lookupClasses": [
           
@@ -2968,7 +2968,7 @@
       },
       {
         "logicalID": 16,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -2988,7 +2988,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "eth1/12/1"
         },
         "lookupClasses": [
           
@@ -6705,6 +6705,40 @@
           
         ],
         "drainState": 0
+      },
+      {
+        "logicalID": 38,
+        "state": 1,
+        "minFrameSize": 64,
+        "maxFrameSize": 9412,
+        "parserType": 1,
+        "routable": true,
+        "ingressVlan": 0,
+        "speed": 100000,
+        "name": "eth1/39/1",
+        "description": "",
+        "queues_DEPRECATED": [
+          
+        ],
+        "pause": {
+          "tx": false,
+          "rx": false
+        },
+        "sFlowIngressRate": 0,
+        "sFlowEgressRate": 0,
+        "loopbackMode": 0,
+        "expectedLLDPValues": {
+          
+        },
+        "lookupClasses": [
+          
+        ],
+        "profileID": 23,
+        "portType": 0,
+        "expectedNeighborReachability": [
+          
+        ],
+        "drainState": 0
       }
     ],
     "vlans": [
@@ -6728,7 +6762,7 @@
         "type": 2
       },
       {
-        "intfID": 108,
+        "intfID": 118,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -6741,12 +6775,38 @@
         "type": 2
       },
       {
-        "intfID": 106,
+        "intfID": 116,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
           "2401::/64",
           "11.0.0.0/24"
+        ],
+        "mtu": 9000,
+        "isVirtual": false,
+        "isStateSyncDisabled": true,
+        "type": 2
+      },
+      {
+        "intfID": 108,
+        "routerID": 0,
+        "vlanID": 0,
+        "ipAddresses": [
+          "2402::/64",
+          "12.0.0.0/24"
+        ],
+        "mtu": 9000,
+        "isVirtual": false,
+        "isStateSyncDisabled": true,
+        "type": 2
+      },
+      {
+        "intfID": 106,
+        "routerID": 0,
+        "vlanID": 0,
+        "ipAddresses": [
+          "2403::/64",
+          "13.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -7625,10 +7685,6 @@
             "phy_rx_polarity_flip_phy141.BCM8889X": "1",
             "phy_rx_polarity_flip_phy142.BCM8889X": "1",
             "phy_rx_polarity_flip_phy143.BCM8889X": "1",
-            "phy_rx_polarity_flip_phy144.BCM8889X": "1",
-            "phy_rx_polarity_flip_phy145.BCM8889X": "0",
-            "phy_rx_polarity_flip_phy146.BCM8889X": "0",
-            "phy_rx_polarity_flip_phy147.BCM8889X": "0",
             "phy_rx_polarity_flip_phy15.BCM8889X": "0",
             "phy_rx_polarity_flip_phy16.BCM8889X": "1",
             "phy_rx_polarity_flip_phy17.BCM8889X": "1",
@@ -7934,10 +7990,6 @@
             "phy_tx_polarity_flip_phy141.BCM8889X": "0",
             "phy_tx_polarity_flip_phy142.BCM8889X": "0",
             "phy_tx_polarity_flip_phy143.BCM8889X": "0",
-            "phy_tx_polarity_flip_phy144.BCM8889X": "0",
-            "phy_tx_polarity_flip_phy145.BCM8889X": "0",
-            "phy_tx_polarity_flip_phy146.BCM8889X": "1",
-            "phy_tx_polarity_flip_phy147.BCM8889X": "1",
             "phy_tx_polarity_flip_phy15.BCM8889X": "1",
             "phy_tx_polarity_flip_phy16.BCM8889X": "1",
             "phy_tx_polarity_flip_phy17.BCM8889X": "0",
@@ -8172,6 +8224,7 @@
             "ucode_port_35.BCM8889X": "CDGE4_33:core_3.9",
             "ucode_port_36.BCM8889X": "CDGE4_34:core_3.10",
             "ucode_port_37.BCM8889X": "CDGE4_35:core_3.11",
+            "ucode_port_38.BCM8889X": "CGE36:core_1.10",
             "ucode_port_4.BCM8889X": "CDGE4_2:core_0.4",
             "ucode_port_5.BCM8889X": "CDGE4_3:core_0.5",
             "ucode_port_6.BCM8889X": "CDGE4_4:core_0.6",
