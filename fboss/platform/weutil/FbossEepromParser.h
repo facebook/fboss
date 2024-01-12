@@ -11,6 +11,9 @@ namespace facebook::fboss::platform {
 using ParsedEepromEntry = std::vector<std::pair<std::string, std::string>>;
 
 class FbossEepromParser {
+ public:
+  ParsedEepromEntry getEeprom(const std::string& eepromPath, const int offset);
+
  private:
   int loadEeprom(
       const std::string& eeprom,
@@ -40,9 +43,6 @@ class FbossEepromParser {
   std::string parseV5Mac(int len, unsigned char* ptr);
   std::string parseLegacyMac(int len, unsigned char* ptr);
   std::string parseDate(int len, unsigned char* ptr);
-
- public:
-  ParsedEepromEntry getEeprom(const std::string& eepromPath, const int offset);
 };
 
 } // namespace facebook::fboss::platform

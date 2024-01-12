@@ -37,10 +37,6 @@ typedef struct {
   std::optional<int> offset;
 } EepromFieldEntry;
 
-} // namespace
-
-namespace facebook::fboss::platform {
-
 std::vector<EepromFieldEntry> kFieldDictionaryV3 = {
     {0, "Version", FIELD_LE_UINT, 1, 2}, // TypeCode 0 is reserved
     {1, "Product Name", FIELD_STRING, 20, 3},
@@ -133,6 +129,18 @@ std::vector<EepromFieldEntry> getEepromFieldDict(int version) {
   // return value to avoid compiler warning.
   return kFieldDictionaryV5;
 };
+
+} // namespace
+
+namespace facebook::fboss::platform {
+
+ParsedEepromEntry FbossEepromParser::getEeprom(
+    const std::string& eeprom,
+    const int offset) {
+  // If eeprom is empty, use the chassis eeprom entity from the config.
+  std::string eepromEntity = eeprom;
+  return getAllInfo(eepromEntity, offset);
+}
 
 /*
  * Helper function, given the eeprom path, read it and store the blob
@@ -542,14 +550,6 @@ std::string FbossEepromParser::parseDate(int len, unsigned char* ptr) {
   monthString = (monthString.length() == 1 ? "0" : "") + monthString;
   dayString = (dayString.length() == 1 ? "0" : "") + dayString;
   return monthString + "-" + dayString + "-" + yearString;
-}
-
-ParsedEepromEntry FbossEepromParser::getEeprom(
-    const std::string& eeprom,
-    const int offset) {
-  // If eeprom is empty, use the chassis eeprom entity from the config.
-  std::string eepromEntity = eeprom;
-  return getAllInfo(eepromEntity, offset);
 }
 
 } // namespace facebook::fboss::platform
