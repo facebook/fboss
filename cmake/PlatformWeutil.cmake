@@ -11,12 +11,15 @@ add_fbthrift_cpp_library(
     reflection
 )
 
+add_library(weutil_fboss_eeprom_parser
+  fboss/platform/weutil/FbossEepromParser.cpp
+)
+
 add_library(weutil_lib
   fboss/platform/weutil/WeutilDarwin.cpp
   fboss/platform/weutil/WeutilImpl.cpp
   fboss/platform/weutil/prefdl/Prefdl.cpp
   fboss/platform/weutil/Weutil.cpp
-  fboss/platform/weutil/FbossEepromParser.cpp
 )
 
 target_link_libraries(weutil_lib
@@ -24,6 +27,7 @@ target_link_libraries(weutil_lib
   platform_utils
   Folly::folly
   weutil_config_cpp2
+  weutil_fboss_eeprom_parser
   platform_config_lib
 )
 

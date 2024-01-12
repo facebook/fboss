@@ -12,6 +12,7 @@
 #include "fboss/platform/platform_manager/I2cExplorer.h"
 #include "fboss/platform/platform_manager/PciExplorer.h"
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_types.h"
+#include "fboss/platform/weutil/CachedFbossEepromParser.h"
 
 namespace facebook::fboss::platform::platform_manager {
 class PlatformExplorer {
@@ -70,6 +71,7 @@ class PlatformExplorer {
   PciExplorer pciExplorer_{};
   DataStore dataStore_{};
   DevicePathResolver devicePathResolver_;
+  CachedFbossEepromParser eepromParser_{};
 
   // Map from <pmUnitPath, pmUnitScopeBusName> to kernel i2c bus name.
   // - The pmUnitPath to the rootPmUnit is /. So a bus at root PmUnit will have

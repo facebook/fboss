@@ -219,23 +219,39 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
         I2cAddr(*idpromConfig.address()));
     auto eepromPath = i2cExplorer_.getDeviceI2cPath(
         eepromI2cBusNum, I2cAddr(*idpromConfig.address()));
+    eepromPath = eepromPath + "/eeprom";
     try {
-      // TODO: One eeprom parsing library is implemented, get the
-      // Product Name from eeprom contents of eepromPath and use it here.
-      pmUnitNameInEeprom = std::nullopt;
+      pmUnitNameInEeprom =
+          eepromParser_.getProductName(eepromPath, *idpromConfig.offset());
     } catch (const std::exception& e) {
       XLOG(ERR) << fmt::format(
-          "Could not fetch contents of IDPROM {}. {}", eepromPath, e.what());
+          "Could not fetch contents of IDPROM {} in {}. {}",
+          eepromPath,
+          slotPath,
+          e.what());
+    }
+    if (pmUnitNameInEeprom) {
+      XLOG(ERR) << fmt::format(
+          "Found PmUnit name `{}` in IDPROM {} at {}",
+          *pmUnitNameInEeprom,
+          eepromPath,
+          slotPath);
     }
   }
+
   if (slotTypeConfig.pmUnitName()) {
     if (pmUnitNameInEeprom &&
         *pmUnitNameInEeprom != *slotTypeConfig.pmUnitName()) {
       XLOG(WARNING) << fmt::format(
-          "The PmUnit name in eeprom `{}` is different from the one in config `{}`",
+          "The PmUnit name in IDPROM -`{}` is different from the one "
+          "in config - `{}`. NEEDS FIX.",
           *pmUnitNameInEeprom,
           *slotTypeConfig.pmUnitName());
     }
+    XLOG(INFO) << fmt::format(
+        "Going with PmUnit name `{}` defined in config for {}",
+        *slotTypeConfig.pmUnitName(),
+        slotPath);
     return *slotTypeConfig.pmUnitName();
   }
   return pmUnitNameInEeprom;

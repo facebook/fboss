@@ -212,10 +212,13 @@ struct I2cDeviceConfig {
 // `address`: I2C address of the IDPROM in hex notation
 //
 // `kernelDeviceName`: The device name used by kernel to identify the device
+//
+// `offset`: The offset at which Meta V5 IDPROM format resides.
 struct IdpromConfig {
   1: string busName;
   2: string address;
   3: string kernelDeviceName;
+  4: i16 offset;
 }
 
 // Defines a generic IP block in the FPGA

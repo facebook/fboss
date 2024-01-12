@@ -6,11 +6,19 @@
       "idpromConfig": {
         "busName": "SMBus I801 adapter at 1000",
         "address": "0x50",
-        "kernelDeviceName": "24c512"
+        "kernelDeviceName": "24c512",
+        "offset": 15360
       },
       "pmUnitName": "SCM"
     },
     "SMB_SLOT": {
+      "numOutgoingI2cBuses": 0,
+      "idpromConfig": {
+        "busName": "SCD 0000:07:00.0 SMBus master 1 bus 0",
+        "address": "0x50",
+        "kernelDeviceName": "24c512",
+        "offset": 15360
+      },
       "pmUnitName": "SMB"
     },
     "FAN_SLOT": {
@@ -24,6 +32,7 @@
   },
   "i2cAdaptersFromCpu": [
     "SMBus I801 adapter at 1000",
+    "SCD 0000:07:00.0 SMBus master 0 bus 1",
     "SCD 0000:07:00.0 SMBus master 1 bus 0",
     "SCD 0000:07:00.0 SMBus master 1 bus 3",
     "SCD 0000:01:00.0 SMBus master 0 bus 5",
