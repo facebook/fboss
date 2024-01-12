@@ -407,6 +407,7 @@ class SaiPortManager {
   bool hwLaneListIsPmdLaneList_;
   bool tcToQueueMapAllowedOnPort_;
   bool globalQosMapSupported_;
+  std::unordered_map<PortID, time_t> lastFecCounterReadTime_;
 };
 
 } // namespace facebook::fboss

@@ -42,6 +42,11 @@ DEFINE_bool(
     false,
     "Flag to indicate whether to program six tap attributes in sai");
 
+DEFINE_int32(
+    fec_counters_update_interval_s,
+    10,
+    "Interval in seconds for reading fec counters");
+
 using namespace std::chrono;
 
 namespace facebook::fboss {
@@ -109,7 +114,8 @@ void fillHwPortStats(
     const SaiDebugCounterManager& debugCounterManager,
     HwPortStats& hwPortStats,
     const SaiPlatform* platform,
-    const cfg::PortType& portType) {
+    const cfg::PortType& portType,
+    bool updateFecStats) {
   // TODO fill these in when we have debug counter support in SAI
   hwPortStats.inDstNullDiscards_() = 0;
   bool isEtherStatsSupported =
@@ -197,20 +203,26 @@ void fillHwPortStats(
         hwPortStats.wredDroppedPackets_() = value;
         break;
       case SAI_PORT_STAT_IF_IN_FEC_CORRECTABLE_FRAMES:
-        // SDK provides clear-on-read counter but we store it as a monotonic
-        // counter
-        hwPortStats.fecCorrectableErrors() =
-            *hwPortStats.fecCorrectableErrors() + value;
+        if (updateFecStats) {
+          // SDK provides clear-on-read counter but we store it as a monotonic
+          // counter
+          hwPortStats.fecCorrectableErrors() =
+              *hwPortStats.fecCorrectableErrors() + value;
+        }
         break;
       case SAI_PORT_STAT_IF_IN_FEC_NOT_CORRECTABLE_FRAMES:
-        // SDK provides clear-on-read counter but we store it as a monotonic
-        // counter
-        hwPortStats.fecUncorrectableErrors() =
-            *hwPortStats.fecUncorrectableErrors() + value;
+        if (updateFecStats) {
+          // SDK provides clear-on-read counter but we store it as a monotonic
+          // counter
+          hwPortStats.fecUncorrectableErrors() =
+              *hwPortStats.fecUncorrectableErrors() + value;
+        }
         break;
 #if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
       case SAI_PORT_STAT_IF_IN_FEC_CORRECTED_BITS:
-        hwPortStats.fecCorrectedBits_() = value;
+        if (updateFecStats) {
+          hwPortStats.fecCorrectedBits_() = value;
+        }
         break;
 #endif
       case SAI_PORT_STAT_PFC_0_RX_PKTS:
@@ -267,8 +279,10 @@ void fillHwPortStats(
       case SAI_PORT_STAT_IF_IN_FEC_CODEWORD_ERRORS_S14:
       case SAI_PORT_STAT_IF_IN_FEC_CODEWORD_ERRORS_S15:
       case SAI_PORT_STAT_IF_IN_FEC_CODEWORD_ERRORS_S16: {
-        auto symbolCount = getFecSymbolCountFromCounterId(counterId);
-        hwPortStats.fecCodewords_()[symbolCount] = value;
+        if (updateFecStats) {
+          auto symbolCount = getFecSymbolCountFromCounterId(counterId);
+          hwPortStats.fecCodewords_()[symbolCount] = value;
+        }
         break;
       }
 #endif
@@ -1510,42 +1524,52 @@ void SaiPortManager::updateStats(PortID portId, bool updateWatermarks) {
 
   curPortStats.timestamp_() = now.count();
   handle->port->updateStats(supportedStats(portId), SAI_STATS_MODE_READ);
-  if (fecStatsSupported(portId)) {
-    handle->port->updateStats(
-        {SAI_PORT_STAT_IF_IN_FEC_CORRECTABLE_FRAMES,
-         SAI_PORT_STAT_IF_IN_FEC_NOT_CORRECTABLE_FRAMES},
-        SAI_STATS_MODE_READ_AND_CLEAR);
-  }
+
+  bool updateFecStats = false;
+  auto lastFecReadTimeIt = lastFecCounterReadTime_.find(portId);
+  if (lastFecReadTimeIt == lastFecCounterReadTime_.end() ||
+      (now.count() - lastFecReadTimeIt->second) >=
+          FLAGS_fec_counters_update_interval_s) {
+    lastFecCounterReadTime_[portId] = now.count();
+    updateFecStats = true;
+    if (fecStatsSupported(portId)) {
+      handle->port->updateStats(
+          {SAI_PORT_STAT_IF_IN_FEC_CORRECTABLE_FRAMES,
+           SAI_PORT_STAT_IF_IN_FEC_NOT_CORRECTABLE_FRAMES},
+          SAI_STATS_MODE_READ_AND_CLEAR);
+    }
 #if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
-  if (fecCorrectedBitsSupported(portId)) {
-    handle->port->updateStats(
-        {SAI_PORT_STAT_IF_IN_FEC_CORRECTED_BITS}, SAI_STATS_MODE_READ);
-  }
+    if (fecCorrectedBitsSupported(portId)) {
+      handle->port->updateStats(
+          {SAI_PORT_STAT_IF_IN_FEC_CORRECTED_BITS}, SAI_STATS_MODE_READ);
+    }
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
-  if (fecCodewordsStatsSupported(portId)) {
-    // maxFecCounterId should ideally be derived from SAI attribute
-    // SAI_PORT_ATTR_MAX_FEC_SYMBOL_ERRORS_DETECTABLE but this attribute isn't
-    // supported yet
-    sai_stat_id_t maxFecCounterId = getFECMode(portId) == phy::FecMode::RS528
-        ? SAI_PORT_STAT_IF_IN_FEC_CODEWORD_ERRORS_S8
-        : SAI_PORT_STAT_IF_IN_FEC_CODEWORD_ERRORS_S15;
-    std::vector<sai_stat_id_t> fecCodewordsToRead;
-    for (int counterId = SAI_PORT_STAT_IF_IN_FEC_CODEWORD_ERRORS_S0;
-         counterId <= (int)maxFecCounterId;
-         counterId++) {
-      fecCodewordsToRead.push_back(static_cast<sai_stat_id_t>(counterId));
+    if (fecCodewordsStatsSupported(portId)) {
+      // maxFecCounterId should ideally be derived from SAI attribute
+      // SAI_PORT_ATTR_MAX_FEC_SYMBOL_ERRORS_DETECTABLE but this attribute isn't
+      // supported yet
+      sai_stat_id_t maxFecCounterId = getFECMode(portId) == phy::FecMode::RS528
+          ? SAI_PORT_STAT_IF_IN_FEC_CODEWORD_ERRORS_S8
+          : SAI_PORT_STAT_IF_IN_FEC_CODEWORD_ERRORS_S15;
+      std::vector<sai_stat_id_t> fecCodewordsToRead;
+      for (int counterId = SAI_PORT_STAT_IF_IN_FEC_CODEWORD_ERRORS_S0;
+           counterId <= (int)maxFecCounterId;
+           counterId++) {
+        fecCodewordsToRead.push_back(static_cast<sai_stat_id_t>(counterId));
+      }
+      handle->port->updateStats(fecCodewordsToRead, SAI_STATS_MODE_READ);
     }
-    handle->port->updateStats(fecCodewordsToRead, SAI_STATS_MODE_READ);
-  }
 #endif
+  }
   const auto& counters = handle->port->getStats();
   fillHwPortStats(
       counters,
       managerTable_->debugCounterManager(),
       curPortStats,
       platform_,
-      portType);
+      portType,
+      updateFecStats);
   std::vector<utility::CounterPrevAndCur> toSubtractFromInDiscardsRaw = {
       {*prevPortStats.inDstNullDiscards_(),
        *curPortStats.inDstNullDiscards_()}};
