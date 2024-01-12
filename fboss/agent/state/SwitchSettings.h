@@ -504,6 +504,10 @@ class MultiSwitchSettings
   using BaseT = ThriftMapNode<MultiSwitchSettings, MultiSwitchSettingsTraits>;
   using BaseT::modify;
 
+  std::shared_ptr<SwitchSettings> getSwitchSettings(
+      const HwSwitchMatcher& matcher) const {
+    return getNodeIf(matcher.matcherString());
+  }
   MultiSwitchSettings() = default;
   virtual ~MultiSwitchSettings() = default;
 
