@@ -385,7 +385,7 @@ std::vector<TransceiverID> WedgeManager::refreshTransceivers() {
       (nextOpticsToBmcSyncTime_ <= currTime)) {
     // Post the optics thermal data to BMC
     auto qsfpToBmcSyncData = getQsfpToBmcSyncDataSerialized();
-    // Post data to BMC using usb0 Rest endpoint
+    // Post data to BMC using eth0.4088 Rest endpoint
     try {
       auto ret = qsfpRestClient_->postQsfpThermalData(qsfpToBmcSyncData);
       if (!ret) {

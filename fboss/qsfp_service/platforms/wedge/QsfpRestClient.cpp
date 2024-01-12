@@ -14,17 +14,17 @@ using folly::IPAddress;
 
 namespace facebook::fboss {
 QsfpRestClient::QsfpRestClient(void)
-    : RestClient(IPAddress("fe80::1%usb0"), 8080) {}
+    : RestClient(IPAddress("fe80::1%eth0.4088"), 8080) {}
 
 /*
  * postQsfpThermalData
  *
- * Post the QSFP Thermal data (serialized JSON format) to the USB0 interface on
- * the given Rest endpoint path.
+ * Post the QSFP Thermal data (serialized JSON format) to the eth0.4088
+ * interface on the given Rest endpoint path.
  */
 bool QsfpRestClient::postQsfpThermalData(const std::string& thermalData) {
   auto ret =
-      RestClient::requestWithOutput("/api/sys/opticsThermal", thermalData);
+      RestClient::requestWithOutput("/api/sys/optics_thermal", thermalData);
   auto status = ret.find("done");
   if (status != std::string::npos) {
     return true;
