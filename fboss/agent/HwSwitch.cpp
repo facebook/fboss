@@ -15,7 +15,6 @@
 #include "fboss/agent/hw/HwSwitchFb303Stats.h"
 #include "fboss/agent/hw/HwSwitchWarmBootHelper.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
-#include "fboss/agent/normalization/Normalizer.h"
 #include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -141,11 +140,6 @@ void HwSwitch::switchRunStateChanged(SwitchRunState newState) {
 
 void HwSwitch::updateStats() {
   updateStatsImpl();
-  // send to normalizer
-  auto normalizer = Normalizer::getInstance();
-  if (normalizer) {
-    normalizer->processStats(getPortStats());
-  }
 }
 
 multiswitch::HwSwitchStats HwSwitch::getHwSwitchStats() {
