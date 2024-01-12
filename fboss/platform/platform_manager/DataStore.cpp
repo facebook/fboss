@@ -99,4 +99,21 @@ void DataStore::updateSysfsPath(
   pciSubDevicePathToSysfsPath_[devicePath] = sysfsPath;
 }
 
+uint32_t DataStore::getInstanceId(const std::string& devicePath) {
+  auto itr = pciSubDevicePathToInstanceId_.find(devicePath);
+  if (itr != pciSubDevicePathToInstanceId_.end()) {
+    return itr->second;
+  }
+  throw std::runtime_error(
+      fmt::format("Could not find instanceId for {}", devicePath));
+}
+
+void DataStore::updateInstanceId(
+    const std::string& devicePath,
+    uint32_t instanceId) {
+  XLOG(INFO) << fmt::format(
+      "Updating instanceId for {} to {}", devicePath, instanceId);
+  pciSubDevicePathToInstanceId_[devicePath] = instanceId;
+}
+
 } // namespace facebook::fboss::platform::platform_manager

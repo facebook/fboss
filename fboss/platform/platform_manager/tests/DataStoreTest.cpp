@@ -49,4 +49,13 @@ TEST(DataStoreTest, FpgaIpBlockPciDevicePath) {
       dataStore.getSysfsPath("/[SMB_DOM2_I2C_MASTER_PORT3]"),
       std::runtime_error);
 }
+
+TEST(DataStoreTest, FpgaIpBlockInstanceId) {
+  DataStore dataStore;
+  dataStore.updateInstanceId("/[SMB_DOM2_I2C_MASTER_PORT2]", 12);
+  EXPECT_EQ(dataStore.getInstanceId("/[SMB_DOM2_I2C_MASTER_PORT2]"), 12);
+  EXPECT_THROW(
+      dataStore.getInstanceId("/[SMB_DOM2_I2C_MASTER_PORT3]"),
+      std::runtime_error);
+}
 } // namespace facebook::fboss::platform::platform_manager

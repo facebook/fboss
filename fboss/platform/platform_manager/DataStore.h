@@ -57,6 +57,12 @@ class DataStore {
       const std::string& devicePath,
       const std::string& sysfsPath);
 
+  // Get InstanceId for a given PciSubDevicePath
+  uint32_t getInstanceId(const std::string& devicePath);
+
+  // Update InstanceId for a given PciSubDevicePath
+  void updateInstanceId(const std::string& devicePath, uint32_t instanceId);
+
  private:
   // Map from <pmUnitPath, pmUnitScopeBusName> to kernel i2c bus name.
   // - The pmUnitPath to the rootPmUnit is /. So a bus at root PmUnit will
@@ -76,5 +82,8 @@ class DataStore {
 
   // Map from PciSubDevicePath to SysfsPath.
   std::map<std::string, std::string> pciSubDevicePathToSysfsPath_{};
+
+  // Map from PciSubDevicePath to instanceId.
+  std::map<std::string, uint32_t> pciSubDevicePathToInstanceId_{};
 };
 } // namespace facebook::fboss::platform::platform_manager
