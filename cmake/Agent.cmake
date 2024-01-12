@@ -247,7 +247,6 @@ set(core_libs
   transceiver_cpp2
   alert_logger
   Folly::folly
-  normalizer
   bidirectional_packet_stream
   fsdb_common_cpp2
   fsdb_model
