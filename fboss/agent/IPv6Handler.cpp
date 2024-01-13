@@ -250,6 +250,9 @@ void IPv6Handler::handlePacket(
     // packets destined for us
     // Anything not handled by the controller, we will forward it to the host,
     // i.e. ping, ssh, bgp...
+    if (ipv6.hopLimit == 1) {
+      sw_->stats()->ipv6HopLimit1Mine();
+    }
     if (ipv6.payloadLength > intf->getMtu()) {
       // Generate PTB as interface to dst intf has MTU smaller than payload
       sendICMPv6PacketTooBig(

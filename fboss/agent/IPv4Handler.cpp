@@ -222,6 +222,9 @@ void IPv4Handler::handlePacket(
     // interfaces on this VLAN.  We should probably build up a more efficient
     // data structure to look up this information.
     stats->port(port)->ipv4Mine();
+    if (v4Hdr.ttl == 1) {
+      stats->ipv4Ttl1Mine();
+    }
     // Anything not handled by the controller, we will forward it to the host,
     // i.e. ping, ssh, bgp...
     // FixME: will do another diff to set length in RxPacket, so that it

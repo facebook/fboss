@@ -185,7 +185,7 @@ class SwitchStats : public boost::noncopyable {
   void ipv6HopExceeded() {
     ipv6HopExceeded_.addValue(1);
   }
-  void ipv6Limit1Mine() {
+  void ipv6HopLimit1Mine() {
     ipv6HopLimit1Mine_.addValue(1);
   }
 
