@@ -20,8 +20,9 @@ using namespace facebook::fboss;
 
 SaiNeighborTraits::CreateAttributes createAttrs(
     folly::MacAddress dstMac,
-    std::optional<sai_uint32_t> metadata = std::nullopt) {
-  return {dstMac, metadata, std::nullopt, std::nullopt, std::nullopt};
+    std::optional<sai_uint32_t> metadata = std::nullopt,
+    std::optional<bool> noHostRoute = std::nullopt) {
+  return {dstMac, metadata, std::nullopt, std::nullopt, noHostRoute};
 }
 
 TEST_F(SaiStoreTest, loadNeighbor) {
@@ -53,23 +54,25 @@ TEST_F(SaiStoreTest, neighborLoadCtor) {
   folly::IPAddress ip4{"10.10.10.1"};
   SaiNeighborTraits::NeighborEntry n(0, 0, ip4);
   folly::MacAddress dstMac{"42:42:42:42:42:42"};
-  neighborApi.create<SaiNeighborTraits>(n, createAttrs(dstMac, 42));
+  neighborApi.create<SaiNeighborTraits>(n, createAttrs(dstMac, 42, true));
 
   auto obj = createObj<SaiNeighborTraits>(n);
   EXPECT_EQ(obj.adapterKey(), n);
   EXPECT_EQ(GET_ATTR(Neighbor, DstMac, obj.attributes()), dstMac);
   EXPECT_EQ(GET_OPT_ATTR(Neighbor, Metadata, obj.attributes()), 42);
+  EXPECT_TRUE(GET_OPT_ATTR(Neighbor, NoHostRoute, obj.attributes()));
 }
 
 TEST_F(SaiStoreTest, neighborCreateCtor) {
   folly::IPAddress ip4{"10.10.10.1"};
   SaiNeighborTraits::NeighborEntry n(0, 0, ip4);
   folly::MacAddress dstMac{"42:42:42:42:42:42"};
-  auto obj = createObj<SaiNeighborTraits>(n, createAttrs(dstMac, 42), 0);
+  auto obj = createObj<SaiNeighborTraits>(n, createAttrs(dstMac, 42, false), 0);
 
   EXPECT_EQ(obj.adapterKey(), n);
   EXPECT_EQ(GET_ATTR(Neighbor, DstMac, obj.attributes()), dstMac);
   EXPECT_EQ(GET_OPT_ATTR(Neighbor, Metadata, obj.attributes()), 42);
+  EXPECT_FALSE(GET_OPT_ATTR(Neighbor, NoHostRoute, obj.attributes()));
 }
 
 TEST_F(SaiStoreTest, setDstMac) {
@@ -103,12 +106,29 @@ TEST_F(SaiStoreTest, setMetadata) {
   obj.setAttributes({dstMac, 42, std::nullopt, std::nullopt, std::nullopt});
   EXPECT_EQ(GET_ATTR(Neighbor, DstMac, obj.attributes()), dstMac);
   EXPECT_EQ(GET_OPT_ATTR(Neighbor, Metadata, obj.attributes()), 42);
-  // Check that dst mac really changed according to SAI
+  // Check that metadata really changed according to SAI
   auto& neighborApi = saiApiTable->neighborApi();
   EXPECT_EQ(
       neighborApi.getAttribute(
           obj.adapterKey(), SaiNeighborTraits::Attributes::Metadata{}),
       42);
+}
+
+TEST_F(SaiStoreTest, setNoHostRoute) {
+  folly::IPAddress ip4{"10.10.10.1"};
+  SaiNeighborTraits::NeighborEntry n(0, 0, ip4);
+  folly::MacAddress dstMac{"42:42:42:42:42:42"};
+  auto obj = createObj<SaiNeighborTraits>(n, createAttrs(dstMac), 0);
+
+  EXPECT_EQ(obj.adapterKey(), n);
+  EXPECT_EQ(GET_ATTR(Neighbor, DstMac, obj.attributes()), dstMac);
+  obj.setAttributes({dstMac, std::nullopt, std::nullopt, std::nullopt, true});
+  EXPECT_EQ(GET_ATTR(Neighbor, DstMac, obj.attributes()), dstMac);
+  EXPECT_TRUE(GET_OPT_ATTR(Neighbor, NoHostRoute, obj.attributes()));
+  // Check that noHostRoute really changed according to SAI
+  auto& neighborApi = saiApiTable->neighborApi();
+  EXPECT_TRUE(neighborApi.getAttribute(
+      obj.adapterKey(), SaiNeighborTraits::Attributes::NoHostRoute{}));
 }
 
 TEST_F(SaiStoreTest, neighborFormatTest) {
