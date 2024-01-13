@@ -32,9 +32,10 @@ class NeighborApiTest : public ::testing::Test {
   }
   SaiNeighborTraits::CreateAttributes createAttrs(
       std::optional<sai_uint32_t> metadata = std::nullopt,
-      std::optional<sai_uint32_t> encapIndex = std::nullopt) const {
+      std::optional<sai_uint32_t> encapIndex = std::nullopt,
+      bool noHostRoute = false) const {
     bool isLocal = encapIndex == std::nullopt;
-    return {dstMac, metadata, encapIndex, isLocal};
+    return {dstMac, metadata, encapIndex, isLocal, noHostRoute};
   }
   std::shared_ptr<FakeSai> fs;
   std::unique_ptr<NeighborApi> neighborApi;

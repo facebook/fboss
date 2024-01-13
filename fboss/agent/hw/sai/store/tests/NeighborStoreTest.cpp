@@ -21,7 +21,7 @@ using namespace facebook::fboss;
 SaiNeighborTraits::CreateAttributes createAttrs(
     folly::MacAddress dstMac,
     std::optional<sai_uint32_t> metadata = std::nullopt) {
-  return {dstMac, metadata, std::nullopt, std::nullopt};
+  return {dstMac, metadata, std::nullopt, std::nullopt, std::nullopt};
 }
 
 TEST_F(SaiStoreTest, loadNeighbor) {
@@ -81,7 +81,8 @@ TEST_F(SaiStoreTest, setDstMac) {
   EXPECT_EQ(obj.adapterKey(), n);
   EXPECT_EQ(GET_ATTR(Neighbor, DstMac, obj.attributes()), dstMac);
   folly::MacAddress dstMac2{"43:43:43:43:43:43"};
-  obj.setAttributes({dstMac2, std::nullopt, std::nullopt, std::nullopt});
+  obj.setAttributes(
+      {dstMac2, std::nullopt, std::nullopt, std::nullopt, std::nullopt});
   EXPECT_EQ(GET_ATTR(Neighbor, DstMac, obj.attributes()), dstMac2);
   // Check that dst mac really changed according to SAI
   auto& neighborApi = saiApiTable->neighborApi();
@@ -99,7 +100,7 @@ TEST_F(SaiStoreTest, setMetadata) {
   EXPECT_EQ(obj.adapterKey(), n);
   EXPECT_EQ(GET_ATTR(Neighbor, DstMac, obj.attributes()), dstMac);
   folly::MacAddress dstMac2{"43:43:43:43:43:43"};
-  obj.setAttributes({dstMac, 42, std::nullopt, std::nullopt});
+  obj.setAttributes({dstMac, 42, std::nullopt, std::nullopt, std::nullopt});
   EXPECT_EQ(GET_ATTR(Neighbor, DstMac, obj.attributes()), dstMac);
   EXPECT_EQ(GET_OPT_ATTR(Neighbor, Metadata, obj.attributes()), 42);
   // Check that dst mac really changed according to SAI
@@ -118,7 +119,7 @@ TEST_F(SaiStoreTest, neighborFormatTest) {
 
   auto expected =
       "NeighborEntry(switch:0, rif: 0, ip: 10.10.10.1): "
-      "(DstMac: 42:42:42:42:42:42, Metadata: 42, nullopt, nullopt)";
+      "(DstMac: 42:42:42:42:42:42, Metadata: 42, nullopt, nullopt, nullopt)";
   EXPECT_EQ(expected, fmt::format("{}", obj));
 }
 

@@ -139,6 +139,8 @@ void SaiNeighborManager::addNeighbor(
       metadata,
       encapIndex,
       swEntry->getIsLocal(),
+      false, // TODO - model noHostRoute in switch state neighbor entry and use
+             // it here
       saiRouterIntf->type());
 
   neighbors_.emplace(subscriberKey, std::move(neighbor));
@@ -220,6 +222,7 @@ SaiNeighborEntry::SaiNeighborEntry(
     std::optional<sai_uint32_t> metadata,
     std::optional<sai_uint32_t> encapIndex,
     bool isLocal,
+    bool noHostRoute,
     cfg::InterfaceType intfType) {
   switch (intfType) {
     case cfg::InterfaceType::VLAN: {
@@ -229,7 +232,8 @@ SaiNeighborEntry::SaiNeighborEntry(
           intfIDAndIpAndMac,
           metadata,
           encapIndex,
-          isLocal);
+          isLocal,
+          noHostRoute);
       SaiObjectEventPublisher::getInstance()->get<SaiFdbTraits>().subscribe(
           subscriber);
       neighbor_ = subscriber;
@@ -241,7 +245,8 @@ SaiNeighborEntry::SaiNeighborEntry(
           intfIDAndIpAndMac,
           metadata,
           encapIndex,
-          isLocal);
+          isLocal,
+          noHostRoute);
       break;
   }
 }
@@ -266,7 +271,8 @@ PortRifNeighbor::PortRifNeighbor(
         intfIDAndIpAndMac,
     std::optional<sai_uint32_t> metadata,
     std::optional<sai_uint32_t> encapIndex,
-    bool isLocal)
+    bool isLocal,
+    bool noHostRoute)
     : manager_(manager),
       saiPortAndIntf_(saiPortAndIntf),
       handle_(std::make_unique<SaiNeighborHandle>()) {
@@ -278,7 +284,8 @@ PortRifNeighbor::PortRifNeighbor(
       std::get<folly::MacAddress>(intfIDAndIpAndMac),
       metadata,
       encapIndex,
-      isLocal};
+      isLocal,
+      noHostRoute};
   neighbor_ = manager_->createSaiObject(adapterHostKey, createAttributes);
   handle_->neighbor = neighbor_.get();
 }
@@ -290,7 +297,8 @@ ManagedVlanRifNeighbor::ManagedVlanRifNeighbor(
         intfIDAndIpAndMac,
     std::optional<sai_uint32_t> metadata,
     std::optional<sai_uint32_t> encapIndex,
-    bool isLocal)
+    bool isLocal,
+    bool noHostRoute)
     : Base(std::make_tuple(
           std::get<InterfaceID>(intfIDAndIpAndMac),
           std::get<folly::MacAddress>(intfIDAndIpAndMac))),
@@ -298,7 +306,8 @@ ManagedVlanRifNeighbor::ManagedVlanRifNeighbor(
       saiPortAndIntf_(saiPortAndIntf),
       intfIDAndIpAndMac_(intfIDAndIpAndMac),
       handle_(std::make_unique<SaiNeighborHandle>()),
-      metadata_(metadata) {
+      metadata_(metadata),
+      noHostRoute_(noHostRoute) {
   if (encapIndex || !isLocal) {
     throw FbossError(
         "Remote nbrs or nbrs with encap index not supported with VLAN RIFs");
@@ -311,8 +320,19 @@ void ManagedVlanRifNeighbor::createObject(PublisherObjects objects) {
   auto adapterHostKey = SaiNeighborTraits::NeighborEntry(
       manager_->getSwitchSaiId(), getRouterInterfaceSaiId(), ip);
 
+  std::optional<bool> noHostRoute;
+  // Set noHostRoute attr only if its set to a non default(true) value
+  // This allows us to keep working for platforms that don't support this
+  // attr yet
+  if (noHostRoute_) {
+    noHostRoute = true;
+  }
   auto createAttributes = SaiNeighborTraits::CreateAttributes{
-      fdbEntry->adapterHostKey().mac(), metadata_, std::nullopt, std::nullopt};
+      fdbEntry->adapterHostKey().mac(),
+      metadata_,
+      std::nullopt,
+      std::nullopt,
+      noHostRoute};
   auto object = manager_->createSaiObject(adapterHostKey, createAttributes);
   this->setObject(object);
   handle_->neighbor = getSaiObject();

@@ -109,7 +109,8 @@ struct SaiNeighborTraits {
       Attributes::DstMac,
       std::optional<Attributes::Metadata>,
       std::optional<Attributes::EncapIndex>,
-      std::optional<Attributes::IsLocal>>;
+      std::optional<Attributes::IsLocal>,
+      std::optional<Attributes::NoHostRoute>>;
   using AdapterKey = NeighborEntry;
   using AdapterHostKey = NeighborEntry;
 };
