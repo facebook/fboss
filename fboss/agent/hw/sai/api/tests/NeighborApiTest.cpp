@@ -137,6 +137,18 @@ TEST_F(NeighborApiTest, createV6NeighborWithMetdataRemote) {
   EXPECT_FALSE(
       neighborApi->getAttribute(n, SaiNeighborTraits::Attributes::IsLocal()));
 }
+
+TEST_F(NeighborApiTest, createNeighborNoHostRoute) {
+  SaiNeighborTraits::Attributes::DstMac dstMacAttribute(dstMac);
+  SaiNeighborTraits::NeighborEntry n(0, 0, ip6);
+  FakeNeighborEntry fn = std::make_tuple(0, 0, ip6);
+  neighborApi->create<SaiNeighborTraits>(
+      n, createAttrs(std::nullopt, std::nullopt, true));
+  EXPECT_EQ(fs->neighborManager.get(fn).dstMac, dstMac);
+  EXPECT_TRUE(fs->neighborManager.get(fn).noHostRoute);
+  EXPECT_TRUE(fs->neighborManager.get(fn).isLocal);
+}
+
 TEST_F(NeighborApiTest, removeV4Neighbor) {
   SaiNeighborTraits::NeighborEntry n(0, 0, ip4);
   neighborApi->create<SaiNeighborTraits>(n, createAttrs());
