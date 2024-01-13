@@ -56,7 +56,13 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map)
       ipv4Mine_(map, kCounterPrefix + "ipv4.mine", SUM, RATE),
       ipv4NoArp_(map, kCounterPrefix + "ipv4.no_arp", SUM, RATE),
       ipv4TtlExceeded_(map, kCounterPrefix + "ipv4.ttl_exceeded", SUM, RATE),
+      ipv4Ttl1Mine_(map, kCounterPrefix + "ipv4.ttl1_mine", SUM, RATE),
       ipv6HopExceeded_(map, kCounterPrefix + "ipv6.hop_exceeded", SUM, RATE),
+      ipv6HopLimit1Mine_(
+          map,
+          kCounterPrefix + "ipv6.hop_limit1_mine",
+          SUM,
+          RATE),
       udpTooSmall_(map, kCounterPrefix + "udp.too_small", SUM, RATE),
       dhcpV4Pkt_(map, kCounterPrefix + "dhcpV4.pkt", SUM, RATE),
       dhcpV4BadPkt_(map, kCounterPrefix + "dhcpV4.bad_pkt", SUM, RATE),

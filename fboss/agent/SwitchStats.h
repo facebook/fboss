@@ -178,9 +178,15 @@ class SwitchStats : public boost::noncopyable {
   void ipv4TtlExceeded() {
     ipv4TtlExceeded_.addValue(1);
   }
+  void ipv4Ttl1Mine() {
+    ipv4Ttl1Mine_.addValue(1);
+  }
 
   void ipv6HopExceeded() {
     ipv6HopExceeded_.addValue(1);
+  }
+  void ipv6Limit1Mine() {
+    ipv6HopLimit1Mine_.addValue(1);
   }
 
   void udpTooSmall() {
@@ -496,9 +502,13 @@ class SwitchStats : public boost::noncopyable {
   TLTimeseries ipv4NoArp_;
   // IPv4 TTL exceeded
   TLTimeseries ipv4TtlExceeded_;
+  TLTimeseries ipv4Ttl1Mine_;
 
   // IPv6 hop count exceeded
   TLTimeseries ipv6HopExceeded_;
+  // Locally destined packets which arrive with
+  // hop limit 1
+  TLTimeseries ipv6HopLimit1Mine_;
 
   // UDP packets dropped due to smaller packet size
   TLTimeseries udpTooSmall_;
