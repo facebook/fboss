@@ -27,15 +27,18 @@ struct FakeNeighbor {
       const folly::MacAddress& dstMac,
       sai_uint32_t metadata,
       sai_uint32_t encapIndex,
-      bool isLocal)
+      bool isLocal,
+      bool noHostRoute)
       : dstMac(dstMac),
         metadata(metadata),
         encapIndex(encapIndex),
-        isLocal(isLocal) {}
+        isLocal(isLocal),
+        noHostRoute(noHostRoute) {}
   folly::MacAddress dstMac;
   sai_uint32_t metadata{0};
   sai_uint32_t encapIndex{0};
   bool isLocal{true};
+  bool noHostRoute{false};
 };
 
 using FakeNeighborEntry =

@@ -26,7 +26,7 @@ sai_status_t create_neighbor_entry_fn(
   auto ip = facebook::fboss::fromSaiIpAddress(neighbor_entry->ip_address);
   std::optional<folly::MacAddress> dstMac;
   sai_uint32_t metadata{0}, encapIndex{0};
-  bool isLocal{true};
+  bool isLocal{true}, noHostRoute{false};
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_NEIGHBOR_ENTRY_ATTR_DST_MAC_ADDRESS:
@@ -41,6 +41,9 @@ sai_status_t create_neighbor_entry_fn(
       case SAI_NEIGHBOR_ENTRY_ATTR_IS_LOCAL:
         isLocal = attr_list[i].value.booldata;
         break;
+      case SAI_NEIGHBOR_ENTRY_ATTR_NO_HOST_ROUTE:
+        noHostRoute = attr_list[i].value.booldata;
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
@@ -53,7 +56,8 @@ sai_status_t create_neighbor_entry_fn(
       dstMac.value(),
       metadata,
       encapIndex,
-      isLocal);
+      isLocal,
+      noHostRoute);
   return SAI_STATUS_SUCCESS;
 }
 
@@ -87,6 +91,9 @@ sai_status_t set_neighbor_entry_attribute_fn(
     case SAI_NEIGHBOR_ENTRY_ATTR_IS_LOCAL:
       fn.isLocal = attr->value.booldata;
       break;
+    case SAI_NEIGHBOR_ENTRY_ATTR_NO_HOST_ROUTE:
+      fn.noHostRoute = attr->value.booldata;
+      break;
     default:
       return SAI_STATUS_INVALID_PARAMETER;
   }
@@ -115,6 +122,9 @@ sai_status_t get_neighbor_entry_attribute_fn(
         break;
       case SAI_NEIGHBOR_ENTRY_ATTR_IS_LOCAL:
         attr_list[i].value.booldata = fn.isLocal;
+        break;
+      case SAI_NEIGHBOR_ENTRY_ATTR_NO_HOST_ROUTE:
+        attr_list[i].value.booldata = fn.noHostRoute;
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
