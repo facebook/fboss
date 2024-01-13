@@ -373,6 +373,11 @@ class TransceiverManager {
 
   virtual void triggerVdmStatsCapture(std::vector<int32_t>& ids) = 0;
 
+  // This function will bring all the transceivers out of reset, making use
+  // of the specific implementation from each platform. Platforms that bring
+  // transceiver out of reset by default will stay no op.
+  virtual void clearAllTransceiverReset();
+
   // This function will trigger a hard reset on the specific transceiver, making
   // use of the specific implementation from each platform.
   // It will also remove the transceiver from the transceivers_ map.

@@ -41,8 +41,6 @@ namespace fboss {
 
 namespace {
 
-constexpr int kSecAfterModuleOutOfReset = 2;
-
 static const std::unordered_set<TransceiverID> kEmptryTransceiverIDs = {};
 
 static const std::string kQsfpToBmcSyncDataVersion{"1.0"};
@@ -369,6 +367,8 @@ std::vector<TransceiverID> WedgeManager::refreshTransceivers() {
     return {};
   }
 
+  // Clear Transceiver reset for all transceivers not held
+  // in reset.
   clearAllTransceiverReset();
 
   // Since transceivers may appear or disappear, we need to update our
@@ -463,13 +463,6 @@ int WedgeManager::scanTransceiverPresence(
     }
   }
   return numTransceiversUp;
-}
-
-void WedgeManager::clearAllTransceiverReset() {
-  qsfpPlatApi_->clearAllTransceiverReset();
-  // Required delay time between a transceiver getting out of reset and fully
-  // functional.
-  sleep(kSecAfterModuleOutOfReset);
 }
 
 std::unique_ptr<TransceiverI2CApi> WedgeManager::getI2CBus() {

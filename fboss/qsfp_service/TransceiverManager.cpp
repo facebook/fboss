@@ -60,6 +60,7 @@ constexpr auto kAgentConfigLastColdbootAppliedInMsKey =
     "agentConfigLastColdbootAppliedInMs";
 static constexpr auto kStateMachineThreadHeartbeatMissed =
     "state_machine_thread_heartbeat_missed";
+constexpr int kSecAfterModuleOutOfReset = 2;
 
 std::map<int, facebook::fboss::NpuPortStatus> getNpuPortStatus(
     const std::map<int32_t, facebook::fboss::PortStatus>& portStatus) {
@@ -234,6 +235,14 @@ void TransceiverManager::restoreAgentConfigAppliedInfo() {
 
     configAppliedInfo_ = wbConfigAppliedInfo;
   }
+}
+
+void TransceiverManager::clearAllTransceiverReset() {
+  qsfpPlatApi_->clearAllTransceiverReset();
+  // Required delay time between a transceiver getting out of reset and fully
+  // functional.
+  // @lint-ignore CLANGTIDY facebook-hte-BadCall-sleep
+  sleep(kSecAfterModuleOutOfReset);
 }
 
 void TransceiverManager::triggerQsfpHardReset(int idx) {
