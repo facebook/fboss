@@ -103,13 +103,14 @@ enum ResetType {
 }
 
 /*
- * Currently, only support RESET_THEN_CLEAR
+ * Transceiver Reset action. RESET_THEN_CLEAR resets then clears reset,
+ * RESET holds the reset on the transceiver, CLEAR_RESET clears reset.
  */
 enum ResetAction {
   INVALID = 0,
   RESET_THEN_CLEAR = 1,
-// RESET = 2,
-// CLEAR_RESET = 3,
+  RESET = 2,
+  CLEAR_RESET = 3,
 }
 
 enum TransmitterTechnology {

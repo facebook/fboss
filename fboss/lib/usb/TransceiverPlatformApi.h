@@ -45,14 +45,20 @@ class TransceiverPlatformApi {
   /*
    * This function will hold the transceiver in reset.
    */
-  virtual void holdTransceiverReset(unsigned int /* module */) {}
+  virtual void holdTransceiverReset(unsigned int /* module */) {
+    throw std::runtime_error(
+        "holdTransceiverReset unsupported on this platform");
+  }
 
   /*
    * This function will clear the reset pin for the transceiver.
    * TODO: Make this a pure virtual function when it's implemented for all
    * platforms
    */
-  virtual void releaseTransceiverReset(unsigned int /* module */) {}
+  virtual void releaseTransceiverReset(unsigned int /* module */) {
+    throw std::runtime_error(
+        "releaseTransceiverReset unsupported on this platform");
+  }
 };
 
 } // namespace facebook::fboss

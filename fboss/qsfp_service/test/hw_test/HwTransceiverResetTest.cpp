@@ -265,11 +265,11 @@ TEST_F(HwTransceiverResetTest, resetTranscieverAndDetectStateChanged) {
 
 TEST_F(HwTransceiverResetTest, verifyResetControl) {
   // 1. Put the transceivers in reset one at a time.
-  // 2. Read byte 0 10 times and ensure
+  // 2. Verify absence of Transceiver. Read byte 0 10 times and ensure
   //    - for sff, all reads fail
   //    - for cmis, moduleStatus is unknown.
   // 3. Verify read to all other transceivers is successful
-  // 4. Release reset
+  // 4. Release reset, check presence of transceiver.
   // 5. Verify all other transceivers still respond to IO
   // 6. Wait up to 10 seconds for the transceiver in step 4 to start responding
   // to IO
@@ -295,8 +295,6 @@ TEST_F(HwTransceiverResetTest, verifyResetControl) {
     }
   }
 
-  auto platApi = wedgeManager->getQsfpPlatformApi();
-
   auto readAndVerifyByte0 = [&, wedgeManager](int tcvrID, bool valid) {
     ReadRequest request;
     request.ids() = {tcvrID};
@@ -320,75 +318,110 @@ TEST_F(HwTransceiverResetTest, verifyResetControl) {
         cmisTransceivers.end();
   };
 
-  for (auto tcvrID : opticalTransceivers) {
-    XLOG(INFO) << "Testing transceiver (0-indexed): " << tcvrID;
-    auto oneIndexedTcvrID = tcvrID + 1;
-    // 1. Put transceiver in reset
-    platApi->holdTransceiverReset(oneIndexedTcvrID);
-    XLOG(INFO) << "Transceiver (0-indexed): " << tcvrID
-               << " should be in reset";
+  // Lambda to test a reset function and a clear reset function
+  // for WedgeManager.
+  auto verifyResetAndClearFunctions =
+      [&](void (TransceiverManager::*resetFunc)(int),
+          void (TransceiverManager::*clearResetFunc)(int)) {
+        for (auto tcvrID : opticalTransceivers) {
+          XLOG(INFO) << "Testing transceiver (0-indexed): " << tcvrID;
 
-    // 2. Do IO and verify it fails on above transceiver
-    // For SFF, failure means IO fails when transceiver is in reset
-    // For CMIS, failure means module state is unknown when transceiver is in
-    // reset or the IO fails
-    WITH_RETRIES_N_TIMED(
-        10 /* retries */,
-        std::chrono::milliseconds(1000) /* msBetweenRetry */,
-        {
-          if (isCmis(tcvrID)) {
-            EXPECT_EVENTUALLY_TRUE(
-                readAndVerifyByte0(tcvrID, false /* valid */) ||
-                verifyCmisModuleState(tcvrID, true /* expectInReset */));
-          } else {
-            EXPECT_EVENTUALLY_TRUE(
-                readAndVerifyByte0(tcvrID, false /* valid */));
+          // Expect presence before reset.
+          auto info = wedgeManager->getTransceiverInfo(TransceiverID(tcvrID));
+          EXPECT_TRUE(*info.get_tcvrState().present());
+
+          // 1. Put transceiver in reset
+          (wedgeManager->*resetFunc)(tcvrID);
+          XLOG(INFO) << "Transceiver (0-indexed): " << tcvrID
+                     << " should be in reset";
+
+          // 2.Refresh transceivers and check that the presence is false.
+          // Do IO and verify it fails on above transceiver
+          // For SFF, failure means IO fails when transceiver is in reset
+          // For CMIS, failure means module state is unknown when transceiver is
+          // in reset or the IO fails
+
+          refreshTransceiversWithRetry();
+          info = wedgeManager->getTransceiverInfo(TransceiverID(tcvrID));
+          EXPECT_FALSE(*info.get_tcvrState().present());
+
+          WITH_RETRIES_N_TIMED(
+              10 /* retries */,
+              std::chrono::milliseconds(1000) /* msBetweenRetry */,
+              {
+                if (isCmis(tcvrID)) {
+                  EXPECT_EVENTUALLY_TRUE(
+                      readAndVerifyByte0(tcvrID, false /* valid */) ||
+                      verifyCmisModuleState(tcvrID, true /* expectInReset */));
+                } else {
+                  EXPECT_EVENTUALLY_TRUE(
+                      readAndVerifyByte0(tcvrID, false /* valid */));
+                }
+              });
+
+          // 3. Verify presence and read to all other transceivers is successful
+          for (auto otherTcvrID : opticalTransceivers) {
+            if (otherTcvrID == tcvrID) {
+              // Skip the tcvrID in test
+              continue;
+            }
+            EXPECT_TRUE(readAndVerifyByte0(otherTcvrID, true /* valid */));
+            if (isCmis(otherTcvrID)) {
+              verifyCmisModuleState(otherTcvrID, false /* expectInReset */);
+            }
+            info = wedgeManager->getTransceiverInfo(TransceiverID(otherTcvrID));
+            EXPECT_TRUE(*info.get_tcvrState().present());
           }
-        });
 
-    // 3. Verify read to all other transceivers is successful
-    for (auto otherTcvrID : opticalTransceivers) {
-      if (otherTcvrID == tcvrID) {
-        // Skip the tcvrID in test
-        continue;
-      }
-      EXPECT_TRUE(readAndVerifyByte0(otherTcvrID, true /* valid */));
-      if (isCmis(otherTcvrID)) {
-        verifyCmisModuleState(otherTcvrID, false /* expectInReset */);
-      }
-    }
+          // 4. Undo reset to put transceiver back in normal operation
+          // Refresh transceivers to update the presence map.
+          (wedgeManager->*clearResetFunc)(tcvrID);
+          XLOG(INFO) << "Transceiver (0-indexed): " << tcvrID
+                     << " should be out of reset";
 
-    // 4. Undo reset to put transceiver back in normal operation
-    platApi->releaseTransceiverReset(oneIndexedTcvrID);
-    XLOG(INFO) << "Transceiver (0-indexed): " << tcvrID
-               << " should be out of reset";
+          refreshTransceiversWithRetry();
+          info = wedgeManager->getTransceiverInfo(TransceiverID(tcvrID));
+          EXPECT_TRUE(*info.get_tcvrState().present());
 
-    // 5. Verify all other transceivers still respond to IO
-    for (auto otherTcvrID : opticalTransceivers) {
-      if (otherTcvrID == tcvrID) {
-        // Skip the tcvrID in test
-        continue;
-      }
-      EXPECT_TRUE(readAndVerifyByte0(otherTcvrID, true /* valid */));
-      if (isCmis(otherTcvrID)) {
-        verifyCmisModuleState(otherTcvrID, false /* expectInReset */);
-      }
-    }
-
-    // 6. Wait up to 10 seconds for transceiver to start responding
-    WITH_RETRIES_N_TIMED(
-        10 /* retries */,
-        std::chrono::milliseconds(1000) /* msBetweenRetry */,
-        {
-          if (isCmis(tcvrID)) {
-            EXPECT_EVENTUALLY_TRUE(
-                readAndVerifyByte0(tcvrID, true /* valid */) &&
-                verifyCmisModuleState(tcvrID, false /* expectInReset */));
-          } else {
-            EXPECT_EVENTUALLY_TRUE(
-                readAndVerifyByte0(tcvrID, true /* valid */));
+          // 5. Verify all other transceivers are present and respond to IO.
+          for (auto otherTcvrID : opticalTransceivers) {
+            if (otherTcvrID == tcvrID) {
+              // Skip the tcvrID in test
+              continue;
+            }
+            EXPECT_TRUE(readAndVerifyByte0(otherTcvrID, true /* valid */));
+            if (isCmis(otherTcvrID)) {
+              verifyCmisModuleState(otherTcvrID, false /* expectInReset */);
+            }
+            info = wedgeManager->getTransceiverInfo(TransceiverID(otherTcvrID));
+            EXPECT_TRUE(*info.get_tcvrState().present());
           }
-        });
-  }
+
+          // 6. Wait up to 10 seconds for transceiver to start responding
+          WITH_RETRIES_N_TIMED(
+              10 /* retries */,
+              std::chrono::milliseconds(1000) /* msBetweenRetry */,
+              {
+                if (isCmis(tcvrID)) {
+                  EXPECT_EVENTUALLY_TRUE(
+                      readAndVerifyByte0(tcvrID, true /* valid */) &&
+                      verifyCmisModuleState(tcvrID, false /* expectInReset */));
+                } else {
+                  EXPECT_EVENTUALLY_TRUE(
+                      readAndVerifyByte0(tcvrID, true /* valid */));
+                }
+              });
+        }
+      };
+
+  // Test holding Transceiver reset then releasing reset works.
+  verifyResetAndClearFunctions(
+      &TransceiverManager::holdTransceiverReset,
+      &TransceiverManager::releaseTransceiverReset);
+
+  // Test holding Transceiver reset then triggering hard reset works.
+  verifyResetAndClearFunctions(
+      &TransceiverManager::holdTransceiverReset,
+      &TransceiverManager::triggerQsfpHardReset);
 }
 } // namespace facebook::fboss

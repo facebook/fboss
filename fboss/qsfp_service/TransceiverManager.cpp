@@ -114,6 +114,11 @@ TransceiverManager::TransceiverManager(
   resetFunctionMap_[std::make_pair(
       ResetType::HARD_RESET, ResetAction::RESET_THEN_CLEAR)] =
       &TransceiverManager::triggerQsfpHardReset;
+  resetFunctionMap_[std::make_pair(ResetType::HARD_RESET, ResetAction::RESET)] =
+      &TransceiverManager::holdTransceiverReset;
+  resetFunctionMap_[std::make_pair(
+      ResetType::HARD_RESET, ResetAction::CLEAR_RESET)] =
+      &TransceiverManager::releaseTransceiverReset;
 }
 
 TransceiverManager::~TransceiverManager() {
@@ -238,37 +243,84 @@ void TransceiverManager::restoreAgentConfigAppliedInfo() {
 }
 
 void TransceiverManager::clearAllTransceiverReset() {
-  qsfpPlatApi_->clearAllTransceiverReset();
+  {
+    auto tscvrsInReset = tcvrsHeldInReset_.rlock();
+    if (tscvrsInReset->empty()) {
+      qsfpPlatApi_->clearAllTransceiverReset();
+    } else {
+      const auto numModules = getNumQsfpModules();
+      for (auto idx = 0; idx < numModules; idx++) {
+        if (tscvrsInReset->count(idx) == 0) {
+          // This api accepts 1 based module id however the module id in
+          // TransceiverManager is 0 based.
+          qsfpPlatApi_->releaseTransceiverReset(idx + 1);
+        }
+      }
+    }
+  }
   // Required delay time between a transceiver getting out of reset and fully
   // functional.
   // @lint-ignore CLANGTIDY facebook-hte-BadCall-sleep
   sleep(kSecAfterModuleOutOfReset);
 }
 
-void TransceiverManager::triggerQsfpHardReset(int idx) {
+void TransceiverManager::hardResetAction(
+    void (TransceiverPlatformApi::*func)(unsigned int),
+    int idx,
+    bool holdInReset,
+    bool removeTransceiver) {
+  // Order of locking is important.
+  auto trscvrsInreset = tcvrsHeldInReset_.wlock();
+  if (holdInReset) {
+    trscvrsInreset->insert(idx);
+  } else {
+    trscvrsInreset->erase(idx);
+  }
   // This api accepts 1 based module id however the module id in
   // TransceiverManager is 0 based.
-  XLOG(INFO) << "triggerQsfpHardReset called for Transceiver: " << idx;
-  qsfpPlatApi_->triggerQsfpHardReset(idx + 1);
-  bool removeTransceiver = false;
-  {
-    // Read Lock to trigger all state machine changes
-    auto lockedTransceivers = transceivers_.rlock();
-    if (auto it = lockedTransceivers->find(TransceiverID(idx));
-        it != lockedTransceivers->end()) {
-      it->second->removeTransceiver();
-      removeTransceiver = true;
-    }
-  }
-
+  (qsfpPlatApi_.get()->*func)(idx + 1);
   if (removeTransceiver) {
+    {
+      // Read Lock to trigger all state machine changes
+      auto lockedTransceivers = transceivers_.rlock();
+      if (auto it = lockedTransceivers->find(TransceiverID(idx));
+          it != lockedTransceivers->end()) {
+        it->second->removeTransceiver();
+        removeTransceiver = true;
+      }
+    }
+
     // Write lock to remove the transceiver
     auto lockedTransceivers = transceivers_.wlock();
     lockedTransceivers->erase(TransceiverID(idx));
-    XLOG(INFO)
-        << "triggerQsfpHardReset triggered reset and remove transceiver: "
-        << idx;
   }
+}
+
+void TransceiverManager::triggerQsfpHardReset(int idx) {
+  hardResetAction(
+      &TransceiverPlatformApi::triggerQsfpHardReset,
+      idx,
+      false /*holdInReset*/,
+      true /*RemoveTransceiver*/);
+  XLOG(INFO) << "triggerQsfpHardReset called for Transceiver: " << idx;
+}
+
+void TransceiverManager::holdTransceiverReset(int idx) {
+  hardResetAction(
+      &TransceiverPlatformApi::holdTransceiverReset,
+      idx,
+      true /*holdInReset*/,
+      true /*RemoveTransceiver*/);
+  XLOG(INFO) << "holdTransceiverReset called for Transceiver: " << idx;
+}
+
+void TransceiverManager::releaseTransceiverReset(int idx) {
+  hardResetAction(
+      &TransceiverPlatformApi::releaseTransceiverReset,
+      idx,
+      false /*holdInReset*/,
+      false /*RemoveTransceiver*/);
+  XLOG(INFO) << "releaseTransceiverReset called for Transceiver: " << idx;
 }
 
 void TransceiverManager::gracefulExit() {

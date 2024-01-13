@@ -484,6 +484,8 @@ void WedgeManager::updateTransceiverMap() {
   std::unordered_set<int> tcvrsToHardReset;
 
   {
+    // Order of locking is important here.
+    auto transceiversInReset = tcvrsHeldInReset_.rlock();
     auto lockedTransceiversRPtr = transceivers_.rlock();
     for (int idx = 0; idx < numTransceivers; idx++) {
       if (!futInterfaces[idx].isReady()) {
@@ -510,7 +512,14 @@ void WedgeManager::updateTransceiverMap() {
       // Either we don't have a transceiver here before or we had a new one
       // since the management interface changed, we want to create a new module
       // here.
-      tcvrsToCreate.insert(idx);
+      // If the transceiver is held in reset, we dont create a new one in its
+      // place until it is released from reset.
+      if (transceiversInReset->count(idx) == 0) {
+        tcvrsToCreate.insert(idx);
+      } else {
+        XLOG(INFO) << "TransceiverID=" << idx
+                   << " is held in reset. Not adding transceiver";
+      }
     }
   } // end of scope for transceivers_.rlock
 
@@ -573,8 +582,8 @@ void WedgeManager::updateTransceiverMap() {
                     << idx;
         }
       }
-    } // end of scope for transceivers_.wlock
-  }
+    }
+  } // end of scope for transceivers_.wlock
 
   for (auto idx : tcvrsToHardReset) {
     try {

@@ -2441,6 +2441,8 @@ int resetQsfp(const std::vector<std::string>& ports, folly::EventBase& evb) {
 
   switch (static_cast<ResetAction>(resetAction)) {
     case ResetAction::RESET_THEN_CLEAR:
+    case ResetAction::RESET:
+    case ResetAction::CLEAR_RESET:
       break;
     case ResetAction::INVALID:
     default:
