@@ -139,8 +139,7 @@ void SaiNeighborManager::addNeighbor(
       metadata,
       encapIndex,
       swEntry->getIsLocal(),
-      false, // TODO - model noHostRoute in switch state neighbor entry and use
-             // it here
+      swEntry->getNoHostRoute(),
       saiRouterIntf->type());
 
   neighbors_.emplace(subscriberKey, std::move(neighbor));
