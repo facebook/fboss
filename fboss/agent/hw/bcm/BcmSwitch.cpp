@@ -2626,6 +2626,10 @@ void BcmSwitch::processAddedAndChangedNeighbor(
     const NeighborEntryT* entry) {
   auto* neighbor = neighborTable_->getNeighbor(neighborKey);
   CHECK(neighbor);
+  if (entry->getNoHostRoute()) {
+    throw FbossError(
+        "No host route setting on neighbor entry not supported on BcmSwitch");
+  }
   BcmHostTableIf* hostTable;
   if (getPlatform()->getAsic()->isSupported(HwAsic::Feature::HOSTTABLE)) {
     hostTable = hostTable_.get();
