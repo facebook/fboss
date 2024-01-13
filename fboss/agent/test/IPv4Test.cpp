@@ -193,6 +193,42 @@ TEST(IPv4Test, Parse) {
   counters.checkDelta(SwitchStats::kCounterPrefix + "ipv4.too_small.sum", 0);
   counters.checkDelta(SwitchStats::kCounterPrefix + "ipv4.nexthop.sum", 0);
   counters.checkDelta(SwitchStats::kCounterPrefix + "ipv4.mine.sum", 1);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "ipv4.ttl1_mine.sum", 0);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "ipv4.no_arp.sum", 0);
+  counters.checkDelta(
+      SwitchStats::kCounterPrefix + "ipv4.wrong_version.sum", 0);
+
+  // Create an IP pkt with TTL1 to self
+  buf = PktUtil::parseHexData(
+      // dst mac, src mac
+      "02 00 01 00 00 01  02 00 02 01 02 03"
+      // 802.1q, VLAN 1
+      "81 00 00 01"
+      // IPv4
+      "08 00"
+      // Version(4), IHL(5), DSCP(7), ECN(1), Total Length(20)
+      "45  1d  00 14"
+      // Identification(0x3456), Flags(0x1), Fragment offset(0x1345)
+      "34 56  53 45"
+      // TTL(1), Protocol(6), Checksum (0x1234, fake)
+      "01  06  12 34"
+      // Source IP (1.2.3.4)
+      "01 02 03 04"
+      // Destination IP (10.0.0.1)
+      "0a 00 00 01");
+
+  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
+  EXPECT_HW_CALL(sw, sendPacketSwitchedAsync_(_)).Times(0);
+  handle->rxPacket(make_unique<folly::IOBuf>(buf), portID, vlanID);
+  counters.update();
+  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.drops.sum", 1);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.error.sum", 0);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.ipv4.sum", 1);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "ipv4.too_small.sum", 0);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "ipv4.nexthop.sum", 0);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "ipv4.mine.sum", 1);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "ipv4.ttl1_mine.sum", 1);
   counters.checkDelta(SwitchStats::kCounterPrefix + "ipv4.no_arp.sum", 0);
   counters.checkDelta(
       SwitchStats::kCounterPrefix + "ipv4.wrong_version.sum", 0);

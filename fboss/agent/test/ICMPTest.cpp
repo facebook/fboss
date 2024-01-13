@@ -85,10 +85,21 @@ unique_ptr<HwTestHandle> setupTestHandle(bool noIpv4VlanIntf = false) {
   return createTestHandle(state);
 }
 
-std::string genICMPv6EchoRequest(int hopLimit, size_t payloadSize) {
+std::string genICMPv6EchoRequest(int hopLimit, size_t payloadSize, bool toMe) {
   auto hopLimitStr = folly::sformat("{0:02x}", hopLimit);
   auto payloadLenStr = folly::sformat("{0:04x}", payloadSize + 8);
   auto payload = std::string(payloadSize * 2, 'f');
+  std::string dstAddrStr;
+  std::string csumStr;
+  if (toMe) {
+    dstAddrStr = "24 01 db 00 21 10 30 01 00 00 00 00 00 00 00 01";
+    csumStr = "BF 7B";
+  } else {
+    // dst addr (fe02::1:ff00:000a) (Non multicast address)
+    dstAddrStr = "fe 02 00 00 00 00 00 00 00 00 00 01 ff 00 00 0a";
+    // faked
+    csumStr = "42 42";
+  }
   return std::string(
       // Version 6, traffic class, flow label
       "60 00 00 00" +
@@ -97,18 +108,14 @@ std::string genICMPv6EchoRequest(int hopLimit, size_t payloadSize) {
       // Next Header: 58 (ICMPv6), Hop Limit (1)
       "3a " + hopLimitStr +
       // src addr (2401:db00:2110:3004::a)
-      "24 01 db 00 21 10 30 04 00 00 00 00 00 00 00 0a"
-      // dst addr (fe02::1:ff00:000a) (Non multicast address)
-      "fe 02 00 00 00 00 00 00 00 00 00 01 ff 00 00 0a"
+      "24 01 db 00 21 10 30 04 00 00 00 00 00 00 00 0a" + dstAddrStr +
       // type: echo request
       "80"
       // code
-      "00"
-      // checksum (faked)
-      "42 42"
+      "00" +
+      csumStr +
       // identifier(2004), sequence (01)
-      "20 04 00 01" +
-      payload);
+      "20 04 00 01" + payload);
 }
 
 typedef std::function<void(Cursor* cursor, uint32_t length)> PayloadCheckFn;
@@ -598,7 +605,7 @@ void runTTLExceededV6Test(size_t requestedPayloadSize) {
   PortID portID(1);
   VlanID vlanID(1);
 
-  auto icmp6Pkt = genICMPv6EchoRequest(1, requestedPayloadSize);
+  auto icmp6Pkt = genICMPv6EchoRequest(1, requestedPayloadSize, false);
   constexpr size_t kMaxPayloadSize = IPv6Handler::IPV6_MIN_MTU - IPv6Hdr::SIZE -
       ICMPHdr::SIZE - // IPv6 ICMP TTL Exceed
       IPv6Hdr::SIZE - ICMPHdr::SIZE; // IPv6 ICMP Echo Request
@@ -645,6 +652,39 @@ void runTTLExceededV6Test(size_t requestedPayloadSize) {
 
 TEST(ICMPTest, TTLExceededV6) {
   runTTLExceededV6Test(8);
+}
+
+TEST(ICMPTest, TTL1Ping6) {
+  auto handle = setupTestHandle();
+  auto sw = handle->getSw();
+  PortID portID(1);
+  VlanID vlanID(1);
+
+  size_t requestedPayloadSize = 8;
+  auto icmp6Pkt = genICMPv6EchoRequest(1, requestedPayloadSize, true);
+
+  auto pkt = PktUtil::parseHexData(
+      // dst mac, src mac
+      "33 33 ff 00 00 0a  02 05 73 f9 46 fc"
+      // 802.1q, VLAN 5
+      "81 00 00 05"
+      // IPv6
+      "86 dd" +
+      icmp6Pkt);
+  // Cache the current stats
+  CounterCache counters(sw);
+
+  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
+
+  handle->rxPacket(std::make_unique<folly::IOBuf>(pkt), portID, vlanID);
+
+  counters.update();
+  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
+  // Dropped since we don't have tunMgr_ in UTs. So can't punt to host
+  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.drops.sum", 1);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "ipv6.hop_exceeded.sum", 0);
+  counters.checkDelta(
+      SwitchStats::kCounterPrefix + "ipv6.hop_limit1_mine.sum", 1);
 }
 
 TEST(ICMPTest, TTLExceededV6MaxSize) {
