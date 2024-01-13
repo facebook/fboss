@@ -264,8 +264,7 @@ void TransceiverManager::triggerQsfpHardReset(int idx) {
   if (removeTransceiver) {
     // Write lock to remove the transceiver
     auto lockedTransceivers = transceivers_.wlock();
-    auto it = lockedTransceivers->find(TransceiverID(idx));
-    lockedTransceivers->erase(it);
+    lockedTransceivers->erase(TransceiverID(idx));
     XLOG(INFO)
         << "triggerQsfpHardReset triggered reset and remove transceiver: "
         << idx;

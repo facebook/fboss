@@ -518,8 +518,7 @@ void WedgeManager::updateTransceiverMap() {
     auto lockedTransceiversWPtr = transceivers_.wlock();
     // Delete the transceivers first before potentially creating them later
     for (auto idx : tcvrsToDelete) {
-      auto it = lockedTransceiversWPtr->find(TransceiverID(idx));
-      lockedTransceiversWPtr->erase(it);
+      lockedTransceiversWPtr->erase(TransceiverID(idx));
     }
 
     for (auto idx : tcvrsToCreate) {
