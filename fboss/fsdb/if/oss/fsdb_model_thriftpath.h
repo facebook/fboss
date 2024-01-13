@@ -16844,7 +16844,8 @@ std::pair<strings::classID, Child<::facebook::fboss::cfg::AclLookupClass, ::apac
 std::pair<strings::encapIndex, Child<::std::int64_t, ::apache::thrift::type_class::integral>>,
 std::pair<strings::isLocal, Child<bool, ::apache::thrift::type_class::integral>>,
 std::pair<strings::type, Child<::facebook::fboss::state::NeighborEntryType, ::apache::thrift::type_class::enumeration>>,
-std::pair<strings::resolvedSince, Child<::std::int64_t, ::apache::thrift::type_class::integral>>>;
+std::pair<strings::resolvedSince, Child<::std::int64_t, ::apache::thrift::type_class::integral>>,
+std::pair<strings::noHostRoute, Child<bool, ::apache::thrift::type_class::integral>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::std::string, ::apache::thrift::type_class::string>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::std::string, ::apache::thrift::type_class::string>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, ChildThriftPath<::facebook::fboss::cfg::PortDescriptor, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
@@ -16854,7 +16855,8 @@ std::pair<strings::resolvedSince, Child<::std::int64_t, ::apache::thrift::type_c
    std::pair<std::integral_constant<apache::thrift::field_id_t, 7>, Child<::std::int64_t, ::apache::thrift::type_class::integral>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 8>, Child<bool, ::apache::thrift::type_class::integral>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 9>, Child<::facebook::fboss::state::NeighborEntryType, ::apache::thrift::type_class::enumeration>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 10>, Child<::std::int64_t, ::apache::thrift::type_class::integral>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 10>, Child<::std::int64_t, ::apache::thrift::type_class::integral>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 11>, Child<bool, ::apache::thrift::type_class::integral>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::ipaddress, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::mac, std::integral_constant<apache::thrift::field_id_t, 2>>,
@@ -16865,7 +16867,8 @@ std::pair<strings::classID, std::integral_constant<apache::thrift::field_id_t, 6
 std::pair<strings::encapIndex, std::integral_constant<apache::thrift::field_id_t, 7>>,
 std::pair<strings::isLocal, std::integral_constant<apache::thrift::field_id_t, 8>>,
 std::pair<strings::type, std::integral_constant<apache::thrift::field_id_t, 9>>,
-std::pair<strings::resolvedSince, std::integral_constant<apache::thrift::field_id_t, 10>>>::template type_of<Name>;
+std::pair<strings::resolvedSince, std::integral_constant<apache::thrift::field_id_t, 10>>,
+std::pair<strings::noHostRoute, std::integral_constant<apache::thrift::field_id_t, 11>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -16888,6 +16891,7 @@ std::pair<strings::resolvedSince, std::integral_constant<apache::thrift::field_i
     STRUCT_CHILD_GETTERS(isLocal, 8);
     STRUCT_CHILD_GETTERS(type, 9);
     STRUCT_CHILD_GETTERS(resolvedSince, 10);
+    STRUCT_CHILD_GETTERS(noHostRoute, 11);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -16901,6 +16905,7 @@ std::pair<strings::resolvedSince, std::integral_constant<apache::thrift::field_i
     else if constexpr (__id == 8) { return isLocal(); }
     else if constexpr (__id == 9) { return type(); }
     else if constexpr (__id == 10) { return resolvedSince(); }
+    else if constexpr (__id == 11) { return noHostRoute(); }
   }
 
   template <typename T, T... Values>
