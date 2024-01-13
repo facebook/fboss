@@ -320,19 +320,12 @@ void ManagedVlanRifNeighbor::createObject(PublisherObjects objects) {
   auto adapterHostKey = SaiNeighborTraits::NeighborEntry(
       manager_->getSwitchSaiId(), getRouterInterfaceSaiId(), ip);
 
-  std::optional<bool> noHostRoute;
-  // Set noHostRoute attr only if its set to a non default(true) value
-  // This allows us to keep working for platforms that don't support this
-  // attr yet
-  if (noHostRoute_) {
-    noHostRoute = true;
-  }
   auto createAttributes = SaiNeighborTraits::CreateAttributes{
       fdbEntry->adapterHostKey().mac(),
       metadata_,
       std::nullopt,
       std::nullopt,
-      noHostRoute};
+      noHostRoute_};
   auto object = manager_->createSaiObject(adapterHostKey, createAttributes);
   this->setObject(object);
   handle_->neighbor = getSaiObject();
