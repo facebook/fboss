@@ -527,19 +527,38 @@ class HwCoppTest : public HwLinkStateDependentTest {
   // really long (5+ mins) to complete), and does not really offer additional
   // coverage. Thus, pick one IPv4 and IPv6 address and test.
   std::vector<std::string> getIpAddrsToSendPktsTo() const {
-    auto ipAddrs = *(this->initialConfig().interfaces()[0].ipAddresses());
-    auto ipv4Addr =
-        std::find_if(ipAddrs.begin(), ipAddrs.end(), [](const auto& ipAddr) {
-          auto ip = folly::IPAddress::createNetwork(ipAddr, -1, false).first;
-          return ip.isV4();
-        });
-    auto ipv6Addr =
-        std::find_if(ipAddrs.begin(), ipAddrs.end(), [](const auto& ipAddr) {
-          auto ip = folly::IPAddress::createNetwork(ipAddr, -1, false).first;
-          return ip.isV6();
-        });
+    std::set<std::string> ips;
+    auto addV4AndV6 = [&](const auto& ipAddrs) {
+      auto ipv4Addr =
+          std::find_if(ipAddrs.begin(), ipAddrs.end(), [](const auto& ipAddr) {
+            auto ip = folly::IPAddress::createNetwork(ipAddr, -1, false).first;
+            return ip.isV4();
+          });
+      auto ipv6Addr =
+          std::find_if(ipAddrs.begin(), ipAddrs.end(), [](const auto& ipAddr) {
+            auto ip = folly::IPAddress::createNetwork(ipAddr, -1, false).first;
+            return ip.isV6();
+          });
+      ips.insert(*ipv4Addr);
+      ips.insert(*ipv6Addr);
+    };
+    addV4AndV6(*(this->initialConfig().interfaces()[0].ipAddresses()));
 
-    return std::vector<std::string>{*ipv4Addr, *ipv6Addr};
+    auto switchId = getHwSwitch()->getSwitchId();
+    if (switchId.has_value()) {
+      auto dsfNode = getProgrammedState()->getDsfNodes()->getNodeIf(*switchId);
+      if (dsfNode) {
+        auto loopbackIps = dsfNode->getLoopbackIps();
+        std::vector<std::string> subnets;
+        std::for_each(
+            loopbackIps->begin(), loopbackIps->end(), [&](const auto& ip) {
+              subnets.push_back(**ip);
+            });
+        addV4AndV6(subnets);
+      }
+    }
+
+    return std::vector<std::string>{ips.begin(), ips.end()};
   }
 
  private:
