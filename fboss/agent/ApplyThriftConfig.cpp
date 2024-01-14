@@ -903,6 +903,13 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
       neighbor.isLocal() = isLocal(node);
       neighbor.type() = state::NeighborEntryType::STATIC_ENTRY;
       neighbor.resolvedSince() = static_cast<int64_t>(std::time(nullptr));
+      // For local loopback IPs we set noHostRoute to true
+      // since we dont want to install the host/neighbor entry
+      // in HW (the same /128, /32 is covered by ip2me routes).
+      // However we still want to program the encap info (MAC,
+      // encap ID) in HW, so we continue to send the entry to
+      // send it to SDK, but with noHostRoute flag set.
+      neighbor.noHostRoute() = isLocal(node);
       if (network.first.isV6()) {
         ndpTable.insert({*neighbor.ipaddress(), neighbor});
       } else {
