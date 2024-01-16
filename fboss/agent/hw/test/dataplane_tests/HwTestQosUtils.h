@@ -14,6 +14,7 @@
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/types.h"
 
@@ -49,6 +50,29 @@ void verifyVoQHit(
     int queueId,
     HwSwitchEnsemble* ensemble,
     facebook::fboss::SystemPortID egressPort);
+
+template <typename SendPktFunT>
+void sendPktAndVerifyQueueHit(
+    const std::map<int, std::vector<uint8_t>>& q2dscpMap,
+    HwSwitchEnsemble* ensemble,
+    const SendPktFunT& sendPacket,
+    PortID portId,
+    std::optional<SystemPortID> sysPortId) {
+  for (const auto& q2dscps : q2dscpMap) {
+    for (auto dscp : q2dscps.second) {
+      auto portStatsBefore = ensemble->getLatestPortStats(portId);
+      HwSysPortStats sysPortStatsBefore;
+      if (sysPortId) {
+        sysPortStatsBefore = ensemble->getLatestSysPortStats(*sysPortId);
+      }
+      sendPacket(dscp);
+      verifyQueueHit(portStatsBefore, q2dscps.first, ensemble, portId);
+      if (sysPortId) {
+        verifyVoQHit(sysPortStatsBefore, q2dscps.first, ensemble, *sysPortId);
+      }
+    }
+  }
+}
 
 bool verifyQueueMappingsInvariantHelper(
     const std::map<int, std::vector<uint8_t>>& q2dscpMap,
