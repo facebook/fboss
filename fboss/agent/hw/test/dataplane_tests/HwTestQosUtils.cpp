@@ -72,8 +72,7 @@ void verifyQueueHit(
   WITH_RETRIES({
     auto queuePacketsBefore =
         portStatsBefore.queueOutPackets_()->find(queueId)->second;
-    auto portStatsAfter =
-        ensemble->getLatestPortStats(egressPort); //[egressPort];
+    auto portStatsAfter = ensemble->getLatestPortStats(egressPort);
     auto queuePacketsAfter = portStatsAfter.queueOutPackets_()[queueId];
     // Note, on some platforms, due to how loopbacked packets are pruned
     // from being broadcast, they will appear more than once on a queue
@@ -83,6 +82,22 @@ void verifyQueueHit(
                << queuePacketsBefore << " queuePacketsAfter "
                << queuePacketsAfter;
     EXPECT_EVENTUALLY_GT(queuePacketsAfter, queuePacketsBefore);
+  });
+}
+
+void verifyVoQHit(
+    const HwSysPortStats& portStatsBefore,
+    int queueId,
+    HwSwitchEnsemble* ensemble,
+    facebook::fboss::SystemPortID egressPort) {
+  WITH_RETRIES({
+    auto queueBytesBefore =
+        portStatsBefore.queueOutBytes_()->find(queueId)->second;
+    auto portStatsAfter = ensemble->getLatestSysPortStats(egressPort);
+    auto queueBytesAfter = portStatsAfter.queueOutBytes_()[queueId];
+    XLOG(DBG2) << "queue " << queueId << " queueBytesBefore "
+               << queueBytesBefore << " queueBytesAfter " << queueBytesAfter;
+    EXPECT_EVENTUALLY_GT(queueBytesAfter, queueBytesBefore);
   });
 }
 
