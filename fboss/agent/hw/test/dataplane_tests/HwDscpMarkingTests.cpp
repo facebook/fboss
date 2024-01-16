@@ -114,11 +114,11 @@ class HwDscpMarkingTest : public HwLinkStateDependentTest {
                 (1 /* ACL hit once */ * 2 /* l4SrcPort, l4DstPort */ *
                  utility::kTcpPorts().size()));
 
-        EXPECT_TRUE(utility::verifyQueueMappings(
+        utility::verifyQueueHit(
             portStatsBefore,
-            {{utility::kOlympicICPQueueId, {utility::kIcpDscp(getAsic())}}},
+            utility::kOlympicICPQueueId,
             getHwSwitchEnsemble(),
-            portId));
+            portId);
 
         sendAllPackets(
             utility::kIcpDscp(getAsic()),
