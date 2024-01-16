@@ -47,7 +47,7 @@ class CmdShowFabric : public CmdHandler<CmdShowFabric, CmdShowFabricTraits> {
     } else {
       auto client =
           utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
-      client->sync_getFabricReachability(entries);
+      client->sync_getFabricConnectivity(entries);
     }
     return createModel(entries);
   }
