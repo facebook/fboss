@@ -174,35 +174,59 @@ void SaiRouteManager::addOrUpdateRoute(
     if (newRoute->isConnected()) {
       CHECK_EQ(fwd.getNextHopSet().size(), 1);
       InterfaceID interfaceId{fwd.getNextHopSet().begin()->intf()};
-      const SaiRouterInterfaceHandle* routerInterfaceHandle =
-          managerTable_->routerInterfaceManager().getRouterInterfaceHandle(
-              interfaceId);
-      if (!routerInterfaceHandle) {
-        throw FbossError(
-            "cannot create subnet route without a sai_router_interface "
-            "for InterfaceID: ",
-            interfaceId);
-      }
+
       /*
-       * Remote interface routes are treated as connected for ECMP route
-       * resolution. In hw, the routes are pointing to drop to avoid attracting
-       * traffic.
+       * For VOQ switches with multiple asics, set connected routes to drop
+       * if the interface is not on the same asic.
+       * TODO - filter these connected routes in switchstate
        */
-      if (!routerInterfaceHandle->isLocal()) {
-        packetAction = SAI_PACKET_ACTION_DROP;
-      }
-      RouterInterfaceSaiId routerInterfaceId{
-          routerInterfaceHandle->adapterKey()};
+      if (platform_->getAsic()->getSwitchType() == cfg::SwitchType::VOQ) {
+        auto systemPortRange = platform_->getAsic()->getSystemPortRange();
+        CHECK(systemPortRange);
+        if (interfaceId < *systemPortRange->minimum() ||
+            interfaceId > *systemPortRange->maximum()) {
+          packetAction = SAI_PACKET_ACTION_DROP;
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
-      attributes = SaiRouteTraits::CreateAttributes{
-          packetAction, routerInterfaceId, metadata, std::nullopt};
+          attributes = SaiRouteTraits::CreateAttributes{
+              packetAction, SAI_NULL_OBJECT_ID, metadata, std::nullopt};
 #else
-      attributes = SaiRouteTraits::CreateAttributes{
-          packetAction, routerInterfaceId, metadata};
+          attributes = SaiRouteTraits::CreateAttributes{
+              packetAction, SAI_NULL_OBJECT_ID, metadata};
+#endif
+        }
+      }
+
+      if (packetAction != SAI_PACKET_ACTION_DROP) {
+        const SaiRouterInterfaceHandle* routerInterfaceHandle =
+            managerTable_->routerInterfaceManager().getRouterInterfaceHandle(
+                interfaceId);
+        if (!routerInterfaceHandle) {
+          throw FbossError(
+              "cannot create subnet route without a sai_router_interface "
+              "for InterfaceID: ",
+              interfaceId);
+        }
+        /*
+         * Remote interface routes are treated as connected for ECMP route
+         * resolution. In hw, the routes are pointing to drop to avoid
+         * attracting traffic.
+         */
+        if (!routerInterfaceHandle->isLocal()) {
+          packetAction = SAI_PACKET_ACTION_DROP;
+        }
+        RouterInterfaceSaiId routerInterfaceId{
+            routerInterfaceHandle->adapterKey()};
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+        attributes = SaiRouteTraits::CreateAttributes{
+            packetAction, routerInterfaceId, metadata, std::nullopt};
+#else
+        attributes = SaiRouteTraits::CreateAttributes{
+            packetAction, routerInterfaceId, metadata};
 #endif
 
-      XLOG(DBG3) << "Connected route: " << newRoute->str()
-                 << " routerInterfaceId: " << routerInterfaceId;
+        XLOG(DBG3) << "Connected route: " << newRoute->str()
+                   << " routerInterfaceId: " << routerInterfaceId;
+      }
     } else if (fwd.getNextHopSet().size() > 1) {
       /*
        * A Route which has more than one NextHops will create or reference an
