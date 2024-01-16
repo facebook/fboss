@@ -148,7 +148,8 @@ void PlatformProductInfo::initMode() {
     } else if (
         modelName.find("Meru800bia") == 0 ||
         modelName.find("MERU800BIA") == 0 ||
-        modelName.find("ASY-92458-101") == 0) {
+        modelName.find("ASY-92458-101") == 0 ||
+        modelName.find("ASY-92493-104") == 0) {
       type_ = PlatformType::PLATFORM_MERU800BIA;
     } else if (
         modelName.find("Meru800bfa") == 0 ||
