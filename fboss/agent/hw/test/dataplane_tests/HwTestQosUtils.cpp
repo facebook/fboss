@@ -13,9 +13,9 @@
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/lib/CommonUtils.h"
 
 #include <folly/logging/xlog.h>
-
 #include <gtest/gtest.h>
 #include <thread>
 
@@ -63,6 +63,29 @@ bool verifyQueueMappings(
 }
 
 } // namespace
+
+void verifyQueueHit(
+    const HwPortStats& portStatsBefore,
+    int queueId,
+    HwSwitchEnsemble* ensemble,
+    facebook::fboss::PortID egressPort) {
+  WITH_RETRIES({
+    auto queuePacketsBefore =
+        portStatsBefore.queueOutPackets_()->find(queueId)->second;
+    auto portStatsAfter =
+        ensemble->getLatestPortStats(egressPort); //[egressPort];
+    auto queuePacketsAfter = portStatsAfter.queueOutPackets_()[queueId];
+    // Note, on some platforms, due to how loopbacked packets are pruned
+    // from being broadcast, they will appear more than once on a queue
+    // counter, so we can only check that the counter went up, not that it
+    // went up by exactly one.
+    XLOG(DBG2) << "queue " << queueId << " queuePacketsBefore "
+               << queuePacketsBefore << " queuePacketsAfter "
+               << queuePacketsAfter;
+    EXPECT_EVENTUALLY_GT(queuePacketsAfter, queuePacketsBefore);
+  });
+}
+
 bool verifyQueueMappingsInvariantHelper(
     const std::map<int, std::vector<uint8_t>>& q2dscpMap,
     HwSwitch* hwSwitch,

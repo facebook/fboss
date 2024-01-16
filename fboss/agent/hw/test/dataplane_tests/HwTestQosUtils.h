@@ -38,6 +38,12 @@ bool verifyQueueMappings(
     HwSwitchEnsemble* ensemble,
     facebook::fboss::PortID egressPort);
 
+void verifyQueueHit(
+    const HwPortStats& portStatsBefore,
+    int queueId,
+    HwSwitchEnsemble* ensemble,
+    facebook::fboss::PortID egressPort);
+
 bool verifyQueueMappingsInvariantHelper(
     const std::map<int, std::vector<uint8_t>>& q2dscpMap,
     HwSwitch* hwSwitch,
