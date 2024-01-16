@@ -74,16 +74,20 @@ class Hw2QueueToOlympicQoSTest : public HwLinkStateDependentTest {
       const std::map<int, std::vector<uint8_t>>& queueToDscp,
       bool frontPanel) {
     auto portId = helper_->ecmpPortDescriptorAt(0).phyPortID();
-    auto portStatsBefore = getLatestPortStats(portId);
-    for (const auto& q2dscps : queueToDscp) {
-      for (auto dscp : q2dscps.second) {
-        sendPacket(dscp, frontPanel);
-      }
+    std::optional<SystemPortID> sysPortId;
+    if (getHwSwitch()->getSwitchType() == cfg::SwitchType::VOQ) {
+      auto switchId = *getHwSwitch()->getSwitchId();
+      sysPortId =
+          getSystemPortID(portId, getProgrammedState(), SwitchID(switchId));
     }
-    WITH_RETRIES({
-      EXPECT_EVENTUALLY_TRUE(utility::verifyQueueMappings(
-          portStatsBefore, queueToDscp, getHwSwitchEnsemble(), portId));
-    });
+    XLOG(DBG2) << "verify send packets "
+               << (frontPanel ? "out of port" : "switched");
+    utility::sendPktAndVerifyQueueHit(
+        queueToDscp,
+        getHwSwitchEnsemble(),
+        [this, frontPanel](int dscp) { sendPacket(dscp, frontPanel); },
+        portId,
+        sysPortId);
   }
 
  protected:
