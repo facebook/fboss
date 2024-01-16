@@ -44,15 +44,32 @@ class HwOlympicQosTests : public HwLinkStateDependentTest {
 
     auto verify = [=, this]() {
       auto portId = helper_->ecmpPortDescriptorAt(0).phyPortID();
+      std::optional<SystemPortID> sysPortId;
+      if (getHwSwitch()->getSwitchType() == cfg::SwitchType::VOQ) {
+        auto switchId = *getHwSwitch()->getSwitchId();
+        sysPortId =
+            getSystemPortID(portId, getProgrammedState(), SwitchID(switchId));
+      }
       for (bool frontPanel : {false, true}) {
         XLOG(DBG2) << "verify send packets "
                    << (frontPanel ? "out of port" : "switched");
         for (const auto& q2dscps : utility::kOlympicQueueToDscp(getAsic())) {
           for (auto dscp : q2dscps.second) {
             auto portStatsBefore = getLatestPortStats(portId);
+            HwSysPortStats sysPortStatsBefore;
+            if (sysPortId) {
+              sysPortStatsBefore = getLatestSysPortStats(*sysPortId);
+            }
             sendPacket(dscp, frontPanel);
             utility::verifyQueueHit(
                 portStatsBefore, q2dscps.first, getHwSwitchEnsemble(), portId);
+            if (sysPortId) {
+              utility::verifyVoQHit(
+                  sysPortStatsBefore,
+                  q2dscps.first,
+                  getHwSwitchEnsemble(),
+                  *sysPortId);
+            }
           }
         }
       }
