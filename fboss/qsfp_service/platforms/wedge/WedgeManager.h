@@ -145,6 +145,8 @@ class WedgeManager : public TransceiverManager {
 
   void loadConfig() override;
 
+  void createQsfpToBmcSyncInterface();
+
   std::string getSwitchDataCenter() const {
     return dataCenter_;
   }

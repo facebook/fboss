@@ -32,7 +32,7 @@ DEFINE_bool(
     "Override wedge_agent programInternalPhyPorts(). For test only");
 
 DEFINE_bool(
-    optics_thermal_data_post,
+    optics_data_post_to_rest,
     false,
     "Enable qsfp_service to post optics thermal data to BMC");
 
@@ -71,9 +71,6 @@ WedgeManager::WedgeManager(
 
   dataCenter_ = getDeviceDatacenter();
   hostnameScheme_ = getDeviceHostnameScheme();
-  if (FLAGS_optics_thermal_data_post) {
-    qsfpRestClient_ = std::make_unique<QsfpRestClient>();
-  }
 }
 
 WedgeManager::~WedgeManager() {
@@ -134,6 +131,9 @@ void WedgeManager::initTransceiverMap() {
 
   initQsfpImplMap();
 
+  // Create Qsfp to BMC sync interface through Rest client
+  createQsfpToBmcSyncInterface();
+
   refreshTransceivers();
 }
 
@@ -141,6 +141,18 @@ void WedgeManager::initQsfpImplMap() {
   // Create WedgeQsfp for each QSFP module present in the system
   for (int idx = 0; idx < getNumQsfpModules(); idx++) {
     qsfpImpls_.push_back(std::make_unique<WedgeQsfp>(idx, wedgeI2cBus_.get()));
+  }
+}
+
+void WedgeManager::createQsfpToBmcSyncInterface() {
+  if (FLAGS_optics_data_post_to_rest) {
+    try {
+      qsfpRestClient_ = std::make_unique<QsfpRestClient>();
+      XLOG(INFO) << "Created QSFP to BMC Sync Interface through Rest Client";
+    } catch (const std::exception& ex) {
+      XLOG(ERR)
+          << "Failed to created QSFP to BMC Sync Interface through Rest Client";
+    }
   }
 }
 
@@ -381,7 +393,7 @@ std::vector<TransceiverID> WedgeManager::refreshTransceivers() {
 
   // Send the optical thermal data to BMC if needed
   auto currTime = std::time(nullptr);
-  if (FLAGS_optics_thermal_data_post &&
+  if (FLAGS_optics_data_post_to_rest && qsfpRestClient_.get() &&
       (nextOpticsToBmcSyncTime_ <= currTime)) {
     // Post the optics thermal data to BMC
     auto qsfpToBmcSyncData = getQsfpToBmcSyncDataSerialized();
