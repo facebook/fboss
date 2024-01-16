@@ -47,17 +47,14 @@ class HwOlympicQosTests : public HwLinkStateDependentTest {
       for (bool frontPanel : {false, true}) {
         XLOG(DBG2) << "verify send packets "
                    << (frontPanel ? "out of port" : "switched");
-        auto portStatsBefore = getLatestPortStats(portId);
         for (const auto& q2dscps : utility::kOlympicQueueToDscp(getAsic())) {
           for (auto dscp : q2dscps.second) {
+            auto portStatsBefore = getLatestPortStats(portId);
             sendPacket(dscp, frontPanel);
+            utility::verifyQueueHit(
+                portStatsBefore, q2dscps.first, getHwSwitchEnsemble(), portId);
           }
         }
-        EXPECT_TRUE(utility::verifyQueueMappings(
-            portStatsBefore,
-            utility::kOlympicQueueToDscp(getAsic()),
-            getHwSwitchEnsemble(),
-            portId));
       }
     };
     verifyAcrossWarmBoots(setup, verify);
@@ -85,10 +82,9 @@ class HwOlympicQosTests : public HwLinkStateDependentTest {
     // ingressed on the port, and be properly queued.
     if (frontPanel) {
       auto outPort = helper_->ecmpPortDescriptorAt(kEcmpWidth).phyPortID();
-      getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
-          std::move(txPacket), outPort);
+      getHwSwitch()->sendPacketOutOfPortSync(std::move(txPacket), outPort);
     } else {
-      getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(txPacket));
+      getHwSwitch()->sendPacketSwitchedSync(std::move(txPacket));
     }
   }
 
