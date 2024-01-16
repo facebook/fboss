@@ -208,7 +208,17 @@ PortID getPortID(
 SystemPortID getSystemPortID(
     const PortID& portId,
     const std::map<int64_t, cfg::SwitchInfo>& switchToSwitchInfo,
-    const int64_t switchId);
+    int64_t switchId);
+
+SystemPortID getSystemPortID(
+    const PortID& portId,
+    const std::map<int64_t, cfg::SwitchInfo>& switchToSwitchInfo,
+    SwitchID switchId);
+
+SystemPortID getSystemPortID(
+    const PortID& portId,
+    const std::shared_ptr<SwitchState>& state,
+    SwitchID switchId);
 
 std::vector<PortID> getPortsForInterface(
     InterfaceID intf,

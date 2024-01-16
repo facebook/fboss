@@ -327,7 +327,7 @@ PortID getPortID(
 SystemPortID getSystemPortID(
     const PortID& portId,
     const std::map<int64_t, cfg::SwitchInfo>& switchToSwitchInfo,
-    const int64_t switchId) {
+    int64_t switchId) {
   auto switchInfo = switchToSwitchInfo.find(switchId);
   if (switchInfo == switchToSwitchInfo.end()) {
     throw FbossError(
@@ -340,6 +340,27 @@ SystemPortID getSystemPortID(
       *portIdRange.minimum();
   CHECK_LE(systemPortId, *sysPortRange->maximum());
   return SystemPortID(systemPortId);
+}
+
+SystemPortID getSystemPortID(
+    const PortID& portId,
+    const std::map<int64_t, cfg::SwitchInfo>& switchToSwitchInfo,
+    SwitchID switchId) {
+  return getSystemPortID(
+      portId, switchToSwitchInfo, static_cast<int64_t>(switchId));
+}
+
+SystemPortID getSystemPortID(
+    const PortID& portId,
+    const std::shared_ptr<SwitchState>& state,
+    SwitchID switchId) {
+  return getSystemPortID(
+      portId,
+      state->getSwitchSettings()
+          ->getSwitchSettings(
+              HwSwitchMatcher(std::unordered_set<SwitchID>({switchId})))
+          ->getSwitchIdToSwitchInfo(),
+      switchId);
 }
 
 std::vector<PortID> getPortsForInterface(
