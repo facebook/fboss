@@ -22,6 +22,7 @@
 using namespace facebook::fboss;
 
 namespace facebook::fboss::utility {
+namespace {
 
 bool verifyQueueMappings(
     const HwPortStats& portStatsBefore,
@@ -61,6 +62,7 @@ bool verifyQueueMappings(
   return statsMatch;
 }
 
+} // namespace
 bool verifyQueueMappingsInvariantHelper(
     const std::map<int, std::vector<uint8_t>>& q2dscpMap,
     HwSwitch* hwSwitch,
