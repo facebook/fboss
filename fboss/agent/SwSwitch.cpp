@@ -727,7 +727,13 @@ void SwSwitch::updateStats() {
   updateMultiSwitchGlobalFb303Stats();
   updateFabricReachabilityStats();
 
-  auto phyInfo = multiHwSwitchHandler_->updateAllPhyInfo();
+  std::map<PortID, phy::PhyInfo> phyInfo;
+  {
+    auto runMode = (*agentConfig_.rlock())->getRunMode();
+    if (runMode == cfg::AgentRunMode::MONO) {
+      phyInfo = multiHwSwitchHandler_->updateAllPhyInfo();
+    } // else get the PhyInfo from HwSwitchStats
+  }
   // Update Snapshots only if PhyInfo is valid
   if (!phyInfo.empty()) {
     phySnapshotManager_->updatePhyInfos(phyInfo);
