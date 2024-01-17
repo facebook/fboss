@@ -73,7 +73,7 @@ class FsdbStreamClient : public ReconnectingThriftClient {
     return *disconnectReason_.rlock();
   }
 
-#ifndef IS_OSS
+#if !defined(IS_OSS) || (defined(IS_OSS) && defined(IS_OSS_FBOSS_CENTOS9))
   template <typename PubUnit>
   using PubStreamT = apache::thrift::ClientSink<PubUnit, OperPubFinalResponse>;
   template <typename SubUnit>
