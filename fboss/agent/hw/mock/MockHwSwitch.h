@@ -130,7 +130,7 @@ class MockHwSwitch : public HwSwitch {
   MOCK_CONST_METHOD2(
       listObjects,
       std::string(const std::vector<HwObjectType>&, bool));
-  MOCK_METHOD0(updateAllPhyInfo, std::map<PortID, phy::PhyInfo>());
+  MOCK_METHOD0(updateAllPhyInfoImpl, std::map<PortID, phy::PhyInfo>());
   MOCK_CONST_METHOD0(getFabricConnectivity, std::map<PortID, FabricEndpoint>());
   MOCK_CONST_METHOD1(
       getSwitchReachability,

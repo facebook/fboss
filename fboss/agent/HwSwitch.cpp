@@ -42,6 +42,11 @@ DEFINE_bool(
     false,
     "Flag to turn on flowlet switching for DLB");
 
+DEFINE_int32(
+    update_phy_info_interval_s,
+    10,
+    "Update phy info interval in seconds");
+
 namespace {
 constexpr auto kBuildSdkVersion = "SDK Version";
 
@@ -159,6 +164,22 @@ multiswitch::HwSwitchStats HwSwitch::getHwSwitchStats() {
   hwSwitchStats.cpuPortStats() = getCpuPortStats();
   hwSwitchStats.switchDropStats() = getSwitchDropStats();
   return hwSwitchStats;
+}
+
+std::map<PortID, phy::PhyInfo> HwSwitch::updateAllPhyInfo() {
+  // Determine if phy info needs to be collected
+  auto now =
+      std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+  if (now - phyInfoUpdateTime_ >= FLAGS_update_phy_info_interval_s) {
+    phyInfoUpdateTime_ = now;
+    try {
+      return updateAllPhyInfoImpl();
+    } catch (const std::exception& ex) {
+      XLOG(ERR) << "Error running updateAllPhyInfo: "
+                << folly::exceptionStr(ex);
+    }
+  }
+  return {};
 }
 
 uint32_t HwSwitch::generateDeterministicSeed(LoadBalancerID loadBalancerID) {

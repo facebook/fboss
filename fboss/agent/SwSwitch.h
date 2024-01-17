@@ -1176,10 +1176,6 @@ class SwSwitch : public HwSwitchCallback {
 #endif
 
   static constexpr auto kIphySnapshotIntervalSeconds = 1;
-  // Collecting phy Info is currently inefficient on some platforms. Instead of
-  // collecting them every second, tune down the frequency to only collect once
-  // every update_phy_info_interval_s seconds (default to be 10).
-  int phyInfoUpdateTime_{0};
 
   std::unique_ptr<PhySnapshotManager<kIphySnapshotIntervalSeconds>>
       phySnapshotManager_;

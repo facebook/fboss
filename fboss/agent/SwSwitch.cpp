@@ -159,11 +159,6 @@ DEFINE_int32(
     5,
     "Interval at which stats subscriptions are served");
 
-DEFINE_int32(
-    update_phy_info_interval_s,
-    10,
-    "Update phy info interval in seconds");
-
 DECLARE_bool(intf_nbr_tables);
 
 DEFINE_int32(
@@ -731,19 +726,13 @@ void SwSwitch::updateStats() {
   }
   updateMultiSwitchGlobalFb303Stats();
   updateFabricReachabilityStats();
-  // Determine if collect phy info
-  auto now =
-      std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-  if (now - phyInfoUpdateTime_ >= FLAGS_update_phy_info_interval_s) {
-    phyInfoUpdateTime_ = now;
-    try {
-      phySnapshotManager_->updatePhyInfos(
-          multiHwSwitchHandler_->updateAllPhyInfo());
-    } catch (const std::exception& ex) {
-      stats()->updateStatsException();
-      XLOG(ERR) << "Error running updatePhyInfos: " << folly::exceptionStr(ex);
-    }
+
+  auto phyInfo = multiHwSwitchHandler_->updateAllPhyInfo();
+  // Update Snapshots only if PhyInfo is valid
+  if (!phyInfo.empty()) {
+    phySnapshotManager_->updatePhyInfos(phyInfo);
   }
+
   stats()->maxNumOfPhysicalHostsPerQueue(
       getLookupClassUpdater()->getMaxNumHostsPerQueue());
 }

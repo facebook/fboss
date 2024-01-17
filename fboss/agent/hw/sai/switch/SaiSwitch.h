@@ -203,7 +203,7 @@ class SaiSwitch : public HwSwitch {
   bool transactionsSupported() const override;
   bool l2LearningModeChangeProhibited() const;
 
-  virtual std::map<PortID, phy::PhyInfo> updateAllPhyInfo() override;
+  virtual std::map<PortID, phy::PhyInfo> updateAllPhyInfoImpl() override;
 
   uint32_t generateDeterministicSeed(
       LoadBalancerID loadBalancerID,

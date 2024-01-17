@@ -239,7 +239,7 @@ class HwSwitch {
 
   virtual void fetchL2Table(std::vector<L2EntryThrift>* l2Table) const = 0;
 
-  virtual std::map<PortID, phy::PhyInfo> updateAllPhyInfo() = 0;
+  std::map<PortID, phy::PhyInfo> updateAllPhyInfo();
   virtual std::map<PortID, FabricEndpoint> getFabricConnectivity() const = 0;
   virtual std::vector<PortID> getSwitchReachability(
       SwitchID switchId) const = 0;
@@ -392,6 +392,8 @@ class HwSwitch {
 
   virtual void gracefulExitImpl() = 0;
 
+  virtual std::map<PortID, phy::PhyInfo> updateAllPhyInfoImpl() = 0;
+
   std::shared_ptr<SwitchState> getMinAlpmState(
       RoutingInformationBase* rib,
       const std::shared_ptr<SwitchState>& state);
@@ -417,6 +419,11 @@ class HwSwitch {
   std::optional<int64_t> switchId_;
 
   folly::Synchronized<std::shared_ptr<SwitchState>> programmedState_;
+
+  // Collecting phy Info is currently inefficient on some platforms. Instead of
+  // collecting them every second, tune down the frequency to only collect once
+  // every update_phy_info_interval_s seconds (default to be 10).
+  int phyInfoUpdateTime_{0};
 };
 
 } // namespace facebook::fboss

@@ -132,7 +132,7 @@ class SimSwitch : public HwSwitch {
     return "";
   }
 
-  std::map<PortID, phy::PhyInfo> updateAllPhyInfo() override {
+  std::map<PortID, phy::PhyInfo> updateAllPhyInfoImpl() override {
     return {};
   }
   std::map<PortID, FabricEndpoint> getFabricConnectivity() const override {
