@@ -58,6 +58,8 @@ TEST_F(HwInDiscardsCounterTest, nullRouteHit) {
   auto verify = [=, this]() {
     PortID portId = masterLogicalInterfacePortIds()[0];
     auto portStatsBefore = getLatestPortStats(portId);
+    PortID otherPortId = masterLogicalInterfacePortIds()[1];
+    auto otherPortStatsBefore = getLatestPortStats(otherPortId);
     pumpTraffic(true);
     pumpTraffic(false);
     WITH_RETRIES({
@@ -72,6 +74,20 @@ TEST_F(HwInDiscardsCounterTest, nullRouteHit) {
       EXPECT_EVENTUALLY_EQ(
           0, *portStatsAfter.inDiscards_() - *portStatsBefore.inDiscards_());
     });
+    // Do a -ve test as well, discard counters should not increment
+    auto otherPortStatsAfter = getLatestPortStats(otherPortId);
+    EXPECT_EQ(
+        0,
+        *otherPortStatsAfter.inDiscardsRaw_() -
+            *otherPortStatsBefore.inDiscardsRaw_());
+    EXPECT_EQ(
+        0,
+        *otherPortStatsAfter.inDstNullDiscards_() -
+            *otherPortStatsBefore.inDstNullDiscards_());
+    EXPECT_EQ(
+        0,
+        *otherPortStatsAfter.inDiscards_() -
+            *otherPortStatsBefore.inDiscards_());
   };
   verifyAcrossWarmBoots(setup, verify);
 } // namespace facebook::fboss
