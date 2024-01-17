@@ -45,6 +45,17 @@ using facebook::fboss::SwitchRunState;
 
 namespace {
 
+// Convert std::map<PortID, phy::PhyInfo> to std::map<int, phy::PhyInfo>
+std::map<int, facebook::fboss::phy::PhyInfo> getPhyInfoForSwitchStats(
+    const std::map<facebook::fboss::PortID, facebook::fboss::phy::PhyInfo>&
+        phyInfo) {
+  std::map<int, facebook::fboss::phy::PhyInfo> phyInfoForSwitchStats;
+  for (auto& [portId, phyInfoPerPort] : phyInfo) {
+    phyInfoForSwitchStats.emplace(portId, phyInfoPerPort);
+  }
+  return phyInfoForSwitchStats;
+}
+
 /*
  * This function is executed periodically by the UpdateStats thread.
  */
@@ -54,6 +65,7 @@ void updateStats(
   if (hw->getRunState() >= SwitchRunState::CONFIGURED) {
     hw->updateStats();
     auto hwSwitchStats = hw->getHwSwitchStats();
+    hwSwitchStats.phyInfo() = getPhyInfoForSwitchStats(hw->updateAllPhyInfo());
     syncer->updateHwSwitchStats(std::move(hwSwitchStats));
   }
 }
