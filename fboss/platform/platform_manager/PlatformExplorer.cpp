@@ -39,6 +39,15 @@ std::optional<std::string> getPresenceFileContent(const std::string& path) {
   }
   return folly::trimWhitespace(value).str();
 }
+
+bool hasEnding(std::string const& input, std::string const& ending) {
+  if (input.length() >= ending.length()) {
+    return input.compare(
+               input.length() - ending.length(), ending.length(), ending) == 0;
+  } else {
+    return false;
+  }
+}
 } // namespace
 
 namespace facebook::fboss::platform::platform_manager {
@@ -518,6 +527,23 @@ void PlatformExplorer::createDeviceSymLink(
   } else if (linkParentPath.string() == "/run/devmap/gpiochips") {
     targetPath = std::filesystem::path(fmt::format(
         "/dev/gpiochip{}", dataStore_.getGpioChipNum(slotPath, deviceName)));
+  } else if (linkParentPath.string() == "/run/devmap/xcvrs") {
+    auto pciDevPath = dataStore_.getSysfsPath(devicePath);
+    auto expectedEnding =
+        fmt::format(".xcvr_ctrl.{}", dataStore_.getInstanceId(devicePath));
+    for (const auto& dirEntry :
+         std::filesystem::directory_iterator(pciDevPath)) {
+      if (hasEnding(dirEntry.path().string(), expectedEnding)) {
+        targetPath = dirEntry.path().string();
+      }
+    }
+    if (!targetPath) {
+      XLOG(ERR) << fmt::format(
+          "Couldn't find xcvr_ctrl directory under {}. DevicePath: {}",
+          pciDevPath,
+          devicePath);
+      return;
+    }
   } else {
     XLOG(ERR) << fmt::format("Symbolic link {} is not supported.", linkPath);
     return;

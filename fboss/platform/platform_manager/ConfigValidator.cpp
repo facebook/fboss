@@ -13,8 +13,14 @@ namespace {
 const re2::RE2 kPciDevOffsetRegex{"0x[0-9a-f]+"};
 const re2::RE2 kSymlinkRegex{"^/run/devmap/(?P<SymlinkDirs>[a-z0-9-]+)/.+"};
 const re2::RE2 kDevPathRegex{"/([A-Z]+_SLOT@[0-9]+/)*\\[.+\\]"};
-constexpr auto kSymlinkDirs =
-    {"eeproms", "sensors", "cplds", "fpgas", "i2c-busses", "gpiochips"};
+constexpr auto kSymlinkDirs = {
+    "eeproms",
+    "sensors",
+    "cplds",
+    "fpgas",
+    "i2c-busses",
+    "gpiochips",
+    "xcvrs"};
 } // namespace
 
 namespace facebook::fboss::platform::platform_manager {
