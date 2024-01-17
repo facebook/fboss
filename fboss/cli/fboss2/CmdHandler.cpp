@@ -477,7 +477,7 @@ const ValidAggMapType CmdHandler<CmdTypeT, CmdTypeTraits>::getValidAggs() {
             if constexpr (apache::thrift::is_thrift_struct_v<NestedType>) {
               apache::thrift::for_each_field(
                   NestedType(),
-                  [&, this](const ThriftField& meta, auto&& /*field_ref*/) {
+                  [&](const ThriftField& meta, auto&& /*field_ref*/) {
                     const auto& fieldType = *meta.type();
                     const auto& thriftBaseType = fieldType.getType();
 
