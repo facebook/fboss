@@ -33,6 +33,12 @@ void AgentHwTest::SetUp() {
   // Set watermark stats update interval to 0 so we always refresh BST stats
   // in each updateStats call
   FLAGS_update_watermark_stats_interval_s = 0;
+  // Don't send/receive periodic lldp packets. They will
+  // interfere with tests.
+  FLAGS_enable_lldp = false;
+  // Disable tun intf, else pkts from host will interfere
+  // with tests
+  FLAGS_tun_intf = false;
 
   AgentEnsembleSwitchConfigFn initialConfigFn =
       [this](const AgentEnsemble& ensemble) { return initialConfig(ensemble); };
