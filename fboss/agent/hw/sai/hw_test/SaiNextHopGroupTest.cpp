@@ -83,61 +83,61 @@ class SaiNextHopGroupTest : public SaiLinkStateDependentTests {
 };
 
 TEST_F(SaiNextHopGroupTest, addNextHopGroupWithUnresolvedNeighbors) {
-  auto setup = [=]() { addRoute(4); };
-  auto verify = [=]() { verifyMemberCount(0); };
+  auto setup = [=, this]() { addRoute(4); };
+  auto verify = [=, this]() { verifyMemberCount(0); };
   verifyAcrossWarmBoots(setup, verify);
 }
 
 TEST_F(SaiNextHopGroupTest, addNextHopGroupWithResolvedNeighbors) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     resolveNeighbors(4);
     addRoute(4);
   };
-  auto verify = [=]() { verifyMemberCount(4); };
+  auto verify = [=, this]() { verifyMemberCount(4); };
   verifyAcrossWarmBoots(setup, verify);
 }
 
 TEST_F(SaiNextHopGroupTest, addNextHopGroupThenResolveAll) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     addRoute(4);
     resolveNeighbors(4);
   };
-  auto verify = [=]() { verifyMemberCount(4); };
+  auto verify = [=, this]() { verifyMemberCount(4); };
   verifyAcrossWarmBoots(setup, verify);
 }
 
 TEST_F(SaiNextHopGroupTest, addNextHopGroupThenUnresolveAll) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     resolveNeighbors(4);
     addRoute(4);
     unresolveNeighbors(4);
   };
-  auto verify = [=]() { verifyMemberCount(0); };
+  auto verify = [=, this]() { verifyMemberCount(0); };
   verifyAcrossWarmBoots(setup, verify);
 }
 
 TEST_F(SaiNextHopGroupTest, addNextHopGroupThenUnresolveSome) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     resolveNeighbors(4);
     addRoute(4);
     unresolveNeighbors(2);
   };
-  auto verify = [=]() { verifyMemberCount(2); };
+  auto verify = [=, this]() { verifyMemberCount(2); };
   verifyAcrossWarmBoots(setup, verify);
 }
 
 TEST_F(SaiNextHopGroupTest, addNextHopGroupPortDown) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     resolveNeighbors(4);
     addRoute(4);
     bringDownPort(masterLogicalInterfacePortIds()[0]);
   };
-  auto verify = [=]() { verifyMemberCount(3); };
+  auto verify = [=, this]() { verifyMemberCount(3); };
   verifyAcrossWarmBoots(setup, verify);
 }
 
 TEST_F(SaiNextHopGroupTest, addNextHopGroupInterfacePortDownInterfacePortUp) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     resolveNeighbors(4);
     addRoute(4);
     bringDownPort(masterLogicalInterfacePortIds()[0]);
@@ -145,6 +145,6 @@ TEST_F(SaiNextHopGroupTest, addNextHopGroupInterfacePortDownInterfacePortUp) {
     bringUpPort(masterLogicalInterfacePortIds()[0]);
     resolveNeighbors(1);
   };
-  auto verify = [=]() { verifyMemberCount(4); };
+  auto verify = [=, this]() { verifyMemberCount(4); };
   verifyAcrossWarmBoots(setup, verify);
 }

@@ -123,7 +123,7 @@ class SaiRouteRollbackTest : public SaiRollbackTest {
       bool rollbackNonEcmp,
       int numIters,
       bool setupTrunk = false) {
-    auto setup = [=]() {
+    auto setup = [=, this]() {
       if (setupTrunk) {
         auto cfg = initialConfig();
         utility::addAggPort(
@@ -135,7 +135,7 @@ class SaiRouteRollbackTest : public SaiRollbackTest {
         applyNewState(utility::enableTrunkPorts(state));
       }
     };
-    auto verify = [=]() {
+    auto verify = [=, this]() {
       resolveNextHops(kEcmpWidth);
       // Cache rollback states
       auto noRouteState = getProgrammedState();
