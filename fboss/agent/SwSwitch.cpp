@@ -732,7 +732,14 @@ void SwSwitch::updateStats() {
     auto runMode = (*agentConfig_.rlock())->getRunMode();
     if (runMode == cfg::AgentRunMode::MONO) {
       phyInfo = multiHwSwitchHandler_->updateAllPhyInfo();
-    } // else get the PhyInfo from HwSwitchStats
+    } else {
+      auto lockedStats = hwSwitchStats_.rlock();
+      for (auto& [_, hwSwitchStats] : *lockedStats) {
+        for (auto& [portID, phyInfoEntry] : *hwSwitchStats.phyInfo()) {
+          phyInfo.insert({PortID(portID), phyInfoEntry});
+        }
+      }
+    }
   }
   // Update Snapshots only if PhyInfo is valid
   if (!phyInfo.empty()) {
