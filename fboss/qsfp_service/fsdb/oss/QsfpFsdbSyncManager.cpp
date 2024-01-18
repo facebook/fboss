@@ -1,28 +1,30 @@
-/*
- *  Copyright (c) 2021-present, Facebook, Inc.
- *  All rights reserved.
- *
- *  This source code is licensed under the BSD-style license found in the
- *  LICENSE file in the root directory of this source tree. An additional grant
- *  of patent rights can be found in the PATENTS file in the same directory.
- *
- */
+// (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/qsfp_service/fsdb/QsfpFsdbSyncManager.h"
+#include "fboss/fsdb/if/FsdbModel.h"
+
+namespace {
+
+const thriftpath::RootThriftPath<facebook::fboss::fsdb::FsdbOperStateRoot>
+    stateRoot;
+const thriftpath::RootThriftPath<facebook::fboss::fsdb::FsdbOperStatsRoot>
+    statsRoot;
+
+} // anonymous namespace
 
 namespace facebook {
 namespace fboss {
 
 std::vector<std::string> QsfpFsdbSyncManager::getStatePath() {
-  return {"qsfp_service"};
+  return stateRoot.qsfp_service().tokens();
 }
 
 std::vector<std::string> QsfpFsdbSyncManager::getStatsPath() {
-  return {"qsfp_service"};
+  return statsRoot.qsfp_service().tokens();
 }
 
 std::vector<std::string> QsfpFsdbSyncManager::getConfigPath() {
-  return {"qsfp_service", "config"};
+  return stateRoot.qsfp_service().config().tokens();
 }
 
 } // namespace fboss
