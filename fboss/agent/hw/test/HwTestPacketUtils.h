@@ -74,13 +74,6 @@ std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
     const UDPHeader& udpHdr,
     const std::vector<uint8_t>& payload);
 
-template <typename IPHDR>
-std::unique_ptr<facebook::fboss::TxPacket> makeIpPacket(
-    const HwSwitch* hw,
-    const EthHdr& ethHdr,
-    const IPHDR& ipHdr,
-    const std::vector<uint8_t>& payload);
-
 std::unique_ptr<facebook::fboss::TxPacket> makeIpTxPacket(
     AllocatePktFn allocatePkt,
     std::optional<VlanID> vlan,

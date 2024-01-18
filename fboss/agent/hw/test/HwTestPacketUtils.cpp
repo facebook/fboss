@@ -41,6 +41,24 @@ using folly::io::RWPrivateCursor;
 
 namespace {
 auto kDefaultPayload = std::vector<uint8_t>(256, 0xff);
+template <typename IPHDR>
+void makeIpPacket(
+    std::unique_ptr<facebook::fboss::TxPacket>& txPacket,
+    const EthHdr& ethHdr,
+    const IPHDR& ipHdr,
+    const std::vector<uint8_t>& payload) {
+  folly::io::RWPrivateCursor rwCursor(txPacket->buf());
+  // Write EthHdr
+  writeEthHeader(
+      txPacket,
+      &rwCursor,
+      ethHdr.getDstMac(),
+      ethHdr.getSrcMac(),
+      ethHdr.getVlanTags(),
+      ethHdr.getEtherType());
+  ipHdr.serialize(&rwCursor);
+  rwCursor.push(payload.data(), payload.size());
+}
 } // namespace
 
 namespace facebook::fboss::utility {
@@ -111,27 +129,6 @@ std::unique_ptr<facebook::fboss::TxPacket> makeEthTxPacket(
       payload);
 }
 
-template <typename IPHDR>
-void makeIpTxPacket(
-    std::unique_ptr<facebook::fboss::TxPacket>& txPacket,
-    const EthHdr& ethHdr,
-    const IPHDR& ipHdr,
-    const std::vector<uint8_t>& payload) {
-  folly::io::RWPrivateCursor rwCursor(txPacket->buf());
-  // Write EthHdr
-  writeEthHeader(
-      txPacket,
-      &rwCursor,
-      ethHdr.getDstMac(),
-      ethHdr.getSrcMac(),
-      ethHdr.getVlanTags(),
-      ethHdr.getEtherType());
-  ipHdr.serialize(&rwCursor);
-
-  folly::io::Cursor payloadStart(rwCursor);
-  rwCursor.push(payload.data(), payload.size());
-}
-
 std::unique_ptr<facebook::fboss::TxPacket> makeIpTxPacket(
     AllocatePktFn allocatePkt,
     std::optional<VlanID> vlan,
@@ -157,7 +154,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpTxPacket(
 
   auto txPacket =
       allocatePkt(EthHdr::SIZE + ipHdr.size() + payloadBytes.size());
-  makeIpTxPacket(txPacket, ethHdr, ipHdr, payloadBytes);
+  makeIpPacket(txPacket, ethHdr, ipHdr, payloadBytes);
   return txPacket;
 }
 
@@ -189,7 +186,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpTxPacket(
 
   auto txPacket =
       allocatePkt(EthHdr::SIZE + ipHdr.size() + payloadBytes.size());
-  makeIpTxPacket(txPacket, ethHdr, ipHdr, payloadBytes);
+  makeIpPacket(txPacket, ethHdr, ipHdr, payloadBytes);
   return txPacket;
 }
 
