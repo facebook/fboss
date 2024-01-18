@@ -75,7 +75,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
     const std::vector<uint8_t>& payload);
 
 std::unique_ptr<facebook::fboss::TxPacket> makeIpTxPacket(
-    AllocatePktFn allocatePkt,
+    const HwSwitch* hw,
     std::optional<VlanID> vlan,
     folly::MacAddress srcMac,
     folly::MacAddress dstMac,
@@ -87,7 +87,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpTxPacket(
         std::optional<std::vector<uint8_t>>());
 
 std::unique_ptr<facebook::fboss::TxPacket> makeIpTxPacket(
-    AllocatePktFn allocatePkt,
+    const HwSwitch* hw,
     std::optional<VlanID> vlan,
     folly::MacAddress srcMac,
     folly::MacAddress dstMac,
@@ -99,7 +99,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpTxPacket(
         std::optional<std::vector<uint8_t>>());
 
 std::unique_ptr<facebook::fboss::TxPacket> makeIpTxPacket(
-    AllocatePktFn allocatePkt,
+    const HwSwitch* hw,
     std::optional<VlanID> vlan,
     folly::MacAddress srcMac,
     folly::MacAddress dstMac,

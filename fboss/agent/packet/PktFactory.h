@@ -336,6 +336,43 @@ std::unique_ptr<TxPacket> makeEthTxPacket(
     folly::MacAddress dstMac,
     facebook::fboss::ETHERTYPE etherType,
     std::optional<std::vector<uint8_t>> payload);
+
+std::unique_ptr<facebook::fboss::TxPacket> makeIpTxPacket(
+    AllocatePktFn allocatePkt,
+    std::optional<VlanID> vlan,
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    const folly::IPAddressV6& srcIp,
+    const folly::IPAddressV6& dstIp,
+    uint8_t trafficClass = 0,
+    uint8_t hopLimit = 255,
+    std::optional<std::vector<uint8_t>> payload =
+        std::optional<std::vector<uint8_t>>());
+
+std::unique_ptr<facebook::fboss::TxPacket> makeIpTxPacket(
+    AllocatePktFn allocatePkt,
+    std::optional<VlanID> vlan,
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    const folly::IPAddressV4& srcIp,
+    const folly::IPAddressV4& dstIp,
+    uint8_t dscp = 0,
+    uint8_t ttl = 255,
+    std::optional<std::vector<uint8_t>> payload =
+        std::optional<std::vector<uint8_t>>());
+
+std::unique_ptr<facebook::fboss::TxPacket> makeIpTxPacket(
+    AllocatePktFn allocatePkt,
+    std::optional<VlanID> vlan,
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    const folly::IPAddress& srcIp,
+    const folly::IPAddress& dstIp,
+    uint8_t trafficClass = 0,
+    uint8_t hopLimit = 255,
+    std::optional<std::vector<uint8_t>> payload =
+        std::optional<std::vector<uint8_t>>());
+
 } // namespace utility
 
 template <typename CursorType>
