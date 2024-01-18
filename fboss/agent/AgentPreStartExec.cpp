@@ -62,7 +62,7 @@ void AgentPreStartExec::run(
         executor->stopService(unitName, false);
       }
       executor->disableService("fboss_hw_agent@.service", false);
-      executor->runCommand({"/usr/bin/pkill", "wedge_hwagent"}, false);
+      executor->runCommand({"/usr/bin/pkill", "fboss_hw_agent"}, false);
     }
     return;
   }

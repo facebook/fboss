@@ -363,7 +363,7 @@ class AgentPreStartExecTests : public ::testing::Test {
                                              : getAsicSdkVersion(sdkVersion));
     createDirectoryTree(binDir);
     touchFile(binDir + "/wedge_agent");
-    touchFile(binDir + "/wedge_hwagent");
+    touchFile(binDir + "/fboss_hw_agent");
     createDirectory(binDir + "/db");
     touchFile(util_->getPackageDirectory() + "/fboss_sw_agent");
   }
