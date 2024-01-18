@@ -909,7 +909,9 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
       // However we still want to program the encap info (MAC,
       // encap ID) in HW, so we continue to send the entry to
       // send it to SDK, but with noHostRoute flag set.
-      neighbor.noHostRoute() = isLocal(node);
+      neighbor.noHostRoute() = isLocal(node) &&
+          // J2 being debugged in CS00012326390
+          node->getAsicType() != cfg::AsicType::ASIC_TYPE_JERICHO2;
       if (network.first.isV6()) {
         ndpTable.insert({*neighbor.ipaddress(), neighbor});
       } else {
