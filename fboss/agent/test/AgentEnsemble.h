@@ -33,7 +33,7 @@ class AgentEnsemble : public TestEnsembleIf {
  public:
   AgentEnsemble() {}
   explicit AgentEnsemble(const std::string& configFileName);
-  ~AgentEnsemble();
+  virtual ~AgentEnsemble() override;
   using TestEnsembleIf::masterLogicalPortIds;
 
   void setupEnsemble(
@@ -176,6 +176,14 @@ class AgentEnsemble : public TestEnsembleIf {
   void registerStateObserver(StateObserver* observer, const std::string& name)
       override;
   void unregisterStateObserver(StateObserver* observer) override;
+
+ protected:
+  void joinAsyncInitThread() {
+    if (asyncInitThread_) {
+      asyncInitThread_->join();
+      asyncInitThread_.reset();
+    }
+  }
 
  private:
   void writeConfig(const cfg::SwitchConfig& config);

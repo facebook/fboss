@@ -5,6 +5,11 @@
 namespace facebook::fboss {
 MultiSwitchAgentEnsemble::~MultiSwitchAgentEnsemble() {
   agentInitializer_->stopAgent(false);
+  // wait for async thread to finish to prevent race between
+  // - stopping of thrift server
+  // - destruction of agentInitializer_ triggering destruction of thrift server
+  // this race can cause accessing data which has already been destroyed
+  joinAsyncInitThread();
 }
 
 const SwAgentInitializer* MultiSwitchAgentEnsemble::agentInitializer() const {

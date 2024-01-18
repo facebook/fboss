@@ -137,8 +137,7 @@ void AgentEnsemble::writeConfig(
 }
 
 AgentEnsemble::~AgentEnsemble() {
-  asyncInitThread_->join();
-  asyncInitThread_.reset();
+  joinAsyncInitThread();
 }
 
 void AgentEnsemble::applyNewConfig(

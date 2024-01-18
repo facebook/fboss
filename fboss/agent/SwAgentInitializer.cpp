@@ -255,6 +255,7 @@ int SwAgentInitializer::initAgent(HwSwitchCallback* callback) {
              << FLAGS_migrated_port;
   // @lint-ignore CLANGTIDY
   server_->serve();
+  server_.reset();
   return 0;
 }
 } // namespace facebook::fboss
