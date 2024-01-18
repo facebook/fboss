@@ -90,8 +90,6 @@ SwitchFlags SwSwitchInitializer::setupFlags() {
 }
 
 void SwSwitchInitializer::stopFunctionScheduler() {
-  std::unique_lock<std::mutex> lk(initLock_);
-  initCondition_.wait(lk, [&] { return sw_->isFullyConfigured(); });
   if (fs_) {
     fs_->shutdown();
   }
