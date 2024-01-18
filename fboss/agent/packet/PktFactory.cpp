@@ -336,6 +336,33 @@ EthHdr makeEthHdr(
   EthHdr ethHdr(dstMac, srcMac, vlanTags, static_cast<uint16_t>(etherType));
   return ethHdr;
 }
+
+std::unique_ptr<TxPacket> makeEthTxPacket(
+    const AllocatePktFn& allocatePacket,
+    std::optional<VlanID> vlan,
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    facebook::fboss::ETHERTYPE etherType,
+    std::optional<std::vector<uint8_t>> payload) {
+  if (!payload) {
+    payload = kDefaultPayload;
+  }
+  const auto& payloadBytes = payload.value();
+  // EthHdr
+  auto ethHdr = makeEthHdr(srcMac, dstMac, vlan, etherType);
+  auto txPacket = allocatePacket(EthHdr::SIZE + payloadBytes.size());
+
+  folly::io::RWPrivateCursor rwCursor(txPacket->buf());
+  // Write EthHdr
+  txPacket->writeEthHeader(
+      &rwCursor,
+      ethHdr.getDstMac(),
+      ethHdr.getSrcMac(),
+      vlan,
+      ethHdr.getEtherType());
+  rwCursor.push(payloadBytes.data(), payloadBytes.size());
+  return txPacket;
+}
 template class IPPacket<folly::IPAddressV4>;
 template class IPPacket<folly::IPAddressV6>;
 

@@ -102,25 +102,13 @@ std::unique_ptr<facebook::fboss::TxPacket> makeEthTxPacket(
     folly::MacAddress dstMac,
     facebook::fboss::ETHERTYPE etherType,
     std::optional<std::vector<uint8_t>> payload) {
-  if (!payload) {
-    payload = kDefaultPayload;
-  }
-  const auto& payloadBytes = payload.value();
-  // EthHdr
-  auto ethHdr = makeEthHdr(srcMac, dstMac, vlan, etherType);
-  auto txPacket = hw->allocatePacket(EthHdr::SIZE + payloadBytes.size());
-
-  folly::io::RWPrivateCursor rwCursor(txPacket->buf());
-  // Write EthHdr
-  txPacket->writeEthHeader(
-      &rwCursor,
-      ethHdr.getDstMac(),
-      ethHdr.getSrcMac(),
+  return makeEthTxPacket(
+      [hw](auto size) { return hw->allocatePacket(size); },
       vlan,
-      ethHdr.getEtherType());
-  folly::io::Cursor payloadStart(rwCursor);
-  rwCursor.push(payloadBytes.data(), payloadBytes.size());
-  return txPacket;
+      srcMac,
+      dstMac,
+      etherType,
+      payload);
 }
 
 template <typename IPHDR>

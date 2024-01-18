@@ -22,6 +22,8 @@ class HwSwitch;
 
 namespace utility {
 
+using AllocatePktFn = std::function<std::unique_ptr<TxPacket>(uint32_t)>;
+
 template <typename AddrT>
 class IPPacket {
  public:
@@ -326,6 +328,14 @@ EthHdr makeEthHdr(
     folly::MacAddress dstMac,
     std::optional<VlanID> vlan,
     ETHERTYPE etherType);
+
+std::unique_ptr<TxPacket> makeEthTxPacket(
+    const AllocatePktFn& allocateTxPkt,
+    std::optional<VlanID> vlan,
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    facebook::fboss::ETHERTYPE etherType,
+    std::optional<std::vector<uint8_t>> payload);
 } // namespace utility
 
 template <typename CursorType>
