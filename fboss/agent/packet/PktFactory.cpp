@@ -321,6 +321,21 @@ makeEthFrame(const TxPacket& txPkt, folly::MacAddress dstMac, VlanID vlan) {
   return frame;
 }
 
+EthHdr makeEthHdr(
+    MacAddress srcMac,
+    MacAddress dstMac,
+    std::optional<VlanID> vlan,
+    ETHERTYPE etherType) {
+  EthHdr::VlanTags_t vlanTags;
+
+  if (vlan.has_value()) {
+    vlanTags.push_back(VlanTag(
+        vlan.value(), static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_VLAN)));
+  }
+
+  EthHdr ethHdr(dstMac, srcMac, vlanTags, static_cast<uint16_t>(etherType));
+  return ethHdr;
+}
 template class IPPacket<folly::IPAddressV4>;
 template class IPPacket<folly::IPAddressV6>;
 

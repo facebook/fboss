@@ -24,6 +24,7 @@
 #include "fboss/agent/packet/IPProto.h"
 #include "fboss/agent/packet/IPv4Hdr.h"
 #include "fboss/agent/packet/IPv6Hdr.h"
+#include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/packet/TCPHeader.h"
 #include "fboss/agent/packet/UDPHeader.h"
 #include "fboss/agent/state/Interface.h"
@@ -40,39 +41,6 @@ using folly::io::RWPrivateCursor;
 
 namespace {
 auto kDefaultPayload = std::vector<uint8_t>(256, 0xff);
-
-EthHdr makeEthHdr(
-    MacAddress srcMac,
-    MacAddress dstMac,
-    std::optional<VlanID> vlan,
-    ETHERTYPE etherType) {
-  EthHdr::VlanTags_t vlanTags;
-
-  if (vlan.has_value()) {
-    vlanTags.push_back(VlanTag(
-        vlan.value(), static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_VLAN)));
-  }
-
-  EthHdr ethHdr(dstMac, srcMac, vlanTags, static_cast<uint16_t>(etherType));
-  return ethHdr;
-}
-
-template <typename CursorType>
-void writeEthHeader(
-    const std::unique_ptr<TxPacket>& txPacket,
-    CursorType* cursor,
-    folly::MacAddress dst,
-    folly::MacAddress src,
-    std::vector<VlanTag> vlanTags,
-    uint16_t protocol) {
-  if (vlanTags.size() != 0) {
-    txPacket->writeEthHeader(
-        cursor, dst, src, VlanID(vlanTags[0].vid()), protocol);
-  } else {
-    txPacket->writeEthHeader(cursor, dst, src, protocol);
-  }
-}
-
 } // namespace
 
 namespace facebook::fboss::utility {
