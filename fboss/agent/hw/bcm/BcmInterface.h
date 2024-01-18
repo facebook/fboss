@@ -796,6 +796,12 @@ class BcmInterface {
       int speed,
       bcm_port_duplex_t duplex,
       int bit_times) = 0;
+
+  virtual int bcm_port_control_phy_timesync_set(
+      int unit,
+      bcm_port_t port,
+      bcm_port_control_phy_timesync_t type,
+      uint64 value) = 0;
 };
 
 } // namespace facebook::fboss

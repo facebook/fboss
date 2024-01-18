@@ -2117,6 +2117,12 @@ int __real_bcm_port_ifg_set(
     bcm_port_duplex_t duplex,
     int bit_times);
 
+int __real_bcm_port_control_phy_timesync_set(
+    int unit,
+    bcm_port_t port,
+    bcm_port_control_phy_timesync_t type,
+    uint64 value);
+
 } // extern "C"
 
 using namespace facebook::fboss;
@@ -5830,6 +5836,14 @@ int __wrap_bcm_port_ifg_set(
     bcm_port_duplex_t duplex,
     int bit_times) {
   CALL_WRAPPERS_RV(bcm_port_ifg_set(unit, port, speed, duplex, bit_times));
+}
+
+int __wrap_bcm_port_control_phy_timesync_set(
+    int unit,
+    bcm_port_t port,
+    bcm_port_control_phy_timesync_t type,
+    uint64 value) {
+  CALL_WRAPPERS_RV(bcm_port_control_phy_timesync_set(unit, port, type, value));
 }
 
 } // extern "C"

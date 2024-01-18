@@ -4561,4 +4561,15 @@ int BcmCinter::bcm_port_ifg_set(
   return 0;
 }
 
+int BcmCinter::bcm_port_control_phy_timesync_set(
+    int unit,
+    bcm_port_t port,
+    bcm_port_control_phy_timesync_t type,
+    uint64 value) {
+  writeCintLines(wrapFunc(to<string>(
+      "bcm_port_control_phy_timesync_set(",
+      makeParamStr(unit, port, type, value),
+      ")")));
+  return 0;
+}
 } // namespace facebook::fboss
