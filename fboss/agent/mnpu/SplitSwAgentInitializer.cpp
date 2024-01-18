@@ -48,18 +48,23 @@ void SplitSwAgentInitializer::handleExitSignal() {
       removeFile(exitForColdBootFile);
     };
     if (checkFileExists(exitForColdBootFile)) {
-      stopServices();
-      // hardware agents are expected to terminate after software agents
-      // so revert to min-alpm state
-      sw_->stop(false /* gracefulStop */, true /* revertToMinAlpmState */);
-      sw_->getHwSwitchHandler()->stop();
-      initializer_.reset();
+      stopAgent(false);
     } else {
-      /* graceful exit to shutdown for warm boot*/
       SwAgentInitializer::handleExitSignal();
     }
   }
   exit(0);
+}
+
+void SplitSwAgentInitializer::stopAgent(bool setupWarmboot) {
+  if (setupWarmboot) {
+    handleExitSignal();
+  } else {
+    sw_->stop(false /* gracefulStop */, true /* revertToMinAlpmState */);
+    sw_->getHwSwitchHandler()->stop();
+    stopServices();
+    initializer_.reset();
+  }
 }
 
 } // namespace facebook::fboss

@@ -29,6 +29,8 @@ class SplitSwAgentInitializer : public SwAgentInitializer {
 
   void handleExitSignal() override;
 
+  void stopAgent(bool setupWarmboot) override;
+
  private:
   AgentDirectoryUtil agentDirectoryUtil_;
 };
