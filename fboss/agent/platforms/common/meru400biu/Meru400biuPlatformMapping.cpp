@@ -25,7 +25,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "rcy1",
+                "chip": "NPU-0-rcy1",
                 "lane": 0
               }
             }
@@ -44,7 +44,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "rcy1",
+                      "chip": "NPU-0-rcy1",
                       "lane": 0
                     }
                   }
@@ -61,7 +61,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC49",
+                "chip": "NPU-0-BC49",
                 "lane": 0
               },
               "z": {
@@ -73,7 +73,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC49",
+                "chip": "NPU-0-BC49",
                 "lane": 1
               },
               "z": {
@@ -85,7 +85,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC49",
+                "chip": "NPU-0-BC49",
                 "lane": 2
               },
               "z": {
@@ -97,7 +97,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC49",
+                "chip": "NPU-0-BC49",
                 "lane": 3
               },
               "z": {
@@ -119,25 +119,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC49",
+                      "chip": "NPU-0-BC49",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC49",
+                      "chip": "NPU-0-BC49",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC49",
+                      "chip": "NPU-0-BC49",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC49",
+                      "chip": "NPU-0-BC49",
                       "lane": 3
                     }
                   }
@@ -175,25 +175,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC49",
+                      "chip": "NPU-0-BC49",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC49",
+                      "chip": "NPU-0-BC49",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC49",
+                      "chip": "NPU-0-BC49",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC49",
+                      "chip": "NPU-0-BC49",
                       "lane": 3
                     }
                   }
@@ -231,25 +231,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC49",
+                      "chip": "NPU-0-BC49",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC49",
+                      "chip": "NPU-0-BC49",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC49",
+                      "chip": "NPU-0-BC49",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC49",
+                      "chip": "NPU-0-BC49",
                       "lane": 3
                     }
                   }
@@ -287,7 +287,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC49",
+                      "chip": "NPU-0-BC49",
                       "lane": 0
                     }
                   }
@@ -307,7 +307,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC49",
+                      "chip": "NPU-0-BC49",
                       "lane": 0
                     }
                   }
@@ -332,7 +332,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC50",
+                "chip": "NPU-0-BC50",
                 "lane": 0
               },
               "z": {
@@ -344,7 +344,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC50",
+                "chip": "NPU-0-BC50",
                 "lane": 1
               },
               "z": {
@@ -356,7 +356,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC50",
+                "chip": "NPU-0-BC50",
                 "lane": 2
               },
               "z": {
@@ -368,7 +368,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC50",
+                "chip": "NPU-0-BC50",
                 "lane": 3
               },
               "z": {
@@ -390,25 +390,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC50",
+                      "chip": "NPU-0-BC50",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC50",
+                      "chip": "NPU-0-BC50",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC50",
+                      "chip": "NPU-0-BC50",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC50",
+                      "chip": "NPU-0-BC50",
                       "lane": 3
                     }
                   }
@@ -446,25 +446,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC50",
+                      "chip": "NPU-0-BC50",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC50",
+                      "chip": "NPU-0-BC50",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC50",
+                      "chip": "NPU-0-BC50",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC50",
+                      "chip": "NPU-0-BC50",
                       "lane": 3
                     }
                   }
@@ -502,25 +502,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC50",
+                      "chip": "NPU-0-BC50",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC50",
+                      "chip": "NPU-0-BC50",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC50",
+                      "chip": "NPU-0-BC50",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC50",
+                      "chip": "NPU-0-BC50",
                       "lane": 3
                     }
                   }
@@ -558,7 +558,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC50",
+                      "chip": "NPU-0-BC50",
                       "lane": 0
                     }
                   }
@@ -578,7 +578,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC50",
+                      "chip": "NPU-0-BC50",
                       "lane": 0
                     }
                   }
@@ -603,7 +603,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC51",
+                "chip": "NPU-0-BC51",
                 "lane": 0
               },
               "z": {
@@ -615,7 +615,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC51",
+                "chip": "NPU-0-BC51",
                 "lane": 1
               },
               "z": {
@@ -627,7 +627,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC51",
+                "chip": "NPU-0-BC51",
                 "lane": 2
               },
               "z": {
@@ -639,7 +639,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC51",
+                "chip": "NPU-0-BC51",
                 "lane": 3
               },
               "z": {
@@ -661,25 +661,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC51",
+                      "chip": "NPU-0-BC51",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC51",
+                      "chip": "NPU-0-BC51",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC51",
+                      "chip": "NPU-0-BC51",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC51",
+                      "chip": "NPU-0-BC51",
                       "lane": 3
                     }
                   }
@@ -717,25 +717,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC51",
+                      "chip": "NPU-0-BC51",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC51",
+                      "chip": "NPU-0-BC51",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC51",
+                      "chip": "NPU-0-BC51",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC51",
+                      "chip": "NPU-0-BC51",
                       "lane": 3
                     }
                   }
@@ -773,25 +773,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC51",
+                      "chip": "NPU-0-BC51",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC51",
+                      "chip": "NPU-0-BC51",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC51",
+                      "chip": "NPU-0-BC51",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC51",
+                      "chip": "NPU-0-BC51",
                       "lane": 3
                     }
                   }
@@ -829,7 +829,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC51",
+                      "chip": "NPU-0-BC51",
                       "lane": 0
                     }
                   }
@@ -849,7 +849,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC51",
+                      "chip": "NPU-0-BC51",
                       "lane": 0
                     }
                   }
@@ -874,7 +874,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC52",
+                "chip": "NPU-0-BC52",
                 "lane": 0
               },
               "z": {
@@ -886,7 +886,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC52",
+                "chip": "NPU-0-BC52",
                 "lane": 1
               },
               "z": {
@@ -898,7 +898,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC52",
+                "chip": "NPU-0-BC52",
                 "lane": 2
               },
               "z": {
@@ -910,7 +910,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC52",
+                "chip": "NPU-0-BC52",
                 "lane": 3
               },
               "z": {
@@ -932,25 +932,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC52",
+                      "chip": "NPU-0-BC52",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC52",
+                      "chip": "NPU-0-BC52",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC52",
+                      "chip": "NPU-0-BC52",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC52",
+                      "chip": "NPU-0-BC52",
                       "lane": 3
                     }
                   }
@@ -988,25 +988,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC52",
+                      "chip": "NPU-0-BC52",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC52",
+                      "chip": "NPU-0-BC52",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC52",
+                      "chip": "NPU-0-BC52",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC52",
+                      "chip": "NPU-0-BC52",
                       "lane": 3
                     }
                   }
@@ -1044,25 +1044,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC52",
+                      "chip": "NPU-0-BC52",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC52",
+                      "chip": "NPU-0-BC52",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC52",
+                      "chip": "NPU-0-BC52",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC52",
+                      "chip": "NPU-0-BC52",
                       "lane": 3
                     }
                   }
@@ -1100,7 +1100,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC52",
+                      "chip": "NPU-0-BC52",
                       "lane": 0
                     }
                   }
@@ -1120,7 +1120,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC52",
+                      "chip": "NPU-0-BC52",
                       "lane": 0
                     }
                   }
@@ -1145,7 +1145,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC53",
+                "chip": "NPU-0-BC53",
                 "lane": 0
               },
               "z": {
@@ -1157,7 +1157,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC53",
+                "chip": "NPU-0-BC53",
                 "lane": 1
               },
               "z": {
@@ -1169,7 +1169,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC53",
+                "chip": "NPU-0-BC53",
                 "lane": 2
               },
               "z": {
@@ -1181,7 +1181,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC53",
+                "chip": "NPU-0-BC53",
                 "lane": 3
               },
               "z": {
@@ -1203,25 +1203,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC53",
+                      "chip": "NPU-0-BC53",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC53",
+                      "chip": "NPU-0-BC53",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC53",
+                      "chip": "NPU-0-BC53",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC53",
+                      "chip": "NPU-0-BC53",
                       "lane": 3
                     }
                   }
@@ -1259,25 +1259,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC53",
+                      "chip": "NPU-0-BC53",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC53",
+                      "chip": "NPU-0-BC53",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC53",
+                      "chip": "NPU-0-BC53",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC53",
+                      "chip": "NPU-0-BC53",
                       "lane": 3
                     }
                   }
@@ -1315,25 +1315,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC53",
+                      "chip": "NPU-0-BC53",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC53",
+                      "chip": "NPU-0-BC53",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC53",
+                      "chip": "NPU-0-BC53",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC53",
+                      "chip": "NPU-0-BC53",
                       "lane": 3
                     }
                   }
@@ -1371,7 +1371,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC53",
+                      "chip": "NPU-0-BC53",
                       "lane": 0
                     }
                   }
@@ -1391,7 +1391,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC53",
+                      "chip": "NPU-0-BC53",
                       "lane": 0
                     }
                   }
@@ -1416,7 +1416,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC54",
+                "chip": "NPU-0-BC54",
                 "lane": 0
               },
               "z": {
@@ -1428,7 +1428,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC54",
+                "chip": "NPU-0-BC54",
                 "lane": 1
               },
               "z": {
@@ -1440,7 +1440,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC54",
+                "chip": "NPU-0-BC54",
                 "lane": 2
               },
               "z": {
@@ -1452,7 +1452,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC54",
+                "chip": "NPU-0-BC54",
                 "lane": 3
               },
               "z": {
@@ -1474,25 +1474,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC54",
+                      "chip": "NPU-0-BC54",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC54",
+                      "chip": "NPU-0-BC54",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC54",
+                      "chip": "NPU-0-BC54",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC54",
+                      "chip": "NPU-0-BC54",
                       "lane": 3
                     }
                   }
@@ -1530,25 +1530,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC54",
+                      "chip": "NPU-0-BC54",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC54",
+                      "chip": "NPU-0-BC54",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC54",
+                      "chip": "NPU-0-BC54",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC54",
+                      "chip": "NPU-0-BC54",
                       "lane": 3
                     }
                   }
@@ -1586,25 +1586,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC54",
+                      "chip": "NPU-0-BC54",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC54",
+                      "chip": "NPU-0-BC54",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC54",
+                      "chip": "NPU-0-BC54",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC54",
+                      "chip": "NPU-0-BC54",
                       "lane": 3
                     }
                   }
@@ -1642,7 +1642,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC54",
+                      "chip": "NPU-0-BC54",
                       "lane": 0
                     }
                   }
@@ -1662,7 +1662,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC54",
+                      "chip": "NPU-0-BC54",
                       "lane": 0
                     }
                   }
@@ -1687,7 +1687,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC55",
+                "chip": "NPU-0-BC55",
                 "lane": 0
               },
               "z": {
@@ -1699,7 +1699,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC55",
+                "chip": "NPU-0-BC55",
                 "lane": 1
               },
               "z": {
@@ -1711,7 +1711,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC55",
+                "chip": "NPU-0-BC55",
                 "lane": 2
               },
               "z": {
@@ -1723,7 +1723,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC55",
+                "chip": "NPU-0-BC55",
                 "lane": 3
               },
               "z": {
@@ -1745,25 +1745,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC55",
+                      "chip": "NPU-0-BC55",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC55",
+                      "chip": "NPU-0-BC55",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC55",
+                      "chip": "NPU-0-BC55",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC55",
+                      "chip": "NPU-0-BC55",
                       "lane": 3
                     }
                   }
@@ -1801,25 +1801,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC55",
+                      "chip": "NPU-0-BC55",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC55",
+                      "chip": "NPU-0-BC55",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC55",
+                      "chip": "NPU-0-BC55",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC55",
+                      "chip": "NPU-0-BC55",
                       "lane": 3
                     }
                   }
@@ -1857,25 +1857,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC55",
+                      "chip": "NPU-0-BC55",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC55",
+                      "chip": "NPU-0-BC55",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC55",
+                      "chip": "NPU-0-BC55",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC55",
+                      "chip": "NPU-0-BC55",
                       "lane": 3
                     }
                   }
@@ -1913,7 +1913,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC55",
+                      "chip": "NPU-0-BC55",
                       "lane": 0
                     }
                   }
@@ -1933,7 +1933,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC55",
+                      "chip": "NPU-0-BC55",
                       "lane": 0
                     }
                   }
@@ -1958,7 +1958,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC56",
+                "chip": "NPU-0-BC56",
                 "lane": 0
               },
               "z": {
@@ -1970,7 +1970,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC56",
+                "chip": "NPU-0-BC56",
                 "lane": 1
               },
               "z": {
@@ -1982,7 +1982,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC56",
+                "chip": "NPU-0-BC56",
                 "lane": 2
               },
               "z": {
@@ -1994,7 +1994,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC56",
+                "chip": "NPU-0-BC56",
                 "lane": 3
               },
               "z": {
@@ -2016,25 +2016,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC56",
+                      "chip": "NPU-0-BC56",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC56",
+                      "chip": "NPU-0-BC56",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC56",
+                      "chip": "NPU-0-BC56",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC56",
+                      "chip": "NPU-0-BC56",
                       "lane": 3
                     }
                   }
@@ -2072,25 +2072,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC56",
+                      "chip": "NPU-0-BC56",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC56",
+                      "chip": "NPU-0-BC56",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC56",
+                      "chip": "NPU-0-BC56",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC56",
+                      "chip": "NPU-0-BC56",
                       "lane": 3
                     }
                   }
@@ -2128,25 +2128,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC56",
+                      "chip": "NPU-0-BC56",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC56",
+                      "chip": "NPU-0-BC56",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC56",
+                      "chip": "NPU-0-BC56",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC56",
+                      "chip": "NPU-0-BC56",
                       "lane": 3
                     }
                   }
@@ -2184,7 +2184,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC56",
+                      "chip": "NPU-0-BC56",
                       "lane": 0
                     }
                   }
@@ -2204,7 +2204,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC56",
+                      "chip": "NPU-0-BC56",
                       "lane": 0
                     }
                   }
@@ -2229,7 +2229,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC57",
+                "chip": "NPU-0-BC57",
                 "lane": 0
               },
               "z": {
@@ -2241,7 +2241,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC57",
+                "chip": "NPU-0-BC57",
                 "lane": 1
               },
               "z": {
@@ -2253,7 +2253,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC57",
+                "chip": "NPU-0-BC57",
                 "lane": 2
               },
               "z": {
@@ -2265,7 +2265,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC57",
+                "chip": "NPU-0-BC57",
                 "lane": 3
               },
               "z": {
@@ -2287,25 +2287,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC57",
+                      "chip": "NPU-0-BC57",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC57",
+                      "chip": "NPU-0-BC57",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC57",
+                      "chip": "NPU-0-BC57",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC57",
+                      "chip": "NPU-0-BC57",
                       "lane": 3
                     }
                   }
@@ -2343,25 +2343,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC57",
+                      "chip": "NPU-0-BC57",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC57",
+                      "chip": "NPU-0-BC57",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC57",
+                      "chip": "NPU-0-BC57",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC57",
+                      "chip": "NPU-0-BC57",
                       "lane": 3
                     }
                   }
@@ -2399,25 +2399,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC57",
+                      "chip": "NPU-0-BC57",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC57",
+                      "chip": "NPU-0-BC57",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC57",
+                      "chip": "NPU-0-BC57",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC57",
+                      "chip": "NPU-0-BC57",
                       "lane": 3
                     }
                   }
@@ -2455,7 +2455,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC57",
+                      "chip": "NPU-0-BC57",
                       "lane": 0
                     }
                   }
@@ -2475,7 +2475,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC57",
+                      "chip": "NPU-0-BC57",
                       "lane": 0
                     }
                   }
@@ -2500,7 +2500,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC58",
+                "chip": "NPU-0-BC58",
                 "lane": 0
               },
               "z": {
@@ -2512,7 +2512,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC58",
+                "chip": "NPU-0-BC58",
                 "lane": 1
               },
               "z": {
@@ -2524,7 +2524,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC58",
+                "chip": "NPU-0-BC58",
                 "lane": 2
               },
               "z": {
@@ -2536,7 +2536,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC58",
+                "chip": "NPU-0-BC58",
                 "lane": 3
               },
               "z": {
@@ -2558,25 +2558,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC58",
+                      "chip": "NPU-0-BC58",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC58",
+                      "chip": "NPU-0-BC58",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC58",
+                      "chip": "NPU-0-BC58",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC58",
+                      "chip": "NPU-0-BC58",
                       "lane": 3
                     }
                   }
@@ -2614,25 +2614,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC58",
+                      "chip": "NPU-0-BC58",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC58",
+                      "chip": "NPU-0-BC58",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC58",
+                      "chip": "NPU-0-BC58",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC58",
+                      "chip": "NPU-0-BC58",
                       "lane": 3
                     }
                   }
@@ -2670,25 +2670,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC58",
+                      "chip": "NPU-0-BC58",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC58",
+                      "chip": "NPU-0-BC58",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC58",
+                      "chip": "NPU-0-BC58",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC58",
+                      "chip": "NPU-0-BC58",
                       "lane": 3
                     }
                   }
@@ -2726,7 +2726,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC58",
+                      "chip": "NPU-0-BC58",
                       "lane": 0
                     }
                   }
@@ -2746,7 +2746,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC58",
+                      "chip": "NPU-0-BC58",
                       "lane": 0
                     }
                   }
@@ -2771,7 +2771,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC59",
+                "chip": "NPU-0-BC59",
                 "lane": 0
               },
               "z": {
@@ -2783,7 +2783,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC59",
+                "chip": "NPU-0-BC59",
                 "lane": 1
               },
               "z": {
@@ -2795,7 +2795,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC59",
+                "chip": "NPU-0-BC59",
                 "lane": 2
               },
               "z": {
@@ -2807,7 +2807,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC59",
+                "chip": "NPU-0-BC59",
                 "lane": 3
               },
               "z": {
@@ -2829,25 +2829,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC59",
+                      "chip": "NPU-0-BC59",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC59",
+                      "chip": "NPU-0-BC59",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC59",
+                      "chip": "NPU-0-BC59",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC59",
+                      "chip": "NPU-0-BC59",
                       "lane": 3
                     }
                   }
@@ -2885,25 +2885,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC59",
+                      "chip": "NPU-0-BC59",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC59",
+                      "chip": "NPU-0-BC59",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC59",
+                      "chip": "NPU-0-BC59",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC59",
+                      "chip": "NPU-0-BC59",
                       "lane": 3
                     }
                   }
@@ -2941,25 +2941,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC59",
+                      "chip": "NPU-0-BC59",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC59",
+                      "chip": "NPU-0-BC59",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC59",
+                      "chip": "NPU-0-BC59",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC59",
+                      "chip": "NPU-0-BC59",
                       "lane": 3
                     }
                   }
@@ -2997,7 +2997,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC59",
+                      "chip": "NPU-0-BC59",
                       "lane": 0
                     }
                   }
@@ -3017,7 +3017,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC59",
+                      "chip": "NPU-0-BC59",
                       "lane": 0
                     }
                   }
@@ -3042,7 +3042,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC60",
+                "chip": "NPU-0-BC60",
                 "lane": 0
               },
               "z": {
@@ -3054,7 +3054,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC60",
+                "chip": "NPU-0-BC60",
                 "lane": 1
               },
               "z": {
@@ -3066,7 +3066,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC60",
+                "chip": "NPU-0-BC60",
                 "lane": 2
               },
               "z": {
@@ -3078,7 +3078,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC60",
+                "chip": "NPU-0-BC60",
                 "lane": 3
               },
               "z": {
@@ -3100,25 +3100,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC60",
+                      "chip": "NPU-0-BC60",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC60",
+                      "chip": "NPU-0-BC60",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC60",
+                      "chip": "NPU-0-BC60",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC60",
+                      "chip": "NPU-0-BC60",
                       "lane": 3
                     }
                   }
@@ -3156,25 +3156,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC60",
+                      "chip": "NPU-0-BC60",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC60",
+                      "chip": "NPU-0-BC60",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC60",
+                      "chip": "NPU-0-BC60",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC60",
+                      "chip": "NPU-0-BC60",
                       "lane": 3
                     }
                   }
@@ -3212,25 +3212,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC60",
+                      "chip": "NPU-0-BC60",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC60",
+                      "chip": "NPU-0-BC60",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC60",
+                      "chip": "NPU-0-BC60",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC60",
+                      "chip": "NPU-0-BC60",
                       "lane": 3
                     }
                   }
@@ -3268,7 +3268,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC60",
+                      "chip": "NPU-0-BC60",
                       "lane": 0
                     }
                   }
@@ -3288,7 +3288,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC60",
+                      "chip": "NPU-0-BC60",
                       "lane": 0
                     }
                   }
@@ -3313,7 +3313,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC61",
+                "chip": "NPU-0-BC61",
                 "lane": 0
               },
               "z": {
@@ -3325,7 +3325,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC61",
+                "chip": "NPU-0-BC61",
                 "lane": 1
               },
               "z": {
@@ -3337,7 +3337,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC61",
+                "chip": "NPU-0-BC61",
                 "lane": 2
               },
               "z": {
@@ -3349,7 +3349,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC61",
+                "chip": "NPU-0-BC61",
                 "lane": 3
               },
               "z": {
@@ -3371,25 +3371,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC61",
+                      "chip": "NPU-0-BC61",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC61",
+                      "chip": "NPU-0-BC61",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC61",
+                      "chip": "NPU-0-BC61",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC61",
+                      "chip": "NPU-0-BC61",
                       "lane": 3
                     }
                   }
@@ -3427,25 +3427,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC61",
+                      "chip": "NPU-0-BC61",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC61",
+                      "chip": "NPU-0-BC61",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC61",
+                      "chip": "NPU-0-BC61",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC61",
+                      "chip": "NPU-0-BC61",
                       "lane": 3
                     }
                   }
@@ -3483,25 +3483,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC61",
+                      "chip": "NPU-0-BC61",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC61",
+                      "chip": "NPU-0-BC61",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC61",
+                      "chip": "NPU-0-BC61",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC61",
+                      "chip": "NPU-0-BC61",
                       "lane": 3
                     }
                   }
@@ -3539,7 +3539,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC61",
+                      "chip": "NPU-0-BC61",
                       "lane": 0
                     }
                   }
@@ -3559,7 +3559,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC61",
+                      "chip": "NPU-0-BC61",
                       "lane": 0
                     }
                   }
@@ -3584,7 +3584,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC62",
+                "chip": "NPU-0-BC62",
                 "lane": 0
               },
               "z": {
@@ -3596,7 +3596,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC62",
+                "chip": "NPU-0-BC62",
                 "lane": 1
               },
               "z": {
@@ -3608,7 +3608,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC62",
+                "chip": "NPU-0-BC62",
                 "lane": 2
               },
               "z": {
@@ -3620,7 +3620,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC62",
+                "chip": "NPU-0-BC62",
                 "lane": 3
               },
               "z": {
@@ -3642,25 +3642,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC62",
+                      "chip": "NPU-0-BC62",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC62",
+                      "chip": "NPU-0-BC62",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC62",
+                      "chip": "NPU-0-BC62",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC62",
+                      "chip": "NPU-0-BC62",
                       "lane": 3
                     }
                   }
@@ -3698,25 +3698,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC62",
+                      "chip": "NPU-0-BC62",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC62",
+                      "chip": "NPU-0-BC62",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC62",
+                      "chip": "NPU-0-BC62",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC62",
+                      "chip": "NPU-0-BC62",
                       "lane": 3
                     }
                   }
@@ -3754,25 +3754,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC62",
+                      "chip": "NPU-0-BC62",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC62",
+                      "chip": "NPU-0-BC62",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC62",
+                      "chip": "NPU-0-BC62",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC62",
+                      "chip": "NPU-0-BC62",
                       "lane": 3
                     }
                   }
@@ -3810,7 +3810,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC62",
+                      "chip": "NPU-0-BC62",
                       "lane": 0
                     }
                   }
@@ -3830,7 +3830,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC62",
+                      "chip": "NPU-0-BC62",
                       "lane": 0
                     }
                   }
@@ -3855,7 +3855,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC63",
+                "chip": "NPU-0-BC63",
                 "lane": 0
               },
               "z": {
@@ -3867,7 +3867,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC63",
+                "chip": "NPU-0-BC63",
                 "lane": 1
               },
               "z": {
@@ -3879,7 +3879,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC63",
+                "chip": "NPU-0-BC63",
                 "lane": 2
               },
               "z": {
@@ -3891,7 +3891,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC63",
+                "chip": "NPU-0-BC63",
                 "lane": 3
               },
               "z": {
@@ -3913,25 +3913,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC63",
+                      "chip": "NPU-0-BC63",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC63",
+                      "chip": "NPU-0-BC63",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC63",
+                      "chip": "NPU-0-BC63",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC63",
+                      "chip": "NPU-0-BC63",
                       "lane": 3
                     }
                   }
@@ -3969,25 +3969,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC63",
+                      "chip": "NPU-0-BC63",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC63",
+                      "chip": "NPU-0-BC63",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC63",
+                      "chip": "NPU-0-BC63",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC63",
+                      "chip": "NPU-0-BC63",
                       "lane": 3
                     }
                   }
@@ -4025,25 +4025,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC63",
+                      "chip": "NPU-0-BC63",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC63",
+                      "chip": "NPU-0-BC63",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC63",
+                      "chip": "NPU-0-BC63",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC63",
+                      "chip": "NPU-0-BC63",
                       "lane": 3
                     }
                   }
@@ -4081,7 +4081,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC63",
+                      "chip": "NPU-0-BC63",
                       "lane": 0
                     }
                   }
@@ -4101,7 +4101,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC63",
+                      "chip": "NPU-0-BC63",
                       "lane": 0
                     }
                   }
@@ -4126,7 +4126,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC64",
+                "chip": "NPU-0-BC64",
                 "lane": 0
               },
               "z": {
@@ -4138,7 +4138,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC64",
+                "chip": "NPU-0-BC64",
                 "lane": 1
               },
               "z": {
@@ -4150,7 +4150,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC64",
+                "chip": "NPU-0-BC64",
                 "lane": 2
               },
               "z": {
@@ -4162,7 +4162,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC64",
+                "chip": "NPU-0-BC64",
                 "lane": 3
               },
               "z": {
@@ -4184,25 +4184,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC64",
+                      "chip": "NPU-0-BC64",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC64",
+                      "chip": "NPU-0-BC64",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC64",
+                      "chip": "NPU-0-BC64",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC64",
+                      "chip": "NPU-0-BC64",
                       "lane": 3
                     }
                   }
@@ -4240,25 +4240,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC64",
+                      "chip": "NPU-0-BC64",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC64",
+                      "chip": "NPU-0-BC64",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC64",
+                      "chip": "NPU-0-BC64",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC64",
+                      "chip": "NPU-0-BC64",
                       "lane": 3
                     }
                   }
@@ -4296,25 +4296,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC64",
+                      "chip": "NPU-0-BC64",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC64",
+                      "chip": "NPU-0-BC64",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC64",
+                      "chip": "NPU-0-BC64",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC64",
+                      "chip": "NPU-0-BC64",
                       "lane": 3
                     }
                   }
@@ -4352,7 +4352,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC64",
+                      "chip": "NPU-0-BC64",
                       "lane": 0
                     }
                   }
@@ -4372,7 +4372,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC64",
+                      "chip": "NPU-0-BC64",
                       "lane": 0
                     }
                   }
@@ -4397,7 +4397,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC0",
+                "chip": "NPU-0-BC0",
                 "lane": 0
               }
             }
@@ -4411,7 +4411,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC0",
+                      "chip": "NPU-0-BC0",
                       "lane": 0
                     }
                   }
@@ -4423,7 +4423,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC0",
+                      "chip": "NPU-0-BC0",
                       "lane": 0
                     }
                   }
@@ -4440,7 +4440,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC0",
+                "chip": "NPU-0-BC0",
                 "lane": 1
               }
             }
@@ -4454,7 +4454,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC0",
+                      "chip": "NPU-0-BC0",
                       "lane": 1
                     }
                   }
@@ -4466,7 +4466,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC0",
+                      "chip": "NPU-0-BC0",
                       "lane": 1
                     }
                   }
@@ -4483,7 +4483,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC0",
+                "chip": "NPU-0-BC0",
                 "lane": 2
               }
             }
@@ -4497,7 +4497,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC0",
+                      "chip": "NPU-0-BC0",
                       "lane": 2
                     }
                   }
@@ -4509,7 +4509,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC0",
+                      "chip": "NPU-0-BC0",
                       "lane": 2
                     }
                   }
@@ -4526,7 +4526,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC0",
+                "chip": "NPU-0-BC0",
                 "lane": 3
               }
             }
@@ -4540,7 +4540,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC0",
+                      "chip": "NPU-0-BC0",
                       "lane": 3
                     }
                   }
@@ -4552,7 +4552,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC0",
+                      "chip": "NPU-0-BC0",
                       "lane": 3
                     }
                   }
@@ -4569,7 +4569,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC1",
+                "chip": "NPU-0-BC1",
                 "lane": 0
               }
             }
@@ -4583,7 +4583,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC1",
+                      "chip": "NPU-0-BC1",
                       "lane": 0
                     }
                   }
@@ -4595,7 +4595,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC1",
+                      "chip": "NPU-0-BC1",
                       "lane": 0
                     }
                   }
@@ -4612,7 +4612,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC1",
+                "chip": "NPU-0-BC1",
                 "lane": 1
               }
             }
@@ -4626,7 +4626,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC1",
+                      "chip": "NPU-0-BC1",
                       "lane": 1
                     }
                   }
@@ -4638,7 +4638,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC1",
+                      "chip": "NPU-0-BC1",
                       "lane": 1
                     }
                   }
@@ -4655,7 +4655,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC1",
+                "chip": "NPU-0-BC1",
                 "lane": 2
               }
             }
@@ -4669,7 +4669,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC1",
+                      "chip": "NPU-0-BC1",
                       "lane": 2
                     }
                   }
@@ -4681,7 +4681,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC1",
+                      "chip": "NPU-0-BC1",
                       "lane": 2
                     }
                   }
@@ -4698,7 +4698,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC1",
+                "chip": "NPU-0-BC1",
                 "lane": 3
               }
             }
@@ -4712,7 +4712,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC1",
+                      "chip": "NPU-0-BC1",
                       "lane": 3
                     }
                   }
@@ -4724,7 +4724,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC1",
+                      "chip": "NPU-0-BC1",
                       "lane": 3
                     }
                   }
@@ -4741,7 +4741,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC2",
+                "chip": "NPU-0-BC2",
                 "lane": 0
               }
             }
@@ -4755,7 +4755,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC2",
+                      "chip": "NPU-0-BC2",
                       "lane": 0
                     }
                   }
@@ -4767,7 +4767,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC2",
+                      "chip": "NPU-0-BC2",
                       "lane": 0
                     }
                   }
@@ -4784,7 +4784,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC2",
+                "chip": "NPU-0-BC2",
                 "lane": 1
               }
             }
@@ -4798,7 +4798,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC2",
+                      "chip": "NPU-0-BC2",
                       "lane": 1
                     }
                   }
@@ -4810,7 +4810,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC2",
+                      "chip": "NPU-0-BC2",
                       "lane": 1
                     }
                   }
@@ -4827,7 +4827,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC2",
+                "chip": "NPU-0-BC2",
                 "lane": 2
               }
             }
@@ -4841,7 +4841,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC2",
+                      "chip": "NPU-0-BC2",
                       "lane": 2
                     }
                   }
@@ -4853,7 +4853,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC2",
+                      "chip": "NPU-0-BC2",
                       "lane": 2
                     }
                   }
@@ -4870,7 +4870,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC2",
+                "chip": "NPU-0-BC2",
                 "lane": 3
               }
             }
@@ -4884,7 +4884,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC2",
+                      "chip": "NPU-0-BC2",
                       "lane": 3
                     }
                   }
@@ -4896,7 +4896,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC2",
+                      "chip": "NPU-0-BC2",
                       "lane": 3
                     }
                   }
@@ -4913,7 +4913,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC3",
+                "chip": "NPU-0-BC3",
                 "lane": 0
               }
             }
@@ -4927,7 +4927,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC3",
+                      "chip": "NPU-0-BC3",
                       "lane": 0
                     }
                   }
@@ -4939,7 +4939,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC3",
+                      "chip": "NPU-0-BC3",
                       "lane": 0
                     }
                   }
@@ -4956,7 +4956,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC3",
+                "chip": "NPU-0-BC3",
                 "lane": 1
               }
             }
@@ -4970,7 +4970,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC3",
+                      "chip": "NPU-0-BC3",
                       "lane": 1
                     }
                   }
@@ -4982,7 +4982,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC3",
+                      "chip": "NPU-0-BC3",
                       "lane": 1
                     }
                   }
@@ -4999,7 +4999,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC3",
+                "chip": "NPU-0-BC3",
                 "lane": 2
               }
             }
@@ -5013,7 +5013,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC3",
+                      "chip": "NPU-0-BC3",
                       "lane": 2
                     }
                   }
@@ -5025,7 +5025,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC3",
+                      "chip": "NPU-0-BC3",
                       "lane": 2
                     }
                   }
@@ -5042,7 +5042,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC3",
+                "chip": "NPU-0-BC3",
                 "lane": 3
               }
             }
@@ -5056,7 +5056,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC3",
+                      "chip": "NPU-0-BC3",
                       "lane": 3
                     }
                   }
@@ -5068,7 +5068,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC3",
+                      "chip": "NPU-0-BC3",
                       "lane": 3
                     }
                   }
@@ -5085,7 +5085,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC4",
+                "chip": "NPU-0-BC4",
                 "lane": 0
               },
               "z": {
@@ -5105,7 +5105,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC4",
+                      "chip": "NPU-0-BC4",
                       "lane": 0
                     }
                   }
@@ -5125,7 +5125,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC4",
+                      "chip": "NPU-0-BC4",
                       "lane": 0
                     }
                   }
@@ -5150,7 +5150,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC4",
+                "chip": "NPU-0-BC4",
                 "lane": 1
               },
               "z": {
@@ -5170,7 +5170,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC4",
+                      "chip": "NPU-0-BC4",
                       "lane": 1
                     }
                   }
@@ -5190,7 +5190,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC4",
+                      "chip": "NPU-0-BC4",
                       "lane": 1
                     }
                   }
@@ -5215,7 +5215,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC4",
+                "chip": "NPU-0-BC4",
                 "lane": 2
               },
               "z": {
@@ -5235,7 +5235,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC4",
+                      "chip": "NPU-0-BC4",
                       "lane": 2
                     }
                   }
@@ -5255,7 +5255,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC4",
+                      "chip": "NPU-0-BC4",
                       "lane": 2
                     }
                   }
@@ -5280,7 +5280,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC4",
+                "chip": "NPU-0-BC4",
                 "lane": 3
               },
               "z": {
@@ -5300,7 +5300,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC4",
+                      "chip": "NPU-0-BC4",
                       "lane": 3
                     }
                   }
@@ -5320,7 +5320,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC4",
+                      "chip": "NPU-0-BC4",
                       "lane": 3
                     }
                   }
@@ -5345,7 +5345,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC5",
+                "chip": "NPU-0-BC5",
                 "lane": 0
               },
               "z": {
@@ -5365,7 +5365,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC5",
+                      "chip": "NPU-0-BC5",
                       "lane": 0
                     }
                   }
@@ -5385,7 +5385,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC5",
+                      "chip": "NPU-0-BC5",
                       "lane": 0
                     }
                   }
@@ -5410,7 +5410,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC5",
+                "chip": "NPU-0-BC5",
                 "lane": 1
               },
               "z": {
@@ -5430,7 +5430,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC5",
+                      "chip": "NPU-0-BC5",
                       "lane": 1
                     }
                   }
@@ -5450,7 +5450,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC5",
+                      "chip": "NPU-0-BC5",
                       "lane": 1
                     }
                   }
@@ -5475,7 +5475,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC5",
+                "chip": "NPU-0-BC5",
                 "lane": 2
               },
               "z": {
@@ -5495,7 +5495,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC5",
+                      "chip": "NPU-0-BC5",
                       "lane": 2
                     }
                   }
@@ -5515,7 +5515,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC5",
+                      "chip": "NPU-0-BC5",
                       "lane": 2
                     }
                   }
@@ -5540,7 +5540,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC5",
+                "chip": "NPU-0-BC5",
                 "lane": 3
               },
               "z": {
@@ -5560,7 +5560,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC5",
+                      "chip": "NPU-0-BC5",
                       "lane": 3
                     }
                   }
@@ -5580,7 +5580,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC5",
+                      "chip": "NPU-0-BC5",
                       "lane": 3
                     }
                   }
@@ -5605,7 +5605,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC6",
+                "chip": "NPU-0-BC6",
                 "lane": 0
               },
               "z": {
@@ -5625,7 +5625,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC6",
+                      "chip": "NPU-0-BC6",
                       "lane": 0
                     }
                   }
@@ -5645,7 +5645,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC6",
+                      "chip": "NPU-0-BC6",
                       "lane": 0
                     }
                   }
@@ -5670,7 +5670,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC6",
+                "chip": "NPU-0-BC6",
                 "lane": 1
               },
               "z": {
@@ -5690,7 +5690,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC6",
+                      "chip": "NPU-0-BC6",
                       "lane": 1
                     }
                   }
@@ -5710,7 +5710,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC6",
+                      "chip": "NPU-0-BC6",
                       "lane": 1
                     }
                   }
@@ -5735,7 +5735,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC6",
+                "chip": "NPU-0-BC6",
                 "lane": 2
               },
               "z": {
@@ -5755,7 +5755,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC6",
+                      "chip": "NPU-0-BC6",
                       "lane": 2
                     }
                   }
@@ -5775,7 +5775,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC6",
+                      "chip": "NPU-0-BC6",
                       "lane": 2
                     }
                   }
@@ -5800,7 +5800,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC6",
+                "chip": "NPU-0-BC6",
                 "lane": 3
               },
               "z": {
@@ -5820,7 +5820,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC6",
+                      "chip": "NPU-0-BC6",
                       "lane": 3
                     }
                   }
@@ -5840,7 +5840,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC6",
+                      "chip": "NPU-0-BC6",
                       "lane": 3
                     }
                   }
@@ -5865,7 +5865,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC7",
+                "chip": "NPU-0-BC7",
                 "lane": 0
               },
               "z": {
@@ -5885,7 +5885,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC7",
+                      "chip": "NPU-0-BC7",
                       "lane": 0
                     }
                   }
@@ -5905,7 +5905,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC7",
+                      "chip": "NPU-0-BC7",
                       "lane": 0
                     }
                   }
@@ -5930,7 +5930,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC7",
+                "chip": "NPU-0-BC7",
                 "lane": 1
               },
               "z": {
@@ -5950,7 +5950,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC7",
+                      "chip": "NPU-0-BC7",
                       "lane": 1
                     }
                   }
@@ -5970,7 +5970,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC7",
+                      "chip": "NPU-0-BC7",
                       "lane": 1
                     }
                   }
@@ -5995,7 +5995,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC7",
+                "chip": "NPU-0-BC7",
                 "lane": 2
               },
               "z": {
@@ -6015,7 +6015,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC7",
+                      "chip": "NPU-0-BC7",
                       "lane": 2
                     }
                   }
@@ -6035,7 +6035,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC7",
+                      "chip": "NPU-0-BC7",
                       "lane": 2
                     }
                   }
@@ -6060,7 +6060,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC7",
+                "chip": "NPU-0-BC7",
                 "lane": 3
               },
               "z": {
@@ -6080,7 +6080,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC7",
+                      "chip": "NPU-0-BC7",
                       "lane": 3
                     }
                   }
@@ -6100,7 +6100,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC7",
+                      "chip": "NPU-0-BC7",
                       "lane": 3
                     }
                   }
@@ -6125,7 +6125,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC8",
+                "chip": "NPU-0-BC8",
                 "lane": 0
               },
               "z": {
@@ -6145,7 +6145,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC8",
+                      "chip": "NPU-0-BC8",
                       "lane": 0
                     }
                   }
@@ -6165,7 +6165,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC8",
+                      "chip": "NPU-0-BC8",
                       "lane": 0
                     }
                   }
@@ -6190,7 +6190,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC8",
+                "chip": "NPU-0-BC8",
                 "lane": 1
               },
               "z": {
@@ -6210,7 +6210,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC8",
+                      "chip": "NPU-0-BC8",
                       "lane": 1
                     }
                   }
@@ -6230,7 +6230,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC8",
+                      "chip": "NPU-0-BC8",
                       "lane": 1
                     }
                   }
@@ -6255,7 +6255,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC8",
+                "chip": "NPU-0-BC8",
                 "lane": 2
               },
               "z": {
@@ -6275,7 +6275,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC8",
+                      "chip": "NPU-0-BC8",
                       "lane": 2
                     }
                   }
@@ -6295,7 +6295,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC8",
+                      "chip": "NPU-0-BC8",
                       "lane": 2
                     }
                   }
@@ -6320,7 +6320,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC8",
+                "chip": "NPU-0-BC8",
                 "lane": 3
               },
               "z": {
@@ -6340,7 +6340,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC8",
+                      "chip": "NPU-0-BC8",
                       "lane": 3
                     }
                   }
@@ -6360,7 +6360,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC8",
+                      "chip": "NPU-0-BC8",
                       "lane": 3
                     }
                   }
@@ -6385,7 +6385,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC9",
+                "chip": "NPU-0-BC9",
                 "lane": 0
               },
               "z": {
@@ -6405,7 +6405,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC9",
+                      "chip": "NPU-0-BC9",
                       "lane": 0
                     }
                   }
@@ -6425,7 +6425,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC9",
+                      "chip": "NPU-0-BC9",
                       "lane": 0
                     }
                   }
@@ -6450,7 +6450,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC9",
+                "chip": "NPU-0-BC9",
                 "lane": 1
               },
               "z": {
@@ -6470,7 +6470,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC9",
+                      "chip": "NPU-0-BC9",
                       "lane": 1
                     }
                   }
@@ -6490,7 +6490,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC9",
+                      "chip": "NPU-0-BC9",
                       "lane": 1
                     }
                   }
@@ -6515,7 +6515,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC9",
+                "chip": "NPU-0-BC9",
                 "lane": 2
               },
               "z": {
@@ -6535,7 +6535,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC9",
+                      "chip": "NPU-0-BC9",
                       "lane": 2
                     }
                   }
@@ -6555,7 +6555,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC9",
+                      "chip": "NPU-0-BC9",
                       "lane": 2
                     }
                   }
@@ -6580,7 +6580,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC9",
+                "chip": "NPU-0-BC9",
                 "lane": 3
               },
               "z": {
@@ -6600,7 +6600,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC9",
+                      "chip": "NPU-0-BC9",
                       "lane": 3
                     }
                   }
@@ -6620,7 +6620,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC9",
+                      "chip": "NPU-0-BC9",
                       "lane": 3
                     }
                   }
@@ -6645,7 +6645,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC10",
+                "chip": "NPU-0-BC10",
                 "lane": 0
               },
               "z": {
@@ -6665,7 +6665,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC10",
+                      "chip": "NPU-0-BC10",
                       "lane": 0
                     }
                   }
@@ -6685,7 +6685,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC10",
+                      "chip": "NPU-0-BC10",
                       "lane": 0
                     }
                   }
@@ -6710,7 +6710,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC10",
+                "chip": "NPU-0-BC10",
                 "lane": 1
               },
               "z": {
@@ -6730,7 +6730,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC10",
+                      "chip": "NPU-0-BC10",
                       "lane": 1
                     }
                   }
@@ -6750,7 +6750,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC10",
+                      "chip": "NPU-0-BC10",
                       "lane": 1
                     }
                   }
@@ -6775,7 +6775,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC10",
+                "chip": "NPU-0-BC10",
                 "lane": 2
               },
               "z": {
@@ -6795,7 +6795,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC10",
+                      "chip": "NPU-0-BC10",
                       "lane": 2
                     }
                   }
@@ -6815,7 +6815,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC10",
+                      "chip": "NPU-0-BC10",
                       "lane": 2
                     }
                   }
@@ -6840,7 +6840,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC10",
+                "chip": "NPU-0-BC10",
                 "lane": 3
               },
               "z": {
@@ -6860,7 +6860,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC10",
+                      "chip": "NPU-0-BC10",
                       "lane": 3
                     }
                   }
@@ -6880,7 +6880,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC10",
+                      "chip": "NPU-0-BC10",
                       "lane": 3
                     }
                   }
@@ -6905,7 +6905,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC11",
+                "chip": "NPU-0-BC11",
                 "lane": 0
               },
               "z": {
@@ -6925,7 +6925,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC11",
+                      "chip": "NPU-0-BC11",
                       "lane": 0
                     }
                   }
@@ -6945,7 +6945,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC11",
+                      "chip": "NPU-0-BC11",
                       "lane": 0
                     }
                   }
@@ -6970,7 +6970,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC11",
+                "chip": "NPU-0-BC11",
                 "lane": 1
               },
               "z": {
@@ -6990,7 +6990,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC11",
+                      "chip": "NPU-0-BC11",
                       "lane": 1
                     }
                   }
@@ -7010,7 +7010,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC11",
+                      "chip": "NPU-0-BC11",
                       "lane": 1
                     }
                   }
@@ -7035,7 +7035,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC11",
+                "chip": "NPU-0-BC11",
                 "lane": 2
               },
               "z": {
@@ -7055,7 +7055,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC11",
+                      "chip": "NPU-0-BC11",
                       "lane": 2
                     }
                   }
@@ -7075,7 +7075,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC11",
+                      "chip": "NPU-0-BC11",
                       "lane": 2
                     }
                   }
@@ -7100,7 +7100,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC11",
+                "chip": "NPU-0-BC11",
                 "lane": 3
               },
               "z": {
@@ -7120,7 +7120,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC11",
+                      "chip": "NPU-0-BC11",
                       "lane": 3
                     }
                   }
@@ -7140,7 +7140,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC11",
+                      "chip": "NPU-0-BC11",
                       "lane": 3
                     }
                   }
@@ -7165,7 +7165,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC12",
+                "chip": "NPU-0-BC12",
                 "lane": 0
               },
               "z": {
@@ -7185,7 +7185,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC12",
+                      "chip": "NPU-0-BC12",
                       "lane": 0
                     }
                   }
@@ -7205,7 +7205,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC12",
+                      "chip": "NPU-0-BC12",
                       "lane": 0
                     }
                   }
@@ -7230,7 +7230,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC12",
+                "chip": "NPU-0-BC12",
                 "lane": 1
               },
               "z": {
@@ -7250,7 +7250,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC12",
+                      "chip": "NPU-0-BC12",
                       "lane": 1
                     }
                   }
@@ -7270,7 +7270,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC12",
+                      "chip": "NPU-0-BC12",
                       "lane": 1
                     }
                   }
@@ -7295,7 +7295,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC12",
+                "chip": "NPU-0-BC12",
                 "lane": 2
               },
               "z": {
@@ -7315,7 +7315,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC12",
+                      "chip": "NPU-0-BC12",
                       "lane": 2
                     }
                   }
@@ -7335,7 +7335,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC12",
+                      "chip": "NPU-0-BC12",
                       "lane": 2
                     }
                   }
@@ -7360,7 +7360,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC12",
+                "chip": "NPU-0-BC12",
                 "lane": 3
               },
               "z": {
@@ -7380,7 +7380,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC12",
+                      "chip": "NPU-0-BC12",
                       "lane": 3
                     }
                   }
@@ -7400,7 +7400,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC12",
+                      "chip": "NPU-0-BC12",
                       "lane": 3
                     }
                   }
@@ -7425,7 +7425,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC13",
+                "chip": "NPU-0-BC13",
                 "lane": 0
               },
               "z": {
@@ -7445,7 +7445,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC13",
+                      "chip": "NPU-0-BC13",
                       "lane": 0
                     }
                   }
@@ -7465,7 +7465,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC13",
+                      "chip": "NPU-0-BC13",
                       "lane": 0
                     }
                   }
@@ -7490,7 +7490,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC13",
+                "chip": "NPU-0-BC13",
                 "lane": 1
               },
               "z": {
@@ -7510,7 +7510,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC13",
+                      "chip": "NPU-0-BC13",
                       "lane": 1
                     }
                   }
@@ -7530,7 +7530,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC13",
+                      "chip": "NPU-0-BC13",
                       "lane": 1
                     }
                   }
@@ -7555,7 +7555,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC13",
+                "chip": "NPU-0-BC13",
                 "lane": 2
               },
               "z": {
@@ -7575,7 +7575,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC13",
+                      "chip": "NPU-0-BC13",
                       "lane": 2
                     }
                   }
@@ -7595,7 +7595,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC13",
+                      "chip": "NPU-0-BC13",
                       "lane": 2
                     }
                   }
@@ -7620,7 +7620,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC13",
+                "chip": "NPU-0-BC13",
                 "lane": 3
               },
               "z": {
@@ -7640,7 +7640,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC13",
+                      "chip": "NPU-0-BC13",
                       "lane": 3
                     }
                   }
@@ -7660,7 +7660,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC13",
+                      "chip": "NPU-0-BC13",
                       "lane": 3
                     }
                   }
@@ -7685,7 +7685,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC14",
+                "chip": "NPU-0-BC14",
                 "lane": 0
               },
               "z": {
@@ -7705,7 +7705,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC14",
+                      "chip": "NPU-0-BC14",
                       "lane": 0
                     }
                   }
@@ -7725,7 +7725,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC14",
+                      "chip": "NPU-0-BC14",
                       "lane": 0
                     }
                   }
@@ -7750,7 +7750,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC14",
+                "chip": "NPU-0-BC14",
                 "lane": 1
               },
               "z": {
@@ -7770,7 +7770,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC14",
+                      "chip": "NPU-0-BC14",
                       "lane": 1
                     }
                   }
@@ -7790,7 +7790,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC14",
+                      "chip": "NPU-0-BC14",
                       "lane": 1
                     }
                   }
@@ -7815,7 +7815,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC14",
+                "chip": "NPU-0-BC14",
                 "lane": 2
               },
               "z": {
@@ -7835,7 +7835,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC14",
+                      "chip": "NPU-0-BC14",
                       "lane": 2
                     }
                   }
@@ -7855,7 +7855,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC14",
+                      "chip": "NPU-0-BC14",
                       "lane": 2
                     }
                   }
@@ -7880,7 +7880,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC14",
+                "chip": "NPU-0-BC14",
                 "lane": 3
               },
               "z": {
@@ -7900,7 +7900,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC14",
+                      "chip": "NPU-0-BC14",
                       "lane": 3
                     }
                   }
@@ -7920,7 +7920,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC14",
+                      "chip": "NPU-0-BC14",
                       "lane": 3
                     }
                   }
@@ -7945,7 +7945,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC15",
+                "chip": "NPU-0-BC15",
                 "lane": 0
               },
               "z": {
@@ -7965,7 +7965,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC15",
+                      "chip": "NPU-0-BC15",
                       "lane": 0
                     }
                   }
@@ -7985,7 +7985,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC15",
+                      "chip": "NPU-0-BC15",
                       "lane": 0
                     }
                   }
@@ -8010,7 +8010,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC15",
+                "chip": "NPU-0-BC15",
                 "lane": 1
               },
               "z": {
@@ -8030,7 +8030,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC15",
+                      "chip": "NPU-0-BC15",
                       "lane": 1
                     }
                   }
@@ -8050,7 +8050,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC15",
+                      "chip": "NPU-0-BC15",
                       "lane": 1
                     }
                   }
@@ -8075,7 +8075,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC15",
+                "chip": "NPU-0-BC15",
                 "lane": 2
               },
               "z": {
@@ -8095,7 +8095,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC15",
+                      "chip": "NPU-0-BC15",
                       "lane": 2
                     }
                   }
@@ -8115,7 +8115,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC15",
+                      "chip": "NPU-0-BC15",
                       "lane": 2
                     }
                   }
@@ -8140,7 +8140,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC15",
+                "chip": "NPU-0-BC15",
                 "lane": 3
               },
               "z": {
@@ -8160,7 +8160,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC15",
+                      "chip": "NPU-0-BC15",
                       "lane": 3
                     }
                   }
@@ -8180,7 +8180,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC15",
+                      "chip": "NPU-0-BC15",
                       "lane": 3
                     }
                   }
@@ -8205,7 +8205,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC16",
+                "chip": "NPU-0-BC16",
                 "lane": 0
               },
               "z": {
@@ -8225,7 +8225,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC16",
+                      "chip": "NPU-0-BC16",
                       "lane": 0
                     }
                   }
@@ -8245,7 +8245,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC16",
+                      "chip": "NPU-0-BC16",
                       "lane": 0
                     }
                   }
@@ -8270,7 +8270,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC16",
+                "chip": "NPU-0-BC16",
                 "lane": 1
               },
               "z": {
@@ -8290,7 +8290,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC16",
+                      "chip": "NPU-0-BC16",
                       "lane": 1
                     }
                   }
@@ -8310,7 +8310,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC16",
+                      "chip": "NPU-0-BC16",
                       "lane": 1
                     }
                   }
@@ -8335,7 +8335,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC16",
+                "chip": "NPU-0-BC16",
                 "lane": 2
               },
               "z": {
@@ -8355,7 +8355,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC16",
+                      "chip": "NPU-0-BC16",
                       "lane": 2
                     }
                   }
@@ -8375,7 +8375,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC16",
+                      "chip": "NPU-0-BC16",
                       "lane": 2
                     }
                   }
@@ -8400,7 +8400,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC16",
+                "chip": "NPU-0-BC16",
                 "lane": 3
               },
               "z": {
@@ -8420,7 +8420,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC16",
+                      "chip": "NPU-0-BC16",
                       "lane": 3
                     }
                   }
@@ -8440,7 +8440,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC16",
+                      "chip": "NPU-0-BC16",
                       "lane": 3
                     }
                   }
@@ -8465,7 +8465,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC17",
+                "chip": "NPU-0-BC17",
                 "lane": 0
               },
               "z": {
@@ -8485,7 +8485,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC17",
+                      "chip": "NPU-0-BC17",
                       "lane": 0
                     }
                   }
@@ -8505,7 +8505,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC17",
+                      "chip": "NPU-0-BC17",
                       "lane": 0
                     }
                   }
@@ -8530,7 +8530,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC17",
+                "chip": "NPU-0-BC17",
                 "lane": 1
               },
               "z": {
@@ -8550,7 +8550,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC17",
+                      "chip": "NPU-0-BC17",
                       "lane": 1
                     }
                   }
@@ -8570,7 +8570,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC17",
+                      "chip": "NPU-0-BC17",
                       "lane": 1
                     }
                   }
@@ -8595,7 +8595,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC17",
+                "chip": "NPU-0-BC17",
                 "lane": 2
               },
               "z": {
@@ -8615,7 +8615,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC17",
+                      "chip": "NPU-0-BC17",
                       "lane": 2
                     }
                   }
@@ -8635,7 +8635,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC17",
+                      "chip": "NPU-0-BC17",
                       "lane": 2
                     }
                   }
@@ -8660,7 +8660,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC17",
+                "chip": "NPU-0-BC17",
                 "lane": 3
               },
               "z": {
@@ -8680,7 +8680,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC17",
+                      "chip": "NPU-0-BC17",
                       "lane": 3
                     }
                   }
@@ -8700,7 +8700,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC17",
+                      "chip": "NPU-0-BC17",
                       "lane": 3
                     }
                   }
@@ -8725,7 +8725,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC18",
+                "chip": "NPU-0-BC18",
                 "lane": 0
               },
               "z": {
@@ -8745,7 +8745,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC18",
+                      "chip": "NPU-0-BC18",
                       "lane": 0
                     }
                   }
@@ -8765,7 +8765,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC18",
+                      "chip": "NPU-0-BC18",
                       "lane": 0
                     }
                   }
@@ -8790,7 +8790,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC18",
+                "chip": "NPU-0-BC18",
                 "lane": 1
               },
               "z": {
@@ -8810,7 +8810,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC18",
+                      "chip": "NPU-0-BC18",
                       "lane": 1
                     }
                   }
@@ -8830,7 +8830,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC18",
+                      "chip": "NPU-0-BC18",
                       "lane": 1
                     }
                   }
@@ -8855,7 +8855,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC18",
+                "chip": "NPU-0-BC18",
                 "lane": 2
               },
               "z": {
@@ -8875,7 +8875,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC18",
+                      "chip": "NPU-0-BC18",
                       "lane": 2
                     }
                   }
@@ -8895,7 +8895,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC18",
+                      "chip": "NPU-0-BC18",
                       "lane": 2
                     }
                   }
@@ -8920,7 +8920,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC18",
+                "chip": "NPU-0-BC18",
                 "lane": 3
               },
               "z": {
@@ -8940,7 +8940,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC18",
+                      "chip": "NPU-0-BC18",
                       "lane": 3
                     }
                   }
@@ -8960,7 +8960,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC18",
+                      "chip": "NPU-0-BC18",
                       "lane": 3
                     }
                   }
@@ -8985,7 +8985,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC19",
+                "chip": "NPU-0-BC19",
                 "lane": 0
               },
               "z": {
@@ -9005,7 +9005,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC19",
+                      "chip": "NPU-0-BC19",
                       "lane": 0
                     }
                   }
@@ -9025,7 +9025,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC19",
+                      "chip": "NPU-0-BC19",
                       "lane": 0
                     }
                   }
@@ -9050,7 +9050,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC19",
+                "chip": "NPU-0-BC19",
                 "lane": 1
               },
               "z": {
@@ -9070,7 +9070,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC19",
+                      "chip": "NPU-0-BC19",
                       "lane": 1
                     }
                   }
@@ -9090,7 +9090,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC19",
+                      "chip": "NPU-0-BC19",
                       "lane": 1
                     }
                   }
@@ -9115,7 +9115,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC19",
+                "chip": "NPU-0-BC19",
                 "lane": 2
               },
               "z": {
@@ -9135,7 +9135,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC19",
+                      "chip": "NPU-0-BC19",
                       "lane": 2
                     }
                   }
@@ -9155,7 +9155,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC19",
+                      "chip": "NPU-0-BC19",
                       "lane": 2
                     }
                   }
@@ -9180,7 +9180,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC19",
+                "chip": "NPU-0-BC19",
                 "lane": 3
               },
               "z": {
@@ -9200,7 +9200,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC19",
+                      "chip": "NPU-0-BC19",
                       "lane": 3
                     }
                   }
@@ -9220,7 +9220,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC19",
+                      "chip": "NPU-0-BC19",
                       "lane": 3
                     }
                   }
@@ -9245,7 +9245,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC20",
+                "chip": "NPU-0-BC20",
                 "lane": 0
               },
               "z": {
@@ -9265,7 +9265,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC20",
+                      "chip": "NPU-0-BC20",
                       "lane": 0
                     }
                   }
@@ -9285,7 +9285,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC20",
+                      "chip": "NPU-0-BC20",
                       "lane": 0
                     }
                   }
@@ -9310,7 +9310,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC20",
+                "chip": "NPU-0-BC20",
                 "lane": 1
               },
               "z": {
@@ -9330,7 +9330,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC20",
+                      "chip": "NPU-0-BC20",
                       "lane": 1
                     }
                   }
@@ -9350,7 +9350,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC20",
+                      "chip": "NPU-0-BC20",
                       "lane": 1
                     }
                   }
@@ -9375,7 +9375,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC20",
+                "chip": "NPU-0-BC20",
                 "lane": 2
               },
               "z": {
@@ -9395,7 +9395,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC20",
+                      "chip": "NPU-0-BC20",
                       "lane": 2
                     }
                   }
@@ -9415,7 +9415,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC20",
+                      "chip": "NPU-0-BC20",
                       "lane": 2
                     }
                   }
@@ -9440,7 +9440,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC20",
+                "chip": "NPU-0-BC20",
                 "lane": 3
               },
               "z": {
@@ -9460,7 +9460,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC20",
+                      "chip": "NPU-0-BC20",
                       "lane": 3
                     }
                   }
@@ -9480,7 +9480,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC20",
+                      "chip": "NPU-0-BC20",
                       "lane": 3
                     }
                   }
@@ -9505,7 +9505,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC21",
+                "chip": "NPU-0-BC21",
                 "lane": 0
               },
               "z": {
@@ -9525,7 +9525,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC21",
+                      "chip": "NPU-0-BC21",
                       "lane": 0
                     }
                   }
@@ -9545,7 +9545,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC21",
+                      "chip": "NPU-0-BC21",
                       "lane": 0
                     }
                   }
@@ -9570,7 +9570,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC21",
+                "chip": "NPU-0-BC21",
                 "lane": 1
               },
               "z": {
@@ -9590,7 +9590,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC21",
+                      "chip": "NPU-0-BC21",
                       "lane": 1
                     }
                   }
@@ -9610,7 +9610,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC21",
+                      "chip": "NPU-0-BC21",
                       "lane": 1
                     }
                   }
@@ -9635,7 +9635,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC21",
+                "chip": "NPU-0-BC21",
                 "lane": 2
               },
               "z": {
@@ -9655,7 +9655,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC21",
+                      "chip": "NPU-0-BC21",
                       "lane": 2
                     }
                   }
@@ -9675,7 +9675,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC21",
+                      "chip": "NPU-0-BC21",
                       "lane": 2
                     }
                   }
@@ -9700,7 +9700,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC21",
+                "chip": "NPU-0-BC21",
                 "lane": 3
               },
               "z": {
@@ -9720,7 +9720,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC21",
+                      "chip": "NPU-0-BC21",
                       "lane": 3
                     }
                   }
@@ -9740,7 +9740,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC21",
+                      "chip": "NPU-0-BC21",
                       "lane": 3
                     }
                   }
@@ -9765,7 +9765,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC22",
+                "chip": "NPU-0-BC22",
                 "lane": 0
               },
               "z": {
@@ -9785,7 +9785,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC22",
+                      "chip": "NPU-0-BC22",
                       "lane": 0
                     }
                   }
@@ -9805,7 +9805,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC22",
+                      "chip": "NPU-0-BC22",
                       "lane": 0
                     }
                   }
@@ -9830,7 +9830,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC22",
+                "chip": "NPU-0-BC22",
                 "lane": 1
               },
               "z": {
@@ -9850,7 +9850,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC22",
+                      "chip": "NPU-0-BC22",
                       "lane": 1
                     }
                   }
@@ -9870,7 +9870,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC22",
+                      "chip": "NPU-0-BC22",
                       "lane": 1
                     }
                   }
@@ -9895,7 +9895,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC22",
+                "chip": "NPU-0-BC22",
                 "lane": 2
               },
               "z": {
@@ -9915,7 +9915,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC22",
+                      "chip": "NPU-0-BC22",
                       "lane": 2
                     }
                   }
@@ -9935,7 +9935,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC22",
+                      "chip": "NPU-0-BC22",
                       "lane": 2
                     }
                   }
@@ -9960,7 +9960,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC22",
+                "chip": "NPU-0-BC22",
                 "lane": 3
               },
               "z": {
@@ -9980,7 +9980,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC22",
+                      "chip": "NPU-0-BC22",
                       "lane": 3
                     }
                   }
@@ -10000,7 +10000,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC22",
+                      "chip": "NPU-0-BC22",
                       "lane": 3
                     }
                   }
@@ -10025,7 +10025,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC23",
+                "chip": "NPU-0-BC23",
                 "lane": 0
               },
               "z": {
@@ -10045,7 +10045,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC23",
+                      "chip": "NPU-0-BC23",
                       "lane": 0
                     }
                   }
@@ -10065,7 +10065,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC23",
+                      "chip": "NPU-0-BC23",
                       "lane": 0
                     }
                   }
@@ -10090,7 +10090,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC23",
+                "chip": "NPU-0-BC23",
                 "lane": 1
               },
               "z": {
@@ -10110,7 +10110,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC23",
+                      "chip": "NPU-0-BC23",
                       "lane": 1
                     }
                   }
@@ -10130,7 +10130,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC23",
+                      "chip": "NPU-0-BC23",
                       "lane": 1
                     }
                   }
@@ -10155,7 +10155,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC23",
+                "chip": "NPU-0-BC23",
                 "lane": 2
               },
               "z": {
@@ -10175,7 +10175,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC23",
+                      "chip": "NPU-0-BC23",
                       "lane": 2
                     }
                   }
@@ -10195,7 +10195,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC23",
+                      "chip": "NPU-0-BC23",
                       "lane": 2
                     }
                   }
@@ -10220,7 +10220,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC23",
+                "chip": "NPU-0-BC23",
                 "lane": 3
               },
               "z": {
@@ -10240,7 +10240,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC23",
+                      "chip": "NPU-0-BC23",
                       "lane": 3
                     }
                   }
@@ -10260,7 +10260,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC23",
+                      "chip": "NPU-0-BC23",
                       "lane": 3
                     }
                   }
@@ -10285,7 +10285,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC24",
+                "chip": "NPU-0-BC24",
                 "lane": 0
               }
             }
@@ -10299,7 +10299,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC24",
+                      "chip": "NPU-0-BC24",
                       "lane": 0
                     }
                   }
@@ -10311,7 +10311,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC24",
+                      "chip": "NPU-0-BC24",
                       "lane": 0
                     }
                   }
@@ -10328,7 +10328,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC24",
+                "chip": "NPU-0-BC24",
                 "lane": 1
               }
             }
@@ -10342,7 +10342,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC24",
+                      "chip": "NPU-0-BC24",
                       "lane": 1
                     }
                   }
@@ -10354,7 +10354,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC24",
+                      "chip": "NPU-0-BC24",
                       "lane": 1
                     }
                   }
@@ -10371,7 +10371,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC24",
+                "chip": "NPU-0-BC24",
                 "lane": 2
               }
             }
@@ -10385,7 +10385,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC24",
+                      "chip": "NPU-0-BC24",
                       "lane": 2
                     }
                   }
@@ -10397,7 +10397,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC24",
+                      "chip": "NPU-0-BC24",
                       "lane": 2
                     }
                   }
@@ -10414,7 +10414,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC24",
+                "chip": "NPU-0-BC24",
                 "lane": 3
               }
             }
@@ -10428,7 +10428,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC24",
+                      "chip": "NPU-0-BC24",
                       "lane": 3
                     }
                   }
@@ -10440,7 +10440,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC24",
+                      "chip": "NPU-0-BC24",
                       "lane": 3
                     }
                   }
@@ -10457,7 +10457,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC25",
+                "chip": "NPU-0-BC25",
                 "lane": 0
               }
             }
@@ -10471,7 +10471,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC25",
+                      "chip": "NPU-0-BC25",
                       "lane": 0
                     }
                   }
@@ -10483,7 +10483,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC25",
+                      "chip": "NPU-0-BC25",
                       "lane": 0
                     }
                   }
@@ -10500,7 +10500,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC25",
+                "chip": "NPU-0-BC25",
                 "lane": 1
               }
             }
@@ -10514,7 +10514,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC25",
+                      "chip": "NPU-0-BC25",
                       "lane": 1
                     }
                   }
@@ -10526,7 +10526,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC25",
+                      "chip": "NPU-0-BC25",
                       "lane": 1
                     }
                   }
@@ -10543,7 +10543,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC25",
+                "chip": "NPU-0-BC25",
                 "lane": 2
               }
             }
@@ -10557,7 +10557,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC25",
+                      "chip": "NPU-0-BC25",
                       "lane": 2
                     }
                   }
@@ -10569,7 +10569,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC25",
+                      "chip": "NPU-0-BC25",
                       "lane": 2
                     }
                   }
@@ -10586,7 +10586,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC25",
+                "chip": "NPU-0-BC25",
                 "lane": 3
               }
             }
@@ -10600,7 +10600,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC25",
+                      "chip": "NPU-0-BC25",
                       "lane": 3
                     }
                   }
@@ -10612,7 +10612,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC25",
+                      "chip": "NPU-0-BC25",
                       "lane": 3
                     }
                   }
@@ -10629,7 +10629,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC26",
+                "chip": "NPU-0-BC26",
                 "lane": 0
               }
             }
@@ -10643,7 +10643,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC26",
+                      "chip": "NPU-0-BC26",
                       "lane": 0
                     }
                   }
@@ -10655,7 +10655,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC26",
+                      "chip": "NPU-0-BC26",
                       "lane": 0
                     }
                   }
@@ -10672,7 +10672,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC26",
+                "chip": "NPU-0-BC26",
                 "lane": 1
               }
             }
@@ -10686,7 +10686,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC26",
+                      "chip": "NPU-0-BC26",
                       "lane": 1
                     }
                   }
@@ -10698,7 +10698,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC26",
+                      "chip": "NPU-0-BC26",
                       "lane": 1
                     }
                   }
@@ -10715,7 +10715,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC26",
+                "chip": "NPU-0-BC26",
                 "lane": 2
               }
             }
@@ -10729,7 +10729,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC26",
+                      "chip": "NPU-0-BC26",
                       "lane": 2
                     }
                   }
@@ -10741,7 +10741,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC26",
+                      "chip": "NPU-0-BC26",
                       "lane": 2
                     }
                   }
@@ -10758,7 +10758,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC26",
+                "chip": "NPU-0-BC26",
                 "lane": 3
               }
             }
@@ -10772,7 +10772,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC26",
+                      "chip": "NPU-0-BC26",
                       "lane": 3
                     }
                   }
@@ -10784,7 +10784,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC26",
+                      "chip": "NPU-0-BC26",
                       "lane": 3
                     }
                   }
@@ -10801,7 +10801,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC27",
+                "chip": "NPU-0-BC27",
                 "lane": 0
               }
             }
@@ -10815,7 +10815,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC27",
+                      "chip": "NPU-0-BC27",
                       "lane": 0
                     }
                   }
@@ -10827,7 +10827,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC27",
+                      "chip": "NPU-0-BC27",
                       "lane": 0
                     }
                   }
@@ -10844,7 +10844,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC27",
+                "chip": "NPU-0-BC27",
                 "lane": 1
               }
             }
@@ -10858,7 +10858,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC27",
+                      "chip": "NPU-0-BC27",
                       "lane": 1
                     }
                   }
@@ -10870,7 +10870,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC27",
+                      "chip": "NPU-0-BC27",
                       "lane": 1
                     }
                   }
@@ -10887,7 +10887,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC27",
+                "chip": "NPU-0-BC27",
                 "lane": 2
               }
             }
@@ -10901,7 +10901,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC27",
+                      "chip": "NPU-0-BC27",
                       "lane": 2
                     }
                   }
@@ -10913,7 +10913,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC27",
+                      "chip": "NPU-0-BC27",
                       "lane": 2
                     }
                   }
@@ -10930,7 +10930,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC27",
+                "chip": "NPU-0-BC27",
                 "lane": 3
               }
             }
@@ -10944,7 +10944,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC27",
+                      "chip": "NPU-0-BC27",
                       "lane": 3
                     }
                   }
@@ -10956,7 +10956,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC27",
+                      "chip": "NPU-0-BC27",
                       "lane": 3
                     }
                   }
@@ -10973,7 +10973,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC28",
+                "chip": "NPU-0-BC28",
                 "lane": 0
               },
               "z": {
@@ -10993,7 +10993,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC28",
+                      "chip": "NPU-0-BC28",
                       "lane": 0
                     }
                   }
@@ -11013,7 +11013,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC28",
+                      "chip": "NPU-0-BC28",
                       "lane": 0
                     }
                   }
@@ -11038,7 +11038,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC28",
+                "chip": "NPU-0-BC28",
                 "lane": 1
               },
               "z": {
@@ -11058,7 +11058,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC28",
+                      "chip": "NPU-0-BC28",
                       "lane": 1
                     }
                   }
@@ -11078,7 +11078,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC28",
+                      "chip": "NPU-0-BC28",
                       "lane": 1
                     }
                   }
@@ -11103,7 +11103,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC28",
+                "chip": "NPU-0-BC28",
                 "lane": 2
               },
               "z": {
@@ -11123,7 +11123,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC28",
+                      "chip": "NPU-0-BC28",
                       "lane": 2
                     }
                   }
@@ -11143,7 +11143,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC28",
+                      "chip": "NPU-0-BC28",
                       "lane": 2
                     }
                   }
@@ -11168,7 +11168,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC28",
+                "chip": "NPU-0-BC28",
                 "lane": 3
               },
               "z": {
@@ -11188,7 +11188,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC28",
+                      "chip": "NPU-0-BC28",
                       "lane": 3
                     }
                   }
@@ -11208,7 +11208,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC28",
+                      "chip": "NPU-0-BC28",
                       "lane": 3
                     }
                   }
@@ -11233,7 +11233,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC29",
+                "chip": "NPU-0-BC29",
                 "lane": 0
               },
               "z": {
@@ -11253,7 +11253,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC29",
+                      "chip": "NPU-0-BC29",
                       "lane": 0
                     }
                   }
@@ -11273,7 +11273,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC29",
+                      "chip": "NPU-0-BC29",
                       "lane": 0
                     }
                   }
@@ -11298,7 +11298,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC29",
+                "chip": "NPU-0-BC29",
                 "lane": 1
               },
               "z": {
@@ -11318,7 +11318,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC29",
+                      "chip": "NPU-0-BC29",
                       "lane": 1
                     }
                   }
@@ -11338,7 +11338,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC29",
+                      "chip": "NPU-0-BC29",
                       "lane": 1
                     }
                   }
@@ -11363,7 +11363,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC29",
+                "chip": "NPU-0-BC29",
                 "lane": 2
               },
               "z": {
@@ -11383,7 +11383,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC29",
+                      "chip": "NPU-0-BC29",
                       "lane": 2
                     }
                   }
@@ -11403,7 +11403,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC29",
+                      "chip": "NPU-0-BC29",
                       "lane": 2
                     }
                   }
@@ -11428,7 +11428,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC29",
+                "chip": "NPU-0-BC29",
                 "lane": 3
               },
               "z": {
@@ -11448,7 +11448,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC29",
+                      "chip": "NPU-0-BC29",
                       "lane": 3
                     }
                   }
@@ -11468,7 +11468,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC29",
+                      "chip": "NPU-0-BC29",
                       "lane": 3
                     }
                   }
@@ -11493,7 +11493,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC30",
+                "chip": "NPU-0-BC30",
                 "lane": 0
               },
               "z": {
@@ -11513,7 +11513,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC30",
+                      "chip": "NPU-0-BC30",
                       "lane": 0
                     }
                   }
@@ -11533,7 +11533,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC30",
+                      "chip": "NPU-0-BC30",
                       "lane": 0
                     }
                   }
@@ -11558,7 +11558,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC30",
+                "chip": "NPU-0-BC30",
                 "lane": 1
               },
               "z": {
@@ -11578,7 +11578,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC30",
+                      "chip": "NPU-0-BC30",
                       "lane": 1
                     }
                   }
@@ -11598,7 +11598,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC30",
+                      "chip": "NPU-0-BC30",
                       "lane": 1
                     }
                   }
@@ -11623,7 +11623,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC30",
+                "chip": "NPU-0-BC30",
                 "lane": 2
               },
               "z": {
@@ -11643,7 +11643,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC30",
+                      "chip": "NPU-0-BC30",
                       "lane": 2
                     }
                   }
@@ -11663,7 +11663,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC30",
+                      "chip": "NPU-0-BC30",
                       "lane": 2
                     }
                   }
@@ -11688,7 +11688,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC30",
+                "chip": "NPU-0-BC30",
                 "lane": 3
               },
               "z": {
@@ -11708,7 +11708,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC30",
+                      "chip": "NPU-0-BC30",
                       "lane": 3
                     }
                   }
@@ -11728,7 +11728,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC30",
+                      "chip": "NPU-0-BC30",
                       "lane": 3
                     }
                   }
@@ -11753,7 +11753,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC31",
+                "chip": "NPU-0-BC31",
                 "lane": 0
               },
               "z": {
@@ -11773,7 +11773,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC31",
+                      "chip": "NPU-0-BC31",
                       "lane": 0
                     }
                   }
@@ -11793,7 +11793,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC31",
+                      "chip": "NPU-0-BC31",
                       "lane": 0
                     }
                   }
@@ -11818,7 +11818,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC31",
+                "chip": "NPU-0-BC31",
                 "lane": 1
               },
               "z": {
@@ -11838,7 +11838,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC31",
+                      "chip": "NPU-0-BC31",
                       "lane": 1
                     }
                   }
@@ -11858,7 +11858,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC31",
+                      "chip": "NPU-0-BC31",
                       "lane": 1
                     }
                   }
@@ -11883,7 +11883,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC31",
+                "chip": "NPU-0-BC31",
                 "lane": 2
               },
               "z": {
@@ -11903,7 +11903,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC31",
+                      "chip": "NPU-0-BC31",
                       "lane": 2
                     }
                   }
@@ -11923,7 +11923,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC31",
+                      "chip": "NPU-0-BC31",
                       "lane": 2
                     }
                   }
@@ -11948,7 +11948,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC31",
+                "chip": "NPU-0-BC31",
                 "lane": 3
               },
               "z": {
@@ -11968,7 +11968,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC31",
+                      "chip": "NPU-0-BC31",
                       "lane": 3
                     }
                   }
@@ -11988,7 +11988,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC31",
+                      "chip": "NPU-0-BC31",
                       "lane": 3
                     }
                   }
@@ -12013,7 +12013,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC32",
+                "chip": "NPU-0-BC32",
                 "lane": 0
               },
               "z": {
@@ -12033,7 +12033,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC32",
+                      "chip": "NPU-0-BC32",
                       "lane": 0
                     }
                   }
@@ -12053,7 +12053,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC32",
+                      "chip": "NPU-0-BC32",
                       "lane": 0
                     }
                   }
@@ -12078,7 +12078,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC32",
+                "chip": "NPU-0-BC32",
                 "lane": 1
               },
               "z": {
@@ -12098,7 +12098,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC32",
+                      "chip": "NPU-0-BC32",
                       "lane": 1
                     }
                   }
@@ -12118,7 +12118,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC32",
+                      "chip": "NPU-0-BC32",
                       "lane": 1
                     }
                   }
@@ -12143,7 +12143,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC32",
+                "chip": "NPU-0-BC32",
                 "lane": 2
               },
               "z": {
@@ -12163,7 +12163,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC32",
+                      "chip": "NPU-0-BC32",
                       "lane": 2
                     }
                   }
@@ -12183,7 +12183,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC32",
+                      "chip": "NPU-0-BC32",
                       "lane": 2
                     }
                   }
@@ -12208,7 +12208,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC32",
+                "chip": "NPU-0-BC32",
                 "lane": 3
               },
               "z": {
@@ -12228,7 +12228,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC32",
+                      "chip": "NPU-0-BC32",
                       "lane": 3
                     }
                   }
@@ -12248,7 +12248,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC32",
+                      "chip": "NPU-0-BC32",
                       "lane": 3
                     }
                   }
@@ -12273,7 +12273,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC33",
+                "chip": "NPU-0-BC33",
                 "lane": 0
               },
               "z": {
@@ -12293,7 +12293,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC33",
+                      "chip": "NPU-0-BC33",
                       "lane": 0
                     }
                   }
@@ -12313,7 +12313,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC33",
+                      "chip": "NPU-0-BC33",
                       "lane": 0
                     }
                   }
@@ -12338,7 +12338,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC33",
+                "chip": "NPU-0-BC33",
                 "lane": 1
               },
               "z": {
@@ -12358,7 +12358,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC33",
+                      "chip": "NPU-0-BC33",
                       "lane": 1
                     }
                   }
@@ -12378,7 +12378,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC33",
+                      "chip": "NPU-0-BC33",
                       "lane": 1
                     }
                   }
@@ -12403,7 +12403,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC33",
+                "chip": "NPU-0-BC33",
                 "lane": 2
               },
               "z": {
@@ -12423,7 +12423,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC33",
+                      "chip": "NPU-0-BC33",
                       "lane": 2
                     }
                   }
@@ -12443,7 +12443,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC33",
+                      "chip": "NPU-0-BC33",
                       "lane": 2
                     }
                   }
@@ -12468,7 +12468,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC33",
+                "chip": "NPU-0-BC33",
                 "lane": 3
               },
               "z": {
@@ -12488,7 +12488,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC33",
+                      "chip": "NPU-0-BC33",
                       "lane": 3
                     }
                   }
@@ -12508,7 +12508,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC33",
+                      "chip": "NPU-0-BC33",
                       "lane": 3
                     }
                   }
@@ -12533,7 +12533,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC34",
+                "chip": "NPU-0-BC34",
                 "lane": 0
               },
               "z": {
@@ -12553,7 +12553,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC34",
+                      "chip": "NPU-0-BC34",
                       "lane": 0
                     }
                   }
@@ -12573,7 +12573,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC34",
+                      "chip": "NPU-0-BC34",
                       "lane": 0
                     }
                   }
@@ -12598,7 +12598,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC34",
+                "chip": "NPU-0-BC34",
                 "lane": 1
               },
               "z": {
@@ -12618,7 +12618,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC34",
+                      "chip": "NPU-0-BC34",
                       "lane": 1
                     }
                   }
@@ -12638,7 +12638,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC34",
+                      "chip": "NPU-0-BC34",
                       "lane": 1
                     }
                   }
@@ -12663,7 +12663,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC34",
+                "chip": "NPU-0-BC34",
                 "lane": 2
               },
               "z": {
@@ -12683,7 +12683,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC34",
+                      "chip": "NPU-0-BC34",
                       "lane": 2
                     }
                   }
@@ -12703,7 +12703,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC34",
+                      "chip": "NPU-0-BC34",
                       "lane": 2
                     }
                   }
@@ -12728,7 +12728,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC34",
+                "chip": "NPU-0-BC34",
                 "lane": 3
               },
               "z": {
@@ -12748,7 +12748,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC34",
+                      "chip": "NPU-0-BC34",
                       "lane": 3
                     }
                   }
@@ -12768,7 +12768,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC34",
+                      "chip": "NPU-0-BC34",
                       "lane": 3
                     }
                   }
@@ -12793,7 +12793,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC35",
+                "chip": "NPU-0-BC35",
                 "lane": 0
               },
               "z": {
@@ -12813,7 +12813,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC35",
+                      "chip": "NPU-0-BC35",
                       "lane": 0
                     }
                   }
@@ -12833,7 +12833,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC35",
+                      "chip": "NPU-0-BC35",
                       "lane": 0
                     }
                   }
@@ -12858,7 +12858,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC35",
+                "chip": "NPU-0-BC35",
                 "lane": 1
               },
               "z": {
@@ -12878,7 +12878,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC35",
+                      "chip": "NPU-0-BC35",
                       "lane": 1
                     }
                   }
@@ -12898,7 +12898,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC35",
+                      "chip": "NPU-0-BC35",
                       "lane": 1
                     }
                   }
@@ -12923,7 +12923,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC35",
+                "chip": "NPU-0-BC35",
                 "lane": 2
               },
               "z": {
@@ -12943,7 +12943,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC35",
+                      "chip": "NPU-0-BC35",
                       "lane": 2
                     }
                   }
@@ -12963,7 +12963,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC35",
+                      "chip": "NPU-0-BC35",
                       "lane": 2
                     }
                   }
@@ -12988,7 +12988,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC35",
+                "chip": "NPU-0-BC35",
                 "lane": 3
               },
               "z": {
@@ -13008,7 +13008,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC35",
+                      "chip": "NPU-0-BC35",
                       "lane": 3
                     }
                   }
@@ -13028,7 +13028,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC35",
+                      "chip": "NPU-0-BC35",
                       "lane": 3
                     }
                   }
@@ -13053,7 +13053,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC36",
+                "chip": "NPU-0-BC36",
                 "lane": 0
               },
               "z": {
@@ -13073,7 +13073,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC36",
+                      "chip": "NPU-0-BC36",
                       "lane": 0
                     }
                   }
@@ -13093,7 +13093,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC36",
+                      "chip": "NPU-0-BC36",
                       "lane": 0
                     }
                   }
@@ -13118,7 +13118,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC36",
+                "chip": "NPU-0-BC36",
                 "lane": 1
               },
               "z": {
@@ -13138,7 +13138,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC36",
+                      "chip": "NPU-0-BC36",
                       "lane": 1
                     }
                   }
@@ -13158,7 +13158,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC36",
+                      "chip": "NPU-0-BC36",
                       "lane": 1
                     }
                   }
@@ -13183,7 +13183,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC36",
+                "chip": "NPU-0-BC36",
                 "lane": 2
               },
               "z": {
@@ -13203,7 +13203,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC36",
+                      "chip": "NPU-0-BC36",
                       "lane": 2
                     }
                   }
@@ -13223,7 +13223,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC36",
+                      "chip": "NPU-0-BC36",
                       "lane": 2
                     }
                   }
@@ -13248,7 +13248,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC36",
+                "chip": "NPU-0-BC36",
                 "lane": 3
               },
               "z": {
@@ -13268,7 +13268,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC36",
+                      "chip": "NPU-0-BC36",
                       "lane": 3
                     }
                   }
@@ -13288,7 +13288,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC36",
+                      "chip": "NPU-0-BC36",
                       "lane": 3
                     }
                   }
@@ -13313,7 +13313,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC37",
+                "chip": "NPU-0-BC37",
                 "lane": 0
               },
               "z": {
@@ -13333,7 +13333,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC37",
+                      "chip": "NPU-0-BC37",
                       "lane": 0
                     }
                   }
@@ -13353,7 +13353,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC37",
+                      "chip": "NPU-0-BC37",
                       "lane": 0
                     }
                   }
@@ -13378,7 +13378,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC37",
+                "chip": "NPU-0-BC37",
                 "lane": 1
               },
               "z": {
@@ -13398,7 +13398,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC37",
+                      "chip": "NPU-0-BC37",
                       "lane": 1
                     }
                   }
@@ -13418,7 +13418,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC37",
+                      "chip": "NPU-0-BC37",
                       "lane": 1
                     }
                   }
@@ -13443,7 +13443,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC37",
+                "chip": "NPU-0-BC37",
                 "lane": 2
               },
               "z": {
@@ -13463,7 +13463,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC37",
+                      "chip": "NPU-0-BC37",
                       "lane": 2
                     }
                   }
@@ -13483,7 +13483,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC37",
+                      "chip": "NPU-0-BC37",
                       "lane": 2
                     }
                   }
@@ -13508,7 +13508,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC37",
+                "chip": "NPU-0-BC37",
                 "lane": 3
               },
               "z": {
@@ -13528,7 +13528,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC37",
+                      "chip": "NPU-0-BC37",
                       "lane": 3
                     }
                   }
@@ -13548,7 +13548,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC37",
+                      "chip": "NPU-0-BC37",
                       "lane": 3
                     }
                   }
@@ -13573,7 +13573,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC38",
+                "chip": "NPU-0-BC38",
                 "lane": 0
               },
               "z": {
@@ -13593,7 +13593,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC38",
+                      "chip": "NPU-0-BC38",
                       "lane": 0
                     }
                   }
@@ -13613,7 +13613,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC38",
+                      "chip": "NPU-0-BC38",
                       "lane": 0
                     }
                   }
@@ -13638,7 +13638,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC38",
+                "chip": "NPU-0-BC38",
                 "lane": 1
               },
               "z": {
@@ -13658,7 +13658,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC38",
+                      "chip": "NPU-0-BC38",
                       "lane": 1
                     }
                   }
@@ -13678,7 +13678,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC38",
+                      "chip": "NPU-0-BC38",
                       "lane": 1
                     }
                   }
@@ -13703,7 +13703,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC38",
+                "chip": "NPU-0-BC38",
                 "lane": 2
               },
               "z": {
@@ -13723,7 +13723,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC38",
+                      "chip": "NPU-0-BC38",
                       "lane": 2
                     }
                   }
@@ -13743,7 +13743,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC38",
+                      "chip": "NPU-0-BC38",
                       "lane": 2
                     }
                   }
@@ -13768,7 +13768,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC38",
+                "chip": "NPU-0-BC38",
                 "lane": 3
               },
               "z": {
@@ -13788,7 +13788,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC38",
+                      "chip": "NPU-0-BC38",
                       "lane": 3
                     }
                   }
@@ -13808,7 +13808,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC38",
+                      "chip": "NPU-0-BC38",
                       "lane": 3
                     }
                   }
@@ -13833,7 +13833,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC39",
+                "chip": "NPU-0-BC39",
                 "lane": 0
               },
               "z": {
@@ -13853,7 +13853,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC39",
+                      "chip": "NPU-0-BC39",
                       "lane": 0
                     }
                   }
@@ -13873,7 +13873,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC39",
+                      "chip": "NPU-0-BC39",
                       "lane": 0
                     }
                   }
@@ -13898,7 +13898,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC39",
+                "chip": "NPU-0-BC39",
                 "lane": 1
               },
               "z": {
@@ -13918,7 +13918,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC39",
+                      "chip": "NPU-0-BC39",
                       "lane": 1
                     }
                   }
@@ -13938,7 +13938,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC39",
+                      "chip": "NPU-0-BC39",
                       "lane": 1
                     }
                   }
@@ -13963,7 +13963,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC39",
+                "chip": "NPU-0-BC39",
                 "lane": 2
               },
               "z": {
@@ -13983,7 +13983,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC39",
+                      "chip": "NPU-0-BC39",
                       "lane": 2
                     }
                   }
@@ -14003,7 +14003,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC39",
+                      "chip": "NPU-0-BC39",
                       "lane": 2
                     }
                   }
@@ -14028,7 +14028,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC39",
+                "chip": "NPU-0-BC39",
                 "lane": 3
               },
               "z": {
@@ -14048,7 +14048,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC39",
+                      "chip": "NPU-0-BC39",
                       "lane": 3
                     }
                   }
@@ -14068,7 +14068,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC39",
+                      "chip": "NPU-0-BC39",
                       "lane": 3
                     }
                   }
@@ -14093,7 +14093,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC40",
+                "chip": "NPU-0-BC40",
                 "lane": 0
               },
               "z": {
@@ -14113,7 +14113,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC40",
+                      "chip": "NPU-0-BC40",
                       "lane": 0
                     }
                   }
@@ -14133,7 +14133,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC40",
+                      "chip": "NPU-0-BC40",
                       "lane": 0
                     }
                   }
@@ -14158,7 +14158,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC40",
+                "chip": "NPU-0-BC40",
                 "lane": 1
               },
               "z": {
@@ -14178,7 +14178,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC40",
+                      "chip": "NPU-0-BC40",
                       "lane": 1
                     }
                   }
@@ -14198,7 +14198,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC40",
+                      "chip": "NPU-0-BC40",
                       "lane": 1
                     }
                   }
@@ -14223,7 +14223,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC40",
+                "chip": "NPU-0-BC40",
                 "lane": 2
               },
               "z": {
@@ -14243,7 +14243,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC40",
+                      "chip": "NPU-0-BC40",
                       "lane": 2
                     }
                   }
@@ -14263,7 +14263,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC40",
+                      "chip": "NPU-0-BC40",
                       "lane": 2
                     }
                   }
@@ -14288,7 +14288,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC40",
+                "chip": "NPU-0-BC40",
                 "lane": 3
               },
               "z": {
@@ -14308,7 +14308,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC40",
+                      "chip": "NPU-0-BC40",
                       "lane": 3
                     }
                   }
@@ -14328,7 +14328,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC40",
+                      "chip": "NPU-0-BC40",
                       "lane": 3
                     }
                   }
@@ -14353,7 +14353,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC41",
+                "chip": "NPU-0-BC41",
                 "lane": 0
               },
               "z": {
@@ -14373,7 +14373,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC41",
+                      "chip": "NPU-0-BC41",
                       "lane": 0
                     }
                   }
@@ -14393,7 +14393,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC41",
+                      "chip": "NPU-0-BC41",
                       "lane": 0
                     }
                   }
@@ -14418,7 +14418,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC41",
+                "chip": "NPU-0-BC41",
                 "lane": 1
               },
               "z": {
@@ -14438,7 +14438,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC41",
+                      "chip": "NPU-0-BC41",
                       "lane": 1
                     }
                   }
@@ -14458,7 +14458,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC41",
+                      "chip": "NPU-0-BC41",
                       "lane": 1
                     }
                   }
@@ -14483,7 +14483,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC41",
+                "chip": "NPU-0-BC41",
                 "lane": 2
               },
               "z": {
@@ -14503,7 +14503,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC41",
+                      "chip": "NPU-0-BC41",
                       "lane": 2
                     }
                   }
@@ -14523,7 +14523,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC41",
+                      "chip": "NPU-0-BC41",
                       "lane": 2
                     }
                   }
@@ -14548,7 +14548,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC41",
+                "chip": "NPU-0-BC41",
                 "lane": 3
               },
               "z": {
@@ -14568,7 +14568,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC41",
+                      "chip": "NPU-0-BC41",
                       "lane": 3
                     }
                   }
@@ -14588,7 +14588,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC41",
+                      "chip": "NPU-0-BC41",
                       "lane": 3
                     }
                   }
@@ -14613,7 +14613,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC42",
+                "chip": "NPU-0-BC42",
                 "lane": 0
               },
               "z": {
@@ -14633,7 +14633,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC42",
+                      "chip": "NPU-0-BC42",
                       "lane": 0
                     }
                   }
@@ -14653,7 +14653,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC42",
+                      "chip": "NPU-0-BC42",
                       "lane": 0
                     }
                   }
@@ -14678,7 +14678,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC42",
+                "chip": "NPU-0-BC42",
                 "lane": 1
               },
               "z": {
@@ -14698,7 +14698,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC42",
+                      "chip": "NPU-0-BC42",
                       "lane": 1
                     }
                   }
@@ -14718,7 +14718,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC42",
+                      "chip": "NPU-0-BC42",
                       "lane": 1
                     }
                   }
@@ -14743,7 +14743,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC42",
+                "chip": "NPU-0-BC42",
                 "lane": 2
               },
               "z": {
@@ -14763,7 +14763,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC42",
+                      "chip": "NPU-0-BC42",
                       "lane": 2
                     }
                   }
@@ -14783,7 +14783,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC42",
+                      "chip": "NPU-0-BC42",
                       "lane": 2
                     }
                   }
@@ -14808,7 +14808,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC42",
+                "chip": "NPU-0-BC42",
                 "lane": 3
               },
               "z": {
@@ -14828,7 +14828,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC42",
+                      "chip": "NPU-0-BC42",
                       "lane": 3
                     }
                   }
@@ -14848,7 +14848,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC42",
+                      "chip": "NPU-0-BC42",
                       "lane": 3
                     }
                   }
@@ -14873,7 +14873,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC43",
+                "chip": "NPU-0-BC43",
                 "lane": 0
               },
               "z": {
@@ -14893,7 +14893,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC43",
+                      "chip": "NPU-0-BC43",
                       "lane": 0
                     }
                   }
@@ -14913,7 +14913,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC43",
+                      "chip": "NPU-0-BC43",
                       "lane": 0
                     }
                   }
@@ -14938,7 +14938,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC43",
+                "chip": "NPU-0-BC43",
                 "lane": 1
               },
               "z": {
@@ -14958,7 +14958,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC43",
+                      "chip": "NPU-0-BC43",
                       "lane": 1
                     }
                   }
@@ -14978,7 +14978,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC43",
+                      "chip": "NPU-0-BC43",
                       "lane": 1
                     }
                   }
@@ -15003,7 +15003,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC43",
+                "chip": "NPU-0-BC43",
                 "lane": 2
               },
               "z": {
@@ -15023,7 +15023,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC43",
+                      "chip": "NPU-0-BC43",
                       "lane": 2
                     }
                   }
@@ -15043,7 +15043,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC43",
+                      "chip": "NPU-0-BC43",
                       "lane": 2
                     }
                   }
@@ -15068,7 +15068,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC43",
+                "chip": "NPU-0-BC43",
                 "lane": 3
               },
               "z": {
@@ -15088,7 +15088,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC43",
+                      "chip": "NPU-0-BC43",
                       "lane": 3
                     }
                   }
@@ -15108,7 +15108,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC43",
+                      "chip": "NPU-0-BC43",
                       "lane": 3
                     }
                   }
@@ -15133,7 +15133,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC44",
+                "chip": "NPU-0-BC44",
                 "lane": 0
               },
               "z": {
@@ -15153,7 +15153,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC44",
+                      "chip": "NPU-0-BC44",
                       "lane": 0
                     }
                   }
@@ -15173,7 +15173,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC44",
+                      "chip": "NPU-0-BC44",
                       "lane": 0
                     }
                   }
@@ -15198,7 +15198,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC44",
+                "chip": "NPU-0-BC44",
                 "lane": 1
               },
               "z": {
@@ -15218,7 +15218,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC44",
+                      "chip": "NPU-0-BC44",
                       "lane": 1
                     }
                   }
@@ -15238,7 +15238,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC44",
+                      "chip": "NPU-0-BC44",
                       "lane": 1
                     }
                   }
@@ -15263,7 +15263,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC44",
+                "chip": "NPU-0-BC44",
                 "lane": 2
               },
               "z": {
@@ -15283,7 +15283,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC44",
+                      "chip": "NPU-0-BC44",
                       "lane": 2
                     }
                   }
@@ -15303,7 +15303,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC44",
+                      "chip": "NPU-0-BC44",
                       "lane": 2
                     }
                   }
@@ -15328,7 +15328,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC44",
+                "chip": "NPU-0-BC44",
                 "lane": 3
               },
               "z": {
@@ -15348,7 +15348,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC44",
+                      "chip": "NPU-0-BC44",
                       "lane": 3
                     }
                   }
@@ -15368,7 +15368,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC44",
+                      "chip": "NPU-0-BC44",
                       "lane": 3
                     }
                   }
@@ -15393,7 +15393,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC45",
+                "chip": "NPU-0-BC45",
                 "lane": 0
               },
               "z": {
@@ -15413,7 +15413,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC45",
+                      "chip": "NPU-0-BC45",
                       "lane": 0
                     }
                   }
@@ -15433,7 +15433,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC45",
+                      "chip": "NPU-0-BC45",
                       "lane": 0
                     }
                   }
@@ -15458,7 +15458,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC45",
+                "chip": "NPU-0-BC45",
                 "lane": 1
               },
               "z": {
@@ -15478,7 +15478,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC45",
+                      "chip": "NPU-0-BC45",
                       "lane": 1
                     }
                   }
@@ -15498,7 +15498,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC45",
+                      "chip": "NPU-0-BC45",
                       "lane": 1
                     }
                   }
@@ -15523,7 +15523,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC45",
+                "chip": "NPU-0-BC45",
                 "lane": 2
               },
               "z": {
@@ -15543,7 +15543,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC45",
+                      "chip": "NPU-0-BC45",
                       "lane": 2
                     }
                   }
@@ -15563,7 +15563,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC45",
+                      "chip": "NPU-0-BC45",
                       "lane": 2
                     }
                   }
@@ -15588,7 +15588,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC45",
+                "chip": "NPU-0-BC45",
                 "lane": 3
               },
               "z": {
@@ -15608,7 +15608,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC45",
+                      "chip": "NPU-0-BC45",
                       "lane": 3
                     }
                   }
@@ -15628,7 +15628,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC45",
+                      "chip": "NPU-0-BC45",
                       "lane": 3
                     }
                   }
@@ -15653,7 +15653,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC46",
+                "chip": "NPU-0-BC46",
                 "lane": 0
               },
               "z": {
@@ -15673,7 +15673,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC46",
+                      "chip": "NPU-0-BC46",
                       "lane": 0
                     }
                   }
@@ -15693,7 +15693,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC46",
+                      "chip": "NPU-0-BC46",
                       "lane": 0
                     }
                   }
@@ -15718,7 +15718,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC46",
+                "chip": "NPU-0-BC46",
                 "lane": 1
               },
               "z": {
@@ -15738,7 +15738,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC46",
+                      "chip": "NPU-0-BC46",
                       "lane": 1
                     }
                   }
@@ -15758,7 +15758,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC46",
+                      "chip": "NPU-0-BC46",
                       "lane": 1
                     }
                   }
@@ -15783,7 +15783,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC46",
+                "chip": "NPU-0-BC46",
                 "lane": 2
               },
               "z": {
@@ -15803,7 +15803,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC46",
+                      "chip": "NPU-0-BC46",
                       "lane": 2
                     }
                   }
@@ -15823,7 +15823,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC46",
+                      "chip": "NPU-0-BC46",
                       "lane": 2
                     }
                   }
@@ -15848,7 +15848,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC46",
+                "chip": "NPU-0-BC46",
                 "lane": 3
               },
               "z": {
@@ -15868,7 +15868,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC46",
+                      "chip": "NPU-0-BC46",
                       "lane": 3
                     }
                   }
@@ -15888,7 +15888,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC46",
+                      "chip": "NPU-0-BC46",
                       "lane": 3
                     }
                   }
@@ -15913,7 +15913,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC47",
+                "chip": "NPU-0-BC47",
                 "lane": 0
               },
               "z": {
@@ -15933,7 +15933,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC47",
+                      "chip": "NPU-0-BC47",
                       "lane": 0
                     }
                   }
@@ -15953,7 +15953,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC47",
+                      "chip": "NPU-0-BC47",
                       "lane": 0
                     }
                   }
@@ -15978,7 +15978,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC47",
+                "chip": "NPU-0-BC47",
                 "lane": 1
               },
               "z": {
@@ -15998,7 +15998,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC47",
+                      "chip": "NPU-0-BC47",
                       "lane": 1
                     }
                   }
@@ -16018,7 +16018,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC47",
+                      "chip": "NPU-0-BC47",
                       "lane": 1
                     }
                   }
@@ -16043,7 +16043,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC47",
+                "chip": "NPU-0-BC47",
                 "lane": 2
               },
               "z": {
@@ -16063,7 +16063,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC47",
+                      "chip": "NPU-0-BC47",
                       "lane": 2
                     }
                   }
@@ -16083,7 +16083,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC47",
+                      "chip": "NPU-0-BC47",
                       "lane": 2
                     }
                   }
@@ -16108,7 +16108,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC47",
+                "chip": "NPU-0-BC47",
                 "lane": 3
               },
               "z": {
@@ -16128,7 +16128,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC47",
+                      "chip": "NPU-0-BC47",
                       "lane": 3
                     }
                   }
@@ -16148,7 +16148,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC47",
+                      "chip": "NPU-0-BC47",
                       "lane": 3
                     }
                   }
@@ -16168,324 +16168,324 @@ constexpr auto kJsonPlatformMappingStr = R"(
   },
   "chips": [
     {
-      "name": "BC0",
-      "type": 1,
-      "physicalID": 0
-    },
-    {
-      "name": "BC1",
-      "type": 1,
-      "physicalID": 1
-    },
-    {
-      "name": "BC2",
-      "type": 1,
-      "physicalID": 2
-    },
-    {
-      "name": "BC3",
-      "type": 1,
-      "physicalID": 3
-    },
-    {
-      "name": "BC4",
-      "type": 1,
-      "physicalID": 4
-    },
-    {
-      "name": "BC5",
+      "name": "NPU-0-BC5",
       "type": 1,
       "physicalID": 5
     },
     {
-      "name": "BC6",
-      "type": 1,
-      "physicalID": 6
-    },
-    {
-      "name": "BC7",
-      "type": 1,
-      "physicalID": 7
-    },
-    {
-      "name": "BC8",
-      "type": 1,
-      "physicalID": 8
-    },
-    {
-      "name": "BC9",
-      "type": 1,
-      "physicalID": 9
-    },
-    {
-      "name": "BC10",
-      "type": 1,
-      "physicalID": 10
-    },
-    {
-      "name": "BC11",
-      "type": 1,
-      "physicalID": 11
-    },
-    {
-      "name": "BC12",
-      "type": 1,
-      "physicalID": 12
-    },
-    {
-      "name": "BC13",
-      "type": 1,
-      "physicalID": 13
-    },
-    {
-      "name": "BC14",
+      "name": "NPU-0-BC14",
       "type": 1,
       "physicalID": 14
     },
     {
-      "name": "BC15",
-      "type": 1,
-      "physicalID": 15
-    },
-    {
-      "name": "BC16",
-      "type": 1,
-      "physicalID": 16
-    },
-    {
-      "name": "BC17",
-      "type": 1,
-      "physicalID": 17
-    },
-    {
-      "name": "BC18",
-      "type": 1,
-      "physicalID": 18
-    },
-    {
-      "name": "BC19",
-      "type": 1,
-      "physicalID": 19
-    },
-    {
-      "name": "BC20",
-      "type": 1,
-      "physicalID": 20
-    },
-    {
-      "name": "BC21",
-      "type": 1,
-      "physicalID": 21
-    },
-    {
-      "name": "BC22",
-      "type": 1,
-      "physicalID": 22
-    },
-    {
-      "name": "BC23",
+      "name": "NPU-0-BC23",
       "type": 1,
       "physicalID": 23
     },
     {
-      "name": "BC24",
-      "type": 1,
-      "physicalID": 24
-    },
-    {
-      "name": "BC25",
-      "type": 1,
-      "physicalID": 25
-    },
-    {
-      "name": "BC26",
-      "type": 1,
-      "physicalID": 26
-    },
-    {
-      "name": "BC27",
-      "type": 1,
-      "physicalID": 27
-    },
-    {
-      "name": "BC28",
-      "type": 1,
-      "physicalID": 28
-    },
-    {
-      "name": "BC29",
-      "type": 1,
-      "physicalID": 29
-    },
-    {
-      "name": "BC30",
-      "type": 1,
-      "physicalID": 30
-    },
-    {
-      "name": "BC31",
-      "type": 1,
-      "physicalID": 31
-    },
-    {
-      "name": "BC32",
-      "type": 1,
-      "physicalID": 32
-    },
-    {
-      "name": "BC33",
-      "type": 1,
-      "physicalID": 33
-    },
-    {
-      "name": "BC34",
-      "type": 1,
-      "physicalID": 34
-    },
-    {
-      "name": "BC35",
-      "type": 1,
-      "physicalID": 35
-    },
-    {
-      "name": "BC36",
-      "type": 1,
-      "physicalID": 36
-    },
-    {
-      "name": "BC37",
-      "type": 1,
-      "physicalID": 37
-    },
-    {
-      "name": "BC38",
-      "type": 1,
-      "physicalID": 38
-    },
-    {
-      "name": "BC39",
-      "type": 1,
-      "physicalID": 39
-    },
-    {
-      "name": "BC40",
-      "type": 1,
-      "physicalID": 40
-    },
-    {
-      "name": "BC41",
-      "type": 1,
-      "physicalID": 41
-    },
-    {
-      "name": "BC42",
-      "type": 1,
-      "physicalID": 42
-    },
-    {
-      "name": "BC43",
-      "type": 1,
-      "physicalID": 43
-    },
-    {
-      "name": "BC44",
+      "name": "NPU-0-BC44",
       "type": 1,
       "physicalID": 44
     },
     {
-      "name": "BC45",
+      "name": "NPU-0-BC7",
       "type": 1,
-      "physicalID": 45
+      "physicalID": 7
     },
     {
-      "name": "BC46",
-      "type": 1,
-      "physicalID": 46
-    },
-    {
-      "name": "BC47",
-      "type": 1,
-      "physicalID": 47
-    },
-    {
-      "name": "BC64",
-      "type": 1,
-      "physicalID": 2
-    },
-    {
-      "name": "BC49",
-      "type": 1,
-      "physicalID": 20
-    },
-    {
-      "name": "BC50",
-      "type": 1,
-      "physicalID": 22
-    },
-    {
-      "name": "BC51",
-      "type": 1,
-      "physicalID": 24
-    },
-    {
-      "name": "BC52",
-      "type": 1,
-      "physicalID": 26
-    },
-    {
-      "name": "BC53",
-      "type": 1,
-      "physicalID": 28
-    },
-    {
-      "name": "BC54",
-      "type": 1,
-      "physicalID": 30
-    },
-    {
-      "name": "BC55",
-      "type": 1,
-      "physicalID": 32
-    },
-    {
-      "name": "BC56",
-      "type": 1,
-      "physicalID": 34
-    },
-    {
-      "name": "BC57",
+      "name": "NPU-0-BC16",
       "type": 1,
       "physicalID": 16
     },
     {
-      "name": "BC58",
+      "name": "NPU-0-BC37",
       "type": 1,
-      "physicalID": 14
+      "physicalID": 37
     },
     {
-      "name": "BC59",
+      "name": "NPU-0-BC46",
       "type": 1,
-      "physicalID": 12
+      "physicalID": 46
     },
     {
-      "name": "BC60",
+      "name": "NPU-0-BC0",
       "type": 1,
-      "physicalID": 10
+      "physicalID": 0
     },
     {
-      "name": "BC61",
+      "name": "NPU-0-BC9",
       "type": 1,
-      "physicalID": 8
+      "physicalID": 9
     },
     {
-      "name": "BC62",
+      "name": "NPU-0-BC30",
+      "type": 1,
+      "physicalID": 30
+    },
+    {
+      "name": "NPU-0-BC39",
+      "type": 1,
+      "physicalID": 39
+    },
+    {
+      "name": "NPU-0-BC2",
+      "type": 1,
+      "physicalID": 2
+    },
+    {
+      "name": "NPU-0-BC32",
+      "type": 1,
+      "physicalID": 32
+    },
+    {
+      "name": "NPU-0-BC41",
+      "type": 1,
+      "physicalID": 41
+    },
+    {
+      "name": "NPU-0-BC25",
+      "type": 1,
+      "physicalID": 25
+    },
+    {
+      "name": "NPU-0-BC34",
+      "type": 1,
+      "physicalID": 34
+    },
+    {
+      "name": "NPU-0-BC43",
+      "type": 1,
+      "physicalID": 43
+    },
+    {
+      "name": "NPU-0-BC18",
+      "type": 1,
+      "physicalID": 18
+    },
+    {
+      "name": "NPU-0-BC27",
+      "type": 1,
+      "physicalID": 27
+    },
+    {
+      "name": "NPU-0-BC36",
+      "type": 1,
+      "physicalID": 36
+    },
+    {
+      "name": "NPU-0-BC45",
+      "type": 1,
+      "physicalID": 45
+    },
+    {
+      "name": "NPU-0-BC11",
+      "type": 1,
+      "physicalID": 11
+    },
+    {
+      "name": "NPU-0-BC20",
+      "type": 1,
+      "physicalID": 20
+    },
+    {
+      "name": "NPU-0-BC29",
+      "type": 1,
+      "physicalID": 29
+    },
+    {
+      "name": "NPU-0-BC38",
+      "type": 1,
+      "physicalID": 38
+    },
+    {
+      "name": "NPU-0-BC47",
+      "type": 1,
+      "physicalID": 47
+    },
+    {
+      "name": "NPU-0-BC4",
+      "type": 1,
+      "physicalID": 4
+    },
+    {
+      "name": "NPU-0-BC13",
+      "type": 1,
+      "physicalID": 13
+    },
+    {
+      "name": "NPU-0-BC22",
+      "type": 1,
+      "physicalID": 22
+    },
+    {
+      "name": "NPU-0-BC31",
+      "type": 1,
+      "physicalID": 31
+    },
+    {
+      "name": "NPU-0-BC40",
+      "type": 1,
+      "physicalID": 40
+    },
+    {
+      "name": "NPU-0-BC6",
       "type": 1,
       "physicalID": 6
     },
     {
-      "name": "BC63",
+      "name": "NPU-0-BC15",
+      "type": 1,
+      "physicalID": 15
+    },
+    {
+      "name": "NPU-0-BC24",
+      "type": 1,
+      "physicalID": 24
+    },
+    {
+      "name": "NPU-0-BC33",
+      "type": 1,
+      "physicalID": 33
+    },
+    {
+      "name": "NPU-0-BC42",
+      "type": 1,
+      "physicalID": 42
+    },
+    {
+      "name": "NPU-0-BC8",
+      "type": 1,
+      "physicalID": 8
+    },
+    {
+      "name": "NPU-0-BC17",
+      "type": 1,
+      "physicalID": 17
+    },
+    {
+      "name": "NPU-0-BC26",
+      "type": 1,
+      "physicalID": 26
+    },
+    {
+      "name": "NPU-0-BC35",
+      "type": 1,
+      "physicalID": 35
+    },
+    {
+      "name": "NPU-0-BC1",
+      "type": 1,
+      "physicalID": 1
+    },
+    {
+      "name": "NPU-0-BC10",
+      "type": 1,
+      "physicalID": 10
+    },
+    {
+      "name": "NPU-0-BC19",
+      "type": 1,
+      "physicalID": 19
+    },
+    {
+      "name": "NPU-0-BC28",
+      "type": 1,
+      "physicalID": 28
+    },
+    {
+      "name": "NPU-0-BC3",
+      "type": 1,
+      "physicalID": 3
+    },
+    {
+      "name": "NPU-0-BC12",
+      "type": 1,
+      "physicalID": 12
+    },
+    {
+      "name": "NPU-0-BC21",
+      "type": 1,
+      "physicalID": 21
+    },
+    {
+      "name": "NPU-0-BC52",
+      "type": 1,
+      "physicalID": 26
+    },
+    {
+      "name": "NPU-0-BC49",
+      "type": 1,
+      "physicalID": 20
+    },
+    {
+      "name": "NPU-0-BC55",
+      "type": 1,
+      "physicalID": 32
+    },
+    {
+      "name": "NPU-0-BC61",
+      "type": 1,
+      "physicalID": 8
+    },
+    {
+      "name": "NPU-0-BC58",
+      "type": 1,
+      "physicalID": 14
+    },
+    {
+      "name": "NPU-0-BC64",
+      "type": 1,
+      "physicalID": 2
+    },
+    {
+      "name": "NPU-0-BC54",
+      "type": 1,
+      "physicalID": 30
+    },
+    {
+      "name": "NPU-0-BC51",
+      "type": 1,
+      "physicalID": 24
+    },
+    {
+      "name": "NPU-0-BC57",
+      "type": 1,
+      "physicalID": 16
+    },
+    {
+      "name": "NPU-0-BC60",
+      "type": 1,
+      "physicalID": 10
+    },
+    {
+      "name": "NPU-0-BC50",
+      "type": 1,
+      "physicalID": 22
+    },
+    {
+      "name": "NPU-0-BC63",
       "type": 1,
       "physicalID": 4
+    },
+    {
+      "name": "NPU-0-BC53",
+      "type": 1,
+      "physicalID": 28
+    },
+    {
+      "name": "NPU-0-BC59",
+      "type": 1,
+      "physicalID": 12
+    },
+    {
+      "name": "NPU-0-BC56",
+      "type": 1,
+      "physicalID": 34
+    },
+    {
+      "name": "NPU-0-BC62",
+      "type": 1,
+      "physicalID": 6
     },
     {
       "name": "fab1/1",
@@ -16778,7 +16778,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
       "physicalID": 17
     },
     {
-      "name": "rcy1",
+      "name": "NPU-0-rcy1",
       "type": 1,
       "physicalID": 55
     }
@@ -17817,7 +17817,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "rcy1",
+                "chip": "NPU-0-rcy1",
                 "lane": 0
               }
             }
@@ -17836,7 +17836,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "rcy1",
+                      "chip": "NPU-0-rcy1",
                       "lane": 0
                     }
                   }
@@ -17853,7 +17853,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC49",
+                "chip": "NPU-0-BC49",
                 "lane": 0
               },
               "z": {
@@ -17865,7 +17865,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC49",
+                "chip": "NPU-0-BC49",
                 "lane": 1
               },
               "z": {
@@ -17877,7 +17877,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC49",
+                "chip": "NPU-0-BC49",
                 "lane": 2
               },
               "z": {
@@ -17889,7 +17889,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC49",
+                "chip": "NPU-0-BC49",
                 "lane": 3
               },
               "z": {
@@ -17911,25 +17911,25 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC49",
+                      "chip": "NPU-0-BC49",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC49",
+                      "chip": "NPU-0-BC49",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC49",
+                      "chip": "NPU-0-BC49",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC49",
+                      "chip": "NPU-0-BC49",
                       "lane": 3
                     }
                   }
@@ -17967,25 +17967,25 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC49",
+                      "chip": "NPU-0-BC49",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC49",
+                      "chip": "NPU-0-BC49",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC49",
+                      "chip": "NPU-0-BC49",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC49",
+                      "chip": "NPU-0-BC49",
                       "lane": 3
                     }
                   }
@@ -18023,25 +18023,25 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC49",
+                      "chip": "NPU-0-BC49",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC49",
+                      "chip": "NPU-0-BC49",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC49",
+                      "chip": "NPU-0-BC49",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC49",
+                      "chip": "NPU-0-BC49",
                       "lane": 3
                     }
                   }
@@ -18079,7 +18079,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC49",
+                      "chip": "NPU-0-BC49",
                       "lane": 0
                     }
                   }
@@ -18099,7 +18099,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC49",
+                      "chip": "NPU-0-BC49",
                       "lane": 0
                     }
                   }
@@ -18124,7 +18124,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC49",
+                "chip": "NPU-0-BC49",
                 "lane": 1
               },
               "z": {
@@ -18146,7 +18146,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC49",
+                      "chip": "NPU-0-BC49",
                       "lane": 1
                     }
                   }
@@ -18166,7 +18166,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC49",
+                      "chip": "NPU-0-BC49",
                       "lane": 1
                     }
                   }
@@ -18191,7 +18191,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC49",
+                "chip": "NPU-0-BC49",
                 "lane": 2
               },
               "z": {
@@ -18213,7 +18213,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC49",
+                      "chip": "NPU-0-BC49",
                       "lane": 2
                     }
                   }
@@ -18233,7 +18233,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC49",
+                      "chip": "NPU-0-BC49",
                       "lane": 2
                     }
                   }
@@ -18258,7 +18258,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC49",
+                "chip": "NPU-0-BC49",
                 "lane": 3
               },
               "z": {
@@ -18280,7 +18280,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC49",
+                      "chip": "NPU-0-BC49",
                       "lane": 3
                     }
                   }
@@ -18300,7 +18300,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC49",
+                      "chip": "NPU-0-BC49",
                       "lane": 3
                     }
                   }
@@ -18325,7 +18325,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC49",
+                "chip": "NPU-0-BC49",
                 "lane": 4
               },
               "z": {
@@ -18347,7 +18347,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC49",
+                      "chip": "NPU-0-BC49",
                       "lane": 4
                     }
                   }
@@ -18367,7 +18367,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC49",
+                      "chip": "NPU-0-BC49",
                       "lane": 4
                     }
                   }
@@ -18392,7 +18392,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC49",
+                "chip": "NPU-0-BC49",
                 "lane": 5
               },
               "z": {
@@ -18414,7 +18414,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC49",
+                      "chip": "NPU-0-BC49",
                       "lane": 5
                     }
                   }
@@ -18434,7 +18434,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC49",
+                      "chip": "NPU-0-BC49",
                       "lane": 5
                     }
                   }
@@ -18459,7 +18459,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC49",
+                "chip": "NPU-0-BC49",
                 "lane": 6
               },
               "z": {
@@ -18481,7 +18481,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC49",
+                      "chip": "NPU-0-BC49",
                       "lane": 6
                     }
                   }
@@ -18501,7 +18501,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC49",
+                      "chip": "NPU-0-BC49",
                       "lane": 6
                     }
                   }
@@ -18526,7 +18526,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC49",
+                "chip": "NPU-0-BC49",
                 "lane": 7
               },
               "z": {
@@ -18548,7 +18548,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC49",
+                      "chip": "NPU-0-BC49",
                       "lane": 7
                     }
                   }
@@ -18568,7 +18568,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC49",
+                      "chip": "NPU-0-BC49",
                       "lane": 7
                     }
                   }
@@ -18593,7 +18593,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC50",
+                "chip": "NPU-0-BC50",
                 "lane": 0
               },
               "z": {
@@ -18605,7 +18605,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC50",
+                "chip": "NPU-0-BC50",
                 "lane": 1
               },
               "z": {
@@ -18617,7 +18617,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC50",
+                "chip": "NPU-0-BC50",
                 "lane": 2
               },
               "z": {
@@ -18629,7 +18629,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC50",
+                "chip": "NPU-0-BC50",
                 "lane": 3
               },
               "z": {
@@ -18651,25 +18651,25 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC50",
+                      "chip": "NPU-0-BC50",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC50",
+                      "chip": "NPU-0-BC50",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC50",
+                      "chip": "NPU-0-BC50",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC50",
+                      "chip": "NPU-0-BC50",
                       "lane": 3
                     }
                   }
@@ -18707,25 +18707,25 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC50",
+                      "chip": "NPU-0-BC50",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC50",
+                      "chip": "NPU-0-BC50",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC50",
+                      "chip": "NPU-0-BC50",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC50",
+                      "chip": "NPU-0-BC50",
                       "lane": 3
                     }
                   }
@@ -18763,25 +18763,25 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC50",
+                      "chip": "NPU-0-BC50",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC50",
+                      "chip": "NPU-0-BC50",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC50",
+                      "chip": "NPU-0-BC50",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC50",
+                      "chip": "NPU-0-BC50",
                       "lane": 3
                     }
                   }
@@ -18819,7 +18819,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC50",
+                      "chip": "NPU-0-BC50",
                       "lane": 0
                     }
                   }
@@ -18839,7 +18839,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC50",
+                      "chip": "NPU-0-BC50",
                       "lane": 0
                     }
                   }
@@ -18864,7 +18864,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC50",
+                "chip": "NPU-0-BC50",
                 "lane": 1
               },
               "z": {
@@ -18886,7 +18886,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC50",
+                      "chip": "NPU-0-BC50",
                       "lane": 1
                     }
                   }
@@ -18906,7 +18906,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC50",
+                      "chip": "NPU-0-BC50",
                       "lane": 1
                     }
                   }
@@ -18931,7 +18931,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC50",
+                "chip": "NPU-0-BC50",
                 "lane": 2
               },
               "z": {
@@ -18953,7 +18953,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC50",
+                      "chip": "NPU-0-BC50",
                       "lane": 2
                     }
                   }
@@ -18973,7 +18973,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC50",
+                      "chip": "NPU-0-BC50",
                       "lane": 2
                     }
                   }
@@ -18998,7 +18998,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC50",
+                "chip": "NPU-0-BC50",
                 "lane": 3
               },
               "z": {
@@ -19020,7 +19020,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC50",
+                      "chip": "NPU-0-BC50",
                       "lane": 3
                     }
                   }
@@ -19040,7 +19040,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC50",
+                      "chip": "NPU-0-BC50",
                       "lane": 3
                     }
                   }
@@ -19065,7 +19065,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC50",
+                "chip": "NPU-0-BC50",
                 "lane": 4
               },
               "z": {
@@ -19087,7 +19087,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC50",
+                      "chip": "NPU-0-BC50",
                       "lane": 4
                     }
                   }
@@ -19107,7 +19107,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC50",
+                      "chip": "NPU-0-BC50",
                       "lane": 4
                     }
                   }
@@ -19132,7 +19132,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC50",
+                "chip": "NPU-0-BC50",
                 "lane": 5
               },
               "z": {
@@ -19154,7 +19154,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC50",
+                      "chip": "NPU-0-BC50",
                       "lane": 5
                     }
                   }
@@ -19174,7 +19174,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC50",
+                      "chip": "NPU-0-BC50",
                       "lane": 5
                     }
                   }
@@ -19199,7 +19199,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC50",
+                "chip": "NPU-0-BC50",
                 "lane": 6
               },
               "z": {
@@ -19221,7 +19221,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC50",
+                      "chip": "NPU-0-BC50",
                       "lane": 6
                     }
                   }
@@ -19241,7 +19241,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC50",
+                      "chip": "NPU-0-BC50",
                       "lane": 6
                     }
                   }
@@ -19266,7 +19266,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC50",
+                "chip": "NPU-0-BC50",
                 "lane": 7
               },
               "z": {
@@ -19288,7 +19288,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC50",
+                      "chip": "NPU-0-BC50",
                       "lane": 7
                     }
                   }
@@ -19308,7 +19308,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC50",
+                      "chip": "NPU-0-BC50",
                       "lane": 7
                     }
                   }
@@ -19333,7 +19333,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC51",
+                "chip": "NPU-0-BC51",
                 "lane": 0
               },
               "z": {
@@ -19345,7 +19345,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC51",
+                "chip": "NPU-0-BC51",
                 "lane": 1
               },
               "z": {
@@ -19357,7 +19357,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC51",
+                "chip": "NPU-0-BC51",
                 "lane": 2
               },
               "z": {
@@ -19369,7 +19369,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC51",
+                "chip": "NPU-0-BC51",
                 "lane": 3
               },
               "z": {
@@ -19391,25 +19391,25 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC51",
+                      "chip": "NPU-0-BC51",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC51",
+                      "chip": "NPU-0-BC51",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC51",
+                      "chip": "NPU-0-BC51",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC51",
+                      "chip": "NPU-0-BC51",
                       "lane": 3
                     }
                   }
@@ -19447,25 +19447,25 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC51",
+                      "chip": "NPU-0-BC51",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC51",
+                      "chip": "NPU-0-BC51",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC51",
+                      "chip": "NPU-0-BC51",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC51",
+                      "chip": "NPU-0-BC51",
                       "lane": 3
                     }
                   }
@@ -19503,25 +19503,25 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC51",
+                      "chip": "NPU-0-BC51",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC51",
+                      "chip": "NPU-0-BC51",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC51",
+                      "chip": "NPU-0-BC51",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC51",
+                      "chip": "NPU-0-BC51",
                       "lane": 3
                     }
                   }
@@ -19559,7 +19559,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC51",
+                      "chip": "NPU-0-BC51",
                       "lane": 0
                     }
                   }
@@ -19579,7 +19579,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC51",
+                      "chip": "NPU-0-BC51",
                       "lane": 0
                     }
                   }
@@ -19604,7 +19604,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC51",
+                "chip": "NPU-0-BC51",
                 "lane": 1
               },
               "z": {
@@ -19626,7 +19626,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC51",
+                      "chip": "NPU-0-BC51",
                       "lane": 1
                     }
                   }
@@ -19646,7 +19646,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC51",
+                      "chip": "NPU-0-BC51",
                       "lane": 1
                     }
                   }
@@ -19671,7 +19671,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC51",
+                "chip": "NPU-0-BC51",
                 "lane": 2
               },
               "z": {
@@ -19693,7 +19693,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC51",
+                      "chip": "NPU-0-BC51",
                       "lane": 2
                     }
                   }
@@ -19713,7 +19713,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC51",
+                      "chip": "NPU-0-BC51",
                       "lane": 2
                     }
                   }
@@ -19738,7 +19738,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC51",
+                "chip": "NPU-0-BC51",
                 "lane": 3
               },
               "z": {
@@ -19760,7 +19760,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC51",
+                      "chip": "NPU-0-BC51",
                       "lane": 3
                     }
                   }
@@ -19780,7 +19780,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC51",
+                      "chip": "NPU-0-BC51",
                       "lane": 3
                     }
                   }
@@ -19805,7 +19805,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC51",
+                "chip": "NPU-0-BC51",
                 "lane": 4
               },
               "z": {
@@ -19827,7 +19827,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC51",
+                      "chip": "NPU-0-BC51",
                       "lane": 4
                     }
                   }
@@ -19847,7 +19847,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC51",
+                      "chip": "NPU-0-BC51",
                       "lane": 4
                     }
                   }
@@ -19872,7 +19872,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC51",
+                "chip": "NPU-0-BC51",
                 "lane": 5
               },
               "z": {
@@ -19894,7 +19894,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC51",
+                      "chip": "NPU-0-BC51",
                       "lane": 5
                     }
                   }
@@ -19914,7 +19914,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC51",
+                      "chip": "NPU-0-BC51",
                       "lane": 5
                     }
                   }
@@ -19939,7 +19939,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC51",
+                "chip": "NPU-0-BC51",
                 "lane": 6
               },
               "z": {
@@ -19961,7 +19961,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC51",
+                      "chip": "NPU-0-BC51",
                       "lane": 6
                     }
                   }
@@ -19981,7 +19981,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC51",
+                      "chip": "NPU-0-BC51",
                       "lane": 6
                     }
                   }
@@ -20006,7 +20006,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC51",
+                "chip": "NPU-0-BC51",
                 "lane": 7
               },
               "z": {
@@ -20028,7 +20028,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC51",
+                      "chip": "NPU-0-BC51",
                       "lane": 7
                     }
                   }
@@ -20048,7 +20048,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC51",
+                      "chip": "NPU-0-BC51",
                       "lane": 7
                     }
                   }
@@ -20073,7 +20073,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC52",
+                "chip": "NPU-0-BC52",
                 "lane": 0
               },
               "z": {
@@ -20085,7 +20085,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC52",
+                "chip": "NPU-0-BC52",
                 "lane": 1
               },
               "z": {
@@ -20097,7 +20097,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC52",
+                "chip": "NPU-0-BC52",
                 "lane": 2
               },
               "z": {
@@ -20109,7 +20109,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC52",
+                "chip": "NPU-0-BC52",
                 "lane": 3
               },
               "z": {
@@ -20131,25 +20131,25 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC52",
+                      "chip": "NPU-0-BC52",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC52",
+                      "chip": "NPU-0-BC52",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC52",
+                      "chip": "NPU-0-BC52",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC52",
+                      "chip": "NPU-0-BC52",
                       "lane": 3
                     }
                   }
@@ -20187,25 +20187,25 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC52",
+                      "chip": "NPU-0-BC52",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC52",
+                      "chip": "NPU-0-BC52",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC52",
+                      "chip": "NPU-0-BC52",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC52",
+                      "chip": "NPU-0-BC52",
                       "lane": 3
                     }
                   }
@@ -20243,25 +20243,25 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC52",
+                      "chip": "NPU-0-BC52",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC52",
+                      "chip": "NPU-0-BC52",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC52",
+                      "chip": "NPU-0-BC52",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC52",
+                      "chip": "NPU-0-BC52",
                       "lane": 3
                     }
                   }
@@ -20299,7 +20299,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC52",
+                      "chip": "NPU-0-BC52",
                       "lane": 0
                     }
                   }
@@ -20319,7 +20319,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC52",
+                      "chip": "NPU-0-BC52",
                       "lane": 0
                     }
                   }
@@ -20344,7 +20344,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC52",
+                "chip": "NPU-0-BC52",
                 "lane": 1
               },
               "z": {
@@ -20366,7 +20366,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC52",
+                      "chip": "NPU-0-BC52",
                       "lane": 1
                     }
                   }
@@ -20386,7 +20386,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC52",
+                      "chip": "NPU-0-BC52",
                       "lane": 1
                     }
                   }
@@ -20411,7 +20411,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC52",
+                "chip": "NPU-0-BC52",
                 "lane": 2
               },
               "z": {
@@ -20433,7 +20433,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC52",
+                      "chip": "NPU-0-BC52",
                       "lane": 2
                     }
                   }
@@ -20453,7 +20453,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC52",
+                      "chip": "NPU-0-BC52",
                       "lane": 2
                     }
                   }
@@ -20478,7 +20478,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC52",
+                "chip": "NPU-0-BC52",
                 "lane": 3
               },
               "z": {
@@ -20500,7 +20500,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC52",
+                      "chip": "NPU-0-BC52",
                       "lane": 3
                     }
                   }
@@ -20520,7 +20520,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC52",
+                      "chip": "NPU-0-BC52",
                       "lane": 3
                     }
                   }
@@ -20545,7 +20545,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC52",
+                "chip": "NPU-0-BC52",
                 "lane": 4
               },
               "z": {
@@ -20567,7 +20567,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC52",
+                      "chip": "NPU-0-BC52",
                       "lane": 4
                     }
                   }
@@ -20587,7 +20587,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC52",
+                      "chip": "NPU-0-BC52",
                       "lane": 4
                     }
                   }
@@ -20612,7 +20612,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC52",
+                "chip": "NPU-0-BC52",
                 "lane": 5
               },
               "z": {
@@ -20634,7 +20634,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC52",
+                      "chip": "NPU-0-BC52",
                       "lane": 5
                     }
                   }
@@ -20654,7 +20654,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC52",
+                      "chip": "NPU-0-BC52",
                       "lane": 5
                     }
                   }
@@ -20679,7 +20679,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC52",
+                "chip": "NPU-0-BC52",
                 "lane": 6
               },
               "z": {
@@ -20701,7 +20701,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC52",
+                      "chip": "NPU-0-BC52",
                       "lane": 6
                     }
                   }
@@ -20721,7 +20721,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC52",
+                      "chip": "NPU-0-BC52",
                       "lane": 6
                     }
                   }
@@ -20746,7 +20746,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC52",
+                "chip": "NPU-0-BC52",
                 "lane": 7
               },
               "z": {
@@ -20768,7 +20768,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC52",
+                      "chip": "NPU-0-BC52",
                       "lane": 7
                     }
                   }
@@ -20788,7 +20788,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC52",
+                      "chip": "NPU-0-BC52",
                       "lane": 7
                     }
                   }
@@ -20813,7 +20813,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC53",
+                "chip": "NPU-0-BC53",
                 "lane": 0
               },
               "z": {
@@ -20825,7 +20825,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC53",
+                "chip": "NPU-0-BC53",
                 "lane": 1
               },
               "z": {
@@ -20837,7 +20837,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC53",
+                "chip": "NPU-0-BC53",
                 "lane": 2
               },
               "z": {
@@ -20849,7 +20849,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC53",
+                "chip": "NPU-0-BC53",
                 "lane": 3
               },
               "z": {
@@ -20871,25 +20871,25 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC53",
+                      "chip": "NPU-0-BC53",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC53",
+                      "chip": "NPU-0-BC53",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC53",
+                      "chip": "NPU-0-BC53",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC53",
+                      "chip": "NPU-0-BC53",
                       "lane": 3
                     }
                   }
@@ -20927,25 +20927,25 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC53",
+                      "chip": "NPU-0-BC53",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC53",
+                      "chip": "NPU-0-BC53",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC53",
+                      "chip": "NPU-0-BC53",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC53",
+                      "chip": "NPU-0-BC53",
                       "lane": 3
                     }
                   }
@@ -20983,25 +20983,25 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC53",
+                      "chip": "NPU-0-BC53",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC53",
+                      "chip": "NPU-0-BC53",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC53",
+                      "chip": "NPU-0-BC53",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC53",
+                      "chip": "NPU-0-BC53",
                       "lane": 3
                     }
                   }
@@ -21039,7 +21039,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC53",
+                      "chip": "NPU-0-BC53",
                       "lane": 0
                     }
                   }
@@ -21059,7 +21059,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC53",
+                      "chip": "NPU-0-BC53",
                       "lane": 0
                     }
                   }
@@ -21084,7 +21084,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC53",
+                "chip": "NPU-0-BC53",
                 "lane": 1
               },
               "z": {
@@ -21106,7 +21106,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC53",
+                      "chip": "NPU-0-BC53",
                       "lane": 1
                     }
                   }
@@ -21126,7 +21126,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC53",
+                      "chip": "NPU-0-BC53",
                       "lane": 1
                     }
                   }
@@ -21151,7 +21151,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC53",
+                "chip": "NPU-0-BC53",
                 "lane": 2
               },
               "z": {
@@ -21173,7 +21173,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC53",
+                      "chip": "NPU-0-BC53",
                       "lane": 2
                     }
                   }
@@ -21193,7 +21193,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC53",
+                      "chip": "NPU-0-BC53",
                       "lane": 2
                     }
                   }
@@ -21218,7 +21218,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC53",
+                "chip": "NPU-0-BC53",
                 "lane": 3
               },
               "z": {
@@ -21240,7 +21240,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC53",
+                      "chip": "NPU-0-BC53",
                       "lane": 3
                     }
                   }
@@ -21260,7 +21260,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC53",
+                      "chip": "NPU-0-BC53",
                       "lane": 3
                     }
                   }
@@ -21285,7 +21285,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC53",
+                "chip": "NPU-0-BC53",
                 "lane": 4
               },
               "z": {
@@ -21307,7 +21307,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC53",
+                      "chip": "NPU-0-BC53",
                       "lane": 4
                     }
                   }
@@ -21327,7 +21327,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC53",
+                      "chip": "NPU-0-BC53",
                       "lane": 4
                     }
                   }
@@ -21352,7 +21352,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC53",
+                "chip": "NPU-0-BC53",
                 "lane": 5
               },
               "z": {
@@ -21374,7 +21374,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC53",
+                      "chip": "NPU-0-BC53",
                       "lane": 5
                     }
                   }
@@ -21394,7 +21394,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC53",
+                      "chip": "NPU-0-BC53",
                       "lane": 5
                     }
                   }
@@ -21419,7 +21419,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC53",
+                "chip": "NPU-0-BC53",
                 "lane": 6
               },
               "z": {
@@ -21441,7 +21441,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC53",
+                      "chip": "NPU-0-BC53",
                       "lane": 6
                     }
                   }
@@ -21461,7 +21461,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC53",
+                      "chip": "NPU-0-BC53",
                       "lane": 6
                     }
                   }
@@ -21486,7 +21486,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC53",
+                "chip": "NPU-0-BC53",
                 "lane": 7
               },
               "z": {
@@ -21508,7 +21508,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC53",
+                      "chip": "NPU-0-BC53",
                       "lane": 7
                     }
                   }
@@ -21528,7 +21528,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC53",
+                      "chip": "NPU-0-BC53",
                       "lane": 7
                     }
                   }
@@ -21553,7 +21553,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC54",
+                "chip": "NPU-0-BC54",
                 "lane": 0
               },
               "z": {
@@ -21565,7 +21565,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC54",
+                "chip": "NPU-0-BC54",
                 "lane": 1
               },
               "z": {
@@ -21577,7 +21577,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC54",
+                "chip": "NPU-0-BC54",
                 "lane": 2
               },
               "z": {
@@ -21589,7 +21589,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC54",
+                "chip": "NPU-0-BC54",
                 "lane": 3
               },
               "z": {
@@ -21611,25 +21611,25 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC54",
+                      "chip": "NPU-0-BC54",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC54",
+                      "chip": "NPU-0-BC54",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC54",
+                      "chip": "NPU-0-BC54",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC54",
+                      "chip": "NPU-0-BC54",
                       "lane": 3
                     }
                   }
@@ -21667,25 +21667,25 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC54",
+                      "chip": "NPU-0-BC54",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC54",
+                      "chip": "NPU-0-BC54",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC54",
+                      "chip": "NPU-0-BC54",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC54",
+                      "chip": "NPU-0-BC54",
                       "lane": 3
                     }
                   }
@@ -21723,25 +21723,25 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC54",
+                      "chip": "NPU-0-BC54",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC54",
+                      "chip": "NPU-0-BC54",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC54",
+                      "chip": "NPU-0-BC54",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC54",
+                      "chip": "NPU-0-BC54",
                       "lane": 3
                     }
                   }
@@ -21779,7 +21779,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC54",
+                      "chip": "NPU-0-BC54",
                       "lane": 0
                     }
                   }
@@ -21799,7 +21799,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC54",
+                      "chip": "NPU-0-BC54",
                       "lane": 0
                     }
                   }
@@ -21824,7 +21824,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC54",
+                "chip": "NPU-0-BC54",
                 "lane": 1
               },
               "z": {
@@ -21846,7 +21846,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC54",
+                      "chip": "NPU-0-BC54",
                       "lane": 1
                     }
                   }
@@ -21866,7 +21866,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC54",
+                      "chip": "NPU-0-BC54",
                       "lane": 1
                     }
                   }
@@ -21891,7 +21891,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC54",
+                "chip": "NPU-0-BC54",
                 "lane": 2
               },
               "z": {
@@ -21913,7 +21913,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC54",
+                      "chip": "NPU-0-BC54",
                       "lane": 2
                     }
                   }
@@ -21933,7 +21933,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC54",
+                      "chip": "NPU-0-BC54",
                       "lane": 2
                     }
                   }
@@ -21958,7 +21958,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC54",
+                "chip": "NPU-0-BC54",
                 "lane": 3
               },
               "z": {
@@ -21980,7 +21980,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC54",
+                      "chip": "NPU-0-BC54",
                       "lane": 3
                     }
                   }
@@ -22000,7 +22000,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC54",
+                      "chip": "NPU-0-BC54",
                       "lane": 3
                     }
                   }
@@ -22025,7 +22025,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC54",
+                "chip": "NPU-0-BC54",
                 "lane": 4
               },
               "z": {
@@ -22047,7 +22047,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC54",
+                      "chip": "NPU-0-BC54",
                       "lane": 4
                     }
                   }
@@ -22067,7 +22067,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC54",
+                      "chip": "NPU-0-BC54",
                       "lane": 4
                     }
                   }
@@ -22092,7 +22092,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC54",
+                "chip": "NPU-0-BC54",
                 "lane": 5
               },
               "z": {
@@ -22114,7 +22114,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC54",
+                      "chip": "NPU-0-BC54",
                       "lane": 5
                     }
                   }
@@ -22134,7 +22134,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC54",
+                      "chip": "NPU-0-BC54",
                       "lane": 5
                     }
                   }
@@ -22159,7 +22159,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC54",
+                "chip": "NPU-0-BC54",
                 "lane": 6
               },
               "z": {
@@ -22181,7 +22181,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC54",
+                      "chip": "NPU-0-BC54",
                       "lane": 6
                     }
                   }
@@ -22201,7 +22201,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC54",
+                      "chip": "NPU-0-BC54",
                       "lane": 6
                     }
                   }
@@ -22226,7 +22226,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC54",
+                "chip": "NPU-0-BC54",
                 "lane": 7
               },
               "z": {
@@ -22248,7 +22248,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC54",
+                      "chip": "NPU-0-BC54",
                       "lane": 7
                     }
                   }
@@ -22268,7 +22268,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC54",
+                      "chip": "NPU-0-BC54",
                       "lane": 7
                     }
                   }
@@ -22293,7 +22293,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC55",
+                "chip": "NPU-0-BC55",
                 "lane": 0
               },
               "z": {
@@ -22305,7 +22305,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC55",
+                "chip": "NPU-0-BC55",
                 "lane": 1
               },
               "z": {
@@ -22317,7 +22317,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC55",
+                "chip": "NPU-0-BC55",
                 "lane": 2
               },
               "z": {
@@ -22329,7 +22329,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC55",
+                "chip": "NPU-0-BC55",
                 "lane": 3
               },
               "z": {
@@ -22351,25 +22351,25 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC55",
+                      "chip": "NPU-0-BC55",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC55",
+                      "chip": "NPU-0-BC55",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC55",
+                      "chip": "NPU-0-BC55",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC55",
+                      "chip": "NPU-0-BC55",
                       "lane": 3
                     }
                   }
@@ -22407,25 +22407,25 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC55",
+                      "chip": "NPU-0-BC55",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC55",
+                      "chip": "NPU-0-BC55",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC55",
+                      "chip": "NPU-0-BC55",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC55",
+                      "chip": "NPU-0-BC55",
                       "lane": 3
                     }
                   }
@@ -22463,25 +22463,25 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC55",
+                      "chip": "NPU-0-BC55",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC55",
+                      "chip": "NPU-0-BC55",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC55",
+                      "chip": "NPU-0-BC55",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC55",
+                      "chip": "NPU-0-BC55",
                       "lane": 3
                     }
                   }
@@ -22519,7 +22519,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC55",
+                      "chip": "NPU-0-BC55",
                       "lane": 0
                     }
                   }
@@ -22539,7 +22539,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC55",
+                      "chip": "NPU-0-BC55",
                       "lane": 0
                     }
                   }
@@ -22564,7 +22564,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC55",
+                "chip": "NPU-0-BC55",
                 "lane": 1
               },
               "z": {
@@ -22586,7 +22586,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC55",
+                      "chip": "NPU-0-BC55",
                       "lane": 1
                     }
                   }
@@ -22606,7 +22606,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC55",
+                      "chip": "NPU-0-BC55",
                       "lane": 1
                     }
                   }
@@ -22631,7 +22631,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC55",
+                "chip": "NPU-0-BC55",
                 "lane": 2
               },
               "z": {
@@ -22653,7 +22653,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC55",
+                      "chip": "NPU-0-BC55",
                       "lane": 2
                     }
                   }
@@ -22673,7 +22673,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC55",
+                      "chip": "NPU-0-BC55",
                       "lane": 2
                     }
                   }
@@ -22698,7 +22698,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC55",
+                "chip": "NPU-0-BC55",
                 "lane": 3
               },
               "z": {
@@ -22720,7 +22720,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC55",
+                      "chip": "NPU-0-BC55",
                       "lane": 3
                     }
                   }
@@ -22740,7 +22740,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC55",
+                      "chip": "NPU-0-BC55",
                       "lane": 3
                     }
                   }
@@ -22765,7 +22765,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC55",
+                "chip": "NPU-0-BC55",
                 "lane": 4
               },
               "z": {
@@ -22787,7 +22787,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC55",
+                      "chip": "NPU-0-BC55",
                       "lane": 4
                     }
                   }
@@ -22807,7 +22807,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC55",
+                      "chip": "NPU-0-BC55",
                       "lane": 4
                     }
                   }
@@ -22832,7 +22832,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC55",
+                "chip": "NPU-0-BC55",
                 "lane": 5
               },
               "z": {
@@ -22854,7 +22854,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC55",
+                      "chip": "NPU-0-BC55",
                       "lane": 5
                     }
                   }
@@ -22874,7 +22874,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC55",
+                      "chip": "NPU-0-BC55",
                       "lane": 5
                     }
                   }
@@ -22899,7 +22899,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC55",
+                "chip": "NPU-0-BC55",
                 "lane": 6
               },
               "z": {
@@ -22921,7 +22921,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC55",
+                      "chip": "NPU-0-BC55",
                       "lane": 6
                     }
                   }
@@ -22941,7 +22941,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC55",
+                      "chip": "NPU-0-BC55",
                       "lane": 6
                     }
                   }
@@ -22966,7 +22966,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC55",
+                "chip": "NPU-0-BC55",
                 "lane": 7
               },
               "z": {
@@ -22988,7 +22988,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC55",
+                      "chip": "NPU-0-BC55",
                       "lane": 7
                     }
                   }
@@ -23008,7 +23008,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC55",
+                      "chip": "NPU-0-BC55",
                       "lane": 7
                     }
                   }
@@ -23033,7 +23033,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC56",
+                "chip": "NPU-0-BC56",
                 "lane": 0
               },
               "z": {
@@ -23045,7 +23045,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC56",
+                "chip": "NPU-0-BC56",
                 "lane": 1
               },
               "z": {
@@ -23057,7 +23057,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC56",
+                "chip": "NPU-0-BC56",
                 "lane": 2
               },
               "z": {
@@ -23069,7 +23069,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC56",
+                "chip": "NPU-0-BC56",
                 "lane": 3
               },
               "z": {
@@ -23091,25 +23091,25 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC56",
+                      "chip": "NPU-0-BC56",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC56",
+                      "chip": "NPU-0-BC56",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC56",
+                      "chip": "NPU-0-BC56",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC56",
+                      "chip": "NPU-0-BC56",
                       "lane": 3
                     }
                   }
@@ -23147,25 +23147,25 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC56",
+                      "chip": "NPU-0-BC56",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC56",
+                      "chip": "NPU-0-BC56",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC56",
+                      "chip": "NPU-0-BC56",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC56",
+                      "chip": "NPU-0-BC56",
                       "lane": 3
                     }
                   }
@@ -23203,25 +23203,25 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC56",
+                      "chip": "NPU-0-BC56",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC56",
+                      "chip": "NPU-0-BC56",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC56",
+                      "chip": "NPU-0-BC56",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC56",
+                      "chip": "NPU-0-BC56",
                       "lane": 3
                     }
                   }
@@ -23259,7 +23259,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC56",
+                      "chip": "NPU-0-BC56",
                       "lane": 0
                     }
                   }
@@ -23279,7 +23279,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC56",
+                      "chip": "NPU-0-BC56",
                       "lane": 0
                     }
                   }
@@ -23304,7 +23304,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC56",
+                "chip": "NPU-0-BC56",
                 "lane": 1
               },
               "z": {
@@ -23326,7 +23326,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC56",
+                      "chip": "NPU-0-BC56",
                       "lane": 1
                     }
                   }
@@ -23346,7 +23346,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC56",
+                      "chip": "NPU-0-BC56",
                       "lane": 1
                     }
                   }
@@ -23371,7 +23371,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC56",
+                "chip": "NPU-0-BC56",
                 "lane": 2
               },
               "z": {
@@ -23393,7 +23393,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC56",
+                      "chip": "NPU-0-BC56",
                       "lane": 2
                     }
                   }
@@ -23413,7 +23413,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC56",
+                      "chip": "NPU-0-BC56",
                       "lane": 2
                     }
                   }
@@ -23438,7 +23438,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC56",
+                "chip": "NPU-0-BC56",
                 "lane": 3
               },
               "z": {
@@ -23460,7 +23460,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC56",
+                      "chip": "NPU-0-BC56",
                       "lane": 3
                     }
                   }
@@ -23480,7 +23480,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC56",
+                      "chip": "NPU-0-BC56",
                       "lane": 3
                     }
                   }
@@ -23505,7 +23505,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC56",
+                "chip": "NPU-0-BC56",
                 "lane": 4
               },
               "z": {
@@ -23527,7 +23527,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC56",
+                      "chip": "NPU-0-BC56",
                       "lane": 4
                     }
                   }
@@ -23547,7 +23547,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC56",
+                      "chip": "NPU-0-BC56",
                       "lane": 4
                     }
                   }
@@ -23572,7 +23572,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC56",
+                "chip": "NPU-0-BC56",
                 "lane": 5
               },
               "z": {
@@ -23594,7 +23594,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC56",
+                      "chip": "NPU-0-BC56",
                       "lane": 5
                     }
                   }
@@ -23614,7 +23614,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC56",
+                      "chip": "NPU-0-BC56",
                       "lane": 5
                     }
                   }
@@ -23639,7 +23639,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC56",
+                "chip": "NPU-0-BC56",
                 "lane": 6
               },
               "z": {
@@ -23661,7 +23661,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC56",
+                      "chip": "NPU-0-BC56",
                       "lane": 6
                     }
                   }
@@ -23681,7 +23681,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC56",
+                      "chip": "NPU-0-BC56",
                       "lane": 6
                     }
                   }
@@ -23706,7 +23706,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC56",
+                "chip": "NPU-0-BC56",
                 "lane": 7
               },
               "z": {
@@ -23728,7 +23728,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC56",
+                      "chip": "NPU-0-BC56",
                       "lane": 7
                     }
                   }
@@ -23748,7 +23748,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC56",
+                      "chip": "NPU-0-BC56",
                       "lane": 7
                     }
                   }
@@ -23773,7 +23773,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC57",
+                "chip": "NPU-0-BC57",
                 "lane": 0
               },
               "z": {
@@ -23785,7 +23785,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC57",
+                "chip": "NPU-0-BC57",
                 "lane": 1
               },
               "z": {
@@ -23797,7 +23797,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC57",
+                "chip": "NPU-0-BC57",
                 "lane": 2
               },
               "z": {
@@ -23809,7 +23809,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC57",
+                "chip": "NPU-0-BC57",
                 "lane": 3
               },
               "z": {
@@ -23831,25 +23831,25 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC57",
+                      "chip": "NPU-0-BC57",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC57",
+                      "chip": "NPU-0-BC57",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC57",
+                      "chip": "NPU-0-BC57",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC57",
+                      "chip": "NPU-0-BC57",
                       "lane": 3
                     }
                   }
@@ -23887,25 +23887,25 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC57",
+                      "chip": "NPU-0-BC57",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC57",
+                      "chip": "NPU-0-BC57",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC57",
+                      "chip": "NPU-0-BC57",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC57",
+                      "chip": "NPU-0-BC57",
                       "lane": 3
                     }
                   }
@@ -23943,25 +23943,25 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC57",
+                      "chip": "NPU-0-BC57",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC57",
+                      "chip": "NPU-0-BC57",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC57",
+                      "chip": "NPU-0-BC57",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC57",
+                      "chip": "NPU-0-BC57",
                       "lane": 3
                     }
                   }
@@ -23999,7 +23999,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC57",
+                      "chip": "NPU-0-BC57",
                       "lane": 0
                     }
                   }
@@ -24019,7 +24019,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC57",
+                      "chip": "NPU-0-BC57",
                       "lane": 0
                     }
                   }
@@ -24044,7 +24044,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC57",
+                "chip": "NPU-0-BC57",
                 "lane": 1
               },
               "z": {
@@ -24066,7 +24066,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC57",
+                      "chip": "NPU-0-BC57",
                       "lane": 1
                     }
                   }
@@ -24086,7 +24086,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC57",
+                      "chip": "NPU-0-BC57",
                       "lane": 1
                     }
                   }
@@ -24111,7 +24111,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC57",
+                "chip": "NPU-0-BC57",
                 "lane": 2
               },
               "z": {
@@ -24133,7 +24133,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC57",
+                      "chip": "NPU-0-BC57",
                       "lane": 2
                     }
                   }
@@ -24153,7 +24153,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC57",
+                      "chip": "NPU-0-BC57",
                       "lane": 2
                     }
                   }
@@ -24178,7 +24178,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC57",
+                "chip": "NPU-0-BC57",
                 "lane": 3
               },
               "z": {
@@ -24200,7 +24200,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC57",
+                      "chip": "NPU-0-BC57",
                       "lane": 3
                     }
                   }
@@ -24220,7 +24220,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC57",
+                      "chip": "NPU-0-BC57",
                       "lane": 3
                     }
                   }
@@ -24245,7 +24245,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC57",
+                "chip": "NPU-0-BC57",
                 "lane": 4
               },
               "z": {
@@ -24267,7 +24267,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC57",
+                      "chip": "NPU-0-BC57",
                       "lane": 4
                     }
                   }
@@ -24287,7 +24287,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC57",
+                      "chip": "NPU-0-BC57",
                       "lane": 4
                     }
                   }
@@ -24312,7 +24312,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC57",
+                "chip": "NPU-0-BC57",
                 "lane": 5
               },
               "z": {
@@ -24334,7 +24334,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC57",
+                      "chip": "NPU-0-BC57",
                       "lane": 5
                     }
                   }
@@ -24354,7 +24354,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC57",
+                      "chip": "NPU-0-BC57",
                       "lane": 5
                     }
                   }
@@ -24379,7 +24379,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC57",
+                "chip": "NPU-0-BC57",
                 "lane": 6
               },
               "z": {
@@ -24401,7 +24401,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC57",
+                      "chip": "NPU-0-BC57",
                       "lane": 6
                     }
                   }
@@ -24421,7 +24421,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC57",
+                      "chip": "NPU-0-BC57",
                       "lane": 6
                     }
                   }
@@ -24446,7 +24446,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC57",
+                "chip": "NPU-0-BC57",
                 "lane": 7
               },
               "z": {
@@ -24458,8 +24458,8 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
-          "attachedCoreId": 0,
-          "attachedCorePortIndex": 2,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 73,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -24468,7 +24468,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC57",
+                      "chip": "NPU-0-BC57",
                       "lane": 7
                     }
                   }
@@ -24488,7 +24488,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC57",
+                      "chip": "NPU-0-BC57",
                       "lane": 7
                     }
                   }
@@ -24513,7 +24513,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC58",
+                "chip": "NPU-0-BC58",
                 "lane": 0
               },
               "z": {
@@ -24525,7 +24525,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC58",
+                "chip": "NPU-0-BC58",
                 "lane": 1
               },
               "z": {
@@ -24537,7 +24537,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC58",
+                "chip": "NPU-0-BC58",
                 "lane": 2
               },
               "z": {
@@ -24549,7 +24549,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC58",
+                "chip": "NPU-0-BC58",
                 "lane": 3
               },
               "z": {
@@ -24562,7 +24562,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 3,
+          "attachedCorePortIndex": 2,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -24571,25 +24571,25 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC58",
+                      "chip": "NPU-0-BC58",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC58",
+                      "chip": "NPU-0-BC58",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC58",
+                      "chip": "NPU-0-BC58",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC58",
+                      "chip": "NPU-0-BC58",
                       "lane": 3
                     }
                   }
@@ -24627,25 +24627,25 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC58",
+                      "chip": "NPU-0-BC58",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC58",
+                      "chip": "NPU-0-BC58",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC58",
+                      "chip": "NPU-0-BC58",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC58",
+                      "chip": "NPU-0-BC58",
                       "lane": 3
                     }
                   }
@@ -24683,25 +24683,25 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC58",
+                      "chip": "NPU-0-BC58",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC58",
+                      "chip": "NPU-0-BC58",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC58",
+                      "chip": "NPU-0-BC58",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC58",
+                      "chip": "NPU-0-BC58",
                       "lane": 3
                     }
                   }
@@ -24739,7 +24739,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC58",
+                      "chip": "NPU-0-BC58",
                       "lane": 0
                     }
                   }
@@ -24759,7 +24759,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC58",
+                      "chip": "NPU-0-BC58",
                       "lane": 0
                     }
                   }
@@ -24784,7 +24784,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC58",
+                "chip": "NPU-0-BC58",
                 "lane": 1
               },
               "z": {
@@ -24797,7 +24797,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 4,
+          "attachedCorePortIndex": 3,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -24806,7 +24806,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC58",
+                      "chip": "NPU-0-BC58",
                       "lane": 1
                     }
                   }
@@ -24826,7 +24826,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC58",
+                      "chip": "NPU-0-BC58",
                       "lane": 1
                     }
                   }
@@ -24851,7 +24851,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC58",
+                "chip": "NPU-0-BC58",
                 "lane": 2
               },
               "z": {
@@ -24864,7 +24864,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 5,
+          "attachedCorePortIndex": 4,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -24873,7 +24873,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC58",
+                      "chip": "NPU-0-BC58",
                       "lane": 2
                     }
                   }
@@ -24893,7 +24893,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC58",
+                      "chip": "NPU-0-BC58",
                       "lane": 2
                     }
                   }
@@ -24918,7 +24918,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC58",
+                "chip": "NPU-0-BC58",
                 "lane": 3
               },
               "z": {
@@ -24931,7 +24931,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 6,
+          "attachedCorePortIndex": 5,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -24940,7 +24940,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC58",
+                      "chip": "NPU-0-BC58",
                       "lane": 3
                     }
                   }
@@ -24960,7 +24960,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC58",
+                      "chip": "NPU-0-BC58",
                       "lane": 3
                     }
                   }
@@ -24985,7 +24985,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC58",
+                "chip": "NPU-0-BC58",
                 "lane": 4
               },
               "z": {
@@ -24998,7 +24998,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 7,
+          "attachedCorePortIndex": 6,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -25007,7 +25007,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC58",
+                      "chip": "NPU-0-BC58",
                       "lane": 4
                     }
                   }
@@ -25027,7 +25027,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC58",
+                      "chip": "NPU-0-BC58",
                       "lane": 4
                     }
                   }
@@ -25052,7 +25052,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC58",
+                "chip": "NPU-0-BC58",
                 "lane": 5
               },
               "z": {
@@ -25065,7 +25065,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 8,
+          "attachedCorePortIndex": 7,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -25074,7 +25074,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC58",
+                      "chip": "NPU-0-BC58",
                       "lane": 5
                     }
                   }
@@ -25094,7 +25094,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC58",
+                      "chip": "NPU-0-BC58",
                       "lane": 5
                     }
                   }
@@ -25119,7 +25119,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC58",
+                "chip": "NPU-0-BC58",
                 "lane": 6
               },
               "z": {
@@ -25132,7 +25132,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 9,
+          "attachedCorePortIndex": 8,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -25141,7 +25141,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC58",
+                      "chip": "NPU-0-BC58",
                       "lane": 6
                     }
                   }
@@ -25161,7 +25161,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC58",
+                      "chip": "NPU-0-BC58",
                       "lane": 6
                     }
                   }
@@ -25186,7 +25186,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC58",
+                "chip": "NPU-0-BC58",
                 "lane": 7
               },
               "z": {
@@ -25199,7 +25199,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 10,
+          "attachedCorePortIndex": 9,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -25208,7 +25208,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC58",
+                      "chip": "NPU-0-BC58",
                       "lane": 7
                     }
                   }
@@ -25228,7 +25228,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC58",
+                      "chip": "NPU-0-BC58",
                       "lane": 7
                     }
                   }
@@ -25253,7 +25253,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC59",
+                "chip": "NPU-0-BC59",
                 "lane": 0
               },
               "z": {
@@ -25265,7 +25265,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC59",
+                "chip": "NPU-0-BC59",
                 "lane": 1
               },
               "z": {
@@ -25277,7 +25277,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC59",
+                "chip": "NPU-0-BC59",
                 "lane": 2
               },
               "z": {
@@ -25289,7 +25289,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC59",
+                "chip": "NPU-0-BC59",
                 "lane": 3
               },
               "z": {
@@ -25302,7 +25302,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 11,
+          "attachedCorePortIndex": 10,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -25311,25 +25311,25 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC59",
+                      "chip": "NPU-0-BC59",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC59",
+                      "chip": "NPU-0-BC59",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC59",
+                      "chip": "NPU-0-BC59",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC59",
+                      "chip": "NPU-0-BC59",
                       "lane": 3
                     }
                   }
@@ -25367,25 +25367,25 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC59",
+                      "chip": "NPU-0-BC59",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC59",
+                      "chip": "NPU-0-BC59",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC59",
+                      "chip": "NPU-0-BC59",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC59",
+                      "chip": "NPU-0-BC59",
                       "lane": 3
                     }
                   }
@@ -25423,25 +25423,25 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC59",
+                      "chip": "NPU-0-BC59",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC59",
+                      "chip": "NPU-0-BC59",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC59",
+                      "chip": "NPU-0-BC59",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC59",
+                      "chip": "NPU-0-BC59",
                       "lane": 3
                     }
                   }
@@ -25479,7 +25479,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC59",
+                      "chip": "NPU-0-BC59",
                       "lane": 0
                     }
                   }
@@ -25499,7 +25499,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC59",
+                      "chip": "NPU-0-BC59",
                       "lane": 0
                     }
                   }
@@ -25524,7 +25524,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC59",
+                "chip": "NPU-0-BC59",
                 "lane": 1
               },
               "z": {
@@ -25537,7 +25537,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 12,
+          "attachedCorePortIndex": 11,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -25546,7 +25546,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC59",
+                      "chip": "NPU-0-BC59",
                       "lane": 1
                     }
                   }
@@ -25566,7 +25566,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC59",
+                      "chip": "NPU-0-BC59",
                       "lane": 1
                     }
                   }
@@ -25591,7 +25591,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC59",
+                "chip": "NPU-0-BC59",
                 "lane": 2
               },
               "z": {
@@ -25604,7 +25604,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 13,
+          "attachedCorePortIndex": 12,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -25613,7 +25613,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC59",
+                      "chip": "NPU-0-BC59",
                       "lane": 2
                     }
                   }
@@ -25633,7 +25633,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC59",
+                      "chip": "NPU-0-BC59",
                       "lane": 2
                     }
                   }
@@ -25658,7 +25658,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC59",
+                "chip": "NPU-0-BC59",
                 "lane": 3
               },
               "z": {
@@ -25671,7 +25671,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 14,
+          "attachedCorePortIndex": 13,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -25680,7 +25680,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC59",
+                      "chip": "NPU-0-BC59",
                       "lane": 3
                     }
                   }
@@ -25700,7 +25700,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC59",
+                      "chip": "NPU-0-BC59",
                       "lane": 3
                     }
                   }
@@ -25725,7 +25725,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC59",
+                "chip": "NPU-0-BC59",
                 "lane": 4
               },
               "z": {
@@ -25738,7 +25738,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 15,
+          "attachedCorePortIndex": 14,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -25747,7 +25747,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC59",
+                      "chip": "NPU-0-BC59",
                       "lane": 4
                     }
                   }
@@ -25767,7 +25767,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC59",
+                      "chip": "NPU-0-BC59",
                       "lane": 4
                     }
                   }
@@ -25792,7 +25792,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC59",
+                "chip": "NPU-0-BC59",
                 "lane": 5
               },
               "z": {
@@ -25805,7 +25805,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 16,
+          "attachedCorePortIndex": 15,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -25814,7 +25814,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC59",
+                      "chip": "NPU-0-BC59",
                       "lane": 5
                     }
                   }
@@ -25834,7 +25834,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC59",
+                      "chip": "NPU-0-BC59",
                       "lane": 5
                     }
                   }
@@ -25859,7 +25859,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC59",
+                "chip": "NPU-0-BC59",
                 "lane": 6
               },
               "z": {
@@ -25872,7 +25872,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 17,
+          "attachedCorePortIndex": 16,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -25881,7 +25881,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC59",
+                      "chip": "NPU-0-BC59",
                       "lane": 6
                     }
                   }
@@ -25901,7 +25901,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC59",
+                      "chip": "NPU-0-BC59",
                       "lane": 6
                     }
                   }
@@ -25926,7 +25926,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC59",
+                "chip": "NPU-0-BC59",
                 "lane": 7
               },
               "z": {
@@ -25939,7 +25939,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 18,
+          "attachedCorePortIndex": 17,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -25948,7 +25948,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC59",
+                      "chip": "NPU-0-BC59",
                       "lane": 7
                     }
                   }
@@ -25968,7 +25968,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC59",
+                      "chip": "NPU-0-BC59",
                       "lane": 7
                     }
                   }
@@ -25993,7 +25993,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC60",
+                "chip": "NPU-0-BC60",
                 "lane": 0
               },
               "z": {
@@ -26005,7 +26005,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC60",
+                "chip": "NPU-0-BC60",
                 "lane": 1
               },
               "z": {
@@ -26017,7 +26017,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC60",
+                "chip": "NPU-0-BC60",
                 "lane": 2
               },
               "z": {
@@ -26029,7 +26029,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC60",
+                "chip": "NPU-0-BC60",
                 "lane": 3
               },
               "z": {
@@ -26042,7 +26042,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 19,
+          "attachedCorePortIndex": 18,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -26051,25 +26051,25 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC60",
+                      "chip": "NPU-0-BC60",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC60",
+                      "chip": "NPU-0-BC60",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC60",
+                      "chip": "NPU-0-BC60",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC60",
+                      "chip": "NPU-0-BC60",
                       "lane": 3
                     }
                   }
@@ -26107,25 +26107,25 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC60",
+                      "chip": "NPU-0-BC60",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC60",
+                      "chip": "NPU-0-BC60",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC60",
+                      "chip": "NPU-0-BC60",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC60",
+                      "chip": "NPU-0-BC60",
                       "lane": 3
                     }
                   }
@@ -26163,25 +26163,25 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC60",
+                      "chip": "NPU-0-BC60",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC60",
+                      "chip": "NPU-0-BC60",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC60",
+                      "chip": "NPU-0-BC60",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC60",
+                      "chip": "NPU-0-BC60",
                       "lane": 3
                     }
                   }
@@ -26219,7 +26219,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC60",
+                      "chip": "NPU-0-BC60",
                       "lane": 0
                     }
                   }
@@ -26239,7 +26239,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC60",
+                      "chip": "NPU-0-BC60",
                       "lane": 0
                     }
                   }
@@ -26264,7 +26264,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC60",
+                "chip": "NPU-0-BC60",
                 "lane": 1
               },
               "z": {
@@ -26277,7 +26277,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 20,
+          "attachedCorePortIndex": 19,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -26286,7 +26286,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC60",
+                      "chip": "NPU-0-BC60",
                       "lane": 1
                     }
                   }
@@ -26306,7 +26306,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC60",
+                      "chip": "NPU-0-BC60",
                       "lane": 1
                     }
                   }
@@ -26331,7 +26331,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC60",
+                "chip": "NPU-0-BC60",
                 "lane": 2
               },
               "z": {
@@ -26344,7 +26344,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 21,
+          "attachedCorePortIndex": 20,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -26353,7 +26353,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC60",
+                      "chip": "NPU-0-BC60",
                       "lane": 2
                     }
                   }
@@ -26373,7 +26373,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC60",
+                      "chip": "NPU-0-BC60",
                       "lane": 2
                     }
                   }
@@ -26398,7 +26398,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC60",
+                "chip": "NPU-0-BC60",
                 "lane": 3
               },
               "z": {
@@ -26411,7 +26411,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 22,
+          "attachedCorePortIndex": 21,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -26420,7 +26420,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC60",
+                      "chip": "NPU-0-BC60",
                       "lane": 3
                     }
                   }
@@ -26440,7 +26440,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC60",
+                      "chip": "NPU-0-BC60",
                       "lane": 3
                     }
                   }
@@ -26465,7 +26465,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC60",
+                "chip": "NPU-0-BC60",
                 "lane": 4
               },
               "z": {
@@ -26478,7 +26478,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 23,
+          "attachedCorePortIndex": 22,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -26487,7 +26487,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC60",
+                      "chip": "NPU-0-BC60",
                       "lane": 4
                     }
                   }
@@ -26507,7 +26507,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC60",
+                      "chip": "NPU-0-BC60",
                       "lane": 4
                     }
                   }
@@ -26532,7 +26532,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC60",
+                "chip": "NPU-0-BC60",
                 "lane": 5
               },
               "z": {
@@ -26545,7 +26545,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 24,
+          "attachedCorePortIndex": 23,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -26554,7 +26554,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC60",
+                      "chip": "NPU-0-BC60",
                       "lane": 5
                     }
                   }
@@ -26574,7 +26574,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC60",
+                      "chip": "NPU-0-BC60",
                       "lane": 5
                     }
                   }
@@ -26599,7 +26599,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC60",
+                "chip": "NPU-0-BC60",
                 "lane": 6
               },
               "z": {
@@ -26612,7 +26612,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 25,
+          "attachedCorePortIndex": 24,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -26621,7 +26621,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC60",
+                      "chip": "NPU-0-BC60",
                       "lane": 6
                     }
                   }
@@ -26641,7 +26641,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC60",
+                      "chip": "NPU-0-BC60",
                       "lane": 6
                     }
                   }
@@ -26666,7 +26666,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC60",
+                "chip": "NPU-0-BC60",
                 "lane": 7
               },
               "z": {
@@ -26679,7 +26679,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 26,
+          "attachedCorePortIndex": 25,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -26688,7 +26688,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC60",
+                      "chip": "NPU-0-BC60",
                       "lane": 7
                     }
                   }
@@ -26708,7 +26708,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC60",
+                      "chip": "NPU-0-BC60",
                       "lane": 7
                     }
                   }
@@ -26733,7 +26733,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC61",
+                "chip": "NPU-0-BC61",
                 "lane": 0
               },
               "z": {
@@ -26745,7 +26745,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC61",
+                "chip": "NPU-0-BC61",
                 "lane": 1
               },
               "z": {
@@ -26757,7 +26757,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC61",
+                "chip": "NPU-0-BC61",
                 "lane": 2
               },
               "z": {
@@ -26769,7 +26769,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC61",
+                "chip": "NPU-0-BC61",
                 "lane": 3
               },
               "z": {
@@ -26782,7 +26782,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 27,
+          "attachedCorePortIndex": 26,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -26791,25 +26791,25 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC61",
+                      "chip": "NPU-0-BC61",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC61",
+                      "chip": "NPU-0-BC61",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC61",
+                      "chip": "NPU-0-BC61",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC61",
+                      "chip": "NPU-0-BC61",
                       "lane": 3
                     }
                   }
@@ -26847,25 +26847,25 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC61",
+                      "chip": "NPU-0-BC61",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC61",
+                      "chip": "NPU-0-BC61",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC61",
+                      "chip": "NPU-0-BC61",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC61",
+                      "chip": "NPU-0-BC61",
                       "lane": 3
                     }
                   }
@@ -26903,25 +26903,25 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC61",
+                      "chip": "NPU-0-BC61",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC61",
+                      "chip": "NPU-0-BC61",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC61",
+                      "chip": "NPU-0-BC61",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC61",
+                      "chip": "NPU-0-BC61",
                       "lane": 3
                     }
                   }
@@ -26959,7 +26959,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC61",
+                      "chip": "NPU-0-BC61",
                       "lane": 0
                     }
                   }
@@ -26979,7 +26979,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC61",
+                      "chip": "NPU-0-BC61",
                       "lane": 0
                     }
                   }
@@ -27004,7 +27004,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC61",
+                "chip": "NPU-0-BC61",
                 "lane": 1
               },
               "z": {
@@ -27017,7 +27017,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 28,
+          "attachedCorePortIndex": 27,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -27026,7 +27026,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC61",
+                      "chip": "NPU-0-BC61",
                       "lane": 1
                     }
                   }
@@ -27046,7 +27046,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC61",
+                      "chip": "NPU-0-BC61",
                       "lane": 1
                     }
                   }
@@ -27071,7 +27071,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC61",
+                "chip": "NPU-0-BC61",
                 "lane": 2
               },
               "z": {
@@ -27084,7 +27084,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 29,
+          "attachedCorePortIndex": 28,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -27093,7 +27093,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC61",
+                      "chip": "NPU-0-BC61",
                       "lane": 2
                     }
                   }
@@ -27113,7 +27113,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC61",
+                      "chip": "NPU-0-BC61",
                       "lane": 2
                     }
                   }
@@ -27138,7 +27138,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC61",
+                "chip": "NPU-0-BC61",
                 "lane": 3
               },
               "z": {
@@ -27151,7 +27151,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 30,
+          "attachedCorePortIndex": 29,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -27160,7 +27160,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC61",
+                      "chip": "NPU-0-BC61",
                       "lane": 3
                     }
                   }
@@ -27180,7 +27180,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC61",
+                      "chip": "NPU-0-BC61",
                       "lane": 3
                     }
                   }
@@ -27205,7 +27205,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC61",
+                "chip": "NPU-0-BC61",
                 "lane": 4
               },
               "z": {
@@ -27218,7 +27218,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 31,
+          "attachedCorePortIndex": 30,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -27227,7 +27227,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC61",
+                      "chip": "NPU-0-BC61",
                       "lane": 4
                     }
                   }
@@ -27247,7 +27247,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC61",
+                      "chip": "NPU-0-BC61",
                       "lane": 4
                     }
                   }
@@ -27272,7 +27272,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC61",
+                "chip": "NPU-0-BC61",
                 "lane": 5
               },
               "z": {
@@ -27285,7 +27285,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 32,
+          "attachedCorePortIndex": 31,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -27294,7 +27294,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC61",
+                      "chip": "NPU-0-BC61",
                       "lane": 5
                     }
                   }
@@ -27314,7 +27314,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC61",
+                      "chip": "NPU-0-BC61",
                       "lane": 5
                     }
                   }
@@ -27339,7 +27339,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC61",
+                "chip": "NPU-0-BC61",
                 "lane": 6
               },
               "z": {
@@ -27352,7 +27352,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 33,
+          "attachedCorePortIndex": 32,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -27361,7 +27361,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC61",
+                      "chip": "NPU-0-BC61",
                       "lane": 6
                     }
                   }
@@ -27381,7 +27381,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC61",
+                      "chip": "NPU-0-BC61",
                       "lane": 6
                     }
                   }
@@ -27406,7 +27406,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC61",
+                "chip": "NPU-0-BC61",
                 "lane": 7
               },
               "z": {
@@ -27419,7 +27419,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 34,
+          "attachedCorePortIndex": 33,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -27428,7 +27428,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC61",
+                      "chip": "NPU-0-BC61",
                       "lane": 7
                     }
                   }
@@ -27448,7 +27448,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC61",
+                      "chip": "NPU-0-BC61",
                       "lane": 7
                     }
                   }
@@ -27473,7 +27473,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC62",
+                "chip": "NPU-0-BC62",
                 "lane": 0
               },
               "z": {
@@ -27485,7 +27485,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC62",
+                "chip": "NPU-0-BC62",
                 "lane": 1
               },
               "z": {
@@ -27497,7 +27497,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC62",
+                "chip": "NPU-0-BC62",
                 "lane": 2
               },
               "z": {
@@ -27509,7 +27509,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC62",
+                "chip": "NPU-0-BC62",
                 "lane": 3
               },
               "z": {
@@ -27522,7 +27522,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 35,
+          "attachedCorePortIndex": 34,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -27531,25 +27531,25 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC62",
+                      "chip": "NPU-0-BC62",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC62",
+                      "chip": "NPU-0-BC62",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC62",
+                      "chip": "NPU-0-BC62",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC62",
+                      "chip": "NPU-0-BC62",
                       "lane": 3
                     }
                   }
@@ -27587,25 +27587,25 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC62",
+                      "chip": "NPU-0-BC62",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC62",
+                      "chip": "NPU-0-BC62",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC62",
+                      "chip": "NPU-0-BC62",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC62",
+                      "chip": "NPU-0-BC62",
                       "lane": 3
                     }
                   }
@@ -27643,25 +27643,25 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC62",
+                      "chip": "NPU-0-BC62",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC62",
+                      "chip": "NPU-0-BC62",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC62",
+                      "chip": "NPU-0-BC62",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC62",
+                      "chip": "NPU-0-BC62",
                       "lane": 3
                     }
                   }
@@ -27699,7 +27699,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC62",
+                      "chip": "NPU-0-BC62",
                       "lane": 0
                     }
                   }
@@ -27719,7 +27719,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC62",
+                      "chip": "NPU-0-BC62",
                       "lane": 0
                     }
                   }
@@ -27744,7 +27744,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC62",
+                "chip": "NPU-0-BC62",
                 "lane": 1
               },
               "z": {
@@ -27757,7 +27757,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 36,
+          "attachedCorePortIndex": 35,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -27766,7 +27766,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC62",
+                      "chip": "NPU-0-BC62",
                       "lane": 1
                     }
                   }
@@ -27786,7 +27786,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC62",
+                      "chip": "NPU-0-BC62",
                       "lane": 1
                     }
                   }
@@ -27811,7 +27811,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC62",
+                "chip": "NPU-0-BC62",
                 "lane": 2
               },
               "z": {
@@ -27824,7 +27824,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 37,
+          "attachedCorePortIndex": 36,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -27833,7 +27833,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC62",
+                      "chip": "NPU-0-BC62",
                       "lane": 2
                     }
                   }
@@ -27853,7 +27853,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC62",
+                      "chip": "NPU-0-BC62",
                       "lane": 2
                     }
                   }
@@ -27878,7 +27878,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC62",
+                "chip": "NPU-0-BC62",
                 "lane": 3
               },
               "z": {
@@ -27891,7 +27891,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 38,
+          "attachedCorePortIndex": 37,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -27900,7 +27900,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC62",
+                      "chip": "NPU-0-BC62",
                       "lane": 3
                     }
                   }
@@ -27920,7 +27920,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC62",
+                      "chip": "NPU-0-BC62",
                       "lane": 3
                     }
                   }
@@ -27945,7 +27945,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC62",
+                "chip": "NPU-0-BC62",
                 "lane": 4
               },
               "z": {
@@ -27958,7 +27958,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 39,
+          "attachedCorePortIndex": 38,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -27967,7 +27967,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC62",
+                      "chip": "NPU-0-BC62",
                       "lane": 4
                     }
                   }
@@ -27987,7 +27987,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC62",
+                      "chip": "NPU-0-BC62",
                       "lane": 4
                     }
                   }
@@ -28012,7 +28012,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC62",
+                "chip": "NPU-0-BC62",
                 "lane": 5
               },
               "z": {
@@ -28025,7 +28025,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 40,
+          "attachedCorePortIndex": 39,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -28034,7 +28034,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC62",
+                      "chip": "NPU-0-BC62",
                       "lane": 5
                     }
                   }
@@ -28054,7 +28054,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC62",
+                      "chip": "NPU-0-BC62",
                       "lane": 5
                     }
                   }
@@ -28079,7 +28079,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC62",
+                "chip": "NPU-0-BC62",
                 "lane": 6
               },
               "z": {
@@ -28092,7 +28092,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 41,
+          "attachedCorePortIndex": 40,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -28101,7 +28101,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC62",
+                      "chip": "NPU-0-BC62",
                       "lane": 6
                     }
                   }
@@ -28121,7 +28121,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC62",
+                      "chip": "NPU-0-BC62",
                       "lane": 6
                     }
                   }
@@ -28146,7 +28146,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC62",
+                "chip": "NPU-0-BC62",
                 "lane": 7
               },
               "z": {
@@ -28159,7 +28159,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 42,
+          "attachedCorePortIndex": 41,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -28168,7 +28168,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC62",
+                      "chip": "NPU-0-BC62",
                       "lane": 7
                     }
                   }
@@ -28188,7 +28188,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC62",
+                      "chip": "NPU-0-BC62",
                       "lane": 7
                     }
                   }
@@ -28213,7 +28213,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC63",
+                "chip": "NPU-0-BC63",
                 "lane": 0
               },
               "z": {
@@ -28225,7 +28225,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC63",
+                "chip": "NPU-0-BC63",
                 "lane": 1
               },
               "z": {
@@ -28237,7 +28237,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC63",
+                "chip": "NPU-0-BC63",
                 "lane": 2
               },
               "z": {
@@ -28249,7 +28249,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC63",
+                "chip": "NPU-0-BC63",
                 "lane": 3
               },
               "z": {
@@ -28262,7 +28262,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 43,
+          "attachedCorePortIndex": 42,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -28271,25 +28271,25 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC63",
+                      "chip": "NPU-0-BC63",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC63",
+                      "chip": "NPU-0-BC63",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC63",
+                      "chip": "NPU-0-BC63",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC63",
+                      "chip": "NPU-0-BC63",
                       "lane": 3
                     }
                   }
@@ -28327,25 +28327,25 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC63",
+                      "chip": "NPU-0-BC63",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC63",
+                      "chip": "NPU-0-BC63",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC63",
+                      "chip": "NPU-0-BC63",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC63",
+                      "chip": "NPU-0-BC63",
                       "lane": 3
                     }
                   }
@@ -28383,25 +28383,25 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC63",
+                      "chip": "NPU-0-BC63",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC63",
+                      "chip": "NPU-0-BC63",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC63",
+                      "chip": "NPU-0-BC63",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC63",
+                      "chip": "NPU-0-BC63",
                       "lane": 3
                     }
                   }
@@ -28439,7 +28439,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC63",
+                      "chip": "NPU-0-BC63",
                       "lane": 0
                     }
                   }
@@ -28459,7 +28459,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC63",
+                      "chip": "NPU-0-BC63",
                       "lane": 0
                     }
                   }
@@ -28484,7 +28484,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC63",
+                "chip": "NPU-0-BC63",
                 "lane": 1
               },
               "z": {
@@ -28497,7 +28497,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 44,
+          "attachedCorePortIndex": 43,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -28506,7 +28506,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC63",
+                      "chip": "NPU-0-BC63",
                       "lane": 1
                     }
                   }
@@ -28526,7 +28526,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC63",
+                      "chip": "NPU-0-BC63",
                       "lane": 1
                     }
                   }
@@ -28551,7 +28551,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC63",
+                "chip": "NPU-0-BC63",
                 "lane": 2
               },
               "z": {
@@ -28564,7 +28564,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 45,
+          "attachedCorePortIndex": 44,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -28573,7 +28573,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC63",
+                      "chip": "NPU-0-BC63",
                       "lane": 2
                     }
                   }
@@ -28593,7 +28593,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC63",
+                      "chip": "NPU-0-BC63",
                       "lane": 2
                     }
                   }
@@ -28618,7 +28618,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC63",
+                "chip": "NPU-0-BC63",
                 "lane": 3
               },
               "z": {
@@ -28631,7 +28631,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 46,
+          "attachedCorePortIndex": 45,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -28640,7 +28640,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC63",
+                      "chip": "NPU-0-BC63",
                       "lane": 3
                     }
                   }
@@ -28660,7 +28660,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC63",
+                      "chip": "NPU-0-BC63",
                       "lane": 3
                     }
                   }
@@ -28685,7 +28685,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC63",
+                "chip": "NPU-0-BC63",
                 "lane": 4
               },
               "z": {
@@ -28698,7 +28698,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 47,
+          "attachedCorePortIndex": 46,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -28707,7 +28707,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC63",
+                      "chip": "NPU-0-BC63",
                       "lane": 4
                     }
                   }
@@ -28727,7 +28727,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC63",
+                      "chip": "NPU-0-BC63",
                       "lane": 4
                     }
                   }
@@ -28752,7 +28752,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC63",
+                "chip": "NPU-0-BC63",
                 "lane": 5
               },
               "z": {
@@ -28765,7 +28765,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 48,
+          "attachedCorePortIndex": 47,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -28774,7 +28774,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC63",
+                      "chip": "NPU-0-BC63",
                       "lane": 5
                     }
                   }
@@ -28794,7 +28794,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC63",
+                      "chip": "NPU-0-BC63",
                       "lane": 5
                     }
                   }
@@ -28819,7 +28819,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC63",
+                "chip": "NPU-0-BC63",
                 "lane": 6
               },
               "z": {
@@ -28832,7 +28832,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 49,
+          "attachedCorePortIndex": 48,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -28841,7 +28841,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC63",
+                      "chip": "NPU-0-BC63",
                       "lane": 6
                     }
                   }
@@ -28861,7 +28861,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC63",
+                      "chip": "NPU-0-BC63",
                       "lane": 6
                     }
                   }
@@ -28886,7 +28886,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC63",
+                "chip": "NPU-0-BC63",
                 "lane": 7
               },
               "z": {
@@ -28899,7 +28899,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 50,
+          "attachedCorePortIndex": 49,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -28908,7 +28908,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC63",
+                      "chip": "NPU-0-BC63",
                       "lane": 7
                     }
                   }
@@ -28928,7 +28928,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC63",
+                      "chip": "NPU-0-BC63",
                       "lane": 7
                     }
                   }
@@ -28953,7 +28953,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC64",
+                "chip": "NPU-0-BC64",
                 "lane": 0
               },
               "z": {
@@ -28965,7 +28965,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC64",
+                "chip": "NPU-0-BC64",
                 "lane": 1
               },
               "z": {
@@ -28977,7 +28977,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC64",
+                "chip": "NPU-0-BC64",
                 "lane": 2
               },
               "z": {
@@ -28989,7 +28989,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC64",
+                "chip": "NPU-0-BC64",
                 "lane": 3
               },
               "z": {
@@ -29002,7 +29002,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 51,
+          "attachedCorePortIndex": 50,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -29011,25 +29011,25 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC64",
+                      "chip": "NPU-0-BC64",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC64",
+                      "chip": "NPU-0-BC64",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC64",
+                      "chip": "NPU-0-BC64",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC64",
+                      "chip": "NPU-0-BC64",
                       "lane": 3
                     }
                   }
@@ -29067,25 +29067,25 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC64",
+                      "chip": "NPU-0-BC64",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC64",
+                      "chip": "NPU-0-BC64",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC64",
+                      "chip": "NPU-0-BC64",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC64",
+                      "chip": "NPU-0-BC64",
                       "lane": 3
                     }
                   }
@@ -29123,25 +29123,25 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC64",
+                      "chip": "NPU-0-BC64",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC64",
+                      "chip": "NPU-0-BC64",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC64",
+                      "chip": "NPU-0-BC64",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC64",
+                      "chip": "NPU-0-BC64",
                       "lane": 3
                     }
                   }
@@ -29179,7 +29179,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC64",
+                      "chip": "NPU-0-BC64",
                       "lane": 0
                     }
                   }
@@ -29199,7 +29199,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC64",
+                      "chip": "NPU-0-BC64",
                       "lane": 0
                     }
                   }
@@ -29224,7 +29224,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC64",
+                "chip": "NPU-0-BC64",
                 "lane": 1
               },
               "z": {
@@ -29237,7 +29237,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 52,
+          "attachedCorePortIndex": 51,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -29246,7 +29246,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC64",
+                      "chip": "NPU-0-BC64",
                       "lane": 1
                     }
                   }
@@ -29266,7 +29266,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC64",
+                      "chip": "NPU-0-BC64",
                       "lane": 1
                     }
                   }
@@ -29291,7 +29291,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC64",
+                "chip": "NPU-0-BC64",
                 "lane": 2
               },
               "z": {
@@ -29304,7 +29304,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 53,
+          "attachedCorePortIndex": 52,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -29313,7 +29313,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC64",
+                      "chip": "NPU-0-BC64",
                       "lane": 2
                     }
                   }
@@ -29333,7 +29333,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC64",
+                      "chip": "NPU-0-BC64",
                       "lane": 2
                     }
                   }
@@ -29358,7 +29358,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC64",
+                "chip": "NPU-0-BC64",
                 "lane": 3
               },
               "z": {
@@ -29371,7 +29371,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 54,
+          "attachedCorePortIndex": 53,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -29380,7 +29380,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC64",
+                      "chip": "NPU-0-BC64",
                       "lane": 3
                     }
                   }
@@ -29400,7 +29400,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC64",
+                      "chip": "NPU-0-BC64",
                       "lane": 3
                     }
                   }
@@ -29425,7 +29425,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC64",
+                "chip": "NPU-0-BC64",
                 "lane": 4
               },
               "z": {
@@ -29438,7 +29438,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 55,
+          "attachedCorePortIndex": 54,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -29447,7 +29447,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC64",
+                      "chip": "NPU-0-BC64",
                       "lane": 4
                     }
                   }
@@ -29467,7 +29467,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC64",
+                      "chip": "NPU-0-BC64",
                       "lane": 4
                     }
                   }
@@ -29492,7 +29492,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC64",
+                "chip": "NPU-0-BC64",
                 "lane": 5
               },
               "z": {
@@ -29505,7 +29505,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 56,
+          "attachedCorePortIndex": 55,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -29514,7 +29514,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC64",
+                      "chip": "NPU-0-BC64",
                       "lane": 5
                     }
                   }
@@ -29534,7 +29534,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC64",
+                      "chip": "NPU-0-BC64",
                       "lane": 5
                     }
                   }
@@ -29559,7 +29559,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC64",
+                "chip": "NPU-0-BC64",
                 "lane": 6
               },
               "z": {
@@ -29572,7 +29572,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 57,
+          "attachedCorePortIndex": 56,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -29581,7 +29581,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC64",
+                      "chip": "NPU-0-BC64",
                       "lane": 6
                     }
                   }
@@ -29601,7 +29601,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC64",
+                      "chip": "NPU-0-BC64",
                       "lane": 6
                     }
                   }
@@ -29626,7 +29626,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC64",
+                "chip": "NPU-0-BC64",
                 "lane": 7
               },
               "z": {
@@ -29639,7 +29639,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 58,
+          "attachedCorePortIndex": 57,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -29648,7 +29648,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC64",
+                      "chip": "NPU-0-BC64",
                       "lane": 7
                     }
                   }
@@ -29668,7 +29668,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC64",
+                      "chip": "NPU-0-BC64",
                       "lane": 7
                     }
                   }
@@ -29693,7 +29693,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC65",
+                "chip": "NPU-0-BC65",
                 "lane": 0
               },
               "z": {
@@ -29705,7 +29705,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC65",
+                "chip": "NPU-0-BC65",
                 "lane": 1
               },
               "z": {
@@ -29717,7 +29717,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC65",
+                "chip": "NPU-0-BC65",
                 "lane": 2
               },
               "z": {
@@ -29729,7 +29729,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC65",
+                "chip": "NPU-0-BC65",
                 "lane": 3
               },
               "z": {
@@ -29742,7 +29742,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 59,
+          "attachedCorePortIndex": 58,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -29751,25 +29751,25 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC65",
+                      "chip": "NPU-0-BC65",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC65",
+                      "chip": "NPU-0-BC65",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC65",
+                      "chip": "NPU-0-BC65",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC65",
+                      "chip": "NPU-0-BC65",
                       "lane": 3
                     }
                   }
@@ -29807,25 +29807,25 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC65",
+                      "chip": "NPU-0-BC65",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC65",
+                      "chip": "NPU-0-BC65",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC65",
+                      "chip": "NPU-0-BC65",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC65",
+                      "chip": "NPU-0-BC65",
                       "lane": 3
                     }
                   }
@@ -29863,25 +29863,25 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC65",
+                      "chip": "NPU-0-BC65",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC65",
+                      "chip": "NPU-0-BC65",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC65",
+                      "chip": "NPU-0-BC65",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC65",
+                      "chip": "NPU-0-BC65",
                       "lane": 3
                     }
                   }
@@ -29919,7 +29919,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC65",
+                      "chip": "NPU-0-BC65",
                       "lane": 0
                     }
                   }
@@ -29939,7 +29939,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC65",
+                      "chip": "NPU-0-BC65",
                       "lane": 0
                     }
                   }
@@ -29964,7 +29964,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC65",
+                "chip": "NPU-0-BC65",
                 "lane": 1
               },
               "z": {
@@ -29977,7 +29977,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 60,
+          "attachedCorePortIndex": 59,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -29986,7 +29986,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC65",
+                      "chip": "NPU-0-BC65",
                       "lane": 1
                     }
                   }
@@ -30006,7 +30006,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC65",
+                      "chip": "NPU-0-BC65",
                       "lane": 1
                     }
                   }
@@ -30031,7 +30031,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC65",
+                "chip": "NPU-0-BC65",
                 "lane": 2
               },
               "z": {
@@ -30044,7 +30044,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 61,
+          "attachedCorePortIndex": 60,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -30053,7 +30053,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC65",
+                      "chip": "NPU-0-BC65",
                       "lane": 2
                     }
                   }
@@ -30073,7 +30073,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC65",
+                      "chip": "NPU-0-BC65",
                       "lane": 2
                     }
                   }
@@ -30098,7 +30098,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC65",
+                "chip": "NPU-0-BC65",
                 "lane": 3
               },
               "z": {
@@ -30111,7 +30111,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 62,
+          "attachedCorePortIndex": 61,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -30120,7 +30120,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC65",
+                      "chip": "NPU-0-BC65",
                       "lane": 3
                     }
                   }
@@ -30140,7 +30140,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC65",
+                      "chip": "NPU-0-BC65",
                       "lane": 3
                     }
                   }
@@ -30165,7 +30165,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC65",
+                "chip": "NPU-0-BC65",
                 "lane": 4
               },
               "z": {
@@ -30178,7 +30178,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 63,
+          "attachedCorePortIndex": 62,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -30187,7 +30187,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC65",
+                      "chip": "NPU-0-BC65",
                       "lane": 4
                     }
                   }
@@ -30207,7 +30207,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC65",
+                      "chip": "NPU-0-BC65",
                       "lane": 4
                     }
                   }
@@ -30232,7 +30232,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC65",
+                "chip": "NPU-0-BC65",
                 "lane": 5
               },
               "z": {
@@ -30245,7 +30245,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 64,
+          "attachedCorePortIndex": 63,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -30254,7 +30254,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC65",
+                      "chip": "NPU-0-BC65",
                       "lane": 5
                     }
                   }
@@ -30274,7 +30274,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC65",
+                      "chip": "NPU-0-BC65",
                       "lane": 5
                     }
                   }
@@ -30299,7 +30299,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC65",
+                "chip": "NPU-0-BC65",
                 "lane": 6
               },
               "z": {
@@ -30312,7 +30312,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 65,
+          "attachedCorePortIndex": 64,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -30321,7 +30321,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC65",
+                      "chip": "NPU-0-BC65",
                       "lane": 6
                     }
                   }
@@ -30341,7 +30341,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC65",
+                      "chip": "NPU-0-BC65",
                       "lane": 6
                     }
                   }
@@ -30366,7 +30366,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC65",
+                "chip": "NPU-0-BC65",
                 "lane": 7
               },
               "z": {
@@ -30379,7 +30379,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 66,
+          "attachedCorePortIndex": 65,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -30388,7 +30388,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC65",
+                      "chip": "NPU-0-BC65",
                       "lane": 7
                     }
                   }
@@ -30408,7 +30408,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC65",
+                      "chip": "NPU-0-BC65",
                       "lane": 7
                     }
                   }
@@ -30433,7 +30433,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC66",
+                "chip": "NPU-0-BC66",
                 "lane": 0
               },
               "z": {
@@ -30445,7 +30445,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC66",
+                "chip": "NPU-0-BC66",
                 "lane": 1
               },
               "z": {
@@ -30457,7 +30457,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC66",
+                "chip": "NPU-0-BC66",
                 "lane": 2
               },
               "z": {
@@ -30469,7 +30469,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
             },
             {
               "a": {
-                "chip": "BC66",
+                "chip": "NPU-0-BC66",
                 "lane": 3
               },
               "z": {
@@ -30482,7 +30482,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 67,
+          "attachedCorePortIndex": 66,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -30491,25 +30491,25 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC66",
+                      "chip": "NPU-0-BC66",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC66",
+                      "chip": "NPU-0-BC66",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC66",
+                      "chip": "NPU-0-BC66",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC66",
+                      "chip": "NPU-0-BC66",
                       "lane": 3
                     }
                   }
@@ -30547,25 +30547,25 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC66",
+                      "chip": "NPU-0-BC66",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC66",
+                      "chip": "NPU-0-BC66",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC66",
+                      "chip": "NPU-0-BC66",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC66",
+                      "chip": "NPU-0-BC66",
                       "lane": 3
                     }
                   }
@@ -30603,25 +30603,25 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC66",
+                      "chip": "NPU-0-BC66",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC66",
+                      "chip": "NPU-0-BC66",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC66",
+                      "chip": "NPU-0-BC66",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC66",
+                      "chip": "NPU-0-BC66",
                       "lane": 3
                     }
                   }
@@ -30659,7 +30659,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC66",
+                      "chip": "NPU-0-BC66",
                       "lane": 0
                     }
                   }
@@ -30679,7 +30679,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC66",
+                      "chip": "NPU-0-BC66",
                       "lane": 0
                     }
                   }
@@ -30704,7 +30704,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC66",
+                "chip": "NPU-0-BC66",
                 "lane": 1
               },
               "z": {
@@ -30717,7 +30717,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 68,
+          "attachedCorePortIndex": 67,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -30726,7 +30726,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC66",
+                      "chip": "NPU-0-BC66",
                       "lane": 1
                     }
                   }
@@ -30746,7 +30746,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC66",
+                      "chip": "NPU-0-BC66",
                       "lane": 1
                     }
                   }
@@ -30771,7 +30771,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC66",
+                "chip": "NPU-0-BC66",
                 "lane": 2
               },
               "z": {
@@ -30784,7 +30784,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 69,
+          "attachedCorePortIndex": 68,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -30793,7 +30793,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC66",
+                      "chip": "NPU-0-BC66",
                       "lane": 2
                     }
                   }
@@ -30813,7 +30813,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC66",
+                      "chip": "NPU-0-BC66",
                       "lane": 2
                     }
                   }
@@ -30838,7 +30838,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC66",
+                "chip": "NPU-0-BC66",
                 "lane": 3
               },
               "z": {
@@ -30851,7 +30851,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 70,
+          "attachedCorePortIndex": 69,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -30860,7 +30860,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC66",
+                      "chip": "NPU-0-BC66",
                       "lane": 3
                     }
                   }
@@ -30880,7 +30880,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC66",
+                      "chip": "NPU-0-BC66",
                       "lane": 3
                     }
                   }
@@ -30905,7 +30905,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC66",
+                "chip": "NPU-0-BC66",
                 "lane": 4
               },
               "z": {
@@ -30918,7 +30918,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 71,
+          "attachedCorePortIndex": 70,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -30927,7 +30927,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC66",
+                      "chip": "NPU-0-BC66",
                       "lane": 4
                     }
                   }
@@ -30947,7 +30947,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC66",
+                      "chip": "NPU-0-BC66",
                       "lane": 4
                     }
                   }
@@ -30972,7 +30972,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC66",
+                "chip": "NPU-0-BC66",
                 "lane": 5
               },
               "z": {
@@ -30985,7 +30985,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 72,
+          "attachedCorePortIndex": 71,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -30994,7 +30994,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC66",
+                      "chip": "NPU-0-BC66",
                       "lane": 5
                     }
                   }
@@ -31014,7 +31014,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC66",
+                      "chip": "NPU-0-BC66",
                       "lane": 5
                     }
                   }
@@ -31039,7 +31039,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC66",
+                "chip": "NPU-0-BC66",
                 "lane": 6
               },
               "z": {
@@ -31052,7 +31052,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 73,
+          "attachedCorePortIndex": 72,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -31061,7 +31061,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC66",
+                      "chip": "NPU-0-BC66",
                       "lane": 6
                     }
                   }
@@ -31081,7 +31081,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC66",
+                      "chip": "NPU-0-BC66",
                       "lane": 6
                     }
                   }
@@ -31106,7 +31106,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC66",
+                "chip": "NPU-0-BC66",
                 "lane": 7
               },
               "z": {
@@ -31119,7 +31119,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 74,
+          "attachedCorePortIndex": 73,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -31128,7 +31128,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC66",
+                      "chip": "NPU-0-BC66",
                       "lane": 7
                     }
                   }
@@ -31148,7 +31148,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC66",
+                      "chip": "NPU-0-BC66",
                       "lane": 7
                     }
                   }
@@ -31173,7 +31173,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC0",
+                "chip": "NPU-0-BC0",
                 "lane": 0
               }
             }
@@ -31187,7 +31187,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC0",
+                      "chip": "NPU-0-BC0",
                       "lane": 0
                     }
                   }
@@ -31199,7 +31199,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC0",
+                      "chip": "NPU-0-BC0",
                       "lane": 0
                     }
                   }
@@ -31216,7 +31216,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC0",
+                "chip": "NPU-0-BC0",
                 "lane": 1
               }
             }
@@ -31230,7 +31230,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC0",
+                      "chip": "NPU-0-BC0",
                       "lane": 1
                     }
                   }
@@ -31242,7 +31242,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC0",
+                      "chip": "NPU-0-BC0",
                       "lane": 1
                     }
                   }
@@ -31259,7 +31259,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC0",
+                "chip": "NPU-0-BC0",
                 "lane": 2
               }
             }
@@ -31273,7 +31273,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC0",
+                      "chip": "NPU-0-BC0",
                       "lane": 2
                     }
                   }
@@ -31285,7 +31285,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC0",
+                      "chip": "NPU-0-BC0",
                       "lane": 2
                     }
                   }
@@ -31302,7 +31302,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC0",
+                "chip": "NPU-0-BC0",
                 "lane": 3
               }
             }
@@ -31316,7 +31316,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC0",
+                      "chip": "NPU-0-BC0",
                       "lane": 3
                     }
                   }
@@ -31328,7 +31328,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC0",
+                      "chip": "NPU-0-BC0",
                       "lane": 3
                     }
                   }
@@ -31345,7 +31345,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC1",
+                "chip": "NPU-0-BC1",
                 "lane": 0
               }
             }
@@ -31359,7 +31359,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC1",
+                      "chip": "NPU-0-BC1",
                       "lane": 0
                     }
                   }
@@ -31371,7 +31371,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC1",
+                      "chip": "NPU-0-BC1",
                       "lane": 0
                     }
                   }
@@ -31388,7 +31388,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC1",
+                "chip": "NPU-0-BC1",
                 "lane": 1
               }
             }
@@ -31402,7 +31402,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC1",
+                      "chip": "NPU-0-BC1",
                       "lane": 1
                     }
                   }
@@ -31414,7 +31414,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC1",
+                      "chip": "NPU-0-BC1",
                       "lane": 1
                     }
                   }
@@ -31431,7 +31431,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC1",
+                "chip": "NPU-0-BC1",
                 "lane": 2
               }
             }
@@ -31445,7 +31445,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC1",
+                      "chip": "NPU-0-BC1",
                       "lane": 2
                     }
                   }
@@ -31457,7 +31457,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC1",
+                      "chip": "NPU-0-BC1",
                       "lane": 2
                     }
                   }
@@ -31474,7 +31474,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC1",
+                "chip": "NPU-0-BC1",
                 "lane": 3
               }
             }
@@ -31488,7 +31488,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC1",
+                      "chip": "NPU-0-BC1",
                       "lane": 3
                     }
                   }
@@ -31500,7 +31500,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC1",
+                      "chip": "NPU-0-BC1",
                       "lane": 3
                     }
                   }
@@ -31517,7 +31517,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC2",
+                "chip": "NPU-0-BC2",
                 "lane": 0
               }
             }
@@ -31531,7 +31531,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC2",
+                      "chip": "NPU-0-BC2",
                       "lane": 0
                     }
                   }
@@ -31543,7 +31543,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC2",
+                      "chip": "NPU-0-BC2",
                       "lane": 0
                     }
                   }
@@ -31560,7 +31560,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC2",
+                "chip": "NPU-0-BC2",
                 "lane": 1
               }
             }
@@ -31574,7 +31574,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC2",
+                      "chip": "NPU-0-BC2",
                       "lane": 1
                     }
                   }
@@ -31586,7 +31586,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC2",
+                      "chip": "NPU-0-BC2",
                       "lane": 1
                     }
                   }
@@ -31603,7 +31603,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC2",
+                "chip": "NPU-0-BC2",
                 "lane": 2
               }
             }
@@ -31617,7 +31617,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC2",
+                      "chip": "NPU-0-BC2",
                       "lane": 2
                     }
                   }
@@ -31629,7 +31629,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC2",
+                      "chip": "NPU-0-BC2",
                       "lane": 2
                     }
                   }
@@ -31646,7 +31646,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC2",
+                "chip": "NPU-0-BC2",
                 "lane": 3
               }
             }
@@ -31660,7 +31660,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC2",
+                      "chip": "NPU-0-BC2",
                       "lane": 3
                     }
                   }
@@ -31672,7 +31672,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC2",
+                      "chip": "NPU-0-BC2",
                       "lane": 3
                     }
                   }
@@ -31689,7 +31689,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC3",
+                "chip": "NPU-0-BC3",
                 "lane": 0
               }
             }
@@ -31703,7 +31703,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC3",
+                      "chip": "NPU-0-BC3",
                       "lane": 0
                     }
                   }
@@ -31715,7 +31715,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC3",
+                      "chip": "NPU-0-BC3",
                       "lane": 0
                     }
                   }
@@ -31732,7 +31732,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC3",
+                "chip": "NPU-0-BC3",
                 "lane": 1
               }
             }
@@ -31746,7 +31746,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC3",
+                      "chip": "NPU-0-BC3",
                       "lane": 1
                     }
                   }
@@ -31758,7 +31758,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC3",
+                      "chip": "NPU-0-BC3",
                       "lane": 1
                     }
                   }
@@ -31775,7 +31775,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC3",
+                "chip": "NPU-0-BC3",
                 "lane": 2
               }
             }
@@ -31789,7 +31789,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC3",
+                      "chip": "NPU-0-BC3",
                       "lane": 2
                     }
                   }
@@ -31801,7 +31801,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC3",
+                      "chip": "NPU-0-BC3",
                       "lane": 2
                     }
                   }
@@ -31818,7 +31818,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC3",
+                "chip": "NPU-0-BC3",
                 "lane": 3
               }
             }
@@ -31832,7 +31832,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC3",
+                      "chip": "NPU-0-BC3",
                       "lane": 3
                     }
                   }
@@ -31844,7 +31844,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC3",
+                      "chip": "NPU-0-BC3",
                       "lane": 3
                     }
                   }
@@ -31861,7 +31861,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC4",
+                "chip": "NPU-0-BC4",
                 "lane": 0
               },
               "z": {
@@ -31881,7 +31881,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC4",
+                      "chip": "NPU-0-BC4",
                       "lane": 0
                     }
                   }
@@ -31901,7 +31901,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC4",
+                      "chip": "NPU-0-BC4",
                       "lane": 0
                     }
                   }
@@ -31926,7 +31926,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC4",
+                "chip": "NPU-0-BC4",
                 "lane": 1
               },
               "z": {
@@ -31946,7 +31946,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC4",
+                      "chip": "NPU-0-BC4",
                       "lane": 1
                     }
                   }
@@ -31966,7 +31966,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC4",
+                      "chip": "NPU-0-BC4",
                       "lane": 1
                     }
                   }
@@ -31991,7 +31991,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC4",
+                "chip": "NPU-0-BC4",
                 "lane": 2
               },
               "z": {
@@ -32011,7 +32011,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC4",
+                      "chip": "NPU-0-BC4",
                       "lane": 2
                     }
                   }
@@ -32031,7 +32031,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC4",
+                      "chip": "NPU-0-BC4",
                       "lane": 2
                     }
                   }
@@ -32056,7 +32056,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC4",
+                "chip": "NPU-0-BC4",
                 "lane": 3
               },
               "z": {
@@ -32076,7 +32076,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC4",
+                      "chip": "NPU-0-BC4",
                       "lane": 3
                     }
                   }
@@ -32096,7 +32096,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC4",
+                      "chip": "NPU-0-BC4",
                       "lane": 3
                     }
                   }
@@ -32121,7 +32121,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC5",
+                "chip": "NPU-0-BC5",
                 "lane": 0
               },
               "z": {
@@ -32141,7 +32141,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC5",
+                      "chip": "NPU-0-BC5",
                       "lane": 0
                     }
                   }
@@ -32161,7 +32161,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC5",
+                      "chip": "NPU-0-BC5",
                       "lane": 0
                     }
                   }
@@ -32186,7 +32186,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC5",
+                "chip": "NPU-0-BC5",
                 "lane": 1
               },
               "z": {
@@ -32206,7 +32206,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC5",
+                      "chip": "NPU-0-BC5",
                       "lane": 1
                     }
                   }
@@ -32226,7 +32226,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC5",
+                      "chip": "NPU-0-BC5",
                       "lane": 1
                     }
                   }
@@ -32251,7 +32251,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC5",
+                "chip": "NPU-0-BC5",
                 "lane": 2
               },
               "z": {
@@ -32271,7 +32271,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC5",
+                      "chip": "NPU-0-BC5",
                       "lane": 2
                     }
                   }
@@ -32291,7 +32291,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC5",
+                      "chip": "NPU-0-BC5",
                       "lane": 2
                     }
                   }
@@ -32316,7 +32316,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC5",
+                "chip": "NPU-0-BC5",
                 "lane": 3
               },
               "z": {
@@ -32336,7 +32336,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC5",
+                      "chip": "NPU-0-BC5",
                       "lane": 3
                     }
                   }
@@ -32356,7 +32356,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC5",
+                      "chip": "NPU-0-BC5",
                       "lane": 3
                     }
                   }
@@ -32381,7 +32381,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC6",
+                "chip": "NPU-0-BC6",
                 "lane": 0
               },
               "z": {
@@ -32401,7 +32401,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC6",
+                      "chip": "NPU-0-BC6",
                       "lane": 0
                     }
                   }
@@ -32421,7 +32421,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC6",
+                      "chip": "NPU-0-BC6",
                       "lane": 0
                     }
                   }
@@ -32446,7 +32446,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC6",
+                "chip": "NPU-0-BC6",
                 "lane": 1
               },
               "z": {
@@ -32466,7 +32466,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC6",
+                      "chip": "NPU-0-BC6",
                       "lane": 1
                     }
                   }
@@ -32486,7 +32486,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC6",
+                      "chip": "NPU-0-BC6",
                       "lane": 1
                     }
                   }
@@ -32511,7 +32511,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC6",
+                "chip": "NPU-0-BC6",
                 "lane": 2
               },
               "z": {
@@ -32531,7 +32531,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC6",
+                      "chip": "NPU-0-BC6",
                       "lane": 2
                     }
                   }
@@ -32551,7 +32551,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC6",
+                      "chip": "NPU-0-BC6",
                       "lane": 2
                     }
                   }
@@ -32576,7 +32576,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC6",
+                "chip": "NPU-0-BC6",
                 "lane": 3
               },
               "z": {
@@ -32596,7 +32596,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC6",
+                      "chip": "NPU-0-BC6",
                       "lane": 3
                     }
                   }
@@ -32616,7 +32616,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC6",
+                      "chip": "NPU-0-BC6",
                       "lane": 3
                     }
                   }
@@ -32641,7 +32641,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC7",
+                "chip": "NPU-0-BC7",
                 "lane": 0
               },
               "z": {
@@ -32661,7 +32661,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC7",
+                      "chip": "NPU-0-BC7",
                       "lane": 0
                     }
                   }
@@ -32681,7 +32681,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC7",
+                      "chip": "NPU-0-BC7",
                       "lane": 0
                     }
                   }
@@ -32706,7 +32706,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC7",
+                "chip": "NPU-0-BC7",
                 "lane": 1
               },
               "z": {
@@ -32726,7 +32726,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC7",
+                      "chip": "NPU-0-BC7",
                       "lane": 1
                     }
                   }
@@ -32746,7 +32746,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC7",
+                      "chip": "NPU-0-BC7",
                       "lane": 1
                     }
                   }
@@ -32771,7 +32771,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC7",
+                "chip": "NPU-0-BC7",
                 "lane": 2
               },
               "z": {
@@ -32791,7 +32791,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC7",
+                      "chip": "NPU-0-BC7",
                       "lane": 2
                     }
                   }
@@ -32811,7 +32811,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC7",
+                      "chip": "NPU-0-BC7",
                       "lane": 2
                     }
                   }
@@ -32836,7 +32836,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC7",
+                "chip": "NPU-0-BC7",
                 "lane": 3
               },
               "z": {
@@ -32856,7 +32856,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC7",
+                      "chip": "NPU-0-BC7",
                       "lane": 3
                     }
                   }
@@ -32876,7 +32876,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC7",
+                      "chip": "NPU-0-BC7",
                       "lane": 3
                     }
                   }
@@ -32901,7 +32901,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC8",
+                "chip": "NPU-0-BC8",
                 "lane": 0
               },
               "z": {
@@ -32921,7 +32921,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC8",
+                      "chip": "NPU-0-BC8",
                       "lane": 0
                     }
                   }
@@ -32941,7 +32941,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC8",
+                      "chip": "NPU-0-BC8",
                       "lane": 0
                     }
                   }
@@ -32966,7 +32966,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC8",
+                "chip": "NPU-0-BC8",
                 "lane": 1
               },
               "z": {
@@ -32986,7 +32986,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC8",
+                      "chip": "NPU-0-BC8",
                       "lane": 1
                     }
                   }
@@ -33006,7 +33006,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC8",
+                      "chip": "NPU-0-BC8",
                       "lane": 1
                     }
                   }
@@ -33031,7 +33031,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC8",
+                "chip": "NPU-0-BC8",
                 "lane": 2
               },
               "z": {
@@ -33051,7 +33051,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC8",
+                      "chip": "NPU-0-BC8",
                       "lane": 2
                     }
                   }
@@ -33071,7 +33071,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC8",
+                      "chip": "NPU-0-BC8",
                       "lane": 2
                     }
                   }
@@ -33096,7 +33096,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC8",
+                "chip": "NPU-0-BC8",
                 "lane": 3
               },
               "z": {
@@ -33116,7 +33116,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC8",
+                      "chip": "NPU-0-BC8",
                       "lane": 3
                     }
                   }
@@ -33136,7 +33136,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC8",
+                      "chip": "NPU-0-BC8",
                       "lane": 3
                     }
                   }
@@ -33161,7 +33161,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC9",
+                "chip": "NPU-0-BC9",
                 "lane": 0
               },
               "z": {
@@ -33181,7 +33181,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC9",
+                      "chip": "NPU-0-BC9",
                       "lane": 0
                     }
                   }
@@ -33201,7 +33201,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC9",
+                      "chip": "NPU-0-BC9",
                       "lane": 0
                     }
                   }
@@ -33226,7 +33226,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC9",
+                "chip": "NPU-0-BC9",
                 "lane": 1
               },
               "z": {
@@ -33246,7 +33246,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC9",
+                      "chip": "NPU-0-BC9",
                       "lane": 1
                     }
                   }
@@ -33266,7 +33266,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC9",
+                      "chip": "NPU-0-BC9",
                       "lane": 1
                     }
                   }
@@ -33291,7 +33291,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC9",
+                "chip": "NPU-0-BC9",
                 "lane": 2
               },
               "z": {
@@ -33311,7 +33311,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC9",
+                      "chip": "NPU-0-BC9",
                       "lane": 2
                     }
                   }
@@ -33331,7 +33331,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC9",
+                      "chip": "NPU-0-BC9",
                       "lane": 2
                     }
                   }
@@ -33356,7 +33356,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC9",
+                "chip": "NPU-0-BC9",
                 "lane": 3
               },
               "z": {
@@ -33376,7 +33376,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC9",
+                      "chip": "NPU-0-BC9",
                       "lane": 3
                     }
                   }
@@ -33396,7 +33396,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC9",
+                      "chip": "NPU-0-BC9",
                       "lane": 3
                     }
                   }
@@ -33421,7 +33421,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC10",
+                "chip": "NPU-0-BC10",
                 "lane": 0
               },
               "z": {
@@ -33441,7 +33441,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC10",
+                      "chip": "NPU-0-BC10",
                       "lane": 0
                     }
                   }
@@ -33461,7 +33461,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC10",
+                      "chip": "NPU-0-BC10",
                       "lane": 0
                     }
                   }
@@ -33486,7 +33486,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC10",
+                "chip": "NPU-0-BC10",
                 "lane": 1
               },
               "z": {
@@ -33506,7 +33506,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC10",
+                      "chip": "NPU-0-BC10",
                       "lane": 1
                     }
                   }
@@ -33526,7 +33526,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC10",
+                      "chip": "NPU-0-BC10",
                       "lane": 1
                     }
                   }
@@ -33551,7 +33551,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC10",
+                "chip": "NPU-0-BC10",
                 "lane": 2
               },
               "z": {
@@ -33571,7 +33571,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC10",
+                      "chip": "NPU-0-BC10",
                       "lane": 2
                     }
                   }
@@ -33591,7 +33591,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC10",
+                      "chip": "NPU-0-BC10",
                       "lane": 2
                     }
                   }
@@ -33616,7 +33616,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC10",
+                "chip": "NPU-0-BC10",
                 "lane": 3
               },
               "z": {
@@ -33636,7 +33636,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC10",
+                      "chip": "NPU-0-BC10",
                       "lane": 3
                     }
                   }
@@ -33656,7 +33656,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC10",
+                      "chip": "NPU-0-BC10",
                       "lane": 3
                     }
                   }
@@ -33681,7 +33681,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC11",
+                "chip": "NPU-0-BC11",
                 "lane": 0
               },
               "z": {
@@ -33701,7 +33701,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC11",
+                      "chip": "NPU-0-BC11",
                       "lane": 0
                     }
                   }
@@ -33721,7 +33721,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC11",
+                      "chip": "NPU-0-BC11",
                       "lane": 0
                     }
                   }
@@ -33746,7 +33746,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC11",
+                "chip": "NPU-0-BC11",
                 "lane": 1
               },
               "z": {
@@ -33766,7 +33766,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC11",
+                      "chip": "NPU-0-BC11",
                       "lane": 1
                     }
                   }
@@ -33786,7 +33786,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC11",
+                      "chip": "NPU-0-BC11",
                       "lane": 1
                     }
                   }
@@ -33811,7 +33811,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC11",
+                "chip": "NPU-0-BC11",
                 "lane": 2
               },
               "z": {
@@ -33831,7 +33831,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC11",
+                      "chip": "NPU-0-BC11",
                       "lane": 2
                     }
                   }
@@ -33851,7 +33851,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC11",
+                      "chip": "NPU-0-BC11",
                       "lane": 2
                     }
                   }
@@ -33876,7 +33876,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC11",
+                "chip": "NPU-0-BC11",
                 "lane": 3
               },
               "z": {
@@ -33896,7 +33896,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC11",
+                      "chip": "NPU-0-BC11",
                       "lane": 3
                     }
                   }
@@ -33916,7 +33916,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC11",
+                      "chip": "NPU-0-BC11",
                       "lane": 3
                     }
                   }
@@ -33941,7 +33941,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC12",
+                "chip": "NPU-0-BC12",
                 "lane": 0
               },
               "z": {
@@ -33961,7 +33961,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC12",
+                      "chip": "NPU-0-BC12",
                       "lane": 0
                     }
                   }
@@ -33981,7 +33981,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC12",
+                      "chip": "NPU-0-BC12",
                       "lane": 0
                     }
                   }
@@ -34006,7 +34006,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC12",
+                "chip": "NPU-0-BC12",
                 "lane": 1
               },
               "z": {
@@ -34026,7 +34026,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC12",
+                      "chip": "NPU-0-BC12",
                       "lane": 1
                     }
                   }
@@ -34046,7 +34046,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC12",
+                      "chip": "NPU-0-BC12",
                       "lane": 1
                     }
                   }
@@ -34071,7 +34071,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC12",
+                "chip": "NPU-0-BC12",
                 "lane": 2
               },
               "z": {
@@ -34091,7 +34091,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC12",
+                      "chip": "NPU-0-BC12",
                       "lane": 2
                     }
                   }
@@ -34111,7 +34111,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC12",
+                      "chip": "NPU-0-BC12",
                       "lane": 2
                     }
                   }
@@ -34136,7 +34136,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC12",
+                "chip": "NPU-0-BC12",
                 "lane": 3
               },
               "z": {
@@ -34156,7 +34156,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC12",
+                      "chip": "NPU-0-BC12",
                       "lane": 3
                     }
                   }
@@ -34176,7 +34176,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC12",
+                      "chip": "NPU-0-BC12",
                       "lane": 3
                     }
                   }
@@ -34201,7 +34201,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC13",
+                "chip": "NPU-0-BC13",
                 "lane": 0
               },
               "z": {
@@ -34221,7 +34221,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC13",
+                      "chip": "NPU-0-BC13",
                       "lane": 0
                     }
                   }
@@ -34241,7 +34241,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC13",
+                      "chip": "NPU-0-BC13",
                       "lane": 0
                     }
                   }
@@ -34266,7 +34266,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC13",
+                "chip": "NPU-0-BC13",
                 "lane": 1
               },
               "z": {
@@ -34286,7 +34286,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC13",
+                      "chip": "NPU-0-BC13",
                       "lane": 1
                     }
                   }
@@ -34306,7 +34306,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC13",
+                      "chip": "NPU-0-BC13",
                       "lane": 1
                     }
                   }
@@ -34331,7 +34331,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC13",
+                "chip": "NPU-0-BC13",
                 "lane": 2
               },
               "z": {
@@ -34351,7 +34351,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC13",
+                      "chip": "NPU-0-BC13",
                       "lane": 2
                     }
                   }
@@ -34371,7 +34371,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC13",
+                      "chip": "NPU-0-BC13",
                       "lane": 2
                     }
                   }
@@ -34396,7 +34396,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC13",
+                "chip": "NPU-0-BC13",
                 "lane": 3
               },
               "z": {
@@ -34416,7 +34416,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC13",
+                      "chip": "NPU-0-BC13",
                       "lane": 3
                     }
                   }
@@ -34436,7 +34436,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC13",
+                      "chip": "NPU-0-BC13",
                       "lane": 3
                     }
                   }
@@ -34461,7 +34461,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC14",
+                "chip": "NPU-0-BC14",
                 "lane": 0
               },
               "z": {
@@ -34481,7 +34481,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC14",
+                      "chip": "NPU-0-BC14",
                       "lane": 0
                     }
                   }
@@ -34501,7 +34501,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC14",
+                      "chip": "NPU-0-BC14",
                       "lane": 0
                     }
                   }
@@ -34526,7 +34526,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC14",
+                "chip": "NPU-0-BC14",
                 "lane": 1
               },
               "z": {
@@ -34546,7 +34546,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC14",
+                      "chip": "NPU-0-BC14",
                       "lane": 1
                     }
                   }
@@ -34566,7 +34566,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC14",
+                      "chip": "NPU-0-BC14",
                       "lane": 1
                     }
                   }
@@ -34591,7 +34591,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC14",
+                "chip": "NPU-0-BC14",
                 "lane": 2
               },
               "z": {
@@ -34611,7 +34611,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC14",
+                      "chip": "NPU-0-BC14",
                       "lane": 2
                     }
                   }
@@ -34631,7 +34631,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC14",
+                      "chip": "NPU-0-BC14",
                       "lane": 2
                     }
                   }
@@ -34656,7 +34656,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC14",
+                "chip": "NPU-0-BC14",
                 "lane": 3
               },
               "z": {
@@ -34676,7 +34676,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC14",
+                      "chip": "NPU-0-BC14",
                       "lane": 3
                     }
                   }
@@ -34696,7 +34696,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC14",
+                      "chip": "NPU-0-BC14",
                       "lane": 3
                     }
                   }
@@ -34721,7 +34721,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC15",
+                "chip": "NPU-0-BC15",
                 "lane": 0
               },
               "z": {
@@ -34741,7 +34741,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC15",
+                      "chip": "NPU-0-BC15",
                       "lane": 0
                     }
                   }
@@ -34761,7 +34761,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC15",
+                      "chip": "NPU-0-BC15",
                       "lane": 0
                     }
                   }
@@ -34786,7 +34786,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC15",
+                "chip": "NPU-0-BC15",
                 "lane": 1
               },
               "z": {
@@ -34806,7 +34806,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC15",
+                      "chip": "NPU-0-BC15",
                       "lane": 1
                     }
                   }
@@ -34826,7 +34826,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC15",
+                      "chip": "NPU-0-BC15",
                       "lane": 1
                     }
                   }
@@ -34851,7 +34851,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC15",
+                "chip": "NPU-0-BC15",
                 "lane": 2
               },
               "z": {
@@ -34871,7 +34871,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC15",
+                      "chip": "NPU-0-BC15",
                       "lane": 2
                     }
                   }
@@ -34891,7 +34891,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC15",
+                      "chip": "NPU-0-BC15",
                       "lane": 2
                     }
                   }
@@ -34916,7 +34916,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC15",
+                "chip": "NPU-0-BC15",
                 "lane": 3
               },
               "z": {
@@ -34936,7 +34936,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC15",
+                      "chip": "NPU-0-BC15",
                       "lane": 3
                     }
                   }
@@ -34956,7 +34956,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC15",
+                      "chip": "NPU-0-BC15",
                       "lane": 3
                     }
                   }
@@ -34981,7 +34981,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC16",
+                "chip": "NPU-0-BC16",
                 "lane": 0
               },
               "z": {
@@ -35001,7 +35001,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC16",
+                      "chip": "NPU-0-BC16",
                       "lane": 0
                     }
                   }
@@ -35021,7 +35021,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC16",
+                      "chip": "NPU-0-BC16",
                       "lane": 0
                     }
                   }
@@ -35046,7 +35046,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC16",
+                "chip": "NPU-0-BC16",
                 "lane": 1
               },
               "z": {
@@ -35066,7 +35066,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC16",
+                      "chip": "NPU-0-BC16",
                       "lane": 1
                     }
                   }
@@ -35086,7 +35086,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC16",
+                      "chip": "NPU-0-BC16",
                       "lane": 1
                     }
                   }
@@ -35111,7 +35111,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC16",
+                "chip": "NPU-0-BC16",
                 "lane": 2
               },
               "z": {
@@ -35131,7 +35131,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC16",
+                      "chip": "NPU-0-BC16",
                       "lane": 2
                     }
                   }
@@ -35151,7 +35151,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC16",
+                      "chip": "NPU-0-BC16",
                       "lane": 2
                     }
                   }
@@ -35176,7 +35176,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC16",
+                "chip": "NPU-0-BC16",
                 "lane": 3
               },
               "z": {
@@ -35196,7 +35196,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC16",
+                      "chip": "NPU-0-BC16",
                       "lane": 3
                     }
                   }
@@ -35216,7 +35216,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC16",
+                      "chip": "NPU-0-BC16",
                       "lane": 3
                     }
                   }
@@ -35241,7 +35241,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC17",
+                "chip": "NPU-0-BC17",
                 "lane": 0
               },
               "z": {
@@ -35261,7 +35261,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC17",
+                      "chip": "NPU-0-BC17",
                       "lane": 0
                     }
                   }
@@ -35281,7 +35281,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC17",
+                      "chip": "NPU-0-BC17",
                       "lane": 0
                     }
                   }
@@ -35306,7 +35306,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC17",
+                "chip": "NPU-0-BC17",
                 "lane": 1
               },
               "z": {
@@ -35326,7 +35326,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC17",
+                      "chip": "NPU-0-BC17",
                       "lane": 1
                     }
                   }
@@ -35346,7 +35346,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC17",
+                      "chip": "NPU-0-BC17",
                       "lane": 1
                     }
                   }
@@ -35371,7 +35371,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC17",
+                "chip": "NPU-0-BC17",
                 "lane": 2
               },
               "z": {
@@ -35391,7 +35391,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC17",
+                      "chip": "NPU-0-BC17",
                       "lane": 2
                     }
                   }
@@ -35411,7 +35411,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC17",
+                      "chip": "NPU-0-BC17",
                       "lane": 2
                     }
                   }
@@ -35436,7 +35436,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC17",
+                "chip": "NPU-0-BC17",
                 "lane": 3
               },
               "z": {
@@ -35456,7 +35456,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC17",
+                      "chip": "NPU-0-BC17",
                       "lane": 3
                     }
                   }
@@ -35476,7 +35476,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC17",
+                      "chip": "NPU-0-BC17",
                       "lane": 3
                     }
                   }
@@ -35501,7 +35501,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC18",
+                "chip": "NPU-0-BC18",
                 "lane": 0
               },
               "z": {
@@ -35521,7 +35521,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC18",
+                      "chip": "NPU-0-BC18",
                       "lane": 0
                     }
                   }
@@ -35541,7 +35541,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC18",
+                      "chip": "NPU-0-BC18",
                       "lane": 0
                     }
                   }
@@ -35566,7 +35566,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC18",
+                "chip": "NPU-0-BC18",
                 "lane": 1
               },
               "z": {
@@ -35586,7 +35586,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC18",
+                      "chip": "NPU-0-BC18",
                       "lane": 1
                     }
                   }
@@ -35606,7 +35606,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC18",
+                      "chip": "NPU-0-BC18",
                       "lane": 1
                     }
                   }
@@ -35631,7 +35631,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC18",
+                "chip": "NPU-0-BC18",
                 "lane": 2
               },
               "z": {
@@ -35651,7 +35651,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC18",
+                      "chip": "NPU-0-BC18",
                       "lane": 2
                     }
                   }
@@ -35671,7 +35671,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC18",
+                      "chip": "NPU-0-BC18",
                       "lane": 2
                     }
                   }
@@ -35696,7 +35696,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC18",
+                "chip": "NPU-0-BC18",
                 "lane": 3
               },
               "z": {
@@ -35716,7 +35716,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC18",
+                      "chip": "NPU-0-BC18",
                       "lane": 3
                     }
                   }
@@ -35736,7 +35736,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC18",
+                      "chip": "NPU-0-BC18",
                       "lane": 3
                     }
                   }
@@ -35761,7 +35761,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC19",
+                "chip": "NPU-0-BC19",
                 "lane": 0
               },
               "z": {
@@ -35781,7 +35781,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC19",
+                      "chip": "NPU-0-BC19",
                       "lane": 0
                     }
                   }
@@ -35801,7 +35801,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC19",
+                      "chip": "NPU-0-BC19",
                       "lane": 0
                     }
                   }
@@ -35826,7 +35826,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC19",
+                "chip": "NPU-0-BC19",
                 "lane": 1
               },
               "z": {
@@ -35846,7 +35846,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC19",
+                      "chip": "NPU-0-BC19",
                       "lane": 1
                     }
                   }
@@ -35866,7 +35866,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC19",
+                      "chip": "NPU-0-BC19",
                       "lane": 1
                     }
                   }
@@ -35891,7 +35891,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC19",
+                "chip": "NPU-0-BC19",
                 "lane": 2
               },
               "z": {
@@ -35911,7 +35911,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC19",
+                      "chip": "NPU-0-BC19",
                       "lane": 2
                     }
                   }
@@ -35931,7 +35931,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC19",
+                      "chip": "NPU-0-BC19",
                       "lane": 2
                     }
                   }
@@ -35956,7 +35956,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC19",
+                "chip": "NPU-0-BC19",
                 "lane": 3
               },
               "z": {
@@ -35976,7 +35976,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC19",
+                      "chip": "NPU-0-BC19",
                       "lane": 3
                     }
                   }
@@ -35996,7 +35996,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC19",
+                      "chip": "NPU-0-BC19",
                       "lane": 3
                     }
                   }
@@ -36021,7 +36021,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC20",
+                "chip": "NPU-0-BC20",
                 "lane": 0
               },
               "z": {
@@ -36041,7 +36041,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC20",
+                      "chip": "NPU-0-BC20",
                       "lane": 0
                     }
                   }
@@ -36061,7 +36061,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC20",
+                      "chip": "NPU-0-BC20",
                       "lane": 0
                     }
                   }
@@ -36086,7 +36086,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC20",
+                "chip": "NPU-0-BC20",
                 "lane": 1
               },
               "z": {
@@ -36106,7 +36106,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC20",
+                      "chip": "NPU-0-BC20",
                       "lane": 1
                     }
                   }
@@ -36126,7 +36126,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC20",
+                      "chip": "NPU-0-BC20",
                       "lane": 1
                     }
                   }
@@ -36151,7 +36151,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC20",
+                "chip": "NPU-0-BC20",
                 "lane": 2
               },
               "z": {
@@ -36171,7 +36171,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC20",
+                      "chip": "NPU-0-BC20",
                       "lane": 2
                     }
                   }
@@ -36191,7 +36191,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC20",
+                      "chip": "NPU-0-BC20",
                       "lane": 2
                     }
                   }
@@ -36216,7 +36216,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC20",
+                "chip": "NPU-0-BC20",
                 "lane": 3
               },
               "z": {
@@ -36236,7 +36236,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC20",
+                      "chip": "NPU-0-BC20",
                       "lane": 3
                     }
                   }
@@ -36256,7 +36256,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC20",
+                      "chip": "NPU-0-BC20",
                       "lane": 3
                     }
                   }
@@ -36281,7 +36281,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC21",
+                "chip": "NPU-0-BC21",
                 "lane": 0
               },
               "z": {
@@ -36301,7 +36301,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC21",
+                      "chip": "NPU-0-BC21",
                       "lane": 0
                     }
                   }
@@ -36321,7 +36321,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC21",
+                      "chip": "NPU-0-BC21",
                       "lane": 0
                     }
                   }
@@ -36346,7 +36346,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC21",
+                "chip": "NPU-0-BC21",
                 "lane": 1
               },
               "z": {
@@ -36366,7 +36366,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC21",
+                      "chip": "NPU-0-BC21",
                       "lane": 1
                     }
                   }
@@ -36386,7 +36386,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC21",
+                      "chip": "NPU-0-BC21",
                       "lane": 1
                     }
                   }
@@ -36411,7 +36411,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC21",
+                "chip": "NPU-0-BC21",
                 "lane": 2
               },
               "z": {
@@ -36431,7 +36431,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC21",
+                      "chip": "NPU-0-BC21",
                       "lane": 2
                     }
                   }
@@ -36451,7 +36451,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC21",
+                      "chip": "NPU-0-BC21",
                       "lane": 2
                     }
                   }
@@ -36476,7 +36476,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC21",
+                "chip": "NPU-0-BC21",
                 "lane": 3
               },
               "z": {
@@ -36496,7 +36496,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC21",
+                      "chip": "NPU-0-BC21",
                       "lane": 3
                     }
                   }
@@ -36516,7 +36516,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC21",
+                      "chip": "NPU-0-BC21",
                       "lane": 3
                     }
                   }
@@ -36541,7 +36541,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC22",
+                "chip": "NPU-0-BC22",
                 "lane": 0
               },
               "z": {
@@ -36561,7 +36561,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC22",
+                      "chip": "NPU-0-BC22",
                       "lane": 0
                     }
                   }
@@ -36581,7 +36581,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC22",
+                      "chip": "NPU-0-BC22",
                       "lane": 0
                     }
                   }
@@ -36606,7 +36606,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC22",
+                "chip": "NPU-0-BC22",
                 "lane": 1
               },
               "z": {
@@ -36626,7 +36626,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC22",
+                      "chip": "NPU-0-BC22",
                       "lane": 1
                     }
                   }
@@ -36646,7 +36646,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC22",
+                      "chip": "NPU-0-BC22",
                       "lane": 1
                     }
                   }
@@ -36671,7 +36671,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC22",
+                "chip": "NPU-0-BC22",
                 "lane": 2
               },
               "z": {
@@ -36691,7 +36691,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC22",
+                      "chip": "NPU-0-BC22",
                       "lane": 2
                     }
                   }
@@ -36711,7 +36711,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC22",
+                      "chip": "NPU-0-BC22",
                       "lane": 2
                     }
                   }
@@ -36736,7 +36736,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC22",
+                "chip": "NPU-0-BC22",
                 "lane": 3
               },
               "z": {
@@ -36756,7 +36756,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC22",
+                      "chip": "NPU-0-BC22",
                       "lane": 3
                     }
                   }
@@ -36776,7 +36776,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC22",
+                      "chip": "NPU-0-BC22",
                       "lane": 3
                     }
                   }
@@ -36801,7 +36801,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC23",
+                "chip": "NPU-0-BC23",
                 "lane": 0
               },
               "z": {
@@ -36821,7 +36821,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC23",
+                      "chip": "NPU-0-BC23",
                       "lane": 0
                     }
                   }
@@ -36841,7 +36841,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC23",
+                      "chip": "NPU-0-BC23",
                       "lane": 0
                     }
                   }
@@ -36866,7 +36866,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC23",
+                "chip": "NPU-0-BC23",
                 "lane": 1
               },
               "z": {
@@ -36886,7 +36886,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC23",
+                      "chip": "NPU-0-BC23",
                       "lane": 1
                     }
                   }
@@ -36906,7 +36906,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC23",
+                      "chip": "NPU-0-BC23",
                       "lane": 1
                     }
                   }
@@ -36931,7 +36931,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC23",
+                "chip": "NPU-0-BC23",
                 "lane": 2
               },
               "z": {
@@ -36951,7 +36951,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC23",
+                      "chip": "NPU-0-BC23",
                       "lane": 2
                     }
                   }
@@ -36971,7 +36971,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC23",
+                      "chip": "NPU-0-BC23",
                       "lane": 2
                     }
                   }
@@ -36996,7 +36996,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC23",
+                "chip": "NPU-0-BC23",
                 "lane": 3
               },
               "z": {
@@ -37016,7 +37016,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC23",
+                      "chip": "NPU-0-BC23",
                       "lane": 3
                     }
                   }
@@ -37036,7 +37036,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC23",
+                      "chip": "NPU-0-BC23",
                       "lane": 3
                     }
                   }
@@ -37061,7 +37061,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC24",
+                "chip": "NPU-0-BC24",
                 "lane": 0
               }
             }
@@ -37075,7 +37075,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC24",
+                      "chip": "NPU-0-BC24",
                       "lane": 0
                     }
                   }
@@ -37087,7 +37087,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC24",
+                      "chip": "NPU-0-BC24",
                       "lane": 0
                     }
                   }
@@ -37104,7 +37104,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC24",
+                "chip": "NPU-0-BC24",
                 "lane": 1
               }
             }
@@ -37118,7 +37118,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC24",
+                      "chip": "NPU-0-BC24",
                       "lane": 1
                     }
                   }
@@ -37130,7 +37130,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC24",
+                      "chip": "NPU-0-BC24",
                       "lane": 1
                     }
                   }
@@ -37147,7 +37147,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC24",
+                "chip": "NPU-0-BC24",
                 "lane": 2
               }
             }
@@ -37161,7 +37161,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC24",
+                      "chip": "NPU-0-BC24",
                       "lane": 2
                     }
                   }
@@ -37173,7 +37173,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC24",
+                      "chip": "NPU-0-BC24",
                       "lane": 2
                     }
                   }
@@ -37190,7 +37190,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC24",
+                "chip": "NPU-0-BC24",
                 "lane": 3
               }
             }
@@ -37204,7 +37204,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC24",
+                      "chip": "NPU-0-BC24",
                       "lane": 3
                     }
                   }
@@ -37216,7 +37216,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC24",
+                      "chip": "NPU-0-BC24",
                       "lane": 3
                     }
                   }
@@ -37233,7 +37233,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC25",
+                "chip": "NPU-0-BC25",
                 "lane": 0
               }
             }
@@ -37247,7 +37247,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC25",
+                      "chip": "NPU-0-BC25",
                       "lane": 0
                     }
                   }
@@ -37259,7 +37259,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC25",
+                      "chip": "NPU-0-BC25",
                       "lane": 0
                     }
                   }
@@ -37276,7 +37276,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC25",
+                "chip": "NPU-0-BC25",
                 "lane": 1
               }
             }
@@ -37290,7 +37290,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC25",
+                      "chip": "NPU-0-BC25",
                       "lane": 1
                     }
                   }
@@ -37302,7 +37302,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC25",
+                      "chip": "NPU-0-BC25",
                       "lane": 1
                     }
                   }
@@ -37319,7 +37319,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC25",
+                "chip": "NPU-0-BC25",
                 "lane": 2
               }
             }
@@ -37333,7 +37333,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC25",
+                      "chip": "NPU-0-BC25",
                       "lane": 2
                     }
                   }
@@ -37345,7 +37345,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC25",
+                      "chip": "NPU-0-BC25",
                       "lane": 2
                     }
                   }
@@ -37362,7 +37362,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC25",
+                "chip": "NPU-0-BC25",
                 "lane": 3
               }
             }
@@ -37376,7 +37376,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC25",
+                      "chip": "NPU-0-BC25",
                       "lane": 3
                     }
                   }
@@ -37388,7 +37388,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC25",
+                      "chip": "NPU-0-BC25",
                       "lane": 3
                     }
                   }
@@ -37405,7 +37405,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC26",
+                "chip": "NPU-0-BC26",
                 "lane": 0
               }
             }
@@ -37419,7 +37419,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC26",
+                      "chip": "NPU-0-BC26",
                       "lane": 0
                     }
                   }
@@ -37431,7 +37431,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC26",
+                      "chip": "NPU-0-BC26",
                       "lane": 0
                     }
                   }
@@ -37448,7 +37448,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC26",
+                "chip": "NPU-0-BC26",
                 "lane": 1
               }
             }
@@ -37462,7 +37462,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC26",
+                      "chip": "NPU-0-BC26",
                       "lane": 1
                     }
                   }
@@ -37474,7 +37474,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC26",
+                      "chip": "NPU-0-BC26",
                       "lane": 1
                     }
                   }
@@ -37491,7 +37491,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC26",
+                "chip": "NPU-0-BC26",
                 "lane": 2
               }
             }
@@ -37505,7 +37505,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC26",
+                      "chip": "NPU-0-BC26",
                       "lane": 2
                     }
                   }
@@ -37517,7 +37517,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC26",
+                      "chip": "NPU-0-BC26",
                       "lane": 2
                     }
                   }
@@ -37534,7 +37534,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC26",
+                "chip": "NPU-0-BC26",
                 "lane": 3
               }
             }
@@ -37548,7 +37548,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC26",
+                      "chip": "NPU-0-BC26",
                       "lane": 3
                     }
                   }
@@ -37560,7 +37560,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC26",
+                      "chip": "NPU-0-BC26",
                       "lane": 3
                     }
                   }
@@ -37577,7 +37577,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC27",
+                "chip": "NPU-0-BC27",
                 "lane": 0
               }
             }
@@ -37591,7 +37591,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC27",
+                      "chip": "NPU-0-BC27",
                       "lane": 0
                     }
                   }
@@ -37603,7 +37603,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC27",
+                      "chip": "NPU-0-BC27",
                       "lane": 0
                     }
                   }
@@ -37620,7 +37620,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC27",
+                "chip": "NPU-0-BC27",
                 "lane": 1
               }
             }
@@ -37634,7 +37634,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC27",
+                      "chip": "NPU-0-BC27",
                       "lane": 1
                     }
                   }
@@ -37646,7 +37646,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC27",
+                      "chip": "NPU-0-BC27",
                       "lane": 1
                     }
                   }
@@ -37663,7 +37663,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC27",
+                "chip": "NPU-0-BC27",
                 "lane": 2
               }
             }
@@ -37677,7 +37677,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC27",
+                      "chip": "NPU-0-BC27",
                       "lane": 2
                     }
                   }
@@ -37689,7 +37689,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC27",
+                      "chip": "NPU-0-BC27",
                       "lane": 2
                     }
                   }
@@ -37706,7 +37706,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC27",
+                "chip": "NPU-0-BC27",
                 "lane": 3
               }
             }
@@ -37720,7 +37720,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC27",
+                      "chip": "NPU-0-BC27",
                       "lane": 3
                     }
                   }
@@ -37732,7 +37732,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC27",
+                      "chip": "NPU-0-BC27",
                       "lane": 3
                     }
                   }
@@ -37749,7 +37749,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC28",
+                "chip": "NPU-0-BC28",
                 "lane": 0
               },
               "z": {
@@ -37769,7 +37769,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC28",
+                      "chip": "NPU-0-BC28",
                       "lane": 0
                     }
                   }
@@ -37789,7 +37789,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC28",
+                      "chip": "NPU-0-BC28",
                       "lane": 0
                     }
                   }
@@ -37814,7 +37814,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC28",
+                "chip": "NPU-0-BC28",
                 "lane": 1
               },
               "z": {
@@ -37834,7 +37834,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC28",
+                      "chip": "NPU-0-BC28",
                       "lane": 1
                     }
                   }
@@ -37854,7 +37854,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC28",
+                      "chip": "NPU-0-BC28",
                       "lane": 1
                     }
                   }
@@ -37879,7 +37879,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC28",
+                "chip": "NPU-0-BC28",
                 "lane": 2
               },
               "z": {
@@ -37899,7 +37899,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC28",
+                      "chip": "NPU-0-BC28",
                       "lane": 2
                     }
                   }
@@ -37919,7 +37919,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC28",
+                      "chip": "NPU-0-BC28",
                       "lane": 2
                     }
                   }
@@ -37944,7 +37944,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC28",
+                "chip": "NPU-0-BC28",
                 "lane": 3
               },
               "z": {
@@ -37964,7 +37964,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC28",
+                      "chip": "NPU-0-BC28",
                       "lane": 3
                     }
                   }
@@ -37984,7 +37984,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC28",
+                      "chip": "NPU-0-BC28",
                       "lane": 3
                     }
                   }
@@ -38009,7 +38009,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC29",
+                "chip": "NPU-0-BC29",
                 "lane": 0
               },
               "z": {
@@ -38029,7 +38029,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC29",
+                      "chip": "NPU-0-BC29",
                       "lane": 0
                     }
                   }
@@ -38049,7 +38049,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC29",
+                      "chip": "NPU-0-BC29",
                       "lane": 0
                     }
                   }
@@ -38074,7 +38074,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC29",
+                "chip": "NPU-0-BC29",
                 "lane": 1
               },
               "z": {
@@ -38094,7 +38094,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC29",
+                      "chip": "NPU-0-BC29",
                       "lane": 1
                     }
                   }
@@ -38114,7 +38114,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC29",
+                      "chip": "NPU-0-BC29",
                       "lane": 1
                     }
                   }
@@ -38139,7 +38139,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC29",
+                "chip": "NPU-0-BC29",
                 "lane": 2
               },
               "z": {
@@ -38159,7 +38159,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC29",
+                      "chip": "NPU-0-BC29",
                       "lane": 2
                     }
                   }
@@ -38179,7 +38179,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC29",
+                      "chip": "NPU-0-BC29",
                       "lane": 2
                     }
                   }
@@ -38204,7 +38204,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC29",
+                "chip": "NPU-0-BC29",
                 "lane": 3
               },
               "z": {
@@ -38224,7 +38224,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC29",
+                      "chip": "NPU-0-BC29",
                       "lane": 3
                     }
                   }
@@ -38244,7 +38244,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC29",
+                      "chip": "NPU-0-BC29",
                       "lane": 3
                     }
                   }
@@ -38269,7 +38269,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC30",
+                "chip": "NPU-0-BC30",
                 "lane": 0
               },
               "z": {
@@ -38289,7 +38289,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC30",
+                      "chip": "NPU-0-BC30",
                       "lane": 0
                     }
                   }
@@ -38309,7 +38309,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC30",
+                      "chip": "NPU-0-BC30",
                       "lane": 0
                     }
                   }
@@ -38334,7 +38334,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC30",
+                "chip": "NPU-0-BC30",
                 "lane": 1
               },
               "z": {
@@ -38354,7 +38354,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC30",
+                      "chip": "NPU-0-BC30",
                       "lane": 1
                     }
                   }
@@ -38374,7 +38374,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC30",
+                      "chip": "NPU-0-BC30",
                       "lane": 1
                     }
                   }
@@ -38399,7 +38399,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC30",
+                "chip": "NPU-0-BC30",
                 "lane": 2
               },
               "z": {
@@ -38419,7 +38419,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC30",
+                      "chip": "NPU-0-BC30",
                       "lane": 2
                     }
                   }
@@ -38439,7 +38439,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC30",
+                      "chip": "NPU-0-BC30",
                       "lane": 2
                     }
                   }
@@ -38464,7 +38464,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC30",
+                "chip": "NPU-0-BC30",
                 "lane": 3
               },
               "z": {
@@ -38484,7 +38484,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC30",
+                      "chip": "NPU-0-BC30",
                       "lane": 3
                     }
                   }
@@ -38504,7 +38504,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC30",
+                      "chip": "NPU-0-BC30",
                       "lane": 3
                     }
                   }
@@ -38529,7 +38529,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC31",
+                "chip": "NPU-0-BC31",
                 "lane": 0
               },
               "z": {
@@ -38549,7 +38549,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC31",
+                      "chip": "NPU-0-BC31",
                       "lane": 0
                     }
                   }
@@ -38569,7 +38569,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC31",
+                      "chip": "NPU-0-BC31",
                       "lane": 0
                     }
                   }
@@ -38594,7 +38594,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC31",
+                "chip": "NPU-0-BC31",
                 "lane": 1
               },
               "z": {
@@ -38614,7 +38614,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC31",
+                      "chip": "NPU-0-BC31",
                       "lane": 1
                     }
                   }
@@ -38634,7 +38634,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC31",
+                      "chip": "NPU-0-BC31",
                       "lane": 1
                     }
                   }
@@ -38659,7 +38659,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC31",
+                "chip": "NPU-0-BC31",
                 "lane": 2
               },
               "z": {
@@ -38679,7 +38679,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC31",
+                      "chip": "NPU-0-BC31",
                       "lane": 2
                     }
                   }
@@ -38699,7 +38699,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC31",
+                      "chip": "NPU-0-BC31",
                       "lane": 2
                     }
                   }
@@ -38724,7 +38724,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC31",
+                "chip": "NPU-0-BC31",
                 "lane": 3
               },
               "z": {
@@ -38744,7 +38744,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC31",
+                      "chip": "NPU-0-BC31",
                       "lane": 3
                     }
                   }
@@ -38764,7 +38764,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC31",
+                      "chip": "NPU-0-BC31",
                       "lane": 3
                     }
                   }
@@ -38789,7 +38789,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC32",
+                "chip": "NPU-0-BC32",
                 "lane": 0
               },
               "z": {
@@ -38809,7 +38809,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC32",
+                      "chip": "NPU-0-BC32",
                       "lane": 0
                     }
                   }
@@ -38829,7 +38829,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC32",
+                      "chip": "NPU-0-BC32",
                       "lane": 0
                     }
                   }
@@ -38854,7 +38854,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC32",
+                "chip": "NPU-0-BC32",
                 "lane": 1
               },
               "z": {
@@ -38874,7 +38874,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC32",
+                      "chip": "NPU-0-BC32",
                       "lane": 1
                     }
                   }
@@ -38894,7 +38894,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC32",
+                      "chip": "NPU-0-BC32",
                       "lane": 1
                     }
                   }
@@ -38919,7 +38919,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC32",
+                "chip": "NPU-0-BC32",
                 "lane": 2
               },
               "z": {
@@ -38939,7 +38939,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC32",
+                      "chip": "NPU-0-BC32",
                       "lane": 2
                     }
                   }
@@ -38959,7 +38959,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC32",
+                      "chip": "NPU-0-BC32",
                       "lane": 2
                     }
                   }
@@ -38984,7 +38984,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC32",
+                "chip": "NPU-0-BC32",
                 "lane": 3
               },
               "z": {
@@ -39004,7 +39004,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC32",
+                      "chip": "NPU-0-BC32",
                       "lane": 3
                     }
                   }
@@ -39024,7 +39024,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC32",
+                      "chip": "NPU-0-BC32",
                       "lane": 3
                     }
                   }
@@ -39049,7 +39049,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC33",
+                "chip": "NPU-0-BC33",
                 "lane": 0
               },
               "z": {
@@ -39069,7 +39069,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC33",
+                      "chip": "NPU-0-BC33",
                       "lane": 0
                     }
                   }
@@ -39089,7 +39089,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC33",
+                      "chip": "NPU-0-BC33",
                       "lane": 0
                     }
                   }
@@ -39114,7 +39114,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC33",
+                "chip": "NPU-0-BC33",
                 "lane": 1
               },
               "z": {
@@ -39134,7 +39134,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC33",
+                      "chip": "NPU-0-BC33",
                       "lane": 1
                     }
                   }
@@ -39154,7 +39154,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC33",
+                      "chip": "NPU-0-BC33",
                       "lane": 1
                     }
                   }
@@ -39179,7 +39179,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC33",
+                "chip": "NPU-0-BC33",
                 "lane": 2
               },
               "z": {
@@ -39199,7 +39199,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC33",
+                      "chip": "NPU-0-BC33",
                       "lane": 2
                     }
                   }
@@ -39219,7 +39219,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC33",
+                      "chip": "NPU-0-BC33",
                       "lane": 2
                     }
                   }
@@ -39244,7 +39244,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC33",
+                "chip": "NPU-0-BC33",
                 "lane": 3
               },
               "z": {
@@ -39264,7 +39264,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC33",
+                      "chip": "NPU-0-BC33",
                       "lane": 3
                     }
                   }
@@ -39284,7 +39284,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC33",
+                      "chip": "NPU-0-BC33",
                       "lane": 3
                     }
                   }
@@ -39309,7 +39309,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC34",
+                "chip": "NPU-0-BC34",
                 "lane": 0
               },
               "z": {
@@ -39329,7 +39329,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC34",
+                      "chip": "NPU-0-BC34",
                       "lane": 0
                     }
                   }
@@ -39349,7 +39349,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC34",
+                      "chip": "NPU-0-BC34",
                       "lane": 0
                     }
                   }
@@ -39374,7 +39374,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC34",
+                "chip": "NPU-0-BC34",
                 "lane": 1
               },
               "z": {
@@ -39394,7 +39394,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC34",
+                      "chip": "NPU-0-BC34",
                       "lane": 1
                     }
                   }
@@ -39414,7 +39414,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC34",
+                      "chip": "NPU-0-BC34",
                       "lane": 1
                     }
                   }
@@ -39439,7 +39439,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC34",
+                "chip": "NPU-0-BC34",
                 "lane": 2
               },
               "z": {
@@ -39459,7 +39459,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC34",
+                      "chip": "NPU-0-BC34",
                       "lane": 2
                     }
                   }
@@ -39479,7 +39479,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC34",
+                      "chip": "NPU-0-BC34",
                       "lane": 2
                     }
                   }
@@ -39504,7 +39504,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC34",
+                "chip": "NPU-0-BC34",
                 "lane": 3
               },
               "z": {
@@ -39524,7 +39524,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC34",
+                      "chip": "NPU-0-BC34",
                       "lane": 3
                     }
                   }
@@ -39544,7 +39544,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC34",
+                      "chip": "NPU-0-BC34",
                       "lane": 3
                     }
                   }
@@ -39569,7 +39569,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC35",
+                "chip": "NPU-0-BC35",
                 "lane": 0
               },
               "z": {
@@ -39589,7 +39589,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC35",
+                      "chip": "NPU-0-BC35",
                       "lane": 0
                     }
                   }
@@ -39609,7 +39609,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC35",
+                      "chip": "NPU-0-BC35",
                       "lane": 0
                     }
                   }
@@ -39634,7 +39634,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC35",
+                "chip": "NPU-0-BC35",
                 "lane": 1
               },
               "z": {
@@ -39654,7 +39654,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC35",
+                      "chip": "NPU-0-BC35",
                       "lane": 1
                     }
                   }
@@ -39674,7 +39674,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC35",
+                      "chip": "NPU-0-BC35",
                       "lane": 1
                     }
                   }
@@ -39699,7 +39699,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC35",
+                "chip": "NPU-0-BC35",
                 "lane": 2
               },
               "z": {
@@ -39719,7 +39719,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC35",
+                      "chip": "NPU-0-BC35",
                       "lane": 2
                     }
                   }
@@ -39739,7 +39739,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC35",
+                      "chip": "NPU-0-BC35",
                       "lane": 2
                     }
                   }
@@ -39764,7 +39764,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC35",
+                "chip": "NPU-0-BC35",
                 "lane": 3
               },
               "z": {
@@ -39784,7 +39784,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC35",
+                      "chip": "NPU-0-BC35",
                       "lane": 3
                     }
                   }
@@ -39804,7 +39804,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC35",
+                      "chip": "NPU-0-BC35",
                       "lane": 3
                     }
                   }
@@ -39829,7 +39829,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC36",
+                "chip": "NPU-0-BC36",
                 "lane": 0
               },
               "z": {
@@ -39849,7 +39849,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC36",
+                      "chip": "NPU-0-BC36",
                       "lane": 0
                     }
                   }
@@ -39869,7 +39869,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC36",
+                      "chip": "NPU-0-BC36",
                       "lane": 0
                     }
                   }
@@ -39894,7 +39894,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC36",
+                "chip": "NPU-0-BC36",
                 "lane": 1
               },
               "z": {
@@ -39914,7 +39914,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC36",
+                      "chip": "NPU-0-BC36",
                       "lane": 1
                     }
                   }
@@ -39934,7 +39934,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC36",
+                      "chip": "NPU-0-BC36",
                       "lane": 1
                     }
                   }
@@ -39959,7 +39959,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC36",
+                "chip": "NPU-0-BC36",
                 "lane": 2
               },
               "z": {
@@ -39979,7 +39979,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC36",
+                      "chip": "NPU-0-BC36",
                       "lane": 2
                     }
                   }
@@ -39999,7 +39999,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC36",
+                      "chip": "NPU-0-BC36",
                       "lane": 2
                     }
                   }
@@ -40024,7 +40024,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC36",
+                "chip": "NPU-0-BC36",
                 "lane": 3
               },
               "z": {
@@ -40044,7 +40044,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC36",
+                      "chip": "NPU-0-BC36",
                       "lane": 3
                     }
                   }
@@ -40064,7 +40064,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC36",
+                      "chip": "NPU-0-BC36",
                       "lane": 3
                     }
                   }
@@ -40089,7 +40089,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC37",
+                "chip": "NPU-0-BC37",
                 "lane": 0
               },
               "z": {
@@ -40109,7 +40109,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC37",
+                      "chip": "NPU-0-BC37",
                       "lane": 0
                     }
                   }
@@ -40129,7 +40129,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC37",
+                      "chip": "NPU-0-BC37",
                       "lane": 0
                     }
                   }
@@ -40154,7 +40154,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC37",
+                "chip": "NPU-0-BC37",
                 "lane": 1
               },
               "z": {
@@ -40174,7 +40174,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC37",
+                      "chip": "NPU-0-BC37",
                       "lane": 1
                     }
                   }
@@ -40194,7 +40194,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC37",
+                      "chip": "NPU-0-BC37",
                       "lane": 1
                     }
                   }
@@ -40219,7 +40219,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC37",
+                "chip": "NPU-0-BC37",
                 "lane": 2
               },
               "z": {
@@ -40239,7 +40239,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC37",
+                      "chip": "NPU-0-BC37",
                       "lane": 2
                     }
                   }
@@ -40259,7 +40259,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC37",
+                      "chip": "NPU-0-BC37",
                       "lane": 2
                     }
                   }
@@ -40284,7 +40284,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC37",
+                "chip": "NPU-0-BC37",
                 "lane": 3
               },
               "z": {
@@ -40304,7 +40304,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC37",
+                      "chip": "NPU-0-BC37",
                       "lane": 3
                     }
                   }
@@ -40324,7 +40324,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC37",
+                      "chip": "NPU-0-BC37",
                       "lane": 3
                     }
                   }
@@ -40349,7 +40349,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC38",
+                "chip": "NPU-0-BC38",
                 "lane": 0
               },
               "z": {
@@ -40369,7 +40369,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC38",
+                      "chip": "NPU-0-BC38",
                       "lane": 0
                     }
                   }
@@ -40389,7 +40389,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC38",
+                      "chip": "NPU-0-BC38",
                       "lane": 0
                     }
                   }
@@ -40414,7 +40414,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC38",
+                "chip": "NPU-0-BC38",
                 "lane": 1
               },
               "z": {
@@ -40434,7 +40434,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC38",
+                      "chip": "NPU-0-BC38",
                       "lane": 1
                     }
                   }
@@ -40454,7 +40454,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC38",
+                      "chip": "NPU-0-BC38",
                       "lane": 1
                     }
                   }
@@ -40479,7 +40479,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC38",
+                "chip": "NPU-0-BC38",
                 "lane": 2
               },
               "z": {
@@ -40499,7 +40499,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC38",
+                      "chip": "NPU-0-BC38",
                       "lane": 2
                     }
                   }
@@ -40519,7 +40519,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC38",
+                      "chip": "NPU-0-BC38",
                       "lane": 2
                     }
                   }
@@ -40544,7 +40544,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC38",
+                "chip": "NPU-0-BC38",
                 "lane": 3
               },
               "z": {
@@ -40564,7 +40564,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC38",
+                      "chip": "NPU-0-BC38",
                       "lane": 3
                     }
                   }
@@ -40584,7 +40584,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC38",
+                      "chip": "NPU-0-BC38",
                       "lane": 3
                     }
                   }
@@ -40609,7 +40609,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC39",
+                "chip": "NPU-0-BC39",
                 "lane": 0
               },
               "z": {
@@ -40629,7 +40629,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC39",
+                      "chip": "NPU-0-BC39",
                       "lane": 0
                     }
                   }
@@ -40649,7 +40649,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC39",
+                      "chip": "NPU-0-BC39",
                       "lane": 0
                     }
                   }
@@ -40674,7 +40674,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC39",
+                "chip": "NPU-0-BC39",
                 "lane": 1
               },
               "z": {
@@ -40694,7 +40694,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC39",
+                      "chip": "NPU-0-BC39",
                       "lane": 1
                     }
                   }
@@ -40714,7 +40714,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC39",
+                      "chip": "NPU-0-BC39",
                       "lane": 1
                     }
                   }
@@ -40739,7 +40739,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC39",
+                "chip": "NPU-0-BC39",
                 "lane": 2
               },
               "z": {
@@ -40759,7 +40759,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC39",
+                      "chip": "NPU-0-BC39",
                       "lane": 2
                     }
                   }
@@ -40779,7 +40779,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC39",
+                      "chip": "NPU-0-BC39",
                       "lane": 2
                     }
                   }
@@ -40804,7 +40804,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC39",
+                "chip": "NPU-0-BC39",
                 "lane": 3
               },
               "z": {
@@ -40824,7 +40824,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC39",
+                      "chip": "NPU-0-BC39",
                       "lane": 3
                     }
                   }
@@ -40844,7 +40844,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC39",
+                      "chip": "NPU-0-BC39",
                       "lane": 3
                     }
                   }
@@ -40869,7 +40869,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC40",
+                "chip": "NPU-0-BC40",
                 "lane": 0
               },
               "z": {
@@ -40889,7 +40889,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC40",
+                      "chip": "NPU-0-BC40",
                       "lane": 0
                     }
                   }
@@ -40909,7 +40909,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC40",
+                      "chip": "NPU-0-BC40",
                       "lane": 0
                     }
                   }
@@ -40934,7 +40934,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC40",
+                "chip": "NPU-0-BC40",
                 "lane": 1
               },
               "z": {
@@ -40954,7 +40954,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC40",
+                      "chip": "NPU-0-BC40",
                       "lane": 1
                     }
                   }
@@ -40974,7 +40974,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC40",
+                      "chip": "NPU-0-BC40",
                       "lane": 1
                     }
                   }
@@ -40999,7 +40999,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC40",
+                "chip": "NPU-0-BC40",
                 "lane": 2
               },
               "z": {
@@ -41019,7 +41019,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC40",
+                      "chip": "NPU-0-BC40",
                       "lane": 2
                     }
                   }
@@ -41039,7 +41039,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC40",
+                      "chip": "NPU-0-BC40",
                       "lane": 2
                     }
                   }
@@ -41064,7 +41064,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC40",
+                "chip": "NPU-0-BC40",
                 "lane": 3
               },
               "z": {
@@ -41084,7 +41084,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC40",
+                      "chip": "NPU-0-BC40",
                       "lane": 3
                     }
                   }
@@ -41104,7 +41104,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC40",
+                      "chip": "NPU-0-BC40",
                       "lane": 3
                     }
                   }
@@ -41129,7 +41129,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC41",
+                "chip": "NPU-0-BC41",
                 "lane": 0
               },
               "z": {
@@ -41149,7 +41149,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC41",
+                      "chip": "NPU-0-BC41",
                       "lane": 0
                     }
                   }
@@ -41169,7 +41169,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC41",
+                      "chip": "NPU-0-BC41",
                       "lane": 0
                     }
                   }
@@ -41194,7 +41194,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC41",
+                "chip": "NPU-0-BC41",
                 "lane": 1
               },
               "z": {
@@ -41214,7 +41214,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC41",
+                      "chip": "NPU-0-BC41",
                       "lane": 1
                     }
                   }
@@ -41234,7 +41234,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC41",
+                      "chip": "NPU-0-BC41",
                       "lane": 1
                     }
                   }
@@ -41259,7 +41259,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC41",
+                "chip": "NPU-0-BC41",
                 "lane": 2
               },
               "z": {
@@ -41279,7 +41279,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC41",
+                      "chip": "NPU-0-BC41",
                       "lane": 2
                     }
                   }
@@ -41299,7 +41299,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC41",
+                      "chip": "NPU-0-BC41",
                       "lane": 2
                     }
                   }
@@ -41324,7 +41324,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC41",
+                "chip": "NPU-0-BC41",
                 "lane": 3
               },
               "z": {
@@ -41344,7 +41344,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC41",
+                      "chip": "NPU-0-BC41",
                       "lane": 3
                     }
                   }
@@ -41364,7 +41364,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC41",
+                      "chip": "NPU-0-BC41",
                       "lane": 3
                     }
                   }
@@ -41389,7 +41389,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC42",
+                "chip": "NPU-0-BC42",
                 "lane": 0
               },
               "z": {
@@ -41409,7 +41409,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC42",
+                      "chip": "NPU-0-BC42",
                       "lane": 0
                     }
                   }
@@ -41429,7 +41429,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC42",
+                      "chip": "NPU-0-BC42",
                       "lane": 0
                     }
                   }
@@ -41454,7 +41454,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC42",
+                "chip": "NPU-0-BC42",
                 "lane": 1
               },
               "z": {
@@ -41474,7 +41474,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC42",
+                      "chip": "NPU-0-BC42",
                       "lane": 1
                     }
                   }
@@ -41494,7 +41494,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC42",
+                      "chip": "NPU-0-BC42",
                       "lane": 1
                     }
                   }
@@ -41519,7 +41519,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC42",
+                "chip": "NPU-0-BC42",
                 "lane": 2
               },
               "z": {
@@ -41539,7 +41539,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC42",
+                      "chip": "NPU-0-BC42",
                       "lane": 2
                     }
                   }
@@ -41559,7 +41559,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC42",
+                      "chip": "NPU-0-BC42",
                       "lane": 2
                     }
                   }
@@ -41584,7 +41584,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC42",
+                "chip": "NPU-0-BC42",
                 "lane": 3
               },
               "z": {
@@ -41604,7 +41604,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC42",
+                      "chip": "NPU-0-BC42",
                       "lane": 3
                     }
                   }
@@ -41624,7 +41624,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC42",
+                      "chip": "NPU-0-BC42",
                       "lane": 3
                     }
                   }
@@ -41649,7 +41649,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC43",
+                "chip": "NPU-0-BC43",
                 "lane": 0
               },
               "z": {
@@ -41669,7 +41669,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC43",
+                      "chip": "NPU-0-BC43",
                       "lane": 0
                     }
                   }
@@ -41689,7 +41689,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC43",
+                      "chip": "NPU-0-BC43",
                       "lane": 0
                     }
                   }
@@ -41714,7 +41714,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC43",
+                "chip": "NPU-0-BC43",
                 "lane": 1
               },
               "z": {
@@ -41734,7 +41734,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC43",
+                      "chip": "NPU-0-BC43",
                       "lane": 1
                     }
                   }
@@ -41754,7 +41754,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC43",
+                      "chip": "NPU-0-BC43",
                       "lane": 1
                     }
                   }
@@ -41779,7 +41779,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC43",
+                "chip": "NPU-0-BC43",
                 "lane": 2
               },
               "z": {
@@ -41799,7 +41799,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC43",
+                      "chip": "NPU-0-BC43",
                       "lane": 2
                     }
                   }
@@ -41819,7 +41819,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC43",
+                      "chip": "NPU-0-BC43",
                       "lane": 2
                     }
                   }
@@ -41844,7 +41844,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC43",
+                "chip": "NPU-0-BC43",
                 "lane": 3
               },
               "z": {
@@ -41864,7 +41864,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC43",
+                      "chip": "NPU-0-BC43",
                       "lane": 3
                     }
                   }
@@ -41884,7 +41884,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC43",
+                      "chip": "NPU-0-BC43",
                       "lane": 3
                     }
                   }
@@ -41909,7 +41909,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC44",
+                "chip": "NPU-0-BC44",
                 "lane": 0
               },
               "z": {
@@ -41929,7 +41929,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC44",
+                      "chip": "NPU-0-BC44",
                       "lane": 0
                     }
                   }
@@ -41949,7 +41949,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC44",
+                      "chip": "NPU-0-BC44",
                       "lane": 0
                     }
                   }
@@ -41974,7 +41974,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC44",
+                "chip": "NPU-0-BC44",
                 "lane": 1
               },
               "z": {
@@ -41994,7 +41994,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC44",
+                      "chip": "NPU-0-BC44",
                       "lane": 1
                     }
                   }
@@ -42014,7 +42014,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC44",
+                      "chip": "NPU-0-BC44",
                       "lane": 1
                     }
                   }
@@ -42039,7 +42039,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC44",
+                "chip": "NPU-0-BC44",
                 "lane": 2
               },
               "z": {
@@ -42059,7 +42059,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC44",
+                      "chip": "NPU-0-BC44",
                       "lane": 2
                     }
                   }
@@ -42079,7 +42079,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC44",
+                      "chip": "NPU-0-BC44",
                       "lane": 2
                     }
                   }
@@ -42104,7 +42104,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC44",
+                "chip": "NPU-0-BC44",
                 "lane": 3
               },
               "z": {
@@ -42124,7 +42124,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC44",
+                      "chip": "NPU-0-BC44",
                       "lane": 3
                     }
                   }
@@ -42144,7 +42144,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC44",
+                      "chip": "NPU-0-BC44",
                       "lane": 3
                     }
                   }
@@ -42169,7 +42169,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC45",
+                "chip": "NPU-0-BC45",
                 "lane": 0
               },
               "z": {
@@ -42189,7 +42189,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC45",
+                      "chip": "NPU-0-BC45",
                       "lane": 0
                     }
                   }
@@ -42209,7 +42209,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC45",
+                      "chip": "NPU-0-BC45",
                       "lane": 0
                     }
                   }
@@ -42234,7 +42234,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC45",
+                "chip": "NPU-0-BC45",
                 "lane": 1
               },
               "z": {
@@ -42254,7 +42254,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC45",
+                      "chip": "NPU-0-BC45",
                       "lane": 1
                     }
                   }
@@ -42274,7 +42274,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC45",
+                      "chip": "NPU-0-BC45",
                       "lane": 1
                     }
                   }
@@ -42299,7 +42299,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC45",
+                "chip": "NPU-0-BC45",
                 "lane": 2
               },
               "z": {
@@ -42319,7 +42319,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC45",
+                      "chip": "NPU-0-BC45",
                       "lane": 2
                     }
                   }
@@ -42339,7 +42339,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC45",
+                      "chip": "NPU-0-BC45",
                       "lane": 2
                     }
                   }
@@ -42364,7 +42364,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC45",
+                "chip": "NPU-0-BC45",
                 "lane": 3
               },
               "z": {
@@ -42384,7 +42384,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC45",
+                      "chip": "NPU-0-BC45",
                       "lane": 3
                     }
                   }
@@ -42404,7 +42404,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC45",
+                      "chip": "NPU-0-BC45",
                       "lane": 3
                     }
                   }
@@ -42429,7 +42429,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC46",
+                "chip": "NPU-0-BC46",
                 "lane": 0
               },
               "z": {
@@ -42449,7 +42449,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC46",
+                      "chip": "NPU-0-BC46",
                       "lane": 0
                     }
                   }
@@ -42469,7 +42469,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC46",
+                      "chip": "NPU-0-BC46",
                       "lane": 0
                     }
                   }
@@ -42494,7 +42494,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC46",
+                "chip": "NPU-0-BC46",
                 "lane": 1
               },
               "z": {
@@ -42514,7 +42514,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC46",
+                      "chip": "NPU-0-BC46",
                       "lane": 1
                     }
                   }
@@ -42534,7 +42534,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC46",
+                      "chip": "NPU-0-BC46",
                       "lane": 1
                     }
                   }
@@ -42559,7 +42559,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC46",
+                "chip": "NPU-0-BC46",
                 "lane": 2
               },
               "z": {
@@ -42579,7 +42579,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC46",
+                      "chip": "NPU-0-BC46",
                       "lane": 2
                     }
                   }
@@ -42599,7 +42599,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC46",
+                      "chip": "NPU-0-BC46",
                       "lane": 2
                     }
                   }
@@ -42624,7 +42624,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC46",
+                "chip": "NPU-0-BC46",
                 "lane": 3
               },
               "z": {
@@ -42644,7 +42644,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC46",
+                      "chip": "NPU-0-BC46",
                       "lane": 3
                     }
                   }
@@ -42664,7 +42664,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC46",
+                      "chip": "NPU-0-BC46",
                       "lane": 3
                     }
                   }
@@ -42689,7 +42689,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC47",
+                "chip": "NPU-0-BC47",
                 "lane": 0
               },
               "z": {
@@ -42709,7 +42709,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC47",
+                      "chip": "NPU-0-BC47",
                       "lane": 0
                     }
                   }
@@ -42729,7 +42729,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC47",
+                      "chip": "NPU-0-BC47",
                       "lane": 0
                     }
                   }
@@ -42754,7 +42754,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC47",
+                "chip": "NPU-0-BC47",
                 "lane": 1
               },
               "z": {
@@ -42774,7 +42774,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC47",
+                      "chip": "NPU-0-BC47",
                       "lane": 1
                     }
                   }
@@ -42794,7 +42794,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC47",
+                      "chip": "NPU-0-BC47",
                       "lane": 1
                     }
                   }
@@ -42819,7 +42819,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC47",
+                "chip": "NPU-0-BC47",
                 "lane": 2
               },
               "z": {
@@ -42839,7 +42839,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC47",
+                      "chip": "NPU-0-BC47",
                       "lane": 2
                     }
                   }
@@ -42859,7 +42859,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC47",
+                      "chip": "NPU-0-BC47",
                       "lane": 2
                     }
                   }
@@ -42884,7 +42884,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
           "pins": [
             {
               "a": {
-                "chip": "BC47",
+                "chip": "NPU-0-BC47",
                 "lane": 3
               },
               "z": {
@@ -42904,7 +42904,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC47",
+                      "chip": "NPU-0-BC47",
                       "lane": 3
                     }
                   }
@@ -42924,7 +42924,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC47",
+                      "chip": "NPU-0-BC47",
                       "lane": 3
                     }
                   }
@@ -42944,334 +42944,334 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
   },
   "chips": [
     {
-      "name": "BC0",
-      "type": 1,
-      "physicalID": 0
-    },
-    {
-      "name": "BC1",
-      "type": 1,
-      "physicalID": 1
-    },
-    {
-      "name": "BC2",
-      "type": 1,
-      "physicalID": 2
-    },
-    {
-      "name": "BC3",
-      "type": 1,
-      "physicalID": 3
-    },
-    {
-      "name": "BC4",
-      "type": 1,
-      "physicalID": 4
-    },
-    {
-      "name": "BC5",
+      "name": "NPU-0-BC5",
       "type": 1,
       "physicalID": 5
     },
     {
-      "name": "BC6",
-      "type": 1,
-      "physicalID": 6
-    },
-    {
-      "name": "BC7",
-      "type": 1,
-      "physicalID": 7
-    },
-    {
-      "name": "BC8",
-      "type": 1,
-      "physicalID": 8
-    },
-    {
-      "name": "BC9",
-      "type": 1,
-      "physicalID": 9
-    },
-    {
-      "name": "BC10",
-      "type": 1,
-      "physicalID": 10
-    },
-    {
-      "name": "BC11",
-      "type": 1,
-      "physicalID": 11
-    },
-    {
-      "name": "BC12",
-      "type": 1,
-      "physicalID": 12
-    },
-    {
-      "name": "BC13",
-      "type": 1,
-      "physicalID": 13
-    },
-    {
-      "name": "BC14",
+      "name": "NPU-0-BC14",
       "type": 1,
       "physicalID": 14
     },
     {
-      "name": "BC15",
-      "type": 1,
-      "physicalID": 15
-    },
-    {
-      "name": "BC16",
-      "type": 1,
-      "physicalID": 16
-    },
-    {
-      "name": "BC17",
-      "type": 1,
-      "physicalID": 17
-    },
-    {
-      "name": "BC18",
-      "type": 1,
-      "physicalID": 18
-    },
-    {
-      "name": "BC19",
-      "type": 1,
-      "physicalID": 19
-    },
-    {
-      "name": "BC20",
-      "type": 1,
-      "physicalID": 20
-    },
-    {
-      "name": "BC21",
-      "type": 1,
-      "physicalID": 21
-    },
-    {
-      "name": "BC22",
-      "type": 1,
-      "physicalID": 22
-    },
-    {
-      "name": "BC23",
+      "name": "NPU-0-BC23",
       "type": 1,
       "physicalID": 23
     },
     {
-      "name": "BC24",
-      "type": 1,
-      "physicalID": 24
-    },
-    {
-      "name": "BC25",
-      "type": 1,
-      "physicalID": 25
-    },
-    {
-      "name": "BC26",
-      "type": 1,
-      "physicalID": 26
-    },
-    {
-      "name": "BC27",
-      "type": 1,
-      "physicalID": 27
-    },
-    {
-      "name": "BC28",
-      "type": 1,
-      "physicalID": 28
-    },
-    {
-      "name": "BC29",
-      "type": 1,
-      "physicalID": 29
-    },
-    {
-      "name": "BC30",
-      "type": 1,
-      "physicalID": 30
-    },
-    {
-      "name": "BC31",
-      "type": 1,
-      "physicalID": 31
-    },
-    {
-      "name": "BC32",
-      "type": 1,
-      "physicalID": 32
-    },
-    {
-      "name": "BC33",
-      "type": 1,
-      "physicalID": 33
-    },
-    {
-      "name": "BC34",
-      "type": 1,
-      "physicalID": 34
-    },
-    {
-      "name": "BC35",
-      "type": 1,
-      "physicalID": 35
-    },
-    {
-      "name": "BC36",
-      "type": 1,
-      "physicalID": 36
-    },
-    {
-      "name": "BC37",
-      "type": 1,
-      "physicalID": 37
-    },
-    {
-      "name": "BC38",
-      "type": 1,
-      "physicalID": 38
-    },
-    {
-      "name": "BC39",
-      "type": 1,
-      "physicalID": 39
-    },
-    {
-      "name": "BC40",
-      "type": 1,
-      "physicalID": 40
-    },
-    {
-      "name": "BC41",
-      "type": 1,
-      "physicalID": 41
-    },
-    {
-      "name": "BC42",
-      "type": 1,
-      "physicalID": 42
-    },
-    {
-      "name": "BC43",
-      "type": 1,
-      "physicalID": 43
-    },
-    {
-      "name": "BC44",
+      "name": "NPU-0-BC44",
       "type": 1,
       "physicalID": 44
     },
     {
-      "name": "BC45",
+      "name": "NPU-0-BC7",
       "type": 1,
-      "physicalID": 45
+      "physicalID": 7
     },
     {
-      "name": "BC46",
-      "type": 1,
-      "physicalID": 46
-    },
-    {
-      "name": "BC47",
-      "type": 1,
-      "physicalID": 47
-    },
-    {
-      "name": "BC64",
-      "type": 1,
-      "physicalID": 4
-    },
-    {
-      "name": "BC65",
-      "type": 1,
-      "physicalID": 2
-    },
-    {
-      "name": "BC66",
-      "type": 1,
-      "physicalID": 0
-    },
-    {
-      "name": "BC49",
-      "type": 1,
-      "physicalID": 20
-    },
-    {
-      "name": "BC50",
-      "type": 1,
-      "physicalID": 18
-    },
-    {
-      "name": "BC51",
-      "type": 1,
-      "physicalID": 22
-    },
-    {
-      "name": "BC52",
-      "type": 1,
-      "physicalID": 24
-    },
-    {
-      "name": "BC53",
-      "type": 1,
-      "physicalID": 26
-    },
-    {
-      "name": "BC54",
-      "type": 1,
-      "physicalID": 28
-    },
-    {
-      "name": "BC55",
-      "type": 1,
-      "physicalID": 30
-    },
-    {
-      "name": "BC56",
-      "type": 1,
-      "physicalID": 32
-    },
-    {
-      "name": "BC57",
-      "type": 1,
-      "physicalID": 34
-    },
-    {
-      "name": "BC58",
+      "name": "NPU-0-BC16",
       "type": 1,
       "physicalID": 16
     },
     {
-      "name": "BC59",
+      "name": "NPU-0-BC37",
       "type": 1,
-      "physicalID": 14
+      "physicalID": 37
     },
     {
-      "name": "BC60",
+      "name": "NPU-0-BC46",
       "type": 1,
-      "physicalID": 12
+      "physicalID": 46
     },
     {
-      "name": "BC61",
+      "name": "NPU-0-BC0",
       "type": 1,
-      "physicalID": 10
+      "physicalID": 0
     },
     {
-      "name": "BC62",
+      "name": "NPU-0-BC9",
+      "type": 1,
+      "physicalID": 9
+    },
+    {
+      "name": "NPU-0-BC30",
+      "type": 1,
+      "physicalID": 30
+    },
+    {
+      "name": "NPU-0-BC39",
+      "type": 1,
+      "physicalID": 39
+    },
+    {
+      "name": "NPU-0-BC2",
+      "type": 1,
+      "physicalID": 2
+    },
+    {
+      "name": "NPU-0-BC32",
+      "type": 1,
+      "physicalID": 32
+    },
+    {
+      "name": "NPU-0-BC41",
+      "type": 1,
+      "physicalID": 41
+    },
+    {
+      "name": "NPU-0-BC25",
+      "type": 1,
+      "physicalID": 25
+    },
+    {
+      "name": "NPU-0-BC34",
+      "type": 1,
+      "physicalID": 34
+    },
+    {
+      "name": "NPU-0-BC43",
+      "type": 1,
+      "physicalID": 43
+    },
+    {
+      "name": "NPU-0-BC18",
+      "type": 1,
+      "physicalID": 18
+    },
+    {
+      "name": "NPU-0-BC27",
+      "type": 1,
+      "physicalID": 27
+    },
+    {
+      "name": "NPU-0-BC36",
+      "type": 1,
+      "physicalID": 36
+    },
+    {
+      "name": "NPU-0-BC45",
+      "type": 1,
+      "physicalID": 45
+    },
+    {
+      "name": "NPU-0-BC11",
+      "type": 1,
+      "physicalID": 11
+    },
+    {
+      "name": "NPU-0-BC20",
+      "type": 1,
+      "physicalID": 20
+    },
+    {
+      "name": "NPU-0-BC29",
+      "type": 1,
+      "physicalID": 29
+    },
+    {
+      "name": "NPU-0-BC38",
+      "type": 1,
+      "physicalID": 38
+    },
+    {
+      "name": "NPU-0-BC47",
+      "type": 1,
+      "physicalID": 47
+    },
+    {
+      "name": "NPU-0-BC4",
+      "type": 1,
+      "physicalID": 4
+    },
+    {
+      "name": "NPU-0-BC13",
+      "type": 1,
+      "physicalID": 13
+    },
+    {
+      "name": "NPU-0-BC22",
+      "type": 1,
+      "physicalID": 22
+    },
+    {
+      "name": "NPU-0-BC31",
+      "type": 1,
+      "physicalID": 31
+    },
+    {
+      "name": "NPU-0-BC40",
+      "type": 1,
+      "physicalID": 40
+    },
+    {
+      "name": "NPU-0-BC6",
+      "type": 1,
+      "physicalID": 6
+    },
+    {
+      "name": "NPU-0-BC15",
+      "type": 1,
+      "physicalID": 15
+    },
+    {
+      "name": "NPU-0-BC24",
+      "type": 1,
+      "physicalID": 24
+    },
+    {
+      "name": "NPU-0-BC33",
+      "type": 1,
+      "physicalID": 33
+    },
+    {
+      "name": "NPU-0-BC42",
+      "type": 1,
+      "physicalID": 42
+    },
+    {
+      "name": "NPU-0-BC8",
       "type": 1,
       "physicalID": 8
     },
     {
-      "name": "BC63",
+      "name": "NPU-0-BC17",
+      "type": 1,
+      "physicalID": 17
+    },
+    {
+      "name": "NPU-0-BC26",
+      "type": 1,
+      "physicalID": 26
+    },
+    {
+      "name": "NPU-0-BC35",
+      "type": 1,
+      "physicalID": 35
+    },
+    {
+      "name": "NPU-0-BC1",
+      "type": 1,
+      "physicalID": 1
+    },
+    {
+      "name": "NPU-0-BC10",
+      "type": 1,
+      "physicalID": 10
+    },
+    {
+      "name": "NPU-0-BC19",
+      "type": 1,
+      "physicalID": 19
+    },
+    {
+      "name": "NPU-0-BC28",
+      "type": 1,
+      "physicalID": 28
+    },
+    {
+      "name": "NPU-0-BC3",
+      "type": 1,
+      "physicalID": 3
+    },
+    {
+      "name": "NPU-0-BC12",
+      "type": 1,
+      "physicalID": 12
+    },
+    {
+      "name": "NPU-0-BC21",
+      "type": 1,
+      "physicalID": 21
+    },
+    {
+      "name": "NPU-0-BC54",
+      "type": 1,
+      "physicalID": 28
+    },
+    {
+      "name": "NPU-0-BC51",
+      "type": 1,
+      "physicalID": 22
+    },
+    {
+      "name": "NPU-0-BC57",
+      "type": 1,
+      "physicalID": 34
+    },
+    {
+      "name": "NPU-0-BC60",
+      "type": 1,
+      "physicalID": 12
+    },
+    {
+      "name": "NPU-0-BC66",
+      "type": 1,
+      "physicalID": 0
+    },
+    {
+      "name": "NPU-0-BC63",
       "type": 1,
       "physicalID": 6
+    },
+    {
+      "name": "NPU-0-BC50",
+      "type": 1,
+      "physicalID": 18
+    },
+    {
+      "name": "NPU-0-BC53",
+      "type": 1,
+      "physicalID": 26
+    },
+    {
+      "name": "NPU-0-BC59",
+      "type": 1,
+      "physicalID": 14
+    },
+    {
+      "name": "NPU-0-BC56",
+      "type": 1,
+      "physicalID": 32
+    },
+    {
+      "name": "NPU-0-BC62",
+      "type": 1,
+      "physicalID": 8
+    },
+    {
+      "name": "NPU-0-BC65",
+      "type": 1,
+      "physicalID": 2
+    },
+    {
+      "name": "NPU-0-BC52",
+      "type": 1,
+      "physicalID": 24
+    },
+    {
+      "name": "NPU-0-BC49",
+      "type": 1,
+      "physicalID": 20
+    },
+    {
+      "name": "NPU-0-BC55",
+      "type": 1,
+      "physicalID": 30
+    },
+    {
+      "name": "NPU-0-BC61",
+      "type": 1,
+      "physicalID": 10
+    },
+    {
+      "name": "NPU-0-BC58",
+      "type": 1,
+      "physicalID": 16
+    },
+    {
+      "name": "NPU-0-BC64",
+      "type": 1,
+      "physicalID": 4
     },
     {
       "name": "fab1/1",
@@ -43564,7 +43564,7 @@ constexpr auto kJsonDsfScaleTestPlatformMappingStr = R"(
       "physicalID": 17
     },
     {
-      "name": "rcy1",
+      "name": "NPU-0-rcy1",
       "type": 1,
       "physicalID": 55
     }
