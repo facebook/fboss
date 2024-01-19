@@ -289,6 +289,39 @@ void accumulateGlobalCpuStats(
   }
 }
 
+void updatePhyFb303Stats(
+    const std::map<facebook::fboss::PortID, facebook::fboss::phy::PhyInfo>&
+        phyInfoMap) {
+  for (auto& [portID, phyInfo] : phyInfoMap) {
+    auto& phyStats = *phyInfo.stats();
+    auto& phyState = *phyInfo.state();
+    if (phyState.get_name().empty()) {
+      continue;
+    }
+    if (auto pcs = phyStats.line()->pcs()) {
+      if (auto fec = pcs->rsFec()) {
+        auto preFECBer = fec->get_preFECBer();
+        // Pre-FEC BER should be >= 0 and <= 1
+        if (preFECBer < 0 || preFECBer > 1) {
+          XLOG(ERR) << "Invalid preFECBer value: " << preFECBer
+                    << " for port: " << phyState.get_name();
+          continue;
+        }
+        // For a BER of 2.2e-10, we will just log the exponent -10 to FB303
+        // It should be safe to set the exponent to -32 when BER is 0. A BER of
+        // lower than e-32 would mean 0 errors at 10^32 MBPS for 1 second. This
+        // speed is infeasible at this point
+        int64_t preFECBerForFb303 = -32;
+        if (preFECBer != 0) {
+          preFECBerForFb303 = std::floor(std::log10(preFECBer));
+        }
+        facebook::fb303::fbData->setCounter(
+            "port." + phyState.get_name() + ".preFecBerLog", preFECBerForFb303);
+      }
+    }
+  }
+}
+
 } // anonymous namespace
 
 namespace facebook::fboss {
@@ -752,6 +785,7 @@ void SwSwitch::updateStats() {
   // Update Snapshots only if PhyInfo is valid
   if (!phyInfo.empty()) {
     phySnapshotManager_->updatePhyInfos(phyInfo);
+    updatePhyFb303Stats(phyInfo);
   }
 
   stats()->maxNumOfPhysicalHostsPerQueue(
