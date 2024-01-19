@@ -665,3 +665,9 @@ add_dependencies(qsfp_targets
   qsfp_hw_test
   wedge_qsfp_util
 )
+
+add_custom_target(fboss_agent_targets)
+add_dependencies(fboss_agent_targets
+  sai_test-fake
+  multi_switch_agent_hw_test
+)
