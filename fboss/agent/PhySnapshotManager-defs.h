@@ -82,6 +82,21 @@ PhySnapshotManager<intervalSeconds>::getPhyInfos(
 }
 
 template <size_t intervalSeconds>
+std::map<PortID, const phy::PhyInfo>
+PhySnapshotManager<intervalSeconds>::getAllPhyInfos() const {
+  std::map<PortID, const phy::PhyInfo> infoMap;
+  auto lockedSnapshotMap = snapshots_.rlock();
+  for (auto it = lockedSnapshotMap->begin(); it != lockedSnapshotMap->end();
+       ++it) {
+    auto snapshot = getPhyInfoLocked(lockedSnapshotMap, it->first);
+    if (snapshot) {
+      infoMap.emplace(it->first, *snapshot);
+    }
+  }
+  return infoMap;
+}
+
+template <size_t intervalSeconds>
 void PhySnapshotManager<intervalSeconds>::publishSnapshots(PortID port) {
   auto lockedSnapshotMap = snapshots_.wlock();
   if (auto it = lockedSnapshotMap->find(port); it != lockedSnapshotMap->end()) {

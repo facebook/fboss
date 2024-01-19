@@ -23,6 +23,7 @@ class PhySnapshotManager {
   std::optional<phy::PhyInfo> getPhyInfo(PortID portID) const;
   std::map<PortID, const phy::PhyInfo> getPhyInfos(
       const std::vector<PortID>& portIDs) const;
+  std::map<PortID, const phy::PhyInfo> getAllPhyInfos() const;
   void publishSnapshots(PortID portID);
 
  private:
