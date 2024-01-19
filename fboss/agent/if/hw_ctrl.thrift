@@ -30,4 +30,7 @@ service FbossHwCtrl {
 
   map<i64, ctrl.FabricEndpoint> getHwFabricReachability();
   map<string, ctrl.FabricEndpoint> getHwFabricConnectivity();
+  map<string, list<string>> getHwSwitchReachability(
+    1: list<string> switchNames,
+  ) throws (1: fboss.FbossBaseError error);
 }
