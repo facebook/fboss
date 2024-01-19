@@ -47,9 +47,15 @@ class CmdShowFabricReachability : public CmdHandler<
       switchNames.push_back(utils::removeFbDomains(queriedSwitchName));
     }
 
-    auto client =
-        utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
-    client->sync_getSwitchReachability(reachabilityMatrix, switchNames);
+    if (utils::isFbossFeatureEnabled(hostInfo.getName(), "multi_switch")) {
+      auto client =
+          utils::createClient<apache::thrift::Client<FbossHwCtrl>>(hostInfo);
+      client->sync_getHwSwitchReachability(reachabilityMatrix, switchNames);
+    } else {
+      auto client =
+          utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
+      client->sync_getSwitchReachability(reachabilityMatrix, switchNames);
+    }
     return createModel(reachabilityMatrix);
   }
 
