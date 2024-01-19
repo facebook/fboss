@@ -651,6 +651,10 @@ AgentStats SwSwitch::fillFsdbStats() {
     }
     hwStats.teFlowStats() = getTeFlowStats();
     hwStats.bufferPoolStats() = getBufferPoolStats();
+    auto phyInfo = phySnapshotManager_->getAllPhyInfos();
+    for (auto& [portId, phyInfoPerPort] : phyInfo) {
+      hwStats.phyInfo()->emplace(portId, phyInfoPerPort);
+    }
     updateHwSwitchStats(0 /*switchIndex*/, std::move(hwStats));
   }
   {
@@ -680,6 +684,10 @@ AgentStats SwSwitch::fillFsdbStats() {
           {switchIdx, std::move(*hwSwitchStats.bufferPoolStats())});
       agentStats.sysPortStatsMap()->insert(
           {switchIdx, std::move(*hwSwitchStats.sysPortStats())});
+      for (auto& [_, phyInfo] : *hwSwitchStats.phyInfo()) {
+        auto portName = phyInfo.state()->name().value();
+        agentStats.phyStats()->insert({portName, phyInfo.get_stats()});
+      }
     }
     lockedStats->clear();
   }
