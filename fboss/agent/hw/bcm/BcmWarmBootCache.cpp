@@ -510,6 +510,15 @@ void BcmWarmBootCache::populateUdfFromWarmBootState(
   }
 }
 
+void BcmWarmBootCache::populateL2LearningModeFromDumpedSwSwitchState() {
+  // populate l2LeraningMode_ from dumped switch state by default
+  const auto switchSettings =
+      util::getFirstNodeIf(getDumpedSwSwitchState().getSwitchSettings())
+      ? util::getFirstNodeIf(getDumpedSwSwitchState().getSwitchSettings())
+      : std::make_shared<SwitchSettings>();
+  l2LearningMode_ = switchSettings->getL2LearningMode();
+}
+
 void BcmWarmBootCache::populateFromWarmBootState(
     const folly::dynamic& warmBootState,
     std::optional<state::WarmbootState> thriftState) {
@@ -577,6 +586,8 @@ void BcmWarmBootCache::populateFromWarmBootState(
   populateTeFlowFromWarmBootState(hwWarmBootState);
 
   populateUdfFromWarmBootState(hwWarmBootState);
+
+  populateL2LearningModeFromDumpedSwSwitchState();
 }
 
 BcmWarmBootCache::EgressId2EgressCitr BcmWarmBootCache::findEgressFromHost(
@@ -2126,13 +2137,16 @@ void BcmWarmBootCache::populateSwitchSettings() {
   //   warmboot or not.
   //   TODO: Check with Broadcom on how to correctly identify the SDK/HW
   //   config for this that would work for all ASIC platforms.
-  if (flags == (BCM_PORT_LEARN_ARL | BCM_PORT_LEARN_FWD)) {
-    l2LearningMode_ = cfg::L2LearningMode::HARDWARE;
-  } else if (flags == (BCM_PORT_LEARN_ARL | BCM_PORT_LEARN_PENDING)) {
-    l2LearningMode_ = cfg::L2LearningMode::SOFTWARE;
-  } else {
-    throw FbossError(
-        "L2 Learning mode is neither SOFTWARE, nor HARDWARE, flags: ", flags);
+  if (hw_->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::PENDING_L2_ENTRY)) {
+    if (flags == (BCM_PORT_LEARN_ARL | BCM_PORT_LEARN_FWD)) {
+      l2LearningMode_ = cfg::L2LearningMode::HARDWARE;
+    } else if (flags == (BCM_PORT_LEARN_ARL | BCM_PORT_LEARN_PENDING)) {
+      l2LearningMode_ = cfg::L2LearningMode::SOFTWARE;
+    } else {
+      throw FbossError(
+          "L2 Learning mode is neither SOFTWARE, nor HARDWARE, flags: ", flags);
+    }
   }
 
   XLOG(DBG3) << "Check if PTP TC is enabled to populate warmboot cache";

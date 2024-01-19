@@ -833,6 +833,7 @@ class BcmWarmBootCache {
   void populateUdfGroupFromWarmBootState(const folly::dynamic& udfGroup);
   void populateUdfPacketMatcherFromWarmBootState(
       const folly::dynamic& udfPacketMatcher);
+  void populateL2LearningModeFromDumpedSwSwitchState();
 
   // No copy or assignment.
   BcmWarmBootCache(const BcmWarmBootCache&) = delete;
