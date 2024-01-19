@@ -184,7 +184,7 @@ NonMonolithicHwSwitchHandler::getFabricConnectivity() const {
 
 std::vector<PortID> NonMonolithicHwSwitchHandler::getSwitchReachability(
     SwitchID /*switchId*/) const {
-  throw FbossError("getSwitchReachability not implemented");
+  return std::vector<PortID>();
 }
 
 std::string NonMonolithicHwSwitchHandler::getDebugDump() const {

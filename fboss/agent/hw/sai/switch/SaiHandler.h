@@ -45,6 +45,9 @@ class SaiHandler : public apache::thrift::ServiceHandler<SaiCtrl> {
   void getHwFabricConnectivity(
       std::map<::std::string, ::facebook::fboss::FabricEndpoint>& connectivity)
       override;
+  void getHwSwitchReachability(
+      std::map<::std::string, std::vector<::std::string>>& reachability,
+      std::unique_ptr<::std::vector<::std::string>> switchNames) override;
 
  private:
   const SaiSwitch* hw_;

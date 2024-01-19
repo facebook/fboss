@@ -80,4 +80,39 @@ void SaiHandler::getHwFabricConnectivity(
     }
   }
 }
+
+void SaiHandler::getHwSwitchReachability(
+    std::map<::std::string, std::vector<::std::string>>& reachability,
+    std::unique_ptr<::std::vector<::std::string>> switchNames) {
+  hw_->ensureVoqOrFabric(__func__);
+  if (switchNames->empty()) {
+    throw FbossError("Empty switch name list input for getSwitchReachability.");
+  }
+  std::unordered_set<std::string> switchNameSet{
+      switchNames->begin(), switchNames->end()};
+
+  auto state = hw_->getProgrammedState();
+  for (const auto& [_, dsfNodes] : std::as_const(*state->getDsfNodes())) {
+    for (const auto& [_, node] : std::as_const(*dsfNodes)) {
+      if (std::find(
+              switchNameSet.begin(), switchNameSet.end(), node->getName()) !=
+          switchNameSet.end()) {
+        std::vector<std::string> reachablePorts;
+        for (const auto& portId :
+             hw_->getSwitchReachability(node->getSwitchId())) {
+          auto port = state->getPorts()->getNodeIf(portId);
+          if (port) {
+            reachablePorts.push_back(port->getName());
+          } else {
+            XLOG(ERR) << "Port " << portId
+                      << " in reachability matrix is not found in state";
+          }
+        }
+        reachability.insert({node->getName(), std::move(reachablePorts)});
+      }
+    }
+  }
+  return;
+}
+
 } // namespace facebook::fboss
