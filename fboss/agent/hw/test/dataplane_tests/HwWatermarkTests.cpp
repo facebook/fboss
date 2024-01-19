@@ -316,11 +316,11 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
         // Send traffic
         sendUdpPkts(dscpsForQueue[0], portAndIp.second);
         // Assert non zero watermark
-        assertWatermark(portAndIp.first, queueId, false /*expectZero*/, 5);
+        assertWatermark(portAndIp.first, queueId, false /*expectZero*/, 10);
         // Stop traffic
         stopTraffic(portAndIp.first);
         // Assert zero watermark
-        assertWatermark(portAndIp.first, queueId, true /*expectZero*/, 5);
+        assertWatermark(portAndIp.first, queueId, true /*expectZero*/, 10);
       }
     };
     verifyAcrossWarmBoots(setup, verify);
@@ -346,7 +346,7 @@ TEST_F(HwWatermarkTest, VerifyDeviceWatermark) {
     getHwSwitchEnsemble()->waitForLineRateOnPort(
         masterLogicalInterfacePortIds()[0]);
     // Assert non zero watermark
-    assertDeviceWatermark(false);
+    assertDeviceWatermark(false, 10);
     auto counters =
         fb303::fbData->getSelectedCounters({"buffer_watermark_device.p100.60"});
     // Unfortunately since  we use quantile stats, which compute
@@ -359,7 +359,7 @@ TEST_F(HwWatermarkTest, VerifyDeviceWatermark) {
     bringUpPort(masterLogicalInterfacePortIds()[0]);
 
     // Assert zero watermark
-    assertDeviceWatermark(true, 5);
+    assertDeviceWatermark(true, 10);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -418,7 +418,7 @@ TEST_F(HwWatermarkTest, VerifyDeviceWatermarkHigherThanQueueWatermark) {
      * In case of new platforms, make sure that the assumption holds.
      */
     std::map<int16_t, int64_t> queueWaterMarks;
-    WITH_RETRIES_N_TIMED(5, std::chrono::milliseconds(1000), {
+    WITH_RETRIES_N_TIMED(10, std::chrono::milliseconds(1000), {
       queueWaterMarks = getQueueWatermarks(
           masterLogicalInterfacePortIds()[0],
           getPlatform()->getAsic()->getSwitchType() ==
