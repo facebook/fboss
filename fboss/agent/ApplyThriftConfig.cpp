@@ -2001,7 +2001,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
 
   // Port drain is applicable to only fabric ports.
   if (*portConf->drainState() == cfg::PortDrainState::DRAINED &&
-      orig->getPortType() != cfg::PortType::FABRIC_PORT) {
+      *portConf->portType() != cfg::PortType::FABRIC_PORT) {
     throw FbossError(
         "Port ",
         orig->getID(),
