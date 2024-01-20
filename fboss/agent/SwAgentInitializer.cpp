@@ -173,6 +173,8 @@ void SwAgentInitializer::handleExitSignal() {
           std::chrono::seconds(folly::to<uint32_t>(timeStr)));
     }
   }
+  XLOG(DBG2) << "[Exit] Wait until initialization done ";
+  initializer_->waitForInitDone();
   stopServices();
   steady_clock::time_point servicesStopped = steady_clock::now();
   XLOG(DBG2) << "[Exit] Services stop time "
