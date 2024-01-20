@@ -434,7 +434,7 @@ struct ThriftMultiSwitchMapNode : public ThriftMapNode<MAP, Traits, Resolver> {
         return;
       }
     }
-    throw FbossError("node not found: ", key);
+    throw FbossError("Node to remove not found: ", key);
   }
 
   void removeNode(std::shared_ptr<InnerNode> node) {
@@ -456,7 +456,7 @@ struct ThriftMultiSwitchMapNode : public ThriftMapNode<MAP, Traits, Resolver> {
       const typename InnerMap::Traits::KeyType& key) const {
     auto node = getNodeIf(key);
     if (!node) {
-      throw FbossError("node not found: ", key);
+      throw FbossError("Node to get not found: ", key);
     }
     return node;
   }
@@ -469,7 +469,7 @@ struct ThriftMultiSwitchMapNode : public ThriftMapNode<MAP, Traits, Resolver> {
         return std::make_pair(nitr->second, HwSwitchMatcher(mnitr->first));
       }
     }
-    throw FbossError("node not found: ", key);
+    throw FbossError("Node and scope to get not found: ", key);
   }
 
   size_t numNodes() const {
