@@ -107,6 +107,12 @@
           "test_name_regex": "HwCoppTest/0.L3MTUErrorToLowPriQ"
         },
         {
+          "test_name_regex": "HwCoppTest/0.LocalDstIpBgpPortToHighPriQ"
+        },
+        {
+          "test_name_regex": "HwCoppTest/0.LocalDstIpNonBgpPortToMidPriQ"
+        },
+        {
           "test_name_regex": "HwTrafficPfcTest/HwTrafficPfcGenTest.verifyPfc/WithZeroPgHeadRoomCfg"
         },
         {
@@ -2154,6 +2160,12 @@
           "test_name_regex": "HwCoppTest/0.L3MTUErrorToLowPriQ"
         },
         {
+          "test_name_regex": "HwCoppTest/0.LocalDstIpBgpPortToHighPriQ"
+        },
+        {
+          "test_name_regex": "HwCoppTest/0.LocalDstIpNonBgpPortToMidPriQ"
+        },
+        {
           "test_name_regex": "HwTrafficPfcTest/HwTrafficPfcGenTest.verifyPfc/WithZeroPgHeadRoomCfg"
         },
         {
@@ -2312,10 +2324,7 @@
           "test_name_regex": "HwCoppTest/0.L3MTUErrorToLowPriQ"
         },
         {
-          "test_name_regex": "Hw2QueueToOlympicQoSTest.*"
-        },
-        {
-          "test_name_regex": "HwWatermarkTest.*"
+          "test_name_regex": "HwWatermarkTest.VerifyQueueWatermarkAccuracy"
         },
         {
           "test_name_regex": "HwVoqSwitchTest.rxPacketToCpu.*"
