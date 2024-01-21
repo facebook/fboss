@@ -748,20 +748,4 @@ std::unique_ptr<TxPacket> makeTCPTxPacket(
 
 } // namespace utility
 
-template <typename CursorType>
-void writeEthHeader(
-    const std::unique_ptr<TxPacket>& txPacket,
-    CursorType* cursor,
-    folly::MacAddress dst,
-    folly::MacAddress src,
-    std::vector<VlanTag> vlanTags,
-    uint16_t protocol) {
-  if (vlanTags.size() != 0) {
-    txPacket->writeEthHeader(
-        cursor, dst, src, VlanID(vlanTags[0].vid()), protocol);
-  } else {
-    txPacket->writeEthHeader(cursor, dst, src, protocol);
-  }
-}
-
 } // namespace facebook::fboss
