@@ -101,6 +101,11 @@ class AgentHwTest : public ::testing::Test {
       const cfg::SwitchConfig& curConfig,
       cfg::SwitchDrainState drainState);
 
+  std::map<PortID, HwPortStats> getLatestPortStats(
+      const std::vector<PortID>& ports);
+
+  HwPortStats getLatestPortStats(const PortID& port);
+
  private:
   /*
    * Derived classes have the option to not run verify on

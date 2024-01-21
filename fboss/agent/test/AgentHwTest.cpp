@@ -150,6 +150,23 @@ void AgentHwTest::printProductionFeatures() const {
   GTEST_SKIP();
 }
 
+std::map<PortID, HwPortStats> AgentHwTest::getLatestPortStats(
+    const std::vector<PortID>& ports) {
+  std::map<PortID, HwPortStats> portStats;
+  auto switchStats = getSw()->getHwSwitchStatsExpensive();
+  auto portMap = getSw()->getState()->getPorts();
+  for (const auto& [_, hwStats] : switchStats) {
+    for (const auto& [portName, stats] : *hwStats.hwPortStats()) {
+      portStats.insert({portMap->getPort(portName)->getID(), stats});
+    }
+  }
+  return portStats;
+}
+
+HwPortStats AgentHwTest::getLatestPortStats(const PortID& port) {
+  return getLatestPortStats(std::vector<PortID>({port})).begin()->second;
+}
+
 void initAgentHwTest(int argc, char* argv[], PlatformInitFn initPlatform) {
   initEnsemble(initPlatform);
   kArgc = argc;
