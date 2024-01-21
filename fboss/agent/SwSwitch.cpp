@@ -672,24 +672,6 @@ void SwSwitch::updateLldpStats() {
 
 AgentStats SwSwitch::fillFsdbStats() {
   AgentStats agentStats;
-  auto runMode = (*agentConfig_.rlock())->getRunMode();
-  if (runMode == cfg::AgentRunMode::MONO) {
-    multiswitch::HwSwitchStats hwStats;
-    hwStats.hwPortStats() = multiHwSwitchHandler_->getPortStats();
-    hwStats.sysPortStats() = multiHwSwitchHandler_->getSysPortStats();
-    hwStats.switchDropStats() = multiHwSwitchHandler_->getSwitchDropStats();
-
-    if (auto hwSwitchStats = multiHwSwitchHandler_->getSwitchStats()) {
-      hwStats.hwAsicErrors() = hwSwitchStats->getHwAsicErrors();
-    }
-    hwStats.teFlowStats() = getTeFlowStats();
-    hwStats.bufferPoolStats() = getBufferPoolStats();
-    auto phyInfo = phySnapshotManager_->getAllPhyInfos();
-    for (auto& [portId, phyInfoPerPort] : phyInfo) {
-      hwStats.phyInfo()->emplace(portId, phyInfoPerPort);
-    }
-    updateHwSwitchStats(0 /*switchIndex*/, std::move(hwStats));
-  }
   {
     auto lockedStats = hwSwitchStats_.wlock();
     // fill stats using hwswitch exported data if available
@@ -767,18 +749,32 @@ void SwSwitch::updateStats() {
   }
   updateMultiSwitchGlobalFb303Stats();
   updateFabricReachabilityStats();
+  stats()->maxNumOfPhysicalHostsPerQueue(
+      getLookupClassUpdater()->getMaxNumHostsPerQueue());
+  if ((*agentConfig_.rlock())->getRunMode() == cfg::AgentRunMode::MONO) {
+    multiswitch::HwSwitchStats hwStats;
+    hwStats.hwPortStats() = multiHwSwitchHandler_->getPortStats();
+    hwStats.sysPortStats() = multiHwSwitchHandler_->getSysPortStats();
+    hwStats.switchDropStats() = multiHwSwitchHandler_->getSwitchDropStats();
+
+    if (auto hwSwitchStats = multiHwSwitchHandler_->getSwitchStats()) {
+      hwStats.hwAsicErrors() = hwSwitchStats->getHwAsicErrors();
+    }
+    hwStats.teFlowStats() = getTeFlowStats();
+    hwStats.bufferPoolStats() = getBufferPoolStats();
+    auto phyInfo = phySnapshotManager_->getAllPhyInfos();
+    for (auto& [portId, phyInfoPerPort] : phyInfo) {
+      hwStats.phyInfo()->emplace(portId, phyInfoPerPort);
+    }
+    updateHwSwitchStats(0 /*switchIndex*/, std::move(hwStats));
+  }
 
   std::map<PortID, phy::PhyInfo> phyInfo;
   {
-    auto runMode = (*agentConfig_.rlock())->getRunMode();
-    if (runMode == cfg::AgentRunMode::MONO) {
-      phyInfo = multiHwSwitchHandler_->updateAllPhyInfo();
-    } else {
-      auto lockedStats = hwSwitchStats_.rlock();
-      for (auto& [_, hwSwitchStats] : *lockedStats) {
-        for (auto& [portID, phyInfoEntry] : *hwSwitchStats.phyInfo()) {
-          phyInfo.insert({PortID(portID), phyInfoEntry});
-        }
+    auto lockedStats = hwSwitchStats_.rlock();
+    for (auto& [_, hwSwitchStats] : *lockedStats) {
+      for (auto& [portID, phyInfoEntry] : *hwSwitchStats.phyInfo()) {
+        phyInfo.insert({PortID(portID), phyInfoEntry});
       }
     }
   }
@@ -787,9 +783,6 @@ void SwSwitch::updateStats() {
     phySnapshotManager_->updatePhyInfos(phyInfo);
     updatePhyFb303Stats(phyInfo);
   }
-
-  stats()->maxNumOfPhysicalHostsPerQueue(
-      getLookupClassUpdater()->getMaxNumHostsPerQueue());
 }
 
 void SwSwitch::updateRouteStats() {
