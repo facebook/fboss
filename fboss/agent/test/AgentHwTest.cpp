@@ -3,6 +3,7 @@
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/lib/CommonUtils.h"
 
 DEFINE_bool(run_forever, false, "run the test forever");
 DEFINE_bool(run_forever_on_failure, false, "run the test forever on failure");
@@ -152,14 +153,23 @@ void AgentHwTest::printProductionFeatures() const {
 
 std::map<PortID, HwPortStats> AgentHwTest::getLatestPortStats(
     const std::vector<PortID>& ports) {
+  // Stats collection from SwSwitch is async, wait for stats
+  // being available before returning here.
   std::map<PortID, HwPortStats> portStats;
-  auto switchStats = getSw()->getHwSwitchStatsExpensive();
-  auto portMap = getSw()->getState()->getPorts();
-  for (const auto& [_, hwStats] : switchStats) {
-    for (const auto& [portName, stats] : *hwStats.hwPortStats()) {
-      portStats.insert({portMap->getPort(portName)->getID(), stats});
-    }
-  }
+  checkWithRetry(
+      [&portStats, this]() {
+        auto switchStats = getSw()->getHwSwitchStatsExpensive();
+        auto portMap = getSw()->getState()->getPorts();
+        for (const auto& [_, hwStats] : switchStats) {
+          for (const auto& [portName, stats] : *hwStats.hwPortStats()) {
+            portStats.insert({portMap->getPort(portName)->getID(), stats});
+          }
+        }
+        return !portStats.empty();
+      },
+      120,
+      std::chrono::seconds(1),
+      " fetch port stats");
   return portStats;
 }
 
