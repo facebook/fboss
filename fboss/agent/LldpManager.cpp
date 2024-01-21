@@ -335,12 +335,10 @@ std::unique_ptr<TxPacket> LldpManager::createLldpPkt(
     const std::string& portdesc,
     const uint16_t ttl,
     const uint16_t capabilities) {
-  static std::string lldpSysDescStr("FBOSS");
   return createLldpPkt(
       [sw](uint32_t size) { return sw->allocatePacket(size); },
       macaddr,
       vlanID,
-      lldpSysDescStr,
       hostname,
       portname,
       portdesc,
@@ -352,12 +350,12 @@ std::unique_ptr<TxPacket> LldpManager::createLldpPkt(
     const facebook::fboss::utility::AllocatePktFn& allocatePacket,
     const MacAddress macaddr,
     const std::optional<VlanID>& vlanID,
-    const std::string& lldpSysDescStr,
     const std::string& hostname,
     const std::string& portname,
     const std::string& portdesc,
     const uint16_t ttl,
     const uint16_t capabilities) {
+  static std::string lldpSysDescStr("FBOSS");
   uint32_t frameLen = LldpPktSize(hostname, portname, portdesc, lldpSysDescStr);
 
   auto pkt = allocatePacket(frameLen);

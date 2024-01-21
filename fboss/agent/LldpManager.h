@@ -97,7 +97,6 @@ class LldpManager : private folly::AsyncTimeout {
       const facebook::fboss::utility::AllocatePktFn& allocate,
       const folly::MacAddress macaddr,
       const std::optional<VlanID>& vlanID,
-      const std::string& systemdescr,
       const std::string& hostname,
       const std::string& portname,
       const std::string& portdesc,

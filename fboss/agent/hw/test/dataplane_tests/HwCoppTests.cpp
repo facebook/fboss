@@ -478,7 +478,6 @@ class HwCoppTest : public HwLinkStateDependentTest {
           getHwSwitch(),
           neighborMac,
           vlanId,
-          "FBOSS",
           "rsw1dx.21.frc3",
           "eth1/1/1",
           "fsw001.p023.f01.frc3:eth4/9/1",

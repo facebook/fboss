@@ -84,7 +84,6 @@ std::unique_ptr<facebook::fboss::TxPacket> makeLLDPPacket(
     const HwSwitch* hw,
     const folly::MacAddress srcMac,
     std::optional<VlanID> vlanid,
-    const std::string& systemdescr,
     const std::string& hostname,
     const std::string& portname,
     const std::string& portdesc,
