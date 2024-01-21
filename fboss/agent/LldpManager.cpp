@@ -336,9 +336,31 @@ std::unique_ptr<TxPacket> LldpManager::createLldpPkt(
     const uint16_t ttl,
     const uint16_t capabilities) {
   static std::string lldpSysDescStr("FBOSS");
+  return createLldpPkt(
+      [sw](uint32_t size) { return sw->allocatePacket(size); },
+      macaddr,
+      vlanID,
+      lldpSysDescStr,
+      hostname,
+      portname,
+      portdesc,
+      ttl,
+      capabilities);
+}
+
+std::unique_ptr<TxPacket> LldpManager::createLldpPkt(
+    const facebook::fboss::utility::AllocatePktFn& allocatePacket,
+    const MacAddress macaddr,
+    const std::optional<VlanID>& vlanID,
+    const std::string& lldpSysDescStr,
+    const std::string& hostname,
+    const std::string& portname,
+    const std::string& portdesc,
+    const uint16_t ttl,
+    const uint16_t capabilities) {
   uint32_t frameLen = LldpPktSize(hostname, portname, portdesc, lldpSysDescStr);
 
-  auto pkt = sw->allocatePacket(frameLen);
+  auto pkt = allocatePacket(frameLen);
   fillLldpTlv(
       pkt.get(),
       macaddr,
@@ -351,7 +373,6 @@ std::unique_ptr<TxPacket> LldpManager::createLldpPkt(
       capabilities);
   return pkt;
 }
-
 void LldpManager::sendLldpInfo(const std::shared_ptr<Port>& port) {
   PortID thisPortID = port->getID();
   auto switchId = sw_->getScopeResolver()->scope(thisPortID).switchId();
