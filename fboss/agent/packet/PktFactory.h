@@ -330,7 +330,7 @@ EthHdr makeEthHdr(
     ETHERTYPE etherType);
 
 template <typename SwitchT>
-AllocatePktFn makeAllocater(SwitchT* sw) {
+AllocatePktFn makeAllocater(const SwitchT* sw) {
   return [sw](uint32_t size) { return sw->allocatePacket(size); };
 }
 std::unique_ptr<TxPacket> makeEthTxPacket(
@@ -380,7 +380,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpTxPacket(
 // Template wrappers to wrap Sw/HwSwitch allocations
 template <typename SwitchT>
 std::unique_ptr<facebook::fboss::TxPacket> makeEthTxPacket(
-    SwitchT* sw,
+    const SwitchT* sw,
     std::optional<VlanID> vlan,
     folly::MacAddress srcMac,
     folly::MacAddress dstMac,
@@ -393,7 +393,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeEthTxPacket(
 
 template <typename SwitchT, typename IPAddrT>
 std::unique_ptr<facebook::fboss::TxPacket> makeIpTxPacket(
-    SwitchT* sw,
+    const SwitchT* sw,
     std::optional<VlanID> vlan,
     folly::MacAddress srcMac,
     folly::MacAddress dstMac,
