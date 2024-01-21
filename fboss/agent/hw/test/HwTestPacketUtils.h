@@ -55,31 +55,6 @@ std::optional<VlanID> firstVlanID(const cfg::SwitchConfig& cfg);
 std::optional<VlanID> firstVlanID(const std::shared_ptr<SwitchState>& state);
 VlanID getIngressVlan(const std::shared_ptr<SwitchState>& state, PortID port);
 
-std::unique_ptr<facebook::fboss::TxPacket> makeARPTxPacket(
-    const HwSwitch* hw,
-    std::optional<VlanID> vlan,
-    folly::MacAddress srcMac,
-    folly::MacAddress dstMac,
-    const folly::IPAddress& srcIp,
-    const folly::IPAddress& dstIp,
-    ARP_OPER type,
-    std::optional<folly::MacAddress> targetMac = std::nullopt);
-
-std::unique_ptr<facebook::fboss::TxPacket> makeNeighborSolicitation(
-    const HwSwitch* hw,
-    std::optional<VlanID> vlan,
-    folly::MacAddress srcMac,
-    const folly::IPAddressV6& srcIp,
-    const folly::IPAddressV6& neighborIp);
-
-std::unique_ptr<facebook::fboss::TxPacket> makeNeighborAdvertisement(
-    const HwSwitch* hw,
-    std::optional<VlanID> vlan,
-    folly::MacAddress srcMac,
-    folly::MacAddress dstMac,
-    const folly::IPAddressV6& srcIp,
-    folly::IPAddressV6 dstIp);
-
 std::unique_ptr<facebook::fboss::TxPacket> makeLLDPPacket(
     const HwSwitch* hw,
     const folly::MacAddress srcMac,

@@ -7,10 +7,13 @@
 #include "fboss/agent/packet/Ethertype.h"
 #include "fboss/agent/types.h"
 
+#include "fboss/agent/packet/ArpHdr.h"
 #include "fboss/agent/packet/EthHdr.h"
+#include "fboss/agent/packet/ICMPHdr.h"
 #include "fboss/agent/packet/IPv4Hdr.h"
 #include "fboss/agent/packet/IPv6Hdr.h"
 #include "fboss/agent/packet/MPLSHdr.h"
+#include "fboss/agent/packet/NDP.h"
 #include "fboss/agent/packet/TCPPacket.h"
 #include "fboss/agent/packet/UDPDatagram.h"
 
@@ -341,6 +344,31 @@ std::unique_ptr<TxPacket> makeEthTxPacket(
     facebook::fboss::ETHERTYPE etherType,
     std::optional<std::vector<uint8_t>> payload);
 
+std::unique_ptr<facebook::fboss::TxPacket> makeARPTxPacket(
+    const AllocatePktFn& allocatePkt,
+    std::optional<VlanID> vlan,
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    const folly::IPAddress& srcIp,
+    const folly::IPAddress& dstIp,
+    ARP_OPER type,
+    std::optional<folly::MacAddress> targetMac = std::nullopt);
+
+std::unique_ptr<facebook::fboss::TxPacket> makeNeighborSolicitation(
+    const AllocatePktFn& allocatePkt,
+    std::optional<VlanID> vlan,
+    folly::MacAddress srcMac,
+    const folly::IPAddressV6& srcIp,
+    const folly::IPAddressV6& neighborIp);
+
+std::unique_ptr<facebook::fboss::TxPacket> makeNeighborAdvertisement(
+    const AllocatePktFn& allocatePkt,
+    std::optional<VlanID> vlan,
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    const folly::IPAddressV6& srcIp,
+    folly::IPAddressV6 dstIp);
+
 std::unique_ptr<facebook::fboss::TxPacket> makeIpTxPacket(
     AllocatePktFn allocatePkt,
     std::optional<VlanID> vlan,
@@ -501,6 +529,50 @@ std::unique_ptr<facebook::fboss::TxPacket> makeEthTxPacket(
   return makeEthTxPacket(
 
       makeAllocater(switchT), vlan, srcMac, dstMac, etherType, payload);
+}
+
+template <typename SwitchT>
+std::unique_ptr<facebook::fboss::TxPacket> makeARPTxPacket(
+    const SwitchT* switchT,
+    std::optional<VlanID> vlan,
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    const folly::IPAddress& srcIp,
+    const folly::IPAddress& dstIp,
+    ARP_OPER type,
+    std::optional<folly::MacAddress> targetMac = std::nullopt) {
+  return makeARPTxPacket(
+      makeAllocater(switchT),
+      vlan,
+      srcMac,
+      dstMac,
+      srcIp,
+      dstIp,
+      type,
+      targetMac);
+}
+
+template <typename SwitchT>
+std::unique_ptr<facebook::fboss::TxPacket> makeNeighborSolicitation(
+    const SwitchT* switchT,
+    std::optional<VlanID> vlan,
+    folly::MacAddress srcMac,
+    const folly::IPAddressV6& srcIp,
+    const folly::IPAddressV6& neighborIp) {
+  return makeNeighborSolicitation(
+      makeAllocater(switchT), vlan, srcMac, srcIp, neighborIp);
+}
+
+template <typename SwitchT>
+std::unique_ptr<facebook::fboss::TxPacket> makeNeighborAdvertisement(
+    const SwitchT* switchT,
+    std::optional<VlanID> vlan,
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    const folly::IPAddressV6& srcIp,
+    folly::IPAddressV6 dstIp) {
+  return makeNeighborAdvertisement(
+      makeAllocater(switchT), vlan, srcMac, dstMac, srcIp, dstIp);
 }
 
 template <typename SwitchT, typename IPAddrT>
