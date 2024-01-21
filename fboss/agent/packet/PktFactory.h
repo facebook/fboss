@@ -14,6 +14,7 @@
 #include "fboss/agent/packet/IPv6Hdr.h"
 #include "fboss/agent/packet/MPLSHdr.h"
 #include "fboss/agent/packet/NDP.h"
+#include "fboss/agent/packet/PTPHeader.h"
 #include "fboss/agent/packet/TCPPacket.h"
 #include "fboss/agent/packet/UDPDatagram.h"
 
@@ -517,6 +518,17 @@ std::unique_ptr<TxPacket> makeTCPTxPacket(
     std::optional<std::vector<uint8_t>> payload =
         std::optional<std::vector<uint8_t>>());
 
+std::unique_ptr<TxPacket> makePTPTxPacket(
+    const AllocatePktFn& allocatePktSwitch,
+    VlanID vlan,
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    const folly::IPAddressV6& srcIp,
+    const folly::IPAddressV6& dstIp,
+    uint8_t trafficClass,
+    uint8_t hopLimit,
+    PTPMessageType ptpPktType);
+
 // Template wrappers to wrap Sw/HwSwitch allocations
 template <typename SwitchT>
 std::unique_ptr<facebook::fboss::TxPacket> makeEthTxPacket(
@@ -659,6 +671,29 @@ std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
       trafficClass,
       hopLimit,
       payload);
+}
+
+template <typename SwitchT>
+std::unique_ptr<TxPacket> makePTPTxPacket(
+    const SwitchT* switchT,
+    VlanID vlan,
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    const folly::IPAddressV6& srcIp,
+    const folly::IPAddressV6& dstIp,
+    uint8_t trafficClass,
+    uint8_t hopLimit,
+    PTPMessageType ptpPktType) {
+  return makePTPTxPacket(
+      makeAllocater(switchT),
+      vlan,
+      srcMac,
+      dstMac,
+      srcIp,
+      dstIp,
+      trafficClass,
+      hopLimit,
+      ptpPktType);
 }
 
 template <typename SwitchT, typename IPAddrT>

@@ -22,22 +22,12 @@
 #include <folly/io/Cursor.h>
 
 #include "fboss/agent/TxPacket.h"
-#include "fboss/agent/packet/ArpHdr.h"
-#include "fboss/agent/packet/Ethertype.h"
-#include "fboss/agent/packet/ICMPHdr.h"
-#include "fboss/agent/packet/NDP.h"
-#include "fboss/agent/packet/PTPHeader.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss {
 class HwSwitch;
 class SwitchState;
-class EthHdr;
-class IPv4Hdr;
-class IPv6Hdr;
-class TCPHeader;
-class UDPHeader;
 } // namespace facebook::fboss
 
 namespace facebook::fboss::utility {
@@ -76,17 +66,6 @@ void sendTcpPkts(
     PortID outPort,
     uint8_t trafficClass = 0,
     std::optional<std::vector<uint8_t>> payload = std::nullopt);
-
-std::unique_ptr<facebook::fboss::TxPacket> makePTPTxPacket(
-    const HwSwitch* hw,
-    VlanID vlan,
-    folly::MacAddress srcMac,
-    folly::MacAddress dstMac,
-    const folly::IPAddressV6& srcIp,
-    const folly::IPAddressV6& dstIp,
-    uint8_t trafficClass,
-    uint8_t hopLimit,
-    PTPMessageType ptpPktType);
 
 bool isPtpEventPacket(folly::io::Cursor& cursor);
 uint8_t getIpHopLimit(folly::io::Cursor& cursor);

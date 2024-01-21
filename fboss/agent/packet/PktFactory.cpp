@@ -75,6 +75,46 @@ std::unique_ptr<TxPacket> makeUDPTxPacket(
 }
 
 template <typename IPHDR>
+std::unique_ptr<facebook::fboss::TxPacket> makePTPUDPTxPacket(
+    const AllocatePktFn& allocatePacket,
+    const EthHdr& ethHdr,
+    const IPHDR& ipHdr,
+    const UDPHeader& udpHdr,
+    PTPMessageType ptpPktType) {
+  int payloadSize = PTPHeader::getPayloadSize(ptpPktType);
+  auto txPacket = allocatePacket(
+      ethHdr.size() + ipHdr.size() + udpHdr.size() + payloadSize);
+
+  folly::io::RWPrivateCursor rwCursor(txPacket->buf());
+  // Write EthHdr
+  writeEthHeader(
+      txPacket,
+      &rwCursor,
+      ethHdr.getDstMac(),
+      ethHdr.getSrcMac(),
+      ethHdr.getVlanTags(),
+      ethHdr.getEtherType());
+
+  ipHdr.serialize(&rwCursor);
+
+  // write UDP header, payload and compute checksum
+  rwCursor.writeBE<uint16_t>(udpHdr.srcPort);
+  rwCursor.writeBE<uint16_t>(udpHdr.dstPort);
+  rwCursor.writeBE<uint16_t>(udpHdr.length);
+  folly::io::RWPrivateCursor csumCursor(rwCursor);
+  rwCursor.skip(2);
+  folly::io::Cursor payloadStart(rwCursor);
+  // PTPHeader
+  PTPHeader ptpHeader(
+      static_cast<uint8_t>(ptpPktType),
+      static_cast<uint8_t>(PTPVersion::PTP_V2));
+  ptpHeader.write(&rwCursor);
+  uint16_t csum = udpHdr.computeChecksum(ipHdr, payloadStart);
+  csumCursor.writeBE<uint16_t>(csum);
+  return txPacket;
+}
+
+template <typename IPHDR>
 std::unique_ptr<facebook::fboss::TxPacket> makeTCPTxPacket(
     const AllocatePktFn& allocatePacket,
     const EthHdr& ethHdr,
@@ -864,6 +904,30 @@ std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
       payload);
 }
 
+std::unique_ptr<facebook::fboss::TxPacket> makePTPTxPacket(
+    const AllocatePktFn& allocatePacket,
+    VlanID vlan,
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    const folly::IPAddressV6& srcIp,
+    const folly::IPAddressV6& dstIp,
+    uint8_t trafficClass,
+    uint8_t hopLimit,
+    PTPMessageType ptpPktType) {
+  int payloadSize = PTPHeader::getPayloadSize(ptpPktType);
+  auto ethHdr = makeEthHdr(srcMac, dstMac, vlan, ETHERTYPE::ETHERTYPE_IPV6);
+  // IPv6Hdr
+  IPv6Hdr ipHdr(srcIp, dstIp);
+  ipHdr.nextHeader = static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP);
+  ipHdr.trafficClass = trafficClass;
+  ipHdr.payloadLength = UDPHeader::size() + payloadSize;
+  ipHdr.hopLimit = hopLimit;
+  // UDPHeader
+  UDPHeader udpHdr(
+      PTP_UDP_EVENT_PORT, PTP_UDP_EVENT_PORT, UDPHeader::size() + payloadSize);
+
+  return makePTPUDPTxPacket(allocatePacket, ethHdr, ipHdr, udpHdr, ptpPktType);
+}
 std::unique_ptr<facebook::fboss::TxPacket> makeTCPTxPacket(
     const AllocatePktFn& allocatePacket,
     std::optional<VlanID> vlan,
