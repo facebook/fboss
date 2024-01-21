@@ -57,15 +57,6 @@ std::optional<VlanID> firstVlanID(const cfg::SwitchConfig& cfg);
 std::optional<VlanID> firstVlanID(const std::shared_ptr<SwitchState>& state);
 VlanID getIngressVlan(const std::shared_ptr<SwitchState>& state, PortID port);
 
-std::unique_ptr<facebook::fboss::TxPacket> makeEthTxPacket(
-    const HwSwitch* hw,
-    std::optional<VlanID> vlan,
-    folly::MacAddress srcMac,
-    folly::MacAddress dstMac,
-    facebook::fboss::ETHERTYPE etherType,
-    std::optional<std::vector<uint8_t>> payload =
-        std::optional<std::vector<uint8_t>>());
-
 template <typename IPHDR>
 std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
     const HwSwitch* hw,
@@ -73,42 +64,6 @@ std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
     const IPHDR& ipHdr,
     const UDPHeader& udpHdr,
     const std::vector<uint8_t>& payload);
-
-std::unique_ptr<facebook::fboss::TxPacket> makeIpTxPacket(
-    const HwSwitch* hw,
-    std::optional<VlanID> vlan,
-    folly::MacAddress srcMac,
-    folly::MacAddress dstMac,
-    const folly::IPAddressV6& srcIp,
-    const folly::IPAddressV6& dstIp,
-    uint8_t trafficClass = 0,
-    uint8_t hopLimit = 255,
-    std::optional<std::vector<uint8_t>> payload =
-        std::optional<std::vector<uint8_t>>());
-
-std::unique_ptr<facebook::fboss::TxPacket> makeIpTxPacket(
-    const HwSwitch* hw,
-    std::optional<VlanID> vlan,
-    folly::MacAddress srcMac,
-    folly::MacAddress dstMac,
-    const folly::IPAddressV4& srcIp,
-    const folly::IPAddressV4& dstIp,
-    uint8_t dscp = 0,
-    uint8_t ttl = 255,
-    std::optional<std::vector<uint8_t>> payload =
-        std::optional<std::vector<uint8_t>>());
-
-std::unique_ptr<facebook::fboss::TxPacket> makeIpTxPacket(
-    const HwSwitch* hw,
-    std::optional<VlanID> vlan,
-    folly::MacAddress srcMac,
-    folly::MacAddress dstMac,
-    const folly::IPAddress& srcIp,
-    const folly::IPAddress& dstIp,
-    uint8_t trafficClass = 0,
-    uint8_t hopLimit = 255,
-    std::optional<std::vector<uint8_t>> payload =
-        std::optional<std::vector<uint8_t>>());
 
 std::unique_ptr<facebook::fboss::TxPacket> makeIpInIpTxPacket(
     const HwSwitch* hw,

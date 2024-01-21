@@ -329,6 +329,10 @@ EthHdr makeEthHdr(
     std::optional<VlanID> vlan,
     ETHERTYPE etherType);
 
+template <typename SwitchT>
+AllocatePktFn makeAllocater(SwitchT* sw) {
+  return [sw](uint32_t size) { return sw->allocatePacket(size); };
+}
 std::unique_ptr<TxPacket> makeEthTxPacket(
     const AllocatePktFn& allocateTxPkt,
     std::optional<VlanID> vlan,
@@ -372,6 +376,44 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpTxPacket(
     uint8_t hopLimit = 255,
     std::optional<std::vector<uint8_t>> payload =
         std::optional<std::vector<uint8_t>>());
+
+// Template wrappers to wrap Sw/HwSwitch allocations
+template <typename SwitchT>
+std::unique_ptr<facebook::fboss::TxPacket> makeEthTxPacket(
+    SwitchT* sw,
+    std::optional<VlanID> vlan,
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    facebook::fboss::ETHERTYPE etherType,
+    std::optional<std::vector<uint8_t>> payload = std::nullopt) {
+  return makeEthTxPacket(
+
+      makeAllocater(sw), vlan, srcMac, dstMac, etherType, payload);
+}
+
+template <typename SwitchT, typename IPAddrT>
+std::unique_ptr<facebook::fboss::TxPacket> makeIpTxPacket(
+    SwitchT* sw,
+    std::optional<VlanID> vlan,
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    const IPAddrT& srcIp,
+    const IPAddrT& dstIp,
+    uint8_t trafficClass = 0,
+    uint8_t hopLimit = 255,
+    std::optional<std::vector<uint8_t>> payload =
+        std::optional<std::vector<uint8_t>>()) {
+  return makeIpTxPacket(
+      makeAllocator(sw),
+      vlan,
+      srcMac,
+      dstMac,
+      srcIp,
+      dstIp,
+      trafficClass,
+      hopLimit,
+      payload);
+}
 
 } // namespace utility
 

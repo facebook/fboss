@@ -20,21 +20,4 @@ namespace {
 auto kDefaultPayload = std::vector<uint8_t>(256, 0xff);
 } // namespace
 
-namespace facebook::fboss::utility {
-
-std::unique_ptr<facebook::fboss::TxPacket> makeEthTxPacket(
-    SwSwitch* sw,
-    std::optional<VlanID> vlan,
-    folly::MacAddress srcMac,
-    folly::MacAddress dstMac,
-    facebook::fboss::ETHERTYPE etherType,
-    std::optional<std::vector<uint8_t>> payload) {
-  return makeEthTxPacket(
-      [sw](auto size) { return sw->allocatePacket(size); },
-      vlan,
-      srcMac,
-      dstMac,
-      etherType,
-      payload);
-}
-} // namespace facebook::fboss::utility
+namespace facebook::fboss::utility {} // namespace facebook::fboss::utility

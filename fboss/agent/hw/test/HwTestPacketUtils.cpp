@@ -41,9 +41,6 @@ using folly::io::RWPrivateCursor;
 
 namespace {
 auto kDefaultPayload = std::vector<uint8_t>(256, 0xff);
-utility::AllocatePktFn allocateFn(const HwSwitch* hw) {
-  return [hw](uint32_t size) { return hw->allocatePacket(size); };
-}
 } // namespace
 
 namespace facebook::fboss::utility {
@@ -96,75 +93,6 @@ std::optional<VlanID> firstVlanID(const std::shared_ptr<SwitchState>& state) {
 
 VlanID getIngressVlan(const std::shared_ptr<SwitchState>& state, PortID port) {
   return state->getPorts()->getNode(port)->getIngressVlan();
-}
-
-std::unique_ptr<facebook::fboss::TxPacket> makeEthTxPacket(
-    const HwSwitch* hw,
-    std::optional<VlanID> vlan,
-    folly::MacAddress srcMac,
-    folly::MacAddress dstMac,
-    facebook::fboss::ETHERTYPE etherType,
-    std::optional<std::vector<uint8_t>> payload) {
-  return makeEthTxPacket(
-      allocateFn(hw), vlan, srcMac, dstMac, etherType, payload);
-}
-
-std::unique_ptr<facebook::fboss::TxPacket> makeIpTxPacket(
-    const HwSwitch* hw,
-    std::optional<VlanID> vlan,
-    folly::MacAddress srcMac,
-    folly::MacAddress dstMac,
-    const folly::IPAddressV6& srcIp,
-    const folly::IPAddressV6& dstIp,
-    uint8_t trafficClass,
-    uint8_t hopLimit,
-    std::optional<std::vector<uint8_t>> payload) {
-  return makeIpTxPacket(
-      allocateFn(hw),
-      vlan,
-      srcMac,
-      dstMac,
-      srcIp,
-      dstIp,
-      trafficClass,
-      hopLimit,
-      payload);
-}
-
-std::unique_ptr<facebook::fboss::TxPacket> makeIpTxPacket(
-    const HwSwitch* hw,
-    std::optional<VlanID> vlan,
-    folly::MacAddress srcMac,
-    folly::MacAddress dstMac,
-    const folly::IPAddressV4& srcIp,
-    const folly::IPAddressV4& dstIp,
-    uint8_t dscp,
-    uint8_t ttl,
-    std::optional<std::vector<uint8_t>> payload) {
-  return makeIpTxPacket(
-      allocateFn(hw), vlan, srcMac, dstMac, srcIp, dstIp, dscp, ttl, payload);
-}
-
-std::unique_ptr<facebook::fboss::TxPacket> makeIpTxPacket(
-    const HwSwitch* hw,
-    std::optional<VlanID> vlan,
-    folly::MacAddress srcMac,
-    folly::MacAddress dstMac,
-    const folly::IPAddress& srcIp,
-    const folly::IPAddress& dstIp,
-    uint8_t trafficClass,
-    uint8_t hopLimit,
-    std::optional<std::vector<uint8_t>> payload) {
-  return makeIpTxPacket(
-      allocateFn(hw),
-      vlan,
-      srcMac,
-      dstMac,
-      srcIp,
-      dstIp,
-      trafficClass,
-      hopLimit,
-      payload);
 }
 
 std::unique_ptr<facebook::fboss::TxPacket> makeIpInIpTxPacket(
