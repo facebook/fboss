@@ -55,23 +55,6 @@ std::optional<VlanID> firstVlanID(const cfg::SwitchConfig& cfg);
 std::optional<VlanID> firstVlanID(const std::shared_ptr<SwitchState>& state);
 VlanID getIngressVlan(const std::shared_ptr<SwitchState>& state, PortID port);
 
-std::unique_ptr<facebook::fboss::TxPacket> makeIpInIpTxPacket(
-    const HwSwitch* hw,
-    VlanID vlan,
-    folly::MacAddress outerSrcMac,
-    folly::MacAddress outerDstMac,
-    const folly::IPAddressV6& outerSrcIp,
-    const folly::IPAddressV6& outerDstIp,
-    const folly::IPAddressV6& innerSrcIp,
-    const folly::IPAddressV6& innerDstIp,
-    uint16_t srcPort,
-    uint16_t dstPort,
-    uint8_t outerTrafficClass = 0,
-    uint8_t innerTrafficClass = 0,
-    uint8_t hopLimit = 255,
-    std::optional<std::vector<uint8_t>> payload =
-        std::optional<std::vector<uint8_t>>());
-
 std::unique_ptr<facebook::fboss::TxPacket> makeARPTxPacket(
     const HwSwitch* hw,
     std::optional<VlanID> vlan,
