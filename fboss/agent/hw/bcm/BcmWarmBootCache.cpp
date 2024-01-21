@@ -513,8 +513,8 @@ void BcmWarmBootCache::populateUdfFromWarmBootState(
 void BcmWarmBootCache::populateL2LearningModeFromDumpedSwSwitchState() {
   // populate l2LeraningMode_ from dumped switch state by default
   const auto switchSettings =
-      util::getFirstNodeIf(getDumpedSwSwitchState().getSwitchSettings())
-      ? util::getFirstNodeIf(getDumpedSwSwitchState().getSwitchSettings())
+      utility::getFirstNodeIf(getDumpedSwSwitchState().getSwitchSettings())
+      ? utility::getFirstNodeIf(getDumpedSwSwitchState().getSwitchSettings())
       : std::make_shared<SwitchSettings>();
   l2LearningMode_ = switchSettings->getL2LearningMode();
 }

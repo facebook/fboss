@@ -75,7 +75,7 @@ std::optional<VlanID> firstVlanID(const std::shared_ptr<SwitchState>& state) {
   std::optional<VlanID> firstVlanId;
   if (state->getVlans()->numNodes()) {
     firstVlanId =
-        util::getFirstMap(state->getVlans())->cbegin()->second->getID();
+        utility::getFirstMap(state->getVlans())->cbegin()->second->getID();
   }
   return firstVlanId;
 }

@@ -50,7 +50,7 @@ class EncapIndexAllocatorTest : public ::testing::Test {
     nbr.interfaceId() = static_cast<int>(firstIntf->getID());
     nbr.ipaddress() = ip.str();
     nbr.portId() =
-        PortDescriptor(util::getFirstMap(getSw()->getState()->getPorts())
+        PortDescriptor(utility::getFirstMap(getSw()->getState()->getPorts())
                            ->cbegin()
                            ->second->getID())
             .toThrift();

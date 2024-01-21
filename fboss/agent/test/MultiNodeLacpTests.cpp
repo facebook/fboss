@@ -277,7 +277,7 @@ class MultiNodeLacpTest : public MultiNodeTest {
     if (isDUT()) {
       auto state = sw()->getState();
       auto vlan =
-          util::getFirstMap(state->getVlans())->cbegin()->second->getID();
+          utility::getFirstMap(state->getVlans())->cbegin()->second->getID();
       auto srcMac = state->getInterfaces()->getInterfaceInVlan(vlan)->getMac();
       auto destMac =
           getNeighborEntry(
@@ -466,7 +466,8 @@ class MultiNodeRoutingLoop : public MultiNodeLacpTest {
     XLOG(INFO) << "creating data plane flood";
     disableTTLDecrementsForRoute<folly::IPAddressV6>(prefix_);
     auto state = sw()->getState();
-    auto vlan = util::getFirstMap(state->getVlans())->cbegin()->second->getID();
+    auto vlan =
+        utility::getFirstMap(state->getVlans())->cbegin()->second->getID();
     auto srcMac = state->getInterfaces()->getInterfaceInVlan(vlan)->getMac();
     auto destMac =
         getNeighborEntry(

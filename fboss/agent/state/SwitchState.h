@@ -242,8 +242,8 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   VlanID getDefaultVlan() const;
 
   const std::shared_ptr<QosPolicy> getDefaultDataPlaneQosPolicy() const {
-    const auto switchSettings = util::getFirstNodeIf(getSwitchSettings())
-        ? util::getFirstNodeIf(getSwitchSettings())
+    const auto switchSettings = utility::getFirstNodeIf(getSwitchSettings())
+        ? utility::getFirstNodeIf(getSwitchSettings())
         : std::make_shared<SwitchSettings>();
     return switchSettings->getDefaultDataPlaneQosPolicy();
   }
@@ -271,8 +271,8 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   const std::shared_ptr<MultiSwitchAclTableGroupMap>& getAclTableGroups() const;
 
   std::chrono::seconds getArpTimeout() const {
-    const auto switchSettings = util::getFirstNodeIf(getSwitchSettings())
-        ? util::getFirstNodeIf(getSwitchSettings())
+    const auto switchSettings = utility::getFirstNodeIf(getSwitchSettings())
+        ? utility::getFirstNodeIf(getSwitchSettings())
         : std::make_shared<SwitchSettings>();
     auto arpTimeoutSwSettings = switchSettings->getArpTimeout();
     if (arpTimeoutSwSettings.has_value()) {
@@ -299,8 +299,8 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   const std::shared_ptr<MultiSwitchSettings>& getSwitchSettings() const;
 
   const std::shared_ptr<QcmCfg> getQcmCfg() const {
-    const auto switchSettings = util::getFirstNodeIf(getSwitchSettings())
-        ? util::getFirstNodeIf(getSwitchSettings())
+    const auto switchSettings = utility::getFirstNodeIf(getSwitchSettings())
+        ? utility::getFirstNodeIf(getSwitchSettings())
         : std::make_shared<SwitchSettings>();
     return switchSettings->getQcmCfg();
   }
@@ -311,8 +311,8 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
       const;
 
   std::chrono::seconds getNdpTimeout() const {
-    const auto switchSettings = util::getFirstNodeIf(getSwitchSettings())
-        ? util::getFirstNodeIf(getSwitchSettings())
+    const auto switchSettings = utility::getFirstNodeIf(getSwitchSettings())
+        ? utility::getFirstNodeIf(getSwitchSettings())
         : std::make_shared<SwitchSettings>();
     auto ndpTimeoutSwSettings = switchSettings->getNdpTimeout();
     if (ndpTimeoutSwSettings.has_value()) {
@@ -323,8 +323,8 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   }
 
   std::chrono::seconds getArpAgerInterval() const {
-    const auto switchSettings = util::getFirstNodeIf(getSwitchSettings())
-        ? util::getFirstNodeIf(getSwitchSettings())
+    const auto switchSettings = utility::getFirstNodeIf(getSwitchSettings())
+        ? utility::getFirstNodeIf(getSwitchSettings())
         : std::make_shared<SwitchSettings>();
     auto arpAgeSwSettings = switchSettings->getArpAgerInterval();
     if (arpAgeSwSettings.has_value()) {
@@ -335,8 +335,8 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   }
 
   uint32_t getMaxNeighborProbes() const {
-    const auto switchSettings = util::getFirstNodeIf(getSwitchSettings())
-        ? util::getFirstNodeIf(getSwitchSettings())
+    const auto switchSettings = utility::getFirstNodeIf(getSwitchSettings())
+        ? utility::getFirstNodeIf(getSwitchSettings())
         : std::make_shared<SwitchSettings>();
     auto maxNeighborProbes = switchSettings->getMaxNeighborProbes();
     if (maxNeighborProbes.has_value()) {
@@ -346,8 +346,8 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   }
 
   std::chrono::seconds getStaleEntryInterval() const {
-    const auto switchSettings = util::getFirstNodeIf(getSwitchSettings())
-        ? util::getFirstNodeIf(getSwitchSettings())
+    const auto switchSettings = utility::getFirstNodeIf(getSwitchSettings())
+        ? utility::getFirstNodeIf(getSwitchSettings())
         : std::make_shared<SwitchSettings>();
     auto staleEntrySwSettings = switchSettings->getStaleEntryInterval();
     if (staleEntrySwSettings.has_value()) {
@@ -360,8 +360,8 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   // dhcp relay packet IP overrides
 
   folly::IPAddressV4 getDhcpV4RelaySrc() const {
-    const auto switchSettings = util::getFirstNodeIf(getSwitchSettings())
-        ? util::getFirstNodeIf(getSwitchSettings())
+    const auto switchSettings = utility::getFirstNodeIf(getSwitchSettings())
+        ? utility::getFirstNodeIf(getSwitchSettings())
         : std::make_shared<SwitchSettings>();
     auto dhcpV4RelaySrc = switchSettings->getDhcpV4RelaySrc();
     if (dhcpV4RelaySrc.has_value()) {
@@ -371,8 +371,8 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   }
 
   folly::IPAddressV6 getDhcpV6RelaySrc() const {
-    const auto switchSettings = util::getFirstNodeIf(getSwitchSettings())
-        ? util::getFirstNodeIf(getSwitchSettings())
+    const auto switchSettings = utility::getFirstNodeIf(getSwitchSettings())
+        ? utility::getFirstNodeIf(getSwitchSettings())
         : std::make_shared<SwitchSettings>();
     auto dhcpV6RelaySrc = switchSettings->getDhcpV6RelaySrc();
     if (dhcpV6RelaySrc.has_value()) {
@@ -382,8 +382,8 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   }
 
   folly::IPAddressV4 getDhcpV4ReplySrc() const {
-    const auto switchSettings = util::getFirstNodeIf(getSwitchSettings())
-        ? util::getFirstNodeIf(getSwitchSettings())
+    const auto switchSettings = utility::getFirstNodeIf(getSwitchSettings())
+        ? utility::getFirstNodeIf(getSwitchSettings())
         : std::make_shared<SwitchSettings>();
     auto dhcpV4ReplySrc = switchSettings->getDhcpV4ReplySrc();
     if (dhcpV4ReplySrc.has_value()) {
@@ -393,8 +393,8 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   }
 
   folly::IPAddressV6 getDhcpV6ReplySrc() const {
-    const auto switchSettings = util::getFirstNodeIf(getSwitchSettings())
-        ? util::getFirstNodeIf(getSwitchSettings())
+    const auto switchSettings = utility::getFirstNodeIf(getSwitchSettings())
+        ? utility::getFirstNodeIf(getSwitchSettings())
         : std::make_shared<SwitchSettings>();
     auto dhcpV6ReplySrc = switchSettings->getDhcpV6ReplySrc();
     if (dhcpV6ReplySrc.has_value()) {
@@ -422,16 +422,16 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   const std::shared_ptr<MultiSwitchDsfNodeMap>& getDsfNodes() const;
 
   const std::shared_ptr<UdfConfig> getUdfConfig() const {
-    const auto switchSettings = util::getFirstNodeIf(getSwitchSettings())
-        ? util::getFirstNodeIf(getSwitchSettings())
+    const auto switchSettings = utility::getFirstNodeIf(getSwitchSettings())
+        ? utility::getFirstNodeIf(getSwitchSettings())
         : std::make_shared<SwitchSettings>();
     return switchSettings->getUdfConfig();
   }
 
   const std::shared_ptr<FlowletSwitchingConfig> getFlowletSwitchingConfig()
       const {
-    const auto switchSettings = util::getFirstNodeIf(getSwitchSettings())
-        ? util::getFirstNodeIf(getSwitchSettings())
+    const auto switchSettings = utility::getFirstNodeIf(getSwitchSettings())
+        ? utility::getFirstNodeIf(getSwitchSettings())
         : std::make_shared<SwitchSettings>();
     return switchSettings->getFlowletSwitchingConfig();
   }

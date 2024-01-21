@@ -18,7 +18,7 @@ namespace {
 const std::string kTunIntfPrefix = "fboss";
 } // anonymous namespace
 
-namespace facebook::fboss::util {
+namespace facebook::fboss::utility {
 
 bool isTunIntfName(std::string const& ifName) {
   return ifName.find(kTunIntfPrefix) == 0;
@@ -36,4 +36,4 @@ InterfaceID getIDFromTunIntfName(std::string const& ifName) {
   return InterfaceID(atoi(ifName.substr(kTunIntfPrefix.size()).c_str()));
 }
 
-} // namespace facebook::fboss::util
+} // namespace facebook::fboss::utility

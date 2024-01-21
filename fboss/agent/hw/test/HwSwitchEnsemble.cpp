@@ -669,7 +669,8 @@ void HwSwitchEnsemble::setupEnsemble(
   }
   programmedState_ = initState->clone();
   if (bootType == BootType::WARM_BOOT) {
-    auto settings = util::getFirstNodeIf(programmedState_->getSwitchSettings());
+    auto settings =
+        utility::getFirstNodeIf(programmedState_->getSwitchSettings());
     auto newSettings = settings->modify(&programmedState_);
     newSettings->setSwitchIdToSwitchInfo(switchIdToSwitchInfo);
   } else {

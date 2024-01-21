@@ -166,8 +166,8 @@ TEST_F(LinkTest, ptpEnableIsHitless) {
   // disable PTP as by default we'll  have it enabled now
   sw()->updateStateBlocking("ptp disable", [](auto state) {
     auto newState = state->clone();
-    auto switchSettings =
-        util::getFirstNodeIf(newState->getSwitchSettings())->modify(&newState);
+    auto switchSettings = utility::getFirstNodeIf(newState->getSwitchSettings())
+                              ->modify(&newState);
     switchSettings->setPtpTcEnable(false);
     return newState;
   });
@@ -177,8 +177,8 @@ TEST_F(LinkTest, ptpEnableIsHitless) {
 
   sw()->updateStateBlocking("ptp enable", [](auto state) {
     auto newState = state->clone();
-    auto switchSettings =
-        util::getFirstNodeIf(newState->getSwitchSettings())->modify(&newState);
+    auto switchSettings = utility::getFirstNodeIf(newState->getSwitchSettings())
+                              ->modify(&newState);
     EXPECT_FALSE(switchSettings->isPtpTcEnable());
     switchSettings->setPtpTcEnable(true);
     return newState;

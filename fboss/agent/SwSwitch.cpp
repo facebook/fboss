@@ -1499,8 +1499,8 @@ void SwSwitch::handlePendingUpdates() {
 void SwSwitch::updatePtpTcCounter() {
   // update fb303 counter to reflect current state of PTP
   // should be invoked post update
-  auto switchSettings = util::getFirstNodeIf(getState()->getSwitchSettings())
-      ? util::getFirstNodeIf(getState()->getSwitchSettings())
+  auto switchSettings = utility::getFirstNodeIf(getState()->getSwitchSettings())
+      ? utility::getFirstNodeIf(getState()->getSwitchSettings())
       : std::make_shared<SwitchSettings>();
   fb303::fbData->setCounter(
       SwitchStats::kCounterPrefix + "ptp_tc_enabled",

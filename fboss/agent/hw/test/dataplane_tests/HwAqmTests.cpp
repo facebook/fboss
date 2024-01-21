@@ -375,7 +375,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
       // watermarks for ECN traffic for VoQ switches.
       auto sysPortId = getSystemPortID(
           portId,
-          util::getFirstNodeIf(getProgrammedState()->getSwitchSettings())
+          utility::getFirstNodeIf(getProgrammedState()->getSwitchSettings())
               ->getSwitchIdToSwitchInfo(),
           getPlatform()->getHwSwitch()->getSwitchID());
       auto sysPortStats =

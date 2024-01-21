@@ -102,7 +102,7 @@ bool TunManager::sendPacketToHost(
 }
 
 void TunManager::addExistingIntf(const std::string& ifName, int ifIndex) {
-  InterfaceID ifID = util::getIDFromTunIntfName(ifName);
+  InterfaceID ifID = utility::getIDFromTunIntfName(ifName);
   auto ret = intfs_.emplace(ifID, nullptr);
   if (!ret.second) {
     throw FbossError("Duplicate interface ", ifName);
@@ -550,7 +550,7 @@ void TunManager::linkProcessor(struct nl_object* obj, void* data) {
   }
 
   // Only add interface if it is a Tun interface
-  if (!util::isTunIntfName(name)) {
+  if (!utility::isTunIntfName(name)) {
     XLOG(DBG3) << "Ignore interface " << name
                << " because it is not a tun interface";
     return;

@@ -505,7 +505,8 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
   auto state = std::make_unique<SwitchState>();
   state->BaseT::fromThrift(switchState);
   if (FLAGS_enable_acl_table_group) {
-    auto aclMap = util::getFirstMap(state->cref<switch_state_tags::aclMaps>());
+    auto aclMap =
+        utility::getFirstMap(state->cref<switch_state_tags::aclMaps>());
     if (aclMap && aclMap->size()) {
       auto multiSwitchAclGroupMap =
           std::make_shared<MultiSwitchAclTableGroupMap>();
@@ -521,8 +522,8 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
     }
   }
   if (!FLAGS_enable_acl_table_group) {
-    auto firstTableGroupMap =
-        util::getFirstMap(state->cref<switch_state_tags::aclTableGroupMaps>());
+    auto firstTableGroupMap = utility::getFirstMap(
+        state->cref<switch_state_tags::aclTableGroupMaps>());
     auto aclMap = firstTableGroupMap
         ? AclTableGroupMap::getDefaultAclTableGroupMap(
               firstTableGroupMap->toThrift())

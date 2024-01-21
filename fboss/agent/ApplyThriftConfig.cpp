@@ -1176,7 +1176,8 @@ void ThriftConfigApplier::processInterfaceForPortForNonVoqSwitches(
 }
 
 void ThriftConfigApplier::processInterfaceForPort() {
-  const auto& switchSettings = util::getFirstNodeIf(new_->getSwitchSettings());
+  const auto& switchSettings =
+      utility::getFirstNodeIf(new_->getSwitchSettings());
   // Build Port -> interface mappings in port2InterfaceId_
   for (const auto& switchIdAndInfo :
        switchSettings->getSwitchIdToSwitchInfo()) {
@@ -1821,7 +1822,8 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
     }
   }
 
-  const auto& switchSettings = util::getFirstNodeIf(new_->getSwitchSettings());
+  const auto& switchSettings =
+      utility::getFirstNodeIf(new_->getSwitchSettings());
   // For now, we only support update unicast port queues for ports
   auto switchIds =
       SwitchIdScopeResolver(switchSettings->getSwitchIdToSwitchInfo())
@@ -2311,7 +2313,8 @@ uint8_t ThriftConfigApplier::computeMinimumLinkCount(
 }
 
 shared_ptr<VlanMap> ThriftConfigApplier::updateVlans() {
-  const auto& switchSettings = util::getFirstNodeIf(new_->getSwitchSettings());
+  const auto& switchSettings =
+      utility::getFirstNodeIf(new_->getSwitchSettings());
   // TODO(skhare)
   // VOQ/Fabric switches require that the packets are not tagged with any
   // VLAN. We are gradually enhancing wedge_agent to handle tagged as well as

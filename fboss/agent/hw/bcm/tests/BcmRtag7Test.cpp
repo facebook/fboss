@@ -103,7 +103,7 @@ class BcmRtag7Test : public BcmTest {
     auto udfConfig = utility::addUdfHashConfig();
     udfConfigState->fromThrift(udfConfig);
 
-    auto switchSettings = util::getFirstNodeIf(state->getSwitchSettings());
+    auto switchSettings = utility::getFirstNodeIf(state->getSwitchSettings());
     auto newSwitchSettings = switchSettings->modify(&state);
     newSwitchSettings->setUdfConfig(udfConfigState);
     return state;

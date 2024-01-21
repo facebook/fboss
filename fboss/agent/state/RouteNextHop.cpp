@@ -31,7 +31,7 @@ NextHop fromThrift(const NextHopThrift& nht, bool allowV6NonLinkLocal) {
   // next hop and let route resolution populate the interface.
   if (nht.address()->get_ifName() and (v6LinkLocal or allowV6NonLinkLocal)) {
     InterfaceID intfID =
-        util::getIDFromTunIntfName(*(nht.address()->get_ifName()));
+        utility::getIDFromTunIntfName(*(nht.address()->get_ifName()));
     return ResolvedNextHop(std::move(address), intfID, weight, action);
   } else {
     return UnresolvedNextHop(std::move(address), weight, action);

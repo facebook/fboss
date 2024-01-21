@@ -323,7 +323,7 @@ TEST(Udf, applyConfig) {
   EXPECT_EQ(stateV2->getUdfConfig()->getUdfGroupMap()->size(), 1);
   // one entry has been added <matchCfg_1>
   EXPECT_EQ(stateV2->getUdfConfig()->getUdfPacketMatcherMap()->size(), 1);
-  auto switchSettingsV2 = util::getFirstNodeIf(stateV2->getSwitchSettings());
+  auto switchSettingsV2 = utility::getFirstNodeIf(stateV2->getSwitchSettings());
   EXPECT_EQ(stateV2->getUdfConfig(), switchSettingsV2->getUdfConfig());
 
   // undo udf cfg

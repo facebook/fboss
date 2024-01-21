@@ -188,7 +188,7 @@ TEST(FlowletSwitching, applyConfig) {
   // backward/forward compatibility
   EXPECT_EQ(
       stateV2->getFlowletSwitchingConfig(),
-      util::getFirstNodeIf(stateV2->getSwitchSettings())
+      utility::getFirstNodeIf(stateV2->getSwitchSettings())
           ->getFlowletSwitchingConfig());
 
   // undo flowlet switching cfg

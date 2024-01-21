@@ -23,7 +23,7 @@ using namespace facebook::fboss;
 TEST_F(ManagerTestBase, checkQcmSupport) {
   auto newState = std::make_shared<SwitchState>();
   addSwitchSettingsToState(newState);
-  auto switchSettings = util::getFirstNodeIf(newState->getSwitchSettings());
+  auto switchSettings = utility::getFirstNodeIf(newState->getSwitchSettings());
   switchSettings->setQcmEnable(true);
   EXPECT_THROW(applyNewState(newState), FbossError);
 }
@@ -32,7 +32,7 @@ TEST_F(ManagerTestBase, checkInvalidL2LearningModeTransition) {
   saiPlatform->getHwSwitch()->switchRunStateChanged(SwitchRunState::CONFIGURED);
   auto newState = std::make_shared<SwitchState>();
   addSwitchSettingsToState(newState);
-  auto switchSettings = util::getFirstNodeIf(newState->getSwitchSettings());
+  auto switchSettings = utility::getFirstNodeIf(newState->getSwitchSettings());
   switchSettings->setL2LearningMode(cfg::L2LearningMode::SOFTWARE);
   EXPECT_THROW(applyNewState(newState), FbossError);
 }

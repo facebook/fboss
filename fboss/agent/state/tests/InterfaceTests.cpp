@@ -228,12 +228,12 @@ TEST(Interface, Modify) {
     cfg::SwitchConfig config = testConfigA();
     auto stateV1 = publishAndApplyConfig(state, &config, platform.get());
     stateV1->publish();
-    auto origIntfMap = util::getFirstMap(stateV1->getInterfaces());
+    auto origIntfMap = utility::getFirstMap(stateV1->getInterfaces());
     auto origIntf = origIntfMap->cbegin()->second;
     auto origIntfs = stateV1->getInterfaces();
     auto newIntf = origIntf->modify(&stateV1);
     EXPECT_NE(origIntf.get(), newIntf);
-    EXPECT_NE(origIntfMap, util::getFirstMap(stateV1->getInterfaces()));
+    EXPECT_NE(origIntfMap, utility::getFirstMap(stateV1->getInterfaces()));
     EXPECT_NE(origIntfs, stateV1->getInterfaces());
   }
   {
@@ -244,12 +244,12 @@ TEST(Interface, Modify) {
     cfg::SwitchConfig config = testConfigA(cfg::SwitchType::VOQ);
     auto stateV1 = publishAndApplyConfig(state, &config, platform.get());
     stateV1->publish();
-    auto origIntfMap = util::getFirstMap(stateV1->getInterfaces());
+    auto origIntfMap = utility::getFirstMap(stateV1->getInterfaces());
     auto origIntf = origIntfMap->cbegin()->second;
     auto origIntfs = stateV1->getInterfaces();
     auto newIntf = origIntf->modify(&stateV1);
     EXPECT_NE(origIntf.get(), newIntf);
-    EXPECT_NE(origIntfMap, util::getFirstMap(stateV1->getInterfaces()));
+    EXPECT_NE(origIntfMap, utility::getFirstMap(stateV1->getInterfaces()));
     EXPECT_NE(origIntfs, stateV1->getInterfaces());
   }
 }
@@ -583,8 +583,8 @@ void checkChangedIntfs(
   EXPECT_EQ(addedIDs, foundAdded);
   EXPECT_EQ(removedIDs, foundRemoved);
 
-  validateSerialization(util::getFirstMap(oldIntfs));
-  validateSerialization(util::getFirstMap(newIntfs));
+  validateSerialization(utility::getFirstMap(oldIntfs));
+  validateSerialization(utility::getFirstMap(newIntfs));
 }
 
 TEST(InterfaceMap, Modify) {
@@ -857,5 +857,5 @@ TEST(Interface, getAllNodes) {
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_EQ(
       *stateV1->getInterfaces()->getAllNodes(),
-      *util::getFirstMap(stateV1->getInterfaces()));
+      *utility::getFirstMap(stateV1->getInterfaces()));
 }

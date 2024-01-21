@@ -96,7 +96,7 @@ struct INextHop {
       *nht.address() = network::toBinaryAddress(addr());
       *nht.weight() = weight();
       if (isResolved()) {
-        nht.address()->ifName() = util::createTunIntfName(intf());
+        nht.address()->ifName() = utility::createTunIntfName(intf());
       }
       if (labelForwardingAction()) {
         nht.mplsAction() = labelForwardingAction()->toThrift();

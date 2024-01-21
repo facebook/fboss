@@ -302,7 +302,7 @@ TEST(RouteTypes, toFromRouteNextHops) {
                     std::optional<InterfaceID> intf) {
     auto bAddr = facebook::network::toBinaryAddress(folly::IPAddress(ipaddr));
     if (intf.has_value()) {
-      bAddr.ifName() = util::createTunIntfName(intf.value());
+      bAddr.ifName() = utility::createTunIntfName(intf.value());
     }
     bool found = false;
     for (const auto& entry : nhts) {

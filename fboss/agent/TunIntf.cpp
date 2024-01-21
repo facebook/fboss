@@ -70,7 +70,7 @@ TunIntf::TunIntf(
     int mtu)
     : folly::EventHandler(evb),
       sw_(sw),
-      name_(util::createTunIntfName(ifID)),
+      name_(utility::createTunIntfName(ifID)),
       ifID_(ifID),
       ifIndex_(ifIndex),
       mtu_(mtu) {
@@ -101,7 +101,7 @@ TunIntf::TunIntf(
     int mtu)
     : folly::EventHandler(evb),
       sw_(sw),
-      name_(util::createTunIntfName(ifID)),
+      name_(utility::createTunIntfName(ifID)),
       ifID_(ifID),
       status_(status),
       addrs_(addr),
