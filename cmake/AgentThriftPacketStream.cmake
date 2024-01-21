@@ -15,4 +15,5 @@ target_link_libraries(bidirectional_packet_stream
     FBThrift::thriftcpp2
     async_packet_transport
     packet_stream_cpp2
+    fboss_cpp2
 )
