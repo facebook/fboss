@@ -558,7 +558,7 @@ class SwSwitch : public HwSwitchCallback {
   /*
    * Allocate a new TxPacket.
    */
-  std::unique_ptr<TxPacket> allocatePacket(uint32_t size);
+  std::unique_ptr<TxPacket> allocatePacket(uint32_t size) const;
 
   /**
    * Allocate a TxPacket, which is used to send out through HW

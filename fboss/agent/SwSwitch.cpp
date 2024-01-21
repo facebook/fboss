@@ -2152,7 +2152,7 @@ uint32_t SwSwitch::getEthernetHeaderSize() const {
                                                : EthHdr::UNTAGGED_PKT_SIZE;
 }
 
-std::unique_ptr<TxPacket> SwSwitch::allocatePacket(uint32_t size) {
+std::unique_ptr<TxPacket> SwSwitch::allocatePacket(uint32_t size) const {
   return multiHwSwitchHandler_->allocatePacket(size);
 }
 
