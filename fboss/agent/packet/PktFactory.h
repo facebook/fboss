@@ -334,7 +334,7 @@ EthHdr makeEthHdr(
     ETHERTYPE etherType);
 
 template <typename SwitchT>
-AllocatePktFn makeAllocater(const SwitchT* sw) {
+AllocatePktFn makeAllocator(const SwitchT* sw) {
   return [sw](uint32_t size) { return sw->allocatePacket(size); };
 }
 std::unique_ptr<TxPacket> makeEthTxPacket(
@@ -540,7 +540,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeEthTxPacket(
     std::optional<std::vector<uint8_t>> payload = std::nullopt) {
   return makeEthTxPacket(
 
-      makeAllocater(switchT), vlan, srcMac, dstMac, etherType, payload);
+      makeAllocator(switchT), vlan, srcMac, dstMac, etherType, payload);
 }
 
 template <typename SwitchT>
@@ -554,7 +554,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeARPTxPacket(
     ARP_OPER type,
     std::optional<folly::MacAddress> targetMac = std::nullopt) {
   return makeARPTxPacket(
-      makeAllocater(switchT),
+      makeAllocator(switchT),
       vlan,
       srcMac,
       dstMac,
@@ -572,7 +572,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeNeighborSolicitation(
     const folly::IPAddressV6& srcIp,
     const folly::IPAddressV6& neighborIp) {
   return makeNeighborSolicitation(
-      makeAllocater(switchT), vlan, srcMac, srcIp, neighborIp);
+      makeAllocator(switchT), vlan, srcMac, srcIp, neighborIp);
 }
 
 template <typename SwitchT>
@@ -584,7 +584,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeNeighborAdvertisement(
     const folly::IPAddressV6& srcIp,
     folly::IPAddressV6 dstIp) {
   return makeNeighborAdvertisement(
-      makeAllocater(switchT), vlan, srcMac, dstMac, srcIp, dstIp);
+      makeAllocator(switchT), vlan, srcMac, dstMac, srcIp, dstIp);
 }
 
 template <typename SwitchT, typename IPAddrT>
@@ -629,7 +629,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpInIpTxPacket(
     std::optional<std::vector<uint8_t>> payload =
         std::optional<std::vector<uint8_t>>()) {
   return makeIpInIpTxPacket(
-      makeAllocater(switchT),
+      makeAllocator(switchT),
       vlan,
       outerSrcMac,
       outerDstMac,
@@ -660,7 +660,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
     std::optional<std::vector<uint8_t>> payload =
         std::optional<std::vector<uint8_t>>()) {
   return makeUDPTxPacket(
-      makeAllocater(switchT),
+      makeAllocator(switchT),
       vlan,
       srcMac,
       dstMac,
@@ -685,7 +685,7 @@ std::unique_ptr<TxPacket> makePTPTxPacket(
     uint8_t hopLimit,
     PTPMessageType ptpPktType) {
   return makePTPTxPacket(
-      makeAllocater(switchT),
+      makeAllocator(switchT),
       vlan,
       srcMac,
       dstMac,
@@ -711,7 +711,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeTCPTxPacket(
     std::optional<std::vector<uint8_t>> payload =
         std::optional<std::vector<uint8_t>>()) {
   return makeTCPTxPacket(
-      makeAllocater(switchT),
+      makeAllocator(switchT),
       vlan,
       srcMac,
       dstMac,
@@ -736,7 +736,7 @@ std::unique_ptr<TxPacket> makeTCPTxPacket(
     std::optional<std::vector<uint8_t>> payload =
         std::optional<std::vector<uint8_t>>()) {
   return makeTCPTxPacket(
-      makeAllocater(switchT),
+      makeAllocator(switchT),
       vlanId,
       dstMac,
       dstIpAddress,

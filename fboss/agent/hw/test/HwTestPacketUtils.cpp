@@ -94,7 +94,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeLLDPPacket(
     const uint16_t ttl,
     const uint16_t capabilities) {
   return LldpManager::createLldpPkt(
-      makeAllocater(hw),
+      makeAllocator(hw),
       srcMac,
       vlanid,
       hostname,
