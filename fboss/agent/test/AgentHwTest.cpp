@@ -168,7 +168,7 @@ std::map<PortID, HwPortStats> AgentHwTest::getLatestPortStats(
         return !portStats.empty();
       },
       120,
-      std::chrono::seconds(1),
+      std::chrono::milliseconds(1000),
       " fetch port stats");
   return portStats;
 }

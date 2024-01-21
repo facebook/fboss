@@ -88,6 +88,12 @@ class AgentHwTest : public ::testing::Test {
 
   SwSwitch* getSw() const;
   const std::map<SwitchID, const HwAsic*> getAsics() const;
+  const HwAsic& getAsic(SwitchID swId) const {
+    return *getAsics().find(swId)->second;
+  }
+  const SwitchIdScopeResolver& scopeResolver() const {
+    return getAgentEnsemble()->scopeResolver();
+  }
   bool isSupportedOnAllAsics(HwAsic::Feature feature) const;
   AgentEnsemble* getAgentEnsemble() const;
   const std::shared_ptr<SwitchState> getProgrammedState() const;
