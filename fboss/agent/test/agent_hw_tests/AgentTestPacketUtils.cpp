@@ -10,14 +10,32 @@
 
 #include "fboss/agent/test/agent_hw_tests/AgentTestPacketUtils.h"
 
+#include "fboss/agent/LldpManager.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/TxPacket.h"
-#include "fboss/agent/gen-cpp2/switch_config_types.h"
-#include "fboss/agent/packet/PktFactory.h"
 
-using namespace facebook::fboss;
-namespace {
-auto kDefaultPayload = std::vector<uint8_t>(256, 0xff);
-} // namespace
+namespace facebook::fboss::utility {
 
-namespace facebook::fboss::utility {} // namespace facebook::fboss::utility
+std::unique_ptr<facebook::fboss::TxPacket> makeLLDPPacket(
+    const SwSwitch* sw,
+    const folly::MacAddress srcMac,
+    std::optional<VlanID> vlanid,
+    const std::string& systemdescr,
+    const std::string& hostname,
+    const std::string& portname,
+    const std::string& portdesc,
+    const uint16_t ttl,
+    const uint16_t capabilities) {
+  return LldpManager::createLldpPkt(
+      makeAllocater(sw),
+      srcMac,
+      vlanid,
+      systemdescr,
+      hostname,
+      portname,
+      portdesc,
+      ttl,
+      capabilities);
+}
+
+} // namespace facebook::fboss::utility

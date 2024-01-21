@@ -318,23 +318,16 @@ std::unique_ptr<facebook::fboss::TxPacket> makeLLDPPacket(
     const std::string& portdesc,
     const uint16_t ttl,
     const uint16_t capabilities) {
-  uint32_t frameLen =
-      LldpManager::LldpPktSize(hostname, portname, portdesc, systemdescr);
-
-  VlanID vlan(vlanid.value_or(VlanID(0)));
-
-  auto pkt = hw->allocatePacket(frameLen);
-  LldpManager::fillLldpTlv(
-      pkt.get(),
+  return LldpManager::createLldpPkt(
+      makeAllocater(hw),
       srcMac,
-      vlan,
+      vlanid,
       systemdescr,
       hostname,
       portname,
       portdesc,
       ttl,
       capabilities);
-  return pkt;
 }
 
 void sendTcpPkts(

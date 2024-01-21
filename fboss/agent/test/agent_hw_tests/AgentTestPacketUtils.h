@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include "fboss/agent/packet/EthHdr.h"
 #include "fboss/agent/types.h"
 
 #include <folly/MacAddress.h>
@@ -20,15 +19,6 @@ class SwSwitch;
 class TxPacket;
 
 namespace utility {
-
-std::unique_ptr<facebook::fboss::TxPacket> makeEthTxPacket(
-    SwSwitch* sw,
-    std::optional<VlanID> vlan,
-    folly::MacAddress srcMac,
-    folly::MacAddress dstMac,
-    facebook::fboss::ETHERTYPE etherType,
-    std::optional<std::vector<uint8_t>> payload);
-}
 
 std::unique_ptr<TxPacket> makeLLDPPacket(
     const SwSwitch* hw,
@@ -40,4 +30,5 @@ std::unique_ptr<TxPacket> makeLLDPPacket(
     const std::string& portdesc,
     const uint16_t ttl,
     const uint16_t capabilities);
+} // namespace utility
 } // namespace facebook::fboss
