@@ -34,17 +34,6 @@ using folly::MacAddress;
 
 namespace facebook::fboss::utility {
 
-folly::MacAddress getInterfaceMac(
-    const std::shared_ptr<SwitchState>& state,
-    VlanID vlan) {
-  return state->getInterfaces()->getInterfaceInVlan(vlan)->getMac();
-}
-folly::MacAddress getInterfaceMac(
-    const std::shared_ptr<SwitchState>& state,
-    InterfaceID intf) {
-  return state->getInterfaces()->getNode(intf)->getMac();
-}
-
 folly::MacAddress getFirstInterfaceMac(const cfg::SwitchConfig& cfg) {
   auto intfCfg = cfg.interfaces()[0];
 
@@ -56,26 +45,10 @@ folly::MacAddress getFirstInterfaceMac(const cfg::SwitchConfig& cfg) {
   return folly::MacAddress(*intfCfg.mac());
 }
 
-folly::MacAddress getFirstInterfaceMac(
-    const std::shared_ptr<SwitchState>& state) {
-  const auto& intfMap = state->getInterfaces()->cbegin()->second;
-  const auto& intf = std::as_const(*intfMap->cbegin()).second;
-  return intf->getMac();
-}
-
 std::optional<VlanID> firstVlanID(const cfg::SwitchConfig& cfg) {
   std::optional<VlanID> firstVlanId;
   if (cfg.vlanPorts()->size()) {
     firstVlanId = VlanID(*cfg.vlanPorts()[0].vlanID());
-  }
-  return firstVlanId;
-}
-
-std::optional<VlanID> firstVlanID(const std::shared_ptr<SwitchState>& state) {
-  std::optional<VlanID> firstVlanId;
-  if (state->getVlans()->numNodes()) {
-    firstVlanId =
-        utility::getFirstMap(state->getVlans())->cbegin()->second->getID();
   }
   return firstVlanId;
 }

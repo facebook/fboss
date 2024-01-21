@@ -13,7 +13,12 @@
 
 #include "fboss/agent/types.h"
 
-namespace facebook::fboss::utility {
+#include <folly/MacAddress.h>
+
+namespace facebook::fboss {
+class SwitchState;
+
+namespace utility {
 
 /**
  * Utility functions for InterfaceID <-> ifName (on host)
@@ -32,4 +37,15 @@ auto getFirstNodeIf(const std::shared_ptr<MultiSwitchMapT>& map) {
   return map->size() ? map->cbegin()->second : nullptr;
 }
 
-} // namespace facebook::fboss::utility
+folly::MacAddress getInterfaceMac(
+    const std::shared_ptr<SwitchState>& state,
+    VlanID vlan);
+folly::MacAddress getInterfaceMac(
+    const std::shared_ptr<SwitchState>& state,
+    InterfaceID intf);
+folly::MacAddress getFirstInterfaceMac(
+    const std::shared_ptr<SwitchState>& state);
+std::optional<VlanID> firstVlanID(const std::shared_ptr<SwitchState>& state);
+VlanID getIngressVlan(const std::shared_ptr<SwitchState>& state, PortID port);
+} // namespace utility
+} // namespace facebook::fboss

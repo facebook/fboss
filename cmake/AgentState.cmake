@@ -139,6 +139,7 @@ add_library(state_utils
 target_link_libraries(state_utils
   error
   fboss_types
+  switch_state_cpp2
 )
 
 add_library(label_forwarding_action
