@@ -73,6 +73,46 @@ std::unique_ptr<TxPacket> makeUDPTxPacket(
   csumCursor.writeBE<uint16_t>(csum);
   return txPacket;
 }
+
+template <typename IPHDR>
+std::unique_ptr<facebook::fboss::TxPacket> makeTCPTxPacket(
+    const AllocatePktFn& allocatePacket,
+    const EthHdr& ethHdr,
+    const IPHDR& ipHdr,
+    const TCPHeader& tcpHdr,
+    const std::vector<uint8_t>& payload) {
+  auto txPacket = allocatePacket(
+      ethHdr.size() + ipHdr.size() + tcpHdr.size() + payload.size());
+
+  folly::io::RWPrivateCursor rwCursor(txPacket->buf());
+  // Write EthHdr
+  writeEthHeader(
+      txPacket,
+      &rwCursor,
+      ethHdr.getDstMac(),
+      ethHdr.getSrcMac(),
+      ethHdr.getVlanTags(),
+      ethHdr.getEtherType());
+  ipHdr.serialize(&rwCursor);
+
+  // write TCP header, payload and compute checksum
+  rwCursor.writeBE<uint16_t>(tcpHdr.srcPort);
+  rwCursor.writeBE<uint16_t>(tcpHdr.dstPort);
+  rwCursor.writeBE<uint32_t>(tcpHdr.sequenceNumber);
+  rwCursor.writeBE<uint32_t>(tcpHdr.ackNumber);
+  rwCursor.writeBE<uint8_t>(tcpHdr.dataOffsetAndReserved);
+  rwCursor.writeBE<uint8_t>(tcpHdr.flags);
+  rwCursor.writeBE<uint16_t>(tcpHdr.windowSize);
+  folly::io::RWPrivateCursor csumCursor(rwCursor);
+  rwCursor.skip(2);
+  rwCursor.writeBE<uint16_t>(tcpHdr.urgentPointer);
+  folly::io::Cursor payloadStart(rwCursor);
+  rwCursor.push(payload.data(), payload.size());
+  uint16_t csum = tcpHdr.computeChecksum(ipHdr, payloadStart);
+  csumCursor.writeBE<uint16_t>(csum);
+  return txPacket;
+}
+
 } // namespace
 
 template <typename AddrT>
@@ -612,6 +652,150 @@ std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
       dstPort,
       trafficClass,
       hopLimit,
+      payload);
+}
+
+std::unique_ptr<facebook::fboss::TxPacket> makeTCPTxPacket(
+    const AllocatePktFn& allocatePacket,
+    std::optional<VlanID> vlan,
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    const folly::IPAddressV6& srcIp,
+    const folly::IPAddressV6& dstIp,
+    uint16_t srcPort,
+    uint16_t dstPort,
+    uint8_t trafficClass,
+    uint8_t hopLimit,
+    std::optional<std::vector<uint8_t>> payload) {
+  if (!payload) {
+    payload = kDefaultPayload;
+  }
+  const auto& payloadBytes = payload.value();
+  // EthHdr
+  auto ethHdr = makeEthHdr(srcMac, dstMac, vlan, ETHERTYPE::ETHERTYPE_IPV6);
+  // IPv6Hdr
+  IPv6Hdr ipHdr(srcIp, dstIp);
+  ipHdr.nextHeader = static_cast<uint8_t>(IP_PROTO::IP_PROTO_TCP);
+  ipHdr.trafficClass = trafficClass;
+  ipHdr.payloadLength = TCPHeader::size() + payloadBytes.size();
+  ipHdr.hopLimit = hopLimit;
+  // TCPHeader
+  TCPHeader tcpHdr(srcPort, dstPort);
+
+  return makeTCPTxPacket(allocatePacket, ethHdr, ipHdr, tcpHdr, payloadBytes);
+}
+
+std::unique_ptr<facebook::fboss::TxPacket> makeTCPTxPacket(
+    const AllocatePktFn& allocatePacket,
+    std::optional<VlanID> vlan,
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    const folly::IPAddressV4& srcIp,
+    const folly::IPAddressV4& dstIp,
+    uint16_t srcPort,
+    uint16_t dstPort,
+    uint8_t dscp,
+    uint8_t ttl,
+    std::optional<std::vector<uint8_t>> payload) {
+  if (!payload) {
+    payload = kDefaultPayload;
+  }
+  const auto& payloadBytes = payload.value();
+  // EthHdr
+  auto ethHdr = makeEthHdr(srcMac, dstMac, vlan, ETHERTYPE::ETHERTYPE_IPV4);
+  // IPv4Hdr
+  IPv4Hdr ipHdr(
+      srcIp,
+      dstIp,
+      static_cast<uint8_t>(IP_PROTO::IP_PROTO_TCP),
+      payloadBytes.size());
+  ipHdr.dscp = dscp;
+  ipHdr.ttl = ttl;
+  ipHdr.computeChecksum();
+  // TCPHeader
+  TCPHeader tcpHdr(srcPort, dstPort);
+
+  return makeTCPTxPacket(allocatePacket, ethHdr, ipHdr, tcpHdr, payloadBytes);
+}
+
+std::unique_ptr<facebook::fboss::TxPacket> makeTCPTxPacket(
+    const AllocatePktFn& allocatePacket,
+    std::optional<VlanID> vlan,
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    const folly::IPAddress& srcIp,
+    const folly::IPAddress& dstIp,
+    uint16_t srcPort,
+    uint16_t dstPort,
+    uint8_t trafficClass,
+    uint8_t hopLimit,
+    std::optional<std::vector<uint8_t>> payload) {
+  CHECK_EQ(srcIp.isV6(), dstIp.isV6());
+  if (srcIp.isV6()) {
+    return makeTCPTxPacket(
+        allocatePacket,
+        vlan,
+        srcMac,
+        dstMac,
+        srcIp.asV6(),
+        dstIp.asV6(),
+        srcPort,
+        dstPort,
+        trafficClass,
+        hopLimit,
+        payload);
+  }
+  return makeTCPTxPacket(
+      allocatePacket,
+      vlan,
+      srcMac,
+      dstMac,
+      srcIp.asV4(),
+      dstIp.asV4(),
+      srcPort,
+      dstPort,
+      trafficClass,
+      hopLimit,
+      payload);
+}
+
+std::unique_ptr<TxPacket> makeTCPTxPacket(
+    const AllocatePktFn& allocatePacket,
+    std::optional<VlanID> vlanId,
+    folly::MacAddress dstMac,
+    const folly::IPAddress& dstIpAddress,
+    int l4SrcPort,
+    int l4DstPort,
+    uint8_t trafficClass,
+    std::optional<std::vector<uint8_t>> payload) {
+  folly::MacAddress srcMac;
+
+  if (!dstMac.isUnicast()) {
+    // some arbitrary mac
+    srcMac = folly::MacAddress("00:00:01:02:03:04");
+  } else {
+    srcMac = folly::MacAddress::fromNBO(dstMac.u64NBO() + 1);
+  }
+
+  // arbit
+  const auto srcIp =
+      folly::IPAddress(dstIpAddress.isV4() ? "1.1.1.2" : "1::10");
+
+  return utility::makeTCPTxPacket(
+      allocatePacket,
+      vlanId,
+      srcMac,
+      dstMac,
+      srcIp,
+      dstIpAddress,
+      l4SrcPort,
+      l4DstPort,
+      dstIpAddress.isV4()
+          ? trafficClass
+          : trafficClass << 2, // v6 header takes entire TC byte with
+                               // trailing 2 bits for ECN. V4 header OTOH
+                               // expects only dscp value.
+      255,
       payload);
 }
 template class IPPacket<folly::IPAddressV4>;

@@ -72,67 +72,6 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpInIpTxPacket(
     std::optional<std::vector<uint8_t>> payload =
         std::optional<std::vector<uint8_t>>());
 
-template <typename IPHDR>
-std::unique_ptr<facebook::fboss::TxPacket> makeTCPTxPacket(
-    const HwSwitch* hw,
-    const EthHdr& ethHdr,
-    const IPHDR& ipHdr,
-    const TCPHeader& udpHdr,
-    const std::vector<uint8_t>& payload);
-
-std::unique_ptr<facebook::fboss::TxPacket> makeTCPTxPacket(
-    const HwSwitch* hw,
-    std::optional<VlanID> vlan,
-    folly::MacAddress srcMac,
-    folly::MacAddress dstMac,
-    const folly::IPAddressV6& srcIp,
-    const folly::IPAddressV6& dstIp,
-    uint16_t srcPort,
-    uint16_t dstPort,
-    uint8_t trafficClass = 0,
-    uint8_t hopLimit = 255,
-    std::optional<std::vector<uint8_t>> payload =
-        std::optional<std::vector<uint8_t>>());
-
-std::unique_ptr<TxPacket> makeTCPTxPacket(
-    facebook::fboss::HwSwitch* hwSwitch,
-    std::optional<VlanID> vlanId,
-    folly::MacAddress dstMac,
-    const folly::IPAddress& dstIpAddress,
-    int l4SrcPort,
-    int l4DstPort,
-    uint8_t trafficClass = 0,
-    std::optional<std::vector<uint8_t>> payload =
-        std::optional<std::vector<uint8_t>>());
-
-std::unique_ptr<facebook::fboss::TxPacket> makeTCPTxPacket(
-    const HwSwitch* hw,
-    std::optional<VlanID> vlan,
-    folly::MacAddress srcMac,
-    folly::MacAddress dstMac,
-    const folly::IPAddressV4& srcIp,
-    const folly::IPAddressV4& dstIp,
-    uint16_t srcPort,
-    uint16_t dstPort,
-    uint8_t dscp = 0,
-    uint8_t ttl = 255,
-    std::optional<std::vector<uint8_t>> payload =
-        std::optional<std::vector<uint8_t>>());
-
-std::unique_ptr<facebook::fboss::TxPacket> makeTCPTxPacket(
-    const HwSwitch* hw,
-    std::optional<VlanID> vlan,
-    folly::MacAddress srcMac,
-    folly::MacAddress dstMac,
-    const folly::IPAddress& srcIp,
-    const folly::IPAddress& dstIp,
-    uint16_t srcPort,
-    uint16_t dstPort,
-    uint8_t trafficClass = 0,
-    uint8_t hopLimit = 255,
-    std::optional<std::vector<uint8_t>> payload =
-        std::optional<std::vector<uint8_t>>());
-
 std::unique_ptr<facebook::fboss::TxPacket> makeARPTxPacket(
     const HwSwitch* hw,
     std::optional<VlanID> vlan,
