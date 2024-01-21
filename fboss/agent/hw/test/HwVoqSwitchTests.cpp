@@ -215,7 +215,8 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
             return ip.isV6();
           });
 
-      auto dstIp = folly::IPAddress::createNetwork(*ipv6Addr, -1, false).first;
+      auto dstIp =
+          folly::IPAddress::createNetwork(*ipv6Addr, -1, false).first.asV6();
       folly::IPAddressV6 kSrcIp("1::1");
       const auto srcMac = folly::MacAddress("00:00:01:02:03:04");
       const auto dstMac = utility::kLocalCpuMac();
