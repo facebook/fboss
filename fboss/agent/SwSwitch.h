@@ -927,8 +927,10 @@ class SwSwitch : public HwSwitchCallback {
 
   // Returns a copy of hwswitch exported stats.
   // To be used only in tests as copy is expensive.
-  multiswitch::HwSwitchStats getHwSwitchStatsWithCopy(
+  multiswitch::HwSwitchStats getHwSwitchStatsExpensive(
       uint16_t switchIndex) const;
+  std::map<uint16_t, multiswitch::HwSwitchStats> getHwSwitchStatsExpensive()
+      const;
 
   FabricReachabilityStats getFabricReachabilityStats();
 

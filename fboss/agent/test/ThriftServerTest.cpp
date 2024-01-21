@@ -386,7 +386,7 @@ CO_TEST_F(ThriftServerTest, statsUpdate) {
         co_yield getTestStatUpdate();
       }());
   EXPECT_TRUE(ret);
-  EXPECT_EQ(sw_->getHwSwitchStatsWithCopy(switchIndex), getTestStatUpdate());
+  EXPECT_EQ(sw_->getHwSwitchStatsExpensive(switchIndex), getTestStatUpdate());
   sw_->updateStats();
   EXPECT_EQ(sw_->getFabricReachabilityStats().mismatchCount().value(), 10);
   EXPECT_EQ(sw_->getFabricReachabilityStats().missingCount().value(), 20);

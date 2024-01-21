@@ -3021,13 +3021,18 @@ void SwSwitch::updateHwSwitchStats(
   (*hwSwitchStats_.wlock())[switchIndex] = std::move(hwStats);
 }
 
-multiswitch::HwSwitchStats SwSwitch::getHwSwitchStatsWithCopy(
+multiswitch::HwSwitchStats SwSwitch::getHwSwitchStatsExpensive(
     uint16_t switchIndex) const {
   auto lockedStats = hwSwitchStats_.rlock();
   if (lockedStats->find(switchIndex) == lockedStats->end()) {
     throw FbossError("No stats for switch index ", switchIndex);
   }
   return lockedStats->at(switchIndex);
+}
+
+std::map<uint16_t, multiswitch::HwSwitchStats>
+SwSwitch::getHwSwitchStatsExpensive() const {
+  return *hwSwitchStats_.rlock();
 }
 
 FabricReachabilityStats SwSwitch::getFabricReachabilityStats() {
