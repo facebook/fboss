@@ -9,10 +9,10 @@
 
 #include "fboss/agent/HwSwitch.h"
 
+namespace facebook::fboss::utility {
 namespace {
 static auto kDefaultPayload = std::vector<uint8_t>(256, 0xff);
 
-using namespace facebook::fboss;
 uint8_t nextHeader(const IPv6Hdr& hdr) {
   return hdr.nextHeader;
 }
@@ -23,7 +23,7 @@ uint8_t nextHeader(const IPv4Hdr& hdr) {
 
 template <typename IPHDR>
 void makeIpPacket(
-    std::unique_ptr<facebook::fboss::TxPacket>& txPacket,
+    std::unique_ptr<TxPacket>& txPacket,
     const EthHdr& ethHdr,
     const IPHDR& ipHdr,
     const std::vector<uint8_t>& payload) {
@@ -39,11 +39,41 @@ void makeIpPacket(
   ipHdr.serialize(&rwCursor);
   rwCursor.push(payload.data(), payload.size());
 }
+
+template <typename IPHDR>
+std::unique_ptr<TxPacket> makeUDPTxPacket(
+    const AllocatePktFn& allocatePacket,
+    const EthHdr& ethHdr,
+    const IPHDR& ipHdr,
+    const UDPHeader& udpHdr,
+    const std::vector<uint8_t>& payload) {
+  auto txPacket = allocatePacket(
+      ethHdr.size() + ipHdr.size() + udpHdr.size() + payload.size());
+
+  folly::io::RWPrivateCursor rwCursor(txPacket->buf());
+  // Write EthHdr
+  writeEthHeader(
+      txPacket,
+      &rwCursor,
+      ethHdr.getDstMac(),
+      ethHdr.getSrcMac(),
+      ethHdr.getVlanTags(),
+      ethHdr.getEtherType());
+  ipHdr.serialize(&rwCursor);
+
+  // write UDP header, payload and compute checksum
+  rwCursor.writeBE<uint16_t>(udpHdr.srcPort);
+  rwCursor.writeBE<uint16_t>(udpHdr.dstPort);
+  rwCursor.writeBE<uint16_t>(udpHdr.length);
+  folly::io::RWPrivateCursor csumCursor(rwCursor);
+  rwCursor.skip(2);
+  folly::io::Cursor payloadStart(rwCursor);
+  rwCursor.push(payload.data(), payload.size());
+  uint16_t csum = udpHdr.computeChecksum(ipHdr, payloadStart);
+  csumCursor.writeBE<uint16_t>(csum);
+  return txPacket;
+}
 } // namespace
-
-namespace facebook::fboss {
-
-namespace utility {
 
 template <typename AddrT>
 IPPacket<AddrT>::IPPacket(folly::io::Cursor& cursor) {
@@ -477,6 +507,113 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpTxPacket(
                             payload);
 }
 
+std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
+    const AllocatePktFn& allocator,
+    std::optional<VlanID> vlan,
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    const folly::IPAddressV6& srcIp,
+    const folly::IPAddressV6& dstIp,
+    uint16_t srcPort,
+    uint16_t dstPort,
+    uint8_t trafficClass,
+    uint8_t hopLimit,
+    std::optional<std::vector<uint8_t>> payload) {
+  // TODO: Refactor such that both tests and DHCPv6Handler to use this
+  // function for constructing v6 UDP packets
+  if (!payload) {
+    payload = kDefaultPayload;
+  }
+  const auto& payloadBytes = payload.value();
+  // EthHdr
+  auto ethHdr = makeEthHdr(srcMac, dstMac, vlan, ETHERTYPE::ETHERTYPE_IPV6);
+  // IPv6Hdr
+  IPv6Hdr ipHdr(srcIp, dstIp);
+  ipHdr.nextHeader = static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP);
+  ipHdr.trafficClass = trafficClass;
+  ipHdr.payloadLength = UDPHeader::size() + payloadBytes.size();
+  ipHdr.hopLimit = hopLimit;
+  // UDPHeader
+  UDPHeader udpHdr(srcPort, dstPort, UDPHeader::size() + payloadBytes.size());
+
+  return makeUDPTxPacket(allocator, ethHdr, ipHdr, udpHdr, payloadBytes);
+}
+
+std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
+    const AllocatePktFn& allocator,
+    std::optional<VlanID> vlan,
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    const folly::IPAddressV4& srcIp,
+    const folly::IPAddressV4& dstIp,
+    uint16_t srcPort,
+    uint16_t dstPort,
+    uint8_t dscp,
+    uint8_t ttl,
+    std::optional<std::vector<uint8_t>> payload) {
+  // TODO: Refactor such that both tests and DHCPv4Handler to use this
+  // function for constructing v4 UDP packets
+  if (!payload) {
+    payload = kDefaultPayload;
+  }
+  const auto& payloadBytes = payload.value();
+  // EthHdr
+  auto ethHdr = makeEthHdr(srcMac, dstMac, vlan, ETHERTYPE::ETHERTYPE_IPV4);
+  // IPv4Hdr - total_length field includes the payload + UDP hdr + ip hdr
+  IPv4Hdr ipHdr(
+      srcIp,
+      dstIp,
+      static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP),
+      payloadBytes.size() + UDPHeader::size());
+  ipHdr.dscp = dscp;
+  ipHdr.ttl = ttl;
+  ipHdr.computeChecksum();
+  // UDPHeader
+  UDPHeader udpHdr(srcPort, dstPort, UDPHeader::size() + payloadBytes.size());
+
+  return makeUDPTxPacket(allocator, ethHdr, ipHdr, udpHdr, payloadBytes);
+}
+
+std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
+    const AllocatePktFn& allocator,
+    std::optional<VlanID> vlan,
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    const folly::IPAddress& srcIp,
+    const folly::IPAddress& dstIp,
+    uint16_t srcPort,
+    uint16_t dstPort,
+    uint8_t trafficClass,
+    uint8_t hopLimit,
+    std::optional<std::vector<uint8_t>> payload) {
+  CHECK_EQ(srcIp.isV6(), dstIp.isV6());
+  if (srcIp.isV6()) {
+    return makeUDPTxPacket(
+        allocator,
+        vlan,
+        srcMac,
+        dstMac,
+        srcIp.asV6(),
+        dstIp.asV6(),
+        srcPort,
+        dstPort,
+        trafficClass,
+        hopLimit,
+        payload);
+  }
+  return makeUDPTxPacket(
+      allocator,
+      vlan,
+      srcMac,
+      dstMac,
+      srcIp.asV4(),
+      dstIp.asV4(),
+      srcPort,
+      dstPort,
+      trafficClass,
+      hopLimit,
+      payload);
+}
 template class IPPacket<folly::IPAddressV4>;
 template class IPPacket<folly::IPAddressV6>;
 
@@ -520,6 +657,4 @@ template EthFrame getEthFrame<folly::IPAddressV6>(
     uint16_t dPort,
     VlanID vlanId);
 
-} // namespace utility
-
-} // namespace facebook::fboss
+} // namespace facebook::fboss::utility
