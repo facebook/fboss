@@ -167,10 +167,26 @@ struct ArpHdr {
 };
 
 inline bool operator==(const ArpHdr& lhs, const ArpHdr& rhs) {
-  return lhs.htype == rhs.htype && lhs.ptype == rhs.ptype &&
-      lhs.hlen == rhs.hlen && lhs.plen == rhs.plen && lhs.oper == rhs.oper &&
-      lhs.sha == rhs.sha && lhs.spa == rhs.spa && lhs.tha == rhs.tha &&
-      lhs.tpa == rhs.tpa;
+  return std::tie(
+             lhs.htype,
+             lhs.ptype,
+             lhs.hlen,
+             lhs.plen,
+             lhs.oper,
+             lhs.sha,
+             lhs.spa,
+             lhs.tha,
+             lhs.tpa) ==
+      std::tie(
+             rhs.htype,
+             rhs.ptype,
+             rhs.hlen,
+             lhs.plen,
+             rhs.oper,
+             rhs.sha,
+             rhs.spa,
+             rhs.tha,
+             rhs.tpa);
 }
 
 inline bool operator!=(const ArpHdr& lhs, const ArpHdr& rhs) {
