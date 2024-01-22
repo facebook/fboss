@@ -298,6 +298,8 @@ EthFrame::EthFrame(folly::io::Cursor& cursor) {
     case static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_MPLS):
       mplsPayLoad_ = MPLSPacket(cursor);
       break;
+    default:
+      throw FbossError("Unhandled etherType: ", hdr_.etherType);
   }
 }
 
