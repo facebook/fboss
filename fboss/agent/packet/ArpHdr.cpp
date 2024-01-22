@@ -41,4 +41,15 @@ ArpHdr::ArpHdr(Cursor& cursor) {
   }
 }
 
+void ArpHdr::serialize(folly::io::RWPrivateCursor* cursor) const {
+  cursor->writeBE<uint16_t>(htype);
+  cursor->writeBE<uint16_t>(ptype);
+  cursor->write<uint8_t>(hlen);
+  cursor->write<uint8_t>(plen);
+  cursor->writeBE<uint16_t>(oper);
+  cursor->push(sha.bytes(), MacAddress::SIZE);
+  cursor->push(spa.bytes(), IPAddressV4::byteCount());
+  cursor->push(tha.bytes(), MacAddress::SIZE);
+  cursor->push(tpa.bytes(), IPAddressV4::byteCount());
+}
 } // namespace facebook::fboss

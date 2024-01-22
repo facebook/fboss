@@ -119,9 +119,11 @@ struct ArpHdr {
   /*
    * ARP Header size
    */
-  static uint32_t size() {
+  static constexpr uint32_t size() {
     return 28;
   }
+
+  void serialize(folly::io::RWPrivateCursor* rwCursor) const;
 
  public:
   /*
