@@ -294,11 +294,11 @@ void from_json(const nlohmann::json& j, BaudrateConfig& m);
 // to allow for it to be used as a key in a map --> This allows
 // for us to do quick lookups of addr to register map to use.
 struct AddrRange {
-  // pair of start and end address.
-  std::pair<uint8_t, uint8_t> range{};
+  // vector of pair of start and end address.
+  std::vector<std::pair<uint8_t, uint8_t>> range{};
   AddrRange() = default;
-  explicit AddrRange(uint8_t a, uint8_t b) : range(a, b) {}
-  explicit AddrRange(uint8_t a) : range(a, a) {}
+  explicit AddrRange(const std::vector<std::pair<uint8_t, uint8_t>>& addrRange)
+      : range(addrRange) {}
 
   bool contains(uint8_t) const;
 };

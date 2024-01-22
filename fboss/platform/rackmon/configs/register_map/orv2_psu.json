@@ -1,8 +1,7 @@
 {
     "name": "ORV2_PSU",
     "address_range": [
-        160,
-        191
+        [160, 191]
     ],
     "probe_register": 104,
     "default_baudrate": 19200,

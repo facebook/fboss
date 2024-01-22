@@ -10,7 +10,12 @@ using nlohmann::json;
 namespace rackmon {
 
 bool AddrRange::contains(uint8_t addr) const {
-  return addr >= range.first && addr <= range.second;
+  for (auto item : range) {
+    if (addr >= item.first && addr <= item.second) {
+      return true;
+    }
+  }
+  return false;
 }
 
 void RegisterValue::makeString(const std::vector<uint16_t>& reg) {
@@ -275,8 +280,11 @@ time_t RegisterMapDatabase::minMonitorInterval() const {
 }
 
 void from_json(const json& j, AddrRange& a) {
-  a.range = j;
+  for (auto& r : j) {
+    a.range.emplace_back(r);
+  }
 }
+
 void to_json(json& j, const AddrRange& a) {
   j = a.range;
 }

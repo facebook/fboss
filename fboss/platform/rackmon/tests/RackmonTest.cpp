@@ -121,7 +121,7 @@ class RackmonTest : public ::testing::Test {
 
     std::string json1 = R"({
         "name": "orv2_psu",
-        "address_range": [160, 162],
+        "address_range": [[160, 162]],
         "probe_register": 104,
         "default_baudrate": 19200,
         "preferred_baudrate": 19200,
@@ -174,7 +174,7 @@ class RackmonTest : public ::testing::Test {
 TEST_F(RackmonTest, BasicLoad) {
   std::string json2 = R"({
       "name": "orv3_psu",
-      "address_range": [110, 112],
+      "address_range": [[110, 112]],
       "probe_register": 104,
       "default_baudrate": 19200,
       "preferred_baudrate": 19200,
@@ -390,7 +390,7 @@ TEST_F(RackmonTest, DormantRecovery) {
   })"_json;
   json regmapConfig = R"({
     "name": "orv2_psu",
-    "address_range": [161, 161],
+    "address_range": [[161, 161]],
     "probe_register": 104,
     "default_baudrate": 19200,
     "preferred_baudrate": 19200,

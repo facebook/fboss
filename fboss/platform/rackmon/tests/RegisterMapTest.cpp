@@ -22,19 +22,23 @@ using namespace rackmon;
 //--------------------------------------------------------
 
 TEST(AddrRangeTest, Basic) {
-  AddrRange a(10, 20);
+  AddrRange a({{10, 20}, {25, 30}});
   EXPECT_TRUE(a.contains(10));
   EXPECT_TRUE(a.contains(11));
   EXPECT_TRUE(a.contains(20));
   EXPECT_TRUE(a.contains(19));
+  EXPECT_TRUE(a.contains(25));
+  EXPECT_TRUE(a.contains(30));
   EXPECT_FALSE(a.contains(9));
   EXPECT_FALSE(a.contains(21));
+  EXPECT_FALSE(a.contains(24));
+  EXPECT_FALSE(a.contains(31));
 }
 
 TEST(RegisterMapTest, JSONCoversion) {
   std::string inp = R"({
     "name": "orv2_psu",
-    "address_range": [160, 191],
+    "address_range": [[160, 191]],
     "probe_register": 104,
     "default_baudrate": 19200,
     "preferred_baudrate": 19200,
@@ -57,8 +61,10 @@ TEST(RegisterMapTest, JSONCoversion) {
   })";
   nlohmann::json j = nlohmann::json::parse(inp);
   RegisterMap rmap = j;
-  EXPECT_EQ(rmap.applicableAddresses.range.first, 160);
-  EXPECT_EQ(rmap.applicableAddresses.range.second, 191);
+  EXPECT_TRUE(std::any_of(
+      rmap.applicableAddresses.range.cbegin(),
+      rmap.applicableAddresses.range.cend(),
+      [](auto const& ent) { return (ent.first == 160 && ent.second == 191); }));
   EXPECT_EQ(rmap.probeRegister, 104);
   EXPECT_EQ(rmap.defaultBaudrate, 19200);
   EXPECT_EQ(rmap.preferredBaudrate, 19200);
@@ -84,7 +90,7 @@ TEST(RegisterMapTest, JSONCoversion) {
 TEST(RegisterMapTest, JSONCoversionBaudrate) {
   std::string inp = R"({
     "name": "orv2_psu",
-    "address_range": [160, 191],
+    "address_range": [[160, 191]],
     "probe_register": 104,
     "default_baudrate": 19200,
     "preferred_baudrate": 19200,
@@ -107,8 +113,10 @@ TEST(RegisterMapTest, JSONCoversionBaudrate) {
   })";
   nlohmann::json j = nlohmann::json::parse(inp);
   RegisterMap rmap = j;
-  EXPECT_EQ(rmap.applicableAddresses.range.first, 160);
-  EXPECT_EQ(rmap.applicableAddresses.range.second, 191);
+  EXPECT_TRUE(std::any_of(
+      rmap.applicableAddresses.range.cbegin(),
+      rmap.applicableAddresses.range.cend(),
+      [](auto const& ent) { return (ent.first == 160 && ent.second == 191); }));
   EXPECT_EQ(rmap.probeRegister, 104);
   EXPECT_EQ(rmap.defaultBaudrate, 19200);
   EXPECT_EQ(rmap.preferredBaudrate, 19200);
@@ -126,7 +134,7 @@ TEST(RegisterMapTest, JSONCoversionBaudrate) {
 TEST(RegisterMapTest, JSONCoversionSpecial) {
   std::string inp = R"({
     "name": "orv2_psu",
-    "address_range": [160, 191],
+    "address_range": [[160, 191]],
     "probe_register": 104,
     "default_baudrate": 19200,
     "preferred_baudrate": 19200,
@@ -161,8 +169,10 @@ TEST(RegisterMapTest, JSONCoversionSpecial) {
   })";
   nlohmann::json j = nlohmann::json::parse(inp);
   RegisterMap rmap = j;
-  EXPECT_EQ(rmap.applicableAddresses.range.first, 160);
-  EXPECT_EQ(rmap.applicableAddresses.range.second, 191);
+  EXPECT_TRUE(std::any_of(
+      rmap.applicableAddresses.range.cbegin(),
+      rmap.applicableAddresses.range.cend(),
+      [](auto const& ent) { return (ent.first == 160 && ent.second == 191); }));
   EXPECT_EQ(rmap.probeRegister, 104);
   EXPECT_EQ(rmap.defaultBaudrate, 19200);
   EXPECT_EQ(rmap.preferredBaudrate, 19200);
@@ -192,7 +202,7 @@ class RegisterMapDatabaseTest : public ::testing::Test {
     mkdir(r_test_dir.c_str(), 0755);
     json1 = R"({
         "name": "orv2_psu",
-        "address_range": [160, 191],
+        "address_range": [[160, 191]],
         "probe_register": 104,
         "default_baudrate": 19200,
         "preferred_baudrate": 19200,
@@ -208,7 +218,7 @@ class RegisterMapDatabaseTest : public ::testing::Test {
       })";
     json2 = R"({
         "name": "orv3_psu",
-        "address_range": [110, 140],
+        "address_range": [[110, 140]],
         "probe_register": 104,
         "default_baudrate": 19200,
         "preferred_baudrate": 19200,

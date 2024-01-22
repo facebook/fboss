@@ -41,7 +41,7 @@ class ModbusDeviceTest : public ::testing::Test {
   RegisterMap regmap;
   std::string regmap_s = R"({
     "name": "orv3_psu",
-    "address_range": [110, 140],
+    "address_range": [[110, 140]],
     "probe_register": 104,
     "default_baudrate": 19200,
     "preferred_baudrate": 19200,
@@ -628,7 +628,7 @@ TEST(ModbusSpecialHandler, BasicHandlingStringValuePeriodic) {
   Modbus mock_modbus{};
   RegisterMap mock_rmap = R"({
     "name": "orv3_psu",
-    "address_range": [110, 140],
+    "address_range": [[110, 140]],
     "probe_register": 104,
     "default_baudrate": 19200,
     "preferred_baudrate": 19200,
@@ -686,7 +686,7 @@ TEST(ModbusSpecialHandler, BasicHandlingIntegerOneShot) {
   Modbus mock_modbus{};
   RegisterMap mock_rmap = R"({
     "name": "orv3_psu",
-    "address_range": [110, 140],
+    "address_range": [[110, 140]],
     "probe_register": 104,
     "default_baudrate": 19200,
     "preferred_baudrate": 19200,
@@ -742,7 +742,7 @@ TEST(ModbusSpecialHandler, BasicHandlingIntegerOneShot) {
 static nlohmann::json getBaudrateRegmap() {
   std::string regmap_s = R"({
     "name": "orv3_psu",
-    "address_range": [5, 7],
+    "address_range": [[5, 7]],
     "probe_register": 104,
     "default_baudrate": 19200,
     "preferred_baudrate": 115200,

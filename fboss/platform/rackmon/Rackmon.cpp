@@ -43,10 +43,10 @@ void Rackmon::loadRegisterMap(const nlohmann::json& config) {
   // Precomputing this makes our scan soooo much easier.
   // its 256 bytes wasted. but worth it. TODO use a
   // interval list with an iterator to waste less bytes.
-  for (uint16_t addr = config["address_range"][0];
-       addr <= config["address_range"][1];
-       ++addr) {
-    allPossibleDevAddrs_.push_back(uint8_t(addr));
+  for (auto range : config["address_range"]) {
+    for (uint16_t addr = range[0]; addr <= range[1]; ++addr) {
+      allPossibleDevAddrs_.push_back(uint8_t(addr));
+    }
   }
   nextDeviceToProbe_ = allPossibleDevAddrs_.begin();
   monitorInterval_ = std::chrono::seconds(registerMapDB_.minMonitorInterval());
