@@ -298,6 +298,9 @@ EthFrame::EthFrame(folly::io::Cursor& cursor) {
     case static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_MPLS):
       mplsPayLoad_ = MPLSPacket(cursor);
       break;
+    case static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_ARP):
+      arpHdr_ = ArpHdr(cursor);
+      break;
     default:
       throw FbossError("Unhandled etherType: ", hdr_.etherType);
   }
@@ -334,6 +337,8 @@ std::unique_ptr<facebook::fboss::TxPacket> EthFrame::getTxPacket(
     auto mplsPacket = mplsPayLoad_->getTxPacket(hw);
     folly::io::Cursor cursor(mplsPacket->buf());
     rwCursor.push(cursor, mplsPayLoad_->length());
+  } else if (arpHdr_) {
+    arpHdr_->serialize(&rwCursor);
   }
   return txPacket;
 }
@@ -363,6 +368,10 @@ void EthFrame::serialize(folly::io::RWPrivateCursor& cursor) const {
     cursor.template writeBE<uint16_t>(
         static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_MPLS));
     mplsPayLoad_->serialize(cursor);
+  } else if (arpHdr_) {
+    cursor.template writeBE<uint16_t>(
+        static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_ARP));
+    arpHdr_->serialize(&cursor);
   }
 }
 
@@ -439,6 +448,7 @@ EthFrame getEthFrame(
 std::string utility::EthFrame::toString() const {
   std::stringstream ss;
   ss << "Eth hdr: " << hdr_.toString()
+     << " arp: " << (arpHdr_.has_value() ? arpHdr_->toString() : "")
      << " mpls: " << (mplsPayLoad_.has_value() ? mplsPayLoad_->toString() : "")
      << " v6 : " << (v6PayLoad_.has_value() ? v6PayLoad_->toString() : "")
      << " v4 : " << (v4PayLoad_.has_value() ? v4PayLoad_->toString() : "");
