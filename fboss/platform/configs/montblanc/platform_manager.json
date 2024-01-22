@@ -271,7 +271,8 @@
                 "deviceName": "spi_master",
                 "csrOffset": "0x10000",
                 "iobufOffset": "0x12000"
-              }
+              },
+              "numberOfCsPins": 1
             },
             {
               "fpgaIpBlockConfig": {
@@ -279,7 +280,8 @@
                 "deviceName": "spi_master",
                 "csrOffset": "0x10080",
                 "iobufOffset": "0x12400"
-              }
+              },
+              "numberOfCsPins": 1
             },
             {
               "fpgaIpBlockConfig": {
@@ -287,7 +289,8 @@
                 "deviceName": "spi_master",
                 "csrOffset": "0x10100",
                 "iobufOffset": "0x12800"
-              }
+              },
+              "numberOfCsPins": 1
             },
             {
               "fpgaIpBlockConfig": {
@@ -295,7 +298,8 @@
                 "deviceName": "spi_master",
                 "csrOffset": "0x10180",
                 "iobufOffset": "0x12c00"
-              }
+              },
+              "numberOfCsPins": 1
             },
             {
               "fpgaIpBlockConfig": {
@@ -303,7 +307,8 @@
                 "deviceName": "spi_master",
                 "csrOffset": "0x10200",
                 "iobufOffset": "0x13000"
-              }
+              },
+              "numberOfCsPins": 1
             },
             {
               "fpgaIpBlockConfig": {
@@ -311,7 +316,8 @@
                 "deviceName": "spi_master",
                 "csrOffset": "0x10280",
                 "iobufOffset": "0x13400"
-              }
+              },
+              "numberOfCsPins": 1
             },
             {
               "fpgaIpBlockConfig": {
@@ -319,7 +325,8 @@
                 "deviceName": "spi_master",
                 "csrOffset": "0x10300",
                 "iobufOffset": "0x13800"
-              }
+              },
+              "numberOfCsPins": 1
             },
             {
               "fpgaIpBlockConfig": {
@@ -327,7 +334,8 @@
                 "deviceName": "spi_master",
                 "csrOffset": "0x10380",
                 "iobufOffset": "0x13c00"
-              }
+              },
+              "numberOfCsPins": 1
             }
           ],
           "ledCtrlConfigs": [
