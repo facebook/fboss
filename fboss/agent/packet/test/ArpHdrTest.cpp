@@ -195,3 +195,17 @@ TEST(ArpHdrTest, serialize) {
   ArpHdr deser(cursor);
   EXPECT_EQ(orig, deser);
 }
+
+TEST(ArpHdrTest, toString) {
+  uint16_t htype = static_cast<uint16_t>(ARP_HTYPE::ARP_HTYPE_ETHERNET);
+  uint16_t ptype = static_cast<uint16_t>(ARP_PTYPE::ARP_PTYPE_IPV4);
+  uint8_t hlen = static_cast<uint8_t>(ARP_HLEN::ARP_HLEN_ETHERNET);
+  uint8_t plen = static_cast<uint8_t>(ARP_PLEN::ARP_PLEN_IPV4);
+  uint16_t oper = static_cast<uint16_t>(ARP_OPER::ARP_OPER_REQUEST);
+  MacAddress sha("10:dd:b1:bb:5a:ef");
+  IPAddressV4 spa("10.0.0.15");
+  MacAddress tha("ff:ff:ff:ff:ff:ff");
+  IPAddressV4 tpa("10.0.0.1");
+  ArpHdr hdr(htype, ptype, hlen, plen, oper, sha, spa, tha, tpa);
+  std::cout << " Hdr: " << hdr << " and hdr again: " << hdr.toString();
+}

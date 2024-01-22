@@ -23,6 +23,7 @@
 #include <folly/IPAddressV4.h>
 #include <folly/MacAddress.h>
 #include <folly/io/Cursor.h>
+#include <ostream>
 #include "fboss/agent/packet/HdrParseError.h"
 
 namespace facebook::fboss {
@@ -124,6 +125,7 @@ struct ArpHdr {
   }
 
   void serialize(folly::io::RWPrivateCursor* rwCursor) const;
+  std::string toString() const;
 
  public:
   /*
@@ -175,4 +177,12 @@ inline bool operator!=(const ArpHdr& lhs, const ArpHdr& rhs) {
   return !operator==(lhs, rhs);
 }
 
+inline void toAppend(const ArpHdr& arpHdr, folly::fbstring* result) {
+  result->append(arpHdr.toString());
+}
+
+inline std::ostream& operator<<(std::ostream& os, const ArpHdr& arpHdr) {
+  os << arpHdr.toString();
+  return os;
+}
 } // namespace facebook::fboss

@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/packet/ArpHdr.h"
 
+#include <sstream>
 #include <stdexcept>
 
 namespace facebook::fboss {
@@ -51,5 +52,14 @@ void ArpHdr::serialize(folly::io::RWPrivateCursor* cursor) const {
   cursor->push(spa.bytes(), IPAddressV4::byteCount());
   cursor->push(tha.bytes(), MacAddress::SIZE);
   cursor->push(tpa.bytes(), IPAddressV4::byteCount());
+}
+
+std::string ArpHdr::toString() const {
+  std::stringstream ss;
+  ss << " header type: " << htype << " protocol type: " << ptype
+     << " header len: " << (int)hlen << " protocol len: " << (int)plen
+     << "smac: " << sha << "src ip: " << spa << " dmac: " << tha
+     << " dst ip: " << tpa;
+  return ss.str();
 }
 } // namespace facebook::fboss
