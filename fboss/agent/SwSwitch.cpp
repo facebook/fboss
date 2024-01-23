@@ -703,6 +703,8 @@ AgentStats SwSwitch::fillFsdbStats() {
         auto portName = phyInfo.state()->name().value();
         agentStats.phyStats()->insert({portName, phyInfo.get_stats()});
       }
+      agentStats.flowletStatsMap()->insert(
+          {switchIdx, std::move(*hwSwitchStats.flowletStats())});
     }
     lockedStats->clear();
   }
@@ -714,6 +716,7 @@ AgentStats SwSwitch::fillFsdbStats() {
   agentStats.bufferPoolStats() =
       agentStats.bufferPoolStatsMap()->begin()->second;
   agentStats.sysPortStats() = agentStats.sysPortStatsMap()->begin()->second;
+  agentStats.flowletStats() = agentStats.flowletStatsMap()->begin()->second;
   return agentStats;
 }
 
@@ -769,6 +772,7 @@ void SwSwitch::updateStats() {
     hwStats.flowletStats() = getHwFlowletStats();
     updateHwSwitchStats(0 /*switchIndex*/, std::move(hwStats));
   }
+  updateFlowletStats();
 
   std::map<PortID, phy::PhyInfo> phyInfo;
   {
@@ -876,6 +880,23 @@ void SwSwitch::updateFabricReachabilityStats() {
         getHwSwitchHandler()->getFabricReachabilityStats();
   }
   *fabricReachabilityStats_.wlock() = fabricReachabilityStats;
+}
+
+void SwSwitch::updateFlowletStats() {
+  uint64_t dlbErrorPackets = 0;
+  auto runMode = (*agentConfig_.rlock())->getRunMode();
+  if (runMode == cfg::AgentRunMode::MULTI_SWITCH) {
+    auto lockedStats = hwSwitchStats_.rlock();
+    for (auto& [switchIdx, hwSwitchStats] : *lockedStats) {
+      dlbErrorPackets +=
+          hwSwitchStats.flowletStats()->l3EcmpDlbFailPackets().value();
+    }
+  } else {
+    auto flowletStats = getHwSwitchHandler()->getHwFlowletStats();
+    dlbErrorPackets = flowletStats.l3EcmpDlbFailPackets().value();
+  }
+  fb303::fbData->setCounter(
+      SwitchStats::kCounterPrefix + "dlb_error_packets", dlbErrorPackets);
 }
 
 TeFlowStats SwSwitch::getTeFlowStats() {

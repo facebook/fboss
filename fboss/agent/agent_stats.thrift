@@ -29,4 +29,5 @@ struct AgentStats {
   15: map<i16, hardware_stats.HwSwitchDropStats> switchDropStatsMap;
   16: hardware_stats.HwFlowletStats flowletStats;
   17: map<string, phy.PhyStats> phyStats;
+  18: map<i16, hardware_stats.HwFlowletStats> flowletStatsMap;
 }
