@@ -531,7 +531,7 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::updateImpl(
           updateType,
           fibUpdateCallback,
           cookie);
-    } catch (const std::exception& e) {
+    } catch (const std::exception&) {
       updateException = std::current_exception();
     }
   };
