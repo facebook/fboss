@@ -22,6 +22,11 @@
     },
     "SCM_SLOT": {
       "numOutgoingI2cBuses": 1,
+      "idpromConfig": {
+        "busName": "INCOMING@0",
+        "address": "0x53",
+        "kernelDeviceName": "24c64"
+      },
       "pmUnitName": "SCM"
     },
     "SMB_SLOT": {
@@ -367,15 +372,6 @@
           "deviceId": "0x017a",
           "subSystemVendorId": "0x10ee",
           "subSystemDeviceId": "0x0007"
-        },
-        {
-          "pmUnitScopedName": "SCM_FPGA",
-          "vendorId": "0x1137",
-          "deviceId": "0x017a",
-          "subSystemVendorId": "0x10ee",
-          "subSystemDeviceId": "0x0007",
-          "i2cAdapterConfigs": [],
-          "gpioChipConfigs": []
         }
       ],
       "i2cDeviceConfigs": [
@@ -397,12 +393,6 @@
           "address": "0x4c",
           "kernelDeviceName": "tmp451",
           "pmUnitScopedName": "SCM_IN_TEMP"
-        },
-        {
-          "busName": "INCOMING@0",
-          "address": "0x53",
-          "kernelDeviceName": "24c64",
-          "pmUnitScopedName": "SCM_EEPROM"
         }
       ]
     },
@@ -467,13 +457,13 @@
     "/run/devmap/eeproms/PDB2_EEPROM": "/PDB_SLOT@1/[IDPROM]",
     "/run/devmap/eeproms/FCB_EEPROM": "/FCB_SLOT@0/[IDPROM]",
     "/run/devmap/eeproms/SMB_EEPROM": "/SMB_SLOT@0/[IDPROM]",
-    "/run/devmap/eeproms/SCM_EEPROM": "/JUMPER_SLOT@0/SCM_SLOT@0/[SCM_EEPROM]",
+    "/run/devmap/eeproms/SCM_EEPROM": "/JUMPER_SLOT@0/SCM_SLOT@0/[IDPROM]",
     "/run/devmap/eeproms/LED1_EEPROM": "/LED_SLOT@0/[IDPROM]",
     "/run/devmap/eeproms/LED2_EEPROM": "/LED_SLOT@1/[IDPROM]",
     "/run/devmap/fpgas/IOB_FPGA": "/[IOB_FPGA]",
-    "/run/devmap/fpgas/SCM_FPGA": "/[SCM_FPGA]",
-    "/run/devmap/fpgas/DOM1_FPGA": "/[DOM1_FPGA]",
-    "/run/devmap/fpgas/DOM2_FPGA": "/[DOM2_FPGA]",
+    "/run/devmap/fpgas/SCM_FPGA": "/JUMPER_SLOT@0/SCM_SLOT@0/[SCM_FPGA]",
+    "/run/devmap/fpgas/DOM1_FPGA": "/SMB_SLOT@0/[DOM1_FPGA]",
+    "/run/devmap/fpgas/DOM2_FPGA": "/SMB_SLOT@0/[DOM2_FPGA]",
     "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_M0": "/[MCB_IOB_I2C_MASTER_M0]",
     "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_M1": "/[MCB_IOB_I2C_MASTER_M1]",
     "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_M2": "/[MCB_IOB_I2C_MASTER_M2]",
@@ -504,5 +494,10 @@
     "/run/devmap/sensors/PSU2_PMBUS": "/PSU_SLOT@1/[PSU_PMBUS]"
   },
   "bspKmodsRpmName": "cisco_bsp_kmods",
-  "bspKmodsRpmVersion": "0.1.0-1"
+  "bspKmodsRpmVersion": "0.0.7-1",
+  "kmodsToReload": [
+    "cisco_fpga_i2c_smb",
+    "cisco-fpga-pci",
+    "cisco-meta"
+  ]
 }
