@@ -1,0 +1,508 @@
+{
+  "platformName": "McKenzie",
+  "rootPmUnitName": "MCB",
+  "slotTypeConfigs": {
+    "MCB_SLOT": {
+      "numOutgoingI2cBuses": 5,
+      "idpromConfig": {
+        "busName": "SMBus I801 adapter at 2000",
+        "address": "0x50",
+        "kernelDeviceName": "24c64"
+      },
+      "pmUnitName": "MCB"
+    },
+    "FCB_SLOT": {
+      "numOutgoingI2cBuses": 1,
+      "idpromConfig": {
+        "busName": "INCOMING@0",
+        "address": "0x50",
+        "kernelDeviceName": "24c64"
+      },
+      "pmUnitName": "FCB"
+    },
+    "SCM_SLOT": {
+      "numOutgoingI2cBuses": 1,
+      "pmUnitName": "SCM"
+    },
+    "SMB_SLOT": {
+      "numOutgoingI2cBuses": 5,
+      "idpromConfig": {
+        "busName": "INCOMING@0",
+        "address": "0x50",
+        "kernelDeviceName": "24c64"
+      },
+      "pmUnitName": "SMB"
+    },
+    "JUMPER_SLOT": {
+      "numOutgoingI2cBuses": 1,
+      "idpromConfig": {
+        "busName": "INCOMING@0",
+        "address": "0x51",
+        "kernelDeviceName": "24c64"
+      },
+      "pmUnitName": "JUMPER"
+    },
+    "LED_SLOT": {
+      "numOutgoingI2cBuses": 1,
+      "idpromConfig": {
+        "busName": "INCOMING@0",
+        "address": "0x50",
+        "kernelDeviceName": "24c64"
+      },
+      "pmUnitName": "LED"
+    },
+    "PSU_SLOT": {
+      "numOutgoingI2cBuses": 1,
+      "idpromConfig": {
+        "busName": "INCOMING@0",
+        "address": "0x58",
+        "kernelDeviceName": "24c64"
+      },
+      "pmUnitName": "PSU"
+    },
+    "PDB_SLOT": {
+      "numOutgoingI2cBuses": 1,
+      "idpromConfig": {
+        "busName": "INCOMING@0",
+        "address": "0x50",
+        "kernelDeviceName": "24c64"
+      },
+      "pmUnitName": "PDB"
+    },
+    "RUNBMC_SLOT": {
+      "numOutgoingI2cBuses": 1,
+      "idpromConfig": {
+        "busName": "INCOMING@0",
+        "address": "0x54",
+        "kernelDeviceName": "24c64"
+      },
+      "pmUnitName": "BMC"
+    },
+    "FANTRAY_SLOT": {
+      "numOutgoingI2cBuses": 0,
+      "pmUnitName": "FAN"
+    }
+  },
+  "i2cAdaptersFromCpu": [
+    "SMBus I801 adapter at 2000"
+  ],
+  "pmUnitConfigs": {
+    "MCB": {
+      "pluggedInSlotType": "MCB_SLOT",
+      "pciDeviceConfigs": [
+        {
+          "pmUnitScopedName": "IOB_FPGA",
+          "vendorId": "0x1137",
+          "deviceId": "0x017a",
+          "subSystemVendorId": "0x10ee",
+          "subSystemDeviceId": "0x0007",
+          "i2cAdapterConfigs": [
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_M0",
+                "deviceName": "i2c_master_smb",
+                "iobufOffset": "0x3000",
+                "csrOffset": "0x3000"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_M1",
+                "deviceName": "i2c_master_smb",
+                "iobufOffset": "0x4000",
+                "csrOffset": "0x4000"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_M2",
+                "deviceName": "i2c_master_smb",
+                "iobufOffset": "0x5000",
+                "csrOffset": "0x5000"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_M3",
+                "deviceName": "i2c_master_smb",
+                "iobufOffset": "0x6000",
+                "csrOffset": "0x6000"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_M4",
+                "deviceName": "i2c_master_smb",
+                "iobufOffset": "0x7000",
+                "csrOffset": "0x7000"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_M6",
+                "deviceName": "i2c_master_smb",
+                "iobufOffset": "0x9000",
+                "csrOffset": "0x9000"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_M7",
+                "deviceName": "i2c_master_smb",
+                "iobufOffset": "0xa000",
+                "csrOffset": "0xa000"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_M8",
+                "deviceName": "i2c_master_smb",
+                "iobufOffset": "0xb000",
+                "csrOffset": "0xb000"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_M9",
+                "deviceName": "i2c_master_smb",
+                "iobufOffset": "0xc000",
+                "csrOffset": "0xc000"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_M10",
+                "deviceName": "i2c_master_smb",
+                "iobufOffset": "0xd000",
+                "csrOffset": "0xd000"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_M11",
+                "deviceName": "i2c_master_smb",
+                "iobufOffset": "0xe000",
+                "csrOffset": "0xe000"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_M12",
+                "deviceName": "i2c_master_smb",
+                "iobufOffset": "0xf000",
+                "csrOffset": "0xf000"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_M13",
+                "deviceName": "i2c_master_smb",
+                "iobufOffset": "0x10000",
+                "csrOffset": "0x10000"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_M14",
+                "deviceName": "i2c_master_smb",
+                "iobufOffset": "0x11000",
+                "csrOffset": "0x11000"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_M15",
+                "deviceName": "i2c_master_smb",
+                "iobufOffset": "0x12000",
+                "csrOffset": "0x12000"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_M17",
+                "deviceName": "i2c_master_smb",
+                "iobufOffset": "0x14000",
+                "csrOffset": "0x14000"
+              }
+            },
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_IOB_I2C_MASTER_M18",
+                "deviceName": "i2c_master_smb",
+                "iobufOffset": "0x15000",
+                "csrOffset": "0x15000"
+              }
+            }
+          ]
+        }
+      ],
+      "i2cDeviceConfigs": [
+        {
+          "busName": "MCB_IOB_I2C_MASTER_M10",
+          "address": "0x76",
+          "kernelDeviceName": "pca9548",
+          "pmUnitScopedName": "MCB_Mux_A",
+          "numOutgoingChannels": 8
+        },
+        {
+          "busName": "MCB_Mux_A@0",
+          "address": "0x50",
+          "kernelDeviceName": "24c64",
+          "pmUnitScopedName": "chassis_eeprom"
+        },
+        {
+          "busName": "MCB_IOB_I2C_MASTER_M2",
+          "address": "0x10",
+          "kernelDeviceName": "adm1278",
+          "pmUnitScopedName": "SMB_HOTSWAP"
+        },
+        {
+          "busName": "MCB_IOB_I2C_MASTER_M3",
+          "address": "0x12",
+          "kernelDeviceName": "adm1278",
+          "pmUnitScopedName": "SCM_HOTSWAP"
+        },
+        {
+          "busName": "MCB_IOB_I2C_MASTER_M4",
+          "address": "0x4c",
+          "kernelDeviceName": "tmp421",
+          "pmUnitScopedName": "SMB_TMP"
+        },
+        {
+          "busName": "MCB_IOB_I2C_MASTER_M18",
+          "address": "0x26",
+          "kernelDeviceName": "ltc2979",
+          "pmUnitScopedName": "NEED_A_NAME",
+          "deviceType": "SENSOR"
+        }
+      ],
+      "outgoingSlotConfigs": {
+        "JUMPER_SLOT@0": {
+          "slotType": "JUMPER_SLOT",
+          "outgoingI2cBusNames": [
+            "MCB_IOB_I2C_MASTER_M17"
+          ]
+        },
+        "LED_SLOT@0": {
+          "slotType": "LED_SLOT",
+          "outgoingI2cBusNames": [
+            "MCB_IOB_I2C_MASTER_M11"
+          ]
+        },
+        "LED_SLOT@1": {
+          "slotType": "LED_SLOT",
+          "outgoingI2cBusNames": [
+            "MCB_IOB_I2C_MASTER_M12"
+          ]
+        },
+        "FCB_SLOT@0": {
+          "slotType": "FCB_SLOT",
+          "outgoingI2cBusNames": [
+            "MCB_Mux_A@0"
+          ]
+        },
+        "SMB_SLOT@0": {
+          "slotType": "SMB_SLOT",
+          "outgoingI2cBusNames": [
+            "MCB_Mux_A@3",
+            "MCB_IOB_I2C_MASTER_M6",
+            "MCB_IOB_I2C_MASTER_M7",
+            "MCB_IOB_I2C_MASTER_M8",
+            "MCB_IOB_I2C_MASTER_M9"
+          ]
+        },
+        "PDB_SLOT@0": {
+          "slotType": "PDB_SLOT",
+          "outgoingI2cBusNames": [
+            "MCB_Mux_A@1"
+          ]
+        },
+        "PDB_SLOT@1": {
+          "slotType": "PDB_SLOT",
+          "outgoingI2cBusNames": [
+            "MCB_Mux_A@2"
+          ]
+        }
+      }
+    },
+    "JUMPER": {
+      "pluggedInSlotType": "JUMPER_SLOT",
+      "i2cDeviceConfigs": [],
+      "outgoingSlotConfigs": {
+        "SCM_SLOT@0": {
+          "slotType": "SCM_SLOT",
+          "outgoingI2cBusNames": [
+            "INCOMING@0"
+          ]
+        }
+      }
+    },
+    "FCB": {
+      "pluggedInSlotType": "FCB_SLOT"
+    },
+    "PDB": {
+      "pluggedInSlotType": "PDB_SLOT"
+    },
+    "PSU": {
+      "pluggedInSlotType": "PSU_SLOT",
+      "i2cDeviceConfigs": [
+        {
+          "busName": "INCOMING@0",
+          "address": "0x58",
+          "kernelDeviceName": "pmbus",
+          "pmUnitScopedName": "PSU_PMBUS",
+          "numOutgoingChannels": 8
+        }
+      ]
+    },
+    "LED": {
+      "pluggedInSlotType": "LED_SLOT"
+    },
+    "SCM": {
+      "pluggedInSlotType": "SCM_SLOT",
+      "pciDeviceConfigs": [
+        {
+          "pmUnitScopedName": "SCM_FPGA",
+          "vendorId": "0x1137",
+          "deviceId": "0x017a",
+          "subSystemVendorId": "0x10ee",
+          "subSystemDeviceId": "0x0007"
+        },
+        {
+          "pmUnitScopedName": "SCM_FPGA",
+          "vendorId": "0x1137",
+          "deviceId": "0x017a",
+          "subSystemVendorId": "0x10ee",
+          "subSystemDeviceId": "0x0007",
+          "i2cAdapterConfigs": [],
+          "gpioChipConfigs": []
+        }
+      ],
+      "i2cDeviceConfigs": [
+        {
+          "busName": "INCOMING@0",
+          "address": "0x76",
+          "kernelDeviceName": "pca9548",
+          "pmUnitScopedName": "MCB_Mux_B",
+          "numOutgoingChannels": 8
+        },
+        {
+          "busName": "MCB_Mux_B@1",
+          "address": "0x49",
+          "kernelDeviceName": "adt75",
+          "pmUnitScopedName": "SCM_OUT_TEMP"
+        },
+        {
+          "busName": "MCB_Mux_B@1",
+          "address": "0x4c",
+          "kernelDeviceName": "tmp451",
+          "pmUnitScopedName": "SCM_IN_TEMP"
+        },
+        {
+          "busName": "INCOMING@0",
+          "address": "0x53",
+          "kernelDeviceName": "24c64",
+          "pmUnitScopedName": "SCM_EEPROM"
+        }
+      ]
+    },
+    "SMB": {
+      "pluggedInSlotType": "SMB_SLOT",
+      "pciDeviceConfigs": [
+        {
+          "pmUnitScopedName": "DOM1_FPGA",
+          "vendorId": "0x1137",
+          "deviceId": "0x017a",
+          "subSystemVendorId": "0x10ee",
+          "subSystemDeviceId": "0x0007",
+          "i2cAdapterConfigs": []
+        },
+        {
+          "pmUnitScopedName": "DOM2_FPGA",
+          "vendorId": "0x1137",
+          "deviceId": "0x017a",
+          "subSystemVendorId": "0x10ee",
+          "subSystemDeviceId": "0x0007",
+          "i2cAdapterConfigs": []
+        }
+      ],
+      "i2cDeviceConfigs": [
+        {
+          "busName": "INCOMING@3",
+          "address": "0x4c",
+          "kernelDeviceName": "tmp421",
+          "pmUnitScopedName": "SMB_TEMP_IN_LEFT"
+        },
+        {
+          "busName": "INCOMING@3",
+          "address": "0x4d",
+          "kernelDeviceName": "tmp421",
+          "pmUnitScopedName": "SMB_TEMP_IN_CENTER"
+        },
+        {
+          "busName": "INCOMING@3",
+          "address": "0x4e",
+          "kernelDeviceName": "tmp421",
+          "pmUnitScopedName": "SMB_TEMP_IN_RIGHT"
+        },
+        {
+          "busName": "INCOMING@3",
+          "address": "0x1f",
+          "kernelDeviceName": "tmp421",
+          "pmUnitScopedName": "SMB_TEMP_EX_LEFT"
+        },
+        {
+          "busName": "INCOMING@3",
+          "address": "0x4f",
+          "kernelDeviceName": "tmp421",
+          "pmUnitScopedName": "SMB_TEMP_EX_RIGHT"
+        }
+      ]
+    }
+  },
+  "symbolicLinkToDevicePath": {
+    "/run/devmap/eeproms/MCB_EEPROM": "/[IDPROM]",
+    "/run/devmap/eeproms/JUMPER_EEPROM": "/JUMPER_SLOT@0/[IDPROM]",
+    "/run/devmap/eeproms/PDB1_EEPROM": "/PDB_SLOT@0/[IDPROM]",
+    "/run/devmap/eeproms/PDB2_EEPROM": "/PDB_SLOT@1/[IDPROM]",
+    "/run/devmap/eeproms/FCB_EEPROM": "/FCB_SLOT@0/[IDPROM]",
+    "/run/devmap/eeproms/SMB_EEPROM": "/SMB_SLOT@0/[IDPROM]",
+    "/run/devmap/eeproms/SCM_EEPROM": "/JUMPER_SLOT@0/SCM_SLOT@0/[SCM_EEPROM]",
+    "/run/devmap/eeproms/LED1_EEPROM": "/LED_SLOT@0/[IDPROM]",
+    "/run/devmap/eeproms/LED2_EEPROM": "/LED_SLOT@1/[IDPROM]",
+    "/run/devmap/fpgas/IOB_FPGA": "/[IOB_FPGA]",
+    "/run/devmap/fpgas/SCM_FPGA": "/[SCM_FPGA]",
+    "/run/devmap/fpgas/DOM1_FPGA": "/[DOM1_FPGA]",
+    "/run/devmap/fpgas/DOM2_FPGA": "/[DOM2_FPGA]",
+    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_M0": "/[MCB_IOB_I2C_MASTER_M0]",
+    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_M1": "/[MCB_IOB_I2C_MASTER_M1]",
+    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_M2": "/[MCB_IOB_I2C_MASTER_M2]",
+    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_M3": "/[MCB_IOB_I2C_MASTER_M3]",
+    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_M4": "/[MCB_IOB_I2C_MASTER_M4]",
+    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_M6": "/[MCB_IOB_I2C_MASTER_M6]",
+    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_M7": "/[MCB_IOB_I2C_MASTER_M7]",
+    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_M8": "/[MCB_IOB_I2C_MASTER_M8]",
+    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_M9": "/[MCB_IOB_I2C_MASTER_M9]",
+    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_M10": "/[MCB_IOB_I2C_MASTER_M10]",
+    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_M11": "/[MCB_IOB_I2C_MASTER_M11]",
+    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_M12": "/[MCB_IOB_I2C_MASTER_M12]",
+    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_M13": "/[MCB_IOB_I2C_MASTER_M13]",
+    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_M14": "/[MCB_IOB_I2C_MASTER_M14]",
+    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_M15": "/[MCB_IOB_I2C_MASTER_M15]",
+    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_M17": "/[MCB_IOB_I2C_MASTER_M17]",
+    "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_M18": "/[MCB_IOB_I2C_MASTER_M18]",
+    "/run/devmap/sensors/MCB_TEMP_SENSOR": "/[SMB_TMP]",
+    "/run/devmap/sensors/MCB_SCM_HOSTSWAP": "/[SCM_HOTSWAP]",
+    "/run/devmap/sensors/MCB_SMB_HOSTSWAP": "/[SMB_HOTSWAP]",
+    "/run/devmap/sensors/SCM_IN_TEMP_SENSOR": "/JUMPER_SLOT@0/SCM_SLOT@0/[SCM_IN_TEMP]",
+    "/run/devmap/sensors/SCM_OUT_TEMP": "/JUMPER_SLOT@0/SCM_SLOT@0/[SCM_OUT_TEMP]",
+    "/run/devmap/sensors/SMB_TEMP_IN_LEFT": "/SMB_SLOT@0/[SMB_TEMP_IN_LEFT]",
+    "/run/devmap/sensors/SMB_TEMP_IN_CENTER": "/SMB_SLOT@0/[SMB_TEMP_IN_CENTER]",
+    "/run/devmap/sensors/SMB_TEMP_IN_RIGHT": "/SMB_SLOT@0/[SMB_TEMP_IN_RIGHT]",
+    "/run/devmap/sensors/SMB_TEMP_EX_LEFT": "/SMB_SLOT@0/[SMB_TEMP_EX_LEFT]",
+    "/run/devmap/sensors/SMB_TEMP_EX_RIGHT": "/SMB_SLOT@0/[SMB_TEMP_EX_RIGHT]",
+    "/run/devmap/sensors/PSU2_PMBUS": "/PSU_SLOT@1/[PSU_PMBUS]"
+  },
+  "bspKmodsRpmName": "cisco_bsp_kmods",
+  "bspKmodsRpmVersion": "0.1.0-1"
+}
