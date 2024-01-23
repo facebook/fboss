@@ -3169,6 +3169,10 @@ uint64_t BcmSwitch::getDeviceWatermarkBytes() const {
   return bstStatsMgr_->getDeviceWatermarkBytes();
 }
 
+HwFlowletStats BcmSwitch::getHwFlowletStats() const {
+  return multiPathNextHopTable_->getHwFlowletStats();
+}
+
 bcm_if_t BcmSwitch::getDropEgressId() const {
   return platform_->getAsic()->getDefaultDropEgressID();
 }

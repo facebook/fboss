@@ -406,9 +406,8 @@ class BcmSwitch : public BcmSwitchIf {
     return HwSwitchDropStats{};
   }
 
-  HwFlowletStats getHwFlowletStats() const override {
-    return HwFlowletStats{};
-  }
+  HwFlowletStats getHwFlowletStats() const override;
+
   /*
    * Wrapper functions to register and unregister a BCM event callbacks.  These
    * just forward the call.

@@ -1235,4 +1235,19 @@ bool BcmEcmpEgress::updateEcmpDynamicMode() {
   return updateComplete;
 }
 
+uint64_t BcmEcmpEgress::getL3EcmpDlbFailPackets() {
+  uint64_t dlbDropCount = 0;
+  // TODO: we are piggy backing TH4 feature FLOWLET_PORT_ATTRIBUTES
+  // since bcm dlb stat SDK API is not supported for TH3 now.
+  // will remove this when TH3 also gets support for the SDK API
+  if (FLAGS_flowletSwitchingEnable &&
+      (hw_->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::FLOWLET_PORT_ATTRIBUTES))) {
+    auto rv = bcm_l3_ecmp_dlb_stat_get(
+        hw_->getUnit(), id_, bcmL3ECMPDlbStatFailPackets, &dlbDropCount);
+    bcmCheckError(rv, "failed to get l3 ecmp dlb stat ", id_);
+  }
+  return dlbDropCount;
+}
+
 } // namespace facebook::fboss

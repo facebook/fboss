@@ -75,6 +75,24 @@ long BcmMultiPathNextHopTable::getEcmpEgressCount() const {
       });
 }
 
+HwFlowletStats BcmMultiPathNextHopTable::getHwFlowletStats() const {
+  HwFlowletStats flowletStats;
+  uint64_t l3EcmpDlbFailPackets = 0;
+  if (FLAGS_flowletSwitchingEnable) {
+    for (const auto& nextHopsAndEcmpHostInfo : getNextHops()) {
+      auto& weakPtr = nextHopsAndEcmpHostInfo.second;
+      auto ecmpHost = weakPtr.lock();
+      auto ecmpEgress = ecmpHost->getEgress();
+      if (!ecmpEgress) {
+        continue;
+      }
+      l3EcmpDlbFailPackets += ecmpEgress->getL3EcmpDlbFailPackets();
+    }
+  }
+  flowletStats.l3EcmpDlbFailPackets() = l3EcmpDlbFailPackets;
+  return flowletStats;
+}
+
 void BcmMultiPathNextHopTable::updateEcmpsForFlowletSwitching() {
   for (const auto& nextHopsAndEcmpHostInfo : getNextHops()) {
     auto& weakPtr = nextHopsAndEcmpHostInfo.second;
