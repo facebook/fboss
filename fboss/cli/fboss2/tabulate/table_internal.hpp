@@ -325,14 +325,14 @@ inline void Printer::print_row_in_cell(
                                  cell.is_multi_byte_character_support_enabled())
                                  .size() -
         1;
-    std::string word_wrapped_text;
+    std::string word_wrapped_text_2;
 
     // If there are no embedded \n characters, then apply word wrap
     if (newlines_in_input == 0) {
       // Apply word wrapping to input text
       // Then display one word-wrapped line at a time within cell
       if (column_width > (padding_left + padding_right))
-        word_wrapped_text = Format::word_wrap(
+        word_wrapped_text_2 = Format::word_wrap(
             text,
             column_width - padding_left - padding_right,
             cell.locale(),
@@ -345,11 +345,11 @@ inline void Printer::print_row_in_cell(
         // column_width
       }
     } else {
-      word_wrapped_text = text; // repect the embedded '\n' characters
+      word_wrapped_text_2 = text; // repect the embedded '\n' characters
     }
 
     auto lines = Format::split_lines(
-        word_wrapped_text,
+        word_wrapped_text_2,
         "\n",
         cell.locale(),
         cell.is_multi_byte_character_support_enabled());
