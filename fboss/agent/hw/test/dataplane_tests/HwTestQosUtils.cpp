@@ -61,7 +61,39 @@ bool verifyQueueMappings(
   } while (--retries && !statsMatch);
   return statsMatch;
 }
+bool queueHit(
+    const HwPortStats& portStatsBefore,
+    int queueId,
+    HwSwitchEnsemble* ensemble,
+    facebook::fboss::PortID egressPort) {
+  auto queuePacketsBefore =
+      portStatsBefore.queueOutPackets_()->find(queueId)->second;
+  auto portStatsAfter = ensemble->getLatestPortStats(egressPort);
+  auto queuePacketsAfter = portStatsAfter.queueOutPackets_()[queueId];
+  // Note, on some platforms, due to how loopbacked packets are pruned
+  // from being broadcast, they will appear more than once on a queue
+  // counter, so we can only check that the counter went up, not that it
+  // went up by exactly one.
+  XLOG(DBG2) << "Port ID: " << egressPort << " queue: " << queueId
+             << " queuePacketsBefore " << queuePacketsBefore
+             << " queuePacketsAfter " << queuePacketsAfter;
+  return queuePacketsAfter > queuePacketsBefore;
+}
 
+bool voqHit(
+    const HwSysPortStats& portStatsBefore,
+    int queueId,
+    HwSwitchEnsemble* ensemble,
+    facebook::fboss::SystemPortID egressPort) {
+  auto queueBytesBefore =
+      portStatsBefore.queueOutBytes_()->find(queueId)->second;
+  auto portStatsAfter = ensemble->getLatestSysPortStats(egressPort);
+  auto queueBytesAfter = portStatsAfter.queueOutBytes_()[queueId];
+  XLOG(DBG2) << "Sys port: " << egressPort << " queue " << queueId
+             << " queueBytesBefore " << queueBytesBefore << " queueBytesAfter "
+             << queueBytesAfter;
+  return queueBytesAfter > queueBytesBefore;
+}
 } // namespace
 
 void verifyQueueHit(
@@ -70,18 +102,8 @@ void verifyQueueHit(
     HwSwitchEnsemble* ensemble,
     facebook::fboss::PortID egressPort) {
   WITH_RETRIES({
-    auto queuePacketsBefore =
-        portStatsBefore.queueOutPackets_()->find(queueId)->second;
-    auto portStatsAfter = ensemble->getLatestPortStats(egressPort);
-    auto queuePacketsAfter = portStatsAfter.queueOutPackets_()[queueId];
-    // Note, on some platforms, due to how loopbacked packets are pruned
-    // from being broadcast, they will appear more than once on a queue
-    // counter, so we can only check that the counter went up, not that it
-    // went up by exactly one.
-    XLOG(DBG2) << "queue " << queueId << " queuePacketsBefore "
-               << queuePacketsBefore << " queuePacketsAfter "
-               << queuePacketsAfter;
-    EXPECT_EVENTUALLY_GT(queuePacketsAfter, queuePacketsBefore);
+    EXPECT_EVENTUALLY_TRUE(
+        queueHit(portStatsBefore, queueId, ensemble, egressPort));
   });
 }
 
@@ -91,13 +113,8 @@ void verifyVoQHit(
     HwSwitchEnsemble* ensemble,
     facebook::fboss::SystemPortID egressPort) {
   WITH_RETRIES({
-    auto queueBytesBefore =
-        portStatsBefore.queueOutBytes_()->find(queueId)->second;
-    auto portStatsAfter = ensemble->getLatestSysPortStats(egressPort);
-    auto queueBytesAfter = portStatsAfter.queueOutBytes_()[queueId];
-    XLOG(DBG2) << "queue " << queueId << " queueBytesBefore "
-               << queueBytesBefore << " queueBytesAfter " << queueBytesAfter;
-    EXPECT_EVENTUALLY_GT(queueBytesAfter, queueBytesBefore);
+    EXPECT_EVENTUALLY_TRUE(
+        voqHit(portStatsBefore, queueId, ensemble, egressPort));
   });
 }
 
