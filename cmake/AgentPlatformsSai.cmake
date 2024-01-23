@@ -22,6 +22,7 @@ add_library(sai_platform
   fboss/agent/platforms/sai/SaiFakePlatform.cpp
   fboss/agent/platforms/sai/SaiFakePlatformPort.cpp
   fboss/agent/platforms/sai/SaiJanga800bicPlatform.cpp
+  fboss/agent/platforms/sai/SaiJanga800bicPlatformPort.cpp
   fboss/agent/platforms/sai/SaiMorgan800ccPlatform.cpp
   fboss/agent/platforms/sai/SaiMorgan800ccPlatformPort.cpp
   fboss/agent/platforms/sai/SaiPlatformPort.cpp
