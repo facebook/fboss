@@ -1,45 +1,35 @@
 {
-  "chassisEepromName": "CHASSIS",
+  "chassisEepromName": "FCB",
   "fruEepromList": {
     "MCB": {
-      "path": "/run/devmap/eeproms/MCB_EEPROM",
-      "offset": 0,
-      "idEepromFormatVer": 4
-    },
-    "SCM": {
-      "path": "/run/devmap/eeproms/SCM_EEPROM",
-      "offset": 0,
-      "idEepromFormatVer": 4
-    },
-    "JUMPER": {
-      "path": "/run/devmap/eeproms/JUMPER_EEPROM",
-      "offset": 0,
-      "idEepromFormatVer": 4
-    },
-    "PSU": {
-      "path": "/run/devmap/eeproms/PSU_EEPROM",
-      "offset": 0,
-      "idEepromFormatVer": 4
-    },
-    "LED": {
-      "path": "/run/devmap/eeproms/LED_EEPROM",
-      "offset": 0,
-      "idEepromFormatVer": 4
-    },
-    "PDB": {
-      "path": "/run/devmap/eeproms/PDB_EEPROM",
-      "offset": 0,
-      "idEepromFormatVer": 4
-    },
-    "BMC": {
-      "path": "/run/devmap/eeproms/BMC_EEPROM",
-      "offset": 0,
-      "idEepromFormatVer": 4
+      "path": "/run/devmap/eeproms/MCB_EEPROM"
     },
     "SMB": {
-      "path": "/run/devmap/eeproms/SMB_EEPROM",
-      "offset": 0,
-      "idEepromFormatVer": 4
+      "path": "/run/devmap/eeproms/SMB_EEPROM"
+    },
+    "LED1": {
+      "path": "/run/devmap/eeproms/LED1_EEPROM"
+    },
+    "LED2": {
+      "path": "/run/devmap/eeproms/LED2_EEPROM"
+    },
+    "PDB1": {
+      "path": "/run/devmap/eeproms/PDB1_EEPROM"
+    },
+    "PDB2": {
+      "path": "/run/devmap/eeproms/PDB2_EEPROM"
+    },
+    "JUMPER": {
+      "path": "/run/devmap/eeproms/JUMPER_EEPROM"
+    },
+    "SCM": {
+      "path": "/run/devmap/eeproms/SCM_EEPROM"
+    },
+    "BMC": {
+      "path": "/run/devmap/eeproms/BMC_EEPROM"
+    },
+    "FCB": {
+      "path": "/run/devmap/eeproms/FCB_EEPROM"
     }
   }
 }
