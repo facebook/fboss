@@ -134,6 +134,10 @@ class IPv6Hdr {
     hopLimit = hopLimit > 0 ? hopLimit - 1 : hopLimit;
   }
 
+  void setProtocol(uint8_t proto) {
+    nextHeader = proto;
+  }
+
  public:
   /*
    * Always 0x6

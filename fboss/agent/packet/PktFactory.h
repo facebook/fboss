@@ -89,12 +89,11 @@ class IPPacket {
   }
 
   size_t protocol() const {
-    if (udpPayLoad_) {
-      return 17;
-    } else if (tcpPayLoad_) {
-      return 6;
+    if constexpr (std::is_same_v<HdrT, IPv4Hdr>) {
+      return hdr_.protocol;
+    } else {
+      return hdr_.nextHeader;
     }
-    throw FbossError("No payload set");
   }
 
   void fillIPHdr() {

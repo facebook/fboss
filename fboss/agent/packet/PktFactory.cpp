@@ -398,6 +398,7 @@ EthFrame getEthFrame(
   std::conditional_t<isV4, IPv4Hdr, IPv6Hdr> ipHdr;
   ipHdr.srcAddr = srcIp;
   ipHdr.dstAddr = dstIp;
+  ipHdr.setProtocol(static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP));
 
   UDPHeader udpHdr;
   udpHdr.srcPort = sPort;
@@ -437,6 +438,7 @@ EthFrame getEthFrame(
   std::conditional_t<isV4, IPv4Hdr, IPv6Hdr> ipHdr;
   ipHdr.srcAddr = srcIp;
   ipHdr.dstAddr = dstIp;
+  ipHdr.setProtocol(static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP));
 
   UDPHeader udpHdr;
   udpHdr.srcPort = sPort;

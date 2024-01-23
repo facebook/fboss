@@ -270,6 +270,7 @@ TEST(PacketUtilTest, TxMPLSv4UDP) {
   IPv4Hdr v4Hdr;
   v4Hdr.srcAddr = folly::IPAddressV4("10.0.0.1");
   v4Hdr.dstAddr = folly::IPAddressV4("10.0.0.1");
+  v4Hdr.setProtocol(static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP));
 
   UDPHeader udpHdr;
   udpHdr.srcPort = 10001;
@@ -308,6 +309,7 @@ TEST(PacketUtilTest, TxMPLSv6UDP) {
   IPv6Hdr v6Hdr;
   v6Hdr.srcAddr = folly::IPAddressV6("1001::1");
   v6Hdr.dstAddr = folly::IPAddressV6("1001::2");
+  v6Hdr.setProtocol(static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP));
 
   UDPHeader udpHdr;
   udpHdr.srcPort = 10001;

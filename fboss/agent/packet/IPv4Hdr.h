@@ -147,6 +147,9 @@ class IPv4Hdr {
   uint32_t pseudoHdrPartialCsum() const;
   uint32_t pseudoHdrPartialCsum(uint32_t payloadLength) const;
 
+  void setProtocol(uint8_t proto) {
+    protocol = proto;
+  }
   /*
    * Output as a string
    */
