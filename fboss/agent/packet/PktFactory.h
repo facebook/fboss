@@ -70,8 +70,9 @@ class IPPacket {
   void serialize(folly::io::RWPrivateCursor& cursor) const;
 
   bool operator==(const IPPacket<AddrT>& that) const {
-    return std::tie(hdr_, udpPayLoad_, tcpPayLoad_) ==
-        std::tie(that.hdr_, that.udpPayLoad_, that.tcpPayLoad_);
+    return std::tie(hdr_, udpPayLoad_, tcpPayLoad_, ipPayload_) ==
+        std::tie(
+               that.hdr_, that.udpPayLoad_, that.tcpPayLoad_, that.ipPayload_);
   }
   void decrementTTL() {
     hdr_.decrementTTL();
@@ -84,6 +85,8 @@ class IPPacket {
       return udpPayLoad_->length();
     } else if (tcpPayLoad_) {
       return tcpPayLoad_->length();
+    } else if (ipPayload_) {
+      return ipPayload_->size();
     }
     return 0;
   }
@@ -120,6 +123,7 @@ class IPPacket {
   HdrT hdr_;
   std::optional<UDPDatagram> udpPayLoad_;
   std::optional<TCPPacket> tcpPayLoad_;
+  std::optional<std::vector<uint8_t>> ipPayload_;
 };
 
 template <typename AddrT>

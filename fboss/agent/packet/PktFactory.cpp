@@ -179,6 +179,11 @@ IPPacket<AddrT>::IPPacket(folly::io::Cursor& cursor) {
     udpPayLoad_ = UDPDatagram(cursor);
   } else if (nextHeader(hdr_) == static_cast<uint8_t>(IP_PROTO::IP_PROTO_TCP)) {
     tcpPayLoad_ = TCPPacket(cursor, hdr_.payloadSize());
+  } else {
+    ipPayload_ = std::vector<uint8_t>(payloadLength());
+    for (auto i = 0; i < payloadLength(); ++i) {
+      (*ipPayload_)[i] = cursor.read<uint8_t>();
+    }
   }
 }
 
