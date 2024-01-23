@@ -8,6 +8,7 @@
 #include "common/logging/logging.h"
 
 #include "fboss/agent/HwSwitch.h"
+#include "fboss/agent/packet/PktUtil.h"
 
 namespace facebook::fboss::utility {
 namespace {
@@ -215,6 +216,14 @@ std::unique_ptr<facebook::fboss::TxPacket> IPPacket<AddrT>::getTxPacket(
     folly::io::Cursor cursor(udpPkt->buf());
     rwCursor.push(cursor, udpPayLoad_->length());
     setUDPCheckSum(txPacket->buf());
+  } else if (tcpPayLoad_) {
+    auto tcpPkt = tcpPayLoad_->getTxPacket(hw);
+    folly::io::Cursor cursor(tcpPkt->buf());
+    rwCursor.push(cursor, tcpPayLoad_->length());
+  } else if (ipPayload_) {
+    for (auto byte : *ipPayload_) {
+      rwCursor.write<uint8_t>(byte);
+    }
   }
   return txPacket;
 }
@@ -227,6 +236,12 @@ void IPPacket<AddrT>::serialize(folly::io::RWPrivateCursor& cursor) const {
   hdr_.serialize(&cursor);
   if (udpPayLoad_) {
     udpPayLoad_->serialize(cursor);
+  } else if (tcpPayLoad_) {
+    tcpPayLoad_->serialize(cursor);
+  } else if (ipPayload_) {
+    for (auto byte : *ipPayload_) {
+      cursor.write<uint8_t>(byte);
+    }
   }
 }
 
@@ -235,7 +250,13 @@ std::string IPPacket<AddrT>::toString() const {
   std::stringstream ss;
   ss << "IP hdr: " << hdr_
      << " UDP : " << (udpPayLoad_.has_value() ? udpPayLoad_->toString() : "")
-     << " TCP: " << (tcpPayLoad_.has_value() ? tcpPayLoad_->toString() : "");
+     << " TCP: " << (tcpPayLoad_.has_value() ? tcpPayLoad_->toString() : "")
+     << " L3 only payload: "
+     << (ipPayload_.has_value() ? PktUtil::hexDump(folly::IOBuf(
+                                      folly::IOBuf::CopyBufferOp::COPY_BUFFER,
+                                      ipPayload_->data(),
+                                      ipPayload_->size()))
+                                : "");
   return ss.str();
 }
 
