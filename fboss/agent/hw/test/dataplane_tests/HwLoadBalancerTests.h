@@ -278,6 +278,11 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
             loopThroughFrontPanel,
             deviation,
             loadBalanceExpected);
+        auto l3EcmpDlbFailPackets =
+            getHwSwitch()->getHwFlowletStats().l3EcmpDlbFailPackets().value();
+        XLOG(INFO) << " L3 ECMP Dlb fail packets: " << l3EcmpDlbFailPackets;
+        // verfiy the Dlb fail packets is zero
+        EXPECT_EQ(l3EcmpDlbFailPackets, 0);
       }
     };
 
