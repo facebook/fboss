@@ -766,6 +766,7 @@ void SwSwitch::updateStats() {
     for (auto& [portId, phyInfoPerPort] : phyInfo) {
       hwStats.phyInfo()->emplace(portId, phyInfoPerPort);
     }
+    hwStats.flowletStats() = getHwFlowletStats();
     updateHwSwitchStats(0 /*switchIndex*/, std::move(hwStats));
   }
 
@@ -909,6 +910,10 @@ HwBufferPoolStats SwSwitch::getBufferPoolStats() const {
   stats.deviceWatermarkBytes() =
       multiHwSwitchHandler_->getDeviceWatermarkBytes();
   return stats;
+}
+
+HwFlowletStats SwSwitch::getHwFlowletStats() const {
+  return multiHwSwitchHandler_->getHwFlowletStats();
 }
 
 void SwSwitch::registerNeighborListener(

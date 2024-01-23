@@ -101,6 +101,8 @@ class MultiHwSwitchHandler {
 
   uint64_t getDeviceWatermarkBytes();
 
+  HwFlowletStats getHwFlowletStats();
+
   void clearPortStats(const std::unique_ptr<std::vector<int32_t>>& ports);
 
   std::vector<phy::PrbsLaneStats> getPortAsicPrbsStats(int32_t portId);

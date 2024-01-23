@@ -120,6 +120,10 @@ uint64_t MonolithicHwSwitchHandler::getDeviceWatermarkBytes() const {
   return hw_->getDeviceWatermarkBytes();
 }
 
+HwFlowletStats MonolithicHwSwitchHandler::getHwFlowletStats() const {
+  return hw_->getHwFlowletStats();
+}
+
 HwSwitchFb303Stats* MonolithicHwSwitchHandler::getSwitchStats() const {
   return hw_->getSwitchStats();
 }

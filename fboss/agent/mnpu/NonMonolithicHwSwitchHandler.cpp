@@ -127,6 +127,11 @@ uint64_t NonMonolithicHwSwitchHandler::getDeviceWatermarkBytes() const {
   return 0;
 }
 
+HwFlowletStats NonMonolithicHwSwitchHandler::getHwFlowletStats() const {
+  // TODO: implement this
+  return {};
+}
+
 HwSwitchFb303Stats* NonMonolithicHwSwitchHandler::getSwitchStats() const {
   // TODO: implement this
   // @lint-ignore CLANGTIDY

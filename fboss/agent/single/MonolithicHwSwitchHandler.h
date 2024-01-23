@@ -58,6 +58,8 @@ class MonolithicHwSwitchHandler : public HwSwitchHandler {
 
   uint64_t getDeviceWatermarkBytes() const override;
 
+  HwFlowletStats getHwFlowletStats() const override;
+
   HwSwitchFb303Stats* getSwitchStats() const override;
 
   void clearPortStats(

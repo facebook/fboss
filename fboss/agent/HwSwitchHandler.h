@@ -106,6 +106,8 @@ class HwSwitchHandler {
 
   virtual uint64_t getDeviceWatermarkBytes() const = 0;
 
+  virtual HwFlowletStats getHwFlowletStats() const = 0;
+
   virtual void clearPortStats(
       const std::unique_ptr<std::vector<int32_t>>& ports) = 0;
 

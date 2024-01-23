@@ -292,6 +292,12 @@ uint64_t MultiHwSwitchHandler::getDeviceWatermarkBytes() {
   return hwSwitchSyncers_.begin()->second->getDeviceWatermarkBytes();
 }
 
+HwFlowletStats MultiHwSwitchHandler::getHwFlowletStats() {
+  // TODO - support with multiple switches
+  CHECK_EQ(hwSwitchSyncers_.size(), 1);
+  return hwSwitchSyncers_.begin()->second->getHwFlowletStats();
+}
+
 void MultiHwSwitchHandler::clearPortStats(
     const std::unique_ptr<std::vector<int32_t>>& ports) {
   // TODO - support with multiple switches
