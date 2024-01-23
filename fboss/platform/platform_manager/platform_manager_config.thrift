@@ -421,5 +421,7 @@ struct PlatformConfig {
   22: string bspKmodsRpmVersion;
 
   // Specify the list of names of kmods to be reloaded on new rpm installation.
+  // On every invocation of the program, they will be unloaded in the specified
+  // order, and loaded in the reverse order
   23: list<string> kmodsToReload;
 }

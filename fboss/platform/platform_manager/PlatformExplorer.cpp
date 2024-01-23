@@ -240,7 +240,7 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
           e.what());
     }
     if (pmUnitNameInEeprom) {
-      XLOG(ERR) << fmt::format(
+      XLOG(INFO) << fmt::format(
           "Found PmUnit name `{}` in IDPROM {} at {}",
           *pmUnitNameInEeprom,
           eepromPath,

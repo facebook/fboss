@@ -12,7 +12,8 @@ class PkgUtils {
   void processKmods(const PlatformConfig& config) const;
 
  private:
-  void reloadKmod(const std::string& moduleName) const;
+  void loadKmod(const std::string& moduleName) const;
+  void unloadKmod(const std::string& moduleName) const;
   bool isRpmInstalled(const std::string& rpmFullName) const;
   void installRpm(const std::string& rpmFullName, int maxAttempts) const;
 };
