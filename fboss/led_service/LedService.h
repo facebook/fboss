@@ -39,8 +39,9 @@ class LedService {
     if (!evb) {
       throw FbossError("Event base not available for Led Manager");
     }
-    folly::via(evb).thenValue(
-        [=](auto&&) { pLedManager_->setExternalLedState(portNum, ledState); });
+    folly::via(evb).thenValue([=, this](auto&&) {
+      pLedManager_->setExternalLedState(portNum, ledState);
+    });
   }
 
   led::LedState getLedState(const std::string& swPortName) {
@@ -50,7 +51,7 @@ class LedService {
     }
     return folly::via(evb)
         .thenValue(
-            [=](auto&&) { return pLedManager_->getLedState(swPortName); })
+            [=, this](auto&&) { return pLedManager_->getLedState(swPortName); })
         .get();
   }
 

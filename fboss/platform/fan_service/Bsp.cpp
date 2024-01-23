@@ -498,7 +498,7 @@ bool Bsp::setFanLedShell(std::string command, std::string fanName, int value) {
 }
 
 bool Bsp::initializeQsfpService() {
-  thread_.reset(new std::thread([=] { evbSensor_.loopForever(); }));
+  thread_.reset(new std::thread([=, this] { evbSensor_.loopForever(); }));
   return true;
 }
 

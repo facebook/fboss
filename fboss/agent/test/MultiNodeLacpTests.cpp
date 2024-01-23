@@ -300,7 +300,7 @@ class MultiNodeLacpTest : public MultiNodeTest {
 };
 
 TEST_F(MultiNodeLacpTest, Bringup) {
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     auto period = PeriodicTransmissionMachine::LONG_PERIOD * 3;
     // ensure that lacp session can stay up post timeout
     XLOG(DBG2) << "Waiting for LACP timeout period";
@@ -312,7 +312,7 @@ TEST_F(MultiNodeLacpTest, Bringup) {
 }
 
 TEST_F(MultiNodeLacpTest, LinkDown) {
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     const auto aggPort = getAggPorts()[0];
     // Local port flap
     XLOG(DBG2) << "Disable an Agg member port";
@@ -348,7 +348,7 @@ TEST_F(MultiNodeLacpTest, LinkDown) {
 }
 
 TEST_F(MultiNodeLacpTest, LacpSlowFastInterop) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     if (isDUT()) {
       // Change Lacp to fast mode
       sw()->applyConfig(
@@ -357,7 +357,7 @@ TEST_F(MultiNodeLacpTest, LacpSlowFastInterop) {
     }
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     const auto aggPort = getAggPorts()[0];
     // Wait for AggPort
     waitForAggPortStatus(aggPort, true);
@@ -415,7 +415,7 @@ class MultiNodeDisruptiveTest : public MultiNodeLacpTest {
 // Stop sending LACP on one port and verify
 // that remote side times out
 TEST_F(MultiNodeDisruptiveTest, LacpTimeout) {
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     if (isDUT()) {
       const auto aggPortId = getAggPorts()[0];
       // stop LACP on one of the member ports
@@ -494,14 +494,14 @@ class MultiNodeRoutingLoop : public MultiNodeLacpTest {
 };
 
 TEST_F(MultiNodeRoutingLoop, LoopTraffic) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     verifyInitialState();
     verifyReachability(prefix_);
     if (!isDUT()) {
       createL3DataplaneFlood();
     }
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     std::this_thread::sleep_for(3s);
     assertNoInDiscards(0);
   };

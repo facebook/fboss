@@ -93,7 +93,8 @@ void AgentTest::resolveNeighbor(
     const AddrT& ip,
     VlanID vlanId,
     folly::MacAddress mac) {
-  auto resolveNeighborFn = [=](const std::shared_ptr<SwitchState>& state) {
+  auto resolveNeighborFn = [=,
+                            this](const std::shared_ptr<SwitchState>& state) {
     auto outputState{state->clone()};
     auto vlan = outputState->getVlans()->getNode(vlanId);
     auto nbrTable = vlan->template getNeighborEntryTable<AddrT>()->modify(
@@ -134,7 +135,7 @@ bool AgentTest::waitForSwitchStateCondition(
 }
 
 void AgentTest::setPortStatus(PortID portId, bool up) {
-  auto configFnLinkDown = [=](const std::shared_ptr<SwitchState>& state) {
+  auto configFnLinkDown = [=, this](const std::shared_ptr<SwitchState>& state) {
     auto newState = state->clone();
     auto ports = newState->getPorts()->modify(&newState);
     auto port = ports->getNodeIf(portId)->clone();
@@ -147,7 +148,7 @@ void AgentTest::setPortStatus(PortID portId, bool up) {
 }
 
 void AgentTest::setPortLoopbackMode(PortID portId, cfg::PortLoopbackMode mode) {
-  auto setLbMode = [=](const std::shared_ptr<SwitchState>& state) {
+  auto setLbMode = [=, this](const std::shared_ptr<SwitchState>& state) {
     auto newState = state->clone();
     auto ports = newState->getPorts()->modify(&newState);
     auto port = ports->getNodeIf(portId)->clone();
