@@ -468,6 +468,13 @@ void PlatformExplorer::createDeviceSymLink(
     targetPath =
         std::filesystem::path(i2cExplorer_.getDeviceI2cPath(busNum, i2cAddr)) /
         "hwmon";
+    if (!std::filesystem::exists(*targetPath)) {
+      XLOG(ERR) << fmt::format(
+          "{} doesn't have a valid hwmon directory ({})",
+          devicePath,
+          targetPath->string());
+      return;
+    }
     std::string hwmonSubDir = "";
     for (const auto& dirEntry :
          std::filesystem::directory_iterator(*targetPath)) {
