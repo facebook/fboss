@@ -28,6 +28,7 @@
 #include "fboss/agent/platforms/sai/SaiBcmYampPlatform.h"
 #include "fboss/agent/platforms/sai/SaiCloudRipperPlatform.h"
 #include "fboss/agent/platforms/sai/SaiFakePlatform.h"
+#include "fboss/agent/platforms/sai/SaiJanga800bicPlatform.h"
 #include "fboss/agent/platforms/sai/SaiMeru400bfuPlatform.h"
 #include "fboss/agent/platforms/sai/SaiMeru400biaPlatform.h"
 #include "fboss/agent/platforms/sai/SaiMeru400biuPlatform.h"
@@ -101,6 +102,9 @@ std::unique_ptr<SaiPlatform> chooseSaiPlatform(
         std::move(productInfo), localMac, platformMappingStr);
   } else if (productInfo->getType() == PlatformType::PLATFORM_MORGAN800CC) {
     return std::make_unique<SaiMorgan800ccPlatform>(
+        std::move(productInfo), localMac, platformMappingStr);
+  } else if (productInfo->getType() == PlatformType::PLATFORM_JANGA800BIC) {
+    return std::make_unique<SaiJanga800bicPlatform>(
         std::move(productInfo), localMac, platformMappingStr);
   } else if (productInfo->getType() == PlatformType::PLATFORM_FAKE_SAI) {
     return std::make_unique<SaiFakePlatform>(std::move(productInfo));
