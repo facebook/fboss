@@ -301,6 +301,11 @@ EthFrame::EthFrame(folly::io::Cursor& cursor) {
     case static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_ARP):
       arpHdr_ = ArpHdr(cursor);
       break;
+    case static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_LLDP):
+    case static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_SLOW_PROTOCOLS):
+    case static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_EAPOL):
+      // TODO - add support for parsing respective protocol PDUs
+      break;
     default:
       throw FbossError("Unhandled etherType: ", hdr_.etherType);
   }
