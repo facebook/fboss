@@ -363,6 +363,19 @@ SystemPortID getSystemPortID(
       switchId);
 }
 
+cfg::Range64 getFirstSwitchSystemPortIdRange(
+    const std::map<int64_t, cfg::SwitchInfo>& switchToSwitchInfo) {
+  for (const auto& [switchId, switchInfo] : switchToSwitchInfo) {
+    // Only VOQ switches have system ports
+    if (switchInfo.switchType() == cfg::SwitchType::VOQ &&
+        switchInfo.switchIndex() == 0) {
+      CHECK(switchInfo.systemPortRange().has_value());
+      return *switchInfo.systemPortRange();
+    }
+  }
+  throw FbossError("No VOQ switch with switchIndex 0 found");
+}
+
 std::vector<PortID> getPortsForInterface(
     InterfaceID intfId,
     const std::shared_ptr<SwitchState>& state) {

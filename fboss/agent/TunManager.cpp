@@ -283,16 +283,15 @@ int TunManager::getTableIdForVoq(InterfaceID ifID) const {
   // use range 1-253 for our usecase.
   //
   // VOQ systems use port based RIFs.
-  // Port based RIF IDs are assigned starting minimum system port range.
-  // Thus, map ifID to 1-253 with ifID - sysPortMin + 1
-  // In practice, [sysPortMin, sysPortMax] range is << 253, so no risk of
-  // overflow. Moreover, getTableID asserts that the computed ID is <= 253
-  auto sysPortRange = sw_->getState()->getAssociatedSystemPortRangeIf(ifID);
-  if (!sysPortRange.has_value()) {
-    throw FbossError(
-        "No system port range for interface ID: ", ifID, " switch");
-  }
-  return ifID - *sysPortRange->minimum();
+  // Port based RIF IDs are assigned starting minimum system port range of the
+  // first switch. Thus, map ifID to 1-253 with ifID - firstSwitchSysPortMin
+  // In practice, [firstSwitchSysPortMin, lastSwitchSysPortUsed] range is <<
+  // 253. Moreover, getTableID asserts that the computed ID is <= 253
+
+  auto firstSwitchSysPortRange = getFirstSwitchSystemPortIdRange(
+      utility::getFirstNodeIf(sw_->getState()->getSwitchSettings())
+          ->getSwitchIdToSwitchInfo());
+  return ifID - *firstSwitchSysPortRange.minimum();
 }
 
 int TunManager::getInterfaceMtu(InterfaceID ifID) const {
