@@ -1294,6 +1294,30 @@ TYPED_TEST(HwCoppTest, UnresolvedRoutesToLowPriQueue) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
+TYPED_TEST(HwCoppTest, UnresolvedRouteNextHopToLowPriQueue) {
+  auto setup = [=, this]() {
+    this->setup();
+    utility::EcmpSetupAnyNPorts6 ecmp6(this->getProgrammedState());
+    ecmp6.programRoutes(this->getRouteUpdater(), 1);
+  };
+  // Different from UnresolvedRoutesToLowPriQueue as traffic is
+  // destined to a remote route for which next hop is unresolved.
+  const auto randomNonsubnetUnicastIpAddress =
+      folly::IPAddressV6("2620:0:1cfe:face:b00c::4");
+  auto verify = [=, this]() {
+    this->sendTcpPktAndVerifyCpuQueue(
+        utility::kCoppLowPriQueueId,
+        randomNonsubnetUnicastIpAddress,
+        utility::kNonSpecialPort1,
+        utility::kNonSpecialPort2,
+        std::nullopt,
+        0 /* trafficClass */,
+        std::nullopt,
+        true /* expectQueueHit */);
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
 TYPED_TEST(HwCoppTest, JumboFramesToQueues) {
   auto setup = [=, this]() { this->setup(); };
 
