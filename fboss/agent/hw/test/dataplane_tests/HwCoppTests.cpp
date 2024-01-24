@@ -253,7 +253,7 @@ class HwCoppTest : public HwLinkStateDependentTest {
                 intfMac, // my mac
                 neighborIp, // sender ip
                 folly::IPAddressV6("1::1")); // sent to me
-      sendPkt(std::move(txPacket), outOfPort);
+      sendPkt(std::move(txPacket), outOfPort, true /*snoopAndVerify*/);
     }
   }
 
