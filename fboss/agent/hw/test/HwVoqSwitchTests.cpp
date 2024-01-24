@@ -636,11 +636,10 @@ TEST_F(HwVoqSwitchTest, sendPacketCpuAndFrontPanel) {
         beforeQueueOutBytes = beforeAllQueueOut.second.at(kDefaultQueue);
         printQueueStats("Before Queue Out", "Packets", beforeAllQueueOut.first);
         printQueueStats("Before Queue Out", "Bytes", beforeAllQueueOut.second);
+        auto beforeAllVoQOutBytes = getAllVoQOutBytes();
+        beforeVoQOutBytes = beforeAllVoQOutBytes.at(kDefaultQueue);
+        printQueueStats("Before VoQ Out", "Bytes", beforeAllVoQOutBytes);
       }
-
-      auto beforeAllVoQOutBytes = getAllVoQOutBytes();
-      beforeVoQOutBytes = beforeAllVoQOutBytes.at(kDefaultQueue);
-      printQueueStats("Before VoQ Out", "Bytes", beforeAllVoQOutBytes);
 
       auto [beforeOutPkts, beforeOutBytes] =
           getPortOutPktsBytes(kPort.phyPortID());
@@ -660,14 +659,13 @@ TEST_F(HwVoqSwitchTest, sendPacketCpuAndFrontPanel) {
           utility::getRetryCountAndDelay(getAsic());
       WITH_RETRIES_N_TIMED(
           maxRetryCount, std::chrono::milliseconds(sleepTimeMsecs), {
-            auto afterAllVoQOutBytes = getAllVoQOutBytes();
-            afterVoQOutBytes = afterAllVoQOutBytes.at(kDefaultQueue);
-            printQueueStats("After VoQ Out", "Bytes", afterAllVoQOutBytes);
-
             if (getAsic()->isSupported(HwAsic::Feature::L3_QOS)) {
               auto afterAllQueueOut = getAllQueueOutPktsBytes();
               afterQueueOutPkts = afterAllQueueOut.first.at(kDefaultQueue);
               afterQueueOutBytes = afterAllQueueOut.second.at(kDefaultQueue);
+              auto afterAllVoQOutBytes = getAllVoQOutBytes();
+              afterVoQOutBytes = afterAllVoQOutBytes.at(kDefaultQueue);
+              printQueueStats("After VoQ Out", "Bytes", afterAllVoQOutBytes);
             }
             auto afterAclPkts = isSupported(HwAsic::Feature::ACL_TABLE_GROUP)
                 ? getAclPackets()
@@ -711,9 +709,7 @@ TEST_F(HwVoqSwitchTest, sendPacketCpuAndFrontPanel) {
             if (asicMode != HwAsic::AsicMode::ASIC_MODE_SIM &&
                 (asicType == cfg::AsicType::ASIC_TYPE_JERICHO2 ||
                  asicType == cfg::AsicType::ASIC_TYPE_JERICHO3)) {
-              // CS00012267635: debug why we get 4 extra bytes
-              // Most likely this is the Ethernet FCS being counted
-              // in TX out bytes.
+              // Account for Ethernet FCS being counted in TX out bytes.
               extraByteOffset = utility::EthFrame::FCS_SIZE;
             }
             EXPECT_EVENTUALLY_EQ(

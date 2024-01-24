@@ -184,9 +184,7 @@ int Jericho3Asic::getDefaultNumPortQueues(
     cfg::StreamType streamType,
     cfg::PortType portType) const {
   if (getAsicMode() == AsicMode::ASIC_MODE_SIM) {
-    // TODO skip returning 0 unconditionally here once J3 SDK
-    // supports queue stats on HW. SIM will continue to have
-    // no queues though.
+    // SIM will continue to have no queues though.
     return 0;
   }
   switch (streamType) {
