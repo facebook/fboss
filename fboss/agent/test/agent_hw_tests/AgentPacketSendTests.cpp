@@ -5,14 +5,15 @@
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/lib/CommonUtils.h"
 
+#include "fboss/agent/test/gen-cpp2/production_features_types.h"
+
 namespace facebook::fboss {
 
 class AgentPacketSendTest : public AgentHwTest {
  public:
   std::vector<production_features::ProductionFeature>
   getProductionFeaturesVerified() const override {
-    // TODO
-    return {};
+    return {production_features::ProductionFeature::CPU_RX_TX};
   }
 };
 
