@@ -765,8 +765,8 @@ void SwSwitch::updateStats() {
     }
     hwStats.teFlowStats() = getTeFlowStats();
     hwStats.bufferPoolStats() = getBufferPoolStats();
-    auto phyInfo = phySnapshotManager_->getAllPhyInfos();
-    for (auto& [portId, phyInfoPerPort] : phyInfo) {
+    auto updatedPhyInfo = multiHwSwitchHandler_->updateAllPhyInfo();
+    for (auto& [portId, phyInfoPerPort] : updatedPhyInfo) {
       hwStats.phyInfo()->emplace(portId, phyInfoPerPort);
     }
     hwStats.flowletStats() = getHwFlowletStats();
