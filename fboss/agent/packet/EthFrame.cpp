@@ -9,6 +9,9 @@
 #include "fboss/agent/TxPacket.h"
 
 namespace facebook::fboss::utility {
+namespace {
+static auto kDefaultPayload = std::vector<uint8_t>(256, 0xff);
+}
 
 EthFrame::EthFrame(folly::io::Cursor& cursor) {
   hdr_ = EthHdr(cursor);
@@ -103,5 +106,150 @@ void EthFrame::serialize(folly::io::RWPrivateCursor& cursor) const {
     arpHdr_->serialize(&cursor);
   }
 }
+
+template <typename AddrT>
+EthFrame getEthFrame(
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    AddrT srcIp,
+    AddrT dstIp,
+    uint16_t sPort,
+    uint16_t dPort,
+    VlanID vlanId,
+    size_t payloadSize) {
+  constexpr auto isV4 = std::is_same_v<AddrT, folly::IPAddressV4>;
+  constexpr auto etherType =
+      isV4 ? ETHERTYPE::ETHERTYPE_IPV4 : ETHERTYPE::ETHERTYPE_IPV6;
+  auto tags = EthHdr::VlanTags_t{VlanTag(vlanId, 0x8100)};
+  EthHdr ethHdr{srcMac, dstMac, {tags}, static_cast<uint16_t>(etherType)};
+  std::conditional_t<isV4, IPv4Hdr, IPv6Hdr> ipHdr;
+  ipHdr.srcAddr = srcIp;
+  ipHdr.dstAddr = dstIp;
+  ipHdr.setProtocol(static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP));
+
+  UDPHeader udpHdr;
+  udpHdr.srcPort = sPort;
+  udpHdr.dstPort = dPort;
+
+  if (payloadSize == 256) {
+    return utility::EthFrame(
+        ethHdr,
+        utility::IPPacket<AddrT>(
+            ipHdr, utility::UDPDatagram(udpHdr, kDefaultPayload)));
+  }
+  return utility::EthFrame(
+      ethHdr,
+      utility::IPPacket<AddrT>(
+          ipHdr,
+          utility::UDPDatagram(
+              udpHdr, std::vector<uint8_t>(payloadSize, 0xff))));
+}
+
+template <typename AddrT>
+EthFrame getEthFrame(
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    std::vector<MPLSHdr::Label> labels,
+    AddrT srcIp,
+    AddrT dstIp,
+    uint16_t sPort,
+    uint16_t dPort,
+    VlanID vlanId) {
+  constexpr auto isV4 = std::is_same_v<AddrT, folly::IPAddressV4>;
+  auto tags = EthHdr::VlanTags_t{VlanTag(vlanId, 0x8100)};
+  EthHdr ethHdr{
+      srcMac, dstMac, {tags}, static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_MPLS)};
+
+  MPLSHdr mplsHdr{std::move(labels)};
+
+  std::conditional_t<isV4, IPv4Hdr, IPv6Hdr> ipHdr;
+  ipHdr.srcAddr = srcIp;
+  ipHdr.dstAddr = dstIp;
+  ipHdr.setProtocol(static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP));
+
+  UDPHeader udpHdr;
+  udpHdr.srcPort = sPort;
+  udpHdr.dstPort = dPort;
+
+  return utility::EthFrame(
+      ethHdr,
+      utility::MPLSPacket(
+          mplsHdr,
+          utility::IPPacket<AddrT>(
+              ipHdr, utility::UDPDatagram(udpHdr, kDefaultPayload))));
+}
+
+std::string utility::EthFrame::toString() const {
+  std::stringstream ss;
+  ss << "Eth hdr: " << hdr_.toString()
+     << " arp: " << (arpHdr_.has_value() ? arpHdr_->toString() : "")
+     << " mpls: " << (mplsPayLoad_.has_value() ? mplsPayLoad_->toString() : "")
+     << " v6 : " << (v6PayLoad_.has_value() ? v6PayLoad_->toString() : "")
+     << " v4 : " << (v4PayLoad_.has_value() ? v4PayLoad_->toString() : "");
+  return ss.str();
+}
+
+EthFrame makeEthFrame(const TxPacket& txPkt, bool skipTtlDecrement) {
+  folly::io::Cursor cursor{txPkt.buf()};
+  utility::EthFrame frame(cursor);
+  if (skipTtlDecrement) {
+    return frame;
+  }
+  frame.decrementTTL();
+  return frame;
+}
+
+EthFrame makeEthFrame(const TxPacket& txPkt, folly::MacAddress dstMac) {
+  auto frame = makeEthFrame(txPkt);
+  frame.setDstMac(dstMac);
+  return frame;
+}
+
+EthFrame
+makeEthFrame(const TxPacket& txPkt, folly::MacAddress dstMac, VlanID vlan) {
+  auto frame = makeEthFrame(txPkt, dstMac);
+  frame.setVlan(vlan);
+  return frame;
+}
+
+template EthFrame getEthFrame<folly::IPAddressV4>(
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    folly::IPAddressV4 srcIp,
+    folly::IPAddressV4 dstIp,
+    uint16_t sPort,
+    uint16_t dPort,
+    VlanID vlanId,
+    size_t payloadSize);
+
+template EthFrame getEthFrame<folly::IPAddressV6>(
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    folly::IPAddressV6 srcIp,
+    folly::IPAddressV6 dstIp,
+    uint16_t sPort,
+    uint16_t dPort,
+    VlanID vlanId,
+    size_t payloadSize);
+
+template EthFrame getEthFrame<folly::IPAddressV4>(
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    std::vector<MPLSHdr::Label> labels,
+    folly::IPAddressV4 srcIp,
+    folly::IPAddressV4 dstIp,
+    uint16_t sPort,
+    uint16_t dPort,
+    VlanID vlanId);
+
+template EthFrame getEthFrame<folly::IPAddressV6>(
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    std::vector<MPLSHdr::Label> labels,
+    folly::IPAddressV6 srcIp,
+    folly::IPAddressV6 dstIp,
+    uint16_t sPort,
+    uint16_t dPort,
+    VlanID vlanId);
 
 } // namespace facebook::fboss::utility

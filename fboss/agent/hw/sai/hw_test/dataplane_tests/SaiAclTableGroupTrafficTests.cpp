@@ -20,6 +20,7 @@
 #include "fboss/agent/test/ResourceLibUtil.h"
 
 #include "fboss/agent/hw/test/HwTestAclUtils.h"
+#include "fboss/agent/packet/IPProto.h"
 
 DECLARE_bool(enable_acl_table_group);
 

@@ -2,14 +2,11 @@
 
 #pragma once
 
-#include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/Ethertype.h"
 #include "fboss/agent/types.h"
 
-#include "fboss/agent/packet/EthFrame.h"
+#include "fboss/agent/packet/ArpHdr.h"
 #include "fboss/agent/packet/EthHdr.h"
-#include "fboss/agent/packet/ICMPHdr.h"
-#include "fboss/agent/packet/MPLSHdr.h"
 #include "fboss/agent/packet/PTPHeader.h"
 
 #include <optional>
@@ -17,44 +14,11 @@
 namespace facebook::fboss {
 
 class HwSwitch;
+class TxPacket;
 
 namespace utility {
 
 using AllocatePktFn = std::function<std::unique_ptr<TxPacket>(uint32_t)>;
-
-template <typename AddrT>
-EthFrame getEthFrame(
-    folly::MacAddress srcMac,
-    folly::MacAddress dstMac,
-    AddrT srcIp,
-    AddrT dstIp,
-    uint16_t sPort,
-    uint16_t dPort,
-    VlanID vlanId,
-    size_t payloadSize = 256);
-
-template <typename AddrT>
-EthFrame getEthFrame(
-    folly::MacAddress srcMac,
-    folly::MacAddress dstMac,
-    std::vector<MPLSHdr::Label> labels,
-    AddrT srcIp,
-    AddrT dstIp,
-    uint16_t sPort,
-    uint16_t dPort,
-    VlanID vlanId = VlanID(1));
-
-EthFrame makeEthFrame(const TxPacket& txPkt, bool skipTtlDecrement = false);
-
-EthFrame makeEthFrame(const TxPacket& txPkt, folly::MacAddress dstMac);
-
-EthFrame
-makeEthFrame(const TxPacket& txPkt, folly::MacAddress dstMac, VlanID vlan);
-EthHdr makeEthHdr(
-    folly::MacAddress srcMac,
-    folly::MacAddress dstMac,
-    std::optional<VlanID> vlan,
-    ETHERTYPE etherType);
 
 template <typename SwitchT>
 AllocatePktFn makeAllocator(const SwitchT* sw) {

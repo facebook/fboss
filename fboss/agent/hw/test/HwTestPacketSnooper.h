@@ -4,7 +4,7 @@
 
 #include "fboss/agent/L2Entry.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
-#include "fboss/agent/packet/PktFactory.h"
+#include "fboss/agent/packet/EthFrame.h"
 
 #include <folly/Optional.h>
 #include <folly/io/IOBuf.h>

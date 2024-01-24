@@ -1,11 +1,17 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-#include "fboss/agent/packet/PktFactory.h"
+#include "fboss/agent/packet/IPPacket.h"
 
 #include <folly/io/Cursor.h>
 #include <folly/io/IOBuf.h>
 
+#include <folly/IPAddressV4.h>
+#include <folly/IPAddressV6.h>
+
 #include "fboss/agent/HwSwitch.h"
+#include "fboss/agent/TxPacket.h"
+#include "fboss/agent/packet/IPv4Hdr.h"
+#include "fboss/agent/packet/IPv6Hdr.h"
 #include "fboss/agent/packet/PktUtil.h"
 
 namespace facebook::fboss::utility {

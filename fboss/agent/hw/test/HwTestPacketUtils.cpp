@@ -21,6 +21,7 @@
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/LldpManager.h"
 #include "fboss/agent/packet/PktFactory.h"
+#include "fboss/agent/packet/UDPHeader.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/state/SwitchState.h"

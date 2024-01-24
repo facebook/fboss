@@ -4,7 +4,7 @@
 
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 
-#include "fboss/agent/packet/PktFactory.h"
+#include "fboss/agent/packet/EthFrame.h"
 
 namespace facebook::fboss {
 std::vector<std::string> toStringVec(const std::vector<std::string_view>& in);

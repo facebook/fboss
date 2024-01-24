@@ -2,6 +2,7 @@
 
 #include "fboss/agent/hw/test/HwHashPolarizationTestUtils.h"
 
+#include "fboss/agent/packet/EthFrame.h"
 #include "fboss/agent/packet/PktUtil.h"
 
 #include <folly/io/Cursor.h>

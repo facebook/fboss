@@ -123,5 +123,40 @@ inline std::ostream& operator<<(std::ostream& os, const EthFrame& ethFrame) {
   os << ethFrame.toString();
   return os;
 }
+
+template <typename AddrT>
+EthFrame getEthFrame(
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    AddrT srcIp,
+    AddrT dstIp,
+    uint16_t sPort,
+    uint16_t dPort,
+    VlanID vlanId,
+    size_t payloadSize = 256);
+
+template <typename AddrT>
+EthFrame getEthFrame(
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    std::vector<MPLSHdr::Label> labels,
+    AddrT srcIp,
+    AddrT dstIp,
+    uint16_t sPort,
+    uint16_t dPort,
+    VlanID vlanId = VlanID(1));
+
+EthFrame makeEthFrame(const TxPacket& txPkt, bool skipTtlDecrement = false);
+
+EthFrame makeEthFrame(const TxPacket& txPkt, folly::MacAddress dstMac);
+
+EthFrame
+makeEthFrame(const TxPacket& txPkt, folly::MacAddress dstMac, VlanID vlan);
+EthHdr makeEthHdr(
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    std::optional<VlanID> vlan,
+    ETHERTYPE etherType);
+
 } // namespace utility
 } // namespace facebook::fboss
