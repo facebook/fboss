@@ -48,11 +48,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::LINK_INACTIVE_BASED_ISOLATE:
     case HwAsic::Feature::SAI_FEC_COUNTERS:
       return true;
-    // TODO: enable after ECN is supported
-    case HwAsic::Feature::ECN:
-    case HwAsic::Feature::SAI_ECN_WRED:
-    case HwAsic::Feature::QUEUE_ECN_COUNTER:
-      return false;
+    // Features not expected to work on SIM
     case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:
     case HwAsic::Feature::BUFFER_POOL:
     case HwAsic::Feature::PFC:
@@ -65,10 +61,16 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::CREDIT_WATCHDOG:
     case HwAsic::Feature::SAI_PORT_SERDES_PROGRAMMING:
       return getAsicMode() != AsicMode::ASIC_MODE_SIM;
-    // FIXME - make true when J3-AI supports these features
-    // For now these are only supported on J3 SIM and J3 HW
-    // For HW we only run in J3-AI mode, hence marking these
-    // features as SIM only
+    // SIM specific features.
+    case HwAsic::Feature::SAI_PORT_ETHER_STATS:
+    case HwAsic::Feature::SLOW_STAT_UPDATE:
+      // supported only on the SIM
+      return getAsicMode() == AsicMode::ASIC_MODE_SIM;
+
+    // TODO: enable after ECN is supported
+    case HwAsic::Feature::ECN:
+    case HwAsic::Feature::SAI_ECN_WRED:
+    case HwAsic::Feature::QUEUE_ECN_COUNTER:
     case HwAsic::Feature::SWITCH_ATTR_INGRESS_ACL:
     case HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER:
     case HwAsic::Feature::ACL_TABLE_GROUP:
@@ -77,13 +79,6 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ACL_COUNTER_LABEL:
     case HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE:
     case HwAsic::Feature::DEBUG_COUNTER:
-      return getAsicMode() == AsicMode::ASIC_MODE_SIM;
-    // SIM specific features.
-    case HwAsic::Feature::SAI_PORT_ETHER_STATS:
-    case HwAsic::Feature::SLOW_STAT_UPDATE:
-      // supported only on the SIM
-      return getAsicMode() == AsicMode::ASIC_MODE_SIM;
-
     case HwAsic::Feature::UDF_HASH_FIELD_QUERY:
     case HwAsic::Feature::IN_PAUSE_INCREMENTS_DISCARDS:
     case HwAsic::Feature::SAI_LAG_HASH:
