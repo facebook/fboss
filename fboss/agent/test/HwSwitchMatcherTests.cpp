@@ -5,11 +5,13 @@
 #include "fboss/agent/FbossError.h"
 
 #include <gtest/gtest.h>
+#include <unordered_set>
 
 using namespace facebook::fboss;
 
 TEST(NpuMatcherTest, NpuIds) {
-  HwSwitchMatcher matcher("id=2013,10286,40176");
+  HwSwitchMatcher matcher(std::unordered_set<SwitchID>{
+      SwitchID(2013), SwitchID(10286), SwitchID(40176)});
 
   EXPECT_TRUE(matcher.has(SwitchID(10286)));
   EXPECT_TRUE(matcher.has(SwitchID(2013)));
@@ -21,9 +23,10 @@ TEST(NpuMatcherTest, NpuIds) {
 }
 
 TEST(NpuMatcherTest, MatcherString) {
-  HwSwitchMatcher matcher0("id=2013,10286,40176");
+  HwSwitchMatcher matcher0(std::unordered_set<SwitchID>{
+      SwitchID(2013), SwitchID(10286), SwitchID(40176)});
   HwSwitchMatcher matcher1(matcher0.switchIds());
-  HwSwitchMatcher matcher2(matcher1.matcherString());
+  HwSwitchMatcher matcher2(matcher1.switchIds());
 
   EXPECT_EQ(matcher0.switchIds(), matcher1.switchIds());
   EXPECT_EQ(matcher1.switchIds(), matcher2.switchIds());
@@ -59,6 +62,10 @@ TEST(NpuMatcherTest, Exclude) {
 
   matcher2.exclude(std::unordered_set<SwitchID>{SwitchID(1), SwitchID(2)});
   EXPECT_EQ(matcher2.size(), 2);
+  EXPECT_EQ(
+      matcher2.matcherString(),
+      HwSwitchMatcher(std::unordered_set<SwitchID>{SwitchID(3), SwitchID(4)})
+          .matcherString());
 
   matcher2.exclude(SwitchID(3));
   EXPECT_EQ(matcher2.size(), 1);

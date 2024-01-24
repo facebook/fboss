@@ -8,6 +8,19 @@
 #include <string>
 
 namespace facebook::fboss {
+namespace {
+std::string getMatcherString(const std::unordered_set<SwitchID>& switchIds) {
+  std::stringstream stream;
+  stream << "id=";
+  std::copy(
+      switchIds.begin(),
+      switchIds.end(),
+      std::ostream_iterator<int>(stream, ","));
+  auto str = stream.str();
+  str.pop_back();
+  return str;
+}
+} // namespace
 HwSwitchMatcher::HwSwitchMatcher(const std::string& matcherString)
     : matcherString_(matcherString) {
   // matcherString is "id=1,2,3,4"
@@ -34,14 +47,7 @@ HwSwitchMatcher::HwSwitchMatcher(const std::unordered_set<SwitchID>& switchIds)
   if (switchIds.empty()) {
     throw FbossError("HwSwitchMatcher: invalid npus");
   }
-  std::stringstream stream;
-  stream << "id=";
-  std::copy(
-      switchIds_.begin(),
-      switchIds_.end(),
-      std::ostream_iterator<int>(stream, ","));
-  matcherString_ = stream.str();
-  matcherString_.pop_back();
+  matcherString_ = getMatcherString(switchIds_);
 }
 
 HwSwitchMatcher HwSwitchMatcher::defaultHwSwitchMatcher() {
@@ -74,6 +80,7 @@ void HwSwitchMatcher::exclude(const std::unordered_set<SwitchID>& toRemove) {
   if (switchIds_.empty()) {
     throw FbossError("HwSwitchMatcher: all switches were removed");
   }
+  matcherString_ = getMatcherString(switchIds_);
 }
 
 void HwSwitchMatcher::exclude(SwitchID switchId) {

@@ -10,8 +10,8 @@ namespace facebook::fboss {
 
 class HwSwitchMatcher {
  public:
-  explicit HwSwitchMatcher(const std::string& matcherString);
   explicit HwSwitchMatcher(const std::unordered_set<SwitchID>& switchIds);
+  explicit HwSwitchMatcher(const std::string& matcherString);
   HwSwitchMatcher() : HwSwitchMatcher(defaultHwSwitchMatcherKey()) {}
 
   const std::unordered_set<SwitchID>& switchIds() const {
