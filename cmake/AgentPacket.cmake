@@ -46,6 +46,7 @@ target_link_libraries(pktutil
 )
 
 add_library(packet_factory
+  fboss/agent/packet/EthFrame.cpp
   fboss/agent/packet/IPPacket.cpp
   fboss/agent/packet/MPLSPacket.cpp
   fboss/agent/packet/PktFactory.cpp
