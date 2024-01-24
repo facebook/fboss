@@ -248,4 +248,24 @@ TEST_F(ResourceAccountantTest, checkAndUpdateEcmpResource) {
           route0, false /* add */));
 }
 
+TEST_F(ResourceAccountantTest, computeWeightedEcmpMemberCount) {
+  RouteNextHopSet ecmpNexthops;
+  for (int i = 0; i < getMaxEcmpMembers(); i++) {
+    ecmpNexthops.insert(ResolvedNextHop(
+        folly::IPAddress(folly::to<std::string>("1.1.1.", i + 1)),
+        InterfaceID(i + 1),
+        i + 1));
+  }
+  RouteNextHopEntry ecmpNextHopEntry =
+      RouteNextHopEntry(ecmpNexthops, AdminDistance::EBGP);
+  EXPECT_EQ(
+      this->resourceAccountant_->computeWeightedEcmpMemberCount(
+          ecmpNextHopEntry, cfg::AsicType::ASIC_TYPE_TOMAHAWK4),
+      4 * ecmpNexthops.size());
+  EXPECT_THROW(
+      this->resourceAccountant_->computeWeightedEcmpMemberCount(
+          ecmpNextHopEntry, cfg::AsicType::ASIC_TYPE_MOCK),
+      FbossError);
+}
+
 } // namespace facebook::fboss
