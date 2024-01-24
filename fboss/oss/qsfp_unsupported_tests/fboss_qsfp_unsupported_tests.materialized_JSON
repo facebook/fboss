@@ -57,6 +57,9 @@
         },
         {
           "test_name_regex": "PhyIOTest.phyIOStats$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_800G_8_PAM4_RS544X2N_OPTICAL.TestProfile$"
         }
     ],
     "darwin_mix/physdk-credo-0.7.2/credo-0.7.2": [
@@ -116,6 +119,9 @@
         },
         {
           "test_name_regex": "PhyIOTest.phyIOStats$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_800G_8_PAM4_RS544X2N_OPTICAL.TestProfile$"
         }
     ],
     "darwin_original/physdk-credo-0.7.2/credo-0.7.2": [
@@ -175,6 +181,9 @@
         },
         {
           "test_name_regex": "PhyIOTest.phyIOStats$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_800G_8_PAM4_RS544X2N_OPTICAL.TestProfile$"
         }
     ],
     "elbert_2x16Q_6x8DD/physdk-credo-0.7.2/credo-0.7.2": [
@@ -207,6 +216,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_800G_8_PAM4_RS544X2N_OPTICAL.TestProfile$"
         }
     ],
     "elbert_5x16Q_3x8DD/physdk-credo-0.7.2/credo-0.7.2": [
@@ -239,6 +251,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_800G_8_PAM4_RS544X2N_OPTICAL.TestProfile$"
         }
     ],
     "elbert_8x16Q/physdk-credo-0.7.2/credo-0.7.2": [
@@ -286,6 +301,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_400G_8_PAM4_RS544X2N_COPPER.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_800G_8_PAM4_RS544X2N_OPTICAL.TestProfile$"
         }
     ],
     "fuji_5x16Q/physdk-barchetta2-5.2/barchetta2-5.2": [
@@ -315,6 +333,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_400G_4_PAM4_RS544X2N_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_800G_8_PAM4_RS544X2N_OPTICAL.TestProfile$"
         }
     ],
     "fuji_8x16Q/physdk-barchetta2-5.2/barchetta2-5.2": [
@@ -344,6 +365,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_400G_4_PAM4_RS544X2N_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_800G_8_PAM4_RS544X2N_OPTICAL.TestProfile$"
         }
     ],
     "meru400bfu/physdk-credo-0.7.2/credo-0.7.2": [
@@ -403,6 +427,9 @@
         },
         {
           "test_name_regex": "PhyIOTest.phyIOStats$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_800G_8_PAM4_RS544X2N_OPTICAL.TestProfile$"
         }
     ],
     "meru400biu/physdk-credo-0.7.2/credo-0.7.2": [
@@ -462,6 +489,9 @@
         },
         {
           "test_name_regex": "PhyIOTest.phyIOStats$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_800G_8_PAM4_RS544X2N_OPTICAL.TestProfile$"
         }
     ],
     "meru800bfa/physdk-credo-0.7.2/credo-0.7.2": [
@@ -500,6 +530,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_400G_4_PAM4_RS544X2N_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_800G_8_PAM4_RS544X2N_OPTICAL.TestProfile$"
         }
     ],
     "meru800bia/physdk-credo-0.7.2/credo-0.7.2": [
@@ -600,6 +633,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_10G_1_NRZ_NOFEC_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_800G_8_PAM4_RS544X2N_OPTICAL.TestProfile$"
         }
     ],
     "montblanc/physdk-credo-0.7.2/credo-0.7.2": [
@@ -792,6 +828,9 @@
         },
         {
           "test_name_regex": "PhyIOTest.phyIOStats$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_800G_8_PAM4_RS544X2N_OPTICAL.TestProfile$"
         }
     ],
     "wedge400/physdk-credo-0.7.2/credo-0.7.2": [
@@ -839,6 +878,9 @@
         },
         {
           "test_name_regex": "PhyIOTest.phyIOStats$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_800G_8_PAM4_RS544X2N_OPTICAL.TestProfile$"
         }
     ],
     "wedge400c/physdk-credo-0.7.2/credo-0.7.2": [
@@ -886,6 +928,9 @@
         },
         {
           "test_name_regex": "PhyIOTest.phyIOStats$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_800G_8_PAM4_RS544X2N_OPTICAL.TestProfile$"
         }
     ],
     "yamp_8x16Q/physdk-credo-0.7.2/credo-0.7.2": [
@@ -942,6 +987,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_10G_1_NRZ_NOFEC_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_800G_8_PAM4_RS544X2N_OPTICAL.TestProfile$"
         },
         {
           "test_name_regex": "HwPortPrbsTest_SYSTEM_NRZ.*$"
