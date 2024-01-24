@@ -58,7 +58,7 @@ TEST(SwitchSettingsTest, applyL2LearningConfig) {
 TEST(SwitchSettingsTest, applySwitchDrainState) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
-  addSwitchInfo(stateV0, cfg::SwitchType::FABRIC, 2 /* switchId*/);
+  addSwitchInfo(stateV0, cfg::SwitchType::FABRIC, 20 /* switchId*/);
 
   cfg::SwitchConfig config = testConfigA(cfg::SwitchType::FABRIC);
   *config.switchSettings()->switchDrainState() = cfg::SwitchDrainState::DRAINED;

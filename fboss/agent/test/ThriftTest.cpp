@@ -184,7 +184,7 @@ class ThriftTestAllSwitchTypes : public ::testing::Test {
     if (isNpu()) {
       return {SwitchID(0), cfg::SwitchType::NPU};
     } else if (isFabric()) {
-      return {SwitchID(2), cfg::SwitchType::FABRIC};
+      return {SwitchID(20), cfg::SwitchType::FABRIC};
     } else if (isVoq()) {
       return {SwitchID(1), cfg::SwitchType::VOQ};
     }

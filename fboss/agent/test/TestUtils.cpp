@@ -153,7 +153,7 @@ cfg::SwitchConfig testConfigFabricSwitch() {
   cfg::SwitchConfig cfg;
   cfg.ports()->resize(kPortCount);
   cfg.switchSettings()->switchIdToSwitchInfo() = {std::make_pair(
-      2,
+      20,
       createSwitchInfo(
           cfg::SwitchType::FABRIC,
           cfg::AsicType::ASIC_TYPE_MOCK,
@@ -175,7 +175,7 @@ cfg::SwitchConfig testConfigFabricSwitch() {
         cfg::PortProfileID::PROFILE_25G_1_NRZ_CL74_COPPER;
     cfg.ports()[p].portType() = cfg::PortType::FABRIC_PORT;
   }
-  auto myNode = makeDsfNodeCfg(2, cfg::DsfNodeType::FABRIC_NODE);
+  auto myNode = makeDsfNodeCfg(20, cfg::DsfNodeType::FABRIC_NODE);
   cfg.dsfNodes()->insert({*myNode.switchId(), myNode});
   cfg::DsfNode inNode = makeDsfNodeCfg(1);
   cfg.dsfNodes()->insert({*inNode.switchId(), inNode});
@@ -310,7 +310,7 @@ cfg::SwitchConfig testConfigAImpl(bool isMhnic, cfg::SwitchType switchType) {
       addRecyclePortRif(myNode, cfg);
       // Add a fabric node to DSF node as well. In prod DsfNode map will have
       // both IN and FN nodes
-      auto fnNode = makeDsfNodeCfg(2, cfg::DsfNodeType::FABRIC_NODE);
+      auto fnNode = makeDsfNodeCfg(20, cfg::DsfNodeType::FABRIC_NODE);
       cfg.dsfNodes()->insert({*fnNode.switchId(), fnNode});
     }
   }
