@@ -99,7 +99,7 @@ int main(int argc, char* argv[]) {
   bool good = true;
   std::unique_ptr<WedgeManager> wedgeManager = createWedgeManager();
   if (argc == 1) {
-    folly::gen::range(0, wedgeManager->getNumQsfpModules()) |
+    folly::gen::range(1, wedgeManager->getNumQsfpModules() + 1) |
         folly::gen::appendTo(ports);
   } else {
     for (int n = 1; n < argc; ++n) {
