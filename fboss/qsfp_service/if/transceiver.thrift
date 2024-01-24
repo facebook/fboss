@@ -213,6 +213,7 @@ enum MediaInterfaceCode {
   BASE_T_10G = 12,
   DR4_2x400G = 13,
   DR4_400G = 14,
+  FR8_800G = 15,
 }
 
 // The extended specification compliance code of the transceiver module.
@@ -269,6 +270,7 @@ enum SMFMediaInterfaceCode {
   DR4_400G = 0x1C,
   FR4_400G = 0x1D,
   LR4_10_400G = 0x1E,
+  FR8_800G = 0xC1,
 }
 
 enum Ethernet10GComplianceCode {

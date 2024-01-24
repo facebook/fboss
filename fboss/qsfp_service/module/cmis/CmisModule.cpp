@@ -368,7 +368,10 @@ static SpeedApplicationMapping speedApplicationMapping = {
      {SMFMediaInterfaceCode::FR4_400G,
       SMFMediaInterfaceCode::LR4_10_400G,
       SMFMediaInterfaceCode::DR4_400G}},
-};
+    {
+        cfg::PortSpeed::EIGHTHUNDREDG,
+        {SMFMediaInterfaceCode::FR8_800G},
+    }};
 
 static std::map<SMFMediaInterfaceCode, MediaInterfaceCode>
     mediaInterfaceMapping = {
@@ -378,6 +381,7 @@ static std::map<SMFMediaInterfaceCode, MediaInterfaceCode>
         {SMFMediaInterfaceCode::FR4_400G, MediaInterfaceCode::FR4_400G},
         {SMFMediaInterfaceCode::LR4_10_400G, MediaInterfaceCode::LR4_400G_10KM},
         {SMFMediaInterfaceCode::DR4_400G, MediaInterfaceCode::DR4_400G},
+        {SMFMediaInterfaceCode::FR8_800G, MediaInterfaceCode::FR8_800G},
 };
 
 constexpr uint8_t kPage0CsumRangeStart = 128;

@@ -115,6 +115,9 @@ void HwTransceiverUtils::verifyPortNameToLaneMap(
       case MediaInterfaceCode::CR4_200G:
       case MediaInterfaceCode::CR8_400G:
         expectedMediaLanes = {};
+        break;
+      case MediaInterfaceCode::FR8_800G:
+        expectedMediaLanes = {0, 1, 2, 3, 4, 5, 6, 7};
     }
 
     XLOG(INFO) << "Verifying that " << portName << " uses media lanes "
