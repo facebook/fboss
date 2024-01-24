@@ -326,6 +326,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_800G_8_PAM4_RS544X2N_OPTICAL.TestProfile$"
         }
     ],
     "morgan800cc/physdk-credo-0.7.2/credo-0.7.2": [
@@ -349,6 +352,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N_OPTICAL.TestProfile$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_800G_8_PAM4_RS544X2N_OPTICAL.TestProfile$"
         }
     ],
     "wedge100s/physdk-credo-0.7.2/credo-0.7.2": [
