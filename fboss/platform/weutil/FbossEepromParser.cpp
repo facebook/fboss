@@ -124,7 +124,7 @@ std::vector<EepromFieldEntry> getEepromFieldDict(int version) {
       throw std::runtime_error(
           "Invalid EEPROM version : " + std::to_string(version));
       break;
-  };
+  }
   // The control should not come here, but adding this default
   // return value to avoid compiler warning.
   return kFieldDictionaryV5;
