@@ -70,6 +70,9 @@ class HwTransceiverUtils {
   static void verifyCopper400gProfile(
       const TcvrState& tcvrState,
       const std::vector<MediaInterfaceId>& mediaInterfaces);
+  static void verifyOptical800gProfile(
+      const TransceiverManagementInterface mgmtInterface,
+      const std::vector<MediaInterfaceId>& mediaInterfaces);
   static void verifyDataPathEnabled(
       const TcvrState& tcvrState,
       const std::string& portName);
