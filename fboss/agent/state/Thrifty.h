@@ -511,7 +511,7 @@ struct ThriftMultiSwitchMapNode : public ThriftMapNode<MAP, Traits, Resolver> {
   std::shared_ptr<InnerMap> getAllNodes() const {
     auto nodes = std::make_shared<InnerMap>();
     for (const auto& [_, innerMap] : std::as_const(*this)) {
-      for (const auto& [_, node] : std::as_const(*innerMap)) {
+      for (const auto& [_2, node] : std::as_const(*innerMap)) {
         nodes->addNode(node);
       }
     }
