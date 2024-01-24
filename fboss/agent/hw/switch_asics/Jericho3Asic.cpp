@@ -69,10 +69,6 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     // For now these are only supported on J3 SIM and J3 HW
     // For HW we only run in J3-AI mode, hence marking these
     // features as SIM only
-    case HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION:
-    case HwAsic::Feature::ECMP_HASH_V4:
-    case HwAsic::Feature::ECMP_HASH_V6:
-    case HwAsic::Feature::TRAFFIC_HASHING:
     case HwAsic::Feature::SWITCH_ATTR_INGRESS_ACL:
     case HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER:
     case HwAsic::Feature::ACL_TABLE_GROUP:
@@ -125,7 +121,6 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     // associate RIFs directly with ports. Hence no bridge port
     // is created (or supported for now).
     case HwAsic::Feature::BRIDGE_PORT_8021Q:
-    // TODO - get the features working on Jericho2 ASIC
     case HwAsic::Feature::FABRIC_PORT_MTU:
     case HwAsic::Feature::EXTENDED_FEC:
     case HwAsic::Feature::SAI_RX_REASON_COUNTER:
@@ -165,6 +160,11 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::RX_SNR:
     case HwAsic::Feature::FEC_CORRECTED_BITS:
     case HwAsic::Feature::ROUTE_COUNTERS:
+    // J3-AI natively supports hashing. So hash configuration is not supported.
+    case HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION:
+    case HwAsic::Feature::ECMP_HASH_V4:
+    case HwAsic::Feature::ECMP_HASH_V6:
+    case HwAsic::Feature::TRAFFIC_HASHING:
       return false;
   }
   return false;
