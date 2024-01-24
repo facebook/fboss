@@ -31,8 +31,14 @@ void printUsage() {
   std::cout << "    weutil --eeprom pem" << std::endl;
   std::cout << "    weutil --path /sys/bus/i2c/devices/6-0051/eeprom"
             << std::endl;
-  std::cout << "The <eeprom-name>s supported on this platform are: "
-            << folly::join(", ", getEepromNames()) << std::endl;
+  try {
+    auto eepromNames = getEepromNames();
+    std::cout << "The <eeprom-name>s supported on this platform are: "
+              << folly::join(", ", eepromNames) << std::endl;
+  } catch (const std::exception& ex) {
+    std::cout << "Failed to get supported eeprom names: " << ex.what()
+              << std::endl;
+  }
 }
 } // namespace
 
