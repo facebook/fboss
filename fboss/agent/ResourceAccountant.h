@@ -30,6 +30,10 @@ class ResourceAccountant {
   bool checkEcmpResource(bool intermediateState) const;
   bool stateChangedImpl(const StateDelta& delta);
   bool shouldCheckRouteUpdate() const;
+  bool isEcmp(const RouteNextHopEntry& fwd) const;
+  int computeWeightedEcmpMemberCount(
+      const RouteNextHopEntry& fwd,
+      const cfg::AsicType& asicType) const;
 
   template <typename AddrT>
   bool checkAndUpdateEcmpResource(
@@ -46,5 +50,6 @@ class ResourceAccountant {
   FRIEND_TEST(ResourceAccountantTest, getMemberCountForEcmpGroup);
   FRIEND_TEST(ResourceAccountantTest, checkEcmpResource);
   FRIEND_TEST(ResourceAccountantTest, checkAndUpdateEcmpResource);
+  FRIEND_TEST(ResourceAccountantTest, computeWeightedEcmpMemberCount);
 };
 } // namespace facebook::fboss

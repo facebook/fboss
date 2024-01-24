@@ -19,7 +19,7 @@ DEFINE_int32(
 
 namespace {
 constexpr auto kHundredPercentage = 100;
-}
+} // namespace
 
 namespace facebook::fboss {
 
@@ -35,12 +35,47 @@ ResourceAccountant::ResourceAccountant(const HwAsicTable* asicTable)
   checkRouteUpdate_ = shouldCheckRouteUpdate();
 }
 
+bool ResourceAccountant::isEcmp(const RouteNextHopEntry& fwd) const {
+  for (const auto& nhop : fwd.normalizedNextHops()) {
+    if (nhop.weight() && nhop.weight() > 1) {
+      return false;
+    }
+  }
+  return true;
+}
+
+int ResourceAccountant::computeWeightedEcmpMemberCount(
+    const RouteNextHopEntry& fwd,
+    const cfg::AsicType& asicType) const {
+  switch (asicType) {
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
+      // For TH4, UCMP members take 4x of ECMP members in the same table.
+      return 4 * fwd.getNextHopSet().size();
+    default:
+      throw FbossError(
+          "Unsupported ASIC type for Ucmp member resource computation");
+  }
+}
+
 int ResourceAccountant::getMemberCountForEcmpGroup(
     const RouteNextHopEntry& fwd) const {
-  if (nativeWeightedEcmp_) {
-    // TODO: Compute different table usage for different ASICs (e.g. TH4)
+  if (isEcmp(fwd)) {
     return fwd.getNextHopSet().size();
   }
+  if (nativeWeightedEcmp_) {
+    // Different asic supports native WeightedEcmp in different ways.
+    // Therefore we will have asic-specific logic to compute the member count.
+    const auto asics = asicTable_->getHwAsics();
+    const auto asicType = asics.begin()->second->getAsicType();
+    // Ensure that all ASICs have the same type.
+    CHECK(std::all_of(
+        asics.begin(), asics.end(), [&asicType](const auto& idAndAsic) {
+          return idAndAsic.second->getAsicType() == asicType;
+        }));
+    return computeWeightedEcmpMemberCount(fwd, asicType);
+  }
+  // No native weighted ECMP support. Members are replicated to support
+  // weighted ECMP.
   auto totalWeight = 0;
   for (const auto& nhop : fwd.normalizedNextHops()) {
     totalWeight += nhop.weight() ? nhop.weight() : 1;
@@ -91,7 +126,8 @@ bool ResourceAccountant::checkAndUpdateEcmpResource(
       }
       return true;
     }
-    // ECMP group does not exists in hw - Check if any usage exceeds ASIC limit
+    // ECMP group does not exists in hw - Check if any usage exceeds ASIC
+    // limit
     CHECK(add);
     ecmpGroupRefMap_[nhSet] = 1;
     ecmpMemberUsage_ += getMemberCountForEcmpGroup(fwd);
