@@ -254,6 +254,8 @@ cfg::SwitchConfig testConfigFabricSwitch();
  */
 cfg::SwitchConfig testConfigA(
     cfg::SwitchType switchType = cfg::SwitchType::NPU);
+
+cfg::SwitchConfig testConfigB();
 /*
  * Same as testConfgA but with AclLookupClass associated with every port.
  * (MH-NIC case queue-per-host configuration).

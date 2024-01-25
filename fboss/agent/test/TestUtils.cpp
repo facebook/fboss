@@ -37,6 +37,8 @@
 #include "fboss/agent/gen-cpp2/switch_config_constants.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
 
+#include "fboss/agent/Utils.h"
+
 #include <folly/Memory.h>
 #include <folly/container/Enumerate.h>
 #include <folly/json.h>
@@ -138,13 +140,18 @@ uint16_t recycleSysPortId(const cfg::DsfNode& node) {
   return *node.systemPortRange()->minimum() + 1;
 }
 
-void addRecyclePortRif(const cfg::DsfNode& myNode, cfg::SwitchConfig& cfg) {
+cfg::Interface getRecyclePortRif(const cfg::DsfNode& myNode) {
   cfg::Interface recyclePortRif;
   recyclePortRif.intfID() = recycleSysPortId(myNode);
   recyclePortRif.type() = cfg::InterfaceType::SYSTEM_PORT;
   for (const auto& address : getLoopbackIps(*myNode.switchId())) {
     recyclePortRif.ipAddresses()->push_back(address);
   }
+  return recyclePortRif;
+}
+
+void addRecyclePortRif(const cfg::DsfNode& myNode, cfg::SwitchConfig& cfg) {
+  cfg::Interface recyclePortRif = getRecyclePortRif(myNode);
   cfg.interfaces()->push_back(recyclePortRif);
 }
 
@@ -317,6 +324,114 @@ cfg::SwitchConfig testConfigAImpl(bool isMhnic, cfg::SwitchType switchType) {
 
   return cfg;
 }
+
+cfg::SwitchConfig testConfigBImpl() {
+  cfg::SwitchConfig cfg;
+  static constexpr auto kPortCount = 16;
+  static constexpr auto kPortCountPerNpu = 8;
+  /*
+   * voq1 recycle rif [ 1(2,3,4)]
+   * voq1 [ 5(6,7,8), 9(10,11,12)]
+   * unused [13, 14, 15, 16]
+   * voq2 recycle rif [ 17(18,19,20)]
+   * voq2 [21(22,23,24), 25(26,27, 28)]
+   */
+
+  for (auto p = 0; p < kPortCount; p++) {
+    auto switchIndex = (p < kPortCountPerNpu) ? 0 : 1;
+    auto startOffset = (switchIndex == 0) ? 5 : 21;
+    auto portID = (p % kPortCountPerNpu) + startOffset;
+    cfg::Port port{};
+    port.logicalID() = portID;
+    bool isControllingPort = (p % 4 == 0);
+    if (isControllingPort) {
+      port.state() = cfg::PortState::ENABLED;
+      port.speed() = cfg::PortSpeed::HUNDREDG;
+      port.profileID() = cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_COPPER;
+    } else {
+      port.state() = cfg::PortState::DISABLED;
+      port.speed() = cfg::PortSpeed::TWENTYFIVEG;
+      port.profileID() = cfg::PortProfileID::PROFILE_25G_1_NRZ_CL74_COPPER;
+    }
+    cfg.ports()->push_back(port);
+  }
+
+  std::vector<cfg::Port> recyclePorts;
+  std::vector<cfg::Interface> recycleIntfs;
+  for (auto switchIndex = 0; switchIndex < 2; ++switchIndex) {
+    auto switchId = switchIndex + 1;
+    cfg::DsfNode myNode = makeDsfNodeCfg(switchId);
+    cfg.dsfNodes()->insert({*myNode.switchId(), myNode});
+    CHECK(myNode.systemPortRange().has_value());
+    auto minPort = (switchIndex == 0) ? 0 : 16;
+    auto maxPort = (switchIndex == 0) ? 12 : 28;
+    cfg.switchSettings()->switchIdToSwitchInfo()->emplace(std::make_pair(
+        switchId,
+        createSwitchInfo(
+            cfg::SwitchType::VOQ,
+            cfg::AsicType::ASIC_TYPE_MOCK,
+            minPort, /* port id range min */
+            maxPort, /* port id range max */
+            switchIndex, /* switchIndex */
+            *myNode.systemPortRange()->minimum(),
+            *myNode.systemPortRange()->maximum(),
+            "02:00:00:00:0F:0B", /* switchMac */
+            "68:00" /* connection handle */)));
+  }
+
+  auto switchId2SwitchInfo = *cfg.switchSettings()->switchIdToSwitchInfo();
+
+  for (auto switchIndex = 0; switchIndex < 2; ++switchIndex) {
+    auto minPort = (switchIndex == 0) ? 0 : 16;
+    cfg::DsfNode myNode = cfg.dsfNodes()->at(switchIndex + 1);
+    auto beginPortIndex = switchIndex * kPortCountPerNpu;
+    auto endPortIndex = beginPortIndex + kPortCountPerNpu;
+    for (auto index = beginPortIndex; index < endPortIndex; index++) {
+      const auto& port = cfg.ports()->at(index);
+      cfg::Interface intf;
+      auto intfId = getSystemPortID(
+          PortID(*port.logicalID()), switchId2SwitchInfo, switchIndex + 1);
+      XLOG(INFO) << "Port id : " << *port.logicalID()
+                 << ", intf id : " << intfId;
+      intf.intfID() = static_cast<int>(intfId);
+      intf.routerID() = 0;
+      intf.type() = cfg::InterfaceType::SYSTEM_PORT;
+      intf.name() = folly::sformat("fboss{}", static_cast<int>(intfId));
+      intf.mac() = "00:02:00:00:00:55";
+      intf.mtu() = 9000;
+      intf.ipAddresses()->resize(2);
+      intf.ipAddresses()[0] =
+          folly::sformat("2401:db00:2110:30{:02x}::1/64", *port.logicalID());
+      intf.ipAddresses()[1] = folly::sformat("10.0.{}.1/24", *port.logicalID());
+      cfg.interfaces()->push_back(intf);
+    }
+
+    cfg::Port recyclePort;
+    recyclePort.logicalID() = minPort + 1;
+    recyclePort.name() = folly::sformat("rcy{}/1/1", switchIndex + 1);
+    recyclePort.speed() = cfg::PortSpeed::HUNDREDG;
+    recyclePort.profileID() =
+        cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_COPPER;
+    recyclePort.portType() = cfg::PortType::RECYCLE_PORT;
+
+    recyclePorts.push_back(recyclePort);
+    auto recycleRif = getRecyclePortRif(myNode);
+    recycleIntfs.push_back(recycleRif);
+  }
+  for (auto recyclePort : recyclePorts) {
+    cfg.ports()->push_back(recyclePort);
+  }
+  for (auto recycleIntf : recycleIntfs) {
+    cfg.interfaces()->push_back(recycleIntf);
+  }
+
+  // Add a fabric node to DSF node as well. In prod DsfNode map will have
+  // both IN and FN nodes
+  auto fnNode = makeDsfNodeCfg(20, cfg::DsfNodeType::FABRIC_NODE);
+  cfg.dsfNodes()->insert({*fnNode.switchId(), fnNode});
+
+  return cfg;
+}
 } // namespace
 
 namespace facebook::fboss {
@@ -384,6 +499,10 @@ cfg::DsfNode makeDsfNodeCfg(int64_t switchId, cfg::DsfNodeType type) {
 
 cfg::SwitchConfig testConfigA(cfg::SwitchType switchType) {
   return testConfigAImpl(false, switchType);
+}
+
+cfg::SwitchConfig testConfigB() {
+  return testConfigBImpl();
 }
 
 cfg::SwitchConfig testConfigAWithLookupClasses() {
