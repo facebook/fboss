@@ -21,10 +21,11 @@ class Platform;
 
 class HwTestHandle {
  public:
-  explicit HwTestHandle(
+  HwTestHandle(
       std::unique_ptr<SwSwitch> sw,
-      std::unique_ptr<Platform> platform)
-      : platform_(std::move(platform)), sw_(std::move(sw)) {}
+      std::vector<std::unique_ptr<Platform>> platforms)
+      : platforms_(std::move(platforms)), sw_(std::move(sw)) {}
+
   virtual ~HwTestHandle() = default;
 
   SwSwitch* getSw() const {
@@ -32,12 +33,25 @@ class HwTestHandle {
   }
 
   Platform* getPlatform() const {
-    return platform_.get();
+    return getPlatform(0);
+  }
+
+  Platform* getPlatform(int switchIndex) const {
+    return platforms_.at(switchIndex).get();
   }
 
   HwSwitch* getHwSwitch() const {
-    return platform_->getHwSwitch();
+    return getHwSwitch(0);
   }
+
+  HwSwitch* getHwSwitch(int switchIndex) const {
+    return getPlatform(switchIndex)->getHwSwitch();
+  }
+
+  bool multiSwitch() const {
+    return platforms_.size() > 1;
+  }
+
   virtual void prepareForTesting() {}
 
   // Useful helpers for testing low level events
@@ -50,7 +64,7 @@ class HwTestHandle {
   virtual void forcePortFlap(const PortID port) = 0;
 
  private:
-  std::unique_ptr<Platform> platform_;
+  std::vector<std::unique_ptr<Platform>> platforms_;
   std::unique_ptr<SwSwitch> sw_{nullptr};
 };
 
