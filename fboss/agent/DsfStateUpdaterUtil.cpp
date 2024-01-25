@@ -67,7 +67,10 @@ std::shared_ptr<SwitchState> DsfStateUpdaterUtil::getUpdatedState(
       if (skipProgramming(nbrEntryIter)) {
         nbrEntryIter = clonedTable->erase(nbrEntryIter);
       } else {
+        // Entries received from remote are non-Local on current node
         nbrEntryIter->second->setIsLocal(false);
+        // Entries received from remote always need to be programmed
+        nbrEntryIter->second->setNoHostRoute(false);
         updateResolvedTimestamp(oldTable, nbrEntryIter);
         ++nbrEntryIter;
       }
