@@ -390,6 +390,11 @@ class CmdGlobalOptions {
     return agentThriftPort_;
   }
 
+  int getHwAgentThriftPort(int switchIndex) const {
+    CHECK_LT(switchIndex, hwAgentThriftPort_.size());
+    return hwAgentThriftPort_[switchIndex];
+  }
+
   int getBgpStreamThriftPort() const {
     return bgpStreamThriftPort_;
   }
@@ -529,6 +534,7 @@ class CmdGlobalOptions {
   std::string logUsage_{"scuba"};
   int fsdbThriftPort_{5908};
   int agentThriftPort_{5909};
+  std::vector<int> hwAgentThriftPort_{5931, 5932};
   int qsfpThriftPort_{5910};
   int bgpThriftPort_{6909};
   int smcThriftPort_{1421};

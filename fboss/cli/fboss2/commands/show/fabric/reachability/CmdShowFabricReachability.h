@@ -48,9 +48,19 @@ class CmdShowFabricReachability : public CmdHandler<
     }
 
     if (utils::isFbossFeatureEnabled(hostInfo.getName(), "multi_switch")) {
-      auto client =
-          utils::createClient<apache::thrift::Client<FbossHwCtrl>>(hostInfo);
-      client->sync_getHwSwitchReachability(reachabilityMatrix, switchNames);
+      auto hwAgentQueryFn =
+          [&reachabilityMatrix, &switchNames](
+              apache::thrift::Client<facebook::fboss::FbossHwCtrl>& client) {
+            std::map<std::string, std::vector<std::string>> reachability;
+            client.sync_getHwSwitchReachability(reachability, switchNames);
+            for (auto& [switchName, reachablePorts] : reachability) {
+              reachabilityMatrix[switchName].insert(
+                  reachabilityMatrix[switchName].end(),
+                  reachablePorts.begin(),
+                  reachablePorts.end());
+            }
+          };
+      utils::runOnAllHwAgents(hostInfo, hwAgentQueryFn);
     } else {
       auto client =
           utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
