@@ -161,7 +161,7 @@ multiswitch::HwSwitchStats HwSwitch::getHwSwitchStats() {
   hwSwitchStats.fabricReachabilityStats() = getFabricReachabilityStats();
   hwSwitchStats.sysPortStats() = getSysPortStats();
   hwSwitchStats.fb303GlobalStats() = getSwitchStats()->getAllFb303Stats();
-  hwSwitchStats.cpuPortStats() = getCpuPortStats();
+  hwSwitchStats.cpuPortStats() = getCpuPortStats(false /*getIncrement*/);
   hwSwitchStats.switchDropStats() = getSwitchDropStats();
   hwSwitchStats.flowletStats() = getHwFlowletStats();
   return hwSwitchStats;

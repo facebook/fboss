@@ -1157,10 +1157,10 @@ folly::F14FastMap<std::string, HwPortStats> SaiSwitch::getPortStats() const {
   return getPortStatsLocked(lock);
 }
 
-CpuPortStats SaiSwitch::getCpuPortStats() const {
+CpuPortStats SaiSwitch::getCpuPortStats(bool getIncrement) const {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
   auto& cpuStat = managerTable_->hostifManager().getCpuFb303Stats();
-  return cpuStat.getCpuPortStats();
+  return cpuStat.getCpuPortStats(getIncrement);
 }
 
 folly::F14FastMap<std::string, HwPortStats> SaiSwitch::getPortStatsLocked(

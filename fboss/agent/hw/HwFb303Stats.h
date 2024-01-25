@@ -37,6 +37,7 @@ class HwFb303Stats {
       const std::string& statName,
       int64_t val);
   void removeStat(const std::string& statName);
+  const std::string getMonotonicCounterName(const std::string& statName) const;
 
  private:
   /*
@@ -45,7 +46,6 @@ class HwFb303Stats {
   facebook::stats::MonotonicCounter* getCounterIf(const std::string& statName);
   const facebook::stats::MonotonicCounter* getCounterIf(
       const std::string& statName) const;
-  const std::string getMonotonicCounterName(const std::string& statName) const;
 
   folly::F14FastMap<std::string, facebook::stats::MonotonicCounter> counters_;
   std::optional<std::string> multiSwitchStatsPrefix_;
