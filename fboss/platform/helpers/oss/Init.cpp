@@ -11,6 +11,10 @@ void init(int* argc, char*** argv) {
   folly::init(argc, argv, true);
 }
 
+void initCli(int* argc, char*** argv) {
+  folly::init(argc, argv, true);
+}
+
 void runThriftService(
     std::shared_ptr<apache::thrift::ThriftServer> server,
     std::shared_ptr<apache::thrift::ServerInterface> /* handler */,

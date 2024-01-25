@@ -7,6 +7,8 @@ namespace facebook::fboss::platform::helpers {
 
 void init(int* argc, char*** argv);
 
+void initCli(int* argc, char*** argv);
+
 void runThriftService(
     std::shared_ptr<apache::thrift::ThriftServer> server,
     std::shared_ptr<apache::thrift::ServerInterface> handler,

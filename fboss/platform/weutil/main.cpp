@@ -60,7 +60,7 @@ bool validFlags(int argc) {
 
 // This utility program will output Chassis info for Darwin
 int main(int argc, char* argv[]) {
-  helpers::init(&argc, &argv);
+  helpers::initCli(&argc, &argv);
   std::unique_ptr<WeutilInterface> weutilInstance;
 
   // Check if the flags/args are valid
