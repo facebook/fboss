@@ -120,6 +120,16 @@ void fillHwPortStats(
   hwPortStats.inDstNullDiscards_() = 0;
   bool isEtherStatsSupported =
       platform->getAsic()->isSupported(HwAsic::Feature::SAI_PORT_ETHER_STATS);
+  auto updateInUcastPkts = [&hwPortStats, &portType](uint64_t value) {
+    if (portType == cfg::PortType::RECYCLE_PORT) {
+      // RECYCLE port ucast pkts is clear on read on all
+      // platforms that have rcy ports
+      setUninitializedStatsToZero(*hwPortStats.inUnicastPkts_());
+      hwPortStats.inUnicastPkts_() = *hwPortStats.inUnicastPkts_() + value;
+    } else {
+      hwPortStats.inUnicastPkts_() = value;
+    }
+  };
   for (auto counterIdAndValue : counterId2Value) {
     auto [counterId, value] = counterIdAndValue;
     switch (counterId) {
@@ -130,21 +140,12 @@ void fillHwPortStats(
         if (!isEtherStatsSupported) {
           // when ether stats is supported, skip updating as ether counterpart
           // will populate these stats
-          if (portType == cfg::PortType::RECYCLE_PORT) {
-            // RECYCLE port ucast pkts is clear on read on all
-            // platforms that have rcy ports
-            setUninitializedStatsToZero(*hwPortStats.inUnicastPkts_());
-            hwPortStats.inUnicastPkts_() =
-                *hwPortStats.inUnicastPkts_() + value;
-          } else {
-            hwPortStats.inUnicastPkts_() = value;
-          }
+          updateInUcastPkts(value);
         }
         break;
       case SAI_PORT_STAT_ETHER_STATS_RX_NO_ERRORS:
         if (isEtherStatsSupported) {
-          // when ether stats is supported, update
-          hwPortStats.inUnicastPkts_() = value;
+          updateInUcastPkts(value);
         }
         break;
       case SAI_PORT_STAT_IF_IN_MULTICAST_PKTS:
