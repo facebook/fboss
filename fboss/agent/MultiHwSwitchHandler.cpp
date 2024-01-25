@@ -368,8 +368,6 @@ FabricReachabilityStats MultiHwSwitchHandler::getFabricReachabilityStats() {
 
 std::vector<PortID> MultiHwSwitchHandler::getSwitchReachability(
     SwitchID switchId) {
-  // TODO - support with multiple switches
-  CHECK_EQ(hwSwitchSyncers_.size(), 1);
   return hwSwitchSyncers_.begin()->second->getSwitchReachability(switchId);
 }
 
