@@ -298,6 +298,13 @@ static QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     {CmisField::VDM_CONF_ERR_FRAME_HOST_IN_MAX, {CmisPages::PAGE21, 170, 2}},
     {CmisField::VDM_CONF_ERR_FRAME_HOST_IN_AVG, {CmisPages::PAGE21, 172, 2}},
     {CmisField::VDM_CONF_ERR_FRAME_HOST_IN_CUR, {CmisPages::PAGE21, 174, 2}},
+    // Page 22h
+    {CmisField::PAGE_UPPER22H, {CmisPages::PAGE22, 128, 128}},
+    {CmisField::VDM_CONF_PAM4_LEVEL0_SD_LINE, {CmisPages::PAGE22, 128, 16}},
+    {CmisField::VDM_CONF_PAM4_LEVEL1_SD_LINE, {CmisPages::PAGE22, 144, 16}},
+    {CmisField::VDM_CONF_PAM4_LEVEL2_SD_LINE, {CmisPages::PAGE22, 160, 16}},
+    {CmisField::VDM_CONF_PAM4_LEVEL3_SD_LINE, {CmisPages::PAGE22, 176, 16}},
+    {CmisField::VDM_CONF_PAM4_MPI_LINE, {CmisPages::PAGE22, 192, 16}},
     // Page 24h
     {CmisField::PAGE_UPPER24H, {CmisPages::PAGE24, 128, 128}},
     {CmisField::VDM_VAL_SNR_MEDIA_IN, {CmisPages::PAGE24, 128, 8}},
@@ -319,6 +326,13 @@ static QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     {CmisField::VDM_VAL_ERR_FRAME_HOST_IN_MAX, {CmisPages::PAGE25, 170, 2}},
     {CmisField::VDM_VAL_ERR_FRAME_HOST_IN_AVG, {CmisPages::PAGE25, 172, 2}},
     {CmisField::VDM_VAL_ERR_FRAME_HOST_IN_CUR, {CmisPages::PAGE25, 174, 2}},
+    // Page 26h
+    {CmisField::PAGE_UPPER26H, {CmisPages::PAGE26, 128, 128}},
+    {CmisField::VDM_VAL_PAM4_LEVEL0_SD_LINE, {CmisPages::PAGE26, 128, 16}},
+    {CmisField::VDM_VAL_PAM4_LEVEL1_SD_LINE, {CmisPages::PAGE26, 144, 16}},
+    {CmisField::VDM_VAL_PAM4_LEVEL2_SD_LINE, {CmisPages::PAGE26, 160, 16}},
+    {CmisField::VDM_VAL_PAM4_LEVEL3_SD_LINE, {CmisPages::PAGE26, 176, 16}},
+    {CmisField::VDM_VAL_PAM4_MPI_LINE, {CmisPages::PAGE26, 192, 16}},
     // Page 2Fh
     {CmisField::PAGE_UPPER2FH, {CmisPages::PAGE2F, 128, 128}},
     {CmisField::VDM_LATCH_REQUEST, {CmisPages::PAGE2F, 144, 1}},

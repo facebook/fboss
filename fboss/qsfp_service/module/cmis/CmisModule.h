@@ -27,8 +27,10 @@ enum class CmisPages : int {
   PAGE14 = 0x14,
   PAGE20 = 0x20,
   PAGE21 = 0x21,
+  PAGE22 = 0x22,
   PAGE24 = 0x24,
   PAGE25 = 0x25,
+  PAGE26 = 0x26,
   PAGE2F = 0x2F
 };
 
