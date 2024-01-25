@@ -72,7 +72,8 @@ TEST_F(HwInDiscardsCounterTest, nullRouteHit) {
           *portStatsAfter.inDstNullDiscards_() -
               *portStatsBefore.inDstNullDiscards_());
       EXPECT_EVENTUALLY_EQ(
-          0, *portStatsAfter.inDiscards_() - *portStatsBefore.inDiscards_());
+          *portStatsAfter.inDiscardsRaw_(),
+          *portStatsAfter.inDstNullDiscards_());
     });
     // Do a -ve test as well, discard counters should not increment
     auto otherPortStatsAfter = getLatestPortStats(otherPortId);
