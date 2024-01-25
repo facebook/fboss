@@ -91,7 +91,8 @@ std::string NeighborEntry<IPADDR, SUBCLASS>::str() const {
      << " Encap index: " << encapStr
      << " isLocal: " << (getIsLocal() ? "Y" : "N")
      << " Port: " << getPort().str() << " NeighborState: " << neighborStateStr
-     << " type: " << apache::thrift::util::enumNameSafe(getType());
+     << " type: " << apache::thrift::util::enumNameSafe(getType())
+     << " noHostRoute: " << (getNoHostRoute() ? "Y" : "N");
 
   return os.str();
 }
