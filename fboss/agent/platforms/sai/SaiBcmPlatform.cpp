@@ -19,17 +19,32 @@ namespace facebook::fboss {
 
 std::string SaiBcmPlatform::getHwConfig() {
   if (getAsic()->isSupported(HwAsic::Feature::HSDK)) {
-    if (auto yamlConfig =
-            config()->thrift.platform()->chip()->get_bcm().yamlConfig()) {
+    std::string yamlConfig;
+    try {
+      yamlConfig = config()
+                       ->thrift.platform()
+                       ->chip()
+                       ->get_asicConfig()
+                       .common()
+                       ->get_yamlConfig();
+    } catch (const std::exception& e) {
+      /*
+       * (TODO): Once asic config v2 is rolled out to the fleet, we
+       * should remove this fallback and always use the config v2
+       */
+      yamlConfig =
+          *(config()->thrift.platform()->chip()->get_bcm().yamlConfig());
+    }
+    if (!yamlConfig.empty()) {
       if (supportsDynamicBcmConfig()) {
         BcmYamlConfig bcmYamlConfig;
-        bcmYamlConfig.setBaseConfig(*yamlConfig);
+        bcmYamlConfig.setBaseConfig(yamlConfig);
         auto ports = config()->thrift.sw()->get_ports();
         bcmYamlConfig.modifyCoreMaps(
             getPlatformMapping()->getCorePinMapping(ports));
         return bcmYamlConfig.getConfig();
       }
-      return *yamlConfig;
+      return yamlConfig;
     }
     throw FbossError("Failed to get bcm yaml config from agent config");
   }
