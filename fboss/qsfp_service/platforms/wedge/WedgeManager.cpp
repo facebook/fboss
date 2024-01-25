@@ -914,8 +914,10 @@ void WedgeManager::setOverrideTcvrToPortAndProfileForTesting(
     for (const auto& portPairs : *qsfpTestConfig->cabledPortPairs()) {
       auto aPortID = getPortIDByPortName(*portPairs.aPortName());
       auto zPortID = getPortIDByPortName(*portPairs.zPortName());
-      CHECK(aPortID.has_value());
-      CHECK(zPortID.has_value());
+      CHECK(aPortID.has_value())
+          << "Couldn't find port ID for " << *portPairs.aPortName();
+      CHECK(zPortID.has_value())
+          << "Couldn't find port ID for " << *portPairs.zPortName();
       // If the SW port has transceiver id, add it to
       // overrideTcvrToPortAndProfile
       if (auto tcvrID = getTransceiverID(PortID(*aPortID))) {
