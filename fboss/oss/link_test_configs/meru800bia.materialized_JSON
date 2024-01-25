@@ -3042,7 +3042,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
-        "speed": 400000,
+        "speed": 800000,
         "name": "eth1/15/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -3061,41 +3061,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 38,
-        "portType": 0,
-        "expectedNeighborReachability": [
-          
-        ],
-        "drainState": 0
-      },
-      {
-        "logicalID": 9,
-        "state": 1,
-        "minFrameSize": 64,
-        "maxFrameSize": 9412,
-        "parserType": 1,
-        "routable": true,
-        "ingressVlan": 0,
-        "speed": 400000,
-        "name": "eth1/15/5",
-        "description": "",
-        "queues_DEPRECATED": [
-          
-        ],
-        "pause": {
-          "tx": false,
-          "rx": false
-        },
-        "sFlowIngressRate": 0,
-        "sFlowEgressRate": 0,
-        "loopbackMode": 0,
-        "expectedLLDPValues": {
-          
-        },
-        "lookupClasses": [
-          
-        ],
-        "profileID": 38,
+        "profileID": 39,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -3246,7 +3212,7 @@
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
-        "speed": 400000,
+        "speed": 800000,
         "name": "eth1/18/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -3265,41 +3231,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 38,
-        "portType": 0,
-        "expectedNeighborReachability": [
-          
-        ],
-        "drainState": 0
-      },
-      {
-        "logicalID": 7,
-        "state": 1,
-        "minFrameSize": 64,
-        "maxFrameSize": 9412,
-        "parserType": 1,
-        "routable": true,
-        "ingressVlan": 0,
-        "speed": 400000,
-        "name": "eth1/18/5",
-        "description": "",
-        "queues_DEPRECATED": [
-          
-        ],
-        "pause": {
-          "tx": false,
-          "rx": false
-        },
-        "sFlowIngressRate": 0,
-        "sFlowEgressRate": 0,
-        "loopbackMode": 0,
-        "expectedLLDPValues": {
-          
-        },
-        "lookupClasses": [
-          
-        ],
-        "profileID": 38,
+        "profileID": 39,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -8234,10 +8166,8 @@
             "ucode_port_38.BCM8889X": "CGE36:core_1.10",
             "ucode_port_4.BCM8889X": "CDGE4_2:core_0.4",
             "ucode_port_5.BCM8889X": "CDGE4_3:core_0.5",
-            "ucode_port_6.BCM8889X": "CDGE4_4:core_0.6",
-            "ucode_port_7.BCM8889X": "CDGE4_5:core_0.7",
-            "ucode_port_8.BCM8889X": "CDGE4_6:core_0.8",
-            "ucode_port_9.BCM8889X": "CDGE4_7:core_0.9",
+            "ucode_port_6.BCM8889X": "D3CE2:core_0.6",
+            "ucode_port_8.BCM8889X": "D3CE3:core_0.8",
             "warmboot_support.BCM8889X": "on",
             "warmboot_support.BCM8889X_ADAPTER": "on"
           }
