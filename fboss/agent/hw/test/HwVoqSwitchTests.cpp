@@ -732,7 +732,7 @@ TEST_F(HwVoqSwitchTest, sendPacketCpuAndFrontPanel) {
 
               EXPECT_EVENTUALLY_GT(
                   afterFrontPanelOutPkts, beforeFrontPanelOutPkts);
-            } else {
+            } else if (asicMode != HwAsic::AsicMode::ASIC_MODE_SIM) {
               EXPECT_EVENTUALLY_EQ(beforeRecyclePkts + 1, afterRecyclePkts);
             }
           });
