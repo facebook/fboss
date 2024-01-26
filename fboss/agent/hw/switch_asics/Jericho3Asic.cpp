@@ -49,6 +49,9 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_FEC_COUNTERS:
     case HwAsic::Feature::SAI_FEC_CORRECTED_BITS:
     case HwAsic::Feature::DEBUG_COUNTER:
+    case HwAsic::Feature::ECN:
+    case HwAsic::Feature::SAI_ECN_WRED:
+    case HwAsic::Feature::QUEUE_ECN_COUNTER:
       return true;
     // Features not expected to work on SIM
     case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:
@@ -69,10 +72,6 @@ bool Jericho3Asic::isSupported(Feature feature) const {
       // supported only on the SIM
       return getAsicMode() == AsicMode::ASIC_MODE_SIM;
 
-    // TODO: enable after ECN is supported
-    case HwAsic::Feature::ECN:
-    case HwAsic::Feature::SAI_ECN_WRED:
-    case HwAsic::Feature::QUEUE_ECN_COUNTER:
     case HwAsic::Feature::SWITCH_ATTR_INGRESS_ACL:
     case HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER:
     case HwAsic::Feature::ACL_TABLE_GROUP:
