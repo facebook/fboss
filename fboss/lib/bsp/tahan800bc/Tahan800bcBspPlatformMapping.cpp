@@ -21,7 +21,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "1",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_1",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_1/xcvr_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -56,7 +56,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "2",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_2",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_2/xcvr_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -91,7 +91,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "3",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_3",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_3/xcvr_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -126,7 +126,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "4",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_4",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_4/xcvr_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -161,7 +161,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "5",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_5",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_5/xcvr_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -196,7 +196,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "6",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_6",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_6/xcvr_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -231,7 +231,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "7",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_7",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_7/xcvr_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -266,7 +266,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "8",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_8",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_8/xcvr_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -301,7 +301,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "9",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_9",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_9/xcvr_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -336,7 +336,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "10",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_10",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_10/xcvr_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -371,7 +371,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "11",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_11",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_11/xcvr_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -406,7 +406,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "12",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_12",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_12/xcvr_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -441,7 +441,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "13",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_13",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_13/xcvr_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -476,7 +476,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "14",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_14",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_14/xcvr_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -511,7 +511,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "15",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_15",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_15/xcvr_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -546,7 +546,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "16",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_16",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_16/xcvr_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -581,7 +581,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "17",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_17",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_17/xcvr_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -616,7 +616,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "18",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_18",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_18/xcvr_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -651,7 +651,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "19",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_19",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_19/xcvr_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -686,7 +686,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "20",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_20",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_20/xcvr_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -721,7 +721,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "21",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_21",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_21/xcvr_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -756,7 +756,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "22",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_22",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_22/xcvr_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -791,7 +791,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "23",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_23",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_23/xcvr_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -826,7 +826,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "24",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_24",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_24/xcvr_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -861,7 +861,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "25",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_25",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_25/xcvr_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -896,7 +896,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "26",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_26",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_26/xcvr_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -931,7 +931,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "27",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_27",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_27/xcvr_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -966,7 +966,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "28",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_28",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_28/xcvr_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -1001,7 +1001,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "29",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_29",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_29/xcvr_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -1036,7 +1036,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "30",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_30",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_30/xcvr_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -1071,7 +1071,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "31",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_31",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_31/xcvr_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -1106,7 +1106,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "32",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_32",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_32/xcvr_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
@@ -1141,7 +1141,7 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "33",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/xcvr/xcvr_reset_33",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_33/xcvr_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 1
