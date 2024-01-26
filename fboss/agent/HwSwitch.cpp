@@ -167,20 +167,19 @@ multiswitch::HwSwitchStats HwSwitch::getHwSwitchStats() {
   return hwSwitchStats;
 }
 
-std::map<PortID, phy::PhyInfo> HwSwitch::updateAllPhyInfo() {
+void HwSwitch::updateAllPhyInfo() {
   // Determine if phy info needs to be collected
   auto now =
       std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
   if (now - phyInfoUpdateTime_ >= FLAGS_update_phy_info_interval_s) {
     phyInfoUpdateTime_ = now;
     try {
-      return updateAllPhyInfoImpl();
+      *lastPhyInfo_.wlock() = updateAllPhyInfoImpl();
     } catch (const std::exception& ex) {
       XLOG(ERR) << "Error running updateAllPhyInfo: "
                 << folly::exceptionStr(ex);
     }
   }
-  return {};
 }
 
 uint32_t HwSwitch::generateDeterministicSeed(LoadBalancerID loadBalancerID) {

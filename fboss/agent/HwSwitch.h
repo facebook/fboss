@@ -239,7 +239,10 @@ class HwSwitch {
 
   virtual void fetchL2Table(std::vector<L2EntryThrift>* l2Table) const = 0;
 
-  std::map<PortID, phy::PhyInfo> updateAllPhyInfo();
+  void updateAllPhyInfo();
+  std::map<PortID, phy::PhyInfo> getAllPhyInfo() const {
+    return lastPhyInfo_.copy();
+  }
   virtual std::map<PortID, FabricEndpoint> getFabricConnectivity() const = 0;
   virtual std::vector<PortID> getSwitchReachability(
       SwitchID switchId) const = 0;
@@ -424,6 +427,7 @@ class HwSwitch {
   // collecting them every second, tune down the frequency to only collect once
   // every update_phy_info_interval_s seconds (default to be 10).
   int phyInfoUpdateTime_{0};
+  folly::Synchronized<std::map<PortID, phy::PhyInfo>> lastPhyInfo_;
 };
 
 } // namespace facebook::fboss

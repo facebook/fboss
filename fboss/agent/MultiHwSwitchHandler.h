@@ -97,7 +97,8 @@ class MultiHwSwitchHandler {
 
   void updateStats();
 
-  std::map<PortID, phy::PhyInfo> updateAllPhyInfo();
+  void updateAllPhyInfo();
+  std::map<PortID, phy::PhyInfo> getAllPhyInfo() const;
 
   uint64_t getDeviceWatermarkBytes();
 

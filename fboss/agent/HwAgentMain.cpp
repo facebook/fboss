@@ -65,7 +65,8 @@ void updateStats(
   if (hw->getRunState() >= SwitchRunState::CONFIGURED) {
     hw->updateStats();
     auto hwSwitchStats = hw->getHwSwitchStats();
-    hwSwitchStats.phyInfo() = getPhyInfoForSwitchStats(hw->updateAllPhyInfo());
+    hw->updateAllPhyInfo();
+    hwSwitchStats.phyInfo() = getPhyInfoForSwitchStats(hw->getAllPhyInfo());
     syncer->updateHwSwitchStats(std::move(hwSwitchStats));
   }
 }

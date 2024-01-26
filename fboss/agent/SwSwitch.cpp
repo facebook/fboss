@@ -754,6 +754,12 @@ void SwSwitch::updateStats() {
   updateFabricReachabilityStats();
   stats()->maxNumOfPhysicalHostsPerQueue(
       getLookupClassUpdater()->getMaxNumHostsPerQueue());
+
+  try {
+    multiHwSwitchHandler_->updateAllPhyInfo();
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << "Error running updateAllPhyInfo: " << folly::exceptionStr(ex);
+  }
   if ((*agentConfig_.rlock())->getRunMode() == cfg::AgentRunMode::MONO) {
     multiswitch::HwSwitchStats hwStats;
     hwStats.hwPortStats() = multiHwSwitchHandler_->getPortStats();
@@ -765,8 +771,8 @@ void SwSwitch::updateStats() {
     }
     hwStats.teFlowStats() = getTeFlowStats();
     hwStats.bufferPoolStats() = getBufferPoolStats();
-    auto updatedPhyInfo = multiHwSwitchHandler_->updateAllPhyInfo();
-    for (auto& [portId, phyInfoPerPort] : updatedPhyInfo) {
+    for (auto& [portId, phyInfoPerPort] :
+         multiHwSwitchHandler_->getAllPhyInfo()) {
       hwStats.phyInfo()->emplace(portId, phyInfoPerPort);
     }
     hwStats.flowletStats() = getHwFlowletStats();
@@ -783,11 +789,9 @@ void SwSwitch::updateStats() {
       }
     }
   }
-  // Update Snapshots only if PhyInfo is valid
-  if (!phyInfo.empty()) {
-    phySnapshotManager_->updatePhyInfos(phyInfo);
-    updatePhyFb303Stats(phyInfo);
-  }
+
+  phySnapshotManager_->updatePhyInfos(phyInfo);
+  updatePhyFb303Stats(phyInfo);
 }
 
 void SwSwitch::updateRouteStats() {

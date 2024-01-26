@@ -54,7 +54,8 @@ class MonolithicHwSwitchHandler : public HwSwitchHandler {
 
   void updateStats() override;
 
-  std::map<PortID, phy::PhyInfo> updateAllPhyInfo() override;
+  void updateAllPhyInfo() override;
+  std::map<PortID, phy::PhyInfo> getAllPhyInfo() const override;
 
   uint64_t getDeviceWatermarkBytes() const override;
 

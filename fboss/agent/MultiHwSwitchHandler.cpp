@@ -282,8 +282,12 @@ void MultiHwSwitchHandler::updateStats() {
   return hwSwitchSyncers_.begin()->second->updateStats();
 }
 
-std::map<PortID, phy::PhyInfo> MultiHwSwitchHandler::updateAllPhyInfo() {
-  return hwSwitchSyncers_.begin()->second->updateAllPhyInfo();
+void MultiHwSwitchHandler::updateAllPhyInfo() {
+  hwSwitchSyncers_.begin()->second->updateAllPhyInfo();
+}
+
+std::map<PortID, phy::PhyInfo> MultiHwSwitchHandler::getAllPhyInfo() const {
+  return hwSwitchSyncers_.begin()->second->getAllPhyInfo();
 }
 
 uint64_t MultiHwSwitchHandler::getDeviceWatermarkBytes() {

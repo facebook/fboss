@@ -116,9 +116,10 @@ HwSwitchDropStats NonMonolithicHwSwitchHandler::getSwitchDropStats() const {
 // not used in split
 void NonMonolithicHwSwitchHandler::updateStats() {}
 
-std::map<PortID, phy::PhyInfo>
-NonMonolithicHwSwitchHandler::updateAllPhyInfo() {
-  // TODO: implement this
+// not used in split
+void NonMonolithicHwSwitchHandler::updateAllPhyInfo() {}
+std::map<PortID, phy::PhyInfo> NonMonolithicHwSwitchHandler::getAllPhyInfo()
+    const {
   return {};
 }
 

@@ -112,8 +112,13 @@ HwSwitchDropStats MonolithicHwSwitchHandler::getSwitchDropStats() const {
   return hw_->getSwitchDropStats();
 }
 
-std::map<PortID, phy::PhyInfo> MonolithicHwSwitchHandler::updateAllPhyInfo() {
-  return hw_->updateAllPhyInfo();
+void MonolithicHwSwitchHandler::updateAllPhyInfo() {
+  hw_->updateAllPhyInfo();
+}
+
+std::map<PortID, phy::PhyInfo> MonolithicHwSwitchHandler::getAllPhyInfo()
+    const {
+  return hw_->getAllPhyInfo();
 }
 
 uint64_t MonolithicHwSwitchHandler::getDeviceWatermarkBytes() const {

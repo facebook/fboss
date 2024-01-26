@@ -222,7 +222,8 @@ class HwPortProfileTest : public HwTest {
       applyNewConfig(config);
     };
     auto verify = [this, &availablePorts, &allPhyInfo]() {
-      allPhyInfo = getHwSwitch()->updateAllPhyInfo();
+      getHwSwitch()->updateAllPhyInfo();
+      allPhyInfo = getHwSwitch()->getAllPhyInfo();
       for (auto portID : {availablePorts[0], availablePorts[1]}) {
         verifyPort(portID);
         ASSERT_TRUE(allPhyInfo.find(portID) != allPhyInfo.end());

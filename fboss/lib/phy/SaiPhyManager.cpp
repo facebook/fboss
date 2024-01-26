@@ -124,7 +124,8 @@ void SaiPhyManager::updateAllXphyPortsStats() {
             for (auto& [xphy, platformInfo] : xphyToPlatform) {
               try {
                 platformInfo->getHwSwitch()->updateStats();
-                auto phyInfos = platformInfo->getHwSwitch()->updateAllPhyInfo();
+                platformInfo->getHwSwitch()->updateAllPhyInfo();
+                auto phyInfos = platformInfo->getHwSwitch()->getAllPhyInfo();
                 for (auto& [portId, phyInfo] : phyInfos) {
                   updateXphyInfo(portId, std::move(phyInfo));
                 }
@@ -485,7 +486,8 @@ phy::PhyInfo SaiPhyManager::getPhyInfo(PortID swPort) {
   auto saiPlatform = getSaiPlatform(globalPhyID);
   auto saiSwitch = static_cast<SaiSwitch*>(saiPlatform->getHwSwitch());
 
-  auto allPhyParams = saiSwitch->updateAllPhyInfo();
+  saiSwitch->updateAllPhyInfo();
+  auto allPhyParams = saiSwitch->getAllPhyInfo();
   if (allPhyParams.find(swPort) != allPhyParams.end()) {
     return allPhyParams[swPort];
   }
