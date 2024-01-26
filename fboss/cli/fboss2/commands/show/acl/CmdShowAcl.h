@@ -99,7 +99,7 @@ class CmdShowAcl : public CmdHandler<CmdShowAcl, CmdShowAclTraits> {
       aclDetails.name() = entry.get_name();
       aclDetails.priority() = entry.get_priority();
       if (entry.get_proto()) {
-        aclDetails.proto() = *entry.get_proto();
+        aclDetails.proto() = static_cast<int16_t>(*entry.get_proto());
       }
       if (entry.get_srcPort()) {
         aclDetails.srcPort() = *entry.get_srcPort();
@@ -108,19 +108,19 @@ class CmdShowAcl : public CmdHandler<CmdShowAcl, CmdShowAclTraits> {
         aclDetails.dstPort() = *entry.get_dstPort();
       }
       if (entry.get_ipFrag()) {
-        aclDetails.ipFrag() = *entry.get_ipFrag();
+        aclDetails.ipFrag() = static_cast<int16_t>(*entry.get_ipFrag());
       }
       if (entry.get_dscp()) {
-        aclDetails.dscp() = *entry.get_dscp();
+        aclDetails.dscp() = static_cast<int16_t>(*entry.get_dscp());
       }
       if (entry.get_ipType()) {
-        aclDetails.ipType() = *entry.get_ipType();
+        aclDetails.ipType() = static_cast<int16_t>(*entry.get_ipType());
       }
       if (entry.get_icmpType()) {
-        aclDetails.icmpType() = *entry.get_icmpType();
+        aclDetails.icmpType() = static_cast<int16_t>(*entry.get_icmpType());
       }
       if (entry.get_icmpCode()) {
-        aclDetails.icmpCode() = *entry.get_icmpCode();
+        aclDetails.icmpCode() = static_cast<int16_t>(*entry.get_icmpCode());
       }
       if (entry.get_ttl()) {
         aclDetails.ttl() = *entry.get_ttl();
@@ -135,7 +135,8 @@ class CmdShowAcl : public CmdHandler<CmdShowAcl, CmdShowAclTraits> {
         aclDetails.dstMac() = *entry.get_dstMac();
       }
       if (entry.get_lookupClassL2()) {
-        aclDetails.lookupClassL2() = *entry.get_lookupClassL2();
+        aclDetails.lookupClassL2() =
+            static_cast<int16_t>(*entry.get_lookupClassL2());
       }
       aclDetails.actionType() = entry.get_actionType();
       if (entry.get_enabled()) {
