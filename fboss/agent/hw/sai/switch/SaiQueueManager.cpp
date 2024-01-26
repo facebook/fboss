@@ -295,7 +295,10 @@ void SaiQueueManager::changeQueue(
   }
   if (platform_->getAsic()->isSupported(HwAsic::Feature::BUFFER_POOL) &&
       (queueType != SAI_QUEUE_TYPE_FABRIC_TX)) {
-    changeQueueBufferProfile(queueHandle, newPortQueue);
+    if (!swPort || (swPort->getPortType() != cfg::PortType::MANAGEMENT_PORT)) {
+      // Unsupported for MANAGEMENT_PORT
+      changeQueueBufferProfile(queueHandle, newPortQueue);
+    }
   }
   if (queueType == SAI_QUEUE_TYPE_UNICAST) {
     changeQueueDeadlockEnable(queueHandle, swPort);
