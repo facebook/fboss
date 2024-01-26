@@ -52,6 +52,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ECN:
     case HwAsic::Feature::SAI_ECN_WRED:
     case HwAsic::Feature::QUEUE_ECN_COUNTER:
+    case HwAsic::Feature::MANAGEMENT_PORT:
       return true;
     // Features not expected to work on SIM
     case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:

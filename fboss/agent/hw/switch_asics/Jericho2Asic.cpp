@@ -156,6 +156,7 @@ bool Jericho2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::MPLS_ECMP:
     case HwAsic::Feature::ERSPANv6:
     case HwAsic::Feature::SFLOWv6:
+    case HwAsic::Feature::MANAGEMENT_PORT:
       return false;
   }
   return false;

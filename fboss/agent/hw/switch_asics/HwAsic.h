@@ -162,6 +162,7 @@ class HwAsic {
     LINK_INACTIVE_BASED_ISOLATE,
     SAI_PORT_SERDES_PROGRAMMING,
     RX_SNR,
+    MANAGEMENT_PORT,
   };
 
   enum class AsicMode {
