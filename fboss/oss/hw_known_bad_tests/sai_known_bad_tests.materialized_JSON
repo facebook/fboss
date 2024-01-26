@@ -2339,7 +2339,7 @@
           "test_name_regex": "HwWideEcmpTest.*"
         },
         {
-          "test_name_regex": "HwAqmTest.*"
+          "test_name_regex": "HwAqmTest.verifyEcnThreshold"
         },
         {
           "test_name_regex": "HwResourceStatsTest/[01].l3Stats"
