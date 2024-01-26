@@ -39,7 +39,15 @@ class SwSwitchHandlerTest : public ::testing::Test {
     agentDirUtil_ = std::make_unique<AgentDirectoryUtil>(
         tmpDir_.path().string() + "/volatile",
         tmpDir_.path().string() + "/persistent");
-    sw_ = createSwSwitchWithMultiSwitch(&agentConfig, agentDirUtil_.get());
+    sw_ = createSwSwitchWithMultiSwitch(
+        &agentConfig,
+        agentDirUtil_.get(),
+        [](const SwitchID& switchId,
+           const cfg::SwitchInfo& info,
+           SwSwitch* sw) {
+          return std::make_unique<NonMonolithicHwSwitchHandler>(
+              switchId, info, sw);
+        });
     sw_->getHwSwitchHandler()->start();
   }
 
@@ -394,7 +402,13 @@ TEST_F(SwSwitchHandlerTest, reconnectingHwSwitch) {
   auto agentDirUtil = AgentDirectoryUtil(
       tmpDir_.path().string() + "/volatile",
       tmpDir_.path().string() + "/persist");
-  auto newSwSwitch = createSwSwitchWithMultiSwitch(&agentConfig, &agentDirUtil);
+  auto newSwSwitch = createSwSwitchWithMultiSwitch(
+      &agentConfig,
+      &agentDirUtil,
+      [](const SwitchID& switchId, const cfg::SwitchInfo& info, SwSwitch* sw) {
+        return std::make_unique<NonMonolithicHwSwitchHandler>(
+            switchId, info, sw);
+      });
   auto newHwSwitchHandler = newSwSwitch->getHwSwitchHandler();
   newHwSwitchHandler->start();
 

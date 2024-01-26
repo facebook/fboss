@@ -24,6 +24,7 @@
 #include "fboss/agent/StateObserver.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/hw/mock/MockHwSwitch.h"
+#include "fboss/agent/mnpu/NonMonolithicHwSwitchHandler.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/test/RouteDistributionGenerator.h"
@@ -44,6 +45,20 @@ class RoutingInformationBase;
 namespace cfg {
 class SwitchConfig;
 }
+
+class MockNonMonolithicHwSwitchHandler : public NonMonolithicHwSwitchHandler {
+ public:
+  using NonMonolithicHwSwitchHandler::NonMonolithicHwSwitchHandler;
+  MOCK_METHOD2(
+      stateChanged,
+      std::shared_ptr<SwitchState>(const StateDelta&, bool));
+  MOCK_METHOD3(
+      stateChanged,
+      std::pair<fsdb::OperDelta, HwSwitchStateUpdateStatus>(
+          const fsdb::OperDelta&,
+          bool,
+          const std::shared_ptr<SwitchState>&));
+};
 
 template <cfg::SwitchType type, bool enableIntfNbrTable, int count = 1>
 struct SwitchTypeAndEnableIntfNbrTableT {
@@ -107,9 +122,16 @@ std::unique_ptr<HwTestHandle> createTestHandle(
 
 std::unique_ptr<MockPlatform> createMockPlatform(
     cfg::SwitchType switchType = cfg::SwitchType::NPU,
-    int64_t switchId = 0);
+    int64_t switchId = 0,
+    cfg::SwitchConfig* config = nullptr);
 std::unique_ptr<SwSwitch> setupMockSwitchWithoutHW(
     MockPlatform* platform,
+    const std::shared_ptr<SwitchState>& state,
+    SwitchFlags flags,
+    cfg::SwitchConfig* config = nullptr);
+
+std::unique_ptr<SwSwitch> setupMockSwitchWithoutHW(
+    const std::vector<std::unique_ptr<MockPlatform>>& platforms,
     const std::shared_ptr<SwitchState>& state,
     SwitchFlags flags,
     cfg::SwitchConfig* config = nullptr);
@@ -619,6 +641,7 @@ HwSwitchInitFn mockHwSwitchInitFn(SwSwitch* sw);
 
 std::unique_ptr<SwSwitch> createSwSwitchWithMultiSwitch(
     const AgentConfig* config,
-    AgentDirectoryUtil* dirUtil);
+    const AgentDirectoryUtil* dirUtil,
+    HwSwitchHandlerInitFn initFunc = nullptr);
 
 } // namespace facebook::fboss
