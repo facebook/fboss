@@ -25,7 +25,7 @@ int main(int argc, char* argv[]) {
   // TODO: Add file lock to prevent multiple instance of fw-util from running
   // simultaneously.
 
-  helpers::initCli(&argc, &argv);
+  helpers::initCli(&argc, &argv, "fw_util");
 
   FwUtilImpl fwUtilImpl;
 

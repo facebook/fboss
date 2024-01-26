@@ -11,7 +11,7 @@ void init(int* argc, char*** argv) {
   folly::init(argc, argv, true);
 }
 
-void initCli(int* argc, char*** argv) {
+void initCli(int* argc, char*** argv, const std::string&) {
   folly::init(argc, argv, true);
 }
 
