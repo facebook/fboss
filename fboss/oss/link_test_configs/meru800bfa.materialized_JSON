@@ -36000,6 +36000,7 @@
             "custom_feature_ser_event_generate": "1",
             "custom_feature_use_new_access.BCM8892X_ADAPTER": "1",
             "fabric_cell_fifo_dma_enable.BCM8892X": "1",
+            "fabric_connectivity_based_on_integrity.BCM8892X": "0",
             "fabric_num_pipes.BCM8892X": "1",
             "fabric_pipe_map.BCM8892X": "0",
             "fe_mc_id_range.BCM8892X": "128K",
