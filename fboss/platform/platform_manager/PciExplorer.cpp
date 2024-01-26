@@ -185,7 +185,21 @@ void PciExplorer::createSpiMaster(
     const SpiMasterConfig& spiMasterConfig,
     uint32_t instanceId) {
   auto auxData = getAuxData(*spiMasterConfig.fpgaIpBlockConfig(), instanceId);
-  auxData.spi_data.num_spidevs = *spiMasterConfig.numberOfCsPins();
+  auxData.spi_data.num_spidevs = spiMasterConfig.spiDeviceConfigs()->size();
+  int i = 0;
+  for (const auto& spiDeviceConfig : *spiMasterConfig.spiDeviceConfigs()) {
+    XLOG(INFO) << fmt::format(
+        "Defining SpiSlave Device {} under SpiMaster {}. Args - modalias: {}, chip_select: {}, max_speed_hz: {}",
+        *spiDeviceConfig.pmUnitScopedName(),
+        *spiMasterConfig.fpgaIpBlockConfig()->pmUnitScopedName(),
+        *spiDeviceConfig.modalias(),
+        *spiDeviceConfig.chipSelect(),
+        *spiDeviceConfig.maxSpeedHz());
+    auto& spiDevInfo = auxData.spi_data.spidevs[i++];
+    strcpy(spiDevInfo.modalias, spiDeviceConfig.modalias()->c_str());
+    spiDevInfo.chip_select = *spiDeviceConfig.chipSelect();
+    spiDevInfo.max_speed_hz = *spiDeviceConfig.maxSpeedHz();
+  }
   create(
       *spiMasterConfig.fpgaIpBlockConfig()->pmUnitScopedName(),
       *spiMasterConfig.fpgaIpBlockConfig()->deviceName(),

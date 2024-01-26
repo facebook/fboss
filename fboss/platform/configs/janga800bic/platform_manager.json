@@ -556,7 +556,8 @@
                 "deviceName": "spi_master",
                 "csrOffset": "0x10000",
                 "iobufOffset": "0x12000"
-              }
+              },
+              "spiDeviceConfigs": []
             },
             {
               "fpgaIpBlockConfig": {
@@ -564,7 +565,8 @@
                 "deviceName": "spi_master",
                 "csrOffset": "0x10080",
                 "iobufOffset": "0x12400"
-              }
+              },
+              "spiDeviceConfigs": []
             },
             {
               "fpgaIpBlockConfig": {
@@ -572,7 +574,8 @@
                 "deviceName": "spi_master",
                 "csrOffset": "0x10100",
                 "iobufOffset": "0x12800"
-              }
+              },
+              "spiDeviceConfigs": []
             },
             {
               "fpgaIpBlockConfig": {
@@ -580,7 +583,8 @@
                 "deviceName": "spi_master",
                 "csrOffset": "0x10180",
                 "iobufOffset": "0x12c00"
-              }
+              },
+              "spiDeviceConfigs": []
             },
             {
               "fpgaIpBlockConfig": {
@@ -588,7 +592,8 @@
                 "deviceName": "spi_master",
                 "csrOffset": "0x10200",
                 "iobufOffset": "0x13000"
-              }
+              },
+              "spiDeviceConfigs": []
             },
             {
               "fpgaIpBlockConfig": {
@@ -596,7 +601,8 @@
                 "deviceName": "spi_master",
                 "csrOffset": "0x10280",
                 "iobufOffset": "0x13400"
-              }
+              },
+              "spiDeviceConfigs": []
             },
             {
               "fpgaIpBlockConfig": {
@@ -604,7 +610,8 @@
                 "deviceName": "spi_master",
                 "csrOffset": "0x10300",
                 "iobufOffset": "0x13800"
-              }
+              },
+              "spiDeviceConfigs": []
             },
             {
               "fpgaIpBlockConfig": {
@@ -612,7 +619,8 @@
                 "deviceName": "spi_master",
                 "csrOffset": "0x10380",
                 "iobufOffset": "0x13c00"
-              }
+              },
+              "spiDeviceConfigs": []
             }
           ],
           "ledCtrlConfigs": [

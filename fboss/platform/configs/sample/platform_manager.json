@@ -68,7 +68,14 @@
                 "deviceName": "spi",
                 "iobufOffset": "0x0034"
               },
-              "numberOfCsPins": 1
+              "spiDeviceConfigs": [
+                {
+                  "pmUnitScopedName": "MCB_SPI_0_DEVICE_0",
+                  "modalias": "spidev",
+                  "chipSelect": 0,
+                  "maxSpeedHz": 25000000
+                }
+              ]
             },
             {
               "fpgaIpBlockConfig": {
@@ -76,7 +83,14 @@
                 "deviceName": "spi",
                 "iobufOffset": "0x0334"
               },
-              "numberOfCsPins": 1
+              "spiDeviceConfigs": [
+                {
+                  "pmUnitScopedName": "MCB_SPI_1_DEVICE_0",
+                  "modalias": "spidev",
+                  "chipSelect": 0,
+                  "maxSpeedHz": 25000000
+                }
+              ]
             }
           ]
         }

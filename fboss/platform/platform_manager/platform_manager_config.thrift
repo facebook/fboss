@@ -251,14 +251,33 @@ struct I2cAdapterConfig {
   2: i32 numberOfAdapters;
 }
 
+// Defines a Spi Device in FPGAs.
+//
+// `pmUnitScopedName`: The name used to refer to this device. It should be
+// be unique among other SpiSlaves and in associated pmUnit. SpiDeviceConfig.pmUnitScopedName
+// is the name of the SpiSlave device, whereas SpiMasterConfig.fpgaIpBlockConfig.pmUnitScopedName
+// is the name of the SpiMaster device.
+//
+// `modalias`: Type of SpiSlave Device. spi_dev or any id in https://fburl.com/ncivm7kc
+//
+// `chipSelect`: Value of chip select on the board.
+//
+// `maxSpeedHz`: Maximum clock rate to be used with this chip on the board.
+struct SpiDeviceConfig {
+  1: string pmUnitScopedName;
+  2: string modalias;
+  3: i32 chipSelect;
+  4: i32 maxSpeedHz;
+}
+
 // Defines the SPI Master block in FPGAs.
 //
 // `fpgaIpBlockConfig`: See FgpaIpBlockConfig above
 //
-// `numberOfCsPins`: Number of CS (chip-select) pins.
+// `spiDeviceConfigs`: See SpiDeviceConfig above.
 struct SpiMasterConfig {
   1: FpgaIpBlockConfig fpgaIpBlockConfig;
-  2: i32 numberOfCsPins;
+  2: list<SpiDeviceConfig> spiDeviceConfigs;
 }
 
 // Defines the Transceiver Controller block in FPGAs.
