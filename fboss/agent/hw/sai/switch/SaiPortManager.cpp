@@ -1200,6 +1200,26 @@ bool SaiPortManager::createOnlyAttributeChanged(
         std::get<SaiPortTraits::Attributes::Speed>(newAttributes)));
 }
 
+cfg::PortType SaiPortManager::derivePortTypeOfLogicalPort(
+    PortSaiId portSaiId) const {
+  // TODO: As of now, SAI does not have a MANAGEMENT port type, so all NIF
+  // ports, MANAGEMENT+INTERFACE are reported as LOGICAL ports.  Using the
+  // below logic as per suggestion in CS00012332892 to differentiate
+  // MANAGEMENT from INTERFACE ports, needed for J3 / TH5. Eventual goal is
+  // to use a new port type in SAI to identify management ports.
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::MANAGEMENT_PORT) &&
+      platform_->getAsic()->isSupported(HwAsic::Feature::PFC)) {
+    auto numIngressPriorities =
+        SaiApiTable::getInstance()->portApi().getAttribute(
+            portSaiId,
+            SaiPortTraits::Attributes::NumberOfIngressPriorityGroups{});
+    if (!numIngressPriorities) {
+      return cfg::PortType::MANAGEMENT_PORT;
+    }
+  }
+  return cfg::PortType::INTERFACE_PORT;
+}
+
 std::shared_ptr<Port> SaiPortManager::swPortFromAttributes(
     SaiPortTraits::CreateAttributes attributes,
     PortSaiId portSaiId,
@@ -1251,7 +1271,7 @@ std::shared_ptr<Port> SaiPortManager::swPortFromAttributes(
 
   switch (portType.value()) {
     case SAI_PORT_TYPE_LOGICAL:
-      port->setPortType(cfg::PortType::INTERFACE_PORT);
+      port->setPortType(derivePortTypeOfLogicalPort(portSaiId));
       break;
     case SAI_PORT_TYPE_FABRIC:
       port->setPortType(cfg::PortType::FABRIC_PORT);

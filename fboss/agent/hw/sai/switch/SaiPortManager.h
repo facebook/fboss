@@ -192,6 +192,7 @@ class SaiPortManager {
   std::shared_ptr<MultiSwitchPortMap> reconstructPortsFromStore(
       cfg::SwitchType switchType) const;
 
+  cfg::PortType derivePortTypeOfLogicalPort(PortSaiId portSaiId) const;
   std::shared_ptr<Port> swPortFromAttributes(
       SaiPortTraits::CreateAttributes attributees,
       PortSaiId portSaiId,
