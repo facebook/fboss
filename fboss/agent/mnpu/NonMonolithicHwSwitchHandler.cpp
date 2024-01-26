@@ -248,6 +248,11 @@ NonMonolithicHwSwitchHandler::stateChanged(
   stateDelta.transaction() = transaction;
   {
     std::unique_lock<std::mutex> lk(stateUpdateMutex_);
+    SCOPE_EXIT {
+      // clear any ack before waiting. initial sync might set ack
+      // when there is no update thread waiting for ack
+      prevOperDeltaResult_ = nullptr;
+    };
     prevUpdateSwitchState_ = newState;
     if (checkOperSyncStateLocked(
             HwSwitchOperDeltaSyncState::DISCONNECTED, lk) ||
@@ -258,9 +263,6 @@ NonMonolithicHwSwitchHandler::stateChanged(
     }
     if (checkOperSyncStateLocked(
             HwSwitchOperDeltaSyncState::INITIAL_SYNC_SENT, lk)) {
-      SCOPE_EXIT {
-        prevOperDeltaResult_ = nullptr;
-      };
       // Wait for initial sync to complete
       if (!waitForOperSyncAck(lk, FLAGS_oper_delta_ack_timeout)) {
         setOperSyncStateLocked(HwSwitchOperDeltaSyncState::CANCELLED, lk);
@@ -348,9 +350,8 @@ multiswitch::StateOperDelta NonMonolithicHwSwitchHandler::getNextStateOperDelta(
       if (checkOperSyncStateLocked(
               HwSwitchOperDeltaSyncState::INITIAL_SYNC_SENT, lk)) {
         setOperSyncStateLocked(HwSwitchOperDeltaSyncState::CONNECTED, lk);
-      } else {
-        prevOperDeltaResult_ = prevOperResult.get();
       }
+      prevOperDeltaResult_ = prevOperResult.get();
     }
     lastAckedOperDeltaSeqNum_ = lastUpdateSeqNum;
   }
