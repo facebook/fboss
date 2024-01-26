@@ -913,6 +913,7 @@ enum PortType {
   FABRIC_PORT = 1,
   CPU_PORT = 2,
   RECYCLE_PORT = 3,
+  MANAGEMENT_PORT = 4,
 }
 
 struct PortNeighbor {

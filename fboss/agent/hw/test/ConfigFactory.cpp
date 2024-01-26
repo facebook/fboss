@@ -281,6 +281,7 @@ std::unordered_map<PortID, cfg::PortProfileID> getSafeProfileIDs(
       }
       switch (*platPortItr->second.mapping()->portType()) {
         case cfg::PortType::INTERFACE_PORT:
+        case cfg::PortType::MANAGEMENT_PORT:
           bestSpeed = getDefaultInterfaceSpeed(asicType);
           break;
         case cfg::PortType::FABRIC_PORT:

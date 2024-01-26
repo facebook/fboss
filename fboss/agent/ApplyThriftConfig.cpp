@@ -1134,6 +1134,7 @@ void ThriftConfigApplier::processInterfaceForPortForVoqSwitches(
           port2InterfaceId_[portID].push_back(interfaceID);
         } break;
         case cfg::PortType::FABRIC_PORT:
+        case cfg::PortType::MANAGEMENT_PORT:
         case cfg::PortType::CPU_PORT:
           // no interface for fabric/cpu port
           break;

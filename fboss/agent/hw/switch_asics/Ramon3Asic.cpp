@@ -39,6 +39,7 @@ std::set<cfg::StreamType> Ramon3Asic::getQueueStreamTypes(
   switch (portType) {
     case cfg::PortType::CPU_PORT:
     case cfg::PortType::INTERFACE_PORT:
+    case cfg::PortType::MANAGEMENT_PORT:
     case cfg::PortType::RECYCLE_PORT:
       break;
     case cfg::PortType::FABRIC_PORT:

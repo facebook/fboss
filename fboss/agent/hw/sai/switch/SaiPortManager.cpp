@@ -2376,6 +2376,7 @@ void SaiPortManager::changeRxLaneSquelch(
     // is supported, set that true which will cutoff any signal coming from
     // the remote side and bring down the local link
     if ((newPort->getPortType() == cfg::PortType::FABRIC_PORT ||
+         newPort->getPortType() == cfg::PortType::MANAGEMENT_PORT ||
          newPort->getPortType() == cfg::PortType::INTERFACE_PORT) &&
         platform_->getAsic()->isSupported(
             HwAsic::Feature::RX_LANE_SQUELCH_ENABLE)) {

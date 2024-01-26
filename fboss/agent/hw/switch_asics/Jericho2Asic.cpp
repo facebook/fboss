@@ -167,6 +167,7 @@ std::set<cfg::StreamType> Jericho2Asic::getQueueStreamTypes(
     case cfg::PortType::CPU_PORT:
       return {cfg::StreamType::UNICAST};
     case cfg::PortType::INTERFACE_PORT:
+    case cfg::PortType::MANAGEMENT_PORT:
     case cfg::PortType::RECYCLE_PORT:
       return {cfg::StreamType::UNICAST};
     case cfg::PortType::FABRIC_PORT:
@@ -219,6 +220,7 @@ uint64_t Jericho2Asic::getDefaultReservedBytes(
     case cfg::PortType::RECYCLE_PORT:
       return 4096;
     case cfg::PortType::INTERFACE_PORT:
+    case cfg::PortType::MANAGEMENT_PORT:
     case cfg::PortType::FABRIC_PORT:
       return 0;
   }

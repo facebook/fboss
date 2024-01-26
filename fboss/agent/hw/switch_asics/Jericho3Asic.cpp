@@ -170,6 +170,7 @@ std::set<cfg::StreamType> Jericho3Asic::getQueueStreamTypes(
     case cfg::PortType::CPU_PORT:
       return {cfg::StreamType::UNICAST};
     case cfg::PortType::INTERFACE_PORT:
+    case cfg::PortType::MANAGEMENT_PORT:
     case cfg::PortType::RECYCLE_PORT:
       return {cfg::StreamType::UNICAST};
     case cfg::PortType::FABRIC_PORT:
@@ -192,6 +193,7 @@ int Jericho3Asic::getDefaultNumPortQueues(
         case cfg::PortType::CPU_PORT:
         case cfg::PortType::RECYCLE_PORT:
         case cfg::PortType::INTERFACE_PORT:
+        case cfg::PortType::MANAGEMENT_PORT:
           return 8;
         case cfg::PortType::FABRIC_PORT:
           break;
@@ -224,6 +226,7 @@ uint64_t Jericho3Asic::getDefaultReservedBytes(
     case cfg::PortType::RECYCLE_PORT:
       return 4096;
     case cfg::PortType::INTERFACE_PORT:
+    case cfg::PortType::MANAGEMENT_PORT:
     case cfg::PortType::FABRIC_PORT:
       return 0;
   }
@@ -253,6 +256,7 @@ const std::map<cfg::PortType, cfg::PortLoopbackMode>&
 Jericho3Asic::desiredLoopbackModes() const {
   static const std::map<cfg::PortType, cfg::PortLoopbackMode> kLoopbackMode = {
       {cfg::PortType::INTERFACE_PORT, cfg::PortLoopbackMode::PHY},
+      {cfg::PortType::MANAGEMENT_PORT, cfg::PortLoopbackMode::PHY},
       {cfg::PortType::FABRIC_PORT, cfg::PortLoopbackMode::MAC},
       {cfg::PortType::RECYCLE_PORT, cfg::PortLoopbackMode::NONE}};
   return kLoopbackMode;

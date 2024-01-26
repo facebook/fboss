@@ -199,6 +199,7 @@ std::set<cfg::StreamType> EbroAsic::getQueueStreamTypes(
   switch (portType) {
     case cfg::PortType::CPU_PORT:
     case cfg::PortType::INTERFACE_PORT:
+    case cfg::PortType::MANAGEMENT_PORT:
       /*
        * For Ebro asic, SDK 1.42.* queue type is ALL whereas SDK 1.56.* queue
        * type is unicast. Once SDK 1.56.* is rolled out after P4 warmboot

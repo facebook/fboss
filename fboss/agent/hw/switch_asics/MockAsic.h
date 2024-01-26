@@ -68,6 +68,7 @@ class MockAsic : public HwAsic {
       case cfg::PortType::CPU_PORT:
         return {cfg::StreamType::MULTICAST};
       case cfg::PortType::INTERFACE_PORT:
+      case cfg::PortType::MANAGEMENT_PORT:
       case cfg::PortType::RECYCLE_PORT:
         return {cfg::StreamType::UNICAST};
       case cfg::PortType::FABRIC_PORT:
