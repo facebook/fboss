@@ -48,6 +48,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::LINK_INACTIVE_BASED_ISOLATE:
     case HwAsic::Feature::SAI_FEC_COUNTERS:
     case HwAsic::Feature::SAI_FEC_CORRECTED_BITS:
+    case HwAsic::Feature::DEBUG_COUNTER:
       return true;
     // Features not expected to work on SIM
     case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:
@@ -79,7 +80,6 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ACL_COPY_TO_CPU:
     case HwAsic::Feature::ACL_COUNTER_LABEL:
     case HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE:
-    case HwAsic::Feature::DEBUG_COUNTER:
     case HwAsic::Feature::UDF_HASH_FIELD_QUERY:
     case HwAsic::Feature::IN_PAUSE_INCREMENTS_DISCARDS:
     case HwAsic::Feature::SAI_LAG_HASH:
