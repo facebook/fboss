@@ -39278,7 +39278,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "iphy": {
           "numLanes": 4,
           "modulation": 1,
-          "fec": 1,
+          "fec": 528,
           "medium": 1,
           "interfaceType": 12
         }
@@ -39293,7 +39293,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "iphy": {
           "numLanes": 4,
           "modulation": 1,
-          "fec": 1,
+          "fec": 528,
           "medium": 2,
           "interfaceType": 21
         }
