@@ -151,7 +151,7 @@ std::string PortQueue::toString() const {
         break;
       case cfg::PortQueueRate::Type::__EMPTY__:
         // needed to handle error from -Werror=switch, fall through
-        FOLLY_FALLTHROUGH;
+        [[fallthrough]];
       default:
         type = "unknown";
         rateMin = 0;
