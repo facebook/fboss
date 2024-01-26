@@ -101,6 +101,10 @@ MultiSwitchThriftHandler::co_notifyRxPacket(int64_t switchId) {
           pkt->setSrcPort(PortID(*item->port()));
           if (item->vlan()) {
             pkt->setSrcVlan(VlanID(*item->vlan()));
+          } else {
+            // clear default vlan id(0)
+            // TODO - retire this once the default value for vlan id is removed
+            pkt->setSrcVlan(std::nullopt);
           }
           if (item->aggPort()) {
             pkt->setSrcAggregatePort(AggregatePortID(*item->aggPort()));
