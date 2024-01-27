@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "fboss/agent/Utils.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
@@ -36,16 +37,6 @@ class SwitchIdScopeResolver;
 
 namespace facebook::fboss::utility {
 
-inline const std::string kUdfHashGroupName("dstQueuePair");
-inline const std::string kUdfRoceOpcodeAclGroupName("roceOpcode");
-inline const std::string kUdfPktMatcherName("l4UdpRoce");
-inline const int kUdfHashStartOffsetInBytes(13);
-inline const int kUdfAclRoceOpcodeStartOffsetInBytes(8);
-inline const int kUdfHashFieldSizeInBytes(3);
-inline const int kUdfAclRoceOpcodeFieldSizeInBytes(1);
-inline const int kUdfL4DstPort(4791);
-inline const int kRandomUdfL4SrcPort(62946);
-inline const int kUdfRoceOpcode(11);
 inline const int kScalingFactor(100);
 inline const int kLoadWeight(70);
 inline const int kQueueWeight(30);

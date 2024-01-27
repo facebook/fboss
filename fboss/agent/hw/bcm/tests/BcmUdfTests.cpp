@@ -55,7 +55,7 @@ TEST_F(BcmUdfTest, checkUdfHashGroupConfiguration) {
   auto verifyUdfConfig = [=]() {
     int udfGroupId;
     udfGroupId = getHwSwitch()->getUdfMgr()->getBcmUdfGroupId(
-        utility::kUdfHashGroupName);
+        utility::kUdfHashDstQueuePairGroupName);
 
     /* get udf info */
     bcm_udf_t udfInfo;
@@ -63,8 +63,9 @@ TEST_F(BcmUdfTest, checkUdfHashGroupConfiguration) {
     auto rv = bcm_udf_get(getHwSwitch()->getUnit(), udfGroupId, &udfInfo);
     bcmCheckError(rv, "Unable to get udfInfo for udfGroupId: ", udfGroupId);
     ASSERT_EQ(udfInfo.layer, bcmUdfLayerL4OuterHeader);
-    ASSERT_EQ(udfInfo.start, utility::kUdfHashStartOffsetInBytes * 8);
-    ASSERT_EQ(udfInfo.width, utility::kUdfHashFieldSizeInBytes * 8);
+    ASSERT_EQ(
+        udfInfo.start, utility::kUdfHashDstQueuePairStartOffsetInBytes * 8);
+    ASSERT_EQ(udfInfo.width, utility::kUdfHashDstQueuePairFieldSizeInBytes * 8);
   };
 
   verifyAcrossWarmBoots(setupUdfConfig, verifyUdfConfig);
@@ -77,7 +78,7 @@ TEST_F(BcmUdfTest, checkUdfAclGroupConfiguration) {
   auto verifyUdfConfig = [=]() {
     int udfGroupId;
     udfGroupId = getHwSwitch()->getUdfMgr()->getBcmUdfGroupId(
-        utility::kUdfRoceOpcodeAclGroupName);
+        utility::kUdfAclRoceOpcodeGroupName);
     XLOG(DBG5) << "checkUdfAclGroupConfiguration udfGroupId: " << udfGroupId;
     /* get udf info */
     bcm_udf_t udfInfo;
@@ -97,7 +98,7 @@ TEST_F(BcmUdfTest, checkUdfPktMatcherConfiguration) {
   auto verifyUdfConfig = [=]() {
     const int udfPacketMatcherId =
         getHwSwitch()->getUdfMgr()->getBcmUdfPacketMatcherId(
-            utility::kUdfPktMatcherName);
+            utility::kUdfL4UdpRocePktMatcherName);
     /* get udf pkt info */
     bcm_udf_pkt_format_info_t pktFormat;
     bcm_udf_pkt_format_info_t_init(&pktFormat);
@@ -118,11 +119,11 @@ TEST_F(BcmUdfTest, deleteUdfConfiguration) {
   // Udf Config
   applyNewState(setupUdfConfiguration(true));
 
-  const int udfGroupId =
-      getHwSwitch()->getUdfMgr()->getBcmUdfGroupId(utility::kUdfHashGroupName);
+  const int udfGroupId = getHwSwitch()->getUdfMgr()->getBcmUdfGroupId(
+      utility::kUdfHashDstQueuePairGroupName);
   const int udfPacketMatcherId =
       getHwSwitch()->getUdfMgr()->getBcmUdfPacketMatcherId(
-          utility::kUdfPktMatcherName);
+          utility::kUdfL4UdpRocePktMatcherName);
 
   // Undo Udf Config
   applyNewState(setupUdfConfiguration(false));
@@ -130,11 +131,11 @@ TEST_F(BcmUdfTest, deleteUdfConfiguration) {
   auto verifyUdfConfig = [=]() {
     EXPECT_THROW(
         getHwSwitch()->getUdfMgr()->getBcmUdfGroupId(
-            utility::kUdfHashGroupName),
+            utility::kUdfHashDstQueuePairGroupName),
         FbossError);
     EXPECT_THROW(
         getHwSwitch()->getUdfMgr()->getBcmUdfPacketMatcherId(
-            utility::kUdfPktMatcherName),
+            utility::kUdfL4UdpRocePktMatcherName),
         FbossError);
 
     /* get udf info */

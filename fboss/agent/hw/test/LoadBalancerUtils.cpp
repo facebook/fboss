@@ -64,7 +64,8 @@ cfg::Fields getFullHashUdf() {
   hashFields.transportFields() = std::set<cfg::TransportField>(
       {cfg::TransportField::SOURCE_PORT,
        cfg::TransportField::DESTINATION_PORT});
-  hashFields.udfGroups() = std::vector<std::string>({kUdfHashGroupName});
+  hashFields.udfGroups() =
+      std::vector<std::string>({kUdfHashDstQueuePairGroupName});
   return hashFields;
 }
 
@@ -232,7 +233,7 @@ static cfg::UdfConfig addUdfConfig(
   std::map<std::string, cfg::UdfGroup> udfMap;
   std::map<std::string, cfg::UdfPacketMatcher> udfPacketMatcherMap;
 
-  matchCfg.name() = kUdfPktMatcherName;
+  matchCfg.name() = kUdfL4UdpRocePktMatcherName;
   matchCfg.l4PktType() = cfg::UdfMatchL4Type::UDF_L4_PKT_TYPE_UDP;
   matchCfg.UdfL4DstPort() = kUdfL4DstPort;
 
@@ -241,7 +242,7 @@ static cfg::UdfConfig addUdfConfig(
   udfGroupEntry.startOffsetInBytes() = offsetBytes;
   udfGroupEntry.fieldSizeInBytes() = fieldSizeBytes;
   // has to be the same as in matchCfg
-  udfGroupEntry.udfPacketMatcherIds() = {kUdfPktMatcherName};
+  udfGroupEntry.udfPacketMatcherIds() = {kUdfL4UdpRocePktMatcherName};
   udfGroupEntry.type() = udfType;
 
   udfMap.insert(std::make_pair(*udfGroupEntry.name(), udfGroupEntry));
@@ -253,7 +254,7 @@ static cfg::UdfConfig addUdfConfig(
 
 cfg::UdfConfig addUdfAclConfig(void) {
   return addUdfConfig(
-      kUdfRoceOpcodeAclGroupName,
+      kUdfAclRoceOpcodeGroupName,
       kUdfAclRoceOpcodeStartOffsetInBytes,
       kUdfAclRoceOpcodeFieldSizeInBytes,
       cfg::UdfGroupType::ACL);
@@ -261,9 +262,9 @@ cfg::UdfConfig addUdfAclConfig(void) {
 
 cfg::UdfConfig addUdfHashConfig(void) {
   return addUdfConfig(
-      kUdfHashGroupName,
-      kUdfHashStartOffsetInBytes,
-      kUdfHashFieldSizeInBytes,
+      kUdfHashDstQueuePairGroupName,
+      kUdfHashDstQueuePairStartOffsetInBytes,
+      kUdfHashDstQueuePairFieldSizeInBytes,
       cfg::UdfGroupType::HASH);
 }
 

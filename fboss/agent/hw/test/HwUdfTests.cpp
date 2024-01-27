@@ -53,7 +53,9 @@ TEST_F(HwUdfTest, checkUdfHashConfiguration) {
   auto setup = [=]() { applyNewState(setupUdfConfiguration(true, true)); };
   auto verify = [=]() {
     utility::validateUdfConfig(
-        getHwSwitch(), utility::kUdfHashGroupName, utility::kUdfPktMatcherName);
+        getHwSwitch(),
+        utility::kUdfHashDstQueuePairGroupName,
+        utility::kUdfL4UdpRocePktMatcherName);
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -64,8 +66,8 @@ TEST_F(HwUdfTest, checkUdfAclConfiguration) {
   auto verify = [=]() {
     utility::validateUdfConfig(
         getHwSwitch(),
-        utility::kUdfRoceOpcodeAclGroupName,
-        utility::kUdfPktMatcherName);
+        utility::kUdfAclRoceOpcodeGroupName,
+        utility::kUdfL4UdpRocePktMatcherName);
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -76,17 +78,19 @@ TEST_F(HwUdfTest, deleteUdfHashConfig) {
   int udfPacketMatcherId;
   auto setup = [&]() {
     applyNewState(setupUdfConfiguration(true));
-    udfGroupId =
-        utility::getHwUdfGroupId(getHwSwitch(), utility::kUdfHashGroupName);
+    udfGroupId = utility::getHwUdfGroupId(
+        getHwSwitch(), utility::kUdfHashDstQueuePairGroupName);
     udfPacketMatcherId = utility::getHwUdfPacketMatcherId(
-        getHwSwitch(), utility::kUdfPktMatcherName);
+        getHwSwitch(), utility::kUdfL4UdpRocePktMatcherName);
     applyNewState(setupUdfConfiguration(false));
   };
   auto verify = [=]() {
     utility::validateRemoveUdfGroup(
-        getHwSwitch(), utility::kUdfHashGroupName, udfGroupId);
+        getHwSwitch(), utility::kUdfHashDstQueuePairGroupName, udfGroupId);
     utility::validateRemoveUdfPacketMatcher(
-        getHwSwitch(), utility::kUdfPktMatcherName, udfPacketMatcherId);
+        getHwSwitch(),
+        utility::kUdfL4UdpRocePktMatcherName,
+        udfPacketMatcherId);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -103,15 +107,15 @@ TEST_F(HwUdfTest, deleteUdfAclConfig) {
 
     // Add ACL configuration
     auto acl = utility::addAcl(&newCfg, "test-udf-acl");
-    acl->udfGroups() = {utility::kUdfRoceOpcodeAclGroupName};
+    acl->udfGroups() = {utility::kUdfAclRoceOpcodeGroupName};
     acl->roceOpcode() = utility::kUdfRoceOpcode;
     applyNewConfig(newCfg);
 
     // Get UdfGroup and PacketMatcher Ids for verify
     udfGroupId = utility::getHwUdfGroupId(
-        getHwSwitch(), utility::kUdfRoceOpcodeAclGroupName);
+        getHwSwitch(), utility::kUdfAclRoceOpcodeGroupName);
     udfPacketMatcherId = utility::getHwUdfPacketMatcherId(
-        getHwSwitch(), utility::kUdfPktMatcherName);
+        getHwSwitch(), utility::kUdfL4UdpRocePktMatcherName);
 
     // Delete UdfGroup and PacketMatcher configuration for UDF ACL
     applyNewState(setupUdfConfiguration(false, false));
@@ -120,9 +124,11 @@ TEST_F(HwUdfTest, deleteUdfAclConfig) {
   auto verify = [=]() {
     // Verify that UdfGroup and PacketMatcher are deleted
     utility::validateRemoveUdfGroup(
-        getHwSwitch(), utility::kUdfRoceOpcodeAclGroupName, udfGroupId);
+        getHwSwitch(), utility::kUdfAclRoceOpcodeGroupName, udfGroupId);
     utility::validateRemoveUdfPacketMatcher(
-        getHwSwitch(), utility::kUdfPktMatcherName, udfPacketMatcherId);
+        getHwSwitch(),
+        utility::kUdfL4UdpRocePktMatcherName,
+        udfPacketMatcherId);
     // Verify that UdfGroupIds in Qset is deleted
     utility::validateUdfIdsInQset(
         getHwSwitch(),

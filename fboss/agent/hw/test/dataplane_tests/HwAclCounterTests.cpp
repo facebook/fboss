@@ -280,7 +280,7 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
         acl->srcPort() = helper_->ecmpPortDescriptorAt(0).phyPortID();
         break;
       case AclType::UDF:
-        acl->udfGroups() = {utility::kUdfRoceOpcodeAclGroupName};
+        acl->udfGroups() = {utility::kUdfAclRoceOpcodeGroupName};
         acl->roceOpcode() = utility::kUdfRoceOpcode;
         break;
     }

@@ -46,7 +46,8 @@ std::shared_ptr<UdfGroup> createStateUdfGroup(
 
   udfGroupEntry.name() = name;
   udfGroupEntry.header() = cfg::UdfBaseHeaderType::UDF_L4_HEADER;
-  udfGroupEntry.startOffsetInBytes() = 5;
+  udfGroupEntry.startOffsetInBytes() =
+      utility::kUdfHashDstQueuePairStartOffsetInBytes;
   udfGroupEntry.fieldSizeInBytes() = fieldSize;
   udfGroupEntry.udfPacketMatcherIds() = {kPacketMatcherCfgName.str()};
 
@@ -80,7 +81,8 @@ cfg::UdfGroup makeCfgUdfGroupEntry(
   }
 
   udfGroupEntry.header() = cfg::UdfBaseHeaderType::UDF_L4_HEADER;
-  udfGroupEntry.startOffsetInBytes() = 5;
+  udfGroupEntry.startOffsetInBytes() =
+      utility::kUdfHashDstQueuePairStartOffsetInBytes;
   udfGroupEntry.fieldSizeInBytes() = fieldSize;
   udfGroupEntry.udfPacketMatcherIds() = {kPacketMatcherCfgName.str()};
 

@@ -34,10 +34,11 @@ void validateUdfConfig(
       static_cast<const BcmSwitch*>(hw)->getUnit(), udfGroupId, &udfInfo);
   bcmCheckError(rv, "Unable to get udfInfo for udfGroupId: ", udfGroupId);
   EXPECT_EQ(udfInfo.layer, bcmUdfLayerL4OuterHeader);
-  if (udfGroupName == utility::kUdfHashGroupName) {
-    EXPECT_EQ(udfInfo.start, utility::kUdfHashStartOffsetInBytes * 8);
-    EXPECT_EQ(udfInfo.width, utility::kUdfHashFieldSizeInBytes * 8);
-  } else if (udfGroupName == utility::kUdfRoceOpcodeAclGroupName) {
+  if (udfGroupName == utility::kUdfHashDstQueuePairGroupName) {
+    EXPECT_EQ(
+        udfInfo.start, utility::kUdfHashDstQueuePairStartOffsetInBytes * 8);
+    EXPECT_EQ(udfInfo.width, utility::kUdfHashDstQueuePairFieldSizeInBytes * 8);
+  } else if (udfGroupName == utility::kUdfAclRoceOpcodeGroupName) {
     EXPECT_EQ(udfInfo.start, utility::kUdfAclRoceOpcodeStartOffsetInBytes * 8);
     EXPECT_EQ(udfInfo.width, utility::kUdfAclRoceOpcodeFieldSizeInBytes * 8);
   }

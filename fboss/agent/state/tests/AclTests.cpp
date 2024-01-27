@@ -49,6 +49,8 @@ cfg::UdfConfig makeUdfConfig(const std::vector<std::string>& udfNameList) {
   for (const auto& udfName : udfNameList) {
     cfg::UdfGroup udfGroup;
     udfGroup.name() = udfName;
+    udfGroup.startOffsetInBytes() =
+        utility::kUdfAclRoceOpcodeStartOffsetInBytes;
     udfMap.insert(std::make_pair(udfName, udfGroup));
   }
 

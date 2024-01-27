@@ -48,6 +48,20 @@ namespace cfg {
 class SwitchConfig;
 }
 
+namespace utility {
+
+inline const std::string kUdfHashDstQueuePairGroupName("dstQueuePair");
+inline const std::string kUdfAclRoceOpcodeGroupName("roceOpcode");
+inline const std::string kUdfL4UdpRocePktMatcherName("l4UdpRoce");
+inline const int kUdfHashDstQueuePairStartOffsetInBytes(13);
+inline const int kUdfAclRoceOpcodeStartOffsetInBytes(8);
+inline const int kUdfHashDstQueuePairFieldSizeInBytes(3);
+inline const int kUdfAclRoceOpcodeFieldSizeInBytes(1);
+inline const int kUdfL4DstPort(4791);
+inline const int kRandomUdfL4SrcPort(62946);
+inline const int kUdfRoceOpcode(17);
+} // namespace utility
+
 class SwitchState;
 class Interface;
 class SwitchSettings;

@@ -523,7 +523,7 @@ class HwUdfAclTeFlowTrafficTest : public HwTeFlowTrafficTest {
     // run exact match with UDF acls
     cfg.udfConfig() = utility::addUdfAclConfig();
     auto acl = utility::addAcl(&cfg, kUdfAclName);
-    acl->udfGroups() = {utility::kUdfRoceOpcodeAclGroupName};
+    acl->udfGroups() = {utility::kUdfAclRoceOpcodeGroupName};
     acl->roceOpcode() = utility::kUdfRoceOpcode;
     utility::addAclStat(&cfg, kUdfAclName, kUdfAclStatName);
     return cfg;
