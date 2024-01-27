@@ -59,9 +59,7 @@ int getFlowletSizeWithScalingFactor(
   int adjustedFlowSetTableSize = flowSetTableSize;
   if (hw->getPlatform()->getAsic()->isSupported(
           HwAsic::Feature::FLOWLET_PORT_ATTRIBUTES)) {
-#if (                                      \
-    defined(BCM_SDK_VERSION_GTE_6_5_26) && \
-    !defined(BCM_SDK_VERSION_GTE_6_5_28))
+#if defined(BCM_SDK_VERSION_GTE_6_5_26)
     int freeEntries = 0;
     int rv = bcm_switch_object_count_get(
         hw->getUnit(), bcmSwitchObjectEcmpDynamicFlowSetFree, &freeEntries);
