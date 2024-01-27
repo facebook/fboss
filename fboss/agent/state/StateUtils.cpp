@@ -61,4 +61,9 @@ std::optional<VlanID> firstVlanID(const std::shared_ptr<SwitchState>& state) {
   return firstVlanId;
 }
 
+InterfaceID firstInterfaceID(const std::shared_ptr<SwitchState>& state) {
+  const auto& intfMap = state->getInterfaces()->cbegin()->second;
+  const auto& intf = std::as_const(*intfMap->cbegin()).second;
+  return intf->getID();
+}
 } // namespace facebook::fboss::utility
