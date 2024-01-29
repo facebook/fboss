@@ -150,7 +150,7 @@ void TransceiverManager::initPortToModuleMap() {
     }
     std::string portName = *port.mapping()->name();
     portNameToModule_[portName] = transceiverId.value();
-    XLOG(INFO) << "Added port " << portName << " with portId " << portId
+    XLOG(DBG2) << "Added port " << portName << " with portId " << portId
                << " to transceiver " << transceiverId.value();
   }
 }

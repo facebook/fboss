@@ -34,7 +34,7 @@ FbossFwStorage FbossFwStorage::initStorage(std::string fwConfigFile) {
   boost::filesystem::path p(fwConfigFile);
   boost::filesystem::path firmwareDir = p.parent_path();
   std::string fwDir = firmwareDir.string() + "/";
-  XLOG(INFO) << "Firmware directory is " << fwDir;
+  XLOG(DBG2) << "Firmware directory is " << fwDir;
 
   // Create and return the FbossFwStorage object using that root Yaml node
   return FbossFwStorage(fwInfoRoot, fwDir);
