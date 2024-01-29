@@ -21,6 +21,10 @@ struct LinkEvent {
   3: optional phy.LinkFaultStatus iPhyLinkFaultStatus;
 }
 
+struct LinkActiveEvent {
+  1: map<i32, bool> port2IsActive;
+}
+
 struct FdbEvent {
   1: ctrl.L2EntryThrift entry;
   2: ctrl.L2EntryUpdateType updateType;
@@ -66,6 +70,9 @@ struct HwSwitchStats {
 service MultiSwitchCtrl {
   /* notify link event through sink */
   sink<LinkEvent, bool> notifyLinkEvent(1: i64 switchId);
+
+  /* notify link active event through sink */
+  sink<LinkActiveEvent, bool> notifyLinkActiveEvent(1: i64 switchId);
 
   /* notify fdb event through sink */
   sink<FdbEvent, bool> notifyFdbEvent(1: i64 switchId);
