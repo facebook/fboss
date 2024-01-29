@@ -251,7 +251,8 @@ std::map<std::string, std::string> PciExplorer::createSpiMaster(
       }
       auto spiCharDevPath = fmt::format("/dev/spidev{}.{}", busNum, chipSelect);
       if (!fs::exists(spiCharDevPath)) {
-        // For more details on the two commands: https://fburl.com/kjbc82c0.
+        // For more details on the two commands:
+        // https://github.com/torvalds/linux/blob/master/Documentation/spi/spidev.rst#device-creation-driver-binding
         // Overriding driver of the SpiDevice so spidev doesn't fail to probe.
         PlatformUtils().execCommand(fmt::format(
             "echo spidev > /sys/bus/spi/devices/{}/driver_override", spiDevId));

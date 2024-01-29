@@ -258,7 +258,8 @@ struct I2cAdapterConfig {
 // is the name of the SpiSlave device, whereas SpiMasterConfig.fpgaIpBlockConfig.pmUnitScopedName
 // is the name of the SpiMaster device.
 //
-// `modalias`: Type of SpiSlave Device. spi_dev or any id in https://fburl.com/ncivm7kc
+// `modalias`: Type of SpiSlave Device. spi_dev or any id in
+// https://github.com/torvalds/linux/blob/master/drivers/spi/spidev.c#L702
 //
 // `chipSelect`: Value of chip select on the board.
 //
