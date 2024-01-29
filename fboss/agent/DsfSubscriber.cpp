@@ -88,40 +88,52 @@ void DsfSubscriber::scheduleUpdate(
     const std::map<SwitchID, std::shared_ptr<SystemPortMap>>&
         switchId2SystemPorts,
     const std::map<SwitchID, std::shared_ptr<InterfaceMap>>& switchId2Intfs) {
-  auto updateDsfStateFn =
-      [this,
-       newSysPorts,
-       newRifs,
-       nodeName,
-       nodeSwitchId,
-       switchId2SystemPorts,
-       switchId2Intfs](const std::shared_ptr<SwitchState>& in) {
-        if (isLocal(nodeSwitchId)) {
-          throw FbossError(
-              " Got updates for a local switch ID, from: ",
-              nodeName,
-              " id: ",
-              nodeSwitchId);
-        }
+  auto updateDsfStateFn = [this,
+                           newSysPorts,
+                           newRifs,
+                           nodeName,
+                           nodeSwitchId,
+                           switchId2SystemPorts,
+                           switchId2Intfs](
+                              const std::shared_ptr<SwitchState>& in) {
+    if (isLocal(nodeSwitchId)) {
+      throw FbossError(
+          " Got updates for a local switch ID, from: ",
+          nodeName,
+          " id: ",
+          nodeSwitchId);
+    }
 
-        auto out = DsfStateUpdaterUtil::getUpdatedState(
-            in,
-            sw_->getScopeResolver(),
-            newSysPorts,
-            newRifs,
-            nodeName,
-            nodeSwitchId);
+    std::shared_ptr<SwitchState> currState = in;
+    std::shared_ptr<SwitchState> out{nullptr};
+    for (const auto& [switchId, systemPorts] : switchId2SystemPorts) {
+      auto it = switchId2Intfs.find(switchId);
+      if (it == switchId2Intfs.end()) {
+        throw FbossError(
+            "Both systemPorts and Interfaces must be provided together for every switchID");
+      }
 
-        if (FLAGS_dsf_subscriber_cache_updated_state) {
-          cachedState_ = out;
-        }
+      auto intfs = it->second;
+      out = DsfStateUpdaterUtil::getUpdatedState(
+          currState,
+          sw_->getScopeResolver(),
+          systemPorts,
+          intfs,
+          nodeName,
+          switchId);
+      currState = out;
+    }
 
-        if (!FLAGS_dsf_subscriber_skip_hw_writes) {
-          return out;
-        }
+    if (FLAGS_dsf_subscriber_cache_updated_state) {
+      cachedState_ = out;
+    }
 
-        return std::shared_ptr<SwitchState>{};
-      };
+    if (!FLAGS_dsf_subscriber_skip_hw_writes) {
+      return out;
+    }
+
+    return std::shared_ptr<SwitchState>{};
+  };
 
   sw_->updateState(
       folly::sformat("Update state for node: {}", nodeName),
