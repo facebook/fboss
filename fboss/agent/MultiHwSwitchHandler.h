@@ -156,6 +156,8 @@ class MultiHwSwitchHandler {
     connectionStatusTable_.disconnected(switchId);
   }
 
+  std::vector<EcmpDetails> getAllEcmpDetails();
+
  private:
   bool transactionsSupported(std::optional<cfg::SdkVersion> sdkVersion) const;
 

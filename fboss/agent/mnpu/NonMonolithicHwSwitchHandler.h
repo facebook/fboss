@@ -122,6 +122,8 @@ class NonMonolithicHwSwitchHandler : public HwSwitchHandler {
 
   SwitchRunState getHwSwitchRunState() override;
 
+  std::vector<EcmpDetails> getAllEcmpDetails() const override;
+
  private:
   bool checkOperSyncStateLocked(
       HwSwitchOperDeltaSyncState state,

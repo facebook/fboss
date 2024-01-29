@@ -72,6 +72,10 @@ class SimSwitch : public HwSwitch {
     return HwFlowletStats{};
   }
 
+  std::vector<EcmpDetails> getAllEcmpDetails() const override {
+    return {};
+  }
+
   void fetchL2Table(std::vector<L2EntryThrift>* /*l2Table*/) const override {
     return;
   }

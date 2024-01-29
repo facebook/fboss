@@ -3165,4 +3165,10 @@ void ThriftHandler::getMultiSwitchRunState(MultiSwitchRunState& runState) {
       sw_->getHwSwitchHandler()->getHwSwitchRunStates();
 }
 
+void ThriftHandler::getAllEcmpDetails(std::vector<EcmpDetails>& ecmpDetails) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured(__func__);
+  ecmpDetails = sw_->getHwSwitchHandler()->getAllEcmpDetails();
+}
+
 } // namespace facebook::fboss

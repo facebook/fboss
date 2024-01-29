@@ -296,6 +296,7 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void getHwPortStats(std::map<std::string, HwPortStats>& hwPortStats) override;
   void getFabricReachabilityStats(
       FabricReachabilityStats& fabricReachabilityStats) override;
+  void getAllEcmpDetails(std::vector<EcmpDetails>& ecmpDetails) override;
 
   /*
    * Thrift handler for keepalive messages.  It's a no-op, but prevents the

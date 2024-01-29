@@ -714,6 +714,13 @@ struct MultiSwitchRunState {
   2: map<i32, SwitchRunState> hwIndexToRunState;
 }
 
+struct EcmpDetails {
+  1: i32 ecmpId;
+  2: bool flowletEnabled;
+  3: i16 flowletInterval;
+  4: i32 flowletTableSize;
+}
+
 service FbossCtrl extends phy.FbossCommonPhyCtrl {
   /*
    * Retrieve up-to-date counters from the hardware, and publish all
@@ -1383,6 +1390,11 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
   map<i64, switch_config.SwitchDrainState> getActualSwitchDrainState() throws (
     1: fboss.FbossBaseError error,
   );
+
+  /*
+   * Get all the ecmp object details in the HW
+   */
+  list<EcmpDetails> getAllEcmpDetails() throws (1: fboss.FbossBaseError error);
 }
 
 service NeighborListenerClient extends fb303.FacebookService {

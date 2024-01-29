@@ -133,6 +133,8 @@ class HwSwitchHandler {
       bool transaction,
       const std::shared_ptr<SwitchState>& initialState) = 0;
 
+  virtual std::vector<EcmpDetails> getAllEcmpDetails() const = 0;
+
   // platform access apis
   virtual void onHwInitialized(HwSwitchCallback* callback) = 0;
 

@@ -161,6 +161,10 @@ void MonolithicHwSwitchHandler::switchRunStateChanged(SwitchRunState newState) {
   hw_->switchRunStateChanged(newState);
 }
 
+std::vector<EcmpDetails> MonolithicHwSwitchHandler::getAllEcmpDetails() const {
+  return hw_->getAllEcmpDetails();
+}
+
 std::shared_ptr<SwitchState> MonolithicHwSwitchHandler::stateChanged(
     const StateDelta& delta,
     bool transaction) {

@@ -213,6 +213,12 @@ NonMonolithicHwSwitchHandler::getFabricReachabilityStats() const {
   throw FbossError("getFabricReachabilityStats not implemented");
 }
 
+std::vector<EcmpDetails> NonMonolithicHwSwitchHandler::getAllEcmpDetails()
+    const {
+  // TODO: implement this
+  return {};
+}
+
 bool NonMonolithicHwSwitchHandler::needL2EntryForNeighbor(
     const cfg::SwitchConfig* config) const {
   // if config is not present, fall back to true

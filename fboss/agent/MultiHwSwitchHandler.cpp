@@ -335,6 +335,12 @@ prbs::InterfacePrbsState MultiHwSwitchHandler::getPortPrbsState(PortID portId) {
   return hwSwitchSyncers_.begin()->second->getPortPrbsState(portId);
 }
 
+std::vector<EcmpDetails> MultiHwSwitchHandler::getAllEcmpDetails() {
+  // TODO - support with multiple switches
+  CHECK_EQ(hwSwitchSyncers_.size(), 1);
+  return hwSwitchSyncers_.begin()->second->getAllEcmpDetails();
+}
+
 void MultiHwSwitchHandler::switchRunStateChanged(SwitchRunState newState) {
   for (auto& entry : hwSwitchSyncers_) {
     entry.second->switchRunStateChanged(newState);

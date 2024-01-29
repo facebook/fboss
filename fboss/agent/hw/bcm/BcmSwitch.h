@@ -408,6 +408,8 @@ class BcmSwitch : public BcmSwitchIf {
 
   HwFlowletStats getHwFlowletStats() const override;
 
+  std::vector<EcmpDetails> getAllEcmpDetails() const override;
+
   /*
    * Wrapper functions to register and unregister a BCM event callbacks.  These
    * just forward the call.

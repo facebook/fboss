@@ -3137,6 +3137,10 @@ TeFlowStats BcmSwitch::getTeFlowStats() const {
   return teFlowTable_->getFlowStats();
 }
 
+std::vector<EcmpDetails> BcmSwitch::getAllEcmpDetails() const {
+  return multiPathNextHopTable_->getAllEcmpDetails();
+}
+
 shared_ptr<BcmSwitchEventCallback> BcmSwitch::registerSwitchEventCallback(
     bcm_switch_event_t eventID,
     shared_ptr<BcmSwitchEventCallback> callback) {

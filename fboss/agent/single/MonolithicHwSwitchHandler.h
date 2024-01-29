@@ -77,6 +77,8 @@ class MonolithicHwSwitchHandler : public HwSwitchHandler {
 
   void switchRunStateChanged(SwitchRunState newState) override;
 
+  std::vector<EcmpDetails> getAllEcmpDetails() const override;
+
   // platform access apis
   void onHwInitialized(HwSwitchCallback* callback) override;
 

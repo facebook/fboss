@@ -579,6 +579,13 @@ TYPED_TEST(ThriftTestAllSwitchTypes, getCpuPortStats) {
   handler.getCpuPortStats(cpuPortStats);
 }
 
+TYPED_TEST(ThriftTestAllSwitchTypes, getAllEcmpDetails) {
+  ThriftHandler handler(this->sw_);
+  std::vector<EcmpDetails> ecmpDetails;
+  EXPECT_HW_CALL(this->sw_, getAllEcmpDetails()).Times(1);
+  handler.getAllEcmpDetails(ecmpDetails);
+}
+
 TYPED_TEST(ThriftTestAllSwitchTypes, getAclTable) {
   ThriftHandler handler(this->sw_);
 

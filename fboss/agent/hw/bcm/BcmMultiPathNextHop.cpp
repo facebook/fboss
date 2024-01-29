@@ -93,6 +93,21 @@ HwFlowletStats BcmMultiPathNextHopTable::getHwFlowletStats() const {
   return flowletStats;
 }
 
+std::vector<EcmpDetails> BcmMultiPathNextHopTable::getAllEcmpDetails() const {
+  std::vector<EcmpDetails> ecmpDetails;
+  for (const auto& nextHopsAndEcmpHostInfo : getNextHops()) {
+    auto& weakPtr = nextHopsAndEcmpHostInfo.second;
+    auto ecmpHost = weakPtr.lock();
+    auto ecmpEgress = ecmpHost->getEgress();
+    if (!ecmpEgress) {
+      continue;
+    }
+    auto ecmp = ecmpEgress->getEcmpDetails();
+    ecmpDetails.emplace_back(ecmp);
+  }
+  return ecmpDetails;
+}
+
 void BcmMultiPathNextHopTable::updateEcmpsForFlowletSwitching() {
   for (const auto& nextHopsAndEcmpHostInfo : getNextHops()) {
     auto& weakPtr = nextHopsAndEcmpHostInfo.second;

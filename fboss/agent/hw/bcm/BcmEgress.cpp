@@ -351,6 +351,41 @@ void BcmEcmpEgress::setEgressEcmpMemberStatus(
   }
 }
 
+EcmpDetails BcmEcmpEgress::getEcmpDetails() {
+  bcm_l3_egress_ecmp_t obj;
+  bcm_l3_egress_ecmp_t_init(&obj);
+  EcmpDetails ecmpDetails;
+  obj.ecmp_intf = id_;
+  int pathsInHwCount = -1;
+  bcm_l3_ecmp_member_t membersInHw[kMaxWeightedEcmpPaths];
+  bcm_if_t pathsInHw[kMaxWeightedEcmpPaths];
+  int ret = 0;
+  // Initialize oftherwise SDK may return junk
+  memset(membersInHw, 0, sizeof(membersInHw));
+  if (useHsdk_) {
+    ret = bcm_l3_ecmp_get(
+        hw_->getUnit(),
+        &obj,
+        kMaxWeightedEcmpPaths,
+        membersInHw,
+        &pathsInHwCount);
+  } else {
+    ret = bcm_l3_egress_ecmp_get(
+        hw_->getUnit(),
+        &obj,
+        kMaxWeightedEcmpPaths,
+        pathsInHw,
+        &pathsInHwCount);
+  }
+  bcmCheckError(ret, "Unable to get ECMP:  ", id_);
+  ecmpDetails.ecmpId() = id_;
+  ecmpDetails.flowletEnabled() =
+      (obj.dynamic_mode == BCM_L3_ECMP_DYNAMIC_MODE_NORMAL ? true : false);
+  ecmpDetails.flowletInterval() = obj.dynamic_age;
+  ecmpDetails.flowletTableSize() = obj.dynamic_size;
+  return ecmpDetails;
+}
+
 bool BcmEcmpEgress::isFlowletConfigUpdateNeeded() {
   bcm_l3_egress_ecmp_t obj;
   bcm_l3_egress_ecmp_t_init(&obj);
