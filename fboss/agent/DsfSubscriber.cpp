@@ -286,6 +286,7 @@ void DsfSubscriber::handleFsdbUpdate(
   std::shared_ptr<SystemPortMap> newSysPorts;
   std::shared_ptr<InterfaceMap> newRifs;
   std::map<SwitchID, std::shared_ptr<SystemPortMap>> switchId2SystemPorts;
+  std::map<SwitchID, std::shared_ptr<InterfaceMap>> switchId2Intfs;
 
   for (const auto& change : *operStateUnit.changes()) {
     if (getSystemPortsPath().matchesPath(*change.path()->path())) {
@@ -307,6 +308,10 @@ void DsfSubscriber::handleFsdbUpdate(
                               MultiSwitchInterfaceMapTypeClass,
                               MultiSwitchInterfaceMapThriftType>(
           fsdb::OperProtocol::BINARY, *change.state()->contents()));
+      for (const auto& [id, intfMap] : mswitchIntfs) {
+        auto matcher = HwSwitchMatcher(id);
+        switchId2Intfs[matcher.switchId()] = intfMap;
+      }
       newRifs = mswitchIntfs.getAllNodes();
     } else if (getDsfSubscriptionsPath(localNodeName_)
                    .matchesPath(*change.path()->path())) {
