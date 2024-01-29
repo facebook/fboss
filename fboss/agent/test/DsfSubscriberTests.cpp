@@ -94,8 +94,20 @@ class DsfSubscriberTest : public ::testing::Test {
 TEST_F(DsfSubscriberTest, scheduleUpdate) {
   auto sysPorts = makeSysPorts();
   auto rifs = makeRifs(sysPorts.get());
+
+  std::map<SwitchID, std::shared_ptr<SystemPortMap>> switchId2SystemPorts;
+  std::map<SwitchID, std::shared_ptr<InterfaceMap>> switchId2Intfs;
+  switchId2SystemPorts[SwitchID(kRemoteSwitchId)] = sysPorts;
+  switchId2Intfs[SwitchID(kRemoteSwitchId)] = rifs;
+
   dsfSubscriber_->scheduleUpdate(
-      sysPorts, rifs, "switch", SwitchID(kRemoteSwitchId));
+      sysPorts,
+      rifs,
+      "switch",
+      SwitchID(kRemoteSwitchId),
+      switchId2SystemPorts,
+      switchId2Intfs);
+
   // Don't wait for state update to mimic async scheduling of
   // state updates.
 }
@@ -123,8 +135,19 @@ TEST_F(DsfSubscriberTest, setupNeighbors) {
       }
     }
 
+    std::map<SwitchID, std::shared_ptr<SystemPortMap>> switchId2SystemPorts;
+    std::map<SwitchID, std::shared_ptr<InterfaceMap>> switchId2Intfs;
+    switchId2SystemPorts[SwitchID(kRemoteSwitchId)] = sysPorts;
+    switchId2Intfs[SwitchID(kRemoteSwitchId)] = rifs;
+
     dsfSubscriber_->scheduleUpdate(
-        sysPorts, rifs, "switch", SwitchID(kRemoteSwitchId));
+        sysPorts,
+        rifs,
+        "switch",
+        SwitchID(kRemoteSwitchId),
+        switchId2SystemPorts,
+        switchId2Intfs);
+
     waitForStateUpdates(sw_);
     EXPECT_EQ(
         sysPorts->toThrift(),

@@ -84,35 +84,44 @@ void DsfSubscriber::scheduleUpdate(
     const std::shared_ptr<SystemPortMap>& newSysPorts,
     const std::shared_ptr<InterfaceMap>& newRifs,
     const std::string& nodeName,
-    SwitchID nodeSwitchId) {
-  auto updateDsfStateFn = [this, newSysPorts, newRifs, nodeName, nodeSwitchId](
-                              const std::shared_ptr<SwitchState>& in) {
-    if (isLocal(nodeSwitchId)) {
-      throw FbossError(
-          " Got updates for a local switch ID, from: ",
-          nodeName,
-          " id: ",
-          nodeSwitchId);
-    }
+    SwitchID nodeSwitchId,
+    const std::map<SwitchID, std::shared_ptr<SystemPortMap>>&
+        switchId2SystemPorts,
+    const std::map<SwitchID, std::shared_ptr<InterfaceMap>>& switchId2Intfs) {
+  auto updateDsfStateFn =
+      [this,
+       newSysPorts,
+       newRifs,
+       nodeName,
+       nodeSwitchId,
+       switchId2SystemPorts,
+       switchId2Intfs](const std::shared_ptr<SwitchState>& in) {
+        if (isLocal(nodeSwitchId)) {
+          throw FbossError(
+              " Got updates for a local switch ID, from: ",
+              nodeName,
+              " id: ",
+              nodeSwitchId);
+        }
 
-    auto out = DsfStateUpdaterUtil::getUpdatedState(
-        in,
-        sw_->getScopeResolver(),
-        newSysPorts,
-        newRifs,
-        nodeName,
-        nodeSwitchId);
+        auto out = DsfStateUpdaterUtil::getUpdatedState(
+            in,
+            sw_->getScopeResolver(),
+            newSysPorts,
+            newRifs,
+            nodeName,
+            nodeSwitchId);
 
-    if (FLAGS_dsf_subscriber_cache_updated_state) {
-      cachedState_ = out;
-    }
+        if (FLAGS_dsf_subscriber_cache_updated_state) {
+          cachedState_ = out;
+        }
 
-    if (!FLAGS_dsf_subscriber_skip_hw_writes) {
-      return out;
-    }
+        if (!FLAGS_dsf_subscriber_skip_hw_writes) {
+          return out;
+        }
 
-    return std::shared_ptr<SwitchState>{};
-  };
+        return std::shared_ptr<SwitchState>{};
+      };
 
   sw_->updateState(
       folly::sformat("Update state for node: {}", nodeName),
@@ -337,7 +346,13 @@ void DsfSubscriber::handleFsdbUpdate(
           nodeName);
     }
   }
-  scheduleUpdate(newSysPorts, newRifs, nodeName, nodeSwitchId);
+  scheduleUpdate(
+      newSysPorts,
+      newRifs,
+      nodeName,
+      nodeSwitchId,
+      switchId2SystemPorts,
+      switchId2Intfs);
 }
 
 void DsfSubscriber::stop() {
