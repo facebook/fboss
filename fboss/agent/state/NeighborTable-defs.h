@@ -98,7 +98,8 @@ void NeighborTable<IPADDR, ENTRY, SUBCLASS>::addEntry(
     NeighborState state,
     std::optional<cfg::AclLookupClass> classID,
     std::optional<int64_t> encapIndex,
-    bool isLocal) {
+    bool isLocal,
+    bool noHostRoute) {
   CHECK(!this->isPublished());
   state::NeighborEntryFields thrift{};
   thrift.ipaddress() = ip.str();
@@ -113,6 +114,7 @@ void NeighborTable<IPADDR, ENTRY, SUBCLASS>::addEntry(
     thrift.encapIndex() = *encapIndex;
   }
   thrift.isLocal() = isLocal;
+  thrift.noHostRoute() = noHostRoute;
   auto entry = std::make_shared<Entry>(std::move(thrift));
   this->addNode(entry);
 }
@@ -128,7 +130,8 @@ void NeighborTable<IPADDR, ENTRY, SUBCLASS>::addEntry(
       fields.state,
       fields.classID,
       fields.encapIndex,
-      fields.isLocal);
+      fields.isLocal,
+      fields.noHostRoute);
 }
 
 template <typename IPADDR, typename ENTRY, typename SUBCLASS>
@@ -140,7 +143,8 @@ void NeighborTable<IPADDR, ENTRY, SUBCLASS>::updateEntry(
     NeighborState state,
     std::optional<cfg::AclLookupClass> classID,
     std::optional<int64_t> encapIndex,
-    bool isLocal) {
+    bool isLocal,
+    bool noHostRoute) {
   auto entry = this->getNode(ip.str());
   entry = entry->clone();
   entry->setMAC(mac);
@@ -150,6 +154,7 @@ void NeighborTable<IPADDR, ENTRY, SUBCLASS>::updateEntry(
   entry->setClassID(classID);
   entry->setEncapIndex(encapIndex);
   entry->setIsLocal(isLocal);
+  entry->setNoHostRoute(noHostRoute);
   this->updateNode(std::move(entry));
 }
 
@@ -171,7 +176,8 @@ void NeighborTable<IPADDR, ENTRY, SUBCLASS>::updateEntry(
       fields.state,
       fields.classID,
       fields.encapIndex,
-      fields.isLocal);
+      fields.isLocal,
+      fields.noHostRoute);
 }
 
 template <typename IPADDR, typename ENTRY, typename SUBCLASS>

@@ -93,7 +93,8 @@ class NeighborTable
       NeighborState state = NeighborState::REACHABLE,
       std::optional<cfg::AclLookupClass> classID = std::nullopt,
       std::optional<int64_t> encapIndex = std::nullopt,
-      bool isLocal = true);
+      bool isLocal = true,
+      bool noHostRoute = false);
   void addEntry(const NeighborEntryFields<AddressType>& fields);
   void updateEntry(
       AddressType ip,
@@ -103,7 +104,8 @@ class NeighborTable
       NeighborState state,
       std::optional<cfg::AclLookupClass> classID = std::nullopt,
       std::optional<int64_t> encapIndex = std::nullopt,
-      bool isLocal = true);
+      bool isLocal = true,
+      bool noHostRoute = false);
   void updateEntry(const NeighborEntryFields<AddressType>& fields);
   void updateEntry(AddressType ip, std::shared_ptr<ENTRY>);
   void addPendingEntry(AddressType ip, InterfaceID intfID);
