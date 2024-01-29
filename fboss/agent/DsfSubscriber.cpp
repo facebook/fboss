@@ -285,6 +285,8 @@ void DsfSubscriber::handleFsdbUpdate(
     fsdb::OperSubPathUnit&& operStateUnit) {
   std::shared_ptr<SystemPortMap> newSysPorts;
   std::shared_ptr<InterfaceMap> newRifs;
+  std::map<SwitchID, std::shared_ptr<SystemPortMap>> switchId2SystemPorts;
+
   for (const auto& change : *operStateUnit.changes()) {
     if (getSystemPortsPath().matchesPath(*change.path()->path())) {
       XLOG(DBG2) << " Got sys port update from : " << nodeName;
@@ -293,6 +295,10 @@ void DsfSubscriber::handleFsdbUpdate(
                                  MultiSwitchSystemPortMapTypeClass,
                                  MultiSwitchSystemPortMapThriftType>(
           fsdb::OperProtocol::BINARY, *change.state()->contents()));
+      for (const auto& [id, sysPortMap] : mswitchSysPorts) {
+        auto matcher = HwSwitchMatcher(id);
+        switchId2SystemPorts[matcher.switchId()] = sysPortMap;
+      }
       newSysPorts = mswitchSysPorts.getAllNodes();
     } else if (getInterfacesPath().matchesPath(*change.path()->path())) {
       XLOG(DBG2) << " Got rif update from : " << nodeName;
