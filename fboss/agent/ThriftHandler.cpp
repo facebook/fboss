@@ -628,9 +628,9 @@ void addRecylePortRifNeighbors(
     auto switchId = SwitchID(switchIdAndInfo.first);
     auto dsfNode = state->getDsfNodes()->getNodeIf(switchId);
     CHECK(dsfNode);
-    constexpr auto kRecylePortId = 1;
+    constexpr auto kRecyclePortId = 1;
     auto localRecycleRifId =
-        InterfaceID(*dsfNode->getSystemPortRange()->minimum() + kRecylePortId);
+        InterfaceID(*dsfNode->getSystemPortRange()->minimum() + kRecyclePortId);
     const auto& localRecycleRif =
         state->getInterfaces()->getNode(localRecycleRifId);
     const auto& nbrTable =
@@ -640,9 +640,9 @@ void addRecylePortRifNeighbors(
       NeighborThriftT nbrThrift;
       nbrThrift.ip() = facebook::network::toBinaryAddress(entry->getIP());
       nbrThrift.mac() = entry->getMac().toString();
-      nbrThrift.port() = kRecylePortId;
+      nbrThrift.port() = kRecyclePortId;
       nbrThrift.vlanName() = "--";
-      nbrThrift.interfaceID() = kRecylePortId;
+      nbrThrift.interfaceID() = kRecyclePortId;
       // Local recycle port for RIF, should always be STATIC
       CHECK(entry->getType() == state::NeighborEntryType::STATIC_ENTRY);
       nbrThrift.state() = "STATIC";
