@@ -81,4 +81,10 @@ std::pair<std::string, std::string> Utils::parseDevicePath(
   return {slotPath, deviceName};
 }
 
+std::string Utils::createDevicePath(
+    const std::string& slotPath,
+    const std::string& deviceName) {
+  return fmt::format("{}/[{}]", slotPath == "/" ? "" : slotPath, deviceName);
+}
+
 } // namespace facebook::fboss::platform::platform_manager

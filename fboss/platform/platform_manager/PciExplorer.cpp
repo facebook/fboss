@@ -4,6 +4,7 @@
 #include <sys/ioctl.h>
 #include <cstdint>
 #include <filesystem>
+#include <stdexcept>
 
 #include <folly/FileUtil.h>
 #include <folly/String.h>
@@ -17,6 +18,8 @@ using namespace facebook::fboss::platform::platform_manager;
 namespace {
 const std::string kGpioChip = "gpiochip";
 const re2::RE2 kGpioChipNameRe{"gpiochip\\d+"};
+const re2::RE2 kSpiBusRe{"spi\\d+"};
+const re2::RE2 kSpiDevIdRe{"spi(?P<BusNum>\\d+).(?P<ChipSelect>\\d+)"};
 
 bool isSamePciId(const std::string& id1, const std::string& id2) {
   return RE2::FullMatch(id1, PciExplorer().kPciIdRegex) &&
@@ -180,8 +183,8 @@ std::vector<uint16_t> PciExplorer::createI2cAdapter(
   }
 }
 
-void PciExplorer::createSpiMaster(
-    const std::string& pciDevPath,
+std::map<std::string, std::string> PciExplorer::createSpiMaster(
+    const PciDevice& pciDevice,
     const SpiMasterConfig& spiMasterConfig,
     uint32_t instanceId) {
   auto auxData = getAuxData(*spiMasterConfig.fpgaIpBlockConfig(), instanceId);
@@ -189,7 +192,7 @@ void PciExplorer::createSpiMaster(
   int i = 0;
   for (const auto& spiDeviceConfig : *spiMasterConfig.spiDeviceConfigs()) {
     XLOG(INFO) << fmt::format(
-        "Defining SpiSlave Device {} under SpiMaster {}. Args - modalias: {}, chip_select: {}, max_speed_hz: {}",
+        "Defining SpiDevice {} under SpiController {}. Args - modalias: {}, chip_select: {}, max_speed_hz: {}",
         *spiDeviceConfig.pmUnitScopedName(),
         *spiMasterConfig.fpgaIpBlockConfig()->pmUnitScopedName(),
         *spiDeviceConfig.modalias(),
@@ -203,8 +206,81 @@ void PciExplorer::createSpiMaster(
   create(
       *spiMasterConfig.fpgaIpBlockConfig()->pmUnitScopedName(),
       *spiMasterConfig.fpgaIpBlockConfig()->deviceName(),
-      pciDevPath,
+      pciDevice.charDevPath(),
       auxData);
+  // PciDevice.SysfsPath
+  // |── fbiob_pci.expectedEnding
+  // |   └── fpgaIpBlockConfig.deviceName
+  // |       ├── spi0
+  // │       |   ├── spi0.0
+  // │       |   ├── spi0.1
+  // │       |   ├── spi0.2
+  std::string expectedEnding = fmt::format(
+      ".{}.{}", *spiMasterConfig.fpgaIpBlockConfig()->deviceName(), instanceId);
+  std::string spiMasterPath;
+  for (const auto& dirEntry : fs::directory_iterator(pciDevice.sysfsPath())) {
+    if (hasEnding(dirEntry.path().string(), expectedEnding)) {
+      spiMasterPath = fmt::format(
+          "{}/{}",
+          dirEntry.path().string(),
+          *spiMasterConfig.fpgaIpBlockConfig()->deviceName());
+    }
+  }
+  if (spiMasterPath.empty()) {
+    throw std::runtime_error(fmt::format(
+        "Could not find any directory ending with {} in {}",
+        expectedEnding,
+        pciDevice.sysfsPath()));
+  }
+  if (!fs::exists(spiMasterPath)) {
+    throw std::runtime_error(fmt::format(
+        "Could not find matching SpiController in {}. InstanceId: {}",
+        spiMasterPath,
+        instanceId));
+  }
+  std::map<std::string, std::string> spiCharDevPaths;
+  for (const auto& dirEntry : fs::directory_iterator(spiMasterPath)) {
+    if (!re2::RE2::FullMatch(dirEntry.path().filename().string(), kSpiBusRe)) {
+      continue;
+    }
+    for (const auto& childDirEntry : fs::directory_iterator(dirEntry)) {
+      auto spiDevId = childDirEntry.path().filename().string();
+      int busNum, chipSelect;
+      if (!re2::RE2::FullMatch(spiDevId, kSpiDevIdRe, &busNum, &chipSelect)) {
+        continue;
+      }
+      auto spiCharDevPath = fmt::format("/dev/spidev{}.{}", busNum, chipSelect);
+      if (!fs::exists(spiCharDevPath)) {
+        // For more details on the two commands: https://fburl.com/kjbc82c0.
+        // Overriding driver of the SpiDevice so spidev doesn't fail to probe.
+        PlatformUtils().execCommand(fmt::format(
+            "echo spidev > /sys/bus/spi/devices/{}/driver_override", spiDevId));
+        // Bind SpiDevice to spidev driver in order to create its char device.
+        PlatformUtils().execCommand(fmt::format(
+            "echo {} > /sys/bus/spi/drivers/spidev/bind", spiDevId));
+        XLOG(INFO) << fmt::format(
+            "Completed binding SpiDevice {} to {} for SpiController {}",
+            spiDevId,
+            spiCharDevPath,
+            *spiMasterConfig.fpgaIpBlockConfig()->pmUnitScopedName());
+      } else {
+        XLOG(INFO) << fmt::format(
+            "{} already exists. Skipping binding SpiDevice {} for SpiController {}",
+            spiCharDevPath,
+            spiDevId,
+            *spiMasterConfig.fpgaIpBlockConfig()->pmUnitScopedName());
+      }
+      auto itr = std::find_if(
+          spiMasterConfig.spiDeviceConfigs()->begin(),
+          spiMasterConfig.spiDeviceConfigs()->end(),
+          [chipSelect](auto spiDeviceConfig) {
+            return *spiDeviceConfig.chipSelect() == chipSelect;
+          });
+      CHECK(itr != spiMasterConfig.spiDeviceConfigs()->end());
+      spiCharDevPaths[*itr->pmUnitScopedName()] = spiCharDevPath;
+    }
+  }
+  return spiCharDevPaths;
 }
 
 uint16_t PciExplorer::createGpioChip(

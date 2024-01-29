@@ -116,4 +116,21 @@ void DataStore::updateInstanceId(
   pciSubDevicePathToInstanceId_[devicePath] = instanceId;
 }
 
+std::string DataStore::getCharDevPath(const std::string& devicePath) const {
+  auto itr = pciSubDevicePathToCharDevPath_.find(devicePath);
+  if (itr != pciSubDevicePathToCharDevPath_.end()) {
+    return itr->second;
+  }
+  throw std::runtime_error(
+      fmt::format("Could not find CharDevPath for {}", devicePath));
+}
+
+void DataStore::updateCharDevPath(
+    const std::string& devicePath,
+    const std::string& sysfsPath) {
+  XLOG(INFO) << fmt::format(
+      "Updating CharDevPath for {} to {}", devicePath, sysfsPath);
+  pciSubDevicePathToCharDevPath_[devicePath] = sysfsPath;
+}
+
 } // namespace facebook::fboss::platform::platform_manager

@@ -20,6 +20,13 @@ class Utils {
   // Eg: /MCB_SLOT@0/[IDPROM] will return std::pair("/MCB_SLOT@0", "IDPROM")
   std::pair<std::string, std::string> parseDevicePath(
       const std::string& devicePath);
+
+  // Construct and Return a DevicePath from given SlotPath and DeviceName
+  // Eg: SlotPath:"/MCB_SLOT@0", DeviceName:"IDPROM" will return
+  // /MCB_SLOT@0/[IDPROM]
+  std::string createDevicePath(
+      const std::string& slotPath,
+      const std::string& deviceName);
 };
 
 } // namespace facebook::fboss::platform::platform_manager

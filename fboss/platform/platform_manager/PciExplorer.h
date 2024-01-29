@@ -41,10 +41,14 @@ class PciExplorer {
       const I2cAdapterConfig& i2cAdapterConfig,
       uint32_t instanceId);
 
-  // Create the SPI Master based on the given spiMasterConfig residing
-  // at the given PciDevice path. Throw std::runtime_error on failure.
-  void createSpiMaster(
-      const std::string& pciDevPath,
+  // Create the SPIMaster and SpiSlave(s) based on the given spiMasterConfig
+  // residing at the given PciDevice. Return a map from SpiSlave
+  // pmUnitScopedName to its charDev path. Throw std::runtime_error on failure.
+  std::map<
+      std::string /* spiDeviceConfig's pmUnitScopedName */,
+      std::string /* charDevPath */>
+  createSpiMaster(
+      const PciDevice& pciDevice,
       const SpiMasterConfig& spiMasterConfig,
       uint32_t instanceId);
 
