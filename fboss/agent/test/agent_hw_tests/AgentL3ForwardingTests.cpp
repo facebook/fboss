@@ -12,7 +12,7 @@ class AgentL3ForwardingTest : public AgentHwTest {
  public:
   std::vector<production_features::ProductionFeature>
   getProductionFeaturesVerified() const override {
-    return {};
+    return {production_features::ProductionFeature::L3_FORWARDING};
   }
 
  protected:
