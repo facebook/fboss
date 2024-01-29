@@ -103,7 +103,7 @@
                         "deviceName": "spi_master",
                         "csrOffset": "0x7900"
                      },
-                     "numberOfCsPins": 0
+                     "spiDeviceConfigs": []
                   }
                ],
                "ledCtrlConfigs": [],
