@@ -31,7 +31,6 @@ class LinkEventSyncer : public ThriftSinkClient<multiswitch::LinkEvent> {
       folly::EventBase* connRetryEvb);
 
   static EventSink initLinkEventSink(
-
       SwitchID switchId,
       apache::thrift::Client<multiswitch::MultiSwitchCtrl>* client);
 };
