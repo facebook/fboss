@@ -231,7 +231,8 @@ class SaiPortManager {
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 3) || defined(TAJO_SDK_VERSION_1_42_8)
   std::vector<sai_port_lane_latch_status_t> getRxSignalDetect(
       PortSaiId saiPortId,
-      uint8_t numPmdLanes) const;
+      uint8_t numPmdLanes,
+      PortID portID) const;
   std::vector<sai_port_lane_latch_status_t> getRxLockStatus(
       PortSaiId saiPortId,
       uint8_t numPmdLanes) const;

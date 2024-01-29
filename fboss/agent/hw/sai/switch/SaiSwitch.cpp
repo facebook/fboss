@@ -1203,27 +1203,27 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() {
   auto& portManager = managerTable_->portManager();
 
   for (const auto& portIdAndHandle : managerTable_->portManager()) {
-    PortID swPort = portIdAndHandle.first;
-    if (portManager.getPortType(swPort) == cfg::PortType::RECYCLE_PORT) {
+    PortID portID = portIdAndHandle.first;
+    if (portManager.getPortType(portID) == cfg::PortType::RECYCLE_PORT) {
       continue;
     }
 
     auto portHandle = portIdAndHandle.second.get();
     if (portHandle == nullptr) {
       XLOG(DBG3) << "PortHandle not found for port "
-                 << static_cast<int>(swPort);
+                 << static_cast<int>(portID);
       continue;
     }
 
-    auto fb303PortStat = portManager.getLastPortStat(swPort);
+    auto fb303PortStat = portManager.getLastPortStat(portID);
     if (fb303PortStat == nullptr) {
       XLOG(DBG3) << "fb303PortStat not found for port "
-                 << static_cast<int>(swPort);
+                 << static_cast<int>(portID);
       continue;
     }
 
     phy::PhyInfo lastPhyInfo;
-    if (auto itr = lastPhyInfos_.find(swPort); itr != lastPhyInfos_.end()) {
+    if (auto itr = lastPhyInfos_.find(portID); itr != lastPhyInfos_.end()) {
       lastPhyInfo = itr->second;
     }
 
@@ -1242,8 +1242,8 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() {
     phyChip.type() = chipType;
     bool isXphy = *phyChip.type() == phy::DataPlanePhyChipType::XPHY;
     phyParams.state()->phyChip() = phyChip;
-    phyParams.state()->linkState() = portManager.isUp(swPort);
-    phyParams.state()->speed() = portManager.getSpeed(swPort);
+    phyParams.state()->linkState() = portManager.isUp(portID);
+    phyParams.state()->speed() = portManager.getSpeed(portID);
 
     if (isXphy) {
       phyParams.state()->system() = phy::PhySideState();
@@ -1253,8 +1253,8 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() {
     }
 
     phyParams.state()->line()->interfaceType() =
-        getInterfaceType(swPort, chipType);
-    phyParams.state()->line()->medium() = portManager.getMedium(swPort);
+        getInterfaceType(portID, chipType);
+    phyParams.state()->line()->medium() = portManager.getMedium(portID);
     // Update PMD Info
     phy::PmdState lastLinePmdState;
     auto lastState = lastPhyInfo.state();
@@ -1267,7 +1267,8 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() {
         *phyParams.stats()->line(),
         portHandle->port,
         lastLinePmdState,
-        lastLinePmdStats);
+        lastLinePmdStats,
+        portID);
     if (isXphy) {
       CHECK(phyParams.state()->system().has_value());
       CHECK(phyParams.stats()->system().has_value());
@@ -1284,14 +1285,15 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() {
           *phyParams.stats()->system(),
           portHandle->sysPort,
           lastSysPmdState,
-          lastSysPmdStats);
+          lastSysPmdStats,
+          portID);
     }
 
     // Update PCS Info
     updatePcsInfo(
         *(*phyParams.state()).line(),
         *(*phyParams.stats()).line(),
-        swPort,
+        portID,
         phy::Side::LINE,
         lastPhyInfo,
         fb303PortStat,
@@ -1305,7 +1307,7 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() {
     auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
     phyParams.state()->timeCollected() = now.count();
     phyParams.stats()->timeCollected() = now.count();
-    returnPhyParams[swPort] = phyParams;
+    returnPhyParams[portID] = phyParams;
   }
   lastPhyInfos_ = returnPhyParams;
   return returnPhyParams;
@@ -1316,7 +1318,8 @@ void SaiSwitch::updatePmdInfo(
     phy::PhySideStats& sideStats,
     std::shared_ptr<SaiPort> port,
     [[maybe_unused]] phy::PmdState& lastPmdState,
-    [[maybe_unused]] phy::PmdStats& lastPmdStats) {
+    [[maybe_unused]] phy::PmdStats& lastPmdStats,
+    [[maybe_unused]] PortID portID) {
   // In SAI spec, SNR is encoded in units of 1/256 dB
   constexpr auto snrScalingFactor = 256.0;
   uint32_t numPmdLanes;
@@ -1376,7 +1379,7 @@ void SaiSwitch::updatePmdInfo(
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 3) || defined(TAJO_SDK_VERSION_1_42_8)
   auto pmdSignalDetect = managerTable_->portManager().getRxSignalDetect(
-      port->adapterKey(), numPmdLanes);
+      port->adapterKey(), numPmdLanes, portID);
   for (auto pmd : pmdSignalDetect) {
     auto laneId = pmd.lane;
     phy::LaneStats laneStat;

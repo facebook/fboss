@@ -2265,9 +2265,11 @@ std::vector<sai_port_snr_values_t> SaiPortManager::getRxSNR(
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 3) || defined(TAJO_SDK_VERSION_1_42_8)
 std::vector<sai_port_lane_latch_status_t> SaiPortManager::getRxSignalDetect(
     PortSaiId saiPortId,
-    uint8_t numPmdLanes) const {
+    uint8_t numPmdLanes,
+    PortID portID) const {
   if (!platform_->getAsic()->isSupported(
-          HwAsic::Feature::PMD_RX_SIGNAL_DETECT)) {
+          HwAsic::Feature::PMD_RX_SIGNAL_DETECT) ||
+      getPortType(portID) == cfg::PortType::MANAGEMENT_PORT) {
     return std::vector<sai_port_lane_latch_status_t>();
   }
 
