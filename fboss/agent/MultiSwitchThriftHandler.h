@@ -17,6 +17,10 @@ class MultiSwitchThriftHandler
   folly::coro::Task<apache::thrift::SinkConsumer<multiswitch::LinkEvent, bool>>
   co_notifyLinkEvent(int64_t switchId) override;
 
+  folly::coro::Task<
+      apache::thrift::SinkConsumer<multiswitch::LinkActiveEvent, bool>>
+  co_notifyLinkActiveEvent(int64_t switchId) override;
+
   folly::coro::Task<apache::thrift::SinkConsumer<multiswitch::FdbEvent, bool>>
   co_notifyFdbEvent(int64_t switchId) override;
 

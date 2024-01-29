@@ -68,6 +68,29 @@ MultiSwitchThriftHandler::co_notifyLinkEvent(int64_t switchId) {
       .setChunkTimeout(std::chrono::milliseconds(0));
 }
 
+folly::coro::Task<
+    apache::thrift::SinkConsumer<multiswitch::LinkActiveEvent, bool>>
+MultiSwitchThriftHandler::co_notifyLinkActiveEvent(int64_t switchId) {
+  ensureConfigured(__func__);
+  co_return apache::thrift::SinkConsumer<multiswitch::LinkActiveEvent, bool>{
+      [this, switchId](
+          folly::coro::AsyncGenerator<multiswitch::LinkActiveEvent&&> gen)
+          -> folly::coro::Task<bool> {
+        std::map<PortID, bool> port2IsActive;
+        while (auto item = co_await gen.next()) {
+          XLOG(DBG3) << "Got link active event from switch " << switchId;
+          for (const auto& [portID, isActive] : *item->port2IsActive()) {
+            port2IsActive[PortID(portID)] = isActive;
+          }
+          sw_->linkActiveStateChanged(port2IsActive);
+        }
+        co_return true;
+      },
+      10 /* buffer size */
+  }
+      .setChunkTimeout(std::chrono::milliseconds(0));
+}
+
 folly::coro::Task<apache::thrift::SinkConsumer<multiswitch::FdbEvent, bool>>
 MultiSwitchThriftHandler::co_notifyFdbEvent(int64_t switchId) {
   ensureConfigured(__func__);
