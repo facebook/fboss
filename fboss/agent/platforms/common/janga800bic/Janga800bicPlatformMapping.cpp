@@ -13909,7 +13909,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 4
         },
         "supportedProfiles": {
           "22": {
@@ -14729,7 +14729,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 4
         },
         "supportedProfiles": {
           "22": {
