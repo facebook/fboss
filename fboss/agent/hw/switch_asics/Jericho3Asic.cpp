@@ -178,7 +178,7 @@ std::set<cfg::StreamType> Jericho3Asic::getQueueStreamTypes(
       return {cfg::StreamType::FABRIC_TX};
   }
   throw FbossError(
-      "Jericho2 ASIC does not support:",
+      "Jericho3 ASIC does not support:",
       apache::thrift::util::enumNameSafe(portType));
 }
 int Jericho3Asic::getDefaultNumPortQueues(
