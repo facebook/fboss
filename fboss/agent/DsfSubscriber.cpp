@@ -89,8 +89,6 @@ void DsfSubscriber::scheduleUpdate(
         switchId2SystemPorts,
     const std::map<SwitchID, std::shared_ptr<InterfaceMap>>& switchId2Intfs) {
   auto updateDsfStateFn = [this,
-                           newSysPorts,
-                           newRifs,
                            nodeName,
                            nodeSwitchId,
                            switchId2SystemPorts,
@@ -106,19 +104,19 @@ void DsfSubscriber::scheduleUpdate(
 
     std::shared_ptr<SwitchState> currState = in;
     std::shared_ptr<SwitchState> out{nullptr};
-    for (const auto& [switchId, systemPorts] : switchId2SystemPorts) {
+    for (const auto& [switchId, newSystemPorts] : switchId2SystemPorts) {
       auto it = switchId2Intfs.find(switchId);
       if (it == switchId2Intfs.end()) {
         throw FbossError(
             "Both systemPorts and Interfaces must be provided together for every switchID");
       }
 
-      auto intfs = it->second;
+      auto newIntfs = it->second;
       out = DsfStateUpdaterUtil::getUpdatedState(
           currState,
           sw_->getScopeResolver(),
-          systemPorts,
-          intfs,
+          newSystemPorts,
+          newIntfs,
           nodeName,
           switchId);
       currState = out;
