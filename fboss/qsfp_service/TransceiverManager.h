@@ -816,8 +816,8 @@ class TransceiverManager {
 
   void initPortToModuleMap();
 
-  int successfulOpticsFwUpgradeCount_{0};
-  int failedOpticsFwUpgradeCount_{0};
+  std::atomic<int> successfulOpticsFwUpgradeCount_{0};
+  std::atomic<int> failedOpticsFwUpgradeCount_{0};
 
   friend class TransceiverStateMachineTest;
 };
