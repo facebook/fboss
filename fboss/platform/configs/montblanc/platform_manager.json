@@ -3017,7 +3017,15 @@
     "/run/devmap/xcvrs/xcvr_61": "/SMB_SLOT@0/[SMB_DOM2_XCVR_CTRL_PORT_61]",
     "/run/devmap/xcvrs/xcvr_62": "/SMB_SLOT@0/[SMB_DOM2_XCVR_CTRL_PORT_62]",
     "/run/devmap/xcvrs/xcvr_63": "/SMB_SLOT@0/[SMB_DOM2_XCVR_CTRL_PORT_63]",
-    "/run/devmap/xcvrs/xcvr_64": "/SMB_SLOT@0/[SMB_DOM2_XCVR_CTRL_PORT_64]"
+    "/run/devmap/xcvrs/xcvr_64": "/SMB_SLOT@0/[SMB_DOM2_XCVR_CTRL_PORT_64]",
+    "/run/devmap/flashes/MCB_SPI_MASTER_1_DEVICE_1": "/[MCB_SPI_MASTER_1_DEVICE_1]",
+    "/run/devmap/flashes/MCB_SPI_MASTER_2_DEVICE_1": "/[MCB_SPI_MASTER_2_DEVICE_1]",
+    "/run/devmap/flashes/MCB_SPI_MASTER_3_DEVICE_1": "/[MCB_SPI_MASTER_3_DEVICE_1]",
+    "/run/devmap/flashes/MCB_SPI_MASTER_4_DEVICE_1": "/[MCB_SPI_MASTER_4_DEVICE_1]",
+    "/run/devmap/flashes/MCB_SPI_MASTER_5_DEVICE_1": "/[MCB_SPI_MASTER_5_DEVICE_1]",
+    "/run/devmap/flashes/MCB_SPI_MASTER_6_DEVICE_1": "/[MCB_SPI_MASTER_6_DEVICE_1]",
+    "/run/devmap/flashes/MCB_SPI_MASTER_7_DEVICE_1": "/[MCB_SPI_MASTER_7_DEVICE_1]",
+    "/run/devmap/flashes/MCB_SPI_MASTER_8_DEVICE_1": "/[MCB_SPI_MASTER_8_DEVICE_1]"
   },
   "bspKmodsRpmName": "fboss_bsp_kmods",
   "bspKmodsRpmVersion": "0.8.0-2",

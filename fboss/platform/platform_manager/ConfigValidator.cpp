@@ -20,7 +20,8 @@ constexpr auto kSymlinkDirs = {
     "fpgas",
     "i2c-busses",
     "gpiochips",
-    "xcvrs"};
+    "xcvrs",
+    "flashes"};
 } // namespace
 
 namespace facebook::fboss::platform::platform_manager {

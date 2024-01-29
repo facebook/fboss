@@ -557,6 +557,8 @@ void PlatformExplorer::createDeviceSymLink(
           devicePath);
       return;
     }
+  } else if (linkParentPath.string() == "/run/devmap/flashes") {
+    targetPath = dataStore_.getCharDevPath(devicePath);
   } else {
     XLOG(ERR) << fmt::format("Symbolic link {} is not supported.", linkPath);
     return;

@@ -127,10 +127,10 @@ std::string DataStore::getCharDevPath(const std::string& devicePath) const {
 
 void DataStore::updateCharDevPath(
     const std::string& devicePath,
-    const std::string& sysfsPath) {
+    const std::string& charDevPath) {
   XLOG(INFO) << fmt::format(
-      "Updating CharDevPath for {} to {}", devicePath, sysfsPath);
-  pciSubDevicePathToCharDevPath_[devicePath] = sysfsPath;
+      "Updating CharDevPath for {} to {}", devicePath, charDevPath);
+  pciSubDevicePathToCharDevPath_[devicePath] = charDevPath;
 }
 
 } // namespace facebook::fboss::platform::platform_manager

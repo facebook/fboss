@@ -69,7 +69,7 @@ class DataStore {
   // Update CharDevPath for a given PciSubDevicePath
   void updateCharDevPath(
       const std::string& devicePath,
-      const std::string& sysfsPath);
+      const std::string& charDevPath);
 
  private:
   // Map from <pmUnitPath, pmUnitScopeBusName> to kernel i2c bus name.
