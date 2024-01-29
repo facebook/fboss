@@ -94,17 +94,17 @@ void DsfSubscriber::scheduleUpdate(
                            switchId2SystemPorts,
                            switchId2Intfs](
                               const std::shared_ptr<SwitchState>& in) {
-    if (isLocal(nodeSwitchId)) {
-      throw FbossError(
-          " Got updates for a local switch ID, from: ",
-          nodeName,
-          " id: ",
-          nodeSwitchId);
-    }
-
     std::shared_ptr<SwitchState> currState = in;
     std::shared_ptr<SwitchState> out{nullptr};
     for (const auto& [switchId, newSystemPorts] : switchId2SystemPorts) {
+      if (isLocal(switchId)) {
+        throw FbossError(
+            " Got updates for a local switch ID, from: ",
+            nodeName,
+            " id: ",
+            switchId);
+      }
+
       auto it = switchId2Intfs.find(switchId);
       if (it == switchId2Intfs.end()) {
         throw FbossError(
