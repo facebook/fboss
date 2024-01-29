@@ -101,8 +101,6 @@ TEST_F(DsfSubscriberTest, scheduleUpdate) {
   switchId2Intfs[SwitchID(kRemoteSwitchId)] = rifs;
 
   dsfSubscriber_->scheduleUpdate(
-      sysPorts,
-      rifs,
       "switch",
       SwitchID(kRemoteSwitchId),
       switchId2SystemPorts,
@@ -141,8 +139,6 @@ TEST_F(DsfSubscriberTest, setupNeighbors) {
     switchId2Intfs[SwitchID(kRemoteSwitchId)] = rifs;
 
     dsfSubscriber_->scheduleUpdate(
-        sysPorts,
-        rifs,
         "switch",
         SwitchID(kRemoteSwitchId),
         switchId2SystemPorts,
