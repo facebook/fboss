@@ -22,9 +22,11 @@ namespace facebook {
 namespace fboss {
 
 template <typename T>
-BspPlatformMapping* BspGenericSystemContainer<T>::initBspPlatformMapping() {
+std::unique_ptr<BspPlatformMapping>
+BspGenericSystemContainer<T>::initBspPlatformMapping() {
   std::string platformMappingStr;
-  if (!FLAGS_bsp_platform_mapping_override_path.empty()) {
+  bool mappingOverride = !FLAGS_bsp_platform_mapping_override_path.empty();
+  if (mappingOverride) {
     if (!folly::readFile(
             FLAGS_bsp_platform_mapping_override_path.data(),
             platformMappingStr)) {
@@ -34,10 +36,11 @@ BspPlatformMapping* BspGenericSystemContainer<T>::initBspPlatformMapping() {
     XLOG(INFO) << "Overriding BSP platform mapping from "
                << FLAGS_bsp_platform_mapping_override_path;
   }
-  bspPlatformMapping_ = FLAGS_bsp_platform_mapping_override_path.empty()
-      ? new T()
-      : new T(platformMappingStr);
-  return bspPlatformMapping_;
+  if (mappingOverride) {
+    return std::make_unique<T>(platformMappingStr);
+  }
+
+  return std::make_unique<T>();
 }
 
 using Meru400bfuSystemContainer =
