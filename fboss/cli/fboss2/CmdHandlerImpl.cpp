@@ -42,6 +42,7 @@
 #include "fboss/cli/fboss2/commands/show/fabric/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/commands/show/fabric/reachability/CmdShowFabricReachability.h"
 #include "fboss/cli/fboss2/commands/show/fabric/reachability/gen-cpp2/model_visitation.h"
+#include "fboss/cli/fboss2/commands/show/flowlet/CmdShowFlowlet.h"
 #include "fboss/cli/fboss2/commands/show/host/CmdShowHost.h"
 #include "fboss/cli/fboss2/commands/show/hwobject/CmdShowHwObject.h"
 #include "fboss/cli/fboss2/commands/show/interface/CmdShowInterface.h"
@@ -116,6 +117,7 @@ template void
 CmdHandler<CmdShowAggregatePort, CmdShowAggregatePortTraits>::run();
 template void CmdHandler<CmdShowArp, CmdShowArpTraits>::run();
 template void CmdHandler<CmdShowFabric, CmdShowFabricTraits>::run();
+template void CmdHandler<CmdShowFlowlet, CmdShowFlowletTraits>::run();
 template void CmdHandler<CmdShowDsf, CmdShowDsfTraits>::run();
 template void
 CmdHandler<CmdShowFabricReachability, CmdShowFabricReachabilityTraits>::run();

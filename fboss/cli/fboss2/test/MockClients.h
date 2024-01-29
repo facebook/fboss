@@ -89,6 +89,10 @@ class MockFbossCtrlAgent : public FbossCtrlSvIf {
       (std::unique_ptr<std::vector<TeFlow>> teFlows));
   MOCK_METHOD(void, getCurrentStateJSON, (Out, std::unique_ptr<std::string>));
   MOCK_METHOD(void, getRunningConfig, (std::string&));
+  MOCK_METHOD(
+      void,
+      getAllEcmpDetails,
+      (std::vector<facebook::fboss::EcmpDetails>&));
 };
 
 class MockFbossQsfpService : public QsfpServiceSvIf {
