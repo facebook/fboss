@@ -71,13 +71,21 @@ class AgentL3ForwardingTest : public AgentHwTest {
   }
 };
 
-TEST_F(AgentL3ForwardingTest, linkLocalNextHop) {
+TEST_F(AgentL3ForwardingTest, linkLocalNeighborAndNextHop) {
   auto setup = [=]() {
-    // Random LL IP
+    // Random LL IPs
+    // linkLocalNhop - used as both LL nbr and nhop
+    // linkLocalNbr  - used as both LL nbr and
     folly::IPAddress linkLocalNhop("fe80::e42:a1ff:fe66:1d9e");
+    folly::IPAddress linkLocalNbr("fe80::e43:a1ff:fe66:1d9e");
     getSw()->updateStateBlocking(
-        "add nbr", [&](const std::shared_ptr<SwitchState>& in) {
+        "add link local nbr, nhop",
+        [&](const std::shared_ptr<SwitchState>& in) {
           return addResolvedNeighbor(in, linkLocalNhop.asV6());
+        });
+    getSw()->updateStateBlocking(
+        "add link local nbr", [&](const std::shared_ptr<SwitchState>& in) {
+          return addResolvedNeighbor(in, linkLocalNbr.asV6());
         });
     RouteNextHopSet nhops;
     nhops.emplace(ResolvedNextHop(linkLocalNhop, kIntfID(), ECMP_WEIGHT));
@@ -90,6 +98,8 @@ TEST_F(AgentL3ForwardingTest, linkLocalNextHop) {
         RouteNextHopEntry(nhops, AdminDistance::EBGP));
     routeUpdater.program();
   };
+  // No verify here. We are just testing safe warm boots
+  // with LL neighbors and next hops
   verifyAcrossWarmBoots(setup, []() {});
 }
 } // namespace facebook::fboss
