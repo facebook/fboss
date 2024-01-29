@@ -88,6 +88,27 @@ class HwEnsembleMultiSwitchThriftHandler
     };
   }
 
+  folly::coro::Task<
+      apache::thrift::SinkConsumer<multiswitch::LinkActiveEvent, bool>>
+  co_notifyLinkActiveEvent(int64_t switchId) override {
+    co_return apache::thrift::SinkConsumer<multiswitch::LinkActiveEvent, bool>{
+        [switchId,
+         this](folly::coro::AsyncGenerator<multiswitch::LinkActiveEvent&&> gen)
+            -> folly::coro::Task<bool> {
+          std::map<PortID, bool> port2IsActive;
+          while (auto item = co_await gen.next()) {
+            XLOG(DBG3) << "Got link active event from switch " << switchId;
+            for (const auto& [portID, isActive] : *item->port2IsActive()) {
+              port2IsActive[PortID(portID)] = isActive;
+            }
+            ensemble_->linkActiveStateChanged(port2IsActive);
+          }
+          co_return true;
+        },
+        1000 /* buffer size */
+    };
+  }
+
   folly::coro::Task<apache::thrift::SinkConsumer<multiswitch::FdbEvent, bool>>
   co_notifyFdbEvent(int64_t switchId) override {
     co_return apache::thrift::SinkConsumer<multiswitch::FdbEvent, bool>{
