@@ -1325,7 +1325,7 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet()
   } else if (isJericho2 || isJericho3) {
     // TODO(skhare)
     // Extend this list once the SAI implementation supports more qualifiers
-    std::set<cfg::AclTableQualifier> indusQualifiers = {
+    std::set<cfg::AclTableQualifier> jerichoQualifiers = {
         cfg::AclTableQualifier::SRC_IPV6,
         cfg::AclTableQualifier::DST_IPV6,
         cfg::AclTableQualifier::SRC_PORT,
@@ -1335,7 +1335,7 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet()
         cfg::AclTableQualifier::TTL,
     };
 
-    return indusQualifiers;
+    return jerichoQualifiers;
   } else {
     std::set<cfg::AclTableQualifier> bcmQualifiers = {
         cfg::AclTableQualifier::SRC_IPV6,
