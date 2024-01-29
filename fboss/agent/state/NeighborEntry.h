@@ -154,7 +154,8 @@ class NeighborEntry
       NeighborState state = NeighborState::REACHABLE,
       std::optional<cfg::AclLookupClass> classID = std::nullopt,
       std::optional<int64_t> encapIndex = std::nullopt,
-      bool isLocal = true);
+      bool isLocal = true,
+      bool noHostRooute = false);
 
   NeighborEntry(
       AddressType ip,
@@ -162,7 +163,8 @@ class NeighborEntry
       state::NeighborEntryType type,
       NeighborState pending,
       std::optional<int64_t> encapIndex = std::nullopt,
-      bool isLocal = true);
+      bool isLocal = true,
+      bool noHostRoute = false);
 
   void setIP(AddressType ip) {
     this->template set<switch_state_tags::ipaddress>(ip.str());
