@@ -11,6 +11,7 @@ DEFINE_bool(
     list_production_feature,
     false,
     "list production feature needed for every single test");
+DECLARE_bool(disable_neighbor_updates);
 
 namespace {
 int kArgc;
@@ -40,6 +41,8 @@ void AgentHwTest::SetUp() {
   // Disable tun intf, else pkts from host will interfere
   // with tests
   FLAGS_tun_intf = false;
+  // disable neighbor updates
+  FLAGS_disable_neighbor_updates = true;
 
   AgentEnsembleSwitchConfigFn initialConfigFn =
       [this](const AgentEnsemble& ensemble) { return initialConfig(ensemble); };
