@@ -3077,7 +3077,8 @@ void ThriftHandler::getDsfSubscriptions(
   for (const auto& [_, dsfNodes] :
        std::as_const(*sw_->getState()->getDsfNodes())) {
     for (const auto& [_, node] : std::as_const(*dsfNodes)) {
-      if (node->getType() == cfg::DsfNodeType::INTERFACE_NODE) {
+      if (node->getType() == cfg::DsfNodeType::INTERFACE_NODE &&
+          node->getLoopbackIps()->size()) {
         const auto loopbackIp = (*node->getLoopbackIps()->cbegin())->toThrift();
         loopbackIpToName.emplace(
             IPAddress(loopbackIp.substr(0, loopbackIp.find("/"))),
