@@ -191,7 +191,7 @@ bool compareSystemPortName(
     throw std::invalid_argument(folly::to<std::string>(
         "Invalid port name: ",
         nameA,
-        "\nPort name must match 'moduleNum/port/subport' pattern"));
+        "\nSystemPort name must match 'moduleNum/port/subport' pattern"));
   }
 
   if (!RE2::FullMatch(
@@ -205,7 +205,7 @@ bool compareSystemPortName(
     throw std::invalid_argument(folly::to<std::string>(
         "Invalid port name: ",
         nameB,
-        "\nPort name must match 'moduleNum/port/subport' pattern"));
+        "\nSystemPort name must match 'moduleNum/port/subport' pattern"));
   }
 
   int ret;
