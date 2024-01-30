@@ -577,6 +577,16 @@ void SwSwitch::onSwitchRunStateChange(SwitchRunState newState) {
   } else if (newState == SwitchRunState::CONFIGURED) {
     restart_time::mark(RestartEvent::CONFIGURED);
   }
+  auto updateFn = [newState](const shared_ptr<SwitchState>& state) {
+    auto newSwitchState = state->clone();
+    for (const auto& [_, switchSettings] :
+         std::as_const(*newSwitchState->getSwitchSettings())) {
+      auto newSwitchSettings = switchSettings->modify(&newSwitchState);
+      newSwitchSettings->setSwSwitchRunState(newState);
+    }
+    return newSwitchState;
+  };
+  updateState("update switch runstate", updateFn);
   switchRunStateChanged(newState);
 }
 

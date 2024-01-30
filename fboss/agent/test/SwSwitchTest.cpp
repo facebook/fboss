@@ -19,6 +19,7 @@
 #include "fboss/agent/state/ArpTable.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/Port.h"
+#include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/test/CounterCache.h"
@@ -235,6 +236,12 @@ TEST_F(SwSwitchTest, multiSwitchFb303Stats) {
   // fb303 stat should have gotten an update
   EXPECT_EQ(
       multiSwitchStats->getHwSwitchFb303GlobalStats().getTxPktAllocCount(), 1);
+}
+
+TEST_F(SwSwitchTest, swSwitchRunState) {
+  auto switchSettings =
+      utility::getFirstNodeIf(sw->getState()->getSwitchSettings());
+  EXPECT_EQ(switchSettings->getSwSwitchRunState(), SwitchRunState::CONFIGURED);
 }
 
 template <bool enableIntfNbrTable>
