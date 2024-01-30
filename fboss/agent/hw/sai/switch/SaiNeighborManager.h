@@ -58,7 +58,7 @@ class ManagedVlanRifNeighbor : public SaiObjectEventAggregateSubscriber<
       std::optional<sai_uint32_t> metadata,
       std::optional<sai_uint32_t> encapIndex,
       bool isLocal,
-      bool noHostRoute);
+      std::optional<bool> noHostRoute);
 
   void createObject(PublisherObjects objects);
   void removeObject(size_t index, PublisherObjects objects);
@@ -87,7 +87,7 @@ class ManagedVlanRifNeighbor : public SaiObjectEventAggregateSubscriber<
       intfIDAndIpAndMac_;
   std::unique_ptr<SaiNeighborHandle> handle_;
   std::optional<sai_uint32_t> metadata_;
-  bool noHostRoute_;
+  std::optional<bool> noHostRoute_{std::nullopt};
 };
 
 class PortRifNeighbor {
@@ -100,7 +100,7 @@ class PortRifNeighbor {
       std::optional<sai_uint32_t> metadata,
       std::optional<sai_uint32_t> encapIndex,
       bool isLocal,
-      bool noHostRoute);
+      std::optional<bool> noHostRoute);
 
   void handleLinkDown();
 
@@ -139,7 +139,7 @@ class SaiNeighborEntry {
       std::optional<sai_uint32_t> metadata,
       std::optional<sai_uint32_t> encapIndex,
       bool isLocal,
-      bool noHostRoute,
+      std::optional<bool> noHostRoute,
       cfg::InterfaceType intfType);
   void handleLinkDown() {
     std::visit([](auto& handle) { handle->handleLinkDown(); }, neighbor_);

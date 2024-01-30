@@ -221,7 +221,7 @@ SaiNeighborEntry::SaiNeighborEntry(
     std::optional<sai_uint32_t> metadata,
     std::optional<sai_uint32_t> encapIndex,
     bool isLocal,
-    bool noHostRoute,
+    std::optional<bool> noHostRoute,
     cfg::InterfaceType intfType) {
   switch (intfType) {
     case cfg::InterfaceType::VLAN: {
@@ -271,7 +271,7 @@ PortRifNeighbor::PortRifNeighbor(
     std::optional<sai_uint32_t> metadata,
     std::optional<sai_uint32_t> encapIndex,
     bool isLocal,
-    bool noHostRoute)
+    std::optional<bool> noHostRoute)
     : manager_(manager),
       saiPortAndIntf_(saiPortAndIntf),
       handle_(std::make_unique<SaiNeighborHandle>()) {
@@ -297,7 +297,7 @@ ManagedVlanRifNeighbor::ManagedVlanRifNeighbor(
     std::optional<sai_uint32_t> metadata,
     std::optional<sai_uint32_t> encapIndex,
     bool isLocal,
-    bool noHostRoute)
+    std::optional<bool> noHostRoute)
     : Base(std::make_tuple(
           std::get<InterfaceID>(intfIDAndIpAndMac),
           std::get<folly::MacAddress>(intfIDAndIpAndMac))),

@@ -99,7 +99,7 @@ void NeighborTable<IPADDR, ENTRY, SUBCLASS>::addEntry(
     std::optional<cfg::AclLookupClass> classID,
     std::optional<int64_t> encapIndex,
     bool isLocal,
-    bool noHostRoute) {
+    std::optional<bool> noHostRoute) {
   CHECK(!this->isPublished());
   state::NeighborEntryFields thrift{};
   thrift.ipaddress() = ip.str();
@@ -114,7 +114,9 @@ void NeighborTable<IPADDR, ENTRY, SUBCLASS>::addEntry(
     thrift.encapIndex() = *encapIndex;
   }
   thrift.isLocal() = isLocal;
-  thrift.noHostRoute() = noHostRoute;
+  if (noHostRoute) {
+    thrift.noHostRoute() = *noHostRoute;
+  }
   auto entry = std::make_shared<Entry>(std::move(thrift));
   this->addNode(entry);
 }
@@ -144,7 +146,7 @@ void NeighborTable<IPADDR, ENTRY, SUBCLASS>::updateEntry(
     std::optional<cfg::AclLookupClass> classID,
     std::optional<int64_t> encapIndex,
     bool isLocal,
-    bool noHostRoute) {
+    std::optional<bool> noHostRoute) {
   auto entry = this->getNode(ip.str());
   entry = entry->clone();
   entry->setMAC(mac);

@@ -127,9 +127,11 @@ TEST_F(DsfSubscriberTest, setupNeighbors) {
       auto& intf = intfIter.second;
       for (auto& ndpEntry : *intf->getNdpTable()) {
         ndpEntry.second->setIsLocal(false);
+        ndpEntry.second->setNoHostRoute(false);
       }
       for (auto& arpEntry : *intf->getArpTable()) {
         arpEntry.second->setIsLocal(false);
+        arpEntry.second->setNoHostRoute(false);
       }
     }
 

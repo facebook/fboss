@@ -94,7 +94,7 @@ class NeighborTable
       std::optional<cfg::AclLookupClass> classID = std::nullopt,
       std::optional<int64_t> encapIndex = std::nullopt,
       bool isLocal = true,
-      bool noHostRoute = false);
+      std::optional<bool> noHostRoute = std::nullopt);
   void addEntry(const NeighborEntryFields<AddressType>& fields);
   void updateEntry(
       AddressType ip,
@@ -105,7 +105,7 @@ class NeighborTable
       std::optional<cfg::AclLookupClass> classID = std::nullopt,
       std::optional<int64_t> encapIndex = std::nullopt,
       bool isLocal = true,
-      bool noHostRoute = false);
+      std::optional<bool> noHostRoute = std::nullopt);
   void updateEntry(const NeighborEntryFields<AddressType>& fields);
   void updateEntry(AddressType ip, std::shared_ptr<ENTRY>);
   void addPendingEntry(AddressType ip, InterfaceID intfID);
