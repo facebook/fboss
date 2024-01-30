@@ -27,6 +27,10 @@ void PkgUtils::processRpms(const PlatformConfig& config) const {
   }
 }
 
+void PkgUtils::processLocalRpms(const std::string& rpmFullPath) const {
+  installLocalRpm(rpmFullPath, 3 /* maxAttempts */);
+}
+
 void PkgUtils::processKmods(const PlatformConfig& config) const {
   XLOG(INFO) << fmt::format(
       "Reloading {} Kernel Modules", config.kmodsToReload()->size());
@@ -64,6 +68,27 @@ void PkgUtils::installRpm(const std::string& rpmFullName, int maxAttempts)
     throw std::runtime_error(fmt::format(
         "Failed to install rpm ({}) with exit code {}",
         rpmFullName,
+        exitStatus));
+  }
+}
+
+void PkgUtils::installLocalRpm(const std::string& rpmFullPath, int maxAttempts)
+    const {
+  int exitStatus{0}, attempt{1};
+  std::string standardOut{};
+  auto cmd = fmt::format("rpm -i --force {}", rpmFullPath);
+  do {
+    XLOG(INFO) << fmt::format(
+        "Running command ({}); Attempt: {}", cmd, attempt++);
+    std::tie(exitStatus, standardOut) = PlatformUtils().execCommand(cmd);
+    XLOG(INFO) << standardOut;
+  } while (attempt <= maxAttempts && exitStatus != 0);
+  if (exitStatus != 0) {
+    XLOG(ERR) << fmt::format(
+        "Command ({}) failed with exit code {}", cmd, exitStatus);
+    throw std::runtime_error(fmt::format(
+        "Failed to install rpm ({}) with exit code {}",
+        rpmFullPath,
         exitStatus));
   }
 }

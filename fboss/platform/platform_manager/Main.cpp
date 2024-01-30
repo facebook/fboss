@@ -30,6 +30,11 @@ DEFINE_bool(
     "Setup platform once and exit. If set to false, the program will explore "
     "the platform every explore_interval_s.");
 
+DEFINE_string(
+    local_rpm_path,
+    "",
+    "Path to the local rpm file that needs to be installed on the system.");
+
 int main(int argc, char** argv) {
   fb303::registerFollyLoggingOptionHandlers();
   helpers::init(&argc, &argv);
@@ -37,7 +42,11 @@ int main(int argc, char** argv) {
   auto config = Utils().getConfig();
 
   if (FLAGS_enable_pkg_mgmnt) {
-    PkgUtils().processRpms(config);
+    if (FLAGS_local_rpm_path != "") {
+      PkgUtils().processLocalRpms(FLAGS_local_rpm_path);
+    } else {
+      PkgUtils().processRpms(config);
+    }
   }
   PkgUtils().processKmods(config);
 
