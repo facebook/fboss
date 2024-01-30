@@ -755,6 +755,16 @@ bool QsfpModule::isTransceiverFeatureSupported(
   return false;
 }
 
+bool QsfpModule::isVdmSupported(uint8_t maxGroupRequested) const {
+  if (!isTransceiverFeatureSupported(TransceiverFeature::VDM)) {
+    return false;
+  }
+  if (!maxGroupRequested) {
+    return true;
+  }
+  return (vdmSupportedGroupsMax_ >= maxGroupRequested);
+}
+
 prbs::InterfacePrbsState QsfpModule::getPortPrbsState(
     std::optional<const std::string> portName,
     phy::Side side) {

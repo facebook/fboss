@@ -335,6 +335,7 @@ static QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     {CmisField::VDM_VAL_PAM4_MPI_LINE, {CmisPages::PAGE26, 192, 16}},
     // Page 2Fh
     {CmisField::PAGE_UPPER2FH, {CmisPages::PAGE2F, 128, 128}},
+    {CmisField::VDM_GROUPS_SUPPORT, {CmisPages::PAGE2F, 128, 1}},
     {CmisField::VDM_LATCH_REQUEST, {CmisPages::PAGE2F, 144, 1}},
     {CmisField::VDM_LATCH_DONE, {CmisPages::PAGE2F, 145, 1}},
 };
@@ -2607,6 +2608,11 @@ void CmisModule::setDiagsCapability() {
       readFromCacheOrHw(CmisField::DIAGNOSTIC_CAPABILITY, &data);
       diags.snrLine() = data & FieldMasks::SNR_LINE_SUPPORT_MASK;
       diags.snrSystem() = data & FieldMasks::SNR_SYS_SUPPORT_MASK;
+    }
+
+    if (*diags.vdm()) {
+      readCmisField(CmisField::VDM_GROUPS_SUPPORT, &data);
+      vdmSupportedGroupsMax_ = (data & VDM_GROUPS_SUPPORT_MASK) + 1;
     }
 
     *diagsCapability = diags;

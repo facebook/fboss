@@ -261,6 +261,7 @@ enum class CmisField {
   VDM_VAL_PAM4_MPI_LINE,
   // Page 2Fh
   PAGE_UPPER2FH,
+  VDM_GROUPS_SUPPORT,
   VDM_LATCH_REQUEST,
   VDM_LATCH_DONE,
 };
@@ -292,6 +293,7 @@ enum FieldMasks : uint8_t {
   RX_DISABLE_SUPPORT_MASK = 0x02,
   SNR_LINE_SUPPORT_MASK = 0x20,
   SNR_SYS_SUPPORT_MASK = 0x10,
+  VDM_GROUPS_SUPPORT_MASK = 0x03,
 };
 
 enum FieldBitShift : uint8_t {

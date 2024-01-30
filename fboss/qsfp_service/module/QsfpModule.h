@@ -162,9 +162,7 @@ class QsfpModule : public Transceiver {
 
   virtual void configureModule(uint8_t /* startHostLane */) {}
 
-  bool isVdmSupported() const {
-    return isTransceiverFeatureSupported(TransceiverFeature::VDM);
-  }
+  bool isVdmSupported(uint8_t maxGroupRequested = 0) const;
 
   bool isPrbsSupported(phy::Side side) const {
     return isTransceiverFeatureSupported(TransceiverFeature::PRBS, side);
@@ -330,6 +328,9 @@ class QsfpModule : public Transceiver {
 
   // Diagnostic capabilities of the module
   folly::Synchronized<std::optional<DiagsCapability>> diagsCapability_;
+
+  // VDM groups supported
+  uint8_t vdmSupportedGroupsMax_ = 0;
 
   /*
    * Perform transceiver customization
