@@ -367,6 +367,7 @@ struct SwitchSettingsFields {
   // MAC OUIs used by meta for VM purpose.
   // When queue-per-host is enabled, MACs matching any OUI from this list could get any queue.
   36: list<string> metaMacOuis;
+  37: ctrl.SwitchRunState swSwitchRunState;
 }
 
 struct RoutePrefix {
