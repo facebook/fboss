@@ -35,6 +35,8 @@ DEFINE_bool(nodeZ, false, "Setup test config as node Z");
 
 namespace {
 
+constexpr auto kSysPortOffset = 100;
+
 std::string getLocalCpuMacStr() {
   return kLocalCpuMac().toString();
 }
@@ -111,8 +113,9 @@ cfg::DsfNode dsfNodeConfig(
       cfg::Range64 range;
       auto blockSize = *fromAsicSystemPortRange->maximum() -
           *fromAsicSystemPortRange->minimum();
-      range.minimum() = systemPortMin.has_value() ? 100 + systemPortMin.value()
-                                                  : 100 + switchId * blockSize;
+      range.minimum() = systemPortMin.has_value()
+          ? kSysPortOffset + systemPortMin.value()
+          : kSysPortOffset + switchId * blockSize;
       range.maximum() = *range.minimum() + blockSize;
       systemPortRange = range;
     }
@@ -227,7 +230,8 @@ std::unordered_map<PortID, cfg::PortProfileID> getSafeProfileIDs(
     const PlatformMapping* platformMapping,
     const HwAsic* asic,
     const std::map<PortID, std::vector<PortID>>&
-        controllingPortToSubsidaryPorts) {
+        controllingPortToSubsidaryPorts,
+    std::optional<std::vector<PortID>> masterLogicalPortIds = std::nullopt) {
   std::unordered_map<PortID, cfg::PortProfileID> portToProfileIDs;
   const auto& plarformEntries = platformMapping->getPlatformPorts();
   for (const auto& group : controllingPortToSubsidaryPorts) {
@@ -243,11 +247,17 @@ std::unordered_map<PortID, cfg::PortProfileID> getSafeProfileIDs(
           if (std::none_of(
                   subsumedPorts->begin(),
                   subsumedPorts->end(),
-                  [ports](auto subsumedPort) {
+                  [&](auto subsumedPort) {
                     return std::find(
                                ports.begin(),
                                ports.end(),
-                               PortID(subsumedPort)) != ports.end();
+                               PortID(subsumedPort)) != ports.end() &&
+                        (!masterLogicalPortIds.has_value() ||
+                         std::find(
+                             masterLogicalPortIds->begin(),
+                             masterLogicalPortIds->end(),
+                             PortID(subsumedPort)) !=
+                             masterLogicalPortIds->end());
                   })) {
             safeProfiles.insert(profile.first);
           }
@@ -311,6 +321,13 @@ std::unordered_map<PortID, cfg::PortProfileID> getSafeProfileIDs(
     }
 
     for (auto portID : ports) {
+      if (masterLogicalPortIds.has_value() &&
+          std::find(
+              masterLogicalPortIds->begin(),
+              masterLogicalPortIds->end(),
+              portID) == masterLogicalPortIds->end()) {
+        continue;
+      }
       portToProfileIDs.emplace(portID, bestProfile);
     }
   }
@@ -358,7 +375,7 @@ void securePortsInConfig(
   // Make sure all the ports in portGroups use the safe profile in the config
   if (portGroups.size() > 0) {
     for (const auto& [portID, profileID] :
-         getSafeProfileIDs(platformMapping, asic, portGroups)) {
+         getSafeProfileIDs(platformMapping, asic, portGroups, ports)) {
       auto portCfg = findCfgPortIf(config, portID);
       if (portCfg != config.ports()->end()) {
         portCfg->profileID() = profileID;
@@ -513,7 +530,8 @@ cfg::SwitchConfig genPortVlanCfg(
 void setPortToDefaultProfileIDMap(
     const std::shared_ptr<MultiSwitchPortMap>& ports,
     const PlatformMapping* platformMapping,
-    const HwAsic* asic) {
+    const HwAsic* asic,
+    std::optional<std::vector<PortID>> masterLogicalPortIds) {
   // Most of the platforms will have default ports created when the HW is
   // initialized. But for those who don't have any default port, we'll fall
   // back to use PlatformPort and the safe PortProfileID
@@ -534,7 +552,8 @@ void setPortToDefaultProfileIDMap(
     const auto& safeProfileIDs = getSafeProfileIDs(
         platformMapping,
         asic,
-        getSubsidiaryPortIDs(platformMapping->getPlatformPorts()));
+        getSubsidiaryPortIDs(platformMapping->getPlatformPorts()),
+        masterLogicalPortIds);
     getPortToDefaultProfileIDMap().insert(
         safeProfileIDs.begin(), safeProfileIDs.end());
   }

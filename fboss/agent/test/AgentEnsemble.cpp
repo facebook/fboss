@@ -54,13 +54,8 @@ void AgentEnsemble::setupEnsemble(
     asic->setDefaultStreamType(kStreamTypeOpt.value());
   }
 
-  utility::setPortToDefaultProfileIDMap(
-      std::make_shared<MultiSwitchPortMap>(),
-      getSw()->getPlatformMapping(),
-      asic);
   auto portsByControllingPort = utility::getSubsidiaryPortIDs(
       getSw()->getPlatformMapping()->getPlatformPorts());
-
   const auto& platformPorts = getSw()->getPlatformMapping()->getPlatformPorts();
   for (const auto& port : portsByControllingPort) {
     if (!FLAGS_hide_fabric_ports ||
@@ -70,6 +65,12 @@ void AgentEnsemble::setupEnsemble(
       masterLogicalPortIds_.push_back(port.first);
     }
   }
+  utility::setPortToDefaultProfileIDMap(
+      std::make_shared<MultiSwitchPortMap>(),
+      getSw()->getPlatformMapping(),
+      asic,
+      masterLogicalPortIds_);
+
   initialConfig_ = initialConfigFn(*this);
   applyInitialConfig(initialConfig_);
   // reload the new config
