@@ -117,6 +117,11 @@ enum VdmConfigTypeKey : uint8_t {
   VDM_CONFIG_ERR_FRAMES_HOST_IN_AVG = 22,
   VDM_CONFIG_ERR_FRAMES_MEDIA_IN_CURR = 23,
   VDM_CONFIG_ERR_FRAMES_HOST_IN_CURR = 24,
+  VDM_CONFIG_PAM4_LEVEL0_SD_LINE = 100,
+  VDM_CONFIG_PAM4_LEVEL1_SD_LINE = 101,
+  VDM_CONFIG_PAM4_LEVEL2_SD_LINE = 102,
+  VDM_CONFIG_PAM4_LEVEL3_SD_LINE = 103,
+  VDM_CONFIG_PAM4_MPI_LINE = 104,
 };
 
 struct VdmConfigType {
@@ -140,6 +145,11 @@ std::map<VdmConfigTypeKey, VdmConfigType> vdmConfigTypeMap = {
   {VDM_CONFIG_ERR_FRAMES_MEDIA_IN_MAX, {"Err Frames Media Input Maximum", VDM_DATA_TYPE_F16, 0, ""}},
   {VDM_CONFIG_ERR_FRAMES_MEDIA_IN_AVG, {"Err Frames Media Input Accumulated", VDM_DATA_TYPE_F16, 0, ""}},
   {VDM_CONFIG_ERR_FRAMES_MEDIA_IN_CURR, {"Err Frames Media Input Current", VDM_DATA_TYPE_F16, 0, ""}},
+  {VDM_CONFIG_PAM4_LEVEL0_SD_LINE, {"PAM4 Level0 Standard Deviation Line", VDM_DATA_TYPE_F16, 0, ""}},
+  {VDM_CONFIG_PAM4_LEVEL1_SD_LINE, {"PAM4 Level1 Standard Deviation Line", VDM_DATA_TYPE_F16, 0, ""}},
+  {VDM_CONFIG_PAM4_LEVEL2_SD_LINE, {"PAM4 Level2 Standard Deviation Line", VDM_DATA_TYPE_F16, 0, ""}},
+  {VDM_CONFIG_PAM4_LEVEL3_SD_LINE, {"PAM4 Level3 Standard Deviation Line", VDM_DATA_TYPE_F16, 0, ""}},
+  {VDM_CONFIG_PAM4_MPI_LINE, {"PAM4 MPI Line", VDM_DATA_TYPE_F16, 0, ""}},
   // Host side
   {VDM_CONFIG_ESNR_HOST_INPUT, {"eSNR Host Input", VDM_DATA_TYPE_U16, 1.0/256.0, "dB"}},
   {VDM_CONFIG_PAM4_LTP_HOST_INPUT, {"PAM4 LTP Host Input", VDM_DATA_TYPE_U16, 1.0/256.0, "dB"}},
@@ -3357,6 +3367,17 @@ bool printVdmInfo(DirectI2cInfo i2cInfo, unsigned int port) {
   findAndPrintVdmInfo(page20Buf, page24Buf);
   // Host side info: control page = 0x20, data page = 0x24
   findAndPrintVdmInfo(page21Buf, page25Buf);
+
+  uint8_t vdmGroupsSupported;
+  readRegister(port, 128, 1, 0x2f, &vdmGroupsSupported);
+
+  // Check for VDM Advance Group3 support
+  // Control page: 0x22, data page: 0x26
+  if ((vdmGroupsSupported & 0x03) >= 2) {
+    auto page22Buf = can_throw(cmisData.page22())->data();
+    auto page26Buf = can_throw(cmisData.page26())->data();
+    findAndPrintVdmInfo(page22Buf, page26Buf);
+  }
 
   return true;
 }
