@@ -1697,12 +1697,18 @@ CmisModule::getQsfpValuePtr(int dataAddress, int offset, int length) const {
       case CmisPages::PAGE21:
         CHECK_LE(offset + length, sizeof(page21_));
         return (page21_ + offset);
+      case CmisPages::PAGE22:
+        CHECK_LE(offset + length, sizeof(page22_));
+        return (page22_ + offset);
       case CmisPages::PAGE24:
         CHECK_LE(offset + length, sizeof(page24_));
         return (page24_ + offset);
       case CmisPages::PAGE25:
         CHECK_LE(offset + length, sizeof(page25_));
         return (page25_ + offset);
+      case CmisPages::PAGE26:
+        CHECK_LE(offset + length, sizeof(page26_));
+        return (page26_ + offset);
       default:
         throw FbossError("Invalid Data Address 0x%d", dataAddress);
     }
@@ -1737,8 +1743,10 @@ DOMDataUnion CmisModule::getDOMDataUnion() {
       cmisData.page14() = IOBuf::wrapBufferAsValue(page14_, MAX_QSFP_PAGE_SIZE);
       cmisData.page20() = IOBuf::wrapBufferAsValue(page20_, MAX_QSFP_PAGE_SIZE);
       cmisData.page21() = IOBuf::wrapBufferAsValue(page21_, MAX_QSFP_PAGE_SIZE);
+      cmisData.page22() = IOBuf::wrapBufferAsValue(page22_, MAX_QSFP_PAGE_SIZE);
       cmisData.page24() = IOBuf::wrapBufferAsValue(page24_, MAX_QSFP_PAGE_SIZE);
       cmisData.page25() = IOBuf::wrapBufferAsValue(page25_, MAX_QSFP_PAGE_SIZE);
+      cmisData.page26() = IOBuf::wrapBufferAsValue(page26_, MAX_QSFP_PAGE_SIZE);
     }
   }
   cmisData.timeCollected() = lastRefreshTime_;
@@ -3219,6 +3227,14 @@ void CmisModule::updateVdmCacheLocked() {
   readCmisField(CmisField::PAGE_UPPER21H, page21_);
   readCmisField(CmisField::PAGE_UPPER24H, page24_);
   readCmisField(CmisField::PAGE_UPPER25H, page25_);
+  if (isVdmSupported(3)) {
+    // Cache VDM group 3 page only if it is supported
+    if (!staticPagesCached_) {
+      readCmisField(CmisField::PAGE_UPPER22H, page22_);
+      staticPagesCached_ = true;
+    }
+    readCmisField(CmisField::PAGE_UPPER26H, page26_);
+  }
 }
 
 void CmisModule::updateCmisStateChanged(
