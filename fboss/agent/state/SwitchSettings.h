@@ -377,6 +377,14 @@ class SwitchSettings
     }
   }
 
+  SwitchRunState getSwSwitchRunState() const {
+    return cref<switch_state_tags::swSwitchRunState>()->toThrift();
+  }
+
+  void setSwSwitchRunState(const SwitchRunState runState) {
+    set<switch_state_tags::swSwitchRunState>(runState);
+  }
+
   std::optional<folly::IPAddressV4> getDhcpV4ReplySrc() const {
     if (auto dhcpV4ReplySrc = cref<switch_state_tags::dhcpV4ReplySrc>()) {
       return network::toIPAddress(dhcpV4ReplySrc->toThrift()).asV4();
