@@ -291,6 +291,7 @@ TEST_F(CmisTest, cmis400GLr4TransceiverInfoTest) {
     EXPECT_EQ(cmisData.page14()->data()[0], 0x06);
     // Check VDM cache
     EXPECT_TRUE(xcvr->isVdmSupported());
+    EXPECT_FALSE(xcvr->isVdmSupported(3));
     EXPECT_TRUE(cmisData.page20());
     EXPECT_EQ(cmisData.page20()->data()[0], 0x00);
     EXPECT_TRUE(cmisData.page21());
@@ -633,6 +634,7 @@ TEST_F(CmisTest, cmis2x400GFr4TransceiverInfoTest) {
   EXPECT_TRUE(diagsCap.value().snrLine().value());
   EXPECT_TRUE(diagsCap.value().snrSystem().value());
   EXPECT_TRUE(xcvr->isVdmSupported());
+  EXPECT_TRUE(xcvr->isVdmSupported(3));
   EXPECT_TRUE(xcvr->isPrbsSupported(phy::Side::LINE));
   EXPECT_TRUE(xcvr->isPrbsSupported(phy::Side::SYSTEM));
   EXPECT_TRUE(xcvr->isSnrSupported(phy::Side::LINE));
