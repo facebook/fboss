@@ -1,0 +1,8 @@
+packages:
+  flashrom:
+    summary: flashrom binary built from third-party2
+    packager: fboss_platform
+    static:
+      third-party2/flashrom/1.2.1/platform010/249adfb/sbin/flashrom:
+        path: "/usr/bin/flashrom"
+        mode: "0555"
