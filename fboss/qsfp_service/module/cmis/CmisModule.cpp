@@ -90,6 +90,11 @@ enum VdmConfigType {
   ERR_FRAME_HOST_IN_AVG = 22,
   ERR_FRAME_MEDIA_IN_CUR = 23,
   ERR_FRAME_HOST_IN_CUR = 24,
+  PAM4_LEVEL0_STANDARD_DEVIATION_LINE = 100,
+  PAM4_LEVEL1_STANDARD_DEVIATION_LINE = 101,
+  PAM4_LEVEL2_STANDARD_DEVIATION_LINE = 102,
+  PAM4_LEVEL3_STANDARD_DEVIATION_LINE = 103,
+  PAM4_MPI_LINE = 104,
 };
 
 // As per CMIS4.0
@@ -1619,6 +1624,75 @@ std::optional<VdmDiagsStats> CmisModule::getVdmDiagsStatsInfo() {
         CmisField::VDM_VAL_ERR_FRAME_HOST_IN_CUR, dataAddress, offset, length);
     data = getQsfpValuePtr(dataAddress, offset, length);
     vdmStats.errFrameHostCur() = f16ToDouble(data[0], data[1]);
+  }
+
+  // Fill in VDM Advance group3 performance monitoring info
+  if (isVdmSupported(3)) {
+    // Lambda to read the VDM PM value for the given VDM Config
+    auto getVdmPmLaneValues =
+        [&](CmisField cmisConfField,
+            CmisField cmisValField,
+            VdmConfigType vdmConf) -> std::map<int, double> {
+      getQsfpFieldAddress(cmisConfField, dataAddress, offset, length);
+      data = getQsfpValuePtr(dataAddress, offset, length);
+      std::map<int, double> pmMap;
+      uint8_t vdmConfType = data[1];
+      if (vdmConfType == vdmConf) {
+        getQsfpFieldAddress(cmisValField, dataAddress, offset, length);
+        data = getQsfpValuePtr(dataAddress, offset, length);
+        for (auto lanes = 0; lanes < length / 2; lanes++) {
+          double pmVal;
+          pmVal = f16ToDouble(data[lanes * 2], data[lanes * 2 + 1]);
+          pmMap[lanes] = pmVal;
+        }
+      }
+      return pmMap;
+    };
+
+    // PAM4 Level0
+    auto sdL0Map = getVdmPmLaneValues(
+        CmisField::VDM_CONF_PAM4_LEVEL0_SD_LINE,
+        CmisField::VDM_VAL_PAM4_LEVEL0_SD_LINE,
+        PAM4_LEVEL0_STANDARD_DEVIATION_LINE);
+    for (auto [lane, sdL0] : sdL0Map) {
+      vdmStats.pam4Level0SDLine()[lane] = sdL0;
+    }
+
+    // PAM4 Level1
+    auto sdL1Map = getVdmPmLaneValues(
+        CmisField::VDM_CONF_PAM4_LEVEL1_SD_LINE,
+        CmisField::VDM_VAL_PAM4_LEVEL1_SD_LINE,
+        PAM4_LEVEL1_STANDARD_DEVIATION_LINE);
+    for (auto [lane, sdL1] : sdL1Map) {
+      vdmStats.pam4Level1SDLine()[lane] = sdL1;
+    }
+
+    // PAM4 Level2
+    auto sdL2Map = getVdmPmLaneValues(
+        CmisField::VDM_CONF_PAM4_LEVEL2_SD_LINE,
+        CmisField::VDM_VAL_PAM4_LEVEL2_SD_LINE,
+        PAM4_LEVEL2_STANDARD_DEVIATION_LINE);
+    for (auto [lane, sdL2] : sdL2Map) {
+      vdmStats.pam4Level2SDLine()[lane] = sdL2;
+    }
+
+    // PAM4 Level3
+    auto sdL3Map = getVdmPmLaneValues(
+        CmisField::VDM_CONF_PAM4_LEVEL3_SD_LINE,
+        CmisField::VDM_VAL_PAM4_LEVEL3_SD_LINE,
+        PAM4_LEVEL3_STANDARD_DEVIATION_LINE);
+    for (auto [lane, sdL3] : sdL3Map) {
+      vdmStats.pam4Level3SDLine()[lane] = sdL3;
+    }
+
+    // PAM4 MPI
+    auto mpiMap = getVdmPmLaneValues(
+        CmisField::VDM_CONF_PAM4_MPI_LINE,
+        CmisField::VDM_VAL_PAM4_MPI_LINE,
+        PAM4_MPI_LINE);
+    for (auto [lane, mpi] : mpiMap) {
+      vdmStats.pam4MPILine()[lane] = mpi;
+    }
   }
 
   return vdmStats;

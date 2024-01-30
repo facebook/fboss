@@ -22071,7 +22071,12 @@ std::pair<strings::errFrameMediaCur, Child<double, ::apache::thrift::type_class:
 std::pair<strings::errFrameHostMin, Child<double, ::apache::thrift::type_class::floating_point>>,
 std::pair<strings::errFrameHostMax, Child<double, ::apache::thrift::type_class::floating_point>>,
 std::pair<strings::errFrameHostAvg, Child<double, ::apache::thrift::type_class::floating_point>>,
-std::pair<strings::errFrameHostCur, Child<double, ::apache::thrift::type_class::floating_point>>>;
+std::pair<strings::errFrameHostCur, Child<double, ::apache::thrift::type_class::floating_point>>,
+std::pair<strings::pam4Level0SDLine, ChildThriftPath<::std::map<::std::int32_t, double>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
+std::pair<strings::pam4Level1SDLine, ChildThriftPath<::std::map<::std::int32_t, double>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
+std::pair<strings::pam4Level2SDLine, ChildThriftPath<::std::map<::std::int32_t, double>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
+std::pair<strings::pam4Level3SDLine, ChildThriftPath<::std::map<::std::int32_t, double>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
+std::pair<strings::pam4MPILine, ChildThriftPath<::std::map<::std::int32_t, double>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<double, ::apache::thrift::type_class::floating_point>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<double, ::apache::thrift::type_class::floating_point>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<double, ::apache::thrift::type_class::floating_point>>,
@@ -22089,7 +22094,12 @@ std::pair<strings::errFrameHostCur, Child<double, ::apache::thrift::type_class::
    std::pair<std::integral_constant<apache::thrift::field_id_t, 15>, Child<double, ::apache::thrift::type_class::floating_point>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 16>, Child<double, ::apache::thrift::type_class::floating_point>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 17>, Child<double, ::apache::thrift::type_class::floating_point>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 18>, Child<double, ::apache::thrift::type_class::floating_point>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 18>, Child<double, ::apache::thrift::type_class::floating_point>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 19>, ChildThriftPath<::std::map<::std::int32_t, double>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 20>, ChildThriftPath<::std::map<::std::int32_t, double>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 21>, ChildThriftPath<::std::map<::std::int32_t, double>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 22>, ChildThriftPath<::std::map<::std::int32_t, double>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 23>, ChildThriftPath<::std::map<::std::int32_t, double>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::preFecBerMediaMin, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::preFecBerMediaMax, std::integral_constant<apache::thrift::field_id_t, 2>>,
@@ -22108,7 +22118,12 @@ std::pair<strings::errFrameMediaCur, std::integral_constant<apache::thrift::fiel
 std::pair<strings::errFrameHostMin, std::integral_constant<apache::thrift::field_id_t, 15>>,
 std::pair<strings::errFrameHostMax, std::integral_constant<apache::thrift::field_id_t, 16>>,
 std::pair<strings::errFrameHostAvg, std::integral_constant<apache::thrift::field_id_t, 17>>,
-std::pair<strings::errFrameHostCur, std::integral_constant<apache::thrift::field_id_t, 18>>>::template type_of<Name>;
+std::pair<strings::errFrameHostCur, std::integral_constant<apache::thrift::field_id_t, 18>>,
+std::pair<strings::pam4Level0SDLine, std::integral_constant<apache::thrift::field_id_t, 19>>,
+std::pair<strings::pam4Level1SDLine, std::integral_constant<apache::thrift::field_id_t, 20>>,
+std::pair<strings::pam4Level2SDLine, std::integral_constant<apache::thrift::field_id_t, 21>>,
+std::pair<strings::pam4Level3SDLine, std::integral_constant<apache::thrift::field_id_t, 22>>,
+std::pair<strings::pam4MPILine, std::integral_constant<apache::thrift::field_id_t, 23>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -22139,6 +22154,11 @@ std::pair<strings::errFrameHostCur, std::integral_constant<apache::thrift::field
     STRUCT_CHILD_GETTERS(errFrameHostMax, 16);
     STRUCT_CHILD_GETTERS(errFrameHostAvg, 17);
     STRUCT_CHILD_GETTERS(errFrameHostCur, 18);
+    STRUCT_CHILD_GETTERS(pam4Level0SDLine, 19);
+    STRUCT_CHILD_GETTERS(pam4Level1SDLine, 20);
+    STRUCT_CHILD_GETTERS(pam4Level2SDLine, 21);
+    STRUCT_CHILD_GETTERS(pam4Level3SDLine, 22);
+    STRUCT_CHILD_GETTERS(pam4MPILine, 23);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -22160,6 +22180,11 @@ std::pair<strings::errFrameHostCur, std::integral_constant<apache::thrift::field
     else if constexpr (__id == 16) { return errFrameHostMax(); }
     else if constexpr (__id == 17) { return errFrameHostAvg(); }
     else if constexpr (__id == 18) { return errFrameHostCur(); }
+    else if constexpr (__id == 19) { return pam4Level0SDLine(); }
+    else if constexpr (__id == 20) { return pam4Level1SDLine(); }
+    else if constexpr (__id == 21) { return pam4Level2SDLine(); }
+    else if constexpr (__id == 22) { return pam4Level3SDLine(); }
+    else if constexpr (__id == 23) { return pam4MPILine(); }
   }
 
   template <typename T, T... Values>

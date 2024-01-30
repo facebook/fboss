@@ -389,6 +389,11 @@ struct VdmDiagsStats {
   16: double errFrameHostMax;
   17: double errFrameHostAvg;
   18: double errFrameHostCur;
+  19: map<i32, double> pam4Level0SDLine;
+  20: map<i32, double> pam4Level1SDLine;
+  21: map<i32, double> pam4Level2SDLine;
+  22: map<i32, double> pam4Level3SDLine;
+  23: map<i32, double> pam4MPILine;
 }
 
 struct TransceiverSettings {
