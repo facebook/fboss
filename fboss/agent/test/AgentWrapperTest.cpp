@@ -285,6 +285,37 @@ TYPED_TEST(AgentWrapperTest, StartAndCrash) {
       });
 }
 
+TYPED_TEST(AgentWrapperTest, StartStopRemoveHwSwitchWarmBoot) {
+  SCOPE_EXIT {
+    removeFile(this->util_.getColdBootOnceFile());
+    removeFile(this->util_.getUndrainedFlag());
+  };
+  touchFile(this->util_.getColdBootOnceFile());
+  this->start();
+  this->waitForStart();
+  EXPECT_EQ(this->getBootType(), BootType::COLD_BOOT);
+  this->stop();
+  this->waitForStop();
+  EXPECT_FALSE(checkFileExists(this->util_.getColdBootOnceFile()));
+  EXPECT_TRUE(checkFileExists(this->util_.getSwSwitchCanWarmBootFile()));
+  EXPECT_TRUE(checkFileExists(this->util_.getHwSwitchCanWarmBootFile(0)));
+  removeFile(this->util_.getSwSwitchCanWarmBootFile());
+  removeFile(this->util_.getHwSwitchCanWarmBootFile(0));
+  auto drainTimeFile = this->util_.getRoutingProtocolColdBootDrainTimeFile();
+  std::vector<char> data = {'0', '5'};
+  if (!this->whoami_->isNotDrainable() && !this->whoami_->isFdsw()) {
+    touchFile(drainTimeFile);
+    folly::writeFile(data, drainTimeFile.c_str());
+  }
+  touchFile(this->util_.getUndrainedFlag());
+  this->start();
+  this->waitForStart();
+  if (!this->whoami_->isNotDrainable() && !this->whoami_->isFdsw()) {
+    // @lint-ignore CLANGTIDY
+    EXPECT_FALSE(checkFileExists(drainTimeFile));
+  }
+  EXPECT_EQ(this->getBootType(), BootType::COLD_BOOT);
+}
 } // namespace facebook::fboss
 
 #ifdef IS_OSS

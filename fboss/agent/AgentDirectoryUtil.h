@@ -128,6 +128,8 @@ class AgentDirectoryUtil {
 
   std::string getSwSwitchCanWarmBootFile() const;
 
+  std::string getHwSwitchCanWarmBootFile(int switchIndex) const;
+
   std::string getPackageDirectory() const;
 
   std::string getMultiSwitchScriptsDirectory() const;

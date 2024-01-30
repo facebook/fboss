@@ -266,4 +266,9 @@ std::string AgentDirectoryUtil::exitHwSwitchForColdBootFile(
       getVolatileStateDir(), "/exit_hw_for_cold_boot_", switchIndex);
 }
 
+std::string AgentDirectoryUtil::getHwSwitchCanWarmBootFile(
+    int switchIndex) const {
+  return folly::to<std::string>(
+      getWarmBootDir(), "/can_warm_boot_", switchIndex);
+}
 } // namespace facebook::fboss
