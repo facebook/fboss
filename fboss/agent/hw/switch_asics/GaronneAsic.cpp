@@ -19,7 +19,6 @@ bool GaronneAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::MPLS_ECMP:
     case HwAsic::Feature::ERSPANv6:
     case HwAsic::Feature::SFLOWv6:
-
     case HwAsic::Feature::ECN:
     case HwAsic::Feature::L3_QOS:
     case HwAsic::Feature::QOS_MAP_GLOBAL:
@@ -141,7 +140,6 @@ bool GaronneAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::PORT_FABRIC_ISOLATE:
     case HwAsic::Feature::QUEUE_ECN_COUNTER:
     case HwAsic::Feature::CPU_TX_VIA_RECYCLE_PORT:
-
     case HwAsic::Feature::SWITCH_DROP_STATS:
     case HwAsic::Feature::PACKET_INTEGRITY_DROP_STATS:
     case HwAsic::Feature::SAI_UDF_HASH:
@@ -161,6 +159,7 @@ bool GaronneAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::LINK_INACTIVE_BASED_ISOLATE:
     case HwAsic::Feature::RX_SNR:
     case HwAsic::Feature::MANAGEMENT_PORT:
+    case HwAsic::Feature::ANY_ACL_DROP_COUNTER:
       return false;
   }
   return false;

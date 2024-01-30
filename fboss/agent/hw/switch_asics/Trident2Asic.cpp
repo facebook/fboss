@@ -54,7 +54,6 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ACL_COUNTER_LABEL:
     case HwAsic::Feature::SAI_PORT_SERDES_PROGRAMMING:
       return true;
-
     case HwAsic::Feature::ERSPANv6:
     case HwAsic::Feature::SFLOWv4:
     case HwAsic::Feature::SFLOWv6:
@@ -132,7 +131,6 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::PORT_FABRIC_ISOLATE:
     case HwAsic::Feature::QUEUE_ECN_COUNTER:
     case HwAsic::Feature::CPU_TX_VIA_RECYCLE_PORT:
-
     case HwAsic::Feature::SWITCH_DROP_STATS:
     case HwAsic::Feature::PACKET_INTEGRITY_DROP_STATS:
     case HwAsic::Feature::SAI_UDF_HASH:
@@ -151,6 +149,7 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::LINK_INACTIVE_BASED_ISOLATE:
     case HwAsic::Feature::RX_SNR:
     case HwAsic::Feature::MANAGEMENT_PORT:
+    case HwAsic::Feature::ANY_ACL_DROP_COUNTER:
       return false;
   }
   return false;
