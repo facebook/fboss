@@ -112,8 +112,12 @@ void OperDeltaSyncer::operSyncLoop() {
           ? hw_->stateChangedTransaction(*stateOperDelta.operDelta())
           : hw_->stateChanged(*stateOperDelta.operDelta());
 
-      // TODO - transition HwSwitch state based on notification from SwSwitch
-      if (hw_->getRunState() != SwitchRunState::CONFIGURED) {
+      // If swswitch has transitioned to configured state,
+      // then move hwswitch as well
+      if ((hw_->getRunState() == SwitchRunState::INITIALIZED) &&
+          (utility::getFirstNodeIf(
+               hw_->getProgrammedState()->getSwitchSettings())
+               ->getSwSwitchRunState() == SwitchRunState::CONFIGURED)) {
         hw_->switchRunStateChanged(SwitchRunState::CONFIGURED);
       }
     }
