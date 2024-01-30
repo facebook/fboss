@@ -98,8 +98,8 @@ BENCHMARK(HwStatsCollection) {
         ensemble->getSw()->getConfig()));
     // For VOQ switches we have 2K - 4K remote system ports (each with 4-8
     // VOQs). This is >10x of local ports on NPU platforms. Therefore, only run
-    // 1000 iterations.
-    iterations = 1000;
+    // 100 iterations.
+    iterations = 100;
   }
 
   std::vector<PortID> ports = ensemble->masterLogicalPortIds();
