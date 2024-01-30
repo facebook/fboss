@@ -51,6 +51,7 @@ cfg::UdfConfig makeUdfConfig(const std::vector<std::string>& udfNameList) {
     udfGroup.name() = udfName;
     udfGroup.startOffsetInBytes() =
         utility::kUdfAclRoceOpcodeStartOffsetInBytes;
+    udfGroup.fieldSizeInBytes() = utility::kUdfAclRoceOpcodeFieldSizeInBytes;
     udfMap.insert(std::make_pair(udfName, udfGroup));
   }
 
@@ -371,6 +372,32 @@ TEST(Acl, Udf) {
   auto aclV2 = stateV2->getAcl("aclUdf");
   ASSERT_NE(nullptr, aclV2);
   EXPECT_EQ(aclV2->getUdfGroups().value(), newUdfList);
+}
+
+TEST(Acl, validateUdfAclGroupFields) {
+  FLAGS_enable_acl_table_group = false;
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  std::vector<std::string> udfList = {utility::kUdfAclRoceOpcodeGroupName};
+
+  cfg::SwitchConfig config;
+  config.acls()->resize(1);
+  config.acls()[0].udfGroups() = udfList;
+  config.udfConfig() = makeUdfConfig(udfList);
+
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  EXPECT_EQ(
+      stateV1->getUdfConfig()
+          ->getUdfGroupMap()
+          ->getUdfGroupIf(utility::kUdfAclRoceOpcodeGroupName)
+          ->getStartOffsetInBytes(),
+      utility::kUdfAclRoceOpcodeStartOffsetInBytes);
+  EXPECT_EQ(
+      stateV1->getUdfConfig()
+          ->getUdfGroupMap()
+          ->getUdfGroupIf(utility::kUdfAclRoceOpcodeGroupName)
+          ->getFieldSizeInBytes(),
+      utility::kUdfAclRoceOpcodeFieldSizeInBytes);
 }
 
 TEST(Acl, Icmp) {
