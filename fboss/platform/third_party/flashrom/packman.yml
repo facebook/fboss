@@ -1,5 +1,5 @@
 packages:
-  flashrom:
+  fboss-flashrom:
     summary: flashrom binary built from third-party2
     packager: fboss_platform
     static:
