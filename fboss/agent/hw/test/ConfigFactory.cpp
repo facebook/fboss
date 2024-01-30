@@ -277,10 +277,9 @@ std::unordered_map<PortID, cfg::PortProfileID> getSafeProfileIDs(
 
     auto asicType = asic->getAsicType();
     bool isJericho2 = asicType == cfg::AsicType::ASIC_TYPE_JERICHO2;
-    bool isJericho3 = asicType == cfg::AsicType::ASIC_TYPE_JERICHO3;
 
     auto bestSpeed = cfg::PortSpeed::DEFAULT;
-    if (isJericho2 || isJericho3) {
+    if (isJericho2) {
       // For J2c we always want to choose the following
       // speeds since that's what we have in hw chip config
       // and J2c does not support dynamic port speed change yet.
