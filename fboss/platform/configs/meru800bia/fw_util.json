@@ -1,19 +1,34 @@
 {
   "fwConfigs" : {
     "bios" : {
-      "preUpgradeCmd" : "printf '3000000:3FFFFFF image\n2FF0000:2FF7FFF aboot_conf' > /home/bios_spi_layout",
+      "preUpgradeCmd" : "weutil_config_file=/opt/fboss/share/platform_configs/weutil.json;if [ -f $weutil_config_file ];then weutil_cmd='weutil --eeprom SCM --config_file $weutil_config_file';else weutil_cmd='weutil --eeprom SCM';fi;product_ver=$(weutil_cmd | grep 'Product Version' | cut -d ':' -f 2);product_sub_ver=$(weutil_cmd | grep 'Product Sub-Version' | cut -d ':' -f 2);if [ $product_ver -ne 1 ] || [ $product_sub_ver -ne 0 ];then echo 'product not supported';exit 1;fi;printf '3000000:3FFFFFF image' > /home/bios_spi_layout",
+      "getVersionCmd" : "cat /sys/devices/virtual/dmi/id/bios_version | cut -d ':' -f 2 | cut -d '-' -f 3",
       "priority" : 1,
-      "upgradeCmd" : "bios_filename=$(head -n 1 /home/bios_filename.txt); flashrom -p internal -l /home/bios_spi_layout -i image -i aboot_conf --noverify-all -w $bios_filename",
-      "postUpgradeCmd" : "bios_filename=$(head -n 1 /home/bios_filename.txt); flashrom -p internal -l /home/bios_spi_layout -i image -i aboot_conf --noverify-all -v $bios_filename",
-      "verifyFwCmd" : "bios_filename=$(head -n 1 /home/bios_filename.txt); flashrom -p internal -l /home/bios_spi_layout -i image -i aboot_conf --noverify-all -v $bios_filename",
-      "readFwCmd" : "bios_filename=$(head -n 1 /home/bios_filename.txt); flashrom -p internal -l /home/bios_spi_layout -i image -i aboot_conf --noverify-all -r $bios_filename"
+      "upgradeCmd" : "bios_filename=$(head -n 1 /home/bios_filename.txt); /usr/bin/flashrom -p internal -l /home/bios_spi_layout -i image --noverify-all -w $bios_filename",
+      "postUpgradeCmd" : "bios_filename=$(head -n 1 /home/bios_filename.txt); /usr/bin/flashrom -p internal -l /home/bios_spi_layout -i image --noverify-all -v $bios_filename;rm $bios_filename",
+      "verifyFwCmd" : "bios_filename=$(head -n 1 /home/bios_filename.txt); usr/bin/flashrom -p internal -l /home/bios_spi_layout -i image --noverify-all -v $bios_filename;rm $bios_filename",
+      "readFwCmd" : "bios_filename=$(head -n 1 /home/bios_filename.txt); usr/bin/flashrom -p internal -l /home/bios_spi_layout -i image --noverify-all -r $bios_filename"
     },
     "meru_scm_cpld" : {
-      "preUpgradeCmd" : "",
-      "getVersionCmd" : "cpu_cpld_ver=$((`cat /sys/bus/pci/drivers/scd/0000:07:00.0/fpga_ver`));cpu_cpld_subver=$((`cat /sys/bus/pci/drivers/scd/0000:07:00.0/fpga_sub_ver`));echo $cpu_cpld_ver'.'$cpu_cpld_subver",
+      "preUpgradeCmd" : "weutil_config_file=/var/facebook/platform_configs/meru800bia/weutil.json;if [ -f $weutil_config_file ];then weutil_cmd='weutil --eeprom SCM --config_file $weutil_config_file';else weutil_cmd='weutil --eeprom SCM';fi;product_ver=$(weutil_cmd | grep 'Product Version' | cut -d ':' -f 2);product_sub_ver=$(weutil_cmd | grep 'Product Sub-Version' | cut -d ':' -f 2);if [ $product_ver -ne 1 ] || [ $product_sub_ver -ne 0 ];then echo 'product not supported';exit 1;fi;",
+      "getVersionCmd" : "cpu_cpld_ver=$((`cat /run/devmap/fpgas/MERU_SCM_CPLD/fpga_ver`));cpu_cpld_subver=$((`cat /run/devmap/fpgas/MERU_SCM_CPLD/fpga_sub_ver`));echo $cpu_cpld_ver'.'$cpu_cpld_subver",
       "priority" : 2,
       "upgradeCmd" : "cpu_cpld_filename=$(head -n 1 /home/meru_scm_cpld_filename.txt);/usr/bin/jam -aprogram -fmeru_cpu_cpld -v $cpu_cpld_filename",
       "postUpgradeCmd" : ""
+    },
+    "meru_smb_fpga" : {
+      "preUpgradeCmd" : "weutil_config_file=/var/facebook/platform_configs/meru800bia/weutil.json;if [ -f $weutil_config_file ];then weutil_cmd='weutil --eeprom SMB --config_file $weutil_config_file';else weutil_cmd='weutil --eeprom SMB';fi;product_ver=$(weutil_cmd | grep 'Product Version' | cut -d ':' -f 2);product_sub_ver=$(weutil_cmd | grep 'Product Sub-Version' | cut -d ':' -f 2);if ( [ $product_ver -ne 1 ] && [ $product_ver -ne 2 ] ) || [ $product_sub_ver -ne 0 ];then echo 'product not supported';exit 1;fi;smb_fpga_filename=$(head -n 1 /home/meru_smb_fpga_filename.txt);smb_fpga_binary_name=${smb_fpga_filename/.abit/.bin};/usr/bin/strip_arista_header $smb_fpga_filename $smb_fpga_binary_name 32;printf '0:3FFFFF image' > /home/meru_smb_fpga_layout;modprobe spidev;fpga_spidev=$(echo $(ls /run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-spi*/spi_master/spi* | grep spi*.*) | cut -c 4-);echo 'spidev' > /sys/bus/spi/devices/spi$fpga_spidev/driver_override;echo spi$fpga_spidev > /sys/bus/spi/drivers/spidev/bind;usr/bin/flashrom -p linux_spi:dev=/dev/spidev$fpga_spidev > /home/flashrom_output;(grep 'MT25QL256' /home/flashrom_output && echo 'MT25QL256' > /home/flash_chip_name) || (grep 'MX25L25635F' /home/flashrom_output && echo 'MX25L25635F/MX25L25645G' > /home/flash_chip_name) || echo 'NONE' > /home/flash_chip_name",
+      "getVersionCmd" : "smb_fpga_ver=$((`cat /run/devmap/fpgas/MERU800BIA_SMB_FPGA/fpga_ver`));smb_fpga_subver=$((`cat /run/devmap/fpgas/MERU800BIA_SMB_FPGA/fpga_sub_ver`));echo $smb_fpga_ver'.'$smb_fpga_subver",
+      "priority" : 3,
+      "upgradeCmd" : "smb_fpga_filename=$(head -n 1 /home/meru_smb_fpga_filename.txt);smb_fpga_binary_name=${smb_fpga_filename/.abit/.bin};fpga_spidev=$(echo $(ls /run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-spi*/spi_master/spi* | grep spi*.*) | cut -c 4-);chip=$(head -n 1 /home/flash_chip_name);if [ $chip = 'NONE' ];then cmd_chip_option='' cmd_chip_name='';else cmd_chip_option='-c' cmd_chip_name=$chip;fi;/usr/bin/flashrom -p linux_spi:dev=/dev/spidev$fpga_spidev $cmd_chip_option $cmd_chip_name -l /home/meru_smb_fpga_layout -i image -w $smb_fpga_binary_name",
+      "postUpgradeCmd" : "smb_fpga_filename=$(head -n 1 /home/meru_smb_fpga_filename.txt);smb_fpga_binary_name=${smb_fpga_filename/.abit/.bin};rm $smb_fpga_binary_name;fpga_spidev=$(echo $(ls /run/devmap/fpgas/MERU800BIA_SMB_FPGA/scd-spi*/spi_master/spi* | grep spi*.*) | cut -c 4-);echo spi$fpga_spidev > /sys/bus/spi/drivers/spidev/unbind;rm $smb_fpga_binary_name"
+    },
+    "meru_fan_cpld": {
+      "preUpgradeCmd" : "weutil_config_file=/var/facebook/platform_configs/meru800bia/weutil.json;if [ -f $weutil_config_file ];then weutil_cmd='weutil --eeprom SMB --config_file $weutil_config_file';else weutil_cmd='weutil --eeprom SMB';fi;product_ver=$(weutil_cmd | grep 'Product Version' | cut -d ':' -f 2);product_sub_ver=$(weutil_cmd | grep 'Product Sub-Version' | cut -d ':' -f 2);if ( [ $product_ver -ne 1 ] && [ $product_ver -ne 2 ] ) || [ $product_sub_ver -ne 0 ];then echo 'product not supported';exit 1;fi;echo 1 > /run/devmap/fpgas/MERU_SCM_CPLD/switch_jtag_enable",
+      "getVersionCmd" : "fan_cpld_ver=$((`cat /run/devmap/cplds/FAN_CPLD/hwmon/hwmon*/cpld_ver`));fan_cpld_subver=$((`cat /run/devmap/cplds/FAN_CPLD/hwmon/hwmon*/cpld_sub_ver`));echo $fan_cpld_ver'.'$fan_cpld_subver",
+      "priority" : 4,
+      "upgradeCmd" : "fan_cpld_filename=$(head -n 1 /home/meru_fan_cpld_filename.txt);/usr/bin/jam -aprogram -fmeru_fan_cpld -v $fan_cpld_filename",
+      "postUpgradeCmd" : "echo 0 > /run/devmap/fpgas/MERU_SCM_CPLD/switch_jtag_enable && modprobe -r dsf-fan-cpld && modprobe dsf-fan-cpld"
     }
   }
 }
