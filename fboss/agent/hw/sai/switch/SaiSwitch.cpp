@@ -2130,7 +2130,8 @@ void SaiSwitch::initStoreAndManagersLocked(
       }
     }
 
-    if (getPlatform()->getAsic()->isSupported(HwAsic::Feature::DEBUG_COUNTER)) {
+    if (getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::BLACKHOLE_ROUTE_DROP_COUNTER)) {
       managerTable_->debugCounterManager().setupDebugCounters();
     }
     if (platform_->getAsic()->isSupported(

@@ -1639,7 +1639,8 @@ void SaiPortManager::clearStats(PortID port) {
     return;
   }
   auto statsToClear = supportedStats(port);
-  if (platform_->getAsic()->isSupported(HwAsic::Feature::DEBUG_COUNTER)) {
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::BLACKHOLE_ROUTE_DROP_COUNTER)) {
     // Debug counters are implemented differently than regular port counters
     // and not all implementations support clearing them. For our use case
     // it doesn't particularly matter if we can't clear them. So prune the

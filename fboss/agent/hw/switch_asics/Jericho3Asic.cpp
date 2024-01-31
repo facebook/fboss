@@ -48,7 +48,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::LINK_INACTIVE_BASED_ISOLATE:
     case HwAsic::Feature::SAI_FEC_COUNTERS:
     case HwAsic::Feature::SAI_FEC_CORRECTED_BITS:
-    case HwAsic::Feature::DEBUG_COUNTER:
+    case HwAsic::Feature::BLACKHOLE_ROUTE_DROP_COUNTER:
     case HwAsic::Feature::ECN:
     case HwAsic::Feature::SAI_ECN_WRED:
     case HwAsic::Feature::QUEUE_ECN_COUNTER:

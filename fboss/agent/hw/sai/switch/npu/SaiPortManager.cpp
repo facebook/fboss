@@ -127,7 +127,8 @@ void SaiPortManager::fillInSupportedStats(PortID port) {
         counterIds.emplace_back(SAI_PORT_STAT_ETHER_STATS_TX_NO_ERRORS);
         counterIds.emplace_back(SAI_PORT_STAT_ETHER_STATS_RX_NO_ERRORS);
       }
-      if (platform_->getAsic()->isSupported(HwAsic::Feature::DEBUG_COUNTER)) {
+      if (platform_->getAsic()->isSupported(
+              HwAsic::Feature::BLACKHOLE_ROUTE_DROP_COUNTER)) {
         counterIds.emplace_back(managerTable_->debugCounterManager()
                                     .getPortL3BlackHoleCounterStatId());
       }
@@ -155,7 +156,8 @@ void SaiPortManager::fillInSupportedStats(PortID port) {
         [&countersToFilter](auto statId) {
           return countersToFilter.find(statId) == countersToFilter.end();
         });
-    if (platform_->getAsic()->isSupported(HwAsic::Feature::DEBUG_COUNTER)) {
+    if (platform_->getAsic()->isSupported(
+            HwAsic::Feature::BLACKHOLE_ROUTE_DROP_COUNTER)) {
       counterIds.emplace_back(managerTable_->debugCounterManager()
                                   .getPortL3BlackHoleCounterStatId());
     }

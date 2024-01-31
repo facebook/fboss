@@ -27,7 +27,7 @@ bool YubaAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::MIRROR_PACKET_TRUNCATION:
     case HwAsic::Feature::SFLOW_SAMPLING:
     case HwAsic::Feature::SAI_ECN_WRED:
-    case HwAsic::Feature::DEBUG_COUNTER:
+    case HwAsic::Feature::BLACKHOLE_ROUTE_DROP_COUNTER:
     case HwAsic::Feature::PENDING_L2_ENTRY:
     case HwAsic::Feature::COUNTER_REFRESH_INTERVAL:
     case HwAsic::Feature::MAC_AGING:
