@@ -31,6 +31,10 @@ void SaiDebugCounterManager::setupDebugCounters() {
 }
 
 void SaiDebugCounterManager::setupPortL3BlackHoleCounter() {
+  if (!platform_->getAsic()->isSupported(
+          HwAsic::Feature::BLACKHOLE_ROUTE_DROP_COUNTER)) {
+    return;
+  }
   SaiDebugCounterTraits::CreateAttributes attrs{
       SAI_DEBUG_COUNTER_TYPE_PORT_IN_DROP_REASONS,
       SAI_DEBUG_COUNTER_BIND_METHOD_AUTOMATIC,

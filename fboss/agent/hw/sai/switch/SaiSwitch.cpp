@@ -2130,10 +2130,7 @@ void SaiSwitch::initStoreAndManagersLocked(
       }
     }
 
-    if (getPlatform()->getAsic()->isSupported(
-            HwAsic::Feature::BLACKHOLE_ROUTE_DROP_COUNTER)) {
-      managerTable_->debugCounterManager().setupDebugCounters();
-    }
+    managerTable_->debugCounterManager().setupDebugCounters();
     if (platform_->getAsic()->isSupported(
             HwAsic::Feature::COUNTER_REFRESH_INTERVAL)) {
       managerTable_->switchManager().setupCounterRefreshInterval();
