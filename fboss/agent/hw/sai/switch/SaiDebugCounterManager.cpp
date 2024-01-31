@@ -71,6 +71,20 @@ void SaiDebugCounterManager::setupMPLSLookupFailedCounter() {
 }
 
 void SaiDebugCounterManager::setupAclDropCounter() {
-  // TODO
+  if (!platform_->getAsic()->isSupported(
+          HwAsic::Feature::ANY_ACL_DROP_COUNTER)) {
+    return;
+  }
+  SaiDebugCounterTraits::CreateAttributes attrs{
+      SAI_DEBUG_COUNTER_TYPE_PORT_IN_DROP_REASONS,
+      SAI_DEBUG_COUNTER_BIND_METHOD_AUTOMATIC,
+      SaiDebugCounterTraits::Attributes::InDropReasons{
+          {SAI_IN_DROP_REASON_ACL_ANY}}};
+  auto& debugCounterStore = saiStore_->get<SaiDebugCounterTraits>();
+  aclDropCounter_ = debugCounterStore.setObject(attrs, attrs);
+  aclDropCounterStatId_ = SAI_SWITCH_STAT_IN_DROP_REASON_RANGE_BASE +
+      SaiApiTable::getInstance()->debugCounterApi().getAttribute(
+          aclDropCounter_->adapterKey(),
+          SaiDebugCounterTraits::Attributes::Index{});
 }
 } // namespace facebook::fboss

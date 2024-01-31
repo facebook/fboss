@@ -41,6 +41,10 @@ class SaiDebugCounterManager {
     CHECK(mplsLookupFailCounter_);
     return mplsLookupFailCounterStatId_;
   }
+  sai_stat_id_t getAclDropCounterStatId() const {
+    CHECK(aclDropCounter_);
+    return aclDropCounterStatId_;
+  }
 
  private:
   void setupPortL3BlackHoleCounter();
