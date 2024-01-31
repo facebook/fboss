@@ -31,5 +31,8 @@ class FdbEventSyncer : public ThriftSinkClient<multiswitch::FdbEvent> {
   initFdbEventSink(
       SwitchID switchId,
       apache::thrift::Client<multiswitch::MultiSwitchCtrl>* client);
+
+ private:
+  void connected() override {}
 };
 } // namespace facebook::fboss

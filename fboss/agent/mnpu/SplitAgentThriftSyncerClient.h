@@ -52,6 +52,7 @@ class SplitAgentThriftClient : public ReconnectingThriftClient {
   SwitchID getSwitchId() {
     return switchId_;
   }
+  virtual void connected() = 0;
 
  private:
 #if FOLLY_HAS_COROUTINES

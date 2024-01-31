@@ -142,6 +142,7 @@ void ThriftSinkClient<CallbackObjectT>::resetClient() {
 #if FOLLY_HAS_COROUTINES
 template <typename CallbackObjectT>
 folly::coro::Task<void> ThriftSinkClient<CallbackObjectT>::serveStream() {
+  connected();
   co_await sinkClient_->sink(
       [&]() -> folly::coro::AsyncGenerator<CallbackObjectT&&> {
         while (true) {

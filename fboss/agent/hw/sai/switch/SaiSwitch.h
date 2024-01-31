@@ -215,6 +215,8 @@ class SaiSwitch : public HwSwitch {
 
   void rollbackInTest(const StateDelta& delta);
 
+  void syncLinkStates() override;
+
  private:
   void gracefulExitImpl() override;
 
@@ -364,6 +366,8 @@ class SaiSwitch : public HwSwitch {
       const std::lock_guard<std::mutex>& lock,
       const std::shared_ptr<SwitchSettings>& oldSwitchSettings,
       const std::shared_ptr<SwitchSettings>& newSwitchSettings);
+
+  void syncLinkStatesLocked(const std::lock_guard<std::mutex>& lock);
 
   template <typename LockPolicyT>
   void processDefaultDataPlanePolicyDelta(

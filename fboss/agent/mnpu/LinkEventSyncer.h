@@ -28,10 +28,15 @@ class LinkEventSyncer : public ThriftSinkClient<multiswitch::LinkEvent> {
   LinkEventSyncer(
       uint16_t serverPort,
       SwitchID switchId,
-      folly::EventBase* connRetryEvb);
+      folly::EventBase* connRetryEvb,
+      HwSwitch* hw);
 
   static EventSink initLinkEventSink(
       SwitchID switchId,
       apache::thrift::Client<multiswitch::MultiSwitchCtrl>* client);
+
+ private:
+  void connected() override;
+  HwSwitch* hw_;
 };
 } // namespace facebook::fboss

@@ -31,5 +31,8 @@ class RxPktEventSyncer : public ThriftSinkClient<multiswitch::RxPacket> {
   initRxPktEventSink(
       SwitchID switchId,
       apache::thrift::Client<multiswitch::MultiSwitchCtrl>* client);
+
+ private:
+  void connected() override {}
 };
 } // namespace facebook::fboss

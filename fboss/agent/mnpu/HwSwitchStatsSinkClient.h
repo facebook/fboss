@@ -34,5 +34,8 @@ class HwSwitchStatsSinkClient
       SwitchID switchId,
       uint16_t switchIndex,
       apache::thrift::Client<multiswitch::MultiSwitchCtrl>* client);
+
+ private:
+  void connected() override {}
 };
 } // namespace facebook::fboss

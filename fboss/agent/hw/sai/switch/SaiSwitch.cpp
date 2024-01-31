@@ -2154,13 +2154,12 @@ void SaiSwitch::initStoreAndManagersLocked(
   }
 } // namespace facebook::fboss
 
-void SaiSwitch::initLinkScanLocked(
-    const std::lock_guard<std::mutex>& /* lock */) {
+void SaiSwitch::initLinkScanLocked(const std::lock_guard<std::mutex>& lock) {
   linkStateBottomHalfThread_ = std::make_unique<std::thread>([this]() {
     initThread("fbossSaiLnkScnBH");
     linkStateBottomHalfEventBase_.loopForever();
   });
-  linkStateBottomHalfEventBase_.runInEventBaseThread([=, this]() {
+  linkStateBottomHalfEventBase_.runInEventBaseThread([=, this, &lock]() {
     auto& switchApi = SaiApiTable::getInstance()->switchApi();
     switchApi.registerPortStateChangeCallback(
         saiSwitchId_, __glinkStateChangedNotification);
@@ -2172,14 +2171,28 @@ void SaiSwitch::initLinkScanLocked(
      * same thread/event base ensures initial link state always preceedes any
      * link state changes that may happen after registering link scan call back
      * are reported in order. */
-    for (const auto& portIdAndHandle : managerTable_->portManager()) {
-      const auto& port = portIdAndHandle.second->port;
-      auto operStatus = SaiApiTable::getInstance()->portApi().getAttribute(
-          port->adapterKey(), SaiPortTraits::Attributes::OperStatus{});
-      callback_->linkStateChanged(
-          portIdAndHandle.first, operStatus == SAI_PORT_OPER_STATUS_UP);
-    }
+    syncLinkStatesLocked(lock);
   });
+}
+
+void SaiSwitch::syncLinkStatesLocked(
+    const std::lock_guard<std::mutex>& /* lock */) {
+  for (const auto& portIdAndHandle : managerTable_->portManager()) {
+    const auto& port = portIdAndHandle.second->port;
+    auto operStatus = SaiApiTable::getInstance()->portApi().getAttribute(
+        port->adapterKey(), SaiPortTraits::Attributes::OperStatus{});
+    XLOG(DBG2) << "Sending link state change notification for port "
+               << portIdAndHandle.first << " with oper status: "
+               << (operStatus == SAI_PORT_OPER_STATUS_UP ? "UP" : "DOWN");
+    callback_->linkStateChanged(
+        portIdAndHandle.first, operStatus == SAI_PORT_OPER_STATUS_UP);
+  }
+}
+
+void SaiSwitch::syncLinkStates() {
+  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+  linkStateBottomHalfEventBase_.runInEventBaseThread(
+      [=, this, &lock]() { syncLinkStatesLocked(lock); });
 }
 
 void SaiSwitch::initTxReadyStatusChangeLocked(

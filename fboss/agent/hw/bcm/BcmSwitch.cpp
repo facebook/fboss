@@ -4205,4 +4205,12 @@ void BcmSwitch::initialStateApplied() {
   }
 }
 
+void BcmSwitch::syncLinkStates() {
+  linkScanBottomHalfEventBase_.runInEventBaseThread([this]() {
+    for (auto& port : std::as_const(*portTable_)) {
+      callback_->linkStateChanged(port.first, port.second->isUp());
+    }
+  });
+}
+
 } // namespace facebook::fboss

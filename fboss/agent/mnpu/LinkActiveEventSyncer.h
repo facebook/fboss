@@ -34,5 +34,8 @@ class LinkActiveEventSyncer
   static EventSink initLinkActiveEventSink(
       SwitchID switchId,
       apache::thrift::Client<multiswitch::MultiSwitchCtrl>* client);
+
+ private:
+  void connected() override {}
 };
 } // namespace facebook::fboss

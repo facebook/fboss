@@ -36,5 +36,8 @@ class TxPktEventSyncer : public ThriftStreamClient<multiswitch::TxPacket> {
 #endif
 
   static void TxPacketEventHandler(multiswitch::TxPacket&, HwSwitch*);
+
+ private:
+  void connected() override {}
 };
 } // namespace facebook::fboss
