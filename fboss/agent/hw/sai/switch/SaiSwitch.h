@@ -216,6 +216,7 @@ class SaiSwitch : public HwSwitch {
   void rollbackInTest(const StateDelta& delta);
 
   void syncLinkStates() override;
+  void syncLinkActiveStates() override;
 
  private:
   void gracefulExitImpl() override;

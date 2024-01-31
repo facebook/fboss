@@ -2195,6 +2195,12 @@ void SaiSwitch::syncLinkStates() {
       [=, this, &lock]() { syncLinkStatesLocked(lock); });
 }
 
+void SaiSwitch::syncLinkActiveStates() {
+  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+  txReadyStatusChangeBottomHalfEventBase_.runInEventBaseThread(
+      [=, this]() { txReadyStatusChangeCallbackBottomHalf(); });
+}
+
 void SaiSwitch::initTxReadyStatusChangeLocked(
     const std::lock_guard<std::mutex>& /* lock */) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)

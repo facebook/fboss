@@ -8,6 +8,7 @@
 + *
 + */
 #include "fboss/agent/mnpu/LinkActiveEventSyncer.h"
+#include "fboss/agent/HwSwitch.h"
 #if FOLLY_HAS_COROUTINES
 #include <folly/experimental/coro/BlockingWait.h>
 #endif
@@ -17,7 +18,8 @@ namespace facebook::fboss {
 LinkActiveEventSyncer::LinkActiveEventSyncer(
     uint16_t serverPort,
     SwitchID switchId,
-    folly::EventBase* connRetryEvb)
+    folly::EventBase* connRetryEvb,
+    HwSwitch* hw)
     : ThriftSinkClient<multiswitch::LinkActiveEvent>::ThriftSinkClient(
           "LinkActiveEventThriftSyncer",
           serverPort,
@@ -25,7 +27,8 @@ LinkActiveEventSyncer::LinkActiveEventSyncer(
           LinkActiveEventSyncer::initLinkActiveEventSink,
           std::make_shared<folly::ScopedEventBaseThread>(
               "LinkActiveEventSyncerThread"),
-          connRetryEvb) {}
+          connRetryEvb),
+      hw_(hw) {}
 
 LinkActiveEventSyncer::EventSink LinkActiveEventSyncer::initLinkActiveEventSink(
     SwitchID switchId,
@@ -35,6 +38,10 @@ LinkActiveEventSyncer::EventSink LinkActiveEventSyncer::initLinkActiveEventSink(
 #else
   return apache::thrift::ClientSink<multiswitch::LinkActiveEvent, bool>();
 #endif
+}
+
+void LinkActiveEventSyncer::connected() {
+  hw_->syncLinkActiveStates();
 }
 
 } // namespace facebook::fboss

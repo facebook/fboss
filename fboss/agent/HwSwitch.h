@@ -380,6 +380,7 @@ class HwSwitch {
   bool isFullyConfigured() const;
 
   virtual void syncLinkStates() = 0;
+  virtual void syncLinkActiveStates() = 0;
 
  protected:
   void setProgrammedState(const std::shared_ptr<SwitchState>& state);

@@ -35,7 +35,8 @@ SplitAgentThriftSyncer::SplitAgentThriftSyncer(
       linkActiveEventSinkClient_(std::make_unique<LinkActiveEventSyncer>(
           serverPort,
           switchId_,
-          retryThread_->getEventBase())),
+          retryThread_->getEventBase(),
+          hw)),
       txPktEventStreamClient_(std::make_unique<TxPktEventSyncer>(
           serverPort,
           switchId_,

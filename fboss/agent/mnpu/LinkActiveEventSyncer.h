@@ -29,13 +29,15 @@ class LinkActiveEventSyncer
   LinkActiveEventSyncer(
       uint16_t serverPort,
       SwitchID switchId,
-      folly::EventBase* connRetryEvb);
+      folly::EventBase* connRetryEvb,
+      HwSwitch* hw);
 
   static EventSink initLinkActiveEventSink(
       SwitchID switchId,
       apache::thrift::Client<multiswitch::MultiSwitchCtrl>* client);
 
  private:
-  void connected() override {}
+  void connected() override;
+  HwSwitch* hw_;
 };
 } // namespace facebook::fboss
