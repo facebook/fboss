@@ -43,6 +43,9 @@ void AgentHwTest::SetUp() {
   FLAGS_tun_intf = false;
   // disable neighbor updates
   FLAGS_disable_neighbor_updates = true;
+  // Disable FSDB publishing on single-box test
+  FLAGS_publish_stats_to_fsdb = false;
+  FLAGS_publish_state_to_fsdb = false;
 
   AgentEnsembleSwitchConfigFn initialConfigFn =
       [this](const AgentEnsemble& ensemble) { return initialConfig(ensemble); };
