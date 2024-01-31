@@ -9755,6 +9755,7 @@
           "sai_disable_srcmacqedstmac_ctrl": "0x1",
           "sai_ecmp_group_members_increment": "1",
           "sai_ifp_enable_on_cpu_tx": "0x1",
+          "sai_l3_max_ecmp_paths": "512",
           "sai_macro_flow_based_hash": "1",
           "sai_mmu_qgroups_default": "1",
           "sai_nos_reserved_l3_encap_range_begin": "0x200000",
