@@ -27,6 +27,7 @@ namespace facebook::fboss {
 void SaiDebugCounterManager::setupDebugCounters() {
   setupPortL3BlackHoleCounter();
   setupMPLSLookupFailedCounter();
+  setupAclDropCounter();
 }
 
 void SaiDebugCounterManager::setupPortL3BlackHoleCounter() {
@@ -67,5 +68,9 @@ void SaiDebugCounterManager::setupMPLSLookupFailedCounter() {
           mplsLookupFailCounter_->adapterKey(),
           SaiDebugCounterTraits::Attributes::Index{});
 #endif
+}
+
+void SaiDebugCounterManager::setupAclDropCounter() {
+  // TODO
 }
 } // namespace facebook::fboss

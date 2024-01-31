@@ -26,7 +26,7 @@ using SaiDebugCounter = SaiObject<SaiDebugCounterTraits>;
 
 class SaiDebugCounterManager {
  public:
-  explicit SaiDebugCounterManager(
+  SaiDebugCounterManager(
       SaiStore* saiStore,
       SaiManagerTable* managerTable,
       SaiPlatform* platform)
@@ -45,10 +45,13 @@ class SaiDebugCounterManager {
  private:
   void setupPortL3BlackHoleCounter();
   void setupMPLSLookupFailedCounter();
+  void setupAclDropCounter();
   std::shared_ptr<SaiDebugCounter> portL3BlackHoleCounter_;
   std::shared_ptr<SaiDebugCounter> mplsLookupFailCounter_;
+  std::shared_ptr<SaiDebugCounter> aclDropCounter_;
   sai_stat_id_t portL3BlackHoleCounterStatId_{0};
   sai_stat_id_t mplsLookupFailCounterStatId_{0};
+  sai_stat_id_t aclDropCounterStatId_{0};
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   SaiPlatform* platform_;
