@@ -296,7 +296,7 @@ void fillHwPortStats(
             debugCounterManager.getMPLSLookupFailedCounterStatId()) {
           hwPortStats.inLabelMissDiscards_() = value;
         } else if (counterId == debugCounterManager.getAclDropCounterStatId()) {
-          // TODO
+          hwPortStats.inAclDiscards_() = value;
         } else {
           throw FbossError("Got unexpected port counter id: ", counterId);
         }
