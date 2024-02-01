@@ -57,6 +57,8 @@ class DataStore {
       const std::string& devicePath,
       const std::string& sysfsPath);
 
+  bool hasSysfsPath(const std::string& devicePath) const;
+
   // Get InstanceId for a given PciSubDevicePath
   uint32_t getInstanceId(const std::string& devicePath);
 

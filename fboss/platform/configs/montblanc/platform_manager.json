@@ -1547,6 +1547,13 @@
               "portNumber": 64,
               "ledId": 2
             }
+          ],
+          "infoRomConfigs": [
+            {
+              "pmUnitScopedName": "MCB_IOB_INFO_ROM",
+              "deviceName": "fpga_info_iob",
+              "csrOffset": "0x0000"
+            }
           ]
         }
       ],
@@ -2715,7 +2722,18 @@
               },
               "portNumber": 64
             }
-
+          ],
+          "infoRomConfigs": [
+            {
+              "pmUnitScopedName": "SMB_DOM1_INFO_ROM",
+              "deviceName": "fpga_info_dom",
+              "csrOffset": "0x40000"
+            },
+            {
+              "pmUnitScopedName": "SMB_DOM2_INFO_ROM",
+              "deviceName": "fpga_info_dom",
+              "csrOffset": "0x48000"
+            }
           ]
         }
       ],
@@ -2858,6 +2876,9 @@
     "/run/devmap/cplds/SCM_CPLD": "/SCM_SLOT@0/[SCM_CPLD]",
     "/run/devmap/cplds/SMB_CPLD": "/SMB_SLOT@0/[SMB_CPLD]",
     "/run/devmap/fpgas/MCB_IOB": "/[MCB_IOB]",
+    "/run/devmap/fpgas/MCB_IOB_INFO_ROM": "/[MCB_IOB_INFO_ROM]",
+    "/run/devmap/fpgas/SMB_DOM1_INFO_ROM": "/SMB_SLOT@0/[SMB_DOM1_INFO_ROM]",
+    "/run/devmap/fpgas/SMB_DOM2_INFO_ROM": "/SMB_SLOT@0/[SMB_DOM2_INFO_ROM]",
     "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_1": "/[MCB_IOB_I2C_MASTER_1]",
     "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_2": "/[MCB_IOB_I2C_MASTER_2]",
     "/run/devmap/i2c-busses/MCB_IOB_I2C_MASTER_3": "/[MCB_IOB_I2C_MASTER_3]",

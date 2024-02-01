@@ -99,6 +99,11 @@ void DataStore::updateSysfsPath(
   pciSubDevicePathToSysfsPath_[devicePath] = sysfsPath;
 }
 
+bool DataStore::hasSysfsPath(const std::string& devicePath) const {
+  return pciSubDevicePathToSysfsPath_.find(devicePath) !=
+      pciSubDevicePathToSysfsPath_.end();
+}
+
 uint32_t DataStore::getInstanceId(const std::string& devicePath) {
   auto itr = pciSubDevicePathToInstanceId_.find(devicePath);
   if (itr != pciSubDevicePathToInstanceId_.end()) {

@@ -383,6 +383,13 @@ void PlatformExplorer::explorePciDevices(
       dataStore_.updateInstanceId(devicePath, instId);
       pciExplorer_.createXcvrCtrl(charDevPath, xcvrCtrlConfig, instId++);
     }
+    for (const auto& infoRomConfig : *pciDeviceConfig.infoRomConfigs()) {
+      auto infoRomSysfsPath =
+          pciExplorer_.createInfoRom(charDevPath, infoRomConfig, instId++);
+      dataStore_.updateSysfsPath(
+          Utils().createDevicePath(slotPath, *infoRomConfig.pmUnitScopedName()),
+          infoRomSysfsPath);
+    }
     for (const auto& fpgaIpBlockConfig : *pciDeviceConfig.miscCtrlConfigs()) {
       pciExplorer_.createFpgaIpBlock(charDevPath, fpgaIpBlockConfig, instId++);
     }
@@ -522,18 +529,25 @@ void PlatformExplorer::createDeviceSymLink(
       return;
     }
   } else if (linkParentPath.string() == "/run/devmap/fpgas") {
-    if (pciDeviceConfig == pmUnitConfig.pciDeviceConfigs()->end()) {
-      XLOG(ERR) << fmt::format(
-          "Couldn't find PCI device config for ({})", deviceName);
-      return;
+    // Check if sysfs path is stored in DataStore (e.g info-rom)
+    // Otherwise, try to construct PciDevice sysfs path via config.
+    // TODO: rely on dataStore_ as part of efforts in D52785459
+    if (dataStore_.hasSysfsPath(devicePath)) {
+      targetPath = dataStore_.getSysfsPath(devicePath);
+    } else {
+      if (pciDeviceConfig == pmUnitConfig.pciDeviceConfigs()->end()) {
+        XLOG(ERR) << fmt::format(
+            "Couldn't find PCI device config for ({})", deviceName);
+        return;
+      }
+      auto pciDevice = PciDevice(
+          *pciDeviceConfig->pmUnitScopedName(),
+          *pciDeviceConfig->vendorId(),
+          *pciDeviceConfig->deviceId(),
+          *pciDeviceConfig->subSystemVendorId(),
+          *pciDeviceConfig->subSystemDeviceId());
+      targetPath = std::filesystem::path(pciDevice.sysfsPath());
     }
-    auto pciDevice = PciDevice(
-        *pciDeviceConfig->pmUnitScopedName(),
-        *pciDeviceConfig->vendorId(),
-        *pciDeviceConfig->deviceId(),
-        *pciDeviceConfig->subSystemVendorId(),
-        *pciDeviceConfig->subSystemDeviceId());
-    targetPath = std::filesystem::path(pciDevice.sysfsPath());
   } else if (linkParentPath.string() == "/run/devmap/i2c-busses") {
     targetPath = std::filesystem::path(fmt::format(
         "/dev/i2c-{}", dataStore_.getI2cBusNum(slotPath, deviceName)));

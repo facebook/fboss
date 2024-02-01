@@ -73,6 +73,14 @@ class PciExplorer {
       const XcvrCtrlConfig& xcvrCtrlConfig,
       uint32_t instanceId);
 
+  // Create the InfoRom block based on the given InfoRomConfig residing at the
+  // given PciDevice path.
+  // Return the created InfoRom sysfs path. Throw std::runtime_error on failure.
+  std::string createInfoRom(
+      const std::string& pciDevPath,
+      const FpgaIpBlockConfig& fpgaIpBlockConfig,
+      uint32_t instanceId);
+
   // Create the generic device block based on the given FpgaIpBlockConfig
   // residing at the given PciDevice path. Throw std::runtime_error on failure.
   void createFpgaIpBlock(

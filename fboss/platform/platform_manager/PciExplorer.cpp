@@ -342,6 +342,36 @@ void PciExplorer::createXcvrCtrl(
       auxData);
 }
 
+std::string PciExplorer::createInfoRom(
+    const std::string& pciDevPath,
+    const FpgaIpBlockConfig& infoRomConfig,
+    uint32_t instanceId) {
+  auto auxData = getAuxData(infoRomConfig, instanceId);
+  create(
+      *infoRomConfig.pmUnitScopedName(),
+      *infoRomConfig.deviceName(),
+      pciDevPath,
+      auxData);
+  const auto auxDevSysfsPath = "/sys/bus/auxiliary/devices";
+  if (!fs::exists(auxDevSysfsPath)) {
+    throw std::runtime_error(fmt::format(
+        "Unable to find InfoRom sysfs path for {} - '{}' path doesn't exist.",
+        *infoRomConfig.pmUnitScopedName(),
+        auxDevSysfsPath));
+  }
+  std::string expectedEnding =
+      fmt::format(".{}.{}", *infoRomConfig.deviceName(), instanceId);
+  for (const auto& dirEntry : fs::directory_iterator(auxDevSysfsPath)) {
+    if (hasEnding(dirEntry.path().filename().string(), expectedEnding)) {
+      return dirEntry.path().string();
+    }
+  }
+  throw std::runtime_error(fmt::format(
+      "Couldn't find InfoRom {} sysfs path under {}",
+      *infoRomConfig.pmUnitScopedName(),
+      auxDevSysfsPath));
+}
+
 void PciExplorer::createFpgaIpBlock(
     const std::string& pciDevPath,
     const FpgaIpBlockConfig& fpgaIpBlockConfig,
