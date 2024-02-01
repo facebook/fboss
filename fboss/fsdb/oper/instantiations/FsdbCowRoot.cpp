@@ -14,4 +14,6 @@ namespace facebook::fboss::thrift_cow {
 
 template class ThriftStructNode<fsdb::FsdbOperStateRoot>;
 
-}
+template class ThriftStructNode<fsdb::FsdbOperStatsRoot>;
+
+} // namespace facebook::fboss::thrift_cow
