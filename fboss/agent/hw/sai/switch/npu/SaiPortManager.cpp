@@ -122,6 +122,11 @@ void SaiPortManager::fillInSupportedStats(PortID port) {
                                   .getMPLSLookupFailedCounterStatId());
 #endif
     }
+    if (platform_->getAsic()->isSupported(
+            HwAsic::Feature::ANY_ACL_DROP_COUNTER)) {
+      counterIds.emplace_back(
+          managerTable_->debugCounterManager().getAclDropCounterStatId());
+    }
     if (platform_->getAsic()->isSupported(HwAsic::Feature::PFC)) {
       counterIds.reserve(
           counterIds.size() + SaiPortTraits::PfcCounterIdsToRead.size());
