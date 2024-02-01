@@ -113,4 +113,51 @@ TEST(PathVisitorTests, AccessOptional) {
   EXPECT_TRUE(got.empty());
 }
 
+struct GetEncodedOperator
+    : public facebook::fboss::thrift_cow::BasePathVisitorOperator {
+  void visit(facebook::fboss::thrift_cow::Serializable& node) override {
+    val = node.encode(fsdb::OperProtocol::SIMPLE_JSON);
+  }
+
+  folly::fbstring val{};
+};
+
+struct SetEncodedOperator
+    : public facebook::fboss::thrift_cow::BasePathVisitorOperator {
+  explicit SetEncodedOperator(folly::fbstring val) : val_(val) {}
+
+  void visit(facebook::fboss::thrift_cow::Serializable& node) override {
+    node.fromEncoded(fsdb::OperProtocol::SIMPLE_JSON, val_);
+  }
+
+ private:
+  folly::fbstring val_{};
+};
+
+TEST(PathVisitorTests, VisitWithOperators) {
+  auto structA = createSimpleTestStruct();
+  structA.setOfI32() = {1};
+
+  auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
+
+  std::vector<std::string> path{"inlineInt"};
+
+  SetEncodedOperator setOp("123");
+  auto result = RootPathVisitor::visit(
+      *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, setOp);
+  EXPECT_EQ(result, ThriftTraverseResult::OK);
+
+  GetEncodedOperator getOp;
+  result = RootPathVisitor::visit(
+      *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, getOp);
+  EXPECT_EQ(result, ThriftTraverseResult::OK);
+  EXPECT_EQ(getOp.val, "123");
+
+  std::vector<std::string> path2{"setOfI32", "1"};
+  result = RootPathVisitor::visit(
+      *nodeA, path2.begin(), path2.end(), PathVisitMode::LEAF, setOp);
+  // should throw trying to set an immutable node
+  EXPECT_EQ(result, ThriftTraverseResult::VISITOR_EXCEPTION);
+}
+
 } // namespace facebook::fboss::thrift_cow::test

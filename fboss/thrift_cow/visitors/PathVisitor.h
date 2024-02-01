@@ -7,12 +7,45 @@
 #include "folly/logging/xlog.h"
 
 #include <fboss/thrift_cow/nodes/NodeUtils.h>
+#include <fboss/thrift_cow/nodes/Serializer.h>
 #include <fboss/thrift_cow/visitors/VisitorUtils.h>
 #include <thrift/lib/cpp2/Thrift.h>
 #include <thrift/lib/cpp2/TypeClass.h>
 #include <thrift/lib/cpp2/reflection/reflection.h>
 
 namespace facebook::fboss::thrift_cow {
+
+namespace pv_detail {
+using PathIter = typename std::vector<std::string>::const_iterator;
+}
+
+class BasePathVisitorOperator {
+ public:
+  virtual ~BasePathVisitorOperator() = default;
+
+  template <typename Node>
+  inline void
+  visitTyped(Node& node, pv_detail::PathIter begin, pv_detail::PathIter end) {
+    visit(node, begin, end);
+    visit(node);
+  }
+
+  // TODO: remove this, temporary operator() to help compatibility with lambdas
+  template <typename Node>
+  inline void
+  operator()(Node& node, pv_detail::PathIter begin, pv_detail::PathIter end) {
+    visit(node, begin, end);
+    visit(node);
+  }
+
+ protected:
+  virtual void visit(
+      Serializable& /* node */,
+      pv_detail::PathIter /* begin */,
+      pv_detail::PathIter /* end */) {}
+
+  virtual void visit(Serializable& /* node */) {}
+};
 
 /*
  * This visitor takes a path object and a thrift type and is able to
