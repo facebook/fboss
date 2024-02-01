@@ -11,6 +11,7 @@
 #pragma once
 
 #include <fboss/fsdb/oper/instantiations/FsdbCowRoot.h>
+#include <fboss/fsdb/oper/instantiations/FsdbCowRootPathVisitor.h>
 #include <fboss/thrift_cow/storage/CowStorage.h>
 #include "fboss/fsdb/if/FsdbModel.h"
 

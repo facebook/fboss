@@ -7,6 +7,7 @@
 #include "folly/Conv.h"
 #include "folly/logging/xlog.h"
 
+#include <fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h>
 #include <fboss/thrift_cow/nodes/NodeUtils.h>
 #include <fboss/thrift_cow/nodes/Serializer.h>
 #include <fboss/thrift_cow/visitors/VisitorUtils.h>

@@ -18,4 +18,6 @@ namespace facebook::fboss::fsdb {
 
 extern template class CowSubscriptionManager<CowStorage<FsdbOperStateRoot>>;
 
+extern template class CowSubscriptionManager<CowStorage<FsdbOperStatsRoot>>;
+
 } // namespace facebook::fboss::fsdb
