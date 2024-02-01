@@ -87,41 +87,6 @@ class CowStorage : public Storage<Root, CowStorage<Root, Node>> {
   using Base::set;
   using Base::set_encoded;
 
-#ifdef ENABLE_DYNAMIC_APIS
-  using Base::add_dynamic;
-  using Base::get_dynamic;
-  using Base::set_dynamic;
-
-  typename Base::DynamicResult get_dynamic_impl(PathIter begin, PathIter end)
-      const {
-    folly::dynamic out;
-    auto traverseResult = root_->cvisitPath(
-        begin, end, [&](auto& node) { out = node.toFollyDynamic(); });
-    if (traverseResult == thrift_cow::ThriftTraverseResult::OK) {
-      return out;
-    } else if (
-        traverseResult == thrift_cow::ThriftTraverseResult::VISITOR_EXCEPTION) {
-      return folly::makeUnexpected(StorageError::TYPE_ERROR);
-    } else {
-      return folly::makeUnexpected(StorageError::INVALID_PATH);
-    }
-  }
-
-  std::optional<StorageError>
-  set_dynamic_impl(PathIter begin, PathIter end, const folly::dynamic& value) {
-    StorageImpl::modifyPath(&root_, begin, end);
-    auto traverseResult = root_->visitPath(
-        begin, end, [&](auto& node) -> void { node.fromFollyDynamic(value); });
-    return detail::parseTraverseResult(traverseResult);
-  }
-
-  std::optional<StorageError>
-  add_dynamic_impl(PathIter begin, PathIter end, const folly::dynamic& value) {
-    return this->set_dynamic_impl(begin, end, value);
-  }
-
-#endif
-
   template <typename T>
   typename Base::template Result<T> get_impl(PathIter begin, PathIter end)
       const {

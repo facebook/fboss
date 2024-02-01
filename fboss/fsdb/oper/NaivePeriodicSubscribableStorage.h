@@ -520,42 +520,6 @@ class NaivePeriodicSubscribableStorage
     return *lastState->get_encoded(rootPath.begin(), rootPath.end(), protocol);
   }
 
-#ifdef ENABLE_DYNAMIC_APIS
-
-  using Base::add_dynamic;
-  using Base::get_dynamic;
-  using Base::set_dynamic;
-  using Base::subscribe_dynamic;
-
-  DynamicResult get_dynamic_impl(PathIter begin, PathIter end) const {
-    auto state = currentState_.rlock();
-    updateMetadata(begin, end);
-    return state->get_dynamic(begin, end);
-  }
-
-  std::optional<StorageError>
-  set_dynamic_impl(PathIter begin, PathIter end, const folly::dynamic& value) {
-    auto state = currentState_.wlock();
-    updateMetadata(begin, end);
-    return state->set_dynamic(begin, end, value);
-  }
-
-  std::optional<StorageError>
-  add_dynamic_impl(PathIter begin, PathIter end, const folly::dynamic& value) {
-    auto state = currentState_.wlock();
-    updateMetadata(begin, end);
-    return state->add_dynamic(begin, end, value);
-  }
-
-  folly::coro::AsyncGenerator<DeltaValue<folly::dynamic>&&>
-  subscribe_dynamic_impl(
-      SubscriberId subscriber,
-      PathIter begin,
-      PathIter end) {
-    return subscribe_internal<folly::dynamic>(subscriber, begin, end);
-  }
-#endif
-
   void setConvertToIDPaths(bool convertToIDPaths) {
     convertSubsToIDPaths_ = convertToIDPaths;
     subscriptions_.wlock()->useIdPaths(convertToIDPaths);

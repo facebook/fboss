@@ -157,32 +157,6 @@ TEST(SubscribableStorageTests, SubscribePathAddRemoveParent) {
   EXPECT_EQ(deltaVal.newVal, std::nullopt);
 }
 
-TEST(SubscribableStorageTests, SubscribeOneDynamic) {
-  using namespace facebook::fboss::fsdb;
-
-  thriftpath::RootThriftPath<TestStruct> root;
-
-  auto testDyn = createTestDynamic();
-  auto testStruct = apache::thrift::from_dynamic<TestStruct>(
-      testDyn, apache::thrift::dynamic_format::JSON_1);
-  auto storage = TestSubscribableStorage(testStruct);
-
-  storage.start();
-  auto txPath = root.tx();
-  auto generator =
-      storage.subscribe_dynamic(kSubscriber, txPath.begin(), txPath.end());
-  auto deltaVal = folly::coro::blockingWait(
-      folly::coro::timeout(consumeOne(generator), std::chrono::seconds(1)));
-  EXPECT_EQ(deltaVal.newVal, true);
-  EXPECT_EQ(deltaVal.oldVal, std::nullopt);
-  EXPECT_EQ(storage.set(std::move(txPath), false), std::nullopt);
-
-  deltaVal = folly::coro::blockingWait(
-      folly::coro::timeout(consumeOne(generator), std::chrono::seconds(1)));
-  EXPECT_EQ(deltaVal.oldVal, true);
-  EXPECT_EQ(deltaVal.newVal, false);
-}
-
 TEST(SubscribableStorageTests, SubscribeDelta) {
   using namespace facebook::fboss::fsdb;
 

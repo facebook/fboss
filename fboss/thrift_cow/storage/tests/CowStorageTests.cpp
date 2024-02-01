@@ -68,72 +68,6 @@ void publishAllNodes(CowStorage<Root>& storage) {
 
 } // namespace
 
-#ifdef ENABLE_DYNAMIC_APIS
-TEST(CowStorageTests, GetDynamic) {
-  using namespace facebook::fboss::fsdb;
-
-  thriftpath::RootThriftPath<TestStruct> root;
-
-  auto testDyn = createTestDynamic();
-  auto testStruct = apache::thrift::from_dynamic<TestStruct>(
-      testDyn, apache::thrift::dynamic_format::JSON_1);
-  auto storage = CowStorage<TestStruct>(testStruct);
-
-  EXPECT_EQ(storage.get_dynamic(root.tx()).value(), true);
-  EXPECT_EQ(storage.get_dynamic(root.rx()).value(), false);
-  EXPECT_EQ(storage.get_dynamic(root.member()).value(), testDyn["member"]);
-  EXPECT_EQ(
-      storage.get_dynamic(root.structMap()[3]).value(),
-      testDyn["structMap"][3]);
-  EXPECT_EQ(storage.get_dynamic(root).value(), testDyn);
-}
-
-TEST(CowStorageTests, SetDynamic) {
-  using namespace facebook::fboss::fsdb;
-
-  thriftpath::RootThriftPath<TestStruct> root;
-
-  auto testDyn = createTestDynamic();
-  auto testStruct = apache::thrift::from_dynamic<TestStruct>(
-      testDyn, apache::thrift::dynamic_format::JSON_1);
-  auto storage = CowStorage<TestStruct>(testStruct);
-
-  XLOG(INFO) << "getting root.tx";
-  EXPECT_EQ(storage.get_dynamic(root.tx()).value(), true);
-  XLOG(INFO) << "getting root.rx";
-  EXPECT_EQ(storage.get_dynamic(root.rx()).value(), false);
-  EXPECT_EQ(storage.get_dynamic(root.member()).value(), testDyn["member"]);
-  EXPECT_EQ(
-      storage.get_dynamic(root.structMap()[3]).value(),
-      testDyn["structMap"][3]);
-
-  // change all the fields
-  XLOG(INFO) << "setting root.tx=false";
-  EXPECT_EQ(storage.set_dynamic(root.tx(), false), std::nullopt);
-  XLOG(INFO) << "getting root.tx";
-  EXPECT_EQ(storage.get_dynamic(root.tx()).value(), false);
-  XLOG(INFO) << "setting root.tx=false again";
-  EXPECT_EQ(storage.set_dynamic(root.tx(), false), std::nullopt);
-  XLOG(INFO) << "getting root.tx again";
-  EXPECT_EQ(storage.get_dynamic(root.tx()).value(), false);
-
-  XLOG(INFO) << "setting root.rx=true";
-  EXPECT_EQ(storage.set_dynamic(root.rx(), true), std::nullopt);
-  dynamic newMember = dynamic::object("min", 500)("max", 5000);
-  dynamic newStructMapMember = dynamic::object("min", 300)("max", 3000);
-  EXPECT_EQ(storage.set_dynamic(root.member(), newMember), std::nullopt);
-  EXPECT_EQ(
-      storage.set_dynamic(root.structMap()[3], newStructMapMember),
-      std::nullopt);
-
-  XLOG(INFO) << "getting root.rx";
-  EXPECT_EQ(storage.get_dynamic(root.rx()).value(), true);
-  EXPECT_EQ(storage.get_dynamic(root.member()).value(), newMember);
-  EXPECT_EQ(
-      storage.get_dynamic(root.structMap()[3]).value(), newStructMapMember);
-}
-#endif
-
 TEST(CowStorageTests, GetThrift) {
   using namespace facebook::fboss::fsdb;
 
@@ -217,10 +151,8 @@ TEST(CowStorageTests, GetEncodedMetadata) {
   storage.publish();
   EXPECT_TRUE(storage.isPublished());
 
-#ifdef ENABLE_DYNAMIC_APIS
   // change tx to false, since we published already, this should clone
-  EXPECT_EQ(storage.set_dynamic(root.tx(), false), std::nullopt);
-#endif
+  EXPECT_EQ(storage.set(root.tx(), false), std::nullopt);
 
   result = storage.get_encoded(root.tx(), OperProtocol::SIMPLE_JSON);
   EXPECT_EQ(
@@ -326,23 +258,6 @@ TEST(CowStorageTests, AddDynamic) {
   EXPECT_EQ(storage.get(root.member()).value(), testStruct.member().value());
   EXPECT_EQ(
       storage.get(root.structMap()[3]).value(), testStruct.structMap()->at(3));
-
-  folly::dynamic member1 = dynamic::object("min", 500)("max", 5000);
-  folly::dynamic member2 = dynamic::object("min", 300)("max", 3000);
-
-#ifdef ENABLE_DYNAMIC_APIS
-  // add values
-  EXPECT_EQ(storage.add_dynamic(root.structMap()[1], member1), std::nullopt);
-  EXPECT_EQ(storage.add_dynamic(root.structMap()[2], member2), std::nullopt);
-  // EXPECT_EQ(
-  //   storage.add_dynamic(root.structList()[-1], member1), std::nullopt);
-  EXPECT_EQ(storage.add_dynamic(root.structList()[0], member2), std::nullopt);
-
-  EXPECT_EQ(storage.get_dynamic(root.structMap()[1]).value(), member1);
-  EXPECT_EQ(storage.get_dynamic(root.structMap()[2]).value(), member2);
-  EXPECT_EQ(storage.get_dynamic(root.structList()[0]).value(), member2);
-// EXPECT_EQ(storage.get_dynamic(root.structList()[1]).value(), member1);
-#endif
 }
 
 TEST(CowStorageTests, RemoveThrift) {

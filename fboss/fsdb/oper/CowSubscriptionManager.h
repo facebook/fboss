@@ -44,21 +44,6 @@ class CowSubscriptionManager
   using Root = _Root;
 
  private:
-#ifdef ENABLE_DYNAMIC_APIS
-  template <typename NodeT>
-  void servePathDynamic(
-      BasePathSubscription* subscription,
-      NodeT&& oldNode,
-      NodeT&& newNode) {
-    auto value = DeltaValue<folly::dynamic>(
-        (oldNode) ? std::make_optional(oldNode->toFollyDynamic())
-                  : std::nullopt,
-        (newNode) ? std::make_optional(newNode->toFollyDynamic())
-                  : std::nullopt);
-    subscription->offer(std::any(std::move(value)));
-  }
-#endif
-
   template <typename NodeT>
   void servePathEncoded(
       BasePathSubscription* subscription,
@@ -102,15 +87,7 @@ class CowSubscriptionManager
         if (subscription->type() == PubSubType::PATH) {
           auto pathSubscription =
               static_cast<BasePathSubscription*>(subscription);
-#ifdef ENABLE_DYNAMIC_APIS
-          if (subscription->shouldConvertToDynamic()) {
-            auto value = DeltaValue<folly::dynamic>(
-                std::nullopt, newNode.toFollyDynamic());
-            pathSubscription->offer(std::any(std::move(value)));
-#else
-          if (false) {
-#endif
-          } else if (auto proto = subscription->operProtocol(); proto) {
+          if (auto proto = subscription->operProtocol(); proto) {
             std::optional<OperState> state;
             state.emplace();
             state->contents() = newNode.encode(*proto);
@@ -249,97 +226,45 @@ class CowSubscriptionManager
   void serveSubscriptions(
       const Root& oldStorage,
       const Root& newStorage,
-      const SubscriptionMetadataServer& metadataServer){
-      auto processChange = [&](CowSubscriptionTraverseHelper& traverser,
-                               auto& oldNode,
-                               auto& newNode,
-                               thrift_cow::DeltaElemTag visitTag) {
-        auto path = traverser.path();
+      const SubscriptionMetadataServer& metadataServer) {
+    auto processChange = [&](CowSubscriptionTraverseHelper& traverser,
+                             auto& oldNode,
+                             auto& newNode,
+                             thrift_cow::DeltaElemTag visitTag) {
+      auto path = traverser.path();
 
-        // lookup can't be none or we wouldn't be serving this subscription
-        const auto* lookup = traverser.currentStore();
-        DCHECK(lookup);
+      // lookup can't be none or we wouldn't be serving this subscription
+      const auto* lookup = traverser.currentStore();
+      DCHECK(lookup);
 
-        const auto& exactSubscriptions = lookup->subscriptions();
-        std::optional<OperDeltaUnit> binaryUnit, compactUnit, jsonUnit;
+      const auto& exactSubscriptions = lookup->subscriptions();
+      std::optional<OperDeltaUnit> binaryUnit, compactUnit, jsonUnit;
 
-        for (auto& relevant : exactSubscriptions) {
-          if (relevant->type() == PubSubType::PATH) {
-            auto* pathSubscription =
-                static_cast<BasePathSubscription*>(relevant);
+      for (auto& relevant : exactSubscriptions) {
+        if (relevant->type() == PubSubType::PATH) {
+          auto* pathSubscription = static_cast<BasePathSubscription*>(relevant);
 
-#ifdef ENABLE_DYNAMIC_APIS
-            if (pathSubscription->shouldConvertToDynamic()) {
-              servePathDynamic(
-                  pathSubscription, std::move(oldNode), std::move(newNode));
-#else
-            if (false) {
-#endif
-            } else if (auto proto = pathSubscription->operProtocol(); proto) {
-              servePathEncoded(
-                  pathSubscription,
-                  std::move(oldNode),
-                  std::move(newNode),
-                  *proto,
-                  newStorage,
-                  metadataServer);
-            }
-          } else {
-            // serve delta subscriptions if it's a MINIMAL change
-            // OR
-            // if this is a fully added/removed node and there are exact
-            // delta subscriptions, we serve them. This handles the case
-            // where a change won't be "MINIMAL" relative to the root,
-            // but is relative to the subscription point. This is mainly
-            // for children of a fully added/removed node higher in the tree.
-            if (visitTag == thrift_cow::DeltaElemTag::MINIMAL || !oldNode ||
-                !newNode) {
-              auto* deltaSubscription =
-                  static_cast<DeltaSubscription*>(relevant);
-
-              auto protocol = *relevant->operProtocol();
-              if (protocol == OperProtocol::BINARY) {
-                if (!binaryUnit) {
-                  binaryUnit =
-                      buildOperDeltaUnit(path, oldNode, newNode, protocol);
-                }
-                deltaSubscription->appendRootDeltaUnit(*binaryUnit);
-              } else if (protocol == OperProtocol::COMPACT) {
-                if (!compactUnit) {
-                  compactUnit =
-                      buildOperDeltaUnit(path, oldNode, newNode, protocol);
-                }
-                deltaSubscription->appendRootDeltaUnit(*compactUnit);
-              } else if (protocol == OperProtocol::SIMPLE_JSON) {
-                if (!jsonUnit) {
-                  jsonUnit =
-                      buildOperDeltaUnit(path, oldNode, newNode, protocol);
-                }
-                deltaSubscription->appendRootDeltaUnit(*jsonUnit);
-              } else {
-                throw std::runtime_error("Unexpected protocol");
-              }
-            }
+          if (auto proto = pathSubscription->operProtocol(); proto) {
+            servePathEncoded(
+                pathSubscription,
+                oldNode,
+                newNode,
+                *proto,
+                newStorage,
+                metadataServer);
           }
-        }
-
-        // serve MINIMAL changes to delta subscription at parent paths
-        const auto& traverseElements = traverser.elementsAlongPath();
-        for (auto it = traverseElements.begin();
-             it != traverseElements.end() - 1;
-             ++it) {
-          const auto& parentSubscriptions = it->lookup->subscriptions();
-          for (auto& relevant : parentSubscriptions) {
-            if (relevant->type() != PubSubType::DELTA) {
-              continue;
-            }
-            if (visitTag != thrift_cow::DeltaElemTag::MINIMAL) {
-              // only emit MINIMAL changes in to delta subscriptions
-              continue;
-            }
+        } else {
+          // serve delta subscriptions if it's a MINIMAL change
+          // OR
+          // if this is a fully added/removed node and there are exact
+          // delta subscriptions, we serve them. This handles the case
+          // where a change won't be "MINIMAL" relative to the root,
+          // but is relative to the subscription point. This is mainly
+          // for children of a fully added/removed node higher in the tree.
+          if (visitTag == thrift_cow::DeltaElemTag::MINIMAL || !oldNode ||
+              !newNode) {
             auto* deltaSubscription = static_cast<DeltaSubscription*>(relevant);
 
-            // TODO: refactor to avoid code dup
             auto protocol = *relevant->operProtocol();
             if (protocol == OperProtocol::BINARY) {
               if (!binaryUnit) {
@@ -363,43 +288,83 @@ class CowSubscriptionManager
             }
           }
         }
-      };
+      }
 
-  const auto& [oldRoot, newRoot] =
-      std::tie(oldStorage.root(), newStorage.root());
+      // serve MINIMAL changes to delta subscription at parent paths
+      const auto& traverseElements = traverser.elementsAlongPath();
+      for (auto it = traverseElements.begin(); it != traverseElements.end() - 1;
+           ++it) {
+        const auto& parentSubscriptions = it->lookup->subscriptions();
+        for (auto& relevant : parentSubscriptions) {
+          if (relevant->type() != PubSubType::DELTA) {
+            continue;
+          }
+          if (visitTag != thrift_cow::DeltaElemTag::MINIMAL) {
+            // only emit MINIMAL changes in to delta subscriptions
+            continue;
+          }
+          auto* deltaSubscription = static_cast<DeltaSubscription*>(relevant);
 
-  CowSubscriptionTraverseHelper traverser(&this->lookup_);
-  if (oldRoot && newRoot) {
-    thrift_cow::RootDeltaVisitor::visit(
-        traverser,
-        oldRoot,
-        newRoot,
-        thrift_cow::DeltaVisitOptions(
-            thrift_cow::DeltaVisitMode::FULL,
-            thrift_cow::DeltaVisitOrder::PARENTS_FIRST,
-            this->useIdPaths_),
-        std::move(processChange));
-  } else if (!oldRoot || !newRoot) {
-    processChange(
-        traverser, oldRoot, newRoot, thrift_cow::DeltaElemTag::MINIMAL);
+          // TODO: refactor to avoid code dup
+          auto protocol = *relevant->operProtocol();
+          if (protocol == OperProtocol::BINARY) {
+            if (!binaryUnit) {
+              binaryUnit = buildOperDeltaUnit(path, oldNode, newNode, protocol);
+            }
+            deltaSubscription->appendRootDeltaUnit(*binaryUnit);
+          } else if (protocol == OperProtocol::COMPACT) {
+            if (!compactUnit) {
+              compactUnit =
+                  buildOperDeltaUnit(path, oldNode, newNode, protocol);
+            }
+            deltaSubscription->appendRootDeltaUnit(*compactUnit);
+          } else if (protocol == OperProtocol::SIMPLE_JSON) {
+            if (!jsonUnit) {
+              jsonUnit = buildOperDeltaUnit(path, oldNode, newNode, protocol);
+            }
+            deltaSubscription->appendRootDeltaUnit(*jsonUnit);
+          } else {
+            throw std::runtime_error("Unexpected protocol");
+          }
+        }
+      }
+    };
+
+    const auto& [oldRoot, newRoot] =
+        std::tie(oldStorage.root(), newStorage.root());
+
+    CowSubscriptionTraverseHelper traverser(&this->lookup_);
+    if (oldRoot && newRoot) {
+      thrift_cow::RootDeltaVisitor::visit(
+          traverser,
+          oldRoot,
+          newRoot,
+          thrift_cow::DeltaVisitOptions(
+              thrift_cow::DeltaVisitMode::FULL,
+              thrift_cow::DeltaVisitOrder::PARENTS_FIRST,
+              this->useIdPaths_),
+          std::move(processChange));
+    } else if (!oldRoot || !newRoot) {
+      processChange(
+          traverser, oldRoot, newRoot, thrift_cow::DeltaElemTag::MINIMAL);
+    }
+
+    this->flush(metadataServer);
   }
 
-  this->flush(metadataServer);
-}
+  void doInitialSync(
+      const Root& newRoot,
+      const SubscriptionMetadataServer& metadataServer) {
+    /*
+     * It is important we do the extended subscriptions before the
+     * regular ones. Resolving the extended subscriptions could extend
+     * the initial sync needed set based on the initial matching paths.
+     */
 
-void doInitialSync(
-    const Root& newRoot,
-    const SubscriptionMetadataServer& metadataServer) {
-  /*
-   * It is important we do the extended subscriptions before the
-   * regular ones. Resolving the extended subscriptions could extend
-   * the initial sync needed set based on the initial matching paths.
-   */
-
-  doInitialSyncExtended(newRoot, metadataServer);
-  doInitialSyncSimple(newRoot, metadataServer);
-  this->flush(metadataServer);
-}
+    doInitialSyncExtended(newRoot, metadataServer);
+    doInitialSyncSimple(newRoot, metadataServer);
+    this->flush(metadataServer);
+  }
 
 }; // namespace facebook::fboss::fsdb
 

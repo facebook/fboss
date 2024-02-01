@@ -4,7 +4,6 @@
 
 #include <fboss/thrift_cow/gen-cpp2/patch_types.h>
 #include <folly/Expected.h>
-#include <folly/dynamic.h>
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 
 namespace facebook::fboss::fsdb {
@@ -190,64 +189,6 @@ class Storage {
   const Derived* derived() const {
     return static_cast<const Derived*>(this);
   }
-
-#ifdef ENABLE_DYNAMIC_APIS
-  using DynamicResult = Result<folly::dynamic>;
-
-  template <
-      typename Path,
-      typename =
-          std::enable_if_t<std::is_same_v<typename Path::RootT, Root>, void>>
-  DynamicResult get_dynamic(const Path& path) const {
-    return this->get_dynamic(path.begin(), path.end());
-  }
-  DynamicResult get_dynamic(const ConcretePath& path) const {
-    return get_dynamic(path.begin(), path.end());
-  }
-  DynamicResult get_dynamic(PathIter begin, PathIter end) const {
-    return static_cast<Derived const*>(this)->get_dynamic_impl(begin, end);
-  }
-
-  template <
-      typename Path,
-      typename =
-          std::enable_if_t<std::is_same_v<typename Path::RootT, Root>, void>>
-  std::optional<StorageError> set_dynamic(
-      const Path& path,
-      const folly::dynamic& value) {
-    return this->set_dynamic(path.begin(), path.end(), value);
-  }
-  std::optional<StorageError> set_dynamic(
-      const ConcretePath& path,
-      const folly::dynamic& value) {
-    return set_dynamic(path.begin(), path.end(), value);
-  }
-  std::optional<StorageError>
-  set_dynamic(PathIter begin, PathIter end, const folly::dynamic& value) {
-    return static_cast<Derived*>(this)->set_dynamic_impl(begin, end, value);
-  }
-
-  template <
-      typename Path,
-      typename =
-          std::enable_if_t<std::is_same_v<typename Path::RootT, Root>, void>>
-  std::optional<StorageError> add_dynamic(
-      const Path& path,
-      const folly::dynamic& value) {
-    return this->add_dynamic(path.begin(), path.end(), value);
-  }
-
-  std::optional<StorageError> add_dynamic(
-      const ConcretePath& path,
-      const folly::dynamic& value) {
-    return this->template add_dynamic(path.begin(), path.end(), value);
-  }
-  std::optional<StorageError>
-  add_dynamic(PathIter begin, PathIter end, const folly::dynamic& value) {
-    return static_cast<Derived*>(this)->add_dynamic_impl(begin, end, value);
-  }
-
-#endif
 };
 
 template <typename Root, typename Derived>
