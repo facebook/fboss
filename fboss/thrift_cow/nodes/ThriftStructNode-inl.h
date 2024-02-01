@@ -543,16 +543,17 @@ class ThriftStructNode
 
     auto result = ThriftTraverseResult::OK;
     if (begin != end) {
-      auto f = [](auto&& node, auto begin, auto end) {
+      // TODO: can probably remove lambda use here
+      auto op = pvlambda([](auto&& node, auto begin, auto end) {
         if (begin == end) {
           return;
         }
         auto tok = *begin;
         node.modify(tok);
-      };
+      });
 
       result =
-          PathVisitor<TC>::visit(*newRoot, begin, end, PathVisitMode::FULL, f);
+          PathVisitor<TC>::visit(*newRoot, begin, end, PathVisitMode::FULL, op);
     }
 
     // if successful and changed, reset root
@@ -571,19 +572,20 @@ class ThriftStructNode
     // first clone root if needed
     auto newRoot = ((*root)->isPublished()) ? (*root)->clone() : *root;
 
-    auto f = [](auto&& node, auto begin, auto end) {
+    // TODO: can probably remove lambda use here
+    auto op = pvlambda([](auto&& node, auto begin, auto end) {
       auto tok = *begin;
       if (begin == end) {
         node.remove(tok);
       } else {
         node.modify(tok);
       }
-    };
+    });
 
     // Traverse to second to last hop and call remove. Modify parents
     // along the way
     auto result = PathVisitor<TC>::visit(
-        *newRoot, begin, end - 1, PathVisitMode::FULL, std::move(f));
+        *newRoot, begin, end - 1, PathVisitMode::FULL, op);
 
     // if successful, reset root
     if (result == ThriftTraverseResult::OK) {

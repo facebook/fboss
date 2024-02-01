@@ -83,14 +83,20 @@ class CowSubscriptionManager
       }
 
       const auto& path = subscription->path();
-      auto serveInitial = [&](const auto& newNode) {
+
+      thrift_cow::GetEncodedPathVisitorOperator op(
+          *subscription->operProtocol());
+      const auto& root = *newRoot.root();
+      thrift_cow::RootPathVisitor::visit(
+          root, path.begin(), path.end(), thrift_cow::PathVisitMode::LEAF, op);
+      if (op.val) {
         if (subscription->type() == PubSubType::PATH) {
           auto pathSubscription =
               static_cast<BasePathSubscription*>(subscription);
           if (auto proto = subscription->operProtocol(); proto) {
             std::optional<OperState> state;
             state.emplace();
-            state->contents() = newNode.encode(*proto);
+            state->contents() = std::move(*op.val);
             state->protocol() = *proto;
             state->metadata() = subscription->getMetadata(metadataServer);
             auto value = DeltaValue<OperState>(std::nullopt, std::move(state));
@@ -101,20 +107,14 @@ class CowSubscriptionManager
           CHECK(subscription->operProtocol());
           OperDeltaUnit deltaUnit;
           deltaUnit.path()->raw() = path;
-          deltaUnit.newState() = newNode.encode(*subscription->operProtocol());
+          deltaUnit.newState() = std::move(*op.val);
           auto deltaSubscription =
               static_cast<BaseDeltaSubscription*>(subscription);
           deltaSubscription->appendRootDeltaUnit(std::move(deltaUnit));
           deltaSubscription->flush(metadataServer);
         }
-      };
-      const auto& root = *newRoot.root();
-      thrift_cow::RootPathVisitor::visit(
-          root,
-          path.begin(),
-          path.end(),
-          thrift_cow::PathVisitMode::LEAF,
-          std::move(serveInitial));
+      }
+
       this->lookup_.add(subscription);
       it = this->initialSyncNeeded_.erase(it);
     }
