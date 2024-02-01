@@ -290,9 +290,7 @@ void SaiQueueManager::changeQueue(
       changeQueueScheduler(queueHandle, newPortQueue);
     }
   }
-  if (platform_->getAsic()->isSupported(HwAsic::Feature::SAI_ECN_WRED)) {
-    changeQueueEcnWred(queueHandle, newPortQueue);
-  }
+  changeQueueEcnWred(queueHandle, newPortQueue);
   if (platform_->getAsic()->isSupported(HwAsic::Feature::BUFFER_POOL) &&
       (queueType != SAI_QUEUE_TYPE_FABRIC_TX)) {
     if (!swPort || (swPort->getPortType() != cfg::PortType::MANAGEMENT_PORT)) {
