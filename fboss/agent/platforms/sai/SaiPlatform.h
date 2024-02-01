@@ -116,7 +116,7 @@ class SaiPlatform : public Platform, public StateObserver {
   }
 
   /*
-   * Based on the switch types: regular switch vs phy, some apis might not be
+   * Based on the switch types: regular switch vs phy, some APIs might not be
    * supported.
    * The default apis list for these two different asic types are just based
    * on our current experience. Eventually we will use getSupportedApiList()
