@@ -390,7 +390,8 @@ template <typename TType, typename Resolver = ThriftStructResolver<TType>>
 class ThriftStructNode
     : public NodeBaseT<
           typename Resolver::type,
-          ThriftStructFields<TType, typename Resolver::type>> {
+          ThriftStructFields<TType, typename Resolver::type>>,
+      public thrift_cow::Serializable {
  public:
   using Self = ThriftStructNode<TType, Resolver>;
   using Derived = typename Resolver::type;
@@ -427,19 +428,12 @@ class ThriftStructNode
   }
 #endif
 
-  folly::fbstring encode(fsdb::OperProtocol proto) const {
-    return this->getFields()->encode(proto);
-  }
-
-  folly::IOBuf encodeBuf(fsdb::OperProtocol proto) const {
+  folly::IOBuf encodeBuf(fsdb::OperProtocol proto) const override {
     return this->getFields()->encodeBuf(proto);
   }
 
-  void fromEncoded(fsdb::OperProtocol proto, const folly::fbstring& encoded) {
-    return this->writableFields()->fromEncoded(proto, encoded);
-  }
-
-  void fromEncodedBuf(fsdb::OperProtocol proto, folly::IOBuf&& encoded) {
+  void fromEncodedBuf(fsdb::OperProtocol proto, folly::IOBuf&& encoded)
+      override {
     return this->writableFields()->fromEncodedBuf(proto, std::move(encoded));
   }
 
@@ -526,7 +520,7 @@ class ThriftStructNode
     return child;
   }
 
-  void modify(const std::string& token) {
+  virtual void modify(const std::string& token) {
     visitMember<typename Fields::Members>(token, [&](auto tag) {
       using name = typename decltype(fatal::tag_type(tag))::name;
       this->modify<name>();

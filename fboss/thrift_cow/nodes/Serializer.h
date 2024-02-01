@@ -213,4 +213,23 @@ TType deserializeBuf(fsdb::OperProtocol proto, folly::IOBuf&& encoded) {
   }
 }
 
+struct Serializable {
+  virtual ~Serializable() = default;
+
+  folly::fbstring encode(fsdb::OperProtocol proto) const {
+    return encodeBuf(proto).moveToFbString();
+  }
+
+  virtual folly::IOBuf encodeBuf(fsdb::OperProtocol proto) const = 0;
+
+  void fromEncoded(fsdb::OperProtocol proto, const folly::fbstring& encoded) {
+    auto buf =
+        folly::IOBuf::wrapBufferAsValue(encoded.data(), encoded.length());
+    fromEncodedBuf(proto, std::move(buf));
+  }
+
+  virtual void fromEncodedBuf(
+      fsdb::OperProtocol proto,
+      folly::IOBuf&& encoded) = 0;
+};
 } // namespace facebook::fboss::thrift_cow

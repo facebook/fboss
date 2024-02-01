@@ -227,7 +227,8 @@ struct ThriftSetFields {
 template <typename TypeClass, typename TType>
 class ThriftSetNode : public NodeBaseT<
                           ThriftSetNode<TypeClass, TType>,
-                          ThriftSetFields<TypeClass, TType>> {
+                          ThriftSetFields<TypeClass, TType>>,
+                      public thrift_cow::Serializable {
  public:
   using TC = TypeClass;
   using Self = ThriftSetNode<TypeClass, TType>;
@@ -265,19 +266,12 @@ class ThriftSetNode : public NodeBaseT<
   }
 #endif
 
-  folly::fbstring encode(fsdb::OperProtocol proto) const {
-    return this->getFields()->encode(proto);
-  }
-
-  folly::IOBuf encodeBuf(fsdb::OperProtocol proto) const {
+  folly::IOBuf encodeBuf(fsdb::OperProtocol proto) const override {
     return this->getFields()->encodeBuf(proto);
   }
 
-  void fromEncoded(fsdb::OperProtocol proto, const folly::fbstring& encoded) {
-    return this->writableFields()->fromEncoded(proto, encoded);
-  }
-
-  void fromEncodedBuf(fsdb::OperProtocol proto, folly::IOBuf&& encoded) {
+  void fromEncodedBuf(fsdb::OperProtocol proto, folly::IOBuf&& encoded)
+      override {
     return this->writableFields()->fromEncodedBuf(proto, std::move(encoded));
   }
 
@@ -380,7 +374,7 @@ class ThriftSetNode : public NodeBaseT<
     throw std::runtime_error(folly::to<std::string>("Invalid key: ", token));
   }
 
-  void modifyTyped(const ValueTType& value) {
+  virtual void modifyTyped(const ValueTType& value) {
     DCHECK(!this->isPublished());
     if (auto it = this->find(value); it == this->end()) {
       this->emplace(value);

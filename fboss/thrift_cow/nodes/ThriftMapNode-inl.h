@@ -274,7 +274,8 @@ struct ThriftMapFields {
 
 template <typename Traits, typename Resolver = ThriftMapResolver<Traits>>
 class ThriftMapNode
-    : public NodeBaseT<typename Resolver::type, ThriftMapFields<Traits>> {
+    : public NodeBaseT<typename Resolver::type, ThriftMapFields<Traits>>,
+      public thrift_cow::Serializable {
  public:
   using TC = typename Traits::TC;
   using TType = typename Traits::Type;
@@ -315,19 +316,12 @@ class ThriftMapNode
   }
 #endif
 
-  folly::fbstring encode(fsdb::OperProtocol proto) const {
-    return this->getFields()->encode(proto);
-  }
-
-  folly::IOBuf encodeBuf(fsdb::OperProtocol proto) const {
+  folly::IOBuf encodeBuf(fsdb::OperProtocol proto) const override {
     return this->getFields()->encodeBuf(proto);
   }
 
-  void fromEncoded(fsdb::OperProtocol proto, const folly::fbstring& encoded) {
-    return this->writableFields()->fromEncoded(proto, encoded);
-  }
-
-  void fromEncodedBuf(fsdb::OperProtocol proto, folly::IOBuf&& encoded) {
+  void fromEncodedBuf(fsdb::OperProtocol proto, folly::IOBuf&& encoded)
+      override {
     return this->writableFields()->fromEncodedBuf(proto, std::move(encoded));
   }
 
@@ -459,7 +453,7 @@ class ThriftMapNode
     }
   }
 
-  void modifyTyped(key_type key) {
+  virtual void modifyTyped(key_type key) {
     DCHECK(!this->isPublished());
 
     if (auto it = this->find(key); it != this->end()) {

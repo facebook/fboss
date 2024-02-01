@@ -4,6 +4,7 @@
 
 #include <type_traits>
 #include "folly/Conv.h"
+#include "folly/logging/xlog.h"
 
 #include <fboss/thrift_cow/nodes/NodeUtils.h>
 #include <fboss/thrift_cow/visitors/VisitorUtils.h>
@@ -97,7 +98,8 @@ ThriftTraverseResult visitNode(
       if (begin == end) {
         return ThriftTraverseResult::OK;
       }
-    } catch (const std::exception&) {
+    } catch (const std::exception& ex) {
+      XLOG(ERR) << "Exception while traversing path: " << ex.what();
       return ThriftTraverseResult::VISITOR_EXCEPTION;
     }
   }
@@ -457,12 +459,20 @@ struct PathVisitor {
       Func&& f) {
     if (mode == PathVisitMode::FULL || begin == end) {
       try {
+        // unfortunately its tough to get full const correctness for primitive
+        // types since we don't enforce whether or not lambdas or operators take
+        // a const param. Here we cast away the const and rely on primitive
+        // node's functions throwing an exception if the node is immutable.
         pv_detail::invokeVisitorFnHelper(
-            node, begin, end, std::forward<Func>(f));
+            *const_cast<std::remove_const_t<Node>*>(&node),
+            begin,
+            end,
+            std::forward<Func>(f));
         if (begin == end) {
           return ThriftTraverseResult::OK;
         }
-      } catch (const std::exception&) {
+      } catch (const std::exception& ex) {
+        XLOG(ERR) << "Exception while traversing path: " << ex.what();
         return ThriftTraverseResult::VISITOR_EXCEPTION;
       }
     }

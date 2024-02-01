@@ -400,7 +400,8 @@ struct ThriftUnionFields {
 
 template <typename TType>
 class ThriftUnionNode
-    : public NodeBaseT<ThriftUnionNode<TType>, ThriftUnionFields<TType>> {
+    : public NodeBaseT<ThriftUnionNode<TType>, ThriftUnionFields<TType>>,
+      public thrift_cow::Serializable {
  public:
   using Self = ThriftUnionNode<TType>;
   using Fields = ThriftUnionFields<TType>;
@@ -435,19 +436,12 @@ class ThriftUnionNode
   }
 #endif
 
-  folly::fbstring encode(fsdb::OperProtocol proto) const {
-    return this->getFields()->encode(proto);
-  }
-
-  folly::IOBuf encodeBuf(fsdb::OperProtocol proto) const {
+  folly::IOBuf encodeBuf(fsdb::OperProtocol proto) const override {
     return this->getFields()->encodeBuf(proto);
   }
 
-  void fromEncoded(fsdb::OperProtocol proto, const folly::fbstring& encoded) {
-    return this->writableFields()->fromEncoded(proto, encoded);
-  }
-
-  void fromEncodedBuf(fsdb::OperProtocol proto, folly::IOBuf&& encoded) {
+  void fromEncodedBuf(fsdb::OperProtocol proto, folly::IOBuf&& encoded)
+      override {
     return this->writableFields()->fromEncodedBuf(proto, std::move(encoded));
   }
 
@@ -525,7 +519,7 @@ class ThriftUnionNode
     }
   }
 
-  void modify(const std::string& token) {
+  virtual void modify(const std::string& token) {
     visitMember<typename Fields::MemberTypes>(token, [&](auto tag) {
       using name = typename decltype(fatal::tag_type(tag))::name;
       this->template modify<name>();

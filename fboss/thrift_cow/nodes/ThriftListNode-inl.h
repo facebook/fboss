@@ -224,7 +224,8 @@ struct ThriftListFields {
 template <typename TypeClass, typename TType>
 class ThriftListNode : public NodeBaseT<
                            ThriftListNode<TypeClass, TType>,
-                           ThriftListFields<TypeClass, TType>> {
+                           ThriftListFields<TypeClass, TType>>,
+                       public thrift_cow::Serializable {
  public:
   using TC = TypeClass;
   using Self = ThriftListNode<TypeClass, TType>;
@@ -259,19 +260,12 @@ class ThriftListNode : public NodeBaseT<
   }
 #endif
 
-  folly::fbstring encode(fsdb::OperProtocol proto) const {
-    return this->getFields()->encode(proto);
-  }
-
-  folly::IOBuf encodeBuf(fsdb::OperProtocol proto) const {
+  folly::IOBuf encodeBuf(fsdb::OperProtocol proto) const override {
     return this->getFields()->encodeBuf(proto);
   }
 
-  void fromEncoded(fsdb::OperProtocol proto, const folly::fbstring& encoded) {
-    return this->writableFields()->fromEncoded(proto, encoded);
-  }
-
-  void fromEncodedBuf(fsdb::OperProtocol proto, folly::IOBuf&& encoded) {
+  void fromEncodedBuf(fsdb::OperProtocol proto, folly::IOBuf&& encoded)
+      override {
     return this->writableFields()->fromEncodedBuf(proto, std::move(encoded));
   }
 
@@ -358,7 +352,7 @@ class ThriftListNode : public NodeBaseT<
     modify(folly::to<std::size_t>(token));
   }
 
-  void modify(std::size_t index) {
+  virtual void modify(std::size_t index) {
     DCHECK(!this->isPublished());
 
     if (index < this->size()) {
