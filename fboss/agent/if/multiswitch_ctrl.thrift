@@ -47,6 +47,8 @@ struct StateOperDelta {
   1: fsdb_oper.OperDelta operDelta;
   2: bool transaction;
   3: i64 seqNum;
+  # OperDelta can be applied to empty state to create full switchstate
+  4: bool isFullState;
 }
 
 struct HwSwitchStats {
