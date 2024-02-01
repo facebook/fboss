@@ -12995,6 +12995,9 @@
         },
         {
           "test_name_regex": "HwRouteTest/[01].VerifyRouting$"
+        },
+        {
+          "test_name_regex": "warm_boot.*$"
         }
     ]
   }
