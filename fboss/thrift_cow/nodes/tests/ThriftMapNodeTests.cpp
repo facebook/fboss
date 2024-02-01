@@ -8,6 +8,7 @@
  *
  */
 
+#include <fboss/thrift_cow/visitors/tests/VisitorTestUtils.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <thrift/lib/cpp2/reflection/folly_dynamic.h>
 #include <thrift/lib/cpp2/reflection/reflection.h>
@@ -187,32 +188,16 @@ TEST(ThriftMapNodeTests, ThriftMapNodePrimitivesVisit) {
   auto f = [&out](auto& node) { out = node.toFollyDynamic(); };
 
   std::vector<std::string> path = {"0"};
-  auto result = node.visitPath(path.begin(), path.end(), f);
+  auto result = visitPath(node, path.begin(), path.end(), f);
   ASSERT_EQ(result, ThriftTraverseResult::NON_EXISTENT_NODE);
 
   path = {"1"};
-  result = node.visitPath(path.begin(), path.end(), f);
+  result = visitPath(node, path.begin(), path.end(), f);
   ASSERT_EQ(result, ThriftTraverseResult::OK);
   ASSERT_EQ(out, 2);
 
   path = {"5"};
-  result = node.visitPath(path.begin(), path.end(), f);
-  ASSERT_EQ(result, ThriftTraverseResult::OK);
-  ASSERT_EQ(out, 99);
-
-  // also test cvisit
-  result = node.cvisitPath(path.begin(), path.end(), f);
-  ASSERT_EQ(result, ThriftTraverseResult::OK);
-  ASSERT_EQ(out, 99);
-
-  // Now create const node and test cvisit
-  const ThriftMapNode<ThriftMapTraits<
-      apache::thrift::type_class::map<
-          apache::thrift::type_class::integral,
-          apache::thrift::type_class::integral>,
-      std::unordered_map<int, int>>>
-      nodeConst(data);
-  result = nodeConst.cvisitPath(path.begin(), path.end(), f);
+  result = visitPath(node, path.begin(), path.end(), f);
   ASSERT_EQ(result, ThriftTraverseResult::OK);
   ASSERT_EQ(out, 99);
 }
@@ -231,24 +216,24 @@ TEST(ThriftMapNodeTests, ThriftMapNodePrimitivesVisitMutable) {
   auto read = [&out](auto& node) { out = node.toFollyDynamic(); };
 
   std::vector<std::string> path = {"0"};
-  auto result = node.visitPath(path.begin(), path.end(), read);
+  auto result = visitPath(node, path.begin(), path.end(), read);
   ASSERT_EQ(result, ThriftTraverseResult::NON_EXISTENT_NODE);
 
   path = {"1"};
-  result = node.visitPath(path.begin(), path.end(), read);
+  result = visitPath(node, path.begin(), path.end(), read);
   ASSERT_EQ(result, ThriftTraverseResult::OK);
   ASSERT_EQ(out, 2);
 
   path = {"5"};
-  result = node.visitPath(path.begin(), path.end(), read);
+  result = visitPath(node, path.begin(), path.end(), read);
   ASSERT_EQ(result, ThriftTraverseResult::OK);
   ASSERT_EQ(out, 99);
 
   path = {"1"};
   toWrite = 888;
-  result = node.visitPath(path.begin(), path.end(), write);
+  result = visitPath(node, path.begin(), path.end(), write);
   ASSERT_EQ(result, ThriftTraverseResult::OK);
-  result = node.visitPath(path.begin(), path.end(), read);
+  result = visitPath(node, path.begin(), path.end(), read);
   ASSERT_EQ(result, ThriftTraverseResult::OK);
   ASSERT_EQ(out, toWrite);
 }
@@ -404,7 +389,7 @@ TEST(ThriftMapNodeTests, ThriftMapNodeStructsVisit) {
   auto f = [&out](auto& node) { out = node.toFollyDynamic(); };
 
   std::vector<std::string> path = {"FIRST"};
-  auto result = node.visitPath(path.begin(), path.end(), f);
+  auto result = visitPath(node, path.begin(), path.end(), f);
   ASSERT_EQ(result, ThriftTraverseResult::OK);
   folly::dynamic expected;
   apache::thrift::to_dynamic(
@@ -413,51 +398,51 @@ TEST(ThriftMapNodeTests, ThriftMapNodeStructsVisit) {
 
   // visit by enum value should also work
   path = {"1"};
-  result = node.visitPath(path.begin(), path.end(), f);
+  result = visitPath(node, path.begin(), path.end(), f);
   ASSERT_EQ(result, ThriftTraverseResult::OK);
   ASSERT_EQ(out, expected);
 
   path = {"SECOND"};
-  result = node.visitPath(path.begin(), path.end(), f);
+  result = visitPath(node, path.begin(), path.end(), f);
   ASSERT_EQ(result, ThriftTraverseResult::OK);
   apache::thrift::to_dynamic(
       expected, data[TestEnum::SECOND], apache::thrift::dynamic_format::JSON_1);
   ASSERT_EQ(out, expected);
 
   path = {"2"};
-  result = node.visitPath(path.begin(), path.end(), f);
+  result = visitPath(node, path.begin(), path.end(), f);
   ASSERT_EQ(result, ThriftTraverseResult::OK);
   ASSERT_EQ(out, expected);
 
   path = {"THIRD"};
-  result = node.visitPath(path.begin(), path.end(), f);
+  result = visitPath(node, path.begin(), path.end(), f);
   ASSERT_EQ(result, ThriftTraverseResult::NON_EXISTENT_NODE);
 
   path = {"FIRST", "nonexistent"};
-  result = node.visitPath(path.begin(), path.end(), f);
+  result = visitPath(node, path.begin(), path.end(), f);
   ASSERT_EQ(result, ThriftTraverseResult::INVALID_STRUCT_MEMBER);
 
   path = {"1", "nonexistent"};
-  result = node.visitPath(path.begin(), path.end(), f);
+  result = visitPath(node, path.begin(), path.end(), f);
   ASSERT_EQ(result, ThriftTraverseResult::INVALID_STRUCT_MEMBER);
 
   path = {"FIRST", "min"};
-  result = node.visitPath(path.begin(), path.end(), f);
+  result = visitPath(node, path.begin(), path.end(), f);
   ASSERT_EQ(result, ThriftTraverseResult::OK);
   ASSERT_EQ(out, 100);
 
   path = {"1", "min"};
-  result = node.visitPath(path.begin(), path.end(), f);
+  result = visitPath(node, path.begin(), path.end(), f);
   ASSERT_EQ(result, ThriftTraverseResult::OK);
   ASSERT_EQ(out, 100);
 
   path = {"SECOND", "min"};
-  result = node.visitPath(path.begin(), path.end(), f);
+  result = visitPath(node, path.begin(), path.end(), f);
   ASSERT_EQ(result, ThriftTraverseResult::OK);
   ASSERT_EQ(out, 1000);
 
   path = {"2", "min"};
-  result = node.visitPath(path.begin(), path.end(), f);
+  result = visitPath(node, path.begin(), path.end(), f);
   ASSERT_EQ(result, ThriftTraverseResult::OK);
   ASSERT_EQ(out, 1000);
 }
@@ -478,7 +463,7 @@ TEST(ThriftMapNodeTests, ThriftMapNodeStructsVisitMutable) {
   auto read = [&out](auto& node) { out = node.toFollyDynamic(); };
 
   std::vector<std::string> path = {"FIRST"};
-  auto result = node.visitPath(path.begin(), path.end(), read);
+  auto result = visitPath(node, path.begin(), path.end(), read);
   ASSERT_EQ(result, ThriftTraverseResult::OK);
   folly::dynamic expected;
   apache::thrift::to_dynamic(
@@ -486,42 +471,42 @@ TEST(ThriftMapNodeTests, ThriftMapNodeStructsVisitMutable) {
   ASSERT_EQ(out, expected);
 
   path = {"SECOND"};
-  result = node.visitPath(path.begin(), path.end(), read);
+  result = visitPath(node, path.begin(), path.end(), read);
   ASSERT_EQ(result, ThriftTraverseResult::OK);
   apache::thrift::to_dynamic(
       expected, data[TestEnum::SECOND], apache::thrift::dynamic_format::JSON_1);
   ASSERT_EQ(out, expected);
 
   path = {"THIRD"};
-  result = node.visitPath(path.begin(), path.end(), read);
+  result = visitPath(node, path.begin(), path.end(), read);
   ASSERT_EQ(result, ThriftTraverseResult::NON_EXISTENT_NODE);
 
   path = {"FIRST", "min"};
-  result = node.visitPath(path.begin(), path.end(), read);
+  result = visitPath(node, path.begin(), path.end(), read);
   ASSERT_EQ(result, ThriftTraverseResult::OK);
   ASSERT_EQ(out, 100);
 
   path = {"SECOND", "min"};
-  result = node.visitPath(path.begin(), path.end(), read);
+  result = visitPath(node, path.begin(), path.end(), read);
   ASSERT_EQ(result, ThriftTraverseResult::OK);
   ASSERT_EQ(out, 1000);
 
   path = {"FIRST"};
   apache::thrift::to_dynamic(
       toWrite, buildPortRange(1, 2), apache::thrift::dynamic_format::JSON_1);
-  result = node.visitPath(path.begin(), path.end(), write);
+  result = visitPath(node, path.begin(), path.end(), write);
   ASSERT_EQ(result, ThriftTraverseResult::OK);
-  result = node.visitPath(path.begin(), path.end(), read);
+  result = visitPath(node, path.begin(), path.end(), read);
   ASSERT_EQ(result, ThriftTraverseResult::OK);
   ASSERT_EQ(out, toWrite);
 
   path = {"FIRST", "min"};
-  result = node.visitPath(path.begin(), path.end(), read);
+  result = visitPath(node, path.begin(), path.end(), read);
   ASSERT_EQ(result, ThriftTraverseResult::OK);
   ASSERT_EQ(out, 1);
 
   path = {"SECOND", "min"};
-  result = node.visitPath(path.begin(), path.end(), read);
+  result = visitPath(node, path.begin(), path.end(), read);
   ASSERT_EQ(result, ThriftTraverseResult::OK);
   ASSERT_EQ(out, 1000);
 }

@@ -8,6 +8,7 @@
  *
  */
 
+#include <fboss/thrift_cow/visitors/tests/VisitorTestUtils.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <thrift/lib/cpp2/reflection/folly_dynamic.h>
 #include <thrift/lib/cpp2/reflection/reflection.h>
@@ -230,33 +231,22 @@ TEST(ThriftStructNodeTests, ThriftStructNodeVisit) {
   auto f = [&out](auto& node) { out = node.toFollyDynamic(); };
 
   std::vector<std::string> path = {"inlineBool"};
-  auto result = node.visitPath(path.begin(), path.end(), f);
-  ASSERT_EQ(result, ThriftTraverseResult::OK);
-  ASSERT_EQ(out, true);
-
-  // also test cvisit
-  result = node.cvisitPath(path.begin(), path.end(), f);
-  ASSERT_EQ(result, ThriftTraverseResult::OK);
-  ASSERT_EQ(out, true);
-
-  // Now create const node and test cvisit
-  const ThriftStructNode<TestStruct> nodeConst(data);
-  result = nodeConst.cvisitPath(path.begin(), path.end(), f);
+  auto result = visitPath(node, path.begin(), path.end(), f);
   ASSERT_EQ(result, ThriftTraverseResult::OK);
   ASSERT_EQ(out, true);
 
   path = {"inlineStruct", "min"};
-  result = node.visitPath(path.begin(), path.end(), f);
+  result = visitPath(node, path.begin(), path.end(), f);
   ASSERT_EQ(result, ThriftTraverseResult::OK);
   ASSERT_EQ(out, 100);
 
   path = {"inlineStruct", "max"};
-  result = node.visitPath(path.begin(), path.end(), f);
+  result = visitPath(node, path.begin(), path.end(), f);
   ASSERT_EQ(result, ThriftTraverseResult::OK);
   ASSERT_EQ(out, 999);
 
   path = {"inlineStruct"};
-  result = node.visitPath(path.begin(), path.end(), f);
+  result = visitPath(node, path.begin(), path.end(), f);
   ASSERT_EQ(result, ThriftTraverseResult::OK);
   ASSERT_EQ(out, node.template get<k::inlineStruct>()->toFollyDynamic());
 }
@@ -278,23 +268,23 @@ TEST(ThriftStructNodeTests, ThriftStructNodeVisitMutable) {
 
   std::vector<std::string> path = {"inlineBool"};
   toWrite = false;
-  auto result = node.visitPath(path.begin(), path.end(), write);
+  auto result = visitPath(node, path.begin(), path.end(), write);
   ASSERT_EQ(result, ThriftTraverseResult::OK);
-  result = node.visitPath(path.begin(), path.end(), read);
+  result = visitPath(node, path.begin(), path.end(), read);
   ASSERT_EQ(out, false);
 
   path = {"inlineStruct", "min"};
   toWrite = 855;
-  result = node.visitPath(path.begin(), path.end(), write);
+  result = visitPath(node, path.begin(), path.end(), write);
   ASSERT_EQ(result, ThriftTraverseResult::OK);
-  result = node.visitPath(path.begin(), path.end(), read);
+  result = visitPath(node, path.begin(), path.end(), read);
   ASSERT_EQ(out, 855);
 
   path = {"inlineStruct", "max"};
   toWrite = 1055;
-  result = node.visitPath(path.begin(), path.end(), write);
+  result = visitPath(node, path.begin(), path.end(), write);
   ASSERT_EQ(result, ThriftTraverseResult::OK);
-  result = node.visitPath(path.begin(), path.end(), read);
+  result = visitPath(node, path.begin(), path.end(), read);
   ASSERT_EQ(out, 1055);
 }
 

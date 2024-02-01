@@ -551,8 +551,8 @@ class ThriftStructNode
         node.modify(tok);
       };
 
-      result = PathVisitor<TC>::visit(
-          *newRoot, begin, end, PathVisitMode::FULL, std::move(f));
+      result =
+          PathVisitor<TC>::visit(*newRoot, begin, end, PathVisitMode::FULL, f);
     }
 
     // if successful and changed, reset root

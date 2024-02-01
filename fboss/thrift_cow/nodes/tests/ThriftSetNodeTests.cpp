@@ -8,6 +8,7 @@
  *
  */
 
+#include <fboss/thrift_cow/visitors/tests/VisitorTestUtils.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <thrift/lib/cpp2/reflection/folly_dynamic.h>
 #include <thrift/lib/cpp2/reflection/reflection.h>
@@ -144,30 +145,16 @@ TEST(ThriftSetNodeTests, ThriftSetNodePrimitivesVisit) {
   auto f = [&out](auto& node) { out = node.toFollyDynamic(); };
 
   std::vector<std::string> path = {"1"};
-  auto result = node.visitPath(path.begin(), path.end(), f);
+  auto result = visitPath(node, path.begin(), path.end(), f);
   ASSERT_EQ(result, ThriftTraverseResult::OK);
   ASSERT_EQ(out, 1);
 
   path = {"1", "test"};
-  result = node.visitPath(path.begin(), path.end(), f);
+  result = visitPath(node, path.begin(), path.end(), f);
   ASSERT_EQ(result, ThriftTraverseResult::NON_EXISTENT_NODE);
 
   path = {"2"};
-  result = node.visitPath(path.begin(), path.end(), f);
-  ASSERT_EQ(result, ThriftTraverseResult::OK);
-  ASSERT_EQ(out, 2);
-
-  // also test cvisit
-  result = node.cvisitPath(path.begin(), path.end(), f);
-  ASSERT_EQ(result, ThriftTraverseResult::OK);
-  ASSERT_EQ(out, 2);
-
-  // Now create const node and test cvisit
-  const ThriftSetNode<
-      apache::thrift::type_class::set<apache::thrift::type_class::integral>,
-      std::unordered_set<int>>
-      nodeConst(data);
-  result = nodeConst.cvisitPath(path.begin(), path.end(), f);
+  result = visitPath(node, path.begin(), path.end(), f);
   ASSERT_EQ(result, ThriftTraverseResult::OK);
   ASSERT_EQ(out, 2);
 }
@@ -184,20 +171,20 @@ TEST(ThriftSetNodeTests, ThriftSetNodePrimitivesVisitMutable) {
   auto read = [&out](auto& node) { out = node.toFollyDynamic(); };
 
   std::vector<std::string> path = {"1"};
-  auto result = node.visitPath(path.begin(), path.end(), read);
+  auto result = visitPath(node, path.begin(), path.end(), read);
   ASSERT_EQ(result, ThriftTraverseResult::OK);
   ASSERT_EQ(out, 1);
 
   path = {"2"};
-  result = node.visitPath(path.begin(), path.end(), read);
+  result = visitPath(node, path.begin(), path.end(), read);
   ASSERT_EQ(result, ThriftTraverseResult::OK);
   ASSERT_EQ(out, 2);
 
   toWrite = 3;
   path = {"1"};
-  result = node.visitPath(path.begin(), path.end(), write);
+  result = visitPath(node, path.begin(), path.end(), write);
   ASSERT_EQ(result, ThriftTraverseResult::VISITOR_EXCEPTION);
-  result = node.visitPath(path.begin(), path.end(), read);
+  result = visitPath(node, path.begin(), path.end(), read);
   ASSERT_EQ(result, ThriftTraverseResult::OK);
 
   // write to a set member path should be skipped. We need a better

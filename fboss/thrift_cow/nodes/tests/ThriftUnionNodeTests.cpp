@@ -8,6 +8,7 @@
  *
  */
 
+#include <fboss/thrift_cow/visitors/tests/VisitorTestUtils.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <thrift/lib/cpp2/reflection/reflection.h>
 #include <thrift/lib/cpp2/reflection/testing.h>
@@ -155,35 +156,24 @@ TEST(ThriftUnionNodeTests, ThriftUnionNodeVisit) {
   auto f = [&out](auto& node) { out = node.toFollyDynamic(); };
 
   std::vector<std::string> path = {"inlineBool"};
-  auto result = fields.visitPath(path.begin(), path.end(), f);
+  auto result = visitPath(fields, path.begin(), path.end(), f);
   ASSERT_EQ(result, ThriftTraverseResult::INCORRECT_VARIANT_MEMBER);
 
   path = {"inlineInt"};
-  result = fields.visitPath(path.begin(), path.end(), f);
+  result = visitPath(fields, path.begin(), path.end(), f);
   ASSERT_EQ(result, ThriftTraverseResult::INCORRECT_VARIANT_MEMBER);
 
   path = {"inlineString"};
-  result = fields.visitPath(path.begin(), path.end(), f);
-  ASSERT_EQ(result, ThriftTraverseResult::OK);
-  ASSERT_EQ(out, "HelloThere");
-
-  // also test cvisit
-  result = fields.cvisitPath(path.begin(), path.end(), f);
-  ASSERT_EQ(result, ThriftTraverseResult::OK);
-  ASSERT_EQ(out, "HelloThere");
-
-  // Now create const node and test cvisit
-  const ThriftUnionNode<TestUnion> fieldsConst(data);
-  result = fieldsConst.cvisitPath(path.begin(), path.end(), f);
+  result = visitPath(fields, path.begin(), path.end(), f);
   ASSERT_EQ(result, ThriftTraverseResult::OK);
   ASSERT_EQ(out, "HelloThere");
 
   path = {"inlineStruct", "min"};
-  result = fields.visitPath(path.begin(), path.end(), f);
+  result = visitPath(fields, path.begin(), path.end(), f);
   ASSERT_EQ(result, ThriftTraverseResult::INCORRECT_VARIANT_MEMBER);
 
   path = {"inlineStruct", "max"};
-  result = fields.visitPath(path.begin(), path.end(), f);
+  result = visitPath(fields, path.begin(), path.end(), f);
   ASSERT_EQ(result, ThriftTraverseResult::INCORRECT_VARIANT_MEMBER);
 }
 

@@ -297,7 +297,7 @@ TEST(PatchApplierTests, FailPatchingSetEntry) {
     auto ret = PatchApplier<TC>::apply(node, PatchNode(intPatch));
     EXPECT_EQ(ret, PatchResult::PATCHING_IMMUTABLE_NODE);
   });
-  nodeA->visitPath(path.begin(), path.end(), process);
+  visitPath(*nodeA, path.begin(), path.end(), process);
   EXPECT_TRUE(visited);
 }
 
