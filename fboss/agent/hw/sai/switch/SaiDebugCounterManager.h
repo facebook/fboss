@@ -34,15 +34,12 @@ class SaiDebugCounterManager {
 
   void setupDebugCounters();
   sai_stat_id_t getPortL3BlackHoleCounterStatId() const {
-    CHECK(portL3BlackHoleCounter_);
     return portL3BlackHoleCounterStatId_;
   }
   sai_stat_id_t getMPLSLookupFailedCounterStatId() const {
-    CHECK(mplsLookupFailCounter_);
     return mplsLookupFailCounterStatId_;
   }
   sai_stat_id_t getAclDropCounterStatId() const {
-    CHECK(aclDropCounter_);
     return aclDropCounterStatId_;
   }
 
