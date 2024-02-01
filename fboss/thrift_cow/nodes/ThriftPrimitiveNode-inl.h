@@ -128,26 +128,23 @@ class ThriftPrimitiveNode : public thrift_cow::Serializable {
     throwImmutableException();
   }
 
-  template <typename T = Self>
-  auto remove(const std::string& token)
-      -> std::enable_if_t<!T::immutable, bool> {
+  bool remove(const std::string& token) {
     throw std::runtime_error(folly::to<std::string>(
         "Cannot remove a child from a primitive node: ", token));
   }
 
-  template <typename T = Self>
-  auto remove(const std::string& token) const
-      -> std::enable_if_t<T::immutable, bool> {
+  bool remove(const std::string& token) const {
     throw std::runtime_error(folly::to<std::string>(
         "Cannot remove a child from a primitive node: ", token));
   }
 
-  template <typename T = Self>
-  auto modify(const std::string&) -> std::enable_if_t<!T::immutable, void> {}
+  void modify(const std::string&) {
+    if constexpr (immutable) {
+      throwImmutableException();
+    }
+  }
 
-  template <typename T = Self>
-  auto modify(const std::string&) const
-      -> std::enable_if_t<T::immutable, void> {
+  void modify(const std::string&) const {
     throwImmutableException();
   }
 
