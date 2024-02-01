@@ -95,6 +95,7 @@ bool Tomahawk5Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_PORT_SERDES_PROGRAMMING:
     case HwAsic::Feature::RX_SNR:
     case HwAsic::Feature::MANAGEMENT_PORT:
+    case HwAsic::Feature::PORT_WRED_COUNTER:
       return true;
     // features not working well with bcmsim
     case HwAsic::Feature::MIRROR_PACKET_TRUNCATION:

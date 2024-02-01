@@ -164,6 +164,7 @@ class HwAsic {
     RX_SNR,
     MANAGEMENT_PORT,
     ANY_ACL_DROP_COUNTER,
+    PORT_WRED_COUNTER,
   };
 
   enum class AsicMode {

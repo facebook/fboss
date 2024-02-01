@@ -88,6 +88,7 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_FEC_CORRECTED_BITS:
     case HwAsic::Feature::ECMP_DLB_OFFSET:
     case HwAsic::Feature::SAI_PORT_SERDES_PROGRAMMING:
+    case HwAsic::Feature::PORT_WRED_COUNTER:
       return true;
     case HwAsic::Feature::QCM:
     case HwAsic::Feature::SMAC_EQUALS_DMAC_CHECK_ENABLED:
