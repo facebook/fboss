@@ -115,19 +115,12 @@ class CowStorage : public Storage<Root, CowStorage<Root, Node>> {
     result.protocol() = protocol;
     result.metadata().emplace();
     const auto& rootNode = *root_;
-    auto traverseResult =
-        thrift_cow::PathVisitor<apache::thrift::type_class::structure>::visit(
-            rootNode,
-            begin,
-            end,
-            thrift_cow::PathVisitMode::FULL,
-            [&](auto& node, auto begin, auto end) {
-              if (begin == end) {
-                result.contents() = node.encode(protocol);
-                result.protocol() = protocol;
-              }
-            });
+    thrift_cow::GetEncodedPathVisitorOperator op(protocol);
+    auto traverseResult = thrift_cow::RootPathVisitor::visit(
+        rootNode, begin, end, thrift_cow::PathVisitMode::LEAF, op);
     if (traverseResult == thrift_cow::ThriftTraverseResult::OK) {
+      result.contents() = std::move(op.val);
+      result.protocol() = protocol;
       return result;
     } else if (
         traverseResult == thrift_cow::ThriftTraverseResult::VISITOR_EXCEPTION) {
@@ -174,9 +167,9 @@ class CowStorage : public Storage<Root, CowStorage<Root, Node>> {
   std::optional<StorageError>
   set_encoded_impl(PathIter begin, PathIter end, const OperState& state) {
     StorageImpl::modifyPath(&root_, begin, end);
-    auto traverseResult = root_->visitPath(begin, end, [&](auto& node) {
-      node.fromEncoded(*state.protocol(), *state.contents());
-    });
+    thrift_cow::SetEncodedPathVisitorOperator op(
+        *state.protocol(), *state.contents());
+    auto traverseResult = root_->visitPath(begin, end, op);
     return detail::parseTraverseResult(traverseResult);
   }
 

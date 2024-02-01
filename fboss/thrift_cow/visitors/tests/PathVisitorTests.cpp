@@ -113,27 +113,6 @@ TEST(PathVisitorTests, AccessOptional) {
   EXPECT_TRUE(got.empty());
 }
 
-struct GetEncodedOperator
-    : public facebook::fboss::thrift_cow::BasePathVisitorOperator {
-  void visit(facebook::fboss::thrift_cow::Serializable& node) override {
-    val = node.encode(fsdb::OperProtocol::SIMPLE_JSON);
-  }
-
-  folly::fbstring val{};
-};
-
-struct SetEncodedOperator
-    : public facebook::fboss::thrift_cow::BasePathVisitorOperator {
-  explicit SetEncodedOperator(folly::fbstring val) : val_(val) {}
-
-  void visit(facebook::fboss::thrift_cow::Serializable& node) override {
-    node.fromEncoded(fsdb::OperProtocol::SIMPLE_JSON, val_);
-  }
-
- private:
-  folly::fbstring val_{};
-};
-
 TEST(PathVisitorTests, VisitWithOperators) {
   auto structA = createSimpleTestStruct();
   structA.setOfI32() = {1};
@@ -142,12 +121,13 @@ TEST(PathVisitorTests, VisitWithOperators) {
 
   std::vector<std::string> path{"inlineInt"};
 
-  SetEncodedOperator setOp("123");
+  folly::fbstring newVal = "123";
+  SetEncodedPathVisitorOperator setOp(fsdb::OperProtocol::SIMPLE_JSON, newVal);
   auto result = RootPathVisitor::visit(
       *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, setOp);
   EXPECT_EQ(result, ThriftTraverseResult::OK);
 
-  GetEncodedOperator getOp;
+  GetEncodedPathVisitorOperator getOp(fsdb::OperProtocol::SIMPLE_JSON);
   result = RootPathVisitor::visit(
       *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, getOp);
   EXPECT_EQ(result, ThriftTraverseResult::OK);

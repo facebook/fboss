@@ -136,6 +136,7 @@ TEST(CowStorageTests, GetEncodedMetadata) {
   auto storage = CowStorage<TestStruct>(testStruct);
 
   auto result = storage.get_encoded(root.tx(), OperProtocol::SIMPLE_JSON);
+  EXPECT_FALSE(result.hasError());
   EXPECT_EQ(
       *result->contents(),
       facebook::fboss::thrift_cow::serialize<

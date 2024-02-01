@@ -26,16 +26,20 @@ class BasePathVisitorOperator {
   template <typename Node>
   inline void
   visitTyped(Node& node, pv_detail::PathIter begin, pv_detail::PathIter end) {
-    visit(node, begin, end);
-    visit(node);
+    if constexpr (std::is_const_v<Node>) {
+      cvisit(node, begin, end);
+      cvisit(node);
+    } else {
+      visit(node, begin, end);
+      visit(node);
+    }
   }
 
   // TODO: remove this, temporary operator() to help compatibility with lambdas
   template <typename Node>
   inline void
   operator()(Node& node, pv_detail::PathIter begin, pv_detail::PathIter end) {
-    visit(node, begin, end);
-    visit(node);
+    visitTyped(node, begin, end);
   }
 
  protected:
@@ -44,7 +48,49 @@ class BasePathVisitorOperator {
       pv_detail::PathIter /* begin */,
       pv_detail::PathIter /* end */) {}
 
-  virtual void visit(Serializable& /* node */) {}
+  virtual void visit(Serializable& node) {}
+
+  virtual void cvisit(
+      const Serializable& /* node */,
+      pv_detail::PathIter /* begin */,
+      pv_detail::PathIter /* end */) {}
+
+  virtual void cvisit(const Serializable& node) {}
+};
+
+struct GetEncodedPathVisitorOperator : public BasePathVisitorOperator {
+  explicit GetEncodedPathVisitorOperator(fsdb::OperProtocol protocol)
+      : protocol_(protocol) {}
+
+  folly::fbstring val{};
+
+ protected:
+  void cvisit(const Serializable& node) override {
+    val = node.encode(protocol_);
+  }
+
+  void visit(Serializable& node) override {
+    val = node.encode(protocol_);
+  }
+
+ private:
+  fsdb::OperProtocol protocol_;
+};
+
+struct SetEncodedPathVisitorOperator : public BasePathVisitorOperator {
+  SetEncodedPathVisitorOperator(
+      fsdb::OperProtocol protocol,
+      const folly::fbstring& val)
+      : protocol_(protocol), val_(val) {}
+
+ protected:
+  void visit(facebook::fboss::thrift_cow::Serializable& node) override {
+    node.fromEncoded(protocol_, val_);
+  }
+
+ private:
+  fsdb::OperProtocol protocol_;
+  const folly::fbstring& val_{};
 };
 
 /*
