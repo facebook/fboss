@@ -564,7 +564,7 @@ template <typename TC>
 struct PathVisitor {
   template <
       typename Node,
-      typename Op,
+      typename Func,
       // only enable for Node types
       std::enable_if_t<std::is_same_v<typename Node::CowType, NodeType>, bool> =
           true>
@@ -573,23 +573,52 @@ struct PathVisitor {
       pv_detail::PathIter begin,
       pv_detail::PathIter end,
       const PathVisitMode& mode,
-      Op& op) {
+      pv_detail::LambdaPathVisitorOperator<Func>& op) {
+    return pv_detail::PathVisitorImpl<TC>::visit(node, begin, end, mode, op);
+  }
+
+  template <
+      typename Node,
+      // only enable for Node types
+      std::enable_if_t<std::is_same_v<typename Node::CowType, NodeType>, bool> =
+          true>
+  static inline ThriftTraverseResult visit(
+      Node& node,
+      pv_detail::PathIter begin,
+      pv_detail::PathIter end,
+      const PathVisitMode& mode,
+      BasePathVisitorOperator& op) {
     return pv_detail::PathVisitorImpl<TC>::visit(node, begin, end, mode, op);
   }
 
   template <
       typename Fields,
-      typename Op,
+      typename Func,
       // only enable for Fields types
       std::enable_if_t<
           std::is_same_v<typename Fields::CowType, FieldsType>,
           bool> = true>
-  static ThriftTraverseResult visit(
+  inline static ThriftTraverseResult visit(
       Fields& fields,
       pv_detail::PathIter begin,
       pv_detail::PathIter end,
       const PathVisitMode& mode,
-      Op& op) {
+      pv_detail::LambdaPathVisitorOperator<Func>& op) {
+    return pv_detail::PathVisitorImpl<TC>::visit(fields, begin, end, mode, op);
+  }
+
+  template <
+      typename Fields,
+      // only enable for Fields types
+      std::enable_if_t<
+          std::is_same_v<typename Fields::CowType, FieldsType>,
+          bool> = true>
+  inline static ThriftTraverseResult visit(
+      Fields& fields,
+      pv_detail::PathIter begin,
+      pv_detail::PathIter end,
+      const PathVisitMode& mode,
+      BasePathVisitorOperator& op) {
     return pv_detail::PathVisitorImpl<TC>::visit(fields, begin, end, mode, op);
   }
 };
