@@ -145,7 +145,8 @@ void SaiPortManager::fillInSupportedStats(PortID port) {
     if (!platform_->getAsic()->isSupported(HwAsic::Feature::ECN)) {
       countersToFilter.insert(SAI_PORT_STAT_ECN_MARKED_PACKETS);
     }
-    if (!platform_->getAsic()->isSupported(HwAsic::Feature::SAI_ECN_WRED)) {
+    if (!platform_->getAsic()->isSupported(
+            HwAsic::Feature::PORT_WRED_COUNTER)) {
       countersToFilter.insert(SAI_PORT_STAT_WRED_DROPPED_PACKETS);
     }
     counterIds.reserve(SaiPortTraits::CounterIdsToRead.size() + 1);
