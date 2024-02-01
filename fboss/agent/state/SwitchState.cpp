@@ -360,8 +360,8 @@ void SwitchState::resetTeFlowTable(
   ref<switch_state_tags::teFlowTables>() = flowTable;
 }
 
-const std::shared_ptr<MultiTeFlowTable>& SwitchState::getTeFlowTable() const {
-  return safe_cref<switch_state_tags::teFlowTables>();
+const std::shared_ptr<MultiTeFlowTable> SwitchState::getTeFlowTable() const {
+  return get<switch_state_tags::teFlowTables>();
 }
 
 void SwitchState::resetDsfNodes(

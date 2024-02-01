@@ -918,11 +918,16 @@ TeFlowStats SwSwitch::getTeFlowStats() {
   TeFlowStats teFlowStats;
   std::map<std::string, HwTeFlowStats> hwTeFlowStats;
   auto statMap = facebook::fb303::fbData->getStatMap();
-  for (const auto& [_, teFlowTable] :
-       std::as_const(*getState()->getTeFlowTable())) {
+  auto state = getState();
+  if (!state) {
+    return teFlowStats;
+  }
+  auto multiTeFlowTable = state->getTeFlowTable();
+  for (const auto& [_, teFlowTable] : std::as_const(*multiTeFlowTable)) {
     for (const auto& [flowStr, flowEntry] : std::as_const(*teFlowTable)) {
       std::ignore = flowStr;
-      if (const auto& counter = flowEntry->getCounterID()) {
+      if (flowEntry->getCounterID().has_value()) {
+        const auto& counter = flowEntry->getCounterID();
         auto statName = folly::to<std::string>(counter->toThrift(), ".bytes");
         // returns default stat if statName does not exists
         auto statPtr = statMap->getStatPtrNoExport(statName);
