@@ -20141,7 +20141,8 @@ std::pair<strings::portName_, Child<::std::string, ::apache::thrift::type_class:
 std::pair<strings::macsecStats, ChildThriftPath<::facebook::fboss::MacsecStats, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
 std::pair<strings::inLabelMissDiscards_, Child<::std::int64_t, ::apache::thrift::type_class::integral>>,
 std::pair<strings::queueWatermarkLevel_, ChildThriftPath<::std::map<::std::int16_t, ::std::int64_t>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
-std::pair<strings::inCongestionDiscards_, Child<::std::int64_t, ::apache::thrift::type_class::integral>>>;
+std::pair<strings::inCongestionDiscards_, Child<::std::int64_t, ::apache::thrift::type_class::integral>>,
+std::pair<strings::inAclDiscards_, Child<::std::int64_t, ::apache::thrift::type_class::integral>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::std::int64_t, ::apache::thrift::type_class::integral>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::std::int64_t, ::apache::thrift::type_class::integral>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<::std::int64_t, ::apache::thrift::type_class::integral>>,
@@ -20184,7 +20185,8 @@ std::pair<strings::inCongestionDiscards_, Child<::std::int64_t, ::apache::thrift
    std::pair<std::integral_constant<apache::thrift::field_id_t, 52>, ChildThriftPath<::facebook::fboss::MacsecStats, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 53>, Child<::std::int64_t, ::apache::thrift::type_class::integral>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 54>, ChildThriftPath<::std::map<::std::int16_t, ::std::int64_t>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 55>, Child<::std::int64_t, ::apache::thrift::type_class::integral>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 55>, Child<::std::int64_t, ::apache::thrift::type_class::integral>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 56>, Child<::std::int64_t, ::apache::thrift::type_class::integral>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::inBytes_, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::inUnicastPkts_, std::integral_constant<apache::thrift::field_id_t, 2>>,
@@ -20228,7 +20230,8 @@ std::pair<strings::portName_, std::integral_constant<apache::thrift::field_id_t,
 std::pair<strings::macsecStats, std::integral_constant<apache::thrift::field_id_t, 52>>,
 std::pair<strings::inLabelMissDiscards_, std::integral_constant<apache::thrift::field_id_t, 53>>,
 std::pair<strings::queueWatermarkLevel_, std::integral_constant<apache::thrift::field_id_t, 54>>,
-std::pair<strings::inCongestionDiscards_, std::integral_constant<apache::thrift::field_id_t, 55>>>::template type_of<Name>;
+std::pair<strings::inCongestionDiscards_, std::integral_constant<apache::thrift::field_id_t, 55>>,
+std::pair<strings::inAclDiscards_, std::integral_constant<apache::thrift::field_id_t, 56>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -20284,6 +20287,7 @@ std::pair<strings::inCongestionDiscards_, std::integral_constant<apache::thrift:
     STRUCT_CHILD_GETTERS(inLabelMissDiscards_, 53);
     STRUCT_CHILD_GETTERS(queueWatermarkLevel_, 54);
     STRUCT_CHILD_GETTERS(inCongestionDiscards_, 55);
+    STRUCT_CHILD_GETTERS(inAclDiscards_, 56);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -20330,6 +20334,7 @@ std::pair<strings::inCongestionDiscards_, std::integral_constant<apache::thrift:
     else if constexpr (__id == 53) { return inLabelMissDiscards_(); }
     else if constexpr (__id == 54) { return queueWatermarkLevel_(); }
     else if constexpr (__id == 55) { return inCongestionDiscards_(); }
+    else if constexpr (__id == 56) { return inAclDiscards_(); }
   }
 
   template <typename T, T... Values>
