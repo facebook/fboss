@@ -16,6 +16,7 @@
 #include <thrift/lib/cpp2/reflection/folly_dynamic.h>
 #include <thrift/lib/cpp2/reflection/reflection.h>
 #include "fboss/agent/state/NodeBase-defs.h"
+#include "fboss/thrift_cow/nodes/NodeUtils.h"
 #include "fboss/thrift_cow/nodes/Serializer.h"
 #include "fboss/thrift_cow/nodes/Types.h"
 
@@ -169,22 +170,12 @@ struct ThriftMapFields {
   }
 
   bool remove(const std::string& token) {
+    // avoid infinite recursion in case key is string
     if constexpr (std::is_same_v<
                       KeyTypeClass,
-                      apache::thrift::type_class::enumeration>) {
-      // special handling for enum keyed maps
-      key_type enumKey;
-      if (fatal::enum_traits<key_type>::try_parse(enumKey, token)) {
-        return remove(enumKey);
-      }
-    } else if constexpr (std::is_same_v<
-                             KeyTypeClass,
-                             apache::thrift::type_class::string>) {
+                      apache::thrift::type_class::string>) {
       return storage_.erase(token);
-    }
-
-    auto key = folly::tryTo<key_type>(token);
-    if (key.hasValue()) {
+    } else if (auto key = tryParseKey<key_type, KeyTypeClass>(token)) {
       return remove(key.value());
     }
 
@@ -453,28 +444,22 @@ class ThriftMapNode
     return size() == 0;
   }
 
-  void modify(const std::string& token) {
-    if constexpr (std::is_same_v<
-                      typename Fields::KeyTypeClass,
-                      apache::thrift::type_class::enumeration>) {
-      // special handling for enum keyed maps
-      key_type enumKey;
-      if (fatal::enum_traits<key_type>::try_parse(enumKey, token)) {
-        modifyImpl(enumKey);
-        return;
-      }
+  bool tryModify(const std::string& token) {
+    if (auto parsedKey =
+            tryParseKey<key_type, typename Fields::KeyTypeClass>(token)) {
+      modifyTyped(parsedKey.value());
+      return true;
     }
-
-    auto key = folly::tryTo<key_type>(token);
-    if (key.hasValue()) {
-      modifyImpl(key.value());
-      return;
-    }
-
-    throw std::runtime_error(folly::to<std::string>("Invalid key: ", token));
+    return false;
   }
 
-  void modifyImpl(key_type key) {
+  void modify(const std::string& token) {
+    if (!tryModify(token)) {
+      throw std::runtime_error(folly::to<std::string>("Invalid key: ", token));
+    }
+  }
+
+  void modifyTyped(key_type key) {
     DCHECK(!this->isPublished());
 
     if (auto it = this->find(key); it != this->end()) {
@@ -487,7 +472,7 @@ class ThriftMapNode
       }
     } else {
       // create unpublished default constructed child if missing
-      this->emplace(key);
+      this->emplace(key).first->second;
     }
   }
 

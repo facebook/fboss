@@ -2,6 +2,7 @@
 
 #include <fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h>
 #include <fboss/thrift_cow/gen-cpp2/patch_types.h>
+#include <fboss/thrift_cow/nodes/NodeUtils.h>
 #include <thrift/lib/cpp2/reflection/reflection.h>
 
 #include <optional>
@@ -84,7 +85,7 @@ struct PatchApplier<
         if (childPatch.getType() == PatchNode::Type::del) {
           node.remove(std::move(*parsedKey));
         } else {
-          node.modifyImpl(*parsedKey);
+          node.modifyTyped(*parsedKey);
 
           auto res = PatchApplier<MappedTypeClass>::apply(
               *node.ref(std::move(*parsedKey)), std::move(childPatch));

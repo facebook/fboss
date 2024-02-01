@@ -5,6 +5,7 @@
 #include <type_traits>
 #include "folly/Conv.h"
 
+#include <fboss/thrift_cow/nodes/NodeUtils.h>
 #include <fboss/thrift_cow/visitors/VisitorUtils.h>
 #include <thrift/lib/cpp2/Thrift.h>
 #include <thrift/lib/cpp2/TypeClass.h>
@@ -152,25 +153,9 @@ struct PathVisitor<apache::thrift::type_class::set<ValueTypeClass>> {
 
     // Get value
     auto token = *begin++;
-    ValueTType value;
 
-    // need to handle enumeration, integral, string types
-    if constexpr (std::is_same_v<
-                      ValueTypeClass,
-                      apache::thrift::type_class::enumeration>) {
-      if (fatal::enum_traits<ValueTType>::try_parse(value, token)) {
-        if (auto it = fields.find(value); it != fields.end()) {
-          // Recurse further
-          return PathVisitor<ValueTypeClass>::visit(
-              **it, begin, end, mode, std::forward<Func>(f));
-        }
-      }
-    }
-
-    auto valueTry = folly::tryTo<ValueTType>(token);
-    if (!valueTry.hasError()) {
-      value = valueTry.value();
-      if (auto it = fields.find(value); it != fields.end()) {
+    if (auto value = tryParseKey<ValueTType, ValueTypeClass>(token)) {
+      if (auto it = fields.find(*value); it != fields.end()) {
         // Recurse further
         return PathVisitor<ValueTypeClass>::visit(
             **it, begin, end, mode, std::forward<Func>(f));
@@ -280,24 +265,7 @@ struct PathVisitor<
     // Get key
     auto token = *begin++;
 
-    if constexpr (std::is_same_v<
-                      KeyTypeClass,
-                      apache::thrift::type_class::enumeration>) {
-      // special handling for enum keyed maps
-      key_type value;
-      if (fatal::enum_traits<key_type>::try_parse(value, token)) {
-        if (fields.find(value) != fields.end()) {
-          // Recurse further
-          return PathVisitor<MappedTypeClass>::visit(
-              *fields.ref(value), begin, end, mode, std::forward<Func>(f));
-        } else {
-          return ThriftTraverseResult::NON_EXISTENT_NODE;
-        }
-      }
-    }
-
-    auto key = folly::tryTo<key_type>(token);
-    if (key.hasValue()) {
+    if (auto key = tryParseKey<key_type, KeyTypeClass>(token)) {
       if (fields.find(key.value()) != fields.end()) {
         // Recurse further
         if constexpr (std::is_const_v<Fields>) {

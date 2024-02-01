@@ -138,23 +138,13 @@ struct ThriftSetFields {
   }
 
   bool remove(const std::string& token) {
+    // avoid infinite recursion in case key is string
     if constexpr (std::is_same_v<
                       ValueTypeClass,
-                      apache::thrift::type_class::enumeration>) {
-      // special handling for enum keyed maps
-      ValueTType enumVal;
-      if (fatal::enum_traits<ValueTType>::try_parse(enumVal, token)) {
-        return remove(enumVal);
-      }
-    } else if constexpr (std::is_same_v<
-                             ValueTypeClass,
-                             apache::thrift::type_class::string>) {
+                      apache::thrift::type_class::string>) {
       return erase(token);
-    }
-
-    auto value = folly::tryTo<ValueTType>(token);
-    if (value.hasValue()) {
-      return remove(value.value());
+    } else if (auto key = tryParseKey<ValueTType, ValueTypeClass>(token)) {
+      return remove(key.value());
     }
 
     return false;
@@ -381,27 +371,16 @@ class ThriftSetNode : public NodeBaseT<
   }
 
   void modify(const std::string& token) {
-    if constexpr (std::is_same_v<
-                      typename Fields::ValueTypeClass,
-                      apache::thrift::type_class::enumeration>) {
-      // special handling for enum keyed maps
-      ValueTType enumVal;
-      if (fatal::enum_traits<ValueTType>::try_parse(enumVal, token)) {
-        modifyImpl(enumVal);
-        return;
-      }
-    }
-
-    auto value = folly::tryTo<ValueTType>(token);
-    if (value.hasValue()) {
-      modifyImpl(value.value());
+    if (auto value =
+            tryParseKey<ValueTType, typename Fields::ValueTypeClass>(token)) {
+      modifyTyped(value.value());
       return;
     }
 
     throw std::runtime_error(folly::to<std::string>("Invalid key: ", token));
   }
 
-  void modifyImpl(const ValueTType& value) {
+  void modifyTyped(const ValueTType& value) {
     DCHECK(!this->isPublished());
     if (auto it = this->find(value); it == this->end()) {
       this->emplace(value);
