@@ -447,6 +447,7 @@ struct LaneStats {
 struct LinkFaultStatus {
   1: bool localFault;
   2: bool remoteFault;
+  3: bool highCrcErrorRate;
 }
 
 struct RsInfo {

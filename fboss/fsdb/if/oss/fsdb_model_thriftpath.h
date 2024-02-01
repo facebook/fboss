@@ -9124,12 +9124,15 @@ class ChildThriftPath<::facebook::fboss::phy::LinkFaultStatus, ::facebook::fboss
     Self
   >;
   using Children = fatal::tuple<std::pair<strings::localFault, Child<bool, ::apache::thrift::type_class::integral>>,
-std::pair<strings::remoteFault, Child<bool, ::apache::thrift::type_class::integral>>>;
+std::pair<strings::remoteFault, Child<bool, ::apache::thrift::type_class::integral>>,
+std::pair<strings::highCrcErrorRate, Child<bool, ::apache::thrift::type_class::integral>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<bool, ::apache::thrift::type_class::integral>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<bool, ::apache::thrift::type_class::integral>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<bool, ::apache::thrift::type_class::integral>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<bool, ::apache::thrift::type_class::integral>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::localFault, std::integral_constant<apache::thrift::field_id_t, 1>>,
-std::pair<strings::remoteFault, std::integral_constant<apache::thrift::field_id_t, 2>>>::template type_of<Name>;
+std::pair<strings::remoteFault, std::integral_constant<apache::thrift::field_id_t, 2>>,
+std::pair<strings::highCrcErrorRate, std::integral_constant<apache::thrift::field_id_t, 3>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -9144,11 +9147,13 @@ std::pair<strings::remoteFault, std::integral_constant<apache::thrift::field_id_
   
     STRUCT_CHILD_GETTERS(localFault, 1);
     STRUCT_CHILD_GETTERS(remoteFault, 2);
+    STRUCT_CHILD_GETTERS(highCrcErrorRate, 3);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
     if constexpr (__id == 1) { return localFault(); }
     else if constexpr (__id == 2) { return remoteFault(); }
+    else if constexpr (__id == 3) { return highCrcErrorRate(); }
   }
 
   template <typename T, T... Values>

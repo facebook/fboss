@@ -1552,13 +1552,22 @@ void SaiSwitch::updateRsInfo(
       managerTable_->portManager().getPortErrStatus(port->adapterKey());
   phy::LinkFaultStatus faultStatus;
   for (auto& err : errStatus) {
-    if (err == SAI_PORT_ERR_STATUS_SIGNAL_LOCAL_ERROR) {
-      faultStatus.localFault() = true;
-    } else if (err == SAI_PORT_ERR_STATUS_REMOTE_FAULT_STATUS) {
-      faultStatus.remoteFault() = true;
+    switch (err) {
+      case SAI_PORT_ERR_STATUS_SIGNAL_LOCAL_ERROR:
+        faultStatus.localFault() = true;
+        break;
+      case SAI_PORT_ERR_STATUS_REMOTE_FAULT_STATUS:
+        faultStatus.remoteFault() = true;
+        break;
+      case SAI_PORT_ERR_STATUS_CRC_RATE:
+        faultStatus.highCrcErrorRate() = true;
+        break;
+      default:
+        break;
     }
   }
-  if (*faultStatus.localFault() || *faultStatus.remoteFault()) {
+  if (*faultStatus.localFault() || *faultStatus.remoteFault() ||
+      *faultStatus.highCrcErrorRate()) {
     phy::RsInfo rsInfo;
     rsInfo.faultStatus() = faultStatus;
     sideState.rs() = rsInfo;
