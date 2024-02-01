@@ -20554,7 +20554,8 @@ std::pair<strings::sysPortStatsMap, ChildThriftPath<::std::map<::std::int16_t, :
 std::pair<strings::switchDropStatsMap, ChildThriftPath<::std::map<::std::int16_t, ::facebook::fboss::HwSwitchDropStats>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
 std::pair<strings::flowletStats, ChildThriftPath<::facebook::fboss::HwFlowletStats, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
 std::pair<strings::phyStats, ChildThriftPath<::std::map<::std::string, ::facebook::fboss::phy::PhyStats>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
-std::pair<strings::flowletStatsMap, ChildThriftPath<::std::map<::std::int16_t, ::facebook::fboss::HwFlowletStats>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>>;
+std::pair<strings::flowletStatsMap, ChildThriftPath<::std::map<::std::int16_t, ::facebook::fboss::HwFlowletStats>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
+std::pair<strings::trappedPktsDropped, Child<::std::int64_t, ::apache::thrift::type_class::integral>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, ChildThriftPath<folly::F14FastMap<::std::string, ::facebook::fboss::HwPortStats>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, ChildThriftPath<::std::map<::std::string, ::facebook::fboss::HwTrunkStats>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, ChildThriftPath<::facebook::fboss::HwResourceStats, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
@@ -20571,7 +20572,8 @@ std::pair<strings::flowletStatsMap, ChildThriftPath<::std::map<::std::int16_t, :
    std::pair<std::integral_constant<apache::thrift::field_id_t, 15>, ChildThriftPath<::std::map<::std::int16_t, ::facebook::fboss::HwSwitchDropStats>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 16>, ChildThriftPath<::facebook::fboss::HwFlowletStats, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 17>, ChildThriftPath<::std::map<::std::string, ::facebook::fboss::phy::PhyStats>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 18>, ChildThriftPath<::std::map<::std::int16_t, ::facebook::fboss::HwFlowletStats>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 18>, ChildThriftPath<::std::map<::std::int16_t, ::facebook::fboss::HwFlowletStats>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 19>, Child<::std::int64_t, ::apache::thrift::type_class::integral>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::hwPortStats, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::hwTrunkStats, std::integral_constant<apache::thrift::field_id_t, 2>>,
@@ -20589,7 +20591,8 @@ std::pair<strings::sysPortStatsMap, std::integral_constant<apache::thrift::field
 std::pair<strings::switchDropStatsMap, std::integral_constant<apache::thrift::field_id_t, 15>>,
 std::pair<strings::flowletStats, std::integral_constant<apache::thrift::field_id_t, 16>>,
 std::pair<strings::phyStats, std::integral_constant<apache::thrift::field_id_t, 17>>,
-std::pair<strings::flowletStatsMap, std::integral_constant<apache::thrift::field_id_t, 18>>>::template type_of<Name>;
+std::pair<strings::flowletStatsMap, std::integral_constant<apache::thrift::field_id_t, 18>>,
+std::pair<strings::trappedPktsDropped, std::integral_constant<apache::thrift::field_id_t, 19>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -20619,6 +20622,7 @@ std::pair<strings::flowletStatsMap, std::integral_constant<apache::thrift::field
     STRUCT_CHILD_GETTERS(flowletStats, 16);
     STRUCT_CHILD_GETTERS(phyStats, 17);
     STRUCT_CHILD_GETTERS(flowletStatsMap, 18);
+    STRUCT_CHILD_GETTERS(trappedPktsDropped, 19);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -20639,6 +20643,7 @@ std::pair<strings::flowletStatsMap, std::integral_constant<apache::thrift::field
     else if constexpr (__id == 16) { return flowletStats(); }
     else if constexpr (__id == 17) { return phyStats(); }
     else if constexpr (__id == 18) { return flowletStatsMap(); }
+    else if constexpr (__id == 19) { return trappedPktsDropped(); }
   }
 
   template <typename T, T... Values>
