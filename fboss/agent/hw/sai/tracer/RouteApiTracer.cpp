@@ -35,7 +35,9 @@ sai_status_t wrap_create_route_entry(
     const sai_attribute_t* attr_list) {
   SaiTracer::getInstance()->logRouteEntryCreateFn(
       route_entry, attr_count, attr_list);
-  auto begin = std::chrono::system_clock::now();
+  auto begin = FLAGS_enable_elapsed_time_log
+      ? std::chrono::system_clock::now()
+      : std::chrono::system_clock::time_point::min();
   auto rv = SaiTracer::getInstance()->routeApi_->create_route_entry(
       route_entry, attr_count, attr_list);
   SaiTracer::getInstance()->logPostInvocation(rv, SAI_NULL_OBJECT_ID, begin);
@@ -44,7 +46,9 @@ sai_status_t wrap_create_route_entry(
 
 sai_status_t wrap_remove_route_entry(const sai_route_entry_t* route_entry) {
   SaiTracer::getInstance()->logRouteEntryRemoveFn(route_entry);
-  auto begin = std::chrono::system_clock::now();
+  auto begin = FLAGS_enable_elapsed_time_log
+      ? std::chrono::system_clock::now()
+      : std::chrono::system_clock::time_point::min();
   auto rv =
       SaiTracer::getInstance()->routeApi_->remove_route_entry(route_entry);
   SaiTracer::getInstance()->logPostInvocation(rv, SAI_NULL_OBJECT_ID, begin);
@@ -55,7 +59,9 @@ sai_status_t wrap_set_route_entry_attribute(
     const sai_route_entry_t* route_entry,
     const sai_attribute_t* attr) {
   SaiTracer::getInstance()->logRouteEntrySetAttrFn(route_entry, attr);
-  auto begin = std::chrono::system_clock::now();
+  auto begin = FLAGS_enable_elapsed_time_log
+      ? std::chrono::system_clock::now()
+      : std::chrono::system_clock::time_point::min();
   auto rv = SaiTracer::getInstance()->routeApi_->set_route_entry_attribute(
       route_entry, attr);
   SaiTracer::getInstance()->logPostInvocation(rv, SAI_NULL_OBJECT_ID, begin);
