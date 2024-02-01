@@ -176,7 +176,7 @@ class HwSwitchHandler {
   virtual void cancelOperDeltaSync() = 0;
 
  protected:
-  std::optional<fsdb::OperDelta> getFullSyncOperDelta(
+  fsdb::OperDelta getFullSyncOperDelta(
       const std::shared_ptr<SwitchState>& state) const;
 
  private:

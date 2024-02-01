@@ -90,10 +90,13 @@ HwSwitchStateOperUpdateResult HwSwitchHandler::stateChangedImpl(
   return stateChanged(delta, transaction, newState);
 }
 
-std::optional<fsdb::OperDelta> HwSwitchHandler::getFullSyncOperDelta(
+fsdb::OperDelta HwSwitchHandler::getFullSyncOperDelta(
     const std::shared_ptr<SwitchState>& state) const {
   auto delta = StateDelta(std::make_shared<SwitchState>(), state);
-  return operDeltaFilter_.filterWithSwitchStateRootPath(delta.getOperDelta());
+  auto filteredOper =
+      operDeltaFilter_.filterWithSwitchStateRootPath(delta.getOperDelta());
+  CHECK(filteredOper.has_value());
+  return filteredOper.value();
 }
 
 } // namespace facebook::fboss

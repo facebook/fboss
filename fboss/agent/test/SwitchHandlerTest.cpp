@@ -106,7 +106,7 @@ TEST_F(SwSwitchHandlerTest, GetOperDelta) {
   std::thread stateUpdateThread([this, &delta, &addRandomDelay, &stateV1]() {
     getHwSwitchHandler()->waitUntilHwSwitchConnected();
     addRandomDelay();
-    auto stateReturned = getHwSwitchHandler()->stateChanged(delta, true);
+    auto stateReturned = getHwSwitchHandler()->stateChanged(delta, false);
     EXPECT_EQ(stateReturned, stateV1);
     // Switch 1 cancels request
     getHwSwitchHandler()->notifyHwSwitchGracefulExit(1);
@@ -299,7 +299,7 @@ TEST_F(SwSwitchHandlerTest, rollbackFailedHwSwitchUpdate) {
 
   std::thread stateUpdateThread([this, &delta, &stateV0]() {
     getHwSwitchHandler()->waitUntilHwSwitchConnected();
-    auto stateReturned = getHwSwitchHandler()->stateChanged(delta, true);
+    auto stateReturned = getHwSwitchHandler()->stateChanged(delta, false);
     // update should rollback
     EXPECT_EQ(stateReturned, stateV0);
     getHwSwitchHandler()->stop();
@@ -445,7 +445,7 @@ TEST_F(SwSwitchHandlerTest, reconnectingHwSwitch) {
     getHwSwitchHandler()->stop();
     // server restarts
     serverRestartBaton.post();
-    stateReturned = newHwSwitchHandler->stateChanged(delta4, true);
+    stateReturned = newHwSwitchHandler->stateChanged(delta4, false);
     newHwSwitchHandler->stop();
   });
 
@@ -599,7 +599,7 @@ TEST_F(SwSwitchHandlerTest, switchRunStateTest) {
     client1StartBaton.post();
     client2StartBaton.post();
     checkState(SwitchRunState::CONFIGURED);
-    auto stateReturned = getHwSwitchHandler()->stateChanged(delta, true);
+    auto stateReturned = getHwSwitchHandler()->stateChanged(delta, false);
     EXPECT_EQ(stateReturned, stateV1);
     getHwSwitchHandler()->notifyHwSwitchGracefulExit(1);
     checkState(SwitchRunState::EXITING, 0);
@@ -672,6 +672,7 @@ TEST_F(SwSwitchHandlerTest, initialSync) {
         };
         auto operDelta = sw->getHwSwitchHandler()->getNextStateOperDelta(
             switchId, getEmptyOper(), ackNum++);
+        EXPECT_TRUE(*operDelta.isFullState());
         auto initialDelta =
             StateDelta(std::make_shared<SwitchState>(), sw->getState());
         EXPECT_EQ(
@@ -716,6 +717,7 @@ TEST_F(SwSwitchHandlerTest, initialSyncSwSwitchNotConfigured) {
         };
         auto initialOperDelta = sw->getHwSwitchHandler()->getNextStateOperDelta(
             switchId, getEmptyOper(), ackNum++);
+        EXPECT_TRUE(*initialOperDelta.isFullState());
         if (switchId == 1) {
           client1Baton.post();
         } else {

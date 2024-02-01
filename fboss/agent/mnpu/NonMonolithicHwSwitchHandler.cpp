@@ -250,8 +250,6 @@ NonMonolithicHwSwitchHandler::stateChanged(
     bool transaction,
     const std::shared_ptr<SwitchState>& newState) {
   multiswitch::StateOperDelta stateDelta;
-  stateDelta.operDelta() = delta;
-  stateDelta.transaction() = transaction;
   {
     std::unique_lock<std::mutex> lk(stateUpdateMutex_);
     SCOPE_EXIT {
@@ -277,7 +275,13 @@ NonMonolithicHwSwitchHandler::stateChanged(
             delta, HwSwitchStateUpdateStatus::HWSWITCH_STATE_UPDATE_CANCELLED};
       }
     }
-    stateDelta.seqNum() = ++currOperDeltaSeqNum_;
+    fillMultiswitchOperDelta(
+        stateDelta,
+        prevUpdateSwitchState_,
+        delta,
+        transaction,
+        currOperDeltaSeqNum_);
+    ++currOperDeltaSeqNum_;
     nextOperDelta_ = &stateDelta;
   }
   // state update ready. notify waiting thread
@@ -332,16 +336,14 @@ multiswitch::StateOperDelta NonMonolithicHwSwitchHandler::getNextStateOperDelta(
                  << " curr seqnum=" << currOperDeltaSeqNum_;
       sw_->getHwSwitchHandler()->connected(getSwitchId());
       // If HwSwitchHandler has a valid state, send full sync delta
-      std::optional<fsdb::OperDelta> fullOperDelta{std::nullopt};
       if (prevUpdateSwitchState_) {
-        fullOperDelta = getFullSyncOperDelta(prevUpdateSwitchState_);
-      }
-      if (fullOperDelta) {
-        multiswitch::StateOperDelta fullOperResponse;
         setOperSyncStateLocked(
             HwSwitchOperDeltaSyncState::INITIAL_SYNC_SENT, lk);
+        multiswitch::StateOperDelta fullOperResponse;
         fullOperResponse.seqNum() = ++currOperDeltaSeqNum_;
-        fullOperResponse.operDelta() = fullOperDelta.value();
+        fullOperResponse.operDelta() =
+            getFullSyncOperDelta(prevUpdateSwitchState_);
+        fullOperResponse.isFullState() = true;
         return fullOperResponse;
       } else {
         // Swswitch received an operdelta request before it had a chance to set
@@ -471,6 +473,26 @@ bool NonMonolithicHwSwitchHandler::waitForOperDeltaReady(
   return checkOperSyncStateLocked(HwSwitchOperDeltaSyncState::CANCELLED, lk)
       ? false
       : true;
+}
+
+void NonMonolithicHwSwitchHandler::fillMultiswitchOperDelta(
+    multiswitch::StateOperDelta& stateDelta,
+    const std::shared_ptr<SwitchState>& state,
+    const fsdb::OperDelta& delta,
+    bool transaction,
+    int64_t lastSeqNum) {
+  // Send full delta if this is first switchstate update.
+  // Sequence number 0 indicates first update
+  if (lastSeqNum == 0) {
+    stateDelta.isFullState() = true;
+    stateDelta.operDelta() = getFullSyncOperDelta(state);
+    CHECK(!transaction);
+  } else {
+    stateDelta.isFullState() = false;
+    stateDelta.operDelta() = delta;
+  }
+  stateDelta.transaction() = transaction;
+  stateDelta.seqNum() = lastSeqNum + 1;
 }
 
 } // namespace facebook::fboss
