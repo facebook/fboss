@@ -3,6 +3,7 @@
 #include <fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h>
 #include <fboss/thrift_cow/gen-cpp2/patch_types.h>
 #include <fboss/thrift_cow/nodes/NodeUtils.h>
+#include <fboss/thrift_cow/nodes/Serializer.h>
 #include <thrift/lib/cpp2/reflection/reflection.h>
 
 #include <optional>
@@ -28,8 +29,7 @@ struct NodeType;
 struct FieldsType;
 
 namespace pa_detail {
-template <typename Node>
-PatchResult patchNode(Node& n, ByteBuffer&& buf) {
+inline PatchResult patchNode(Serializable& n, ByteBuffer&& buf) {
   n.fromEncodedBuf(fsdb::OperProtocol::COMPACT, std::move(buf));
   return PatchResult::OK;
 }
