@@ -14,6 +14,7 @@ enum ProductionFeature {
   FABRIC = 1,
   CPU_RX_TX = 2,
   L3_FORWARDING = 3,
+  ACL_PORT_IN_DISCARDS_COUNTER = 4,
 }
 
 const list<ProductionFeature> tomahawkFeature = [
@@ -36,11 +37,13 @@ const list<ProductionFeature> jericho2Feature = [
   ProductionFeature.CPU_RX_TX,
   ProductionFeature.L3_FORWARDING,
   ProductionFeature.VOQ,
+  ProductionFeature.ACL_PORT_IN_DISCARDS_COUNTER,
 ];
 const list<ProductionFeature> jericho3Feature = [
   ProductionFeature.CPU_RX_TX,
   ProductionFeature.L3_FORWARDING,
   ProductionFeature.VOQ,
+  ProductionFeature.ACL_PORT_IN_DISCARDS_COUNTER,
 ];
 const list<ProductionFeature> ramonFeature = [ProductionFeature.FABRIC];
 const list<ProductionFeature> ramon3Feature = [ProductionFeature.FABRIC];
