@@ -108,7 +108,11 @@ TEST(PathVisitorTests, AccessOptional) {
 
   got.clear();
   result = RootPathVisitor::visit(
-      *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
+      *nodeA,
+      path.begin(),
+      path.end(),
+      PathVisitMode::LEAF,
+      pv_detail::LambdaPathVisitorOperator(std::move(processPath)));
   EXPECT_EQ(result, ThriftTraverseResult::NON_EXISTENT_NODE);
   EXPECT_TRUE(got.empty());
 }

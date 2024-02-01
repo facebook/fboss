@@ -19,6 +19,10 @@ namespace pv_detail {
 using PathIter = typename std::vector<std::string>::const_iterator;
 }
 
+// Base class for "untyped" operators. This base class should be the prefered
+// way to use visitors. Operations should subclass this and override the virtual
+// methods but pass a pointer to the base class to avoid extra unique
+// instantiations
 class BasePathVisitorOperator {
  public:
   virtual ~BasePathVisitorOperator() = default;
@@ -142,6 +146,40 @@ enum class PathVisitMode {
 namespace pv_detail {
 
 using PathIter = typename std::vector<std::string>::const_iterator;
+
+// Version of an operator that forwards operation to a lambda. This should be
+// used as sparingly as possible because every call with this templated operator
+// is a unique instantiation of the entire template tree
+template <typename Func>
+struct LambdaPathVisitorOperator {
+  explicit LambdaPathVisitorOperator(Func&& f) : f_(f) {}
+
+  template <typename Node>
+  inline auto visitTyped(
+      Node& node,
+      pv_detail::PathIter begin,
+      pv_detail::PathIter end) -> std::
+      invoke_result_t<Func, Node&, pv_detail::PathIter, pv_detail::PathIter> {
+    return f_(node, begin, end);
+  }
+
+  template <typename Node>
+  inline auto visitTyped(
+      Node& node,
+      pv_detail::PathIter /* begin */,
+      pv_detail::PathIter /* end */) -> std::invoke_result_t<Func, Node&> {
+    return f_(node);
+  }
+
+  template <typename Node>
+  inline void
+  operator()(Node& node, pv_detail::PathIter begin, pv_detail::PathIter end) {
+    visitTyped(node, begin, end);
+  }
+
+ private:
+  Func f_;
+};
 
 template <typename Node, typename Func>
 auto invokeVisitorFnHelper(Node& node, PathIter begin, PathIter end, Func&& f)
