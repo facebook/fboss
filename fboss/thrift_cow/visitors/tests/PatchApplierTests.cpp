@@ -288,7 +288,7 @@ TEST(PatchApplierTests, FailPatchingSetEntry) {
   std::vector<std::string> path = {
       folly::to<std::string>(TestStructMembers::setOfI32::id::value), "1"};
   bool visited = false;
-  nodeA->visitPath(path.begin(), path.end(), [&](auto& node) {
+  auto process = pvlambda([&](auto& node) {
     EXPECT_FALSE(visited);
     visited = true;
 
@@ -297,6 +297,7 @@ TEST(PatchApplierTests, FailPatchingSetEntry) {
     auto ret = PatchApplier<TC>::apply(node, PatchNode(intPatch));
     EXPECT_EQ(ret, PatchResult::PATCHING_IMMUTABLE_NODE);
   });
+  nodeA->visitPath(path.begin(), path.end(), process);
   EXPECT_TRUE(visited);
 }
 

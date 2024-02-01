@@ -20,10 +20,10 @@ TEST(PathVisitorTests, AccessField) {
 
   auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
   folly::dynamic dyn;
-  auto processPath = [&dyn](auto& node, auto begin, auto end) {
+  auto processPath = pvlambda([&dyn](auto& node, auto begin, auto end) {
     EXPECT_EQ(begin, end);
     dyn = node.toFollyDynamic();
-  };
+  });
   std::vector<std::string> path{"inlineInt"};
   auto result = RootPathVisitor::visit(
       *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
@@ -49,11 +49,11 @@ TEST(PathVisitorTests, AccessFieldInContainer) {
   auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
 
   cfg::L4PortRange got;
-  auto processPath = [&got](auto& node, auto begin, auto end) {
+  auto processPath = pvlambda([&got](auto& node, auto begin, auto end) {
     EXPECT_EQ(begin, end);
     got = apache::thrift::from_dynamic<cfg::L4PortRange>(
         node.toFollyDynamic(), apache::thrift::dynamic_format::JSON_1);
-  };
+  });
 
   std::vector<std::string> path{"mapOfEnumToStruct", "3"};
   auto result = RootPathVisitor::visit(
@@ -70,20 +70,36 @@ TEST(PathVisitorTests, AccessFieldInContainer) {
   EXPECT_EQ(*got.max(), 200);
 }
 
+struct GetVisitedPathsOperator : public BasePathVisitorOperator {
+ public:
+  const std::set<std::string>& getVisited() {
+    return visited;
+  }
+
+ protected:
+  void visit(
+      Serializable& /* node */,
+      pv_detail::PathIter begin,
+      pv_detail::PathIter end) override {
+    visited.insert(
+        "/" + folly::join('/', std::vector<std::string>(begin, end)));
+  }
+
+ private:
+  std::set<std::string> visited;
+};
+
 TEST(PathVisitorTests, TraversalModeFull) {
   auto structA = createSimpleTestStruct();
   auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
 
-  std::set<std::string> got;
-  auto processPath = [&got](auto& node, auto begin, auto end) {
-    got.insert("/" + folly::join('/', std::vector<std::string>(begin, end)));
-  };
+  auto op = GetVisitedPathsOperator();
   std::vector<std::string> path{"mapOfEnumToStruct", "3"};
   auto result = RootPathVisitor::visit(
-      *nodeA, path.begin(), path.end(), PathVisitMode::FULL, processPath);
+      *nodeA, path.begin(), path.end(), PathVisitMode::FULL, op);
   EXPECT_EQ(result, ThriftTraverseResult::OK);
   EXPECT_THAT(
-      got,
+      op.getVisited(),
       ::testing::ContainerEq(
           std::set<std::string>{"/", "/3", "/mapOfEnumToStruct/3"}));
 }
@@ -93,10 +109,10 @@ TEST(PathVisitorTests, AccessOptional) {
   auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
 
   std::string got;
-  auto processPath = [&got](auto& node, auto begin, auto end) {
+  auto processPath = pvlambda([&got](auto& node, auto begin, auto end) {
     EXPECT_EQ(begin, end);
     got = node.toFollyDynamic().asString();
-  };
+  });
 
   std::vector<std::string> path{"optionalString"};
   auto result = RootPathVisitor::visit(
@@ -108,11 +124,7 @@ TEST(PathVisitorTests, AccessOptional) {
 
   got.clear();
   result = RootPathVisitor::visit(
-      *nodeA,
-      path.begin(),
-      path.end(),
-      PathVisitMode::LEAF,
-      pv_detail::LambdaPathVisitorOperator(std::move(processPath)));
+      *nodeA, path.begin(), path.end(), PathVisitMode::LEAF, processPath);
   EXPECT_EQ(result, ThriftTraverseResult::NON_EXISTENT_NODE);
   EXPECT_TRUE(got.empty());
 }

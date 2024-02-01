@@ -3,6 +3,7 @@
 #pragma once
 
 #include <type_traits>
+#include <utility>
 #include "folly/Conv.h"
 #include "folly/logging/xlog.h"
 
@@ -148,11 +149,12 @@ namespace pv_detail {
 using PathIter = typename std::vector<std::string>::const_iterator;
 
 // Version of an operator that forwards operation to a lambda. This should be
-// used as sparingly as possible because every call with this templated operator
-// is a unique instantiation of the entire template tree
+// used as sparingly as possible, only when node types are needed, because
+// every call with this templated operator is a unique instantiation of the
+// entire template tree
 template <typename Func>
 struct LambdaPathVisitorOperator {
-  explicit LambdaPathVisitorOperator(Func&& f) : f_(f) {}
+  explicit LambdaPathVisitorOperator(Func&& f) : f_(std::forward<Func>(f)) {}
 
   template <typename Node>
   inline auto visitTyped(
@@ -231,6 +233,13 @@ ThriftTraverseResult visitNode(
 }
 
 } // namespace pv_detail
+
+// Helper for creating LambdaPathVisitorOperator. As above, should be used
+// sparingly, only when node types are required
+template <typename Func>
+pv_detail::LambdaPathVisitorOperator<Func> pvlambda(Func&& f) {
+  return pv_detail::LambdaPathVisitorOperator<Func>(std::forward<Func>(f));
+}
 
 /**
  * Set
