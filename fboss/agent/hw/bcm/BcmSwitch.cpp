@@ -2641,9 +2641,18 @@ void BcmSwitch::processAddedAndChangedNeighbor(
     const NeighborEntryT* entry) {
   auto* neighbor = neighborTable_->getNeighbor(neighborKey);
   CHECK(neighbor);
-  if (entry->getNoHostRoute()) {
+  /*
+   * Prior to S391473, we used default noHostRoute to false. However
+   * some legacy SAI devices had this value erroneously set to true.
+   * So to mitigate we set made the field optional. However, some
+   * devices were already rolled out with the default of false.
+   * In Bcm layer we don't model noHostRoute setting. That comes out
+   * to a behavior of noHostRoute=false (default) or noHostRoute not
+   * being set.
+   */
+  if (entry->getNoHostRoute().has_value() && *entry->getNoHostRoute()) {
     throw FbossError(
-        "No host route setting on neighbor entry not supported on BcmSwitch");
+        "No host route = true on neighbor entry not supported on BcmSwitch");
   }
   BcmHostTableIf* hostTable;
   if (getPlatform()->getAsic()->isSupported(HwAsic::Feature::HOSTTABLE)) {
