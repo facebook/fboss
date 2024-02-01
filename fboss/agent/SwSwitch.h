@@ -903,8 +903,6 @@ class SwSwitch : public HwSwitchCallback {
 
   const AgentDirectoryUtil* getDirUtil() const;
 
-  void switchRunStateChanged(SwitchRunState newState);
-
   MultiSwitchPacketStreamMap* getPacketStreamMap() {
     return packetStreamMap_.get();
   }

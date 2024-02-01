@@ -587,7 +587,8 @@ void SwSwitch::onSwitchRunStateChange(SwitchRunState newState) {
     return newSwitchState;
   };
   updateState("update switch runstate", updateFn);
-  switchRunStateChanged(newState);
+  // TODO (m-NPU): handle m-NPU support
+  multiHwSwitchHandler_->switchRunStateChanged(newState);
 }
 
 SwitchRunState SwSwitch::getSwitchRunState() const {
@@ -2979,11 +2980,6 @@ std::optional<uint32_t> SwSwitch::getHwLogicalPortId(PortID portID) const {
 
 const AgentDirectoryUtil* SwSwitch::getDirUtil() const {
   return agentDirUtil_;
-}
-
-void SwSwitch::switchRunStateChanged(SwitchRunState newState) {
-  // TODO (m-NPU): handle m-NPU support
-  multiHwSwitchHandler_->switchRunStateChanged(newState);
 }
 
 void SwSwitch::storeWarmBootState(const state::WarmbootState& state) {
