@@ -42,6 +42,7 @@ class SaiDebugCounterManager {
   sai_stat_id_t getAclDropCounterStatId() const {
     return aclDropCounterStatId_;
   }
+  std::set<sai_stat_id_t> getConfiguredDebugStatIds() const;
 
  private:
   void setupPortL3BlackHoleCounter();

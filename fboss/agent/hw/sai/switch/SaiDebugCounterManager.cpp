@@ -91,4 +91,19 @@ void SaiDebugCounterManager::setupAclDropCounter() {
           aclDropCounter_->adapterKey(),
           SaiDebugCounterTraits::Attributes::Index{});
 }
+
+std::set<sai_stat_id_t> SaiDebugCounterManager::getConfiguredDebugStatIds()
+    const {
+  std::set<sai_stat_id_t> stats;
+  if (portL3BlackHoleCounter_) {
+    stats.insert(portL3BlackHoleCounterStatId_);
+  }
+  if (mplsLookupFailCounter_) {
+    stats.insert(mplsLookupFailCounterStatId_);
+  }
+  if (aclDropCounter_) {
+    stats.insert(aclDropCounterStatId_);
+  }
+  return stats;
+}
 } // namespace facebook::fboss

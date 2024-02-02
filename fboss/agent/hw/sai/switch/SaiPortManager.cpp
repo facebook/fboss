@@ -1641,23 +1641,20 @@ void SaiPortManager::clearStats(PortID port) {
     return;
   }
   auto statsToClear = supportedStats(port);
-  if (platform_->getAsic()->isSupported(
-          HwAsic::Feature::BLACKHOLE_ROUTE_DROP_COUNTER)) {
-    // Debug counters are implemented differently than regular port counters
-    // and not all implementations support clearing them. For our use case
-    // it doesn't particularly matter if we can't clear them. So prune the
-    // debug counter clear for now.
-    auto debugCounterId =
-        managerTable_->debugCounterManager().getPortL3BlackHoleCounterStatId();
-    statsToClear.erase(
-        std::remove_if(
-            statsToClear.begin(),
-            statsToClear.end(),
-            [debugCounterId](auto counterId) {
-              return counterId == debugCounterId;
-            }),
-        statsToClear.end());
-  }
+  // Debug counters are implemented differently than regular port counters
+  // and not all implementations support clearing them. For our use case
+  // it doesn't particularly matter if we can't clear them. So prune the
+  // debug counter clear for now.
+  auto skipClear =
+      managerTable_->debugCounterManager().getConfiguredDebugStatIds();
+  statsToClear.erase(
+      std::remove_if(
+          statsToClear.begin(),
+          statsToClear.end(),
+          [&skipClear](auto counterId) {
+            return skipClear.find(counterId) != skipClear.end();
+          }),
+      statsToClear.end());
   portHandle->port->clearStats(statsToClear);
   managerTable_->queueManager().clearStats(portHandle->configuredQueues);
 }
