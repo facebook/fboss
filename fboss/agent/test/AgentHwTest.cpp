@@ -187,6 +187,13 @@ HwPortStats AgentHwTest::getLatestPortStats(const PortID& port) {
   return getLatestPortStats(std::vector<PortID>({port})).begin()->second;
 }
 
+void AgentHwTest::applyNewStateImpl(
+    StateUpdateFn fn,
+    const std::string& name,
+    bool transaction) {
+  agentEnsemble_->applyNewState(fn, name, transaction);
+}
+
 void initAgentHwTest(int argc, char* argv[], PlatformInitFn initPlatform) {
   initEnsemble(initPlatform);
   kArgc = argc;

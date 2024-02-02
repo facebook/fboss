@@ -35,6 +35,7 @@ class AgentEnsemble : public TestEnsembleIf {
   explicit AgentEnsemble(const std::string& configFileName);
   virtual ~AgentEnsemble() override;
   using TestEnsembleIf::masterLogicalPortIds;
+  using StateUpdateFn = SwSwitch::StateUpdateFn;
 
   void setupEnsemble(
       uint32_t hwFeaturesDesired,
@@ -84,6 +85,9 @@ class AgentEnsemble : public TestEnsembleIf {
   std::shared_ptr<SwitchState> applyNewState(
       std::shared_ptr<SwitchState> state,
       bool transaction = false) override;
+
+  void
+  applyNewState(StateUpdateFn fn, const std::string& name, bool transatction);
 
   std::vector<PortID> masterLogicalPortIds() const override;
 

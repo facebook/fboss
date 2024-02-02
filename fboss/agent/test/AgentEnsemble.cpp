@@ -216,6 +216,20 @@ std::shared_ptr<SwitchState> AgentEnsemble::applyNewState(
   return getSw()->getState();
 }
 
+void AgentEnsemble::applyNewState(
+    StateUpdateFn fn,
+    const std::string& name,
+    bool transaction) {
+  // TODO: Handle multiple Asics
+  auto asic = getSw()->getHwAsicTable()->getHwAsics().cbegin()->second;
+  auto applyUpdate = [&](const std::shared_ptr<SwitchState>& in) {
+    return EncapIndexAllocator::updateEncapIndices(
+        StateDelta(in, fn(in)), *asic);
+  };
+  transaction ? getSw()->updateStateWithHwFailureProtection(name, applyUpdate)
+              : getSw()->updateStateBlocking(name, applyUpdate);
+}
+
 void AgentEnsemble::enableExactMatch(bcm::BcmConfig& config) {
   if (auto yamlCfg = config.yamlConfig()) {
     // use common func
