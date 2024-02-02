@@ -162,13 +162,17 @@ std::map<PortID, HwPortStats> AgentHwTest::getLatestPortStats(
   // Stats collection from SwSwitch is async, wait for stats
   // being available before returning here.
   std::map<PortID, HwPortStats> portStats;
+  std::unordered_set<PortID> toFetch{ports.begin(), ports.end()};
   checkWithRetry(
-      [&portStats, this]() {
+      [&portStats, this, &toFetch]() {
         auto switchStats = getSw()->getHwSwitchStatsExpensive();
         auto portMap = getSw()->getState()->getPorts();
         for (const auto& [_, hwStats] : switchStats) {
           for (const auto& [portName, stats] : *hwStats.hwPortStats()) {
-            portStats.insert({portMap->getPort(portName)->getID(), stats});
+            auto portId = portMap->getPort(portName)->getID();
+            if (toFetch.find(portId) != toFetch.end()) {
+              portStats.insert({portMap->getPort(portName)->getID(), stats});
+            }
           }
         }
         return !portStats.empty();
