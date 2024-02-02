@@ -1530,6 +1530,10 @@ void SaiTracer::setNeighborEntry(
   lines.push_back(
       to<string>("n_e.rif_id=", getVariable(neighbor_entry->rif_id)));
 
+  folly::IPAddress ipAddress =
+      facebook::fboss::fromSaiIpAddress(neighbor_entry->ip_address);
+  lines.push_back(to<string>("// ", ipAddress.str()));
+
   if (neighbor_entry->ip_address.addr_family == SAI_IP_ADDR_FAMILY_IPV4) {
     lines.push_back("n_e.ip_address.addr_family=SAI_IP_ADDR_FAMILY_IPV4");
     lines.push_back(to<string>(
