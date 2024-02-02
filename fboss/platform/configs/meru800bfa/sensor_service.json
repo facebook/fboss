@@ -407,7 +407,7 @@
         "path" : "/run/devmap/sensors/FAN_CPLD0/fan1_input",
         "thresholds" : {
           "upperCriticalVal" : 14900,
-          "lowerCriticalVal" : 2000
+          "lowerCriticalVal" : 1100
         },
         "type" : 4
       }
@@ -417,7 +417,7 @@
         "path" : "/run/devmap/sensors/FAN_CPLD0/fan2_input",
         "thresholds" : {
           "upperCriticalVal" : 14900,
-          "lowerCriticalVal" : 2000
+          "lowerCriticalVal" : 1100
         },
         "type" : 4
       }
@@ -427,7 +427,7 @@
         "path" : "/run/devmap/sensors/FAN_CPLD0/fan3_input",
         "thresholds" : {
           "upperCriticalVal" : 14900,
-          "lowerCriticalVal" : 2000
+          "lowerCriticalVal" : 1100
         },
         "type" : 4
       }
@@ -437,7 +437,7 @@
         "path" : "/run/devmap/sensors/FAN_CPLD0/fan4_input",
         "thresholds" : {
           "upperCriticalVal" : 14900,
-          "lowerCriticalVal" : 2000
+          "lowerCriticalVal" : 1100
         },
         "type" : 4
       }
@@ -447,7 +447,7 @@
         "path" : "/run/devmap/sensors/FAN_CPLD1/fan1_input",
         "thresholds" : {
           "upperCriticalVal" : 14900,
-          "lowerCriticalVal" : 2000
+          "lowerCriticalVal" : 1100
         },
         "type" : 4
       }
@@ -457,7 +457,7 @@
         "path" : "/run/devmap/sensors/FAN_CPLD1/fan2_input",
         "thresholds" : {
           "upperCriticalVal" : 14900,
-          "lowerCriticalVal" : 2000
+          "lowerCriticalVal" : 1100
         },
         "type" : 4
       }
@@ -467,7 +467,7 @@
         "path" : "/run/devmap/sensors/FAN_CPLD1/fan3_input",
         "thresholds" : {
           "upperCriticalVal" : 14900,
-          "lowerCriticalVal" : 2000
+          "lowerCriticalVal" : 1100
         },
         "type" : 4
       }
@@ -477,7 +477,7 @@
         "path" : "/run/devmap/sensors/FAN_CPLD1/fan4_input",
         "thresholds" : {
           "upperCriticalVal" : 14900,
-          "lowerCriticalVal" : 2000
+          "lowerCriticalVal" : 1100
         },
         "type" : 4
       }
@@ -487,7 +487,7 @@
         "path" : "/run/devmap/sensors/FAN_CPLD2/fan1_input",
         "thresholds" : {
           "upperCriticalVal" : 14900,
-          "lowerCriticalVal" : 2000
+          "lowerCriticalVal" : 1100
         },
         "type" : 4
       }
@@ -497,7 +497,7 @@
         "path" : "/run/devmap/sensors/FAN_CPLD2/fan2_input",
         "thresholds" : {
           "upperCriticalVal" : 14900,
-          "lowerCriticalVal" : 2000
+          "lowerCriticalVal" : 1100
         },
         "type" : 4
       }
@@ -507,7 +507,7 @@
         "path" : "/run/devmap/sensors/FAN_CPLD2/fan3_input",
         "thresholds" : {
           "upperCriticalVal" : 14900,
-          "lowerCriticalVal" : 2000
+          "lowerCriticalVal" : 1100
         },
         "type" : 4
       }
@@ -517,7 +517,7 @@
         "path" : "/run/devmap/sensors/FAN_CPLD2/fan4_input",
         "thresholds" : {
           "upperCriticalVal" : 14900,
-          "lowerCriticalVal" : 2000
+          "lowerCriticalVal" : 1100
         },
         "type" : 4
       }
