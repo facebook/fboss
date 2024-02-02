@@ -1,7 +1,7 @@
 namespace cpp2 facebook.fboss.cli
 
 struct ShowAclModel {
-  1: list<AclEntry> aclEntries;
+  1: map<string, list<AclEntry>> aclTableEntries;
 }
 
 struct AclEntry {
