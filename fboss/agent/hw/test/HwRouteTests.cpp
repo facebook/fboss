@@ -33,6 +33,7 @@
 using facebook::network::toBinaryAddress;
 
 DECLARE_bool(intf_nbr_tables);
+DECLARE_bool(classid_for_unresolved_routes);
 
 namespace facebook::fboss {
 
@@ -584,6 +585,10 @@ TYPED_TEST(HwRouteTest, verifyCpuRouteChange) {
     auto cidr = folly::CIDRNetwork(routePrefix.network(), routePrefix.mask());
     EXPECT_TRUE(
         utility::isHwRouteToCpu(this->getHwSwitch(), this->kRouterID(), cidr));
+    if (FLAGS_classid_for_unresolved_routes) {
+      EXPECT_TRUE(utility::isRouteUnresolvedToCpuClassId(
+          this->getHwSwitch(), this->kRouterID(), cidr));
+    }
 
     // Resolve next hops
     utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(
