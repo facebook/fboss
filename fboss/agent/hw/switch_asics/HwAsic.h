@@ -165,6 +165,7 @@ class HwAsic {
     MANAGEMENT_PORT,
     ANY_ACL_DROP_COUNTER,
     PORT_WRED_COUNTER,
+    ACL_METADATA_QUALIFER,
   };
 
   enum class AsicMode {

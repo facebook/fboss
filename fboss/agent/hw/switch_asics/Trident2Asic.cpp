@@ -151,6 +151,7 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::MANAGEMENT_PORT:
     case HwAsic::Feature::ANY_ACL_DROP_COUNTER:
     case HwAsic::Feature::PORT_WRED_COUNTER:
+    case HwAsic::Feature::ACL_METADATA_QUALIFER:
       return false;
   }
   return false;

@@ -85,6 +85,7 @@ bool EbroAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::PORT_WRED_COUNTER:
     case HwAsic::Feature::BRIDGE_PORT_8021Q:
     case HwAsic::Feature::WARMBOOT:
+    case HwAsic::Feature::ACL_METADATA_QUALIFER:
       return true;
     case HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE:
     case HwAsic::Feature::HOSTTABLE:

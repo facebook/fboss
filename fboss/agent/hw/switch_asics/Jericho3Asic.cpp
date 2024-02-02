@@ -161,6 +161,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ECMP_HASH_V6:
     case HwAsic::Feature::TRAFFIC_HASHING:
     case HwAsic::Feature::PORT_WRED_COUNTER:
+    case HwAsic::Feature::ACL_METADATA_QUALIFER:
       return false;
   }
   return false;
