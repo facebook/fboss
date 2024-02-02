@@ -3,11 +3,11 @@
 # In general, libraries and binaries in fboss/foo/bar are built by
 # cmake/FooBar.cmake
 
-add_library(agent_benchmarks
+add_library(mono_agent_benchmarks
   fboss/agent/benchmarks/AgentBenchmarks.cpp
 )
 
-target_link_libraries(agent_benchmarks
+target_link_libraries(mono_agent_benchmarks
   mono_agent_ensemble
   Folly::folly
 )
@@ -18,7 +18,7 @@ add_library(sai_agent_benchmarks_main
 )
 
 target_link_libraries(sai_agent_benchmarks_main
-  agent_benchmarks
+  mono_agent_benchmarks
   Folly::folly
   sai_platform
 )
