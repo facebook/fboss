@@ -214,12 +214,12 @@
         "type" : 3
       },
       "SMB_VRM1_VIN" : {
-        "path" : "/run/devmap/sensors/SMB_RAA288926_J3/in1_input",
+        "path" : "/run/devmap/sensors/SMB_RAA228926_J3/in1_input",
         "compute" : "@/1000.0",
         "type" : 1
       },
       "SMB_VRM1_VOUT_J3_0V85_CORE" : {
-        "path" : "/run/devmap/sensors/SMB_RAA288926_J3/in3_input",
+        "path" : "/run/devmap/sensors/SMB_RAA228926_J3/in3_input",
         "compute" : "@/1000.0",
         "type" : 1
       },
@@ -258,8 +258,8 @@
       "FAN1_RPM" : {
         "path" : "/run/devmap/sensors/FAN_CPLD/fan1_input",
         "thresholds" : {
-          "upperCriticalVal" : 12000,
-          "lowerCriticalVal" : 2000
+          "upperCriticalVal" : 14900,
+          "lowerCriticalVal" : 1100
         },
         "type" : 4
       }
@@ -268,8 +268,8 @@
       "FAN2_RPM" : {
         "path" : "/run/devmap/sensors/FAN_CPLD/fan2_input",
         "thresholds" : {
-          "upperCriticalVal" : 12000,
-          "lowerCriticalVal" : 2000
+          "upperCriticalVal" : 14900,
+          "lowerCriticalVal" : 1100
         },
         "type" : 4
       }
@@ -278,8 +278,8 @@
       "FAN3_RPM" : {
         "path" : "/run/devmap/sensors/FAN_CPLD/fan3_input",
         "thresholds" : {
-          "upperCriticalVal" : 12000,
-          "lowerCriticalVal" : 2000
+          "upperCriticalVal" : 14900,
+          "lowerCriticalVal" : 1100
         },
         "type" : 4
       }
@@ -288,8 +288,8 @@
       "FAN4_RPM" : {
         "path" : "/run/devmap/sensors/FAN_CPLD/fan4_input",
         "thresholds" : {
-          "upperCriticalVal" : 12000,
-          "lowerCriticalVal" : 2000
+          "upperCriticalVal" : 14900,
+          "lowerCriticalVal" : 1100
         },
         "type" : 4
       }
