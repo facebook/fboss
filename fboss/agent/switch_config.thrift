@@ -385,6 +385,14 @@ enum AclLookupClass {
 
   // set by BGP for deterministic path routes
   DST_CLASS_L3_DPR = 20,
+
+  /*
+   * Routes that uses single nexthop and are unresolved points to
+   * cpu port as the nexthop to trigger neighbor resolution. Associate
+   * a class ID for those routes which will be matched against an ACL
+   * to send the packet to default queue. Refer to S390808 for more details.
+   */
+  CLASS_UNRESOLVED_ROUTE_TO_CPU = 21,
 }
 
 enum PacketLookupResultType {

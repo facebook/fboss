@@ -213,6 +213,8 @@ class CmdShowRouteDetails
         return fmt::format("CLASS_QUEUE_PER_HOST_QUEUE_9({})", classId);
       case cfg::AclLookupClass::DST_CLASS_L3_DPR:
         return fmt::format("DST_CLASS_L3_DPR({})", classId);
+      case cfg::AclLookupClass::CLASS_UNRESOLVED_ROUTE_TO_CPU:
+        return fmt::format("CLASS_UNRESOLVED_ROUTE_TO_CPU({})", classId);
     }
     throw std::runtime_error(
         "Unsupported ClassID: " + std::to_string(static_cast<int>(classID)));

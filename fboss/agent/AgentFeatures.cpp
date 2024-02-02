@@ -15,3 +15,8 @@ DEFINE_int32(
     oper_sync_req_timeout,
     30,
     "request timeout for oper sync client in seconds");
+
+DEFINE_bool(
+    classid_for_unresolved_routes,
+    false,
+    "Flag to set the class ID for unresolved routes that points  to CPU port");
