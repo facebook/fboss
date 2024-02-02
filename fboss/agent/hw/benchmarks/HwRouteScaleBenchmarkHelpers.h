@@ -22,8 +22,9 @@
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/lib/FunctionCallTimeReporter.h"
 
-#include "fboss/agent/benchmarks/AgentBenchmarks.h"
-#include "fboss/agent/test/MonoAgentEnsemble.h"
+#include "fboss/agent/test/AgentEnsemble.h"
+
+DECLARE_bool(json);
 
 namespace facebook::fboss {
 
