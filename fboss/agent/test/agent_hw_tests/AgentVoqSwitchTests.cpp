@@ -87,11 +87,13 @@ class AgentVoqSwitchTest : public AgentHwTest {
       std::optional<int64_t> encapIdx = std::nullopt) {
     utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
     if (add) {
-      getAgentEnsemble()->applyNewState(ecmpHelper.resolveNextHops(
-          getProgrammedState(), {port}, false /*use link local*/, encapIdx));
+      applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+        return ecmpHelper.resolveNextHops(in, {port});
+      });
     } else {
-      getAgentEnsemble()->applyNewState(
-          ecmpHelper.unresolveNextHops(getProgrammedState(), {port}));
+      applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+        return ecmpHelper.unresolveNextHops(in, {port});
+      });
     }
   }
 };
