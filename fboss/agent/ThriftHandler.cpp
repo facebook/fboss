@@ -112,6 +112,8 @@ DEFINE_bool(
 
 DECLARE_bool(intf_nbr_tables);
 
+DECLARE_bool(enable_acl_table_group);
+
 namespace facebook::fboss {
 
 namespace util {
@@ -1061,6 +1063,37 @@ void ThriftHandler::getAclTable(std::vector<AclEntryThrift>& aclTable) {
       const auto& aclEntry = iter.second;
       aclTable.push_back(populateAclEntryThrift(*aclEntry));
     }
+  }
+}
+
+void ThriftHandler::getAclTableGroup(AclTableThrift& aclTableEntry) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured(__func__);
+  if (FLAGS_enable_acl_table_group) {
+    for (const auto& mIter :
+         std::as_const(*(sw_->getState()->getAclTableGroups()))) {
+      for (const auto& iter : std::as_const(*mIter.second)) {
+        auto aclStage = iter.first;
+        auto aclTableMap = sw_->getState()->getAclTablesForStage(aclStage);
+        if (aclTableMap) {
+          for (const auto& tableIter : std::as_const(*aclTableMap)) {
+            std::vector<AclEntryThrift> aclTable;
+            auto aclTableName = tableIter.first;
+            auto aclMap = tableIter.second->getAclMap().unwrap();
+            for (const auto& aclMapEntry : std::as_const(*aclMap)) {
+              const auto& aclEntry = aclMapEntry.second;
+              aclTable.push_back(populateAclEntryThrift(*aclEntry));
+            }
+            aclTableEntry.aclTableEntries_ref()[aclTableName] =
+                std::move(aclTable);
+          }
+        }
+      }
+    }
+  } else {
+    std::vector<AclEntryThrift> aclTable;
+    getAclTable(aclTable);
+    aclTableEntry.aclTableEntries_ref()["AclTable1"] = std::move(aclTable);
   }
 }
 

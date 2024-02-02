@@ -595,6 +595,10 @@ struct AclEntryThrift {
   24: optional list<string> udfGroups;
 }
 
+struct AclTableThrift {
+  1: map<string, list<AclEntryThrift>> aclTableEntries;
+}
+
 enum HwObjectType {
   PORT = 0,
   LAG = 1,
@@ -1060,6 +1064,7 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
   list<ArpEntryThrift> getArpTable() throws (1: fboss.FbossBaseError error);
   list<NdpEntryThrift> getNdpTable() throws (1: fboss.FbossBaseError error);
   list<L2EntryThrift> getL2Table() throws (1: fboss.FbossBaseError error);
+  AclTableThrift getAclTableGroup() throws (1: fboss.FbossBaseError error);
   list<AclEntryThrift> getAclTable() throws (1: fboss.FbossBaseError error);
 
   AggregatePortThrift getAggregatePort(1: i32 aggregatePortID) throws (
