@@ -9,16 +9,9 @@ namespace facebook::fboss {
 std::shared_ptr<SwitchState> DsfStateUpdaterUtil::getUpdatedState(
     const std::shared_ptr<SwitchState>& in,
     const SwitchIdScopeResolver* scopeResolver,
-    const std::shared_ptr<SystemPortMap>& newSysPorts,
-    const std::shared_ptr<InterfaceMap>& newRifs,
-    const std::string& nodeName,
-    const SwitchID& nodeSwitchId) {
-  XLOG(DBG2) << " For , switchId: " << static_cast<int64_t>(nodeSwitchId)
-             << " got,"
-             << " updated # of sys ports: "
-             << (newSysPorts ? newSysPorts->size() : 0)
-             << " updated # of rifs: " << (newRifs ? newRifs->size() : 0);
-
+    const std::map<SwitchID, std::shared_ptr<SystemPortMap>>&
+        switchId2SystemPorts,
+    const std::map<SwitchID, std::shared_ptr<InterfaceMap>>& switchId2Intfs) {
   bool changed{false};
   auto out = in->clone();
 
@@ -134,18 +127,26 @@ std::shared_ptr<SwitchState> DsfStateUpdaterUtil::getUpdatedState(
         });
   };
 
-  if (newSysPorts) {
+  for (const auto& [nodeSwitchId, newSysPorts] : switchId2SystemPorts) {
+    XLOG(DBG2) << "SwitchId: " << static_cast<int64_t>(nodeSwitchId)
+               << " updated # of sys ports: " << newSysPorts->size();
+
     auto origSysPorts = out->getSystemPorts(nodeSwitchId);
     ThriftMapDelta<SystemPortMap> delta(origSysPorts.get(), newSysPorts.get());
     auto remoteSysPorts = out->getRemoteSystemPorts()->modify(&out);
     processDelta(delta, remoteSysPorts, makeRemoteSysPort);
   }
-  if (newRifs) {
+
+  for (const auto& [nodeSwitchId, newRifs] : switchId2Intfs) {
+    XLOG(DBG2) << "SwitchId: " << static_cast<int64_t>(nodeSwitchId)
+               << " updated # of intfs: " << newRifs->size();
+
     auto origRifs = out->getInterfaces(nodeSwitchId);
     InterfaceMapDelta delta(origRifs.get(), newRifs.get());
     auto remoteRifs = out->getRemoteInterfaces()->modify(&out);
     processDelta(delta, remoteRifs, makeRemoteRif);
   }
+
   if (changed) {
     return out;
   }

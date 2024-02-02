@@ -101,42 +101,22 @@ void DsfSubscriber::scheduleUpdate(
   hasNoLocalSwitchId(switchId2SystemPorts);
   hasNoLocalSwitchId(switchId2Intfs);
 
-  auto updateDsfStateFn = [this,
-                           nodeName,
-                           nodeSwitchId,
-                           switchId2SystemPorts,
-                           switchId2Intfs](
-                              const std::shared_ptr<SwitchState>& in) {
-    std::shared_ptr<SwitchState> currState = in;
-    std::shared_ptr<SwitchState> out{nullptr};
-    for (const auto& [switchId, newSystemPorts] : switchId2SystemPorts) {
-      auto it = switchId2Intfs.find(switchId);
-      if (it == switchId2Intfs.end()) {
-        throw FbossError(
-            "Both systemPorts and Interfaces must be provided together for every switchID");
-      }
+  auto updateDsfStateFn =
+      [this, nodeName, nodeSwitchId, switchId2SystemPorts, switchId2Intfs](
+          const std::shared_ptr<SwitchState>& in) {
+        auto out = DsfStateUpdaterUtil::getUpdatedState(
+            in, sw_->getScopeResolver(), switchId2SystemPorts, switchId2Intfs);
 
-      auto newIntfs = it->second;
-      out = DsfStateUpdaterUtil::getUpdatedState(
-          currState,
-          sw_->getScopeResolver(),
-          newSystemPorts,
-          newIntfs,
-          nodeName,
-          switchId);
-      currState = out;
-    }
+        if (FLAGS_dsf_subscriber_cache_updated_state) {
+          cachedState_ = out;
+        }
 
-    if (FLAGS_dsf_subscriber_cache_updated_state) {
-      cachedState_ = out;
-    }
+        if (!FLAGS_dsf_subscriber_skip_hw_writes) {
+          return out;
+        }
 
-    if (!FLAGS_dsf_subscriber_skip_hw_writes) {
-      return out;
-    }
-
-    return std::shared_ptr<SwitchState>{};
-  };
+        return std::shared_ptr<SwitchState>{};
+      };
 
   sw_->updateState(
       folly::sformat("Update state for node: {}", nodeName),

@@ -1421,32 +1421,9 @@ void ThriftHandler::patchCurrentStateJSONForPaths(
 
   auto updateDsfStateFn = [this, switchId2SystemPorts, switchId2Rifs](
                               const std::shared_ptr<SwitchState>& in) {
-    auto currState = in;
-    for (const auto& [switchId, newSysPorts] : switchId2SystemPorts) {
-      auto it = switchId2Rifs.find(switchId);
-      if (it == switchId2Rifs.end()) {
-        throw FbossError(
-            "Both remoteSystemPorts and remoteRifs must be provided together for every switchID");
-      }
-
-      auto newRifs = it->second;
-      auto dsfNode = currState->getDsfNodes()->getNodeIf(switchId);
-      if (!dsfNode) {
-        throw FbossError("Could not find dsfNode for switchId: ", switchId);
-      }
-
-      auto newState = DsfStateUpdaterUtil::getUpdatedState(
-          currState,
-          sw_->getScopeResolver(),
-          newSysPorts,
-          newRifs,
-          dsfNode->getName(),
-          switchId);
-
-      currState = newState;
-    }
-
-    return currState;
+    auto newState = DsfStateUpdaterUtil::getUpdatedState(
+        in, sw_->getScopeResolver(), switchId2SystemPorts, switchId2Rifs);
+    return newState;
   };
 
   sw_->updateState(

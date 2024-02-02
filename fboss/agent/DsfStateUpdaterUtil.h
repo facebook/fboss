@@ -14,10 +14,9 @@ class DsfStateUpdaterUtil {
   static std::shared_ptr<SwitchState> getUpdatedState(
       const std::shared_ptr<SwitchState>& in,
       const SwitchIdScopeResolver* scopeResolver,
-      const std::shared_ptr<SystemPortMap>& newSysPorts,
-      const std::shared_ptr<InterfaceMap>& newRifs,
-      const std::string& nodeName,
-      const SwitchID& nodeSwitchId);
+      const std::map<SwitchID, std::shared_ptr<SystemPortMap>>&
+          switchId2SystemPorts,
+      const std::map<SwitchID, std::shared_ptr<InterfaceMap>>& switchId2Intfs);
 };
 
 } // namespace facebook::fboss
