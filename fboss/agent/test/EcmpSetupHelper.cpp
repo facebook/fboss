@@ -487,7 +487,7 @@ EcmpSetupTargetedPorts<IPAddrT>::nhop(PortDescriptor portDesc) const {
 
 template <typename IPAddrT>
 void EcmpSetupTargetedPorts<IPAddrT>::programRoutes(
-    std::unique_ptr<RouteUpdateWrapper> updater,
+    RouteUpdateWrapper* updater,
     const flat_set<PortDescriptor>& portDescriptors,
     const std::vector<RouteT>& prefixes,
     const std::vector<NextHopWeight>& weights,
@@ -626,7 +626,7 @@ void EcmpSetupTargetedPorts<IPAddrT>::programIp2MplsRoutes(
 
 template <typename IPAddrT>
 void EcmpSetupTargetedPorts<IPAddrT>::unprogramRoutes(
-    std::unique_ptr<RouteUpdateWrapper> wrapper,
+    RouteUpdateWrapper* wrapper,
     const std::vector<RouteT>& prefixes) const {
   for (const auto& prefix : prefixes) {
     wrapper->delRoute(
@@ -688,22 +688,21 @@ std::shared_ptr<SwitchState> EcmpSetupAnyNPorts<IPAddrT>::unresolveNextHops(
 
 template <typename IPAddrT>
 void EcmpSetupAnyNPorts<IPAddrT>::programRoutes(
-    std::unique_ptr<RouteUpdateWrapper> updater,
+    RouteUpdateWrapper* updater,
     size_t width,
     const std::vector<RouteT>& prefixes,
     const std::vector<NextHopWeight>& weights) const {
   ecmpSetupTargetedPorts_.programRoutes(
-      std::move(updater), getPortDescs(width), prefixes, weights);
+      updater, getPortDescs(width), prefixes, weights);
 }
 
 template <typename IPAddrT>
 void EcmpSetupAnyNPorts<IPAddrT>::programRoutes(
-    std::unique_ptr<RouteUpdateWrapper> updater,
+    RouteUpdateWrapper* updater,
     const flat_set<PortDescriptor>& portDescs,
     const std::vector<RouteT>& prefixes,
     const std::vector<NextHopWeight>& weights) const {
-  ecmpSetupTargetedPorts_.programRoutes(
-      std::move(updater), portDescs, prefixes, weights);
+  ecmpSetupTargetedPorts_.programRoutes(updater, portDescs, prefixes, weights);
 }
 
 template <typename IPAddrT>
@@ -726,9 +725,9 @@ void EcmpSetupAnyNPorts<IPAddrT>::programIp2MplsRoutes(
 
 template <typename IPAddrT>
 void EcmpSetupAnyNPorts<IPAddrT>::unprogramRoutes(
-    std::unique_ptr<RouteUpdateWrapper> wrapper,
+    RouteUpdateWrapper* wrapper,
     const std::vector<RouteT>& prefixes) const {
-  ecmpSetupTargetedPorts_.unprogramRoutes(std::move(wrapper), prefixes);
+  ecmpSetupTargetedPorts_.unprogramRoutes(wrapper, prefixes);
 }
 
 template <typename IPAddrT>
