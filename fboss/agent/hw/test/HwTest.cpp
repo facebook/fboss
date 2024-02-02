@@ -41,6 +41,7 @@ DEFINE_bool(
     "Set up thrift on demand upon encountering test failure");
 
 DECLARE_int32(update_watermark_stats_interval_s);
+DECLARE_bool(classid_for_unresolved_routes);
 
 namespace {
 
@@ -106,6 +107,7 @@ bool HwTest::hideFabricPorts() const {
 void HwTest::SetUp() {
   FLAGS_verify_apply_oper_delta = true;
   FLAGS_hide_fabric_ports = hideFabricPorts();
+  FLAGS_classid_for_unresolved_routes = true;
   // Reset any global state being tracked in singletons
   // Each test then sets up its own state as needed.
   folly::SingletonVault::singleton()->destroyInstances();
