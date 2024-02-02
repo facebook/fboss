@@ -35,6 +35,7 @@
 DECLARE_int32(thrift_port);
 DECLARE_bool(setup_thrift);
 DECLARE_string(config);
+DECLARE_bool(classid_for_unresolved_routes);
 
 namespace {
 using namespace facebook::fboss;
@@ -45,6 +46,7 @@ void initFlagDefaults(const std::map<std::string, std::string>& defaults) {
     gflags::SetCommandLineOptionWithMode(
         item.first.c_str(), item.second.c_str(), gflags::SET_FLAGS_DEFAULT);
   }
+  FLAGS_classid_for_unresolved_routes = true;
 }
 
 class SignalHandler : public AsyncSignalHandler {
