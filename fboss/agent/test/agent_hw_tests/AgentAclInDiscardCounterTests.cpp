@@ -72,6 +72,16 @@ TEST_F(AgentAclInDiscardsCounterTest, aclInDiscards) {
           *portStatsAfter.inAclDiscards_(),
           *portStatsBefore.inAclDiscards_() + 1);
     });
+    // Assert that other ports did not see any in discard
+    // counter increment
+    auto allPortStats = getLatestPortStats(masterLogicalInterfacePortIds());
+    for (const auto& [port, otherPortStats] : allPortStats) {
+      if (port == masterLogicalInterfacePortIds()[1]) {
+        continue;
+      }
+      EXPECT_EQ(otherPortStats.inDiscards_(), 0);
+      EXPECT_EQ(otherPortStats.inAclDiscards_(), 0);
+    }
   };
   verifyAcrossWarmBoots(setup, verify);
 }
