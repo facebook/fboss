@@ -150,7 +150,8 @@ void SaiPortManager::changePortImpl(
  */
 SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
     const std::shared_ptr<Port>& swPort,
-    bool lineSide) const {
+    bool lineSide,
+    bool /* basicAttributeOnly */) const {
   // Get the user specified swPortId and portProfileId
   auto speed = swPort->getSpeed();
   auto portId = swPort->getID();

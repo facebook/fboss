@@ -365,7 +365,8 @@ void SaiPortManager::attributesFromSaiStore(
 
 SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
     const std::shared_ptr<Port>& swPort,
-    bool /* lineSide */) const {
+    bool /* lineSide */,
+    bool basicAttributeOnly) const {
   bool adminState =
       swPort->getAdminState() == cfg::PortState::ENABLED ? true : false;
 
@@ -492,6 +493,39 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
     mtu = swPort->getMaxFrameSize();
   }
   auto portPfcInfo = getPortPfcAttributes(swPort);
+  if (basicAttributeOnly) {
+    return SaiPortTraits::CreateAttributes {
+#if defined(BRCM_SAI_SDK_DNX)
+      getPortTypeFromCfg(swPort->getPortType()),
+#endif
+          hwLaneList, static_cast<uint32_t>(speed), adminState, fecMode,
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+          std::nullopt, std::nullopt,
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
+          std::nullopt, // Port Fabric Isolate
+#endif
+          std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
+          std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
+          std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
+          std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
+          std::nullopt, std::nullopt,
+#if !defined(TAJO_SDK)
+          std::nullopt, std::nullopt,
+#endif
+          std::nullopt, std::nullopt,
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+          std::nullopt,
+#endif
+          std::nullopt, // Link Training Enable
+          std::nullopt, // FDR Enable
+          std::nullopt, // Rx Squelch Enable
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+          std::nullopt, // PFC Deadlock Detection Interval
+          std::nullopt, // PFC Deadlock Recovery Interval
+#endif
+    };
+  }
   return SaiPortTraits::CreateAttributes {
 #if defined(BRCM_SAI_SDK_DNX)
     getPortTypeFromCfg(swPort->getPortType()),

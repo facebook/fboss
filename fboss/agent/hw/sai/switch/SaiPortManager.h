@@ -140,7 +140,8 @@ class SaiPortManager {
 
   SaiPortTraits::CreateAttributes attributesFromSwPort(
       const std::shared_ptr<Port>& swPort,
-      bool lineSide = false) const;
+      bool lineSide = false,
+      bool basicAttributeOnly = false) const;
 
   void attributesFromSaiStore(SaiPortTraits::CreateAttributes& attributes);
 
@@ -389,6 +390,8 @@ class SaiPortManager {
   void reloadSixTapAttributes(
       SaiPortHandle* portHandle,
       SaiPortSerdesTraits::CreateAttributes& attr);
+  std::shared_ptr<SaiPort> createPortWithBasicAttributes(
+      const std::shared_ptr<Port>& swPort);
 
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
