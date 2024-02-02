@@ -586,6 +586,68 @@ TYPED_TEST(ThriftTestAllSwitchTypes, getAllEcmpDetails) {
   handler.getAllEcmpDetails(ecmpDetails);
 }
 
+TYPED_TEST(ThriftTestAllSwitchTypes, getAclTableGroup) {
+  FLAGS_enable_acl_table_group = true;
+  ThriftHandler handler(this->sw_);
+
+  auto switchIdAndType = this->getSwitchIdAndType();
+
+  AclTableThrift aclTables;
+  handler.getAclTableGroup(aclTables);
+  EXPECT_EQ(aclTables.aclTableEntries()->size(), 0);
+  // No ACLs on fabric switches
+  if (!this->isFabric()) {
+    cfg::SwitchConfig config = testConfigA(switchIdAndType.second);
+    cfg::AclTableGroup tableGroup;
+    tableGroup.name() = "test-table-group";
+    tableGroup.stage() = cfg::AclStage::INGRESS;
+
+    auto createAclTable = [](auto tableNum) {
+      cfg::AclTable cfgTable;
+
+      cfgTable.name() = folly::to<std::string>("test-table-", tableNum);
+      cfgTable.priority() = tableNum;
+      cfgTable.aclEntries()->resize(2);
+      cfgTable.aclEntries()[0].name() =
+          folly::to<std::string>("table", tableNum, "_acl1");
+      cfgTable.aclEntries()[0].actionType() = cfg::AclActionType::DENY;
+      cfgTable.aclEntries()[0].srcIp() = "192.168.0.1";
+      cfgTable.aclEntries()[0].dstIp() = "192.168.0.0/24";
+      cfgTable.aclEntries()[0].srcPort() = 5;
+      cfgTable.aclEntries()[0].dstPort() = 8;
+      cfgTable.aclEntries()[1].name() =
+          folly::to<std::string>("table", tableNum, "_acl2");
+      cfgTable.aclEntries()[1].actionType() = cfg::AclActionType::DENY;
+      cfgTable.aclEntries()[1].srcIp() = "192.168.1.1";
+      cfgTable.aclEntries()[1].dstIp() = "192.168.1.0/24";
+      cfgTable.aclEntries()[1].srcPort() = 5;
+      cfgTable.aclEntries()[1].dstPort() = 8;
+
+      return cfgTable;
+    };
+
+    tableGroup.aclTables()->push_back(createAclTable(1));
+    tableGroup.aclTables()->push_back(createAclTable(2));
+
+    config.aclTableGroup() = tableGroup;
+    this->sw_->applyConfig("New config with acl table group", config);
+    auto state = this->sw_->getState();
+    handler.getAclTableGroup(aclTables);
+    EXPECT_EQ(aclTables.aclTableEntries()->size(), 2);
+    int tableNum = 1;
+    for (auto& [aclTableName, aclEntries] : *aclTables.aclTableEntries()) {
+      EXPECT_EQ(aclTableName, folly::to<std::string>("test-table-", tableNum));
+      EXPECT_EQ(aclEntries.size(), 2);
+      for (int i = 0; i < 2; i++) {
+        EXPECT_EQ(
+            *aclEntries[i].name(),
+            folly::to<std::string>("table", tableNum, "_acl", i + 1));
+      }
+      tableNum++;
+    }
+  }
+}
+
 TYPED_TEST(ThriftTestAllSwitchTypes, getAclTable) {
   ThriftHandler handler(this->sw_);
 
