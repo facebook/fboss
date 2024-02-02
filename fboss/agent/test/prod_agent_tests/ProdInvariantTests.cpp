@@ -125,7 +125,8 @@ void ProdInvariantTest::setupConfigFlag() {
   utility::setPortToDefaultProfileIDMap(
       std::make_shared<MultiSwitchPortMap>(),
       platform()->getPlatformMapping(),
-      platform()->getAsic());
+      platform()->getAsic(),
+      platform()->supportsAddRemovePort());
   testConfig.sw() = initialConfig();
   const auto& baseConfig = platform()->config();
   testConfig.defaultCommandLineArgs() =

@@ -214,6 +214,7 @@ void setPortToDefaultProfileIDMap(
     const std::shared_ptr<MultiSwitchPortMap>& ports,
     const PlatformMapping* platformMapping,
     const HwAsic* asic,
+    bool supportsAddRemove,
     std::optional<std::vector<PortID>> masterLogicalPortIds = std::nullopt);
 
 std::map<int, std::vector<uint8_t>> getOlympicQosMaps(

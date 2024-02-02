@@ -69,6 +69,7 @@ void AgentEnsemble::setupEnsemble(
       std::make_shared<MultiSwitchPortMap>(),
       getSw()->getPlatformMapping(),
       asic,
+      getSw()->getPlatformSupportsAddRemovePort(),
       masterLogicalPortIds_);
 
   initialConfig_ = initialConfigFn(*this);

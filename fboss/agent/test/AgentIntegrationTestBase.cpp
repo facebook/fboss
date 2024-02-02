@@ -17,7 +17,8 @@ void AgentIntegrationTestBase::setupConfigFlag() {
   utility::setPortToDefaultProfileIDMap(
       std::make_shared<MultiSwitchPortMap>(),
       platform()->getPlatformMapping(),
-      platform()->getAsic());
+      platform()->getAsic(),
+      platform()->supportsAddRemovePort());
   auto portsByControllingPort =
       utility::getSubsidiaryPortIDs(platform()->getPlatformPorts());
   for (const auto& port : portsByControllingPort) {

@@ -745,7 +745,8 @@ void HwSwitchEnsemble::setupEnsemble(
   utility::setPortToDefaultProfileIDMap(
       getProgrammedState()->getPorts(),
       getPlatform()->getPlatformMapping(),
-      getPlatform()->getAsic());
+      getPlatform()->getAsic(),
+      getPlatform()->supportsAddRemovePort());
 }
 
 void HwSwitchEnsemble::switchRunStateChanged(SwitchRunState switchState) {

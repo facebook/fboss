@@ -57,7 +57,10 @@ void MultiNodeTest::setupConfigFlag() {
     pMap->addNode(port, sw()->getScopeResolver()->scope(port));
   }
   utility::setPortToDefaultProfileIDMap(
-      pMap, platform()->getPlatformMapping(), platform()->getAsic());
+      pMap,
+      platform()->getPlatformMapping(),
+      platform()->getAsic(),
+      platform()->supportsAddRemovePort());
   parseTestPorts(FLAGS_multiNodeTestPorts);
   auto testConfigDir = platform()->getDirectoryUtil()->getPersistentStateDir() +
       "/multinode_test/";

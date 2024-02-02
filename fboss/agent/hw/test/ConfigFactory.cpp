@@ -231,6 +231,7 @@ std::unordered_map<PortID, cfg::PortProfileID> getSafeProfileIDs(
     const HwAsic* asic,
     const std::map<PortID, std::vector<PortID>>&
         controllingPortToSubsidaryPorts,
+    bool supportsAddRemovePort,
     std::optional<std::vector<PortID>> masterLogicalPortIds = std::nullopt) {
   std::unordered_map<PortID, cfg::PortProfileID> portToProfileIDs;
   const auto& plarformEntries = platformMapping->getPlatformPorts();
@@ -243,7 +244,9 @@ std::unordered_map<PortID, cfg::PortProfileID> getSafeProfileIDs(
            *plarformEntries.at(portID).supportedProfiles()) {
         if (auto subsumedPorts = profile.second.subsumedPorts();
             subsumedPorts && !subsumedPorts->empty()) {
-          // as long as subsumedPorts doesn't overlap with portSet, also safe
+          // Certain PortProfiles with higher speeds are safe, as long as
+          // subsumedPorts doesn't overlap with portSet, or subsumed ports not
+          // in masterLogicalPorts and platform supports add and remove ports
           if (std::none_of(
                   subsumedPorts->begin(),
                   subsumedPorts->end(),
@@ -252,7 +255,8 @@ std::unordered_map<PortID, cfg::PortProfileID> getSafeProfileIDs(
                                ports.begin(),
                                ports.end(),
                                PortID(subsumedPort)) != ports.end() &&
-                        (!masterLogicalPortIds.has_value() ||
+                        (!supportsAddRemovePort ||
+                         !masterLogicalPortIds.has_value() ||
                          std::find(
                              masterLogicalPortIds->begin(),
                              masterLogicalPortIds->end(),
@@ -320,7 +324,7 @@ std::unordered_map<PortID, cfg::PortProfileID> getSafeProfileIDs(
     }
 
     for (auto portID : ports) {
-      if (masterLogicalPortIds.has_value() &&
+      if (supportsAddRemovePort && masterLogicalPortIds.has_value() &&
           std::find(
               masterLogicalPortIds->begin(),
               masterLogicalPortIds->end(),
@@ -337,7 +341,8 @@ void securePortsInConfig(
     const PlatformMapping* platformMapping,
     const HwAsic* asic,
     cfg::SwitchConfig& config,
-    const std::vector<PortID>& ports) {
+    const std::vector<PortID>& ports,
+    bool supportsAddRemovePort) {
   // This function is to secure all ports in the input `ports` vector will be
   // in the config. Usually there're two main cases:
   // 1) all the ports in ports vector are from different group, so we don't need
@@ -373,8 +378,8 @@ void securePortsInConfig(
 
   // Make sure all the ports in portGroups use the safe profile in the config
   if (portGroups.size() > 0) {
-    for (const auto& [portID, profileID] :
-         getSafeProfileIDs(platformMapping, asic, portGroups, ports)) {
+    for (const auto& [portID, profileID] : getSafeProfileIDs(
+             platformMapping, asic, portGroups, supportsAddRemovePort, ports)) {
       auto portCfg = findCfgPortIf(config, portID);
       if (portCfg != config.ports()->end()) {
         portCfg->profileID() = profileID;
@@ -403,7 +408,7 @@ cfg::SwitchConfig genPortVlanCfg(
     const std::map<PortID, VlanID>& port2vlan,
     const std::vector<VlanID>& vlans,
     const std::map<cfg::PortType, cfg::PortLoopbackMode> lbModeMap,
-    bool /* supportsAddRemovePort */,
+    bool supportsAddRemovePort,
     bool optimizePortProfile = true,
     bool enableFabricPorts = false) {
   cfg::SwitchConfig config;
@@ -464,7 +469,8 @@ cfg::SwitchConfig genPortVlanCfg(
   config.portQueueConfigs()[kFabricTxQueueConfig] = getFabTxQueueConfig();
 
   // Secure all ports in `ports` vector in the config
-  securePortsInConfig(platformMapping, asic, config, ports);
+  securePortsInConfig(
+      platformMapping, asic, config, ports, supportsAddRemovePort);
 
   // Port config
   auto kPortMTU = 9412;
@@ -531,6 +537,7 @@ void setPortToDefaultProfileIDMap(
     const std::shared_ptr<MultiSwitchPortMap>& ports,
     const PlatformMapping* platformMapping,
     const HwAsic* asic,
+    bool supportsAddRemovePort,
     std::optional<std::vector<PortID>> masterLogicalPortIds) {
   // Most of the platforms will have default ports created when the HW is
   // initialized. But for those who don't have any default port, we'll fall
@@ -553,6 +560,7 @@ void setPortToDefaultProfileIDMap(
         platformMapping,
         asic,
         getSubsidiaryPortIDs(platformMapping->getPlatformPorts()),
+        supportsAddRemovePort,
         masterLogicalPortIds);
     getPortToDefaultProfileIDMap().insert(
         safeProfileIDs.begin(), safeProfileIDs.end());
