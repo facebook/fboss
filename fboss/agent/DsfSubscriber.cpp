@@ -86,6 +86,21 @@ void DsfSubscriber::scheduleUpdate(
     const std::map<SwitchID, std::shared_ptr<SystemPortMap>>&
         switchId2SystemPorts,
     const std::map<SwitchID, std::shared_ptr<InterfaceMap>>& switchId2Intfs) {
+  auto hasNoLocalSwitchId = [this, nodeName](const auto& switchId2Objects) {
+    for (const auto& [switchId, _] : switchId2Objects) {
+      if (this->isLocal(switchId)) {
+        throw FbossError(
+            " Got updates for a local switch ID, from: ",
+            nodeName,
+            " id: ",
+            switchId);
+      }
+    }
+  };
+
+  hasNoLocalSwitchId(switchId2SystemPorts);
+  hasNoLocalSwitchId(switchId2Intfs);
+
   auto updateDsfStateFn = [this,
                            nodeName,
                            nodeSwitchId,
@@ -95,14 +110,6 @@ void DsfSubscriber::scheduleUpdate(
     std::shared_ptr<SwitchState> currState = in;
     std::shared_ptr<SwitchState> out{nullptr};
     for (const auto& [switchId, newSystemPorts] : switchId2SystemPorts) {
-      if (isLocal(switchId)) {
-        throw FbossError(
-            " Got updates for a local switch ID, from: ",
-            nodeName,
-            " id: ",
-            switchId);
-      }
-
       auto it = switchId2Intfs.find(switchId);
       if (it == switchId2Intfs.end()) {
         throw FbossError(
