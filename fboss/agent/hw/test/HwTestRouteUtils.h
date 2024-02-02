@@ -61,4 +61,9 @@ bool isHwRoutePresent(
 
 bool isRouteCounterSupported(const HwSwitch* hwSwitch);
 
+bool isRouteUnresolvedToCpuClassId(
+    const HwSwitch* hwSwitch,
+    RouterID rid,
+    const folly::CIDRNetwork& cidrNetwork);
+
 } // namespace facebook::fboss::utility
