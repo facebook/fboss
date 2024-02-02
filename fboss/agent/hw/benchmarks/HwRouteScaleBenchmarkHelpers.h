@@ -53,11 +53,9 @@ void routeAddDelBenchmarker(bool measureAdd) {
   auto* sw = ensemble->getSw();
 
   auto routeGenerator = RouteScaleGeneratorT(sw->getState());
-  // TODO(zecheng): Deprecate ensemble access to platform
-  auto platform =
-      static_cast<MonolithicAgentInitializer*>(ensemble->agentInitializer())
-          ->platform();
-  if (!routeGenerator.isSupported(platform->getType())) {
+  auto swSwitch = ensemble->agentInitializer()->sw();
+  auto platformType = swSwitch->getPlatformType();
+  if (!routeGenerator.isSupported(platformType)) {
     // skip if this is not supported for a platform
     return;
   }

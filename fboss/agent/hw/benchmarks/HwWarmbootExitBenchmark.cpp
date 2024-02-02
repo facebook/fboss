@@ -49,11 +49,8 @@ void runBenchmark() {
   auto ensemble = createAgentEnsemble(initialConfigFn);
 
   utility::RouteDistributionGenerator::ThriftRouteChunks routeChunks;
-  // TODO(zecheng): Deprecate ensemble access to platform
-  auto platform =
-      static_cast<MonolithicAgentInitializer*>(ensemble->agentInitializer())
-          ->platform();
-  if (platform->getType() == PlatformType::PLATFORM_WEDGE) {
+  auto platformType = ensemble->getSw()->getPlatformType();
+  if (platformType == PlatformType::PLATFORM_WEDGE) {
     routeChunks = utility::RouteDistributionGenerator(
                       ensemble->getProgrammedState(),
                       // Distribution taken from a random wedge in fleet
