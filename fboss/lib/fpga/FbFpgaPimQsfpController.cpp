@@ -35,7 +35,7 @@ folly::SharedMutex& FbFpgaPimQsfpController::getMutex(
 }
 
 bool FbFpgaPimQsfpController::isQsfpPresent(int qsfp) {
-  folly::SharedMutex::ReadHolder g(getMutex(kFacebookFpgaQsfpPresentRegOffset));
+  std::shared_lock g(getMutex(kFacebookFpgaQsfpPresentRegOffset));
   uint32_t qsfpPresentReg =
       memoryRegion_->read(kFacebookFpgaQsfpPresentRegOffset);
   // From the lower end, each bit of this register represent the presence of a
@@ -45,7 +45,7 @@ bool FbFpgaPimQsfpController::isQsfpPresent(int qsfp) {
 }
 
 std::vector<bool> FbFpgaPimQsfpController::scanQsfpPresence() {
-  folly::SharedMutex::ReadHolder g(getMutex(kFacebookFpgaQsfpPresentRegOffset));
+  std::shared_lock g(getMutex(kFacebookFpgaQsfpPresentRegOffset));
   uint32_t qsfpPresentReg =
       memoryRegion_->read(kFacebookFpgaQsfpPresentRegOffset);
   // From the lower end, each bit of this register represent the presence of a

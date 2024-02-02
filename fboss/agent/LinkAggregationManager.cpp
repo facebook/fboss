@@ -109,7 +109,7 @@ void LinkAggregationManager::handlePacket(
     std::unique_ptr<RxPacket> pkt,
     folly::io::Cursor c) {
   // TODO(samank): check this is running in RX thread?
-  folly::SharedMutexWritePriority::ReadHolder g(controllersLock_);
+  std::shared_lock g(controllersLock_);
   auto ingressPort = pkt->getSrcPort();
 
   auto it = portToController_.find(ingressPort);
@@ -282,7 +282,7 @@ void LinkAggregationManager::populatePartnerPair(
 
   std::shared_ptr<LacpController> controller;
   {
-    folly::SharedMutexWritePriority::ReadHolder g(controllersLock_);
+    std::shared_lock g(controllersLock_);
 
     auto it = portToController_.find(portID);
     if (it == portToController_.end()) {
@@ -302,7 +302,7 @@ void LinkAggregationManager::populatePartnerPairs(
 
   partnerPairs.clear();
 
-  folly::SharedMutexWritePriority::ReadHolder g(controllersLock_);
+  std::shared_lock g(controllersLock_);
 
   partnerPairs.reserve(
       std::distance(portToController_.begin(), portToController_.end()));
@@ -397,7 +397,7 @@ LinkAggregationManager::getControllersFor(
   std::vector<std::shared_ptr<LacpController>> controllers(
       std::distance(ports.begin(), ports.end()));
 
-  folly::SharedMutexWritePriority::ReadHolder g(controllersLock_);
+  std::shared_lock g(controllersLock_);
 
   // TODO(samank): Rerwite as an O(N + M) algorithm
   for (auto i = 0; i < controllers.size(); ++i) {

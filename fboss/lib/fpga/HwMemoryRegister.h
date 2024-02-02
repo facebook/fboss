@@ -21,7 +21,7 @@ class HwMemoryRegister : public HwMemoryRegion<IO> {
   }
 
   uint32_t readRegister() const {
-    folly::SharedMutex::ReadHolder g(*mutex_);
+    std::shared_lock g(*mutex_);
     return read(0);
   }
 

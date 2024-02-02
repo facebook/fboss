@@ -35,7 +35,7 @@ class TrunkToMinimumLinkCountMap {
   }
 
   std::optional<uint8_t> get(bcm_trunk_t trunk) const {
-    folly::SharedMutexReadPriority::ReadHolder g(trunkToCountLock_);
+    std::shared_lock g(trunkToCountLock_);
     return getLocked(trunk);
   }
 
