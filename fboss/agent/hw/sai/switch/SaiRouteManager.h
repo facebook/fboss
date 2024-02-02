@@ -24,6 +24,7 @@
 #include <mutex>
 
 DECLARE_bool(disable_valid_route_check);
+DECLARE_bool(classid_for_unresolved_routes);
 
 namespace facebook::fboss {
 
