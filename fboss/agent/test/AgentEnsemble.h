@@ -24,6 +24,7 @@ DECLARE_bool(setup_for_warmboot);
 namespace facebook::fboss {
 class StateObserver;
 class AgentEnsemble;
+class HwSwitch;
 
 using AgentEnsembleSwitchConfigFn =
     std::function<cfg::SwitchConfig(const AgentEnsemble&)>;
@@ -180,6 +181,8 @@ class AgentEnsemble : public TestEnsembleIf {
   void registerStateObserver(StateObserver* observer, const std::string& name)
       override;
   void unregisterStateObserver(StateObserver* observer) override;
+
+  virtual HwSwitch* getHwSwitch() const = 0;
 
  protected:
   void joinAsyncInitThread() {

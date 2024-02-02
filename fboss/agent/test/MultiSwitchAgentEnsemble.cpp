@@ -43,6 +43,11 @@ bool MultiSwitchAgentEnsemble::isSai() const {
   return sdkVersion.value().saiSdk().has_value();
 }
 
+HwSwitch* MultiSwitchAgentEnsemble::getHwSwitch() const {
+  throw FbossError("getHwSwitch is unsupported for MultiSwitchAgentEnsemble");
+  return nullptr;
+}
+
 std::unique_ptr<AgentEnsemble> createAgentEnsemble(
     AgentEnsembleSwitchConfigFn initialConfigFn,
     AgentEnsemblePlatformConfigFn platformConfigFn,

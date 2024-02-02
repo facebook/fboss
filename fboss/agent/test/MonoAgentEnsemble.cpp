@@ -35,6 +35,10 @@ bool MonoAgentEnsemble::isSai() const {
   return agentInitializer_.platform()->isSai();
 }
 
+HwSwitch* MonoAgentEnsemble::getHwSwitch() const {
+  return agentInitializer_.platform()->getHwSwitch();
+}
+
 std::unique_ptr<AgentEnsemble> createAgentEnsemble(
     AgentEnsembleSwitchConfigFn initialConfigFn,
     AgentEnsemblePlatformConfigFn platformConfigFn,
