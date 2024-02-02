@@ -16,7 +16,10 @@ class LedManager {
   virtual bool programFruLed(const std::string& fruType, bool presence) const;
 
  private:
-  void programLed(const std::string& sysfsPath, std::string value) const;
+  void programLed(
+      const std::string& name /* system or fruType*/,
+      const std::string& sysfsPath,
+      std::string value) const;
 
   const LedConfig systemLedConfig_;
   const std::map<std::string /*fruType*/, LedConfig> fruTypeLedConfigs_;

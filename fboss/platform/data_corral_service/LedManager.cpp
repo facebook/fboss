@@ -8,6 +8,11 @@
 
 #include "fboss/lib/CommonFileUtils.h"
 
+namespace {
+auto constexpr kProgramLedFail = "led_manager.{}.program_led_fail";
+auto constexpr kSystem = "SYSTEM";
+} // namespace
+
 namespace facebook::fboss::platform::data_corral_service {
 
 LedManager::LedManager(
@@ -20,11 +25,11 @@ bool LedManager::programSystemLed(bool presence) const {
   XLOG(INFO) << fmt::format("Programming system LED with {}", presence);
   try {
     if (presence) {
-      programLed(*systemLedConfig_.presentLedSysfsPath(), "1");
-      programLed(*systemLedConfig_.absentLedSysfsPath(), "0");
+      programLed(kSystem, *systemLedConfig_.presentLedSysfsPath(), "1");
+      programLed(kSystem, *systemLedConfig_.absentLedSysfsPath(), "0");
     } else {
-      programLed(*systemLedConfig_.absentLedSysfsPath(), "1");
-      programLed(*systemLedConfig_.presentLedSysfsPath(), "0");
+      programLed(kSystem, *systemLedConfig_.absentLedSysfsPath(), "1");
+      programLed(kSystem, *systemLedConfig_.presentLedSysfsPath(), "0");
     }
     XLOG(INFO) << fmt::format("Programmed system LED with {}", presence);
     return true;
@@ -41,11 +46,11 @@ bool LedManager::programFruLed(const std::string& fruType, bool presence)
   try {
     auto ledConfig = fruTypeLedConfigs_.at(fruType);
     if (presence) {
-      programLed(*ledConfig.presentLedSysfsPath(), "1");
-      programLed(*ledConfig.absentLedSysfsPath(), "0");
+      programLed(fruType, *ledConfig.presentLedSysfsPath(), "1");
+      programLed(fruType, *ledConfig.absentLedSysfsPath(), "0");
     } else {
-      programLed(*ledConfig.absentLedSysfsPath(), "1");
-      programLed(*ledConfig.presentLedSysfsPath(), "0");
+      programLed(fruType, *ledConfig.absentLedSysfsPath(), "1");
+      programLed(fruType, *ledConfig.presentLedSysfsPath(), "0");
     }
     XLOG(INFO) << fmt::format(
         "Programmed {} LED with presence {}", fruType, presence);
@@ -60,18 +65,20 @@ bool LedManager::programFruLed(const std::string& fruType, bool presence)
   }
 }
 
-void LedManager::programLed(const std::string& sysfsPath, std::string value)
-    const {
+void LedManager::programLed(
+    const std::string& name,
+    const std::string& sysfsPath,
+    std::string value) const {
   auto res = writeSysfs(sysfsPath, value);
   if (!res) {
     auto errMsg =
         fmt::format("Failed to write {} to file {}", value, sysfsPath);
     XLOG(ERR) << errMsg;
-    fb303::fbData->incrementCounter("led_manager.program_led_fail", 1);
+    fb303::fbData->setCounter(fmt::format(kProgramLedFail, name), 1);
     throw std::runtime_error(errMsg);
   }
   XLOG(INFO) << fmt::format("Wrote {} to file {}", value, sysfsPath);
-  fb303::fbData->incrementCounter("led_manager.program_led_success", 1);
+  fb303::fbData->setCounter(fmt::format(kProgramLedFail, name), 0);
 }
 
 } // namespace facebook::fboss::platform::data_corral_service
