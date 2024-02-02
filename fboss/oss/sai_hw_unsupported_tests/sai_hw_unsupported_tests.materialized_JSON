@@ -221,11 +221,6 @@
           "test_name_regex": "HwIngressBufferTest.validatePGQueueChanges$"
         }
     ],
-    "brcm/10.0_ea_dnx_sim_odp/10.0_ea_dnx_sim_odp/jericho3/simulator": [
-        {
-          "test_name_regex": "HwLoadBalancerTestV[46].Ucmp.*$"
-        }
-    ],
     "brcm/10.0_ea_odp/10.0_ea_odp/tomahawk5": [
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
@@ -863,7 +858,7 @@
           "test_name_regex": "HwLoadBalancerNegativeTestV6RoCE.*$"
         }
     ],
-    "brcm/11.0_ea_dnx_sim_odp/11.0_ea_dnx_sim_odp/jericho3/simulator": [
+    "brcm/11.0_ea_dnx_odp/11.0_ea_dnx_odp/jericho3/simulator": [
         {
           "test_name_regex": "HwLoadBalancerTestV[46].Ucmp.*$"
         }
