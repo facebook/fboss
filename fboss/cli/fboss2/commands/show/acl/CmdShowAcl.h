@@ -34,14 +34,7 @@ class CmdShowAcl : public CmdHandler<CmdShowAcl, CmdShowAclTraits> {
     std::vector<facebook::fboss::AclEntryThrift> aclEntries;
     auto client =
         utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(hostInfo);
-    try {
-      client->sync_getAclTableGroup(entries);
-    } catch (const std::exception& e) {
-      // TODO Remove this catch once agent version updates to include
-      // getAclTableGroup
-      client->sync_getAclTable(aclEntries);
-      entries.aclTableEntries()["AclTable1"] = aclEntries;
-    }
+    client->sync_getAclTableGroup(entries);
 
     return createModel(entries);
   }
