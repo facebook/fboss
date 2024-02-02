@@ -753,7 +753,7 @@ TEST_F(HwTrafficPfcTest, PfcWatchdogReset) {
   auto setup = [&]() {
     setupConfigAndEcmpTraffic();
     setupWatchdog(true /* enable watchdog */);
-    pumpTraffic(kLosslessTrafficClass);
+    triggerPfcDeadlockDetection(masterLogicalInterfacePortIds()[0]);
     // lets wait for the watchdog counters to be populated
     validatePfcWatchdogCounters(masterLogicalInterfacePortIds()[0]);
     // reset watchdog
