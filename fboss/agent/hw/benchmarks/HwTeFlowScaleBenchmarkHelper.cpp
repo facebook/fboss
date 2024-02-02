@@ -44,17 +44,8 @@ void teFlowAddDelEntriesBenchmarkHelper(bool measureAdd) {
       [](const AgentEnsemble& ensemble) {
         auto ports = ensemble.masterLogicalPortIds();
         CHECK_GT(ports.size(), 0);
-
-        // Before m-mpu agent test, use first Asic for initialization.
-        auto switchIds = ensemble.getSw()->getHwAsicTable()->getSwitchIDs();
-        CHECK_GE(switchIds.size(), 1);
-        auto asic =
-            ensemble.getSw()->getHwAsicTable()->getHwAsic(*switchIds.cbegin());
         return utility::onePortPerInterfaceConfig(
-            ensemble.getSw()->getPlatformMapping(),
-            asic,
-            {ports[0], ports[1]},
-            asic->desiredLoopbackModes());
+            ensemble.getSw(), {ports[0], ports[1]});
       };
   AgentEnsemblePlatformConfigFn platformConfigFn =
       [](cfg::PlatformConfig& config) {

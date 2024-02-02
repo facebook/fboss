@@ -141,10 +141,8 @@ cfg::SwitchConfig AgentHwTest::initialConfig(
   auto asic =
       ensemble.getSw()->getHwAsicTable()->getHwAsic(*switchIds.cbegin());
   return utility::onePortPerInterfaceConfig(
-      ensemble.getSw()->getPlatformMapping(),
-      asic,
+      ensemble.getSw(),
       ensemble.masterLogicalPortIds(),
-      asic->desiredLoopbackModes(),
       true /*interfaceHasSubnet*/);
 }
 

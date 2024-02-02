@@ -74,7 +74,8 @@ class HwFlexPortTest : public HwTest {
       cfg = utility::oneL3IntfNPortConfig(
           getHwSwitch()->getPlatform()->getPlatformMapping(),
           getHwSwitch()->getPlatform()->getAsic(),
-          allPortsinGroup);
+          allPortsinGroup,
+          getHwSwitch()->getPlatform()->supportsAddRemovePort());
       facebook::fboss::utility::cleanPortConfig(&cfg, allPortsinGroup);
 
       // Update all ports in the same group based on the flexMode

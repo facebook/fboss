@@ -40,10 +40,7 @@ void runBenchmark() {
         auto asic =
             ensemble.getSw()->getHwAsicTable()->getHwAsic(*switchIds.cbegin());
         return utility::onePortPerInterfaceConfig(
-            ensemble.getSw()->getPlatformMapping(),
-            asic,
-            ensemble.masterLogicalPortIds(),
-            asic->desiredLoopbackModes());
+            ensemble.getSw(), ensemble.masterLogicalPortIds());
         ;
       };
   auto ensemble = createAgentEnsemble(initialConfigFn);

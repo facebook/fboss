@@ -144,6 +144,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
         getPlatform()->getPlatformMapping(),
         getAsic(),
         masterLogicalPortIds(),
+        getPlatform()->supportsAddRemovePort(),
         getAsic()->desiredLoopbackModes());
     if (isSupported(HwAsic::Feature::L3_QOS)) {
       auto streamType =

@@ -442,6 +442,7 @@ TEST_F(BcmPortTest, AssertL3Enabled) {
         getHwSwitch()->getPlatform()->getPlatformMapping(),
         getHwSwitch()->getPlatform()->getAsic(),
         masterLogicalPortIds(),
+        getHwSwitch()->getPlatform()->supportsAddRemovePort(),
         getPlatform()->getAsic()->desiredLoopbackModes()));
   };
   auto verify = [this]() {
@@ -510,6 +511,7 @@ TEST_F(BcmPortTest, SetInterPacketGapBits) {
         getHwSwitch()->getPlatform()->getPlatformMapping(),
         getHwSwitch()->getPlatform()->getAsic(),
         masterLogicalPortIds(),
+        getHwSwitch()->getPlatform()->supportsAddRemovePort(),
         getPlatform()->getAsic()->desiredLoopbackModes()));
   };
   auto verify = [this]() {

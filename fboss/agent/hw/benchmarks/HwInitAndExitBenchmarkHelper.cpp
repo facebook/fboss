@@ -176,7 +176,8 @@ void initandExitBenchmarkHelper(
           return utility::oneL3IntfNPortConfig(
               ensemble.getSw()->getPlatformMapping(),
               asic,
-              ensemble.masterLogicalPortIds());
+              ensemble.masterLogicalPortIds(),
+              ensemble.getSw()->getPlatformSupportsAddRemovePort());
         }
         /*
          * Based on the uplink/downlink speed, use the ConfigFactory to create

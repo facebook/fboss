@@ -53,11 +53,7 @@ BENCHMARK(runTxSlowPathBenchmark) {
         CHECK_GE(switchIds.size(), 1);
         auto asic =
             ensemble.getSw()->getHwAsicTable()->getHwAsic(*switchIds.cbegin());
-        return utility::onePortPerInterfaceConfig(
-            ensemble.getSw()->getPlatformMapping(),
-            asic,
-            ports,
-            asic->desiredLoopbackModes());
+        return utility::onePortPerInterfaceConfig(ensemble.getSw(), ports);
       };
   ensemble = createAgentEnsemble(initialConfigFn);
 

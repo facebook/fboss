@@ -52,6 +52,7 @@ class HwEcmpTrunkTest : public HwLinkStateDependentTest {
         getHwSwitch()->getPlatform()->getPlatformMapping(),
         getHwSwitch()->getPlatform()->getAsic(),
         masterLogicalPortIds(),
+        getHwSwitch()->getPlatform()->supportsAddRemovePort(),
         getAsic()->desiredLoopbackModes());
     addAggPort(kAggId, getTrunkMemberPorts(), &config);
     return config;

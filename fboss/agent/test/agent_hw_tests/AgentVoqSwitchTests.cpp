@@ -15,17 +15,14 @@ class AgentVoqSwitchTest : public AgentHwTest {
       const AgentEnsemble& ensemble) const override {
     // Disable sw stats update thread
     FLAGS_enable_stats_update_thread = false;
-
     // Before m-mpu agent test, use first Asic for initialization.
     auto switchIds = ensemble.getSw()->getHwAsicTable()->getSwitchIDs();
     CHECK_GE(switchIds.size(), 1);
     auto asic =
         ensemble.getSw()->getHwAsicTable()->getHwAsic(*switchIds.cbegin());
     auto config = utility::onePortPerInterfaceConfig(
-        ensemble.getSw()->getPlatformMapping(),
-        asic,
+        ensemble.getSw(),
         ensemble.masterLogicalPortIds(),
-        asic->desiredLoopbackModes(),
         true /*interfaceHasSubnet*/);
     const auto& cpuStreamTypes =
         asic->getQueueStreamTypes(cfg::PortType::CPU_PORT);
@@ -104,16 +101,9 @@ class AgentVoqSwitchWithFabricPortsTest : public AgentVoqSwitchTest {
       const AgentEnsemble& ensemble) const override {
     // Disable sw stats update thread
     FLAGS_enable_stats_update_thread = false;
-    // Before m-mpu agent test, use first Asic for initialization.
-    auto switchIds = ensemble.getSw()->getHwAsicTable()->getSwitchIDs();
-    CHECK_GE(switchIds.size(), 1);
-    auto asic =
-        ensemble.getSw()->getHwAsicTable()->getHwAsic(*switchIds.cbegin());
     auto config = utility::onePortPerInterfaceConfig(
-        ensemble.getSw()->getPlatformMapping(),
-        asic,
+        ensemble.getSw(),
         ensemble.masterLogicalPortIds(),
-        asic->desiredLoopbackModes(),
         true, /*interfaceHasSubnet*/
         true, /*setInterfaceMac*/
         utility::kBaseVlanId,

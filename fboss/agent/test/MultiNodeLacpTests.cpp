@@ -74,6 +74,7 @@ class MultiNodeLacpTest : public MultiNodeTest {
         platform()->getPlatformMapping(),
         platform()->getAsic(),
         testPorts(),
+        platform()->supportsAddRemovePort(),
         utility::kDefaultLoopbackMap(),
         true, /* interfaceHasSubnet */
         false, /* setInterfaceMac */

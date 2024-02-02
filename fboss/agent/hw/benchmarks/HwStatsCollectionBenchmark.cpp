@@ -73,11 +73,8 @@ BENCHMARK(HwStatsCollection) {
         auto portsNew = ports;
         portsNew.resize(std::min((int)ports.size(), numPortsToCollectStats));
 
-        auto config = utility::onePortPerInterfaceConfig(
-            ensemble.getSw()->getPlatformMapping(),
-            asic,
-            portsNew,
-            asic->desiredLoopbackModes());
+        auto config =
+            utility::onePortPerInterfaceConfig(ensemble.getSw(), portsNew);
         if (asic->isSupported(HwAsic::Feature::ROUTE_COUNTERS)) {
           config.switchSettings()->maxRouteCounterIDs() = numRouteCounters;
         }

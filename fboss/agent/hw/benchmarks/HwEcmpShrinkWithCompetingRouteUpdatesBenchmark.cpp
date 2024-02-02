@@ -39,16 +39,8 @@ BENCHMARK(HwEcmpGroupShrinkWithCompetingRouteUpdates) {
 
   AgentEnsembleSwitchConfigFn initialConfigFn =
       [](const AgentEnsemble& ensemble) {
-        // Before m-mpu agent test, use first Asic for initialization.
-        auto switchIds = ensemble.getSw()->getHwAsicTable()->getSwitchIDs();
-        CHECK_GE(switchIds.size(), 1);
-        auto asic =
-            ensemble.getSw()->getHwAsicTable()->getHwAsic(*switchIds.cbegin());
         return utility::onePortPerInterfaceConfig(
-            ensemble.getSw()->getPlatformMapping(),
-            asic,
-            ensemble.masterLogicalPortIds(),
-            asic->desiredLoopbackModes());
+            ensemble.getSw(), ensemble.masterLogicalPortIds());
         ;
       };
   ensemble = createAgentEnsemble(initialConfigFn);

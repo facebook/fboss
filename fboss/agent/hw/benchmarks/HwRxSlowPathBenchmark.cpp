@@ -49,7 +49,10 @@ BENCHMARK(RxSlowPathBenchmark) {
         auto asic =
             ensemble.getSw()->getHwAsicTable()->getHwAsic(*switchIds.cbegin());
         auto config = utility::oneL3IntfConfig(
-            ensemble.getSw()->getPlatformMapping(), asic, portUsed);
+            ensemble.getSw()->getPlatformMapping(),
+            asic,
+            portUsed,
+            ensemble.getSw()->getPlatformSupportsAddRemovePort());
         // We don't want to set queue rate that limits the number of rx pkts
         utility::addCpuQueueConfig(
             config,

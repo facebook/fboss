@@ -42,7 +42,8 @@ class BcmQosMapTest : public BcmTest {
     return utility::oneL3IntfNPortConfig(
         getHwSwitch()->getPlatform()->getPlatformMapping(),
         getHwSwitch()->getPlatform()->getAsic(),
-        {masterLogicalPortIds()[0], masterLogicalPortIds()[1]});
+        {masterLogicalPortIds()[0], masterLogicalPortIds()[1]},
+        getHwSwitch()->getPlatform()->supportsAddRemovePort());
   }
 
   cfg::SwitchConfig setupDefaultQueueWithPfcMaps() {

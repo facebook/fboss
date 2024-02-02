@@ -106,7 +106,8 @@ class HwMacLearningAndNeighborResolutionTest : public HwLinkStateDependentTest {
     auto inConfig = utility::oneL3IntfNPortConfig(
         getHwSwitch()->getPlatform()->getPlatformMapping(),
         getHwSwitch()->getPlatform()->getAsic(),
-        allConfigPorts());
+        allConfigPorts(),
+        getHwSwitch()->getPlatform()->supportsAddRemovePort());
     return LearningModeAndPortT::initialConfig(inConfig);
   }
 #ifndef IS_OSS
