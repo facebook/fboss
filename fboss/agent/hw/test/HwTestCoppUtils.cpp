@@ -311,6 +311,16 @@ void addMidPriAclForNw(
       acl, createQueueMatchAction(utility::kCoppMidPriQueueId, toCpuAction)));
 }
 
+void addLowPriAclForUnresolvedRoutes(
+    cfg::ToCpuAction toCpuAction,
+    std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>& acls) {
+  cfg::AclEntry acl;
+  acl.name() = folly::to<std::string>("cpu-unresolved-route-acl");
+  acl.lookupClassRoute() = cfg::AclLookupClass::CLASS_UNRESOLVED_ROUTE_TO_CPU;
+  acls.push_back(std::make_pair(
+      acl, createQueueMatchAction(utility::kCoppLowPriQueueId, toCpuAction)));
+}
+
 std::unique_ptr<facebook::fboss::TxPacket> createUdpPkt(
     const HwSwitch* hwSwitch,
     std::optional<VlanID> vlanId,

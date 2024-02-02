@@ -64,6 +64,11 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
   addMidPriAclForNw(
       kIPv6LinkLocalUcastNetwork(), getCpuActionType(hwAsic), acls);
 
+  if (hwAsic->isSupported(HwAsic::Feature::ACL_METADATA_QUALIFER)) {
+    // Unresolved route class ID to low pri queue
+    addLowPriAclForUnresolvedRoutes(getCpuActionType(hwAsic), acls);
+  }
+
   return acls;
 }
 std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueues(
