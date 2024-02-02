@@ -63,10 +63,7 @@ BENCHMARK(RxSlowPathBenchmark) {
   auto ensemble = createAgentEnsemble(initialConfigFn);
 
   // TODO(zecheng): Deprecate agent access to HwSwitch
-  auto hwSwitch =
-      static_cast<MonolithicAgentInitializer*>(ensemble->agentInitializer())
-          ->platform()
-          ->getHwSwitch();
+  auto hwSwitch = ensemble->getHwSwitch();
   auto config = initialConfigFn(*ensemble);
   // capture packet exiting port 0 (entering due to loopback)
   auto trapDstIp = folly::CIDRNetwork{kDstIp, 128};

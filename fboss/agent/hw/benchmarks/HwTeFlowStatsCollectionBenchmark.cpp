@@ -72,10 +72,7 @@ BENCHMARK(HwTeFlowStatsCollection) {
   ensemble = createAgentEnsemble(initialConfigFn, platformConfigFn);
   const auto& ports = ensemble->masterLogicalPortIds();
   // TODO(zecheng): Deprecate agent access to HwSwitch
-  auto hwSwitch =
-      static_cast<MonolithicAgentInitializer*>(ensemble->agentInitializer())
-          ->platform()
-          ->getHwSwitch();
+  auto hwSwitch = ensemble->getHwSwitch();
   auto ecmpHelper =
       utility::EcmpSetupAnyNPorts6(ensemble->getSw()->getState(), RouterID(0));
   // Setup EM Config

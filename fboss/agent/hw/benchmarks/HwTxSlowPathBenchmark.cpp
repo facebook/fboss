@@ -8,7 +8,6 @@
  *
  */
 
-#include "fboss/agent/Platform.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/hw/test/HwSwitchEnsembleFactory.h"
@@ -73,11 +72,7 @@ BENCHMARK(runTxSlowPathBenchmark) {
       std::make_unique<SwSwitchRouteUpdateWrapper>(
           ensemble->getSw(), ensemble->getSw()->getRib()),
       kEcmpWidth);
-  // TODO(zecheng): Deprecate ensemble access to platform
-  auto platform =
-      static_cast<MonolithicAgentInitializer*>(ensemble->agentInitializer())
-          ->platform();
-  auto cpuMac = platform->getLocalMac();
+  auto cpuMac = ensemble->getSw()->getLocalMac(SwitchID(0));
   auto vlanId = utility::firstVlanID(ensemble->getProgrammedState());
   std::atomic<bool> packetTxDone{false};
   std::thread t([cpuMac, vlanId, swSwitch, &packetTxDone]() {
