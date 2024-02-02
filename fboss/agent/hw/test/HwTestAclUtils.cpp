@@ -47,6 +47,10 @@ std::optional<cfg::TrafficCounter> getAclTrafficCounter(
   return std::nullopt;
 }
 
+std::string getAclTableGroupName() {
+  return "acl-table-group-ingress";
+}
+
 int getAclTableIndex(
     cfg::SwitchConfig* cfg,
     const std::optional<std::string>& tableName) {

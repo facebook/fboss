@@ -82,10 +82,6 @@ void addQueuePerHostQueueConfig(cfg::SwitchConfig* config) {
   }
 }
 
-std::string getAclTableGroupName() {
-  return "acl-table-group-ingress";
-}
-
 std::string getQueuePerHostAclTableName() {
   return "acl-table-queue-per-host";
 }

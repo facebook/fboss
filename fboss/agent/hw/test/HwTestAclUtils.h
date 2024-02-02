@@ -33,6 +33,7 @@ bool isAclTableEnabled(
 
 bool verifyAclEnabled(const HwSwitch* hwSwitch);
 
+std::string getAclTableGroupName();
 template <typename T>
 bool isQualifierPresent(
     const HwSwitch* hwSwitch,
