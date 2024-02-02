@@ -113,6 +113,7 @@ class AgentHwTest : public ::testing::Test {
       const std::vector<PortID>& ports);
 
   HwPortStats getLatestPortStats(const PortID& port);
+  virtual cfg::SwitchConfig initialConfig(const AgentEnsemble& ensemble) const;
 
  private:
   /*
@@ -124,8 +125,6 @@ class AgentHwTest : public ::testing::Test {
   }
 
   virtual bool hideFabricPorts() const;
-
-  virtual cfg::SwitchConfig initialConfig(const AgentEnsemble& ensemble) const;
 
   virtual std::vector<production_features::ProductionFeature>
   getProductionFeaturesVerified() const = 0;
