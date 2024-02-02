@@ -1063,7 +1063,7 @@
                   {
                      "fpgaIpBlockConfig": {
                         "pmUnitScopedName": "OSFP_PORT1_XCVR",
-                        "deviceName": "osfp_xcvr",
+                        "deviceName": "xcvr_ctrl",
                         "csrOffset": "0xa010"
                      },
                      "portNumber": 1
@@ -1071,7 +1071,7 @@
                   {
                      "fpgaIpBlockConfig": {
                         "pmUnitScopedName": "OSFP_PORT2_XCVR",
-                        "deviceName": "osfp_xcvr",
+                        "deviceName": "xcvr_ctrl",
                         "csrOffset": "0xa020"
                      },
                      "portNumber": 2
@@ -1079,7 +1079,7 @@
                   {
                      "fpgaIpBlockConfig": {
                         "pmUnitScopedName": "OSFP_PORT3_XCVR",
-                        "deviceName": "osfp_xcvr",
+                        "deviceName": "xcvr_ctrl",
                         "csrOffset": "0xa030"
                      },
                      "portNumber": 3
@@ -1087,7 +1087,7 @@
                   {
                      "fpgaIpBlockConfig": {
                         "pmUnitScopedName": "OSFP_PORT4_XCVR",
-                        "deviceName": "osfp_xcvr",
+                        "deviceName": "xcvr_ctrl",
                         "csrOffset": "0xa040"
                      },
                      "portNumber": 4
@@ -1095,7 +1095,7 @@
                   {
                      "fpgaIpBlockConfig": {
                         "pmUnitScopedName": "OSFP_PORT5_XCVR",
-                        "deviceName": "osfp_xcvr",
+                        "deviceName": "xcvr_ctrl",
                         "csrOffset": "0xa050"
                      },
                      "portNumber": 5
@@ -1103,7 +1103,7 @@
                   {
                      "fpgaIpBlockConfig": {
                         "pmUnitScopedName": "OSFP_PORT6_XCVR",
-                        "deviceName": "osfp_xcvr",
+                        "deviceName": "xcvr_ctrl",
                         "csrOffset": "0xa060"
                      },
                      "portNumber": 6
@@ -1111,7 +1111,7 @@
                   {
                      "fpgaIpBlockConfig": {
                         "pmUnitScopedName": "OSFP_PORT7_XCVR",
-                        "deviceName": "osfp_xcvr",
+                        "deviceName": "xcvr_ctrl",
                         "csrOffset": "0xa070"
                      },
                      "portNumber": 7
@@ -1119,7 +1119,7 @@
                   {
                      "fpgaIpBlockConfig": {
                         "pmUnitScopedName": "OSFP_PORT8_XCVR",
-                        "deviceName": "osfp_xcvr",
+                        "deviceName": "xcvr_ctrl",
                         "csrOffset": "0xa080"
                      },
                      "portNumber": 8
@@ -1127,7 +1127,7 @@
                   {
                      "fpgaIpBlockConfig": {
                         "pmUnitScopedName": "OSFP_PORT9_XCVR",
-                        "deviceName": "osfp_xcvr",
+                        "deviceName": "xcvr_ctrl",
                         "csrOffset": "0xa090"
                      },
                      "portNumber": 9
@@ -1135,7 +1135,7 @@
                   {
                      "fpgaIpBlockConfig": {
                         "pmUnitScopedName": "OSFP_PORT10_XCVR",
-                        "deviceName": "osfp_xcvr",
+                        "deviceName": "xcvr_ctrl",
                         "csrOffset": "0xa0a0"
                      },
                      "portNumber": 10
@@ -1143,7 +1143,7 @@
                   {
                      "fpgaIpBlockConfig": {
                         "pmUnitScopedName": "OSFP_PORT11_XCVR",
-                        "deviceName": "osfp_xcvr",
+                        "deviceName": "xcvr_ctrl",
                         "csrOffset": "0xa0b0"
                      },
                      "portNumber": 11
@@ -1151,7 +1151,7 @@
                   {
                      "fpgaIpBlockConfig": {
                         "pmUnitScopedName": "OSFP_PORT12_XCVR",
-                        "deviceName": "osfp_xcvr",
+                        "deviceName": "xcvr_ctrl",
                         "csrOffset": "0xa0c0"
                      },
                      "portNumber": 12
@@ -1159,7 +1159,7 @@
                   {
                      "fpgaIpBlockConfig": {
                         "pmUnitScopedName": "OSFP_PORT13_XCVR",
-                        "deviceName": "osfp_xcvr",
+                        "deviceName": "xcvr_ctrl",
                         "csrOffset": "0xa0d0"
                      },
                      "portNumber": 13
@@ -1167,7 +1167,7 @@
                   {
                      "fpgaIpBlockConfig": {
                         "pmUnitScopedName": "OSFP_PORT14_XCVR",
-                        "deviceName": "osfp_xcvr",
+                        "deviceName": "xcvr_ctrl",
                         "csrOffset": "0xa0e0"
                      },
                      "portNumber": 14
@@ -1175,7 +1175,7 @@
                   {
                      "fpgaIpBlockConfig": {
                         "pmUnitScopedName": "OSFP_PORT15_XCVR",
-                        "deviceName": "osfp_xcvr",
+                        "deviceName": "xcvr_ctrl",
                         "csrOffset": "0xa0f0"
                      },
                      "portNumber": 15
@@ -1183,7 +1183,7 @@
                   {
                      "fpgaIpBlockConfig": {
                         "pmUnitScopedName": "OSFP_PORT16_XCVR",
-                        "deviceName": "osfp_xcvr",
+                        "deviceName": "xcvr_ctrl",
                         "csrOffset": "0xa100"
                      },
                      "portNumber": 16
@@ -1191,7 +1191,7 @@
                   {
                      "fpgaIpBlockConfig": {
                         "pmUnitScopedName": "OSFP_PORT17_XCVR",
-                        "deviceName": "osfp_xcvr",
+                        "deviceName": "xcvr_ctrl",
                         "csrOffset": "0xa110"
                      },
                      "portNumber": 17
@@ -1199,7 +1199,7 @@
                   {
                      "fpgaIpBlockConfig": {
                         "pmUnitScopedName": "OSFP_PORT18_XCVR",
-                        "deviceName": "osfp_xcvr",
+                        "deviceName": "xcvr_ctrl",
                         "csrOffset": "0xa120"
                      },
                      "portNumber": 18
@@ -1207,7 +1207,7 @@
                   {
                      "fpgaIpBlockConfig": {
                         "pmUnitScopedName": "OSFP_PORT19_XCVR",
-                        "deviceName": "osfp_xcvr",
+                        "deviceName": "xcvr_ctrl",
                         "csrOffset": "0xa130"
                      },
                      "portNumber": 19
@@ -1215,7 +1215,7 @@
                   {
                      "fpgaIpBlockConfig": {
                         "pmUnitScopedName": "OSFP_PORT20_XCVR",
-                        "deviceName": "osfp_xcvr",
+                        "deviceName": "xcvr_ctrl",
                         "csrOffset": "0xa140"
                      },
                      "portNumber": 20
@@ -1223,7 +1223,7 @@
                   {
                      "fpgaIpBlockConfig": {
                         "pmUnitScopedName": "OSFP_PORT21_XCVR",
-                        "deviceName": "osfp_xcvr",
+                        "deviceName": "xcvr_ctrl",
                         "csrOffset": "0xa150"
                      },
                      "portNumber": 21
@@ -1231,7 +1231,7 @@
                   {
                      "fpgaIpBlockConfig": {
                         "pmUnitScopedName": "OSFP_PORT22_XCVR",
-                        "deviceName": "osfp_xcvr",
+                        "deviceName": "xcvr_ctrl",
                         "csrOffset": "0xa160"
                      },
                      "portNumber": 22
@@ -1239,7 +1239,7 @@
                   {
                      "fpgaIpBlockConfig": {
                         "pmUnitScopedName": "OSFP_PORT23_XCVR",
-                        "deviceName": "osfp_xcvr",
+                        "deviceName": "xcvr_ctrl",
                         "csrOffset": "0xa170"
                      },
                      "portNumber": 23
@@ -1247,7 +1247,7 @@
                   {
                      "fpgaIpBlockConfig": {
                         "pmUnitScopedName": "OSFP_PORT24_XCVR",
-                        "deviceName": "osfp_xcvr",
+                        "deviceName": "xcvr_ctrl",
                         "csrOffset": "0xa180"
                      },
                      "portNumber": 24
@@ -1255,7 +1255,7 @@
                   {
                      "fpgaIpBlockConfig": {
                         "pmUnitScopedName": "OSFP_PORT25_XCVR",
-                        "deviceName": "osfp_xcvr",
+                        "deviceName": "xcvr_ctrl",
                         "csrOffset": "0xa190"
                      },
                      "portNumber": 25
@@ -1263,7 +1263,7 @@
                   {
                      "fpgaIpBlockConfig": {
                         "pmUnitScopedName": "OSFP_PORT26_XCVR",
-                        "deviceName": "osfp_xcvr",
+                        "deviceName": "xcvr_ctrl",
                         "csrOffset": "0xa1a0"
                      },
                      "portNumber": 26
@@ -1271,7 +1271,7 @@
                   {
                      "fpgaIpBlockConfig": {
                         "pmUnitScopedName": "OSFP_PORT27_XCVR",
-                        "deviceName": "osfp_xcvr",
+                        "deviceName": "xcvr_ctrl",
                         "csrOffset": "0xa1b0"
                      },
                      "portNumber": 27
@@ -1279,7 +1279,7 @@
                   {
                      "fpgaIpBlockConfig": {
                         "pmUnitScopedName": "OSFP_PORT28_XCVR",
-                        "deviceName": "osfp_xcvr",
+                        "deviceName": "xcvr_ctrl",
                         "csrOffset": "0xa1c0"
                      },
                      "portNumber": 28
@@ -1287,7 +1287,7 @@
                   {
                      "fpgaIpBlockConfig": {
                         "pmUnitScopedName": "OSFP_PORT29_XCVR",
-                        "deviceName": "osfp_xcvr",
+                        "deviceName": "xcvr_ctrl",
                         "csrOffset": "0xa1d0"
                      },
                      "portNumber": 29
@@ -1295,7 +1295,7 @@
                   {
                      "fpgaIpBlockConfig": {
                         "pmUnitScopedName": "OSFP_PORT30_XCVR",
-                        "deviceName": "osfp_xcvr",
+                        "deviceName": "xcvr_ctrl",
                         "csrOffset": "0xa1e0"
                      },
                      "portNumber": 30
@@ -1303,7 +1303,7 @@
                   {
                      "fpgaIpBlockConfig": {
                         "pmUnitScopedName": "OSFP_PORT31_XCVR",
-                        "deviceName": "osfp_xcvr",
+                        "deviceName": "xcvr_ctrl",
                         "csrOffset": "0xa1f0"
                      },
                      "portNumber": 31
@@ -1311,7 +1311,7 @@
                   {
                      "fpgaIpBlockConfig": {
                         "pmUnitScopedName": "OSFP_PORT32_XCVR",
-                        "deviceName": "osfp_xcvr",
+                        "deviceName": "xcvr_ctrl",
                         "csrOffset": "0xa200"
                      },
                      "portNumber": 32
@@ -1319,7 +1319,7 @@
                   {
                      "fpgaIpBlockConfig": {
                         "pmUnitScopedName": "OSFP_PORT33_XCVR",
-                        "deviceName": "osfp_xcvr",
+                        "deviceName": "xcvr_ctrl",
                         "csrOffset": "0xa210"
                      },
                      "portNumber": 33
@@ -1327,7 +1327,7 @@
                   {
                      "fpgaIpBlockConfig": {
                         "pmUnitScopedName": "OSFP_PORT34_XCVR",
-                        "deviceName": "osfp_xcvr",
+                        "deviceName": "xcvr_ctrl",
                         "csrOffset": "0xa220"
                      },
                      "portNumber": 34
@@ -1335,7 +1335,7 @@
                   {
                      "fpgaIpBlockConfig": {
                         "pmUnitScopedName": "OSFP_PORT35_XCVR",
-                        "deviceName": "osfp_xcvr",
+                        "deviceName": "xcvr_ctrl",
                         "csrOffset": "0xa230"
                      },
                      "portNumber": 35
@@ -1343,7 +1343,7 @@
                   {
                      "fpgaIpBlockConfig": {
                         "pmUnitScopedName": "OSFP_PORT36_XCVR",
-                        "deviceName": "osfp_xcvr",
+                        "deviceName": "xcvr_ctrl",
                         "csrOffset": "0xa240"
                      },
                      "portNumber": 36
@@ -1351,7 +1351,7 @@
                   {
                      "fpgaIpBlockConfig": {
                         "pmUnitScopedName": "OSFP_PORT37_XCVR",
-                        "deviceName": "osfp_xcvr",
+                        "deviceName": "xcvr_ctrl",
                         "csrOffset": "0xa250"
                      },
                      "portNumber": 37
@@ -1359,7 +1359,7 @@
                   {
                      "fpgaIpBlockConfig": {
                         "pmUnitScopedName": "OSFP_PORT38_XCVR",
-                        "deviceName": "osfp_xcvr",
+                        "deviceName": "xcvr_ctrl",
                         "csrOffset": "0xa260"
                      },
                      "portNumber": 38
@@ -1367,7 +1367,7 @@
                   {
                      "fpgaIpBlockConfig": {
                         "pmUnitScopedName": "QSFP_PORT39_XCVR",
-                        "deviceName": "qsfp_xcvr",
+                        "deviceName": "xcvr_ctrl",
                         "csrOffset": "0xa290"
                      },
                      "portNumber": 39

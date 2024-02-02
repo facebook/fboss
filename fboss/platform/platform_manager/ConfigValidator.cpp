@@ -22,6 +22,7 @@ constexpr auto kSymlinkDirs = {
     "gpiochips",
     "xcvrs",
     "flashes"};
+constexpr auto kXcvrDeviceName = "xcvr_ctrl";
 } // namespace
 
 namespace facebook::fboss::platform::platform_manager {
@@ -126,6 +127,13 @@ bool ConfigValidator::isValidPciDeviceConfig(
     fpgaIpBlockConfigs.push_back(*config.fpgaIpBlockConfig());
   }
   for (const auto& config : *pciDeviceConfig.xcvrCtrlConfigs()) {
+    if (*config.fpgaIpBlockConfig()->deviceName() != kXcvrDeviceName) {
+      XLOG(ERR) << fmt::format(
+          "Invalid DeviceName : {} in XcvrCtrlConfig. It must be {}",
+          *config.fpgaIpBlockConfig()->deviceName(),
+          kXcvrDeviceName);
+      return false;
+    }
     fpgaIpBlockConfigs.push_back(*config.fpgaIpBlockConfig());
   }
 
@@ -270,5 +278,4 @@ bool ConfigValidator::isValidPresenceDetection(
   }
   return true;
 }
-
 } // namespace facebook::fboss::platform::platform_manager

@@ -37,6 +37,16 @@ SysfsFileHandle getValidSysfsFileHandle() {
   sysfsFileHandle.desiredValue() = 1;
   return sysfsFileHandle;
 }
+
+PciDeviceConfig getValidPciDeviceConfig() {
+  PciDeviceConfig pciDevConfig;
+  pciDevConfig.pmUnitScopedName() = "MCB_IOB";
+  pciDevConfig.vendorId() = "0xab29";
+  pciDevConfig.deviceId() = "0xaf29";
+  pciDevConfig.subSystemVendorId() = "0xa329";
+  pciDevConfig.subSystemDeviceId() = "0x1b29";
+  return pciDevConfig;
+}
 } // namespace
 
 TEST(ConfigValidatorTest, InvalidPlatformName) {
@@ -154,6 +164,22 @@ TEST(ConfigValidatorTest, PciDeviceConfig) {
   fpgaIpBlockConfig.pmUnitScopedName() = "MCB_WDOG_2";
   pciDevConfig.watchdogConfigs()->push_back(fpgaIpBlockConfig);
   EXPECT_TRUE(ConfigValidator().isValidPciDeviceConfig(pciDevConfig));
+}
+
+TEST(ConfigValidatorTest, XcvrCtrlConfig) {
+  auto pciDevConfig = getValidPciDeviceConfig();
+  XcvrCtrlConfig xcvrCtrlConfig;
+  xcvrCtrlConfig.portNumber() = 3;
+  xcvrCtrlConfig.fpgaIpBlockConfig()->pmUnitScopedName() =
+      "SMB_DOM1_XCVR_CTRL_PORT_3";
+  xcvrCtrlConfig.fpgaIpBlockConfig()->iobufOffset() = "0xab29";
+  xcvrCtrlConfig.fpgaIpBlockConfig()->csrOffset() = "0xaf29";
+  xcvrCtrlConfig.fpgaIpBlockConfig()->deviceName() = "xcvr_ctrl";
+  pciDevConfig.xcvrCtrlConfigs() = {xcvrCtrlConfig};
+  EXPECT_TRUE(ConfigValidator().isValidPciDeviceConfig(pciDevConfig));
+  xcvrCtrlConfig.fpgaIpBlockConfig()->deviceName() = "osfp_xcvr";
+  pciDevConfig.xcvrCtrlConfigs() = {xcvrCtrlConfig};
+  EXPECT_FALSE(ConfigValidator().isValidPciDeviceConfig(pciDevConfig));
 }
 
 TEST(ConfigValidatorTest, I2cDeviceConfig) {
