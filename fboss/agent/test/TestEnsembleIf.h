@@ -4,6 +4,7 @@
 
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/HwSwitch.h"
+#include "fboss/agent/state/StateUpdateHelpers.h"
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 
@@ -17,6 +18,7 @@ class SwitchIdScopeResolver;
 
 class TestEnsembleIf : public HwSwitchCallback {
  public:
+  using StateUpdateFn = FunctionStateUpdate::StateUpdateFn;
   ~TestEnsembleIf() override {}
   virtual std::vector<PortID> masterLogicalPortIds() const = 0;
   std::vector<PortID> masterLogicalPortIds(
@@ -24,6 +26,10 @@ class TestEnsembleIf : public HwSwitchCallback {
 
   virtual std::shared_ptr<SwitchState> applyNewState(
       std::shared_ptr<SwitchState> state,
+      bool rollbackOnHwOverflow = false) = 0;
+  virtual void applyNewState(
+      StateUpdateFn fn,
+      const std::string& name = "test-update",
       bool rollbackOnHwOverflow = false) = 0;
   virtual void applyInitialConfig(const cfg::SwitchConfig& config) = 0;
   virtual std::shared_ptr<SwitchState> applyNewConfig(

@@ -364,6 +364,13 @@ std::shared_ptr<SwitchState> HwSwitchEnsemble::updateEncapIndices(
   return EncapIndexAllocator::updateEncapIndices(delta, *getAsic());
 }
 
+void HwSwitchEnsemble::applyNewState(
+    StateUpdateFn fn,
+    const std::string& /*name*/,
+    bool rollbackOnHwOverflow) {
+  applyNewState(fn(getProgrammedState()), rollbackOnHwOverflow);
+}
+
 std::shared_ptr<SwitchState> HwSwitchEnsemble::applyNewStateImpl(
     const std::shared_ptr<SwitchState>& newState,
     bool transaction,

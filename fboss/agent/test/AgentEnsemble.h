@@ -87,8 +87,10 @@ class AgentEnsemble : public TestEnsembleIf {
       std::shared_ptr<SwitchState> state,
       bool transaction = false) override;
 
-  void
-  applyNewState(StateUpdateFn fn, const std::string& name, bool transatction);
+  void applyNewState(
+      StateUpdateFn fn,
+      const std::string& name = "test-update",
+      bool transaction = false) override;
 
   std::vector<PortID> masterLogicalPortIds() const override;
 
