@@ -6,7 +6,6 @@
   "pwmTransitionValue" : 50,
   "pwmLowerThreshold" : 24,
   "pwmUpperThreshold" : 100,
-  "shutdownCmd" : "echo 0xdead > /run/devmap/fpgas/MERU_SCM_CPLD/chassis_power_cycle",
   "optics" : [
   ],
   "sensors" : [
@@ -21,7 +20,7 @@
         "minorSoakSeconds" : 15
       },
       "pwmCalcType" : "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "scale" : 1000.0,
+      "scale" : 1.0,
       "normalUpTable" : {
         "15" : 30,
         "110" : 100
@@ -57,7 +56,7 @@
       },
       "ledAccess" : {
         "accessType" : "ACCESS_TYPE_SYSFS",
-        "path" : "/run/devmap/sensors/FAN_CPLD/fan1_led"
+        "path" : "/sys/class/leds/fan1::status/brightness"
       },
       "pwmMin" : 1,
       "pwmMax" : 255,
@@ -82,7 +81,7 @@
       },
       "ledAccess" : {
         "accessType" : "ACCESS_TYPE_SYSFS",
-        "path" : "/run/devmap/sensors/FAN_CPLD/fan2_led"
+        "path" : "/sys/class/leds/fan2::status/brightness"
       },
       "pwmMin" : 1,
       "pwmMax" : 255,
@@ -107,7 +106,7 @@
       },
       "ledAccess" : {
         "accessType" : "ACCESS_TYPE_SYSFS",
-        "path" : "/run/devmap/sensors/FAN_CPLD/fan3_led"
+        "path" : "/sys/class/leds/fan3::status/brightness"
       },
       "pwmMin" : 1,
       "pwmMax" : 255,
@@ -132,7 +131,7 @@
       },
       "ledAccess" : {
         "accessType" : "ACCESS_TYPE_SYSFS",
-        "path" : "/run/devmap/sensors/FAN_CPLD/fan4_led"
+        "path" : "/sys/class/leds/fan4::status/brightness"
       },
       "pwmMin" : 1,
       "pwmMax" : 255,
@@ -147,6 +146,7 @@
       "zoneType" : "ZONE_TYPE_MAX",
       "zoneName" : "zone1",
       "sensorNames" : [
+         "SMB_TMP75_FRONT"
       ],
       "fanNames" : [
         "fan_1",
