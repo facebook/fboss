@@ -57,7 +57,9 @@ void routeAddDelBenchmarker(bool measureAdd) {
     // skip if this is not supported for a platform
     return;
   }
-  ensemble->applyNewState(routeGenerator.resolveNextHops(sw->getState()));
+  ensemble->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+    return routeGenerator.resolveNextHops(in);
+  });
   const RouterID kRid(0);
   auto routeChunks = routeGenerator.getThriftRoutes();
   auto allThriftRoutes = routeGenerator.allThriftRoutes();
