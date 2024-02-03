@@ -150,39 +150,46 @@ std::shared_ptr<SwitchState> LinkStateToggler::applyInitialConfigWithPortsDown(
     }
     waitForPortDown(PortID(*port.logicalID()));
   }
-
-  auto switchState = ensemble_->getProgrammedState();
-  for (auto& cfgPort : *cfg.ports()) {
-    if (portId2DesiredState.find(*cfgPort.logicalID()) ==
-        portId2DesiredState.end()) {
-      continue;
+  auto updateLoopbacks = [&](const std::shared_ptr<SwitchState>& in) {
+    auto switchState = in->clone();
+    for (auto& cfgPort : *cfg.ports()) {
+      if (portId2DesiredState.find(*cfgPort.logicalID()) ==
+          portId2DesiredState.end()) {
+        continue;
+      }
+      // Set all port preemphasis values to 0 so that we can bring ports up and
+      // down by setting their loopback mode to PHY and NONE respectively.
+      // TODO: use sw port's pinConfigs to set this
+      auto port = switchState->getPorts()
+                      ->getNodeIf(PortID(*cfgPort.logicalID()))
+                      ->modify(&switchState);
+      port->setZeroPreemphasis(true);
+      *cfgPort.state() = portId2DesiredState[*cfgPort.logicalID()];
     }
-    // Set all port preemphasis values to 0 so that we can bring ports up and
-    // down by setting their loopback mode to PHY and NONE respectively.
-    // TODO: use sw port's pinConfigs to set this
-    auto port = switchState->getPorts()
-                    ->getNodeIf(PortID(*cfgPort.logicalID()))
-                    ->modify(&switchState);
-    port->setZeroPreemphasis(true);
-    *cfgPort.state() = portId2DesiredState[*cfgPort.logicalID()];
-  }
+    return switchState;
+  };
   // Update txSetting first and then enable admin state
-  ensemble_->applyNewState(switchState);
+  ensemble_->applyNewState(updateLoopbacks);
   ensemble_->applyNewConfig(cfg);
 
-  // Some platforms silently undo squelch setting on admin enable. Prevent it
-  // by setting squelch after admin enable.
-  if (ensemble_->getHwAsicTable()->isFeatureSupportedOnAnyAsic(
-          HwAsic::Feature::RX_LANE_SQUELCH_ENABLE)) {
-    switchState = ensemble_->getProgrammedState();
+  auto updateSquelch = [&](const std::shared_ptr<SwitchState>& in) {
+    // Some platforms silently undo squelch setting on admin enable. Prevent it
+    // by setting squelch after admin enable.
+    if (!ensemble_->getHwAsicTable()->isFeatureSupportedOnAnyAsic(
+            HwAsic::Feature::RX_LANE_SQUELCH_ENABLE)) {
+      return std::shared_ptr<SwitchState>();
+    }
+
+    auto switchState = in->clone();
     for (auto& cfgPort : *cfg.ports()) {
       auto port = switchState->getPorts()
                       ->getNodeIf(PortID(*cfgPort.logicalID()))
                       ->modify(&switchState);
       port->setRxLaneSquelch(true);
     }
-    ensemble_->applyNewState(switchState);
-  }
+    return switchState;
+  };
+  ensemble_->applyNewState(updateSquelch);
   ensemble_->switchRunStateChanged(SwitchRunState::CONFIGURED);
   return ensemble_->getProgrammedState();
 }
