@@ -69,24 +69,30 @@ BENCHMARK(HwTeFlowStatsCollection) {
   const auto& ports = ensemble->masterLogicalPortIds();
   // TODO(zecheng): Deprecate agent access to HwSwitch
   auto hwSwitch = ensemble->getHwSwitch();
-  auto ecmpHelper =
-      utility::EcmpSetupAnyNPorts6(ensemble->getSw()->getState(), RouterID(0));
-  // Setup EM Config
-  auto state = ensemble->getSw()->getState();
-  utility::setExactMatchCfg(&state, prefixLength);
-  ensemble->applyNewState(state);
+  ensemble->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+    // Setup EM Config
+    auto state = in->clone();
+    utility::setExactMatchCfg(&state, prefixLength);
+    return state;
+  });
   // Resolve nextHops
   CHECK_GE(ports.size(), 2);
-  ensemble->applyNewState(ecmpHelper.resolveNextHops(
-      ensemble->getSw()->getState(), {PortDescriptor(ports[0])}));
-  ensemble->applyNewState(ecmpHelper.resolveNextHops(
-      ensemble->getSw()->getState(), {PortDescriptor(ports[1])}));
+  ensemble->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+    auto ecmpHelper = utility::EcmpSetupAnyNPorts6(in, RouterID(0));
+    return ecmpHelper.resolveNextHops(
+        in, {PortDescriptor(ports[0]), PortDescriptor(ports[1])});
+  });
   // Add Entries
   auto flowEntries = utility::makeFlowEntries(
       dstIpStart, nextHopAddr, ifName, ports[0], numEntries);
-  state = ensemble->getSw()->getState();
-  utility::addFlowEntries(&state, flowEntries, ensemble->scopeResolver());
-  ensemble->applyNewState(state, true /* rollback on fail */);
+  ensemble->applyNewState(
+      [&](const std::shared_ptr<SwitchState>& in) {
+        auto state = in->clone();
+        utility::addFlowEntries(&state, flowEntries, ensemble->scopeResolver());
+        return state;
+      },
+      "add-te-flows",
+      true /* rollback on fail */);
   CHECK_EQ(utility::getNumTeFlowEntries(hwSwitch), numEntries);
   // Measure stats collection time for 9K entries
   suspender.dismiss();
