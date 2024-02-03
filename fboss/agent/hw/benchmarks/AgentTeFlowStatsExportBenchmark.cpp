@@ -62,24 +62,34 @@ BENCHMARK(AgentTeFlowStatsPublishToFsdb) {
   auto ecmpHelper =
       utility::EcmpSetupAnyNPorts6(ensemble->getSw()->getState(), RouterID(0));
   // Setup EM Config
-  auto state = ensemble->getSw()->getState();
-  utility::setExactMatchCfg(&state, prefixLength);
-  ensemble->applyNewState(state);
+  ensemble->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+    auto state = in->clone();
+    utility::setExactMatchCfg(&state, prefixLength);
+    return state;
+  });
   // Resolve nextHops
   CHECK_GE(ports.size(), 2);
-  ensemble->applyNewState(ecmpHelper.resolveNextHops(
-      ensemble->getSw()->getState(), {PortDescriptor(ports[0])}));
-  ensemble->applyNewState(ecmpHelper.resolveNextHops(
-      ensemble->getSw()->getState(), {PortDescriptor(ports[1])}));
+  ensemble->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+    return ecmpHelper.resolveNextHops(in, {PortDescriptor(ports[0])});
+  });
+
+  ensemble->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+    return ecmpHelper.resolveNextHops(in, {PortDescriptor(ports[1])});
+  });
 
   // Add Entries
   std::string dstIpStart = "100";
   auto generator = new utility::FlowEntryGenerator(
       dstIpStart, nextHopAddr, ifName, ports[0], numEntries);
   auto flowEntries = generator->generateFlowEntries();
-  state = ensemble->getSw()->getState();
-  utility::addFlowEntries(&state, flowEntries, ensemble->scopeResolver());
-  ensemble->applyNewState(state, true /* rollback on fail */);
+  ensemble->applyNewState(
+      [&](const std::shared_ptr<SwitchState>& in) {
+        auto state = in->clone();
+        utility::addFlowEntries(&state, flowEntries, ensemble->scopeResolver());
+        return state;
+      },
+      "add-te-flow-entries",
+      true /* rollback on fail */);
   // verify TeFlowStats size
   auto teFlowStats = ensemble->getSw()->getTeFlowStats();
   auto hwTeFlowStats = teFlowStats.hwTeFlowStats();
