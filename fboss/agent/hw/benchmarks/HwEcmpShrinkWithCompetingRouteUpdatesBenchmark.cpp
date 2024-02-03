@@ -48,7 +48,9 @@ BENCHMARK(HwEcmpGroupShrinkWithCompetingRouteUpdates) {
   auto hwSwitch = ensemble->getHwSwitch();
   auto state = ensemble->getSw()->getState();
   auto ecmpHelper = utility::EcmpSetupAnyNPorts6(state);
-  ensemble->applyNewState(ecmpHelper.resolveNextHops(state, kEcmpWidth));
+  ensemble->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+    return ecmpHelper.resolveNextHops(in, kEcmpWidth);
+  });
   ecmpHelper.programRoutes(
       std::make_unique<SwSwitchRouteUpdateWrapper>(
           ensemble->getSw(), ensemble->getSw()->getRib()),
