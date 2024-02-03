@@ -195,28 +195,6 @@ void AgentEnsemble::gracefulExit() {
   initializer->stopAgent(true);
 }
 
-std::shared_ptr<SwitchState> AgentEnsemble::applyNewState(
-    std::shared_ptr<SwitchState> state,
-    bool transaction) {
-  if (!state) {
-    return getSw()->getState();
-  }
-
-  // TODO: Handle multiple Asics
-  auto asic = getSw()->getHwAsicTable()->getHwAsics().cbegin()->second;
-
-  state = EncapIndexAllocator::updateEncapIndices(
-      StateDelta(getProgrammedState(), state), *asic);
-  transaction
-      ? getSw()->updateStateWithHwFailureProtection(
-            "apply new state with failure protection",
-            [state](const std::shared_ptr<SwitchState>&) { return state; })
-      : getSw()->updateStateBlocking(
-            "apply new state",
-            [state](const std::shared_ptr<SwitchState>&) { return state; });
-  return getSw()->getState();
-}
-
 void AgentEnsemble::applyNewState(
     StateUpdateFn fn,
     const std::string& name,

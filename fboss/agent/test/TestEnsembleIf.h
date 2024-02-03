@@ -24,9 +24,6 @@ class TestEnsembleIf : public HwSwitchCallback {
   std::vector<PortID> masterLogicalPortIds(
       const std::set<cfg::PortType>& portTypes) const;
 
-  virtual std::shared_ptr<SwitchState> applyNewState(
-      std::shared_ptr<SwitchState> state,
-      bool rollbackOnHwOverflow = false) = 0;
   virtual void applyNewState(
       StateUpdateFn fn,
       const std::string& name = "test-update",
