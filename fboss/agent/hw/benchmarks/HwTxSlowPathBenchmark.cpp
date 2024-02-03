@@ -58,12 +58,12 @@ BENCHMARK(runTxSlowPathBenchmark) {
   ensemble = createAgentEnsemble(initialConfigFn);
 
   auto swSwitch = ensemble->getSw();
-  auto state = ensemble->getSw()->getState();
-  auto ecmpHelper = utility::EcmpSetupAnyNPorts6(state);
+  auto ecmpHelper = utility::EcmpSetupAnyNPorts6(ensemble->getSw()->getState());
   auto portUsed = ecmpHelper.ecmpPortDescriptorAt(0).phyPortID();
 
-  state =
-      ensemble->applyNewState(ecmpHelper.resolveNextHops(state, kEcmpWidth));
+  ensemble->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+    return ecmpHelper.resolveNextHops(in, kEcmpWidth);
+  });
   ecmpHelper.programRoutes(
       std::make_unique<SwSwitchRouteUpdateWrapper>(
           ensemble->getSw(), ensemble->getSw()->getRib()),
