@@ -58,11 +58,15 @@ void LinkStateToggler::portStateChangeImpl(
     if (currPort->getLoopbackMode() == desiredLoopbackMode) {
       continue;
     }
-    newState = newState->clone();
-    auto newPort = currPort->modify(&newState);
     setPortIDAndStateToWaitFor(port, up);
-    newPort->setLoopbackMode(desiredLoopbackMode);
-    ensemble_->applyNewState(newState);
+    auto updateLoopbackMode = [currPort, desiredLoopbackMode](
+                                  const std::shared_ptr<SwitchState>& in) {
+      auto switchState = in->clone();
+      auto newPort = currPort->modify(&switchState);
+      newPort->setLoopbackMode(desiredLoopbackMode);
+      return switchState;
+    };
+    ensemble_->applyNewState(updateLoopbackMode);
     invokeLinkScanIfNeeded(port, up);
     XLOG(DBG2) << " Wait for port " << (up ? "up" : "down")
                << " event on : " << port;
@@ -76,11 +80,15 @@ bool LinkStateToggler::waitForPortEvent(PortID port) {
   if (!FLAGS_multi_switch) {
     std::unique_lock<std::mutex> lock{linkEventMutex_};
     linkEventCV_.wait(lock, [this] { return desiredPortEventOccurred_; });
-    /* toggle the oper state */
-    auto newState = ensemble_->getProgrammedState();
-    auto newPort = newState->getPorts()->getNodeIf(port)->modify(&newState);
-    newPort->setOperState(waitForPortUp_);
-    ensemble_->applyNewState(newState);
+    auto updateOperState = [this,
+                            port](const std::shared_ptr<SwitchState>& in) {
+      /* toggle the oper state */
+      auto newState = in->clone();
+      auto newPort = newState->getPorts()->getNodeIf(port)->modify(&newState);
+      newPort->setOperState(waitForPortUp_);
+      return newState;
+    };
+    ensemble_->applyNewState(updateOperState);
   }
   WITH_RETRIES({
     EXPECT_EVENTUALLY_EQ(
