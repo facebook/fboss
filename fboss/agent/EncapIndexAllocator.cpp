@@ -49,6 +49,9 @@ int64_t EncapIndexAllocator::getNextAvailableEncapIdx(
 std::shared_ptr<SwitchState> EncapIndexAllocator::updateEncapIndices(
     const StateDelta& delta,
     const HwAsic& asic) {
+  if (!delta.newState()) {
+    return delta.newState();
+  }
   auto newState = delta.newState()->clone();
   // This function's charter is
   // - Assign encap index to reachable nbr entries (if one is not already

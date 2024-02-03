@@ -223,9 +223,14 @@ void AgentEnsemble::applyNewState(
     bool transaction) {
   // TODO: Handle multiple Asics
   auto asic = getSw()->getHwAsicTable()->getHwAsics().cbegin()->second;
+  CHECK(asic);
   auto applyUpdate = [&](const std::shared_ptr<SwitchState>& in) {
+    auto newState = fn(in);
+    if (!newState) {
+      return newState;
+    }
     return EncapIndexAllocator::updateEncapIndices(
-        StateDelta(in, fn(in)), *asic);
+        StateDelta(in, newState), *asic);
   };
   transaction ? getSw()->updateStateWithHwFailureProtection(name, applyUpdate)
               : getSw()->updateStateBlocking(name, applyUpdate);
