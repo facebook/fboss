@@ -21,7 +21,12 @@ class HwPortProfileTest : public HwTest {
   cfg::SwitchConfig initialConfig(const std::vector<PortID>& ports) const {
     auto lbMode = getPlatform()->getAsic()->desiredLoopbackModes();
     return utility::oneL3IntfTwoPortConfig(
-        getHwSwitch(), ports[0], ports[1], lbMode);
+        getHwSwitch()->getPlatform()->getPlatformMapping(),
+        getHwSwitch()->getPlatform()->getAsic(),
+        ports[0],
+        ports[1],
+        getHwSwitch()->getPlatform()->supportsAddRemovePort(),
+        lbMode);
   }
 
   void verifyPlatformMapping(PortID port) {

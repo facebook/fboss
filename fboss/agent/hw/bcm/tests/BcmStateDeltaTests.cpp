@@ -189,7 +189,11 @@ TEST_F(BcmTest, validInterfaceConfig) {
     return;
   }
   auto cfg = utility::oneL3IntfTwoPortConfig(
-      getHwSwitch(), masterLogicalPortIds()[0], masterLogicalPortIds()[1]);
+      getHwSwitch()->getPlatform()->getPlatformMapping(),
+      getHwSwitch()->getPlatform()->getAsic(),
+      masterLogicalPortIds()[0],
+      masterLogicalPortIds()[1],
+      getHwSwitch()->getPlatform()->supportsAddRemovePort());
   auto oldState = applyNewConfig(cfg);
   // move a port to default vlan
   auto portCfg = utility::findCfgPort(cfg, masterLogicalPortIds()[1]);

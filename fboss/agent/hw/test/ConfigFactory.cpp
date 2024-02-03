@@ -653,17 +653,15 @@ cfg::SwitchConfig oneL3IntfNoIPAddrConfig(
 }
 
 cfg::SwitchConfig oneL3IntfTwoPortConfig(
-    const HwSwitch* hwSwitch,
+    const PlatformMapping* platformMapping,
+    const HwAsic* asic,
     PortID port1,
     PortID port2,
+    bool supportsAddRemovePort,
     const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap) {
   std::vector<PortID> ports{port1, port2};
   return oneL3IntfNPortConfig(
-      hwSwitch->getPlatform()->getPlatformMapping(),
-      hwSwitch->getPlatform()->getAsic(),
-      ports,
-      hwSwitch->getPlatform()->supportsAddRemovePort(),
-      lbModeMap);
+      platformMapping, asic, ports, supportsAddRemovePort, lbModeMap);
 }
 
 cfg::SwitchConfig oneL3IntfNPortConfig(

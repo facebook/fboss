@@ -91,15 +91,18 @@ class HwNeighborTest : public HwLinkStateDependentTest {
   }
 
   cfg::SwitchConfig initialConfig() const override {
-    auto cfg = programToTrunk ? utility::oneL3IntfTwoPortConfig(
-                                    getHwSwitch(),
-                                    masterLogicalPortIds()[0],
-                                    masterLogicalPortIds()[1],
-                                    getAsic()->desiredLoopbackModes())
-                              : utility::onePortPerInterfaceConfig(
-                                    getHwSwitch(),
-                                    masterLogicalPortIds(),
-                                    getAsic()->desiredLoopbackModes());
+    auto cfg = programToTrunk
+        ? utility::oneL3IntfTwoPortConfig(
+              getHwSwitch()->getPlatform()->getPlatformMapping(),
+              getHwSwitch()->getPlatform()->getAsic(),
+              masterLogicalPortIds()[0],
+              masterLogicalPortIds()[1],
+              getHwSwitch()->getPlatform()->supportsAddRemovePort(),
+              getAsic()->desiredLoopbackModes())
+        : utility::onePortPerInterfaceConfig(
+              getHwSwitch(),
+              masterLogicalPortIds(),
+              getAsic()->desiredLoopbackModes());
     if (programToTrunk) {
       // Keep member size to be less than/equal to HW limitation, but first add
       // the two ports for testing.

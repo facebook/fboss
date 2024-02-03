@@ -80,9 +80,11 @@ cfg::SwitchConfig oneL3IntfNoIPAddrConfig(
     const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap =
         kDefaultLoopbackMap());
 cfg::SwitchConfig oneL3IntfTwoPortConfig(
-    const HwSwitch* hwSwitch,
+    const PlatformMapping* platformMapping,
+    const HwAsic* asic,
     PortID port1,
     PortID port2,
+    bool supportsAddRemovePort,
     const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap =
         kDefaultLoopbackMap());
 cfg::SwitchConfig oneL3IntfNPortConfig(
