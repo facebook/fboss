@@ -41,8 +41,9 @@ BENCHMARK(HwEcmpGroupShrink) {
   // TODO(zecheng): Deprecate agent access to HwSwitch
   auto hwSwitch = ensemble->getHwSwitch();
   auto ecmpHelper = utility::EcmpSetupAnyNPorts6(ensemble->getSw()->getState());
-  ensemble->applyNewState(
-      ecmpHelper.resolveNextHops(ensemble->getSw()->getState(), kEcmpWidth));
+  ensemble->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+    return ecmpHelper.resolveNextHops(in, kEcmpWidth);
+  });
   ecmpHelper.programRoutes(
       std::make_unique<SwSwitchRouteUpdateWrapper>(
           ensemble->getSw(), ensemble->getSw()->getRib()),
