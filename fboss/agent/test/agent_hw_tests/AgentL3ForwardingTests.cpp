@@ -78,15 +78,16 @@ TEST_F(AgentL3ForwardingTest, linkLocalNeighborAndNextHop) {
     // linkLocalNbr  - used as both LL nbr and
     folly::IPAddress linkLocalNhop("fe80::e42:a1ff:fe66:1d9e");
     folly::IPAddress linkLocalNbr("fe80::e43:a1ff:fe66:1d9e");
-    getSw()->updateStateBlocking(
-        "add link local nbr, nhop",
+    applyNewState(
         [&](const std::shared_ptr<SwitchState>& in) {
           return addResolvedNeighbor(in, linkLocalNhop.asV6());
-        });
-    getSw()->updateStateBlocking(
-        "add link local nbr", [&](const std::shared_ptr<SwitchState>& in) {
+        },
+        "add link local nbr, nhop");
+    applyNewState(
+        [&](const std::shared_ptr<SwitchState>& in) {
           return addResolvedNeighbor(in, linkLocalNbr.asV6());
-        });
+        },
+        "add link local nbr, nhop");
     RouteNextHopSet nhops;
     nhops.emplace(ResolvedNextHop(linkLocalNhop, kIntfID(), ECMP_WEIGHT));
     auto routeUpdater = getSw()->getRouteUpdater();
