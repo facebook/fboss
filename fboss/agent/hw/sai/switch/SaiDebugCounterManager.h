@@ -48,6 +48,9 @@ class SaiDebugCounterManager {
   std::set<sai_stat_id_t> getConfiguredDebugStatIds() const;
 
  private:
+  static sai_stat_id_t kInvalidStatId() {
+    return std::numeric_limits<sai_stat_id_t>::max();
+  }
   void setupPortL3BlackHoleCounter();
   void setupMPLSLookupFailedCounter();
   void setupAclDropCounter();
@@ -56,10 +59,10 @@ class SaiDebugCounterManager {
   std::shared_ptr<SaiDebugCounter> mplsLookupFailCounter_;
   std::shared_ptr<SaiDebugCounter> aclDropCounter_;
   std::shared_ptr<SaiDebugCounter> trapDropCounter_;
-  sai_stat_id_t portL3BlackHoleCounterStatId_{0};
-  sai_stat_id_t mplsLookupFailCounterStatId_{0};
-  sai_stat_id_t aclDropCounterStatId_{0};
-  sai_stat_id_t trapDropCounterStatId_{0};
+  sai_stat_id_t portL3BlackHoleCounterStatId_{kInvalidStatId()};
+  sai_stat_id_t mplsLookupFailCounterStatId_{kInvalidStatId()};
+  sai_stat_id_t aclDropCounterStatId_{kInvalidStatId()};
+  sai_stat_id_t trapDropCounterStatId_{kInvalidStatId()};
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   SaiPlatform* platform_;
