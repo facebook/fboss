@@ -42,18 +42,24 @@ class SaiDebugCounterManager {
   sai_stat_id_t getAclDropCounterStatId() const {
     return aclDropCounterStatId_;
   }
+  sai_stat_id_t getTrapDropCounterStatId() const {
+    return trapDropCounterStatId_;
+  }
   std::set<sai_stat_id_t> getConfiguredDebugStatIds() const;
 
  private:
   void setupPortL3BlackHoleCounter();
   void setupMPLSLookupFailedCounter();
   void setupAclDropCounter();
+  void setupTrapDropCounter();
   std::shared_ptr<SaiDebugCounter> portL3BlackHoleCounter_;
   std::shared_ptr<SaiDebugCounter> mplsLookupFailCounter_;
   std::shared_ptr<SaiDebugCounter> aclDropCounter_;
+  std::shared_ptr<SaiDebugCounter> trapDropCounter_;
   sai_stat_id_t portL3BlackHoleCounterStatId_{0};
   sai_stat_id_t mplsLookupFailCounterStatId_{0};
   sai_stat_id_t aclDropCounterStatId_{0};
+  sai_stat_id_t trapDropCounterStatId_{0};
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   SaiPlatform* platform_;

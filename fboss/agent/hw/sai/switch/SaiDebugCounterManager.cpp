@@ -92,6 +92,14 @@ void SaiDebugCounterManager::setupAclDropCounter() {
           SaiDebugCounterTraits::Attributes::Index{});
 }
 
+void SaiDebugCounterManager::setupTrapDropCounter() {
+  if (!platform_->getAsic()->isSupported(
+          HwAsic::Feature::ANY_TRAP_DROP_COUNTER)) {
+    return;
+  }
+  // TODO
+}
+
 std::set<sai_stat_id_t> SaiDebugCounterManager::getConfiguredDebugStatIds()
     const {
   std::set<sai_stat_id_t> stats;
@@ -103,6 +111,9 @@ std::set<sai_stat_id_t> SaiDebugCounterManager::getConfiguredDebugStatIds()
   }
   if (aclDropCounter_) {
     stats.insert(aclDropCounterStatId_);
+  }
+  if (trapDropCounter_) {
+    stats.insert(trapDropCounterStatId_);
   }
   return stats;
 }
