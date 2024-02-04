@@ -10703,6 +10703,9 @@
           "test_name_regex": "HwCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
+          "test_name_regex": "HwRouteTest/1.verifyCpuRouteChange$"
+        },
+        {
           "test_name_regex": "HwVoqSwitch*"
         },
         {
@@ -11060,6 +11063,9 @@
         },
         {
           "test_name_regex": "HwCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
+        },
+        {
+          "test_name_regex": "HwRouteTest/1.verifyCpuRouteChange$"
         },
         {
           "test_name_regex": "HwVoqSwitch*"
@@ -11727,6 +11733,9 @@
           "test_name_regex": "HwCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
+          "test_name_regex": "HwRouteTest/1.verifyCpuRouteChange$"
+        },
+        {
           "test_name_regex": "HwVoqSwitch*"
         },
         {
@@ -12102,6 +12111,9 @@
         },
         {
           "test_name_regex": "HwCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
+        },
+        {
+          "test_name_regex": "HwRouteTest/1.verifyCpuRouteChange$"
         },
         {
           "test_name_regex": "HwVoqSwitch*"
