@@ -1322,10 +1322,10 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet()
     }
 #endif
     return tajoQualifiers;
-  } else if (isJericho2 || isJericho3) {
+  } else if (isJericho2) {
     // TODO(skhare)
     // Extend this list once the SAI implementation supports more qualifiers
-    std::set<cfg::AclTableQualifier> jerichoQualifiers = {
+    std::set<cfg::AclTableQualifier> jericho2Qualifiers = {
         cfg::AclTableQualifier::SRC_IPV6,
         cfg::AclTableQualifier::DST_IPV6,
         cfg::AclTableQualifier::SRC_PORT,
@@ -1334,8 +1334,16 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet()
         cfg::AclTableQualifier::IP_TYPE,
         cfg::AclTableQualifier::TTL,
     };
-
-    return jerichoQualifiers;
+    return jericho2Qualifiers;
+  } else if (isJericho3) {
+    std::set<cfg::AclTableQualifier> jericho3Qualifiers = {
+        cfg::AclTableQualifier::SRC_IPV6,
+        cfg::AclTableQualifier::DST_IPV6,
+        cfg::AclTableQualifier::DSCP,
+        cfg::AclTableQualifier::TTL,
+        cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR,
+        cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE};
+    return jericho3Qualifiers;
   } else {
     std::set<cfg::AclTableQualifier> bcmQualifiers = {
         cfg::AclTableQualifier::SRC_IPV6,
