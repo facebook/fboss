@@ -3,6 +3,7 @@
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 DEFINE_bool(run_forever, false, "run the test forever");
@@ -190,6 +191,22 @@ void AgentHwTest::applyNewStateImpl(
     const std::string& name,
     bool transaction) {
   agentEnsemble_->applyNewState(fn, name, transaction);
+}
+
+cfg::SwitchConfig AgentHwTest::addCoppConfig(
+    const AgentEnsemble& ensemble,
+    const cfg::SwitchConfig& in) const {
+  auto config = in;
+  // Before m-mpu agent test, use first Asic for initialization.
+  auto switchIds = ensemble.getSw()->getHwAsicTable()->getSwitchIDs();
+  CHECK_GE(switchIds.size(), 1);
+  auto asic =
+      ensemble.getSw()->getHwAsicTable()->getHwAsic(*switchIds.cbegin());
+  const auto& cpuStreamTypes =
+      asic->getQueueStreamTypes(cfg::PortType::CPU_PORT);
+  utility::setDefaultCpuTrafficPolicyConfig(config, asic);
+  utility::addCpuQueueConfig(config, asic, ensemble.isSai());
+  return config;
 }
 
 void initAgentHwTest(int argc, char* argv[], PlatformInitFn initPlatform) {

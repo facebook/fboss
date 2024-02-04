@@ -124,6 +124,10 @@ class AgentHwTest : public ::testing::Test {
   HwPortStats getLatestPortStats(const PortID& port);
   virtual cfg::SwitchConfig initialConfig(const AgentEnsemble& ensemble) const;
 
+  cfg::SwitchConfig addCoppConfig(
+      const AgentEnsemble& ensemble,
+      const cfg::SwitchConfig& in) const;
+
  private:
   void applyNewStateImpl(
       StateUpdateFn fn,
