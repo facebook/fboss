@@ -48,18 +48,17 @@ void triggerBcmJericho3ParityError(HwSwitchEnsemble* ensemble) {
   std::string out;
   ensemble->runDiagCommand("\n", out);
   ensemble->runDiagCommand("s CGM_INTERRUPT_MASK_REGISTER -1\n", out);
-  ensemble->runDiagCommand("s CGM_ENABLE_DYNAMIC_MEMORY_ACCESS 1\n", out);
   ensemble->runDiagCommand(
       "w CGM_QSPM 0 1 system_port_0=0 system_port_1=0 system_port_2=0 system_port_3=0\n",
       out);
   ensemble->runDiagCommand(
       "m ECI_GLOBAL_MEM_OPTIONS CPU_BYPASS_ECC_PAR=1\n", out);
   ensemble->runDiagCommand(
-      "w CGM_QSPM 0 1 system_port_0=1 system_port_1=1 system_port_2=1 system_port_3=1\n",
+      "w CGM_QSPM 0 1 system_port_0=0 system_port_1=0 system_port_2=0 system_port_3=1\n",
       out);
   ensemble->runDiagCommand(
       "m ECI_GLOBAL_MEM_OPTIONS CPU_BYPASS_ECC_PAR=0\n", out);
-  ensemble->runDiagCommand("d raw disable_cache CGM_QSPM 0 1\n", out);
+  ensemble->runDiagCommand("d disable_cache CGM_QSPM 0 1\n", out);
   ensemble->runDiagCommand("quit\n", out);
   std::ignore = out;
 }
