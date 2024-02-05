@@ -669,7 +669,7 @@ add_dependencies(qsfp_targets
 set(fboss_agent_target_binaries)
 
 if (BUILD_SAI_FAKE)
-  list(APPEND fboss_agent_target_binaries sai_test-fake)
+  list(APPEND fboss_agent_target_binaries sai_test-fake sai_agent_hw_test-fake)
 endif()
 
 add_custom_target(fboss_agent_targets)
