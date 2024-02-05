@@ -139,9 +139,9 @@ HwPortStats getInitedStats() {
       macsecStats,
       24, // inLabelMissDiscards_
       {}, // queueWatermarkLevel
-      25, // inCongestionDiscards
-      26, // inAclDiscards
-      27, // inTrapDiscards
+      0, // inCongestionDiscards - unused
+      25, // inAclDiscards
+      26, // inTrapDiscards
   };
 }
 
