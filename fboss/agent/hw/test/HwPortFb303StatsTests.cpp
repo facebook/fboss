@@ -141,6 +141,7 @@ HwPortStats getInitedStats() {
       {}, // queueWatermarkLevel
       25, // inCongestionDiscards
       26, // inAclDiscards
+      27, // inTrapDiscards
   };
 }
 

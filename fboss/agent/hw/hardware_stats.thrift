@@ -83,6 +83,7 @@ struct HwPortStats {
   54: map<i16, i64> queueWatermarkLevel_ = {};
   55: i64 inCongestionDiscards_ = STAT_UNINITIALIZED;
   56: i64 inAclDiscards_ = STAT_UNINITIALIZED;
+  57: i64 inTrapDiscards_ = STAT_UNINITIALIZED;
 }
 
 struct HwSysPortStats {
