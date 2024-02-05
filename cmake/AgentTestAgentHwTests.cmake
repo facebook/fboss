@@ -24,6 +24,7 @@ target_link_libraries(multi_switch_agent_hw_test
   agent_hw_test_src
   agent_hw_test
   multi_switch_agent_ensemble
+  sai_copp_utils
   Folly::folly
   -Wl,--no-whole-archive
   ${GTEST}

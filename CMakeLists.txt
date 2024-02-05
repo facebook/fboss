@@ -666,7 +666,9 @@ add_dependencies(qsfp_targets
   wedge_qsfp_util
 )
 
-set(fboss_agent_target_binaries)
+set(fboss_agent_target_binaries
+  multi_switch_agent_hw_test
+)
 
 if (BUILD_SAI_FAKE)
   list(APPEND fboss_agent_target_binaries sai_test-fake sai_agent_hw_test-fake)
