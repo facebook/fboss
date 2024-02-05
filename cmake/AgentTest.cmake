@@ -120,6 +120,7 @@ target_link_libraries(agent_hw_test
   production_features_cpp2
   core
   switch_asics
+  hw_copp_utils
   ${GTEST}
 )
 
