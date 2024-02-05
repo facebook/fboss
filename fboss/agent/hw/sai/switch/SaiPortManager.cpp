@@ -2480,6 +2480,13 @@ void SaiPortManager::changeZeroPreemphasis(
           "Cannot set zero preemphasis on non existent port: ",
           newPort->getID());
     }
+    // TH4 and TH5 not yet supporting setting zero three-tap values
+    if (platform_->getAsic()->getAsicType() ==
+            cfg::AsicType::ASIC_TYPE_TOMAHAWK4 ||
+        platform_->getAsic()->getAsicType() ==
+            cfg::AsicType::ASIC_TYPE_TOMAHAWK5) {
+      return;
+    }
     auto gotAttributes = portHandle->port->attributes();
     auto numLanes =
         std::get<SaiPortTraits::Attributes::HwLaneList>(gotAttributes)
@@ -2497,14 +2504,27 @@ void SaiPortManager::changeZeroPreemphasis(
         attr = val;
       }
     };
-    auto preemphasisVal =
-        std::vector<uint32_t>(numLanes, static_cast<uint32_t>(0));
+    auto zeroVal = std::vector<uint32_t>(numLanes, static_cast<uint32_t>(0));
     if (platform_->getAsic()->isSupported(
-            HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET)) {
+            HwAsic::Feature::PORT_SERDES_ZERO_PREEMPHASIS)) {
       setTxRxAttr(
           serDesAttributes,
           SaiPortSerdesTraits::Attributes::Preemphasis{},
-          preemphasisVal);
+          zeroVal);
+    } else {
+      // Set three-tap values to zero
+      setTxRxAttr(
+          serDesAttributes,
+          SaiPortSerdesTraits::Attributes::TxFirPre1{},
+          zeroVal);
+      setTxRxAttr(
+          serDesAttributes,
+          SaiPortSerdesTraits::Attributes::TxFirMain{},
+          zeroVal);
+      setTxRxAttr(
+          serDesAttributes,
+          SaiPortSerdesTraits::Attributes::TxFirPost1{},
+          zeroVal);
     }
     if (platform_->isSerdesApiSupported() &&
         platform_->getAsic()->isSupported(
