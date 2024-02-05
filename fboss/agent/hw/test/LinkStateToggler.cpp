@@ -21,84 +21,128 @@
 #include <folly/gen/Base.h>
 #include <gtest/gtest.h>
 
+namespace {
+// Instead of bringing up ports 1-by-1, bring them up in batches such that
+// 1) Similar to prod environment where links could come up in batches, and
+// 2) More efficient during testing.
+constexpr auto kBatchSize = 32;
+} // namespace
+
 namespace facebook::fboss {
 
 void LinkStateToggler::linkStateChanged(PortID port, bool up) noexcept {
   {
     std::lock_guard<std::mutex> lk(linkEventMutex_);
-    if (!portIdToWaitFor_ || port != portIdToWaitFor_ || up != waitForPortUp_) {
+    if (portIdToWaitFor_.empty() ||
+        (portIdToWaitFor_.find(port) == portIdToWaitFor_.end()) ||
+        up != waitForPortUp_) {
       return;
     }
-    desiredPortEventOccurred_ = true;
-    portIdToWaitFor_ = std::nullopt;
+    portIdToWaitFor_.erase(port);
+    XLOG(DBG2) << " Got port " << (up ? "up" : "down")
+               << " event on : " << port;
+    if (portIdToWaitFor_.empty()) {
+      desiredPortEventsOccurred_ = true;
+      linkEventCV_.notify_one();
+    }
   }
-  linkEventCV_.notify_one();
 }
 
-void LinkStateToggler::setPortIDAndStateToWaitFor(
-    PortID port,
+void LinkStateToggler::setPortIDsAndStateToWaitFor(
+    const std::set<PortID>& ports,
     bool waitForPortUp) {
-  std::lock_guard<std::mutex> lk(linkEventMutex_);
-  portIdToWaitFor_ = port;
-  waitForPortUp_ = waitForPortUp;
-  desiredPortEventOccurred_ = false;
+  for (const auto& port : ports) {
+    XLOG(DBG2) << " Wait for port " << (waitForPortUp ? "up" : "down")
+               << " event on : " << port;
+  }
+  // In the case of multi_switch, link state toggler does not receive callbacks
+  // directly from hardware (it will reach SwSwitch through IPC). Therefore, we
+  // skip waiting synchronously and directly wait for switch state to be
+  // updated.
+  if (!FLAGS_multi_switch && !ports.empty()) {
+    std::lock_guard<std::mutex> lk(linkEventMutex_);
+    portIdToWaitFor_ = std::set<PortID>(ports);
+    waitForPortUp_ = waitForPortUp;
+    desiredPortEventsOccurred_ = false;
+  }
+}
+
+cfg::PortLoopbackMode LinkStateToggler::findDesiredLoopbackMode(
+    const std::shared_ptr<SwitchState>& newState,
+    PortID port,
+    bool up) const {
+  auto currPort = newState->getPorts()->getNodeIf(port);
+  auto switchId = ensemble_->scopeResolver().scope(currPort).switchId();
+  auto asic = ensemble_->getHwAsicTable()->getHwAsic(switchId);
+  return up ? asic->getDesiredLoopbackMode(currPort->getPortType())
+            : cfg::PortLoopbackMode::NONE;
 }
 
 void LinkStateToggler::portStateChangeImpl(
     const std::vector<PortID>& ports,
     bool up) {
-  for (auto port : ports) {
-    auto newState = ensemble_->getProgrammedState();
-    auto currPort = newState->getPorts()->getNodeIf(port);
-    auto switchId = ensemble_->scopeResolver().scope(currPort).switchId();
-    auto asic = ensemble_->getHwAsicTable()->getHwAsic(switchId);
-    auto desiredLoopbackMode = up
-        ? asic->getDesiredLoopbackMode(currPort->getPortType())
-        : cfg::PortLoopbackMode::NONE;
-    if (currPort->getLoopbackMode() == desiredLoopbackMode) {
-      continue;
+  for (auto i = 0; i < ports.size(); i += kBatchSize) {
+    auto newState = ensemble_->getProgrammedState()->clone();
+    auto batchedPorts = std::vector<PortID>(
+        ports.begin() + i,
+        ports.begin() + std::min(i + kBatchSize, int(ports.size())));
+    std::set<PortID> portsToWaitFor;
+    std::unordered_map<PortID, cfg::PortLoopbackMode> port2LoopbackMode;
+    for (auto port : batchedPorts) {
+      auto desiredLbMode = findDesiredLoopbackMode(newState, port, up);
+      if (desiredLbMode !=
+          newState->getPorts()->getNodeIf(port)->getLoopbackMode()) {
+        portsToWaitFor.insert(port);
+        port2LoopbackMode[port] = desiredLbMode;
+      }
     }
-    setPortIDAndStateToWaitFor(port, up);
-    auto updateLoopbackMode = [currPort, desiredLoopbackMode](
+    setPortIDsAndStateToWaitFor(portsToWaitFor, up);
+    auto updateLoopbackMode = [portsToWaitFor, port2LoopbackMode](
                                   const std::shared_ptr<SwitchState>& in) {
       auto switchState = in->clone();
-      auto newPort = currPort->modify(&switchState);
-      newPort->setLoopbackMode(desiredLoopbackMode);
+      for (const auto& port : portsToWaitFor) {
+        auto newPort =
+            switchState->getPorts()->getNodeIf(port)->modify(&switchState);
+        newPort->setLoopbackMode(port2LoopbackMode.at(port));
+      }
       return switchState;
     };
     ensemble_->applyNewState(updateLoopbackMode);
-    invokeLinkScanIfNeeded(port, up);
-    XLOG(DBG2) << " Wait for port " << (up ? "up" : "down")
-               << " event on : " << port;
-    waitForPortEvent(port);
-    XLOG(DBG2) << " Got port " << (up ? "up" : "down")
-               << " event on : " << port;
+    for (const auto& port : portsToWaitFor) {
+      invokeLinkScanIfNeeded(port, up);
+    }
+    waitForPortEvents(portsToWaitFor);
   }
 }
 
-bool LinkStateToggler::waitForPortEvent(PortID port) {
+bool LinkStateToggler::waitForPortEvents(const std::set<PortID>& ports) {
   if (!FLAGS_multi_switch) {
     std::unique_lock<std::mutex> lock{linkEventMutex_};
-    linkEventCV_.wait(lock, [this] { return desiredPortEventOccurred_; });
+    linkEventCV_.wait(lock, [this] { return desiredPortEventsOccurred_; });
+    CHECK(portIdToWaitFor_.empty());
     auto updateOperState = [this,
-                            port](const std::shared_ptr<SwitchState>& in) {
+                            ports](const std::shared_ptr<SwitchState>& in) {
       /* toggle the oper state */
       auto newState = in->clone();
-      auto newPort = newState->getPorts()->getNodeIf(port)->modify(&newState);
-      newPort->setOperState(waitForPortUp_);
+      for (const auto& port : ports) {
+        auto newPort = newState->getPorts()->getNodeIf(port)->modify(&newState);
+        newPort->setOperState(waitForPortUp_);
+      }
       return newState;
     };
     ensemble_->applyNewState(updateOperState);
   }
-  WITH_RETRIES({
-    EXPECT_EVENTUALLY_EQ(
-        ensemble_->getProgrammedState()
-            ->getPorts()
-            ->getNodeIf(port)
-            ->getOperState(),
-        (waitForPortUp_ ? PortFields::OperState::UP
-                        : PortFields::OperState::DOWN));
-  });
+  for (const auto& portId : ports) {
+    WITH_RETRIES_N_TIMED(60, std::chrono::milliseconds(1000), {
+      EXPECT_EVENTUALLY_EQ(
+          ensemble_->getProgrammedState()
+              ->getPorts()
+              ->getNodeIf(portId)
+              ->getOperState(),
+          (waitForPortUp_ ? PortFields::OperState::UP
+                          : PortFields::OperState::DOWN));
+    });
+  }
   return true;
 }
 

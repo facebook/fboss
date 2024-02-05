@@ -55,13 +55,19 @@ class LinkStateToggler {
   void portStateChangeImpl(const std::vector<PortID>& ports, bool up);
   virtual void invokeLinkScanIfNeeded(PortID port, bool isUp);
   void waitForPortDown(PortID port);
-  void setPortIDAndStateToWaitFor(PortID port, bool waitForUp);
-  bool waitForPortEvent(PortID port);
+  void setPortIDsAndStateToWaitFor(
+      const std::set<PortID>& ports,
+      bool waitForUp);
+  bool waitForPortEvents(const std::set<PortID>& ports);
+  cfg::PortLoopbackMode findDesiredLoopbackMode(
+      const std::shared_ptr<SwitchState>& newState,
+      PortID port,
+      bool up) const;
 
   mutable std::mutex linkEventMutex_;
-  std::optional<PortID> portIdToWaitFor_;
+  std::set<PortID> portIdToWaitFor_;
   bool waitForPortUp_{false};
-  bool desiredPortEventOccurred_{false};
+  bool desiredPortEventsOccurred_{true};
   std::condition_variable linkEventCV_;
 
   TestEnsembleIf* ensemble_;
