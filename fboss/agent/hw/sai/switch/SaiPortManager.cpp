@@ -288,6 +288,12 @@ void fillHwPortStats(
       }
 #endif
       default:
+        auto configuredDebugCounters =
+            debugCounterManager.getConfiguredDebugStatIds();
+        if (configuredDebugCounters.find(counterId) ==
+            configuredDebugCounters.end()) {
+          throw FbossError("Got unexpected port counter id: ", counterId);
+        }
         if (counterId ==
             debugCounterManager.getPortL3BlackHoleCounterStatId()) {
           hwPortStats.inDstNullDiscards_() = value;
@@ -297,8 +303,12 @@ void fillHwPortStats(
           hwPortStats.inLabelMissDiscards_() = value;
         } else if (counterId == debugCounterManager.getAclDropCounterStatId()) {
           hwPortStats.inAclDiscards_() = value;
+        } else if (
+            counterId == debugCounterManager.getTrapDropCounterStatId()) {
+          // TODO
         } else {
-          throw FbossError("Got unexpected port counter id: ", counterId);
+          XLOG(FATAL)
+              << " Should never get here, check configured debugCounterStatIds";
         }
         break;
     }
