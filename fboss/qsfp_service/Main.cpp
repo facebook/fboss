@@ -77,18 +77,6 @@ int main(int argc, char** argv) {
       std::chrono::seconds(FLAGS_loop_interval),
       "refreshStateMachines");
 
-  // Schedule the function to periodically send the I2c transaction
-  // stats to the ServiceData object which gets pulled by FBagent.
-  // The function is called from abstract base class TransceiverManager
-  // which gets implemented by platfdorm aware class inheriting
-  // this class
-  scheduler->addFunction(
-      [mgr = handler->getTransceiverManager()]() {
-        mgr->publishI2cTransactionStats();
-      },
-      std::chrono::seconds(FLAGS_loop_interval),
-      "publishI2cTransactionStats");
-
   // Schedule the function to periodically collect xphy stats if there's a
   // PhyManager
   if (auto* mgr = handler->getTransceiverManager(); mgr->getPhyManager()) {
