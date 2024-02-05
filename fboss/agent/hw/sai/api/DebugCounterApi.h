@@ -50,6 +50,7 @@ struct SaiDebugCounterTraits {
       Attributes::BindMethod,
       std::optional<Attributes::InDropReasons>>;
   using AdapterHostKey = CreateAttributes;
+  static std::optional<sai_int32_t> trapDrops();
 };
 
 SAI_ATTRIBUTE_NAME(DebugCounter, Index)
