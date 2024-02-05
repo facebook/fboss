@@ -167,6 +167,7 @@ class HwAsic {
     ANY_TRAP_DROP_COUNTER,
     PORT_WRED_COUNTER,
     ACL_METADATA_QUALIFER,
+    PORT_SERDES_ZERO_PREEMPHASIS,
   };
 
   enum class AsicMode {

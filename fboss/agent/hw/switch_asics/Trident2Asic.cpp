@@ -53,6 +53,7 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_USER_DEFINED_TRAP:
     case HwAsic::Feature::ACL_COUNTER_LABEL:
     case HwAsic::Feature::SAI_PORT_SERDES_PROGRAMMING:
+    case HwAsic::Feature::PORT_SERDES_ZERO_PREEMPHASIS:
       return true;
     case HwAsic::Feature::ERSPANv6:
     case HwAsic::Feature::SFLOWv4:
