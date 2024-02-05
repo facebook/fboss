@@ -139,4 +139,17 @@ void validateUdfIdsInQset(
   // not supported on SAI yet.
   EXPECT_TRUE(false);
 }
+
+cfg::SwitchConfig addUdfAclRoceOpcodeConfig(cfg::SwitchConfig& cfg) {
+  // not supported on SAI yet.
+  return cfg;
+}
+
+void validateUdfAclRoceOpcodeConfig(
+    const HwSwitch* /*hw*/,
+    std::shared_ptr<SwitchState> /*curState*/) {
+  // not supported on SAI yet.
+  EXPECT_TRUE(false);
+}
+
 } // namespace facebook::fboss::utility

@@ -53,6 +53,8 @@ namespace utility {
 inline const std::string kUdfHashDstQueuePairGroupName("dstQueuePair");
 inline const std::string kUdfAclRoceOpcodeGroupName("roceOpcode");
 inline const std::string kUdfL4UdpRocePktMatcherName("l4UdpRoce");
+inline const std::string kUdfAclRoceOpcodeName("udf-roce-ack");
+inline const std::string kUdfAclRoceOpcodeStats("udf-roce-ack-stats");
 inline const int kUdfHashDstQueuePairStartOffsetInBytes(13);
 inline const int kUdfAclRoceOpcodeStartOffsetInBytes(8);
 inline const int kUdfHashDstQueuePairFieldSizeInBytes(3);

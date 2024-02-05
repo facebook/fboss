@@ -45,5 +45,11 @@ void validateUdfIdsInQset(
     const int aclGroupId,
     const bool isSet);
 
+cfg::SwitchConfig addUdfAclRoceOpcodeConfig(cfg::SwitchConfig& cfg);
+
+void validateUdfAclRoceOpcodeConfig(
+    const HwSwitch* hw,
+    std::shared_ptr<SwitchState> curState);
+
 } // namespace utility
 } // namespace facebook::fboss

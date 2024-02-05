@@ -14,6 +14,8 @@
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmUdfManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/hw/test/HwTest.h"
+#include "fboss/agent/hw/test/HwTestAclUtils.h"
 #include "fboss/agent/packet/IPProto.h"
 
 #include <gtest/gtest.h>
@@ -128,6 +130,38 @@ void validateUdfIdsInQset(
   } else {
     EXPECT_TRUE(udf_ids.size() == 0);
   }
+}
+
+cfg::SwitchConfig addUdfAclRoceOpcodeConfig(cfg::SwitchConfig& cfg) {
+  cfg.udfConfig() = utility::addUdfAclConfig();
+  auto acl = utility::addAcl(&cfg, utility::kUdfAclRoceOpcodeName);
+  acl->udfGroups() = {utility::kUdfAclRoceOpcodeGroupName};
+  acl->roceOpcode() = utility::kUdfRoceOpcode;
+
+  // Add AclStat configuration
+  utility::addAclStat(
+      &cfg, utility::kUdfAclRoceOpcodeName, utility::kUdfAclRoceOpcodeStats);
+
+  return cfg;
+}
+
+void validateUdfAclRoceOpcodeConfig(
+    const HwSwitch* hw,
+    std::shared_ptr<SwitchState> curState) {
+  ASSERT_TRUE(utility::isAclTableEnabled(hw));
+
+  utility::checkSwHwAclMatch(hw, curState, utility::kUdfAclRoceOpcodeName);
+
+  utility::checkAclStat(
+      hw,
+      curState,
+      {utility::kUdfAclRoceOpcodeName},
+      utility::kUdfAclRoceOpcodeStats,
+      utility::getAclCounterTypes(hw));
+
+  // Verify that UdfGroupIds are there in Qset
+  utility::validateUdfIdsInQset(
+      hw, hw->getPlatform()->getAsic()->getDefaultACLGroupID(), true);
 }
 
 } // namespace facebook::fboss::utility

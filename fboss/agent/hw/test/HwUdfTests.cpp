@@ -10,6 +10,7 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTest.h"
 #include "fboss/agent/hw/test/HwTestAclUtils.h"
+#include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestUdfUtils.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
 
@@ -135,6 +136,26 @@ TEST_F(HwUdfTest, deleteUdfAclConfig) {
         getHwSwitch()->getPlatform()->getAsic()->getDefaultACLGroupID(),
         false);
   };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(HwUdfTest, addAclConfig) {
+  if (getPlatform()->getAsic()->getAsicType() ==
+      cfg::AsicType::ASIC_TYPE_FAKE) {
+    GTEST_SKIP();
+  }
+  auto setup = [&]() {
+    auto cfg{initialConfig()};
+    cfg = utility::addUdfAclRoceOpcodeConfig(cfg);
+
+    applyNewConfig(cfg);
+  };
+
+  auto verify = [=]() {
+    utility::validateUdfAclRoceOpcodeConfig(
+        getHwSwitch(), getProgrammedState());
+  };
+
   verifyAcrossWarmBoots(setup, verify);
 }
 
