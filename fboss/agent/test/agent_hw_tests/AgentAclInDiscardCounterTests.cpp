@@ -72,6 +72,17 @@ TEST_F(AgentAclInDiscardsCounterTest, aclInDiscards) {
           *portStatsAfter.inAclDiscards_(),
           *portStatsBefore.inAclDiscards_() + 1);
     });
+    // Collect once more and assert that counter remains same.
+    // We expect this to be a cumulative counter and not a read
+    // on clear counter. Assert that.
+    auto portStatsAfter = getLatestPortStats(port);
+    XLOG(INFO) << " In discards, before:" << *portStatsBefore.inDiscards_()
+               << " after:" << *portStatsAfter.inDiscards_() << std::endl
+               << " Acl discards, before:" << *portStatsBefore.inAclDiscards_()
+               << " after:" << *portStatsAfter.inAclDiscards_();
+    EXPECT_EQ(
+        *portStatsAfter.inAclDiscards_(),
+        *portStatsBefore.inAclDiscards_() + 1);
     // Assert that other ports did not see any in discard
     // counter increment
     auto allPortStats = getLatestPortStats(masterLogicalInterfacePortIds());
