@@ -4250,7 +4250,7 @@
 	   "/run/devmap/sensors/PSU4_PMBUS": "/SMB_SLOT@0/PSU_SLOT@3/[PSU_PMBUS]"
 	},
 	"bspKmodsRpmName": "arista_bsp_kmods",
-	"bspKmodsRpmVersion": "0.4.0-1",
+	"bspKmodsRpmVersion": "0.5.0-1",
 	"kmodsToReload": [
 	   "scd",
 	   "scd-spi",
