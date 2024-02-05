@@ -35,8 +35,8 @@ class AgentInNullRouteDiscardsCounterTest : public AgentHwTest {
 
 TEST_F(AgentInNullRouteDiscardsCounterTest, nullRouteHit) {
   auto setup = [=]() {};
+  PortID portId = masterLogicalInterfacePortIds()[0];
   auto verify = [=, this]() {
-    PortID portId = masterLogicalInterfacePortIds()[0];
     auto portStatsBefore = getLatestPortStats(portId);
     pumpTraffic(true);
     pumpTraffic(false);
@@ -53,11 +53,22 @@ TEST_F(AgentInNullRouteDiscardsCounterTest, nullRouteHit) {
           *portStatsAfter.inDiscardsRaw_(),
           *portStatsAfter.inDstNullDiscards_());
     });
+    // Collect once more and assert that counter remains same.
+    // We expect this to be a cumulative counter and not a read
+    // on clear counter. Assert that.
+    auto portStatsAfter = getLatestPortStats(portId);
+    EXPECT_EQ(
+        2,
+        *portStatsAfter.inDiscardsRaw_() - *portStatsBefore.inDiscardsRaw_());
+    EXPECT_EQ(
+        2,
+        *portStatsAfter.inDstNullDiscards_() -
+            *portStatsBefore.inDstNullDiscards_());
     // Assert that other ports did not see any in discard
     // counter increment
     auto allPortStats = getLatestPortStats(masterLogicalInterfacePortIds());
     for (const auto& [port, otherPortStats] : allPortStats) {
-      if (port == masterLogicalInterfacePortIds()[0]) {
+      if (port == portId) {
         continue;
       }
       EXPECT_EQ(otherPortStats.inDiscardsRaw_(), 0);
