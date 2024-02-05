@@ -305,7 +305,7 @@ void fillHwPortStats(
           hwPortStats.inAclDiscards_() = value;
         } else if (
             counterId == debugCounterManager.getTrapDropCounterStatId()) {
-          // TODO
+          hwPortStats.inTrapDiscards_() = value;
         } else {
           XLOG(FATAL)
               << " Should never get here, check configured debugCounterStatIds";
