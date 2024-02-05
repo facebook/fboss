@@ -25,6 +25,7 @@ target_link_libraries(phy_management_base
   fboss_config_utils
   Folly::folly
   io_stats_cpp2
+  fb303::fb303
 )
 
 add_library(phy_utils

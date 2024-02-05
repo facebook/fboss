@@ -81,6 +81,9 @@ class PhyManager {
     return getExternalPhy(getGlobalXphyIDbyPortID(portID));
   }
 
+  // Key is the xphy identifier, value is the stats
+  void publishPhyIOStatsToFb303() const;
+
   phy::PhyPortConfig getDesiredPhyPortConfig(
       PortID portId,
       cfg::PortProfileID portProfileId,

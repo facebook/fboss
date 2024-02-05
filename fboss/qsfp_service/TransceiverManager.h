@@ -153,6 +153,13 @@ class TransceiverManager {
    */
   virtual void publishI2cTransactionStats() = 0;
 
+  void publishPhyIOStats() const {
+    if (!phyManager_) {
+      return;
+    }
+    phyManager_->publishPhyIOStatsToFb303();
+  }
+
   /*
    * Virtual functions to get the cached transceiver signal flags, media lane
    * signals, and module status flags, and clear the cached data. This is

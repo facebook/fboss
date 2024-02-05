@@ -11,6 +11,7 @@
 #include "fboss/lib/phy/ExternalPhy.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 
+#include <fb303/ThreadCachedServiceData.h>
 #include <folly/json.h>
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
@@ -821,5 +822,28 @@ PhyManager::PortStatsWLockedPtr PhyManager::getWLockedStats(
         "Unrecoginized port=", portID, ", which is not in PlatformMapping");
   }
   return statsInfo->second->wlock();
+}
+
+void PhyManager::publishPhyIOStatsToFb303() const {
+  std::map<std::string, IOStats> ioStats;
+  for (const auto& pimAndXphy : xphyMap_) {
+    for (const auto& idAndXphy : pimAndXphy.second) {
+      auto ioStat = idAndXphy.second->getIOStats();
+      auto statPrefix = folly::to<std::string>(
+          "qsfp.pim", pimAndXphy.first, ".xphy", idAndXphy.first);
+
+      auto statName = statPrefix + ".mdioReadTotal";
+      tcData().setCounter(statName, *ioStat.numReadAttempted());
+
+      statName = statPrefix + ".mdioReadFailed";
+      tcData().setCounter(statName, *ioStat.numReadFailed());
+
+      statName = statPrefix + ".mdioWriteTotal";
+      tcData().setCounter(statName, *ioStat.numWriteAttempted());
+
+      statName = statPrefix + ".mdioWriteFailed";
+      tcData().setCounter(statName, *ioStat.numWriteFailed());
+    }
+  }
 }
 } // namespace facebook::fboss
