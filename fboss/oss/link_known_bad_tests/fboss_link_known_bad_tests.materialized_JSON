@@ -448,7 +448,7 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "darwin/sai/asicsdk-10.2.0.0_odp/10.2.0.0_odp": [
+    "darwin/sai/asicsdk-10.0_ea_odp/10.0_ea_odp": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -507,7 +507,7 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "darwin/sai/asicsdk-10.2.0.0_odp/10.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
+    "darwin/sai/asicsdk-10.0_ea_odp/10.0_ea_odp/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -1368,7 +1368,7 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "darwin_mix/sai/asicsdk-10.2.0.0_odp/10.2.0.0_odp": [
+    "darwin_mix/sai/asicsdk-10.0_ea_odp/10.0_ea_odp": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -1427,7 +1427,7 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "darwin_mix/sai/asicsdk-10.2.0.0_odp/10.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
+    "darwin_mix/sai/asicsdk-10.0_ea_odp/10.0_ea_odp/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -2288,7 +2288,7 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "darwin_original/sai/asicsdk-10.2.0.0_odp/10.2.0.0_odp": [
+    "darwin_original/sai/asicsdk-10.0_ea_odp/10.0_ea_odp": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -2347,7 +2347,7 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "darwin_original/sai/asicsdk-10.2.0.0_odp/10.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
+    "darwin_original/sai/asicsdk-10.0_ea_odp/10.0_ea_odp/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -3184,7 +3184,7 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "elbert_2x16Q_6x8DD/sai/asicsdk-10.2.0.0_odp/10.2.0.0_odp": [
+    "elbert_2x16Q_6x8DD/sai/asicsdk-10.0_ea_odp/10.0_ea_odp": [
         {
           "test_name_regex": "warm_boot.*$"
         },
@@ -3240,7 +3240,7 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "elbert_2x16Q_6x8DD/sai/asicsdk-10.2.0.0_odp/10.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
+    "elbert_2x16Q_6x8DD/sai/asicsdk-10.0_ea_odp/10.0_ea_odp/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "warm_boot.*$"
         },
@@ -4056,7 +4056,7 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "elbert_5x16Q_3x8DD/sai/asicsdk-10.2.0.0_odp/10.2.0.0_odp": [
+    "elbert_5x16Q_3x8DD/sai/asicsdk-10.0_ea_odp/10.0_ea_odp": [
         {
           "test_name_regex": "warm_boot.*$"
         },
@@ -4112,7 +4112,7 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "elbert_5x16Q_3x8DD/sai/asicsdk-10.2.0.0_odp/10.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
+    "elbert_5x16Q_3x8DD/sai/asicsdk-10.0_ea_odp/10.0_ea_odp/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "warm_boot.*$"
         },
@@ -5024,7 +5024,7 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "elbert_8x16Q/sai/asicsdk-10.2.0.0_odp/10.2.0.0_odp": [
+    "elbert_8x16Q/sai/asicsdk-10.0_ea_odp/10.0_ea_odp": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -5089,7 +5089,7 @@
           "test_name_regex": "LacpTest.lacpFlap$"
         }
     ],
-    "elbert_8x16Q/sai/asicsdk-10.2.0.0_odp/10.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
+    "elbert_8x16Q/sai/asicsdk-10.0_ea_odp/10.0_ea_odp/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -5944,7 +5944,7 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "fuji_5x16Q/sai/asicsdk-10.2.0.0_odp/10.2.0.0_odp": [
+    "fuji_5x16Q/sai/asicsdk-10.0_ea_odp/10.0_ea_odp": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -5997,7 +5997,7 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "fuji_5x16Q/sai/asicsdk-10.2.0.0_odp/10.2.0.0_odp/physdk-barchetta2-5.2/barchetta2-5.2": [
+    "fuji_5x16Q/sai/asicsdk-10.0_ea_odp/10.0_ea_odp/physdk-barchetta2-5.2/barchetta2-5.2": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -6768,7 +6768,7 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "fuji_8x16Q/sai/asicsdk-10.2.0.0_odp/10.2.0.0_odp": [
+    "fuji_8x16Q/sai/asicsdk-10.0_ea_odp/10.0_ea_odp": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -6821,7 +6821,7 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "fuji_8x16Q/sai/asicsdk-10.2.0.0_odp/10.2.0.0_odp/physdk-barchetta2-5.2/barchetta2-5.2": [
+    "fuji_8x16Q/sai/asicsdk-10.0_ea_odp/10.0_ea_odp/physdk-barchetta2-5.2/barchetta2-5.2": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -8148,7 +8148,7 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "minipack_7x16Q_1x16O/sai/asicsdk-10.2.0.0_odp/10.2.0.0_odp": [
+    "minipack_7x16Q_1x16O/sai/asicsdk-10.0_ea_odp/10.0_ea_odp": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -8198,7 +8198,7 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "minipack_7x16Q_1x16O/sai/asicsdk-10.2.0.0_odp/10.2.0.0_odp/physdk-millenio-5.5/millenio-5.5": [
+    "minipack_7x16Q_1x16O/sai/asicsdk-10.0_ea_odp/10.0_ea_odp/physdk-millenio-5.5/millenio-5.5": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -8996,7 +8996,7 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "montblanc/sai/asicsdk-10.2.0.0_odp/10.2.0.0_odp": [
+    "montblanc/sai/asicsdk-10.0_ea_odp/10.0_ea_odp": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -9055,7 +9055,7 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "montblanc/sai/asicsdk-10.2.0.0_odp/10.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
+    "montblanc/sai/asicsdk-10.0_ea_odp/10.0_ea_odp/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -10094,7 +10094,7 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "wedge100s/sai/asicsdk-10.2.0.0_odp/10.2.0.0_odp": [
+    "wedge100s/sai/asicsdk-10.0_ea_odp/10.0_ea_odp": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -10159,7 +10159,7 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "wedge100s/sai/asicsdk-10.2.0.0_odp/10.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
+    "wedge100s/sai/asicsdk-10.0_ea_odp/10.0_ea_odp/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -11182,7 +11182,7 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "wedge400/sai/asicsdk-10.2.0.0_odp/10.2.0.0_odp": [
+    "wedge400/sai/asicsdk-10.0_ea_odp/10.0_ea_odp": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -11256,7 +11256,7 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "wedge400/sai/asicsdk-10.2.0.0_odp/10.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
+    "wedge400/sai/asicsdk-10.0_ea_odp/10.0_ea_odp/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -12394,7 +12394,7 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "yamp_8x16Q/sai/asicsdk-10.2.0.0_odp/10.2.0.0_odp": [
+    "yamp_8x16Q/sai/asicsdk-10.0_ea_odp/10.0_ea_odp": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
@@ -12459,7 +12459,7 @@
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
-    "yamp_8x16Q/sai/asicsdk-10.2.0.0_odp/10.2.0.0_odp/physdk-credo-0.7.2/credo-0.7.2": [
+    "yamp_8x16Q/sai/asicsdk-10.0_ea_odp/10.0_ea_odp/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "MacsecTest.*$"
         },
