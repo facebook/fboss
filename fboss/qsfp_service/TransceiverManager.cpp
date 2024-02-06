@@ -514,6 +514,9 @@ void TransceiverManager::startThreads() {
             kStateMachineThreadHeartbeatMissed,
             stateMachineThreadHeartbeatMissedCount_);
       });
+  // Initialize the kStateMachineThreadHeartbeatMissed counter
+  tcData().setCounter(kStateMachineThreadHeartbeatMissed, 0);
+  // Start monitoring the heartbeats of all the threads
   for (auto heartbeat : heartbeats_) {
     heartbeatWatchdog_->startMonitoringHeartbeat(heartbeat);
   }
