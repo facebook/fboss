@@ -41,6 +41,10 @@ DEFINE_int32(
     initial_remediate_interval,
     120,
     "seconds to wait before running first destructive remediations on down ports after bootup");
+DEFINE_int32(
+    time_for_tcvr_ready_after_fw_upgrade_s,
+    60,
+    "max time after firmware upgrade sequence when the the tcvr is expected to be ready for link up");
 
 using folly::IOBuf;
 using std::lock_guard;
@@ -568,6 +572,15 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
 
   tcvrStats.lastFwUpgradeStartTime() = lastFwUpgradeStartTime_;
   tcvrStats.lastFwUpgradeEndTime() = lastFwUpgradeEndTime_;
+
+  // If it's over the estimated time that a tcvr takes to be ready for link up
+  // after fw upgrade, then set the fwUpgradeInProgress status to false
+  if ((std::time(nullptr) - lastFwUpgradeEndTime_) >
+      FLAGS_time_for_tcvr_ready_after_fw_upgrade_s) {
+    tcvrState.fwUpgradeInProgress() = false;
+  } else {
+    tcvrState.fwUpgradeInProgress() = true;
+  }
 
   phy::LinkSnapshot snapshot;
   snapshot.transceiverInfo_ref() = info;

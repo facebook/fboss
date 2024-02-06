@@ -270,6 +270,21 @@ TEST_F(OpticsFwUpgradeTest, upgradeOnLinkDown) {
               initDoneTimestampSec /* upgradeSinceTsSec */,
               tcvrsToTest /* tcvrs */));
         });
+
+    // After upgrade, wait for fwUpgradeInProgress to clear
+    WITH_RETRIES_N_TIMED(
+        10 /* retries */,
+        std::chrono::milliseconds(10000) /* msBetweenRetry */,
+        {
+          getHwQsfpEnsemble()->getWedgeManager()->refreshStateMachines();
+          for (auto tcvrID : tcvrsToTest) {
+            auto tcvrInfo =
+                getHwQsfpEnsemble()->getWedgeManager()->getTransceiverInfo(
+                    TransceiverID(tcvrID));
+            auto& tcvrState = *tcvrInfo.tcvrState();
+            EXPECT_EVENTUALLY_FALSE(*tcvrState.fwUpgradeInProgress());
+          }
+        });
   };
 
   verifyAcrossWarmBoots(setup, verify);
