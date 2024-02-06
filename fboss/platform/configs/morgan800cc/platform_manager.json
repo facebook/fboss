@@ -494,7 +494,7 @@
     "/run/devmap/sensors/PSU2_PMBUS": "/PSU_SLOT@1/[PSU_PMBUS]"
   },
   "bspKmodsRpmName": "cisco_bsp_kmods",
-  "bspKmodsRpmVersion": "0.0.7-1",
+  "bspKmodsRpmVersion": "0.1.1-1",
   "kmodsToReload": [
     "cisco_fpga_i2c_smb",
     "cisco-fpga-pci",
