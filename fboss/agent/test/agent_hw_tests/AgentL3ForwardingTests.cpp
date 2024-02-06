@@ -20,11 +20,6 @@ class AgentL3ForwardingTest : public AgentHwTest {
   }
 
  protected:
-  cfg::SwitchConfig initialConfig(
-      const AgentEnsemble& ensemble) const override {
-    auto config = AgentHwTest::initialConfig(ensemble);
-    return addCoppConfig(ensemble, config);
-  }
   std::optional<VlanID> kVlanID() const {
     return utility::firstVlanID(getProgrammedState());
   }
