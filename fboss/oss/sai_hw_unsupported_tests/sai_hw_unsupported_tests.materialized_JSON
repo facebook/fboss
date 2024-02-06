@@ -1095,6 +1095,9 @@
         },
         {
           "test_name_regex": "HwCoppTest/[01].Ipv6LinkLocalMcastNetworkControlDscpToHighPriQ$"
+        },
+        {
+          "test_name_regex": "HwCoppTest/[01].CpuPortIpv6LinkLocalUcastIp$"
         }
     ],
     "leaba/1.42.8/1.42.8/simulator": [
