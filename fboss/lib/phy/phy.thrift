@@ -142,6 +142,8 @@ struct TxSettings {
   18: optional i32 setPrecode;
   19: optional i32 pre3;
   20: optional i32 driverSwing;
+  21: optional i32 innerEyeNeg;
+  22: optional i32 innerEyePos;
 }
 
 struct RxSettings {
@@ -160,6 +162,20 @@ struct RxSettings {
   13: optional i32 thpEn;
   14: optional i32 dcTermEn;
   15: optional i32 setPrecode;
+  16: optional i32 instgBoost1Start;
+  17: optional i32 instgBoost1Step;
+  18: optional i32 instgBoost1Stop;
+  19: optional i32 instgBoost2OrHrStart;
+  20: optional i32 instgBoost2OrHrStep;
+  21: optional i32 instgBoost2OrHrStop;
+  22: optional i32 instgC1Start1p7;
+  23: optional i32 instgC1Step1p7;
+  24: optional i32 instgC1Stop1p7;
+  25: optional i32 instgDfeStart1p7;
+  26: optional i32 instgDfeStep1p7;
+  27: optional i32 instgDfeStop1p7;
+  28: optional i32 enableScanSelection;
+  29: optional i32 instgScanUseSrSettings;
 }
 
 struct LaneMap {
