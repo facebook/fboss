@@ -14,7 +14,6 @@
 #include "fboss/agent/hw/bcm/BcmError.h"
 
 #include <folly/String.h>
-#include <folly/experimental/StringKeyedUnorderedMap.h>
 #include <folly/logging/xlog.h>
 #include <glog/logging.h>
 

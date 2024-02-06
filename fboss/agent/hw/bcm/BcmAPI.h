@@ -18,7 +18,7 @@
 #include <string>
 
 #include <folly/Range.h>
-#include <folly/experimental/StringKeyedUnorderedMap.h>
+#include <folly/container/F14Map.h>
 #include <yaml-cpp/yaml.h>
 
 // defined in fboss/agent/hw/bcm/BcmUnit.cpp

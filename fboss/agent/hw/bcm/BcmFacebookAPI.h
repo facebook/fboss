@@ -10,7 +10,7 @@
 #pragma once
 
 #include <folly/String.h>
-#include <folly/experimental/StringKeyedUnorderedMap.h>
+#include <folly/container/F14Map.h>
 
 #include <map>
 #include <string>

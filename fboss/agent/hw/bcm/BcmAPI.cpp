@@ -18,7 +18,7 @@
 #include "fboss/agent/hw/bcm/BcmWarmBootHelper.h"
 #include "fboss/lib/AlertLogger.h"
 
-#include <folly/experimental/StringKeyedUnorderedMap.h>
+#include <folly/container/F14Map.h>
 
 #include <folly/Memory.h>
 #include <folly/String.h>
