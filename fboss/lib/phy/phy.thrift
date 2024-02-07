@@ -243,6 +243,7 @@ enum DataPlanePhyChipType {
   IPHY = 1,
   XPHY = 2,
   TRANSCEIVER = 3,
+  BACKPLANE = 4,
 }
 
 struct DataPlanePhyChip {
