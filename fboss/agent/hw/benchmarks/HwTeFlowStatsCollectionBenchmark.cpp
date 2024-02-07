@@ -46,12 +46,6 @@ BENCHMARK(HwTeFlowStatsCollection) {
       [](const AgentEnsemble& ensemble) {
         auto ports = ensemble.masterLogicalPortIds();
         CHECK_GT(ports.size(), 0);
-
-        // Before m-mpu agent test, use first Asic for initialization.
-        auto switchIds = ensemble.getSw()->getHwAsicTable()->getSwitchIDs();
-        CHECK_GE(switchIds.size(), 1);
-        auto asic =
-            ensemble.getSw()->getHwAsicTable()->getHwAsic(*switchIds.cbegin());
         return utility::onePortPerInterfaceConfig(ensemble.getSw(), ports);
       };
 

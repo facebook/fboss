@@ -136,9 +136,6 @@ bool AgentHwTest::hideFabricPorts() const {
 
 cfg::SwitchConfig AgentHwTest::initialConfig(
     const AgentEnsemble& ensemble) const {
-  // Before m-mpu agent test, use first Asic for initialization.
-  auto switchIds = ensemble.getSw()->getHwAsicTable()->getSwitchIDs();
-  CHECK_GE(switchIds.size(), 1);
   return utility::onePortPerInterfaceConfig(
       ensemble.getSw(),
       ensemble.masterLogicalPortIds(),
