@@ -96,8 +96,7 @@
                      "numberOfAdapters": 8
                   }
                ],
-               "spiMasterConfigs": [
-               ],
+               "spiMasterConfigs": [],
                "ledCtrlConfigs": [],
                "xcvrCtrlConfigs": []
             }
