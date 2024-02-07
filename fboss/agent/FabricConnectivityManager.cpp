@@ -8,6 +8,7 @@
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 
+#include "fboss/agent/platforms/common/janga800bic/Janga800bicPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru400bfu/Meru400bfuPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru400bia/Meru400biaPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru400biu/Meru400biuPlatformMapping.h"
@@ -51,6 +52,10 @@ getPlatformMappingForDsfNode(const PlatformType platformType) {
       static Meru800biaPlatformMapping meru800bia;
       return &meru800bia;
     }
+    case PlatformType::PLATFORM_JANGA800BIC: {
+      static Janga800bicPlatformMapping janga800bic;
+      return &janga800bic;
+    }
     default:
       break;
   }
@@ -68,6 +73,7 @@ uint32_t getRemotePortOffset(const PlatformType platformType) {
     case PlatformType::PLATFORM_MERU800BFA:
       return 0;
     case PlatformType::PLATFORM_MERU800BIA:
+    case PlatformType::PLATFORM_JANGA800BIC:
       return 1024;
 
     default:
