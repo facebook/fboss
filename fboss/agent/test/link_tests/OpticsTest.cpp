@@ -7,6 +7,42 @@
 using namespace ::testing;
 using namespace facebook::fboss;
 
+namespace {
+
+struct OpticsThresholdRange {
+  double minThreshold;
+  double maxThreshold;
+};
+
+struct OpticsSidePerformanceMonitoringThresholds {
+  OpticsThresholdRange pam4eSnr;
+  OpticsThresholdRange pam4Ltp;
+  OpticsThresholdRange preFecBer;
+};
+
+struct OpticsPerformanceMonitoringThresholds {
+  OpticsSidePerformanceMonitoringThresholds mediaThresholds;
+  OpticsSidePerformanceMonitoringThresholds hostThresholds;
+};
+
+// CMIS optics thresholds
+struct OpticsPerformanceMonitoringThresholds kCmisOpticsThresholds = {
+    .mediaThresholds =
+        {
+            .pam4eSnr = {19.0, 49.0},
+            .pam4Ltp = {33.0, 99.0},
+            .preFecBer = {0, 2.4e-5},
+        },
+    .hostThresholds =
+        {
+            .pam4eSnr = {19.0, 49.0},
+            .pam4Ltp = {33.0, 99.0},
+            .preFecBer = {0, 2.4e-5},
+        },
+};
+
+} // namespace
+
 class OpticsTest : public LinkTest {
  public:
   std::set<std::pair<PortID, PortID>> getConnectedOpticalPortPairs() const {
