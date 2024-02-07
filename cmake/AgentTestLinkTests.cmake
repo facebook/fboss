@@ -9,6 +9,7 @@ add_library(link_tests
   fboss/agent/test/link_tests/LinkTestUtils.cpp
   fboss/agent/test/link_tests/LinkSanityTests.cpp
   fboss/agent/test/link_tests/PtpTests.cpp
+  fboss/agent/test/link_tests/OpticsTest.cpp
 )
 
 target_link_libraries(link_tests
