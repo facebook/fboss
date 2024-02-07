@@ -18,6 +18,7 @@ class Janga800bicPlatformMapping : public PlatformMapping {
  public:
   Janga800bicPlatformMapping();
   explicit Janga800bicPlatformMapping(const std::string& platformMappingStr);
+  explicit Janga800bicPlatformMapping(bool multiNpuPlatformMapping);
 
  private:
   // Forbidden copy constructor and assignment operator
