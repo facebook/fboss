@@ -97,14 +97,6 @@
                   }
                ],
                "spiMasterConfigs": [
-                  {
-                     "fpgaIpBlockConfig": {
-                        "pmUnitScopedName": "SCM_SPI_MASTER0",
-                        "deviceName": "spi_master",
-                        "csrOffset": "0x7900"
-                     },
-                     "spiDeviceConfigs": []
-                  }
                ],
                "ledCtrlConfigs": [],
                "xcvrCtrlConfigs": []
@@ -300,7 +292,23 @@
                      "numberOfAdapters": 8
                   }
                ],
-               "spiMasterConfigs": [],
+               "spiMasterConfigs": [
+                  {
+                     "fpgaIpBlockConfig": {
+                        "pmUnitScopedName": "SMB_SPI_MASTER0",
+                        "deviceName": "spi_master",
+                        "csrOffset": "0x7900"
+                     },
+                     "spiDeviceConfigs": [
+                        {
+                           "pmUnitScopedName": "SMB_SPI_MASTER0_DEVICE1",
+                           "chipSelect": 0,
+                           "modalias": "spidev",
+                           "maxSpeedHz": 25000000
+                        }
+                     ]
+                  }
+               ],
                "ledCtrlConfigs": [
                   {
                      "fpgaIpBlockConfig": {
