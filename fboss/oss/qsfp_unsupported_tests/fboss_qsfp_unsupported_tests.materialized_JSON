@@ -720,6 +720,9 @@
           "test_name_regex": "HwTest_PROFILE_100G_4_NRZ_CL91_COPPER_RACK_YV3_T1.TestProfile$"
         },
         {
+          "test_name_regex": "HwTest_PROFILE_100G_1_PAM4_RS544_OPTICAL.TestProfile$"
+        },
+        {
           "test_name_regex": "HwTest_PROFILE_200G_4_PAM4_RS544X2N.TestProfile$"
         },
         {
