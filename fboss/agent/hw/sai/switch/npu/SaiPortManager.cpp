@@ -479,8 +479,10 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
 
   std::optional<bool> fdrEnable;
 #if defined(BRCM_SAI_SDK_GTE_10_0) && defined(BRCM_SAI_SDK_XGS)
-  fdrEnable = platform_->getAsic()->isSupported(
-      HwAsic::Feature::SAI_FEC_CODEWORDS_STATS);
+  if (swPort->getPortType() != cfg::PortType::MANAGEMENT_PORT && adminState) {
+    fdrEnable = platform_->getAsic()->isSupported(
+        HwAsic::Feature::SAI_FEC_CODEWORDS_STATS);
+  }
 #endif
   auto ptpStatusOpt = managerTable_->switchManager().getPtpTcEnabled();
   uint16_t vlanId = swPort->getIngressVlan();
