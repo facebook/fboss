@@ -238,14 +238,15 @@ class ServiceHandler : public FsdbServiceSvIf,
   const Options options_;
 
   using TLCounter = fb303::ThreadCachedServiceData::TLCounter;
+  using TLTimeseries = fb303::ThreadCachedServiceData::TLTimeseries;
   TLCounter num_instances_;
   TLCounter num_publishers_;
   TLCounter num_subscribers_;
-  TLCounter num_subscriptions_rejected_;
-  TLCounter num_publisher_unknown_requests_rejected_;
-  TLCounter num_publisher_path_requests_rejected_;
-  TLCounter num_dropped_stats_changes_;
-  TLCounter num_dropped_state_changes_;
+  TLTimeseries num_subscriptions_rejected_;
+  TLTimeseries num_publisher_unknown_requests_rejected_;
+  TLTimeseries num_publisher_path_requests_rejected_;
+  TLTimeseries num_dropped_stats_changes_;
+  TLTimeseries num_dropped_state_changes_;
   FsdbNaivePeriodicSubscribableStorage operStorage_;
   DbWriter operDbWriter_;
   // TODO - decide on right DB abstraction for stats

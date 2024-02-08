@@ -124,27 +124,37 @@ ServiceHandler::ServiceHandler(
           fb303::ThreadCachedServiceData::get()->getThreadStats(),
           folly::to<std::string>(
               fsdb_common_constants::kFsdbServiceHandlerNativeStatsPrefix(),
-              "num_subscriptions_disallowed")),
+              "num_subscriptions_disallowed"),
+          fb303::SUM,
+          fb303::RATE),
       num_publisher_unknown_requests_rejected_(
           fb303::ThreadCachedServiceData::get()->getThreadStats(),
           folly::to<std::string>(
               fsdb_common_constants::kFsdbServiceHandlerNativeStatsPrefix(),
-              "num_publisher_unknown_requests_rejected")),
+              "num_publisher_unknown_requests_rejected"),
+          fb303::SUM,
+          fb303::RATE),
       num_publisher_path_requests_rejected_(
           fb303::ThreadCachedServiceData::get()->getThreadStats(),
           folly::to<std::string>(
               fsdb_common_constants::kFsdbServiceHandlerNativeStatsPrefix(),
-              "num_publisher_path_requests_rejected")),
+              "num_publisher_path_requests_rejected"),
+          fb303::SUM,
+          fb303::RATE),
       num_dropped_stats_changes_(
           fb303::ThreadCachedServiceData::get()->getThreadStats(),
           folly::to<std::string>(
               fsdb_common_constants::kFsdbServiceHandlerNativeStatsPrefix(),
-              "num_dropped_stats_changes")),
+              "num_dropped_stats_changes"),
+          fb303::SUM,
+          fb303::RATE),
       num_dropped_state_changes_(
           fb303::ThreadCachedServiceData::get()->getThreadStats(),
           folly::to<std::string>(
               fsdb_common_constants::kFsdbServiceHandlerNativeStatsPrefix(),
-              "num_dropped_state_changes")),
+              "num_dropped_state_changes"),
+          fb303::SUM,
+          fb303::RATE),
       operStorage_(
           {},
           FLAGS_stateSubscriptionServe_ms,
@@ -370,9 +380,9 @@ ServiceHandler::makeSinkConsumer(
                            << (isStats ? "stats" : "state")
                            << " chunk with invalid path";
                 if (isStats) {
-                  num_dropped_stats_changes_.incrementValue(numDropped);
+                  num_dropped_stats_changes_.addValue(numDropped);
                 } else {
-                  num_dropped_state_changes_.incrementValue(numDropped);
+                  num_dropped_state_changes_.addValue(numDropped);
                 }
               }
             }
@@ -1012,7 +1022,7 @@ void ServiceHandler::validateSubscriptionPermissions(
   if (hasExtendedPath && config.has_value() &&
       !*config.value().get().allowExtendedSubscriptions()) {
     XLOG(WARNING) << "[S:" << id << "]: extended subscriptions not permitted";
-    num_subscriptions_rejected_.incrementValue(1);
+    num_subscriptions_rejected_.addValue(1);
     if (FLAGS_enforceSubscriberConfig) {
       throw Utils::createFsdbException(
           FsdbErrorCode::SUBSCRIPTION_NOT_PERMITTED,
@@ -1035,9 +1045,9 @@ void ServiceHandler::validateOperPublishPermissions(
     return;
   } catch (const fsdb::FsdbException& ex) {
     if (ex.errorCode() == FsdbErrorCode::PUBLISHER_NOT_PERMITTED) {
-      num_publisher_path_requests_rejected_.incrementValue(1);
+      num_publisher_path_requests_rejected_.addValue(1);
     } else {
-      num_publisher_unknown_requests_rejected_.incrementValue(1);
+      num_publisher_unknown_requests_rejected_.addValue(1);
     }
     if (FLAGS_enforcePublisherConfig) {
       throw;
