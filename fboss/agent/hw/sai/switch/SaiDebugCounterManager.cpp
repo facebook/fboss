@@ -28,6 +28,7 @@ void SaiDebugCounterManager::setupDebugCounters() {
   setupPortL3BlackHoleCounter();
   setupMPLSLookupFailedCounter();
   setupAclDropCounter();
+  setupEgressForwardingDropCounter();
 }
 
 void SaiDebugCounterManager::setupPortL3BlackHoleCounter() {
@@ -100,6 +101,14 @@ void SaiDebugCounterManager::setupTrapDropCounter() {
   // TODO
 }
 
+void SaiDebugCounterManager::setupEgressForwardingDropCounter() {
+  if (!platform_->getAsic()->isSupported(
+          HwAsic::Feature::EGRESS_FORWARDING_DROP_COUNTER)) {
+    return;
+  }
+  // TODO
+}
+
 std::set<sai_stat_id_t> SaiDebugCounterManager::getConfiguredDebugStatIds()
     const {
   std::set<sai_stat_id_t> stats;
@@ -114,6 +123,9 @@ std::set<sai_stat_id_t> SaiDebugCounterManager::getConfiguredDebugStatIds()
   }
   if (trapDropCounter_) {
     stats.insert(trapDropCounterStatId_);
+  }
+  if (egressForwardingDropCounter_) {
+    stats.insert(egressForwardingDropCounterStatId_);
   }
   return stats;
 }

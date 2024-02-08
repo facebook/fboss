@@ -45,6 +45,9 @@ class SaiDebugCounterManager {
   sai_stat_id_t getTrapDropCounterStatId() const {
     return trapDropCounterStatId_;
   }
+  sai_stat_id_t getEgressForwardingDropStatId() const {
+    return egressForwardingDropCounterStatId_;
+  }
   std::set<sai_stat_id_t> getConfiguredDebugStatIds() const;
 
  private:
@@ -55,14 +58,17 @@ class SaiDebugCounterManager {
   void setupMPLSLookupFailedCounter();
   void setupAclDropCounter();
   void setupTrapDropCounter();
+  void setupEgressForwardingDropCounter();
   std::shared_ptr<SaiDebugCounter> portL3BlackHoleCounter_;
   std::shared_ptr<SaiDebugCounter> mplsLookupFailCounter_;
   std::shared_ptr<SaiDebugCounter> aclDropCounter_;
   std::shared_ptr<SaiDebugCounter> trapDropCounter_;
+  std::shared_ptr<SaiDebugCounter> egressForwardingDropCounter_;
   sai_stat_id_t portL3BlackHoleCounterStatId_{kInvalidStatId()};
   sai_stat_id_t mplsLookupFailCounterStatId_{kInvalidStatId()};
   sai_stat_id_t aclDropCounterStatId_{kInvalidStatId()};
   sai_stat_id_t trapDropCounterStatId_{kInvalidStatId()};
+  sai_stat_id_t egressForwardingDropCounterStatId_{kInvalidStatId()};
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   SaiPlatform* platform_;
