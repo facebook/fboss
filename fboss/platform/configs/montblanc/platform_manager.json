@@ -3049,7 +3049,7 @@
     "/run/devmap/flashes/MCB_SPI_MASTER_8_DEVICE_1": "/[MCB_SPI_MASTER_8_DEVICE_1]"
   },
   "bspKmodsRpmName": "fboss_bsp_kmods",
-  "bspKmodsRpmVersion": "0.8.0-2",
+  "bspKmodsRpmVersion": "1.0.2-1",
   "kmodsToReload": [
     "fbiob-pci",
     "i2c-fbiob",
