@@ -17119,6 +17119,62 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "23": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core64",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core64",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core64",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-TH5_NIF-slot1/chip1/core64",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFP28-slot1/chip33",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFP28-slot1/chip33",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFP28-slot1/chip33",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-QSFP28-slot1/chip33",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -26875,7 +26931,22 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "modulation": 1,
           "fec": 528,
           "medium": 1,
-          "interfaceType": 41
+          "interfaceType": 10
+        }
+      }
+    },
+    {
+      "factor": {
+        "profileID": 23
+      },
+      "profile": {
+        "speed": 100000,
+        "iphy": {
+          "numLanes": 4,
+          "modulation": 1,
+          "fec": 528,
+          "medium": 2,
+          "interfaceType": 21
         }
       }
     },
@@ -26890,7 +26961,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "modulation": 2,
           "fec": 11,
           "medium": 2,
-          "interfaceType": 41
+          "interfaceType": 3
         }
       }
     },
@@ -26905,7 +26976,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "modulation": 2,
           "fec": 11,
           "medium": 2,
-          "interfaceType": 41
+          "interfaceType": 4
         }
       }
     }
