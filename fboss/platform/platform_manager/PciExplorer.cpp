@@ -277,7 +277,14 @@ std::map<std::string, std::string> PciExplorer::createSpiMaster(
           [chipSelect](auto spiDeviceConfig) {
             return *spiDeviceConfig.chipSelect() == chipSelect;
           });
-      CHECK(itr != spiMasterConfig.spiDeviceConfigs()->end());
+      if (itr == spiMasterConfig.spiDeviceConfigs()->end()) {
+        throw std::runtime_error(fmt::format(
+            "Unexpected SpiDevice created at {}. \
+             No matching SpiDeviceConfig defined with ChipSelect {} for SpiController {}",
+            childDirEntry.path().string(),
+            chipSelect,
+            *spiMasterConfig.fpgaIpBlockConfig()->pmUnitScopedName()));
+      }
       spiCharDevPaths[*itr->pmUnitScopedName()] = spiCharDevPath;
     }
   }
