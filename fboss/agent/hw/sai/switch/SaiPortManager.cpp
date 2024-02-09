@@ -306,6 +306,9 @@ void fillHwPortStats(
         } else if (
             counterId == debugCounterManager.getTrapDropCounterStatId()) {
           hwPortStats.inTrapDiscards_() = value;
+        } else if (
+            counterId == debugCounterManager.getEgressForwardingDropStatId()) {
+          hwPortStats.outForwardingDiscards_() = value;
         } else {
           XLOG(FATAL)
               << " Should never get here, check configured debugCounterStatIds";
