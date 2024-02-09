@@ -3,6 +3,7 @@
 #include "fboss/agent/test/link_tests/LinkTest.h"
 #include "fboss/agent/test/link_tests/LinkTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
+#include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 
 using namespace ::testing;
 using namespace facebook::fboss;
@@ -66,6 +67,11 @@ TEST_F(OpticsTest, verifyTxRxLatches) {
   EXPECT_FALSE(opticalPortPairs.empty())
       << "Did not detect any optical transceivers";
 
+  // Pause remediation because we don't want transceivers to remediate while
+  // they are down and then interfere with latches
+  auto qsfpServiceClient = utils::createQsfpServiceClient();
+  qsfpServiceClient->sync_pauseRemediation(24 * 60 * 60 /* 24hrs */, {});
+
   auto verifyLatches =
       [this](
           std::unordered_map<TransceiverID, std::string>& transceiverIds,
@@ -100,8 +106,13 @@ TEST_F(OpticsTest, verifyTxRxLatches) {
                   hostLanes.end()) {
                 ASSERT_EVENTUALLY_TRUE(signal.txLol().has_value());
                 ASSERT_EVENTUALLY_TRUE(signal.txLos().has_value());
-                EXPECT_EVENTUALLY_EQ(signal.txLol().value(), txLatch)
-                    << portName << ", lane: " << signal.get_lane();
+                // TX_LOL is not reliable right now on certain 100G
+                // CWDM4 optics like AOI and Miniphoton. So skip checking it
+                // on these optics for now
+                if (mediaInterface != MediaInterfaceCode::CWDM4_100G) {
+                  EXPECT_EVENTUALLY_EQ(signal.txLol().value(), txLatch)
+                      << portName << ", lane: " << signal.get_lane();
+                }
                 // We see TX_LOS set only on the first lane of FR1_100G. This is
                 // a bug but we can't get the vendor to fix it now. Therefore,
                 // handle it separately in the test
@@ -122,8 +133,14 @@ TEST_F(OpticsTest, verifyTxRxLatches) {
                 // set. Some optics don't squelch their line side when the
                 // system side is down.
                 ASSERT_EVENTUALLY_TRUE(signal.rxLol().has_value());
-                EXPECT_EVENTUALLY_EQ(signal.rxLol().value(), rxLatch)
-                    << portName << ", lane: " << signal.get_lane();
+
+                // RX_LOL is not reliable right now on certain 100G
+                // CWDM4 optics like AOI and Miniphoton. So skip checking it
+                // on these optics for now
+                if (mediaInterface != MediaInterfaceCode::CWDM4_100G) {
+                  EXPECT_EVENTUALLY_EQ(signal.rxLol().value(), rxLatch)
+                      << portName << ", lane: " << signal.get_lane();
+                }
               }
             }
           }
