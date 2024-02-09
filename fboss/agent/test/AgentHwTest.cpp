@@ -199,7 +199,7 @@ cfg::SwitchConfig AgentHwTest::addCoppConfig(
       ensemble.getSw()->getHwAsicTable()->getHwAsic(*switchIds.cbegin());
   const auto& cpuStreamTypes =
       asic->getQueueStreamTypes(cfg::PortType::CPU_PORT);
-  utility::setDefaultCpuTrafficPolicyConfig(config, asic);
+  utility::setDefaultCpuTrafficPolicyConfig(config, asic, ensemble.isSai());
   utility::addCpuQueueConfig(config, asic, ensemble.isSai());
   return config;
 }

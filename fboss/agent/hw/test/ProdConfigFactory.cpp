@@ -211,7 +211,7 @@ cfg::SwitchConfig createProdRtswConfig(
     addLoadBalancerToConfig(config, hwSwitch, LBHash::FULL_HASH);
   }
 
-  setDefaultCpuTrafficPolicyConfig(config, hwAsic);
+  setDefaultCpuTrafficPolicyConfig(config, hwAsic, ensemble->isSai());
   if (hwSwitch->getPlatform()->getAsic()->isSupported(HwAsic::Feature::PFC)) {
     // pfc works reliably only in mmu lossless mode
     utility::addUplinkDownlinkPfcConfig(config, hwSwitch, uplinks, downlinks);
@@ -258,7 +258,7 @@ cfg::SwitchConfig createProdRswConfig(
   if (hwAsic->isSupported(HwAsic::Feature::L3_QOS)) {
     addOlympicQosToConfig(config, hwSwitch, enableStrictPriority);
   }
-  setDefaultCpuTrafficPolicyConfig(config, hwAsic);
+  setDefaultCpuTrafficPolicyConfig(config, hwAsic, isSai);
   if (hwAsic->isSupported(HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
     addLoadBalancerToConfig(config, hwSwitch, LBHash::FULL_HASH);
   }
@@ -302,7 +302,7 @@ cfg::SwitchConfig createProdFswConfig(
   if (hwAsic->isSupported(HwAsic::Feature::L3_QOS)) {
     addOlympicQosToConfig(config, hwSwitch, enableStrictPriority);
   }
-  setDefaultCpuTrafficPolicyConfig(config, hwAsic);
+  setDefaultCpuTrafficPolicyConfig(config, hwAsic, isSai);
   if (hwAsic->isSupported(HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
     addLoadBalancerToConfig(config, hwSwitch, LBHash::HALF_HASH);
   }
@@ -335,7 +335,7 @@ cfg::SwitchConfig createProdRswMhnicConfig(
       hwAsic->desiredLoopbackModes());
 
   addCpuQueueConfig(config, hwAsic, isSai);
-  setDefaultCpuTrafficPolicyConfig(config, hwAsic);
+  setDefaultCpuTrafficPolicyConfig(config, hwAsic, isSai);
   if (hwAsic->isSupported(HwAsic::Feature::L3_QOS)) {
     addQueuePerHostToConfig(config);
     // DSCP Marking ACLs must be programmed AFTER queue-per-host ACLs or else

@@ -42,7 +42,7 @@ void addProdFeaturesToConfig(
   /*
    * Configure COPP, CPU traffic policy and ACLs
    */
-  utility::setDefaultCpuTrafficPolicyConfig(config, hwAsic);
+  utility::setDefaultCpuTrafficPolicyConfig(config, hwAsic, isSai);
 
   /*
    * Enable Load balancer

@@ -88,7 +88,8 @@ class HwCoppTest : public HwLinkStateDependentTest {
         getAsic()->desiredLoopbackModes(),
         true /*interfaceHasSubnet*/);
     utility::addOlympicQosMaps(cfg, getAsic());
-    utility::setDefaultCpuTrafficPolicyConfig(cfg, getAsic());
+    utility::setDefaultCpuTrafficPolicyConfig(
+        cfg, getAsic(), getHwSwitchEnsemble()->isSai());
     utility::addCpuQueueConfig(cfg, getAsic(), getHwSwitchEnsemble()->isSai());
     return cfg;
   }
@@ -101,7 +102,8 @@ class HwCoppTest : public HwLinkStateDependentTest {
         masterLogicalPortIds()[1],
         getHwSwitch()->getPlatform()->supportsAddRemovePort(),
         getAsic()->desiredLoopbackModes());
-    utility::setDefaultCpuTrafficPolicyConfig(cfg, this->getAsic());
+    utility::setDefaultCpuTrafficPolicyConfig(
+        cfg, this->getAsic(), getHwSwitchEnsemble()->isSai());
     utility::addCpuQueueConfig(
         cfg, this->getAsic(), getHwSwitchEnsemble()->isSai());
     utility::addAggPort(
@@ -584,7 +586,8 @@ class HwCoppQosTest : public HwLinkStateDependentTest {
         masterLogicalInterfacePortIds()[0],
         masterLogicalInterfacePortIds()[1],
         getAsic()->desiredLoopbackModes());
-    utility::setDefaultCpuTrafficPolicyConfig(cfg, getAsic());
+    utility::setDefaultCpuTrafficPolicyConfig(
+        cfg, getAsic(), getHwSwitchEnsemble()->isSai());
     std::vector<cfg::PacketRxReasonToQueue> rxReasons;
     // Exclude TTL_1 trap since on some devices we disable it
     // to set up data plane loops

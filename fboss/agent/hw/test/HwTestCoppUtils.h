@@ -79,11 +79,10 @@ cfg::MatchAction createQueueMatchAction(
     int queueId,
     cfg::ToCpuAction toCpuAction);
 
-std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
-    const HwAsic* hwAsic,
-    cfg::SwitchConfig& config);
+std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>
+defaultCpuAcls(const HwAsic* hwAsic, cfg::SwitchConfig& config, bool isSai);
 
-uint16_t getNumDefaultCpuAcls(const HwAsic* hwAsic);
+uint16_t getNumDefaultCpuAcls(const HwAsic* hwAsic, bool isSai);
 
 std::string getMplsDestNoMatchCounterName(void);
 
@@ -108,7 +107,8 @@ void addLowPriAclForUnresolvedRoutes(
 
 void setDefaultCpuTrafficPolicyConfig(
     cfg::SwitchConfig& config,
-    const HwAsic* hwAsic);
+    const HwAsic* hwAsic,
+    bool isSai);
 
 cfg::StreamType getCpuDefaultStreamType(const HwAsic* hwAsic);
 
@@ -188,6 +188,11 @@ void verifyCoppInvariantHelper(
     PortID srcPort);
 
 void setTTLZeroCpuConfig(const HwAsic* hwAsic, cfg::SwitchConfig& config);
+
+void addTrafficCounter(
+    cfg::SwitchConfig* config,
+    const std::string& counterName,
+    std::optional<std::vector<cfg::CounterType>> counterTypes);
 
 } // namespace utility
 } // namespace facebook::fboss

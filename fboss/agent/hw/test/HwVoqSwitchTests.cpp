@@ -57,7 +57,8 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
       if (getAsic()->getDefaultNumPortQueues(
               cpuStreamType, cfg::PortType::CPU_PORT)) {
         // cpu queues supported
-        utility::setDefaultCpuTrafficPolicyConfig(cfg, getAsic());
+        utility::setDefaultCpuTrafficPolicyConfig(
+            cfg, getAsic(), getHwSwitchEnsemble()->isSai());
         utility::addCpuQueueConfig(
             cfg, getAsic(), getHwSwitchEnsemble()->isSai());
         break;
@@ -814,12 +815,12 @@ TEST_F(HwVoqSwitchTest, AclQualifiersWithCounter) {
     ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch()));
     EXPECT_EQ(
         utility::getAclTableNumAclEntries(getHwSwitch()),
-        utility::getNumDefaultCpuAcls(getAsic()) + 1);
+        utility::getNumDefaultCpuAcls(getAsic(), true) + 1);
     utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), kAclName);
 
     utility::checkAclEntryAndStatCount(
         getHwSwitch(),
-        /*ACLs*/ utility::getNumDefaultCpuAcls(getAsic()) + 1,
+        /*ACLs*/ utility::getNumDefaultCpuAcls(getAsic(), true) + 1,
         /*stats*/ 1,
         /*counters*/ 2);
     utility::checkAclStat(

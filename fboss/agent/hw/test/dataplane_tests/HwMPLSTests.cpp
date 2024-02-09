@@ -151,7 +151,8 @@ class HwMPLSTest : public HwLinkStateDependentTest {
     policy.defaultQosPolicy() = "qp";
     config.dataPlaneTrafficPolicy() = policy;
 
-    utility::setDefaultCpuTrafficPolicyConfig(config, getAsic());
+    utility::setDefaultCpuTrafficPolicyConfig(
+        config, getAsic(), getHwSwitchEnsemble()->isSai());
     utility::addCpuQueueConfig(
         config, getAsic(), getHwSwitchEnsemble()->isSai());
 

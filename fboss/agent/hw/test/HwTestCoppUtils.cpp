@@ -27,9 +27,15 @@ constexpr uint32_t kCoppLowPriReservedBytes = 1040;
 constexpr uint32_t kCoppDefaultPriReservedBytes = 1040;
 constexpr uint32_t kBcmCoppLowPriSharedBytes = 10192;
 constexpr uint32_t kBcmCoppDefaultPriSharedBytes = 10192;
+const std::string kMplsDestNoMatchAclName = "cpuPolicing-mpls-dest-nomatch";
+const std::string kMplsDestNoMatchCounterName = "mpls-dest-nomatch-counter";
 } // unnamed namespace
 
 namespace facebook::fboss::utility {
+
+std::string getMplsDestNoMatchCounterName() {
+  return kMplsDestNoMatchCounterName;
+}
 
 folly::CIDRNetwork kIPv6LinkLocalMcastNetwork() {
   return folly::IPAddress::createNetwork("ff02::/16");
@@ -225,8 +231,9 @@ void addCpuQueueConfig(
 
 void setDefaultCpuTrafficPolicyConfig(
     cfg::SwitchConfig& config,
-    const HwAsic* hwAsic) {
-  auto cpuAcls = utility::defaultCpuAcls(hwAsic, config);
+    const HwAsic* hwAsic,
+    bool isSai) {
+  auto cpuAcls = utility::defaultCpuAcls(hwAsic, config, isSai);
 
   for (int i = 0; i < cpuAcls.size(); i++) {
     utility::addAclEntry(&config, cpuAcls[i].first, std::nullopt);
@@ -255,9 +262,9 @@ void setDefaultCpuTrafficPolicyConfig(
   config.cpuTrafficPolicy() = cpuConfig;
 }
 
-uint16_t getNumDefaultCpuAcls(const HwAsic* hwAsic) {
+uint16_t getNumDefaultCpuAcls(const HwAsic* hwAsic, bool isSai) {
   cfg::SwitchConfig config; // unused
-  return utility::defaultCpuAcls(hwAsic, config).size();
+  return utility::defaultCpuAcls(hwAsic, config, isSai).size();
 }
 
 cfg::MatchAction createQueueMatchAction(
@@ -534,4 +541,226 @@ void setPortQueueSharedBytes(cfg::PortQueue& queue, bool isSai) {
     }
   }
 }
+
+std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAclsForSai(
+    const HwAsic* hwAsic,
+    cfg::SwitchConfig& /* unused */) {
+  std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> acls;
+
+  // TODO(daiweix): remove after ACL is fully supported by J3
+  if (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
+    return acls;
+  }
+
+  // multicast link local dst ip
+  addNoActionAclForNw(kIPv6LinkLocalMcastNetwork(), acls);
+
+  // Link local IPv6 + DSCP 48 to high pri queue
+  addHighPriAclForNwAndNetworkControlDscp(
+      kIPv6LinkLocalMcastNetwork(),
+      getCoppHighPriQueueId(hwAsic),
+      getCpuActionType(hwAsic),
+      acls);
+  addHighPriAclForNwAndNetworkControlDscp(
+      kIPv6LinkLocalUcastNetwork(),
+      getCoppHighPriQueueId(hwAsic),
+      getCpuActionType(hwAsic),
+      acls);
+
+  // unicast and multicast link local dst ip
+  addMidPriAclForNw(
+      kIPv6LinkLocalMcastNetwork(), getCpuActionType(hwAsic), acls);
+  // All fe80::/10 to mid pri queue
+  addMidPriAclForNw(
+      kIPv6LinkLocalUcastNetwork(), getCpuActionType(hwAsic), acls);
+
+  if (hwAsic->isSupported(HwAsic::Feature::ACL_METADATA_QUALIFER)) {
+    // Unresolved route class ID to low pri queue
+    addLowPriAclForUnresolvedRoutes(getCpuActionType(hwAsic), acls);
+  }
+
+  return acls;
+}
+
+std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAclsForBcm(
+    const HwAsic* hwAsic,
+    cfg::SwitchConfig& config) {
+  std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> acls;
+
+  // multicast link local dst ip
+  addNoActionAclForNw(kIPv6LinkLocalMcastNetwork(), acls);
+
+  // slow-protocols dst mac
+  {
+    cfg::AclEntry acl;
+    acl.name() = "cpuPolicing-high-slow-protocols-mac";
+    acl.dstMac() = LACPDU::kSlowProtocolsDstMac().toString();
+    acls.emplace_back(
+        acl,
+        createQueueMatchAction(
+            getCoppHighPriQueueId(hwAsic), getCpuActionType(hwAsic)));
+  }
+
+  // EAPOL
+  {
+    if (hwAsic->getAsicType() != cfg::AsicType::ASIC_TYPE_TRIDENT2) {
+      cfg::AclEntry acl;
+      acl.name() = "cpuPolicing-high-eapol";
+      acl.dstMac() = "ff:ff:ff:ff:ff:ff";
+      acl.etherType() = cfg::EtherType::EAPOL;
+      acls.emplace_back(
+          acl,
+          createQueueMatchAction(
+              getCoppHighPriQueueId(hwAsic), getCpuActionType(hwAsic)));
+    }
+  }
+
+  // dstClassL3 w/ BGP port to high pri queue
+  // Preffered L4 ports. Combine these with local interfaces
+  // to put locally destined traffic to these ports to hi-pri queue.
+  auto addHighPriDstClassL3BgpAcl = [&](bool isV4, bool isSrcPort) {
+    cfg::AclEntry acl;
+    acl.name() = folly::to<std::string>(
+        "cpuPolicing-high-",
+        isV4 ? "dstLocalIp4-" : "dstLocalIp6-",
+        isSrcPort ? "srcPort:" : "dstPrt:",
+        utility::kBgpPort);
+    acl.lookupClassNeighbor() = isV4
+        ? cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP4
+        : cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP6;
+
+    if (isSrcPort) {
+      acl.l4SrcPort() = utility::kBgpPort;
+    } else {
+      acl.l4DstPort() = utility::kBgpPort;
+    }
+
+    acls.emplace_back(
+        acl,
+        createQueueMatchAction(
+            getCoppHighPriQueueId(hwAsic), getCpuActionType(hwAsic)));
+  };
+  addHighPriDstClassL3BgpAcl(true /*v4*/, true /*srcPort*/);
+  addHighPriDstClassL3BgpAcl(true /*v4*/, false /*dstPort*/);
+  addHighPriDstClassL3BgpAcl(false /*v6*/, true /*srcPort*/);
+  addHighPriDstClassL3BgpAcl(false /*v6*/, false /*dstPort*/);
+
+  // Dst IP local + DSCP 48 to high pri queue
+  auto addHigPriLocalIpNetworkControlAcl = [&](bool isV4) {
+    cfg::AclEntry acl;
+    acl.name() = folly::to<std::string>(
+        "cpuPolicing-high-",
+        isV4 ? "dstLocalIp4" : "dstLocalIp6",
+        "-network-control");
+    acl.dscp() = 48;
+    acl.lookupClassNeighbor() = isV4
+        ? cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP4
+        : cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP6;
+
+    acls.emplace_back(
+        acl,
+        createQueueMatchAction(
+            getCoppHighPriQueueId(hwAsic), getCpuActionType(hwAsic)));
+  };
+  addHigPriLocalIpNetworkControlAcl(true);
+  addHigPriLocalIpNetworkControlAcl(false);
+  // Link local IPv6 + DSCP 48 to high pri queue
+  auto addHighPriLinkLocalV6NetworkControlAcl =
+      [&](const folly::CIDRNetwork& dstNetwork) {
+        cfg::AclEntry acl;
+        auto dstNetworkStr =
+            folly::to<std::string>(dstNetwork.first, "/", dstNetwork.second);
+        acl.name() = folly::to<std::string>(
+            "cpuPolicing-high-", dstNetworkStr, "-network-control");
+        acl.dstIp() = dstNetworkStr;
+        acl.dscp() = 48;
+        acls.emplace_back(
+            acl,
+            createQueueMatchAction(
+                getCoppHighPriQueueId(hwAsic), getCpuActionType(hwAsic)));
+      };
+  addHighPriLinkLocalV6NetworkControlAcl(kIPv6LinkLocalMcastNetwork());
+  addHighPriLinkLocalV6NetworkControlAcl(kIPv6LinkLocalUcastNetwork());
+
+  // add ACL to trap NDP solicit to high priority queue
+  {
+    cfg::AclEntry acl;
+    auto dstNetwork = kIPv6NdpSolicitNetwork();
+    auto dstNetworkStr =
+        folly::to<std::string>(dstNetwork.first, "/", dstNetwork.second);
+    acl.name() = "cpuPolicing-high-ndp-solicit";
+    acl.dstIp() = dstNetworkStr;
+    acls.emplace_back(
+        acl,
+        createQueueMatchAction(
+            getCoppHighPriQueueId(hwAsic), getCpuActionType(hwAsic)));
+  }
+
+  // Now steer traffic destined to this (local) interface IP
+  // to mid pri queue. Note that we add this Acl entry *after*
+  // (with a higher Acl ID) than locally destined protocol
+  // traffic. Acl entries are matched in order, so we need to
+  // go from more specific to less specific matches.
+  auto addMidPriDstClassL3Acl = [&](bool isV4) {
+    cfg::AclEntry acl;
+    acl.name() = folly::to<std::string>(
+        "cpuPolicing-mid-", isV4 ? "dstLocalIp4" : "dstLocalIp6");
+    acl.lookupClassNeighbor() = isV4
+        ? cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP4
+        : cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP6;
+
+    acls.emplace_back(
+        acl,
+        createQueueMatchAction(
+            utility::kCoppMidPriQueueId, getCpuActionType(hwAsic)));
+  };
+  addMidPriDstClassL3Acl(true);
+  addMidPriDstClassL3Acl(false);
+
+  // unicast and multicast link local dst ip
+  addMidPriAclForNw(
+      kIPv6LinkLocalMcastNetwork(), getCpuActionType(hwAsic), acls);
+  // All fe80::/10 to mid pri queue
+  addMidPriAclForNw(
+      kIPv6LinkLocalUcastNetwork(), getCpuActionType(hwAsic), acls);
+
+  // mpls no match
+  {
+    if (hwAsic->isSupported(HwAsic::Feature::MPLS)) {
+      cfg::AclEntry acl;
+      acl.name() = kMplsDestNoMatchAclName;
+      acl.packetLookupResult() =
+          cfg::PacketLookupResultType::PACKET_LOOKUP_RESULT_MPLS_NO_MATCH;
+      std::vector<cfg::CounterType> counterTypes{cfg::CounterType::PACKETS};
+      utility::addTrafficCounter(
+          &config, kMplsDestNoMatchCounterName, counterTypes);
+      auto queue = utility::kCoppLowPriQueueId;
+      auto action = createQueueMatchAction(queue, getCpuActionType(hwAsic));
+      action.counter() = kMplsDestNoMatchCounterName;
+      acls.emplace_back(acl, action);
+    }
+  }
+  return acls;
+}
+
+std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>
+defaultCpuAcls(const HwAsic* hwAsic, cfg::SwitchConfig& config, bool isSai) {
+  return isSai ? defaultCpuAclsForSai(hwAsic, config)
+               : defaultCpuAclsForBcm(hwAsic, config);
+}
+
+void addTrafficCounter(
+    cfg::SwitchConfig* config,
+    const std::string& counterName,
+    std::optional<std::vector<cfg::CounterType>> counterTypes) {
+  auto counter = cfg::TrafficCounter();
+  *counter.name() = counterName;
+  if (counterTypes.has_value()) {
+    *counter.types() = counterTypes.value();
+  } else {
+    *counter.types() = {cfg::CounterType::PACKETS};
+  }
+  config->trafficCounters()->push_back(counter);
+}
+
 } // namespace facebook::fboss::utility

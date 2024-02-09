@@ -214,7 +214,8 @@ class MultiNodeOpenrTest : public MultiNodeTest {
         true /*interfaceHasSubnet*/,
         false /*setInterfaceMac*/);
 
-    utility::setDefaultCpuTrafficPolicyConfig(config, platform()->getAsic());
+    utility::setDefaultCpuTrafficPolicyConfig(
+        config, platform()->getAsic(), platform()->isSai());
     utility::addCpuQueueConfig(
         config, platform()->getAsic(), platform()->isSai());
 

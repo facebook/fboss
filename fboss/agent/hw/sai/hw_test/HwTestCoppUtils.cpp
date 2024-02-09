@@ -32,45 +32,6 @@ HwPortStats getCpuQueueWatermarkStats(HwSwitch* hwSwitch) {
   return getCpuQueueStats(hwSwitch);
 }
 
-std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
-    const HwAsic* hwAsic,
-    cfg::SwitchConfig& /* unused */) {
-  std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> acls;
-
-  // TODO(daiweix): remove after ACL is fully supported by J3
-  if (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
-    return acls;
-  }
-
-  // multicast link local dst ip
-  addNoActionAclForNw(kIPv6LinkLocalMcastNetwork(), acls);
-
-  // Link local IPv6 + DSCP 48 to high pri queue
-  addHighPriAclForNwAndNetworkControlDscp(
-      kIPv6LinkLocalMcastNetwork(),
-      getCoppHighPriQueueId(hwAsic),
-      getCpuActionType(hwAsic),
-      acls);
-  addHighPriAclForNwAndNetworkControlDscp(
-      kIPv6LinkLocalUcastNetwork(),
-      getCoppHighPriQueueId(hwAsic),
-      getCpuActionType(hwAsic),
-      acls);
-
-  // unicast and multicast link local dst ip
-  addMidPriAclForNw(
-      kIPv6LinkLocalMcastNetwork(), getCpuActionType(hwAsic), acls);
-  // All fe80::/10 to mid pri queue
-  addMidPriAclForNw(
-      kIPv6LinkLocalUcastNetwork(), getCpuActionType(hwAsic), acls);
-
-  if (hwAsic->isSupported(HwAsic::Feature::ACL_METADATA_QUALIFER)) {
-    // Unresolved route class ID to low pri queue
-    addLowPriAclForUnresolvedRoutes(getCpuActionType(hwAsic), acls);
-  }
-
-  return acls;
-}
 std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueues(
     const HwAsic* hwAsic) {
   auto coppHighPriQueueId = utility::getCoppHighPriQueueId(hwAsic);
@@ -148,12 +109,6 @@ std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueues(
   }
 
   return rxReasonToQueues;
-}
-
-// Not yet implemented in SAI
-std::string getMplsDestNoMatchCounterName(void) {
-  throw FbossError(
-      "Mpls destination no match counter is not yet supported for SAI");
 }
 
 } // namespace utility

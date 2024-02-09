@@ -157,20 +157,6 @@ void addQueueMatcher(
   utility::addMatcher(config, matcherName, matchAction);
 }
 
-void addTrafficCounter(
-    cfg::SwitchConfig* config,
-    const std::string& counterName,
-    std::optional<std::vector<cfg::CounterType>> counterTypes) {
-  auto counter = cfg::TrafficCounter();
-  *counter.name() = counterName;
-  if (counterTypes.has_value()) {
-    *counter.types() = counterTypes.value();
-  } else {
-    *counter.types() = {cfg::CounterType::PACKETS};
-  }
-  config->trafficCounters()->push_back(counter);
-}
-
 /*
  * wedge_agent expects dscp to queue mapping for every possible dscp value.
  * For convenience, this function allows callers to specify only a

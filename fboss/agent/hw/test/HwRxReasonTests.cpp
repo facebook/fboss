@@ -23,7 +23,8 @@ class HwRxReasonTests : public HwLinkStateDependentTest {
         getAsic()->desiredLoopbackModes(),
         true /*interfaceHasSubnet*/);
 
-    utility::setDefaultCpuTrafficPolicyConfig(cfg, getAsic());
+    utility::setDefaultCpuTrafficPolicyConfig(
+        cfg, getAsic(), getHwSwitchEnsemble()->isSai());
     // Remove DHCP from rxReason list
     auto rxReasonListWithoutDHCP = utility::getCoppRxReasonToQueues(getAsic());
     auto dhcpRxReason = ControlPlane::makeRxReasonToQueueEntry(
