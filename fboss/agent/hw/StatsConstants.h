@@ -279,4 +279,8 @@ inline folly::StringPiece constexpr kOutMacsecCurrentXpn() {
 inline folly::StringPiece constexpr kInCongestionDiscards() {
   return "in_congestion_discards";
 }
+
+inline folly::StringPiece constexpr kOutForwardingDiscards() {
+  return "out_forwarding_discards";
+}
 } // namespace facebook::fboss

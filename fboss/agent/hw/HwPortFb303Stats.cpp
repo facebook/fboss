@@ -44,6 +44,7 @@ const std::vector<folly::StringPiece>& HwPortFb303Stats::kPortStatKeys() const {
       kInLabelMissDiscards(),
       kInAclDiscards(),
       kInTrapDiscards(),
+      kOutForwardingDiscards(),
   };
   return kPortKeys;
 }
@@ -164,6 +165,12 @@ void HwPortFb303Stats::updateStats(
   if (curPortStats.inTrapDiscards_().has_value()) {
     updateStat(
         timeRetrieved_, kInTrapDiscards(), *curPortStats.inTrapDiscards_());
+  }
+  if (curPortStats.outForwardingDiscards_().has_value()) {
+    updateStat(
+        timeRetrieved_,
+        kOutForwardingDiscards(),
+        *curPortStats.outForwardingDiscards_());
   }
 
   // Update queue stats
