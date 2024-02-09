@@ -143,6 +143,7 @@ HwPortStats getInitedStats() {
       0, // inCongestionDiscards - unused
       26, // inAclDiscards
       27, // inTrapDiscards
+      28, // outForwardingDiscards
   };
 }
 
@@ -150,6 +151,7 @@ HwPortStats resetOptionals(HwPortStats stats) {
   stats.macsecStats().reset();
   stats.inAclDiscards_().reset();
   stats.inTrapDiscards_().reset();
+  stats.outForwardingDiscards_().reset();
   return stats;
 }
 

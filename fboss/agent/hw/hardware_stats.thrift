@@ -84,6 +84,7 @@ struct HwPortStats {
   55: i64 inCongestionDiscards_ = STAT_UNINITIALIZED;
   56: optional i64 inAclDiscards_;
   57: optional i64 inTrapDiscards_;
+  58: optional i64 outForwardingDiscards_;
 }
 
 struct HwSysPortStats {

@@ -73,6 +73,7 @@ HwPortStats getInitedStats() {
       0, // inCongestionDiscards
       0, // inAclDiscards
       0, // inTrapDiscards
+      0, // outForwardingDiscards
   };
 }
 
