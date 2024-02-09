@@ -17064,62 +17064,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "portType": 4
         },
         "supportedProfiles": {
-          "22": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-TH5_NIF-slot1/chip1/core64",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH5_NIF-slot1/chip1/core64",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH5_NIF-slot1/chip1/core64",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-TH5_NIF-slot1/chip1/core64",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFP28-slot1/chip33",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFP28-slot1/chip33",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFP28-slot1/chip33",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-QSFP28-slot1/chip33",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
           "23": {
               "pins": {
                 "iphy": [
@@ -26920,21 +26864,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
     }
   ],
   "platformSupportedProfiles": [
-    {
-      "factor": {
-        "profileID": 22
-      },
-      "profile": {
-        "speed": 100000,
-        "iphy": {
-          "numLanes": 4,
-          "modulation": 1,
-          "fec": 528,
-          "medium": 1,
-          "interfaceType": 10
-        }
-      }
-    },
     {
       "factor": {
         "profileID": 23
