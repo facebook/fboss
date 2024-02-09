@@ -140,8 +140,8 @@ HwPortStats getInitedStats() {
       24, // inLabelMissDiscards_
       {}, // queueWatermarkLevel
       0, // inCongestionDiscards - unused
-      25, // inAclDiscards
-      26, // inTrapDiscards
+      26, // inAclDiscards
+      27, // inTrapDiscards
   };
 }
 
@@ -149,6 +149,10 @@ void updateStats(HwPortFb303Stats& portStats) {
   auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
   // To get last increment from monotonic counter we need to update it twice
   HwPortStats empty{};
+  // Initialize the optionals, so we can see a delta when we update these with
+  // actual values
+  empty.inAclDiscards_() = 0;
+  empty.inTrapDiscards_() = 0;
   MacsecStats emptyMacsecStats{
       apache::thrift::FragileConstructor(),
       mka::MacsecPortStats{
