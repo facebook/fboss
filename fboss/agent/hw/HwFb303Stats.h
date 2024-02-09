@@ -12,10 +12,11 @@
 
 #include "common/stats/MonotonicCounter.h"
 
-#include "folly/container/F14Map.h"
-
 #include <optional>
 #include <string>
+#include "fboss/agent/FbossError.h"
+#include "folly/container/F14Map.h"
+
 namespace facebook::fboss {
 
 class HwFb303Stats {
@@ -24,7 +25,9 @@ class HwFb303Stats {
       : multiSwitchStatsPrefix_(multiSwitchStatsPrefix) {}
   ~HwFb303Stats();
 
-  int64_t getCounterLastIncrement(const std::string& statName) const;
+  int64_t getCounterLastIncrement(
+      const std::string& statName,
+      std::optional<int64_t> defaultVal) const;
 
   /*
    * Reinit stat

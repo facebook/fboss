@@ -31,7 +31,7 @@ std::string HwCpuFb303Stats::statName(
 
 int64_t HwCpuFb303Stats::getCounterLastIncrement(
     folly::StringPiece statKey) const {
-  return queueCounters_.getCounterLastIncrement(statKey.str());
+  return queueCounters_.getCounterLastIncrement(statKey.str(), std::nullopt);
 }
 
 int64_t HwCpuFb303Stats::getCounter(

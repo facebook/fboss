@@ -39,8 +39,9 @@ std::string HwBasePortFb303Stats::statName(
 }
 
 int64_t HwBasePortFb303Stats::getCounterLastIncrement(
-    folly::StringPiece statKey) const {
-  return portCounters_.getCounterLastIncrement(statKey.str());
+    folly::StringPiece statKey,
+    std::optional<int64_t> defaultVal) const {
+  return portCounters_.getCounterLastIncrement(statKey.str(), defaultVal);
 }
 
 void HwBasePortFb303Stats::reinitStats(std::optional<std::string> oldPortName) {

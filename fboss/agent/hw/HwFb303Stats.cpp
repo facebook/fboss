@@ -35,8 +35,16 @@ stats::MonotonicCounter* HwFb303Stats::getCounterIf(
 }
 
 int64_t HwFb303Stats::getCounterLastIncrement(
-    const std::string& statName) const {
-  return getCounterIf(statName)->get();
+    const std::string& statName,
+    std::optional<int64_t> defaultVal) const {
+  auto stat = getCounterIf(statName);
+  if (stat) {
+    return stat->get();
+  }
+  if (defaultVal) {
+    return *defaultVal;
+  }
+  throw FbossError(statName, " not found and no default value provided");
 }
 
 /*

@@ -73,7 +73,9 @@ class HwBasePortFb303Stats {
       folly::StringPiece portName,
       PfcPriority priority);
 
-  int64_t getCounterLastIncrement(folly::StringPiece statKey) const;
+  int64_t getCounterLastIncrement(
+      folly::StringPiece statKey,
+      std::optional<int64_t> defaultVal = std::nullopt) const;
 
   virtual const std::vector<folly::StringPiece>& kPortStatKeys() const = 0;
   virtual const std::vector<folly::StringPiece>& kQueueStatKeys() const = 0;
