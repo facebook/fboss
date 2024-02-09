@@ -26,7 +26,8 @@ class HwRxReasonTests : public HwLinkStateDependentTest {
     utility::setDefaultCpuTrafficPolicyConfig(
         cfg, getAsic(), getHwSwitchEnsemble()->isSai());
     // Remove DHCP from rxReason list
-    auto rxReasonListWithoutDHCP = utility::getCoppRxReasonToQueues(getAsic());
+    auto rxReasonListWithoutDHCP = utility::getCoppRxReasonToQueues(
+        getAsic(), getHwSwitchEnsemble()->isSai());
     auto dhcpRxReason = ControlPlane::makeRxReasonToQueueEntry(
         cfg::PacketRxReason::DHCP, utility::kCoppMidPriQueueId);
     auto dhcpRxReasonIter = std::find(
@@ -48,7 +49,8 @@ TEST_F(HwRxReasonTests, InsertAndRemoveRxReason) {
     auto cfg = initialConfig();
     applyNewConfig(cfg);
     cfg.cpuTrafficPolicy()->rxReasonToQueueOrderedList() =
-        utility::getCoppRxReasonToQueues(getAsic());
+        utility::getCoppRxReasonToQueues(
+            getAsic(), getHwSwitchEnsemble()->isSai());
     applyNewConfig(cfg);
   };
   verifyAcrossWarmBoots(setup, verify);

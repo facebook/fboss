@@ -255,7 +255,7 @@ void setDefaultCpuTrafficPolicyConfig(
   }
 
   cpuConfig.trafficPolicy() = trafficConfig;
-  auto rxReasonToQueues = getCoppRxReasonToQueues(hwAsic);
+  auto rxReasonToQueues = getCoppRxReasonToQueues(hwAsic, isSai);
   if (rxReasonToQueues.size()) {
     cpuConfig.rxReasonToQueueOrderedList() = rxReasonToQueues;
   }
@@ -763,4 +763,110 @@ void addTrafficCounter(
   config->trafficCounters()->push_back(counter);
 }
 
+std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueuesForSai(
+    const HwAsic* hwAsic) {
+  auto coppHighPriQueueId = utility::getCoppHighPriQueueId(hwAsic);
+  ControlPlane::RxReasonToQueue rxReasonToQueues = {
+      ControlPlane::makeRxReasonToQueueEntry(
+          cfg::PacketRxReason::ARP, coppHighPriQueueId),
+      ControlPlane::makeRxReasonToQueueEntry(
+          cfg::PacketRxReason::ARP_RESPONSE, coppHighPriQueueId),
+      ControlPlane::makeRxReasonToQueueEntry(
+          cfg::PacketRxReason::NDP, coppHighPriQueueId),
+      ControlPlane::makeRxReasonToQueueEntry(
+          cfg::PacketRxReason::BGP, coppHighPriQueueId),
+      ControlPlane::makeRxReasonToQueueEntry(
+          cfg::PacketRxReason::BGPV6, coppHighPriQueueId),
+      ControlPlane::makeRxReasonToQueueEntry(
+          cfg::PacketRxReason::CPU_IS_NHOP, kCoppMidPriQueueId),
+      ControlPlane::makeRxReasonToQueueEntry(
+          cfg::PacketRxReason::LACP, coppHighPriQueueId),
+      ControlPlane::makeRxReasonToQueueEntry(
+          cfg::PacketRxReason::TTL_1, kCoppLowPriQueueId),
+      ControlPlane::makeRxReasonToQueueEntry(
+          cfg::PacketRxReason::LLDP, kCoppMidPriQueueId),
+      ControlPlane::makeRxReasonToQueueEntry(
+          cfg::PacketRxReason::DHCP, kCoppMidPriQueueId),
+      ControlPlane::makeRxReasonToQueueEntry(
+          cfg::PacketRxReason::DHCPV6, kCoppMidPriQueueId),
+  };
+
+  // TODO(daiweix): remove after L4 port match is supported by J3 in 6.5.30
+  if (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
+    rxReasonToQueues = {
+        ControlPlane::makeRxReasonToQueueEntry(
+            cfg::PacketRxReason::ARP, coppHighPriQueueId),
+        ControlPlane::makeRxReasonToQueueEntry(
+            cfg::PacketRxReason::ARP_RESPONSE, coppHighPriQueueId),
+        ControlPlane::makeRxReasonToQueueEntry(
+            cfg::PacketRxReason::NDP, coppHighPriQueueId),
+        ControlPlane::makeRxReasonToQueueEntry(
+            cfg::PacketRxReason::BGP, coppHighPriQueueId),
+        ControlPlane::makeRxReasonToQueueEntry(
+            cfg::PacketRxReason::CPU_IS_NHOP, kCoppMidPriQueueId),
+        ControlPlane::makeRxReasonToQueueEntry(
+            cfg::PacketRxReason::LACP, coppHighPriQueueId),
+        ControlPlane::makeRxReasonToQueueEntry(
+            cfg::PacketRxReason::TTL_1, kCoppLowPriQueueId),
+        ControlPlane::makeRxReasonToQueueEntry(
+            cfg::PacketRxReason::LLDP, kCoppMidPriQueueId),
+        ControlPlane::makeRxReasonToQueueEntry(
+            cfg::PacketRxReason::DHCP, kCoppMidPriQueueId),
+    };
+  }
+
+  if (hwAsic->isSupported(HwAsic::Feature::SAI_EAPOL_TRAP)) {
+    rxReasonToQueues.push_back(ControlPlane::makeRxReasonToQueueEntry(
+        cfg::PacketRxReason::EAPOL, coppHighPriQueueId));
+  }
+
+  if (hwAsic->isSupported(HwAsic::Feature::SAI_MPLS_TTL_1_TRAP)) {
+    rxReasonToQueues.push_back(ControlPlane::makeRxReasonToQueueEntry(
+        cfg::PacketRxReason::MPLS_TTL_1, kCoppLowPriQueueId));
+  }
+
+  if (hwAsic->isSupported(HwAsic::Feature::SAI_SAMPLEPACKET_TRAP)) {
+    rxReasonToQueues.push_back(ControlPlane::makeRxReasonToQueueEntry(
+        cfg::PacketRxReason::SAMPLEPACKET, kCoppLowPriQueueId));
+  }
+
+  // TODO: remove once CS00012311423 is fixed. Gate setting the L3 mtu error
+  // trap on J2/J3 more specifically.
+  if (hwAsic->isSupported(HwAsic::Feature::L3_MTU_ERROR_TRAP)) {
+    rxReasonToQueues.push_back(ControlPlane::makeRxReasonToQueueEntry(
+        cfg::PacketRxReason::L3_MTU_ERROR, kCoppLowPriQueueId));
+  }
+
+  return rxReasonToQueues;
+}
+
+std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueuesForBcm(
+    const HwAsic* hwAsic) {
+  std::vector<cfg::PacketRxReasonToQueue> rxReasonToQueues;
+  auto coppHighPriQueueId = utility::getCoppHighPriQueueId(hwAsic);
+  std::vector<std::pair<cfg::PacketRxReason, uint16_t>>
+      rxReasonToQueueMappings = {
+          std::pair(cfg::PacketRxReason::ARP, coppHighPriQueueId),
+          std::pair(cfg::PacketRxReason::DHCP, kCoppMidPriQueueId),
+          std::pair(cfg::PacketRxReason::BPDU, kCoppMidPriQueueId),
+          std::pair(cfg::PacketRxReason::L3_MTU_ERROR, kCoppLowPriQueueId),
+          std::pair(cfg::PacketRxReason::L3_SLOW_PATH, kCoppLowPriQueueId),
+          std::pair(cfg::PacketRxReason::L3_DEST_MISS, kCoppLowPriQueueId),
+          std::pair(cfg::PacketRxReason::TTL_1, kCoppLowPriQueueId),
+          std::pair(cfg::PacketRxReason::CPU_IS_NHOP, kCoppLowPriQueueId)};
+  for (auto rxEntry : rxReasonToQueueMappings) {
+    auto rxReasonToQueue = cfg::PacketRxReasonToQueue();
+    rxReasonToQueue.rxReason() = rxEntry.first;
+    rxReasonToQueue.queueId() = rxEntry.second;
+    rxReasonToQueues.push_back(rxReasonToQueue);
+  }
+  return rxReasonToQueues;
+}
+
+std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueues(
+    const HwAsic* hwAsic,
+    bool isSai) {
+  return isSai ? getCoppRxReasonToQueuesForSai(hwAsic)
+               : getCoppRxReasonToQueuesForBcm(hwAsic);
+}
 } // namespace facebook::fboss::utility

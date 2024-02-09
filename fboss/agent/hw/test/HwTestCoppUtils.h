@@ -130,7 +130,8 @@ uint64_t getCpuQueueWatermarkBytes(HwPortStats& stats, int queueId);
 HwPortStats getCpuQueueStats(HwSwitch* hwSwitch);
 HwPortStats getCpuQueueWatermarkStats(HwSwitch* hwSwitch);
 std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueues(
-    const HwAsic* hwAsic);
+    const HwAsic* hwAsic,
+    bool isSai);
 
 void setPortQueueSharedBytes(cfg::PortQueue& queue, bool isSai);
 

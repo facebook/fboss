@@ -36,27 +36,4 @@ HwPortStats getCpuQueueWatermarkStats(HwSwitch* hwSwitch) {
   return portStats;
 }
 
-std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueues(
-    const HwAsic* hwAsic) {
-  std::vector<cfg::PacketRxReasonToQueue> rxReasonToQueues;
-  auto coppHighPriQueueId = utility::getCoppHighPriQueueId(hwAsic);
-  std::vector<std::pair<cfg::PacketRxReason, uint16_t>>
-      rxReasonToQueueMappings = {
-          std::pair(cfg::PacketRxReason::ARP, coppHighPriQueueId),
-          std::pair(cfg::PacketRxReason::DHCP, kCoppMidPriQueueId),
-          std::pair(cfg::PacketRxReason::BPDU, kCoppMidPriQueueId),
-          std::pair(cfg::PacketRxReason::L3_MTU_ERROR, kCoppLowPriQueueId),
-          std::pair(cfg::PacketRxReason::L3_SLOW_PATH, kCoppLowPriQueueId),
-          std::pair(cfg::PacketRxReason::L3_DEST_MISS, kCoppLowPriQueueId),
-          std::pair(cfg::PacketRxReason::TTL_1, kCoppLowPriQueueId),
-          std::pair(cfg::PacketRxReason::CPU_IS_NHOP, kCoppLowPriQueueId)};
-  for (auto rxEntry : rxReasonToQueueMappings) {
-    auto rxReasonToQueue = cfg::PacketRxReasonToQueue();
-    rxReasonToQueue.rxReason() = rxEntry.first;
-    rxReasonToQueue.queueId() = rxEntry.second;
-    rxReasonToQueues.push_back(rxReasonToQueue);
-  }
-  return rxReasonToQueues;
-}
-
 } // namespace facebook::fboss::utility
