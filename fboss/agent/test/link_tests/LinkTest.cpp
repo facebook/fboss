@@ -442,6 +442,11 @@ LinkTest::getConnectedOpticalPortPairWithFeature(
           if (sysLoopCapable) {
             connectedOpticalFeaturedPorts.insert(portPair);
           }
+        } else if (feature == TransceiverFeature::VDM) {
+          bool vdmCapable = tcvrState.diagCapability().value().vdm().value();
+          if (vdmCapable) {
+            connectedOpticalFeaturedPorts.insert(portPair);
+          }
         }
       }
     }
