@@ -157,21 +157,6 @@ cfg::DsfNode dsfNodeConfig(
                 std::nullopt,
                 localMac),
             PlatformType::PLATFORM_MERU800BFA);
-      case cfg::AsicType::ASIC_TYPE_EBRO:
-        PlatformType platformType;
-        if (fromAsic.getSwitchType() == cfg::SwitchType::FABRIC) {
-          platformType = PlatformType::PLATFORM_WEDGE400C_FABRIC;
-        } else {
-          platformType = PlatformType::PLATFORM_WEDGE400C_VOQ;
-        }
-        return std::pair(
-            std::make_unique<EbroAsic>(
-                fromAsic.getSwitchType(),
-                switchId,
-                fromAsic.getSwitchIndex(),
-                systemPortRange,
-                localMac),
-            platformType);
       default:
         throw FbossError("Unexpected asic type: ", fromAsic.getAsicTypeStr());
     }
