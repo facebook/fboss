@@ -10,6 +10,7 @@
 
 #include "fboss/agent/hw/HwPortFb303Stats.h"
 #include "fboss/agent/hw/StatsConstants.h"
+#include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
 
 #include <fb303/ServiceData.h>
 #include <folly/logging/xlog.h>
@@ -249,7 +250,10 @@ void verifyUpdatedStats(const HwPortFb303Stats& portStats) {
   for (auto counterName : portStats.kPortStatKeys()) {
     // +1 because first initialization is to -1
     auto actualVal = portStats.getCounterLastIncrement(
-        HwPortFb303Stats::statName(counterName, kPortName));
+        HwPortFb303Stats::statName(counterName, kPortName), 0);
+    if (actualVal == 0) {
+      continue;
+    }
     auto expectedVal = (curValue++) + 1;
     EXPECT_EQ(actualVal, expectedVal) << "failed for " << counterName;
     XLOG(DBG2) << counterName << ": " << actualVal << " " << expectedVal;
@@ -268,18 +272,20 @@ void verifyUpdatedStats(const HwPortFb303Stats& portStats) {
     ++curValue;
   }
   curValue = 1;
-  for (auto counterName : portStats.kInMacsecPortStatKeys()) {
-    EXPECT_EQ(
-        portStats.getCounterLastIncrement(
-            HwPortFb303Stats::statName(counterName, kPortName)),
-        curValue++);
-  }
-  curValue = 1;
-  for (auto counterName : portStats.kOutMacsecPortStatKeys()) {
-    EXPECT_EQ(
-        portStats.getCounterLastIncrement(
-            HwPortFb303Stats::statName(counterName, kPortName)),
-        curValue++);
+  if (portStats.portStats().macsecStats().has_value()) {
+    for (auto counterName : portStats.kInMacsecPortStatKeys()) {
+      EXPECT_EQ(
+          portStats.getCounterLastIncrement(
+              HwPortFb303Stats::statName(counterName, kPortName)),
+          curValue++);
+    }
+    curValue = 1;
+    for (auto counterName : portStats.kOutMacsecPortStatKeys()) {
+      EXPECT_EQ(
+          portStats.getCounterLastIncrement(
+              HwPortFb303Stats::statName(counterName, kPortName)),
+          curValue++);
+    }
   }
 }
 } // namespace
@@ -366,6 +372,14 @@ TEST(HwPortFb303StatsTest, ReInit) {
 TEST(HwPortFb303Stats, UpdateStats) {
   HwPortFb303Stats portStats(kPortName, kQueue2Name);
   updateStats(portStats);
+  verifyUpdatedStats(portStats);
+}
+
+TEST(HwPortFb303Stats, UpdateStatsSansOptionals) {
+  HwPortFb303Stats portStats(kPortName, kQueue2Name);
+  auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
+  portStats.updateStats(getEmptyStatsSansOptionals(), now);
+  portStats.updateStats(getInitedStatsSansOptionals(), now);
   verifyUpdatedStats(portStats);
 }
 
