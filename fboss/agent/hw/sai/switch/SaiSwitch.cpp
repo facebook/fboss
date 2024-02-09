@@ -2205,9 +2205,12 @@ void SaiSwitch::syncLinkStates() {
 }
 
 void SaiSwitch::syncLinkActiveStates() {
-  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
-  txReadyStatusChangeBottomHalfEventBase_.runInEventBaseThread(
-      [=, this]() { txReadyStatusChangeCallbackBottomHalf(); });
+  // Link active state is valid only for fabric ports
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::FABRIC_PORTS)) {
+    std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+    txReadyStatusChangeBottomHalfEventBase_.runInEventBaseThread(
+        [=, this]() { txReadyStatusChangeCallbackBottomHalf(); });
+  }
 }
 
 void SaiSwitch::initTxReadyStatusChangeLocked(
