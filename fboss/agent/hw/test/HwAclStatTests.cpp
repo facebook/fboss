@@ -15,6 +15,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/CounterUtils.h"
 #include "fboss/agent/hw/test/HwTestAclUtils.h"
+#include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQueuePerHostUtils.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -297,7 +298,8 @@ TYPED_TEST(HwAclStatTest, AclStatMultipleActions) {
         "acl0",
         "stat0",
         utility::getAclCounterTypes(this->getHwSwitch()));
-    cfg::MatchAction matchAction = utility::getToQueueAction(0);
+    cfg::MatchAction matchAction =
+        utility::getToQueueAction(0, this->getHwSwitchEnsemble()->isSai());
     cfg::MatchToAction action = cfg::MatchToAction();
     *action.matcher() = "acl0";
     *action.action() = matchAction;

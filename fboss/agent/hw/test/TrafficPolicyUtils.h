@@ -41,7 +41,8 @@ void addSetDscpAndEgressQueueActionToCfg(
     cfg::SwitchConfig* config,
     const std::string& aclName,
     uint8_t dscp,
-    int queueId);
+    int queueId,
+    bool isSai);
 
 void addL2ClassIDAndTtlAcl(
     cfg::SwitchConfig* config,
@@ -80,6 +81,7 @@ void addQueueMatcher(
     cfg::SwitchConfig* config,
     const std::string& matcherName,
     int queueId,
+    bool isSai,
     const std::optional<std::string>& counterName = std::nullopt);
 
 void addTrafficCounter(

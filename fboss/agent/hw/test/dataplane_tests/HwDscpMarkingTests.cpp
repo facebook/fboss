@@ -71,7 +71,8 @@ class HwDscpMarkingTest : public HwLinkStateDependentTest {
       auto newCfg{initialConfig()};
       utility::addOlympicQosMaps(newCfg, getAsic());
       utility::addDscpCounterAcl(&newCfg, getAsic());
-      utility::addDscpMarkingAcls(&newCfg, getAsic());
+      utility::addDscpMarkingAcls(
+          &newCfg, getAsic(), getHwSwitchEnsemble()->isSai());
 
       applyNewConfig(newCfg);
     };

@@ -122,7 +122,7 @@ std::string getRouteDropAclName() {
   return "route-drop-acl";
 }
 
-void addQueuePerHostAcls(cfg::SwitchConfig* config) {
+void addQueuePerHostAcls(cfg::SwitchConfig* config, bool isSai) {
   cfg::Ttl ttl;
   std::tie(*ttl.value(), *ttl.mask()) = std::make_tuple(0x80, 0x80);
   auto ttlCounterName = getQueuePerHostTtlCounterName();
@@ -138,20 +138,21 @@ void addQueuePerHostAcls(cfg::SwitchConfig* config) {
     auto l2AndTtlAclName = folly::to<std::string>(
         "ttl-", getQueuePerHostL2AclNameForQueue(queueId));
     utility::addL2ClassIDAndTtlAcl(config, l2AndTtlAclName, classID, ttl);
-    utility::addQueueMatcher(config, l2AndTtlAclName, queueId, ttlCounterName);
+    utility::addQueueMatcher(
+        config, l2AndTtlAclName, queueId, isSai, ttlCounterName);
 
     auto neighborAndTtlAclName = folly::to<std::string>(
         "ttl-", getQueuePerHostNeighborAclNameForQueue(queueId));
     utility::addNeighborClassIDAndTtlAcl(
         config, neighborAndTtlAclName, classID, ttl);
     utility::addQueueMatcher(
-        config, neighborAndTtlAclName, queueId, ttlCounterName);
+        config, neighborAndTtlAclName, queueId, isSai, ttlCounterName);
 
     auto routeAndTtlAclName = folly::to<std::string>(
         "ttl-", getQueuePerHostRouteAclNameForQueue(queueId));
     utility::addRouteClassIDAndTtlAcl(config, routeAndTtlAclName, classID, ttl);
     utility::addQueueMatcher(
-        config, routeAndTtlAclName, queueId, ttlCounterName);
+        config, routeAndTtlAclName, queueId, isSai, ttlCounterName);
   }
 
   // {L2, neighbor, route}-only
@@ -160,15 +161,15 @@ void addQueuePerHostAcls(cfg::SwitchConfig* config) {
 
     auto l2AclName = getQueuePerHostL2AclNameForQueue(queueId);
     utility::addL2ClassIDAndTtlAcl(config, l2AclName, classID);
-    utility::addQueueMatcher(config, l2AclName, queueId);
+    utility::addQueueMatcher(config, l2AclName, queueId, isSai);
 
     auto neighborAclName = getQueuePerHostNeighborAclNameForQueue(queueId);
     utility::addNeighborClassIDAndTtlAcl(config, neighborAclName, classID);
-    utility::addQueueMatcher(config, neighborAclName, queueId);
+    utility::addQueueMatcher(config, neighborAclName, queueId, isSai);
 
     auto routeAclName = getQueuePerHostRouteAclNameForQueue(queueId);
     utility::addRouteClassIDAndTtlAcl(config, routeAclName, classID);
-    utility::addQueueMatcher(config, routeAclName, queueId);
+    utility::addQueueMatcher(config, routeAclName, queueId, isSai);
   }
 
   // TTL only
@@ -257,7 +258,8 @@ void deleteQueuePerHostMatchers(cfg::SwitchConfig* config) {
 
 void addQueuePerHostAclEntry(
     cfg::SwitchConfig* config,
-    const std::string& aclTableName) {
+    const std::string& aclTableName,
+    bool isSai) {
   for (auto queueId : kQueuePerhostQueueIds()) {
     auto classID = kQueuePerHostQueueToClass().at(queueId);
 
@@ -265,19 +267,19 @@ void addQueuePerHostAclEntry(
     auto aclL2 = utility::addAcl(
         config, l2AclName, cfg::AclActionType::PERMIT, aclTableName);
     aclL2->lookupClassL2() = classID;
-    utility::addQueueMatcher(config, l2AclName, queueId);
+    utility::addQueueMatcher(config, l2AclName, queueId, isSai);
 
     auto neighborAclName = getQueuePerHostNeighborAclNameForQueue(queueId);
     auto aclNeighbor = utility::addAcl(
         config, neighborAclName, cfg::AclActionType::PERMIT, aclTableName);
     aclNeighbor->lookupClassNeighbor() = classID;
-    utility::addQueueMatcher(config, neighborAclName, queueId);
+    utility::addQueueMatcher(config, neighborAclName, queueId, isSai);
 
     auto routeAclName = getQueuePerHostRouteAclNameForQueue(queueId);
     auto aclRoute = utility::addAcl(
         config, routeAclName, cfg::AclActionType::PERMIT, aclTableName);
     aclRoute->lookupClassRoute() = classID;
-    utility::addQueueMatcher(config, routeAclName, queueId);
+    utility::addQueueMatcher(config, routeAclName, queueId, isSai);
   }
 }
 
@@ -285,7 +287,8 @@ void addQueuePerHostAclEntry(
 void addQueuePerHostAclTables(
     cfg::SwitchConfig* config,
     int16_t priority,
-    bool addAllQualifiers) {
+    bool addAllQualifiers,
+    bool isSai) {
   std::vector<cfg::AclTableQualifier> qualifiers = {
       cfg::AclTableQualifier::LOOKUP_CLASS_L2,
       cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR,
@@ -307,7 +310,7 @@ void addQueuePerHostAclTables(
       actions,
       qualifiers);
 
-  addQueuePerHostAclEntry(config, getQueuePerHostAclTableName());
+  addQueuePerHostAclEntry(config, getQueuePerHostAclTableName(), isSai);
 }
 
 void verifyQueuePerHostMapping(

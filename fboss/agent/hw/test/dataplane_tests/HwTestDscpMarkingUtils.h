@@ -30,17 +30,25 @@ std::string kCounterName();
 std::string getIngressAclTableGroupName();
 uint8_t kIcpDscp(const HwAsic* hwAsic);
 
-void addDscpMarkingAcls(cfg::SwitchConfig* config, const HwAsic* hwAsic);
+void addDscpMarkingAcls(
+    cfg::SwitchConfig* config,
+    const HwAsic* hwAsic,
+    bool isSai);
 void addDscpCounterAcl(cfg::SwitchConfig* config, const HwAsic* hwAsic);
-void addDscpMarkingAclTable(cfg::SwitchConfig* config, const HwAsic* hwAsic);
+void addDscpMarkingAclTable(
+    cfg::SwitchConfig* config,
+    const HwAsic* hwAsic,
+    bool isSai);
 void addDscpAclEntryWithCounter(
     cfg::SwitchConfig* config,
     const std::string& aclTableName,
-    const HwAsic* hwAsic);
+    const HwAsic* hwAsic,
+    bool isSai);
 void addDscpAclTable(
     cfg::SwitchConfig* config,
     int16_t priority,
     bool addAllQualifiers,
-    const HwAsic* hwAsic);
+    const HwAsic* hwAsic,
+    bool isSai);
 void delDscpMatchers(cfg::SwitchConfig* config);
 } // namespace facebook::fboss::utility

@@ -225,7 +225,8 @@ TYPED_TEST(HwAclPriorityTest, Reprioritize) {
     cfg::CPUTrafficPolicyConfig cpuConfig;
     cfg::TrafficPolicyConfig trafficConfig;
     trafficConfig.matchToAction()->resize(2);
-    cfg::MatchAction matchAction = getToQueueAction(1, cfg::ToCpuAction::TRAP);
+    cfg::MatchAction matchAction = getToQueueAction(
+        1, this->getHwSwitchEnsemble()->isSai(), cfg::ToCpuAction::TRAP);
     for (int i = 0; i < 2; i++) {
       auto& acls = utility::getAcls(&config, std::nullopt);
       trafficConfig.matchToAction()[i].matcher() = *acls[i].name();
@@ -244,7 +245,8 @@ TYPED_TEST(HwAclPriorityTest, Reprioritize) {
     cfg::CPUTrafficPolicyConfig cpuConfig;
     cfg::TrafficPolicyConfig trafficConfig;
     trafficConfig.matchToAction()->resize(2);
-    cfg::MatchAction matchAction = getToQueueAction(1, cfg::ToCpuAction::TRAP);
+    cfg::MatchAction matchAction = getToQueueAction(
+        1, this->getHwSwitchEnsemble()->isSai(), cfg::ToCpuAction::TRAP);
     for (int i = 0; i < 2; i++) {
       auto& acls = utility::getAcls(&config, std::nullopt);
       trafficConfig.matchToAction()[i].matcher() = *acls[i].name();

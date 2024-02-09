@@ -66,7 +66,8 @@ void addDscpMarkingAclsHelper(
     cfg::SwitchConfig* config,
     IP_PROTO proto,
     const std::vector<uint32_t>& ports,
-    const HwAsic* hwAsic) {
+    const HwAsic* hwAsic,
+    bool isSai) {
   for (auto port : ports) {
     auto l4SrcPortAclName = getDscpAclName(proto, "src", port);
     utility::addL4SrcPortAclToCfg(config, l4SrcPortAclName, proto, port);
@@ -74,7 +75,8 @@ void addDscpMarkingAclsHelper(
         config,
         l4SrcPortAclName,
         kIcpDscp(hwAsic),
-        utility::getOlympicQueueId(utility::OlympicQueueType::ICP));
+        utility::getOlympicQueueId(utility::OlympicQueueType::ICP),
+        isSai);
 
     auto l4DstPortAclName = getDscpAclName(proto, "dst", port);
     utility::addL4DstPortAclToCfg(config, l4DstPortAclName, proto, port);
@@ -82,13 +84,19 @@ void addDscpMarkingAclsHelper(
         config,
         l4DstPortAclName,
         kIcpDscp(hwAsic),
-        utility::getOlympicQueueId(utility::OlympicQueueType::ICP));
+        utility::getOlympicQueueId(utility::OlympicQueueType::ICP),
+        isSai);
   }
 }
 
-void addDscpMarkingAcls(cfg::SwitchConfig* config, const HwAsic* hwAsic) {
-  addDscpMarkingAclsHelper(config, IP_PROTO::IP_PROTO_UDP, kUdpPorts(), hwAsic);
-  addDscpMarkingAclsHelper(config, IP_PROTO::IP_PROTO_TCP, kTcpPorts(), hwAsic);
+void addDscpMarkingAcls(
+    cfg::SwitchConfig* config,
+    const HwAsic* hwAsic,
+    bool isSai) {
+  addDscpMarkingAclsHelper(
+      config, IP_PROTO::IP_PROTO_UDP, kUdpPorts(), hwAsic, isSai);
+  addDscpMarkingAclsHelper(
+      config, IP_PROTO::IP_PROTO_TCP, kTcpPorts(), hwAsic, isSai);
 }
 
 void addDscpCounterAcl(cfg::SwitchConfig* config, const HwAsic* hwAsic) {
@@ -126,7 +134,8 @@ void addDscpMarkingAclsTableHelper(
     IP_PROTO proto,
     const std::vector<uint32_t>& ports,
     const std::string& aclTableName,
-    const HwAsic* hwAsic) {
+    const HwAsic* hwAsic,
+    bool isSai) {
   for (auto port : ports) {
     auto l4SrcPortAclName = getDscpAclName(proto, "src", port);
     auto dscpSrcMarkingAcl = utility::addAcl(
@@ -137,7 +146,8 @@ void addDscpMarkingAclsTableHelper(
         config,
         l4SrcPortAclName,
         kIcpDscp(hwAsic),
-        utility::getOlympicQueueId(utility::OlympicQueueType::ICP));
+        utility::getOlympicQueueId(utility::OlympicQueueType::ICP),
+        isSai);
 
     auto l4DstPortAclName = getDscpAclName(proto, "dst", port);
     auto dscpDstMarkingAcl = utility::addAcl(
@@ -148,24 +158,27 @@ void addDscpMarkingAclsTableHelper(
         config,
         l4DstPortAclName,
         kIcpDscp(hwAsic),
-        utility::getOlympicQueueId(utility::OlympicQueueType::ICP));
+        utility::getOlympicQueueId(utility::OlympicQueueType::ICP),
+        isSai);
   }
 }
 
 void addDscpMarkingAclTable(
     cfg::SwitchConfig* config,
     const std::string& aclTableName,
-    const HwAsic* hwAsic) {
+    const HwAsic* hwAsic,
+    bool isSai) {
   addDscpMarkingAclsTableHelper(
-      config, IP_PROTO::IP_PROTO_UDP, kUdpPorts(), aclTableName, hwAsic);
+      config, IP_PROTO::IP_PROTO_UDP, kUdpPorts(), aclTableName, hwAsic, isSai);
   addDscpMarkingAclsTableHelper(
-      config, IP_PROTO::IP_PROTO_TCP, kTcpPorts(), aclTableName, hwAsic);
+      config, IP_PROTO::IP_PROTO_TCP, kTcpPorts(), aclTableName, hwAsic, isSai);
 }
 
 void addDscpAclEntryWithCounter(
     cfg::SwitchConfig* config,
     const std::string& aclTableName,
-    const HwAsic* hwAsic) {
+    const HwAsic* hwAsic,
+    bool isSai) {
   std::vector<cfg::CounterType> counterTypes{cfg::CounterType::PACKETS};
   utility::addTrafficCounter(config, kCounterName(), counterTypes);
   auto* dscpAcl = utility::addAcl(
@@ -174,7 +187,7 @@ void addDscpAclEntryWithCounter(
 
   utility::addAclStat(
       config, kDscpCounterAclName(), kCounterName(), counterTypes);
-  addDscpMarkingAclTable(config, aclTableName, hwAsic);
+  addDscpMarkingAclTable(config, aclTableName, hwAsic, isSai);
 }
 
 // Utility to add ICP Marking ACL table to a multi acl table group
@@ -182,7 +195,8 @@ void addDscpAclTable(
     cfg::SwitchConfig* config,
     int16_t priority,
     bool addAllQualifiers,
-    const HwAsic* hwAsic) {
+    const HwAsic* hwAsic,
+    bool isSai) {
   std::vector<cfg::AclTableQualifier> qualifiers = {
       cfg::AclTableQualifier::L4_SRC_PORT,
       cfg::AclTableQualifier::L4_DST_PORT,
@@ -207,6 +221,6 @@ void addDscpAclTable(
        cfg::AclTableActionType::SET_DSCP},
       qualifiers);
 
-  addDscpAclEntryWithCounter(config, getDscpAclTableName(), hwAsic);
+  addDscpAclEntryWithCounter(config, getDscpAclTableName(), hwAsic, isSai);
 }
 } // namespace facebook::fboss::utility

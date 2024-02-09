@@ -22,7 +22,7 @@ class SaiQPHRollbackTest : public SaiRollbackTest {
         getAsic()->desiredLoopbackModes());
     if (isSupported(HwAsic::Feature::L3_QOS)) {
       utility::addQueuePerHostQueueConfig(&cfg);
-      utility::addQueuePerHostAcls(&cfg);
+      utility::addQueuePerHostAcls(&cfg, getHwSwitchEnsemble()->isSai());
     }
     return cfg;
   }

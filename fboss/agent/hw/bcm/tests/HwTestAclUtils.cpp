@@ -266,19 +266,6 @@ uint64_t getAclInOutPackets(
   return getAclCounterStats(hw, statName, cfg::CounterType::PACKETS);
 }
 
-cfg::MatchAction getToQueueAction(
-    const int queueId,
-    const std::optional<cfg::ToCpuAction> toCpuAction) {
-  cfg::MatchAction action;
-  cfg::QueueMatchAction queueAction;
-  queueAction.queueId() = queueId;
-  action.sendToQueue() = queueAction;
-  if (toCpuAction) {
-    action.toCpuAction() = toCpuAction.value();
-  }
-  return action;
-}
-
 void checkSwAclSendToQueue(
     std::shared_ptr<SwitchState> state,
     const std::string& aclName,

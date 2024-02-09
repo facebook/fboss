@@ -50,7 +50,7 @@ const std::vector<int>& kQueuePerhostQueueIds();
 const std::vector<cfg::AclLookupClass>& kLookupClasses();
 
 void addQueuePerHostQueueConfig(cfg::SwitchConfig* config);
-void addQueuePerHostAcls(cfg::SwitchConfig* config);
+void addQueuePerHostAcls(cfg::SwitchConfig* config, bool isSai);
 
 std::string getQueuePerHostAclTableName();
 std::string getTtlAclTableName();
@@ -115,11 +115,13 @@ void addTtlAclTable(
 void deleteTtlCounters(cfg::SwitchConfig* config);
 void addQueuePerHostAclEntry(
     cfg::SwitchConfig* config,
-    const std::string& aclTableName);
+    const std::string& aclTableName,
+    bool isSai);
 void addQueuePerHostAclTables(
     cfg::SwitchConfig* config,
     int16_t priority,
-    bool addAllQualifiers);
+    bool addAllQualifiers,
+    bool isSai);
 void deleteQueuePerHostMatchers(cfg::SwitchConfig* config);
 
 } // namespace facebook::fboss::utility

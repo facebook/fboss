@@ -176,9 +176,9 @@ cfg::PortSpeed getPortSpeed(const HwSwitch* hwSwitch) {
  * Other helper functions (i.e. addRoutes, updateRoutesClassID) are called on
  * the test fixture's setup() phase.
  */
-void addQueuePerHostToConfig(cfg::SwitchConfig& config) {
+void addQueuePerHostToConfig(cfg::SwitchConfig& config, bool isSai) {
   utility::addQueuePerHostQueueConfig(&config);
-  utility::addQueuePerHostAcls(&config);
+  utility::addQueuePerHostAcls(&config, isSai);
 }
 
 cfg::SwitchConfig createProdRtswConfig(
@@ -337,7 +337,7 @@ cfg::SwitchConfig createProdRswMhnicConfig(
   addCpuQueueConfig(config, hwAsic, isSai);
   setDefaultCpuTrafficPolicyConfig(config, hwAsic, isSai);
   if (hwAsic->isSupported(HwAsic::Feature::L3_QOS)) {
-    addQueuePerHostToConfig(config);
+    addQueuePerHostToConfig(config, hwSwitch->getPlatform()->isSai());
     // DSCP Marking ACLs must be programmed AFTER queue-per-host ACLs or else
     // traffic matching DSCP Marking ACLs will only hit DSCP Marking ACLs and
     // thus suffer from noisy neighbor.
@@ -345,7 +345,8 @@ cfg::SwitchConfig createProdRswMhnicConfig(
     // Thus, putting DSCP Marking ACLs before queue-per-host ACLs would cause
     // noisy neighbor problem for traffic between ports connected to the same
     // switch.
-    utility::addDscpMarkingAcls(&config, hwAsic);
+    utility::addDscpMarkingAcls(
+        &config, hwAsic, hwSwitch->getPlatform()->isSai());
   }
   if (hwAsic->isSupported(HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
     addLoadBalancerToConfig(config, hwSwitch, LBHash::FULL_HASH);

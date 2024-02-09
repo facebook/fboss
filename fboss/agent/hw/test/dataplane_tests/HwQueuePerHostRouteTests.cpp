@@ -103,7 +103,8 @@ class HwQueuePerHostRouteTest : public HwLinkStateDependentTest {
   void setupHelper(bool blockNeighbor) {
     auto newCfg{initialConfig()};
     utility::addQueuePerHostQueueConfig(&newCfg);
-    utility::addQueuePerHostAcls(&newCfg);
+    utility::addQueuePerHostAcls(
+        &newCfg, getHwSwitch()->getPlatform()->isSai());
 
     this->applyNewConfig(newCfg);
     this->addRoutes({this->kGetRoutePrefix()});

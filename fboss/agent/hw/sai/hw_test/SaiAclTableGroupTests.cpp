@@ -233,8 +233,10 @@ class SaiAclTableGroupTest : public HwTest {
     // Table 1: For QPH and Dscp Acl.
     addQphDscpAclTable(newCfg);
 
-    utility::addQueuePerHostAclEntry(newCfg, kQphDscpTable());
-    utility::addDscpAclEntryWithCounter(newCfg, kQphDscpTable(), getAsic());
+    utility::addQueuePerHostAclEntry(
+        newCfg, kQphDscpTable(), getHwSwitchEnsemble()->isSai());
+    utility::addDscpAclEntryWithCounter(
+        newCfg, kQphDscpTable(), getAsic(), getHwSwitchEnsemble()->isSai());
   }
 
   void addTwoAclTables(cfg::SwitchConfig* newCfg) {
@@ -340,7 +342,8 @@ class SaiAclTableGroupTest : public HwTest {
 
     utility::addAclTableGroup(&newCfg, kAclStage(), "Ingress Table Group");
     addQphDscpAclTable(&newCfg, addExtraQualifier);
-    utility::addQueuePerHostAclEntry(&newCfg, kQphDscpTable());
+    utility::addQueuePerHostAclEntry(
+        &newCfg, kQphDscpTable(), getHwSwitchEnsemble()->isSai());
     utility::addTtlAclTable(&newCfg, 2 /* priority */, addExtraQualifier);
 
     return newCfg;
@@ -385,7 +388,11 @@ class SaiAclTableGroupTest : public HwTest {
     auto setupPostWarmboot = [=, this]() {
       auto newCfg = getMultiAclConfig(addQualifierDuringWarmboot);
       // Add Dscp acl to table 1 post warmboot
-      utility::addDscpAclEntryWithCounter(&newCfg, kQphDscpTable(), getAsic());
+      utility::addDscpAclEntryWithCounter(
+          &newCfg,
+          kQphDscpTable(),
+          getAsic(),
+          this->getHwSwitchEnsemble()->isSai());
       // Add a new counter acl to table 2 post warmboot
       addCounterAclToAclTable(
           &newCfg,

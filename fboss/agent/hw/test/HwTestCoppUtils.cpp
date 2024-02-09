@@ -267,14 +267,13 @@ uint16_t getNumDefaultCpuAcls(const HwAsic* hwAsic, bool isSai) {
   return utility::defaultCpuAcls(hwAsic, config, isSai).size();
 }
 
-cfg::MatchAction createQueueMatchAction(
-    int queueId,
-    cfg::ToCpuAction toCpuAction) {
+cfg::MatchAction
+createQueueMatchAction(int queueId, bool isSai, cfg::ToCpuAction toCpuAction) {
   if (toCpuAction != cfg::ToCpuAction::COPY &&
       toCpuAction != cfg::ToCpuAction::TRAP) {
     throw FbossError("Unsupported CounterType for ACL");
   }
-  return utility::getToQueueAction(queueId, toCpuAction);
+  return utility::getToQueueAction(queueId, isSai, toCpuAction);
 }
 
 void addNoActionAclForNw(
@@ -293,7 +292,8 @@ void addHighPriAclForNwAndNetworkControlDscp(
     const folly::CIDRNetwork& dstNetwork,
     int highPriQueueId,
     cfg::ToCpuAction toCpuAction,
-    std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>& acls) {
+    std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>& acls,
+    bool isSai) {
   cfg::AclEntry acl;
   auto dstNetworkStr =
       folly::to<std::string>(dstNetwork.first, "/", dstNetwork.second);
@@ -301,31 +301,35 @@ void addHighPriAclForNwAndNetworkControlDscp(
       "cpuPolicing-high-", dstNetworkStr, "-network-control");
   acl.dstIp() = dstNetworkStr;
   acl.dscp() = 48;
-  acls.push_back(
-      std::make_pair(acl, createQueueMatchAction(highPriQueueId, toCpuAction)));
+  acls.push_back(std::make_pair(
+      acl, createQueueMatchAction(highPriQueueId, isSai, toCpuAction)));
 }
 
 void addMidPriAclForNw(
     const folly::CIDRNetwork& dstNetwork,
     cfg::ToCpuAction toCpuAction,
-    std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>& acls) {
+    std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>& acls,
+    bool isSai) {
   cfg::AclEntry acl;
   auto dstIp = folly::to<std::string>(dstNetwork.first, "/", dstNetwork.second);
   acl.name() = folly::to<std::string>("cpuPolicing-mid-", dstIp);
   acl.dstIp() = dstIp;
 
   acls.push_back(std::make_pair(
-      acl, createQueueMatchAction(utility::kCoppMidPriQueueId, toCpuAction)));
+      acl,
+      createQueueMatchAction(utility::kCoppMidPriQueueId, isSai, toCpuAction)));
 }
 
 void addLowPriAclForUnresolvedRoutes(
     cfg::ToCpuAction toCpuAction,
-    std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>& acls) {
+    std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>& acls,
+    bool isSai) {
   cfg::AclEntry acl;
   acl.name() = folly::to<std::string>("cpu-unresolved-route-acl");
   acl.lookupClassRoute() = cfg::AclLookupClass::CLASS_UNRESOLVED_ROUTE_TO_CPU;
   acls.push_back(std::make_pair(
-      acl, createQueueMatchAction(utility::kCoppLowPriQueueId, toCpuAction)));
+      acl,
+      createQueueMatchAction(utility::kCoppLowPriQueueId, isSai, toCpuAction)));
 }
 
 std::unique_ptr<facebook::fboss::TxPacket> createUdpPkt(
@@ -560,23 +564,32 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAclsForSai(
       kIPv6LinkLocalMcastNetwork(),
       getCoppHighPriQueueId(hwAsic),
       getCpuActionType(hwAsic),
-      acls);
+      acls,
+      true /* isSai */);
   addHighPriAclForNwAndNetworkControlDscp(
       kIPv6LinkLocalUcastNetwork(),
       getCoppHighPriQueueId(hwAsic),
       getCpuActionType(hwAsic),
-      acls);
+      acls,
+      true /* isSai */);
 
   // unicast and multicast link local dst ip
   addMidPriAclForNw(
-      kIPv6LinkLocalMcastNetwork(), getCpuActionType(hwAsic), acls);
+      kIPv6LinkLocalMcastNetwork(),
+      getCpuActionType(hwAsic),
+      acls,
+      true /*isSai*/);
   // All fe80::/10 to mid pri queue
   addMidPriAclForNw(
-      kIPv6LinkLocalUcastNetwork(), getCpuActionType(hwAsic), acls);
+      kIPv6LinkLocalUcastNetwork(),
+      getCpuActionType(hwAsic),
+      acls,
+      true /*isSai*/);
 
   if (hwAsic->isSupported(HwAsic::Feature::ACL_METADATA_QUALIFER)) {
     // Unresolved route class ID to low pri queue
-    addLowPriAclForUnresolvedRoutes(getCpuActionType(hwAsic), acls);
+    addLowPriAclForUnresolvedRoutes(
+        getCpuActionType(hwAsic), acls, true /*isSai*/);
   }
 
   return acls;
@@ -590,6 +603,7 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAclsForBcm(
   // multicast link local dst ip
   addNoActionAclForNw(kIPv6LinkLocalMcastNetwork(), acls);
 
+  bool isSai = false;
   // slow-protocols dst mac
   {
     cfg::AclEntry acl;
@@ -598,7 +612,7 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAclsForBcm(
     acls.emplace_back(
         acl,
         createQueueMatchAction(
-            getCoppHighPriQueueId(hwAsic), getCpuActionType(hwAsic)));
+            getCoppHighPriQueueId(hwAsic), isSai, getCpuActionType(hwAsic)));
   }
 
   // EAPOL
@@ -611,7 +625,7 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAclsForBcm(
       acls.emplace_back(
           acl,
           createQueueMatchAction(
-              getCoppHighPriQueueId(hwAsic), getCpuActionType(hwAsic)));
+              getCoppHighPriQueueId(hwAsic), isSai, getCpuActionType(hwAsic)));
     }
   }
 
@@ -638,7 +652,7 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAclsForBcm(
     acls.emplace_back(
         acl,
         createQueueMatchAction(
-            getCoppHighPriQueueId(hwAsic), getCpuActionType(hwAsic)));
+            getCoppHighPriQueueId(hwAsic), isSai, getCpuActionType(hwAsic)));
   };
   addHighPriDstClassL3BgpAcl(true /*v4*/, true /*srcPort*/);
   addHighPriDstClassL3BgpAcl(true /*v4*/, false /*dstPort*/);
@@ -660,7 +674,7 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAclsForBcm(
     acls.emplace_back(
         acl,
         createQueueMatchAction(
-            getCoppHighPriQueueId(hwAsic), getCpuActionType(hwAsic)));
+            getCoppHighPriQueueId(hwAsic), isSai, getCpuActionType(hwAsic)));
   };
   addHigPriLocalIpNetworkControlAcl(true);
   addHigPriLocalIpNetworkControlAcl(false);
@@ -677,7 +691,9 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAclsForBcm(
         acls.emplace_back(
             acl,
             createQueueMatchAction(
-                getCoppHighPriQueueId(hwAsic), getCpuActionType(hwAsic)));
+                getCoppHighPriQueueId(hwAsic),
+                isSai,
+                getCpuActionType(hwAsic)));
       };
   addHighPriLinkLocalV6NetworkControlAcl(kIPv6LinkLocalMcastNetwork());
   addHighPriLinkLocalV6NetworkControlAcl(kIPv6LinkLocalUcastNetwork());
@@ -693,7 +709,7 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAclsForBcm(
     acls.emplace_back(
         acl,
         createQueueMatchAction(
-            getCoppHighPriQueueId(hwAsic), getCpuActionType(hwAsic)));
+            getCoppHighPriQueueId(hwAsic), isSai, getCpuActionType(hwAsic)));
   }
 
   // Now steer traffic destined to this (local) interface IP
@@ -712,17 +728,17 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAclsForBcm(
     acls.emplace_back(
         acl,
         createQueueMatchAction(
-            utility::kCoppMidPriQueueId, getCpuActionType(hwAsic)));
+            utility::kCoppMidPriQueueId, isSai, getCpuActionType(hwAsic)));
   };
   addMidPriDstClassL3Acl(true);
   addMidPriDstClassL3Acl(false);
 
   // unicast and multicast link local dst ip
   addMidPriAclForNw(
-      kIPv6LinkLocalMcastNetwork(), getCpuActionType(hwAsic), acls);
+      kIPv6LinkLocalMcastNetwork(), getCpuActionType(hwAsic), acls, isSai);
   // All fe80::/10 to mid pri queue
   addMidPriAclForNw(
-      kIPv6LinkLocalUcastNetwork(), getCpuActionType(hwAsic), acls);
+      kIPv6LinkLocalUcastNetwork(), getCpuActionType(hwAsic), acls, isSai);
 
   // mpls no match
   {
@@ -735,7 +751,8 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAclsForBcm(
       utility::addTrafficCounter(
           &config, kMplsDestNoMatchCounterName, counterTypes);
       auto queue = utility::kCoppLowPriQueueId;
-      auto action = createQueueMatchAction(queue, getCpuActionType(hwAsic));
+      auto action =
+          createQueueMatchAction(queue, isSai, getCpuActionType(hwAsic));
       action.counter() = kMplsDestNoMatchCounterName;
       acls.emplace_back(acl, action);
     }
@@ -869,4 +886,49 @@ std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueues(
   return isSai ? getCoppRxReasonToQueuesForSai(hwAsic)
                : getCoppRxReasonToQueuesForBcm(hwAsic);
 }
+
+cfg::MatchAction getToQueueActionForSai(
+    const int queueId,
+    const std::optional<cfg::ToCpuAction> toCpuAction) {
+  cfg::MatchAction action;
+  if (FLAGS_sai_user_defined_trap) {
+    cfg::UserDefinedTrapAction userDefinedTrap;
+    userDefinedTrap.queueId() = queueId;
+    action.userDefinedTrap() = userDefinedTrap;
+    // assume tc i maps to queue i for all i on sai switches
+    cfg::SetTcAction setTc;
+    setTc.tcValue() = queueId;
+    action.setTc() = setTc;
+  } else {
+    cfg::QueueMatchAction queueAction;
+    queueAction.queueId() = queueId;
+    action.sendToQueue() = queueAction;
+  }
+  if (toCpuAction) {
+    action.toCpuAction() = toCpuAction.value();
+  }
+  return action;
+}
+
+cfg::MatchAction getToQueueActionForBcm(
+    const int queueId,
+    const std::optional<cfg::ToCpuAction> toCpuAction) {
+  cfg::MatchAction action;
+  cfg::QueueMatchAction queueAction;
+  queueAction.queueId() = queueId;
+  action.sendToQueue() = queueAction;
+  if (toCpuAction) {
+    action.toCpuAction() = toCpuAction.value();
+  }
+  return action;
+}
+
+cfg::MatchAction getToQueueAction(
+    const int queueId,
+    bool isSai,
+    const std::optional<cfg::ToCpuAction> toCpuAction) {
+  return isSai ? getToQueueActionForSai(queueId, toCpuAction)
+               : getToQueueActionForBcm(queueId, toCpuAction);
+}
+
 } // namespace facebook::fboss::utility

@@ -75,9 +75,8 @@ folly::CIDRNetwork kIPv6LinkLocalUcastNetwork();
 
 folly::CIDRNetwork kIPv6NdpSolicitNetwork();
 
-cfg::MatchAction createQueueMatchAction(
-    int queueId,
-    cfg::ToCpuAction toCpuAction);
+cfg::MatchAction
+createQueueMatchAction(int queueId, bool isSai, cfg::ToCpuAction toCpuAction);
 
 std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>
 defaultCpuAcls(const HwAsic* hwAsic, cfg::SwitchConfig& config, bool isSai);
@@ -194,6 +193,11 @@ void addTrafficCounter(
     cfg::SwitchConfig* config,
     const std::string& counterName,
     std::optional<std::vector<cfg::CounterType>> counterTypes);
+
+cfg::MatchAction getToQueueAction(
+    const int queueId,
+    bool isSai,
+    const std::optional<cfg::ToCpuAction> toCpuAction = std::nullopt);
 
 } // namespace utility
 } // namespace facebook::fboss

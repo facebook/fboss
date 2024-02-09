@@ -409,7 +409,10 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
         auto newCfg{initialConfig()};
         utility::addQueuePerHostQueueConfig(&newCfg);
         utility::addQueuePerHostAclTables(
-            &newCfg, 1 /*priority*/, addAllQualifiers);
+            &newCfg,
+            1 /*priority*/,
+            addAllQualifiers,
+            this->getHwSwitchEnsemble()->isSai());
         utility::addTtlAclTable(&newCfg, 2 /*priority*/);
         applyNewConfig(newCfg);
       }
@@ -570,7 +573,11 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
         auto newCfg{initialConfig()};
         utility::addOlympicQosMaps(newCfg, getAsic());
         utility::addDscpAclTable(
-            &newCfg, 1 /*priority*/, addAllQualifiers, getAsic());
+            &newCfg,
+            1 /*priority*/,
+            addAllQualifiers,
+            getAsic(),
+            this->getHwSwitchEnsemble()->isSai());
         utility::addTtlAclTable(&newCfg, 2);
         applyNewConfig(newCfg);
       }

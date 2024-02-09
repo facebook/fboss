@@ -213,7 +213,7 @@ class HwQueuePerHostTest : public HwLinkStateDependentTest {
     resolveNeigborAndProgramRoutes(*helper_, kEcmpWidth);
     auto newCfg{initialConfig()};
     utility::addQueuePerHostQueueConfig(&newCfg);
-    utility::addQueuePerHostAcls(&newCfg);
+    utility::addQueuePerHostAcls(&newCfg, getHwSwitchEnsemble()->isSai());
     applyNewConfig(newCfg);
   }
 
