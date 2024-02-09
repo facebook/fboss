@@ -145,8 +145,18 @@ HwPortStats getInitedStats() {
   };
 }
 
-void updateStats(HwPortFb303Stats& portStats) {
-  auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
+HwPortStats resetOptionals(HwPortStats stats) {
+  stats.macsecStats().reset();
+  stats.inAclDiscards_().reset();
+  stats.inTrapDiscards_().reset();
+  return stats;
+}
+
+HwPortStats getInitedStatsSansOptionals() {
+  return resetOptionals(getInitedStats());
+}
+
+HwPortStats getEmptyStats() {
   // To get last increment from monotonic counter we need to update it twice
   HwPortStats empty{};
   // Initialize the optionals, so we can see a delta when we update these with
@@ -221,7 +231,16 @@ void updateStats(HwPortFb303Stats& portStats) {
       *empty.queueOutBytes_() = *empty.queueOutPackets_() =
           *empty.queueWatermarkBytes_() = *empty.queueEcnMarkedPackets_() =
               *empty.queueWredDroppedPackets_() = {{1, 0}, {2, 0}};
-  portStats.updateStats(empty, now);
+  return empty;
+}
+
+HwPortStats getEmptyStatsSansOptionals() {
+  return resetOptionals(getEmptyStats());
+}
+
+void updateStats(HwPortFb303Stats& portStats) {
+  auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
+  portStats.updateStats(getEmptyStats(), now);
   portStats.updateStats(getInitedStats(), now);
 }
 
