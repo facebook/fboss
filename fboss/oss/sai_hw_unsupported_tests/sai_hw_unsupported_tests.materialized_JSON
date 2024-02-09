@@ -219,6 +219,9 @@
         },
         {
           "test_name_regex": "HwIngressBufferTest.validatePGQueueChanges$"
+        },
+        {
+          "test_name_regex": "HwFlowletAclCounterTest.*$"
         }
     ],
     "brcm/10.0_ea_odp/10.0_ea_odp/tomahawk5": [
@@ -227,6 +230,9 @@
         },
         {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
+        },
+        {
+          "test_name_regex": "HwFlowletAclCounterTest.*$"
         }
     ],
     "brcm/10.0_ea_sim_odp/10.0_ea_sim_odp/tomahawk4/simulator": [
@@ -237,6 +243,9 @@
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
         },
         {
+          "test_name_regex": "HwFlowletAclCounterTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.*"
         },
         {
@@ -319,6 +328,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE.*"
+        },
+        {
+          "test_name_regex": "HwFlowletAclCounterTest.*"
         }
     ],
     "brcm/10.0_ea_sim_odp/10.0_ea_sim_odp/tomahawk5/simulator": [
@@ -329,6 +341,9 @@
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
         },
         {
+          "test_name_regex": "HwFlowletAclCounterTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.*"
         },
         {
@@ -411,6 +426,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE.*"
+        },
+        {
+          "test_name_regex": "HwFlowletAclCounterTest.*"
         }
     ],
     "brcm/11.0_ea_dnx_odp/11.0_ea_dnx_odp/jericho2": [
@@ -632,6 +650,9 @@
         },
         {
           "test_name_regex": "HwIngressBufferTest.validatePGQueueChanges$"
+        },
+        {
+          "test_name_regex": "HwFlowletAclCounterTest.*$"
         }
     ],
     "brcm/11.0_ea_dnx_odp/11.0_ea_dnx_odp/jericho3": [
@@ -855,6 +876,9 @@
           "test_name_regex": "HwIngressBufferTest.validatePGQueueChanges$"
         },
         {
+          "test_name_regex": "HwFlowletAclCounterTest.*$"
+        },
+        {
           "test_name_regex": "HwLoadBalancerNegativeTestV6RoCE.*$"
         }
     ],
@@ -869,6 +893,9 @@
         },
         {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
+        },
+        {
+          "test_name_regex": "HwFlowletAclCounterTest.*$"
         }
     ],
     "brcm/7.2.0.0_odp/7.2.0.0_odp/tomahawk3": [
@@ -877,6 +904,9 @@
         },
         {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
+        },
+        {
+          "test_name_regex": "HwFlowletAclCounterTest.*$"
         }
     ],
     "brcm/7.2.0.0_odp/8.2.0.0_odp/tomahawk": [
@@ -885,6 +915,9 @@
         },
         {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
+        },
+        {
+          "test_name_regex": "HwFlowletAclCounterTest.*$"
         }
     ],
     "brcm/7.2.0.0_odp/8.2.0.0_odp/tomahawk3": [
@@ -893,6 +926,9 @@
         },
         {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
+        },
+        {
+          "test_name_regex": "HwFlowletAclCounterTest.*$"
         }
     ],
     "brcm/8.2.0.0_odp/8.2.0.0_odp/tomahawk": [
@@ -901,6 +937,9 @@
         },
         {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
+        },
+        {
+          "test_name_regex": "HwFlowletAclCounterTest.*$"
         }
     ],
     "brcm/8.2.0.0_odp/8.2.0.0_odp/tomahawk3": [
@@ -909,6 +948,9 @@
         },
         {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
+        },
+        {
+          "test_name_regex": "HwFlowletAclCounterTest.*$"
         }
     ],
     "brcm/8.2.0.0_odp/8.2.0.0_odp/tomahawk4": [
@@ -917,6 +959,9 @@
         },
         {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
+        },
+        {
+          "test_name_regex": "HwFlowletAclCounterTest.*$"
         }
     ],
     "brcm/8.2.0.0_odp/9.2.0.0_odp/tomahawk": [
@@ -925,6 +970,9 @@
         },
         {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
+        },
+        {
+          "test_name_regex": "HwFlowletAclCounterTest.*$"
         }
     ],
     "brcm/8.2.0.0_odp/9.2.0.0_odp/tomahawk3": [
@@ -933,6 +981,9 @@
         },
         {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
+        },
+        {
+          "test_name_regex": "HwFlowletAclCounterTest.*$"
         }
     ],
     "brcm/8.2.0.0_odp/9.2.0.0_odp/tomahawk4": [
@@ -941,6 +992,9 @@
         },
         {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
+        },
+        {
+          "test_name_regex": "HwFlowletAclCounterTest.*$"
         }
     ],
     "brcm/8.2.0.0_sim_odp/8.2.0.0_sim_odp/tomahawk4/simulator": [
@@ -949,6 +1003,9 @@
         },
         {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
+        },
+        {
+          "test_name_regex": "HwFlowletAclCounterTest.*$"
         },
         {
           "test_name_regex": "warm_boot.*"
@@ -1033,6 +1090,9 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE.*"
+        },
+        {
+          "test_name_regex": "HwFlowletAclCounterTest.*"
         }
     ],
     "brcm/9.2.0.0_odp/9.2.0.0_odp/tomahawk": [
@@ -1041,6 +1101,9 @@
         },
         {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
+        },
+        {
+          "test_name_regex": "HwFlowletAclCounterTest.*$"
         }
     ],
     "brcm/9.2.0.0_odp/9.2.0.0_odp/tomahawk3": [
@@ -1049,6 +1112,9 @@
         },
         {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
+        },
+        {
+          "test_name_regex": "HwFlowletAclCounterTest.*$"
         }
     ],
     "brcm/9.2.0.0_odp/9.2.0.0_odp/tomahawk4": [
@@ -1057,6 +1123,9 @@
         },
         {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
+        },
+        {
+          "test_name_regex": "HwFlowletAclCounterTest.*$"
         }
     ],
     "leaba/1.42.8/1.42.8/gibraltar": [
@@ -1098,6 +1167,9 @@
         },
         {
           "test_name_regex": "HwCoppTest/[01].CpuPortIpv6LinkLocalUcastIp$"
+        },
+        {
+          "test_name_regex": "HwFlowletAclCounterTest.*$"
         }
     ],
     "leaba/1.42.8/1.42.8/simulator": [
