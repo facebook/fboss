@@ -53,8 +53,7 @@ struct SaiDebugCounterTraits {
   using CreateAttributes = std::tuple<
       Attributes::Type,
       Attributes::BindMethod,
-      std::optional<Attributes::InDropReasons>,
-      std::optional<Attributes::OutDropReasons>>;
+      std::optional<Attributes::InDropReasons>>;
   using AdapterHostKey = CreateAttributes;
   static std::optional<sai_int32_t> trapDrops();
 };
