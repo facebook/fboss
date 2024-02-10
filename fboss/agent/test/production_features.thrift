@@ -16,6 +16,7 @@ enum ProductionFeature {
   L3_FORWARDING = 3,
   ACL_PORT_IN_DISCARDS_COUNTER = 4,
   NULL_ROUTE_IN_DISCARDS_COUNTER = 5,
+  EGRESS_FORWARDING_DISCARDS_COUNTER = 6,
 }
 
 const list<ProductionFeature> tomahawkFeature = [
@@ -44,6 +45,7 @@ const list<ProductionFeature> jericho2Feature = [
   ProductionFeature.NULL_ROUTE_IN_DISCARDS_COUNTER,
   ProductionFeature.VOQ,
   ProductionFeature.ACL_PORT_IN_DISCARDS_COUNTER,
+  ProductionFeature.EGRESS_FORWARDING_DISCARDS_COUNTER,
 ];
 const list<ProductionFeature> jericho3Feature = [
   ProductionFeature.CPU_RX_TX,
@@ -51,6 +53,7 @@ const list<ProductionFeature> jericho3Feature = [
   ProductionFeature.NULL_ROUTE_IN_DISCARDS_COUNTER,
   ProductionFeature.VOQ,
   ProductionFeature.ACL_PORT_IN_DISCARDS_COUNTER,
+  ProductionFeature.EGRESS_FORWARDING_DISCARDS_COUNTER,
 ];
 const list<ProductionFeature> ramonFeature = [ProductionFeature.FABRIC];
 const list<ProductionFeature> ramon3Feature = [ProductionFeature.FABRIC];
