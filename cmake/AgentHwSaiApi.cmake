@@ -34,7 +34,6 @@ add_library(sai_fake_extensions
 set_target_properties(sai_fake_extensions PROPERTIES LINKER_LANGUAGE C)
 
 set(SAI_API_SRC
-  fboss/agent/hw/sai/api/DebugCounterApi.cpp
   fboss/agent/hw/sai/api/FdbApi.cpp
   fboss/agent/hw/sai/api/HashApi.cpp
   fboss/agent/hw/sai/api/MplsApi.cpp
