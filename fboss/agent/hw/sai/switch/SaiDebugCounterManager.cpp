@@ -40,7 +40,8 @@ void SaiDebugCounterManager::setupPortL3BlackHoleCounter() {
       SAI_DEBUG_COUNTER_TYPE_PORT_IN_DROP_REASONS,
       SAI_DEBUG_COUNTER_BIND_METHOD_AUTOMATIC,
       SaiDebugCounterTraits::Attributes::InDropReasons{
-          {SAI_IN_DROP_REASON_FDB_AND_BLACKHOLE_DISCARDS}}};
+          {SAI_IN_DROP_REASON_FDB_AND_BLACKHOLE_DISCARDS}},
+      std::nullopt};
 
   auto& debugCounterStore = saiStore_->get<SaiDebugCounterTraits>();
   portL3BlackHoleCounter_ = debugCounterStore.setObject(attrs, attrs);
@@ -65,7 +66,8 @@ void SaiDebugCounterManager::setupMPLSLookupFailedCounter() {
       SAI_DEBUG_COUNTER_TYPE_PORT_IN_DROP_REASONS,
       SAI_DEBUG_COUNTER_BIND_METHOD_AUTOMATIC,
       SaiDebugCounterTraits::Attributes::InDropReasons{
-          {SAI_IN_DROP_REASON_MPLS_MISS}}};
+          {SAI_IN_DROP_REASON_MPLS_MISS}},
+      std::nullopt};
   auto& debugCounterStore = saiStore_->get<SaiDebugCounterTraits>();
   mplsLookupFailCounter_ = debugCounterStore.setObject(attrs, attrs);
   mplsLookupFailCounterStatId_ = SAI_SWITCH_STAT_IN_DROP_REASON_RANGE_BASE +
@@ -84,7 +86,8 @@ void SaiDebugCounterManager::setupAclDropCounter() {
       SAI_DEBUG_COUNTER_TYPE_PORT_IN_DROP_REASONS,
       SAI_DEBUG_COUNTER_BIND_METHOD_AUTOMATIC,
       SaiDebugCounterTraits::Attributes::InDropReasons{
-          {SAI_IN_DROP_REASON_ACL_ANY}}};
+          {SAI_IN_DROP_REASON_ACL_ANY}},
+      std::nullopt};
   auto& debugCounterStore = saiStore_->get<SaiDebugCounterTraits>();
   aclDropCounter_ = debugCounterStore.setObject(attrs, attrs);
   aclDropCounterStatId_ = SAI_SWITCH_STAT_IN_DROP_REASON_RANGE_BASE +
