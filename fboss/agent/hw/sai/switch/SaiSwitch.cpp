@@ -564,6 +564,62 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
       false);
   processDefaultDataPlanePolicyDelta(delta, lockPolicy);
 
+  for (const auto& routeDelta : delta.getFibsDelta()) {
+    auto routerID = routeDelta.getOld() ? routeDelta.getOld()->getID()
+                                        : routeDelta.getNew()->getID();
+    processRemovedDelta(
+        routeDelta.getFibDelta<folly::IPAddressV4>(),
+        managerTable_->routeManager(),
+        lockPolicy,
+        &SaiRouteManager::removeRoute<folly::IPAddressV4>,
+        routerID);
+    processRemovedDelta(
+        routeDelta.getFibDelta<folly::IPAddressV6>(),
+        managerTable_->routeManager(),
+        lockPolicy,
+        &SaiRouteManager::removeRoute<folly::IPAddressV6>,
+        routerID);
+  }
+
+  for (const auto& vlanDelta : delta.getVlansDelta()) {
+    processRemovedDelta(
+        vlanDelta.getArpDelta(),
+        managerTable_->neighborManager(),
+        lockPolicy,
+        &SaiNeighborManager::removeNeighbor<ArpEntry>);
+
+    processRemovedDelta(
+        vlanDelta.getNdpDelta(),
+        managerTable_->neighborManager(),
+        lockPolicy,
+        &SaiNeighborManager::removeNeighbor<NdpEntry>);
+
+    processRemovedDelta(
+        vlanDelta.getMacDelta(),
+        managerTable_->fdbManager(),
+        lockPolicy,
+        &SaiFdbManager::removeMac);
+  }
+
+  auto processRemovedNeighborDeltaForIntfs =
+      [this, &lockPolicy](const auto& intfsDelta) {
+        for (const auto& intfDelta : intfsDelta) {
+          processRemovedDelta(
+              intfDelta.getArpEntriesDelta(),
+              managerTable_->neighborManager(),
+              lockPolicy,
+              &SaiNeighborManager::removeNeighbor<ArpEntry>);
+
+          processRemovedDelta(
+              intfDelta.getNdpEntriesDelta(),
+              managerTable_->neighborManager(),
+              lockPolicy,
+              &SaiNeighborManager::removeNeighbor<NdpEntry>);
+        }
+      };
+  processRemovedNeighborDeltaForIntfs(delta.getIntfsDelta());
+  processRemovedNeighborDeltaForIntfs(delta.getRemoteIntfsDelta());
+
   // Remove system ports (which may depend on local ports
   // before removing ports)
   processRemovedDelta(
@@ -622,8 +678,20 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
       lockPolicy,
       &SaiPortManager::loadPortQueuesForAddedPort);
 
-  // VOQ/Fabric switches require that the packets are not tagged with any VLAN.
-  // Thus, no VLAN delta processing is needed for these switches
+  processRemovedDelta(
+      delta.getRemoteIntfsDelta(),
+      managerTable_->routerInterfaceManager(),
+      lockPolicy,
+      &SaiRouterInterfaceManager::removeRemoteRouterInterface);
+
+  processRemovedDelta(
+      delta.getIntfsDelta(),
+      managerTable_->routerInterfaceManager(),
+      lockPolicy,
+      &SaiRouterInterfaceManager::removeLocalRouterInterface);
+
+  // VOQ/Fabric switches require that the packets are not tagged with any
+  // VLAN. Thus, no VLAN delta processing is needed for these switches
   if (!(getSwitchType() == cfg::SwitchType::FABRIC ||
         getSwitchType() == cfg::SwitchType::VOQ)) {
     processDelta(
@@ -691,102 +759,134 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
           managerTable_->lagManager().addBridgePort(newAggPort);
         });
   }
-  processDelta(
+
+  processChangedDelta(
       delta.getIntfsDelta(),
       managerTable_->routerInterfaceManager(),
       lockPolicy,
-      &SaiRouterInterfaceManager::changeLocalRouterInterface,
-      &SaiRouterInterfaceManager::addLocalRouterInterface,
-      &SaiRouterInterfaceManager::removeLocalRouterInterface);
+      &SaiRouterInterfaceManager::changeLocalRouterInterface);
+  processAddedDelta(
+      delta.getIntfsDelta(),
+      managerTable_->routerInterfaceManager(),
+      lockPolicy,
+      &SaiRouterInterfaceManager::addLocalRouterInterface);
 
-  processDelta(
+  processChangedDelta(
       delta.getRemoteIntfsDelta(),
       managerTable_->routerInterfaceManager(),
       lockPolicy,
-      &SaiRouterInterfaceManager::changeRemoteRouterInterface,
-      &SaiRouterInterfaceManager::addRemoteRouterInterface,
-      &SaiRouterInterfaceManager::removeRemoteRouterInterface);
+      &SaiRouterInterfaceManager::changeRemoteRouterInterface);
+  processAddedDelta(
+      delta.getRemoteIntfsDelta(),
+      managerTable_->routerInterfaceManager(),
+      lockPolicy,
+      &SaiRouterInterfaceManager::addRemoteRouterInterface);
 
   // For VOQ switches, neighbor tables live on port based
   // RIFs
-  auto processNeighborDeltaForIntfs = [this,
-                                       &lockPolicy](const auto& intfsDelta) {
-    for (const auto& intfDelta : intfsDelta) {
-      processDelta(
-          intfDelta.getArpEntriesDelta(),
-          managerTable_->neighborManager(),
-          lockPolicy,
-          &SaiNeighborManager::changeNeighbor<ArpEntry>,
-          &SaiNeighborManager::addNeighbor<ArpEntry>,
-          &SaiNeighborManager::removeNeighbor<ArpEntry>);
+  auto processNeighborChangedAndAddedDeltaForIntfs =
+      [this, &lockPolicy](const auto& intfsDelta) {
+        for (const auto& intfDelta : intfsDelta) {
+          processChangedDelta(
+              intfDelta.getArpEntriesDelta(),
+              managerTable_->neighborManager(),
+              lockPolicy,
+              &SaiNeighborManager::changeNeighbor<ArpEntry>);
 
-      processDelta(
-          intfDelta.getNdpEntriesDelta(),
-          managerTable_->neighborManager(),
-          lockPolicy,
-          &SaiNeighborManager::changeNeighbor<NdpEntry>,
-          &SaiNeighborManager::addNeighbor<NdpEntry>,
-          &SaiNeighborManager::removeNeighbor<NdpEntry>);
-    }
-  };
-  processNeighborDeltaForIntfs(delta.getIntfsDelta());
-  processNeighborDeltaForIntfs(delta.getRemoteIntfsDelta());
+          processAddedDelta(
+              intfDelta.getArpEntriesDelta(),
+              managerTable_->neighborManager(),
+              lockPolicy,
+              &SaiNeighborManager::addNeighbor<ArpEntry>);
+
+          processChangedDelta(
+              intfDelta.getNdpEntriesDelta(),
+              managerTable_->neighborManager(),
+              lockPolicy,
+              &SaiNeighborManager::changeNeighbor<NdpEntry>);
+
+          processAddedDelta(
+              intfDelta.getNdpEntriesDelta(),
+              managerTable_->neighborManager(),
+              lockPolicy,
+              &SaiNeighborManager::addNeighbor<NdpEntry>);
+        }
+      };
+  processNeighborChangedAndAddedDeltaForIntfs(delta.getIntfsDelta());
+  processNeighborChangedAndAddedDeltaForIntfs(delta.getRemoteIntfsDelta());
   for (const auto& vlanDelta : delta.getVlansDelta()) {
-    processDelta(
+    processChangedDelta(
         vlanDelta.getArpDelta(),
         managerTable_->neighborManager(),
         lockPolicy,
-        &SaiNeighborManager::changeNeighbor<ArpEntry>,
-        &SaiNeighborManager::addNeighbor<ArpEntry>,
-        &SaiNeighborManager::removeNeighbor<ArpEntry>);
+        &SaiNeighborManager::changeNeighbor<ArpEntry>);
+    processAddedDelta(
+        vlanDelta.getArpDelta(),
+        managerTable_->neighborManager(),
+        lockPolicy,
+        &SaiNeighborManager::addNeighbor<ArpEntry>);
 
-    processDelta(
+    processChangedDelta(
         vlanDelta.getNdpDelta(),
         managerTable_->neighborManager(),
         lockPolicy,
-        &SaiNeighborManager::changeNeighbor<NdpEntry>,
-        &SaiNeighborManager::addNeighbor<NdpEntry>,
-        &SaiNeighborManager::removeNeighbor<NdpEntry>);
+        &SaiNeighborManager::changeNeighbor<NdpEntry>);
+    processAddedDelta(
+        vlanDelta.getNdpDelta(),
+        managerTable_->neighborManager(),
+        lockPolicy,
+        &SaiNeighborManager::addNeighbor<NdpEntry>);
 
-    processDelta(
+    processChangedDelta(
         vlanDelta.getMacDelta(),
         managerTable_->fdbManager(),
         lockPolicy,
-        &SaiFdbManager::changeMac,
-        &SaiFdbManager::addMac,
-        &SaiFdbManager::removeMac);
+        &SaiFdbManager::changeMac);
+    processAddedDelta(
+        vlanDelta.getMacDelta(),
+        managerTable_->fdbManager(),
+        lockPolicy,
+        &SaiFdbManager::addMac);
   }
 
-  auto processV4RoutesDelta = [this, &lockPolicy](
-                                  RouterID rid, const auto& routesDelta) {
-    processDelta(
-        routesDelta,
-        managerTable_->routeManager(),
-        lockPolicy,
-        &SaiRouteManager::changeRoute<folly::IPAddressV4>,
-        &SaiRouteManager::addRoute<folly::IPAddressV4>,
-        &SaiRouteManager::removeRoute<folly::IPAddressV4>,
-        rid);
-  };
+  auto processV4RoutesChangedAndAddedDelta =
+      [this, &lockPolicy](RouterID rid, const auto& routesDelta) {
+        processChangedDelta(
+            routesDelta,
+            managerTable_->routeManager(),
+            lockPolicy,
+            &SaiRouteManager::changeRoute<folly::IPAddressV4>,
+            rid);
+        processAddedDelta(
+            routesDelta,
+            managerTable_->routeManager(),
+            lockPolicy,
+            &SaiRouteManager::addRoute<folly::IPAddressV4>,
+            rid);
+      };
 
-  auto processV6RoutesDelta = [this, &lockPolicy](
-                                  RouterID rid, const auto& routesDelta) {
-    processDelta(
-        routesDelta,
-        managerTable_->routeManager(),
-        lockPolicy,
-        &SaiRouteManager::changeRoute<folly::IPAddressV6>,
-        &SaiRouteManager::addRoute<folly::IPAddressV6>,
-        &SaiRouteManager::removeRoute<folly::IPAddressV6>,
-        rid);
-  };
+  auto processV6RoutesChangedAndAddedDelta =
+      [this, &lockPolicy](RouterID rid, const auto& routesDelta) {
+        processChangedDelta(
+            routesDelta,
+            managerTable_->routeManager(),
+            lockPolicy,
+            &SaiRouteManager::changeRoute<folly::IPAddressV6>,
+            rid);
+        processAddedDelta(
+            routesDelta,
+            managerTable_->routeManager(),
+            lockPolicy,
+            &SaiRouteManager::addRoute<folly::IPAddressV6>,
+            rid);
+      };
 
   for (const auto& routeDelta : delta.getFibsDelta()) {
     auto routerID = routeDelta.getOld() ? routeDelta.getOld()->getID()
                                         : routeDelta.getNew()->getID();
-    processV4RoutesDelta(
+    processV4RoutesChangedAndAddedDelta(
         routerID, routeDelta.getFibDelta<folly::IPAddressV4>());
-    processV6RoutesDelta(
+    processV6RoutesChangedAndAddedDelta(
         routerID, routeDelta.getFibDelta<folly::IPAddressV6>());
   }
   {
@@ -816,8 +916,8 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
     // 3. In the case of creating load balancer: Udf group needs to be created
     // first.
     // 4. In the case of changing load balancer: a. new Udf group needs to be
-    // created, b. Load balancer starts to use new Udf group, c. Remove old Udf
-    // group.
+    // created, b. Load balancer starts to use new Udf group, c. Remove old
+    // Udf group.
     processAddedDelta(
         delta.getUdfPacketMatcherDelta(),
         managerTable_->udfManager(),
@@ -1325,8 +1425,8 @@ void SaiSwitch::updatePmdInfo(
   uint32_t numPmdLanes;
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::SAI_PORT_GET_PMD_LANES)) {
-    // HwLaneList might mean physical port list instead of pmd lane list on TH4
-    // So, use getNumPmdLanes() to get the number of pmd lanes
+    // HwLaneList might mean physical port list instead of pmd lane list on
+    // TH4 So, use getNumPmdLanes() to get the number of pmd lanes
     numPmdLanes =
         managerTable_->portManager().getNumPmdLanes(port->adapterKey());
   } else {
@@ -1489,8 +1589,8 @@ void SaiSwitch::updatePcsInfo(
         port->adapterKey(), fecLanes);
     phy::RsFecState fecState;
     for (auto fecAm : fecAmLock) {
-      // SDKs sometimes return data for more FEC lanes than the FEC block on the
-      // port actually uses
+      // SDKs sometimes return data for more FEC lanes than the FEC block on
+      // the port actually uses
       if (fecAm.lane < fecLanes) {
         phy::RsFecLaneState fecLaneState;
         fecLaneState.lane() = fecAm.lane;
@@ -2070,11 +2170,11 @@ void SaiSwitch::setFabricPortOwnershipToAdapter() {
           PortSaiId(fid), true /* add to warm boot handles*/);
       if (FLAGS_hide_fabric_ports) {
         // Fabric port serdes are owned by NOS. As part of this flag,
-        // we keep fabric ports explicitly disabled (for optimization) for tests
-        // and hence don't create fabric port serdes either. In that case, sdk
-        // will continue to load fabric port and serdes, but not claimed by NOS
-        // since its created by adapter. Hence we need to explicitly mark serdes
-        // objects as owned by adapter in that case.
+        // we keep fabric ports explicitly disabled (for optimization) for
+        // tests and hence don't create fabric port serdes either. In that
+        // case, sdk will continue to load fabric port and serdes, but not
+        // claimed by NOS since its created by adapter. Hence we need to
+        // explicitly mark serdes objects as owned by adapter in that case.
         auto& portSerdesStore = saiStore_->get<SaiPortSerdesTraits>();
         std::optional<SaiPortTraits::Attributes::SerdesId> serdesAttr{};
         auto serdesId = SaiApiTable::getInstance()->portApi().getAttribute(
@@ -2175,11 +2275,11 @@ void SaiSwitch::initLinkScanLocked(const std::lock_guard<std::mutex>& lock) {
 
     /* report initial link status after registering link scan call back.  link
      * state changes after reporting initial link state and before registering
-     * link scan callback, could get lost. to mitigate this, register link scan
-     * callback before reporting initial link state. doing this in context of
-     * same thread/event base ensures initial link state always preceedes any
-     * link state changes that may happen after registering link scan call back
-     * are reported in order. */
+     * link scan callback, could get lost. to mitigate this, register link
+     * scan callback before reporting initial link state. doing this in
+     * context of same thread/event base ensures initial link state always
+     * preceedes any link state changes that may happen after registering link
+     * scan call back are reported in order. */
     syncLinkStatesLocked(lock);
   });
 }
@@ -2340,9 +2440,9 @@ void SaiSwitch::packetRxCallback(
         portSaiIdOpt.value());
 
     if (iter != concurrentIndices_->memberPort2AggregatePortIds.end()) {
-      // hack if SAI_HOSTIF_PACKET_ATTR_INGRESS_LAG is not set on packet on lag!
-      // if port belongs to some aggregate port, process packet as if coming
-      // from lag.
+      // hack if SAI_HOSTIF_PACKET_ATTR_INGRESS_LAG is not set on packet on
+      // lag! if port belongs to some aggregate port, process packet as if
+      // coming from lag.
       auto [portSaiId, aggregatePortId] = *iter;
       std::ignore = portSaiId;
       for (auto entry : concurrentIndices_->aggregatePortIds) {
@@ -2624,10 +2724,11 @@ bool SaiSwitch::isValidStateUpdateLocked(
 
   auto qosDelta = delta.getQosPoliciesDelta();
 
-  // Default QoS policy is stored at switchSettings::defaultDataPlaneQosPolicy.
-  // qosDelta.getNew()->numNodes() gives the number of non-default QoS policies
-  // stored at qosPolicyMaps in SwitchState. Only J3 needs non-default Qos
-  // policy for control plane right now.
+  // Default QoS policy is stored at
+  // switchSettings::defaultDataPlaneQosPolicy. qosDelta.getNew()->numNodes()
+  // gives the number of non-default QoS policies stored at qosPolicyMaps in
+  // SwitchState. Only J3 needs non-default Qos policy for control plane right
+  // now.
   if (getSwitchType() != cfg::SwitchType::VOQ &&
       qosDelta.getNew()->numNodes() > 0) {
     XLOG(ERR)
