@@ -689,6 +689,7 @@ void SaiPortManager::programPfcWatchdogTimers(
     const bool portPfcWdEnabled) {
   auto portHandle = getPortHandle(swPort->getID());
   CHECK(portHandle);
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
   uint32_t recoveryTimeMsecs = 0;
   uint32_t detectionTimeMsecs = 0;
   if (portPfcWdEnabled) {
@@ -696,7 +697,6 @@ void SaiPortManager::programPfcWatchdogTimers(
     recoveryTimeMsecs = *swPort->getPfc()->watchdog()->recoveryTimeMsecs();
     detectionTimeMsecs = *swPort->getPfc()->watchdog()->detectionTimeMsecs();
   }
-#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
   // Set deadlock detection timer interval for PFC queues
   auto pfcDldTimerMap =
       preparePfcDeadlockQueueTimers(enabledPfcPriorities, detectionTimeMsecs);
