@@ -265,12 +265,6 @@
           "test_name_regex": "HwPacketFloodTest.*"
         },
         {
-          "test_name_regex": "HwTeFlowTest.*"
-        },
-        {
-          "test_name_regex": "HwTeFlowTrafficTest.*"
-        },
-        {
           "test_name_regex": "HwCoppQosTest.*"
         },
         {
@@ -619,12 +613,6 @@
         },
         {
           "test_name_regex": "HwPacketFloodTest.*"
-        },
-        {
-          "test_name_regex": "HwTeFlowTest.*"
-        },
-        {
-          "test_name_regex": "HwTeFlowTrafficTest.*"
         },
         {
           "test_name_regex": "HwCoppQosTest.*"
@@ -1203,12 +1191,6 @@
         },
         {
           "test_name_regex": "HwPacketFloodTest.*"
-        },
-        {
-          "test_name_regex": "HwTeFlowTest.*"
-        },
-        {
-          "test_name_regex": "HwTeFlowTrafficTest.*"
         },
         {
           "test_name_regex": "HwCoppQosTest.*"
@@ -2012,9 +1994,6 @@
           "test_name_regex": "HwHashTrunk.*"
         },
         {
-          "test_name_regex": "HwTeFlowTrafficTest.*"
-        },
-        {
           "test_name_regex": "HwRouteCounterOverflowTest.*"
         },
         {
@@ -2043,9 +2022,6 @@
         },
         {
           "test_name_regex": "HwPtpTcTest.*"
-        },
-        {
-          "test_name_regex": "HwTeFlowTest.*"
         },
         {
           "test_name_regex": "HwTrunkTest.*"
@@ -2575,12 +2551,6 @@
           "test_name_regex": "HwPacketFloodTest.*"
         },
         {
-          "test_name_regex": "HwTeFlowTest.*"
-        },
-        {
-          "test_name_regex": "HwTeFlowTrafficTest.*"
-        },
-        {
           "test_name_regex": "HwCoppQosTest.*"
         },
         {
@@ -2926,12 +2896,6 @@
         },
         {
           "test_name_regex": "HwPacketFloodTest.*"
-        },
-        {
-          "test_name_regex": "HwTeFlowTest.*"
-        },
-        {
-          "test_name_regex": "HwTeFlowTrafficTest.*"
         },
         {
           "test_name_regex": "HwCoppQosTest.*"
@@ -3656,12 +3620,6 @@
           "test_name_regex": "HwPacketFloodTest.*"
         },
         {
-          "test_name_regex": "HwTeFlowTest.*"
-        },
-        {
-          "test_name_regex": "HwTeFlowTrafficTest.*"
-        },
-        {
           "test_name_regex": "HwCoppQosTest.*"
         },
         {
@@ -4040,12 +3998,6 @@
         },
         {
           "test_name_regex": "HwPacketFloodTest.*"
-        },
-        {
-          "test_name_regex": "HwTeFlowTest.*"
-        },
-        {
-          "test_name_regex": "HwTeFlowTrafficTest.*"
         },
         {
           "test_name_regex": "HwCoppQosTest.*"
@@ -4827,12 +4779,6 @@
           "test_name_regex": "HwPacketFloodTest.*"
         },
         {
-          "test_name_regex": "HwTeFlowTest.*"
-        },
-        {
-          "test_name_regex": "HwTeFlowTrafficTest.*"
-        },
-        {
           "test_name_regex": "HwCoppQosTest.*"
         },
         {
@@ -5187,12 +5133,6 @@
         },
         {
           "test_name_regex": "HwPacketFloodTest.*"
-        },
-        {
-          "test_name_regex": "HwTeFlowTest.*"
-        },
-        {
-          "test_name_regex": "HwTeFlowTrafficTest.*"
         },
         {
           "test_name_regex": "HwCoppQosTest.*"
@@ -5783,12 +5723,6 @@
         },
         {
           "test_name_regex": "HwPacketFloodTest.*"
-        },
-        {
-          "test_name_regex": "HwTeFlowTest.*"
-        },
-        {
-          "test_name_regex": "HwTeFlowTrafficTest.*"
         },
         {
           "test_name_regex": "HwCoppQosTest.*"
@@ -6468,12 +6402,6 @@
           "test_name_regex": "HwPacketFloodTest.*"
         },
         {
-          "test_name_regex": "HwTeFlowTest.*"
-        },
-        {
-          "test_name_regex": "HwTeFlowTrafficTest.*"
-        },
-        {
           "test_name_regex": "HwCoppQosTest.*"
         },
         {
@@ -6852,12 +6780,6 @@
         },
         {
           "test_name_regex": "HwPacketFloodTest.*"
-        },
-        {
-          "test_name_regex": "HwTeFlowTest.*"
-        },
-        {
-          "test_name_regex": "HwTeFlowTrafficTest.*"
         },
         {
           "test_name_regex": "HwCoppQosTest.*"
@@ -7474,12 +7396,6 @@
           "test_name_regex": "HwPacketFloodTest.*"
         },
         {
-          "test_name_regex": "HwTeFlowTest.*"
-        },
-        {
-          "test_name_regex": "HwTeFlowTrafficTest.*"
-        },
-        {
           "test_name_regex": "HwCoppQosTest.*"
         },
         {
@@ -8014,12 +7930,6 @@
         },
         {
           "test_name_regex": "HwPacketFloodTest.*"
-        },
-        {
-          "test_name_regex": "HwTeFlowTest.*"
-        },
-        {
-          "test_name_regex": "HwTeFlowTrafficTest.*"
         },
         {
           "test_name_regex": "HwCoppQosTest.*"
@@ -8765,12 +8675,6 @@
           "test_name_regex": "HwPacketFloodTest.*"
         },
         {
-          "test_name_regex": "HwTeFlowTest.*"
-        },
-        {
-          "test_name_regex": "HwTeFlowTrafficTest.*"
-        },
-        {
           "test_name_regex": "HwCoppQosTest.*"
         },
         {
@@ -9125,12 +9029,6 @@
         },
         {
           "test_name_regex": "HwPacketFloodTest.*"
-        },
-        {
-          "test_name_regex": "HwTeFlowTest.*"
-        },
-        {
-          "test_name_regex": "HwTeFlowTrafficTest.*"
         },
         {
           "test_name_regex": "HwCoppQosTest.*"
@@ -9726,12 +9624,6 @@
           "test_name_regex": "HwPacketFloodTest.*"
         },
         {
-          "test_name_regex": "HwTeFlowTest.*"
-        },
-        {
-          "test_name_regex": "HwTeFlowTrafficTest.*"
-        },
-        {
           "test_name_regex": "HwCoppQosTest.*"
         },
         {
@@ -10250,12 +10142,6 @@
           "test_name_regex": "HwCoppQosTest.*$"
         },
         {
-          "test_name_regex": "HwTeFlowTest.*$"
-        },
-        {
-          "test_name_regex": "HwTeFlowTrafficTest.*$"
-        },
-        {
           "test_name_regex": "HwDataPlaneMirrorTest/[01].SpanAclMirror$"
         },
         {
@@ -10600,12 +10486,6 @@
           "test_name_regex": "HwCoppQosTest.*$"
         },
         {
-          "test_name_regex": "HwTeFlowTest.*$"
-        },
-        {
-          "test_name_regex": "HwTeFlowTrafficTest.*$"
-        },
-        {
           "test_name_regex": "HwDataPlaneMirrorTest/[01].SpanAclMirror$"
         },
         {
@@ -10874,12 +10754,6 @@
         },
         {
           "test_name_regex": "HwSflowTest.*$"
-        },
-        {
-          "test_name_regex": "HwTeFlowTest.*$"
-        },
-        {
-          "test_name_regex": "HwTeFlowTrafficTest.*$"
         },
         {
           "test_name_regex": "HwDscpQueueMappingTest.*$"
@@ -11244,12 +11118,6 @@
           "test_name_regex": "HwCoppQosTest.*$"
         },
         {
-          "test_name_regex": "HwTeFlowTest.*$"
-        },
-        {
-          "test_name_regex": "HwTeFlowTrafficTest.*$"
-        },
-        {
           "test_name_regex": "HwDataPlaneMirrorTest/[01].SpanAclMirror$"
         },
         {
@@ -11612,12 +11480,6 @@
           "test_name_regex": "HwCoppQosTest.*$"
         },
         {
-          "test_name_regex": "HwTeFlowTest.*$"
-        },
-        {
-          "test_name_regex": "HwTeFlowTrafficTest.*$"
-        },
-        {
           "test_name_regex": "HwDataPlaneMirrorTest/[01].SpanAclMirror$"
         },
         {
@@ -11886,12 +11748,6 @@
         },
         {
           "test_name_regex": "HwSflowTest.*$"
-        },
-        {
-          "test_name_regex": "HwTeFlowTest.*$"
-        },
-        {
-          "test_name_regex": "HwTeFlowTrafficTest.*$"
         },
         {
           "test_name_regex": "HwDscpQueueMappingTest.*$"
