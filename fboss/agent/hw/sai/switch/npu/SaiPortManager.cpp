@@ -15,6 +15,10 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
+#if defined(SAI_VERSION_11_0_EA_DNX_ODP)
+#include <experimental/saiportextensions.h>
+#endif
+
 DEFINE_bool(
     sai_use_interface_type_for_medium,
     false,
@@ -38,8 +42,11 @@ std::optional<SaiPortTraits::Attributes::SystemPortId> getSystemPortId(
 #if defined(BRCM_SAI_SDK_DNX)
 sai_int32_t getPortTypeFromCfg(const cfg::PortType& cfgPortType) {
   switch (cfgPortType) {
-    case cfg::PortType::INTERFACE_PORT:
     case cfg::PortType::MANAGEMENT_PORT:
+#if defined(SAI_VERSION_11_0_EA_DNX_ODP)
+      return SAI_PORT_TYPE_MGMT;
+#endif
+    case cfg::PortType::INTERFACE_PORT:
       return SAI_PORT_TYPE_LOGICAL;
     case cfg::PortType::FABRIC_PORT:
       return SAI_PORT_TYPE_FABRIC;
