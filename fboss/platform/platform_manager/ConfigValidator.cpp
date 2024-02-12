@@ -146,6 +146,9 @@ bool ConfigValidator::isValidPciDeviceConfig(
     }
     fpgaIpBlockConfigs.push_back(config);
   }
+  for (const auto& config : *pciDeviceConfig.miscCtrlConfigs()) {
+    fpgaIpBlockConfigs.push_back(config);
+  }
 
   std::set<std::string> uniqueNames{};
   for (const auto& config : fpgaIpBlockConfigs) {
