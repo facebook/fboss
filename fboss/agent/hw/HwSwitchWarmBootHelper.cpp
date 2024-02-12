@@ -176,15 +176,8 @@ state::WarmbootState HwSwitchWarmBootHelper::getSwSwitchWarmBootState() const {
 }
 
 folly::dynamic HwSwitchWarmBootHelper::getHwSwitchWarmBootState() const {
-  bool existsOld = checkFileExists(warmBootHwSwitchStateFile_DEPRECATED());
-  bool existsNew = checkFileExists(warmBootHwSwitchStateFile());
-  if (existsOld && existsNew) {
-    // prefer old one if both exists to support warm boot from old version to
-    // new version new version also dumps at old location.
-    return getHwSwitchWarmBootState(warmBootHwSwitchStateFile_DEPRECATED());
-  } else if (existsOld) {
-    return getHwSwitchWarmBootState(warmBootHwSwitchStateFile_DEPRECATED());
-  } else if (existsNew) {
+  bool wbStateFileExists = checkFileExists(warmBootHwSwitchStateFile());
+  if (wbStateFileExists) {
     return getHwSwitchWarmBootState(warmBootHwSwitchStateFile());
   }
   throw FbossError("No hw switch warm boot state file found");
