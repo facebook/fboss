@@ -13,6 +13,7 @@ namespace {
 const re2::RE2 kPciDevOffsetRegex{"0x[0-9a-f]+"};
 const re2::RE2 kSymlinkRegex{"^/run/devmap/(?P<SymlinkDirs>[a-z0-9-]+)/.+"};
 const re2::RE2 kDevPathRegex{"/([A-Z]+_SLOT@[0-9]+/)*\\[.+\\]"};
+const re2::RE2 kInfoRomDevicePrefixRegex{"^fpga_info_(dom|iob)$"};
 constexpr auto kSymlinkDirs = {
     "eeproms",
     "sensors",
@@ -135,6 +136,15 @@ bool ConfigValidator::isValidPciDeviceConfig(
       return false;
     }
     fpgaIpBlockConfigs.push_back(*config.fpgaIpBlockConfig());
+  }
+  for (const auto& config : *pciDeviceConfig.infoRomConfigs()) {
+    if (!re2::RE2::FullMatch(*config.deviceName(), kInfoRomDevicePrefixRegex)) {
+      XLOG(ERR) << fmt::format(
+          "Invalid DeviceName : {} in InfoRomConfig. It must follow naming style : fpga_info_[dom|iob]",
+          *config.deviceName());
+      return false;
+    }
+    fpgaIpBlockConfigs.push_back(config);
   }
 
   std::set<std::string> uniqueNames{};

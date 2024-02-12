@@ -182,6 +182,23 @@ TEST(ConfigValidatorTest, XcvrCtrlConfig) {
   EXPECT_FALSE(ConfigValidator().isValidPciDeviceConfig(pciDevConfig));
 }
 
+TEST(ConfigValidator, InfoRomConfig) {
+  auto pciDevConfig = getValidPciDeviceConfig();
+  auto fpgaIpBlockConfig = FpgaIpBlockConfig{};
+  fpgaIpBlockConfig.pmUnitScopedName() = "MCB_IOB_INFO_ROM";
+  fpgaIpBlockConfig.iobufOffset() = "0xab29";
+  fpgaIpBlockConfig.csrOffset() = "0xaf29";
+  fpgaIpBlockConfig.deviceName() = "fpga_info_iob";
+  pciDevConfig.infoRomConfigs() = {fpgaIpBlockConfig};
+  EXPECT_TRUE(ConfigValidator().isValidPciDeviceConfig(pciDevConfig));
+  fpgaIpBlockConfig.deviceName() = "info_iob";
+  pciDevConfig.infoRomConfigs() = {fpgaIpBlockConfig};
+  EXPECT_FALSE(ConfigValidator().isValidPciDeviceConfig(pciDevConfig));
+  fpgaIpBlockConfig.deviceName() = "fpga_info_bad_name";
+  pciDevConfig.infoRomConfigs() = {fpgaIpBlockConfig};
+  EXPECT_FALSE(ConfigValidator().isValidPciDeviceConfig(pciDevConfig));
+}
+
 TEST(ConfigValidatorTest, I2cDeviceConfig) {
   auto i2cConfig = I2cDeviceConfig{};
   EXPECT_FALSE(ConfigValidator().isValidI2cDeviceConfig(i2cConfig));
