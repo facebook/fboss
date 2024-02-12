@@ -551,8 +551,9 @@ const ValidAggMapType CmdHandler<CmdTypeT, CmdTypeTraits>::getValidAggs() {
                               *meta.name(),
                               std::vector<AggregateOpEnum>{
                                   AggregateOpEnum::COUNT});
-
-                        default:;
+                          break;
+                        default:
+                          (void)0; // do nothing
                       }
                     }
                   });
