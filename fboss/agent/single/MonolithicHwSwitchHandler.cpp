@@ -172,8 +172,9 @@ std::shared_ptr<SwitchState> MonolithicHwSwitchHandler::stateChanged(
                      : hw_->stateChanged(delta);
 }
 
-CpuPortStats MonolithicHwSwitchHandler::getCpuPortStats() const {
-  return hw_->getCpuPortStats();
+CpuPortStats MonolithicHwSwitchHandler::getCpuPortStats(
+    bool getIncrement) const {
+  return hw_->getCpuPortStats(getIncrement);
 }
 
 std::map<PortID, FabricEndpoint>

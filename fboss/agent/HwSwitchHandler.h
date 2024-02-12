@@ -95,7 +95,7 @@ class HwSwitchHandler {
 
   virtual folly::F14FastMap<std::string, HwPortStats> getPortStats() const = 0;
 
-  virtual CpuPortStats getCpuPortStats() const = 0;
+  virtual CpuPortStats getCpuPortStats(bool getIncrement) const = 0;
 
   virtual std::map<std::string, HwSysPortStats> getSysPortStats() const = 0;
 

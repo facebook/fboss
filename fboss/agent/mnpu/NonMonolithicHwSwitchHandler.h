@@ -90,7 +90,7 @@ class NonMonolithicHwSwitchHandler : public HwSwitchHandler {
       bool transaction,
       const std::shared_ptr<SwitchState>& newState) override;
 
-  CpuPortStats getCpuPortStats() const override;
+  CpuPortStats getCpuPortStats(bool getIncrement) const override;
 
   std::map<PortID, FabricEndpoint> getFabricConnectivity() const override;
 

@@ -716,6 +716,8 @@ AgentStats SwSwitch::fillFsdbStats() {
       }
       agentStats.flowletStatsMap()->insert(
           {switchIdx, std::move(*hwSwitchStats.flowletStats())});
+      agentStats.cpuPortStatsMap()->insert(
+          {switchIdx, std::move(*hwSwitchStats.cpuPortStats())});
     }
     lockedStats->clear();
   }
@@ -787,6 +789,8 @@ void SwSwitch::updateStats() {
       hwStats.phyInfo()->emplace(portId, phyInfoPerPort);
     }
     hwStats.flowletStats() = getHwFlowletStats();
+    hwStats.cpuPortStats() =
+        multiHwSwitchHandler_->getCpuPortStats(false /*getIncrement*/);
     updateHwSwitchStats(0 /*switchIndex*/, std::move(hwStats));
   }
   updateFlowletStats();

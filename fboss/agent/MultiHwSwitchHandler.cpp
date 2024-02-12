@@ -260,10 +260,10 @@ MultiHwSwitchHandler::getPortStats() {
   return hwSwitchSyncers_.begin()->second->getPortStats();
 }
 
-CpuPortStats MultiHwSwitchHandler::getCpuPortStats() {
+CpuPortStats MultiHwSwitchHandler::getCpuPortStats(bool getIncrement) {
   // TODO - support with multiple switches
   CHECK_EQ(hwSwitchSyncers_.size(), 1);
-  return hwSwitchSyncers_.begin()->second->getCpuPortStats();
+  return hwSwitchSyncers_.begin()->second->getCpuPortStats(getIncrement);
 }
 
 std::map<std::string, HwSysPortStats> MultiHwSwitchHandler::getSysPortStats() {

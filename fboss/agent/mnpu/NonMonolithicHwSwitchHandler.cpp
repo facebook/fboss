@@ -178,7 +178,8 @@ std::shared_ptr<SwitchState> NonMonolithicHwSwitchHandler::stateChanged(
   return nullptr;
 }
 
-CpuPortStats NonMonolithicHwSwitchHandler::getCpuPortStats() const {
+CpuPortStats NonMonolithicHwSwitchHandler::getCpuPortStats(
+    bool /*getIncrement*/) const {
   throw FbossError("getCpuPortStats not implemented");
 }
 
