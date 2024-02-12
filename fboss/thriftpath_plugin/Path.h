@@ -35,12 +35,18 @@ namespace thriftpath {
     return Child(std::move(this->tokens_), std::move(this->idTokens_)); \
   }
 
-template <typename _DataT, typename _RootT, typename _TC, typename _ParentT>
+template <
+    typename _DataT,
+    typename _RootT,
+    typename _TC,
+    typename _Tag,
+    typename _ParentT>
 class Path {
  public:
   using DataT = _DataT;
   using RootT = _RootT;
   using TC = _TC;
+  using Tag = _Tag;
   using ParentT = _ParentT;
 
   Path(
