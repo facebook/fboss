@@ -204,6 +204,30 @@ cfg::SwitchConfig AgentHwTest::addCoppConfig(
   return config;
 }
 
+CpuPortStats AgentHwTest::getLatestCpuStats(SwitchID switchId) {
+  // Stats collection from SwSwitch is async, wait for stats
+  // being available before returning here.
+  CpuPortStats cpuStats;
+  checkWithRetry(
+      [&cpuStats, switchId, this]() {
+        auto switchStats = getSw()->getHwSwitchStatsExpensive();
+        cpuStats = *switchStats.at(switchId).cpuPortStats();
+        return !cpuStats.queueToName_()->empty();
+      },
+      120,
+      std::chrono::milliseconds(1000),
+      " fetch port stats");
+  return cpuStats;
+}
+
+uint64_t AgentHwTest::getCpuQueueInPackets(SwitchID switchId, int queueId) {
+  auto cpuPortStats = getLatestCpuStats(switchId);
+  return cpuPortStats.queueInPackets_()->find(queueId) ==
+          cpuPortStats.queueInPackets_()->end()
+      ? 0
+      : cpuPortStats.queueInPackets_()->at(queueId);
+}
+
 void initAgentHwTest(int argc, char* argv[], PlatformInitFn initPlatform) {
   initEnsemble(initPlatform);
   kArgc = argc;
