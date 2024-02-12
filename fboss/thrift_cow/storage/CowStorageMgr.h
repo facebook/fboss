@@ -165,7 +165,7 @@ class CowStorageMgr {
       ++iter;
 
       std::shared_ptr<CowState> intermediateState;
-      XLOG(INFO) << "preparing state update " << update->getName();
+      XLOG(DBG3) << "preparing state update " << update->getName();
       try {
         intermediateState = update->applyUpdate(newDesiredState);
       } catch (const std::exception& ex) {
