@@ -9,6 +9,8 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentInNullRouteDiscardsTest.cpp
   fboss/agent/test/agent_hw_tests/AgentPacketSendTests.cpp
   fboss/agent/test/agent_hw_tests/AgentTestPacketUtils.cpp
+  fboss/agent/test/agent_hw_tests/AgentVoqSwitchTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentFabricSwitchTests.cpp
 )
 
 target_link_libraries(agent_hw_test_src
@@ -17,6 +19,7 @@ target_link_libraries(agent_hw_test_src
   config_factory
   agent_hw_test
   ecmp_helper
+  hw_test_fabric_utils
 )
 
 add_executable(multi_switch_agent_hw_test

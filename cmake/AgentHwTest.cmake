@@ -459,3 +459,15 @@ target_link_libraries(multiswitch_test_server
   multiswitch_service
   Folly::folly
 )
+
+add_library(hw_test_fabric_utils
+  fboss/agent/hw/test/HwTestFabricUtils.cpp
+)
+
+target_link_libraries(hw_test_fabric_utils
+  hw_switch
+  config_factory
+  fboss_types
+  switch_config_cpp2
+  ${GTEST}
+)
