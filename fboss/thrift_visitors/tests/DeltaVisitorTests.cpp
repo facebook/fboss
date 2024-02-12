@@ -7,8 +7,7 @@
 #include <gtest/gtest.h>
 
 #include <fboss/thrift_visitors/ThriftDeltaVisitor.h>
-#include <thrift/lib/cpp2/reflection/folly_dynamic.h>
-#include "fboss/fsdb/tests/gen-cpp2/thriftpath_test_fatal_types.h"
+#include <thrift/lib/cpp2/folly_dynamic/folly_dynamic.h>
 #include "fboss/fsdb/tests/gen-cpp2/thriftpath_test_types.h"
 
 using folly::dynamic;
@@ -21,8 +20,8 @@ TestStruct createTestStruct() {
       "name",
       "testname")("optionalString", "bla")("member", dynamic::object("min", 10)("max", 20))("variantMember", dynamic::object("integral", 99))("structMap", dynamic::object("3", dynamic::object("min", 100)("max", 200)));
 
-  return apache::thrift::from_dynamic<TestStruct>(
-      testDyn, apache::thrift::dynamic_format::JSON_1);
+  return facebook::thrift::from_dynamic<TestStruct>(
+      testDyn, facebook::thrift::dynamic_format::JSON_1);
 }
 
 } // namespace
@@ -36,14 +35,14 @@ TEST(DeltaVisitorTests, ChangeOneField) {
 
   std::set<std::string> differingPaths;
   auto processChange = [&](std::vector<std::string>& path,
-                           auto /*tc*/,
+                           auto /*tag*/,
                            auto /*oldValue*/,
                            auto /*newValue*/) {
     differingPaths.insert("/" + folly::join('/', path));
   };
 
-  auto result =
-      RootThriftDeltaVisitor::visit(testStruct, otherStruct, processChange);
+  auto result = RootThriftDeltaVisitor<TestStruct>::visit(
+      testStruct, otherStruct, processChange);
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
@@ -59,14 +58,14 @@ TEST(DeltaVisitorTests, ChangeOneFieldInContainer) {
 
   std::set<std::string> differingPaths;
   auto processChange = [&](std::vector<std::string>& path,
-                           auto /*tc*/,
+                           auto /*tag*/,
                            auto /*oldValue*/,
                            auto /*newValue*/) {
     differingPaths.insert("/" + folly::join('/', path));
   };
 
-  auto result =
-      RootThriftDeltaVisitor::visit(testStruct, otherStruct, processChange);
+  auto result = RootThriftDeltaVisitor<TestStruct>::visit(
+      testStruct, otherStruct, processChange);
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
@@ -83,14 +82,14 @@ TEST(DeltaVisitorTests, SetOptional) {
 
   std::set<std::string> differingPaths;
   auto processChange = [&](std::vector<std::string>& path,
-                           auto /*tc*/,
+                           auto /*tag*/,
                            auto /*oldValue*/,
                            auto /*newValue*/) {
     differingPaths.insert("/" + folly::join('/', path));
   };
 
-  auto result =
-      RootThriftDeltaVisitor::visit(testStruct, otherStruct, processChange);
+  auto result = RootThriftDeltaVisitor<TestStruct>::visit(
+      testStruct, otherStruct, processChange);
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
@@ -110,14 +109,14 @@ TEST(DeltaVisitorTests, AddToMap) {
 
   std::set<std::string> differingPaths;
   auto processChange = [&](std::vector<std::string>& path,
-                           auto /*tc*/,
+                           auto /*tag*/,
                            auto /*oldValue*/,
                            auto /*newValue*/) {
     differingPaths.insert("/" + folly::join('/', path));
   };
 
-  auto result =
-      RootThriftDeltaVisitor::visit(testStruct, otherStruct, processChange);
+  auto result = RootThriftDeltaVisitor<TestStruct>::visit(
+      testStruct, otherStruct, processChange);
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
@@ -134,14 +133,14 @@ TEST(DeltaVisitorTests, DeleteFromMap) {
 
   std::set<std::string> differingPaths;
   auto processChange = [&](std::vector<std::string>& path,
-                           auto /*tc*/,
+                           auto /*tag*/,
                            auto /*oldValue*/,
                            auto /*newValue*/) {
     differingPaths.insert("/" + folly::join('/', path));
   };
 
-  auto result =
-      RootThriftDeltaVisitor::visit(testStruct, otherStruct, processChange);
+  auto result = RootThriftDeltaVisitor<TestStruct>::visit(
+      testStruct, otherStruct, processChange);
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
@@ -161,14 +160,14 @@ TEST(DeltaVisitorTests, AddToList) {
 
   std::set<std::string> differingPaths;
   auto processChange = [&](std::vector<std::string>& path,
-                           auto /*tc*/,
+                           auto /*tag*/,
                            auto /*oldValue*/,
                            auto /*newValue*/) {
     differingPaths.insert("/" + folly::join('/', path));
   };
 
-  auto result =
-      RootThriftDeltaVisitor::visit(testStruct, otherStruct, processChange);
+  auto result = RootThriftDeltaVisitor<TestStruct>::visit(
+      testStruct, otherStruct, processChange);
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
@@ -188,14 +187,14 @@ TEST(DeltaVisitorTests, DeleteFromList) {
 
   std::set<std::string> differingPaths;
   auto processChange = [&](std::vector<std::string>& path,
-                           auto /*tc*/,
+                           auto /*tag*/,
                            auto /*oldValue*/,
                            auto /*newValue*/) {
     differingPaths.insert("/" + folly::join('/', path));
   };
 
-  auto result =
-      RootThriftDeltaVisitor::visit(testStruct, otherStruct, processChange);
+  auto result = RootThriftDeltaVisitor<TestStruct>::visit(
+      testStruct, otherStruct, processChange);
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
@@ -212,14 +211,14 @@ TEST(DeltaVisitorTests, EditVariantField) {
 
   std::set<std::string> differingPaths;
   auto processChange = [&](std::vector<std::string>& path,
-                           auto /*tc*/,
+                           auto /*tag*/,
                            auto /*oldValue*/,
                            auto /*newValue*/) {
     differingPaths.insert("/" + folly::join('/', path));
   };
 
-  auto result =
-      RootThriftDeltaVisitor::visit(testStruct, otherStruct, processChange);
+  auto result = RootThriftDeltaVisitor<TestStruct>::visit(
+      testStruct, otherStruct, processChange);
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,
@@ -227,7 +226,7 @@ TEST(DeltaVisitorTests, EditVariantField) {
           "/", "/variantMember", "/variantMember/integral"}));
 }
 
-TEST(DeltaVisitorTests, SwitchVariantField) {
+TEST(DeltaVisitorTests, SwitaghVariantField) {
   using namespace facebook::fboss::fsdb;
 
   auto testStruct = createTestStruct();
@@ -236,14 +235,14 @@ TEST(DeltaVisitorTests, SwitchVariantField) {
 
   std::set<std::string> differingPaths;
   auto processChange = [&](std::vector<std::string>& path,
-                           auto /*tc*/,
+                           auto /*tag*/,
                            auto /*oldValue*/,
                            auto /*newValue*/) {
     differingPaths.insert("/" + folly::join('/', path));
   };
 
-  auto result =
-      RootThriftDeltaVisitor::visit(testStruct, otherStruct, processChange);
+  auto result = RootThriftDeltaVisitor<TestStruct>::visit(
+      testStruct, otherStruct, processChange);
   EXPECT_EQ(result, true);
   EXPECT_THAT(
       differingPaths,

@@ -5,9 +5,8 @@
 #include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
 
+#include <thrift/lib/cpp2/folly_dynamic/folly_dynamic.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
-#include <thrift/lib/cpp2/reflection/folly_dynamic.h>
-#include "fboss/fsdb/tests/gen-cpp2/thriftpath_test_fatal_types.h"
 #include "fboss/fsdb/tests/gen-cpp2/thriftpath_test_types.h"
 #include "fboss/thrift_visitors/ThriftPathVisitor.h"
 
@@ -19,8 +18,8 @@ using namespace facebook::fboss::fsdb;
 TestStruct createTestStruct() {
   dynamic testDyn = dynamic::object("tx", true)("rx", false)("name", "testname")("optionalString", "bla")("member", dynamic::object("min", 10)("max", 20))("variantMember", dynamic::object("integral", 99))("structMap", dynamic::object("3", dynamic::object("min", 100)("max", 200)))("enumSet", dynamic::array(1))("integralSet", dynamic::array(5));
 
-  return apache::thrift::from_dynamic<TestStruct>(
-      testDyn, apache::thrift::dynamic_format::JSON_1);
+  return facebook::thrift::from_dynamic<TestStruct>(
+      testDyn, facebook::thrift::dynamic_format::JSON_1);
 }
 
 } // namespace
@@ -31,37 +30,37 @@ TEST(PathVisitorTests, TraverseOk) {
   auto testStruct = createTestStruct();
 
   folly::dynamic out;
-  auto extractDyn = [&](auto&& node, auto tc) {
-    apache::thrift::to_dynamic<decltype(tc)>(
-        out, node, apache::thrift::dynamic_format::JSON_1);
+  auto extractDyn = [&]<class Tag>(auto&& node, Tag) {
+    facebook::thrift::to_dynamic<Tag>(
+        out, node, facebook::thrift::dynamic_format::JSON_1);
   };
 
   std::vector<std::string> path = {"tx"};
-  auto result = RootThriftPathVisitor::visit(
+  auto result = RootThriftPathVisitor<TestStruct>::visit(
       testStruct, path.begin(), path.end(), extractDyn);
   EXPECT_EQ(result, ThriftTraverseResult::OK);
   EXPECT_EQ(out, true);
 
   path = {"rx"};
-  result = RootThriftPathVisitor::visit(
+  result = RootThriftPathVisitor<TestStruct>::visit(
       testStruct, path.begin(), path.end(), extractDyn);
   EXPECT_EQ(result, ThriftTraverseResult::OK);
   EXPECT_EQ(out, false);
 
   path = {"name"};
-  result = RootThriftPathVisitor::visit(
+  result = RootThriftPathVisitor<TestStruct>::visit(
       testStruct, path.begin(), path.end(), extractDyn);
   EXPECT_EQ(result, ThriftTraverseResult::OK);
   EXPECT_EQ(out, "testname");
 
   path = {"optionalString"};
-  result = RootThriftPathVisitor::visit(
+  result = RootThriftPathVisitor<TestStruct>::visit(
       testStruct, path.begin(), path.end(), extractDyn);
   EXPECT_EQ(result, ThriftTraverseResult::OK);
   EXPECT_EQ(out, "bla");
 
   path = {"member"};
-  result = RootThriftPathVisitor::visit(
+  result = RootThriftPathVisitor<TestStruct>::visit(
       testStruct, path.begin(), path.end(), extractDyn);
   EXPECT_EQ(result, ThriftTraverseResult::OK);
   EXPECT_TRUE(out.isObject());
@@ -69,19 +68,19 @@ TEST(PathVisitorTests, TraverseOk) {
   EXPECT_EQ(out["max"], 20);
 
   path = {"member", "min"};
-  result = RootThriftPathVisitor::visit(
+  result = RootThriftPathVisitor<TestStruct>::visit(
       testStruct, path.begin(), path.end(), extractDyn);
   EXPECT_EQ(result, ThriftTraverseResult::OK);
   EXPECT_EQ(out, 10);
 
   path = {"variantMember", "integral"};
-  result = RootThriftPathVisitor::visit(
+  result = RootThriftPathVisitor<TestStruct>::visit(
       testStruct, path.begin(), path.end(), extractDyn);
   EXPECT_EQ(result, ThriftTraverseResult::OK);
   EXPECT_EQ(out, 99);
 
   path = {"structMap"};
-  result = RootThriftPathVisitor::visit(
+  result = RootThriftPathVisitor<TestStruct>::visit(
       testStruct, path.begin(), path.end(), extractDyn);
   EXPECT_EQ(result, ThriftTraverseResult::OK);
   EXPECT_TRUE(out.isObject());
@@ -90,7 +89,7 @@ TEST(PathVisitorTests, TraverseOk) {
   EXPECT_EQ(out[3]["max"], 200);
 
   path = {"structMap", "3"};
-  result = RootThriftPathVisitor::visit(
+  result = RootThriftPathVisitor<TestStruct>::visit(
       testStruct, path.begin(), path.end(), extractDyn);
   EXPECT_EQ(result, ThriftTraverseResult::OK);
   EXPECT_TRUE(out.isObject());
@@ -98,13 +97,13 @@ TEST(PathVisitorTests, TraverseOk) {
   EXPECT_EQ(out["max"], 200);
 
   path = {"enumSet", "FIRST"};
-  result = RootThriftPathVisitor::visit(
+  result = RootThriftPathVisitor<TestStruct>::visit(
       testStruct, path.begin(), path.end(), extractDyn);
   EXPECT_EQ(result, ThriftTraverseResult::OK);
   EXPECT_EQ(out, 1);
 
   path = {"integralSet", "5"};
-  result = RootThriftPathVisitor::visit(
+  result = RootThriftPathVisitor<TestStruct>::visit(
       testStruct, path.begin(), path.end(), extractDyn);
   EXPECT_EQ(result, ThriftTraverseResult::OK);
   EXPECT_EQ(out, 5);
@@ -119,28 +118,28 @@ TEST(PathVisitorTests, TraverseNonExistentNode) {
   testStruct.optionalString().reset();
 
   folly::dynamic out;
-  auto extractDyn = [&](auto&& node, auto tc) {
-    apache::thrift::to_dynamic<decltype(tc)>(
-        out, node, apache::thrift::dynamic_format::JSON_1);
+  auto extractDyn = [&]<class Tag>(auto&& node, Tag) {
+    facebook::thrift::to_dynamic<Tag>(
+        out, node, facebook::thrift::dynamic_format::JSON_1);
   };
 
   std::vector<std::string> path = {"optionalString"};
-  auto result = RootThriftPathVisitor::visit(
+  auto result = RootThriftPathVisitor<TestStruct>::visit(
       testStruct, path.begin(), path.end(), extractDyn);
   EXPECT_EQ(result, ThriftTraverseResult::NON_EXISTENT_NODE);
 
   path = {"name", "past_leaf"};
-  result = RootThriftPathVisitor::visit(
+  result = RootThriftPathVisitor<TestStruct>::visit(
       testStruct, path.begin(), path.end(), extractDyn);
   EXPECT_EQ(result, ThriftTraverseResult::NON_EXISTENT_NODE);
 
   path = {"enumSet", "SECOND"};
-  result = RootThriftPathVisitor::visit(
+  result = RootThriftPathVisitor<TestStruct>::visit(
       testStruct, path.begin(), path.end(), extractDyn);
   EXPECT_EQ(result, ThriftTraverseResult::NON_EXISTENT_NODE);
 
   path = {"integralSet", "99"};
-  result = RootThriftPathVisitor::visit(
+  result = RootThriftPathVisitor<TestStruct>::visit(
       testStruct, path.begin(), path.end(), extractDyn);
   EXPECT_EQ(result, ThriftTraverseResult::NON_EXISTENT_NODE);
 }
@@ -151,13 +150,13 @@ TEST(PathVisitorTests, TraverseInvalidStructMember) {
   auto testStruct = createTestStruct();
 
   folly::dynamic out;
-  auto extractDyn = [&](auto&& node, auto tc) {
-    apache::thrift::to_dynamic<decltype(tc)>(
-        out, node, apache::thrift::dynamic_format::JSON_1);
+  auto extractDyn = [&]<class Tag>(auto&& node, Tag) {
+    facebook::thrift::to_dynamic<Tag>(
+        out, node, facebook::thrift::dynamic_format::JSON_1);
   };
 
   std::vector<std::string> path = {"badMember"};
-  auto result = RootThriftPathVisitor::visit(
+  auto result = RootThriftPathVisitor<TestStruct>::visit(
       testStruct, path.begin(), path.end(), extractDyn);
   EXPECT_EQ(result, ThriftTraverseResult::INVALID_STRUCT_MEMBER);
 }
@@ -168,13 +167,13 @@ TEST(PathVisitorTests, TraverseIncorrectVariantMember) {
   auto testStruct = createTestStruct();
 
   folly::dynamic out;
-  auto extractDyn = [&](auto&& node, auto tc) {
-    apache::thrift::to_dynamic<decltype(tc)>(
-        out, node, apache::thrift::dynamic_format::JSON_1);
+  auto extractDyn = [&]<class Tag>(auto&& node, Tag) {
+    facebook::thrift::to_dynamic<Tag>(
+        out, node, facebook::thrift::dynamic_format::JSON_1);
   };
 
   std::vector<std::string> path = {"variantMember", "boolean"};
-  auto result = RootThriftPathVisitor::visit(
+  auto result = RootThriftPathVisitor<TestStruct>::visit(
       testStruct, path.begin(), path.end(), extractDyn);
   EXPECT_EQ(result, ThriftTraverseResult::INCORRECT_VARIANT_MEMBER);
 }
@@ -185,13 +184,13 @@ TEST(PathVisitorTests, TraverseInvalidVariantMember) {
   auto testStruct = createTestStruct();
 
   folly::dynamic out;
-  auto extractDyn = [&](auto&& node, auto tc) {
-    apache::thrift::to_dynamic<decltype(tc)>(
-        out, node, apache::thrift::dynamic_format::JSON_1);
+  auto extractDyn = [&]<class Tag>(auto&& node, Tag) {
+    facebook::thrift::to_dynamic<Tag>(
+        out, node, facebook::thrift::dynamic_format::JSON_1);
   };
 
   std::vector<std::string> path = {"variantMember", "nonexistent"};
-  auto result = RootThriftPathVisitor::visit(
+  auto result = RootThriftPathVisitor<TestStruct>::visit(
       testStruct, path.begin(), path.end(), extractDyn);
   EXPECT_EQ(result, ThriftTraverseResult::INVALID_VARIANT_MEMBER);
 }
@@ -202,18 +201,18 @@ TEST(PathVisitorTests, TraverseInvalidArrayIndex) {
   auto testStruct = createTestStruct();
 
   folly::dynamic out;
-  auto extractDyn = [&](auto&& node, auto tc) {
-    apache::thrift::to_dynamic<decltype(tc)>(
-        out, node, apache::thrift::dynamic_format::JSON_1);
+  auto extractDyn = [&]<class Tag>(auto&& node, Tag) {
+    facebook::thrift::to_dynamic<Tag>(
+        out, node, facebook::thrift::dynamic_format::JSON_1);
   };
 
   std::vector<std::string> path = {"structList", "0"};
-  auto result = RootThriftPathVisitor::visit(
+  auto result = RootThriftPathVisitor<TestStruct>::visit(
       testStruct, path.begin(), path.end(), extractDyn);
   EXPECT_EQ(result, ThriftTraverseResult::NON_EXISTENT_NODE);
 
   path = {"structList", "invalid"};
-  result = RootThriftPathVisitor::visit(
+  result = RootThriftPathVisitor<TestStruct>::visit(
       testStruct, path.begin(), path.end(), extractDyn);
   EXPECT_EQ(result, ThriftTraverseResult::INVALID_ARRAY_INDEX);
 }
@@ -224,18 +223,18 @@ TEST(PathVisitorTests, TraverseInvalidMapKey) {
   auto testStruct = createTestStruct();
 
   folly::dynamic out;
-  auto extractDyn = [&](auto&& node, auto tc) {
-    apache::thrift::to_dynamic<decltype(tc)>(
-        out, node, apache::thrift::dynamic_format::JSON_1);
+  auto extractDyn = [&]<class Tag>(auto&& node, Tag) {
+    facebook::thrift::to_dynamic<Tag>(
+        out, node, facebook::thrift::dynamic_format::JSON_1);
   };
 
   std::vector<std::string> path = {"structMap", "0"};
-  auto result = RootThriftPathVisitor::visit(
+  auto result = RootThriftPathVisitor<TestStruct>::visit(
       testStruct, path.begin(), path.end(), extractDyn);
   EXPECT_EQ(result, ThriftTraverseResult::NON_EXISTENT_NODE);
 
   path = {"structMap", "invalid"};
-  result = RootThriftPathVisitor::visit(
+  result = RootThriftPathVisitor<TestStruct>::visit(
       testStruct, path.begin(), path.end(), extractDyn);
   EXPECT_EQ(result, ThriftTraverseResult::INVALID_MAP_KEY);
 }
@@ -246,18 +245,18 @@ TEST(PathVisitorTests, TraverseInvalidSetMember) {
   auto testStruct = createTestStruct();
 
   folly::dynamic out;
-  auto extractDyn = [&](auto&& node, auto tc) {
-    apache::thrift::to_dynamic<decltype(tc)>(
-        out, node, apache::thrift::dynamic_format::JSON_1);
+  auto extractDyn = [&]<class Tag>(auto&& node, Tag) {
+    facebook::thrift::to_dynamic<Tag>(
+        out, node, facebook::thrift::dynamic_format::JSON_1);
   };
 
   std::vector<std::string> path = {"integralSet", "a string"};
-  auto result = RootThriftPathVisitor::visit(
+  auto result = RootThriftPathVisitor<TestStruct>::visit(
       testStruct, path.begin(), path.end(), extractDyn);
   EXPECT_EQ(result, ThriftTraverseResult::INVALID_SET_MEMBER);
 
   path = {"enumSet", "blabla"};
-  result = RootThriftPathVisitor::visit(
+  result = RootThriftPathVisitor<TestStruct>::visit(
       testStruct, path.begin(), path.end(), extractDyn);
   EXPECT_EQ(result, ThriftTraverseResult::INVALID_SET_MEMBER);
 }
@@ -270,7 +269,7 @@ TEST(PathVisitorTests, TraverseVisitorException) {
   auto willThrow = [&](auto&&, auto) { throw std::runtime_error("boo"); };
 
   std::vector<std::string> path = {"structMap"};
-  auto result = RootThriftPathVisitor::visit(
+  auto result = RootThriftPathVisitor<TestStruct>::visit(
       testStruct, path.begin(), path.end(), willThrow);
   EXPECT_EQ(result, ThriftTraverseResult::VISITOR_EXCEPTION);
 }
@@ -296,11 +295,12 @@ TEST(PathVisitorTests, LazyInstantiate) {
       {{"enumSet", "1"}, 1},
       {{"integralSet", "5"}, 5}};
 
-  using Visitor = RootThriftPathVisitorWithOptions<CreateNodeIfMissing>;
+  using Visitor =
+      RootThriftPathVisitorWithOptions<TestStruct, CreateNodeIfMissing>;
   for (auto& [path, val] : leaves) {
-    auto setVal = [val = val](auto&& node, auto tc) {
-      apache::thrift::from_dynamic<decltype(tc)>(
-          node, val, apache::thrift::dynamic_format::JSON_1);
+    auto setVal = [val = val]<class Tag>(auto&& node, Tag) {
+      facebook::thrift::from_dynamic<Tag>(
+          node, val, facebook::thrift::dynamic_format::JSON_1);
     };
     auto result =
         Visitor::visit(testStruct, path.begin(), path.end(), std::move(setVal));

@@ -2,12 +2,13 @@
 
 #pragma once
 
-#include <fatal/type/enum.h>
-#include <fatal/type/slice.h>
+#include <fatal/type/search.h>
 #include <fatal/type/trie.h>
 #include <folly/Conv.h>
-#include <thrift/lib/cpp2/TypeClass.h>
+#include <thrift/lib/cpp/util/EnumUtils.h>
+#include <thrift/lib/cpp2/op/Get.h>
 #include <thrift/lib/cpp2/reflection/reflection.h>
+
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 
 namespace facebook::fboss::fsdb {
@@ -45,8 +46,8 @@ struct NameToPathVisitor;
 /**
  * Enumeration
  */
-template <>
-struct NameToPathVisitor<apache::thrift::type_class::enumeration> {
+template <typename T>
+struct NameToPathVisitor<apache::thrift::type::enum_t<T>> {
   using path_token_citr = std::vector<std::string>::const_iterator;
   using ext_path_token_citr = std::vector<OperPathElem>::const_iterator;
 
@@ -83,10 +84,9 @@ struct NameToPathVisitor<apache::thrift::type_class::enumeration> {
 /**
  * Set
  */
-template <typename ValueTypeClass>
-struct NameToPathVisitor<apache::thrift::type_class::set<ValueTypeClass>> {
-  using Self =
-      NameToPathVisitor<apache::thrift::type_class::set<ValueTypeClass>>;
+template <typename ValueTag>
+struct NameToPathVisitor<apache::thrift::type::set<ValueTag>> {
+  using Self = NameToPathVisitor<apache::thrift::type::set<ValueTag>>;
   using path_token_citr = std::vector<std::string>::const_iterator;
   using ext_path_token_citr = std::vector<OperPathElem>::const_iterator;
 
@@ -104,12 +104,11 @@ struct NameToPathVisitor<apache::thrift::type_class::set<ValueTypeClass>> {
       return key.value();
     }
 
-    if constexpr (std::is_same_v<
-                      ValueTypeClass,
-                      apache::thrift::type_class::enumeration>) {
+    if constexpr (apache::thrift::type::
+                      is_a_v<ValueTag, apache::thrift::type::enum_c>) {
       // special handling for enum sets
       KeyT value;
-      if (fatal::enum_traits<KeyT>::try_parse(value, token)) {
+      if (apache::thrift::util::tryParseEnum(token, &value)) {
         return value;
       }
     }
@@ -140,8 +139,9 @@ struct NameToPathVisitor<apache::thrift::type_class::set<ValueTypeClass>> {
       return NameToPathResult::INVALID_PATH;
     }
 
-    return NameToPathVisitor<typename folly::remove_cvref_t<Path>::Child::TC>::
-        visit(path[key.value()], begin, curr, end, std::forward<Func>(f));
+    using Tag = typename folly::remove_cvref_t<Path>::Child::Tag;
+    return NameToPathVisitor<Tag>::visit(
+        path[key.value()], begin, curr, end, std::forward<Func>(f));
   }
 
   template <typename Path, typename Func>
@@ -168,7 +168,7 @@ struct NameToPathVisitor<apache::thrift::type_class::set<ValueTypeClass>> {
       // dummy child path w/ the default constructed key.
     }
 
-    return NameToPathVisitor<typename folly::remove_cvref_t<Path>::Child::TC>::
+    return NameToPathVisitor<typename folly::remove_cvref_t<Path>::Child::Tag>::
         visitExtended(path[key], curr, end, std::forward<Func>(f));
   }
 };
@@ -176,10 +176,9 @@ struct NameToPathVisitor<apache::thrift::type_class::set<ValueTypeClass>> {
 /**
  * List
  */
-template <typename ValueTypeClass>
-struct NameToPathVisitor<apache::thrift::type_class::list<ValueTypeClass>> {
-  using Self =
-      NameToPathVisitor<apache::thrift::type_class::list<ValueTypeClass>>;
+template <typename ValueTag>
+struct NameToPathVisitor<apache::thrift::type::list<ValueTag>> {
+  using Self = NameToPathVisitor<apache::thrift::type::list<ValueTag>>;
   using path_token_citr = std::vector<std::string>::const_iterator;
   using ext_path_token_citr = std::vector<OperPathElem>::const_iterator;
 
@@ -212,8 +211,9 @@ struct NameToPathVisitor<apache::thrift::type_class::list<ValueTypeClass>> {
       return NameToPathResult::INVALID_ARRAY_INDEX;
     }
 
-    return NameToPathVisitor<typename folly::remove_cvref_t<Path>::Child::TC>::
-        visit(path[key.value()], begin, curr, end, std::forward<Func>(f));
+    using Tag = typename folly::remove_cvref_t<Path>::Child::Tag;
+    return NameToPathVisitor<Tag>::visit(
+        path[key.value()], begin, curr, end, std::forward<Func>(f));
   }
 
   template <typename Path, typename Func>
@@ -240,19 +240,18 @@ struct NameToPathVisitor<apache::thrift::type_class::list<ValueTypeClass>> {
       // dummy child path w/ the default constructed key.
     }
 
-    return NameToPathVisitor<typename folly::remove_cvref_t<Path>::Child::TC>::
-        visitExtended(path[key], curr, end, std::forward<Func>(f));
+    using Tag = typename folly::remove_cvref_t<Path>::Child::Tag;
+    return NameToPathVisitor<Tag>::visitExtended(
+        path[key], curr, end, std::forward<Func>(f));
   }
 };
 
 /**
  * Map
  */
-template <typename KeyTypeClass, typename MappedTypeClass>
-struct NameToPathVisitor<
-    apache::thrift::type_class::map<KeyTypeClass, MappedTypeClass>> {
-  using Self = NameToPathVisitor<
-      apache::thrift::type_class::map<KeyTypeClass, MappedTypeClass>>;
+template <typename KeyTag, typename MappedTag>
+struct NameToPathVisitor<apache::thrift::type::map<KeyTag, MappedTag>> {
+  using Self = NameToPathVisitor<apache::thrift::type::map<KeyTag, MappedTag>>;
   using path_token_citr = std::vector<std::string>::const_iterator;
   using ext_path_token_citr = std::vector<OperPathElem>::const_iterator;
 
@@ -270,12 +269,11 @@ struct NameToPathVisitor<
       return key.value();
     }
 
-    if constexpr (std::is_same_v<
-                      KeyTypeClass,
-                      apache::thrift::type_class::enumeration>) {
+    if constexpr (apache::thrift::type::
+                      is_a_v<KeyTag, apache::thrift::type::enum_c>) {
       // special handling for enum sets
       KeyT value;
-      if (fatal::enum_traits<KeyT>::try_parse(value, token)) {
+      if (apache::thrift::util::tryParseEnum(token, &value)) {
         return value;
       }
     }
@@ -306,8 +304,9 @@ struct NameToPathVisitor<
       return NameToPathResult::INVALID_MAP_KEY;
     }
 
-    return NameToPathVisitor<typename folly::remove_cvref_t<Path>::Child::TC>::
-        visit(path[key.value()], begin, curr, end, std::forward<Func>(f));
+    using Tag = typename folly::remove_cvref_t<Path>::Child::Tag;
+    return NameToPathVisitor<Tag>::visit(
+        path[key.value()], begin, curr, end, std::forward<Func>(f));
   }
 
   template <typename Path, typename Func>
@@ -334,16 +333,17 @@ struct NameToPathVisitor<
       // dummy child path and recurse
     }
 
-    return NameToPathVisitor<typename folly::remove_cvref_t<Path>::Child::TC>::
-        visitExtended(path[key], curr, end, std::forward<Func>(f));
+    using Tag = typename folly::remove_cvref_t<Path>::Child::Tag;
+    return NameToPathVisitor<Tag>::visitExtended(
+        path[key], curr, end, std::forward<Func>(f));
   }
 };
 
 /**
  * Variant
  */
-template <>
-struct NameToPathVisitor<apache::thrift::type_class::variant> {
+template <typename T>
+struct NameToPathVisitor<apache::thrift::type::union_t<T>> {
   using path_token_citr = std::vector<std::string>::const_iterator;
   using ext_path_token_citr = std::vector<OperPathElem>::const_iterator;
 
@@ -364,15 +364,14 @@ struct NameToPathVisitor<apache::thrift::type_class::variant> {
     }
 
     // Get key
-    auto token = *curr++;
+    const auto& token = *curr++;
     auto result = NameToPathResult::INVALID_VARIANT_MEMBER;
 
-    auto visitChild = [&](auto tag) {
-      using PathT =
-          typename folly::remove_cvref_t<decltype(tag)>::type::second_type;
-      using ChildKeyT =
-          typename folly::remove_cvref_t<decltype(tag)>::type::first_type;
-      result = NameToPathVisitor<typename PathT::TC>::visit(
+    auto visitChild = [&]<class Tag>(Tag) {
+      using PathT = typename folly::remove_cvref_t<Tag>::type::second_type;
+      using ChildKeyT = typename folly::remove_cvref_t<Tag>::type::first_type;
+      using ChildTag = typename PathT::Tag;
+      result = NameToPathVisitor<ChildTag>::visit(
           path(ChildKeyT()), begin, curr, end, std::forward<Func>(f));
     };
 
@@ -402,15 +401,14 @@ struct NameToPathVisitor<apache::thrift::type_class::variant> {
 
     auto elem = *curr++;
     if (auto raw = elem.raw_ref()) {
-      auto token = *raw;
+      const auto& token = *raw;
       auto result = NameToPathResult::INVALID_VARIANT_MEMBER;
 
-      auto visitChild = [&](auto tag) {
-        using PathT =
-            typename folly::remove_cvref_t<decltype(tag)>::type::second_type;
-        using ChildKeyT =
-            typename folly::remove_cvref_t<decltype(tag)>::type::first_type;
-        result = NameToPathVisitor<typename PathT::TC>::visitExtended(
+      auto visitChild = [&]<class Tag>(Tag) {
+        using PathT = typename folly::remove_cvref_t<Tag>::type::second_type;
+        using ChildKeyT = typename folly::remove_cvref_t<Tag>::type::first_type;
+        using ChildTag = typename PathT::Tag;
+        result = NameToPathVisitor<ChildTag>::visitExtended(
             path(ChildKeyT()), curr, end, std::forward<Func>(f));
       };
 
@@ -439,8 +437,8 @@ struct NameToPathVisitor<apache::thrift::type_class::variant> {
 /**
  * Structure
  */
-template <>
-struct NameToPathVisitor<apache::thrift::type_class::structure> {
+template <typename T>
+struct NameToPathVisitor<apache::thrift::type::struct_t<T>> {
   using path_token_citr = std::vector<std::string>::const_iterator;
   using ext_path_token_citr = std::vector<OperPathElem>::const_iterator;
 
@@ -461,15 +459,14 @@ struct NameToPathVisitor<apache::thrift::type_class::structure> {
     }
 
     // Get key
-    auto token = *curr++;
+    const auto& token = *curr++;
     auto result = NameToPathResult::INVALID_STRUCT_MEMBER;
 
-    auto visitChild = [&](auto tag) {
-      using PathT =
-          typename folly::remove_cvref_t<decltype(tag)>::type::second_type;
-      using ChildKeyT =
-          typename folly::remove_cvref_t<decltype(tag)>::type::first_type;
-      result = NameToPathVisitor<typename PathT::TC>::visit(
+    auto visitChild = [&]<class Tag>(Tag) {
+      using PathT = typename folly::remove_cvref_t<Tag>::type::second_type;
+      using ChildKeyT = typename folly::remove_cvref_t<Tag>::type::first_type;
+      using ChildTag = typename PathT::Tag;
+      result = NameToPathVisitor<ChildTag>::visit(
           path(ChildKeyT()), begin, curr, end, std::forward<Func>(f));
     };
 
@@ -499,15 +496,13 @@ struct NameToPathVisitor<apache::thrift::type_class::structure> {
 
     auto elem = *curr++;
     if (auto raw = elem.raw_ref()) {
-      auto token = *raw;
+      const auto& token = *raw;
       auto result = NameToPathResult::INVALID_STRUCT_MEMBER;
 
-      auto visitChild = [&](auto tag) {
-        using PathT =
-            typename folly::remove_cvref_t<decltype(tag)>::type::second_type;
-        using ChildKeyT =
-            typename folly::remove_cvref_t<decltype(tag)>::type::first_type;
-        result = NameToPathVisitor<typename PathT::TC>::visitExtended(
+      auto visitChild = [&]<class Tag>(Tag) {
+        using PathT = typename folly::remove_cvref_t<Tag>::type::second_type;
+        using ChildKeyT = typename folly::remove_cvref_t<Tag>::type::first_type;
+        result = NameToPathVisitor<typename PathT::Tag>::visitExtended(
             path(ChildKeyT()), curr, end, std::forward<Func>(f));
       };
 
@@ -533,18 +528,23 @@ struct NameToPathVisitor<apache::thrift::type_class::structure> {
 };
 
 /**
+ * Cpp.Type
+ */
+template <typename T, typename Tag>
+struct NameToPathVisitor<apache::thrift::type::cpp_type<T, Tag>>
+    : public NameToPathVisitor<Tag> {};
+
+/**
  * Primitives - fallback specialization
  * - string / binary
  * - floating_point
  * - integral
  */
-template <typename TC>
+template <typename Tag>
 struct NameToPathVisitor {
   static_assert(
-      !std::is_same<apache::thrift::type_class::unknown, TC>::value,
-      "No static reflection support for the given type. "
-      "Forgot to specify reflection option or include fatal header file? "
-      "Refer to thrift/lib/cpp2/reflection/reflection.h");
+      apache::thrift::type::is_a_v<Tag, apache::thrift::type::primitive_c>,
+      "expected primitive type");
 
   using path_token_citr = std::vector<std::string>::const_iterator;
   using ext_path_token_citr = std::vector<OperPathElem>::const_iterator;
@@ -579,7 +579,8 @@ struct NameToPathVisitor {
   }
 };
 
+template <typename Node>
 using RootNameToPathVisitor =
-    NameToPathVisitor<apache::thrift::type_class::structure>;
+    NameToPathVisitor<apache::thrift::type::struct_t<Node>>;
 
 } // namespace facebook::fboss::fsdb

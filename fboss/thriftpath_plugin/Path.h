@@ -4,7 +4,6 @@
 
 #include <folly/String.h>
 #include <folly/Unit.h>
-#include <thrift/lib/cpp2/TypeClass.h>
 #include <string>
 
 namespace thriftpath {

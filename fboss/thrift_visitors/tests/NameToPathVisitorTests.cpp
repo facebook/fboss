@@ -2,15 +2,12 @@
 
 #include <folly/Demangle.h>
 #include <folly/String.h>
-#include <folly/dynamic.h>
 #include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
 
 #include <fboss/thrift_visitors/NameToPathVisitor.h>
-#include <thrift/lib/cpp2/reflection/folly_dynamic.h>
 // @lint-ignore CLANGTIDY
 #include "fboss/fsdb/tests/gen-cpp2-thriftpath/thriftpath_test.h" // @manual=//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath
-#include "fboss/fsdb/tests/gen-cpp2/thriftpath_test_fatal_types.h"
 #include "fboss/fsdb/tests/gen-cpp2/thriftpath_test_types.h"
 
 using namespace facebook::fboss::fsdb;
@@ -65,14 +62,14 @@ TEST(NameToPathVisitorTests, TraverseOk) {
   };
 
   for (auto& path : paths) {
-    auto result = RootNameToPathVisitor::visit(
-        root, path.begin(), path.begin(), path.end(), [&](auto resolved) {
-          using ThriftType = typename decltype(resolved)::TC;
-          using DataType = typename decltype(resolved)::DataT;
+    auto result = RootNameToPathVisitor<RootThriftPath<TestStruct>>::visit(
+        root, path.begin(), path.begin(), path.end(), [&]<class Tag>(Tag) {
+          using ThriftTag = typename Tag::Tag;
+          using DataType = typename Tag::DataT;
 
           XLOG(INFO) << " For path : " << folly::join('/', path)
-                     << " got thrift class :"
-                     << folly::demangle(typeid(ThriftType))
+                     << " got thrift tag :"
+                     << folly::demangle(typeid(ThriftTag))
                      << " data type: " << folly::demangle(typeid(DataType));
         });
     EXPECT_EQ(result, NameToPathResult::OK)
@@ -93,7 +90,7 @@ TEST(NameToPathVisitorTests, TraverseNotOk) {
       {"7", "1000"}, // variantMember/<invalid id>
   };
   for (auto& path : paths) {
-    auto result = RootNameToPathVisitor::visit(
+    auto result = RootNameToPathVisitor<RootThriftPath<TestStruct>>::visit(
         root, path.begin(), path.begin(), path.end(), [&](auto /*resolved*/) {
           EXPECT_FALSE(true) << " Should never be called";
         });
@@ -109,20 +106,21 @@ TEST(NameToPathVisitorTests, AlternateRoots) {
       {"max"},
   };
   for (auto& path : paths) {
-    auto result = RootNameToPathVisitor::visit(
-        testStructSimpleRoot,
-        path.begin(),
-        path.begin(),
-        path.end(),
-        [&](auto resolved) {
-          using ThriftType = typename decltype(resolved)::TC;
-          using DataType = typename decltype(resolved)::DataT;
+    auto result =
+        RootNameToPathVisitor<RootThriftPath<TestStructSimple>>::visit(
+            testStructSimpleRoot,
+            path.begin(),
+            path.begin(),
+            path.end(),
+            [&]<class Tag>(Tag) {
+              using ThriftTag = typename Tag::Tag;
+              using DataType = typename Tag::DataT;
 
-          XLOG(INFO) << " For path : " << folly::join('/', path)
-                     << " got thrift class :"
-                     << folly::demangle(typeid(ThriftType))
-                     << " data type: " << folly::demangle(typeid(DataType));
-        });
+              XLOG(INFO) << " For path : " << folly::join('/', path)
+                         << " got thrift tag :"
+                         << folly::demangle(typeid(ThriftTag))
+                         << " data type: " << folly::demangle(typeid(DataType));
+            });
     EXPECT_EQ(result, NameToPathResult::OK)
         << "Failed path: /" + folly::join('/', path);
   }
@@ -137,7 +135,7 @@ TEST(NameToPathVisitorTests, NameAndIds) {
       {"4", "1"},
   };
   for (auto& path : paths) {
-    auto result = RootNameToPathVisitor::visit(
+    auto result = RootNameToPathVisitor<RootThriftPath<TestStruct>>::visit(
         testStructRoot,
         path.begin(),
         path.begin(),

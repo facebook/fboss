@@ -4,9 +4,9 @@
 
 #include <algorithm>
 
+#include <folly/Conv.h>
 #include <thrift/lib/cpp2/Thrift.h>
-#include <thrift/lib/cpp2/TypeClass.h>
-#include <thrift/lib/cpp2/reflection/reflection.h>
+#include <thrift/lib/cpp2/op/Get.h>
 
 namespace facebook::fboss::fsdb {
 
@@ -16,27 +16,27 @@ struct ThriftLeafVisitor;
 /**
  * Enumeration
  */
-template <>
-struct ThriftLeafVisitor<apache::thrift::type_class::enumeration> {
-  template <typename Node, typename Func>
+template <typename Node>
+struct ThriftLeafVisitor<apache::thrift::type::enum_t<Node>> {
+  template <typename Func>
   static void
   visit(std::vector<std::string>& path, const Node& node, Func&& f) {
-    using TC = apache::thrift::type_class::enumeration;
-    f(path, TC{}, node);
+    using Tag = apache::thrift::type::enum_t<Node>;
+    f(path, Tag{}, node);
   }
 };
 
 /**
  * Set
  */
-template <typename ValueTypeClass>
-struct ThriftLeafVisitor<apache::thrift::type_class::set<ValueTypeClass>> {
+template <typename ValueTag>
+struct ThriftLeafVisitor<apache::thrift::type::set<ValueTag>> {
   template <typename Node, typename Func>
   static void
   visit(std::vector<std::string>& path, const Node& node, Func&& f) {
     for (auto& val : node) {
       path.push_back(folly::to<std::string>(val));
-      f(path, ValueTypeClass{}, val);
+      f(path, ValueTag{}, val);
       path.pop_back();
     }
   }
@@ -45,14 +45,14 @@ struct ThriftLeafVisitor<apache::thrift::type_class::set<ValueTypeClass>> {
 /**
  * List
  */
-template <typename ValueTypeClass>
-struct ThriftLeafVisitor<apache::thrift::type_class::list<ValueTypeClass>> {
+template <typename ValueTag>
+struct ThriftLeafVisitor<apache::thrift::type::list<ValueTag>> {
   template <typename Node, typename Func>
   static void
   visit(std::vector<std::string>& path, const Node& node, Func&& f) {
     for (int i = 0; i < node.size(); ++i) {
       path.push_back(folly::to<std::string>(i));
-      ThriftLeafVisitor<ValueTypeClass>::visit(
+      ThriftLeafVisitor<ValueTag>::visit(
           path, node.at(i), std::forward<Func>(f));
       path.pop_back();
     }
@@ -62,16 +62,14 @@ struct ThriftLeafVisitor<apache::thrift::type_class::list<ValueTypeClass>> {
 /**
  * Map
  */
-template <typename KeyTypeClass, typename MappedTypeClass>
-struct ThriftLeafVisitor<
-    apache::thrift::type_class::map<KeyTypeClass, MappedTypeClass>> {
+template <typename KeyTag, typename MappedTag>
+struct ThriftLeafVisitor<apache::thrift::type::map<KeyTag, MappedTag>> {
   template <typename Node, typename Func>
   static void
   visit(std::vector<std::string>& path, const Node& node, Func&& f) {
     for (const auto& [key, val] : node) {
       path.push_back(folly::to<std::string>(key));
-      ThriftLeafVisitor<MappedTypeClass>::visit(
-          path, val, std::forward<Func>(f));
+      ThriftLeafVisitor<MappedTag>::visit(path, val, std::forward<Func>(f));
       path.pop_back();
     }
   }
@@ -80,26 +78,23 @@ struct ThriftLeafVisitor<
 /**
  * Variant
  */
-template <>
-struct ThriftLeafVisitor<apache::thrift::type_class::variant> {
-  template <typename Node, typename Func>
+template <typename Node>
+struct ThriftLeafVisitor<apache::thrift::type::union_t<Node>> {
+  template <typename Func>
   static void
   visit(std::vector<std::string>& path, const Node& node, Func&& f) {
-    using descriptors = typename apache::thrift::reflect_variant<
-        folly::remove_cvref_t<Node>>::traits::descriptors;
-
-    fatal::scalar_search<descriptors, fatal::get_type::id>(
-        node.getType(), [&](auto indexed) {
-          using descriptor = decltype(fatal::tag_type(indexed));
-
-          const std::string memberName(
-              fatal::z_data<typename descriptor::metadata::name>(),
-              fatal::size<typename descriptor::metadata::name>::value);
-
-          path.push_back(memberName);
-          ThriftLeafVisitor<typename descriptor::metadata::type_class>::visit(
-              path, typename descriptor::getter()(node), std::forward<Func>(f));
+    apache::thrift::op::invoke_by_field_id<Node>(
+        static_cast<apache::thrift::FieldId>(node.getType()),
+        [&]<class Id>(Id) {
+          path.emplace_back(apache::thrift::op::get_name_v<Node, Id>);
+          ThriftLeafVisitor<apache::thrift::op::get_type_tag<Node, Id>>::visit(
+              path,
+              *apache::thrift::op::get<Id, Node>(node),
+              std::forward<Func>(f));
           path.pop_back();
+        },
+        [] {
+          // // union is __EMPTY__
         });
   }
 };
@@ -107,31 +102,26 @@ struct ThriftLeafVisitor<apache::thrift::type_class::variant> {
 /**
  * Structure
  */
-template <>
-struct ThriftLeafVisitor<apache::thrift::type_class::structure> {
-  template <typename Node, typename Func>
+template <typename Node>
+struct ThriftLeafVisitor<apache::thrift::type::struct_t<Node>> {
+  template <typename Func>
   static void visit(const Node& node, Func&& f) {
     std::vector<std::string> path;
     visit(path, node, std::forward<Func>(f));
   }
 
-  template <typename Node, typename Func>
+  template <typename Func>
   static void
   visit(std::vector<std::string>& path, const Node& node, Func&& f) {
-    fatal::foreach<typename apache::thrift::reflect_struct<
-        folly::remove_cvref_t<Node>>::members>([&](auto indexed) {
-      using member = decltype(fatal::tag_type(indexed));
-
+    apache::thrift::op::for_each_field_id<Node>([&]<class Id>(Id) {
       // Look for the expected member name
-      const std::string memberName(
-          fatal::z_data<typename member::name>(),
-          fatal::size<typename member::name>::value);
-
-      path.push_back(memberName);
+      path.emplace_back(apache::thrift::op::get_name_v<Node, Id>);
 
       // Recurse further
-      ThriftLeafVisitor<typename member::type_class>::visit(
-          path, typename member::getter{}(node), std::forward<Func>(f));
+      ThriftLeafVisitor<apache::thrift::op::get_type_tag<Node, Id>>::visit(
+          path,
+          *apache::thrift::op::get<Id, Node>(node),
+          std::forward<Func>(f));
 
       path.pop_back();
     });
@@ -144,22 +134,21 @@ struct ThriftLeafVisitor<apache::thrift::type_class::structure> {
  * - floating_point
  * - integral
  */
-template <typename TC>
+template <typename Tag>
 struct ThriftLeafVisitor {
   static_assert(
-      !std::is_same<apache::thrift::type_class::unknown, TC>::value,
-      "No static reflection support for the given type. "
-      "Forgot to specify reflection option or include fatal header file? "
-      "Refer to thrift/lib/cpp2/reflection/reflection.h");
+      apache::thrift::type::is_a_v<Tag, apache::thrift::type::primitive_c>,
+      "expected primitive type");
 
   template <typename Node, typename Func>
   static void
   visit(std::vector<std::string>& path, const Node& node, Func&& f) {
-    f(path, TC{}, node);
+    f(path, Tag{}, node);
   }
 };
 
+template <typename Node>
 using RootThriftLeafVisitor =
-    ThriftLeafVisitor<apache::thrift::type_class::structure>;
+    ThriftLeafVisitor<apache::thrift::type::struct_t<Node>>;
 
 } // namespace facebook::fboss::fsdb

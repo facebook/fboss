@@ -47,12 +47,13 @@ class PathConverter {
       const std::vector<std::string>& tokens,
       Func&& f) {
     thriftpath::RootThriftPath<RootT> root;
-    auto result = RootNameToPathVisitor::visit(
-        root,
-        tokens.begin(),
-        tokens.begin(),
-        tokens.end(),
-        std::forward<Func>(f));
+    auto result =
+        RootNameToPathVisitor<thriftpath::RootThriftPath<RootT>>::visit(
+            root,
+            tokens.begin(),
+            tokens.begin(),
+            tokens.end(),
+            std::forward<Func>(f));
     if (result != NameToPathResult::OK) {
       throw std::runtime_error("Invalid path " + folly::join("/", tokens));
     }
@@ -63,8 +64,9 @@ class PathConverter {
       const std::vector<OperPathElem>& path,
       Func&& f) {
     thriftpath::RootThriftPath<RootT> root;
-    auto result = RootNameToPathVisitor::visitExtended(
-        root, path.begin(), path.end(), std::forward<Func>(f));
+    auto result =
+        RootNameToPathVisitor<thriftpath::RootThriftPath<RootT>>::visitExtended(
+            root, path.begin(), path.end(), std::forward<Func>(f));
     if (result != NameToPathResult::OK) {
       // TODO: include path in error message
       throw std::runtime_error("Invalid extended path");

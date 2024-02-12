@@ -5,8 +5,7 @@
 #include <type_traits>
 
 #include <thrift/lib/cpp2/Thrift.h>
-#include <thrift/lib/cpp2/TypeClass.h>
-#include <thrift/lib/cpp2/reflection/reflection.h>
+#include <thrift/lib/cpp2/op/Get.h>
 
 namespace facebook::fboss::fsdb {
 
@@ -41,14 +40,14 @@ template <typename T>
 inline constexpr bool shouldCreateNodeIfMissing =
     std::is_same_v<T, CreateNodeIfMissing>;
 
-template <typename TC, typename Options>
+template <typename Tag, typename Options>
 struct ThriftPathVisitor;
 
 /**
  * Enumeration
  */
-template <typename Options>
-struct ThriftPathVisitor<apache::thrift::type_class::enumeration, Options> {
+template <typename T, typename Options>
+struct ThriftPathVisitor<apache::thrift::type::enum_t<T>, Options> {
   template <
       typename Node,
       typename PathIter,
@@ -60,12 +59,12 @@ struct ThriftPathVisitor<apache::thrift::type_class::enumeration, Options> {
           void>>
   static ThriftTraverseResult
   visit(Node&& node, PathIter begin, PathIter end, Func&& f) {
-    using TC = apache::thrift::type_class::enumeration;
+    using Tag = apache::thrift::type::enum_t<T>;
 
     // Check for terminal condition
     if (begin == end) {
       try {
-        f(node, TC{});
+        f(node, Tag{});
         return ThriftTraverseResult::OK;
       } catch (const std::exception&) {
         return ThriftTraverseResult::VISITOR_EXCEPTION;
@@ -79,10 +78,8 @@ struct ThriftPathVisitor<apache::thrift::type_class::enumeration, Options> {
 /**
  * Set
  */
-template <typename ValueTypeClass, typename Options>
-struct ThriftPathVisitor<
-    apache::thrift::type_class::set<ValueTypeClass>,
-    Options> {
+template <typename ValueTag, typename Options>
+struct ThriftPathVisitor<apache::thrift::type::set<ValueTag>, Options> {
   template <
       typename Node,
       typename PathIter,
@@ -94,7 +91,7 @@ struct ThriftPathVisitor<
           void>>
   static ThriftTraverseResult
   visit(Node&& node, PathIter begin, PathIter end, Func&& f) {
-    using TC = apache::thrift::type_class::set<ValueTypeClass>;
+    using Tag = apache::thrift::type::set<ValueTag>;
     using ValueT = typename folly::remove_cvref_t<Node>::value_type;
 
     static_assert(
@@ -105,7 +102,7 @@ struct ThriftPathVisitor<
 
     if (begin == end) {
       try {
-        f(node, TC{});
+        f(node, Tag{});
         return ThriftTraverseResult::OK;
       } catch (const std::exception&) {
         return ThriftTraverseResult::VISITOR_EXCEPTION;
@@ -116,10 +113,9 @@ struct ThriftPathVisitor<
     ValueT value;
 
     // need to handle enumeration, integral, string types
-    if constexpr (std::is_same_v<
-                      ValueTypeClass,
-                      apache::thrift::type_class::enumeration>) {
-      if (fatal::enum_traits<ValueT>::try_parse(value, tok)) {
+    if constexpr (apache::thrift::type::
+                      is_a_v<ValueTag, apache::thrift::type::enum_c>) {
+      if (apache::thrift::util::tryParseEnum(tok, &value)) {
         auto it = node.find(value);
         if (it == node.end()) {
           if constexpr (!createNodeIfMissing) {
@@ -130,7 +126,7 @@ struct ThriftPathVisitor<
         }
 
         // Recurse further
-        return ThriftPathVisitor<ValueTypeClass, Options>::visit(
+        return ThriftPathVisitor<ValueTag, Options>::visit(
             value, begin, end, std::forward<Func>(f));
       }
     }
@@ -147,7 +143,7 @@ struct ThriftPathVisitor<
         }
       }
       // Recurse further
-      return ThriftPathVisitor<ValueTypeClass, Options>::visit(
+      return ThriftPathVisitor<ValueTag, Options>::visit(
           value, begin, end, std::forward<Func>(f));
     }
 
@@ -159,10 +155,8 @@ struct ThriftPathVisitor<
 /**
  * List
  */
-template <typename ValueTypeClass, typename Options>
-struct ThriftPathVisitor<
-    apache::thrift::type_class::list<ValueTypeClass>,
-    Options> {
+template <typename ValueTag, typename Options>
+struct ThriftPathVisitor<apache::thrift::type::list<ValueTag>, Options> {
   template <
       typename Node,
       typename PathIter,
@@ -174,7 +168,7 @@ struct ThriftPathVisitor<
           void>>
   static ThriftTraverseResult
   visit(Node&& node, PathIter begin, PathIter end, Func&& f) {
-    using TC = apache::thrift::type_class::list<ValueTypeClass>;
+    using Tag = apache::thrift::type::list<ValueTag>;
 
     static_assert(
         !(shouldCreateNodeIfMissing<Options> && isConst<Node>),
@@ -184,7 +178,7 @@ struct ThriftPathVisitor<
 
     if (begin == end) {
       try {
-        f(node, TC{});
+        f(node, Tag{});
         return ThriftTraverseResult::OK;
       } catch (const std::exception&) {
         return ThriftTraverseResult::VISITOR_EXCEPTION;
@@ -205,7 +199,7 @@ struct ThriftPathVisitor<
     }
 
     // Recurse at a given index
-    return ThriftPathVisitor<ValueTypeClass, Options>::visit(
+    return ThriftPathVisitor<ValueTag, Options>::visit(
         node.at(index.value()), begin, end, std::forward<Func>(f));
   }
 };
@@ -213,9 +207,9 @@ struct ThriftPathVisitor<
 /**
  * Map
  */
-template <typename KeyTypeClass, typename MappedTypeClass, typename Options>
+template <typename KeyTag, typename MappedTag, typename Options>
 struct ThriftPathVisitor<
-    apache::thrift::type_class::map<KeyTypeClass, MappedTypeClass>,
+    apache::thrift::type::map<KeyTag, MappedTag>,
     Options> {
   template <
       typename Node,
@@ -228,7 +222,7 @@ struct ThriftPathVisitor<
           void>>
   static ThriftTraverseResult
   visit(Node&& node, PathIter begin, PathIter end, Func&& f) {
-    using TC = apache::thrift::type_class::map<KeyTypeClass, MappedTypeClass>;
+    using Tag = apache::thrift::type::map<KeyTag, MappedTag>;
 
     static_assert(
         !(shouldCreateNodeIfMissing<Options> && isConst<Node>),
@@ -238,7 +232,7 @@ struct ThriftPathVisitor<
 
     if (begin == end) {
       try {
-        f(node, TC{});
+        f(node, Tag{});
         return ThriftTraverseResult::OK;
       } catch (const std::exception&) {
         return ThriftTraverseResult::VISITOR_EXCEPTION;
@@ -250,12 +244,11 @@ struct ThriftPathVisitor<
     auto token = *begin++;
     auto key = folly::tryTo<KeyT>(token);
     if (!key.hasValue()) {
-      if constexpr (std::is_same_v<
-                        KeyTypeClass,
-                        apache::thrift::type_class::enumeration>) {
+      if constexpr (apache::thrift::type::
+                        is_a_v<KeyTag, apache::thrift::type::enum_c>) {
         // special handling for enum keyed maps
         KeyT value;
-        if (fatal::enum_traits<KeyT>::try_parse(value, token)) {
+        if (apache::thrift::util::tryParseEnum(token, &value)) {
           key = value;
         } else {
           return ThriftTraverseResult::INVALID_MAP_KEY;
@@ -274,7 +267,7 @@ struct ThriftPathVisitor<
     }
 
     // Recurse further
-    return ThriftPathVisitor<MappedTypeClass, Options>::visit(
+    return ThriftPathVisitor<MappedTag, Options>::visit(
         node.at(*key), begin, end, std::forward<Func>(f));
   }
 };
@@ -282,8 +275,8 @@ struct ThriftPathVisitor<
 /**
  * Variant
  */
-template <typename Options>
-struct ThriftPathVisitor<apache::thrift::type_class::variant, Options> {
+template <typename T, typename Options>
+struct ThriftPathVisitor<apache::thrift::type::union_t<T>, Options> {
   template <
       typename Node,
       typename PathIter,
@@ -303,7 +296,7 @@ struct ThriftPathVisitor<apache::thrift::type_class::variant, Options> {
 
     if (begin == end) {
       try {
-        f(node, apache::thrift::type_class::variant{});
+        f(node, apache::thrift::type::union_t<T>{});
         return ThriftTraverseResult::OK;
       } catch (const std::exception&) {
         return ThriftTraverseResult::VISITOR_EXCEPTION;
@@ -313,39 +306,29 @@ struct ThriftPathVisitor<apache::thrift::type_class::variant, Options> {
     auto result = ThriftTraverseResult::INVALID_VARIANT_MEMBER;
 
     // Get key
-    auto key = *begin++;
+    const auto& key = *begin++;
 
-    using descriptors = typename apache::thrift::reflect_variant<
-        folly::remove_cvref_t<Node>>::traits::descriptors;
-    fatal::foreach<descriptors>([&](auto tag) {
-      using descriptor = decltype(fatal::tag_type(tag));
-
-      const std::string memberName(
-          fatal::z_data<typename descriptor::metadata::name>(),
-          fatal::size<typename descriptor::metadata::name>::value);
+    apache::thrift::op::for_each_field_id<T>([&]<class Id>(Id id) {
+      const auto memberName = apache::thrift::op::get_name_v<T, Id>;
 
       if (memberName != key) {
         return;
       }
 
-      if (node.getType() != descriptor::metadata::id::value) {
+      auto field = apache::thrift::op::get<Id>(std::forward<Node>(node));
+      if (static_cast<apache::thrift::FieldId>(node.getType()) != id) {
         if constexpr (!createNodeIfMissing) {
           result = ThriftTraverseResult::INCORRECT_VARIANT_MEMBER;
           return;
         } else {
           // switch union value to point at new path.
-          descriptor::set(node);
+          field.ensure();
         }
       }
 
-      result = ThriftPathVisitor<
-          typename descriptor::metadata::type_class,
-          Options>::
-          visit(
-              typename descriptor::getter()(node),
-              begin,
-              end,
-              std::forward<Func>(f));
+      result =
+          ThriftPathVisitor<apache::thrift::op::get_type_tag<T, Id>, Options>::
+              visit(*field, begin, end, std::forward<Func>(f));
     });
     return result;
   }
@@ -354,8 +337,8 @@ struct ThriftPathVisitor<apache::thrift::type_class::variant, Options> {
 /**
  * Structure
  */
-template <typename Options>
-struct ThriftPathVisitor<apache::thrift::type_class::structure, Options> {
+template <typename T, typename Options>
+struct ThriftPathVisitor<apache::thrift::type::struct_t<T>, Options> {
   template <
       typename Node,
       typename PathIter,
@@ -375,7 +358,7 @@ struct ThriftPathVisitor<apache::thrift::type_class::structure, Options> {
 
     if (begin == end) {
       try {
-        f(node, apache::thrift::type_class::structure{});
+        f(node, apache::thrift::type::struct_t<T>{});
         return ThriftTraverseResult::OK;
       } catch (const std::exception&) {
         return ThriftTraverseResult::VISITOR_EXCEPTION;
@@ -387,32 +370,28 @@ struct ThriftPathVisitor<apache::thrift::type_class::structure, Options> {
 
     // Perform linear search over all members for key
     ThriftTraverseResult result = ThriftTraverseResult::INVALID_STRUCT_MEMBER;
-    fatal::foreach<typename apache::thrift::reflect_struct<
-        folly::remove_cvref_t<Node>>::members>([&](auto indexed) mutable {
-      using member = decltype(fatal::tag_type(indexed));
-
+    apache::thrift::op::for_each_field_id<T>([&]<class Id>(Id) {
       // Look for the expected member name
-      const std::string memberName(
-          fatal::z_data<typename member::name>(),
-          fatal::size<typename member::name>::value);
+      const auto memberName = apache::thrift::op::get_name_v<T, Id>;
       if (memberName != key) {
         return;
       }
 
       // Check for optionality
-      if (member::optional::value == apache::thrift::optionality::optional &&
-          !member::is_set(node)) {
+      auto field = apache::thrift::op::get<Id>(std::forward<Node>(node));
+      if (apache::thrift::op::getValueOrNull(field) == nullptr) {
         if constexpr (!createNodeIfMissing) {
           result = ThriftTraverseResult::NON_EXISTENT_NODE;
           return;
         } else {
-          typename member::field_ref_getter{}(node) = {};
+          field.ensure();
         }
       }
 
       // Recurse further
-      result = ThriftPathVisitor<typename member::type_class, Options>::visit(
-          typename member::getter{}(node), begin, end, std::forward<Func>(f));
+      using Tag = apache::thrift::op::get_type_tag<T, Id>;
+      result = ThriftPathVisitor<Tag, Options>::visit(
+          *field, begin, end, std::forward<Func>(f));
     });
 
     return result;
@@ -420,18 +399,23 @@ struct ThriftPathVisitor<apache::thrift::type_class::structure, Options> {
 };
 
 /**
+ * Cpp.Type
+ */
+template <typename T, typename Tag, typename Options>
+struct ThriftPathVisitor<apache::thrift::type::cpp_type<T, Tag>, Options>
+    : public ThriftPathVisitor<Tag, Options> {};
+
+/**
  * Primitives - fallback specialization
  * - string / binary
  * - floating_point
  * - integral
  */
-template <typename TC, typename Options>
+template <typename Tag, typename Options>
 struct ThriftPathVisitor {
   static_assert(
-      !std::is_same<apache::thrift::type_class::unknown, TC>::value,
-      "No static reflection support for the given type. "
-      "Forgot to specify reflection option or include fatal header file? "
-      "Refer to thrift/lib/cpp2/reflection/reflection.h");
+      apache::thrift::type::is_a_v<Tag, apache::thrift::type::primitive_c>,
+      "expected primitive type");
 
   template <
       typename Node,
@@ -446,7 +430,7 @@ struct ThriftPathVisitor {
   visit(Node&& node, PathIter begin, PathIter end, Func&& f) {
     if (begin == end) {
       try {
-        f(node, TC{});
+        f(std::forward<Node>(node), Tag{});
         return ThriftTraverseResult::OK;
       } catch (const std::exception&) {
         return ThriftTraverseResult::VISITOR_EXCEPTION;
@@ -456,11 +440,12 @@ struct ThriftPathVisitor {
   }
 };
 
+template <typename Node>
 using RootThriftPathVisitor =
-    ThriftPathVisitor<apache::thrift::type_class::structure, void>;
+    ThriftPathVisitor<apache::thrift::type::struct_t<Node>, void>;
 
-template <typename Options>
+template <typename Node, typename Options>
 using RootThriftPathVisitorWithOptions =
-    ThriftPathVisitor<apache::thrift::type_class::structure, Options>;
+    ThriftPathVisitor<apache::thrift::type::struct_t<Node>, Options>;
 
 } // namespace facebook::fboss::fsdb
