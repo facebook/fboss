@@ -74,11 +74,6 @@ HwSwitchWarmBootHelper::~HwSwitchWarmBootHelper() {
   }
 }
 
-std::string HwSwitchWarmBootHelper::warmBootHwSwitchStateFile_DEPRECATED()
-    const {
-  return folly::to<std::string>(warmBootDir_, "/", FLAGS_switch_state_file);
-}
-
 std::string HwSwitchWarmBootHelper::warmBootHwSwitchStateFile() const {
   return folly::to<std::string>(
       warmBootDir_, "/", FLAGS_switch_state_file, "_", switchId_);
@@ -160,7 +155,6 @@ void HwSwitchWarmBootHelper::storeHwSwitchWarmBootState(
                   << file;
     }
   };
-  dumpStateToFileFn(warmBootHwSwitchStateFile_DEPRECATED(), switchState);
   dumpStateToFileFn(warmBootHwSwitchStateFile(), switchState);
   setCanWarmBoot();
 }
