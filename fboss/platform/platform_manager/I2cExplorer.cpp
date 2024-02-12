@@ -98,11 +98,12 @@ void I2cExplorer::createI2cDevice(
     }
     XLOG(ERR) << fmt::format(
         "Creation of i2c device {} ({}) at bus: {}, addr: {} failed. "
-        "Another device already present",
+        "Another device ({}) is already present",
         pmUnitScopedName,
         deviceName,
         busNum,
-        addr.hex2Str());
+        addr.hex2Str(),
+        existingDeviceName.value_or("READ_ERROR"));
     throw std::runtime_error("Creation of i2c device failed");
   }
   auto cmd = fmt::format(
