@@ -26,7 +26,7 @@ DEFINE_bool(
 
 DEFINE_bool(
     run_once,
-    false,
+    true,
     "Setup platform once and exit. If set to false, the program will explore "
     "the platform every explore_interval_s.");
 
