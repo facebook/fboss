@@ -31,4 +31,5 @@ struct AgentStats {
   17: map<string, phy.PhyStats> phyStats;
   18: map<i16, hardware_stats.HwFlowletStats> flowletStatsMap;
   19: i64 trappedPktsDropped;
+  20: i64 threadHeartBeatMiss;
 }
