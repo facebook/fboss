@@ -11,6 +11,7 @@
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/hw/test/HwTestAclUtils.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
@@ -39,20 +40,20 @@ BENCHMARK(RxSlowPathBenchmark) {
   constexpr int kEcmpWidth = 1;
   AgentEnsembleSwitchConfigFn initialConfigFn =
       [](const AgentEnsemble& ensemble) {
-        auto ports = ensemble.masterLogicalPortIds();
+        auto ports =
+            ensemble.masterLogicalPortIds({cfg::PortType::INTERFACE_PORT});
         CHECK_GE(ports.size(), 1);
-        auto portUsed = ports[0];
 
         // Before m-mpu agent test, use first Asic for initialization.
         auto switchIds = ensemble.getSw()->getHwAsicTable()->getSwitchIDs();
         CHECK_GE(switchIds.size(), 1);
         auto asic =
             ensemble.getSw()->getHwAsicTable()->getHwAsic(*switchIds.cbegin());
-        auto config = utility::oneL3IntfConfig(
-            ensemble.getSw()->getPlatformMapping(),
-            asic,
-            portUsed,
-            ensemble.getSw()->getPlatformSupportsAddRemovePort());
+        auto config =
+            utility::onePortPerInterfaceConfig(ensemble.getSw(), {ports[0]});
+        utility::addAclTableGroup(
+            &config, cfg::AclStage::INGRESS, utility::getAclTableGroupName());
+        utility::addDefaultAclTable(config);
         // We don't want to set queue rate that limits the number of rx pkts
         utility::addCpuQueueConfig(
             config,
@@ -67,7 +68,6 @@ BENCHMARK(RxSlowPathBenchmark) {
 
   // TODO(zecheng): Deprecate agent access to HwSwitch
   auto hwSwitch = ensemble->getHwSwitch();
-  auto config = initialConfigFn(*ensemble);
   // capture packet exiting port 0 (entering due to loopback)
   auto trapDstIp = folly::CIDRNetwork{kDstIp, 128};
   auto packetCapture = HwTestPacketTrapEntry(hwSwitch, trapDstIp);
@@ -82,14 +82,15 @@ BENCHMARK(RxSlowPathBenchmark) {
           ensemble->getSw(), ensemble->getSw()->getRib()),
       kEcmpWidth);
   // Disable TTL decrements
-  utility::disableTTLDecrements(
+  utility::ttlDecrementHandlingForLoopbackTraffic(
       hwSwitch, ecmpHelper.getRouterId(), ecmpHelper.getNextHops()[0]);
 
   const auto kSrcMac = folly::MacAddress{"fa:ce:b0:00:00:0c"};
   // Send packet
+  auto vlanId = utility::firstVlanID(ensemble->getProgrammedState());
   auto txPacket = utility::makeUDPTxPacket(
       hwSwitch,
-      VlanID(*config.vlanPorts()[0].vlanID()),
+      vlanId,
       kSrcMac,
       dstMac,
       folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),

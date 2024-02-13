@@ -268,6 +268,7 @@ target_link_libraries(hw_rx_slow_path_rate
   hw_packet_utils
   hw_qos_utils
   hw_copp_utils
+  hw_test_acl_utils
   ecmp_helper
   mono_agent_ensemble
   mono_agent_benchmarks
