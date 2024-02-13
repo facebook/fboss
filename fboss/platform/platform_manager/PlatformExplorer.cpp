@@ -438,8 +438,7 @@ void PlatformExplorer::createDeviceSymLink(
     } else if (linkParentPath.string() == "/run/devmap/fpgas") {
       targetPath = devicePathResolver_.resolvePciDevicePath(devicePath);
     } else if (linkParentPath.string() == "/run/devmap/i2c-busses") {
-      targetPath = std::filesystem::path(fmt::format(
-          "/dev/i2c-{}", dataStore_.getI2cBusNum(slotPath, deviceName)));
+      targetPath = devicePathResolver_.resolveI2cBusPath(devicePath);
     } else if (linkParentPath.string() == "/run/devmap/gpiochips") {
       targetPath = std::filesystem::path(fmt::format(
           "/dev/gpiochip{}", dataStore_.getGpioChipNum(slotPath, deviceName)));

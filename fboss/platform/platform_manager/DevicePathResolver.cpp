@@ -62,6 +62,13 @@ std::string DevicePathResolver::resolveEepromPath(
   return eepromPath;
 }
 
+std::string DevicePathResolver::resolveI2cBusPath(
+    const std::string& devicePath) {
+  const auto [slotPath, deviceName] = Utils().parseDevicePath(devicePath);
+  return fmt::format(
+      "/dev/i2c-{}", dataStore_.getI2cBusNum(slotPath, deviceName));
+}
+
 std::string DevicePathResolver::resolveI2cDevicePath(
     const std::string& devicePath) {
   const auto [slotPath, deviceName] = Utils().parseDevicePath(devicePath);

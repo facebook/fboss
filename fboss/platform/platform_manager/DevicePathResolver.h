@@ -25,6 +25,10 @@ class DevicePathResolver {
   // or fails to resolve to eeprom sysfs path.
   std::string resolveEepromPath(const std::string& devicePath);
 
+  // Resolves a given DevicePath to I2cBusPath in the system.
+  // Throws a runtime exception if the DevicePath cannot be resolved.
+  std::string resolveI2cBusPath(const std::string& devicePath);
+
   // Resolves a given DevicePath to i2c sysfs path in the system.
   // Throws a runtime exception if the DevicePath cannot be resolved.
   std::string resolveI2cDevicePath(const std::string& devicePath);
