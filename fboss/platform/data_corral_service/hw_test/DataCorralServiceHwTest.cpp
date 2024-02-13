@@ -82,17 +82,21 @@ TEST_F(DataCorralServiceHwTest, FruLEDProgrammingODSCheck) {
   for (const auto& [fruType, ledConfig] :
        *ledManagerConfig_.fruTypeLedConfigs()) {
     EXPECT_EQ(
-        facebook::fb303::fbData->getCounter(fmt::format(
-            "fru_presence_explorer.{}.presence_detection_fail", fruType)),
-        0);
+        facebook::fb303::fbData->getCounter(
+            fmt::format("fru_presence_explorer.{}.presence", fruType)),
+        1);
     EXPECT_EQ(
         facebook::fb303::fbData->getCounter(
-            fmt::format("fru_presence_explorer.{}.program_led_fail", fruType)),
+            fmt::format("led_manager.{}.program_led_fail", fruType)),
         0);
   }
   EXPECT_EQ(
       facebook::fb303::fbData->getCounter(
-          "fru_presence_explorer.system.program_led_fail"),
+          "fru_presence_explorer.SYSTEM.presence"),
+      1);
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(
+          "led_manager.SYSTEM.program_led_fail"),
       0);
 }
 

@@ -9,6 +9,11 @@
 
 #include "fboss/lib/CommonFileUtils.h"
 
+namespace {
+auto constexpr kFruPresence = "fru_presence_explorer.{}.presence";
+auto constexpr kSystem = "SYSTEM";
+} // namespace
+
 namespace facebook::fboss::platform::data_corral_service {
 
 FruPresenceExplorer::FruPresenceExplorer(
@@ -51,33 +56,12 @@ void FruPresenceExplorer::detectFruPresence() const {
   for (const auto& [fruType, presence] : fruTypePresence) {
     if (!presence) {
       allFrusPresent = false;
-      fb303::fbData->setCounter(
-          fmt::format(
-              "fru_presence_explorer.{}.presence_detection_fail", fruType),
-          1);
-    } else {
-      fb303::fbData->setCounter(
-          fmt::format(
-              "fru_presence_explorer.{}.presence_detection_fail", fruType),
-          0);
     }
-
-    if (!ledManager_->programFruLed(fruType, presence)) {
-      fb303::fbData->setCounter(
-          fmt::format("fru_presence_explorer.{}.program_led_fail", fruType), 1);
-    } else {
-      fb303::fbData->setCounter(
-          fmt::format("fru_presence_explorer.{}.program_led_fail", fruType), 0);
-    }
+    fb303::fbData->setCounter(fmt::format(kFruPresence, fruType), presence);
+    ledManager_->programFruLed(fruType, presence);
   }
-  bool systemLedProgramSuccess = ledManager_->programSystemLed(allFrusPresent);
-  if (!systemLedProgramSuccess) {
-    fb303::fbData->setCounter(
-        "fru_presence_explorer.system.program_led_fail", 1);
-  } else {
-    fb303::fbData->setCounter(
-        "fru_presence_explorer.system.program_led_fail", 0);
-  }
+  fb303::fbData->setCounter(fmt::format(kFruPresence, kSystem), allFrusPresent);
+  ledManager_->programSystemLed(allFrusPresent);
 }
 
 } // namespace facebook::fboss::platform::data_corral_service
