@@ -78,31 +78,6 @@ std::unique_ptr<facebook::fboss::TxPacket> makeLLDPPacket(
       capabilities);
 }
 
-void sendTcpPkts(
-    facebook::fboss::HwSwitch* hwSwitch,
-    int numPktsToSend,
-    std::optional<VlanID> vlanId,
-    folly::MacAddress dstMac,
-    const folly::IPAddress& dstIpAddress,
-    int l4SrcPort,
-    int l4DstPort,
-    PortID outPort,
-    uint8_t trafficClass,
-    std::optional<std::vector<uint8_t>> payload) {
-  for (int i = 0; i < numPktsToSend; i++) {
-    auto txPacket = utility::makeTCPTxPacket(
-        hwSwitch,
-        vlanId,
-        dstMac,
-        dstIpAddress,
-        l4SrcPort,
-        l4DstPort,
-        trafficClass,
-        payload);
-    hwSwitch->sendPacketOutOfPortSync(std::move(txPacket), outPort);
-  }
-}
-
 // parse the packet to evaluate if this is PTP packet or not
 bool isPtpEventPacket(folly::io::Cursor& cursor) {
   EthHdr ethHdr(cursor);

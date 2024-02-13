@@ -23,6 +23,7 @@
 
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/PktFactory.h"
+#include "fboss/agent/test/utils/PacketTestUtils.h"
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss {
@@ -54,18 +55,6 @@ std::unique_ptr<facebook::fboss::TxPacket> makeLLDPPacket(
     const std::string& portdesc,
     const uint16_t ttl,
     const uint16_t capabilities);
-
-void sendTcpPkts(
-    facebook::fboss::HwSwitch* hwSwitch,
-    int numPktsToSend,
-    std::optional<VlanID> vlanId,
-    folly::MacAddress dstMac,
-    const folly::IPAddress& dstIpAddress,
-    int l4SrcPort,
-    int l4DstPort,
-    PortID outPort,
-    uint8_t trafficClass = 0,
-    std::optional<std::vector<uint8_t>> payload = std::nullopt);
 
 bool isPtpEventPacket(folly::io::Cursor& cursor);
 uint8_t getIpHopLimit(folly::io::Cursor& cursor);
