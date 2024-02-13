@@ -181,6 +181,7 @@ add_library(hw_test_acl_utils
 )
 
 target_link_libraries(hw_test_acl_utils
+  agent_test_acl_utils
   hw_switch
   switch_asics
   state

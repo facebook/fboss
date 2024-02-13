@@ -11,6 +11,7 @@
 #pragma once
 
 #include "fboss/agent/HwSwitch.h"
+#include "fboss/agent/test/utils/AgentTestAclUtils.h"
 
 namespace facebook::fboss::utility {
 // TODO (skhare)
@@ -67,21 +68,6 @@ void checkAclStatDeleted(const HwSwitch* hwSwitch, const std::string& statName);
 
 void checkAclStatSize(const HwSwitch* hwSwitch, const std::string& statName);
 
-int getAclTableIndex(
-    cfg::SwitchConfig* cfg,
-    const std::optional<std::string>& tableName);
-
-cfg::AclEntry* addAclEntry(
-    cfg::SwitchConfig* cfg,
-    cfg::AclEntry& acl,
-    const std::optional<std::string>& tableName);
-
-cfg::AclEntry* addAcl(
-    cfg::SwitchConfig* cfg,
-    const std::string& aclName,
-    const cfg::AclActionType& aclActionType = cfg::AclActionType::PERMIT,
-    const std::optional<std::string>& tableName = std::nullopt);
-
 std::vector<cfg::AclEntry>& getAcls(
     cfg::SwitchConfig* cfg,
     const std::optional<std::string>& tableName);
@@ -98,7 +84,6 @@ void addAclTableGroup(
     cfg::AclStage aclStage,
     const std::string& aclTableGroupName = "AclTableGroup1");
 
-std::string kDefaultAclTable();
 void addDefaultAclTable(cfg::SwitchConfig& cfg);
 
 cfg::AclTable* addAclTable(
