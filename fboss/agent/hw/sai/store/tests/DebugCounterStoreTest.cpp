@@ -23,7 +23,7 @@ class DebugCounterStoreTest : public SaiStoreTest {
     return {
         SAI_DEBUG_COUNTER_TYPE_PORT_IN_DROP_REASONS,
         SAI_DEBUG_COUNTER_BIND_METHOD_AUTOMATIC,
-        SaiDebugCounterTraits::Attributes::InDropReasons{
+        SaiDebugCounterTraits::Attributes::DropReasons{
             {SAI_IN_DROP_REASON_BLACKHOLE_ROUTE}}};
   }
   DebugCounterSaiId createInDebugCounter() {
@@ -50,8 +50,8 @@ TEST_F(DebugCounterStoreTest, debugCounterLoadCtor) {
   auto debugCounterObj = createObj<SaiDebugCounterTraits>(debugCounterId);
   EXPECT_EQ(debugCounterObj.adapterKey(), debugCounterId);
   EXPECT_EQ(
-      GET_OPT_ATTR(DebugCounter, InDropReasons, debugCounterObj.attributes()),
-      SaiDebugCounterTraits::Attributes::InDropReasons{
+      GET_OPT_ATTR(DebugCounter, DropReasons, debugCounterObj.attributes()),
+      SaiDebugCounterTraits::Attributes::DropReasons{
           {SAI_IN_DROP_REASON_BLACKHOLE_ROUTE}}
           .value());
 }
@@ -61,10 +61,10 @@ TEST_F(DebugCounterStoreTest, debugCounterCreateCtor) {
   SaiDebugCounterTraits::AdapterHostKey adapterHostKey = attrs;
   auto obj = createObj<SaiDebugCounterTraits>(adapterHostKey, attrs, 0);
   auto outDropReasons = saiApiTable->debugCounterApi().getAttribute(
-      obj.adapterKey(), SaiDebugCounterTraits::Attributes::InDropReasons{});
+      obj.adapterKey(), SaiDebugCounterTraits::Attributes::DropReasons{});
   EXPECT_EQ(
       outDropReasons,
-      SaiDebugCounterTraits::Attributes::InDropReasons{
+      SaiDebugCounterTraits::Attributes::DropReasons{
           {SAI_IN_DROP_REASON_BLACKHOLE_ROUTE}}
           .value());
 }

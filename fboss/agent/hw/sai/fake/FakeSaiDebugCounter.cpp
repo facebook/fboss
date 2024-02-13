@@ -33,11 +33,11 @@ sai_status_t set_debug_counter_attribute_fn(
           static_cast<sai_debug_counter_bind_method_t>(attr->value.s32));
       break;
     case SAI_DEBUG_COUNTER_ATTR_IN_DROP_REASON_LIST: {
-      FakeDebugCounter::InDropReasons inDropReasons(attr->value.s32list.count);
+      FakeDebugCounter::DropReasons inDropReasons(attr->value.s32list.count);
       for (auto i = 0; i < attr->value.s32list.count; ++i) {
         inDropReasons[i] = attr->value.s32list.list[i];
       }
-      debugCounter.setInDropReasons(inDropReasons);
+      debugCounter.setDropReasons(inDropReasons);
     } break;
     case SAI_DEBUG_COUNTER_ATTR_OUT_DROP_REASON_LIST: {
       FakeDebugCounter::OutDropReasons outDropReasons(
@@ -71,7 +71,7 @@ sai_status_t get_debug_counter_attribute_fn(
         attr[i].value.u32 = debugCounter.getIndex();
         break;
       case SAI_DEBUG_COUNTER_ATTR_IN_DROP_REASON_LIST: {
-        const auto& inDropReasons = debugCounter.getInDropReasons();
+        const auto& inDropReasons = debugCounter.getDropReasons();
         if (inDropReasons.size() > attr[i].value.s32list.count) {
           attr[i].value.s32list.count = inDropReasons.size();
           return SAI_STATUS_BUFFER_OVERFLOW;
