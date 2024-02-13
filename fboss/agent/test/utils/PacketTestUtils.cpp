@@ -8,7 +8,7 @@
  *
  */
 
-#include "fboss/agent/test/agent_hw_tests/AgentTestPacketUtils.h"
+#include "fboss/agent/test/utils/PacketTestUtils.h"
 
 #include "fboss/agent/LldpManager.h"
 #include "fboss/agent/SwSwitch.h"

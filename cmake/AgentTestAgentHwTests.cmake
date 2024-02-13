@@ -8,7 +8,6 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentAclInDiscardCounterTests.cpp
   fboss/agent/test/agent_hw_tests/AgentInNullRouteDiscardsTest.cpp
   fboss/agent/test/agent_hw_tests/AgentPacketSendTests.cpp
-  fboss/agent/test/agent_hw_tests/AgentTestPacketUtils.cpp
   fboss/agent/test/agent_hw_tests/AgentVoqSwitchTests.cpp
   fboss/agent/test/agent_hw_tests/AgentFabricSwitchTests.cpp
 )
@@ -16,6 +15,7 @@ add_library(agent_hw_test_src
 target_link_libraries(agent_hw_test_src
   agent_test_acl_utils
   agent_test_copp_utils
+  agent_test_pkt_utils
   core
   hw_switch_fb303_stats
   config_factory
