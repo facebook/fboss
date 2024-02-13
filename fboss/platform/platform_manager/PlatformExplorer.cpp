@@ -424,12 +424,6 @@ void PlatformExplorer::createDeviceSymLink(
   auto pmUnitName = dataStore_.getPmUnitName(slotPath);
   auto pmUnitConfig = platformConfig_.pmUnitConfigs()->at(pmUnitName);
 
-  auto i2cDeviceConfig = std::find_if(
-      pmUnitConfig.i2cDeviceConfigs()->begin(),
-      pmUnitConfig.i2cDeviceConfigs()->end(),
-      [deviceNameCopy = deviceName](auto i2cDeviceConfig) {
-        return *i2cDeviceConfig.pmUnitScopedName() == deviceNameCopy;
-      });
   auto pciDeviceConfig = std::find_if(
       pmUnitConfig.pciDeviceConfigs()->begin(),
       pmUnitConfig.pciDeviceConfigs()->end(),
@@ -444,29 +438,11 @@ void PlatformExplorer::createDeviceSymLink(
     } else if (linkParentPath.string() == "/run/devmap/sensors") {
       targetPath = devicePathResolver_.resolveSensorPath(devicePath);
     } else if (linkParentPath.string() == "/run/devmap/cplds") {
-      if (i2cDeviceConfig != pmUnitConfig.i2cDeviceConfigs()->end()) {
-        auto busNum =
-            dataStore_.getI2cBusNum(slotPath, *i2cDeviceConfig->busName());
-        auto i2cAddr = I2cAddr(*i2cDeviceConfig->address());
-        if (!i2cExplorer_.isI2cDevicePresent(busNum, i2cAddr)) {
-          XLOG(ERR) << fmt::format(
-              "{} is not plugged-in to the platform", deviceName);
-          return;
-        }
-        targetPath = std::filesystem::path(
-            i2cExplorer_.getDeviceI2cPath(busNum, i2cAddr));
-      } else if (pciDeviceConfig != pmUnitConfig.pciDeviceConfigs()->end()) {
-        auto pciDevice = PciDevice(
-            *pciDeviceConfig->pmUnitScopedName(),
-            *pciDeviceConfig->vendorId(),
-            *pciDeviceConfig->deviceId(),
-            *pciDeviceConfig->subSystemVendorId(),
-            *pciDeviceConfig->subSystemDeviceId());
-        targetPath = std::filesystem::path(pciDevice.sysfsPath());
+      if (auto i2cDevicePath =
+              devicePathResolver_.tryResolveI2cDevicePath(devicePath)) {
+        targetPath = *i2cDevicePath;
       } else {
-        XLOG(ERR) << fmt::format(
-            "Couldn't resolve target path for ({})", deviceName);
-        return;
+        targetPath = devicePathResolver_.resolvePciDevicePath(devicePath);
       }
     } else if (linkParentPath.string() == "/run/devmap/fpgas") {
       // Check if sysfs path is stored in DataStore (e.g info-rom)

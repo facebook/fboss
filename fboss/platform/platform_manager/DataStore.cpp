@@ -82,7 +82,7 @@ bool DataStore::hasPmUnit(const std::string& slotPath) const {
   return slotPathToPmUnitName_.find(slotPath) != slotPathToPmUnitName_.end();
 }
 
-std::string DataStore::getSysfsPath(const std::string& devicePath) {
+std::string DataStore::getSysfsPath(const std::string& devicePath) const {
   auto itr = pciSubDevicePathToSysfsPath_.find(devicePath);
   if (itr != pciSubDevicePathToSysfsPath_.end()) {
     return itr->second;

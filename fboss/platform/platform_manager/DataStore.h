@@ -50,7 +50,7 @@ class DataStore {
   bool hasPmUnit(const std::string& slotPath) const;
 
   // Get SysfsPath for a given PciSubDevicePath
-  std::string getSysfsPath(const std::string& devicePath);
+  std::string getSysfsPath(const std::string& devicePath) const;
 
   // Update SysfsPath for a given PciSubDevicePath
   void updateSysfsPath(

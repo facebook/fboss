@@ -83,6 +83,42 @@ std::string DevicePathResolver::resolveI2cDevicePath(
   return i2cExplorer_.getDeviceI2cPath(busNum, *i2cAddr);
 }
 
+std::optional<std::string> DevicePathResolver::tryResolveI2cDevicePath(
+    const std::string& devicePath) {
+  try {
+    return resolveI2cDevicePath(devicePath);
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << fmt::format(
+        "Failed to resolve I2cDevicePath from {}. Reason: {}",
+        devicePath,
+        ex.what());
+  }
+  return std::nullopt;
+}
+
+std::string DevicePathResolver::resolvePciDevicePath(
+    const std::string& devicePath) {
+  // Check if sysfs path is stored in DataStore (e.g info-rom)
+  // Otherwise, try to construct PciDevice sysfs path via config.
+  // TODO: rely on dataStore_ as part of efforts in D52785459
+  if (dataStore_.hasSysfsPath(devicePath)) {
+    return dataStore_.getSysfsPath(devicePath);
+  }
+  const auto [slotPath, deviceName] = Utils().parseDevicePath(devicePath);
+  auto pciDeviceConfig = getPciDeviceConfig(slotPath, deviceName);
+  auto pciDevice = PciDevice(
+      *pciDeviceConfig.pmUnitScopedName(),
+      *pciDeviceConfig.vendorId(),
+      *pciDeviceConfig.deviceId(),
+      *pciDeviceConfig.subSystemVendorId(),
+      *pciDeviceConfig.subSystemDeviceId());
+  if (!fs::exists(pciDevice.sysfsPath())) {
+    throw std::runtime_error(
+        fmt::format("{} is not plugged-in to the platform", deviceName));
+  }
+  return pciDevice.sysfsPath();
+}
+
 std::optional<std::string> DevicePathResolver::resolvePresencePath(
     const std::string& devicePath,
     const std::string& presenceFileName) {
@@ -175,4 +211,22 @@ IdpromConfig DevicePathResolver::getIdpromConfig(const std::string& slotPath) {
         fmt::format("Couldn't find idprom config at {}", slotPath));
   }
   return *idpromConfig;
+}
+
+PciDeviceConfig DevicePathResolver::getPciDeviceConfig(
+    const std::string& slotPath,
+    const std::string& deviceName) {
+  auto pmUnitName = dataStore_.getPmUnitName(slotPath);
+  auto pmUnitConfig = platformConfig_.pmUnitConfigs()->at(pmUnitName);
+  auto pciDeviceConfig = std::find_if(
+      pmUnitConfig.pciDeviceConfigs()->begin(),
+      pmUnitConfig.pciDeviceConfigs()->end(),
+      [&](auto pciDeviceConfig) {
+        return *pciDeviceConfig.pmUnitScopedName() == deviceName;
+      });
+  if (pciDeviceConfig == pmUnitConfig.pciDeviceConfigs()->end()) {
+    throw std::runtime_error(fmt::format(
+        "Couldn't find PciDeviceConfig for {} at {}", deviceName, slotPath));
+  }
+  return *pciDeviceConfig;
 }
