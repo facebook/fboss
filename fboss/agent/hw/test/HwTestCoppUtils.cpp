@@ -19,7 +19,7 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 
-#include "fboss/agent/test/utils/AgentTestCoppUtils.h"
+#include "fboss/agent/test/utils/CoppTestUtils.h"
 
 DECLARE_bool(enable_acl_table_group);
 

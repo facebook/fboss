@@ -8,7 +8,7 @@
  *
  */
 
-#include "fboss/agent/test/utils/AgentTestAclUtils.h"
+#include "fboss/agent/test/utils/AclTestUtils.h"
 #include <memory>
 
 #include "fboss/agent/FbossError.h"

@@ -11,7 +11,7 @@
 #pragma once
 
 #include "fboss/agent/HwSwitch.h"
-#include "fboss/agent/test/utils/AgentTestAclUtils.h"
+#include "fboss/agent/test/utils/AclTestUtils.h"
 
 namespace facebook::fboss::utility {
 // TODO (skhare)

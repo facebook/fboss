@@ -4,7 +4,7 @@
 # cmake/FooBar.cmake
 
 add_library(agent_test_acl_utils
-  fboss/agent/test/utils/AgentTestAclUtils.cpp
+  fboss/agent/test/utils/AclTestUtils.cpp
 )
 
 target_link_libraries(agent_test_acl_utils
@@ -14,7 +14,7 @@ target_link_libraries(agent_test_acl_utils
 )
 
 add_library(agent_test_copp_utils
-  fboss/agent/test/utils/AgentTestCoppUtils.cpp
+  fboss/agent/test/utils/CoppTestUtils.cpp
 )
 
 target_link_libraries(agent_test_copp_utils
