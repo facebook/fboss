@@ -35,7 +35,7 @@ class AgentAclInDiscardsCounterTest : public AgentHwTest {
 };
 
 TEST_F(AgentAclInDiscardsCounterTest, aclInDiscards) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     utility::EcmpSetupAnyNPorts6 ecmpHelper6(getSw()->getState());
     auto wrapper = getSw()->getRouteUpdater();
     ecmpHelper6.programRoutes(&wrapper, 1);
