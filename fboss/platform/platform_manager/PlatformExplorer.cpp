@@ -17,7 +17,6 @@
 
 namespace {
 constexpr auto kRootSlotPath = "/";
-constexpr auto kIdprom = "IDPROM";
 const re2::RE2 kValidHwmonDirNameRe{"hwmon\\d+"};
 const re2::RE2 kGpioChipNameRe{"gpiochip\\d+"};
 const re2::RE2 kIioDeviceRe{"iio:device\\d+"};
@@ -426,9 +425,6 @@ void PlatformExplorer::createDeviceSymLink(
   auto pmUnitName = dataStore_.getPmUnitName(slotPath);
   auto pmUnitConfig = platformConfig_.pmUnitConfigs()->at(pmUnitName);
 
-  auto idpromConfig = platformConfig_.slotTypeConfigs()
-                          ->at(*pmUnitConfig.pluggedInSlotType())
-                          .idpromConfig();
   auto i2cDeviceConfig = std::find_if(
       pmUnitConfig.i2cDeviceConfigs()->begin(),
       pmUnitConfig.i2cDeviceConfigs()->end(),
@@ -444,28 +440,7 @@ void PlatformExplorer::createDeviceSymLink(
 
   std::optional<std::filesystem::path> targetPath = std::nullopt;
   if (linkParentPath.string() == "/run/devmap/eeproms") {
-    if (deviceName == kIdprom) {
-      CHECK(idpromConfig);
-      targetPath = std::filesystem::path(i2cExplorer_.getDeviceI2cPath(
-          dataStore_.getI2cBusNum(slotPath, *idpromConfig->busName()),
-          I2cAddr(*idpromConfig->address())));
-    } else {
-      if (i2cDeviceConfig == pmUnitConfig.i2cDeviceConfigs()->end()) {
-        XLOG(ERR) << fmt::format(
-            "Couldn't find i2c device config for ({})", deviceName);
-      }
-      auto busNum =
-          dataStore_.getI2cBusNum(slotPath, *i2cDeviceConfig->busName());
-      auto i2cAddr = I2cAddr(*i2cDeviceConfig->address());
-      if (!i2cExplorer_.isI2cDevicePresent(busNum, i2cAddr)) {
-        XLOG(ERR) << fmt::format(
-            "{} is not plugged-in to the platform", deviceName);
-        return;
-      }
-      targetPath =
-          std::filesystem::path(i2cExplorer_.getDeviceI2cPath(busNum, i2cAddr));
-    }
-    targetPath = *targetPath / "eeprom";
+    targetPath = devicePathResolver_.resolveEepromPath(devicePath);
   } else if (linkParentPath.string() == "/run/devmap/sensors") {
     if (i2cDeviceConfig == pmUnitConfig.i2cDeviceConfigs()->end()) {
       XLOG(ERR) << fmt::format(

@@ -1,11 +1,13 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/platform/platform_manager/DevicePathResolver.h"
+#include <stdexcept>
 
 #include "fboss/platform/platform_manager/PciExplorer.h"
 #include "fboss/platform/platform_manager/Utils.h"
 
 using namespace facebook::fboss::platform::platform_manager;
+namespace fs = std::filesystem;
 
 namespace {
 constexpr auto kIdprom = "IDPROM";
@@ -19,6 +21,19 @@ DevicePathResolver::DevicePathResolver(
     : platformConfig_(config),
       dataStore_(dataStore),
       i2cExplorer_(i2cExplorer) {}
+
+std::string DevicePathResolver::resolveEepromPath(
+    const std::string& devicePath) {
+  auto i2cDevicPath = resolveI2cDevicePath(devicePath);
+  auto eepromPath = i2cDevicPath + "/eeprom";
+  if (!fs::exists(eepromPath)) {
+    throw std::runtime_error(fmt::format(
+        "Fail to resolve EepromPath for {} - {} doesn't exist",
+        devicePath,
+        eepromPath));
+  }
+  return eepromPath;
+}
 
 std::string DevicePathResolver::resolveI2cDevicePath(
     const std::string& devicePath) {
