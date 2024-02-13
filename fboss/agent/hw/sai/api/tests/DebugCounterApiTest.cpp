@@ -32,13 +32,13 @@ class DebugCounterApiTest : public ::testing::Test {
     EXPECT_EQ(
         type,
         debugCounterApi->getAttribute(
-            id, SaiDebugCounterTraits::Attributes::Type{}));
+            id, SaiInPortDebugCounterTraits::Attributes::Type{}));
     EXPECT_EQ(
         SAI_DEBUG_COUNTER_BIND_METHOD_AUTOMATIC,
         debugCounterApi->getAttribute(
-            id, SaiDebugCounterTraits::Attributes::BindMethod{}));
+            id, SaiInPortDebugCounterTraits::Attributes::BindMethod{}));
     auto inDropReasons = debugCounterApi->getAttribute(
-        id, SaiDebugCounterTraits::Attributes::DropReasons{});
+        id, SaiInPortDebugCounterTraits::Attributes::DropReasons{});
     EXPECT_EQ(inDropReasons.size(), inSize);
   }
   std::shared_ptr<FakeSai> fs;
@@ -46,21 +46,22 @@ class DebugCounterApiTest : public ::testing::Test {
 };
 
 TEST_F(DebugCounterApiTest, portInDebugCounterEmptyReasons) {
-  auto debugCounterId = debugCounterApi->create<SaiDebugCounterTraits>(
-      SaiDebugCounterTraits::CreateAttributes{
+  auto debugCounterId = debugCounterApi->create<SaiInPortDebugCounterTraits>(
+      SaiInPortDebugCounterTraits::CreateAttributes{
           SAI_DEBUG_COUNTER_TYPE_PORT_IN_DROP_REASONS,
           SAI_DEBUG_COUNTER_BIND_METHOD_AUTOMATIC,
-          std::optional<SaiDebugCounterTraits::Attributes::DropReasons>{}},
+          std::optional<
+              SaiInPortDebugCounterTraits::Attributes::DropReasons>{}},
       0);
   checkCounter(debugCounterId, SAI_DEBUG_COUNTER_TYPE_PORT_IN_DROP_REASONS, 0);
 }
 
 TEST_F(DebugCounterApiTest, portInDebugCounter) {
-  auto debugCounterId = debugCounterApi->create<SaiDebugCounterTraits>(
-      SaiDebugCounterTraits::CreateAttributes{
+  auto debugCounterId = debugCounterApi->create<SaiInPortDebugCounterTraits>(
+      SaiInPortDebugCounterTraits::CreateAttributes{
           SAI_DEBUG_COUNTER_TYPE_PORT_IN_DROP_REASONS,
           SAI_DEBUG_COUNTER_BIND_METHOD_AUTOMATIC,
-          SaiDebugCounterTraits::Attributes::DropReasons{
+          SaiInPortDebugCounterTraits::Attributes::DropReasons{
               {SAI_IN_DROP_REASON_BLACKHOLE_ROUTE}}},
       0);
   checkCounter(debugCounterId, SAI_DEBUG_COUNTER_TYPE_PORT_IN_DROP_REASONS, 1);

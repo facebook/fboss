@@ -86,6 +86,44 @@ struct SaiDebugCounterTraits {
   static std::optional<sai_int32_t> trapDrops();
 };
 
+template <sai_debug_counter_type_t type>
+struct SaiDebugCounterTraitsT {
+  static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_DEBUG_COUNTER;
+  using SaiApiT = DebugCounterApi;
+  struct Attributes {
+    using EnumType = sai_debug_counter_attr_t;
+    using Index =
+        SaiAttribute<EnumType, SAI_DEBUG_COUNTER_ATTR_INDEX, sai_uint32_t>;
+    using Type =
+        SaiAttribute<EnumType, SAI_DEBUG_COUNTER_ATTR_TYPE, sai_int32_t>;
+    using BindMethod =
+        SaiAttribute<EnumType, SAI_DEBUG_COUNTER_ATTR_BIND_METHOD, sai_int32_t>;
+    using DropReasons =
+        typename detail::DebugCounterAttributeTypes<type>::DropReasons;
+  };
+  using AdapterKey = DebugCounterSaiId;
+  using CreateAttributes = std::tuple<
+      typename Attributes::Type,
+      typename Attributes::BindMethod,
+      std::optional<typename Attributes::DropReasons>>;
+  using AdapterHostKey = CreateAttributes;
+  static std::optional<sai_int32_t> trapDrops();
+  using ConditionAttributes = std::tuple<typename Attributes::Type>;
+  inline const static ConditionAttributes kConditionAttributes{type};
+};
+
+using SaiInPortDebugCounterTraits =
+    SaiDebugCounterTraitsT<SAI_DEBUG_COUNTER_TYPE_PORT_IN_DROP_REASONS>;
+using SaiOutPortDebugCounterTraits =
+    SaiDebugCounterTraitsT<SAI_DEBUG_COUNTER_TYPE_PORT_OUT_DROP_REASONS>;
+
+template <>
+struct SaiObjectHasConditionalAttributes<SaiInPortDebugCounterTraits>
+    : public std::true_type {};
+template <>
+struct SaiObjectHasConditionalAttributes<SaiOutPortDebugCounterTraits>
+    : public std::true_type {};
+
 SAI_ATTRIBUTE_NAME(DebugCounter, Index)
 SAI_ATTRIBUTE_NAME(DebugCounter, Type)
 SAI_ATTRIBUTE_NAME(DebugCounter, BindMethod)
