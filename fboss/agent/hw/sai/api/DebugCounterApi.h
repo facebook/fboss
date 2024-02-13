@@ -28,6 +28,39 @@ namespace facebook::fboss {
 
 class DebugCounterApi;
 
+namespace detail {
+template <sai_debug_counter_type_t>
+struct DebugCounterAttributeTypes;
+
+using _InDropReasons = SaiAttribute<
+    sai_debug_counter_attr_t,
+    SAI_DEBUG_COUNTER_ATTR_IN_DROP_REASON_LIST,
+    std::vector<int32_t>>;
+template <>
+struct DebugCounterAttributeTypes<SAI_DEBUG_COUNTER_TYPE_PORT_IN_DROP_REASONS> {
+  using DropReasons = _InDropReasons;
+};
+template <>
+struct DebugCounterAttributeTypes<
+    SAI_DEBUG_COUNTER_TYPE_SWITCH_IN_DROP_REASONS> {
+  using DropReasons = _InDropReasons;
+};
+
+using _OutDropReasons = SaiAttribute<
+    sai_debug_counter_attr_t,
+    SAI_DEBUG_COUNTER_ATTR_IN_DROP_REASON_LIST,
+    std::vector<int32_t>>;
+template <>
+struct DebugCounterAttributeTypes<
+    SAI_DEBUG_COUNTER_TYPE_PORT_OUT_DROP_REASONS> {
+  using DropReasons = _OutDropReasons;
+};
+template <>
+struct DebugCounterAttributeTypes<
+    SAI_DEBUG_COUNTER_TYPE_SWITCH_OUT_DROP_REASONS> {
+  using DropReasons = _OutDropReasons;
+};
+} // namespace detail
 struct SaiDebugCounterTraits {
   static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_DEBUG_COUNTER;
   using SaiApiT = DebugCounterApi;
