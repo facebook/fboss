@@ -23,6 +23,7 @@
 #include <folly/MacAddress.h>
 
 #include <memory>
+#include <string>
 
 DECLARE_bool(sai_user_defined_trap);
 
@@ -274,6 +275,23 @@ class SaiAclTableManager {
   SaiAclTableHandles handles_;
 
   HwFb303Stats aclStats_;
+  /*
+   * 1. During an acl addition, we add an acl counter and the corresponding
+   * fb303 counter.
+   * 2. During acl deletion, we remove acl counter and the corresponding fb303
+   * counter.
+   * If the old acls list is A->B->C and the new one is A->C, then as
+   * a part of the delta processing, we process the second node as a changed
+   * AclEntry (where B is removed and C is added) and the third node as a
+   * removed AclEntry (Where C gets removed). This causes the counters for
+   * AclEntry C to be added during processing of the second node and
+   * subsequently removed during the third node processing. To avoid this, keep
+   * a ref count for acl counters. During delta processing, add and remove only
+   * the entries which have count as 1 and 0 respectively.
+   * NOTE: https://fburl.com/gdoc/96rz0n7q contains details of the
+   * issue
+   */
+  folly::F14FastMap<std::string, int> aclCounterRefMap;
 
   const sai_uint32_t aclEntryMinimumPriority_;
   const sai_uint32_t aclEntryMaximumPriority_;

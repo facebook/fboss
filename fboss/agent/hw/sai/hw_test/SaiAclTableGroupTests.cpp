@@ -27,6 +27,9 @@ using namespace facebook::fboss;
 
 namespace {
 
+const std::int16_t kMaxDefaultAcls = 5;
+const std::int16_t kMaxAclTables = 2;
+
 bool isAclTableGroupEnabled(
     const HwSwitch* hwSwitch,
     sai_acl_stage_t aclStage) {
@@ -70,7 +73,8 @@ class SaiAclTableGroupTest : public HwTest {
     std::vector<cfg::AclTableQualifier> qualifiers = {
         cfg::AclTableQualifier::DSCP};
     std::vector<cfg::AclTableActionType> actions = {
-        cfg::AclTableActionType::PACKET_ACTION};
+        cfg::AclTableActionType::PACKET_ACTION,
+        cfg::AclTableActionType::COUNTER};
 #if defined(TAJO_SDK_GTE_1_65_0)
     qualifiers.push_back(cfg::AclTableQualifier::TTL);
     actions.push_back(cfg::AclTableActionType::COUNTER);
@@ -88,7 +92,7 @@ class SaiAclTableGroupTest : public HwTest {
         2 /* priority */,
         {cfg::AclTableActionType::PACKET_ACTION,
          cfg::AclTableActionType::COUNTER},
-        {cfg::AclTableQualifier::TTL});
+        {cfg::AclTableQualifier::TTL, cfg::AclTableQualifier::DSCP});
   }
 
   void addAclTable1Entry1(
@@ -329,6 +333,34 @@ class SaiAclTableGroupTest : public HwTest {
         kTable2CounterAcl2(),
         kTable2Counter2Name(),
         4);
+  }
+
+  void addDefaultCounterAclsToTable(cfg::SwitchConfig& cfg, bool reverse) {
+    for (int table = 1; table <= kMaxAclTables; table++) {
+      for (int num = 1; num <= kMaxDefaultAcls; num++) {
+        auto aclNum = num;
+        if (reverse) {
+          // Need to reverse the order of acls
+          aclNum = (kMaxDefaultAcls + 1) - num;
+        }
+        auto tableName = folly::to<std::string>("table", table);
+        auto aclEntryName =
+            folly::to<std::string>(tableName, "_counter_acl", aclNum);
+        auto counterName =
+            folly::to<std::string>(tableName, "_counter", aclNum);
+        addCounterAclToAclTable(
+            &cfg, tableName, aclEntryName, counterName, aclNum);
+      }
+    }
+    applyNewConfig(cfg);
+  }
+  void verifyAclStatCount(
+      const std::string& aclTableName,
+      int aclCount,
+      int statCount,
+      int counterCount) {
+    utility::checkAclEntryAndStatCount(
+        getHwSwitch(), aclCount, statCount, counterCount, aclTableName);
   }
 
   /*
@@ -730,6 +762,49 @@ TEST_F(SaiAclTableGroupTest, TestAclTableGroupRoundtrip) {
   };
 
   verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(SaiAclTableGroupTest, RepositionAclEntriesPostWarmboot) {
+  ASSERT_TRUE(isSupported());
+
+  auto setup = [this]() {
+    auto newCfg = initialConfig();
+
+    utility::addAclTableGroup(&newCfg, kAclStage(), "Ingress Table Group");
+    addAclTable1(newCfg);
+    addAclTable2(newCfg);
+    addDefaultCounterAclsToTable(newCfg, false);
+  };
+
+  auto verify = [=, this]() {
+    verifyAclStatCount(
+        kAclTable1(),
+        /*ACLs*/ kMaxDefaultAcls,
+        /*stats*/ kMaxDefaultAcls,
+        /*counters*/ kMaxDefaultAcls);
+    verifyAclStatCount(
+        kAclTable2(), kMaxDefaultAcls, kMaxDefaultAcls, kMaxDefaultAcls);
+  };
+
+  auto setupPostWarmboot = [=, this]() {
+    auto newCfg = initialConfig();
+
+    utility::addAclTableGroup(&newCfg, kAclStage(), "Ingress Table Group");
+    addAclTable1(newCfg);
+    addAclTable2(newCfg);
+    addDefaultCounterAclsToTable(newCfg, true);
+  };
+
+  auto verifyPostWarmboot = [=, this]() {
+    verifyAclStatCount(
+        kAclTable1(),
+        /*ACLs*/ kMaxDefaultAcls,
+        /*stats*/ kMaxDefaultAcls,
+        /*counters*/ kMaxDefaultAcls);
+    verifyAclStatCount(
+        kAclTable2(), kMaxDefaultAcls, kMaxDefaultAcls, kMaxDefaultAcls);
+  };
+  verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
 }
 
 /*
