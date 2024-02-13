@@ -1,6 +1,8 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/platform/platform_manager/DevicePathResolver.h"
+
+#include <filesystem>
 #include <stdexcept>
 
 #include "fboss/platform/platform_manager/PciExplorer.h"
@@ -11,7 +13,8 @@ namespace fs = std::filesystem;
 
 namespace {
 constexpr auto kIdprom = "IDPROM";
-const re2::RE2 kValidHwmonDirName{"hwmon[0-9]+"};
+const re2::RE2 kHwmonRe{"hwmon\\d+"};
+const re2::RE2 kIioDeviceRe{"iio:device\\d+"};
 } // namespace
 
 DevicePathResolver::DevicePathResolver(
@@ -21,6 +24,30 @@ DevicePathResolver::DevicePathResolver(
     : platformConfig_(config),
       dataStore_(dataStore),
       i2cExplorer_(i2cExplorer) {}
+
+std::string DevicePathResolver::resolveSensorPath(
+    const std::string& devicePath) {
+  auto i2cDevicePath = resolveI2cDevicePath(devicePath);
+  if (fs::exists(fmt::format("{}/hwmon", i2cDevicePath))) {
+    i2cDevicePath = fmt::format("{}/hwmon", i2cDevicePath);
+  }
+  std::string sensorPath;
+  for (const auto& dirEntry : fs::directory_iterator(i2cDevicePath)) {
+    auto dirName = dirEntry.path().filename();
+    if (re2::RE2::FullMatch(dirName.string(), kHwmonRe) ||
+        re2::RE2::FullMatch(dirName.string(), kIioDeviceRe)) {
+      sensorPath = dirEntry.path();
+      break;
+    }
+  }
+  if (sensorPath.empty()) {
+    throw std::runtime_error(fmt::format(
+        "Couldn't find hwmon[num] nor iio:device[num] folder under {} for {}",
+        i2cDevicePath,
+        devicePath));
+  }
+  return sensorPath;
+}
 
 std::string DevicePathResolver::resolveEepromPath(
     const std::string& devicePath) {
@@ -88,7 +115,7 @@ std::optional<std::string> DevicePathResolver::resolvePresencePath(
     for (const auto& dirEntry :
          std::filesystem::directory_iterator(targetPath)) {
       auto dirName = dirEntry.path().filename();
-      if (re2::RE2::FullMatch(dirName.string(), kValidHwmonDirName)) {
+      if (re2::RE2::FullMatch(dirName.string(), kHwmonRe)) {
         hwmonSubDir = dirName.string();
         break;
       }

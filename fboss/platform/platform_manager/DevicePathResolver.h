@@ -15,6 +15,11 @@ class DevicePathResolver {
       const DataStore& dataStore,
       const I2cExplorer& i2cExplorer);
 
+  // Resolves a given DevicePath to the sensor sysfs path in the system.
+  // Throws a runtime exception if devicePath fails to resolve to I2cDevicePath
+  // or fails to resolve to sensor sysfs path.
+  std::string resolveSensorPath(const std::string& devicePath);
+
   // Resolves a given DevicePath to the eeprom sysfs path in the system.
   // Throws a runtime exception if devicePath fails to resolve to I2cDevicePath
   // or fails to resolve to eeprom sysfs path.
