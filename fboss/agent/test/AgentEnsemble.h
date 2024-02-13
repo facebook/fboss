@@ -168,7 +168,7 @@ class AgentEnsemble : public TestEnsembleIf {
   }
 
   FabricReachabilityStats getFabricReachabilityStats() const override {
-    return getSw()->getHwSwitchHandler()->getFabricReachabilityStats();
+    return getSw()->getFabricReachabilityStats();
   }
 
   void updateStats() override {
