@@ -18,4 +18,11 @@ add_library(agent_test_copp_utils
 )
 
 target_link_libraries(agent_test_copp_utils
+  switch_asics
+  packet_factory
+  Folly::folly
+  resourcelibutil
+  switch_config_cpp2
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
 )

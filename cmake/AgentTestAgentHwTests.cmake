@@ -15,6 +15,7 @@ add_library(agent_hw_test_src
 
 target_link_libraries(agent_hw_test_src
   agent_test_acl_utils
+  agent_test_copp_utils
   core
   hw_switch_fb303_stats
   config_factory

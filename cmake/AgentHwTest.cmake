@@ -65,6 +65,7 @@ add_library(hw_copp_utils
 )
 
 target_link_libraries(hw_copp_utils
+  agent_test_acl_utils
   switch_asics
   packet_factory
   Folly::folly
@@ -365,6 +366,8 @@ add_library(hw_switch_test
 target_link_libraries(hw_switch_test
   config_factory
   agent_test_utils
+  agent_test_acl_utils
+  agent_test_copp_utils
   hw_packet_utils
   hw_switch_ensemble
   hw_voq_utils
