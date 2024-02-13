@@ -33,6 +33,7 @@
 #include "folly/Utility.h"
 
 #include <folly/IPAddress.h>
+#include <folly/MacAddress.h>
 #include <folly/container/Array.h>
 
 #include <gtest/gtest.h>
@@ -387,7 +388,8 @@ class HwCoppTest : public HwLinkStateDependentTest {
       const std::optional<folly::MacAddress>& dstMac = std::nullopt,
       uint8_t trafficClass = 0,
       std::optional<std::vector<uint8_t>> payload = std::nullopt,
-      bool expectQueueHit = true) {
+      bool expectQueueHit = true,
+      bool outOfPort = true) {
     const auto kNumPktsToSend = 1;
     auto vlanId = utility::firstVlanID(getProgrammedState());
     auto destinationMac =
@@ -402,10 +404,7 @@ class HwCoppTest : public HwLinkStateDependentTest {
           l4DstPort,
           trafficClass,
           payload);
-      sendPkt(
-          std::move(pkt),
-          true /*outOfPort*/,
-          expectQueueHit /*snoopAndVerify*/);
+      sendPkt(std::move(pkt), outOfPort, expectQueueHit /*snoopAndVerify*/);
     };
     utility::sendPktAndVerifyCpuQueue(
         getHwSwitch(),
@@ -1161,6 +1160,39 @@ TYPED_TEST(HwCoppTest, Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ) {
           std::nullopt,
           kNetworkControlDscp);
     }
+  };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+/*
+ * Testcase to test that link local ucast packets from cpu port does not get
+ * copied back to cpu. The test does the following
+ * 1. copp acl to match link local ucast address and cpu srcPort is created as a
+ * part of setup
+ * 2. Sends a link local unicast packet through CPU PIPELINE_LOOKUP.
+ * 3. Packet hits the newly created acl(and so does not get forwarded to cpu).
+ * It goes out through the front port and loops back in.
+ * 4. On getting received, the packet bypasses the newly created acl(since src
+ * port is no longer cpu port) and hits the acl for regular link local ucast
+ * packets. This gets forwarded to cpu queue 9
+ */
+TYPED_TEST(HwCoppTest, CpuPortIpv6LinkLocalUcastIp) {
+  auto setup = [=, this]() { this->setup(); };
+
+  auto verify = [=, this]() {
+    auto nbrLinkLocalAddr = folly::IPAddressV6("fe80:face:b11c::1");
+    auto randomMac = folly::MacAddress("00:00:00:00:00:01");
+    this->sendTcpPktAndVerifyCpuQueue(
+        utility::getCoppHighPriQueueId(this->getAsic()),
+        nbrLinkLocalAddr,
+        utility::kNonSpecialPort1,
+        utility::kNonSpecialPort2,
+        randomMac,
+        kNetworkControlDscp,
+        std::nullopt,
+        true,
+        false /*outOfPort*/);
   };
 
   this->verifyAcrossWarmBoots(setup, verify);

@@ -276,6 +276,19 @@ createQueueMatchAction(int queueId, bool isSai, cfg::ToCpuAction toCpuAction) {
   return utility::getToQueueAction(queueId, isSai, toCpuAction);
 }
 
+void addNoActionAclForUnicastLinkLocal(
+    const folly::CIDRNetwork& nw,
+    std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>& acls) {
+  cfg::AclEntry acl;
+  auto dstIp = folly::to<std::string>(nw.first, "/", nw.second);
+  acl.name() =
+      folly::to<std::string>("cpuPolicing-CPU-Port-linkLocal-v6-", dstIp);
+
+  acl.dstIp() = dstIp;
+  acl.srcPort() = kCPUPort;
+  acls.push_back(std::make_pair(acl, cfg::MatchAction{}));
+}
+
 void addNoActionAclForNw(
     const folly::CIDRNetwork& nw,
     std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>& acls) {
@@ -556,6 +569,9 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAclsForSai(
     return acls;
   }
 
+  // Unicast link local from cpu
+  addNoActionAclForUnicastLinkLocal(kIPv6LinkLocalUcastNetwork(), acls);
+
   // multicast link local dst ip
   addNoActionAclForNw(kIPv6LinkLocalMcastNetwork(), acls);
 
@@ -599,6 +615,9 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAclsForBcm(
     const HwAsic* hwAsic,
     cfg::SwitchConfig& config) {
   std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> acls;
+
+  // Unicast link local from cpu
+  addNoActionAclForUnicastLinkLocal(kIPv6LinkLocalUcastNetwork(), acls);
 
   // multicast link local dst ip
   addNoActionAclForNw(kIPv6LinkLocalMcastNetwork(), acls);

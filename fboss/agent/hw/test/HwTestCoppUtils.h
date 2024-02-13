@@ -85,6 +85,10 @@ uint16_t getNumDefaultCpuAcls(const HwAsic* hwAsic, bool isSai);
 
 std::string getMplsDestNoMatchCounterName(void);
 
+void addNoActionAclForUnicastLinkLocal(
+    const folly::CIDRNetwork& nw,
+    std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>& acls);
+
 void addNoActionAclForNw(
     const folly::CIDRNetwork& nw,
     std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>& acls);
