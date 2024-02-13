@@ -65,7 +65,7 @@ add_library(hw_copp_utils
 )
 
 target_link_libraries(hw_copp_utils
-  agent_test_acl_utils
+  hw_test_acl_utils
   switch_asics
   packet_factory
   Folly::folly

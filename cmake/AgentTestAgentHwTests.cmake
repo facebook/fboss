@@ -34,6 +34,8 @@ target_link_libraries(multi_switch_agent_hw_test
   agent_hw_test
   multi_switch_agent_ensemble
   Folly::folly
+  hw_packet_utils
+  hw_copp_utils
   -Wl,--no-whole-archive
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
