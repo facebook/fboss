@@ -22,19 +22,12 @@ class FakeDebugCounter {
  public:
   FakeDebugCounter();
   using DropReasons = std::vector<int32_t>;
-  using OutDropReasons = std::vector<int32_t>;
 
   void setDropReasons(const DropReasons& inDrop) {
-    inDropReasons_ = inDrop;
+    dropReasons_ = inDrop;
   }
   const DropReasons& getDropReasons() const {
-    return inDropReasons_;
-  }
-  void setOutDropReasons(const OutDropReasons& outDrop) {
-    outDropReasons_ = outDrop;
-  }
-  const OutDropReasons& getOutDropReasons() const {
-    return outDropReasons_;
+    return dropReasons_;
   }
   void setType(sai_debug_counter_type_t type) {
     counterType_ = type;
@@ -61,8 +54,7 @@ class FakeDebugCounter {
   sai_uint32_t index_{0};
   sai_debug_counter_type_t counterType_;
   sai_debug_counter_bind_method_t bindMethod_;
-  DropReasons inDropReasons_;
-  OutDropReasons outDropReasons_;
+  DropReasons dropReasons_;
 };
 
 using FakeDebugCounterManager = FakeManager<sai_object_id_t, FakeDebugCounter>;

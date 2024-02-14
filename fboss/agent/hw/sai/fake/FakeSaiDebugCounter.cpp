@@ -32,20 +32,13 @@ sai_status_t set_debug_counter_attribute_fn(
       debugCounter.setBindMethod(
           static_cast<sai_debug_counter_bind_method_t>(attr->value.s32));
       break;
-    case SAI_DEBUG_COUNTER_ATTR_IN_DROP_REASON_LIST: {
-      FakeDebugCounter::DropReasons inDropReasons(attr->value.s32list.count);
-      for (auto i = 0; i < attr->value.s32list.count; ++i) {
-        inDropReasons[i] = attr->value.s32list.list[i];
-      }
-      debugCounter.setDropReasons(inDropReasons);
-    } break;
+    case SAI_DEBUG_COUNTER_ATTR_IN_DROP_REASON_LIST:
     case SAI_DEBUG_COUNTER_ATTR_OUT_DROP_REASON_LIST: {
-      FakeDebugCounter::OutDropReasons outDropReasons(
-          attr->value.s32list.count);
+      FakeDebugCounter::DropReasons dropReasons(attr->value.s32list.count);
       for (auto i = 0; i < attr->value.s32list.count; ++i) {
-        outDropReasons[i] = attr->value.s32list.list[i];
+        dropReasons[i] = attr->value.s32list.list[i];
       }
-      debugCounter.setOutDropReasons(outDropReasons);
+      debugCounter.setDropReasons(dropReasons);
     } break;
     default:
       return SAI_STATUS_INVALID_PARAMETER;
@@ -70,27 +63,16 @@ sai_status_t get_debug_counter_attribute_fn(
       case SAI_DEBUG_COUNTER_ATTR_INDEX:
         attr[i].value.u32 = debugCounter.getIndex();
         break;
-      case SAI_DEBUG_COUNTER_ATTR_IN_DROP_REASON_LIST: {
-        const auto& inDropReasons = debugCounter.getDropReasons();
-        if (inDropReasons.size() > attr[i].value.s32list.count) {
-          attr[i].value.s32list.count = inDropReasons.size();
-          return SAI_STATUS_BUFFER_OVERFLOW;
-        }
-        attr[i].value.s32list.count = inDropReasons.size();
-        int j = 0;
-        for (const auto& reason : inDropReasons) {
-          attr[i].value.s32list.list[j++] = reason;
-        }
-      } break;
+      case SAI_DEBUG_COUNTER_ATTR_IN_DROP_REASON_LIST:
       case SAI_DEBUG_COUNTER_ATTR_OUT_DROP_REASON_LIST: {
-        const auto& outDropReasons = debugCounter.getOutDropReasons();
-        if (outDropReasons.size() > attr[i].value.s32list.count) {
-          attr[i].value.s32list.count = outDropReasons.size();
+        const auto& dropReasons = debugCounter.getDropReasons();
+        if (dropReasons.size() > attr[i].value.s32list.count) {
+          attr[i].value.s32list.count = dropReasons.size();
           return SAI_STATUS_BUFFER_OVERFLOW;
         }
-        attr[i].value.s32list.count = outDropReasons.size();
+        attr[i].value.s32list.count = dropReasons.size();
         int j = 0;
-        for (const auto& reason : outDropReasons) {
+        for (const auto& reason : dropReasons) {
           attr[i].value.s32list.list[j++] = reason;
         }
       } break;
