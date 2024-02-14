@@ -48,7 +48,7 @@ struct DebugCounterAttributeTypes<
 
 using _OutDropReasons = SaiAttribute<
     sai_debug_counter_attr_t,
-    SAI_DEBUG_COUNTER_ATTR_IN_DROP_REASON_LIST,
+    SAI_DEBUG_COUNTER_ATTR_OUT_DROP_REASON_LIST,
     std::vector<int32_t>>;
 template <>
 struct DebugCounterAttributeTypes<
@@ -111,6 +111,7 @@ SAI_ATTRIBUTE_NAME(InPortDebugCounter, Index)
 SAI_ATTRIBUTE_NAME(InPortDebugCounter, Type)
 SAI_ATTRIBUTE_NAME(InPortDebugCounter, BindMethod)
 SAI_ATTRIBUTE_NAME(InPortDebugCounter, DropReasons)
+SAI_ATTRIBUTE_NAME(OutPortDebugCounter, DropReasons)
 
 class DebugCounterApi : public SaiApi<DebugCounterApi> {
  public:

@@ -23,6 +23,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _DebugCounterMap{
     SAI_ATTR_MAP(InPortDebugCounter, Type),
     SAI_ATTR_MAP(InPortDebugCounter, BindMethod),
     SAI_ATTR_MAP(InPortDebugCounter, DropReasons),
+    SAI_ATTR_MAP(OutPortDebugCounter, DropReasons),
 };
 } // namespace
 

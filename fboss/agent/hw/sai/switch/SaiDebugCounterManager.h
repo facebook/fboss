@@ -23,6 +23,7 @@ class SaiStore;
 class SaiPlatform;
 
 using SaiInPortDebugCounter = SaiObject<SaiInPortDebugCounterTraits>;
+using SaiOutPortDebugCounter = SaiObject<SaiOutPortDebugCounterTraits>;
 
 class SaiDebugCounterManager {
  public:
@@ -63,7 +64,7 @@ class SaiDebugCounterManager {
   std::shared_ptr<SaiInPortDebugCounter> mplsLookupFailCounter_;
   std::shared_ptr<SaiInPortDebugCounter> aclDropCounter_;
   std::shared_ptr<SaiInPortDebugCounter> trapDropCounter_;
-  std::shared_ptr<SaiInPortDebugCounter> egressForwardingDropCounter_;
+  std::shared_ptr<SaiOutPortDebugCounter> egressForwardingDropCounter_;
   sai_stat_id_t portL3BlackHoleCounterStatId_{kInvalidStatId()};
   sai_stat_id_t mplsLookupFailCounterStatId_{kInvalidStatId()};
   sai_stat_id_t aclDropCounterStatId_{kInvalidStatId()};

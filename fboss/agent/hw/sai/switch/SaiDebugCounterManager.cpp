@@ -106,7 +106,19 @@ void SaiDebugCounterManager::setupEgressForwardingDropCounter() {
           HwAsic::Feature::EGRESS_FORWARDING_DROP_COUNTER)) {
     return;
   }
-  // TODO
+
+  SaiOutPortDebugCounterTraits::CreateAttributes attrs{
+      SAI_DEBUG_COUNTER_TYPE_PORT_OUT_DROP_REASONS,
+      SAI_DEBUG_COUNTER_BIND_METHOD_AUTOMATIC,
+      SaiOutPortDebugCounterTraits::Attributes::DropReasons{
+          {SAI_OUT_DROP_REASON_L3_ANY}}};
+  auto& debugCounterStore = saiStore_->get<SaiOutPortDebugCounterTraits>();
+  egressForwardingDropCounter_ = debugCounterStore.setObject(attrs, attrs);
+  egressForwardingDropCounterStatId_ =
+      SAI_SWITCH_STAT_OUT_DROP_REASON_RANGE_BASE +
+      SaiApiTable::getInstance()->debugCounterApi().getAttribute(
+          egressForwardingDropCounter_->adapterKey(),
+          SaiOutPortDebugCounterTraits::Attributes::Index{});
 }
 
 std::set<sai_stat_id_t> SaiDebugCounterManager::getConfiguredDebugStatIds()
