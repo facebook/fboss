@@ -438,14 +438,14 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
       }
       setupBuffers(testParams.buffer, testParams.scale);
       setupEcmpTraffic();
+      // ensure counter is 0 before we start traffic
       validateInitPfcCounters(
           {masterLogicalInterfacePortIds()[0],
            masterLogicalInterfacePortIds()[1]},
           pfcPriority);
-    };
-    auto verify = [&]() {
-      // ensure counter is 0 before we start traffic
       pumpTraffic(trafficClass);
+    };
+    auto verifyCommon = [&](bool postWb) {
       // check counters are as expected
       validateCounterFn(
           getHwSwitchEnsemble(),
@@ -457,14 +457,17 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
             {masterLogicalInterfacePortIds()[0],
              masterLogicalInterfacePortIds()[1]});
       }
-      if (!FLAGS_skip_stop_pfc_test_traffic) {
+      if (!FLAGS_skip_stop_pfc_test_traffic && postWb) {
         // stop traffic so that unconfiguration can happen without issues
         stopTraffic(
             {masterLogicalInterfacePortIds()[0],
              masterLogicalInterfacePortIds()[1]});
       }
     };
-    verifyAcrossWarmBoots(setup, verify);
+    auto verify = [&]() { verifyCommon(false /* postWb */); };
+    auto verifyPostWb = [&]() { verifyCommon(true /* postWb */); };
+    verifyAcrossWarmBoots(
+        setup, verify, []() {}, verifyPostWb);
   }
 
   void setupEcmpTraffic() {
