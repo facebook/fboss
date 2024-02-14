@@ -2063,6 +2063,9 @@
           "test_name_regex": "HwCoppQueueStuckTest.*"
         },
         {
+          "test_name_regex": "HwCoppAclTest.*"
+        },
+        {
           "test_name_regex": "HwCoppTest/1.*"
         },
         {
