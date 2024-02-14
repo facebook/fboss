@@ -1440,9 +1440,9 @@ void SwSwitch::handlePendingUpdates() {
         << " Hw Failure protected updates should be non coalescing";
   }
 
-  // This function should never be called with valid updates while we are
-  // not initialized yet
-  DCHECK(isInitialized());
+  // This function should never be called with valid updates while we don't have
+  // a valid switch state
+  DCHECK(getState());
 
   // Call all of the update functions to prepare the new SwitchState
   auto oldAppliedState = getState();
