@@ -50,6 +50,7 @@ class FakeAsic : public HwAsic {
       case HwAsic::Feature::LINK_TRAINING:
       case HwAsic::Feature::SAI_PORT_VCO_CHANGE:
       case HwAsic::Feature::LINK_INACTIVE_BASED_ISOLATE:
+      case HwAsic::Feature::SAI_PRBS:
         return false;
 
       default:

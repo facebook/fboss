@@ -161,6 +161,7 @@ bool Jericho2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::PORT_WRED_COUNTER:
     case HwAsic::Feature::ACL_METADATA_QUALIFER:
     case HwAsic::Feature::PORT_SERDES_ZERO_PREEMPHASIS:
+    case HwAsic::Feature::SAI_PRBS:
       return false;
   }
   return false;

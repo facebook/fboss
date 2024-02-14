@@ -169,6 +169,7 @@ class HwAsic {
     ACL_METADATA_QUALIFER,
     PORT_SERDES_ZERO_PREEMPHASIS,
     EGRESS_FORWARDING_DROP_COUNTER,
+    SAI_PRBS,
   };
 
   enum class AsicMode {
