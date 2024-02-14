@@ -32,6 +32,7 @@ static constexpr uint8_t kCdbCommandStatusBusyCmdExec = 0x83;
 // average 5 seconds to increasing this CDB timeout value to 10 seconds
 constexpr int cdbCommandTimeoutUsec = 10000000;
 constexpr int cdbCommandIntervalUsec = 100000;
+constexpr int cdbMemoryWriteDelay = 5000;
 
 // CMIS firmware related register offsets
 constexpr uint8_t kCdbCommandStatusReg = 37;
@@ -67,6 +68,11 @@ void CdbCommandBlock::i2cWriteAndContinue(
   auto writeTime = std::chrono::steady_clock::now() - startTime;
   memoryWriteTime_ +=
       std::chrono::duration_cast<std::chrono::milliseconds>(writeTime);
+
+  // Sleep for 5 msec after every CDB memory block write to let the next command
+  // run successfully. Some of the optics need this delay
+  /* sleep override */
+  usleep(cdbMemoryWriteDelay);
 }
 
 /*
