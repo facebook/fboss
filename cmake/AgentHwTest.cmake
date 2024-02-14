@@ -367,7 +367,7 @@ target_link_libraries(hw_switch_test
   config_factory
   agent_test_utils
   agent_test_acl_utils
-  agent_test_copp_utils
+  copp_test_utils
   hw_packet_utils
   hw_switch_ensemble
   hw_voq_utils

@@ -13,11 +13,11 @@ target_link_libraries(agent_test_acl_utils
   switch_state_cpp2
 )
 
-add_library(agent_test_copp_utils
+add_library(copp_test_utils
   fboss/agent/test/utils/CoppTestUtils.cpp
 )
 
-target_link_libraries(agent_test_copp_utils
+target_link_libraries(copp_test_utils
   switch_asics
   packet_factory
   Folly::folly
