@@ -891,6 +891,15 @@ void SaiPortManager::programPfcBuffers(const std::shared_ptr<Port>& swPort) {
   }
 }
 
+sai_port_prbs_config_t SaiPortManager::getSaiPortPrbsConfig(
+    bool enabled) const {
+  if (enabled) {
+    return SAI_PORT_PRBS_CONFIG_ENABLE_TX_RX;
+  } else {
+    return SAI_PORT_PRBS_CONFIG_DISABLE;
+  }
+}
+
 PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
   setPortType(swPort->getID(), swPort->getPortType());
   auto portSaiId = addPortImpl(swPort);

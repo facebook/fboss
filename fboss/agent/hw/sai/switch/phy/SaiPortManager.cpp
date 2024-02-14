@@ -256,7 +256,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         std::nullopt, std::nullopt, std::nullopt, intfType, std::nullopt,
         std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
         std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
-        std::nullopt, std::nullopt,
+        std::nullopt, std::nullopt, std::nullopt, std::nullopt,
 #if !defined(TAJO_SDK)
         std::nullopt, std::nullopt,
 #endif

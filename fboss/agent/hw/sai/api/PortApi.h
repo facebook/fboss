@@ -179,10 +179,16 @@ struct SaiPortTraits {
         SAI_PORT_ATTR_EGRESS_SAMPLE_MIRROR_SESSION,
         std::vector<sai_object_id_t>,
         SaiObjectIdListDefault>;
-    using PrbsPolynomial =
-        SaiAttribute<EnumType, SAI_PORT_ATTR_PRBS_POLYNOMIAL, sai_uint32_t>;
-    using PrbsConfig =
-        SaiAttribute<EnumType, SAI_PORT_ATTR_PRBS_CONFIG, sai_int32_t>;
+    using PrbsPolynomial = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_PRBS_POLYNOMIAL,
+        sai_uint32_t,
+        SaiIntDefault<sai_uint32_t>>;
+    using PrbsConfig = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_PRBS_CONFIG,
+        sai_int32_t,
+        SaiPrbsConfigDefault>;
 #if SAI_API_VERSION >= SAI_VERSION(1, 8, 1)
     using PrbsRxState = SaiAttribute<
         EnumType,
@@ -436,6 +442,8 @@ struct SaiPortTraits {
       std::optional<Attributes::EgressSamplePacketEnable>,
       std::optional<Attributes::IngressSampleMirrorSession>,
       std::optional<Attributes::EgressSampleMirrorSession>,
+      std::optional<Attributes::PrbsPolynomial>,
+      std::optional<Attributes::PrbsConfig>,
       std::optional<Attributes::IngressMacSecAcl>,
       std::optional<Attributes::EgressMacSecAcl>,
       std::optional<Attributes::SystemPortId>,

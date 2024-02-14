@@ -150,6 +150,12 @@ struct SaiRxPPMDefault {
 };
 #endif
 
+struct SaiPrbsConfigDefault {
+  sai_port_prbs_config_t operator()() const {
+    return SAI_PORT_PRBS_CONFIG_DISABLE;
+  }
+};
+
 #if SAI_API_VERSION >= SAI_VERSION(1, 8, 1)
 struct SaiPrbsRxStateDefault {
   sai_prbs_rx_state_t operator()() const {

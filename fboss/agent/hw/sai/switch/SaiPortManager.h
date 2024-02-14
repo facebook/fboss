@@ -365,6 +365,7 @@ class SaiPortManager {
   void setPortType(PortID portId, cfg::PortType portType);
   void programPfcBuffers(const std::shared_ptr<Port>& swPort);
   void removePfcBuffers(const std::shared_ptr<Port>& swPort);
+  sai_port_prbs_config_t getSaiPortPrbsConfig(bool enabled) const;
   void removeIngressPriorityGroupMappings(SaiPortHandle* portHandle);
   void applyPriorityGroupBufferProfile(
       const std::shared_ptr<Port>& swPort,

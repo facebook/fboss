@@ -506,6 +506,20 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       platform_->getAsic()->isSupported(HwAsic::Feature::FABRIC_PORT_MTU)) {
     mtu = swPort->getMaxFrameSize();
   }
+  std::optional<SaiPortTraits::Attributes::PrbsPolynomial> prbsPolynomial =
+      std::nullopt;
+  std::optional<SaiPortTraits::Attributes::PrbsConfig> prbsConfig =
+      std::nullopt;
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::SAI_PRBS)) {
+    auto asicPrbs = swPort->getAsicPrbs();
+    prbsConfig = getSaiPortPrbsConfig(asicPrbs.enabled().value());
+    if (asicPrbs.enabled().value()) {
+      prbsPolynomial =
+          static_cast<sai_uint32_t>(asicPrbs.polynominal().value());
+      XLOG(DBG2) << "ASIC PRBS enabled with polynomial set to "
+                 << asicPrbs.polynominal().value() << " for port " << portID;
+    }
+  }
   auto portPfcInfo = getPortPfcAttributes(swPort);
   if (basicAttributeOnly) {
     return SaiPortTraits::CreateAttributes {
@@ -523,7 +537,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
           std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
           std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
           std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
-          std::nullopt, std::nullopt,
+          std::nullopt, std::nullopt, std::nullopt, std::nullopt,
 #if !defined(TAJO_SDK)
           std::nullopt, std::nullopt,
 #endif
@@ -564,6 +578,8 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         std::nullopt, // Egress Sample Packet
         std::nullopt, // Ingress mirror sample session
         std::nullopt, // Egress mirror sample session
+        prbsPolynomial, // PRBS Polynomial
+        prbsConfig, // PRBS Config
         std::nullopt, // Ingress MacSec ACL
         std::nullopt, // Egress MacSec ACL
         systemPortId, // System Port Id

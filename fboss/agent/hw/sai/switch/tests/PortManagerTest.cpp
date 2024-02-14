@@ -136,6 +136,8 @@ class PortManagerTest : public ManagerTestBase {
           std::nullopt, // Egress Sample Packet
           std::nullopt, // Ingress mirror sample session
           std::nullopt, // Egress mirror sample session
+          std::nullopt, // PRBS Polynomial
+          std::nullopt, // PRBS Config
           std::nullopt, // Ingress macsec acl
           std::nullopt, // Egress macsec acl
           std::nullopt, // System Port Id
