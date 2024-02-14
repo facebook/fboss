@@ -30,6 +30,17 @@ class DebugCounterStoreTest : public SaiStoreTest {
     return saiApiTable->debugCounterApi().create<SaiInPortDebugCounterTraits>(
         inCounterCreateAtts(), 0);
   }
+  SaiOutPortDebugCounterTraits::CreateAttributes outCounterCreateAtts() const {
+    return {
+        SAI_DEBUG_COUNTER_TYPE_PORT_OUT_DROP_REASONS,
+        SAI_DEBUG_COUNTER_BIND_METHOD_AUTOMATIC,
+        SaiOutPortDebugCounterTraits::Attributes::DropReasons{
+            {SAI_OUT_DROP_REASON_L3_ANY}}};
+  }
+  DebugCounterSaiId createOutDebugCounter() {
+    return saiApiTable->debugCounterApi().create<SaiOutPortDebugCounterTraits>(
+        outCounterCreateAtts(), 0);
+  }
 };
 
 TEST_F(DebugCounterStoreTest, loadInDebugCounter) {
@@ -45,7 +56,20 @@ TEST_F(DebugCounterStoreTest, loadInDebugCounter) {
   EXPECT_EQ(got->adapterKey(), id);
 }
 
-TEST_F(DebugCounterStoreTest, debugCounterLoadCtor) {
+TEST_F(DebugCounterStoreTest, loadOutDebugCounter) {
+  auto id = createOutDebugCounter();
+
+  SaiStore s(0);
+  s.reload();
+  auto& store = s.get<SaiOutPortDebugCounterTraits>();
+
+  SaiOutPortDebugCounterTraits::AdapterHostKey k{outCounterCreateAtts()};
+  auto got = store.get(k);
+  EXPECT_NE(got, nullptr);
+  EXPECT_EQ(got->adapterKey(), id);
+}
+
+TEST_F(DebugCounterStoreTest, inDebugCounterLoadCtor) {
   auto debugCounterId = createInDebugCounter();
   auto debugCounterObj = createObj<SaiInPortDebugCounterTraits>(debugCounterId);
   EXPECT_EQ(debugCounterObj.adapterKey(), debugCounterId);
@@ -57,7 +81,20 @@ TEST_F(DebugCounterStoreTest, debugCounterLoadCtor) {
           .value());
 }
 
-TEST_F(DebugCounterStoreTest, debugCounterCreateCtor) {
+TEST_F(DebugCounterStoreTest, outDebugCounterLoadCtor) {
+  auto debugCounterId = createOutDebugCounter();
+  auto debugCounterObj =
+      createObj<SaiOutPortDebugCounterTraits>(debugCounterId);
+  EXPECT_EQ(debugCounterObj.adapterKey(), debugCounterId);
+  EXPECT_EQ(
+      GET_OPT_ATTR(
+          OutPortDebugCounter, DropReasons, debugCounterObj.attributes()),
+      SaiOutPortDebugCounterTraits::Attributes::DropReasons{
+          {SAI_OUT_DROP_REASON_L3_ANY}}
+          .value());
+}
+
+TEST_F(DebugCounterStoreTest, inDebugCounterCreateCtor) {
   auto attrs = inCounterCreateAtts();
   SaiInPortDebugCounterTraits::AdapterHostKey adapterHostKey = attrs;
   auto obj = createObj<SaiInPortDebugCounterTraits>(adapterHostKey, attrs, 0);
@@ -70,12 +107,33 @@ TEST_F(DebugCounterStoreTest, debugCounterCreateCtor) {
           .value());
 }
 
-TEST_F(DebugCounterStoreTest, serDeser) {
-  auto id = createInDebugCounter();
-  verifyAdapterKeySerDeser<SaiInPortDebugCounterTraits>({id});
+TEST_F(DebugCounterStoreTest, outDebugCounterCreateCtor) {
+  auto attrs = outCounterCreateAtts();
+  SaiOutPortDebugCounterTraits::AdapterHostKey adapterHostKey = attrs;
+  auto obj = createObj<SaiOutPortDebugCounterTraits>(adapterHostKey, attrs, 0);
+  auto outDropReasons = saiApiTable->debugCounterApi().getAttribute(
+      obj.adapterKey(),
+      SaiOutPortDebugCounterTraits::Attributes::DropReasons{});
+  EXPECT_EQ(
+      outDropReasons,
+      SaiOutPortDebugCounterTraits::Attributes::DropReasons{
+          {SAI_OUT_DROP_REASON_L3_ANY}}
+          .value());
+}
+
+TEST_F(DebugCounterStoreTest, serDeserInPortCounter) {
+  auto idIn = createInDebugCounter();
+  verifyAdapterKeySerDeser<SaiInPortDebugCounterTraits>({idIn});
+}
+
+TEST_F(DebugCounterStoreTest, serDeserOutPortCounter) {
+  auto idOut = createOutDebugCounter();
+  verifyAdapterKeySerDeser<SaiOutPortDebugCounterTraits>({idOut});
 }
 
 TEST_F(DebugCounterStoreTest, toStr) {
   std::ignore = createInDebugCounter();
   verifyToStr<SaiInPortDebugCounterTraits>();
+  std::ignore = createOutDebugCounter();
+  verifyToStr<SaiOutPortDebugCounterTraits>();
 }
