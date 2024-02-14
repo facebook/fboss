@@ -448,7 +448,7 @@ class Format {
             input, locale, is_multi_byte_character_support_enabled))
       result.push_back(input);
     return result;
-  };
+  }
 
   // Merge two formats
   // first has higher precedence
