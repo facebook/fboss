@@ -134,6 +134,11 @@ void SaiPortManager::fillInSupportedStats(PortID port) {
       counterIds.emplace_back(
           managerTable_->debugCounterManager().getAclDropCounterStatId());
     }
+    if (platform_->getAsic()->isSupported(
+            HwAsic::Feature::EGRESS_FORWARDING_DROP_COUNTER)) {
+      counterIds.emplace_back(
+          managerTable_->debugCounterManager().getEgressForwardingDropStatId());
+    }
     if (platform_->getAsic()->isSupported(HwAsic::Feature::PFC)) {
       counterIds.reserve(
           counterIds.size() + SaiPortTraits::PfcCounterIdsToRead.size());
