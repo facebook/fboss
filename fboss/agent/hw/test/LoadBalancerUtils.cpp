@@ -184,19 +184,20 @@ cfg::FlowletSwitchingConfig getDefaultFlowletSwitchingConfig(void) {
 }
 
 void addFlowletAcl(cfg::SwitchConfig& cfg) {
-  auto* acl = utility::addAcl(&cfg, "flowlet");
+  auto* acl = utility::addAcl(&cfg, "test-flowlet-acl");
   acl->proto() = 17;
   acl->l4DstPort() = 4791;
+  acl->dstIp() = "2001::/16";
   cfg::MatchAction matchAction = cfg::MatchAction();
   matchAction.flowletAction() = cfg::FlowletAction::FORWARD;
-  matchAction.counter() = "flowletStat";
+  matchAction.counter() = "test-flowlet-acl-stats";
   std::vector<cfg::CounterType> counterTypes{
       cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
   auto counter = cfg::TrafficCounter();
-  *counter.name() = "flowletStat";
+  *counter.name() = "test-flowlet-acl-stats";
   *counter.types() = counterTypes;
   cfg.trafficCounters()->push_back(counter);
-  utility::addMatcher(&cfg, "flowlet", matchAction);
+  utility::addMatcher(&cfg, "test-flowlet-acl", matchAction);
 }
 
 void addFlowletConfigs(

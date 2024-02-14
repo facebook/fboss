@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTestAclUtils.h"
+#include "fboss/agent/hw/test/HwTestFlowletSwitchingUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQueuePerHostUtils.h"
@@ -24,6 +25,7 @@ enum AclType {
   UDP_TTLD,
   SRC_PORT,
   UDF,
+  FLOWLET,
 };
 }
 
@@ -77,6 +79,9 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
       case AclType::UDF:
         aclName = "test-udf-acl";
         break;
+      case AclType::FLOWLET:
+        aclName = "test-flowlet-acl";
+        break;
     }
     return aclName;
   }
@@ -96,6 +101,9 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
       case AclType::UDF:
         counterName = "test-udf-acl-stats";
         break;
+      case AclType::FLOWLET:
+        counterName = "test-flowlet-acl-stats";
+        break;
     }
     return counterName;
   }
@@ -109,7 +117,11 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
       helper_->programRoutes(getRouteUpdater(), kEcmpWidth);
       auto newCfg{initialConfig()};
       for (auto aclType : aclTypes) {
-        addAclAndStat(&newCfg, aclType);
+        // FLOWLET Acl config already added in addFlowletConfigs() as part of
+        // initial config setup. Hence skipping it here.
+        if (aclType != AclType::FLOWLET) {
+          addAclAndStat(&newCfg, aclType);
+        }
       }
       applyNewConfig(newCfg);
     };
@@ -129,8 +141,17 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
           getAclName(aclType),
           getCounterName(aclType));
       size_t sizeOfPacketSent = 0;
+      auto sendRoce = false;
+      if (aclType == AclType::FLOWLET && FLAGS_flowletSwitchingEnable) {
+        XLOG(DBG3) << "setting ECMP Member Status: ";
+        utility::setEcmpMemberStatus(getHwSwitch());
+        sendRoce = true;
+      }
       if (aclType == AclType::UDF) {
-        // for udf testing, send roce packets
+        sendRoce = true;
+      }
+      // for udf or flowlet testing, send roce packets
+      if (sendRoce) {
         auto outPort = helper_->ecmpPortDescriptorAt(kEcmpWidth).phyPortID();
         sizeOfPacketSent = sendRoceTraffic(outPort);
       } else {
@@ -184,6 +205,11 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
 
     auto verify = [aclTypes, verifyAclType]() {
       for (auto aclType : aclTypes) {
+        // since FLOWLET Acl presents ahead of UDF Acl in TCAM
+        // the packet always hit the FLOWLET Acl. Hence verify the FLOWLET Acl
+        if (aclTypes[0] == AclType::FLOWLET) {
+          aclType = AclType::FLOWLET;
+        }
         verifyAclType(aclType);
       }
     };
@@ -283,6 +309,8 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
         acl->udfGroups() = {utility::kUdfAclRoceOpcodeGroupName};
         acl->roceOpcode() = utility::kUdfRoceOpcode;
         break;
+      case AclType::FLOWLET:
+        break;
     }
     std::vector<cfg::CounterType> setCounterTypes{
         cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
@@ -349,6 +377,7 @@ class HwUdfAclCounterTest
         masterLogicalPortIds(),
         getAsic()->desiredLoopbackModes());
     cfg.udfConfig() = utility::addUdfAclConfig();
+    utility::addFlowletConfigs(cfg, masterLogicalPortIds());
     return cfg;
   }
 };
@@ -363,6 +392,59 @@ TEST_F(HwUdfAclCounterTest, VerifyUdfWithOtherAcls) {
       true /* bump on hit */,
       true /* front panel port */,
       {AclType::UDF, AclType::SRC_PORT});
+}
+
+// Verifying the UDF Acl with FLOWLET Acl.
+// Bump on hit should be zero.
+TEST_F(HwUdfAclCounterTest, VerifyUdfWithFlowlet) {
+  counterBumpOnHitHelper(
+      false /* bump on hit */,
+      false /* front panel port */,
+      {AclType::UDF, AclType::FLOWLET});
+}
+
+/*
+ * Flowlet Acls are not supported on SAI and multi ACL. So we only test with
+ * multi acl disabled for now.
+ */
+class HwFlowletAclCounterTest
+    : public HwAclCounterTest<EnableMultiAclTableT<false>> {
+ protected:
+  cfg::SwitchConfig initialConfig() const override {
+    auto cfg = utility::onePortPerInterfaceConfig(
+        getHwSwitch(),
+        masterLogicalPortIds(),
+        getAsic()->desiredLoopbackModes());
+    utility::addFlowletConfigs(cfg, masterLogicalPortIds());
+    cfg.udfConfig() = utility::addUdfAclConfig();
+    return cfg;
+  }
+
+  void SetUp() override {
+    FLAGS_flowletSwitchingEnable = true;
+    HwAclCounterTest::SetUp();
+  }
+};
+
+TEST_F(HwFlowletAclCounterTest, VerifyFlowlet) {
+  counterBumpOnHitHelper(
+      true /* bump on hit */, true /* front panel port */, {AclType::FLOWLET});
+}
+
+TEST_F(HwFlowletAclCounterTest, VerifyFlowletWithOtherAcls) {
+  counterBumpOnHitHelper(
+      true /* bump on hit */,
+      true /* front panel port */,
+      {AclType::FLOWLET, AclType::SRC_PORT});
+}
+
+// Verifying the FLOWLET Acl always hit ahead of UDF Acl
+// when FLOWLET Acl present before UDF Acl
+TEST_F(HwFlowletAclCounterTest, VerifyFlowletWithUdf) {
+  counterBumpOnHitHelper(
+      true /* bump on hit */,
+      true /* front panel port */,
+      {AclType::FLOWLET, AclType::UDF});
 }
 
 } // namespace facebook::fboss

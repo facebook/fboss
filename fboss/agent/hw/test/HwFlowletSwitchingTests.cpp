@@ -41,6 +41,7 @@ static int kUdpProto(17);
 static int kUdpDstPort(4791);
 constexpr auto kAclName = "flowlet";
 constexpr auto kAclCounterName = "flowletStat";
+constexpr auto kDstIp = "2001::/16";
 const int kMaxLinks = 4;
 } // namespace
 
@@ -83,6 +84,7 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
     auto* acl = utility::addAcl(&cfg, kAclName);
     acl->proto() = kUdpProto;
     acl->l4DstPort() = kUdpDstPort;
+    acl->dstIp() = kDstIp;
     cfg::MatchAction matchAction = cfg::MatchAction();
     matchAction.flowletAction() = cfg::FlowletAction::FORWARD;
     matchAction.counter() = kAclCounterName;
