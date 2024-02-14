@@ -28,10 +28,15 @@ class HwSwitchThriftClientTable {
       SwitchID switchId);
 
  private:
-  apache::thrift::Client<FbossHwCtrl> createClient(int16_t port);
+  apache::thrift::Client<FbossHwCtrl> createClient(
+      int16_t port,
+      std::shared_ptr<folly::ScopedEventBaseThread> evbThread);
 
-  std::map<SwitchID, std::unique_ptr<apache::thrift::Client<FbossHwCtrl>>>
-      clients_;
-  std::shared_ptr<folly::ScopedEventBaseThread> evbThread_;
+  std::map<
+      SwitchID,
+      std::pair<
+          std::unique_ptr<apache::thrift::Client<FbossHwCtrl>>,
+          std::shared_ptr<folly::ScopedEventBaseThread>>>
+      clientInfos_;
 };
 } // namespace facebook::fboss

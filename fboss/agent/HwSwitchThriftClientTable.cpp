@@ -21,18 +21,22 @@
 
 #include <memory>
 
+DEFINE_int32(hwswitch_query_timeout, 120, "Timeout for hw switch thrift query");
+
 namespace facebook::fboss {
 HwSwitchThriftClientTable::HwSwitchThriftClientTable(
     int16_t basePort,
     const std::map<int64_t, cfg::SwitchInfo>& switchIdToSwitchInfo) {
-  evbThread_ =
-      std::make_shared<folly::ScopedEventBaseThread>("HwSwitchCtrlClient");
   for (const auto& [switchId, switchInfo] : switchIdToSwitchInfo) {
+    auto evbThread = std::make_shared<folly::ScopedEventBaseThread>(
+        fmt::format("HwSwitchCtrlClient-{}", *switchInfo.switchIndex()));
     auto port = basePort + *switchInfo.switchIndex();
-    clients_.emplace(
+    clientInfos_.emplace(
         SwitchID(switchId),
-        std::make_unique<apache::thrift::Client<FbossHwCtrl>>(
-            createClient(port)));
+        std::make_pair(
+            std::make_unique<apache::thrift::Client<FbossHwCtrl>>(
+                createClient(port, evbThread)),
+            evbThread));
   }
 }
 
@@ -42,18 +46,16 @@ HwSwitchThriftClientTable::HwSwitchThriftClientTable(
  * call is made
  */
 apache::thrift::Client<FbossHwCtrl> HwSwitchThriftClientTable::createClient(
-    int16_t port) {
+    int16_t port,
+    std::shared_ptr<folly::ScopedEventBaseThread> evbThread) {
   auto reconnectingChannel =
       apache::thrift::PooledRequestChannel::newSyncChannel(
-          evbThread_, [this, port](folly::EventBase& evb) {
+          evbThread, [port, evbThread](folly::EventBase& evb) {
             return apache::thrift::RetryingRequestChannel::newChannel(
                 evb,
                 2, /*retries before error*/
                 apache::thrift::ReconnectingRequestChannel::newChannel(
-                    *evbThread_->getEventBase(),
-                    [port](
-                        folly::EventBase& evb,
-                        folly::AsyncSocket::ConnectCallback& /*cb*/) {
+                    *evbThread->getEventBase(), [port](folly::EventBase& evb) {
                       auto socket = folly::AsyncSocket::UniquePtr(
                           new folly::AsyncSocket(&evb));
                       socket->connect(
@@ -61,6 +63,7 @@ apache::thrift::Client<FbossHwCtrl> HwSwitchThriftClientTable::createClient(
                       auto channel =
                           apache::thrift::RocketClientChannel::newChannel(
                               std::move(socket));
+                      channel->setTimeout(FLAGS_hwswitch_query_timeout);
                       return channel;
                     }));
           });
@@ -69,10 +72,10 @@ apache::thrift::Client<FbossHwCtrl> HwSwitchThriftClientTable::createClient(
 
 apache::thrift::Client<FbossHwCtrl>* HwSwitchThriftClientTable::getClient(
     SwitchID switchId) {
-  if (clients_.find(switchId) == clients_.end()) {
+  if (clientInfos_.find(switchId) == clientInfos_.end()) {
     throw FbossError("No client found for switch ", switchId);
   }
-  return clients_.at(switchId).get();
+  return clientInfos_.at(switchId).first.get();
 }
 
 std::optional<std::map<::std::int64_t, FabricEndpoint>>
