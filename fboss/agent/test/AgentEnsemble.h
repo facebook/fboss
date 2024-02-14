@@ -163,7 +163,8 @@ class AgentEnsemble : public TestEnsembleIf {
     return getSw()->getHwAsicTable();
   }
 
-  std::map<PortID, FabricEndpoint> getFabricConnectivity() const override {
+  std::map<PortID, FabricEndpoint> getFabricConnectivity(
+      SwitchID /* switchID */) const override {
     return getSw()->getHwSwitchHandler()->getFabricConnectivity();
   }
 

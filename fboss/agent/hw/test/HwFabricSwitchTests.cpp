@@ -65,7 +65,7 @@ TEST_F(HwFabricSwitchTest, checkFabricReachabilityStats) {
   };
   auto verify = [this]() {
     EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
-    checkFabricReachabilityStats(getHwSwitchEnsemble());
+    checkFabricReachabilityStats(getHwSwitchEnsemble(), SwitchID(0));
   };
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -81,7 +81,7 @@ TEST_F(HwFabricSwitchTest, collectStats) {
 TEST_F(HwFabricSwitchTest, checkFabricReachability) {
   auto verify = [this]() {
     EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
-    checkFabricReachability(getHwSwitchEnsemble());
+    checkFabricReachability(getHwSwitchEnsemble(), SwitchID(0));
   };
   verifyAcrossWarmBoots([] {}, verify);
 }
@@ -104,7 +104,8 @@ TEST_F(HwFabricSwitchTest, fabricIsolate) {
     EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
     auto fabricPortId =
         PortID(masterLogicalPortIds({cfg::PortType::FABRIC_PORT})[0]);
-    checkPortFabricReachability(getHwSwitchEnsemble(), fabricPortId);
+    checkPortFabricReachability(
+        getHwSwitchEnsemble(), SwitchID(0), fabricPortId);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -116,7 +117,7 @@ TEST_F(HwFabricSwitchTest, fabricSwitchIsolate) {
 
   auto verify = [=, this]() {
     EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
-    checkFabricReachability(getHwSwitchEnsemble());
+    checkFabricReachability(getHwSwitchEnsemble(), SwitchID(0));
   };
   verifyAcrossWarmBoots(setup, verify);
 }

@@ -372,7 +372,9 @@ TEST_F(HwVoqSwitchWithFabricPortsTest, collectStats) {
 }
 
 TEST_F(HwVoqSwitchWithFabricPortsTest, checkFabricReachability) {
-  auto verify = [this]() { checkFabricReachability(getHwSwitchEnsemble()); };
+  auto verify = [this]() {
+    checkFabricReachability(getHwSwitchEnsemble(), SwitchID(0));
+  };
   verifyAcrossWarmBoots([] {}, verify);
 }
 
@@ -384,14 +386,16 @@ TEST_F(HwVoqSwitchWithFabricPortsTest, fabricIsolate) {
     getHwSwitch()->updateStats();
     auto fabricPortId =
         PortID(masterLogicalPortIds({cfg::PortType::FABRIC_PORT})[0]);
-    checkPortFabricReachability(getHwSwitchEnsemble(), fabricPortId);
+    checkPortFabricReachability(
+        getHwSwitchEnsemble(), SwitchID(0), fabricPortId);
     auto newState = getProgrammedState();
     auto port = newState->getPorts()->getNodeIf(fabricPortId);
     auto newPort = port->modify(&newState);
     newPort->setPortDrainState(cfg::PortDrainState::DRAINED);
     applyNewState(newState);
     getHwSwitch()->updateStats();
-    checkPortFabricReachability(getHwSwitchEnsemble(), fabricPortId);
+    checkPortFabricReachability(
+        getHwSwitchEnsemble(), SwitchID(0), fabricPortId);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -404,7 +408,9 @@ TEST_F(HwVoqSwitchWithFabricPortsTest, switchIsolate) {
     applyNewConfig(newCfg);
   };
 
-  auto verify = [=, this]() { checkFabricReachability(getHwSwitchEnsemble()); };
+  auto verify = [=, this]() {
+    checkFabricReachability(getHwSwitchEnsemble(), SwitchID(0));
+  };
   verifyAcrossWarmBoots(setup, verify);
 }
 

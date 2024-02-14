@@ -10,9 +10,9 @@
 #include <gtest/gtest.h>
 
 namespace facebook::fboss {
-void checkFabricReachability(TestEnsembleIf* ensemble) {
+void checkFabricReachability(TestEnsembleIf* ensemble, SwitchID switchId) {
   ensemble->updateStats();
-  auto reachability = ensemble->getFabricConnectivity();
+  auto reachability = ensemble->getFabricConnectivity(switchId);
   EXPECT_GT(reachability.size(), 0);
   for (auto [port, endpoint] : reachability) {
     if (!*endpoint.isAttached()) {
@@ -54,9 +54,9 @@ void checkFabricReachability(TestEnsembleIf* ensemble) {
   EXPECT_EQ(*(ensemble->getFabricReachabilityStats().missingCount()), 0);
 }
 
-void checkFabricReachabilityStats(TestEnsembleIf* ensemble) {
+void checkFabricReachabilityStats(TestEnsembleIf* ensemble, SwitchID switchId) {
   ensemble->updateStats();
-  auto reachability = ensemble->getFabricConnectivity();
+  auto reachability = ensemble->getFabricConnectivity(switchId);
   int count = 0;
   for (auto [_, endpoint] : reachability) {
     if (!*endpoint.isAttached()) {
@@ -91,9 +91,12 @@ void populatePortExpectedNeighbors(
   }
 }
 
-void checkPortFabricReachability(TestEnsembleIf* ensemble, PortID portId) {
+void checkPortFabricReachability(
+    TestEnsembleIf* ensemble,
+    SwitchID switchId,
+    PortID portId) {
   ensemble->updateStats();
-  auto reachability = ensemble->getFabricConnectivity();
+  auto reachability = ensemble->getFabricConnectivity(switchId);
   auto itr = reachability.find(portId);
   ASSERT_TRUE(itr != reachability.end());
   auto endpoint = itr->second;
