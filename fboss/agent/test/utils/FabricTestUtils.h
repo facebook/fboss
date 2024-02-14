@@ -10,4 +10,18 @@
 
 #pragma once
 
-namespace facebook::fboss::utility {} // namespace facebook::fboss::utility
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/test/TestEnsembleIf.h"
+#include "fboss/agent/types.h"
+
+namespace facebook::fboss::utility {
+void checkFabricReachability(TestEnsembleIf* ensemble, SwitchID switchId);
+void checkFabricReachabilityStats(TestEnsembleIf* ensemble, SwitchID switchId);
+void populatePortExpectedNeighbors(
+    const std::vector<PortID>& ports,
+    cfg::SwitchConfig& cfg);
+void checkPortFabricReachability(
+    TestEnsembleIf* ensemble,
+    SwitchID switchId,
+    PortID portId);
+} // namespace facebook::fboss::utility
