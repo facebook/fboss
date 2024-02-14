@@ -27,11 +27,11 @@ target_link_libraries(agent_test_copp_utils
   ${LIBGMOCK_LIBRARIES}
 )
 
-add_library(agent_test_pkt_utils
+add_library(pkt_test_utils
   fboss/agent/test/utils/PacketTestUtils.cpp
 )
 
-target_link_libraries(agent_test_pkt_utils
+target_link_libraries(pkt_test_utils
   core
   config_factory
   fboss_types
