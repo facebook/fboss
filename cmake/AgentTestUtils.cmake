@@ -37,3 +37,16 @@ target_link_libraries(pkt_test_utils
   fboss_types
   network_address_cpp2
 )
+
+add_library(fabric_test_utils
+  fboss/agent/test/utils/FabricTestUtils.cpp
+)
+
+target_link_libraries(fabric_test_utils
+  fboss_types
+  stats
+  switch_config_cpp2
+  config_factory
+  test_ensemble_if
+  ${GTEST}
+)
