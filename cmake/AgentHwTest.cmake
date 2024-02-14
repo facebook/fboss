@@ -182,7 +182,7 @@ add_library(hw_test_acl_utils
 )
 
 target_link_libraries(hw_test_acl_utils
-  agent_test_acl_utils
+  acl_test_utils
   hw_switch
   switch_asics
   state
@@ -366,7 +366,7 @@ add_library(hw_switch_test
 target_link_libraries(hw_switch_test
   config_factory
   agent_test_utils
-  agent_test_acl_utils
+  acl_test_utils
   copp_test_utils
   hw_packet_utils
   hw_switch_ensemble

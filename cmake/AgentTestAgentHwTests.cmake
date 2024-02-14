@@ -13,7 +13,7 @@ add_library(agent_hw_test_src
 )
 
 target_link_libraries(agent_hw_test_src
-  agent_test_acl_utils
+  acl_test_utils
   copp_test_utils
   pkt_test_utils
   core
