@@ -368,6 +368,7 @@ target_link_libraries(hw_switch_test
   agent_test_utils
   acl_test_utils
   copp_test_utils
+  fabric_test_utils
   hw_packet_utils
   hw_switch_ensemble
   hw_voq_utils

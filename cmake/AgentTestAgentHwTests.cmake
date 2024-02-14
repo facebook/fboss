@@ -21,7 +21,7 @@ target_link_libraries(agent_hw_test_src
   config_factory
   agent_hw_test
   ecmp_helper
-  hw_test_fabric_utils
+  fabric_test_utils
 )
 
 add_executable(multi_switch_agent_hw_test

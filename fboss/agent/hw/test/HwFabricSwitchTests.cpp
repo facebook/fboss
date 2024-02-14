@@ -5,7 +5,7 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTest.h"
-#include "fboss/agent/hw/test/HwTestFabricUtils.h"
+#include "fboss/agent/test/utils/FabricTestUtils.h"
 
 namespace facebook::fboss {
 
@@ -21,7 +21,7 @@ class HwFabricSwitchTest : public HwLinkStateDependentTest {
         utility::kBaseVlanId,
         true /*enable fabric ports*/
     );
-    populatePortExpectedNeighbors(masterLogicalPortIds(), cfg);
+    utility::populatePortExpectedNeighbors(masterLogicalPortIds(), cfg);
     return cfg;
   }
   void SetUp() override {
@@ -65,7 +65,7 @@ TEST_F(HwFabricSwitchTest, checkFabricReachabilityStats) {
   };
   auto verify = [this]() {
     EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
-    checkFabricReachabilityStats(getHwSwitchEnsemble(), SwitchID(0));
+    utility::checkFabricReachabilityStats(getHwSwitchEnsemble(), SwitchID(0));
   };
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -81,7 +81,7 @@ TEST_F(HwFabricSwitchTest, collectStats) {
 TEST_F(HwFabricSwitchTest, checkFabricReachability) {
   auto verify = [this]() {
     EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
-    checkFabricReachability(getHwSwitchEnsemble(), SwitchID(0));
+    utility::checkFabricReachability(getHwSwitchEnsemble(), SwitchID(0));
   };
   verifyAcrossWarmBoots([] {}, verify);
 }
@@ -104,7 +104,7 @@ TEST_F(HwFabricSwitchTest, fabricIsolate) {
     EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
     auto fabricPortId =
         PortID(masterLogicalPortIds({cfg::PortType::FABRIC_PORT})[0]);
-    checkPortFabricReachability(
+    utility::checkPortFabricReachability(
         getHwSwitchEnsemble(), SwitchID(0), fabricPortId);
   };
   verifyAcrossWarmBoots(setup, verify);
@@ -117,7 +117,7 @@ TEST_F(HwFabricSwitchTest, fabricSwitchIsolate) {
 
   auto verify = [=, this]() {
     EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
-    checkFabricReachability(getHwSwitchEnsemble(), SwitchID(0));
+    utility::checkFabricReachability(getHwSwitchEnsemble(), SwitchID(0));
   };
   verifyAcrossWarmBoots(setup, verify);
 }

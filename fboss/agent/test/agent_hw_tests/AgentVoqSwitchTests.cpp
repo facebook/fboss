@@ -2,9 +2,9 @@
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
-#include "fboss/agent/hw/test/HwTestFabricUtils.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/utils/FabricTestUtils.h"
 
 DECLARE_bool(enable_stats_update_thread);
 
@@ -108,7 +108,8 @@ class AgentVoqSwitchWithFabricPortsTest : public AgentVoqSwitchTest {
         true, /*setInterfaceMac*/
         utility::kBaseVlanId,
         true /*enable fabric ports*/);
-    populatePortExpectedNeighbors(ensemble.masterLogicalPortIds(), config);
+    utility::populatePortExpectedNeighbors(
+        ensemble.masterLogicalPortIds(), config);
     return config;
   }
 

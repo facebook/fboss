@@ -28,6 +28,7 @@
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/utils/FabricTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 namespace {
@@ -335,7 +336,7 @@ class HwVoqSwitchWithFabricPortsTest : public HwVoqSwitchTest {
         utility::kBaseVlanId,
         true /*enable fabric ports*/
     );
-    populatePortExpectedNeighbors(masterLogicalPortIds(), cfg);
+    utility::populatePortExpectedNeighbors(masterLogicalPortIds(), cfg);
     return cfg;
   }
 
@@ -373,7 +374,7 @@ TEST_F(HwVoqSwitchWithFabricPortsTest, collectStats) {
 
 TEST_F(HwVoqSwitchWithFabricPortsTest, checkFabricReachability) {
   auto verify = [this]() {
-    checkFabricReachability(getHwSwitchEnsemble(), SwitchID(0));
+    utility::checkFabricReachability(getHwSwitchEnsemble(), SwitchID(0));
   };
   verifyAcrossWarmBoots([] {}, verify);
 }
@@ -386,7 +387,7 @@ TEST_F(HwVoqSwitchWithFabricPortsTest, fabricIsolate) {
     getHwSwitch()->updateStats();
     auto fabricPortId =
         PortID(masterLogicalPortIds({cfg::PortType::FABRIC_PORT})[0]);
-    checkPortFabricReachability(
+    utility::checkPortFabricReachability(
         getHwSwitchEnsemble(), SwitchID(0), fabricPortId);
     auto newState = getProgrammedState();
     auto port = newState->getPorts()->getNodeIf(fabricPortId);
@@ -394,7 +395,7 @@ TEST_F(HwVoqSwitchWithFabricPortsTest, fabricIsolate) {
     newPort->setPortDrainState(cfg::PortDrainState::DRAINED);
     applyNewState(newState);
     getHwSwitch()->updateStats();
-    checkPortFabricReachability(
+    utility::checkPortFabricReachability(
         getHwSwitchEnsemble(), SwitchID(0), fabricPortId);
   };
   verifyAcrossWarmBoots(setup, verify);
@@ -409,7 +410,7 @@ TEST_F(HwVoqSwitchWithFabricPortsTest, switchIsolate) {
   };
 
   auto verify = [=, this]() {
-    checkFabricReachability(getHwSwitchEnsemble(), SwitchID(0));
+    utility::checkFabricReachability(getHwSwitchEnsemble(), SwitchID(0));
   };
   verifyAcrossWarmBoots(setup, verify);
 }
