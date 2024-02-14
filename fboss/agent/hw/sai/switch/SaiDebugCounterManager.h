@@ -22,7 +22,7 @@ class StateDelta;
 class SaiStore;
 class SaiPlatform;
 
-using SaiDebugCounter = SaiObject<SaiDebugCounterTraits>;
+using SaiInPortDebugCounter = SaiObject<SaiInPortDebugCounterTraits>;
 
 class SaiDebugCounterManager {
  public:
@@ -59,11 +59,11 @@ class SaiDebugCounterManager {
   void setupAclDropCounter();
   void setupTrapDropCounter();
   void setupEgressForwardingDropCounter();
-  std::shared_ptr<SaiDebugCounter> portL3BlackHoleCounter_;
-  std::shared_ptr<SaiDebugCounter> mplsLookupFailCounter_;
-  std::shared_ptr<SaiDebugCounter> aclDropCounter_;
-  std::shared_ptr<SaiDebugCounter> trapDropCounter_;
-  std::shared_ptr<SaiDebugCounter> egressForwardingDropCounter_;
+  std::shared_ptr<SaiInPortDebugCounter> portL3BlackHoleCounter_;
+  std::shared_ptr<SaiInPortDebugCounter> mplsLookupFailCounter_;
+  std::shared_ptr<SaiInPortDebugCounter> aclDropCounter_;
+  std::shared_ptr<SaiInPortDebugCounter> trapDropCounter_;
+  std::shared_ptr<SaiInPortDebugCounter> egressForwardingDropCounter_;
   sai_stat_id_t portL3BlackHoleCounterStatId_{kInvalidStatId()};
   sai_stat_id_t mplsLookupFailCounterStatId_{kInvalidStatId()};
   sai_stat_id_t aclDropCounterStatId_{kInvalidStatId()};

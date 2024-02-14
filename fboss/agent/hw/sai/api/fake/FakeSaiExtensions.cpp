@@ -10,6 +10,12 @@ extern "C" {
 }
 
 namespace facebook::fboss {
+
+namespace detail {
+std::optional<sai_int32_t> trapDrops() {
+  return std::nullopt;
+}
+} // namespace detail
 std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeTxLutModeIdWrapper::operator()() {
   return SAI_PORT_SERDES_ATTR_EXT_TX_LUT_MODE;
@@ -131,10 +137,6 @@ SaiSwitchTraits::Attributes::AttributeSdkBootTimeWrapper::operator()() {
 const std::vector<sai_stat_id_t>& SaiSwitchTraits::dramStats() {
   static const std::vector<sai_stat_id_t> stats;
   return stats;
-}
-
-std::optional<sai_int32_t> SaiDebugCounterTraits::trapDrops() {
-  return std::nullopt;
 }
 
 } // namespace facebook::fboss

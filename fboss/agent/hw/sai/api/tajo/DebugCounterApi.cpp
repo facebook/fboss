@@ -4,9 +4,9 @@
 
 #include <optional>
 
-namespace facebook::fboss {
+namespace facebook::fboss::detail {
 
-std::optional<sai_int32_t> SaiDebugCounterTraits::trapDrops() {
+std::optional<sai_int32_t> trapDrops() {
   return std::nullopt;
 }
-} // namespace facebook::fboss
+} // namespace facebook::fboss::detail

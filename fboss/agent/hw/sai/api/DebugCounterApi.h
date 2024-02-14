@@ -60,31 +60,8 @@ struct DebugCounterAttributeTypes<
     SAI_DEBUG_COUNTER_TYPE_SWITCH_OUT_DROP_REASONS> {
   using DropReasons = _OutDropReasons;
 };
+std::optional<sai_int32_t> trapDrops();
 } // namespace detail
-struct SaiDebugCounterTraits {
-  static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_DEBUG_COUNTER;
-  using SaiApiT = DebugCounterApi;
-  struct Attributes {
-    using EnumType = sai_debug_counter_attr_t;
-    using Index =
-        SaiAttribute<EnumType, SAI_DEBUG_COUNTER_ATTR_INDEX, sai_uint32_t>;
-    using Type =
-        SaiAttribute<EnumType, SAI_DEBUG_COUNTER_ATTR_TYPE, sai_int32_t>;
-    using BindMethod =
-        SaiAttribute<EnumType, SAI_DEBUG_COUNTER_ATTR_BIND_METHOD, sai_int32_t>;
-    using DropReasons = SaiAttribute<
-        EnumType,
-        SAI_DEBUG_COUNTER_ATTR_IN_DROP_REASON_LIST,
-        std::vector<int32_t>>;
-  };
-  using AdapterKey = DebugCounterSaiId;
-  using CreateAttributes = std::tuple<
-      Attributes::Type,
-      Attributes::BindMethod,
-      std::optional<Attributes::DropReasons>>;
-  using AdapterHostKey = CreateAttributes;
-  static std::optional<sai_int32_t> trapDrops();
-};
 
 template <sai_debug_counter_type_t type>
 struct SaiDebugCounterTraitsT {
@@ -107,7 +84,9 @@ struct SaiDebugCounterTraitsT {
       typename Attributes::BindMethod,
       std::optional<typename Attributes::DropReasons>>;
   using AdapterHostKey = CreateAttributes;
-  static std::optional<sai_int32_t> trapDrops();
+  static std::optional<sai_int32_t> trapDrops() {
+    return detail::trapDrops();
+  }
   using ConditionAttributes = std::tuple<typename Attributes::Type>;
   inline const static ConditionAttributes kConditionAttributes{type};
 };
@@ -124,10 +103,14 @@ template <>
 struct SaiObjectHasConditionalAttributes<SaiOutPortDebugCounterTraits>
     : public std::true_type {};
 
-SAI_ATTRIBUTE_NAME(DebugCounter, Index)
-SAI_ATTRIBUTE_NAME(DebugCounter, Type)
-SAI_ATTRIBUTE_NAME(DebugCounter, BindMethod)
-SAI_ATTRIBUTE_NAME(DebugCounter, DropReasons)
+using SaiDebugCounterTraits = ConditionObjectTraits<
+    SaiInPortDebugCounterTraits,
+    SaiOutPortDebugCounterTraits>;
+
+SAI_ATTRIBUTE_NAME(InPortDebugCounter, Index)
+SAI_ATTRIBUTE_NAME(InPortDebugCounter, Type)
+SAI_ATTRIBUTE_NAME(InPortDebugCounter, BindMethod)
+SAI_ATTRIBUTE_NAME(InPortDebugCounter, DropReasons)
 
 class DebugCounterApi : public SaiApi<DebugCounterApi> {
  public:

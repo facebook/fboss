@@ -19,15 +19,15 @@ using namespace facebook::fboss;
 
 class DebugCounterStoreTest : public SaiStoreTest {
  public:
-  SaiDebugCounterTraits::CreateAttributes inCounterCreateAtts() const {
+  SaiInPortDebugCounterTraits::CreateAttributes inCounterCreateAtts() const {
     return {
         SAI_DEBUG_COUNTER_TYPE_PORT_IN_DROP_REASONS,
         SAI_DEBUG_COUNTER_BIND_METHOD_AUTOMATIC,
-        SaiDebugCounterTraits::Attributes::DropReasons{
+        SaiInPortDebugCounterTraits::Attributes::DropReasons{
             {SAI_IN_DROP_REASON_BLACKHOLE_ROUTE}}};
   }
   DebugCounterSaiId createInDebugCounter() {
-    return saiApiTable->debugCounterApi().create<SaiDebugCounterTraits>(
+    return saiApiTable->debugCounterApi().create<SaiInPortDebugCounterTraits>(
         inCounterCreateAtts(), 0);
   }
 };
@@ -37,9 +37,9 @@ TEST_F(DebugCounterStoreTest, loadInDebugCounter) {
 
   SaiStore s(0);
   s.reload();
-  auto& store = s.get<SaiDebugCounterTraits>();
+  auto& store = s.get<SaiInPortDebugCounterTraits>();
 
-  SaiDebugCounterTraits::AdapterHostKey k{inCounterCreateAtts()};
+  SaiInPortDebugCounterTraits::AdapterHostKey k{inCounterCreateAtts()};
   auto got = store.get(k);
   EXPECT_NE(got, nullptr);
   EXPECT_EQ(got->adapterKey(), id);
@@ -47,34 +47,35 @@ TEST_F(DebugCounterStoreTest, loadInDebugCounter) {
 
 TEST_F(DebugCounterStoreTest, debugCounterLoadCtor) {
   auto debugCounterId = createInDebugCounter();
-  auto debugCounterObj = createObj<SaiDebugCounterTraits>(debugCounterId);
+  auto debugCounterObj = createObj<SaiInPortDebugCounterTraits>(debugCounterId);
   EXPECT_EQ(debugCounterObj.adapterKey(), debugCounterId);
   EXPECT_EQ(
-      GET_OPT_ATTR(DebugCounter, DropReasons, debugCounterObj.attributes()),
-      SaiDebugCounterTraits::Attributes::DropReasons{
+      GET_OPT_ATTR(
+          InPortDebugCounter, DropReasons, debugCounterObj.attributes()),
+      SaiInPortDebugCounterTraits::Attributes::DropReasons{
           {SAI_IN_DROP_REASON_BLACKHOLE_ROUTE}}
           .value());
 }
 
 TEST_F(DebugCounterStoreTest, debugCounterCreateCtor) {
   auto attrs = inCounterCreateAtts();
-  SaiDebugCounterTraits::AdapterHostKey adapterHostKey = attrs;
-  auto obj = createObj<SaiDebugCounterTraits>(adapterHostKey, attrs, 0);
+  SaiInPortDebugCounterTraits::AdapterHostKey adapterHostKey = attrs;
+  auto obj = createObj<SaiInPortDebugCounterTraits>(adapterHostKey, attrs, 0);
   auto outDropReasons = saiApiTable->debugCounterApi().getAttribute(
-      obj.adapterKey(), SaiDebugCounterTraits::Attributes::DropReasons{});
+      obj.adapterKey(), SaiInPortDebugCounterTraits::Attributes::DropReasons{});
   EXPECT_EQ(
       outDropReasons,
-      SaiDebugCounterTraits::Attributes::DropReasons{
+      SaiInPortDebugCounterTraits::Attributes::DropReasons{
           {SAI_IN_DROP_REASON_BLACKHOLE_ROUTE}}
           .value());
 }
 
 TEST_F(DebugCounterStoreTest, serDeser) {
   auto id = createInDebugCounter();
-  verifyAdapterKeySerDeser<SaiDebugCounterTraits>({id});
+  verifyAdapterKeySerDeser<SaiInPortDebugCounterTraits>({id});
 }
 
 TEST_F(DebugCounterStoreTest, toStr) {
   std::ignore = createInDebugCounter();
-  verifyToStr<SaiDebugCounterTraits>();
+  verifyToStr<SaiInPortDebugCounterTraits>();
 }

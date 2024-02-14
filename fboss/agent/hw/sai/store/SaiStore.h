@@ -578,7 +578,8 @@ class SaiStore {
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
       SaiObjectStore<SaiCounterTraits>,
 #endif
-      SaiObjectStore<SaiDebugCounterTraits>,
+      SaiObjectStore<SaiInPortDebugCounterTraits>,
+      SaiObjectStore<SaiOutPortDebugCounterTraits>,
       SaiObjectStore<SaiSystemPortTraits>,
       SaiObjectStore<SaiPortTraits>,
       SaiObjectStore<SaiUdfTraits>,

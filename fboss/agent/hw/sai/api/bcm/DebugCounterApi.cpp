@@ -8,12 +8,12 @@ extern "C" {
 #include <sai.h>
 }
 
-namespace facebook::fboss {
+namespace facebook::fboss::detail {
 
-std::optional<sai_int32_t> SaiDebugCounterTraits::trapDrops() {
+std::optional<sai_int32_t> trapDrops() {
 #if defined BRCM_SAI_SDK_GTE_11_0
   return SAI_IN_DROP_REASON_ALL_TRAP_DROPS;
 #endif
   return std::nullopt;
 }
-} // namespace facebook::fboss
+} // namespace facebook::fboss::detail

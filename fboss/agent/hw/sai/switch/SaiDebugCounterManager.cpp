@@ -36,18 +36,18 @@ void SaiDebugCounterManager::setupPortL3BlackHoleCounter() {
           HwAsic::Feature::BLACKHOLE_ROUTE_DROP_COUNTER)) {
     return;
   }
-  SaiDebugCounterTraits::CreateAttributes attrs{
+  SaiInPortDebugCounterTraits::CreateAttributes attrs{
       SAI_DEBUG_COUNTER_TYPE_PORT_IN_DROP_REASONS,
       SAI_DEBUG_COUNTER_BIND_METHOD_AUTOMATIC,
-      SaiDebugCounterTraits::Attributes::DropReasons{
+      SaiInPortDebugCounterTraits::Attributes::DropReasons{
           {SAI_IN_DROP_REASON_FDB_AND_BLACKHOLE_DISCARDS}}};
 
-  auto& debugCounterStore = saiStore_->get<SaiDebugCounterTraits>();
+  auto& debugCounterStore = saiStore_->get<SaiInPortDebugCounterTraits>();
   portL3BlackHoleCounter_ = debugCounterStore.setObject(attrs, attrs);
   portL3BlackHoleCounterStatId_ = SAI_PORT_STAT_IN_DROP_REASON_RANGE_BASE +
       SaiApiTable::getInstance()->debugCounterApi().getAttribute(
           portL3BlackHoleCounter_->adapterKey(),
-          SaiDebugCounterTraits::Attributes::Index{});
+          SaiInPortDebugCounterTraits::Attributes::Index{});
 }
 
 void SaiDebugCounterManager::setupMPLSLookupFailedCounter() {
@@ -61,17 +61,17 @@ void SaiDebugCounterManager::setupMPLSLookupFailedCounter() {
   }
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
-  SaiDebugCounterTraits::CreateAttributes attrs{
+  SaiInPortDebugCounterTraits::CreateAttributes attrs{
       SAI_DEBUG_COUNTER_TYPE_PORT_IN_DROP_REASONS,
       SAI_DEBUG_COUNTER_BIND_METHOD_AUTOMATIC,
-      SaiDebugCounterTraits::Attributes::DropReasons{
+      SaiInPortDebugCounterTraits::Attributes::DropReasons{
           {SAI_IN_DROP_REASON_MPLS_MISS}}};
-  auto& debugCounterStore = saiStore_->get<SaiDebugCounterTraits>();
+  auto& debugCounterStore = saiStore_->get<SaiInPortDebugCounterTraits>();
   mplsLookupFailCounter_ = debugCounterStore.setObject(attrs, attrs);
   mplsLookupFailCounterStatId_ = SAI_SWITCH_STAT_IN_DROP_REASON_RANGE_BASE +
       SaiApiTable::getInstance()->debugCounterApi().getAttribute(
           mplsLookupFailCounter_->adapterKey(),
-          SaiDebugCounterTraits::Attributes::Index{});
+          SaiInPortDebugCounterTraits::Attributes::Index{});
 #endif
 }
 
@@ -80,17 +80,17 @@ void SaiDebugCounterManager::setupAclDropCounter() {
           HwAsic::Feature::ANY_ACL_DROP_COUNTER)) {
     return;
   }
-  SaiDebugCounterTraits::CreateAttributes attrs{
+  SaiInPortDebugCounterTraits::CreateAttributes attrs{
       SAI_DEBUG_COUNTER_TYPE_PORT_IN_DROP_REASONS,
       SAI_DEBUG_COUNTER_BIND_METHOD_AUTOMATIC,
-      SaiDebugCounterTraits::Attributes::DropReasons{
+      SaiInPortDebugCounterTraits::Attributes::DropReasons{
           {SAI_IN_DROP_REASON_ACL_ANY}}};
-  auto& debugCounterStore = saiStore_->get<SaiDebugCounterTraits>();
+  auto& debugCounterStore = saiStore_->get<SaiInPortDebugCounterTraits>();
   aclDropCounter_ = debugCounterStore.setObject(attrs, attrs);
   aclDropCounterStatId_ = SAI_SWITCH_STAT_IN_DROP_REASON_RANGE_BASE +
       SaiApiTable::getInstance()->debugCounterApi().getAttribute(
           aclDropCounter_->adapterKey(),
-          SaiDebugCounterTraits::Attributes::Index{});
+          SaiInPortDebugCounterTraits::Attributes::Index{});
 }
 
 void SaiDebugCounterManager::setupTrapDropCounter() {
