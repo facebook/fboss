@@ -63,17 +63,19 @@ TEST_F(DataCorralServiceHwTest, FruLedProgrammingSysfsCheck) {
   std::string val;
   for (const auto& [fruType, ledConfig] :
        *ledManagerConfig_.fruTypeLedConfigs()) {
+    auto fruTypePresence = fruPresenceExplorer_->isPresent(fruType);
     folly::readFile(ledConfig.presentLedSysfsPath()->c_str(), val);
-    EXPECT_EQ(folly::to<int>(val), 1);
+    EXPECT_EQ(folly::to<int>(val), fruTypePresence);
     folly::readFile(ledConfig.absentLedSysfsPath()->c_str(), val);
-    EXPECT_EQ(folly::to<int>(val), 0);
+    EXPECT_EQ(folly::to<int>(val), !fruTypePresence);
   }
+  auto systemPresence = fruPresenceExplorer_->isAllPresent();
   folly::readFile(
       ledManagerConfig_.systemLedConfig()->presentLedSysfsPath()->c_str(), val);
-  EXPECT_EQ(folly::to<int>(val), 1);
+  EXPECT_EQ(folly::to<int>(val), systemPresence);
   folly::readFile(
       ledManagerConfig_.systemLedConfig()->absentLedSysfsPath()->c_str(), val);
-  EXPECT_EQ(folly::to<int>(val), 0);
+  EXPECT_EQ(folly::to<int>(val), !systemPresence);
 }
 
 TEST_F(DataCorralServiceHwTest, FruLEDProgrammingODSCheck) {
@@ -84,7 +86,7 @@ TEST_F(DataCorralServiceHwTest, FruLEDProgrammingODSCheck) {
     EXPECT_EQ(
         facebook::fb303::fbData->getCounter(
             fmt::format("fru_presence_explorer.{}.presence", fruType)),
-        1);
+        fruPresenceExplorer_->isPresent(fruType));
     EXPECT_EQ(
         facebook::fb303::fbData->getCounter(
             fmt::format("led_manager.{}.program_led_fail", fruType)),
@@ -93,7 +95,7 @@ TEST_F(DataCorralServiceHwTest, FruLEDProgrammingODSCheck) {
   EXPECT_EQ(
       facebook::fb303::fbData->getCounter(
           "fru_presence_explorer.SYSTEM.presence"),
-      1);
+      fruPresenceExplorer_->isAllPresent());
   EXPECT_EQ(
       facebook::fb303::fbData->getCounter(
           "led_manager.SYSTEM.program_led_fail"),

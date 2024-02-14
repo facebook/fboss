@@ -21,14 +21,13 @@ FruPresenceExplorer::FruPresenceExplorer(
     std::shared_ptr<LedManager> ledManager)
     : fruConfigs_(fruConfigs), ledManager_(ledManager) {}
 
-void FruPresenceExplorer::detectFruPresence() const {
+void FruPresenceExplorer::detectFruPresence() {
   XLOG(INFO) << "Detecting presence of FRUs";
 
-  std::unordered_map<std::string, bool> fruTypePresence;
   for (const auto& fruConfig : fruConfigs_) {
     auto fruType = *fruConfig.fruType();
-    if (fruTypePresence.find(fruType) == fruTypePresence.end()) {
-      fruTypePresence[fruType] = true;
+    if (fruTypePresence_.find(fruType) == fruTypePresence_.end()) {
+      fruTypePresence_[fruType] = true;
     }
     try {
       auto value = std::stoi(
@@ -37,7 +36,7 @@ void FruPresenceExplorer::detectFruPresence() const {
           0 /*determine base by format*/);
       auto present = value > 0 ? true : false;
       if (!present) {
-        fruTypePresence[fruType] = false;
+        fruTypePresence_[fruType] = false;
       }
       XLOG(INFO) << fmt::format(
           "Detected that {} is {}",
@@ -48,12 +47,12 @@ void FruPresenceExplorer::detectFruPresence() const {
           "Fail to detect presence of {} because of {}",
           *fruConfig.fruName(),
           ex.what());
-      fruTypePresence[fruType] = false;
+      fruTypePresence_[fruType] = false;
     }
   }
 
   bool allFrusPresent = true;
-  for (const auto& [fruType, presence] : fruTypePresence) {
+  for (const auto& [fruType, presence] : fruTypePresence_) {
     if (!presence) {
       allFrusPresent = false;
     }
@@ -62,6 +61,20 @@ void FruPresenceExplorer::detectFruPresence() const {
   }
   fb303::fbData->setCounter(fmt::format(kFruPresence, kSystem), allFrusPresent);
   ledManager_->programSystemLed(allFrusPresent);
+}
+
+bool FruPresenceExplorer::isPresent(const std::string& fruType) const {
+  if (fruTypePresence_.find(fruType) == fruTypePresence_.end()) {
+    return false;
+  }
+  return fruTypePresence_.at(fruType);
+}
+
+bool FruPresenceExplorer::isAllPresent() const {
+  return std::all_of(
+      fruTypePresence_.begin(), fruTypePresence_.end(), [](const auto& pair) {
+        return pair.second;
+      });
 }
 
 } // namespace facebook::fboss::platform::data_corral_service

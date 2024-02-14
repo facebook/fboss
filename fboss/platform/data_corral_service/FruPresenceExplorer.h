@@ -13,11 +13,23 @@ class FruPresenceExplorer {
       const std::vector<FruConfig>& fruConfigs,
       std::shared_ptr<LedManager> ledManager);
 
-  void detectFruPresence() const;
+  // Detect whether the frus in the system are present.
+  // Program the LEDs appropriately based on their presence.
+  void detectFruPresence();
+
+  // Return true if a particular fruType is considered present
+  // i.e every frus of the type is present.
+  // Return false otherwise or detectFruPresence() hasn't been done.
+  bool isPresent(const std::string& fruType) const;
+
+  // Return true if every fruType is present.
+  // Return false otherwise or detectFruPresence() hasn't been done.
+  bool isAllPresent() const;
 
  private:
   const std::vector<FruConfig> fruConfigs_;
   const std::shared_ptr<LedManager> ledManager_;
+  std::unordered_map<std::string, bool> fruTypePresence_;
 };
 
 } // namespace facebook::fboss::platform::data_corral_service
