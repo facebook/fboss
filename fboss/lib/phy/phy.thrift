@@ -522,6 +522,9 @@ service FbossCommonPhyCtrl extends fb303.FacebookService {
   map<string, PhyInfo> getInterfacePhyInfo(1: list<string> portNames) throws (
     1: fboss.FbossBaseError error,
   );
+  map<string, PhyInfo> getAllInterfacePhyInfo() throws (
+    1: fboss.FbossBaseError error,
+  );
   /*
    * Returns the list of supported PRBS polynomials for the given port and
    * prbs component

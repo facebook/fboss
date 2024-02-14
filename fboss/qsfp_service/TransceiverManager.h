@@ -411,6 +411,8 @@ class TransceiverManager {
       std::map<std::string, phy::PhyInfo>& phyInfos,
       const std::string& portName);
 
+  void getAllInterfacePhyInfo(std::map<std::string, phy::PhyInfo>& phyInfos);
+
   time_t getLastDownTime(TransceiverID id) const;
 
   static std::string forceColdBootFileName();

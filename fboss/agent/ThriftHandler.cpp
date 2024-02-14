@@ -2890,6 +2890,19 @@ void ThriftHandler::publishLinkSnapshots(
   }
 }
 
+void ThriftHandler::getAllInterfacePhyInfo(
+    std::map<std::string, phy::PhyInfo>& phyInfos) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  auto portNames = std::make_unique<std::vector<std::string>>();
+  std::shared_ptr<SwitchState> swState = sw_->getState();
+
+  for (const auto& port :
+       std::as_const(*(swState->getPorts()->getAllNodes()))) {
+    portNames->push_back(port.second->getName());
+  }
+  getInterfacePhyInfo(phyInfos, std::move(portNames));
+}
+
 void ThriftHandler::getInterfacePhyInfo(
     std::map<std::string, phy::PhyInfo>& phyInfos,
     std::unique_ptr<std::vector<std::string>> portNames) {

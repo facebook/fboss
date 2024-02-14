@@ -409,6 +409,8 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void getInterfacePhyInfo(
       std::map<std::string, phy::PhyInfo>& phyInfos,
       std::unique_ptr<std::vector<std::string>> portNames) override;
+  void getAllInterfacePhyInfo(
+      std::map<std::string, phy::PhyInfo>& phyInfos) override;
   bool isSwitchDrained() override;
   void getActualSwitchDrainState(std::map<int64_t, cfg::SwitchDrainState>&
                                      switchId2ActualSwitchDrainState) override;

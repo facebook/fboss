@@ -350,6 +350,12 @@ void QsfpServiceHandler::publishLinkSnapshots(
   }
 }
 
+void QsfpServiceHandler::getAllInterfacePhyInfo(
+    std::map<std::string, phy::PhyInfo>& phyInfos) {
+  auto log = LOG_THRIFT_CALL(INFO);
+  manager_->getAllInterfacePhyInfo(phyInfos);
+}
+
 void QsfpServiceHandler::getInterfacePhyInfo(
     std::map<std::string, phy::PhyInfo>& phyInfos,
     std::unique_ptr<std::vector<std::string>> portNames) {

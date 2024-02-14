@@ -1748,6 +1748,13 @@ time_t TransceiverManager::getLastDownTime(TransceiverID id) const {
   return tcvrIt->second->getLastDownTime();
 }
 
+void TransceiverManager::getAllInterfacePhyInfo(
+    std::map<std::string, phy::PhyInfo>& phyInfos) {
+  for (auto [portName, _] : getPortNameToModuleMap()) {
+    getInterfacePhyInfo(phyInfos, portName);
+  }
+}
+
 void TransceiverManager::getInterfacePhyInfo(
     std::map<std::string, phy::PhyInfo>& phyInfos,
     const std::string& portName) {
