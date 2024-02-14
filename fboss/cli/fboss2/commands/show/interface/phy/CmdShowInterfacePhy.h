@@ -347,7 +347,11 @@ class CmdShowInterfacePhy
             utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(
                 hostInfo);
         std::map<std::string, phy::PhyInfo> phyInfo;
-        agentClient->sync_getInterfacePhyInfo(phyInfo, queriedIfs.data());
+        if (queriedIfs.empty()) {
+          agentClient->sync_getAllInterfacePhyInfo(phyInfo);
+        } else {
+          agentClient->sync_getInterfacePhyInfo(phyInfo, queriedIfs.data());
+        }
         for (auto& interfacePhyInfo : phyInfo) {
           model.phyInfo_ref()[interfacePhyInfo.first].insert(
               {phy::DataPlanePhyChipType::IPHY, interfacePhyInfo.second});
@@ -360,7 +364,11 @@ class CmdShowInterfacePhy
       if (phyChipType.xphyIncluded) {
         auto qsfpClient = utils::createClient<QsfpServiceAsyncClient>(hostInfo);
         std::map<std::string, phy::PhyInfo> phyInfo;
-        qsfpClient->sync_getInterfacePhyInfo(phyInfo, queriedIfs.data());
+        if (queriedIfs.empty()) {
+          qsfpClient->sync_getAllInterfacePhyInfo(phyInfo);
+        } else {
+          qsfpClient->sync_getInterfacePhyInfo(phyInfo, queriedIfs.data());
+        }
         for (auto& interfacePhyInfo : phyInfo) {
           model.phyInfo_ref()[interfacePhyInfo.first].insert(
               {phy::DataPlanePhyChipType::XPHY, interfacePhyInfo.second});
