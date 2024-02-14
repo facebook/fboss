@@ -671,5 +671,6 @@ add_custom_target(fboss_fake_agent_targets)
 add_dependencies(fboss_fake_agent_targets
   sai_test-fake
   sai_agent_hw_test-fake
+  multi_switch_agent_hw_test
 )
 endif()
