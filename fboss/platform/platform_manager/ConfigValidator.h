@@ -17,6 +17,8 @@ class ConfigValidator {
   bool isValidDevicePath(const std::string& devicePath);
   bool isValidSymlink(const std::string& symlink);
   bool isValidPresenceDetection(const PresenceDetection& presenceDetection);
+  bool isValidSpiDeviceConfigs(
+      const std::vector<SpiDeviceConfig>& spiDeviceConfig);
 };
 
 } // namespace facebook::fboss::platform::platform_manager

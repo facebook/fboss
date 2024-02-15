@@ -1,9 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include <folly/logging/xlog.h>
-
 #include <gtest/gtest.h>
-
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
 #include "fboss/platform/platform_manager/ConfigValidator.h"
@@ -197,6 +195,33 @@ TEST(ConfigValidator, InfoRomConfig) {
   fpgaIpBlockConfig.deviceName() = "fpga_info_bad_name";
   pciDevConfig.infoRomConfigs() = {fpgaIpBlockConfig};
   EXPECT_FALSE(ConfigValidator().isValidPciDeviceConfig(pciDevConfig));
+}
+
+TEST(ConfigValidatorTest, SpiDeviceConfig) {
+  SpiDeviceConfig spiDevConfig;
+  spiDevConfig.pmUnitScopedName() = "MCB_SPI_MASTER_1_DEVICE_1";
+  spiDevConfig.modalias() = "spidev";
+  spiDevConfig.chipSelect() = 0;
+  spiDevConfig.maxSpeedHz() = 25000000;
+  EXPECT_TRUE(ConfigValidator().isValidSpiDeviceConfigs({spiDevConfig}));
+  // Invalid modalias
+  spiDevConfig.modalias() = "something-invalid";
+  EXPECT_FALSE(ConfigValidator().isValidSpiDeviceConfigs({spiDevConfig}));
+  // Exceed charLimit modalias
+  spiDevConfig.modalias() = std::string(NAME_MAX + 1, 'a');
+  EXPECT_FALSE(ConfigValidator().isValidSpiDeviceConfigs({spiDevConfig}));
+  // Out of ranged chipSelect
+  spiDevConfig.modalias() = "spidev";
+  spiDevConfig.chipSelect() = 1;
+  EXPECT_FALSE(ConfigValidator().isValidSpiDeviceConfigs({spiDevConfig}));
+  // Duplciate chipselects
+  auto spiDevConfigCopy = spiDevConfig;
+  spiDevConfigCopy.chipSelect() = 0;
+  spiDevConfig.chipSelect() = 0;
+  EXPECT_FALSE(ConfigValidator().isValidSpiDeviceConfigs(
+      {spiDevConfigCopy, spiDevConfig}));
+  // Empty spiDeviceConfigs
+  EXPECT_FALSE(ConfigValidator().isValidSpiDeviceConfigs({}));
 }
 
 TEST(ConfigValidatorTest, I2cDeviceConfig) {
