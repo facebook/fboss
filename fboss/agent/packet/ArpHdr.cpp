@@ -37,7 +37,7 @@ ArpHdr::ArpHdr(Cursor& cursor) {
         folly::ByteRange(&macAddress[0], MacAddress::SIZE));
     cursor.pull(&ipAddress, 4);
     tpa = IPAddressV4::fromLong(ipAddress);
-  } catch (const std::out_of_range& e) {
+  } catch (const std::out_of_range&) {
     throw HdrParseError("ARP header too small");
   }
 }
