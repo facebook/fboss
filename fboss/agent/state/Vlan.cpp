@@ -30,24 +30,6 @@ using std::make_pair;
 using std::make_shared;
 using std::string;
 
-namespace {
-constexpr auto kVlanId = "vlanId";
-constexpr auto kVlanMtu = "vlanMTU";
-constexpr auto kVlanName = "vlanName";
-constexpr auto kIntfID = "intfID";
-constexpr auto kDhcpV4Relay = "dhcpV4Relay";
-constexpr auto kDhcpV4RelayOverrides = "dhcpRelayOverridesV4";
-constexpr auto kDhcpV6Relay = "dhcpV6Relay";
-constexpr auto kDhcpV6RelayOverrides = "dhcpRelayOverridesV6";
-constexpr auto kMemberPorts = "memberPorts";
-constexpr auto kTagged = "tagged";
-constexpr auto kArpTable = "arpTable";
-constexpr auto kArpResponseTable = "arpResponseTable";
-constexpr auto kNdpTable = "ndpTable";
-constexpr auto kNdpResponseTable = "ndpResponseTable";
-constexpr auto kMacTable = "macTable";
-} // namespace
-
 namespace facebook::fboss {
 
 Vlan::Vlan(VlanID id, string name) {
