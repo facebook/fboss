@@ -96,3 +96,12 @@ target_link_libraries(config_utils
   platform_mapping
   switch_config_cpp2
 )
+
+add_library(common_test_utils
+  fboss/agent/test/utils/CommonUtils.cpp
+)
+
+target_link_libraries(common_test_utils
+  core
+  switch_asics
+)
