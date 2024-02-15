@@ -1,0 +1,93 @@
+{
+  "defaultCommandLineArgs": {
+    "mode": "tahan800bc"
+  },
+  "transceiverConfigOverrides": [
+    
+  ],
+  "qsfpTestConfig": {
+    "cabledPortPairs": [
+      {
+        "aPortName": "eth1/31/1",
+        "zPortName": "eth1/32/1",
+        "profileID": 38
+      }
+    ]
+  },
+  "transceiverFirmwareVersions": {
+    "versionsMap": {
+      "EOLO-168HG-02-1T": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.5"
+            }
+          ]
+      },
+      "T-FX4FNT-HF4": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "7.146"
+            }
+          ]
+      },
+      "T-FX4FNT-HF5": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "7.146"
+            }
+          ]
+      },
+      "T-FX4FNT-HF9": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "106.1"
+            }
+          ]
+      },
+      "T-FX4FNT-HFE": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "106.1"
+            }
+          ]
+      },
+      "T-FX4FNT-HFP": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "7.146"
+            }
+          ]
+      },
+      "T-FX4FNT-HFS": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "7.146"
+            }
+          ]
+      },
+      "T-FX4FNT-HFU": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "106.1"
+            }
+          ]
+      },
+      "T-FX4FNT-HFV": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "106.1"
+            }
+          ]
+      }
+    }
+  }
+}

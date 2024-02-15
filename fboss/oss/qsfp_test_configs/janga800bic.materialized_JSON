@@ -1,0 +1,133 @@
+{
+  "defaultCommandLineArgs": {
+    "mode": "janga800bic"
+  },
+  "transceiverConfigOverrides": [
+    
+  ],
+  "qsfpTestConfig": {
+    "cabledPortPairs": [
+      {
+        "aPortName": "eth1/45/1",
+        "zPortName": "eth1/46/1",
+        "profileID": 38
+      },
+      {
+        "aPortName": "fab1/3/1",
+        "zPortName": "fab1/4/1",
+        "profileID": 42
+      },
+      {
+        "aPortName": "fab1/3/2",
+        "zPortName": "fab1/4/2",
+        "profileID": 42
+      },
+      {
+        "aPortName": "fab1/3/3",
+        "zPortName": "fab1/4/3",
+        "profileID": 42
+      },
+      {
+        "aPortName": "fab1/3/4",
+        "zPortName": "fab1/4/4",
+        "profileID": 42
+      },
+      {
+        "aPortName": "fab1/3/5",
+        "zPortName": "fab1/4/5",
+        "profileID": 42
+      },
+      {
+        "aPortName": "fab1/3/6",
+        "zPortName": "fab1/4/6",
+        "profileID": 42
+      },
+      {
+        "aPortName": "fab1/3/7",
+        "zPortName": "fab1/4/7",
+        "profileID": 42
+      },
+      {
+        "aPortName": "fab1/3/8",
+        "zPortName": "fab1/4/8",
+        "profileID": 42
+      }
+    ]
+  },
+  "transceiverFirmwareVersions": {
+    "versionsMap": {
+      "EOLO-168HG-02-1T": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.5"
+            }
+          ]
+      },
+      "T-FX4FNT-HF4": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "7.146"
+            }
+          ]
+      },
+      "T-FX4FNT-HF5": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "7.146"
+            }
+          ]
+      },
+      "T-FX4FNT-HF9": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "106.1"
+            }
+          ]
+      },
+      "T-FX4FNT-HFE": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "106.1"
+            }
+          ]
+      },
+      "T-FX4FNT-HFP": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "7.146"
+            }
+          ]
+      },
+      "T-FX4FNT-HFS": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "7.146"
+            }
+          ]
+      },
+      "T-FX4FNT-HFU": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "106.1"
+            }
+          ]
+      },
+      "T-FX4FNT-HFV": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "106.1"
+            }
+          ]
+      }
+    }
+  }
+}
