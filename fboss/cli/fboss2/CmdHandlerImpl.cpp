@@ -54,6 +54,7 @@
 #include "fboss/cli/fboss2/commands/show/interface/errors/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/commands/show/interface/flaps/CmdShowInterfaceFlaps.h"
 #include "fboss/cli/fboss2/commands/show/interface/flaps/gen-cpp2/model_visitation.h"
+#include "fboss/cli/fboss2/commands/show/interface/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/commands/show/interface/phy/CmdShowInterfacePhy.h"
 #include "fboss/cli/fboss2/commands/show/interface/phy/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/commands/show/interface/phymap/CmdShowInterfacePhymap.h"

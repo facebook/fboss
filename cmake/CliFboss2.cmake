@@ -148,6 +148,13 @@ add_fbthrift_cpp_library(
 )
 
 add_fbthrift_cpp_library(
+  show_interface_model
+  fboss/cli/fboss2/commands/show/interface/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
   show_interface_flaps
   fboss/cli/fboss2/commands/show/interface/flaps/model.thrift
   OPTIONS
@@ -381,6 +388,7 @@ target_link_libraries(fboss2
   show_port_model
   show_product_model
   show_transceiver_model
+  show_interface_model
   show_interface_flaps
   show_interface_errors
   show_interface_counters
