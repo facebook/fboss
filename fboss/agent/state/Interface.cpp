@@ -40,7 +40,7 @@ namespace facebook::fboss {
 
 std::optional<folly::CIDRNetwork> Interface::getAddressToReach(
     const folly::IPAddress& dest) const {
-  auto getAddressToReachFn = [this, &dest](auto addresses) {
+  auto getAddressToReachFn = [&dest](auto addresses) {
     std::optional<folly::CIDRNetwork> reachableBy;
     for (const auto& [ipStr, mask] : addresses) {
       auto cidr = folly::CIDRNetwork(ipStr, mask);
