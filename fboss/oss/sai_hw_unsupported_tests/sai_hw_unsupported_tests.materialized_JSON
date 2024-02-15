@@ -247,7 +247,7 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*SaiAclTableGroupTest.RepositionAclEntriesPostWarmboot "
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*SaiAclTableGroupTest.RepositionAclEntriesPostWarmboot"
         },
         {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
@@ -279,7 +279,7 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*SaiAclTableGroupTest.RepositionAclEntriesPostWarmboot "
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*SaiAclTableGroupTest.RepositionAclEntriesPostWarmboot"
         },
         {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
@@ -395,7 +395,7 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*SaiAclTableGroupTest.RepositionAclEntriesPostWarmboot "
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*SaiAclTableGroupTest.RepositionAclEntriesPostWarmboot"
         },
         {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
@@ -982,7 +982,7 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*SaiAclTableGroupTest.RepositionAclEntriesPostWarmboot "
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*SaiAclTableGroupTest.RepositionAclEntriesPostWarmboot"
         },
         {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
@@ -1014,7 +1014,7 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*SaiAclTableGroupTest.RepositionAclEntriesPostWarmboot "
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*SaiAclTableGroupTest.RepositionAclEntriesPostWarmboot"
         },
         {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
@@ -1046,7 +1046,7 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*SaiAclTableGroupTest.RepositionAclEntriesPostWarmboot "
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*SaiAclTableGroupTest.RepositionAclEntriesPostWarmboot"
         },
         {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
@@ -1078,7 +1078,7 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*SaiAclTableGroupTest.RepositionAclEntriesPostWarmboot "
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*SaiAclTableGroupTest.RepositionAclEntriesPostWarmboot"
         },
         {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
@@ -1110,7 +1110,7 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*SaiAclTableGroupTest.RepositionAclEntriesPostWarmboot "
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*SaiAclTableGroupTest.RepositionAclEntriesPostWarmboot"
         },
         {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
@@ -1142,7 +1142,7 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*SaiAclTableGroupTest.RepositionAclEntriesPostWarmboot "
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*SaiAclTableGroupTest.RepositionAclEntriesPostWarmboot"
         },
         {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
@@ -1174,7 +1174,7 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*SaiAclTableGroupTest.RepositionAclEntriesPostWarmboot "
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*SaiAclTableGroupTest.RepositionAclEntriesPostWarmboot"
         },
         {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
@@ -1206,7 +1206,7 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*SaiAclTableGroupTest.RepositionAclEntriesPostWarmboot "
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*SaiAclTableGroupTest.RepositionAclEntriesPostWarmboot"
         },
         {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
@@ -1238,7 +1238,7 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*SaiAclTableGroupTest.RepositionAclEntriesPostWarmboot "
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*SaiAclTableGroupTest.RepositionAclEntriesPostWarmboot"
         },
         {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
@@ -1270,7 +1270,7 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*SaiAclTableGroupTest.RepositionAclEntriesPostWarmboot "
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*SaiAclTableGroupTest.RepositionAclEntriesPostWarmboot"
         },
         {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
@@ -1302,7 +1302,7 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*SaiAclTableGroupTest.RepositionAclEntriesPostWarmboot "
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*SaiAclTableGroupTest.RepositionAclEntriesPostWarmboot"
         },
         {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
@@ -1418,7 +1418,7 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*SaiAclTableGroupTest.RepositionAclEntriesPostWarmboot "
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*SaiAclTableGroupTest.RepositionAclEntriesPostWarmboot"
         },
         {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
@@ -1450,7 +1450,7 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*SaiAclTableGroupTest.RepositionAclEntriesPostWarmboot "
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*SaiAclTableGroupTest.RepositionAclEntriesPostWarmboot"
         },
         {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
@@ -1482,7 +1482,7 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*SaiAclTableGroupTest.RepositionAclEntriesPostWarmboot "
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*SaiAclTableGroupTest.RepositionAclEntriesPostWarmboot"
         },
         {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
@@ -1576,7 +1576,7 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*SaiAclTableGroupTest.RepositionAclEntriesPostWarmboot "
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*SaiAclTableGroupTest.RepositionAclEntriesPostWarmboot"
         }
     ],
     "leaba/1.65.0/1.65.0/gibraltar": [
@@ -1605,7 +1605,7 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*SaiAclTableGroupTest.RepositionAclEntriesPostWarmboot "
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*SaiAclTableGroupTest.RepositionAclEntriesPostWarmboot"
         }
     ],
     "leaba/1.68.0/1.68.0/graphene200/simulator": [
@@ -1634,7 +1634,7 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
         },
         {
-          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*SaiAclTableGroupTest.RepositionAclEntriesPostWarmboot "
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*SaiAclTableGroupTest.RepositionAclEntriesPostWarmboot"
         }
     ]
   }
