@@ -234,9 +234,8 @@ multiswitch::StateOperDelta MonolithicHwSwitchHandler::getNextStateOperDelta(
   throw FbossError("Not supported");
 }
 
-void MonolithicHwSwitchHandler::notifyHwSwitchDisconnected() {
-  throw FbossError("Not supported");
-}
+// no action to take for monolithic
+void MonolithicHwSwitchHandler::notifyHwSwitchDisconnected() {}
 
 SwitchRunState MonolithicHwSwitchHandler::getHwSwitchRunState() {
   return hw_->getRunState();

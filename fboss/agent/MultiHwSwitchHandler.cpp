@@ -475,20 +475,25 @@ multiswitch::StateOperDelta MultiHwSwitchHandler::getNextStateOperDelta(
 }
 
 void MultiHwSwitchHandler::notifyHwSwitchGracefulExit(int64_t switchId) {
-  notifyHwSwitchDisconnected(switchId);
+  notifyHwSwitchDisconnected(switchId, true);
 }
 
-void MultiHwSwitchHandler::notifyHwSwitchDisconnected(int64_t switchId) {
+void MultiHwSwitchHandler::notifyHwSwitchDisconnected(
+    int64_t switchId,
+    bool gracefulExit) {
   if (!isRunning()) {
     throw FbossError("multi hw switch syncer not started");
   }
   auto iter = hwSwitchSyncers_.find(SwitchID(switchId));
   CHECK(iter != hwSwitchSyncers_.end());
 
-  connectionStatusTable_.disconnected(SwitchID(switchId));
-
-  // cancel any pending long poll request
-  iter->second->notifyHwSwitchDisconnected();
+  if (connectionStatusTable_.disconnected(SwitchID(switchId))) {
+    // cancel any pending long poll request
+    iter->second->notifyHwSwitchDisconnected();
+    if (!gracefulExit) {
+      sw_->setPortsDownForSwitch(SwitchID(switchId));
+    }
+  }
 }
 
 bool MultiHwSwitchHandler::waitUntilHwSwitchConnected() {

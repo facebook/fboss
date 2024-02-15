@@ -27,9 +27,14 @@ void HwSwitchConnectionStatusTable::connected(SwitchID switchId) {
   }
 }
 
-void HwSwitchConnectionStatusTable::disconnected(SwitchID switchId) {
+bool HwSwitchConnectionStatusTable::disconnected(SwitchID switchId) {
   std::unique_lock<std::mutex> lk(hwSwitchConnectedMutex_);
-  connectedSwitches_.erase(switchId);
+  // Switch was not connected. This can happen if switch sends a
+  // graceful restart notification and later thrift stream detects
+  // a connection loss and notifies the disconnect.
+  if (!connectedSwitches_.erase(switchId)) {
+    return false;
+  }
   // If there are no more active connections to HwSwitch, we cannot
   // apply any new state updates. Hence exit the SwSwitch.
   // In normal shutdown sequence, we exit SwSwitch first before shutting
@@ -37,6 +42,7 @@ void HwSwitchConnectionStatusTable::disconnected(SwitchID switchId) {
   if (connectedSwitches_.empty()) {
     XLOG(FATAL) << "No active HwSwitch connections";
   }
+  return true;
 }
 
 bool HwSwitchConnectionStatusTable::waitUntilHwSwitchConnected() {

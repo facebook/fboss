@@ -187,6 +187,35 @@ TEST_F(ThriftServerTest, setPortStateBlocking) {
   EXPECT_FALSE(port->isEnabled());
 }
 
+TEST_F(ThriftServerTest, setPortDownOnSwitchExit) {
+  // setup server and clients
+  setupServerAndClients();
+
+  // Mark two switches as connected so that SwSwitch won't abort while
+  // shutting one of the switches
+  sw_->getHwSwitchHandler()->connected(SwitchID(0));
+  sw_->getHwSwitchHandler()->connected(SwitchID(1));
+
+  const PortID port5{5};
+  folly::coro::blockingWait(fbossCtlClient_->co_setPortState(port5, true));
+
+  // Bring the port up
+  sw_->linkStateChanged(port5, true);
+  WITH_RETRIES({
+    auto port = sw_->getState()->getPorts()->getNodeIf(port5);
+    EXPECT_EVENTUALLY_TRUE(port->isUp());
+  });
+
+  // Disconnect the first switch
+  sw_->getHwSwitchHandler()->notifyHwSwitchDisconnected(
+      SwitchID(0), false /*gracefulExit*/);
+
+  WITH_RETRIES({
+    auto port = sw_->getState()->getPorts()->getNodeIf(port5);
+    EXPECT_EVENTUALLY_FALSE(port->isUp());
+  });
+}
+
 CO_TEST_F(ThriftServerTest, packetStreamAndSink) {
   // setup server and clients
   setupServerWithMockAndClients();

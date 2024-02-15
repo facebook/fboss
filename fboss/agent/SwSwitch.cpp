@@ -3082,4 +3082,18 @@ FabricReachabilityStats SwSwitch::getFabricReachabilityStats() {
   }
 }
 
+void SwSwitch::setPortsDownForSwitch(SwitchID switchId) {
+  for (const auto& [matcher, portMap] :
+       std::as_const(*getState()->getPorts())) {
+    // walk through all ports on the switch and set them down
+    if (HwSwitchMatcher(matcher).has(switchId)) {
+      for (const auto& port : std::as_const(*portMap)) {
+        if (port.second->isUp()) {
+          linkStateChanged(port.second->getID(), false);
+        }
+      }
+    }
+  }
+}
+
 } // namespace facebook::fboss

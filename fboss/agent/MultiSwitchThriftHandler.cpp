@@ -148,7 +148,8 @@ MultiSwitchThriftHandler::co_getTxPackets(int64_t switchId) {
           [this, switchId] {
             sw_->getPacketStreamMap()->removePacketStream(SwitchID(switchId));
             XLOG(DBG2) << "Removed stream for switch " << switchId;
-            sw_->getHwSwitchHandler()->notifyHwSwitchDisconnected(switchId);
+            sw_->getHwSwitchHandler()->notifyHwSwitchDisconnected(
+                switchId, false);
           });
   auto streamPublisher = std::make_unique<
       apache::thrift::ServerStreamPublisher<multiswitch::TxPacket>>(

@@ -17,7 +17,7 @@ namespace facebook::fboss {
 class HwSwitchConnectionStatusTable {
  public:
   void connected(SwitchID switchId);
-  void disconnected(SwitchID switchId);
+  bool disconnected(SwitchID switchId);
   bool waitUntilHwSwitchConnected();
   void cancelWait();
 
