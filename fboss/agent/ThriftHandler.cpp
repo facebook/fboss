@@ -378,7 +378,7 @@ void getPortInfoHelper(
   }
   try {
     portInfo.transceiverIdx() = sw.getTransceiverIdxThrift(port->getID());
-  } catch (const facebook::fboss::FbossError& err) {
+  } catch (const facebook::fboss::FbossError&) {
     // No problem, we just don't set the other info
   }
 
