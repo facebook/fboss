@@ -24,7 +24,7 @@ LlcHdr::LlcHdr(Cursor& cursor) {
     if (control != static_cast<uint8_t>(LLC_CONTROL::LLC_CONTROL_UI)) {
       throw HdrParseError("LLC: only Type 1 'UI' PDUs are supported");
     }
-  } catch (const std::out_of_range& e) {
+  } catch (const std::out_of_range&) {
     throw HdrParseError("LLC header too small");
   }
 }
