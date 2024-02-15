@@ -28,7 +28,6 @@ constexpr auto kFbossBmcAlert("BMC");
 constexpr auto kFbossKernelAlert("KERNEL");
 constexpr auto kFbossPortAlert("PORT");
 constexpr auto kFbossRouteAlert("ROUTE");
-constexpr auto kFbossBGPAlert("BGP");
 constexpr auto kFbossLinkSnapshotAlert("LINK_SNAPSHOT");
 
 // Alert tag by type
