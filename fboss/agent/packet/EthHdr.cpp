@@ -39,7 +39,7 @@ EthHdr::EthHdr(Cursor& cursor) {
       etherType =
           (static_cast<uint16_t>(buf[2]) << 8) | static_cast<uint16_t>(buf[3]);
     }
-  } catch (const std::out_of_range& e) {
+  } catch (const std::out_of_range&) {
     throw HdrParseError("Ethernet header too small");
   }
 }
