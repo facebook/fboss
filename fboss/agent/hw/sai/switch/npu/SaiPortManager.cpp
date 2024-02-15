@@ -15,8 +15,12 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
-#if defined(SAI_VERSION_11_0_EA_DNX_ODP)
+#if defined(BRCM_SAI_SDK_DNX)
+#ifndef IS_OSS_BRCM_SAI
 #include <experimental/saiportextensions.h>
+#else
+#include <saiportextensions.h>
+#endif
 #endif
 
 DEFINE_bool(
