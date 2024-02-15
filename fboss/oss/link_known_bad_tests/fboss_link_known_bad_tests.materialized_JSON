@@ -44,6 +44,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -98,6 +101,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -156,6 +162,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -210,6 +219,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -268,6 +280,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -322,6 +337,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -380,6 +398,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -436,6 +457,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -490,6 +514,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
@@ -551,6 +578,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*$"
         },
         {
@@ -608,6 +638,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
@@ -669,6 +702,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*$"
         },
         {
@@ -726,6 +762,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
@@ -787,6 +826,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*$"
         },
         {
@@ -844,6 +886,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
@@ -905,6 +950,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*$"
         },
         {
@@ -964,6 +1012,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -1018,6 +1069,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -1076,6 +1130,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -1130,6 +1187,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -1188,6 +1248,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -1242,6 +1305,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -1300,6 +1366,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -1356,6 +1425,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -1410,6 +1482,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
@@ -1471,6 +1546,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*$"
         },
         {
@@ -1528,6 +1606,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
@@ -1589,6 +1670,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*$"
         },
         {
@@ -1646,6 +1730,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
@@ -1707,6 +1794,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*$"
         },
         {
@@ -1764,6 +1854,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
@@ -1825,6 +1918,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*$"
         },
         {
@@ -1884,6 +1980,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -1938,6 +2037,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -1996,6 +2098,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -2050,6 +2155,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -2108,6 +2216,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -2162,6 +2273,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -2220,6 +2334,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -2276,6 +2393,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -2330,6 +2450,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
@@ -2391,6 +2514,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*$"
         },
         {
@@ -2448,6 +2574,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
@@ -2509,6 +2638,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*$"
         },
         {
@@ -2566,6 +2698,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
@@ -2627,6 +2762,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*$"
         },
         {
@@ -2686,6 +2824,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*$"
         },
         {
@@ -2743,6 +2884,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
@@ -7251,6 +7395,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*$"
         },
         {
@@ -7325,6 +7472,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*$"
         },
         {
@@ -7396,6 +7546,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*$"
         },
         {
@@ -7465,6 +7618,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
@@ -7807,6 +7963,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -7852,6 +8011,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -7901,6 +8063,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -7946,6 +8111,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -7995,6 +8163,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -8040,6 +8211,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -8089,6 +8263,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -8136,6 +8313,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -8181,6 +8361,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
@@ -8233,6 +8416,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*$"
         },
         {
@@ -8281,6 +8467,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
@@ -8333,6 +8522,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*$"
         },
         {
@@ -8381,6 +8573,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
@@ -8433,6 +8628,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*$"
         },
         {
@@ -8483,6 +8681,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*$"
         },
         {
@@ -8531,6 +8732,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
@@ -9648,6 +9852,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -9708,6 +9915,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -9772,6 +9982,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -9832,6 +10045,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -9896,6 +10112,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -9956,6 +10175,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -10020,6 +10242,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -10082,6 +10307,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -10142,6 +10370,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
@@ -10209,6 +10440,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*$"
         },
         {
@@ -10272,6 +10506,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
@@ -10339,6 +10576,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*$"
         },
         {
@@ -10402,6 +10642,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
@@ -10469,6 +10712,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*$"
         },
         {
@@ -10534,6 +10780,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*$"
         },
         {
@@ -10597,6 +10846,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
@@ -11818,6 +12070,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*$"
         },
         {
@@ -11878,6 +12133,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
@@ -11948,6 +12206,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -12008,6 +12269,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -12072,6 +12336,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -12132,6 +12399,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -12196,6 +12466,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -12256,6 +12529,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
@@ -12320,6 +12596,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -12382,6 +12661,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "PtpTests.enablePtpPortDown.*$"
         },
         {
@@ -12442,6 +12724,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
@@ -12509,6 +12794,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*$"
         },
         {
@@ -12572,6 +12860,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
@@ -12639,6 +12930,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*$"
         },
         {
@@ -12702,6 +12996,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
@@ -12769,6 +13066,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*$"
         },
         {
@@ -12834,6 +13134,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "Prbs.*ASIC.*$"
         },
         {
@@ -12897,6 +13200,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "Prbs.*ASIC.*$"
