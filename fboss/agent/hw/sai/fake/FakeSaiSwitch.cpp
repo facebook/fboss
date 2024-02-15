@@ -18,7 +18,6 @@ namespace {
 static constexpr uint16_t kDefaultVlanId = 4095;
 static constexpr uint64_t kDefaultVirtualRouterId = 0;
 static constexpr uint64_t kDefault1QBridgeId = 0;
-static constexpr uint64_t kCpuPort = 0;
 static constexpr uint32_t kMaxPortUnicastQueues = 8;
 static constexpr uint32_t kMaxPortMulticastQueues = 8;
 static constexpr uint32_t kMaxPortQueues =
