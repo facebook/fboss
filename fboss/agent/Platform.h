@@ -16,14 +16,13 @@
 #include <memory>
 #include <unordered_map>
 #include "fboss/agent/AgentDirectoryUtil.h"
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/PlatformPort.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
-
-DECLARE_bool(hide_fabric_ports);
 
 DECLARE_int32(switchIndex);
 

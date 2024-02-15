@@ -9,6 +9,7 @@ add_library(platform_mapping
 )
 
 target_link_libraries(platform_mapping
+  agent_features
   error
   fboss_config_utils
   platform_config_cpp2

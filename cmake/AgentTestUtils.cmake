@@ -84,3 +84,15 @@ target_link_libraries(port_test_utils
   transceiver_cpp2
   state
 )
+
+add_library(config_utils
+  fboss/agent/test/utils/ConfigUtils.cpp
+)
+
+target_link_libraries(config_utils
+  agent_features
+  fboss_types
+  Folly::folly
+  platform_mapping
+  switch_config_cpp2
+)

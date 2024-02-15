@@ -20,3 +20,5 @@ DEFINE_bool(
     classid_for_unresolved_routes,
     false,
     "Flag to set the class ID for unresolved routes that points  to CPU port");
+
+DEFINE_bool(hide_fabric_ports, false, "Elide ports of type fabric");

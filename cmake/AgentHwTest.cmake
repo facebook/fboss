@@ -9,6 +9,7 @@ add_library(config_factory
 )
 
 target_link_libraries(config_factory
+  config_utils
   fboss_types
   hw_switch
   hwagent
