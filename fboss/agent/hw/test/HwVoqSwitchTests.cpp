@@ -22,13 +22,13 @@
 #include "fboss/agent/hw/test/HwTestStatUtils.h"
 #include "fboss/agent/hw/test/HwVoqUtils.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
-#include "fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQueuePerHostUtils.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/utils/FabricTestUtils.h"
+#include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 namespace {

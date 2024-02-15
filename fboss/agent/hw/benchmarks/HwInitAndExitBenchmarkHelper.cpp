@@ -21,9 +21,9 @@
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestProdConfigUtils.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
-#include "fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.h"
 #include "fboss/agent/test/RouteDistributionGenerator.h"
 #include "fboss/agent/test/RouteScaleGenerators.h"
+
 #include "fboss/lib/FunctionCallTimeReporter.h"
 #include "fboss/lib/platforms/PlatformMode.h"
 

@@ -13,8 +13,8 @@
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
-#include "fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.h"
-#include "fboss/agent/hw/test/dataplane_tests/HwTestPfcUtils.h"
+
+#include "fboss/agent/test/utils/OlympicTestUtils.h"
 
 namespace facebook::fboss::utility {
 

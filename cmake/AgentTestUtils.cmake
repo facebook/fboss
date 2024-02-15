@@ -61,3 +61,14 @@ target_link_libraries(traffic_policy_utils
   state
   Folly::folly
 )
+
+add_library(olympic_qos_utils
+  fboss/agent/test/utils/OlympicTestUtils.cpp
+)
+
+target_link_libraries(olympic_qos_utils
+  fboss_types
+  packet_factory
+  Folly::folly
+  switch_config_cpp2
+)

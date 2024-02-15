@@ -115,18 +115,6 @@ target_link_libraries(hw_teflow_utils
   switch_config_cpp2
 )
 
-add_library(hw_olympic_qos_utils
-  fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.cpp
-)
-
-target_link_libraries(hw_olympic_qos_utils
-  fboss_types
-  hw_switch_ensemble
-  packet_factory
-  Folly::folly
-  switch_config_cpp2
-)
-
 add_library(hw_dscp_marking_utils
   fboss/agent/hw/test/dataplane_tests/HwDscpMarkingTests.cpp
 )
@@ -213,7 +201,7 @@ add_library(prod_config_utils
 target_link_libraries(prod_config_utils
   load_balancer_utils
   switch_config_cpp2
-  hw_olympic_qos_utils
+  olympic_qos_utils
   hw_copp_utils
   hw_switch_test
 )
@@ -319,7 +307,6 @@ set(hw_switch_test_srcs
   fboss/agent/hw/test/dataplane_tests/HwTestDscpMarkingUtils.cpp
   fboss/agent/hw/test/dataplane_tests/Hw2QueueToOlympicQoSTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwTestAqmUtils.cpp
-  fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.cpp
   fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.cpp
   fboss/agent/hw/test/dataplane_tests/HwTestQueuePerHostUtils.cpp
   fboss/agent/hw/test/dataplane_tests/HwTestPfcUtils.cpp
@@ -362,6 +349,7 @@ target_link_libraries(hw_switch_test
   hw_switch_ensemble
   hw_voq_utils
   load_balancer_utils
+  olympic_qos_utils
   prod_config_factory
   prod_config_utils
   traffic_policy_utils
@@ -397,7 +385,7 @@ target_link_libraries(prod_config_factory
   config_factory
   hw_copp_utils
   hw_dscp_marking_utils
-  hw_olympic_qos_utils
+  olympic_qos_utils
   hw_queue_per_host_utils
   load_balancer_utils
   hw_pfc_utils

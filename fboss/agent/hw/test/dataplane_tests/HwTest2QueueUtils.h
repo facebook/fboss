@@ -10,7 +10,7 @@
 
 #pragma once
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
-#include "fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.h"
+#include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/agent/types.h"
 
 #include <string>
