@@ -745,4 +745,82 @@ TEST_F(CmisTest, cmis2x400GDr4TransceiverInfoTest) {
   EXPECT_TRUE(xcvr->isSnrSupported(phy::Side::LINE));
   EXPECT_TRUE(xcvr->isSnrSupported(phy::Side::SYSTEM));
 }
+
+TEST_F(CmisTest, cmis400GDr4TransceiverInfoTest) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<Cmis400GDr4Transceiver>(xcvrID);
+  const auto& info = xcvr->getTransceiverInfo();
+  EXPECT_TRUE(info.tcvrState()->transceiverManagementInterface());
+  EXPECT_EQ(
+      info.tcvrState()->transceiverManagementInterface(),
+      TransceiverManagementInterface::CMIS);
+  EXPECT_EQ(xcvr->numHostLanes(), 8);
+  EXPECT_EQ(xcvr->numMediaLanes(), 4);
+  EXPECT_EQ(
+      info.tcvrState()->moduleMediaInterface(), MediaInterfaceCode::DR4_400G);
+  for (auto& media : *info.tcvrState()->settings()->mediaInterface()) {
+    EXPECT_EQ(media.media()->get_smfCode(), SMFMediaInterfaceCode::DR4_400G);
+    EXPECT_EQ(media.code(), MediaInterfaceCode::DR4_400G);
+  }
+  // Check cmisStateChanged
+  EXPECT_TRUE(
+      info.tcvrState()->status() &&
+      info.tcvrState()->status()->cmisStateChanged() &&
+      *info.tcvrState()->status()->cmisStateChanged());
+
+  utility::HwTransceiverUtils::verifyDiagsCapability(
+      *info.tcvrState(),
+      transceiverManager_->getDiagsCapability(xcvrID),
+      false /* skipCheckingIndividualCapability */);
+
+  TransceiverTestsHelper tests(info);
+  tests.verifyVendorName("FACETEST");
+
+  auto diagsCap = transceiverManager_->getDiagsCapability(xcvrID);
+  EXPECT_TRUE(diagsCap.has_value());
+  std::vector<prbs::PrbsPolynomial> expectedSysPolynomials = {
+      prbs::PrbsPolynomial::PRBS31Q,
+      prbs::PrbsPolynomial::PRBS23Q,
+      prbs::PrbsPolynomial::PRBS15Q,
+      prbs::PrbsPolynomial::PRBS13Q,
+      prbs::PrbsPolynomial::PRBS9Q,
+      prbs::PrbsPolynomial::PRBS7Q};
+  std::vector<prbs::PrbsPolynomial> expectedLinePolynomials = {
+      prbs::PrbsPolynomial::PRBS31Q,
+      prbs::PrbsPolynomial::PRBS23Q,
+      prbs::PrbsPolynomial::PRBS15Q,
+      prbs::PrbsPolynomial::PRBS13Q,
+      prbs::PrbsPolynomial::PRBS9Q,
+      prbs::PrbsPolynomial::PRBS7Q};
+
+  auto linePrbsCapability = *(*diagsCap).prbsLineCapabilities();
+  auto sysPrbsCapability = *(*diagsCap).prbsSystemCapabilities();
+
+  tests.verifyPrbsPolynomials(expectedLinePolynomials, linePrbsCapability);
+  tests.verifyPrbsPolynomials(expectedSysPolynomials, sysPrbsCapability);
+
+  for (auto unsupportedApplication :
+       {SMFMediaInterfaceCode::CWDM4_100G,
+        SMFMediaInterfaceCode::FR4_400G,
+        SMFMediaInterfaceCode::LR4_10_400G,
+        SMFMediaInterfaceCode::FR4_200G}) {
+    EXPECT_EQ(
+        xcvr->getApplicationField(
+            static_cast<uint8_t>(unsupportedApplication), 0),
+        std::nullopt);
+  }
+  for (auto supportedApplication : {SMFMediaInterfaceCode::DR4_400G}) {
+    auto applicationField = xcvr->getApplicationField(
+        static_cast<uint8_t>(supportedApplication), 0);
+    EXPECT_NE(applicationField, std::nullopt);
+    EXPECT_EQ(applicationField->hostStartLanes, std::vector<int>{0});
+    EXPECT_EQ(applicationField->mediaStartLanes, std::vector<int>{0});
+    for (uint8_t lane = 1; lane < 7; lane++) {
+      EXPECT_EQ(
+          xcvr->getApplicationField(
+              static_cast<uint8_t>(supportedApplication), lane),
+          std::nullopt);
+    }
+  }
+}
 } // namespace facebook::fboss
