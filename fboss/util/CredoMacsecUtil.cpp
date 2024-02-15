@@ -183,7 +183,6 @@ DEFINE_bool(
 DEFINE_bool(get_sdk_state, false, "Get entire SAI state, use with --filename");
 DEFINE_string(filename, "", "File name");
 
-constexpr bool kReadFromHw = true;
 /*
  * getMacsecSaFromJson()
  * Reads MacSec SA information from JSON file to MKASak structure.
