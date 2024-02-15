@@ -15,6 +15,13 @@
 
 using facebook::fb303::RATE;
 using facebook::fb303::SUM;
+using TLTimeseries = facebook::fb303::ThreadCachedServiceData::TLTimeseries;
+
+namespace {
+void updateValue(TLTimeseries& counter, int64_t value) {
+  counter.addValue(value - facebook::fboss::getCumulativeValue(counter));
+}
+} // namespace
 
 namespace facebook::fboss {
 
@@ -280,21 +287,21 @@ HwSwitchFb303GlobalStats HwSwitchFb303Stats::getAllFb303Stats() const {
 }
 
 void HwSwitchFb303Stats::updateStats(HwSwitchFb303GlobalStats& globalStats) {
-  txPktAlloc_.addValue(*globalStats.tx_pkt_allocated());
-  txPktFree_.addValue(*globalStats.tx_pkt_freed());
-  txSent_.addValue(*globalStats.tx_pkt_sent());
-  txSentDone_.addValue(*globalStats.tx_pkt_sent_done());
-  txErrors_.addValue(*globalStats.tx_errors());
-  txPktAllocErrors_.addValue(*globalStats.tx_pkt_allocation_errors());
-  parityErrors_.addValue(*globalStats.parity_errors());
-  corrParityErrors_.addValue(*globalStats.parity_corr());
-  uncorrParityErrors_.addValue(*globalStats.parity_uncorr());
-  asicErrors_.addValue(*globalStats.asic_error());
-  globalDrops_.addValue(*globalStats.global_drops());
-  globalReachDrops_.addValue(*globalStats.global_reachability_drops());
-  packetIntegrityDrops_.addValue(*globalStats.packet_integrity_drops());
-  dramEnqueuedBytes_.addValue(*globalStats.dram_enqueued_bytes());
-  dramDequeuedBytes_.addValue(*globalStats.dram_dequeued_bytes());
+  updateValue(txPktAlloc_, *globalStats.tx_pkt_allocated());
+  updateValue(txPktFree_, *globalStats.tx_pkt_freed());
+  updateValue(txSent_, *globalStats.tx_pkt_sent());
+  updateValue(txSentDone_, *globalStats.tx_pkt_sent_done());
+  updateValue(txErrors_, *globalStats.tx_errors());
+  updateValue(txPktAllocErrors_, *globalStats.tx_pkt_allocation_errors());
+  updateValue(parityErrors_, *globalStats.parity_errors());
+  updateValue(corrParityErrors_, *globalStats.parity_corr());
+  updateValue(uncorrParityErrors_, *globalStats.parity_uncorr());
+  updateValue(asicErrors_, *globalStats.asic_error());
+  updateValue(globalDrops_, *globalStats.global_drops());
+  updateValue(globalReachDrops_, *globalStats.global_reachability_drops());
+  updateValue(packetIntegrityDrops_, *globalStats.packet_integrity_drops());
+  updateValue(dramEnqueuedBytes_, *globalStats.dram_enqueued_bytes());
+  updateValue(dramDequeuedBytes_, *globalStats.dram_dequeued_bytes());
   fb303::fbData->setCounter(
       fabricReachabilityMissingCount_.name(),
       *globalStats.fabric_reachability_missing());

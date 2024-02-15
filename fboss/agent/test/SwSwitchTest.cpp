@@ -228,14 +228,67 @@ TEST_F(SwSwitchTest, overlappingUpdatesWithExit) {
 
 TEST_F(SwSwitchTest, multiSwitchFb303Stats) {
   std::map<SwitchID, const HwAsic*> asicMap;
-  HwSwitchFb303GlobalStats globalStats;
+  CounterCache counters(sw);
   asicMap[SwitchID(0)] = handle->getPlatform()->getAsic();
   auto multiSwitchStats = std::make_unique<MultiSwitchFb303Stats>(asicMap);
-  globalStats.tx_pkt_allocated() = 100;
-  multiSwitchStats->updateStats(globalStats);
+  auto getGlobalStats = [](int64_t val) {
+    HwSwitchFb303GlobalStats globalStats;
+    globalStats.tx_pkt_allocated() = val;
+    globalStats.tx_pkt_freed() = val;
+    globalStats.tx_pkt_sent() = val;
+    globalStats.tx_pkt_sent_done() = val;
+    globalStats.tx_errors() = val;
+    globalStats.tx_pkt_allocation_errors() = val;
+    globalStats.parity_errors() = val;
+    globalStats.parity_corr() = val;
+    globalStats.parity_uncorr() = val;
+    globalStats.asic_error() = val;
+    globalStats.global_drops() = val;
+    globalStats.global_reachability_drops() = val;
+    globalStats.packet_integrity_drops() = val;
+    globalStats.dram_enqueued_bytes() = val;
+    globalStats.dram_dequeued_bytes() = val;
+    globalStats.fabric_reachability_missing() = val;
+    globalStats.fabric_reachability_mismatch() = val;
+    return globalStats;
+  };
+  auto val = 100;
+  auto statsUpdate1 = getGlobalStats(val);
+  multiSwitchStats->updateStats(statsUpdate1);
   // fb303 stat should have gotten an update
   EXPECT_EQ(
       multiSwitchStats->getHwSwitchFb303GlobalStats().getTxPktAllocCount(), 1);
+  counters.update();
+  auto checkValues = [&counters](const int64_t expectedVal) {
+    EXPECT_EQ(counters.value("mock.tx.pkt.allocated.sum"), expectedVal);
+    EXPECT_EQ(counters.value("mock.tx.pkt.freed.sum"), expectedVal);
+    EXPECT_EQ(counters.value("mock.tx.pkt.sent.sum"), expectedVal);
+    EXPECT_EQ(counters.value("mock.tx.pkt.sent.done.sum"), expectedVal);
+    EXPECT_EQ(counters.value("mock.tx.errors.sum"), expectedVal);
+    EXPECT_EQ(counters.value("mock.tx.pkt.allocation.errors.sum"), expectedVal);
+    EXPECT_EQ(counters.value("mock.parity.errors.sum"), expectedVal);
+    EXPECT_EQ(counters.value("mock.parity.corr.sum"), expectedVal);
+    EXPECT_EQ(counters.value("mock.parity.uncorr.sum"), expectedVal);
+    EXPECT_EQ(counters.value("mock.asic.error.sum"), expectedVal);
+    EXPECT_EQ(counters.value("global_drops.sum"), expectedVal);
+    EXPECT_EQ(counters.value("global_reachability_drops.sum"), expectedVal);
+    EXPECT_EQ(counters.value("packet_integrity_drops.sum"), expectedVal);
+    EXPECT_EQ(counters.value("dram_enqueued_bytes.sum"), expectedVal);
+    EXPECT_EQ(counters.value("dram_dequeued_bytes.sum"), expectedVal);
+    EXPECT_EQ(counters.value("fabric_reachability_missing"), expectedVal);
+    EXPECT_EQ(counters.value("fabric_reachability_mismatch"), expectedVal);
+  };
+  checkValues(val);
+  auto updatedVal = 110;
+  auto statsUpdate2 = getGlobalStats(updatedVal);
+  multiSwitchStats->updateStats(statsUpdate2);
+  counters.update();
+  checkValues(updatedVal);
+  updatedVal = 50;
+  auto statsUpdate3 = getGlobalStats(updatedVal);
+  multiSwitchStats->updateStats(statsUpdate3);
+  counters.update();
+  checkValues(updatedVal);
 }
 
 TEST_F(SwSwitchTest, swSwitchRunState) {
