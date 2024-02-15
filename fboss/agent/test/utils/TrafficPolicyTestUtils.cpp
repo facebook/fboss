@@ -7,10 +7,10 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/hw/test/TrafficPolicyUtils.h"
+#include "fboss/agent/test/utils/TrafficPolicyTestUtils.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
-#include "fboss/agent/hw/test/HwTestAclUtils.h"
-#include "fboss/agent/hw/test/HwTestCoppUtils.h"
+#include "fboss/agent/test/utils/AclTestUtils.h"
+#include "fboss/agent/test/utils/CoppTestUtils.h"
 
 DECLARE_bool(enable_acl_table_group);
 

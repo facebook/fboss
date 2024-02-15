@@ -18,10 +18,10 @@
 #include "fboss/agent/hw/bcm/BcmQosPolicyTable.h"
 #include "fboss/agent/hw/bcm/BcmQosUtils.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
-#include "fboss/agent/hw/test/TrafficPolicyUtils.h"
 #include "fboss/agent/platforms/tests/utils/BcmTestPlatform.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/test/utils/TrafficPolicyTestUtils.h"
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
 

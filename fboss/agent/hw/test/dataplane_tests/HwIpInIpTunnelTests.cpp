@@ -11,10 +11,10 @@
 #include "fboss/agent/hw/test/HwTestPacketSnooper.h"
 #include "fboss/agent/hw/test/HwTestPacketTrapEntry.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
-#include "fboss/agent/hw/test/TrafficPolicyUtils.h"
 #include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
+
 #include "folly/logging/xlog.h"
 
 namespace facebook::fboss {

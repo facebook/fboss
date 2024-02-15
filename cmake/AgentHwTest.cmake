@@ -218,17 +218,6 @@ target_link_libraries(prod_config_utils
   hw_switch_test
 )
 
-add_library(traffic_policy_utils
-  fboss/agent/hw/test/TrafficPolicyUtils.cpp
-)
-
-target_link_libraries(traffic_policy_utils
-  switch_config_cpp2
-  config_factory
-  state
-  Folly::folly
-)
-
 add_fbthrift_cpp_library(
   validated_shell_commands_cpp2
   fboss/agent/validated_shell_commands.thrift

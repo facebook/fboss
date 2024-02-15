@@ -9,8 +9,6 @@
  */
 #include "fboss/agent/hw/test/dataplane_tests/HwTest2QueueUtils.h"
 
-#include "fboss/agent/hw/test/TrafficPolicyUtils.h"
-
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 

@@ -19,7 +19,6 @@
 #include "fboss/agent/hw/test/HwTestPacketSnooper.h"
 #include "fboss/agent/hw/test/HwTestPacketTrapEntry.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
-#include "fboss/agent/hw/test/TrafficPolicyUtils.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/state/LabelForwardingEntry.h"
@@ -27,6 +26,7 @@
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/TrunkUtils.h"
+
 #include "fboss/agent/types.h"
 
 #include <gtest/gtest.h>

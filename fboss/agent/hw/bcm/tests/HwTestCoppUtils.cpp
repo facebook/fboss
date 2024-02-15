@@ -14,8 +14,6 @@
 #include "fboss/agent/hw/bcm/BcmFieldProcessorUtils.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
-#include "fboss/agent/hw/bcm/types.h"
-#include "fboss/agent/hw/test/TrafficPolicyUtils.h"
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/LacpTypes.h"

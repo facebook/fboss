@@ -15,9 +15,9 @@
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/hw/test/HwTestAclUtils.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
-#include "fboss/agent/hw/test/TrafficPolicyUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestUtils.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/test/utils/TrafficPolicyTestUtils.h"
 
 #include <folly/logging/xlog.h>
 

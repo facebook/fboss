@@ -50,3 +50,14 @@ target_link_libraries(fabric_test_utils
   test_ensemble_if
   ${GTEST}
 )
+
+add_library(traffic_policy_utils
+  fboss/agent/test/utils/TrafficPolicyTestUtils.cpp
+)
+
+target_link_libraries(traffic_policy_utils
+  switch_config_cpp2
+  config_factory
+  state
+  Folly::folly
+)
