@@ -35,7 +35,7 @@ ICMPHdr::ICMPHdr(Cursor& cursor) {
     type = cursor.read<uint8_t>();
     code = cursor.read<uint8_t>();
     csum = cursor.readBE<uint16_t>();
-  } catch (const std::out_of_range& e) {
+  } catch (const std::out_of_range&) {
     throw HdrParseError("ICMPv6 header too small");
   }
 }
