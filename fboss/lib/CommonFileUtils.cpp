@@ -83,7 +83,7 @@ bool writeSysfs(const std::string& path, const std::string& val) {
     } else {
       success = false;
     }
-  } catch (std::exception& e) {
+  } catch (std::exception&) {
     success = false;
   }
   return success;
