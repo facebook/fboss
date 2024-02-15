@@ -103,10 +103,16 @@
           "subSystemDeviceId": "0x0007",
           "infoRomConfigs": [
             {
-              "pmUnitScopedName": "IOB_INFO_ROM",
+              "pmUnitScopedName": "MCB_IOB_INFO_ROM_1",
               "deviceName": "fpga_info_iob",
               "obufOffset": "0x000000",
               "csrOffset": "0x000000"
+            },
+            {
+              "pmUnitScopedName": "MCB_IOB_INFO_ROM_2",
+              "deviceName": "fpga_info_iob",
+              "iobufOffset": "0x441100",
+              "csrOffset": "0x441100"
             }
           ],
           "spiMasterConfigs": [
@@ -459,6 +465,14 @@
                 }
               ]
             }
+          ],
+          "infoRomConfigs": [
+            {
+              "pmUnitScopedName": "SCM_IOB_INFO_ROM",
+              "deviceName": "fpga_info_iob",
+              "iobufOffset": "0x40100",
+              "csrOffset": "0x40100"
+            }
           ]
         }
       ],
@@ -544,13 +558,13 @@
           "subSystemDeviceId": "0x0007",
           "infoRomConfigs": [
             {
-              "pmUnitScopedName": "SCM_DOM1_INFO_ROM",
+              "pmUnitScopedName": "SMB_DOM1_INFO_ROM",
               "deviceName": "fpga_info_dom",
               "iobufOffset": "0x842100",
               "csrOffset": "0x842100"
             },
             {
-              "pmUnitScopedName": "SCM_DOM2_INFO_ROM",
+              "pmUnitScopedName": "SMB_DOM2_INFO_ROM",
               "deviceName": "fpga_info_dom",
               "iobufOffset": "0x00c43100",
               "csrOffset": "0x00c43100"
@@ -2387,11 +2401,11 @@
     "/run/devmap/eeproms/BMC_EEPROM": "/JUMPER_SLOT@0/SCM_SLOT@0/RUNBMC_SLOT@0/[IDPROM]",
     "/run/devmap/fpgas/MCB_IOB_FPGA": "/[MCB_IOB_FPGA]",
     "/run/devmap/fpgas/SCM_FPGA": "/JUMPER_SLOT@0/SCM_SLOT@0/[SCM_FPGA]",
-    "/run/devmap/fpgas/IOB_INFO_ROM": "/[IOB_INFO_ROM]",
-    "/run/devmap/fpgas/MCB_IOB_INFO_ROM": "/[MCB_IOB_INFO_ROM]",
+    "/run/devmap/fpgas/MCB_IOB_INFO_ROM_1": "/[MCB_IOB_INFO_ROM_1]",
+    "/run/devmap/fpgas/MCB_IOB_INFO_ROM_2": "/[MCB_IOB_INFO_ROM_2]",
     "/run/devmap/fpgas/SCM_IOB_INFO_ROM": "/JUMPER_SLOT@0/SCM_SLOT@0/[SCM_IOB_INFO_ROM]",
-    "/run/devmap/fpgas/SMB_DOM1_INFO_ROM": "/SMB_SLOT@0/[SCM_DOM1_INFO_ROM]",
-    "/run/devmap/fpgas/SMB_DOM2_INFO_ROM": "/SMB_SLOT@0/[SCM_DOM2_INFO_ROM]",
+    "/run/devmap/fpgas/SMB_DOM1_INFO_ROM": "/SMB_SLOT@0/[SMB_DOM1_INFO_ROM]",
+    "/run/devmap/fpgas/SMB_DOM2_INFO_ROM": "/SMB_SLOT@0/[SMB_DOM2_INFO_ROM]",
     "/run/devmap/flashes/SCM_SPI_MASTER": "/JUMPER_SLOT@0/SCM_SLOT@0/[SCM_IOB_SPI_MASTER_0_CS0]",
     "/run/devmap/flashes/DOM1_SPI_MASTER": "/SMB_SLOT@0/[DOM1_IOB_SPI_MASTER_0_CS0]",
     "/run/devmap/flashes/DOM2_SPI_MASTER": "/SMB_SLOT@0/[DOM2_IOB_SPI_MASTER_0_CS0]",
