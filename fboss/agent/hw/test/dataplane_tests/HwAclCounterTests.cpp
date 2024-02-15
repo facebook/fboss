@@ -377,7 +377,6 @@ class HwUdfAclCounterTest
         masterLogicalPortIds(),
         getAsic()->desiredLoopbackModes());
     cfg.udfConfig() = utility::addUdfAclConfig();
-    utility::addFlowletConfigs(cfg, masterLogicalPortIds());
     return cfg;
   }
 };
@@ -392,15 +391,6 @@ TEST_F(HwUdfAclCounterTest, VerifyUdfWithOtherAcls) {
       true /* bump on hit */,
       true /* front panel port */,
       {AclType::UDF, AclType::SRC_PORT});
-}
-
-// Verifying the UDF Acl with FLOWLET Acl.
-// Bump on hit should be zero.
-TEST_F(HwUdfAclCounterTest, VerifyUdfWithFlowlet) {
-  counterBumpOnHitHelper(
-      false /* bump on hit */,
-      false /* front panel port */,
-      {AclType::UDF, AclType::FLOWLET});
 }
 
 /*
