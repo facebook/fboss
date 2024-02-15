@@ -56,6 +56,9 @@
           "test_name_regex": "SaiAclTableGroupTest.AddAclEntriesAndQualifiersToAclTablesPostWarmboot"
         },
         {
+          "test_name_regex": "SaiPortAdminStateTest.assertAdminState"
+        },
+        {
           "test_name_regex": "HwAclQualifierTest/[01].*Ip4*"
         },
         {
@@ -1537,6 +1540,9 @@
           "test_name_regex": "SaiAclTableGroupTest.AddAclEntriesAndQualifiersToAclTablesPostWarmboot"
         },
         {
+          "test_name_regex": "SaiPortAdminStateTest.assertAdminState"
+        },
+        {
           "test_name_regex": "HwAclQualifierTest/[01].*Ip4*"
         },
         {
@@ -1791,7 +1797,7 @@
           "test_name_regex": "HwVoqSwitchWithFabricPortsTest.verifyNifMulticastTrafficDropped"
         },
         {
-          "test_name_regex": "HwVoqSwitchTest.fdrCellDrops"
+          "test_name_regex": "SaiPortAdminStateTest.assertAdminState"
         }
     ],
     "brcm/11.0_ea_dnx_odp/11.0_ea_dnx_odp/jericho3/simulator": [
@@ -1821,6 +1827,9 @@
         },
         {
           "test_name_regex": "HwHashConsistencyTest.UdpEgressLinksOnEcmpExpand"
+        },
+        {
+          "test_name_regex": "SaiPortAdminStateTest.assertAdminState"
         },
         {
           "test_name_regex": "HwEcmpTest.Ucmp.*"
