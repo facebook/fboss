@@ -63,7 +63,7 @@ FbossFwStorage::FbossFwStorage(const YAML::Node& fwInfoRoot, std::string fwDir)
 
     try {
       nameInfo = firmwareRecord["name"];
-    } catch (const YAML::Exception& e) {
+    } catch (const YAML::Exception&) {
       throw FbossFirmwareError("Bad Yaml file format");
     }
     if (!nameInfo.IsScalar()) {
@@ -80,7 +80,7 @@ FbossFwStorage::FbossFwStorage(const YAML::Node& fwInfoRoot, std::string fwDir)
     try {
       descr = firmwareRecord["description"];
       fwRec.description = descr.as<std::string>();
-    } catch (const YAML::Exception& e) {
+    } catch (const YAML::Exception&) {
       XLOG(ERR) << "Description of firmware not present for prod " << prodName;
     }
 
@@ -97,7 +97,7 @@ FbossFwStorage::FbossFwStorage(const YAML::Node& fwInfoRoot, std::string fwDir)
         const YAML::Node& verNameInfo = versionRecord["version"];
         verName = verNameInfo.as<std::string>();
         versionRec.version = verName;
-      } catch (const YAML::Exception& e) {
+      } catch (const YAML::Exception&) {
         throw FbossFirmwareError("Bad Yaml format: version is not mentioned");
       }
 
@@ -106,7 +106,7 @@ FbossFwStorage::FbossFwStorage(const YAML::Node& fwInfoRoot, std::string fwDir)
         const YAML::Node& md5Info = versionRecord["md5sum"];
         md5sum = md5Info.as<std::string>();
         versionRec.md5Checksum = md5sum;
-      } catch (const YAML::Exception& e) {
+      } catch (const YAML::Exception&) {
         throw FbossFirmwareError(
             "Bad Yaml format: md5 checksum is not mentioned");
       }
@@ -116,7 +116,7 @@ FbossFwStorage::FbossFwStorage(const YAML::Node& fwInfoRoot, std::string fwDir)
         const YAML::Node& fileInfo = versionRecord["file"];
         fileName = firmwareDir_ + fileInfo.as<std::string>();
         versionRec.filename = fileName;
-      } catch (const YAML::Exception& e) {
+      } catch (const YAML::Exception&) {
         throw FbossFirmwareError(
             "Bad Yaml format: image filename is not mentioned");
       }
