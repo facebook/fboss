@@ -111,11 +111,6 @@ void verifyFec(
 
 void enableSixtapProgramming();
 
-cfg::PortSpeed getSpeed(cfg::PortProfileID profile);
-TransmitterTechnology getMediaType(cfg::PortProfileID profile);
-cfg::PortSpeed getDefaultFabricSpeed(const cfg::AsicType& asicType);
-cfg::PortSpeed getDefaultInterfaceSpeed(const cfg::AsicType& asicType);
-
 bool verifyLedStatus(HwSwitchEnsemble* ensemble, PortID port, bool up);
 } // namespace utility
 } // namespace facebook::fboss

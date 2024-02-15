@@ -72,3 +72,15 @@ target_link_libraries(olympic_qos_utils
   Folly::folly
   switch_config_cpp2
 )
+
+add_library(port_test_utils
+  fboss/agent/test/utils/PortTestUtils.cpp
+)
+
+target_link_libraries(port_test_utils
+  fboss_types
+  Folly::folly
+  switch_config_cpp2
+  transceiver_cpp2
+  state
+)

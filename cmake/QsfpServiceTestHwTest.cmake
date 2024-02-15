@@ -50,6 +50,7 @@ add_executable(qsfp_hw_test
 target_link_libraries(qsfp_hw_test
   hw_qsfp_ensemble
   hw_transceiver_utils
+  port_test_utils
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
   FBThrift::thriftcpp2
