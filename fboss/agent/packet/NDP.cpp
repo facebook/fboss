@@ -24,7 +24,7 @@ NDPOptionHdr::NDPOptionHdr(folly::io::Cursor& cursor) {
   try {
     type_ = cursor.read<uint8_t>();
     length_ = cursor.read<uint8_t>();
-  } catch (const std::out_of_range& e) {
+  } catch (const std::out_of_range&) {
     throw HdrParseError("NDP Option header is not present");
   }
   if (length_ == 0) {
