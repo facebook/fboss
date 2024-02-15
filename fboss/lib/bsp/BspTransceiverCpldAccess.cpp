@@ -51,7 +51,7 @@ void BspTransceiverCpldAccess::holdReset() {
     writeSysfs(resetPath, std::to_string(status));
     /* sleep override */
     usleep(100);
-  } catch (std::exception& ex) {
+  } catch (std::exception&) {
     XLOG(ERR) << fmt::format(
         "BspTransceiverCpldAccessTrace: init() failed to hold reset TCVR {:d} (1 base)",
         tcvrID_);
@@ -76,7 +76,7 @@ void BspTransceiverCpldAccess::releaseReset() {
       status = status | resetMask;
     }
     writeSysfs(resetPath, std::to_string(status));
-  } catch (std::exception& ex) {
+  } catch (std::exception&) {
     XLOG(ERR) << fmt::format(
         "BspTransceiverCpldAccessTrace: init() failed to release reset TCVR {:d} (1 base)",
         tcvrID_);
@@ -101,7 +101,7 @@ bool BspTransceiverCpldAccess::isPresent() {
     } else {
       retVal = !presenceBits;
     }
-  } catch (std::exception& ex) {
+  } catch (std::exception&) {
     XLOG(ERR) << fmt::format(
         "BspTransceiverCpldAccessTrace: isPresent() failed to get Present status for TCVR {:d} (1 base)",
         tcvrID_);
