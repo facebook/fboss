@@ -126,7 +126,7 @@
               "spiDeviceConfigs": [
                 {
                   "pmUnitScopedName": "IOB_SPI_MASTER_0_CS0",
-                  "modalias": "modalias",
+                  "modalias": "spidev",
                   "chipSelect": 0,
                   "maxSpeedHz": 25000000
                 }
@@ -142,7 +142,7 @@
               "spiDeviceConfigs": [
                 {
                   "pmUnitScopedName": "MCB_IOB_SPI_MASTER_0_CS0",
-                  "modalias": "modalias",
+                  "modalias": "spidev",
                   "chipSelect": 0,
                   "maxSpeedHz": 25000000
                 }
@@ -459,7 +459,7 @@
               "spiDeviceConfigs": [
                 {
                   "pmUnitScopedName": "SCM_IOB_SPI_MASTER_0_CS0",
-                  "modalias": "modalias",
+                  "modalias": "spidev",
                   "chipSelect": 0,
                   "maxSpeedHz": 25000000
                 }
@@ -581,7 +581,7 @@
               "spiDeviceConfigs": [
                 {
                   "pmUnitScopedName": "DOM1_IOB_SPI_MASTER_0_CS0",
-                  "modalias": "modalias",
+                  "modalias": "spidev",
                   "chipSelect": 0,
                   "maxSpeedHz": 25000000
                 }
@@ -597,7 +597,7 @@
               "spiDeviceConfigs": [
                 {
                   "pmUnitScopedName": "DOM2_IOB_SPI_MASTER_0_CS0",
-                  "modalias": "modalias",
+                  "modalias": "spidev",
                   "chipSelect": 0,
                   "maxSpeedHz": 25000000
                 }
