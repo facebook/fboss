@@ -2,6 +2,10 @@
 
 namespace cpp2 facebook.fboss.fsdb
 
+cpp_include "folly/container/F14Map.h"
+
+include "thrift/annotation/cpp.thrift"
+
 enum TestEnum {
   FIRST = 1,
   SECOND = 2,
@@ -34,6 +38,7 @@ struct TestStruct {
   2: bool rx = false;
   3: string name;
   4: TestStructSimple member;
+  @cpp.Type{template = "folly::F14FastMap"}
   5: map<i32, TestStructSimple> structMap = {};
   6: optional string optionalString;
   7: UnionSimple variantMember;

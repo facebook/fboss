@@ -129,6 +129,13 @@ struct ThriftLeafVisitor<apache::thrift::type::struct_t<Node>> {
 };
 
 /**
+ * Cpp.Type
+ */
+template <typename T, typename Tag>
+struct ThriftLeafVisitor<apache::thrift::type::cpp_type<T, Tag>>
+    : public ThriftLeafVisitor<Tag> {};
+
+/**
  * Primitives - fallback specialization
  * - string / binary
  * - floating_point
