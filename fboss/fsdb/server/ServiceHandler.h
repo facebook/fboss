@@ -215,6 +215,8 @@ class ServiceHandler : public FsdbServiceSvIf,
   void initFlagDefaults(
       const std::unordered_map<std::string, std::string>& flags);
 
+  void initPerStreamCounters();
+
   using RocksDbPtr = std::shared_ptr<RocksDbIf>;
   template <typename T>
   folly::F14FastMap<PublisherId, RocksDbPtr> createIfNeededAndOpenRocksDbs(
@@ -239,9 +241,14 @@ class ServiceHandler : public FsdbServiceSvIf,
 
   using TLCounter = fb303::ThreadCachedServiceData::TLCounter;
   using TLTimeseries = fb303::ThreadCachedServiceData::TLTimeseries;
+  using PublisherKey = std::pair<PublisherId, bool>;
   TLCounter num_instances_;
   TLCounter num_publishers_;
   TLCounter num_subscribers_;
+  TLCounter num_disconnected_subscribers_;
+  TLCounter num_disconnected_publishers_;
+  std::map<SubscriberId, TLCounter> disconnectedSubscribers_;
+  std::map<PublisherKey, TLCounter> disconnectedPublishers_;
   TLTimeseries num_subscriptions_rejected_;
   TLTimeseries num_publisher_unknown_requests_rejected_;
   TLTimeseries num_publisher_path_requests_rejected_;

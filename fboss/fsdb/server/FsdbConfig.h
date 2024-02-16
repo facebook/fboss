@@ -29,7 +29,8 @@ class FsdbConfig {
       const PublisherId& id,
       const std::vector<std::string>& path) const;
 
-  const std::optional<std::reference_wrapper<const SubscriberConfig>>
+  const std::optional<
+      std::pair<SubscriberId, std::reference_wrapper<const SubscriberConfig>>>
   getSubscriberConfig(const SubscriberId& id) const;
 
  private:

@@ -120,6 +120,16 @@ ServiceHandler::ServiceHandler(
           folly::to<std::string>(
               fsdb_common_constants::kFsdbServiceHandlerNativeStatsPrefix(),
               "num_subscribers")),
+      num_disconnected_subscribers_(
+          fb303::ThreadCachedServiceData::get()->getThreadStats(),
+          folly::to<std::string>(
+              fsdb_common_constants::kFsdbServiceHandlerNativeStatsPrefix(),
+              "num_disconnected_subscribers")),
+      num_disconnected_publishers_(
+          fb303::ThreadCachedServiceData::get()->getThreadStats(),
+          folly::to<std::string>(
+              fsdb_common_constants::kFsdbServiceHandlerNativeStatsPrefix(),
+              "num_disconnected_publishers")),
       num_subscriptions_rejected_(
           fb303::ThreadCachedServiceData::get()->getThreadStats(),
           folly::to<std::string>(
@@ -175,6 +185,8 @@ ServiceHandler::ServiceHandler(
   folly::split(',', publisherIdsToOpenRocksDbAtStartFor, publisherIds);
 
   num_instances_.incrementValue(1);
+
+  initPerStreamCounters();
 
   operStorage_.start();
   operStatsStorage_.start();
@@ -279,6 +291,21 @@ void ServiceHandler::registerPublisher(const OperPublisherInfo& info) {
     operStorage_.registerPublisher(
         info.path()->raw()->begin(), info.path()->raw()->end());
   }
+  num_publishers_.incrementValue(1);
+  try {
+    auto config =
+        fsdbConfig_->getPathConfig(*info.publisherId(), *info.path()->raw());
+    if (*config.get().isExpected()) {
+      num_disconnected_publishers_.incrementValue(-1);
+      auto counter = disconnectedPublishers_.find(
+          PublisherKey(*info.publisherId(), *info.isStats()));
+      if (counter != disconnectedPublishers_.end()) {
+        counter->second.incrementValue(-1);
+      }
+    }
+  } catch (const std::exception& e) {
+    // ignore exception if PathConfig is not available
+  };
 }
 
 void ServiceHandler::unregisterPublisher(
@@ -299,6 +326,21 @@ void ServiceHandler::unregisterPublisher(
         info.path()->raw()->end(),
         disconnectReason);
   }
+  num_publishers_.incrementValue(-1);
+  try {
+    auto config =
+        fsdbConfig_->getPathConfig(*info.publisherId(), *info.path()->raw());
+    if (*config.get().isExpected()) {
+      num_disconnected_publishers_.incrementValue(1);
+      auto counter = disconnectedPublishers_.find(
+          PublisherKey(*info.publisherId(), *info.isStats()));
+      if (counter != disconnectedPublishers_.end()) {
+        counter->second.incrementValue(1);
+      }
+    }
+  } catch (const std::exception& e) {
+    // ignore exception if PathConfig is not available
+  };
 }
 
 template <typename PubUnit>
@@ -495,11 +537,29 @@ void ServiceHandler::registerSubscription(const OperSubscriberInfo& info) {
         "Dup subscriber id: ",
         *info.subscriberId());
   }
+  num_subscribers_.incrementValue(1);
+  auto config = fsdbConfig_->getSubscriberConfig(*info.subscriberId());
+  if (config.has_value() && *config.value().second.get().trackReconnect()) {
+    num_disconnected_subscribers_.incrementValue(-1);
+    auto counter = disconnectedSubscribers_.find(config.value().first);
+    if (counter != disconnectedSubscribers_.end()) {
+      counter->second.incrementValue(-1);
+    }
+  }
 }
 void ServiceHandler::unregisterSubscription(const OperSubscriberInfo& info) {
   XLOG(DBG2) << " Subscription complete " << *info.subscriberId() << " : "
              << folly::join("/", *info.path()->raw());
   activeSubscriptions_.wlock()->erase(info);
+  num_subscribers_.incrementValue(-1);
+  auto config = fsdbConfig_->getSubscriberConfig(*info.subscriberId());
+  if (config.has_value() && *config.value().second.get().trackReconnect()) {
+    num_disconnected_subscribers_.incrementValue(1);
+    auto counter = disconnectedSubscribers_.find(config.value().first);
+    if (counter != disconnectedSubscribers_.end()) {
+      counter->second.incrementValue(1);
+    }
+  }
 }
 
 folly::coro::AsyncGenerator<DeltaValue<OperState>&&>
@@ -1002,6 +1062,46 @@ ServiceHandler::co_getOperSubscriberInfos(
   co_return subscriptions;
 }
 
+void ServiceHandler::initPerStreamCounters(void) {
+  for (const auto& [key, value] : *fsdbConfig_->getThrift().subscribers()) {
+    if (value.trackReconnect().value()) {
+      auto count = value.numExpectedSubscriptions().value();
+      disconnectedSubscribers_.emplace(
+          key,
+          TLCounter(
+              fb303::ThreadCachedServiceData::get()->getThreadStats(),
+              folly::to<std::string>(
+                  fsdb_common_constants::kFsdbServiceHandlerNativeStatsPrefix(),
+                  "disconnected_subscriber.",
+                  key)));
+      auto counter = disconnectedSubscribers_.find(key);
+      counter->second.incrementValue(count);
+      num_disconnected_subscribers_.incrementValue(count);
+    }
+  }
+
+  for (const auto& [key, value] : *fsdbConfig_->getThrift().publishers()) {
+    for (const auto& pathConfig : *value.paths()) {
+      if (*pathConfig.isExpected()) {
+        PublisherKey publisherKey(key, *pathConfig.isStats());
+        disconnectedPublishers_.emplace(
+            publisherKey,
+            TLCounter(
+                fb303::ThreadCachedServiceData::get()->getThreadStats(),
+                folly::to<std::string>(
+                    fsdb_common_constants::
+                        kFsdbServiceHandlerNativeStatsPrefix(),
+                    "disconnected_publisher.",
+                    key,
+                    (*pathConfig.isStats() ? "-stats" : ""))));
+        auto counter = disconnectedPublishers_.find(publisherKey);
+        counter->second.incrementValue(1);
+        num_disconnected_publishers_.incrementValue(1);
+      }
+    }
+  }
+}
+
 void ServiceHandler::validateSubscriptionPermissions(
     SubscriberId id,
     PubSubType /* type */,
@@ -1020,7 +1120,7 @@ void ServiceHandler::validateSubscriptionPermissions(
   }
   auto config = fsdbConfig_->getSubscriberConfig(id);
   if (hasExtendedPath && config.has_value() &&
-      !*config.value().get().allowExtendedSubscriptions()) {
+      !*config.value().second.get().allowExtendedSubscriptions()) {
     XLOG(WARNING) << "[S:" << id << "]: extended subscriptions not permitted";
     num_subscriptions_rejected_.addValue(1);
     if (FLAGS_enforceSubscriberConfig) {
