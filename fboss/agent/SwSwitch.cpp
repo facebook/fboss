@@ -701,25 +701,24 @@ AgentStats SwSwitch::fillFsdbStats() {
         agentStats.hwTrunkStats()->insert(statEntry);
       }
       agentStats.hwResourceStatsMap()->insert(
-          {switchIdx, std::move(*hwSwitchStats.hwResourceStats())});
+          {switchIdx, *hwSwitchStats.hwResourceStats()});
       agentStats.hwAsicErrorsMap()->insert(
-          {switchIdx, std::move(*hwSwitchStats.hwAsicErrors())});
+          {switchIdx, *hwSwitchStats.hwAsicErrors()});
       agentStats.teFlowStatsMap()->insert(
-          {switchIdx, std::move(*hwSwitchStats.teFlowStats())});
+          {switchIdx, *hwSwitchStats.teFlowStats()});
       agentStats.bufferPoolStatsMap()->insert(
-          {switchIdx, std::move(*hwSwitchStats.bufferPoolStats())});
+          {switchIdx, *hwSwitchStats.bufferPoolStats()});
       agentStats.sysPortStatsMap()->insert(
-          {switchIdx, std::move(*hwSwitchStats.sysPortStats())});
+          {switchIdx, *hwSwitchStats.sysPortStats()});
       for (auto& [_, phyInfo] : *hwSwitchStats.phyInfo()) {
         auto portName = phyInfo.state()->name().value();
         agentStats.phyStats()->insert({portName, phyInfo.get_stats()});
       }
       agentStats.flowletStatsMap()->insert(
-          {switchIdx, std::move(*hwSwitchStats.flowletStats())});
+          {switchIdx, *hwSwitchStats.flowletStats()});
       agentStats.cpuPortStatsMap()->insert(
-          {switchIdx, std::move(*hwSwitchStats.cpuPortStats())});
+          {switchIdx, *hwSwitchStats.cpuPortStats()});
     }
-    lockedStats->clear();
   }
   stats()->fillAgentStats(agentStats);
   // fill old fields using first switch values for backward compatibility

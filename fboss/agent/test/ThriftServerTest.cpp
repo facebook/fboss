@@ -428,4 +428,7 @@ CO_TEST_F(ThriftServerTest, statsUpdate) {
       50);
   // Check old global entry
   EXPECT_EQ(agentStats.hwResourceStats()->acl_counters_free().value(), 50);
+  // verify that swswitch continues caching hwswitch stats after fsdb update
+  auto fdsbStats = sw_->fillFsdbStats();
+  EXPECT_EQ(sw_->getHwSwitchStatsExpensive(switchIndex), getTestStatUpdate());
 }
