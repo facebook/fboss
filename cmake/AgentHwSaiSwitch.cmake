@@ -89,6 +89,7 @@ target_link_libraries(sai_switch
   hw_port_fb303_stats
   hw_resource_stats_publisher
   hw_switch_warmboot_helper
+  lane_prbs_stats_entry
   mka_structs_cpp2
   sai_api
   sai_platform

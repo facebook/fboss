@@ -57,6 +57,10 @@ add_library(hw_resource_stats_publisher
   fboss/agent/hw/HwResourceStatsPublisher.cpp
 )
 
+add_library(lane_prbs_stats_entry
+  fboss/agent/hw/common/LanePrbsStatsEntry.h
+)
+
 target_link_libraries(hw_switch_warmboot_helper
   async_logger
   utils
@@ -110,4 +114,8 @@ target_link_libraries(buffer_stats
 target_link_libraries(hw_resource_stats_publisher
   fb303::fb303
   hardware_stats_cpp2
+)
+
+target_link_libraries(lane_prbs_stats_entry
+  ctrl_cpp2
 )

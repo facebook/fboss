@@ -13,10 +13,6 @@
 
 #include <stdint.h>
 
-extern "C" {
-#include <bcm/types.h>
-}
-
 namespace facebook::fboss {
 
 using std::chrono::milliseconds;
@@ -59,7 +55,7 @@ class LanePrbsStatsEntry {
     timeLastCollect_ = now;
   }
 
-  void updateLaneStats(uint32 status) {
+  void updateLaneStats(uint32_t status) {
     if (!locked_) {
       locked();
       return;

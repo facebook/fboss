@@ -904,8 +904,28 @@ sai_port_prbs_config_t SaiPortManager::getSaiPortPrbsConfig(
   }
 }
 
+void SaiPortManager::initAsicPrbsStats(const std::shared_ptr<Port>& swPort) {
+  if (!platform_->getAsic()->isSupported(HwAsic::Feature::SAI_PRBS)) {
+    return;
+  }
+  auto portID = swPort->getID();
+  auto platformPort = platform_->getPort(portID);
+  auto speed = static_cast<int>(swPort->getSpeed());
+  auto hwLaneList = platformPort->getHwPortLanes(swPort->getProfileID());
+  double laneRateGb = speed / kSpeedConversionFactor / hwLaneList.size();
+  double laneRate = laneRateGb * kLaneRateConversionFactor;
+  auto lanePrbsStatsTable = LanePrbsStatsTable();
+  // Each lane on port should have its own PRBS stats.
+  for (auto& hwLane : hwLaneList) {
+    lanePrbsStatsTable.push_back(
+        LanePrbsStatsEntry(hwLane, swPort->getID(), laneRate));
+  }
+  portAsicPrbsStats_[swPort->getID()] = std::move(lanePrbsStatsTable);
+}
+
 PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
   setPortType(swPort->getID(), swPort->getPortType());
+  initAsicPrbsStats(swPort);
   auto portSaiId = addPortImpl(swPort);
   concurrentIndices_->portSaiId2PortInfo.emplace(
       portSaiId,
