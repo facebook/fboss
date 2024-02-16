@@ -9,11 +9,18 @@ using namespace ::facebook::fboss;
 
 class SaiPortAdminStateTest : public HwTest {
  public:
+  bool hideFabricPorts() const override {
+    return false;
+  }
   cfg::SwitchConfig getConfig(cfg::PortState adminState) const {
     auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         masterLogicalPortIds(),
-        getAsic()->desiredLoopbackModes());
+        getAsic()->desiredLoopbackModes(),
+        true, /*interfaceHasSubnet*/
+        true, /*setInterfaceMac*/
+        utility::kBaseVlanId,
+        true /*enable fabric ports*/);
     for (auto& port : *cfg.ports()) {
       port.state() = adminState;
     }
