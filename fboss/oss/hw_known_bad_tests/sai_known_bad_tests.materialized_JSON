@@ -1002,6 +1002,9 @@
           "test_name_regex": "HwIngressBufferTest.validatePGQueueChanges"
         },
         {
+          "test_name_regex": "SaiPortAdminStateTest.assertAdminState"
+        },
+        {
           "test_name_regex": "HwDscpQueueMappingTest.VerifyAclAndQosMap"
         },
         {
@@ -6119,6 +6122,9 @@
         },
         {
           "test_name_regex": "HwIngressBufferTest.validatePGQueueChanges"
+        },
+        {
+          "test_name_regex": "SaiPortAdminStateTest.assertAdminState"
         }
     ],
     "brcm/8.2.0.0_odp/9.2.0.0_odp/tomahawk": [
@@ -7792,6 +7798,9 @@
           "test_name_regex": "HwIngressBufferTest.validatePGQueueChanges"
         },
         {
+          "test_name_regex": "SaiPortAdminStateTest.assertAdminState"
+        },
+        {
           "test_name_regex": "HwTrafficPfcTest.*"
         },
         {
@@ -8326,6 +8335,9 @@
         },
         {
           "test_name_regex": "HwIngressBufferTest.validatePGQueueChanges"
+        },
+        {
+          "test_name_regex": "SaiPortAdminStateTest.assertAdminState"
         },
         {
           "test_name_regex": "HwDscpQueueMappingTest.VerifyAclAndQosMap"
@@ -10018,6 +10030,9 @@
         },
         {
           "test_name_regex": "HwIngressBufferTest.validatePGQueueChanges"
+        },
+        {
+          "test_name_regex": "SaiPortAdminStateTest.assertAdminState"
         }
     ],
     "leaba/1.42.8/1.42.8/gibraltar": [
