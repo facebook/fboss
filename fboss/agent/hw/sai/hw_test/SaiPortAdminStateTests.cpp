@@ -1,9 +1,14 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
+#include "fboss/agent/hw/sai/api/PortApi.h"
+#include "fboss/agent/hw/sai/api/SystemPortApi.h"
 #include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTest.h"
+#include "fboss/agent/state/Port.h"
+#include "fboss/agent/state/PortMap.h"
+#include "fboss/agent/state/SwitchState.h"
 
 using namespace ::facebook::fboss;
 
@@ -26,20 +31,37 @@ class SaiPortAdminStateTest : public HwTest {
     }
     return cfg;
   }
-  void assertPortAdminState(cfg::PortState expectedAdminState) const {
+  void assertPortAdminState(
+      cfg::PortState expectedAdminState,
+      bool configApplied = true) const {
     auto& portApi = SaiApiTable::getInstance()->portApi();
+    auto& systemPortApi = SaiApiTable::getInstance()->systemPortApi();
+    auto isVoq = getSwitchType() == cfg::SwitchType::VOQ;
+    const auto& concurrentIndices =
+        static_cast<const SaiSwitch*>(getHwSwitch())->concurrentIndices();
     for (const auto& portMap :
          std::as_const(*getProgrammedState()->getPorts())) {
       for (const auto& [_, port] : std::as_const(*portMap.second)) {
         EXPECT_EQ(port->getAdminState(), expectedAdminState);
-        auto portSaiId = static_cast<const SaiSwitch*>(getHwSwitch())
-                             ->concurrentIndices()
-                             .portSaiIds.find(port->getID())
-                             ->second;
+        auto portSaiId =
+            concurrentIndices.portSaiIds.find(port->getID())->second;
         auto gotAdminState = portApi.getAttribute(
             portSaiId, SaiPortTraits::Attributes::AdminState{});
         auto portEnabled = expectedAdminState == cfg::PortState::ENABLED;
         EXPECT_EQ(gotAdminState, portEnabled);
+        // TODO - start looking at mgmt port TYPE here as well
+        // once we start creating sys ports for MGMT port
+        if (configApplied && isVoq &&
+            port->getPortType() == cfg::PortType::INTERFACE_PORT) {
+          auto sysPortId = getSystemPortID(
+              port->getID(),
+              getProgrammedState(),
+              SwitchID(*getAsic()->getSwitchId()));
+          auto sysPortSaiId =
+              concurrentIndices.sysPortSaiIds.find(sysPortId)->second;
+          EXPECT_TRUE(systemPortApi.getAttribute(
+              sysPortSaiId, SaiSystemPortTraits::Attributes::AdminState{}));
+        }
       }
     }
   }
@@ -48,7 +70,7 @@ class SaiPortAdminStateTest : public HwTest {
 TEST_F(SaiPortAdminStateTest, assertAdminState) {
   auto setup = [this]() {
     // Ports should be disabled post init
-    assertPortAdminState(cfg::PortState::DISABLED);
+    assertPortAdminState(cfg::PortState::DISABLED, false /*config applied*/);
     // Apply config with ports disabled, they should stay disabled
     // For VOQ switches, we have a sys port for each NIF port.
     // Sys ports are always kept enabled. There was a bug in
@@ -56,7 +78,6 @@ TEST_F(SaiPortAdminStateTest, assertAdminState) {
     // NIF port admin state. The following asserts that
     // these are decoupled.
     applyNewConfig(getConfig(cfg::PortState::DISABLED));
-    assertPortAdminState(cfg::PortState::DISABLED);
   };
   verifyAcrossWarmBoots(
       setup, [this]() { assertPortAdminState(cfg::PortState::DISABLED); });
