@@ -94,9 +94,6 @@ class CmdShowInterfaceStatus
     for (const auto& [portId, portInfo] : portEntries) {
       if (queriedIfs.size() == 0 || queriedSet.count(portInfo.get_name())) {
         cli::InterfaceStatus ifStatus;
-        int32_t transceiverId =
-            portInfo.get_transceiverIdx()->get_transceiverId();
-        const auto& transceiver = transceiverEntries[transceiverId];
         const auto operState = portInfo.get_operState();
 
         ifStatus.name() = portInfo.get_name();
@@ -108,13 +105,18 @@ class CmdShowInterfaceStatus
         }
         ifStatus.speed() =
             std::to_string(portInfo.get_speedMbps() / 1000) + "G";
-        if (transceiver.tcvrState()->get_vendor()) {
-          ifStatus.vendor() = transceiver.tcvrState()->get_vendor()->get_name();
-          ifStatus.mpn() =
-              transceiver.tcvrState()->get_vendor()->get_partNumber();
-        } else {
-          ifStatus.vendor() = "Not Present";
-          ifStatus.mpn() = "Not Present";
+
+        ifStatus.vendor() = "Not Present";
+        ifStatus.mpn() = "Not Present";
+        if (auto transceiverIdx = portInfo.transceiverIdx()) {
+          int32_t transceiverId = transceiverIdx->get_transceiverId();
+          const auto& transceiver = transceiverEntries[transceiverId];
+          if (transceiver.tcvrState()->get_vendor()) {
+            ifStatus.vendor() =
+                transceiver.tcvrState()->get_vendor()->get_name();
+            ifStatus.mpn() =
+                transceiver.tcvrState()->get_vendor()->get_partNumber();
+          }
         }
 
         model.interfaces()->push_back(ifStatus);
