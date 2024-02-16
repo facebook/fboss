@@ -12,7 +12,7 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/mdio/MdioError.h"
-#include "folly/json.h"
+#include "folly/json/json.h"
 
 #include <thrift/lib/cpp/util/EnumUtils.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>

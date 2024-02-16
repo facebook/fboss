@@ -1,6 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-#include <folly/dynamic.h>
+#include <folly/json/dynamic.h>
 #include <gtest/gtest.h>
 
 #include <fboss/thrift_cow/gen-cpp2/patch_types.h>

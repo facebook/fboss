@@ -3,7 +3,7 @@
 
 #include "fboss/agent/hw/HwSwitchWarmBootHelper.h"
 
-#include <folly/dynamic.h>
+#include <folly/json/dynamic.h>
 
 namespace facebook::fboss {
 

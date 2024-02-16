@@ -8,11 +8,11 @@
 #include <fboss/thrift_cow/storage/CowStorage.h>
 #include <fboss/thrift_cow/storage/Storage.h>
 #include <folly/Expected.h>
-#include <folly/dynamic.h>
 #include <folly/experimental/coro/AsyncScope.h>
 #include <folly/experimental/coro/BlockingWait.h>
 #include <folly/experimental/coro/Sleep.h>
 #include <folly/io/async/EventBase.h>
+#include <folly/json/dynamic.h>
 #include <folly/system/ThreadName.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <thrift/lib/cpp2/reflection/folly_dynamic.h>

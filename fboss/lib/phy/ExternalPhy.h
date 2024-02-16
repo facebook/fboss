@@ -20,7 +20,7 @@
 #include "fboss/lib/AlertLogger.h"
 #include "fboss/lib/IOStatsRecorder.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
-#include "folly/dynamic.h"
+#include "folly/json/dynamic.h"
 
 namespace facebook::fboss::phy {
 

@@ -10,7 +10,7 @@
 #pragma once
 
 #include <folly/FBString.h>
-#include <folly/dynamic.h>
+#include <folly/json/dynamic.h>
 #include <optional>
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"

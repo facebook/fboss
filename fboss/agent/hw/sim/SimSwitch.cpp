@@ -16,7 +16,7 @@
 
 #include <folly/Conv.h>
 #include <folly/Memory.h>
-#include <folly/dynamic.h>
+#include <folly/json/dynamic.h>
 
 using std::make_shared;
 using std::make_unique;

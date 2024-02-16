@@ -5,7 +5,7 @@
 
 #include <folly/Conv.h>
 #include <folly/Format.h>
-#include <folly/json.h>
+#include <folly/json/json.h>
 #include <folly/logging/xlog.h>
 #include <cctype>
 #include <filesystem>

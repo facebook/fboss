@@ -19,7 +19,7 @@ extern "C" {
 #include "fboss/agent/hw/sai/api/SaiAttribute.h"
 #include "fboss/agent/hw/sai/api/SaiAttributeDataTypes.h"
 
-#include <folly/dynamic.h>
+#include <folly/json/dynamic.h>
 
 namespace facebook::fboss {
 

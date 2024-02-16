@@ -6,8 +6,8 @@
 #include "fboss/cli/fboss2/commands/show/hardware/CmdShowHardware.h"
 #include "fboss/cli/fboss2/commands/show/hardware/gen-cpp2/model_types.h"
 #include "fboss/cli/fboss2/utils/CmdClientUtils.h"
-#include "folly/dynamic.h"
-#include "folly/json.h"
+#include "folly/json/dynamic.h"
+#include "folly/json/json.h"
 
 using namespace ::testing;
 

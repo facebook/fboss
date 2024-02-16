@@ -18,7 +18,7 @@
 
 #include <folly/IPAddress.h>
 #include <folly/MacAddress.h>
-#include <folly/dynamic.h>
+#include <folly/json/dynamic.h>
 #include <folly/logging/xlog.h>
 
 #include <iterator>

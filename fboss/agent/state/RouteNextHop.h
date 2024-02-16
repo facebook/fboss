@@ -12,7 +12,7 @@
 #include <folly/IPAddress.h>
 #include <folly/Poly.h>
 #include <folly/Range.h>
-#include <folly/dynamic.h>
+#include <folly/json/dynamic.h>
 #include <folly/poly/Regular.h>
 
 #include "fboss/agent/AddressUtil.h"

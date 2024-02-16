@@ -13,7 +13,7 @@
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 
-#include <folly/json.h>
+#include <folly/json/json.h>
 #include "fboss/agent/hw/sai/store/tests/SaiStoreTest.h"
 
 using namespace facebook::fboss;

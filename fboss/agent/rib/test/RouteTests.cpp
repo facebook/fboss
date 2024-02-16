@@ -16,7 +16,7 @@
 #include "fboss/agent/rib/RouteUpdater.h"
 
 #include <folly/IPAddress.h>
-#include <folly/dynamic.h>
+#include <folly/json/dynamic.h>
 #include <folly/logging/xlog.h>
 
 #include <gtest/gtest.h>

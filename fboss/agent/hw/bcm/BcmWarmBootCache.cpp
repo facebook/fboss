@@ -15,8 +15,8 @@
 #include <utility>
 
 #include <folly/Conv.h>
-#include <folly/dynamic.h>
-#include <folly/json.h>
+#include <folly/json/dynamic.h>
+#include <folly/json/json.h>
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
 

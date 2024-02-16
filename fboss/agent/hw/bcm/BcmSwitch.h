@@ -9,8 +9,8 @@
  */
 #pragma once
 
-#include <folly/dynamic.h>
 #include <folly/io/async/EventBase.h>
+#include <folly/json/dynamic.h>
 #include <gtest/gtest_prod.h>
 #include <optional>
 #include "fboss/agent/HwSwitch.h"

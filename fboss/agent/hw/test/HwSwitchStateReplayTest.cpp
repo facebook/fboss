@@ -18,7 +18,7 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 
 #include <folly/FileUtil.h>
-#include <folly/dynamic.h>
+#include <folly/json/dynamic.h>
 
 DEFINE_string(
     replay_switch_state_file,

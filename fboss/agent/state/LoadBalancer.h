@@ -17,7 +17,7 @@
 
 #include "folly/MacAddress.h"
 #include "folly/Range.h"
-#include "folly/dynamic.h"
+#include "folly/json/dynamic.h"
 
 #include "boost/container/flat_set.hpp"
 

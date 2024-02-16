@@ -17,8 +17,8 @@
 #include <memory>
 #include <type_traits>
 
-#include <folly/dynamic.h>
-#include <folly/json.h>
+#include <folly/json/dynamic.h>
+#include <folly/json/json.h>
 
 namespace facebook::fboss {
 

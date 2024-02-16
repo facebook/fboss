@@ -16,7 +16,7 @@
 #include "fboss/agent/PortDescriptorTemplate.h"
 
 #include <folly/Conv.h>
-#include <folly/dynamic.h>
+#include <folly/json/dynamic.h>
 #include <folly/logging/xlog.h>
 
 namespace facebook::fboss {

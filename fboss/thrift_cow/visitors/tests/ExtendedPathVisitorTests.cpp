@@ -2,7 +2,7 @@
 
 #include <fmt/format.h>
 #include <folly/String.h>
-#include <folly/dynamic.h>
+#include <folly/json/dynamic.h>
 #include <folly/logging/xlog.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>

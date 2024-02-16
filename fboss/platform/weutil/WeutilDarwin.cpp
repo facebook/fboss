@@ -7,7 +7,7 @@
 
 #include <folly/Conv.h>
 #include <folly/Format.h>
-#include <folly/json.h>
+#include <folly/json/json.h>
 #include <filesystem>
 
 #include "fboss/platform/helpers/PlatformUtils.h"

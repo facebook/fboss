@@ -14,7 +14,7 @@
 #include "fboss/agent/state/Thrifty.h"
 #include "fboss/agent/types.h"
 
-#include <folly/dynamic.h>
+#include <folly/json/dynamic.h>
 #include <memory>
 
 namespace facebook::fboss {

@@ -14,7 +14,7 @@
 #include <utility>
 
 #include <folly/Range.h>
-#include <folly/dynamic.h>
+#include <folly/json/dynamic.h>
 
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/GtestDefs.h"

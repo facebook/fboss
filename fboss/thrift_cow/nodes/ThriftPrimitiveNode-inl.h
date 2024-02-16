@@ -11,7 +11,7 @@
 #pragma once
 
 // TODO: replace with our own ThriftTraverseResult
-#include <folly/dynamic.h>
+#include <folly/json/dynamic.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <thrift/lib/cpp2/reflection/folly_dynamic.h>
 #include <functional>

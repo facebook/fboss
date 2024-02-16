@@ -36,7 +36,7 @@
 #include "fboss/agent/state/VlanMapDelta.h"
 #include "fboss/fsdb/common/Utils.h"
 
-#include <folly/dynamic.h>
+#include <folly/json/dynamic.h>
 
 using std::shared_ptr;
 

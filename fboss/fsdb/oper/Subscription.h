@@ -14,8 +14,8 @@
 #include "fboss/fsdb/oper/DeltaValue.h"
 #include "fboss/fsdb/oper/SubscriptionMetadataServer.h"
 
-#include <folly/dynamic.h>
 #include <folly/experimental/coro/AsyncPipe.h>
+#include <folly/json/dynamic.h>
 
 namespace facebook::fboss::fsdb {
 

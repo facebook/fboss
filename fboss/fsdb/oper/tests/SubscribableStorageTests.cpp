@@ -1,6 +1,6 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
-#include <folly/dynamic.h>
+#include <folly/json/dynamic.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <chrono>

@@ -12,7 +12,7 @@
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 
 #include <fb303/ThreadCachedServiceData.h>
-#include <folly/json.h>
+#include <folly/json/json.h>
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
 #include <chrono>

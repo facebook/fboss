@@ -12,7 +12,7 @@
 
 #include <folly/FBString.h>
 #include <folly/IPAddress.h>
-#include <folly/dynamic.h>
+#include <folly/json/dynamic.h>
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"

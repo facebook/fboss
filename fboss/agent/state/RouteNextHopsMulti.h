@@ -11,7 +11,7 @@
 
 #include <folly/FBString.h>
 #include <folly/IPAddress.h>
-#include <folly/dynamic.h>
+#include <folly/json/dynamic.h>
 
 #include <boost/container/flat_map.hpp>
 

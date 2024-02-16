@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include <folly/json.h>
+#include <folly/json/json.h>
 #include <thrift/lib/cpp/transport/TTransportException.h>
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/port/gen-cpp2/model_types.h"

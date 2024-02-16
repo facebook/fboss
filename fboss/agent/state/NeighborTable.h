@@ -10,8 +10,8 @@
 #pragma once
 
 #include <folly/MacAddress.h>
-#include <folly/dynamic.h>
-#include <folly/json.h>
+#include <folly/json/dynamic.h>
+#include <folly/json/json.h>
 #include <type_traits>
 #include "fboss/agent/state/NeighborEntry.h"
 #include "fboss/agent/state/NodeMap.h"

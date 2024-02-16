@@ -17,7 +17,7 @@ extern "C" {
 
 #include <boost/container/flat_map.hpp>
 #include <folly/concurrency/ConcurrentHashMap.h>
-#include <folly/dynamic.h>
+#include <folly/json/dynamic.h>
 
 #include "fboss/agent/hw/bcm/MinimumLinkCountMap.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"

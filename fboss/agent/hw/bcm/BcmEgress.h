@@ -16,7 +16,7 @@ extern "C" {
 
 #include <folly/IPAddress.h>
 #include <folly/MacAddress.h>
-#include <folly/dynamic.h>
+#include <folly/json/dynamic.h>
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 #include "fboss/agent/state/RouteTypes.h"

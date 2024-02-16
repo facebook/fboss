@@ -16,7 +16,7 @@
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
 #include "fboss/cli/fboss2/utils/Table.h"
 #include "fboss/cli/fboss2/utils/clients/BmcClient.h"
-#include "folly/json.h"
+#include "folly/json/json.h"
 #include "neteng/fboss/bgp/if/gen-cpp2/TBgpService.h"
 
 #include <boost/algorithm/string.hpp>

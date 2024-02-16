@@ -12,8 +12,8 @@
 
 #include <fb303/ServiceData.h>
 #include <folly/FileUtil.h>
-#include <folly/dynamic.h>
-#include <folly/json.h>
+#include <folly/json/dynamic.h>
+#include <folly/json/json.h>
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 

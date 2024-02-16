@@ -7,7 +7,7 @@
 #include "fboss/agent/test/LabelForwardingUtils.h"
 #include "fboss/agent/test/TestUtils.h"
 
-#include <folly/dynamic.h>
+#include <folly/json/dynamic.h>
 #include <gtest/gtest.h>
 
 using namespace ::testing;

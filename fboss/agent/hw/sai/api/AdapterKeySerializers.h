@@ -12,7 +12,7 @@
 #include "fboss/agent/hw/sai/api/RouteApi.h"
 #include "fboss/agent/hw/sai/api/Traits.h"
 
-#include <folly/dynamic.h>
+#include <folly/json/dynamic.h>
 
 namespace facebook::fboss {
 constexpr auto kKey = "adapterkey";

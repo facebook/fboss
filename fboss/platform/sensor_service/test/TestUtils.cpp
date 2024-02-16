@@ -1,7 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include <folly/FileUtil.h>
-#include <folly/dynamic.h>
+#include <folly/json/dynamic.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
 #include "fboss/platform/config_lib/ConfigLib.h"

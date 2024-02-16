@@ -17,7 +17,7 @@
 #include "fboss/agent/hw/sai/api/SaiDefaultAttributeValues.h"
 
 #include <folly/IPAddress.h>
-#include <folly/dynamic.h>
+#include <folly/json/dynamic.h>
 #include <folly/logging/xlog.h>
 
 #include <iterator>

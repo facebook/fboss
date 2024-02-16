@@ -11,7 +11,7 @@
 #pragma once
 
 #include <fatal/container/tuple.h>
-#include <folly/dynamic.h>
+#include <folly/json/dynamic.h>
 #include <thrift/lib/cpp2/protocol/detail/protocol_methods.h>
 #include <thrift/lib/cpp2/reflection/folly_dynamic.h>
 #include <thrift/lib/cpp2/reflection/reflection.h>

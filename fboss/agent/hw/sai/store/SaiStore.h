@@ -24,7 +24,7 @@
 #include "fboss/agent/hw/sai/store/Traits.h"
 #include "fboss/lib/RefMap.h"
 
-#include <folly/dynamic.h>
+#include <folly/json/dynamic.h>
 
 #include <memory>
 #include <optional>

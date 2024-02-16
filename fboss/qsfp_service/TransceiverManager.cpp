@@ -2,9 +2,9 @@
 #include "fboss/qsfp_service/TransceiverManager.h"
 
 #include <fb303/ThreadCachedServiceData.h>
-#include <folly/DynamicConverter.h>
 #include <folly/FileUtil.h>
-#include <folly/json.h>
+#include <folly/json/DynamicConverter.h>
+#include <folly/json/json.h>
 
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/FbossError.h"

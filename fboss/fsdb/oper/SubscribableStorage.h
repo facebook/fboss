@@ -7,9 +7,9 @@
 #include <fboss/fsdb/oper/DeltaValue.h>
 #include <fboss/thrift_cow/storage/Storage.h>
 #include <folly/Expected.h>
-#include <folly/dynamic.h>
 #include <folly/experimental/coro/AsyncGenerator.h>
 #include <folly/experimental/coro/Sleep.h>
+#include <folly/json/dynamic.h>
 #include <folly/logging/xlog.h>
 #include <chrono>
 #include "fboss/fsdb/if/gen-cpp2/fsdb_common_types.h"

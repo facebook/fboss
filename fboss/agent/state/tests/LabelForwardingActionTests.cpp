@@ -8,7 +8,7 @@
 #include "fboss/agent/state/RouteNextHop.h"
 #include "folly/IPAddress.h"
 
-#include <folly/dynamic.h>
+#include <folly/json/dynamic.h>
 #include <gtest/gtest.h>
 
 using namespace ::testing;

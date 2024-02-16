@@ -10,7 +10,7 @@
 #include "fboss/agent/hw/mock/MockHwSwitch.h"
 
 #include <folly/Memory.h>
-#include <folly/dynamic.h>
+#include <folly/json/dynamic.h>
 
 #include "fboss/agent/hw/mock/MockTxPacket.h"
 

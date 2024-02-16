@@ -11,7 +11,7 @@
 
 #include <boost/container/flat_set.hpp>
 
-#include <folly/dynamic.h>
+#include <folly/json/dynamic.h>
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"

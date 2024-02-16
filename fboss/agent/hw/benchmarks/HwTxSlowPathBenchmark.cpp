@@ -19,9 +19,9 @@
 #include "fboss/agent/benchmarks/AgentBenchmarks.h"
 
 #include <folly/IPAddressV6.h>
-#include <folly/dynamic.h>
 #include <folly/init/Init.h>
-#include <folly/json.h>
+#include <folly/json/dynamic.h>
+#include <folly/json/json.h>
 
 #include <folly/Benchmark.h>
 #include <folly/logging/xlog.h>

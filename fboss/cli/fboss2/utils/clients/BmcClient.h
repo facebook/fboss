@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include <folly/dynamic.h>
+#include <folly/json/dynamic.h>
 #include "fboss/cli/fboss2/utils/HostInfo.h"
 
 namespace facebook::fboss {

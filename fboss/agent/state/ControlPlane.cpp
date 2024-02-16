@@ -14,8 +14,8 @@
 
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/agent/state/Thrifty.h"
-#include "folly/dynamic.h"
-#include "folly/json.h"
+#include "folly/json/dynamic.h"
+#include "folly/json/json.h"
 
 #include <thrift/lib/cpp/util/EnumUtils.h>
 

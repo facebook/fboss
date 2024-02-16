@@ -14,7 +14,7 @@ extern "C" {
 #include <bcm/types.h>
 }
 
-#include <folly/dynamic.h>
+#include <folly/json/dynamic.h>
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/lib/RefMap.h"
 

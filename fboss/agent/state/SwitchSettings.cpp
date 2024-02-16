@@ -14,8 +14,8 @@
 #include "fboss/agent/state/SwitchState.h"
 
 #include "fboss/agent/state/NodeBase-defs.h"
-#include "folly/dynamic.h"
-#include "folly/json.h"
+#include "folly/json/dynamic.h"
+#include "folly/json/json.h"
 
 namespace facebook::fboss {
 

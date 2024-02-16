@@ -22,7 +22,7 @@ extern "C" {
 #include <folly/IPAddress.h>
 #include <folly/MacAddress.h>
 #include <folly/container/F14Map.h>
-#include <folly/dynamic.h>
+#include <folly/json/dynamic.h>
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
 #include <algorithm>

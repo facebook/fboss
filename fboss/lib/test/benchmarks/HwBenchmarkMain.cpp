@@ -9,9 +9,9 @@
  */
 
 #include <folly/Benchmark.h>
-#include <folly/dynamic.h>
 #include <folly/init/Init.h>
-#include <folly/json.h>
+#include <folly/json/dynamic.h>
+#include <folly/json/json.h>
 #include <folly/logging/Init.h>
 
 #include <sys/resource.h>

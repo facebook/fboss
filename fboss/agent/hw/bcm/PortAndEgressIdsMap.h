@@ -14,7 +14,7 @@ extern "C" {
 #include <bcm/types.h>
 }
 
-#include <folly/dynamic.h>
+#include <folly/json/dynamic.h>
 #include "fboss/agent/hw/bcm/BcmEgress.h"
 #include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/state/NodeMap.h"

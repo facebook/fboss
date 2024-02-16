@@ -14,7 +14,7 @@
 #include "fboss/lib/RadixTree.h"
 
 #include <folly/IPAddress.h>
-#include <folly/dynamic.h>
+#include <folly/json/dynamic.h>
 
 #include <memory>
 #include <type_traits>

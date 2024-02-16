@@ -16,7 +16,7 @@ extern "C" {
 
 #include <boost/container/flat_map.hpp>
 #include <folly/IPAddress.h>
-#include <folly/dynamic.h>
+#include <folly/json/dynamic.h>
 #include <set>
 
 #include "fboss/agent/hw/bcm/BcmHostKey.h"

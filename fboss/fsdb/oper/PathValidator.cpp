@@ -9,8 +9,8 @@
  */
 
 #include "fboss/fsdb/oper/PathValidator.h"
-#include <folly/DynamicConverter.h>
-#include <folly/json.h>
+#include <folly/json/DynamicConverter.h>
+#include <folly/json/json.h>
 #include <re2/re2.h>
 #include "fboss/fsdb/common/Utils.h"
 #include "fboss/fsdb/if/FsdbModel.h"

@@ -1,7 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/thrift_cow/visitors/tests/VisitorTestUtils.h"
-#include <folly/dynamic.h>
+#include <folly/json/dynamic.h>
 #include <thrift/lib/cpp2/reflection/folly_dynamic.h>
 
 namespace facebook::fboss::thrift_cow {

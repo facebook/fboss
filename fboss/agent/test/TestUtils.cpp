@@ -40,7 +40,7 @@
 
 #include <folly/Memory.h>
 #include <folly/container/Enumerate.h>
-#include <folly/json.h>
+#include <folly/json/json.h>
 #include <folly/logging/Init.h>
 #include <chrono>
 #include <memory>
