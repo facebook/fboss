@@ -226,6 +226,8 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_JANGA800BIC;
     } else if (FLAGS_mode == "tahan800bc") {
       type_ = PlatformType::PLATFORM_TAHAN800BC;
+    } else if (FLAGS_mode == "morgan800cc") {
+      type_ = PlatformType::PLATFORM_MORGAN800CC;
     } else {
       throw std::runtime_error("invalid mode " + FLAGS_mode);
     }
