@@ -340,6 +340,29 @@ class HwVoqSwitchWithFabricPortsTest : public HwVoqSwitchTest {
     return cfg;
   }
 
+  void addDropAclForMcastIp() {
+    auto newCfg = initialConfig();
+    // Add ACL Table group before adding any ACLs
+    utility::addAclTableGroup(
+        &newCfg, cfg::AclStage::INGRESS, utility::getAclTableGroupName());
+    utility::addDefaultAclTable(newCfg);
+    auto aclName = "drop-v6-multicast";
+    auto aclCounterName = "drop-v6-multicast-stat";
+    // The expectation is that MC traffic received on NIF ports gets dropped
+    // and not get forwarded to fabric, as that will lead to fabric drops
+    // incrementing and would be a red flag. Dropping of MC traffic does not
+    // happen natively and hence need a drop ACL entry to match on IPv6 MC
+    // and drop the same.
+    auto* acl = utility::addAcl(&newCfg, aclName, cfg::AclActionType::DENY);
+    acl->dstIp() = "ff00::/8";
+    utility::addAclStat(
+        &newCfg,
+        aclName,
+        aclCounterName,
+        utility::getAclCounterTypes(getHwSwitch()));
+    applyNewConfig(newCfg);
+  }
+
  private:
   bool hideFabricPorts() const override {
     return false;
@@ -510,7 +533,7 @@ TEST_F(HwVoqSwitchWithFabricPortsTest, checkFabricPortSpray) {
 
 TEST_F(HwVoqSwitchWithFabricPortsTest, verifyNifMulticastTrafficDropped) {
   constexpr static auto kNumPacketsToSend{1000};
-  auto setup = []() {};
+  auto setup = [this]() { addDropAclForMcastIp(); };
 
   auto verify = [this]() {
     auto beforePkts = getLatestPortStats(masterLogicalInterfacePortIds()[0])
