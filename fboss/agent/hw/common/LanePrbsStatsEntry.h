@@ -38,46 +38,6 @@ class LanePrbsStatsEntry {
     return laneRate_;
   }
 
-  void lossOfLock() {
-    if (locked_) {
-      locked_ = false;
-      accuErrorCount_ = 0;
-      numLossOfLock_++;
-    }
-    timeLastCollect_ = steady_clock::now();
-  }
-
-  void locked() {
-    steady_clock::time_point now = steady_clock::now();
-    locked_ = true;
-    accuErrorCount_ = 0;
-    timeLastLocked_ = now;
-    timeLastCollect_ = now;
-  }
-
-  void updateLaneStats(uint32_t status) {
-    if (!locked_) {
-      locked();
-      return;
-    }
-    steady_clock::time_point now = steady_clock::now();
-    accuErrorCount_ += status;
-
-    milliseconds duration =
-        std::chrono::duration_cast<std::chrono::milliseconds>(
-            now - timeLastCollect_);
-    // There shouldn't be a case where duration would be 0.
-    // But just add a check here to be safe.
-    if (duration.count() == 0) {
-      return;
-    }
-    double ber = (status * 1000) / (laneRate_ * duration.count());
-    if (ber > maxBer_) {
-      maxBer_ = ber;
-    }
-    timeLastCollect_ = now;
-  }
-
   void handleOk() {
     steady_clock::time_point now = steady_clock::now();
     locked_ = true;
