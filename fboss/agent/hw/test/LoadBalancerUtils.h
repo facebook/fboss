@@ -225,6 +225,7 @@ void pumpTrafficAndVerifyLoadBalanced(
 
 cfg::UdfConfig addUdfHashConfig();
 cfg::UdfConfig addUdfAclConfig();
+cfg::UdfConfig addUdfHashAclConfig();
 
 bool isHwDeterministicSeed(
     HwSwitch* hwSwitch,

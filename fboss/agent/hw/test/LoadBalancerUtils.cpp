@@ -224,6 +224,7 @@ void addFlowletConfigs(
 }
 
 static cfg::UdfConfig addUdfConfig(
+    std::map<std::string, cfg::UdfGroup>& udfMap,
     const std::string& udfGroup,
     const int offsetBytes,
     const int fieldSizeBytes,
@@ -231,7 +232,6 @@ static cfg::UdfConfig addUdfConfig(
   cfg::UdfConfig udfCfg;
   cfg::UdfGroup udfGroupEntry;
   cfg::UdfPacketMatcher matchCfg;
-  std::map<std::string, cfg::UdfGroup> udfMap;
   std::map<std::string, cfg::UdfPacketMatcher> udfPacketMatcherMap;
 
   matchCfg.name() = kUdfL4UdpRocePktMatcherName;
@@ -254,7 +254,9 @@ static cfg::UdfConfig addUdfConfig(
 }
 
 cfg::UdfConfig addUdfAclConfig(void) {
+  std::map<std::string, cfg::UdfGroup> udfMap;
   return addUdfConfig(
+      udfMap,
       kUdfAclRoceOpcodeGroupName,
       kUdfAclRoceOpcodeStartOffsetInBytes,
       kUdfAclRoceOpcodeFieldSizeInBytes,
@@ -262,11 +264,29 @@ cfg::UdfConfig addUdfAclConfig(void) {
 }
 
 cfg::UdfConfig addUdfHashConfig(void) {
+  std::map<std::string, cfg::UdfGroup> udfMap;
   return addUdfConfig(
+      udfMap,
       kUdfHashDstQueuePairGroupName,
       kUdfHashDstQueuePairStartOffsetInBytes,
       kUdfHashDstQueuePairFieldSizeInBytes,
       cfg::UdfGroupType::HASH);
+}
+
+cfg::UdfConfig addUdfHashAclConfig(void) {
+  std::map<std::string, cfg::UdfGroup> udfMap;
+  addUdfConfig(
+      udfMap,
+      kUdfHashDstQueuePairGroupName,
+      kUdfHashDstQueuePairStartOffsetInBytes,
+      kUdfHashDstQueuePairFieldSizeInBytes,
+      cfg::UdfGroupType::HASH);
+  return addUdfConfig(
+      udfMap,
+      kUdfAclRoceOpcodeGroupName,
+      kUdfAclRoceOpcodeStartOffsetInBytes,
+      kUdfAclRoceOpcodeFieldSizeInBytes,
+      cfg::UdfGroupType::ACL);
 }
 
 /*

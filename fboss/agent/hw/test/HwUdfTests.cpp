@@ -29,11 +29,14 @@ class HwUdfTest : public HwTest {
 
   std::shared_ptr<SwitchState> setupUdfConfiguration(
       bool addConfig,
-      bool udfHash = true) {
+      bool udfHashEnabled = true,
+      bool udfAclEnabled = false) {
     auto udfConfigState = std::make_shared<UdfConfig>();
     cfg::UdfConfig udfConfig;
     if (addConfig) {
-      if (udfHash) {
+      if (udfHashEnabled && udfAclEnabled) {
+        udfConfig = utility::addUdfHashAclConfig();
+      } else if (udfHashEnabled) {
         udfConfig = utility::addUdfHashConfig();
       } else {
         udfConfig = utility::addUdfAclConfig();
@@ -154,6 +157,29 @@ TEST_F(HwUdfTest, addAclConfig) {
   auto verify = [=]() {
     utility::validateUdfAclRoceOpcodeConfig(
         getHwSwitch(), getProgrammedState());
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(HwUdfTest, checkUdfHashAclConfiguration) {
+  auto setup = [=]() {
+    // Add Udf configuration for both hash and acl, first parameter is
+    // addConfig and second udfHashEnabaled and third is udfAclEnabled
+    applyNewState(setupUdfConfiguration(true, true, true));
+  };
+  auto verify = [=]() {
+    // Verify that UdfHash configuration is added
+    utility::validateUdfConfig(
+        getHwSwitch(),
+        utility::kUdfHashDstQueuePairGroupName,
+        utility::kUdfL4UdpRocePktMatcherName);
+
+    // Verify that UdfAcl configuration is added
+    utility::validateUdfConfig(
+        getHwSwitch(),
+        utility::kUdfAclRoceOpcodeGroupName,
+        utility::kUdfL4UdpRocePktMatcherName);
   };
 
   verifyAcrossWarmBoots(setup, verify);
