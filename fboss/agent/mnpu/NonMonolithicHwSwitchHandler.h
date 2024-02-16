@@ -63,7 +63,7 @@ class NonMonolithicHwSwitchHandler : public HwSwitchHandler {
   void clearPortStats(
       const std::unique_ptr<std::vector<int32_t>>& ports) override;
 
-  std::vector<phy::PrbsLaneStats> getPortAsicPrbsStats(int32_t portId) override;
+  std::vector<phy::PrbsLaneStats> getPortAsicPrbsStats(PortID portId) override;
 
   void clearPortAsicPrbsStats(int32_t portId) override;
 

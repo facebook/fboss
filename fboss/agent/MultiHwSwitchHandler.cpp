@@ -310,7 +310,7 @@ void MultiHwSwitchHandler::clearPortStats(
 }
 
 std::vector<phy::PrbsLaneStats> MultiHwSwitchHandler::getPortAsicPrbsStats(
-    int32_t portId) {
+    PortID portId) {
   // TODO - support with multiple switches
   CHECK_EQ(hwSwitchSyncers_.size(), 1);
   return hwSwitchSyncers_.begin()->second->getPortAsicPrbsStats(portId);

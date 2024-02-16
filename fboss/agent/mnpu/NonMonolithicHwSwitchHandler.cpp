@@ -145,7 +145,7 @@ void NonMonolithicHwSwitchHandler::clearPortStats(
 }
 
 std::vector<phy::PrbsLaneStats>
-NonMonolithicHwSwitchHandler::getPortAsicPrbsStats(int32_t /*portId*/) {
+NonMonolithicHwSwitchHandler::getPortAsicPrbsStats(PortID /*portId*/) {
   // TODO: implement this
   return {};
 }

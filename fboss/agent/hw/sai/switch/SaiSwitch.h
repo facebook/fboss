@@ -129,6 +129,8 @@ class SaiSwitch : public HwSwitch {
   void clearPortStats(
       const std::unique_ptr<std::vector<int32_t>>& ports) override;
 
+  std::vector<phy::PrbsLaneStats> getPortAsicPrbsStats(PortID portId) override;
+
   cfg::PortSpeed getPortMaxSpeed(PortID port) const override;
 
   void linkStateChangedCallbackTopHalf(

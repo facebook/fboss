@@ -204,6 +204,7 @@ class SaiPortManager {
       PortSaiId portSaiId,
       cfg::SwitchType switchType) const;
 
+  std::vector<phy::PrbsLaneStats> getPortAsicPrbsStats(PortID portId);
   void updateStats(PortID portID, bool updateWatermarks = false);
 
   void clearStats(PortID portID);

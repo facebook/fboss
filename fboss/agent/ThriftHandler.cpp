@@ -1543,7 +1543,7 @@ void ThriftHandler::getPortPrbsStats(
   ensureConfigured(__func__);
 
   if (component == phy::PortComponent::ASIC) {
-    auto asicPrbsStats = sw_->getPortAsicPrbsStats(portId);
+    auto asicPrbsStats = sw_->getPortAsicPrbsStats(PortID(portId));
     prbsStats.portId() = portId;
     prbsStats.component() = phy::PortComponent::ASIC;
     for (const auto& lane : asicPrbsStats) {

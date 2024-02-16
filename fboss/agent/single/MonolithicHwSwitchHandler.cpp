@@ -139,7 +139,7 @@ void MonolithicHwSwitchHandler::clearPortStats(
 }
 
 std::vector<phy::PrbsLaneStats> MonolithicHwSwitchHandler::getPortAsicPrbsStats(
-    int32_t portId) {
+    PortID portId) {
   return hw_->getPortAsicPrbsStats(portId);
 }
 

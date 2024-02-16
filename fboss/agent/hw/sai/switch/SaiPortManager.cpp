@@ -1574,6 +1574,46 @@ std::optional<FabricEndpoint> SaiPortManager::getFabricReachabilityForPort(
   return endpoint;
 }
 
+std::vector<phy::PrbsLaneStats> SaiPortManager::getPortAsicPrbsStats(
+    PortID portId) {
+  std::vector<phy::PrbsLaneStats> prbsStats;
+  if (!platform_->getAsic()->isSupported(HwAsic::Feature::SAI_PRBS)) {
+    return prbsStats;
+  }
+#if SAI_API_VERSION >= SAI_VERSION(1, 8, 1)
+  auto* handle = getPortHandleImpl(PortID(portId));
+  auto prbsRxState = SaiApiTable::getInstance()->portApi().getAttribute(
+      handle->port->adapterKey(), SaiPortTraits::Attributes::PrbsRxState{});
+  auto portAsicPrbsStatsItr = portAsicPrbsStats_.find(portId);
+  if (portAsicPrbsStatsItr == portAsicPrbsStats_.end()) {
+    throw FbossError(
+        "Asic prbs lane error map not initialized for port ", portId);
+  }
+  auto& lanePrbsStatsTable = portAsicPrbsStatsItr->second;
+  // Dump cumulative PRBS stats on first LanePrbsStatsEntry because there is no
+  // per-lane PRBS counter available in SAI.
+  auto& firstLanePrbsStatsEntry = lanePrbsStatsTable.front();
+  switch (prbsRxState.rx_status) {
+    case SAI_PORT_PRBS_RX_STATUS_OK:
+      firstLanePrbsStatsEntry.handleOk();
+      break;
+    case SAI_PORT_PRBS_RX_STATUS_LOCK_WITH_ERRORS:
+      firstLanePrbsStatsEntry.handleLockWithErrors(prbsRxState.error_count);
+      break;
+    case SAI_PORT_PRBS_RX_STATUS_NOT_LOCKED:
+      firstLanePrbsStatsEntry.handleNotLocked();
+      break;
+    case SAI_PORT_PRBS_RX_STATUS_LOST_LOCK:
+      firstLanePrbsStatsEntry.handleLossOfLock();
+      break;
+  }
+  for (const auto& lanePrbsStatsEntry : lanePrbsStatsTable) {
+    prbsStats.push_back(lanePrbsStatsEntry.getPrbsLaneStats());
+  }
+#endif
+  return prbsStats;
+}
+
 void SaiPortManager::updateStats(PortID portId, bool updateWatermarks) {
   auto handlesItr = handles_.find(portId);
   if (handlesItr == handles_.end()) {

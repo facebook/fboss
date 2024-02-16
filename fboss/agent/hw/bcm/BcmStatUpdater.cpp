@@ -360,7 +360,7 @@ void BcmStatUpdater::clearPortStats(
 }
 
 std::vector<phy::PrbsLaneStats> BcmStatUpdater::getPortAsicPrbsStats(
-    int32_t portId) {
+    PortID portId) {
   std::vector<phy::PrbsLaneStats> prbsStats;
   auto lockedPortAsicPrbsStats = portAsicPrbsStats_.rlock();
   auto portAsicPrbsStatIter = lockedPortAsicPrbsStats->find(portId);
