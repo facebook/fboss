@@ -165,21 +165,7 @@ class AgentEnsemble : public TestEnsembleIf {
   }
 
   std::map<PortID, FabricEndpoint> getFabricConnectivity(
-      SwitchID switchId) const override {
-    if (FLAGS_multi_switch) {
-      std::map<PortID, FabricEndpoint> connectivity;
-      auto gotConnectivity =
-          getSw()->getHwSwitchThriftClientTable()->getFabricConnectivity(
-              switchId);
-      CHECK(gotConnectivity.has_value());
-      for (auto [portId, fabricEndpoint] : gotConnectivity.value()) {
-        connectivity.insert({PortID(portId), fabricEndpoint});
-      }
-      return connectivity;
-    } else {
-      return getSw()->getHwSwitchHandler()->getFabricConnectivity();
-    }
-  }
+      SwitchID switchId) const override;
 
   FabricReachabilityStats getFabricReachabilityStats() const override {
     return getSw()->getFabricReachabilityStats();
