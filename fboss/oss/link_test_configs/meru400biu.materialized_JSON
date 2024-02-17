@@ -7209,6 +7209,11 @@
         "dstIp": "ff02::/16",
         "name": "cpuPolicing-mid-ff02::/16",
         "actionType": 1
+      },
+      {
+        "dstIp": "ff00::/8",
+        "name": "drop-v6-multicast",
+        "actionType": 0
       }
     ],
     "maxNeighborProbes": 300,
