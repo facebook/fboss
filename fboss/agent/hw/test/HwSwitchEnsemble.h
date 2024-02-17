@@ -255,9 +255,6 @@ class HwSwitchEnsemble : public TestEnsembleIf {
       int secondsToWaitPerIteration = 1);
   void ensureThrift();
 
-  virtual void runDiagCommand(
-      const std::string& input,
-      std::string& output) = 0;
   HwSwitchEnsembleRouteUpdateWrapper getRouteUpdater() {
     return HwSwitchEnsembleRouteUpdateWrapper(
         this, routingInformationBase_.get());

@@ -202,7 +202,8 @@ uint64_t BcmSwitchEnsemble::getSdkSwitchId() const {
 
 void BcmSwitchEnsemble::runDiagCommand(
     const std::string& input,
-    std::string& /*output*/) {
+    std::string& /*output*/,
+    std::optional<SwitchID> /*switchId*/) {
   getHwSwitch()->printDiagCmd(input);
 }
 

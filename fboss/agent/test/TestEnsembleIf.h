@@ -44,6 +44,10 @@ class TestEnsembleIf : public HwSwitchCallback {
       SwitchID switchId) const = 0;
   virtual FabricReachabilityStats getFabricReachabilityStats() const = 0;
   virtual void updateStats() = 0;
+  virtual void runDiagCommand(
+      const std::string& input,
+      std::string& output,
+      std::optional<SwitchID> switchId = std::nullopt) = 0;
 };
 
 } // namespace facebook::fboss

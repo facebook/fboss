@@ -34,8 +34,10 @@ class TestHwSwitchEnsemble : HwSwitchEnsemble {
     return false;
   }
 
-  void runDiagCommand(const std::string& /*input*/, std::string& /*output*/)
-      override {}
+  void runDiagCommand(
+      const std::string& /*input*/,
+      std::string& /*output*/,
+      std::optional<SwitchID> /*swId*/) override {}
 
   void init(
       const HwSwitchEnsemble::HwSwitchEnsembleInitInfo& /*info*/) override {}

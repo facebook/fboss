@@ -58,7 +58,10 @@ class SaiSwitchEnsemble : public HwSwitchEnsemble {
   std::map<AggregatePortID, HwTrunkStats> getLatestAggregatePortStats(
       const std::vector<AggregatePortID>& aggregatePorts) override;
 
-  void runDiagCommand(const std::string& input, std::string& output) override;
+  void runDiagCommand(
+      const std::string& input,
+      std::string& output,
+      std::optional<SwitchID> switchId = std::nullopt) override;
 
   void init(const HwSwitchEnsemble::HwSwitchEnsembleInitInfo& info) override;
   void gracefulExit() override;

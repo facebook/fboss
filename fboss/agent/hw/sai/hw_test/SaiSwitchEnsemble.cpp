@@ -124,7 +124,8 @@ uint64_t SaiSwitchEnsemble::getSdkSwitchId() const {
 
 void SaiSwitchEnsemble::runDiagCommand(
     const std::string& input,
-    std::string& output) {
+    std::string& output,
+    std::optional<SwitchID> /*switchId*/) {
   ClientInformation clientInfo;
   clientInfo.username() = "hw_test";
   clientInfo.hostname() = "hw_test";
