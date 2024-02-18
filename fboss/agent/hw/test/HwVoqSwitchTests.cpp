@@ -598,6 +598,14 @@ TEST_F(HwVoqSwitchWithFabricPortsTest, fdrCellDrops) {
                  << " raw stat value: "
                  << *getHwSwitch()->getSwitchDropStats().fdrCellDrops();
     });
+    auto prevDropStats = getHwSwitch()->getSwitchDropStats();
+    getHwSwitch()->updateStats();
+    // Assert that we don't spuriously increment fdrCellDrops on every drop
+    // stats. This would happen if we treated a stat as clear on read, while
+    // in HW it was cumulative
+    EXPECT_EQ(
+        *prevDropStats.fdrCellDrops(),
+        *getHwSwitch()->getSwitchDropStats().fdrCellDrops());
   };
   verifyAcrossWarmBoots(setup, verify);
 }
