@@ -750,6 +750,27 @@ void SaiSwitchManager::updateStats() {
     switchDropStats_.fdrCellDrops() =
         switchDropStats_.fdrCellDrops().value_or(0) +
         dropStats.fdrCellDrops().value_or(0);
+    switchDropStats_.voqResourceExhaustionDrops() =
+        switchDropStats_.voqResourceExhaustionDrops().value_or(0) +
+        dropStats.voqResourceExhaustionDrops().value_or(0);
+    switchDropStats_.globalResourceExhaustionDrops() =
+        switchDropStats_.globalResourceExhaustionDrops().value_or(0) +
+        dropStats.globalResourceExhaustionDrops().value_or(0);
+    switchDropStats_.sramResourceExhaustionDrops() =
+        switchDropStats_.sramResourceExhaustionDrops().value_or(0) +
+        dropStats.sramResourceExhaustionDrops().value_or(0);
+    switchDropStats_.vsqResourceExhaustionDrops() =
+        switchDropStats_.vsqResourceExhaustionDrops().value_or(0) +
+        dropStats.vsqResourceExhaustionDrops().value_or(0);
+    switchDropStats_.dropPrecedenceDrops() =
+        switchDropStats_.dropPrecedenceDrops().value_or(0) +
+        dropStats.dropPrecedenceDrops().value_or(0);
+    switchDropStats_.queueResolutionDrops() =
+        switchDropStats_.queueResolutionDrops().value_or(0) +
+        dropStats.queueResolutionDrops().value_or(0);
+    switchDropStats_.ingressPacketPipelineRejectDrops() =
+        switchDropStats_.ingressPacketPipelineRejectDrops().value_or(0) +
+        dropStats.ingressPacketPipelineRejectDrops().value_or(0);
   }
   auto switchDramStats = supportedDramStats();
   if (switchDramStats.size()) {
