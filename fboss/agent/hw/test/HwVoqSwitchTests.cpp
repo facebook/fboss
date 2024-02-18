@@ -908,6 +908,17 @@ TEST_F(HwVoqSwitchTest, packetIntegrityError) {
       EXPECT_EVENTUALLY_GT(
           getHwSwitch()->getSwitchDropStats().packetIntegrityDrops(), 0);
     });
+    // Assert that packet Integrity drops don't continuously increment.
+    // Packet integrity drop counter is clear on read from HW. So we
+    // accumulate its value in memory. If HW/SDK ever changed this to
+    // not be clear on read, but cumulative, then our approach would
+    // yeild constantly increasing values. Assert against that.
+    auto prevPktIntegrityDrops =
+        *getHwSwitch()->getSwitchDropStats().packetIntegrityDrops();
+    getHwSwitch()->updateStats();
+    EXPECT_EQ(
+        prevPktIntegrityDrops,
+        *getHwSwitch()->getSwitchDropStats().packetIntegrityDrops());
   };
   verifyAcrossWarmBoots(setup, verify);
 }
