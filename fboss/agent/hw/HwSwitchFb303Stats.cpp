@@ -88,6 +88,41 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           SUM,
           RATE),
       fdrCellDrops_(map, getCounterPrefix() + "fdr_cell_drops", SUM, RATE),
+      voqResourceExhaustionDrops_(
+          map,
+          getCounterPrefix() + "voq_resource_exhaustion_drops",
+          SUM,
+          RATE),
+      globalResourceExhaustionDrops_(
+          map,
+          getCounterPrefix() + "global_resource_exhaustion_drops",
+          SUM,
+          RATE),
+      sramResourceExhaustionDrops_(
+          map,
+          getCounterPrefix() + "sram_resource_exhaustion_drops",
+          SUM,
+          RATE),
+      vsqResourceExhaustionDrops_(
+          map,
+          getCounterPrefix() + "vsq_resource_exhaustion_drops",
+          SUM,
+          RATE),
+      dropPrecedenceDrops_(
+          map,
+          getCounterPrefix() + "drop_precedence_drops",
+          SUM,
+          RATE),
+      queueResolutionDrops_(
+          map,
+          getCounterPrefix() + "queue_resolution_drops",
+          SUM,
+          RATE),
+      ingressPacketPipelineRejectDrops_(
+          map,
+          getCounterPrefix() + "ingress_packet_pipeline_reject_drops",
+          SUM,
+          RATE),
       dramEnqueuedBytes_(
           map,
           getCounterPrefix() + "dram_enqueued_bytes",
