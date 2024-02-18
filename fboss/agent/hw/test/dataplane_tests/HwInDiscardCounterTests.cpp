@@ -60,6 +60,7 @@ TEST_F(HwInDiscardsCounterTest, nullRouteHit) {
     auto portStatsBefore = getLatestPortStats(portId);
     PortID otherPortId = masterLogicalInterfacePortIds()[1];
     auto otherPortStatsBefore = getLatestPortStats(otherPortId);
+    auto switchDropStatsBefore = getHwSwitch()->getSwitchDropStats();
     pumpTraffic(true);
     pumpTraffic(false);
     WITH_RETRIES({
@@ -74,6 +75,13 @@ TEST_F(HwInDiscardsCounterTest, nullRouteHit) {
       EXPECT_EVENTUALLY_EQ(
           *portStatsAfter.inDiscardsRaw_(),
           *portStatsAfter.inDstNullDiscards_());
+      if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
+        auto switchDropStats = getHwSwitch()->getSwitchDropStats();
+        EXPECT_EVENTUALLY_EQ(
+            2,
+            *switchDropStats.ingressPacketPipelineRejectDrops() -
+                *switchDropStatsBefore.ingressPacketPipelineRejectDrops());
+      }
     });
     // Do a -ve test as well, discard counters should not increment
     auto otherPortStatsAfter = getLatestPortStats(otherPortId);
