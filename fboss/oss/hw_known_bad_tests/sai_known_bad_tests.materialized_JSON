@@ -1791,16 +1791,10 @@
           "test_name_regex": "HwRouteTest/[01].verifyCpuRouteChange"
         },
         {
-          "test_name_regex": "HwVoqSwitchFullScaleDsfNodesTest.*"
-        },
-        {
           "test_name_regex": "HwSplitAgentCallbackTest.txPacket"
         },
         {
           "test_name_regex": "HwVoqSwitchWithFabricPortsTest.verifyNifMulticastTrafficDropped"
-        },
-        {
-          "test_name_regex": "SaiPortAdminStateTest.assertAdminState"
         }
     ],
     "brcm/11.0_ea_dnx_odp/11.0_ea_dnx_odp/jericho3/simulator": [
