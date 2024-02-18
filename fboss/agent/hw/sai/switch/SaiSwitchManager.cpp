@@ -84,6 +84,44 @@ void fillHwSwitchDropStats(
       case SAI_SWITCH_STAT_OUT_CONFIGURED_DROP_REASONS_0_DROPPED_PKTS:
         dropStats.fdrCellDrops() = val;
         break;
+      /*
+       * From CS00012306170
+       * SAI_SWITCH_STAT_IN_CONFIGURED_DROP_REASONS_0_DROPPED_PKTS - VOQ
+       * resource exhaustion drops
+       * SAI_SWITCH_STAT_IN_CONFIGURED_DROP_REASONS_1_DROPPED_PKTS - Global
+       * resource exhaustion drops
+       * SAI_SWITCH_STAT_IN_CONFIGURED_DROP_REASONS_2_DROPPED_PKTS - SRAM
+       * resource exhaustion drops
+       * SAI_SWITCH_STAT_IN_CONFIGURED_DROP_REASONS_3_DROPPED_PKTS - VSQ
+       * resource exhaustion drops
+       * SAI_SWITCH_STAT_IN_CONFIGURED_DROP_REASONS_4_DROPPED_PKTS - Drop
+       * precedence drops
+       * SAI_SWITCH_STAT_IN_CONFIGURED_DROP_REASONS_5_DROPPED_PKTS - Queue
+       * resolution drops
+       * SAI_SWITCH_STAT_IN_CONFIGURED_DROP_REASONS_6_DROPPED_PKTS - Ingress PP
+       * VOQ drops due to PP reject bit
+       */
+      case SAI_SWITCH_STAT_IN_CONFIGURED_DROP_REASONS_0_DROPPED_PKTS:
+        dropStats.voqResourceExhaustionDrops() = val;
+        break;
+      case SAI_SWITCH_STAT_IN_CONFIGURED_DROP_REASONS_1_DROPPED_PKTS:
+        dropStats.globalResourceExhaustionDrops() = val;
+        break;
+      case SAI_SWITCH_STAT_IN_CONFIGURED_DROP_REASONS_2_DROPPED_PKTS:
+        dropStats.sramResourceExhaustionDrops() = val;
+        break;
+      case SAI_SWITCH_STAT_IN_CONFIGURED_DROP_REASONS_3_DROPPED_PKTS:
+        dropStats.vsqResourceExhaustionDrops() = val;
+        break;
+      case SAI_SWITCH_STAT_IN_CONFIGURED_DROP_REASONS_4_DROPPED_PKTS:
+        dropStats.dropPrecedenceDrops() = val;
+        break;
+      case SAI_SWITCH_STAT_IN_CONFIGURED_DROP_REASONS_5_DROPPED_PKTS:
+        dropStats.queueResolutionDrops() = val;
+        break;
+      case SAI_SWITCH_STAT_IN_CONFIGURED_DROP_REASONS_6_DROPPED_PKTS:
+        dropStats.ingressPacketPipelineRejectDrops() = val;
+        break;
       default:
         throw FbossError("Unexpected configured counter id: ", counterId);
     }
@@ -102,6 +140,13 @@ void fillHwSwitchDropStats(
         hwSwitchDropStats.packetIntegrityDrops() = value;
         break;
 #endif
+      case SAI_SWITCH_STAT_IN_CONFIGURED_DROP_REASONS_0_DROPPED_PKTS:
+      case SAI_SWITCH_STAT_IN_CONFIGURED_DROP_REASONS_1_DROPPED_PKTS:
+      case SAI_SWITCH_STAT_IN_CONFIGURED_DROP_REASONS_2_DROPPED_PKTS:
+      case SAI_SWITCH_STAT_IN_CONFIGURED_DROP_REASONS_3_DROPPED_PKTS:
+      case SAI_SWITCH_STAT_IN_CONFIGURED_DROP_REASONS_4_DROPPED_PKTS:
+      case SAI_SWITCH_STAT_IN_CONFIGURED_DROP_REASONS_5_DROPPED_PKTS:
+      case SAI_SWITCH_STAT_IN_CONFIGURED_DROP_REASONS_6_DROPPED_PKTS:
       case SAI_SWITCH_STAT_OUT_CONFIGURED_DROP_REASONS_0_DROPPED_PKTS:
         fillAsicSpecificCounter(counterId, value, asicType, hwSwitchDropStats);
         break;
@@ -645,6 +690,22 @@ const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedDropStats() const {
           stats.end(),
           kJerichoConfigDropStats.begin(),
           kJerichoConfigDropStats.end());
+    }
+    if (platform_->getAsic()->getAsicType() ==
+        cfg::AsicType::ASIC_TYPE_JERICHO3) {
+      static const std::vector<sai_stat_id_t> kJericho3ConfigDropStats{
+          SAI_SWITCH_STAT_IN_CONFIGURED_DROP_REASONS_0_DROPPED_PKTS,
+          SAI_SWITCH_STAT_IN_CONFIGURED_DROP_REASONS_1_DROPPED_PKTS,
+          SAI_SWITCH_STAT_IN_CONFIGURED_DROP_REASONS_2_DROPPED_PKTS,
+          SAI_SWITCH_STAT_IN_CONFIGURED_DROP_REASONS_3_DROPPED_PKTS,
+          SAI_SWITCH_STAT_IN_CONFIGURED_DROP_REASONS_4_DROPPED_PKTS,
+          SAI_SWITCH_STAT_IN_CONFIGURED_DROP_REASONS_5_DROPPED_PKTS,
+          SAI_SWITCH_STAT_IN_CONFIGURED_DROP_REASONS_6_DROPPED_PKTS,
+      };
+      stats.insert(
+          stats.end(),
+          kJericho3ConfigDropStats.begin(),
+          kJericho3ConfigDropStats.end());
     }
   }
   return stats;
