@@ -138,8 +138,16 @@ class HwSwitchFb303Stats {
   int64_t getItppErrors() const;
   int64_t getEpniErrors() const;
   int64_t getAlignerErrors() const;
-  int64_t getFdrCellDrops() const;
   int64_t getForwardingQueueProcessorErrors() const;
+
+  int64_t getFdrCellDrops() const;
+  int64_t getVoqResourcesExhautionDrops() const;
+  int64_t getGlobalResourcesExhautionDrops() const;
+  int64_t getSramResourcesExhautionDrops() const;
+  int64_t getVsqResourcesExhautionDrops() const;
+  int64_t getDropPrecedenceDrops() const;
+  int64_t getQueueResolutionDrops() const;
+  int64_t getIngresPacketPipelineRejectDrops() const;
 
   HwAsicErrors getHwAsicErrors() const;
   FabricReachabilityStats getFabricReachabilityStats();

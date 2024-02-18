@@ -258,6 +258,28 @@ int64_t HwSwitchFb303Stats::getFdrCellDrops() const {
   return getCumulativeValue(fdrCellDrops_);
 }
 
+int64_t HwSwitchFb303Stats::getVoqResourcesExhautionDrops() const {
+  return getCumulativeValue(voqResourceExhaustionDrops_);
+}
+int64_t HwSwitchFb303Stats::getGlobalResourcesExhautionDrops() const {
+  return getCumulativeValue(globalResourceExhaustionDrops_);
+}
+int64_t HwSwitchFb303Stats::getSramResourcesExhautionDrops() const {
+  return getCumulativeValue(sramResourceExhaustionDrops_);
+}
+int64_t HwSwitchFb303Stats::getVsqResourcesExhautionDrops() const {
+  return getCumulativeValue(vsqResourceExhaustionDrops_);
+}
+int64_t HwSwitchFb303Stats::getDropPrecedenceDrops() const {
+  return getCumulativeValue(dropPrecedenceDrops_);
+}
+int64_t HwSwitchFb303Stats::getQueueResolutionDrops() const {
+  return getCumulativeValue(queueResolutionDrops_);
+}
+int64_t HwSwitchFb303Stats::getIngresPacketPipelineRejectDrops() const {
+  return getCumulativeValue(ingressPacketPipelineRejectDrops_);
+}
+
 HwAsicErrors HwSwitchFb303Stats::getHwAsicErrors() const {
   HwAsicErrors asicErrors;
   asicErrors.parityErrors() = getCumulativeValue(parityErrors_);
