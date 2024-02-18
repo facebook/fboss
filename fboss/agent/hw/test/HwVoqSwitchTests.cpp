@@ -590,8 +590,13 @@ TEST_F(HwVoqSwitchWithFabricPortsTest, fdrCellDrops) {
       getHwSwitch()->updateStats();
       fb303::ThreadCachedServiceData::get()->publishStats();
       fdrCellDrops = getHwSwitch()->getSwitchStats()->getFdrCellDrops();
-      XLOG(DBG2) << "FDR Cell drops : " << fdrCellDrops;
+      // TLTimeseries value > 0
       EXPECT_EVENTUALLY_GT(fdrCellDrops, 0);
+      // Raw stats value > 0
+      EXPECT_GT(*getHwSwitch()->getSwitchDropStats().fdrCellDrops(), 0);
+      XLOG(DBG2) << "FDR Cell drops time series value: " << fdrCellDrops
+                 << " raw stat value: "
+                 << *getHwSwitch()->getSwitchDropStats().fdrCellDrops();
     });
   };
   verifyAcrossWarmBoots(setup, verify);

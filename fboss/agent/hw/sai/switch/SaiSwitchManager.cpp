@@ -747,6 +747,9 @@ void SaiSwitchManager::updateStats() {
     switchDropStats_.packetIntegrityDrops() =
         switchDropStats_.packetIntegrityDrops().value_or(0) +
         dropStats.packetIntegrityDrops().value_or(0);
+    switchDropStats_.fdrCellDrops() =
+        switchDropStats_.fdrCellDrops().value_or(0) +
+        dropStats.fdrCellDrops().value_or(0);
   }
   auto switchDramStats = supportedDramStats();
   if (switchDramStats.size()) {
