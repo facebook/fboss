@@ -1041,6 +1041,23 @@ TEST_F(HwVoqSwitchTest, dramEnqueueDequeueBytes) {
       XLOG(DBG2) << "Dram dequeued bytes : " << dramDequeuedBytes;
       EXPECT_EVENTUALLY_GT(dramDequeuedBytes, 0);
     });
+    // Assert that Dram enqueue/dequeue bytes don't continuously increment
+    // Eventually all pkts should be dequeued and we should stop getting
+    // increments
+    WITH_RETRIES({
+      auto prevDramEnqueuedBytes =
+          getHwSwitch()->getSwitchStats()->getDramEnqueuedBytes();
+      auto prevDramDequeuedBytes =
+          getHwSwitch()->getSwitchStats()->getDramDequeuedBytes();
+      getHwSwitch()->updateStats();
+      fb303::ThreadCachedServiceData::get()->publishStats();
+      EXPECT_EVENTUALLY_EQ(
+          getHwSwitch()->getSwitchStats()->getDramEnqueuedBytes(),
+          prevDramEnqueuedBytes);
+      EXPECT_EVENTUALLY_EQ(
+          getHwSwitch()->getSwitchStats()->getDramDequeuedBytes(),
+          prevDramDequeuedBytes);
+    });
   };
   verifyAcrossWarmBoots(setup, verify);
 }
