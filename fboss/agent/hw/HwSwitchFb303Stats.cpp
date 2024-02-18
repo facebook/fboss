@@ -185,6 +185,32 @@ void HwSwitchFb303Stats::update(const HwSwitchDropStats& dropStats) {
   if (dropStats.fdrCellDrops().has_value()) {
     fdrCellDrops_.addValue(*dropStats.fdrCellDrops());
   }
+  if (dropStats.voqResourceExhaustionDrops().has_value()) {
+    voqResourceExhaustionDrops_.addValue(
+        *dropStats.voqResourceExhaustionDrops());
+  }
+  if (dropStats.globalResourceExhaustionDrops().has_value()) {
+    globalResourceExhaustionDrops_.addValue(
+        *dropStats.globalResourceExhaustionDrops());
+  }
+  if (dropStats.sramResourceExhaustionDrops().has_value()) {
+    sramResourceExhaustionDrops_.addValue(
+        *dropStats.sramResourceExhaustionDrops());
+  }
+  if (dropStats.vsqResourceExhaustionDrops().has_value()) {
+    vsqResourceExhaustionDrops_.addValue(
+        *dropStats.vsqResourceExhaustionDrops());
+  }
+  if (dropStats.dropPrecedenceDrops().has_value()) {
+    dropPrecedenceDrops_.addValue(*dropStats.dropPrecedenceDrops());
+  }
+  if (dropStats.queueResolutionDrops().has_value()) {
+    queueResolutionDrops_.addValue(*dropStats.queueResolutionDrops());
+  }
+  if (dropStats.ingressPacketPipelineRejectDrops().has_value()) {
+    ingressPacketPipelineRejectDrops_.addValue(
+        *dropStats.ingressPacketPipelineRejectDrops());
+  }
 }
 
 void HwSwitchFb303Stats::update(const HwSwitchDramStats& dramStats) {
