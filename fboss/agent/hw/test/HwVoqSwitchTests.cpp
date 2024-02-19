@@ -1085,6 +1085,14 @@ class HwVoqSwitchWithMultipleDsfNodesTest : public HwVoqSwitchTest {
       XLOG(INFO) << " VOQ discard bytes: " << voqDiscardBytes;
       EXPECT_EVENTUALLY_GT(voqDiscardBytes, 0);
     });
+    if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
+      auto switchDropStats = getHwSwitch()->getSwitchDropStats();
+      CHECK(switchDropStats.voqResourceExhaustionDrops().has_value());
+      XLOG(INFO) << " Voq resource exhaustion drops: "
+                 << *switchDropStats.voqResourceExhaustionDrops();
+      EXPECT_GT(*switchDropStats.voqResourceExhaustionDrops(), 0);
+    }
+    checkNoStatsChange();
   }
 };
 
