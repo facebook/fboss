@@ -97,6 +97,9 @@ TEST_F(HwInDiscardsCounterTest, nullRouteHit) {
         0,
         *otherPortStatsAfter.inDiscards_() -
             *otherPortStatsBefore.inDiscards_());
+    // Assert no more stat changes after we have asserted
+    // all our expectations
+    checkNoStatsChange();
   };
   verifyAcrossWarmBoots(setup, verify);
 } // namespace facebook::fboss
