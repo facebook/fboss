@@ -101,6 +101,7 @@ class HwTest : public ::testing::Test,
   std::vector<PortID> getAllPortsInGroup(PortID portID) const;
 
   const SwitchIdScopeResolver& scopeResolver() const;
+  void checkNoStatsChange(int trys = 1);
 
  protected:
   /*

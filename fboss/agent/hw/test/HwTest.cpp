@@ -22,6 +22,7 @@
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/lib/CommonUtils.h"
 
 #ifndef IS_OSS
 #if __has_feature(address_sanitizer)
@@ -224,6 +225,32 @@ HwTrunkStats HwTest::getLatestAggregatePortStats(AggregatePortID aggPort) {
 std::map<AggregatePortID, HwTrunkStats> HwTest::getLatestAggregatePortStats(
     const std::vector<AggregatePortID>& aggPorts) {
   return hwSwitchEnsemble_->getLatestAggregatePortStats(aggPorts);
+}
+
+void HwTest::checkNoStatsChange(int trys) {
+  WITH_RETRIES_N(
+      trys, ({
+        auto portStatsBefore = getHwSwitch()->getPortStats();
+        auto sysPortStatsBefore = getHwSwitch()->getSysPortStats();
+        auto fabricReachStatsBefore =
+            getHwSwitch()->getFabricReachabilityStats();
+        auto teFlowStatsBefore = getHwSwitch()->getTeFlowStats();
+        auto flowletStatsBefore = getHwSwitch()->getHwFlowletStats();
+        auto switchDropStatsBefore = getHwSwitch()->getSwitchDropStats();
+        getHwSwitch()->updateStats();
+        EXPECT_EVENTUALLY_EQ(portStatsBefore, getHwSwitch()->getPortStats());
+        EXPECT_EVENTUALLY_EQ(
+            sysPortStatsBefore, getHwSwitch()->getSysPortStats());
+        EXPECT_EVENTUALLY_EQ(
+            fabricReachStatsBefore,
+            getHwSwitch()->getFabricReachabilityStats());
+        EXPECT_EVENTUALLY_EQ(
+            teFlowStatsBefore, getHwSwitch()->getTeFlowStats());
+        EXPECT_EVENTUALLY_EQ(
+            flowletStatsBefore, getHwSwitch()->getHwFlowletStats());
+        EXPECT_EVENTUALLY_EQ(
+            switchDropStatsBefore, getHwSwitch()->getSwitchDropStats());
+      }));
 }
 
 std::unique_ptr<HwSwitchEnsembleRouteUpdateWrapper> HwTest::getRouteUpdater() {
