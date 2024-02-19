@@ -66,4 +66,6 @@ class HwSysPortFb303Stats : public HwBasePortFb303Stats {
   HwSysPortStats portStats_;
 };
 
+void toAppend(const HwSysPortStats& portStats, folly::fbstring* result);
+std::ostream& operator<<(std::ostream& os, const HwSysPortStats& portStats);
 } // namespace facebook::fboss
