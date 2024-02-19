@@ -17,6 +17,7 @@
 #include "folly/container/F14Map.h"
 
 #include <optional>
+#include <ostream>
 #include <string>
 
 namespace facebook::fboss {
@@ -61,5 +62,8 @@ class HwPortFb303Stats : public HwBasePortFb303Stats {
   HwPortStats portStats_;
   std::chrono::seconds timeRetrieved_{0};
 };
+
+void toAppend(const HwPortStats& portStats, folly::fbstring* result);
+std::ostream& operator<<(std::ostream& os, const HwPortStats& portStats);
 
 } // namespace facebook::fboss
