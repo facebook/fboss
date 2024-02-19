@@ -20,7 +20,7 @@
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/Platform.h"
-#include "fboss/agent/hw/HwPortFb303Stats.h"
+#include "fboss/agent/hw/HwStatPrinters.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/lib/CommonUtils.h"

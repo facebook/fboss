@@ -16,25 +16,7 @@
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
 namespace facebook::fboss {
-namespace {
-folly::fbstring toStr(const HwPortStats& portStats) {
-  folly::fbstring out;
-  apache::thrift::Serializer<
-      apache::thrift::SimpleJSONProtocolReader,
-      apache::thrift::SimpleJSONProtocolWriter>
-      serializer;
-  serializer.serialize(portStats, &out);
-  return out;
-}
-} // namespace
 
-void toAppend(const HwPortStats& portStats, folly::fbstring* result) {
-  result->append(toStr(portStats));
-}
-std::ostream& operator<<(std::ostream& os, const HwPortStats& portStats) {
-  os << toStr(portStats);
-  return os;
-}
 const std::vector<folly::StringPiece>& HwPortFb303Stats::kPortStatKeys() const {
   static std::vector<folly::StringPiece> kPortKeys{
       kInBytes(),

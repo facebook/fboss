@@ -63,7 +63,4 @@ class HwPortFb303Stats : public HwBasePortFb303Stats {
   std::chrono::seconds timeRetrieved_{0};
 };
 
-void toAppend(const HwPortStats& portStats, folly::fbstring* result);
-std::ostream& operator<<(std::ostream& os, const HwPortStats& portStats);
-
 } // namespace facebook::fboss

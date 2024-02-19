@@ -17,25 +17,6 @@
 
 namespace facebook::fboss {
 
-namespace {
-folly::fbstring toStr(const HwSysPortStats& portStats) {
-  folly::fbstring out;
-  apache::thrift::Serializer<
-      apache::thrift::SimpleJSONProtocolReader,
-      apache::thrift::SimpleJSONProtocolWriter>
-      serializer;
-  serializer.serialize(portStats, &out);
-  return out;
-}
-} // namespace
-
-void toAppend(const HwSysPortStats& portStats, folly::fbstring* result) {
-  result->append(toStr(portStats));
-}
-std::ostream& operator<<(std::ostream& os, const HwSysPortStats& portStats) {
-  os << toStr(portStats);
-  return os;
-}
 const std::vector<folly::StringPiece>& HwSysPortFb303Stats::kPortStatKeys()
     const {
   // No port level stats on sys ports
