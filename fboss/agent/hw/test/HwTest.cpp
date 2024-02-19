@@ -228,6 +228,20 @@ std::map<AggregatePortID, HwTrunkStats> HwTest::getLatestAggregatePortStats(
 }
 
 void HwTest::checkNoStatsChange(int trys) {
+  // We don't care about timestamps changing. These will change
+  // in subsequent rounds of stat collection.
+  auto resetTimestamp = [](const auto& stat) {
+    auto stat2 = stat;
+    stat2.timestamp() = 0;
+    return stat2;
+  };
+  auto resetTimestamps = [](const auto& statMap) {
+    auto statMap2 = statMap;
+    for (auto& [_, stat] : statMap2) {
+      stat.timestamp_() = 0;
+    }
+    return statMap2;
+  };
   WITH_RETRIES_N(
       trys, ({
         auto portStatsBefore = getHwSwitch()->getPortStats();
@@ -238,14 +252,18 @@ void HwTest::checkNoStatsChange(int trys) {
         auto flowletStatsBefore = getHwSwitch()->getHwFlowletStats();
         auto switchDropStatsBefore = getHwSwitch()->getSwitchDropStats();
         getHwSwitch()->updateStats();
-        EXPECT_EVENTUALLY_EQ(portStatsBefore, getHwSwitch()->getPortStats());
         EXPECT_EVENTUALLY_EQ(
-            sysPortStatsBefore, getHwSwitch()->getSysPortStats());
+            resetTimestamps(portStatsBefore),
+            resetTimestamps(getHwSwitch()->getPortStats()));
+        EXPECT_EVENTUALLY_EQ(
+            resetTimestamps(sysPortStatsBefore),
+            resetTimestamps(getHwSwitch()->getSysPortStats()));
         EXPECT_EVENTUALLY_EQ(
             fabricReachStatsBefore,
             getHwSwitch()->getFabricReachabilityStats());
         EXPECT_EVENTUALLY_EQ(
-            teFlowStatsBefore, getHwSwitch()->getTeFlowStats());
+            resetTimestamp(teFlowStatsBefore),
+            resetTimestamp(getHwSwitch()->getTeFlowStats()));
         EXPECT_EVENTUALLY_EQ(
             flowletStatsBefore, getHwSwitch()->getHwFlowletStats());
         EXPECT_EVENTUALLY_EQ(
