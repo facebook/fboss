@@ -598,14 +598,10 @@ TEST_F(HwVoqSwitchWithFabricPortsTest, fdrCellDrops) {
                  << " raw stat value: "
                  << *getHwSwitch()->getSwitchDropStats().fdrCellDrops();
     });
-    auto prevDropStats = getHwSwitch()->getSwitchDropStats();
-    getHwSwitch()->updateStats();
     // Assert that we don't spuriously increment fdrCellDrops on every drop
     // stats. This would happen if we treated a stat as clear on read, while
     // in HW it was cumulative
-    EXPECT_EQ(
-        *prevDropStats.fdrCellDrops(),
-        *getHwSwitch()->getSwitchDropStats().fdrCellDrops());
+    checkNoStatsChange();
   };
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -913,12 +909,7 @@ TEST_F(HwVoqSwitchTest, packetIntegrityError) {
     // accumulate its value in memory. If HW/SDK ever changed this to
     // not be clear on read, but cumulative, then our approach would
     // yeild constantly increasing values. Assert against that.
-    auto prevPktIntegrityDrops =
-        *getHwSwitch()->getSwitchDropStats().packetIntegrityDrops();
-    getHwSwitch()->updateStats();
-    EXPECT_EQ(
-        prevPktIntegrityDrops,
-        *getHwSwitch()->getSwitchDropStats().packetIntegrityDrops());
+    checkNoStatsChange();
   };
   verifyAcrossWarmBoots(setup, verify);
 }
