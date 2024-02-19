@@ -1703,9 +1703,10 @@ TEST_F(HwVoqSwitchFullScaleDsfNodesTest, remoteAndLocalLoadBalance) {
 TEST_F(HwVoqSwitchFullScaleDsfNodesTest, stressProgramEcmpRoutes) {
   auto kEcmpWidth = getMaxEcmpWidth(getAsic());
   FLAGS_ecmp_width = kEcmpWidth;
-  // Stress add/delete 100 iterations of 5 routes with ECMP width.
+  // Stress add/delete 40 iterations of 5 routes with ECMP width.
+  // 40 iterations take ~17 mins on j3.
   const auto routeScale = 5;
-  const auto numIterations = 100;
+  const auto numIterations = 40;
   auto setup = [&]() {
     applyNewState(utility::setupRemoteIntfAndSysPorts(
         getProgrammedState(), scopeResolver(), initialConfig()));
