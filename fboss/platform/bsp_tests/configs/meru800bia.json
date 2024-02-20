@@ -1,0 +1,11 @@
+{
+    "platform": "merubia",
+    "kmods": [
+        "scd",
+        "scd-spi",
+        "scd-leds",
+        "scd-xcvr",
+        "scd-smbus",
+        "dsf-fan-cpld"
+    ]
+}
