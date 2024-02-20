@@ -1244,6 +1244,15 @@ void SaiPortManager::changeMirror(
 bool SaiPortManager::createOnlyAttributeChanged(
     const SaiPortTraits::CreateAttributes& oldAttributes,
     const SaiPortTraits::CreateAttributes& newAttributes) {
+  // The SAI_PORT_SPEED_CHANGE is the feature which allows port speed change
+  // with a delete and recreate. This feature however is not support for
+  // TAJO SDK 1.42.8 and hence would need to fall back to the SAI port speed
+  // change API to achieve the same. However, the SAI api based speed change
+  // is possible only when the number of lanes are not changing, so the current
+  // use case of 100G <-> 200G would work, but not potential future use cases
+  // like 200G <-> 400G and 400G <-> 100G.  The SAI_PORT_SPEED_CHANGE will be
+  // supported in future releases like TAJO SDK 1.65.0 and should be enabled
+  // once validated.
   return (std::get<SaiPortTraits::Attributes::HwLaneList>(oldAttributes) !=
           std::get<SaiPortTraits::Attributes::HwLaneList>(newAttributes)) ||
       (platform_->getAsic()->isSupported(
