@@ -861,6 +861,7 @@ class SaiTracer {
           i,                                                                 \
           attrLines,                                                         \
           "macsecsalt");                                                     \
+      break;                                                                 \
     default:                                                                 \
       XLOG(WARN) << "Unsupported object type " << #obj_type << " attribute " \
                  << attr_list[i].id << " in Sai Replayer";                   \
@@ -901,6 +902,7 @@ class SaiTracer {
           i,                                                                 \
           attrLines,                                                         \
           "macsecsalt");                                                     \
+      break;                                                                 \
     default:                                                                 \
       XLOG(WARN) << "Unsupported object type " << #obj_type << " attribute " \
                  << attr_list[i].id << " in Sai Replayer";                   \
