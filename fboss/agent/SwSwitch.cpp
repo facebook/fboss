@@ -788,8 +788,8 @@ void SwSwitch::updateStats() {
       hwStats.phyInfo()->emplace(portId, phyInfoPerPort);
     }
     hwStats.flowletStats() = getHwFlowletStats();
-    // TODO - fill cpu stats for mono.
-    // bcm switch does not support cpu stats collection
+    hwStats.cpuPortStats() =
+        multiHwSwitchHandler_->getCpuPortStats(false /*getIncrement*/);
     updateHwSwitchStats(0 /*switchIndex*/, std::move(hwStats));
   }
   updateFlowletStats();

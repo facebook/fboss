@@ -4221,4 +4221,14 @@ void BcmSwitch::syncLinkStates() {
   });
 }
 
+CpuPortStats BcmSwitch::getCpuPortStats(bool getIncrement) const {
+  CpuPortStats cpuPortStats;
+  auto queueManager = getControlPlane()->getQueueManager();
+  cpuPortStats.queueInPackets_() = queueManager->getQueueStats(
+      BcmCosQueueStatType::OUT_PACKETS, getIncrement);
+  cpuPortStats.queueDiscardPackets_() = queueManager->getQueueStats(
+      BcmCosQueueStatType::DROPPED_PACKETS, getIncrement);
+  return cpuPortStats;
+}
+
 } // namespace facebook::fboss

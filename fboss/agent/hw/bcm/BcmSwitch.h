@@ -394,9 +394,7 @@ class BcmSwitch : public BcmSwitchIf {
     return {};
   }
 
-  CpuPortStats getCpuPortStats(bool /*getIncrement*/) const override {
-    throw FbossError("Unsupported platform for retrieving cpuPort stats");
-  }
+  CpuPortStats getCpuPortStats(bool getIncrement) const override;
 
   uint64_t getDeviceWatermarkBytes() const override;
 

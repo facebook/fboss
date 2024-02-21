@@ -106,6 +106,16 @@ int cosqGportTraverseCallback(
   return 0l;
 };
 
+int64_t getCumulativeCounter(
+    facebook::fb303::ExportedStatMapImpl* statsMap,
+    const std::string& statName) {
+  auto statPtr = statsMap->getStatPtrNoExport(statName);
+  auto lockedStatPtr = statPtr->lock();
+  auto numLevels = lockedStatPtr->numLevels();
+  // Cumulative (ALLTIME) counters are at (numLevels - 1)
+  return lockedStatPtr->sum(numLevels - 1);
+}
+
 } // unnamed namespace
 
 namespace facebook::fboss {
@@ -344,6 +354,28 @@ void BcmCosQueueManager::updateQueueStats(
           cntr.first, cntr.second.aggregated.get(), now, portStats);
     }
   }
+}
+
+std::map<int32_t, int64_t> BcmCosQueueManager::getQueueStats(
+    BcmCosQueueStatType statType,
+    bool getIncrement) {
+  std::map<int32_t, int64_t> queueOutPkts;
+  auto queueFlexCounterStatsLock = queueFlexCounterStats_.rlock();
+  if (queueFlexCounterStatsLock) {
+    auto statMap = facebook::fb303::fbData->getStatMap();
+    for (const auto& cntr : queueCounters_) {
+      if (cntr.first.isScopeQueues()) {
+        if (cntr.first.statType == statType) {
+          for (const auto& queue : cntr.second.queues) {
+            queueOutPkts[queue.first] = getIncrement
+                ? queue.second->get()
+                : getCumulativeCounter(statMap, queue.second->getName());
+          }
+        }
+      }
+    }
+  }
+  return queueOutPkts;
 }
 
 void BcmCosQueueManager::updateQueueStat(
