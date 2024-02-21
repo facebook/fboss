@@ -904,16 +904,40 @@ sai_port_prbs_config_t SaiPortManager::getSaiPortPrbsConfig(
   }
 }
 
+double SaiPortManager::calculateLaneRate(const std::shared_ptr<Port>& swPort) {
+  auto portID = swPort->getID();
+  auto platformPort = platform_->getPort(portID);
+  auto speed = static_cast<int>(swPort->getSpeed());
+  auto hwLaneList = platformPort->getHwPortLanes(swPort->getProfileID());
+  double laneRateGb = speed / kSpeedConversionFactor / hwLaneList.size();
+  return laneRateGb * kLaneRateConversionFactor;
+}
+
+void SaiPortManager::updateLaneRate(const std::shared_ptr<Port>& swPort) {
+  if (!platform_->getAsic()->isSupported(HwAsic::Feature::SAI_PRBS)) {
+    return;
+  }
+  auto portID = swPort->getID();
+  auto laneRate = calculateLaneRate(swPort);
+  auto portAsicPrbsStatsItr = portAsicPrbsStats_.find(portID);
+  if (portAsicPrbsStatsItr == portAsicPrbsStats_.end()) {
+    throw FbossError(
+        "Asic prbs lane error map not initialized for port ", portID);
+  }
+  auto& lanePrbsStatsTable = portAsicPrbsStatsItr->second;
+  for (auto& lanePrbsStatsEntry : lanePrbsStatsTable) {
+    lanePrbsStatsEntry.setLaneRate(laneRate);
+  }
+}
+
 void SaiPortManager::initAsicPrbsStats(const std::shared_ptr<Port>& swPort) {
   if (!platform_->getAsic()->isSupported(HwAsic::Feature::SAI_PRBS)) {
     return;
   }
   auto portID = swPort->getID();
   auto platformPort = platform_->getPort(portID);
-  auto speed = static_cast<int>(swPort->getSpeed());
   auto hwLaneList = platformPort->getHwPortLanes(swPort->getProfileID());
-  double laneRateGb = speed / kSpeedConversionFactor / hwLaneList.size();
-  double laneRate = laneRateGb * kLaneRateConversionFactor;
+  auto laneRate = calculateLaneRate(swPort);
   auto lanePrbsStatsTable = LanePrbsStatsTable();
   // Each lane on port should have its own PRBS stats.
   for (auto& hwLane : hwLaneList) {

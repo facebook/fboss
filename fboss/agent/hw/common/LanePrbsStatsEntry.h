@@ -38,6 +38,10 @@ class LanePrbsStatsEntry {
     return laneRate_;
   }
 
+  void setLaneRate(double laneRate) {
+    laneRate_ = laneRate;
+  }
+
   void handleOk() {
     steady_clock::time_point now = steady_clock::now();
     locked_ = true;
@@ -122,7 +126,7 @@ class LanePrbsStatsEntry {
  private:
   const int32_t laneId_ = -1;
   const int32_t gportId_ = -1;
-  const double laneRate_ = 0.;
+  double laneRate_ = 0.;
   bool locked_ = false;
   int64_t accuErrorCount_ = 0;
   double maxBer_ = -1.;

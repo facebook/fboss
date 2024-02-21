@@ -286,6 +286,7 @@ void SaiPortManager::changePortImpl(
   if (newPort->getProfileID() != oldPort->getProfileID()) {
     auto platformPort = platform_->getPort(newPort->getID());
     platformPort->setCurrentProfile(newPort->getProfileID());
+    updateLaneRate(newPort);
   }
 
   changeMirror(oldPort, newPort);

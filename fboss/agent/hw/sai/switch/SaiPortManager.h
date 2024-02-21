@@ -372,6 +372,8 @@ class SaiPortManager {
   void programPfcBuffers(const std::shared_ptr<Port>& swPort);
   void removePfcBuffers(const std::shared_ptr<Port>& swPort);
   sai_port_prbs_config_t getSaiPortPrbsConfig(bool enabled) const;
+  double calculateLaneRate(const std::shared_ptr<Port>& swPort);
+  void updateLaneRate(const std::shared_ptr<Port>& swPort);
   void initAsicPrbsStats(const std::shared_ptr<Port>& swPort);
   void removeIngressPriorityGroupMappings(SaiPortHandle* portHandle);
   void applyPriorityGroupBufferProfile(
