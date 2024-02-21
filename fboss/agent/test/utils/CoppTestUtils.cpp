@@ -10,9 +10,11 @@
 #include <vector>
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/lib/CommonUtils.h"
 
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
@@ -787,6 +789,70 @@ cfg::MatchAction getToQueueAction(
     const std::optional<cfg::ToCpuAction> toCpuAction) {
   return isSai ? getToQueueActionForSai(queueId, toCpuAction)
                : getToQueueActionForBcm(queueId, toCpuAction);
+}
+
+CpuPortStats getLatestCpuStats(SwSwitch* sw, SwitchID switchId) {
+  // Stats collection from SwSwitch is async, wait for stats
+  // being available before returning here.
+  CpuPortStats cpuStats;
+  checkWithRetry(
+      [&cpuStats, switchId, sw]() {
+        auto switchStats = sw->getHwSwitchStatsExpensive();
+        if (switchStats.find(switchId) == switchStats.end()) {
+          return false;
+        }
+        cpuStats = *switchStats.at(switchId).cpuPortStats();
+        return !cpuStats.queueInPackets_()->empty();
+      },
+      120,
+      std::chrono::milliseconds(1000),
+      " fetch port stats");
+  return cpuStats;
+}
+
+uint64_t getCpuQueueInPackets(SwSwitch* sw, SwitchID switchId, int queueId) {
+  auto cpuPortStats = getLatestCpuStats(sw, switchId);
+  return cpuPortStats.queueInPackets_()->find(queueId) ==
+          cpuPortStats.queueInPackets_()->end()
+      ? 0
+      : cpuPortStats.queueInPackets_()->at(queueId);
+}
+
+uint64_t getQueueOutPacketsWithRetry(
+    int queueId,
+    SwSwitch* sw,
+    int retryTimes,
+    uint64_t expectedNumPkts,
+    int postMatchRetryTimes) {
+  uint64_t outPkts = 0;
+  auto asic = getFirstAsic(sw);
+  do {
+    for (auto i = 0; i <= utility::getCoppHighPriQueueId(asic); i++) {
+      auto qOutPkts =
+          utility::getCpuQueueInPackets(sw, getFirstSwitchId(sw), i);
+      XLOG(DBG2) << "QueueID: " << i << " qOutPkts: " << qOutPkts;
+    }
+
+    outPkts = utility::getCpuQueueInPackets(sw, getFirstSwitchId(sw), queueId);
+    if (retryTimes == 0 || (outPkts >= expectedNumPkts)) {
+      break;
+    }
+
+    /*
+     * Post warmboot, the packet always gets processed by the right CPU
+     * queue (as per ACL/rxreason etc.) but sometimes it is delayed.
+     * Retrying a few times to avoid test noise.
+     */
+    XLOG(DBG0) << "Retry...";
+    /* sleep override */
+    sleep(1);
+  } while (retryTimes-- > 0);
+
+  while ((outPkts == expectedNumPkts) && postMatchRetryTimes--) {
+    outPkts = utility::getCpuQueueInPackets(sw, getFirstSwitchId(sw), queueId);
+  }
+
+  return outPkts;
 }
 
 } // namespace facebook::fboss::utility

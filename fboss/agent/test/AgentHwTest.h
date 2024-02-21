@@ -128,8 +128,6 @@ class AgentHwTest : public ::testing::Test {
       const AgentEnsemble& ensemble,
       const cfg::SwitchConfig& in) const;
 
-  uint64_t getCpuQueueInPackets(SwitchID switchId, int queueId);
-
  private:
   void applyNewStateImpl(
       StateUpdateFn fn,
@@ -148,8 +146,6 @@ class AgentHwTest : public ::testing::Test {
   virtual std::vector<production_features::ProductionFeature>
   getProductionFeaturesVerified() const = 0;
   void printProductionFeatures() const;
-
-  CpuPortStats getLatestCpuStats(SwitchID switchId);
 
   AgentEnsemblePlatformConfigFn platformConfigFn_ = nullptr;
   std::unique_ptr<AgentEnsemble> agentEnsemble_;

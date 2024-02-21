@@ -18,6 +18,7 @@ add_library(copp_test_utils
 )
 
 target_link_libraries(copp_test_utils
+  common_test_utils
   switch_asics
   packet_factory
   Folly::folly

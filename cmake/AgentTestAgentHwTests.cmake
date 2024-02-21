@@ -4,6 +4,7 @@
 # cmake/FooBar.cmake
 
 add_library(agent_hw_test_src
+  fboss/agent/test/agent_hw_tests/AgentCoppTests.cpp
   fboss/agent/test/agent_hw_tests/AgentEmptyTests.cpp
   fboss/agent/test/agent_hw_tests/AgentAclInDiscardCounterTests.cpp
   fboss/agent/test/agent_hw_tests/AgentInNullRouteDiscardsTest.cpp
@@ -22,6 +23,9 @@ target_link_libraries(agent_hw_test_src
   agent_hw_test
   ecmp_helper
   fabric_test_utils
+  trunk_utils
+  traffic_policy_utils
+  olympic_qos_utils
 )
 
 add_executable(multi_switch_agent_hw_test
@@ -30,9 +34,15 @@ add_executable(multi_switch_agent_hw_test
 
 target_link_libraries(multi_switch_agent_hw_test
   -Wl,--whole-archive
+  acl_test_utils
+  copp_test_utils
+  pkt_test_utils
   agent_hw_test_src
   agent_hw_test
   multi_switch_agent_ensemble
+  olympic_qos_utils
+  trunk_utils
+  traffic_policy_utils
   Folly::folly
   hw_packet_utils
   -Wl,--no-whole-archive
@@ -51,9 +61,13 @@ function(BUILD_SAI_AGENT_HW_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
     -Wl,--whole-archive
     agent_hw_test_src
     ${SAI_IMPL_ARG}
+    acl_test_utils
+    copp_test_utils
     sai_acl_utils
     sai_copp_utils
     hw_packet_utils
+    olympic_qos_utils
+    traffic_policy_utils
     -Wl,--no-whole-archive
   )
 

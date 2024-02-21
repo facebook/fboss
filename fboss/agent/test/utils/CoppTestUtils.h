@@ -9,10 +9,12 @@
  */
 
 #pragma once
+#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/Interface.h"
+#include "fboss/agent/test/utils/CommonUtils.h"
 #include "fboss/agent/types.h"
 
 #include <folly/IPAddress.h>
@@ -143,6 +145,40 @@ cfg::MatchAction getToQueueAction(
 void addNoActionAclForUnicastLinkLocal(
     const folly::CIDRNetwork& nw,
     std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>& acls);
+
+uint64_t getQueueOutPacketsWithRetry(
+    int queueId,
+    SwSwitch* swSwitch,
+    int retryTimes,
+    uint64_t expectedNumPkts,
+    int postMatchRetryTimes = 2);
+
+template <typename SendFn>
+void sendPktAndVerifyCpuQueue(
+    SwSwitch* swSwitch,
+    int queueId,
+    SendFn sendPkts,
+    const int expectedPktDelta) {
+  auto beforeOutPkts = getQueueOutPacketsWithRetry(
+      queueId,
+      swSwitch,
+      0 /* retryTimes */,
+      0 /* expectedNumPkts */,
+      2 /* postMatchRetryTimes */);
+  sendPkts();
+  constexpr auto kGetQueueOutPktsRetryTimes = 5;
+  auto afterOutPkts = getQueueOutPacketsWithRetry(
+      queueId,
+      swSwitch,
+      kGetQueueOutPktsRetryTimes,
+      beforeOutPkts + expectedPktDelta);
+  XLOG(DBG0) << "Queue=" << queueId << ", before pkts:" << beforeOutPkts
+             << ", after pkts:" << afterOutPkts;
+  EXPECT_EQ(expectedPktDelta, afterOutPkts - beforeOutPkts);
+}
+
+uint64_t getCpuQueueInPackets(SwSwitch* sw, SwitchID switchId, int queueId);
+CpuPortStats getLatestCpuStats(SwSwitch* sw, SwitchID switchId);
 
 } // namespace utility
 } // namespace facebook::fboss
