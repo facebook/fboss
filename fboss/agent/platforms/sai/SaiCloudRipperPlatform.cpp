@@ -46,7 +46,7 @@ void SaiCloudRipperPlatform::setupAsic(
     sdkVersion = agentConfig->thrift.sw()->sdkVersion().value();
   } else {
     sdkVersion = cfg::SdkVersion{};
-    sdkVersion->asicSdk() = "1.65.0";
+    sdkVersion->asicSdk() = "1.65.1";
   }
 #endif
   asic_ = std::make_unique<EbroAsic>(

@@ -127,7 +127,7 @@ class EbroAsic : public TajoAsic {
  private:
   bool isSupportedFabric(Feature feature) const;
   bool isSupportedNonFabric(Feature feature) const;
-  static constexpr auto p4WarmbootBaseSdk = "1.65.0";
+  static constexpr auto p4WarmbootBaseSdk = "1.65.1";
   uint16_t mirrorTruncateSize_ = 220;
 };
 
