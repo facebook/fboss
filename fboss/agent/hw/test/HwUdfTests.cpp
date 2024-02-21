@@ -78,8 +78,8 @@ TEST_F(HwUdfTest, checkUdfAclConfiguration) {
 }
 
 TEST_F(HwUdfTest, deleteUdfHashConfig) {
-  int udfGroupId;
-  int udfPacketMatcherId;
+  int udfGroupId = 0;
+  int udfPacketMatcherId = 0;
   auto setup = [&]() {
     applyNewState(setupUdfConfiguration(true));
     udfGroupId = utility::getHwUdfGroupId(
@@ -102,8 +102,8 @@ TEST_F(HwUdfTest, deleteUdfHashConfig) {
 // This test is to verify that UdfGroup(roceOpcode) for UdfAcl and associated
 // PacketMatcher can be successfully deleted.
 TEST_F(HwUdfTest, deleteUdfAclConfig) {
-  int udfGroupId;
-  int udfPacketMatcherId;
+  int udfGroupId = 0;
+  int udfPacketMatcherId = 0;
   auto setup = [&]() {
     auto newCfg{initialConfig()};
     // Add UdfGroup and PacketMatcher configuration for UDF ACL
