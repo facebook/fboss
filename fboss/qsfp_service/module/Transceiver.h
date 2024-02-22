@@ -83,10 +83,6 @@ class Transceiver {
   }
   virtual ~Transceiver() {}
 
-  TransceiverManager* getTransceiverManager() const {
-    return transceiverManager_;
-  }
-
   /*
    * Transceiver type (SFP, QSFP)
    */
@@ -300,6 +296,10 @@ class Transceiver {
  protected:
   virtual void latchAndReadVdmDataLocked() = 0;
   virtual bool shouldRemediateLocked() = 0;
+
+  TransceiverManager* getTransceiverManager() const {
+    return transceiverManager_;
+  }
 
   // QSFP Presence status
   bool present_{false};
