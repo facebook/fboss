@@ -17,6 +17,7 @@
 #include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/HwAsicTable.h"
+#include "fboss/agent/HwSwitchThriftClientTable.h"
 #include "fboss/agent/IPv6Handler.h"
 #include "fboss/agent/LabelFibUtils.h"
 #include "fboss/agent/LinkAggregationManager.h"
@@ -1169,20 +1170,41 @@ void ThriftHandler::getAllPortInfo(map<int32_t, PortInfoThrift>& portInfoMap) {
 void ThriftHandler::clearPortStats(unique_ptr<vector<int32_t>> ports) {
   auto log = LOG_THRIFT_CALL(DBG1, *ports);
   ensureConfigured(__func__);
-  utility::clearPortStats(sw_, std::move(ports), sw_->getState());
+  if (sw_->isRunModeMultiSwitch()) {
+    for (const auto& switchId : sw_->getSwitchInfoTable().getSwitchIDs()) {
+      std::vector<int32_t> portList;
+      for (const auto& port : *ports) {
+        if (sw_->getScopeResolver()->scope(PortID(port)).has(switchId)) {
+          portList.push_back(port);
+        }
+      }
+      if (!portList.empty()) {
+        sw_->getHwSwitchThriftClientTable()->clearHwPortStats(
+            switchId, portList);
+      }
+    }
+  } else {
+    utility::clearPortStats(sw_, std::move(ports), sw_->getState());
+  }
 }
 
 void ThriftHandler::clearAllPortStats() {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  auto allPorts = std::make_unique<std::vector<int32_t>>();
-  std::shared_ptr<SwitchState> swState = sw_->getState();
-  for (const auto& portMap : std::as_const(*(swState->getPorts()))) {
-    for (const auto& port : std::as_const(*portMap.second)) {
-      allPorts->push_back(port.second->getID());
+  if (sw_->isRunModeMultiSwitch()) {
+    for (const auto& switchId : sw_->getSwitchInfoTable().getSwitchIDs()) {
+      sw_->getHwSwitchThriftClientTable()->clearAllHwPortStats(switchId);
     }
+  } else {
+    auto allPorts = std::make_unique<std::vector<int32_t>>();
+    std::shared_ptr<SwitchState> swState = sw_->getState();
+    for (const auto& portMap : std::as_const(*(swState->getPorts()))) {
+      for (const auto& port : std::as_const(*portMap.second)) {
+        allPorts->push_back(port.second->getID());
+      }
+    }
+    clearPortStats(std::move(allPorts));
   }
-  clearPortStats(std::move(allPorts));
 }
 
 void ThriftHandler::getPortStats(PortInfoThrift& portInfo, int32_t portId) {

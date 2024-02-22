@@ -901,6 +901,11 @@ void SwSwitch::updateFabricReachabilityStats() {
   *fabricReachabilityStats_.wlock() = fabricReachabilityStats;
 }
 
+bool SwSwitch::isRunModeMultiSwitch() {
+  return FLAGS_multi_switch ||
+      (*agentConfig_.rlock())->getRunMode() == cfg::AgentRunMode::MULTI_SWITCH;
+}
+
 void SwSwitch::updateFlowletStats() {
   uint64_t dlbErrorPackets = 0;
   auto runMode = (*agentConfig_.rlock())->getRunMode();

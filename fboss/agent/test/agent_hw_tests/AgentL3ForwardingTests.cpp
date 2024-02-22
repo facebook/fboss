@@ -1,5 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/state/StateUtils.h"
@@ -133,6 +134,7 @@ TEST_F(AgentL3ForwardingTest, ttl255) {
     CHECK_EQ(ecmpHelper4.nhop(0).portDesc, ecmpHelper6.nhop(0).portDesc);
   };
   auto verify = [=, this]() {
+    ThriftHandler handler(getSw());
     auto pumpTraffic = [=]() {
       for (auto isV6 : {true, false}) {
         auto vlanId = utility::firstVlanID(getProgrammedState());
@@ -166,6 +168,13 @@ TEST_F(AgentL3ForwardingTest, ttl255) {
       EXPECT_EVENTUALLY_EQ(
           *portStatsAfter.outUnicastPkts_(),
           *portStatsBefore.outUnicastPkts_() + 2);
+    });
+    handler.clearAllPortStats();
+    WITH_RETRIES({
+      auto portStatsAfter = getLatestPortStats(port);
+      XLOG(INFO) << " Out pkts, after:" << *portStatsAfter.outUnicastPkts_()
+                 << std::endl;
+      EXPECT_EVENTUALLY_EQ(*portStatsAfter.outUnicastPkts_(), 0);
     });
   };
   verifyAcrossWarmBoots(setup, verify);

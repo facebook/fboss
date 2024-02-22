@@ -938,6 +938,8 @@ class SwSwitch : public HwSwitchCallback {
   std::map<PortID, HwPortStats> getHwPortStats(
       std::vector<PortID> portId) const;
 
+  bool isRunModeMultiSwitch();
+
  private:
   std::optional<folly::MacAddress> getSourceMac(
       const std::shared_ptr<Interface>& intf) const;
