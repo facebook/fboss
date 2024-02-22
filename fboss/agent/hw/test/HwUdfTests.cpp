@@ -78,17 +78,19 @@ TEST_F(HwUdfTest, checkUdfAclConfiguration) {
 }
 
 TEST_F(HwUdfTest, deleteUdfHashConfig) {
-  int udfGroupId = 0;
-  int udfPacketMatcherId = 0;
-  auto setup = [&]() {
-    applyNewState(setupUdfConfiguration(true));
-    udfGroupId = utility::getHwUdfGroupId(
-        getHwSwitch(), utility::kUdfHashDstQueuePairGroupName);
-    udfPacketMatcherId = utility::getHwUdfPacketMatcherId(
-        getHwSwitch(), utility::kUdfL4UdpRocePktMatcherName);
-    applyNewState(setupUdfConfiguration(false));
-  };
+  auto setup = [&]() {};
+
   auto verify = [=]() {
+    // Add UdfGroup and PacketMatcher configuration for UDF Hash
+    applyNewState(setupUdfConfiguration(true));
+    int udfGroupId = utility::getHwUdfGroupId(
+        getHwSwitch(), utility::kUdfHashDstQueuePairGroupName);
+    int udfPacketMatcherId = utility::getHwUdfPacketMatcherId(
+        getHwSwitch(), utility::kUdfL4UdpRocePktMatcherName);
+    // Remove UdfGroup and PacketMatcher configuration for UDF Hash
+    applyNewState(setupUdfConfiguration(false));
+
+    // Verify that UdfGroup and PacketMatcher are deleted
     utility::validateRemoveUdfGroup(
         getHwSwitch(), utility::kUdfHashDstQueuePairGroupName, udfGroupId);
     utility::validateRemoveUdfPacketMatcher(
