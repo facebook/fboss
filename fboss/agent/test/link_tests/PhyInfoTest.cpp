@@ -43,6 +43,7 @@ void validateInterfaceAndMedium(
            {
                phy::InterfaceType::SR,
                phy::InterfaceType::SR4,
+               phy::InterfaceType::SR8,
                // Choice for optical profiles in
                // BcmPortUtils::getSpeedToTransmitterTechAndMode
                phy::InterfaceType::CAUI,
