@@ -104,9 +104,9 @@ TEST_F(HwUdfTest, deleteUdfHashConfig) {
 // This test is to verify that UdfGroup(roceOpcode) for UdfAcl and associated
 // PacketMatcher can be successfully deleted.
 TEST_F(HwUdfTest, deleteUdfAclConfig) {
-  int udfGroupId = 0;
-  int udfPacketMatcherId = 0;
-  auto setup = [&]() {
+  auto setup = [&]() {};
+
+  auto verify = [=]() {
     auto newCfg{initialConfig()};
     // Add UdfGroup and PacketMatcher configuration for UDF ACL
     newCfg.udfConfig() = utility::addUdfAclConfig();
@@ -118,16 +118,13 @@ TEST_F(HwUdfTest, deleteUdfAclConfig) {
     applyNewConfig(newCfg);
 
     // Get UdfGroup and PacketMatcher Ids for verify
-    udfGroupId = utility::getHwUdfGroupId(
+    int udfGroupId = utility::getHwUdfGroupId(
         getHwSwitch(), utility::kUdfAclRoceOpcodeGroupName);
-    udfPacketMatcherId = utility::getHwUdfPacketMatcherId(
+    int udfPacketMatcherId = utility::getHwUdfPacketMatcherId(
         getHwSwitch(), utility::kUdfL4UdpRocePktMatcherName);
 
     // Delete UdfGroup and PacketMatcher configuration for UDF ACL
     applyNewState(setupUdfConfiguration(false, false));
-  };
-
-  auto verify = [=]() {
     // Verify that UdfGroup and PacketMatcher are deleted
     utility::validateRemoveUdfGroup(
         getHwSwitch(), utility::kUdfAclRoceOpcodeGroupName, udfGroupId);
