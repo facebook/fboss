@@ -11,6 +11,7 @@
 #include "fboss/agent/test/utils/FabricTestUtils.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/lib/CommonUtils.h"
 
 #include <gtest/gtest.h>
 
@@ -101,22 +102,24 @@ void checkPortFabricReachability(
     TestEnsembleIf* ensemble,
     SwitchID switchId,
     PortID portId) {
-  ensemble->updateStats();
-  auto reachability = ensemble->getFabricConnectivity(switchId);
-  auto itr = reachability.find(portId);
-  ASSERT_TRUE(itr != reachability.end());
-  auto endpoint = itr->second;
-  EXPECT_TRUE(*endpoint.isAttached());
-  XLOG(DBG2) << " On port: " << portId
-             << " got switch id: " << *endpoint.switchId();
-  EXPECT_EQ(
-      SwitchID(*endpoint.switchId()),
-      ensemble->scopeResolver().scope(portId).switchId());
-  EXPECT_EQ(
-      *endpoint.switchType(),
-      ensemble->getHwAsicTable()
-          ->getHwAsic(SwitchID(*endpoint.switchId()))
-          ->getSwitchType());
+  WITH_RETRIES({
+    ensemble->updateStats();
+    auto reachability = ensemble->getFabricConnectivity(switchId);
+    auto itr = reachability.find(portId);
+    EXPECT_EVENTUALLY_TRUE(itr != reachability.end());
+    auto endpoint = itr->second;
+    EXPECT_EVENTUALLY_TRUE(*endpoint.isAttached());
+    XLOG(DBG2) << " On port: " << portId
+               << " got switch id: " << *endpoint.switchId();
+    EXPECT_EVENTUALLY_EQ(
+        SwitchID(*endpoint.switchId()),
+        ensemble->scopeResolver().scope(portId).switchId());
+    EXPECT_EVENTUALLY_EQ(
+        *endpoint.switchType(),
+        ensemble->getHwAsicTable()
+            ->getHwAsic(SwitchID(*endpoint.switchId()))
+            ->getSwitchType());
+  });
 }
 
 } // namespace facebook::fboss::utility

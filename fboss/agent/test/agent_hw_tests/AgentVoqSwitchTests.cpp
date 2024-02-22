@@ -13,8 +13,6 @@ class AgentVoqSwitchTest : public AgentHwTest {
  public:
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
-    // Disable sw stats update thread
-    FLAGS_enable_stats_update_thread = false;
     // Before m-mpu agent test, use first Asic for initialization.
     auto switchIds = ensemble.getSw()->getHwAsicTable()->getSwitchIDs();
     CHECK_GE(switchIds.size(), 1);
@@ -164,6 +162,26 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, checkFabricReachability) {
     for (const auto& switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
       utility::checkFabricReachability(getAgentEnsemble(), switchId);
     }
+  };
+  verifyAcrossWarmBoots([] {}, verify);
+}
+
+TEST_F(AgentVoqSwitchWithFabricPortsTest, fabricIsolate) {
+  auto verify = [=, this]() {
+    EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
+    auto fabricPortId =
+        PortID(masterLogicalPortIds({cfg::PortType::FABRIC_PORT})[0]);
+    utility::checkPortFabricReachability(
+        getAgentEnsemble(), SwitchID(0), fabricPortId);
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      auto out = in->clone();
+      auto port = out->getPorts()->getNodeIf(fabricPortId);
+      auto newPort = port->modify(&out);
+      newPort->setPortDrainState(cfg::PortDrainState::DRAINED);
+      return out;
+    });
+    utility::checkPortFabricReachability(
+        getAgentEnsemble(), SwitchID(0), fabricPortId);
   };
   verifyAcrossWarmBoots([] {}, verify);
 }
