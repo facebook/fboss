@@ -2825,10 +2825,10 @@ void ThriftHandler::getAllInterfacePhyInfo(
   auto log = LOG_THRIFT_CALL(DBG1);
   auto portNames = std::make_unique<std::vector<std::string>>();
   std::shared_ptr<SwitchState> swState = sw_->getState();
-
-  for (const auto& port :
-       std::as_const(*(swState->getPorts()->getAllNodes()))) {
-    portNames->push_back(port.second->getName());
+  for (const auto& portMap : std::as_const(*swState->getPorts())) {
+    for (const auto& port : std::as_const(*portMap.second)) {
+      portNames->push_back(port.second->getName());
+    }
   }
   getInterfacePhyInfo(phyInfos, std::move(portNames));
 }
