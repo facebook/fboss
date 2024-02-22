@@ -563,6 +563,7 @@ TYPED_TEST(ThriftTestAllSwitchTypes, getHwPortStats) {
   ThriftHandler handler(this->sw_);
   std::map<std::string, HwPortStats> hwPortStats;
   EXPECT_HW_CALL(this->sw_, getPortStats()).Times(1);
+  this->sw_->updateStats();
   handler.getHwPortStats(hwPortStats);
 }
 

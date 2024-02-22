@@ -3087,8 +3087,7 @@ void ThriftHandler::getHwPortStats(
     std::map<std::string, HwPortStats>& hwPortStats) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  const auto& portStats = sw_->getHwSwitchHandler()->getPortStats();
-  hwPortStats.insert(portStats.begin(), portStats.end());
+  sw_->getAllHwPortStats(hwPortStats);
 }
 
 void ThriftHandler::getFabricReachabilityStats(

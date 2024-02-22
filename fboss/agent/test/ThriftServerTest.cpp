@@ -444,6 +444,10 @@ CO_TEST_F(ThriftServerTest, statsUpdate) {
   handler.getPortInfo(portInfo, 5);
   EXPECT_EQ(portInfo.input()->bytes().value(), 10000);
   EXPECT_EQ(portInfo.output()->bytes().value(), 20000);
+  std::map<std::string, HwPortStats> hwPortStats;
+  handler.getHwPortStats(hwPortStats);
+  EXPECT_EQ(hwPortStats[portName].inBytes_(), 10000);
+  EXPECT_EQ(hwPortStats[portName].outBytes_(), 20000);
   std::map<std::string, HwSysPortStats> hwSysPortStats;
   handler.getSysPortStats(hwSysPortStats);
   EXPECT_EQ(hwSysPortStats[portName].queueOutBytes_().value()[1], 10);
