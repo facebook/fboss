@@ -114,4 +114,15 @@ void HwSwitchThriftClientTable::clearAllHwPortStats(SwitchID switchId) {
   }
 }
 
+void HwSwitchThriftClientTable::getHwL2Table(
+    SwitchID switchId,
+    std::vector<L2EntryThrift>& l2Table) {
+  auto client = getClient(switchId);
+  try {
+    client->sync_getHwL2Table(l2Table);
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << "Failed to get l2 table for switch : " << switchId
+              << " error: " << ex.what();
+  }
+}
 } // namespace facebook::fboss
