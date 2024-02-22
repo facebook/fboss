@@ -22,7 +22,7 @@ class StreamingDiagShellServer;
 
 class SaiHandler : public apache::thrift::ServiceHandler<SaiCtrl> {
  public:
-  explicit SaiHandler(const SaiSwitch* hw);
+  explicit SaiHandler(SaiSwitch* hw);
   ~SaiHandler() override;
   apache::thrift::ResponseAndServerStream<std::string, std::string>
   startDiagShell() override;
@@ -48,9 +48,11 @@ class SaiHandler : public apache::thrift::ServiceHandler<SaiCtrl> {
   void getHwSwitchReachability(
       std::map<::std::string, std::vector<::std::string>>& reachability,
       std::unique_ptr<::std::vector<::std::string>> switchNames) override;
+  void clearHwPortStats(std::unique_ptr<std::vector<int32_t>> ports) override;
+  void clearAllHwPortStats() override;
 
  private:
-  const SaiSwitch* hw_;
+  SaiSwitch* hw_;
   StreamingDiagShellServer diagShell_;
   DiagCmdServer diagCmdServer_;
 };

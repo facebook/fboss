@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/hw/sai/switch/SaiHandler.h"
 
+#include "fboss/agent/ThriftHandlerUtils.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 
 #include <folly/logging/xlog.h>
@@ -16,7 +17,7 @@
 
 namespace facebook::fboss {
 
-SaiHandler::SaiHandler(const SaiSwitch* hw)
+SaiHandler::SaiHandler(SaiSwitch* hw)
     : hw_(hw), diagShell_(hw), diagCmdServer_(hw, &diagShell_) {}
 
 SaiHandler::~SaiHandler() {}
@@ -113,6 +114,25 @@ void SaiHandler::getHwSwitchReachability(
     }
   }
   return;
+}
+
+void SaiHandler::clearHwPortStats(std::unique_ptr<std::vector<int32_t>> ports) {
+  auto log = LOG_THRIFT_CALL(DBG1, *ports);
+  hw_->ensureConfigured(__func__);
+  utility::clearPortStats(hw_, std::move(ports), hw_->getProgrammedState());
+}
+
+void SaiHandler::clearAllHwPortStats() {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  hw_->ensureConfigured(__func__);
+  auto allPorts = std::make_unique<std::vector<int32_t>>();
+  std::shared_ptr<SwitchState> swState = hw_->getProgrammedState();
+  for (const auto& portMap : std::as_const(*(swState->getPorts()))) {
+    for (const auto& port : std::as_const(*portMap.second)) {
+      allPorts->push_back(port.second->getID());
+    }
+  }
+  clearHwPortStats(std::move(allPorts));
 }
 
 } // namespace facebook::fboss
