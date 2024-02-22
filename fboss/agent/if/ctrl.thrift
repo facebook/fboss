@@ -1054,6 +1054,9 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
   hardware_stats.CpuPortStats getCpuPortStats() throws (
     1: fboss.FbossBaseError error,
   );
+  map<i32, hardware_stats.CpuPortStats> getAllCpuPortStats() throws (
+    1: fboss.FbossBaseError error,
+  );
   hardware_stats.FabricReachabilityStats getFabricReachabilityStats() throws (
     1: fboss.FbossBaseError error,
   );
