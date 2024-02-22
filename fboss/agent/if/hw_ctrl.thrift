@@ -39,4 +39,8 @@ service FbossHwCtrl {
 
   /* clears stats for all ports */
   void clearAllHwPortStats();
+
+  list<ctrl.L2EntryThrift> getHwL2Table() throws (
+    1: fboss.FbossBaseError error,
+  );
 }
