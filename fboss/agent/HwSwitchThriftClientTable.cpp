@@ -92,4 +92,26 @@ HwSwitchThriftClientTable::getFabricConnectivity(SwitchID switchId) {
   return reachability;
 }
 
+void HwSwitchThriftClientTable::clearHwPortStats(
+    SwitchID switchId,
+    std::vector<int32_t>& ports) {
+  auto client = getClient(switchId);
+  try {
+    client->sync_clearHwPortStats(ports);
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << "Failed to clear ports for switch : " << switchId
+              << " error: " << ex.what();
+  }
+}
+
+void HwSwitchThriftClientTable::clearAllHwPortStats(SwitchID switchId) {
+  auto client = getClient(switchId);
+  try {
+    client->sync_clearAllHwPortStats();
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << "Failed to clear ports for switch : " << switchId
+              << " error: " << ex.what();
+  }
+}
+
 } // namespace facebook::fboss
