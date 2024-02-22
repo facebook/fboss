@@ -21,13 +21,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "1",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp1_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_1/xcvr1_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp1_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_1/xcvr1_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -56,13 +56,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "2",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp2_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_2/xcvr2_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp2_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_2/xcvr2_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -91,13 +91,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "3",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp3_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_3/xcvr3_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp3_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_3/xcvr3_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -126,13 +126,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "4",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp4_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_4/xcvr4_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp4_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_4/xcvr4_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -161,13 +161,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "5",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp5_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_5/xcvr5_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp5_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_5/xcvr5_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -196,13 +196,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "6",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp6_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_6/xcvr6_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp6_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_6/xcvr6_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -231,13 +231,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "7",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp7_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_7/xcvr7_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp7_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_7/xcvr7_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -266,13 +266,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "8",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp8_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_8/xcvr8_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp8_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_8/xcvr8_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -301,13 +301,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "9",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp9_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_9/xcvr9_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp9_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_9/xcvr9_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -336,13 +336,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "10",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp10_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_10/xcvr10_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp10_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_10/xcvr10_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -371,13 +371,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "11",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp11_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_11/xcvr11_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp11_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_11/xcvr11_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -406,13 +406,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "12",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp12_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_12/xcvr12_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp12_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_12/xcvr12_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -441,13 +441,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "13",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp13_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_13/xcvr13_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp13_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_13/xcvr13_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -476,13 +476,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "14",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp14_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_14/xcvr14_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp14_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_14/xcvr14_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -511,13 +511,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "15",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp15_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_15/xcvr15_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp15_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_15/xcvr15_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -546,13 +546,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "16",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp16_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_16/xcvr16_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp16_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_16/xcvr16_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -581,13 +581,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "17",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp17_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_17/xcvr17_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp17_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_17/xcvr17_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -616,13 +616,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "18",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp18_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_18/xcvr18_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp18_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_18/xcvr18_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -651,13 +651,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "19",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp19_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_19/xcvr19_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp19_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_19/xcvr19_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -686,13 +686,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "20",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp20_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_20/xcvr20_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp20_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_20/xcvr20_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -721,13 +721,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "21",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp21_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_21/xcvr21_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp21_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_21/xcvr21_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -756,13 +756,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "22",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp22_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_22/xcvr22_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp22_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_22/xcvr22_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -791,13 +791,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "23",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp23_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_23/xcvr23_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp23_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_23/xcvr23_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -826,13 +826,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "24",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp24_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_24/xcvr24_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp24_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_24/xcvr24_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -861,13 +861,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "25",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp25_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_25/xcvr25_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp25_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_25/xcvr25_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -896,13 +896,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "26",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp26_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_26/xcvr26_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp26_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_26/xcvr26_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -931,13 +931,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "27",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp27_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_27/xcvr27_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp27_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_27/xcvr27_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -966,13 +966,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "28",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp28_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_28/xcvr28_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp28_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_28/xcvr28_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -1001,13 +1001,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "29",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp29_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_29/xcvr29_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp29_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_29/xcvr29_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -1036,13 +1036,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "30",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp30_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_30/xcvr30_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp30_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_30/xcvr30_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -1071,13 +1071,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "31",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp31_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_31/xcvr31_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp31_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_31/xcvr31_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -1106,13 +1106,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "32",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp32_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_32/xcvr32_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp32_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_32/xcvr32_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -1141,13 +1141,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "33",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp33_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_33/xcvr33_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp33_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_33/xcvr33_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -1176,13 +1176,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "34",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp34_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_34/xcvr34_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp34_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_34/xcvr34_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -1211,13 +1211,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "35",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp35_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_35/xcvr35_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp35_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_35/xcvr35_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -1246,13 +1246,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "36",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp36_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_36/xcvr36_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp36_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_36/xcvr36_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -1281,13 +1281,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "37",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp37_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_37/xcvr37_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp37_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_37/xcvr37_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -1316,13 +1316,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "38",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp38_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_38/xcvr38_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp38_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_38/xcvr38_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -1351,13 +1351,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "39",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp39_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_39/xcvr39_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp39_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_39/xcvr39_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -1386,13 +1386,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "40",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp40_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_40/xcvr40_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp40_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_40/xcvr40_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -1421,13 +1421,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "41",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp41_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_41/xcvr41_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp41_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_41/xcvr41_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -1456,13 +1456,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "42",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp42_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_42/xcvr42_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp42_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_42/xcvr42_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -1491,13 +1491,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "43",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp43_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_43/xcvr43_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp43_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_43/xcvr43_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -1526,13 +1526,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "44",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp44_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_44/xcvr44_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp44_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_44/xcvr44_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -1561,13 +1561,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "45",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp45_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_45/xcvr45_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp45_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_45/xcvr45_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -1596,13 +1596,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "46",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp46_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_46/xcvr46_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp46_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_46/xcvr46_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -1631,13 +1631,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "47",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp47_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_47/xcvr47_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp47_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_47/xcvr47_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -1666,13 +1666,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "48",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp48_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_48/xcvr48_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp48_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_48/xcvr48_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -1701,13 +1701,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "49",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp49_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_49/xcvr49_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp49_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_49/xcvr49_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -1736,13 +1736,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "50",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp50_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_50/xcvr50_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp50_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_50/xcvr50_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -1771,13 +1771,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "51",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp51_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_51/xcvr51_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp51_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_51/xcvr51_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -1806,13 +1806,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "52",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp52_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_52/xcvr52_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp52_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_52/xcvr52_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -1841,13 +1841,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "53",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp53_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_53/xcvr53_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp53_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_53/xcvr53_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -1876,13 +1876,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "54",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp54_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_54/xcvr54_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp54_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_54/xcvr54_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -1911,13 +1911,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "55",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp55_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_55/xcvr55_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp55_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_55/xcvr55_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -1946,13 +1946,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "56",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp56_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_56/xcvr56_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp56_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_56/xcvr56_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -1981,13 +1981,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "57",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp57_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_57/xcvr57_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp57_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_57/xcvr57_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -2016,13 +2016,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "58",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp58_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_58/xcvr58_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp58_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_58/xcvr58_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -2051,13 +2051,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "59",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp59_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_59/xcvr59_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp59_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_59/xcvr59_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -2086,13 +2086,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "60",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp60_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_60/xcvr60_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/smb-scd0-xcvr.0/osfp60_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_60/xcvr60_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -2121,13 +2121,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "61",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp61_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_61/xcvr61_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp61_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_61/xcvr61_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -2156,13 +2156,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "62",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp62_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_62/xcvr62_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp62_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_62/xcvr62_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -2191,13 +2191,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "63",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp63_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_63/xcvr63_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp63_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_63/xcvr63_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -2226,13 +2226,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "64",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp64_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_64/xcvr64_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA1/smb-scd1-xcvr.0/osfp64_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_64/xcvr64_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -2261,13 +2261,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "65",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp65_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_65/xcvr65_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp65_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_65/xcvr65_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -2296,13 +2296,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "66",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp66_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_66/xcvr66_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp66_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_66/xcvr66_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -2331,13 +2331,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "67",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp67_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_67/xcvr67_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp67_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_67/xcvr67_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -2366,13 +2366,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "68",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp68_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_68/xcvr68_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp68_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_68/xcvr68_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -2401,13 +2401,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "69",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp69_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_69/xcvr69_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp69_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_69/xcvr69_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -2436,13 +2436,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "70",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp70_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_70/xcvr70_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp70_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_70/xcvr70_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -2471,13 +2471,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "71",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp71_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_71/xcvr71_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp71_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_71/xcvr71_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -2506,13 +2506,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "72",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp72_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_72/xcvr72_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp72_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_72/xcvr72_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -2541,13 +2541,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "73",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp73_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_73/xcvr73_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp73_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_73/xcvr73_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -2576,13 +2576,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "74",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp74_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_74/xcvr74_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp74_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_74/xcvr74_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -2611,13 +2611,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "75",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp75_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_75/xcvr75_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp75_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_75/xcvr75_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -2646,13 +2646,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "76",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp76_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_76/xcvr76_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp76_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_76/xcvr76_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -2681,13 +2681,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "77",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp77_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_77/xcvr77_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp77_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_77/xcvr77_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -2716,13 +2716,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "78",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp78_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_78/xcvr78_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp78_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_78/xcvr78_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -2751,13 +2751,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "79",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp79_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_79/xcvr79_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp79_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_79/xcvr79_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -2786,13 +2786,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "80",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp80_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_80/xcvr80_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp80_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_80/xcvr80_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -2821,13 +2821,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "81",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp81_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_81/xcvr81_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp81_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_81/xcvr81_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -2856,13 +2856,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "82",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp82_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_82/xcvr82_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp82_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_82/xcvr82_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -2891,13 +2891,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "83",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp83_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_83/xcvr83_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp83_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_83/xcvr83_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -2926,13 +2926,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "84",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp84_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_84/xcvr84_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp84_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_84/xcvr84_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -2961,13 +2961,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "85",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp85_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_85/xcvr85_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp85_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_85/xcvr85_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -2996,13 +2996,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "86",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp86_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_86/xcvr86_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp86_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_86/xcvr86_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -3031,13 +3031,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "87",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp87_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_87/xcvr87_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp87_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_87/xcvr87_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -3066,13 +3066,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "88",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp88_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_88/xcvr88_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp88_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_88/xcvr88_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -3101,13 +3101,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "89",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp89_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_89/xcvr89_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp89_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_89/xcvr89_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -3136,13 +3136,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "90",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp90_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_90/xcvr90_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp90_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_90/xcvr90_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -3171,13 +3171,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "91",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp91_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_91/xcvr91_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp91_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_91/xcvr91_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -3206,13 +3206,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "92",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp92_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_92/xcvr92_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp92_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_92/xcvr92_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -3241,13 +3241,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "93",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp93_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_93/xcvr93_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp93_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_93/xcvr93_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -3276,13 +3276,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "94",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp94_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_94/xcvr94_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp94_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_94/xcvr94_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -3311,13 +3311,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "95",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp95_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_95/xcvr95_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp95_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_95/xcvr95_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -3346,13 +3346,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "96",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp96_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_96/xcvr96_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp96_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_96/xcvr96_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -3381,13 +3381,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "97",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp97_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_97/xcvr97_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp97_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_97/xcvr97_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -3416,13 +3416,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "98",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp98_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_98/xcvr98_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp98_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_98/xcvr98_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -3451,13 +3451,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "99",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp99_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_99/xcvr99_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp99_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_99/xcvr99_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -3486,13 +3486,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "100",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp100_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_100/xcvr100_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp100_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_100/xcvr100_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -3521,13 +3521,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "101",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp101_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_101/xcvr101_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp101_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_101/xcvr101_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -3556,13 +3556,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "102",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp102_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_102/xcvr102_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp102_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_102/xcvr102_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -3591,13 +3591,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "103",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp103_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_103/xcvr103_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp103_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_103/xcvr103_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -3626,13 +3626,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "104",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp104_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_104/xcvr104_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp104_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_104/xcvr104_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -3661,13 +3661,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "105",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp105_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_105/xcvr105_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp105_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_105/xcvr105_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -3696,13 +3696,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "106",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp106_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_106/xcvr106_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp106_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_106/xcvr106_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -3731,13 +3731,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "107",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp107_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_107/xcvr107_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp107_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_107/xcvr107_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -3766,13 +3766,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "108",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp108_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_108/xcvr108_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp108_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_108/xcvr108_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -3801,13 +3801,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "109",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp109_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_109/xcvr109_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp109_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_109/xcvr109_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -3836,13 +3836,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "110",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp110_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_110/xcvr110_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp110_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_110/xcvr110_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -3871,13 +3871,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "111",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp111_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_111/xcvr111_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp111_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_111/xcvr111_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -3906,13 +3906,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "112",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp112_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_112/xcvr112_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp112_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_112/xcvr112_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -3941,13 +3941,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "113",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp113_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_113/xcvr113_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp113_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_113/xcvr113_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -3976,13 +3976,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "114",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp114_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_114/xcvr114_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp114_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_114/xcvr114_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -4011,13 +4011,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "115",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp115_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_115/xcvr115_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp115_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_115/xcvr115_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -4046,13 +4046,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "116",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp116_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_116/xcvr116_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp116_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_116/xcvr116_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -4081,13 +4081,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "117",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp117_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_117/xcvr117_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp117_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_117/xcvr117_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -4116,13 +4116,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "118",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp118_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_118/xcvr118_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp118_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_118/xcvr118_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -4151,13 +4151,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "119",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp119_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_119/xcvr119_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp119_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_119/xcvr119_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -4186,13 +4186,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "120",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp120_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_120/xcvr120_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp120_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_120/xcvr120_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -4221,13 +4221,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "121",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp121_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_121/xcvr121_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp121_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_121/xcvr121_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -4256,13 +4256,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "122",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp122_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_122/xcvr122_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp122_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_122/xcvr122_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -4291,13 +4291,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "123",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp123_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_123/xcvr123_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp123_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_123/xcvr123_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -4326,13 +4326,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "124",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp124_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_124/xcvr124_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA2/smb-scd2-xcvr.0/osfp124_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_124/xcvr124_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -4361,13 +4361,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "125",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp125_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_125/xcvr125_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp125_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_125/xcvr125_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -4396,13 +4396,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "126",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp126_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_126/xcvr126_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp126_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_126/xcvr126_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -4431,13 +4431,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "127",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp127_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_127/xcvr127_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp127_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_127/xcvr127_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -4466,13 +4466,13 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
                 "controllerId": "128",
                 "type": 1,
                 "reset": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp128_reset",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_128/xcvr128_reset",
                   "mask": 1,
                   "gpioOffset": 0,
                   "resetHoldHi": 0
                 },
                 "presence": {
-                  "sysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA3/smb-scd3-xcvr.0/osfp128_present",
+                  "sysfsPath": "/run/devmap/xcvrs/xcvr_128/xcvr128_present",
                   "mask": 1,
                   "gpioOffset": 0,
                   "presentHoldHi": 0
@@ -4505,1538 +4505,1538 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
         "ledMapping": {
           "1": {
               "id": 1,
-              "bluePath": "/sys/class/leds/osfp_port1_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port1_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port1_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port1_led1:amber:status/brightness",
               "transceiverId": 1
           },
           "2": {
               "id": 2,
-              "bluePath": "/sys/class/leds/osfp_port1_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port1_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port1_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port1_led2:amber:status/brightness",
               "transceiverId": 1
           },
           "3": {
               "id": 3,
-              "bluePath": "/sys/class/leds/osfp_port2_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port2_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port2_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port2_led1:amber:status/brightness",
               "transceiverId": 2
           },
           "4": {
               "id": 4,
-              "bluePath": "/sys/class/leds/osfp_port2_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port2_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port2_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port2_led2:amber:status/brightness",
               "transceiverId": 2
           },
           "5": {
               "id": 5,
-              "bluePath": "/sys/class/leds/osfp_port3_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port3_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port3_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port3_led1:amber:status/brightness",
               "transceiverId": 3
           },
           "6": {
               "id": 6,
-              "bluePath": "/sys/class/leds/osfp_port3_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port3_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port3_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port3_led2:amber:status/brightness",
               "transceiverId": 3
           },
           "7": {
               "id": 7,
-              "bluePath": "/sys/class/leds/osfp_port4_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port4_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port4_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port4_led1:amber:status/brightness",
               "transceiverId": 4
           },
           "8": {
               "id": 8,
-              "bluePath": "/sys/class/leds/osfp_port4_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port4_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port4_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port4_led2:amber:status/brightness",
               "transceiverId": 4
           },
           "9": {
               "id": 9,
-              "bluePath": "/sys/class/leds/osfp_port5_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port5_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port5_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port5_led1:amber:status/brightness",
               "transceiverId": 5
           },
           "10": {
               "id": 10,
-              "bluePath": "/sys/class/leds/osfp_port5_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port5_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port5_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port5_led2:amber:status/brightness",
               "transceiverId": 5
           },
           "11": {
               "id": 11,
-              "bluePath": "/sys/class/leds/osfp_port6_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port6_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port6_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port6_led1:amber:status/brightness",
               "transceiverId": 6
           },
           "12": {
               "id": 12,
-              "bluePath": "/sys/class/leds/osfp_port6_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port6_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port6_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port6_led2:amber:status/brightness",
               "transceiverId": 6
           },
           "13": {
               "id": 13,
-              "bluePath": "/sys/class/leds/osfp_port7_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port7_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port7_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port7_led1:amber:status/brightness",
               "transceiverId": 7
           },
           "14": {
               "id": 14,
-              "bluePath": "/sys/class/leds/osfp_port7_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port7_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port7_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port7_led2:amber:status/brightness",
               "transceiverId": 7
           },
           "15": {
               "id": 15,
-              "bluePath": "/sys/class/leds/osfp_port8_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port8_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port8_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port8_led1:amber:status/brightness",
               "transceiverId": 8
           },
           "16": {
               "id": 16,
-              "bluePath": "/sys/class/leds/osfp_port8_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port8_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port8_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port8_led2:amber:status/brightness",
               "transceiverId": 8
           },
           "17": {
               "id": 17,
-              "bluePath": "/sys/class/leds/osfp_port9_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port9_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port9_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port9_led1:amber:status/brightness",
               "transceiverId": 9
           },
           "18": {
               "id": 18,
-              "bluePath": "/sys/class/leds/osfp_port9_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port9_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port9_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port9_led2:amber:status/brightness",
               "transceiverId": 9
           },
           "19": {
               "id": 19,
-              "bluePath": "/sys/class/leds/osfp_port10_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port10_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port10_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port10_led1:amber:status/brightness",
               "transceiverId": 10
           },
           "20": {
               "id": 20,
-              "bluePath": "/sys/class/leds/osfp_port10_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port10_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port10_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port10_led2:amber:status/brightness",
               "transceiverId": 10
           },
           "21": {
               "id": 21,
-              "bluePath": "/sys/class/leds/osfp_port11_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port11_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port11_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port11_led1:amber:status/brightness",
               "transceiverId": 11
           },
           "22": {
               "id": 22,
-              "bluePath": "/sys/class/leds/osfp_port11_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port11_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port11_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port11_led2:amber:status/brightness",
               "transceiverId": 11
           },
           "23": {
               "id": 23,
-              "bluePath": "/sys/class/leds/osfp_port12_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port12_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port12_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port12_led1:amber:status/brightness",
               "transceiverId": 12
           },
           "24": {
               "id": 24,
-              "bluePath": "/sys/class/leds/osfp_port12_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port12_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port12_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port12_led2:amber:status/brightness",
               "transceiverId": 12
           },
           "25": {
               "id": 25,
-              "bluePath": "/sys/class/leds/osfp_port13_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port13_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port13_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port13_led1:amber:status/brightness",
               "transceiverId": 13
           },
           "26": {
               "id": 26,
-              "bluePath": "/sys/class/leds/osfp_port13_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port13_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port13_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port13_led2:amber:status/brightness",
               "transceiverId": 13
           },
           "27": {
               "id": 27,
-              "bluePath": "/sys/class/leds/osfp_port14_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port14_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port14_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port14_led1:amber:status/brightness",
               "transceiverId": 14
           },
           "28": {
               "id": 28,
-              "bluePath": "/sys/class/leds/osfp_port14_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port14_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port14_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port14_led2:amber:status/brightness",
               "transceiverId": 14
           },
           "29": {
               "id": 29,
-              "bluePath": "/sys/class/leds/osfp_port15_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port15_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port15_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port15_led1:amber:status/brightness",
               "transceiverId": 15
           },
           "30": {
               "id": 30,
-              "bluePath": "/sys/class/leds/osfp_port15_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port15_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port15_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port15_led2:amber:status/brightness",
               "transceiverId": 15
           },
           "31": {
               "id": 31,
-              "bluePath": "/sys/class/leds/osfp_port16_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port16_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port16_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port16_led1:amber:status/brightness",
               "transceiverId": 16
           },
           "32": {
               "id": 32,
-              "bluePath": "/sys/class/leds/osfp_port16_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port16_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port16_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port16_led2:amber:status/brightness",
               "transceiverId": 16
           },
           "33": {
               "id": 33,
-              "bluePath": "/sys/class/leds/osfp_port17_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port17_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port17_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port17_led1:amber:status/brightness",
               "transceiverId": 17
           },
           "34": {
               "id": 34,
-              "bluePath": "/sys/class/leds/osfp_port17_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port17_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port17_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port17_led2:amber:status/brightness",
               "transceiverId": 17
           },
           "35": {
               "id": 35,
-              "bluePath": "/sys/class/leds/osfp_port18_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port18_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port18_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port18_led1:amber:status/brightness",
               "transceiverId": 18
           },
           "36": {
               "id": 36,
-              "bluePath": "/sys/class/leds/osfp_port18_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port18_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port18_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port18_led2:amber:status/brightness",
               "transceiverId": 18
           },
           "37": {
               "id": 37,
-              "bluePath": "/sys/class/leds/osfp_port19_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port19_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port19_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port19_led1:amber:status/brightness",
               "transceiverId": 19
           },
           "38": {
               "id": 38,
-              "bluePath": "/sys/class/leds/osfp_port19_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port19_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port19_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port19_led2:amber:status/brightness",
               "transceiverId": 19
           },
           "39": {
               "id": 39,
-              "bluePath": "/sys/class/leds/osfp_port20_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port20_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port20_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port20_led1:amber:status/brightness",
               "transceiverId": 20
           },
           "40": {
               "id": 40,
-              "bluePath": "/sys/class/leds/osfp_port20_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port20_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port20_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port20_led2:amber:status/brightness",
               "transceiverId": 20
           },
           "41": {
               "id": 41,
-              "bluePath": "/sys/class/leds/osfp_port21_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port21_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port21_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port21_led1:amber:status/brightness",
               "transceiverId": 21
           },
           "42": {
               "id": 42,
-              "bluePath": "/sys/class/leds/osfp_port21_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port21_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port21_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port21_led2:amber:status/brightness",
               "transceiverId": 21
           },
           "43": {
               "id": 43,
-              "bluePath": "/sys/class/leds/osfp_port22_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port22_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port22_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port22_led1:amber:status/brightness",
               "transceiverId": 22
           },
           "44": {
               "id": 44,
-              "bluePath": "/sys/class/leds/osfp_port22_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port22_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port22_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port22_led2:amber:status/brightness",
               "transceiverId": 22
           },
           "45": {
               "id": 45,
-              "bluePath": "/sys/class/leds/osfp_port23_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port23_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port23_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port23_led1:amber:status/brightness",
               "transceiverId": 23
           },
           "46": {
               "id": 46,
-              "bluePath": "/sys/class/leds/osfp_port23_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port23_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port23_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port23_led2:amber:status/brightness",
               "transceiverId": 23
           },
           "47": {
               "id": 47,
-              "bluePath": "/sys/class/leds/osfp_port24_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port24_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port24_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port24_led1:amber:status/brightness",
               "transceiverId": 24
           },
           "48": {
               "id": 48,
-              "bluePath": "/sys/class/leds/osfp_port24_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port24_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port24_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port24_led2:amber:status/brightness",
               "transceiverId": 24
           },
           "49": {
               "id": 49,
-              "bluePath": "/sys/class/leds/osfp_port25_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port25_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port25_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port25_led1:amber:status/brightness",
               "transceiverId": 25
           },
           "50": {
               "id": 50,
-              "bluePath": "/sys/class/leds/osfp_port25_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port25_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port25_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port25_led2:amber:status/brightness",
               "transceiverId": 25
           },
           "51": {
               "id": 51,
-              "bluePath": "/sys/class/leds/osfp_port26_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port26_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port26_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port26_led1:amber:status/brightness",
               "transceiverId": 26
           },
           "52": {
               "id": 52,
-              "bluePath": "/sys/class/leds/osfp_port26_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port26_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port26_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port26_led2:amber:status/brightness",
               "transceiverId": 26
           },
           "53": {
               "id": 53,
-              "bluePath": "/sys/class/leds/osfp_port27_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port27_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port27_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port27_led1:amber:status/brightness",
               "transceiverId": 27
           },
           "54": {
               "id": 54,
-              "bluePath": "/sys/class/leds/osfp_port27_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port27_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port27_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port27_led2:amber:status/brightness",
               "transceiverId": 27
           },
           "55": {
               "id": 55,
-              "bluePath": "/sys/class/leds/osfp_port28_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port28_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port28_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port28_led1:amber:status/brightness",
               "transceiverId": 28
           },
           "56": {
               "id": 56,
-              "bluePath": "/sys/class/leds/osfp_port28_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port28_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port28_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port28_led2:amber:status/brightness",
               "transceiverId": 28
           },
           "57": {
               "id": 57,
-              "bluePath": "/sys/class/leds/osfp_port29_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port29_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port29_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port29_led1:amber:status/brightness",
               "transceiverId": 29
           },
           "58": {
               "id": 58,
-              "bluePath": "/sys/class/leds/osfp_port29_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port29_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port29_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port29_led2:amber:status/brightness",
               "transceiverId": 29
           },
           "59": {
               "id": 59,
-              "bluePath": "/sys/class/leds/osfp_port30_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port30_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port30_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port30_led1:amber:status/brightness",
               "transceiverId": 30
           },
           "60": {
               "id": 60,
-              "bluePath": "/sys/class/leds/osfp_port30_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port30_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port30_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port30_led2:amber:status/brightness",
               "transceiverId": 30
           },
           "61": {
               "id": 61,
-              "bluePath": "/sys/class/leds/osfp_port31_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port31_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port31_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port31_led1:amber:status/brightness",
               "transceiverId": 31
           },
           "62": {
               "id": 62,
-              "bluePath": "/sys/class/leds/osfp_port31_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port31_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port31_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port31_led2:amber:status/brightness",
               "transceiverId": 31
           },
           "63": {
               "id": 63,
-              "bluePath": "/sys/class/leds/osfp_port32_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port32_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port32_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port32_led1:amber:status/brightness",
               "transceiverId": 32
           },
           "64": {
               "id": 64,
-              "bluePath": "/sys/class/leds/osfp_port32_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port32_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port32_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port32_led2:amber:status/brightness",
               "transceiverId": 32
           },
           "65": {
               "id": 65,
-              "bluePath": "/sys/class/leds/osfp_port33_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port33_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port33_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port33_led1:amber:status/brightness",
               "transceiverId": 33
           },
           "66": {
               "id": 66,
-              "bluePath": "/sys/class/leds/osfp_port33_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port33_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port33_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port33_led2:amber:status/brightness",
               "transceiverId": 33
           },
           "67": {
               "id": 67,
-              "bluePath": "/sys/class/leds/osfp_port34_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port34_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port34_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port34_led1:amber:status/brightness",
               "transceiverId": 34
           },
           "68": {
               "id": 68,
-              "bluePath": "/sys/class/leds/osfp_port34_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port34_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port34_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port34_led2:amber:status/brightness",
               "transceiverId": 34
           },
           "69": {
               "id": 69,
-              "bluePath": "/sys/class/leds/osfp_port35_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port35_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port35_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port35_led1:amber:status/brightness",
               "transceiverId": 35
           },
           "70": {
               "id": 70,
-              "bluePath": "/sys/class/leds/osfp_port35_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port35_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port35_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port35_led2:amber:status/brightness",
               "transceiverId": 35
           },
           "71": {
               "id": 71,
-              "bluePath": "/sys/class/leds/osfp_port36_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port36_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port36_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port36_led1:amber:status/brightness",
               "transceiverId": 36
           },
           "72": {
               "id": 72,
-              "bluePath": "/sys/class/leds/osfp_port36_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port36_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port36_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port36_led2:amber:status/brightness",
               "transceiverId": 36
           },
           "73": {
               "id": 73,
-              "bluePath": "/sys/class/leds/osfp_port37_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port37_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port37_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port37_led1:amber:status/brightness",
               "transceiverId": 37
           },
           "74": {
               "id": 74,
-              "bluePath": "/sys/class/leds/osfp_port37_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port37_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port37_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port37_led2:amber:status/brightness",
               "transceiverId": 37
           },
           "75": {
               "id": 75,
-              "bluePath": "/sys/class/leds/osfp_port38_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port38_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port38_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port38_led1:amber:status/brightness",
               "transceiverId": 38
           },
           "76": {
               "id": 76,
-              "bluePath": "/sys/class/leds/osfp_port38_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port38_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port38_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port38_led2:amber:status/brightness",
               "transceiverId": 38
           },
           "77": {
               "id": 77,
-              "bluePath": "/sys/class/leds/osfp_port39_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port39_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port39_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port39_led1:amber:status/brightness",
               "transceiverId": 39
           },
           "78": {
               "id": 78,
-              "bluePath": "/sys/class/leds/osfp_port39_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port39_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port39_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port39_led2:amber:status/brightness",
               "transceiverId": 39
           },
           "79": {
               "id": 79,
-              "bluePath": "/sys/class/leds/osfp_port40_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port40_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port40_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port40_led1:amber:status/brightness",
               "transceiverId": 40
           },
           "80": {
               "id": 80,
-              "bluePath": "/sys/class/leds/osfp_port40_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port40_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port40_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port40_led2:amber:status/brightness",
               "transceiverId": 40
           },
           "81": {
               "id": 81,
-              "bluePath": "/sys/class/leds/osfp_port41_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port41_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port41_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port41_led1:amber:status/brightness",
               "transceiverId": 41
           },
           "82": {
               "id": 82,
-              "bluePath": "/sys/class/leds/osfp_port41_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port41_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port41_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port41_led2:amber:status/brightness",
               "transceiverId": 41
           },
           "83": {
               "id": 83,
-              "bluePath": "/sys/class/leds/osfp_port42_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port42_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port42_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port42_led1:amber:status/brightness",
               "transceiverId": 42
           },
           "84": {
               "id": 84,
-              "bluePath": "/sys/class/leds/osfp_port42_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port42_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port42_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port42_led2:amber:status/brightness",
               "transceiverId": 42
           },
           "85": {
               "id": 85,
-              "bluePath": "/sys/class/leds/osfp_port43_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port43_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port43_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port43_led1:amber:status/brightness",
               "transceiverId": 43
           },
           "86": {
               "id": 86,
-              "bluePath": "/sys/class/leds/osfp_port43_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port43_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port43_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port43_led2:amber:status/brightness",
               "transceiverId": 43
           },
           "87": {
               "id": 87,
-              "bluePath": "/sys/class/leds/osfp_port44_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port44_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port44_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port44_led1:amber:status/brightness",
               "transceiverId": 44
           },
           "88": {
               "id": 88,
-              "bluePath": "/sys/class/leds/osfp_port44_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port44_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port44_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port44_led2:amber:status/brightness",
               "transceiverId": 44
           },
           "89": {
               "id": 89,
-              "bluePath": "/sys/class/leds/osfp_port45_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port45_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port45_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port45_led1:amber:status/brightness",
               "transceiverId": 45
           },
           "90": {
               "id": 90,
-              "bluePath": "/sys/class/leds/osfp_port45_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port45_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port45_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port45_led2:amber:status/brightness",
               "transceiverId": 45
           },
           "91": {
               "id": 91,
-              "bluePath": "/sys/class/leds/osfp_port46_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port46_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port46_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port46_led1:amber:status/brightness",
               "transceiverId": 46
           },
           "92": {
               "id": 92,
-              "bluePath": "/sys/class/leds/osfp_port46_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port46_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port46_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port46_led2:amber:status/brightness",
               "transceiverId": 46
           },
           "93": {
               "id": 93,
-              "bluePath": "/sys/class/leds/osfp_port47_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port47_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port47_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port47_led1:amber:status/brightness",
               "transceiverId": 47
           },
           "94": {
               "id": 94,
-              "bluePath": "/sys/class/leds/osfp_port47_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port47_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port47_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port47_led2:amber:status/brightness",
               "transceiverId": 47
           },
           "95": {
               "id": 95,
-              "bluePath": "/sys/class/leds/osfp_port48_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port48_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port48_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port48_led1:amber:status/brightness",
               "transceiverId": 48
           },
           "96": {
               "id": 96,
-              "bluePath": "/sys/class/leds/osfp_port48_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port48_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port48_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port48_led2:amber:status/brightness",
               "transceiverId": 48
           },
           "97": {
               "id": 97,
-              "bluePath": "/sys/class/leds/osfp_port49_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port49_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port49_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port49_led1:amber:status/brightness",
               "transceiverId": 49
           },
           "98": {
               "id": 98,
-              "bluePath": "/sys/class/leds/osfp_port49_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port49_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port49_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port49_led2:amber:status/brightness",
               "transceiverId": 49
           },
           "99": {
               "id": 99,
-              "bluePath": "/sys/class/leds/osfp_port50_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port50_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port50_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port50_led1:amber:status/brightness",
               "transceiverId": 50
           },
           "100": {
               "id": 100,
-              "bluePath": "/sys/class/leds/osfp_port50_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port50_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port50_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port50_led2:amber:status/brightness",
               "transceiverId": 50
           },
           "101": {
               "id": 101,
-              "bluePath": "/sys/class/leds/osfp_port51_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port51_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port51_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port51_led1:amber:status/brightness",
               "transceiverId": 51
           },
           "102": {
               "id": 102,
-              "bluePath": "/sys/class/leds/osfp_port51_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port51_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port51_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port51_led2:amber:status/brightness",
               "transceiverId": 51
           },
           "103": {
               "id": 103,
-              "bluePath": "/sys/class/leds/osfp_port52_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port52_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port52_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port52_led1:amber:status/brightness",
               "transceiverId": 52
           },
           "104": {
               "id": 104,
-              "bluePath": "/sys/class/leds/osfp_port52_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port52_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port52_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port52_led2:amber:status/brightness",
               "transceiverId": 52
           },
           "105": {
               "id": 105,
-              "bluePath": "/sys/class/leds/osfp_port53_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port53_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port53_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port53_led1:amber:status/brightness",
               "transceiverId": 53
           },
           "106": {
               "id": 106,
-              "bluePath": "/sys/class/leds/osfp_port53_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port53_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port53_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port53_led2:amber:status/brightness",
               "transceiverId": 53
           },
           "107": {
               "id": 107,
-              "bluePath": "/sys/class/leds/osfp_port54_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port54_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port54_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port54_led1:amber:status/brightness",
               "transceiverId": 54
           },
           "108": {
               "id": 108,
-              "bluePath": "/sys/class/leds/osfp_port54_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port54_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port54_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port54_led2:amber:status/brightness",
               "transceiverId": 54
           },
           "109": {
               "id": 109,
-              "bluePath": "/sys/class/leds/osfp_port55_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port55_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port55_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port55_led1:amber:status/brightness",
               "transceiverId": 55
           },
           "110": {
               "id": 110,
-              "bluePath": "/sys/class/leds/osfp_port55_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port55_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port55_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port55_led2:amber:status/brightness",
               "transceiverId": 55
           },
           "111": {
               "id": 111,
-              "bluePath": "/sys/class/leds/osfp_port56_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port56_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port56_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port56_led1:amber:status/brightness",
               "transceiverId": 56
           },
           "112": {
               "id": 112,
-              "bluePath": "/sys/class/leds/osfp_port56_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port56_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port56_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port56_led2:amber:status/brightness",
               "transceiverId": 56
           },
           "113": {
               "id": 113,
-              "bluePath": "/sys/class/leds/osfp_port57_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port57_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port57_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port57_led1:amber:status/brightness",
               "transceiverId": 57
           },
           "114": {
               "id": 114,
-              "bluePath": "/sys/class/leds/osfp_port57_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port57_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port57_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port57_led2:amber:status/brightness",
               "transceiverId": 57
           },
           "115": {
               "id": 115,
-              "bluePath": "/sys/class/leds/osfp_port58_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port58_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port58_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port58_led1:amber:status/brightness",
               "transceiverId": 58
           },
           "116": {
               "id": 116,
-              "bluePath": "/sys/class/leds/osfp_port58_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port58_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port58_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port58_led2:amber:status/brightness",
               "transceiverId": 58
           },
           "117": {
               "id": 117,
-              "bluePath": "/sys/class/leds/osfp_port59_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port59_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port59_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port59_led1:amber:status/brightness",
               "transceiverId": 59
           },
           "118": {
               "id": 118,
-              "bluePath": "/sys/class/leds/osfp_port59_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port59_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port59_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port59_led2:amber:status/brightness",
               "transceiverId": 59
           },
           "119": {
               "id": 119,
-              "bluePath": "/sys/class/leds/osfp_port60_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port60_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port60_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port60_led1:amber:status/brightness",
               "transceiverId": 60
           },
           "120": {
               "id": 120,
-              "bluePath": "/sys/class/leds/osfp_port60_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port60_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port60_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port60_led2:amber:status/brightness",
               "transceiverId": 60
           },
           "121": {
               "id": 121,
-              "bluePath": "/sys/class/leds/osfp_port61_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port61_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port61_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port61_led1:amber:status/brightness",
               "transceiverId": 61
           },
           "122": {
               "id": 122,
-              "bluePath": "/sys/class/leds/osfp_port61_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port61_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port61_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port61_led2:amber:status/brightness",
               "transceiverId": 61
           },
           "123": {
               "id": 123,
-              "bluePath": "/sys/class/leds/osfp_port62_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port62_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port62_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port62_led1:amber:status/brightness",
               "transceiverId": 62
           },
           "124": {
               "id": 124,
-              "bluePath": "/sys/class/leds/osfp_port62_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port62_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port62_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port62_led2:amber:status/brightness",
               "transceiverId": 62
           },
           "125": {
               "id": 125,
-              "bluePath": "/sys/class/leds/osfp_port63_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port63_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port63_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port63_led1:amber:status/brightness",
               "transceiverId": 63
           },
           "126": {
               "id": 126,
-              "bluePath": "/sys/class/leds/osfp_port63_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port63_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port63_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port63_led2:amber:status/brightness",
               "transceiverId": 63
           },
           "127": {
               "id": 127,
-              "bluePath": "/sys/class/leds/osfp_port64_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port64_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port64_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port64_led1:amber:status/brightness",
               "transceiverId": 64
           },
           "128": {
               "id": 128,
-              "bluePath": "/sys/class/leds/osfp_port64_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port64_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port64_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port64_led2:amber:status/brightness",
               "transceiverId": 64
           },
           "129": {
               "id": 129,
-              "bluePath": "/sys/class/leds/osfp_port65_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port65_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port65_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port65_led1:amber:status/brightness",
               "transceiverId": 65
           },
           "130": {
               "id": 130,
-              "bluePath": "/sys/class/leds/osfp_port65_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port65_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port65_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port65_led2:amber:status/brightness",
               "transceiverId": 65
           },
           "131": {
               "id": 131,
-              "bluePath": "/sys/class/leds/osfp_port66_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port66_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port66_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port66_led1:amber:status/brightness",
               "transceiverId": 66
           },
           "132": {
               "id": 132,
-              "bluePath": "/sys/class/leds/osfp_port66_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port66_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port66_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port66_led2:amber:status/brightness",
               "transceiverId": 66
           },
           "133": {
               "id": 133,
-              "bluePath": "/sys/class/leds/osfp_port67_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port67_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port67_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port67_led1:amber:status/brightness",
               "transceiverId": 67
           },
           "134": {
               "id": 134,
-              "bluePath": "/sys/class/leds/osfp_port67_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port67_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port67_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port67_led2:amber:status/brightness",
               "transceiverId": 67
           },
           "135": {
               "id": 135,
-              "bluePath": "/sys/class/leds/osfp_port68_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port68_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port68_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port68_led1:amber:status/brightness",
               "transceiverId": 68
           },
           "136": {
               "id": 136,
-              "bluePath": "/sys/class/leds/osfp_port68_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port68_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port68_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port68_led2:amber:status/brightness",
               "transceiverId": 68
           },
           "137": {
               "id": 137,
-              "bluePath": "/sys/class/leds/osfp_port69_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port69_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port69_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port69_led1:amber:status/brightness",
               "transceiverId": 69
           },
           "138": {
               "id": 138,
-              "bluePath": "/sys/class/leds/osfp_port69_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port69_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port69_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port69_led2:amber:status/brightness",
               "transceiverId": 69
           },
           "139": {
               "id": 139,
-              "bluePath": "/sys/class/leds/osfp_port70_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port70_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port70_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port70_led1:amber:status/brightness",
               "transceiverId": 70
           },
           "140": {
               "id": 140,
-              "bluePath": "/sys/class/leds/osfp_port70_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port70_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port70_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port70_led2:amber:status/brightness",
               "transceiverId": 70
           },
           "141": {
               "id": 141,
-              "bluePath": "/sys/class/leds/osfp_port71_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port71_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port71_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port71_led1:amber:status/brightness",
               "transceiverId": 71
           },
           "142": {
               "id": 142,
-              "bluePath": "/sys/class/leds/osfp_port71_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port71_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port71_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port71_led2:amber:status/brightness",
               "transceiverId": 71
           },
           "143": {
               "id": 143,
-              "bluePath": "/sys/class/leds/osfp_port72_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port72_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port72_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port72_led1:amber:status/brightness",
               "transceiverId": 72
           },
           "144": {
               "id": 144,
-              "bluePath": "/sys/class/leds/osfp_port72_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port72_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port72_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port72_led2:amber:status/brightness",
               "transceiverId": 72
           },
           "145": {
               "id": 145,
-              "bluePath": "/sys/class/leds/osfp_port73_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port73_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port73_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port73_led1:amber:status/brightness",
               "transceiverId": 73
           },
           "146": {
               "id": 146,
-              "bluePath": "/sys/class/leds/osfp_port73_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port73_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port73_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port73_led2:amber:status/brightness",
               "transceiverId": 73
           },
           "147": {
               "id": 147,
-              "bluePath": "/sys/class/leds/osfp_port74_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port74_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port74_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port74_led1:amber:status/brightness",
               "transceiverId": 74
           },
           "148": {
               "id": 148,
-              "bluePath": "/sys/class/leds/osfp_port74_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port74_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port74_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port74_led2:amber:status/brightness",
               "transceiverId": 74
           },
           "149": {
               "id": 149,
-              "bluePath": "/sys/class/leds/osfp_port75_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port75_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port75_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port75_led1:amber:status/brightness",
               "transceiverId": 75
           },
           "150": {
               "id": 150,
-              "bluePath": "/sys/class/leds/osfp_port75_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port75_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port75_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port75_led2:amber:status/brightness",
               "transceiverId": 75
           },
           "151": {
               "id": 151,
-              "bluePath": "/sys/class/leds/osfp_port76_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port76_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port76_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port76_led1:amber:status/brightness",
               "transceiverId": 76
           },
           "152": {
               "id": 152,
-              "bluePath": "/sys/class/leds/osfp_port76_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port76_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port76_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port76_led2:amber:status/brightness",
               "transceiverId": 76
           },
           "153": {
               "id": 153,
-              "bluePath": "/sys/class/leds/osfp_port77_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port77_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port77_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port77_led1:amber:status/brightness",
               "transceiverId": 77
           },
           "154": {
               "id": 154,
-              "bluePath": "/sys/class/leds/osfp_port77_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port77_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port77_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port77_led2:amber:status/brightness",
               "transceiverId": 77
           },
           "155": {
               "id": 155,
-              "bluePath": "/sys/class/leds/osfp_port78_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port78_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port78_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port78_led1:amber:status/brightness",
               "transceiverId": 78
           },
           "156": {
               "id": 156,
-              "bluePath": "/sys/class/leds/osfp_port78_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port78_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port78_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port78_led2:amber:status/brightness",
               "transceiverId": 78
           },
           "157": {
               "id": 157,
-              "bluePath": "/sys/class/leds/osfp_port79_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port79_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port79_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port79_led1:amber:status/brightness",
               "transceiverId": 79
           },
           "158": {
               "id": 158,
-              "bluePath": "/sys/class/leds/osfp_port79_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port79_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port79_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port79_led2:amber:status/brightness",
               "transceiverId": 79
           },
           "159": {
               "id": 159,
-              "bluePath": "/sys/class/leds/osfp_port80_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port80_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port80_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port80_led1:amber:status/brightness",
               "transceiverId": 80
           },
           "160": {
               "id": 160,
-              "bluePath": "/sys/class/leds/osfp_port80_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port80_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port80_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port80_led2:amber:status/brightness",
               "transceiverId": 80
           },
           "161": {
               "id": 161,
-              "bluePath": "/sys/class/leds/osfp_port81_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port81_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port81_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port81_led1:amber:status/brightness",
               "transceiverId": 81
           },
           "162": {
               "id": 162,
-              "bluePath": "/sys/class/leds/osfp_port81_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port81_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port81_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port81_led2:amber:status/brightness",
               "transceiverId": 81
           },
           "163": {
               "id": 163,
-              "bluePath": "/sys/class/leds/osfp_port82_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port82_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port82_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port82_led1:amber:status/brightness",
               "transceiverId": 82
           },
           "164": {
               "id": 164,
-              "bluePath": "/sys/class/leds/osfp_port82_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port82_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port82_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port82_led2:amber:status/brightness",
               "transceiverId": 82
           },
           "165": {
               "id": 165,
-              "bluePath": "/sys/class/leds/osfp_port83_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port83_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port83_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port83_led1:amber:status/brightness",
               "transceiverId": 83
           },
           "166": {
               "id": 166,
-              "bluePath": "/sys/class/leds/osfp_port83_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port83_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port83_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port83_led2:amber:status/brightness",
               "transceiverId": 83
           },
           "167": {
               "id": 167,
-              "bluePath": "/sys/class/leds/osfp_port84_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port84_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port84_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port84_led1:amber:status/brightness",
               "transceiverId": 84
           },
           "168": {
               "id": 168,
-              "bluePath": "/sys/class/leds/osfp_port84_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port84_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port84_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port84_led2:amber:status/brightness",
               "transceiverId": 84
           },
           "169": {
               "id": 169,
-              "bluePath": "/sys/class/leds/osfp_port85_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port85_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port85_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port85_led1:amber:status/brightness",
               "transceiverId": 85
           },
           "170": {
               "id": 170,
-              "bluePath": "/sys/class/leds/osfp_port85_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port85_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port85_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port85_led2:amber:status/brightness",
               "transceiverId": 85
           },
           "171": {
               "id": 171,
-              "bluePath": "/sys/class/leds/osfp_port86_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port86_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port86_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port86_led1:amber:status/brightness",
               "transceiverId": 86
           },
           "172": {
               "id": 172,
-              "bluePath": "/sys/class/leds/osfp_port86_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port86_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port86_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port86_led2:amber:status/brightness",
               "transceiverId": 86
           },
           "173": {
               "id": 173,
-              "bluePath": "/sys/class/leds/osfp_port87_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port87_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port87_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port87_led1:amber:status/brightness",
               "transceiverId": 87
           },
           "174": {
               "id": 174,
-              "bluePath": "/sys/class/leds/osfp_port87_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port87_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port87_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port87_led2:amber:status/brightness",
               "transceiverId": 87
           },
           "175": {
               "id": 175,
-              "bluePath": "/sys/class/leds/osfp_port88_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port88_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port88_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port88_led1:amber:status/brightness",
               "transceiverId": 88
           },
           "176": {
               "id": 176,
-              "bluePath": "/sys/class/leds/osfp_port88_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port88_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port88_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port88_led2:amber:status/brightness",
               "transceiverId": 88
           },
           "177": {
               "id": 177,
-              "bluePath": "/sys/class/leds/osfp_port89_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port89_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port89_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port89_led1:amber:status/brightness",
               "transceiverId": 89
           },
           "178": {
               "id": 178,
-              "bluePath": "/sys/class/leds/osfp_port89_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port89_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port89_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port89_led2:amber:status/brightness",
               "transceiverId": 89
           },
           "179": {
               "id": 179,
-              "bluePath": "/sys/class/leds/osfp_port90_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port90_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port90_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port90_led1:amber:status/brightness",
               "transceiverId": 90
           },
           "180": {
               "id": 180,
-              "bluePath": "/sys/class/leds/osfp_port90_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port90_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port90_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port90_led2:amber:status/brightness",
               "transceiverId": 90
           },
           "181": {
               "id": 181,
-              "bluePath": "/sys/class/leds/osfp_port91_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port91_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port91_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port91_led1:amber:status/brightness",
               "transceiverId": 91
           },
           "182": {
               "id": 182,
-              "bluePath": "/sys/class/leds/osfp_port91_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port91_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port91_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port91_led2:amber:status/brightness",
               "transceiverId": 91
           },
           "183": {
               "id": 183,
-              "bluePath": "/sys/class/leds/osfp_port92_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port92_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port92_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port92_led1:amber:status/brightness",
               "transceiverId": 92
           },
           "184": {
               "id": 184,
-              "bluePath": "/sys/class/leds/osfp_port92_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port92_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port92_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port92_led2:amber:status/brightness",
               "transceiverId": 92
           },
           "185": {
               "id": 185,
-              "bluePath": "/sys/class/leds/osfp_port93_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port93_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port93_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port93_led1:amber:status/brightness",
               "transceiverId": 93
           },
           "186": {
               "id": 186,
-              "bluePath": "/sys/class/leds/osfp_port93_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port93_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port93_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port93_led2:amber:status/brightness",
               "transceiverId": 93
           },
           "187": {
               "id": 187,
-              "bluePath": "/sys/class/leds/osfp_port94_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port94_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port94_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port94_led1:amber:status/brightness",
               "transceiverId": 94
           },
           "188": {
               "id": 188,
-              "bluePath": "/sys/class/leds/osfp_port94_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port94_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port94_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port94_led2:amber:status/brightness",
               "transceiverId": 94
           },
           "189": {
               "id": 189,
-              "bluePath": "/sys/class/leds/osfp_port95_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port95_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port95_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port95_led1:amber:status/brightness",
               "transceiverId": 95
           },
           "190": {
               "id": 190,
-              "bluePath": "/sys/class/leds/osfp_port95_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port95_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port95_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port95_led2:amber:status/brightness",
               "transceiverId": 95
           },
           "191": {
               "id": 191,
-              "bluePath": "/sys/class/leds/osfp_port96_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port96_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port96_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port96_led1:amber:status/brightness",
               "transceiverId": 96
           },
           "192": {
               "id": 192,
-              "bluePath": "/sys/class/leds/osfp_port96_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port96_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port96_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port96_led2:amber:status/brightness",
               "transceiverId": 96
           },
           "193": {
               "id": 193,
-              "bluePath": "/sys/class/leds/osfp_port97_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port97_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port97_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port97_led1:amber:status/brightness",
               "transceiverId": 97
           },
           "194": {
               "id": 194,
-              "bluePath": "/sys/class/leds/osfp_port97_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port97_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port97_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port97_led2:amber:status/brightness",
               "transceiverId": 97
           },
           "195": {
               "id": 195,
-              "bluePath": "/sys/class/leds/osfp_port98_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port98_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port98_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port98_led1:amber:status/brightness",
               "transceiverId": 98
           },
           "196": {
               "id": 196,
-              "bluePath": "/sys/class/leds/osfp_port98_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port98_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port98_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port98_led2:amber:status/brightness",
               "transceiverId": 98
           },
           "197": {
               "id": 197,
-              "bluePath": "/sys/class/leds/osfp_port99_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port99_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port99_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port99_led1:amber:status/brightness",
               "transceiverId": 99
           },
           "198": {
               "id": 198,
-              "bluePath": "/sys/class/leds/osfp_port99_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port99_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port99_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port99_led2:amber:status/brightness",
               "transceiverId": 99
           },
           "199": {
               "id": 199,
-              "bluePath": "/sys/class/leds/osfp_port100_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port100_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port100_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port100_led1:amber:status/brightness",
               "transceiverId": 100
           },
           "200": {
               "id": 200,
-              "bluePath": "/sys/class/leds/osfp_port100_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port100_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port100_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port100_led2:amber:status/brightness",
               "transceiverId": 100
           },
           "201": {
               "id": 201,
-              "bluePath": "/sys/class/leds/osfp_port101_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port101_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port101_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port101_led1:amber:status/brightness",
               "transceiverId": 101
           },
           "202": {
               "id": 202,
-              "bluePath": "/sys/class/leds/osfp_port101_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port101_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port101_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port101_led2:amber:status/brightness",
               "transceiverId": 101
           },
           "203": {
               "id": 203,
-              "bluePath": "/sys/class/leds/osfp_port102_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port102_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port102_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port102_led1:amber:status/brightness",
               "transceiverId": 102
           },
           "204": {
               "id": 204,
-              "bluePath": "/sys/class/leds/osfp_port102_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port102_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port102_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port102_led2:amber:status/brightness",
               "transceiverId": 102
           },
           "205": {
               "id": 205,
-              "bluePath": "/sys/class/leds/osfp_port103_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port103_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port103_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port103_led1:amber:status/brightness",
               "transceiverId": 103
           },
           "206": {
               "id": 206,
-              "bluePath": "/sys/class/leds/osfp_port103_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port103_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port103_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port103_led2:amber:status/brightness",
               "transceiverId": 103
           },
           "207": {
               "id": 207,
-              "bluePath": "/sys/class/leds/osfp_port104_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port104_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port104_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port104_led1:amber:status/brightness",
               "transceiverId": 104
           },
           "208": {
               "id": 208,
-              "bluePath": "/sys/class/leds/osfp_port104_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port104_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port104_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port104_led2:amber:status/brightness",
               "transceiverId": 104
           },
           "209": {
               "id": 209,
-              "bluePath": "/sys/class/leds/osfp_port105_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port105_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port105_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port105_led1:amber:status/brightness",
               "transceiverId": 105
           },
           "210": {
               "id": 210,
-              "bluePath": "/sys/class/leds/osfp_port105_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port105_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port105_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port105_led2:amber:status/brightness",
               "transceiverId": 105
           },
           "211": {
               "id": 211,
-              "bluePath": "/sys/class/leds/osfp_port106_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port106_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port106_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port106_led1:amber:status/brightness",
               "transceiverId": 106
           },
           "212": {
               "id": 212,
-              "bluePath": "/sys/class/leds/osfp_port106_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port106_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port106_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port106_led2:amber:status/brightness",
               "transceiverId": 106
           },
           "213": {
               "id": 213,
-              "bluePath": "/sys/class/leds/osfp_port107_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port107_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port107_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port107_led1:amber:status/brightness",
               "transceiverId": 107
           },
           "214": {
               "id": 214,
-              "bluePath": "/sys/class/leds/osfp_port107_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port107_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port107_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port107_led2:amber:status/brightness",
               "transceiverId": 107
           },
           "215": {
               "id": 215,
-              "bluePath": "/sys/class/leds/osfp_port108_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port108_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port108_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port108_led1:amber:status/brightness",
               "transceiverId": 108
           },
           "216": {
               "id": 216,
-              "bluePath": "/sys/class/leds/osfp_port108_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port108_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port108_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port108_led2:amber:status/brightness",
               "transceiverId": 108
           },
           "217": {
               "id": 217,
-              "bluePath": "/sys/class/leds/osfp_port109_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port109_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port109_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port109_led1:amber:status/brightness",
               "transceiverId": 109
           },
           "218": {
               "id": 218,
-              "bluePath": "/sys/class/leds/osfp_port109_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port109_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port109_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port109_led2:amber:status/brightness",
               "transceiverId": 109
           },
           "219": {
               "id": 219,
-              "bluePath": "/sys/class/leds/osfp_port110_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port110_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port110_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port110_led1:amber:status/brightness",
               "transceiverId": 110
           },
           "220": {
               "id": 220,
-              "bluePath": "/sys/class/leds/osfp_port110_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port110_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port110_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port110_led2:amber:status/brightness",
               "transceiverId": 110
           },
           "221": {
               "id": 221,
-              "bluePath": "/sys/class/leds/osfp_port111_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port111_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port111_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port111_led1:amber:status/brightness",
               "transceiverId": 111
           },
           "222": {
               "id": 222,
-              "bluePath": "/sys/class/leds/osfp_port111_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port111_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port111_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port111_led2:amber:status/brightness",
               "transceiverId": 111
           },
           "223": {
               "id": 223,
-              "bluePath": "/sys/class/leds/osfp_port112_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port112_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port112_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port112_led1:amber:status/brightness",
               "transceiverId": 112
           },
           "224": {
               "id": 224,
-              "bluePath": "/sys/class/leds/osfp_port112_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port112_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port112_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port112_led2:amber:status/brightness",
               "transceiverId": 112
           },
           "225": {
               "id": 225,
-              "bluePath": "/sys/class/leds/osfp_port113_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port113_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port113_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port113_led1:amber:status/brightness",
               "transceiverId": 113
           },
           "226": {
               "id": 226,
-              "bluePath": "/sys/class/leds/osfp_port113_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port113_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port113_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port113_led2:amber:status/brightness",
               "transceiverId": 113
           },
           "227": {
               "id": 227,
-              "bluePath": "/sys/class/leds/osfp_port114_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port114_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port114_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port114_led1:amber:status/brightness",
               "transceiverId": 114
           },
           "228": {
               "id": 228,
-              "bluePath": "/sys/class/leds/osfp_port114_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port114_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port114_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port114_led2:amber:status/brightness",
               "transceiverId": 114
           },
           "229": {
               "id": 229,
-              "bluePath": "/sys/class/leds/osfp_port115_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port115_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port115_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port115_led1:amber:status/brightness",
               "transceiverId": 115
           },
           "230": {
               "id": 230,
-              "bluePath": "/sys/class/leds/osfp_port115_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port115_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port115_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port115_led2:amber:status/brightness",
               "transceiverId": 115
           },
           "231": {
               "id": 231,
-              "bluePath": "/sys/class/leds/osfp_port116_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port116_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port116_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port116_led1:amber:status/brightness",
               "transceiverId": 116
           },
           "232": {
               "id": 232,
-              "bluePath": "/sys/class/leds/osfp_port116_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port116_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port116_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port116_led2:amber:status/brightness",
               "transceiverId": 116
           },
           "233": {
               "id": 233,
-              "bluePath": "/sys/class/leds/osfp_port117_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port117_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port117_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port117_led1:amber:status/brightness",
               "transceiverId": 117
           },
           "234": {
               "id": 234,
-              "bluePath": "/sys/class/leds/osfp_port117_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port117_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port117_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port117_led2:amber:status/brightness",
               "transceiverId": 117
           },
           "235": {
               "id": 235,
-              "bluePath": "/sys/class/leds/osfp_port118_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port118_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port118_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port118_led1:amber:status/brightness",
               "transceiverId": 118
           },
           "236": {
               "id": 236,
-              "bluePath": "/sys/class/leds/osfp_port118_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port118_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port118_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port118_led2:amber:status/brightness",
               "transceiverId": 118
           },
           "237": {
               "id": 237,
-              "bluePath": "/sys/class/leds/osfp_port119_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port119_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port119_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port119_led1:amber:status/brightness",
               "transceiverId": 119
           },
           "238": {
               "id": 238,
-              "bluePath": "/sys/class/leds/osfp_port119_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port119_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port119_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port119_led2:amber:status/brightness",
               "transceiverId": 119
           },
           "239": {
               "id": 239,
-              "bluePath": "/sys/class/leds/osfp_port120_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port120_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port120_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port120_led1:amber:status/brightness",
               "transceiverId": 120
           },
           "240": {
               "id": 240,
-              "bluePath": "/sys/class/leds/osfp_port120_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port120_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port120_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port120_led2:amber:status/brightness",
               "transceiverId": 120
           },
           "241": {
               "id": 241,
-              "bluePath": "/sys/class/leds/osfp_port121_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port121_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port121_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port121_led1:amber:status/brightness",
               "transceiverId": 121
           },
           "242": {
               "id": 242,
-              "bluePath": "/sys/class/leds/osfp_port121_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port121_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port121_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port121_led2:amber:status/brightness",
               "transceiverId": 121
           },
           "243": {
               "id": 243,
-              "bluePath": "/sys/class/leds/osfp_port122_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port122_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port122_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port122_led1:amber:status/brightness",
               "transceiverId": 122
           },
           "244": {
               "id": 244,
-              "bluePath": "/sys/class/leds/osfp_port122_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port122_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port122_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port122_led2:amber:status/brightness",
               "transceiverId": 122
           },
           "245": {
               "id": 245,
-              "bluePath": "/sys/class/leds/osfp_port123_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port123_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port123_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port123_led1:amber:status/brightness",
               "transceiverId": 123
           },
           "246": {
               "id": 246,
-              "bluePath": "/sys/class/leds/osfp_port123_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port123_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port123_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port123_led2:amber:status/brightness",
               "transceiverId": 123
           },
           "247": {
               "id": 247,
-              "bluePath": "/sys/class/leds/osfp_port124_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port124_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port124_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port124_led1:amber:status/brightness",
               "transceiverId": 124
           },
           "248": {
               "id": 248,
-              "bluePath": "/sys/class/leds/osfp_port124_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port124_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port124_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port124_led2:amber:status/brightness",
               "transceiverId": 124
           },
           "249": {
               "id": 249,
-              "bluePath": "/sys/class/leds/osfp_port125_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port125_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port125_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port125_led1:amber:status/brightness",
               "transceiverId": 125
           },
           "250": {
               "id": 250,
-              "bluePath": "/sys/class/leds/osfp_port125_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port125_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port125_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port125_led2:amber:status/brightness",
               "transceiverId": 125
           },
           "251": {
               "id": 251,
-              "bluePath": "/sys/class/leds/osfp_port126_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port126_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port126_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port126_led1:amber:status/brightness",
               "transceiverId": 126
           },
           "252": {
               "id": 252,
-              "bluePath": "/sys/class/leds/osfp_port126_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port126_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port126_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port126_led2:amber:status/brightness",
               "transceiverId": 126
           },
           "253": {
               "id": 253,
-              "bluePath": "/sys/class/leds/osfp_port127_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port127_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port127_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port127_led1:amber:status/brightness",
               "transceiverId": 127
           },
           "254": {
               "id": 254,
-              "bluePath": "/sys/class/leds/osfp_port127_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port127_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port127_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port127_led2:amber:status/brightness",
               "transceiverId": 127
           },
           "255": {
               "id": 255,
-              "bluePath": "/sys/class/leds/osfp_port128_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port128_led1:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port128_led1:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port128_led1:amber:status/brightness",
               "transceiverId": 128
           },
           "256": {
               "id": 256,
-              "bluePath": "/sys/class/leds/osfp_port128_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/osfp_port128_led2:amber:status/brightness",
+              "bluePath": "/sys/class/leds/osfp_led_port128_led2:blue:status/brightness",
+              "yellowPath": "/sys/class/leds/osfp_led_port128_led2:amber:status/brightness",
               "transceiverId": 128
           }
         }
