@@ -937,6 +937,8 @@ class SwSwitch : public HwSwitchCallback {
 
   std::map<PortID, HwPortStats> getHwPortStats(
       std::vector<PortID> portId) const;
+  void getAllHwSysPortStats(
+      std::map<std::string, HwSysPortStats>& hwSysPortStats) const;
 
   bool isRunModeMultiSwitch();
 

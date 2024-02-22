@@ -3074,7 +3074,7 @@ void ThriftHandler::getSysPortStats(
     std::map<std::string, HwSysPortStats>& hwSysPortStats) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  hwSysPortStats = sw_->getHwSwitchHandler()->getSysPortStats();
+  sw_->getAllHwSysPortStats(hwSysPortStats);
 }
 
 void ThriftHandler::getCpuPortStats(CpuPortStats& cpuPortStats) {

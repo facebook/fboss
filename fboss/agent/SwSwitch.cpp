@@ -906,6 +906,17 @@ bool SwSwitch::isRunModeMultiSwitch() {
       (*agentConfig_.rlock())->getRunMode() == cfg::AgentRunMode::MULTI_SWITCH;
 }
 
+void SwSwitch::getAllHwSysPortStats(
+    std::map<std::string, HwSysPortStats>& hwSysPortStats) const {
+  auto hwswitchStatsMap = hwSwitchStats_.rlock();
+  for (const auto& [switchIdx, hwSwitchStats] : *hwswitchStatsMap) {
+    for (const auto& [portName, hwSysPortStatsEntry] :
+         *hwSwitchStats.sysPortStats()) {
+      hwSysPortStats.emplace(portName, hwSysPortStatsEntry);
+    }
+  }
+}
+
 void SwSwitch::updateFlowletStats() {
   uint64_t dlbErrorPackets = 0;
   auto runMode = (*agentConfig_.rlock())->getRunMode();
