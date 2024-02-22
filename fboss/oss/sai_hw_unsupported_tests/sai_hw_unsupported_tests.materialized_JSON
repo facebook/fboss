@@ -219,6 +219,9 @@
         },
         {
           "test_name_regex": "HwIngressBufferTest.validatePGQueueChanges$"
+        },
+        {
+          "test_name_regex": "HwInPauseFloodTest.*$"
         }
     ],
     "brcm/10.0_ea_odp/10.0_ea_odp/tomahawk5": [
@@ -704,6 +707,9 @@
         },
         {
           "test_name_regex": "HwIngressBufferTest.validatePGQueueChanges$"
+        },
+        {
+          "test_name_regex": "HwInPauseFloodTest.*$"
         }
     ],
     "brcm/11.0_ea_dnx_odp/11.0_ea_dnx_odp/jericho3": [
@@ -925,6 +931,9 @@
         },
         {
           "test_name_regex": "HwIngressBufferTest.validatePGQueueChanges$"
+        },
+        {
+          "test_name_regex": "HwInPauseFloodTest.*$"
         },
         {
           "test_name_regex": "HwLoadBalancerNegativeTestV6RoCE.*$"
