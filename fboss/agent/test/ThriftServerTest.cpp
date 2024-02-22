@@ -55,7 +55,7 @@ class ThriftServerTest : public ::testing::Test {
  public:
   void SetUp() override {
     cfg::AgentConfig agentConfig;
-    agentConfig.defaultCommandLineArgs()->insert({"multi_switch", "true"});
+    FLAGS_multi_switch = true;
     agentConfig.sw() = testConfigA();
     handle_ = createTestHandle(&agentConfig.sw().value());
     sw_ = handle_->getSw();

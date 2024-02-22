@@ -317,7 +317,7 @@ class AgentPreStartExecTests : public ::testing::Test {
   }
 
   void setMultiSwitchMode(std::map<std::string, std::string>& args) {
-    args.emplace("multi_switch", TestAttr::kMultiSwitch ? "true" : "false");
+    FLAGS_multi_switch = TestAttr::kMultiSwitch ? true : false;
   }
 
   void setSwitchIdToSwitchInfo(cfg::SwitchConfig& config) {
