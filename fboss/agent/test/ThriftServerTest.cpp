@@ -390,16 +390,24 @@ CO_TEST_F(ThriftServerTest, statsUpdate) {
   // setup server and clients
   setupServerAndClients();
 
-  auto getTestStatUpdate = []() {
+  ThriftHandler handler(sw_);
+  auto portName = sw_->getState()->getPorts()->getNodeIf(PortID(5))->getName();
+
+  auto getTestStatUpdate = [&portName]() {
     multiswitch::HwSwitchStats stats;
     stats.timestamp() = 1000;
     HwPortStats portStats;
     portStats.inBytes_() = 10000;
-    stats.hwPortStats() = {{"eth1", std::move(portStats)}};
+    portStats.outBytes_() = 20000;
+    for (auto queueId = 0; queueId < 10; queueId++) {
+      portStats.queueOutBytes_()[queueId] = queueId * 10;
+      portStats.queueOutDiscardBytes_()[queueId] = queueId * 2;
+    }
+    stats.hwPortStats() = {{portName, std::move(portStats)}};
     stats.hwResourceStats()->acl_counters_free() = 50;
     HwSysPortStats sysPortStats;
     sysPortStats.queueOutBytes_() = {{1, 10}, {2, 20}};
-    stats.sysPortStats() = {{"eth1", std::move(sysPortStats)}};
+    stats.sysPortStats() = {{portName, std::move(sysPortStats)}};
     FabricReachabilityStats reachabilityStats;
     reachabilityStats.mismatchCount() = 10;
     reachabilityStats.missingCount() = 20;
@@ -420,8 +428,9 @@ CO_TEST_F(ThriftServerTest, statsUpdate) {
   EXPECT_EQ(sw_->getFabricReachabilityStats().mismatchCount().value(), 10);
   EXPECT_EQ(sw_->getFabricReachabilityStats().missingCount().value(), 20);
   auto agentStats = sw_->fillFsdbStats();
-  EXPECT_EQ(agentStats.hwPortStats()["eth1"].inBytes_().value(), 10000);
-  EXPECT_EQ(agentStats.sysPortStats()["eth1"].queueOutBytes_().value()[1], 10);
+  EXPECT_EQ(agentStats.hwPortStats()[portName].inBytes_().value(), 10000);
+  EXPECT_EQ(
+      agentStats.sysPortStats()[portName].queueOutBytes_().value()[1], 10);
   // CHECK entry in switchIndex map
   EXPECT_EQ(
       agentStats.hwResourceStatsMap()[switchIndex].acl_counters_free().value(),
@@ -431,4 +440,8 @@ CO_TEST_F(ThriftServerTest, statsUpdate) {
   // verify that swswitch continues caching hwswitch stats after fsdb update
   auto fdsbStats = sw_->fillFsdbStats();
   EXPECT_EQ(sw_->getHwSwitchStatsExpensive(switchIndex), getTestStatUpdate());
+  PortInfoThrift portInfo;
+  handler.getPortInfo(portInfo, 5);
+  EXPECT_EQ(portInfo.input()->bytes().value(), 10000);
+  EXPECT_EQ(portInfo.output()->bytes().value(), 20000);
 }

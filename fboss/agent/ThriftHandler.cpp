@@ -139,39 +139,34 @@ std::vector<network::thrift::BinaryAddress> fromFwdNextHops(
 
 namespace {
 
-void fillPortStats(PortInfoThrift& portInfo, int numPortQs) {
+void fillPortStats(
+    const SwSwitch& sw,
+    PortInfoThrift& portInfo,
+    int numPortQs) {
   auto portId = *portInfo.portId();
-  auto statMap = facebook::fb303::fbData->getStatMap();
+  auto hwPortsStats = sw.getHwPortStats({PortID(portId)});
+  if (hwPortsStats.empty()) {
+    return;
+  }
+  const auto& hwPortStats = hwPortsStats.at(PortID(portId));
+  portInfo.input()->bytes() = *hwPortStats.inBytes_();
+  portInfo.input()->ucastPkts() = *hwPortStats.inUnicastPkts_();
+  portInfo.input()->multicastPkts() = *hwPortStats.inMulticastPkts_();
+  portInfo.input()->broadcastPkts() = *hwPortStats.inBroadcastPkts_();
+  portInfo.input()->errors()->errors() = *hwPortStats.inErrors_();
+  portInfo.input()->errors()->discards() = *hwPortStats.inDiscards_();
 
-  auto getSumStat = [&](StringPiece prefix, StringPiece name) {
-    auto portName = portInfo.name()->empty()
-        ? folly::to<std::string>("port", portId)
-        : *portInfo.name();
-    auto statName = folly::to<std::string>(portName, ".", prefix, name);
-    auto statPtr = statMap->getStatPtrNoExport(statName);
-    auto lockedStatPtr = statPtr->lock();
-    auto numLevels = lockedStatPtr->numLevels();
-    // Cumulative (ALLTIME) counters are at (numLevels - 1)
-    return lockedStatPtr->sum(numLevels - 1);
-  };
+  portInfo.output()->bytes() = *hwPortStats.outBytes_();
+  portInfo.output()->ucastPkts() = *hwPortStats.outUnicastPkts_();
+  portInfo.output()->multicastPkts() = *hwPortStats.outMulticastPkts_();
+  portInfo.output()->broadcastPkts() = *hwPortStats.outBroadcastPkts_();
+  portInfo.output()->errors()->errors() = *hwPortStats.outErrors_();
+  portInfo.output()->errors()->discards() = *hwPortStats.outDiscards_();
 
-  auto fillPortCounters = [&](PortCounters& ctr, StringPiece prefix) {
-    *ctr.bytes() = getSumStat(prefix, "bytes");
-    *ctr.ucastPkts() = getSumStat(prefix, "unicast_pkts");
-    *ctr.multicastPkts() = getSumStat(prefix, "multicast_pkts");
-    *ctr.broadcastPkts() = getSumStat(prefix, "broadcast_pkts");
-    *ctr.errors()->errors() = getSumStat(prefix, "errors");
-    *ctr.errors()->discards() = getSumStat(prefix, "discards");
-  };
-
-  fillPortCounters(*portInfo.output(), "out_");
-  fillPortCounters(*portInfo.input(), "in_");
   for (int i = 0; i < numPortQs; i++) {
-    auto queue = folly::to<std::string>("queue", i, ".");
     QueueStats stats;
-    *stats.congestionDiscards() =
-        getSumStat(queue, "out_congestion_discards_bytes");
-    *stats.outBytes() = getSumStat(queue, "out_bytes");
+    *stats.congestionDiscards() = hwPortStats.queueOutDiscardBytes_()->at(i);
+    *stats.outBytes() = hwPortStats.queueOutBytes_()->at(i);
     portInfo.output()->unicast()->push_back(stats);
   }
 }
@@ -382,7 +377,7 @@ void getPortInfoHelper(
     // No problem, we just don't set the other info
   }
 
-  fillPortStats(portInfo, portInfo.portQueues()->size());
+  fillPortStats(sw, portInfo, portInfo.portQueues()->size());
   *portInfo.isDrained() =
       (port->getPortDrainState() ==
        facebook::fboss::cfg::PortDrainState::DRAINED);
