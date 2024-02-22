@@ -185,4 +185,21 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, fabricIsolate) {
   };
   verifyAcrossWarmBoots([] {}, verify);
 }
+
+TEST_F(AgentVoqSwitchWithFabricPortsTest, switchIsolate) {
+  auto setup = [=, this]() {
+    auto newCfg = initialConfig(*getAgentEnsemble());
+    *newCfg.switchSettings()->switchDrainState() =
+        cfg::SwitchDrainState::DRAINED;
+    applyNewConfig(newCfg);
+  };
+
+  auto verify = [this]() {
+    for (const auto& switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
+      utility::checkFabricReachability(getAgentEnsemble(), switchId);
+    }
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
