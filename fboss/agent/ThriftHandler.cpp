@@ -27,6 +27,7 @@
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/SwitchStats.h"
+#include "fboss/agent/ThriftHandlerUtils.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/capture/PktCapture.h"
@@ -1168,104 +1169,7 @@ void ThriftHandler::getAllPortInfo(map<int32_t, PortInfoThrift>& portInfoMap) {
 void ThriftHandler::clearPortStats(unique_ptr<vector<int32_t>> ports) {
   auto log = LOG_THRIFT_CALL(DBG1, *ports);
   ensureConfigured(__func__);
-  sw_->clearPortStats(ports);
-
-  auto getPortCounterKeys = [&](std::vector<std::string>& portKeys,
-                                const StringPiece prefix,
-                                const std::shared_ptr<Port> port) {
-    auto portId = port->getID();
-    auto portName = port->getName().empty()
-        ? folly::to<std::string>("port", portId)
-        : port->getName();
-    auto portNameWithPrefix = folly::to<std::string>(portName, ".", prefix);
-    portKeys.emplace_back(
-        folly::to<std::string>(portNameWithPrefix, "unicast_pkts"));
-    portKeys.emplace_back(folly::to<std::string>(portNameWithPrefix, "bytes"));
-    portKeys.emplace_back(
-        folly::to<std::string>(portNameWithPrefix, "multicast_pkts"));
-    portKeys.emplace_back(
-        folly::to<std::string>(portNameWithPrefix, "broadcast_pkts"));
-    portKeys.emplace_back(folly::to<std::string>(portNameWithPrefix, "errors"));
-    portKeys.emplace_back(
-        folly::to<std::string>(portNameWithPrefix, "discards"));
-  };
-
-  auto getQueueCounterKeys = [&](std::vector<std::string>& portKeys,
-                                 const std::shared_ptr<Port> port) {
-    auto portId = port->getID();
-    auto portName = port->getName().empty()
-        ? folly::to<std::string>("port", portId)
-        : port->getName();
-    for (int i = 0; i < port->getPortQueues()->size(); ++i) {
-      auto portQueue = folly::to<std::string>(portName, ".", "queue", i, ".");
-      portKeys.emplace_back(
-          folly::to<std::string>(portQueue, "out_congestion_discards_bytes"));
-      portKeys.emplace_back(folly::to<std::string>(portQueue, "out_bytes"));
-    }
-  };
-
-  auto getPortPfcCounterKeys = [&](std::vector<std::string>& portKeys,
-                                   const std::shared_ptr<Port> port) {
-    auto portId = port->getID();
-    auto portName = port->getName().empty()
-        ? folly::to<std::string>("port", portId)
-        : port->getName();
-    auto portNameExt = folly::to<std::string>(portName, ".");
-    std::array<int, 2> enabledPfcPriorities_{0, 7};
-    for (auto pri : enabledPfcPriorities_) {
-      portKeys.emplace_back(
-          folly::to<std::string>(portNameExt, "in_pfc_frames.priority", pri));
-      portKeys.emplace_back(folly::to<std::string>(
-          portNameExt, "in_pfc_xon_frames.priority", pri));
-      portKeys.emplace_back(
-          folly::to<std::string>(portNameExt, "out_pfc_frames.priority", pri));
-    }
-    portKeys.emplace_back(folly::to<std::string>(portNameExt, "in_pfc_frames"));
-    portKeys.emplace_back(
-        folly::to<std::string>(portNameExt, "out_pfc_frames"));
-  };
-
-  auto getPortLinkStateCounterKey = [&](std::vector<std::string>& portKeys,
-                                        const std::shared_ptr<Port> port) {
-    auto portId = port->getID();
-    auto portName = port->getName().empty()
-        ? folly::to<std::string>("port", portId)
-        : port->getName();
-    portKeys.emplace_back(
-        folly::to<std::string>(portName, ".", "link_state.flap"));
-  };
-
-  auto getLinkStateCounterKey = [&](std::vector<std::string>& globalKeys) {
-    globalKeys.emplace_back("link_state.flap");
-  };
-
-  auto statsMap = facebook::fb303::fbData->getStatMap();
-  for (const auto& portId : *ports) {
-    const auto port = sw_->getState()->getPorts()->getNodeIf(PortID(portId));
-    std::vector<std::string> portKeys;
-    getPortCounterKeys(portKeys, "out_", port);
-    getPortCounterKeys(portKeys, "in_", port);
-    getQueueCounterKeys(portKeys, port);
-    getPortLinkStateCounterKey(portKeys, port);
-    if (port->getPfc().has_value()) {
-      getPortPfcCounterKeys(portKeys, port);
-    }
-    for (const auto& key : portKeys) {
-      // this API locks statistics for the key
-      // ensuring no race condition with update/delete
-      // in different thread
-      statsMap->clearValue(key);
-    }
-  }
-
-  std::vector<std::string> globalKeys;
-  getLinkStateCounterKey(globalKeys);
-  for (const auto& key : globalKeys) {
-    // this API locks statistics for the key
-    // ensuring no race condition with update/delete
-    // in different thread
-    statsMap->clearValue(key);
-  }
+  utility::clearPortStats(sw_, std::move(ports), sw_->getState());
 }
 
 void ThriftHandler::clearAllPortStats() {
