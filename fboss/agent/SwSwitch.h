@@ -935,6 +935,9 @@ class SwSwitch : public HwSwitchCallback {
   FabricReachabilityStats getFabricReachabilityStats();
   void setPortsDownForSwitch(SwitchID switchId);
 
+  std::map<PortID, HwPortStats> getHwPortStats(
+      std::vector<PortID> portId) const;
+
  private:
   std::optional<folly::MacAddress> getSourceMac(
       const std::shared_ptr<Interface>& intf) const;

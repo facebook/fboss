@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/SwSwitch.h"
+#include <optional>
 
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/AgentDirectoryUtil.h"
@@ -3093,6 +3094,29 @@ void SwSwitch::setPortsDownForSwitch(SwitchID switchId) {
       }
     }
   }
+}
+
+std::map<PortID, HwPortStats> SwSwitch::getHwPortStats(
+    std::vector<PortID> ports) const {
+  std::map<PortID, HwPortStats> hwPortsStats;
+  for (const auto& portId : ports) {
+    auto switchIds = getScopeResolver()->scope(portId).switchIds();
+    CHECK_EQ(switchIds.size(), 1);
+    auto switchIndex =
+        getSwitchInfoTable().getSwitchIndexFromSwitchId(*switchIds.cbegin());
+    auto hwswitchStatsMap = hwSwitchStats_.rlock();
+    auto hwswitchStats = hwswitchStatsMap->find(switchIndex);
+    if (hwswitchStats != hwswitchStatsMap->end()) {
+      auto portName = getState()->getPorts()->getNodeIf(portId)->getName();
+      auto statsMap = hwswitchStats->second.hwPortStats();
+      auto entry = statsMap->find(portName);
+      if (entry != statsMap->end()) {
+        hwPortsStats.insert(
+            {portId, hwswitchStats->second.hwPortStats()->at(portName)});
+      }
+    }
+  }
+  return hwPortsStats;
 }
 
 } // namespace facebook::fboss
