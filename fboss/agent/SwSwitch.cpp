@@ -928,6 +928,14 @@ void SwSwitch::getAllHwPortStats(
   }
 }
 
+void SwSwitch::getAllCpuPortStats(
+    std::map<int, CpuPortStats>& hwCpuPortStats) const {
+  auto hwswitchStatsMap = hwSwitchStats_.rlock();
+  for (const auto& [switchIdx, hwSwitchStats] : *hwswitchStatsMap) {
+    hwCpuPortStats.emplace(switchIdx, *hwSwitchStats.cpuPortStats());
+  }
+}
+
 void SwSwitch::updateFlowletStats() {
   uint64_t dlbErrorPackets = 0;
   auto runMode = (*agentConfig_.rlock())->getRunMode();

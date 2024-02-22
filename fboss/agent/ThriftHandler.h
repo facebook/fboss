@@ -294,6 +294,7 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void getSysPortStats(
       std::map<std::string, HwSysPortStats>& hwSysPortStats) override;
   void getCpuPortStats(CpuPortStats& hwCpuPortStats) override;
+  void getAllCpuPortStats(std::map<int, CpuPortStats>& hwCpuPortStats) override;
   void getHwPortStats(std::map<std::string, HwPortStats>& hwPortStats) override;
   void getFabricReachabilityStats(
       FabricReachabilityStats& fabricReachabilityStats) override;

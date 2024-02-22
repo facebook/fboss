@@ -261,8 +261,6 @@ MultiHwSwitchHandler::getPortStats() {
 }
 
 CpuPortStats MultiHwSwitchHandler::getCpuPortStats(bool getIncrement) {
-  // TODO - support with multiple switches
-  CHECK_EQ(hwSwitchSyncers_.size(), 1);
   return hwSwitchSyncers_.begin()->second->getCpuPortStats(getIncrement);
 }
 

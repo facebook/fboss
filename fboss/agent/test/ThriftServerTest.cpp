@@ -396,6 +396,8 @@ CO_TEST_F(ThriftServerTest, statsUpdate) {
   auto getTestStatUpdate = [&portName]() {
     multiswitch::HwSwitchStats stats;
     stats.timestamp() = 1000;
+
+    // port stats
     HwPortStats portStats;
     portStats.inBytes_() = 10000;
     portStats.outBytes_() = 20000;
@@ -404,16 +406,29 @@ CO_TEST_F(ThriftServerTest, statsUpdate) {
       portStats.queueOutDiscardBytes_()[queueId] = queueId * 2;
     }
     stats.hwPortStats() = {{portName, std::move(portStats)}};
+
+    // hw resource stats
     stats.hwResourceStats()->acl_counters_free() = 50;
+
+    // sys port stats
     HwSysPortStats sysPortStats;
     sysPortStats.queueOutBytes_() = {{1, 10}, {2, 20}};
     stats.sysPortStats() = {{portName, std::move(sysPortStats)}};
+
+    // fabric reachability stats
     FabricReachabilityStats reachabilityStats;
     reachabilityStats.mismatchCount() = 10;
     reachabilityStats.missingCount() = 20;
     stats.fabricReachabilityStats() = std::move(reachabilityStats);
+
+    // cpu port stats
+    CpuPortStats cpuPortStats;
+    cpuPortStats.queueInPackets_() = {{1, 10}, {2, 20}};
+    stats.cpuPortStats() = std::move(cpuPortStats);
+
     return stats;
   };
+
   uint16_t switchIndex = 0;
 
   // Send packets to server using sink
@@ -452,4 +467,7 @@ CO_TEST_F(ThriftServerTest, statsUpdate) {
   handler.getSysPortStats(hwSysPortStats);
   EXPECT_EQ(hwSysPortStats[portName].queueOutBytes_().value()[1], 10);
   EXPECT_EQ(hwSysPortStats[portName].queueOutBytes_().value()[2], 20);
+  std::map<int, CpuPortStats> cpuPortStats;
+  handler.getAllCpuPortStats(cpuPortStats);
+  EXPECT_EQ(cpuPortStats[0], getTestStatUpdate().cpuPortStats().value());
 }
