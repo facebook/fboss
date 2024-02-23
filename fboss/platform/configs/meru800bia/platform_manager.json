@@ -1534,11 +1534,11 @@
    "bspKmodsRpmName": "arista_bsp_kmods",
    "bspKmodsRpmVersion": "0.5.1-1",
    "kmodsToReload": [
-      "scd",
+      "scd-xcvr",
       "scd-spi",
       "scd-leds",
-      "scd-xcvr",
       "scd-smbus",
+      "scd",
       "dsf-fan-cpld"
    ]
 }
