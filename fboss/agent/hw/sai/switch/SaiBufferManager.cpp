@@ -236,9 +236,10 @@ void SaiBufferManager::setupIngressEgressBufferPool(
     // to get buffers size for these ASICs. Also, the size returned is
     // the combined SRAM/DRAM size. From DRAM however, the whole size is
     // not available for use, a note on the same from Broadcom is captured
-    // in CS00012297372.
+    // in CS00012297372. The size returned is per core and hence multiplying
+    // with number of cores to get the whole buffer pool size.
     poolSize = getSwitchEgressPoolAvailableSize(platform_) *
-        platform_->getAsic()->getNumMemoryBuffers();
+        platform_->getAsic()->getNumCores();
   }
   std::optional<int32_t> newXoffSize;
   if (bufferPoolCfg &&

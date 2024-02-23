@@ -46,9 +46,12 @@ class Jericho3Asic : public BroadcomAsic {
     return 9;
   }
   uint64_t getMMUSizeBytes() const override {
-    // DRAM utilization is 75%, ie. only 75% of the total
-    // OBM+HBM is available to user of the total ~12G.
-    return uint64_t(9) * 1024 * 1024 * 1024;
+    // J3 has 3 HBMs with 8G each, which translates to 24G of HBM.
+    // However, only 4G is usable per core due to the 1M 4K buffers
+    // limit. This means a total of 4 cores * 4G = 16G HBM memory
+    // is accessible. The DRAM utilization is 75%, ie. only 75% of
+    // the total OBM+HBM is available to user of the total ~16G.
+    return uint64_t(12) * 1024 * 1024 * 1024;
   }
   uint32_t getMMUCellSize() const {
     return 254;
@@ -107,7 +110,7 @@ class Jericho3Asic : public BroadcomAsic {
   cfg::Range64 getReservedEncapIndexRange() const override;
   HwAsic::RecyclePortInfo getRecyclePortInfo() const override;
   uint32_t getNumMemoryBuffers() const override {
-    return 2;
+    return 3;
   }
   int getBufferDynThreshFromScalingFactor(
       cfg::MMUScalingFactor scalingFactor) const override {
