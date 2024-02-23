@@ -34,6 +34,8 @@ class HwInPauseDiscardsCounterTest : public HwLinkStateDependentTest {
         getAsic()->desiredLoopbackModes());
     return cfg;
   }
+
+ protected:
   void pumpTraffic() {
     std::vector<uint8_t> payload{0x00, 0x01, 0x00, 0x02};
     std::vector<uint8_t> padding(42, 0);
@@ -49,21 +51,24 @@ class HwInPauseDiscardsCounterTest : public HwLinkStateDependentTest {
         std::move(pkt), PortID(masterLogicalInterfacePortIds()[0]));
   }
 
- protected:
-  void runTest(bool enableRxPause) {
-    auto setup = [=, this]() {
-      if (enableRxPause) {
-        auto newState = getProgrammedState()->clone();
-        auto portMap = newState->getPorts()->modify(&newState);
-        auto port =
-            portMap->getNodeIf(PortID(masterLogicalInterfacePortIds()[0]))
-                ->clone();
+  void commonSetup(bool enableRxPause, std::vector<PortID>& ports) {
+    if (enableRxPause) {
+      auto newState = getProgrammedState()->clone();
+      auto portMap = newState->getPorts()->modify(&newState);
+      for (auto pId : ports) {
+        auto port = portMap->getNodeIf(pId)->clone();
         cfg::PortPause pauseCfg;
         *pauseCfg.rx() = true;
         port->setPause(pauseCfg);
         portMap->updateNode(port, scopeResolver().scope(port));
-        applyNewState(newState);
       }
+      applyNewState(newState);
+    }
+  }
+  void runTest(bool enableRxPause) {
+    auto setup = [=, this]() {
+      std::vector<PortID> ports = {PortID(masterLogicalInterfacePortIds()[0])};
+      this->commonSetup(enableRxPause, ports);
     };
     auto verify = [=, this]() {
       auto portStatsBefore =
@@ -106,6 +111,42 @@ class HwInPauseDiscardsCounterTest : public HwLinkStateDependentTest {
   }
 };
 
+class HwInPauseFloodTest : public HwInPauseDiscardsCounterTest {
+ private:
+  cfg::SwitchConfig initialConfig() const override {
+    auto cfg = utility::oneL3IntfNPortConfig(
+        getHwSwitch()->getPlatform()->getPlatformMapping(),
+        getHwSwitch()->getPlatform()->getAsic(),
+        masterLogicalPortIds(),
+        getHwSwitch()->getPlatform()->supportsAddRemovePort(),
+        getAsic()->desiredLoopbackModes());
+    return cfg;
+  }
+
+ protected:
+  void runFloodTest(bool enableRxPause) {
+    auto setup = [=, this]() {
+      std::vector<PortID> ports = {
+          PortID(masterLogicalInterfacePortIds()[0]),
+          PortID(masterLogicalInterfacePortIds()[1])};
+      this->commonSetup(enableRxPause, ports);
+    };
+    auto verify = [=, this]() {
+      auto portStatsBefore =
+          getLatestPortStats(masterLogicalInterfacePortIds()[1]);
+      pumpTraffic();
+      auto portStatsAfter =
+          getLatestPortStats(masterLogicalInterfacePortIds()[1]);
+      XLOG(DBG0) << "Port " << PortID(masterLogicalInterfacePortIds()[1])
+                 << ", outBytes, before: " << *portStatsBefore.outBytes_()
+                 << ", after: " << *portStatsAfter.outBytes_();
+      // Irrespective of the PAUSE enabled status on ports, we expect PAUSE
+      // frames to be dropped by the MAC and not flooded.
+      EXPECT_EQ(*portStatsAfter.outBytes_(), *portStatsBefore.outBytes_());
+    };
+    verifyAcrossWarmBoots(setup, verify);
+  }
+};
 /*
  * The chip behavior is that as long as MMU is lossy, in pause frames count as
  * discards, even though with RX pause enabled the chip does throttle traffic on
@@ -120,6 +161,14 @@ TEST_F(HwInPauseDiscardsCounterTest, rxPauseDisabled) {
 
 TEST_F(HwInPauseDiscardsCounterTest, rxPauseEnabled) {
   runTest(true);
+}
+
+TEST_F(HwInPauseFloodTest, rxPauseDisabledValidateFlooding) {
+  runFloodTest(false);
+}
+
+TEST_F(HwInPauseFloodTest, rxPauseEnabledValidateFlooding) {
+  runFloodTest(true);
 }
 
 } // namespace facebook::fboss
