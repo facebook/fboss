@@ -165,10 +165,21 @@ void fillPortStats(
   portInfo.output()->errors()->errors() = *hwPortStats.outErrors_();
   portInfo.output()->errors()->discards() = *hwPortStats.outDiscards_();
 
-  for (int i = 0; i < numPortQs; i++) {
+  for (int16_t i = 0; i < numPortQs; i++) {
     QueueStats stats;
-    *stats.congestionDiscards() = hwPortStats.queueOutDiscardBytes_()->at(i);
-    *stats.outBytes() = hwPortStats.queueOutBytes_()->at(i);
+    if (hwPortStats.queueOutDiscardBytes_()->find(i) !=
+        hwPortStats.queueOutDiscardBytes_()->end()) {
+      *stats.congestionDiscards() = hwPortStats.queueOutDiscardBytes_()->at(i);
+    } else {
+      *stats.congestionDiscards() = 0;
+    }
+
+    if (hwPortStats.queueOutBytes_()->find(i) !=
+        hwPortStats.queueOutBytes_()->end()) {
+      *stats.outBytes() = hwPortStats.queueOutBytes_()->at(i);
+    } else {
+      *stats.outBytes() = 0;
+    }
     portInfo.output()->unicast()->push_back(stats);
   }
 }
