@@ -10,7 +10,9 @@ class PkgUtils {
  public:
   void processRpms(const PlatformConfig& config) const;
   void processKmods(const PlatformConfig& config) const;
-  void processLocalRpms(const std::string& rpmFullPath) const;
+  void processLocalRpms(
+      const std::string& rpmFullPath,
+      const PlatformConfig& config) const;
 
  private:
   void loadKmod(const std::string& moduleName) const;

@@ -21,14 +21,18 @@ void PkgUtils::processRpms(const PlatformConfig& config) const {
   if (!isRpmInstalled(bspKmodsRpmName)) {
     XLOG(INFO) << fmt::format("Installing BSP Kmods {}", bspKmodsRpmName);
     installRpm(bspKmodsRpmName, 3 /* maxAttempts */);
+    processKmods(config);
   } else {
     XLOG(INFO) << fmt::format(
         "BSP Kmods {} is already installed", bspKmodsRpmName);
   }
 }
 
-void PkgUtils::processLocalRpms(const std::string& rpmFullPath) const {
+void PkgUtils::processLocalRpms(
+    const std::string& rpmFullPath,
+    const PlatformConfig& config) const {
   installLocalRpm(rpmFullPath, 3 /* maxAttempts */);
+  processKmods(config);
 }
 
 void PkgUtils::processKmods(const PlatformConfig& config) const {
