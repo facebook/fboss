@@ -124,6 +124,8 @@
 #include "fboss/agent/state/VlanMapDelta.h"
 #include "fboss/agent/types.h"
 
+#include "fboss/agent/hw/bcm/BcmHostUtils.h"
+
 extern "C" {
 #include <bcm/link.h>
 #include <bcm/port.h>
@@ -2681,6 +2683,10 @@ void BcmSwitch::processAddedAndChangedNeighbor(
         neighborMac,
         getPortTable()->getBcmPortId(port),
         entry->getClassID());
+  }
+
+  if (entry->getDisableTTLDecrement()) {
+    setDisableTTLDecrement(this, neighborKey);
   }
   std::for_each(
       writableMplsNextHopTable()->getNextHops().begin(),
