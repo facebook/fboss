@@ -169,6 +169,7 @@ add_library(mono_agent_ensemble
 target_link_libraries(mono_agent_ensemble
   agent_ensemble
   monolithic_agent_initializer
+  ${GTEST}
 )
 
 add_library(multi_switch_agent_ensemble
@@ -178,4 +179,5 @@ add_library(multi_switch_agent_ensemble
 target_link_libraries(multi_switch_agent_ensemble
   agent_ensemble
   split_agent_initializer
+  ${GTEST}
 )

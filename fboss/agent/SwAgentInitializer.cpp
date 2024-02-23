@@ -157,7 +157,7 @@ void SwAgentInitializer::stopServices() {
   fbossFinalize();
 }
 
-void SwAgentInitializer::handleExitSignal() {
+void SwAgentInitializer::handleExitSignal(bool /* gracefulExit */) {
   restart_time::mark(RestartEvent::SIGNAL_RECEIVED);
   XLOG(DBG2) << "[Exit] Signal received ";
   steady_clock::time_point begin = steady_clock::now();
@@ -199,9 +199,9 @@ void SwAgentInitializer::handleExitSignal() {
   initializer_.reset();
 }
 
-void SwAgentInitializer::stopAgent(bool setupWarmboot) {
+void SwAgentInitializer::stopAgent(bool setupWarmboot, bool gracefulExit) {
   if (setupWarmboot) {
-    handleExitSignal();
+    handleExitSignal(gracefulExit);
   } else {
     stopServices();
     auto revertToMinAlpmState =
@@ -251,7 +251,7 @@ int SwAgentInitializer::initAgent(HwSwitchCallback* callback) {
       std::chrono::milliseconds(FLAGS_stat_publish_interval_ms));
 
   SwAgentSignalHandler signalHandler(
-      eventBase_, sw_.get(), [this]() { handleExitSignal(); });
+      eventBase_, sw_.get(), [this]() { handleExitSignal(true); });
 
   XLOG(DBG2) << "serving on localhost on port " << FLAGS_port << " and "
              << FLAGS_migrated_port;

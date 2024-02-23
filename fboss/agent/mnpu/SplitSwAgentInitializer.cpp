@@ -35,7 +35,7 @@ SplitSwAgentInitializer::getThrifthandlers() {
   return handlers;
 }
 
-void SplitSwAgentInitializer::handleExitSignal() {
+void SplitSwAgentInitializer::handleExitSignal(bool gracefulExit) {
   if (!sw_->isInitialized()) {
     XLOG(WARNING)
         << "[Exit] Signal received before initializing sw switch, waiting for initialization to finish.";
@@ -48,17 +48,21 @@ void SplitSwAgentInitializer::handleExitSignal() {
       removeFile(exitForColdBootFile);
     };
     if (checkFileExists(exitForColdBootFile)) {
-      stopAgent(false);
+      stopAgent(false, gracefulExit);
     } else {
-      SwAgentInitializer::handleExitSignal();
+      SwAgentInitializer::handleExitSignal(gracefulExit);
     }
   }
-  exit(0);
+  if (gracefulExit) {
+    exit(0);
+  } else {
+    exit(1);
+  }
 }
 
-void SplitSwAgentInitializer::stopAgent(bool setupWarmboot) {
+void SplitSwAgentInitializer::stopAgent(bool setupWarmboot, bool gracefulExit) {
   if (setupWarmboot) {
-    handleExitSignal();
+    handleExitSignal(gracefulExit);
   } else {
     sw_->stop(false /* gracefulStop */, true /* revertToMinAlpmState */);
     sw_->getHwSwitchHandler()->stop();

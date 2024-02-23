@@ -113,15 +113,19 @@ void MonolithicAgentInitializer::createSwitch(
       sw_.get(), hwAgent_.get());
 }
 
-void MonolithicAgentInitializer::handleExitSignal() {
-  SwAgentInitializer::handleExitSignal();
+void MonolithicAgentInitializer::handleExitSignal(bool gracefulExit) {
+  SwAgentInitializer::handleExitSignal(gracefulExit);
   __attribute__((unused)) auto leakedHwAgent = hwAgent_.release();
 #ifndef IS_OSS
 #if __has_feature(address_sanitizer)
   __lsan_ignore_object(leakedHwAgent);
 #endif
 #endif
-  exit(0);
+  if (gracefulExit) {
+    exit(0);
+  } else {
+    exit(1);
+  }
 }
 
 std::vector<std::shared_ptr<apache::thrift::AsyncProcessorFactory>>

@@ -67,7 +67,7 @@ class MonolithicAgentInitializer : public SwAgentInitializer {
    */
   virtual void setCmdLineFlagOverrides() const {}
 
-  void handleExitSignal() override;
+  void handleExitSignal(bool gracefulExit) override;
 
   std::vector<std::shared_ptr<apache::thrift::AsyncProcessorFactory>>
   getThrifthandlers() override;

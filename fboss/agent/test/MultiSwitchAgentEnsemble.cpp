@@ -1,10 +1,13 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/test/MultiSwitchAgentEnsemble.h"
+#include <gtest/gtest.h>
 
 namespace facebook::fboss {
 MultiSwitchAgentEnsemble::~MultiSwitchAgentEnsemble() {
-  agentInitializer_->stopAgent(false);
+  bool gracefulExit = !::testing::Test::HasFailure();
+  agentInitializer_->stopAgent(
+      false /* setupWarmboot */, gracefulExit /* gracefulExit */);
   // wait for async thread to finish to prevent race between
   // - stopping of thrift server
   // - destruction of agentInitializer_ triggering destruction of thrift server

@@ -1,13 +1,15 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/test/MonoAgentEnsemble.h"
-
+#include <gtest/gtest.h>
 #include "fboss/agent/Main.h"
 
 namespace facebook::fboss {
 
 MonoAgentEnsemble::~MonoAgentEnsemble() {
-  agentInitializer_.stopAgent(false);
+  bool gracefulExit = !::testing::Test::HasFailure();
+  agentInitializer_.stopAgent(
+      false /* setupWarmboot */, gracefulExit /* gracefulExit */);
 }
 
 const SwAgentInitializer* MonoAgentEnsemble::agentInitializer() const {

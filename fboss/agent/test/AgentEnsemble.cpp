@@ -192,7 +192,9 @@ void AgentEnsemble::unprogramRoutes(
 void AgentEnsemble::gracefulExit() {
   auto* initializer = agentInitializer();
   // exit for warm boot
-  initializer->stopAgent(true);
+  bool gracefulExit = !::testing::Test::HasFailure();
+  initializer->stopAgent(
+      true /* setupWarmboot */, gracefulExit /* gracefulExit */);
 }
 
 void AgentEnsemble::applyNewState(

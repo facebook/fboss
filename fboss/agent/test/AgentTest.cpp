@@ -57,7 +57,9 @@ void AgentTest::TearDown() {
       (::testing::Test::HasFailure() && FLAGS_run_forever_on_failure)) {
     runForever();
   }
-  MonolithicAgentInitializer::stopAgent(FLAGS_setup_for_warmboot);
+  bool gracefulExit = !::testing::Test::HasFailure();
+  MonolithicAgentInitializer::stopAgent(
+      FLAGS_setup_for_warmboot, gracefulExit /* gracefulExit */);
   asyncInitThread_->join();
   asyncInitThread_.reset();
 }
