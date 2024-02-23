@@ -129,6 +129,7 @@ struct PortFields {
   //  - if portOperState is DOWN, portActiveState is always INACTIVE
   //  - if portOperState is UP, portActiveState is either ACTIVE or INACTIVE.
   49: optional bool portActiveState;
+  50: bool disableTTLDecrement = false;
 }
 
 typedef ctrl.SystemPortThrift SystemPortFields
@@ -230,6 +231,7 @@ struct NeighborEntryFields {
   9: NeighborEntryType type = NeighborEntryType.DYNAMIC_ENTRY;
   10: optional i64 resolvedSince;
   11: optional bool noHostRoute;
+  12: bool disableTTLDecrement = false;
 }
 
 typedef map<string, NeighborEntryFields> NeighborEntries

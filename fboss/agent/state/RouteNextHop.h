@@ -63,6 +63,10 @@ struct INextHop {
       return folly::poly_call<3>(*this);
     }
 
+    bool disableTTLDecrement() const {
+      return folly::poly_call<4>(*this);
+    }
+
     bool isResolved() const {
       return intfID().has_value();
     }
@@ -101,6 +105,7 @@ struct INextHop {
       if (labelForwardingAction()) {
         nht.mplsAction() = labelForwardingAction()->toThrift();
       }
+      nht.disableTTLDecrement() = disableTTLDecrement();
       return nht;
     }
 
@@ -121,7 +126,8 @@ struct INextHop {
       &T::intfID,
       &T::addr,
       &T::weight,
-      &T::labelForwardingAction);
+      &T::labelForwardingAction,
+      &T::disableTTLDecrement);
 };
 
 using NextHop = folly::Poly<INextHop>;
@@ -168,12 +174,20 @@ class ResolvedNextHop {
   std::optional<LabelForwardingAction> labelForwardingAction() const {
     return labelForwardingAction_;
   }
+  bool disableTTLDecrement() const {
+    return disableTTLDecrement_;
+  }
+
+  void setDisableTTLDecrement(bool disableTTLDecrement) {
+    disableTTLDecrement_ = disableTTLDecrement;
+  }
 
  private:
   folly::IPAddress addr_;
   InterfaceID intfID_;
   NextHopWeight weight_;
   std::optional<LabelForwardingAction> labelForwardingAction_;
+  bool disableTTLDecrement_{false};
 };
 
 bool operator==(const ResolvedNextHop& a, const ResolvedNextHop& b);
@@ -199,6 +213,9 @@ class UnresolvedNextHop {
   }
   std::optional<LabelForwardingAction> labelForwardingAction() const {
     return labelForwardingAction_;
+  }
+  bool disableTTLDecrement() const {
+    return false;
   }
 
  private:
