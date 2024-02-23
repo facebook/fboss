@@ -92,7 +92,11 @@ AgentConfig::AgentConfig(const cfg::AgentConfig& thriftConfig)
           thriftConfig)) {}
 
 cfg::AgentRunMode AgentConfig::getRunMode() const {
-  return FLAGS_multi_switch ? cfg::AgentRunMode::MULTI_SWITCH
-                            : cfg::AgentRunMode::MONO;
+  const auto& defaultCommandLineArgs = thrift.defaultCommandLineArgs().value();
+  if (defaultCommandLineArgs.find("multi_switch") !=
+      defaultCommandLineArgs.end()) {
+    return cfg::AgentRunMode::MULTI_SWITCH;
+  }
+  return cfg::AgentRunMode::MONO;
 }
 } // namespace facebook::fboss
