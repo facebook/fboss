@@ -54,6 +54,8 @@ sai_status_t create_port_fn(
   bool disableTtlDecrement{false};
   sai_port_interface_type_t interface_type{SAI_PORT_INTERFACE_TYPE_NONE};
   bool txEnable{true};
+  std::optional<uint32_t> prbsPolynomial;
+  std::optional<int32_t> prbsConfig;
   std::optional<sai_object_id_t> ingressMacsecAcl;
   std::optional<sai_object_id_t> egressMacsecAcl;
   std::optional<uint16_t> systemPortId;
@@ -175,6 +177,12 @@ sai_status_t create_port_fn(
           egressMirrorList.push_back(attr_list[i].value.objlist.list[j]);
         }
       } break;
+      case SAI_PORT_ATTR_PRBS_POLYNOMIAL:
+        prbsPolynomial = attr_list[i].value.u32;
+        break;
+      case SAI_PORT_ATTR_PRBS_CONFIG:
+        prbsConfig = attr_list[i].value.s32;
+        break;
       case SAI_PORT_ATTR_INGRESS_MACSEC_ACL:
         ingressMacsecAcl = attr_list[i].value.oid;
         break;

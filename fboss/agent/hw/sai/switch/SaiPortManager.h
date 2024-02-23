@@ -28,6 +28,8 @@
 #include "folly/container/F14Map.h"
 #include "folly/container/F14Set.h"
 
+#include <gtest/gtest.h>
+
 DECLARE_bool(sai_configure_six_tap);
 
 namespace facebook::fboss {
@@ -122,7 +124,7 @@ class SaiPortManager {
   using Handles = folly::F14FastMap<PortID, std::unique_ptr<SaiPortHandle>>;
   using Stats = folly::F14FastMap<PortID, std::unique_ptr<HwPortFb303Stats>>;
 
-  static constexpr double kSpeedConversionFactor = 1000.0;
+  static constexpr double kSpeedConversionFactor = 1000.;
   static constexpr double kLaneRateConversionFactor = 1024. * 1024. * 1024.;
 
  public:
@@ -372,8 +374,6 @@ class SaiPortManager {
   void programPfcBuffers(const std::shared_ptr<Port>& swPort);
   void removePfcBuffers(const std::shared_ptr<Port>& swPort);
   sai_port_prbs_config_t getSaiPortPrbsConfig(bool enabled) const;
-  double calculateLaneRate(const std::shared_ptr<Port>& swPort);
-  void updateLaneRate(const std::shared_ptr<Port>& swPort);
   void initAsicPrbsStats(const std::shared_ptr<Port>& swPort);
   void removeIngressPriorityGroupMappings(SaiPortHandle* portHandle);
   void applyPriorityGroupBufferProfile(
@@ -402,6 +402,8 @@ class SaiPortManager {
       SaiPortSerdesTraits::CreateAttributes& attr);
   std::shared_ptr<SaiPort> createPortWithBasicAttributes(
       const std::shared_ptr<Port>& swPort);
+  double calculateLaneRate(const std::shared_ptr<Port>& swPort);
+  void updateLaneRate(const std::shared_ptr<Port>& swPort);
 
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
@@ -424,6 +426,8 @@ class SaiPortManager {
   bool tcToQueueMapAllowedOnPort_;
   bool globalQosMapSupported_;
   std::unordered_map<PortID, time_t> lastFecCounterReadTime_;
+  FRIEND_TEST(PortManagerTest, calculateLaneRate);
+  FRIEND_TEST(PortManagerTest, updateLaneRate);
 };
 
 } // namespace facebook::fboss

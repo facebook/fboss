@@ -25,6 +25,7 @@
 
 using namespace facebook::fboss;
 
+namespace facebook::fboss {
 class PortManagerTest : public ManagerTestBase {
  public:
   void SetUp() override {
@@ -490,3 +491,33 @@ TEST_F(PortManagerTest, getFabricReachabilityForSwitch) {
           static_cast<SwitchID>(0));
   EXPECT_EQ(portIds.size(), 2);
 }
+
+TEST_F(PortManagerTest, calculateLaneRate) {
+  // test ports have default speed of 25G
+  auto speed = cfg::PortSpeed::TWENTYFIVEG;
+  for (const auto& testInterface : testInterfaces) {
+    for (const auto& remoteHost : testInterface.remoteHosts) {
+      std::shared_ptr<Port> swPort = makePort(remoteHost.port);
+      auto laneRate = saiManagerTable->portManager().calculateLaneRate(swPort);
+      EXPECT_EQ(
+          laneRate,
+          static_cast<int>(speed) / kSpeedConversionFactor *
+              kLaneRateConversionFactor);
+    }
+  }
+}
+
+TEST_F(PortManagerTest, updateLaneRate) {
+  std::shared_ptr<Port> swPort0 = makePort(p0);
+  auto newSpeed = cfg::PortSpeed::FIFTYG;
+  saiManagerTable->portManager().addPort(swPort0);
+  swPort0->setSpeed(newSpeed);
+  saiManagerTable->portManager().updateLaneRate(swPort0);
+  EXPECT_EQ(
+      saiManagerTable->portManager()
+          .portAsicPrbsStats_[swPort0->getID()][0]
+          .getLaneRate(),
+      static_cast<int>(newSpeed) / kSpeedConversionFactor *
+          kLaneRateConversionFactor);
+}
+} // namespace facebook::fboss
