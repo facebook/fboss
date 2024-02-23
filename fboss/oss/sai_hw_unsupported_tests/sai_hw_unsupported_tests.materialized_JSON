@@ -963,6 +963,9 @@
         },
         {
           "test_name_regex": "HwLoadBalancerTestV[46].Ucmp.*$"
+        },
+        {
+          "test_name_regex": "HwInPauseFloodTest.*$"
         }
     ],
     "brcm/7.2.0.0_odp/7.2.0.0_odp/tomahawk": [
