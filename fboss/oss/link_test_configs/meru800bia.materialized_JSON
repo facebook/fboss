@@ -6974,6 +6974,7 @@
             "appl_param_rcy_mirror_ports_range.BCM8889X": "100-139",
             "bcm_stat_interval": "1000000",
             "custom_feature_adapter_do_collect_enable.BCM8889X_ADAPTER": "1",
+            "custom_feature_fabric_cgm_ddc_th_tune.BCM8889X": "1",
             "custom_feature_programmability_standard_image_name.BCM88890": "S121AI",
             "custom_feature_ser_event_generate": "1",
             "custom_feature_statdma_enable": "0",

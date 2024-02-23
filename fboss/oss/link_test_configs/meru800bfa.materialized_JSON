@@ -35996,6 +35996,7 @@
             "appl_param_module_id.BCM8892X": "100",
             "bcm_stat_interval.BCM8892X_ADAPTER": "0",
             "core_clock_speed_khz.BCM8892X": "1350000",
+            "custom_feature_fabric_cgm_ddc_th_tune.BCM8892X": "1",
             "custom_feature_lane_swap_disable.BCM8892X": "0",
             "custom_feature_ser_event_generate": "1",
             "custom_feature_use_new_access.BCM8892X_ADAPTER": "1",
