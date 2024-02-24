@@ -47,6 +47,9 @@
 #include "fboss/cli/fboss2/commands/show/hwobject/CmdShowHwObject.h"
 #include "fboss/cli/fboss2/commands/show/interface/CmdShowInterface.h"
 #include "fboss/cli/fboss2/commands/show/interface/counters/CmdShowInterfaceCounters.h"
+#include "fboss/cli/fboss2/commands/show/interface/counters/fec/CmdShowInterfaceCountersFec.h"
+#include "fboss/cli/fboss2/commands/show/interface/counters/fec/ber/CmdShowInterfaceCountersFecBer.h"
+#include "fboss/cli/fboss2/commands/show/interface/counters/fec/ber/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/commands/show/interface/counters/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/commands/show/interface/counters/mka/CmdShowInterfaceCountersMKA.h"
 #include "fboss/cli/fboss2/commands/show/interface/counters/mka/gen-cpp2/model_visitation.h"
@@ -143,6 +146,12 @@ template void CmdHandler<CmdShowInterface, CmdShowInterfaceTraits>::run();
 template void
 CmdHandler<CmdShowInterfaceCounters, CmdShowInterfaceCountersTraits>::run();
 template void CmdHandler<
+    CmdShowInterfaceCountersFec,
+    CmdShowInterfaceCountersFecTraits>::run();
+template void CmdHandler<
+    CmdShowInterfaceCountersFecBer,
+    CmdShowInterfaceCountersFecBerTraits>::run();
+template void CmdHandler<
     CmdShowInterfaceCountersMKA,
     CmdShowInterfaceCountersMKATraits>::run();
 template void
@@ -227,6 +236,12 @@ template const ValidFilterMapType CmdHandler<
 template const ValidFilterMapType CmdHandler<
     CmdShowInterfaceCountersMKA,
     CmdShowInterfaceCountersMKATraits>::getValidFilters();
+template const ValidFilterMapType CmdHandler<
+    CmdShowInterfaceCountersFec,
+    CmdShowInterfaceCountersFecTraits>::getValidFilters();
+template const ValidFilterMapType CmdHandler<
+    CmdShowInterfaceCountersFecBer,
+    CmdShowInterfaceCountersFecBerTraits>::getValidFilters();
 template const ValidFilterMapType CmdHandler<
     CmdShowInterfaceErrors,
     CmdShowInterfaceErrorsTraits>::getValidFilters();
