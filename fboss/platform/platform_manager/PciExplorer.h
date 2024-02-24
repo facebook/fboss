@@ -53,38 +53,38 @@ class PciExplorer {
       uint32_t instanceId);
 
   // Create GPIO chip based on the given gpio's FpgaIpblockConfig residing
-  // at the given PciDevicePath. Throw std::runtime_error on failure.
+  // at the given PciDevice. Throw std::runtime_error on failure.
   uint16_t createGpioChip(
       const PciDevice& pciDevice,
       const FpgaIpBlockConfig& fpgaIpBlockConfig,
       uint32_t instanceId);
 
   // Create the LED Controller based on the given ledCtrlConfig residing
-  // at the given PciDevice path. Throw std::runtime_error on failure.
+  // at the given PciDevice. Throw std::runtime_error on failure.
   void createLedCtrl(
-      const std::string& pciDevPath,
+      const PciDevice& pciDevice,
       const LedCtrlConfig& ledCtrlConfig,
       uint32_t instanceId);
 
   // Create the Transceiver block based on the given xcvrCtrlConfig residing
-  // at the given PciDevice path. Throw std::runtime_error on failure.
+  // at the given PciDevice. Throw std::runtime_error on failure.
   void createXcvrCtrl(
-      const std::string& pciDevPath,
+      const PciDevice& pciDevice,
       const XcvrCtrlConfig& xcvrCtrlConfig,
       uint32_t instanceId);
 
   // Create the InfoRom block based on the given InfoRomConfig residing at the
-  // given PciDevice path.
+  // given PciDevice.
   // Return the created InfoRom sysfs path. Throw std::runtime_error on failure.
   std::string createInfoRom(
-      const std::string& pciDevPath,
+      const PciDevice& pciDevice,
       const FpgaIpBlockConfig& fpgaIpBlockConfig,
       uint32_t instanceId);
 
   // Create the generic device block based on the given FpgaIpBlockConfig
-  // residing at the given PciDevice path. Throw std::runtime_error on failure.
+  // residing at the given PciDevice. Throw std::runtime_error on failure.
   void createFpgaIpBlock(
-      const std::string& pciDevPath,
+      const PciDevice& pciDevice,
       const FpgaIpBlockConfig& fpgaIpBlockConfig,
       uint32_t instanceId);
 
@@ -95,6 +95,29 @@ class PciExplorer {
       const std::string& devName,
       const std::string& pciDevPath,
       const struct fbiob_aux_data& auxData);
-};
 
+ private:
+  std::vector<uint16_t> getI2cAdapterBusNums(
+      const PciDevice& pciDevice,
+      const I2cAdapterConfig& i2cAdapterConfig,
+      uint32_t instanceId);
+  std::map<
+      std::string /* spiDeviceConfig's pmUnitScopedName */,
+      std::string /* charDevPath */>
+  getSpiDeviceCharDevPaths(
+      const PciDevice& pciDevice,
+      const SpiMasterConfig& spiMasterConfig,
+      uint32_t instanceId);
+  uint16_t getGpioChipNum(
+      const PciDevice& pciDevice,
+      const FpgaIpBlockConfig& fpgaIpBlockConfig,
+      uint32_t instanceId);
+  std::string getInfoRomSysfsPath(
+      const FpgaIpBlockConfig& infoRomConfig,
+      uint32_t instanceId);
+  bool isPciSubDevicePresent(
+      const PciDevice& pciDevice,
+      const FpgaIpBlockConfig& fpgaIpBlockConfig,
+      uint32_t instanceId);
+};
 } // namespace facebook::fboss::platform::platform_manager

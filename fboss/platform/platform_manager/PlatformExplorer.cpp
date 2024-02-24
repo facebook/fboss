@@ -364,31 +364,31 @@ void PlatformExplorer::explorePciDevices(
           slotPath, *fpgaIpBlockConfig.pmUnitScopedName(), gpioNum);
     }
     for (const auto& fpgaIpBlockConfig : *pciDeviceConfig.watchdogConfigs()) {
-      pciExplorer_.createFpgaIpBlock(charDevPath, fpgaIpBlockConfig, instId++);
+      pciExplorer_.createFpgaIpBlock(pciDevice, fpgaIpBlockConfig, instId++);
     }
     for (const auto& fpgaIpBlockConfig :
          *pciDeviceConfig.fanTachoPwmConfigs()) {
-      pciExplorer_.createFpgaIpBlock(charDevPath, fpgaIpBlockConfig, instId++);
+      pciExplorer_.createFpgaIpBlock(pciDevice, fpgaIpBlockConfig, instId++);
     }
     for (const auto& fpgaIpBlockConfig : *pciDeviceConfig.ledCtrlConfigs()) {
-      pciExplorer_.createLedCtrl(charDevPath, fpgaIpBlockConfig, instId++);
+      pciExplorer_.createLedCtrl(pciDevice, fpgaIpBlockConfig, instId++);
     }
     for (const auto& xcvrCtrlConfig : *pciDeviceConfig.xcvrCtrlConfigs()) {
       auto devicePath = Utils().createDevicePath(
           slotPath, *xcvrCtrlConfig.fpgaIpBlockConfig()->pmUnitScopedName());
       dataStore_.updateSysfsPath(devicePath, pciDevice.sysfsPath());
       dataStore_.updateInstanceId(devicePath, instId);
-      pciExplorer_.createXcvrCtrl(charDevPath, xcvrCtrlConfig, instId++);
+      pciExplorer_.createXcvrCtrl(pciDevice, xcvrCtrlConfig, instId++);
     }
     for (const auto& infoRomConfig : *pciDeviceConfig.infoRomConfigs()) {
       auto infoRomSysfsPath =
-          pciExplorer_.createInfoRom(charDevPath, infoRomConfig, instId++);
+          pciExplorer_.createInfoRom(pciDevice, infoRomConfig, instId++);
       dataStore_.updateSysfsPath(
           Utils().createDevicePath(slotPath, *infoRomConfig.pmUnitScopedName()),
           infoRomSysfsPath);
     }
     for (const auto& fpgaIpBlockConfig : *pciDeviceConfig.miscCtrlConfigs()) {
-      pciExplorer_.createFpgaIpBlock(charDevPath, fpgaIpBlockConfig, instId++);
+      pciExplorer_.createFpgaIpBlock(pciDevice, fpgaIpBlockConfig, instId++);
     }
   }
 }
