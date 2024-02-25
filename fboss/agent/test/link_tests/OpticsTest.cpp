@@ -26,6 +26,22 @@ struct OpticsPerformanceMonitoringThresholds {
   OpticsSidePerformanceMonitoringThresholds hostThresholds;
 };
 
+// CMIS optics thresholds
+struct OpticsPerformanceMonitoringThresholds kCmisOpticsThresholds = {
+    .mediaThresholds =
+        {
+            .pam4eSnr = {19.0, 49.0},
+            .pam4Ltp = {33.0, 99.0},
+            .preFecBer = {0, 2.4e-5},
+        },
+    .hostThresholds =
+        {
+            .pam4eSnr = {19.0, 49.0},
+            .pam4Ltp = {33.0, 99.0},
+            .preFecBer = {0, 2.4e-5},
+        },
+};
+
 } // namespace
 
 class OpticsTest : public LinkTest {
@@ -176,4 +192,94 @@ TEST_F(OpticsTest, verifyTxRxLatches) {
 
   XLOG(INFO) << "Testing TX_LOS, TX_LOL on Z side, RX_LOS, RX_LOL on A side";
   verify(false /* disableAPort */);
+}
+
+/*
+ * opticsVdmPerformanceMonitoring
+ *
+ * Check VDM parameters are within the threshold for VDM supported optics
+ * Steps:
+ * 1. Find the list of optical ports with VDM supported optics
+ * 2. Wait till we have data for 20 seconds
+ * 3. Get the TransceiverInfo from qsfp_service
+ * 4. validate the VDM Performance Monitoring parameters within the thresholds
+ *    defined in spec
+ */
+TEST_F(LinkTest, opticsVdmPerformanceMonitoring) {
+  // 1. Find the list of optical ports with VDM supported optics
+  auto connectedPairPortIds = getConnectedOpticalPortPairWithFeature(
+      TransceiverFeature::VDM, phy::Side::LINE);
+  CHECK(!connectedPairPortIds.empty())
+      << "opticsVdmPerformanceMonitoring: No optics capable of this test";
+
+  std::vector<PortID> allTestPorts;
+  for (auto portPair : connectedPairPortIds) {
+    allTestPorts.push_back(portPair.first);
+    allTestPorts.push_back(portPair.second);
+  }
+
+  // 2. Wait till we have data for 20 seconds
+  // The qsfp_service cache refresh may not happen at exactly in 20 seconds so
+  // we read the TransceiverInfo time and then wait till we get 20 second later
+  // data
+  std::vector<int32_t> transceiverIds;
+  for (const auto& port : allTestPorts) {
+    auto tcvrId = platform()->getPlatformPort(port)->getTransceiverID().value();
+    transceiverIds.push_back(tcvrId);
+  }
+  auto transceiverInfos = waitForTransceiverInfo(transceiverIds);
+  auto startTime =
+      transceiverInfos.begin()->second.tcvrStats()->timeCollected().value();
+
+  transceiverInfos = waitForTransceiverInfo(transceiverIds);
+
+  WITH_RETRIES_N_TIMED(10, std::chrono::seconds(5), {
+    transceiverInfos = waitForTransceiverInfo(transceiverIds);
+    auto endTime =
+        transceiverInfos.begin()->second.tcvrStats()->timeCollected().value();
+    ASSERT_EVENTUALLY_GT(endTime, startTime + 20);
+  });
+
+  // 3. Get the TransceiverInfo from qsfp_service
+  XLOG(DBG2)
+      << "opticsVdmPerformanceMonitoring: Got TransceiverInfo 20sec data from qsfp_service";
+
+  // 4. validate the VDM Performance Monitoring parameters within the threshold
+  for (const auto& tcvrId : transceiverIds) {
+    auto txInfoItr = transceiverInfos.find(tcvrId);
+    if (txInfoItr != transceiverInfos.end()) {
+      EXPECT_TRUE(txInfoItr->second.tcvrStats()->vdmDiagsStats().has_value());
+      XLOG(DBG2) << "Tcvr Id " << tcvrId
+                 << " Checking for Line/Host BER, Line SNR";
+
+      auto preFecBerMediaMax = txInfoItr->second.tcvrStats()
+                                   ->vdmDiagsStats()
+                                   .value()
+                                   .preFecBerMediaMax()
+                                   .value();
+      EXPECT_LE(
+          preFecBerMediaMax,
+          kCmisOpticsThresholds.mediaThresholds.preFecBer.maxThreshold);
+
+      auto preFecBerHostMax = txInfoItr->second.tcvrStats()
+                                  ->vdmDiagsStats()
+                                  .value()
+                                  .preFecBerHostMax()
+                                  .value();
+      EXPECT_LE(
+          preFecBerHostMax,
+          kCmisOpticsThresholds.hostThresholds.preFecBer.maxThreshold);
+
+      auto& snrMediaPerChannel = txInfoItr->second.tcvrStats()
+                                     ->vdmDiagsStats()
+                                     .value()
+                                     .eSnrMediaChannel()
+                                     .value();
+      for (auto& [channel, channelSnr] : snrMediaPerChannel) {
+        EXPECT_GE(
+            channelSnr,
+            kCmisOpticsThresholds.mediaThresholds.pam4eSnr.minThreshold);
+      }
+    }
+  }
 }
