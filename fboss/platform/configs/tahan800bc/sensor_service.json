@@ -1,53 +1,6 @@
 {
   "source" : "sysfs",
   "sensorMapList" : {
-    "CPU_CARD" : {
-      "CPU_UNCORE_TEMP" : {
-        "path" : "/run/devmap/sensors/CPU_CORE_TEMP/temp1_input",
-        "compute" : "@/1000.0",
-        "type"  : 3
-      },
-      "CPU_CORE0_TEMP" : {
-        "path" : "/run/devmap/sensors/CPU_CORE_TEMP/temp2_input",
-        "compute" : "@/1000.0",
-        "type" : 3
-      },
-      "CPU_CORE1_TEMP" : {
-        "path" : "/run/devmap/sensors/CPU_CORE_TEMP/temp3_input",
-        "compute" : "@/1000.0",
-        "type" : 3
-      },
-      "CPU_CORE2_TEMP" : {
-        "path" : "/run/devmap/sensors/CPU_CORE_TEMP/temp4_input",
-        "compute" : "@/1000.0",
-        "type" : 3
-      },
-      "CPU_CORE3_TEMP" : {
-        "path" : "/run/devmap/sensors/CPU_CORE_TEMP/temp5_input",
-        "compute" : "@/1000.0",
-        "type" : 3
-      },
-      "CPU_CORE4_TEMP" : {
-        "path" : "/run/devmap/sensors/CPU_CORE_TEMP/temp6_input",
-        "compute" : "@/1000.0",
-        "type" : 3
-      },
-      "CPU_CORE5_TEMP" : {
-        "path" : "/run/devmap/sensors/CPU_CORE_TEMP/temp7_input",
-        "compute" : "@/1000.0",
-        "type" : 3
-      },
-      "CPU_CORE6_TEMP" : {
-        "path" : "/run/devmap/sensors/CPU_CORE_TEMP/temp8_input",
-        "compute" : "@/1000.0",
-        "type" : 3
-      },
-      "CPU_CORE7_TEMP" : {
-        "path" : "/run/devmap/sensors/CPU_CORE_TEMP/temp9_input",
-        "compute" : "@/1000.0",
-        "type" : 3
-      }
-    },
     "PDB_CARD" : {
       "PDB_INLET_LM75_TEMP" : {
         "path" : "/run/devmap/sensors/SMB_J28_LM75B_1/temp1_input",
@@ -91,46 +44,6 @@
       },
       "POWER_BRICK1_TEMP2" : {
         "path" : "/run/devmap/sensors/SMB_J28_PMBUS_1/temp2_input",
-        "compute" : "@/1000.0",
-        "type" : 3
-      },
-      "POWER_BRICK2_IIN" : {
-        "path" : "/run/devmap/sensors/SMB_J28_PMBUS_2/curr1_input",
-        "compute" : "@/1000.0",
-        "type" : 2
-      },
-      "POWER_BRICK2_IOUT" : {
-        "path" : "/run/devmap/sensors/SMB_J28_PMBUS_2/curr2_input",
-        "compute" : "@/1000.0",
-        "type" : 2
-      },
-      "POWER_BRICK2_VIN" : {
-        "path" : "/run/devmap/sensors/SMB_J28_PMBUS_2/in1_input",
-        "compute" : "@/1000.0",
-        "type" : 1
-      },
-      "POWER_BRICK2_VOUT" : {
-        "path" : "/run/devmap/sensors/SMB_J28_PMBUS_2/in2_input",
-        "compute" : "@/1000.0",
-        "type" : 1
-      },
-      "POWER_BRICK2_PIN" : {
-        "path" : "/run/devmap/sensors/SMB_J28_PMBUS_2/power1_input",
-        "compute" : "@/1000000.0",
-        "type" : 1
-      },
-      "POWER_BRICK2_POUT" : {
-        "path" : "/run/devmap/sensors/SMB_J28_PMBUS_2/power2_input",
-        "compute" : "@/1000000.0",
-        "type" : 1
-      },
-      "POWER_BRICK2_TEMP1" : {
-        "path" : "/run/devmap/sensors/SMB_J28_PMBUS_2/temp1_input",
-        "compute" : "@/1000.0",
-        "type" : 3
-      },
-      "POWER_BRICK2_TEMP2" : {
-        "path" : "/run/devmap/sensors/SMB_J28_PMBUS_2/temp2_input",
         "compute" : "@/1000.0",
         "type" : 3
       }
@@ -719,3 +632,4 @@
     }
   }
 }
+
