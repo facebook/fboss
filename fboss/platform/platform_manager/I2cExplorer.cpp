@@ -11,6 +11,7 @@ namespace fs = std::filesystem;
 namespace {
 
 const re2::RE2 kI2cMuxChannelRegex{"channel-\\d+"};
+constexpr auto kI2cDevCreationWaitSecs = 1;
 
 std::string getI2cAdapterName(const fs::path& busPath) {
   auto nameFile = busPath / "name";
@@ -139,6 +140,16 @@ std::map<uint16_t, uint16_t> I2cExplorer::getMuxChannelI2CBuses(
     throw std::runtime_error(
         fmt::format("{} is not a directory.", devicePath.string()));
   }
+
+  if (!fs::exists(fmt::format("{}/driver", devicePath.string()))) {
+    XLOG(INFO) << fmt::format(
+        "I2cDevice at busNum: {} and addr: {} is not yet created. Waiting for {}s",
+        busNum,
+        addr.hex4Str(),
+        kI2cDevCreationWaitSecs);
+    sleep(kI2cDevCreationWaitSecs);
+  }
+
   // This is an implementation of
   // find [devicePath] -type l -name channel* -exec readlink -f {} \; |
   // xargs --max-args 1 basename"
