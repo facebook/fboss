@@ -243,10 +243,6 @@ int64_t HwSwitchFb303Stats::getDramDequeuedBytes() const {
   return getCumulativeValue(dramDequeuedBytes_);
 }
 
-int64_t HwSwitchFb303Stats::getPacketIntegrityDrops() const {
-  return getCumulativeValue(packetIntegrityDrops_);
-}
-
 int64_t HwSwitchFb303Stats::getIreErrors() const {
   return getCumulativeValue(ireErrors_);
 }
@@ -267,30 +263,34 @@ int64_t HwSwitchFb303Stats::getForwardingQueueProcessorErrors() const {
   return getCumulativeValue(forwardingQueueProcessorErrors_);
 }
 
+int64_t HwSwitchFb303Stats::getPacketIntegrityDrops() const {
+  return currentDropStats_.packetIntegrityDrops().value_or(0);
+}
+
 int64_t HwSwitchFb303Stats::getFdrCellDrops() const {
-  return getCumulativeValue(fdrCellDrops_);
+  return currentDropStats_.fdrCellDrops().value_or(0);
 }
 
 int64_t HwSwitchFb303Stats::getVoqResourcesExhautionDrops() const {
-  return getCumulativeValue(voqResourceExhaustionDrops_);
+  return currentDropStats_.voqResourceExhaustionDrops().value_or(0);
 }
 int64_t HwSwitchFb303Stats::getGlobalResourcesExhautionDrops() const {
-  return getCumulativeValue(globalResourceExhaustionDrops_);
+  return currentDropStats_.globalResourceExhaustionDrops().value_or(0);
 }
 int64_t HwSwitchFb303Stats::getSramResourcesExhautionDrops() const {
-  return getCumulativeValue(sramResourceExhaustionDrops_);
+  return currentDropStats_.sramResourceExhaustionDrops().value_or(0);
 }
 int64_t HwSwitchFb303Stats::getVsqResourcesExhautionDrops() const {
-  return getCumulativeValue(vsqResourceExhaustionDrops_);
+  return currentDropStats_.vsqResourceExhaustionDrops().value_or(0);
 }
 int64_t HwSwitchFb303Stats::getDropPrecedenceDrops() const {
-  return getCumulativeValue(dropPrecedenceDrops_);
+  return currentDropStats_.dropPrecedenceDrops().value_or(0);
 }
 int64_t HwSwitchFb303Stats::getQueueResolutionDrops() const {
-  return getCumulativeValue(queueResolutionDrops_);
+  return currentDropStats_.queueResolutionDrops().value_or(0);
 }
 int64_t HwSwitchFb303Stats::getIngresPacketPipelineRejectDrops() const {
-  return getCumulativeValue(ingressPacketPipelineRejectDrops_);
+  return currentDropStats_.ingressPacketPipelineRejectDrops().value_or(0);
 }
 
 HwAsicErrors HwSwitchFb303Stats::getHwAsicErrors() const {
@@ -361,24 +361,25 @@ HwSwitchFb303GlobalStats HwSwitchFb303Stats::getAllFb303Stats() const {
   hwFb303Stats.parity_corr() = getCumulativeValue(corrParityErrors_);
   hwFb303Stats.parity_uncorr() = getCumulativeValue(uncorrParityErrors_);
   hwFb303Stats.asic_error() = getCumulativeValue(asicErrors_);
-  hwFb303Stats.global_drops() = getCumulativeValue(globalDrops_);
-  hwFb303Stats.global_reachability_drops() =
-      getCumulativeValue(globalReachDrops_);
-  hwFb303Stats.packet_integrity_drops() =
-      getCumulativeValue(packetIntegrityDrops_);
   hwFb303Stats.dram_enqueued_bytes() = getCumulativeValue(dramEnqueuedBytes_);
   hwFb303Stats.dram_dequeued_bytes() = getCumulativeValue(dramDequeuedBytes_);
   hwFb303Stats.fabric_reachability_missing() =
       getFabricReachabilityMismatchCount();
   hwFb303Stats.fabric_reachability_mismatch() =
       getFabricReachabilityMissingCount();
-  hwFb303Stats.fdr_cell_drops() = getFdrCellDrops();
   hwFb303Stats.ingress_receive_editor_errors() = getIreErrors();
   hwFb303Stats.ingress_transmit_pipeline_errors() = getItppErrors();
   hwFb303Stats.egress_packet_network_interface_errors() = getEpniErrors();
   hwFb303Stats.aligner_errors() = getAlignerErrors();
   hwFb303Stats.forwarding_queue_processor_errors() =
       getForwardingQueueProcessorErrors();
+  hwFb303Stats.global_drops() = currentDropStats_.globalDrops().value_or(0);
+  hwFb303Stats.global_reachability_drops() =
+      currentDropStats_.globalReachabilityDrops().value_or(0);
+  hwFb303Stats.packet_integrity_drops() = getPacketIntegrityDrops();
+  if (currentDropStats_.fdrCellDrops().has_value()) {
+    hwFb303Stats.fdr_cell_drops() = *currentDropStats_.fdrCellDrops();
+  }
   return hwFb303Stats;
 }
 
