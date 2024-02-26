@@ -11,6 +11,7 @@
 #pragma once
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/SwitchState.h"
 
@@ -86,5 +87,7 @@ void renameAclStat(
     const std::string& matcher,
     const std::string& oldCounterName,
     const std::string& newCounterName);
+
+std::vector<cfg::CounterType> getAclCounterTypes(const HwAsic* asic);
 
 } // namespace facebook::fboss::utility
