@@ -34,7 +34,6 @@ bool isAclTableEnabled(
 
 bool verifyAclEnabled(const HwSwitch* hwSwitch);
 
-std::string getAclTableGroupName();
 template <typename T>
 bool isQualifierPresent(
     const HwSwitch* hwSwitch,
@@ -48,14 +47,6 @@ void checkAclEntryAndStatCount(
     int counterCount,
     const std::optional<std::string>& aclTableName = std::nullopt);
 
-std::shared_ptr<AclEntry> getAclEntryByName(
-    const std::shared_ptr<SwitchState> state,
-    const std::string& aclName);
-
-std::optional<cfg::TrafficCounter> getAclTrafficCounter(
-    const std::shared_ptr<SwitchState> state,
-    const std::string& aclName);
-
 void checkAclStat(
     const HwSwitch* hwSwitch,
     std::shared_ptr<SwitchState> state,
@@ -67,50 +58,6 @@ void checkAclStat(
 void checkAclStatDeleted(const HwSwitch* hwSwitch, const std::string& statName);
 
 void checkAclStatSize(const HwSwitch* hwSwitch, const std::string& statName);
-
-std::vector<cfg::AclEntry>& getAcls(
-    cfg::SwitchConfig* cfg,
-    const std::optional<std::string>& tableName);
-
-void delAcl(
-    cfg::SwitchConfig* cfg,
-    const std::string& aclName,
-    const std::optional<std::string>& tableName = std::nullopt);
-
-void delLastAddedAcl(cfg::SwitchConfig* cfg);
-
-void addAclTableGroup(
-    cfg::SwitchConfig* cfg,
-    cfg::AclStage aclStage,
-    const std::string& aclTableGroupName = "AclTableGroup1");
-
-void addDefaultAclTable(cfg::SwitchConfig& cfg);
-
-cfg::AclTable* addAclTable(
-    cfg::SwitchConfig* cfg,
-    const std::string& aclTableName,
-    const int aclTablePriority,
-    const std::vector<cfg::AclTableActionType>& actionTypes,
-    const std::vector<cfg::AclTableQualifier>& qualifiers);
-
-void delAclTable(cfg::SwitchConfig* cfg, const std::string& aclTableName);
-
-void addAclStat(
-    cfg::SwitchConfig* cfg,
-    const std::string& matcher,
-    const std::string& counterName,
-    std::vector<cfg::CounterType> counterTypes = {});
-
-void delAclStat(
-    cfg::SwitchConfig* cfg,
-    const std::string& matcher,
-    const std::string& counterName);
-
-void renameAclStat(
-    cfg::SwitchConfig* cfg,
-    const std::string& matcher,
-    const std::string& oldCounterName,
-    const std::string& newCounterName);
 
 uint64_t getAclInOutPackets(
     const HwSwitch* hwSwitch,

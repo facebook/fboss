@@ -49,6 +49,7 @@ target_link_libraries(fabric_test_utils
   switch_config_cpp2
   config_factory
   test_ensemble_if
+  common_utils
   ${GTEST}
 )
 
