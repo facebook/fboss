@@ -25,6 +25,7 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/lib/CommonUtils.h"
 
+#include <sstream>
 #ifndef IS_OSS
 #if __has_feature(address_sanitizer)
 #include <sanitizer/lsan_interface.h>
@@ -243,22 +244,57 @@ void HwTest::checkNoStatsChange(int trys) {
     }
     return statMap2;
   };
+  auto mapDelta = [](const auto& before, const auto& after) {
+    std::stringstream ss;
+    auto bitr = before.begin();
+    auto aitr = after.begin();
+    while (bitr != before.end() && aitr != after.end()) {
+      if (*bitr == *aitr) {
+        bitr++;
+        aitr++;
+      } else if (bitr->first < aitr->first) {
+        ss << "Missing key in after: " << bitr->first << std::endl;
+        bitr++;
+      } else if (aitr->first < bitr->first) {
+        ss << "Missing key in before: " << aitr->first << std::endl;
+        aitr++;
+      } else {
+        CHECK_NE(aitr->second, bitr->second);
+        ss << " Stats did not match for : " << aitr->first
+           << " Before : " << bitr->second << std::endl
+           << " After: " << aitr->second << std::endl;
+        aitr++;
+        bitr++;
+      }
+    }
+    while (bitr != before.end()) {
+      ss << "Missing key in after: " << bitr->first << std::endl;
+      bitr++;
+    }
+    while (aitr != after.end()) {
+      ss << "Missing key in before: " << bitr->first << std::endl;
+      aitr++;
+    }
+    return ss.str();
+  };
   WITH_RETRIES_N(
       trys, ({
-        auto portStatsBefore = getHwSwitch()->getPortStats();
-        auto sysPortStatsBefore = getHwSwitch()->getSysPortStats();
+        auto portStatsBefore = resetTimestamps(getHwSwitch()->getPortStats());
+        auto sysPortStatsBefore =
+            resetTimestamps(getHwSwitch()->getSysPortStats());
         auto fabricReachStatsBefore =
             getHwSwitch()->getFabricReachabilityStats();
         auto teFlowStatsBefore = getHwSwitch()->getTeFlowStats();
         auto flowletStatsBefore = getHwSwitch()->getHwFlowletStats();
         auto switchDropStatsBefore = getHwSwitch()->getSwitchDropStats();
         getHwSwitch()->updateStats();
-        EXPECT_EVENTUALLY_EQ(
-            resetTimestamps(portStatsBefore),
-            resetTimestamps(getHwSwitch()->getPortStats()));
-        EXPECT_EVENTUALLY_EQ(
-            resetTimestamps(sysPortStatsBefore),
-            resetTimestamps(getHwSwitch()->getSysPortStats()));
+        auto portStatsAfter = resetTimestamps(getHwSwitch()->getPortStats());
+        EXPECT_EVENTUALLY_EQ(portStatsBefore, portStatsAfter)
+            << mapDelta(portStatsBefore, portStatsAfter);
+        auto sysPortStatsAfter =
+            resetTimestamps(getHwSwitch()->getSysPortStats());
+        EXPECT_EVENTUALLY_EQ(sysPortStatsBefore, sysPortStatsAfter)
+            << mapDelta(sysPortStatsBefore, sysPortStatsAfter);
         EXPECT_EVENTUALLY_EQ(
             fabricReachStatsBefore,
             getHwSwitch()->getFabricReachabilityStats());
