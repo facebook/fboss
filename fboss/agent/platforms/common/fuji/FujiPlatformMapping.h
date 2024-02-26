@@ -11,8 +11,7 @@
 
 #include "fboss/agent/platforms/common/MultiPimPlatformMapping.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class FujiPlatformMapping : public PlatformMapping {
  public:
@@ -23,5 +22,4 @@ class FujiPlatformMapping : public PlatformMapping {
   FujiPlatformMapping(FujiPlatformMapping const&) = delete;
   FujiPlatformMapping& operator=(FujiPlatformMapping const&) = delete;
 };
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

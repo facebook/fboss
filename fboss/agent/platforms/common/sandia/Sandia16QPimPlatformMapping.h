@@ -11,8 +11,7 @@
 
 #include "fboss/agent/platforms/common/MultiPimPlatformMapping.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class Sandia16QPimPlatformMapping : public MultiPimPlatformMapping {
  public:
@@ -25,5 +24,4 @@ class Sandia16QPimPlatformMapping : public MultiPimPlatformMapping {
   Sandia16QPimPlatformMapping& operator=(Sandia16QPimPlatformMapping const&) =
       delete;
 };
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

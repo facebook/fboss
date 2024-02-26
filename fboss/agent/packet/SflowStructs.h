@@ -14,9 +14,7 @@
 #include <folly/io/Cursor.h>
 #include <folly/io/IOBuf.h>
 
-namespace facebook::fboss {
-
-namespace sflow {
+namespace facebook::fboss::sflow {
 
 constexpr int XDR_BASIC_BLOCK_SIZE = 4; // XDR basic block size is 4 bytes
 
@@ -171,6 +169,4 @@ struct SampledHeader {
 
 // .. We omit the spec definition below (including) "Ethernet Frame Data" on p36
 
-} // namespace sflow
-
-} // namespace facebook::fboss
+} // namespace facebook::fboss::sflow

@@ -13,8 +13,7 @@
 
 DECLARE_bool(wedge400c_new_lane_pm);
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class Wedge400CPlatformMapping : public PlatformMapping {
  public:
@@ -27,5 +26,4 @@ class Wedge400CPlatformMapping : public PlatformMapping {
   Wedge400CPlatformMapping& operator=(Wedge400CPlatformMapping const&) = delete;
 };
 
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

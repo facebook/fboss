@@ -86,12 +86,11 @@ class LlcHdr {
   /*
    * default constructor
    */
-  LlcHdr() {}
+  LlcHdr() = default;
   /*
    * copy constructor
    */
-  LlcHdr(const LlcHdr& rhs)
-      : dsap(rhs.dsap), ssap(rhs.ssap), control(rhs.control) {}
+  LlcHdr(const LlcHdr& rhs) = default;
   /*
    * parameterized data constructor
    */
@@ -104,16 +103,11 @@ class LlcHdr {
   /*
    * destructor
    */
-  ~LlcHdr() {}
+  ~LlcHdr() = default;
   /*
    * operator=
    */
-  LlcHdr& operator=(const LlcHdr& rhs) {
-    dsap = rhs.dsap;
-    ssap = rhs.ssap;
-    control = rhs.control;
-    return *this;
-  }
+  LlcHdr& operator=(const LlcHdr& rhs) = default;
 
  public:
   /*

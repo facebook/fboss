@@ -11,8 +11,7 @@
 
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class CloudRipperPlatformMapping : public PlatformMapping {
  public:
@@ -25,5 +24,4 @@ class CloudRipperPlatformMapping : public PlatformMapping {
   CloudRipperPlatformMapping& operator=(CloudRipperPlatformMapping const&) =
       delete;
 };
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

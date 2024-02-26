@@ -8,7 +8,7 @@
  *
  */
 #pragma once
-#include <inttypes.h>
+#include <cinttypes>
 
 /*
  * EtherType

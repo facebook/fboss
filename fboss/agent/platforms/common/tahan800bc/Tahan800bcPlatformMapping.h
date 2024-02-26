@@ -11,8 +11,7 @@
 
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class Tahan800bcPlatformMapping : public PlatformMapping {
  public:
@@ -25,5 +24,4 @@ class Tahan800bcPlatformMapping : public PlatformMapping {
   Tahan800bcPlatformMapping& operator=(Tahan800bcPlatformMapping const&) =
       delete;
 };
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

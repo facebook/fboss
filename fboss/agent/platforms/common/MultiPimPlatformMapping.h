@@ -11,8 +11,7 @@
 
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class MultiPimPlatformMapping : public PlatformMapping {
  public:
@@ -31,5 +30,4 @@ class MultiPimPlatformMapping : public PlatformMapping {
   MultiPimPlatformMapping(MultiPimPlatformMapping const&) = delete;
   MultiPimPlatformMapping& operator=(MultiPimPlatformMapping const&) = delete;
 };
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

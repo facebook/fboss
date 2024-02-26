@@ -14,7 +14,7 @@ TCPPacket::TCPPacket(folly::io::Cursor& cursor, uint32_t length) {
   }
 }
 
-TCPPacket::~TCPPacket() {}
+TCPPacket::~TCPPacket() = default;
 
 std::unique_ptr<facebook::fboss::TxPacket> TCPPacket::getTxPacket(
     const HwSwitch* hw) const {

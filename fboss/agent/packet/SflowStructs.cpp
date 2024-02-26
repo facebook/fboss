@@ -13,9 +13,7 @@
 using namespace folly;
 using namespace folly::io;
 
-namespace facebook::fboss {
-
-namespace sflow {
+namespace facebook::fboss::sflow {
 
 void serializeIP(RWPrivateCursor* cursor, folly::IPAddress ip) {
   // We first push the address type
@@ -142,6 +140,4 @@ uint32_t SampledHeader::size() const {
       4 /* headerLength */ + this->headerLength;
 }
 
-} // namespace sflow
-
-} // namespace facebook::fboss
+} // namespace facebook::fboss::sflow

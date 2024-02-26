@@ -14,7 +14,7 @@ UDPDatagram::UDPDatagram(folly::io::Cursor& cursor) {
   }
 }
 
-UDPDatagram::~UDPDatagram() {}
+UDPDatagram::~UDPDatagram() = default;
 
 std::unique_ptr<facebook::fboss::TxPacket> UDPDatagram::getTxPacket(
     const HwSwitch* hw) const {

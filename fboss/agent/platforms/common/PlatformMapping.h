@@ -18,8 +18,7 @@ DECLARE_string(platform_mapping_override_path);
 DECLARE_bool(multi_npu_platform_mapping);
 DECLARE_int32(platform_mapping_profile);
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 cfg::PlatformPortConfigOverrideFactor buildPlatformPortConfigOverrideFactor(
     const TransceiverInfo& transceiverInfo);
@@ -73,7 +72,7 @@ class PlatformPortProfileConfigMatcher {
 
 class PlatformMapping {
  public:
-  PlatformMapping() {}
+  PlatformMapping() = default;
   explicit PlatformMapping(const std::string& jsonPlatformMappingStr);
   explicit PlatformMapping(const cfg::PlatformMapping& mapping);
   virtual ~PlatformMapping() = default;
@@ -192,5 +191,4 @@ class PlatformMapping {
   PlatformMapping(PlatformMapping const&) = delete;
   PlatformMapping& operator=(PlatformMapping const&) = delete;
 };
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

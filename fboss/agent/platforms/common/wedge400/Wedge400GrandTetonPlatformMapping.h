@@ -11,8 +11,7 @@
 
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 class Wedge400GrandTetonPlatformMapping : public PlatformMapping {
  public:
   Wedge400GrandTetonPlatformMapping();
@@ -26,5 +25,4 @@ class Wedge400GrandTetonPlatformMapping : public PlatformMapping {
   Wedge400GrandTetonPlatformMapping& operator=(
       Wedge400GrandTetonPlatformMapping const&) = delete;
 };
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

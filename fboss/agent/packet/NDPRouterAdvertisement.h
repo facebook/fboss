@@ -31,16 +31,13 @@ class NDPRouterAdvertisement {
   /*
    * default constructor
    */
-  NDPRouterAdvertisement() {}
+  NDPRouterAdvertisement() = default;
   /*
    * copy constructor
    */
   NDPRouterAdvertisement(const NDPRouterAdvertisement& rhs)
-      : curHopLimit(rhs.curHopLimit),
-        flags(rhs.flags),
-        routerLifetime(rhs.routerLifetime),
-        reachableTime(rhs.reachableTime),
-        retransTimer(rhs.retransTimer) {}
+
+      = default;
   /*
    * parameterized data constructor
    */
@@ -62,18 +59,12 @@ class NDPRouterAdvertisement {
   /*
    * destructor
    */
-  ~NDPRouterAdvertisement() {}
+  ~NDPRouterAdvertisement() = default;
   /*
    * operator=
    */
-  NDPRouterAdvertisement& operator=(const NDPRouterAdvertisement& rhs) {
-    curHopLimit = rhs.curHopLimit;
-    flags = rhs.flags;
-    routerLifetime = rhs.routerLifetime;
-    reachableTime = rhs.reachableTime;
-    retransTimer = rhs.retransTimer;
-    return *this;
-  }
+  NDPRouterAdvertisement& operator=(const NDPRouterAdvertisement& rhs) =
+      default;
   /*
    * Validate this packet.
    */

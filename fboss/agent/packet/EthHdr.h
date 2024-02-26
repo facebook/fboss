@@ -40,11 +40,11 @@ class VlanTag {
   /*
    * default constructor
    */
-  VlanTag() {}
+  VlanTag() = default;
   /*
    * copy constructor
    */
-  VlanTag(const VlanTag& rhs) : value(rhs.value) {}
+  VlanTag(const VlanTag& rhs) = default;
   /*
    * data contstructor
    */
@@ -63,7 +63,7 @@ class VlanTag {
   /*
    * destructor
    */
-  ~VlanTag() {}
+  ~VlanTag() = default;
   /*
    * operator=
    */
@@ -71,10 +71,7 @@ class VlanTag {
     value = tag;
     return *this;
   }
-  VlanTag& operator=(const VlanTag& rhs) {
-    value = rhs.value;
-    return *this;
-  }
+  VlanTag& operator=(const VlanTag& rhs) = default;
 
   /*
    * Tag Protocol Identifier: 0x8100 or 0x88a8
@@ -161,19 +158,17 @@ class EthHdr {
     // TODO(skhare) Fix all callsites and rename to TAGGED_PKT_SIZE
     SIZE = 18
   };
-  typedef std::vector<VlanTag> VlanTags_t;
+  using VlanTags_t = std::vector<VlanTag>;
   /*
    * default constructor
    */
-  EthHdr() {}
+  EthHdr() = default;
   /*
    * copy constructor
    */
   EthHdr(const EthHdr& rhs)
-      : dstAddr(rhs.dstAddr),
-        srcAddr(rhs.srcAddr),
-        vlanTags(rhs.vlanTags),
-        etherType(rhs.etherType) {}
+
+      = default;
   /*
    * parameterized  data constructor
    */
@@ -193,17 +188,11 @@ class EthHdr {
   /*
    * destructor
    */
-  ~EthHdr() {}
+  ~EthHdr() = default;
   /*
    * operator=
    */
-  EthHdr& operator=(const EthHdr& rhs) {
-    dstAddr = rhs.dstAddr;
-    srcAddr = rhs.srcAddr;
-    vlanTags = rhs.vlanTags;
-    etherType = rhs.etherType;
-    return *this;
-  }
+  EthHdr& operator=(const EthHdr& rhs) = default;
   /*
    * Convert to string
    */

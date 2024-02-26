@@ -11,8 +11,7 @@
 
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class YampPlatformMapping : public PlatformMapping {
  public:
@@ -23,5 +22,4 @@ class YampPlatformMapping : public PlatformMapping {
   YampPlatformMapping(YampPlatformMapping const&) = delete;
   YampPlatformMapping& operator=(YampPlatformMapping const&) = delete;
 };
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

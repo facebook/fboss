@@ -11,8 +11,7 @@
 
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class Meru400biaPlatformMapping : public PlatformMapping {
  public:
@@ -25,5 +24,4 @@ class Meru400biaPlatformMapping : public PlatformMapping {
   Meru400biaPlatformMapping& operator=(Meru400biaPlatformMapping const&) =
       delete;
 };
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

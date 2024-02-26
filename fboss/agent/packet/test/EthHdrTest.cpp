@@ -38,9 +38,9 @@ TEST(EthHdrTest, copy_constructor) {
   MacAddress dstAddr("ff:ff:ff:ff:ff:ff");
   MacAddress srcAddr("10:dd:b1:bb:5a:ef");
   vector<VlanTag> vlanTags;
-  vlanTags.push_back(VlanTag(0x81000001));
-  vlanTags.push_back(VlanTag(0x88A80002));
-  vlanTags.push_back(VlanTag(0x88A80003));
+  vlanTags.emplace_back(0x81000001);
+  vlanTags.emplace_back(0x88A80002);
+  vlanTags.emplace_back(0x88A80003);
   uint16_t etherType = static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV4);
   EthHdr lhs(dstAddr, srcAddr, vlanTags, etherType);
   EthHdr rhs(lhs);
@@ -51,9 +51,9 @@ TEST(EthHdrTest, parameterized_data_constructor) {
   MacAddress dstAddr("ff:ff:ff:ff:ff:ff");
   MacAddress srcAddr("10:dd:b1:bb:5a:ef");
   vector<VlanTag> vlanTags;
-  vlanTags.push_back(VlanTag(0x81000001));
-  vlanTags.push_back(VlanTag(0x88A80002));
-  vlanTags.push_back(VlanTag(0x88A80003));
+  vlanTags.emplace_back(0x81000001);
+  vlanTags.emplace_back(0x88A80002);
+  vlanTags.emplace_back(0x88A80003);
   uint16_t etherType = static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV6);
   EthHdr ethHdr(dstAddr, srcAddr, vlanTags, etherType);
   EXPECT_EQ(dstAddr, ethHdr.dstAddr);
@@ -66,9 +66,9 @@ TEST(EthHdrTest, cursor_data_constructor) {
   MacAddress dstAddr("ff:ff:ff:ff:ff:ff");
   MacAddress srcAddr("10:dd:b1:bb:5a:ef");
   vector<VlanTag> vlanTags;
-  vlanTags.push_back(VlanTag(0x81000001));
-  vlanTags.push_back(VlanTag(0x88A80002));
-  vlanTags.push_back(VlanTag(0x88A80003));
+  vlanTags.emplace_back(0x81000001);
+  vlanTags.emplace_back(0x88A80002);
+  vlanTags.emplace_back(0x88A80003);
   uint16_t etherType = static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV6);
   auto pkt = MockRxPacket::fromHex(
       // Ethernet Header
@@ -116,9 +116,9 @@ TEST(EthHdrTest, assignment_operator) {
   MacAddress dstAddr("ff:ff:ff:ff:ff:ff");
   MacAddress srcAddr("10:dd:b1:bb:5a:ef");
   vector<VlanTag> vlanTags;
-  vlanTags.push_back(VlanTag(0x81000001));
-  vlanTags.push_back(VlanTag(0x88A80002));
-  vlanTags.push_back(VlanTag(0x88A80003));
+  vlanTags.emplace_back(0x81000001);
+  vlanTags.emplace_back(0x88A80002);
+  vlanTags.emplace_back(0x88A80003);
   uint16_t etherType = static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV4);
   EthHdr lhs(dstAddr, srcAddr, vlanTags, etherType);
   EthHdr rhs = lhs;
@@ -129,9 +129,9 @@ TEST(EthHdrTest, equality_operator) {
   MacAddress dstAddr("ff:ff:ff:ff:ff:ff");
   MacAddress srcAddr("10:dd:b1:bb:5a:ef");
   vector<VlanTag> vlanTags;
-  vlanTags.push_back(VlanTag(0x81000001));
-  vlanTags.push_back(VlanTag(0x88A80002));
-  vlanTags.push_back(VlanTag(0x88A80003));
+  vlanTags.emplace_back(0x81000001);
+  vlanTags.emplace_back(0x88A80002);
+  vlanTags.emplace_back(0x88A80003);
   uint16_t etherType = static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV4);
   EthHdr lhs(dstAddr, srcAddr, vlanTags, etherType);
   EthHdr rhs(dstAddr, srcAddr, vlanTags, etherType);
@@ -142,9 +142,9 @@ TEST(EthHdrTest, inequality_operator) {
   MacAddress dstAddr("ff:ff:ff:ff:ff:ff");
   MacAddress srcAddr("10:dd:b1:bb:5a:ef");
   vector<VlanTag> vlanTags;
-  vlanTags.push_back(VlanTag(0x81000001));
-  vlanTags.push_back(VlanTag(0x88A80002));
-  vlanTags.push_back(VlanTag(0x88A80003));
+  vlanTags.emplace_back(0x81000001);
+  vlanTags.emplace_back(0x88A80002);
+  vlanTags.emplace_back(0x88A80003);
   uint16_t etherType1 = static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV4);
   uint16_t etherType2 = static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV6);
   EthHdr lhs(dstAddr, srcAddr, vlanTags, etherType1);
@@ -174,9 +174,9 @@ TEST(EthHdrTest, setDstMac) {
   MacAddress dstAddr("ff:ff:ff:ff:ff:ff");
   MacAddress srcAddr("10:dd:b1:bb:5a:ef");
   vector<VlanTag> vlanTags;
-  vlanTags.push_back(VlanTag(0x81000001));
-  vlanTags.push_back(VlanTag(0x88A80002));
-  vlanTags.push_back(VlanTag(0x88A80003));
+  vlanTags.emplace_back(0x81000001);
+  vlanTags.emplace_back(0x88A80002);
+  vlanTags.emplace_back(0x88A80003);
   uint16_t etherType = static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV6);
   EthHdr hdr(dstAddr, srcAddr, vlanTags, etherType);
   EXPECT_EQ(hdr.getDstMac(), dstAddr);
@@ -188,9 +188,9 @@ TEST(EthHdrTest, toString) {
   MacAddress dstAddr("ff:ff:ff:ff:ff:ff");
   MacAddress srcAddr("10:dd:b1:bb:5a:ef");
   vector<VlanTag> vlanTags;
-  vlanTags.push_back(VlanTag(0x81000001));
-  vlanTags.push_back(VlanTag(0x88A80002));
-  vlanTags.push_back(VlanTag(0x88A80003));
+  vlanTags.emplace_back(0x81000001);
+  vlanTags.emplace_back(0x88A80002);
+  vlanTags.emplace_back(0x88A80003);
   uint16_t etherType = static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV6);
   EthHdr hdr(dstAddr, srcAddr, vlanTags, etherType);
   std::cout << hdr;
@@ -222,9 +222,9 @@ TEST(EthHdrTest, setVlan) {
   MacAddress srcAddr("10:dd:b1:bb:5a:ef");
   uint16_t etherType = static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV6);
   vector<VlanTag> vlanTags;
-  vlanTags.push_back(VlanTag(0x81000001));
-  vlanTags.push_back(VlanTag(0x88A80002));
-  vlanTags.push_back(VlanTag(0x88A80003));
+  vlanTags.emplace_back(0x81000001);
+  vlanTags.emplace_back(0x88A80002);
+  vlanTags.emplace_back(0x88A80003);
   EthHdr hdr(dstAddr, srcAddr, vlanTags, etherType);
   hdr.setVlan(VlanID(1), ETHERTYPE::ETHERTYPE_VLAN);
   EXPECT_EQ(hdr.getVlanTags(), std::vector<VlanTag>({VlanTag(0x81000001)}));
@@ -235,9 +235,9 @@ TEST(EthHdrTest, setVlans) {
   MacAddress srcAddr("10:dd:b1:bb:5a:ef");
   uint16_t etherType = static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV6);
   vector<VlanTag> vlanTags;
-  vlanTags.push_back(VlanTag(0x81000001));
-  vlanTags.push_back(VlanTag(0x88A80002));
-  vlanTags.push_back(VlanTag(0x88A80003));
+  vlanTags.emplace_back(0x81000001);
+  vlanTags.emplace_back(0x88A80002);
+  vlanTags.emplace_back(0x88A80003);
   EthHdr hdr(dstAddr, srcAddr, vlanTags, etherType);
   hdr.setVlans(
       std::vector<VlanID>{VlanID(1), VlanID(2)}, ETHERTYPE::ETHERTYPE_VLAN);

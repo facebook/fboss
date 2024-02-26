@@ -15,11 +15,9 @@
 #include "fboss/agent/packet/HdrParseError.h"
 #include "fboss/agent/types.h"
 
-namespace folly {
-namespace io {
+namespace folly::io {
 class Cursor;
-}
-} // namespace folly
+} // namespace folly::io
 
 constexpr int PTP_DELAY_REQUEST_MSG_SIZE = 44;
 constexpr int PTP_UDP_EVENT_PORT = 319;

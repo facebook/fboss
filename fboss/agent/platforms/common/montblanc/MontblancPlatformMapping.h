@@ -11,8 +11,7 @@
 
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class MontblancPlatformMapping : public PlatformMapping {
  public:
@@ -24,5 +23,4 @@ class MontblancPlatformMapping : public PlatformMapping {
   MontblancPlatformMapping(MontblancPlatformMapping const&) = delete;
   MontblancPlatformMapping& operator=(MontblancPlatformMapping const&) = delete;
 };
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

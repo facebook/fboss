@@ -11,8 +11,7 @@
 
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class LassenPlatformMapping : public PlatformMapping {
  public:
@@ -24,5 +23,4 @@ class LassenPlatformMapping : public PlatformMapping {
   LassenPlatformMapping(LassenPlatformMapping const&) = delete;
   LassenPlatformMapping& operator=(LassenPlatformMapping const&) = delete;
 };
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

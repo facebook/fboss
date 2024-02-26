@@ -180,12 +180,11 @@ class ICMPHdr {
   /*
    * default constructor
    */
-  ICMPHdr() {}
+  ICMPHdr() = default;
   /*
    * copy constructor
    */
-  ICMPHdr(const ICMPHdr& rhs)
-      : type(rhs.type), code(rhs.code), csum(rhs.csum) {}
+  ICMPHdr(const ICMPHdr& rhs) = default;
   /*
    * parameterized data constructor
    */
@@ -198,16 +197,11 @@ class ICMPHdr {
   /*
    * destructor
    */
-  ~ICMPHdr() {}
+  ~ICMPHdr() = default;
   /*
    * operator=
    */
-  ICMPHdr& operator=(const ICMPHdr& rhs) {
-    type = rhs.type;
-    code = rhs.code;
-    csum = rhs.csum;
-    return *this;
-  }
+  ICMPHdr& operator=(const ICMPHdr& rhs) = default;
 
   /*
    * Serialize the ICMP header using the specified cursor.

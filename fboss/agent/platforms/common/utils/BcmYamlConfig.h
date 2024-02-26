@@ -15,7 +15,7 @@ namespace facebook::fboss {
 
 class BcmYamlConfig {
  public:
-  BcmYamlConfig() {}
+  BcmYamlConfig() = default;
 
   void setBaseConfig(const std::string& baseConfig);
 

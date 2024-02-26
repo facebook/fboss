@@ -11,8 +11,7 @@
 
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class Janga800bicPlatformMapping : public PlatformMapping {
  public:
@@ -26,5 +25,4 @@ class Janga800bicPlatformMapping : public PlatformMapping {
   Janga800bicPlatformMapping& operator=(Janga800bicPlatformMapping const&) =
       delete;
 };
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

@@ -9,10 +9,8 @@
  */
 #pragma once
 
-namespace facebook::fboss {
-namespace utility {
+namespace facebook::fboss::utility {
 
 bool isWedge400CPlatformRackTypeInference();
 
-} // namespace utility
-} // namespace facebook::fboss
+} // namespace facebook::fboss::utility

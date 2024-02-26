@@ -40,19 +40,13 @@ class IPv6Hdr {
   /*
    * default constructor
    */
-  IPv6Hdr() {}
+  IPv6Hdr() = default;
   /*
    * copy constructor
    */
   IPv6Hdr(const IPv6Hdr& rhs)
-      : version(rhs.version),
-        trafficClass(rhs.trafficClass),
-        flowLabel(rhs.flowLabel),
-        payloadLength(rhs.payloadLength),
-        nextHeader(rhs.nextHeader),
-        hopLimit(rhs.hopLimit),
-        srcAddr(rhs.srcAddr),
-        dstAddr(rhs.dstAddr) {}
+
+      = default;
   /*
    * parameterized data constructor
    */
@@ -84,21 +78,11 @@ class IPv6Hdr {
   /*
    * destructor
    */
-  ~IPv6Hdr() {}
+  ~IPv6Hdr() = default;
   /*
    * operator=
    */
-  IPv6Hdr& operator=(const IPv6Hdr& rhs) {
-    version = rhs.version;
-    trafficClass = rhs.trafficClass;
-    flowLabel = rhs.flowLabel;
-    payloadLength = rhs.payloadLength;
-    nextHeader = rhs.nextHeader;
-    hopLimit = rhs.hopLimit;
-    srcAddr = rhs.srcAddr;
-    dstAddr = rhs.dstAddr;
-    return *this;
-  }
+  IPv6Hdr& operator=(const IPv6Hdr& rhs) = default;
 
   /*
    * Serialize the IPv6 header using the specified cursor.

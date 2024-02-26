@@ -82,7 +82,7 @@ class NDPOptions {
   std::optional<folly::MacAddress> sourceLinkLayerAddress{std::nullopt};
   std::optional<folly::MacAddress> targetLinkLayerAddress{std::nullopt};
 
-  NDPOptions() {}
+  NDPOptions() = default;
   explicit NDPOptions(folly::io::Cursor& cursor);
 
   void tryParse(folly::io::Cursor& cursor);

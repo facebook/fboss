@@ -35,7 +35,7 @@ class IPv4Hdr {
   /*
    * default constructor
    */
-  IPv4Hdr() {}
+  IPv4Hdr() = default;
   /*
    * copy constructor
    */
@@ -101,7 +101,7 @@ class IPv4Hdr {
   /*
    * destructor
    */
-  ~IPv4Hdr() {}
+  ~IPv4Hdr() = default;
   /*
    * operator=
    */

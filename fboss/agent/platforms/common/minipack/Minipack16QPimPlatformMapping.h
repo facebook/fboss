@@ -12,8 +12,7 @@
 #include "fboss/agent/platforms/common/MultiPimPlatformMapping.h"
 #include "fboss/lib/platforms/PlatformMode.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class Minipack16QPimPlatformMapping : public MultiPimPlatformMapping {
  public:
@@ -26,5 +25,4 @@ class Minipack16QPimPlatformMapping : public MultiPimPlatformMapping {
   Minipack16QPimPlatformMapping& operator=(
       Minipack16QPimPlatformMapping const&) = delete;
 };
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

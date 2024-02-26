@@ -11,15 +11,14 @@
 
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class FakeTestPlatformMapping : public PlatformMapping {
  public:
   explicit FakeTestPlatformMapping(
       std::vector<int> controllingPortIds,
       int portsPerSlot = 4);
-  ~FakeTestPlatformMapping() {}
+  ~FakeTestPlatformMapping() = default;
 
  private:
   std::vector<int> controllingPortIds_;
@@ -40,5 +39,4 @@ class FakeTestPlatformMapping : public PlatformMapping {
   static phy::TxSettings getFakeTxSetting();
   static phy::RxSettings getFakeRxSetting();
 };
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

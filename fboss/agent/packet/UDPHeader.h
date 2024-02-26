@@ -13,11 +13,9 @@
 #include "fboss/agent/packet/IPv6Hdr.h"
 #include "fboss/agent/types.h"
 
-namespace folly {
-namespace io {
+namespace folly::io {
 class Cursor;
-}
-} // namespace folly
+} // namespace folly::io
 
 namespace facebook::fboss {
 

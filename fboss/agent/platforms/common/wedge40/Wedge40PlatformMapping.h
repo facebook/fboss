@@ -11,8 +11,7 @@
 
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class Wedge40PlatformMapping : public PlatformMapping {
  public:
@@ -24,5 +23,4 @@ class Wedge40PlatformMapping : public PlatformMapping {
   Wedge40PlatformMapping(Wedge40PlatformMapping const&) = delete;
   Wedge40PlatformMapping& operator=(Wedge40PlatformMapping const&) = delete;
 };
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

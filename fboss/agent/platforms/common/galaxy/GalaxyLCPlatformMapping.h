@@ -11,8 +11,7 @@
 
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class GalaxyLCPlatformMapping : public PlatformMapping {
  public:
@@ -25,5 +24,4 @@ class GalaxyLCPlatformMapping : public PlatformMapping {
   GalaxyLCPlatformMapping(GalaxyLCPlatformMapping const&) = delete;
   GalaxyLCPlatformMapping& operator=(GalaxyLCPlatformMapping const&) = delete;
 };
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

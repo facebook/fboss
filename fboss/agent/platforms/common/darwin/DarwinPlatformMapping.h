@@ -11,8 +11,7 @@
 
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class DarwinPlatformMapping : public PlatformMapping {
  public:
@@ -24,5 +23,4 @@ class DarwinPlatformMapping : public PlatformMapping {
   DarwinPlatformMapping(DarwinPlatformMapping const&) = delete;
   DarwinPlatformMapping& operator=(DarwinPlatformMapping const&) = delete;
 };
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss

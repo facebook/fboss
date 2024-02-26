@@ -70,7 +70,7 @@ class MPLSPacket {
     v4PayLoad_ = std::move(payload);
   }
 
-  MPLSHdr hdr_{MPLSHdr::Label{0, 0, 0, 0}};
+  MPLSHdr hdr_{MPLSHdr::Label{0, 0, false, 0}};
   std::optional<IPPacket<folly::IPAddressV4>> v4PayLoad_;
   std::optional<IPPacket<folly::IPAddressV6>> v6PayLoad_;
 };

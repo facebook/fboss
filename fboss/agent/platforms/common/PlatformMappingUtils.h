@@ -13,10 +13,6 @@
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/lib/platforms/PlatformMode.h"
 
-namespace facebook::fboss {
-
-namespace utility {
+namespace facebook::fboss::utility {
 std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType mode);
-} // namespace utility
-
-} // namespace facebook::fboss
+} // namespace facebook::fboss::utility

@@ -11,8 +11,7 @@
 
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 
-namespace facebook {
-namespace fboss {
+namespace facebook::fboss {
 
 class Morgan800ccPlatformMapping : public PlatformMapping {
  public:
@@ -25,5 +24,4 @@ class Morgan800ccPlatformMapping : public PlatformMapping {
   Morgan800ccPlatformMapping& operator=(Morgan800ccPlatformMapping const&) =
       delete;
 };
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss
