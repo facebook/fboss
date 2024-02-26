@@ -74,6 +74,7 @@ enum VdmConfigType {
   UNSUPPORTED = 0,
   SNR_MEDIA_IN = 5,
   SNR_HOST_IN = 6,
+  PAM4_LTP_MEDIA_IN = 7,
   PRE_FEC_BER_MEDIA_IN_MIN = 9,
   PRE_FEC_BER_HOST_IN_MIN = 10,
   PRE_FEC_BER_MEDIA_IN_MAX = 11,
@@ -285,6 +286,7 @@ static QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     // Page 20h
     {CmisField::PAGE_UPPER20H, {CmisPages::PAGE20, 128, 128}},
     {CmisField::VDM_CONF_SNR_MEDIA_IN, {CmisPages::PAGE20, 128, 8}},
+    {CmisField::VDM_CONF_PAM4_LTP_MEDIA_IN, {CmisPages::PAGE20, 136, 8}},
     {CmisField::VDM_CONF_PRE_FEC_BER_MEDIA_IN_MIN, {CmisPages::PAGE20, 144, 2}},
     {CmisField::VDM_CONF_PRE_FEC_BER_MEDIA_IN_MAX, {CmisPages::PAGE20, 146, 2}},
     {CmisField::VDM_CONF_PRE_FEC_BER_MEDIA_IN_AVG, {CmisPages::PAGE20, 148, 2}},
@@ -313,6 +315,7 @@ static QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     // Page 24h
     {CmisField::PAGE_UPPER24H, {CmisPages::PAGE24, 128, 128}},
     {CmisField::VDM_VAL_SNR_MEDIA_IN, {CmisPages::PAGE24, 128, 8}},
+    {CmisField::VDM_VAL_PAM4_LTP_MEDIA_IN, {CmisPages::PAGE24, 136, 8}},
     {CmisField::VDM_VAL_PRE_FEC_BER_MEDIA_IN_MIN, {CmisPages::PAGE24, 144, 2}},
     {CmisField::VDM_VAL_PRE_FEC_BER_MEDIA_IN_MAX, {CmisPages::PAGE24, 146, 2}},
     {CmisField::VDM_VAL_PRE_FEC_BER_MEDIA_IN_AVG, {CmisPages::PAGE24, 148, 2}},
