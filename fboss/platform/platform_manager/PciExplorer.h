@@ -91,9 +91,8 @@ class PciExplorer {
   // Create the device based on the given fbiob_aux_data residing
   // at the given PciDevice. Throw std::runtime_error on failure.
   void create(
-      const std::string& pmUnitScopedName,
-      const std::string& devName,
-      const std::string& pciDevPath,
+      const PciDevice& pciDevice,
+      const FpgaIpBlockConfig& fpgaIpBlockConfig,
       const struct fbiob_aux_data& auxData);
 
  private:
@@ -114,6 +113,10 @@ class PciExplorer {
       uint32_t instanceId);
   std::string getInfoRomSysfsPath(
       const FpgaIpBlockConfig& infoRomConfig,
+      uint32_t instanceId);
+  bool isPciSubDeviceCreated(
+      const PciDevice& pciDevice,
+      const FpgaIpBlockConfig& fpgaIpBlockConfig,
       uint32_t instanceId);
   bool isPciSubDevicePresent(
       const PciDevice& pciDevice,
