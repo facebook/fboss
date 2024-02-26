@@ -10,7 +10,7 @@ using namespace facebook::fboss;
 
 int main(int argc, char* argv[]) {
   setVersionInfo("" /*sdkVersion*/);
-  auto config = fbossCommonInit(argc, argv);
+  fbossCommonInit(argc, argv);
   auto fbossInitializer = std::make_unique<SplitSwAgentInitializer>();
   return facebook::fboss::fbossMain(argc, argv, std::move(fbossInitializer));
 }
