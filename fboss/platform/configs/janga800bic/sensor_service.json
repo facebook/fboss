@@ -1,53 +1,6 @@
 {
   "source" : "sysfs",
   "sensorMapList" : {
-    "CPU_CARD" : {
-      "CPU_UNCORE_TEMP" : {
-        "path" : "/run/devmap/sensors/CPU_CORE_TEMP/temp1_input",
-        "compute" : "@/1000.0",
-        "type"  : 3
-      },
-      "CPU_CORE0_TEMP" : {
-        "path" : "/run/devmap/sensors/CPU_CORE_TEMP/temp2_input",
-        "compute" : "@/1000.0",
-        "type" : 3
-      },
-      "CPU_CORE1_TEMP" : {
-        "path" : "/run/devmap/sensors/CPU_CORE_TEMP/temp3_input",
-        "compute" : "@/1000.0",
-        "type" : 3
-      },
-      "CPU_CORE2_TEMP" : {
-        "path" : "/run/devmap/sensors/CPU_CORE_TEMP/temp4_input",
-        "compute" : "@/1000.0",
-        "type" : 3
-      },
-      "CPU_CORE3_TEMP" : {
-        "path" : "/run/devmap/sensors/CPU_CORE_TEMP/temp5_input",
-        "compute" : "@/1000.0",
-        "type" : 3
-      },
-      "CPU_CORE4_TEMP" : {
-        "path" : "/run/devmap/sensors/CPU_CORE_TEMP/temp6_input",
-        "compute" : "@/1000.0",
-        "type" : 3
-      },
-      "CPU_CORE5_TEMP" : {
-        "path" : "/run/devmap/sensors/CPU_CORE_TEMP/temp7_input",
-        "compute" : "@/1000.0",
-        "type" : 3
-      },
-      "CPU_CORE6_TEMP" : {
-        "path" : "/run/devmap/sensors/CPU_CORE_TEMP/temp8_input",
-        "compute" : "@/1000.0",
-        "type" : 3
-      },
-      "CPU_CORE7_TEMP" : {
-        "path" : "/run/devmap/sensors/CPU_CORE_TEMP/temp9_input",
-        "compute" : "@/1000.0",
-        "type" : 3
-      }
-    },
     "PDB_CARD" : {
       "PDB_PS1_12V_IOUT" : {
         "path" : "/run/devmap/sensors/SMB_PS1_PMBUS_1/curr1_input",
@@ -55,7 +8,7 @@
         "type"  : 2
       },
       "PDB_PS1_12V_VOUT" : {
-        "path" : "/run/devmap/sensors/SMB_PS1_PMBUS_1/in1_input",
+        "path" : "/run/devmap/sensors/SMB_PS1_PMBUS_1/in2_input",
         "compute" : "@/1000.0",
         "type"  : 1
       },
@@ -70,7 +23,7 @@
         "type"  : 2
       },
       "PDB_PS2_12V_VOUT" : {
-        "path" : "/run/devmap/sensors/SMB_PS2_PMBUS_2/in1_input",
+        "path" : "/run/devmap/sensors/SMB_PS2_PMBUS_2/in2_input",
         "compute" : "@/1000.0",
         "type"  : 1
       },
@@ -436,9 +389,9 @@
         "compute" : "(5/3)*@/1000.0",
         "type"  : 1
       },
-      "SMB_U354_XP12R0V_SSD_VOLT": {
+      "SMB_U354_XP1R8V_SSD_VOLT": {
         "path" : "/run/devmap/sensors/SMB_U354_ADC128D818_1/in3_input",
-        "compute" : "11*@/1000.0",
+        "compute" : "@/1000.0",
         "type"  : 1
       },
       "SMB_U354_XP12R0V_COME_VOLT": {
@@ -456,9 +409,9 @@
         "compute" : "(5/0.88)*@/1000.0",
         "type"  : 1
       },
-      "SMB_U354_XP12R0V_SW_A_VOLT": {
+      "SMB_U354_XP1R8V_SW_A_VOLT": {
         "path" : "/run/devmap/sensors/SMB_U354_ADC128D818_1/in7_input",
-        "compute" : "11*@/1000.0",
+        "compute" : "@/1000.0",
         "type"  : 1
       },
       "SMB_U355_XP1R2V_SW_A_VOLT": {
@@ -739,3 +692,4 @@
     }
   }
 }
+
