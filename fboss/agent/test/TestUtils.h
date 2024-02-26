@@ -46,9 +46,9 @@ namespace cfg {
 class SwitchConfig;
 }
 
-class MockNonMonolithicHwSwitchHandler : public NonMonolithicHwSwitchHandler {
+class MockMultiSwitchHwSwitchHandler : public MultiSwitchHwSwitchHandler {
  public:
-  using NonMonolithicHwSwitchHandler::NonMonolithicHwSwitchHandler;
+  using MultiSwitchHwSwitchHandler::MultiSwitchHwSwitchHandler;
   MOCK_METHOD2(
       stateChanged,
       std::shared_ptr<SwitchState>(const StateDelta&, bool));

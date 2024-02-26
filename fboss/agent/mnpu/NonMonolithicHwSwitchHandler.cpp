@@ -11,84 +11,84 @@ DEFINE_int32(oper_delta_ack_timeout, 600, "Oper delta ack timeout in seconds");
 
 namespace facebook::fboss {
 
-NonMonolithicHwSwitchHandler::NonMonolithicHwSwitchHandler(
+MultiSwitchHwSwitchHandler::MultiSwitchHwSwitchHandler(
     const SwitchID& switchId,
     const cfg::SwitchInfo& info,
     SwSwitch* sw)
     : HwSwitchHandler(switchId, info), sw_(sw) {}
 
-void NonMonolithicHwSwitchHandler::exitFatal() const {
+void MultiSwitchHwSwitchHandler::exitFatal() const {
   // TODO: implement this
 }
 
-std::unique_ptr<TxPacket> NonMonolithicHwSwitchHandler::allocatePacket(
+std::unique_ptr<TxPacket> MultiSwitchHwSwitchHandler::allocatePacket(
     uint32_t size) const {
   return TxPacket::allocateTxPacket(size);
 }
 
-bool NonMonolithicHwSwitchHandler::sendPacketOutOfPortAsync(
+bool MultiSwitchHwSwitchHandler::sendPacketOutOfPortAsync(
     std::unique_ptr<TxPacket> pkt,
     PortID portID,
     std::optional<uint8_t> queue) noexcept {
   return sendPacketOutViaThriftStream(std::move(pkt), portID, queue);
 }
 
-bool NonMonolithicHwSwitchHandler::sendPacketSwitchedSync(
+bool MultiSwitchHwSwitchHandler::sendPacketSwitchedSync(
     std::unique_ptr<TxPacket> pkt) noexcept {
   return sendPacketOutViaThriftStream(std::move(pkt));
 }
 
-bool NonMonolithicHwSwitchHandler::sendPacketSwitchedAsync(
+bool MultiSwitchHwSwitchHandler::sendPacketSwitchedAsync(
     std::unique_ptr<TxPacket> pkt) noexcept {
   return sendPacketOutViaThriftStream(std::move(pkt));
 }
 
-bool NonMonolithicHwSwitchHandler::isValidStateUpdate(
+bool MultiSwitchHwSwitchHandler::isValidStateUpdate(
     const StateDelta& /*delta*/) const {
   // TODO: implement this
   return true;
 }
 
-void NonMonolithicHwSwitchHandler::unregisterCallbacks() {
+void MultiSwitchHwSwitchHandler::unregisterCallbacks() {
   // TODO: implement this
 }
 
-void NonMonolithicHwSwitchHandler::gracefulExit() {
+void MultiSwitchHwSwitchHandler::gracefulExit() {
   // TODO: implement this
 }
 
-bool NonMonolithicHwSwitchHandler::getAndClearNeighborHit(
+bool MultiSwitchHwSwitchHandler::getAndClearNeighborHit(
     RouterID /*vrf*/,
     folly::IPAddress& /*ip*/) {
   return true; // TODO: implement this
 }
 
-folly::dynamic NonMonolithicHwSwitchHandler::toFollyDynamic() const {
+folly::dynamic MultiSwitchHwSwitchHandler::toFollyDynamic() const {
   // TODO: implement this
   return folly::dynamic::object;
 }
 
-std::optional<uint32_t> NonMonolithicHwSwitchHandler::getHwLogicalPortId(
+std::optional<uint32_t> MultiSwitchHwSwitchHandler::getHwLogicalPortId(
     PortID /*portID*/) const {
   // TODO: query hwswitch and return logical port id
   return std::nullopt;
 }
 
-void NonMonolithicHwSwitchHandler::onHwInitialized(
+void MultiSwitchHwSwitchHandler::onHwInitialized(
     HwSwitchCallback* /*callback*/) {
   // TODO: implement this
 }
 
-void NonMonolithicHwSwitchHandler::onInitialConfigApplied(
+void MultiSwitchHwSwitchHandler::onInitialConfigApplied(
     HwSwitchCallback* /*callback*/) {
   // TODO: implement this
 }
 
-void NonMonolithicHwSwitchHandler::platformStop() {
+void MultiSwitchHwSwitchHandler::platformStop() {
   // TODO: implement this
 }
 
-bool NonMonolithicHwSwitchHandler::transactionsSupported(
+bool MultiSwitchHwSwitchHandler::transactionsSupported(
     std::optional<cfg::SdkVersion> sdkVersion) const {
   if (sdkVersion.has_value() && sdkVersion.value().saiSdk().has_value()) {
     return true;
@@ -97,130 +97,129 @@ bool NonMonolithicHwSwitchHandler::transactionsSupported(
 }
 
 folly::F14FastMap<std::string, HwPortStats>
-NonMonolithicHwSwitchHandler::getPortStats() const {
+MultiSwitchHwSwitchHandler::getPortStats() const {
   // TODO: implement this
   return {};
 }
 
 std::map<std::string, HwSysPortStats>
-NonMonolithicHwSwitchHandler::getSysPortStats() const {
+MultiSwitchHwSwitchHandler::getSysPortStats() const {
   // TODO: implement this
   return {};
 }
 
-HwSwitchDropStats NonMonolithicHwSwitchHandler::getSwitchDropStats() const {
+HwSwitchDropStats MultiSwitchHwSwitchHandler::getSwitchDropStats() const {
   // TODO: implement this
   return HwSwitchDropStats{};
 }
 
 // not used in split
-void NonMonolithicHwSwitchHandler::updateStats() {}
+void MultiSwitchHwSwitchHandler::updateStats() {}
 
 // not used in split
-void NonMonolithicHwSwitchHandler::updateAllPhyInfo() {}
-std::map<PortID, phy::PhyInfo> NonMonolithicHwSwitchHandler::getAllPhyInfo()
+void MultiSwitchHwSwitchHandler::updateAllPhyInfo() {}
+std::map<PortID, phy::PhyInfo> MultiSwitchHwSwitchHandler::getAllPhyInfo()
     const {
   return {};
 }
 
-uint64_t NonMonolithicHwSwitchHandler::getDeviceWatermarkBytes() const {
+uint64_t MultiSwitchHwSwitchHandler::getDeviceWatermarkBytes() const {
   // TODO: implement this
   return 0;
 }
 
-HwFlowletStats NonMonolithicHwSwitchHandler::getHwFlowletStats() const {
+HwFlowletStats MultiSwitchHwSwitchHandler::getHwFlowletStats() const {
   // TODO: implement this
   return {};
 }
 
-HwSwitchFb303Stats* NonMonolithicHwSwitchHandler::getSwitchStats() const {
+HwSwitchFb303Stats* MultiSwitchHwSwitchHandler::getSwitchStats() const {
   // TODO: implement this
   // @lint-ignore CLANGTIDY
   return nullptr;
 }
 
-void NonMonolithicHwSwitchHandler::clearPortStats(
+void MultiSwitchHwSwitchHandler::clearPortStats(
     const std::unique_ptr<std::vector<int32_t>>& /*ports*/) {
   // TODO: implement this
 }
 
 std::vector<phy::PrbsLaneStats>
-NonMonolithicHwSwitchHandler::getPortAsicPrbsStats(PortID /*portId*/) {
+MultiSwitchHwSwitchHandler::getPortAsicPrbsStats(PortID /*portId*/) {
   // TODO: implement this
   return {};
 }
 
-void NonMonolithicHwSwitchHandler::clearPortAsicPrbsStats(int32_t /*portId*/) {
+void MultiSwitchHwSwitchHandler::clearPortAsicPrbsStats(int32_t /*portId*/) {
   // TODO: implement this
 }
 
 std::vector<prbs::PrbsPolynomial>
-NonMonolithicHwSwitchHandler::getPortPrbsPolynomials(int32_t /*portId*/) {
+MultiSwitchHwSwitchHandler::getPortPrbsPolynomials(int32_t /*portId*/) {
   // TODO: implement this
   return {};
 }
 
-prbs::InterfacePrbsState NonMonolithicHwSwitchHandler::getPortPrbsState(
+prbs::InterfacePrbsState MultiSwitchHwSwitchHandler::getPortPrbsState(
     PortID /* portId */) {
   // TODO: implement this
   return prbs::InterfacePrbsState{};
 }
 
-void NonMonolithicHwSwitchHandler::switchRunStateChanged(
+void MultiSwitchHwSwitchHandler::switchRunStateChanged(
     SwitchRunState /*newState*/) {
   // TODO: implement this
 }
 
-std::shared_ptr<SwitchState> NonMonolithicHwSwitchHandler::stateChanged(
+std::shared_ptr<SwitchState> MultiSwitchHwSwitchHandler::stateChanged(
     const StateDelta& /*delta*/,
     bool /*transaction*/) {
   // TODO: implement this
   return nullptr;
 }
 
-CpuPortStats NonMonolithicHwSwitchHandler::getCpuPortStats(
+CpuPortStats MultiSwitchHwSwitchHandler::getCpuPortStats(
     bool /*getIncrement*/) const {
   throw FbossError("getCpuPortStats not implemented");
 }
 
 std::map<PortID, FabricEndpoint>
-NonMonolithicHwSwitchHandler::getFabricConnectivity() const {
+MultiSwitchHwSwitchHandler::getFabricConnectivity() const {
   // TODO - retire this after clients move to HwAgent thrift api
   return std::map<PortID, FabricEndpoint>();
 }
 
-std::vector<PortID> NonMonolithicHwSwitchHandler::getSwitchReachability(
+std::vector<PortID> MultiSwitchHwSwitchHandler::getSwitchReachability(
     SwitchID /*switchId*/) const {
   return std::vector<PortID>();
 }
 
-std::string NonMonolithicHwSwitchHandler::getDebugDump() const {
+std::string MultiSwitchHwSwitchHandler::getDebugDump() const {
   throw FbossError("getDebugDump not implemented");
 }
 
-void NonMonolithicHwSwitchHandler::fetchL2Table(
+void MultiSwitchHwSwitchHandler::fetchL2Table(
     std::vector<L2EntryThrift>* /*l2Table*/) const {
   throw FbossError("fetchL2Table not implemented");
 }
 
-std::string NonMonolithicHwSwitchHandler::listObjects(
+std::string MultiSwitchHwSwitchHandler::listObjects(
     const std::vector<HwObjectType>& /*types*/,
     bool /*cached*/) const {
   throw FbossError("listObjects not implemented");
 }
 
-FabricReachabilityStats
-NonMonolithicHwSwitchHandler::getFabricReachabilityStats() const {
+FabricReachabilityStats MultiSwitchHwSwitchHandler::getFabricReachabilityStats()
+    const {
   throw FbossError("getFabricReachabilityStats not implemented");
 }
 
-std::vector<EcmpDetails> NonMonolithicHwSwitchHandler::getAllEcmpDetails()
-    const {
+std::vector<EcmpDetails> MultiSwitchHwSwitchHandler::getAllEcmpDetails() const {
   // TODO: implement this
   return {};
 }
 
-bool NonMonolithicHwSwitchHandler::needL2EntryForNeighbor(
+bool MultiSwitchHwSwitchHandler::needL2EntryForNeighbor(
     const cfg::SwitchConfig* config) const {
   // if config is not present, fall back to true
   // if sdk version is not set (for test configs), fall back to true
@@ -230,7 +229,7 @@ bool NonMonolithicHwSwitchHandler::needL2EntryForNeighbor(
       config->sdkVersion()->saiSdk().has_value();
 }
 
-bool NonMonolithicHwSwitchHandler::sendPacketOutViaThriftStream(
+bool MultiSwitchHwSwitchHandler::sendPacketOutViaThriftStream(
     std::unique_ptr<TxPacket> pkt,
     std::optional<PortID> portID,
     std::optional<uint8_t> queue) {
@@ -239,14 +238,14 @@ bool NonMonolithicHwSwitchHandler::sendPacketOutViaThriftStream(
   return true;
 }
 
-bool NonMonolithicHwSwitchHandler::checkOperSyncStateLocked(
+bool MultiSwitchHwSwitchHandler::checkOperSyncStateLocked(
     HwSwitchOperDeltaSyncState state,
     const std::unique_lock<std::mutex>& /*lock*/) const {
   return operDeltaSyncState_ == state;
 }
 
 std::pair<fsdb::OperDelta, HwSwitchStateUpdateStatus>
-NonMonolithicHwSwitchHandler::stateChanged(
+MultiSwitchHwSwitchHandler::stateChanged(
     const fsdb::OperDelta& delta,
     bool transaction,
     const std::shared_ptr<SwitchState>& newState) {
@@ -311,7 +310,7 @@ NonMonolithicHwSwitchHandler::stateChanged(
   }
 }
 
-multiswitch::StateOperDelta NonMonolithicHwSwitchHandler::getNextStateOperDelta(
+multiswitch::StateOperDelta MultiSwitchHwSwitchHandler::getNextStateOperDelta(
     std::unique_ptr<multiswitch::StateOperDelta> prevOperResult,
     int64_t lastUpdateSeqNum) {
   SCOPE_EXIT {
@@ -393,12 +392,12 @@ multiswitch::StateOperDelta NonMonolithicHwSwitchHandler::getNextStateOperDelta(
   }
 }
 
-void NonMonolithicHwSwitchHandler::notifyHwSwitchDisconnected() {
+void MultiSwitchHwSwitchHandler::notifyHwSwitchDisconnected() {
   // cancel any pending operations.
   cancelOperDeltaSync();
 }
 
-void NonMonolithicHwSwitchHandler::cancelOperDeltaSync() {
+void MultiSwitchHwSwitchHandler::cancelOperDeltaSync() {
   {
     std::unique_lock<std::mutex> lk(stateUpdateMutex_);
     setOperSyncStateLocked(HwSwitchOperDeltaSyncState::CANCELLED, lk);
@@ -407,17 +406,17 @@ void NonMonolithicHwSwitchHandler::cancelOperDeltaSync() {
   stateUpdateCV_.notify_all();
 }
 
-NonMonolithicHwSwitchHandler::~NonMonolithicHwSwitchHandler() {
+MultiSwitchHwSwitchHandler::~MultiSwitchHwSwitchHandler() {
   cancelOperDeltaSync();
 }
 
 HwSwitchOperDeltaSyncState
-NonMonolithicHwSwitchHandler::getHwSwitchOperDeltaSyncState() {
+MultiSwitchHwSwitchHandler::getHwSwitchOperDeltaSyncState() {
   std::unique_lock<std::mutex> lk(stateUpdateMutex_);
   return operDeltaSyncState_;
 }
 
-SwitchRunState NonMonolithicHwSwitchHandler::getHwSwitchRunState() {
+SwitchRunState MultiSwitchHwSwitchHandler::getHwSwitchRunState() {
   HwSwitchOperDeltaSyncState syncState;
   {
     std::unique_lock<std::mutex> lk(stateUpdateMutex_);
@@ -437,7 +436,7 @@ SwitchRunState NonMonolithicHwSwitchHandler::getHwSwitchRunState() {
   throw FbossError("Unknown hw switch run state");
 }
 
-bool NonMonolithicHwSwitchHandler::waitForOperSyncAck(
+bool MultiSwitchHwSwitchHandler::waitForOperSyncAck(
     std::unique_lock<std::mutex>& lk,
     uint64_t timeoutInSec) {
   if (!stateUpdateCV_.wait_for(
@@ -457,7 +456,7 @@ bool NonMonolithicHwSwitchHandler::waitForOperSyncAck(
       : true;
 }
 
-bool NonMonolithicHwSwitchHandler::waitForOperDeltaReady(
+bool MultiSwitchHwSwitchHandler::waitForOperDeltaReady(
     std::unique_lock<std::mutex>& lk,
     uint64_t timeoutInSec) {
   if (!stateUpdateCV_.wait_for(
@@ -476,7 +475,7 @@ bool NonMonolithicHwSwitchHandler::waitForOperDeltaReady(
       : true;
 }
 
-void NonMonolithicHwSwitchHandler::fillMultiswitchOperDelta(
+void MultiSwitchHwSwitchHandler::fillMultiswitchOperDelta(
     multiswitch::StateOperDelta& stateDelta,
     const std::shared_ptr<SwitchState>& state,
     const fsdb::OperDelta& delta,

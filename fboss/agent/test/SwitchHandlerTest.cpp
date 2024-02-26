@@ -45,7 +45,7 @@ class SwSwitchHandlerTest : public ::testing::Test {
         [](const SwitchID& switchId,
            const cfg::SwitchInfo& info,
            SwSwitch* sw) {
-          return std::make_unique<NonMonolithicHwSwitchHandler>(
+          return std::make_unique<MultiSwitchHwSwitchHandler>(
               switchId, info, sw);
         });
     sw_->getHwSwitchHandler()->start();
@@ -406,8 +406,7 @@ TEST_F(SwSwitchHandlerTest, reconnectingHwSwitch) {
       &agentConfig,
       &agentDirUtil,
       [](const SwitchID& switchId, const cfg::SwitchInfo& info, SwSwitch* sw) {
-        return std::make_unique<NonMonolithicHwSwitchHandler>(
-            switchId, info, sw);
+        return std::make_unique<MultiSwitchHwSwitchHandler>(switchId, info, sw);
       });
   auto newHwSwitchHandler = newSwSwitch->getHwSwitchHandler();
   newHwSwitchHandler->start();

@@ -1391,7 +1391,7 @@ std::unique_ptr<SwSwitch> createSwSwitchWithMultiSwitch(
     HwSwitchHandlerInitFn initFunc) {
   HwSwitchHandlerInitFn hwSwitchHandlerInitFn =
       [](const SwitchID& switchId, const cfg::SwitchInfo& info, SwSwitch* sw) {
-        auto handler = std::make_unique<MockNonMonolithicHwSwitchHandler>(
+        auto handler = std::make_unique<MockMultiSwitchHwSwitchHandler>(
             switchId, info, sw);
         // success by default
         ON_CALL(*handler, stateChanged(_, _))

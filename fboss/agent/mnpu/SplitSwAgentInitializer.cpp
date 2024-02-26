@@ -18,8 +18,7 @@ void SplitSwSwitchInitializer::initImpl(HwSwitchCallback* callback) {
 SplitSwAgentInitializer::SplitSwAgentInitializer() {
   sw_ = std::make_unique<SwSwitch>(
       [](const SwitchID& switchId, const cfg::SwitchInfo& info, SwSwitch* sw) {
-        return std::make_unique<NonMonolithicHwSwitchHandler>(
-            switchId, info, sw);
+        return std::make_unique<MultiSwitchHwSwitchHandler>(switchId, info, sw);
       },
       &agentDirectoryUtil_,
       true /* supportsAddRemovePort */,
