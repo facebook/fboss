@@ -14,8 +14,8 @@
 #include <folly/io/async/EventBase.h>
 #include <folly/json/dynamic.h>
 #include <folly/system/ThreadName.h>
+#include <thrift/lib/cpp2/folly_dynamic/folly_dynamic.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
-#include <thrift/lib/cpp2/reflection/folly_dynamic.h>
 #include <chrono>
 #include <utility>
 #include "common/base/Proc.h"

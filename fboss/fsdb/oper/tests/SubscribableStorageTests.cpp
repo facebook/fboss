@@ -16,10 +16,9 @@
 #include <folly/experimental/coro/GtestHelpers.h>
 #include <folly/experimental/coro/Task.h>
 #include <folly/experimental/coro/Timeout.h>
-#include <thrift/lib/cpp2/reflection/folly_dynamic.h>
+#include <thrift/lib/cpp2/folly_dynamic/folly_dynamic.h>
 #include "fboss/fsdb/oper/ExtendedPathBuilder.h"
 #include "fboss/fsdb/tests/gen-cpp2-thriftpath/thriftpath_test.h" // @manual=//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath
-#include "fboss/fsdb/tests/gen-cpp2/thriftpath_test_fatal_types.h"
 #include "fboss/fsdb/tests/gen-cpp2/thriftpath_test_types.h"
 
 using folly::dynamic;
@@ -45,8 +44,8 @@ TestStruct createTestStructForExtendedTests() {
     testDyn["setOfI32"].push_back(i);
   }
 
-  return apache::thrift::from_dynamic<TestStruct>(
-      testDyn, apache::thrift::dynamic_format::JSON_1);
+  return facebook::thrift::from_dynamic<TestStruct>(
+      testDyn, facebook::thrift::dynamic_format::JSON_1);
 }
 
 constexpr auto kSubscriber = "testSubscriber";
@@ -66,8 +65,8 @@ TEST(SubscribableStorageTests, GetThrift) {
   thriftpath::RootThriftPath<TestStruct> root;
 
   auto testDyn = createTestDynamic();
-  auto testStruct = apache::thrift::from_dynamic<TestStruct>(
-      testDyn, apache::thrift::dynamic_format::JSON_1);
+  auto testStruct = facebook::thrift::from_dynamic<TestStruct>(
+      testDyn, facebook::thrift::dynamic_format::JSON_1);
   auto storage = TestSubscribableStorage(testStruct);
 
   EXPECT_EQ(storage.get(root.tx()).value(), true);
@@ -84,8 +83,8 @@ TEST(SubscribableStorageTests, SubscribeUnsubscribe) {
   thriftpath::RootThriftPath<TestStruct> root;
 
   auto testDyn = createTestDynamic();
-  auto testStruct = apache::thrift::from_dynamic<TestStruct>(
-      testDyn, apache::thrift::dynamic_format::JSON_1);
+  auto testStruct = facebook::thrift::from_dynamic<TestStruct>(
+      testDyn, facebook::thrift::dynamic_format::JSON_1);
   auto storage = TestSubscribableStorage(testStruct);
 
   auto txPath = root.tx();
@@ -103,8 +102,8 @@ TEST(SubscribableStorageTests, SubscribeOne) {
   thriftpath::RootThriftPath<TestStruct> root;
 
   auto testDyn = createTestDynamic();
-  auto testStruct = apache::thrift::from_dynamic<TestStruct>(
-      testDyn, apache::thrift::dynamic_format::JSON_1);
+  auto testStruct = facebook::thrift::from_dynamic<TestStruct>(
+      testDyn, facebook::thrift::dynamic_format::JSON_1);
   auto storage = TestSubscribableStorage(testStruct);
   storage.setConvertToIDPaths(true);
 
@@ -130,8 +129,8 @@ TEST(SubscribableStorageTests, SubscribePathAddRemoveParent) {
   thriftpath::RootThriftPath<TestStruct> root;
 
   auto testDyn = createTestDynamic();
-  auto testStruct = apache::thrift::from_dynamic<TestStruct>(
-      testDyn, apache::thrift::dynamic_format::JSON_1);
+  auto testStruct = facebook::thrift::from_dynamic<TestStruct>(
+      testDyn, facebook::thrift::dynamic_format::JSON_1);
   auto storage = TestSubscribableStorage(testStruct);
 
   auto path = root.structMap()[99].min();
@@ -164,8 +163,8 @@ TEST(SubscribableStorageTests, SubscribeDelta) {
   thriftpath::RootThriftPath<TestStruct> root;
 
   auto testDyn = createTestDynamic();
-  auto testStruct = apache::thrift::from_dynamic<TestStruct>(
-      testDyn, apache::thrift::dynamic_format::JSON_1);
+  auto testStruct = facebook::thrift::from_dynamic<TestStruct>(
+      testDyn, facebook::thrift::dynamic_format::JSON_1);
   auto storage = TestSubscribableStorage(testStruct);
 
   auto generator =
@@ -205,8 +204,8 @@ TEST(SubscribableStorageTests, SubscribeDeltaUpdate) {
   thriftpath::RootThriftPath<TestStruct> root;
 
   auto testDyn = createTestDynamic();
-  auto testStruct = apache::thrift::from_dynamic<TestStruct>(
-      testDyn, apache::thrift::dynamic_format::JSON_1);
+  auto testStruct = facebook::thrift::from_dynamic<TestStruct>(
+      testDyn, facebook::thrift::dynamic_format::JSON_1);
   auto storage = TestSubscribableStorage(testStruct);
   storage.start();
 
@@ -246,8 +245,8 @@ TEST(SubscribableStorageTests, SubscribeDeltaAddRemoveParent) {
   thriftpath::RootThriftPath<TestStruct> root;
 
   auto testDyn = createTestDynamic();
-  auto testStruct = apache::thrift::from_dynamic<TestStruct>(
-      testDyn, apache::thrift::dynamic_format::JSON_1);
+  auto testStruct = facebook::thrift::from_dynamic<TestStruct>(
+      testDyn, facebook::thrift::dynamic_format::JSON_1);
   auto storage = TestSubscribableStorage(testStruct);
 
   auto path = root.structMap()[99].min();
@@ -295,8 +294,8 @@ TEST(SubscribableStorageTests, SubscribeEncodedPathSimple) {
   thriftpath::RootThriftPath<TestStruct> root;
 
   auto testDyn = createTestDynamic();
-  auto testStruct = apache::thrift::from_dynamic<TestStruct>(
-      testDyn, apache::thrift::dynamic_format::JSON_1);
+  auto testStruct = facebook::thrift::from_dynamic<TestStruct>(
+      testDyn, facebook::thrift::dynamic_format::JSON_1);
   auto storage = TestSubscribableStorage(testStruct);
 
   const auto& path = root.stringToStruct()["test"].max();
@@ -334,8 +333,8 @@ TEST(SubscribableStorageTests, SubscribeExtendedPathSimple) {
   thriftpath::RootThriftPath<TestStruct> root;
 
   auto testDyn = createTestDynamic();
-  auto testStruct = apache::thrift::from_dynamic<TestStruct>(
-      testDyn, apache::thrift::dynamic_format::JSON_1);
+  auto testStruct = facebook::thrift::from_dynamic<TestStruct>(
+      testDyn, facebook::thrift::dynamic_format::JSON_1);
   auto storage = TestSubscribableStorage(testStruct);
 
   auto path = ext_path_builder::raw("mapOfStringToI32").regex("test1.*").get();
@@ -380,8 +379,8 @@ TEST(SubscribableStorageTests, SubscribeExtendedPathMultipleChanges) {
   thriftpath::RootThriftPath<TestStruct> root;
 
   auto testDyn = createTestDynamic();
-  auto testStruct = apache::thrift::from_dynamic<TestStruct>(
-      testDyn, apache::thrift::dynamic_format::JSON_1);
+  auto testStruct = facebook::thrift::from_dynamic<TestStruct>(
+      testDyn, facebook::thrift::dynamic_format::JSON_1);
   auto storage = TestSubscribableStorage(testStruct);
 
   auto path = ext_path_builder::raw("mapOfStringToI32").regex("test1.*").get();
@@ -436,8 +435,8 @@ TEST(SubscribableStorageTests, SubscribeExtendedDeltaSimple) {
   thriftpath::RootThriftPath<TestStruct> root;
 
   auto testDyn = createTestDynamic();
-  auto testStruct = apache::thrift::from_dynamic<TestStruct>(
-      testDyn, apache::thrift::dynamic_format::JSON_1);
+  auto testStruct = facebook::thrift::from_dynamic<TestStruct>(
+      testDyn, facebook::thrift::dynamic_format::JSON_1);
   auto storage = TestSubscribableStorage(testStruct);
 
   auto path = ext_path_builder::raw("mapOfStringToI32").regex("test1.*").get();
@@ -487,8 +486,8 @@ CO_TEST_P(SubscribableStorageTestsPathDelta, UnregisterSubscriber) {
   thriftpath::RootThriftPath<TestStruct> root;
 
   auto testDyn = createTestDynamic();
-  auto testStruct = apache::thrift::from_dynamic<TestStruct>(
-      testDyn, apache::thrift::dynamic_format::JSON_1);
+  auto testStruct = facebook::thrift::from_dynamic<TestStruct>(
+      testDyn, facebook::thrift::dynamic_format::JSON_1);
   auto storage = TestSubscribableStorage(testStruct);
   storage.start();
 
@@ -532,8 +531,8 @@ CO_TEST_P(SubscribableStorageTestsPathDelta, UnregisterSubscriberMulti) {
   thriftpath::RootThriftPath<TestStruct> root;
 
   auto testDyn = createTestDynamic();
-  auto testStruct = apache::thrift::from_dynamic<TestStruct>(
-      testDyn, apache::thrift::dynamic_format::JSON_1);
+  auto testStruct = facebook::thrift::from_dynamic<TestStruct>(
+      testDyn, facebook::thrift::dynamic_format::JSON_1);
   auto storage = TestSubscribableStorage(testStruct);
   storage.start();
 
@@ -588,8 +587,8 @@ CO_TEST(SubscribableStorageTests, SubscribeExtendedDeltaUpdate) {
   thriftpath::RootThriftPath<TestStruct> root;
 
   auto testDyn = createTestDynamic();
-  auto testStruct = apache::thrift::from_dynamic<TestStruct>(
-      testDyn, apache::thrift::dynamic_format::JSON_1);
+  auto testStruct = facebook::thrift::from_dynamic<TestStruct>(
+      testDyn, facebook::thrift::dynamic_format::JSON_1);
   auto storage = TestSubscribableStorage(testStruct);
   storage.start();
 
@@ -618,8 +617,8 @@ TEST(SubscribableStorageTests, SubscribeExtendedDeltaMultipleChanges) {
   thriftpath::RootThriftPath<TestStruct> root;
 
   auto testDyn = createTestDynamic();
-  auto testStruct = apache::thrift::from_dynamic<TestStruct>(
-      testDyn, apache::thrift::dynamic_format::JSON_1);
+  auto testStruct = facebook::thrift::from_dynamic<TestStruct>(
+      testDyn, facebook::thrift::dynamic_format::JSON_1);
   auto storage = TestSubscribableStorage(testStruct);
 
   auto path = ext_path_builder::raw("mapOfStringToI32").regex("test1.*").get();
@@ -676,8 +675,8 @@ TEST(SubscribableStorageTests, SetPatchWithPathSpec) {
   thriftpath::RootThriftPath<TestStruct> root;
 
   auto testDyn = createTestDynamic();
-  auto testStruct = apache::thrift::from_dynamic<TestStruct>(
-      testDyn, apache::thrift::dynamic_format::JSON_1);
+  auto testStruct = facebook::thrift::from_dynamic<TestStruct>(
+      testDyn, facebook::thrift::dynamic_format::JSON_1);
   auto storage = TestSubscribableStorage(testStruct);
 
   TestStructSimple newStruct;
@@ -768,8 +767,8 @@ TEST(SubscribableStorageTests, SetPatchWithPathSpecOnTaggedState) {
   thriftpath::RootThriftPath<TestStruct> root;
 
   auto testDyn = createTestDynamic();
-  auto testStruct = apache::thrift::from_dynamic<TestStruct>(
-      testDyn, apache::thrift::dynamic_format::JSON_1);
+  auto testStruct = facebook::thrift::from_dynamic<TestStruct>(
+      testDyn, facebook::thrift::dynamic_format::JSON_1);
   auto storage = TestSubscribableStorage(testStruct);
 
   TestStructSimple newStruct;
@@ -847,8 +846,8 @@ TEST(SubscribableStorageTests, PruneSubscriptionPathStores) {
   thriftpath::RootThriftPath<TestStruct> root;
 
   auto testDyn = createTestDynamic();
-  auto testStruct = apache::thrift::from_dynamic<TestStruct>(
-      testDyn, apache::thrift::dynamic_format::JSON_1);
+  auto testStruct = facebook::thrift::from_dynamic<TestStruct>(
+      testDyn, facebook::thrift::dynamic_format::JSON_1);
   auto storage = TestSubscribableStorage(testStruct);
 
   TestStructSimple newStruct;
@@ -901,8 +900,8 @@ TEST(SubscribableStorageTests, ApplyPatch) {
   using namespace facebook::fboss::thrift_cow;
   thriftpath::RootThriftPath<TestStruct> root;
   auto testDyn = createTestDynamic();
-  auto testStruct = apache::thrift::from_dynamic<TestStruct>(
-      testDyn, apache::thrift::dynamic_format::JSON_1);
+  auto testStruct = facebook::thrift::from_dynamic<TestStruct>(
+      testDyn, facebook::thrift::dynamic_format::JSON_1);
   auto storage = TestSubscribableStorage(testStruct);
 
   TestStructSimple curStruct = *testStruct.member();
