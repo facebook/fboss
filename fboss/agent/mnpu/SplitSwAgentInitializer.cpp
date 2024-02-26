@@ -3,7 +3,7 @@
 #include "fboss/agent/mnpu/SplitSwAgentInitializer.h"
 #include "fboss/agent/MultiSwitchThriftHandler.h"
 #include "fboss/agent/TunManager.h"
-#include "fboss/agent/mnpu/NonMonolithicHwSwitchHandler.h"
+#include "fboss/agent/mnpu/MultiSwitchHwSwitchHandler.h"
 #include "fboss/lib/CommonFileUtils.h"
 
 #include <thread>
