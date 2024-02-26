@@ -174,16 +174,23 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
 
 void HwSwitchFb303Stats::update(const HwSwitchDropStats& dropStats) {
   if (dropStats.globalDrops().has_value()) {
-    globalDrops_.addValue(*dropStats.globalDrops());
+    globalDrops_.addValue(
+        *dropStats.globalDrops() - currentDropStats_.globalDrops().value_or(0));
   }
   if (dropStats.globalReachabilityDrops().has_value()) {
-    globalReachDrops_.addValue(*dropStats.globalReachabilityDrops());
+    globalReachDrops_.addValue(
+        *dropStats.globalReachabilityDrops() -
+        currentDropStats_.globalReachabilityDrops().value_or(0));
   }
   if (dropStats.packetIntegrityDrops().has_value()) {
-    packetIntegrityDrops_.addValue(*dropStats.packetIntegrityDrops());
+    packetIntegrityDrops_.addValue(
+        *dropStats.packetIntegrityDrops() -
+        currentDropStats_.packetIntegrityDrops().value_or(0));
   }
   if (dropStats.fdrCellDrops().has_value()) {
-    fdrCellDrops_.addValue(*dropStats.fdrCellDrops());
+    fdrCellDrops_.addValue(
+        *dropStats.fdrCellDrops() -
+        currentDropStats_.fdrCellDrops().value_or(0));
   }
   if (dropStats.voqResourceExhaustionDrops().has_value()) {
     voqResourceExhaustionDrops_.addValue(
@@ -202,15 +209,21 @@ void HwSwitchFb303Stats::update(const HwSwitchDropStats& dropStats) {
         *dropStats.vsqResourceExhaustionDrops());
   }
   if (dropStats.dropPrecedenceDrops().has_value()) {
-    dropPrecedenceDrops_.addValue(*dropStats.dropPrecedenceDrops());
+    dropPrecedenceDrops_.addValue(
+        *dropStats.dropPrecedenceDrops() -
+        currentDropStats_.dropPrecedenceDrops().value_or(0));
   }
   if (dropStats.queueResolutionDrops().has_value()) {
-    queueResolutionDrops_.addValue(*dropStats.queueResolutionDrops());
+    queueResolutionDrops_.addValue(
+        *dropStats.queueResolutionDrops() -
+        currentDropStats_.queueResolutionDrops().value_or(0));
   }
   if (dropStats.ingressPacketPipelineRejectDrops().has_value()) {
     ingressPacketPipelineRejectDrops_.addValue(
-        *dropStats.ingressPacketPipelineRejectDrops());
+        *dropStats.ingressPacketPipelineRejectDrops() -
+        currentDropStats_.ingressPacketPipelineRejectDrops().value_or(0));
   }
+  currentDropStats_ = dropStats;
 }
 
 void HwSwitchFb303Stats::update(const HwSwitchDramStats& dramStats) {

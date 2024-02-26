@@ -736,7 +736,6 @@ void SaiSwitchManager::updateStats() {
         switch_->getStats(switchDropStats),
         dropStats,
         platform_->getAsic()->getAsicType());
-    platform_->getHwSwitch()->getSwitchStats()->update(dropStats);
     // Accumulate switch drop stats
     switchDropStats_.globalDrops() =
         switchDropStats_.globalDrops().value_or(0) +
@@ -771,6 +770,7 @@ void SaiSwitchManager::updateStats() {
     switchDropStats_.ingressPacketPipelineRejectDrops() =
         switchDropStats_.ingressPacketPipelineRejectDrops().value_or(0) +
         dropStats.ingressPacketPipelineRejectDrops().value_or(0);
+    platform_->getHwSwitch()->getSwitchStats()->update(switchDropStats_);
   }
   auto switchDramStats = supportedDramStats();
   if (switchDramStats.size()) {
