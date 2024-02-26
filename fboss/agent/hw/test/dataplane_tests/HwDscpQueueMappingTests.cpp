@@ -53,7 +53,9 @@ class HwDscpQueueMappingTest : public HwLinkStateDependentTest {
       auto newCfg{initialConfig()};
       utility::addDscpAclToCfg(&newCfg, kAclName, kDscp());
       utility::addTrafficCounter(
-          &newCfg, kCounterName(), utility::getAclCounterTypes(getHwSwitch()));
+          &newCfg,
+          kCounterName(),
+          utility::getAclCounterTypes(getHwSwitch()->getPlatform()->getAsic()));
       utility::addQueueMatcher(
           &newCfg,
           kAclName,
@@ -127,7 +129,7 @@ class HwDscpQueueMappingTest : public HwLinkStateDependentTest {
           &newCfg,
           "acl0",
           kCounterName(),
-          utility::getAclCounterTypes(getHwSwitch()));
+          utility::getAclCounterTypes(getHwSwitch()->getPlatform()->getAsic()));
 
       applyNewConfig(newCfg);
     };
@@ -193,7 +195,9 @@ class HwDscpQueueMappingTest : public HwLinkStateDependentTest {
       // ACL
       utility::addDscpAclToCfg(&newCfg, "acl0", kDscp());
       utility::addTrafficCounter(
-          &newCfg, kCounterName(), utility::getAclCounterTypes(getHwSwitch()));
+          &newCfg,
+          kCounterName(),
+          utility::getAclCounterTypes(getHwSwitch()->getPlatform()->getAsic()));
       utility::addQueueMatcher(
           &newCfg,
           "acl0",

@@ -75,7 +75,7 @@ uint64_t getAclInOutBytes(
     cfg::AclStage aclStage = cfg::AclStage::INGRESS,
     const std::optional<std::string>& aclTableName = std::nullopt);
 
-std::vector<cfg::CounterType> getAclCounterTypes(const HwSwitch* hwSwitch);
+std::vector<cfg::CounterType> getAclCounterTypes(const HwAsic* asic);
 
 void checkSwAclSendToQueue(
     std::shared_ptr<SwitchState> state,

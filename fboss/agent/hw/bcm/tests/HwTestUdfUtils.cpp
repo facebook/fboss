@@ -157,7 +157,7 @@ void validateUdfAclRoceOpcodeConfig(
       curState,
       {utility::kUdfAclRoceOpcodeName},
       utility::kUdfAclRoceOpcodeStats,
-      utility::getAclCounterTypes(hw));
+      utility::getAclCounterTypes(hw->getPlatform()->getAsic()));
 
   // Verify that UdfGroupIds are there in Qset
   utility::validateUdfIdsInQset(

@@ -19,14 +19,14 @@ DECLARE_bool(enable_acl_table_group);
 
 namespace facebook::fboss::utility {
 
-std::vector<cfg::CounterType> getAclCounterTypes(const HwSwitch* hwSwitch) {
+std::vector<cfg::CounterType> getAclCounterTypes(const HwAsic* asic) {
   // At times, it is non-trivial for SAI implementations to support enabling
   // bytes counters only or packet counters only. In such cases, SAI
   // implementations enable bytes as well as packet counters even if only
   // one of the two is enabled. FBOSS use case does not require enabling
   // only one, but always enables both packets and bytes counters. Thus,
   // enable both in the test. Reference: CS00012271364
-  if (hwSwitch->getPlatform()->getAsic()->isSupported(
+  if (asic->isSupported(
           HwAsic::Feature::SEPARATE_BYTE_AND_PACKET_ACL_COUNTER)) {
     return {cfg::CounterType::PACKETS};
   } else {
