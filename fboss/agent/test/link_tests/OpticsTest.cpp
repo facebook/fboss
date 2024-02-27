@@ -280,6 +280,16 @@ TEST_F(LinkTest, opticsVdmPerformanceMonitoring) {
             channelSnr,
             kCmisOpticsThresholds.mediaThresholds.pam4eSnr.minThreshold);
       }
+      auto& ltpMediaPerChannel = txInfoItr->second.tcvrStats()
+                                     ->vdmDiagsStats()
+                                     .value()
+                                     .pam4LtpMediaChannel()
+                                     .value();
+      for (auto& [channel, channelLtp] : ltpMediaPerChannel) {
+        EXPECT_GE(
+            channelLtp,
+            kCmisOpticsThresholds.mediaThresholds.pam4Ltp.minThreshold);
+      }
     }
   }
 }
