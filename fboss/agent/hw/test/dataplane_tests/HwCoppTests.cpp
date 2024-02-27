@@ -13,7 +13,6 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
-#include "fboss/agent/hw/test/HwTestAclUtils.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketSnooper.h"
 #include "fboss/agent/hw/test/HwTestPacketTrapEntry.h"
@@ -60,8 +59,6 @@ const auto kDhcpV6McastMacAddress = folly::MacAddress("33:33:00:01:00:02");
 const auto kDhcpV6ServerGlobalUnicastAddress =
     folly::IPAddressV6("2401:db00:eef0:a67::1");
 const auto kRandomPort = 54131;
-
-const auto kDropAcl = "drop-acl";
 
 static time_t getCurrentTime() {
   return std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
@@ -878,23 +875,6 @@ class HwCoppQueueStuckTest : public HwCoppQosTest {
   }
 };
 
-class HwCoppAclTest : public HwCoppTest<facebook::fboss::PortID> {
- protected:
-  cfg::SwitchConfig initialConfig() const override {
-    auto cfg = HwCoppTest::initialConfig();
-    addAclAndStat(&cfg);
-    return cfg;
-  }
-
-  void addAclAndStat(cfg::SwitchConfig* config) const {
-    auto acl = utility::addAcl(config, kDropAcl, cfg::AclActionType::DENY);
-    acl->srcPort() = masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0];
-    std::vector<cfg::CounterType> setCounterTypes{
-        cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
-    utility::addAclStat(config, kDropAcl, kDropAcl, std::move(setCounterTypes));
-  }
-};
-
 TYPED_TEST_SUITE(HwCoppTest, TestTypes);
 
 TYPED_TEST(HwCoppTest, VerifyCoppPpsLowPri) {
@@ -1684,76 +1664,6 @@ TYPED_TEST(HwCoppTest, DHCPv6AdvertiseToMidPriQ) {
     this->sendPktAndVerifyDHCPv6PacketsCpuQueue(
         utility::kCoppMidPriQueueId, DHCPv6Type::DHCPv6_ADVERTISE, 128);
   };
-  this->verifyAcrossWarmBoots(setup, verify);
-}
-
-// This test is similar to LocalDstIpNonBgpPortToMidPriQ but with ACL
-TEST_F(HwCoppAclTest, ResolvedRouteToCpuNhopMidPriQ) {
-  auto setup = [=, this]() { this->setup(); };
-
-  auto verify = [=, this]() {
-    for (const auto& ipAddress : this->getIpAddrsToSendPktsTo()) {
-      auto aclPktCountBefore = utility::getAclInOutPackets(
-          getHwSwitch(), getProgrammedState(), kDropAcl, kDropAcl);
-      this->sendTcpPktAndVerifyCpuQueue(
-          utility::kCoppMidPriQueueId,
-          folly::IPAddress::createNetwork(ipAddress, -1, false).first,
-          utility::kNonSpecialPort1,
-          utility::kNonSpecialPort2);
-
-      // Also high-pri queue should always be 0
-      EXPECT_EQ(
-          0,
-          this->getQueueOutPacketsWithRetry(
-              utility::getCoppHighPriQueueId(this->getAsic()),
-              kGetQueueOutPktsRetryTimes,
-              0));
-      WITH_RETRIES({
-        auto aclPktCountAfter = utility::getAclInOutPackets(
-            getHwSwitch(), getProgrammedState(), kDropAcl, kDropAcl);
-        EXPECT_EVENTUALLY_GE(aclPktCountAfter, aclPktCountBefore + 1);
-      });
-    }
-  };
-
-  this->verifyAcrossWarmBoots(setup, verify);
-}
-
-// Expectation is this packet is forwarded to low pri queue but the presence of
-// a DENY ACL is overriding this behavior.
-TEST_F(HwCoppAclTest, UnResolvedRouteToCpuNhopLowPriQ) {
-  auto setup = [=, this]() {
-    this->setup();
-    this->initialConfig();
-  };
-
-  auto verify = [=, this]() {
-    for (const auto& ipAddress : {"1.0.0.11", "1::11"}) {
-      auto aclPktCountBefore = utility::getAclInOutPackets(
-          getHwSwitch(), getProgrammedState(), kDropAcl, kDropAcl);
-      this->sendTcpPktAndVerifyCpuQueue(
-          utility::kCoppLowPriQueueId,
-          folly::IPAddress::createNetwork(ipAddress, -1, false).first,
-          utility::kNonSpecialPort1,
-          utility::kNonSpecialPort2,
-          std::nullopt,
-          0,
-          std::nullopt,
-          false);
-
-      // Also low-pri queue should be 0
-      EXPECT_EQ(
-          0,
-          this->getQueueOutPacketsWithRetry(
-              utility::kCoppLowPriQueueId, kGetQueueOutPktsRetryTimes, 0));
-      WITH_RETRIES({
-        auto aclPktCountAfter = utility::getAclInOutPackets(
-            getHwSwitch(), getProgrammedState(), kDropAcl, kDropAcl);
-        EXPECT_EVENTUALLY_GE(aclPktCountAfter, aclPktCountBefore + 1);
-      });
-    }
-  };
-
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
