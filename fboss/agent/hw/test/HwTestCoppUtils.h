@@ -87,7 +87,8 @@ void sendAndVerifyPkts(
     const folly::IPAddress& destIp,
     uint16_t destPort,
     uint8_t queueId,
-    PortID srcPort);
+    PortID srcPort,
+    uint8_t trafficClass = 0);
 
 void verifyCoppInvariantHelper(
     HwSwitch* hwSwitch,

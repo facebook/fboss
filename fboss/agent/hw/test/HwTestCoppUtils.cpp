@@ -23,6 +23,13 @@
 
 DECLARE_bool(enable_acl_table_group);
 
+namespace {
+
+const auto kIPv6LinkLocalUcastAddress = folly::IPAddressV6("fe80::2");
+const auto kNetworkControlDscp = 48;
+
+} // unnamed namespace
+
 namespace facebook::fboss::utility {
 
 std::unique_ptr<facebook::fboss::TxPacket> createUdpPkt(
@@ -129,7 +136,8 @@ void sendAndVerifyPkts(
     const folly::IPAddress& destIp,
     uint16_t destPort,
     uint8_t queueId,
-    PortID srcPort) {
+    PortID srcPort,
+    uint8_t trafficClass) {
   auto sendPkts = [&] {
     auto vlanId = utility::firstVlanID(swState);
     auto intfMac = utility::getFirstInterfaceMac(swState);
@@ -141,10 +149,33 @@ void sendAndVerifyPkts(
         destIp,
         utility::kNonSpecialPort1,
         destPort,
-        srcPort);
+        srcPort,
+        trafficClass);
   };
 
   sendPktAndVerifyCpuQueue(hwSwitch, queueId, sendPkts, 1);
+}
+
+/*
+ * Pick a common copp Acl (link local + NC) and run dataplane test
+ * to verify whether a common COPP acl is being hit.
+ * TODO: Enhance this to cover every copp invariant acls.
+ * Implement a similar function to cover all rxreasons invariant as well
+ */
+void verifyCoppAcl(
+    HwSwitch* hwSwitch,
+    const HwAsic* hwAsic,
+    std::shared_ptr<SwitchState> swState,
+    PortID srcPort) {
+  XLOG(DBG2) << "Verifying Copp ACL";
+  sendAndVerifyPkts(
+      hwSwitch,
+      swState,
+      kIPv6LinkLocalUcastAddress,
+      utility::kNonSpecialPort2,
+      utility::getCoppHighPriQueueId(hwAsic),
+      srcPort,
+      kNetworkControlDscp);
 }
 
 void verifyCoppInvariantHelper(
@@ -182,6 +213,8 @@ void verifyCoppInvariantHelper(
       utility::kNonSpecialPort2,
       utility::kCoppMidPriQueueId,
       srcPort);
+
+  verifyCoppAcl(hwSwitch, hwAsic, swState, srcPort);
 }
 
 } // namespace facebook::fboss::utility
