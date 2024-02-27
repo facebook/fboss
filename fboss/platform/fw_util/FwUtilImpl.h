@@ -36,6 +36,7 @@ class FwUtilImpl {
   void checkCmdStatus(const std::string&, int);
   int runCmd(const std::string&);
   void storeFilePath(const std::string&, const std::string&);
+  void removeFilePath(const std::string&);
   void doPreUpgrade(const std::string&, const std::string&);
   std::string printFpdList();
   void verifySha1sum(const std::string&, const std::string&);

@@ -230,4 +230,12 @@ void FwUtilImpl::storeFilePath(
     throw std::runtime_error("Run" + cmd + " failed!");
   }
 }
+void FwUtilImpl::removeFilePath(const std::string& fpd) {
+  const std::string textFile = "/home/" + fpd + "_filename.txt";
+  const std::string cmd = "rm " + textFile;
+  auto [exitStatus, standardOut] = PlatformUtils().execCommand(cmd);
+  if (exitStatus != 0) {
+    throw std::runtime_error("Run" + cmd + " failed!");
+  }
+}
 } // namespace facebook::fboss::platform::fw_util

@@ -72,6 +72,8 @@ int main(int argc, char* argv[]) {
     fwUtilImpl.doFirmwareAction(
         fwUtilImpl.toLower(FLAGS_fw_target_name),
         fwUtilImpl.toLower(FLAGS_fw_action));
+    // remove store file path after programing
+    fwUtilImpl.removeFilePath(fwUtilImpl.toLower(FLAGS_fw_target_name));
   } else if (FLAGS_fw_action == "list") {
     XLOG(INFO) << "supported Binary names are: " << fwUtilImpl.printFpdList();
   } else {
