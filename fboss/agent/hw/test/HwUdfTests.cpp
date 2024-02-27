@@ -54,8 +54,10 @@ class HwUdfTest : public HwTest {
 };
 
 TEST_F(HwUdfTest, checkUdfHashConfiguration) {
-  auto setup = [=]() { applyNewState(setupUdfConfiguration(true, true)); };
-  auto verify = [=]() {
+  auto setup = [=, this]() {
+    applyNewState(setupUdfConfiguration(true, true));
+  };
+  auto verify = [=, this]() {
     utility::validateUdfConfig(
         getHwSwitch(),
         utility::kUdfHashDstQueuePairGroupName,
@@ -66,8 +68,10 @@ TEST_F(HwUdfTest, checkUdfHashConfiguration) {
 }
 
 TEST_F(HwUdfTest, checkUdfAclConfiguration) {
-  auto setup = [=]() { applyNewState(setupUdfConfiguration(true, false)); };
-  auto verify = [=]() {
+  auto setup = [=, this]() {
+    applyNewState(setupUdfConfiguration(true, false));
+  };
+  auto verify = [=, this]() {
     utility::validateUdfConfig(
         getHwSwitch(),
         utility::kUdfAclRoceOpcodeGroupName,
@@ -90,7 +94,7 @@ TEST_F(HwUdfTest, deleteUdfHashConfig) {
   // Remove UdfGroup and PacketMatcher configuration for UDF Hash
   applyNewState(setupUdfConfiguration(false));
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     // Verify that UdfGroup and PacketMatcher are deleted
     utility::validateRemoveUdfGroup(
         getHwSwitch(), utility::kUdfHashDstQueuePairGroupName, udfGroupId);
@@ -124,7 +128,7 @@ TEST_F(HwUdfTest, deleteUdfAclConfig) {
   // Delete UdfGroup and PacketMatcher configuration for UDF ACL
   applyNewState(setupUdfConfiguration(false, false));
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     // Verify that UdfGroup and PacketMatcher are deleted
     utility::validateRemoveUdfGroup(
         getHwSwitch(), utility::kUdfAclRoceOpcodeGroupName, udfGroupId);
@@ -153,7 +157,7 @@ TEST_F(HwUdfTest, addAclConfig) {
     applyNewConfig(cfg);
   };
 
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     utility::validateUdfAclRoceOpcodeConfig(
         getHwSwitch(), getProgrammedState());
   };
@@ -162,12 +166,12 @@ TEST_F(HwUdfTest, addAclConfig) {
 }
 
 TEST_F(HwUdfTest, checkUdfHashAclConfiguration) {
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     // Add Udf configuration for both hash and acl, first parameter is
     // addConfig and second udfHashEnabaled and third is udfAclEnabled
     applyNewState(setupUdfConfiguration(true, true, true));
   };
-  auto verify = [=]() {
+  auto verify = [=, this]() {
     // Verify that UdfHash configuration is added
     utility::validateUdfConfig(
         getHwSwitch(),
