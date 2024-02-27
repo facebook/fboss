@@ -2809,17 +2809,34 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAclsImpl(
   AclMap::NodeContainer newAcls;
   bool changed = false;
   int numExistingProcessed = 0;
-  int dropPriority = AclTable::kDataplaneAclMaxPriority;
-  int dataPriority = AclTable::kDataplaneAclMaxPriority;
+  int priority = AclTable::kDataplaneAclMaxPriority;
   int cpuPriority = 1;
 
   // Start with the DROP acls, these should have highest priority
-  // move the data ACL priorities to start after drop priorities
-  for (const auto& entry : configEntries) {
-    if (*entry.actionType() == cfg::AclActionType::DENY) {
-      dataPriority++;
-    }
-  }
+  auto acls = folly::gen::from(configEntries) |
+      folly::gen::filter([](const cfg::AclEntry& entry) {
+                return *entry.actionType() == cfg::AclActionType::DENY;
+              }) |
+      folly::gen::map([&](const cfg::AclEntry& entry) {
+                auto acl = updateAcl(
+                    aclStage,
+                    entry,
+                    priority++,
+                    &numExistingProcessed,
+                    &changed,
+                    tableName);
+                return std::make_pair(acl->getID(), acl);
+              }) |
+      folly::gen::appendTo(newAcls);
+
+  // Let's get a map of acls to name so we don't have to search the acl list
+  // for every new use
+  flat_map<std::string, const cfg::AclEntry*> aclByName;
+  folly::gen::from(configEntries) |
+      folly::gen::map([](const cfg::AclEntry& acl) {
+        return std::make_pair(*acl.name(), &acl);
+      }) |
+      folly::gen::appendTo(aclByName);
 
   flat_map<std::string, const cfg::TrafficCounter*> counterByName;
   folly::gen::from(*cfg_->trafficCounters()) |
@@ -2828,65 +2845,34 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAclsImpl(
       }) |
       folly::gen::appendTo(counterByName);
 
-  // Let's get a map of traffic policies to name
-  flat_map<std::string, const cfg::MatchToAction*> cpuPolicyByName;
-  if (cfg_->cpuTrafficPolicy() && cfg_->cpuTrafficPolicy()->trafficPolicy()) {
-    folly::gen::from(
-        *cfg_->cpuTrafficPolicy()->trafficPolicy()->matchToAction()) |
-        folly::gen::map([](const cfg::MatchToAction& mta) {
-          return std::make_pair(*mta.matcher(), &mta);
-        }) |
-        folly::gen::appendTo(cpuPolicyByName);
-  }
-
-  flat_map<std::string, const cfg::MatchToAction*> dataPolicyByName;
-  if (cfg_->dataPlaneTrafficPolicy()) {
-    folly::gen::from(*cfg_->dataPlaneTrafficPolicy()->matchToAction()) |
-        folly::gen::map([](const cfg::MatchToAction& mta) {
-          return std::make_pair(*mta.matcher(), &mta);
-        }) |
-        folly::gen::appendTo(dataPolicyByName);
-  }
-
   // Generates new acls from template
-  auto addToAcls = [&]()
+  auto addToAcls = [&](const cfg::TrafficPolicyConfig& policy,
+                       bool isCoppAcl = false)
       -> const std::vector<std::pair<std::string, std::shared_ptr<AclEntry>>> {
     std::vector<std::pair<std::string, std::shared_ptr<AclEntry>>> entries;
-    for (const auto& aclCfg : configEntries) {
-      bool enableAcl = true;
+    for (const auto& mta : *policy.matchToAction()) {
+      auto a = aclByName.find(*mta.matcher());
+      if (a != aclByName.end()) {
+        auto aclCfg = *(a->second);
 
-      // The ACLs have to be processed in the order in which they are listed in
-      // the config. The traffic policy for each ACL may either be in the data
-      // or the cpu policy configuration or absent altogether.
-      // The ACL has to be created always.
-      // Find and use the traffic policy from one of the paths if present.
-      const cfg::MatchToAction* matchToAction = nullptr;
-      auto cpu = cpuPolicyByName.find(*aclCfg.name());
-      auto data = dataPolicyByName.find(*aclCfg.name());
-      bool isCoppAcl = false;
-      if (cpu != cpuPolicyByName.end()) {
-        matchToAction = (cpu->second);
-        isCoppAcl = true;
-      } else if (data != dataPolicyByName.end()) {
-        matchToAction = (data->second);
-      }
+        // We've already added any DENY acls
+        if (*aclCfg.actionType() == cfg::AclActionType::DENY) {
+          continue;
+        }
 
-      // Here is sending to regular port queue action
-      MatchAction* ma = nullptr;
-      MatchAction matchAction = MatchAction();
-      if (matchToAction) {
-        const cfg::MatchToAction& mta = *matchToAction;
+        // Here is sending to regular port queue action
+        MatchAction matchAction = MatchAction();
         if (auto sendToQueue = mta.action()->sendToQueue()) {
           matchAction.setSendToQueue(std::make_pair(*sendToQueue, isCoppAcl));
         }
         // TODO(daiweix): set setTc and userDefinedTrap actions only when
         // disruptive feature sai_user_defined_trap is enabled. Otherwise,
-        // although these actions will not take effect and programmed ACL
-        // won't change. Switch switch change will still trigger
+        // although these actions will not take effect and programmed ACL won't
+        // change. Switch switch change will still trigger
         // SaiAclTableManager::changedAclEntry() to remove and re-program the
-        // same ACL during warmboot. This is unnecessary and caused
-        // programming issue on platforms like TH4. Avoiding this issue by
-        // skip setting setTc and userDefinedTrap for now.
+        // same ACL during warmboot. This is unnecessary and caused programming
+        // issue on platforms like TH4. Avoiding this issue by skip setting
+        // setTc and userDefinedTrap for now.
         if (FLAGS_sai_user_defined_trap) {
           if (auto setTc = mta.action()->setTc()) {
             matchAction.setSetTc(std::make_pair(*setTc, isCoppAcl));
@@ -2920,6 +2906,7 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAclsImpl(
         if (auto flowletAction = mta.action()->flowletAction()) {
           matchAction.setFlowletAction(*flowletAction);
         }
+        bool enableAcl = true;
         if (auto redirectToNextHop = mta.action()->redirectToNextHop()) {
           matchAction.setRedirectToNextHop(
               std::make_pair(*redirectToNextHop, MatchAction::NextHopSet()));
@@ -2932,42 +2919,47 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAclsImpl(
             enableAcl = false;
           }
         }
-        ma = &matchAction;
-      }
 
-      int priority = (*aclCfg.actionType() == cfg::AclActionType::DENY)
-          ? dropPriority++
-          : isCoppAcl ? cpuPriority++
-                      : dataPriority++;
+        auto acl = updateAcl(
+            aclStage,
+            aclCfg,
+            isCoppAcl ? cpuPriority++ : priority++,
+            &numExistingProcessed,
+            &changed,
+            tableName,
+            &matchAction,
+            enableAcl);
 
-      auto acl = updateAcl(
-          aclStage,
-          aclCfg,
-          priority,
-          &numExistingProcessed,
-          &changed,
-          tableName,
-          ma,
-          enableAcl);
-
-      if (const auto& aclAction = acl->getAclAction()) {
-        const auto& inMirror =
-            aclAction->cref<switch_state_tags::ingressMirror>();
-        const auto& egMirror =
-            aclAction->cref<switch_state_tags::egressMirror>();
-        if (inMirror && !new_->getMirrors()->getNodeIf(inMirror->cref())) {
-          throw FbossError("Mirror ", inMirror->cref(), " is undefined");
+        if (const auto& aclAction = acl->getAclAction()) {
+          const auto& inMirror =
+              aclAction->cref<switch_state_tags::ingressMirror>();
+          const auto& egMirror =
+              aclAction->cref<switch_state_tags::egressMirror>();
+          if (inMirror && !new_->getMirrors()->getNodeIf(inMirror->cref())) {
+            throw FbossError("Mirror ", inMirror->cref(), " is undefined");
+          }
+          if (egMirror && !new_->getMirrors()->getNodeIf(egMirror->cref())) {
+            throw FbossError("Mirror ", egMirror->cref(), " is undefined");
+          }
         }
-        if (egMirror && !new_->getMirrors()->getNodeIf(egMirror->cref())) {
-          throw FbossError("Mirror ", egMirror->cref(), " is undefined");
-        }
+        entries.push_back(std::make_pair(acl->getID(), acl));
       }
-      entries.push_back(std::make_pair(acl->getID(), acl));
     }
     return entries;
   };
 
-  folly::gen::from(addToAcls()) | folly::gen::appendTo(newAcls);
+  // Add controlPlane traffic acls
+  if (cfg_->cpuTrafficPolicy() && cfg_->cpuTrafficPolicy()->trafficPolicy()) {
+    folly::gen::from(
+        addToAcls(*cfg_->cpuTrafficPolicy()->trafficPolicy(), true)) |
+        folly::gen::appendTo(newAcls);
+  }
+
+  // Add dataPlane traffic acls
+  if (auto dataPlaneTrafficPolicy = cfg_->dataPlaneTrafficPolicy()) {
+    folly::gen::from(addToAcls(*dataPlaneTrafficPolicy)) |
+        folly::gen::appendTo(newAcls);
+  }
 
   if (FLAGS_enable_acl_table_group) {
     if (orig_->getAclsForTable(aclStage, tableName.value()) &&

@@ -207,11 +207,7 @@ TYPED_TEST(HwAclMatchActionsTest, AddRemoveActions) {
   };
 
   auto verify = [this]() {
-    EXPECT_EQ(utility::getAclTableNumAclEntries(this->getHwSwitch()), 2);
-    utility::checkSwHwAclMatch(
-        this->getHwSwitch(), this->getProgrammedState(), "acl1");
-    utility::checkSwHwAclMatch(
-        this->getHwSwitch(), this->getProgrammedState(), "acl2");
+    EXPECT_EQ(utility::getAclTableNumAclEntries(this->getHwSwitch()), 0);
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
@@ -231,13 +227,11 @@ TYPED_TEST(HwAclMatchActionsTest, AddTrafficPolicyMultipleRemoveOne) {
     this->applyNewConfig(newCfg);
   };
   auto verify = [this]() {
-    EXPECT_EQ(utility::getAclTableNumAclEntries(this->getHwSwitch()), 2);
+    EXPECT_EQ(utility::getAclTableNumAclEntries(this->getHwSwitch()), 1);
     utility::checkSwHwAclMatch(
         this->getHwSwitch(), this->getProgrammedState(), "acl1");
     utility::checkSwAclSendToQueue(
         this->getProgrammedState(), "acl1", false, 0);
-    utility::checkSwHwAclMatch(
-        this->getHwSwitch(), this->getProgrammedState(), "acl2");
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }

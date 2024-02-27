@@ -115,12 +115,12 @@ TEST(Acl, applyConfig) {
   EXPECT_NE(nullptr, aclV2);
   EXPECT_FALSE(aclV2->getDstIp().first);
 
-  // Ensure ACL is created with no traffic policy for PERMIT
+  // Nothing references this permit acl, so it shouldn't be added yet
   config.acls()->resize(2);
   *config.acls()[1].name() = "acl22";
   *config.acls()[1].actionType() = cfg::AclActionType::PERMIT;
   auto stateV22 = publishAndApplyConfig(stateV2, &config, platform.get());
-  EXPECT_NE(nullptr, stateV22);
+  EXPECT_EQ(nullptr, stateV22);
 
   // Non-existent entry
   auto acl2V2 = stateV2->getAcl("something");
