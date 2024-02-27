@@ -71,4 +71,10 @@ void HwSwitchConnectionStatusTable::cancelWait() {
   }
   hwSwitchConnectedCV_.notify_one();
 }
+
+int HwSwitchConnectionStatusTable::getConnectionStatus(SwitchID switchId) {
+  std::unique_lock<std::mutex> lk(hwSwitchConnectedMutex_);
+  return connectedSwitches_.find(switchId) != connectedSwitches_.end() ? 1 : 0;
+}
+
 } // namespace facebook::fboss

@@ -751,6 +751,12 @@ TEST_F(SwSwitchHandlerTest, initialSyncSwSwitchNotConfigured) {
 
 TEST_F(SwSwitchHandlerTest, connectionStatusCount) {
   CounterCache counters(sw_.get());
+  auto checkConnectionStatus = [&](const auto& status) {
+    AgentStats agentStats;
+    getHwSwitchHandler()->fillHwAgentConnectionStatus(agentStats);
+    EXPECT_EQ(agentStats.hwagentConnectionStatus()[0], status);
+  };
+  checkConnectionStatus(0);
   getHwSwitchHandler()->connected(SwitchID(1));
   getHwSwitchHandler()->connected(SwitchID(2));
   counters.update();
@@ -758,10 +764,12 @@ TEST_F(SwSwitchHandlerTest, connectionStatusCount) {
       counters.value(
           SwitchStats::kCounterPrefix + "switch.0.connection_status"),
       1);
+  checkConnectionStatus(1);
   getHwSwitchHandler()->disconnected(SwitchID(1));
   counters.update();
   EXPECT_EQ(
       counters.value(
           SwitchStats::kCounterPrefix + "switch.0.connection_status"),
       0);
+  checkConnectionStatus(0);
 }

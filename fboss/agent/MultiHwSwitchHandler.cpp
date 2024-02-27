@@ -4,6 +4,7 @@
 #include "fboss/agent/HwSwitchHandler.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/TxPacket.h"
+#include "fboss/agent/gen-cpp2/agent_stats_types.h"
 #include "fboss/agent/state/StateDelta.h"
 
 namespace facebook::fboss {
@@ -508,6 +509,15 @@ std::map<int32_t, SwitchRunState> MultiHwSwitchHandler::getHwSwitchRunStates() {
     runStates[static_cast<int32_t>(switchId)] = syncer->getHwSwitchRunState();
   }
   return runStates;
+}
+
+void MultiHwSwitchHandler::fillHwAgentConnectionStatus(AgentStats& agentStats) {
+  for (const auto& [switchId, _] : hwSwitchSyncers_) {
+    auto switchIndex =
+        sw_->getSwitchInfoTable().getSwitchIndexFromSwitchId(switchId);
+    agentStats.hwagentConnectionStatus()[switchIndex] =
+        connectionStatusTable_.getConnectionStatus(switchId);
+  }
 }
 
 } // namespace facebook::fboss

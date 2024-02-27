@@ -24,6 +24,7 @@ class HwSwitchConnectionStatusTable {
   bool disconnected(SwitchID switchId);
   bool waitUntilHwSwitchConnected();
   void cancelWait();
+  int getConnectionStatus(SwitchID switchId);
 
  private:
   std::set<SwitchID> connectedSwitches_;

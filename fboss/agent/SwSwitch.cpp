@@ -722,6 +722,7 @@ AgentStats SwSwitch::fillFsdbStats() {
     }
   }
   stats()->fillAgentStats(agentStats);
+  getHwSwitchHandler()->fillHwAgentConnectionStatus(agentStats);
   // fill old fields using first switch values for backward compatibility
   agentStats.hwResourceStats() =
       agentStats.hwResourceStatsMap()->begin()->second;

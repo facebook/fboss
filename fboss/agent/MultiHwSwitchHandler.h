@@ -22,6 +22,7 @@ class SwitchStats;
 class HwSwitchFb303Stats;
 struct HwSwitchStateUpdate;
 class SwSwitch;
+class AgentStats;
 
 using HwSwitchHandlerInitFn = std::function<std::unique_ptr<HwSwitchHandler>(
     const SwitchID& switchId,
@@ -157,6 +158,8 @@ class MultiHwSwitchHandler {
   }
 
   std::vector<EcmpDetails> getAllEcmpDetails();
+
+  void fillHwAgentConnectionStatus(AgentStats& agentStats);
 
  private:
   bool transactionsSupported(std::optional<cfg::SdkVersion> sdkVersion) const;
