@@ -33,4 +33,5 @@ struct AgentStats {
   19: i64 trappedPktsDropped;
   20: i64 threadHeartBeatMiss;
   21: map<i16, hardware_stats.CpuPortStats> cpuPortStatsMap;
+  22: map<i16, i64> hwagentConnectionStatus;
 }
