@@ -322,7 +322,7 @@ TxMatchFn checkDHCPPkt(
           "expected protocol to be ", IPPROTO_UDP, "; got ", ipHdr.protocol);
     }
 
-    SwitchStats switchStats;
+    SwitchStats switchStats(1 /*numSwitches*/);
     PortStats portStats(PortID(0), "foo", &switchStats);
     UDPHeader udpHdr;
     udpHdr.parse(&c, &portStats);

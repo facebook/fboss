@@ -1744,7 +1744,9 @@ PortStatus SwSwitch::getPortStatus(PortID portID) {
 }
 
 SwitchStats* SwSwitch::createSwitchStats() {
-  SwitchStats* s = new SwitchStats();
+  CHECK(switchInfoTable_.getSwitchIdToSwitchInfo().size());
+  SwitchStats* s =
+      new SwitchStats(switchInfoTable_.getSwitchIdToSwitchInfo().size());
   stats_.reset(s);
   return s;
 }

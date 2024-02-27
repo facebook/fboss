@@ -10,6 +10,7 @@
 #include "fboss/agent/SwitchStats.h"
 
 #include <folly/Memory.h>
+#include <folly/Range.h>
 #include "fboss/agent/PortStats.h"
 #include "fboss/lib/CommonUtils.h"
 
@@ -25,10 +26,12 @@ std::string SwitchStats::kCounterPrefix = "";
 // Temporary until we get this into fb303 with D40324952
 static constexpr const std::array<double, 1> kP100{{1.0}};
 
-SwitchStats::SwitchStats()
-    : SwitchStats(fb303::ThreadCachedServiceData::get()->getThreadStats()) {}
+SwitchStats::SwitchStats(int numSwitches)
+    : SwitchStats(
+          fb303::ThreadCachedServiceData::get()->getThreadStats(),
+          numSwitches) {}
 
-SwitchStats::SwitchStats(ThreadLocalStatsMap* map)
+SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
     : trapPkts_(map, kCounterPrefix + "trapped.pkts", SUM, RATE),
       trapPktDrops_(map, kCounterPrefix + "trapped.drops", SUM, RATE),
       trapPktBogus_(map, kCounterPrefix + "trapped.bogus", SUM, RATE),
@@ -280,7 +283,13 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map)
           map,
           kCounterPrefix + "switch_configured_ms",
           SUM,
-          RATE) {}
+          RATE) {
+  for (auto switchIndex = 0; switchIndex < numSwitches; switchIndex++) {
+    auto counterName = folly::to<std::string>(
+        kCounterPrefix, "switch.", switchIndex, ".", "connection_status");
+    hwAgentConnectionStatus_.emplace_back(TLCounter(map, counterName));
+  }
+}
 
 PortStats* FOLLY_NULLABLE SwitchStats::port(PortID portID) {
   auto it = ports_.find(portID);

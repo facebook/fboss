@@ -169,7 +169,7 @@ TEST(UDP, parseError) {
   uint8_t udpSizeSmall[UDPHeader::size() - 1];
   folly::IOBuf buf(IOBuf::WRAP_BUFFER, udpSizeSmall, sizeof(udpSizeSmall));
   Cursor readCursor(&buf);
-  SwitchStats swStats;
+  SwitchStats swStats(1 /*numSwitches*/);
   PortStats portStats(PortID(1), "port1", &swStats);
   UDPHeader udp;
   EXPECT_THROW(udp.parse(&readCursor, &portStats), FbossError);

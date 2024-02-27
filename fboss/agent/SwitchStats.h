@@ -38,7 +38,7 @@ class SwitchStats : public boost::noncopyable {
    */
   static std::string kCounterPrefix;
 
-  SwitchStats();
+  explicit SwitchStats(int numSwitches);
 
   /*
    * Return the PortStats object for the given PortID.
@@ -439,12 +439,17 @@ class SwitchStats : public boost::noncopyable {
     switchConfiguredMs_.addValue(ms);
   }
 
+  void hwAgentConnectionStatus(int switchIndex, bool connected) {
+    CHECK_LT(switchIndex, hwAgentConnectionStatus_.size());
+    hwAgentConnectionStatus_[switchIndex].incrementValue(connected ? 1 : -1);
+  }
+
  private:
   // Forbidden copy constructor and assignment operator
   SwitchStats(SwitchStats const&) = delete;
   SwitchStats& operator=(SwitchStats const&) = delete;
 
-  explicit SwitchStats(ThreadLocalStatsMap* map);
+  explicit SwitchStats(ThreadLocalStatsMap* map, int numSwitches);
 
   // Total number of trapped packets
   TLTimeseries trapPkts_;
@@ -690,6 +695,8 @@ class SwitchStats : public boost::noncopyable {
   TLTimeseries coldBoot_;
   TLTimeseries warmBoot_;
   TLTimeseries switchConfiguredMs_;
+
+  std::vector<TLCounter> hwAgentConnectionStatus_;
 };
 
 } // namespace facebook::fboss

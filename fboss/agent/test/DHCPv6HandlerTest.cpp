@@ -263,7 +263,7 @@ TxMatchFn checkDHCPV6Pkt(
     Cursor ipv6PayloadStart(c);
 
     // Validate UDP header fields
-    SwitchStats switchStats;
+    SwitchStats switchStats(1 /*numSwitches*/);
     PortStats portStats(PortID(0), "foo", &switchStats);
     UDPHeader udp;
     udp.parse(&c, &portStats);
