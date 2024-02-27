@@ -81,6 +81,15 @@ class PciExplorer {
       const FpgaIpBlockConfig& fpgaIpBlockConfig,
       uint32_t instanceId);
 
+  // Create the Watchdog based on the given FpgaIpBlockConfig residing at the
+  // given PciDevice.
+  // Return the created Watchdog CharDevPath. Throw std::runtime_error on
+  // failure.
+  std::string createWatchdog(
+      const PciDevice& pciDevice,
+      const FpgaIpBlockConfig& fpgaIpBlockConfig,
+      uint32_t instanceId);
+
   // Create the generic device block based on the given FpgaIpBlockConfig
   // residing at the given PciDevice. Throw std::runtime_error on failure.
   void createFpgaIpBlock(
@@ -113,6 +122,10 @@ class PciExplorer {
       uint32_t instanceId);
   std::string getInfoRomSysfsPath(
       const FpgaIpBlockConfig& infoRomConfig,
+      uint32_t instanceId);
+  std::string getWatchDogCharDevPath(
+      const PciDevice& pciDevice,
+      const FpgaIpBlockConfig& fpgaIpBlockConfig,
       uint32_t instanceId);
   bool isPciSubDeviceCreated(
       const PciDevice& pciDevice,

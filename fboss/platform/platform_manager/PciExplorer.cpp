@@ -20,6 +20,7 @@ const std::string kGpioChip = "gpiochip";
 const re2::RE2 kGpioChipNameRe{"gpiochip\\d+"};
 const re2::RE2 kSpiBusRe{"spi\\d+"};
 const re2::RE2 kSpiDevIdRe{"spi(?P<BusNum>\\d+).(?P<ChipSelect>\\d+)"};
+const re2::RE2 kWatchdogRe{"watchdog(?P<WatchDogNum>\\d+)"};
 constexpr auto kPciSubDevCreationWaitSecs = 1;
 
 bool isSamePciId(const std::string& id1, const std::string& id2) {
@@ -220,6 +221,18 @@ std::string PciExplorer::createInfoRom(
   auto auxData = getAuxData(infoRomConfig, instanceId);
   create(pciDevice, infoRomConfig, auxData);
   return getInfoRomSysfsPath(infoRomConfig, instanceId);
+}
+
+std::string PciExplorer::createWatchdog(
+    const PciDevice& pciDevice,
+    const FpgaIpBlockConfig& fpgaIpBlockConfig,
+    uint32_t instanceId) {
+  if (isPciSubDevicePresent(pciDevice, fpgaIpBlockConfig, instanceId)) {
+    return getWatchDogCharDevPath(pciDevice, fpgaIpBlockConfig, instanceId);
+  }
+  auto auxData = getAuxData(fpgaIpBlockConfig, instanceId);
+  create(pciDevice, fpgaIpBlockConfig, auxData);
+  return getWatchDogCharDevPath(pciDevice, fpgaIpBlockConfig, instanceId);
 }
 
 void PciExplorer::createFpgaIpBlock(
@@ -467,6 +480,55 @@ std::string PciExplorer::getInfoRomSysfsPath(
       "Couldn't find InfoRom {} sysfs path under {}",
       *infoRomConfig.pmUnitScopedName(),
       auxDevSysfsPath));
+}
+
+std::string PciExplorer::getWatchDogCharDevPath(
+    const PciDevice& pciDevice,
+    const FpgaIpBlockConfig& fpgaIpBlockConfig,
+    uint32_t instanceId) {
+  // PciDevice.SysfsPath
+  // |── {}.expectedEnding
+  // |   └── watchdog
+  // |       ├── watchdog[n]
+  // │       |   ├── device
+  // │       |   ├── subsystem
+  // │       |   ├── uevent
+  // |       |   ├── ...
+  std::string expectedEnding =
+      fmt::format(".{}.{}", *fpgaIpBlockConfig.deviceName(), instanceId);
+  std::string watchdogPath;
+  for (const auto& dirEntry : fs::directory_iterator(pciDevice.sysfsPath())) {
+    if (hasEnding(dirEntry.path().filename().string(), expectedEnding)) {
+      watchdogPath = dirEntry.path() / "watchdog";
+      break;
+    }
+  }
+  if (watchdogPath.empty()) {
+    throw std::runtime_error(fmt::format(
+        "Could not find any directory ending with {} in {}",
+        expectedEnding,
+        pciDevice.sysfsPath()));
+  }
+  if (!fs::exists(watchdogPath)) {
+    throw std::runtime_error(fmt::format(
+        "Could not find matching Watchdog in {}. InstanceId: {}",
+        watchdogPath,
+        instanceId));
+  }
+  for (const auto& dirEntry : fs::directory_iterator(watchdogPath)) {
+    if (re2::RE2::FullMatch(dirEntry.path().filename().string(), kWatchdogRe)) {
+      auto watchdogCharDevPath =
+          fmt::format("/dev/{}", dirEntry.path().filename().string());
+      if (!fs::exists(watchdogCharDevPath)) {
+        throw std::runtime_error(fmt::format(
+            "Watchdog char device isn't created. {} doesn't exist",
+            watchdogCharDevPath));
+      }
+      return watchdogCharDevPath;
+    }
+  }
+  throw std::runtime_error(fmt::format(
+      "Couldn't derive watchdog char device path in {}", watchdogPath));
 }
 
 bool PciExplorer::isPciSubDeviceCreated(

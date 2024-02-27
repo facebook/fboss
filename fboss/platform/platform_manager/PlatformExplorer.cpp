@@ -364,7 +364,12 @@ void PlatformExplorer::explorePciDevices(
           slotPath, *fpgaIpBlockConfig.pmUnitScopedName(), gpioNum);
     }
     for (const auto& fpgaIpBlockConfig : *pciDeviceConfig.watchdogConfigs()) {
-      pciExplorer_.createFpgaIpBlock(pciDevice, fpgaIpBlockConfig, instId++);
+      auto watchdogCharDevPath =
+          pciExplorer_.createWatchdog(pciDevice, fpgaIpBlockConfig, instId++);
+      dataStore_.updateCharDevPath(
+          Utils().createDevicePath(
+              slotPath, *fpgaIpBlockConfig.pmUnitScopedName()),
+          watchdogCharDevPath);
     }
     for (const auto& fpgaIpBlockConfig :
          *pciDeviceConfig.fanTachoPwmConfigs()) {
@@ -458,6 +463,8 @@ void PlatformExplorer::createDeviceSymLink(
         return;
       }
     } else if (linkParentPath.string() == "/run/devmap/flashes") {
+      targetPath = dataStore_.getCharDevPath(devicePath);
+    } else if (linkParentPath.string() == "/run/devmap/watchdogs") {
       targetPath = dataStore_.getCharDevPath(devicePath);
     } else {
       XLOG(ERR) << fmt::format("Symbolic link {} is not supported.", linkPath);
