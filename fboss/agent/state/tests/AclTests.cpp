@@ -553,13 +553,13 @@ TEST(Acl, AclGeneration) {
       acls->getNodeIf("acl1")->getPriority(),
       AclTable::kDataplaneAclMaxPriority);
   EXPECT_EQ(
-      acls->getNodeIf("acl2")->getPriority(),
+      acls->getNodeIf("acl4")->getPriority(),
       AclTable::kDataplaneAclMaxPriority + 1);
   EXPECT_EQ(
-      acls->getNodeIf("acl3")->getPriority(),
+      acls->getNodeIf("acl2")->getPriority(),
       AclTable::kDataplaneAclMaxPriority + 2);
   EXPECT_EQ(
-      acls->getNodeIf("acl4")->getPriority(),
+      acls->getNodeIf("acl3")->getPriority(),
       AclTable::kDataplaneAclMaxPriority + 3);
   EXPECT_EQ(
       acls->getNodeIf("acl5")->getPriority(),

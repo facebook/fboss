@@ -131,14 +131,6 @@ void addQueuePerHostAcls(cfg::SwitchConfig* config, bool isSai) {
       cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
   utility::addTrafficCounter(config, ttlCounterName, counterTypes);
 
-  // DENY rules
-  utility::addL2ClassIDDropAcl(
-      config, getL2DropAclName(), cfg::AclLookupClass::CLASS_DROP);
-  utility::addNeighborClassIDDropAcl(
-      config, getNeighborDropAclName(), cfg::AclLookupClass::CLASS_DROP);
-  utility::addRouteClassIDDropAcl(
-      config, getRouteDropAclName(), cfg::AclLookupClass::CLASS_DROP);
-
   // TTL + {L2, neighbor, route}
   for (auto queueId : kQueuePerhostQueueIds()) {
     auto classID = kQueuePerHostQueueToClass().at(queueId);
@@ -188,6 +180,13 @@ void addQueuePerHostAcls(cfg::SwitchConfig* config, bool isSai) {
 
   utility::addAclStat(
       config, getQueuePerHostTtlAclName(), ttlCounterName, setCounterTypes);
+
+  utility::addL2ClassIDDropAcl(
+      config, getL2DropAclName(), cfg::AclLookupClass::CLASS_DROP);
+  utility::addNeighborClassIDDropAcl(
+      config, getNeighborDropAclName(), cfg::AclLookupClass::CLASS_DROP);
+  utility::addRouteClassIDDropAcl(
+      config, getRouteDropAclName(), cfg::AclLookupClass::CLASS_DROP);
 }
 
 void deleteTtlCounters(cfg::SwitchConfig* config) {

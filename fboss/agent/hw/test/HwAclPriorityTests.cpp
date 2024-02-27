@@ -107,8 +107,6 @@ class HwAclPriorityTest : public HwTest {
 
 TYPED_TEST_SUITE(HwAclPriorityTest, TestTypes);
 
-// This test verifies that trafficPolicy configuration have no influence on
-// ACL entry priority
 TYPED_TEST(HwAclPriorityTest, CheckAclPriorityOrder) {
   const folly::IPAddress kIp("2400::1");
   auto setup = [this, kIp]() {
@@ -141,9 +139,9 @@ TYPED_TEST(HwAclPriorityTest, CheckAclPriorityOrder) {
           utility::getAclEntryByName(this->getProgrammedState(), aclName);
       return acl->getPriority();
     };
-    EXPECT_EQ(getPrio("A") + 1, getPrio("B"));
-    EXPECT_EQ(getPrio("B") + 1, getPrio("C"));
-    EXPECT_EQ(getPrio("C") + 1, getPrio("D"));
+    // DENY ACLs have higher priority then PERMIT ACLs and grouped together
+    EXPECT_EQ(getPrio("A") + 1, getPrio("C"));
+    EXPECT_EQ(getPrio("B") + 1, getPrio("D"));
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
