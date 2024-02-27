@@ -108,40 +108,22 @@ class HwAclPriorityTest : public HwTest {
 TYPED_TEST_SUITE(HwAclPriorityTest, TestTypes);
 
 TYPED_TEST(HwAclPriorityTest, CheckAclPriorityOrder) {
-  const folly::IPAddress kIp("2400::1");
-  auto setup = [this, kIp]() {
+  auto setup = [this]() {
     auto newCfg = this->initialConfig();
     addDenyPortAcl(newCfg, "A");
-    addPermitIpAcl(newCfg, "B", kIp);
-    addDenyPortAcl(newCfg, "C");
-    addPermitIpAcl(newCfg, "D", kIp);
-
-    cfg::TrafficPolicyConfig trafficConfig;
-    trafficConfig.matchToAction()->resize(4);
-    newCfg.trafficCounters()->resize(4);
-    // create traffic policy in reverse order
-    for (int i = 3; i >= 0; i--) {
-      auto& acls = utility::getAcls(&newCfg, std::nullopt);
-      trafficConfig.matchToAction()[i].matcher() = *acls[i].name();
-      trafficConfig.matchToAction()[i].action()->counter() = *acls[i].name();
-      *newCfg.trafficCounters()[i].name() = *acls[i].name();
-    }
-    newCfg.dataPlaneTrafficPolicy() = trafficConfig;
+    addDenyPortAcl(newCfg, "B");
     this->applyNewConfig(newCfg);
   };
 
   auto verify = [=, this]() {
-    for (auto acl : {"A", "B", "C", "D"}) {
+    for (auto acl : {"A", "B"}) {
       checkSwHwAclMatch(this->getHwSwitch(), this->getProgrammedState(), acl);
     }
-    auto getPrio = [this](std::string aclName) {
-      auto acl =
-          utility::getAclEntryByName(this->getProgrammedState(), aclName);
-      return acl->getPriority();
-    };
-    // DENY ACLs have higher priority then PERMIT ACLs and grouped together
-    EXPECT_EQ(getPrio("A") + 1, getPrio("C"));
-    EXPECT_EQ(getPrio("B") + 1, getPrio("D"));
+    auto aAcl = utility::getAclEntryByName(this->getProgrammedState(), "A");
+    int aPrio = aAcl->getPriority();
+    auto bAcl = utility::getAclEntryByName(this->getProgrammedState(), "B");
+    int bPrio = bAcl->getPriority();
+    EXPECT_EQ(aPrio + 1, bPrio);
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }

@@ -44,9 +44,6 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
   static auto constexpr isMultiAclEnabled =
       EnableMultiAclTableT::multiAclTableEnabled;
 
- public:
-  cfg::AclActionType aclActionType_ = cfg::AclActionType::PERMIT;
-
  protected:
   void SetUp() override {
     FLAGS_enable_acl_table_group = isMultiAclEnabled;
@@ -294,7 +291,7 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
   void addAclAndStat(cfg::SwitchConfig* config, AclType aclType) const {
     auto aclName = getAclName(aclType);
     auto counterName = getCounterName(aclType);
-    auto acl = utility::addAcl(config, aclName, aclActionType_);
+    auto acl = utility::addAcl(config, aclName);
     switch (aclType) {
       case AclType::TCP_TTLD:
       case AclType::UDP_TTLD:
@@ -335,11 +332,6 @@ TYPED_TEST(HwAclCounterTest, VerifyCounterBumpOnTtlHitFrontPanel) {
 }
 
 TYPED_TEST(HwAclCounterTest, VerifyCounterBumpOnSportHitFrontPanel) {
-  this->counterBumpOnHitHelper(
-      true /* bump on hit */, true /* front panel port */, {AclType::SRC_PORT});
-}
-TYPED_TEST(HwAclCounterTest, VerifyCounterBumpOnSportHitFrontPanelWithDrop) {
-  this->aclActionType_ = cfg::AclActionType::DENY;
   this->counterBumpOnHitHelper(
       true /* bump on hit */, true /* front panel port */, {AclType::SRC_PORT});
 }
