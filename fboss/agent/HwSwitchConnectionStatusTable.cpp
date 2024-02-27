@@ -8,6 +8,8 @@
  *
  */
 #include "fboss/agent/HwSwitchConnectionStatusTable.h"
+#include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/SwitchStats.h"
 
 #include <folly/logging/xlog.h>
 
@@ -25,6 +27,9 @@ void HwSwitchConnectionStatusTable::connected(SwitchID switchId) {
     // notify the waiting thread
     hwSwitchConnectedCV_.notify_one();
   }
+  auto switchIndex =
+      sw_->getSwitchInfoTable().getSwitchIndexFromSwitchId(switchId);
+  sw_->stats()->hwAgentConnectionStatus(switchIndex, true /*connected*/);
 }
 
 bool HwSwitchConnectionStatusTable::disconnected(SwitchID switchId) {
@@ -42,6 +47,9 @@ bool HwSwitchConnectionStatusTable::disconnected(SwitchID switchId) {
   if (connectedSwitches_.empty()) {
     XLOG(FATAL) << "No active HwSwitch connections";
   }
+  auto switchIndex =
+      sw_->getSwitchInfoTable().getSwitchIndexFromSwitchId(switchId);
+  sw_->stats()->hwAgentConnectionStatus(switchIndex, false /*connected*/);
   return true;
 }
 

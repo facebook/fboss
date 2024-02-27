@@ -14,8 +14,12 @@
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss {
+
+class SwSwitch;
+
 class HwSwitchConnectionStatusTable {
  public:
+  explicit HwSwitchConnectionStatusTable(SwSwitch* sw) : sw_(sw) {}
   void connected(SwitchID switchId);
   bool disconnected(SwitchID switchId);
   bool waitUntilHwSwitchConnected();
@@ -26,5 +30,6 @@ class HwSwitchConnectionStatusTable {
   std::condition_variable hwSwitchConnectedCV_;
   std::mutex hwSwitchConnectedMutex_;
   bool connectionWaitCancelled_{false};
+  SwSwitch* sw_;
 };
 } // namespace facebook::fboss

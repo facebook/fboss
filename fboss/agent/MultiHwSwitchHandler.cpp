@@ -31,6 +31,7 @@ MultiHwSwitchHandler::MultiHwSwitchHandler(
     : sw_(sw),
       hwSwitchSyncers_(
           makeHwSwitchSyncers(sw, switchInfoMap, hwSwitchHandlerInitFn)),
+      connectionStatusTable_{sw_},
       transactionsSupported_(transactionsSupported(sdkVersion)) {}
 
 MultiHwSwitchHandler::~MultiHwSwitchHandler() {

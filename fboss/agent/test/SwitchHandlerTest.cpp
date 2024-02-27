@@ -13,7 +13,9 @@
 #include "fboss/agent/MultiHwSwitchHandler.h"
 #include "fboss/agent/MultiSwitchThriftHandler.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/mnpu/MultiSwitchHwSwitchHandler.h"
+#include "fboss/agent/test/CounterCache.h"
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/lib/CommonUtils.h"
@@ -741,7 +743,25 @@ TEST_F(SwSwitchHandlerTest, initialSyncSwSwitchNotConfigured) {
   sw_->initialConfigApplied(std::chrono::steady_clock::now());
   client1Baton.wait();
   client2Baton.wait();
+  waitForStateUpdates(sw);
   sw->getHwSwitchHandler()->stop();
   clientRequestThread1.join();
   clientRequestThread2.join();
+}
+
+TEST_F(SwSwitchHandlerTest, connectionStatusCount) {
+  CounterCache counters(sw_.get());
+  getHwSwitchHandler()->connected(SwitchID(1));
+  getHwSwitchHandler()->connected(SwitchID(2));
+  counters.update();
+  EXPECT_EQ(
+      counters.value(
+          SwitchStats::kCounterPrefix + "switch.0.connection_status"),
+      1);
+  getHwSwitchHandler()->disconnected(SwitchID(1));
+  counters.update();
+  EXPECT_EQ(
+      counters.value(
+          SwitchStats::kCounterPrefix + "switch.0.connection_status"),
+      0);
 }

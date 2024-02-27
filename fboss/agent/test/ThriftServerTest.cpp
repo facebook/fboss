@@ -57,9 +57,11 @@ class ThriftServerTest : public ::testing::Test {
     cfg::AgentConfig agentConfig;
     agentConfig.defaultCommandLineArgs()->insert({"multi_switch", "true"});
     agentConfig.sw() = testConfigA();
+    agentConfig.sw()->switchSettings()->switchIdToSwitchInfo() = {
+        {0, createSwitchInfo(cfg::SwitchType::NPU)},
+        {1, createSwitchInfo(cfg::SwitchType::NPU)}};
     handle_ = createTestHandle(&agentConfig.sw().value());
     sw_ = handle_->getSw();
-    sw_->initialConfigApplied(std::chrono::steady_clock::now());
     sw_->setConfig(std::make_unique<AgentConfig>(std::move(agentConfig)));
   }
 
@@ -384,6 +386,7 @@ CO_TEST_F(ThriftServerTest, transmitPktHandler) {
   // got packet
   EXPECT_EQ(5, *val->port());
   EXPECT_EQ(origPktSize, (*val->data())->length());
+  sw_->getHwSwitchHandler()->stop();
 }
 
 CO_TEST_F(ThriftServerTest, statsUpdate) {
