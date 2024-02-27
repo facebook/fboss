@@ -2624,15 +2624,8 @@ std::shared_ptr<AclTableGroupMap> ThriftConfigApplier::updateAclTableGroups() {
   AclTableGroupMap::NodeContainer newAclTableGroups;
 
   if (!cfg_->aclTableGroup()) {
-    /*
-     * While we are transitioning from Non multi Acl to multi Acl, its possible
-     * for cfg to not contain AclTableGroup updates. In those cases, return
-     * nullptr to signify no changes in Acls. Since we dont support acl config
-     * changes during the transition, returning nullptr is fine
-     * TODO(Elangovan): Remove once multi Acl is fully rolled out
-     */
-    XLOG(ERR) << "AclTableGroup missing from the config";
-    return nullptr;
+    throw FbossError(
+        "ACL Table Group must be specified if Multiple ACL Table support is enabled");
   }
 
   if (cfg_->aclTableGroup()->stage() != cfg::AclStage::INGRESS) {

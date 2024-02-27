@@ -653,14 +653,25 @@ TEST(AclGroup, ApplyConfigWarmbootMultipleAclTable) {
   config.aclTableGroup_ref() = cfgTableGroup;
   config.aclTableGroup_ref()->name_ref() = kGroup1;
   config.aclTableGroup_ref()->stage_ref() = kAclStage1;
+
+  // Expect aclTableGroup to throw an error if its empty
+  cfg::SwitchConfig emptyCfg{};
+  EXPECT_THROW(
+      publishAndApplyConfig(
+          std::make_shared<SwitchState>(), &emptyCfg, platform.get()),
+      FbossError);
+  /*
+   * Need to have aclTableGroup in the config if acltablegroup is enabled
+   * so create config with empty aclTableGroup before applying config
+   */
+  auto stateV0 = publishAndApplyConfig(
+      std::make_shared<SwitchState>(), &config, platform.get());
+  addSwitchInfo(stateV0);
+
   config.aclTableGroup_ref()->aclTables_ref()->resize(2);
   config.aclTableGroup_ref()->aclTables_ref()[0] = cfgTable1;
   config.aclTableGroup_ref()->aclTables_ref()[1] = cfgTable2;
 
-  cfg::SwitchConfig emptyCfg{};
-  auto stateV0 = publishAndApplyConfig(
-      std::make_shared<SwitchState>(), &emptyCfg, platform.get());
-  addSwitchInfo(stateV0);
   stateV0->resetAclTableGroups(tableGroups);
 
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
