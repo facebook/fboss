@@ -394,6 +394,7 @@ struct VdmDiagsStats {
   21: map<i32, double> pam4Level2SDLine;
   22: map<i32, double> pam4Level3SDLine;
   23: map<i32, double> pam4MPILine;
+  24: map<i32, double> pam4LtpMediaChannel;
 }
 
 struct TransceiverSettings {

@@ -44,6 +44,7 @@ constexpr int kUsecDiagSelectLatchWait = 10000;
 constexpr int kUsecAfterAppProgramming = 500000;
 constexpr int kUsecDatapathStateUpdateTime = 5000000; // 5 seconds
 constexpr int kUsecDatapathStatePollTime = 500000; // 500 ms
+constexpr double kU16TypeLsbDivisor = 256.0;
 
 std::array<std::string, 9> channelConfigErrorMsg = {
     "No status available, config under progress",
@@ -1398,7 +1399,7 @@ std::optional<VdmDiagsStats> CmisModule::getVdmDiagsStatsInfo() {
     data = getQsfpValuePtr(dataAddress, offset, length);
     for (auto lanes = 0; lanes < length / 2; lanes++) {
       double snr;
-      snr = data[lanes * 2] + (data[lanes * 2 + 1] / 256.0);
+      snr = data[lanes * 2] + (data[lanes * 2 + 1] / kU16TypeLsbDivisor);
       vdmStats.eSnrMediaChannel()[lanes] = snr;
     }
   }
@@ -1695,6 +1696,22 @@ std::optional<VdmDiagsStats> CmisModule::getVdmDiagsStatsInfo() {
         PAM4_MPI_LINE);
     for (auto [lane, mpi] : mpiMap) {
       vdmStats.pam4MPILine()[lane] = mpi;
+    }
+  }
+
+  // Fill in channel LTP Media In
+  getQsfpFieldAddress(
+      CmisField::VDM_CONF_PAM4_LTP_MEDIA_IN, dataAddress, offset, length);
+  data = getQsfpValuePtr(dataAddress, offset, length);
+  vdmConfType = data[1];
+  if (vdmConfType == PAM4_LTP_MEDIA_IN) {
+    getQsfpFieldAddress(
+        CmisField::VDM_VAL_PAM4_LTP_MEDIA_IN, dataAddress, offset, length);
+    data = getQsfpValuePtr(dataAddress, offset, length);
+    for (auto lanes = 0; lanes < length / 2; lanes++) {
+      double ltp;
+      ltp = data[lanes * 2] + (data[lanes * 2 + 1] / kU16TypeLsbDivisor);
+      vdmStats.pam4LtpMediaChannel()[lanes] = ltp;
     }
   }
 

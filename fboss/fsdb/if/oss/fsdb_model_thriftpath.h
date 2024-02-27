@@ -19659,7 +19659,8 @@ std::pair<strings::pam4Level0SDLine, ChildThriftPath<::std::map<::std::int32_t, 
 std::pair<strings::pam4Level1SDLine, ChildThriftPath<::std::map<::std::int32_t, double>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
 std::pair<strings::pam4Level2SDLine, ChildThriftPath<::std::map<::std::int32_t, double>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
 std::pair<strings::pam4Level3SDLine, ChildThriftPath<::std::map<::std::int32_t, double>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
-std::pair<strings::pam4MPILine, ChildThriftPath<::std::map<::std::int32_t, double>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>>;
+std::pair<strings::pam4MPILine, ChildThriftPath<::std::map<::std::int32_t, double>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
+std::pair<strings::pam4LtpMediaChannel, ChildThriftPath<::std::map<::std::int32_t, double>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<double, ::apache::thrift::type_class::floating_point, ::apache::thrift::type::double_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<double, ::apache::thrift::type_class::floating_point, ::apache::thrift::type::double_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<double, ::apache::thrift::type_class::floating_point, ::apache::thrift::type::double_t>>,
@@ -19682,7 +19683,8 @@ std::pair<strings::pam4MPILine, ChildThriftPath<::std::map<::std::int32_t, doubl
    std::pair<std::integral_constant<apache::thrift::field_id_t, 20>, ChildThriftPath<::std::map<::std::int32_t, double>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 21>, ChildThriftPath<::std::map<::std::int32_t, double>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 22>, ChildThriftPath<::std::map<::std::int32_t, double>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 23>, ChildThriftPath<::std::map<::std::int32_t, double>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 23>, ChildThriftPath<::std::map<::std::int32_t, double>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 24>, ChildThriftPath<::std::map<::std::int32_t, double>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::preFecBerMediaMin, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::preFecBerMediaMax, std::integral_constant<apache::thrift::field_id_t, 2>>,
@@ -19706,7 +19708,8 @@ std::pair<strings::pam4Level0SDLine, std::integral_constant<apache::thrift::fiel
 std::pair<strings::pam4Level1SDLine, std::integral_constant<apache::thrift::field_id_t, 20>>,
 std::pair<strings::pam4Level2SDLine, std::integral_constant<apache::thrift::field_id_t, 21>>,
 std::pair<strings::pam4Level3SDLine, std::integral_constant<apache::thrift::field_id_t, 22>>,
-std::pair<strings::pam4MPILine, std::integral_constant<apache::thrift::field_id_t, 23>>>::template type_of<Name>;
+std::pair<strings::pam4MPILine, std::integral_constant<apache::thrift::field_id_t, 23>>,
+std::pair<strings::pam4LtpMediaChannel, std::integral_constant<apache::thrift::field_id_t, 24>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -19743,6 +19746,7 @@ std::pair<strings::pam4MPILine, std::integral_constant<apache::thrift::field_id_
     STRUCT_CHILD_GETTERS(pam4Level2SDLine, 21);
     STRUCT_CHILD_GETTERS(pam4Level3SDLine, 22);
     STRUCT_CHILD_GETTERS(pam4MPILine, 23);
+    STRUCT_CHILD_GETTERS(pam4LtpMediaChannel, 24);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -19769,6 +19773,7 @@ std::pair<strings::pam4MPILine, std::integral_constant<apache::thrift::field_id_
     else if constexpr (__id == 21) { return pam4Level2SDLine(); }
     else if constexpr (__id == 22) { return pam4Level3SDLine(); }
     else if constexpr (__id == 23) { return pam4MPILine(); }
+    else if constexpr (__id == 24) { return pam4LtpMediaChannel(); }
   }
 
   template <typename T, T... Values>
