@@ -21782,7 +21782,8 @@ std::pair<strings::queueWatermarkLevel_, ChildThriftPath<::std::map<::std::int16
 std::pair<strings::inCongestionDiscards_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
 std::pair<strings::inAclDiscards_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
 std::pair<strings::inTrapDiscards_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
-std::pair<strings::outForwardingDiscards_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
+std::pair<strings::outForwardingDiscards_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<strings::fabricConnectivityMismatch, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
@@ -21828,7 +21829,8 @@ std::pair<strings::outForwardingDiscards_, Child<::std::int64_t, ::apache::thrif
    std::pair<std::integral_constant<apache::thrift::field_id_t, 55>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 56>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 57>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 58>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 58>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 59>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::inBytes_, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::inUnicastPkts_, std::integral_constant<apache::thrift::field_id_t, 2>>,
@@ -21875,7 +21877,8 @@ std::pair<strings::queueWatermarkLevel_, std::integral_constant<apache::thrift::
 std::pair<strings::inCongestionDiscards_, std::integral_constant<apache::thrift::field_id_t, 55>>,
 std::pair<strings::inAclDiscards_, std::integral_constant<apache::thrift::field_id_t, 56>>,
 std::pair<strings::inTrapDiscards_, std::integral_constant<apache::thrift::field_id_t, 57>>,
-std::pair<strings::outForwardingDiscards_, std::integral_constant<apache::thrift::field_id_t, 58>>>::template type_of<Name>;
+std::pair<strings::outForwardingDiscards_, std::integral_constant<apache::thrift::field_id_t, 58>>,
+std::pair<strings::fabricConnectivityMismatch, std::integral_constant<apache::thrift::field_id_t, 59>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -21935,6 +21938,7 @@ std::pair<strings::outForwardingDiscards_, std::integral_constant<apache::thrift
     STRUCT_CHILD_GETTERS(inAclDiscards_, 56);
     STRUCT_CHILD_GETTERS(inTrapDiscards_, 57);
     STRUCT_CHILD_GETTERS(outForwardingDiscards_, 58);
+    STRUCT_CHILD_GETTERS(fabricConnectivityMismatch, 59);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -21984,6 +21988,7 @@ std::pair<strings::outForwardingDiscards_, std::integral_constant<apache::thrift
     else if constexpr (__id == 56) { return inAclDiscards_(); }
     else if constexpr (__id == 57) { return inTrapDiscards_(); }
     else if constexpr (__id == 58) { return outForwardingDiscards_(); }
+    else if constexpr (__id == 59) { return fabricConnectivityMismatch(); }
   }
 
   template <typename T, T... Values>

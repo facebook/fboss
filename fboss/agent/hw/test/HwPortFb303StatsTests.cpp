@@ -144,6 +144,7 @@ HwPortStats getInitedStats() {
       26, // inAclDiscards
       27, // inTrapDiscards
       28, // outForwardingDiscards
+      0, // fabricConnectivityMismatch
   };
 }
 

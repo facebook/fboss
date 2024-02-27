@@ -85,6 +85,7 @@ struct HwPortStats {
   56: optional i64 inAclDiscards_;
   57: optional i64 inTrapDiscards_;
   58: optional i64 outForwardingDiscards_;
+  59: optional i64 fabricConnectivityMismatch;
 }
 
 struct HwSysPortStats {
