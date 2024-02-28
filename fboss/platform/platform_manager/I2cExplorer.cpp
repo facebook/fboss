@@ -5,6 +5,7 @@
 #include <folly/FileUtil.h>
 #include <folly/String.h>
 #include <folly/logging/xlog.h>
+#include <filesystem>
 
 namespace fs = std::filesystem;
 
@@ -61,7 +62,8 @@ std::map<std::string, uint16_t> I2cExplorer::getBusNums(
 
 bool I2cExplorer::isI2cDevicePresent(uint16_t busNum, const I2cAddr& addr)
     const {
-  return fs::exists(fs::path(getDeviceI2cPath(busNum, addr)) / "name");
+  auto path = fs::path(getDeviceI2cPath(busNum, addr)) / "driver";
+  return fs::exists(path) && fs::directory_entry(path).is_symlink();
 }
 
 std::optional<std::string> I2cExplorer::getI2cDeviceName(
@@ -97,15 +99,14 @@ void I2cExplorer::createI2cDevice(
           addr.hex2Str());
       return;
     }
-    XLOG(ERR) << fmt::format(
+    throw std::runtime_error(fmt::format(
         "Creation of i2c device {} ({}) at bus: {}, addr: {} failed. "
         "Another device ({}) is already present",
         pmUnitScopedName,
         deviceName,
         busNum,
         addr.hex2Str(),
-        existingDeviceName.value_or("READ_ERROR"));
-    throw std::runtime_error("Creation of i2c device failed");
+        existingDeviceName.value_or("READ_ERROR")));
   }
   auto cmd = fmt::format(
       "echo {} {} > /sys/bus/i2c/devices/i2c-{}/new_device",
@@ -114,16 +115,14 @@ void I2cExplorer::createI2cDevice(
       busNum);
   auto [exitStatus, standardOut] = platformUtils_->execCommand(cmd);
   XLOG_IF(INFO, !standardOut.empty()) << standardOut;
-  if (exitStatus != 0) {
-    XLOG(ERR) << fmt::format(
-        "Creation of i2c device for {} ({}) at bus: {}, addr: {} "
-        "failed with exit status {}",
+  if (exitStatus != 0 || !isI2cDeviceCreated(busNum, addr)) {
+    throw std::runtime_error(fmt::format(
+        "Failed to create i2c device for {} ({}) at bus: {}, addr: {} with ioctl exit status {}",
         pmUnitScopedName,
         deviceName,
         busNum,
         addr.hex2Str(),
-        exitStatus);
-    throw std::runtime_error("Creation of i2c device failed");
+        exitStatus));
   }
   XLOG(INFO) << fmt::format(
       "Created i2c device {} ({}) at {}",
@@ -139,15 +138,6 @@ std::map<uint16_t, uint16_t> I2cExplorer::getMuxChannelI2CBuses(
   if (!fs::is_directory(devicePath)) {
     throw std::runtime_error(
         fmt::format("{} is not a directory.", devicePath.string()));
-  }
-
-  if (!fs::exists(fmt::format("{}/driver", devicePath.string()))) {
-    XLOG(INFO) << fmt::format(
-        "I2cDevice at busNum: {} and addr: {} is not yet created. Waiting for {}s",
-        busNum,
-        addr.hex4Str(),
-        kI2cDevCreationWaitSecs);
-    sleep(kI2cDevCreationWaitSecs);
   }
 
   // This is an implementation of
@@ -176,6 +166,20 @@ std::string I2cExplorer::getDeviceI2cPath(
     uint16_t busNum,
     const I2cAddr& addr) {
   return fmt::format("/sys/bus/i2c/devices/{}-{}", busNum, addr.hex4Str());
+}
+
+bool I2cExplorer::isI2cDeviceCreated(uint16_t busNum, const I2cAddr& addr)
+    const {
+  if (isI2cDevicePresent(busNum, addr)) {
+    return true;
+  }
+  XLOG(INFO) << fmt::format(
+      "I2cDevice at busNum: {} and addr: {} is not yet created. Waiting for {}s",
+      busNum,
+      addr.hex4Str(),
+      kI2cDevCreationWaitSecs);
+  sleep(kI2cDevCreationWaitSecs);
+  return isI2cDevicePresent(busNum, addr);
 }
 
 } // namespace facebook::fboss::platform::platform_manager

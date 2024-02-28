@@ -92,6 +92,7 @@ class I2cExplorer {
   static std::string getDeviceI2cPath(uint16_t busNum, const I2cAddr& addr);
 
  private:
+  virtual bool isI2cDeviceCreated(uint16_t busNum, const I2cAddr& addr) const;
   std::shared_ptr<PlatformUtils> platformUtils_{};
 };
 

@@ -219,8 +219,8 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
     auto idpromConfig = *slotTypeConfig.idpromConfig_ref();
     auto eepromI2cBusNum =
         dataStore_.getI2cBusNum(slotPath, *idpromConfig.busName());
-    i2cExplorer_.createI2cDevice(
-        "IDPROM",
+    createI2cDevice(
+        Utils().createDevicePath(slotPath, "IDPROM"),
         *idpromConfig.kernelDeviceName(),
         eepromI2cBusNum,
         I2cAddr(*idpromConfig.address()));
@@ -270,8 +270,8 @@ void PlatformExplorer::exploreI2cDevices(
     const std::string& slotPath,
     const std::vector<I2cDeviceConfig>& i2cDeviceConfigs) {
   for (const auto& i2cDeviceConfig : i2cDeviceConfigs) {
-    i2cExplorer_.createI2cDevice(
-        *i2cDeviceConfig.pmUnitScopedName(),
+    createI2cDevice(
+        Utils().createDevicePath(slotPath, *i2cDeviceConfig.pmUnitScopedName()),
         *i2cDeviceConfig.kernelDeviceName(),
         dataStore_.getI2cBusNum(slotPath, *i2cDeviceConfig.busName()),
         I2cAddr(*i2cDeviceConfig.address()));
@@ -521,6 +521,21 @@ void PlatformExplorer::reportExplorationSummary() {
     for (const auto& errMsg : errMsgs) {
       XLOG(INFO) << fmt::format("{}. {}", i++, errMsg);
     }
+  }
+}
+
+void PlatformExplorer::createI2cDevice(
+    const std::string& devicePath,
+    const std::string& deviceName,
+    uint16_t busNum,
+    const I2cAddr& addr) {
+  const auto& [slotPath, pmUnitScopedName] =
+      Utils().parseDevicePath(devicePath);
+  try {
+    i2cExplorer_.createI2cDevice(pmUnitScopedName, deviceName, busNum, addr);
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << ex.what();
+    errorMessages_[slotPath].push_back(ex.what());
   }
 }
 

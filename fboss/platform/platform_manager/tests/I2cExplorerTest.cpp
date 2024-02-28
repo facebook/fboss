@@ -17,6 +17,7 @@ class MockI2cExplorer : public I2cExplorer {
   explicit MockI2cExplorer(std::shared_ptr<MockPlatformUtils> platformUtils)
       : I2cExplorer(platformUtils) {}
   MOCK_METHOD(bool, isI2cDevicePresent, (uint16_t, const I2cAddr&), (const));
+  MOCK_METHOD(bool, isI2cDeviceCreated, (uint16_t, const I2cAddr&), (const));
   MOCK_METHOD(
       std::optional<std::string>,
       getI2cDeviceName,
@@ -32,6 +33,8 @@ TEST(I2cExplorerTest, createI2cDeviceSuccess) {
   // CASE-1: No device present; creation succeeds.
   EXPECT_CALL(i2cExplorer, isI2cDevicePresent(4, I2cAddr(15)))
       .WillOnce(Return(false));
+  EXPECT_CALL(i2cExplorer, isI2cDeviceCreated(4, I2cAddr(15)))
+      .WillOnce(Return(true));
   EXPECT_CALL(
       *platformUtils,
       execCommand("echo lm73 0x0f > /sys/bus/i2c/devices/i2c-4/new_device"))
@@ -62,7 +65,20 @@ TEST(I2cExplorerTest, createI2cDeviceFailure) {
       i2cExplorer.createI2cDevice("TEST_SENSOR", "lm73", 4, I2cAddr(15)),
       std::runtime_error);
 
-  // CASE-2: different device already present.
+  // CASE-2: echoing succeeded but I2C device not created.
+  EXPECT_CALL(i2cExplorer, isI2cDevicePresent(3, I2cAddr(16)))
+      .WillOnce(Return(false));
+  EXPECT_CALL(i2cExplorer, isI2cDeviceCreated(3, I2cAddr(16)))
+      .WillOnce(Return(false));
+  EXPECT_CALL(
+      *platformUtils,
+      execCommand("echo pmbus 0x10 > /sys/bus/i2c/devices/i2c-3/new_device"))
+      .WillOnce(Return(std::pair(0, "")));
+  EXPECT_THROW(
+      i2cExplorer.createI2cDevice("TEST_SENSOR", "pmbus", 3, I2cAddr(16)),
+      std::runtime_error);
+
+  // CASE-3: different device already present.
   EXPECT_CALL(i2cExplorer, isI2cDevicePresent(5, I2cAddr(16)))
       .WillOnce(Return(true));
   EXPECT_CALL(i2cExplorer, getI2cDeviceName(5, I2cAddr(16)))
