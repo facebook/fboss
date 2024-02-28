@@ -444,6 +444,11 @@ class SwitchStats : public boost::noncopyable {
     hwAgentConnectionStatus_[switchIndex].incrementValue(connected ? 1 : -1);
   }
 
+  void hwAgentUpdateTimeout(int switchIndex) {
+    CHECK_LT(switchIndex, hwAgentUpdateTimeouts_.size());
+    hwAgentUpdateTimeouts_[switchIndex].incrementValue();
+  }
+
  private:
   // Forbidden copy constructor and assignment operator
   SwitchStats(SwitchStats const&) = delete;
@@ -697,6 +702,7 @@ class SwitchStats : public boost::noncopyable {
   TLTimeseries switchConfiguredMs_;
 
   std::vector<TLCounter> hwAgentConnectionStatus_;
+  std::vector<TLCounter> hwAgentUpdateTimeouts_;
 };
 
 } // namespace facebook::fboss

@@ -285,9 +285,14 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
           SUM,
           RATE) {
   for (auto switchIndex = 0; switchIndex < numSwitches; switchIndex++) {
-    auto counterName = folly::to<std::string>(
-        kCounterPrefix, "switch.", switchIndex, ".", "connection_status");
-    hwAgentConnectionStatus_.emplace_back(TLCounter(map, counterName));
+    hwAgentConnectionStatus_.emplace_back(TLCounter(
+        map,
+        folly::to<std::string>(
+            kCounterPrefix, "switch.", switchIndex, ".", "connection_status")));
+    hwAgentUpdateTimeouts_.emplace_back(TLCounter(
+        map,
+        folly::to<std::string>(
+            kCounterPrefix, "switch.", switchIndex, ".", "hwupdate_timeouts")));
   }
 }
 
