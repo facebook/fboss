@@ -773,3 +773,50 @@ TEST_F(SwSwitchHandlerTest, connectionStatusCount) {
       0);
   checkConnectionStatus(0);
 }
+
+TEST_F(SwSwitchHandlerTest, operAckTimeoutCount) {
+  FLAGS_oper_delta_ack_timeout = 5;
+  auto stateV0 = std::make_shared<SwitchState>();
+  auto stateV1 = getInitialTestState();
+
+  auto delta = StateDelta(stateV0, stateV1);
+  std::thread stateUpdateThread([this, &delta]() {
+    getHwSwitchHandler()->waitUntilHwSwitchConnected();
+    CounterCache counters(sw_.get());
+    counters.update();
+    auto stateReturned = getHwSwitchHandler()->stateChanged(delta, false);
+    WITH_RETRIES({
+      counters.update();
+      auto value = counters.value(
+          SwitchStats::kCounterPrefix + "switch." + folly::to<std::string>(0) +
+          ".hwupdate_timeouts");
+      EXPECT_EVENTUALLY_EQ(value, 1);
+    });
+    getHwSwitchHandler()->stop();
+  });
+
+  auto clientThreadBody = [this](int64_t switchId) {
+    int64_t ackNum{0};
+    OperDeltaFilter filter((SwitchID(switchId)));
+    // connect and get next state delta
+    auto getEmptyOper = []() {
+      auto operDelta = std::make_unique<multiswitch::StateOperDelta>();
+      operDelta->operDelta() = fsdb::OperDelta();
+      return operDelta;
+    };
+    auto operDelta = getHwSwitchHandler()->getNextStateOperDelta(
+        switchId, getEmptyOper(), ackNum++);
+    // only second switch sends ack
+    if (switchId == 2) {
+      operDelta = getHwSwitchHandler()->getNextStateOperDelta(
+          switchId, getEmptyOper(), ackNum++);
+    }
+  };
+
+  std::thread clientRequestThread1([&]() { clientThreadBody(1); });
+  std::thread clientRequestThread2([&]() { clientThreadBody(2); });
+
+  stateUpdateThread.join();
+  clientRequestThread1.join();
+  clientRequestThread2.join();
+}
