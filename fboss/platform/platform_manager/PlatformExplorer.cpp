@@ -279,7 +279,13 @@ void PlatformExplorer::exploreI2cDevices(
       auto channelToBusNums = i2cExplorer_.getMuxChannelI2CBuses(
           dataStore_.getI2cBusNum(slotPath, *i2cDeviceConfig.busName()),
           I2cAddr(*i2cDeviceConfig.address()));
-      assert(channelToBusNums.size() == i2cDeviceConfig.numOutgoingChannels());
+      if (channelToBusNums.size() != *i2cDeviceConfig.numOutgoingChannels()) {
+        throw std::runtime_error(fmt::format(
+            "Unexpected number mux channels for {}. Expected: {}. Actual: {}",
+            *i2cDeviceConfig.pmUnitScopedName(),
+            *i2cDeviceConfig.numOutgoingChannels(),
+            channelToBusNums.size()));
+      }
       for (const auto& [channelNum, busNum] : channelToBusNums) {
         dataStore_.updateI2cBusNum(
             slotPath,
