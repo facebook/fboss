@@ -78,16 +78,16 @@ bool isHwRouteToCpu(
   return nhop == cpuPortId;
 }
 bool isHwRouteHit(
-    FOLLY_MAYBE_UNUSED const HwSwitch* hwSwitch,
-    FOLLY_MAYBE_UNUSED RouterID /*rid*/,
-    FOLLY_MAYBE_UNUSED const folly::CIDRNetwork& cidrNetwork) {
+    [[maybe_unused]] const HwSwitch* hwSwitch,
+    [[maybe_unused]] RouterID /*rid*/,
+    [[maybe_unused]] const folly::CIDRNetwork& cidrNetwork) {
   throw FbossError("L3 entry hitbit is unsupported for SAI");
 }
 
 void clearHwRouteHit(
-    FOLLY_MAYBE_UNUSED const HwSwitch* hwSwitch,
-    FOLLY_MAYBE_UNUSED RouterID /*rid*/,
-    FOLLY_MAYBE_UNUSED const folly::CIDRNetwork& cidrNetwork) {
+    [[maybe_unused]] const HwSwitch* hwSwitch,
+    [[maybe_unused]] RouterID /*rid*/,
+    [[maybe_unused]] const folly::CIDRNetwork& cidrNetwork) {
   throw FbossError("L3 entry hitbit is unsupported for SAI");
 }
 
