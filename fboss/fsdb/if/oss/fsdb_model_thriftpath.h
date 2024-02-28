@@ -22498,7 +22498,8 @@ std::pair<strings::flowletStatsMap, ChildThriftPath<::std::map<::std::int16_t, :
 std::pair<strings::trappedPktsDropped, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
 std::pair<strings::threadHeartBeatMiss, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
 std::pair<strings::cpuPortStatsMap, ChildThriftPath<::std::map<::std::int16_t, ::facebook::fboss::CpuPortStats>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
-std::pair<strings::hwagentConnectionStatus, ChildThriftPath<::std::map<::std::int16_t, ::std::int64_t>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>>;
+std::pair<strings::hwagentConnectionStatus, ChildThriftPath<::std::map<::std::int16_t, ::std::int64_t>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
+std::pair<strings::hwagentOperSyncTimeoutCount, ChildThriftPath<::std::map<::std::int16_t, ::std::int64_t>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, ChildThriftPath<folly::F14FastMap<::std::string, ::facebook::fboss::HwPortStats>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, ChildThriftPath<::std::map<::std::string, ::facebook::fboss::HwTrunkStats>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, ChildThriftPath<::facebook::fboss::HwResourceStats, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
@@ -22519,7 +22520,8 @@ std::pair<strings::hwagentConnectionStatus, ChildThriftPath<::std::map<::std::in
    std::pair<std::integral_constant<apache::thrift::field_id_t, 19>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 20>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 21>, ChildThriftPath<::std::map<::std::int16_t, ::facebook::fboss::CpuPortStats>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 22>, ChildThriftPath<::std::map<::std::int16_t, ::std::int64_t>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 22>, ChildThriftPath<::std::map<::std::int16_t, ::std::int64_t>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 23>, ChildThriftPath<::std::map<::std::int16_t, ::std::int64_t>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::hwPortStats, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::hwTrunkStats, std::integral_constant<apache::thrift::field_id_t, 2>>,
@@ -22541,7 +22543,8 @@ std::pair<strings::flowletStatsMap, std::integral_constant<apache::thrift::field
 std::pair<strings::trappedPktsDropped, std::integral_constant<apache::thrift::field_id_t, 19>>,
 std::pair<strings::threadHeartBeatMiss, std::integral_constant<apache::thrift::field_id_t, 20>>,
 std::pair<strings::cpuPortStatsMap, std::integral_constant<apache::thrift::field_id_t, 21>>,
-std::pair<strings::hwagentConnectionStatus, std::integral_constant<apache::thrift::field_id_t, 22>>>::template type_of<Name>;
+std::pair<strings::hwagentConnectionStatus, std::integral_constant<apache::thrift::field_id_t, 22>>,
+std::pair<strings::hwagentOperSyncTimeoutCount, std::integral_constant<apache::thrift::field_id_t, 23>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -22576,6 +22579,7 @@ std::pair<strings::hwagentConnectionStatus, std::integral_constant<apache::thrif
     STRUCT_CHILD_GETTERS(threadHeartBeatMiss, 20);
     STRUCT_CHILD_GETTERS(cpuPortStatsMap, 21);
     STRUCT_CHILD_GETTERS(hwagentConnectionStatus, 22);
+    STRUCT_CHILD_GETTERS(hwagentOperSyncTimeoutCount, 23);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -22600,6 +22604,7 @@ std::pair<strings::hwagentConnectionStatus, std::integral_constant<apache::thrif
     else if constexpr (__id == 20) { return threadHeartBeatMiss(); }
     else if constexpr (__id == 21) { return cpuPortStatsMap(); }
     else if constexpr (__id == 22) { return hwagentConnectionStatus(); }
+    else if constexpr (__id == 23) { return hwagentOperSyncTimeoutCount(); }
   }
 
   template <typename T, T... Values>
