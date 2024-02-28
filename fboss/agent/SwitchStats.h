@@ -19,6 +19,7 @@
 #include "fboss/agent/PortStats.h"
 #include "fboss/agent/gen-cpp2/agent_stats_types.h"
 #include "fboss/agent/types.h"
+#include "fboss/lib/CommonUtils.h"
 
 namespace facebook::fboss {
 
@@ -517,6 +518,26 @@ class SwitchStats : public boost::noncopyable {
     }
     void setTxPktEventStreamStatus(bool connected) {
       txPktEventStreamStatus_.incrementValue(connected ? 1 : -1);
+    }
+    int64_t getStatsEventSinkStatus() const {
+      return getCumulativeValue(statsEventSinkStatus_, false /*hasSumSuffix*/);
+    }
+    int64_t getLinkEventSinkStatus() const {
+      return getCumulativeValue(linkEventSinkStatus_, false /*hasSumSuffix*/);
+    }
+    int64_t getLinkActiveEventSinkStatus() const {
+      return getCumulativeValue(
+          linkActiveEventSinkStatus_, false /*hasSumSuffix*/);
+    }
+    int64_t getFdbEventSinkStatus() const {
+      return getCumulativeValue(fdbEventSinkStatus_, false /*hasSumSuffix*/);
+    }
+    int64_t getRxPktEventSinkStatus() const {
+      return getCumulativeValue(rxPktEventSinkStatus_, false /*hasSumSuffix*/);
+    }
+    int64_t getTxPktEventStreamStatus() const {
+      return getCumulativeValue(
+          txPktEventStreamStatus_, false /*hasSumSuffix*/);
     }
 
    private:

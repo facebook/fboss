@@ -360,7 +360,22 @@ void SwitchStats::fillAgentStats(AgentStats& agentStats) const {
   int16_t switchIndex = 0;
   for (const auto& stats : hwAgentUpdateTimeouts_) {
     agentStats.hwagentOperSyncTimeoutCount()->insert(
-        {switchIndex++, getCumulativeValue(stats, false /*hasSumSuffix*/)});
+        {switchIndex, getCumulativeValue(stats, false /*hasSumSuffix*/)});
+    switchIndex++;
+  }
+  switchIndex = 0;
+  for (const auto& stats : thriftStreamConnectionStatus_) {
+    HwAgentEventSyncStatus syncStatus;
+    syncStatus.statsEventSyncActive() = stats.getStatsEventSinkStatus();
+    syncStatus.linkEventSyncActive() = stats.getLinkEventSinkStatus();
+    syncStatus.linkActiveEventSyncActive() =
+        stats.getLinkActiveEventSinkStatus();
+    syncStatus.fdbEventSyncActive() = stats.getFdbEventSinkStatus();
+    syncStatus.rxPktEventSyncActive() = stats.getRxPktEventSinkStatus();
+    syncStatus.txPktEventSyncActive() = stats.getTxPktEventStreamStatus();
+    agentStats.hwAgentEventSyncStatusMap()->insert(
+        {switchIndex, std::move(syncStatus)});
+    switchIndex++;
   }
 }
 
