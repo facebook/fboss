@@ -448,6 +448,7 @@ bool MultiSwitchHwSwitchHandler::waitForOperSyncAck(
           })) {
     XLOG(DBG2) << "Timed out waiting oper delta ack from switch "
                << getSwitchId();
+    operDeltaAckTimeout();
     sw_->getHwSwitchHandler()->disconnected(getSwitchId());
     return false;
   }
@@ -493,6 +494,12 @@ void MultiSwitchHwSwitchHandler::fillMultiswitchOperDelta(
   }
   stateDelta.transaction() = transaction;
   stateDelta.seqNum() = lastSeqNum + 1;
+}
+
+void MultiSwitchHwSwitchHandler::operDeltaAckTimeout() {
+  auto switchIndex =
+      sw_->getSwitchInfoTable().getSwitchIndexFromSwitchId(getSwitchId());
+  sw_->stats()->hwAgentUpdateTimeout(switchIndex);
 }
 
 } // namespace facebook::fboss

@@ -3,6 +3,8 @@
 #include "fboss/agent/HwSwitchHandler.h"
 #include "fboss/agent/if/gen-cpp2/MultiSwitchCtrl.h"
 
+DECLARE_int32(oper_delta_ack_timeout);
+
 namespace facebook::fboss {
 
 class SwSwitch;
@@ -153,6 +155,7 @@ class MultiSwitchHwSwitchHandler : public HwSwitchHandler {
       const fsdb::OperDelta& delta,
       bool transaction,
       int64_t lastSeqNum);
+  void operDeltaAckTimeout();
 
   SwSwitch* sw_;
   std::condition_variable stateUpdateCV_;
