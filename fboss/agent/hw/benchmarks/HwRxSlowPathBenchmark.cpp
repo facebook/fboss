@@ -68,7 +68,12 @@ BENCHMARK(RxSlowPathBenchmark) {
         asic,
         ensemble.isSai(),
         /* setQueueRate */ false);
-
+    // Since J2 and J3 does not support disabling TLL on port, create TRAP to
+    // forward TTL=0 packet.
+    if (ensemble.getSw()->getHwAsicTable()->isFeatureSupportedOnAllAsic(
+            HwAsic::Feature::CPU_TX_VIA_RECYCLE_PORT)) {
+      utility::setTTLZeroCpuConfig(asic, config);
+    }
     return config;
   };
 
