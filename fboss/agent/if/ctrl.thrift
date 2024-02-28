@@ -8,6 +8,7 @@ namespace py.asyncio neteng.fboss.asyncio.ctrl
 include "fboss/agent/if/fboss.thrift"
 include "common/fb303/if/fb303.thrift"
 include "common/network/if/Address.thrift"
+include "fboss/agent/agent_stats.thrift"
 include "fboss/agent/if/mpls.thrift"
 include "fboss/agent/if/common.thrift"
 include "fboss/agent/if/product_info.thrift"
@@ -1060,6 +1061,11 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
   hardware_stats.FabricReachabilityStats getFabricReachabilityStats() throws (
     1: fboss.FbossBaseError error,
   );
+
+  map<
+    i16,
+    agent_stats.HwAgentEventSyncStatus
+  > getHwAgentConnectionStatus() throws (1: fboss.FbossBaseError error);
 
   /* Return running config */
   string getRunningConfig() throws (1: fboss.FbossBaseError error);

@@ -430,6 +430,7 @@ add_fbthrift_cpp_library(
     json
     reflection
   DEPENDS
+    agent_stats_cpp2
     fboss_cpp2
     fb303_cpp2
     mpls_cpp2
