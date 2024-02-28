@@ -417,12 +417,6 @@ class SwitchStats : public boost::noncopyable {
     failedDsfSubscription_.incrementValue(value);
   }
 
-  typedef fb303::ThreadCachedServiceData::ThreadLocalStatsMap
-      ThreadLocalStatsMap;
-  typedef fb303::ThreadCachedServiceData::TLTimeseries TLTimeseries;
-  typedef fb303::ThreadCachedServiceData::TLHistogram TLHistogram;
-  typedef fb303::ThreadCachedServiceData::TLCounter TLCounter;
-
   void fillAgentStats(AgentStats& agentStats) const;
   void fillFabricReachabilityStats(
       FabricReachabilityStats& fabricReachabilityStats) const;
@@ -449,12 +443,90 @@ class SwitchStats : public boost::noncopyable {
     hwAgentUpdateTimeouts_[switchIndex].incrementValue();
   }
 
+  void hwAgentStatsEventSinkConnectionStatus(int switchIndex, bool connected) {
+    CHECK_LT(switchIndex, thriftStreamConnectionStatus_.size());
+    thriftStreamConnectionStatus_[switchIndex].setStatsEventSinkStatus(
+        connected);
+  }
+
+  void hwAgentLinkEventSinkConnectionStatus(int switchIndex, bool connected) {
+    CHECK_LT(switchIndex, thriftStreamConnectionStatus_.size());
+    thriftStreamConnectionStatus_[switchIndex].setLinkEventSinkStatus(
+        connected);
+  }
+
+  void hwAgentLinkActiveEventSinkConnectionStatus(
+      int switchIndex,
+      bool connected) {
+    CHECK_LT(switchIndex, thriftStreamConnectionStatus_.size());
+    thriftStreamConnectionStatus_[switchIndex].setLinkActiveEventSinkStatus(
+        connected);
+  }
+
+  void hwAgentFdbEventSinkConnectionStatus(int switchIndex, bool connected) {
+    CHECK_LT(switchIndex, thriftStreamConnectionStatus_.size());
+    thriftStreamConnectionStatus_[switchIndex].setFdbEventSinkStatus(connected);
+  }
+
+  void hwAgentRxPktEventSinkConnectionStatus(int switchIndex, bool connected) {
+    CHECK_LT(switchIndex, thriftStreamConnectionStatus_.size());
+    thriftStreamConnectionStatus_[switchIndex].setRxPktEventSinkStatus(
+        connected);
+  }
+
+  void hwAgentTxPktEventStreamConnectionStatus(
+      int switchIndex,
+      bool connected) {
+    CHECK_LT(switchIndex, thriftStreamConnectionStatus_.size());
+    thriftStreamConnectionStatus_[switchIndex].setTxPktEventStreamStatus(
+        connected);
+  }
+
+  typedef fb303::ThreadCachedServiceData::ThreadLocalStatsMap
+      ThreadLocalStatsMap;
+  typedef fb303::ThreadCachedServiceData::TLTimeseries TLTimeseries;
+  typedef fb303::ThreadCachedServiceData::TLHistogram TLHistogram;
+  typedef fb303::ThreadCachedServiceData::TLCounter TLCounter;
+
  private:
   // Forbidden copy constructor and assignment operator
   SwitchStats(SwitchStats const&) = delete;
   SwitchStats& operator=(SwitchStats const&) = delete;
 
   explicit SwitchStats(ThreadLocalStatsMap* map, int numSwitches);
+
+  class HwAgentStreamConnectionStatus {
+   public:
+    explicit HwAgentStreamConnectionStatus(
+        ThreadLocalStatsMap* map,
+        int16_t switchIndex);
+    void setStatsEventSinkStatus(bool connected) {
+      statsEventSinkStatus_.incrementValue(connected ? 1 : -1);
+    }
+    void setLinkEventSinkStatus(bool connected) {
+      linkEventSinkStatus_.incrementValue(connected ? 1 : -1);
+    }
+    void setLinkActiveEventSinkStatus(bool connected) {
+      linkActiveEventSinkStatus_.incrementValue(connected ? 1 : -1);
+    }
+    void setFdbEventSinkStatus(bool connected) {
+      fdbEventSinkStatus_.incrementValue(connected ? 1 : -1);
+    }
+    void setRxPktEventSinkStatus(bool connected) {
+      rxPktEventSinkStatus_.incrementValue(connected ? 1 : -1);
+    }
+    void setTxPktEventStreamStatus(bool connected) {
+      txPktEventStreamStatus_.incrementValue(connected ? 1 : -1);
+    }
+
+   private:
+    TLCounter statsEventSinkStatus_;
+    TLCounter linkEventSinkStatus_;
+    TLCounter linkActiveEventSinkStatus_;
+    TLCounter fdbEventSinkStatus_;
+    TLCounter rxPktEventSinkStatus_;
+    TLCounter txPktEventStreamStatus_;
+  };
 
   // Total number of trapped packets
   TLTimeseries trapPkts_;
@@ -703,6 +775,7 @@ class SwitchStats : public boost::noncopyable {
 
   std::vector<TLCounter> hwAgentConnectionStatus_;
   std::vector<TLCounter> hwAgentUpdateTimeouts_;
+  std::vector<HwAgentStreamConnectionStatus> thriftStreamConnectionStatus_;
 };
 
 } // namespace facebook::fboss

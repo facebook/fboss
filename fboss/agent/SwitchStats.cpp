@@ -293,6 +293,7 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
         map,
         folly::to<std::string>(
             kCounterPrefix, "switch.", switchIndex, ".", "hwupdate_timeouts")));
+    thriftStreamConnectionStatus_.emplace_back(map, switchIndex);
   }
 }
 
@@ -362,4 +363,56 @@ void SwitchStats::fillAgentStats(AgentStats& agentStats) const {
         {switchIndex++, getCumulativeValue(stats, false /*hasSumSuffix*/)});
   }
 }
+
+SwitchStats::HwAgentStreamConnectionStatus::HwAgentStreamConnectionStatus(
+    fb303::ThreadCachedServiceData::ThreadLocalStatsMap* map,
+    int16_t switchIndex)
+    : statsEventSinkStatus_(TLCounter(
+          map,
+          folly::to<std::string>(
+              kCounterPrefix,
+              "switch.",
+              switchIndex,
+              ".",
+              "stats_event_sync_active"))),
+      linkEventSinkStatus_(TLCounter(
+          map,
+          folly::to<std::string>(
+              kCounterPrefix,
+              "switch.",
+              switchIndex,
+              ".",
+              "link_event_sync_active"))),
+      linkActiveEventSinkStatus_(TLCounter(
+          map,
+          folly::to<std::string>(
+              kCounterPrefix,
+              "switch.",
+              switchIndex,
+              ".",
+              "link_active_event_sync_active"))),
+      fdbEventSinkStatus_(TLCounter(
+          map,
+          folly::to<std::string>(
+              kCounterPrefix,
+              "switch.",
+              switchIndex,
+              ".",
+              "fdb_event_sync_active"))),
+      rxPktEventSinkStatus_(TLCounter(
+          map,
+          folly::to<std::string>(
+              kCounterPrefix,
+              "switch.",
+              switchIndex,
+              ".",
+              "rx_pkt_event_sync_active"))),
+      txPktEventStreamStatus_(TLCounter(
+          map,
+          folly::to<std::string>(
+              kCounterPrefix,
+              "switch.",
+              switchIndex,
+              ".",
+              "tx_pkt_event_sync_active"))) {}
 } // namespace facebook::fboss
