@@ -5,6 +5,7 @@
 #include "fboss/agent/MultiSwitchPacketStreamMap.h"
 #include "fboss/agent/MultiSwitchThriftHandler.h"
 #include "fboss/agent/SwRxPacket.h"
+#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/state/SwitchState.h"
 
 namespace facebook::fboss {
@@ -51,15 +52,27 @@ MultiSwitchThriftHandler::co_notifyLinkEvent(int64_t switchId) {
       [this,
        switchId](folly::coro::AsyncGenerator<multiswitch::LinkEvent&&> gen)
           -> folly::coro::Task<bool> {
-        while (auto item = co_await gen.next()) {
-          XLOG(DBG3) << "Got link event from switch " << switchId
-                     << " for port " << *item->port() << " up :" << *item->up();
-          PortID portId = PortID(*item->port());
-          std::optional<phy::LinkFaultStatus> faultStatus;
-          if (item->iPhyLinkFaultStatus()) {
-            faultStatus = *item->iPhyLinkFaultStatus();
+        auto switchIndex = sw_->getSwitchInfoTable().getSwitchIndexFromSwitchId(
+            SwitchID(switchId));
+        sw_->stats()->hwAgentLinkEventSinkConnectionStatus(switchIndex, true);
+        try {
+          while (auto item = co_await gen.next()) {
+            XLOG(DBG3) << "Got link event from switch " << switchId
+                       << " for port " << *item->port()
+                       << " up :" << *item->up();
+            PortID portId = PortID(*item->port());
+            std::optional<phy::LinkFaultStatus> faultStatus;
+            if (item->iPhyLinkFaultStatus()) {
+              faultStatus = *item->iPhyLinkFaultStatus();
+            }
+            sw_->linkStateChanged(portId, *item->up(), faultStatus);
           }
-          sw_->linkStateChanged(portId, *item->up(), faultStatus);
+        } catch (const std::exception& e) {
+          XLOG(DBG2) << "link event sink cancelled for switch " << switchId
+                     << " with exception " << e.what();
+          sw_->stats()->hwAgentLinkEventSinkConnectionStatus(
+              switchIndex, false);
+          co_return false;
         }
         co_return true;
       },
@@ -76,13 +89,25 @@ MultiSwitchThriftHandler::co_notifyLinkActiveEvent(int64_t switchId) {
       [this, switchId](
           folly::coro::AsyncGenerator<multiswitch::LinkActiveEvent&&> gen)
           -> folly::coro::Task<bool> {
+        auto switchIndex = sw_->getSwitchInfoTable().getSwitchIndexFromSwitchId(
+            SwitchID(switchId));
+        sw_->stats()->hwAgentLinkActiveEventSinkConnectionStatus(
+            switchIndex, true);
         std::map<PortID, bool> port2IsActive;
-        while (auto item = co_await gen.next()) {
-          XLOG(DBG3) << "Got link active event from switch " << switchId;
-          for (const auto& [portID, isActive] : *item->port2IsActive()) {
-            port2IsActive[PortID(portID)] = isActive;
+        try {
+          while (auto item = co_await gen.next()) {
+            XLOG(DBG3) << "Got link active event from switch " << switchId;
+            for (const auto& [portID, isActive] : *item->port2IsActive()) {
+              port2IsActive[PortID(portID)] = isActive;
+            }
+            sw_->linkActiveStateChanged(port2IsActive);
           }
-          sw_->linkActiveStateChanged(port2IsActive);
+        } catch (const std::exception& e) {
+          XLOG(DBG2) << "link event sink cancelled for switch " << switchId
+                     << " with exception " << e.what();
+          sw_->stats()->hwAgentLinkActiveEventSinkConnectionStatus(
+              switchIndex, false);
+          co_return false;
         }
         co_return true;
       },
@@ -97,12 +122,22 @@ MultiSwitchThriftHandler::co_notifyFdbEvent(int64_t switchId) {
   co_return apache::thrift::SinkConsumer<multiswitch::FdbEvent, bool>{
       [this, switchId](folly::coro::AsyncGenerator<multiswitch::FdbEvent&&> gen)
           -> folly::coro::Task<bool> {
-        while (auto item = co_await gen.next()) {
-          XLOG(DBG3) << "Got fdb event from switch " << switchId << " for port "
-                     << *item->entry()->port()
-                     << " mac :" << *item->entry()->mac();
-          auto l2Entry = getL2Entry(*item->entry());
-          sw_->l2LearningUpdateReceived(l2Entry, *item->updateType());
+        auto switchIndex = sw_->getSwitchInfoTable().getSwitchIndexFromSwitchId(
+            SwitchID(switchId));
+        sw_->stats()->hwAgentFdbEventSinkConnectionStatus(switchIndex, true);
+        try {
+          while (auto item = co_await gen.next()) {
+            XLOG(DBG3) << "Got fdb event from switch " << switchId
+                       << " for port " << *item->entry()->port()
+                       << " mac :" << *item->entry()->mac();
+            auto l2Entry = getL2Entry(*item->entry());
+            sw_->l2LearningUpdateReceived(l2Entry, *item->updateType());
+          }
+        } catch (const std::exception& e) {
+          XLOG(DBG2) << "Fdb event sink cancelled for switch " << switchId
+                     << " with exception " << e.what();
+          sw_->stats()->hwAgentFdbEventSinkConnectionStatus(switchIndex, false);
+          co_return false;
         }
         co_return true;
       },
@@ -117,22 +152,34 @@ MultiSwitchThriftHandler::co_notifyRxPacket(int64_t switchId) {
   co_return apache::thrift::SinkConsumer<multiswitch::RxPacket, bool>{
       [this, switchId](folly::coro::AsyncGenerator<multiswitch::RxPacket&&> gen)
           -> folly::coro::Task<bool> {
-        while (auto item = co_await gen.next()) {
-          XLOG(DBG4) << "Got rx packet from switch " << switchId << " for port "
-                     << *item->port();
-          auto pkt = make_unique<SwRxPacket>(std::move(*item->data()));
-          pkt->setSrcPort(PortID(*item->port()));
-          if (item->vlan()) {
-            pkt->setSrcVlan(VlanID(*item->vlan()));
-          } else {
-            // clear default vlan id(0)
-            // TODO - retire this once the default value for vlan id is removed
-            pkt->setSrcVlan(std::nullopt);
+        auto switchIndex = sw_->getSwitchInfoTable().getSwitchIndexFromSwitchId(
+            SwitchID(switchId));
+        sw_->stats()->hwAgentRxPktEventSinkConnectionStatus(switchIndex, true);
+        try {
+          while (auto item = co_await gen.next()) {
+            XLOG(DBG4) << "Got rx packet from switch " << switchId
+                       << " for port " << *item->port();
+            auto pkt = make_unique<SwRxPacket>(std::move(*item->data()));
+            pkt->setSrcPort(PortID(*item->port()));
+            if (item->vlan()) {
+              pkt->setSrcVlan(VlanID(*item->vlan()));
+            } else {
+              // clear default vlan id(0)
+              // TODO - retire this once the default value for vlan id is
+              // removed
+              pkt->setSrcVlan(std::nullopt);
+            }
+            if (item->aggPort()) {
+              pkt->setSrcAggregatePort(AggregatePortID(*item->aggPort()));
+            }
+            sw_->packetReceived(std::move(pkt));
           }
-          if (item->aggPort()) {
-            pkt->setSrcAggregatePort(AggregatePortID(*item->aggPort()));
-          }
-          sw_->packetReceived(std::move(pkt));
+        } catch (const std::exception& e) {
+          XLOG(DBG2) << "Rx packet event sink cancelled for switch " << switchId
+                     << " with exception " << e.what();
+          sw_->stats()->hwAgentRxPktEventSinkConnectionStatus(
+              switchIndex, false);
+          co_return(false);
         }
         co_return true;
       },
@@ -143,11 +190,15 @@ MultiSwitchThriftHandler::co_notifyRxPacket(int64_t switchId) {
 
 folly::coro::Task<apache::thrift::ServerStream<multiswitch::TxPacket>>
 MultiSwitchThriftHandler::co_getTxPackets(int64_t switchId) {
+  auto switchIndex =
+      sw_->getSwitchInfoTable().getSwitchIndexFromSwitchId(SwitchID(switchId));
   auto streamAndPublisher =
       apache::thrift::ServerStream<multiswitch::TxPacket>::createPublisher(
-          [this, switchId] {
+          [this, switchId, switchIndex] {
             sw_->getPacketStreamMap()->removePacketStream(SwitchID(switchId));
             XLOG(DBG2) << "Removed stream for switch " << switchId;
+            sw_->stats()->hwAgentTxPktEventStreamConnectionStatus(
+                switchIndex, false);
             sw_->getHwSwitchHandler()->notifyHwSwitchDisconnected(
                 switchId, false);
           });
@@ -156,6 +207,7 @@ MultiSwitchThriftHandler::co_getTxPackets(int64_t switchId) {
       std::move(streamAndPublisher.second));
   sw_->getPacketStreamMap()->addPacketStream(
       SwitchID(switchId), std::move(streamPublisher));
+  sw_->stats()->hwAgentTxPktEventStreamConnectionStatus(switchIndex, true);
   co_return std::move(streamAndPublisher.first);
 }
 
@@ -167,9 +219,18 @@ MultiSwitchThriftHandler::co_syncHwStats(int16_t switchIndex) {
       [this, switchIndex](
           folly::coro::AsyncGenerator<multiswitch::HwSwitchStats&&> gen)
           -> folly::coro::Task<bool> {
-        while (auto item = co_await gen.next()) {
-          XLOG(DBG3) << "Got stats event from switchIndex " << switchIndex;
-          sw_->updateHwSwitchStats(switchIndex, std::move(*item));
+        sw_->stats()->hwAgentStatsEventSinkConnectionStatus(switchIndex, true);
+        try {
+          while (auto item = co_await gen.next()) {
+            XLOG(DBG3) << "Got stats event from switchIndex " << switchIndex;
+            sw_->updateHwSwitchStats(switchIndex, std::move(*item));
+          }
+        } catch (const std::exception& e) {
+          XLOG(DBG2) << "Stats event sink cancelled for switchIndex "
+                     << switchIndex << " with exception " << e.what();
+          sw_->stats()->hwAgentStatsEventSinkConnectionStatus(
+              switchIndex, false);
+          co_return false;
         }
         co_return true;
       },

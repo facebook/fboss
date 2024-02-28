@@ -259,7 +259,7 @@ CO_TEST_F(ThriftServerTest, setPortStateSink) {
   setupServerAndClients();
 
   const PortID port5{5};
-  auto result = co_await multiSwitchClient_->co_notifyLinkEvent(100);
+  auto result = co_await multiSwitchClient_->co_notifyLinkEvent(0);
   auto verifyOperState = [this](const PortID& portId, bool up) {
     WITH_RETRIES({
       auto port = this->sw_->getState()->getPorts()->getNodeIf(portId);
@@ -270,8 +270,16 @@ CO_TEST_F(ThriftServerTest, setPortStateSink) {
       }
     });
   };
+
+  CounterCache counters(sw_);
   auto ret = co_await result.sink(
       [&]() -> folly::coro::AsyncGenerator<multiswitch::LinkEvent&&> {
+        // verify link event sync is active
+        WITH_RETRIES({
+          counters.update();
+          EXPECT_EVENTUALLY_EQ(
+              counters.value("switch.0.link_event_sync_active"), 1);
+        });
         multiswitch::LinkEvent upEvent;
         upEvent.port() = port5;
         upEvent.up() = true;
@@ -292,7 +300,7 @@ CO_TEST_F(ThriftServerTest, fdbEventTest) {
   // setup server and clients
   setupServerAndClients();
 
-  auto result = co_await multiSwitchClient_->co_notifyFdbEvent(100);
+  auto result = co_await multiSwitchClient_->co_notifyFdbEvent(0);
   auto verifyMacState = [this](
                             const VlanID vlanId, std::string mac, bool added) {
     WITH_RETRIES({
@@ -317,8 +325,16 @@ CO_TEST_F(ThriftServerTest, fdbEventTest) {
     fdbEvent.updateType() = updateType;
     return fdbEvent;
   };
+
+  CounterCache counters(sw_);
   auto ret = co_await result.sink(
       [&]() -> folly::coro::AsyncGenerator<multiswitch::FdbEvent&&> {
+        // verify fdb event sync is active
+        WITH_RETRIES({
+          counters.update();
+          EXPECT_EVENTUALLY_EQ(
+              counters.value("switch.0.fdb_event_sync_active"), 1);
+        });
         // add a new mac entry to the table
         auto fdbEvent =
             createFdbEntry(L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_ADD);
@@ -340,9 +356,15 @@ CO_TEST_F(ThriftServerTest, receivePktHandler) {
 
   CounterCache counters(sw_);
   // Send packets to server using sink
-  auto result = co_await multiSwitchClient_->co_notifyRxPacket(100);
+  auto result = co_await multiSwitchClient_->co_notifyRxPacket(0);
   auto ret = co_await result.sink(
       [&]() -> folly::coro::AsyncGenerator<multiswitch::RxPacket&&> {
+        // verify rx pkt event sync is active
+        WITH_RETRIES({
+          counters.update();
+          EXPECT_EVENTUALLY_EQ(
+              counters.value("switch.0.rx_pkt_event_sync_active"), 1);
+        });
         multiswitch::RxPacket rxPkt;
         rxPkt.data() = std::make_unique<folly::IOBuf>(createV4Packet(
             folly::IPAddressV4("10.0.0.2"),
@@ -434,10 +456,17 @@ CO_TEST_F(ThriftServerTest, statsUpdate) {
 
   uint16_t switchIndex = 0;
 
+  CounterCache counters(sw_);
   // Send packets to server using sink
   auto result = co_await multiSwitchClient_->co_syncHwStats(0);
   auto ret = co_await result.sink(
       [&]() -> folly::coro::AsyncGenerator<multiswitch::HwSwitchStats&&> {
+        // verify stats sync is active
+        WITH_RETRIES({
+          counters.update();
+          EXPECT_EVENTUALLY_EQ(
+              counters.value("switch.0.stats_event_sync_active"), 1);
+        });
         co_yield getTestStatUpdate();
       }());
   EXPECT_TRUE(ret);
