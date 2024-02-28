@@ -146,7 +146,6 @@
           "load_firmware.BCM8892X": "0x102",
           "port_init_cl72.BCM8892X": "1",
           "port_init_speed.BCM8892X": "106250",
-          "fabric_cell_fifo_dma_enable.BCM8892X": "1",
           "schan_intr_enable.BCM8892X": "0",
           "schan_timeout_usec.BCM8892X": "300000",
           "tdma_intr_enable.BCM8892X": "0",
