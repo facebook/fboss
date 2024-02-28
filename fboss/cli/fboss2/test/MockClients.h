@@ -39,12 +39,16 @@ class MockFbossCtrlAgent : public FbossCtrlSvIf {
   using Out = std::string&;
   using Ports = std::unique_ptr<std::vector<int32_t>>;
   using HwObjects = std::unique_ptr<std::vector<HwObjectType>>;
+  using HwAgentStatusMap =
+      std::map<int16_t, facebook::fboss::HwAgentEventSyncStatus>&;
   MOCK_METHOD(void, startPktCapture, (std::unique_ptr<CaptureInfo>));
   MOCK_METHOD(void, stopPktCapture, (std::unique_ptr<std::string>));
   MOCK_METHOD(void, getAllPortInfo, (PortInfoMap));
   MOCK_METHOD(void, getProductInfo, (ProductInfo&));
   MOCK_METHOD(void, getCpuPortStats, (facebook::fboss::CpuPortStats&));
   MOCK_METHOD(void, getPortStatus, (PortStatusMap, Ports));
+  MOCK_METHOD(void, getHwAgentConnectionStatus, (HwAgentStatusMap));
+  MOCK_METHOD(void, getMultiSwitchRunState, (MultiSwitchRunState&));
   MOCK_METHOD(void, listHwObjects, (Out, HwObjects, bool));
   MOCK_METHOD(SSLType, getSSLPolicy, ());
   MOCK_METHOD(void, setPortState, (int32_t, bool));
