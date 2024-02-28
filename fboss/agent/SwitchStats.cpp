@@ -356,5 +356,10 @@ void SwitchStats::fillAgentStats(AgentStats& agentStats) const {
   agentStats.trappedPktsDropped() = getCumulativeValue(trapPktDrops_);
   agentStats.threadHeartBeatMiss() =
       getCumulativeValue(threadHeartbeatMissCount_);
+  int16_t switchIndex = 0;
+  for (const auto& stats : hwAgentUpdateTimeouts_) {
+    agentStats.hwagentOperSyncTimeoutCount()->insert(
+        {switchIndex++, getCumulativeValue(stats, false /*hasSumSuffix*/)});
+  }
 }
 } // namespace facebook::fboss

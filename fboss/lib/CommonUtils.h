@@ -45,9 +45,10 @@ void checkWithRetry(
   }
 }
 
-inline int64_t getCumulativeValue(
-    const fb303::ThreadCachedServiceData::TLTimeseries& stat) {
-  auto counterVal = fb303::fbData->getCounterIfExists(stat.name() + ".sum");
+template <typename StatT>
+inline int64_t getCumulativeValue(const StatT& stat, bool hasSumSuffix = true) {
+  auto counterVal = fb303::fbData->getCounterIfExists(
+      hasSumSuffix ? stat.name() + ".sum" : stat.name());
   return counterVal ? *counterVal : 0;
 }
 
