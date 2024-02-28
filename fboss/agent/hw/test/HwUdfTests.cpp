@@ -126,7 +126,8 @@ TEST_F(HwUdfTest, deleteUdfAclConfig) {
       getHwSwitch(), utility::kUdfL4UdpRocePktMatcherName);
 
   // Delete UdfGroup and PacketMatcher configuration for UDF ACL
-  applyNewState(setupUdfConfiguration(false, false));
+  auto resetCfg{initialConfig()};
+  applyNewConfig(resetCfg);
 
   auto verify = [=, this]() {
     // Verify that UdfGroup and PacketMatcher are deleted
