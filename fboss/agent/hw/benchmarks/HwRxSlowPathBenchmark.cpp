@@ -38,31 +38,39 @@ const std::string kDstIp = "2620:0:1cfe:face:b00c::4";
 
 BENCHMARK(RxSlowPathBenchmark) {
   constexpr int kEcmpWidth = 1;
-  AgentEnsembleSwitchConfigFn initialConfigFn =
-      [](const AgentEnsemble& ensemble) {
-        auto ports =
-            ensemble.masterLogicalPortIds({cfg::PortType::INTERFACE_PORT});
-        CHECK_GE(ports.size(), 1);
+  AgentEnsembleSwitchConfigFn initialConfigFn = [](const AgentEnsemble&
+                                                       ensemble) {
+    CHECK_GE(
+        ensemble.masterLogicalPortIds({cfg::PortType::INTERFACE_PORT}).size(),
+        1);
+    std::vector<PortID> ports = {
+        ensemble.masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0]};
 
-        // Before m-mpu agent test, use first Asic for initialization.
-        auto switchIds = ensemble.getSw()->getHwAsicTable()->getSwitchIDs();
-        CHECK_GE(switchIds.size(), 1);
-        auto asic =
-            ensemble.getSw()->getHwAsicTable()->getHwAsic(*switchIds.cbegin());
-        auto config =
-            utility::onePortPerInterfaceConfig(ensemble.getSw(), {ports[0]});
-        utility::addAclTableGroup(
-            &config, cfg::AclStage::INGRESS, utility::getAclTableGroupName());
-        utility::addDefaultAclTable(config);
-        // We don't want to set queue rate that limits the number of rx pkts
-        utility::addCpuQueueConfig(
-            config,
-            asic,
-            ensemble.isSai(),
-            /* setQueueRate */ false);
+    // Before m-mpu agent test, use first Asic for initialization.
+    auto switchIds = ensemble.getSw()->getHwAsicTable()->getSwitchIDs();
+    CHECK_GE(switchIds.size(), 1);
+    auto asic =
+        ensemble.getSw()->getHwAsicTable()->getHwAsic(*switchIds.cbegin());
+    // For J2 and J3, initialize recycle port as well to allow l3 lookup on
+    // recycle port
+    if (ensemble.getSw()->getHwAsicTable()->isFeatureSupportedOnAllAsic(
+            HwAsic::Feature::CPU_TX_VIA_RECYCLE_PORT)) {
+      ports.push_back(
+          ensemble.masterLogicalPortIds({cfg::PortType::RECYCLE_PORT})[0]);
+    }
+    auto config = utility::onePortPerInterfaceConfig(ensemble.getSw(), ports);
+    utility::addAclTableGroup(
+        &config, cfg::AclStage::INGRESS, utility::getAclTableGroupName());
+    utility::addDefaultAclTable(config);
+    // We don't want to set queue rate that limits the number of rx pkts
+    utility::addCpuQueueConfig(
+        config,
+        asic,
+        ensemble.isSai(),
+        /* setQueueRate */ false);
 
-        return config;
-      };
+    return config;
+  };
 
   auto ensemble = createAgentEnsemble(initialConfigFn);
 
