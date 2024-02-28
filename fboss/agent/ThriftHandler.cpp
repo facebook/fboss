@@ -1928,6 +1928,13 @@ void ThriftHandler::getIpRouteDetails(
   }
 }
 
+void ThriftHandler::getHwAgentConnectionStatus(
+    std::map<int16_t, HwAgentEventSyncStatus>& hwAgentSyncStatusMap) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured(__func__);
+  sw_->stats()->getHwAgentStatus(hwAgentSyncStatusMap);
+}
+
 void ThriftHandler::getRouteCounterBytes(
     std::map<std::string, std::int64_t>& routeCounters,
     std::unique_ptr<std::vector<std::string>> counters) {

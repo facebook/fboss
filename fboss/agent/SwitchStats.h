@@ -483,6 +483,9 @@ class SwitchStats : public boost::noncopyable {
         connected);
   }
 
+  void getHwAgentStatus(
+      std::map<int16_t, HwAgentEventSyncStatus>& statusMap) const;
+
   typedef fb303::ThreadCachedServiceData::ThreadLocalStatsMap
       ThreadLocalStatsMap;
   typedef fb303::ThreadCachedServiceData::TLTimeseries TLTimeseries;

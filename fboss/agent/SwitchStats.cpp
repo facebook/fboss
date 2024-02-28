@@ -363,7 +363,12 @@ void SwitchStats::fillAgentStats(AgentStats& agentStats) const {
         {switchIndex, getCumulativeValue(stats, false /*hasSumSuffix*/)});
     switchIndex++;
   }
-  switchIndex = 0;
+  getHwAgentStatus(*agentStats.hwAgentEventSyncStatusMap());
+}
+
+void SwitchStats::getHwAgentStatus(
+    std::map<int16_t, HwAgentEventSyncStatus>& statusMap) const {
+  int16_t switchIndex = 0;
   for (const auto& stats : thriftStreamConnectionStatus_) {
     HwAgentEventSyncStatus syncStatus;
     syncStatus.statsEventSyncActive() = stats.getStatsEventSinkStatus();
@@ -373,8 +378,7 @@ void SwitchStats::fillAgentStats(AgentStats& agentStats) const {
     syncStatus.fdbEventSyncActive() = stats.getFdbEventSinkStatus();
     syncStatus.rxPktEventSyncActive() = stats.getRxPktEventSinkStatus();
     syncStatus.txPktEventSyncActive() = stats.getTxPktEventStreamStatus();
-    agentStats.hwAgentEventSyncStatusMap()->insert(
-        {switchIndex, std::move(syncStatus)});
+    statusMap.insert({switchIndex, std::move(syncStatus)});
     switchIndex++;
   }
 }

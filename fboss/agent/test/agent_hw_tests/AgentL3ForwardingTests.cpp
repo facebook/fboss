@@ -79,6 +79,25 @@ class AgentL3ForwardingTest : public AgentHwTest {
     neighborTable->removeEntry(ip);
     return outState;
   }
+
+  void verifyHwAgentConnectionState(ThriftHandler& handler) {
+    std::map<int16_t, HwAgentEventSyncStatus> statusMap;
+    if (!getSw()->isRunModeMultiSwitch()) {
+      return;
+    }
+    handler.getHwAgentConnectionStatus(statusMap);
+    WITH_RETRIES({
+      statusMap.clear();
+      handler.getHwAgentConnectionStatus(statusMap);
+      EXPECT_EVENTUALLY_GE(statusMap.size(), 1);
+      EXPECT_EVENTUALLY_EQ(statusMap[0].statsEventSyncActive().value(), 1);
+      EXPECT_EVENTUALLY_EQ(statusMap[0].fdbEventSyncActive().value(), 1);
+      EXPECT_EVENTUALLY_EQ(statusMap[0].linkEventSyncActive().value(), 1);
+      EXPECT_EVENTUALLY_EQ(statusMap[0].linkActiveEventSyncActive().value(), 1);
+      EXPECT_EVENTUALLY_EQ(statusMap[0].rxPktEventSyncActive().value(), 1);
+      EXPECT_EVENTUALLY_EQ(statusMap[0].txPktEventSyncActive().value(), 1);
+    });
+  }
 };
 
 TEST_F(AgentL3ForwardingTest, linkLocalNeighborAndNextHop) {
@@ -135,6 +154,7 @@ TEST_F(AgentL3ForwardingTest, ttl255) {
   };
   auto verify = [=, this]() {
     ThriftHandler handler(getSw());
+    verifyHwAgentConnectionState(handler);
     auto pumpTraffic = [=]() {
       for (auto isV6 : {true, false}) {
         auto vlanId = utility::firstVlanID(getProgrammedState());
