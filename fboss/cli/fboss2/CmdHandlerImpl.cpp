@@ -44,6 +44,7 @@
 #include "fboss/cli/fboss2/commands/show/fabric/reachability/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/commands/show/flowlet/CmdShowFlowlet.h"
 #include "fboss/cli/fboss2/commands/show/host/CmdShowHost.h"
+#include "fboss/cli/fboss2/commands/show/hwagent/CmdShowHwAgentStatus.h"
 #include "fboss/cli/fboss2/commands/show/hwobject/CmdShowHwObject.h"
 #include "fboss/cli/fboss2/commands/show/interface/CmdShowInterface.h"
 #include "fboss/cli/fboss2/commands/show/interface/counters/CmdShowInterfaceCounters.h"
@@ -142,6 +143,8 @@ template void
 CmdHandler<CmdShowProductDetails, CmdShowProductDetailsTraits>::run();
 template void CmdHandler<CmdShowHost, CmdShowHostTraits>::run();
 template void CmdHandler<CmdShowHwObject, CmdShowHwObjectTraits>::run();
+template void
+CmdHandler<CmdShowHwAgentStatus, CmdShowHwAgentStatusTraits>::run();
 template void CmdHandler<CmdShowInterface, CmdShowInterfaceTraits>::run();
 template void
 CmdHandler<CmdShowInterfaceCounters, CmdShowInterfaceCountersTraits>::run();
@@ -275,6 +278,8 @@ template const ValidFilterMapType
 CmdHandler<CmdShowTransceiver, CmdShowTransceiverTraits>::getValidFilters();
 template const ValidFilterMapType
 CmdHandler<CmdShowCpuPort, CmdShowCpuPortTraits>::getValidFilters();
+template const ValidFilterMapType
+CmdHandler<CmdShowHwAgentStatus, CmdShowHwAgentStatusTraits>::getValidFilters();
 
 template const ValidFilterMapType
 CmdHandler<CmdClearInterface, CmdClearInterfaceTraits>::getValidFilters();

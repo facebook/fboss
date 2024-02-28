@@ -132,6 +132,13 @@ add_fbthrift_cpp_library(
 )
 
 add_fbthrift_cpp_library(
+  show_hwagent_status_model
+  fboss/cli/fboss2/commands/show/hwagent/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
   show_transceiver_model
   fboss/cli/fboss2/commands/show/transceiver/model.thrift
   OPTIONS
@@ -300,6 +307,7 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/show/fabric/reachability/CmdShowFabricReachability.h
   fboss/cli/fboss2/commands/show/flowlet/CmdShowFlowlet.h
   fboss/cli/fboss2/commands/show/host/CmdShowHost.h
+  fboss/cli/fboss2/commands/show/hwagent/CmdShowHwAgentStatus.h
   fboss/cli/fboss2/commands/show/hwobject/CmdShowHwObject.h
   fboss/cli/fboss2/commands/show/l2/CmdShowL2.h
   fboss/cli/fboss2/commands/show/lldp/CmdShowLldp.h
@@ -408,6 +416,7 @@ target_link_libraries(fboss2
   show_systemport_model
   show_cpuport_model
   show_teflow_model
+  show_hwagent_status_model
   ${RE2}
 )
 

@@ -38,6 +38,7 @@
 #include "fboss/cli/fboss2/commands/show/fabric/reachability/CmdShowFabricReachability.h"
 #include "fboss/cli/fboss2/commands/show/flowlet/CmdShowFlowlet.h"
 #include "fboss/cli/fboss2/commands/show/host/CmdShowHost.h"
+#include "fboss/cli/fboss2/commands/show/hwagent/CmdShowHwAgentStatus.h"
 #include "fboss/cli/fboss2/commands/show/hwobject/CmdShowHwObject.h"
 #include "fboss/cli/fboss2/commands/show/interface/CmdShowInterface.h"
 #include "fboss/cli/fboss2/commands/show/interface/counters/CmdShowInterfaceCounters.h"
@@ -332,6 +333,12 @@ const CommandTree& kCommandTree() {
        "Show HW Objects",
        commandHandler<CmdShowHwObject>,
        argTypeHandler<CmdShowHwObjectTraits>},
+
+      {"show",
+       "hw-agent",
+       "Show HwAgent Status",
+       commandHandler<CmdShowHwAgentStatus>,
+       argTypeHandler<CmdShowHwAgentStatusTraits>},
 
       {"show",
        "l2",
