@@ -140,7 +140,7 @@ bool ConfigValidator::isValidPciDeviceConfig(
     fpgaIpBlockConfigs.push_back(config);
   }
   for (const auto& config : *pciDeviceConfig.fanTachoPwmConfigs()) {
-    fpgaIpBlockConfigs.push_back(config);
+    fpgaIpBlockConfigs.push_back(*config.fpgaIpBlockConfig());
   }
   for (const auto& config : *pciDeviceConfig.ledCtrlConfigs()) {
     fpgaIpBlockConfigs.push_back(*config.fpgaIpBlockConfig());

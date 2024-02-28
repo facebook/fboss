@@ -90,6 +90,15 @@ class PciExplorer {
       const FpgaIpBlockConfig& fpgaIpBlockConfig,
       uint32_t instanceId);
 
+  // Create the FanPwmCtrl based on the given FanPwmCtrlConfig residing at the
+  // given PciDevice.
+  // Return the created FanPwmCtrl SyfsPath. Throw std::runtime_error on
+  // failure.
+  std::string createFanPwmCtrl(
+      const PciDevice& pciDevice,
+      const FanPwmCtrlConfig& fanPwmCtrlConfig,
+      uint32_t instanceId);
+
   // Create the generic device block based on the given FpgaIpBlockConfig
   // residing at the given PciDevice. Throw std::runtime_error on failure.
   void createFpgaIpBlock(
@@ -124,6 +133,10 @@ class PciExplorer {
       const FpgaIpBlockConfig& infoRomConfig,
       uint32_t instanceId);
   std::string getWatchDogCharDevPath(
+      const PciDevice& pciDevice,
+      const FpgaIpBlockConfig& fpgaIpBlockConfig,
+      uint32_t instanceId);
+  std::string getFanPwmCtrlSysfsPath(
       const PciDevice& pciDevice,
       const FpgaIpBlockConfig& fpgaIpBlockConfig,
       uint32_t instanceId);

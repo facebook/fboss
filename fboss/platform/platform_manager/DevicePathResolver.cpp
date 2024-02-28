@@ -27,26 +27,29 @@ DevicePathResolver::DevicePathResolver(
 
 std::string DevicePathResolver::resolveSensorPath(
     const std::string& devicePath) {
-  auto i2cDevicePath = resolveI2cDevicePath(devicePath);
-  if (fs::exists(fmt::format("{}/hwmon", i2cDevicePath))) {
-    i2cDevicePath = fmt::format("{}/hwmon", i2cDevicePath);
-  }
   std::string sensorPath;
-  for (const auto& dirEntry : fs::directory_iterator(i2cDevicePath)) {
+  if (dataStore_.hasSysfsPath(devicePath)) {
+    // Case-1: the sensor isn't I2cDevice. Ex FanPwmCtrl
+    // TODO: Relying on dataStore_ even for I2CDevice.
+    sensorPath = dataStore_.getSysfsPath(devicePath);
+  } else {
+    // Case-2: the sensor is I2cDevice.
+    sensorPath = resolveI2cDevicePath(devicePath);
+  }
+  if (fs::exists(fmt::format("{}/hwmon", sensorPath))) {
+    sensorPath = fmt::format("{}/hwmon", sensorPath);
+  }
+  for (const auto& dirEntry : fs::directory_iterator(sensorPath)) {
     auto dirName = dirEntry.path().filename();
     if (re2::RE2::FullMatch(dirName.string(), kHwmonRe) ||
         re2::RE2::FullMatch(dirName.string(), kIioDeviceRe)) {
-      sensorPath = dirEntry.path();
-      break;
+      return dirEntry.path();
     }
   }
-  if (sensorPath.empty()) {
-    throw std::runtime_error(fmt::format(
-        "Couldn't find hwmon[num] nor iio:device[num] folder under {} for {}",
-        i2cDevicePath,
-        devicePath));
-  }
-  return sensorPath;
+  throw std::runtime_error(fmt::format(
+      "Couldn't find hwmon[num] nor iio:device[num] folder under {} for {}",
+      sensorPath,
+      devicePath));
 }
 
 std::string DevicePathResolver::resolveEepromPath(

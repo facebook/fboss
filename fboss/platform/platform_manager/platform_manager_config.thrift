@@ -281,6 +281,16 @@ struct SpiMasterConfig {
   2: list<SpiDeviceConfig> spiDeviceConfigs;
 }
 
+// Defines the Fan/PWM Controller block in FPGAs
+//
+// `fpgaIpBlockConfig`: See FgpaIpBlockConfig above
+//
+// `numFans`: Number of fans which is associated with this config.
+struct FanPwmCtrlConfig {
+  1: FpgaIpBlockConfig fpgaIpBlockConfig;
+  2: i32 numFans;
+}
+
 // Defines the Transceiver Controller block in FPGAs.
 //
 // `fpgaIpBlockConfig`: See FgpaIpBlockConfig above
@@ -348,7 +358,7 @@ struct PciDeviceConfig {
   7: list<SpiMasterConfig> spiMasterConfigs;
   8: list<FpgaIpBlockConfig> gpioChipConfigs;
   9: list<FpgaIpBlockConfig> watchdogConfigs;
-  10: list<FpgaIpBlockConfig> fanTachoPwmConfigs;
+  10: list<FanPwmCtrlConfig> fanTachoPwmConfigs;
   11: list<LedCtrlConfig> ledCtrlConfigs;
   12: list<XcvrCtrlConfig> xcvrCtrlConfigs;
   13: list<FpgaIpBlockConfig> infoRomConfigs;

@@ -20,7 +20,7 @@ const std::string kGpioChip = "gpiochip";
 const re2::RE2 kGpioChipNameRe{"gpiochip\\d+"};
 const re2::RE2 kSpiBusRe{"spi\\d+"};
 const re2::RE2 kSpiDevIdRe{"spi(?P<BusNum>\\d+).(?P<ChipSelect>\\d+)"};
-const re2::RE2 kWatchdogRe{"watchdog(?P<WatchDogNum>\\d+)"};
+const re2::RE2 kWatchdogRe{"watchdog(?P<WatchdogNum>\\d+)"};
 constexpr auto kPciSubDevCreationWaitSecs = 1;
 
 bool isSamePciId(const std::string& id1, const std::string& id2) {
@@ -235,6 +235,22 @@ std::string PciExplorer::createWatchdog(
   return getWatchDogCharDevPath(pciDevice, fpgaIpBlockConfig, instanceId);
 }
 
+std::string PciExplorer::createFanPwmCtrl(
+    const PciDevice& pciDevice,
+    const FanPwmCtrlConfig& fanPwmCtrlConfig,
+    uint32_t instanceId) {
+  if (isPciSubDevicePresent(
+          pciDevice, *fanPwmCtrlConfig.fpgaIpBlockConfig(), instanceId)) {
+    return getFanPwmCtrlSysfsPath(
+        pciDevice, *fanPwmCtrlConfig.fpgaIpBlockConfig(), instanceId);
+  }
+  auto auxData = getAuxData(*fanPwmCtrlConfig.fpgaIpBlockConfig(), instanceId);
+  auxData.fan_data.num_fans = *fanPwmCtrlConfig.numFans();
+  create(pciDevice, *fanPwmCtrlConfig.fpgaIpBlockConfig(), auxData);
+  return getFanPwmCtrlSysfsPath(
+      pciDevice, *fanPwmCtrlConfig.fpgaIpBlockConfig(), instanceId);
+}
+
 void PciExplorer::createFpgaIpBlock(
     const PciDevice& pciDevice,
     const FpgaIpBlockConfig& fpgaIpBlockConfig,
@@ -331,8 +347,8 @@ std::vector<uint16_t> PciExplorer::getI2cAdapterBusNums(
     }
     return busNumbers;
   } else {
-    // If the config does not specify bus count for the i2cAdapterConfig, or if
-    // it is specified as 1, we just look for the file named 'i2c-N'.
+    // If the config does not specify bus count for the i2cAdapterConfig, or
+    // if it is specified as 1, we just look for the file named 'i2c-N'.
     for (const auto& childDirEntry :
          fs::directory_iterator(fpgaI2cDir.path())) {
       if (re2::RE2::FullMatch(
@@ -529,6 +545,23 @@ std::string PciExplorer::getWatchDogCharDevPath(
   }
   throw std::runtime_error(fmt::format(
       "Couldn't derive watchdog char device path in {}", watchdogPath));
+}
+
+std::string PciExplorer::getFanPwmCtrlSysfsPath(
+    const PciDevice& pciDevice,
+    const FpgaIpBlockConfig& fpgaIpBlockConfig,
+    uint32_t instanceId) {
+  std::string expectedEnding =
+      fmt::format(".{}.{}", *fpgaIpBlockConfig.deviceName(), instanceId);
+  for (const auto& dirEntry : fs::directory_iterator(pciDevice.sysfsPath())) {
+    if (hasEnding(dirEntry.path().filename().string(), expectedEnding)) {
+      return dirEntry.path();
+    }
+  }
+  throw std::runtime_error(fmt::format(
+      "Could not find any directory ending with {} in {}",
+      expectedEnding,
+      pciDevice.sysfsPath()));
 }
 
 bool PciExplorer::isPciSubDeviceCreated(

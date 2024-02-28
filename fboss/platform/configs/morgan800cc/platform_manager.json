@@ -171,6 +171,17 @@
               "csrOffset": "0x452100"
             }
           ],
+          "fanTachoPwmConfigs": [
+            {
+              "fpgaIpBlockConfig": {
+                "pmUnitScopedName": "MCB_FAN_PWM",
+                "deviceName": "fan_ctrl",
+                "iobufOffset": "0x450100",
+                "csrOffset": "0x450100"
+              },
+              "numFans": 16
+            }
+          ],
           "i2cAdapterConfigs": [
             {
               "fpgaIpBlockConfig": {
@@ -3184,6 +3195,7 @@
     "/run/devmap/sensors/MCB_ADM_SENSOR2": "/[MCB_ADM_SENSOR2]",
     "/run/devmap/sensors/MCB_FCB1_SENSOR_IIO": "/[MCB_FCB_SENSOR1]",
     "/run/devmap/sensors/MCB_FCB2_SENSOR_IIO": "/[MCB_FCB_SENSOR2]",
+    "/run/devmap/sensors/MCB_FAN_PWM": "/[MCB_FAN_PWM]",
     "/run/devmap/sensors/SCM_LTC2497_IIO": "/JUMPER_SLOT@0/SCM_SLOT@0/[SCM_LTC2497]",
     "/run/devmap/sensors/SCM_IN_TEMP_SENSOR": "/JUMPER_SLOT@0/SCM_SLOT@0/[SCM_IN_TEMP]",
     "/run/devmap/sensors/SCM_OUT_TEMP": "/JUMPER_SLOT@0/SCM_SLOT@0/[SCM_OUT_TEMP]",
@@ -3272,7 +3284,7 @@
     "/run/devmap/watchdogs/MCB_FAN_WD": "/[MCB_FAN_WD]"
   },
   "bspKmodsRpmName": "cisco_bsp_kmods",
-  "bspKmodsRpmVersion": "0.1.3-1",
+  "bspKmodsRpmVersion": "0.1.5-1",
   "kmodsToReload": [
     "cisco-fpga-pci",
     "cisco_fpga_spi",

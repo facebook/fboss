@@ -371,9 +371,14 @@ void PlatformExplorer::explorePciDevices(
               slotPath, *fpgaIpBlockConfig.pmUnitScopedName()),
           watchdogCharDevPath);
     }
-    for (const auto& fpgaIpBlockConfig :
-         *pciDeviceConfig.fanTachoPwmConfigs()) {
-      pciExplorer_.createFpgaIpBlock(pciDevice, fpgaIpBlockConfig, instId++);
+    for (const auto& fanPwmCtrlConfig : *pciDeviceConfig.fanTachoPwmConfigs()) {
+      auto fanCtrlSysfsPath =
+          pciExplorer_.createFanPwmCtrl(pciDevice, fanPwmCtrlConfig, instId++);
+      dataStore_.updateSysfsPath(
+          Utils().createDevicePath(
+              slotPath,
+              *fanPwmCtrlConfig.fpgaIpBlockConfig()->pmUnitScopedName()),
+          fanCtrlSysfsPath);
     }
     for (const auto& fpgaIpBlockConfig : *pciDeviceConfig.ledCtrlConfigs()) {
       pciExplorer_.createLedCtrl(pciDevice, fpgaIpBlockConfig, instId++);
