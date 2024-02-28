@@ -18,7 +18,6 @@
 namespace {
 constexpr auto kRootSlotPath = "/";
 const re2::RE2 kGpioChipNameRe{"gpiochip\\d+"};
-const re2::RE2 kIioDeviceRe{"iio:device\\d+"};
 const std::string kGpioChip = "gpiochip";
 
 std::string getSlotPath(
@@ -95,7 +94,7 @@ void PlatformExplorer::explore() {
        *platformConfig_.symbolicLinkToDevicePath()) {
     createDeviceSymLink(linkPath, devicePath);
   }
-  XLOG(INFO) << "SUCCESS. Completed setting up all the devices.";
+  reportExplorationSummary();
 }
 
 void PlatformExplorer::explorePmUnit(
@@ -232,11 +231,13 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
       pmUnitNameInEeprom =
           eepromParser_.getProductName(eepromPath, *idpromConfig.offset());
     } catch (const std::exception& e) {
-      XLOG(ERR) << fmt::format(
+      auto errMsg = fmt::format(
           "Could not fetch contents of IDPROM {} in {}. {}",
           eepromPath,
           slotPath,
           e.what());
+      XLOG(ERR) << errMsg;
+      errorMessages_[slotPath].push_back(errMsg);
     }
     if (pmUnitNameInEeprom) {
       XLOG(INFO) << fmt::format(
@@ -472,12 +473,17 @@ void PlatformExplorer::createDeviceSymLink(
     } else if (linkParentPath.string() == "/run/devmap/watchdogs") {
       targetPath = dataStore_.getCharDevPath(devicePath);
     } else {
-      XLOG(ERR) << fmt::format("Symbolic link {} is not supported.", linkPath);
-      return;
+      throw std::runtime_error(
+          fmt::format("Symbolic link {} is not supported.", linkPath));
     }
   } catch (const std::exception& ex) {
-    XLOG(ERR) << fmt::format(
-        "Failed to resolve DevicePath {}. Reason: {}", devicePath, ex.what());
+    auto errMsg = fmt::format(
+        "Failed to create a symlink {} for DevicePath {}. Reason: {}",
+        linkPath,
+        devicePath,
+        ex.what());
+    XLOG(ERR) << errMsg;
+    errorMessages_[slotPath].push_back(errMsg);
     return;
   }
 
@@ -491,6 +497,24 @@ void PlatformExplorer::createDeviceSymLink(
   if (exitStatus != 0) {
     XLOG(ERR) << fmt::format("Failed to run command ({})", cmd);
     return;
+  }
+}
+
+void PlatformExplorer::reportExplorationSummary() {
+  if (errorMessages_.empty()) {
+    XLOG(INFO) << "SUCCESS. Completed setting up all the devices.";
+    return;
+  }
+  XLOG(INFO) << "Completed setting up devices with errors";
+  for (const auto& [slotPath, errMsgs] : errorMessages_) {
+    XLOG(INFO) << fmt::format(
+        "Failures in PmUnit {} at {}",
+        dataStore_.getPmUnitName(slotPath),
+        slotPath);
+    int i = 1;
+    for (const auto& errMsg : errMsgs) {
+      XLOG(INFO) << fmt::format("{}. {}", i++, errMsg);
+    }
   }
 }
 

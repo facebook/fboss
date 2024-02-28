@@ -64,6 +64,7 @@ class PlatformExplorer {
   void createDeviceSymLink(
       const std::string& linkPath,
       const std::string& pmDevicePath);
+  void reportExplorationSummary();
 
   folly::FunctionScheduler scheduler_;
   PlatformConfig platformConfig_{};
@@ -88,6 +89,10 @@ class PlatformExplorer {
 
   // Map from <SlotPath, GpioChipDeviceName> to gpio chip number.
   std::map<std::pair<std::string, std::string>, uint16_t> gpioChipNums_{};
+
+  // A collection of error messages to report at the end of an exploration.
+  // Map from SlotPath to errorMessages.
+  std::map<std::string, std::vector<std::string>> errorMessages_{};
 };
 
 } // namespace facebook::fboss::platform::platform_manager
