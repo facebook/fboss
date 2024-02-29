@@ -67,3 +67,18 @@ const list<ProductionFeature> yubaFeature = [
   ProductionFeature.L3_FORWARDING,
   ProductionFeature.NULL_ROUTE_IN_DISCARDS_COUNTER,
 ];
+
+struct AsicToProductionFeatures {
+  1: map<string, list<ProductionFeature>> asicToFeatures = {
+    "tomahawk": tomahawkFeature,
+    "tomahawk3": tomahawk3Feature,
+    "tomahawk4": tomahawk4Feature,
+    "tomahawk5": tomahawk5Feature,
+    "jericho2": jericho2Feature,
+    "jericho3": jericho3Feature,
+    "ramon": ramonFeature,
+    "ramon3": ramon3Feature,
+    "ebro": ebroFeature,
+    "yuba": yubaFeature,
+  };
+}
