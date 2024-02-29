@@ -156,19 +156,6 @@ set_target_properties(sai_packet_trap_helper PROPERTIES COMPILE_FLAGS
   -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
 )
 
-add_library(sai_qos_utils
-  fboss/agent/hw/sai/hw_test/HwTestQosUtils.cpp
-)
-
-target_link_libraries(sai_qos_utils
-  sai_switch # //fboss/agent/hw/sai/switch:sai_switch
-)
-
-set_target_properties(sai_qos_utils PROPERTIES COMPILE_FLAGS
-  "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
-  -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
-  -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
-)
 
 function(BUILD_SAI_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
 
@@ -192,7 +179,6 @@ function(BUILD_SAI_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
     fboss/agent/hw/sai/hw_test/HwTestTeFlowUtils.cpp
     fboss/agent/hw/sai/hw_test/HwTestTrunkUtils.cpp
     fboss/agent/hw/sai/hw_test/HwTestPortUtils.cpp
-    fboss/agent/hw/sai/hw_test/HwTestQosUtils.cpp
     fboss/agent/hw/sai/hw_test/HwTestRouteUtils.cpp
     fboss/agent/hw/sai/hw_test/HwTestUdfUtils.cpp
     fboss/agent/hw/sai/hw_test/HwVlanUtils.cpp

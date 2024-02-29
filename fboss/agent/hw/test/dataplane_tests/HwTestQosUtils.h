@@ -82,12 +82,6 @@ bool verifyQueueMappingsInvariantHelper(
     const std::vector<PortID>& ecmpPorts,
     uint32_t sleep = 20);
 
-void disableTTLDecrements_Deprecated(
-    HwSwitch* hw,
-    RouterID routerId,
-    InterfaceID intf,
-    const folly::IPAddress& nhop);
-
 void disableTTLDecrements(
     HwSwitchEnsemble* hw,
     RouterID routerId,
@@ -95,23 +89,6 @@ void disableTTLDecrements(
     const folly::IPAddress& nhop);
 
 void disableTTLDecrements(TestEnsembleIf* hw, const PortDescriptor& port);
-
-template <typename EcmpNhopT>
-void disableTTLDecrements_Deprecated(
-    HwSwitch* hw,
-    RouterID routerId,
-    const EcmpNhopT& nhop) {
-  auto asic = hw->getPlatform()->getAsic();
-  if (asic->isSupported(HwAsic::Feature::NEXTHOP_TTL_DECREMENT_DISABLE)) {
-    disableTTLDecrements_Deprecated(
-        hw, routerId, nhop.intf, folly::IPAddress(nhop.ip));
-  } else if (asic->isSupported(HwAsic::Feature::PORT_TTL_DECREMENT_DISABLE)) {
-    XLOG(FATAL)
-        << "Disable decrement not supported on port with deprecated api";
-  } else {
-    throw FbossError("Disable decrement not supported");
-  }
-}
 
 void disableTTLDecrements(HwSwitchEnsemble* hw, const PortDescriptor& port);
 

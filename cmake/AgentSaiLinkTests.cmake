@@ -19,7 +19,6 @@ function(BUILD_SAI_LINK_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
     sai_packet_trap_helper
     sai_platform
     sai_ecmp_utils
-    sai_qos_utils
     sai_port_utils
     sai_traced_api
     -Wl,--no-whole-archive
