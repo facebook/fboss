@@ -446,12 +446,18 @@ class SwitchStats : public boost::noncopyable {
 
   void hwAgentStatsEventSinkConnectionStatus(int switchIndex, bool connected) {
     CHECK_LT(switchIndex, thriftStreamConnectionStatus_.size());
+    if (!connected) {
+      thriftStreamConnectionStatus_[switchIndex].statsEventSinkDisconnected();
+    }
     thriftStreamConnectionStatus_[switchIndex].setStatsEventSinkStatus(
         connected);
   }
 
   void hwAgentLinkEventSinkConnectionStatus(int switchIndex, bool connected) {
     CHECK_LT(switchIndex, thriftStreamConnectionStatus_.size());
+    if (!connected) {
+      thriftStreamConnectionStatus_[switchIndex].linkEventSinkDisconnected();
+    }
     thriftStreamConnectionStatus_[switchIndex].setLinkEventSinkStatus(
         connected);
   }
@@ -460,17 +466,27 @@ class SwitchStats : public boost::noncopyable {
       int switchIndex,
       bool connected) {
     CHECK_LT(switchIndex, thriftStreamConnectionStatus_.size());
+    if (!connected) {
+      thriftStreamConnectionStatus_[switchIndex]
+          .linkActiveEventSinkDisconnected();
+    }
     thriftStreamConnectionStatus_[switchIndex].setLinkActiveEventSinkStatus(
         connected);
   }
 
   void hwAgentFdbEventSinkConnectionStatus(int switchIndex, bool connected) {
     CHECK_LT(switchIndex, thriftStreamConnectionStatus_.size());
+    if (!connected) {
+      thriftStreamConnectionStatus_[switchIndex].fdbEventSinkDisconnected();
+    }
     thriftStreamConnectionStatus_[switchIndex].setFdbEventSinkStatus(connected);
   }
 
   void hwAgentRxPktEventSinkConnectionStatus(int switchIndex, bool connected) {
     CHECK_LT(switchIndex, thriftStreamConnectionStatus_.size());
+    if (!connected) {
+      thriftStreamConnectionStatus_[switchIndex].rxPktEventSinkDisconnected();
+    }
     thriftStreamConnectionStatus_[switchIndex].setRxPktEventSinkStatus(
         connected);
   }
@@ -479,6 +495,9 @@ class SwitchStats : public boost::noncopyable {
       int switchIndex,
       bool connected) {
     CHECK_LT(switchIndex, thriftStreamConnectionStatus_.size());
+    if (!connected) {
+      thriftStreamConnectionStatus_[switchIndex].txPktEventStreamDisconnected();
+    }
     thriftStreamConnectionStatus_[switchIndex].setTxPktEventStreamStatus(
         connected);
   }
