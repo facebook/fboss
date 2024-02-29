@@ -265,7 +265,8 @@ void LinkTest::disableTTLDecrements(
   utility::EcmpSetupTargetedPorts6 ecmp6(sw()->getState());
   for (const auto& nextHop : ecmp6.getNextHops()) {
     if (ecmpPorts.find(nextHop.portDesc) != ecmpPorts.end()) {
-      utility::disableTTLDecrements(
+      // TODO: use TestEnsembleIf
+      utility::disableTTLDecrements_Deprecated(
           platform()->getHwSwitch(), ecmp6.getRouterId(), nextHop);
     }
   }

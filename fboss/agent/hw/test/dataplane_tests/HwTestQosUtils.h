@@ -82,24 +82,27 @@ bool verifyQueueMappingsInvariantHelper(
     const std::vector<PortID>& ecmpPorts,
     uint32_t sleep = 20);
 
-void disableTTLDecrements(
+void disableTTLDecrements_Deprecated(
     HwSwitch* hw,
     RouterID routerId,
     InterfaceID intf,
     const folly::IPAddress& nhop);
 
-void disableTTLDecrements(HwSwitch* /*hw*/, const PortDescriptor& /*port*/);
+void disableTTLDecrements_Deprecated(
+    HwSwitch* /*hw*/,
+    const PortDescriptor& /*port*/);
 
 template <typename EcmpNhopT>
-void disableTTLDecrements(
+void disableTTLDecrements_Deprecated(
     HwSwitch* hw,
     RouterID routerId,
     const EcmpNhopT& nhop) {
   auto asic = hw->getPlatform()->getAsic();
   if (asic->isSupported(HwAsic::Feature::NEXTHOP_TTL_DECREMENT_DISABLE)) {
-    disableTTLDecrements(hw, routerId, nhop.intf, folly::IPAddress(nhop.ip));
+    disableTTLDecrements_Deprecated(
+        hw, routerId, nhop.intf, folly::IPAddress(nhop.ip));
   } else if (asic->isSupported(HwAsic::Feature::PORT_TTL_DECREMENT_DISABLE)) {
-    disableTTLDecrements(hw, nhop.portDesc);
+    disableTTLDecrements_Deprecated(hw, nhop.portDesc);
   } else {
     throw FbossError("Disable decrement not supported");
   }
@@ -107,14 +110,30 @@ void disableTTLDecrements(
 
 template <typename EcmpNhopT>
 void ttlDecrementHandlingForLoopbackTraffic(
-    HwSwitch* hw,
+    HwSwitchEnsemble* hw,
     RouterID routerId,
     const EcmpNhopT& nhop) {
-  auto asic = hw->getPlatform()->getAsic();
+  auto asic = hw->getHwSwitch()->getPlatform()->getAsic();
   // for TTL0 supported devices we need to go through cfg change
   if (!asic->isSupported(HwAsic::Feature::SAI_TTL0_PACKET_FORWARD_ENABLE)) {
-    disableTTLDecrements(hw, routerId, nhop);
+    disableTTLDecrements_Deprecated(hw->getHwSwitch(), routerId, nhop);
   }
+}
+
+void disableTTLDecrements(
+    HwSwitchEnsemble* hw,
+    RouterID routerId,
+    InterfaceID intf,
+    const folly::IPAddress& nhop);
+
+void disableTTLDecrements(HwSwitchEnsemble* hw, const PortDescriptor& port);
+
+template <typename EcmpNhopT>
+void disableTTLDecrements(
+    HwSwitchEnsemble* hw,
+    RouterID routerId,
+    const EcmpNhopT& nhop) {
+  return disableTTLDecrements_Deprecated(hw->getHwSwitch(), routerId, nhop);
 }
 
 } // namespace utility

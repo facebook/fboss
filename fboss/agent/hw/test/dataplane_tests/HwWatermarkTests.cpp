@@ -261,7 +261,7 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
       const PortDescriptor& portDesc) {
     const auto& nextHop = ecmpHelper.nhop(portDesc);
     utility::ttlDecrementHandlingForLoopbackTraffic(
-        getHwSwitch(), ecmpHelper.getRouterId(), nextHop);
+        getHwSwitchEnsemble(), ecmpHelper.getRouterId(), nextHop);
   }
 
   void _setup(bool needTrafficLoop = false) {

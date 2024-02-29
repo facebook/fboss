@@ -212,8 +212,7 @@ void HwProdInvariantHelper::disableTtl() {
   for (const auto& nhop : ecmpHelper_->getNextHops()) {
     if (std::find(ecmpPorts_.begin(), ecmpPorts_.end(), nhop.portDesc) !=
         ecmpPorts_.end()) {
-      utility::disableTTLDecrements(
-          ensemble_->getHwSwitch(), RouterID(0), nhop);
+      utility::disableTTLDecrements(ensemble_, RouterID(0), nhop);
     }
   }
 }

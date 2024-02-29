@@ -278,7 +278,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
   void disableTTLDecrements(
       const utility::EcmpSetupTargetedPorts6& ecmpHelper) {
     utility::ttlDecrementHandlingForLoopbackTraffic(
-        getHwSwitch(),
+        getHwSwitchEnsemble(),
         ecmpHelper.getRouterId(),
         ecmpHelper.nhop(PortDescriptor(masterLogicalInterfacePortIds()[0])));
   }

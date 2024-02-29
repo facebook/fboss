@@ -24,7 +24,7 @@
 
 namespace facebook::fboss::utility {
 
-void disableTTLDecrements(
+void disableTTLDecrements_Deprecated(
     HwSwitch* hw,
     RouterID routerId,
     InterfaceID intf,
@@ -39,7 +39,7 @@ void disableTTLDecrements(
       nhop->getSaiObject()->adapterKey(), disableTtl);
 }
 
-void disableTTLDecrements(HwSwitch* hw, const PortDescriptor& port) {
+void disableTTLDecrements_Deprecated(HwSwitch* hw, const PortDescriptor& port) {
   if (!port.isPhysicalPort()) {
     throw FbossError("Port disable decrement not supported for LAGs yet");
   }

@@ -614,7 +614,7 @@ class HwCoppQosTest : public HwLinkStateDependentTest {
     resolveNeigborAndProgramRoutes(ecmpHelper, 1);
     auto& nextHop = ecmpHelper.getNextHops()[0];
     utility::ttlDecrementHandlingForLoopbackTraffic(
-        getHwSwitch(), ecmpHelper.getRouterId(), nextHop);
+        getHwSwitchEnsemble(), ecmpHelper.getRouterId(), nextHop);
   }
 
   void packetReceived(RxPacket* pkt) noexcept override {

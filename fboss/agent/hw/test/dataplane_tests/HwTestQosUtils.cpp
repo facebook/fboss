@@ -182,4 +182,18 @@ bool verifyQueueMappings(
   return verifyQueueMappings(
       portStatsBefore, q2dscps, getPortStats, egressPort);
 }
+
+void disableTTLDecrements(
+    HwSwitchEnsemble* hw,
+    RouterID routerId,
+    InterfaceID intf,
+    const folly::IPAddress& nhop) {
+  return disableTTLDecrements_Deprecated(
+      hw->getHwSwitch(), routerId, intf, nhop);
+}
+
+void disableTTLDecrements(HwSwitchEnsemble* hw, const PortDescriptor& port) {
+  return disableTTLDecrements_Deprecated(hw->getHwSwitch(), port);
+}
+
 } // namespace facebook::fboss::utility

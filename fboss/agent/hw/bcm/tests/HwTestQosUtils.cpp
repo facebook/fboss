@@ -17,7 +17,7 @@
 
 namespace facebook::fboss::utility {
 
-void disableTTLDecrements(
+void disableTTLDecrements_Deprecated(
     HwSwitch* hw,
     RouterID routerId,
     InterfaceID /*intf*/,
@@ -28,7 +28,9 @@ void disableTTLDecrements(
   setTTLDecrement(bcmHw, bcmHostKey, true /* no decrement */);
 }
 
-void disableTTLDecrements(HwSwitch* /*hw*/, const PortDescriptor& /*port*/) {
+void disableTTLDecrements_Deprecated(
+    HwSwitch* /*hw*/,
+    const PortDescriptor& /*port*/) {
   throw FbossError("Port disable decrement not supported on BRCM ASICs");
 }
 } // namespace facebook::fboss::utility

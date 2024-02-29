@@ -95,7 +95,7 @@ BENCHMARK(RxSlowPathBenchmark) {
           ensemble->getSw(), ensemble->getSw()->getRib()),
       kEcmpWidth);
   // Disable TTL decrements
-  utility::ttlDecrementHandlingForLoopbackTraffic(
+  utility::disableTTLDecrements_Deprecated(
       hwSwitch, ecmpHelper.getRouterId(), ecmpHelper.getNextHops()[0]);
 
   const auto kSrcMac = folly::MacAddress{"fa:ce:b0:00:00:0c"};

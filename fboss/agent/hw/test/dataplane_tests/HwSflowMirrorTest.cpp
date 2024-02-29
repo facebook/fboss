@@ -209,7 +209,7 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
           continue;
         }
         utility::disableTTLDecrements(
-            getHwSwitch(), helper6.getRouterId(), nhop);
+            getHwSwitchEnsemble(), helper6.getRouterId(), nhop);
       }
     }
 

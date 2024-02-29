@@ -228,7 +228,7 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
     for (const auto& nextHop :
          {ecmpHelper.nhop(portDesc1()), ecmpHelper.nhop(portDesc2())}) {
       utility::ttlDecrementHandlingForLoopbackTraffic(
-          getHwSwitch(), ecmpHelper.getRouterId(), nextHop);
+          getHwSwitchEnsemble(), ecmpHelper.getRouterId(), nextHop);
     }
   }
 

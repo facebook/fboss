@@ -152,7 +152,7 @@ class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
       const std::vector<int>& queueIds) {
     resolveNeigborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
     utility::ttlDecrementHandlingForLoopbackTraffic(
-        getHwSwitch(), ecmpHelper6.getRouterId(), ecmpHelper6.nhop(0));
+        getHwSwitchEnsemble(), ecmpHelper6.getRouterId(), ecmpHelper6.nhop(0));
   }
 
   void _setupOlympicV2Queues() {
