@@ -142,6 +142,7 @@ std::shared_ptr<Map>& SwitchState::getMap(const HwSwitchMatcher& matcher) {
 SwitchState::SwitchState() {
   resetIntfs(std::make_shared<MultiSwitchInterfaceMap>());
   resetRemoteIntfs(std::make_shared<MultiSwitchInterfaceMap>());
+  resetRemoteSystemPorts(std::make_shared<MultiSwitchSystemPortMap>());
   resetTransceivers(std::make_shared<MultiSwitchTransceiverMap>());
   resetControlPlane(std::make_shared<MultiControlPlane>());
   resetSwitchSettings(std::make_shared<MultiSwitchSettings>());
@@ -339,6 +340,11 @@ const std::shared_ptr<MultiSwitchTransceiverMap>& SwitchState::getTransceivers()
 void SwitchState::resetSystemPorts(
     const std::shared_ptr<MultiSwitchSystemPortMap>& systemPorts) {
   ref<switch_state_tags::systemPortMaps>() = systemPorts;
+}
+
+void SwitchState::resetRemoteSystemPorts(
+    const std::shared_ptr<MultiSwitchSystemPortMap>& systemPorts) {
+  ref<switch_state_tags::remoteSystemPortMaps>() = systemPorts;
 }
 
 const std::shared_ptr<MultiSwitchSystemPortMap>& SwitchState::getSystemPorts()

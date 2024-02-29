@@ -487,6 +487,8 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   void resetPortFlowletCfgs(std::shared_ptr<MultiSwitchPortFlowletCfgMap> cfgs);
   void resetSystemPorts(
       const std::shared_ptr<MultiSwitchSystemPortMap>& systemPorts);
+  void resetRemoteSystemPorts(
+      const std::shared_ptr<MultiSwitchSystemPortMap>& systemPorts);
 
   void resetTunnels(std::shared_ptr<MultiSwitchIpTunnelMap> tunnels);
 

@@ -274,6 +274,9 @@ class ThriftConfigApplier {
   std::shared_ptr<SystemPortMap> updateSystemPorts(
       const std::shared_ptr<MultiSwitchPortMap>& ports,
       const std::shared_ptr<MultiSwitchSettings>& multiSwitchSettings);
+  std::shared_ptr<MultiSwitchSystemPortMap> updateRemoteSystemPorts(
+      const std::shared_ptr<MultiSwitchSystemPortMap>& systemPorts);
+
   std::shared_ptr<Port> updatePort(
       const std::shared_ptr<Port>& orig,
       const cfg::Port* cfg,
@@ -564,6 +567,8 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
       new_->resetSystemPorts(toMultiSwitchMap<MultiSwitchSystemPortMap>(
           updateSystemPorts(new_->getPorts(), new_->getSwitchSettings()),
           scopeResolver_));
+      new_->resetRemoteSystemPorts(
+          updateRemoteSystemPorts(new_->getSystemPorts()));
       changed = true;
     }
   }
@@ -1320,6 +1325,35 @@ shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
   }
 
   return sysPorts;
+}
+
+std::shared_ptr<MultiSwitchSystemPortMap>
+ThriftConfigApplier::updateRemoteSystemPorts(
+    const std::shared_ptr<MultiSwitchSystemPortMap>& systemPorts) {
+  if (scopeResolver_.hasVoq() &&
+      scopeResolver_.scope(cfg::SwitchType::VOQ).size() <= 1) {
+    // remote system ports are applicable only for voq switches
+    // remote system ports are updated on config only when more than voq
+    // switches are configured on a given SwSwitch
+    return orig_->getRemoteSystemPorts();
+  }
+  auto remoteSystemPorts = orig_->getRemoteSystemPorts()->clone();
+  for (const auto& [matcherStr, singleSwitchIdSysPorts] :
+       std::as_const(*systemPorts)) {
+    auto matcher = HwSwitchMatcher(matcherStr);
+    CHECK_EQ(matcher.switchIds().size(), 1);
+    auto remoteSystemPortMapMatcher =
+        scopeResolver_.scope(cfg::SwitchType::VOQ);
+    remoteSystemPortMapMatcher.exclude(matcher.switchIds());
+    if (remoteSystemPorts->getMapNodeIf(remoteSystemPortMapMatcher)) {
+      remoteSystemPorts->updateMapNode(
+          singleSwitchIdSysPorts, remoteSystemPortMapMatcher);
+    } else {
+      remoteSystemPorts->addMapNode(
+          singleSwitchIdSysPorts, remoteSystemPortMapMatcher);
+    }
+  }
+  return remoteSystemPorts;
 }
 
 shared_ptr<PortMap> ThriftConfigApplier::updatePorts(
