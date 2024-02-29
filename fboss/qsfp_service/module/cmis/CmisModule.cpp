@@ -490,6 +490,36 @@ uint8_t laneMask(uint8_t startLane, uint8_t numLanes) {
   return ((1 << numLanes) - 1) << startLane;
 }
 
+bool isValidVdmConfigType(int vdmConf) {
+  if (vdmConf == static_cast<int>(SNR_MEDIA_IN) ||
+      vdmConf == static_cast<int>(SNR_HOST_IN) ||
+      vdmConf == static_cast<int>(PAM4_LTP_MEDIA_IN) ||
+      vdmConf == static_cast<int>(PRE_FEC_BER_MEDIA_IN_MIN) ||
+      vdmConf == static_cast<int>(PRE_FEC_BER_HOST_IN_MIN) ||
+      vdmConf == static_cast<int>(PRE_FEC_BER_MEDIA_IN_MAX) ||
+      vdmConf == static_cast<int>(PRE_FEC_BER_HOST_IN_MAX) ||
+      vdmConf == static_cast<int>(PRE_FEC_BER_MEDIA_IN_AVG) ||
+      vdmConf == static_cast<int>(PRE_FEC_BER_HOST_IN_AVG) ||
+      vdmConf == static_cast<int>(PRE_FEC_BER_MEDIA_IN_CUR) ||
+      vdmConf == static_cast<int>(PRE_FEC_BER_HOST_IN_CUR) ||
+      vdmConf == static_cast<int>(ERR_FRAME_MEDIA_IN_MIN) ||
+      vdmConf == static_cast<int>(ERR_FRAME_HOST_IN_MIN) ||
+      vdmConf == static_cast<int>(ERR_FRAME_MEDIA_IN_MAX) ||
+      vdmConf == static_cast<int>(ERR_FRAME_HOST_IN_MAX) ||
+      vdmConf == static_cast<int>(ERR_FRAME_MEDIA_IN_AVG) ||
+      vdmConf == static_cast<int>(ERR_FRAME_HOST_IN_AVG) ||
+      vdmConf == static_cast<int>(ERR_FRAME_MEDIA_IN_CUR) ||
+      vdmConf == static_cast<int>(ERR_FRAME_HOST_IN_CUR) ||
+      vdmConf == static_cast<int>(PAM4_LEVEL0_STANDARD_DEVIATION_LINE) ||
+      vdmConf == static_cast<int>(PAM4_LEVEL1_STANDARD_DEVIATION_LINE) ||
+      vdmConf == static_cast<int>(PAM4_LEVEL2_STANDARD_DEVIATION_LINE) ||
+      vdmConf == static_cast<int>(PAM4_LEVEL3_STANDARD_DEVIATION_LINE) ||
+      vdmConf == static_cast<int>(PAM4_MPI_LINE)) {
+    return true;
+  }
+  return false;
+}
+
 std::optional<CmisModule::ApplicationAdvertisingField>
 CmisModule::getApplicationField(uint8_t application, uint8_t startHostLane)
     const {
