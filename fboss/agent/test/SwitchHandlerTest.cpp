@@ -783,13 +783,17 @@ TEST_F(SwSwitchHandlerTest, operAckTimeoutCount) {
     getHwSwitchHandler()->waitUntilHwSwitchConnected();
     CounterCache counters(sw_.get());
     counters.update();
+    auto prevCounter = counters.value(
+        SwitchStats::kCounterPrefix + "switch." + folly::to<std::string>(0) +
+        ".hwupdate_timeouts.sum.60");
     auto stateReturned = getHwSwitchHandler()->stateChanged(delta, false);
     WITH_RETRIES({
       counters.update();
-      auto value = counters.value(
-          SwitchStats::kCounterPrefix + "switch." + folly::to<std::string>(0) +
-          ".hwupdate_timeouts");
-      EXPECT_EVENTUALLY_EQ(value, 1);
+      EXPECT_EVENTUALLY_EQ(
+          counters.value(
+              SwitchStats::kCounterPrefix + "switch." +
+              folly::to<std::string>(0) + ".hwupdate_timeouts.sum.60"),
+          prevCounter + 1);
     });
     getHwSwitchHandler()->stop();
   });

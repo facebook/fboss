@@ -289,10 +289,12 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
         map,
         folly::to<std::string>(
             kCounterPrefix, "switch.", switchIndex, ".", "connection_status")));
-    hwAgentUpdateTimeouts_.emplace_back(TLCounter(
+    hwAgentUpdateTimeouts_.emplace_back(TLTimeseries(
         map,
         folly::to<std::string>(
-            kCounterPrefix, "switch.", switchIndex, ".", "hwupdate_timeouts")));
+            kCounterPrefix, "switch.", switchIndex, ".", "hwupdate_timeouts"),
+        SUM,
+        RATE));
     thriftStreamConnectionStatus_.emplace_back(map, switchIndex);
   }
 }
@@ -360,7 +362,7 @@ void SwitchStats::fillAgentStats(AgentStats& agentStats) const {
   int16_t switchIndex = 0;
   for (const auto& stats : hwAgentUpdateTimeouts_) {
     agentStats.hwagentOperSyncTimeoutCount()->insert(
-        {switchIndex, getCumulativeValue(stats, false /*hasSumSuffix*/)});
+        {switchIndex, getCumulativeValue(stats)});
     switchIndex++;
   }
   getHwAgentStatus(*agentStats.hwAgentEventSyncStatusMap());

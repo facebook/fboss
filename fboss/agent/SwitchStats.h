@@ -441,7 +441,7 @@ class SwitchStats : public boost::noncopyable {
 
   void hwAgentUpdateTimeout(int switchIndex) {
     CHECK_LT(switchIndex, hwAgentUpdateTimeouts_.size());
-    hwAgentUpdateTimeouts_[switchIndex].incrementValue();
+    hwAgentUpdateTimeouts_[switchIndex].addValue(1);
   }
 
   void hwAgentStatsEventSinkConnectionStatus(int switchIndex, bool connected) {
@@ -860,7 +860,7 @@ class SwitchStats : public boost::noncopyable {
   TLTimeseries switchConfiguredMs_;
 
   std::vector<TLCounter> hwAgentConnectionStatus_;
-  std::vector<TLCounter> hwAgentUpdateTimeouts_;
+  std::vector<TLTimeseries> hwAgentUpdateTimeouts_;
   std::vector<HwAgentStreamConnectionStatus> thriftStreamConnectionStatus_;
 };
 
