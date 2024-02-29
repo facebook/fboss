@@ -433,5 +433,65 @@ SwitchStats::HwAgentStreamConnectionStatus::HwAgentStreamConnectionStatus(
               "switch.",
               switchIndex,
               ".",
-              "tx_pkt_event_sync_active"))) {}
+              "tx_pkt_event_sync_active"))),
+      statsEventSinkDisconnects_(TLTimeseries(
+          map,
+          folly::to<std::string>(
+              kCounterPrefix,
+              "switch.",
+              switchIndex,
+              ".",
+              "stats_event_sync_disconnects"),
+          SUM,
+          RATE)),
+      linkEventSinkDisconnects_(TLTimeseries(
+          map,
+          folly::to<std::string>(
+              kCounterPrefix,
+              "switch.",
+              switchIndex,
+              ".",
+              "link_event_sync_disconnects"),
+          SUM,
+          RATE)),
+      linkActiveEventSinkDisconnects_(TLTimeseries(
+          map,
+          folly::to<std::string>(
+              kCounterPrefix,
+              "switch.",
+              switchIndex,
+              ".",
+              "link_active_event_sync_disconnects"),
+          SUM,
+          RATE)),
+      fdbEventSinkDisconnects_(TLTimeseries(
+          map,
+          folly::to<std::string>(
+              kCounterPrefix,
+              "switch.",
+              switchIndex,
+              ".",
+              "fsdb_event_sync_disconnects"),
+          SUM,
+          RATE)),
+      rxPktEventSinkDisconnects_(TLTimeseries(
+          map,
+          folly::to<std::string>(
+              kCounterPrefix,
+              "switch.",
+              switchIndex,
+              ".",
+              "rx_pkt_event_sync_disconnects"),
+          SUM,
+          RATE)),
+      txPktEventStreamDisconnects_(TLTimeseries(
+          map,
+          folly::to<std::string>(
+              kCounterPrefix,
+              "switch.",
+              switchIndex,
+              ".",
+              "tx_pkt_event_sync_disconnects"),
+          SUM,
+          RATE)) {}
 } // namespace facebook::fboss

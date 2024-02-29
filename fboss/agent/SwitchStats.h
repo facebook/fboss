@@ -522,6 +522,24 @@ class SwitchStats : public boost::noncopyable {
     void setTxPktEventStreamStatus(bool connected) {
       txPktEventStreamStatus_.incrementValue(connected ? 1 : -1);
     }
+    void statsEventSinkDisconnected() {
+      statsEventSinkDisconnects_.addValue(1);
+    }
+    void linkEventSinkDisconnected() {
+      linkEventSinkDisconnects_.addValue(1);
+    }
+    void linkActiveEventSinkDisconnected() {
+      linkActiveEventSinkDisconnects_.addValue(1);
+    }
+    void fdbEventSinkDisconnected() {
+      fdbEventSinkDisconnects_.addValue(1);
+    }
+    void rxPktEventSinkDisconnected() {
+      rxPktEventSinkDisconnects_.addValue(1);
+    }
+    void txPktEventStreamDisconnected() {
+      txPktEventStreamDisconnects_.addValue(1);
+    }
     int64_t getStatsEventSinkStatus() const {
       return getCumulativeValue(statsEventSinkStatus_, false /*hasSumSuffix*/);
     }
@@ -542,6 +560,24 @@ class SwitchStats : public boost::noncopyable {
       return getCumulativeValue(
           txPktEventStreamStatus_, false /*hasSumSuffix*/);
     }
+    int64_t getStatsEventSinkDisconnectCount() const {
+      return getCumulativeValue(statsEventSinkDisconnects_);
+    }
+    int64_t getLinkEventSinkDisconnectCount() const {
+      return getCumulativeValue(linkEventSinkDisconnects_);
+    }
+    int64_t getLinkActiveEventSinkDisconnectCount() const {
+      return getCumulativeValue(linkActiveEventSinkDisconnects_);
+    }
+    int64_t getFdbEventSinkDisconnectCount() const {
+      return getCumulativeValue(fdbEventSinkDisconnects_);
+    }
+    int64_t getRxPktEventSinkDisconnectCount() const {
+      return getCumulativeValue(rxPktEventSinkDisconnects_);
+    }
+    int64_t getTxPktEventStreamDisconnectCount() const {
+      return getCumulativeValue(txPktEventStreamDisconnects_);
+    }
 
    private:
     TLCounter statsEventSinkStatus_;
@@ -550,6 +586,13 @@ class SwitchStats : public boost::noncopyable {
     TLCounter fdbEventSinkStatus_;
     TLCounter rxPktEventSinkStatus_;
     TLCounter txPktEventStreamStatus_;
+
+    TLTimeseries statsEventSinkDisconnects_;
+    TLTimeseries linkEventSinkDisconnects_;
+    TLTimeseries linkActiveEventSinkDisconnects_;
+    TLTimeseries fdbEventSinkDisconnects_;
+    TLTimeseries rxPktEventSinkDisconnects_;
+    TLTimeseries txPktEventStreamDisconnects_;
   };
 
   // Total number of trapped packets
