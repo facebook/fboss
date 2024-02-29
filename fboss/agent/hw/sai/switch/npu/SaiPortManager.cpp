@@ -378,6 +378,13 @@ void SaiPortManager::attributesFromSaiStore(
       port->attributes(),
       attributes,
       SaiPortTraits::Attributes::QosPfcPriorityToQueueMap{});
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::PORT_TTL_DECREMENT_DISABLE)) {
+    getAndSetAttribute(
+        port->attributes(),
+        attributes,
+        SaiPortTraits::Attributes::DisableTtlDecrement{});
+  }
 }
 
 SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
@@ -526,6 +533,13 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
                  << asicPrbs.polynominal().value() << " for port " << portID;
     }
   }
+  std::optional<SaiPortTraits::Attributes::DisableTtlDecrement> disableTtl{};
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::PORT_TTL_DECREMENT_DISABLE) &&
+      swPort->getTTLDisableDecrement()) {
+    disableTtl = SaiPortTraits::Attributes::DisableTtlDecrement{
+        swPort->getTTLDisableDecrement().value()};
+  }
   auto portPfcInfo = getPortPfcAttributes(swPort);
   if (basicAttributeOnly) {
     return SaiPortTraits::CreateAttributes {
@@ -540,7 +554,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
           std::nullopt, // Port Fabric Isolate
 #endif
           std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
-          std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
+          std::nullopt, std::nullopt, disableTtl, std::nullopt, std::nullopt,
           std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
           std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
           std::nullopt, std::nullopt, std::nullopt, std::nullopt,
@@ -577,7 +591,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         internalLoopbackMode,
 #endif
         mediaType, globalFlowControlMode, vlanId, mtu, std::nullopt,
-        std::nullopt, std::nullopt, interfaceType, std::nullopt,
+        std::nullopt, disableTtl, interfaceType, std::nullopt,
         std::nullopt, // Ingress Mirror Session
         std::nullopt, // Egress Mirror Session
         std::nullopt, // Ingress Sample Packet

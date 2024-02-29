@@ -108,6 +108,34 @@ void disableTTLDecrements_Deprecated(
   }
 }
 
+void disableTTLDecrements(HwSwitchEnsemble* hw, const PortDescriptor& port);
+
+void disableTTLDecrements(
+    HwSwitchEnsemble* hw,
+    RouterID routerId,
+    InterfaceID intf,
+    const folly::IPAddress& nhop);
+
+template <typename EcmpNhopT>
+void disableTTLDecrements(
+    HwSwitchEnsemble* ensemble,
+    RouterID routerId,
+    const EcmpNhopT& nhop) {
+  if (ensemble->getHwAsicTable()->isFeatureSupportedOnAnyAsic(
+          HwAsic::Feature::NEXTHOP_TTL_DECREMENT_DISABLE)) {
+    disableTTLDecrements_Deprecated(
+        ensemble->getHwSwitch(),
+        routerId,
+        nhop.intf,
+        folly::IPAddress(nhop.ip));
+  } else if (ensemble->getHwAsicTable()->isFeatureSupportedOnAnyAsic(
+                 HwAsic::Feature::PORT_TTL_DECREMENT_DISABLE)) {
+    disableTTLDecrements(ensemble, nhop.portDesc);
+  } else {
+    throw FbossError("Disable decrement not supported");
+  }
+}
+
 template <typename EcmpNhopT>
 void ttlDecrementHandlingForLoopbackTraffic(
     HwSwitchEnsemble* hw,
@@ -116,24 +144,8 @@ void ttlDecrementHandlingForLoopbackTraffic(
   auto asic = hw->getHwSwitch()->getPlatform()->getAsic();
   // for TTL0 supported devices we need to go through cfg change
   if (!asic->isSupported(HwAsic::Feature::SAI_TTL0_PACKET_FORWARD_ENABLE)) {
-    disableTTLDecrements_Deprecated(hw->getHwSwitch(), routerId, nhop);
+    disableTTLDecrements(hw, routerId, nhop);
   }
-}
-
-void disableTTLDecrements(
-    HwSwitchEnsemble* hw,
-    RouterID routerId,
-    InterfaceID intf,
-    const folly::IPAddress& nhop);
-
-void disableTTLDecrements(HwSwitchEnsemble* hw, const PortDescriptor& port);
-
-template <typename EcmpNhopT>
-void disableTTLDecrements(
-    HwSwitchEnsemble* hw,
-    RouterID routerId,
-    const EcmpNhopT& nhop) {
-  return disableTTLDecrements_Deprecated(hw->getHwSwitch(), routerId, nhop);
 }
 
 } // namespace utility

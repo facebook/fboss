@@ -85,6 +85,7 @@ target_link_libraries(hw_qos_utils
   hw_packet_utils
   packet_factory
   Folly::folly
+  qos_test_utils
   resourcelibutil
   switch_config_cpp2
   ${GTEST}
@@ -356,6 +357,7 @@ target_link_libraries(hw_switch_test
   olympic_qos_utils
   prod_config_factory
   prod_config_utils
+  qos_test_utils
   traffic_policy_utils
   core
   sflow_shim_utils

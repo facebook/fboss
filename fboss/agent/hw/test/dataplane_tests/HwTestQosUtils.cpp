@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/test/utils/QosTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 #include <folly/logging/xlog.h>
@@ -193,7 +194,13 @@ void disableTTLDecrements(
 }
 
 void disableTTLDecrements(HwSwitchEnsemble* hw, const PortDescriptor& port) {
-  return disableTTLDecrements_Deprecated(hw->getHwSwitch(), port);
+  hw->applyNewState(
+      [asicTable = hw->getHwAsicTable(),
+       port](const std::shared_ptr<SwitchState>& state) {
+        auto newState = disableTTLDecrement(asicTable, state, port);
+        return newState;
+      },
+      "Disable TTL decrements on port");
 }
 
 } // namespace facebook::fboss::utility
