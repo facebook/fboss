@@ -88,6 +88,14 @@ void disableTTLDecrements_Deprecated(
     InterfaceID intf,
     const folly::IPAddress& nhop);
 
+void disableTTLDecrements(
+    HwSwitchEnsemble* hw,
+    RouterID routerId,
+    InterfaceID intf,
+    const folly::IPAddress& nhop);
+
+void disableTTLDecrements(TestEnsembleIf* hw, const PortDescriptor& port);
+
 template <typename EcmpNhopT>
 void disableTTLDecrements_Deprecated(
     HwSwitch* hw,
@@ -120,11 +128,8 @@ void disableTTLDecrements(
     const EcmpNhopT& nhop) {
   if (ensemble->getHwAsicTable()->isFeatureSupportedOnAnyAsic(
           HwAsic::Feature::NEXTHOP_TTL_DECREMENT_DISABLE)) {
-    disableTTLDecrements_Deprecated(
-        ensemble->getHwSwitch(),
-        routerId,
-        nhop.intf,
-        folly::IPAddress(nhop.ip));
+    disableTTLDecrements(
+        ensemble, routerId, nhop.intf, folly::IPAddress(nhop.ip));
   } else if (ensemble->getHwAsicTable()->isFeatureSupportedOnAnyAsic(
                  HwAsic::Feature::PORT_TTL_DECREMENT_DISABLE)) {
     disableTTLDecrements(ensemble, nhop.portDesc);

@@ -184,15 +184,6 @@ bool verifyQueueMappings(
       portStatsBefore, q2dscps, getPortStats, egressPort);
 }
 
-void disableTTLDecrements(
-    HwSwitchEnsemble* hw,
-    RouterID routerId,
-    InterfaceID intf,
-    const folly::IPAddress& nhop) {
-  return disableTTLDecrements_Deprecated(
-      hw->getHwSwitch(), routerId, intf, nhop);
-}
-
 void disableTTLDecrements(HwSwitchEnsemble* hw, const PortDescriptor& port) {
   hw->applyNewState(
       [asicTable = hw->getHwAsicTable(),

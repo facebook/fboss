@@ -15,6 +15,8 @@
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/platforms/sai/SaiPlatform.h"
 
 #include <folly/logging/xlog.h>
 
@@ -90,13 +92,15 @@ ManagedSaiNextHop SaiNextHopManager::addManagedSaiNextHop(
         this,
         SaiNeighborTraits::NeighborEntry{
             switchId, std::get<0>(*ipNextHopKey).value(), ip},
-        *ipNextHopKey);
+        *ipNextHopKey,
+        swNextHop.disableTTLDecrement());
 
     if (emplaced) {
       SaiObjectEventPublisher::getInstance()
           ->get<SaiNeighborTraits>()
           .subscribe(entry);
     }
+    entry->setDisableTTLDecrement(swNextHop.disableTTLDecrement());
 
     return entry;
   } else if (
@@ -108,13 +112,15 @@ ManagedSaiNextHop SaiNextHopManager::addManagedSaiNextHop(
         this,
         SaiNeighborTraits::NeighborEntry{
             switchId, std::get<0>(*mplsNextHopKey).value(), ip},
-        *mplsNextHopKey);
+        *mplsNextHopKey,
+        swNextHop.disableTTLDecrement());
 
     if (emplaced) {
       SaiObjectEventPublisher::getInstance()
           ->get<SaiNeighborTraits>()
           .subscribe(entry);
     }
+    entry->setDisableTTLDecrement(swNextHop.disableTTLDecrement());
 
     return entry;
   }
@@ -154,6 +160,14 @@ std::string SaiNextHopManager::listManagedObjects() const {
 template <typename NextHopTraits>
 void ManagedNextHop<NextHopTraits>::createObject(PublishedObjects /*added*/) {
   CHECK(this->allPublishedObjectsAlive()) << "neighbors are not ready";
+
+  std::optional<typename NextHopTraits::Attributes::DisableTtlDecrement>
+      disableTtlDecrement{};
+  if (manager_->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::NEXTHOP_TTL_DECREMENT_DISABLE) &&
+      disableTTLDecrement_.has_value()) {
+    disableTtlDecrement = disableTTLDecrement_.value();
+  }
 
   std::shared_ptr<SaiObject<NextHopTraits>> object{};
   /* when neighbor is created setup next hop */
@@ -207,6 +221,20 @@ std::string ManagedNextHop<NextHopTraits>::toString() const {
         GET_ATTR(MplsNextHop, RouterInterfaceId, adapterHostKey()),
         " labelStack:",
         stringstream.str());
+  }
+}
+
+template <typename NextHopTraits>
+void ManagedNextHop<NextHopTraits>::setDisableTTLDecrement(
+    std::optional<bool> disableTTLDecrement) {
+  disableTTLDecrement_ = disableTTLDecrement;
+  if (this->isAlive() &&
+      manager_->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::NEXTHOP_TTL_DECREMENT_DISABLE) &&
+      disableTTLDecrement_.has_value()) {
+    std::optional<typename NextHopTraits::Attributes::DisableTtlDecrement> attr{
+        disableTTLDecrement_.value()};
+    this->getObject()->setAttribute(attr);
   }
 }
 

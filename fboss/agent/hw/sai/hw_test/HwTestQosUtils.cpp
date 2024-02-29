@@ -21,6 +21,7 @@
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
+#include "fboss/agent/test/utils/QosTestUtils.h"
 
 namespace facebook::fboss::utility {
 
@@ -37,5 +38,20 @@ void disableTTLDecrements_Deprecated(
   SaiIpNextHopTraits::Attributes::DisableTtlDecrement disableTtl{true};
   SaiApiTable::getInstance()->nextHopApi().setAttribute(
       nhop->getSaiObject()->adapterKey(), disableTtl);
+}
+
+void disableTTLDecrements(
+    HwSwitchEnsemble* hw,
+    RouterID routerId,
+    InterfaceID intf,
+    const folly::IPAddress& nhop) {
+  hw->applyNewState(
+      [=, asicTable = hw->getHwAsicTable()](
+          const std::shared_ptr<SwitchState>& state) {
+        auto newState =
+            disableTTLDecrement(asicTable, state, routerId, intf, nhop);
+        return newState;
+      },
+      "Disable TTL decrements on next hop: " + nhop.str());
 }
 } // namespace facebook::fboss::utility

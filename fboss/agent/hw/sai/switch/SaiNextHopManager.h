@@ -53,8 +53,12 @@ class ManagedNextHop : public SaiObjectEventAggregateSubscriber<
   ManagedNextHop(
       SaiNextHopManager* manager,
       SaiNeighborTraits::NeighborEntry entry,
-      const typename NextHopTraits::AdapterHostKey& key)
-      : Base(entry), manager_(manager), key_(key) {}
+      const typename NextHopTraits::AdapterHostKey& key,
+      std::optional<bool> disableTTLDecrement)
+      : Base(entry),
+        manager_(manager),
+        key_(key),
+        disableTTLDecrement_(disableTTLDecrement) {}
 
   void createObject(PublishedObjects /*added*/);
 
@@ -74,9 +78,12 @@ class ManagedNextHop : public SaiObjectEventAggregateSubscriber<
 
   std::string toString() const;
 
+  void setDisableTTLDecrement(std::optional<bool> disableTTLDecrement);
+
  private:
   SaiNextHopManager* manager_;
   typename NextHopTraits::AdapterHostKey key_;
+  std::optional<bool> disableTTLDecrement_{};
 };
 
 using ManagedIpNextHop = ManagedNextHop<SaiIpNextHopTraits>;
@@ -115,6 +122,10 @@ class SaiNextHopManager {
       typename NextHopTraits::CreateAttributes attributes);
 
   std::string listManagedObjects() const;
+
+  const SaiPlatform* getPlatform() const {
+    return platform_;
+  }
 
  private:
   SaiStore* saiStore_;

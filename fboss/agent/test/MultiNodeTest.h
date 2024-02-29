@@ -13,6 +13,7 @@
 #include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/AgentTest.h"
+#include "fboss/agent/test/utils/QosTestUtils.h"
 #include "fboss/agent/types.h"
 
 DECLARE_string(config);
@@ -90,8 +91,20 @@ class MultiNodeTest : public AgentTest {
       disableTTLDecrementOnPorts(ports);
     } else {
       for (auto& ecmpNhop : ecmpNhops) {
-        /*       utility::disableTTLDecrements_Deprecated(
-                   platform()->getHwSwitch(), RouterID(0), ecmpNhops);*/
+        sw()->updateStateBlocking(
+            "Disable TTL Decrements",
+            [=](const std::shared_ptr<SwitchState>& state) {
+              auto newState = state->clone();
+              for (const auto& nextHop : ecmpNhops) {
+                newState = utility::disableTTLDecrement(
+                    sw()->getHwAsicTable(),
+                    newState,
+                    RouterID(0),
+                    nextHop.intf,
+                    folly::IPAddress(nextHop.ip));
+              }
+              return newState;
+            });
       }
     }
   }

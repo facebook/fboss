@@ -33,4 +33,5 @@ void disableTTLDecrements_Deprecated(
     const PortDescriptor& /*port*/) {
   throw FbossError("Port disable decrement not supported on BRCM ASICs");
 }
+
 } // namespace facebook::fboss::utility
