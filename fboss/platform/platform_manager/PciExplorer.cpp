@@ -132,10 +132,6 @@ std::vector<uint16_t> PciExplorer::createI2cAdapter(
     const PciDevice& pciDevice,
     const I2cAdapterConfig& i2cAdapterConfig,
     uint32_t instanceId) {
-  if (isPciSubDevicePresent(
-          pciDevice, *i2cAdapterConfig.fpgaIpBlockConfig(), instanceId)) {
-    return getI2cAdapterBusNums(pciDevice, i2cAdapterConfig, instanceId);
-  }
   auto auxData = getAuxData(*i2cAdapterConfig.fpgaIpBlockConfig(), instanceId);
   auxData.i2c_data.num_channels = *i2cAdapterConfig.numberOfAdapters();
   create(pciDevice, *i2cAdapterConfig.fpgaIpBlockConfig(), auxData);
@@ -146,10 +142,6 @@ std::map<std::string, std::string> PciExplorer::createSpiMaster(
     const PciDevice& pciDevice,
     const SpiMasterConfig& spiMasterConfig,
     uint32_t instanceId) {
-  if (isPciSubDevicePresent(
-          pciDevice, *spiMasterConfig.fpgaIpBlockConfig(), instanceId)) {
-    return getSpiDeviceCharDevPaths(pciDevice, spiMasterConfig, instanceId);
-  }
   auto auxData = getAuxData(*spiMasterConfig.fpgaIpBlockConfig(), instanceId);
   auxData.spi_data.num_spidevs = spiMasterConfig.spiDeviceConfigs()->size();
   int i = 0;
@@ -176,9 +168,6 @@ uint16_t PciExplorer::createGpioChip(
     const PciDevice& pciDevice,
     const FpgaIpBlockConfig& fpgaIpBlockConfig,
     uint32_t instanceId) {
-  if (isPciSubDevicePresent(pciDevice, fpgaIpBlockConfig, instanceId)) {
-    return getGpioChipNum(pciDevice, fpgaIpBlockConfig, instanceId);
-  }
   auto auxData = getAuxData(fpgaIpBlockConfig, instanceId);
   create(pciDevice, fpgaIpBlockConfig, auxData);
   return getGpioChipNum(pciDevice, fpgaIpBlockConfig, instanceId);
@@ -188,10 +177,6 @@ void PciExplorer::createLedCtrl(
     const PciDevice& pciDevice,
     const LedCtrlConfig& ledCtrlConfig,
     uint32_t instanceId) {
-  if (isPciSubDevicePresent(
-          pciDevice, *ledCtrlConfig.fpgaIpBlockConfig(), instanceId)) {
-    return;
-  }
   auto auxData = getAuxData(*ledCtrlConfig.fpgaIpBlockConfig(), instanceId);
   auxData.led_data.led_idx = *ledCtrlConfig.ledId();
   auxData.led_data.port_num = *ledCtrlConfig.portNumber();
@@ -202,10 +187,6 @@ void PciExplorer::createXcvrCtrl(
     const PciDevice& pciDevice,
     const XcvrCtrlConfig& xcvrCtrlConfig,
     uint32_t instanceId) {
-  if (isPciSubDevicePresent(
-          pciDevice, *xcvrCtrlConfig.fpgaIpBlockConfig(), instanceId)) {
-    return;
-  }
   auto auxData = getAuxData(*xcvrCtrlConfig.fpgaIpBlockConfig(), instanceId);
   auxData.xcvr_data.port_num = *xcvrCtrlConfig.portNumber();
   create(pciDevice, *xcvrCtrlConfig.fpgaIpBlockConfig(), auxData);
@@ -215,9 +196,6 @@ std::string PciExplorer::createInfoRom(
     const PciDevice& pciDevice,
     const FpgaIpBlockConfig& infoRomConfig,
     uint32_t instanceId) {
-  if (isPciSubDevicePresent(pciDevice, infoRomConfig, instanceId)) {
-    return getInfoRomSysfsPath(infoRomConfig, instanceId);
-  }
   auto auxData = getAuxData(infoRomConfig, instanceId);
   create(pciDevice, infoRomConfig, auxData);
   return getInfoRomSysfsPath(infoRomConfig, instanceId);
@@ -227,9 +205,6 @@ std::string PciExplorer::createWatchdog(
     const PciDevice& pciDevice,
     const FpgaIpBlockConfig& fpgaIpBlockConfig,
     uint32_t instanceId) {
-  if (isPciSubDevicePresent(pciDevice, fpgaIpBlockConfig, instanceId)) {
-    return getWatchDogCharDevPath(pciDevice, fpgaIpBlockConfig, instanceId);
-  }
   auto auxData = getAuxData(fpgaIpBlockConfig, instanceId);
   create(pciDevice, fpgaIpBlockConfig, auxData);
   return getWatchDogCharDevPath(pciDevice, fpgaIpBlockConfig, instanceId);
@@ -239,11 +214,6 @@ std::string PciExplorer::createFanPwmCtrl(
     const PciDevice& pciDevice,
     const FanPwmCtrlConfig& fanPwmCtrlConfig,
     uint32_t instanceId) {
-  if (isPciSubDevicePresent(
-          pciDevice, *fanPwmCtrlConfig.fpgaIpBlockConfig(), instanceId)) {
-    return getFanPwmCtrlSysfsPath(
-        pciDevice, *fanPwmCtrlConfig.fpgaIpBlockConfig(), instanceId);
-  }
   auto auxData = getAuxData(*fanPwmCtrlConfig.fpgaIpBlockConfig(), instanceId);
   auxData.fan_data.num_fans = *fanPwmCtrlConfig.numFans();
   create(pciDevice, *fanPwmCtrlConfig.fpgaIpBlockConfig(), auxData);
@@ -255,9 +225,6 @@ void PciExplorer::createFpgaIpBlock(
     const PciDevice& pciDevice,
     const FpgaIpBlockConfig& fpgaIpBlockConfig,
     uint32_t instanceId) {
-  if (isPciSubDevicePresent(pciDevice, fpgaIpBlockConfig, instanceId)) {
-    return;
-  }
   auto auxData = getAuxData(fpgaIpBlockConfig, instanceId);
   create(pciDevice, fpgaIpBlockConfig, auxData);
 }
@@ -267,15 +234,29 @@ void PciExplorer::create(
     const FpgaIpBlockConfig& fpgaIpBlockConfig,
     const struct fbiob_aux_data& auxData) {
   XLOG(INFO) << fmt::format(
-      "Creating device {} in {}. Args - deviceName: {} instanceId: {}, "
+      "Creating device {} in {} using {}. Args - deviceName: {} instanceId: {}, "
       "csrOffset: {:#x}, iobufOffset: {:#x}",
       *fpgaIpBlockConfig.pmUnitScopedName(),
+      pciDevice.sysfsPath(),
       pciDevice.charDevPath(),
       *fpgaIpBlockConfig.deviceName(),
       auxData.id.id,
       auxData.csr_offset,
       auxData.iobuf_offset);
-
+  if (isPciSubDevicePresent(pciDevice, fpgaIpBlockConfig, auxData.id.id)) {
+    XLOG(INFO) << fmt::format(
+        "Skipped creating device {} already exists at {}. "
+        "Args - deviceName: {} instanceId: {}, "
+        "csrOffset: {:#x}, iobufOffset: {:#x}",
+        *fpgaIpBlockConfig.pmUnitScopedName(),
+        *getPciSubDeviceIOBlockPath(
+            pciDevice, fpgaIpBlockConfig, auxData.id.id),
+        *fpgaIpBlockConfig.deviceName(),
+        auxData.id.id,
+        auxData.csr_offset,
+        auxData.iobuf_offset);
+    return;
+  }
   auto fd = open(pciDevice.charDevPath().c_str(), O_RDWR);
   if (fd < 0) {
     XLOG(ERR) << fmt::format(
@@ -293,18 +274,25 @@ void PciExplorer::create(
   if (ret < 0 ||
       !isPciSubDeviceCreated(pciDevice, fpgaIpBlockConfig, auxData.id.id)) {
     throw std::runtime_error(fmt::format(
-        "Failed to create new device using: {}, instanceId: {}, "
-        "csrOffset: {:#04x}, iobufOffset: {:#04x}, error: {} ",
+        "Failed to create new device {} in {} using {}. "
+        "Args - deviceName: {} instanceId: {}, "
+        "csrOffset: {:#04x}, iobufOffset: {:#04x}, error: {}, "
+        "ioctl return code: {} ",
+        *fpgaIpBlockConfig.pmUnitScopedName(),
+        pciDevice.sysfsPath(),
         pciDevice.charDevPath(),
+        *fpgaIpBlockConfig.deviceName(),
         auxData.id.id,
         auxData.csr_offset,
         auxData.iobuf_offset,
-        folly::errnoStr(errno)));
+        folly::errnoStr(errno),
+        ret));
   }
   XLOG(INFO) << fmt::format(
-      "Successfully created device {} in {}. Args - deviceName: {} instanceId: {}, "
+      "Successfully created device {} at {} using {}. Args - deviceName: {} instanceId: {}, "
       "csrOffset: {:#x}, iobufOffset: {:#x}",
       *fpgaIpBlockConfig.pmUnitScopedName(),
+      *getPciSubDeviceIOBlockPath(pciDevice, fpgaIpBlockConfig, auxData.id.id),
       pciDevice.charDevPath(),
       *fpgaIpBlockConfig.deviceName(),
       auxData.id.id,
@@ -572,9 +560,12 @@ bool PciExplorer::isPciSubDeviceCreated(
     return true;
   }
   XLOG(INFO) << fmt::format(
-      "PciSubDevice {} with instId {} is not yet created. Waiting for {}s",
+      "PciSubDevice {} with deviceName {} and instId {} is not yet created "
+      "at {}. Waiting for {}s",
       *fpgaIpBlockConfig.pmUnitScopedName(),
+      *fpgaIpBlockConfig.deviceName(),
       instanceId,
+      pciDevice.sysfsPath(),
       kPciSubDevCreationWaitSecs);
   sleep(kPciSubDevCreationWaitSecs);
   if (isPciSubDevicePresent(pciDevice, fpgaIpBlockConfig, instanceId)) {
@@ -587,6 +578,14 @@ bool PciExplorer::isPciSubDevicePresent(
     const PciDevice& pciDevice,
     const FpgaIpBlockConfig& fpgaIpBlockConfig,
     uint32_t instanceId) {
+  return getPciSubDeviceIOBlockPath(pciDevice, fpgaIpBlockConfig, instanceId)
+      .has_value();
+}
+
+std::optional<std::string> PciExplorer::getPciSubDeviceIOBlockPath(
+    const PciDevice& pciDevice,
+    const FpgaIpBlockConfig& fpgaIpBlockConfig,
+    uint32_t instanceId) {
   std::string expectedEnding =
       fmt::format(".{}.{}", *fpgaIpBlockConfig.deviceName(), instanceId);
   for (const auto& dirEntry : fs::directory_iterator(pciDevice.sysfsPath())) {
@@ -594,14 +593,10 @@ bool PciExplorer::isPciSubDevicePresent(
       auto driverPath = dirEntry.path() / "driver";
       if (fs::exists(driverPath) &&
           fs::directory_entry(driverPath).is_symlink()) {
-        XLOG(INFO) << fmt::format(
-            "Detected presence of PciSubDevice {} with instId {}.",
-            *fpgaIpBlockConfig.pmUnitScopedName(),
-            instanceId);
-        return true;
+        return dirEntry.path();
       }
     }
   }
-  return false;
+  return std::nullopt;
 }
 } // namespace facebook::fboss::platform::platform_manager

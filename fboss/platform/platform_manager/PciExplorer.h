@@ -148,5 +148,9 @@ class PciExplorer {
       const PciDevice& pciDevice,
       const FpgaIpBlockConfig& fpgaIpBlockConfig,
       uint32_t instanceId);
+  std::optional<std::string> getPciSubDeviceIOBlockPath(
+      const PciDevice& pciDevice,
+      const FpgaIpBlockConfig& fpgaIpBlockConfig,
+      uint32_t instanceId);
 };
 } // namespace facebook::fboss::platform::platform_manager
