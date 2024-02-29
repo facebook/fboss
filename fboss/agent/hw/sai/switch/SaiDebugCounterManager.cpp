@@ -98,7 +98,17 @@ void SaiDebugCounterManager::setupTrapDropCounter() {
           HwAsic::Feature::ANY_TRAP_DROP_COUNTER)) {
     return;
   }
-  // TODO
+  SaiInPortDebugCounterTraits::CreateAttributes attrs{
+      SAI_DEBUG_COUNTER_TYPE_PORT_IN_DROP_REASONS,
+      SAI_DEBUG_COUNTER_BIND_METHOD_AUTOMATIC,
+      SaiInPortDebugCounterTraits::Attributes::DropReasons{
+          {*SaiInPortDebugCounterTraits::trapDrops()}}};
+  auto& debugCounterStore = saiStore_->get<SaiInPortDebugCounterTraits>();
+  trapDropCounter_ = debugCounterStore.setObject(attrs, attrs);
+  trapDropCounterStatId_ = SAI_SWITCH_STAT_IN_DROP_REASON_RANGE_BASE +
+      SaiApiTable::getInstance()->debugCounterApi().getAttribute(
+          trapDropCounter_->adapterKey(),
+          SaiInPortDebugCounterTraits::Attributes::Index{});
 }
 
 void SaiDebugCounterManager::setupEgressForwardingDropCounter() {
