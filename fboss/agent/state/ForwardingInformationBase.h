@@ -67,7 +67,17 @@ class ForwardingInformationBase
       RouterID rid,
       std::shared_ptr<SwitchState>* state);
 
+  void disableTTLDecrement(const folly::IPAddress& addr) {
+    setDisableTTLDecrement(addr, true);
+  }
+
+  void enableTTLDecrement(const folly::IPAddress& addr) {
+    setDisableTTLDecrement(addr, false);
+  }
+
  private:
+  void setDisableTTLDecrement(const folly::IPAddress& addr, bool disable);
+
   // Inherit the constructors required for clone()
   using Base::Base;
   friend class CloneAllocator;
