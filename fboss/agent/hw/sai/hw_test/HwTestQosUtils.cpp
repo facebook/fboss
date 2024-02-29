@@ -38,15 +38,4 @@ void disableTTLDecrements_Deprecated(
   SaiApiTable::getInstance()->nextHopApi().setAttribute(
       nhop->getSaiObject()->adapterKey(), disableTtl);
 }
-
-void disableTTLDecrements_Deprecated(HwSwitch* hw, const PortDescriptor& port) {
-  if (!port.isPhysicalPort()) {
-    throw FbossError("Port disable decrement not supported for LAGs yet");
-  }
-  auto managerTable = static_cast<SaiSwitch*>(hw)->managerTable();
-  auto portHandle = managerTable->portManager().getPortHandle(port.phyPortID());
-  SaiPortTraits::Attributes::DisableTtlDecrement disableTtl{true};
-  SaiApiTable::getInstance()->portApi().setAttribute(
-      portHandle->port->adapterKey(), disableTtl);
-}
 } // namespace facebook::fboss::utility

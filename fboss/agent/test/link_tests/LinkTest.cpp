@@ -261,13 +261,17 @@ void LinkTest::programDefaultRoute(
 }
 
 void LinkTest::disableTTLDecrements(
-    const boost::container::flat_set<PortDescriptor>& ecmpPorts) const {
-  utility::EcmpSetupTargetedPorts6 ecmp6(sw()->getState());
-  for (const auto& nextHop : ecmp6.getNextHops()) {
-    if (ecmpPorts.find(nextHop.portDesc) != ecmpPorts.end()) {
-      // TODO: use TestEnsembleIf
-      utility::disableTTLDecrements_Deprecated(
-          platform()->getHwSwitch(), ecmp6.getRouterId(), nextHop);
+    const boost::container::flat_set<PortDescriptor>& ecmpPorts) {
+  if (sw()->getHwAsicTable()->isFeatureSupportedOnAnyAsic(
+          HwAsic::Feature::PORT_TTL_DECREMENT_DISABLE)) {
+    disableTTLDecrementOnPorts(ecmpPorts);
+  } else {
+    utility::EcmpSetupTargetedPorts6 ecmp6(sw()->getState());
+    for (const auto& nextHop : ecmp6.getNextHops()) {
+      if (ecmpPorts.find(nextHop.portDesc) != ecmpPorts.end()) {
+        utility::disableTTLDecrements_Deprecated(
+            platform()->getHwSwitch(), ecmp6.getRouterId(), nextHop);
+      }
     }
   }
 }

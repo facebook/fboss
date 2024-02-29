@@ -16,6 +16,7 @@
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/utils/QosTestUtils.h"
 
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/HwTestPacketTrapEntry.h"
@@ -95,8 +96,16 @@ BENCHMARK(RxSlowPathBenchmark) {
           ensemble->getSw(), ensemble->getSw()->getRib()),
       kEcmpWidth);
   // Disable TTL decrements
-  utility::disableTTLDecrements_Deprecated(
-      hwSwitch, ecmpHelper.getRouterId(), ecmpHelper.getNextHops()[0]);
+  if (ensemble->getSw()->getHwAsicTable()->isFeatureSupportedOnAnyAsic(
+          HwAsic::Feature::PORT_TTL_DECREMENT_DISABLE)) {
+    utility::disableTTLDecrements(
+        ensemble->getSw(),
+        ecmpHelper.getRouterId(),
+        ecmpHelper.getNextHops()[0]);
+  } else {
+    utility::disableTTLDecrements_Deprecated(
+        hwSwitch, ecmpHelper.getRouterId(), ecmpHelper.getNextHops()[0]);
+  }
 
   const auto kSrcMac = folly::MacAddress{"fa:ce:b0:00:00:0c"};
   // Send packet

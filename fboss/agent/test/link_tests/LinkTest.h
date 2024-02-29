@@ -91,7 +91,7 @@ class LinkTest : public AgentTest {
    * Disable TTL decrement on a set of ports
    */
   void disableTTLDecrements(
-      const boost::container::flat_set<PortDescriptor>& ecmpPorts) const;
+      const boost::container::flat_set<PortDescriptor>& ecmpPorts);
   /*
    * Create a L3 data plane loop and seed it with traffic
    */

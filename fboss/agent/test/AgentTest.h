@@ -122,6 +122,9 @@ class AgentTest : public ::testing::Test, public MonolithicAgentInitializer {
 
   PortID getPortID(const std::string& portName) const;
 
+  void disableTTLDecrementOnPorts(
+      const boost::container::flat_set<PortDescriptor>& ecmpPorts);
+
  private:
   template <typename AddrT>
   void resolveNeighbor(

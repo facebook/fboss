@@ -88,10 +88,6 @@ void disableTTLDecrements_Deprecated(
     InterfaceID intf,
     const folly::IPAddress& nhop);
 
-void disableTTLDecrements_Deprecated(
-    HwSwitch* /*hw*/,
-    const PortDescriptor& /*port*/);
-
 template <typename EcmpNhopT>
 void disableTTLDecrements_Deprecated(
     HwSwitch* hw,
@@ -102,7 +98,8 @@ void disableTTLDecrements_Deprecated(
     disableTTLDecrements_Deprecated(
         hw, routerId, nhop.intf, folly::IPAddress(nhop.ip));
   } else if (asic->isSupported(HwAsic::Feature::PORT_TTL_DECREMENT_DISABLE)) {
-    disableTTLDecrements_Deprecated(hw, nhop.portDesc);
+    XLOG(FATAL)
+        << "Disable decrement not supported on port with deprecated api";
   } else {
     throw FbossError("Disable decrement not supported");
   }
