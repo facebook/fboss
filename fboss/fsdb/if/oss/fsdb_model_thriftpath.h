@@ -22882,20 +22882,38 @@ std::pair<strings::fdbEventSyncActive, Child<::std::int32_t, ::apache::thrift::t
 std::pair<strings::linkEventSyncActive, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
 std::pair<strings::linkActiveEventSyncActive, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
 std::pair<strings::rxPktEventSyncActive, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
-std::pair<strings::txPktEventSyncActive, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
+std::pair<strings::txPktEventSyncActive, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+std::pair<strings::statsEventSyncDisconnects, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<strings::fdbEventSyncDisconnects, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<strings::linkEventSyncDisconnects, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<strings::linkActiveEventSyncDisconnects, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<strings::rxPktEventSyncDisconnects, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<strings::txPktEventSyncDisconnects, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 4>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 5>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 6>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 6>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 7>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 8>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 9>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 10>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 11>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 12>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::statsEventSyncActive, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::fdbEventSyncActive, std::integral_constant<apache::thrift::field_id_t, 2>>,
 std::pair<strings::linkEventSyncActive, std::integral_constant<apache::thrift::field_id_t, 3>>,
 std::pair<strings::linkActiveEventSyncActive, std::integral_constant<apache::thrift::field_id_t, 4>>,
 std::pair<strings::rxPktEventSyncActive, std::integral_constant<apache::thrift::field_id_t, 5>>,
-std::pair<strings::txPktEventSyncActive, std::integral_constant<apache::thrift::field_id_t, 6>>>::template type_of<Name>;
+std::pair<strings::txPktEventSyncActive, std::integral_constant<apache::thrift::field_id_t, 6>>,
+std::pair<strings::statsEventSyncDisconnects, std::integral_constant<apache::thrift::field_id_t, 7>>,
+std::pair<strings::fdbEventSyncDisconnects, std::integral_constant<apache::thrift::field_id_t, 8>>,
+std::pair<strings::linkEventSyncDisconnects, std::integral_constant<apache::thrift::field_id_t, 9>>,
+std::pair<strings::linkActiveEventSyncDisconnects, std::integral_constant<apache::thrift::field_id_t, 10>>,
+std::pair<strings::rxPktEventSyncDisconnects, std::integral_constant<apache::thrift::field_id_t, 11>>,
+std::pair<strings::txPktEventSyncDisconnects, std::integral_constant<apache::thrift::field_id_t, 12>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -22915,6 +22933,12 @@ std::pair<strings::txPktEventSyncActive, std::integral_constant<apache::thrift::
     STRUCT_CHILD_GETTERS(linkActiveEventSyncActive, 4);
     STRUCT_CHILD_GETTERS(rxPktEventSyncActive, 5);
     STRUCT_CHILD_GETTERS(txPktEventSyncActive, 6);
+    STRUCT_CHILD_GETTERS(statsEventSyncDisconnects, 7);
+    STRUCT_CHILD_GETTERS(fdbEventSyncDisconnects, 8);
+    STRUCT_CHILD_GETTERS(linkEventSyncDisconnects, 9);
+    STRUCT_CHILD_GETTERS(linkActiveEventSyncDisconnects, 10);
+    STRUCT_CHILD_GETTERS(rxPktEventSyncDisconnects, 11);
+    STRUCT_CHILD_GETTERS(txPktEventSyncDisconnects, 12);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -22924,6 +22948,12 @@ std::pair<strings::txPktEventSyncActive, std::integral_constant<apache::thrift::
     else if constexpr (__id == 4) { return linkActiveEventSyncActive(); }
     else if constexpr (__id == 5) { return rxPktEventSyncActive(); }
     else if constexpr (__id == 6) { return txPktEventSyncActive(); }
+    else if constexpr (__id == 7) { return statsEventSyncDisconnects(); }
+    else if constexpr (__id == 8) { return fdbEventSyncDisconnects(); }
+    else if constexpr (__id == 9) { return linkEventSyncDisconnects(); }
+    else if constexpr (__id == 10) { return linkActiveEventSyncDisconnects(); }
+    else if constexpr (__id == 11) { return rxPktEventSyncDisconnects(); }
+    else if constexpr (__id == 12) { return txPktEventSyncDisconnects(); }
   }
 
   template <typename T, T... Values>

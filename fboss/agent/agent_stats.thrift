@@ -18,6 +18,12 @@ struct HwAgentEventSyncStatus {
   4: i32 linkActiveEventSyncActive;
   5: i32 rxPktEventSyncActive;
   6: i32 txPktEventSyncActive;
+  7: i64 statsEventSyncDisconnects;
+  8: i64 fdbEventSyncDisconnects;
+  9: i64 linkEventSyncDisconnects;
+  10: i64 linkActiveEventSyncDisconnects;
+  11: i64 rxPktEventSyncDisconnects;
+  12: i64 txPktEventSyncDisconnects;
 }
 
 struct AgentStats {

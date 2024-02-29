@@ -760,17 +760,16 @@ TEST_F(SwSwitchHandlerTest, connectionStatusCount) {
   getHwSwitchHandler()->connected(SwitchID(1));
   getHwSwitchHandler()->connected(SwitchID(2));
   counters.update();
-  EXPECT_EQ(
-      counters.value(
-          SwitchStats::kCounterPrefix + "switch.0.connection_status"),
-      1);
+  // Ideally the absolute value of connection status can be checked here.
+  // However it would fail if all tests are run in a single shot as the
+  // counter updates from previous tests can be carried over to this test.
+  counters.checkDelta(
+      SwitchStats::kCounterPrefix + "switch.0.connection_status", 1);
   checkConnectionStatus(1);
   getHwSwitchHandler()->disconnected(SwitchID(1));
   counters.update();
-  EXPECT_EQ(
-      counters.value(
-          SwitchStats::kCounterPrefix + "switch.0.connection_status"),
-      0);
+  counters.checkDelta(
+      SwitchStats::kCounterPrefix + "switch.0.connection_status", -1);
   checkConnectionStatus(0);
 }
 
