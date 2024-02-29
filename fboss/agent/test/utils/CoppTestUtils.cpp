@@ -405,11 +405,6 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAclsForSai(
     cfg::SwitchConfig& /* unused */) {
   std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> acls;
 
-  // TODO(daiweix): remove after ACL is fully supported by J3
-  if (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
-    return acls;
-  }
-
   // Unicast link local from cpu
   addNoActionAclForUnicastLinkLocal(kIPv6LinkLocalUcastNetwork(), acls);
 

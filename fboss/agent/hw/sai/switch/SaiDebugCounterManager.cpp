@@ -29,6 +29,7 @@ void SaiDebugCounterManager::setupDebugCounters() {
   setupMPLSLookupFailedCounter();
   setupAclDropCounter();
   setupEgressForwardingDropCounter();
+  setupTrapDropCounter();
 }
 
 void SaiDebugCounterManager::setupPortL3BlackHoleCounter() {
