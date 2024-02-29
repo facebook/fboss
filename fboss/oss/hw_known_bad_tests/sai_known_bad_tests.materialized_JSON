@@ -2271,6 +2271,12 @@
         },
         {
           "test_name_regex": "HwRouteTest/[01].UnresolvedAndResolvedNextHop"
+        },
+        {
+          "test_name_regex": "HwVoqSwitchTest.localSystemPortEcmp"
+        },
+        {
+          "test_name_regex": "HwVoqSwitchTest.sendPacketCpuAndFrontPanel"
         }
     ],
     "brcm/7.2.0.0_odp/7.2.0.0_odp/tomahawk": [
@@ -11464,6 +11470,9 @@
         },
         {
           "test_name_regex": "HwCoppTest/[01].LocalDstIpNonBgpPortToMidPriQ"
+        },
+        {
+          "test_name_regex": "HwCoppTest/[01].CpuPortIpv6LinkLocalUcastIp"
         }
     ],
     "leaba/1.68.0/1.68.0/graphene200/simulator": [
