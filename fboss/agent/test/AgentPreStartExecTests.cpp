@@ -189,6 +189,33 @@ class AgentPreStartExecTests : public ::testing::Test {
                     "enable",
                     util_->getHwAgentServiceInstance(1)},
                 true));
+      } else {
+        EXPECT_CALL(
+            executor,
+            runCommand(
+                std::vector<std::string>{
+                    "/usr/bin/systemctl", "disable", "fboss_sw_agent"},
+                false));
+
+        EXPECT_CALL(
+            executor,
+            runCommand(
+                std::vector<std::string>{
+                    "/usr/bin/systemctl",
+                    "disable",
+                    "fboss_hw_agent@0.service"},
+                false));
+
+        if (TestAttr::kMultiSwitch) {
+          EXPECT_CALL(
+              executor,
+              runCommand(
+                  std::vector<std::string>{
+                      "/usr/bin/systemctl",
+                      "disable",
+                      "fboss_hw_agent@1.service"},
+                  false));
+        }
       }
       // update-buildinfo
       EXPECT_CALL(
