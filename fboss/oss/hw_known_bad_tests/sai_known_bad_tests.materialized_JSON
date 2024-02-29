@@ -11463,15 +11463,6 @@
           "test_name_regex": "SaiAclTableRecreateTests.AclEntryCount"
         },
         {
-          "test_name_regex": "HwCoppTest/[01].DHCPv6AdvertiseToMidPriQ"
-        },
-        {
-          "test_name_regex": "HwCoppTest/[01].LocalDstIpBgpPortToHighPriQ"
-        },
-        {
-          "test_name_regex": "HwCoppTest/[01].LocalDstIpNonBgpPortToMidPriQ"
-        },
-        {
           "test_name_regex": "HwCoppTest/[01].CpuPortIpv6LinkLocalUcastIp"
         }
     ],
