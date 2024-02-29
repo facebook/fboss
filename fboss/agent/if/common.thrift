@@ -33,7 +33,7 @@ struct NextHopThrift {
   2: i32 weight = 0;
   // MPLS encapsulation information for IP->MPLS and MPLS routes
   3: optional mpls.MplsAction mplsAction;
-  4: bool disableTTLDecrement = false;
+  4: optional bool disableTTLDecrement;
 }
 
 /*

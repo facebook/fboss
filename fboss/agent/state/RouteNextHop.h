@@ -14,6 +14,7 @@
 #include <folly/Range.h>
 #include <folly/json/dynamic.h>
 #include <folly/poly/Regular.h>
+#include <optional>
 
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/Constants.h"
@@ -63,7 +64,7 @@ struct INextHop {
       return folly::poly_call<3>(*this);
     }
 
-    bool disableTTLDecrement() const {
+    std::optional<bool> disableTTLDecrement() const {
       return folly::poly_call<4>(*this);
     }
 
@@ -105,7 +106,9 @@ struct INextHop {
       if (labelForwardingAction()) {
         nht.mplsAction() = labelForwardingAction()->toThrift();
       }
-      nht.disableTTLDecrement() = disableTTLDecrement();
+      if (auto value = disableTTLDecrement()) {
+        nht.disableTTLDecrement() = value.value();
+      }
       return nht;
     }
 
@@ -148,20 +151,24 @@ class ResolvedNextHop {
       const folly::IPAddress& addr,
       InterfaceID intfID,
       const NextHopWeight& weight,
-      const std::optional<LabelForwardingAction>& action = std::nullopt)
+      const std::optional<LabelForwardingAction>& action = std::nullopt,
+      const std::optional<bool>& disableTTLDecrement = std::nullopt)
       : addr_(addr),
         intfID_(intfID),
         weight_(weight),
-        labelForwardingAction_(action) {}
+        labelForwardingAction_(action),
+        disableTTLDecrement_(disableTTLDecrement) {}
   ResolvedNextHop(
       folly::IPAddress&& addr,
       InterfaceID intfID,
       const NextHopWeight& weight,
-      std::optional<LabelForwardingAction>&& action = std::nullopt)
+      std::optional<LabelForwardingAction>&& action = std::nullopt,
+      std::optional<bool>&& disableTTLDecrement = std::nullopt)
       : addr_(std::move(addr)),
         intfID_(intfID),
         weight_(weight),
-        labelForwardingAction_(std::move(action)) {}
+        labelForwardingAction_(std::move(action)),
+        disableTTLDecrement_(std::move(disableTTLDecrement)) {}
   std::optional<InterfaceID> intfID() const {
     return intfID_;
   }
@@ -174,11 +181,11 @@ class ResolvedNextHop {
   std::optional<LabelForwardingAction> labelForwardingAction() const {
     return labelForwardingAction_;
   }
-  bool disableTTLDecrement() const {
+  std::optional<bool> disableTTLDecrement() const {
     return disableTTLDecrement_;
   }
 
-  void setDisableTTLDecrement(bool disableTTLDecrement) {
+  void setDisableTTLDecrement(std::optional<bool> disableTTLDecrement) {
     disableTTLDecrement_ = disableTTLDecrement;
   }
 
@@ -187,7 +194,7 @@ class ResolvedNextHop {
   InterfaceID intfID_;
   NextHopWeight weight_;
   std::optional<LabelForwardingAction> labelForwardingAction_;
-  bool disableTTLDecrement_{false};
+  std::optional<bool> disableTTLDecrement_{};
 };
 
 bool operator==(const ResolvedNextHop& a, const ResolvedNextHop& b);
@@ -214,8 +221,8 @@ class UnresolvedNextHop {
   std::optional<LabelForwardingAction> labelForwardingAction() const {
     return labelForwardingAction_;
   }
-  bool disableTTLDecrement() const {
-    return false;
+  std::optional<bool> disableTTLDecrement() const {
+    return std::nullopt;
   }
 
  private:

@@ -25,7 +25,7 @@ void disableTTLDecrements(
   auto bcmHw = static_cast<BcmSwitch*>(hw);
   auto vrfId = bcmHw->getBcmVrfId(routerId);
   auto bcmHostKey = BcmHostKey(vrfId, nhop);
-  setDisableTTLDecrement(bcmHw, bcmHostKey);
+  setTTLDecrement(bcmHw, bcmHostKey, true /* no decrement */);
 }
 
 void disableTTLDecrements(HwSwitch* /*hw*/, const PortDescriptor& /*port*/) {

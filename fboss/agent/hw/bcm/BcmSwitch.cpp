@@ -2685,8 +2685,8 @@ void BcmSwitch::processAddedAndChangedNeighbor(
         entry->getClassID());
   }
 
-  if (entry->getDisableTTLDecrement()) {
-    setDisableTTLDecrement(this, neighborKey);
+  if (auto disableTTLDecrement = entry->getDisableTTLDecrement()) {
+    setTTLDecrement(this, neighborKey, disableTTLDecrement.value());
   }
   std::for_each(
       writableMplsNextHopTable()->getNextHops().begin(),
