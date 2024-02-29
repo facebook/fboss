@@ -107,3 +107,16 @@ target_link_libraries(common_test_utils
   core
   switch_asics
 )
+
+
+add_library(qos_test_utils
+  fboss/agent/test/utils/QosTestUtils.cpp
+)
+
+target_link_libraries(qos_test_utils
+  ecmp_helper
+  fboss_types
+  switch_asics
+  state
+  Folly::folly
+)
