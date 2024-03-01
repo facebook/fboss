@@ -88,8 +88,6 @@ void disableTTLDecrements(
     InterfaceID intf,
     const folly::IPAddress& nhop);
 
-void disableTTLDecrements(TestEnsembleIf* hw, const PortDescriptor& port);
-
 void disableTTLDecrements(HwSwitchEnsemble* hw, const PortDescriptor& port);
 
 void disableTTLDecrements(

@@ -268,20 +268,8 @@ void LinkTest::disableTTLDecrements(
     disableTTLDecrementOnPorts(ecmpPorts);
   } else {
     utility::EcmpSetupTargetedPorts6 ecmp6(sw()->getState());
-    sw()->updateStateBlocking(
-        "Disable TTL Decrements",
-        [=](const std::shared_ptr<SwitchState>& state) {
-          auto newState = state->clone();
-          for (const auto& nextHop : ecmp6.getNextHops()) {
-            newState = utility::disableTTLDecrement(
-                sw()->getHwAsicTable(),
-                newState,
-                ecmp6.getRouterId(),
-                nextHop.intf,
-                folly::IPAddress(nextHop.ip));
-          }
-          return newState;
-        });
+    utility::disableTTLDecrements(
+        sw(), ecmp6.getRouterId(), ecmp6.getNextHops());
   }
 }
 

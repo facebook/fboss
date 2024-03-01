@@ -61,4 +61,21 @@ void disableTTLDecrements(
         return newState;
       });
 }
+
+template <typename EcmpNhopT>
+void disableTTLDecrements(
+    SwSwitch* sw,
+    RouterID routerId,
+    const std::vector<EcmpNhopT>& nhops) {
+  sw->updateStateBlocking(
+      "disable TTL decrement",
+      [sw, &routerId, &nhops](const std::shared_ptr<SwitchState>& state) {
+        auto newState = state->clone();
+        for (const auto& nhop : nhops) {
+          newState = utility::disableTTLDecrements(
+              sw->getHwAsicTable(), newState, routerId, nhop);
+        }
+        return newState;
+      });
+}
 } // namespace facebook::fboss::utility

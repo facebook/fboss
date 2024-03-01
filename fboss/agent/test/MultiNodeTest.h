@@ -85,28 +85,7 @@ class MultiNodeTest : public AgentTest {
         ecmpNhops.emplace_back(std::move(ecmpNh));
       }
     }
-
-    if (sw()->getHwAsicTable()->isFeatureSupportedOnAnyAsic(
-            HwAsic::Feature::PORT_TTL_DECREMENT_DISABLE)) {
-      disableTTLDecrementOnPorts(ports);
-    } else {
-      for (auto& ecmpNhop : ecmpNhops) {
-        sw()->updateStateBlocking(
-            "Disable TTL Decrements",
-            [=](const std::shared_ptr<SwitchState>& state) {
-              auto newState = state->clone();
-              for (const auto& nextHop : ecmpNhops) {
-                newState = utility::disableTTLDecrement(
-                    sw()->getHwAsicTable(),
-                    newState,
-                    RouterID(0),
-                    nextHop.intf,
-                    folly::IPAddress(nextHop.ip));
-              }
-              return newState;
-            });
-      }
-    }
+    utility::disableTTLDecrements(sw(), RouterID(0), ecmpNhops);
   }
   std::vector<PortID> testPorts() const;
   std::vector<std::string> testPortNames() const;
