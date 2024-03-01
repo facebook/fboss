@@ -64,6 +64,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SEPARATE_BYTE_AND_PACKET_ACL_COUNTER:
     case HwAsic::Feature::ERSPANv4:
     case HwAsic::Feature::ERSPANv6:
+    case HwAsic::Feature::RCI_WATERMARK_COUNTER:
       return true;
     // Features not expected to work on SIM
     case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:
@@ -166,6 +167,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ACL_METADATA_QUALIFER:
     case HwAsic::Feature::PORT_SERDES_ZERO_PREEMPHASIS:
     case HwAsic::Feature::SAI_PRBS:
+    case HwAsic::Feature::DTL_WATERMARK_COUNTER:
       return false;
   }
   return false;
