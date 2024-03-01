@@ -129,7 +129,7 @@ TEST_F(HwFabricSwitchTest, reachDiscard) {
     auto beforeSwitchDrops = getHwSwitch()->getSwitchDropStats();
     std::string out;
     getHwSwitchEnsemble()->runDiagCommand(
-        "TX 1 DeSTination=-1 DeSTinationModid=-1 flags=0x8000\n", out);
+        "TX 1 destination=-1 destinationModid=-1 flags=0x8000\n", out);
     getHwSwitchEnsemble()->runDiagCommand("quit\n", out);
     WITH_RETRIES({
       getHwSwitch()->updateStats();
