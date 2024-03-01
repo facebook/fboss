@@ -4434,7 +4434,7 @@
     "/run/devmap/xcvrs/xcvr_128": "/SMB_SLOT@0/[OSFP_PORT128_XCVR]"
   },
   "bspKmodsRpmName": "arista_bsp_kmods",
-  "bspKmodsRpmVersion": "0.5.1-1",
+  "bspKmodsRpmVersion": "0.5.2-1",
   "kmodsToReload": [
     "scd-xcvr",
     "scd-spi",
