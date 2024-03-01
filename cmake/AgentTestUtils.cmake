@@ -118,5 +118,6 @@ target_link_libraries(qos_test_utils
   fboss_types
   switch_asics
   state
+  test_ensemble_if
   Folly::folly
 )

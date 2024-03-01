@@ -13,7 +13,6 @@
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/SwitchState.h"
-#include "fboss/agent/test/utils/QosTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 #include <folly/logging/xlog.h>
@@ -182,31 +181,6 @@ bool verifyQueueMappings(
 
   return verifyQueueMappings(
       portStatsBefore, q2dscps, getPortStats, egressPort);
-}
-
-void disableTTLDecrements(HwSwitchEnsemble* hw, const PortDescriptor& port) {
-  hw->applyNewState(
-      [asicTable = hw->getHwAsicTable(),
-       port](const std::shared_ptr<SwitchState>& state) {
-        auto newState = disableTTLDecrement(asicTable, state, port);
-        return newState;
-      },
-      "Disable TTL decrements on port");
-}
-
-void disableTTLDecrements(
-    HwSwitchEnsemble* hw,
-    RouterID routerId,
-    InterfaceID intf,
-    const folly::IPAddress& nhop) {
-  hw->applyNewState(
-      [=, asicTable = hw->getHwAsicTable()](
-          const std::shared_ptr<SwitchState>& state) {
-        auto newState =
-            disableTTLDecrement(asicTable, state, routerId, intf, nhop);
-        return newState;
-      },
-      "Disable TTL decrements on next hop: " + nhop.str());
 }
 
 } // namespace facebook::fboss::utility

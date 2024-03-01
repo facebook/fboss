@@ -16,6 +16,7 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/utils/QosTestUtils.h"
 #include "fboss/agent/types.h"
 
 #include <folly/IPAddress.h>
@@ -81,49 +82,6 @@ bool verifyQueueMappingsInvariantHelper(
     std::function<std::map<PortID, HwPortStats>()> getAllHwPortStats,
     const std::vector<PortID>& ecmpPorts,
     uint32_t sleep = 20);
-
-void disableTTLDecrements(
-    HwSwitchEnsemble* hw,
-    RouterID routerId,
-    InterfaceID intf,
-    const folly::IPAddress& nhop);
-
-void disableTTLDecrements(HwSwitchEnsemble* hw, const PortDescriptor& port);
-
-void disableTTLDecrements(
-    HwSwitchEnsemble* hw,
-    RouterID routerId,
-    InterfaceID intf,
-    const folly::IPAddress& nhop);
-
-template <typename EcmpNhopT>
-void disableTTLDecrements(
-    HwSwitchEnsemble* ensemble,
-    RouterID routerId,
-    const EcmpNhopT& nhop) {
-  if (ensemble->getHwAsicTable()->isFeatureSupportedOnAnyAsic(
-          HwAsic::Feature::NEXTHOP_TTL_DECREMENT_DISABLE)) {
-    disableTTLDecrements(
-        ensemble, routerId, nhop.intf, folly::IPAddress(nhop.ip));
-  } else if (ensemble->getHwAsicTable()->isFeatureSupportedOnAnyAsic(
-                 HwAsic::Feature::PORT_TTL_DECREMENT_DISABLE)) {
-    disableTTLDecrements(ensemble, nhop.portDesc);
-  } else {
-    throw FbossError("Disable decrement not supported");
-  }
-}
-
-template <typename EcmpNhopT>
-void ttlDecrementHandlingForLoopbackTraffic(
-    HwSwitchEnsemble* hw,
-    RouterID routerId,
-    const EcmpNhopT& nhop) {
-  auto asic = hw->getHwSwitch()->getPlatform()->getAsic();
-  // for TTL0 supported devices we need to go through cfg change
-  if (!asic->isSupported(HwAsic::Feature::SAI_TTL0_PACKET_FORWARD_ENABLE)) {
-    disableTTLDecrements(hw, routerId, nhop);
-  }
-}
 
 } // namespace utility
 } // namespace facebook::fboss

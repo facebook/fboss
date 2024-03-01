@@ -85,4 +85,29 @@ std::shared_ptr<SwitchState> disableTTLDecrement(
   return newState;
 }
 
+void disableTTLDecrements(TestEnsembleIf* hw, const PortDescriptor& port) {
+  hw->applyNewState(
+      [asicTable = hw->getHwAsicTable(),
+       port](const std::shared_ptr<SwitchState>& state) {
+        auto newState = disableTTLDecrement(asicTable, state, port);
+        return newState;
+      },
+      "Disable TTL decrements on port");
+}
+
+void disableTTLDecrements(
+    TestEnsembleIf* hw,
+    RouterID routerId,
+    InterfaceID intf,
+    const folly::IPAddress& nhop) {
+  hw->applyNewState(
+      [=, asicTable = hw->getHwAsicTable()](
+          const std::shared_ptr<SwitchState>& state) {
+        auto newState =
+            disableTTLDecrement(asicTable, state, routerId, intf, nhop);
+        return newState;
+      },
+      "Disable TTL decrements on next hop: " + nhop.str());
+}
+
 } // namespace facebook::fboss::utility
