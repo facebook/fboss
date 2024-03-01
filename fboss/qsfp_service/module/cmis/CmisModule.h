@@ -34,6 +34,34 @@ enum class CmisPages : int {
   PAGE2F = 0x2F
 };
 
+enum VdmConfigType {
+  UNSUPPORTED = 0,
+  SNR_MEDIA_IN = 5,
+  SNR_HOST_IN = 6,
+  PAM4_LTP_MEDIA_IN = 7,
+  PRE_FEC_BER_MEDIA_IN_MIN = 9,
+  PRE_FEC_BER_HOST_IN_MIN = 10,
+  PRE_FEC_BER_MEDIA_IN_MAX = 11,
+  PRE_FEC_BER_HOST_IN_MAX = 12,
+  PRE_FEC_BER_MEDIA_IN_AVG = 13,
+  PRE_FEC_BER_HOST_IN_AVG = 14,
+  PRE_FEC_BER_MEDIA_IN_CUR = 15,
+  PRE_FEC_BER_HOST_IN_CUR = 16,
+  ERR_FRAME_MEDIA_IN_MIN = 17,
+  ERR_FRAME_HOST_IN_MIN = 18,
+  ERR_FRAME_MEDIA_IN_MAX = 19,
+  ERR_FRAME_HOST_IN_MAX = 20,
+  ERR_FRAME_MEDIA_IN_AVG = 21,
+  ERR_FRAME_HOST_IN_AVG = 22,
+  ERR_FRAME_MEDIA_IN_CUR = 23,
+  ERR_FRAME_HOST_IN_CUR = 24,
+  PAM4_LEVEL0_STANDARD_DEVIATION_LINE = 100,
+  PAM4_LEVEL1_STANDARD_DEVIATION_LINE = 101,
+  PAM4_LEVEL2_STANDARD_DEVIATION_LINE = 102,
+  PAM4_LEVEL3_STANDARD_DEVIATION_LINE = 103,
+  PAM4_MPI_LINE = 104,
+};
+
 class CmisModule : public QsfpModule {
  public:
   explicit CmisModule(
@@ -84,6 +112,13 @@ class CmisModule : public QsfpModule {
   };
 
   using LengthAndGauge = std::pair<double, uint8_t>;
+
+  using VdmDiagsLocationStatus = struct VdmDiagsLocationStatus_t {
+    bool vdmConfImplementedByModule = false;
+    CmisPages vdmValPage;
+    int vdmValOffset;
+    int vdmValLength;
+  };
 
   void configureModule(uint8_t startHostLane) override;
 
@@ -375,6 +410,9 @@ class CmisModule : public QsfpModule {
   CmisModule(CmisModule const&) = delete;
   CmisModule& operator=(CmisModule const&) = delete;
 
+  // VDM data location of each VDM config types
+  std::map<VdmConfigType, VdmDiagsLocationStatus> vdmConfigDataLocations_;
+
   /* Helper function to read/write a CmisField. The function will extract the
    * page number, offset and length information from the CmisField and then make
    * the corresponding qsfpImpl->readTransceiver and qsfpImpl->writeTransceiver
@@ -482,6 +520,13 @@ class CmisModule : public QsfpModule {
 
   bool upgradeFirmwareLockedImpl(
       std::unique_ptr<FbossFirmware> fbossFw) const override;
+
+  void readFromCacheOrHw(
+      CmisField field,
+      uint8_t* data,
+      bool forcedReadFromHw = false);
+
+  void updateVdmDiagsValLocation();
 };
 
 } // namespace fboss

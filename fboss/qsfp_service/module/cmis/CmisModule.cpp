@@ -45,6 +45,7 @@ constexpr int kUsecAfterAppProgramming = 500000;
 constexpr int kUsecDatapathStateUpdateTime = 5000000; // 5 seconds
 constexpr int kUsecDatapathStatePollTime = 500000; // 500 ms
 constexpr double kU16TypeLsbDivisor = 256.0;
+constexpr int kVdmDescriptorLength = 2;
 
 std::array<std::string, 9> channelConfigErrorMsg = {
     "No status available, config under progress",
@@ -69,34 +70,6 @@ enum DiagnosticFeatureEncoding {
   BER = 0x1,
   SNR = 0x6,
   LATCHED_BER = 0x11,
-};
-
-enum VdmConfigType {
-  UNSUPPORTED = 0,
-  SNR_MEDIA_IN = 5,
-  SNR_HOST_IN = 6,
-  PAM4_LTP_MEDIA_IN = 7,
-  PRE_FEC_BER_MEDIA_IN_MIN = 9,
-  PRE_FEC_BER_HOST_IN_MIN = 10,
-  PRE_FEC_BER_MEDIA_IN_MAX = 11,
-  PRE_FEC_BER_HOST_IN_MAX = 12,
-  PRE_FEC_BER_MEDIA_IN_AVG = 13,
-  PRE_FEC_BER_HOST_IN_AVG = 14,
-  PRE_FEC_BER_MEDIA_IN_CUR = 15,
-  PRE_FEC_BER_HOST_IN_CUR = 16,
-  ERR_FRAME_MEDIA_IN_MIN = 17,
-  ERR_FRAME_HOST_IN_MIN = 18,
-  ERR_FRAME_MEDIA_IN_MAX = 19,
-  ERR_FRAME_HOST_IN_MAX = 20,
-  ERR_FRAME_MEDIA_IN_AVG = 21,
-  ERR_FRAME_HOST_IN_AVG = 22,
-  ERR_FRAME_MEDIA_IN_CUR = 23,
-  ERR_FRAME_HOST_IN_CUR = 24,
-  PAM4_LEVEL0_STANDARD_DEVIATION_LINE = 100,
-  PAM4_LEVEL1_STANDARD_DEVIATION_LINE = 101,
-  PAM4_LEVEL2_STANDARD_DEVIATION_LINE = 102,
-  PAM4_LEVEL3_STANDARD_DEVIATION_LINE = 103,
-  PAM4_MPI_LINE = 104,
 };
 
 // As per CMIS4.0
@@ -1405,6 +1378,71 @@ SignalFlags CmisModule::getSignalFlagInfo() {
   return signalFlags;
 }
 
+/*
+ * getVdmDiagsValLocation
+ *
+ * This function scans the VDM config pages by looking into each 2 byte
+ * descriptors. It builds up the mapping from VDM config type to the VDM value
+ * location (page, offset and length). These config could be module based config
+ * or lane/datapath based config. The function updates the lowest offset of the
+ * corresponding VDM data value. For config present in VDM page 0x20-23, the
+ * coresponding data is present in VDM pages 0x24-27
+ */
+void CmisModule::updateVdmDiagsValLocation() {
+  if (!cacheIsValid() || !isVdmSupported()) {
+    QSFP_LOG(DBG2, this) << "Module does not support VDM diagnostics";
+    return;
+  }
+
+  // The VdmConf can be present at any offset from page 0x20 to 0x22. Check all
+  // the descriptors (2 bytes) on these pages
+  std::vector<CmisField> cmisVdmConfPages = {
+      CmisField::PAGE_UPPER20H, CmisField::PAGE_UPPER21H};
+  if (isVdmSupported(3)) {
+    cmisVdmConfPages.push_back(CmisField::PAGE_UPPER22H);
+  }
+
+  for (auto field : cmisVdmConfPages) {
+    int page;
+    int startOffset;
+    int endOffset;
+    int length;
+    uint8_t data[128];
+    const uint8_t* dataPtr = data;
+    getQsfpFieldAddress(field, page, startOffset, length);
+    endOffset = startOffset + length - 1;
+    readFromCacheOrHw(field, data, true);
+
+    // Each 2 byte descriptor:
+    //    byte_1[7..0] -> VDM config type
+    enum VdmConfigType lastConfig = UNSUPPORTED;
+    for (auto offset = startOffset; offset <= endOffset;
+         offset += kVdmDescriptorLength, dataPtr += kVdmDescriptorLength) {
+      if (isValidVdmConfigType(dataPtr[1])) {
+        if (static_cast<VdmConfigType>(dataPtr[1]) == lastConfig) {
+          vdmConfigDataLocations_[lastConfig].vdmValLength += 2;
+        } else {
+          VdmDiagsLocationStatus vdmConfStatus;
+          vdmConfStatus.vdmConfImplementedByModule = true;
+          vdmConfStatus.vdmValPage = static_cast<CmisPages>(page + 4);
+          vdmConfStatus.vdmValOffset = offset;
+          vdmConfStatus.vdmValLength = 2;
+          lastConfig = static_cast<VdmConfigType>(dataPtr[1]);
+          vdmConfigDataLocations_[lastConfig] = vdmConfStatus;
+        }
+      }
+    }
+  }
+
+  QSFP_LOG(DBG2, this) << "Module's VDM Config Locations found:";
+  for (auto& it : vdmConfigDataLocations_) {
+    QSFP_LOG(DBG2, this) << "VDM Config Type: " << static_cast<int>(it.first)
+                         << ", Page: " << static_cast<int>(it.second.vdmValPage)
+                         << ", Offset: " << it.second.vdmValOffset
+                         << ", Length: " << it.second.vdmValLength;
+  }
+}
+
 std::optional<VdmDiagsStats> CmisModule::getVdmDiagsStatsInfo() {
   VdmDiagsStats vdmStats;
   const uint8_t* data;
@@ -1836,6 +1874,28 @@ CmisModule::getQsfpValuePtr(int dataAddress, int offset, int length) const {
       default:
         throw FbossError("Invalid Data Address 0x%d", dataAddress);
     }
+  }
+}
+
+/*
+ * readFromCacheOrHw
+ *
+ * This function reads the register field from either register cache or from
+ * hardware (if the cache is not available). This function assumes the input
+ * data pointer has the space allocated for the entire given CMIS register space
+ */
+void CmisModule::readFromCacheOrHw(
+    CmisField field,
+    uint8_t* data,
+    bool forcedReadFromHw) {
+  int offset;
+  int length;
+  int dataAddress;
+  getQsfpFieldAddress(field, dataAddress, offset, length);
+  if (cacheIsValid() && !forcedReadFromHw) {
+    getQsfpValue(dataAddress, offset, length, data);
+  } else {
+    readCmisField(field, data);
   }
 }
 
@@ -2649,106 +2709,99 @@ void CmisModule::setDiagsCapability() {
     // diagsCapability isn't valid either
     return;
   }
-  auto diagsCapability = diagsCapability_.wlock();
-  if (!diagsCapability->has_value()) {
-    QSFP_LOG(INFO, this) << "Setting diag capability";
-    DiagsCapability diags;
+  // Limiting the scope of diagsCapability_ write lock
+  {
+    auto diagsCapability = diagsCapability_.wlock();
+    if (!diagsCapability->has_value()) {
+      QSFP_LOG(INFO, this) << "Setting diag capability";
+      DiagsCapability diags;
 
-    auto readFromCacheOrHw = [&](CmisField field, uint8_t* data) {
-      int offset;
-      int length;
-      int dataAddress;
-      getQsfpFieldAddress(field, dataAddress, offset, length);
-      if (cacheIsValid()) {
-        getQsfpValue(dataAddress, offset, length, data);
-      } else {
-        readCmisField(field, data);
-      }
-    };
+      auto getPrbsCapabilities =
+          [&](CmisField generatorField,
+              CmisField checkerField) -> std::vector<prbs::PrbsPolynomial> {
+        int offset;
+        int length;
+        int dataAddress;
+        getQsfpFieldAddress(generatorField, dataAddress, offset, length);
+        CHECK_EQ(length, 2);
+        getQsfpFieldAddress(checkerField, dataAddress, offset, length);
+        CHECK_EQ(length, 2);
 
-    auto getPrbsCapabilities =
-        [&](CmisField generatorField,
-            CmisField checkerField) -> std::vector<prbs::PrbsPolynomial> {
-      int offset;
-      int length;
-      int dataAddress;
-      getQsfpFieldAddress(generatorField, dataAddress, offset, length);
-      CHECK_EQ(length, 2);
-      getQsfpFieldAddress(checkerField, dataAddress, offset, length);
-      CHECK_EQ(length, 2);
+        uint8_t generatorCapsData[2];
+        readFromCacheOrHw(generatorField, generatorCapsData);
+        uint16_t generatorCaps =
+            (generatorCapsData[1] << 8) | generatorCapsData[0];
 
-      uint8_t generatorCapsData[2];
-      readFromCacheOrHw(generatorField, generatorCapsData);
-      uint16_t generatorCaps =
-          (generatorCapsData[1] << 8) | generatorCapsData[0];
+        uint8_t checkerCapsData[2];
+        readFromCacheOrHw(checkerField, checkerCapsData);
+        uint16_t checkerCaps = (checkerCapsData[1] << 8) | checkerCapsData[0];
 
-      uint8_t checkerCapsData[2];
-      readFromCacheOrHw(checkerField, checkerCapsData);
-      uint16_t checkerCaps = (checkerCapsData[1] << 8) | checkerCapsData[0];
-
-      std::vector<prbs::PrbsPolynomial> caps;
-      for (auto patternIDPolynomialPair : prbsPatternMap.right) {
-        // We claim PRBS polynomial is supported when both generator and
-        // checker support the polynomial
-        if (generatorCaps & (1 << patternIDPolynomialPair.first) &&
-            checkerCaps & (1 << patternIDPolynomialPair.first)) {
-          caps.push_back(patternIDPolynomialPair.second);
+        std::vector<prbs::PrbsPolynomial> caps;
+        for (auto patternIDPolynomialPair : prbsPatternMap.right) {
+          // We claim PRBS polynomial is supported when both generator and
+          // checker support the polynomial
+          if (generatorCaps & (1 << patternIDPolynomialPair.first) &&
+              checkerCaps & (1 << patternIDPolynomialPair.first)) {
+            caps.push_back(patternIDPolynomialPair.second);
+          }
         }
+        return caps;
+      };
+
+      uint8_t data;
+      readFromCacheOrHw(CmisField::VDM_DIAG_SUPPORT, &data);
+      diags.vdm() = (data & FieldMasks::VDM_SUPPORT_MASK) ? true : false;
+      diags.diagnostics() =
+          (data & FieldMasks::DIAGS_SUPPORT_MASK) ? true : false;
+
+      readFromCacheOrHw(CmisField::CDB_SUPPORT, &data);
+      diags.cdb() = (data & FieldMasks::CDB_SUPPORT_MASK) ? true : false;
+
+      readFromCacheOrHw(CmisField::TX_CONTROL_SUPPORT, &data);
+      diags.txOutputControl() =
+          (data & FieldMasks::TX_DISABLE_SUPPORT_MASK) ? true : false;
+      readFromCacheOrHw(CmisField::RX_CONTROL_SUPPORT, &data);
+      diags.rxOutputControl() =
+          (data & FieldMasks::RX_DISABLE_SUPPORT_MASK) ? true : false;
+
+      if (*diags.diagnostics()) {
+        readFromCacheOrHw(CmisField::LOOPBACK_CAPABILITY, &data);
+        diags.loopbackSystem() =
+            (data & FieldMasks::LOOPBACK_SYS_SUPPOR_MASK) ? true : false;
+        diags.loopbackLine() =
+            (data & FieldMasks::LOOPBACK_LINE_SUPPORT_MASK) ? true : false;
+
+        readFromCacheOrHw(CmisField::PATTERN_CHECKER_CAPABILITY, &data);
+        diags.prbsLine() =
+            (data & FieldMasks::PRBS_LINE_SUPPRT_MASK) ? true : false;
+        diags.prbsSystem() =
+            (data & FieldMasks::PRBS_SYS_SUPPRT_MASK) ? true : false;
+        if (*diags.prbsLine()) {
+          diags.prbsLineCapabilities() = getPrbsCapabilities(
+              CmisField::MEDIA_SUPPORTED_GENERATOR_PATTERNS,
+              CmisField::MEDIA_SUPPORTED_CHECKER_PATTERNS);
+        }
+        if (*diags.prbsSystem()) {
+          diags.prbsSystemCapabilities() = getPrbsCapabilities(
+              CmisField::HOST_SUPPORTED_GENERATOR_PATTERNS,
+              CmisField::HOST_SUPPORTED_CHECKER_PATTERNS);
+        }
+
+        readFromCacheOrHw(CmisField::DIAGNOSTIC_CAPABILITY, &data);
+        diags.snrLine() = data & FieldMasks::SNR_LINE_SUPPORT_MASK;
+        diags.snrSystem() = data & FieldMasks::SNR_SYS_SUPPORT_MASK;
       }
-      return caps;
-    };
 
-    uint8_t data;
-    readFromCacheOrHw(CmisField::VDM_DIAG_SUPPORT, &data);
-    diags.vdm() = (data & FieldMasks::VDM_SUPPORT_MASK) ? true : false;
-    diags.diagnostics() =
-        (data & FieldMasks::DIAGS_SUPPORT_MASK) ? true : false;
-
-    readFromCacheOrHw(CmisField::CDB_SUPPORT, &data);
-    diags.cdb() = (data & FieldMasks::CDB_SUPPORT_MASK) ? true : false;
-
-    readFromCacheOrHw(CmisField::TX_CONTROL_SUPPORT, &data);
-    diags.txOutputControl() =
-        (data & FieldMasks::TX_DISABLE_SUPPORT_MASK) ? true : false;
-    readFromCacheOrHw(CmisField::RX_CONTROL_SUPPORT, &data);
-    diags.rxOutputControl() =
-        (data & FieldMasks::RX_DISABLE_SUPPORT_MASK) ? true : false;
-
-    if (*diags.diagnostics()) {
-      readFromCacheOrHw(CmisField::LOOPBACK_CAPABILITY, &data);
-      diags.loopbackSystem() =
-          (data & FieldMasks::LOOPBACK_SYS_SUPPOR_MASK) ? true : false;
-      diags.loopbackLine() =
-          (data & FieldMasks::LOOPBACK_LINE_SUPPORT_MASK) ? true : false;
-
-      readFromCacheOrHw(CmisField::PATTERN_CHECKER_CAPABILITY, &data);
-      diags.prbsLine() =
-          (data & FieldMasks::PRBS_LINE_SUPPRT_MASK) ? true : false;
-      diags.prbsSystem() =
-          (data & FieldMasks::PRBS_SYS_SUPPRT_MASK) ? true : false;
-      if (*diags.prbsLine()) {
-        diags.prbsLineCapabilities() = getPrbsCapabilities(
-            CmisField::MEDIA_SUPPORTED_GENERATOR_PATTERNS,
-            CmisField::MEDIA_SUPPORTED_CHECKER_PATTERNS);
-      }
-      if (*diags.prbsSystem()) {
-        diags.prbsSystemCapabilities() = getPrbsCapabilities(
-            CmisField::HOST_SUPPORTED_GENERATOR_PATTERNS,
-            CmisField::HOST_SUPPORTED_CHECKER_PATTERNS);
+      if (*diags.vdm()) {
+        readCmisField(CmisField::VDM_GROUPS_SUPPORT, &data);
+        vdmSupportedGroupsMax_ = (data & VDM_GROUPS_SUPPORT_MASK) + 1;
       }
 
-      readFromCacheOrHw(CmisField::DIAGNOSTIC_CAPABILITY, &data);
-      diags.snrLine() = data & FieldMasks::SNR_LINE_SUPPORT_MASK;
-      diags.snrSystem() = data & FieldMasks::SNR_SYS_SUPPORT_MASK;
+      *diagsCapability = diags;
     }
-
-    if (*diags.vdm()) {
-      readCmisField(CmisField::VDM_GROUPS_SUPPORT, &data);
-      vdmSupportedGroupsMax_ = (data & VDM_GROUPS_SUPPORT_MASK) + 1;
-    }
-
-    *diagsCapability = diags;
   }
+  // Scan and update the VDM diags locations
+  updateVdmDiagsValLocation();
 }
 
 /*

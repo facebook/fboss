@@ -296,6 +296,7 @@ enum FieldMasks : uint8_t {
   SNR_LINE_SUPPORT_MASK = 0x20,
   SNR_SYS_SUPPORT_MASK = 0x10,
   VDM_GROUPS_SUPPORT_MASK = 0x03,
+  VDM_DESCRIPTOR_RESOURCE_MASK = 0x0f,
 };
 
 enum FieldBitShift : uint8_t {
