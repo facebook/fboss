@@ -17,22 +17,26 @@ enum ProductionFeature {
   ACL_PORT_IN_DISCARDS_COUNTER = 4,
   NULL_ROUTE_IN_DISCARDS_COUNTER = 5,
   EGRESS_FORWARDING_DISCARDS_COUNTER = 6,
+  PRBS = 7,
 }
 
 const list<ProductionFeature> tomahawkFeature = [
   ProductionFeature.CPU_RX_TX,
   ProductionFeature.L3_FORWARDING,
   ProductionFeature.NULL_ROUTE_IN_DISCARDS_COUNTER,
+  ProductionFeature.PRBS,
 ];
 const list<ProductionFeature> tomahawk3Feature = [
   ProductionFeature.CPU_RX_TX,
   ProductionFeature.L3_FORWARDING,
   ProductionFeature.NULL_ROUTE_IN_DISCARDS_COUNTER,
+  ProductionFeature.PRBS,
 ];
 const list<ProductionFeature> tomahawk4Feature = [
   ProductionFeature.CPU_RX_TX,
   ProductionFeature.L3_FORWARDING,
   ProductionFeature.NULL_ROUTE_IN_DISCARDS_COUNTER,
+  ProductionFeature.PRBS,
 ];
 const list<ProductionFeature> tomahawk5Feature = [
   ProductionFeature.CPU_RX_TX,
