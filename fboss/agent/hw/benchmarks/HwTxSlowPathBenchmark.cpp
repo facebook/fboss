@@ -90,14 +90,32 @@ BENCHMARK(runTxSlowPathBenchmark) {
       getOutPktsAndBytes(ensemble.get(), PortID(portUsed));
   auto timeBefore = std::chrono::steady_clock::now();
   // Let the packet flood warm up
-  std::this_thread::sleep_for(std::chrono::seconds(5));
-  auto [pktsAfter, bytesAfter] =
-      getOutPktsAndBytes(ensemble.get(), PortID(portUsed));
-  auto timeAfter = std::chrono::steady_clock::now();
+  std::this_thread::sleep_for(std::chrono::seconds(30));
   packetTxDone = true;
   t.join();
+  auto timeAfter = std::chrono::steady_clock::now();
   std::chrono::duration<double, std::milli> durationMillseconds =
       timeAfter - timeBefore;
+  auto pktsAfter = pktsBefore;
+  auto bytesAfter = bytesBefore;
+  auto kMaxIterations = 30;
+  // Wait for stats increment to stop. On some platforms it
+  // takes longer for port stats to reflect the sent bytes.
+  for (auto i = 0; i < kMaxIterations; ++i) {
+    auto pktsPrior = pktsAfter;
+    auto bytesPrior = bytesAfter;
+    std::tie(pktsAfter, bytesAfter) =
+        getOutPktsAndBytes(ensemble.get(), PortID(portUsed));
+    if (pktsPrior == pktsAfter && bytesPrior == bytesAfter) {
+      break;
+    }
+    XLOG(INFO) << " Stats still incrementing after iteration: " << i + 1;
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    if (i == kMaxIterations - 1) {
+      XLOG(INFO) << " Stats still incrementing after iteration: " << i + 1
+                 << " Reported TX pps maybe lower than actual pps";
+    }
+  }
   uint32_t pps = (static_cast<double>(pktsAfter - pktsBefore) /
                   durationMillseconds.count()) *
       1000;
