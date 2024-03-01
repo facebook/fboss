@@ -35,6 +35,8 @@ namespace folly {
 struct dynamic;
 }
 
+DECLARE_bool(flowletStatsEnable);
+
 namespace facebook::fboss {
 
 class SwitchState;

@@ -78,7 +78,10 @@ long BcmMultiPathNextHopTable::getEcmpEgressCount() const {
 HwFlowletStats BcmMultiPathNextHopTable::getHwFlowletStats() const {
   HwFlowletStats flowletStats;
   uint64_t l3EcmpDlbFailPackets = 0;
-  if (FLAGS_flowletSwitchingEnable) {
+  // TODO
+  // flowletStatsEnable flag is used to disable dlb stats collection
+  // temporarily while addressing S398583
+  if (FLAGS_flowletSwitchingEnable && FLAGS_flowletStatsEnable) {
     for (const auto& nextHopsAndEcmpHostInfo : getNextHops()) {
       auto& weakPtr = nextHopsAndEcmpHostInfo.second;
       auto ecmpHost = weakPtr.lock();
@@ -95,6 +98,13 @@ HwFlowletStats BcmMultiPathNextHopTable::getHwFlowletStats() const {
 
 std::vector<EcmpDetails> BcmMultiPathNextHopTable::getAllEcmpDetails() const {
   std::vector<EcmpDetails> ecmpDetails;
+  // TODO
+  // flowletStatsEnable flag is used to disable getting ecmp details
+  // temporarily while addressing S398583
+  if (!FLAGS_flowletStatsEnable) {
+    return ecmpDetails;
+  }
+
   for (const auto& nextHopsAndEcmpHostInfo : getNextHops()) {
     auto& weakPtr = nextHopsAndEcmpHostInfo.second;
     auto ecmpHost = weakPtr.lock();

@@ -47,6 +47,11 @@ DEFINE_int32(
     10,
     "Update phy info interval in seconds");
 
+DEFINE_bool(
+    flowletStatsEnable,
+    false,
+    "Flag to turn on flowlet stats collection for DLB");
+
 namespace {
 constexpr auto kBuildSdkVersion = "SDK Version";
 
