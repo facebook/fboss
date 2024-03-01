@@ -216,7 +216,7 @@ struct PatchApplier<apache::thrift::type_class::set<ValueTypeClass>> {
       }
     }
 
-    return PatchResult::OK;
+    return result;
   }
 };
 
