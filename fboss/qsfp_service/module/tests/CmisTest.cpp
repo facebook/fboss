@@ -639,6 +639,91 @@ TEST_F(CmisTest, cmis2x400GFr4TransceiverInfoTest) {
   EXPECT_TRUE(xcvr->isPrbsSupported(phy::Side::SYSTEM));
   EXPECT_TRUE(xcvr->isSnrSupported(phy::Side::LINE));
   EXPECT_TRUE(xcvr->isSnrSupported(phy::Side::SYSTEM));
+
+  auto vdmLocationInfo = xcvr->getVdmDiagsValLocation(SNR_MEDIA_IN);
+  EXPECT_TRUE(vdmLocationInfo.vdmConfImplementedByModule);
+  EXPECT_EQ(vdmLocationInfo.vdmValPage, static_cast<CmisPages>(0x24));
+  EXPECT_EQ(vdmLocationInfo.vdmValOffset, 128);
+  EXPECT_EQ(vdmLocationInfo.vdmValLength, 16);
+  vdmLocationInfo = xcvr->getVdmDiagsValLocation(PAM4_LTP_MEDIA_IN);
+  EXPECT_TRUE(vdmLocationInfo.vdmConfImplementedByModule);
+  EXPECT_EQ(vdmLocationInfo.vdmValPage, static_cast<CmisPages>(0x24));
+  EXPECT_EQ(vdmLocationInfo.vdmValOffset, 144);
+  EXPECT_EQ(vdmLocationInfo.vdmValLength, 16);
+  vdmLocationInfo = xcvr->getVdmDiagsValLocation(PRE_FEC_BER_MEDIA_IN_MAX);
+  EXPECT_TRUE(vdmLocationInfo.vdmConfImplementedByModule);
+  EXPECT_EQ(vdmLocationInfo.vdmValPage, static_cast<CmisPages>(0x24));
+  EXPECT_EQ(vdmLocationInfo.vdmValOffset, 160);
+  EXPECT_EQ(vdmLocationInfo.vdmValLength, 16);
+  vdmLocationInfo = xcvr->getVdmDiagsValLocation(PRE_FEC_BER_MEDIA_IN_AVG);
+  EXPECT_TRUE(vdmLocationInfo.vdmConfImplementedByModule);
+  EXPECT_EQ(vdmLocationInfo.vdmValPage, static_cast<CmisPages>(0x24));
+  EXPECT_EQ(vdmLocationInfo.vdmValOffset, 176);
+  EXPECT_EQ(vdmLocationInfo.vdmValLength, 16);
+  vdmLocationInfo = xcvr->getVdmDiagsValLocation(ERR_FRAME_MEDIA_IN_MAX);
+  EXPECT_TRUE(vdmLocationInfo.vdmConfImplementedByModule);
+  EXPECT_EQ(vdmLocationInfo.vdmValPage, static_cast<CmisPages>(0x24));
+  EXPECT_EQ(vdmLocationInfo.vdmValOffset, 192);
+  EXPECT_EQ(vdmLocationInfo.vdmValLength, 16);
+  vdmLocationInfo = xcvr->getVdmDiagsValLocation(ERR_FRAME_MEDIA_IN_AVG);
+  EXPECT_TRUE(vdmLocationInfo.vdmConfImplementedByModule);
+  EXPECT_EQ(vdmLocationInfo.vdmValPage, static_cast<CmisPages>(0x24));
+  EXPECT_EQ(vdmLocationInfo.vdmValOffset, 208);
+  EXPECT_EQ(vdmLocationInfo.vdmValLength, 16);
+  vdmLocationInfo = xcvr->getVdmDiagsValLocation(SNR_HOST_IN);
+  EXPECT_TRUE(vdmLocationInfo.vdmConfImplementedByModule);
+  EXPECT_EQ(vdmLocationInfo.vdmValPage, static_cast<CmisPages>(0x25));
+  EXPECT_EQ(vdmLocationInfo.vdmValOffset, 128);
+  EXPECT_EQ(vdmLocationInfo.vdmValLength, 16);
+  vdmLocationInfo = xcvr->getVdmDiagsValLocation(PRE_FEC_BER_HOST_IN_MAX);
+  EXPECT_TRUE(vdmLocationInfo.vdmConfImplementedByModule);
+  EXPECT_EQ(vdmLocationInfo.vdmValPage, static_cast<CmisPages>(0x25));
+  EXPECT_EQ(vdmLocationInfo.vdmValOffset, 160);
+  EXPECT_EQ(vdmLocationInfo.vdmValLength, 16);
+  vdmLocationInfo = xcvr->getVdmDiagsValLocation(PRE_FEC_BER_HOST_IN_AVG);
+  EXPECT_TRUE(vdmLocationInfo.vdmConfImplementedByModule);
+  EXPECT_EQ(vdmLocationInfo.vdmValPage, static_cast<CmisPages>(0x25));
+  EXPECT_EQ(vdmLocationInfo.vdmValOffset, 176);
+  EXPECT_EQ(vdmLocationInfo.vdmValLength, 16);
+  vdmLocationInfo = xcvr->getVdmDiagsValLocation(ERR_FRAME_HOST_IN_MAX);
+  EXPECT_TRUE(vdmLocationInfo.vdmConfImplementedByModule);
+  EXPECT_EQ(vdmLocationInfo.vdmValPage, static_cast<CmisPages>(0x25));
+  EXPECT_EQ(vdmLocationInfo.vdmValOffset, 192);
+  EXPECT_EQ(vdmLocationInfo.vdmValLength, 16);
+  vdmLocationInfo = xcvr->getVdmDiagsValLocation(ERR_FRAME_HOST_IN_AVG);
+  EXPECT_TRUE(vdmLocationInfo.vdmConfImplementedByModule);
+  EXPECT_EQ(vdmLocationInfo.vdmValPage, static_cast<CmisPages>(0x25));
+  EXPECT_EQ(vdmLocationInfo.vdmValOffset, 208);
+  EXPECT_EQ(vdmLocationInfo.vdmValLength, 16);
+  vdmLocationInfo =
+      xcvr->getVdmDiagsValLocation(PAM4_LEVEL0_STANDARD_DEVIATION_LINE);
+  EXPECT_TRUE(vdmLocationInfo.vdmConfImplementedByModule);
+  EXPECT_EQ(vdmLocationInfo.vdmValPage, static_cast<CmisPages>(0x26));
+  EXPECT_EQ(vdmLocationInfo.vdmValOffset, 128);
+  EXPECT_EQ(vdmLocationInfo.vdmValLength, 16);
+  vdmLocationInfo =
+      xcvr->getVdmDiagsValLocation(PAM4_LEVEL1_STANDARD_DEVIATION_LINE);
+  EXPECT_TRUE(vdmLocationInfo.vdmConfImplementedByModule);
+  EXPECT_EQ(vdmLocationInfo.vdmValPage, static_cast<CmisPages>(0x26));
+  EXPECT_EQ(vdmLocationInfo.vdmValOffset, 144);
+  EXPECT_EQ(vdmLocationInfo.vdmValLength, 16);
+  vdmLocationInfo =
+      xcvr->getVdmDiagsValLocation(PAM4_LEVEL2_STANDARD_DEVIATION_LINE);
+  EXPECT_TRUE(vdmLocationInfo.vdmConfImplementedByModule);
+  EXPECT_EQ(vdmLocationInfo.vdmValPage, static_cast<CmisPages>(0x26));
+  EXPECT_EQ(vdmLocationInfo.vdmValOffset, 160);
+  EXPECT_EQ(vdmLocationInfo.vdmValLength, 16);
+  vdmLocationInfo =
+      xcvr->getVdmDiagsValLocation(PAM4_LEVEL3_STANDARD_DEVIATION_LINE);
+  EXPECT_TRUE(vdmLocationInfo.vdmConfImplementedByModule);
+  EXPECT_EQ(vdmLocationInfo.vdmValPage, static_cast<CmisPages>(0x26));
+  EXPECT_EQ(vdmLocationInfo.vdmValOffset, 176);
+  EXPECT_EQ(vdmLocationInfo.vdmValLength, 16);
+  vdmLocationInfo = xcvr->getVdmDiagsValLocation(PAM4_MPI_LINE);
+  EXPECT_TRUE(vdmLocationInfo.vdmConfImplementedByModule);
+  EXPECT_EQ(vdmLocationInfo.vdmValPage, static_cast<CmisPages>(0x26));
+  EXPECT_EQ(vdmLocationInfo.vdmValOffset, 192);
+  EXPECT_EQ(vdmLocationInfo.vdmValLength, 16);
 }
 
 TEST_F(CmisTest, cmis2x400GDr4TransceiverInfoTest) {
