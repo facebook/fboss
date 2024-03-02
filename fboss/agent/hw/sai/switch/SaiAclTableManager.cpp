@@ -1355,6 +1355,7 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet()
     std::set<cfg::AclTableQualifier> jericho3Qualifiers = {
         cfg::AclTableQualifier::SRC_IPV6,
         cfg::AclTableQualifier::DST_IPV6,
+        cfg::AclTableQualifier::SRC_PORT,
         cfg::AclTableQualifier::DSCP,
         cfg::AclTableQualifier::TTL,
         cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR,
