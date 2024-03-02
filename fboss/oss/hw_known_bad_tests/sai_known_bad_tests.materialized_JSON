@@ -331,6 +331,9 @@
           "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppTest/0.*"
         },
         {
+          "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppAclTest.*"
+        },
+        {
           "test_name_regex": "HwUdfTest.*"
         },
         {
@@ -679,6 +682,9 @@
         },
         {
           "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppTest/0.*"
+        },
+        {
+          "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppAclTest.*"
         },
         {
           "test_name_regex": "HwUdfTest.*"
@@ -1266,6 +1272,9 @@
         },
         {
           "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppTest/0.*"
+        },
+        {
+          "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppAclTest.*"
         },
         {
           "test_name_regex": "HwUdfTest.*"
@@ -2635,6 +2644,9 @@
           "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppTest/0.*"
         },
         {
+          "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppAclTest.*"
+        },
+        {
           "test_name_regex": "HwTrafficPfcTest.*"
         },
         {
@@ -2980,6 +2992,9 @@
         },
         {
           "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppTest/0.*"
+        },
+        {
+          "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppAclTest.*"
         },
         {
           "test_name_regex": "warm_boot.HwHashPolarizationTests.fullXHalfHash"
@@ -3716,6 +3731,9 @@
           "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppTest/0.*"
         },
         {
+          "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppAclTest.*"
+        },
+        {
           "test_name_regex": "HwTrafficPfcTest.*"
         },
         {
@@ -4094,6 +4112,9 @@
         },
         {
           "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppTest/0.*"
+        },
+        {
+          "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppAclTest.*"
         },
         {
           "test_name_regex": "warm_boot.HwHashPolarizationTests.fullXHalfHash"
@@ -4887,6 +4908,9 @@
           "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppTest/0.*"
         },
         {
+          "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppAclTest.*"
+        },
+        {
           "test_name_regex": "HwTrafficPfcTest.*"
         },
         {
@@ -5241,6 +5265,9 @@
         },
         {
           "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppTest/0.*"
+        },
+        {
+          "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppAclTest.*"
         },
         {
           "test_name_regex": "warm_boot.HwHashPolarizationTests.fullXHalfHash"
@@ -5837,6 +5864,9 @@
         },
         {
           "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppTest/0.*"
+        },
+        {
+          "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppAclTest.*"
         },
         {
           "test_name_regex": "HwUdfTest.*"
@@ -6531,6 +6561,9 @@
           "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppTest/0.*"
         },
         {
+          "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppAclTest.*"
+        },
+        {
           "test_name_regex": "HwTrafficPfcTest.*"
         },
         {
@@ -6909,6 +6942,9 @@
         },
         {
           "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppTest/0.*"
+        },
+        {
+          "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppAclTest.*"
         },
         {
           "test_name_regex": "warm_boot.HwHashPolarizationTests.fullXHalfHash"
@@ -7531,6 +7567,9 @@
           "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppTest/0.*"
         },
         {
+          "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppAclTest.*"
+        },
+        {
           "test_name_regex": "HwUdfTest.*"
         },
         {
@@ -8074,6 +8113,9 @@
         },
         {
           "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppTest/0.*"
+        },
+        {
+          "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppAclTest.*"
         },
         {
           "test_name_regex": "HwUdfTest.*"
@@ -8834,6 +8876,9 @@
           "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppTest/0.*"
         },
         {
+          "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppAclTest.*"
+        },
+        {
           "test_name_regex": "HwTrafficPfcTest.*"
         },
         {
@@ -9188,6 +9233,9 @@
         },
         {
           "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppTest/0.*"
+        },
+        {
+          "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppAclTest.*"
         },
         {
           "test_name_regex": "warm_boot.HwHashPolarizationTests.fullXHalfHash"
@@ -9787,6 +9835,9 @@
         },
         {
           "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppTest/0.*"
+        },
+        {
+          "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppAclTest.*"
         },
         {
           "test_name_regex": "HwUdfTest.*"
@@ -10406,7 +10457,13 @@
           "test_name_regex": "HwAclCounterTest/[01].*Sport.*$"
         },
         {
+          "test_name_regex": "HwAclCounterTest/[01].*L4Dstport.*$"
+        },
+        {
           "test_name_regex": "HwVoqSwitchWithFabricPortsTest.fabricIsolate$"
+        },
+        {
+          "test_name_regex": "HwCoppAclTest.*$"
         },
         {
           "test_name_regex": "HwUdfTest.*$"
@@ -10753,7 +10810,13 @@
           "test_name_regex": "HwAclCounterTest/[01].*Sport.*$"
         },
         {
+          "test_name_regex": "HwAclCounterTest/[01].*L4Dstport.*$"
+        },
+        {
           "test_name_regex": "HwVoqSwitchWithFabricPortsTest.fabricIsolate$"
+        },
+        {
+          "test_name_regex": "HwCoppAclTest.*$"
         },
         {
           "test_name_regex": "HwUdfTest.*$"
@@ -11388,7 +11451,13 @@
           "test_name_regex": "HwAclCounterTest/[01].*Sport.*$"
         },
         {
+          "test_name_regex": "HwAclCounterTest/[01].*L4Dstport.*$"
+        },
+        {
           "test_name_regex": "HwVoqSwitchWithFabricPortsTest.fabricIsolate$"
+        },
+        {
+          "test_name_regex": "HwCoppAclTest.*$"
         },
         {
           "test_name_regex": "HwUdfTest.*$"
@@ -11747,7 +11816,13 @@
           "test_name_regex": "HwAclCounterTest/[01].*Sport.*$"
         },
         {
+          "test_name_regex": "HwAclCounterTest/[01].*L4Dstport.*$"
+        },
+        {
           "test_name_regex": "HwVoqSwitchWithFabricPortsTest.fabricIsolate$"
+        },
+        {
+          "test_name_regex": "HwCoppAclTest.*$"
         },
         {
           "test_name_regex": "HwUdfTest.*$"
