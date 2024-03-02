@@ -45,6 +45,8 @@ const std::string kSensorFieldName = "name";
 const std::string kLmsensorCommand = "sensors -j";
 
 auto constexpr kReadFailure = "sensor_read.{}.failure";
+auto constexpr kReadValue = "sensor_read.{}.value";
+auto constexpr kReadTotal = "sensor_read.total";
 auto constexpr kTotalReadFailure = "sensor_read.total.failures";
 auto constexpr kHasReadFailure = "sensor_read.has.failures";
 } // namespace
@@ -194,6 +196,11 @@ void SensorServiceImpl::getSensorDataFromPath() {
             sensorLiveData.path,
             *sensorLiveData.value);
         fb303::fbData->setCounter(fmt::format(kReadFailure, sensorName), 0);
+        if (sensorLiveData.value) {
+          fb303::fbData->setCounter(
+              fmt::format(kReadValue, sensorName), *sensorLiveData.value);
+        }
+
       } else {
         sensorLiveData.value = std::nullopt;
         sensorLiveData.timeStamp = std::nullopt;
@@ -206,6 +213,7 @@ void SensorServiceImpl::getSensorDataFromPath() {
       }
     }
     fb303::fbData->setCounter(kTotalReadFailure, readFailures);
+    fb303::fbData->setCounter(kReadTotal, liveDataTable.size());
     fb303::fbData->setCounter(kHasReadFailure, readFailures > 0 ? 1 : 0);
   });
 }
