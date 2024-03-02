@@ -190,7 +190,7 @@ void SensorServiceImpl::getSensorDataFromPath() {
           sensorLiveData.value = Utils::computeExpression(
               sensorLiveData.compute, *sensorLiveData.value);
         }
-        XLOG(INFO) << fmt::format(
+        XLOG(DBG1) << fmt::format(
             "{} ({}) : {}",
             sensorName,
             sensorLiveData.path,
@@ -204,7 +204,7 @@ void SensorServiceImpl::getSensorDataFromPath() {
       } else {
         sensorLiveData.value = std::nullopt;
         sensorLiveData.timeStamp = std::nullopt;
-        XLOG(INFO) << fmt::format(
+        XLOG(ERR) << fmt::format(
             "Could not read data for {} from {}",
             sensorName,
             sensorLiveData.path);
@@ -215,6 +215,10 @@ void SensorServiceImpl::getSensorDataFromPath() {
     fb303::fbData->setCounter(kTotalReadFailure, readFailures);
     fb303::fbData->setCounter(kReadTotal, liveDataTable.size());
     fb303::fbData->setCounter(kHasReadFailure, readFailures > 0 ? 1 : 0);
+    XLOG(INFO) << fmt::format(
+        "Processed {} Sensors. {} Failures.",
+        liveDataTable.size(),
+        readFailures);
   });
 }
 

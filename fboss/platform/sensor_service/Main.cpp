@@ -13,8 +13,6 @@ using namespace facebook;
 using namespace facebook::fboss::platform;
 using namespace facebook::fboss::platform::sensor_service;
 
-FOLLY_INIT_LOGGING_CONFIG("fboss=DBG2; default:async=true");
-
 int main(int argc, char** argv) {
   fb303::registerFollyLoggingOptionHandlers();
 
