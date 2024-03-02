@@ -17,6 +17,7 @@
 #include <thrift/lib/cpp/util/EnumUtils.h>
 #include <chrono>
 #include <cstdlib>
+#include <exception>
 #include <memory>
 
 DEFINE_bool(
@@ -619,13 +620,23 @@ void PhyManager::updatePortStats(
           if (auto lastXphyInfo = getXphyInfo(portID)) {
             lastPhyInfo = *lastXphyInfo;
           }
-          auto xphyPortInfo =
-              xphy->getPortInfo(systemLanes, lineLanes, lastPhyInfo);
-          xphyPortInfo.state()->name() = getPortName(portID);
-          xphyPortInfo.state()->speed() = programmedSpeed;
-          xphyPortInfo.stats()->ioStats() = xphy->getIOStats();
-          stats = phy::ExternalPhyPortStats::fromPhyInfo(xphyPortInfo);
-          updateXphyInfo(portID, std::move(xphyPortInfo));
+          phy::PhyInfo currentPhyInfo;
+          currentPhyInfo.state() = phy::PhyState();
+          currentPhyInfo.stats() = phy::PhyStats();
+
+          try {
+            currentPhyInfo =
+                xphy->getPortInfo(systemLanes, lineLanes, lastPhyInfo);
+          } catch (const std::exception& ex) {
+            XLOG(ERR) << getPortName(portID) << " getPortInfo failed with "
+                      << ex.what();
+          }
+
+          currentPhyInfo.state()->name() = getPortName(portID);
+          currentPhyInfo.state()->speed() = programmedSpeed;
+          currentPhyInfo.stats()->ioStats() = xphy->getIOStats();
+          stats = phy::ExternalPhyPortStats::fromPhyInfo(currentPhyInfo);
+          updateXphyInfo(portID, std::move(currentPhyInfo));
         } else {
           stats = xphy->getPortStats(systemLanes, lineLanes);
         }
