@@ -1443,6 +1443,22 @@ void CmisModule::updateVdmDiagsValLocation() {
   }
 }
 
+/*
+ * getVdmDiagsValLocation
+ *
+ * For a given VDM config type, this function returns the VDM data location
+ * values.
+ */
+CmisModule::VdmDiagsLocationStatus CmisModule::getVdmDiagsValLocation(
+    VdmConfigType vdmConf) const {
+  // Try to return VDM data location info now. If still no info available then
+  // return empty values
+  if (vdmConfigDataLocations_.find(vdmConf) == vdmConfigDataLocations_.end()) {
+    return CmisModule::VdmDiagsLocationStatus{};
+  }
+  return vdmConfigDataLocations_.at(vdmConf);
+}
+
 std::optional<VdmDiagsStats> CmisModule::getVdmDiagsStatsInfo() {
   VdmDiagsStats vdmStats;
   const uint8_t* data;

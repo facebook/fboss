@@ -135,6 +135,8 @@ class CmisModule : public QsfpModule {
       std::optional<const std::string> portName,
       phy::Side side) override;
 
+  VdmDiagsLocationStatus getVdmDiagsValLocation(VdmConfigType vdmConf) const;
+
  protected:
   // QSFP+ requires a bottom 128 byte page describing important monitoring
   // information, and then an upper 128 byte page with less frequently
