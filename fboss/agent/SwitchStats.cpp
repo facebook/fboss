@@ -485,7 +485,7 @@ SwitchStats::HwAgentStreamConnectionStatus::HwAgentStreamConnectionStatus(
               "switch.",
               switchIndex,
               ".",
-              "fsdb_event_sync_disconnects"),
+              "fdb_event_sync_disconnects"),
           SUM,
           RATE)),
       rxPktEventSinkDisconnects_(TLTimeseries(
