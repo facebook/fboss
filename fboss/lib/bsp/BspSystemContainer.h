@@ -22,9 +22,9 @@ class BspSystemContainer {
   // (BspSystemContainer) ctor will mmap the fpga which is required to do
   // read/write.
   explicit BspSystemContainer(std::unique_ptr<FpgaDevice> fpgaDevice);
-  explicit BspSystemContainer(std::unique_ptr<BspPlatformMapping> bspMapping);
 
-  void initializePimContainers();
+  // An expectation of this constructor is to initialize the Pim Containers
+  explicit BspSystemContainer(std::unique_ptr<BspPlatformMapping> bspMapping);
 
   BspPlatformMapping* getBspPlatformMapping() const {
     return bspMapping_.get();
@@ -106,6 +106,12 @@ class BspSystemContainer {
   virtual ~BspSystemContainer() {}
 
  protected:
+  // Initialize the PIM Containers. Must be called during
+  // construction of the BspSystemContainer class if a BSP
+  // mapping is passed. The reason for this is that any derived
+  // class can assume the PIM containers to be initialized
+  // once the BspSystemContainer is constructed.
+  void initializePimContainers();
   std::unique_ptr<BspPlatformMapping> bspMapping_;
 
  private:
