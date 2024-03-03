@@ -16,7 +16,7 @@
 #include <stdexcept>
 #include "fboss/agent/FbossError.h"
 #include "fboss/led_service/LedManager.h"
-#include "fboss/lib/bsp/BspSystemContainer.h"
+#include "fboss/lib/bsp/BspGenericSystemContainer.h"
 
 namespace facebook::fboss {
 
@@ -31,6 +31,14 @@ class BspLedManager : public LedManager {
  public:
   BspLedManager();
   virtual ~BspLedManager() override {}
+
+  // Initialize the system container and mapping
+  template <typename ContainerType, typename MappingType>
+  void init() {
+    bspSystemContainer_ =
+        BspGenericSystemContainer<ContainerType>::getInstance().get();
+    platformMapping_ = std::make_unique<MappingType>();
+  }
 
   // Forbidden copy constructor and assignment operator
   BspLedManager(BspLedManager const&) = delete;

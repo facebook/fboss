@@ -14,12 +14,7 @@ namespace facebook::fboss {
  * Montblanc platform
  */
 MontblancLedManager::MontblancLedManager() : BspLedManager() {
-  bspSystemContainer_ =
-      BspGenericSystemContainer<MontblancBspPlatformMapping>::getInstance()
-          .get();
-
-  platformMapping_ = std::make_unique<MontblancPlatformMapping>();
-
+  init<MontblancBspPlatformMapping, MontblancPlatformMapping>();
   XLOG(INFO) << "Created Montblanc BSP LED Manager";
 }
 

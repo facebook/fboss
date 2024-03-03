@@ -14,12 +14,7 @@ namespace facebook::fboss {
  * Meru800bia platform
  */
 Meru800biaLedManager::Meru800biaLedManager() : BspLedManager() {
-  bspSystemContainer_ =
-      BspGenericSystemContainer<Meru800biaBspPlatformMapping>::getInstance()
-          .get();
-
-  platformMapping_ = std::make_unique<Meru800biaPlatformMapping>();
-
+  init<Meru800biaBspPlatformMapping, Meru800biaPlatformMapping>();
   XLOG(INFO) << "Created Meru800bia BSP LED Manager";
 }
 

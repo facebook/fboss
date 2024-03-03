@@ -14,12 +14,7 @@ namespace facebook::fboss {
  * Morgan800cc platform
  */
 Morgan800ccLedManager::Morgan800ccLedManager() : BspLedManager() {
-  bspSystemContainer_ =
-      BspGenericSystemContainer<Morgan800ccBspPlatformMapping>::getInstance()
-          .get();
-
-  platformMapping_ = std::make_unique<Morgan800ccPlatformMapping>();
-
+  init<Morgan800ccBspPlatformMapping, Morgan800ccPlatformMapping>();
   XLOG(INFO) << "Created Morgan800cc BSP LED Manager";
 }
 
