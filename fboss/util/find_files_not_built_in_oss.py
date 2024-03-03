@@ -21,7 +21,7 @@ def get_expected_oss_files():
     expected_oss_files = []
 
     prefix_len = len(FBCODE_DIR) + 1  # strip off FBCODE_DIR/
-    for (dirpath, _, filenames) in os.walk(FBOSS_DIR):
+    for dirpath, _, filenames in os.walk(FBOSS_DIR):
         if "facebook" not in dirpath:
             source_files = [
                 os.path.join(dirpath[prefix_len:], f)

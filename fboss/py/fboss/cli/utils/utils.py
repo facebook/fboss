@@ -396,9 +396,9 @@ def fboss2_deprecate(fboss2_cmd: str, notes="", level=DeprecationLevel.WARN):
                     fboss2_warning.format(
                         fboss2_cmd=fboss2_cmd,
                         notes=extra_notes,
-                        status=f"{TTY_RED}disabled{TTY_RESET}"
-                        if removed
-                        else "deprecated",
+                        status=(
+                            f"{TTY_RED}disabled{TTY_RESET}" if removed else "deprecated"
+                        ),
                     ),
                     file=sys.stderr,
                 )

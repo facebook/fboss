@@ -353,12 +353,16 @@ class PortPrbsCmd(cmds.FbossCmd):
             print(
                 field_fmt.format(
                     lane_stats.laneId,
-                    "out-of-lock"
-                    if not lane_stats.locked
-                    else "{:.2e}".format(lane_stats.ber),
-                    "N/A"
-                    if lane_stats.maxBer < 0
-                    else "{:.2e}".format(lane_stats.maxBer),
+                    (
+                        "out-of-lock"
+                        if not lane_stats.locked
+                        else "{:.2e}".format(lane_stats.ber)
+                    ),
+                    (
+                        "N/A"
+                        if lane_stats.maxBer < 0
+                        else "{:.2e}".format(lane_stats.maxBer)
+                    ),
                     lane_stats.numLossOfLock,
                     "{:d}s".format(lane_stats.timeSinceLastLocked),
                     "{:d}s".format(lane_stats.timeSinceLastClear),
