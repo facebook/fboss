@@ -32,6 +32,8 @@ class SplitSwAgentInitializer : public SwAgentInitializer {
   void stopAgent(bool setupWarmboot, bool gracefulExit) override;
 
  private:
+  void exitForColdBoot();
+  void exitForWarmBoot();
   AgentDirectoryUtil agentDirectoryUtil_;
 };
 

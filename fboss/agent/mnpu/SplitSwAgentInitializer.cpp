@@ -59,15 +59,24 @@ void SplitSwAgentInitializer::handleExitSignal(bool gracefulExit) {
   }
 }
 
-void SplitSwAgentInitializer::stopAgent(bool setupWarmboot, bool gracefulExit) {
+void SplitSwAgentInitializer::stopAgent(
+    bool setupWarmboot,
+    bool /*gracefulExit*/) {
   if (setupWarmboot) {
-    handleExitSignal(gracefulExit);
+    exitForWarmBoot();
   } else {
-    sw_->stop(false /* gracefulStop */, true /* revertToMinAlpmState */);
-    sw_->getHwSwitchHandler()->stop();
-    stopServices();
-    initializer_.reset();
+    exitForColdBoot();
   }
 }
 
+void SplitSwAgentInitializer::exitForColdBoot() {
+  sw_->stop(false /* gracefulStop */, true /* revertToMinAlpmState */);
+  sw_->getHwSwitchHandler()->stop();
+  stopServices();
+  initializer_.reset();
+}
+
+void SplitSwAgentInitializer::exitForWarmBoot() {
+  handleExitSignal(true);
+}
 } // namespace facebook::fboss
