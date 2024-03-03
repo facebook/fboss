@@ -2398,8 +2398,7 @@ std::vector<sai_port_lane_latch_status_t> SaiPortManager::getRxSignalDetect(
     uint8_t numPmdLanes,
     PortID portID) const {
   if (!platform_->getAsic()->isSupported(
-          HwAsic::Feature::PMD_RX_SIGNAL_DETECT) ||
-      getPortType(portID) == cfg::PortType::MANAGEMENT_PORT) {
+          HwAsic::Feature::PMD_RX_SIGNAL_DETECT)) {
     return std::vector<sai_port_lane_latch_status_t>();
   }
 
