@@ -37,6 +37,7 @@ class BspLedManager : public LedManager {
   void init() {
     bspSystemContainer_ =
         BspGenericSystemContainer<ContainerType>::getInstance().get();
+    bspSystemContainer_->createBspLedContainers();
     platformMapping_ = std::make_unique<MappingType>();
   }
 

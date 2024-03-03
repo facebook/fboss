@@ -48,7 +48,10 @@ BspPimContainer::BspPimContainer(BspPimMapping& bspPimMapping)
             phyMapping.second,
             phyIOControllers_[*phyMapping.second.phyIOControllerId()].get()));
   }
-  for (auto ledMapping : *bspPimMapping.ledMapping()) {
+}
+
+void BspPimContainer::createBspLedContainers() {
+  for (auto ledMapping : *bspPimMapping_.ledMapping()) {
     ledContainers_.emplace(
         ledMapping.first, std::make_unique<BspLedContainer>(ledMapping.second));
   }

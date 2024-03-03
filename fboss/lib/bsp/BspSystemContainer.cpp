@@ -27,6 +27,12 @@ void BspSystemContainer::initializePimContainers() {
   }
 }
 
+void BspSystemContainer::createBspLedContainers() {
+  for (auto& [pimID, pimContainer] : pimContainers_) {
+    pimContainer->createBspLedContainers();
+  }
+}
+
 const BspPimContainer* BspSystemContainer::getPimContainerFromPimID(
     int pimID) const {
   CHECK(pimContainers_.find(pimID) != pimContainers_.end());

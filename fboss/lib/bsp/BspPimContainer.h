@@ -16,6 +16,7 @@ namespace fboss {
 class BspPimContainer : public MultiPimPlatformPimContainer {
  public:
   explicit BspPimContainer(BspPimMapping& bspPimMapping);
+  void createBspLedContainers();
   const BspTransceiverContainer* getTransceiverContainer(int tcvrID) const;
   const BspPhyContainer* getPhyContainerFromPhyID(int phyID) const;
   const BspPhyContainer* getPhyContainerFromMdioID(int mdioControllerID) const;

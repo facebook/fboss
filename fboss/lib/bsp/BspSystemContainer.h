@@ -34,6 +34,8 @@ class BspSystemContainer {
     return fpgaDevice_.get();
   }
 
+  void createBspLedContainers();
+
   const BspPimContainer* getPimContainerFromPimID(int pimID) const;
   const BspPimContainer* getPimContainerFromTcvrID(int tcvrID) const;
   BspDeviceMdioController* getMdioController(int pimID, int controllerID) const;
