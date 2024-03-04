@@ -595,8 +595,6 @@ class QsfpModule : public Transceiver {
       const std::string& portName,
       phy::Side side) const;
 
-  unsigned int moduleResetCounter_{0};
-
   // Due to the mismatch of ODS reporting frequency and the interval of us
   // reading transceiver data, some of the clear on read information may
   // be lost in this process and not being captured in the ODS time series.

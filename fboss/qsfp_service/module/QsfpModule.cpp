@@ -235,7 +235,6 @@ bool QsfpModule::upgradeFirmwareLocked(
 void QsfpModule::triggerModuleResetLocked() {
   getTransceiverManager()->getQsfpPlatformApi()->triggerQsfpHardReset(
       static_cast<unsigned int>(getID()) + 1);
-  moduleResetCounter_++;
 }
 
 // Note that this needs to be called while holding the
@@ -268,7 +267,6 @@ QsfpModule::detectPresenceLocked() {
     dirty_ = true;
     present_ = currentQsfpStatus;
     statusChanged = true;
-    moduleResetCounter_ = 0;
 
     // If a transceiver went from present to missing, clear the cached data.
     if (!present_) {
