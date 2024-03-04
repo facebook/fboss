@@ -624,4 +624,23 @@ TYPED_TEST(AgentCoppTest, CpuPortIpv6LinkLocalUcastIp) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
+TYPED_TEST(AgentCoppTest, Ipv6LinkLocalMcastNetworkControlDscpToHighPriQ) {
+  auto setup = [=, this]() { this->setup(); };
+
+  auto verify = [=, this]() {
+    const auto addresses = folly::make_array(
+        kIPv6LinkLocalMcastAbsoluteAddress, kIPv6LinkLocalMcastAddress);
+    for (const auto& address : addresses) {
+      this->sendTcpPktAndVerifyCpuQueue(
+          utility::getCoppHighPriQueueId(utility::getFirstAsic(this->getSw())),
+          address,
+          utility::kNonSpecialPort1,
+          utility::kNonSpecialPort2,
+          kMcastMacAddress,
+          kNetworkControlDscp);
+    }
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
