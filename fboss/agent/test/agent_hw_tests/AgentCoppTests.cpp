@@ -554,4 +554,40 @@ TYPED_TEST(AgentCoppTest, DstIpNetworkControlDscpToHighPriQ) {
 
   this->verifyAcrossWarmBoots(setup, verify);
 }
+
+TYPED_TEST(AgentCoppTest, Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ) {
+  auto setup = [=, this]() { this->setup(); };
+
+  auto verify = [=, this]() {
+    // Device link local unicast address + kNetworkControlDscp should use
+    // high-pri queue
+    {
+      XLOG(DBG2) << "send device link local packet";
+      const folly::IPAddressV6 linkLocalAddr = folly::IPAddressV6(
+          folly::IPAddressV6::LINK_LOCAL, utility::kLocalCpuMac());
+
+      this->sendTcpPktAndVerifyCpuQueue(
+          utility::getCoppHighPriQueueId(utility::getFirstAsic(this->getSw())),
+          linkLocalAddr,
+          utility::kNonSpecialPort1,
+          utility::kNonSpecialPort2,
+          std::nullopt,
+          kNetworkControlDscp);
+    }
+    // Non device link local unicast address + kNetworkControlDscp dscp should
+    // also use high-pri queue
+    {
+      XLOG(DBG2) << "send non-device link local packet";
+      this->sendTcpPktAndVerifyCpuQueue(
+          utility::getCoppHighPriQueueId(utility::getFirstAsic(this->getSw())),
+          kIPv6LinkLocalUcastAddress,
+          utility::kNonSpecialPort1,
+          utility::kNonSpecialPort2,
+          std::nullopt,
+          kNetworkControlDscp);
+    }
+  };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
 } // namespace facebook::fboss
