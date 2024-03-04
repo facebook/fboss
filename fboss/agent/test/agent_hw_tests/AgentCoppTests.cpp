@@ -268,6 +268,57 @@ class AgentCoppTest : public AgentHwTest {
 
     return outPkts;
   }
+
+  void sendUdpPkt(
+      const folly::IPAddress& dstIpAddress,
+      int l4SrcPort,
+      int l4DstPort,
+      uint8_t ttl,
+      bool outOfPort,
+      bool expectPktTrap) {
+    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+    // arbit
+    const auto srcIp =
+        folly::IPAddress(dstIpAddress.isV4() ? "1.1.1.2" : "1::10");
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+    auto txPacket = utility::makeUDPTxPacket(
+        getSw(),
+        vlanId,
+        srcMac,
+        intfMac,
+        srcIp,
+        dstIpAddress,
+        l4SrcPort,
+        l4DstPort,
+        0 /* dscp */,
+        ttl);
+
+    XLOG(DBG2) << "UDP packet Dump::"
+               << folly::hexDump(
+                      txPacket->buf()->data(), txPacket->buf()->length());
+    sendPkt(std::move(txPacket), outOfPort, expectPktTrap /*snoopAndVerify*/);
+  }
+
+  void sendUdpPktAndVerify(
+      int queueId,
+      const folly::IPAddress& dstIpAddress,
+      const int l4SrcPort,
+      const int l4DstPort,
+      bool expectPktTrap = true,
+      const int ttl = 255,
+      bool outOfPort = false) {
+    auto beforeOutPkts = getQueueOutPacketsWithRetry(
+        queueId, 0 /* retryTimes */, 0 /* expectedNumPkts */);
+    auto expectedPktDelta = expectPktTrap ? 1 : 0;
+    sendUdpPkt(
+        dstIpAddress, l4SrcPort, l4DstPort, ttl, outOfPort, expectPktTrap);
+    auto afterOutPkts = getQueueOutPacketsWithRetry(
+        queueId, kGetQueueOutPktsRetryTimes, beforeOutPkts + 1);
+    XLOG(DBG0) << "Queue=" << queueId << ", before pkts:" << beforeOutPkts
+               << ", after pkts:" << afterOutPkts;
+    EXPECT_EQ(expectedPktDelta, afterOutPkts - beforeOutPkts);
+  }
 };
 
 TYPED_TEST_SUITE(AgentCoppTest, TestTypes);
@@ -334,6 +385,67 @@ TYPED_TEST(AgentCoppTest, Ipv6LinkLocalMcastToMidPriQ) {
           utility::kNonSpecialPort1,
           utility::kNonSpecialPort2,
           kMcastMacAddress);
+
+      // Also high-pri queue should always be 0
+      EXPECT_EQ(
+          0,
+          this->getQueueOutPacketsWithRetry(
+              utility::getCoppHighPriQueueId(
+                  utility::getFirstAsic(this->getSw())),
+              kGetQueueOutPktsRetryTimes,
+              0));
+    }
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(AgentCoppTest, Ipv6LinkLocalMcastTxFromCpu) {
+  auto setup = [=, this]() { this->setup(); };
+
+  auto verify = [=, this]() {
+    // Intent of this test is to verify that
+    // link local ipv6 address is not looped back when sent from CPU
+    this->sendUdpPktAndVerify(
+        utility::kCoppMidPriQueueId,
+        folly::IPAddressV6("ff02::1"),
+        utility::kNonSpecialPort1,
+        utility::kNonSpecialPort2,
+        false /* expectPktTrap */);
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(AgentCoppTest, Ipv6LinkLocalUcastToMidPriQ) {
+  auto setup = [=, this]() { this->setup(); };
+
+  auto verify = [=, this]() {
+    // Device link local unicast address should use mid-pri queue
+    {
+      const folly::IPAddressV6 linkLocalAddr = folly::IPAddressV6(
+          folly::IPAddressV6::LINK_LOCAL, getLocalMacAddress());
+
+      this->sendTcpPktAndVerifyCpuQueue(
+          utility::kCoppMidPriQueueId,
+          linkLocalAddr,
+          utility::kNonSpecialPort1,
+          utility::kNonSpecialPort2);
+
+      // Also high-pri queue should always be 0
+      EXPECT_EQ(
+          0,
+          this->getQueueOutPacketsWithRetry(
+              utility::getCoppHighPriQueueId(
+                  utility::getFirstAsic(this->getSw())),
+              kGetQueueOutPktsRetryTimes,
+              0));
+    }
+    // Non device link local unicast address should also use mid-pri queue
+    {
+      this->sendTcpPktAndVerifyCpuQueue(
+          utility::kCoppMidPriQueueId,
+          kIPv6LinkLocalUcastAddress,
+          utility::kNonSpecialPort1,
+          utility::kNonSpecialPort2);
 
       // Also high-pri queue should always be 0
       EXPECT_EQ(
