@@ -33,6 +33,7 @@
 namespace facebook {
 namespace fboss {
 
+struct QsfpConfig;
 class TransceiverImpl;
 class TransceiverManager;
 
@@ -231,6 +232,8 @@ class QsfpModule : public Transceiver {
     return lastDownTime_.load();
   }
 
+  std::string getFwStorageHandle() const override;
+
   phy::PrbsStats getPortPrbsStats(const std::string& portName, phy::Side side)
       override;
 
@@ -288,7 +291,7 @@ class QsfpModule : public Transceiver {
   bool isTransceiverFeatureSupported(TransceiverFeature feature, phy::Side side)
       const;
 
-  bool requiresFirmwareUpgrade() const override;
+  bool requiresFirmwareUpgrade(const QsfpConfig* config) const override;
 
   void setTransceiverLoopback(
       const std::string& portName,
@@ -617,6 +620,11 @@ class QsfpModule : public Transceiver {
 
   void triggerModuleResetLocked();
 
+  // Returns the Firmware object from qsfp config for the given module.
+  // If there is no firmware in config, returns empty optional
+  virtual std::optional<cfg::Firmware> getFirmwareFromCfg(
+      const QsfpConfig* qsfpCfgRaw) const override;
+
  private:
   // no copy or assignment
   QsfpModule(QsfpModule const&) = delete;
@@ -662,10 +670,10 @@ class QsfpModule : public Transceiver {
       uint8_t data) override;
 
   bool upgradeFirmware(
-      const std::optional<cfg::Firmware>& fw = std::nullopt) override;
+      std::vector<std::unique_ptr<FbossFirmware>>& fwList) override;
 
   bool upgradeFirmwareLocked(
-      const std::optional<cfg::Firmware>& fw = std::nullopt);
+      std::vector<std::unique_ptr<FbossFirmware>>& fwList);
 
   /*
    * Perform logic OR operation to media lane signals in order to cache them
@@ -724,10 +732,6 @@ class QsfpModule : public Transceiver {
 
   std::unordered_map<std::string, std::set<uint8_t>> portNameToHostLanes_;
   std::unordered_map<std::string, std::set<uint8_t>> portNameToMediaLanes_;
-
-  // Returns the Firmware object from qsfp config for the given module.
-  // If there is no firmware in config, returns empty optional
-  std::optional<cfg::Firmware> getFirmwareFromCfg() const;
 
   time_t lastFwUpgradeStartTime_{0};
   time_t lastFwUpgradeEndTime_{0};

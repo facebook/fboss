@@ -17,6 +17,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/usb/TransceiverI2CApi.h"
+#include "fboss/qsfp_service/QsfpConfig.h"
 #include "fboss/qsfp_service/TransceiverManager.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 #include "fboss/qsfp_service/module/TransceiverImpl.h"
@@ -128,8 +129,8 @@ void QsfpModule::getQsfpValue(
   memcpy(data, ptr, length);
 }
 
-std::optional<cfg::Firmware> QsfpModule::getFirmwareFromCfg() const {
-  auto qsfpCfgRaw = getTransceiverManager()->getQsfpConfig();
+std::optional<cfg::Firmware> QsfpModule::getFirmwareFromCfg(
+    const QsfpConfig* qsfpCfgRaw) const {
   if (!qsfpCfgRaw) {
     QSFP_LOG(DBG4, this) << "qsfpConfig is NULL. No Firmware to return";
     return std::nullopt;
@@ -162,7 +163,7 @@ std::optional<cfg::Firmware> QsfpModule::getFirmwareFromCfg() const {
   return fwVersionInCfgIt->second;
 }
 
-bool QsfpModule::requiresFirmwareUpgrade() const {
+bool QsfpModule::requiresFirmwareUpgrade(const QsfpConfig* qsfpConfig) const {
   // Returns true if the current firmware revision is different than the one in
   // qsfp config
   auto cachedTcvrInfo = getTransceiverInfo();
@@ -180,7 +181,7 @@ bool QsfpModule::requiresFirmwareUpgrade() const {
     return false;
   }
 
-  auto fwFromConfig = getFirmwareFromCfg();
+  auto fwFromConfig = getFirmwareFromCfg(qsfpConfig);
   if (!fwFromConfig.has_value()) {
     QSFP_LOG(DBG4, this)
         << "Fw not available in config. Returning false from requiresFirmwareUpgrade";
@@ -210,12 +211,13 @@ bool QsfpModule::requiresFirmwareUpgrade() const {
   return false;
 }
 
-bool QsfpModule::upgradeFirmware(const std::optional<cfg::Firmware>& fw) {
+bool QsfpModule::upgradeFirmware(
+    std::vector<std::unique_ptr<FbossFirmware>>& fwList) {
   // Always use i2cEvb to program transceivers if there's an i2cEvb
   auto i2cEvb = qsfpImpl_->getI2cEventBase();
-  auto upgradeFwFn = [&, fw]() -> bool {
+  auto upgradeFwFn = [&]() -> bool {
     lock_guard<std::mutex> g(qsfpModuleMutex_);
-    return upgradeFirmwareLocked(fw);
+    return upgradeFirmwareLocked(fwList);
   };
 
   if (!i2cEvb) {
@@ -242,36 +244,21 @@ bool QsfpModule::upgradeFirmware(const std::optional<cfg::Firmware>& fw) {
   return fwUpgradeStatus;
 }
 
-bool QsfpModule::upgradeFirmwareLocked(const std::optional<cfg::Firmware>& fw) {
-  QSFP_LOG(INFO, this) << "Upgrading firmware";
-
-  cfg::Firmware fwToUpgrade;
-  if (fw.has_value()) {
-    fwToUpgrade = fw.value();
-  } else if (auto fwFromConfig = getFirmwareFromCfg()) {
-    QSFP_LOG(INFO, this) << "Upgrading firmware to the one in qsfp config";
-    fwToUpgrade = *fwFromConfig;
-  } else {
-    QSFP_LOG(ERR, this) << "No firmware version found to upgrade";
-    return false;
-  }
-
+std::string QsfpModule::getFwStorageHandle() const {
   auto cachedTcvrInfo = getTransceiverInfo();
   auto vendor = cachedTcvrInfo.tcvrState()->vendor();
   if (!vendor.has_value()) {
     QSFP_LOG(ERR, this)
         << "Vendor not set. Can't find the partnumber to upgrade";
-    return false;
+    return std::string();
   }
 
-  std::string fwStorageHandleName =
-      getFwStorageHandle(vendor->get_partNumber());
+  return getFwStorageHandle(vendor->get_partNumber());
+}
 
-  if (fwStorageHandleName.empty()) {
-    QSFP_LOG(ERR, this)
-        << "Can't find the fwStorage handle for this part number. Skipping fw upgrade";
-    return false;
-  }
+bool QsfpModule::upgradeFirmwareLocked(
+    std::vector<std::unique_ptr<FbossFirmware>>& fwList) {
+  QSFP_LOG(INFO, this) << "Upgrading firmware";
 
   bool fwUpgradeResult = true;
 
@@ -310,16 +297,8 @@ bool QsfpModule::upgradeFirmwareLocked(const std::optional<cfg::Firmware>& fw) {
     dirty_ = true;
 
     // Step 4: Upgrade Firmware
-    for (const auto& fwVersion : *fwToUpgrade.versions()) {
-      QSFP_LOG(INFO, this) << folly::sformat(
-          "Upgrading module firmware. Type={:s}, Version={:s}",
-          apache::thrift::util::enumNameSafe(*fwVersion.fwType()),
-          *fwVersion.version());
-
-      std::unique_ptr<FbossFirmware> fbossFw =
-          getTransceiverManager()->fwStorage()->getFirmware(
-              fwStorageHandleName, *fwVersion.version());
-      fwUpgradeResult &= upgradeFirmwareLockedImpl(std::move(fbossFw));
+    for (auto& fw : fwList) {
+      fwUpgradeResult &= upgradeFirmwareLockedImpl(std::move(fw));
     }
 
     // Trigger a hard reset of the transceiver to kick start the new firmware

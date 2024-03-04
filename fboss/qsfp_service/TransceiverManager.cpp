@@ -388,7 +388,7 @@ bool TransceiverManager::firmwareUpgradeRequired(TransceiverID id) {
 
   if (forceFirmwareUpgradeForTesting_ ||
       (tcvrIt != lockedTransceivers->end() && tcvrIt->second->isPresent() &&
-       tcvrIt->second->requiresFirmwareUpgrade())) {
+       tcvrIt->second->requiresFirmwareUpgrade(qsfpConfig_.get()))) {
     // If we are here, it means that this transceiver is present and has the
     // firmware version mismatch and hence requires upgrade
     // We also need to check that at any time one i2c evb should run firmware
@@ -417,6 +417,45 @@ bool TransceiverManager::firmwareUpgradeRequired(TransceiverID id) {
   return false;
 }
 
+bool TransceiverManager::upgradeFirmware(Transceiver& tcvr) {
+  std::optional<cfg::Firmware> fwFromConfig =
+      tcvr.getFirmwareFromCfg(qsfpConfig_.get());
+  if (fwFromConfig.has_value()) {
+    XLOG(INFO) << "Upgrading firmware to the one in qsfp config";
+  } else {
+    XLOG(ERR) << "No firmware version found to upgrade";
+    failedOpticsFwUpgradeCount_++;
+    return false;
+  }
+
+  std::string fwStorageHandleName = tcvr.getFwStorageHandle();
+  if (fwStorageHandleName.empty()) {
+    XLOG(ERR)
+        << "Can't find the fwStorage handle for this part number. Skipping fw upgrade";
+    failedOpticsFwUpgradeCount_++;
+    return false;
+  }
+
+  std::vector<std::unique_ptr<FbossFirmware>> fwList;
+
+  auto& fwVersions = *(fwFromConfig->versions());
+  for (const auto& fw : fwVersions) {
+    fwList.emplace_back(
+        fwStorage()->getFirmware(fwStorageHandleName, *fw.version()));
+
+    XLOG(INFO) << "Adding FW for upgrade: tcvr=" << tcvr.getID()
+               << " firmware. Type="
+               << apache::thrift::util::enumNameSafe(*fw.fwType())
+               << " Version=" << *fw.version();
+  }
+
+  if (tcvr.upgradeFirmware(fwList)) {
+    return true;
+  }
+
+  return false;
+}
+
 void TransceiverManager::doTransceiverFirmwareUpgrade(TransceiverID tcvrID) {
   std::vector<folly::Future<bool>> futResponses;
   auto lockedTransceivers = transceivers_.rlock();
@@ -438,7 +477,7 @@ void TransceiverManager::doTransceiverFirmwareUpgrade(TransceiverID tcvrID) {
   };
 
   updateStateInFsdb(true);
-  if (tcvrIt->second->upgradeFirmware()) {
+  if (upgradeFirmware(*tcvrIt->second)) {
     successfulOpticsFwUpgradeCount_++;
   } else {
     failedOpticsFwUpgradeCount_++;

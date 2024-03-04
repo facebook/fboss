@@ -9,6 +9,9 @@
  */
 #pragma once
 #include <cstdint>
+#include <vector>
+
+#include <folly/futures/Future.h>
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
@@ -16,8 +19,6 @@
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/qsfp_service_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
-
-#include <folly/futures/Future.h>
 
 namespace facebook {
 namespace fboss {
@@ -69,8 +70,10 @@ struct ProgramTransceiverState {
  * to support.  This supports, for now, QSFP and SFP.
  */
 
+struct QsfpConfig;
 struct TransceiverID;
 class TransceiverManager;
+class FbossFirmware;
 
 class Transceiver {
  public:
@@ -281,17 +284,23 @@ class Transceiver {
     return dirty_;
   }
 
-  virtual bool requiresFirmwareUpgrade() const = 0;
+  // Determine if transceiver FW requires upgrade.
+  // Transceiver has to be present, and the version in the QsfpConfig
+  // has to be different from whats already running in HW.
+  virtual bool requiresFirmwareUpgrade(const QsfpConfig* config) const = 0;
 
   // Blocking call to upgrade the firmware on the transceiver.
   // Returns true if successful, false otherwise.
-  // If fw is not specified, then the firmware image to upgrade is picked from
-  // the qsfp config
   virtual bool upgradeFirmware(
-      const std::optional<cfg::Firmware>& fw = std::nullopt) = 0;
+      std::vector<std::unique_ptr<FbossFirmware>>& fwList) = 0;
 
   virtual TransceiverInfo updateFwUpgradeStatusInTcvrInfoLocked(
       bool upgradeInProgress) = 0;
+
+  virtual std::optional<cfg::Firmware> getFirmwareFromCfg(
+      const QsfpConfig* qsfpCfgRaw) const = 0;
+
+  virtual std::string getFwStorageHandle() const = 0;
 
  protected:
   virtual void latchAndReadVdmDataLocked() = 0;
