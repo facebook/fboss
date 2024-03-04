@@ -448,7 +448,7 @@ Vendor Sff8472Module::getVendorInfo() {
   return vendor;
 }
 
-bool Sff8472Module::remediateFlakyTransceiver(
+void Sff8472Module::remediateFlakyTransceiver(
     bool /* allPortsDown */,
     const std::vector<std::string>& /* ports */) {
   QSFP_LOG(INFO, this) << "Performing potentially disruptive remediations";
@@ -463,7 +463,6 @@ bool Sff8472Module::remediateFlakyTransceiver(
   // Even though remediation might not trigger, we still need to update the
   // lastRemediateTime_ so that we can use cool down before next remediation
   lastRemediateTime_ = std::time(nullptr);
-  return true;
 }
 
 } // namespace fboss

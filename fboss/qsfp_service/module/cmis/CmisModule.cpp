@@ -2151,9 +2151,8 @@ bool CmisModule::checkLaneConfigError(
  * Put logic here that should only be run on ports that have been
  * down for a long time. These are actions that are potentially more
  * disruptive, but have worked in the past to recover a transceiver.
- * Always return true
  */
-bool CmisModule::remediateFlakyTransceiver(
+void CmisModule::remediateFlakyTransceiver(
     bool allPortsDown,
     const std::vector<std::string>& ports) {
   QSFP_LOG(INFO, this) << "allPortsDown = " << allPortsDown
@@ -2188,7 +2187,6 @@ bool CmisModule::remediateFlakyTransceiver(
 
   // Reset lastRemediateTime_ so we can use cool down before next remediation
   lastRemediateTime_ = std::time(nullptr);
-  return true;
 }
 
 void CmisModule::setPowerOverrideIfSupportedLocked(

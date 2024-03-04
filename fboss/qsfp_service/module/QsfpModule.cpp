@@ -1398,8 +1398,8 @@ bool QsfpModule::tryRemediateLocked(
     const std::vector<std::string>& ports) {
   // Only update numRemediation_ iff this transceiver should remediate and
   // remediation actually happens
-  if (shouldRemediateLocked(pauseRemidiation) &&
-      remediateFlakyTransceiver(allPortsDown, ports)) {
+  if (shouldRemediateLocked(pauseRemidiation)) {
+    remediateFlakyTransceiver(allPortsDown, ports);
     ++numRemediation_;
     // Remediation touches the hardware, hard resetting the optics in Cmis case,
     // so set dirty so that we always do a refresh in the next cycle and update
