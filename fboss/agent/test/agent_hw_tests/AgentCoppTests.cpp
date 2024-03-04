@@ -231,6 +231,43 @@ class AgentCoppTest : public AgentHwTest {
     utility::sendPktAndVerifyCpuQueue(
         getSw(), queueId, sendAndInspect, expectQueueHit ? kNumPktsToSend : 0);
   }
+
+  uint64_t getQueueOutPacketsWithRetry(
+      int queueId,
+      int retryTimes,
+      uint64_t expectedNumPkts,
+      int postMatchRetryTimes = 2) {
+    uint64_t outPkts = 0;
+    auto switchId = utility::getFirstSwitchId(getSw());
+    do {
+      for (auto i = 0;
+           i <= utility::getCoppHighPriQueueId(utility::getFirstAsic(getSw()));
+           i++) {
+        auto qOutPkts = utility::getCpuQueueInPackets(getSw(), switchId, i);
+        XLOG(DBG2) << "QueueID: " << i << " qOutPkts: " << qOutPkts;
+      }
+
+      outPkts = utility::getCpuQueueInPackets(getSw(), switchId, queueId);
+      if (retryTimes == 0 || (outPkts >= expectedNumPkts)) {
+        break;
+      }
+
+      /*
+       * Post warmboot, the packet always gets processed by the right CPU
+       * queue (as per ACL/rxreason etc.) but sometimes it is delayed.
+       * Retrying a few times to avoid test noise.
+       */
+      XLOG(DBG0) << "Retry...";
+      /* sleep override */
+      sleep(1);
+    } while (retryTimes-- > 0);
+
+    while ((outPkts == expectedNumPkts) && postMatchRetryTimes--) {
+      outPkts = utility::getCpuQueueInPackets(getSw(), switchId, queueId);
+    }
+
+    return outPkts;
+  }
 };
 
 TYPED_TEST_SUITE(AgentCoppTest, TestTypes);
@@ -258,4 +295,57 @@ TYPED_TEST(AgentCoppTest, LocalDstIpBgpPortToHighPriQ) {
 
   this->verifyAcrossWarmBoots(setup, verify);
 }
+
+TYPED_TEST(AgentCoppTest, LocalDstIpNonBgpPortToMidPriQ) {
+  auto setup = [=, this]() { this->setup(); };
+
+  auto verify = [=, this]() {
+    for (const auto& ipAddress : this->getIpAddrsToSendPktsTo()) {
+      this->sendTcpPktAndVerifyCpuQueue(
+          utility::kCoppMidPriQueueId,
+          folly::IPAddress::createNetwork(ipAddress, -1, false).first,
+          utility::kNonSpecialPort1,
+          utility::kNonSpecialPort2);
+
+      // Also high-pri queue should always be 0
+      EXPECT_EQ(
+          0,
+          this->getQueueOutPacketsWithRetry(
+              utility::getCoppHighPriQueueId(
+                  utility::getFirstAsic(this->getSw())),
+              kGetQueueOutPktsRetryTimes,
+              0));
+    }
+  };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(AgentCoppTest, Ipv6LinkLocalMcastToMidPriQ) {
+  auto setup = [=, this]() { this->setup(); };
+
+  auto verify = [=, this]() {
+    const auto addresses = folly::make_array(
+        kIPv6LinkLocalMcastAbsoluteAddress, kIPv6LinkLocalMcastAddress);
+    for (const auto& address : addresses) {
+      this->sendTcpPktAndVerifyCpuQueue(
+          utility::kCoppMidPriQueueId,
+          address,
+          utility::kNonSpecialPort1,
+          utility::kNonSpecialPort2,
+          kMcastMacAddress);
+
+      // Also high-pri queue should always be 0
+      EXPECT_EQ(
+          0,
+          this->getQueueOutPacketsWithRetry(
+              utility::getCoppHighPriQueueId(
+                  utility::getFirstAsic(this->getSw())),
+              kGetQueueOutPktsRetryTimes,
+              0));
+    }
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
