@@ -93,4 +93,11 @@ int16_t SwitchInfoTable::getSwitchIndexFromSwitchId(SwitchID switchId) const {
   return switchIdToSwitchInfo_.at(switchId).switchIndex().value();
 }
 
+cfg::SwitchInfo SwitchInfoTable::getSwitchInfo(SwitchID switchId) const {
+  auto swItr = switchIdToSwitchInfo_.find(switchId);
+  if (swItr == switchIdToSwitchInfo_.end()) {
+    throw FbossError("Could not find switchInfo for switch ID: ", switchId);
+  }
+  return swItr->second;
+}
 } // namespace facebook::fboss

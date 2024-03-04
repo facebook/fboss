@@ -24,6 +24,7 @@ class SwitchInfoTable {
     return switchIdToSwitchInfo_;
   }
   int16_t getSwitchIndexFromSwitchId(SwitchID switchId) const;
+  cfg::SwitchInfo getSwitchInfo(SwitchID switchId) const;
 
  private:
   std::map<SwitchID, cfg::SwitchInfo> switchIdToSwitchInfo_;
