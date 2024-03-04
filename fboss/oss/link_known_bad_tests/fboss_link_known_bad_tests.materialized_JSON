@@ -11156,6 +11156,9 @@
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
+          "test_name_regex": "PtpTests.verifyPtpTcDelayRequest"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -11219,6 +11222,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "PtpTests.verifyPtpTcDelayRequest"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
@@ -14108,6 +14114,9 @@
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
+          "test_name_regex": "PtpTests.verifyPtpTcDelayRequest"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
         }
     ],
@@ -14171,6 +14180,9 @@
         },
         {
           "test_name_regex": "PtpTests.verifyPtpTcAfterLinkFlap.*$"
+        },
+        {
+          "test_name_regex": "PtpTests.verifyPtpTcDelayRequest"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecCounters$"
