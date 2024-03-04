@@ -70,7 +70,6 @@ struct ProgramTransceiverState {
  * to support.  This supports, for now, QSFP and SFP.
  */
 
-struct QsfpConfig;
 struct TransceiverID;
 class TransceiverManager;
 class FbossFirmware;
@@ -284,11 +283,6 @@ class Transceiver {
     return dirty_;
   }
 
-  // Determine if transceiver FW requires upgrade.
-  // Transceiver has to be present, and the version in the QsfpConfig
-  // has to be different from whats already running in HW.
-  virtual bool requiresFirmwareUpgrade(const QsfpConfig* config) const = 0;
-
   // Blocking call to upgrade the firmware on the transceiver.
   // Returns true if successful, false otherwise.
   virtual bool upgradeFirmware(
@@ -296,9 +290,6 @@ class Transceiver {
 
   virtual TransceiverInfo updateFwUpgradeStatusInTcvrInfoLocked(
       bool upgradeInProgress) = 0;
-
-  virtual std::optional<cfg::Firmware> getFirmwareFromCfg(
-      const QsfpConfig* qsfpCfgRaw) const = 0;
 
   virtual std::string getFwStorageHandle() const = 0;
 

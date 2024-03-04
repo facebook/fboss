@@ -388,7 +388,7 @@ bool TransceiverManager::firmwareUpgradeRequired(TransceiverID id) {
 
   if (forceFirmwareUpgradeForTesting_ ||
       (tcvrIt != lockedTransceivers->end() && tcvrIt->second->isPresent() &&
-       tcvrIt->second->requiresFirmwareUpgrade(qsfpConfig_.get()))) {
+       requiresFirmwareUpgrade(*tcvrIt->second))) {
     // If we are here, it means that this transceiver is present and has the
     // firmware version mismatch and hence requires upgrade
     // We also need to check that at any time one i2c evb should run firmware
@@ -417,9 +417,89 @@ bool TransceiverManager::firmwareUpgradeRequired(TransceiverID id) {
   return false;
 }
 
+std::optional<cfg::Firmware> TransceiverManager::getFirmwareFromCfg(
+    Transceiver& tcvr) const {
+  if (!qsfpConfig_) {
+    XLOG(DBG4) << "qsfpConfig is NULL. No Firmware to return";
+    return std::nullopt;
+  }
+
+  const auto& qsfpCfg = qsfpConfig_->thrift;
+  auto qsfpCfgFw = qsfpCfg.transceiverFirmwareVersions();
+  if (!qsfpCfgFw.has_value()) {
+    XLOG(DBG4) << "transceiverFirmwareVersions is NULL. No Firmware to return";
+    return std::nullopt;
+  }
+
+  auto cachedTcvrInfo = tcvr.getTransceiverInfo();
+  auto vendor = cachedTcvrInfo.tcvrState()->vendor();
+  if (!vendor.has_value()) {
+    XLOG(DBG4) << "Vendor not set. No Firmware to return";
+    return std::nullopt;
+  }
+
+  auto fwVersionInCfgIt =
+      qsfpCfgFw->versionsMap()->find(vendor->get_partNumber());
+  if (fwVersionInCfgIt == qsfpCfgFw->versionsMap()->end()) {
+    XLOG(DBG4) << folly::sformat(
+        "transceiverFirmwareVersions doesn't have a firmware version for part number {:s}.  No Firmware to return",
+        vendor->get_partNumber());
+    return std::nullopt;
+  }
+
+  return fwVersionInCfgIt->second;
+}
+
+bool TransceiverManager::requiresFirmwareUpgrade(Transceiver& tcvr) const {
+  // Returns true if the current firmware revision is different than the one in
+  // qsfp config
+  auto cachedTcvrInfo = tcvr.getTransceiverInfo();
+  auto moduleStatus = cachedTcvrInfo.tcvrState()->status();
+  if (!moduleStatus.has_value()) {
+    XLOG(DBG4)
+        << "moduleStatus not set. Returning false from requiresFirmwareUpgrade";
+    return false;
+  }
+
+  auto fwStatus = moduleStatus->fwStatus();
+  if (!fwStatus.has_value()) {
+    XLOG(DBG4)
+        << "fwStatus not set. Returning false from requiresFirmwareUpgrade";
+    return false;
+  }
+
+  auto fwFromConfig = getFirmwareFromCfg(tcvr);
+  if (!fwFromConfig.has_value()) {
+    XLOG(DBG4)
+        << "Fw not available in config. Returning false from requiresFirmwareUpgrade";
+    return false;
+  }
+
+  for (auto fwIt : *fwFromConfig->versions()) {
+    if (fwIt.get_fwType() == cfg::FirmwareType::APPLICATION &&
+        fwStatus->version() && fwIt.get_version() != *fwStatus->version()) {
+      XLOG(INFO) << "Application Version in cfg=" << fwIt.get_version()
+                 << " current operational version= " << *fwStatus->version()
+                 << ". Returning true from requiresFirmwareUpgrade for tcvr="
+                 << tcvr.getID();
+      return true;
+    }
+    if (fwIt.get_fwType() == cfg::FirmwareType::DSP && fwStatus->dspFwVer() &&
+        fwIt.get_version() != *fwStatus->dspFwVer()) {
+      XLOG(INFO) << "DSP Version in cfg=" << fwIt.get_version()
+                 << " current operational version= " << *fwStatus->dspFwVer()
+                 << ". Returning true from requiresFirmwareUpgrade for tcvr="
+                 << tcvr.getID();
+      return true;
+    }
+  }
+
+  // Versions match. No need to upgrade firmware
+  return false;
+}
+
 bool TransceiverManager::upgradeFirmware(Transceiver& tcvr) {
-  std::optional<cfg::Firmware> fwFromConfig =
-      tcvr.getFirmwareFromCfg(qsfpConfig_.get());
+  std::optional<cfg::Firmware> fwFromConfig = getFirmwareFromCfg(tcvr);
   if (fwFromConfig.has_value()) {
     XLOG(INFO) << "Upgrading firmware to the one in qsfp config";
   } else {

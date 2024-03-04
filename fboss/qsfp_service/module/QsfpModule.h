@@ -291,8 +291,6 @@ class QsfpModule : public Transceiver {
   bool isTransceiverFeatureSupported(TransceiverFeature feature, phy::Side side)
       const;
 
-  bool requiresFirmwareUpgrade(const QsfpConfig* config) const override;
-
   void setTransceiverLoopback(
       const std::string& portName,
       phy::Side side,
@@ -619,11 +617,6 @@ class QsfpModule : public Transceiver {
   }
 
   void triggerModuleResetLocked();
-
-  // Returns the Firmware object from qsfp config for the given module.
-  // If there is no firmware in config, returns empty optional
-  virtual std::optional<cfg::Firmware> getFirmwareFromCfg(
-      const QsfpConfig* qsfpCfgRaw) const override;
 
  private:
   // no copy or assignment

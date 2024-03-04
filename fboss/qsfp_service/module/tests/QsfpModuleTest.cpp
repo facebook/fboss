@@ -487,31 +487,31 @@ TEST_F(QsfpModuleTest, requiresFirmwareUpgrade) {
   // Test empty fw status
   transceiverManager_->refreshStateMachines();
   qsfp_->useActualGetTransceiverInfo();
-  EXPECT_FALSE(qsfp_->requiresFirmwareUpgrade(qsfp_config));
+  EXPECT_FALSE(transceiverManager_->requiresFirmwareUpgrade(*qsfp_));
 
   // Test app fw status mismatch
   qsfp_->setAppFwVersion(getFakeAppFwVersion());
   transceiverManager_->refreshStateMachines();
   qsfp_->useActualGetTransceiverInfo();
-  EXPECT_FALSE(qsfp_->requiresFirmwareUpgrade(qsfp_config));
+  EXPECT_FALSE(transceiverManager_->requiresFirmwareUpgrade(*qsfp_));
 
   // Test app fw status mismatch
   qsfp_->setAppFwVersion("foo");
   transceiverManager_->refreshStateMachines();
   qsfp_->useActualGetTransceiverInfo();
-  EXPECT_TRUE(qsfp_->requiresFirmwareUpgrade(qsfp_config));
+  EXPECT_TRUE(transceiverManager_->requiresFirmwareUpgrade(*qsfp_));
 
   // Test dsp fw status match
   qsfp_->setDspFwVersion(getFakeDspFwVersion());
   transceiverManager_->refreshStateMachines();
   qsfp_->useActualGetTransceiverInfo();
-  EXPECT_FALSE(qsfp_->requiresFirmwareUpgrade(qsfp_config));
+  EXPECT_FALSE(transceiverManager_->requiresFirmwareUpgrade(*qsfp_));
 
   // Test dsp fw status mismatch
   qsfp_->setDspFwVersion("bar");
   transceiverManager_->refreshStateMachines();
   qsfp_->useActualGetTransceiverInfo();
-  EXPECT_TRUE(qsfp_->requiresFirmwareUpgrade(qsfp_config));
+  EXPECT_TRUE(transceiverManager_->requiresFirmwareUpgrade(*qsfp_));
 }
 
 } // namespace facebook::fboss

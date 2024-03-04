@@ -508,6 +508,11 @@ class TransceiverManager {
 
   virtual TransceiverI2CApi* i2cBus() = 0;
 
+  // Determine if transceiver FW requires upgrade.
+  // Transceiver has to be present, and the version in the QsfpConfig
+  // has to be different from whats already running in HW.
+  bool requiresFirmwareUpgrade(Transceiver& tcvr) const;
+
  protected:
   /*
    * Check to see if we can attempt a warm boot.
@@ -710,6 +715,10 @@ class TransceiverManager {
   void restoreAgentConfigAppliedInfo();
 
   bool upgradeFirmware(Transceiver& tcvr);
+
+  // Returns the Firmware object from qsfp config for the given module.
+  // If there is no firmware in config, returns empty optional
+  std::optional<cfg::Firmware> getFirmwareFromCfg(Transceiver& tcvr) const;
 
   // TEST ONLY
   // This private map is an override of agent getPortStatus()
