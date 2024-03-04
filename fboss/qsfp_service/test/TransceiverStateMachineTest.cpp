@@ -81,8 +81,9 @@ class MockCmisModule : public CmisModule {
  public:
   explicit MockCmisModule(
       TransceiverManager* transceiverManager,
-      MockCmisTransceiverImpl* qsfpImpl)
-      : CmisModule(transceiverManager, qsfpImpl) {
+      MockCmisTransceiverImpl* qsfpImpl,
+      std::shared_ptr<const TransceiverConfig> cfgPtr)
+      : CmisModule(transceiverManager, qsfpImpl, cfgPtr) {
     ON_CALL(*this, updateQsfpData(testing::_))
         .WillByDefault(testing::Assign(&dirty_, false));
     ON_CALL(*this, ensureTransceiverReadyLocked())
@@ -157,7 +158,9 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
         return transceiverManager_->overrideTransceiverForTesting(
             id_,
             std::make_unique<MockCmisModule>(
-                transceiverManager_.get(), cmisQsfpImpls_.back().get()));
+                transceiverManager_.get(),
+                cmisQsfpImpls_.back().get(),
+                tcvrConfig_));
       } else {
         XLOG(INFO) << "Making CMIS QSFP for " << id_;
         std::unique_ptr<FakeTransceiverImpl> xcvrImpl;
@@ -170,7 +173,9 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
         return transceiverManager_->overrideTransceiverForTesting(
             id_,
             std::make_unique<CmisModule>(
-                transceiverManager_.get(), qsfpImpls_.back().get()));
+                transceiverManager_.get(),
+                qsfpImpls_.back().get(),
+                tcvrConfig_));
       }
     };
 
@@ -184,7 +189,7 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
       auto xcvr = transceiverManager_->overrideTransceiverForTesting(
           id_,
           std::make_unique<MockSffModule>(
-              transceiverManager_.get(), qsfpImpls_.back().get()));
+              transceiverManager_.get(), qsfpImpls_.back().get(), tcvrConfig_));
       return xcvr;
     };
 
@@ -2016,7 +2021,9 @@ TEST_F(TransceiverStateMachineTest, reseatTransceiver) {
           transceiverManager_->overrideTransceiverForTesting(
               id_,
               std::make_unique<MockCmisModule>(
-                  transceiverManager_.get(), cmisQsfpImpls_.back().get())));
+                  transceiverManager_.get(),
+                  cmisQsfpImpls_.back().get(),
+                  tcvrConfig_)));
     }
 
     // Check this refreshStateMachines will:

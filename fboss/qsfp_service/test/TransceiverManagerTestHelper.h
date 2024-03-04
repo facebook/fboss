@@ -30,6 +30,7 @@ class TransceiverManagerTestHelper : public ::testing::Test {
   std::string qsfpCfgPath = qsfpSvcVolatileDir + "/fakeQsfpConfig";
 
   std::unique_ptr<MockWedgeManager> transceiverManager_;
+  std::shared_ptr<const TransceiverConfig> tcvrConfig_;
 
   std::string getFakePartNumber() const {
     return "FAKE";

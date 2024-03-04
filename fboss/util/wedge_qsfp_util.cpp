@@ -1134,9 +1134,10 @@ DOMDataUnion fetchDataFromLocalI2CBus(
   // port is 1 based and WedgeQsfp is 0 based.
   auto qsfpImpl = std::make_unique<WedgeQsfp>(port - 1, i2cInfo.bus);
   auto mgmtInterface = qsfpImpl->getTransceiverManagementInterface();
+  auto cfgPtr = i2cInfo.transceiverManager->getTransceiverConfig();
   if (mgmtInterface == TransceiverManagementInterface::CMIS) {
     auto cmisModule = std::make_unique<CmisModule>(
-        i2cInfo.transceiverManager, qsfpImpl.get());
+        i2cInfo.transceiverManager, qsfpImpl.get(), cfgPtr);
     try {
       cmisModule->refresh();
     } catch (FbossError& e) {
@@ -1146,8 +1147,8 @@ DOMDataUnion fetchDataFromLocalI2CBus(
     }
     return cmisModule->getDOMDataUnion();
   } else if (mgmtInterface == TransceiverManagementInterface::SFF) {
-    auto sffModule =
-        std::make_unique<SffModule>(i2cInfo.transceiverManager, qsfpImpl.get());
+    auto sffModule = std::make_unique<SffModule>(
+        i2cInfo.transceiverManager, qsfpImpl.get(), cfgPtr);
     sffModule->refresh();
     return sffModule->getDOMDataUnion();
   } else {

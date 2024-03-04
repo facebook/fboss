@@ -510,8 +510,9 @@ CmisModule::getApplicationField(uint8_t application, uint8_t startHostLane)
 
 CmisModule::CmisModule(
     TransceiverManager* transceiverManager,
-    TransceiverImpl* qsfpImpl)
-    : QsfpModule(transceiverManager, qsfpImpl) {}
+    TransceiverImpl* qsfpImpl,
+    std::shared_ptr<const TransceiverConfig> cfg)
+    : QsfpModule(transceiverManager, qsfpImpl), tcvrConfig_(std::move(cfg)) {}
 
 CmisModule::~CmisModule() {}
 
@@ -2382,19 +2383,13 @@ void CmisModule::configureModule(uint8_t startHostLane) {
                        << apache::thrift::util::enumNameSafe(appCode)
                        << " starting on host lane " << startHostLane;
 
-  if (!getTransceiverManager()->getQsfpConfig()) {
-    QSFP_LOG(ERR, this) << "qsfpConfig is NULL, skipping module configuration";
-    return;
-  }
-
   auto moduleFactor = getModuleConfigOverrideFactor(
       std::nullopt, // Part Number : TODO: Read and cache tcvrPartNumber
       appCode // Application code
   );
 
   // Set the Rx equalizer setting based on QSFP config
-  const auto& qsfpCfg = getTransceiverManager()->getQsfpConfig()->thrift;
-  for (const auto& override : *qsfpCfg.transceiverConfigOverrides()) {
+  for (const auto& override : tcvrConfig_->overridesConfig_) {
     // Check if there is an override for all kinds of transceivers or
     // an override for the current application code(speed)
     if (overrideFactorMatchFound(

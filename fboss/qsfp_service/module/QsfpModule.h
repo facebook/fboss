@@ -53,6 +53,14 @@ class QsfpModuleError : public std::exception {
   std::string what_;
 };
 
+using TransceiverOverrides = std::vector<cfg::TransceiverConfigOverride>;
+
+struct TransceiverConfig {
+  explicit TransceiverConfig(const TransceiverOverrides& overrides)
+      : overridesConfig_(overrides) {}
+  TransceiverOverrides overridesConfig_;
+};
+
 /*
  * This is the QSFP class which will be storing the QSFP EEPROM
  * data from the address 0xA0 which is static data. The class

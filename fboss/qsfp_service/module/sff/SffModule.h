@@ -25,7 +25,8 @@ class SffModule : public QsfpModule {
  public:
   explicit SffModule(
       TransceiverManager* transceiverManager,
-      TransceiverImpl* qsfpImpl);
+      TransceiverImpl* qsfpImpl,
+      std::shared_ptr<const TransceiverConfig> cfg);
   virtual ~SffModule() override;
 
   /*
@@ -503,6 +504,8 @@ class SffModule : public QsfpModule {
    */
   folly::Synchronized<PrbsBitCount> systemPrbsSnapshot_;
   folly::Synchronized<PrbsBitCount> linePrbsSnapshot_;
+
+  const std::shared_ptr<const TransceiverConfig> tcvrConfig_;
 };
 
 } // namespace fboss

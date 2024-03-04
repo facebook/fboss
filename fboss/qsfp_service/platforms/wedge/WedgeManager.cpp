@@ -82,8 +82,12 @@ WedgeManager::~WedgeManager() {
 void WedgeManager::loadConfig() {
   // Process QSFP config here
   qsfpConfig_ = QsfpConfig::fromDefaultFile();
+  const auto& qsfpCfg = qsfpConfig_->thrift;
+  tcvrConfig_ = std::make_shared<TransceiverConfig>(
+      *qsfpCfg.transceiverConfigOverrides());
+
   if (FLAGS_publish_state_to_fsdb) {
-    fsdbSyncManager_->updateConfig(qsfpConfig_->thrift);
+    fsdbSyncManager_->updateConfig(qsfpCfg);
     // We should only start the fsdbSyncManager_ once. isSystemInitialized is
     // the flag for us to know whether this is the first time or not. In tests,
     // we call loadConfig again and adding this check avoids the sync manager to
@@ -542,18 +546,21 @@ void WedgeManager::updateTransceiverMap() {
       lockedTransceiversWPtr->erase(TransceiverID(idx));
     }
 
+    auto tcvrConfig = getTransceiverConfig();
     for (auto idx : tcvrsToCreate) {
       if (futInterfaces[idx].value() == TransceiverManagementInterface::CMIS) {
         XLOG(INFO) << "Making CMIS QSFP for TransceiverID=" << idx;
         lockedTransceiversWPtr->emplace(
             TransceiverID(idx),
-            std::make_unique<CmisModule>(this, qsfpImpls_[idx].get()));
+            std::make_unique<CmisModule>(
+                this, qsfpImpls_[idx].get(), tcvrConfig));
       } else if (
           futInterfaces[idx].value() == TransceiverManagementInterface::SFF) {
         XLOG(INFO) << "Making Sff QSFP for TransceiverID=" << idx;
         lockedTransceiversWPtr->emplace(
             TransceiverID(idx),
-            std::make_unique<SffModule>(this, qsfpImpls_[idx].get()));
+            std::make_unique<SffModule>(
+                this, qsfpImpls_[idx].get(), tcvrConfig));
       } else if (
           futInterfaces[idx].value() ==
           TransceiverManagementInterface::SFF8472) {

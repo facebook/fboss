@@ -66,7 +66,8 @@ class CmisModule : public QsfpModule {
  public:
   explicit CmisModule(
       TransceiverManager* transceiverManager,
-      TransceiverImpl* qsfpImpl);
+      TransceiverImpl* qsfpImpl,
+      std::shared_ptr<const TransceiverConfig> cfg);
   virtual ~CmisModule() override;
 
   struct ApplicationAdvertisingField {
@@ -528,6 +529,8 @@ class CmisModule : public QsfpModule {
       bool forcedReadFromHw = false);
 
   void updateVdmDiagsValLocation();
+
+  const std::shared_ptr<const TransceiverConfig> tcvrConfig_;
 };
 
 } // namespace fboss

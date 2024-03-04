@@ -40,6 +40,9 @@ DECLARE_string(qsfp_service_volatile_dir);
 DECLARE_bool(can_qsfp_service_warm_boot);
 
 namespace facebook::fboss {
+
+struct TransceiverConfig;
+
 struct NpuPortStatus {
   int portId;
   bool operState; // true for link up, false for link down
@@ -221,6 +224,14 @@ class TransceiverManager {
   const QsfpConfig* getQsfpConfig() const {
     return qsfpConfig_.get();
   };
+
+  // Return a shared pointer to the transceiver config.
+  // This is initialized during config loading in WedgeManager.
+  // All transceivers will share the same transceiver config.
+  std::shared_ptr<const TransceiverConfig> getTransceiverConfig() const {
+    return tcvrConfig_;
+  }
+
   virtual std::vector<PortID> getMacsecCapablePorts() const = 0;
 
   virtual std::string listHwObjects(
@@ -587,6 +598,8 @@ class TransceiverManager {
   mutable PortNameMap portNameToModule_;
   PortGroups portGroupMap_;
   std::unique_ptr<QsfpConfig> qsfpConfig_;
+  std::shared_ptr<const TransceiverConfig> tcvrConfig_;
+
   // For platforms that needs to program xphy
   std::unique_ptr<PhyManager> phyManager_;
 

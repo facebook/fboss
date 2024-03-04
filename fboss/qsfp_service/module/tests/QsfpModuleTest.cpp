@@ -42,7 +42,9 @@ class QsfpModuleTest : public TransceiverManagerTestHelper {
         transceiverManager_->overrideTransceiverForTesting(
             kTcvrID,
             std::make_unique<MockSffModule>(
-                transceiverManager_.get(), qsfpImpls_.back().get())));
+                transceiverManager_.get(),
+                qsfpImpls_.back().get(),
+                tcvrConfig_)));
     qsfp_->setVendorPN();
 
     gflags::SetCommandLineOptionWithMode(

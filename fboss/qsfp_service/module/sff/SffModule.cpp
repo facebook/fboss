@@ -183,8 +183,9 @@ void getQsfpFieldAddress(
 
 SffModule::SffModule(
     TransceiverManager* transceiverManager,
-    TransceiverImpl* qsfpImpl)
-    : QsfpModule(transceiverManager, qsfpImpl) {}
+    TransceiverImpl* qsfpImpl,
+    std::shared_ptr<const TransceiverConfig> cfg)
+    : QsfpModule(transceiverManager, qsfpImpl), tcvrConfig_(std::move(cfg)) {}
 
 SffModule::~SffModule() {}
 
@@ -1379,8 +1380,7 @@ void SffModule::overwriteChannelControlSettings() {
   // Set the Equalizer setting based on QSFP config.
   // TODO: Skip configuring settings if the current values are same as what we
   // want to configure
-  const auto& qsfpCfg = getTransceiverManager()->getQsfpConfig()->thrift;
-  for (const auto& override : *qsfpCfg.transceiverConfigOverrides()) {
+  for (const auto& override : tcvrConfig_->overridesConfig_) {
     // Check if this override factor requires overriding TxEqualization
     if (auto txEqualization = sffTxEqualizationOverride(*override.config())) {
       auto settingValue = getSettingForAllLanes(*txEqualization);

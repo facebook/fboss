@@ -40,6 +40,7 @@ void TransceiverManagerTestHelper::SetUp() {
   transceiverManager_ =
       std::make_unique<MockWedgeManager>(numModules, 8 /* portsPerModule */);
   transceiverManager_->init();
+  tcvrConfig_ = transceiverManager_->getTransceiverConfig();
 }
 
 void TransceiverManagerTestHelper::resetTransceiverManager() {
