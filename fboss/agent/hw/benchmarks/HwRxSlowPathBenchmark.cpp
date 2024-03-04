@@ -96,8 +96,8 @@ BENCHMARK(RxSlowPathBenchmark) {
           ensemble->getSw(), ensemble->getSw()->getRib()),
       kEcmpWidth);
   // Disable TTL decrements
-  utility::disableTTLDecrements(
-      ensemble->getSw(), ecmpHelper.getRouterId(), ecmpHelper.getNextHops()[0]);
+  utility::ttlDecrementHandlingForLoopbackTraffic(
+      ensemble.get(), ecmpHelper.getRouterId(), ecmpHelper.getNextHops()[0]);
 
   const auto kSrcMac = folly::MacAddress{"fa:ce:b0:00:00:0c"};
   // Send packet
