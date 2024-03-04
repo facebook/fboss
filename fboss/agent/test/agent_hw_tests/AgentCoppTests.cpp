@@ -38,6 +38,8 @@ const auto kIPv6LinkLocalUcastAddress = folly::IPAddressV6("fe80::2");
 
 const auto kMcastMacAddress = folly::MacAddress("01:05:0E:01:02:03");
 
+const auto kNetworkControlDscp = 48;
+
 const auto kDhcpV6AllRoutersIp = folly::IPAddressV6("ff02::1:2");
 const auto kDhcpV6McastMacAddress = folly::MacAddress("33:33:00:01:00:02");
 const auto kDhcpV6ServerGlobalUnicastAddress =
@@ -208,7 +210,8 @@ class AgentCoppTest : public AgentHwTest {
       const std::optional<folly::MacAddress>& dstMac = std::nullopt,
       uint8_t trafficClass = 0,
       std::optional<std::vector<uint8_t>> payload = std::nullopt,
-      bool expectQueueHit = true) {
+      bool expectQueueHit = true,
+      bool outOfPort = true) {
     const auto kNumPktsToSend = 1;
     auto vlanId = utility::firstVlanID(getProgrammedState());
     auto destinationMac =
@@ -223,10 +226,7 @@ class AgentCoppTest : public AgentHwTest {
           l4DstPort,
           trafficClass,
           payload);
-      sendPkt(
-          std::move(pkt),
-          true /*outOfPort*/,
-          expectQueueHit /*snoopAndVerify*/);
+      sendPkt(std::move(pkt), outOfPort, expectQueueHit /*snoopAndVerify*/);
     };
     utility::sendPktAndVerifyCpuQueue(
         getSw(), queueId, sendAndInspect, expectQueueHit ? kNumPktsToSend : 0);
@@ -526,4 +526,32 @@ TYPED_TEST(AgentCoppTest, EapolToHighPriQ) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
+TYPED_TEST(AgentCoppTest, DstIpNetworkControlDscpToHighPriQ) {
+  auto setup = [=, this]() { this->setup(); };
+
+  auto verify = [=, this]() {
+    for (const auto& ipAddress : this->getIpAddrsToSendPktsTo()) {
+      this->sendTcpPktAndVerifyCpuQueue(
+          utility::getCoppHighPriQueueId(utility::getFirstAsic(this->getSw())),
+          folly::IPAddress::createNetwork(ipAddress, -1, false).first,
+          utility::kNonSpecialPort1,
+          utility::kNonSpecialPort2,
+          std::nullopt,
+          kNetworkControlDscp);
+    }
+    // Non local dst ip with kNetworkControlDscp should not hit high pri queue
+    // (since it won't even trap to cpu)
+    this->sendTcpPktAndVerifyCpuQueue(
+        utility::getCoppHighPriQueueId(utility::getFirstAsic(this->getSw())),
+        folly::IPAddress("2::2"),
+        utility::kNonSpecialPort1,
+        utility::kNonSpecialPort2,
+        std::nullopt,
+        kNetworkControlDscp,
+        std::nullopt,
+        false /*expectQueueHit*/);
+  };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
 } // namespace facebook::fboss
