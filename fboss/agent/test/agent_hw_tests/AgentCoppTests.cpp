@@ -590,4 +590,38 @@ TYPED_TEST(AgentCoppTest, Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ) {
 
   this->verifyAcrossWarmBoots(setup, verify);
 }
+
+/*
+ * Testcase to test that link local ucast packets from cpu port does not get
+ * copied back to cpu. The test does the following
+ * 1. copp acl to match link local ucast address and cpu srcPort is created as a
+ * part of setup
+ * 2. Sends a link local unicast packet through CPU PIPELINE_LOOKUP.
+ * 3. Packet hits the newly created acl(and so does not get forwarded to cpu).
+ * It goes out through the front port and loops back in.
+ * 4. On getting received, the packet bypasses the newly created acl(since src
+ * port is no longer cpu port) and hits the acl for regular link local ucast
+ * packets. This gets forwarded to cpu queue 9
+ */
+TYPED_TEST(AgentCoppTest, CpuPortIpv6LinkLocalUcastIp) {
+  auto setup = [=, this]() { this->setup(); };
+
+  auto verify = [=, this]() {
+    auto nbrLinkLocalAddr = folly::IPAddressV6("fe80:face:b11c::1");
+    auto randomMac = folly::MacAddress("00:00:00:00:00:01");
+    this->sendTcpPktAndVerifyCpuQueue(
+        utility::getCoppHighPriQueueId(utility::getFirstAsic(this->getSw())),
+        nbrLinkLocalAddr,
+        utility::kNonSpecialPort1,
+        utility::kNonSpecialPort2,
+        randomMac,
+        kNetworkControlDscp,
+        std::nullopt,
+        true,
+        false /*outOfPort*/);
+  };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
