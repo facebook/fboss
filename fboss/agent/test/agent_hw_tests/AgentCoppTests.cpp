@@ -319,6 +319,46 @@ class AgentCoppTest : public AgentHwTest {
                << ", after pkts:" << afterOutPkts;
     EXPECT_EQ(expectedPktDelta, afterOutPkts - beforeOutPkts);
   }
+
+  void sendEthPkts(
+      int numPktsToSend,
+      facebook::fboss::ETHERTYPE etherType,
+      const std::optional<folly::MacAddress>& dstMac = std::nullopt,
+      std::optional<std::vector<uint8_t>> payload = std::nullopt) {
+    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+
+    for (int i = 0; i < numPktsToSend; i++) {
+      auto txPacket = utility::makeEthTxPacket(
+          getSw(),
+          vlanId,
+          intfMac,
+          dstMac ? *dstMac : intfMac,
+          etherType,
+          payload);
+      sendPkt(std::move(txPacket), true /*outOfPort*/, true /*snoopAndVerify*/);
+    }
+  }
+
+  void sendPktAndVerifyEthPacketsCpuQueue(
+      int queueId,
+      facebook::fboss::ETHERTYPE etherType,
+      const std::optional<folly::MacAddress>& dstMac = std::nullopt) {
+    auto beforeOutPkts = getQueueOutPacketsWithRetry(
+        queueId, 0 /* retryTimes */, 0 /* expectedNumPkts */);
+    static auto payload = std::vector<uint8_t>(256, 0xff);
+    payload[0] = 0x1; // sub-version of lacp packet
+    sendEthPkts(1, etherType, dstMac, payload);
+    auto afterOutPkts = getQueueOutPacketsWithRetry(
+        queueId, kGetQueueOutPktsRetryTimes, beforeOutPkts + 1);
+    XLOG(DBG0) << "Packet of dstMac="
+               << (dstMac ? (*dstMac).toString()
+                          : getLocalMacAddress().toString())
+               << ". Ethertype=" << std::hex << int(etherType)
+               << ". Queue=" << queueId << ", before pkts:" << beforeOutPkts
+               << ", after pkts:" << afterOutPkts;
+    EXPECT_EQ(1, afterOutPkts - beforeOutPkts);
+  }
 };
 
 TYPED_TEST_SUITE(AgentCoppTest, TestTypes);
@@ -457,6 +497,32 @@ TYPED_TEST(AgentCoppTest, Ipv6LinkLocalUcastToMidPriQ) {
               0));
     }
   };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(AgentCoppTest, SlowProtocolsMacToHighPriQ) {
+  auto setup = [=, this]() { this->setup(); };
+
+  auto verify = [=, this]() {
+    this->sendPktAndVerifyEthPacketsCpuQueue(
+        utility::getCoppHighPriQueueId(utility::getFirstAsic(this->getSw())),
+        facebook::fboss::ETHERTYPE::ETHERTYPE_SLOW_PROTOCOLS,
+        LACPDU::kSlowProtocolsDstMac());
+  };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(AgentCoppTest, EapolToHighPriQ) {
+  auto setup = [=, this]() { this->setup(); };
+
+  auto verify = [=, this]() {
+    this->sendPktAndVerifyEthPacketsCpuQueue(
+        utility::getCoppHighPriQueueId(utility::getFirstAsic(this->getSw())),
+        facebook::fboss::ETHERTYPE::ETHERTYPE_EAPOL,
+        folly::MacAddress("ff:ff:ff:ff:ff:ff"));
+  };
+
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
