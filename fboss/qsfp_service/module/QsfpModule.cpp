@@ -918,11 +918,11 @@ phy::PrbsStats QsfpModule::getPortPrbsStats(
   return portPrbs;
 }
 
-bool QsfpModule::shouldRemediate() {
+bool QsfpModule::shouldRemediate(time_t pauseRemidiation) {
   // Always use i2cEvb to program transceivers if there's an i2cEvb
-  auto shouldRemediateFunc = [this]() {
+  auto shouldRemediateFunc = [&, this]() {
     lock_guard<std::mutex> g(qsfpModuleMutex_);
-    return shouldRemediateLocked();
+    return shouldRemediateLocked(pauseRemidiation);
   };
   auto i2cEvb = qsfpImpl_->getI2cEventBase();
   if (!i2cEvb) {
@@ -941,7 +941,7 @@ bool QsfpModule::shouldRemediate() {
   }
 }
 
-bool QsfpModule::shouldRemediateLocked() {
+bool QsfpModule::shouldRemediateLocked(time_t pauseRemidiation) {
   if (!supportRemediate()) {
     return false;
   }
@@ -968,11 +968,8 @@ bool QsfpModule::shouldRemediateLocked() {
   }
 
   auto now = std::time(nullptr);
-  std::map<std::string, int32_t> remediatePausedInfo;
-  getTransceiverManager()->getPauseRemediationUntil(
-      remediatePausedInfo, nullptr);
-  bool remediationEnabled = (now > remediatePausedInfo["all"]) &&
-      (now > getModulePauseRemediationUntil());
+  bool remediationEnabled =
+      (now > pauseRemidiation) && (now > getModulePauseRemediationUntil());
   // Rather than immediately attempting to remediate a module,
   // we would like to introduce a bit delay to de-couple the consequences
   // of a remediation with the root cause that brought down the link.
@@ -1374,11 +1371,12 @@ void QsfpModule::publishSnapshots() {
 
 bool QsfpModule::tryRemediate(
     bool allPortsDown,
+    time_t pauseRemdiation,
     const std::vector<std::string>& ports) {
   // Always use i2cEvb to program transceivers if there's an i2cEvb
-  auto remediateTcvrFunc = [this, allPortsDown, &ports]() {
+  auto remediateTcvrFunc = [this, allPortsDown, &ports, pauseRemdiation]() {
     lock_guard<std::mutex> g(qsfpModuleMutex_);
-    return tryRemediateLocked(allPortsDown, ports);
+    return tryRemediateLocked(allPortsDown, pauseRemdiation, ports);
   };
   auto i2cEvb = qsfpImpl_->getI2cEventBase();
   if (!i2cEvb) {
@@ -1398,10 +1396,11 @@ bool QsfpModule::tryRemediate(
 
 bool QsfpModule::tryRemediateLocked(
     bool allPortsDown,
+    time_t pauseRemidiation,
     const std::vector<std::string>& ports) {
   // Only update numRemediation_ iff this transceiver should remediate and
   // remediation actually happens
-  if (shouldRemediateLocked() &&
+  if (shouldRemediateLocked(pauseRemidiation) &&
       remediateFlakyTransceiver(allPortsDown, ports)) {
     ++numRemediation_;
     // Remediation touches the hardware, hard resetting the optics in Cmis case,

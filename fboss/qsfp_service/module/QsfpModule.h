@@ -221,10 +221,12 @@ class QsfpModule : public Transceiver {
    * When allPortsDown is true, we trigger a full remediation otherwise we just
    * remediate specific datapaths
    */
-  bool tryRemediate(bool allPortsDown, const std::vector<std::string>& ports)
-      override;
+  bool tryRemediate(
+      bool allPortsDown,
+      time_t pauseRemediation,
+      const std::vector<std::string>& ports) override;
 
-  bool shouldRemediate() override;
+  bool shouldRemediate(time_t pauseRemediation) override;
 
   void markLastDownTime() override;
 
@@ -609,7 +611,7 @@ class QsfpModule : public Transceiver {
   folly::Synchronized<phy::PrbsStats> systemPrbsStats_;
   folly::Synchronized<phy::PrbsStats> linePrbsStats_;
 
-  bool shouldRemediateLocked() override;
+  bool shouldRemediateLocked(time_t pauseRemidiation) override;
 
   virtual bool upgradeFirmwareLockedImpl(
       std::unique_ptr<FbossFirmware> /* fbossFw */) const {
@@ -638,6 +640,7 @@ class QsfpModule : public Transceiver {
    */
   bool tryRemediateLocked(
       bool allPortsDown,
+      time_t pauseRemdiation,
       const std::vector<std::string>& ports);
   /*
    * Perform a raw register read on the transceiver

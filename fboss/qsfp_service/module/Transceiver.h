@@ -213,9 +213,10 @@ class Transceiver {
    */
   virtual bool tryRemediate(
       bool allPortsDown,
+      time_t pauseRemediation,
       const std::vector<std::string>& ports) = 0;
 
-  virtual bool shouldRemediate() = 0;
+  virtual bool shouldRemediate(time_t pauseRemediation) = 0;
 
   /*
    * Returns the list of prbs polynomials supported on the given side
@@ -295,7 +296,7 @@ class Transceiver {
 
  protected:
   virtual void latchAndReadVdmDataLocked() = 0;
-  virtual bool shouldRemediateLocked() = 0;
+  virtual bool shouldRemediateLocked(time_t pauseRemidiation) = 0;
 
   TransceiverManager* getTransceiverManager() const {
     return transceiverManager_;
