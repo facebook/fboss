@@ -37,9 +37,20 @@ using std::string;
 using std::tuple;
 
 namespace {
+
 HwSwitchMatcher scope() {
   return HwSwitchMatcher{std::unordered_set<SwitchID>{SwitchID(0)}};
 }
+
+template <typename VlanOrIntfIDT>
+auto getVlansOrIntfs(const shared_ptr<SwitchState> state) {
+  if constexpr (std::is_same_v<VlanOrIntfIDT, VlanID>) {
+    return state->getVlans();
+  } else {
+    return state->getInterfaces();
+  }
+}
+
 } // namespace
 
 template <typename NTableT>
