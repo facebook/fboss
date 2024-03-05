@@ -273,4 +273,14 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, verifyNifMulticastTrafficDropped) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(AgentVoqSwitchWithFabricPortsTest, overdrainPct) {
+  auto setup = []() {};
+  auto verify = [this]() {
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_EQ(
+          0, fb303::fbData->getCounter("switch.0.fabric_overdrain_pct"));
+    });
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
 } // namespace facebook::fboss
