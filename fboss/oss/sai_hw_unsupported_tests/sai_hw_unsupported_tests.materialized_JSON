@@ -23,6 +23,9 @@
           "test_name_regex": "HwTeFlowTrafficTest.*$"
         },
         {
+          "test_name_regex": "HwUdfAcl.*$"
+        },
+        {
           "test_name_regex": "HwEcmpTest.Ucmp.*"
         },
         {
@@ -179,9 +182,6 @@
           "test_name_regex": "HwUdfTest.*"
         },
         {
-          "test_name_regex": "HwUdfAcl.*"
-        },
-        {
           "test_name_regex": "HwL3Test.*"
         },
         {
@@ -247,6 +247,9 @@
           "test_name_regex": "HwTeFlowTrafficTest.*$"
         },
         {
+          "test_name_regex": "HwUdfAcl.*$"
+        },
+        {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
         },
         {
@@ -277,6 +280,9 @@
         },
         {
           "test_name_regex": "HwTeFlowTrafficTest.*$"
+        },
+        {
+          "test_name_regex": "HwUdfAcl.*$"
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
@@ -395,6 +401,9 @@
           "test_name_regex": "HwTeFlowTrafficTest.*$"
         },
         {
+          "test_name_regex": "HwUdfAcl.*$"
+        },
+        {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
         },
         {
@@ -511,6 +520,9 @@
           "test_name_regex": "HwTeFlowTrafficTest.*$"
         },
         {
+          "test_name_regex": "HwUdfAcl.*$"
+        },
+        {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
         },
         {
@@ -541,6 +553,9 @@
         },
         {
           "test_name_regex": "HwTeFlowTrafficTest.*$"
+        },
+        {
+          "test_name_regex": "HwUdfAcl.*$"
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
@@ -575,6 +590,9 @@
           "test_name_regex": "HwTeFlowTrafficTest.*$"
         },
         {
+          "test_name_regex": "HwUdfAcl.*$"
+        },
+        {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
         },
         {
@@ -605,6 +623,9 @@
         },
         {
           "test_name_regex": "HwTeFlowTrafficTest.*$"
+        },
+        {
+          "test_name_regex": "HwUdfAcl.*$"
         },
         {
           "test_name_regex": "HwEcmpTest.Ucmp.*"
@@ -761,9 +782,6 @@
         },
         {
           "test_name_regex": "HwUdfTest.*"
-        },
-        {
-          "test_name_regex": "HwUdfAcl.*"
         },
         {
           "test_name_regex": "HwL3Test.*"
@@ -831,6 +849,9 @@
           "test_name_regex": "HwTeFlowTrafficTest.*$"
         },
         {
+          "test_name_regex": "HwUdfAcl.*$"
+        },
+        {
           "test_name_regex": "HwEcmpTest.Ucmp.*"
         },
         {
@@ -985,9 +1006,6 @@
         },
         {
           "test_name_regex": "HwUdfTest.*"
-        },
-        {
-          "test_name_regex": "HwUdfAcl.*"
         },
         {
           "test_name_regex": "HwL3Test.*"
@@ -1058,6 +1076,9 @@
           "test_name_regex": "HwTeFlowTrafficTest.*$"
         },
         {
+          "test_name_regex": "HwUdfAcl.*$"
+        },
+        {
           "test_name_regex": "HwLoadBalancerTestV[46].Ucmp.*$"
         },
         {
@@ -1085,6 +1106,9 @@
         },
         {
           "test_name_regex": "HwTeFlowTrafficTest.*$"
+        },
+        {
+          "test_name_regex": "HwUdfAcl.*$"
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
@@ -1119,6 +1143,9 @@
           "test_name_regex": "HwTeFlowTrafficTest.*$"
         },
         {
+          "test_name_regex": "HwUdfAcl.*$"
+        },
+        {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
         },
         {
@@ -1149,6 +1176,9 @@
         },
         {
           "test_name_regex": "HwTeFlowTrafficTest.*$"
+        },
+        {
+          "test_name_regex": "HwUdfAcl.*$"
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
@@ -1183,6 +1213,9 @@
           "test_name_regex": "HwTeFlowTrafficTest.*$"
         },
         {
+          "test_name_regex": "HwUdfAcl.*$"
+        },
+        {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
         },
         {
@@ -1213,6 +1246,9 @@
         },
         {
           "test_name_regex": "HwTeFlowTrafficTest.*$"
+        },
+        {
+          "test_name_regex": "HwUdfAcl.*$"
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
@@ -1247,6 +1283,9 @@
           "test_name_regex": "HwTeFlowTrafficTest.*$"
         },
         {
+          "test_name_regex": "HwUdfAcl.*$"
+        },
+        {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
         },
         {
@@ -1277,6 +1316,9 @@
         },
         {
           "test_name_regex": "HwTeFlowTrafficTest.*$"
+        },
+        {
+          "test_name_regex": "HwUdfAcl.*$"
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
@@ -1311,6 +1353,9 @@
           "test_name_regex": "HwTeFlowTrafficTest.*$"
         },
         {
+          "test_name_regex": "HwUdfAcl.*$"
+        },
+        {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
         },
         {
@@ -1341,6 +1386,9 @@
         },
         {
           "test_name_regex": "HwTeFlowTrafficTest.*$"
+        },
+        {
+          "test_name_regex": "HwUdfAcl.*$"
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
@@ -1375,6 +1423,9 @@
           "test_name_regex": "HwTeFlowTrafficTest.*$"
         },
         {
+          "test_name_regex": "HwUdfAcl.*$"
+        },
+        {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
         },
         {
@@ -1405,6 +1456,9 @@
         },
         {
           "test_name_regex": "HwTeFlowTrafficTest.*$"
+        },
+        {
+          "test_name_regex": "HwUdfAcl.*$"
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
@@ -1523,6 +1577,9 @@
           "test_name_regex": "HwTeFlowTrafficTest.*$"
         },
         {
+          "test_name_regex": "HwUdfAcl.*$"
+        },
+        {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
         },
         {
@@ -1553,6 +1610,9 @@
         },
         {
           "test_name_regex": "HwTeFlowTrafficTest.*$"
+        },
+        {
+          "test_name_regex": "HwUdfAcl.*$"
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
@@ -1587,6 +1647,9 @@
           "test_name_regex": "HwTeFlowTrafficTest.*$"
         },
         {
+          "test_name_regex": "HwUdfAcl.*$"
+        },
+        {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
         },
         {
@@ -1617,6 +1680,9 @@
         },
         {
           "test_name_regex": "HwTeFlowTrafficTest.*$"
+        },
+        {
+          "test_name_regex": "HwUdfAcl.*$"
         },
         {
           "test_name_regex": "HwDscpQueueMappingTest.VerifyAclAndQosMapConflict$"
@@ -1681,6 +1747,9 @@
           "test_name_regex": "HwTeFlowTrafficTest.*$"
         },
         {
+          "test_name_regex": "HwUdfAcl.*$"
+        },
+        {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
         },
         {
@@ -1710,6 +1779,9 @@
           "test_name_regex": "HwTeFlowTrafficTest.*$"
         },
         {
+          "test_name_regex": "HwUdfAcl.*$"
+        },
+        {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
         },
         {
@@ -1737,6 +1809,9 @@
         },
         {
           "test_name_regex": "HwTeFlowTrafficTest.*$"
+        },
+        {
+          "test_name_regex": "HwUdfAcl.*$"
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*PROFILE_100G_2_PAM4_RS544X2N_COPPER.TestProfile"
