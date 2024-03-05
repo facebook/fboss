@@ -315,6 +315,15 @@ class Interface : public ThriftStructNode<Interface, state::InterfaceFields> {
   }
 
   template <typename NTable>
+  void setNeighborTable(std::shared_ptr<NTable> table) {
+    if constexpr (std::is_same_v<NTable, ArpTable>) {
+      ref<switch_state_tags::arpTable>() = std::move(table);
+    } else {
+      ref<switch_state_tags::ndpTable>() = std::move(table);
+    }
+  }
+
+  template <typename NTable>
   void setNeighborTable(state::NeighborEntries nbrTable) {
     if constexpr (std::is_same_v<NTable, ArpTable>) {
       return setArpTable(std::move(nbrTable));
