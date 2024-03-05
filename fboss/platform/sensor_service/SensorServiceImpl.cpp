@@ -51,18 +51,18 @@ SensorServiceImpl::SensorServiceImpl() {
     for (const auto& [fruName, sensorMap] : *sensorTable.sensorMapList()) {
       for (const auto& [sensorName, sensor] : sensorMap) {
         std::string path = *sensor.path();
-        if (std::filesystem::exists(std::filesystem::path(path))) {
-          table[sensorName].path = path;
-        }
+        table[sensorName].path = path;
         table[sensorName].fru = fruName;
         if (sensor.compute().has_value()) {
           table[sensorName].compute = *sensor.compute();
         }
         table[sensorName].thresholds = *sensor.thresholds();
-
-        XLOG(INFO) << sensorName << "; path = " << table[sensorName].path
-                   << "; compute = " << table[sensorName].compute
-                   << "; fru = " << table[sensorName].fru;
+        XLOG(INFO) << fmt::format(
+            "{}: Path={}, Compute={}, FRU={}",
+            sensorName,
+            table[sensorName].path,
+            table[sensorName].compute,
+            table[sensorName].fru);
       }
     }
   });
@@ -135,7 +135,10 @@ void SensorServiceImpl::fetchSensorDataFromSysfs() {
     auto readFailures{0};
     for (auto& [sensorName, sensorLiveData] : liveDataTable) {
       std::string sensorValue;
-      if (folly::readFile(sensorLiveData.path.c_str(), sensorValue)) {
+      bool sysfsFileExists =
+          std::filesystem::exists(std::filesystem::path(sensorLiveData.path));
+      if (sysfsFileExists &&
+          folly::readFile(sensorLiveData.path.c_str(), sensorValue)) {
         sensorLiveData.value = folly::to<float>(sensorValue);
         sensorLiveData.timeStamp = now;
         if (!sensorLiveData.compute.empty()) {
@@ -152,14 +155,14 @@ void SensorServiceImpl::fetchSensorDataFromSysfs() {
           fb303::fbData->setCounter(
               fmt::format(kReadValue, sensorName), *sensorLiveData.value);
         }
-
       } else {
         sensorLiveData.value = std::nullopt;
         sensorLiveData.timeStamp = std::nullopt;
         XLOG(ERR) << fmt::format(
-            "Could not read data for {} from {}",
+            "Could not read data for {} from path:{}, error:{}",
             sensorName,
-            sensorLiveData.path);
+            sensorLiveData.path,
+            sysfsFileExists ? folly::errnoStr(errno) : "File does not exist");
         fb303::fbData->setCounter(fmt::format(kReadFailure, sensorName), 1);
         readFailures++;
       }
