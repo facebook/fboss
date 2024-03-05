@@ -5,6 +5,7 @@ namespace py neteng.fboss.transceiver
 namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.transceiver
 
+include "fboss/lib/phy/link.thrift"
 include "fboss/lib/phy/prbs.thrift"
 include "thrift/annotation/cpp.thrift"
 
@@ -370,6 +371,26 @@ struct RxEqualizerSettings {
   3: i32 mainAmplitude;
 }
 
+struct VdmPerfMonitorPortSideStats {
+  1: link.LinkPerfMonitorParamEachSideVal datapathBER;
+  2: link.LinkPerfMonitorParamEachSideVal datapathErroredFrames;
+  3: map<i32, double> laneSNR;
+  4: map<i32, double> lanePam4Level0SD;
+  5: map<i32, double> lanePam4Level1SD;
+  6: map<i32, double> lanePam4Level2SD;
+  7: map<i32, double> lanePam4Level3SD;
+  8: map<i32, double> lanePam4MPI;
+  9: map<i32, double> lanePam4LTP;
+}
+
+struct VdmPerfMonitorStats {
+  // Map of SW Port to Media side VDM Performance Monitor diags stats
+  1: map<string, VdmPerfMonitorPortSideStats> mediaPortVdmStats;
+  // Map of SW Port to Host side VDM Performance Monitor diags stats
+  2: map<string, VdmPerfMonitorPortSideStats> hostPortVdmStats;
+  3: i64 statsCollectionTme;
+}
+
 struct VdmDiagsStats {
   1: double preFecBerMediaMin;
   2: double preFecBerMediaMax;
@@ -470,6 +491,8 @@ struct TcvrStats {
   9: i64 timeCollected;
   10: i64 lastFwUpgradeStartTime;
   11: i64 lastFwUpgradeEndTime;
+  12: optional VdmPerfMonitorStats vdmPerfMonitorStats;
+  13: optional VdmPerfMonitorStats vdmPerfMonitorStatsForOds;
 }
 
 struct TransceiverInfo {

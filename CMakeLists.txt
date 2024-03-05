@@ -307,12 +307,20 @@ add_fbthrift_cpp_library(
     reflection
 )
 add_fbthrift_cpp_library(
+  link_cpp2
+  fboss/lib/phy/link.thrift
+  OPTIONS
+    json
+    reflection
+)
+add_fbthrift_cpp_library(
   transceiver_cpp2
   fboss/qsfp_service/if/transceiver.thrift
   OPTIONS
     json
     reflection
   DEPENDS
+    link_cpp2
     prbs_cpp2
 )
 add_fbthrift_cpp_library(
