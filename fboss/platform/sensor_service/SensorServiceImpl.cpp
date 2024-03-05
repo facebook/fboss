@@ -29,54 +29,30 @@ DEFINE_int32(
     5,
     "Interval at which stats subscriptions are served");
 
-DEFINE_string(
-    mock_lmsensor_json_data,
-    "/etc/sensor_service/sensors_output.json",
-    "File to store the mock Lm Sensor JSON data");
-
 namespace {
-
-// The following are keys in sensor conf file
-const std::string kSourceLmsensor = "lmsensor";
-const std::string kSourceSysfs = "sysfs";
-const std::string kSourceMock = "mock";
-const std::string kSensorFieldName = "name";
-
-const std::string kLmsensorCommand = "sensors -j";
-
 auto constexpr kReadFailure = "sensor_read.{}.failure";
 auto constexpr kReadValue = "sensor_read.{}.value";
 auto constexpr kReadTotal = "sensor_read.total";
 auto constexpr kTotalReadFailure = "sensor_read.total.failures";
 auto constexpr kHasReadFailure = "sensor_read.has.failures";
 } // namespace
+
 namespace facebook::fboss::platform::sensor_service {
 
 SensorServiceImpl::SensorServiceImpl() {
   std::string sensorConfJson = ConfigLib().getSensorServiceConfig();
   XLOG(DBG2) << "Read sensor config: " << sensorConfJson;
 
+  SensorConfig sensorTable{};
   apache::thrift::SimpleJSONSerializer::deserialize<SensorConfig>(
-      sensorConfJson, sensorTable_);
-
-  if (sensorTable_.source() == kSourceMock) {
-    sensorSource_ = SensorSource::MOCK;
-  } else if (sensorTable_.source() == kSourceLmsensor) {
-    sensorSource_ = SensorSource::LMSENSOR;
-  } else if (sensorTable_.source() == kSourceSysfs) {
-    sensorSource_ = SensorSource::SYSFS;
-  } else {
-    throw std::runtime_error(
-        folly::to<std::string>("Invalid source : ", *sensorTable_.source()));
-  }
+      sensorConfJson, sensorTable);
 
   liveDataTable_.withWLock([&](auto& table) {
-    for (const auto& [fruName, sensorMap] : *sensorTable_.sensorMapList()) {
+    for (const auto& [fruName, sensorMap] : *sensorTable.sensorMapList()) {
       for (const auto& [sensorName, sensor] : sensorMap) {
         std::string path = *sensor.path();
         if (std::filesystem::exists(std::filesystem::path(path))) {
           table[sensorName].path = path;
-          sensorNameMap_[path] = sensorName;
         }
         table[sensorName].fru = fruName;
         if (sensor.compute().has_value()) {
@@ -123,7 +99,6 @@ std::vector<SensorData> SensorServiceImpl::getSensorsData(
 
 std::map<std::string, SensorData> SensorServiceImpl::getAllSensorData() {
   std::map<std::string, SensorData> sensorDataMap;
-
   liveDataTable_.withRLock([&](auto& table) {
     for (auto& pair : table) {
       SensorData d;
@@ -151,33 +126,10 @@ void SensorServiceImpl::fetchSensorData() {
       }
     }
   };
-  if (sensorSource_ == SensorSource::LMSENSOR) {
-    auto [exitStatus, standardOut] =
-        PlatformUtils().execCommand(kLmsensorCommand);
-    if (exitStatus != 0) {
-      throw std::runtime_error("Run " + kLmsensorCommand + " failed!");
-    }
-    parseSensorJsonData(standardOut);
-  } else if (sensorSource_ == SensorSource::SYSFS) {
-    getSensorDataFromPath();
-  } else if (sensorSource_ == SensorSource::MOCK) {
-    std::string sensorDataJson;
-    if (folly::readFile(
-            FLAGS_mock_lmsensor_json_data.c_str(), sensorDataJson)) {
-      parseSensorJsonData(sensorDataJson);
-    } else {
-      throw std::runtime_error(
-          "Can not find sensor data json file: " +
-          FLAGS_mock_lmsensor_json_data);
-    }
-  } else {
-    throw std::runtime_error(
-        "Unknown Sensor Source selected : " +
-        folly::to<std::string>(static_cast<int>(sensorSource_)));
-  }
+  fetchSensorDataFromSysfs();
 }
 
-void SensorServiceImpl::getSensorDataFromPath() {
+void SensorServiceImpl::fetchSensorDataFromSysfs() {
   liveDataTable_.withWLock([&](auto& liveDataTable) {
     auto now = Utils::nowInSecs();
     auto readFailures{0};
@@ -220,41 +172,6 @@ void SensorServiceImpl::getSensorDataFromPath() {
         liveDataTable.size(),
         readFailures);
   });
-}
-
-void SensorServiceImpl::parseSensorJsonData(const std::string& strJson) {
-  folly::dynamic sensorJson = folly::parseJson(strJson);
-
-  auto dataTable = liveDataTable_.wlock();
-
-  auto now = Utils::nowInSecs();
-  for (auto& firstPair : sensorJson.items()) {
-    // Key is pair.first, value is pair.second
-    if (firstPair.second.isObject()) {
-      for (auto& secondPair : firstPair.second.items()) {
-        std::string sensorPath = folly::to<std::string>(
-            firstPair.first.asString(), ":", secondPair.first.asString());
-        // Only check sensor data that the name is in the configuration file
-        if (secondPair.second.isObject() &&
-            (sensorNameMap_.count(sensorPath) != 0)) {
-          // Get value only for now
-          for (auto& thirdPair : secondPair.second.items()) {
-            if (thirdPair.first.asString().find("_input") !=
-                std::string::npos) {
-              (*dataTable)[sensorNameMap_[sensorPath]].value =
-                  folly::to<float>(thirdPair.second.asString());
-              (*dataTable)[sensorNameMap_[sensorPath]].timeStamp = now;
-
-              XLOG(INFO) << sensorNameMap_[sensorPath] << " : "
-                         << *(*dataTable)[sensorNameMap_[sensorPath]].value
-                         << " >>>> "
-                         << *(*dataTable)[sensorNameMap_[sensorPath]].timeStamp;
-            }
-          }
-        }
-      }
-    }
-  }
 }
 
 } // namespace facebook::fboss::platform::sensor_service

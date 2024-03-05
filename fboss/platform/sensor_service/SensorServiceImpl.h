@@ -21,18 +21,10 @@
 #include "fboss/platform/sensor_service/if/gen-cpp2/sensor_service_types.h"
 
 DECLARE_int32(fsdb_statsStream_interval_seconds);
-DECLARE_string(mock_lmsensor_json_data);
 
 namespace facebook::fboss::platform::sensor_service {
 
 using namespace facebook::fboss::platform::sensor_config;
-
-enum class SensorSource {
-  LMSENSOR,
-  SYSFS,
-  MOCK,
-  UNKNOWN,
-};
 
 struct SensorLiveData {
   std::string fru;
@@ -58,13 +50,6 @@ class SensorServiceImpl {
   }
 
  private:
-  SensorSource sensorSource_{SensorSource::LMSENSOR};
-
-  SensorConfig sensorTable_{};
-
-  // Sensor Name map, sensor path -> sensor name
-  std::unordered_map<std::string, std::string> sensorNameMap_{};
-
   // Live sensor data table, sensor name -> sensor live data
   folly::Synchronized<std::unordered_map<SensorName, struct SensorLiveData>>
       liveDataTable_{};
@@ -74,8 +59,7 @@ class SensorServiceImpl {
   std::optional<std::chrono::time_point<std::chrono::steady_clock>>
       publishedStatsToFsdbAt_;
 
-  void parseSensorJsonData(const std::string&);
-  void getSensorDataFromPath();
+  void fetchSensorDataFromSysfs();
 };
 
 } // namespace facebook::fboss::platform::sensor_service
