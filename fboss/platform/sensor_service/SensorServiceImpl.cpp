@@ -151,10 +151,6 @@ void SensorServiceImpl::fetchSensorDataFromSysfs() {
             sensorLiveData.path,
             *sensorLiveData.value);
         fb303::fbData->setCounter(fmt::format(kReadFailure, sensorName), 0);
-        if (sensorLiveData.value) {
-          fb303::fbData->setCounter(
-              fmt::format(kReadValue, sensorName), *sensorLiveData.value);
-        }
       } else {
         sensorLiveData.value = std::nullopt;
         sensorLiveData.timeStamp = std::nullopt;
@@ -166,6 +162,14 @@ void SensorServiceImpl::fetchSensorDataFromSysfs() {
         fb303::fbData->setCounter(fmt::format(kReadFailure, sensorName), 1);
         readFailures++;
       }
+      // We log 0 if there is a read failure.  If we dont log 0 on failure,
+      // fb303 will pick up the last reported (on read success) value and keep
+      // reporting that as the value. For 0 values, it is accurate to read the
+      // value along with the kReadFailure counter. Alternative is to delete
+      // this counter if there is a failure.
+      fb303::fbData->setCounter(
+          fmt::format(kReadValue, sensorName),
+          sensorLiveData.value.value_or(0));
     }
     fb303::fbData->setCounter(kTotalReadFailure, readFailures);
     fb303::fbData->setCounter(kReadTotal, liveDataTable.size());
