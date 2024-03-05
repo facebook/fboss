@@ -12,6 +12,7 @@
 #include "fboss/agent/packet/EthFrame.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
+#include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/utils/CommonUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
@@ -359,6 +360,24 @@ class AgentCoppTest : public AgentHwTest {
                << ", after pkts:" << afterOutPkts;
     EXPECT_EQ(1, afterOutPkts - beforeOutPkts);
   }
+
+  void setupEcmp() {
+    if constexpr (!isTrunk) {
+      utility::EcmpSetupAnyNPorts6 ecmpHelper(
+          getProgrammedState(), getLocalMacAddress());
+      resolveNeigborAndProgramRoutes(ecmpHelper, 1);
+    } else {
+      utility::EcmpSetupTargetedPorts6 ecmpHelper(getProgrammedState());
+      flat_set<PortDescriptor> ports;
+      ports.insert(PortDescriptor(AggregatePortID(1)));
+      applyNewState(
+          [this, &ports, &ecmpHelper](std::shared_ptr<SwitchState> /*in*/) {
+            return ecmpHelper.resolveNextHops(getProgrammedState(), ports);
+          });
+      auto wrapper = getSw()->getRouteUpdater();
+      ecmpHelper.programRoutes(&wrapper, ports);
+    }
+  }
 };
 
 TYPED_TEST_SUITE(AgentCoppTest, TestTypes);
@@ -639,6 +658,29 @@ TYPED_TEST(AgentCoppTest, Ipv6LinkLocalMcastNetworkControlDscpToHighPriQ) {
           kMcastMacAddress,
           kNetworkControlDscp);
     }
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(AgentCoppTest, L3MTUErrorToLowPriQ) {
+  auto setup = [=, this]() {
+    this->setup();
+    this->setupEcmp();
+  };
+  auto verify = [=, this]() {
+    // Make sure all packets packet with large payload (> MTU)
+    // are sent to cpu low priority queue.
+    // Port Max Frame size is set to 9412 and L3 MTU is set as 9000
+    // Thus sending a packet sized between 9000 and 9412 to cause the trap.
+    auto randomIP = folly::IPAddressV6("2::2");
+    this->sendTcpPktAndVerifyCpuQueue(
+        utility::kCoppLowPriQueueId,
+        randomIP,
+        utility::kNonSpecialPort1,
+        utility::kNonSpecialPort2,
+        std::nullopt,
+        0, /* traffic class*/
+        std::vector<uint8_t>(9200, 0xff));
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }

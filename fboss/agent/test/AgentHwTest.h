@@ -131,6 +131,15 @@ class AgentHwTest : public ::testing::Test {
       const AgentEnsemble& ensemble,
       const cfg::SwitchConfig& in) const;
 
+  template <typename EcmpHelperT>
+  void resolveNeigborAndProgramRoutes(const EcmpHelperT& ecmp, int width) {
+    applyNewState([this, &ecmp, &width](std::shared_ptr<SwitchState> /*in*/) {
+      return ecmp.resolveNextHops(getProgrammedState(), width);
+    });
+    auto wrapper = getSw()->getRouteUpdater();
+    ecmp.programRoutes(&wrapper, width);
+  }
+
  private:
   void applyNewStateImpl(
       StateUpdateFn fn,
