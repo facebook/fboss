@@ -160,6 +160,7 @@ void PortUpdateHandler::computeFabricOverdrainPct(const StateDelta& delta) {
         std::max(0, static_cast<int>(std::ceil(fabricOverdrainPct)));
     XLOG(DBG2) << " Fabric overdrain pct reported: "
                << fabricOverdrainNormalized;
+    sw_->stats()->setFabricOverdrainPct(swIndex, fabricOverdrainNormalized);
   }
 }
 } // namespace facebook::fboss

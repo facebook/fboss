@@ -433,6 +433,7 @@ class SwitchStats : public boost::noncopyable {
   void switchConfiguredMs(uint64_t ms) {
     switchConfiguredMs_.addValue(ms);
   }
+  void setFabricOverdrainPct(int16_t switchIndex, int16_t overdrainPct);
 
   void hwAgentConnectionStatus(int switchIndex, bool connected) {
     CHECK_LT(switchIndex, hwAgentConnectionStatus_.size());

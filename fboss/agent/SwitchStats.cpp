@@ -508,4 +508,20 @@ SwitchStats::HwAgentStreamConnectionStatus::HwAgentStreamConnectionStatus(
               "tx_pkt_event_sync_disconnects"),
           SUM,
           RATE)) {}
+
+void SwitchStats::setFabricOverdrainPct(
+    int16_t switchIndex,
+    int16_t overdrainPct) {
+  // We directly set the overdrain pct counter here as its a single
+  // value that needs to set globally and not a thread local value
+  // that needs to accumulated over multiple threads.
+  // Alternatively using a TLCounter would have required us to do something
+  // like
+  // counter.addValue(overdrainPct - getCumuativeValue(counter));
+  // i.e. collect global value from all threads and then compute delta
+  // against the current value. Instead set the global value directly
+  fb303::fbData->setCounter(
+      folly::to<std::string>("switch.", switchIndex, ".fabric_overdrain_pct"),
+      overdrainPct);
+}
 } // namespace facebook::fboss
