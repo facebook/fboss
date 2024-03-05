@@ -30,7 +30,7 @@ struct Thresholds {
 }
 
 struct Sensor {
-  // Either sysfs path, symbolic or the path in "lmsensor" JSON output
+  // Sysfs path
   1: string path;
   // Contains the manufacture provided threshold values
   2: Thresholds thresholds = {};
@@ -43,10 +43,7 @@ typedef string SensorName
 typedef map<SensorName, Sensor> sensorMap
 typedef string FruName
 
-// The configuration for sensor mapping.  Each platform should provide one from
-// vendor or derive from vendor spec sheet
+// The configuration for sensor mapping.
 struct SensorConfig {
-  // Source can be "lmsensor", "sysfs", or "mock"
-  1: string source;
   2: map<FruName, sensorMap> sensorMapList;
 }

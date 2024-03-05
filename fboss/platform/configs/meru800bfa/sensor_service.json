@@ -1,745 +1,744 @@
 {
-  "source" : "sysfs",
-  "sensorMapList" : {
-    "SCM" : {
-      "CPU_PACKAGE_TEMP" :{
-        "path" : "/run/devmap/sensors/CPU_CORE_TEMP/temp1_input",
-        "thresholds" : {
-          "upperCriticalVal" : 105
+  "sensorMapList": {
+    "SCM": {
+      "CPU_PACKAGE_TEMP": {
+        "path": "/run/devmap/sensors/CPU_CORE_TEMP/temp1_input",
+        "thresholds": {
+          "upperCriticalVal": 105
         },
-        "compute" : "@/1000.0",
-        "type" : 3
+        "compute": "@/1000.0",
+        "type": 3
       },
-      "CPU_CORE0_TEMP" :{
-        "path" : "/run/devmap/sensors/CPU_CORE_TEMP/temp2_input",
-        "thresholds" : {
-          "upperCriticalVal" : 105
+      "CPU_CORE0_TEMP": {
+        "path": "/run/devmap/sensors/CPU_CORE_TEMP/temp2_input",
+        "thresholds": {
+          "upperCriticalVal": 105
         },
-        "compute" : "@/1000.0",
-        "type" : 3
+        "compute": "@/1000.0",
+        "type": 3
       },
-      "CPU_CORE1_TEMP" :{
-        "path" : "/run/devmap/sensors/CPU_CORE_TEMP/temp3_input",
-        "thresholds" : {
-          "upperCriticalVal" : 105
+      "CPU_CORE1_TEMP": {
+        "path": "/run/devmap/sensors/CPU_CORE_TEMP/temp3_input",
+        "thresholds": {
+          "upperCriticalVal": 105
         },
-        "compute" : "@/1000.0",
-        "type" : 3
+        "compute": "@/1000.0",
+        "type": 3
       },
-      "CPU_CORE2_TEMP" :{
-        "path" : "/run/devmap/sensors/CPU_CORE_TEMP/temp4_input",
-        "thresholds" : {
-          "upperCriticalVal" : 105
+      "CPU_CORE2_TEMP": {
+        "path": "/run/devmap/sensors/CPU_CORE_TEMP/temp4_input",
+        "thresholds": {
+          "upperCriticalVal": 105
         },
-        "compute" : "@/1000.0",
-        "type" : 3
+        "compute": "@/1000.0",
+        "type": 3
       },
-      "CPU_CORE3_TEMP" :{
-        "path" : "/run/devmap/sensors/CPU_CORE_TEMP/temp5_input",
-        "thresholds" : {
-          "upperCriticalVal" : 105
+      "CPU_CORE3_TEMP": {
+        "path": "/run/devmap/sensors/CPU_CORE_TEMP/temp5_input",
+        "thresholds": {
+          "upperCriticalVal": 105
         },
-        "compute" : "@/1000.0",
-        "type" : 3
+        "compute": "@/1000.0",
+        "type": 3
       },
-      "CPU_CORE4_TEMP" :{
-        "path" : "/run/devmap/sensors/CPU_CORE_TEMP/temp6_input",
-        "thresholds" : {
-          "upperCriticalVal" : 105
+      "CPU_CORE4_TEMP": {
+        "path": "/run/devmap/sensors/CPU_CORE_TEMP/temp6_input",
+        "thresholds": {
+          "upperCriticalVal": 105
         },
-        "compute" : "@/1000.0",
-        "type" : 3
+        "compute": "@/1000.0",
+        "type": 3
       },
-      "CPU_CORE5_TEMP" :{
-        "path" : "/run/devmap/sensors/CPU_CORE_TEMP/temp7_input",
-        "thresholds" : {
-          "upperCriticalVal" : 105
+      "CPU_CORE5_TEMP": {
+        "path": "/run/devmap/sensors/CPU_CORE_TEMP/temp7_input",
+        "thresholds": {
+          "upperCriticalVal": 105
         },
-        "compute" : "@/1000.0",
-        "type" : 3
+        "compute": "@/1000.0",
+        "type": 3
       },
-      "CPU_CORE6_TEMP" :{
-        "path" : "/run/devmap/sensors/CPU_CORE_TEMP/temp8_input",
-        "thresholds" : {
-          "upperCriticalVal" : 105
+      "CPU_CORE6_TEMP": {
+        "path": "/run/devmap/sensors/CPU_CORE_TEMP/temp8_input",
+        "thresholds": {
+          "upperCriticalVal": 105
         },
-        "compute" : "@/1000.0",
-        "type" : 3
+        "compute": "@/1000.0",
+        "type": 3
       },
-      "CPU_CORE7_TEMP" :{
-        "path" : "/run/devmap/sensors/CPU_CORE_TEMP/temp9_input",
-        "thresholds" : {
-          "upperCriticalVal" : 105
+      "CPU_CORE7_TEMP": {
+        "path": "/run/devmap/sensors/CPU_CORE_TEMP/temp9_input",
+        "thresholds": {
+          "upperCriticalVal": 105
         },
-        "compute" : "@/1000.0",
-        "type" : 3
+        "compute": "@/1000.0",
+        "type": 3
       },
-      "SCM_ECB_VIN" : {
-        "path" : "/run/devmap/sensors/CPU_MPS_PMBUS/in1_input",
-        "compute" : "@/32000.0",
-        "type" : 1
+      "SCM_ECB_VIN": {
+        "path": "/run/devmap/sensors/CPU_MPS_PMBUS/in1_input",
+        "compute": "@/32000.0",
+        "type": 1
       },
-      "SCM_ECB_VOUT" : {
-        "path" : "/run/devmap/sensors/CPU_MPS_PMBUS/in2_input",
-        "compute" : "@/32000.0",
-        "type" : 1
+      "SCM_ECB_VOUT": {
+        "path": "/run/devmap/sensors/CPU_MPS_PMBUS/in2_input",
+        "compute": "@/32000.0",
+        "type": 1
       },
-      "SCM_ECB_IOUT" : {
-        "path" : "/run/devmap/sensors/CPU_MPS_PMBUS/curr1_input",
-        "compute" : "@/1000.0",
-        "type" : 2
+      "SCM_ECB_IOUT": {
+        "path": "/run/devmap/sensors/CPU_MPS_PMBUS/curr1_input",
+        "compute": "@/1000.0",
+        "type": 2
       },
-      "SCM_VRM1_VIN" : {
-        "path" : "/run/devmap/sensors/CPU_PXM1310_1/in1_input",
-        "compute" : "@/1000.0",
-        "type" : 1
+      "SCM_VRM1_VIN": {
+        "path": "/run/devmap/sensors/CPU_PXM1310_1/in1_input",
+        "compute": "@/1000.0",
+        "type": 1
       },
-      "SCM_VRM1_VOUT_VCCIN" : {
-        "path" : "/run/devmap/sensors/CPU_PXM1310_1/in3_input",
-        "compute" : "@/1000.0",
-        "type" : 1
+      "SCM_VRM1_VOUT_VCCIN": {
+        "path": "/run/devmap/sensors/CPU_PXM1310_1/in3_input",
+        "compute": "@/1000.0",
+        "type": 1
       },
-      "SCM_VRM1_VOUT_1V8_CPU" : {
-        "path" : "/run/devmap/sensors/CPU_PXM1310_1/in4_input",
-        "compute" : "@/1000.0",
-        "type" : 1
+      "SCM_VRM1_VOUT_1V8_CPU": {
+        "path": "/run/devmap/sensors/CPU_PXM1310_1/in4_input",
+        "compute": "@/1000.0",
+        "type": 1
       },
-      "SCM_VRM1_TEMP1" : {
-        "path" : "/run/devmap/sensors/CPU_PXM1310_1/temp1_input",
-        "thresholds" : {
-          "upperCriticalVal" : 110
+      "SCM_VRM1_TEMP1": {
+        "path": "/run/devmap/sensors/CPU_PXM1310_1/temp1_input",
+        "thresholds": {
+          "upperCriticalVal": 110
         },
-        "compute" : "@/1000.0",
-        "type" : 3
+        "compute": "@/1000.0",
+        "type": 3
       },
-      "SCM_VRM1_TEMP2" : {
-        "path" : "/run/devmap/sensors/CPU_PXM1310_1/temp2_input",
-        "thresholds" : {
-          "upperCriticalVal" : 110
+      "SCM_VRM1_TEMP2": {
+        "path": "/run/devmap/sensors/CPU_PXM1310_1/temp2_input",
+        "thresholds": {
+          "upperCriticalVal": 110
         },
-        "compute" : "@/1000.0",
-        "type" : 3
+        "compute": "@/1000.0",
+        "type": 3
       },
-      "SCM_VRM2_VIN" : {
-        "path" : "/run/devmap/sensors/CPU_PXE1211/in1_input",
-        "compute" : "@/1000.0",
-        "type" : 1
+      "SCM_VRM2_VIN": {
+        "path": "/run/devmap/sensors/CPU_PXE1211/in1_input",
+        "compute": "@/1000.0",
+        "type": 1
       },
-      "SCM_VRM2_VOUT_1V2_VDDQ" : {
-        "path" : "/run/devmap/sensors/CPU_PXE1211/in4_input",
-        "compute" : "@/1000.0",
-        "type" : 1
+      "SCM_VRM2_VOUT_1V2_VDDQ": {
+        "path": "/run/devmap/sensors/CPU_PXE1211/in4_input",
+        "compute": "@/1000.0",
+        "type": 1
       },
-      "SCM_VRM2_VOUT_VNN_NAC" : {
-        "path" : "/run/devmap/sensors/CPU_PXE1211/in5_input",
-        "compute" : "@/1000.0",
-        "type" : 1
+      "SCM_VRM2_VOUT_VNN_NAC": {
+        "path": "/run/devmap/sensors/CPU_PXE1211/in5_input",
+        "compute": "@/1000.0",
+        "type": 1
       },
-      "SCM_VRM2_VOUT_1V0_CPU" : {
-        "path" : "/run/devmap/sensors/CPU_PXE1211/in6_input",
-        "compute" : "@/1000.0",
-        "type" : 1
+      "SCM_VRM2_VOUT_1V0_CPU": {
+        "path": "/run/devmap/sensors/CPU_PXE1211/in6_input",
+        "compute": "@/1000.0",
+        "type": 1
       },
-      "SCM_VRM2_TEMP1" : {
-        "path" : "/run/devmap/sensors/CPU_PXE1211/temp1_input",
-        "thresholds" : {
-          "upperCriticalVal" : 110
+      "SCM_VRM2_TEMP1": {
+        "path": "/run/devmap/sensors/CPU_PXE1211/temp1_input",
+        "thresholds": {
+          "upperCriticalVal": 110
         },
-        "compute" : "@/1000.0",
-        "type" : 3
+        "compute": "@/1000.0",
+        "type": 3
       },
-      "SCM_VRM2_TEMP2" : {
-        "path" : "/run/devmap/sensors/CPU_PXE1211/temp2_input",
-        "thresholds" : {
-          "upperCriticalVal" : 110
+      "SCM_VRM2_TEMP2": {
+        "path": "/run/devmap/sensors/CPU_PXE1211/temp2_input",
+        "thresholds": {
+          "upperCriticalVal": 110
         },
-        "compute" : "@/1000.0",
-        "type" : 3
+        "compute": "@/1000.0",
+        "type": 3
       },
-      "SCM_VRM3_VIN" : {
-        "path" : "/run/devmap/sensors/CPU_PXM1310_2/in1_input",
-        "compute" : "@/1000.0",
-        "type" : 1
+      "SCM_VRM3_VIN": {
+        "path": "/run/devmap/sensors/CPU_PXM1310_2/in1_input",
+        "compute": "@/1000.0",
+        "type": 1
       },
-      "SCM_VRM3_VOUT_1V05_CPU" : {
-        "path" : "/run/devmap/sensors/CPU_PXM1310_2/in3_input",
-        "compute" : "@/1000.0",
-        "type" : 1
+      "SCM_VRM3_VOUT_1V05_CPU": {
+        "path": "/run/devmap/sensors/CPU_PXM1310_2/in3_input",
+        "compute": "@/1000.0",
+        "type": 1
       },
-      "SCM_VRM3_VOUT_VNN_PCH" : {
-        "path" : "/run/devmap/sensors/CPU_PXM1310_2/in4_input",
-        "compute" : "@/1000.0",
-        "type" : 1
+      "SCM_VRM3_VOUT_VNN_PCH": {
+        "path": "/run/devmap/sensors/CPU_PXM1310_2/in4_input",
+        "compute": "@/1000.0",
+        "type": 1
       },
-      "SCM_VRM3_TEMP1" : {
-        "path" : "/run/devmap/sensors/CPU_PXM1310_2/temp1_input",
-        "thresholds" : {
-          "upperCriticalVal" : 110
+      "SCM_VRM3_TEMP1": {
+        "path": "/run/devmap/sensors/CPU_PXM1310_2/temp1_input",
+        "thresholds": {
+          "upperCriticalVal": 110
         },
-        "compute" : "@/1000.0",
-        "type" : 3
+        "compute": "@/1000.0",
+        "type": 3
       },
-      "SCM_VRM3_TEMP2" : {
-        "path" : "/run/devmap/sensors/CPU_PXM1310_2/temp2_input",
-        "thresholds" : {
-          "upperCriticalVal" : 110
+      "SCM_VRM3_TEMP2": {
+        "path": "/run/devmap/sensors/CPU_PXM1310_2/temp2_input",
+        "thresholds": {
+          "upperCriticalVal": 110
         },
-        "compute" : "@/1000.0",
-        "type" : 3
+        "compute": "@/1000.0",
+        "type": 3
       }
     },
-    "SMB" : {
-      "SMB_BOARD_TOP_CENTER_TEMP" : {
-        "path" : "/run/devmap/sensors/SMB_MAX6581/temp1_input",
-        "thresholds" : {
-          "upperCriticalVal" : 95
+    "SMB": {
+      "SMB_BOARD_TOP_CENTER_TEMP": {
+        "path": "/run/devmap/sensors/SMB_MAX6581/temp1_input",
+        "thresholds": {
+          "upperCriticalVal": 95
         },
-        "compute" : "@/1000.0",
-        "type" : 3
+        "compute": "@/1000.0",
+        "type": 3
       },
-      "SMB_BOARD_REAR_RIGHT_TEMP" : {
-        "path" : "/run/devmap/sensors/SMB_MAX6581/temp5_input",
-        "thresholds" : {
-          "upperCriticalVal" : 95
+      "SMB_BOARD_REAR_RIGHT_TEMP": {
+        "path": "/run/devmap/sensors/SMB_MAX6581/temp5_input",
+        "thresholds": {
+          "upperCriticalVal": 95
         },
-        "compute" : "@/1000.0",
-        "type" : 3
+        "compute": "@/1000.0",
+        "type": 3
       },
-      "SMB_BOARD_FRONT_RIGHT_TEMP" : {
-        "path" : "/run/devmap/sensors/SMB_MAX6581/temp6_input",
-        "thresholds" : {
-          "upperCriticalVal" : 95
+      "SMB_BOARD_FRONT_RIGHT_TEMP": {
+        "path": "/run/devmap/sensors/SMB_MAX6581/temp6_input",
+        "thresholds": {
+          "upperCriticalVal": 95
         },
-        "compute" : "@/1000.0",
-        "type" : 3
+        "compute": "@/1000.0",
+        "type": 3
       },
-      "SMB_BOARD_REAR_LEFT_TEMP" : {
-        "path" : "/run/devmap/sensors/SMB_MAX6581/temp7_input",
-        "thresholds" : {
-          "upperCriticalVal" : 95
+      "SMB_BOARD_REAR_LEFT_TEMP": {
+        "path": "/run/devmap/sensors/SMB_MAX6581/temp7_input",
+        "thresholds": {
+          "upperCriticalVal": 95
         },
-        "compute" : "@/1000.0",
-        "type" : 3
+        "compute": "@/1000.0",
+        "type": 3
       },
-      "SMB_BOARD_FRONT_LEFT_TEMP" : {
-        "path" : "/run/devmap/sensors/SMB_MAX6581/temp8_input",
-        "thresholds" : {
-          "upperCriticalVal" : 95
+      "SMB_BOARD_FRONT_LEFT_TEMP": {
+        "path": "/run/devmap/sensors/SMB_MAX6581/temp8_input",
+        "thresholds": {
+          "upperCriticalVal": 95
         },
-        "compute" : "@/1000.0",
-        "type" : 3
+        "compute": "@/1000.0",
+        "type": 3
       },
-      "SMB_INLET_TEMP" : {
-        "path" : "/run/devmap/sensors/SMB_TMP75/temp1_input",
-        "thresholds" : {
-          "upperCriticalVal" : 95
+      "SMB_INLET_TEMP": {
+        "path": "/run/devmap/sensors/SMB_TMP75/temp1_input",
+        "thresholds": {
+          "upperCriticalVal": 95
         },
-        "compute" : "@/1000.0",
-        "type" : 3
+        "compute": "@/1000.0",
+        "type": 3
       },
-      "SMB_VRM_R3R0_CORE_VIN" : {
-        "path" : "/run/devmap/sensors/SMB_RAA228926_R3R0_CORE/in1_input",
-        "compute" : "@/1000.0",
-        "type" : 1
+      "SMB_VRM_R3R0_CORE_VIN": {
+        "path": "/run/devmap/sensors/SMB_RAA228926_R3R0_CORE/in1_input",
+        "compute": "@/1000.0",
+        "type": 1
       },
-      "SMB_VRM_R3R0_CORE_VOUT" : {
-        "path" : "/run/devmap/sensors/SMB_RAA228926_R3R0_CORE/in3_input",
-        "compute" : "@/1000.0",
-        "type" : 1
+      "SMB_VRM_R3R0_CORE_VOUT": {
+        "path": "/run/devmap/sensors/SMB_RAA228926_R3R0_CORE/in3_input",
+        "compute": "@/1000.0",
+        "type": 1
       },
-      "SMB_VRM_R3R0_ANLG0_VIN" : {
-        "path" : "/run/devmap/sensors/SMB_ISL68226_R3R0_ANLG0/in1_input",
-        "compute" : "@/1000.0",
-        "type" : 1
+      "SMB_VRM_R3R0_ANLG0_VIN": {
+        "path": "/run/devmap/sensors/SMB_ISL68226_R3R0_ANLG0/in1_input",
+        "compute": "@/1000.0",
+        "type": 1
       },
-      "SMB_VRM_R3R0_ANLG0_VOUT_0V9" : {
-        "path" : "/run/devmap/sensors/SMB_ISL68226_R3R0_ANLG0/in3_input",
-        "compute" : "@/1000.0",
-        "type" : 1
+      "SMB_VRM_R3R0_ANLG0_VOUT_0V9": {
+        "path": "/run/devmap/sensors/SMB_ISL68226_R3R0_ANLG0/in3_input",
+        "compute": "@/1000.0",
+        "type": 1
       },
-      "SMB_VRM_R3R0_ANLG0_VOUT_0V75" : {
-        "path" : "/run/devmap/sensors/SMB_ISL68226_R3R0_ANLG0/in4_input",
-        "compute" : "@/1000.0",
-        "type" : 1
+      "SMB_VRM_R3R0_ANLG0_VOUT_0V75": {
+        "path": "/run/devmap/sensors/SMB_ISL68226_R3R0_ANLG0/in4_input",
+        "compute": "@/1000.0",
+        "type": 1
       },
-      "SMB_VRM_R3R0_ANLG0_VOUT_1V2" : {
-        "path" : "/run/devmap/sensors/SMB_ISL68226_R3R0_ANLG0/in5_input",
-        "compute" : "@/1000.0",
-        "type" : 1
+      "SMB_VRM_R3R0_ANLG0_VOUT_1V2": {
+        "path": "/run/devmap/sensors/SMB_ISL68226_R3R0_ANLG0/in5_input",
+        "compute": "@/1000.0",
+        "type": 1
       },
-      "SMB_VRM_R3R0_ANLG1_VIN" : {
-        "path" : "/run/devmap/sensors/SMB_ISL68226_R3R0_ANLG1/in1_input",
-        "compute" : "@/1000.0",
-        "type" : 1
+      "SMB_VRM_R3R0_ANLG1_VIN": {
+        "path": "/run/devmap/sensors/SMB_ISL68226_R3R0_ANLG1/in1_input",
+        "compute": "@/1000.0",
+        "type": 1
       },
-      "SMB_VRM_R3R0_ANLG1_VOUT_0V9" : {
-        "path" : "/run/devmap/sensors/SMB_ISL68226_R3R0_ANLG1/in3_input",
-        "compute" : "@/1000.0",
-        "type" : 1
+      "SMB_VRM_R3R0_ANLG1_VOUT_0V9": {
+        "path": "/run/devmap/sensors/SMB_ISL68226_R3R0_ANLG1/in3_input",
+        "compute": "@/1000.0",
+        "type": 1
       },
-      "SMB_VRM_R3R0_ANLG1_VOUT_0V75" : {
-        "path" : "/run/devmap/sensors/SMB_ISL68226_R3R0_ANLG1/in4_input",
-        "compute" : "@/1000.0",
-        "type" : 1
+      "SMB_VRM_R3R0_ANLG1_VOUT_0V75": {
+        "path": "/run/devmap/sensors/SMB_ISL68226_R3R0_ANLG1/in4_input",
+        "compute": "@/1000.0",
+        "type": 1
       },
-      "SMB_VRM_R3R0_ANLG1_VOUT_1V2" : {
-        "path" : "/run/devmap/sensors/SMB_ISL68226_R3R0_ANLG1/in5_input",
-        "compute" : "@/1000.0",
-        "type" : 1
+      "SMB_VRM_R3R0_ANLG1_VOUT_1V2": {
+        "path": "/run/devmap/sensors/SMB_ISL68226_R3R0_ANLG1/in5_input",
+        "compute": "@/1000.0",
+        "type": 1
       },
-      "SMB_VRM_R3R1_CORE_VIN" : {
-        "path" : "/run/devmap/sensors/SMB_RAA228926_R3R1_CORE/in1_input",
-        "compute" : "@/1000.0",
-        "type" : 1
+      "SMB_VRM_R3R1_CORE_VIN": {
+        "path": "/run/devmap/sensors/SMB_RAA228926_R3R1_CORE/in1_input",
+        "compute": "@/1000.0",
+        "type": 1
       },
-      "SMB_VRM_R3R1_CORE_VOUT" : {
-        "path" : "/run/devmap/sensors/SMB_RAA228926_R3R1_CORE/in3_input",
-        "compute" : "@/1000.0",
-        "type" : 1
+      "SMB_VRM_R3R1_CORE_VOUT": {
+        "path": "/run/devmap/sensors/SMB_RAA228926_R3R1_CORE/in3_input",
+        "compute": "@/1000.0",
+        "type": 1
       },
-      "SMB_VRM_R3R1_ANLG0_VIN" : {
-        "path" : "/run/devmap/sensors/SMB_ISL68226_R3R1_ANLG0/in1_input",
-        "compute" : "@/1000.0",
-        "type" : 1
+      "SMB_VRM_R3R1_ANLG0_VIN": {
+        "path": "/run/devmap/sensors/SMB_ISL68226_R3R1_ANLG0/in1_input",
+        "compute": "@/1000.0",
+        "type": 1
       },
-      "SMB_VRM_R3R1_ANLG0_VOUT_0V9" : {
-        "path" : "/run/devmap/sensors/SMB_ISL68226_R3R1_ANLG0/in3_input",
-        "compute" : "@/1000.0",
-        "type" : 1
+      "SMB_VRM_R3R1_ANLG0_VOUT_0V9": {
+        "path": "/run/devmap/sensors/SMB_ISL68226_R3R1_ANLG0/in3_input",
+        "compute": "@/1000.0",
+        "type": 1
       },
-      "SMB_VRM_R3R1_ANLG0_VOUT_0V75" : {
-        "path" : "/run/devmap/sensors/SMB_ISL68226_R3R1_ANLG0/in4_input",
-        "compute" : "@/1000.0",
-        "type" : 1
+      "SMB_VRM_R3R1_ANLG0_VOUT_0V75": {
+        "path": "/run/devmap/sensors/SMB_ISL68226_R3R1_ANLG0/in4_input",
+        "compute": "@/1000.0",
+        "type": 1
       },
-      "SMB_VRM_R3R1_ANLG0_VOUT_1V2" : {
-        "path" : "/run/devmap/sensors/SMB_ISL68226_R3R1_ANLG0/in5_input",
-        "compute" : "@/1000.0",
-        "type" : 1
+      "SMB_VRM_R3R1_ANLG0_VOUT_1V2": {
+        "path": "/run/devmap/sensors/SMB_ISL68226_R3R1_ANLG0/in5_input",
+        "compute": "@/1000.0",
+        "type": 1
       },
-      "SMB_VRM_R3R1_ANLG1_VIN" : {
-        "path" : "/run/devmap/sensors/SMB_ISL68226_R3R1_ANLG1/in1_input",
-        "compute" : "@/1000.0",
-        "type" : 1
+      "SMB_VRM_R3R1_ANLG1_VIN": {
+        "path": "/run/devmap/sensors/SMB_ISL68226_R3R1_ANLG1/in1_input",
+        "compute": "@/1000.0",
+        "type": 1
       },
-      "SMB_VRM_R3R1_ANLG1_VOUT_0V9" : {
-        "path" : "/run/devmap/sensors/SMB_ISL68226_R3R1_ANLG1/in3_input",
-        "compute" : "@/1000.0",
-        "type" : 1
+      "SMB_VRM_R3R1_ANLG1_VOUT_0V9": {
+        "path": "/run/devmap/sensors/SMB_ISL68226_R3R1_ANLG1/in3_input",
+        "compute": "@/1000.0",
+        "type": 1
       },
-      "SMB_VRM_R3R1_ANLG1_VOUT_0V75" : {
-        "path" : "/run/devmap/sensors/SMB_ISL68226_R3R1_ANLG1/in4_input",
-        "compute" : "@/1000.0",
-        "type" : 1
+      "SMB_VRM_R3R1_ANLG1_VOUT_0V75": {
+        "path": "/run/devmap/sensors/SMB_ISL68226_R3R1_ANLG1/in4_input",
+        "compute": "@/1000.0",
+        "type": 1
       },
-      "SMB_VRM_R3R1_ANLG1_VOUT_1V2" : {
-        "path" : "/run/devmap/sensors/SMB_ISL68226_R3R1_ANLG1/in5_input",
-        "compute" : "@/1000.0",
-        "type" : 1
+      "SMB_VRM_R3R1_ANLG1_VOUT_1V2": {
+        "path": "/run/devmap/sensors/SMB_ISL68226_R3R1_ANLG1/in5_input",
+        "compute": "@/1000.0",
+        "type": 1
       },
-      "SMB_VRM_OSFP_TL_VIN" : {
-        "path" : "/run/devmap/sensors/SMB_ISL68226_OSFP_TL/in1_input",
-        "compute" : "@/1000.0",
-        "type" : 1
+      "SMB_VRM_OSFP_TL_VIN": {
+        "path": "/run/devmap/sensors/SMB_ISL68226_OSFP_TL/in1_input",
+        "compute": "@/1000.0",
+        "type": 1
       },
-      "SMB_VRM_OSFP_TL_VOUT_3V3" : {
-        "path" : "/run/devmap/sensors/SMB_ISL68226_OSFP_TL/in3_input",
-        "compute" : "@/1000.0",
-        "type" : 1
+      "SMB_VRM_OSFP_TL_VOUT_3V3": {
+        "path": "/run/devmap/sensors/SMB_ISL68226_OSFP_TL/in3_input",
+        "compute": "@/1000.0",
+        "type": 1
       },
-      "SMB_VRM_OSFP_TR_VIN" : {
-        "path" : "/run/devmap/sensors/SMB_ISL68226_OSFP_TR/in1_input",
-        "compute" : "@/1000.0",
-        "type" : 1
+      "SMB_VRM_OSFP_TR_VIN": {
+        "path": "/run/devmap/sensors/SMB_ISL68226_OSFP_TR/in1_input",
+        "compute": "@/1000.0",
+        "type": 1
       },
-      "SMB_VRM_OSFP_TR_VOUT_3V3" : {
-        "path" : "/run/devmap/sensors/SMB_ISL68226_OSFP_TR/in3_input",
-        "compute" : "@/1000.0",
-        "type" : 1
+      "SMB_VRM_OSFP_TR_VOUT_3V3": {
+        "path": "/run/devmap/sensors/SMB_ISL68226_OSFP_TR/in3_input",
+        "compute": "@/1000.0",
+        "type": 1
       },
-      "SMB_VRM_OSFP_BL_VIN" : {
-        "path" : "/run/devmap/sensors/SMB_ISL68226_OSFP_BL/in1_input",
-        "compute" : "@/1000.0",
-        "type" : 1
+      "SMB_VRM_OSFP_BL_VIN": {
+        "path": "/run/devmap/sensors/SMB_ISL68226_OSFP_BL/in1_input",
+        "compute": "@/1000.0",
+        "type": 1
       },
-      "SMB_VRM_OSFP_BL_VOUT_3V3" : {
-        "path" : "/run/devmap/sensors/SMB_ISL68226_OSFP_BL/in3_input",
-        "compute" : "@/1000.0",
-        "type" : 1
+      "SMB_VRM_OSFP_BL_VOUT_3V3": {
+        "path": "/run/devmap/sensors/SMB_ISL68226_OSFP_BL/in3_input",
+        "compute": "@/1000.0",
+        "type": 1
       },
-      "SMB_VRM_OSFP_BR_VIN" : {
-        "path" : "/run/devmap/sensors/SMB_ISL68226_OSFP_BR/in1_input",
-        "compute" : "@/1000.0",
-        "type" : 1
+      "SMB_VRM_OSFP_BR_VIN": {
+        "path": "/run/devmap/sensors/SMB_ISL68226_OSFP_BR/in1_input",
+        "compute": "@/1000.0",
+        "type": 1
       },
-      "SMB_VRM_OSFP_BR_VOUT_3V3" : {
-        "path" : "/run/devmap/sensors/SMB_ISL68226_OSFP_BR/in3_input",
-        "compute" : "@/1000.0",
-        "type" : 1
+      "SMB_VRM_OSFP_BR_VOUT_3V3": {
+        "path": "/run/devmap/sensors/SMB_ISL68226_OSFP_BR/in3_input",
+        "compute": "@/1000.0",
+        "type": 1
       },
-      "FAN_BOARD0_TEMP" : {
-        "path" : "/run/devmap/sensors/FAN0_TMP75/temp1_input",
-        "thresholds" : {
-          "upperCriticalVal" : 95
+      "FAN_BOARD0_TEMP": {
+        "path": "/run/devmap/sensors/FAN0_TMP75/temp1_input",
+        "thresholds": {
+          "upperCriticalVal": 95
         },
-        "compute" : "@/1000.0",
-        "type" : 3
+        "compute": "@/1000.0",
+        "type": 3
       },
-      "FAN_BOARD1_TEMP" : {
-        "path" : "/run/devmap/sensors/FAN1_TMP75/temp1_input",
-        "thresholds" : {
-          "upperCriticalVal" : 95
+      "FAN_BOARD1_TEMP": {
+        "path": "/run/devmap/sensors/FAN1_TMP75/temp1_input",
+        "thresholds": {
+          "upperCriticalVal": 95
         },
-        "compute" : "@/1000.0",
-        "type" : 3
+        "compute": "@/1000.0",
+        "type": 3
       },
-      "FAN_BOARD2_TEMP" : {
-        "path" : "/run/devmap/sensors/FAN2_TMP75/temp1_input",
-        "thresholds" : {
-          "upperCriticalVal" : 95
+      "FAN_BOARD2_TEMP": {
+        "path": "/run/devmap/sensors/FAN2_TMP75/temp1_input",
+        "thresholds": {
+          "upperCriticalVal": 95
         },
-        "compute" : "@/1000.0",
-        "type" : 3
+        "compute": "@/1000.0",
+        "type": 3
       }
     },
-    "FAN1" : {
-      "FAN1_RPM" : {
-        "path" : "/run/devmap/sensors/FAN_CPLD0/fan1_input",
-        "thresholds" : {
-          "upperCriticalVal" : 14900,
-          "lowerCriticalVal" : 1100
+    "FAN1": {
+      "FAN1_RPM": {
+        "path": "/run/devmap/sensors/FAN_CPLD0/fan1_input",
+        "thresholds": {
+          "upperCriticalVal": 14900,
+          "lowerCriticalVal": 1100
         },
-        "type" : 4
+        "type": 4
       }
     },
-    "FAN2" : {
-      "FAN2_RPM" : {
-        "path" : "/run/devmap/sensors/FAN_CPLD0/fan2_input",
-        "thresholds" : {
-          "upperCriticalVal" : 14900,
-          "lowerCriticalVal" : 1100
+    "FAN2": {
+      "FAN2_RPM": {
+        "path": "/run/devmap/sensors/FAN_CPLD0/fan2_input",
+        "thresholds": {
+          "upperCriticalVal": 14900,
+          "lowerCriticalVal": 1100
         },
-        "type" : 4
+        "type": 4
       }
     },
-    "FAN3" : {
-      "FAN3_RPM" : {
-        "path" : "/run/devmap/sensors/FAN_CPLD0/fan3_input",
-        "thresholds" : {
-          "upperCriticalVal" : 14900,
-          "lowerCriticalVal" : 1100
+    "FAN3": {
+      "FAN3_RPM": {
+        "path": "/run/devmap/sensors/FAN_CPLD0/fan3_input",
+        "thresholds": {
+          "upperCriticalVal": 14900,
+          "lowerCriticalVal": 1100
         },
-        "type" : 4
+        "type": 4
       }
     },
-    "FAN4" : {
-      "FAN4_RPM" : {
-        "path" : "/run/devmap/sensors/FAN_CPLD0/fan4_input",
-        "thresholds" : {
-          "upperCriticalVal" : 14900,
-          "lowerCriticalVal" : 1100
+    "FAN4": {
+      "FAN4_RPM": {
+        "path": "/run/devmap/sensors/FAN_CPLD0/fan4_input",
+        "thresholds": {
+          "upperCriticalVal": 14900,
+          "lowerCriticalVal": 1100
         },
-        "type" : 4
+        "type": 4
       }
     },
-    "FAN5" : {
-      "FAN5_RPM" : {
-        "path" : "/run/devmap/sensors/FAN_CPLD1/fan1_input",
-        "thresholds" : {
-          "upperCriticalVal" : 14900,
-          "lowerCriticalVal" : 1100
+    "FAN5": {
+      "FAN5_RPM": {
+        "path": "/run/devmap/sensors/FAN_CPLD1/fan1_input",
+        "thresholds": {
+          "upperCriticalVal": 14900,
+          "lowerCriticalVal": 1100
         },
-        "type" : 4
+        "type": 4
       }
     },
-    "FAN6" : {
-      "FAN6_RPM" : {
-        "path" : "/run/devmap/sensors/FAN_CPLD1/fan2_input",
-        "thresholds" : {
-          "upperCriticalVal" : 14900,
-          "lowerCriticalVal" : 1100
+    "FAN6": {
+      "FAN6_RPM": {
+        "path": "/run/devmap/sensors/FAN_CPLD1/fan2_input",
+        "thresholds": {
+          "upperCriticalVal": 14900,
+          "lowerCriticalVal": 1100
         },
-        "type" : 4
+        "type": 4
       }
     },
-    "FAN7" : {
-      "FAN7_RPM" : {
-        "path" : "/run/devmap/sensors/FAN_CPLD1/fan3_input",
-        "thresholds" : {
-          "upperCriticalVal" : 14900,
-          "lowerCriticalVal" : 1100
+    "FAN7": {
+      "FAN7_RPM": {
+        "path": "/run/devmap/sensors/FAN_CPLD1/fan3_input",
+        "thresholds": {
+          "upperCriticalVal": 14900,
+          "lowerCriticalVal": 1100
         },
-        "type" : 4
+        "type": 4
       }
     },
-    "FAN8" : {
-      "FAN8_RPM" : {
-        "path" : "/run/devmap/sensors/FAN_CPLD1/fan4_input",
-        "thresholds" : {
-          "upperCriticalVal" : 14900,
-          "lowerCriticalVal" : 1100
+    "FAN8": {
+      "FAN8_RPM": {
+        "path": "/run/devmap/sensors/FAN_CPLD1/fan4_input",
+        "thresholds": {
+          "upperCriticalVal": 14900,
+          "lowerCriticalVal": 1100
         },
-        "type" : 4
+        "type": 4
       }
     },
-    "FAN9" : {
-      "FAN9_RPM" : {
-        "path" : "/run/devmap/sensors/FAN_CPLD2/fan1_input",
-        "thresholds" : {
-          "upperCriticalVal" : 14900,
-          "lowerCriticalVal" : 1100
+    "FAN9": {
+      "FAN9_RPM": {
+        "path": "/run/devmap/sensors/FAN_CPLD2/fan1_input",
+        "thresholds": {
+          "upperCriticalVal": 14900,
+          "lowerCriticalVal": 1100
         },
-        "type" : 4
+        "type": 4
       }
     },
-    "FAN10" : {
-      "FAN10_RPM" : {
-        "path" : "/run/devmap/sensors/FAN_CPLD2/fan2_input",
-        "thresholds" : {
-          "upperCriticalVal" : 14900,
-          "lowerCriticalVal" : 1100
+    "FAN10": {
+      "FAN10_RPM": {
+        "path": "/run/devmap/sensors/FAN_CPLD2/fan2_input",
+        "thresholds": {
+          "upperCriticalVal": 14900,
+          "lowerCriticalVal": 1100
         },
-        "type" : 4
+        "type": 4
       }
     },
-    "FAN11" : {
-      "FAN11_RPM" : {
-        "path" : "/run/devmap/sensors/FAN_CPLD2/fan3_input",
-        "thresholds" : {
-          "upperCriticalVal" : 14900,
-          "lowerCriticalVal" : 1100
+    "FAN11": {
+      "FAN11_RPM": {
+        "path": "/run/devmap/sensors/FAN_CPLD2/fan3_input",
+        "thresholds": {
+          "upperCriticalVal": 14900,
+          "lowerCriticalVal": 1100
         },
-        "type" : 4
+        "type": 4
       }
     },
-    "FAN12" : {
-      "FAN12_RPM" : {
-        "path" : "/run/devmap/sensors/FAN_CPLD2/fan4_input",
-        "thresholds" : {
-          "upperCriticalVal" : 14900,
-          "lowerCriticalVal" : 1100
+    "FAN12": {
+      "FAN12_RPM": {
+        "path": "/run/devmap/sensors/FAN_CPLD2/fan4_input",
+        "thresholds": {
+          "upperCriticalVal": 14900,
+          "lowerCriticalVal": 1100
         },
-        "type" : 4
+        "type": 4
       }
     },
-    "PSU1" : {
-      "PSU1_VIN" : {
-        "path" : "/run/devmap/sensors/PSU1_PMBUS/in1_input",
-        "compute" : "@/1000.0",
-        "type" : 1
+    "PSU1": {
+      "PSU1_VIN": {
+        "path": "/run/devmap/sensors/PSU1_PMBUS/in1_input",
+        "compute": "@/1000.0",
+        "type": 1
       },
-      "PSU1_VOUT" : {
-        "path" : "/run/devmap/sensors/PSU1_PMBUS/in3_input",
-        "compute" : "@/1000.0",
-        "type" : 1
+      "PSU1_VOUT": {
+        "path": "/run/devmap/sensors/PSU1_PMBUS/in3_input",
+        "compute": "@/1000.0",
+        "type": 1
       },
-      "PSU1_FAN1_RPM" : {
-        "path" : "/run/devmap/sensors/PSU1_PMBUS/fan1_input",
-        "type" : 4
+      "PSU1_FAN1_RPM": {
+        "path": "/run/devmap/sensors/PSU1_PMBUS/fan1_input",
+        "type": 4
       },
-      "PSU1_FAN2_RPM" : {
-        "path" : "/run/devmap/sensors/PSU1_PMBUS/fan2_input",
-        "type" : 4
+      "PSU1_FAN2_RPM": {
+        "path": "/run/devmap/sensors/PSU1_PMBUS/fan2_input",
+        "type": 4
       },
-      "PSU1_TEMP1" : {
-        "path" : "/run/devmap/sensors/PSU1_PMBUS/temp1_input",
-        "compute" : "@/1000.0",
-        "type" : 3
+      "PSU1_TEMP1": {
+        "path": "/run/devmap/sensors/PSU1_PMBUS/temp1_input",
+        "compute": "@/1000.0",
+        "type": 3
       },
-      "PSU1_TEMP2" : {
-        "path" : "/run/devmap/sensors/PSU1_PMBUS/temp2_input",
-        "compute" : "@/1000.0",
-        "type" : 3
+      "PSU1_TEMP2": {
+        "path": "/run/devmap/sensors/PSU1_PMBUS/temp2_input",
+        "compute": "@/1000.0",
+        "type": 3
       },
-      "PSU1_TEMP3" : {
-        "path" : "/run/devmap/sensors/PSU1_PMBUS/temp3_input",
-        "compute" : "@/1000.0",
-        "type" : 3
+      "PSU1_TEMP3": {
+        "path": "/run/devmap/sensors/PSU1_PMBUS/temp3_input",
+        "compute": "@/1000.0",
+        "type": 3
       },
-      "PSU1_IIN" : {
-        "path" : "/run/devmap/sensors/PSU1_PMBUS/curr1_input",
-        "compute" : "@/1000.0",
-        "type" : 2
+      "PSU1_IIN": {
+        "path": "/run/devmap/sensors/PSU1_PMBUS/curr1_input",
+        "compute": "@/1000.0",
+        "type": 2
       },
-      "PSU1_IOUT" : {
-        "path" : "/run/devmap/sensors/PSU1_PMBUS/curr2_input",
-        "compute" : "@/1000.0",
-        "type" : 2
+      "PSU1_IOUT": {
+        "path": "/run/devmap/sensors/PSU1_PMBUS/curr2_input",
+        "compute": "@/1000.0",
+        "type": 2
       },
-      "PSU1_PIN" : {
-        "path" : "/run/devmap/sensors/PSU1_PMBUS/power1_input",
-        "compute" : "@/1000000.0",
-        "type" : 0
+      "PSU1_PIN": {
+        "path": "/run/devmap/sensors/PSU1_PMBUS/power1_input",
+        "compute": "@/1000000.0",
+        "type": 0
       },
-      "PSU1_POUT" : {
-        "path" : "/run/devmap/sensors/PSU1_PMBUS/power2_input",
-        "compute" : "@/1000000.0",
-        "type" : 0
+      "PSU1_POUT": {
+        "path": "/run/devmap/sensors/PSU1_PMBUS/power2_input",
+        "compute": "@/1000000.0",
+        "type": 0
       }
     },
-    "PSU2" : {
-      "PSU2_VIN" : {
-        "path" : "/run/devmap/sensors/PSU2_PMBUS/in1_input",
-        "compute" : "@/1000.0",
-        "type" : 1
+    "PSU2": {
+      "PSU2_VIN": {
+        "path": "/run/devmap/sensors/PSU2_PMBUS/in1_input",
+        "compute": "@/1000.0",
+        "type": 1
       },
-      "PSU2_VOUT" : {
-        "path" : "/run/devmap/sensors/PSU2_PMBUS/in3_input",
-        "compute" : "@/1000.0",
-        "type" : 1
+      "PSU2_VOUT": {
+        "path": "/run/devmap/sensors/PSU2_PMBUS/in3_input",
+        "compute": "@/1000.0",
+        "type": 1
       },
-      "PSU2_FAN1_RPM" : {
-        "path" : "/run/devmap/sensors/PSU2_PMBUS/fan1_input",
-        "type" : 4
+      "PSU2_FAN1_RPM": {
+        "path": "/run/devmap/sensors/PSU2_PMBUS/fan1_input",
+        "type": 4
       },
-      "PSU2_FAN2_RPM" : {
-        "path" : "/run/devmap/sensors/PSU2_PMBUS/fan2_input",
-        "type" : 4
+      "PSU2_FAN2_RPM": {
+        "path": "/run/devmap/sensors/PSU2_PMBUS/fan2_input",
+        "type": 4
       },
-      "PSU2_TEMP1" : {
-        "path" : "/run/devmap/sensors/PSU2_PMBUS/temp1_input",
-        "compute" : "@/1000.0",
-        "type" : 3
+      "PSU2_TEMP1": {
+        "path": "/run/devmap/sensors/PSU2_PMBUS/temp1_input",
+        "compute": "@/1000.0",
+        "type": 3
       },
-      "PSU2_TEMP2" : {
-        "path" : "/run/devmap/sensors/PSU2_PMBUS/temp2_input",
-        "compute" : "@/1000.0",
-        "type" : 3
+      "PSU2_TEMP2": {
+        "path": "/run/devmap/sensors/PSU2_PMBUS/temp2_input",
+        "compute": "@/1000.0",
+        "type": 3
       },
-      "PSU2_TEMP3" : {
-        "path" : "/run/devmap/sensors/PSU2_PMBUS/temp3_input",
-        "compute" : "@/1000.0",
-        "type" : 3
+      "PSU2_TEMP3": {
+        "path": "/run/devmap/sensors/PSU2_PMBUS/temp3_input",
+        "compute": "@/1000.0",
+        "type": 3
       },
-      "PSU2_IIN" : {
-        "path" : "/run/devmap/sensors/PSU2_PMBUS/curr1_input",
-        "compute" : "@/1000.0",
-        "type" : 2
+      "PSU2_IIN": {
+        "path": "/run/devmap/sensors/PSU2_PMBUS/curr1_input",
+        "compute": "@/1000.0",
+        "type": 2
       },
-      "PSU2_IOUT" : {
-        "path" : "/run/devmap/sensors/PSU2_PMBUS/curr2_input",
-        "compute" : "@/1000.0",
-        "type" : 2
+      "PSU2_IOUT": {
+        "path": "/run/devmap/sensors/PSU2_PMBUS/curr2_input",
+        "compute": "@/1000.0",
+        "type": 2
       },
-      "PSU2_PIN" : {
-        "path" : "/run/devmap/sensors/PSU2_PMBUS/power1_input",
-        "compute" : "@/1000000.0",
-        "type" : 0
+      "PSU2_PIN": {
+        "path": "/run/devmap/sensors/PSU2_PMBUS/power1_input",
+        "compute": "@/1000000.0",
+        "type": 0
       },
-      "PSU2_POUT" : {
-        "path" : "/run/devmap/sensors/PSU2_PMBUS/power2_input",
-        "compute" : "@/1000000.0",
-        "type" : 0
+      "PSU2_POUT": {
+        "path": "/run/devmap/sensors/PSU2_PMBUS/power2_input",
+        "compute": "@/1000000.0",
+        "type": 0
       }
     },
-    "PSU3" : {
-      "PSU3_VIN" : {
-        "path" : "/run/devmap/sensors/PSU3_PMBUS/in1_input",
-        "compute" : "@/1000.0",
-        "type" : 1
+    "PSU3": {
+      "PSU3_VIN": {
+        "path": "/run/devmap/sensors/PSU3_PMBUS/in1_input",
+        "compute": "@/1000.0",
+        "type": 1
       },
-      "PSU3_VOUT" : {
-        "path" : "/run/devmap/sensors/PSU3_PMBUS/in3_input",
-        "compute" : "@/1000.0",
-        "type" : 1
+      "PSU3_VOUT": {
+        "path": "/run/devmap/sensors/PSU3_PMBUS/in3_input",
+        "compute": "@/1000.0",
+        "type": 1
       },
-      "PSU3_FAN1_RPM" : {
-        "path" : "/run/devmap/sensors/PSU3_PMBUS/fan1_input",
-        "type" : 4
+      "PSU3_FAN1_RPM": {
+        "path": "/run/devmap/sensors/PSU3_PMBUS/fan1_input",
+        "type": 4
       },
-      "PSU3_FAN2_RPM" : {
-        "path" : "/run/devmap/sensors/PSU3_PMBUS/fan2_input",
-        "type" : 4
+      "PSU3_FAN2_RPM": {
+        "path": "/run/devmap/sensors/PSU3_PMBUS/fan2_input",
+        "type": 4
       },
-      "PSU3_TEMP1" : {
-        "path" : "/run/devmap/sensors/PSU3_PMBUS/temp1_input",
-        "compute" : "@/1000.0",
-        "type" : 3
+      "PSU3_TEMP1": {
+        "path": "/run/devmap/sensors/PSU3_PMBUS/temp1_input",
+        "compute": "@/1000.0",
+        "type": 3
       },
-      "PSU3_TEMP2" : {
-        "path" : "/run/devmap/sensors/PSU3_PMBUS/temp2_input",
-        "compute" : "@/1000.0",
-        "type" : 3
+      "PSU3_TEMP2": {
+        "path": "/run/devmap/sensors/PSU3_PMBUS/temp2_input",
+        "compute": "@/1000.0",
+        "type": 3
       },
-      "PSU3_TEMP3" : {
-        "path" : "/run/devmap/sensors/PSU3_PMBUS/temp3_input",
-        "compute" : "@/1000.0",
-        "type" : 3
+      "PSU3_TEMP3": {
+        "path": "/run/devmap/sensors/PSU3_PMBUS/temp3_input",
+        "compute": "@/1000.0",
+        "type": 3
       },
-      "PSU3_IIN" : {
-        "path" : "/run/devmap/sensors/PSU3_PMBUS/curr1_input",
-        "compute" : "@/1000.0",
-        "type" : 2
+      "PSU3_IIN": {
+        "path": "/run/devmap/sensors/PSU3_PMBUS/curr1_input",
+        "compute": "@/1000.0",
+        "type": 2
       },
-      "PSU3_IOUT" : {
-        "path" : "/run/devmap/sensors/PSU3_PMBUS/curr2_input",
-        "compute" : "@/1000.0",
-        "type" : 2
+      "PSU3_IOUT": {
+        "path": "/run/devmap/sensors/PSU3_PMBUS/curr2_input",
+        "compute": "@/1000.0",
+        "type": 2
       },
-      "PSU3_PIN" : {
-        "path" : "/run/devmap/sensors/PSU3_PMBUS/power1_input",
-        "compute" : "@/1000000.0",
-        "type" : 0
+      "PSU3_PIN": {
+        "path": "/run/devmap/sensors/PSU3_PMBUS/power1_input",
+        "compute": "@/1000000.0",
+        "type": 0
       },
-      "PSU3_POUT" : {
-        "path" : "/run/devmap/sensors/PSU3_PMBUS/power2_input",
-        "compute" : "@/1000000.0",
-        "type" : 0
+      "PSU3_POUT": {
+        "path": "/run/devmap/sensors/PSU3_PMBUS/power2_input",
+        "compute": "@/1000000.0",
+        "type": 0
       }
     },
-    "PSU4" : {
-      "PSU4_VIN" : {
-        "path" : "/run/devmap/sensors/PSU4_PMBUS/in1_input",
-        "compute" : "@/1000.0",
-        "type" : 1
+    "PSU4": {
+      "PSU4_VIN": {
+        "path": "/run/devmap/sensors/PSU4_PMBUS/in1_input",
+        "compute": "@/1000.0",
+        "type": 1
       },
-      "PSU4_VOUT" : {
-        "path" : "/run/devmap/sensors/PSU4_PMBUS/in3_input",
-        "compute" : "@/1000.0",
-        "type" : 1
+      "PSU4_VOUT": {
+        "path": "/run/devmap/sensors/PSU4_PMBUS/in3_input",
+        "compute": "@/1000.0",
+        "type": 1
       },
-      "PSU4_FAN1_RPM" : {
-        "path" : "/run/devmap/sensors/PSU4_PMBUS/fan1_input",
-        "type" : 4
+      "PSU4_FAN1_RPM": {
+        "path": "/run/devmap/sensors/PSU4_PMBUS/fan1_input",
+        "type": 4
       },
-      "PSU4_FAN2_RPM" : {
-        "path" : "/run/devmap/sensors/PSU4_PMBUS/fan2_input",
-        "type" : 4
+      "PSU4_FAN2_RPM": {
+        "path": "/run/devmap/sensors/PSU4_PMBUS/fan2_input",
+        "type": 4
       },
-      "PSU4_TEMP1" : {
-        "path" : "/run/devmap/sensors/PSU4_PMBUS/temp1_input",
-        "compute" : "@/1000.0",
-        "type" : 3
+      "PSU4_TEMP1": {
+        "path": "/run/devmap/sensors/PSU4_PMBUS/temp1_input",
+        "compute": "@/1000.0",
+        "type": 3
       },
-      "PSU4_TEMP2" : {
-        "path" : "/run/devmap/sensors/PSU4_PMBUS/temp2_input",
-        "compute" : "@/1000.0",
-        "type" : 3
+      "PSU4_TEMP2": {
+        "path": "/run/devmap/sensors/PSU4_PMBUS/temp2_input",
+        "compute": "@/1000.0",
+        "type": 3
       },
-      "PSU4_TEMP3" : {
-        "path" : "/run/devmap/sensors/PSU4_PMBUS/temp3_input",
-        "compute" : "@/1000.0",
-        "type" : 3
+      "PSU4_TEMP3": {
+        "path": "/run/devmap/sensors/PSU4_PMBUS/temp3_input",
+        "compute": "@/1000.0",
+        "type": 3
       },
-      "PSU4_IIN" : {
-        "path" : "/run/devmap/sensors/PSU4_PMBUS/curr1_input",
-        "compute" : "@/1000.0",
-        "type" : 2
+      "PSU4_IIN": {
+        "path": "/run/devmap/sensors/PSU4_PMBUS/curr1_input",
+        "compute": "@/1000.0",
+        "type": 2
       },
-      "PSU4_IOUT" : {
-        "path" : "/run/devmap/sensors/PSU4_PMBUS/curr2_input",
-        "compute" : "@/1000.0",
-        "type" : 2
+      "PSU4_IOUT": {
+        "path": "/run/devmap/sensors/PSU4_PMBUS/curr2_input",
+        "compute": "@/1000.0",
+        "type": 2
       },
-      "PSU4_PIN" : {
-        "path" : "/run/devmap/sensors/PSU4_PMBUS/power1_input",
-        "compute" : "@/1000000.0",
-        "type" : 0
+      "PSU4_PIN": {
+        "path": "/run/devmap/sensors/PSU4_PMBUS/power1_input",
+        "compute": "@/1000000.0",
+        "type": 0
       },
-      "PSU4_POUT" : {
-        "path" : "/run/devmap/sensors/PSU4_PMBUS/power2_input",
-        "compute" : "@/1000000.0",
-        "type" : 0
+      "PSU4_POUT": {
+        "path": "/run/devmap/sensors/PSU4_PMBUS/power2_input",
+        "compute": "@/1000000.0",
+        "type": 0
       }
     }
   }

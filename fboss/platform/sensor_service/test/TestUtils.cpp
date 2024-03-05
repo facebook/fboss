@@ -11,11 +11,8 @@ using namespace facebook::fboss::platform::sensor_service;
 
 namespace {
 
-std::string mockSensorConfig(
-    const std::string& tmpPath,
-    const std::string& source) {
+std::string mockSensorConfig(const std::string& tmpPath) {
   SensorConfig config;
-  config.source_ref() = source;
 
   Sensor mock_fru_1_sensor_1, mock_fru_1_sensor_2, mock_fru_2_sensor_1;
   mock_fru_1_sensor_1.path_ref() = tmpPath + "/mock_fru_1_sensor_1_path:temp1";
@@ -56,7 +53,7 @@ std::string mockSensorConfig(
 
 std::shared_ptr<SensorServiceImpl> createSensorServiceImplForTest(
     const std::string& tmpDirPath) {
-  auto confFileName = mockSensorConfig(tmpDirPath, "sysfs");
+  auto confFileName = mockSensorConfig(tmpDirPath);
   FLAGS_config_file = confFileName;
   return std::make_shared<SensorServiceImpl>();
 }
