@@ -68,7 +68,7 @@ SUBCLASS* NeighborTable<IPADDR, ENTRY, SUBCLASS>::modify(
 
   *interface = (*interface)->modify(state);
   auto newTable = this->clone();
-  (*interface)->setNeighborEntryTable<IPADDR>(newTable->toThrift());
+  (*interface)->setNeighborTable(std::move(newTable));
   return (*interface)->getNeighborEntryTable<IPADDR>().get();
 }
 
@@ -85,7 +85,7 @@ SUBCLASS* NeighborTable<IPADDR, ENTRY, SUBCLASS>::modify(
   // Make clone of interface
   auto interfacePtr = (*state)->getInterfaces()->getNode(interfaceId).get();
   interfacePtr = interfacePtr->modify(state);
-  interfacePtr->setNeighborEntryTable<IPADDR>(newTable->toThrift());
+  interfacePtr->setNeighborTable(std::move(newTable));
   return interfacePtr->getNeighborEntryTable<IPADDR>().get();
 }
 
