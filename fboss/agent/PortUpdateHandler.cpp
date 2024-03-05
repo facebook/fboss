@@ -18,6 +18,12 @@
 #include "fboss/agent/state/StateDelta.h"
 
 namespace facebook::fboss {
+namespace {
+struct BwInfo {
+  uint32_t fabricBwMbps{0};
+  uint32_t nifBwMbps{0};
+};
+} // namespace
 
 PortUpdateHandler::PortUpdateHandler(SwSwitch* sw) : sw_(sw) {
   sw_->registerStateObserver(this, "PortUpdateHandler");
@@ -27,8 +33,6 @@ PortUpdateHandler::~PortUpdateHandler() {
 }
 
 void PortUpdateHandler::stateUpdated(const StateDelta& delta) {
-  // For now, the stateUpdated is only used to update the portName of PortStats
-  // for all threads.
   DeltaFunctions::forEachChanged(
       delta.getPortsDelta(),
       [&](const std::shared_ptr<Port>& oldPort,
@@ -70,6 +74,52 @@ void PortUpdateHandler::stateUpdated(const StateDelta& delta) {
           sw_->getLldpMgr()->portDown(oldPort->getID());
         }
       });
+  if (delta.getPortsDelta().begin() == delta.getPortsDelta().end()) {
+    return;
+  }
+  computeFabricOverdrainPct(delta);
 }
 
+void PortUpdateHandler::computeFabricOverdrainPct(const StateDelta& delta) {
+  std::map<int, BwInfo> swIndexToBwInfo;
+  for (const auto& [matcher, portMap] :
+       std::as_const(*delta.newState()->getPorts())) {
+    auto switchInfo = sw_->getSwitchInfoTable().getSwitchInfo(
+        HwSwitchMatcher(matcher).switchId());
+    if (switchInfo.switchType() != cfg::SwitchType::VOQ) {
+      continue;
+    }
+    auto& bwInfo = swIndexToBwInfo[*switchInfo.switchIndex()];
+    for (const auto& [_, port] : std::as_const(*portMap)) {
+      if (!port->isUp()) {
+        continue;
+      }
+      if (port->getPortType() == cfg::PortType::INTERFACE_PORT ||
+          port->getPortType() == cfg::PortType::MANAGEMENT_PORT) {
+        bwInfo.nifBwMbps += static_cast<uint32_t>(port->getSpeed());
+      } else if (port->getPortType() == cfg::PortType::FABRIC_PORT) {
+        if (port->isActive().value_or(false)) {
+          switch (port->getSpeed()) {
+            case cfg::PortSpeed::FIFTYTHREEPOINTONETWOFIVEG:
+              bwInfo.fabricBwMbps +=
+                  static_cast<uint32_t>(cfg::PortSpeed::FIFTYG);
+              break;
+            case cfg::PortSpeed::HUNDREDANDSIXPOINTTWOFIVEG:
+              bwInfo.fabricBwMbps +=
+                  static_cast<uint32_t>(cfg::PortSpeed::HUNDREDG);
+              break;
+            default:
+              bwInfo.fabricBwMbps += static_cast<uint32_t>(port->getSpeed());
+              break;
+          }
+        }
+      }
+    }
+  }
+  for (const auto& [swIndex, bwInfo] : swIndexToBwInfo) {
+    XLOG(DBG2) << " Switch Index: " << swIndex
+               << " Nif Mbps: " << bwInfo.nifBwMbps
+               << " Fabric Mbps: " << bwInfo.fabricBwMbps;
+  }
+}
 } // namespace facebook::fboss

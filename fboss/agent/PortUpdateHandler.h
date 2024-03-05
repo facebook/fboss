@@ -27,6 +27,7 @@ class PortUpdateHandler : public StateObserver {
   // Forbidden copy constructor and assignment operator
   PortUpdateHandler(PortUpdateHandler const&) = delete;
   PortUpdateHandler& operator=(PortUpdateHandler const&) = delete;
+  void computeFabricOverdrainPct(const StateDelta& delta);
 
   SwSwitch* sw_{nullptr};
 };
