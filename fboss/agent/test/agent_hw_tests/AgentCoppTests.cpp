@@ -378,6 +378,47 @@ class AgentCoppTest : public AgentHwTest {
       ecmpHelper.programRoutes(&wrapper, ports);
     }
   }
+
+  void sendArpPkts(
+      int numPktsToSend,
+      const folly::IPAddress& dstIpAddress,
+      ARP_OPER arpType,
+      bool outOfPort) {
+    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+    for (int i = 0; i < numPktsToSend; i++) {
+      auto txPacket = utility::makeARPTxPacket(
+          getSw(),
+          vlanId,
+          srcMac,
+          arpType == ARP_OPER::ARP_OPER_REQUEST
+              ? folly::MacAddress("ff:ff:ff:ff:ff:ff")
+              : intfMac,
+          folly::IPAddress("1.1.1.2"),
+          dstIpAddress,
+          arpType);
+      sendPkt(std::move(txPacket), outOfPort);
+    }
+  }
+
+  void sendPktAndVerifyArpPacketsCpuQueue(
+      int queueId,
+      const folly::IPAddress& dstIpAddress,
+      ARP_OPER arpType,
+      bool outOfPort = true,
+      const int numPktsToSend = 1,
+      const int expectedPktDelta = 1) {
+    auto beforeOutPkts = getQueueOutPacketsWithRetry(
+        queueId, 0 /* retryTimes */, 0 /* expectedNumPkts */);
+    sendArpPkts(numPktsToSend, dstIpAddress, arpType, outOfPort);
+    auto afterOutPkts = getQueueOutPacketsWithRetry(
+        queueId, kGetQueueOutPktsRetryTimes, beforeOutPkts + 1);
+    XLOG(DBG0) << "Packet of DstIp=" << dstIpAddress.str() << ", dstMac="
+               << ". Queue=" << queueId << ", before pkts:" << beforeOutPkts
+               << ", after pkts:" << afterOutPkts;
+    EXPECT_EQ(expectedPktDelta, afterOutPkts - beforeOutPkts);
+  }
 };
 
 TYPED_TEST_SUITE(AgentCoppTest, TestTypes);
@@ -681,6 +722,21 @@ TYPED_TEST(AgentCoppTest, L3MTUErrorToLowPriQ) {
         std::nullopt,
         0, /* traffic class*/
         std::vector<uint8_t>(9200, 0xff));
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(AgentCoppTest, ArpRequestAndReplyToHighPriQ) {
+  auto setup = [=, this]() { this->setup(); };
+  auto verify = [=, this]() {
+    this->sendPktAndVerifyArpPacketsCpuQueue(
+        utility::getCoppHighPriQueueId(utility::getFirstAsic(this->getSw())),
+        folly::IPAddressV4("1.1.1.5"),
+        ARP_OPER::ARP_OPER_REQUEST);
+    this->sendPktAndVerifyArpPacketsCpuQueue(
+        utility::getCoppHighPriQueueId(utility::getFirstAsic(this->getSw())),
+        folly::IPAddressV4("1.1.1.5"),
+        ARP_OPER::ARP_OPER_REPLY);
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
