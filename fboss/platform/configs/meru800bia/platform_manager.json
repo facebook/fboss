@@ -200,7 +200,7 @@
           "presenceDetection": {
             "sysfsFileHandle": {
               "devicePath": "/SMB_SLOT@0/[FAN_CPLD]",
-              "presenceFileName": "hwmon/hwmon*/fan1_present",
+              "presenceFileName": "fan1_present",
               "desiredValue": 1
             }
           },
@@ -211,7 +211,7 @@
           "presenceDetection": {
             "sysfsFileHandle": {
               "devicePath": "/SMB_SLOT@0/[FAN_CPLD]",
-              "presenceFileName": "hwmon/hwmon*/fan2_present",
+              "presenceFileName": "fan2_present",
               "desiredValue": 1
             }
           },
@@ -222,7 +222,7 @@
           "presenceDetection": {
             "sysfsFileHandle": {
               "devicePath": "/SMB_SLOT@0/[FAN_CPLD]",
-              "presenceFileName": "hwmon/hwmon*/fan3_present",
+              "presenceFileName": "fan3_present",
               "desiredValue": 1
             }
           },
@@ -233,7 +233,7 @@
           "presenceDetection": {
             "sysfsFileHandle": {
               "devicePath": "/SMB_SLOT@0/[FAN_CPLD]",
-              "presenceFileName": "hwmon/hwmon*/fan4_present",
+              "presenceFileName": "fan4_present",
               "desiredValue": 1
             }
           },

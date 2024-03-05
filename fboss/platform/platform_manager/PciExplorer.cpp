@@ -21,7 +21,8 @@ const re2::RE2 kGpioChipNameRe{"gpiochip\\d+"};
 const re2::RE2 kSpiBusRe{"spi\\d+"};
 const re2::RE2 kSpiDevIdRe{"spi(?P<BusNum>\\d+).(?P<ChipSelect>\\d+)"};
 const re2::RE2 kWatchdogRe{"watchdog(?P<WatchdogNum>\\d+)"};
-constexpr auto kPciSubDevCreationWaitSecs = 1;
+// TODO (T181346009) for more granular interval retries.
+constexpr auto kPciSubDevCreationWaitSecs = 5;
 
 bool isSamePciId(const std::string& id1, const std::string& id2) {
   return RE2::FullMatch(id1, PciExplorer().kPciIdRegex) &&
