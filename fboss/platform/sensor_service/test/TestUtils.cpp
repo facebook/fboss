@@ -9,6 +9,8 @@
 
 using namespace facebook::fboss::platform::sensor_service;
 
+namespace {
+
 std::string mockSensorConfig(
     const std::string& tmpPath,
     const std::string& source) {
@@ -50,50 +52,13 @@ std::string mockSensorConfig(
   return fileName;
 }
 
-std::string mockSensorData(const std::string& tmpPath) {
-  folly::dynamic sensorJson = folly::dynamic::object;
-  sensorJson[tmpPath + "/mock_fru_1_sensor_1_path"] = folly::parseJson(R"({
-    "Adapter" : "Blah",
-    "temp1" : {
-      "temp1_input" : 25.000,
-      "temp1_max" : 255.750,
-      "temp1_min" : -256.000,
-      "temp1_max_alarm" : 0.000,
-      "temp1_min_alarm" : 0.000
-    }
-  })");
-  sensorJson[tmpPath + "/mock_fru_1_sensor_2_path"] = folly::parseJson(R"({
-    "Adapter": "Blah",
-    "fan1": {
-        "fan1_input": 11152.000,
-        "fan1_fault": 0.000
-    }
-  })");
-  sensorJson[tmpPath + "/mock_fru_2_sensor_1_path"] = folly::parseJson(R"({
-    "Adapter": "Blah",
-    "vin": {
-        "in1_input": 11.875,
-        "in1_min": 9.500,
-        "in1_crit": 14.000,
-        "in1_min_alarm": 0.000,
-        "in1_crit_alarm": 0.000
-    }
-  })");
-  std::string fileName = tmpPath + "/mock_sensor_data";
-  folly::writeFile(folly::toJson(sensorJson), fileName.c_str());
-  return fileName;
-}
+} // namespace
 
-std::unique_ptr<SensorServiceImpl> createSensorServiceImplForTest(
-    const std::string& tmpDirPath,
-    const std::string& source) {
-  auto mockSensorConfigFileName = mockSensorConfig(tmpDirPath, source);
-  FLAGS_config_file = mockSensorConfigFileName;
-  return std::make_unique<SensorServiceImpl>();
-}
-
-std::string createMockSensorDataFile(const std::string& tmpDirPath) {
-  return mockSensorData(tmpDirPath);
+std::shared_ptr<SensorServiceImpl> createSensorServiceImplForTest(
+    const std::string& tmpDirPath) {
+  auto confFileName = mockSensorConfig(tmpDirPath, "sysfs");
+  FLAGS_config_file = confFileName;
+  return std::make_shared<SensorServiceImpl>();
 }
 
 std::map<std::string, float> getDefaultMockSensorData() {

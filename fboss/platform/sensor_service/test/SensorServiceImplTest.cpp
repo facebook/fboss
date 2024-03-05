@@ -18,11 +18,6 @@ namespace facebook::fboss {
 
 class SensorServiceImplTest : public ::testing::Test {
  public:
-  void SetUp() override {
-    FLAGS_mock_lmsensor_json_data =
-        createMockSensorDataFile(tmpDir_.path().string());
-  }
-
   void testFetchAndCheckSensorData(
       std::shared_ptr<SensorServiceImpl> sensorServiceImpl,
       bool expectedSensorReadSuccess) {
@@ -44,37 +39,19 @@ class SensorServiceImplTest : public ::testing::Test {
       }
     }
   }
-
-  void testFetchAndCheckSensorData(
-      std::string source,
-      bool expectedSensorReadSuccess) {
-    auto sensorServiceImpl =
-        createSensorServiceImplForTest(tmpDir_.path().string(), source);
-    testFetchAndCheckSensorData(
-        std::move(sensorServiceImpl), expectedSensorReadSuccess);
-  }
-
-  folly::test::TemporaryDirectory tmpDir_ = folly::test::TemporaryDirectory();
 };
 
-TEST_F(SensorServiceImplTest, fetchAndCheckSensorDataSuccess) {
-  auto sources = std::vector<std::string>{"mock", "sysfs"};
-  for (const auto& source : sources) {
-    testFetchAndCheckSensorData(source, true);
-  }
-}
-
 TEST_F(SensorServiceImplTest, fetchAndCheckSensorDataSYFSFailure) {
-  auto confFileName = mockSensorConfig(tmpDir_.path().string(), "sysfs");
-  FLAGS_config_file = confFileName;
-  auto sensorServiceImpl = std::make_shared<SensorServiceImpl>();
+  folly::test::TemporaryDirectory tmpDir = folly::test::TemporaryDirectory();
+  auto sensorServiceImpl =
+      createSensorServiceImplForTest(tmpDir.path().string());
 
   // Test that sensor reads work as expected
   testFetchAndCheckSensorData(sensorServiceImpl, true);
 
   // Remove sensors' sensor files.
   std::string sensorConfJson;
-  ASSERT_TRUE(folly::readFile(confFileName.c_str(), sensorConfJson));
+  ASSERT_TRUE(folly::readFile(FLAGS_config_file.c_str(), sensorConfJson));
 
   SensorConfig sensorConfig;
   apache::thrift::SimpleJSONSerializer::deserialize<SensorConfig>(

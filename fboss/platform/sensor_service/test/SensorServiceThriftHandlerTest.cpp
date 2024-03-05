@@ -12,15 +12,12 @@ class SensorServiceThriftHandlerTest : public testing::Test {
  public:
   void SetUp() override {
     auto tmpDir = folly::test::TemporaryDirectory();
-    FLAGS_mock_lmsensor_json_data =
-        createMockSensorDataFile(tmpDir.path().string());
     auto sensorServiceImpl =
         createSensorServiceImplForTest(tmpDir.path().string());
     sensorServiceImpl->fetchSensorData();
     sensorServiceHandler_ = std::make_unique<SensorServiceThriftHandler>(
         std::move(sensorServiceImpl));
   }
-
   std::unique_ptr<SensorServiceThriftHandler> sensorServiceHandler_;
   std::map<std::string, float> sensorMockData_{getDefaultMockSensorData()};
 };
