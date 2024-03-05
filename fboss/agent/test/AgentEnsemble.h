@@ -123,6 +123,7 @@ class AgentEnsemble : public TestEnsembleIf {
     if (getSw()->getSwitchRunState() >= SwitchRunState::CONFIGURED &&
         linkToggler_) {
       linkToggler_->linkStateChanged(port, up);
+      getSw()->linkStateChanged(port, up);
     }
   }
 
