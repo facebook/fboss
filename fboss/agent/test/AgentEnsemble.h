@@ -127,8 +127,8 @@ class AgentEnsemble : public TestEnsembleIf {
   }
 
   void linkActiveStateChanged(
-      const std::map<PortID, bool>& /*port2IsActive */) override {
-    // TODO
+      const std::map<PortID, bool>& port2IsActive) override {
+    getSw()->linkActiveStateChanged(port2IsActive);
   }
 
   void l2LearningUpdateReceived(
