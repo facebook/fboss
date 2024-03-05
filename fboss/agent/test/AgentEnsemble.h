@@ -218,6 +218,7 @@ std::unique_ptr<AgentEnsemble> createAgentEnsemble(
         AgentEnsemblePlatformConfigFn(),
     uint32_t featuresDesired =
         (HwSwitch::FeaturesDesired::PACKET_RX_DESIRED |
-         HwSwitch::FeaturesDesired::LINKSCAN_DESIRED));
+         HwSwitch::FeaturesDesired::LINKSCAN_DESIRED |
+         HwSwitch::FeaturesDesired::LINK_ACTIVE_INACTIVE_NOTIFY_DESIRED));
 
 } // namespace facebook::fboss
