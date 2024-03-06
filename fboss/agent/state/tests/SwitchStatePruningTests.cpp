@@ -639,6 +639,9 @@ void verifyModifyEmptyArpTable(VlanOrIntfT host1VlanOrIntf) {
 TEST(SwitchStatePruningTests, ModifyEmptyArpTable) {
   FLAGS_intf_nbr_tables = false;
   verifyModifyEmptyArpTable(VlanID(21));
+
+  FLAGS_intf_nbr_tables = true;
+  verifyModifyEmptyArpTable(InterfaceID(21));
 }
 
 /**
