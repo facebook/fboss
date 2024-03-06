@@ -62,28 +62,31 @@ auto getVlanOrIntfMapDelta(const StateDelta& delta) {
 
 } // namespace
 
-template <typename NTableT>
+template <typename VlanOrIntfIDT, typename NTableT>
 void checkChangedNeighborEntries(
     const shared_ptr<SwitchState>& state,
     const shared_ptr<SwitchState>& prunedState,
     const std::set<tuple<
-        VlanID,
+        VlanOrIntfIDT,
         typename NTableT::Entry::AddressType,
         shared_ptr<typename NTableT::Entry>>>& changedIPs,
-    const std::set<pair<VlanID, typename NTableT::Entry::AddressType>>&
+    const std::set<pair<VlanOrIntfIDT, typename NTableT::Entry::AddressType>>&
         addedIPs,
-    const std::set<pair<VlanID, typename NTableT::Entry::AddressType>>&
+    const std::set<pair<VlanOrIntfIDT, typename NTableT::Entry::AddressType>>&
         removedIPs) {
   using EntryT = typename NTableT::Entry;
   using AddressT = typename EntryT::AddressType;
   CHECK(addedIPs.empty());
   // We never add things to state when we prune a state
   StateDelta delta(state, prunedState);
-  std::set<tuple<VlanID, AddressT, shared_ptr<EntryT>>> changedIPsFound;
-  std::set<pair<VlanID, AddressT>> addedIPsFound;
-  std::set<pair<VlanID, AddressT>> removedIPsFound;
-  for (const auto& vlanDelta : delta.getVlansDelta()) {
-    for (const auto& entry : vlanDelta.template getNeighborDelta<NTableT>()) {
+  std::set<tuple<VlanOrIntfIDT, AddressT, shared_ptr<EntryT>>> changedIPsFound;
+  std::set<pair<VlanOrIntfIDT, AddressT>> addedIPsFound;
+  std::set<pair<VlanOrIntfIDT, AddressT>> removedIPsFound;
+
+  for (const auto& vlanOrIntfDelta :
+       getVlanOrIntfMapDelta<VlanOrIntfIDT>(delta)) {
+    for (const auto& entry :
+         vlanOrIntfDelta.template getNeighborDelta<NTableT>()) {
       auto entryBeforePrune = entry.getOld();
       auto entryAfterPrune = entry.getNew();
       CHECK(entryBeforePrune || entryAfterPrune);
@@ -91,18 +94,18 @@ void checkChangedNeighborEntries(
         // changed
         CHECK_EQ(entryBeforePrune->getIP(), entryAfterPrune->getIP());
         changedIPsFound.insert(make_tuple(
-            static_cast<VlanID>(entryAfterPrune->getIntfID()),
+            static_cast<VlanOrIntfIDT>(entryAfterPrune->getIntfID()),
             entryAfterPrune->getIP(),
             entryAfterPrune));
       } else if (entryBeforePrune) {
         // removed
         removedIPsFound.insert(make_pair(
-            static_cast<VlanID>(entryBeforePrune->getIntfID()),
+            static_cast<VlanOrIntfIDT>(entryBeforePrune->getIntfID()),
             entryBeforePrune->getIP()));
       } else {
         // added
         addedIPsFound.insert(make_pair(
-            static_cast<VlanID>(entryAfterPrune->getIntfID()),
+            static_cast<VlanOrIntfIDT>(entryAfterPrune->getIntfID()),
             entryAfterPrune->getIP()));
       }
     }
@@ -331,7 +334,7 @@ TEST(SwitchStatePruningTests, AddNeighborEntry) {
   SwitchState::revertNewNeighborEntry<ArpEntry, ArpTable>(
       h3entry, nullptr, &state4);
   removedV4.insert(make_pair(host3vlan, host3ip));
-  checkChangedNeighborEntries<ArpTable>(
+  checkChangedNeighborEntries<VlanID, ArpTable>(
       state3, state4, {} /* no changed */, {} /* no added */, removedV4);
   state4->publish();
 
@@ -345,7 +348,8 @@ TEST(SwitchStatePruningTests, AddNeighborEntry) {
   SwitchState::revertNewNeighborEntry<NdpEntry, NdpTable>(
       v6entry, nullptr, &state5);
   removedV6.insert(make_pair(host2vlan, host2ip));
-  checkChangedNeighborEntries<NdpTable>(state4, state5, {}, {}, removedV6);
+  checkChangedNeighborEntries<VlanID, NdpTable>(
+      state4, state5, {}, {}, removedV6);
 
   state5->publish();
 }
@@ -452,7 +456,8 @@ TEST(SwitchStatePruningTests, ChangeNeighborEntry) {
       entry2new, entry2old, &state4);
   changed4.insert(make_tuple(host2vlan, host2ip, entry2old));
   state4->publish();
-  checkChangedNeighborEntries<ArpTable>(state3, state4, changed4, {}, {});
+  checkChangedNeighborEntries<VlanID, ArpTable>(
+      state3, state4, changed4, {}, {});
 
   shared_ptr<SwitchState> state5{state4};
   // state4
@@ -463,7 +468,8 @@ TEST(SwitchStatePruningTests, ChangeNeighborEntry) {
       entry3new, entry3old, &state5);
   changed6.insert(make_tuple(host3vlan, host3ip, entry3old));
   state5->publish();
-  checkChangedNeighborEntries<NdpTable>(state4, state5, changed6, {}, {});
+  checkChangedNeighborEntries<VlanID, NdpTable>(
+      state4, state5, changed6, {}, {});
 }
 
 TEST(SwitchStatePruningTests, ModifyState) {
