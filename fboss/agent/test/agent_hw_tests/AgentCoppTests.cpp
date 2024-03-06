@@ -841,4 +841,22 @@ TYPED_TEST(AgentCoppTest, NdpSolicitNeighbor) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
+TYPED_TEST(AgentCoppTest, UnresolvedRoutesToLowPriQueue) {
+  auto setup = [=, this]() {
+    this->setup();
+    utility::EcmpSetupAnyNPorts6 ecmp6(this->getProgrammedState());
+    auto wrapper = this->getSw()->getRouteUpdater();
+    ecmp6.programRoutes(&wrapper, 1);
+  };
+  auto randomIP = folly::IPAddressV6("2::2");
+  auto verify = [=, this]() {
+    this->sendTcpPktAndVerifyCpuQueue(
+        utility::kCoppLowPriQueueId,
+        randomIP,
+        utility::kNonSpecialPort1,
+        utility::kNonSpecialPort2,
+        std::nullopt);
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
 } // namespace facebook::fboss
