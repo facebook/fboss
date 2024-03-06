@@ -590,7 +590,9 @@ cfg::SwitchConfig genPortVlanCfg(
   switchInfo.asicType() = asicType;
   if (asicType == cfg::AsicType::ASIC_TYPE_RAMON) {
     switchInfo.connectionHandle() = "0c:00";
-  } else if (asicType == cfg::AsicType::ASIC_TYPE_EBRO) {
+  } else if (
+      asicType == cfg::AsicType::ASIC_TYPE_EBRO ||
+      asicType == cfg::AsicType::ASIC_TYPE_YUBA) {
     switchInfo.connectionHandle() = "/dev/uio0";
   }
   if (asic->getSystemPortRange().has_value()) {
