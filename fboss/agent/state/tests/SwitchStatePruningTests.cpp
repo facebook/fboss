@@ -755,6 +755,9 @@ void verifyModifyArpTableMultipleTimes(
 TEST(SwitchStatePruningTests, ModifyArpTableMultipleTimes) {
   FLAGS_intf_nbr_tables = false;
   verifyModifyArpTableMultipleTimes(VlanID(21), VlanID(22));
+
+  FLAGS_intf_nbr_tables = true;
+  verifyModifyArpTableMultipleTimes(InterfaceID(21), InterfaceID(22));
 }
 
 shared_ptr<SwitchState> createSwitch() {
