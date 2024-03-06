@@ -580,9 +580,8 @@ TEST(SwitchStatePruningTests, ModifyState) {
   verifyModifyState(InterfaceID(21));
 }
 
-// Test we can modify empty arp table without resetting the arp table to a new
-// one created outside.
-TEST(SwitchStatePruningTests, ModifyEmptyArpTable) {
+template <typename VlanOrIntfT>
+void verifyModifyEmptyArpTable(VlanOrIntfT host1VlanOrIntf) {
   auto platform = createMockPlatform();
   SwitchConfig config;
   // state0 = the empty state
@@ -611,24 +610,35 @@ TEST(SwitchStatePruningTests, ModifyEmptyArpTable) {
   auto host1ip = IPAddressV4("10.0.21.1");
   auto host1mac = MacAddress("fa:ce:b0:0c:21:01");
   auto host1port = PortDescriptor(PortID(1));
-  auto host1intf = InterfaceID(21);
-  auto host1vlan = VlanID(21);
   // Old arp table
-  auto arp1 = state1->getVlans()->getNode(host1vlan)->getArpTable();
+  auto arp1 = getVlansOrIntfs<VlanOrIntfT>(state1)
+                  ->getNode(host1VlanOrIntf)
+                  ->getArpTable();
   ASSERT_TRUE(state2->isPublished());
-  auto arp1modified =
-      state1->getVlans()->getNode(host1vlan)->getArpTable()->modify(
-          host1vlan, &state2);
+  auto arp1modified = getVlansOrIntfs<VlanOrIntfT>(state1)
+                          ->getNode(host1VlanOrIntf)
+                          ->getArpTable()
+                          ->modify(host1VlanOrIntf, &state2);
   ASSERT_TRUE(!state2->isPublished());
-  arp1modified->addEntry(host1ip, host1mac, host1port, host1intf);
+  arp1modified->addEntry(
+      host1ip, host1mac, host1port, static_cast<InterfaceID>(host1VlanOrIntf));
 
-  auto arp2 = state2->getVlans()->getNode(host1vlan)->getArpTable();
+  auto arp2 = getVlansOrIntfs<VlanOrIntfT>(state2)
+                  ->getNode(host1VlanOrIntf)
+                  ->getArpTable();
   ASSERT_TRUE(arp1 != arp2);
   ASSERT_TRUE(!arp2->isPublished());
   ASSERT_TRUE(arp2->getGeneration() == arp1->getGeneration() + 1);
 
   state2->publish();
   ASSERT_TRUE(arp2->isPublished());
+}
+
+// Test we can modify empty arp table without resetting the arp table to a new
+// one created outside.
+TEST(SwitchStatePruningTests, ModifyEmptyArpTable) {
+  FLAGS_intf_nbr_tables = false;
+  verifyModifyEmptyArpTable(VlanID(21));
 }
 
 /**
