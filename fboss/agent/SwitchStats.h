@@ -615,6 +615,7 @@ class SwitchStats : public boost::noncopyable {
     TLTimeseries txPktEventStreamDisconnects_;
   };
 
+  const int numSwitches_;
   // Total number of trapped packets
   TLTimeseries trapPkts_;
   // Number of trapped packets that were intentionally dropped.

@@ -11,6 +11,7 @@
 
 #include <folly/Memory.h>
 #include <folly/Range.h>
+#include <folly/Utility.h>
 #include "fboss/agent/PortStats.h"
 #include "fboss/lib/CommonUtils.h"
 
@@ -39,7 +40,8 @@ SwitchStats::SwitchStats(int numSwitches)
           numSwitches) {}
 
 SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
-    : trapPkts_(map, kCounterPrefix + "trapped.pkts", SUM, RATE),
+    : numSwitches_(numSwitches),
+      trapPkts_(map, kCounterPrefix + "trapped.pkts", SUM, RATE),
       trapPktDrops_(map, kCounterPrefix + "trapped.drops", SUM, RATE),
       trapPktBogus_(map, kCounterPrefix + "trapped.bogus", SUM, RATE),
       trapPktErrors_(map, kCounterPrefix + "trapped.error", SUM, RATE),
@@ -373,6 +375,13 @@ void SwitchStats::fillAgentStats(AgentStats& agentStats) const {
     switchIndex++;
   }
   getHwAgentStatus(*agentStats.hwAgentEventSyncStatusMap());
+  for (auto swIndex = 0; swIndex < numSwitches_; swIndex++) {
+    auto overdrainPct = fb303::fbData->getCounterIfExists(
+        fabricOverdrainCounter(folly::to_narrow(swIndex)));
+    if (overdrainPct.has_value()) {
+      agentStats.fabricOverdrainPct()->insert({swIndex, *overdrainPct});
+    }
+  }
 }
 
 void SwitchStats::getHwAgentStatus(
