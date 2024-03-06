@@ -1648,7 +1648,10 @@ std::vector<phy::PrbsLaneStats> SaiPortManager::getPortAsicPrbsStats(
   return prbsStats;
 }
 
-void SaiPortManager::updateStats(PortID portId, bool updateWatermarks) {
+void SaiPortManager::updateStats(
+    PortID portId,
+    bool updateWatermarks,
+    int isConnectivityInfoMismatch) {
   auto handlesItr = handles_.find(portId);
   if (handlesItr == handles_.end()) {
     return;
@@ -1675,6 +1678,7 @@ void SaiPortManager::updateStats(PortID portId, bool updateWatermarks) {
   setUninitializedStatsToZero(*curPortStats.inDiscardsRaw_());
   setUninitializedStatsToZero(*curPortStats.inPause_());
 
+  curPortStats.fabricConnectivityMismatch() = isConnectivityInfoMismatch;
   curPortStats.timestamp_() = now.count();
   handle->port->updateStats(supportedStats(portId), SAI_STATS_MODE_READ);
 

@@ -37,8 +37,7 @@ void SaiSwitch::updateStatsImpl() {
   while (portsIter != concurrentIndices_->portSaiId2PortInfo.end()) {
     {
       std::lock_guard<std::mutex> locked(saiSwitchMutex_);
-      managerTable_->portManager().updateStats(
-          portsIter->second.portID, updateWatermarks);
+      int isConnectivityInfoMismatch = 0;
       auto endpointOpt =
           managerTable_->portManager().getFabricReachabilityForPort(
               portsIter->second.portID);
@@ -51,9 +50,14 @@ void SaiSwitch::updateStatsImpl() {
         }
         if (fabricConnectivityManager_->isConnectivityInfoMismatch(
                 portsIter->second.portID)) {
+          isConnectivityInfoMismatch = 1;
           mismatchCount++;
         }
       }
+      managerTable_->portManager().updateStats(
+          portsIter->second.portID,
+          updateWatermarks,
+          isConnectivityInfoMismatch);
     }
     ++portsIter;
   }
