@@ -1153,8 +1153,7 @@ void ThriftConfigApplier::processInterfaceForPortForVoqSwitches(
 }
 
 void ThriftConfigApplier::processInterfaceForPortForNonVoqSwitches(
-    int64_t /*switchId*/) {
-  // TODO - only look at ports corresponding to the passed in switchId
+    int64_t switchId) {
   flat_map<VlanID, InterfaceID> vlan2InterfaceId;
   for (const auto& interfaceCfg : *cfg_->interfaces()) {
     vlan2InterfaceId[VlanID(*interfaceCfg.vlanID())] =
@@ -1163,6 +1162,9 @@ void ThriftConfigApplier::processInterfaceForPortForNonVoqSwitches(
 
   for (const auto& portCfg : *cfg_->ports()) {
     auto portID = PortID(*portCfg.logicalID());
+    if (!scopeResolver_.scope(portCfg).has(SwitchID(switchId))) {
+      continue;
+    }
 
     for (const auto& [vlanID, vlanInfo] : portVlans_[portID]) {
       auto it = vlan2InterfaceId.find(vlanID);
