@@ -105,6 +105,7 @@ add_library(stats
   fboss/agent/InterfaceStats.cpp
   fboss/agent/PortStats.cpp
   fboss/agent/SwitchStats.cpp
+  fboss/agent/oss/SwitchStats.cpp
   fboss/agent/oss/AggregatePortStats.cpp
 )
 

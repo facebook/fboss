@@ -537,5 +537,6 @@ void SwitchStats::setFabricOverdrainPct(
   // i.e. collect global value from all threads and then compute delta
   // against the current value. Instead set the global value directly
   fb303::fbData->setCounter(fabricOverdrainCounter(switchIndex), overdrainPct);
+  updateFabricOverdrainWatermark(switchIndex, overdrainPct);
 }
 } // namespace facebook::fboss

@@ -519,6 +519,9 @@ class SwitchStats : public boost::noncopyable {
 
   explicit SwitchStats(ThreadLocalStatsMap* map, int numSwitches);
 
+  void updateFabricOverdrainWatermark(
+      int16_t switchIndex,
+      int16_t overdrainPct);
   class HwAgentStreamConnectionStatus {
    public:
     explicit HwAgentStreamConnectionStatus(
