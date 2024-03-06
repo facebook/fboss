@@ -23,11 +23,13 @@ namespace facebook::fboss::utility {
 
 void initandExitBenchmarkHelper(
     cfg::PortSpeed uplinkPortSpeed,
-    cfg::PortSpeed downlinkPortSpeed);
+    cfg::PortSpeed downlinkPortSpeed,
+    cfg::SwitchType switchType);
 
 #define INIT_AND_EXIT_BENCHMARK_HELPER(name, uplinkSpeed, downlinkSpeed) \
   BENCHMARK(name) {                                                      \
-    utility::initandExitBenchmarkHelper(uplinkSpeed, downlinkSpeed);     \
+    utility::initandExitBenchmarkHelper(                                 \
+        uplinkSpeed, downlinkSpeed, cfg::SwitchType::NPU);               \
   }
 
 } // namespace facebook::fboss::utility

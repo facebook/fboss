@@ -20,9 +20,11 @@
 #include "fboss/agent/hw/test/HwSwitchEnsembleRouteUpdateWrapper.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestProdConfigUtils.h"
+#include "fboss/agent/hw/test/HwVoqUtils.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/test/RouteDistributionGenerator.h"
 #include "fboss/agent/test/RouteScaleGenerators.h"
+#include "fboss/agent/test/utils/FabricTestUtils.h"
 
 #include "fboss/lib/FunctionCallTimeReporter.h"
 #include "fboss/lib/platforms/PlatformMode.h"
@@ -158,11 +160,12 @@ utility::RouteDistributionGenerator::ThriftRouteChunks getRoutes(
 
 void initandExitBenchmarkHelper(
     cfg::PortSpeed uplinkSpeed,
-    cfg::PortSpeed downlinkSpeed) {
+    cfg::PortSpeed downlinkSpeed,
+    cfg::SwitchType switchType) {
   folly::BenchmarkSuspender suspender;
   std::unique_ptr<AgentEnsemble> ensemble{};
 
-  AgentEnsembleSwitchConfigFn initialConfig =
+  AgentEnsembleSwitchConfigFn npuInitialConfig =
       [uplinkSpeed, downlinkSpeed](const AgentEnsemble& ensemble) {
         auto ports = ensemble.masterLogicalPortIds();
         auto numUplinks = getUplinksCount(
@@ -199,6 +202,28 @@ void initandExitBenchmarkHelper(
         return config;
       };
 
+  AgentEnsembleSwitchConfigFn voqInitialConfig =
+      [](const AgentEnsemble& ensemble) {
+        auto config = utility::onePortPerInterfaceConfig(
+            ensemble.getSw(), ensemble.masterLogicalPortIds());
+        config.dsfNodes() = *utility::addRemoteDsfNodeCfg(*config.dsfNodes());
+        return config;
+      };
+
+  AgentEnsembleSwitchConfigFn fabricInitialConfig =
+      [](const AgentEnsemble& ensemble) {
+        auto config = utility::onePortPerInterfaceConfig(
+            ensemble.getSw(),
+            ensemble.masterLogicalPortIds(),
+            false /*interfaceHasSubnet*/,
+            false /*setInterfaceMac*/,
+            utility::kBaseVlanId,
+            true /*enable fabric ports*/);
+        utility::populatePortExpectedNeighbors(
+            ensemble.masterLogicalPortIds(), config);
+        return config;
+      };
+
   suspender.dismiss();
   {
     /*
@@ -213,12 +238,27 @@ void initandExitBenchmarkHelper(
      * disable when setting up for warmboot
      */
     ScopedCallTimer timeIt;
-    ensemble = createAgentEnsemble(initialConfig);
+    switch (switchType) {
+      case cfg::SwitchType::VOQ:
+        ensemble = createAgentEnsemble(voqInitialConfig);
+        break;
+      case cfg::SwitchType::NPU:
+        ensemble = createAgentEnsemble(npuInitialConfig);
+        break;
+      case cfg::SwitchType::FABRIC:
+        ensemble = createAgentEnsemble(fabricInitialConfig);
+        break;
+      default:
+        throw FbossError("Unsupported switch type");
+    }
   }
   suspender.rehire();
-  auto routeChunks = getRoutes(ensemble.get());
-  auto updater = ensemble->getSw()->getRouteUpdater();
-  ensemble->programRoutes(RouterID(0), ClientID::BGPD, routeChunks);
+  // Fabric switch does not support route programming
+  if (switchType != cfg::SwitchType::FABRIC) {
+    auto routeChunks = getRoutes(ensemble.get());
+    auto updater = ensemble->getSw()->getRouteUpdater();
+    ensemble->programRoutes(RouterID(0), ClientID::BGPD, routeChunks);
+  }
   if (FLAGS_setup_for_warmboot) {
     ScopedCallTimer timeIt;
     // Static such that the object destructor runs as late as possible. In
