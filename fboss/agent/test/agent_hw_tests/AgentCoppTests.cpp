@@ -873,6 +873,18 @@ TYPED_TEST(AgentCoppTest, NdpSolicitNeighbor) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
+TYPED_TEST(AgentCoppTest, NdpAdvertisementToHighPriQ) {
+  auto setup = [=, this]() { this->setup(); };
+  auto verify = [=, this]() {
+    XLOG(DBG2) << "verifying advertisement";
+    this->sendPktAndVerifyNdpPacketsCpuQueue(
+        utility::getCoppHighPriQueueId(utility::getFirstAsic(this->getSw())),
+        folly::IPAddressV6("1::2"), // sender of advertisement
+        ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT);
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
 TYPED_TEST(AgentCoppTest, UnresolvedRoutesToLowPriQueue) {
   auto setup = [=, this]() {
     this->setup();

@@ -22,6 +22,8 @@
 #include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/types.h"
 
+DECLARE_bool(disable_neighbor_updates);
+
 namespace facebook::fboss {
 
 class SwitchState;

@@ -751,6 +751,12 @@ void IPv6Handler::sendMulticastNeighborSolicitation(
     const IPAddressV6& targetIP,
     const MacAddress& srcMac,
     const std::optional<VlanID>& vlanID) {
+  if (FLAGS_disable_neighbor_updates) {
+    XLOG(DBG4)
+        << "skipping sending neighbor solicitation since neighbor updates are disabled";
+    return;
+  }
+
   IPAddressV6 solicitedNodeAddr = targetIP.getSolicitedNodeAddress();
   MacAddress dstMac = MacAddress::createMulticast(solicitedNodeAddr);
   // For now, we always use our link local IP as the source.
@@ -791,6 +797,12 @@ void IPv6Handler::sendUnicastNeighborSolicitation(
     const folly::MacAddress& srcMac,
     const std::optional<VlanID>& vlanID,
     const PortDescriptor& portDescriptor) {
+  if (FLAGS_disable_neighbor_updates) {
+    XLOG(DBG4)
+        << "skipping sending neighbor solicitation since neighbor updates are disabled";
+    return;
+  }
+
   auto state = sw->getState();
 
   InterfaceID intfID;
