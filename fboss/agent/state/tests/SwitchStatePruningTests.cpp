@@ -254,9 +254,11 @@ void addNeighborEntryToIntfNeighborTable(
   }
 }
 
-// Test that we can add Arp and Ndp entries to a state and revert them from the
-// published state.
-TEST(SwitchStatePruningTests, AddNeighborEntry) {
+template <typename VlanOrIntfT>
+void verifyAddNeighborEntry(
+    VlanOrIntfT host1VlanOrIntf,
+    VlanOrIntfT host2VlanOrIntf,
+    VlanOrIntfT host3VlanOrIntf) {
   auto platform = createMockPlatform();
   SwitchConfig config;
   shared_ptr<SwitchState> state0 = make_shared<SwitchState>();
@@ -290,20 +292,18 @@ TEST(SwitchStatePruningTests, AddNeighborEntry) {
 
   auto host1ip = IPAddressV4("10.0.21.1");
   auto host1mac = MacAddress("fa:ce:b0:0c:21:01");
-  auto host1vlan = VlanID(21);
   auto host1port = PortDescriptor(PortID(1));
   // Add host1 (resolved) for vlan21
-  addNeighborEntry<VlanID, ArpTable>(
-      &state2, &host1ip, &host1mac, &host1vlan, &host1port);
+  addNeighborEntry<VlanOrIntfT, ArpTable>(
+      &state2, &host1ip, &host1mac, &host1VlanOrIntf, &host1port);
 
   auto host2ip = IPAddressV6("face:b00c:0:21::2");
   auto host2mac = MacAddress("fa:ce:b0:0c:21:02");
-  auto host2vlan = VlanID(21);
   auto host2port = PortDescriptor(PortID(1));
   auto host2intf = InterfaceID(21);
 
-  addNeighborEntry<VlanID, NdpTable>(
-      &state2, &host2ip, &host2mac, &host2vlan, &host2port);
+  addNeighborEntry<VlanOrIntfT, NdpTable>(
+      &state2, &host2ip, &host2mac, &host2VlanOrIntf, &host2port);
 
   state2->publish();
 
@@ -315,10 +315,9 @@ TEST(SwitchStatePruningTests, AddNeighborEntry) {
 
   auto host3ip = IPAddressV4("10.0.21.3");
   auto host3mac = MacAddress("fa:ce:b0:0c:21:03");
-  auto host3vlan = VlanID(21);
   auto host3port = PortDescriptor(PortID(2));
-  addNeighborEntry<VlanID, ArpTable>(
-      &state3, &host3ip, &host3mac, &host3vlan, &host3port);
+  addNeighborEntry<VlanOrIntfT, ArpTable>(
+      &state3, &host3ip, &host3mac, &host3VlanOrIntf, &host3port);
   state3->publish();
 
   auto state4 = state3;
@@ -326,32 +325,46 @@ TEST(SwitchStatePruningTests, AddNeighborEntry) {
   //  ... prune host3 from vlan21
   // state4
 
-  set<pair<VlanID, IPAddressV4>> removedV4;
+  set<pair<VlanOrIntfT, IPAddressV4>> removedV4;
   // Remove host3 from the arp table
-  auto h3entry =
-      state3->getVlans()->getNode(host3vlan)->getArpTable()->getEntry(host3ip);
+
+  auto h3entry = getVlansOrIntfs<VlanOrIntfT>(state3)
+                     ->getNode(host3VlanOrIntf)
+                     ->getArpTable()
+                     ->getEntry(host3ip);
 
   SwitchState::revertNewNeighborEntry<ArpEntry, ArpTable>(
       h3entry, nullptr, &state4);
-  removedV4.insert(make_pair(host3vlan, host3ip));
-  checkChangedNeighborEntries<VlanID, ArpTable>(
+  removedV4.insert(make_pair(host3VlanOrIntf, host3ip));
+  checkChangedNeighborEntries<VlanOrIntfT, ArpTable>(
       state3, state4, {} /* no changed */, {} /* no added */, removedV4);
+
   state4->publish();
 
   auto state5 = state4;
   // state4
   //  ... prune host2 from vlan21 (ipv6 example)
   // state5
-  set<pair<VlanID, IPAddressV6>> removedV6;
-  auto v6entry =
-      state4->getVlans()->getNode(host2vlan)->getNdpTable()->getEntry(host2ip);
+  set<pair<VlanOrIntfT, IPAddressV6>> removedV6;
+  auto v6entry = getVlansOrIntfs<VlanOrIntfT>(state4)
+                     ->getNode(host2VlanOrIntf)
+                     ->getNdpTable()
+                     ->getEntry(host2ip);
   SwitchState::revertNewNeighborEntry<NdpEntry, NdpTable>(
       v6entry, nullptr, &state5);
-  removedV6.insert(make_pair(host2vlan, host2ip));
-  checkChangedNeighborEntries<VlanID, NdpTable>(
+  removedV6.insert(make_pair(host2VlanOrIntf, host2ip));
+  checkChangedNeighborEntries<VlanOrIntfT, NdpTable>(
       state4, state5, {}, {}, removedV6);
 
   state5->publish();
+}
+
+// Test that we can add Arp and Ndp entries to a state and revert them from the
+// published state.
+TEST(SwitchStatePruningTests, AddNeighborEntry) {
+  FLAGS_intf_nbr_tables = false;
+  verifyAddNeighborEntry(
+      VlanID(21) /* host1 */, VlanID(21) /* host2 */, VlanID(21) /* host3 */);
 }
 
 // Test that we can update pending entries to resolved ones, and revert them
