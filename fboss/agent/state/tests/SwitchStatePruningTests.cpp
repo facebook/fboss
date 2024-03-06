@@ -519,7 +519,8 @@ TEST(SwitchStatePruningTests, ChangeNeighborEntry) {
       InterfaceID(22) /* host3 */);
 }
 
-TEST(SwitchStatePruningTests, ModifyState) {
+template <typename VlanOrIntfT>
+void verifyModifyState(VlanOrIntfT host1VlanOrIntf) {
   auto platform = createMockPlatform();
   SwitchConfig config;
   // The empty state
@@ -552,17 +553,28 @@ TEST(SwitchStatePruningTests, ModifyState) {
   auto host1ip = IPAddressV4("10.0.21.1");
   auto host1mac = MacAddress("fa:ce:b0:0c:21:01");
   auto host1port = PortDescriptor(PortID(1));
-  auto host1intf = InterfaceID(21);
-  auto host1vlan = VlanID(21);
   // Add host1 (resolved) for vlan21
-  freshArpTable->addEntry(host1ip, host1mac, host1port, host1intf);
-  shared_ptr<Vlan> vlan1 = state1->getVlans()->getNode(host1vlan);
+  freshArpTable->addEntry(
+      host1ip, host1mac, host1port, static_cast<InterfaceID>(host1VlanOrIntf));
+
+  auto vlanOrIntf1 =
+      getVlansOrIntfs<VlanOrIntfT>(state1)->getNode(host1VlanOrIntf);
   ASSERT_TRUE(state1 == state2); // point to same state
-  auto vlanPtr = state1->getVlans()->getNode(host1vlan)->modify(&state2);
-  vlanPtr->setArpTable(std::move(freshArpTable));
-  ASSERT_TRUE(vlan1.get() != vlanPtr);
-  shared_ptr<Vlan> vlan2 = state2->getVlans()->getNode(host1vlan);
-  ASSERT_TRUE(vlan1 != vlan2);
+
+  auto vlanOrIntfPtr = getVlansOrIntfs<VlanOrIntfT>(state1)
+                           ->getNode(host1VlanOrIntf)
+                           ->modify(&state2);
+  vlanOrIntfPtr->setArpTable(std::move(freshArpTable));
+  ASSERT_TRUE(vlanOrIntf1.get() != vlanOrIntfPtr);
+
+  auto vlanOrIntf2 =
+      getVlansOrIntfs<VlanOrIntfT>(state2)->getNode(host1VlanOrIntf);
+  ASSERT_TRUE(vlanOrIntf1 != vlanOrIntf2);
+}
+
+TEST(SwitchStatePruningTests, ModifyState) {
+  FLAGS_intf_nbr_tables = false;
+  verifyModifyState(VlanID(21));
 }
 
 // Test we can modify empty arp table without resetting the arp table to a new
