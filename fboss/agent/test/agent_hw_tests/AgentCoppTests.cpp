@@ -859,4 +859,43 @@ TYPED_TEST(AgentCoppTest, UnresolvedRoutesToLowPriQueue) {
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
+
+TYPED_TEST(AgentCoppTest, JumboFramesToQueues) {
+  auto setup = [=, this]() { this->setup(); };
+
+  auto verify = [=, this]() {
+    std::vector<uint8_t> jumboPayload(7000, 0xff);
+    for (const auto& ipAddress : this->getIpAddrsToSendPktsTo()) {
+      // High pri queue
+      this->sendTcpPktAndVerifyCpuQueue(
+          utility::getCoppHighPriQueueId(utility::getFirstAsic(this->getSw())),
+          folly::IPAddress::createNetwork(ipAddress, -1, false).first,
+          utility::kBgpPort,
+          utility::kNonSpecialPort2,
+          std::nullopt, /*mac*/
+          0, /* traffic class*/
+          jumboPayload);
+      // Mid pri queue
+      this->sendTcpPktAndVerifyCpuQueue(
+          utility::kCoppMidPriQueueId,
+          folly::IPAddress::createNetwork(ipAddress, -1, false).first,
+          utility::kNonSpecialPort1,
+          utility::kNonSpecialPort2,
+          std::nullopt, /*mac*/
+          0, /* traffic class*/
+          jumboPayload);
+    }
+    this->sendTcpPktAndVerifyCpuQueue(
+        utility::kCoppLowPriQueueId,
+        this->getInSubnetNonSwitchIP(),
+        utility::kNonSpecialPort1,
+        utility::kNonSpecialPort2,
+        std::nullopt, /*mac*/
+        0, /* traffic class*/
+        jumboPayload);
+  };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
