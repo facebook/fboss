@@ -373,9 +373,11 @@ TEST(SwitchStatePruningTests, AddNeighborEntry) {
       InterfaceID(21) /* host3 */);
 }
 
-// Test that we can update pending entries to resolved ones, and revert them
-// back to pending.
-TEST(SwitchStatePruningTests, ChangeNeighborEntry) {
+template <typename VlanOrIntfT>
+void verifyChangeNeighborEntry(
+    VlanOrIntfT host1VlanOrIntf,
+    VlanOrIntfT host2VlanOrIntf,
+    VlanOrIntfT host3VlanOrIntf) {
   auto platform = createMockPlatform();
   SwitchConfig config;
   shared_ptr<SwitchState> state0 = make_shared<SwitchState>();
@@ -408,28 +410,31 @@ TEST(SwitchStatePruningTests, ChangeNeighborEntry) {
   // state2
 
   auto host1ip = IPAddressV4("10.0.21.1");
-  auto host1vlan = VlanID(21);
-  addNeighborEntry<VlanID, ArpTable>(
-      &state2, &host1ip, nullptr, &host1vlan, nullptr);
+  addNeighborEntry<VlanOrIntfT, ArpTable>(
+      &state2, &host1ip, nullptr, &host1VlanOrIntf, nullptr);
 
   auto host2ip = IPAddressV4("10.0.21.2");
-  auto host2vlan = VlanID(21);
-  addNeighborEntry<VlanID, ArpTable>(
-      &state2, &host2ip, nullptr, &host2vlan, nullptr);
+  addNeighborEntry<VlanOrIntfT, ArpTable>(
+      &state2, &host2ip, nullptr, &host2VlanOrIntf, nullptr);
 
   auto host3ip = IPAddressV6("face:b00c:0:22::3");
-  auto host3vlan = VlanID(22);
-  addNeighborEntry<VlanID, NdpTable>(
-      &state2, &host3ip, nullptr, &host3vlan, nullptr);
+  addNeighborEntry<VlanOrIntfT, NdpTable>(
+      &state2, &host3ip, nullptr, &host3VlanOrIntf, nullptr);
 
   state2->publish();
 
-  auto entry1old =
-      state2->getVlans()->getNode(host1vlan)->getArpTable()->getEntry(host1ip);
-  auto entry2old =
-      state2->getVlans()->getNode(host2vlan)->getArpTable()->getEntry(host2ip);
-  auto entry3old =
-      state2->getVlans()->getNode(host3vlan)->getNdpTable()->getEntry(host3ip);
+  auto entry1old = getVlansOrIntfs<VlanOrIntfT>(state2)
+                       ->getNode(host1VlanOrIntf)
+                       ->getArpTable()
+                       ->getEntry(host1ip);
+  auto entry2old = getVlansOrIntfs<VlanOrIntfT>(state2)
+                       ->getNode(host2VlanOrIntf)
+                       ->getArpTable()
+                       ->getEntry(host2ip);
+  auto entry3old = getVlansOrIntfs<VlanOrIntfT>(state2)
+                       ->getNode(host3VlanOrIntf)
+                       ->getNdpTable()
+                       ->getEntry(host3ip);
 
   auto state3 = state2;
   // state2
@@ -441,9 +446,11 @@ TEST(SwitchStatePruningTests, ChangeNeighborEntry) {
   auto host2port = PortDescriptor(PortID(2));
   auto host2interface = InterfaceID(21);
 
-  auto arpTable21 =
-      state3->getVlans()->getNode(host2vlan)->getArpTable()->modify(
-          host2vlan, &state3);
+  auto arpTable21 = getVlansOrIntfs<VlanOrIntfT>(state3)
+                        ->getNode(host2VlanOrIntf)
+                        ->getArpTable()
+                        ->modify(host2VlanOrIntf, &state3);
+
   arpTable21->updateEntry(
       host2ip, host2mac, host2port, host2interface, NeighborState::REACHABLE);
 
@@ -451,44 +458,59 @@ TEST(SwitchStatePruningTests, ChangeNeighborEntry) {
   auto host3port = PortDescriptor(PortID(4));
   auto host3interface = InterfaceID(22);
 
-  auto ndpTable22 =
-      state3->getVlans()->getNode(host3vlan)->getNdpTable()->modify(
-          host3vlan, &state3);
+  auto ndpTable22 = getVlansOrIntfs<VlanOrIntfT>(state3)
+                        ->getNode(host3VlanOrIntf)
+                        ->getNdpTable()
+                        ->modify(host3VlanOrIntf, &state3);
   ndpTable22->updateEntry(
       host3ip, host3mac, host3port, host3interface, NeighborState::REACHABLE);
 
   state3->publish();
 
-  auto entry1new =
-      state3->getVlans()->getNode(host1vlan)->getArpTable()->getEntry(host1ip);
-  auto entry2new =
-      state3->getVlans()->getNode(host2vlan)->getArpTable()->getEntry(host2ip);
-  auto entry3new =
-      state3->getVlans()->getNode(host3vlan)->getNdpTable()->getEntry(host3ip);
+  auto entry1new = getVlansOrIntfs<VlanOrIntfT>(state3)
+                       ->getNode(host1VlanOrIntf)
+                       ->getArpTable()
+                       ->getEntry(host1ip);
+  auto entry2new = getVlansOrIntfs<VlanOrIntfT>(state3)
+                       ->getNode(host2VlanOrIntf)
+                       ->getArpTable()
+                       ->getEntry(host2ip);
+  auto entry3new = getVlansOrIntfs<VlanOrIntfT>(state3)
+                       ->getNode(host3VlanOrIntf)
+                       ->getNdpTable()
+                       ->getEntry(host3ip);
 
   shared_ptr<SwitchState> state4{state3};
   // state3
   //  ... revert host2's resolved entry (to unresolved entry)
   // state4
-  std::set<tuple<VlanID, IPAddressV4, shared_ptr<ArpEntry>>> changed4;
+  std::set<tuple<VlanOrIntfT, IPAddressV4, shared_ptr<ArpEntry>>> changed4;
   SwitchState::revertNewNeighborEntry<ArpEntry, ArpTable>(
       entry2new, entry2old, &state4);
-  changed4.insert(make_tuple(host2vlan, host2ip, entry2old));
+  changed4.insert(make_tuple(host2VlanOrIntf, host2ip, entry2old));
   state4->publish();
-  checkChangedNeighborEntries<VlanID, ArpTable>(
+  checkChangedNeighborEntries<VlanOrIntfT, ArpTable>(
       state3, state4, changed4, {}, {});
 
   shared_ptr<SwitchState> state5{state4};
   // state4
   //  ... revert host3's resolved entry
   // state5
-  std::set<tuple<VlanID, IPAddressV6, shared_ptr<NdpEntry>>> changed6;
+  std::set<tuple<VlanOrIntfT, IPAddressV6, shared_ptr<NdpEntry>>> changed6;
   SwitchState::revertNewNeighborEntry<NdpEntry, NdpTable>(
       entry3new, entry3old, &state5);
-  changed6.insert(make_tuple(host3vlan, host3ip, entry3old));
+  changed6.insert(make_tuple(host3VlanOrIntf, host3ip, entry3old));
   state5->publish();
-  checkChangedNeighborEntries<VlanID, NdpTable>(
+  checkChangedNeighborEntries<VlanOrIntfT, NdpTable>(
       state4, state5, changed6, {}, {});
+}
+
+// Test that we can update pending entries to resolved ones, and revert them
+// back to pending.
+TEST(SwitchStatePruningTests, ChangeNeighborEntry) {
+  FLAGS_intf_nbr_tables = false;
+  verifyChangeNeighborEntry<VlanID>(
+      VlanID(21) /* host1 */, VlanID(21) /* host2 */, VlanID(22) /* host3 */);
 }
 
 TEST(SwitchStatePruningTests, ModifyState) {
