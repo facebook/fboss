@@ -511,6 +511,12 @@ TEST(SwitchStatePruningTests, ChangeNeighborEntry) {
   FLAGS_intf_nbr_tables = false;
   verifyChangeNeighborEntry<VlanID>(
       VlanID(21) /* host1 */, VlanID(21) /* host2 */, VlanID(22) /* host3 */);
+
+  FLAGS_intf_nbr_tables = true;
+  verifyChangeNeighborEntry<InterfaceID>(
+      InterfaceID(21) /* host1 */,
+      InterfaceID(21) /* host2 */,
+      InterfaceID(22) /* host3 */);
 }
 
 TEST(SwitchStatePruningTests, ModifyState) {
