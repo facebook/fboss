@@ -31,7 +31,11 @@ std::optional<sai_attr_id_t> SaiPortSerdesTraits::Attributes::
 }
 std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeSystemPortId::operator()() {
+#if defined(TAJO_SDK_EBRO)
   return SAI_PORT_ATTR_EXT_SYSTEM_PORT_ID;
+#else
+  return std::nullopt;
+#endif
 }
 std::optional<sai_attr_id_t> SaiPortSerdesTraits::Attributes::
     AttributeRxAfeAdaptiveEnableWrapper::operator()() {
