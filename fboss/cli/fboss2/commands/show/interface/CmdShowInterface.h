@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include "common/strings/StringUtil.h"
 #include "fboss/cli/fboss2/CmdGlobalOptions.h"
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/interface/gen-cpp2/model_types.h"
