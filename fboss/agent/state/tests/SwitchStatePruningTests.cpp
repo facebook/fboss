@@ -51,6 +51,15 @@ auto getVlansOrIntfs(const shared_ptr<SwitchState> state) {
   }
 }
 
+template <typename VlanOrIntfIDT>
+auto getVlanOrIntfMapDelta(const StateDelta& delta) {
+  if constexpr (std::is_same_v<VlanOrIntfIDT, VlanID>) {
+    return delta.getVlansDelta();
+  } else {
+    return delta.getIntfsDelta();
+  }
+}
+
 } // namespace
 
 template <typename NTableT>
