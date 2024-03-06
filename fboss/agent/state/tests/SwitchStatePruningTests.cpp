@@ -575,6 +575,9 @@ void verifyModifyState(VlanOrIntfT host1VlanOrIntf) {
 TEST(SwitchStatePruningTests, ModifyState) {
   FLAGS_intf_nbr_tables = false;
   verifyModifyState(VlanID(21));
+
+  FLAGS_intf_nbr_tables = true;
+  verifyModifyState(InterfaceID(21));
 }
 
 // Test we can modify empty arp table without resetting the arp table to a new
