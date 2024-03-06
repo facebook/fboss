@@ -7,6 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include "fboss/agent/LldpManager.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/packet/EthFrame.h"
@@ -470,6 +471,37 @@ class AgentCoppTest : public AgentHwTest {
                << ", after pkts:" << afterOutPkts;
     EXPECT_EQ(expectedPktDelta, afterOutPkts - beforeOutPkts);
   }
+
+  void sendPktAndVerifyLldpPacketsCpuQueue(
+      int queueId,
+      const int numPktsToSend = 1,
+      const int expectedPktDelta = 1) {
+    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto neighborMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+    auto beforeOutPkts = getQueueOutPacketsWithRetry(
+        queueId, 0 /* retryTimes */, 0 /* expectedNumPkts */);
+    for (int i = 0; i < numPktsToSend; i++) {
+      auto txPacket = utility::makeLLDPPacket(
+          getSw(),
+          neighborMac,
+          vlanId,
+          "rsw1dx.21.frc3",
+          "eth1/1/1",
+          "fsw001.p023.f01.frc3:eth4/9/1",
+          LldpManager::TTL_TLV_VALUE,
+          LldpManager::SYSTEM_CAPABILITY_ROUTER);
+      getSw()->sendPacketOutOfPortAsync(
+          std::move(txPacket), PortID(masterLogicalPortIds()[0]));
+    }
+    auto afterOutPkts = getQueueOutPacketsWithRetry(
+        queueId, kGetQueueOutPktsRetryTimes, beforeOutPkts + 1);
+    XLOG(DBG0) << "Packet of dstMac=" << LldpManager::LLDP_DEST_MAC.toString()
+               << ". Ethertype=" << std::hex << int(LldpManager::ETHERTYPE_LLDP)
+               << ". Queue=" << queueId << ", before pkts:" << beforeOutPkts
+               << ", after pkts:" << afterOutPkts;
+    EXPECT_EQ(expectedPktDelta, afterOutPkts - beforeOutPkts);
+  }
 };
 
 TYPED_TEST_SUITE(AgentCoppTest, TestTypes);
@@ -893,6 +925,16 @@ TYPED_TEST(AgentCoppTest, JumboFramesToQueues) {
         std::nullopt, /*mac*/
         0, /* traffic class*/
         jumboPayload);
+  };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(AgentCoppTest, LldpProtocolToMidPriQ) {
+  auto setup = [=, this]() { this->setup(); };
+
+  auto verify = [=, this]() {
+    this->sendPktAndVerifyLldpPacketsCpuQueue(utility::kCoppMidPriQueueId);
   };
 
   this->verifyAcrossWarmBoots(setup, verify);
