@@ -644,10 +644,10 @@ TEST(SwitchStatePruningTests, ModifyEmptyArpTable) {
   verifyModifyEmptyArpTable(InterfaceID(21));
 }
 
-/**
- * This code tests that the modify function of NeighborTable works as expected.
- */
-TEST(SwitchStatePruningTests, ModifyArpTableMultipleTimes) {
+template <typename VlanOrIntfT>
+void verifyModifyArpTableMultipleTimes(
+    VlanOrIntfT host1VlanOrIntf,
+    VlanOrIntfT host4VlanOrIntf) {
   auto platform = createMockPlatform();
   SwitchConfig config;
   // The empty state
@@ -681,24 +681,42 @@ TEST(SwitchStatePruningTests, ModifyArpTableMultipleTimes) {
   auto host1ip = IPAddressV4("10.0.21.1");
   auto host1mac = MacAddress("fa:ce:b0:0c:21:01");
   auto host1port = PortDescriptor(PortID(1));
-  auto host1intf = InterfaceID(21);
-  auto host1vlan = VlanID(21);
-  auto arp1 = state1->getVlans()->getNode(host1vlan)->getArpTable();
+
+  auto arp1 = getVlansOrIntfs<VlanOrIntfT>(state1)
+                  ->getNode(host1VlanOrIntf)
+                  ->getArpTable();
   ASSERT_EQ(state1, state2);
   ASSERT_TRUE(state2->isPublished());
+
   // Make sure that the modify function on ArpTable modifies the SwitchState
   // and VlanMap and Vlan and the mofified new state is unpublished.
-  auto arp1modified =
-      state1->getVlans()->getNode(host1vlan)->getArpTable()->modify(
-          host1vlan, &state2);
+  auto arp1modified = getVlansOrIntfs<VlanOrIntfT>(state1)
+                          ->getNode(host1VlanOrIntf)
+                          ->getArpTable()
+                          ->modify(host1VlanOrIntf, &state2);
   ASSERT_NE(state1, state2);
-  ASSERT_NE(state1->getVlans(), state2->getVlans());
   ASSERT_NE(
-      state1->getVlans()->getNode(host1vlan),
-      state2->getVlans()->getNode(host1vlan));
+      getVlansOrIntfs<VlanOrIntfT>(state1),
+      getVlansOrIntfs<VlanOrIntfT>(state2));
   ASSERT_NE(
-      state1->getVlans()->getNode(host1vlan)->getArpTable(),
-      state2->getVlans()->getNode(host1vlan)->getArpTable());
+      getVlansOrIntfs<VlanOrIntfT>(state1)
+          ->getNode(host1VlanOrIntf)
+          ->getArpTable(),
+      getVlansOrIntfs<VlanOrIntfT>(state2)
+          ->getNode(host1VlanOrIntf)
+          ->getArpTable());
+
+  ASSERT_NE(arp1.get(), arp1modified);
+  ASSERT_TRUE(!state2->isPublished());
+
+  ASSERT_NE(
+      getVlansOrIntfs<VlanOrIntfT>(state1)
+          ->getNode(host1VlanOrIntf)
+          ->getArpTable(),
+      getVlansOrIntfs<VlanOrIntfT>(state2)
+          ->getNode(host1VlanOrIntf)
+          ->getArpTable());
+
   ASSERT_NE(arp1.get(), arp1modified);
   ASSERT_TRUE(!state2->isPublished());
 
@@ -710,19 +728,33 @@ TEST(SwitchStatePruningTests, ModifyArpTableMultipleTimes) {
   auto host4ip = IPAddressV4("10.0.22.4");
   auto host4mac = MacAddress("fa:ce:b0:0c:22:04");
   auto host4port = PortDescriptor(PortID(4));
-  auto host4intf = InterfaceID(22);
-  auto host4vlan = VlanID(22);
+
   // Make sure the modify function does not change the SwitchState and VlanMap
   // if the state is unpublished.
-  auto arpTable22Ptr =
-      state2->getVlans()->getNode(host4vlan)->getArpTable()->modify(
-          host4vlan, &state3);
+  auto arpTable22Ptr = getVlansOrIntfs<VlanOrIntfT>(state2)
+                           ->getNode(host4VlanOrIntf)
+                           ->getArpTable()
+                           ->modify(host4VlanOrIntf, &state3);
   ASSERT_EQ(state2, state3);
-  ASSERT_EQ(state2->getVlans(), state3->getVlans());
-  arpTable22Ptr->addEntry(host4ip, host4mac, host4port, host4intf);
+  ASSERT_EQ(
+      getVlansOrIntfs<VlanOrIntfT>(state2),
+      getVlansOrIntfs<VlanOrIntfT>(state3));
+
+  arpTable22Ptr->addEntry(
+      host4ip, host4mac, host4port, static_cast<InterfaceID>(host4VlanOrIntf));
   state3->publish();
   ASSERT_EQ(state2, state3);
-  ASSERT_EQ(state2->getVlans(), state3->getVlans());
+  ASSERT_EQ(
+      getVlansOrIntfs<VlanOrIntfT>(state2),
+      getVlansOrIntfs<VlanOrIntfT>(state3));
+}
+
+/**
+ * This code tests that the modify function of NeighborTable works as expected.
+ */
+TEST(SwitchStatePruningTests, ModifyArpTableMultipleTimes) {
+  FLAGS_intf_nbr_tables = false;
+  verifyModifyArpTableMultipleTimes(VlanID(21), VlanID(22));
 }
 
 shared_ptr<SwitchState> createSwitch() {
