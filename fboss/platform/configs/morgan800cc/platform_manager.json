@@ -368,7 +368,7 @@
         },
         {
           "busName": "MCB_IOB_I2C_MASTER_M18",
-          "address": "0x61",
+          "address": "0x60",
           "kernelDeviceName": "pmbus",
           "pmUnitScopedName": "MCB_LTC2979_1"
         },
