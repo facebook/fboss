@@ -18,6 +18,13 @@ using facebook::fb303::AVG;
 using facebook::fb303::RATE;
 using facebook::fb303::SUM;
 
+namespace {
+std::string fabricOverdrainCounter(int16_t switchIndex) {
+  return folly::to<std::string>(
+      "switch.", switchIndex, ".fabric_overdrain_pct");
+}
+} // namespace
+
 namespace facebook::fboss {
 
 // set to empty string, we'll prepend prefix when fbagent collects counters
@@ -520,8 +527,6 @@ void SwitchStats::setFabricOverdrainPct(
   // counter.addValue(overdrainPct - getCumuativeValue(counter));
   // i.e. collect global value from all threads and then compute delta
   // against the current value. Instead set the global value directly
-  fb303::fbData->setCounter(
-      folly::to<std::string>("switch.", switchIndex, ".fabric_overdrain_pct"),
-      overdrainPct);
+  fb303::fbData->setCounter(fabricOverdrainCounter(switchIndex), overdrainPct);
 }
 } // namespace facebook::fboss
