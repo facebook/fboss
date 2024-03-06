@@ -1380,7 +1380,7 @@ SignalFlags CmisModule::getSignalFlagInfo() {
 }
 
 /*
- * getVdmDiagsValLocation
+ * updateVdmDiagsValLocation
  *
  * This function scans the VDM config pages by looking into each 2 byte
  * descriptors. It builds up the mapping from VDM config type to the VDM value
@@ -2769,6 +2769,10 @@ void CmisModule::latchAndReadVdmDataLocked() {
   // Read data for publishing to ODS
   readCmisField(CmisField::PAGE_UPPER24H, page24_);
   readCmisField(CmisField::PAGE_UPPER25H, page25_);
+  if (isVdmSupported(3)) {
+    // Cache VDM group 3 page only if it is supported
+    readCmisField(CmisField::PAGE_UPPER26H, page26_);
+  }
 
   // Write Byte 2F.144, bit 7 to 0 (clear latch)
   latchRequest &= ~FieldMasks::VDM_LATCH_REQUEST_MASK;
