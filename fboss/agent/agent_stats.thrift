@@ -51,4 +51,5 @@ struct AgentStats {
   22: map<i16, i64> hwagentConnectionStatus;
   23: map<i16, i64> hwagentOperSyncTimeoutCount;
   24: map<i16, HwAgentEventSyncStatus> hwAgentEventSyncStatusMap;
+  25: map<i16, i16> fabricOverdrainPct;
 }
