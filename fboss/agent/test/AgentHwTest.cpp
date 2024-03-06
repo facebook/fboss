@@ -194,8 +194,12 @@ cfg::SwitchConfig AgentHwTest::addCoppConfig(
   return config;
 }
 
-void initAgentHwTest(int argc, char* argv[], PlatformInitFn initPlatform) {
-  initEnsemble(initPlatform);
+void initAgentHwTest(
+    int argc,
+    char* argv[],
+    PlatformInitFn initPlatform,
+    std::optional<cfg::StreamType> streamType) {
+  initEnsemble(initPlatform, streamType);
   kArgc = argc;
   kArgv = argv;
 }

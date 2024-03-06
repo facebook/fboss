@@ -163,6 +163,10 @@ class AgentHwTest : public ::testing::Test {
   std::unique_ptr<AgentEnsemble> agentEnsemble_;
 };
 
-void initAgentHwTest(int argc, char* argv[], PlatformInitFn initPlatform);
+void initAgentHwTest(
+    int argc,
+    char* argv[],
+    PlatformInitFn initPlatform,
+    std::optional<cfg::StreamType> streamType = std::nullopt);
 
 } // namespace facebook::fboss

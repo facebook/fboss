@@ -10,7 +10,11 @@ FOLLY_INIT_LOGGING_CONFIG("fboss=DBG4; default:async=true");
 
 int main(int argc, char* argv[]) {
   testing::InitGoogleTest(&argc, argv);
+  std::optional<facebook::fboss::cfg::StreamType> streamType = std::nullopt;
+#if defined(TAJO_SDK_GTE_1_65_0)
+  streamType = facebook::fboss::cfg::StreamType::UNICAST;
+#endif
   facebook::fboss::initAgentHwTest(
-      argc, argv, facebook::fboss::initSaiPlatform);
+      argc, argv, facebook::fboss::initSaiPlatform, streamType);
   return RUN_ALL_TESTS();
 }
