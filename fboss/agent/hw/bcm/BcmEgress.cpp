@@ -1189,12 +1189,6 @@ bool BcmEcmpEgress::updateEcmpDynamicMode() {
   int ret = 0;
   bool updateComplete = true;
 
-  if (!hw_->getPlatform()->getAsic()->isSupported(
-          HwAsic::Feature::FLOWLET_PORT_ATTRIBUTES)) {
-    // TODO: remove this when TH3 also gets support for the SDK API
-    return updateComplete;
-  }
-
   // Initialize oftherwise SDK may return junk
   memset(membersInHw, 0, sizeof(membersInHw));
   if (useHsdk_) {

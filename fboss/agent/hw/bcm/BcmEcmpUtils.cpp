@@ -57,23 +57,19 @@ int getFlowletSizeWithScalingFactor(
     const int numPaths,
     const int maxPaths) {
   int adjustedFlowSetTableSize = flowSetTableSize;
-  if (hw->getPlatform()->getAsic()->isSupported(
-          HwAsic::Feature::FLOWLET_PORT_ATTRIBUTES)) {
 #if defined(BCM_SDK_VERSION_GTE_6_5_26)
-    int freeEntries = 0;
-    int rv = bcm_switch_object_count_get(
-        hw->getUnit(), bcmSwitchObjectEcmpDynamicFlowSetFree, &freeEntries);
-    bcmCheckError(rv, "Failed to get bcmSwitchObjectEcmpDynamicFlowSetFree");
+  int freeEntries = 0;
+  int rv = bcm_switch_object_count_get(
+      hw->getUnit(), bcmSwitchObjectEcmpDynamicFlowSetFree, &freeEntries);
+  bcmCheckError(rv, "Failed to get bcmSwitchObjectEcmpDynamicFlowSetFree");
 
-    if (flowSetTableSize > freeEntries) {
-      XLOG(WARN)
-          << "Not enough DLB flowset resource available for flowlet size: "
-          << flowSetTableSize << ". Free entries: " << freeEntries;
-      adjustedFlowSetTableSize = 0;
-    }
-    return adjustedFlowSetTableSize;
-#endif
+  if (flowSetTableSize > freeEntries) {
+    XLOG(WARN) << "Not enough DLB flowset resource available for flowlet size: "
+               << flowSetTableSize << ". Free entries: " << freeEntries;
+    adjustedFlowSetTableSize = 0;
   }
+  return adjustedFlowSetTableSize;
+#endif
 
   // TODO: plan to deprecate the below when TH3 support is added for the API
   // above default table size is 2k

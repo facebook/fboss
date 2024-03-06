@@ -337,9 +337,8 @@ TEST_F(HwFlowletSwitchingFlowsetTests, ValidateFlowsetExceed) {
 
   auto verify = [&]() {
     auto cfg = initialConfig();
-    const auto& portFlowletCfgMap = *cfg.portFlowletConfigs();
-    const auto& iter = portFlowletCfgMap.find("default");
-    ASSERT_TRUE(iter != portFlowletCfgMap.end());
+    auto portFlowletConfig =
+        getPortFlowletConfig(kScalingFactor1, kLoadWeight1, kQueueWeight1);
 
     // ensure that DLB is not programmed as we started with high flowset limits
     // we expect flowset size is zero
@@ -347,7 +346,7 @@ TEST_F(HwFlowletSwitchingFlowsetTests, ValidateFlowsetExceed) {
         getHwSwitch(),
         kAddr1Prefix,
         *cfg.flowletSwitchingConfig(),
-        iter->second,
+        portFlowletConfig,
         true /* flowletEnable */,
         true /* expectFlowsetSizeZero */);
 
@@ -360,7 +359,7 @@ TEST_F(HwFlowletSwitchingFlowsetTests, ValidateFlowsetExceed) {
         getHwSwitch(),
         kAddr1Prefix,
         *cfg.flowletSwitchingConfig(),
-        iter->second,
+        portFlowletConfig,
         true,
         false /* expectFlowsetSizeZero */);
   };
@@ -407,9 +406,8 @@ TEST_F(
 
   auto verify = [&]() {
     auto cfg = initialConfig();
-    const auto& portFlowletCfgMap = *cfg.portFlowletConfigs();
-    const auto& iter = portFlowletCfgMap.find("default");
-    ASSERT_TRUE(iter != portFlowletCfgMap.end());
+    auto portFlowletConfig =
+        getPortFlowletConfig(kScalingFactor1, kLoadWeight1, kQueueWeight1);
 
     // ensure that DLB is not programmed for second route as we started with
     // high flowset limits we expect flowset size is zero for the second object
@@ -417,7 +415,7 @@ TEST_F(
         getHwSwitch(),
         kAddr2Prefix, // second route
         *cfg.flowletSwitchingConfig(),
-        iter->second,
+        portFlowletConfig,
         true /* flowletEnable */,
         true /* expectFlowsetSizeZero */);
 
@@ -432,47 +430,10 @@ TEST_F(
         getHwSwitch(),
         kAddr2Prefix,
         *cfg.flowletSwitchingConfig(),
-        iter->second,
+        portFlowletConfig,
         true /* flowletEnable */,
         false /* expectFlowsetSizeZero */);
   };
-  verifyAcrossWarmBoots(setup, verify);
-}
-
-TEST_F(HwFlowletSwitchingTest, VerifyFlowletSizeScaling) {
-  if (this->skipTest() ||
-      getPlatform()->getAsic()->isSupported(
-          HwAsic::Feature::FLOWLET_PORT_ATTRIBUTES)) {
-#if defined(GTEST_SKIP)
-    GTEST_SKIP();
-#endif
-    return;
-  }
-
-  auto setup = [&]() { resolveNextHopsAddRoute(kMaxLinks); };
-
-  auto verify = [&]() {
-    // verify the flowlet config
-    auto cfg = initialConfig();
-    verifyConfig(cfg);
-
-    // its hard to recreate new ECMP object with lesser egress objectss
-    // another way to test is to increate the maxLinks instead, so that
-    // current links fall below the threshold
-    modifyFlowletSwitchingMaxLinks(cfg, 2 * kMaxLinks);
-    applyNewConfig(cfg);
-    verifyConfig(cfg, true);
-
-    // snap back and ensure that changes get propagated
-    modifyFlowletSwitchingMaxLinks(cfg, kMaxLinks);
-    applyNewConfig(cfg);
-    verifyConfig(cfg);
-
-    //
-    // Modify to initial config to verify after warmboot
-    applyNewConfig(initialConfig());
-  };
-
   verifyAcrossWarmBoots(setup, verify);
 }
 

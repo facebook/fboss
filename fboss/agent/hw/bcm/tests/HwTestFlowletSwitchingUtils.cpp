@@ -97,16 +97,6 @@ bool validateFlowSetTable(
   XLOG(DBG2) << "validateFlowSetTable with flowletTableSize: "
              << flowletTableSize
              << ", expectFlowsetSizeZero:" << expectFlowsetSizeZero;
-  // not ideal but for now TH3 doesn't support this.
-  if (!hw->getPlatform()->getAsic()->isSupported(
-          HwAsic::Feature::FLOWLET_PORT_ATTRIBUTES)) {
-    // short of creating yet another feature for this, just use existing DLB
-    // feature (which is only enabled for TH4) to fold it in with expectation
-    // that this will be undone soon when TH3 support is added for the calls
-    // below
-    return isVerified;
-  }
-
 #if (                                      \
     defined(BCM_SDK_VERSION_GTE_6_5_26) && \
     !defined(BCM_SDK_VERSION_GTE_6_5_28))
