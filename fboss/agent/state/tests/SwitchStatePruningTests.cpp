@@ -365,6 +365,12 @@ TEST(SwitchStatePruningTests, AddNeighborEntry) {
   FLAGS_intf_nbr_tables = false;
   verifyAddNeighborEntry(
       VlanID(21) /* host1 */, VlanID(21) /* host2 */, VlanID(21) /* host3 */);
+
+  FLAGS_intf_nbr_tables = true;
+  verifyAddNeighborEntry(
+      InterfaceID(21) /* host1 */,
+      InterfaceID(21) /* host2 */,
+      InterfaceID(21) /* host3 */);
 }
 
 // Test that we can update pending entries to resolved ones, and revert them
