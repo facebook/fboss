@@ -162,37 +162,41 @@ void registerPortsAndPopulateConfig(
 
 // Add NeighborEntry to given state. The added entry can be pending or resolved
 // based on port value (nullptr indicates pending entry).
-template <typename NTable>
+template <typename VlanOrIntfT, typename NTable>
 void addNeighborEntry(
     shared_ptr<SwitchState>* state, // published or unpublished
     typename NTable::AddressType* ip,
     MacAddress* mac,
-    VlanID* vlan,
+    VlanOrIntfT* vlanOrIntf,
     PortDescriptor* port) { // null port indicates pending entry
   CHECK(ip);
-  CHECK(vlan);
+  CHECK(vlanOrIntf);
   shared_ptr<NTable> newNeighborTable = make_shared<NTable>();
   NTable* newNeighborTablePtr = newNeighborTable.get();
-  auto oldNeighborTable =
-      (*state)->getVlans()->getNode(*vlan)->template getNeighborTable<NTable>();
+  auto oldNeighborTable = getVlansOrIntfs<VlanOrIntfT>(*state)
+                              ->getNode(*vlanOrIntf)
+                              ->template getNeighborTable<NTable>();
+
   if (oldNeighborTable) {
     // This call changes state too
-    newNeighborTablePtr = oldNeighborTable->modify(*vlan, state);
+    newNeighborTablePtr = oldNeighborTable->modify(*vlanOrIntf, state);
   }
 
   // Add entry to the arp table
   if (port) {
     newNeighborTablePtr->addEntry(
-        *ip, *mac, *port, static_cast<InterfaceID>(*vlan));
+        *ip, *mac, *port, static_cast<InterfaceID>(*vlanOrIntf));
   } else {
-    newNeighborTablePtr->addPendingEntry(*ip, static_cast<InterfaceID>(*vlan));
+    newNeighborTablePtr->addPendingEntry(
+        *ip, static_cast<InterfaceID>(*vlanOrIntf));
   }
 
   if (!oldNeighborTable) {
     // There is no old arp table
-    auto vlanPtr = (*state)->getVlans()->getNode(*vlan).get();
-    vlanPtr = vlanPtr->modify(state);
-    vlanPtr->setNeighborTable(std::move(newNeighborTable));
+    auto vlanOrIntfPtr =
+        getVlansOrIntfs<VlanOrIntfT>(*state)->getNode(*vlanOrIntf).get();
+    vlanOrIntfPtr = vlanOrIntfPtr->modify(state);
+    vlanOrIntfPtr->setNeighborTable(std::move(newNeighborTable));
   }
 }
 
@@ -277,7 +281,7 @@ TEST(SwitchStatePruningTests, AddNeighborEntry) {
   auto host1vlan = VlanID(21);
   auto host1port = PortDescriptor(PortID(1));
   // Add host1 (resolved) for vlan21
-  addNeighborEntry<ArpTable>(
+  addNeighborEntry<VlanID, ArpTable>(
       &state2, &host1ip, &host1mac, &host1vlan, &host1port);
 
   auto host2ip = IPAddressV6("face:b00c:0:21::2");
@@ -286,7 +290,7 @@ TEST(SwitchStatePruningTests, AddNeighborEntry) {
   auto host2port = PortDescriptor(PortID(1));
   auto host2intf = InterfaceID(21);
 
-  addNeighborEntry<NdpTable>(
+  addNeighborEntry<VlanID, NdpTable>(
       &state2, &host2ip, &host2mac, &host2vlan, &host2port);
 
   state2->publish();
@@ -301,7 +305,7 @@ TEST(SwitchStatePruningTests, AddNeighborEntry) {
   auto host3mac = MacAddress("fa:ce:b0:0c:21:03");
   auto host3vlan = VlanID(21);
   auto host3port = PortDescriptor(PortID(2));
-  addNeighborEntry<ArpTable>(
+  addNeighborEntry<VlanID, ArpTable>(
       &state3, &host3ip, &host3mac, &host3vlan, &host3port);
   state3->publish();
 
@@ -373,15 +377,18 @@ TEST(SwitchStatePruningTests, ChangeNeighborEntry) {
 
   auto host1ip = IPAddressV4("10.0.21.1");
   auto host1vlan = VlanID(21);
-  addNeighborEntry<ArpTable>(&state2, &host1ip, nullptr, &host1vlan, nullptr);
+  addNeighborEntry<VlanID, ArpTable>(
+      &state2, &host1ip, nullptr, &host1vlan, nullptr);
 
   auto host2ip = IPAddressV4("10.0.21.2");
   auto host2vlan = VlanID(21);
-  addNeighborEntry<ArpTable>(&state2, &host2ip, nullptr, &host2vlan, nullptr);
+  addNeighborEntry<VlanID, ArpTable>(
+      &state2, &host2ip, nullptr, &host2vlan, nullptr);
 
   auto host3ip = IPAddressV6("face:b00c:0:22::3");
   auto host3vlan = VlanID(22);
-  addNeighborEntry<NdpTable>(&state2, &host3ip, nullptr, &host3vlan, nullptr);
+  addNeighborEntry<VlanID, NdpTable>(
+      &state2, &host3ip, nullptr, &host3vlan, nullptr);
 
   state2->publish();
 
@@ -664,9 +671,9 @@ shared_ptr<SwitchState> addNeighbors(
   auto hostPort = PortDescriptor(PortID(1));
 
   if (vlanNeighbors) {
-    addNeighborEntry<ArpTable>(
+    addNeighborEntry<VlanID, ArpTable>(
         &state2, &host1Ip, &host1Mac, &hostVlan, &hostPort);
-    addNeighborEntry<NdpTable>(
+    addNeighborEntry<VlanID, NdpTable>(
         &state2, &host2Ip, &host2Mac, &hostVlan, &hostPort);
   } else {
     addNeighborEntryToIntfNeighborTable<ArpTable>(
