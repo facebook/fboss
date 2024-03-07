@@ -1927,6 +1927,11 @@ void SaiSwitch::txReadyStatusChangeCallbackBottomHalf() {
     }
   }
 
+  // Return early if no fabric port is initialized
+  if (adapterKeys.empty()) {
+    return;
+  }
+
   auto& portApi = SaiApiTable::getInstance()->portApi();
   std::vector<SaiPortTraits::Attributes::TxReadyStatus> txReadyStatuses(
       adapterKeys.size());
