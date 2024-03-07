@@ -336,6 +336,9 @@ class HwVoqSwitchWithFabricPortsTest : public HwVoqSwitchTest {
         utility::kBaseVlanId,
         true /*enable fabric ports*/
     );
+    utility::addAclTableGroup(
+        &cfg, cfg::AclStage::INGRESS, utility::getAclTableGroupName());
+    utility::addDefaultAclTable(cfg);
     utility::populatePortExpectedNeighbors(masterLogicalPortIds(), cfg);
     return cfg;
   }
