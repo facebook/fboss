@@ -318,5 +318,7 @@ CmdHandler<CmdSetInterfacePrbs, CmdSetInterfacePrbsTraits>::getValidFilters();
 template const ValidFilterMapType CmdHandler<
     CmdSetInterfacePrbsState,
     CmdSetInterfacePrbsStateTraits>::getValidFilters();
+template const ValidFilterMapType
+CmdHandler<CmdShowAcl, CmdShowAclTraits>::getValidFilters();
 
 } // namespace facebook::fboss
