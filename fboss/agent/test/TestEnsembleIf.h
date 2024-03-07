@@ -26,6 +26,9 @@ class TestEnsembleIf : public HwSwitchCallback {
   std::vector<PortID> masterLogicalInterfacePortIds() const {
     return masterLogicalPortIds({cfg::PortType::INTERFACE_PORT});
   }
+  std::vector<PortID> masterLogicalFabricPortIds() const {
+    return masterLogicalPortIds({cfg::PortType::FABRIC_PORT});
+  }
 
   virtual void applyNewState(
       StateUpdateFn fn,
