@@ -58,7 +58,7 @@ class LinkStateToggler {
   void setPortIDsAndStateToWaitFor(
       const std::set<PortID>& ports,
       bool waitForUp);
-  bool waitForPortEvents(const std::set<PortID>& ports);
+  bool waitForPortEvents(const std::set<PortID>& ports, bool up);
   cfg::PortLoopbackMode findDesiredLoopbackMode(
       const std::shared_ptr<SwitchState>& newState,
       PortID port,
