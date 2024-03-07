@@ -116,6 +116,7 @@ class CmdShowHwAgentStatus
       case SwitchRunState::EXITING:
         return "EXITING";
     }
+    throw std::invalid_argument("Invalid Run State");
   }
 };
 
