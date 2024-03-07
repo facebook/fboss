@@ -314,7 +314,8 @@ void SaiRouteManager::addOrUpdateRoute(
        * 2) Add an ACL with qualifer as CLASS_UNRESOLVED_ROUTE_TO_CPU and
        * action as low pri queue.
        */
-      if (FLAGS_classid_for_unresolved_routes) {
+      if (FLAGS_classid_for_unresolved_routes &&
+          platform_->getAsic()->isSupported(HwAsic::Feature::ROUTE_METADATA)) {
         if (nextHopId == managerTable_->switchManager().getCpuPort()) {
           metadata = static_cast<uint32_t>(
               cfg::AclLookupClass::CLASS_UNRESOLVED_ROUTE_TO_CPU);
