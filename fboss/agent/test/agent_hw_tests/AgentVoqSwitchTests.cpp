@@ -212,6 +212,15 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, fabricIsolate) {
         PortID(masterLogicalPortIds({cfg::PortType::FABRIC_PORT})[0]);
     utility::checkPortFabricReachability(
         getAgentEnsemble(), SwitchID(0), fabricPortId);
+    auto assertActiveState = [this](PortID portId, bool expectActive) {
+      WITH_RETRIES({
+        auto port = getProgrammedState()->getPorts()->getNodeIf(portId);
+        EXPECT_EVENTUALLY_TRUE(port->isActive().has_value());
+        EXPECT_EVENTUALLY_EQ(*port->isActive(), expectActive);
+      });
+    };
+    // Undrained fab port should be active
+    assertActiveState(fabricPortId, true);
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
       auto out = in->clone();
       auto port = out->getPorts()->getNodeIf(fabricPortId);
@@ -221,6 +230,8 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, fabricIsolate) {
     });
     utility::checkPortFabricReachability(
         getAgentEnsemble(), SwitchID(0), fabricPortId);
+    // Drained fab port should be inactive
+    assertActiveState(fabricPortId, false);
   };
   verifyAcrossWarmBoots([] {}, verify);
 }
