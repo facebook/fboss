@@ -618,7 +618,9 @@ void checkAclStatDeleted(
 void checkAclStatSize(
     const HwSwitch* /*hwSwitch*/,
     const std::string& /*statName*/) {
-  throw FbossError("Not implemented");
+  // SAI does not expose a stat size. Either or both of packets/bytes
+  // attributes are used.
+  // Verification of these 2 types is done above in checkAclStat
 }
 
 uint64_t getAclCounterId(
