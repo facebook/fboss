@@ -275,6 +275,15 @@ add_fbthrift_cpp_library(
     prbs_cpp2
 )
 
+add_fbthrift_cpp_library(
+  show_interface_counters_fec_ber
+  fboss/cli/fboss2/commands/show/interface/counters/fec/ber/model.thrift
+  OPTIONS
+    json
+  DEPENDS
+    phy_cpp2
+)
+
 find_package(CLI11 CONFIG REQUIRED)
 
 add_executable(fboss2
@@ -417,6 +426,7 @@ target_link_libraries(fboss2
   show_cpuport_model
   show_teflow_model
   show_hwagent_status_model
+  show_interface_counters_fec_ber
   ${RE2}
 )
 
