@@ -280,6 +280,28 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, overdrainPct) {
       EXPECT_EVENTUALLY_EQ(
           0, fb303::fbData->getCounter("switch.0.fabric_overdrain_pct"));
     });
+    auto enableFabPorts = [this](bool enable) {
+      auto cfg = initialConfig(*getAgentEnsemble());
+      for (auto& port : *cfg.ports()) {
+        if (*port.portType() == cfg::PortType::FABRIC_PORT) {
+          port.state() =
+              enable ? cfg::PortState::ENABLED : cfg::PortState::DISABLED;
+        }
+      }
+      applyNewConfig(cfg);
+    };
+    // Disable all fabric port
+    enableFabPorts(false);
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_EQ(
+          100, fb303::fbData->getCounter("switch.0.fabric_overdrain_pct"));
+    });
+    // Enable all fabric port
+    enableFabPorts(true);
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_EQ(
+          0, fb303::fbData->getCounter("switch.0.fabric_overdrain_pct"));
+    });
   };
   verifyAcrossWarmBoots(setup, verify);
 }
