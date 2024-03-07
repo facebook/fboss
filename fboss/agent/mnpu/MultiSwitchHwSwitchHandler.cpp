@@ -180,7 +180,8 @@ std::shared_ptr<SwitchState> MultiSwitchHwSwitchHandler::stateChanged(
 
 CpuPortStats MultiSwitchHwSwitchHandler::getCpuPortStats(
     bool /*getIncrement*/) const {
-  throw FbossError("getCpuPortStats not implemented");
+  // TODO: implement this
+  return CpuPortStats{};
 }
 
 std::map<PortID, FabricEndpoint>
@@ -211,7 +212,8 @@ std::string MultiSwitchHwSwitchHandler::listObjects(
 
 FabricReachabilityStats MultiSwitchHwSwitchHandler::getFabricReachabilityStats()
     const {
-  throw FbossError("getFabricReachabilityStats not implemented");
+  // TODO: implement this
+  return {};
 }
 
 std::vector<EcmpDetails> MultiSwitchHwSwitchHandler::getAllEcmpDetails() const {
