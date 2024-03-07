@@ -134,6 +134,18 @@ class AgentVoqSwitchTest : public AgentHwTest {
   }
 };
 
+TEST_F(AgentVoqSwitchTest, addRemoveNeighbor) {
+  auto setup = [this]() {
+    const PortDescriptor kPort(getAgentEnsemble()->masterLogicalPortIds(
+        {cfg::PortType::INTERFACE_PORT})[0]);
+    // Add neighbor
+    addRemoveNeighbor(kPort, true);
+    // Remove neighbor
+    addRemoveNeighbor(kPort, false);
+  };
+  verifyAcrossWarmBoots(setup, [] {});
+}
+
 class AgentVoqSwitchWithFabricPortsTest : public AgentVoqSwitchTest {
  public:
   cfg::SwitchConfig initialConfig(
@@ -150,23 +162,29 @@ class AgentVoqSwitchWithFabricPortsTest : public AgentVoqSwitchTest {
     return config;
   }
 
+ protected:
+  void assertPortActiveState(PortID fabricPortId, bool expectActive) const {
+    WITH_RETRIES({
+      auto port = getProgrammedState()->getPorts()->getNodeIf(fabricPortId);
+      EXPECT_EVENTUALLY_TRUE(port->isActive().has_value());
+      EXPECT_EVENTUALLY_EQ(*port->isActive(), expectActive);
+    });
+  }
+  void assertPortsActiveState(bool expectActive) const {
+    WITH_RETRIES({
+      for (const auto& fabricPortId : masterLogicalFabricPortIds()) {
+        auto port = getProgrammedState()->getPorts()->getNodeIf(fabricPortId);
+        EXPECT_EVENTUALLY_TRUE(port->isActive().has_value());
+        EXPECT_EVENTUALLY_EQ(*port->isActive(), expectActive);
+      }
+    });
+  }
+
  private:
   bool hideFabricPorts() const override {
     return false;
   }
 };
-
-TEST_F(AgentVoqSwitchTest, addRemoveNeighbor) {
-  auto setup = [this]() {
-    const PortDescriptor kPort(getAgentEnsemble()->masterLogicalPortIds(
-        {cfg::PortType::INTERFACE_PORT})[0]);
-    // Add neighbor
-    addRemoveNeighbor(kPort, true);
-    // Remove neighbor
-    addRemoveNeighbor(kPort, false);
-  };
-  verifyAcrossWarmBoots(setup, [] {});
-}
 
 TEST_F(AgentVoqSwitchWithFabricPortsTest, init) {
   auto setup = []() {};
@@ -224,11 +242,7 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, fabricIsolate) {
       });
       // Drained port == inactive, undrained port == active
       auto expectActive = !drain;
-      WITH_RETRIES({
-        auto port = getProgrammedState()->getPorts()->getNodeIf(fabricPortId);
-        EXPECT_EVENTUALLY_TRUE(port->isActive().has_value());
-        EXPECT_EVENTUALLY_EQ(*port->isActive(), expectActive);
-      });
+      assertPortActiveState(fabricPortId, expectActive);
       // Fabric reachability should be unchanged regardless of drain
       utility::checkPortFabricReachability(
           getAgentEnsemble(), SwitchID(0), fabricPortId);
@@ -241,6 +255,8 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, fabricIsolate) {
 
 TEST_F(AgentVoqSwitchWithFabricPortsTest, switchIsolate) {
   auto setup = [=, this]() {
+    // Before drain all fabric ports should be active
+    assertPortsActiveState(true);
     auto newCfg = initialConfig(*getAgentEnsemble());
     *newCfg.switchSettings()->switchDrainState() =
         cfg::SwitchDrainState::DRAINED;
@@ -251,6 +267,8 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, switchIsolate) {
     for (const auto& switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
       utility::checkFabricReachability(getAgentEnsemble(), switchId);
     }
+    // In drained state all fabric ports should inactive
+    assertPortsActiveState(false);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
