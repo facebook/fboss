@@ -10,6 +10,8 @@
 #include "fboss/agent/LldpManager.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/packet/DHCPv4Packet.h"
+#include "fboss/agent/packet/DHCPv6Packet.h"
 #include "fboss/agent/packet/EthFrame.h"
 #include "fboss/agent/packet/ICMPHdr.h"
 #include "fboss/agent/packet/PktFactory.h"
@@ -42,6 +44,7 @@ const auto kIPv6LinkLocalUcastAddress = folly::IPAddressV6("fe80::2");
 const auto kMcastMacAddress = folly::MacAddress("01:05:0E:01:02:03");
 
 const auto kNetworkControlDscp = 48;
+const auto kRandomPort = 54131;
 
 const auto kDhcpV6AllRoutersIp = folly::IPAddressV6("ff02::1:2");
 const auto kDhcpV6McastMacAddress = folly::MacAddress("33:33:00:01:00:02");
@@ -498,6 +501,61 @@ class AgentCoppTest : public AgentHwTest {
         queueId, kGetQueueOutPktsRetryTimes, beforeOutPkts + 1);
     XLOG(DBG0) << "Packet of dstMac=" << LldpManager::LLDP_DEST_MAC.toString()
                << ". Ethertype=" << std::hex << int(LldpManager::ETHERTYPE_LLDP)
+               << ". Queue=" << queueId << ", before pkts:" << beforeOutPkts
+               << ", after pkts:" << afterOutPkts;
+    EXPECT_EQ(expectedPktDelta, afterOutPkts - beforeOutPkts);
+  }
+
+  void
+  sendDHCPv6Pkts(int numPktsToSend, DHCPv6Type type, int ttl, bool outOfPort) {
+    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto neighborMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+
+    for (int i = 0; i < numPktsToSend; i++) {
+      auto txPacket = (type == DHCPv6Type::DHCPv6_SOLICIT)
+          ? utility::makeUDPTxPacket(
+                getSw(),
+                vlanId,
+                neighborMac, // SrcMAC: Client's MAC address
+                kDhcpV6McastMacAddress, // DstMac: 33:33:00:01:00:02
+                kIPv6LinkLocalUcastAddress, // SrcIP: Client's Link Local addr
+                kDhcpV6AllRoutersIp, // DstIP: ff02::1:2
+                DHCPv6Packet::DHCP6_CLIENT_UDPPORT, // SrcPort: 546
+                DHCPv6Packet::DHCP6_SERVERAGENT_UDPPORT, // DstPort: 547
+                0 /* dscp */,
+                ttl)
+          : utility::makeUDPTxPacket( // DHCPv6Type::DHCPv6_ADVERTISE
+                getSw(),
+                vlanId,
+                neighborMac, // srcMac: Server's MAC
+                intfMac, // dstMac: Switch/our MAC
+                kDhcpV6ServerGlobalUnicastAddress, // srcIp: Server's global
+                                                   // unicast address
+                folly::IPAddressV6("1::"), // dstIp: Switch/our IP
+                kRandomPort, // SrcPort:DHCPv6 server's random port
+                DHCPv6Packet::DHCP6_SERVERAGENT_UDPPORT, // DstPort: 547
+                0 /* dscp */,
+                ttl); // sent to me
+      sendPkt(std::move(txPacket), outOfPort, true /* snoopAndVerify*/);
+    }
+  }
+
+  void sendPktAndVerifyDHCPv6PacketsCpuQueue(
+      int queueId,
+      DHCPv6Type dhcpType,
+      const int ttl = 1,
+      bool outOfPort = true,
+      const int numPktsToSend = 1,
+      const int expectedPktDelta = 1) {
+    auto beforeOutPkts = getQueueOutPacketsWithRetry(
+        queueId, 0 /* retryTimes */, 0 /* expectedNumPkts */);
+    sendDHCPv6Pkts(numPktsToSend, dhcpType, ttl, outOfPort);
+    auto afterOutPkts = getQueueOutPacketsWithRetry(
+        queueId, kGetQueueOutPktsRetryTimes, beforeOutPkts + expectedPktDelta);
+    auto msgType =
+        dhcpType == DHCPv6Type::DHCPv6_SOLICIT ? "SOLICIT" : "ADVERTISEMENT";
+    XLOG(DBG0) << "DHCPv6 " << msgType << " packet"
                << ". Queue=" << queueId << ", before pkts:" << beforeOutPkts
                << ", after pkts:" << afterOutPkts;
     EXPECT_EQ(expectedPktDelta, afterOutPkts - beforeOutPkts);
@@ -967,6 +1025,63 @@ TYPED_TEST(AgentCoppTest, Ttl1PacketToLowPriQ) {
         true /* send out of port */);
   };
 
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(AgentCoppTest, DhcpPacketToMidPriQ) {
+  auto setup = [=, this]() { this->setup(); };
+
+  auto verify = [=, this]() {
+    std::array<folly::IPAddress, 2> randomSrcIP{
+        folly::IPAddress("1.1.1.10"), folly::IPAddress("1::10")};
+    std::array<std::pair<int, int>, 2> dhcpPortPairs{
+        std::make_pair(67, 68), std::make_pair(546, 547)};
+    for (int i = 0; i < 2; i++) {
+      for (int j = 0; j < 2; j++) {
+        auto l4SrcPort =
+            j == 0 ? dhcpPortPairs[i].first : dhcpPortPairs[i].second;
+        auto l4DstPort =
+            j == 0 ? dhcpPortPairs[i].second : dhcpPortPairs[i].first;
+        this->sendUdpPktAndVerify(
+            utility::kCoppMidPriQueueId,
+            randomSrcIP[i],
+            l4SrcPort,
+            l4DstPort,
+            true /* expectPktTrap */,
+            255 /* TTL */,
+            true /* send out of port */);
+        XLOG(DBG0) << "Sending packet with src port " << l4SrcPort
+                   << " dst port " << l4DstPort << " IP: " << randomSrcIP[i];
+      }
+    }
+  };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(AgentCoppTest, DHCPv6SolicitToMidPriQ) {
+  auto setup = [=, this]() { this->setup(); };
+  auto verify = [=, this]() {
+    XLOG(DBG2) << "verifying DHCPv6 solicitation with TTL 1";
+    this->sendPktAndVerifyDHCPv6PacketsCpuQueue(
+        utility::kCoppMidPriQueueId, DHCPv6Type::DHCPv6_SOLICIT);
+    XLOG(DBG2) << "verifying DHCPv6 solicitation with TTL 128";
+    this->sendPktAndVerifyDHCPv6PacketsCpuQueue(
+        utility::kCoppMidPriQueueId, DHCPv6Type::DHCPv6_SOLICIT, 128);
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(AgentCoppTest, DHCPv6AdvertiseToMidPriQ) {
+  auto setup = [=, this]() { this->setup(); };
+  auto verify = [=, this]() {
+    XLOG(DBG2) << "verifying DHCPv6 Advertise with TTL 1";
+    this->sendPktAndVerifyDHCPv6PacketsCpuQueue(
+        utility::kCoppMidPriQueueId, DHCPv6Type::DHCPv6_ADVERTISE);
+    XLOG(DBG2) << "verifying DHCPv6 Advertise with TTL 128";
+    this->sendPktAndVerifyDHCPv6PacketsCpuQueue(
+        utility::kCoppMidPriQueueId, DHCPv6Type::DHCPv6_ADVERTISE, 128);
+  };
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
