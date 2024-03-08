@@ -18497,7 +18497,8 @@ std::pair<strings::defaultVoqConfig, ChildThriftPath<::std::vector<::facebook::f
 std::pair<strings::switchInfo, ChildThriftPath<::facebook::fboss::cfg::SwitchInfo, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
 std::pair<strings::vendorMacOuis, ChildThriftPath<::std::vector<::std::string>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
 std::pair<strings::metaMacOuis, ChildThriftPath<::std::vector<::std::string>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
-std::pair<strings::swSwitchRunState, Child<::facebook::fboss::SwitchRunState, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::SwitchRunState>>>>;
+std::pair<strings::swSwitchRunState, Child<::facebook::fboss::SwitchRunState, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::SwitchRunState>>>,
+std::pair<strings::forceTrafficOverFabric, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::facebook::fboss::cfg::L2LearningMode, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::L2LearningMode>>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
@@ -18533,7 +18534,8 @@ std::pair<strings::swSwitchRunState, Child<::facebook::fboss::SwitchRunState, ::
    std::pair<std::integral_constant<apache::thrift::field_id_t, 34>, ChildThriftPath<::facebook::fboss::cfg::SwitchInfo, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 35>, ChildThriftPath<::std::vector<::std::string>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 36>, ChildThriftPath<::std::vector<::std::string>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 37>, Child<::facebook::fboss::SwitchRunState, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::SwitchRunState>>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 37>, Child<::facebook::fboss::SwitchRunState, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::SwitchRunState>>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 38>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::l2LearningMode, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::qcmEnable, std::integral_constant<apache::thrift::field_id_t, 2>>,
@@ -18570,7 +18572,8 @@ std::pair<strings::defaultVoqConfig, std::integral_constant<apache::thrift::fiel
 std::pair<strings::switchInfo, std::integral_constant<apache::thrift::field_id_t, 34>>,
 std::pair<strings::vendorMacOuis, std::integral_constant<apache::thrift::field_id_t, 35>>,
 std::pair<strings::metaMacOuis, std::integral_constant<apache::thrift::field_id_t, 36>>,
-std::pair<strings::swSwitchRunState, std::integral_constant<apache::thrift::field_id_t, 37>>>::template type_of<Name>;
+std::pair<strings::swSwitchRunState, std::integral_constant<apache::thrift::field_id_t, 37>>,
+std::pair<strings::forceTrafficOverFabric, std::integral_constant<apache::thrift::field_id_t, 38>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -18620,6 +18623,7 @@ std::pair<strings::swSwitchRunState, std::integral_constant<apache::thrift::fiel
     STRUCT_CHILD_GETTERS(vendorMacOuis, 35);
     STRUCT_CHILD_GETTERS(metaMacOuis, 36);
     STRUCT_CHILD_GETTERS(swSwitchRunState, 37);
+    STRUCT_CHILD_GETTERS(forceTrafficOverFabric, 38);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -18659,6 +18663,7 @@ std::pair<strings::swSwitchRunState, std::integral_constant<apache::thrift::fiel
     else if constexpr (__id == 35) { return vendorMacOuis(); }
     else if constexpr (__id == 36) { return metaMacOuis(); }
     else if constexpr (__id == 37) { return swSwitchRunState(); }
+    else if constexpr (__id == 38) { return forceTrafficOverFabric(); }
   }
 
   template <typename T, T... Values>
