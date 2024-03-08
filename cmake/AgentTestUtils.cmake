@@ -93,6 +93,7 @@ add_library(config_utils
 
 target_link_libraries(config_utils
   agent_features
+  common_test_utils
   fboss_types
   Folly::folly
   platform_mapping

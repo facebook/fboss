@@ -64,20 +64,6 @@ cfg::SwitchConfig twoL3IntfConfig(
     PortID port2,
     const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap =
         kDefaultLoopbackMap());
-cfg::SwitchConfig twoL3IntfConfig(
-    SwSwitch* swSwitch,
-    PortID port1,
-    PortID port2,
-    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap =
-        kDefaultLoopbackMap());
-cfg::SwitchConfig twoL3IntfConfig(
-    const PlatformMapping* platformMapping,
-    const HwAsic* asic,
-    bool supportsAddRemovePort,
-    PortID port1,
-    PortID port2,
-    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap =
-        kDefaultLoopbackMap());
 void updatePortSpeed(
     const PlatformMapping* platformMapping,
     bool supportsAddRemovePort,

@@ -151,6 +151,21 @@ cfg::SwitchConfig genPortVlanCfg(
     bool optimizePortProfile = true,
     bool enableFabricPorts = false);
 
+cfg::SwitchConfig twoL3IntfConfig(
+    SwSwitch* swSwitch,
+    PortID port1,
+    PortID port2,
+    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap =
+        kDefaultLoopbackMap());
+cfg::SwitchConfig twoL3IntfConfig(
+    const PlatformMapping* platformMapping,
+    const HwAsic* asic,
+    bool supportsAddRemovePort,
+    PortID port1,
+    PortID port2,
+    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap =
+        kDefaultLoopbackMap());
+
 /*
  * Currently we rely on port max speed to set the PortProfileID in the default
  * port config. This can be expensive as if the Hardware comes up with ports
