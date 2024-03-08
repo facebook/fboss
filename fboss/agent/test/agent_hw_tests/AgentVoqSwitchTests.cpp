@@ -88,7 +88,6 @@ class AgentVoqSwitchTest : public AgentHwTest {
           254,
           serviceDiscoveryPayload);
       getSw()->sendPacketOutOfPortAsync(std::move(txPacket), outPort);
-      ;
     }
   }
 
@@ -267,7 +266,7 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, switchIsolate) {
     for (const auto& switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
       utility::checkFabricReachability(getAgentEnsemble(), switchId);
     }
-    // In drained state all fabric ports should inactive
+    // In drained state all fabric ports should be inactive
     assertPortsActiveState(false);
   };
   verifyAcrossWarmBoots(setup, verify);
@@ -336,5 +335,39 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, overdrainPct) {
     });
   };
   verifyAcrossWarmBoots(setup, verify);
+}
+
+class AgentVoqSwitchWithFabricPortsStartDrained
+    : public AgentVoqSwitchWithFabricPortsTest {
+ public:
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto config = AgentVoqSwitchWithFabricPortsTest::initialConfig(ensemble);
+    // Set threshold higher than existing fabric ports
+    config.switchSettings()->minLinksToJoinVOQDomain() =
+        ensemble.masterLogicalFabricPortIds().size() + 10;
+    config.switchSettings()->minLinksToRemainInVOQDomain() =
+        ensemble.masterLogicalFabricPortIds().size() + 5;
+    return config;
+  }
+  void SetUp() override {
+    AgentVoqSwitchWithFabricPortsTest::SetUp();
+    if (IsSkipped()) {
+      return;
+    }
+    for (const auto& switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
+      utility::checkFabricReachability(getAgentEnsemble(), switchId);
+      HwSwitchMatcher matcher(std::unordered_set<SwitchID>({switchId}));
+      const auto& switchSettings =
+          getProgrammedState()->getSwitchSettings()->getSwitchSettings(matcher);
+      EXPECT_TRUE(switchSettings->isSwitchDrained());
+    }
+    // In drained state all fabric ports should inactive
+    assertPortsActiveState(false);
+  }
+};
+
+TEST_F(AgentVoqSwitchWithFabricPortsStartDrained, assertLocalForwarding) {
+  // TODO
 }
 } // namespace facebook::fboss
