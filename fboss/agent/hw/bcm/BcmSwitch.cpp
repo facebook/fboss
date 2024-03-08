@@ -4238,9 +4238,7 @@ CpuPortStats BcmSwitch::getCpuPortStats(bool getIncrement) const {
 }
 
 AclStats BcmSwitch::getAclStats() const {
-  AclStats aclStats;
-  // TODO - fill acl stats
-  return aclStats;
+  return bcmStatUpdater_->getAclStats();
 }
 
 } // namespace facebook::fboss

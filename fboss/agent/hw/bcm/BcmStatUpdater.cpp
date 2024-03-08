@@ -149,7 +149,8 @@ void BcmStatUpdater::updateAclStats() {
     }
     for (auto& stat :
          getAclTrafficStats(entry.first.first, entry.first.second, counters)) {
-      entry.second[stat.first]->updateValue(now, stat.second);
+      entry.second[stat.first].first->updateValue(now, stat.second);
+      entry.second[stat.first].second = stat.second;
     }
   }
 }
@@ -328,7 +329,7 @@ MonotonicCounter* FOLLY_NULLABLE BcmStatUpdater::getAclStatCounterIf(
   if (auto iter = lockedAclStats->find({handle, actionIndex});
       iter != lockedAclStats->end()) {
     auto counterIter = iter->second.find(counterType);
-    return counterIter != iter->second.end() ? counterIter->second.get()
+    return counterIter != iter->second.end() ? counterIter->second.first.get()
                                              : nullptr;
   }
   return nullptr;
@@ -434,16 +435,20 @@ void BcmStatUpdater::refreshAclStats() {
               apache::thrift::util::enumNameSafe(counterType));
         }
         // counter name exists, but counter type doesn't
-        itr->second[counterType] = std::make_unique<MonotonicCounter>(
-            utility::statNameFromCounterType(aclStatName, counterType),
-            fb303::SUM,
-            fb303::RATE);
-      } else {
-        lockedAclStats->operator[]({handle, actionIndex})[counterType] =
+        itr->second[counterType] = std::make_pair(
             std::make_unique<MonotonicCounter>(
                 utility::statNameFromCounterType(aclStatName, counterType),
                 fb303::SUM,
-                fb303::RATE);
+                fb303::RATE),
+            0);
+      } else {
+        lockedAclStats->operator[]({handle, actionIndex})[counterType] =
+            std::make_pair(
+                std::make_unique<MonotonicCounter>(
+                    utility::statNameFromCounterType(aclStatName, counterType),
+                    fb303::SUM,
+                    fb303::RATE),
+                0);
       }
     }
     toBeUpdatedAclStats_.pop();
@@ -537,4 +542,17 @@ BcmTrafficCounterStats BcmStatUpdater::getAclTrafficStats(
   }
   return stats;
 }
+
+AclStats BcmStatUpdater::getAclStats() const {
+  AclStats aclStats;
+  auto lockedAclStats = aclStats_.wlock();
+  for (auto& entry : *lockedAclStats) {
+    for (auto& stat : entry.second) {
+      aclStats.statNameToCounterMap()->insert(
+          {stat.second.first->getName(), stat.second.second});
+    }
+  }
+  return aclStats;
+}
+
 } // namespace facebook::fboss

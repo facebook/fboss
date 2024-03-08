@@ -112,6 +112,8 @@ class BcmStatUpdater {
     return *resourceStats_.rlock();
   }
 
+  AclStats getAclStats() const;
+
  private:
   void updateAclStats();
   BcmTrafficCounterStats getAclTrafficStats(
@@ -159,12 +161,14 @@ class BcmStatUpdater {
   std::queue<std::pair<BcmAclStatDescriptor, cfg::CounterType>>
       toBeUpdatedAclStats_;
   // Outer-map key: BcmAclStatHandle, BcmAclStatActionIndex
-  // Inner-map key: counter type, value: MonotonicCounter
+  // Inner-map key: counter type, value: MonotonicCounter, cumulativeValue
   // Usually one BcmAclStatHandle can get both packets and bytes counters back
   // at one function call.
   folly::Synchronized<std::unordered_map<
       std::pair<BcmAclStatHandle, BcmAclStatActionIndex>,
-      std::unordered_map<cfg::CounterType, std::unique_ptr<MonotonicCounter>>>>
+      std::unordered_map<
+          cfg::CounterType,
+          std::pair<std::unique_ptr<MonotonicCounter>, uint64_t>>>>
       aclStats_;
 
   folly::Synchronized<std::map<int32_t, LanePrbsStatsTable>> portAsicPrbsStats_;
