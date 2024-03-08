@@ -125,6 +125,12 @@ class AgentHwTest : public ::testing::Test {
       const std::vector<PortID>& ports);
 
   HwPortStats getLatestPortStats(const PortID& port);
+
+  std::map<SystemPortID, HwSysPortStats> getLatestSysPortStats(
+      const std::vector<SystemPortID>& ports);
+
+  HwSysPortStats getLatestSysPortStats(const SystemPortID& port);
+
   virtual cfg::SwitchConfig initialConfig(const AgentEnsemble& ensemble) const;
 
   cfg::SwitchConfig addCoppConfig(
