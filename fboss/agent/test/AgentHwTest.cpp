@@ -13,6 +13,7 @@ DEFINE_bool(
     false,
     "list production feature needed for every single test");
 DECLARE_bool(disable_neighbor_updates);
+DECLARE_bool(disable_icmp_error_response);
 
 namespace {
 int kArgc;
@@ -44,6 +45,8 @@ void AgentHwTest::SetUp() {
   FLAGS_tun_intf = false;
   // disable neighbor updates
   FLAGS_disable_neighbor_updates = true;
+  // disable icmp error response
+  FLAGS_disable_icmp_error_response = true;
   // Disable FSDB publishing on single-box test
   FLAGS_publish_stats_to_fsdb = false;
   FLAGS_publish_state_to_fsdb = false;

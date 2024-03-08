@@ -952,4 +952,22 @@ TYPED_TEST(AgentCoppTest, LldpProtocolToMidPriQ) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
+TYPED_TEST(AgentCoppTest, Ttl1PacketToLowPriQ) {
+  auto setup = [=, this]() { this->setup(); };
+
+  auto verify = [=, this]() {
+    auto randomIP = folly::IPAddressV6("2::2");
+    this->sendUdpPktAndVerify(
+        utility::kCoppLowPriQueueId,
+        randomIP,
+        utility::kNonSpecialPort1,
+        utility::kNonSpecialPort2,
+        true /* expectPktTrap */,
+        1 /* TTL */,
+        true /* send out of port */);
+  };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss

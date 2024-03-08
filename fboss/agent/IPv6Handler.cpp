@@ -40,6 +40,11 @@
 
 DECLARE_bool(intf_nbr_tables);
 
+DEFINE_bool(
+    disable_icmp_error_response,
+    false,
+    "Disable sending icmp error response pkts in agent");
+
 using folly::IPAddressV6;
 using folly::MacAddress;
 using folly::io::Cursor;
@@ -620,6 +625,11 @@ void IPv6Handler::sendICMPv6TimeExceeded(
     MacAddress src,
     IPv6Hdr& v6Hdr,
     folly::io::Cursor cursor) {
+  if (FLAGS_disable_icmp_error_response) {
+    XLOG(DBG4)
+        << "skipping sending icmpv6 time exceeded since icmp error response generation is disabled";
+    return;
+  }
   auto state = sw_->getState();
 
   /*
@@ -682,6 +692,11 @@ void IPv6Handler::sendICMPv6PacketTooBig(
     IPv6Hdr& v6Hdr,
     int expectedMtu,
     folly::io::Cursor cursor) {
+  if (FLAGS_disable_icmp_error_response) {
+    XLOG(DBG4)
+        << "skipping sending icmpv6 time exceeded since icmp error response generation is disabled";
+    return;
+  }
   auto state = sw_->getState();
 
   // payload serialization function
