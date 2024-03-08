@@ -21,6 +21,7 @@
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortMap.h"
+#include "fboss/agent/test/utils/CommonUtils.h"
 #include "fboss/agent/test/utils/PortTestUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/platforms/PlatformMode.h"
@@ -199,11 +200,41 @@ cfg::SwitchConfig twoL3IntfConfig(
     PortID port1,
     PortID port2,
     const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap) {
+  return twoL3IntfConfig(
+      hwSwitch->getPlatform()->getPlatformMapping(),
+      hwSwitch->getPlatform()->getAsic(),
+      hwSwitch->getPlatform()->supportsAddRemovePort(),
+      port1,
+      port2,
+      lbModeMap);
+}
+
+cfg::SwitchConfig twoL3IntfConfig(
+    SwSwitch* swSwitch,
+    PortID port1,
+    PortID port2,
+    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap) {
+  return twoL3IntfConfig(
+      swSwitch->getPlatformMapping(),
+      utility::getFirstAsic(swSwitch),
+      swSwitch->getPlatformSupportsAddRemovePort(),
+      port1,
+      port2,
+      lbModeMap);
+}
+
+cfg::SwitchConfig twoL3IntfConfig(
+    const PlatformMapping* platformMapping,
+    const HwAsic* asic,
+    bool supportsAddRemovePort,
+    PortID port1,
+    PortID port2,
+    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap) {
   std::map<PortID, VlanID> port2vlan;
   std::vector<PortID> ports{port1, port2};
   std::vector<VlanID> vlans;
   auto vlan = kBaseVlanId;
-  auto switchType = hwSwitch->getPlatform()->getAsic()->getSwitchType();
+  auto switchType = asic->getSwitchType();
   CHECK(
       switchType == cfg::SwitchType::NPU || switchType == cfg::SwitchType::VOQ)
       << "twoL3IntfConfig is only supported for VOQ or NPU switch types";
@@ -214,7 +245,7 @@ cfg::SwitchConfig twoL3IntfConfig(
   }
   for (auto port : ports) {
     auto portType =
-        hwSwitch->getPlatform()->getPlatformPort(port)->getPortType();
+        platformMapping->getPlatformPort(port).mapping()->portType();
     CHECK(portType != cfg::PortType::FABRIC_PORT);
     // For non NPU switch type vendor SAI impls don't support
     // tagging packet at port ingress.
@@ -226,13 +257,13 @@ cfg::SwitchConfig twoL3IntfConfig(
     }
   }
   auto config = genPortVlanCfg(
-      hwSwitch->getPlatform()->getPlatformMapping(),
-      hwSwitch->getPlatform()->getAsic(),
+      platformMapping,
+      asic,
       ports,
       port2vlan,
       vlans,
       lbModeMap,
-      hwSwitch->getPlatform()->supportsAddRemovePort());
+      supportsAddRemovePort);
 
   auto computeIntfId = [&config, &ports, &switchType, &vlans](auto idx) {
     if (switchType == cfg::SwitchType::NPU) {
