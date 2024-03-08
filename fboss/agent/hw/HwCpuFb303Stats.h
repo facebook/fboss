@@ -55,6 +55,7 @@ class HwCpuFb303Stats {
       fb303::ExportedStatMapImpl* statsMap,
       const folly::StringPiece statKey) const;
   CpuPortStats getCpuPortStats(bool getIncrement) const;
+  int64_t getCumulativeValueIf(const folly::StringPiece statKey) const;
 
  private:
   void setupStats();

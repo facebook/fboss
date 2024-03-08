@@ -99,6 +99,10 @@ void verifyUpdatedStats(const HwCpuFb303Stats& cpuStats) {
           cpuStats.getCounterLastIncrement(HwCpuFb303Stats::statName(
               counterName, queueIdAndName.first, queueIdAndName.second)),
           curValue);
+      EXPECT_EQ(
+          cpuStats.getCumulativeValueIf(HwCpuFb303Stats::statName(
+              counterName, queueIdAndName.first, queueIdAndName.second)),
+          curValue);
     }
     ++curValue;
   }

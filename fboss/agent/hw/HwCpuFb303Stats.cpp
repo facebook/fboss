@@ -172,4 +172,10 @@ void HwCpuFb303Stats::updateStats(const CpuPortStats& curPortStats) {
     }
   }
 }
+
+int64_t HwCpuFb303Stats::getCumulativeValueIf(
+    const folly::StringPiece statKey) const {
+  return queueCounters_.getCumulativeValueIf(statKey.str());
+}
+
 } // namespace facebook::fboss
