@@ -555,12 +555,28 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
     }
   }
 
+  bool canTriggerPfcDeadlockDetectionWithTraffic() {
+    // Return false for ASICs that cannot trigger PFC detection with
+    // loop traffic!
+    if ((getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2) ||
+        (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3)) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+
   void setupWatchdog(bool enable) {
     cfg::PfcWatchdog pfcWatchdog;
     if (enable) {
       pfcWatchdog.recoveryAction() = cfg::PfcWatchdogRecoveryAction::NO_DROP;
-      pfcWatchdog.recoveryTimeMsecs() = 10;
-      pfcWatchdog.detectionTimeMsecs() = 1;
+      if (canTriggerPfcDeadlockDetectionWithTraffic()) {
+        pfcWatchdog.recoveryTimeMsecs() = 10;
+        pfcWatchdog.detectionTimeMsecs() = 1;
+      } else {
+        pfcWatchdog.recoveryTimeMsecs() = 1000;
+        pfcWatchdog.detectionTimeMsecs() = 200;
+      }
     }
 
     for (const auto& portID :
