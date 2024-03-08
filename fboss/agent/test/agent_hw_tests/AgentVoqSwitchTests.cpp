@@ -475,4 +475,48 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, checkFabricPortSprayWithIsolate) {
   };
   verifyAcrossWarmBoots(setup, verify);
 }
+
+TEST_F(AgentVoqSwitchWithFabricPortsTest, checkFabricPortSpray) {
+  utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+  const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
+  auto setup = [this, kPort, ecmpHelper]() {
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      auto out = in->clone();
+      for (const auto& [_, switchSetting] :
+           std::as_const(*out->getSwitchSettings())) {
+        auto newSwitchSettings = switchSetting->modify(&out);
+        newSwitchSettings->setForceTrafficOverFabric(true);
+      }
+      return out;
+    });
+    addRemoveNeighbor(kPort, true /* add neighbor*/);
+  };
+
+  auto verify = [this, kPort, ecmpHelper]() {
+    auto beforePkts =
+        getLatestPortStats(kPort.phyPortID()).get_outUnicastPkts_();
+    for (auto i = 0; i < 10000; ++i) {
+      sendPacket(
+          ecmpHelper.ip(kPort), ecmpHelper.ecmpPortDescriptorAt(1).phyPortID());
+    }
+    WITH_RETRIES({
+      auto afterPkts =
+          getLatestPortStats(kPort.phyPortID()).get_outUnicastPkts_();
+      XLOG(DBG2) << "Before pkts: " << beforePkts
+                 << " After pkts: " << afterPkts;
+      EXPECT_EVENTUALLY_GE(afterPkts, beforePkts + 10000);
+      auto nifBytes = getLatestPortStats(kPort.phyPortID()).get_outBytes_();
+      auto fabricPortStats = getLatestPortStats(masterLogicalFabricPortIds());
+      auto fabricBytes = 0;
+      for (const auto& idAndStats : fabricPortStats) {
+        fabricBytes += idAndStats.second.get_outBytes_();
+      }
+      XLOG(DBG2) << "NIF bytes: " << nifBytes
+                 << " Fabric bytes: " << fabricBytes;
+      EXPECT_EVENTUALLY_GE(fabricBytes, nifBytes);
+      EXPECT_EVENTUALLY_TRUE(utility::isLoadBalanced(fabricPortStats, 15));
+    });
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
 } // namespace facebook::fboss
