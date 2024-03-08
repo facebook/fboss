@@ -89,6 +89,7 @@ class SaiSwitchManager {
   HwSwitchDropStats getSwitchDropStats() const {
     return switchDropStats_;
   }
+  void setForceTrafficOverFabric(bool forceTrafficOverFabric);
 
  private:
   void programEcmpLoadBalancerParams(

@@ -1205,7 +1205,8 @@ void SaiSwitch::processSwitchSettingsChangedEntryLocked(
     const auto oldVal = oldSwitchSettings->getForceTrafficOverFabric();
     const auto newVal = newSwitchSettings->getForceTrafficOverFabric();
     if (oldVal != newVal) {
-      // TODO: set this in switchManager
+      managerTable_->switchManager().setForceTrafficOverFabric(
+          newVal.has_value() ? newVal.value() : false);
     }
   }
 }

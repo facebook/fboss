@@ -784,6 +784,9 @@ void SaiSwitchManager::updateStats() {
 void SaiSwitchManager::setSwitchIsolate(bool isolate) {
   // Supported only for FABRIC switches!
   // It is checked while applying thrift config
+  CHECK(
+      platform_->getAsic()->getSwitchType() == cfg::SwitchType::FABRIC ||
+      platform_->getAsic()->getSwitchType() == cfg::SwitchType::VOQ);
   switch_->setOptionalAttribute(
       SaiSwitchTraits::Attributes::SwitchIsolate{isolate});
 }
@@ -796,6 +799,13 @@ std::vector<sai_object_id_t> SaiSwitchManager::getUdfGroupIds(
   }
 #endif
   return {};
+}
+
+void SaiSwitchManager::setForceTrafficOverFabric(bool forceTrafficOverFabric) {
+  SaiApiTable::getInstance()->switchApi().setAttribute(
+      switch_->adapterKey(),
+      SaiSwitchTraits::Attributes::ForceTrafficOverFabric{
+          forceTrafficOverFabric});
 }
 
 } // namespace facebook::fboss
