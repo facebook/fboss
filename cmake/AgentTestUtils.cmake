@@ -122,3 +122,12 @@ target_link_libraries(qos_test_utils
   test_ensemble_if
   Folly::folly
 )
+
+add_library(load_balancer_test_utils
+  fboss/agent/test/utils/LoadBalancerTestUtils.cpp
+)
+
+target_link_libraries(load_balancer_test_utils
+  state
+  Folly::folly
+)
