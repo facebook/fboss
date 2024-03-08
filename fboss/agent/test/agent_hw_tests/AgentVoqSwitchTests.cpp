@@ -310,6 +310,33 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, switchIsolate) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(AgentVoqSwitchWithFabricPortsTest, minVoqThresholdDrainUndrain) {
+  auto setup = [=, this]() {
+    // Before drain all fabric ports should be active
+    assertPortsActiveState(true);
+    auto newCfg = initialConfig(*getAgentEnsemble());
+    // Set threshold higher than existing fabric ports
+    newCfg.switchSettings()->minLinksToJoinVOQDomain() =
+        masterLogicalFabricPortIds().size() + 10;
+    newCfg.switchSettings()->minLinksToRemainInVOQDomain() =
+        masterLogicalFabricPortIds().size() + 5;
+    applyNewConfig(newCfg);
+  };
+
+  auto verify = [this]() {
+    for (const auto& switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
+      utility::checkFabricReachability(getAgentEnsemble(), switchId);
+      HwSwitchMatcher matcher(std::unordered_set<SwitchID>({switchId}));
+      const auto& switchSettings =
+          getProgrammedState()->getSwitchSettings()->getSwitchSettings(matcher);
+      EXPECT_TRUE(switchSettings->isSwitchDrained());
+    }
+    // In drained state all fabric ports should be inactive
+    assertPortsActiveState(false);
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 TEST_F(AgentVoqSwitchWithFabricPortsTest, verifyNifMulticastTrafficDropped) {
   constexpr static auto kNumPacketsToSend{1000};
   auto setup = []() {};
