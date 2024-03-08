@@ -359,21 +359,27 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, switchIsolate) {
 }
 
 TEST_F(AgentVoqSwitchWithFabricPortsTest, minVoqThresholdDrainUndrain) {
-  auto setup = [=, this]() {
-    assertPortAndDrainState(cfg::SwitchDrainState::UNDRAINED);
-    auto newCfg = initialConfig(*getAgentEnsemble());
-    // Set threshold higher than existing fabric ports
-    newCfg.switchSettings()->minLinksToJoinVOQDomain() =
-        masterLogicalFabricPortIds().size() + 10;
-    newCfg.switchSettings()->minLinksToRemainInVOQDomain() =
-        masterLogicalFabricPortIds().size() + 5;
-    applyNewConfig(newCfg);
-  };
-
   auto verify = [this]() {
+    assertPortAndDrainState(cfg::SwitchDrainState::UNDRAINED);
+    auto updateMinLinksThreshold =
+        [this](int minLinksToJoin, int minLinksToRemain) {
+          auto newCfg = initialConfig(*getAgentEnsemble());
+          // Set threshold higher than existing fabric ports
+          newCfg.switchSettings()->minLinksToJoinVOQDomain() = minLinksToJoin;
+          newCfg.switchSettings()->minLinksToRemainInVOQDomain() =
+              minLinksToRemain;
+          applyNewConfig(newCfg);
+        };
+    // Bump up threshold beyond existing fabric links, switch should drain
+    updateMinLinksThreshold(
+        masterLogicalFabricPortIds().size() + 10,
+        masterLogicalFabricPortIds().size() + 5);
     assertPortAndDrainState(cfg::SwitchDrainState::DRAINED);
+    // Bump up threshold beyond existing fabric links, switch should drain
+    updateMinLinksThreshold(0, 0);
+    assertPortAndDrainState(cfg::SwitchDrainState::UNDRAINED);
   };
-  verifyAcrossWarmBoots(setup, verify);
+  verifyAcrossWarmBoots([]() {}, verify);
 }
 
 TEST_F(AgentVoqSwitchWithFabricPortsTest, verifyNifMulticastTrafficDropped) {
