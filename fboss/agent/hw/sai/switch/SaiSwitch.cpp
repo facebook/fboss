@@ -3700,8 +3700,7 @@ HwSwitchDropStats SaiSwitch::getSwitchDropStats() const {
 }
 
 AclStats SaiSwitch::getAclStats() const {
-  AclStats aclStats;
-  // TODO - fill acl stats
-  return aclStats;
+  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+  return managerTable_->aclTableManager().getAclStats();
 }
 } // namespace facebook::fboss

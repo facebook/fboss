@@ -1668,4 +1668,18 @@ void SaiAclTableManager::removeUnclaimedAclCounter() {
       });
 }
 
+AclStats SaiAclTableManager::getAclStats() const {
+  AclStats aclStats;
+  for (const auto& handle : handles_) {
+    for (const auto& aclMember : handle.second->aclTableMembers) {
+      for (const auto& [counterType, counterName] :
+           aclMember.second->aclCounterTypeAndName) {
+        aclStats.statNameToCounterMap()->insert(
+            {counterName, aclStats_.getCumulativeValueIf(counterName)});
+      }
+    }
+  }
+  return aclStats;
+}
+
 } // namespace facebook::fboss
