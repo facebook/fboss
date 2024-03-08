@@ -60,7 +60,7 @@ int FakeTransceiverImpl::readTransceiver(
 
 int FakeTransceiverImpl::writeTransceiver(
     const TransceiverAccessParameter& param,
-    uint8_t* fieldValue) {
+    const uint8_t* fieldValue) {
   CHECK(param.i2cAddress.has_value());
   auto dataAddress = *(param.i2cAddress);
   auto offset = param.offset;

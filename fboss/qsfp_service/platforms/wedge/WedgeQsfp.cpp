@@ -99,7 +99,7 @@ int WedgeQsfp::readTransceiver(
 
 int WedgeQsfp::writeTransceiver(
     const TransceiverAccessParameter& param,
-    uint8_t* fieldValue) {
+    const uint8_t* fieldValue) {
   auto offset = param.offset;
   auto len = param.len;
   ioStatsRecorder_.recordWriteAttempted();

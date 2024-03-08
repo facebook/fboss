@@ -28,7 +28,7 @@ class FakeTransceiverImpl : public TransceiverImpl {
   /* write to the eeprom (usually to change the page setting) */
   int writeTransceiver(
       const TransceiverAccessParameter& param,
-      uint8_t* fieldValue) override;
+      const uint8_t* fieldValue) override;
   /* This function detects if a SFP is present on the particular port */
   bool detectTransceiver() override;
   /* Returns the name for the port */

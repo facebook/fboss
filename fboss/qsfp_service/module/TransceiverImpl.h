@@ -37,7 +37,7 @@ class TransceiverImpl {
       uint8_t* fieldValue) = 0;
   virtual int writeTransceiver(
       const TransceiverAccessParameter& param,
-      uint8_t* fieldValue) = 0;
+      const uint8_t* fieldValue) = 0;
 
   /*
    * This function will check if the transceiver is present or not
