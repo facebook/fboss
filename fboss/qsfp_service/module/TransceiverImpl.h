@@ -55,6 +55,14 @@ class TransceiverImpl {
    */
   virtual void triggerQsfpHardReset() {}
 
+  /* Functions relevant to I2C Profiling
+   */
+  virtual void i2cTimeProfilingStart() const {}
+  virtual void i2cTimeProfilingEnd() const {}
+  virtual std::pair<uint64_t, uint64_t> getI2cTimeProfileMsec() const {
+    return std::make_pair(0, 0);
+  }
+
   /*
    * Returns the name of the port
    */

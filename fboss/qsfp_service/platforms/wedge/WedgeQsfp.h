@@ -41,12 +41,6 @@ class WedgeQsfp : public TransceiverImpl {
       const TransceiverAccessParameter& param,
       uint8_t* fieldValue) override;
 
-  /* This function detects if a SFP is present on the particular port */
-  bool detectTransceiver() override;
-
-  /* This function unset the reset status of Qsfp */
-  void ensureOutOfReset() override;
-
   /* Returns the name for the port */
   folly::StringPiece getName() override;
 
@@ -63,6 +57,35 @@ class WedgeQsfp : public TransceiverImpl {
   std::array<uint8_t, 16> getModulePartNo();
 
   std::array<uint8_t, 2> getFirmwareVer();
+
+  // Note that the module_ starts at 0, but the I2C bus module
+  // assumes that QSFP module numbers extend from 1 to N.
+
+  /* Detects if a SFP is present on the particular port
+   */
+  bool detectTransceiver() override {
+    return threadSafeI2CBus_->isPresent(module_ + 1);
+  }
+
+  /* Unset the reset status of Qsfp
+   */
+  void ensureOutOfReset() override {
+    threadSafeI2CBus_->ensureOutOfReset(module_ + 1);
+  }
+
+  /* Functions relevant to I2C Profiling
+   */
+  void i2cTimeProfilingStart() const override {
+    threadSafeI2CBus_->i2cTimeProfilingStart(module_ + 1);
+  }
+
+  void i2cTimeProfilingEnd() const override {
+    threadSafeI2CBus_->i2cTimeProfilingEnd(module_ + 1);
+  }
+
+  std::pair<uint64_t, uint64_t> getI2cTimeProfileMsec() const override {
+    return threadSafeI2CBus_->getI2cTimeProfileMsec(module_ + 1);
+  }
 
  private:
   int module_;

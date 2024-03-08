@@ -70,17 +70,6 @@ WedgeQsfp::WedgeQsfp(int module, TransceiverI2CApi* wedgeI2CBus)
 
 WedgeQsfp::~WedgeQsfp() {}
 
-// Note that the module_ starts at 0, but the I2C bus module
-// assumes that QSFP module numbers extend from 1 to 16.
-//
-bool WedgeQsfp::detectTransceiver() {
-  return threadSafeI2CBus_->isPresent(module_ + 1);
-}
-
-void WedgeQsfp::ensureOutOfReset() {
-  threadSafeI2CBus_->ensureOutOfReset(module_ + 1);
-}
-
 int WedgeQsfp::readTransceiver(
     const TransceiverAccessParameter& param,
     uint8_t* fieldValue) {
