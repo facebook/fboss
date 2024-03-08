@@ -18,6 +18,7 @@ target_link_libraries(agent_hw_test_src
   acl_test_utils
   copp_test_utils
   pkt_test_utils
+  packet
   core
   hw_switch_fb303_stats
   config_factory
@@ -27,6 +28,7 @@ target_link_libraries(agent_hw_test_src
   trunk_utils
   traffic_policy_utils
   olympic_qos_utils
+  load_balancer_test_utils
 )
 
 add_executable(multi_switch_agent_hw_test

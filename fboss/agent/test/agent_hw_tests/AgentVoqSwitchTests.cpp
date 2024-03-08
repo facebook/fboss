@@ -7,6 +7,7 @@
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/utils/FabricTestUtils.h"
+#include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 DECLARE_bool(enable_stats_update_thread);
@@ -54,6 +55,7 @@ class AgentVoqSwitchTest : public AgentHwTest {
     return {production_features::ProductionFeature::VOQ};
   }
 
+ protected:
   // API to send a local service discovery packet which is an IPv6
   // multicast paket with UDP payload. This packet with a destination
   // MAC as the unicast NIF port MAC helps recreate CS00012323788.
@@ -89,6 +91,42 @@ class AgentVoqSwitchTest : public AgentHwTest {
           serviceDiscoveryPayload);
       getSw()->sendPacketOutOfPortAsync(std::move(txPacket), outPort);
     }
+  }
+
+  int sendPacket(
+      const folly::IPAddressV6& dstIp,
+      std::optional<PortID> frontPanelPort,
+      std::optional<std::vector<uint8_t>> payload =
+          std::optional<std::vector<uint8_t>>(),
+      int dscp = 0x24) {
+    folly::IPAddressV6 kSrcIp("1::1");
+    const auto srcMac = utility::kLocalCpuMac();
+    const auto dstMac = utility::kLocalCpuMac();
+
+    auto txPacket = utility::makeUDPTxPacket(
+        getSw(),
+        std::nullopt, // vlanID
+        srcMac,
+        dstMac,
+        kSrcIp,
+        dstIp,
+        8000, // l4 src port
+        8001, // l4 dst port
+        dscp << 2, // dscp
+        255, // hopLimit
+        payload);
+    size_t txPacketSize = txPacket->buf()->length();
+
+    XLOG(DBG5) << "\n"
+               << folly::hexDump(
+                      txPacket->buf()->data(), txPacket->buf()->length());
+
+    if (frontPanelPort.has_value()) {
+      getSw()->sendPacketOutOfPortAsync(std::move(txPacket), *frontPanelPort);
+    } else {
+      getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+    }
+    return txPacketSize;
   }
 
  private:
@@ -369,5 +407,72 @@ class AgentVoqSwitchWithFabricPortsStartDrained
 
 TEST_F(AgentVoqSwitchWithFabricPortsStartDrained, assertLocalForwarding) {
   // TODO
+}
+
+TEST_F(AgentVoqSwitchWithFabricPortsTest, checkFabricPortSprayWithIsolate) {
+  utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+  const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
+  auto setup = [this, kPort, ecmpHelper]() {
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      auto out = in->clone();
+      for (const auto& [_, switchSetting] :
+           std::as_const(*out->getSwitchSettings())) {
+        auto newSwitchSettings = switchSetting->modify(&out);
+        newSwitchSettings->setForceTrafficOverFabric(true);
+      }
+      return out;
+    });
+    addRemoveNeighbor(kPort, true /* add neighbor*/);
+  };
+
+  auto verify = [this, kPort, ecmpHelper]() {
+    auto beforePkts =
+        getLatestPortStats(kPort.phyPortID()).get_outUnicastPkts_();
+
+    // Drain a fabric port
+    auto fabricPortId =
+        PortID(masterLogicalPortIds({cfg::PortType::FABRIC_PORT})[0]);
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      auto out = in->clone();
+      auto port = out->getPorts()->getNodeIf(fabricPortId);
+      auto newPort = port->modify(&out);
+      newPort->setPortDrainState(cfg::PortDrainState::DRAINED);
+      return out;
+    });
+
+    // Send 10K packets and spray on fabric ports
+    for (auto i = 0; i < 10000; ++i) {
+      sendPacket(
+          ecmpHelper.ip(kPort), ecmpHelper.ecmpPortDescriptorAt(1).phyPortID());
+    }
+    WITH_RETRIES({
+      auto afterPkts =
+          getLatestPortStats(kPort.phyPortID()).get_outUnicastPkts_();
+      XLOG(DBG2) << "Before pkts: " << beforePkts
+                 << " After pkts: " << afterPkts;
+      EXPECT_EVENTUALLY_GE(afterPkts, beforePkts + 10000);
+      auto nifBytes = getLatestPortStats(kPort.phyPortID()).get_outBytes_();
+      auto fabricPortStats = getLatestPortStats(masterLogicalFabricPortIds());
+      auto fabricBytes = 0;
+      for (const auto& idAndStats : fabricPortStats) {
+        fabricBytes += idAndStats.second.get_outBytes_();
+        if (idAndStats.first != fabricPortId) {
+          EXPECT_EVENTUALLY_GT(idAndStats.second.get_outBytes_(), 0);
+          EXPECT_EVENTUALLY_GT(idAndStats.second.get_inBytes_(), 0);
+        }
+      }
+      XLOG(DBG2) << "NIF bytes: " << nifBytes
+                 << " Fabric bytes: " << fabricBytes;
+      EXPECT_EVENTUALLY_GE(fabricBytes, nifBytes);
+      // Confirm load balance fails as the drained fabric port
+      // should see close to 0 packets. We may see some control packtes.
+      EXPECT_EVENTUALLY_FALSE(utility::isLoadBalanced(fabricPortStats, 15));
+
+      // Confirm traffic is load balanced across all UNDRAINED fabric ports
+      fabricPortStats.erase(fabricPortId);
+      EXPECT_EVENTUALLY_TRUE(utility::isLoadBalanced(fabricPortStats, 15));
+    });
+  };
+  verifyAcrossWarmBoots(setup, verify);
 }
 } // namespace facebook::fboss
