@@ -51,6 +51,10 @@ const auto kDhcpV6McastMacAddress = folly::MacAddress("33:33:00:01:00:02");
 const auto kDhcpV6ServerGlobalUnicastAddress =
     folly::IPAddressV6("2401:db00:eef0:a67::1");
 
+static time_t getCurrentTime() {
+  return std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+}
+
 using TestTypes =
     ::testing::Types<facebook::fboss::PortID, facebook::fboss::AggregatePortID>;
 } // unnamed namespace
@@ -563,6 +567,68 @@ class AgentCoppTest : public AgentHwTest {
 };
 
 TYPED_TEST_SUITE(AgentCoppTest, TestTypes);
+
+TYPED_TEST(AgentCoppTest, VerifyCoppPpsLowPri) {
+  auto setup = [=, this]() { this->setup(); };
+
+  auto verify = [=, this]() {
+    auto kNumPktsToSend = 60000;
+    auto kMinDurationInSecs = 12;
+    const double kVariance = 0.30; // i.e. + or -30%
+
+    auto beforeOutPkts = this->getQueueOutPacketsWithRetry(
+        utility::kCoppLowPriQueueId,
+        0 /* retryTimes */,
+        0 /* expectedNumPkts */);
+
+    auto dstIP = this->getInSubnetNonSwitchIP();
+    uint64_t afterSecs;
+    /*
+     * To avoid noise, the send traffic for at least kMinDurationInSecs.
+     * In practice, sending kNumPktsToSend packets takes longer than
+     * kMinDurationInSecs. But to be safe, keep sending packets for
+     * at least kMinDurationInSecs.
+     */
+    auto beforeSecs = getCurrentTime();
+    do {
+      this->sendTcpPkts(
+          kNumPktsToSend,
+          dstIP,
+          utility::kNonSpecialPort1,
+          utility::kNonSpecialPort2);
+      afterSecs = getCurrentTime();
+    } while (afterSecs - beforeSecs < kMinDurationInSecs);
+
+    auto afterOutPkts = this->getQueueOutPacketsWithRetry(
+        utility::kCoppLowPriQueueId,
+        0 /* retryTimes */,
+        0 /* expectedNumPkts */);
+    auto totalRecvdPkts = afterOutPkts - beforeOutPkts;
+    auto duration = afterSecs - beforeSecs;
+    auto currPktsPerSec = totalRecvdPkts / duration;
+    uint32_t lowPriorityPps = utility::getCoppQueuePps(
+        utility::getFirstAsic(this->getSw()), utility::kCoppLowPriQueueId);
+    auto lowPktsPerSec = lowPriorityPps * (1 - kVariance);
+    auto highPktsPerSec = lowPriorityPps * (1 + kVariance);
+
+    XLOG(DBG0) << "Before pkts: " << beforeOutPkts
+               << " after pkts: " << afterOutPkts
+               << " totalRecvdPkts: " << totalRecvdPkts
+               << " duration: " << duration
+               << " currPktsPerSec: " << currPktsPerSec
+               << " low pktsPerSec: " << lowPktsPerSec
+               << " high pktsPerSec: " << highPktsPerSec;
+
+    /*
+     * In practice, if no pps is configured, using the above method, the
+     * packets are received at a rate > 2500 per second.
+     */
+    EXPECT_TRUE(
+        lowPktsPerSec <= currPktsPerSec && currPktsPerSec <= highPktsPerSec);
+  };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
 
 TYPED_TEST(AgentCoppTest, LocalDstIpBgpPortToHighPriQ) {
   auto setup = [=, this]() { this->setup(); };
