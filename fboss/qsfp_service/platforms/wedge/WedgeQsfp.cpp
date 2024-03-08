@@ -99,7 +99,8 @@ int WedgeQsfp::readTransceiver(
 
 int WedgeQsfp::writeTransceiver(
     const TransceiverAccessParameter& param,
-    const uint8_t* fieldValue) {
+    const uint8_t* fieldValue,
+    uint64_t delay) {
   auto offset = param.offset;
   auto len = param.len;
   ioStatsRecorder_.recordWriteAttempted();
@@ -120,7 +121,7 @@ int WedgeQsfp::writeTransceiver(
     // Intel transceiver require some delay for every write.
     // So in the case of writing succeeded, we wait for 20ms.
     // Also this works because we do not write more than 1 byte for now.
-    usleep(20000);
+    usleep(delay);
   } catch (const std::exception& ex) {
     XLOG(ERR) << "Write to transceiver " << module_ << " at offset " << offset
               << " with length " << len

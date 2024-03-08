@@ -23,9 +23,9 @@ class MockTransceiverImpl : public TransceiverImpl {
   MOCK_METHOD2(
       readTransceiver,
       int(const TransceiverAccessParameter&, uint8_t*));
-  MOCK_METHOD2(
+  MOCK_METHOD3(
       writeTransceiver,
-      int(const TransceiverAccessParameter&, const uint8_t*));
+      int(const TransceiverAccessParameter&, const uint8_t*, uint64_t));
   MOCK_METHOD0(detectTransceiver, bool());
   MOCK_METHOD0(getName, folly::StringPiece());
   MOCK_CONST_METHOD0(getNum, int());

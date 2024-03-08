@@ -21,6 +21,8 @@
 namespace facebook {
 namespace fboss {
 
+constexpr uint64_t post_write_delay_us = 20000;
+
 /*
  * This is class is the SFP implementation class
  */
@@ -35,9 +37,18 @@ class TransceiverImpl {
   virtual int readTransceiver(
       const TransceiverAccessParameter& param,
       uint8_t* fieldValue) = 0;
+
+  /*
+   * Write to a tranceiver with a specific delay post write.
+   * Implementer should add the specified delay (e.g. usleep) after
+   * the write.
+   * If delay is not specified then the default delay should be
+   * used.
+   */
   virtual int writeTransceiver(
       const TransceiverAccessParameter& param,
-      const uint8_t* fieldValue) = 0;
+      const uint8_t* fieldValue,
+      uint64_t delay = post_write_delay_us) = 0;
 
   /*
    * This function will check if the transceiver is present or not

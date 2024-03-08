@@ -39,7 +39,8 @@ class WedgeQsfp : public TransceiverImpl {
   /* write to the eeprom (usually to change the page setting) */
   int writeTransceiver(
       const TransceiverAccessParameter& param,
-      const uint8_t* fieldValue) override;
+      const uint8_t* fieldValue,
+      uint64_t delay = post_write_delay_us) override;
 
   /* Returns the name for the port */
   folly::StringPiece getName() override;
