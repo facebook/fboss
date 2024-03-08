@@ -3,12 +3,12 @@
 
 #include "fboss/agent/types.h"
 #include "fboss/lib/firmware_storage/FbossFirmware.h"
-#include "fboss/lib/i2c/FirmwareUpgrader.h"
 #include "fboss/lib/usb/TransceiverI2CApi.h"
 #include "fboss/lib/usb/TransceiverPlatformApi.h"
 #include "fboss/lib/usb/TransceiverPlatformI2cApi.h"
 #include "fboss/qsfp_service/TransceiverManager.h"
 #include "fboss/qsfp_service/lib/QsfpClient.h"
+#include "fboss/qsfp_service/module/FirmwareUpgrader.h"
 
 #include <memory>
 #include <utility>

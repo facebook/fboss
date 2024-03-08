@@ -4,9 +4,10 @@
 
 #include <memory>
 #include <utility>
+
 #include "fboss/lib/firmware_storage/FbossFirmware.h"
-#include "fboss/lib/i2c/CdbCommandBlock.h"
 #include "fboss/lib/usb/TransceiverI2CApi.h"
+#include "fboss/qsfp_service/module/CdbCommandBlock.h"
 
 namespace facebook::fboss {
 
@@ -50,6 +51,7 @@ class CmisFirmwareUpgrader {
   bool cmisModuleFirmwareUpgrade();
 
  private:
+  // Get Rid of this: Convert it to TransceiverImpl* interface....
   // Bus class for moduleRead/Write() functions
   TransceiverI2CApi* bus_;
   // module Id for upgrade

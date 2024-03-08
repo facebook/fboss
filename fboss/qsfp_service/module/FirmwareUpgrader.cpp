@@ -1,29 +1,18 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-#include "fboss/lib/i2c/FirmwareUpgrader.h"
+#include "fboss/qsfp_service/module/FirmwareUpgrader.h"
+
+#include <chrono>
+#include <utility>
 
 #include <folly/Conv.h>
-#include <folly/Exception.h>
 #include <folly/File.h>
 #include <folly/FileUtil.h>
 #include <folly/Format.h>
-#include <folly/Memory.h>
 #include <folly/init/Init.h>
 #include <folly/io/IOBuf.h>
-#include <folly/io/async/EventBase.h>
 #include <folly/logging/xlog.h>
-#include <gflags/gflags.h>
 #include <glog/logging.h>
-#include <chrono>
-
-#include <fcntl.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <sysexits.h>
-
-#include <thread>
-#include <utility>
-#include <vector>
 
 using folly::MutableByteRange;
 using folly::StringPiece;

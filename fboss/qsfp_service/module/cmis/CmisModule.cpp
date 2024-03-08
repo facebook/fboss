@@ -9,7 +9,6 @@
 #include <string>
 #include "common/time/Time.h"
 #include "fboss/agent/FbossError.h"
-#include "fboss/lib/i2c/FirmwareUpgrader.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
 #include "fboss/lib/platforms/PlatformMode.h"
 #include "fboss/lib/usb/TransceiverI2CApi.h"
@@ -18,6 +17,7 @@
 #include "fboss/qsfp_service/if/gen-cpp2/qsfp_service_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 #include "fboss/qsfp_service/lib/QsfpConfigParserHelper.h"
+#include "fboss/qsfp_service/module/FirmwareUpgrader.h"
 #include "fboss/qsfp_service/module/QsfpFieldInfo.h"
 #include "fboss/qsfp_service/module/QsfpHelper.h"
 #include "fboss/qsfp_service/module/TransceiverImpl.h"

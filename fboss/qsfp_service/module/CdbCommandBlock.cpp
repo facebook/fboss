@@ -1,11 +1,12 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-#include "fboss/lib/i2c/CdbCommandBlock.h"
+#include "fboss/qsfp_service/module/CdbCommandBlock.h"
+
+#include <chrono>
+
 #include <folly/Format.h>
 #include <folly/logging/xlog.h>
-#include <gflags/gflags.h>
-#include <glog/logging.h>
-#include <chrono>
+
 #include "fboss/lib/usb/TransceiverI2CApi.h"
 
 namespace facebook::fboss {

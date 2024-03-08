@@ -3,6 +3,18 @@
 # In general, libraries and binaries in fboss/foo/bar are built by
 # cmake/FooBar.cmake
 
+add_library(firmware_upgrader
+  fboss/qsfp_service/module/CdbCommandBlock.cpp
+  fboss/qsfp_service/module/FirmwareUpgrader.cpp
+)
+
+target_link_libraries(firmware_upgrader
+  Folly::folly
+  transceiver_cpp2
+  firmware_storage
+  fboss_i2c_lib
+)
+
 add_library(qsfp_module STATIC
   fboss/qsfp_service/module/QsfpHelper.cpp
   fboss/qsfp_service/module/QsfpModule.cpp
