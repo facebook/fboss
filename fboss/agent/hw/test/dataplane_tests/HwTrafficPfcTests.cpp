@@ -49,9 +49,19 @@ static const std::vector<int> kLossyPgIds{0};
 //    value = 1 << ((port_first_phy - core_first_phy)*8 + priority,
 // with port_first_phy from "port management dump full port=<>",
 // core_first_phy from "dnx data dump nif.phys.nof_phys_per_core".
-static const std::map<std::tuple<int, int>, std::string>
-    kRegValToForcePfcTxForPriorityOnPortDnx = {
-        {std::make_tuple(2, 2), "0x40000000000000000"},
+static const std::
+    map<std::tuple<facebook::fboss::cfg::AsicType, int, int>, std::string>
+        kRegValToForcePfcTxForPriorityOnPortDnx = {
+            {std::make_tuple(
+                 facebook::fboss::cfg::AsicType::ASIC_TYPE_JERICHO2,
+                 2,
+                 2),
+             "0x40000000000000000"},
+            {std::make_tuple(
+                 facebook::fboss::cfg::AsicType::ASIC_TYPE_JERICHO3,
+                 2,
+                 2),
+             "4"},
 };
 
 struct PfcBufferParams {
@@ -620,13 +630,13 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
         (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3)) {
       // As traffic cannot trigger deadlock for DNX, force back
       // to back PFC frame generation which causes a deadlock!
-      auto iter = kRegValToForcePfcTxForPriorityOnPortDnx.find(
-          std::make_tuple(static_cast<int>(port), kLosslessPriority));
+      auto iter = kRegValToForcePfcTxForPriorityOnPortDnx.find(std::make_tuple(
+          getAsic()->getAsicType(), static_cast<int>(port), kLosslessPriority));
       EXPECT_FALSE(iter == kRegValToForcePfcTxForPriorityOnPortDnx.end());
       std::string out;
       getHwSwitchEnsemble()->runDiagCommand(
           "modreg CFC_FRC_NIF_ETH_PFC FRC_NIF_ETH_PFC=" + iter->second +
-              "\nquit\nmodreg CFC_FRC_NIF_ETH_PFC FRC_NIF_ETH_PFC=0\nquit\n",
+              "\nquit\n",
           out);
     } else {
       // Send traffic to trigger deadlock
