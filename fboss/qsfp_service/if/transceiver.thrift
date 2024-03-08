@@ -678,6 +678,7 @@ struct TransceiverThermalData {
 
 struct QsfpToBmcSyncData {
   1: string syncDataStructVersion;
-  2: SwitchDeploymentInfo switchDeploymentInfo;
-  3: map<i16, TransceiverThermalData> transceiverThermalData;
+  2: i64 timestamp;
+  3: SwitchDeploymentInfo switchDeploymentInfo;
+  4: map<string, TransceiverThermalData> transceiverThermalData;
 }

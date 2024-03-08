@@ -982,18 +982,20 @@ QsfpToBmcSyncData WedgeManager::getQsfpToBmcSyncData() const {
 
   // Gather system data
   qsfpToBmcData.syncDataStructVersion() = kQsfpToBmcSyncDataVersion;
+  qsfpToBmcData.timestamp() = std::time(nullptr);
   qsfpToBmcData.switchDeploymentInfo().value().dataCenter() =
       getSwitchDataCenter();
   qsfpToBmcData.switchDeploymentInfo().value().hostnameScheme() =
       getSwitchRole();
 
   // Gather Transceiver Data
-  std::map<int16_t, TransceiverThermalData> tcvrData;
+  std::map<std::string, TransceiverThermalData> tcvrData;
   std::vector<int32_t> ids;
   folly::gen::range(0, getNumQsfpModules()) | folly::gen::appendTo(ids);
 
   for (auto id : ids) {
     auto tcvrID = TransceiverID(id);
+    auto portName = getPortName(tcvrID);
     TransceiverInfo tcvrInfo;
 
     try {
@@ -1024,11 +1026,11 @@ QsfpToBmcSyncData WedgeManager::getQsfpToBmcSyncData() const {
                         .value()
                         .value()
                         .value();
-      tcvrData[id].temperature() = floor(temp);
+      tcvrData[portName].temperature() = floor(temp);
 
       MediaInterfaceCode moduleType =
           tcvrInfo.tcvrState().value().moduleMediaInterface().value();
-      tcvrData[id].moduleMediaInterface() =
+      tcvrData[portName].moduleMediaInterface() =
           apache::thrift::util::enumNameSafe(moduleType);
     }
   }
