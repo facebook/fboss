@@ -129,6 +129,17 @@ class AgentVoqSwitchTest : public AgentHwTest {
     return txPacketSize;
   }
 
+  SystemPortID getSystemPortID(const PortDescriptor& port) {
+    auto switchId =
+        scopeResolver().scope(getProgrammedState(), port).switchId();
+    auto sysPortRange = getProgrammedState()
+                            ->getDsfNodes()
+                            ->getNodeIf(switchId)
+                            ->getSystemPortRange();
+    CHECK(sysPortRange.has_value());
+    return SystemPortID(port.intID() + *sysPortRange->minimum());
+  }
+
  private:
   void addCpuTrafficPolicy(cfg::SwitchConfig& cfg, const HwAsic* asic) const {
     cfg::CPUTrafficPolicyConfig cpuConfig;
