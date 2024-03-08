@@ -292,6 +292,13 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
       sizeOfPacketSent = sendPacket(frontPanel, bumpOnHit, aclType);
     }
     WITH_RETRIES({
+      auto getCounterValue = [&](const std::string& counterName, bool bytes) {
+        auto aclCounters = getHwSwitch()->getAclStats();
+        auto it = aclCounters.statNameToCounterMap()->find(
+            bytes ? counterName + ".bytes" : counterName + ".packets");
+        return it != aclCounters.statNameToCounterMap()->end() ? it->second : 0;
+      };
+
       auto aclPktCountAfter = utility::getAclInOutPackets(
           getHwSwitch(),
           getProgrammedState(),
@@ -303,6 +310,13 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
           getProgrammedState(),
           getAclName(aclType),
           getCounterName(aclType));
+
+      EXPECT_EQ(
+          aclPktCountAfter,
+          getCounterValue(getCounterName(aclType), false /*bytes*/));
+      EXPECT_EQ(
+          aclBytesCountAfter,
+          getCounterValue(getCounterName(aclType), true /*bytes*/));
 
       auto pktsAfter = *getLatestPortStats(egressPort).outUnicastPkts__ref();
       XLOG(DBG2) << "\n"
