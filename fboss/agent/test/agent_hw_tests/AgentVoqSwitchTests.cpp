@@ -3,14 +3,20 @@
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
+#include "fboss/agent/packet/EthFrame.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/FabricTestUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 DECLARE_bool(enable_stats_update_thread);
+
+namespace {
+constexpr uint8_t kDefaultQueue = 0;
+}
 
 namespace facebook::fboss {
 class AgentVoqSwitchTest : public AgentHwTest {
@@ -138,6 +144,25 @@ class AgentVoqSwitchTest : public AgentHwTest {
                             ->getSystemPortRange();
     CHECK(sysPortRange.has_value());
     return SystemPortID(port.intID() + *sysPortRange->minimum());
+  }
+
+  std::string kDscpAclName() const {
+    return "dscp_acl";
+  }
+  std::string kDscpAclCounterName() const {
+    return "dscp_acl_counter";
+  }
+
+  void addDscpAclWithCounter() {
+    auto newCfg = initialConfig(*getAgentEnsemble());
+    auto* acl = utility::addAcl(&newCfg, kDscpAclName());
+    acl->dscp() = 0x24;
+    utility::addAclStat(
+        &newCfg,
+        kDscpAclName(),
+        kDscpAclCounterName(),
+        utility::getAclCounterTypes(utility::getFirstAsic(this->getSw())));
+    applyNewConfig(newCfg);
   }
 
  private:
@@ -558,6 +583,157 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, checkFabricPortSpray) {
       EXPECT_EVENTUALLY_TRUE(utility::isLoadBalanced(fabricPortStats, 15));
     });
   };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
+  utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+  const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
+
+  auto setup = [this, kPort, ecmpHelper]() {
+    if (isSupportedOnAllAsics(HwAsic::Feature::ACL_TABLE_GROUP)) {
+      addDscpAclWithCounter();
+    }
+    addRemoveNeighbor(kPort, true /* add neighbor*/);
+  };
+
+  auto verify = [this, kPort, ecmpHelper]() {
+    auto sendPacketCpuFrontPanelHelper = [this, kPort, ecmpHelper](
+                                             bool isFrontPanel) {
+      auto getPortOutPktsBytes = [this](PortID port) {
+        return std::make_pair(
+            getLatestPortStats(port).get_outUnicastPkts_(),
+            getLatestPortStats(port).get_outBytes_());
+      };
+
+      auto getAllQueueOutPktsBytes = [kPort, this]() {
+        return std::make_pair(
+            getLatestPortStats(kPort.phyPortID()).get_queueOutPackets_(),
+            getLatestPortStats(kPort.phyPortID()).get_queueOutBytes_());
+      };
+      auto getAllVoQOutBytes = [kPort, this]() {
+        return getLatestSysPortStats(getSystemPortID(kPort))
+            .get_queueOutBytes_();
+      };
+
+      auto printQueueStats = [](std::string queueStatDesc,
+                                std::string packetsOrBytes,
+                                std::map<int16_t, int64_t> queueStatsMap) {
+        for (const auto& [queueId, pktsOrBytes] : queueStatsMap) {
+          XLOG(DBG2) << queueStatDesc << ": Queue ID: " << queueId << ", "
+                     << packetsOrBytes << ": " << pktsOrBytes;
+        }
+      };
+      auto getRecyclePortPkts = [this]() {
+        return *getLatestPortStats(PortID(1)).inUnicastPkts_();
+      };
+
+      int64_t beforeQueueOutPkts = 0, beforeQueueOutBytes = 0;
+      int64_t afterQueueOutPkts = 0, afterQueueOutBytes = 0;
+      int64_t beforeVoQOutBytes = 0, afterVoQOutBytes = 0;
+
+      if (isSupportedOnAllAsics(HwAsic::Feature::L3_QOS)) {
+        auto beforeAllQueueOut = getAllQueueOutPktsBytes();
+        beforeQueueOutPkts = beforeAllQueueOut.first.at(kDefaultQueue);
+        beforeQueueOutBytes = beforeAllQueueOut.second.at(kDefaultQueue);
+        printQueueStats("Before Queue Out", "Packets", beforeAllQueueOut.first);
+        printQueueStats("Before Queue Out", "Bytes", beforeAllQueueOut.second);
+        auto beforeAllVoQOutBytes = getAllVoQOutBytes();
+        beforeVoQOutBytes = beforeAllVoQOutBytes.at(kDefaultQueue);
+        printQueueStats("Before VoQ Out", "Bytes", beforeAllVoQOutBytes);
+      }
+
+      auto [beforeOutPkts, beforeOutBytes] =
+          getPortOutPktsBytes(kPort.phyPortID());
+      std::optional<PortID> frontPanelPort;
+      uint64_t beforeFrontPanelOutBytes{0}, beforeFrontPanelOutPkts{0};
+      if (isFrontPanel) {
+        frontPanelPort = ecmpHelper.ecmpPortDescriptorAt(1).phyPortID();
+        std::tie(beforeFrontPanelOutPkts, beforeFrontPanelOutBytes) =
+            getPortOutPktsBytes(*frontPanelPort);
+      }
+      auto beforeRecyclePkts = getRecyclePortPkts();
+      auto txPacketSize = sendPacket(ecmpHelper.ip(kPort), frontPanelPort);
+
+      auto [maxRetryCount, sleepTimeMsecs] =
+          utility::getRetryCountAndDelay(utility::getFirstAsic(this->getSw()));
+      WITH_RETRIES_N_TIMED(
+          maxRetryCount, std::chrono::milliseconds(sleepTimeMsecs), {
+            if (isSupportedOnAllAsics(HwAsic::Feature::L3_QOS)) {
+              auto afterAllQueueOut = getAllQueueOutPktsBytes();
+              afterQueueOutPkts = afterAllQueueOut.first.at(kDefaultQueue);
+              afterQueueOutBytes = afterAllQueueOut.second.at(kDefaultQueue);
+              auto afterAllVoQOutBytes = getAllVoQOutBytes();
+              afterVoQOutBytes = afterAllVoQOutBytes.at(kDefaultQueue);
+              printQueueStats("After VoQ Out", "Bytes", afterAllVoQOutBytes);
+            }
+            auto portOutPktsAndBytes = getPortOutPktsBytes(kPort.phyPortID());
+            auto afterOutPkts = portOutPktsAndBytes.first;
+            auto afterOutBytes = portOutPktsAndBytes.second;
+            uint64_t afterFrontPanelOutBytes{0}, afterFrontPanelOutPkts{0};
+            if (isFrontPanel) {
+              std::tie(afterFrontPanelOutPkts, afterFrontPanelOutBytes) =
+                  getPortOutPktsBytes(*frontPanelPort);
+            }
+            auto afterRecyclePkts = getRecyclePortPkts();
+            XLOG(DBG2) << "Verifying: "
+                       << (isFrontPanel ? "Send Packet from Front Panel Port"
+                                        : "Send Packet from CPU Port")
+                       << " Stats:: beforeOutPkts: " << beforeOutPkts
+                       << " beforeOutBytes: " << beforeOutBytes
+                       << " beforeQueueOutPkts: " << beforeQueueOutPkts
+                       << " beforeQueueOutBytes: " << beforeQueueOutBytes
+                       << " beforeVoQOutBytes: " << beforeVoQOutBytes
+                       << " beforeFrontPanelPkts: " << beforeFrontPanelOutPkts
+                       << " beforeFrontPanelBytes: " << beforeFrontPanelOutBytes
+                       << " beforeRecyclePkts: " << beforeRecyclePkts
+                       << " txPacketSize: " << txPacketSize
+                       << " afterOutPkts: " << afterOutPkts
+                       << " afterOutBytes: " << afterOutBytes
+                       << " afterQueueOutPkts: " << afterQueueOutPkts
+                       << " afterQueueOutBytes: " << afterQueueOutBytes
+                       << " afterVoQOutBytes: " << afterVoQOutBytes
+                       << " afterFrontPanelPkts: " << afterFrontPanelOutPkts
+                       << " afterFrontPanelBytes: " << afterFrontPanelOutBytes
+                       << " afterRecyclePkts: " << afterRecyclePkts;
+
+            EXPECT_EVENTUALLY_EQ(afterOutPkts - 1, beforeOutPkts);
+            int extraByteOffset = 0;
+            auto asicType = utility::getFirstAsic(this->getSw())->getAsicType();
+            auto asicMode = utility::getFirstAsic(this->getSw())->getAsicMode();
+            if (asicMode != HwAsic::AsicMode::ASIC_MODE_SIM &&
+                (asicType == cfg::AsicType::ASIC_TYPE_JERICHO2 ||
+                 asicType == cfg::AsicType::ASIC_TYPE_JERICHO3)) {
+              // Account for Ethernet FCS being counted in TX out bytes.
+              extraByteOffset = utility::EthFrame::FCS_SIZE;
+            }
+            EXPECT_EVENTUALLY_EQ(
+                afterOutBytes - txPacketSize - extraByteOffset, beforeOutBytes);
+            if (isSupportedOnAllAsics(HwAsic::Feature::L3_QOS)) {
+              EXPECT_EVENTUALLY_EQ(afterQueueOutPkts - 1, beforeQueueOutPkts);
+              // CS00012267635: debug why queue counter is 310, when
+              // txPacketSize is 322
+              EXPECT_EVENTUALLY_GE(afterQueueOutBytes, beforeQueueOutBytes);
+            }
+            if (isSupportedOnAllAsics(HwAsic::Feature::VOQ)) {
+              EXPECT_EVENTUALLY_GT(afterVoQOutBytes, beforeVoQOutBytes);
+            }
+            if (frontPanelPort) {
+              EXPECT_EVENTUALLY_GT(
+                  afterFrontPanelOutBytes, beforeFrontPanelOutBytes);
+
+              EXPECT_EVENTUALLY_GT(
+                  afterFrontPanelOutPkts, beforeFrontPanelOutPkts);
+            } else if (asicMode != HwAsic::AsicMode::ASIC_MODE_SIM) {
+              EXPECT_EVENTUALLY_EQ(beforeRecyclePkts + 1, afterRecyclePkts);
+            }
+          });
+    };
+
+    sendPacketCpuFrontPanelHelper(false /* cpu */);
+    sendPacketCpuFrontPanelHelper(true /* front panel*/);
+  };
+
   verifyAcrossWarmBoots(setup, verify);
 }
 } // namespace facebook::fboss
