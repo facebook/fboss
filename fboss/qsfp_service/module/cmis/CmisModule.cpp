@@ -3366,7 +3366,7 @@ bool CmisModule::upgradeFirmwareLockedImpl(
   QSFP_LOG(INFO, this) << "Upgrading CMIS Module Firmware";
 
   auto fwUpgradeObj = std::make_unique<CmisFirmwareUpgrader>(
-      getTransceiverManager()->i2cBus(), getID() + 1, std::move(fbossFw));
+      qsfpImpl_, getID(), std::move(fbossFw));
 
   bool ret = fwUpgradeObj->cmisModuleFirmwareUpgrade();
   return ret;

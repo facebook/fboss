@@ -14,6 +14,8 @@
 #include <folly/logging/xlog.h>
 #include <glog/logging.h>
 
+#include "fboss/qsfp_service/module/TransceiverImpl.h"
+
 using folly::MutableByteRange;
 using folly::StringPiece;
 using std::make_pair;
@@ -40,7 +42,7 @@ constexpr int moduleDatapathInitDurationUsec = 5000000;
  * loading the firmware
  */
 CmisFirmwareUpgrader::CmisFirmwareUpgrader(
-    TransceiverI2CApi* bus,
+    TransceiverImpl* bus,
     unsigned int modId,
     std::unique_ptr<FbossFirmware> fbossFirmware)
     : bus_(bus), moduleId_(modId), fbossFirmware_(std::move(fbossFirmware)) {
@@ -97,13 +99,13 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
       imageLen);
 
   // Start the IO profiling
-  bus_->i2cTimeProfilingStart(moduleId_);
+  bus_->i2cTimeProfilingStart();
 
   // Set the password to let the privileged operation of firmware download
-  bus_->moduleWrite(
-      moduleId_,
-      {TransceiverI2CApi::ADDR_QSFP, kModulePasswordEntryReg, 4},
-      msaPassword_.data());
+  bus_->writeTransceiver(
+      {TransceiverImpl::ADDR_QSFP, kModulePasswordEntryReg, 4},
+      msaPassword_.data(),
+      0 /*delay*/);
 
   CdbCommandBlock commandBlockBuf;
   CdbCommandBlock* commandBlock = &commandBlockBuf;
@@ -112,7 +114,7 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
   // issuing the Query command to CDB
   commandBlock->createCdbCmdModuleQuery();
   // Run the CDB command
-  status = commandBlock->cmisRunCdbCommand(bus_, moduleId_);
+  status = commandBlock->cmisRunCdbCommand(bus_);
   if (status) {
     // Query result will be in LPL memory at byte offset 2
     if (commandBlock->getCdbRlplLength() >= 3) {
@@ -139,7 +141,7 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
   // Done by sending Firmware upgrade feature command to CDB
   commandBlock->createCdbCmdGetFwFeatureInfo();
   // Run the CDB command
-  status = commandBlock->cmisRunCdbCommand(bus_, moduleId_);
+  status = commandBlock->cmisRunCdbCommand(bus_);
 
   // If the CDB command is successfull then the Start Command Payload Size is
   // returned by CDB in LPL memory at offset 2
@@ -193,7 +195,7 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
       startCommandPayloadSize, imageLen, imageOffset, imageBuf);
 
   // Run the CDB command
-  status = commandBlock->cmisRunCdbCommand(bus_, moduleId_);
+  status = commandBlock->cmisRunCdbCommand(bus_);
   if (!status) {
     // DOWNLOAD_START command failed
     XLOG(INFO) << folly::sformat(
@@ -228,12 +230,11 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
           startCommandPayloadSize, imageLen, imageOffset, imageChunkLen);
 
       // Write the image payload to external EPL before invoking the command
-      commandBlock->writeEplPayload(
-          bus_, moduleId_, imageBuf, imageOffset, imageChunkLen);
+      commandBlock->writeEplPayload(bus_, imageBuf, imageOffset, imageChunkLen);
     }
 
     // Run the CDB command
-    status = commandBlock->cmisRunCdbCommand(bus_, moduleId_);
+    status = commandBlock->cmisRunCdbCommand(bus_);
     if (!status) {
       // DOWNLOAD_IMAGE command failed
       XLOG(INFO) << folly::sformat(
@@ -256,7 +257,7 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
   commandBlock->createCdbCmdFwDownloadComplete();
 
   // Run the CDB command
-  status = commandBlock->cmisRunCdbCommand(bus_, moduleId_);
+  status = commandBlock->cmisRunCdbCommand(bus_);
   if (!status) {
     // DOWNLOAD_COMPLETE command failed
     XLOG(INFO) << folly::sformat(
@@ -282,7 +283,7 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
   // Run the CDB command
   // No need to check status because RUN command issues soft reset to CDB
   // so we can't check status here
-  status = commandBlock->cmisRunCdbCommand(bus_, moduleId_);
+  status = commandBlock->cmisRunCdbCommand(bus_);
 
   XLOG(INFO) << folly::sformat(
       "cmisModuleFirmwareDownload: Mod{:d}: Step 4: Issued Firmware download Run command successfully",
@@ -291,16 +292,16 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
   usleep(2 * moduleDatapathInitDurationUsec);
 
   // Set the password to let the privileged operation of firmware download
-  bus_->moduleWrite(
-      moduleId_,
-      {TransceiverI2CApi::ADDR_QSFP, kModulePasswordEntryReg, 4},
-      msaPassword_.data());
+  bus_->writeTransceiver(
+      {TransceiverImpl::ADDR_QSFP, kModulePasswordEntryReg, 4},
+      msaPassword_.data(),
+      0 /*delay*/);
 
   // Step 5: Issue CDB command: Commit the downloaded firmware
   commandBlock->createCdbCmdFwCommit();
 
   // Run the CDB command
-  status = commandBlock->cmisRunCdbCommand(bus_, moduleId_);
+  status = commandBlock->cmisRunCdbCommand(bus_);
 
   if (!status) {
     XLOG(INFO) << folly::sformat(
@@ -321,19 +322,19 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
   usleep(10 * moduleDatapathInitDurationUsec);
 
   // Set the password to let the privileged operation of firmware download
-  bus_->moduleWrite(
-      moduleId_,
-      {TransceiverI2CApi::ADDR_QSFP, kModulePasswordEntryReg, 4},
-      msaPassword_.data());
+  bus_->writeTransceiver(
+      {TransceiverImpl::ADDR_QSFP, kModulePasswordEntryReg, 4},
+      msaPassword_.data(),
+      0 /*delay*/);
 
   // Print IO profiling info
-  auto ioTiming = bus_->getI2cTimeProfileMsec(moduleId_);
+  auto ioTiming = bus_->getI2cTimeProfileMsec();
   XLOG(INFO) << folly::sformat(
       "cmisModuleFirmwareDownload: Mod{:d}: Total IO access - Read time = {:d} ms, Write time = {:d} ms",
       moduleId_,
       ioTiming.first,
       ioTiming.second);
-  bus_->i2cTimeProfilingEnd(moduleId_);
+  bus_->i2cTimeProfilingEnd();
 
   return true;
 }
@@ -369,8 +370,7 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareUpgrade() {
   }
 
   // Find out the current version running on module
-  bus_->moduleRead(
-      moduleId_,
+  bus_->readTransceiver(
       {TransceiverI2CApi::ADDR_QSFP, kfirmwareVersionReg, 2},
       versionNumber.data());
   XLOG(INFO) << folly::sformat(

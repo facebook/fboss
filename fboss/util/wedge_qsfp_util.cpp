@@ -2771,9 +2771,9 @@ bool cliModulefirmwareUpgrade(
   firmwareAttr.properties["image_type"] =
       FLAGS_dsp_image ? "dsp" : "application";
   auto fbossFwObj = std::make_unique<FbossFirmware>(firmwareAttr);
-
+  auto qsfpImpl = std::make_unique<WedgeQsfp>(port - 1, i2cInfo.bus);
   auto fwUpgradeObj = std::make_unique<CmisFirmwareUpgrader>(
-      i2cInfo.bus, port, std::move(fbossFwObj));
+      qsfpImpl.get(), port, std::move(fbossFwObj));
 
   // Do the standalone upgrade in the same process as wedge_qsfp_util
   bool ret = fwUpgradeObj->cmisModuleFirmwareUpgrade();
@@ -2922,9 +2922,9 @@ void fwUpgradeThreadHandler(
     firmwareAttr.properties["image_type"] =
         FLAGS_dsp_image ? "dsp" : "application";
     auto fbossFwObj = std::make_unique<FbossFirmware>(firmwareAttr);
-
+    auto qsfpImpl = std::make_unique<WedgeQsfp>(module - 1, bus);
     auto fwUpgradeObj = std::make_unique<CmisFirmwareUpgrader>(
-        bus, module, std::move(fbossFwObj));
+        qsfpImpl.get(), module, std::move(fbossFwObj));
 
     // Do the upgrade in this thread
     bool ret = fwUpgradeObj->cmisModuleFirmwareUpgrade();
@@ -3236,12 +3236,12 @@ void doCdbCommand(TransceiverI2CApi* bus, unsigned int module) {
   // password to unlock CDB functions
   CdbCommandBlock cdbBlock;
   cdbBlock.createCdbCmdGeneric(commandCode, lplMem);
-
-  cdbBlock.selectCdbPage(bus, module);
-  cdbBlock.setMsaPassword(bus, module, FLAGS_msa_password);
+  auto qsfpImpl = std::make_unique<WedgeQsfp>(module - 1, bus);
+  cdbBlock.selectCdbPage(qsfpImpl.get());
+  cdbBlock.setMsaPassword(qsfpImpl.get(), FLAGS_msa_password);
 
   // Run the CDB command and get the output
-  bool rc = cdbBlock.cmisRunCdbCommand(bus, module);
+  bool rc = cdbBlock.cmisRunCdbCommand(qsfpImpl.get());
   printf("CDB command %s\n", rc ? "Successful" : "Failed");
 
   uint8_t* pResp;

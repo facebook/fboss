@@ -2,12 +2,16 @@
 
 #pragma once
 
+#include <chrono>
 #include <memory>
 #include <utility>
+#include <vector>
 
-#include "fboss/lib/usb/TransceiverI2CApi.h"
+#include "fboss/qsfp_service/module/TransceiverImpl.h"
 
 namespace facebook::fboss {
+
+class TransceiverImpl;
 
 /*
  * This class represents the CDB block which is written to the CMIS optics
@@ -39,8 +43,7 @@ class CdbCommandBlock {
       int& imageOffset,
       int& imageChunkLen);
   void writeEplPayload(
-      TransceiverI2CApi* bus,
-      unsigned int modId,
+      TransceiverImpl* bus,
       const uint8_t* imageBuf,
       int& imageOffset,
       int imageChunkLen);
@@ -58,14 +61,13 @@ class CdbCommandBlock {
   void createCdbCmdGeneric(uint16_t commandCode, std::vector<uint8_t>& lplData);
 
   // Public function to run the CDB command on the module
-  bool cmisRunCdbCommand(TransceiverI2CApi* bus, unsigned int modId);
+  bool cmisRunCdbCommand(TransceiverImpl* bus);
   // Provide response data to caller
   uint8_t getResponseData(uint8_t** pResponse);
 
   // Utility functions for caller of this class
-  void selectCdbPage(TransceiverI2CApi* bus, unsigned int modId);
-  void
-  setMsaPassword(TransceiverI2CApi* bus, unsigned int modId, uint32_t msaPw);
+  void selectCdbPage(TransceiverImpl* bus);
+  void setMsaPassword(TransceiverImpl* bus, uint32_t msaPw);
 
   // CDB block access functions for command code
   uint16_t getCdbCommandCode() const {
@@ -128,8 +130,7 @@ class CdbCommandBlock {
   }
 
   void i2cWriteAndContinue(
-      TransceiverI2CApi* bus,
-      unsigned int modId,
+      TransceiverImpl* bus,
       uint8_t i2cAddress,
       int offset,
       int length,
