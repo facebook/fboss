@@ -90,6 +90,14 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
     return "dscp_acl_counter";
   }
 
+  std::string kIpV6MulticastDropAclName() const {
+    return "drop_v6_multicast";
+  }
+
+  std::string kIpV6MulticastDropAclCounterName() const {
+    return "drop_v6_multicast_stat";
+  }
+
   void addDscpAclWithCounter() {
     auto newCfg = initialConfig();
     auto* acl = utility::addAcl(&newCfg, kDscpAclName());
@@ -345,23 +353,18 @@ class HwVoqSwitchWithFabricPortsTest : public HwVoqSwitchTest {
 
   void addDropAclForMcastIp() {
     auto newCfg = initialConfig();
-    // Add ACL Table group before adding any ACLs
-    utility::addAclTableGroup(
-        &newCfg, cfg::AclStage::INGRESS, utility::getAclTableGroupName());
-    utility::addDefaultAclTable(newCfg);
-    auto aclName = "drop-v6-multicast";
-    auto aclCounterName = "drop-v6-multicast-stat";
     // The expectation is that MC traffic received on NIF ports gets dropped
     // and not get forwarded to fabric, as that will lead to fabric drops
     // incrementing and would be a red flag. Dropping of MC traffic does not
     // happen natively and hence need a drop ACL entry to match on IPv6 MC
     // and drop the same.
-    auto* acl = utility::addAcl(&newCfg, aclName, cfg::AclActionType::DENY);
+    auto* acl = utility::addAcl(
+        &newCfg, kIpV6MulticastDropAclName(), cfg::AclActionType::DENY);
     acl->dstIp() = "ff00::/8";
     utility::addAclStat(
         &newCfg,
-        aclName,
-        aclCounterName,
+        kIpV6MulticastDropAclName(),
+        kIpV6MulticastDropAclCounterName(),
         utility::getAclCounterTypes(getHwSwitch()->getPlatform()->getAsic()));
     applyNewConfig(newCfg);
   }
@@ -536,19 +539,33 @@ TEST_F(HwVoqSwitchWithFabricPortsTest, checkFabricPortSpray) {
 
 TEST_F(HwVoqSwitchWithFabricPortsTest, verifyNifMulticastTrafficDropped) {
   constexpr static auto kNumPacketsToSend{1000};
+
+  auto getAclPackets = [this]() {
+    return utility::getAclInOutPackets(
+        getHwSwitch(),
+        getProgrammedState(),
+        kIpV6MulticastDropAclName(),
+        kIpV6MulticastDropAclCounterName());
+  };
+
   auto setup = [this]() { addDropAclForMcastIp(); };
 
-  auto verify = [this]() {
+  auto verify = [this, getAclPackets]() {
     auto beforePkts = getLatestPortStats(masterLogicalInterfacePortIds()[0])
                           .get_outUnicastPkts_();
+    auto beforeAclPkts = getAclPackets();
     sendLocalServiceDiscoveryMulticastPacket(
         masterLogicalInterfacePortIds()[0], kNumPacketsToSend);
     WITH_RETRIES({
       auto afterPkts = getLatestPortStats(masterLogicalInterfacePortIds()[0])
                            .get_outUnicastPkts_();
+      auto afterAclPkts = getAclPackets();
       XLOG(DBG2) << "Before pkts: " << beforePkts
                  << " After pkts: " << afterPkts;
+      XLOG(DBG2) << "Before ACL pkts: " << beforeAclPkts
+                 << " After ACL pkts: " << afterAclPkts;
       EXPECT_EVENTUALLY_GE(afterPkts, beforePkts + kNumPacketsToSend);
+      EXPECT_EVENTUALLY_GE(afterAclPkts, beforeAclPkts + kNumPacketsToSend);
     });
 
     // Wait for some time and make sure that fabric stats dont increment.
