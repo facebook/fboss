@@ -216,6 +216,21 @@ class AgentVoqSwitchWithFabricPortsTest : public AgentVoqSwitchTest {
       }
     });
   }
+  void assertPortAndDrainState(cfg::SwitchDrainState expectDrainState) const {
+    bool expectDrained =
+        expectDrainState == cfg::SwitchDrainState::DRAINED ? true : false;
+    for (const auto& switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
+      // reachability should always be there regardless of drain state
+      utility::checkFabricReachability(getAgentEnsemble(), switchId);
+      HwSwitchMatcher matcher(std::unordered_set<SwitchID>({switchId}));
+      const auto& switchSettings =
+          getProgrammedState()->getSwitchSettings()->getSwitchSettings(matcher);
+      EXPECT_EQ(switchSettings->isSwitchDrained(), expectDrained);
+    }
+    // Drained - expect inactive
+    // Undrained - expect active
+    assertPortsActiveState(!expectDrained);
+  }
 
  private:
   bool hideFabricPorts() const override {
@@ -239,6 +254,7 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, init) {
         }
       }
     }
+    assertPortAndDrainState(cfg::SwitchDrainState::UNDRAINED);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -301,19 +317,14 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, switchIsolate) {
   };
 
   auto verify = [this]() {
-    for (const auto& switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
-      utility::checkFabricReachability(getAgentEnsemble(), switchId);
-    }
-    // In drained state all fabric ports should be inactive
-    assertPortsActiveState(false);
+    assertPortAndDrainState(cfg::SwitchDrainState::DRAINED);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
 
 TEST_F(AgentVoqSwitchWithFabricPortsTest, minVoqThresholdDrainUndrain) {
   auto setup = [=, this]() {
-    // Before drain all fabric ports should be active
-    assertPortsActiveState(true);
+    assertPortAndDrainState(cfg::SwitchDrainState::UNDRAINED);
     auto newCfg = initialConfig(*getAgentEnsemble());
     // Set threshold higher than existing fabric ports
     newCfg.switchSettings()->minLinksToJoinVOQDomain() =
@@ -324,15 +335,7 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, minVoqThresholdDrainUndrain) {
   };
 
   auto verify = [this]() {
-    for (const auto& switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
-      utility::checkFabricReachability(getAgentEnsemble(), switchId);
-      HwSwitchMatcher matcher(std::unordered_set<SwitchID>({switchId}));
-      const auto& switchSettings =
-          getProgrammedState()->getSwitchSettings()->getSwitchSettings(matcher);
-      EXPECT_TRUE(switchSettings->isSwitchDrained());
-    }
-    // In drained state all fabric ports should be inactive
-    assertPortsActiveState(false);
+    assertPortAndDrainState(cfg::SwitchDrainState::DRAINED);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
