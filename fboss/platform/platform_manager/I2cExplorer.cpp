@@ -13,7 +13,7 @@ namespace fs = std::filesystem;
 namespace {
 
 const re2::RE2 kI2cMuxChannelRegex{"channel-\\d+"};
-constexpr auto kI2cDevCreationWaitSecs = 1;
+constexpr auto kI2cDevCreationWaitSecs = 5;
 constexpr auto kCpuI2cBusNumsWaitSecs = 1;
 
 std::string getI2cAdapterName(const fs::path& busPath) {
@@ -100,6 +100,11 @@ void I2cExplorer::createI2cDevice(
     const std::string& deviceName,
     uint16_t busNum,
     const I2cAddr& addr) {
+  XLOG(INFO) << fmt::format(
+      "Creating i2c device {} ({}) at i2c-{}",
+      pmUnitScopedName,
+      deviceName,
+      busNum);
   if (isI2cDevicePresent(busNum, addr)) {
     auto existingDeviceName = getI2cDeviceName(busNum, addr);
     if (existingDeviceName && existingDeviceName.value() == deviceName) {

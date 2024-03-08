@@ -22,7 +22,7 @@ const re2::RE2 kSpiBusRe{"spi\\d+"};
 const re2::RE2 kSpiDevIdRe{"spi(?P<BusNum>\\d+).(?P<ChipSelect>\\d+)"};
 const re2::RE2 kWatchdogRe{"watchdog(?P<WatchdogNum>\\d+)"};
 // TODO (T181346009) for more granular interval retries.
-constexpr auto kPciSubDevCreationWaitSecs = 5;
+constexpr auto kPciWaitSecs = 5;
 
 bool isSamePciId(const std::string& id1, const std::string& id2) {
   return RE2::FullMatch(id1, PciExplorer().kPciIdRegex) &&
@@ -71,6 +71,14 @@ PciDevice::PciDevice(
       std::string(subSystemVendorId, 2, 4),
       std::string(subSystemDeviceId, 2, 4));
 
+  if (!fs::exists(charDevPath_)) {
+    XLOG(INFO) << fmt::format(
+        "No character device found at {} for {}. Waiting for {}s",
+        charDevPath_,
+        name,
+        kPciWaitSecs);
+    sleep(kPciWaitSecs);
+  }
   if (!fs::exists(charDevPath_)) {
     throw std::runtime_error(fmt::format(
         "No character device found at {} for {}", charDevPath_, name));
@@ -567,8 +575,8 @@ bool PciExplorer::isPciSubDeviceCreated(
       *fpgaIpBlockConfig.deviceName(),
       instanceId,
       pciDevice.sysfsPath(),
-      kPciSubDevCreationWaitSecs);
-  sleep(kPciSubDevCreationWaitSecs);
+      kPciWaitSecs);
+  sleep(kPciWaitSecs);
   if (isPciSubDevicePresent(pciDevice, fpgaIpBlockConfig, instanceId)) {
     return true;
   }
