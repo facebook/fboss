@@ -1193,10 +1193,20 @@ void SaiSwitch::processSwitchSettingsChangedEntryLocked(
         newSwitchSettings->getMaxRouteCounterIDs());
   }
 
-  const auto oldVal = oldSwitchSettings->isSwitchDrained();
-  const auto newVal = newSwitchSettings->isSwitchDrained();
-  if (oldVal != newVal) {
-    managerTable_->switchManager().setSwitchIsolate(newVal);
+  {
+    const auto oldVal = oldSwitchSettings->isSwitchDrained();
+    const auto newVal = newSwitchSettings->isSwitchDrained();
+    if (oldVal != newVal) {
+      managerTable_->switchManager().setSwitchIsolate(newVal);
+    }
+  }
+
+  {
+    const auto oldVal = oldSwitchSettings->getForceTrafficOverFabric();
+    const auto newVal = newSwitchSettings->getForceTrafficOverFabric();
+    if (oldVal != newVal) {
+      // TODO: set this in switchManager
+    }
   }
 }
 
