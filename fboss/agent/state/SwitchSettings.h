@@ -481,6 +481,23 @@ class SwitchSettings
     return get<switch_state_tags::switchInfo>()->toThrift();
   }
 
+  std::optional<bool> getForceTrafficOverFabric() const {
+    if (auto forceTrafficOverFabric =
+            cref<switch_state_tags::forceTrafficOverFabric>()) {
+      return forceTrafficOverFabric->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setForceTrafficOverFabric(std::optional<bool> forceTrafficOverFabric) {
+    if (!forceTrafficOverFabric) {
+      ref<switch_state_tags::forceTrafficOverFabric>().reset();
+    } else {
+      set<switch_state_tags::forceTrafficOverFabric>(
+          forceTrafficOverFabric.value());
+    }
+  }
+
   SwitchSettings* modify(std::shared_ptr<SwitchState>* state);
 
  private:
