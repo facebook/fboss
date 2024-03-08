@@ -67,6 +67,7 @@ struct HwSwitchStats {
   12: hardware_stats.HwSwitchDropStats switchDropStats;
   13: hardware_stats.HwFlowletStats flowletStats;
   14: map<i32, phy.PhyInfo> phyInfo;
+  15: hardware_stats.AclStats aclStats;
 }
 
 service MultiSwitchCtrl {

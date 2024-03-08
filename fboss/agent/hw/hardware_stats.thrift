@@ -298,3 +298,7 @@ struct HwSwitchFb303GlobalStats {
 struct HwFlowletStats {
   1: i64 l3EcmpDlbFailPackets;
 }
+
+struct AclStats {
+  1: map<string, i64> statNameToCounterMap;
+}
