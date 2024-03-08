@@ -220,6 +220,8 @@ class SaiSwitch : public HwSwitch {
   void syncLinkStates() override;
   void syncLinkActiveStates() override;
 
+  AclStats getAclStats() const override;
+
  private:
   void gracefulExitImpl() override;
 

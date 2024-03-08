@@ -71,6 +71,9 @@ class SimSwitch : public HwSwitch {
   HwFlowletStats getHwFlowletStats() const override {
     return HwFlowletStats{};
   }
+  AclStats getAclStats() const override {
+    return AclStats{};
+  }
 
   std::vector<EcmpDetails> getAllEcmpDetails() const override {
     return {};

@@ -627,6 +627,8 @@ class BcmSwitch : public BcmSwitchIf {
   // no concept of link active states in BcmSwitch
   void syncLinkActiveStates() override {}
 
+  AclStats getAclStats() const override;
+
  private:
   enum Flags : uint32_t {
     RX_REGISTERED = 0x01,
