@@ -267,6 +267,30 @@ class AgentVoqSwitchWithFabricPortsTest : public AgentVoqSwitchTest {
     // Undrained - expect active
     assertPortsActiveState(!expectDrained);
   }
+  void verifyLocalForwarding() {
+    // Setup neighbor entry
+    utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+    const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
+    addRemoveNeighbor(kPort, true /* add neighbor*/);
+    auto sendPktAndVerify = [&](bool isFrontPanel) {
+      auto beforeOutPkts =
+          getLatestPortStats(kPort.phyPortID()).get_outUnicastPkts_();
+      std::optional<PortID> frontPanelPort;
+      if (isFrontPanel) {
+        frontPanelPort = ecmpHelper.ecmpPortDescriptorAt(1).phyPortID();
+      }
+      sendPacket(ecmpHelper.ip(kPort), frontPanelPort);
+      WITH_RETRIES({
+        auto afterOutPkts =
+            getLatestPortStats(kPort.phyPortID()).get_outUnicastPkts_();
+        XLOG(DBG2) << " Before out pkts: " << beforeOutPkts
+                   << " After out pkts: " << afterOutPkts;
+        EXPECT_EVENTUALLY_EQ(afterOutPkts, beforeOutPkts + 1);
+      });
+    };
+    sendPktAndVerify(false /*isFrontPanel*/);
+    sendPktAndVerify(true /*isFrontPanel*/);
+  }
 
  private:
   bool hideFabricPorts() const override {
@@ -346,6 +370,8 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, switchIsolate) {
   auto setup = [=, this]() {
     // Before drain all fabric ports should be active
     assertPortsActiveState(true);
+    // Local forwarding works
+    verifyLocalForwarding();
     auto newCfg = initialConfig(*getAgentEnsemble());
     *newCfg.switchSettings()->switchDrainState() =
         cfg::SwitchDrainState::DRAINED;
@@ -354,6 +380,8 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, switchIsolate) {
 
   auto verify = [this]() {
     assertPortAndDrainState(cfg::SwitchDrainState::DRAINED);
+    // Local forwarding should continue to work even after drain
+    verifyLocalForwarding();
   };
   verifyAcrossWarmBoots(setup, verify);
 }
