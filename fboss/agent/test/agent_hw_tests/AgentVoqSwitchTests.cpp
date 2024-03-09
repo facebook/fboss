@@ -498,6 +498,8 @@ class AgentVoqSwitchWithFabricPortsStartDrained
 TEST_F(AgentVoqSwitchWithFabricPortsStartDrained, assertLocalForwarding) {
   auto verify = [this]() {
     assertPortAndDrainState(cfg::SwitchDrainState::DRAINED);
+    // Local forwarding should work even when we come up drained
+    verifyLocalForwarding();
   };
   verifyAcrossWarmBoots([]() {}, verify);
 }
