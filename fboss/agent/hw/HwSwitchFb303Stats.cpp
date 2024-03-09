@@ -123,6 +123,11 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           getCounterPrefix() + "ingress_packet_pipeline_reject_drops",
           SUM,
           RATE),
+      corruptedCellPacketIntegrityDrops_(
+          map,
+          getCounterPrefix() + "corrupted_cell_packet_integrity_drops",
+          SUM,
+          RATE),
       dramEnqueuedBytes_(
           map,
           getCounterPrefix() + "dram_enqueued_bytes",
@@ -227,6 +232,11 @@ void HwSwitchFb303Stats::update(const HwSwitchDropStats& dropStats) {
     ingressPacketPipelineRejectDrops_.addValue(
         *dropStats.ingressPacketPipelineRejectDrops() -
         currentDropStats_.ingressPacketPipelineRejectDrops().value_or(0));
+  }
+  if (dropStats.corruptedCellPacketIntegrityDrops().has_value()) {
+    corruptedCellPacketIntegrityDrops_.addValue(
+        *dropStats.corruptedCellPacketIntegrityDrops() -
+        currentDropStats_.corruptedCellPacketIntegrityDrops().value_or(0));
   }
   currentDropStats_ = dropStats;
 }

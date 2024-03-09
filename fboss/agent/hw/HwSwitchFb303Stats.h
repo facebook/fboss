@@ -201,6 +201,7 @@ class HwSwitchFb303Stats {
   TLTimeseries dropPrecedenceDrops_;
   TLTimeseries queueResolutionDrops_;
   TLTimeseries ingressPacketPipelineRejectDrops_;
+  TLTimeseries corruptedCellPacketIntegrityDrops_;
   HwSwitchDropStats currentDropStats_;
   // Dram enqueue, dequeue bytes
   TLTimeseries dramEnqueuedBytes_;
