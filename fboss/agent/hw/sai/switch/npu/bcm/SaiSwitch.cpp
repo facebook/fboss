@@ -215,6 +215,11 @@ std::string errorType(sai_switch_error_type_t type) {
     case SAI_SWITCH_ERROR_TYPE_FQP_ECC_ECC_2B_ERR_INT:
       return "SAI_SWITCH_ERROR_TYPE_FQP_ECC_ECC_2B_ERR_INT";
 
+    // All reassembly context taken
+    case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_RCM_ALL_CONTEXTS_TAKEN_ERR:
+      return "SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_RCM_ALL_CONTEXTS_TAKEN_ERR";
+    case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_RCM_ALL_CONTEXTS_TAKEN_DISCARD_ERR:
+      return "SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_RCM_ALL_CONTEXTS_TAKEN_DISCARD_ERR";
 #endif
     default:
       break;
@@ -336,6 +341,16 @@ bool isFqpError(sai_switch_error_type_t type) {
   return false;
 }
 
+bool allReassemblyContextsTakenError(sai_switch_error_type_t type) {
+  switch (type) {
+    case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_RCM_ALL_CONTEXTS_TAKEN_ERR:
+    case SAI_SWITCH_ERROR_TYPE_RQP_PACKET_REASSEMBLY_RCM_ALL_CONTEXTS_TAKEN_DISCARD_ERR:
+      return true;
+    default:
+      break;
+  }
+  return false;
+}
 #endif
 
 } // namespace
@@ -383,9 +398,13 @@ void SaiSwitch::switchEventCallback(
       auto epniError = isEpniError(eventInfo->error_type);
       auto alignerError = isAlignerErrorType(eventInfo->error_type);
       auto fqpError = isFqpError(eventInfo->error_type);
+      auto allReassemblyContextsTaken =
+          allReassemblyContextsTakenError(eventInfo->error_type);
       XLOG(ERR) << " Got interrupt event, is IRE: " << ireError
                 << " is ITPP: " << itppError << " is EPNI: " << epniError
-                << " is Aligner: " << alignerError << " is FQP: " << fqpError;
+                << " is Aligner: " << alignerError << " is FQP: " << fqpError
+                << " all reassembly context taken: "
+                << allReassemblyContextsTaken;
       if (ireError) {
         getSwitchStats()->ireError();
       } else if (itppError) {
@@ -396,6 +415,8 @@ void SaiSwitch::switchEventCallback(
         getSwitchStats()->alignerError();
       } else if (fqpError) {
         getSwitchStats()->forwardingQueueProcessorError();
+      } else if (allReassemblyContextsTaken) {
+        getSwitchStats()->allReassemblyContextsTaken();
       }
     } break;
 #endif

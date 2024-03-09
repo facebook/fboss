@@ -154,7 +154,7 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           RATE),
       allReassemblyContextsTaken_(
           map,
-          getCounterPrefix() + vendor + ".allReassemblyContextsTaken",
+          getCounterPrefix() + vendor + ".allReassemblyContextsTaken.errors",
           SUM,
           RATE),
       hwInitializedTimeMs_(
