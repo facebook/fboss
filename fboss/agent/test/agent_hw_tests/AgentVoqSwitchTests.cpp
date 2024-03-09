@@ -389,6 +389,7 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, switchIsolate) {
 TEST_F(AgentVoqSwitchWithFabricPortsTest, minVoqThresholdDrainUndrain) {
   auto verify = [this]() {
     assertPortAndDrainState(cfg::SwitchDrainState::UNDRAINED);
+    verifyLocalForwarding();
     auto updateMinLinksThreshold =
         [this](int minLinksToJoin, int minLinksToRemain) {
           auto newCfg = initialConfig(*getAgentEnsemble());
@@ -403,9 +404,13 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, minVoqThresholdDrainUndrain) {
         masterLogicalFabricPortIds().size() + 10,
         masterLogicalFabricPortIds().size() + 5);
     assertPortAndDrainState(cfg::SwitchDrainState::DRAINED);
+    // Verify local forwarding works post drain due to min links
+    verifyLocalForwarding();
     // Bump up threshold beyond existing fabric links, switch should drain
     updateMinLinksThreshold(0, 0);
     assertPortAndDrainState(cfg::SwitchDrainState::UNDRAINED);
+    // Verify local forwarding works post undrain once min links are satisfied
+    verifyLocalForwarding();
   };
   verifyAcrossWarmBoots([]() {}, verify);
 }
