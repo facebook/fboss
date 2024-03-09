@@ -47,8 +47,6 @@ class CmdShowInterfaceTraffic : public CmdHandler<
   RetType queryClient(
       const HostInfo& hostInfo,
       const std::vector<std::string>& queriedIfs) {
-    RetType trafficEntries;
-
     auto client =
         utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(hostInfo);
 
