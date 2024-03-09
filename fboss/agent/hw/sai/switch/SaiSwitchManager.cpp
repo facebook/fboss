@@ -695,7 +695,9 @@ const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedDropStats() const {
     }
     if (isJerichoAsic(platform_->getAsic()->getAsicType())) {
       static const std::vector<sai_stat_id_t> kJerichoConfigDropStats{
-          SAI_SWITCH_STAT_OUT_CONFIGURED_DROP_REASONS_0_DROPPED_PKTS};
+          SAI_SWITCH_STAT_OUT_CONFIGURED_DROP_REASONS_0_DROPPED_PKTS,
+          SAI_SWITCH_STAT_OUT_CONFIGURED_DROP_REASONS_1_DROPPED_PKTS,
+      };
       stats.insert(
           stats.end(),
           kJerichoConfigDropStats.begin(),
@@ -712,8 +714,6 @@ const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedDropStats() const {
           SAI_SWITCH_STAT_IN_CONFIGURED_DROP_REASONS_4_DROPPED_PKTS,
           SAI_SWITCH_STAT_IN_CONFIGURED_DROP_REASONS_5_DROPPED_PKTS,
           SAI_SWITCH_STAT_IN_CONFIGURED_DROP_REASONS_6_DROPPED_PKTS,
-          // OUT configured drop reasons
-          SAI_SWITCH_STAT_OUT_CONFIGURED_DROP_REASONS_1_DROPPED_PKTS,
       };
       stats.insert(
           stats.end(),
