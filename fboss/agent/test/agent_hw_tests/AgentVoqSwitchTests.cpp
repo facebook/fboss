@@ -493,25 +493,13 @@ class AgentVoqSwitchWithFabricPortsStartDrained
         ensemble.masterLogicalFabricPortIds().size() + 5;
     return config;
   }
-  void SetUp() override {
-    AgentVoqSwitchWithFabricPortsTest::SetUp();
-    if (IsSkipped()) {
-      return;
-    }
-    for (const auto& switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
-      utility::checkFabricReachability(getAgentEnsemble(), switchId);
-      HwSwitchMatcher matcher(std::unordered_set<SwitchID>({switchId}));
-      const auto& switchSettings =
-          getProgrammedState()->getSwitchSettings()->getSwitchSettings(matcher);
-      EXPECT_TRUE(switchSettings->isSwitchDrained());
-    }
-    // In drained state all fabric ports should inactive
-    assertPortsActiveState(false);
-  }
 };
 
 TEST_F(AgentVoqSwitchWithFabricPortsStartDrained, assertLocalForwarding) {
-  // TODO
+  auto verify = [this]() {
+    assertPortAndDrainState(cfg::SwitchDrainState::DRAINED);
+  };
+  verifyAcrossWarmBoots([]() {}, verify);
 }
 
 TEST_F(AgentVoqSwitchWithFabricPortsTest, checkFabricPortSprayWithIsolate) {
