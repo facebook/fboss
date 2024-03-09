@@ -25,6 +25,7 @@ enum AclType {
   UDP_TTLD,
   SRC_PORT,
   SRC_PORT_DENY,
+  L4_DST_PORT,
   UDF,
   FLOWLET,
 };
@@ -89,6 +90,9 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
       case AclType::FLOWLET:
         aclName = "test-flowlet-acl";
         break;
+      case AclType::L4_DST_PORT:
+        aclName = "test-l4-port-acl";
+        break;
     }
     return aclName;
   }
@@ -113,6 +117,9 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
         break;
       case AclType::FLOWLET:
         counterName = "test-flowlet-acl-stats";
+        break;
+      case AclType::L4_DST_PORT:
+        counterName = "test-l4-port-acl-stats";
         break;
     }
     return counterName;
@@ -174,6 +181,10 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
     auto vlanId = utility::firstVlanID(initialConfig());
     auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+    int l4DstPort = kL4DstPort();
+    if (aclType == AclType::L4_DST_PORT) {
+      l4DstPort = kL4DstPort2();
+    }
 
     auto txPacket = aclType == AclType::UDP_TTLD ? utility::makeUDPTxPacket(
                                                        getHwSwitch(),
@@ -182,8 +193,8 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
                                                        intfMac, // dst mac
                                                        kSrcIP(),
                                                        kDstIP(),
-                                                       8000, // l4 src port
-                                                       8001, // l4 dst port
+                                                       kL4SrcPort(),
+                                                       l4DstPort,
                                                        0,
                                                        ttl)
                                                  : utility::makeTCPTxPacket(
@@ -193,8 +204,8 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
                                                        intfMac, // dst mac
                                                        kSrcIP(),
                                                        kDstIP(),
-                                                       8000, // l4 src port
-                                                       8001, // l4 dst port
+                                                       kL4SrcPort(),
+                                                       l4DstPort,
                                                        0,
                                                        ttl);
 
@@ -219,6 +230,18 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
 
   folly::IPAddressV6 kDstIP() {
     return folly::IPAddressV6("2620:0:1cfe:face:b00c::10");
+  }
+
+  int kL4SrcPort() const {
+    return 8000;
+  }
+
+  int kL4DstPort() const {
+    return 8001;
+  }
+
+  int kL4DstPort2() const {
+    return 8002;
   }
 
   // This test verifies if the ACL priorities are taking effect as expected.
@@ -248,6 +271,30 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
       verifyAclType(true, true, AclType::SRC_PORT);
       // Lower priority DENY ACL counter remains same
       verifyAclType(false, true, AclType::SRC_PORT_DENY);
+    };
+
+    verifyAcrossWarmBoots(setup, verify);
+  }
+
+  void aclPriorityTestHelper2() {
+    auto setup = [this]() {
+      applyNewState(helper_->resolveNextHops(getProgrammedState(), 2));
+      helper_->programRoutes(getRouteUpdater(), kEcmpWidth);
+      auto newCfg{initialConfig()};
+      // match on SRC_PORT=1 + L4_DST_PORT=8002
+      this->aclActionType_ = cfg::AclActionType::PERMIT;
+      addAclAndStat(&newCfg, AclType::L4_DST_PORT);
+      // match on SRC_PORT=1
+      this->aclActionType_ = cfg::AclActionType::DENY;
+      addAclAndStat(&newCfg, AclType::SRC_PORT);
+      applyNewConfig(newCfg);
+    };
+
+    auto verify = [this]() {
+      // Sends a packet with dst port 8002
+      verifyAclType(true, true, AclType::L4_DST_PORT);
+      // Sends a packet with dst port 8001
+      verifyAclType(true, true, AclType::SRC_PORT);
     };
 
     verifyAcrossWarmBoots(setup, verify);
@@ -368,6 +415,10 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
         break;
       case AclType::FLOWLET:
         break;
+      case AclType::L4_DST_PORT:
+        acl->srcPort() = helper_->ecmpPortDescriptorAt(0).phyPortID();
+        acl->l4DstPort() = kL4DstPort2();
+        break;
     }
     std::vector<cfg::CounterType> setCounterTypes{
         cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
@@ -391,6 +442,12 @@ TYPED_TEST(HwAclCounterTest, VerifyCounterBumpOnTtlHitFrontPanel) {
 TYPED_TEST(HwAclCounterTest, VerifyCounterBumpOnSportHitFrontPanel) {
   this->counterBumpOnHitHelper(
       true /* bump on hit */, true /* front panel port */, {AclType::SRC_PORT});
+}
+TYPED_TEST(HwAclCounterTest, VerifyCounterBumpOnL4DstportHitFrontPanel) {
+  this->counterBumpOnHitHelper(
+      true /* bump on hit */,
+      true /* front panel port */,
+      {AclType::L4_DST_PORT});
 }
 TYPED_TEST(HwAclCounterTest, VerifyCounterBumpOnSportHitFrontPanelWithDrop) {
   this->aclActionType_ = cfg::AclActionType::DENY;
@@ -428,6 +485,10 @@ TYPED_TEST(HwAclCounterTest, VerifyCounterNoHitNoBumpCpu) {
 
 TYPED_TEST(HwAclCounterTest, VerifyAclPrioritySportHitFrontPanel) {
   this->aclPriorityTestHelper();
+}
+
+TYPED_TEST(HwAclCounterTest, VerifyAclPriorityL4DstportHitFrontPanel) {
+  this->aclPriorityTestHelper2();
 }
 
 /*
