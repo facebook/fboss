@@ -10,10 +10,13 @@
 
 #pragma once
 
+#include "common/thrift/thrift/gen-cpp2/MonitorAsyncClient.h"
+#include "fboss/agent/if/gen-cpp2/FbossHwCtrl.h"
 #include "fboss/cli/fboss2/CmdGlobalOptions.h"
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/interface/CmdShowInterface.h"
 #include "fboss/cli/fboss2/commands/show/interface/traffic/gen-cpp2/model_types.h"
+#include "fboss/cli/fboss2/utils/CmdUtils.h"
 #include "fboss/cli/fboss2/utils/Table.h"
 #include "folly/executors/IOThreadPoolExecutor.h"
 
@@ -55,13 +58,29 @@ class CmdShowInterfaceTraffic : public CmdHandler<
     // Gather port stats asynchrounously
     auto portInfos =
         client->semifuture_getAllPortInfo().via(executor.getEventBase());
-    auto counters =
-        client->semifuture_getCounters().via(executor.getEventBase());
+
+    std::map<std::string, int64_t> counters;
+    if (utils::isFbossFeatureEnabled(hostInfo.getName(), "multi_switch")) {
+      auto hwAgentQueryFn =
+          [&counters](
+              apache::thrift::Client<facebook::fboss::FbossHwCtrl>& client) {
+            std::map<std::string, int64_t> hwAgentCounters;
+            apache::thrift::Client<facebook::thrift::Monitor> monitoringClient{
+                client.getChannelShared()};
+            monitoringClient.sync_getCounters(hwAgentCounters);
+            counters.merge(hwAgentCounters);
+          };
+      utils::runOnAllHwAgents(hostInfo, hwAgentQueryFn);
+    } else {
+      auto entries =
+          client->semifuture_getCounters().via(executor.getEventBase());
+      entries.wait();
+      counters = entries.value();
+    }
 
     portInfos.wait();
-    counters.wait();
 
-    return createModel(portInfos.value(), counters.value(), queriedIfs);
+    return createModel(portInfos.value(), counters, queriedIfs);
   }
 
   RetType createModel(
