@@ -2842,17 +2842,8 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAclsImpl(
   AclMap::NodeContainer newAcls;
   bool changed = false;
   int numExistingProcessed = 0;
-  int dropPriority = AclTable::kDataplaneAclMaxPriority;
   int dataPriority = AclTable::kDataplaneAclMaxPriority;
   int cpuPriority = 1;
-
-  // Start with the DROP acls, these should have highest priority
-  // move the data ACL priorities to start after drop priorities
-  for (const auto& entry : configEntries) {
-    if (*entry.actionType() == cfg::AclActionType::DENY) {
-      dataPriority++;
-    }
-  }
 
   flat_map<std::string, const cfg::TrafficCounter*> counterByName;
   folly::gen::from(*cfg_->trafficCounters()) |
@@ -2968,15 +2959,10 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAclsImpl(
         ma = &matchAction;
       }
 
-      int priority = (*aclCfg.actionType() == cfg::AclActionType::DENY)
-          ? dropPriority++
-          : isCoppAcl ? cpuPriority++
-                      : dataPriority++;
-
       auto acl = updateAcl(
           aclStage,
           aclCfg,
-          priority,
+          isCoppAcl ? cpuPriority++ : dataPriority++,
           &numExistingProcessed,
           &changed,
           tableName,

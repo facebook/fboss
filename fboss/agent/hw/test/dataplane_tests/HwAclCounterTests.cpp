@@ -227,12 +227,6 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
   // 2. Install DENY ACL matching on SRC_PORT
   //
   // The expectation here is both ACLs are hit and PERMIT ACL gets priority.
-  // With current ACL implementation, all DENY ACLs are automatically given
-  // higher priority. So DENY counter goes up and PERMIT counter will not
-  // change.
-  //
-  // The above observation is not what is expected and this test will pass
-  // although it is functionally incorrect.
   void aclPriorityTestHelper() {
     auto setup = [this]() {
       applyNewState(helper_->resolveNextHops(getProgrammedState(), 2));
@@ -247,14 +241,13 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
 
     auto verify = [this]() {
       // The first parameter in both invocations is bumpOnHit.
-      // True means the verifier checks if counter increment for the DENY ACL
-      // False means the PERMIT ACL counter did not change.
+      // True means the verifier checks if counter increment for the PERMIT ACL
+      // False means the DENY ACL counter did not change.
       //
-      // The observed behavior as explained is opposite of what is expected
-      // Lower priority DENY ACL counter went up
-      verifyAclType(true, true, AclType::SRC_PORT_DENY);
-      // Higher priority PERMIT ACL counter remains same
-      verifyAclType(false, true, AclType::SRC_PORT);
+      // Higher priority PERMIT ACL counter went up
+      verifyAclType(true, true, AclType::SRC_PORT);
+      // Lower priority DENY ACL counter remains same
+      verifyAclType(false, true, AclType::SRC_PORT_DENY);
     };
 
     verifyAcrossWarmBoots(setup, verify);
