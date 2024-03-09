@@ -152,6 +152,11 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           getCounterPrefix() + vendor + ".forwardingQueueProcessor.errors",
           SUM,
           RATE),
+      allReassemblyContextsTaken_(
+          map,
+          getCounterPrefix() + vendor + ".allReassemblyContextsTaken",
+          SUM,
+          RATE),
       hwInitializedTimeMs_(
           map,
           getCounterPrefix() + vendor + ".hw_initialized_time_ms",

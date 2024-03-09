@@ -77,6 +77,9 @@ class HwSwitchFb303Stats {
   void forwardingQueueProcessorError() {
     forwardingQueueProcessorErrors_.addValue(1);
   }
+  void allReassemblyContextsTaken() {
+    allReassemblyContextsTaken_.addValue(1);
+  }
   void hwInitializedTime(uint64_t ms) {
     hwInitializedTimeMs_.addValue(ms);
   }
@@ -210,6 +213,7 @@ class HwSwitchFb303Stats {
   TLTimeseries epniErrors_;
   TLTimeseries alignerErrors_;
   TLTimeseries forwardingQueueProcessorErrors_;
+  TLTimeseries allReassemblyContextsTaken_;
   TLTimeseries hwInitializedTimeMs_;
   TLTimeseries bootTimeMs_;
   TLTimeseries coldBoot_;
