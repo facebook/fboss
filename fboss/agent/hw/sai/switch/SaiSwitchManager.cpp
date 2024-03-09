@@ -81,8 +81,17 @@ void fillHwSwitchDropStats(
       throw FbossError("Configured drop reason stats only supported for J2/J3");
     }
     switch (counterId) {
+      /*
+       * SAI_SWITCH_STAT_OUT_CONFIGURED_DROP_REASONS_0_DROPPED_PKTS -
+       * FDR cell drops
+       * SAI_SWITCH_STAT_OUT_CONFIGURED_DROP_REASONS_1_DROPPED_PKTS -
+       * Reassembly drops due to corrupted cells
+       */
       case SAI_SWITCH_STAT_OUT_CONFIGURED_DROP_REASONS_0_DROPPED_PKTS:
         dropStats.fdrCellDrops() = val;
+        break;
+      case SAI_SWITCH_STAT_OUT_CONFIGURED_DROP_REASONS_1_DROPPED_PKTS:
+        dropStats.corruptedCellPacketIntegrityDrops() = val;
         break;
       /*
        * From CS00012306170
@@ -148,6 +157,7 @@ void fillHwSwitchDropStats(
       case SAI_SWITCH_STAT_IN_CONFIGURED_DROP_REASONS_5_DROPPED_PKTS:
       case SAI_SWITCH_STAT_IN_CONFIGURED_DROP_REASONS_6_DROPPED_PKTS:
       case SAI_SWITCH_STAT_OUT_CONFIGURED_DROP_REASONS_0_DROPPED_PKTS:
+      case SAI_SWITCH_STAT_OUT_CONFIGURED_DROP_REASONS_1_DROPPED_PKTS:
         fillAsicSpecificCounter(counterId, value, asicType, hwSwitchDropStats);
         break;
       default:
@@ -694,6 +704,7 @@ const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedDropStats() const {
     if (platform_->getAsic()->getAsicType() ==
         cfg::AsicType::ASIC_TYPE_JERICHO3) {
       static const std::vector<sai_stat_id_t> kJericho3ConfigDropStats{
+          // IN configured drop reasons
           SAI_SWITCH_STAT_IN_CONFIGURED_DROP_REASONS_0_DROPPED_PKTS,
           SAI_SWITCH_STAT_IN_CONFIGURED_DROP_REASONS_1_DROPPED_PKTS,
           SAI_SWITCH_STAT_IN_CONFIGURED_DROP_REASONS_2_DROPPED_PKTS,
@@ -701,6 +712,8 @@ const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedDropStats() const {
           SAI_SWITCH_STAT_IN_CONFIGURED_DROP_REASONS_4_DROPPED_PKTS,
           SAI_SWITCH_STAT_IN_CONFIGURED_DROP_REASONS_5_DROPPED_PKTS,
           SAI_SWITCH_STAT_IN_CONFIGURED_DROP_REASONS_6_DROPPED_PKTS,
+          // OUT configured drop reasons
+          SAI_SWITCH_STAT_OUT_CONFIGURED_DROP_REASONS_1_DROPPED_PKTS,
       };
       stats.insert(
           stats.end(),
