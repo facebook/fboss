@@ -26,6 +26,7 @@ class SaiCloudRipperPlatform : public SaiTajoPlatform {
 
   std::vector<sai_system_port_config_t> getInternalSystemPortConfig()
       const override;
+  const std::set<sai_api_t>& getSupportedApiList() const override;
 
  private:
   void setupAsic(

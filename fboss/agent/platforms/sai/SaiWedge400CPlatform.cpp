@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/platforms/sai/SaiWedge400CPlatform.h"
+#include "fboss/agent/hw/sai/api/UdfApi.h"
 #include "fboss/agent/hw/switch_asics/EbroAsic.h"
 #include "fboss/agent/platforms/common/wedge400c/Wedge400CGrandTetonPlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge400c/Wedge400CPlatformMapping.h"
@@ -96,6 +97,12 @@ SaiWedge400CPlatform::createWedge400CPlatformMapping(
   return platformMappingStr.empty()
       ? std::make_unique<Wedge400CPlatformMapping>()
       : std::make_unique<Wedge400CPlatformMapping>(platformMappingStr);
+}
+
+const std::set<sai_api_t>& SaiWedge400CPlatform::getSupportedApiList() const {
+  static auto apis = getDefaultSwitchAsicSupportedApis();
+  apis.erase(facebook::fboss::UdfApi::ApiType);
+  return apis;
 }
 
 } // namespace facebook::fboss

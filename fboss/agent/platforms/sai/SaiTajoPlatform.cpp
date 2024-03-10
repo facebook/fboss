@@ -28,9 +28,7 @@ SaiTajoPlatform::getAclFieldList() const {
 }
 
 const std::set<sai_api_t>& SaiTajoPlatform::getSupportedApiList() const {
-  static auto apis = getDefaultSwitchAsicSupportedApis();
-  apis.erase(facebook::fboss::UdfApi::ApiType);
-  return apis;
+  return getDefaultSwitchAsicSupportedApis();
 }
 
 SaiTajoPlatform::~SaiTajoPlatform() {}
