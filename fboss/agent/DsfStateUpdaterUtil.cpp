@@ -58,6 +58,8 @@ std::shared_ptr<SwitchState> DsfStateUpdaterUtil::getUpdatedState(
     auto nbrEntryIter = clonedTable->begin();
     while (nbrEntryIter != clonedTable->end()) {
       if (skipProgramming(nbrEntryIter)) {
+        XLOG(DBG2) << "Skip programming remote neighbor: "
+                   << nbrEntryIter->second->str();
         nbrEntryIter = clonedTable->erase(nbrEntryIter);
       } else {
         // Entries received from remote are non-Local on current node
@@ -65,6 +67,8 @@ std::shared_ptr<SwitchState> DsfStateUpdaterUtil::getUpdatedState(
         // Entries received from remote always need to be programmed
         nbrEntryIter->second->setNoHostRoute(false);
         updateResolvedTimestamp(oldTable, nbrEntryIter);
+        XLOG(DBG2) << "Program remote neighbor: "
+                   << nbrEntryIter->second->str();
         ++nbrEntryIter;
       }
     }
