@@ -2,6 +2,7 @@
 
 #include "fboss/agent/DsfSubscriber.h"
 #include <fb303/ServiceData.h>
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/DsfStateUpdaterUtil.h"
 #include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/SwSwitch.h"
@@ -124,6 +125,10 @@ void DsfSubscriber::scheduleUpdate(
 }
 
 void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
+  if (!FLAGS_dsf_subscribe) {
+    return;
+  }
+
   // Setup Fsdb subscriber if we have switch ids of type VOQ
   auto voqSwitchIds =
       sw_->getSwitchInfoTable().getSwitchIdsOfType(cfg::SwitchType::VOQ);
