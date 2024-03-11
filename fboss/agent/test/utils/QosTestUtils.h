@@ -117,4 +117,17 @@ void ttlDecrementHandlingForLoopbackTraffic(
     disableTTLDecrements(hw, routerId, nhop);
   }
 }
+
+void verifyQueueHit(
+    const HwPortStats& portStatsBefore,
+    int queueId,
+    SwSwitch* sw,
+    facebook::fboss::PortID egressPort);
+
+bool queueHit(
+    const HwPortStats& portStatsBefore,
+    int queueId,
+    SwSwitch* sw,
+    facebook::fboss::PortID egressPort);
+
 } // namespace facebook::fboss::utility

@@ -4,6 +4,9 @@
 #include <folly/IPAddressV4.h>
 
 #include "fboss/agent/state/Port.h"
+#include "fboss/lib/CommonUtils.h"
+
+#include <gtest/gtest.h>
 
 namespace facebook::fboss::utility {
 
@@ -108,6 +111,44 @@ void disableTTLDecrements(
         return newState;
       },
       "Disable TTL decrements on next hop: " + nhop.str());
+}
+
+bool queueHit(
+    const HwPortStats& portStatsBefore,
+    int queueId,
+    SwSwitch* sw,
+    facebook::fboss::PortID egressPort) {
+  auto queuePacketsBefore = portStatsBefore.queueOutPackets_()->find(queueId) !=
+          portStatsBefore.queueOutPackets_()->end()
+      ? portStatsBefore.queueOutPackets_()->find(queueId)->second
+      : 0;
+  int64_t queuePacketsAfter = 0;
+  auto latestPortStats = sw->getHwPortStats({egressPort});
+  if (latestPortStats.find(egressPort) != latestPortStats.end()) {
+    auto portStatsAfter = latestPortStats[egressPort];
+    if (portStatsAfter.queueOutPackets_()->find(queueId) !=
+        portStatsAfter.queueOutPackets_()->end()) {
+      queuePacketsAfter = portStatsAfter.queueOutPackets_()[queueId];
+    }
+  }
+  // Note, on some platforms, due to how loopbacked packets are pruned
+  // from being broadcast, they will appear more than once on a queue
+  // counter, so we can only check that the counter went up, not that it
+  // went up by exactly one.
+  XLOG(DBG2) << "Port ID: " << egressPort << " queue: " << queueId
+             << " queuePacketsBefore " << queuePacketsBefore
+             << " queuePacketsAfter " << queuePacketsAfter;
+  return queuePacketsAfter > queuePacketsBefore;
+}
+
+void verifyQueueHit(
+    const HwPortStats& portStatsBefore,
+    int queueId,
+    SwSwitch* sw,
+    facebook::fboss::PortID egressPort) {
+  WITH_RETRIES({
+    EXPECT_EVENTUALLY_TRUE(queueHit(portStatsBefore, queueId, sw, egressPort));
+  });
 }
 
 } // namespace facebook::fboss::utility

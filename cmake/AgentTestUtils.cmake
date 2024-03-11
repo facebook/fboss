@@ -115,6 +115,7 @@ add_library(qos_test_utils
 )
 
 target_link_libraries(qos_test_utils
+  common_test_utils
   ecmp_helper
   fboss_types
   switch_asics
