@@ -131,3 +131,18 @@ target_link_libraries(load_balancer_test_utils
   state
   Folly::folly
 )
+
+add_library(dscp_marking_utils
+  fboss/agent/test/utils/DscpMarkingUtils.cpp
+)
+
+target_link_libraries(dscp_marking_utils
+  acl_test_utils
+  config_utils
+  olympic_qos_utils
+  traffic_policy_utils
+  fboss_types
+  packet_factory
+  Folly::folly
+  switch_config_cpp2
+)

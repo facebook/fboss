@@ -165,6 +165,11 @@ cfg::SwitchConfig twoL3IntfConfig(
     PortID port2,
     const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap =
         kDefaultLoopbackMap());
+void addMatcher(
+    cfg::SwitchConfig* config,
+    const std::string& matcherName,
+    const cfg::MatchAction& matchAction);
+void delMatcher(cfg::SwitchConfig* config, const std::string& matcherName);
 
 /*
  * Currently we rely on port max speed to set the PortProfileID in the default

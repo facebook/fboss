@@ -8,10 +8,10 @@
  *
  */
 
-#include "fboss/agent/hw/test/dataplane_tests/HwTestDscpMarkingUtils.h"
+#include "fboss/agent/test/utils/DscpMarkingUtils.h"
 
-#include "fboss/agent/hw/test/ConfigFactory.h"
-#include "fboss/agent/hw/test/HwTestAclUtils.h"
+#include "fboss/agent/test/utils/AclTestUtils.h"
+#include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/agent/test/utils/TrafficPolicyTestUtils.h"
 

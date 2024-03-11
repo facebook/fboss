@@ -209,40 +209,6 @@ cfg::SwitchConfig twoL3IntfConfig(
       lbModeMap);
 }
 
-void addMatcher(
-    cfg::SwitchConfig* config,
-    const std::string& matcherName,
-    const cfg::MatchAction& matchAction) {
-  cfg::MatchToAction action = cfg::MatchToAction();
-  *action.matcher() = matcherName;
-  *action.action() = matchAction;
-  cfg::TrafficPolicyConfig egressTrafficPolicy;
-  if (auto dataPlaneTrafficPolicy = config->dataPlaneTrafficPolicy()) {
-    egressTrafficPolicy = *dataPlaneTrafficPolicy;
-  }
-  auto curNumMatchActions = egressTrafficPolicy.matchToAction()->size();
-  egressTrafficPolicy.matchToAction()->resize(curNumMatchActions + 1);
-  egressTrafficPolicy.matchToAction()[curNumMatchActions] = action;
-  config->dataPlaneTrafficPolicy() = egressTrafficPolicy;
-}
-
-void delMatcher(cfg::SwitchConfig* config, const std::string& matcherName) {
-  if (auto dataPlaneTrafficPolicy = config->dataPlaneTrafficPolicy()) {
-    auto& matchActions = *dataPlaneTrafficPolicy->matchToAction();
-    matchActions.erase(
-        std::remove_if(
-            matchActions.begin(),
-            matchActions.end(),
-            [&](cfg::MatchToAction const& matchAction) {
-              if (*matchAction.matcher() == matcherName) {
-                return true;
-              }
-              return false;
-            }),
-        matchActions.end());
-  }
-}
-
 void updatePortSpeed(
     const PlatformMapping* platformMapping,
     bool supportsAddRemovePort,

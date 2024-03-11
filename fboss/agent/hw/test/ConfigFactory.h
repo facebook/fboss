@@ -84,11 +84,6 @@ void configurePortProfile(
     PortID controllingPortID);
 std::string getAsicChipFromPortID(const HwSwitch* hwSwitch, PortID id);
 
-void addMatcher(
-    cfg::SwitchConfig* config,
-    const std::string& matcherName,
-    const cfg::MatchAction& matchAction);
-void delMatcher(cfg::SwitchConfig* config, const std::string& matcherName);
 std::vector<PortID> getAllPortsInGroup(
     const PlatformMapping* platformMapping,
     PortID portID);
