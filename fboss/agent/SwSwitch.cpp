@@ -3095,6 +3095,13 @@ bool SwSwitch::needL2EntryForNeighbor() const {
 void SwSwitch::updateHwSwitchStats(
     uint16_t switchIndex,
     multiswitch::HwSwitchStats hwStats) {
+  // Ignore empty stats updates. These are seen along with
+  // regular updates probably due to large size of messages.
+  // TODO - investigate and remove this
+  if (hwStats.timestamp().value() == 0) {
+    XLOG(DBG3) << "Ignoring HwSwitchStats with empty contents";
+    return;
+  }
   (*hwSwitchStats_.wlock())[switchIndex] = std::move(hwStats);
 }
 
