@@ -2303,10 +2303,24 @@
   },
   "bspKmodsRpmName": "fboss_bsp_kmods",
   "bspKmodsRpmVersion": "1.0.2-1",
-  "kmodsToReload": [
-    "fbiob-pci",
-    "i2c-fbiob",
-    "spi-fbiob",
-    "gpio-fbiob"
+  "bspKmodsToReload": [
+    "janga_smbcpld",
+    "mtia_smbcpld1",
+    "fbiob_pci",
+    "fpga_info",
+    "gpio_fbiob",
+    "i2c_fbiob",
+    "mcbcpld",
+    "port_led",
+    "spi_fbiob",
+    "xcvr_ctrl"
+  ],
+  "sharedKmodsToReload": [
+    "i2c_dev_sysfs",
+    "regbit_sysfs"
+  ],
+  "upstreamKmodsToLoad": [
+    "i2c_i801",
+    "spidev"
   ]
 }

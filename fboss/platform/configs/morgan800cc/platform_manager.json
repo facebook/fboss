@@ -3285,7 +3285,7 @@
   },
   "bspKmodsRpmName": "cisco_bsp_kmods",
   "bspKmodsRpmVersion": "0.1.5-1",
-  "kmodsToReload": [
+  "bspKmodsToReload": [
     "cisco-fpga-pci",
     "cisco_fpga_spi",
     "cisco_fpga_gled",
@@ -3294,5 +3294,13 @@
     "cisco_fpga_i2c_ext",
     "cisco_fpga_xcvr",
     "cisco_fpga_info"
+  ],
+  "sharedKmodsToReload": [
+    "cisco_meta",
+    "cisco_util"
+  ],
+  "upstreamKmodsToLoad": [
+    "spidev",
+    "i2c_i801"
   ]
 }

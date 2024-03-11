@@ -4441,13 +4441,19 @@
   },
   "bspKmodsRpmName": "arista_bsp_kmods",
   "bspKmodsRpmVersion": "0.5.2-1",
-  "kmodsToReload": [
+  "bspKmodsToReload": [
     "scd-xcvr",
     "scd-spi",
     "scd-leds",
     "scd-smbus",
-    "scd",
     "dsf-fan-cpld",
     "decker-cpld"
+  ],
+  "sharedKmodsToReload": [
+    "scd"
+  ],
+  "upstreamKmodsToLoad": [
+    "spidev",
+    "i2c-i801"
   ]
 }
