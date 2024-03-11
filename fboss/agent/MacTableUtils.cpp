@@ -147,7 +147,9 @@ std::shared_ptr<SwitchState> MacTableUtils::updateOrAddStaticEntry(
     folly::MacAddress mac) {
   auto existingMacEntry = getMacEntry(state, vlanId, mac);
   if (existingMacEntry &&
-      existingMacEntry->getType() == MacEntryType::STATIC_ENTRY) {
+      existingMacEntry->getType() == MacEntryType::STATIC_ENTRY &&
+      existingMacEntry->getPort() == port) {
+    XLOG(DBG2) << "no change to static mac entry, do nothing";
     return state;
   }
   auto newState = state->clone();

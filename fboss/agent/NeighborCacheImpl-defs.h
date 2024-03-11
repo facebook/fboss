@@ -247,8 +247,10 @@ SwSwitch::StateUpdateFn NeighborCacheImpl<NTable>::getUpdateFnToProgramEntry(
                  nbrEntry);
     } else {
       if (node->getMac() == fields.mac &&
-          (switchType != cfg::SwitchType::VOQ ||
-           node->getPort().sysPortIDIf() == systemPortID) &&
+          ((switchType != cfg::SwitchType::VOQ &&
+            node->getPort().phyPortID() == fields.port.phyPortID()) ||
+           (switchType == cfg::SwitchType::VOQ &&
+            node->getPort().sysPortIDIf() == systemPortID)) &&
           node->getIntfID() == interfaceID &&
           node->getState() == fields.state && !node->isPending() &&
           node->getClassID() == fields.classID) {

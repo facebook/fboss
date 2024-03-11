@@ -74,7 +74,8 @@ void StaticL2ForNeighborUpdater::processChanged(
   assertNeighborEntry(*oldEntry);
   assertNeighborEntry(*newEntry);
   if ((isReachable(oldEntry) != isReachable(newEntry)) ||
-      (oldEntry->getMac() != newEntry->getMac())) {
+      (oldEntry->getMac() != newEntry->getMac()) ||
+      (oldEntry->getPort() != newEntry->getPort())) {
     XLOG(DBG2) << " Neighbor entry changed, old: " << oldEntry->str()
                << " new: " << newEntry->str();
     processRemoved<NeighborEntryT>(stateDelta.oldState(), vlan, oldEntry);
