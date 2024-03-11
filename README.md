@@ -68,7 +68,7 @@ However, note that this initial release of FBOSS will likely require
 modification and additional development to support other network configurations
 beyond the features used by Facebook.  Until it matures more, FBOSS will likely
 be primarily of interest to network software developers, rather than to network
-administrators who are hoping to use it as an turnkey solution.
+administrators who are hoping to use it as a turnkey solution.
 
 We look forward to getting feedback from the community, and we hope FBOSS can
 serve as a jumping-off point for other users wishing to program network
