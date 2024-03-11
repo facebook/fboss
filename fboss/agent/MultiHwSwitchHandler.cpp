@@ -520,4 +520,12 @@ void MultiHwSwitchHandler::fillHwAgentConnectionStatus(AgentStats& agentStats) {
   }
 }
 
+AclStats MultiHwSwitchHandler::getAclStats() {
+  if (hwSwitchSyncers_.size() > 1) {
+    XLOG(ERR) << "getAclStats() is not supported for multi switch";
+    return AclStats();
+  }
+  return hwSwitchSyncers_.begin()->second->getAclStats();
+}
+
 } // namespace facebook::fboss

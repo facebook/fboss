@@ -241,4 +241,8 @@ SwitchRunState MonolithicHwSwitchHandler::getHwSwitchRunState() {
   return hw_->getRunState();
 }
 
+AclStats MonolithicHwSwitchHandler::getAclStats() const {
+  return hw_->getAclStats();
+}
+
 } // namespace facebook::fboss

@@ -139,6 +139,8 @@ class MonolithicHwSwitchHandler : public HwSwitchHandler {
 
   void cancelOperDeltaSync() override {}
 
+  AclStats getAclStats() const override;
+
  private:
   Platform* platform_;
   HwSwitch* hw_;

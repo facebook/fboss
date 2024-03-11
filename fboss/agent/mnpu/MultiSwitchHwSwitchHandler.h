@@ -126,6 +126,10 @@ class MultiSwitchHwSwitchHandler : public HwSwitchHandler {
 
   std::vector<EcmpDetails> getAllEcmpDetails() const override;
 
+  AclStats getAclStats() const override {
+    return AclStats();
+  }
+
  private:
   bool checkOperSyncStateLocked(
       HwSwitchOperDeltaSyncState state,
