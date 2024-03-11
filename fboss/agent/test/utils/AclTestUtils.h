@@ -15,6 +15,8 @@
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/SwitchState.h"
 
+class SwSwitch;
+
 namespace facebook::fboss::utility {
 
 std::string kDefaultAclTable();
@@ -89,5 +91,10 @@ void renameAclStat(
     const std::string& newCounterName);
 
 std::vector<cfg::CounterType> getAclCounterTypes(const HwAsic* asic);
+
+uint64_t getAclInOutPackets(
+    const SwSwitch* sw,
+    const std::string& statName,
+    bool bytes = false);
 
 } // namespace facebook::fboss::utility

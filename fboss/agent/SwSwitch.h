@@ -942,6 +942,7 @@ class SwSwitch : public HwSwitchCallback {
   void getAllHwPortStats(std::map<std::string, HwPortStats>& hwPortStats) const;
   void getAllCpuPortStats(std::map<int, CpuPortStats>& hwCpuPortStats) const;
   bool isRunModeMultiSwitch();
+  int64_t getAclStats(const std::string& statName) const;
 
  private:
   std::optional<folly::MacAddress> getSourceMac(

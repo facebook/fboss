@@ -3158,4 +3158,17 @@ std::map<PortID, HwPortStats> SwSwitch::getHwPortStats(
   return hwPortsStats;
 }
 
+int64_t SwSwitch::getAclStats(const std::string& statName) const {
+  int64_t statValue = 0;
+  auto hwswitchStatsMap = hwSwitchStats_.rlock();
+  for (const auto& [switchIndex, hwswitchStats] : *hwswitchStatsMap) {
+    auto aclStats = hwswitchStats.aclStats();
+    auto entry = aclStats->statNameToCounterMap()->find(statName);
+    if (entry != aclStats->statNameToCounterMap()->end()) {
+      statValue += entry->second;
+    }
+  }
+  return statValue;
+}
+
 } // namespace facebook::fboss
