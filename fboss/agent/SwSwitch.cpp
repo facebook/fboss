@@ -792,6 +792,7 @@ void SwSwitch::updateStats() {
     hwStats.flowletStats() = getHwFlowletStats();
     hwStats.cpuPortStats() =
         multiHwSwitchHandler_->getCpuPortStats(false /*getIncrement*/);
+    hwStats.aclStats() = multiHwSwitchHandler_->getAclStats();
     updateHwSwitchStats(0 /*switchIndex*/, std::move(hwStats));
   }
   updateFlowletStats();

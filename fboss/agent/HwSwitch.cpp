@@ -169,6 +169,7 @@ multiswitch::HwSwitchStats HwSwitch::getHwSwitchStats() {
   hwSwitchStats.cpuPortStats() = getCpuPortStats(false /*getIncrement*/);
   hwSwitchStats.switchDropStats() = getSwitchDropStats();
   hwSwitchStats.flowletStats() = getHwFlowletStats();
+  hwSwitchStats.aclStats() = getAclStats();
   return hwSwitchStats;
 }
 
