@@ -174,38 +174,9 @@ static void enableAclChecker(
   }
 }
 
-int fsdbMain(int argc, char** argv) {
-  auto fsdbConfig = parseConfig(argc, argv);
-  initFlagDefaults(fsdbConfig->getThrift().get_defaultCommandLineArgs());
-
-  if (FLAGS_memoryProfiling) {
-    setenv("MALLOC_CONF", "prof:true", 1); // Enable heap profile
-  }
-
-  auto trustedSubnets =
-      getTrustedSubnets(fsdbConfig->getThrift().get_trustedSubnets());
-
-  facebook::fboss::fbossInit(argc, argv);
-  auto handler = std::make_shared<ServiceHandler>(
-      std::move(fsdbConfig),
-      FLAGS_publisherIdsToOpenRocksDbAtStartFor,
-      ServiceHandler::Options().setServeIdPathSubs(FLAGS_useIdPathsForSubs));
-
-  auto instance = std::make_shared<services::ServiceFrameworkLight>(
-      "FsdbService",
-      true /* threadsafe */,
-      services::ServiceFrameworkLight::Options()
-          .setDisableScubaLogging(true)
-          .setDisableRequestIdLogging(true));
-
-  auto evbThread =
-      std::make_shared<folly::ScopedEventBaseThread>("fsdbSigHandlerThread");
-  SignalHandler signalHandler(
-      evbThread->getEventBase(), [instance]() { instance->stop(); });
-
-  facebook::fb303::ThreadCachedServiceData::get()->startPublishThread(
-      std::chrono::milliseconds(FLAGS_stat_publish_interval_ms));
-
+static std::shared_ptr<apache::thrift::ThriftServer> createThriftServer(
+    std::shared_ptr<FsdbConfig> fsdbConfig,
+    std::shared_ptr<ServiceHandler> handler) {
   auto server = std::make_shared<apache::thrift::ThriftServer>();
   server->setInterface(handler);
   std::vector<folly::SocketAddress> addresses;
@@ -222,22 +193,59 @@ int fsdbMain(int argc, char** argv) {
   server->setQuickExitOnShutdownTimeout(true);
   server->setTosReflect(FLAGS_enable_tos_reflect);
   server->setSSLPolicy(getThriftServerSSLPolicy());
-  enableAclChecker(instance);
+  if (FLAGS_enable_thrift_acceptor) {
+    auto trustedSubnets =
+        getTrustedSubnets(fsdbConfig->getThrift().get_trustedSubnets());
+    server->setAcceptorFactory(
+        std::make_shared<FsdbThriftAcceptorFactory<void>>(
+            server.get(), std::nullopt, trustedSubnets));
+  }
+  return server;
+}
 
+static void startThriftServer(
+    std::shared_ptr<apache::thrift::ThriftServer> server,
+    std::shared_ptr<ServiceHandler> handler) {
+  auto instance = std::make_shared<services::ServiceFrameworkLight>(
+      "FsdbService",
+      true /* threadsafe */,
+      services::ServiceFrameworkLight::Options()
+          .setDisableScubaLogging(true)
+          .setDisableRequestIdLogging(true));
+
+  auto evbThread =
+      std::make_shared<folly::ScopedEventBaseThread>("fsdbSigHandlerThread");
+  SignalHandler signalHandler(
+      evbThread->getEventBase(), [instance]() { instance->stop(); });
+
+  facebook::fb303::ThreadCachedServiceData::get()->startPublishThread(
+      std::chrono::milliseconds(FLAGS_stat_publish_interval_ms));
+
+  enableAclChecker(instance);
   instance->addPrimaryThriftService(
       server,
       handler.get(),
       services::ServiceFrameworkLight::ServerOptions()
           .setExportUnprefixedCounters(false));
 
-  if (FLAGS_enable_thrift_acceptor) {
-    server->setAcceptorFactory(
-        std::make_shared<FsdbThriftAcceptorFactory<void>>(
-            server.get(), std::nullopt, trustedSubnets));
-  }
-
   instance->go();
+}
 
+int fsdbMain(int argc, char** argv) {
+  auto fsdbConfig = parseConfig(argc, argv);
+  initFlagDefaults(fsdbConfig->getThrift().get_defaultCommandLineArgs());
+
+  if (FLAGS_memoryProfiling) {
+    setenv("MALLOC_CONF", "prof:true", 1); // Enable heap profile
+  }
+  facebook::fboss::fbossInit(argc, argv);
+
+  auto handler = std::make_shared<ServiceHandler>(
+      fsdbConfig,
+      FLAGS_publisherIdsToOpenRocksDbAtStartFor,
+      ServiceHandler::Options().setServeIdPathSubs(FLAGS_useIdPathsForSubs));
+  auto server = createThriftServer(fsdbConfig, handler);
+  startThriftServer(server, handler);
   return 0;
 }
 
