@@ -644,6 +644,9 @@ TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
         return getLatestSysPortStats(getSystemPortID(kPort))
             .get_queueOutBytes_();
       };
+      auto getAclPackets = [this]() {
+        return utility::getAclInOutPackets(getSw(), kDscpAclCounterName());
+      };
 
       auto printQueueStats = [](std::string queueStatDesc,
                                 std::string packetsOrBytes,
@@ -674,6 +677,10 @@ TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
 
       auto [beforeOutPkts, beforeOutBytes] =
           getPortOutPktsBytes(kPort.phyPortID());
+      auto beforeAclPkts =
+          isSupportedOnAllAsics(HwAsic::Feature::ACL_TABLE_GROUP)
+          ? getAclPackets()
+          : 0;
       std::optional<PortID> frontPanelPort;
       uint64_t beforeFrontPanelOutBytes{0}, beforeFrontPanelOutPkts{0};
       if (isFrontPanel) {
@@ -696,6 +703,10 @@ TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
               afterVoQOutBytes = afterAllVoQOutBytes.at(kDefaultQueue);
               printQueueStats("After VoQ Out", "Bytes", afterAllVoQOutBytes);
             }
+            auto afterAclPkts =
+                isSupportedOnAllAsics(HwAsic::Feature::ACL_TABLE_GROUP)
+                ? getAclPackets()
+                : 0;
             auto portOutPktsAndBytes = getPortOutPktsBytes(kPort.phyPortID());
             auto afterOutPkts = portOutPktsAndBytes.first;
             auto afterOutBytes = portOutPktsAndBytes.second;
@@ -722,6 +733,7 @@ TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
                        << " afterQueueOutPkts: " << afterQueueOutPkts
                        << " afterQueueOutBytes: " << afterQueueOutBytes
                        << " afterVoQOutBytes: " << afterVoQOutBytes
+                       << " afterAclPkts: " << afterAclPkts
                        << " afterFrontPanelPkts: " << afterFrontPanelOutPkts
                        << " afterFrontPanelBytes: " << afterFrontPanelOutBytes
                        << " afterRecyclePkts: " << afterRecyclePkts;
@@ -743,6 +755,9 @@ TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
               // CS00012267635: debug why queue counter is 310, when
               // txPacketSize is 322
               EXPECT_EVENTUALLY_GE(afterQueueOutBytes, beforeQueueOutBytes);
+            }
+            if (isSupportedOnAllAsics(HwAsic::Feature::ACL_TABLE_GROUP)) {
+              EXPECT_EVENTUALLY_GT(afterAclPkts, beforeAclPkts);
             }
             if (isSupportedOnAllAsics(HwAsic::Feature::VOQ)) {
               EXPECT_EVENTUALLY_GT(afterVoQOutBytes, beforeVoQOutBytes);
