@@ -56,6 +56,17 @@ target_link_libraries(sensor_service
   fb303::fb303
 )
 
+add_executable(sensor_service_client
+  fboss/platform/sensor_service/SensorServicePlainTextClient.cpp
+)
+
+target_link_libraries(sensor_service_client
+  sensor_service_cpp2
+  platform_utils
+  Folly::folly
+  FBThrift::thriftcpp2
+)
+
 install(TARGETS sensor_service)
 
 add_executable(sensor_service_hw_test
