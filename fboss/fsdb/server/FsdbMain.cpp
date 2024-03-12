@@ -1,6 +1,5 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-#include "fboss/fsdb/server/FsdbMain.h"
 #include <gflags/gflags.h>
 #include "fboss/agent/FbossInit.h"
 #include "fboss/fsdb/server/Server.h"
