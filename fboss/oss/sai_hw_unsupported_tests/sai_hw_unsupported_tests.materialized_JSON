@@ -1697,9 +1697,6 @@
           "test_name_regex": ".*VerifyHostToQueueMappingClassIDsAfterResolve$"
         },
         {
-          "test_name_regex": "HwAclCounterTest/1.*$"
-        },
-        {
           "test_name_regex": "HwAclMatchActionsTest/1.*$"
         },
         {
@@ -1754,6 +1751,9 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*SaiAclTableGroupTest.RepositionAclEntriesPostWarmboot"
+        },
+        {
+          "test_name_regex": "HwAclCounterTest/[01].*$"
         }
     ],
     "leaba/1.65.1/1.65.1/gibraltar": [
@@ -1786,6 +1786,9 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*SaiAclTableGroupTest.RepositionAclEntriesPostWarmboot"
+        },
+        {
+          "test_name_regex": "HwAclCounterTest/[01].*$"
         }
     ],
     "leaba/1.68.0/1.68.0/graphene200/simulator": [
@@ -1818,6 +1821,9 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*SaiAclTableGroupTest.RepositionAclEntriesPostWarmboot"
+        },
+        {
+          "test_name_regex": "HwAclCounterTest/[01].*$"
         }
     ],
     "leaba/24.1.0/24.1.0/graphene200": [
@@ -1850,6 +1856,9 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.*SaiAclTableGroupTest.RepositionAclEntriesPostWarmboot"
+        },
+        {
+          "test_name_regex": "HwAclCounterTest/[01].*$"
         }
     ]
   }
