@@ -5,12 +5,10 @@
 #include <glog/logging.h>
 
 #include <folly/init/Init.h>
-#include "fboss/agent/FbossInit.h"
 
 #include <common/services/cpp/ServiceFrameworkLight.h>
 #include <common/services/cpp/ThriftAclCheckerModuleConfig.h>
 #include <folly/io/async/AsyncSignalHandler.h>
-#include "common/base/BuildInfo.h"
 #include "common/services/cpp/AclCheckerModule.h"
 #include "fboss/facebook/bitsflow/BitsflowHelper.h"
 #include "fboss/fsdb/common/Flags.h"
@@ -24,8 +22,6 @@
 using namespace std::chrono_literals; // @donotremove
 
 DEFINE_bool(readConfigFile, true, "Whether config file should be read");
-
-DEFINE_bool(memoryProfiling, false, "Whether to enable memory profiling");
 
 DEFINE_int32(
     streamExpire_ms,
@@ -79,25 +75,6 @@ DEFINE_bool(
     "Convert subscriber paths to id paths and serve only ids");
 
 namespace facebook::fboss::fsdb {
-
-std::shared_ptr<FsdbConfig> parseConfig(int argc, char** argv) {
-  // one pass over flags, but don't clear argc/argv. We only do this
-  // to extract the 'fsdb_config' arg.
-  gflags::ParseCommandLineFlags(&argc, &argv, false);
-  return FLAGS_readConfigFile ? FsdbConfig::fromDefaultFile()
-                              : std::shared_ptr<FsdbConfig>();
-}
-
-void initFlagDefaults(
-    const std::unordered_map<std::string, std::string>& defaults) {
-  for (auto item : defaults) {
-    // logging not initialized yet, need to use std::cerr
-    std::cerr << "Overriding default flag from config: " << item.first.c_str()
-              << "=" << item.second.c_str() << std::endl;
-    gflags::SetCommandLineOptionWithMode(
-        item.first.c_str(), item.second.c_str(), gflags::SET_FLAGS_DEFAULT);
-  }
-}
 
 namespace {
 class SignalHandler : public folly::AsyncSignalHandler {
@@ -174,7 +151,34 @@ static void enableAclChecker(
   }
 }
 
-static std::shared_ptr<apache::thrift::ThriftServer> createThriftServer(
+std::shared_ptr<FsdbConfig> parseConfig(int argc, char** argv) {
+  // one pass over flags, but don't clear argc/argv. We only do this
+  // to extract the 'fsdb_config' arg.
+  gflags::ParseCommandLineFlags(&argc, &argv, false);
+  return FLAGS_readConfigFile ? FsdbConfig::fromDefaultFile()
+                              : std::shared_ptr<FsdbConfig>();
+}
+
+void initFlagDefaults(
+    const std::unordered_map<std::string, std::string>& defaults) {
+  for (auto item : defaults) {
+    // logging not initialized yet, need to use std::cerr
+    std::cerr << "Overriding default flag from config: " << item.first.c_str()
+              << "=" << item.second.c_str() << std::endl;
+    gflags::SetCommandLineOptionWithMode(
+        item.first.c_str(), item.second.c_str(), gflags::SET_FLAGS_DEFAULT);
+  }
+}
+
+std::shared_ptr<ServiceHandler> createThriftHandler(
+    std::shared_ptr<FsdbConfig> fsdbConfig) {
+  return std::make_shared<ServiceHandler>(
+      fsdbConfig,
+      FLAGS_publisherIdsToOpenRocksDbAtStartFor,
+      ServiceHandler::Options().setServeIdPathSubs(FLAGS_useIdPathsForSubs));
+}
+
+std::shared_ptr<apache::thrift::ThriftServer> createThriftServer(
     std::shared_ptr<FsdbConfig> fsdbConfig,
     std::shared_ptr<ServiceHandler> handler) {
   auto server = std::make_shared<apache::thrift::ThriftServer>();
@@ -203,7 +207,7 @@ static std::shared_ptr<apache::thrift::ThriftServer> createThriftServer(
   return server;
 }
 
-static void startThriftServer(
+void startThriftServer(
     std::shared_ptr<apache::thrift::ThriftServer> server,
     std::shared_ptr<ServiceHandler> handler) {
   auto instance = std::make_shared<services::ServiceFrameworkLight>(
@@ -230,23 +234,4 @@ static void startThriftServer(
 
   instance->go();
 }
-
-int fsdbMain(int argc, char** argv) {
-  auto fsdbConfig = parseConfig(argc, argv);
-  initFlagDefaults(fsdbConfig->getThrift().get_defaultCommandLineArgs());
-
-  if (FLAGS_memoryProfiling) {
-    setenv("MALLOC_CONF", "prof:true", 1); // Enable heap profile
-  }
-  facebook::fboss::fbossInit(argc, argv);
-
-  auto handler = std::make_shared<ServiceHandler>(
-      fsdbConfig,
-      FLAGS_publisherIdsToOpenRocksDbAtStartFor,
-      ServiceHandler::Options().setServeIdPathSubs(FLAGS_useIdPathsForSubs));
-  auto server = createThriftServer(fsdbConfig, handler);
-  startThriftServer(server, handler);
-  return 0;
-}
-
 } // namespace facebook::fboss::fsdb
