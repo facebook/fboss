@@ -6,15 +6,10 @@
 
 #include <folly/init/Init.h>
 
-#include <common/services/cpp/ServiceFrameworkLight.h>
-#include <common/services/cpp/ThriftAclCheckerModuleConfig.h>
 #include <folly/io/async/AsyncSignalHandler.h>
-#include "common/base/BuildInfo.h"
-#include "common/services/cpp/AclCheckerModule.h"
-#include "fboss/facebook/bitsflow/BitsflowHelper.h"
 #include "fboss/fsdb/common/Flags.h"
-#include "fboss/fsdb/common/Types.h"
 #include "fboss/fsdb/server/FsdbConfig.h"
+#include "fboss/fsdb/server/Server.h"
 #include "fboss/fsdb/server/ServiceHandler.h"
 #include "fboss/fsdb/server/ThriftAcceptor.h"
 
@@ -77,25 +72,6 @@ DEFINE_bool(
 
 namespace facebook::fboss::fsdb {
 
-namespace {
-class SignalHandler : public folly::AsyncSignalHandler {
- public:
-  SignalHandler(folly::EventBase* evb, Callback&& cleanup)
-      : AsyncSignalHandler(evb), cleanup_(cleanup) {
-    registerSignalHandler(SIGINT);
-    registerSignalHandler(SIGTERM);
-  }
-
-  void signalReceived(int signum) noexcept override {
-    XLOG(INFO) << "Got signal to stop " << signum;
-    cleanup_();
-  }
-
- private:
-  Callback cleanup_;
-};
-} // namespace
-
 static apache::thrift::SSLPolicy getThriftServerSSLPolicy() {
   if (FLAGS_ssl_policy == "disabled") {
     return apache::thrift::SSLPolicy::DISABLED;
@@ -127,35 +103,6 @@ static std::vector<folly::CIDRNetwork> getTrustedSubnets(
   return trustedSubnets;
 }
 
-static void enableAclChecker(
-    std::shared_ptr<services::ServiceFrameworkLight> instance) {
-  if (FLAGS_acl_checker_module_enable) {
-    // use Bitsflow to render ACL
-    auto bitsflowClientName = ::configerator::structs::neteng::fboss::bitsflow::
-        BitsflowClient::FBOSS_FSDB;
-    bitsflow::BitsflowHelper().initBitsflow(bitsflowClientName);
-
-    auto aclCheckerModuleConfig =
-        std::make_shared<services::ThriftAclCheckerModuleConfig>();
-
-    // Skip ACL checks/enforcements for localhost communication.
-    aclCheckerModuleConfig->setAclCheckerModuleSkipOnLoopback(true);
-
-    instance->addOrReplaceModule(
-        services::AclCheckerModule::kModuleName,
-        new services::AclCheckerModule(instance.get(), aclCheckerModuleConfig));
-
-    XLOG(INFO) << "Thrift ACL enabled using static ACL file: "
-               << aclCheckerModuleConfig->getStaticFileAcl();
-    XLOG(DBG2) << "Thrift ACL enforced: "
-               << aclCheckerModuleConfig->getAclCheckerModuleEnforce();
-  }
-}
-
-void setVersionString() {
-  gflags::SetVersionString(facebook::BuildInfo::toDebugString());
-}
-
 std::shared_ptr<FsdbConfig> parseConfig(int argc, char** argv) {
   // one pass over flags, but don't clear argc/argv. We only do this
   // to extract the 'fsdb_config' arg.
@@ -166,7 +113,7 @@ std::shared_ptr<FsdbConfig> parseConfig(int argc, char** argv) {
 
 void initFlagDefaults(
     const std::unordered_map<std::string, std::string>& defaults) {
-  for (auto item : defaults) {
+  for (const auto& item : defaults) {
     // logging not initialized yet, need to use std::cerr
     std::cerr << "Overriding default flag from config: " << item.first.c_str()
               << "=" << item.second.c_str() << std::endl;
@@ -212,31 +159,4 @@ std::shared_ptr<apache::thrift::ThriftServer> createThriftServer(
   return server;
 }
 
-void startThriftServer(
-    std::shared_ptr<apache::thrift::ThriftServer> server,
-    std::shared_ptr<ServiceHandler> handler) {
-  auto instance = std::make_shared<services::ServiceFrameworkLight>(
-      "FsdbService",
-      true /* threadsafe */,
-      services::ServiceFrameworkLight::Options()
-          .setDisableScubaLogging(true)
-          .setDisableRequestIdLogging(true));
-
-  auto evbThread =
-      std::make_shared<folly::ScopedEventBaseThread>("fsdbSigHandlerThread");
-  SignalHandler signalHandler(
-      evbThread->getEventBase(), [instance]() { instance->stop(); });
-
-  facebook::fb303::ThreadCachedServiceData::get()->startPublishThread(
-      std::chrono::milliseconds(FLAGS_stat_publish_interval_ms));
-
-  enableAclChecker(instance);
-  instance->addPrimaryThriftService(
-      server,
-      handler.get(),
-      services::ServiceFrameworkLight::ServerOptions()
-          .setExportUnprefixedCounters(false));
-
-  instance->go();
-}
 } // namespace facebook::fboss::fsdb

@@ -2,10 +2,33 @@
 
 #pragma once
 
+#include <folly/io/async/AsyncSignalHandler.h>
+#include "fboss/fsdb/common/Types.h"
 #include "fboss/fsdb/server/FsdbConfig.h"
 #include "fboss/fsdb/server/ServiceHandler.h"
 
+#include <signal.h>
+
+DECLARE_int32(stat_publish_interval_ms);
+
 namespace facebook::fboss::fsdb {
+
+class SignalHandler : public folly::AsyncSignalHandler {
+ public:
+  SignalHandler(folly::EventBase* evb, Callback&& cleanup)
+      : AsyncSignalHandler(evb), cleanup_(cleanup) {
+    registerSignalHandler(SIGINT);
+    registerSignalHandler(SIGTERM);
+  }
+
+  void signalReceived(int signum) noexcept override {
+    XLOG(INFO) << "Got signal to stop " << signum;
+    cleanup_();
+  }
+
+ private:
+  Callback cleanup_;
+};
 
 std::shared_ptr<ServiceHandler> createThriftHandler(
     std::shared_ptr<FsdbConfig> fsdbConfig);
