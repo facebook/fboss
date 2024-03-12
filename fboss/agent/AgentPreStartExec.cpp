@@ -7,6 +7,7 @@
 #include <folly/logging/xlog.h>
 #include "fboss/agent/AgentCommandExecutor.h"
 #include "fboss/agent/AgentNetWhoAmI.h"
+#include "fboss/agent/CommonInit.h"
 #include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
@@ -19,6 +20,7 @@ void AgentPreStartExec::run() {
   AgentCommandExecutor executor;
   auto cppWedgeAgentWrapper = checkFileExists(dirUtil.getWrapperRefactorFlag());
   auto config = AgentConfig::fromDefaultFile();
+  initFlagDefaults(*config->thrift.defaultCommandLineArgs());
   AgentPreExecDrainer preExecDrainer(&dirUtil);
   run(&executor,
       &preExecDrainer,
