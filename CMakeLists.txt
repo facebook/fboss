@@ -645,7 +645,7 @@ find_package(Threads REQUIRED)
 enable_testing()
 
 # Build all cmake files under cmake/*cmake
-file(GLOB cmakeFiles ${CMAKE_CURRENT_SOURCE_DIR}/cmake/*.cmake)
+file(GLOB_RECURSE cmakeFiles ${CMAKE_CURRENT_SOURCE_DIR}/cmake/*.cmake)
 foreach(cmakeFile ${cmakeFiles})
   message(status " INCLUDE ${cmakeFile}")
   INCLUDE(${cmakeFile})
