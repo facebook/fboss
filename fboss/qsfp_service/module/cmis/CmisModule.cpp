@@ -1487,16 +1487,6 @@ std::optional<VdmDiagsStats> CmisModule::getVdmDiagsStatsInfo() {
     }
   }
 
-  // Lambda to convert U16 format to double
-  auto f16ToDouble = [](uint8_t byte0, uint8_t byte1) -> double {
-    double ber;
-    int expon = byte0 >> 3;
-    expon -= 24;
-    int mant = ((byte0 & 0x7) << 8) | byte1;
-    ber = mant * exp10(expon);
-    return ber;
-  };
-
   // Lambda to extract BER or Frame Error values for a given VDM config type
   auto captureVdmBerFrameErrorValues =
       [&](VdmConfigType vdmConfType) -> std::optional<double> {
@@ -3410,6 +3400,20 @@ void CmisModule::setTransceiverLoopbackLocked(
       tcvrLanes, std::nullopt, !setLoopback, hostOrMediaInputLbEnable);
 
   writeCmisField(regField, &hostOrMediaInputLbEnable);
+}
+
+/*
+ * f16ToDouble
+ *
+ * Convert CMIS VDM F16 type (16 bit) to a floating point number
+ */
+double CmisModule::f16ToDouble(uint8_t byte0, uint8_t byte1) {
+  double ber;
+  int expon = byte0 >> 3;
+  expon -= 24;
+  int mant = ((byte0 & 0x7) << 8) | byte1;
+  ber = mant * exp10(expon);
+  return ber;
 }
 
 } // namespace fboss

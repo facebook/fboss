@@ -530,6 +530,8 @@ class CmisModule : public QsfpModule {
 
   void updateVdmDiagsValLocation();
 
+  double f16ToDouble(uint8_t byte0, uint8_t byte1);
+
   const std::shared_ptr<const TransceiverConfig> tcvrConfig_;
 };
 
