@@ -1719,6 +1719,9 @@
         },
         {
           "test_name_regex": "HwCoppTest/[01].CpuPortIpv6LinkLocalUcastIp$"
+        },
+        {
+          "test_name_regex": "HwAclCounterTest/[01].*$"
         }
     ],
     "leaba/1.42.8/1.42.8/simulator": [
