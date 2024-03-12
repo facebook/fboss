@@ -2,7 +2,6 @@
 
 #include "fboss/fsdb/server/RocksDb.h"
 #include "fboss/fsdb/common/Utils.h"
-#include "fboss/fsdb/utils/Utils.h"
 
 // TODO: use a better default dir
 DEFINE_string(
