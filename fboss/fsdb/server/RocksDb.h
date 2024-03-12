@@ -6,14 +6,11 @@
 #include <folly/logging/xlog.h>
 #include <filesystem>
 #include "fboss/fsdb/if/FsdbModel.h"
-#include "fboss/fsdb/server/StatsSnapshot.h"
 #include "rocksdb/utilities/db_ttl.h"
 
 DECLARE_string(rocksdbDir);
 
 namespace facebook::fboss::fsdb {
-
-using StatsSnapshotPtr = std::shared_ptr<StatsSnapshot>;
 
 class RocksDbIf : public folly::MoveOnly {
  public:
@@ -25,10 +22,6 @@ class RocksDbIf : public folly::MoveOnly {
 
   virtual bool get(const std::string& key, std::string* value) = 0;
   virtual bool put(const std::string& key, const std::string& value) = 0;
-
-  virtual std::vector<StatsSnapshotPtr> getSnapshots(
-      const Metric& metric,
-      int64_t fromTimestampSec) = 0;
 
   virtual int64_t getNumSnapshots(
       const Metric& metric = "",
@@ -49,10 +42,6 @@ class RocksDb : public RocksDbIf {
 
   bool get(const std::string& key, std::string* value) override;
   bool put(const std::string& key, const std::string& value) override;
-
-  std::vector<StatsSnapshotPtr> getSnapshots(
-      const Metric& metric,
-      int64_t fromTimestampSec) override;
 
   int64_t getNumSnapshots(
       const Metric& metric = "",
@@ -88,13 +77,6 @@ class RocksDbFake : public RocksDbIf {
   bool put(const std::string& /* key */, const std::string& /* value */)
       override {
     return true;
-  }
-
-  std::vector<StatsSnapshotPtr> getSnapshots(
-      const Metric& /* metric */,
-      int64_t /* fromTimestampSec */) override {
-    XLOG(FATAL) << "Fake rocksdb for tests cannot be read from (yet)";
-    return {};
   }
 
   int64_t getNumSnapshots(
