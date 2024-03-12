@@ -23,4 +23,6 @@ std::shared_ptr<FsdbConfig> parseConfig(int argc, char** argv);
 void initFlagDefaults(
     const std::unordered_map<std::string, std::string>& defaults);
 
+void setVersionString();
+
 } // namespace facebook::fboss::fsdb

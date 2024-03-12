@@ -2,7 +2,6 @@
 
 #include "fboss/fsdb/server/FsdbMain.h"
 #include <gflags/gflags.h>
-#include "common/base/BuildInfo.h"
 #include "fboss/agent/FbossInit.h"
 #include "fboss/fsdb/server/Server.h"
 
@@ -11,6 +10,7 @@ DEFINE_bool(memoryProfiling, false, "Whether to enable memory profiling");
 namespace facebook::fboss::fsdb {
 
 int fsdbMain(int argc, char** argv) {
+  setVersionString();
   auto fsdbConfig = parseConfig(argc, argv);
   initFlagDefaults(fsdbConfig->getThrift().get_defaultCommandLineArgs());
 
@@ -28,6 +28,5 @@ int fsdbMain(int argc, char** argv) {
 } // namespace facebook::fboss::fsdb
 
 int main(int argc, char** argv) {
-  gflags::SetVersionString(facebook::BuildInfo::toDebugString());
   return facebook::fboss::fsdb::fsdbMain(argc, argv);
 }

@@ -9,6 +9,7 @@
 #include <common/services/cpp/ServiceFrameworkLight.h>
 #include <common/services/cpp/ThriftAclCheckerModuleConfig.h>
 #include <folly/io/async/AsyncSignalHandler.h>
+#include "common/base/BuildInfo.h"
 #include "common/services/cpp/AclCheckerModule.h"
 #include "fboss/facebook/bitsflow/BitsflowHelper.h"
 #include "fboss/fsdb/common/Flags.h"
@@ -149,6 +150,10 @@ static void enableAclChecker(
     XLOG(DBG2) << "Thrift ACL enforced: "
                << aclCheckerModuleConfig->getAclCheckerModuleEnforce();
   }
+}
+
+void setVersionString() {
+  gflags::SetVersionString(facebook::BuildInfo::toDebugString());
 }
 
 std::shared_ptr<FsdbConfig> parseConfig(int argc, char** argv) {
