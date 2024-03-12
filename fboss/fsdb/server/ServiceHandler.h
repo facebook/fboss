@@ -47,7 +47,7 @@ class ServiceHandler : public FsdbServiceSvIf,
   };
 
   ServiceHandler(
-      std::unique_ptr<FsdbConfig> fsdbConfig,
+      std::shared_ptr<FsdbConfig> fsdbConfig,
       const std::string& publisherIdsToOpenRocksDbAtStartFor,
       Options options = Options());
   ~ServiceHandler() override;
@@ -234,7 +234,7 @@ class ServiceHandler : public FsdbServiceSvIf,
       PublisherId id,
       const std::vector<std::string>& path);
 
-  std::unique_ptr<FsdbConfig> fsdbConfig_;
+  std::shared_ptr<FsdbConfig> fsdbConfig_;
   folly::F14FastMap<PublisherId, RocksDbPtr> rocksDbs_; // const after ctor
 
   const Options options_;

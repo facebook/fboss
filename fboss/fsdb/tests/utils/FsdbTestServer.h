@@ -17,7 +17,7 @@ class FsdbTestServer {
   FsdbTestServer(uint16_t port = 0)
       : FsdbTestServer(std::make_unique<FsdbConfig>(), port) {}
   explicit FsdbTestServer(
-      std::unique_ptr<FsdbConfig> config,
+      std::shared_ptr<FsdbConfig> config,
       uint16_t port = 0);
   ~FsdbTestServer();
 

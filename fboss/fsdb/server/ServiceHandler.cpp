@@ -96,7 +96,7 @@ std::string getPubSubRequestDetails(const OperRequest& request) {
 namespace facebook::fboss::fsdb {
 
 ServiceHandler::ServiceHandler(
-    std::unique_ptr<FsdbConfig> fsdbConfig,
+    std::shared_ptr<FsdbConfig> fsdbConfig,
     const std::string& publisherIdsToOpenRocksDbAtStartFor,
     Options options)
     : FacebookBase2("FsdbService"),

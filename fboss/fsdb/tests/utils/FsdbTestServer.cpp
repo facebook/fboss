@@ -9,7 +9,7 @@
 namespace facebook::fboss::fsdb::test {
 
 FsdbTestServer::FsdbTestServer(
-    std::unique_ptr<FsdbConfig> config,
+    std::shared_ptr<FsdbConfig> config,
     uint16_t port) {
   // Run tests faster
   gflags::SetCommandLineOptionWithMode(

@@ -15,12 +15,12 @@ DEFINE_string(
 namespace facebook::fboss::fsdb {
 
 // static
-std::unique_ptr<FsdbConfig> FsdbConfig::fromDefaultFile() {
+std::shared_ptr<FsdbConfig> FsdbConfig::fromDefaultFile() {
   return fromFile(FLAGS_fsdb_config);
 }
 
 // static
-std::unique_ptr<FsdbConfig> FsdbConfig::fromFile(folly::StringPiece path) {
+std::shared_ptr<FsdbConfig> FsdbConfig::fromFile(folly::StringPiece path) {
   std::string raw;
   if (!folly::readFile(path.data(), raw)) {
     FsdbException e;
@@ -32,10 +32,10 @@ std::unique_ptr<FsdbConfig> FsdbConfig::fromFile(folly::StringPiece path) {
 }
 
 // static
-std::unique_ptr<FsdbConfig> FsdbConfig::fromRaw(const std::string& raw) {
+std::shared_ptr<FsdbConfig> FsdbConfig::fromRaw(const std::string& raw) {
   Config thrift;
   apache::thrift::SimpleJSONSerializer::deserialize<Config>(raw, thrift);
-  return std::make_unique<FsdbConfig>(std::move(thrift));
+  return std::make_shared<FsdbConfig>(std::move(thrift));
 }
 
 std::string FsdbConfig::configRaw() const {

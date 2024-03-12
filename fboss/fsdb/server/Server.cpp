@@ -80,12 +80,12 @@ DEFINE_bool(
 
 namespace facebook::fboss::fsdb {
 
-std::unique_ptr<FsdbConfig> parseConfig(int argc, char** argv) {
+std::shared_ptr<FsdbConfig> parseConfig(int argc, char** argv) {
   // one pass over flags, but don't clear argc/argv. We only do this
   // to extract the 'fsdb_config' arg.
   gflags::ParseCommandLineFlags(&argc, &argv, false);
   return FLAGS_readConfigFile ? FsdbConfig::fromDefaultFile()
-                              : std::make_unique<FsdbConfig>();
+                              : std::shared_ptr<FsdbConfig>();
 }
 
 void initFlagDefaults(

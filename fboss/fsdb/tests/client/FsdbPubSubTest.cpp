@@ -58,7 +58,7 @@ class FsdbPubSubTest : public ::testing::Test {
   }
 
  protected:
-  virtual std::unique_ptr<FsdbConfig> getFsdbConfig() {
+  virtual std::shared_ptr<FsdbConfig> getFsdbConfig() {
     return FsdbConfig::fromRaw(rawConfig);
   }
   template <typename SubsT>
@@ -577,7 +577,7 @@ TYPED_TEST(FsdbPubSubTest, verifyUnknownPublisherRejected) {
 template <typename TestParam>
 class FsdbUnknownPublisherPathTest : public FsdbPubSubTest<TestParam> {
  protected:
-  std::unique_ptr<FsdbConfig> getFsdbConfig() override {
+  std::shared_ptr<FsdbConfig> getFsdbConfig() override {
     return FsdbConfig::fromRaw(kUnknownPublisherPathConfig);
   }
 };

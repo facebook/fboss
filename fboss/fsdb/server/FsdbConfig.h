@@ -17,9 +17,9 @@ class FsdbConfig {
   }
 
   // creators
-  static std::unique_ptr<FsdbConfig> fromDefaultFile();
-  static std::unique_ptr<FsdbConfig> fromFile(folly::StringPiece path);
-  static std::unique_ptr<FsdbConfig> fromRaw(const std::string& raw);
+  static std::shared_ptr<FsdbConfig> fromDefaultFile();
+  static std::shared_ptr<FsdbConfig> fromFile(folly::StringPiece path);
+  static std::shared_ptr<FsdbConfig> fromRaw(const std::string& raw);
 
   // serialize
   std::string configRaw() const;
