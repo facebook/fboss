@@ -169,7 +169,9 @@ ServiceHandler::ServiceHandler(
           FLAGS_trackMetadata,
           "fsdb",
           options.serveIdPathSubs),
+#ifndef IS_OSS
       operDbWriter_(operStorage_),
+#endif
       operStatsStorage_(
           {},
           std::chrono::seconds(FLAGS_statsSubscriptionServe_s),
@@ -207,6 +209,7 @@ ServiceHandler::ServiceHandler(
       operStatsStorage_.getThreadHeartbeat());
   heartbeatWatchdog_->start();
 
+#ifndef IS_OSS
   if (FLAGS_enableOperDB) {
     rocksDbs_ = options_.useFakeRocksDb_CAUTION_DO_NOT_USE_IN_PRODUCTION
         ? createIfNeededAndOpenRocksDbs<RocksDbFake>(
@@ -215,8 +218,10 @@ ServiceHandler::ServiceHandler(
               {publisherIds.begin(), publisherIds.end()});
     operDbWriter_.start();
   }
+#endif
 }
 
+#ifndef IS_OSS
 template <typename T>
 folly::F14FastMap<PublisherId, std::shared_ptr<RocksDbIf>>
 ServiceHandler::createIfNeededAndOpenRocksDbs(
@@ -241,6 +246,7 @@ ServiceHandler::createIfNeededAndOpenRocksDbs(
 
   return ret;
 }
+#endif
 
 ServiceHandler::~ServiceHandler() {
   if (heartbeatWatchdog_) {
@@ -988,24 +994,6 @@ ServiceHandler::co_getOperStatsExtended(
 
   co_return std::move(ret);
 }
-
-// --------------------------------------------
-
-std::shared_ptr<RocksDbIf> ServiceHandler::getRocksDb(
-    const PublisherId& publisherId) const {
-  const auto logPrefix = fmt::format("[P:{}]", publisherId);
-  XLOG(INFO) << logPrefix << " find opened rocksdb";
-  auto it = rocksDbs_.find(publisherId);
-  if (it == rocksDbs_.end()) {
-    throw Utils::createFsdbException(
-        FsdbErrorCode::UNKNOWN_PUBLISHER,
-        logPrefix,
-        " FSDB does not have rocksdb instance opened - include publisher in gflags to fix.");
-  }
-  return it->second;
-}
-
-// --------------------------------------------
 
 folly::coro::Task<std::unique_ptr<PublisherIdToOperPublisherInfo>>
 ServiceHandler::co_getAllOperPublisherInfos() {
