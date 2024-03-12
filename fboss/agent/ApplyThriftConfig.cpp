@@ -395,9 +395,6 @@ class ThriftConfigApplier {
       VlanOrIntfT* vlanOrIntf,
       const CfgVlanOrIntfT* config);
   std::shared_ptr<InterfaceMap> updateInterfaces();
-  std::shared_ptr<MultiSwitchInterfaceMap> updateRemoteInterfaces(
-      const std::shared_ptr<MultiSwitchInterfaceMap>& interfaces);
-
   shared_ptr<Interface> createInterface(
       const cfg::Interface* config,
       const Interface::Addresses& addrs);
@@ -628,7 +625,6 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     if (newIntfs) {
       new_->resetIntfs(toMultiSwitchMap<MultiSwitchInterfaceMap>(
           std::move(newIntfs), *cfg_, scopeResolver_));
-      new_->resetRemoteIntfs(updateRemoteInterfaces(new_->getInterfaces()));
       changed = true;
     }
   }
@@ -3383,35 +3379,6 @@ std::shared_ptr<InterfaceMap> ThriftConfigApplier::updateInterfaces() {
   }
 
   return std::make_shared<InterfaceMap>(std::move(newIntfs));
-}
-
-std::shared_ptr<MultiSwitchInterfaceMap>
-ThriftConfigApplier::updateRemoteInterfaces(
-    const std::shared_ptr<MultiSwitchInterfaceMap>& interfaces) {
-  if (scopeResolver_.hasVoq() &&
-      scopeResolver_.scope(cfg::SwitchType::VOQ).size() <= 1) {
-    // remote system ports are applicable only for voq switches
-    // remote system ports are updated on config only when more than voq
-    // switches are configured on a given SwSwitch
-    return orig_->getRemoteInterfaces();
-  }
-  auto remoteInterfaces = orig_->getRemoteInterfaces()->clone();
-
-  for (const auto& [matcher, interfaceMap] : std::as_const(*interfaces)) {
-    for (const auto& [intfID, intf] : std::as_const(*interfaceMap)) {
-      if (intf->getType() != cfg::InterfaceType::SYSTEM_PORT) {
-        continue;
-      }
-      auto remoteIntfScope = scopeResolver_.scope(cfg::SwitchType::VOQ);
-      remoteIntfScope.exclude(scopeResolver_.scope(intf, *cfg_).switchIds());
-      if (remoteInterfaces->getNodeIf(intfID)) {
-        remoteInterfaces->updateNode(intf, remoteIntfScope);
-      } else {
-        remoteInterfaces->addNode(intf, remoteIntfScope);
-      }
-    }
-  }
-  return remoteInterfaces;
 }
 
 shared_ptr<Interface> ThriftConfigApplier::createInterface(

@@ -497,8 +497,6 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   std::shared_ptr<AclTableGroupMap>& getAclTablesForStage(
       const folly::dynamic& swJson);
 
-  void resetRemoteIntfs(const std::shared_ptr<MultiSwitchInterfaceMap>& intfs);
-
   static std::shared_ptr<SwitchState> fromThrift(
       const state::SwitchState& data);
   state::SwitchState toThrift() const;
@@ -512,6 +510,8 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   static Type* modify(std::shared_ptr<SwitchState>* state);
 
  private:
+  void resetRemoteIntfs(const std::shared_ptr<MultiSwitchInterfaceMap>& intfs);
+
   template <
       typename MultiMapType,
       typename ThriftType = typename MultiMapType::Node::ThriftType>
