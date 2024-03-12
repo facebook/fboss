@@ -7,7 +7,6 @@
 #include <folly/experimental/coro/BlockingWait.h>
 #include <folly/experimental/coro/Timeout.h>
 #include <folly/logging/xlog.h>
-#include <range/v3/view.hpp>
 #include "common/time/ChronoFlags.h"
 #include "common/time/Time.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_common_constants.h"
@@ -18,7 +17,6 @@
 #include <iterator>
 
 using namespace std::chrono_literals; // @donotremove
-using namespace ranges;
 
 DEFINE_time_s(metricsTtl, 1s * 12 * 3600 /* twelve hours */, "TTL for metrics");
 
@@ -754,17 +752,17 @@ ServiceHandler::co_subscribeOperStatePathExtended(
               auto&& deltas = *item;
 
               OperSubPathUnit unit;
-
-              unit.changes() = deltas | view::move |
-                  view::transform([](auto&& delta) {
-                                 // we expect newVal to always be set, even in
-                                 // the case of a deleted path. For deleted
-                                 // paths, lower layers will create a
-                                 // TaggedOperState with empty contents.
-                                 return *std::move(delta.newVal);
-                               }) |
-                  to<std::vector>;
-
+              std::transform(
+                  std::make_move_iterator(deltas.begin()),
+                  std::make_move_iterator(deltas.end()),
+                  std::back_inserter(*unit.changes()),
+                  [](auto&& delta) {
+                    // we expect newVal to always be set, even in
+                    // the case of a deleted path. For deleted
+                    // paths, lower layers will create a
+                    // TaggedOperState with empty contents.
+                    return *std::move(delta.newVal);
+                  });
               co_yield std::move(unit);
             }
           })};
@@ -867,17 +865,17 @@ ServiceHandler::co_subscribeOperStatsPathExtended(
               auto&& deltas = *item;
 
               OperSubPathUnit unit;
-
-              unit.changes() = deltas | view::move |
-                  view::transform([](auto&& delta) {
-                                 // we expect newVal to always be set, even in
-                                 // the case of a deleted path. For deleted
-                                 // paths, lower layers will create a
-                                 // TaggedOperState with empty contents.
-                                 return *std::move(delta.newVal);
-                               }) |
-                  to<std::vector>;
-
+              std::transform(
+                  std::make_move_iterator(deltas.begin()),
+                  std::make_move_iterator(deltas.end()),
+                  std::back_inserter(*unit.changes()),
+                  [](auto&& delta) {
+                    // we expect newVal to always be set, even in
+                    // the case of a deleted path. For deleted
+                    // paths, lower layers will create a
+                    // TaggedOperState with empty contents.
+                    return *std::move(delta.newVal);
+                  });
               co_yield std::move(unit);
             }
           })};
