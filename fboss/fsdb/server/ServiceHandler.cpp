@@ -7,18 +7,17 @@
 #include <folly/experimental/coro/BlockingWait.h>
 #include <folly/experimental/coro/Timeout.h>
 #include <folly/logging/xlog.h>
-#include "common/time/ChronoFlags.h"
-#include "common/time/Time.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_common_constants.h"
 #include "fboss/fsdb/oper/PathValidator.h"
 #include "folly/CancellationToken.h"
 
 #include <algorithm>
+#include <chrono>
 #include <iterator>
 
 using namespace std::chrono_literals; // @donotremove
 
-DEFINE_time_s(metricsTtl, 1s * 12 * 3600 /* twelve hours */, "TTL for metrics");
+DEFINE_int32(metricsTtl_s, 1 * 12 * 3600 /* twelve hours */, "TTL for metrics");
 
 DEFINE_bool(
     checkOperOwnership,
@@ -27,24 +26,24 @@ DEFINE_bool(
 
 DEFINE_bool(trackMetadata, true, "Enable metadata tracking");
 
-DEFINE_time_s(
-    statsSubscriptionServe,
-    10s,
+DEFINE_int32(
+    statsSubscriptionServe_s,
+    10,
     "Interval at which stats subscriptions are served");
 
-DEFINE_time_s(
-    statsSubscriptionHeartbeat,
-    30s,
+DEFINE_int32(
+    statsSubscriptionHeartbeat_s,
+    30,
     "Interval at which heartbeats are sent for stats subscribers");
 
-DEFINE_time_ms(
-    stateSubscriptionServe,
-    50ms,
+DEFINE_int32(
+    stateSubscriptionServe_ms,
+    50,
     "Interval at which state subscriptions are served");
 
-DEFINE_time_s(
-    stateSubscriptionHeartbeat,
-    5s,
+DEFINE_int32(
+    stateSubscriptionHeartbeat_s,
+    5,
     "Interval at which heartbeats are sent for state subscribers");
 
 DEFINE_bool(
@@ -165,16 +164,16 @@ ServiceHandler::ServiceHandler(
           fb303::RATE),
       operStorage_(
           {},
-          FLAGS_stateSubscriptionServe_ms,
-          FLAGS_stateSubscriptionHeartbeat_s,
+          std::chrono::milliseconds(FLAGS_stateSubscriptionServe_ms),
+          std::chrono::seconds(FLAGS_stateSubscriptionHeartbeat_s),
           FLAGS_trackMetadata,
           "fsdb",
           options.serveIdPathSubs),
       operDbWriter_(operStorage_),
       operStatsStorage_(
           {},
-          FLAGS_statsSubscriptionServe_s,
-          FLAGS_statsSubscriptionHeartbeat_s,
+          std::chrono::seconds(FLAGS_statsSubscriptionServe_s),
+          std::chrono::seconds(FLAGS_statsSubscriptionHeartbeat_s),
           FLAGS_trackMetadata,
           "fsdb",
           options.serveIdPathSubs) {
@@ -227,7 +226,7 @@ ServiceHandler::createIfNeededAndOpenRocksDbs(
     auto rocksDb = std::make_shared<T>(
         "stats",
         publisherId,
-        FLAGS_metricsTtl_s,
+        std::chrono::seconds(FLAGS_metricsTtl_s),
         options_.eraseRocksDbsInCtorAndDtor_CAUTION_DO_NOT_USE_IN_PRODUCTION);
     const auto logPrefix = fmt::format("[P:{}]", publisherId);
     if (!rocksDb->open()) {
@@ -379,8 +378,11 @@ ServiceHandler::makeSinkConsumer(
             // Timestamp at server if chunk was not timestamped
             // by publisher
             if (!chunk->metadata()->lastConfirmedAt()) {
+              auto now = std::chrono::system_clock::now();
               chunk->metadata()->lastConfirmedAt() =
-                  WallClockUtil::NowInSecFast();
+                  std::chrono::duration_cast<std::chrono::seconds>(
+                      now.time_since_epoch())
+                      .count();
             }
             if constexpr (std::is_same_v<PubUnit, OperState>) {
               if (isStats) {

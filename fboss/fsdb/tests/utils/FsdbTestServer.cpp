@@ -15,7 +15,7 @@ FsdbTestServer::FsdbTestServer(
   gflags::SetCommandLineOptionWithMode(
       "snapshotInterval", "1s", gflags::SET_FLAG_IF_DEFAULT);
   gflags::SetCommandLineOptionWithMode(
-      "statsSubscriptionServe", "1s", gflags::SET_FLAG_IF_DEFAULT);
+      "statsSubscriptionServe_s", "1", gflags::SET_FLAG_IF_DEFAULT);
   gflags::SetCommandLineOptionWithMode(
       "checkOperOwnership", "false", gflags::SET_FLAG_IF_DEFAULT);
 

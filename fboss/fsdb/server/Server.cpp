@@ -12,7 +12,6 @@
 #include <folly/io/async/AsyncSignalHandler.h>
 #include "common/base/BuildInfo.h"
 #include "common/services/cpp/AclCheckerModule.h"
-#include "common/time/ChronoFlags.h"
 #include "fboss/facebook/bitsflow/BitsflowHelper.h"
 #include "fboss/fsdb/common/Flags.h"
 #include "fboss/fsdb/common/Types.h"
@@ -28,9 +27,9 @@ DEFINE_bool(readConfigFile, true, "Whether config file should be read");
 
 DEFINE_bool(memoryProfiling, false, "Whether to enable memory profiling");
 
-DEFINE_time_ms(
-    streamExpire,
-    1ms * 15 * 60 * 1000 /* quarter hour */,
+DEFINE_int32(
+    streamExpire_ms,
+    1 * 15 * 60 * 1000 /* quarter hour */,
     "Delay after which connection to a publisher that has not "
     "published to any metric is closed");
 
@@ -216,7 +215,8 @@ int fsdbMain(int argc, char** argv) {
     addresses.push_back(address);
   }
   server->setAddresses(addresses);
-  server->setStreamExpireTime(FLAGS_streamExpire_ms);
+  server->setStreamExpireTime(
+      std::chrono::milliseconds((FLAGS_streamExpire_ms)));
   server->setAllowPlaintextOnLoopback(true);
   server->setWorkersJoinTimeout(std::chrono::seconds(2));
   server->setQuickExitOnShutdownTimeout(true);
