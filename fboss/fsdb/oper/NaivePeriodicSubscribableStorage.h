@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <fb303/ThreadCachedServiceData.h>
 #include <fboss/fsdb/oper/CowSubscriptionManager.h>
 #include <fboss/fsdb/oper/DeltaValue.h>
 #include <fboss/fsdb/oper/SubscribableStorage.h>
@@ -18,12 +19,26 @@
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <chrono>
 #include <utility>
-#include "common/base/Proc.h"
-#include "common/stats/ThreadCachedServiceData.h"
+
 #include "fboss/fsdb/oper/SubscriptionMetadataServer.h"
 #include "fboss/fsdb/server/FsdbOperTreeMetadataTracker.h"
 #include "fboss/fsdb/server/OperPathToPublisherRoot.h"
 #include "fboss/lib/ThreadHeartbeat.h"
+
+#ifndef IS_OSS
+#include "common/base/Proc.h"
+namespace {
+inline int64_t getMemoryUsage() {
+  return facebook::Proc::getMemoryUsage();
+}
+} // namespace
+#else
+namespace {
+inline int64_t getMemoryUsage() {
+  return 0;
+}
+} // namespace
+#endif
 
 /*
   Patch apis require the need for a couple new visitor types which end up
@@ -481,7 +496,7 @@ class NaivePeriodicSubscribableStorage
       }
 
       // export metrics
-      int64_t memUsage = Proc::getMemoryUsage(); // RSS
+      int64_t memUsage = getMemoryUsage(); // RSS
       fb303::ThreadCachedServiceData::get()->addStatValue(
           rss_, memUsage, fb303::AVG);
       auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
