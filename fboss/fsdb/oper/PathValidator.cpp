@@ -15,7 +15,6 @@
 #include "fboss/fsdb/common/Utils.h"
 #include "fboss/fsdb/if/FsdbModel.h"
 #include "fboss/thrift_visitors/NameToPathVisitor.h"
-#include "magic_enum/magic_enum.hpp" // @manual=fbsource//third-party/magic_enum:magic_enum
 
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 
@@ -39,7 +38,7 @@ void validateRawPath(const std::vector<std::string>& path) {
       RootNameToPathVisitor<thriftpath::RootThriftPath<ThriftTreeT>>::visit(
           root, path.begin(), path.begin(), path.end(), [](auto&&) {});
   if (result != NameToPathResult::OK) {
-    auto errorName = magic_enum::enum_name(result);
+    auto errorName = apache::thrift::util::enumNameSafe(result);
     auto pathStr = folly::toJson(folly::toDynamic(path));
     throw Utils::createFsdbException(
         FsdbErrorCode::INVALID_PATH,
@@ -75,7 +74,7 @@ void validateExtendedPath(const ExtendedOperPath& path) {
   auto result = RootNameToPathVisitor<thriftpath::RootThriftPath<ThriftTreeT>>::
       visitExtended(root, elems.begin(), elems.end(), [](auto&&) {});
   if (result != NameToPathResult::OK) {
-    auto errorName = magic_enum::enum_name(result);
+    auto errorName = apache::thrift::util::enumNameSafe(result);
     throw Utils::createFsdbException(
         FsdbErrorCode::INVALID_PATH, "InvalidPath: ", errorName);
     // TODO: include path in error string

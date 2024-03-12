@@ -10,6 +10,7 @@
 #include <thrift/lib/cpp2/reflection/reflection.h>
 
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
+#include "fboss/thrift_visitors/gen-cpp2/results_types.h"
 
 namespace facebook::fboss::fsdb {
 
@@ -24,17 +25,6 @@ namespace facebook::fboss::fsdb {
  *
  * Example usage in tests dire
  */
-
-enum class NameToPathResult {
-  OK,
-  INVALID_PATH,
-  INVALID_STRUCT_MEMBER,
-  INVALID_VARIANT_MEMBER,
-  INVALID_ARRAY_INDEX,
-  INVALID_MAP_KEY,
-  VISITOR_EXCEPTION,
-  UNSUPPORTED_WILDCARD_PATH,
-};
 
 /*
  * Base template, deliberately left undefined since
