@@ -131,7 +131,7 @@ class NaivePeriodicSubscribableStorage
       return;
     }
 
-    subscriptionServingThread_ = std::make_unique<std::thread>([=] {
+    subscriptionServingThread_ = std::make_unique<std::thread>([=, this] {
       folly::setThreadName("ServeSubscriptions");
       evb_.loopForever();
     });

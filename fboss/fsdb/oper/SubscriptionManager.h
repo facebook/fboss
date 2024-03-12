@@ -211,7 +211,7 @@ class SubscriptionManager {
       std::string name,
       std::shared_ptr<ExtendedSubscription> subscription) {
     XLOG(DBG2) << "Registering extended subscription " << name;
-    auto rawPtr = subscription.get();
+    DCHECK(subscription);
     auto ret = extendedSubscriptions_.emplace(name, subscription);
     if (!ret.second) {
       throw Utils::createFsdbException(
