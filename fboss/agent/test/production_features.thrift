@@ -85,4 +85,5 @@ struct AsicToProductionFeatures {
     "ebro": ebroFeature,
     "yuba": yubaFeature,
   };
+  2: map<string, list<string>> asicToFeatureNames;
 }
