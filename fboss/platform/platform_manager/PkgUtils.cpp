@@ -37,13 +37,6 @@ void PkgUtils::processLocalRpms(
 
 void PkgUtils::processKmods(const PlatformConfig& config) const {
   XLOG(INFO) << fmt::format(
-      "Loading {} upstream kernel modules",
-      config.upstreamKmodsToLoad()->size());
-
-  for (int i = 0; i < config.upstreamKmodsToLoad()->size(); ++i) {
-    loadKmod((*config.upstreamKmodsToLoad())[i]);
-  }
-  XLOG(INFO) << fmt::format(
       "Unloading {} kernel modules", config.bspKmodsToReload()->size());
   for (int i = 0; i < config.bspKmodsToReload()->size(); ++i) {
     unloadKmod((*config.bspKmodsToReload())[i]);
@@ -63,6 +56,15 @@ void PkgUtils::processKmods(const PlatformConfig& config) const {
       "Loading {} kernel modules", config.bspKmodsToReload()->size());
   for (int i = 0; i < config.bspKmodsToReload()->size(); ++i) {
     loadKmod((*config.bspKmodsToReload())[i]);
+  }
+}
+
+void PkgUtils::loadUpstreamKmods(const PlatformConfig& config) const {
+  XLOG(INFO) << fmt::format(
+      "Loading {} upstream kernel modules",
+      config.upstreamKmodsToLoad()->size());
+  for (int i = 0; i < config.upstreamKmodsToLoad()->size(); ++i) {
+    loadKmod((*config.upstreamKmodsToLoad())[i]);
   }
 }
 

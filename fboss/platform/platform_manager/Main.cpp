@@ -47,6 +47,8 @@ int main(int argc, char** argv) {
 
   auto config = Utils().getConfig();
 
+  PkgUtils().loadUpstreamKmods(config);
+
   if (FLAGS_enable_pkg_mgmnt) {
     if (FLAGS_local_rpm_path != "") {
       PkgUtils().processLocalRpms(FLAGS_local_rpm_path, config);

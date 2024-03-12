@@ -13,6 +13,7 @@ class PkgUtils {
   void processLocalRpms(
       const std::string& rpmFullPath,
       const PlatformConfig& config) const;
+  void loadUpstreamKmods(const PlatformConfig& config) const;
 
  private:
   void loadKmod(const std::string& moduleName) const;
