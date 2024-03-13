@@ -689,6 +689,7 @@ TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
             getPortOutPktsBytes(*frontPanelPort);
       }
       auto beforeRecyclePkts = getRecyclePortPkts();
+      auto beforeSwitchDropStats = getAggregatedSwitchDropStats();
       auto txPacketSize = sendPacket(ecmpHelper.ip(kPort), frontPanelPort);
 
       auto [maxRetryCount, sleepTimeMsecs] =
@@ -770,6 +771,17 @@ TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
                   afterFrontPanelOutPkts, beforeFrontPanelOutPkts);
             } else if (asicMode != HwAsic::AsicMode::ASIC_MODE_SIM) {
               EXPECT_EVENTUALLY_EQ(beforeRecyclePkts + 1, afterRecyclePkts);
+            }
+            auto afterSwitchDropStats = getAggregatedSwitchDropStats();
+            if (asicMode != HwAsic::AsicMode::ASIC_MODE_SIM &&
+                asicType == cfg::AsicType::ASIC_TYPE_JERICHO3) {
+              XLOG(DBG2) << " Queue resolution drops, before: "
+                         << *beforeSwitchDropStats.queueResolutionDrops()
+                         << " after: "
+                         << *afterSwitchDropStats.queueResolutionDrops();
+              EXPECT_EVENTUALLY_EQ(
+                  *afterSwitchDropStats.queueResolutionDrops(),
+                  *beforeSwitchDropStats.queueResolutionDrops() + 1);
             }
           });
     };
