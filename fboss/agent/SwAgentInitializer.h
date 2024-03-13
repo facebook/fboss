@@ -82,10 +82,9 @@ class SwAgentInitializer : public AgentInitializer {
   virtual std::vector<std::shared_ptr<apache::thrift::AsyncProcessorFactory>>
   getThrifthandlers() = 0;
 
-  virtual void handleExitSignal(bool gracefulExit);
-
   std::unique_ptr<SwSwitch> sw_;
   std::unique_ptr<SwSwitchInitializer> initializer_;
+  virtual void handleExitSignal(bool gracefulExit) = 0;
 
  private:
   std::unique_ptr<apache::thrift::ThriftServer> server_;

@@ -8,6 +8,12 @@
 
 #include <thread>
 
+#ifndef IS_OSS
+#if __has_feature(address_sanitizer)
+#include <sanitizer/lsan_interface.h>
+#endif
+#endif
+
 namespace facebook::fboss {
 
 void SplitSwSwitchInitializer::initImpl(HwSwitchCallback* callback) {
@@ -39,19 +45,45 @@ void SplitSwAgentInitializer::handleExitSignal(bool gracefulExit) {
     XLOG(WARNING)
         << "[Exit] Signal received before initializing sw switch, waiting for initialization to finish.";
   }
-  initializer()->waitForInitDone();
-  {
-    auto exitForColdBootFile =
-        agentDirectoryUtil_.exitSwSwitchForColdBootFile();
+  restart_time::mark(RestartEvent::SIGNAL_RECEIVED);
+  XLOG(DBG2) << "[Exit] Signal received ";
+  steady_clock::time_point begin = steady_clock::now();
+  auto sleepOnSigTermFile = sw_->getDirUtil()->sleepSwSwitchOnSigTermFile();
+  if (checkFileExists(sleepOnSigTermFile)) {
     SCOPE_EXIT {
-      removeFile(exitForColdBootFile);
+      removeFile(sleepOnSigTermFile);
     };
-    if (checkFileExists(exitForColdBootFile)) {
-      stopAgent(false, gracefulExit);
-    } else {
-      SwAgentInitializer::handleExitSignal(gracefulExit);
+    std::string timeStr;
+    if (folly::readFile(sleepOnSigTermFile.c_str(), timeStr)) {
+      // @lint-ignore CLANGTIDY
+      std::this_thread::sleep_for(
+          std::chrono::seconds(folly::to<uint32_t>(timeStr)));
     }
   }
+  XLOG(DBG2) << "[Exit] Wait until initialization done ";
+  initializer_->waitForInitDone();
+  stopServices();
+  steady_clock::time_point servicesStopped = steady_clock::now();
+  XLOG(DBG2) << "[Exit] Services stop time "
+             << duration_cast<duration<float>>(servicesStopped - begin).count();
+  sw_->gracefulExit();
+  steady_clock::time_point switchGracefulExit = steady_clock::now();
+  XLOG(DBG2)
+      << "[Exit] Switch Graceful Exit time "
+      << duration_cast<duration<float>>(switchGracefulExit - servicesStopped)
+             .count()
+      << std::endl
+      << "[Exit] Total graceful Exit time "
+      << duration_cast<duration<float>>(switchGracefulExit - begin).count();
+
+  restart_time::mark(RestartEvent::SHUTDOWN);
+  __attribute__((unused)) auto leakedSw = sw_.release();
+#ifndef IS_OSS
+#if __has_feature(address_sanitizer)
+  __lsan_ignore_object(leakedSw);
+#endif
+#endif
+  initializer_.reset();
   if (gracefulExit) {
     exit(0);
   } else {
