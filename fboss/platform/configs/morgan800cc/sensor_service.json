@@ -473,6 +473,54 @@
         "compute": "@/1000.0",
         "type": 3
       }
+    },
+    "FAN1": {
+      "FCB1_P3_3V": {
+        "path": "/run/devmap/sensors/FAN1_LTC2497_0x4C/in_voltage1_raw",
+        "thresholds": {
+          "upperCriticalVal": 3.55,
+          "lowerCriticalVal": 2.937,
+          "maxVal": 3.432,
+          "minVal": 3.1679999999999997
+        },
+        "compute": "(@ * 131072) / 1000 / 2060",
+        "type": 1
+      },
+      "FCB1_P12V": {
+        "path": "/run/devmap/sensors/FAN1_LTC2497_0x4C/in_voltage5_raw",
+        "thresholds": {
+          "upperCriticalVal": 14.4,
+          "lowerCriticalVal": 9.6,
+          "maxVal": 12.48,
+          "minVal": 11.52
+        },
+        "compute": "(@ * 131072) / 1000 / 2060",
+        "type": 1
+      }
+    },
+    "FAN0": {
+      "FCB0_P3_3V": {
+        "path": "/run/devmap/sensors/FAN0_LTC2497_0x4C/in_voltage1_raw",
+        "thresholds": {
+          "upperCriticalVal": 3.55,
+          "lowerCriticalVal": 2.937,
+          "maxVal": 3.432,
+          "minVal": 3.1679999999999997
+        },
+        "compute": "(@ * 131072) / 1000 / 2060",
+        "type": 1
+      },
+      "FCB0_P12V": {
+        "path": "/run/devmap/sensors/FAN0_LTC2497_0x4C/in_voltage5_raw",
+        "thresholds": {
+          "upperCriticalVal": 14.4,
+          "lowerCriticalVal": 9.6,
+          "maxVal": 12.48,
+          "minVal": 11.52
+        },
+        "compute": "(@ * 131072) / 1000 / 2060",
+        "type": 1
+      }
     }
   }
 }
