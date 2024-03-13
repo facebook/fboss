@@ -21,24 +21,8 @@
 
 namespace facebook::fboss {
 
-class AgentDscpQueueMappingTest : public AgentHwTest {
+class AgentDscpQueueMappingTestBase : public AgentHwTest {
  protected:
-  cfg::SwitchConfig initialConfig(
-      const AgentEnsemble& ensemble) const override {
-    auto asic = utility::getFirstAsic(ensemble.getSw());
-    auto cfg = utility::onePortPerInterfaceConfig(
-        ensemble.getSw(),
-        ensemble.masterLogicalPortIds(),
-        true /*interfaceHasSubnet*/);
-    auto kAclName = "acl1";
-    utility::addDscpAclToCfg(&cfg, kAclName, kDscp());
-    utility::addTrafficCounter(
-        &cfg, kCounterName(), utility::getAclCounterTypes(asic));
-    utility::addQueueMatcher(
-        &cfg, kAclName, kQueueId(), ensemble.isSai(), kCounterName());
-    return cfg;
-  }
-
   std::vector<production_features::ProductionFeature>
   getProductionFeaturesVerified() const override {
     return {production_features::ProductionFeature::L3_QOS};
@@ -49,46 +33,6 @@ class AgentDscpQueueMappingTest : public AgentHwTest {
     resolveNeigborAndProgramRoutes(ecmpHelper, kEcmpWidth);
   }
 
-  void verifyDscpQueueMappingHelper() {
-    auto setup = [this]() { setupHelper(); };
-
-    auto verify = [this]() {
-      for (bool frontPanel : {false, true}) {
-        auto beforeQueueOutPkts =
-            getLatestPortStats(masterLogicalInterfacePortIds()[0])
-                .get_queueOutPackets_()
-                .at(kQueueId());
-
-        sendPacket(frontPanel);
-
-        WITH_RETRIES({
-          auto afterQueueOutPkts =
-              getLatestPortStats(masterLogicalInterfacePortIds()[0])
-                  .get_queueOutPackets_()
-                  .at(kQueueId());
-
-          XLOG(DBG2) << "verify send packets "
-                     << (frontPanel ? "out of port" : "switched")
-                     << " beforeQueueOutPkts = " << beforeQueueOutPkts
-                     << " afterQueueOutPkti = " << afterQueueOutPkts;
-
-          /*
-           * Packet from CPU / looped back from front panel port (with
-           * pipeline bypass), hits ACL and increments counter (queue2Count
-           * = 1). On some platforms, looped back packets for unknown MACs
-           * are flooded and counted on queue *before* the split horizon
-           * check. This packet will match the DSCP based ACL and thus
-           * increment the queue2Count = 2.
-           */
-          EXPECT_EVENTUALLY_GE(afterQueueOutPkts - beforeQueueOutPkts, 1);
-        });
-      }
-    };
-
-    verifyAcrossWarmBoots(setup, verify);
-  }
-
- private:
   void sendPacket(bool frontPanel, uint8_t ttl = 64) {
     auto vlanId = utility::firstVlanID(getProgrammedState());
     auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
@@ -155,9 +99,235 @@ class AgentDscpQueueMappingTest : public AgentHwTest {
   const InterfaceID kIntfID{utility::kBaseVlanId};
 };
 
+class AgentDscpQueueMappingTest : public AgentDscpQueueMappingTestBase {
+ protected:
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto asic = utility::getFirstAsic(ensemble.getSw());
+    auto cfg = utility::onePortPerInterfaceConfig(
+        ensemble.getSw(),
+        ensemble.masterLogicalPortIds(),
+        true /*interfaceHasSubnet*/);
+    auto kAclName = "acl1";
+    utility::addDscpAclToCfg(&cfg, kAclName, kDscp());
+    utility::addTrafficCounter(
+        &cfg, kCounterName(), utility::getAclCounterTypes(asic));
+    utility::addQueueMatcher(
+        &cfg, kAclName, kQueueId(), ensemble.isSai(), kCounterName());
+    return cfg;
+  }
+
+  void verifyDscpQueueMappingHelper() {
+    auto setup = [this]() { setupHelper(); };
+
+    auto verify = [this]() {
+      for (bool frontPanel : {false, true}) {
+        auto beforeQueueOutPkts =
+            getLatestPortStats(masterLogicalInterfacePortIds()[0])
+                .get_queueOutPackets_()
+                .at(kQueueId());
+
+        sendPacket(frontPanel);
+
+        WITH_RETRIES({
+          auto afterQueueOutPkts =
+              getLatestPortStats(masterLogicalInterfacePortIds()[0])
+                  .get_queueOutPackets_()
+                  .at(kQueueId());
+
+          XLOG(DBG2) << "verify send packets "
+                     << (frontPanel ? "out of port" : "switched")
+                     << " beforeQueueOutPkts = " << beforeQueueOutPkts
+                     << " afterQueueOutPkti = " << afterQueueOutPkts;
+
+          /*
+           * Packet from CPU / looped back from front panel port (with
+           * pipeline bypass), hits ACL and increments counter (queue2Count
+           * = 1). On some platforms, looped back packets for unknown MACs
+           * are flooded and counted on queue *before* the split horizon
+           * check. This packet will match the DSCP based ACL and thus
+           * increment the queue2Count = 2.
+           */
+          EXPECT_EVENTUALLY_GE(afterQueueOutPkts - beforeQueueOutPkts, 1);
+        });
+      }
+    };
+
+    verifyAcrossWarmBoots(setup, verify);
+  }
+};
+
+class AgentAclAndDscpQueueMappingTest : public AgentDscpQueueMappingTestBase {
+ protected:
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto asic = utility::getFirstAsic(ensemble.getSw());
+    auto cfg = utility::onePortPerInterfaceConfig(
+        ensemble.getSw(),
+        ensemble.masterLogicalPortIds(),
+        true /*interfaceHasSubnet*/);
+    // QosMap
+    utility::addDscpQosPolicy(&cfg, "qp1", {{kQueueId(), {kDscp()}}});
+    utility::setCPUQosPolicy(&cfg, "qp1");
+    utility::setDefaultQosPolicy(&cfg, "qp1");
+
+    // ACL
+    auto* acl = utility::addAcl(&cfg, "acl0");
+    cfg::Ttl ttl; // Match packets with hop limit > 127
+    std::tie(*ttl.value(), *ttl.mask()) = std::make_tuple(0x80, 0x80);
+    acl->ttl() = ttl;
+    utility::addAclStat(
+        &cfg, "acl0", kCounterName(), utility::getAclCounterTypes(asic));
+    return cfg;
+  }
+
+  void verifyAclAndQosMapHelper() {
+    auto setup = [this]() { setupHelper(); };
+
+    auto verify = [this]() {
+      for (bool frontPanel : {false, true}) {
+        XLOG(DBG2) << "verify send packets "
+                   << (frontPanel ? "out of port" : "switched");
+        auto beforeQueueOutPkts =
+            getLatestPortStats(masterLogicalInterfacePortIds()[0])
+                .get_queueOutPackets_()
+                .at(kQueueId());
+        auto beforeAclInOutPkts =
+            utility::getAclInOutPackets(getSw(), kCounterName());
+
+        XLOG(DBG2) << "beforeQueueOutPkts = " << beforeQueueOutPkts
+                   << " beforeAclInOutPkts = " << beforeAclInOutPkts;
+
+        sendPacket(frontPanel, 255 /* ttl, > 127 to match ACL */);
+
+        WITH_RETRIES({
+          auto afterQueueOutPkts =
+              getLatestPortStats(masterLogicalInterfacePortIds()[0])
+                  .get_queueOutPackets_()
+                  .at(kQueueId());
+          auto afterAclInOutPkts =
+              utility::getAclInOutPackets(getSw(), kCounterName());
+
+          XLOG(DBG2) << "afterQueueOutPkts = " << afterQueueOutPkts
+                     << " afterAclInOutPkts = " << afterAclInOutPkts;
+
+          EXPECT_EVENTUALLY_EQ(1, afterQueueOutPkts - beforeQueueOutPkts);
+          EXPECT_EVENTUALLY_EQ(2, afterAclInOutPkts - beforeAclInOutPkts);
+        });
+      }
+    };
+
+    verifyAcrossWarmBoots(setup, verify);
+  }
+};
+
+class AgentAclConflictAndDscpQueueMappingTest
+    : public AgentDscpQueueMappingTestBase {
+ protected:
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto asic = utility::getFirstAsic(ensemble.getSw());
+    auto cfg = utility::onePortPerInterfaceConfig(
+        ensemble.getSw(),
+        ensemble.masterLogicalPortIds(),
+        true /*interfaceHasSubnet*/);
+
+    // The QoS map sends packets to queue kQueueIdQosMap() i.e. 7,
+    // The ACL sends them to queue kQueueIdAcl() i.e. 2.
+    // QosMap
+    utility::addDscpQosPolicy(&cfg, "qp1", {{kQueueIdQosMap(), {kDscp()}}});
+    utility::setCPUQosPolicy(&cfg, "qp1");
+    utility::setDefaultQosPolicy(&cfg, "qp1");
+
+    // ACL
+    utility::addDscpAclToCfg(&cfg, "acl0", kDscp());
+    utility::addTrafficCounter(
+        &cfg, kCounterName(), utility::getAclCounterTypes(asic));
+    utility::addQueueMatcher(
+        &cfg, "acl0", kQueueIdAcl(), ensemble.isSai(), kCounterName());
+    return cfg;
+  }
+
+  void verifyAclAndQosMapConflictHelper() {
+    auto setup = [this]() { setupHelper(); };
+
+    auto verify = [this]() {
+      for (bool frontPanel : {false, true}) {
+        XLOG(DBG2) << "verify send packets "
+                   << (frontPanel ? "out of port" : "switched");
+        auto beforeQueueOutPktsAcl =
+            getLatestPortStats(masterLogicalInterfacePortIds()[0])
+                .get_queueOutPackets_()
+                .at(kQueueIdAcl());
+        auto beforeQueueOutPktsQosMap =
+            getLatestPortStats(masterLogicalInterfacePortIds()[0])
+                .get_queueOutPackets_()
+                .at(kQueueIdQosMap());
+        auto beforeAclInOutPkts =
+            utility::getAclInOutPackets(getSw(), kCounterName());
+
+        XLOG(DBG2) << "beforeQueueOutPktsAcl = " << beforeQueueOutPktsAcl
+                   << " beforeQueueOutPktsQosMap = " << beforeQueueOutPktsQosMap
+                   << " beforeAclInOutPkts = " << beforeAclInOutPkts;
+
+        sendPacket(frontPanel);
+
+        WITH_RETRIES({
+          auto afterQueueOutPktsAcl =
+              getLatestPortStats(masterLogicalInterfacePortIds()[0])
+                  .get_queueOutPackets_()
+                  .at(kQueueIdAcl());
+          auto afterQueueOutPktsQosMap =
+              getLatestPortStats(masterLogicalInterfacePortIds()[0])
+                  .get_queueOutPackets_()
+                  .at(kQueueIdQosMap());
+
+          auto afterAclInOutPkts =
+              utility::getAclInOutPackets(getSw(), kCounterName());
+
+          XLOG(DBG2) << "afterQueueOutPktsAcl = " << afterQueueOutPktsAcl
+                     << " afterQueueOutPktsQosMap = " << afterQueueOutPktsQosMap
+                     << " afterAclInOutPkts = " << afterAclInOutPkts;
+
+          // The ACL overrides the decision of the QoS map
+          EXPECT_EVENTUALLY_EQ(
+              0, afterQueueOutPktsQosMap - beforeQueueOutPktsQosMap);
+
+          /*
+           * Packet from CPU / looped back from front panel port (with
+           * pipeline bypass), hits ACL and increments counter
+           * (queue2Count = 1). On some platforms, looped back packets for
+           * unknown MACs are flooded and counted on queue *before* the
+           * split horizon check. This packet will match the DSCP based
+           * ACL and thus increment the queue2Count = 2.
+           */
+          EXPECT_EVENTUALLY_GE(afterQueueOutPktsAcl - beforeQueueOutPktsAcl, 1);
+
+          EXPECT_EVENTUALLY_EQ(2, afterAclInOutPkts - beforeAclInOutPkts);
+        });
+      }
+    };
+
+    verifyAcrossWarmBoots(setup, verify);
+  }
+};
+
 // Verify that traffic arriving on front panel/cpu port egresses via queue
 // based on DSCP
 TEST_F(AgentDscpQueueMappingTest, VerifyDscpQueueMapping) {
   verifyDscpQueueMappingHelper();
 }
+
+// Verify that traffic arriving on front panel/cpu port with non-conflicting
+// ACL (counter based on ttl) and QoS Map (DSCP to Queue)
+TEST_F(AgentAclAndDscpQueueMappingTest, VerifyAclAndQosMap) {
+  verifyAclAndQosMapHelper();
+}
+
+// Verify that traffic arriving on front panel/cpu port with conflicting ACL
+// (DSCP to queue) and QoS Map (DSCP to Queue)
+TEST_F(AgentAclConflictAndDscpQueueMappingTest, VerifyAclAndQosMapConflict) {
+  verifyAclAndQosMapConflictHelper();
+}
+
 } // namespace facebook::fboss
