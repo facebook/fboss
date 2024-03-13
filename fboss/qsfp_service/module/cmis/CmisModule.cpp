@@ -1684,6 +1684,79 @@ std::optional<VdmPerfMonitorStats> CmisModule::getVdmPerfMonitorStats() {
   return vdmStats;
 }
 
+/*
+ * getVdmPerfMonitorStatsForOds
+ *
+ * Consolidate the VDM stats for publishing to ODS/Fbagent
+ * - For Pre FEC BER and Post FEC BER -> Report Max value
+ * - For SNR -> Report Min value across all lanes
+ * - For PAM4 SD, MPI, LTP -> Report Max value across all lanes
+ */
+VdmPerfMonitorStatsForOds CmisModule::getVdmPerfMonitorStatsForOds(
+    VdmPerfMonitorStats& vdmPerfMonStats) {
+  VdmPerfMonitorStatsForOds vdmPerfMonOdsStats;
+
+  vdmPerfMonOdsStats.statsCollectionTme() =
+      vdmPerfMonStats.statsCollectionTme().value();
+
+  // Lambda to report Min and Max value from a map of lane id to lane values
+  auto findMinMax =
+      [](std::map<int32_t, double>& vdmStats) -> std::pair<double, double> {
+    double min = std::numeric_limits<double>::max();
+    double max = std::numeric_limits<double>::lowest();
+    for (auto& [lane, vdmVal] : vdmStats) {
+      if (vdmVal > max) {
+        max = vdmVal;
+      }
+      if (vdmVal < min) {
+        min = vdmVal;
+      }
+    }
+    return std::make_pair(min, max);
+  };
+
+  // Media side stats consolidation
+  for (auto& [portName, portMediaVdmStats] :
+       vdmPerfMonStats.mediaPortVdmStats().value()) {
+    // Report BER and Post Fec BER, need to report Max only
+    vdmPerfMonOdsStats.mediaPortVdmStats()[portName].datapathBERMax() =
+        portMediaVdmStats.datapathBER()->max().value();
+    vdmPerfMonOdsStats.mediaPortVdmStats()[portName]
+        .datapathErroredFramesMax() =
+        portMediaVdmStats.datapathErroredFrames()->max().value();
+
+    // For SNR, report Min value among all lanes
+    vdmPerfMonOdsStats.mediaPortVdmStats()[portName].laneSNRMin() =
+        findMinMax(portMediaVdmStats.laneSNR().value()).first;
+
+    // For PAM4 SD, MPI, LTP, report Max value among all lanes
+    vdmPerfMonOdsStats.mediaPortVdmStats()[portName].lanePam4Level0SDMax() =
+        findMinMax(portMediaVdmStats.lanePam4Level0SD().value()).second;
+    vdmPerfMonOdsStats.mediaPortVdmStats()[portName].lanePam4Level1SDMax() =
+        findMinMax(portMediaVdmStats.lanePam4Level1SD().value()).second;
+    vdmPerfMonOdsStats.mediaPortVdmStats()[portName].lanePam4Level2SDMax() =
+        findMinMax(portMediaVdmStats.lanePam4Level2SD().value()).second;
+    vdmPerfMonOdsStats.mediaPortVdmStats()[portName].lanePam4Level3SDMax() =
+        findMinMax(portMediaVdmStats.lanePam4Level3SD().value()).second;
+    vdmPerfMonOdsStats.mediaPortVdmStats()[portName].lanePam4MPIMax() =
+        findMinMax(portMediaVdmStats.lanePam4MPI().value()).second;
+    vdmPerfMonOdsStats.mediaPortVdmStats()[portName].lanePam4LTPMax() =
+        findMinMax(portMediaVdmStats.lanePam4LTP().value()).second;
+  }
+
+  // Host side stats consolidation
+  for (auto& [portName, portHostVdmStats] :
+       vdmPerfMonStats.hostPortVdmStats().value()) {
+    // Report BER and Post Fec BER, need to report Max only
+    vdmPerfMonOdsStats.hostPortVdmStats()[portName].datapathBERMax() =
+        portHostVdmStats.datapathBER()->max().value();
+    vdmPerfMonOdsStats.hostPortVdmStats()[portName].datapathErroredFramesMax() =
+        portHostVdmStats.datapathErroredFrames()->max().value();
+  }
+
+  return vdmPerfMonOdsStats;
+}
+
 TransceiverModuleIdentifier CmisModule::getIdentifier() {
   return (TransceiverModuleIdentifier)getSettingsValue(CmisField::IDENTIFIER);
 }

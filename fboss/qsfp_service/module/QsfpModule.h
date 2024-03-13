@@ -576,6 +576,11 @@ class QsfpModule : public Transceiver {
     return std::nullopt;
   }
 
+  virtual VdmPerfMonitorStatsForOds getVdmPerfMonitorStatsForOds(
+      VdmPerfMonitorStats& /* vdmPerfMonStats */) {
+    return VdmPerfMonitorStatsForOds{};
+  }
+
   virtual bool setTransceiverTxLocked(
       const std::string& /* portName */,
       phy::Side /* side */,
