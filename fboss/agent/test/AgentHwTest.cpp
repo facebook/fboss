@@ -219,6 +219,42 @@ HwSysPortStats AgentHwTest::getLatestSysPortStats(const SystemPortID& port) {
       ->second;
 }
 
+HwSwitchDropStats AgentHwTest::getAggregatedSwitchDropStats() {
+  HwSwitchDropStats hwSwitchDropStats;
+  checkWithRetry([&hwSwitchDropStats, this]() {
+    HwSwitchDropStats aggHwSwitchDropStats;
+
+    auto switchStats = getSw()->getHwSwitchStatsExpensive();
+    for (const auto& switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
+      if (switchStats.find(switchId) == switchStats.end()) {
+        return false;
+      }
+      const auto& dropStats = *switchStats.at(switchId).switchDropStats();
+
+#define FILL_DROP_COUNTERS(stat)                       \
+  aggHwSwitchDropStats.stat##Drops() =                 \
+      aggHwSwitchDropStats.stat##Drops().value_or(0) + \
+      dropStats.stat##Drops().value_or(0);
+
+      FILL_DROP_COUNTERS(global);
+      FILL_DROP_COUNTERS(globalReachability);
+      FILL_DROP_COUNTERS(packetIntegrity);
+      FILL_DROP_COUNTERS(fdrCell);
+      FILL_DROP_COUNTERS(voqResourceExhaustion);
+      FILL_DROP_COUNTERS(globalResourceExhaustion);
+      FILL_DROP_COUNTERS(sramResourceExhaustion);
+      FILL_DROP_COUNTERS(vsqResourceExhaustion);
+      FILL_DROP_COUNTERS(dropPrecedence);
+      FILL_DROP_COUNTERS(queueResolution);
+      FILL_DROP_COUNTERS(ingressPacketPipelineReject);
+      FILL_DROP_COUNTERS(corruptedCellPacketIntegrity);
+    }
+    hwSwitchDropStats = aggHwSwitchDropStats;
+    return true;
+  });
+  return hwSwitchDropStats;
+}
+
 void AgentHwTest::applyNewStateImpl(
     StateUpdateFn fn,
     const std::string& name,

@@ -131,6 +131,8 @@ class AgentHwTest : public ::testing::Test {
 
   HwSysPortStats getLatestSysPortStats(const SystemPortID& port);
 
+  HwSwitchDropStats getAggregatedSwitchDropStats();
+
   virtual cfg::SwitchConfig initialConfig(const AgentEnsemble& ensemble) const;
 
   cfg::SwitchConfig addCoppConfig(
