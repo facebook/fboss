@@ -18,6 +18,9 @@ enum ProductionFeature {
   NULL_ROUTE_IN_DISCARDS_COUNTER = 5,
   EGRESS_FORWARDING_DISCARDS_COUNTER = 6,
   PRBS = 7,
+  COPP = 8,
+  LAG = 9,
+  DSCP_REMARKING = 10,
 }
 
 const list<ProductionFeature> tomahawkFeature = [
