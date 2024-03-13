@@ -391,6 +391,26 @@ struct VdmPerfMonitorStats {
   3: i64 statsCollectionTme;
 }
 
+struct VdmPerfMonitorPortSideStatsForOds {
+  1: double datapathBERMax;
+  2: double datapathErroredFramesMax;
+  3: double laneSNRMin;
+  4: double lanePam4Level0SDMax;
+  5: double lanePam4Level1SDMax;
+  6: double lanePam4Level2SDMax;
+  7: double lanePam4Level3SDMax;
+  8: double lanePam4MPIMax;
+  9: double lanePam4LTPMax;
+}
+
+struct VdmPerfMonitorStatsForOds {
+  // Map of SW Port to Media side VDM Performance Monitor diags stats
+  1: map<string, VdmPerfMonitorPortSideStatsForOds> mediaPortVdmStats;
+  // Map of SW Port to Host side VDM Performance Monitor diags stats
+  2: map<string, VdmPerfMonitorPortSideStatsForOds> hostPortVdmStats;
+  3: i64 statsCollectionTme;
+}
+
 struct VdmDiagsStats {
   1: double preFecBerMediaMin;
   2: double preFecBerMediaMax;
@@ -492,7 +512,7 @@ struct TcvrStats {
   10: i64 lastFwUpgradeStartTime;
   11: i64 lastFwUpgradeEndTime;
   12: optional VdmPerfMonitorStats vdmPerfMonitorStats;
-  13: optional VdmPerfMonitorStats vdmPerfMonitorStatsForOds;
+  13: optional VdmPerfMonitorStatsForOds vdmPerfMonitorStatsForOds;
 }
 
 struct TransceiverInfo {
