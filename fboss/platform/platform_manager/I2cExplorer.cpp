@@ -135,7 +135,7 @@ void I2cExplorer::createI2cDevice(
   XLOG_IF(INFO, !standardOut.empty()) << standardOut;
   if (exitStatus != 0 || !isI2cDeviceCreated(busNum, addr)) {
     throw std::runtime_error(fmt::format(
-        "Failed to create i2c device for {} ({}) at bus: {}, addr: {} with ioctl exit status {}",
+        "Failed to create i2c device for {} ({}) at bus: {}, addr: {} with exit status {}",
         pmUnitScopedName,
         deviceName,
         busNum,
