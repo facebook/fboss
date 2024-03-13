@@ -62,20 +62,25 @@ void SplitSwAgentInitializer::handleExitSignal(bool gracefulExit) {
   }
   XLOG(DBG2) << "[Exit] Wait until initialization done ";
   initializer_->waitForInitDone();
-  stopServices();
-  steady_clock::time_point servicesStopped = steady_clock::now();
-  XLOG(DBG2) << "[Exit] Services stop time "
-             << duration_cast<duration<float>>(servicesStopped - begin).count();
+  initializer_->stopFunctionScheduler();
+  steady_clock::time_point switchGracefulExitBegin = steady_clock::now();
   sw_->gracefulExit();
+  steady_clock::time_point switchGracefulExitEnd = steady_clock::now();
+  XLOG(DBG2) << "[Exit] Switch Graceful Exit time "
+             << duration_cast<duration<float>>(
+                    switchGracefulExitEnd - switchGracefulExitBegin)
+                    .count()
+             << std::endl;
+  this->stopServer();
+  steady_clock::time_point servicesStopped = steady_clock::now();
+  XLOG(DBG2) << "[Exit] Server stop time "
+             << duration_cast<duration<float>>(
+                    servicesStopped - switchGracefulExitEnd)
+                    .count();
   steady_clock::time_point switchGracefulExit = steady_clock::now();
   XLOG(DBG2)
-      << "[Exit] Switch Graceful Exit time "
-      << duration_cast<duration<float>>(switchGracefulExit - servicesStopped)
-             .count()
-      << std::endl
       << "[Exit] Total graceful Exit time "
       << duration_cast<duration<float>>(switchGracefulExit - begin).count();
-
   restart_time::mark(RestartEvent::SHUTDOWN);
   __attribute__((unused)) auto leakedSw = sw_.release();
 #ifndef IS_OSS
@@ -104,7 +109,8 @@ void SplitSwAgentInitializer::stopAgent(
 void SplitSwAgentInitializer::exitForColdBoot() {
   sw_->stop(false /* gracefulStop */, true /* revertToMinAlpmState */);
   sw_->getHwSwitchHandler()->stop();
-  stopServices();
+  initializer_->stopFunctionScheduler();
+  stopServer();
   initializer_.reset();
 }
 

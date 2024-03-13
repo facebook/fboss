@@ -146,12 +146,16 @@ void SwAgentSignalHandler::signalReceived(int /*signum*/) noexcept {
   stopServices();
 }
 
-void SwAgentInitializer::stopServices() {
+void SwAgentInitializer::stopServer() {
   // stop Thrift server: stop all worker threads and
   // stop accepting new connections
   XLOG(DBG2) << "Stopping thrift server";
   server_->stop();
   XLOG(DBG2) << "Stopped thrift server";
+}
+
+void SwAgentInitializer::stopServices() {
+  stopServer();
   initializer_->stopFunctionScheduler();
   XLOG(DBG2) << "Stopped stats FunctionScheduler";
   fbossFinalize();

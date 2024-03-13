@@ -69,8 +69,6 @@ class SwAgentInitializer : public AgentInitializer {
     return initializer_.get();
   }
 
-  void stopServices();
-
   // In case of gtest failures, we need to do an unclean exit to flag failures.
   // Hence control that via the gracefulExit flag
   void stopAgent(bool setupWarmboot, bool gracefulExit) override;
@@ -85,6 +83,9 @@ class SwAgentInitializer : public AgentInitializer {
   std::unique_ptr<SwSwitch> sw_;
   std::unique_ptr<SwSwitchInitializer> initializer_;
   virtual void handleExitSignal(bool gracefulExit) = 0;
+
+  void stopServer();
+  void stopServices();
 
  private:
   std::unique_ptr<apache::thrift::ThriftServer> server_;
