@@ -255,13 +255,11 @@ void DsfSubscriber::handleFsdbSubscriptionStateUpdate(
     const std::string& nodeName,
     fsdb::FsdbExtStateSubscriber::SubscriptionState oldState,
     fsdb::FsdbExtStateSubscriber::SubscriptionState newState) {
-  if (XLOG_IS_ON(DBG2)) {
-    XLOG(DBG2)
-        << "DsfSubscriber: " << nodeName << ": subscription state changed "
-        << fsdb::FsdbExtStateSubscriber::subscriptionStateToString(oldState)
-        << " -> "
-        << fsdb::FsdbExtStateSubscriber::subscriptionStateToString(newState);
-  }
+  XLOG(DBG2)
+      << "DsfSubscriber: " << nodeName << ": subscription state changed "
+      << fsdb::FsdbExtStateSubscriber::subscriptionStateToString(oldState)
+      << " -> "
+      << fsdb::FsdbExtStateSubscriber::subscriptionStateToString(newState);
 
   auto oldThriftState = fsdb::FsdbExtStateSubscriber::isConnected(oldState)
       ? fsdb::FsdbSubscriptionState::CONNECTED
