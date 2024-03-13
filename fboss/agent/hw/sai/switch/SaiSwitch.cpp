@@ -1110,7 +1110,11 @@ void SaiSwitch::updateResourceUsage(const LockPolicyT& lockPolicy) {
     if (getSwitchType() == cfg::SwitchType::VOQ) {
       uint64_t sysPortsFree, voqsFree;
       saiCheckError(sai_object_type_get_availability(
-          saiSwitchId_, SAI_OBJECT_TYPE_SYSTEM_PORT, 0, NULL, &sysPortsFree));
+          saiSwitchId_,
+          SAI_OBJECT_TYPE_SYSTEM_PORT,
+          0,
+          nullptr,
+          &sysPortsFree));
       hwResourceStats_.system_ports_free() = sysPortsFree;
       std::array<sai_attribute_t, 1> attr;
       attr[0].id = SAI_QUEUE_ATTR_TYPE;

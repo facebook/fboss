@@ -181,7 +181,7 @@ bool isNativeUcmpEnabled(const BcmSwitch* hw, bcm_if_t ecmp) {
   int pathsInHwCount;
   if (hw->getPlatform()->getAsic()->isSupported(HwAsic::Feature::HSDK)) {
     // @lint-ignore CLANGTIDY
-    bcm_l3_ecmp_get(hw->getUnit(), &existing, 0, NULL, &pathsInHwCount);
+    bcm_l3_ecmp_get(hw->getUnit(), &existing, 0, nullptr, &pathsInHwCount);
     return existing.ecmp_group_flags & BCM_L3_ECMP_MEMBER_WEIGHTED;
   }
   return false;

@@ -213,7 +213,7 @@ void BcmPtpTcMgr::disablePtpTc() {
     }
 
     BCM_CHECK_ERROR(
-        bcm_port_timesync_config_set(unit, port, 0 /* config_count */, NULL),
+        bcm_port_timesync_config_set(unit, port, 0 /* config_count */, nullptr),
         "Error in disabling TC correction for port ",
         port);
 
