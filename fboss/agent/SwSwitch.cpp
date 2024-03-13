@@ -774,7 +774,7 @@ void SwSwitch::updateStats() {
   } catch (const std::exception& ex) {
     XLOG(ERR) << "Error running updateAllPhyInfo: " << folly::exceptionStr(ex);
   }
-  if ((*agentConfig_.rlock())->getRunMode() == cfg::AgentRunMode::MONO) {
+  if (!isRunModeMultiSwitch()) {
     multiswitch::HwSwitchStats hwStats;
     hwStats.hwPortStats() = multiHwSwitchHandler_->getPortStats();
     hwStats.sysPortStats() = multiHwSwitchHandler_->getSysPortStats();
@@ -3095,13 +3095,6 @@ bool SwSwitch::needL2EntryForNeighbor() const {
 void SwSwitch::updateHwSwitchStats(
     uint16_t switchIndex,
     multiswitch::HwSwitchStats hwStats) {
-  // Ignore empty stats updates. These are seen along with
-  // regular updates probably due to large size of messages.
-  // TODO - investigate and remove this
-  if (hwStats.timestamp().value() == 0) {
-    XLOG(DBG3) << "Ignoring HwSwitchStats with empty contents";
-    return;
-  }
   (*hwSwitchStats_.wlock())[switchIndex] = std::move(hwStats);
 }
 
