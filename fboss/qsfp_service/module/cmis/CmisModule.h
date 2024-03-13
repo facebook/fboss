@@ -531,6 +531,15 @@ class CmisModule : public QsfpModule {
   void updateVdmDiagsValLocation();
 
   double f16ToDouble(uint8_t byte0, uint8_t byte1);
+  std::pair<std::optional<const uint8_t*>, int> getVdmDataValPtr(
+      VdmConfigType vdmConf);
+
+  // Private functions to extract and fill in VDM performance monitoring stats
+  bool fillVdmPerfMonitorSnr(VdmPerfMonitorStats& vdmStats);
+  bool fillVdmPerfMonitorBer(VdmPerfMonitorStats& vdmStats);
+  bool fillVdmPerfMonitorFecErr(VdmPerfMonitorStats& vdmStats);
+  bool fillVdmPerfMonitorLtp(VdmPerfMonitorStats& vdmStats);
+  bool fillVdmPerfMonitorPam4Data(VdmPerfMonitorStats& vdmStats);
 
   const std::shared_ptr<const TransceiverConfig> tcvrConfig_;
 };

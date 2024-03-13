@@ -3416,5 +3416,323 @@ double CmisModule::f16ToDouble(uint8_t byte0, uint8_t byte1) {
   return ber;
 }
 
+/*
+ * getVdmDataValPtr
+ *
+ * Returns the VDM data value pointer from register cache along with VDM data
+ * length, otherwise returns null
+ */
+std::pair<std::optional<const uint8_t*>, int> CmisModule::getVdmDataValPtr(
+    VdmConfigType vdmConf) {
+  const uint8_t* data;
+  int offset;
+  int length;
+  int dataAddress;
+
+  if (!cacheIsValid()) {
+    return std::make_pair(std::nullopt, 0);
+  }
+  auto vdmDiagsValLocation = getVdmDiagsValLocation(vdmConf);
+  if (vdmDiagsValLocation.vdmConfImplementedByModule) {
+    dataAddress = static_cast<int>(vdmDiagsValLocation.vdmValPage);
+    offset = vdmDiagsValLocation.vdmValOffset;
+    length = vdmDiagsValLocation.vdmValLength;
+    data = getQsfpValuePtr(dataAddress, offset, length);
+    return std::make_pair(data, length);
+  }
+  return std::make_pair(std::nullopt, 0);
+}
+
+/*
+ * fillVdmPerfMonitorSnr
+ *
+ * Private function to fill in the VDM performance monitor stats for SNR
+ */
+bool CmisModule::fillVdmPerfMonitorSnr(VdmPerfMonitorStats& vdmStats) {
+  if (!isVdmSupported() || !cacheIsValid()) {
+    return false;
+  }
+
+  // Get the SW Ports and the Channels for each port
+  auto& portNameToMediaLanes = getPortNameToMediaLanes();
+
+  // Fill in channel SNR Media In
+  std::map<int, double> channelSnrMap;
+  auto [data, length] = getVdmDataValPtr(SNR_MEDIA_IN);
+  if (data) {
+    for (auto lanes = 0; lanes < length / 2; lanes++) {
+      double snr;
+      snr = data.value()[lanes * 2] +
+          (data.value()[lanes * 2 + 1] / kU16TypeLsbDivisor);
+      channelSnrMap[lanes] = snr;
+    }
+  }
+  for (auto& [portName, mediaLanes] : portNameToMediaLanes) {
+    for (auto& mediaLane : mediaLanes) {
+      vdmStats.mediaPortVdmStats()[portName].laneSNR()[mediaLane] =
+          channelSnrMap[mediaLane];
+    }
+  }
+  return true;
+}
+
+/*
+ * fillVdmPerfMonitorBer
+ *
+ * Private function to fill in the VDM performance monitor stats for BER (Bit
+ * Error Rate) on both Media and Host side
+ */
+bool CmisModule::fillVdmPerfMonitorBer(VdmPerfMonitorStats& vdmStats) {
+  if (!isVdmSupported() || !cacheIsValid()) {
+    return false;
+  }
+
+  // Get the SW Ports and the Channels for each port
+  // Get the SW Ports and the Channels for each port
+  auto& portNameToMediaLanes = getPortNameToMediaLanes();
+  auto& portNameToHostLanes = getPortNameToHostLanes();
+
+  // Lambda to extract BER or Frame Error values for a given VDM config type on
+  // a SW Port
+  auto captureVdmBerFrameErrorValues =
+      [&](VdmConfigType vdmConfType, int startLane) -> std::optional<double> {
+    auto [data, length] = getVdmDataValPtr(vdmConfType);
+    if (data) {
+      return f16ToDouble(
+          data.value()[startLane * kVdmDescriptorLength],
+          data.value()[startLane * kVdmDescriptorLength + 1]);
+    }
+    return std::nullopt;
+  };
+
+  // Fill in Media side per port values
+  for (auto& [portName, mediaLanes] : portNameToMediaLanes) {
+    auto startLane = *mediaLanes.begin();
+
+    // Fill in Media Pre FEC BER values
+    if (auto berVal = captureVdmBerFrameErrorValues(
+            PRE_FEC_BER_MEDIA_IN_MIN, startLane)) {
+      vdmStats.mediaPortVdmStats()[portName].datapathBER()->min() =
+          berVal.value();
+    }
+    if (auto berVal = captureVdmBerFrameErrorValues(
+            PRE_FEC_BER_MEDIA_IN_MAX, startLane)) {
+      vdmStats.mediaPortVdmStats()[portName].datapathBER()->max() =
+          berVal.value();
+    }
+    if (auto berVal = captureVdmBerFrameErrorValues(
+            PRE_FEC_BER_MEDIA_IN_AVG, startLane)) {
+      vdmStats.mediaPortVdmStats()[portName].datapathBER()->avg() =
+          berVal.value();
+    }
+    if (auto berVal = captureVdmBerFrameErrorValues(
+            PRE_FEC_BER_MEDIA_IN_CUR, startLane)) {
+      vdmStats.mediaPortVdmStats()[portName].datapathBER()->cur() =
+          berVal.value();
+    }
+  }
+
+  // Fill in Host side per port values
+  for (auto& [portName, hostLanes] : portNameToHostLanes) {
+    auto startLane = *hostLanes.begin();
+
+    // Fill in Host Pre FEC BER values
+    if (auto berVal =
+            captureVdmBerFrameErrorValues(PRE_FEC_BER_HOST_IN_MIN, startLane)) {
+      vdmStats.hostPortVdmStats()[portName].datapathBER()->min() =
+          berVal.value();
+    }
+    if (auto berVal =
+            captureVdmBerFrameErrorValues(PRE_FEC_BER_HOST_IN_MAX, startLane)) {
+      vdmStats.hostPortVdmStats()[portName].datapathBER()->max() =
+          berVal.value();
+    }
+    if (auto berVal =
+            captureVdmBerFrameErrorValues(PRE_FEC_BER_HOST_IN_AVG, startLane)) {
+      vdmStats.hostPortVdmStats()[portName].datapathBER()->avg() =
+          berVal.value();
+    }
+    if (auto berVal =
+            captureVdmBerFrameErrorValues(PRE_FEC_BER_HOST_IN_CUR, startLane)) {
+      vdmStats.hostPortVdmStats()[portName].datapathBER()->cur() =
+          berVal.value();
+    }
+  }
+  return true;
+}
+
+/*
+ * fillVdmPerfMonitorFecErr
+ *
+ * Private function to fill in the VDM performance monitor stats for FEC Error
+ * Rate (Post FEC BER) on both Media and Host side
+ */
+bool CmisModule::fillVdmPerfMonitorFecErr(VdmPerfMonitorStats& vdmStats) {
+  if (!isVdmSupported() || !cacheIsValid()) {
+    return false;
+  }
+
+  // Get the SW Ports and the Channels for each port
+  auto& portNameToMediaLanes = getPortNameToMediaLanes();
+  auto& portNameToHostLanes = getPortNameToHostLanes();
+
+  // Lambda to extract BER or Frame Error values for a given VDM config type on
+  // a SW Port
+  auto captureVdmBerFrameErrorValues =
+      [&](VdmConfigType vdmConfType, int startLane) -> std::optional<double> {
+    auto [data, length] = getVdmDataValPtr(vdmConfType);
+    if (data) {
+      return f16ToDouble(
+          data.value()[startLane * kVdmDescriptorLength],
+          data.value()[startLane * kVdmDescriptorLength + 1]);
+    }
+    return std::nullopt;
+  };
+
+  // Fill in Media side per port values
+  for (auto& [portName, mediaLanes] : portNameToMediaLanes) {
+    auto startLane = *mediaLanes.begin();
+
+    // Fill in Media Post FEC Errored Frames values
+    if (auto errFrames =
+            captureVdmBerFrameErrorValues(ERR_FRAME_MEDIA_IN_MIN, startLane)) {
+      vdmStats.mediaPortVdmStats()[portName].datapathErroredFrames()->min() =
+          errFrames.value();
+    }
+    if (auto errFrames =
+            captureVdmBerFrameErrorValues(ERR_FRAME_MEDIA_IN_MAX, startLane)) {
+      vdmStats.mediaPortVdmStats()[portName].datapathErroredFrames()->max() =
+          errFrames.value();
+    }
+    if (auto errFrames =
+            captureVdmBerFrameErrorValues(ERR_FRAME_MEDIA_IN_AVG, startLane)) {
+      vdmStats.mediaPortVdmStats()[portName].datapathErroredFrames()->avg() =
+          errFrames.value();
+    }
+    if (auto errFrames =
+            captureVdmBerFrameErrorValues(ERR_FRAME_MEDIA_IN_CUR, startLane)) {
+      vdmStats.mediaPortVdmStats()[portName].datapathErroredFrames()->cur() =
+          errFrames.value();
+    }
+  }
+
+  // Fill in Host side per port values
+  for (auto& [portName, hostLanes] : portNameToHostLanes) {
+    auto startLane = *hostLanes.begin();
+
+    // Fill in Host Post FEC Errored Frame values
+    if (auto errFrames =
+            captureVdmBerFrameErrorValues(ERR_FRAME_HOST_IN_MIN, startLane)) {
+      vdmStats.hostPortVdmStats()[portName].datapathErroredFrames()->min() =
+          errFrames.value();
+    }
+    if (auto errFrames =
+            captureVdmBerFrameErrorValues(ERR_FRAME_HOST_IN_MAX, startLane)) {
+      vdmStats.hostPortVdmStats()[portName].datapathErroredFrames()->max() =
+          errFrames.value();
+    }
+    if (auto errFrames =
+            captureVdmBerFrameErrorValues(ERR_FRAME_HOST_IN_AVG, startLane)) {
+      vdmStats.hostPortVdmStats()[portName].datapathErroredFrames()->avg() =
+          errFrames.value();
+    }
+    if (auto errFrames =
+            captureVdmBerFrameErrorValues(ERR_FRAME_HOST_IN_CUR, startLane)) {
+      vdmStats.hostPortVdmStats()[portName].datapathErroredFrames()->cur() =
+          errFrames.value();
+    }
+  }
+  return true;
+}
+
+/*
+ * fillVdmPerfMonitorLtp
+ *
+ * Private function to fill in the VDM performance monitor stats for LTP (Level
+ * Transition Parameter) on Media side
+ */
+bool CmisModule::fillVdmPerfMonitorLtp(VdmPerfMonitorStats& vdmStats) {
+  if (!isVdmSupported() || !cacheIsValid()) {
+    return false;
+  }
+
+  // Get the SW Ports and the Channels for each port
+  auto& portNameToMediaLanes = getPortNameToMediaLanes();
+
+  // Fill in channel LTP Media In
+  std::map<int, double> channelLtpMap;
+  auto [data, length] = getVdmDataValPtr(PAM4_LTP_MEDIA_IN);
+  if (data) {
+    for (auto lanes = 0; lanes < length / 2; lanes++) {
+      double ltp;
+      ltp = data.value()[lanes * 2] +
+          (data.value()[lanes * 2 + 1] / kU16TypeLsbDivisor);
+      channelLtpMap[lanes] = ltp;
+    }
+  }
+  for (auto& [portName, mediaLanes] : portNameToMediaLanes) {
+    for (auto& mediaLane : mediaLanes) {
+      vdmStats.mediaPortVdmStats()[portName].lanePam4LTP()[mediaLane] =
+          channelLtpMap[mediaLane];
+    }
+  }
+  return true;
+}
+
+/*
+ * fillVdmPerfMonitorPam4Data
+ *
+ * Private function to fill in the VDM performance monitor stats for PAM4 like
+ * each level standard deviation, MPI (Multi Path Interference) on Media side
+ */
+bool CmisModule::fillVdmPerfMonitorPam4Data(VdmPerfMonitorStats& vdmStats) {
+  if (!isVdmSupported(3) || !cacheIsValid()) {
+    return false;
+  }
+
+  // Get the SW Ports and the Channels for each port
+  auto& portNameToMediaLanes = getPortNameToMediaLanes();
+
+  // Fill in VDM Advance group3 performance monitoring info
+
+  // Lambda to read the VDM PM value for the given VDM Config
+  auto getVdmPmLaneValues =
+      [&](VdmConfigType vdmConf) -> std::map<int, double> {
+    std::map<int, double> pmMap;
+    auto [data, length] = getVdmDataValPtr(vdmConf);
+    if (data) {
+      for (auto lanes = 0; lanes < length / 2; lanes++) {
+        double pmVal;
+        pmVal =
+            f16ToDouble(data.value()[lanes * 2], data.value()[lanes * 2 + 1]);
+        pmMap[lanes] = pmVal;
+      }
+    }
+    return pmMap;
+  };
+
+  // PAM4 Level0, Level1, Level2 , Level3, MPI
+  auto sdL0Map = getVdmPmLaneValues(PAM4_LEVEL0_STANDARD_DEVIATION_LINE);
+  auto sdL1Map = getVdmPmLaneValues(PAM4_LEVEL1_STANDARD_DEVIATION_LINE);
+  auto sdL2Map = getVdmPmLaneValues(PAM4_LEVEL2_STANDARD_DEVIATION_LINE);
+  auto sdL3Map = getVdmPmLaneValues(PAM4_LEVEL3_STANDARD_DEVIATION_LINE);
+  auto mpiMap = getVdmPmLaneValues(PAM4_MPI_LINE);
+  for (auto& [portName, mediaLanes] : portNameToMediaLanes) {
+    for (auto& mediaLane : mediaLanes) {
+      vdmStats.mediaPortVdmStats()[portName].lanePam4Level0SD()[mediaLane] =
+          sdL0Map[mediaLane];
+      vdmStats.mediaPortVdmStats()[portName].lanePam4Level1SD()[mediaLane] =
+          sdL1Map[mediaLane];
+      vdmStats.mediaPortVdmStats()[portName].lanePam4Level2SD()[mediaLane] =
+          sdL2Map[mediaLane];
+      vdmStats.mediaPortVdmStats()[portName].lanePam4Level3SD()[mediaLane] =
+          sdL3Map[mediaLane];
+      vdmStats.mediaPortVdmStats()[portName].lanePam4MPI()[mediaLane] =
+          mpiMap[mediaLane];
+    }
+  }
+  return true;
+}
+
 } // namespace fboss
 } // namespace facebook
