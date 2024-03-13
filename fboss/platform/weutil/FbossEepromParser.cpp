@@ -1,4 +1,7 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
+
+#include <fboss/platform/weutil/FbossEepromParser.h>
+
 #include <cctype>
 #include <filesystem>
 #include <fstream>
@@ -8,8 +11,6 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
-
-#include <fboss/platform/weutil/FbossEepromParser.h>
 
 namespace {
 
@@ -149,6 +150,12 @@ std::string parseMacHelper(int len, unsigned char* ptr, bool useBigEndian) {
   return retVal;
 }
 
+// Header size in EEPROM. First two bytes are 0xFBFB followed
+// by a byte specifying the EEPROM version and one byte of 0xFF
+constexpr int kHeaderSize = 4;
+// Field Type and Length are 1 byte each.
+constexpr int kEepromTypeLengthSize = 2;
+
 } // namespace
 
 namespace facebook::fboss::platform {
@@ -279,10 +286,12 @@ std::unordered_map<int, std::string> FbossEepromParser::parseEepromBlobTLV(
     int eepromVer,
     const unsigned char* buffer,
     const int readCount) {
-  int juice = 0; // A variable to count the number of items
-                 // parsed so far
-  int cursor = 4; // According to the Meta EEPROM v4 spec and later,
-                  // the actual data starts from 4th byte of eeprom.
+  // A variable to count the number of items parsed so far
+  int juice = 0;
+  // According to the Meta EEPROM v4 spec and later,
+  // the actual data starts from 4th byte of eeprom.
+  int cursor = kHeaderSize;
+
   std::unordered_map<int, std::string> parsedValue;
   std::string value;
 
@@ -295,7 +304,6 @@ std::unordered_map<int, std::string> FbossEepromParser::parseEepromBlobTLV(
     // First, get the itemCode of the TLV (T)
     int itemCode = (int)buffer[cursor];
     entryType itemType = FIELD_INVALID;
-    int itemLen = (int)buffer[cursor + 1];
     std::string key;
 
     // Vendors pad EEPROM with 0xff. Therefore, if item code is
@@ -320,7 +328,8 @@ std::unordered_map<int, std::string> FbossEepromParser::parseEepromBlobTLV(
 
     // Find Length and Variable (L and V)
     int itemLength = buffer[cursor + 1];
-    unsigned char* itemDataPtr = (unsigned char*)&buffer[cursor + 2];
+    unsigned char* itemDataPtr =
+        (unsigned char*)&buffer[cursor + kEepromTypeLengthSize];
     // Parse the value according to the itemType
     switch (itemType) {
       case FIELD_LE_UINT:
@@ -353,7 +362,7 @@ std::unordered_map<int, std::string> FbossEepromParser::parseEepromBlobTLV(
     // Add the key-value pair to the result
     parsedValue[itemCode] = value;
     // Increment the cursor
-    cursor += itemLen + 2;
+    cursor += itemLength + kEepromTypeLengthSize;
     // the CRC16 is the last content, parsing must stop.
     if (key == "CRC16") {
       break;
