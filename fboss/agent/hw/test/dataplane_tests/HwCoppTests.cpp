@@ -52,10 +52,8 @@ const auto kIPv6LinkLocalMcastAddress = folly::IPAddressV6("ff02::5");
 const auto kIPv6LinkLocalUcastAddress = folly::IPAddressV6("fe80::2");
 constexpr uint8_t kNetworkControlDscp = 48;
 
-const auto kMcastMacAddress = folly::MacAddress("01:05:0E:01:02:03");
-
 const auto kDhcpV6AllRoutersIp = folly::IPAddressV6("ff02::1:2");
-const auto kDhcpV6McastMacAddress = folly::MacAddress("33:33:00:01:00:02");
+const auto kIPV6McastMacAddress = folly::MacAddress("33:33:00:01:00:02");
 const auto kDhcpV6ServerGlobalUnicastAddress =
     folly::IPAddressV6("2401:db00:eef0:a67::1");
 const auto kRandomPort = 54131;
@@ -275,7 +273,7 @@ class HwCoppTest : public HwLinkStateDependentTest {
                 getHwSwitch(),
                 vlanId,
                 neighborMac, // SrcMAC: Client's MAC address
-                kDhcpV6McastMacAddress, // DstMac: 33:33:00:01:00:02
+                kIPV6McastMacAddress, // DstMac: 33:33:00:01:00:02
                 kIPv6LinkLocalUcastAddress, // SrcIP: Client's Link Local addr
                 kDhcpV6AllRoutersIp, // DstIP: ff02::1:2
                 DHCPv6Packet::DHCP6_CLIENT_UDPPORT, // SrcPort: 546
@@ -1002,7 +1000,7 @@ TYPED_TEST(HwCoppTest, Ipv6LinkLocalMcastToMidPriQ) {
           address,
           utility::kNonSpecialPort1,
           utility::kNonSpecialPort2,
-          kMcastMacAddress);
+          kIPV6McastMacAddress);
 
       // Also high-pri queue should always be 0
       EXPECT_EQ(
@@ -1211,7 +1209,7 @@ TYPED_TEST(HwCoppTest, Ipv6LinkLocalMcastNetworkControlDscpToHighPriQ) {
           address,
           utility::kNonSpecialPort1,
           utility::kNonSpecialPort2,
-          kMcastMacAddress,
+          kIPV6McastMacAddress,
           kNetworkControlDscp);
     }
   };
