@@ -141,6 +141,30 @@ bool queueHit(
   return queuePacketsAfter > queuePacketsBefore;
 }
 
+bool voqHit(
+    const HwSysPortStats& portStatsBefore,
+    int queueId,
+    SwSwitch* sw,
+    facebook::fboss::SystemPortID egressPort) {
+  auto queueBytesBefore = portStatsBefore.queueOutBytes_()->find(queueId) !=
+          portStatsBefore.queueOutBytes_()->end()
+      ? portStatsBefore.queueOutBytes_()->find(queueId)->second
+      : 0;
+  int64_t queueBytesAfter = 0;
+  auto latestPortStats = sw->getHwSysPortStats({egressPort});
+  if (latestPortStats.find(egressPort) != latestPortStats.end()) {
+    auto portStatsAfter = latestPortStats[egressPort];
+    if (portStatsAfter.queueOutBytes_()->find(queueId) !=
+        portStatsAfter.queueOutBytes_()->end()) {
+      queueBytesAfter = portStatsAfter.queueOutBytes_()[queueId];
+    }
+  }
+  XLOG(DBG2) << "Sys port: " << egressPort << " queue " << queueId
+             << " queueBytesBefore " << queueBytesBefore << " queueBytesAfter "
+             << queueBytesAfter;
+  return queueBytesAfter > queueBytesBefore;
+}
+
 void verifyQueueHit(
     const HwPortStats& portStatsBefore,
     int queueId,
@@ -148,6 +172,16 @@ void verifyQueueHit(
     facebook::fboss::PortID egressPort) {
   WITH_RETRIES({
     EXPECT_EVENTUALLY_TRUE(queueHit(portStatsBefore, queueId, sw, egressPort));
+  });
+}
+
+void verifyVoQHit(
+    const HwSysPortStats& portStatsBefore,
+    int queueId,
+    SwSwitch* sw,
+    facebook::fboss::SystemPortID egressPort) {
+  WITH_RETRIES({
+    EXPECT_EVENTUALLY_TRUE(voqHit(portStatsBefore, queueId, sw, egressPort));
   });
 }
 

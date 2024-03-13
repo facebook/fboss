@@ -10,9 +10,11 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
 #include "fboss/agent/types.h"
+#include "fboss/lib/CommonUtils.h"
 
 #include <folly/IPAddress.h>
 
+#include <gtest/gtest.h>
 #include <chrono>
 #include <map>
 #include <vector>
@@ -129,5 +131,47 @@ bool queueHit(
     int queueId,
     SwSwitch* sw,
     facebook::fboss::PortID egressPort);
+
+bool voqHit(
+    const HwSysPortStats& portStatsBefore,
+    int queueId,
+    SwSwitch* sw,
+    facebook::fboss::SystemPortID egressPort);
+
+void verifyVoQHit(
+    const HwSysPortStats& portStatsBefore,
+    int queueId,
+    SwSwitch* sw,
+    facebook::fboss::SystemPortID egressPort);
+
+template <typename SendPktFunT>
+void sendPktAndVerifyQueueHit(
+    const std::map<int, std::vector<uint8_t>>& q2dscpMap,
+    SwSwitch* sw,
+    const SendPktFunT& sendPacket,
+    PortID portId,
+    std::optional<SystemPortID> sysPortId) {
+  for (const auto& q2dscps : q2dscpMap) {
+    for (auto dscp : q2dscps.second) {
+      WITH_RETRIES({
+        auto portsStats = sw->getHwPortStats({portId});
+        EXPECT_EVENTUALLY_NE(portsStats.find(portId), portsStats.end());
+        auto portStatsBefore = portsStats[portId];
+        HwSysPortStats sysPortStatsBefore;
+        if (sysPortId) {
+          auto sysportsStats = sw->getHwSysPortStats({*sysPortId});
+          EXPECT_EVENTUALLY_NE(
+              sysportsStats.find(*sysPortId), sysportsStats.end());
+          sysPortStatsBefore = sysportsStats[*sysPortId];
+        }
+        sendPacket(dscp);
+        verifyQueueHit(portStatsBefore, q2dscps.first, sw, portId);
+        if (sysPortId) {
+          verifyVoQHit(sysPortStatsBefore, q2dscps.first, sw, *sysPortId);
+        }
+      });
+    }
+  }
+}
 
 } // namespace facebook::fboss::utility

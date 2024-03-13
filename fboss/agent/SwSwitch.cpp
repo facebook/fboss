@@ -3158,6 +3158,30 @@ std::map<PortID, HwPortStats> SwSwitch::getHwPortStats(
   return hwPortsStats;
 }
 
+std::map<SystemPortID, HwSysPortStats> SwSwitch::getHwSysPortStats(
+    std::vector<SystemPortID> ports) const {
+  std::map<SystemPortID, HwSysPortStats> hwPortsStats;
+  for (const auto& portId : ports) {
+    auto switchIds = getScopeResolver()->scope(portId).switchIds();
+    CHECK_EQ(switchIds.size(), 1);
+    auto switchIndex =
+        getSwitchInfoTable().getSwitchIndexFromSwitchId(*switchIds.cbegin());
+    auto hwswitchStatsMap = hwSwitchStats_.rlock();
+    auto hwswitchStats = hwswitchStatsMap->find(switchIndex);
+    if (hwswitchStats != hwswitchStatsMap->end()) {
+      auto portName =
+          getState()->getSystemPorts()->getNodeIf(portId)->getPortName();
+      auto statsMap = hwswitchStats->second.sysPortStats();
+      auto entry = statsMap->find(portName);
+      if (entry != statsMap->end()) {
+        hwPortsStats.insert(
+            {portId, hwswitchStats->second.sysPortStats()->at(portName)});
+      }
+    }
+  }
+  return hwPortsStats;
+}
+
 int64_t SwSwitch::getAclStats(const std::string& statName) const {
   int64_t statValue = 0;
   auto hwswitchStatsMap = hwSwitchStats_.rlock();
