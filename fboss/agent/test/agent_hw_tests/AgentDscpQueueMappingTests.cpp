@@ -1,0 +1,163 @@
+/*
+ *  Copyright (c) 2004-present, Facebook, Inc.
+ *  All rights reserved.
+ *
+ *  This source code is licensed under the BSD-style license found in the
+ *  LICENSE file in the root directory of this source tree. An additional grant
+ *  of patent rights can be found in the PATENTS file in the same directory.
+ *
+ */
+
+#include "fboss/agent/TxPacket.h"
+#include "fboss/agent/test/AgentHwTest.h"
+#include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/ResourceLibUtil.h"
+#include "fboss/agent/test/utils/AclTestUtils.h"
+#include "fboss/agent/test/utils/CommonUtils.h"
+#include "fboss/agent/test/utils/ConfigUtils.h"
+#include "fboss/agent/test/utils/PacketTestUtils.h"
+#include "fboss/agent/test/utils/TrafficPolicyTestUtils.h"
+#include "fboss/lib/CommonUtils.h"
+
+namespace facebook::fboss {
+
+class AgentDscpQueueMappingTest : public AgentHwTest {
+ protected:
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto asic = utility::getFirstAsic(ensemble.getSw());
+    auto cfg = utility::onePortPerInterfaceConfig(
+        ensemble.getSw(),
+        ensemble.masterLogicalPortIds(),
+        true /*interfaceHasSubnet*/);
+    auto kAclName = "acl1";
+    utility::addDscpAclToCfg(&cfg, kAclName, kDscp());
+    utility::addTrafficCounter(
+        &cfg, kCounterName(), utility::getAclCounterTypes(asic));
+    utility::addQueueMatcher(
+        &cfg, kAclName, kQueueId(), ensemble.isSai(), kCounterName());
+    return cfg;
+  }
+
+  std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const override {
+    return {production_features::ProductionFeature::L3_QOS};
+  }
+
+  void setupHelper() {
+    utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+    resolveNeigborAndProgramRoutes(ecmpHelper, kEcmpWidth);
+  }
+
+  void verifyDscpQueueMappingHelper() {
+    auto setup = [this]() { setupHelper(); };
+
+    auto verify = [this]() {
+      for (bool frontPanel : {false, true}) {
+        auto beforeQueueOutPkts =
+            getLatestPortStats(masterLogicalInterfacePortIds()[0])
+                .get_queueOutPackets_()
+                .at(kQueueId());
+
+        sendPacket(frontPanel);
+
+        WITH_RETRIES({
+          auto afterQueueOutPkts =
+              getLatestPortStats(masterLogicalInterfacePortIds()[0])
+                  .get_queueOutPackets_()
+                  .at(kQueueId());
+
+          XLOG(DBG2) << "verify send packets "
+                     << (frontPanel ? "out of port" : "switched")
+                     << " beforeQueueOutPkts = " << beforeQueueOutPkts
+                     << " afterQueueOutPkti = " << afterQueueOutPkts;
+
+          /*
+           * Packet from CPU / looped back from front panel port (with
+           * pipeline bypass), hits ACL and increments counter (queue2Count
+           * = 1). On some platforms, looped back packets for unknown MACs
+           * are flooded and counted on queue *before* the split horizon
+           * check. This packet will match the DSCP based ACL and thus
+           * increment the queue2Count = 2.
+           */
+          EXPECT_EVENTUALLY_GE(afterQueueOutPkts - beforeQueueOutPkts, 1);
+        });
+      }
+    };
+
+    verifyAcrossWarmBoots(setup, verify);
+  }
+
+ private:
+  void sendPacket(bool frontPanel, uint8_t ttl = 64) {
+    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+    auto txPacket = utility::makeUDPTxPacket(
+        getSw(),
+        vlanId,
+        srcMac, // src mac
+        intfMac, // dst mac
+        kSrcIP(),
+        kDstIP(),
+        8000, // l4 src port
+        8001, // l4 dst port
+        kDscp() << 2, // Trailing 2 bits are for ECN
+        ttl);
+
+    // port is in LB mode, so it will egress and immediately loop back.
+    // Since it is not re-written, it should hit the pipeline as if it
+    // ingressed on the port, and be properly queued.
+    if (frontPanel) {
+      utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+      auto outPort = ecmpHelper.ecmpPortDescriptorAt(kEcmpWidth).phyPortID();
+      getSw()->sendPacketOutOfPortAsync(std::move(txPacket), outPort);
+    } else {
+      getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+    }
+  }
+
+  folly::IPAddressV6 kSrcIP() {
+    return folly::IPAddressV6("2620:0:1cfe:face:b00c::1");
+  }
+
+  folly::IPAddressV6 kDstIP() {
+    utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+    return ecmpHelper.ip(0);
+  }
+
+  folly::MacAddress kMacAddress() {
+    return folly::MacAddress("0:2:3:4:5:10");
+  }
+
+  int16_t kDscp() const {
+    return 48;
+  }
+
+  int kQueueId() const {
+    return 7;
+  }
+
+  std::string kCounterName() const {
+    return folly::to<std::string>("dscp", kQueueId(), "_counter");
+  }
+
+  int kQueueIdQosMap() const {
+    return 7;
+  }
+
+  int kQueueIdAcl() const {
+    return 2;
+  }
+
+  static inline constexpr auto kEcmpWidth = 1;
+  const VlanID kVlanID{utility::kBaseVlanId};
+  const InterfaceID kIntfID{utility::kBaseVlanId};
+};
+
+// Verify that traffic arriving on front panel/cpu port egresses via queue
+// based on DSCP
+TEST_F(AgentDscpQueueMappingTest, VerifyDscpQueueMapping) {
+  verifyDscpQueueMappingHelper();
+}
+} // namespace facebook::fboss

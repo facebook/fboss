@@ -21,6 +21,7 @@ enum ProductionFeature {
   COPP = 8,
   LAG = 9,
   DSCP_REMARKING = 10,
+  L3_QOS = 11,
 }
 
 const list<ProductionFeature> tomahawkFeature = [
