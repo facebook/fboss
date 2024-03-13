@@ -352,6 +352,8 @@ class CmisModule : public QsfpModule {
 
   virtual std::optional<VdmDiagsStats> getVdmDiagsStatsInfo() override;
 
+  virtual std::optional<VdmPerfMonitorStats> getVdmPerfMonitorStats() override;
+
   /*
    * Trigger next VDM stats capture
    */

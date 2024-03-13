@@ -1638,6 +1638,52 @@ std::optional<VdmDiagsStats> CmisModule::getVdmDiagsStatsInfo() {
   return vdmStats;
 }
 
+/*
+ * getVdmPerfMonitorStats
+ *
+ * This function extracts all VDM info from the VDM specific pages and then
+ * returns VDM Performance Monitoring Diags stats.
+ */
+std::optional<VdmPerfMonitorStats> CmisModule::getVdmPerfMonitorStats() {
+  VdmPerfMonitorStats vdmStats;
+
+  if (!isVdmSupported() || !cacheIsValid()) {
+    return std::nullopt;
+  }
+
+  vdmStats.statsCollectionTme() = WallClockUtil::NowInSecFast();
+
+  if (!fillVdmPerfMonitorSnr(vdmStats)) {
+    QSFP_LOG(ERR, this) << "Failed to get VDM Perf Monitor SNR";
+  }
+  if (!fillVdmPerfMonitorBer(vdmStats)) {
+    QSFP_LOG(ERR, this) << "Failed to get VDM Perf Monitor BER";
+  }
+  if (!fillVdmPerfMonitorFecErr(vdmStats)) {
+    QSFP_LOG(ERR, this) << "Failed to get VDM Perf Monitor FEC Error Rate";
+  }
+  if (!fillVdmPerfMonitorLtp(vdmStats)) {
+    QSFP_LOG(ERR, this) << "Failed to get VDM Perf Monitor LTP";
+  }
+  if (!fillVdmPerfMonitorPam4Data(vdmStats)) {
+    QSFP_LOG(ERR, this) << "Failed to get VDM Perf Monitor PAM4 data";
+  }
+
+  QSFP_LOG(DBG5, this) << "Read VDM Performance Monitoring stats";
+  QSFP_LOG(DBG5, this) << "Stats Collection Time: "
+                       << vdmStats.statsCollectionTme().value();
+  QSFP_LOG(DBG5, this) << "Read " << vdmStats.mediaPortVdmStats()->size()
+                       << " ports on media side and "
+                       << vdmStats.hostPortVdmStats()->size()
+                       << " ports on host side";
+  for (auto& [portName, mediaVdmStats] : vdmStats.mediaPortVdmStats().value()) {
+    QSFP_LOG(DBG5, this) << "Port: " << portName
+                         << " recorded media side stats for "
+                         << mediaVdmStats.laneSNR()->size() << " lanes";
+  }
+  return vdmStats;
+}
+
 TransceiverModuleIdentifier CmisModule::getIdentifier() {
   return (TransceiverModuleIdentifier)getSettingsValue(CmisField::IDENTIFIER);
 }
