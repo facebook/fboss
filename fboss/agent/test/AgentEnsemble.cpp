@@ -294,4 +294,19 @@ std::map<PortID, FabricEndpoint> AgentEnsemble::getFabricConnectivity(
     return getSw()->getHwSwitchHandler()->getFabricConnectivity();
   }
 }
+
+void AgentEnsemble::runDiagCommand(
+    const std::string& input,
+    std::string& output,
+    std::optional<SwitchID> switchId) {
+  if (FLAGS_multi_switch) {
+    CHECK(switchId.has_value());
+    ClientInformation clientInfo;
+    clientInfo.username() = "agent_ensemble";
+    clientInfo.hostname() = "agent_ensemble";
+    output = getSw()->getHwSwitchThriftClientTable()->diagCmd(
+        switchId.value(), input, clientInfo);
+  }
+  // TODO: Mono
+}
 } // namespace facebook::fboss

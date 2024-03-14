@@ -182,11 +182,9 @@ class AgentEnsemble : public TestEnsembleIf {
 
   virtual HwSwitch* getHwSwitch() const = 0;
   void runDiagCommand(
-      const std::string& /*input*/,
-      std::string& /*output*/,
-      std::optional<SwitchID> switchId = std::nullopt) override {
-    // TODO
-  }
+      const std::string& input,
+      std::string& output,
+      std::optional<SwitchID> switchId = std::nullopt) override;
 
  protected:
   void joinAsyncInitThread() {
