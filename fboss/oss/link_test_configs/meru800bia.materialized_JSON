@@ -6772,7 +6772,44 @@
       
     ],
     "acls": [
-      
+      {
+        "dstIp": "ff02::/16",
+        "srcPort": 0,
+        "name": "cpuPolicing-CPU-Port-Mcast-v6",
+        "actionType": 1
+      },
+      {
+        "dstIp": "fe80::/10",
+        "dscp": 48,
+        "name": "cpuPolicing-high-NetworkControl-linkLocal-v6",
+        "actionType": 1
+      },
+      {
+        "dstIp": "ff02::/16",
+        "dscp": 48,
+        "name": "cpuPolicing-high-NetworkControl-ff02::/16",
+        "actionType": 1
+      },
+      {
+        "dscp": 48,
+        "name": "cpuPolicing-high-NetworkControl-dstLocal-127.0.0.1/32",
+        "actionType": 1
+      },
+      {
+        "dstIp": "fe80::/10",
+        "name": "cpuPolicing-mid-linkLocal-v6",
+        "actionType": 1
+      },
+      {
+        "dstIp": "ff02::/16",
+        "name": "cpuPolicing-mid-ff02::/16",
+        "actionType": 1
+      },
+      {
+        "dstIp": "ff00::/8",
+        "name": "drop-v6-multicast",
+        "actionType": 0
+      }
     ],
     "maxNeighborProbes": 300,
     "staleEntryInterval": 10,
@@ -6835,7 +6872,71 @@
     "cpuTrafficPolicy": {
       "trafficPolicy": {
         "matchToAction": [
-          
+          {
+            "matcher": "cpuPolicing-CPU-Port-Mcast-v6",
+            "action": {
+            }
+          },
+          {
+            "matcher": "cpuPolicing-high-NetworkControl-linkLocal-v6",
+            "action": {
+              "sendToQueue": {
+                "queueId": 7
+              },
+              "toCpuAction": 1,
+              "setTc": {
+                "tcValue": 7
+              }
+            }
+          },
+          {
+            "matcher": "cpuPolicing-high-NetworkControl-ff02::/16",
+            "action": {
+              "sendToQueue": {
+                "queueId": 7
+              },
+              "toCpuAction": 1,
+              "setTc": {
+                "tcValue": 7
+              }
+            }
+          },
+          {
+            "matcher": "cpuPolicing-high-NetworkControl-dstLocal-127.0.0.1/32",
+            "action": {
+              "sendToQueue": {
+                "queueId": 7
+              },
+              "toCpuAction": 1,
+              "setTc": {
+                "tcValue": 7
+              }
+            }
+          },
+          {
+            "matcher": "cpuPolicing-mid-linkLocal-v6",
+            "action": {
+              "sendToQueue": {
+                "queueId": 2
+              },
+              "toCpuAction": 1,
+              "setTc": {
+                "tcValue": 2
+              }
+            }
+          },
+          {
+            "matcher": "cpuPolicing-mid-ff02::/16",
+            "action": {
+              "sendToQueue": {
+                "queueId": 2
+              },
+              "toCpuAction": 1,
+              "setTc": {
+                "tcValue": 2
+              }
+            }
+          }
         ]
       },
       "rxReasonToQueueOrderedList": [
@@ -6856,24 +6957,32 @@
           "queueId": 7
         },
         {
-          "rxReason": 7,
-          "queueId": 2
+          "rxReason": 12,
+          "queueId": 7
         },
         {
           "rxReason": 13,
           "queueId": 7
         },
         {
-          "rxReason": 6,
-          "queueId": 0
+          "rxReason": 9,
+          "queueId": 2
         },
         {
-          "rxReason": 9,
+          "rxReason": 7,
           "queueId": 2
         },
         {
           "rxReason": 2,
           "queueId": 2
+        },
+        {
+          "rxReason": 17,
+          "queueId": 2
+        },
+        {
+          "rxReason": 6,
+          "queueId": 0
         },
         {
           "rxReason": 0,
