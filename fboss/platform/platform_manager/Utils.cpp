@@ -2,6 +2,7 @@
 
 #include "fboss/platform/platform_manager/Utils.h"
 
+#include <cctype>
 #include <filesystem>
 #include <stdexcept>
 
@@ -35,9 +36,62 @@ std::string getPlatformNameFromBios() {
 
 namespace facebook::fboss::platform::platform_manager {
 
+// Some platforms do not have the standardized platform-names in dmidecode yet.
+// For such platforms, we use a translation function to get the standardized
+// platform-names.
+std::string sanitizePlatformName(const std::string& platformNameFromBios) {
+  std::string platformNameUpper(platformNameFromBios);
+  std::transform(
+      platformNameUpper.begin(),
+      platformNameUpper.end(),
+      platformNameUpper.begin(),
+      ::toupper);
+
+  if (platformNameUpper == "MINIPACK3" ||
+      platformNameUpper == "MINIPACK3_MCB") {
+    return "MONTBLANC";
+  }
+
+  if (platformNameUpper == "JANGA") {
+    return "JANGA800BIC";
+  }
+
+  if (platformNameUpper == "TAHAN") {
+    return "TAHAN800BC";
+  }
+
+  return platformNameUpper;
+}
+
+// Verify that the platform name from the config and dmidecode match.  This
+// is necessary to prevent an incorrect config from being used on any platform.
+void verifyPlatformNameMatches(
+    const std::string& platformNameInConfig,
+    const std::string& platformNameFromBios) {
+  std::string platformNameInConfigUpper(platformNameInConfig);
+  std::transform(
+      platformNameInConfigUpper.begin(),
+      platformNameInConfigUpper.end(),
+      platformNameInConfigUpper.begin(),
+      ::toupper);
+
+  if (platformNameInConfigUpper == platformNameFromBios) {
+    return;
+  }
+
+  XLOGF(
+      FATAL,
+      "Platform name in config does not match the inferred platform name from "
+      "bios. Config: {}, Inferred name from BIOS {} ",
+      platformNameInConfigUpper,
+      platformNameFromBios);
+}
+
 PlatformConfig Utils::getConfig() {
+  std::string platformNameFromBios =
+      sanitizePlatformName(getPlatformNameFromBios());
   std::string configJson =
-      ConfigLib().getPlatformManagerConfig(getPlatformNameFromBios());
+      ConfigLib().getPlatformManagerConfig(platformNameFromBios);
   PlatformConfig config;
   try {
     apache::thrift::SimpleJSONSerializer::deserialize<PlatformConfig>(
@@ -48,6 +102,8 @@ PlatformConfig Utils::getConfig() {
   }
   XLOG(DBG2) << apache::thrift::SimpleJSONSerializer::serialize<std::string>(
       config);
+
+  verifyPlatformNameMatches(*config.platformName(), platformNameFromBios);
 
   if (!ConfigValidator().isValid(config)) {
     XLOG(ERR) << "Invalid platform config";
