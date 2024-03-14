@@ -62,6 +62,8 @@ class TestEnsembleIf : public HwSwitchCallback {
   virtual std::map<PortID, HwPortStats> getLatestPortStats(
       const std::vector<PortID>& ports) = 0;
   virtual LinkStateToggler* getLinkToggler() = 0;
+  virtual bool isSai() const = 0;
+  virtual folly::MacAddress getLocalMac(SwitchID id) const = 0;
 };
 
 } // namespace facebook::fboss

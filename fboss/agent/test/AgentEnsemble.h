@@ -87,7 +87,6 @@ class AgentEnsemble : public TestEnsembleIf {
       uint32_t hwFeaturesDesired,
       PlatformInitFn initPlatform) = 0;
   virtual void reloadPlatformConfig() = 0;
-  virtual bool isSai() const = 0;
 
   void applyNewState(
       StateUpdateFn fn,
@@ -198,6 +197,10 @@ class AgentEnsemble : public TestEnsembleIf {
   }
 
   LinkStateToggler* getLinkToggler() override;
+
+  folly::MacAddress getLocalMac(SwitchID id) const override {
+    return getSw()->getLocalMac(id);
+  }
 
  protected:
   void joinAsyncInitThread() {

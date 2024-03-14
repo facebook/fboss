@@ -55,17 +55,13 @@ std::vector<cfg::LoadBalancer> getEcmpFullTrunkFullHashConfig(
     const HwAsic& asic);
 
 std::shared_ptr<SwitchState> setLoadBalancer(
-    const HwAsicTable* table,
-    bool sai,
-    const folly::MacAddress& mac,
+    TestEnsembleIf* ensemble,
     const std::shared_ptr<SwitchState>& inputState,
     const cfg::LoadBalancer& loadBalancer,
     const SwitchIdScopeResolver& resolver);
 
 std::shared_ptr<SwitchState> addLoadBalancers(
-    const HwAsicTable* table,
-    bool sai,
-    const folly::MacAddress& mac,
+    TestEnsembleIf* ensemble,
     const std::shared_ptr<SwitchState>& inputState,
     const std::vector<cfg::LoadBalancer>& loadBalancers,
     const SwitchIdScopeResolver& resolver);

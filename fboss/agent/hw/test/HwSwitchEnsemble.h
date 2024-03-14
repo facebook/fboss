@@ -274,8 +274,6 @@ class HwSwitchEnsemble : public TestEnsembleIf {
       std::vector<PortID>& disabled,
       const int totalLinkCount);
 
-  virtual bool isSai() const = 0;
-
   const SwitchIdScopeResolver& scopeResolver() const override;
 
   void registerStateObserver(
@@ -294,6 +292,10 @@ class HwSwitchEnsemble : public TestEnsembleIf {
   void clearPortStats(
       const std::unique_ptr<std::vector<int32_t>>& ports) override {
     getHwSwitch()->clearPortStats(ports);
+  }
+
+  folly::MacAddress getLocalMac(SwitchID /*id*/) const override {
+    return getHwSwitch()->getPlatform()->getLocalMac();
   }
 
  protected:

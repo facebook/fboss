@@ -285,9 +285,7 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
       applyConfigAndEnableTrunks(config);
       setupIPECMP(aggInfo);
       applyNewState(utility::addLoadBalancers(
-          getHwSwitchEnsemble()->getHwAsicTable(),
-          getHwSwitchEnsemble()->isSai(),
-          getHwSwitchEnsemble()->getPlatform()->getLocalMac(),
+          getHwSwitchEnsemble(),
           getProgrammedState(),
           loadBalancers,
           scopeResolver()));
@@ -328,9 +326,7 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
       applyConfigAndEnableTrunks(config);
       setupIP2MPLSECMP(aggInfo);
       applyNewState(utility::addLoadBalancers(
-          getHwSwitchEnsemble()->getHwAsicTable(),
-          getHwSwitchEnsemble()->isSai(),
-          getHwSwitchEnsemble()->getPlatform()->getLocalMac(),
+          getHwSwitchEnsemble(),
           getProgrammedState(),
           loadBalancers,
           scopeResolver()));
@@ -367,9 +363,7 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
       applyConfigAndEnableTrunks(config);
       setupMPLSECMP(aggInfo);
       applyNewState(utility::addLoadBalancers(
-          getHwSwitchEnsemble()->getHwAsicTable(),
-          getHwSwitchEnsemble()->isSai(),
-          getHwSwitchEnsemble()->getPlatform()->getLocalMac(),
+          getHwSwitchEnsemble(),
           getProgrammedState(),
           loadBalancers,
           scopeResolver()));
@@ -398,9 +392,7 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
       applyNewConfig(config);
       setupMPLSECMP(aggInfo);
       applyNewState(utility::addLoadBalancers(
-          getHwSwitchEnsemble()->getHwAsicTable(),
-          getHwSwitchEnsemble()->isSai(),
-          getHwSwitchEnsemble()->getPlatform()->getLocalMac(),
+          getHwSwitchEnsemble(),
           getProgrammedState(),
           loadBalancers,
           scopeResolver()));

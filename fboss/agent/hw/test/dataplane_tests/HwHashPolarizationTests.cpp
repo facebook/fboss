@@ -134,9 +134,7 @@ class HwHashPolarizationTests : public HwLinkStateDependentTest {
               ecmpPorts.begin(), ecmpPorts.begin() + kEcmpWidth / 2});
       // Set first hash
       applyNewState(utility::addLoadBalancers(
-          getHwSwitchEnsemble()->getHwAsicTable(),
-          getHwSwitchEnsemble()->isSai(),
-          getHwSwitchEnsemble()->getPlatform()->getLocalMac(),
+          getHwSwitchEnsemble(),
           getProgrammedState(),
           firstHashes,
           scopeResolver()));
@@ -169,10 +167,7 @@ class HwHashPolarizationTests : public HwLinkStateDependentTest {
 
     // Set second hash
     applyNewState(utility::addLoadBalancers(
-        getHwSwitchEnsemble()->getHwAsicTable(),
-        getHwSwitchEnsemble()->isSai(),
-        getHwSwitchEnsemble()->getPlatform()->getLocalMac(),
-
+        getHwSwitchEnsemble(),
         getProgrammedState(),
         secondHashes,
         scopeResolver()));
@@ -515,9 +510,7 @@ class HwHashTrunkPolarizationTests : public HwHashPolarizationTests {
           getHwSwitch(), std::set<PortID>{ports.begin(), ports.end()});
       // Set first hash
       applyNewState(utility::addLoadBalancers(
-          getHwSwitchEnsemble()->getHwAsicTable(),
-          getHwSwitchEnsemble()->isSai(),
-          getHwSwitchEnsemble()->getPlatform()->getLocalMac(),
+          getHwSwitchEnsemble(),
           getProgrammedState(),
           hashes,
           scopeResolver()));
@@ -548,9 +541,7 @@ class HwHashTrunkPolarizationTests : public HwHashPolarizationTests {
 
     // Set second hash
     applyNewState(utility::addLoadBalancers(
-        getHwSwitchEnsemble()->getHwAsicTable(),
-        getHwSwitchEnsemble()->isSai(),
-        getHwSwitchEnsemble()->getPlatform()->getLocalMac(),
+        getHwSwitchEnsemble(),
         getProgrammedState(),
         secondHashes,
         scopeResolver()));

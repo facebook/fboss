@@ -133,24 +133,21 @@ std::vector<cfg::LoadBalancer> getEcmpFullTrunkFullHashConfig(
   return {getEcmpFullHashConfig(asic), getTrunkFullHashConfig(asic)};
 }
 std::shared_ptr<SwitchState> setLoadBalancer(
-    const HwAsicTable* table,
-    bool sai,
-    const folly::MacAddress& mac,
+    TestEnsembleIf* ensemble,
     const std::shared_ptr<SwitchState>& inputState,
     const cfg::LoadBalancer& loadBalancerCfg,
     const SwitchIdScopeResolver& resolver) {
-  return addLoadBalancers(
-      table, sai, mac, inputState, {loadBalancerCfg}, resolver);
+  return addLoadBalancers(ensemble, inputState, {loadBalancerCfg}, resolver);
 }
 
 std::shared_ptr<SwitchState> addLoadBalancers(
-    const HwAsicTable* table,
-    bool sai,
-    const folly::MacAddress& mac,
+    TestEnsembleIf* ensemble,
     const std::shared_ptr<SwitchState>& inputState,
     const std::vector<cfg::LoadBalancer>& loadBalancerCfgs,
     const SwitchIdScopeResolver& resolver) {
-  if (!table->isFeatureSupportedOnAnyAsic(
+  bool sai = ensemble->isSai();
+  auto mac = ensemble->getLocalMac(SwitchID(0));
+  if (!ensemble->getHwAsicTable()->isFeatureSupportedOnAnyAsic(
           HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
     // configuring hash is not supported.
     XLOG(WARNING) << "load balancer configuration is not supported.";
