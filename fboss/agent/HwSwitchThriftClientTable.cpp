@@ -125,4 +125,24 @@ void HwSwitchThriftClientTable::getHwL2Table(
               << " error: " << ex.what();
   }
 }
+
+std::string HwSwitchThriftClientTable::diagCmd(
+    SwitchID switchId,
+    const std::string& cmd,
+    const ClientInformation& clientInfo) {
+  auto client = getClient(switchId);
+  fbstring out;
+  try {
+    client->sync_diagCmd(
+        out,
+        cmd,
+        clientInfo,
+        0 /* serverTimeoutMsecs */,
+        false /* bypassFilter */);
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << "Failed run diagCmd for switch : " << switchId
+              << " error: " << ex.what();
+  }
+  return out.toStdString();
+}
 } // namespace facebook::fboss

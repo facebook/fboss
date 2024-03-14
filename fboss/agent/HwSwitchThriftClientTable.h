@@ -30,6 +30,10 @@ class HwSwitchThriftClientTable {
   void clearHwPortStats(SwitchID switchId, std::vector<int32_t>& ports);
   void clearAllHwPortStats(SwitchID switchId);
   void getHwL2Table(SwitchID switchId, std::vector<L2EntryThrift>& l2Table);
+  std::string diagCmd(
+      SwitchID switchId,
+      const std::string& cmd,
+      const ClientInformation& clientInfo);
 
  private:
   apache::thrift::Client<FbossHwCtrl> createClient(
