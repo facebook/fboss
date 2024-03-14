@@ -8,10 +8,9 @@
  *
  */
 
-#include "fboss/agent/hw/test/LinkStateToggler.h"
+#include "fboss/agent/test/LinkStateToggler.h"
 
 #include "fboss/agent/ApplyThriftConfig.h"
-#include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/test/TestEnsembleIf.h"

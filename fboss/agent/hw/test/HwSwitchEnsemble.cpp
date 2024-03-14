@@ -27,13 +27,13 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwSwitchEnsembleRouteUpdateWrapper.h"
-#include "fboss/agent/hw/test/LinkStateToggler.h"
 #include "fboss/agent/hw/test/StaticL2ForNeighborHwSwitchUpdater.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/test/LinkStateToggler.h"
 
 #include <folly/experimental/FunctionScheduler.h>
 #include <folly/gen/Base.h>

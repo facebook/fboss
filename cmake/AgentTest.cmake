@@ -181,3 +181,12 @@ target_link_libraries(multi_switch_agent_ensemble
   split_agent_initializer
   ${GTEST}
 )
+
+add_library(linkstate_toggler
+  fboss/agent/test/LinkStateToggler.cpp
+)
+
+target_link_libraries(linkstate_toggler
+  state
+  core
+)

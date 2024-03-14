@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "fboss/agent/hw/test/LinkStateToggler.h"
+#include "fboss/agent/test/LinkStateToggler.h"
 
 #include <memory>
 

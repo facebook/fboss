@@ -18,8 +18,8 @@
 #include "fboss/agent/hw/sai/diag/SaiRepl.h"
 #include "fboss/agent/hw/sai/hw_test/SaiTestHandler.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
-#include "fboss/agent/hw/test/LinkStateToggler.h"
 #include "fboss/agent/platforms/sai/SaiPlatformInit.h"
+#include "fboss/agent/test/LinkStateToggler.h"
 
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/SwitchStats.h"

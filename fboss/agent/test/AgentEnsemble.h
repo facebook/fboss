@@ -15,7 +15,7 @@
 #include "fboss/agent/HwSwitchThriftClientTable.h"
 #include "fboss/agent/SwAgentInitializer.h"
 #include "fboss/agent/SwSwitch.h"
-#include "fboss/agent/hw/test/LinkStateToggler.h"
+#include "fboss/agent/test/LinkStateToggler.h"
 #include "fboss/agent/test/RouteDistributionGenerator.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
 

@@ -10,7 +10,7 @@
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
-#include "fboss/agent/hw/test/LinkStateToggler.h"
+#include "fboss/agent/test/LinkStateToggler.h"
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss {

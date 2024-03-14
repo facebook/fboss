@@ -13,7 +13,7 @@
 #include "fboss/agent/hw/test/HwTest.h"
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
-#include "fboss/agent/hw/test/LinkStateToggler.h"
+#include "fboss/agent/test/LinkStateToggler.h"
 
 namespace facebook::fboss {
 
