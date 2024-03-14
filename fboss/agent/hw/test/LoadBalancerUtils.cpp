@@ -12,8 +12,10 @@
 
 #include <folly/IPAddress.h>
 
+#include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/LoadBalancerConfigApplier.h"
+#include "fboss/agent/LoadBalancerUtils.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
@@ -24,6 +26,7 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/lib/CommonUtils.h"
+
 #include "folly/MacAddress.h"
 
 #include <folly/gen/Base.h>
@@ -130,19 +133,24 @@ std::vector<cfg::LoadBalancer> getEcmpFullTrunkFullHashConfig(
   return {getEcmpFullHashConfig(asic), getTrunkFullHashConfig(asic)};
 }
 std::shared_ptr<SwitchState> setLoadBalancer(
-    const Platform* platform,
+    const HwAsicTable* table,
+    bool sai,
+    const folly::MacAddress& mac,
     const std::shared_ptr<SwitchState>& inputState,
     const cfg::LoadBalancer& loadBalancerCfg,
     const SwitchIdScopeResolver& resolver) {
-  return addLoadBalancers(platform, inputState, {loadBalancerCfg}, resolver);
+  return addLoadBalancers(
+      table, sai, mac, inputState, {loadBalancerCfg}, resolver);
 }
 
 std::shared_ptr<SwitchState> addLoadBalancers(
-    const Platform* platform,
+    const HwAsicTable* table,
+    bool sai,
+    const folly::MacAddress& mac,
     const std::shared_ptr<SwitchState>& inputState,
     const std::vector<cfg::LoadBalancer>& loadBalancerCfgs,
     const SwitchIdScopeResolver& resolver) {
-  if (!platform->getAsic()->isSupported(
+  if (!table->isFeatureSupportedOnAnyAsic(
           HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
     // configuring hash is not supported.
     XLOG(WARNING) << "load balancer configuration is not supported.";
@@ -152,10 +160,9 @@ std::shared_ptr<SwitchState> addLoadBalancers(
   auto lbMap = newState->getLoadBalancers()->modify(&newState);
   for (const auto& loadBalancerCfg : loadBalancerCfgs) {
     auto id = LoadBalancerConfigParser::parseLoadBalancerID(loadBalancerCfg);
-    auto loadBalancer =
-        LoadBalancerConfigParser(
-            platform->getHwSwitch()->generateDeterministicSeed(id))
-            .parse(loadBalancerCfg);
+    auto loadBalancer = LoadBalancerConfigParser(
+                            utility::generateDeterministicSeed(id, mac, sai))
+                            .parse(loadBalancerCfg);
     if (lbMap->getNodeIf(loadBalancer->getID())) {
       lbMap->updateNode(loadBalancer, resolver.scope(loadBalancer));
     } else {

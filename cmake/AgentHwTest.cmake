@@ -186,6 +186,7 @@ target_link_libraries(load_balancer_utils
   config_factory
   hw_test_acl_utils
   test_ensemble_if
+  loadbalancer_utils
 )
 
 add_library(prod_config_utils

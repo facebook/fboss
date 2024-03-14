@@ -169,14 +169,21 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
     if (getHwSwitchEnsemble()->isSai()) {
       // always program half lag hash for sai switches, see CS00012317640
       applyNewState(utility::addLoadBalancers(
-          getPlatform(),
+          getHwSwitchEnsemble()->getHwAsicTable(),
+          getHwSwitchEnsemble()->isSai(),
+          getHwSwitchEnsemble()->getPlatform()->getLocalMac(),
           getProgrammedState(),
           {loadBalancer,
            utility::getTrunkHalfHashConfig(*getPlatform()->getAsic())},
           scopeResolver()));
     } else {
       applyNewState(utility::setLoadBalancer(
-          getPlatform(), getProgrammedState(), loadBalancer, scopeResolver()));
+          getHwSwitchEnsemble()->getHwAsicTable(),
+          getHwSwitchEnsemble()->isSai(),
+          getHwSwitchEnsemble()->getPlatform()->getLocalMac(),
+          getProgrammedState(),
+          loadBalancer,
+          scopeResolver()));
     }
   }
 
