@@ -75,6 +75,11 @@ class AgentEnsemble : public TestEnsembleIf {
     return getProgrammedState();
   }
 
+  std::unique_ptr<RouteUpdateWrapper> getRouteUpdaterWrapper() override {
+    return std::make_unique<SwSwitchRouteUpdateWrapper>(
+        getSw()->getRouteUpdater());
+  }
+
   virtual const SwAgentInitializer* agentInitializer() const = 0;
   virtual SwAgentInitializer* agentInitializer() = 0;
   virtual void createSwitch(
@@ -148,7 +153,7 @@ class AgentEnsemble : public TestEnsembleIf {
   }
 
   std::map<PortID, HwPortStats> getLatestPortStats(
-      const std::vector<PortID>& ports);
+      const std::vector<PortID>& ports) override;
 
   HwPortStats getLatestPortStats(const PortID& port);
 
@@ -180,11 +185,19 @@ class AgentEnsemble : public TestEnsembleIf {
       override;
   void unregisterStateObserver(StateObserver* observer) override;
 
-  virtual HwSwitch* getHwSwitch() const = 0;
+  virtual HwSwitch* getHwSwitch() override = 0;
+  virtual const HwSwitch* getHwSwitch() const override = 0;
   void runDiagCommand(
       const std::string& input,
       std::string& output,
       std::optional<SwitchID> switchId = std::nullopt) override;
+
+  void clearPortStats(
+      const std::unique_ptr<std::vector<int32_t>>& ports) override {
+    getSw()->clearPortStats(ports);
+  }
+
+  LinkStateToggler* getLinkToggler() override;
 
  protected:
   void joinAsyncInitThread() {

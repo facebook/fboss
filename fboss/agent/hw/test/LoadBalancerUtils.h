@@ -16,6 +16,7 @@
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/state/RouteNextHop.h"
+#include "fboss/agent/test/TestEnsembleIf.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/agent/types.h"
 #include "folly/MacAddress.h"
@@ -126,7 +127,7 @@ void pumpMplsTraffic(
 
 template <typename PortIdT, typename PortStatsT>
 bool isLoadBalanced(
-    HwSwitchEnsemble* hwSwitchEnsemble,
+    TestEnsembleIf* ensemble,
     const std::vector<PortDescriptor>& ecmpPorts,
     const std::vector<NextHopWeight>& weights,
     int maxDeviationPct,
@@ -134,7 +135,7 @@ bool isLoadBalanced(
     bool noTrafficOk = false) {
   auto getPortStatsFn = [&](const std::vector<PortIdT>& portIds)
       -> std::map<PortIdT, PortStatsT> {
-    return hwSwitchEnsemble->getLatestPortStats(portIds);
+    return ensemble->getLatestPortStats(portIds);
   };
   return isLoadBalanced<PortIdT, PortStatsT>(
       ecmpPorts, weights, getPortStatsFn, maxDeviationPct, noTrafficOk);

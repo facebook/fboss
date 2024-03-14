@@ -4,12 +4,11 @@
 
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
-#include "fboss/agent/hw/test/HwSwitchEnsemble.h"
-#include "fboss/agent/hw/test/HwSwitchEnsembleRouteUpdateWrapper.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/LinkStateToggler.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TestEnsembleIf.h"
 
 namespace facebook::fboss::utility {
 
@@ -29,22 +28,28 @@ template <typename EcmpSetupHelperT>
 void HwEcmpDataPlaneTestUtil<EcmpSetupHelperT>::unresolveNextHop(
     unsigned int id) {
   auto portDesc = helper_->ecmpPortDescriptorAt(id);
+  auto state = ensemble_->getProgrammedState();
   ensemble_->applyNewState(
-      helper_->unresolveNextHops(ensemble_->getProgrammedState(), {portDesc}));
+      [=](const std::shared_ptr<SwitchState>& state) {
+        return helper_->unresolveNextHops(state, {portDesc});
+      },
+      "unresolve-nexthops");
 }
 
 template <typename EcmpSetupHelperT>
 void HwEcmpDataPlaneTestUtil<EcmpSetupHelperT>::resolveNextHopsandClearStats(
     unsigned int ecmpWidth) {
   ensemble_->applyNewState(
-      helper_->resolveNextHops(ensemble_->getProgrammedState(), ecmpWidth));
+      [=](const std::shared_ptr<SwitchState>& state) {
+        return helper_->resolveNextHops(state, ecmpWidth);
+      },
+      "resolve-nexthops-clear-stats");
 
   while (ecmpWidth) {
     ecmpWidth--;
     auto ports = {
         static_cast<int32_t>(helper_->nhop(ecmpWidth).portDesc.phyPortID())};
-    ensemble_->getHwSwitch()->clearPortStats(
-        std::make_unique<std::vector<int32_t>>(ports));
+    ensemble_->clearPortStats(std::make_unique<std::vector<int32_t>>(ports));
   }
 }
 
@@ -83,7 +88,7 @@ bool HwEcmpDataPlaneTestUtil<EcmpSetupHelperT>::isLoadBalanced(
 
 template <typename AddrT>
 HwIpEcmpDataPlaneTestUtil<AddrT>::HwIpEcmpDataPlaneTestUtil(
-    HwSwitchEnsemble* ensemble,
+    TestEnsembleIf* ensemble,
     RouterID vrf,
     std::vector<LabelForwardingAction::LabelStack> stacks)
     : BaseT(
@@ -95,7 +100,7 @@ HwIpEcmpDataPlaneTestUtil<AddrT>::HwIpEcmpDataPlaneTestUtil(
 
 template <typename AddrT>
 HwIpEcmpDataPlaneTestUtil<AddrT>::HwIpEcmpDataPlaneTestUtil(
-    HwSwitchEnsemble* ensemble,
+    TestEnsembleIf* ensemble,
     const std::optional<folly::MacAddress>& nextHopMac,
     RouterID vrf)
     : BaseT(
@@ -107,7 +112,7 @@ HwIpEcmpDataPlaneTestUtil<AddrT>::HwIpEcmpDataPlaneTestUtil(
 
 template <typename AddrT>
 HwIpEcmpDataPlaneTestUtil<AddrT>::HwIpEcmpDataPlaneTestUtil(
-    HwSwitchEnsemble* ensemble,
+    TestEnsembleIf* ensemble,
     RouterID vrf)
     : HwIpEcmpDataPlaneTestUtil(ensemble, vrf, {}) {}
 
@@ -117,16 +122,19 @@ void HwIpEcmpDataPlaneTestUtil<AddrT>::programRoutes(
     const std::vector<NextHopWeight>& weights) {
   auto* helper = BaseT::ecmpSetupHelper();
   auto* ensemble = BaseT::getEnsemble();
-  ensemble->applyNewState(
-      helper->resolveNextHops(ensemble->getProgrammedState(), ecmpWidth));
-  auto updater = std::make_unique<HwSwitchEnsembleRouteUpdateWrapper>(
-      ensemble->getRouteUpdater());
+  ensemble->applyNewState([=](const std::shared_ptr<SwitchState>& state) {
+    return helper->resolveNextHops(state, ecmpWidth);
+  });
   if (stacks_.empty()) {
     helper->programRoutes(
-        std::move(updater), ecmpWidth, {{AddrT(), 0}}, weights);
+        ensemble->getRouteUpdaterWrapper(), ecmpWidth, {{AddrT(), 0}}, weights);
   } else {
     helper->programIp2MplsRoutes(
-        std::move(updater), ecmpWidth, {{AddrT(), 0}}, stacks_, weights);
+        ensemble->getRouteUpdaterWrapper(),
+        ecmpWidth,
+        {{AddrT(), 0}},
+        stacks_,
+        weights);
   }
 }
 
@@ -136,13 +144,13 @@ void HwIpEcmpDataPlaneTestUtil<AddrT>::programRoutes(
     const std::vector<NextHopWeight>& weights) {
   auto* helper = BaseT::ecmpSetupHelper();
   auto* ensemble = BaseT::getEnsemble();
-  ensemble->applyNewState(
-      helper->resolveNextHops(ensemble->getProgrammedState(), portDescs));
+  ensemble->applyNewState([=](const std::shared_ptr<SwitchState>& state) {
+    return helper->resolveNextHops(state, portDescs);
+  });
 
-  auto updater = std::make_unique<HwSwitchEnsembleRouteUpdateWrapper>(
-      ensemble->getRouteUpdater());
   // TODO: add a stacks_.empty() check, i.e. lines 128-130
-  helper->programRoutes(std::move(updater), portDescs, {{AddrT(), 0}}, weights);
+  helper->programRoutes(
+      ensemble->getRouteUpdaterWrapper(), portDescs, {{AddrT(), 0}}, weights);
 }
 
 /*
@@ -188,7 +196,7 @@ void HwIpEcmpDataPlaneTestUtil<AddrT>::pumpTrafficThroughPort(
 
 template <typename AddrT>
 HwIpRoCEEcmpDataPlaneTestUtil<AddrT>::HwIpRoCEEcmpDataPlaneTestUtil(
-    HwSwitchEnsemble* ensemble,
+    TestEnsembleIf* ensemble,
     RouterID vrf)
     : BaseT(ensemble, vrf) {}
 
@@ -211,7 +219,7 @@ void HwIpRoCEEcmpDataPlaneTestUtil<AddrT>::pumpTrafficThroughPort(
 template <typename AddrT>
 HwIpRoCEEcmpDestPortDataPlaneTestUtil<AddrT>::
     HwIpRoCEEcmpDestPortDataPlaneTestUtil(
-        HwSwitchEnsemble* ensemble,
+        TestEnsembleIf* ensemble,
         RouterID vrf)
     : BaseT(ensemble, vrf) {}
 
@@ -234,7 +242,7 @@ void HwIpRoCEEcmpDestPortDataPlaneTestUtil<AddrT>::pumpTrafficThroughPort(
 
 template <typename AddrT>
 HwMplsEcmpDataPlaneTestUtil<AddrT>::HwMplsEcmpDataPlaneTestUtil(
-    HwSwitchEnsemble* ensemble,
+    TestEnsembleIf* ensemble,
     MPLSHdr::Label topLabel,
     LabelForwardingAction::LabelForwardingType actionType)
     : BaseT(
@@ -251,12 +259,16 @@ void HwMplsEcmpDataPlaneTestUtil<AddrT>::programRoutes(
     const std::vector<NextHopWeight>& weights) {
   auto* helper = BaseT::ecmpSetupHelper();
   auto* ensemble = BaseT::getEnsemble();
-  auto state =
-      helper->resolveNextHops(ensemble->getProgrammedState(), ecmpWidth);
-  ensemble->applyNewState(state);
-  auto updater = std::make_unique<HwSwitchEnsembleRouteUpdateWrapper>(
-      ensemble->getRouteUpdater());
-  helper->setupECMPForwarding(state, std::move(updater), ecmpWidth, weights);
+  ensemble->applyNewState(
+      [=](const std::shared_ptr<SwitchState>& state) {
+        return helper->resolveNextHops(state, ecmpWidth);
+      },
+      "resolve next hops");
+  helper->setupECMPForwarding(
+      ensemble->getProgrammedState(),
+      ensemble->getRouteUpdaterWrapper(),
+      ecmpWidth,
+      weights);
 }
 
 template <typename AddrT>
@@ -267,6 +279,7 @@ void HwMplsEcmpDataPlaneTestUtil<AddrT>::pumpTrafficThroughPort(
   auto programmedState = ensemble->getProgrammedState();
   auto firstVlanID = programmedState->getVlans()->getFirstVlanID();
   auto mac = utility::getInterfaceMac(programmedState, firstVlanID);
+
   pumpMplsTraffic(
       std::is_same_v<AddrT, folly::IPAddressV6>,
       ensemble->getHwSwitch(),

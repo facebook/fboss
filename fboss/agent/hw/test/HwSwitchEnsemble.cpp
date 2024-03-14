@@ -983,4 +983,7 @@ const SwitchIdScopeResolver& HwSwitchEnsemble::scopeResolver() const {
 void HwSwitchEnsemble::storeWarmBootState(const state::WarmbootState& state) {
   swSwitchWarmBootHelper_->storeWarmBootState(state);
 }
+LinkStateToggler* HwSwitchEnsemble::getLinkToggler() {
+  return linkToggler_.get();
+}
 } // namespace facebook::fboss

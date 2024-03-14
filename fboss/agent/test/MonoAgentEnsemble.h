@@ -20,7 +20,8 @@ class MonoAgentEnsemble : public AgentEnsemble {
   void reloadPlatformConfig() override;
   bool isSai() const override;
 
-  HwSwitch* getHwSwitch() const override;
+  const HwSwitch* getHwSwitch() const override;
+  HwSwitch* getHwSwitch() override;
 
  private:
   MonolithicAgentInitializer agentInitializer_{};

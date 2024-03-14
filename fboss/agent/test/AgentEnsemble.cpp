@@ -309,4 +309,8 @@ void AgentEnsemble::runDiagCommand(
   }
   // TODO: Mono
 }
+
+LinkStateToggler* AgentEnsemble::getLinkToggler() {
+  return linkToggler_.get();
+}
 } // namespace facebook::fboss
