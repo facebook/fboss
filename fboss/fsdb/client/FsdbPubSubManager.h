@@ -136,6 +136,11 @@ class FsdbPubSubManager {
 
   // TODO: migrate all the above subscription apis from FsdbStreamStateChangeCb
   // to FsdbSubscriptionStateChangeCb
+  void addStateDeltaSubscription(
+      const Path& subscribePath,
+      FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
+      FsdbDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaCb,
+      FsdbStreamClient::ServerOptions&& serverOptions);
   void addStatePathSubscription(
       FsdbStateSubscriber::SubscriptionOptions&& subscriptionOptions,
       const Path& subscribePath,
