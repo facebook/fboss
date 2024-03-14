@@ -278,6 +278,9 @@ int64_t HwSwitchFb303Stats::getForwardingQueueProcessorErrors() const {
   return getCumulativeValue(forwardingQueueProcessorErrors_);
 }
 
+int64_t HwSwitchFb303Stats::getAllReassemblyContextsTakenError() const {
+  return getCumulativeValue(allReassemblyContextsTaken_);
+}
 int64_t HwSwitchFb303Stats::getPacketIntegrityDrops() const {
   return currentDropStats_.packetIntegrityDrops().value_or(0);
 }

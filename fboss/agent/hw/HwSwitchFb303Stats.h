@@ -142,6 +142,7 @@ class HwSwitchFb303Stats {
   int64_t getEpniErrors() const;
   int64_t getAlignerErrors() const;
   int64_t getForwardingQueueProcessorErrors() const;
+  int64_t getAllReassemblyContextsTakenError() const;
 
   int64_t getFdrCellDrops() const;
   int64_t getVoqResourcesExhautionDrops() const;
