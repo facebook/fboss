@@ -528,7 +528,9 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
     CHECK_EQ(portsPerIntf, 1) << " For VOQ switches sys port to interface "
                                  "mapping must by 1:1";
     const std::set<cfg::PortType> kCreateIntfsFor = {
-        cfg::PortType::INTERFACE_PORT, cfg::PortType::RECYCLE_PORT};
+        cfg::PortType::INTERFACE_PORT,
+        cfg::PortType::RECYCLE_PORT,
+        cfg::PortType::MANAGEMENT_PORT};
     for (const auto& port : *config.ports()) {
       if (kCreateIntfsFor.find(*port.portType()) == kCreateIntfsFor.end()) {
         continue;

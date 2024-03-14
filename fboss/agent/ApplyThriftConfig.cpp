@@ -1131,7 +1131,8 @@ void ThriftConfigApplier::processInterfaceForPortForVoqSwitches(
     if (scopeResolver_.scope(portCfg).has(SwitchID(switchId))) {
       switch (portType) {
         case cfg::PortType::INTERFACE_PORT:
-        case cfg::PortType::RECYCLE_PORT: {
+        case cfg::PortType::RECYCLE_PORT:
+        case cfg::PortType::MANAGEMENT_PORT: {
           // system port is 1:1 with every interface and recycle port.
           // interface is 1:1 with system port.
           // InterfaceID is chosen to be the same as systemPortID. Thus:
@@ -1139,7 +1140,6 @@ void ThriftConfigApplier::processInterfaceForPortForVoqSwitches(
           port2InterfaceId_[portID].push_back(interfaceID);
         } break;
         case cfg::PortType::FABRIC_PORT:
-        case cfg::PortType::MANAGEMENT_PORT:
         case cfg::PortType::CPU_PORT:
           // no interface for fabric/cpu port
           break;
@@ -1286,7 +1286,9 @@ shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
   const auto kNumVoqs = 8;
 
   static const std::set<cfg::PortType> kCreateSysPortsFor = {
-      cfg::PortType::INTERFACE_PORT, cfg::PortType::RECYCLE_PORT};
+      cfg::PortType::INTERFACE_PORT,
+      cfg::PortType::RECYCLE_PORT,
+      cfg::PortType::MANAGEMENT_PORT};
   auto sysPorts = std::make_shared<SystemPortMap>();
 
   for (const auto& [matcherString, portMap] : std::as_const(*ports)) {
