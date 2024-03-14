@@ -134,9 +134,9 @@ class HwSwitchFb303Stats {
   int64_t getPacketIntegrityDropsCount() const {
     return packetIntegrityDrops_.count();
   }
-  int64_t getPacketIntegrityDrops() const;
   int64_t getDramEnqueuedBytes() const;
   int64_t getDramDequeuedBytes() const;
+  // Asic errors
   int64_t getIreErrors() const;
   int64_t getItppErrors() const;
   int64_t getEpniErrors() const;
@@ -144,6 +144,8 @@ class HwSwitchFb303Stats {
   int64_t getForwardingQueueProcessorErrors() const;
   int64_t getAllReassemblyContextsTakenError() const;
 
+  // Switch drops
+  int64_t getPacketIntegrityDrops() const;
   int64_t getFdrCellDrops() const;
   int64_t getVoqResourcesExhautionDrops() const;
   int64_t getGlobalResourcesExhautionDrops() const;
@@ -152,6 +154,7 @@ class HwSwitchFb303Stats {
   int64_t getDropPrecedenceDrops() const;
   int64_t getQueueResolutionDrops() const;
   int64_t getIngresPacketPipelineRejectDrops() const;
+  int64_t getCorruptedCellPacketIntegrityDrops() const;
 
   HwAsicErrors getHwAsicErrors() const;
   FabricReachabilityStats getFabricReachabilityStats();
