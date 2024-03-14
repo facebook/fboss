@@ -625,6 +625,7 @@ TEST_F(HwVoqSwitchWithFabricPortsTest, fdrCellDrops) {
   };
   verifyAcrossWarmBoots(setup, verify);
 }
+
 TEST_F(HwVoqSwitchTest, addRemoveNeighbor) {
   auto setup = [this]() {
     const PortDescriptor kPort(

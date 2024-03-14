@@ -366,6 +366,38 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, fabricIsolate) {
   verifyAcrossWarmBoots([] {}, verify);
 }
 
+TEST_F(AgentVoqSwitchWithFabricPortsTest, fabricConnectivityMismatch) {
+  auto fabricPortId = masterLogicalFabricPortIds()[0];
+  auto setup = [=, this]() {
+    applyNewConfig(initialConfig(*getAgentEnsemble()));
+    auto portStats = getLatestPortStats(fabricPortId);
+    EXPECT_EQ(*portStats.get_fabricConnectivityMismatch(), 0);
+  };
+  auto verify = [=, this]() {
+    auto cfg = initialConfig(*getAgentEnsemble());
+    cfg::PortNeighbor nbr;
+    nbr.remoteSystem() = "RemoteA";
+    nbr.remotePort() = "portA";
+    auto portCfg = utility::findCfgPort(cfg, fabricPortId);
+    portCfg->expectedNeighborReachability() = {nbr};
+    applyNewConfig(cfg);
+
+    WITH_RETRIES({
+      auto portStats = getLatestPortStats(fabricPortId);
+      EXPECT_EVENTUALLY_EQ(*portStats.get_fabricConnectivityMismatch(), 1);
+    });
+
+    WITH_RETRIES({
+      auto port = getProgrammedState()->getPorts()->getNodeIf(fabricPortId);
+      EXPECT_EVENTUALLY_EQ(port->getLedPortExternalState().has_value(), true);
+      EXPECT_EVENTUALLY_EQ(
+          port->getLedPortExternalState().value(),
+          PortLedExternalState::CABLING_ERROR);
+    });
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 TEST_F(AgentVoqSwitchWithFabricPortsTest, switchIsolate) {
   auto setup = [=, this]() {
     // Before drain all fabric ports should be active
