@@ -322,6 +322,8 @@ HwAsicErrors HwSwitchFb303Stats::getHwAsicErrors() const {
   asicErrors.alignerErrors() = getCumulativeValue(alignerErrors_);
   asicErrors.forwardingQueueProcessorErrors() =
       getCumulativeValue(forwardingQueueProcessorErrors_);
+  asicErrors.allReassemblyContextsTaken() =
+      getCumulativeValue(allReassemblyContextsTaken_);
   return asicErrors;
 }
 
