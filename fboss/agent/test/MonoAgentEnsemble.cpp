@@ -37,11 +37,11 @@ bool MonoAgentEnsemble::isSai() const {
   return agentInitializer_.platform()->isSai();
 }
 
-const HwSwitch* MonoAgentEnsemble::getHwSwitch() const {
+HwSwitch* MonoAgentEnsemble::getHwSwitch() {
   return agentInitializer_.platform()->getHwSwitch();
 }
 
-HwSwitch* MonoAgentEnsemble::getHwSwitch() {
+const HwSwitch* MonoAgentEnsemble::getHwSwitch() const {
   return agentInitializer_.platform()->getHwSwitch();
 }
 

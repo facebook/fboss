@@ -4,6 +4,7 @@
 
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
@@ -88,7 +89,7 @@ bool HwEcmpDataPlaneTestUtil<EcmpSetupHelperT>::isLoadBalanced(
 
 template <typename AddrT>
 HwIpEcmpDataPlaneTestUtil<AddrT>::HwIpEcmpDataPlaneTestUtil(
-    TestEnsembleIf* ensemble,
+    HwSwitchEnsemble* ensemble,
     RouterID vrf,
     std::vector<LabelForwardingAction::LabelStack> stacks)
     : BaseT(
@@ -100,7 +101,7 @@ HwIpEcmpDataPlaneTestUtil<AddrT>::HwIpEcmpDataPlaneTestUtil(
 
 template <typename AddrT>
 HwIpEcmpDataPlaneTestUtil<AddrT>::HwIpEcmpDataPlaneTestUtil(
-    TestEnsembleIf* ensemble,
+    HwSwitchEnsemble* ensemble,
     const std::optional<folly::MacAddress>& nextHopMac,
     RouterID vrf)
     : BaseT(
@@ -112,7 +113,7 @@ HwIpEcmpDataPlaneTestUtil<AddrT>::HwIpEcmpDataPlaneTestUtil(
 
 template <typename AddrT>
 HwIpEcmpDataPlaneTestUtil<AddrT>::HwIpEcmpDataPlaneTestUtil(
-    TestEnsembleIf* ensemble,
+    HwSwitchEnsemble* ensemble,
     RouterID vrf)
     : HwIpEcmpDataPlaneTestUtil(ensemble, vrf, {}) {}
 
@@ -196,7 +197,7 @@ void HwIpEcmpDataPlaneTestUtil<AddrT>::pumpTrafficThroughPort(
 
 template <typename AddrT>
 HwIpRoCEEcmpDataPlaneTestUtil<AddrT>::HwIpRoCEEcmpDataPlaneTestUtil(
-    TestEnsembleIf* ensemble,
+    HwSwitchEnsemble* ensemble,
     RouterID vrf)
     : BaseT(ensemble, vrf) {}
 
@@ -219,7 +220,7 @@ void HwIpRoCEEcmpDataPlaneTestUtil<AddrT>::pumpTrafficThroughPort(
 template <typename AddrT>
 HwIpRoCEEcmpDestPortDataPlaneTestUtil<AddrT>::
     HwIpRoCEEcmpDestPortDataPlaneTestUtil(
-        TestEnsembleIf* ensemble,
+        HwSwitchEnsemble* ensemble,
         RouterID vrf)
     : BaseT(ensemble, vrf) {}
 
@@ -242,7 +243,7 @@ void HwIpRoCEEcmpDestPortDataPlaneTestUtil<AddrT>::pumpTrafficThroughPort(
 
 template <typename AddrT>
 HwMplsEcmpDataPlaneTestUtil<AddrT>::HwMplsEcmpDataPlaneTestUtil(
-    TestEnsembleIf* ensemble,
+    HwSwitchEnsemble* ensemble,
     MPLSHdr::Label topLabel,
     LabelForwardingAction::LabelForwardingType actionType)
     : BaseT(

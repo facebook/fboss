@@ -133,8 +133,8 @@ class HwSwitchEnsemble : public TestEnsembleIf {
   virtual const Platform* getPlatform() const {
     return hwAgent_->getPlatform();
   }
-  virtual HwSwitch* getHwSwitch() override;
-  virtual const HwSwitch* getHwSwitch() const override {
+  virtual HwSwitch* getHwSwitch();
+  virtual const HwSwitch* getHwSwitch() const {
     return const_cast<HwSwitchEnsemble*>(this)->getHwSwitch();
   }
   const HwAsic* getAsic() const {

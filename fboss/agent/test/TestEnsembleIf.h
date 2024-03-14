@@ -56,9 +56,6 @@ class TestEnsembleIf : public HwSwitchCallback {
   virtual std::unique_ptr<RouteUpdateWrapper> getRouteUpdaterWrapper() = 0;
   virtual void clearPortStats(
       const std::unique_ptr<std::vector<int32_t>>& ports) = 0;
-  // TODO: remove below once utils are migrated away from HwSwitch
-  virtual const HwSwitch* getHwSwitch() const = 0;
-  virtual HwSwitch* getHwSwitch() = 0;
   virtual std::map<PortID, HwPortStats> getLatestPortStats(
       const std::vector<PortID>& ports) = 0;
   virtual LinkStateToggler* getLinkToggler() = 0;

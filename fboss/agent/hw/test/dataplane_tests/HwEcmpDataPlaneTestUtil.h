@@ -9,7 +9,7 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
 namespace facebook::fboss {
-class TestEnsembleIf;
+class HwSwitchEnsemble;
 }
 
 namespace facebook::fboss::utility {
@@ -18,9 +18,9 @@ template <typename EcmpSetupHelperT>
 class HwEcmpDataPlaneTestUtil {
  public:
   HwEcmpDataPlaneTestUtil(
-      TestEnsembleIf* testEnsembleIf,
+      HwSwitchEnsemble* hwSwitchEnsemble,
       std::unique_ptr<EcmpSetupHelperT> helper)
-      : ensemble_(testEnsembleIf), helper_(std::move(helper)) {}
+      : ensemble_(hwSwitchEnsemble), helper_(std::move(helper)) {}
   virtual ~HwEcmpDataPlaneTestUtil() {}
 
   virtual void programRoutes(
@@ -35,7 +35,7 @@ class HwEcmpDataPlaneTestUtil {
   EcmpSetupHelperT* ecmpSetupHelper() const {
     return helper_.get();
   }
-  TestEnsembleIf* getEnsemble() {
+  HwSwitchEnsemble* getEnsemble() {
     return ensemble_;
   }
   bool isLoadBalanced(
@@ -50,7 +50,7 @@ class HwEcmpDataPlaneTestUtil {
  private:
   virtual void pumpTrafficThroughPort(std::optional<PortID> port) = 0;
 
-  TestEnsembleIf* ensemble_;
+  HwSwitchEnsemble* ensemble_;
   std::unique_ptr<EcmpSetupHelperT> helper_;
 };
 
@@ -61,14 +61,14 @@ class HwIpEcmpDataPlaneTestUtil
   using EcmpSetupAnyNPortsT = EcmpSetupAnyNPorts<AddrT>;
   using BaseT = HwEcmpDataPlaneTestUtil<EcmpSetupAnyNPortsT>;
 
-  HwIpEcmpDataPlaneTestUtil(TestEnsembleIf* ensemble, RouterID vrf);
+  HwIpEcmpDataPlaneTestUtil(HwSwitchEnsemble* ensemble, RouterID vrf);
 
   HwIpEcmpDataPlaneTestUtil(
-      TestEnsembleIf* ensemble,
+      HwSwitchEnsemble* ensemble,
       RouterID vrf,
       std::vector<LabelForwardingAction::LabelStack> stacks);
   HwIpEcmpDataPlaneTestUtil(
-      TestEnsembleIf* ensemble,
+      HwSwitchEnsemble* ensemble,
       const std::optional<folly::MacAddress>& nextHopMac,
       RouterID vrf);
 
@@ -94,7 +94,7 @@ class HwIpRoCEEcmpDataPlaneTestUtil : public HwIpEcmpDataPlaneTestUtil<AddrT> {
  public:
   using BaseT = HwIpEcmpDataPlaneTestUtil<AddrT>;
 
-  HwIpRoCEEcmpDataPlaneTestUtil(TestEnsembleIf* ensemble, RouterID vrf);
+  HwIpRoCEEcmpDataPlaneTestUtil(HwSwitchEnsemble* ensemble, RouterID vrf);
 
   /* pump IP traffic */
   void pumpTrafficThroughPort(std::optional<PortID> port) override;
@@ -106,7 +106,9 @@ class HwIpRoCEEcmpDestPortDataPlaneTestUtil
  public:
   using BaseT = HwIpEcmpDataPlaneTestUtil<AddrT>;
 
-  HwIpRoCEEcmpDestPortDataPlaneTestUtil(TestEnsembleIf* ensemble, RouterID vrf);
+  HwIpRoCEEcmpDestPortDataPlaneTestUtil(
+      HwSwitchEnsemble* ensemble,
+      RouterID vrf);
 
   /* pump IP traffic */
   void pumpTrafficThroughPort(std::optional<PortID> port) override;
@@ -120,7 +122,7 @@ class HwMplsEcmpDataPlaneTestUtil
   using BaseT = HwEcmpDataPlaneTestUtil<MplsEcmpSetupAnyNPorts<AddrT>>;
 
   HwMplsEcmpDataPlaneTestUtil(
-      TestEnsembleIf* ensemble,
+      HwSwitchEnsemble* ensemble,
       MPLSHdr::Label topLabel,
       LabelForwardingAction::LabelForwardingType actionType);
 

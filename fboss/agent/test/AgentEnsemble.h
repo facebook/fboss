@@ -184,8 +184,8 @@ class AgentEnsemble : public TestEnsembleIf {
       override;
   void unregisterStateObserver(StateObserver* observer) override;
 
-  virtual HwSwitch* getHwSwitch() override = 0;
-  virtual const HwSwitch* getHwSwitch() const override = 0;
+  virtual HwSwitch* getHwSwitch() = 0;
+  virtual const HwSwitch* getHwSwitch() const = 0;
   void runDiagCommand(
       const std::string& input,
       std::string& output,
