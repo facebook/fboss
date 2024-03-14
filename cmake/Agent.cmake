@@ -262,6 +262,7 @@ set(core_libs
   sw_switch_warmboot_helper
   hw_write_behavior
   hw_ctrl_cpp2
+  loadbalancer_utils
 )
 
 if (FBOSS_CENTOS9)
@@ -598,3 +599,12 @@ add_library(agent_features
 )
 
 target_link_libraries(agent_features)
+
+add_library(loadbalancer_utils
+  fboss/agent/LoadBalancerUtils.cpp
+)
+
+target_link_libraries(loadbalancer_utils
+  switch_config_cpp2
+  Folly::folly
+)

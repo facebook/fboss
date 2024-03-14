@@ -69,6 +69,8 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "folly/MacAddress.h"
 
+#include "fboss/agent/LoadBalancerUtils.h"
+
 #include "fboss/lib/phy/PhyUtils.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 
@@ -3484,18 +3486,7 @@ void SaiSwitch::listManagedObjectsLocked(
 uint32_t SaiSwitch::generateDeterministicSeed(
     LoadBalancerID loadBalancerID,
     folly::MacAddress platformMac) const {
-  auto mac64 = platformMac.u64HBO();
-  uint32_t mac32 = static_cast<uint32_t>(mac64 & 0xFFFFFFFF);
-  uint32_t seed = 0;
-  switch (loadBalancerID) {
-    case LoadBalancerID::ECMP:
-      seed = folly::hash::twang_32from64(mac64);
-      break;
-    case LoadBalancerID::AGGREGATE_PORT:
-      seed = folly::hash::jenkins_rev_mix32(mac32);
-      break;
-  }
-  return seed;
+  return utility::generateDeterministicSeed(loadBalancerID, platformMac, true);
 }
 
 phy::FecMode SaiSwitch::getPortFECMode(PortID portId) const {
