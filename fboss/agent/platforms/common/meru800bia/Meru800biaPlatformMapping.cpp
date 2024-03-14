@@ -22376,8 +22376,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "tx": {
                       "pre": 0,
                       "pre2": 0,
-                      "main": 0,
-                      "post": 0,
+                      "main": 31,
+                      "post": 10,
                       "post2": 0,
                       "post3": 0
                     }
@@ -22390,8 +22390,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "tx": {
                       "pre": 0,
                       "pre2": 0,
-                      "main": 0,
-                      "post": 0,
+                      "main": 31,
+                      "post": 10,
                       "post2": 0,
                       "post3": 0
                     }
@@ -22404,8 +22404,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "tx": {
                       "pre": 0,
                       "pre2": 0,
-                      "main": 0,
-                      "post": 0,
+                      "main": 31,
+                      "post": 10,
                       "post2": 0,
                       "post3": 0
                     }
@@ -22418,8 +22418,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "tx": {
                       "pre": 0,
                       "pre2": 0,
-                      "main": 0,
-                      "post": 0,
+                      "main": 31,
+                      "post": 10,
                       "post2": 0,
                       "post3": 0
                     }
@@ -22464,8 +22464,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "tx": {
                       "pre": 0,
                       "pre2": 0,
-                      "main": 0,
-                      "post": 0,
+                      "main": 31,
+                      "post": 10,
                       "post2": 0,
                       "post3": 0
                     }
@@ -22478,8 +22478,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "tx": {
                       "pre": 0,
                       "pre2": 0,
-                      "main": 0,
-                      "post": 0,
+                      "main": 31,
+                      "post": 10,
                       "post2": 0,
                       "post3": 0
                     }
@@ -22492,8 +22492,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "tx": {
                       "pre": 0,
                       "pre2": 0,
-                      "main": 0,
-                      "post": 0,
+                      "main": 31,
+                      "post": 10,
                       "post2": 0,
                       "post3": 0
                     }
@@ -22506,8 +22506,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "tx": {
                       "pre": 0,
                       "pre2": 0,
-                      "main": 0,
-                      "post": 0,
+                      "main": 31,
+                      "post": 10,
                       "post2": 0,
                       "post3": 0
                     }
