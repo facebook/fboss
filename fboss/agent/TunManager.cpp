@@ -699,9 +699,9 @@ void TunManager::sync(std::shared_ptr<SwitchState> state) {
       auto addrs = intf->getAddressesCopy();
 
       // Ideally all interfaces should be present in intfStatusMap as either
-      // interface will be virtual or will have atleast one port. Keeping
-      // default status of interface to be DOWN incase if interface is not
-      // virtual and is not assocaited with any physical port
+      // interface will be virtual or will have at least one port. Keeping
+      // default status of interface to be DOWN in case if interface is not
+      // virtual and is not associated with any physical port
       const auto status =
           folly::get_default(intfStatusMap, intf->getID(), false);
 
