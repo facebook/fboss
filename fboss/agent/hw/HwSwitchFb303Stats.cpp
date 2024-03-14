@@ -318,15 +318,14 @@ HwAsicErrors HwSwitchFb303Stats::getHwAsicErrors() const {
   asicErrors.uncorrectedParityErrors() =
       getCumulativeValue(uncorrParityErrors_);
   asicErrors.asicErrors() = getCumulativeValue(asicErrors_);
-  asicErrors.ingressReceiveEditorErrors() = getCumulativeValue(ireErrors_);
-  asicErrors.ingressTransmitPipelineErrors() = getCumulativeValue(itppErrors_);
-  asicErrors.egressPacketNetworkInterfaceErrors() =
-      getCumulativeValue(epniErrors_);
-  asicErrors.alignerErrors() = getCumulativeValue(alignerErrors_);
+  asicErrors.ingressReceiveEditorErrors() = getIreErrors();
+  asicErrors.ingressTransmitPipelineErrors() = getItppErrors();
+  asicErrors.egressPacketNetworkInterfaceErrors() = getEpniErrors();
+  asicErrors.alignerErrors() = getAlignerErrors();
   asicErrors.forwardingQueueProcessorErrors() =
-      getCumulativeValue(forwardingQueueProcessorErrors_);
+      getForwardingQueueProcessorErrors();
   asicErrors.allReassemblyContextsTaken() =
-      getCumulativeValue(allReassemblyContextsTaken_);
+      getAllReassemblyContextsTakenError();
   return asicErrors;
 }
 
