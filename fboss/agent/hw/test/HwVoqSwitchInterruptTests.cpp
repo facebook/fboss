@@ -173,4 +173,34 @@ TEST_F(HwVoqSwitchInterruptTest, fqpError) {
   };
   verifyAcrossWarmBoots([]() {}, verify);
 }
+
+TEST_F(HwVoqSwitchInterruptTest, allReassemblyContextsTakenError) {
+  auto verify = [=, this]() {
+    std::string out;
+    getHwSwitchEnsemble()->runDiagCommand(
+        "modreg RQP_PKT_REAS_INTERRUPT_REGISTER_TEST PKT_REAS_INTERRUPT_REGISTER_TEST=0x8000\n",
+        out);
+    getHwSwitchEnsemble()->runDiagCommand(
+        "modreg RQP_PKT_REAS_INTERRUPT_REGISTER_TEST PKT_REAS_INTERRUPT_REGISTER_TEST=0x10000\n",
+        out);
+    getHwSwitchEnsemble()->runDiagCommand("quit\n", out);
+    WITH_RETRIES({
+      getHwSwitch()->updateStats();
+      fb303::ThreadCachedServiceData::get()->publishStats();
+      auto allReassemblyContextsTaken = getHwSwitch()
+                                            ->getSwitchStats()
+                                            ->getHwAsicErrors()
+                                            .allReassemblyContextsTaken()
+                                            .value_or(0);
+      XLOG(INFO) << " All Reassemble contexts taken: "
+                 << allReassemblyContextsTaken;
+      EXPECT_EVENTUALLY_GE(allReassemblyContextsTaken, 1);
+      EXPECT_EVENTUALLY_GE(
+          getHwSwitch()->getSwitchStats()->getAllReassemblyContextsTakenError(),
+          1);
+    });
+  };
+  verifyAcrossWarmBoots([]() {}, verify);
+}
+
 } // namespace facebook::fboss
