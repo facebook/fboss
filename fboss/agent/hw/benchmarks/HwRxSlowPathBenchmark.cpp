@@ -10,12 +10,12 @@
 
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/Platform.h"
+#include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
-#include "fboss/agent/hw/test/HwTestAclUtils.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
-#include "fboss/agent/hw/test/HwTestPacketUtils.h"
-#include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
+#include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/QosTestUtils.h"
 #include "fboss/agent/test/utils/TrapPacketUtils.h"
 
@@ -104,7 +104,7 @@ BENCHMARK(RxSlowPathBenchmark) {
   // Send packet
   auto vlanId = utility::firstVlanID(ensemble->getProgrammedState());
   auto txPacket = utility::makeUDPTxPacket(
-      hwSwitch,
+      ensemble->getSw(),
       vlanId,
       kSrcMac,
       dstMac,
