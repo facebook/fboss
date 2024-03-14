@@ -39,33 +39,6 @@ class SwitchIdScopeResolver;
 
 namespace facebook::fboss::utility {
 
-inline const int kScalingFactor(100);
-inline const int kLoadWeight(70);
-inline const int kQueueWeight(30);
-
-cfg::LoadBalancer getTrunkHalfHashConfig(const HwAsic& asic);
-cfg::LoadBalancer getEcmpHalfHashConfig(const HwAsic& asic);
-cfg::LoadBalancer getEcmpFullHashConfig(const HwAsic& asic);
-cfg::LoadBalancer getEcmpFullUdfHashConfig(const HwAsic& asic);
-std::vector<cfg::LoadBalancer> getEcmpFullTrunkHalfHashConfig(
-    const HwAsic& asic);
-std::vector<cfg::LoadBalancer> getEcmpHalfTrunkFullHashConfig(
-    const HwAsic& asic);
-std::vector<cfg::LoadBalancer> getEcmpFullTrunkFullHashConfig(
-    const HwAsic& asic);
-
-std::shared_ptr<SwitchState> setLoadBalancer(
-    TestEnsembleIf* ensemble,
-    const std::shared_ptr<SwitchState>& inputState,
-    const cfg::LoadBalancer& loadBalancer,
-    const SwitchIdScopeResolver& resolver);
-
-std::shared_ptr<SwitchState> addLoadBalancers(
-    TestEnsembleIf* ensemble,
-    const std::shared_ptr<SwitchState>& inputState,
-    const std::vector<cfg::LoadBalancer>& loadBalancers,
-    const SwitchIdScopeResolver& resolver);
-
 size_t pumpTraffic(
     bool isV6,
     HwSwitch* hw,
@@ -159,19 +132,9 @@ void pumpTrafficAndVerifyLoadBalanced(
     std::function<bool()> isLoadBalanced,
     bool loadBalanceExpected = true);
 
-cfg::UdfConfig addUdfHashConfig();
-cfg::UdfConfig addUdfAclConfig();
-cfg::UdfConfig addUdfHashAclConfig();
-
 bool isHwDeterministicSeed(
     HwSwitch* hwSwitch,
     const std::shared_ptr<SwitchState>& state,
     LoadBalancerID id);
-
-cfg::FlowletSwitchingConfig getDefaultFlowletSwitchingConfig();
-void addFlowletAcl(cfg::SwitchConfig& cfg);
-void addFlowletConfigs(
-    cfg::SwitchConfig& cfg,
-    const std::vector<PortID>& ports);
 
 } // namespace facebook::fboss::utility

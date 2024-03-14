@@ -131,6 +131,13 @@ add_library(load_balancer_test_utils
 target_link_libraries(load_balancer_test_utils
   state
   Folly::folly
+  test_ensemble_if
+  core
+  utils
+  switch_asics
+  loadbalancer_utils
+  acl_test_utils
+  config_utils
 )
 
 add_library(dscp_marking_utils
