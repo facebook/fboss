@@ -56,6 +56,7 @@ class SaiHandler : public apache::thrift::ServiceHandler<SaiCtrl> {
   SaiSwitch* hw_;
   StreamingDiagShellServer diagShell_;
   DiagCmdServer diagCmdServer_;
+  std::mutex diagCmdLock_;
 };
 
 } // namespace facebook::fboss

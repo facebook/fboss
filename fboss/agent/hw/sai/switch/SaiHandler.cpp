@@ -54,7 +54,10 @@ void SaiHandler::diagCmd(
     bool /* unused */) {
   auto log = LOG_THRIFT_CALL(WARN, *cmd);
   hw_->ensureConfigured(__func__);
-  result = diagCmdServer_.diagCmd(std::move(cmd), std::move(client));
+  {
+    const std::lock_guard<std::mutex> lock(diagCmdLock_);
+    result = diagCmdServer_.diagCmd(std::move(cmd), std::move(client));
+  }
 }
 
 SwitchRunState SaiHandler::getHwSwitchRunState() {
