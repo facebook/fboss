@@ -1,0 +1,117 @@
+// (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
+
+#include "fboss/agent/TxPacket.h"
+#include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/hw/test/HwTestAclUtils.h"
+#include "fboss/agent/packet/PktFactory.h"
+#include "fboss/agent/test/AgentHwTest.h"
+#include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/lib/CommonUtils.h"
+
+#include "fboss/agent/test/gen-cpp2/production_features_types.h"
+
+namespace facebook::fboss {
+
+class AgentEgressForwardingDiscardsCounterTest : public AgentHwTest {
+ public:
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto cfg = AgentHwTest::initialConfig(ensemble);
+    auto firstPortId = ensemble.masterLogicalInterfacePortIds()[0];
+    auto firstPortSwitchId =
+        ensemble.scopeResolver().scope(firstPortId).switchId();
+    auto sysPortRange =
+        cfg.dsfNodes()->find(firstPortSwitchId)->second.systemPortRange();
+    CHECK(sysPortRange.has_value());
+    auto firstPortRifId =
+        *sysPortRange->minimum() + static_cast<int>(firstPortId);
+    for (auto& intf : *cfg.interfaces()) {
+      if (intf.intfID() == firstPortRifId) {
+        intf.mtu() = 1500;
+      }
+    }
+    return cfg;
+  }
+  std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const override {
+    return {production_features::ProductionFeature::
+                EGRESS_FORWARDING_DISCARDS_COUNTER};
+  }
+};
+
+TEST_F(AgentEgressForwardingDiscardsCounterTest, outForwardingDiscards) {
+  auto egressPortDesc = PortDescriptor(masterLogicalInterfacePortIds()[0]);
+  auto setup = [=]() {
+    utility::EcmpSetupTargetedPorts6 ecmpHelper6(getSw()->getState());
+    auto wrapper = getSw()->getRouteUpdater();
+    ecmpHelper6.programRoutes(&wrapper, {egressPortDesc});
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return ecmpHelper6.resolveNextHops(in, {egressPortDesc});
+    });
+  };
+  auto verify = [=, this]() {
+    utility::EcmpSetupTargetedPorts6 ecmpHelper6(getSw()->getState());
+    auto port = egressPortDesc.phyPortID();
+    auto portStatsBefore = getLatestPortStats(port);
+    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+    auto pkt = utility::makeUDPTxPacket(
+        getSw(),
+        vlanId,
+        srcMac,
+        intfMac,
+        folly::IPAddress("1001::1"),
+        folly::IPAddress("2001::1"),
+        4242,
+        4242,
+        0,
+        255,
+        std::vector<uint8_t>(6000, 0xff));
+
+    getSw()->sendPacketOutOfPortAsync(
+        std::move(pkt), masterLogicalInterfacePortIds()[1]);
+    WITH_RETRIES({
+      auto portStatsAfter = getLatestPortStats(port);
+      XLOG(INFO) << " Out forwading discards, before:"
+                 << *portStatsBefore.outForwardingDiscards_()
+                 << " after:" << *portStatsAfter.outForwardingDiscards_()
+                 << std::endl
+                 << " Out dicards, before:" << *portStatsBefore.outDiscards_()
+                 << " after:" << *portStatsAfter.outDiscards_();
+      EXPECT_EVENTUALLY_EQ(
+          *portStatsAfter.outDiscards_(), *portStatsBefore.outDiscards_() + 1);
+      EXPECT_EVENTUALLY_EQ(
+          *portStatsAfter.outForwardingDiscards_(),
+          *portStatsBefore.outForwardingDiscards_() + 1);
+    });
+    // Collect once more and assert that counter remains same.
+    // We expect this to be a cumulative counter and not a read
+    // on clear counter. Assert that.
+    auto portStatsAfter = getLatestPortStats(port);
+    XLOG(INFO) << " Out forwading discards, before:"
+               << *portStatsBefore.outForwardingDiscards_()
+               << " after:" << *portStatsAfter.outForwardingDiscards_()
+               << std::endl
+               << " Out dicards, before:" << *portStatsBefore.outDiscards_()
+               << " after:" << *portStatsAfter.outDiscards_();
+    EXPECT_EQ(
+        *portStatsAfter.outDiscards_(), *portStatsBefore.outDiscards_() + 1);
+    EXPECT_EQ(
+        *portStatsAfter.outForwardingDiscards_(),
+        *portStatsBefore.outForwardingDiscards_() + 1);
+    // Assert that other ports did not see any in discard
+    // counter increment
+    auto allPortStats = getLatestPortStats(masterLogicalInterfacePortIds());
+    for (const auto& [p, otherPortStats] : allPortStats) {
+      if (port == port) {
+        continue;
+      }
+      EXPECT_EQ(otherPortStats.outDiscards_(), 0);
+      EXPECT_EQ(otherPortStats.outForwardingDiscards_(), 0);
+    }
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+} // namespace facebook::fboss
