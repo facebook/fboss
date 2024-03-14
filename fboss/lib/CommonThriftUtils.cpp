@@ -96,8 +96,7 @@ void ReconnectingThriftClient::setServerOptions(
   if (!allowReset && *serverOptions_.rlock()) {
     throw std::runtime_error("Cannot reset server address");
   }
-  connectionLogStr_ =
-      fmt::format("{}->{}", clientId(), options.dstAddr.getAddressStr());
+  connectionLogStr_ = fmt::format("{}->{}", clientId(), options.deviceName);
   *serverOptions_.wlock() = std::move(options);
 }
 
