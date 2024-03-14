@@ -17,9 +17,9 @@
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/utils/QosTestUtils.h"
+#include "fboss/agent/test/utils/TrapPacketUtils.h"
 
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
-#include "fboss/agent/hw/test/HwTestPacketTrapEntry.h"
 
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/benchmarks/AgentBenchmarks.h"
@@ -69,6 +69,9 @@ BENCHMARK(RxSlowPathBenchmark) {
         asic,
         ensemble.isSai(),
         /* setQueueRate */ false);
+    auto trapDstIp = folly::CIDRNetwork{kDstIp, 128};
+    utility::addTrapPacketAcl(&config, trapDstIp);
+
     // Since J2 and J3 does not support disabling TLL on port, create TRAP to
     // forward TTL=0 packet.
     if (ensemble.getSw()->getHwAsicTable()->isFeatureSupportedOnAllAsic(
@@ -83,8 +86,6 @@ BENCHMARK(RxSlowPathBenchmark) {
   // TODO(zecheng): Deprecate agent access to HwSwitch
   auto hwSwitch = ensemble->getHwSwitch();
   // capture packet exiting port 0 (entering due to loopback)
-  auto trapDstIp = folly::CIDRNetwork{kDstIp, 128};
-  auto packetCapture = HwTestPacketTrapEntry(hwSwitch, trapDstIp);
   auto dstMac = utility::getFirstInterfaceMac(ensemble->getProgrammedState());
   auto ecmpHelper =
       utility::EcmpSetupAnyNPorts6(ensemble->getProgrammedState(), dstMac);

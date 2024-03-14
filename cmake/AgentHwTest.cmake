@@ -354,6 +354,7 @@ target_link_libraries(hw_switch_test
   route_distribution_gen
   route_scale_gen
   trunk_utils
+  trap_packet_utils
   Folly::folly
   validated_shell_commands_cpp2
   hwswitch_matcher

@@ -17,7 +17,6 @@
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestMplsUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketSnooper.h"
-#include "fboss/agent/hw/test/HwTestPacketTrapEntry.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/packet/PktUtil.h"
@@ -26,6 +25,7 @@
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/TrunkUtils.h"
+#include "fboss/agent/test/utils/TrapPacketUtils.h"
 
 #include "fboss/agent/types.h"
 
@@ -58,14 +58,12 @@ class HwMPLSTest : public HwLinkStateDependentTest {
       }
       return srcPortQualifierSupported;
     }
-    HwPacketVerifier(HwSwitchEnsemble* ensemble, PortID port, MPLSHdr hdr)
-        : ensemble_(ensemble), entry_{}, snooper_{}, expectedHdr_(hdr) {
+    HwPacketVerifier(HwSwitchEnsemble* ensemble, MPLSHdr hdr)
+        : ensemble_(ensemble), snooper_{}, expectedHdr_(hdr) {
       if (!isSrcPortQualifierSupported()) {
         return;
       }
       // capture packet exiting port (entering back due to loopback)
-      entry_ = std::make_unique<HwTestPacketTrapEntry>(
-          ensemble->getHwSwitch(), port);
       snooper_ = std::make_unique<HwTestPacketSnooper>(ensemble_);
     }
 
@@ -82,7 +80,6 @@ class HwMPLSTest : public HwLinkStateDependentTest {
     }
 
     HwSwitchEnsemble* ensemble_;
-    std::unique_ptr<HwTestPacketTrapEntry> entry_;
     std::unique_ptr<HwTestPacketSnooper> snooper_;
     MPLSHdr expectedHdr_;
   };
@@ -156,6 +153,7 @@ class HwMPLSTest : public HwLinkStateDependentTest {
     utility::addCpuQueueConfig(
         config, getAsic(), getHwSwitchEnsemble()->isSai());
 
+    utility::addTrapPacketAcl(&config, masterLogicalPortIds()[0]);
     return config;
   }
 
@@ -377,8 +375,8 @@ class HwMPLSTest : public HwLinkStateDependentTest {
     }
   }
 
-  HwPacketVerifier getPacketVerifer(PortID port, MPLSHdr hdr) {
-    return HwPacketVerifier(getHwSwitchEnsemble(), port, hdr);
+  HwPacketVerifier getPacketVerifer(MPLSHdr hdr) {
+    return HwPacketVerifier(getHwSwitchEnsemble(), hdr);
   }
 
   std::unique_ptr<utility::EcmpSetupTargetedPorts6> ecmpHelper_;
@@ -408,8 +406,7 @@ TYPED_TEST(HwMPLSTest, Push) {
         MPLSHdr::Label{102, 5, 0, 254}, // exp = 5 for tc = 2
         MPLSHdr::Label{101, 5, 1, 254}, // exp = 5 for tc = 2
     });
-    [[maybe_unused]] auto verifier = this->getPacketVerifer(
-        this->masterLogicalPortIds()[0], expectedMplsHdr);
+    [[maybe_unused]] auto verifier = this->getPacketVerifer(expectedMplsHdr);
 
     auto outPktsBefore = getPortOutPkts(
         this->getLatestPortStats(this->masterLogicalPortIds()[0]));
@@ -444,8 +441,7 @@ TYPED_TEST(HwMPLSTest, Swap) {
     auto expectedMplsHdr = MPLSHdr({
         MPLSHdr::Label{expectedOutLabel, 2, true, 127}, // exp is remarked to 2
     });
-    [[maybe_unused]] auto verifier = this->getPacketVerifer(
-        this->masterLogicalPortIds()[0], expectedMplsHdr);
+    [[maybe_unused]] auto verifier = this->getPacketVerifer(expectedMplsHdr);
 
     auto outPktsBefore = getPortOutPkts(
         this->getLatestPortStats(this->masterLogicalPortIds()[0]));
@@ -724,8 +720,7 @@ TYPED_TEST(HwMPLSTest, AclRedirectToNexthop) {
         MPLSHdr::Label{202, 5, 0, 254},
         MPLSHdr::Label{201, 5, 1, 254},
     });
-    [[maybe_unused]] auto verifier = this->getPacketVerifer(
-        this->masterLogicalPortIds()[0], expectedMplsHdr);
+    [[maybe_unused]] auto verifier = this->getPacketVerifer(expectedMplsHdr);
     auto outPktsBefore = getPortOutPkts(
         this->getLatestPortStats(this->masterLogicalPortIds()[0]));
     this->sendL3Packet(
@@ -816,8 +811,7 @@ TYPED_TEST(HwMPLSTest, AclRedirectToNexthopMismatch) {
     });
     // Since ACL qualifiers do not match packet fields, packet must
     // exit via RIB route nexthops
-    [[maybe_unused]] auto verifier = this->getPacketVerifer(
-        this->masterLogicalPortIds()[0], expectedMplsHdr);
+    [[maybe_unused]] auto verifier = this->getPacketVerifer(expectedMplsHdr);
     auto outPktsBefore = getPortOutPkts(
         this->getLatestPortStats(this->masterLogicalPortIds()[0]));
     this->sendL3Packet(

@@ -16,7 +16,6 @@
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestFabricUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketSnooper.h"
-#include "fboss/agent/hw/test/HwTestPacketTrapEntry.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/HwTestPortUtils.h"
 #include "fboss/agent/hw/test/HwTestStatUtils.h"
@@ -29,6 +28,7 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/utils/FabricTestUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
+#include "fboss/agent/test/utils/TrapPacketUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 namespace {
@@ -821,13 +821,13 @@ TEST_F(HwVoqSwitchTest, trapPktsOnPort) {
   utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
   const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
   auto setup = [this, kPort, &ecmpHelper]() {
+    auto cfg = initialConfig();
+    utility::addTrapPacketAcl(&cfg, kPort.phyPortID());
     applyNewState(ecmpHelper.resolveNextHops(getProgrammedState(), {kPort}));
   };
   auto verify = [this, kPort, &ecmpHelper]() {
     auto ensemble = getHwSwitchEnsemble();
     auto snooper = std::make_unique<HwTestPacketSnooper>(ensemble);
-    auto entry = std::make_unique<HwTestPacketTrapEntry>(
-        ensemble->getHwSwitch(), kPort.phyPortID());
     auto frontPanelPort = ecmpHelper.ecmpPortDescriptorAt(1).phyPortID();
     sendPacket(ecmpHelper.ip(kPort), frontPanelPort);
     WITH_RETRIES({

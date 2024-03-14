@@ -15,7 +15,6 @@
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketSnooper.h"
-#include "fboss/agent/hw/test/HwTestPacketTrapEntry.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/HwTestTrunkUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
@@ -29,6 +28,7 @@
 #include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
+#include "fboss/agent/test/utils/TrapPacketUtils.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/CommonUtils.h"
 #include "folly/Utility.h"
@@ -43,6 +43,7 @@ DECLARE_bool(sai_user_defined_trap);
 
 namespace {
 constexpr auto kGetQueueOutPktsRetryTimes = 5;
+static auto const kIpForLowPriorityQueue = folly::IPAddress("4::1");
 /**
  * Link-local multicast network
  */
@@ -77,6 +78,12 @@ class HwCoppTest : public HwLinkStateDependentTest {
 
  protected:
   static constexpr auto isTrunk = std::is_same_v<TestType, AggregatePortID>;
+
+  void addTrapAclEntry(cfg::SwitchConfig* cfg) {
+    // Create trap entry to punt data traffic to CPU low pri queue
+    utility::addTrapPacketAcl(
+        cfg, folly::CIDRNetwork{kIpForLowPriorityQueue, 128});
+  }
 
   cfg::SwitchConfig initialConfig() const override {
     if (isTrunk) {
@@ -1411,16 +1418,10 @@ TEST_F(HwCoppQueueStuckTest, CpuQueueHighRateTraffic) {
   auto setup = [=, this]() { setupEcmpDataplaneLoop(); };
 
   auto verify = [&]() {
-    const auto ipForLowPriorityQueue = folly::IPAddress("4::1");
-
-    // Create trap entry to punt data traffic to CPU low pri queue
-    auto ipAddress = folly::CIDRNetwork{ipForLowPriorityQueue, 128};
-    auto packetCapture = HwTestPacketTrapEntry(getHwSwitch(), ipAddress);
-
     // Create dataplane loop with lowerPriority traffic on port0
     auto baseVlan = utility::firstVlanID(initialConfig());
     createLineRateTrafficOnPort(
-        masterLogicalInterfacePortIds()[0], baseVlan, ipForLowPriorityQueue);
+        masterLogicalInterfacePortIds()[0], baseVlan, kIpForLowPriorityQueue);
 
     bool lowPriorityTrafficMissing{false};
     uint64_t previousLowPriorityPacketCount{};
@@ -1480,15 +1481,9 @@ TEST_F(HwCoppQosTest, HighVsLowerPriorityCpuQueueTrafficPrioritization) {
     const auto ipForHighPriorityQueue =
         folly::IPAddress::createNetwork(configIntf.ipAddresses()[1], -1, false)
             .first;
-    const auto ipForLowPriorityQueue = folly::IPAddress("4::1");
-
     // Register packet receive callback
     auto baseVlan = utility::firstVlanID(initialConfig());
     registerPktReceivedCallback(pktReceiveHandler);
-
-    // Create trap entry to punt data traffic to CPU low pri queue
-    auto ipAddress = folly::CIDRNetwork{ipForLowPriorityQueue, 128};
-    auto packetCapture = HwTestPacketTrapEntry(getHwSwitch(), ipAddress);
 
     // Get initial packet count on port1 for high priority traffic
     auto initialHighPriorityPacketCount =
@@ -1497,7 +1492,7 @@ TEST_F(HwCoppQosTest, HighVsLowerPriorityCpuQueueTrafficPrioritization) {
 
     // Create dataplane loop with lowerPriority traffic on port0
     createLineRateTrafficOnPort(
-        masterLogicalInterfacePortIds()[0], baseVlan, ipForLowPriorityQueue);
+        masterLogicalInterfacePortIds()[0], baseVlan, kIpForLowPriorityQueue);
     std::optional<VlanID> nextVlan;
     if (baseVlan) {
       nextVlan = *baseVlan + 1;
@@ -1539,7 +1534,7 @@ TEST_F(HwCoppQosTest, HighVsLowerPriorityCpuQueueTrafficPrioritization) {
 
     XLOG(DBG0) << "Received packet count  -> HighPriority:"
                << rxPktCountMap[ipForHighPriorityQueue]
-               << ", LowerPriority:" << rxPktCountMap[ipForLowPriorityQueue];
+               << ", LowerPriority:" << rxPktCountMap[kIpForLowPriorityQueue];
 
     uint64_t lowerPriorityCoppQueueStats =
         utility::getCpuQueueOutPacketsAndBytes(

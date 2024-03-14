@@ -6,7 +6,6 @@
 #include "fboss/agent/SflowShimUtils.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestPacketSnooper.h"
-#include "fboss/agent/hw/test/HwTestPacketTrapEntry.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
 #include "fboss/agent/packet/PktFactory.h"
@@ -14,6 +13,7 @@
 #include "fboss/agent/state/Mirror.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/TrunkUtils.h"
+#include "fboss/agent/test/utils/TrapPacketUtils.h"
 
 #include <gtest/gtest.h>
 #include <algorithm>
@@ -115,10 +115,15 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
   }
 
   cfg::SwitchConfig initialConfig() const override {
-    return utility::onePortPerInterfaceConfig(
+    auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         getPortsForSampling(),
         getAsic()->desiredLoopbackModes());
+    auto v4Prefix = folly::CIDRNetwork{"101.101.101.101", 32};
+    auto v6Prefix = folly::CIDRNetwork{"2401:101:101::101", 128};
+    utility::addTrapPacketAcl(&cfg, v4Prefix);
+    utility::addTrapPacketAcl(&cfg, v6Prefix);
+    return cfg;
   }
 
   HwSwitchEnsemble::Features featuresDesired() const override {
@@ -299,8 +304,6 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
     auto ports = getPortsForSampling();
     bringDownPorts(std::vector<PortID>(ports.begin() + 2, ports.end()));
     auto pkt = genPacket(1, 256);
-    auto dstIp = folly::CIDRNetwork{"101.101.101.101", 32};
-    auto packetCapture = HwTestPacketTrapEntry(getHwSwitch(), dstIp);
     HwTestPacketSnooper snooper(getHwSwitchEnsemble());
     sendPkt(getPortsForSampling()[1], pkt.getTxPacket(getHwSwitch()));
     auto capturedPkt = snooper.waitForPacket(10);
@@ -405,8 +408,6 @@ TEST_F(HwSflowMirrorTest, VerifySampledPacketWithTruncateV4) {
     auto ports = getPortsForSampling();
     bringDownPorts(std::vector<PortID>(ports.begin() + 2, ports.end()));
     auto pkt = genPacket(1, 8000);
-    auto dstIp = folly::CIDRNetwork{"101.101.101.101", 32};
-    auto packetCapture = HwTestPacketTrapEntry(getHwSwitch(), dstIp);
     HwTestPacketSnooper snooper(getHwSwitchEnsemble());
     sendPkt(getPortsForSampling()[1], pkt.getTxPacket(getHwSwitch()));
     auto capturedPkt = snooper.waitForPacket(10);
@@ -451,8 +452,6 @@ TEST_F(HwSflowMirrorTest, VerifySampledPacketWithTruncateV6) {
     auto ports = getPortsForSampling();
     bringDownPorts(std::vector<PortID>(ports.begin() + 2, ports.end()));
     auto pkt = genPacket(1, 8000);
-    auto dstIp = folly::CIDRNetwork{"2401:101:101::101", 128};
-    auto packetCapture = HwTestPacketTrapEntry(getHwSwitch(), dstIp);
     HwTestPacketSnooper snooper(getHwSwitchEnsemble());
     sendPkt(getPortsForSampling()[1], pkt.getTxPacket(getHwSwitch()));
     auto capturedPkt = snooper.waitForPacket(10);
@@ -513,8 +512,6 @@ TEST_F(HwSflowMirrorTest, VerifySampledPacketWithLagMemberAsEgressPort) {
     auto ports = getPortsForSampling();
     bringDownPorts(std::vector<PortID>(ports.begin() + 2, ports.end()));
     auto pkt = genPacket(1, 8000);
-    auto dstIp = folly::CIDRNetwork{"2401:101:101::101", 128};
-    auto packetCapture = HwTestPacketTrapEntry(getHwSwitch(), dstIp);
     HwTestPacketSnooper snooper(getHwSwitchEnsemble());
     sendPkt(getPortsForSampling()[1], pkt.getTxPacket(getHwSwitch()));
     auto capturedPkt = snooper.waitForPacket(10);

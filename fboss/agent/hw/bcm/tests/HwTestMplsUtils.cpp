@@ -23,7 +23,6 @@
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/hw/test/HwTestAclUtils.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
-#include "fboss/agent/hw/test/HwTestPacketTrapEntry.h"
 
 extern "C" {
 #include <bcm/l3.h>

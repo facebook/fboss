@@ -11,6 +11,7 @@
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/TestUtils.h"
+#include "fboss/agent/test/utils/TrapPacketUtils.h"
 
 using namespace facebook::fboss;
 class UtilsTest : public ::testing::Test {
@@ -37,4 +38,12 @@ TEST_F(UtilsTest, getIPv6) {
 
 TEST_F(UtilsTest, getPortsForInterface) {
   EXPECT_GT(getPortsForInterface(InterfaceID(1), sw->getState()).size(), 0);
+}
+
+TEST_F(UtilsTest, AddTrapPacketAcl) {
+  auto state = sw->getState();
+  auto config = testConfigA();
+  utility::addTrapPacketAcl(&config, folly::CIDRNetwork{"10.0.0.1", 128});
+  sw->applyConfig("AddTrapPacketAcl", config);
+  EXPECT_NE(sw->getState()->getAcls()->getNodeIf("trap-10.0.0.1"), nullptr);
 }

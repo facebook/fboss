@@ -265,7 +265,6 @@ add_library(hw_rx_slow_path_rate
 
 target_link_libraries(hw_rx_slow_path_rate
   config_factory
-  hw_packet_utils
   hw_qos_utils
   hw_copp_utils
   hw_test_acl_utils
@@ -274,6 +273,7 @@ target_link_libraries(hw_rx_slow_path_rate
   mono_agent_benchmarks
   Folly::folly
   Folly::follybenchmark
+  trap_packet_utils
 )
 
 add_library(hw_init_and_exit_benchmark_helper

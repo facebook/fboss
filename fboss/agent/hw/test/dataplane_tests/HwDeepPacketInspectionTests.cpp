@@ -5,11 +5,11 @@
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/hw/test/HwTest.h"
 #include "fboss/agent/hw/test/HwTestPacketSnooper.h"
-#include "fboss/agent/hw/test/HwTestPacketTrapEntry.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
+#include "fboss/agent/test/utils/TrapPacketUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 namespace {
@@ -28,6 +28,13 @@ class HwDeepPacketInspectionTest : public HwLinkStateDependentTest {
         true /*interfaceHasSubnet*/);
     utility::addOlympicQosMaps(config, getAsic());
     return config;
+  }
+
+  void SetUp() override {
+    HwLinkStateDependentTest::SetUp();
+    auto config = initialConfig();
+    utility::addTrapPacketAcl(&config, kPort().phyPortID());
+    applyNewConfig(config);
   }
 
  protected:
@@ -74,7 +81,6 @@ class HwDeepPacketInspectionTest : public HwLinkStateDependentTest {
     XLOG(DBG5) << "\n"
                << folly::hexDump(
                       txPacket->buf()->data(), txPacket->buf()->length());
-    HwTestPacketTrapEntry trapEntry(getHwSwitch(), kPort().phyPortID());
     auto nhopMac = ecmpHelper().nhop(0).mac;
     auto switchType = getHwSwitch()->getSwitchType();
 

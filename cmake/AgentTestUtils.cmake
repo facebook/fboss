@@ -147,3 +147,13 @@ target_link_libraries(dscp_marking_utils
   Folly::folly
   switch_config_cpp2
 )
+
+add_library(trap_packet_utils
+  fboss/agent/test/utils/TrapPacketUtils.cpp
+)
+
+target_link_libraries(trap_packet_utils
+  fboss_types
+  Folly::folly
+  switch_config_cpp2
+)

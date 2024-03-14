@@ -1,16 +1,17 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
+#include <folly/IPAddress.h>
 #include <gtest/gtest.h>
 #include "fboss/agent/PlatformPort.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/hw/test/HwAgentTestPacketSnooper.h"
 #include "fboss/agent/hw/test/HwTestEcmpUtils.h"
-#include "fboss/agent/hw/test/HwTestPacketTrapEntry.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/packet/PTPHeader.h"
 #include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/link_tests/LinkTest.h"
+#include "fboss/agent/test/utils/TrapPacketUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 #include "common/process/Process.h"
@@ -168,6 +169,12 @@ class PtpTests : public LinkTest {
     });
   }
 
+  void trapPackets(const folly::CIDRNetwork& prefix) {
+    cfg::SwitchConfig cfg = sw()->getConfig();
+    utility::addTrapPacketAcl(&cfg, prefix);
+    sw()->applyConfig("trapPackets", cfg);
+  }
+
  protected:
   void setCmdLineFlagOverrides() const override {
     // disable other processes which generate pkts
@@ -198,11 +205,13 @@ class PtpTests : public LinkTest {
 // }
 TEST_F(PtpTests, verifyPtpTcDelayRequest) {
   auto ecmpPorts = getVlanOwningCabledPorts();
+  XLOG(INFO) << "P0";
   // create ACL to trap any packets to CPU coming with given dst IP
   // Ideally we should have used the l4port (PTP_UDP_EVENT_PORT), but
   // SAI doesn't support this qualifier yet
   folly::CIDRNetwork dstPrefix = folly::CIDRNetwork{kIPv6Dst, 128};
-  auto entry = HwTestPacketTrapEntry(platform()->getHwSwitch(), dstPrefix);
+  this->trapPackets(dstPrefix);
+  XLOG(INFO) << "P0";
   programDefaultRoute(ecmpPorts, sw()->getLocalMac(scope(ecmpPorts)));
 
   verifyPtpTcOnPorts(ecmpPorts, PTPMessageType::PTP_DELAY_REQUEST);
@@ -210,7 +219,7 @@ TEST_F(PtpTests, verifyPtpTcDelayRequest) {
 
 TEST_F(PtpTests, verifyPtpTcAfterLinkFlap) {
   folly::CIDRNetwork dstPrefix = folly::CIDRNetwork{kIPv6Dst, 128};
-  auto entry = HwTestPacketTrapEntry(platform()->getHwSwitch(), dstPrefix);
+  this->trapPackets(dstPrefix);
   auto ecmpPorts = getVlanOwningCabledPorts();
   std::vector<PortID> portVec;
   boost::container::flat_set<PortDescriptor> portDescriptorSet;
@@ -253,7 +262,7 @@ TEST_F(PtpTests, verifyPtpTcAfterLinkFlap) {
 // Validate PTP TC when PTP is enabled while port is down.
 TEST_F(PtpTests, enablePtpPortDown) {
   folly::CIDRNetwork dstPrefix = folly::CIDRNetwork{kIPv6Dst, 128};
-  auto entry = HwTestPacketTrapEntry(platform()->getHwSwitch(), dstPrefix);
+  this->trapPackets(dstPrefix);
   auto ecmpPorts = getVlanOwningCabledPorts();
   std::vector<PortID> portVec;
   boost::container::flat_set<PortDescriptor> portDescriptorSet;
