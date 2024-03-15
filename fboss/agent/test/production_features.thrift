@@ -22,6 +22,9 @@ enum ProductionFeature {
   LAG = 9,
   DSCP_REMARKING = 10,
   L3_QOS = 11,
+  ACL_COUNTER = 12,
+  ECMP_LOAD_BALANCER = 13,
+  LAG_LOAD_BALANCER = 14,
 }
 
 const list<ProductionFeature> tomahawkFeature = [
@@ -29,23 +32,44 @@ const list<ProductionFeature> tomahawkFeature = [
   ProductionFeature.L3_FORWARDING,
   ProductionFeature.NULL_ROUTE_IN_DISCARDS_COUNTER,
   ProductionFeature.PRBS,
+  ProductionFeature.COPP,
+  ProductionFeature.DSCP_REMARKING,
+  ProductionFeature.L3_QOS,
+  ProductionFeature.ACL_COUNTER,
+  ProductionFeature.ECMP_LOAD_BALANCER,
 ];
 const list<ProductionFeature> tomahawk3Feature = [
   ProductionFeature.CPU_RX_TX,
   ProductionFeature.L3_FORWARDING,
   ProductionFeature.NULL_ROUTE_IN_DISCARDS_COUNTER,
   ProductionFeature.PRBS,
+  ProductionFeature.COPP,
+  ProductionFeature.LAG,
+  ProductionFeature.DSCP_REMARKING,
+  ProductionFeature.L3_QOS,
+  ProductionFeature.ACL_COUNTER,
+  ProductionFeature.ECMP_LOAD_BALANCER,
+  ProductionFeature.LAG_LOAD_BALANCER,
 ];
 const list<ProductionFeature> tomahawk4Feature = [
   ProductionFeature.CPU_RX_TX,
   ProductionFeature.L3_FORWARDING,
   ProductionFeature.NULL_ROUTE_IN_DISCARDS_COUNTER,
   ProductionFeature.PRBS,
+  ProductionFeature.COPP,
+  ProductionFeature.LAG,
+  ProductionFeature.DSCP_REMARKING,
+  ProductionFeature.L3_QOS,
+  ProductionFeature.ACL_COUNTER,
+  ProductionFeature.ECMP_LOAD_BALANCER,
+  ProductionFeature.LAG_LOAD_BALANCER,
 ];
 const list<ProductionFeature> tomahawk5Feature = [
   ProductionFeature.CPU_RX_TX,
   ProductionFeature.L3_FORWARDING,
   ProductionFeature.NULL_ROUTE_IN_DISCARDS_COUNTER,
+  ProductionFeature.ACL_COUNTER,
+  ProductionFeature.ECMP_LOAD_BALANCER,
 ];
 const list<ProductionFeature> jericho2Feature = [
   ProductionFeature.CPU_RX_TX,
@@ -53,7 +77,9 @@ const list<ProductionFeature> jericho2Feature = [
   ProductionFeature.NULL_ROUTE_IN_DISCARDS_COUNTER,
   ProductionFeature.VOQ,
   ProductionFeature.ACL_PORT_IN_DISCARDS_COUNTER,
-  ProductionFeature.EGRESS_FORWARDING_DISCARDS_COUNTER,
+  ProductionFeature.COPP,
+  ProductionFeature.DSCP_REMARKING,
+  ProductionFeature.L3_QOS,
 ];
 const list<ProductionFeature> jericho3Feature = [
   ProductionFeature.CPU_RX_TX,
@@ -62,6 +88,9 @@ const list<ProductionFeature> jericho3Feature = [
   ProductionFeature.VOQ,
   ProductionFeature.ACL_PORT_IN_DISCARDS_COUNTER,
   ProductionFeature.EGRESS_FORWARDING_DISCARDS_COUNTER,
+  ProductionFeature.COPP,
+  ProductionFeature.DSCP_REMARKING,
+  ProductionFeature.L3_QOS,
 ];
 const list<ProductionFeature> ramonFeature = [ProductionFeature.FABRIC];
 const list<ProductionFeature> ramon3Feature = [ProductionFeature.FABRIC];
@@ -69,11 +98,18 @@ const list<ProductionFeature> ebroFeature = [
   ProductionFeature.CPU_RX_TX,
   ProductionFeature.L3_FORWARDING,
   ProductionFeature.NULL_ROUTE_IN_DISCARDS_COUNTER,
+  ProductionFeature.COPP,
+  ProductionFeature.DSCP_REMARKING,
+  ProductionFeature.L3_QOS,
+  ProductionFeature.ECMP_LOAD_BALANCER,
 ];
 const list<ProductionFeature> yubaFeature = [
   ProductionFeature.CPU_RX_TX,
   ProductionFeature.L3_FORWARDING,
   ProductionFeature.NULL_ROUTE_IN_DISCARDS_COUNTER,
+  ProductionFeature.COPP,
+  ProductionFeature.DSCP_REMARKING,
+  ProductionFeature.L3_QOS,
 ];
 
 struct AsicToProductionFeatures {
