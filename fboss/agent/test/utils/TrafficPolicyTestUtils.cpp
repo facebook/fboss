@@ -217,9 +217,14 @@ cfg::QosPolicy* addDscpQosPolicy(
     *qosRule.dscp() = pair.second;
     rules.push_back(qosRule);
   }
+  cfg::QosMap qosMap;
+  for (int q = 0; q < 8; q++) {
+    qosMap.trafficClassToQueueId()->emplace(q, q);
+  }
   auto qosPolicy = cfg::QosPolicy();
   *qosPolicy.name() = name;
   *qosPolicy.rules() = rules;
+  qosPolicy.qosMap() = qosMap;
   cfg->qosPolicies()->push_back(qosPolicy);
   return &cfg->qosPolicies()->back();
 }
