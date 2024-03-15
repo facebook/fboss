@@ -55,6 +55,12 @@ class AgentEnsemble : public TestEnsembleIf {
     return agentInitializer()->sw();
   }
 
+  size_t getMinPktsForLineRate(const PortID& port) {
+    auto portSpeed =
+        getProgrammedState()->getPorts()->getNodeIf(port)->getSpeed();
+    return (portSpeed > cfg::PortSpeed::HUNDREDG ? 1000 : 100);
+  }
+
   std::shared_ptr<SwitchState> getProgrammedState() const override {
     return getSw()->getState();
   }
