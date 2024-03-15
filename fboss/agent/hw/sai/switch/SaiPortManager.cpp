@@ -1552,7 +1552,7 @@ std::vector<PortID> SaiPortManager::getFabricReachabilityForSwitch(
   return reachablePorts;
 }
 
-std::optional<FabricEndpoint> SaiPortManager::getFabricReachabilityForPort(
+std::optional<FabricEndpoint> SaiPortManager::getFabricConnectivity(
     const PortID& portId,
     const SaiPortHandle* portHandle) const {
   if (getPortType(portId) != cfg::PortType::FABRIC_PORT) {
@@ -1590,7 +1590,7 @@ std::optional<FabricEndpoint> SaiPortManager::getFabricReachabilityForPort(
 std::map<PortID, FabricEndpoint> SaiPortManager::getFabricConnectivity() const {
   std::map<PortID, FabricEndpoint> port2FabricEndpoint;
   for (const auto& portIdAndHandle : handles_) {
-    if (auto endpoint = getFabricReachabilityForPort(
+    if (auto endpoint = getFabricConnectivity(
             portIdAndHandle.first, portIdAndHandle.second.get())) {
       port2FabricEndpoint.insert({PortID(portIdAndHandle.first), *endpoint});
     }
@@ -1598,12 +1598,12 @@ std::map<PortID, FabricEndpoint> SaiPortManager::getFabricConnectivity() const {
   return port2FabricEndpoint;
 }
 
-std::optional<FabricEndpoint> SaiPortManager::getFabricReachabilityForPort(
+std::optional<FabricEndpoint> SaiPortManager::getFabricConnectivity(
     const PortID& portId) const {
   std::optional<FabricEndpoint> endpoint = std::nullopt;
   auto handlesItr = handles_.find(portId);
   if (handlesItr != handles_.end()) {
-    endpoint = getFabricReachabilityForPort(portId, handlesItr->second.get());
+    endpoint = getFabricConnectivity(portId, handlesItr->second.get());
   }
   return endpoint;
 }

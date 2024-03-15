@@ -175,6 +175,8 @@ class SaiPortManager {
   const HwPortFb303Stats* getLastPortStat(PortID port) const;
 
   std::map<PortID, FabricEndpoint> getFabricConnectivity() const;
+  std::optional<FabricEndpoint> getFabricConnectivity(
+      const PortID& portId) const;
   std::vector<PortID> getFabricReachabilityForSwitch(
       const SwitchID& switchId) const;
   const Stats& getLastPortStats() const {
@@ -270,8 +272,6 @@ class SaiPortManager {
   void loadPortQueuesForChangedPort(
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort);
-  std::optional<FabricEndpoint> getFabricReachabilityForPort(
-      const PortID& portId) const;
   cfg::PortType getPortType(PortID portId) const;
   bool fecCorrectedBitsSupported(PortID portID) const;
   bool rxFrequencyRPMSupported() const;
@@ -390,7 +390,7 @@ class SaiPortManager {
   void changePortByRecreate(
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort);
-  std::optional<FabricEndpoint> getFabricReachabilityForPort(
+  std::optional<FabricEndpoint> getFabricConnectivity(
       const PortID& portId,
       const SaiPortHandle* portHandle) const;
   void changeRxLaneSquelch(
