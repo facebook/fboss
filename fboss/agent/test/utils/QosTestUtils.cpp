@@ -7,6 +7,7 @@
 #include "fboss/lib/CommonUtils.h"
 
 #include <gtest/gtest.h>
+#include <chrono>
 
 namespace facebook::fboss::utility {
 
@@ -183,6 +184,34 @@ void verifyVoQHit(
   WITH_RETRIES({
     EXPECT_EVENTUALLY_TRUE(voqHit(portStatsBefore, queueId, sw, egressPort));
   });
+}
+
+bool verifyQueueMappings(
+    const HwPortStats& portStatsBefore,
+    const std::map<int, std::vector<uint8_t>>& q2dscps,
+    std::function<std::map<PortID, HwPortStats>()> getAllHwPortStats,
+    const PortID portId,
+    uint32_t sleep) {
+  WITH_RETRIES_N_TIMED(10, std::chrono::milliseconds(sleep), {
+    auto portStatsAfter = getAllHwPortStats();
+    for (const auto& _q2dscps : q2dscps) {
+      auto queuePacketsBefore =
+          portStatsBefore.queueOutPackets_()->find(_q2dscps.first)->second;
+      auto queuePacketsAfter =
+          portStatsAfter[portId].queueOutPackets_()[_q2dscps.first];
+      // Note, on some platforms, due to how loopbacked packets are pruned
+      // from being broadcast, they will appear more than once on a queue
+      // counter, so we can only check that the counter went up, not that it
+      // went up by exactly one.
+      XLOG(DBG2) << "queue " << _q2dscps.first << " queuePacketsBefore "
+                 << queuePacketsBefore << " queuePacketsAfter "
+                 << queuePacketsAfter;
+      EXPECT_EVENTUALLY_TRUE(
+          queuePacketsAfter >= queuePacketsBefore + _q2dscps.second.size());
+      return true;
+    }
+  });
+  return false;
 }
 
 } // namespace facebook::fboss::utility

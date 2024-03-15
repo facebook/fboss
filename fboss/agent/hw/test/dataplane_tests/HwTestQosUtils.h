@@ -34,12 +34,6 @@ class SwitchState;
 
 namespace utility {
 
-bool verifyQueueMappings(
-    const HwPortStats& portStatsBefore,
-    const std::map<int, std::vector<uint8_t>>& q2dscps,
-    HwSwitchEnsemble* ensemble,
-    facebook::fboss::PortID egressPort);
-
 void verifyQueueHit(
     const HwPortStats& portStatsBefore,
     int queueId,
@@ -74,14 +68,5 @@ void sendPktAndVerifyQueueHit(
     }
   }
 }
-
-bool verifyQueueMappingsInvariantHelper(
-    const std::map<int, std::vector<uint8_t>>& q2dscpMap,
-    HwSwitch* hwSwitch,
-    std::shared_ptr<SwitchState> swState,
-    std::function<std::map<PortID, HwPortStats>()> getAllHwPortStats,
-    const std::vector<PortID>& ecmpPorts,
-    uint32_t sleep = 20);
-
 } // namespace utility
 } // namespace facebook::fboss

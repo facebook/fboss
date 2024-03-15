@@ -8,6 +8,7 @@
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/CommonUtils.h"
@@ -172,6 +173,84 @@ void sendPktAndVerifyQueueHit(
       });
     }
   }
+}
+
+bool verifyQueueMappings(
+    const HwPortStats& portStatsBefore,
+    const std::map<int, std::vector<uint8_t>>& q2dscps,
+    std::function<std::map<PortID, HwPortStats>()> getAllHwPortStats,
+    const PortID portId,
+    uint32_t sleep = 200);
+
+template <typename SwitchT>
+bool verifyQueueMappingsInvariantHelper(
+    const std::map<int, std::vector<uint8_t>>& q2dscpMap,
+    SwitchT* sw,
+    std::shared_ptr<SwitchState> swState,
+    std::function<std::map<PortID, HwPortStats>()> getAllHwPortStats,
+    const std::vector<PortID>& ecmpPorts,
+    uint32_t sleep = 20) {
+  auto portStatsBefore = getAllHwPortStats();
+  auto vlanId = utility::firstVlanID(swState);
+  auto intfMac = utility::getFirstInterfaceMac(swState);
+  auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
+
+  for (const auto& q2dscps : q2dscpMap) {
+    for (auto dscp : q2dscps.second) {
+      auto pkt = makeTCPTxPacket(
+          sw,
+          vlanId,
+          srcMac,
+          intfMac,
+          folly::IPAddressV6("1::10"),
+          folly::IPAddressV6("2620:0:1cfe:face:b00c::4"),
+          8000,
+          8001,
+          dscp << 2);
+      if constexpr (std::is_same_v<SwitchT, HwSwitch>) {
+        sw->sendPacketSwitchedSync(std::move(pkt));
+      } else {
+        sw->sendPacketSwitchedAsync(std::move(pkt));
+      }
+    }
+  }
+
+  bool mappingVerified = false;
+  for (auto& ecmpPort : ecmpPorts) {
+    // Since we don't know which port the above IP will get hashed to,
+    // iterate over all ports in ecmp group to find one which satisfies
+    // dscp to queue mapping.
+    if (mappingVerified) {
+      XLOG(DBG2) << "Mapping verified!";
+      break;
+    }
+
+    XLOG(DBG2) << "Verifying mapping for ecmp port: " << (int)ecmpPort;
+    mappingVerified = verifyQueueMappings(
+        portStatsBefore[ecmpPort],
+        q2dscpMap,
+        getAllHwPortStats,
+        ecmpPort,
+        sleep);
+  }
+  return mappingVerified;
+}
+
+template <typename EnsembleT>
+bool verifyQueueMappings(
+    const HwPortStats& portStatsBefore,
+    const std::map<int, std::vector<uint8_t>>& q2dscps,
+    EnsembleT* ensemble,
+    facebook::fboss::PortID egressPort) {
+  // lambda that returns HwPortStats for the given port
+  auto getPortStats = [ensemble,
+                       egressPort]() -> std::map<PortID, HwPortStats> {
+    std::vector<facebook::fboss::PortID> portIds = {egressPort};
+    return ensemble->getLatestPortStats(portIds);
+  };
+
+  return verifyQueueMappings(
+      portStatsBefore, q2dscps, getPortStats, egressPort);
 }
 
 } // namespace facebook::fboss::utility
