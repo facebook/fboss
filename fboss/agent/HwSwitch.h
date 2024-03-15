@@ -245,7 +245,8 @@ class HwSwitch {
   std::map<PortID, phy::PhyInfo> getAllPhyInfo() const {
     return lastPhyInfo_.copy();
   }
-  virtual std::map<PortID, FabricEndpoint> getFabricConnectivity() const = 0;
+  virtual const std::map<PortID, FabricEndpoint>& getFabricConnectivity()
+      const = 0;
   virtual std::vector<PortID> getSwitchReachability(
       SwitchID switchId) const = 0;
   virtual std::map<std::string, HwSysPortStats> getSysPortStats() const = 0;
