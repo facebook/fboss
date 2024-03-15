@@ -7,6 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include "fboss/agent/DHCPv4Handler.h"
 #include "fboss/agent/LacpTypes.h"
 #include "fboss/agent/LldpManager.h"
 #include "fboss/agent/Platform.h"
@@ -53,7 +54,8 @@ const auto kIPv6LinkLocalMcastAddress = folly::IPAddressV6("ff02::5");
 const auto kIPv6LinkLocalUcastAddress = folly::IPAddressV6("fe80::2");
 constexpr uint8_t kNetworkControlDscp = 48;
 
-const auto kDhcpV6AllRoutersIp = folly::IPAddressV6("ff02::1:2");
+const auto kIPV4AllRoutersIp = folly::IPAddressV4("255.255.255.255");
+const auto kIPV6AllRoutersIp = folly::IPAddressV6("ff02::1:2");
 const auto kIPV6McastMacAddress = folly::MacAddress("33:33:00:01:00:02");
 const auto kDhcpV6ServerGlobalUnicastAddress =
     folly::IPAddressV6("2401:db00:eef0:a67::1");
@@ -268,6 +270,47 @@ class HwCoppTest : public HwLinkStateDependentTest {
     }
   }
 
+  void sendDHCPv4Pkts(
+      int numPktsToSend,
+      DHCPv4Handler::BootpMsgType type,
+      int ttl,
+      bool outOfPort) {
+    const auto kDhcpV4ServerGlobalUnicastAddress =
+        folly::IPAddressV4("100.1.1.1");
+    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto neighborMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+
+    for (int i = 0; i < numPktsToSend; i++) {
+      auto txPacket = (type == DHCPv4Handler::BootpMsgType::BOOTREQUEST)
+          ? utility::makeUDPTxPacket(
+                getHwSwitch(),
+                vlanId,
+                neighborMac, // SrcMAC: Client's MAC address
+                folly::MacAddress::BROADCAST, // DstMac: ff:ff:ff:ff:ff:ff
+                folly::IPAddressV4(
+                    "0.0.0.0"), // SrcIP: Client's Link Local addr
+                kIPV4AllRoutersIp, // DstIP: ff02::1:2
+                DHCPv4Handler::kBootPCPort, // DstPort: 68
+                DHCPv4Handler::kBootPSPort, // SrcPort: 67
+                0 /* dscp */,
+                ttl)
+          : utility::makeUDPTxPacket( // DHCPv4Handler::BootpMsgType::BOOTREPLY
+                getHwSwitch(),
+                vlanId,
+                neighborMac, // srcMac: Server's MAC
+                intfMac, // dstMac: Switch/our MAC
+                kDhcpV4ServerGlobalUnicastAddress, // srcIp: Server's global
+                                                   // unicast address
+                folly::IPAddressV4("1.0.0.1"), // dstIp: Switch/our IP
+                DHCPv4Handler::kBootPSPort, // SrcPort: 67
+                DHCPv4Handler::kBootPCPort, // DstPort: 68
+                0 /* dscp */,
+                ttl); // sent to me
+      sendPkt(std::move(txPacket), outOfPort, true /* snoopAndVerify*/);
+    }
+  }
+
   void
   sendDHCPv6Pkts(int numPktsToSend, DHCPv6Type type, int ttl, bool outOfPort) {
     auto vlanId = utility::firstVlanID(getProgrammedState());
@@ -282,7 +325,7 @@ class HwCoppTest : public HwLinkStateDependentTest {
                 neighborMac, // SrcMAC: Client's MAC address
                 kIPV6McastMacAddress, // DstMac: 33:33:00:01:00:02
                 kIPv6LinkLocalUcastAddress, // SrcIP: Client's Link Local addr
-                kDhcpV6AllRoutersIp, // DstIP: ff02::1:2
+                kIPV6AllRoutersIp, // DstIP: ff02::1:2
                 DHCPv6Packet::DHCP6_CLIENT_UDPPORT, // SrcPort: 546
                 DHCPv6Packet::DHCP6_SERVERAGENT_UDPPORT, // DstPort: 547
                 0 /* dscp */,
@@ -502,6 +545,26 @@ class HwCoppTest : public HwLinkStateDependentTest {
         queueId, kGetQueueOutPktsRetryTimes, beforeOutPkts + 1);
     XLOG(DBG0) << "Packet of dstMac=" << LldpManager::LLDP_DEST_MAC.toString()
                << ". Ethertype=" << std::hex << int(LldpManager::ETHERTYPE_LLDP)
+               << ". Queue=" << queueId << ", before pkts:" << beforeOutPkts
+               << ", after pkts:" << afterOutPkts;
+    EXPECT_EQ(expectedPktDelta, afterOutPkts - beforeOutPkts);
+  }
+
+  void sendPktAndVerifyDHCPv4PacketsCpuQueue(
+      int queueId,
+      DHCPv4Handler::BootpMsgType type,
+      const int ttl = 1,
+      bool outOfPort = true,
+      const int numPktsToSend = 1,
+      const int expectedPktDelta = 1) {
+    auto beforeOutPkts = getQueueOutPacketsWithRetry(
+        queueId, 0 /* retryTimes */, 0 /* expectedNumPkts */);
+    sendDHCPv4Pkts(numPktsToSend, type, ttl, outOfPort);
+    auto afterOutPkts = getQueueOutPacketsWithRetry(
+        queueId, kGetQueueOutPktsRetryTimes, beforeOutPkts + expectedPktDelta);
+    auto msgType =
+        type == DHCPv4Handler::BootpMsgType::BOOTREQUEST ? "REQUEST" : "REPLY";
+    XLOG(DBG0) << "DHCPv4 " << msgType << " packet"
                << ". Queue=" << queueId << ", before pkts:" << beforeOutPkts
                << ", after pkts:" << afterOutPkts;
     EXPECT_EQ(expectedPktDelta, afterOutPkts - beforeOutPkts);
@@ -1607,28 +1670,22 @@ TYPED_TEST(HwCoppTest, DhcpPacketToMidPriQ) {
   auto setup = [=, this]() { this->setup(); };
 
   auto verify = [=, this]() {
-    std::array<folly::IPAddress, 2> randomSrcIP{
-        folly::IPAddress("1.1.1.10"), folly::IPAddress("1::10")};
-    std::array<std::pair<int, int>, 2> dhcpPortPairs{
-        std::make_pair(67, 68), std::make_pair(546, 547)};
-    for (int i = 0; i < 2; i++) {
-      for (int j = 0; j < 2; j++) {
-        auto l4SrcPort =
-            j == 0 ? dhcpPortPairs[i].first : dhcpPortPairs[i].second;
-        auto l4DstPort =
-            j == 0 ? dhcpPortPairs[i].second : dhcpPortPairs[i].first;
-        this->sendUdpPktAndVerify(
-            utility::kCoppMidPriQueueId,
-            randomSrcIP[i],
-            l4SrcPort,
-            l4DstPort,
-            true /* expectPktTrap */,
-            255 /* TTL */,
-            true /* send out of port */);
-        XLOG(DBG0) << "Sending packet with src port " << l4SrcPort
-                   << " dst port " << l4DstPort << " IP: " << randomSrcIP[i];
-      }
-    }
+    XLOG(DBG2) << "verifying DHCPv4 request";
+    this->sendPktAndVerifyDHCPv4PacketsCpuQueue(
+        utility::kCoppMidPriQueueId,
+        DHCPv4Handler::BootpMsgType::BOOTREQUEST,
+        255);
+    XLOG(DBG2) << "verifying DHCPv4 reply";
+    this->sendPktAndVerifyDHCPv4PacketsCpuQueue(
+        utility::kCoppMidPriQueueId,
+        DHCPv4Handler::BootpMsgType::BOOTREPLY,
+        255);
+    XLOG(DBG2) << "verifying DHCPv6 solicitation";
+    this->sendPktAndVerifyDHCPv6PacketsCpuQueue(
+        utility::kCoppMidPriQueueId, DHCPv6Type::DHCPv6_SOLICIT, 255);
+    XLOG(DBG2) << "verifying DHCPv6 Advertise";
+    this->sendPktAndVerifyDHCPv6PacketsCpuQueue(
+        utility::kCoppMidPriQueueId, DHCPv6Type::DHCPv6_ADVERTISE, 255);
   };
 
   this->verifyAcrossWarmBoots(setup, verify);
