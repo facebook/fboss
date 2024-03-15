@@ -251,18 +251,7 @@ void initEnsemble(
 std::map<PortID, HwPortStats> AgentEnsemble::getLatestPortStats(
     const std::vector<PortID>& ports) {
   std::map<PortID, HwPortStats> portIdStatsMap;
-  getSw()->updateStats();
-
-  auto swState = getSw()->getState();
-  auto stats = getSw()->getHwSwitchHandler()->getPortStats();
-  for (auto [portName, stats] : stats) {
-    auto portId = swState->getPorts()->getPort(portName)->getID();
-    if (std::find(ports.begin(), ports.end(), (PortID)portId) == ports.end()) {
-      continue;
-    }
-    portIdStatsMap.emplace((PortID)portId, stats);
-  }
-  return portIdStatsMap;
+  return getSw()->getHwPortStats(ports);
 }
 
 HwPortStats AgentEnsemble::getLatestPortStats(const PortID& port) {
