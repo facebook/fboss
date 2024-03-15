@@ -31,7 +31,7 @@ void HwEcmpDataPlaneTestUtil<EcmpSetupHelperT>::unresolveNextHop(
   auto portDesc = helper_->ecmpPortDescriptorAt(id);
   auto state = ensemble_->getProgrammedState();
   ensemble_->applyNewState(
-      [=](const std::shared_ptr<SwitchState>& state) {
+      [=, this](const std::shared_ptr<SwitchState>& state) {
         return helper_->unresolveNextHops(state, {portDesc});
       },
       "unresolve-nexthops");
@@ -41,7 +41,7 @@ template <typename EcmpSetupHelperT>
 void HwEcmpDataPlaneTestUtil<EcmpSetupHelperT>::resolveNextHopsandClearStats(
     unsigned int ecmpWidth) {
   ensemble_->applyNewState(
-      [=](const std::shared_ptr<SwitchState>& state) {
+      [=, this](const std::shared_ptr<SwitchState>& state) {
         return helper_->resolveNextHops(state, ecmpWidth);
       },
       "resolve-nexthops-clear-stats");
@@ -123,7 +123,7 @@ void HwIpEcmpDataPlaneTestUtil<AddrT>::programRoutes(
     const std::vector<NextHopWeight>& weights) {
   auto* helper = BaseT::ecmpSetupHelper();
   auto* ensemble = BaseT::getEnsemble();
-  ensemble->applyNewState([=](const std::shared_ptr<SwitchState>& state) {
+  ensemble->applyNewState([=, this](const std::shared_ptr<SwitchState>& state) {
     return helper->resolveNextHops(state, ecmpWidth);
   });
   if (stacks_.empty()) {
@@ -145,7 +145,7 @@ void HwIpEcmpDataPlaneTestUtil<AddrT>::programRoutes(
     const std::vector<NextHopWeight>& weights) {
   auto* helper = BaseT::ecmpSetupHelper();
   auto* ensemble = BaseT::getEnsemble();
-  ensemble->applyNewState([=](const std::shared_ptr<SwitchState>& state) {
+  ensemble->applyNewState([=, this](const std::shared_ptr<SwitchState>& state) {
     return helper->resolveNextHops(state, portDescs);
   });
 
@@ -261,7 +261,7 @@ void HwMplsEcmpDataPlaneTestUtil<AddrT>::programRoutes(
   auto* helper = BaseT::ecmpSetupHelper();
   auto* ensemble = BaseT::getEnsemble();
   ensemble->applyNewState(
-      [=](const std::shared_ptr<SwitchState>& state) {
+      [=, this](const std::shared_ptr<SwitchState>& state) {
         return helper->resolveNextHops(state, ecmpWidth);
       },
       "resolve next hops");
