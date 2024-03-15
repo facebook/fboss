@@ -458,8 +458,8 @@ bool FabricConnectivityManager::isConnectivityInfoMissing(
   return false;
 }
 
-std::map<PortID, FabricEndpoint>
-FabricConnectivityManager::getConnectivityInfo() {
+const std::map<PortID, FabricEndpoint>&
+FabricConnectivityManager::getConnectivityInfo() const {
   return currentNeighborConnectivity_;
 }
 
