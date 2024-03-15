@@ -29,7 +29,8 @@ std::string DevicePathResolver::resolveSensorPath(
     const std::string& devicePath) {
   std::string sensorPath;
   if (dataStore_.hasSysfsPath(devicePath)) {
-    // Case-1: the sensor isn't I2cDevice. Ex FanPwmCtrl
+    // Case-1: the sensor isn't I2cDevice.
+    // Examples: FanPwmCtrl and EmbeddedSensorConfig
     // TODO: Relying on dataStore_ even for I2CDevice.
     sensorPath = dataStore_.getSysfsPath(devicePath);
   } else {

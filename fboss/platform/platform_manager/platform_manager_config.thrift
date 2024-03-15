@@ -200,6 +200,19 @@ struct I2cDeviceConfig {
   10: bool hasReservedMac;
 }
 
+// Configs for sensors which are embedded (eg within CPU).
+//
+// `pmUnitScopedName`: The name used to refer to this device. It should be
+// be unique within the PmUnit.
+//
+// `sysfsPath`: This is the path assigned to the device by the kernel. It
+// is the path where the `hwmon` directory is present.
+//
+struct EmbeddedSensorConfig {
+  1: string pmUnitScopedName;
+  2: string sysfsPath;
+}
+
 // The IDPROM which contains information about the PmUnit.  The PmUnitScopedName
 // of the IDPROM device is always just "IDPROM".
 //
@@ -420,6 +433,7 @@ struct PmUnitConfig {
   2: list<I2cDeviceConfig> i2cDeviceConfigs;
   3: map<string, SlotConfig> outgoingSlotConfigs;
   4: list<PciDeviceConfig> pciDeviceConfigs;
+  5: list<EmbeddedSensorConfig> embeddedSensorConfigs;
 }
 
 // Defines the whole Platform. The top level struct.

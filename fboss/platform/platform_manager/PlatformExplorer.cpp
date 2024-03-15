@@ -119,6 +119,14 @@ void PlatformExplorer::explorePmUnit(
       pmUnitConfig.i2cDeviceConfigs()->size());
   exploreI2cDevices(slotPath, *pmUnitConfig.i2cDeviceConfigs());
 
+  for (const auto& embeddedSensorConfig :
+       *pmUnitConfig.embeddedSensorConfigs()) {
+    dataStore_.updateSysfsPath(
+        Utils().createDevicePath(
+            slotPath, *embeddedSensorConfig.pmUnitScopedName()),
+        *embeddedSensorConfig.sysfsPath());
+  }
+
   XLOG(INFO) << fmt::format(
       "Exploring Slots for PmUnit {} at SlotPath {}. Count {}",
       pmUnitName,
