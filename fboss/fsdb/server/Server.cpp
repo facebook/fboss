@@ -108,7 +108,7 @@ std::shared_ptr<FsdbConfig> parseConfig(int argc, char** argv) {
   // to extract the 'fsdb_config' arg.
   gflags::ParseCommandLineFlags(&argc, &argv, false);
   return FLAGS_readConfigFile ? FsdbConfig::fromDefaultFile()
-                              : std::shared_ptr<FsdbConfig>();
+                              : std::make_shared<FsdbConfig>();
 }
 
 void initFlagDefaults(
