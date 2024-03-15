@@ -353,6 +353,7 @@ target_link_libraries(hw_switch_test
   qos_test_utils
   test_ensemble_if
   traffic_policy_utils
+  stats_test_utils
   core
   sflow_shim_utils
   hardware_stats_cpp2

@@ -164,3 +164,7 @@ target_link_libraries(trap_packet_utils
   Folly::folly
   switch_config_cpp2
 )
+
+add_library(stats_test_utils
+  fboss/agent/test/utils/StatsTestUtils.h
+)
