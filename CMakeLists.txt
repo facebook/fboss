@@ -40,9 +40,11 @@ option(IS_OSS_FBOSS_CENTOS9 "Building FBOSS in Centos9" OFF)
 if ($ENV{IS_OSS_FBOSS_CENTOS9})
   message(STATUS "ENV FBOSS_CENTOS9 is set")
   set (FBOSS_CENTOS9 ON)
-  add_definitions (-DIS_OSS_FBOSS_CENTOS9=true)
 endif()
 
+if (FBOSS_CENTOS9)
+  add_definitions (-DIS_OSS_FBOSS_CENTOS9=true)
+endif()
 
 option(SKIP_ALL_INSTALL "Installation of fboss binaries" OFF)
 if ($ENV{SKIP_ALL_INSTALL})
