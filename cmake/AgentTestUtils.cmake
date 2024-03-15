@@ -166,5 +166,5 @@ target_link_libraries(trap_packet_utils
 )
 
 add_library(stats_test_utils
-  fboss/agent/test/utils/StatsTestUtils.h
+  fboss/agent/test/utils/StatsTestUtils.cpp
 )
