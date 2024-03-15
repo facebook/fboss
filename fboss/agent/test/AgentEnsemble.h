@@ -201,6 +201,11 @@ class AgentEnsemble : public TestEnsembleIf {
   folly::MacAddress getLocalMac(SwitchID id) const override {
     return getSw()->getLocalMac(id);
   }
+  void waitForLineRateOnPort(PortID port);
+  void waitForSpecificRateOnPort(
+      PortID port,
+      const uint64_t desiredBps,
+      int secondsToWaitPerIteration = 1);
 
  protected:
   void joinAsyncInitThread() {
@@ -214,6 +219,10 @@ class AgentEnsemble : public TestEnsembleIf {
   void writeConfig(const cfg::SwitchConfig& config);
   void writeConfig(const cfg::AgentConfig& config);
   void writeConfig(const cfg::AgentConfig& config, const std::string& file);
+  bool waitForRateOnPort(
+      PortID port,
+      uint64_t desiredBps,
+      int secondsToWaitPerIteration = 2);
 
   cfg::SwitchConfig initialConfig_;
   std::unique_ptr<std::thread> asyncInitThread_{nullptr};
