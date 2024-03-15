@@ -424,7 +424,7 @@
           "busName": "MCB_MUX_A@0",
           "address": "0x50",
           "kernelDeviceName": "24c64",
-          "pmUnitScopedName": "chassis_eeprom"
+          "pmUnitScopedName": "CHASSIS_EEPROM"
         },
         {
           "busName": "MCB_IOB_I2C_MASTER_M4",

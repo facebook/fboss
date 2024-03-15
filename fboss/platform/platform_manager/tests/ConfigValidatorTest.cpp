@@ -115,7 +115,7 @@ TEST(ConfigValidatorTest, FpgaIpBlockConfig) {
   fpgaIpBlockConfig.iobufOffset() = "0xab29";
   fpgaIpBlockConfig.csrOffset() = "0xaf29";
   EXPECT_FALSE(ConfigValidator().isValidFpgaIpBlockConfig(fpgaIpBlockConfig));
-  fpgaIpBlockConfig.pmUnitScopedName() = "pm_unit";
+  fpgaIpBlockConfig.pmUnitScopedName() = "PM_UNIT";
   EXPECT_TRUE(ConfigValidator().isValidFpgaIpBlockConfig(fpgaIpBlockConfig));
   fpgaIpBlockConfig.csrOffset() = "0xaF2";
   EXPECT_FALSE(ConfigValidator().isValidFpgaIpBlockConfig(fpgaIpBlockConfig));
@@ -124,6 +124,8 @@ TEST(ConfigValidatorTest, FpgaIpBlockConfig) {
   fpgaIpBlockConfig.iobufOffset() = "";
   fpgaIpBlockConfig.csrOffset() = "0xaf20";
   EXPECT_TRUE(ConfigValidator().isValidFpgaIpBlockConfig(fpgaIpBlockConfig));
+  fpgaIpBlockConfig.pmUnitScopedName() = "pm_unit";
+  EXPECT_FALSE(ConfigValidator().isValidFpgaIpBlockConfig(fpgaIpBlockConfig));
 }
 
 TEST(ConfigValidatorTest, PciDeviceConfig) {
@@ -142,7 +144,7 @@ TEST(ConfigValidatorTest, PciDeviceConfig) {
   pciDevConfig.vendorId() = "0xab29";
   pciDevConfig.deviceId() = "0xaf29";
   EXPECT_FALSE(ConfigValidator().isValidPciDeviceConfig(pciDevConfig));
-  pciDevConfig.pmUnitScopedName() = "pm_unit";
+  pciDevConfig.pmUnitScopedName() = "PM_UNIT";
   pciDevConfig.subSystemVendorId() = "0xa329";
   pciDevConfig.subSystemDeviceId() = "0x1b29";
   EXPECT_TRUE(ConfigValidator().isValidPciDeviceConfig(pciDevConfig));
@@ -162,6 +164,8 @@ TEST(ConfigValidatorTest, PciDeviceConfig) {
   fpgaIpBlockConfig.pmUnitScopedName() = "MCB_WDOG_2";
   pciDevConfig.watchdogConfigs()->push_back(fpgaIpBlockConfig);
   EXPECT_TRUE(ConfigValidator().isValidPciDeviceConfig(pciDevConfig));
+  pciDevConfig.pmUnitScopedName() = "pm_unit";
+  EXPECT_FALSE(ConfigValidator().isValidPciDeviceConfig(pciDevConfig));
 }
 
 TEST(ConfigValidatorTest, XcvrCtrlConfig) {
@@ -199,10 +203,13 @@ TEST(ConfigValidator, InfoRomConfig) {
 
 TEST(ConfigValidatorTest, SpiDeviceConfig) {
   SpiDeviceConfig spiDevConfig;
-  spiDevConfig.pmUnitScopedName() = "MCB_SPI_MASTER_1_DEVICE_1";
+  // Invalid pmUnitScopedName
+  spiDevConfig.pmUnitScopedName() = "mCB_SPI_MASTER_1_DEVICE_1";
   spiDevConfig.modalias() = "spidev";
   spiDevConfig.chipSelect() = 0;
   spiDevConfig.maxSpeedHz() = 25000000;
+  EXPECT_FALSE(ConfigValidator().isValidSpiDeviceConfigs({spiDevConfig}));
+  spiDevConfig.pmUnitScopedName() = "MCB_SPI_MASTER_1_DEVICE_1";
   EXPECT_TRUE(ConfigValidator().isValidSpiDeviceConfigs({spiDevConfig}));
   // Invalid modalias
   spiDevConfig.modalias() = "something-invalid";
@@ -214,7 +221,7 @@ TEST(ConfigValidatorTest, SpiDeviceConfig) {
   spiDevConfig.modalias() = "spidev";
   spiDevConfig.chipSelect() = 1;
   EXPECT_FALSE(ConfigValidator().isValidSpiDeviceConfigs({spiDevConfig}));
-  // Duplciate chipselects
+  // Duplicate chipselects
   auto spiDevConfigCopy = spiDevConfig;
   spiDevConfigCopy.chipSelect() = 0;
   spiDevConfig.chipSelect() = 0;
@@ -237,10 +244,12 @@ TEST(ConfigValidatorTest, I2cDeviceConfig) {
   EXPECT_FALSE(ConfigValidator().isValidI2cDeviceConfig(i2cConfig));
   i2cConfig.address_ref() = "0x2f";
   EXPECT_FALSE(ConfigValidator().isValidI2cDeviceConfig(i2cConfig));
-  i2cConfig.pmUnitScopedName() = "pm_unit";
+  i2cConfig.pmUnitScopedName() = "PM_UNIT";
   EXPECT_TRUE(ConfigValidator().isValidI2cDeviceConfig(i2cConfig));
   i2cConfig.address_ref() = "0x20";
   EXPECT_TRUE(ConfigValidator().isValidI2cDeviceConfig(i2cConfig));
+  i2cConfig.pmUnitScopedName() = "pm_unit";
+  EXPECT_FALSE(ConfigValidator().isValidI2cDeviceConfig(i2cConfig));
 }
 
 TEST(ConfigValidatorTest, Symlink) {

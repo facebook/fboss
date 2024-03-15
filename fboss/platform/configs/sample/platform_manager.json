@@ -100,7 +100,7 @@
           "busName": "CPU@1",
           "address": "0x50",
           "kernelDeviceName": "pca9x44",
-          "pmUnitScopedName": "scm_mux1",
+          "pmUnitScopedName": "SCM_MUX1",
           "numOutgoingChannels": 4
         }
       ],
@@ -145,25 +145,25 @@
           "busName": "SMB_IOB_I2C_0",
           "address": "0x54",
           "kernelDeviceName": "lm75",
-          "pmUnitScopedName": "inlet_sensor"
+          "pmUnitScopedName": "INLET_SENSOR"
         },
         {
           "busName": "SMB_IOB_I2C_1",
           "address": "0x55",
           "kernelDeviceName": "lm75",
-          "pmUnitScopedName": "outlet_sensor"
+          "pmUnitScopedName": "OUTLET_SENSOR"
         },
         {
           "busName": "SMB_IOB_I2C_1",
           "address": "0x54",
           "kernelDeviceName": "lm75",
-          "pmUnitScopedName": "asic_sensor"
+          "pmUnitScopedName": "ASIC_SENSOR"
         },
         {
           "busName": "INCOMING@2",
           "address": "0x11",
           "kernelDeviceName": "24c02",
-          "pmUnitScopedName": "chassis_eeprom",
+          "pmUnitScopedName": "CHASSIS_EEPROM",
           "isChassisEeprom": true
         }
       ],
@@ -185,27 +185,27 @@
           "busName": "INCOMING@0",
           "address": "0x12",
           "kernelDeviceName": "lm75",
-          "pmUnitScopedName": "yolo_sensor1"
+          "pmUnitScopedName": "YOLO_SENSOR1"
         },
         {
           "busName": "INCOMING@1",
           "address": "0x55",
           "kernelDeviceName": "pca9x44",
-          "pmUnitScopedName": "yolo_mux1",
+          "pmUnitScopedName": "YOLO_MUX1",
           "numOutgoingChannels": 4
         },
         {
           "busName": "INCOMING@2",
           "address": "0x54",
           "kernelDeviceName": "pca9x42",
-          "pmUnitScopedName": "yolo_mux2",
+          "pmUnitScopedName": "YOLO_MUX2",
           "numOutgoingChannels": 2
         },
         {
           "busName": "yolo_mux2@1",
           "address": "0x12",
           "kernelDeviceName": "lm75",
-          "pmUnitScopedName": "yolo_sensor2"
+          "pmUnitScopedName": "YOLO_SENSOR2"
         }
       ],
       "pciDevices": [
@@ -260,7 +260,7 @@
           "busName": "INCOMING@0",
           "address": "0x12",
           "kernelDeviceName": "lm75",
-          "pmUnitScopedName": "psu_2gh_sensor"
+          "pmUnitScopedName": "PSU_2GH_SENSOR"
         }
       ],
       "outgoingSlotConfigs": {}
@@ -276,7 +276,7 @@
           "busName": "INCOMING@0",
           "address": "0x15",
           "kernelDeviceName": "pca9x42",
-          "pmUnitScopedName": "pim_mux",
+          "pmUnitScopedName": "PIM_MUX",
           "numOutgoingChannels": 2
         }
       ],

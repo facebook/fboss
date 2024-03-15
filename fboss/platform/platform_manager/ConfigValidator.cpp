@@ -43,6 +43,10 @@ constexpr auto kXcvrDeviceName = "xcvr_ctrl";
 
 namespace facebook::fboss::platform::platform_manager {
 
+bool containsLower(const std::string& s) {
+  return std::any_of(s.begin(), s.end(), ::islower);
+}
+
 bool ConfigValidator::isValidSlotTypeConfig(
     const SlotTypeConfig& slotTypeConfig) {
   if (!slotTypeConfig.idpromConfig_ref() && !slotTypeConfig.pmUnitName()) {
@@ -77,6 +81,13 @@ bool ConfigValidator::isValidFpgaIpBlockConfig(
     XLOG(ERR) << "PmUnitScopedName must be a non-empty string";
     return false;
   }
+  if (containsLower(*fpgaIpBlockConfig.pmUnitScopedName())) {
+    XLOGF(
+        ERR,
+        "PmUnitScopedName must be in uppercase; {} contains lowercase characters",
+        *fpgaIpBlockConfig.pmUnitScopedName());
+    return false;
+  }
   if (!fpgaIpBlockConfig.csrOffset()->empty() &&
       !re2::RE2::FullMatch(
           *fpgaIpBlockConfig.csrOffset(), kPciDevOffsetRegex)) {
@@ -96,6 +107,13 @@ bool ConfigValidator::isValidPciDeviceConfig(
     const PciDeviceConfig& pciDeviceConfig) {
   if (pciDeviceConfig.pmUnitScopedName()->empty()) {
     XLOG(ERR) << "PmUnitScopedName must be a non-empty string";
+    return false;
+  }
+  if (containsLower(*pciDeviceConfig.pmUnitScopedName())) {
+    XLOGF(
+        ERR,
+        "PmUnitScopedName must be in uppercase; {} contains lowercase characters",
+        *pciDeviceConfig.pmUnitScopedName());
     return false;
   }
   if (!re2::RE2::FullMatch(
@@ -193,6 +211,13 @@ bool ConfigValidator::isValidI2cDeviceConfig(
   }
   if (i2cDeviceConfig.pmUnitScopedName()->empty()) {
     XLOG(ERR) << "PmUnitScopedName must be a non-empty string";
+    return false;
+  }
+  if (containsLower(*i2cDeviceConfig.pmUnitScopedName())) {
+    XLOGF(
+        ERR,
+        "PmUnitScopedName must be in uppercase; {} contains lowercase characters",
+        *i2cDeviceConfig.pmUnitScopedName());
     return false;
   }
   return true;
@@ -320,7 +345,14 @@ bool ConfigValidator::isValidSpiDeviceConfigs(
   for (const auto& spiDeviceConfig : spiDeviceConfigs) {
     if (spiDeviceConfig.pmUnitScopedName()->empty()) {
       XLOG(ERR) << fmt::format(
-          "PmUnitScopedName must be non-empty in SpiDeviceConfig");
+          "PmUnitScopedName must be a non-empty string in SpiDeviceConfig");
+      return false;
+    }
+    if (containsLower(*spiDeviceConfig.pmUnitScopedName())) {
+      XLOGF(
+          ERR,
+          "PmUnitScopedName must be in uppercase; {} contains lowercase characters",
+          *spiDeviceConfig.pmUnitScopedName());
       return false;
     }
     if (spiDeviceConfig.modalias()->length() >= NAME_MAX) {
