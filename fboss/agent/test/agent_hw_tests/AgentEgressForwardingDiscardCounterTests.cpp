@@ -41,7 +41,7 @@ class AgentEgressForwardingDiscardsCounterTest : public AgentHwTest {
 
 TEST_F(AgentEgressForwardingDiscardsCounterTest, outForwardingDiscards) {
   auto egressPortDesc = PortDescriptor(masterLogicalInterfacePortIds()[0]);
-  auto setup = [=]() {
+  auto setup = [=, this]() {
     utility::EcmpSetupTargetedPorts6 ecmpHelper6(getSw()->getState());
     auto wrapper = getSw()->getRouteUpdater();
     ecmpHelper6.programRoutes(&wrapper, {egressPortDesc});
