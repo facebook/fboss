@@ -50,6 +50,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _AclTableMap{
     SAI_ATTR_MAP(AclTable, AvailableCounter),
     SAI_ATTR_MAP(AclTable, FieldEthertype),
     SAI_ATTR_MAP(AclTable, FieldOuterVlanId),
+    SAI_ATTR_MAP(AclTable, FieldBthOpcode),
 };
 
 std::map<int32_t, std::pair<std::string, std::size_t>> _AclCounterMap {
@@ -100,6 +101,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _AclEntryMap {
       SAI_ATTR_MAP(AclEntry, FieldNeighborDstUserMeta),
       SAI_ATTR_MAP(AclEntry, FieldEthertype),
       SAI_ATTR_MAP(AclEntry, FieldOuterVlanId),
+      SAI_ATTR_MAP(AclEntry, FieldBthOpcode),
       SAI_ATTR_MAP(AclEntry, ActionPacketAction),
       SAI_ATTR_MAP(AclEntry, ActionCounter),
       SAI_ATTR_MAP(AclEntry, ActionSetTC),

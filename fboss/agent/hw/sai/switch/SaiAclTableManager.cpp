@@ -801,6 +801,14 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
             addedAclEntry->getVlanID().value(), kOuterVlanIdMask))};
   }
 
+  std::optional<SaiAclEntryTraits::Attributes::FieldBthOpcode> fieldBthOpcode{
+      std::nullopt};
+  if (addedAclEntry->getRoceOpcode()) {
+    fieldBthOpcode = SaiAclEntryTraits::Attributes::FieldBthOpcode{
+        AclEntryFieldU8(std::make_pair(
+            addedAclEntry->getRoceOpcode().value(), kBthOpcodeMask))};
+  }
+
   std::optional<SaiAclEntryTraits::Attributes::FieldFdbDstUserMeta>
       fieldFdbDstUserMeta{std::nullopt};
   if (addedAclEntry->getLookupClassL2()) {
@@ -1078,9 +1086,9 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
         fieldIcmpV4Type, fieldIcmpV4Code, fieldIcmpV6Type, fieldIcmpV6Code,
         fieldDscp, fieldDstMac, fieldIpType, fieldTtl, fieldFdbDstUserMeta,
         fieldRouteDstUserMeta, fieldNeighborDstUserMeta, fieldEtherType,
-        fieldOuterVlanId, aclActionPacketAction, aclActionCounter,
-        aclActionSetTC, aclActionSetDSCP, aclActionMirrorIngress,
-        aclActionMirrorEgress, aclActionMacsecFlow,
+        fieldOuterVlanId, fieldBthOpcode, aclActionPacketAction,
+        aclActionCounter, aclActionSetTC, aclActionSetDSCP,
+        aclActionMirrorIngress, aclActionMirrorEgress, aclActionMacsecFlow,
 // action not supported by tajo. Besides, user defined trap
 // is used to make ACL take precedence over Hostif trap.
 // Tajo already supports this behavior
@@ -1551,6 +1559,11 @@ bool SaiAclTableManager::isQualifierSupported(
       return hasField(
           std::get<
               std::optional<SaiAclTableTraits::Attributes::FieldOuterVlanId>>(
+              attributes));
+    case cfg::AclTableQualifier::BTH_OPCODE:
+      return hasField(
+          std::get<
+              std::optional<SaiAclTableTraits::Attributes::FieldBthOpcode>>(
               attributes));
     case cfg::AclTableQualifier::UDF:
       /* not supported */

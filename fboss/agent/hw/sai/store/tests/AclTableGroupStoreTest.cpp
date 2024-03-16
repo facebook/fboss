@@ -68,6 +68,7 @@ class AclTableGroupStoreTest : public SaiStoreTest {
             true, // neighbor meta
             true, // ether type
             true, // outer vlan id
+            true, // bth opcode
         },
         0);
   }

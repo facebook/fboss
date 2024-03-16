@@ -71,6 +71,8 @@ bool FakeAclTable::entryFieldSupported(const sai_attribute_t& attr) const {
       return fieldEthertype;
     case SAI_ACL_TABLE_ATTR_FIELD_OUTER_VLAN_ID:
       return fieldOuterVlanId;
+    case SAI_ACL_TABLE_ATTR_FIELD_BTH_OPCODE:
+      return fieldBthOpcode;
     // Actions
     case SAI_ACL_ENTRY_ATTR_ACTION_PACKET_ACTION:
     case SAI_ACL_ENTRY_ATTR_ACTION_COUNTER:
@@ -122,6 +124,7 @@ sai_status_t create_acl_table_fn(
   bool fieldNeighborDstUserMeta = 0;
   bool fieldEthertype = 0;
   bool fieldOuterVlanId = 0;
+  bool fieldBthOpcode = 0;
 
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
@@ -212,6 +215,9 @@ sai_status_t create_acl_table_fn(
       case SAI_ACL_TABLE_ATTR_FIELD_OUTER_VLAN_ID:
         fieldOuterVlanId = attr_list[i].value.booldata;
         break;
+      case SAI_ACL_TABLE_ATTR_FIELD_BTH_OPCODE:
+        fieldBthOpcode = attr_list[i].value.booldata;
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
         break;
@@ -249,7 +255,8 @@ sai_status_t create_acl_table_fn(
       fieldRouteDstUserMeta,
       fieldNeighborDstUserMeta,
       fieldEthertype,
-      fieldOuterVlanId);
+      fieldOuterVlanId,
+      fieldBthOpcode);
 
   return SAI_STATUS_SUCCESS;
 }
@@ -427,6 +434,10 @@ sai_status_t get_acl_table_attribute_fn(
       case SAI_ACL_TABLE_ATTR_FIELD_OUTER_VLAN_ID: {
         const auto& aclTable = fs->aclTableManager.get(acl_table_id);
         attr[i].value.booldata = aclTable.fieldOuterVlanId;
+      } break;
+      case SAI_ACL_TABLE_ATTR_FIELD_BTH_OPCODE: {
+        const auto& aclTable = fs->aclTableManager.get(acl_table_id);
+        attr[i].value.booldata = aclTable.fieldBthOpcode;
       } break;
       case SAI_ACL_TABLE_ATTR_AVAILABLE_ACL_ENTRY:
       case SAI_ACL_TABLE_ATTR_AVAILABLE_ACL_COUNTER:
@@ -625,6 +636,12 @@ sai_status_t set_acl_entry_attribute_fn(
       aclEntry.fieldOuterVlanIdEnable = attr->value.aclfield.enable;
       aclEntry.fieldOuterVlanIdData = attr->value.aclfield.data.u16;
       aclEntry.fieldOuterVlanIdMask = attr->value.aclfield.mask.u16;
+      res = SAI_STATUS_SUCCESS;
+      break;
+    case SAI_ACL_TABLE_ATTR_FIELD_BTH_OPCODE:
+      aclEntry.fieldBthOpcodeEnable = attr->value.aclfield.enable;
+      aclEntry.fieldBthOpcodeData = attr->value.aclfield.data.u8;
+      aclEntry.fieldBthOpcodeMask = attr->value.aclfield.mask.u8;
       res = SAI_STATUS_SUCCESS;
       break;
 
@@ -849,6 +866,11 @@ sai_status_t get_acl_entry_attribute_fn(
         attr_list[i].value.aclfield.enable = aclEntry.fieldOuterVlanIdEnable;
         attr_list[i].value.aclfield.data.u16 = aclEntry.fieldOuterVlanIdData;
         attr_list[i].value.aclfield.mask.u16 = aclEntry.fieldOuterVlanIdMask;
+        break;
+      case SAI_ACL_TABLE_ATTR_FIELD_BTH_OPCODE:
+        attr_list[i].value.aclfield.enable = aclEntry.fieldBthOpcodeEnable;
+        attr_list[i].value.aclfield.data.u8 = aclEntry.fieldBthOpcodeData;
+        attr_list[i].value.aclfield.mask.u8 = aclEntry.fieldBthOpcodeMask;
         break;
 
       case SAI_ACL_ENTRY_ATTR_ACTION_PACKET_ACTION:

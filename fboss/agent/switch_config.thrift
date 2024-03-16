@@ -543,6 +543,7 @@ enum AclTableQualifier {
   ETHER_TYPE = 22,
   OUTER_VLAN = 23,
   UDF = 24,
+  BTH_OPCODE = 25,
 }
 
 struct AclTable {

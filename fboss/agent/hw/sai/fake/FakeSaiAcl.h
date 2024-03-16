@@ -175,6 +175,10 @@ class FakeAclEntry {
   sai_uint16_t fieldOuterVlanIdData;
   sai_uint16_t fieldOuterVlanIdMask;
 
+  bool fieldBthOpcodeEnable{false};
+  sai_uint8_t fieldBthOpcodeData;
+  sai_uint8_t fieldBthOpcodeMask;
+
   bool actionPacketActionEnable{false};
   sai_uint32_t actionPacketActionData;
 
@@ -231,7 +235,8 @@ class FakeAclTable {
       bool fieldRouteDstUserMeta,
       bool fieldNeighborDstUserMeta,
       bool fieldEthertype,
-      bool fieldOuterVlanId)
+      bool fieldOuterVlanId,
+      bool fieldBthOpcode)
       : stage(stage),
         bindPointTypeList(bindPointTypeList),
         actionTypeList(actionTypeList),
@@ -258,7 +263,8 @@ class FakeAclTable {
         fieldRouteDstUserMeta(fieldRouteDstUserMeta),
         fieldNeighborDstUserMeta(fieldNeighborDstUserMeta),
         fieldEthertype(fieldEthertype),
-        fieldOuterVlanId(fieldOuterVlanId) {}
+        fieldOuterVlanId(fieldOuterVlanId),
+        fieldBthOpcode(fieldBthOpcode) {}
 
   bool entryFieldSupported(const sai_attribute_t& attr) const;
   static sai_acl_api_t* kApi();
@@ -292,6 +298,7 @@ class FakeAclTable {
   bool fieldNeighborDstUserMeta;
   bool fieldEthertype;
   bool fieldOuterVlanId;
+  bool fieldBthOpcode;
 };
 
 class FakeAclCounter {

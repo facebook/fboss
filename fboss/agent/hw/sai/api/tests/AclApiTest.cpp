@@ -239,6 +239,10 @@ class AclApiTest : public ::testing::Test {
     return std::make_pair(2000, 0xFFFF);
   }
 
+  std::pair<sai_uint8_t, sai_uint8_t> kBthOpcode() const {
+    return std::make_pair(17, 0xFF);
+  }
+
   sai_uint32_t kPacketAction() const {
     return SAI_PACKET_ACTION_DROP;
   }
@@ -358,6 +362,7 @@ class AclApiTest : public ::testing::Test {
             true, // neighbor meta
             true, // ether type
             true, // outer vlan id
+            true, // bth opcode
         },
         kSwitchID());
   }
@@ -438,6 +443,8 @@ class AclApiTest : public ::testing::Test {
         AclEntryFieldU16(kEtherType())};
     SaiAclEntryTraits::Attributes::FieldOuterVlanId
         aclFieldOuterVlanIdAttribute{AclEntryFieldU16(kOuterVlanId())};
+    SaiAclEntryTraits::Attributes::FieldBthOpcode aclFieldBthOpcodeAttribute{
+        AclEntryFieldU8(kBthOpcode())};
     SaiAclEntryTraits::Attributes::ActionPacketAction aclActionPacketAction{
         AclEntryActionU32(kPacketAction())};
     SaiAclEntryTraits::Attributes::ActionCounter aclActionCounter{
@@ -484,6 +491,7 @@ class AclApiTest : public ::testing::Test {
          aclFieldNeighborDstUserMetaAttribute,
          aclFieldEtherTypeAttribute,
          aclFieldOuterVlanIdAttribute,
+         aclFieldBthOpcodeAttribute,
          aclActionPacketAction,
          aclActionCounter,
          aclActionSetTC,
@@ -613,6 +621,7 @@ class AclApiTest : public ::testing::Test {
       const std::pair<sai_uint32_t, sai_uint32_t>& neighborDstUserMeta,
       const std::pair<sai_uint16_t, sai_uint16_t>& etherType,
       const std::pair<sai_uint16_t, sai_uint16_t>& outerVlanId,
+      const std::pair<sai_uint8_t, sai_uint8_t>& bthOpcode,
       sai_uint32_t packetAction,
       sai_object_id_t counter,
       sai_uint8_t setTC,
@@ -675,6 +684,8 @@ class AclApiTest : public ::testing::Test {
         aclEntryId, SaiAclEntryTraits::Attributes::FieldEthertype());
     auto aclFieldOuterVlanIdGot = aclApi->getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::FieldOuterVlanId());
+    auto aclFieldBthOpcodeGot = aclApi->getAttribute(
+        aclEntryId, SaiAclEntryTraits::Attributes::FieldBthOpcode());
 
     auto aclActionPacketActionGot = aclApi->getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::ActionPacketAction());
@@ -721,6 +732,7 @@ class AclApiTest : public ::testing::Test {
         aclFieldNeighborDstUserMetaGot.getDataAndMask(), neighborDstUserMeta);
     EXPECT_EQ(aclFieldEtherTypeGot.getDataAndMask(), etherType);
     EXPECT_EQ(aclFieldOuterVlanIdGot.getDataAndMask(), outerVlanId);
+    EXPECT_EQ(aclFieldBthOpcodeGot.getDataAndMask(), bthOpcode);
 
     EXPECT_EQ(aclActionPacketActionGot.getData(), packetAction);
     EXPECT_EQ(aclActionCounterGot.getData(), counter);
@@ -943,6 +955,7 @@ TEST_F(AclApiTest, getAclEntryAttribute) {
       kNeighborDstUserMeta(),
       kEtherType(),
       kOuterVlanId(),
+      kBthOpcode(),
       kPacketAction(),
       kCounter(),
       kSetTC(),
@@ -1124,6 +1137,8 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
       AclEntryFieldU16(kEtherType())};
   SaiAclEntryTraits::Attributes::FieldOuterVlanId aclFieldOuterVlanId{
       AclEntryFieldU16(kOuterVlanId())};
+  SaiAclEntryTraits::Attributes::FieldBthOpcode aclFieldBthOpcode{
+      AclEntryFieldU8(kBthOpcode())};
 
   SaiAclEntryTraits::Attributes::ActionPacketAction aclActionPacketAction2{
       AclEntryActionU32(kPacketAction2())};
@@ -1168,6 +1183,7 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
   aclApi->setAttribute(aclEntryId, aclFieldNeighborDstUserMetaAttribute2);
   aclApi->setAttribute(aclEntryId, aclFieldEtherType);
   aclApi->setAttribute(aclEntryId, aclFieldOuterVlanId);
+  aclApi->setAttribute(aclEntryId, aclFieldBthOpcode);
   aclApi->setAttribute(aclEntryId, aclActionPacketAction2);
   aclApi->setAttribute(aclEntryId, aclActionCounter2);
   aclApi->setAttribute(aclEntryId, aclActionSetTC2);
@@ -1204,6 +1220,7 @@ TEST_F(AclApiTest, setAclEntryAttribute) {
       kNeighborDstUserMeta2(),
       kEtherType(),
       kOuterVlanId(),
+      kBthOpcode(),
       kPacketAction2(),
       kCounter2(),
       kSetTC2(),
