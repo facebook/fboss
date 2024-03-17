@@ -3220,7 +3220,7 @@ std::map<PortID, HwPortStats> SwSwitch::getHwPortStats(
 }
 
 std::map<SystemPortID, HwSysPortStats> SwSwitch::getHwSysPortStats(
-    std::vector<SystemPortID> ports) const {
+    const std::vector<SystemPortID>& ports) const {
   std::map<SystemPortID, HwSysPortStats> hwPortsStats;
   for (const auto& portId : ports) {
     auto switchIds = getScopeResolver()->scope(portId).switchIds();
