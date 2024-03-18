@@ -45,6 +45,24 @@ std::unordered_set<SwitchID> SwitchInfoTable::getSwitchIDs() const {
   return switchIds;
 }
 
+std::unordered_set<uint16_t> SwitchInfoTable::getSwitchIndicesOfType(
+    cfg::SwitchType type) const {
+  std::unordered_set<uint16_t> switchIdxs;
+  for (const auto& switchIdAndSwitchInfo : switchIdToSwitchInfo_) {
+    if (switchIdAndSwitchInfo.second.switchType() == type) {
+      switchIdxs.insert(*switchIdAndSwitchInfo.second.switchIndex());
+    }
+  }
+  return switchIdxs;
+}
+
+std::unordered_set<uint16_t> SwitchInfoTable::getSwitchIndices() const {
+  std::unordered_set<uint16_t> switchIdxs;
+  for (const auto& switchIdAndSwitchInfo : switchIdToSwitchInfo_) {
+    switchIdxs.insert(*switchIdAndSwitchInfo.second.switchIndex());
+  }
+  return switchIdxs;
+}
 bool SwitchInfoTable::vlansSupported() const {
   for (const auto& switchIdAndSwitchInfo : switchIdToSwitchInfo_) {
     if (switchIdAndSwitchInfo.second.switchType() == cfg::SwitchType::FABRIC ||
