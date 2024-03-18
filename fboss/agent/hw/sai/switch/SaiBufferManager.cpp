@@ -323,8 +323,10 @@ void SaiBufferManager::updateStats() {
   updateIngressBufferPoolStats();
   updateEgressBufferPoolStats();
   // Device watermarks are collected from ingress for some and egress for
-  // some other platforms, hence publish it here.
-  publishDeviceWatermark(deviceWatermarkBytes_);
+  // some other platforms. This approach is used as this is the best way
+  // to get device/switch level watermarks. Do not publish this watermark
+  // here. Instead, publish this from SwitchManager to keep all the switch
+  // level watermarks in the same place.
 }
 
 const std::vector<sai_stat_id_t>&
