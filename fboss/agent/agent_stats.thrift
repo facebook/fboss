@@ -35,11 +35,11 @@ struct AgentStats {
   5: i64 linkFlaps;
   7: map<string, hardware_stats.HwSysPortStats> sysPortStats;
   8: hardware_stats.TeFlowStats teFlowStats;
-  9: hardware_stats.HwBufferPoolStats bufferPoolStats;
+  9: hardware_stats.HwBufferPoolStats bufferPoolStats_DEPRECATED;
   10: map<i16, hardware_stats.HwResourceStats> hwResourceStatsMap;
   11: map<i16, hardware_stats.HwAsicErrors> hwAsicErrorsMap;
   12: map<i16, hardware_stats.TeFlowStats> teFlowStatsMap;
-  13: map<i16, hardware_stats.HwBufferPoolStats> bufferPoolStatsMap;
+  13: map<i16, hardware_stats.HwBufferPoolStats> bufferPoolStatsMap_DEPRECATED;
   14: map<i16, map<string, hardware_stats.HwSysPortStats>> sysPortStatsMap;
   15: map<i16, hardware_stats.HwSwitchDropStats> switchDropStatsMap;
   16: hardware_stats.HwFlowletStats flowletStats;

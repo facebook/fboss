@@ -159,9 +159,6 @@ multiswitch::HwSwitchStats HwSwitch::getHwSwitchStats() {
   hwSwitchStats.timestamp() = now.count();
   hwSwitchStats.hwPortStats() = getPortStats();
   hwSwitchStats.hwAsicErrors() = getSwitchStats()->getHwAsicErrors();
-  HwBufferPoolStats bufferPoolStats;
-  bufferPoolStats.deviceWatermarkBytes() = getDeviceWatermarkBytes();
-  hwSwitchStats.bufferPoolStats() = std::move(bufferPoolStats);
   hwSwitchStats.teFlowStats() = getTeFlowStats();
   hwSwitchStats.fabricReachabilityStats() = getFabricReachabilityStats();
   hwSwitchStats.sysPortStats() = getSysPortStats();

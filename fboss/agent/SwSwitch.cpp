@@ -707,8 +707,6 @@ AgentStats SwSwitch::fillFsdbStats() {
           {switchIdx, *hwSwitchStats.hwAsicErrors()});
       agentStats.teFlowStatsMap()->insert(
           {switchIdx, *hwSwitchStats.teFlowStats()});
-      agentStats.bufferPoolStatsMap()->insert(
-          {switchIdx, *hwSwitchStats.bufferPoolStats()});
       agentStats.sysPortStatsMap()->insert(
           {switchIdx, *hwSwitchStats.sysPortStats()});
       agentStats.switchDropStatsMap()->insert(
@@ -729,8 +727,6 @@ AgentStats SwSwitch::fillFsdbStats() {
   agentStats.hwResourceStats() =
       agentStats.hwResourceStatsMap()->begin()->second;
   agentStats.teFlowStats() = agentStats.teFlowStatsMap()->begin()->second;
-  agentStats.bufferPoolStats() =
-      agentStats.bufferPoolStatsMap()->begin()->second;
   agentStats.sysPortStats() = agentStats.sysPortStatsMap()->begin()->second;
   agentStats.flowletStats() = agentStats.flowletStatsMap()->begin()->second;
   return agentStats;
@@ -786,7 +782,6 @@ void SwSwitch::updateStats() {
       hwStats.hwAsicErrors() = hwSwitchStats->getHwAsicErrors();
     }
     hwStats.teFlowStats() = getTeFlowStats();
-    hwStats.bufferPoolStats() = getBufferPoolStats();
     for (auto& [portId, phyInfoPerPort] :
          multiHwSwitchHandler_->getAllPhyInfo()) {
       hwStats.phyInfo()->emplace(portId, phyInfoPerPort);
@@ -1042,13 +1037,6 @@ TeFlowStats SwSwitch::getTeFlowStats() {
   teFlowStats.timestamp() = now.count();
   teFlowStats.hwTeFlowStats() = std::move(hwTeFlowStats);
   return teFlowStats;
-}
-
-HwBufferPoolStats SwSwitch::getBufferPoolStats() const {
-  HwBufferPoolStats stats;
-  stats.deviceWatermarkBytes() =
-      multiHwSwitchHandler_->getDeviceWatermarkBytes();
-  return stats;
 }
 
 HwFlowletStats SwSwitch::getHwFlowletStats() const {

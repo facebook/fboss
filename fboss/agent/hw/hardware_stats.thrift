@@ -239,14 +239,19 @@ struct HwRxReasonStats {
   1: map<i64, i64> rxReasonStats;
 }
 
+// The deviceWatermarkBytes has been moved from HwBufferPoolStats to
+// HwSwitchWatermarkStats, but retaining the HwBufferPoolStats but
+// will be marked as deprecated everywhere until it has some other
+// stats in it.
 struct HwBufferPoolStats {
-  1: i64 deviceWatermarkBytes;
+  1: i64 deviceWatermarkBytes_DEPRECATED;
 }
 
 struct HwSwitchWatermarkStats {
   1: optional i64 fdrRciWatermarkBytes;
   2: optional i64 coreRciWatermarkBytes;
   3: optional i64 dtlQueueWatermarkBytes;
+  4: i64 deviceWatermarkBytes;
 }
 
 struct CpuPortStats {
