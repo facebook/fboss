@@ -113,6 +113,7 @@ class SaiSwitch : public HwSwitch {
   FabricReachabilityStats getFabricReachabilityStats() const override;
   CpuPortStats getCpuPortStats(bool getIncrement) const override;
   HwSwitchDropStats getSwitchDropStats() const override;
+  HwSwitchWatermarkStats getSwitchWatermarkStats() const override;
 
   uint64_t getDeviceWatermarkBytes() const override;
 

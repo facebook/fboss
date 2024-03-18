@@ -404,6 +404,7 @@ class BcmSwitch : public BcmSwitchIf {
     return HwSwitchDropStats{};
   }
 
+  HwSwitchWatermarkStats getSwitchWatermarkStats() const override;
   HwFlowletStats getHwFlowletStats() const override;
 
   std::vector<EcmpDetails> getAllEcmpDetails() const override;

@@ -3194,6 +3194,12 @@ HwFlowletStats BcmSwitch::getHwFlowletStats() const {
   return multiPathNextHopTable_->getHwFlowletStats();
 }
 
+HwSwitchWatermarkStats BcmSwitch::getSwitchWatermarkStats() const {
+  HwSwitchWatermarkStats stats{};
+  stats.deviceWatermarkBytes() = bstStatsMgr_->getDeviceWatermarkBytes();
+  return stats;
+}
+
 bcm_if_t BcmSwitch::getDropEgressId() const {
   return platform_->getAsic()->getDefaultDropEgressID();
 }

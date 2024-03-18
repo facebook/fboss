@@ -3699,4 +3699,8 @@ AclStats SaiSwitch::getAclStats() const {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
   return managerTable_->aclTableManager().getAclStats();
 }
+
+HwSwitchWatermarkStats SaiSwitch::getSwitchWatermarkStats() const {
+  return HwSwitchWatermarkStats{};
+}
 } // namespace facebook::fboss
