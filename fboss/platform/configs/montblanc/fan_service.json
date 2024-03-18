@@ -1,0 +1,293 @@
+{
+  "pwmBoostOnNumDeadFan" : 1,
+  "pwmBoostOnNumDeadSensor" : 0,
+  "pwmBoostOnNoQsfpAfterInSec" : 55,
+  "pwmBoostValue" : 55,
+  "pwmTransitionValue" : 50,
+  "pwmLowerThreshold" : 30,
+  "pwmUpperThreshold" : 70,
+
+  "sensors": [
+     {
+      "sensorName" : "CPU_CORE_TEMP",
+      "scale" : 1000.0,
+      "access" : {
+        "accessType": "ACCESS_TYPE_SYSFS",
+	"path": "/sys/devices/platform/coretemp.0/hwmon/hwmon1/temp1_input"
+      },
+      "pwmCalcType" : "SENSOR_PWM_CALC_TYPE_PID",
+      "setPoint" : 85,
+      "posHysteresis" : 0,
+      "negHysteresis" : 3,
+      "kp" : 2,
+      "ki" : 0.5,
+      "kd" : 0.5,
+      "alarm" : {
+        "highMajor" : 100.0,
+        "highMinor" : 90.0,
+        "minorSoakSeconds" : 300
+      }
+    },
+    {
+      "sensorName": "SCM_TSENSOR1",
+      "access": {
+        "accessType": "ACCESS_TYPE_SYSFS",
+	"path": "/run/devmap/sensors/SCM_TSENSOR1/temp1_input"
+      },
+      "alarm": {
+        "highMajor": 45.0,
+        "highMinor": 40.0,
+        "minorSoakSeconds": 300
+      },
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
+      "scale": 1000.0,
+      "normalUpTable": {
+        "22": 45,
+        "25": 50,
+        "30": 55,
+        "35": 60
+      },
+      "normalDownTable": {
+        "20": 45,
+        "23": 50,
+        "28": 55,
+        "33": 60
+      },
+      "failUpTable": {
+        "22": 50,
+        "25": 55,
+        "30": 60,
+        "35": 65
+      },
+      "failDownTable": {
+        "20": 50,
+        "23": 55,
+        "28": 60,
+        "33": 65
+      }
+    }
+  ],
+  "fans": [
+    {
+      "fanName": "fan_1",
+      "rpmAccess": {
+        "accessType": "ACCESS_TYPE_SYSFS",
+        "path": "/run/devmap/sensors/MCB_FAN_CPLD/fan1_input"
+      },
+      "pwmAccess": {
+        "accessType": "ACCESS_TYPE_SYSFS",
+        "path": "/run/devmap/sensors/MCB_FAN_CPLD/pwm1"
+      },
+      "presenceAccess": {
+        "accessType": "ACCESS_TYPE_SYSFS",
+        "path": "/run/devmap/sensors/MCB_FAN_CPLD/fan1_present"
+      },
+      "ledAccess": {
+        "accessType": "ACCESS_TYPE_SYSFS",
+        "path": "/sys/class/leds/fan1:blue:status/brightness"
+      },
+      "pwmMin": 1,
+      "pwmMax": 100,
+      "fanPresentVal": 1,
+      "fanMissingVal": 0,
+      "fanGoodLedVal": 1,
+      "fanFailLedVal": 2
+    },
+    {
+      "fanName": "fan_2",
+      "rpmAccess": {
+        "accessType": "ACCESS_TYPE_SYSFS",
+        "path": "/run/devmap/sensors/MCB_FAN_CPLD/fan2_input"
+      },
+      "pwmAccess": {
+        "accessType": "ACCESS_TYPE_SYSFS",
+        "path": "/run/devmap/sensors/MCB_FAN_CPLD/pwm2"
+      },
+      "presenceAccess": {
+        "accessType": "ACCESS_TYPE_SYSFS",
+        "path": "/run/devmap/sensors/MCB_FAN_CPLD/fan2_present"
+      },
+      "ledAccess": {
+        "accessType": "ACCESS_TYPE_SYSFS",
+        "path": "/sys/class/leds/fan2:blue:status/brightness"
+      },
+      "pwmMin": 1,
+      "pwmMax": 100,
+      "fanPresentVal": 1,
+      "fanMissingVal": 0,
+      "fanGoodLedVal": 1,
+      "fanFailLedVal": 2
+    },
+    {
+      "fanName": "fan_3",
+      "rpmAccess": {
+        "accessType": "ACCESS_TYPE_SYSFS",
+        "path": "/run/devmap/sensors/MCB_FAN_CPLD/fan3_input"
+      },
+      "pwmAccess": {
+        "accessType": "ACCESS_TYPE_SYSFS",
+        "path": "/run/devmap/sensors/MCB_FAN_CPLD/pwm3"
+      },
+      "presenceAccess": {
+        "accessType": "ACCESS_TYPE_SYSFS",
+        "path": "/run/devmap/sensors/MCB_FAN_CPLD/fan3_present"
+      },
+      "ledAccess": {
+        "accessType": "ACCESS_TYPE_SYSFS",
+        "path": "/sys/class/leds/fan3:blue:status/brightness"
+      },
+      "pwmMin": 1,
+      "pwmMax": 100,
+      "fanPresentVal": 1,
+      "fanMissingVal": 0,
+      "fanGoodLedVal": 1,
+      "fanFailLedVal": 2
+    },
+    {
+      "fanName": "fan_4",
+      "rpmAccess": {
+        "accessType": "ACCESS_TYPE_SYSFS",
+        "path": "/run/devmap/sensors/MCB_FAN_CPLD/fan4_input"
+      },
+      "pwmAccess": {
+        "accessType": "ACCESS_TYPE_SYSFS",
+        "path": "/run/devmap/sensors/MCB_FAN_CPLD/pwm4"
+      },
+      "presenceAccess": {
+        "accessType": "ACCESS_TYPE_SYSFS",
+        "path": "/run/devmap/sensors/MCB_FAN_CPLD/fan4_present"
+      },
+      "ledAccess": {
+        "accessType": "ACCESS_TYPE_SYSFS",
+        "path": "/sys/class/leds/fan4:blue:status/brightness"
+      },
+      "pwmMin": 1,
+      "pwmMax": 100,
+      "fanPresentVal": 1,
+      "fanMissingVal": 0,
+      "fanGoodLedVal": 1,
+      "fanFailLedVal": 2
+    },
+    {
+      "fanName": "fan_5",
+      "rpmAccess": {
+        "accessType": "ACCESS_TYPE_SYSFS",
+        "path": "/run/devmap/sensors/MCB_FAN_CPLD/fan5_input"
+      },
+      "pwmAccess": {
+        "accessType": "ACCESS_TYPE_SYSFS",
+        "path": "/run/devmap/sensors/MCB_FAN_CPLD/pwm5"
+      },
+      "presenceAccess": {
+        "accessType": "ACCESS_TYPE_SYSFS",
+        "path": "/run/devmap/sensors/MCB_FAN_CPLD/fan5_present"
+      },
+      "ledAccess": {
+        "accessType": "ACCESS_TYPE_SYSFS",
+        "path": "/sys/class/leds/fan5:blue:status/brightness"
+      },
+      "pwmMin": 1,
+      "pwmMax": 100,
+      "fanPresentVal": 1,
+      "fanMissingVal": 0,
+      "fanGoodLedVal": 1,
+      "fanFailLedVal": 2
+    },
+    {
+      "fanName": "fan_6",
+      "rpmAccess": {
+        "accessType": "ACCESS_TYPE_SYSFS",
+        "path": "/run/devmap/sensors/MCB_FAN_CPLD/fan6_input"
+      },
+      "pwmAccess": {
+        "accessType": "ACCESS_TYPE_SYSFS",
+        "path": "/run/devmap/sensors/MCB_FAN_CPLD/pwm6"
+      },
+      "presenceAccess": {
+        "accessType": "ACCESS_TYPE_SYSFS",
+        "path": "/run/devmap/sensors/MCB_FAN_CPLD/fan6_present"
+      },
+      "ledAccess": {
+        "accessType": "ACCESS_TYPE_SYSFS",
+        "path": "/sys/class/leds/fan6:blue:status/brightness"
+      },
+      "pwmMin": 1,
+      "pwmMax": 100,
+      "fanPresentVal": 1,
+      "fanMissingVal": 0,
+      "fanGoodLedVal": 1,
+      "fanFailLedVal": 2
+    },
+    {
+      "fanName": "fan_7",
+      "rpmAccess": {
+        "accessType": "ACCESS_TYPE_SYSFS",
+        "path": "/run/devmap/sensors/MCB_FAN_CPLD/fan7_input"
+      },
+      "pwmAccess": {
+        "accessType": "ACCESS_TYPE_SYSFS",
+        "path": "/run/devmap/sensors/MCB_FAN_CPLD/pwm7"
+      },
+      "presenceAccess": {
+        "accessType": "ACCESS_TYPE_SYSFS",
+        "path": "/run/devmap/sensors/MCB_FAN_CPLD/fan7_present"
+      },
+      "ledAccess": {
+        "accessType": "ACCESS_TYPE_SYSFS",
+        "path": "/sys/class/leds/fan7:blue:status/brightness"
+      },
+      "pwmMin": 1,
+      "pwmMax": 100,
+      "fanPresentVal": 1,
+      "fanMissingVal": 0,
+      "fanGoodLedVal": 1,
+      "fanFailLedVal": 2
+    },
+    {
+      "fanName": "fan_8",
+      "rpmAccess": {
+        "accessType": "ACCESS_TYPE_SYSFS",
+        "path": "/run/devmap/sensors/MCB_FAN_CPLD/fan8_input"
+      },
+      "pwmAccess": {
+        "accessType": "ACCESS_TYPE_SYSFS",
+        "path": "/run/devmap/sensors/MCB_FAN_CPLD/pwm8"
+      },
+      "presenceAccess": {
+        "accessType": "ACCESS_TYPE_SYSFS",
+        "path": "/run/devmap/sensors/MCB_FAN_CPLD/fan8_present"
+      },
+      "ledAccess": {
+        "accessType": "ACCESS_TYPE_SYSFS",
+        "path": "/sys/class/leds/fan8:blue:status/brightness"
+      },
+      "pwmMin": 1,
+      "pwmMax": 100,
+      "fanPresentVal": 1,
+      "fanMissingVal": 0,
+      "fanGoodLedVal": 1,
+      "fanFailLedVal": 2
+    }
+  ],
+  "zones": [
+    {
+      "zoneType" : "ZONE_TYPE_MAX",
+      "zoneName" : "zone1",
+      "sensorNames" : [
+         "CPU_CORE_TEMP",
+         "SCM_TSENSOR1"
+      ],
+      "fanNames" : [
+        "fan_1",
+        "fan_2",
+        "fan_3",
+        "fan_4",
+        "fan_5",
+        "fan_6",
+        "fan_7",
+        "fan_8"
+      ],
+      "slope" : 3
+    }
+  ]
+}
