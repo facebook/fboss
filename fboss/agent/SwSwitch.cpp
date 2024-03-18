@@ -739,6 +739,14 @@ void SwSwitch::publishStatsToFsdb() {
   });
 }
 
+MonolithicHwSwitchHandler* SwSwitch::getMonolithicHwSwitchHandler() {
+  CHECK(!isRunModeMultiSwitch())
+      << "Monolithic switch handler access should not be attempted in multi switch mode!";
+  auto hwSwitchHandlers = getHwSwitchHandler()->getHwSwitchHandlers();
+  return static_cast<MonolithicHwSwitchHandler*>(
+      hwSwitchHandlers.begin()->second);
+}
+
 void SwSwitch::updateStats() {
   SCOPE_EXIT {
     if (FLAGS_publish_stats_to_fsdb) {

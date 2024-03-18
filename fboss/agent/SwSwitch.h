@@ -22,6 +22,7 @@
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
+#include "fboss/agent/single/MonolithicHwSwitchHandler.h"
 #include "fboss/agent/state/StateUpdate.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/ThreadHeartbeat.h"
@@ -88,6 +89,7 @@ class TeFlowNexthopHandler;
 class DsfSubscriber;
 class HwAsicTable;
 class MultiHwSwitchHandler;
+class MonolithicHwSwitchHandler;
 class SwitchStatsObserver;
 class MultiSwitchPacketStreamMap;
 class SwSwitchWarmBootHelper;
@@ -942,6 +944,8 @@ class SwSwitch : public HwSwitchCallback {
   void getAllHwPortStats(std::map<std::string, HwPortStats>& hwPortStats) const;
   void getAllCpuPortStats(std::map<int, CpuPortStats>& hwCpuPortStats) const;
   bool isRunModeMultiSwitch();
+  int64_t getAclStats(const std::string& statName) const;
+  MonolithicHwSwitchHandler* getMonolithicHwSwitchHandler();
 
  private:
   std::optional<folly::MacAddress> getSourceMac(
