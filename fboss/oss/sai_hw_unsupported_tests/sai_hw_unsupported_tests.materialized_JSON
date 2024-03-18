@@ -530,6 +530,21 @@
         },
         {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
+        },
+        {
+          "test_name_regex": "HwRouteScaleTest.anticipatedRouteScaleGenerator$"
+        },
+        {
+          "test_name_regex": "HwRouteScaleTest.hgrid*$"
+        },
+        {
+          "test_name_regex": "HwRouteStatTest*$"
+        },
+        {
+          "test_name_regex": "HwWideEcmpTest*$"
+        },
+        {
+          "test_name_regex": "HwRouteCounterOverflowTest.overflowRouteCounters$"
         }
     ],
     "brcm/10.2.0.0_odp/10.2.0.0_odp/tomahawk3": [
@@ -1153,6 +1168,21 @@
         },
         {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
+        },
+        {
+          "test_name_regex": "HwRouteScaleTest.anticipatedRouteScaleGenerator$"
+        },
+        {
+          "test_name_regex": "HwRouteScaleTest.hgrid*$"
+        },
+        {
+          "test_name_regex": "HwRouteStatTest*$"
+        },
+        {
+          "test_name_regex": "HwWideEcmpTest*$"
+        },
+        {
+          "test_name_regex": "HwRouteCounterOverflowTest.overflowRouteCounters$"
         }
     ],
     "brcm/7.2.0.0_odp/8.2.0.0_odp/tomahawk": [
@@ -1188,6 +1218,21 @@
         },
         {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
+        },
+        {
+          "test_name_regex": "HwRouteScaleTest.anticipatedRouteScaleGenerator$"
+        },
+        {
+          "test_name_regex": "HwRouteScaleTest.hgrid*$"
+        },
+        {
+          "test_name_regex": "HwRouteStatTest*$"
+        },
+        {
+          "test_name_regex": "HwWideEcmpTest*$"
+        },
+        {
+          "test_name_regex": "HwRouteCounterOverflowTest.overflowRouteCounters$"
         }
     ],
     "brcm/7.2.0.0_odp/8.2.0.0_odp/tomahawk3": [
@@ -1258,6 +1303,21 @@
         },
         {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
+        },
+        {
+          "test_name_regex": "HwRouteScaleTest.anticipatedRouteScaleGenerator$"
+        },
+        {
+          "test_name_regex": "HwRouteScaleTest.hgrid*$"
+        },
+        {
+          "test_name_regex": "HwRouteStatTest*$"
+        },
+        {
+          "test_name_regex": "HwWideEcmpTest*$"
+        },
+        {
+          "test_name_regex": "HwRouteCounterOverflowTest.overflowRouteCounters$"
         }
     ],
     "brcm/8.2.0.0_odp/8.2.0.0_odp/tomahawk3": [
@@ -1363,6 +1423,21 @@
         },
         {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
+        },
+        {
+          "test_name_regex": "HwRouteScaleTest.anticipatedRouteScaleGenerator$"
+        },
+        {
+          "test_name_regex": "HwRouteScaleTest.hgrid*$"
+        },
+        {
+          "test_name_regex": "HwRouteStatTest*$"
+        },
+        {
+          "test_name_regex": "HwWideEcmpTest*$"
+        },
+        {
+          "test_name_regex": "HwRouteCounterOverflowTest.overflowRouteCounters$"
         }
     ],
     "brcm/8.2.0.0_odp/9.2.0.0_odp/tomahawk3": [
@@ -1587,6 +1662,21 @@
         },
         {
           "test_name_regex": "HwAqmTest.verifyPerQueueEcnMarkedStats$"
+        },
+        {
+          "test_name_regex": "HwRouteScaleTest.anticipatedRouteScaleGenerator$"
+        },
+        {
+          "test_name_regex": "HwRouteScaleTest.hgrid*$"
+        },
+        {
+          "test_name_regex": "HwRouteStatTest*$"
+        },
+        {
+          "test_name_regex": "HwWideEcmpTest*$"
+        },
+        {
+          "test_name_regex": "HwRouteCounterOverflowTest.overflowRouteCounters$"
         }
     ],
     "brcm/9.2.0.0_odp/9.2.0.0_odp/tomahawk3": [
