@@ -22,8 +22,8 @@ class TestSubscription {
         path_(path.tokens()),
         pathStr_(path.str()) {
     auto clientStateChange =
-        [](facebook::fboss::fsdb::FsdbStreamClient::State /* old */,
-           facebook::fboss::fsdb::FsdbStreamClient::State /* new */) {};
+        [](facebook::fboss::fsdb::SubscriptionState /* old */,
+           facebook::fboss::fsdb::SubscriptionState /* new */) {};
     auto dataUpdate = [&](facebook::fboss::fsdb::OperState state) {
       if (auto contents = state.contents()) {
         auto obj =

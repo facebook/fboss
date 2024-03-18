@@ -454,10 +454,10 @@ void FsdbPubSubManager::addStatePathSubscription(
       std::move(serverOptions));
 }
 
-template <typename SubscriberT, typename PathElement, typename CallbackT>
+template <typename SubscriberT, typename PathElement>
 void FsdbPubSubManager::addSubscriptionImpl(
     const std::vector<PathElement>& subscribePath,
-    CallbackT stateChangeCb,
+    SubscriptionStateChangeCb stateChangeCb,
     typename SubscriberT::FsdbSubUnitUpdateCb subUnitAvailableCb,
     bool subscribeStats,
     FsdbStreamClient::ServerOptions&& serverOptions,
@@ -494,160 +494,6 @@ void FsdbPubSubManager::addSubscriptionImpl(
   }
   XLOG(DBG2) << " Added subscription for: " << subsStr;
   itr->second->setServerOptions(std::move(serverOptions));
-}
-
-/* TODO: Remove Subscriber APIs using FsdbStreamStateChangeCb */
-void FsdbPubSubManager::addStateDeltaSubscription(
-    const Path& subscribePath,
-    FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
-    FsdbDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaCb,
-    const std::string& fsdbHost,
-    int32_t fsdbPort) {
-  addSubscriptionImpl<FsdbDeltaSubscriber>(
-      subscribePath,
-      stateChangeCb,
-      operDeltaCb,
-      false /*subscribeStat*/,
-      FsdbStreamClient::ServerOptions(fsdbHost, fsdbPort));
-}
-
-void FsdbPubSubManager::addStatePathSubscription(
-    const Path& subscribePath,
-    FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
-    FsdbStateSubscriber::FsdbOperStateUpdateCb operStateCb,
-    const std::string& fsdbHost,
-    int32_t fsdbPort) {
-  addSubscriptionImpl<FsdbStateSubscriber>(
-      subscribePath,
-      stateChangeCb,
-      operStateCb,
-      false /*subscribeStat*/,
-      FsdbStreamClient::ServerOptions(fsdbHost, fsdbPort));
-}
-
-void FsdbPubSubManager::addStatDeltaSubscription(
-    const Path& subscribePath,
-    FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
-    FsdbDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaCb,
-    const std::string& fsdbHost,
-    int32_t fsdbPort) {
-  addSubscriptionImpl<FsdbDeltaSubscriber>(
-      subscribePath,
-      stateChangeCb,
-      operDeltaCb,
-      true /*subscribeStat*/,
-      FsdbStreamClient::ServerOptions(fsdbHost, fsdbPort));
-}
-
-void FsdbPubSubManager::addStatPathSubscription(
-    const Path& subscribePath,
-    FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
-    FsdbStateSubscriber::FsdbOperStateUpdateCb operStateCb,
-    const std::string& fsdbHost,
-    int32_t fsdbPort) {
-  addSubscriptionImpl<FsdbStateSubscriber>(
-      subscribePath,
-      stateChangeCb,
-      operStateCb,
-      true /*subscribeStat*/,
-      FsdbStreamClient::ServerOptions(fsdbHost, fsdbPort));
-}
-
-void FsdbPubSubManager::addStateDeltaSubscription(
-    const MultiPath& subscribePaths,
-    FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
-    FsdbExtDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaCb,
-    const std::string& fsdbHost,
-    int32_t fsdbPort) {
-  addSubscriptionImpl<FsdbExtDeltaSubscriber>(
-      toExtendedOperPath(subscribePaths),
-      stateChangeCb,
-      operDeltaCb,
-      false /*subscribeStat*/,
-      FsdbStreamClient::ServerOptions(fsdbHost, fsdbPort));
-}
-
-void FsdbPubSubManager::addStatePathSubscription(
-    const MultiPath& subscribePaths,
-    FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
-    FsdbExtStateSubscriber::FsdbOperStateUpdateCb operStateCb,
-    const std::string& fsdbHost,
-    int32_t fsdbPort) {
-  addSubscriptionImpl<FsdbExtStateSubscriber>(
-      toExtendedOperPath(subscribePaths),
-      stateChangeCb,
-      operStateCb,
-      false /*subscribeStat*/,
-      FsdbStreamClient::ServerOptions(fsdbHost, fsdbPort));
-}
-
-void FsdbPubSubManager::addStatDeltaSubscription(
-    const MultiPath& subscribePaths,
-    FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
-    FsdbExtDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaCb,
-    const std::string& fsdbHost,
-    int32_t fsdbPort) {
-  addSubscriptionImpl<FsdbExtDeltaSubscriber>(
-      toExtendedOperPath(subscribePaths),
-      stateChangeCb,
-      operDeltaCb,
-      true /*subscribeStat*/,
-      FsdbStreamClient::ServerOptions(fsdbHost, fsdbPort));
-}
-
-void FsdbPubSubManager::addStatPathSubscription(
-    const MultiPath& subscribePaths,
-    FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
-    FsdbExtStateSubscriber::FsdbOperStateUpdateCb operStateCb,
-    const std::string& fsdbHost,
-    int32_t fsdbPort) {
-  addSubscriptionImpl<FsdbExtStateSubscriber>(
-      toExtendedOperPath(subscribePaths),
-      stateChangeCb,
-      operStateCb,
-      true /*subscribeStat*/,
-      FsdbStreamClient::ServerOptions(fsdbHost, fsdbPort));
-}
-
-void FsdbPubSubManager::addStatePathSubscription(
-    const Path& subscribePath,
-    FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
-    FsdbStateSubscriber::FsdbOperStateUpdateCb operStateCb,
-    FsdbStreamClient::ServerOptions&& serverOptions) {
-  addSubscriptionImpl<FsdbStateSubscriber>(
-      subscribePath,
-      stateChangeCb,
-      operStateCb,
-      false /*subscribeStat*/,
-      std::move(serverOptions));
-}
-
-void FsdbPubSubManager::addStatePathSubscription(
-    const MultiPath& subscribePaths,
-    FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
-    FsdbExtStateSubscriber::FsdbOperStateUpdateCb operStateCb,
-    FsdbStreamClient::ServerOptions&& serverOptions,
-    const std::optional<std::string>& clientIdSuffix) {
-  addSubscriptionImpl<FsdbExtStateSubscriber>(
-      toExtendedOperPath(subscribePaths),
-      stateChangeCb,
-      operStateCb,
-      false /*subscribeStat*/,
-      std::move(serverOptions),
-      clientIdSuffix);
-}
-
-void FsdbPubSubManager::addStateDeltaSubscription(
-    const Path& subscribePath,
-    FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
-    FsdbDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaCb,
-    FsdbStreamClient::ServerOptions&& serverOptions) {
-  addSubscriptionImpl<FsdbDeltaSubscriber>(
-      subscribePath,
-      stateChangeCb,
-      operDeltaCb,
-      false /*subscribeStat*/,
-      std::move(serverOptions));
 }
 
 template <typename SubscriberT, typename PathElement>

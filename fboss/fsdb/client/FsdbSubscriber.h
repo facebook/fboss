@@ -81,24 +81,6 @@ class FsdbSubscriber : public FsdbStreamClient {
 
   using FsdbSubUnitUpdateCb = std::function<void(SubUnit&&)>;
   using SubUnitT = SubUnit;
-  // TODO: remove this overload after migrating all users
-  FsdbSubscriber(
-      const std::string& clientId,
-      const Paths& subscribePaths,
-      folly::EventBase* streamEvb,
-      folly::EventBase* connRetryEvb,
-      FsdbSubUnitUpdateCb operSubUnitUpdate,
-      bool subscribeStats,
-      FsdbStreamStateChangeCb connectionStateChangeCb)
-      : FsdbSubscriber(
-            std::move(SubscriptionOptions(clientId, subscribeStats)),
-            subscribePaths,
-            streamEvb,
-            connRetryEvb,
-            operSubUnitUpdate,
-            std::nullopt,
-            connectionStateChangeCb) {}
-
   FsdbSubscriber(
       const std::string& clientId,
       const Paths& subscribePaths,
