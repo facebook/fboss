@@ -25,6 +25,7 @@ enum ProductionFeature {
   ACL_COUNTER = 12,
   ECMP_LOAD_BALANCER = 13,
   LAG_LOAD_BALANCER = 14,
+  VOQ_DNX_INTERRUPTS = 15,
 }
 
 struct AsicToProductionFeatures {
