@@ -167,6 +167,7 @@ multiswitch::HwSwitchStats HwSwitch::getHwSwitchStats() {
   hwSwitchStats.switchDropStats() = getSwitchDropStats();
   hwSwitchStats.flowletStats() = getHwFlowletStats();
   hwSwitchStats.aclStats() = getAclStats();
+  hwSwitchStats.switchWatermarkStats() = getSwitchWatermarkStats();
   return hwSwitchStats;
 }
 
