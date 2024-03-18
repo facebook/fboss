@@ -113,6 +113,9 @@ class CowSubscriptionManager
           deltaSubscription->appendRootDeltaUnit(std::move(deltaUnit));
           deltaSubscription->flush(metadataServer);
         }
+      } else {
+        // on initialSync, offer even an empty value
+        subscription->serveHeartbeat();
       }
 
       this->lookup_.add(subscription);

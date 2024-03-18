@@ -44,11 +44,12 @@ FsdbDeltaSubscriberImpl<SubUnit, PathElement>::serveStream(StreamT&& stream) {
       XLOG(DBG2) << " Detected cancellation: " << this->clientId();
       break;
     }
-    if (!delta->changes()->size()) {
-      continue;
-    }
+    // even empty change/heartbeat indicates subscription is connected
     if (this->getSubscriptionState() != SubscriptionState::CONNECTED) {
       BaseT::updateSubscriptionState(SubscriptionState::CONNECTED);
+    }
+    if (!delta->changes()->size()) {
+      continue;
     }
     SubUnitT tmp(*delta);
     this->operSubUnitUpdate_(std::move(tmp));
