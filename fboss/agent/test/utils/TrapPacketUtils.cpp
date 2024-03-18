@@ -14,18 +14,23 @@ void addTrapPacketAcl(cfg::SwitchConfig* config, PortID port) {
   cfg::MatchAction action;
   action.sendToQueue() = cfg::QueueMatchAction();
   action.sendToQueue()->queueId() = 0;
-  action.toCpuAction() = cfg::ToCpuAction::TRAP;
+  action.toCpuAction() = cfg::ToCpuAction::COPY;
 
   cfg::MatchToAction match2Action;
   match2Action.matcher() = entry.get_name();
   match2Action.action() = action;
 
-  cfg::TrafficPolicyConfig dataPlaneTrafficPolicy;
-  if (config->dataPlaneTrafficPolicy()) {
-    dataPlaneTrafficPolicy = *config->dataPlaneTrafficPolicy();
+  cfg::TrafficPolicyConfig trafficPolicy;
+  cfg::CPUTrafficPolicyConfig cpuTrafficPolicy;
+  if (config->cpuTrafficPolicy()) {
+    cpuTrafficPolicy = *config->cpuTrafficPolicy();
+    if (cpuTrafficPolicy.trafficPolicy()) {
+      trafficPolicy = *cpuTrafficPolicy.trafficPolicy();
+    }
   }
-  dataPlaneTrafficPolicy.matchToAction()->push_back(match2Action);
-  config->dataPlaneTrafficPolicy() = dataPlaneTrafficPolicy;
+  trafficPolicy.matchToAction()->push_back(match2Action);
+  cpuTrafficPolicy.trafficPolicy() = trafficPolicy;
+  config->cpuTrafficPolicy() = cpuTrafficPolicy;
 }
 
 void addTrapPacketAcl(
@@ -61,12 +66,17 @@ void addTrapPacketAcl(
   match2Action.matcher() = entry.get_name();
   match2Action.action() = action;
 
-  cfg::TrafficPolicyConfig dataPlaneTrafficPolicy;
-  if (config->dataPlaneTrafficPolicy()) {
-    dataPlaneTrafficPolicy = *config->dataPlaneTrafficPolicy();
+  cfg::TrafficPolicyConfig trafficPolicy;
+  cfg::CPUTrafficPolicyConfig cpuTrafficPolicy;
+  if (config->cpuTrafficPolicy()) {
+    cpuTrafficPolicy = *config->cpuTrafficPolicy();
+    if (cpuTrafficPolicy.trafficPolicy()) {
+      trafficPolicy = *cpuTrafficPolicy.trafficPolicy();
+    }
   }
-  dataPlaneTrafficPolicy.matchToAction()->push_back(match2Action);
-  config->dataPlaneTrafficPolicy() = dataPlaneTrafficPolicy;
+  trafficPolicy.matchToAction()->push_back(match2Action);
+  cpuTrafficPolicy.trafficPolicy() = trafficPolicy;
+  config->cpuTrafficPolicy() = cpuTrafficPolicy;
 }
 
 void addTrapPacketAcl(
@@ -87,18 +97,23 @@ void addTrapPacketAcl(cfg::SwitchConfig* config, uint16_t l4DstPort) {
   cfg::MatchAction action;
   action.sendToQueue() = cfg::QueueMatchAction();
   action.sendToQueue()->queueId() = 0;
-  action.toCpuAction() = cfg::ToCpuAction::TRAP;
+  action.toCpuAction() = cfg::ToCpuAction::COPY;
 
   cfg::MatchToAction match2Action;
   match2Action.matcher() = entry.get_name();
   match2Action.action() = action;
 
-  cfg::TrafficPolicyConfig dataPlaneTrafficPolicy;
-  if (config->dataPlaneTrafficPolicy()) {
-    dataPlaneTrafficPolicy = *config->dataPlaneTrafficPolicy();
+  cfg::TrafficPolicyConfig trafficPolicy;
+  cfg::CPUTrafficPolicyConfig cpuTrafficPolicy;
+  if (config->cpuTrafficPolicy()) {
+    cpuTrafficPolicy = *config->cpuTrafficPolicy();
+    if (cpuTrafficPolicy.trafficPolicy()) {
+      trafficPolicy = *cpuTrafficPolicy.trafficPolicy();
+    }
   }
-  dataPlaneTrafficPolicy.matchToAction()->push_back(match2Action);
-  config->dataPlaneTrafficPolicy() = dataPlaneTrafficPolicy;
+  trafficPolicy.matchToAction()->push_back(match2Action);
+  cpuTrafficPolicy.trafficPolicy() = trafficPolicy;
+  config->cpuTrafficPolicy() = cpuTrafficPolicy;
 }
 
 } // namespace facebook::fboss::utility
