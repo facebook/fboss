@@ -143,7 +143,6 @@ add_library(core
   fboss/agent/HwSwitch.cpp
   fboss/agent/HwSwitchConnectionStatusTable.cpp
   fboss/agent/HwSwitchThriftClientTable.cpp
-  fboss/agent/HwSwitchHandler.cpp
   fboss/agent/IPHeaderV4.cpp
   fboss/agent/IPv4Handler.cpp
   fboss/agent/IPv6Handler.cpp
@@ -263,6 +262,7 @@ set(core_libs
   hw_write_behavior
   hw_ctrl_cpp2
   loadbalancer_utils
+  monolithic_switch_handler
 )
 
 if (FBOSS_CENTOS9)
