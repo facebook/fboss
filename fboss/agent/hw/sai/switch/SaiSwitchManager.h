@@ -144,4 +144,5 @@ void fillHwSwitchWatermarkStats(
     const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
     uint64_t deviceWatermarkBytes,
     HwSwitchWatermarkStats& hwSwitchWatermarkStats);
+void publishSwitchWatermarks(HwSwitchWatermarkStats& watermarkStats);
 } // namespace facebook::fboss

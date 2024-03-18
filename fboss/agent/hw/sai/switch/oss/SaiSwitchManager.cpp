@@ -19,4 +19,6 @@ void fillHwSwitchWatermarkStats(
   CHECK_EQ(counterId2Value.size(), 0);
 }
 
+void publishSwitchWatermarks(HwSwitchWatermarkStats& /*watermarkStats*/) {}
+
 } // namespace facebook::fboss
