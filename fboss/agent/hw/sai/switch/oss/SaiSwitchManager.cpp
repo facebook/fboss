@@ -12,4 +12,11 @@ void fillHwSwitchDramStats(
   CHECK_EQ(counterId2Value.size(), 0);
 }
 
+void fillHwSwitchWatermarkStats(
+    const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
+    uint64_t /*deviceWatermarkBytes*/,
+    HwSwitchWatermarkStats& /*hwSwitchWatermarkStats*/) {
+  CHECK_EQ(counterId2Value.size(), 0);
+}
+
 } // namespace facebook::fboss

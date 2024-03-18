@@ -140,5 +140,8 @@ class SaiSwitchManager {
 void fillHwSwitchDramStats(
     const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
     HwSwitchDramStats& hwSwitchDramStats);
-
+void fillHwSwitchWatermarkStats(
+    const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
+    uint64_t deviceWatermarkBytes,
+    HwSwitchWatermarkStats& hwSwitchWatermarkStats);
 } // namespace facebook::fboss
