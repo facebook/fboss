@@ -15,8 +15,8 @@ namespace facebook::fboss {
 void QsfpFsdbSubscriber::subscribeToSwitchStatePortMap(
     TransceiverManager* tcvrManager) {
   auto path = getSwitchStatePortMapPath();
-  auto stateCb = [](fsdb::FsdbStreamClient::State /*old*/,
-                    fsdb::FsdbStreamClient::State /*new*/) {};
+  auto stateCb = [](fsdb::SubscriptionState /*old*/,
+                    fsdb::SubscriptionState /*new*/) {};
   auto dataCb = [=](fsdb::OperState&& state) {
     if (auto contents = state.contents()) {
       using TC = apache::thrift::type_class::map<

@@ -72,6 +72,71 @@ class FsdbPubSubManager {
   /* Subscriber add APIs */
   void addStateDeltaSubscription(
       const Path& subscribePath,
+      SubscriptionStateChangeCb subscriptionStateChangeCb,
+      FsdbDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaCb,
+      const std::string& fsdbHost = "::1",
+      int32_t fsdbPort = FLAGS_fsdbPort);
+  void addStatePathSubscription(
+      const Path& subscribePath,
+      SubscriptionStateChangeCb subscriptionStateChangeCb,
+      FsdbStateSubscriber::FsdbOperStateUpdateCb operDeltaCb,
+      const std::string& fsdbHost = "::1",
+      int32_t fsdbPort = FLAGS_fsdbPort);
+  void addStatDeltaSubscription(
+      const Path& subscribePath,
+      SubscriptionStateChangeCb subscriptionStateChangeCb,
+      FsdbDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaCb,
+      const std::string& fsdbHost = "::1",
+      int32_t fsdbPort = FLAGS_fsdbPort);
+  void addStatPathSubscription(
+      const Path& subscribePath,
+      SubscriptionStateChangeCb subscriptionStateChangeCb,
+      FsdbStateSubscriber::FsdbOperStateUpdateCb operDeltaCb,
+      const std::string& fsdbHost = "::1",
+      int32_t fsdbPort = FLAGS_fsdbPort);
+  /* multi path subscription */
+  void addStateDeltaSubscription(
+      const MultiPath& subscribePaths,
+      SubscriptionStateChangeCb subscriptionStateChangeCb,
+      FsdbExtDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaCb,
+      const std::string& fsdbHost = "::1",
+      int32_t fsdbPort = FLAGS_fsdbPort);
+  void addStatePathSubscription(
+      const MultiPath& subscribePaths,
+      SubscriptionStateChangeCb subscriptionStateChangeCb,
+      FsdbExtStateSubscriber::FsdbOperStateUpdateCb operStateCb,
+      const std::string& fsdbHost = "::1",
+      int32_t fsdbPort = FLAGS_fsdbPort);
+  void addStatDeltaSubscription(
+      const MultiPath& subscribePath,
+      SubscriptionStateChangeCb subscriptionStateChangeCb,
+      FsdbExtDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaCb,
+      const std::string& fsdbHost = "::1",
+      int32_t fsdbPort = FLAGS_fsdbPort);
+  void addStatPathSubscription(
+      const MultiPath& subscribePath,
+      SubscriptionStateChangeCb subscriptionStateChangeCb,
+      FsdbExtStateSubscriber::FsdbOperStateUpdateCb operDeltaCb,
+      const std::string& fsdbHost = "::1",
+      int32_t fsdbPort = FLAGS_fsdbPort);
+
+  /* Apis that use ServerOptions */
+  // TODO: change all above apis to use server options
+  void addStatePathSubscription(
+      const Path& subscribePath,
+      SubscriptionStateChangeCb subscriptionStateChangeCb,
+      FsdbStateSubscriber::FsdbOperStateUpdateCb operStateCb,
+      FsdbStreamClient::ServerOptions&& serverOptions);
+  void addStatePathSubscription(
+      const MultiPath& subscribePaths,
+      SubscriptionStateChangeCb subscriptionStateChangeCb,
+      FsdbExtStateSubscriber::FsdbOperStateUpdateCb operStateCb,
+      FsdbStreamClient::ServerOptions&& serverOptions,
+      const std::optional<std::string>& clientIdSuffix = std::nullopt);
+
+  /* TODO: Remove Subscriber APIs using FsdbStreamStateChangeCb */
+  void addStateDeltaSubscription(
+      const Path& subscribePath,
       FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
       FsdbDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaCb,
       const std::string& fsdbHost = "::1",
@@ -119,9 +184,6 @@ class FsdbPubSubManager {
       FsdbExtStateSubscriber::FsdbOperStateUpdateCb operDeltaCb,
       const std::string& fsdbHost = "::1",
       int32_t fsdbPort = FLAGS_fsdbPort);
-
-  /* Apis that use ServerOptions */
-  // TODO: change all above apis to use server options
   void addStatePathSubscription(
       const Path& subscribePath,
       FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
@@ -133,12 +195,17 @@ class FsdbPubSubManager {
       FsdbExtStateSubscriber::FsdbOperStateUpdateCb operStateCb,
       FsdbStreamClient::ServerOptions&& serverOptions,
       const std::optional<std::string>& clientIdSuffix = std::nullopt);
+  void addStateDeltaSubscription(
+      const Path& subscribePath,
+      FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
+      FsdbDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaCb,
+      FsdbStreamClient::ServerOptions&& serverOptions);
 
   // TODO: migrate all the above subscription apis from FsdbStreamStateChangeCb
   // to SubscriptionStateChangeCb
   void addStateDeltaSubscription(
       const Path& subscribePath,
-      FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
+      SubscriptionStateChangeCb stateChangeCb,
       FsdbDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaCb,
       FsdbStreamClient::ServerOptions&& serverOptions);
   void addStatePathSubscription(
@@ -227,10 +294,11 @@ class FsdbPubSubManager {
       const std::string& fsdbHost,
       bool isDelta,
       bool subscribeStats);
-  template <typename SubscriberT, typename PathElement>
+  // TODO: cleanup after FsdbStreamStateChangeCb is deprecated
+  template <typename SubscriberT, typename PathElement, typename CallbackT>
   void addSubscriptionImpl(
       const std::vector<PathElement>& subscribePath,
-      FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
+      CallbackT stateChangeCb,
       typename SubscriberT::FsdbSubUnitUpdateCb subUnitAvailableCb,
       bool subscribeStats,
       FsdbStreamClient::ServerOptions&& serverOptions,

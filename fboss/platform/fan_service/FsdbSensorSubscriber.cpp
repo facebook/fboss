@@ -28,8 +28,8 @@ void FsdbSensorSubscriber::subscribeToStatsOrState(
     folly::Synchronized<T>& storage,
     bool stats,
     std::atomic<uint64_t>& lastUpdateTime) {
-  auto stateCb = [](fsdb::FsdbStreamClient::State /*old*/,
-                    fsdb::FsdbStreamClient::State /*new*/) {};
+  auto stateCb = [](fsdb::SubscriptionState /*old*/,
+                    fsdb::SubscriptionState /*new*/) {};
   auto dataCb = [&](fsdb::OperState&& state) {
     storage.withWLock([&](auto& locked) {
       if (auto metadata = state.metadata()) {

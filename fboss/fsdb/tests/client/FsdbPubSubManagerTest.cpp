@@ -82,10 +82,22 @@ class FsdbPubSubManagerTest : public ::testing::Test {
       }
     };
   }
+  SubscriptionStateChangeCb subscrStateChangeCb() {
+    return [this](SubscriptionState /*oldState*/, SubscriptionState newState) {
+      if (isConnected(newState)) {
+        connectionSync_.post();
+      }
+    };
+  }
   template <typename SubUnit>
-  FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb(
-      folly::Synchronized<std::vector<SubUnit>>& subUnits) {
-    return [this, &subUnits](auto /*oldState*/, auto newState) {
+  SubscriptionStateChangeCb subscrStateChangeCb(
+      folly::Synchronized<std::vector<SubUnit>>& subUnits,
+      std::optional<std::function<void()>> onDisconnect = std::nullopt) {
+    return [this, &onDisconnect, &subUnits](
+               SubscriptionState /*oldState*/, SubscriptionState newState) {
+      if (onDisconnect.has_value() && isDisconnected(newState)) {
+        onDisconnect.value()();
+      }
       if (!isConnected(newState)) {
         subUnits.wlock()->clear();
       }
@@ -209,7 +221,7 @@ class FsdbPubSubManagerTest : public ::testing::Test {
 
   void addStatDeltaSubscription(
       FsdbDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaUpdate,
-      FsdbStreamClient::FsdbStreamStateChangeCb stChangeCb,
+      SubscriptionStateChangeCb stChangeCb,
       bool waitForConnection = true) {
     pubSubManager_->addStatDeltaSubscription(
         subscriptionPath(),
@@ -224,7 +236,7 @@ class FsdbPubSubManagerTest : public ::testing::Test {
   }
   void addStateDeltaSubscription(
       FsdbDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaUpdate,
-      FsdbStreamClient::FsdbStreamStateChangeCb stChangeCb,
+      SubscriptionStateChangeCb stChangeCb,
       bool waitForConnection = true) {
     pubSubManager_->addStateDeltaSubscription(
         subscriptionPath(),
@@ -239,12 +251,12 @@ class FsdbPubSubManagerTest : public ::testing::Test {
   }
   void addSubscriptions(
       FsdbDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaUpdate) {
-    addStatDeltaSubscription(operDeltaUpdate, stateChangeCb());
-    addStateDeltaSubscription(operDeltaUpdate, stateChangeCb());
+    addStatDeltaSubscription(operDeltaUpdate, subscrStateChangeCb());
+    addStateDeltaSubscription(operDeltaUpdate, subscrStateChangeCb());
   }
   void addStatPathSubscription(
       FsdbStateSubscriber::FsdbOperStateUpdateCb operPathUpdate,
-      FsdbStreamClient::FsdbStreamStateChangeCb stChangeCb,
+      SubscriptionStateChangeCb stChangeCb,
       bool waitForConnection = true) {
     pubSubManager_->addStatPathSubscription(
         subscriptionPath(),
@@ -259,7 +271,7 @@ class FsdbPubSubManagerTest : public ::testing::Test {
   }
   void addStatePathSubscription(
       FsdbStateSubscriber::FsdbOperStateUpdateCb operPathUpdate,
-      FsdbStreamClient::FsdbStreamStateChangeCb stChangeCb,
+      SubscriptionStateChangeCb stChangeCb,
       bool waitForConnection = true) {
     pubSubManager_->addStatePathSubscription(
         subscriptionPath(),
@@ -295,8 +307,8 @@ class FsdbPubSubManagerTest : public ::testing::Test {
   }
   void addSubscriptions(
       FsdbStateSubscriber::FsdbOperStateUpdateCb operPathUpdate) {
-    addStatPathSubscription(operPathUpdate, stateChangeCb());
-    addStatePathSubscription(operPathUpdate, stateChangeCb());
+    addStatPathSubscription(operPathUpdate, subscrStateChangeCb());
+    addStatePathSubscription(operPathUpdate, subscrStateChangeCb());
   }
   FsdbDeltaSubscriber::FsdbOperDeltaUpdateCb makeOperDeltaCb(
       folly::Synchronized<std::vector<OperDelta>>& deltas) {
@@ -379,17 +391,19 @@ TYPED_TEST(FsdbPubSubManagerTest, publisherDropCausesSubscriberReset) {
   folly::Synchronized<std::vector<OperState>> statPaths, statePaths;
   this->addStatDeltaSubscription(
       this->makeOperDeltaCb(statDeltas),
-      this->stateChangeCb(statDeltas),
+      this->subscrStateChangeCb(statDeltas),
       false);
   this->addStateDeltaSubscription(
       this->makeOperDeltaCb(stateDeltas),
-      this->stateChangeCb(stateDeltas),
+      this->subscrStateChangeCb(stateDeltas),
       false);
   this->addStatPathSubscription(
-      this->makeOperStateCb(statPaths), this->stateChangeCb(statPaths), false);
+      this->makeOperStateCb(statPaths),
+      this->subscrStateChangeCb(statPaths),
+      false);
   this->addStatePathSubscription(
       this->makeOperStateCb(statePaths),
-      this->stateChangeCb(statePaths),
+      this->subscrStateChangeCb(statePaths),
       false);
   // Publish
   this->publish(makePortStats(1));
@@ -454,36 +468,33 @@ TYPED_TEST(FsdbPubSubManagerGRTest, verifySubscriptionDisconnectOnPublisherGR) {
   folly::Synchronized<std::vector<OperState>> statPaths, statePaths;
   this->addStatDeltaSubscription(
       this->makeOperDeltaCb(statDeltas),
-      this->stateChangeCb(
+      this->subscrStateChangeCb(
+          stateDeltas,
           [this]() {
             this->updateSubscriptionLastDisconnectReason(true, true);
-          },
-          stateDeltas),
+          }),
       false);
   this->addStatPathSubscription(
       this->makeOperStateCb(statPaths),
-      this->stateChangeCb(
+      this->subscrStateChangeCb(
+          stateDeltas,
           [this]() {
             this->updateSubscriptionLastDisconnectReason(false, true);
-          },
-          stateDeltas),
+          }),
       false);
   this->addStateDeltaSubscription(
       this->makeOperDeltaCb(stateDeltas),
-      this->stateChangeCb(
+      this->subscrStateChangeCb(
+          stateDeltas,
           [this]() {
             this->updateSubscriptionLastDisconnectReason(true, false);
-          },
-          stateDeltas),
+          }),
       false);
+  SubscriptionStateChangeCb stChangeCb = this->subscrStateChangeCb(
+      statePaths,
+      [this]() { this->updateSubscriptionLastDisconnectReason(false, false); });
   this->addStatePathSubscription(
-      this->makeOperStateCb(statePaths),
-      this->stateChangeCb(
-          [this]() {
-            this->updateSubscriptionLastDisconnectReason(false, false);
-          },
-          statePaths),
-      false);
+      this->makeOperStateCb(statePaths), stChangeCb, false);
   // Publish
   this->publish(makePortStats(1));
   this->assertQueue(statDeltas, 1);

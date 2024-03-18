@@ -21,6 +21,9 @@ namespace facebook::fboss::fsdb {
 void stateChangeCb(
     FsdbStreamClient::State /*old*/,
     FsdbStreamClient::State /*new*/) {}
+void subscriptionStateChangeCb(
+    SubscriptionState /*old*/,
+    SubscriptionState /*new*/) {}
 void operDeltaCb(OperDelta /*delta*/) {}
 void operStateCb(OperState /*state*/) {}
 
@@ -30,25 +33,25 @@ class PubSubManagerTest : public ::testing::Test {
       const std::vector<std::string>& path,
       const std::string& host = "::1") {
     pubSubManager_.addStateDeltaSubscription(
-        path, stateChangeCb, operDeltaCb, host);
+        path, subscriptionStateChangeCb, operDeltaCb, host);
   }
   void addStatDeltaSubscription(
       const std::vector<std::string>& path,
       const std::string& host = "::1") {
     pubSubManager_.addStatDeltaSubscription(
-        path, stateChangeCb, operDeltaCb, host);
+        path, subscriptionStateChangeCb, operDeltaCb, host);
   }
   void addStatePathSubscription(
       const std::vector<std::string>& path,
       const std::string& host = "::1") {
     pubSubManager_.addStatePathSubscription(
-        path, stateChangeCb, operStateCb, host);
+        path, subscriptionStateChangeCb, operStateCb, host);
   }
   void addStatPathSubscription(
       const std::vector<std::string>& path,
       const std::string& host = "::1") {
     pubSubManager_.addStatPathSubscription(
-        path, stateChangeCb, operStateCb, host);
+        path, subscriptionStateChangeCb, operStateCb, host);
   }
   FsdbPubSubManager pubSubManager_{"testMgr"};
 };
