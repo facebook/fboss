@@ -133,6 +133,8 @@ class AgentHwTest : public ::testing::Test {
 
   HwSwitchDropStats getAggregatedSwitchDropStats();
 
+  std::map<uint16_t, HwSwitchWatermarkStats> getAllSwitchWatermarkStats();
+
   virtual cfg::SwitchConfig initialConfig(const AgentEnsemble& ensemble) const;
 
   cfg::SwitchConfig addCoppConfig(

@@ -255,6 +255,16 @@ HwSwitchDropStats AgentHwTest::getAggregatedSwitchDropStats() {
   return hwSwitchDropStats;
 }
 
+std::map<uint16_t, HwSwitchWatermarkStats>
+AgentHwTest::getAllSwitchWatermarkStats() {
+  std::map<uint16_t, HwSwitchWatermarkStats> watermarkStats;
+  const auto& hwSwitchStatsMap = getSw()->getHwSwitchStatsExpensive();
+  for (const auto& [switchIdx, hwSwitchStats] : hwSwitchStatsMap) {
+    watermarkStats.emplace(switchIdx, *hwSwitchStats.switchWatermarkStats());
+  }
+  return watermarkStats;
+}
+
 void AgentHwTest::applyNewStateImpl(
     StateUpdateFn fn,
     const std::string& name,
