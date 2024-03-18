@@ -139,4 +139,13 @@ const std::vector<sai_stat_id_t>& SaiSwitchTraits::dramStats() {
   return stats;
 }
 
+const std::vector<sai_stat_id_t>& SaiSwitchTraits::rciWatermarkStats() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>& SaiSwitchTraits::dtlWatermarkStats() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
 } // namespace facebook::fboss
