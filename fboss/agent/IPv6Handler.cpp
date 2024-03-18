@@ -812,6 +812,8 @@ void IPv6Handler::sendUnicastNeighborSolicitation(
     const folly::MacAddress& srcMac,
     const std::optional<VlanID>& vlanID,
     const PortDescriptor& portDescriptor) {
+  auto portToSend{portDescriptor};
+
   if (FLAGS_disable_neighbor_updates) {
     XLOG(DBG4)
         << "skipping sending neighbor solicitation since neighbor updates are disabled";
@@ -830,10 +832,9 @@ void IPv6Handler::sendUnicastNeighborSolicitation(
       intfID = sw->getInterfaceIDForAggregatePort(portDescriptor.aggPortID());
       break;
     case PortDescriptor::PortType::SYSTEM_PORT:
-      // We expect the caller to resolve the system port down to its underlying
-      // physical port.
-      throw FbossError("Received checkReachability query on systemPort");
-      break;
+      auto physPortID = getPortID(portDescriptor.sysPortID(), sw->getState());
+      portToSend = PortDescriptor(physPortID);
+      intfID = sw->getState()->getInterfaceIDForPort(physPortID);
   }
 
   if (!Interface::isIpAttached(targetIP, intfID, state)) {
@@ -846,10 +847,11 @@ void IPv6Handler::sendUnicastNeighborSolicitation(
   XLOG(DBG4) << "sending unicast neighbor solicitation to " << targetIP << "("
              << targetMac << ")"
              << " on interface " << intfID << " from " << srcIP << "(" << srcMac
-             << ")  portDescriptor:" << portDescriptor.str();
+             << ")  portDescriptor:" << portDescriptor.str()
+             << " portToSend: " << portToSend.str();
 
   return sendNeighborSolicitation(
-      sw, targetIP, targetMac, srcIP, srcMac, targetIP, vlanID, portDescriptor);
+      sw, targetIP, targetMac, srcIP, srcMac, targetIP, vlanID, portToSend);
 }
 
 void IPv6Handler::sendMulticastNeighborSolicitation(
