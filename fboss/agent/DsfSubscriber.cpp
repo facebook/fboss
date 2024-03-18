@@ -205,8 +205,8 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
           std::move(opts),
           getAllSubscribePaths(localNodeName_),
           [this, nodeName](
-              fsdb::FsdbExtStateSubscriber::SubscriptionState oldState,
-              fsdb::FsdbExtStateSubscriber::SubscriptionState newState) {
+              fsdb::SubscriptionState oldState,
+              fsdb::SubscriptionState newState) {
             handleFsdbSubscriptionStateUpdate(nodeName, oldState, newState);
           },
           [this, nodeName, nodeSwitchId](
@@ -253,18 +253,19 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
 
 void DsfSubscriber::handleFsdbSubscriptionStateUpdate(
     const std::string& nodeName,
-    fsdb::FsdbExtStateSubscriber::SubscriptionState oldState,
-    fsdb::FsdbExtStateSubscriber::SubscriptionState newState) {
-  XLOG(DBG2)
-      << "DsfSubscriber: " << nodeName << ": subscription state changed "
-      << fsdb::FsdbExtStateSubscriber::subscriptionStateToString(oldState)
-      << " -> "
-      << fsdb::FsdbExtStateSubscriber::subscriptionStateToString(newState);
+    fsdb::SubscriptionState oldState,
+    fsdb::SubscriptionState newState) {
+  if (XLOG_IS_ON(DBG2)) {
+    XLOG(DBG2) << "DsfSubscriber: " << nodeName
+               << ": subscription state changed "
+               << fsdb::subscriptionStateToString(oldState) << " -> "
+               << fsdb::subscriptionStateToString(newState);
+  }
 
-  auto oldThriftState = fsdb::FsdbExtStateSubscriber::isConnected(oldState)
+  auto oldThriftState = fsdb::isConnected(oldState)
       ? fsdb::FsdbSubscriptionState::CONNECTED
       : fsdb::FsdbSubscriptionState::DISCONNECTED;
-  auto newThriftState = fsdb::FsdbExtStateSubscriber::isConnected(newState)
+  auto newThriftState = fsdb::isConnected(newState)
       ? fsdb::FsdbSubscriptionState::CONNECTED
       : fsdb::FsdbSubscriptionState::DISCONNECTED;
 

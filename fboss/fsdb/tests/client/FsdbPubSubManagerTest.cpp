@@ -105,18 +105,15 @@ class FsdbPubSubManagerTest : public ::testing::Test {
     };
   }
 
-  FsdbStateSubscriber::FsdbSubscriptionStateChangeCb
-  subscriptionStateChangeCb() {
-    return [this](
-               FsdbStateSubscriber::SubscriptionState /*oldState*/,
-               FsdbStateSubscriber::SubscriptionState newState) {
+  SubscriptionStateChangeCb subscriptionStateChangeCb() {
+    return [this](SubscriptionState /*oldState*/, SubscriptionState newState) {
       auto state = subscriptionState_.wlock();
       *state = newState;
     };
   }
-  folly::Synchronized<FsdbStateSubscriber::SubscriptionState>
-      subscriptionState_{FsdbStateSubscriber::SubscriptionState::DISCONNECTED};
-  FsdbStateSubscriber::SubscriptionState getSubscriptionState() {
+  folly::Synchronized<SubscriptionState> subscriptionState_{
+      SubscriptionState::DISCONNECTED};
+  SubscriptionState getSubscriptionState() {
     return *subscriptionState_.rlock();
   }
 
@@ -277,7 +274,7 @@ class FsdbPubSubManagerTest : public ::testing::Test {
   }
   void addStatePathSubscriptionWithGrHoldTime(
       FsdbStateSubscriber::FsdbOperStateUpdateCb operPathUpdate,
-      FsdbStateSubscriber::FsdbSubscriptionStateChangeCb stChangeCb,
+      SubscriptionStateChangeCb stChangeCb,
       uint32_t grHoldTimeSec,
       bool waitForConnection) {
     auto subscribeStats = false;
@@ -533,16 +530,14 @@ TYPED_TEST(FsdbPubSubManagerGRHoldTest, verifySubscriptionDisconnect) {
   this->publish(makeAgentConfig({{"foo", "bar"}}));
   WITH_RETRIES({
     EXPECT_EVENTUALLY_EQ(
-        this->getSubscriptionState(),
-        FsdbStateSubscriber::SubscriptionState::CONNECTED);
+        this->getSubscriptionState(), SubscriptionState::CONNECTED);
   });
   this->assertQueue(statePaths, 1);
   // verify Publisher disconnect for GR is noticed by subscribers
   this->pubSubManager_->removeStateDeltaPublisher(true);
   WITH_RETRIES({
     EXPECT_EVENTUALLY_EQ(
-        this->getSubscriptionState(),
-        FsdbStateSubscriber::SubscriptionState::DISCONNECTED);
+        this->getSubscriptionState(), SubscriptionState::DISCONNECTED);
   });
 
   // Reset pubsub manager while local vector objects are in scope,
@@ -566,7 +561,7 @@ TYPED_TEST(FsdbPubSubManagerGRHoldTest, verifyGRHoldTimeExpiry) {
   WITH_RETRIES({
     EXPECT_EVENTUALLY_EQ(
         this->getSubscriptionState(),
-        FsdbStateSubscriber::SubscriptionState::DISCONNECTED_GR_HOLD_EXPIRED);
+        SubscriptionState::DISCONNECTED_GR_HOLD_EXPIRED);
   });
 
   // Reset pubsub manager while local vector objects are in scope,
@@ -587,8 +582,7 @@ TYPED_TEST(FsdbPubSubManagerGRHoldTest, verifyResyncWithinGRHoldTime) {
   this->pubSubManager_->removeStateDeltaPublisher(true);
   WITH_RETRIES({
     EXPECT_EVENTUALLY_EQ(
-        this->getSubscriptionState(),
-        FsdbStateSubscriber::SubscriptionState::CONNECTED_GR_HOLD);
+        this->getSubscriptionState(), SubscriptionState::CONNECTED_GR_HOLD);
   });
   // reconnect publisher, and verify publisher reconnect within GR hold time
   this->createPublisher(false, true);
@@ -596,8 +590,7 @@ TYPED_TEST(FsdbPubSubManagerGRHoldTest, verifyResyncWithinGRHoldTime) {
   // verify subscriber state stays connected, and never disconnected
   WITH_RETRIES({
     EXPECT_EVENTUALLY_EQ(
-        this->getSubscriptionState(),
-        FsdbStateSubscriber::SubscriptionState::CONNECTED);
+        this->getSubscriptionState(), SubscriptionState::CONNECTED);
   });
 
   // Reset pubsub manager while local vector objects are in scope,

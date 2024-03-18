@@ -54,8 +54,8 @@ FsdbStateSubscriberImpl<SubUnit, PathElement>::serveStream(StreamT&& stream) {
         continue;
       }
     }
-    if (this->getSubscriptionState() != BaseT::SubscriptionState::CONNECTED) {
-      BaseT::updateSubscriptionState(BaseT::SubscriptionState::CONNECTED);
+    if (this->getSubscriptionState() != SubscriptionState::CONNECTED) {
+      BaseT::updateSubscriptionState(SubscriptionState::CONNECTED);
     }
     SubUnitT tmp(*state);
     this->operSubUnitUpdate_(std::move(tmp));
