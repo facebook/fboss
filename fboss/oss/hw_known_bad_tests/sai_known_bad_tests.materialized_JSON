@@ -1801,18 +1801,6 @@
           "test_name_regex": "HwDataPlaneMirrorTest/0.TrucatePortErspanMirror"
         },
         {
-          "test_name_regex": "HwRouteCounterOverflowTest.overflowRouteCounters"
-        },
-        {
-          "test_name_regex": "HwRouteScaleTest.anticipatedRouteScaleGenerator"
-        },
-        {
-          "test_name_regex": "HwRouteScaleTest.hgrid*"
-        },
-        {
-          "test_name_regex": "HwRouteStatTest*"
-        },
-        {
           "test_name_regex": "HwTest_PROFILE_200G*"
         },
         {
@@ -1820,9 +1808,6 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_800G*"
-        },
-        {
-          "test_name_regex": "HwWideEcmpTest*"
         },
         {
           "test_name_regex": "HwHashPolarizationTestForSAITH3"
@@ -4168,18 +4153,6 @@
           "test_name_regex": "HwDataPlaneMirrorTest/0.TrucatePortErspanMirror"
         },
         {
-          "test_name_regex": "HwRouteCounterOverflowTest.overflowRouteCounters"
-        },
-        {
-          "test_name_regex": "HwRouteScaleTest.anticipatedRouteScaleGenerator"
-        },
-        {
-          "test_name_regex": "HwRouteScaleTest.hgrid*"
-        },
-        {
-          "test_name_regex": "HwRouteStatTest*"
-        },
-        {
           "test_name_regex": "HwTest_PROFILE_200G*"
         },
         {
@@ -4187,9 +4160,6 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_800G*"
-        },
-        {
-          "test_name_regex": "HwWideEcmpTest*"
         },
         {
           "test_name_regex": "HwHashPolarizationTestForSAITH3"
@@ -5210,18 +5180,6 @@
           "test_name_regex": "HwDataPlaneMirrorTest/0.TrucatePortErspanMirror"
         },
         {
-          "test_name_regex": "HwRouteCounterOverflowTest.overflowRouteCounters"
-        },
-        {
-          "test_name_regex": "HwRouteScaleTest.anticipatedRouteScaleGenerator"
-        },
-        {
-          "test_name_regex": "HwRouteScaleTest.hgrid*"
-        },
-        {
-          "test_name_regex": "HwRouteStatTest*"
-        },
-        {
           "test_name_regex": "HwTest_PROFILE_200G*"
         },
         {
@@ -5229,9 +5187,6 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_800G*"
-        },
-        {
-          "test_name_regex": "HwWideEcmpTest*"
         },
         {
           "test_name_regex": "HwHashPolarizationTestForSAITH3"
@@ -6336,18 +6291,6 @@
           "test_name_regex": "HwDataPlaneMirrorTest/0.TrucatePortErspanMirror"
         },
         {
-          "test_name_regex": "HwRouteCounterOverflowTest.overflowRouteCounters"
-        },
-        {
-          "test_name_regex": "HwRouteScaleTest.anticipatedRouteScaleGenerator"
-        },
-        {
-          "test_name_regex": "HwRouteScaleTest.hgrid*"
-        },
-        {
-          "test_name_regex": "HwRouteStatTest*"
-        },
-        {
           "test_name_regex": "HwTest_PROFILE_200G*"
         },
         {
@@ -6355,9 +6298,6 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_800G*"
-        },
-        {
-          "test_name_regex": "HwWideEcmpTest*"
         },
         {
           "test_name_regex": "HwHashPolarizationTestForSAITH3"
@@ -7917,18 +7857,6 @@
           "test_name_regex": "HwDataPlaneMirrorTest/0.TrucatePortErspanMirror"
         },
         {
-          "test_name_regex": "HwRouteCounterOverflowTest.overflowRouteCounters"
-        },
-        {
-          "test_name_regex": "HwRouteScaleTest.anticipatedRouteScaleGenerator"
-        },
-        {
-          "test_name_regex": "HwRouteScaleTest.hgrid*"
-        },
-        {
-          "test_name_regex": "HwRouteStatTest*"
-        },
-        {
           "test_name_regex": "HwTest_PROFILE_200G*"
         },
         {
@@ -7936,9 +7864,6 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_800G*"
-        },
-        {
-          "test_name_regex": "HwWideEcmpTest*"
         },
         {
           "test_name_regex": "HwHashPolarizationTestForSAITH3"
@@ -10139,18 +10064,6 @@
           "test_name_regex": "HwDataPlaneMirrorTest/0.TrucatePortErspanMirror"
         },
         {
-          "test_name_regex": "HwRouteCounterOverflowTest.overflowRouteCounters"
-        },
-        {
-          "test_name_regex": "HwRouteScaleTest.anticipatedRouteScaleGenerator"
-        },
-        {
-          "test_name_regex": "HwRouteScaleTest.hgrid*"
-        },
-        {
-          "test_name_regex": "HwRouteStatTest*"
-        },
-        {
           "test_name_regex": "HwTest_PROFILE_200G*"
         },
         {
@@ -10158,9 +10071,6 @@
         },
         {
           "test_name_regex": "HwTest_PROFILE_800G*"
-        },
-        {
-          "test_name_regex": "HwWideEcmpTest*"
         },
         {
           "test_name_regex": "HwHashPolarizationTestForSAITH3"
