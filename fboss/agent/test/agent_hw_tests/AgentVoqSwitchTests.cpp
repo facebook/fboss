@@ -12,8 +12,6 @@
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
-DECLARE_bool(enable_stats_update_thread);
-
 namespace {
 constexpr uint8_t kDefaultQueue = 0;
 }
