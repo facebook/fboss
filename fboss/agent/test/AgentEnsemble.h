@@ -249,6 +249,7 @@ std::unique_ptr<AgentEnsemble> createAgentEnsemble(
     uint32_t featuresDesired =
         (HwSwitch::FeaturesDesired::PACKET_RX_DESIRED |
          HwSwitch::FeaturesDesired::LINKSCAN_DESIRED |
+         HwSwitch::FeaturesDesired::TAM_EVENT_NOTIFY_DESIRED |
          HwSwitch::FeaturesDesired::LINK_ACTIVE_INACTIVE_NOTIFY_DESIRED));
 
 } // namespace facebook::fboss
