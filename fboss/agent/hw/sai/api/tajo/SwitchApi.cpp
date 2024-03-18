@@ -86,6 +86,16 @@ const std::vector<sai_stat_id_t>& SaiSwitchTraits::dramStats() {
   return stats;
 }
 
+const std::vector<sai_stat_id_t>& SaiSwitchTraits::rciWatermarkStats() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>& SaiSwitchTraits::dtlWatermarkStats() {
+  static const std::vector<sai_stat_id_t> stats;
+  return stats;
+}
+
 void SwitchApi::registerSwitchEventCallback(
     SwitchSaiId /*id*/,
     void* /*switch_event_cb*/) const {}

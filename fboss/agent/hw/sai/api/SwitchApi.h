@@ -537,6 +537,8 @@ struct SaiSwitchTraits {
 #endif
   static constexpr std::array<sai_stat_id_t, 0> CounterIdsToReadAndClear = {};
   static const std::vector<sai_stat_id_t>& dramStats();
+  static const std::vector<sai_stat_id_t>& rciWatermarkStats();
+  static const std::vector<sai_stat_id_t>& dtlWatermarkStats();
 };
 
 SAI_ATTRIBUTE_NAME(Switch, InitSwitch)

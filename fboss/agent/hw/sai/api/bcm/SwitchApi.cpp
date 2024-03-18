@@ -83,6 +83,27 @@ const std::vector<sai_stat_id_t>& SaiSwitchTraits::dramStats() {
   return stats;
 }
 
+const std::vector<sai_stat_id_t>& SaiSwitchTraits::rciWatermarkStats() {
+#if defined(SAI_VERSION_11_0_EA_DNX_ODP)
+  static const std::vector<sai_stat_id_t> stats{
+      SAI_SWITCH_STAT_DEVICE_RCI_WATERMARK_BYTES,
+      SAI_SWITCH_STAT_DEVICE_CORE_RCI_WATERMARK_BYTES};
+#else
+  static const std::vector<sai_stat_id_t> stats;
+#endif
+  return stats;
+}
+
+const std::vector<sai_stat_id_t>& SaiSwitchTraits::dtlWatermarkStats() {
+#if defined(SAI_VERSION_11_0_EA_DNX_ODP)
+  static const std::vector<sai_stat_id_t> stats{
+      SAI_SWITCH_STAT_HIGHEST_QUEUE_CONGESTION_LEVEL};
+#else
+  static const std::vector<sai_stat_id_t> stats;
+#endif
+  return stats;
+}
+
 void SwitchApi::registerSwitchEventCallback(
     SwitchSaiId id,
     void* switch_event_cb) const {
