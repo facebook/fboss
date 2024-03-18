@@ -143,9 +143,9 @@ inline void NdpCache::checkReachability(
       srcIntf = state->getInterfaces()->getNodeIf(intfID);
       break;
     case PortDescriptor::PortType::SYSTEM_PORT:
-      // We expect the caller to resolve the system port down to its underlying
-      // physical port.
-      throw FbossError("Received checkReachability query on systemPort");
+      auto physPortID = getPortID(port.sysPortID(), getSw()->getState());
+      intfID = getSw()->getState()->getInterfaceIDForPort(physPortID);
+      srcIntf = state->getInterfaces()->getNodeIf(intfID);
       break;
   }
 
