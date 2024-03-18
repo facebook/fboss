@@ -154,6 +154,17 @@ void SaiPortManager::fillInSupportedStats(PortID port) {
           SaiPortTraits::PfcCounterIdsToRead.begin(),
           SaiPortTraits::PfcCounterIdsToRead.end(),
           std::back_inserter(counterIds));
+
+      if (platform_->getAsic()->isSupported(
+              HwAsic::Feature::PFC_XON_TO_XOFF_COUNTER)) {
+        counterIds.reserve(
+            counterIds.size() +
+            SaiPortTraits::PfcXonToXoffCounterIdsToRead.size());
+        std::copy(
+            SaiPortTraits::PfcXonToXoffCounterIdsToRead.begin(),
+            SaiPortTraits::PfcXonToXoffCounterIdsToRead.end(),
+            std::back_inserter(counterIds));
+      }
     }
     // ETHER stats used on j3 sim
     if (platform_->getAsic()->isSupported(
