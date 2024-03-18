@@ -243,6 +243,12 @@ struct HwBufferPoolStats {
   1: i64 deviceWatermarkBytes;
 }
 
+struct HwSwitchWatermarkStats {
+  1: optional i64 fdrRciWatermarkBytes;
+  2: optional i64 coreRciWatermarkBytes;
+  3: optional i64 dtlQueueWatermarkBytes;
+}
+
 struct CpuPortStats {
   1: map<i32, i64> queueInPackets_;
   2: map<i32, i64> queueDiscardPackets_;
