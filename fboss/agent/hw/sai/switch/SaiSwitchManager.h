@@ -90,6 +90,9 @@ class SaiSwitchManager {
     return switchDropStats_;
   }
   void setForceTrafficOverFabric(bool forceTrafficOverFabric);
+  HwSwitchWatermarkStats getSwitchWatermarkStats() const {
+    return switchWatermarkStats_;
+  }
 
  private:
   void programEcmpLoadBalancerParams(
@@ -135,6 +138,7 @@ class SaiSwitchManager {
   // since this is an optional attribute in SAI
   std::optional<bool> isPtpTcEnabled_{std::nullopt};
   HwSwitchDropStats switchDropStats_;
+  HwSwitchWatermarkStats switchWatermarkStats_;
 };
 
 void fillHwSwitchDramStats(

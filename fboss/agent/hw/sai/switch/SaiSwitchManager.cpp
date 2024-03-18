@@ -833,6 +833,7 @@ void SaiSwitchManager::updateStats(bool updateWatermarks) {
         switch_->getStats(supportedStats),
         managerTable_->bufferManager().getDeviceWatermarkBytes(),
         watermarkStats);
+    switchWatermarkStats_ = watermarkStats;
     publishSwitchWatermarks(watermarkStats);
   }
 }
