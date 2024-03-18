@@ -105,7 +105,7 @@ void SaiSwitch::updateStatsImpl() {
   }
   {
     std::lock_guard<std::mutex> locked(saiSwitchMutex_);
-    managerTable_->switchManager().updateStats();
+    managerTable_->switchManager().updateStats(updateWatermarks);
   }
 }
 } // namespace facebook::fboss

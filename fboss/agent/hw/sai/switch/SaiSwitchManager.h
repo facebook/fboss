@@ -83,7 +83,7 @@ class SaiSwitchManager {
   bool isGlobalQoSMapSupported() const;
   bool isMplsQoSMapSupported() const;
 
-  void updateStats();
+  void updateStats(bool updateWatermarks);
 
   void setSwitchIsolate(bool isolate);
   HwSwitchDropStats getSwitchDropStats() const {
