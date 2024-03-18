@@ -141,6 +141,8 @@ class MonolithicHwSwitchHandler : public HwSwitchHandler {
 
   AclStats getAclStats() const override;
 
+  HwSwitchWatermarkStats getSwitchWatermarkStats() const;
+
  private:
   Platform* platform_;
   HwSwitch* hw_;

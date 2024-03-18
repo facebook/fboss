@@ -112,6 +112,11 @@ HwSwitchDropStats MonolithicHwSwitchHandler::getSwitchDropStats() const {
   return hw_->getSwitchDropStats();
 }
 
+HwSwitchWatermarkStats MonolithicHwSwitchHandler::getSwitchWatermarkStats()
+    const {
+  return hw_->getSwitchWatermarkStats();
+}
+
 void MonolithicHwSwitchHandler::updateAllPhyInfo() {
   hw_->updateAllPhyInfo();
 }
