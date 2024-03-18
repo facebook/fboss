@@ -740,6 +740,30 @@ const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedDramStats() const {
   return stats;
 }
 
+const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedWatermarkStats()
+    const {
+  static std::vector<sai_stat_id_t> stats;
+  if (stats.size()) {
+    // initialized
+    return stats;
+  }
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::RCI_WATERMARK_COUNTER)) {
+    stats.insert(
+        stats.end(),
+        SaiSwitchTraits::rciWatermarkStats().begin(),
+        SaiSwitchTraits::rciWatermarkStats().end());
+  }
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::DTL_WATERMARK_COUNTER)) {
+    stats.insert(
+        stats.end(),
+        SaiSwitchTraits::dtlWatermarkStats().begin(),
+        SaiSwitchTraits::dtlWatermarkStats().end());
+  }
+  return stats;
+}
+
 void SaiSwitchManager::updateStats() {
   auto switchDropStats = supportedDropStats();
   if (switchDropStats.size()) {

@@ -116,6 +116,7 @@ class SaiSwitchManager {
   void resetLoadBalancer();
   const std::vector<sai_stat_id_t>& supportedDropStats() const;
   const std::vector<sai_stat_id_t>& supportedDramStats() const;
+  const std::vector<sai_stat_id_t>& supportedWatermarkStats() const;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
   std::unique_ptr<SaiSwitchObj> switch_;
