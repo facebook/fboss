@@ -70,7 +70,13 @@ class AgentCoppTest : public AgentHwTest {
 
   std::vector<production_features::ProductionFeature>
   getProductionFeaturesVerified() const override {
-    return {production_features::ProductionFeature::L3_FORWARDING};
+    if constexpr (std::is_same_v<TestType, PortID>) {
+      return {production_features::ProductionFeature::COPP};
+    } else {
+      return {
+          production_features::ProductionFeature::COPP,
+          production_features::ProductionFeature::LAG};
+    }
   }
 
  protected:
