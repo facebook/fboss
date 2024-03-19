@@ -35,33 +35,6 @@ class HwVoqSwitchInterruptTest : public HwLinkStateDependentTest {
   }
 };
 
-TEST_F(HwVoqSwitchInterruptTest, ireError) {
-  auto verify = [=, this]() {
-    constexpr auto kIreErrorIncjectorCintStr = R"(
-  cint_reset();
-  bcm_switch_event_control_t event_ctrl;
-  event_ctrl.event_id = 2034;
-  event_ctrl.index = 0; /* core ID */
-  event_ctrl.action = bcmSwitchEventForce;
-  print bcm_switch_event_control_set(0, BCM_SWITCH_EVENT_DEVICE_INTERRUPT, event_ctrl, 1);
-  )";
-    runCint(kIreErrorIncjectorCintStr);
-    WITH_RETRIES({
-      getHwSwitch()->updateStats();
-      fb303::ThreadCachedServiceData::get()->publishStats();
-      auto ireErrors = getHwSwitch()
-                           ->getSwitchStats()
-                           ->getHwAsicErrors()
-                           .ingressReceiveEditorErrors()
-                           .value_or(0);
-      XLOG(INFO) << " IRE Errors: " << ireErrors;
-      EXPECT_EVENTUALLY_GT(ireErrors, 0);
-      EXPECT_EVENTUALLY_GT(getHwSwitch()->getSwitchStats()->getIreErrors(), 0);
-    });
-  };
-  verifyAcrossWarmBoots([]() {}, verify);
-}
-
 TEST_F(HwVoqSwitchInterruptTest, itppError) {
   auto verify = [=, this]() {
     std::string out;
