@@ -63,3 +63,29 @@ TYPED_TEST(SwitchInfoTableTest, getSwitchIndices) {
       this->infoTable->getSwitchIndicesOfType(this->otherSwitchType()).size(),
       0);
 }
+
+TYPED_TEST(SwitchInfoTableTest, haveSwitchOfType) {
+  if (this->isVoq()) {
+    EXPECT_TRUE(this->infoTable->haveVoqSwitches());
+    EXPECT_TRUE(this->infoTable->haveL3Switches());
+    EXPECT_FALSE(this->infoTable->haveNpuSwitches());
+  } else if (this->isNpu()) {
+    EXPECT_TRUE(this->infoTable->haveNpuSwitches());
+    EXPECT_TRUE(this->infoTable->haveL3Switches());
+    EXPECT_FALSE(this->infoTable->haveVoqSwitches());
+  } else {
+    EXPECT_TRUE(this->infoTable->haveFabricSwitches());
+    EXPECT_FALSE(this->infoTable->haveL3Switches());
+    EXPECT_FALSE(this->infoTable->haveVoqSwitches());
+  }
+}
+
+TYPED_TEST(SwitchInfoTableTest, vlansSupported) {
+  if (this->isVoq()) {
+    EXPECT_FALSE(this->infoTable->vlansSupported());
+  } else if (this->isNpu()) {
+    EXPECT_TRUE(this->infoTable->vlansSupported());
+  } else {
+    EXPECT_FALSE(this->infoTable->vlansSupported());
+  }
+}
