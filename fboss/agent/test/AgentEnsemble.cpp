@@ -6,6 +6,7 @@
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/Utils.h"
 
+#include <folly/io/async/ScopedEventBaseThread.h>
 #include "fboss/agent/CommonInit.h"
 #include "fboss/agent/EncapIndexAllocator.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
@@ -289,15 +290,25 @@ void AgentEnsemble::runDiagCommand(
     const std::string& input,
     std::string& output,
     std::optional<SwitchID> switchId) {
+  ClientInformation clientInfo;
+  clientInfo.username() = "agent_ensemble";
+  clientInfo.hostname() = "agent_ensemble";
   if (FLAGS_multi_switch) {
     CHECK(switchId.has_value());
-    ClientInformation clientInfo;
-    clientInfo.username() = "agent_ensemble";
-    clientInfo.hostname() = "agent_ensemble";
     output = getSw()->getHwSwitchThriftClientTable()->diagCmd(
         switchId.value(), input, clientInfo);
+  } else {
+    auto client = createFbossHwClient(
+        5909, std::make_shared<folly::ScopedEventBaseThread>());
+    fbstring out;
+    client->sync_diagCmd(
+        out,
+        input,
+        clientInfo,
+        0 /* serverTimeoutMsecs */,
+        false /* bypassFilter */);
+    output = out;
   }
-  // TODO: Mono
 }
 
 LinkStateToggler* AgentEnsemble::getLinkToggler() {
