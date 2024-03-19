@@ -89,3 +89,33 @@ TYPED_TEST(SwitchInfoTableTest, vlansSupported) {
     EXPECT_FALSE(this->infoTable->vlansSupported());
   }
 }
+
+TYPED_TEST(SwitchInfoTableTest, l3SwitchType) {
+  if (this->isVoq()) {
+    EXPECT_EQ(this->infoTable->l3SwitchType(), cfg::SwitchType::VOQ);
+  } else if (this->isNpu()) {
+    EXPECT_EQ(this->infoTable->l3SwitchType(), cfg::SwitchType::NPU);
+  } else {
+    EXPECT_THROW(this->infoTable->l3SwitchType(), FbossError);
+  }
+}
+
+TYPED_TEST(SwitchInfoTableTest, getSwitchIndex) {
+  for (auto switchId : this->infoTable->getSwitchIDs()) {
+    EXPECT_EQ(
+        static_cast<int64_t>(switchId),
+        this->infoTable->getSwitchIndexFromSwitchId(switchId));
+  }
+}
+
+TYPED_TEST(SwitchInfoTableTest, getSwitchInfo) {
+  for (auto switchId : this->infoTable->getSwitchIDs()) {
+    EXPECT_EQ(
+        static_cast<int64_t>(switchId),
+        *this->infoTable->getSwitchInfo(switchId).switchIndex());
+  }
+}
+
+TYPED_TEST(SwitchInfoTableTest, getSwitchIdToSwitchInfo) {
+  EXPECT_EQ(this->infoTable->getSwitchIdToSwitchInfo().size(), 2);
+}
