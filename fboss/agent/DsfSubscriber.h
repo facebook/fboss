@@ -56,7 +56,7 @@ class DsfSubscriber : public StateObserver {
  private:
   void scheduleUpdate(
       const std::string& nodeName,
-      SwitchID nodeSwitchId,
+      const SwitchID& nodeSwitchId,
       const std::map<SwitchID, std::shared_ptr<SystemPortMap>>&
           switchId2SystemPorts,
       const std::map<SwitchID, std::shared_ptr<InterfaceMap>>& switchId2Intfs);
