@@ -23,20 +23,19 @@ FruPresenceExplorer::FruPresenceExplorer(
 
 void FruPresenceExplorer::detectFruPresence() {
   XLOG(INFO) << "Detecting presence of FRUs";
-
+  fruTypePresence_.clear();
   for (const auto& fruConfig : fruConfigs_) {
     auto fruType = *fruConfig.fruType();
-    if (fruTypePresence_.find(fruType) == fruTypePresence_.end()) {
-      fruTypePresence_[fruType] = true;
-    }
     try {
       auto value = std::stoi(
           readSysfs(*fruConfig.presenceSysfsPath()).c_str(),
           nullptr,
           0 /*determine base by format*/);
       auto present = value > 0 ? true : false;
-      if (!present) {
-        fruTypePresence_[fruType] = false;
+      if (fruTypePresence_.find(fruType) == fruTypePresence_.end()) {
+        fruTypePresence_[fruType] = present;
+      } else {
+        fruTypePresence_[fruType] &= present;
       }
       XLOG(INFO) << fmt::format(
           "Detected that {} is {}",
