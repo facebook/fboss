@@ -214,6 +214,31 @@ void SaiRouteManager::addOrUpdateRoute(
         if (!routerInterfaceHandle->isLocal()) {
           packetAction = SAI_PACKET_ACTION_DROP;
         }
+        /*
+         * For a subnet route pointing to a router interface BRCM-SAI uses
+         * classID 2. This packet would be copied to low priority queue to CPU
+         * when there is no conflict to this action.
+         * If a DENY data ACL conflicts with this action, the packet will be
+         * dropped before getting copied to the CPU. The reason is this classID
+         * is not backed by an rx reason or any other actions in the pipeline.
+         *
+         * The below flag means an ACL is also added to the configuration (in
+         * the cpu-policer section) which will have a higher priority than all
+         * other data ACLs.
+         *
+         * As a side note, for a host route, BRCM-SAI uses a class ID 1 and
+         * the IP2ME rx reason ensures this packet is duplicated and copied to
+         * the CPU even if there is a conflicting DENY ACL.
+         *
+         * Not-applicable to TAJO because update metadata on interface subnet
+         * route is unsupported
+         */
+#if !defined(TAJO_SDK)
+        if (FLAGS_classid_for_connected_subnet_routes) {
+          metadata = static_cast<uint32_t>(
+              cfg::AclLookupClass::CLASS_CONNECTED_ROUTE_TO_INTF);
+        }
+#endif
         RouterInterfaceSaiId routerInterfaceId{
             routerInterfaceHandle->adapterKey()};
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
