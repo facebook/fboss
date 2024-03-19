@@ -105,6 +105,10 @@ void addLowPriAclForUnresolvedRoutes(
     cfg::ToCpuAction toCpuAction,
     std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>& acls);
 
+void addLowPriAclForConnectedSubnetRoutes(
+    cfg::ToCpuAction toCpuAction,
+    std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>& acls);
+
 void setDefaultCpuTrafficPolicyConfig(
     cfg::SwitchConfig& config,
     const HwAsic* hwAsic,
