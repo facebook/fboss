@@ -70,6 +70,30 @@ class HwRouteTest : public HwLinkStateDependentTest {
     }
     return ports;
   }
+  RoutePrefix<AddrT> getSubnetIpForInterface() const {
+    auto state = this->getProgrammedState();
+    const VlanID vlanID{utility::kBaseVlanId};
+    auto vlan = state->getVlans()->getNodeIf(vlanID);
+    auto interface = state->getInterfaces()->getNodeIf(vlan->getInterfaceID());
+    if (interface) {
+      for (auto iter : std::as_const(*interface->getAddresses())) {
+        std::pair<folly::IPAddress, uint8_t> address(
+            folly::IPAddress(iter.first), iter.second->ref());
+        if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
+          if (address.first.isV4()) {
+            return RoutePrefix<folly::IPAddressV4>{
+                address.first.asV4(), address.second};
+          }
+        } else {
+          if (address.first.isV6()) {
+            return RoutePrefix<folly::IPAddressV6>{
+                address.first.asV6(), address.second};
+          }
+        }
+      }
+    }
+    XLOG(FATAL) << "Invald configuration vlan " << utility::kBaseVlanId;
+  }
   const std::vector<RoutePrefix<AddrT>> kGetRoutePrefixes() const {
     if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
       static const std::vector<RoutePrefix<AddrT>> routePrefixes = {
@@ -195,6 +219,23 @@ TYPED_TEST(HwRouteTest, VerifyClassID) {
   };
 
   this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(HwRouteTest, VerifyClassIDForConnectedRoute) {
+  auto verify = [=, this]() {
+    auto ipAddr = this->getSubnetIpForInterface();
+    // verify if the connected route of the interface is present
+    utility::isHwRoutePresent(
+        this->getHwSwitch(), this->kRouterID(), ipAddr.toCidrNetwork());
+#if !defined(TAJO_SDK)
+    if (FLAGS_classid_for_connected_subnet_routes) {
+      this->verifyClassIDHelper(
+          ipAddr, cfg::AclLookupClass::CLASS_CONNECTED_ROUTE_TO_INTF);
+    }
+#endif
+  };
+
+  this->verifyAcrossWarmBoots([] {}, verify);
 }
 
 TYPED_TEST(HwRouteTest, VerifyClassIdWithNhopResolutionFlap) {

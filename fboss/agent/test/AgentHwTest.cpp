@@ -55,6 +55,10 @@ void AgentHwTest::SetUp() {
   AgentEnsembleSwitchConfigFn initialConfigFn =
       [this](const AgentEnsemble& ensemble) { return initialConfig(ensemble); };
   agentEnsemble_ = createAgentEnsemble(initialConfigFn);
+
+  if (isSupportedOnAllAsics(HwAsic::Feature::ROUTE_METADATA)) {
+    FLAGS_classid_for_connected_subnet_routes = true;
+  }
 }
 
 void AgentHwTest::TearDown() {

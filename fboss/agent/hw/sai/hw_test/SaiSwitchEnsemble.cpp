@@ -175,6 +175,9 @@ void SaiSwitchEnsemble::init(
   hwAsicTableEntry->setDefaultStreamType(
       getPlatform()->getAsic()->getDefaultStreamType());
   getPlatform()->initLEDs();
+  if (getPlatform()->getAsic()->isSupported(HwAsic::Feature::ROUTE_METADATA)) {
+    FLAGS_classid_for_connected_subnet_routes = true;
+  }
   auto hw = static_cast<SaiSwitch*>(getHwSwitch());
   diagShell_ = std::make_unique<DiagShell>(hw);
   diagCmdServer_ = std::make_unique<DiagCmdServer>(hw, diagShell_.get());
