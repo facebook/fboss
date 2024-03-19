@@ -32,6 +32,19 @@ class SwitchInfoTableTest : public testing::Test {
   bool isNpu() const {
     return this->switchType == cfg::SwitchType::NPU;
   }
+  cfg::SwitchType otherSwitchType() const {
+    switch (switchType) {
+      case cfg::SwitchType::NPU:
+        return cfg::SwitchType::VOQ;
+      case cfg::SwitchType::VOQ:
+        return cfg::SwitchType::NPU;
+      case cfg::SwitchType::FABRIC:
+        return cfg::SwitchType::VOQ;
+      case cfg::SwitchType::PHY:
+        return cfg::SwitchType::NPU;
+    }
+    CHECK(false) << " Unexpected switch type: " << static_cast<int>(switchType);
+  }
 };
 
 TYPED_TEST_SUITE(SwitchInfoTableTest, SwitchTypeTestTypes);
@@ -39,9 +52,14 @@ TYPED_TEST_SUITE(SwitchInfoTableTest, SwitchTypeTestTypes);
 TYPED_TEST(SwitchInfoTableTest, getSwitchIds) {
   EXPECT_EQ(this->infoTable->getSwitchIDs().size(), 2);
   EXPECT_EQ(this->infoTable->getSwitchIdsOfType(this->switchType).size(), 2);
+  EXPECT_EQ(
+      this->infoTable->getSwitchIdsOfType(this->otherSwitchType()).size(), 0);
 }
 
 TYPED_TEST(SwitchInfoTableTest, getSwitchIndices) {
   EXPECT_EQ(
       this->infoTable->getSwitchIndicesOfType(this->switchType).size(), 2);
+  EXPECT_EQ(
+      this->infoTable->getSwitchIndicesOfType(this->otherSwitchType()).size(),
+      0);
 }
