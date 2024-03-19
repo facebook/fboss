@@ -35,34 +35,6 @@ class HwVoqSwitchInterruptTest : public HwLinkStateDependentTest {
   }
 };
 
-TEST_F(HwVoqSwitchInterruptTest, itppError) {
-  auto verify = [=, this]() {
-    std::string out;
-    getHwSwitchEnsemble()->runDiagCommand(
-        "s itpp_interrupt_mask_register 0x3f\n", out);
-    getHwSwitchEnsemble()->runDiagCommand(
-        "s itpp_interrupt_register_test 0x2\n", out);
-    getHwSwitchEnsemble()->runDiagCommand(
-        "s itppd_interrupt_mask_register 0x3f\n", out);
-    getHwSwitchEnsemble()->runDiagCommand(
-        "s itppd_interrupt_register_test 0x2\n", out);
-    getHwSwitchEnsemble()->runDiagCommand("quit\n", out);
-    WITH_RETRIES({
-      getHwSwitch()->updateStats();
-      fb303::ThreadCachedServiceData::get()->publishStats();
-      auto itppErrors = getHwSwitch()
-                            ->getSwitchStats()
-                            ->getHwAsicErrors()
-                            .ingressTransmitPipelineErrors()
-                            .value_or(0);
-      XLOG(INFO) << " ITPP Errors: " << itppErrors;
-      EXPECT_EVENTUALLY_GE(itppErrors, 2);
-      EXPECT_EVENTUALLY_GE(getHwSwitch()->getSwitchStats()->getItppErrors(), 2);
-    });
-  };
-  verifyAcrossWarmBoots([]() {}, verify);
-}
-
 TEST_F(HwVoqSwitchInterruptTest, epniError) {
   auto verify = [=, this]() {
     constexpr auto kEpniErrorIncjectorCintStr = R"(

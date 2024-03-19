@@ -19,11 +19,14 @@ class AgentVoqSwitchInterruptTest : public AgentHwTest {
     folly::test::TemporaryFile file;
     XLOG(INFO) << " Cint file " << file.path().c_str();
     folly::writeFull(file.fd(), cintStr.c_str(), cintStr.size());
+    auto cmd = folly::sformat("cint {}\n", file.path().c_str());
+    runCmd(cmd);
+  }
+  void runCmd(const std::string& cmd) {
     for (auto voqSwitchId : getSw()->getSwitchInfoTable().getSwitchIdsOfType(
              cfg::SwitchType::VOQ)) {
       std::string out;
-      getAgentEnsemble()->runDiagCommand(
-          folly::sformat("cint {}\n", file.path().c_str()), out, voqSwitchId);
+      getAgentEnsemble()->runDiagCommand(cmd, out, voqSwitchId);
     }
   }
   std::unordered_set<uint16_t> voqIndices() const {
@@ -31,14 +34,22 @@ class AgentVoqSwitchInterruptTest : public AgentHwTest {
         cfg::SwitchType::VOQ);
   }
   std::map<uint16_t, HwAsicErrors> getVoqAsicErrors() {
-    std::map<uint16_t, HwAsicErrors> asicErrors;
     auto voqIdxs = voqIndices();
-    for (const auto& [switchIdx, switchStats] :
-         getSw()->getHwSwitchStatsExpensive()) {
-      if (voqIdxs.find(switchIdx) != voqIdxs.end()) {
-        asicErrors.insert({switchIdx, *switchStats.hwAsicErrors()});
+    std::map<uint16_t, HwAsicErrors> asicErrors;
+    WITH_RETRIES({
+      asicErrors.clear();
+      for (const auto& [switchIdx, switchStats] :
+           getSw()->getHwSwitchStatsExpensive()) {
+        if (voqIdxs.find(switchIdx) != voqIdxs.end()) {
+          asicErrors.insert({switchIdx, *switchStats.hwAsicErrors()});
+        }
       }
+      EXPECT_EVENTUALLY_EQ(asicErrors.size(), voqIdxs.size());
+    });
+    if (asicErrors.size() != voqIdxs.size()) {
+      throw FbossError("Could not get voq asic error stats");
     }
+
     return asicErrors;
   };
 };
@@ -56,11 +67,29 @@ TEST_F(AgentVoqSwitchInterruptTest, ireError) {
     runCint(kIreErrorIncjectorCintStr);
     WITH_RETRIES({
       auto asicErrors = getVoqAsicErrors();
-      EXPECT_EVENTUALLY_EQ(asicErrors.size(), voqIndices().size());
       for (const auto& [idx, asicError] : asicErrors) {
         auto ireErrors = asicError.ingressReceiveEditorErrors().value_or(0);
         XLOG(INFO) << "Switch index: " << idx << " IRE Errors: " << ireErrors;
         EXPECT_EVENTUALLY_GT(ireErrors, 0);
+      }
+    });
+  };
+  verifyAcrossWarmBoots([]() {}, verify);
+}
+
+TEST_F(AgentVoqSwitchInterruptTest, itppError) {
+  auto verify = [=, this]() {
+    std::string out;
+    runCmd("s itpp_interrupt_mask_register 0x3f\n");
+    runCmd("s itpp_interrupt_register_test 0x2\n");
+    runCmd("s itppd_interrupt_mask_register 0x3f\n");
+    runCmd("s itppd_interrupt_register_test 0x2\n");
+    WITH_RETRIES({
+      auto asicErrors = getVoqAsicErrors();
+      for (const auto& [idx, asicError] : asicErrors) {
+        auto itppErrors = asicError.ingressTransmitPipelineErrors().value_or(0);
+        XLOG(INFO) << "Switch index: " << idx << " ITPP Errors: " << itppErrors;
+        EXPECT_EVENTUALLY_GT(itppErrors, 0);
       }
     });
   };
