@@ -30,20 +30,6 @@ namespace facebook::fboss {
 
 class AgentOlympicQosSchedulerTest : public AgentHwTest {
  private:
-  cfg::SwitchConfig initialConfig(
-      const AgentEnsemble& ensemble) const override {
-    auto asic = utility::getFirstAsic(ensemble.getSw());
-    auto cfg = utility::onePortPerInterfaceConfig(
-        ensemble.getSw(),
-        ensemble.masterLogicalPortIds(),
-        true /*interfaceHasSubnet*/);
-    auto streamType =
-        *(asic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin());
-    utility::addOlympicQueueConfig(&cfg, streamType, asic);
-    utility::addOlympicQosMaps(cfg, asic);
-    utility::setTTLZeroCpuConfig(asic, cfg);
-    return cfg;
-  }
   MacAddress dstMac() const {
     return utility::getFirstInterfaceMac(getProgrammedState());
   }
@@ -192,6 +178,20 @@ class AgentOlympicQosSchedulerTest : public AgentHwTest {
   }
 
  protected:
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto asic = utility::getFirstAsic(ensemble.getSw());
+    auto cfg = utility::onePortPerInterfaceConfig(
+        ensemble.getSw(),
+        ensemble.masterLogicalPortIds(),
+        true /*interfaceHasSubnet*/);
+    auto streamType =
+        *(asic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin());
+    utility::addOlympicQueueConfig(&cfg, streamType, asic);
+    utility::addOlympicQosMaps(cfg, asic);
+    utility::setTTLZeroCpuConfig(asic, cfg);
+    return cfg;
+  }
   std::vector<production_features::ProductionFeature>
   getProductionFeaturesVerified() const override {
     return {production_features::ProductionFeature::L3_QOS};
@@ -513,7 +513,6 @@ void AgentOlympicQosSchedulerTest::verifyDscpToQueueOlympicV2ToOlympic() {
 
   auto setup = [=, this]() {
     resolveNeigborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
-    _setupOlympicV2Queues();
   };
 
   auto verify = [=, this]() {
@@ -621,6 +620,33 @@ TEST_F(AgentOlympicQosSchedulerTest, VerifySP) {
   verifySP();
 }
 
+/*
+ * This test asserts that CPU injected traffic from a higher priority
+ * queue will preempt traffic from a lower priority queue. We only
+ * test for CPU traffic explicitly as VerifySP above already
+ * tests front panel traffic.
+ */
+TEST_F(AgentOlympicQosSchedulerTest, VerifySPPreemptionCPUTraffic) {
+  auto spQueueIds = utility::kOlympicSPQueueIds(getAsic());
+  auto getQueueIndex = [&](int queueId) {
+    for (auto i = 0; i < spQueueIds.size(); ++i) {
+      if (spQueueIds[i] == queueId) {
+        return i;
+      }
+    }
+    throw FbossError("Could not find queueId: ", queueId);
+  };
+  // Assert that ICP comes before NC in the queueIds array.
+  // We will send traffic to all queues in order. So for
+  // preemption we want lower pri (ICP) queue to go before
+  // higher pri queue (NC).
+  ASSERT_LT(
+      getQueueIndex(getOlympicQueueId(utility::OlympicQueueType::ICP)),
+      getQueueIndex(getOlympicQueueId(utility::OlympicQueueType::NC)));
+
+  verifySP(false /*frontPanelTraffic*/);
+}
+
 TEST_F(AgentOlympicQosSchedulerTest, VerifyWRRAndICP) {
   verifyWRRAndICP();
 }
@@ -645,7 +671,49 @@ TEST_F(AgentOlympicQosSchedulerTest, VerifyWRRForOlympicToOlympicV2) {
   verifyWRRForOlympicToOlympicV2();
 }
 
+class AgentOlympicV2MigrationQosSchedulerTest
+    : public AgentOlympicQosSchedulerTest {
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto asic = utility::getFirstAsic(ensemble.getSw());
+    auto cfg = AgentOlympicQosSchedulerTest::initialConfig(ensemble);
+    auto streamType =
+        *(asic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin());
+    utility::addOlympicV2WRRQueueConfig(&cfg, streamType, asic);
+    utility::addOlympicV2QosMaps(cfg, asic);
+    utility::setTTLZeroCpuConfig(asic, cfg);
+    return cfg;
+  }
+};
+
+TEST_F(
+    AgentOlympicV2MigrationQosSchedulerTest,
+    VerifyDscpToQueueOlympicV2ToOlympic) {
+  verifyDscpToQueueOlympicV2ToOlympic();
+}
+
 TEST_F(AgentOlympicQosSchedulerTest, VerifyOlympicV2WRRToAllSPTraffic) {
   verifyOlympicV2WRRToAllSPTraffic();
+}
+
+class AgentOlympicV2SPToWRRQosSchedulerTest
+    : public AgentOlympicQosSchedulerTest {
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto cfg = AgentOlympicQosSchedulerTest::initialConfig(ensemble);
+    auto asic = utility::getFirstAsic(ensemble.getSw());
+    auto streamType =
+        *(asic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin());
+    utility::addOlympicAllSPQueueConfig(&cfg, streamType, asic);
+    utility::addOlympicV2QosMaps(cfg, asic);
+    utility::setTTLZeroCpuConfig(asic, cfg);
+    return cfg;
+  }
+};
+
+TEST_F(
+    AgentOlympicV2SPToWRRQosSchedulerTest,
+    VerifyOlympicV2AllSPTrafficToWRR) {
+  verifyOlympicV2AllSPTrafficToWRR();
 }
 } // namespace facebook::fboss
