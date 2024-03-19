@@ -23,6 +23,7 @@
 
 namespace {
 auto constexpr kRetries = 10;
+auto constexpr kRateSamplingInterval = 5;
 auto constexpr kEcmpWidthForTest = 1;
 } // namespace
 namespace facebook::fboss {
@@ -234,11 +235,15 @@ bool AgentOlympicQosSchedulerTest::verifyWRRHelper(
   getAgentEnsemble()->waitForLineRateOnPort(portId);
   auto retries = kRetries;
   while (retries--) {
-    auto queueStatsBefore = *getLatestPortStats(portId).queueOutPackets_();
-    sleep(1);
-    auto queueStatsAfter = *getLatestPortStats(portId).queueOutPackets_();
-    auto maxWeightQueueBytes = queueStatsAfter.find(maxWeightQueueId)->second -
-        queueStatsBefore.find(maxWeightQueueId)->second;
+    auto portStatsBefore = getLatestPortStats(portId);
+    auto queueStatsBefore = portStatsBefore.queueOutPackets_();
+    sleep(kRateSamplingInterval);
+    auto portStatsAfter = getLatestPortStats(portId);
+    auto queueStatsAfter = portStatsAfter.queueOutPackets_();
+    auto maxWeightQueueBytes =
+        (queueStatsAfter->find(maxWeightQueueId)->second -
+         queueStatsBefore->find(maxWeightQueueId)->second) /
+        (*portStatsAfter.timestamp_() - *portStatsBefore.timestamp_());
     auto maxWeightQueueWeight = wrrQueueToWeight.at(maxWeightQueueId);
     auto maxWeightQueueNormalizedBytes =
         maxWeightQueueBytes / maxWeightQueueWeight;
@@ -254,9 +259,10 @@ bool AgentOlympicQosSchedulerTest::verifyWRRHelper(
                << " low normalized: " << lowMaxWeightQueueNormalizedBytes
                << " high normalized: " << highMaxWeightQueueNormalizedBytes;
     auto distributionOk = true;
-    for (const auto& queueStat : queueStatsAfter) {
+    for (const auto& queueStat : *queueStatsAfter) {
       auto currQueueId = queueStat.first;
-      auto currQueueBytes = queueStat.second - queueStatsBefore[currQueueId];
+      auto currQueueBytes = (queueStat.second - queueStatsBefore[currQueueId]) /
+          (*portStatsAfter.timestamp_() - *portStatsBefore.timestamp_());
       if (wrrQueueToWeight.find(currQueueId) == wrrQueueToWeight.end()) {
         if (currQueueBytes) {
           distributionOk = false;
@@ -294,12 +300,15 @@ bool AgentOlympicQosSchedulerTest::verifySPHelper(int trafficQueueId) {
   auto retries = kRetries;
   while (retries--) {
     auto distributionOk = true;
-    auto queueStatsBefore = *getLatestPortStats(portId).queueOutPackets_();
-    sleep(1);
-    auto queueStatsAfter = *getLatestPortStats(portId).queueOutPackets_();
-    for (const auto& queueStat : queueStatsAfter) {
+    auto portStatsBefore = getLatestPortStats(portId);
+    auto queueStatsBefore = portStatsBefore.queueOutPackets_();
+    sleep(kRateSamplingInterval);
+    auto portStatsAfter = getLatestPortStats(portId);
+    auto queueStatsAfter = portStatsAfter.queueOutPackets_();
+    for (const auto& queueStat : *queueStatsAfter) {
       auto queueId = queueStat.first;
-      auto statVal = queueStat.second - queueStatsBefore[queueId];
+      auto statVal = (queueStat.second - queueStatsBefore[queueId]) /
+          (*portStatsAfter.timestamp_() - *portStatsBefore.timestamp_());
       XLOG(DBG0) << "QueueId: " << queueId << " stats: " << statVal;
       distributionOk =
           (queueId != trafficQueueId ? statVal == 0 : statVal != 0);
