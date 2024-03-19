@@ -204,10 +204,11 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
       fsdbPubSubMgr_->addStatePathSubscription(
           std::move(opts),
           getAllSubscribePaths(localNodeName_),
-          [this, nodeName](
+          [this, nodeName, nodeSwitchId](
               fsdb::SubscriptionState oldState,
               fsdb::SubscriptionState newState) {
-            handleFsdbSubscriptionStateUpdate(nodeName, oldState, newState);
+            handleFsdbSubscriptionStateUpdate(
+                nodeName, nodeSwitchId, oldState, newState);
           },
           [this, nodeName, nodeSwitchId](
               fsdb::OperSubPathUnit&& operStateUnit) {
@@ -253,9 +254,12 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
 
 void DsfSubscriber::handleFsdbSubscriptionStateUpdate(
     const std::string& nodeName,
+    const SwitchID& nodeSwitchId,
     fsdb::SubscriptionState oldState,
     fsdb::SubscriptionState newState) {
-  XLOG(DBG2) << "DsfSubscriber: " << nodeName << ": subscription state changed "
+  XLOG(DBG2) << "DsfSubscriber: " << nodeName
+             << " SwitchID: " << static_cast<int>(nodeSwitchId)
+             << ": subscription state changed "
              << fsdb::subscriptionStateToString(oldState) << " -> "
              << fsdb::subscriptionStateToString(newState);
 

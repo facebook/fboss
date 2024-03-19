@@ -62,6 +62,7 @@ class DsfSubscriber : public StateObserver {
       const std::map<SwitchID, std::shared_ptr<InterfaceMap>>& switchId2Intfs);
   void handleFsdbSubscriptionStateUpdate(
       const std::string& nodeName,
+      const SwitchID& nodeSwitchId,
       fsdb::SubscriptionState oldState,
       fsdb::SubscriptionState newState);
   void handleFsdbUpdate(
