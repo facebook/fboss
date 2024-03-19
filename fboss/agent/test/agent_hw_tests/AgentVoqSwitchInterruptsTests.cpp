@@ -95,4 +95,29 @@ TEST_F(AgentVoqSwitchInterruptTest, itppError) {
   };
   verifyAcrossWarmBoots([]() {}, verify);
 }
+
+TEST_F(AgentVoqSwitchInterruptTest, epniError) {
+  auto verify = [=, this]() {
+    constexpr auto kEpniErrorIncjectorCintStr = R"(
+  cint_reset();
+  bcm_switch_event_control_t event_ctrl;
+  event_ctrl.event_id = 717;  // JR3_INT_EPNI_FIFO_OVERFLOW_INT
+  event_ctrl.index = 0; /* core ID */
+  event_ctrl.action = bcmSwitchEventForce;
+  print bcm_switch_event_control_set(0, BCM_SWITCH_EVENT_DEVICE_INTERRUPT, event_ctrl, 1);
+  )";
+    runCint(kEpniErrorIncjectorCintStr);
+    WITH_RETRIES({
+      auto asicErrors = getVoqAsicErrors();
+      for (const auto& [idx, asicError] : asicErrors) {
+        auto epniErrors =
+            asicError.egressPacketNetworkInterfaceErrors().value_or(0);
+        XLOG(INFO) << "Switch index: " << idx << " EPNI Errors: " << epniErrors;
+        EXPECT_EVENTUALLY_GT(epniErrors, 0);
+      }
+    });
+  };
+  verifyAcrossWarmBoots([]() {}, verify);
+}
+
 } // namespace facebook::fboss
