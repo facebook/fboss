@@ -1,0 +1,58 @@
+{
+  "systemLedConfig": {
+    "presentLedColor": 3,
+    "presentLedSysfsPath": "/sys/class/leds/sys_led:blue:status/brightness",
+    "absentLedColor": 4,
+    "absentLedSysfsPath": "/sys/class/leds/sys_led:amber:status/brightness"
+  },
+  "fruTypeLedConfigs": {
+    "FAN": {
+      "presentLedColor": 3,
+      "presentLedSysfsPath": "/sys/class/leds/fan_led:blue:status/brightness",
+      "absentLedColor": 4,
+      "absentLedSysfsPath": "/sys/class/leds/fan_led:amber:status/brightness"
+    }
+  },
+  "fruConfigs": [
+    {
+      "fruName": "FAN1",
+      "fruType": "FAN",
+      "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan1_presence"
+    },
+    {
+      "fruName": "FAN2",
+      "fruType": "FAN",
+      "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan2_presence"
+    },
+    {
+      "fruName": "FAN3",
+      "fruType": "FAN",
+      "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan3_presence"
+    },
+    {
+      "fruName": "FAN4",
+      "fruType": "FAN",
+      "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan4_presence"
+    },
+    {
+      "fruName": "FAN5",
+      "fruType": "FAN",
+      "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan5_presence"
+    },
+    {
+      "fruName": "FAN6",
+      "fruType": "FAN",
+      "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan6_presence"
+    },
+    {
+      "fruName": "FAN7",
+      "fruType": "FAN",
+      "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan7_presence"
+    },
+    {
+      "fruName": "FAN8",
+      "fruType": "FAN",
+      "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_PWM/fan8_presence"
+    }
+  ]
+}
