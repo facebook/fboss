@@ -17,6 +17,9 @@
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss {
+std::unique_ptr<apache::thrift::Client<FbossHwCtrl>> createFbossHwClient(
+    int16_t port,
+    std::shared_ptr<folly::ScopedEventBaseThread> evbThread);
 class HwSwitchThriftClientTable {
  public:
   HwSwitchThriftClientTable(
@@ -36,10 +39,6 @@ class HwSwitchThriftClientTable {
       const ClientInformation& clientInfo);
 
  private:
-  apache::thrift::Client<FbossHwCtrl> createClient(
-      int16_t port,
-      std::shared_ptr<folly::ScopedEventBaseThread> evbThread);
-
   std::map<
       SwitchID,
       std::pair<

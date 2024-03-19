@@ -24,28 +24,12 @@
 DEFINE_int32(hwswitch_query_timeout, 120, "Timeout for hw switch thrift query");
 
 namespace facebook::fboss {
-HwSwitchThriftClientTable::HwSwitchThriftClientTable(
-    int16_t basePort,
-    const std::map<int64_t, cfg::SwitchInfo>& switchIdToSwitchInfo) {
-  for (const auto& [switchId, switchInfo] : switchIdToSwitchInfo) {
-    auto evbThread = std::make_shared<folly::ScopedEventBaseThread>(
-        fmt::format("HwSwitchCtrlClient-{}", *switchInfo.switchIndex()));
-    auto port = basePort + *switchInfo.switchIndex();
-    clientInfos_.emplace(
-        SwitchID(switchId),
-        std::make_pair(
-            std::make_unique<apache::thrift::Client<FbossHwCtrl>>(
-                createClient(port, evbThread)),
-            evbThread));
-  }
-}
-
 /*
  * Creates a reconnecting thrift client to query HwAgent. This does not
  * connect to server yet. The connection happens when the first thrift api
  * call is made
  */
-apache::thrift::Client<FbossHwCtrl> HwSwitchThriftClientTable::createClient(
+std::unique_ptr<apache::thrift::Client<FbossHwCtrl>> createFbossHwClient(
     int16_t port,
     std::shared_ptr<folly::ScopedEventBaseThread> evbThread) {
   auto reconnectingChannel =
@@ -67,7 +51,21 @@ apache::thrift::Client<FbossHwCtrl> HwSwitchThriftClientTable::createClient(
                       return channel;
                     }));
           });
-  return apache::thrift::Client<FbossHwCtrl>(std::move(reconnectingChannel));
+  return std::make_unique<apache::thrift::Client<FbossHwCtrl>>(
+      std::move(reconnectingChannel));
+}
+
+HwSwitchThriftClientTable::HwSwitchThriftClientTable(
+    int16_t basePort,
+    const std::map<int64_t, cfg::SwitchInfo>& switchIdToSwitchInfo) {
+  for (const auto& [switchId, switchInfo] : switchIdToSwitchInfo) {
+    auto evbThread = std::make_shared<folly::ScopedEventBaseThread>(
+        fmt::format("HwSwitchCtrlClient-{}", *switchInfo.switchIndex()));
+    auto port = basePort + *switchInfo.switchIndex();
+    clientInfos_.emplace(
+        SwitchID(switchId),
+        std::make_pair(createFbossHwClient(port, evbThread), evbThread));
+  }
 }
 
 apache::thrift::Client<FbossHwCtrl>* HwSwitchThriftClientTable::getClient(
