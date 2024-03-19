@@ -23,10 +23,25 @@ class SwitchInfoTableTest : public testing::Test {
     infoTable = std::make_unique<SwitchInfoTable>(switchInfos);
   };
   std::unique_ptr<SwitchInfoTable> infoTable;
+  bool isVoq() const {
+    return this->switchType == cfg::SwitchType::VOQ;
+  }
+  bool isFabric() const {
+    return this->switchType == cfg::SwitchType::FABRIC;
+  }
+  bool isNpu() const {
+    return this->switchType == cfg::SwitchType::NPU;
+  }
 };
 
 TYPED_TEST_SUITE(SwitchInfoTableTest, SwitchTypeTestTypes);
 
 TYPED_TEST(SwitchInfoTableTest, getSwitchIds) {
   EXPECT_EQ(this->infoTable->getSwitchIDs().size(), 2);
+  EXPECT_EQ(this->infoTable->getSwitchIdsOfType(this->switchType).size(), 2);
+}
+
+TYPED_TEST(SwitchInfoTableTest, getSwitchIndices) {
+  EXPECT_EQ(
+      this->infoTable->getSwitchIndicesOfType(this->switchType).size(), 2);
 }
