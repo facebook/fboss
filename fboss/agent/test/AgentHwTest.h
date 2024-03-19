@@ -150,6 +150,8 @@ class AgentHwTest : public ::testing::Test {
     ecmp.programRoutes(&wrapper, width);
   }
 
+  void checkNoStatsChange(int trys = 1);
+
  private:
   void applyNewStateImpl(
       StateUpdateFn fn,

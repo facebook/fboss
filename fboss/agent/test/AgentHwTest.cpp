@@ -4,6 +4,7 @@
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
+#include "fboss/agent/test/utils/StatsTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 DEFINE_bool(run_forever, false, "run the test forever");
@@ -286,6 +287,48 @@ cfg::SwitchConfig AgentHwTest::addCoppConfig(
   utility::setDefaultCpuTrafficPolicyConfig(config, asic, ensemble.isSai());
   utility::addCpuQueueConfig(config, asic, ensemble.isSai());
   return config;
+}
+
+void AgentHwTest::checkNoStatsChange(int trys) {
+  auto resetTimestamp = [this](auto& statsMap) {
+    for (auto& [_, stats] : statsMap) {
+      stats.timestamp() = 0;
+      for (auto& [_, portStats] : *stats.hwPortStats()) {
+        portStats.timestamp_() = 0;
+      }
+      for (auto& [_, sysPortStats] : *stats.sysPortStats()) {
+        sysPortStats.timestamp_() = 0;
+      }
+      stats.teFlowStats()->timestamp() = 0;
+    }
+  };
+  auto timestampChanged = [](const auto& before, const auto& after) {
+    for (auto& [switchId, stats] : before) {
+      if (stats.timestamp() == after.at(switchId).timestamp()) {
+        return false;
+      }
+    }
+    return true;
+  };
+  WITH_RETRIES_N(trys, ({
+                   auto before = getSw()->getHwSwitchStatsExpensive();
+                   std::map<uint16_t, multiswitch::HwSwitchStats> after;
+                   checkWithRetry(
+                       [&before, &after, this, &timestampChanged]() {
+                         after = getSw()->getHwSwitchStatsExpensive();
+                         return timestampChanged(before, after);
+                       },
+                       20,
+                       std::chrono::milliseconds(100),
+                       " fetch port stats");
+                   EXPECT_EVENTUALLY_TRUE(timestampChanged(before, after));
+                   resetTimestamp(before);
+                   resetTimestamp(after);
+
+                   // TODO: Utilize statsMapDelta to compare stats map
+                   // differences
+                   EXPECT_EVENTUALLY_EQ(before, after);
+                 }));
 }
 
 void initAgentHwTest(
