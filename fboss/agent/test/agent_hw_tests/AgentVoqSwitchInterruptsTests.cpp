@@ -143,4 +143,26 @@ TEST_F(AgentVoqSwitchInterruptTest, alignerError) {
   verifyAcrossWarmBoots([]() {}, verify);
 }
 
+TEST_F(AgentVoqSwitchInterruptTest, fqpError) {
+  auto verify = [=, this]() {
+    constexpr auto kFqpErrorIncjectorCintStr = R"(
+  cint_reset();
+  bcm_switch_event_control_t event_ctrl;
+  event_ctrl.event_id = 1294;  // JR3_INT_FQP_ECC_ECC_1B_ERR_INT
+  event_ctrl.index = 0; /* core ID */
+  event_ctrl.action = bcmSwitchEventForce;
+  print bcm_switch_event_control_set(0, BCM_SWITCH_EVENT_DEVICE_INTERRUPT, event_ctrl, 1);
+  )";
+    runCint(kFqpErrorIncjectorCintStr);
+    WITH_RETRIES({
+      auto asicErrors = getVoqAsicErrors();
+      for (const auto& [idx, asicError] : asicErrors) {
+        auto fqpErrors = asicError.forwardingQueueProcessorErrors().value_or(0);
+        XLOG(INFO) << "Switch index: " << idx << " FQP Errors: " << fqpErrors;
+        EXPECT_EVENTUALLY_GT(fqpErrors, 0);
+      }
+    });
+  };
+  verifyAcrossWarmBoots([]() {}, verify);
+}
 } // namespace facebook::fboss
