@@ -27,3 +27,8 @@ DEFINE_bool(
     dsf_subscribe,
     true,
     "Issue DSF subscriptions to all DSF Interface nodes");
+
+DEFINE_bool(
+    classid_for_connected_subnet_routes,
+    false,
+    "Flag to set the class ID for connected subnet routes that point to RIF");

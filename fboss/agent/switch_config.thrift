@@ -393,6 +393,9 @@ enum AclLookupClass {
    * to send the packet to default queue. Refer to S390808 for more details.
    */
   CLASS_UNRESOLVED_ROUTE_TO_CPU = 21,
+
+  // class ID for connected subnet routes pointing to router interface
+  CLASS_CONNECTED_ROUTE_TO_INTF = 22,
 }
 
 enum PacketLookupResultType {
