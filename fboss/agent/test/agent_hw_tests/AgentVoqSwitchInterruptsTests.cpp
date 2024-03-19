@@ -165,4 +165,26 @@ TEST_F(AgentVoqSwitchInterruptTest, fqpError) {
   };
   verifyAcrossWarmBoots([]() {}, verify);
 }
+
+TEST_F(AgentVoqSwitchInterruptTest, allReassemblyContextsTakenError) {
+  auto verify = [=, this]() {
+    std::string out;
+    runCmd(
+        "modreg RQP_PKT_REAS_INTERRUPT_REGISTER_TEST PKT_REAS_INTERRUPT_REGISTER_TEST=0x8000\n");
+    runCmd(
+        "modreg RQP_PKT_REAS_INTERRUPT_REGISTER_TEST PKT_REAS_INTERRUPT_REGISTER_TEST=0x10000\n");
+    WITH_RETRIES({
+      auto asicErrors = getVoqAsicErrors();
+      for (const auto& [idx, asicError] : asicErrors) {
+        auto allReassemblyContextsTaken =
+            asicError.allReassemblyContextsTaken().value_or(0);
+        XLOG(INFO) << " Switch index: " << idx
+                   << " All Reassemble contexts taken: "
+                   << allReassemblyContextsTaken;
+        EXPECT_EVENTUALLY_GT(allReassemblyContextsTaken, 0);
+      }
+    });
+  };
+  verifyAcrossWarmBoots([]() {}, verify);
+}
 } // namespace facebook::fboss
