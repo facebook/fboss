@@ -13,6 +13,9 @@ class SwitchInfoTableTest : public testing::Test {
  public:
   static auto constexpr switchType = SwitchTypeT::switchType;
   void SetUp() override {
+    infoTable = std::make_unique<SwitchInfoTable>(switchInfo());
+  };
+  std::map<int64_t, cfg::SwitchInfo> switchInfo() const {
     std::map<int64_t, cfg::SwitchInfo> switchInfos;
     for (auto i = 0; i < 2; ++i) {
       cfg::SwitchInfo info;
@@ -20,8 +23,8 @@ class SwitchInfoTableTest : public testing::Test {
       info.switchIndex() = i;
       switchInfos.insert({i, info});
     }
-    infoTable = std::make_unique<SwitchInfoTable>(switchInfos);
-  };
+    return switchInfos;
+  }
   std::unique_ptr<SwitchInfoTable> infoTable;
   bool isVoq() const {
     return this->switchType == cfg::SwitchType::VOQ;
@@ -118,4 +121,13 @@ TYPED_TEST(SwitchInfoTableTest, getSwitchInfo) {
 
 TYPED_TEST(SwitchInfoTableTest, getSwitchIdToSwitchInfo) {
   EXPECT_EQ(this->infoTable->getSwitchIdToSwitchInfo().size(), 2);
+}
+
+TYPED_TEST(SwitchInfoTableTest, mixSwitchTypes) {
+  auto switchInfos = this->switchInfo();
+  cfg::SwitchInfo otherSwitch;
+  otherSwitch.switchType() = this->otherSwitchType();
+  otherSwitch.switchIndex() = 42;
+  switchInfos.insert({42, otherSwitch});
+  EXPECT_THROW(SwitchInfoTable{switchInfos}, FbossError);
 }
