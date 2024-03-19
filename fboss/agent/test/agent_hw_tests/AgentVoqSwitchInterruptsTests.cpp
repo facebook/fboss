@@ -1,6 +1,5 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 #include "fboss/agent/SwSwitch.h"
-#include "fboss/agent/single/MonolithicHwSwitchHandler.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/lib/CommonUtils.h"
 
@@ -15,7 +14,7 @@ class AgentVoqSwitchInterruptTest : public AgentHwTest {
   }
 
  protected:
-  void runCint(const std::string cintStr) {
+  void runCint(const std::string& cintStr) {
     folly::test::TemporaryFile file;
     XLOG(INFO) << " Cint file " << file.path().c_str();
     folly::writeFull(file.fd(), cintStr.c_str(), cintStr.size());
@@ -51,7 +50,7 @@ class AgentVoqSwitchInterruptTest : public AgentHwTest {
     }
 
     return asicErrors;
-  };
+  }
 };
 
 TEST_F(AgentVoqSwitchInterruptTest, ireError) {
@@ -114,6 +113,30 @@ TEST_F(AgentVoqSwitchInterruptTest, epniError) {
             asicError.egressPacketNetworkInterfaceErrors().value_or(0);
         XLOG(INFO) << "Switch index: " << idx << " EPNI Errors: " << epniErrors;
         EXPECT_EVENTUALLY_GT(epniErrors, 0);
+      }
+    });
+  };
+  verifyAcrossWarmBoots([]() {}, verify);
+}
+
+TEST_F(AgentVoqSwitchInterruptTest, alignerError) {
+  auto verify = [=, this]() {
+    constexpr auto kAlignerErrorIncjectorCintStr = R"(
+  cint_reset();
+  bcm_switch_event_control_t event_ctrl;
+  event_ctrl.event_id = 8;  // JR3_INT_ALIGNER_PKT_SIZE_EOP_MISMATCH_INT
+  event_ctrl.index = 0; /* core ID */
+  event_ctrl.action = bcmSwitchEventForce;
+  print bcm_switch_event_control_set(0, BCM_SWITCH_EVENT_DEVICE_INTERRUPT, event_ctrl, 1);
+  )";
+    runCint(kAlignerErrorIncjectorCintStr);
+    WITH_RETRIES({
+      auto asicErrors = getVoqAsicErrors();
+      for (const auto& [idx, asicError] : asicErrors) {
+        auto alignerErrors = asicError.alignerErrors().value_or(0);
+        XLOG(INFO) << "Switch index: " << idx
+                   << " Aligner Errors: " << alignerErrors;
+        EXPECT_EVENTUALLY_GT(alignerErrors, 0);
       }
     });
   };
