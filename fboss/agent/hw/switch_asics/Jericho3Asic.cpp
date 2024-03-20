@@ -59,7 +59,6 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ACL_COUNTER_LABEL:
     case HwAsic::Feature::ACL_COPY_TO_CPU:
     case HwAsic::Feature::SWITCH_ATTR_INGRESS_ACL:
-    case HwAsic::Feature::MULTIPLE_ACL_TABLES:
     case HwAsic::Feature::ACL_TABLE_GROUP:
     case HwAsic::Feature::ERSPANv4:
     case HwAsic::Feature::ERSPANv6:
@@ -169,6 +168,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::PORT_SERDES_ZERO_PREEMPHASIS:
     case HwAsic::Feature::SAI_PRBS:
     case HwAsic::Feature::DTL_WATERMARK_COUNTER:
+    case HwAsic::Feature::MULTIPLE_ACL_TABLES:
       return false;
   }
   return false;

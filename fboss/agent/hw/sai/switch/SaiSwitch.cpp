@@ -996,12 +996,10 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
       &SaiTunnelManager::addTunnel,
       &SaiTunnelManager::removeTunnel);
 
-  bool multipleAclTableSupport =
-      platform_->getAsic()->isSupported(HwAsic::Feature::MULTIPLE_ACL_TABLES);
 #if defined(TAJO_SDK_VERSION_1_42_8)
-  multipleAclTableSupport = false;
+  FLAGS_enable_acl_table_group = false;
 #endif
-  if (FLAGS_enable_acl_table_group && multipleAclTableSupport) {
+  if (FLAGS_enable_acl_table_group) {
     processDelta(
         delta.getAclTableGroupsDelta(),
         managerTable_->aclTableGroupManager(),
@@ -3513,9 +3511,15 @@ void SaiSwitch::processAclTableGroupDelta(
     const StateDelta& delta,
     const AclTableGroupMap& aclTableGroupMap,
     const LockPolicyT& lockPolicy) {
+  bool multipleAclTableSupport =
+      platform_->getAsic()->isSupported(HwAsic::Feature::MULTIPLE_ACL_TABLES);
   for (const auto& [_, tableGroup] : aclTableGroupMap) {
     auto aclStage = tableGroup->getID();
-
+    if (delta.getAclTablesDelta(aclStage).getNew()->size() > 1 &&
+        !multipleAclTableSupport) {
+      throw FbossError(
+          "multiple ACL tables configured, but platform only support one ACL table");
+    }
     processDelta(
         delta.getAclTablesDelta(aclStage),
         managerTable_->aclTableManager(),
