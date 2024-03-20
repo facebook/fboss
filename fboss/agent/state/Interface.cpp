@@ -23,19 +23,6 @@ using folly::MacAddress;
 using folly::to;
 using std::string;
 
-namespace {
-constexpr auto kInterfaceId = "interfaceId";
-constexpr auto kRouterId = "routerId";
-constexpr auto kVlanId = "vlanId";
-constexpr auto kName = "name";
-constexpr auto kMac = "mac";
-constexpr auto kAddresses = "addresses";
-constexpr auto kNdpConfig = "ndpConfig";
-constexpr auto kMtu = "mtu";
-constexpr auto kIsVirtual = "isVirtual";
-constexpr auto kIsStateSyncDisabled = "isStateSyncDisabled";
-} // namespace
-
 namespace facebook::fboss {
 
 std::optional<folly::CIDRNetwork> Interface::getAddressToReach(
