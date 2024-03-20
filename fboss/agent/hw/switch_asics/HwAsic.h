@@ -352,6 +352,10 @@ class HwAsic {
 
   virtual uint32_t getMaxPorts() const;
   virtual uint32_t getVirtualDevices() const;
+  virtual std::vector<prbs::PrbsPolynomial> getSupportedPrbsPolynomials()
+      const {
+    return {};
+  }
 
  protected:
   static cfg::Range64 makeRange(int64_t min, int64_t max);

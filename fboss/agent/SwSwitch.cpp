@@ -2835,8 +2835,10 @@ void SwSwitch::clearPortAsicPrbsStats(PortID portId) {
 }
 
 std::vector<prbs::PrbsPolynomial> SwSwitch::getPortPrbsPolynomials(
-    int32_t portId) {
-  return multiHwSwitchHandler_->getPortPrbsPolynomials(portId);
+    PortID portId) {
+  auto switchId = getScopeResolver()->scope(portId).switchId();
+  auto hwAsic = getHwAsicTable()->getHwAsicIf(switchId);
+  return hwAsic->getSupportedPrbsPolynomials();
 }
 
 prbs::InterfacePrbsState SwSwitch::getPortPrbsState(PortID portId) {

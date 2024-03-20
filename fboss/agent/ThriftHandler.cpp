@@ -1401,7 +1401,7 @@ void ThriftHandler::getSupportedPrbsPolynomials(
     throw FbossError("Unsupported component");
   }
   auto portID = sw_->getPlatformMapping()->getPortID(*portName);
-  prbsCapabilities = sw_->getPortPrbsPolynomials(portID);
+  prbsCapabilities = sw_->getPortPrbsPolynomials(PortID(portID));
 }
 
 void ThriftHandler::getInterfacePrbsState(
@@ -1514,7 +1514,7 @@ void ThriftHandler::setPortPrbs(
   if (!port) {
     throw FbossError("no such port ", portNum);
   }
-  auto capabilities = sw_->getPortPrbsPolynomials(portNum);
+  auto capabilities = sw_->getPortPrbsPolynomials(PortID(portNum));
   if (enable &&
       std::find(
           capabilities.begin(),

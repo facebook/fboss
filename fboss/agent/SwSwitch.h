@@ -820,8 +820,7 @@ class SwSwitch : public HwSwitchCallback {
 
   SwitchRunState getSwitchRunState() const;
 
-  std::vector<prbs::PrbsPolynomial> getPortPrbsPolynomials(
-      int32_t /* portId */);
+  std::vector<prbs::PrbsPolynomial> getPortPrbsPolynomials(PortID /* portId */);
   prbs::InterfacePrbsState getPortPrbsState(PortID /* portId */);
 
   template <typename AddressT>
