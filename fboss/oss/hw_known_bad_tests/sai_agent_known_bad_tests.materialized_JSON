@@ -250,6 +250,12 @@
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRoutesToLowPriQueue$"
         },
         {
+          "test_name_regex": "AgentDscpMarkingTest.VerifyDscpMarking$"
+        },
+        {
+          "test_name_regex": "AgentAclConflictAndDscpQueueMappingTest.VerifyAclAndQosMapConflict$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -289,6 +295,12 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRoutesToLowPriQueue$"
+        },
+        {
+          "test_name_regex": "AgentDscpMarkingTest.VerifyDscpMarking$"
+        },
+        {
+          "test_name_regex": "AgentAclConflictAndDscpQueueMappingTest.VerifyAclAndQosMapConflict$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -335,6 +347,12 @@
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRoutesToLowPriQueue$"
         },
         {
+          "test_name_regex": "AgentDscpMarkingTest.VerifyDscpMarking$"
+        },
+        {
+          "test_name_regex": "AgentAclConflictAndDscpQueueMappingTest.VerifyAclAndQosMapConflict$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -374,6 +392,12 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRoutesToLowPriQueue$"
+        },
+        {
+          "test_name_regex": "AgentDscpMarkingTest.VerifyDscpMarking$"
+        },
+        {
+          "test_name_regex": "AgentAclConflictAndDscpQueueMappingTest.VerifyAclAndQosMapConflict$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
