@@ -154,7 +154,7 @@ class HwIngressBufferTest : public HwTest {
 // validate that SDK programming is as per the cfg
 // Read back from HW (using SDK calls) and validate
 TEST_F(HwIngressBufferTest, validateConfig) {
-  auto setup = [=]() { setupHelper(); };
+  auto setup = [=, this]() { setupHelper(); };
 
   auto verify = [&]() {
     utility::checkSwHwPgCfgMatch(
