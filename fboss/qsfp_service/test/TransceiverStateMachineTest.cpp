@@ -83,7 +83,11 @@ class MockCmisModule : public CmisModule {
       TransceiverManager* transceiverManager,
       MockCmisTransceiverImpl* qsfpImpl,
       std::shared_ptr<const TransceiverConfig> cfgPtr)
-      : CmisModule(transceiverManager, qsfpImpl, cfgPtr) {
+      : CmisModule(
+            transceiverManager,
+            qsfpImpl,
+            cfgPtr,
+            true /*supportRemediate*/) {
     ON_CALL(*this, updateQsfpData(testing::_))
         .WillByDefault(testing::Assign(&dirty_, false));
     ON_CALL(*this, ensureTransceiverReadyLocked())
@@ -175,7 +179,8 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
             std::make_unique<CmisModule>(
                 transceiverManager_.get(),
                 qsfpImpls_.back().get(),
-                tcvrConfig_));
+                tcvrConfig_,
+                true /*supportRemediate*/));
       }
     };
 

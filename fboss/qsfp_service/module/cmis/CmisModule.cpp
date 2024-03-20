@@ -511,8 +511,11 @@ CmisModule::getApplicationField(uint8_t application, uint8_t startHostLane)
 CmisModule::CmisModule(
     TransceiverManager* transceiverManager,
     TransceiverImpl* qsfpImpl,
-    std::shared_ptr<const TransceiverConfig> cfg)
-    : QsfpModule(transceiverManager, qsfpImpl), tcvrConfig_(std::move(cfg)) {}
+    std::shared_ptr<const TransceiverConfig> cfg,
+    bool supportRemediate)
+    : QsfpModule(transceiverManager, qsfpImpl),
+      tcvrConfig_(std::move(cfg)),
+      supportRemediate_(supportRemediate) {}
 
 CmisModule::~CmisModule() {}
 
@@ -3407,13 +3410,7 @@ void CmisModule::updateCmisStateChanged(
 }
 
 bool CmisModule::supportRemediate() {
-  if (getTransceiverManager()->getPlatformType() ==
-          PlatformType::PLATFORM_MERU400BIU ||
-      getTransceiverManager()->getPlatformType() ==
-          PlatformType::PLATFORM_MERU400BFU) {
-    return false;
-  }
-  return true;
+  return supportRemediate_;
 }
 
 /*

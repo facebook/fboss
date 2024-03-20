@@ -1140,9 +1140,21 @@ DOMDataUnion fetchDataFromLocalI2CBus(
   auto qsfpImpl = std::make_unique<WedgeQsfp>(port - 1, i2cInfo.bus);
   auto mgmtInterface = qsfpImpl->getTransceiverManagementInterface();
   auto cfgPtr = i2cInfo.transceiverManager->getTransceiverConfig();
+
+  // On these platforms, we are configuring the 200G optics in 2x50G
+  // experimental mode. Thus 2 of the 4 lanes remain disabled which kicks in the
+  // remediation logic and flaps the other 2 ports. Disabling remediation for
+  // just these 2 platforms as this is an experimental mode only
+  bool cmisSupportRemediate = true;
+  auto tcvrMgr = i2cInfo.transceiverManager;
+  if (tcvrMgr->getPlatformType() == PlatformType::PLATFORM_MERU400BIU ||
+      tcvrMgr->getPlatformType() == PlatformType::PLATFORM_MERU400BFU) {
+    cmisSupportRemediate = false;
+  }
+
   if (mgmtInterface == TransceiverManagementInterface::CMIS) {
     auto cmisModule = std::make_unique<CmisModule>(
-        i2cInfo.transceiverManager, qsfpImpl.get(), cfgPtr);
+        tcvrMgr, qsfpImpl.get(), cfgPtr, cmisSupportRemediate);
     try {
       cmisModule->refresh();
     } catch (FbossError& e) {

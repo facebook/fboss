@@ -24,7 +24,11 @@ class MockCmisModule : public CmisModule {
       TransceiverManager* transceiverManager,
       XcvrImplT* qsfpImpl,
       std::shared_ptr<const TransceiverConfig> cfgPtr)
-      : CmisModule(transceiverManager, qsfpImpl, cfgPtr) {
+      : CmisModule(
+            transceiverManager,
+            qsfpImpl,
+            cfgPtr,
+            true /*supportRemediate*/) {
     ON_CALL(*this, getModuleStateChanged).WillByDefault([this]() {
       // Only return true for the first read so that we can mimic the clear
       // on read register

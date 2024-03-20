@@ -67,7 +67,8 @@ class CmisModule : public QsfpModule {
   explicit CmisModule(
       TransceiverManager* transceiverManager,
       TransceiverImpl* qsfpImpl,
-      std::shared_ptr<const TransceiverConfig> cfg);
+      std::shared_ptr<const TransceiverConfig> cfg,
+      bool supportRemediate);
   virtual ~CmisModule() override;
 
   struct ApplicationAdvertisingField {
@@ -547,6 +548,8 @@ class CmisModule : public QsfpModule {
   bool fillVdmPerfMonitorPam4Data(VdmPerfMonitorStats& vdmStats);
 
   const std::shared_ptr<const TransceiverConfig> tcvrConfig_;
+
+  bool supportRemediate_;
 };
 
 } // namespace fboss

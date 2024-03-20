@@ -547,13 +547,23 @@ void WedgeManager::updateTransceiverMap() {
     }
 
     auto tcvrConfig = getTransceiverConfig();
+
+    // On these platforms, we are configuring the 200G optics in 2x50G
+    // experimental mode. Thus 2 of the 4 lanes remain disabled which kicks in
+    // the remediation logic and flaps the other 2 ports. Disabling remediation
+    // for just these 2 platforms as this is an experimental mode only
+    bool cmisSupportRemediate = true;
+    if (getPlatformType() == PlatformType::PLATFORM_MERU400BIU ||
+        getPlatformType() == PlatformType::PLATFORM_MERU400BFU) {
+      cmisSupportRemediate = false;
+    }
     for (auto idx : tcvrsToCreate) {
       if (futInterfaces[idx].value() == TransceiverManagementInterface::CMIS) {
         XLOG(INFO) << "Making CMIS QSFP for TransceiverID=" << idx;
         lockedTransceiversWPtr->emplace(
             TransceiverID(idx),
             std::make_unique<CmisModule>(
-                this, qsfpImpls_[idx].get(), tcvrConfig));
+                this, qsfpImpls_[idx].get(), tcvrConfig, cmisSupportRemediate));
       } else if (
           futInterfaces[idx].value() == TransceiverManagementInterface::SFF) {
         XLOG(INFO) << "Making Sff QSFP for TransceiverID=" << idx;
