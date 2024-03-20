@@ -227,12 +227,13 @@ TYPED_TEST(HwRouteTest, VerifyClassIDForConnectedRoute) {
     // verify if the connected route of the interface is present
     utility::isHwRoutePresent(
         this->getHwSwitch(), this->kRouterID(), ipAddr.toCidrNetwork());
-#if !defined(TAJO_SDK)
-    if (FLAGS_classid_for_connected_subnet_routes) {
-      this->verifyClassIDHelper(
-          ipAddr, cfg::AclLookupClass::CLASS_CONNECTED_ROUTE_TO_INTF);
+    if (this->getPlatform()->getAsic()->getAsicVendor() !=
+        HwAsic::AsicVendor::ASIC_VENDOR_TAJO) {
+      if (FLAGS_classid_for_connected_subnet_routes) {
+        this->verifyClassIDHelper(
+            ipAddr, cfg::AclLookupClass::CLASS_CONNECTED_ROUTE_TO_INTF);
+      }
     }
-#endif
   };
 
   this->verifyAcrossWarmBoots([] {}, verify);
