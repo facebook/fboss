@@ -45,6 +45,18 @@ target_link_libraries(main
   Folly::folly
 )
 
+add_library(hw_switch_handler
+  fboss/agent/HwSwitchHandler.cpp
+)
+
+target_link_libraries(hw_switch_handler
+  load_agent_config
+  switch_config_cpp2
+  utils
+  multiswitch_ctrl_cpp2
+  state
+)
+
 add_library(monolithic_switch_handler
   fboss/agent/single/MonolithicHwSwitchHandler.cpp
 )
@@ -55,6 +67,7 @@ target_link_libraries(monolithic_switch_handler
   platform_base
   hw_switch_fb303_stats
   switch_asics
+  hw_switch_handler
 )
 add_library(async_packet_transport
   fboss/agent/AsyncPacketTransport.h
@@ -529,6 +542,7 @@ target_link_libraries(multi_switch_hw_switch_handler
   stats
   agent_config_cpp2
   multiswitch_ctrl_cpp2
+  hw_switch_handler
 )
 
 add_library(split_agent_initializer
