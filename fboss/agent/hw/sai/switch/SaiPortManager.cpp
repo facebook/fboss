@@ -895,6 +895,25 @@ void SaiPortManager::programPfcBuffers(const std::shared_ptr<Port>& swPort) {
   }
 }
 
+prbs::InterfacePrbsState SaiPortManager::getPortPrbsState(PortID portId) {
+  prbs::InterfacePrbsState portPrbsState;
+  if (!platform_->getAsic()->isSupported(HwAsic::Feature::SAI_PRBS)) {
+    return portPrbsState;
+  }
+  auto* handle = getPortHandleImpl(PortID(portId));
+  auto prbsPolynomial = SaiApiTable::getInstance()->portApi().getAttribute(
+      handle->port->adapterKey(), SaiPortTraits::Attributes::PrbsPolynomial{});
+  auto prbsConfig = SaiApiTable::getInstance()->portApi().getAttribute(
+      handle->port->adapterKey(), SaiPortTraits::Attributes::PrbsConfig{});
+  portPrbsState.polynomial() =
+      static_cast<prbs::PrbsPolynomial>(prbsPolynomial);
+  portPrbsState.generatorEnabled() =
+      (prbsConfig == SAI_PORT_PRBS_CONFIG_ENABLE_TX_RX);
+  portPrbsState.checkerEnabled() =
+      (prbsConfig == SAI_PORT_PRBS_CONFIG_ENABLE_TX_RX);
+  return portPrbsState;
+}
+
 sai_port_prbs_config_t SaiPortManager::getSaiPortPrbsConfig(
     bool enabled) const {
   if (enabled) {

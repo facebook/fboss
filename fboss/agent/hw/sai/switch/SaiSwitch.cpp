@@ -1800,6 +1800,10 @@ void SaiSwitch::clearPortStats(
   }
 }
 
+prbs::InterfacePrbsState SaiSwitch::getPortPrbsState(PortID portId) {
+  return managerTable_->portManager().getPortPrbsState(portId);
+}
+
 std::vector<phy::PrbsLaneStats> SaiSwitch::getPortAsicPrbsStats(PortID portId) {
   return managerTable_->portManager().getPortAsicPrbsStats(portId);
 }
