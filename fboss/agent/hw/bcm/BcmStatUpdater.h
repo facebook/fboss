@@ -101,7 +101,7 @@ class BcmStatUpdater {
   void clearPortStats(const std::unique_ptr<std::vector<int32_t>>& ports);
 
   std::vector<phy::PrbsLaneStats> getPortAsicPrbsStats(PortID portId);
-  void clearPortAsicPrbsStats(int32_t portId);
+  void clearPortAsicPrbsStats(PortID portId);
 
   void toBeAddedRouteCounter(
       BcmRouteCounterID id,

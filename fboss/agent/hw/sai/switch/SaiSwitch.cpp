@@ -1808,6 +1808,10 @@ std::vector<phy::PrbsLaneStats> SaiSwitch::getPortAsicPrbsStats(PortID portId) {
   return managerTable_->portManager().getPortAsicPrbsStats(portId);
 }
 
+void SaiSwitch::clearPortAsicPrbsStats(PortID portId) {
+  managerTable_->portManager().clearPortAsicPrbsStats(portId);
+}
+
 cfg::PortSpeed SaiSwitch::getPortMaxSpeed(PortID port) const {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
   return getPortMaxSpeedLocked(lock, port);

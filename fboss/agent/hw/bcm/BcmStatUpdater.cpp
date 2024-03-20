@@ -382,7 +382,7 @@ std::vector<phy::PrbsLaneStats> BcmStatUpdater::getPortAsicPrbsStats(
   return prbsStats;
 }
 
-void BcmStatUpdater::clearPortAsicPrbsStats(int32_t portId) {
+void BcmStatUpdater::clearPortAsicPrbsStats(PortID portId) {
   auto lockedPortAsicPrbsStats = portAsicPrbsStats_.wlock();
   auto portAsicPrbsStatIter = lockedPortAsicPrbsStats->find(portId);
   if (portAsicPrbsStatIter == lockedPortAsicPrbsStats->end()) {

@@ -109,7 +109,7 @@ class MultiHwSwitchHandler {
 
   std::vector<phy::PrbsLaneStats> getPortAsicPrbsStats(PortID portId);
 
-  void clearPortAsicPrbsStats(int32_t portId);
+  void clearPortAsicPrbsStats(PortID portId);
 
   std::vector<prbs::PrbsPolynomial> getPortPrbsPolynomials(int32_t portId);
 

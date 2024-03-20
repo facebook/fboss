@@ -115,7 +115,7 @@ class HwSwitchHandler {
   virtual std::vector<phy::PrbsLaneStats> getPortAsicPrbsStats(
       PortID portId) = 0;
 
-  virtual void clearPortAsicPrbsStats(int32_t portId) = 0;
+  virtual void clearPortAsicPrbsStats(PortID portId) = 0;
 
   virtual std::vector<prbs::PrbsPolynomial> getPortPrbsPolynomials(
       int32_t portId) = 0;

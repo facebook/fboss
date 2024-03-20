@@ -2831,7 +2831,7 @@ std::vector<phy::PrbsLaneStats> SwSwitch::getPortAsicPrbsStats(PortID portId) {
   return multiHwSwitchHandler_->getPortAsicPrbsStats(portId);
 }
 
-void SwSwitch::clearPortAsicPrbsStats(int32_t portId) {
+void SwSwitch::clearPortAsicPrbsStats(PortID portId) {
   multiHwSwitchHandler_->clearPortAsicPrbsStats(portId);
 }
 

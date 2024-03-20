@@ -67,7 +67,7 @@ class MultiSwitchHwSwitchHandler : public HwSwitchHandler {
 
   std::vector<phy::PrbsLaneStats> getPortAsicPrbsStats(PortID portId) override;
 
-  void clearPortAsicPrbsStats(int32_t portId) override;
+  void clearPortAsicPrbsStats(PortID portId) override;
 
   std::vector<prbs::PrbsPolynomial> getPortPrbsPolynomials(
       int32_t portId) override;

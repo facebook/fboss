@@ -150,7 +150,7 @@ MultiSwitchHwSwitchHandler::getPortAsicPrbsStats(PortID /*portId*/) {
   return {};
 }
 
-void MultiSwitchHwSwitchHandler::clearPortAsicPrbsStats(int32_t /*portId*/) {
+void MultiSwitchHwSwitchHandler::clearPortAsicPrbsStats(PortID /*portId*/) {
   // TODO: implement this
 }
 

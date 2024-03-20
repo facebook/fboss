@@ -209,6 +209,7 @@ class SaiPortManager {
       cfg::SwitchType switchType) const;
 
   std::vector<phy::PrbsLaneStats> getPortAsicPrbsStats(PortID portId);
+  void clearPortAsicPrbsStats(PortID portId);
   prbs::InterfacePrbsState getPortPrbsState(PortID portId);
   void updateStats(
       PortID portID,

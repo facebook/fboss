@@ -816,7 +816,7 @@ class SwSwitch : public HwSwitchCallback {
   void clearPortStats(const std::unique_ptr<std::vector<int32_t>>& ports);
 
   std::vector<phy::PrbsLaneStats> getPortAsicPrbsStats(PortID portId);
-  void clearPortAsicPrbsStats(int32_t portId);
+  void clearPortAsicPrbsStats(PortID portId);
 
   SwitchRunState getSwitchRunState() const;
 

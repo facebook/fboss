@@ -1465,7 +1465,7 @@ void ThriftHandler::clearPortPrbsStats(
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
   if (component == phy::PortComponent::ASIC) {
-    sw_->clearPortAsicPrbsStats(portId);
+    sw_->clearPortAsicPrbsStats(PortID(portId));
   } else if (
       component == phy::PortComponent::GB_SYSTEM ||
       component == phy::PortComponent::GB_LINE) {

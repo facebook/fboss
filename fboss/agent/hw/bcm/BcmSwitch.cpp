@@ -3467,7 +3467,7 @@ std::vector<phy::PrbsLaneStats> BcmSwitch::getPortAsicPrbsStats(PortID portId) {
   return bcmStatUpdater_->getPortAsicPrbsStats(portId);
 }
 
-void BcmSwitch::clearPortAsicPrbsStats(int32_t portId) {
+void BcmSwitch::clearPortAsicPrbsStats(PortID portId) {
   bcmStatUpdater_->clearPortAsicPrbsStats(portId);
 }
 

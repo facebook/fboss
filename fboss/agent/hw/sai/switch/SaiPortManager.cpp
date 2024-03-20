@@ -1667,6 +1667,18 @@ std::vector<phy::PrbsLaneStats> SaiPortManager::getPortAsicPrbsStats(
   return prbsStats;
 }
 
+void SaiPortManager::clearPortAsicPrbsStats(PortID portId) {
+  auto portAsicPrbsStatsItr = portAsicPrbsStats_.find(portId);
+  if (portAsicPrbsStatsItr == portAsicPrbsStats_.end()) {
+    throw FbossError(
+        "Asic prbs lane error map not initialized for port ", portId);
+  }
+  auto& lanePrbsStatsTable = portAsicPrbsStatsItr->second;
+  for (auto& lanePrbsStats : lanePrbsStatsTable) {
+    lanePrbsStats.clearLaneStats();
+  }
+}
+
 void SaiPortManager::updateStats(
     PortID portId,
     bool updateWatermarks,
