@@ -9,13 +9,15 @@
  */
 #pragma once
 
-#include <folly/String.h>
-#include <folly/io/async/EventBase.h>
 #include <cstdint>
 #include <optional>
+
+#include <folly/String.h>
+#include <folly/io/async/EventBase.h>
+
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/types.h"
-#include "fboss/lib/usb/TransceiverI2CApi.h" // TODO: Remove this. why do you need this here????
+#include "fboss/lib/usb/TransceiverAccessParameter.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
 namespace facebook {
