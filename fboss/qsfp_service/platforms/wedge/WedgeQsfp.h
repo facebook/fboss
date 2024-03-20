@@ -96,6 +96,10 @@ class WedgeQsfp : public TransceiverImpl {
     tcvrManager_->getQsfpPlatformApi()->triggerQsfpHardReset(module_ + 1);
   }
 
+  void updateTransceiverState(TransceiverStateMachineEvent event) override {
+    tcvrManager_->updateStateBlocking(TransceiverID(module_), event);
+  }
+
  private:
   int module_;
   std::string moduleName_;

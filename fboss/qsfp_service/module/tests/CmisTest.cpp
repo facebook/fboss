@@ -54,7 +54,8 @@ class CmisTest : public TransceiverManagerTestHelper {
       TransceiverID id,
       TransceiverModuleIdentifier identifier =
           TransceiverModuleIdentifier::QSFP_PLUS_CMIS) {
-    qsfpImpls_.push_back(std::make_unique<XcvrImplT>(id));
+    qsfpImpls_.push_back(
+        std::make_unique<XcvrImplT>(id, transceiverManager_.get()));
     // This override function use ids starting from 1
     transceiverManager_->overrideMgmtInterface(
         static_cast<int>(id) + 1, uint8_t(identifier));

@@ -9,11 +9,17 @@
  */
 #include "fboss/qsfp_service/module/QsfpModule.h"
 
-#include <boost/assign.hpp>
-#include <fboss/lib/phy/gen-cpp2/phy_types.h>
 #include <iomanip>
 #include <string>
+
+#include <boost/assign.hpp>
+
+#include <folly/io/IOBuf.h>
+#include <folly/io/async/EventBase.h>
+#include <folly/logging/xlog.h>
+
 #include "common/time/Time.h"
+
 #include "fboss/agent/FbossError.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/usb/TransceiverI2CApi.h"
@@ -21,10 +27,6 @@
 #include "fboss/qsfp_service/TransceiverManager.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 #include "fboss/qsfp_service/module/TransceiverImpl.h"
-
-#include <folly/io/IOBuf.h>
-#include <folly/io/async/EventBase.h>
-#include <folly/logging/xlog.h>
 
 DEFINE_int32(
     qsfp_data_refresh_interval,
@@ -115,8 +117,8 @@ void QsfpModule::removeTransceiver() {
 }
 
 void QsfpModule::removeTransceiverLocked() {
-  getTransceiverManager()->updateStateBlocking(
-      getID(), TransceiverStateMachineEvent::TCVR_EV_REMOVE_TRANSCEIVER);
+  qsfpImpl_->updateTransceiverState(
+      TransceiverStateMachineEvent::TCVR_EV_REMOVE_TRANSCEIVER);
 }
 
 void QsfpModule::getQsfpValue(
@@ -736,13 +738,12 @@ void QsfpModule::refreshLocked() {
 
   if (detectionStatus.statusChanged && detectionStatus.present) {
     // A new transceiver has been detected
-    getTransceiverManager()->updateStateBlocking(
-        getID(),
+    qsfpImpl_->updateTransceiverState(
         TransceiverStateMachineEvent::TCVR_EV_EVENT_DETECT_TRANSCEIVER);
   } else if (detectionStatus.statusChanged && !detectionStatus.present) {
     // The transceiver has been removed
-    getTransceiverManager()->updateStateBlocking(
-        getID(), TransceiverStateMachineEvent::TCVR_EV_REMOVE_TRANSCEIVER);
+    qsfpImpl_->updateTransceiverState(
+        TransceiverStateMachineEvent::TCVR_EV_REMOVE_TRANSCEIVER);
   }
 
   ModuleStatus moduleStatus;
@@ -757,8 +758,8 @@ void QsfpModule::refreshLocked() {
     updateCmisStateChanged(moduleStatus);
     if (present_) {
       // Data has been read for the new optics
-      getTransceiverManager()->updateStateBlocking(
-          getID(), TransceiverStateMachineEvent::TCVR_EV_READ_EEPROM);
+      qsfpImpl_->updateTransceiverState(
+          TransceiverStateMachineEvent::TCVR_EV_READ_EEPROM);
       // Issue an allPages=false update to pick up the new qsfp data after we
       // trigger READ_EEPROM event. Some Transceiver might pick up all the diag
       // capabilities and we can use this to make sure the current QsfpData has

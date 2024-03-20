@@ -19,6 +19,7 @@
 #include "fboss/agent/types.h"
 #include "fboss/lib/usb/TransceiverAccessParameter.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
+#include "fboss/qsfp_service/module/Transceiver.h"
 
 namespace facebook {
 namespace fboss {
@@ -100,6 +101,8 @@ class TransceiverImpl {
   virtual folly::EventBase* getI2cEventBase() {
     return nullptr;
   }
+
+  virtual void updateTransceiverState(TransceiverStateMachineEvent /*event*/) {}
 
  private:
   // Forbidden copy contructor and assignment operator

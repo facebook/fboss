@@ -51,7 +51,7 @@ class MockWedgeManager : public WedgeManager {
   void overrideMgmtInterface(unsigned int id, uint8_t mgmt) {
     MockTransceiverI2CApi* mockApi =
         dynamic_cast<MockTransceiverI2CApi*>(wedgeI2cBus_.get());
-    mockApi->overrideMgmtInterface(id, mgmt);
+    mockApi->overrideMgmtInterface(id, mgmt, this);
   }
 
   std::map<TransceiverID, TransceiverManagementInterface> mgmtInterfaces() {

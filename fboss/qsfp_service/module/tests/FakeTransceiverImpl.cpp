@@ -2,6 +2,7 @@
 
 #include "fboss/qsfp_service/module/tests/FakeTransceiverImpl.h"
 #include "fboss/lib/usb/TransceiverI2CApi.h"
+#include "fboss/qsfp_service/TransceiverManager.h"
 #include "fboss/qsfp_service/module/QsfpModule.h"
 
 #include <gtest/gtest.h>
@@ -98,6 +99,11 @@ int FakeTransceiverImpl::getNum() const {
 void FakeTransceiverImpl::triggerQsfpHardReset() {
   // do nothing
 }
+
+void FakeTransceiverImpl::updateTransceiverState(
+    TransceiverStateMachineEvent event) {
+  tcvrManager_->updateStateBlocking(TransceiverID(module_), event);
+};
 
 // Below are randomly generated eeprom maps for testing purpose and doesn't
 // accurately reflect an actual module
@@ -1460,87 +1466,153 @@ std::map<uint8_t, std::map<int, std::array<uint8_t, 128>>>
     kCmis2x400GDr4UpperPages = {
         {TransceiverAccessParameter::ADDR_QSFP, kCmis2x400GDr4UpperPagesA0}};
 
-SffDacTransceiver::SffDacTransceiver(int module)
-    : FakeTransceiverImpl(module, kSffDacPageLower, kSffDacUpperPages) {}
+SffDacTransceiver::SffDacTransceiver(int module, TransceiverManager* mgr)
+    : FakeTransceiverImpl(module, kSffDacPageLower, kSffDacUpperPages, mgr) {}
 
-SffCwdm4Transceiver::SffCwdm4Transceiver(int module)
-    : FakeTransceiverImpl(module, kSffCwdm4PageLower, kSffCwdm4UpperPages) {}
+SffCwdm4Transceiver::SffCwdm4Transceiver(int module, TransceiverManager* mgr)
+    : FakeTransceiverImpl(
+          module,
+          kSffCwdm4PageLower,
+          kSffCwdm4UpperPages,
+          mgr) {}
 
-SffFr1Transceiver::SffFr1Transceiver(int module)
-    : FakeTransceiverImpl(module, kSffFr1PageLower, kSffFr1UpperPages) {}
+SffFr1Transceiver::SffFr1Transceiver(int module, TransceiverManager* mgr)
+    : FakeTransceiverImpl(module, kSffFr1PageLower, kSffFr1UpperPages, mgr) {}
 
-Sff200GCr4Transceiver::Sff200GCr4Transceiver(int module)
-    : FakeTransceiverImpl(module, kSff200GCr4PageLower, kSff200GCr4UpperPages) {
-}
+Sff200GCr4Transceiver::Sff200GCr4Transceiver(
+    int module,
+    TransceiverManager* mgr)
+    : FakeTransceiverImpl(
+          module,
+          kSff200GCr4PageLower,
+          kSff200GCr4UpperPages,
+          mgr) {}
 
-BadSffCwdm4Transceiver::BadSffCwdm4Transceiver(int module)
-    : FakeTransceiverImpl(module, kSffCwdm4BadPageLower, kSffCwdm4UpperPages) {}
+BadSffCwdm4Transceiver::BadSffCwdm4Transceiver(
+    int module,
+    TransceiverManager* mgr)
+    : FakeTransceiverImpl(
+          module,
+          kSffCwdm4BadPageLower,
+          kSffCwdm4UpperPages,
+          mgr) {}
 
-BadEepromSffCwdm4Transceiver::BadEepromSffCwdm4Transceiver(int module)
-    : FakeTransceiverImpl(module, kSffCwdm4PageLower, kSffCwdm4BadUpperPages) {}
+BadEepromSffCwdm4Transceiver::BadEepromSffCwdm4Transceiver(
+    int module,
+    TransceiverManager* mgr)
+    : FakeTransceiverImpl(
+          module,
+          kSffCwdm4PageLower,
+          kSffCwdm4BadUpperPages,
+          mgr) {}
 
-MiniphotonOBOTransceiver::MiniphotonOBOTransceiver(int module)
+MiniphotonOBOTransceiver::MiniphotonOBOTransceiver(
+    int module,
+    TransceiverManager* mgr)
     : FakeTransceiverImpl(
           module,
           kMiniphotonOBOPageLower,
-          kSffCwdm4UpperPages) {}
+          kSffCwdm4UpperPages,
+          mgr) {}
 
 UnknownModuleIdentifierTransceiver::UnknownModuleIdentifierTransceiver(
-    int module)
+    int module,
+    TransceiverManager* mgr)
     : FakeTransceiverImpl(
           module,
           kUnknownSffModuleIdentifierPageLower,
-          kSffCwdm4UpperPages) {}
+          kSffCwdm4UpperPages,
+          mgr) {}
 
-Cmis200GTransceiver::Cmis200GTransceiver(int module)
-    : FakeTransceiverImpl(module, kCmis200GFr4Lower, kCmis200GFr4UpperPages) {}
-
-BadCmis200GTransceiver::BadCmis200GTransceiver(int module)
+Cmis200GTransceiver::Cmis200GTransceiver(int module, TransceiverManager* mgr)
     : FakeTransceiverImpl(
           module,
           kCmis200GFr4Lower,
-          kCmis200GFr4UpperBadPages) {}
+          kCmis200GFr4UpperPages,
+          mgr) {}
 
-Cmis400GLr4Transceiver::Cmis400GLr4Transceiver(int module)
-    : FakeTransceiverImpl(module, kCmis400GLr4Lower, kCmis400GLr4UpperPages) {}
+BadCmis200GTransceiver::BadCmis200GTransceiver(
+    int module,
+    TransceiverManager* mgr)
+    : FakeTransceiverImpl(
+          module,
+          kCmis200GFr4Lower,
+          kCmis200GFr4UpperBadPages,
+          mgr) {}
 
-Cmis400GDr4Transceiver::Cmis400GDr4Transceiver(int module)
-    : FakeTransceiverImpl(module, kCmis400GDr4Lower, kCmis400GDr4UpperPages) {}
+Cmis400GLr4Transceiver::Cmis400GLr4Transceiver(
+    int module,
+    TransceiverManager* mgr)
+    : FakeTransceiverImpl(
+          module,
+          kCmis400GLr4Lower,
+          kCmis400GLr4UpperPages,
+          mgr) {}
 
-Cmis400GFr4MultiPortTransceiver::Cmis400GFr4MultiPortTransceiver(int module)
+Cmis400GDr4Transceiver::Cmis400GDr4Transceiver(
+    int module,
+    TransceiverManager* mgr)
+    : FakeTransceiverImpl(
+          module,
+          kCmis400GDr4Lower,
+          kCmis400GDr4UpperPages,
+          mgr) {}
+
+Cmis400GFr4MultiPortTransceiver::Cmis400GFr4MultiPortTransceiver(
+    int module,
+    TransceiverManager* mgr)
     : FakeTransceiverImpl(
           module,
           kCmis400GFr4MultiPortLower,
-          kCmis400GFr4MultiPortUpperPages) {}
+          kCmis400GFr4MultiPortUpperPages,
+          mgr) {}
 
-CmisFlatMemTransceiver::CmisFlatMemTransceiver(int module)
-    : FakeTransceiverImpl(module, kCmisFlatMemLower, kCmisFlatMemUpperPages) {}
+CmisFlatMemTransceiver::CmisFlatMemTransceiver(
+    int module,
+    TransceiverManager* mgr)
+    : FakeTransceiverImpl(
+          module,
+          kCmisFlatMemLower,
+          kCmisFlatMemUpperPages,
+          mgr) {}
 
-Sfp10GTransceiver::Sfp10GTransceiver(int module)
-    : FakeTransceiverImpl(module, kSfpLowerPages, kSfpUpperPages) {}
+Sfp10GTransceiver::Sfp10GTransceiver(int module, TransceiverManager* mgr)
+    : FakeTransceiverImpl(module, kSfpLowerPages, kSfpUpperPages, mgr) {}
 
-Sfp10GBaseTTransceiver::Sfp10GBaseTTransceiver(int module)
+Sfp10GBaseTTransceiver::Sfp10GBaseTTransceiver(
+    int module,
+    TransceiverManager* mgr)
     : FakeTransceiverImpl(
           module,
           kSfp10GBaseTLowerPages,
-          kSfp10GBaseTUpperPages) {}
+          kSfp10GBaseTUpperPages,
+          mgr) {}
 
-Cmis400GCr8Transceiver::Cmis400GCr8Transceiver(int module)
+Cmis400GCr8Transceiver::Cmis400GCr8Transceiver(
+    int module,
+    TransceiverManager* mgr)
     : FakeTransceiverImpl(
           module,
           kCmis400GCr8LowerPages,
-          kCmis400GCr8UpperPages) {}
+          kCmis400GCr8UpperPages,
+          mgr) {}
 
-Cmis2x400GFr4Transceiver::Cmis2x400GFr4Transceiver(int module)
+Cmis2x400GFr4Transceiver::Cmis2x400GFr4Transceiver(
+    int module,
+    TransceiverManager* mgr)
     : FakeTransceiverImpl(
           module,
           kCmis2x400GFr4Lower,
-          kCmis2x400GFr4UpperPages) {}
+          kCmis2x400GFr4UpperPages,
+          mgr) {}
 
-Cmis2x400GDr4Transceiver::Cmis2x400GDr4Transceiver(int module)
+Cmis2x400GDr4Transceiver::Cmis2x400GDr4Transceiver(
+    int module,
+    TransceiverManager* mgr)
     : FakeTransceiverImpl(
           module,
           kCmis2x400GDr4Lower,
-          kCmis2x400GDr4UpperPages) {}
+          kCmis2x400GDr4UpperPages,
+          mgr) {}
 } // namespace fboss
 } // namespace facebook
