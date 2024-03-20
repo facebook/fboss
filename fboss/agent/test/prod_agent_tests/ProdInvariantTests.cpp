@@ -23,6 +23,7 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/utils/DscpMarkingUtils.h"
+#include "fboss/agent/test/utils/QueuePerHostTestUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
 namespace {

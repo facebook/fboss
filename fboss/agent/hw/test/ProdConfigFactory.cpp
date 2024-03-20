@@ -21,6 +21,7 @@
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQueuePerHostUtils.h"
 #include "fboss/agent/test/utils/DscpMarkingUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
+#include "fboss/agent/test/utils/QueuePerHostTestUtils.h"
 
 namespace {
 auto constexpr kTopLabel = 5000;

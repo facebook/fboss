@@ -18,6 +18,7 @@
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
+#include "fboss/agent/test/utils/QueuePerHostTestUtils.h"
 
 #include <string>
 

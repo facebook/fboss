@@ -124,6 +124,22 @@ target_link_libraries(qos_test_utils
   Folly::folly
 )
 
+add_library(queue_per_host_test_utils
+  fboss/agent/test/utils/QueuePerHostTestUtils.cpp
+)
+
+target_link_libraries(queue_per_host_test_utils
+  common_test_utils
+  acl_test_utils
+  config_utils
+  copp_test_utils
+  traffic_policy_utils
+  ecmp_helper
+  fboss_types
+  switch_asics
+  state
+  Folly::folly
+)
 add_library(load_balancer_test_utils
   fboss/agent/test/utils/LoadBalancerTestUtils.cpp
 )
