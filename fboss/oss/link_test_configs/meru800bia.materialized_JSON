@@ -3852,13 +3852,13 @@
       },
       {
         "logicalID": 30,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
-        "speed": 400000,
+        "speed": 100000,
         "name": "eth1/28/1",
         "description": "",
         "queues_DEPRECATED": [
@@ -3872,12 +3872,12 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "eth1/39/1"
         },
         "lookupClasses": [
           
         ],
-        "profileID": 38,
+        "profileID": 23,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -3886,13 +3886,13 @@
       },
       {
         "logicalID": 31,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
-        "speed": 400000,
+        "speed": 100000,
         "name": "eth1/28/5",
         "description": "",
         "queues_DEPRECATED": [
@@ -3911,7 +3911,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 38,
+        "profileID": 23,
         "portType": 0,
         "expectedNeighborReachability": [
           
@@ -6640,7 +6640,7 @@
       },
       {
         "logicalID": 38,
-        "state": 1,
+        "state": 2,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
@@ -6660,7 +6660,7 @@
         "sFlowEgressRate": 0,
         "loopbackMode": 0,
         "expectedLLDPValues": {
-          
+          "2": "eth1/28/1"
         },
         "lookupClasses": [
           
@@ -6751,6 +6751,19 @@
         "ipAddresses": [
           "2403::/64",
           "13.0.0.0/24"
+        ],
+        "mtu": 9000,
+        "isVirtual": false,
+        "isStateSyncDisabled": true,
+        "type": 2
+      },
+      {
+        "intfID": 130,
+        "routerID": 0,
+        "vlanID": 0,
+        "ipAddresses": [
+          "2404::/64",
+          "14.0.0.0/24"
         ],
         "mtu": 9000,
         "isVirtual": false,
@@ -8278,8 +8291,8 @@
             "ucode_port_28.BCM8889X": "CDGE4_26:core_3.2",
             "ucode_port_29.BCM8889X": "CDGE4_27:core_3.3",
             "ucode_port_3.BCM8889X": "CDGE4_1:core_0.3",
-            "ucode_port_30.BCM8889X": "CDGE4_28:core_3.4",
-            "ucode_port_31.BCM8889X": "CDGE4_29:core_3.5",
+            "ucode_port_30.BCM8889X": "CGE28:core_3.4",
+            "ucode_port_31.BCM8889X": "CGE29:core_3.5",
             "ucode_port_32.BCM8889X": "CDGE4_30:core_3.6",
             "ucode_port_33.BCM8889X": "CDGE4_31:core_3.7",
             "ucode_port_34.BCM8889X": "CDGE4_32:core_3.8",
