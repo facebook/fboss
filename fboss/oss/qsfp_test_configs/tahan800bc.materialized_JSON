@@ -24,6 +24,30 @@
             }
           ]
       },
+      "T-DQ4CNT-NF2": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "234.147"
+            }
+          ]
+      },
+      "T-DQ4CNT-NFB": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "234.146"
+            }
+          ]
+      },
+      "T-DQ4CNT-NFM": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "234.147"
+            }
+          ]
+      },
       "T-FX4FNT-HF4": {
           "versions": [
             {
