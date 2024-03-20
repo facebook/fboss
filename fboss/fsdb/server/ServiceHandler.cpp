@@ -71,8 +71,11 @@ static constexpr auto kWatchdogThreadHeartbeatMissed =
 
 namespace {
 
+using facebook::fboss::fsdb::ExtendedOperPath;
+using facebook::fboss::fsdb::OperPath;
 using facebook::fboss::fsdb::OperPubRequest;
 using facebook::fboss::fsdb::OperSubRequest;
+using facebook::fboss::fsdb::Path;
 
 template <typename OperRequest>
 std::string getPubSubRequestDetails(const OperRequest& request) {
@@ -89,6 +92,27 @@ std::string getPubSubRequestDetails(const OperRequest& request) {
       "Client ID: {}, Path: {}",
       clientID,
       folly::join("/", request.path()->get_raw()));
+}
+
+Path buildPathUnion(facebook::fboss::fsdb::OperSubscriberInfo info) {
+  Path pathUnion;
+  if (info.path() && info.path()->raw()->size() > 0) {
+    OperPath operPath;
+    operPath.raw() = *info.path()->raw();
+    pathUnion.set_operPath(operPath);
+  } else if (info.extendedPaths() && info.extendedPaths()->size() > 0) {
+    std::vector<ExtendedOperPath> extendedPaths;
+    pathUnion.set_extendedPaths(*info.extendedPaths());
+  }
+  return pathUnion;
+}
+
+Path buildPathUnion(facebook::fboss::fsdb::OperPublisherInfo info) {
+  Path pathUnion;
+  OperPath operPath;
+  operPath.raw() = *info.path()->raw();
+  pathUnion.set_operPath(operPath);
+  return pathUnion;
 }
 
 } // namespace
@@ -282,7 +306,9 @@ void ServiceHandler::registerPublisher(const OperPublisherInfo& info) {
     throw Utils::createFsdbException(
         FsdbErrorCode::EMPTY_PUBLISHER_ID, "Publisher Id must not be empty");
   }
-  auto resp = activePublishers_.wlock()->insert(info);
+  auto key = ClientKey(
+      *info.publisherId(), buildPathUnion(info), *info.type(), *info.isStats());
+  auto resp = activePublishers_.wlock()->insert({std::move(key), info});
   if (!resp.second) {
     throw Utils::createFsdbException(
         FsdbErrorCode::ID_ALREADY_EXISTS, "Dup publisher id");
@@ -317,7 +343,9 @@ void ServiceHandler::unregisterPublisher(
   XLOG(DBG2) << " Publisher complete " << *info.publisherId() << " : "
              << folly::join("/", *info.path()->raw()) << " disconnectReason: "
              << apache::thrift::util::enumNameSafe(disconnectReason);
-  activePublishers_.wlock()->erase(info);
+  auto key = ClientKey(
+      *info.publisherId(), buildPathUnion(info), *info.type(), *info.isStats());
+  activePublishers_.wlock()->erase(std::move(key));
   if (*info.isStats()) {
     operStatsStorage_.unregisterPublisher(
         info.path()->raw()->begin(),
@@ -536,7 +564,12 @@ void ServiceHandler::registerSubscription(const OperSubscriberInfo& info) {
       *info.isStats(),
       hasRawPath,
       hasExtendedPath);
-  auto resp = activeSubscriptions_.wlock()->insert(info);
+  auto key = ClientKey(
+      *info.subscriberId(),
+      buildPathUnion(info),
+      *info.type(),
+      *info.isStats());
+  auto resp = activeSubscriptions_.wlock()->insert({std::move(key), info});
   if (!resp.second) {
     throw Utils::createFsdbException(
         FsdbErrorCode::ID_ALREADY_EXISTS,
@@ -556,7 +589,12 @@ void ServiceHandler::registerSubscription(const OperSubscriberInfo& info) {
 void ServiceHandler::unregisterSubscription(const OperSubscriberInfo& info) {
   XLOG(DBG2) << " Subscription complete " << *info.subscriberId() << " : "
              << folly::join("/", *info.path()->raw());
-  activeSubscriptions_.wlock()->erase(info);
+  auto key = ClientKey(
+      *info.subscriberId(),
+      buildPathUnion(info),
+      *info.type(),
+      *info.isStats());
+  activeSubscriptions_.wlock()->erase(std::move(key));
   num_subscribers_.incrementValue(-1);
   auto config = fsdbConfig_->getSubscriberConfig(*info.subscriberId());
   if (config.has_value() && *config.value().second.get().trackReconnect()) {
@@ -999,7 +1037,8 @@ folly::coro::Task<std::unique_ptr<PublisherIdToOperPublisherInfo>>
 ServiceHandler::co_getAllOperPublisherInfos() {
   auto publishers = std::make_unique<PublisherIdToOperPublisherInfo>();
   activePublishers_.withRLock([&](const auto& activePublishers) {
-    for (const auto& publisher : activePublishers) {
+    for (const auto& it : activePublishers) {
+      auto& publisher = it.second;
       (*publishers)[*publisher.publisherId()].push_back(publisher);
     }
   });
@@ -1012,7 +1051,8 @@ ServiceHandler::co_getOperPublisherInfos(
   auto log = LOG_THRIFT_CALL(INFO);
   auto publishers = std::make_unique<PublisherIdToOperPublisherInfo>();
   activePublishers_.withRLock([&](const auto& activePublishers) {
-    for (auto& publisher : activePublishers) {
+    for (const auto& it : activePublishers) {
+      auto& publisher = it.second;
       if (publisherIds->find(*publisher.publisherId()) == publisherIds->end()) {
         continue;
       }
@@ -1026,7 +1066,8 @@ folly::coro::Task<std::unique_ptr<SubscriberIdToOperSubscriberInfos>>
 ServiceHandler::co_getAllOperSubscriberInfos() {
   auto subscriptions = std::make_unique<SubscriberIdToOperSubscriberInfos>();
   activeSubscriptions_.withRLock([&](const auto& activeSubscriptions) {
-    for (const auto& subscription : activeSubscriptions) {
+    for (const auto& it : activeSubscriptions) {
+      auto& subscription = it.second;
       (*subscriptions)[*subscription.subscriberId()].push_back(subscription);
     }
   });
@@ -1039,7 +1080,8 @@ ServiceHandler::co_getOperSubscriberInfos(
   auto log = LOG_THRIFT_CALL(INFO);
   auto subscriptions = std::make_unique<SubscriberIdToOperSubscriberInfos>();
   activeSubscriptions_.withRLock([&](const auto& activeSubscriptions) {
-    for (auto& subscription : activeSubscriptions) {
+    for (const auto& it : activeSubscriptions) {
+      auto& subscription = it.second;
       if (subscriberIds->find(*subscription.subscriberId()) ==
           subscriberIds->end()) {
         continue;

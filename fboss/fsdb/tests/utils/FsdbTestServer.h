@@ -41,7 +41,7 @@ class FsdbTestServer {
   std::optional<FsdbOperTreeMetadata> getPublisherRootMetadata(
       const std::string& root,
       bool isStats) const;
-  std::set<OperSubscriberInfo> getActiveSubscriptions() const;
+  ServiceHandler::ActiveSubscriptions getActiveSubscriptions() const;
 
  private:
   std::string getPublisherId(int publisherIdx) const;

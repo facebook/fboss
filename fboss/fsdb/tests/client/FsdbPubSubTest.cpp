@@ -306,6 +306,11 @@ TYPED_TEST(FsdbPubSubTest, dupSubscriber) {
   req.path()->raw() = {"agent"};
   req.subscriberId() = "test";
   auto res = this->subscribe(req);
+  // we've had errors sneak through this in the past because the subscription
+  // key depended on the current timestamp. Introducing a sleep To make sure we
+  // validate subscriber unique-ness even if timing is a factor
+  // @lint-ignore CLANGTIDY
+  std::this_thread::sleep_for(std::chrono::seconds(3));
   EXPECT_THROW(this->subscribe(req), FsdbException);
 }
 
@@ -349,6 +354,11 @@ TYPED_TEST(FsdbPubSubTest, dupPublisher) {
   req.path()->raw() = {"agent"};
   req.publisherId() = "test";
   auto res = this->setupPublisher(req);
+  // we've had errors sneak through this in the past because the publisher
+  // key depended on the current timestamp. Introducing a sleep To make sure we
+  // validate publisher unique-ness even if timing is a factor
+  // @lint-ignore CLANGTIDY
+  std::this_thread::sleep_for(std::chrono::seconds(3));
   EXPECT_THROW(this->setupPublisher(req), FsdbException);
 }
 

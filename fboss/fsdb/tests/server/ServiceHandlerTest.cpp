@@ -59,7 +59,7 @@ TEST_F(ServiceHandlerTest, testSubscriberRemovedOnFailure) {
                    subscribers.begin(),
                    subscribers.end(),
                    [&](const auto& subscriber) {
-                     return subscriber.subscriberId() == subId;
+                     return subscriber.second.subscriberId() == subId;
                    }) != subscribers.end();
       };
       try {

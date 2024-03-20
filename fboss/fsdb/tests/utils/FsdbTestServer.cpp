@@ -103,7 +103,8 @@ std::optional<FsdbOperTreeMetadata> FsdbTestServer::getPublisherRootMetadata(
   return pub2Metdata.getPublisherRootMetadata(idRoot);
 }
 
-std::set<OperSubscriberInfo> FsdbTestServer::getActiveSubscriptions() const {
+ServiceHandler::ActiveSubscriptions FsdbTestServer::getActiveSubscriptions()
+    const {
   return serviceHandler().getActiveSubscriptions();
 }
 

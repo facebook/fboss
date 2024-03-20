@@ -33,6 +33,13 @@ struct ExtendedOperPath {
   1: list<OperPathElem> path;
 }
 
+union Path {
+  // TODO: remove in favor of rawPath
+  1: OperPath operPath;
+  2: RawOperPath rawPath;
+  3: list<ExtendedOperPath> extendedPaths;
+}
+
 enum OperProtocol {
   BINARY = 1,
   SIMPLE_JSON = 2,
