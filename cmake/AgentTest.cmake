@@ -94,6 +94,7 @@ target_link_libraries(agent_test_lib
   qsfp_service_client
   fboss_config_utils
   monolithic_agent_initializer
+  qos_test_utils
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
 )
