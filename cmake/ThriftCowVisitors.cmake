@@ -32,4 +32,5 @@ target_link_libraries(thrift_cow_visitors
   patch_cpp2
   Folly::folly
   FBThrift::thriftcpp2
+  ${RE2}
 )
