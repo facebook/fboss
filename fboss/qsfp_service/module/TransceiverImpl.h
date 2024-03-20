@@ -57,16 +57,26 @@ class TransceiverImpl {
    */
   virtual bool detectTransceiver() = 0;
 
+  /* This function does a hard reset of the QSFP and this will be
+   * called when port flap is seen on the port remains down
+   */
+  virtual void triggerQsfpHardReset() = 0;
+
+  /*
+   * Returns the name of the port
+   */
+  virtual folly::StringPiece getName() = 0;
+
+  /*
+   * Returns the index of the transceiver (0 based)
+   */
+  virtual int getNum() const = 0;
+
   /*
    * In an implementation where newly inserted transceivers needs to be cleared
    * out of reset. This is the function to do it.
    */
   virtual void ensureOutOfReset() {}
-
-  /* This function does a hard reset of the QSFP and this will be
-   * called when port flap is seen on the port remains down
-   */
-  virtual void triggerQsfpHardReset() {}
 
   /* Functions relevant to I2C Profiling
    */
@@ -75,13 +85,6 @@ class TransceiverImpl {
   virtual std::pair<uint64_t, uint64_t> getI2cTimeProfileMsec() const {
     return std::make_pair(0, 0);
   }
-
-  /*
-   * Returns the name of the port
-   */
-  virtual folly::StringPiece getName() = 0;
-
-  virtual int getNum() const = 0;
 
   virtual std::optional<TransceiverStats> getTransceiverStats() {
     return std::optional<TransceiverStats>();

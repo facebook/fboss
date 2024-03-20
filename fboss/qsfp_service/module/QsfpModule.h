@@ -630,7 +630,7 @@ class QsfpModule : public Transceiver {
     return false;
   }
 
-  void triggerModuleResetLocked();
+  void triggerModuleReset();
 
  private:
   // no copy or assignment

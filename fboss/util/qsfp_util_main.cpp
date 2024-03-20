@@ -331,7 +331,7 @@ int main(int argc, char* argv[]) {
           TransceiverManagementInterface::CMIS) {
         printf("This command is applicable to CMIS module only\n");
       } else {
-        doCdbCommand(bus, portNum);
+        doCdbCommand(i2cInfo, portNum);
       }
     }
 

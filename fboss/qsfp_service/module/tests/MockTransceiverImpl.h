@@ -29,6 +29,7 @@ class MockTransceiverImpl : public TransceiverImpl {
   MOCK_METHOD0(detectTransceiver, bool());
   MOCK_METHOD0(getName, folly::StringPiece());
   MOCK_CONST_METHOD0(getNum, int());
+  MOCK_METHOD0(triggerQsfpHardReset, void());
 };
 } // namespace fboss
 } // namespace facebook

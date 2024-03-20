@@ -458,12 +458,9 @@ void Sff8472Module::remediateFlakyTransceiver(
     const std::vector<std::string>& /* ports */) {
   QSFP_LOG(INFO, this) << "Performing potentially disruptive remediations";
 
-  // This api accept 1 based module id however the module id in WedgeManager
-  // is 0 based.
   // Note that triggering a hard reset on a SFP module used with a QSFP-to-SFP
   // adapter actually toggles the txDisable line
-  getTransceiverManager()->getQsfpPlatformApi()->triggerQsfpHardReset(
-      static_cast<unsigned int>(getID()) + 1);
+  triggerModuleReset();
 
   // Even though remediation might not trigger, we still need to update the
   // lastRemediateTime_ so that we can use cool down before next remediation

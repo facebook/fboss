@@ -15,6 +15,7 @@
 #include <cstdint>
 #include <mutex>
 #include "fboss/lib/IOStatsRecorder.h"
+#include "fboss/qsfp_service/TransceiverManager.h"
 #include "fboss/qsfp_service/module/TransceiverImpl.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.h"
 
@@ -27,7 +28,10 @@ namespace fboss {
  */
 class WedgeQsfp : public TransceiverImpl {
  public:
-  WedgeQsfp(int module, TransceiverI2CApi* i2c);
+  WedgeQsfp(
+      int module,
+      TransceiverI2CApi* i2c,
+      TransceiverManager* const tcvrManager);
 
   ~WedgeQsfp() override;
 
@@ -88,10 +92,15 @@ class WedgeQsfp : public TransceiverImpl {
     return threadSafeI2CBus_->getI2cTimeProfileMsec(module_ + 1);
   }
 
+  void triggerQsfpHardReset() override {
+    tcvrManager_->getQsfpPlatformApi()->triggerQsfpHardReset(module_ + 1);
+  }
+
  private:
   int module_;
   std::string moduleName_;
   TransceiverI2CApi* threadSafeI2CBus_;
+  TransceiverManager* const tcvrManager_;
   IOStatsRecorder ioStatsRecorder_;
 };
 

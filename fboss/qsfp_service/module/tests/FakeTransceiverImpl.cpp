@@ -95,6 +95,10 @@ int FakeTransceiverImpl::getNum() const {
   return module_;
 }
 
+void FakeTransceiverImpl::triggerQsfpHardReset() {
+  // do nothing
+}
+
 // Below are randomly generated eeprom maps for testing purpose and doesn't
 // accurately reflect an actual module
 

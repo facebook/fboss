@@ -33,6 +33,7 @@ class MockSff8472TransceiverImpl : public Sfp10GTransceiver {
   explicit MockSff8472TransceiverImpl(int module) : Sfp10GTransceiver(module) {}
 
   MOCK_METHOD0(detectTransceiver, bool());
+  MOCK_METHOD0(triggerQsfpHardReset, void());
 };
 
 class MockSff8472Module : public Sff8472Module {
@@ -75,6 +76,7 @@ class MockCmisTransceiverImpl : public Cmis200GTransceiver {
   explicit MockCmisTransceiverImpl(int module) : Cmis200GTransceiver(module) {}
 
   MOCK_METHOD0(detectTransceiver, bool());
+  MOCK_METHOD0(triggerQsfpHardReset, void());
 };
 
 class MockCmisModule : public CmisModule {
@@ -1285,11 +1287,9 @@ TEST_F(TransceiverStateMachineTest, remediateCmisTransceiver) {
         /* sleep override */
         sleep(1);
 
-        // We trigger a hard reset as remediation
-        MockTransceiverPlatformApi* xcvrApi =
-            static_cast<MockTransceiverPlatformApi*>(
-                transceiverManager_->getQsfpPlatformApi());
-        EXPECT_CALL(*xcvrApi, triggerQsfpHardReset(id_ + 1)).Times(1);
+        MockCmisTransceiverImpl* xcvrImpl =
+            static_cast<MockCmisTransceiverImpl*>(cmisQsfpImpls_[id_].get());
+        EXPECT_CALL(*xcvrImpl, triggerQsfpHardReset()).Times(1);
       },
       [this]() { triggerRemediateEvents(); },
       [this]() {
@@ -1373,13 +1373,6 @@ TEST_F(TransceiverStateMachineTest, remediateCmisMultiPortTransceiver) {
         // If we are remediating from inactive state, only then expect a hard
         // reset of transceiver because then we do a full remediation
         // We trigger a hard reset as remediation
-        MockTransceiverPlatformApi* xcvrApi =
-            static_cast<MockTransceiverPlatformApi*>(
-                transceiverManager_->getQsfpPlatformApi());
-        EXPECT_CALL(*xcvrApi, triggerQsfpHardReset(id_ + 1))
-            .Times(
-                transceiverManager_->getCurrentState(id_) ==
-                TransceiverStateMachineState::INACTIVE);
       },
       [this]() {
         // When testing remediation from active state, let port1 remain UP but
@@ -1392,6 +1385,12 @@ TEST_F(TransceiverStateMachineTest, remediateCmisMultiPortTransceiver) {
               false /* up */, true /* enabled */, portId3_);
         }
         triggerRemediateEvents();
+        MockCmisTransceiverImpl* xcvrImpl =
+            static_cast<MockCmisTransceiverImpl*>(cmisQsfpImpls_[id_].get());
+        EXPECT_CALL(*xcvrImpl, triggerQsfpHardReset())
+            .Times(
+                transceiverManager_->getCurrentState(id_) ==
+                TransceiverStateMachineState::INACTIVE);
       },
       [this]() {
         // Just finished remediation, so the dirty flag should be set
@@ -1470,10 +1469,10 @@ TEST_F(TransceiverStateMachineTest, remediateSff8472Transceiver) {
         sleep(1);
 
         // We trigger a hard reset as remediation
-        MockTransceiverPlatformApi* xcvrApi =
-            static_cast<MockTransceiverPlatformApi*>(
-                transceiverManager_->getQsfpPlatformApi());
-        EXPECT_CALL(*xcvrApi, triggerQsfpHardReset(id_ + 1)).Times(1);
+        MockSff8472TransceiverImpl* xcvrImpl =
+            static_cast<MockSff8472TransceiverImpl*>(
+                sff8472QsfpImpls_[id_].get());
+        EXPECT_CALL(*xcvrImpl, triggerQsfpHardReset()).Times(1);
       },
       [this]() { triggerRemediateEvents(); },
       [this]() {
@@ -1551,10 +1550,9 @@ TEST_F(TransceiverStateMachineTest, remediateCmisTransceiverFailed) {
         /* sleep override */
         sleep(1);
 
-        MockTransceiverPlatformApi* xcvrApi =
-            static_cast<MockTransceiverPlatformApi*>(
-                transceiverManager_->getQsfpPlatformApi());
-        EXPECT_CALL(*xcvrApi, triggerQsfpHardReset(id_ + 1))
+        MockCmisTransceiverImpl* xcvrImpl =
+            static_cast<MockCmisTransceiverImpl*>(cmisQsfpImpls_[id_].get());
+        EXPECT_CALL(*xcvrImpl, triggerQsfpHardReset())
             .Times(2)
             .WillOnce(ThrowFbossError());
 

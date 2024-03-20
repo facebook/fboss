@@ -252,7 +252,7 @@ void get_module_fw_info(
     unsigned int moduleA,
     unsigned int moduleB);
 
-void doCdbCommand(TransceiverI2CApi* bus, unsigned int module);
+void doCdbCommand(DirectI2cInfo i2cInfo, unsigned int module);
 
 bool printVdmInfo(DirectI2cInfo i2cInfo, unsigned int port);
 

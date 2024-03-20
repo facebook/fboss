@@ -2277,7 +2277,7 @@ void CmisModule::remediateFlakyTransceiver(
   if (allPortsDown) {
     // This api accept 1 based module id however the module id in WedgeManager
     // is 0 based.
-    triggerModuleResetLocked();
+    triggerModuleReset();
   } else {
     auto portNameToHostLanesMap = getPortNameToHostLanes();
     for (const auto& port : ports) {

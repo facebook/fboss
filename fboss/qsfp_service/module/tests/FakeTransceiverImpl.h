@@ -35,6 +35,7 @@ class FakeTransceiverImpl : public TransceiverImpl {
   /* Returns the name for the port */
   folly::StringPiece getName() override;
   int getNum() const override;
+  void triggerQsfpHardReset() override;
 
  private:
   int module_{0};

@@ -144,7 +144,8 @@ void WedgeManager::initTransceiverMap() {
 void WedgeManager::initQsfpImplMap() {
   // Create WedgeQsfp for each QSFP module present in the system
   for (int idx = 0; idx < getNumQsfpModules(); idx++) {
-    qsfpImpls_.push_back(std::make_unique<WedgeQsfp>(idx, wedgeI2cBus_.get()));
+    qsfpImpls_.push_back(
+        std::make_unique<WedgeQsfp>(idx, wedgeI2cBus_.get(), this));
   }
 }
 

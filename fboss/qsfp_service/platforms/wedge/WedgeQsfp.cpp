@@ -16,6 +16,7 @@
 
 #include <folly/logging/xlog.h>
 #include "fboss/qsfp_service/StatsPublisher.h"
+#include "fboss/qsfp_service/TransceiverManager.h"
 #include "fboss/qsfp_service/module/QsfpModule.h"
 
 using namespace facebook::fboss;
@@ -63,8 +64,13 @@ void generateIOErrorForTest(std::string functionName) {
 namespace facebook {
 namespace fboss {
 
-WedgeQsfp::WedgeQsfp(int module, TransceiverI2CApi* wedgeI2CBus)
-    : module_(module), threadSafeI2CBus_(wedgeI2CBus) {
+WedgeQsfp::WedgeQsfp(
+    int module,
+    TransceiverI2CApi* wedgeI2CBus,
+    TransceiverManager* const tcvrManager)
+    : module_(module),
+      threadSafeI2CBus_(wedgeI2CBus),
+      tcvrManager_(tcvrManager) {
   moduleName_ = folly::to<std::string>(module);
 }
 

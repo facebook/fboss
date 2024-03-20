@@ -220,7 +220,7 @@ bool QsfpModule::upgradeFirmwareLocked(
     }
 
     // Trigger a hard reset of the transceiver to kick start the new firmware
-    triggerModuleResetLocked();
+    triggerModuleReset();
   } // End of firmware upgrade
 
   lastFwUpgradeEndTime_ = std::time(nullptr);
@@ -232,9 +232,8 @@ bool QsfpModule::upgradeFirmwareLocked(
   return fwUpgradeResult;
 }
 
-void QsfpModule::triggerModuleResetLocked() {
-  getTransceiverManager()->getQsfpPlatformApi()->triggerQsfpHardReset(
-      static_cast<unsigned int>(getID()) + 1);
+void QsfpModule::triggerModuleReset() {
+  qsfpImpl_->triggerQsfpHardReset();
 }
 
 // Note that this needs to be called while holding the

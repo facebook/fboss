@@ -394,13 +394,13 @@ std::map<prbs::PrbsPolynomial, int> cmisPrbsPolynominalMap = {
 
 // Forward declaration of utility functions for firmware upgrade
 std::vector<unsigned int> getUpgradeModList(
-    TransceiverI2CApi* bus,
+    DirectI2cInfo i2cInfo,
     std::vector<unsigned int> portlist,
     std::string moduleType,
     std::string fwVer);
 
 void fwUpgradeThreadHandler(
-    TransceiverI2CApi* bus,
+    DirectI2cInfo i2cInfo,
     std::vector<unsigned int> modlist,
     std::string firmwareFilename,
     uint32_t imageHdrLen);
@@ -1137,7 +1137,8 @@ DOMDataUnion fetchDataFromLocalI2CBus(
     DirectI2cInfo i2cInfo,
     unsigned int port) {
   // port is 1 based and WedgeQsfp is 0 based.
-  auto qsfpImpl = std::make_unique<WedgeQsfp>(port - 1, i2cInfo.bus);
+  auto qsfpImpl = std::make_unique<WedgeQsfp>(
+      port - 1, i2cInfo.bus, i2cInfo.transceiverManager);
   auto mgmtInterface = qsfpImpl->getTransceiverManagementInterface();
   auto cfgPtr = i2cInfo.transceiverManager->getTransceiverConfig();
 
@@ -2802,7 +2803,8 @@ bool cliModulefirmwareUpgrade(
   firmwareAttr.properties["image_type"] =
       FLAGS_dsp_image ? "dsp" : "application";
   auto fbossFwObj = std::make_unique<FbossFirmware>(firmwareAttr);
-  auto qsfpImpl = std::make_unique<WedgeQsfp>(port - 1, i2cInfo.bus);
+  auto qsfpImpl = std::make_unique<WedgeQsfp>(
+      port - 1, i2cInfo.bus, i2cInfo.transceiverManager);
   auto fwUpgradeObj = std::make_unique<CmisFirmwareUpgrader>(
       qsfpImpl.get(), port, std::move(fbossFwObj));
 
@@ -2851,8 +2853,8 @@ bool cliModulefirmwareUpgrade(
   std::vector<unsigned int> modlist = portRangeStrToPortList(portRangeStr);
 
   // Get the list of all the modules where upgrade can be done
-  std::vector<unsigned int> finalModlist = getUpgradeModList(
-      i2cInfo.bus, modlist, FLAGS_module_type, FLAGS_fw_version);
+  std::vector<unsigned int> finalModlist =
+      getUpgradeModList(i2cInfo, modlist, FLAGS_module_type, FLAGS_fw_version);
 
   // Get the modules per controller (platform specific)
   int modsPerController = getModulesPerController();
@@ -2908,7 +2910,7 @@ bool cliModulefirmwareUpgrade(
   for (auto& bucketrow : bucket) {
     std::thread tHandler(
         fwUpgradeThreadHandler,
-        i2cInfo.bus,
+        i2cInfo,
         bucketrow,
         firmwareFilename,
         imageHdrLen);
@@ -2935,7 +2937,7 @@ bool cliModulefirmwareUpgrade(
  * fw upgrade on all these modules one by one in this thread context.
  */
 void fwUpgradeThreadHandler(
-    TransceiverI2CApi* bus,
+    DirectI2cInfo i2cInfo,
     std::vector<unsigned int> modlist,
     std::string firmwareFilename,
     uint32_t imageHdrLen) {
@@ -2953,7 +2955,8 @@ void fwUpgradeThreadHandler(
     firmwareAttr.properties["image_type"] =
         FLAGS_dsp_image ? "dsp" : "application";
     auto fbossFwObj = std::make_unique<FbossFirmware>(firmwareAttr);
-    auto qsfpImpl = std::make_unique<WedgeQsfp>(module - 1, bus);
+    auto qsfpImpl = std::make_unique<WedgeQsfp>(
+        module - 1, i2cInfo.bus, i2cInfo.transceiverManager);
     auto fwUpgradeObj = std::make_unique<CmisFirmwareUpgrader>(
         qsfpImpl.get(), module, std::move(fbossFwObj));
 
@@ -2971,7 +2974,7 @@ void fwUpgradeThreadHandler(
     }
 
     // Find out the current version running on module
-    bus->moduleRead(
+    i2cInfo.bus->moduleRead(
         module,
         {TransceiverAccessParameter::ADDR_QSFP, 39, 2},
         versionNumber.data());
@@ -3000,7 +3003,7 @@ void fwUpgradeThreadHandler(
  * upgrade
  */
 std::vector<unsigned int> getUpgradeModList(
-    TransceiverI2CApi* bus,
+    DirectI2cInfo i2cInfo,
     std::vector<unsigned int> portlist,
     std::string moduleType,
     std::string fwVer) {
@@ -3024,11 +3027,12 @@ std::vector<unsigned int> getUpgradeModList(
     std::string tempPartNo, tempFwVerStr;
 
     // Check if the module is present
-    if (!bus->isPresent(module)) {
+    if (!i2cInfo.bus->isPresent(module)) {
       continue;
     }
 
-    auto qsfpImpl = std::make_unique<WedgeQsfp>(module - 1, bus);
+    auto qsfpImpl = std::make_unique<WedgeQsfp>(
+        module - 1, i2cInfo.bus, i2cInfo.transceiverManager);
     auto mgmtInterface = qsfpImpl->getTransceiverManagementInterface();
 
     // Check if it is CMIS module
@@ -3245,7 +3249,7 @@ void get_module_fw_info(
  * 200"
  */
 
-void doCdbCommand(TransceiverI2CApi* bus, unsigned int module) {
+void doCdbCommand(DirectI2cInfo i2cInfo, unsigned int module) {
   if (FLAGS_command_code == -1) {
     printf("A valid command code is requied\n");
     return;
@@ -3269,7 +3273,8 @@ void doCdbCommand(TransceiverI2CApi* bus, unsigned int module) {
   // password to unlock CDB functions
   CdbCommandBlock cdbBlock;
   cdbBlock.createCdbCmdGeneric(commandCode, lplMem);
-  auto qsfpImpl = std::make_unique<WedgeQsfp>(module - 1, bus);
+  auto qsfpImpl = std::make_unique<WedgeQsfp>(
+      module - 1, i2cInfo.bus, i2cInfo.transceiverManager);
   cdbBlock.selectCdbPage(qsfpImpl.get());
   cdbBlock.setMsaPassword(qsfpImpl.get(), FLAGS_msa_password);
 
