@@ -20,8 +20,6 @@ using apache::thrift::TEnumTraits;
 using folly::IPAddress;
 
 namespace {
-constexpr auto kAclStage = "aclStage";
-constexpr auto kName = "name";
 constexpr auto kAclTableGroupName = "ingress-ACL-Table-Group";
 } // namespace
 

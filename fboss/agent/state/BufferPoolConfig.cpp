@@ -10,12 +10,6 @@
 #include "fboss/agent/state/BufferPoolConfig.h"
 #include "fboss/agent/state/NodeBase-defs.h"
 
-namespace {
-constexpr auto kSharedBytes = "sharedBytes";
-constexpr auto kHeadroomBytes = "headroomBytes";
-constexpr auto kBufferPoolCfgName = "id";
-} // namespace
-
 namespace facebook::fboss {
 
 template class ThriftStructNode<BufferPoolCfg, state::BufferPoolFields>;

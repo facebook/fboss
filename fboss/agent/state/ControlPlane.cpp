@@ -19,15 +19,6 @@
 
 #include <thrift/lib/cpp/util/EnumUtils.h>
 
-namespace {
-constexpr auto kQueues = "queues";
-constexpr auto kRxReasonToQueue = "rxReasonToQueue";
-constexpr auto kRxReasonToQueueOrderedList = "rxReasonToQueueOrderedList";
-constexpr auto kRxReason = "rxReason";
-constexpr auto kQueueId = "queueId";
-constexpr auto kQosPolicy = "defaultQosPolicy";
-} // namespace
-
 namespace facebook::fboss {
 
 cfg::PacketRxReasonToQueue ControlPlane::makeRxReasonToQueueEntry(
