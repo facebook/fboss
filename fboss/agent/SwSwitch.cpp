@@ -787,7 +787,6 @@ void SwSwitch::updateStats() {
     hwStats.hwPortStats() = multiHwSwitchHandler_->getPortStats();
     hwStats.sysPortStats() = multiHwSwitchHandler_->getSysPortStats();
     hwStats.switchDropStats() = multiHwSwitchHandler_->getSwitchDropStats();
-    // TODO: Fix other similar invocations as well
     hwStats.switchWatermarkStats() =
         getMonolithicHwSwitchHandler()->getSwitchWatermarkStats();
     if (auto hwSwitchStats = multiHwSwitchHandler_->getSwitchStats()) {
