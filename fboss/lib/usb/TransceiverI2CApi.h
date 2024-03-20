@@ -9,34 +9,18 @@
  */
 #pragma once
 
-#include <folly/io/async/EventBase.h>
-#include "fboss/lib/i2c/gen-cpp2/i2c_controller_stats_types.h"
-
 #include <cstdint>
 #include <map>
 #include <stdexcept>
 #include <string>
 
+#include <folly/io/async/EventBase.h>
+
+#include "fboss/lib/i2c/gen-cpp2/i2c_controller_stats_types.h"
+#include "fboss/lib/usb/TransceiverAccessParameter.h"
+
 namespace facebook::fboss {
 enum class ModulePresence { PRESENT, ABSENT, UNKNOWN };
-
-struct TransceiverAccessParameter {
-  std::optional<uint8_t> i2cAddress;
-  int offset;
-  int len;
-  std::optional<int> page;
-  std::optional<int> bank;
-
-  TransceiverAccessParameter(uint8_t i2cAddress_, int offset_, int len_)
-      : i2cAddress(i2cAddress_), offset(offset_), len(len_) {}
-
-  TransceiverAccessParameter(
-      uint8_t i2cAddress_,
-      int offset_,
-      int len_,
-      int page_)
-      : i2cAddress(i2cAddress_), offset(offset_), len(len_), page(page_) {}
-};
 
 class I2cError : public std::exception {
  public:
@@ -128,12 +112,6 @@ class TransceiverI2CApi {
       unsigned int /* module */) const {
     return std::make_pair(0, 0);
   }
-
-  // Addresses to be queried by external callers:
-  enum : uint8_t {
-    ADDR_QSFP = 0x50,
-    ADDR_QSFP_A2 = 0x51,
-  };
 };
 
 } // namespace facebook::fboss

@@ -85,7 +85,7 @@ QsfpUtil::getModuleTypeViaService(const std::vector<unsigned int>& ports) {
   std::map<int32_t, ReadResponse> readResp;
   readViaServiceFn_(
       idx,
-      {TransceiverI2CApi::ADDR_QSFP, offset, length, page},
+      {TransceiverAccessParameter::ADDR_QSFP, offset, length, page},
       *evb_,
       readResp);
 
@@ -117,7 +117,8 @@ TransceiverManagementInterface QsfpUtil::getModuleTypeDirect(
   // Get the module id to differentiate between CMIS (0x1e) and SFF
   for (auto retry = 0; retry < kNumRetryGetModuleType; retry++) {
     try {
-      readViaDirectIoFn_(port, {TransceiverI2CApi::ADDR_QSFP, 0, 1}, &moduleId);
+      readViaDirectIoFn_(
+          port, {TransceiverAccessParameter::ADDR_QSFP, 0, 1}, &moduleId);
     } catch (const I2cError& ex) {
       fprintf(
           stderr, "QSFP %d: not present or read error, retrying...\n", port);

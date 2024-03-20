@@ -177,7 +177,10 @@ bool BaseWedgeI2CBus::isPresent(unsigned int module) {
   uint8_t buf = 0;
   for (int i = 0; i < kNumPresenceDetectionRetries; ++i) {
     try {
-      moduleRead(module, {TransceiverI2CApi::ADDR_QSFP, 0, sizeof(buf)}, &buf);
+      moduleRead(
+          module,
+          {TransceiverAccessParameter::ADDR_QSFP, 0, sizeof(buf)},
+          &buf);
       return true;
     } catch (const I2cError& ex) {
       /*
@@ -200,7 +203,7 @@ void BaseWedgeI2CBus::scanPresence(
     try {
       moduleRead(
           presence.first + 1,
-          {TransceiverI2CApi::ADDR_QSFP, 0, sizeof(buf)},
+          {TransceiverAccessParameter::ADDR_QSFP, 0, sizeof(buf)},
           &buf);
     } catch (const I2cError& ex) {
       /*

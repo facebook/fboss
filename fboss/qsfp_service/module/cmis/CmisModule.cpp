@@ -528,14 +528,15 @@ void CmisModule::readCmisField(
     // changing page) and when the skipPageChange argument is not true
     uint8_t page = static_cast<uint8_t>(dataPage);
     qsfpImpl_->writeTransceiver(
-        {TransceiverI2CApi::ADDR_QSFP,
+        {TransceiverAccessParameter::ADDR_QSFP,
          127,
          sizeof(page),
          static_cast<int>(CmisPages::LOWER)},
         &page);
   }
   qsfpImpl_->readTransceiver(
-      {TransceiverI2CApi::ADDR_QSFP, dataOffset, dataLength, dataPage}, data);
+      {TransceiverAccessParameter::ADDR_QSFP, dataOffset, dataLength, dataPage},
+      data);
 }
 
 void CmisModule::writeCmisField(
@@ -550,14 +551,15 @@ void CmisModule::writeCmisField(
     // changing page) and when the skipPageChange argument is not true
     uint8_t page = static_cast<uint8_t>(dataPage);
     qsfpImpl_->writeTransceiver(
-        {TransceiverI2CApi::ADDR_QSFP,
+        {TransceiverAccessParameter::ADDR_QSFP,
          127,
          sizeof(page),
          static_cast<int>(CmisPages::LOWER)},
         &page);
   }
   qsfpImpl_->writeTransceiver(
-      {TransceiverI2CApi::ADDR_QSFP, dataOffset, dataLength, dataPage}, data);
+      {TransceiverAccessParameter::ADDR_QSFP, dataOffset, dataLength, dataPage},
+      data);
 }
 
 FlagLevels CmisModule::getQsfpSensorFlags(CmisField fieldName, int offset) {

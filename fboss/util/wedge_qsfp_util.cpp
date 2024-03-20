@@ -484,7 +484,8 @@ TransceiverManagementInterface getModuleTypeDirect(
   // Get the module id to differentiate between CMIS (0x1e) and SFF
   for (auto retry = 0; retry < numRetryGetModuleType; retry++) {
     try {
-      bus->moduleRead(port, {TransceiverI2CApi::ADDR_QSFP, 0, 1}, &moduleId);
+      bus->moduleRead(
+          port, {TransceiverAccessParameter::ADDR_QSFP, 0, 1}, &moduleId);
     } catch (const I2cError& ex) {
       fprintf(
           stderr, "QSFP %d: not present or read error, retrying...\n", port);
@@ -538,7 +539,9 @@ bool flipModuleUpperPage(
     uint8_t page) {
   try {
     bus->moduleWrite(
-        port, {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
+        port,
+        {TransceiverAccessParameter::ADDR_QSFP, 127, sizeof(page)},
+        &page);
   } catch (const I2cError& ex) {
     fprintf(stderr, "QSFP %d: Fail to flip module upper page\n", port);
     return false;
@@ -596,9 +599,11 @@ bool setCdr(TransceiverI2CApi* bus, unsigned int port, uint8_t value) {
   try {
     // ensure we have page0 selected
     uint8_t page0 = 0;
-    bus->moduleWrite(port, {TransceiverI2CApi::ADDR_QSFP, 127, 1}, &page0);
+    bus->moduleWrite(
+        port, {TransceiverAccessParameter::ADDR_QSFP, 127, 1}, &page0);
 
-    bus->moduleRead(port, {TransceiverI2CApi::ADDR_QSFP, 129, 1}, supported);
+    bus->moduleRead(
+        port, {TransceiverAccessParameter::ADDR_QSFP, 129, 1}, supported);
   } catch (const I2cError& ex) {
     fprintf(
         stderr,
@@ -617,7 +622,7 @@ bool setCdr(TransceiverI2CApi* bus, unsigned int port, uint8_t value) {
   // byte anyway
   uint8_t buf[1] = {value};
   try {
-    bus->moduleWrite(port, {TransceiverI2CApi::ADDR_QSFP, 98, 1}, buf);
+    bus->moduleWrite(port, {TransceiverAccessParameter::ADDR_QSFP, 98, 1}, buf);
   } catch (const I2cError& ex) {
     fprintf(stderr, "QSFP %d: Failed to set CDR\n", port);
     return false;
@@ -658,7 +663,7 @@ bool appSel(TransceiverI2CApi* bus, unsigned int port, uint8_t value) {
     for (int channel = 0; channel < 4; channel++) {
       bus->moduleWrite(
           port,
-          {TransceiverI2CApi::ADDR_QSFP,
+          {TransceiverAccessParameter::ADDR_QSFP,
            kCMISOffsetAppSelLane1 + channel,
            sizeof(applicationCode)},
           &applicationCode);
@@ -667,7 +672,7 @@ bool appSel(TransceiverI2CApi* bus, unsigned int port, uint8_t value) {
     uint8_t applySet0 = 0x0f;
     bus->moduleWrite(
         port,
-        {TransceiverI2CApi::ADDR_QSFP,
+        {TransceiverAccessParameter::ADDR_QSFP,
          kCMISOffsetStageCtrlSet0,
          sizeof(applySet0)},
         &applySet0);
@@ -2553,7 +2558,8 @@ bool doMiniphotonLoopbackDirect(
   try {
     // Make sure we have page128 selected.
     uint8_t page128 = 128;
-    bus->moduleWrite(port, {TransceiverI2CApi::ADDR_QSFP, 127, 1}, &page128);
+    bus->moduleWrite(
+        port, {TransceiverAccessParameter::ADDR_QSFP, 127, 1}, &page128);
 
     uint8_t loopback = 0;
     if (mode == electricalLoopback) {
@@ -2562,7 +2568,8 @@ bool doMiniphotonLoopbackDirect(
       loopback = 0b10101010;
     }
     fprintf(stderr, "loopback value: %x\n", loopback);
-    bus->moduleWrite(port, {TransceiverI2CApi::ADDR_QSFP, 245, 1}, &loopback);
+    bus->moduleWrite(
+        port, {TransceiverAccessParameter::ADDR_QSFP, 245, 1}, &loopback);
   } catch (const I2cError& ex) {
     fprintf(stderr, "QSFP %d: fail to set loopback\n", port);
     return false;
@@ -2578,12 +2585,16 @@ void cmisHostInputLoopbackDirect(
     // Make sure we have page 0x13 selected.
     uint8_t page = 0x13;
     bus->moduleWrite(
-        port, {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
+        port,
+        {TransceiverAccessParameter::ADDR_QSFP, 127, sizeof(page)},
+        &page);
 
     uint8_t data;
     if (!FLAGS_skip_check) {
       bus->moduleRead(
-          port, {TransceiverI2CApi::ADDR_QSFP, 128, sizeof(data)}, &data);
+          port,
+          {TransceiverAccessParameter::ADDR_QSFP, 128, sizeof(data)},
+          &data);
       if (!(data & 0x08)) {
         fprintf(
             stderr,
@@ -2595,7 +2606,9 @@ void cmisHostInputLoopbackDirect(
 
     data = (mode == electricalLoopback) ? 0xff : 0;
     bus->moduleWrite(
-        port, {TransceiverI2CApi::ADDR_QSFP, 183, sizeof(data)}, &data);
+        port,
+        {TransceiverAccessParameter::ADDR_QSFP, 183, sizeof(data)},
+        &data);
   } catch (const I2cError& ex) {
     fprintf(stderr, "QSFP %d: fail to set loopback\n", port);
   }
@@ -2609,12 +2622,16 @@ void cmisMediaInputLoopbackDirect(
     // Make sure we have page 0x13 selected.
     uint8_t page = 0x13;
     bus->moduleWrite(
-        port, {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
+        port,
+        {TransceiverAccessParameter::ADDR_QSFP, 127, sizeof(page)},
+        &page);
 
     uint8_t data;
     if (!FLAGS_skip_check) {
       bus->moduleRead(
-          port, {TransceiverI2CApi::ADDR_QSFP, 128, sizeof(data)}, &data);
+          port,
+          {TransceiverAccessParameter::ADDR_QSFP, 128, sizeof(data)},
+          &data);
       if (!(data & 0x02)) {
         fprintf(
             stderr,
@@ -2626,7 +2643,9 @@ void cmisMediaInputLoopbackDirect(
 
     data = (mode == opticalLoopback) ? 0xff : 0;
     bus->moduleWrite(
-        port, {TransceiverI2CApi::ADDR_QSFP, 181, sizeof(data)}, &data);
+        port,
+        {TransceiverAccessParameter::ADDR_QSFP, 181, sizeof(data)},
+        &data);
   } catch (const I2cError& ex) {
     fprintf(stderr, "QSFP %d: fail to set loopback\n", port);
   }
@@ -2941,7 +2960,9 @@ void fwUpgradeThreadHandler(
 
     // Find out the current version running on module
     bus->moduleRead(
-        module, {TransceiverI2CApi::ADDR_QSFP, 39, 2}, versionNumber.data());
+        module,
+        {TransceiverAccessParameter::ADDR_QSFP, 39, 2},
+        versionNumber.data());
     printf(
         "cmisModuleFirmwareUpgrade: Mod%d: Module Active Firmware Revision now: %d.%d\n",
         module,
@@ -3607,7 +3628,8 @@ void setModulePrbsDirect(
 void setModulePrbsDirectCmis(TransceiverI2CApi* bus, int module, bool start) {
   // Set the page first
   uint8_t prbsPage = 0x13;
-  bus->moduleWrite(module, {TransceiverI2CApi::ADDR_QSFP, 127, 1}, &prbsPage);
+  bus->moduleWrite(
+      module, {TransceiverAccessParameter::ADDR_QSFP, 127, 1}, &prbsPage);
 
   auto patternEnum = nameToEnum<prbs::PrbsPolynomial>(FLAGS_prbs_pattern);
   auto patternInt = cmisPrbsPolynominalMap[patternEnum];
@@ -3619,10 +3641,12 @@ void setModulePrbsDirectCmis(TransceiverI2CApi* bus, int module, bool start) {
       pattern[i] = ((patternInt & 0xf) << 4) | (patternInt & 0xf);
     }
     if (FLAGS_generator) {
-      bus->moduleWrite(module, {TransceiverI2CApi::ADDR_QSFP, 156, 4}, pattern);
+      bus->moduleWrite(
+          module, {TransceiverAccessParameter::ADDR_QSFP, 156, 4}, pattern);
     }
     if (FLAGS_checker) {
-      bus->moduleWrite(module, {TransceiverI2CApi::ADDR_QSFP, 172, 4}, pattern);
+      bus->moduleWrite(
+          module, {TransceiverAccessParameter::ADDR_QSFP, 172, 4}, pattern);
     }
   }
 
@@ -3630,11 +3654,12 @@ void setModulePrbsDirectCmis(TransceiverI2CApi* bus, int module, bool start) {
   if (FLAGS_generator) {
     uint8_t generator = start ? 0xff : 0x00;
     bus->moduleWrite(
-        module, {TransceiverI2CApi::ADDR_QSFP, 152, 1}, &generator);
+        module, {TransceiverAccessParameter::ADDR_QSFP, 152, 1}, &generator);
   }
   if (FLAGS_checker) {
     uint8_t checker = start ? 0xff : 0x00;
-    bus->moduleWrite(module, {TransceiverI2CApi::ADDR_QSFP, 168, 1}, &checker);
+    bus->moduleWrite(
+        module, {TransceiverAccessParameter::ADDR_QSFP, 168, 1}, &checker);
   }
 }
 
@@ -3725,7 +3750,8 @@ void getModulePrbsStatsDirect(
 void getModulePrbsStatsDirectCmis(TransceiverI2CApi* bus, int module) {
   // Set the page first
   uint8_t prbsPage = 0x14;
-  bus->moduleWrite(module, {TransceiverI2CApi::ADDR_QSFP, 127, 1}, &prbsPage);
+  bus->moduleWrite(
+      module, {TransceiverAccessParameter::ADDR_QSFP, 127, 1}, &prbsPage);
 
   // Read the PRBS generator and checker lock status
   std::array<bool, 8> prbsGeneratorLocked;
@@ -3733,13 +3759,14 @@ void getModulePrbsStatsDirectCmis(TransceiverI2CApi* bus, int module) {
 
   uint8_t generatorLol;
   bus->moduleRead(
-      module, {TransceiverI2CApi::ADDR_QSFP, 137, 1}, &generatorLol);
+      module, {TransceiverAccessParameter::ADDR_QSFP, 137, 1}, &generatorLol);
   for (int i = 0; i < 8; i++) {
     prbsGeneratorLocked[i] = !((generatorLol >> i) & 0x1);
   }
 
   uint8_t checkerLol;
-  bus->moduleRead(module, {TransceiverI2CApi::ADDR_QSFP, 139, 1}, &checkerLol);
+  bus->moduleRead(
+      module, {TransceiverAccessParameter::ADDR_QSFP, 139, 1}, &checkerLol);
   for (int i = 0; i < 8; i++) {
     prbsCheckerLocked[i] = !((checkerLol >> i) & 0x1);
   }
@@ -3748,13 +3775,14 @@ void getModulePrbsStatsDirectCmis(TransceiverI2CApi* bus, int module) {
   std::array<float, 8> mediaBer;
 
   uint8_t diagSelect = 1;
-  bus->moduleWrite(module, {TransceiverI2CApi::ADDR_QSFP, 128, 1}, &diagSelect);
+  bus->moduleWrite(
+      module, {TransceiverAccessParameter::ADDR_QSFP, 128, 1}, &diagSelect);
   // Some modules take 1.8s to populate BER
   usleep(2 * 1000 * 1000); // @lint-ignore CLANGTIDY
 
   std::array<uint8_t, 16> berData;
   bus->moduleRead(
-      module, {TransceiverI2CApi::ADDR_QSFP, 208, 16}, berData.data());
+      module, {TransceiverAccessParameter::ADDR_QSFP, 208, 16}, berData.data());
 
   for (int i = 0; i < 8; i++) {
     int exponent = berData[i * 2] >> 3;
@@ -3767,12 +3795,13 @@ void getModulePrbsStatsDirectCmis(TransceiverI2CApi* bus, int module) {
   std::array<float, 8> mediaSnr;
 
   diagSelect = 6;
-  bus->moduleWrite(module, {TransceiverI2CApi::ADDR_QSFP, 128, 1}, &diagSelect);
+  bus->moduleWrite(
+      module, {TransceiverAccessParameter::ADDR_QSFP, 128, 1}, &diagSelect);
   usleep(2 * 1000 * 1000); // @lint-ignore CLANGTIDY
 
   std::array<uint8_t, 16> snrData;
   bus->moduleRead(
-      module, {TransceiverI2CApi::ADDR_QSFP, 240, 16}, snrData.data());
+      module, {TransceiverAccessParameter::ADDR_QSFP, 240, 16}, snrData.data());
 
   for (int i = 0; i < 8; i++) {
     mediaSnr[i] = snrData[i * 2] / 256.0 + snrData[(i * 2) + 1];

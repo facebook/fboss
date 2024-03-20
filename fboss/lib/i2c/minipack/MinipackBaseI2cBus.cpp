@@ -27,8 +27,9 @@ void MinipackBaseI2cBus::moduleRead(
 
   if (auto i2cController =
           systemContainer_->getPimContainer(pim)->getI2cController(port)) {
-    uint8_t i2cAddress =
-        param.i2cAddress ? *param.i2cAddress : TransceiverI2CApi::ADDR_QSFP;
+    uint8_t i2cAddress = param.i2cAddress
+        ? *param.i2cAddress
+        : TransceiverAccessParameter::ADDR_QSFP;
     i2cController->read(
         port, offset, folly::MutableByteRange(buf, len), i2cAddress);
   } else {
@@ -58,8 +59,9 @@ void MinipackBaseI2cBus::moduleWrite(
 
   if (auto i2cController =
           systemContainer_->getPimContainer(pim)->getI2cController(port)) {
-    uint8_t i2cAddress =
-        param.i2cAddress ? *param.i2cAddress : TransceiverI2CApi::ADDR_QSFP;
+    uint8_t i2cAddress = param.i2cAddress
+        ? *param.i2cAddress
+        : TransceiverAccessParameter::ADDR_QSFP;
     i2cController->write(port, offset, folly::ByteRange(data, len), i2cAddress);
   } else {
     systemContainer_->getPimContainer(pim)->getSpiController(port)->write(

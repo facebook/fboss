@@ -108,12 +108,12 @@ bool QsfpUtilTx::setSffTxDisableDirect(
 
       bus_->moduleRead(
           oneIndexedModuleId,
-          {TransceiverI2CApi::ADDR_QSFP, offset, length},
+          {TransceiverAccessParameter::ADDR_QSFP, offset, length},
           &buf);
       setChannelDisable(TransceiverManagementInterface::SFF, buf);
       bus_->moduleWrite(
           oneIndexedModuleId,
-          {TransceiverI2CApi::ADDR_QSFP, offset, length},
+          {TransceiverAccessParameter::ADDR_QSFP, offset, length},
           &buf);
     } catch (const I2cError& ex) {
       XLOG(ERR) << fmt::format(
@@ -151,7 +151,7 @@ bool QsfpUtilTx::setCmisTxDisableDirect(
       // Save current page
       bus_->moduleRead(
           oneIndexedModuleId,
-          {TransceiverI2CApi::ADDR_QSFP, offset, length},
+          {TransceiverAccessParameter::ADDR_QSFP, offset, length},
           &savedPage);
 
       // For CMIS module, the page 0x10 reg 130 controls TX_DISABLE for 8 lanes
@@ -161,16 +161,16 @@ bool QsfpUtilTx::setCmisTxDisableDirect(
 
       bus_->moduleWrite(
           oneIndexedModuleId,
-          {TransceiverI2CApi::ADDR_QSFP, offset, length},
+          {TransceiverAccessParameter::ADDR_QSFP, offset, length},
           &moduleControlPage);
       bus_->moduleRead(
           oneIndexedModuleId,
-          {TransceiverI2CApi::ADDR_QSFP, cmisTxDisableReg, length},
+          {TransceiverAccessParameter::ADDR_QSFP, cmisTxDisableReg, length},
           &buf);
       setChannelDisable(TransceiverManagementInterface::CMIS, buf);
       bus_->moduleWrite(
           oneIndexedModuleId,
-          {TransceiverI2CApi::ADDR_QSFP, cmisTxDisableReg, length},
+          {TransceiverAccessParameter::ADDR_QSFP, cmisTxDisableReg, length},
           &buf);
 
       // Restore current page. Need a delay here, otherwise certain modules
@@ -178,7 +178,7 @@ bool QsfpUtilTx::setCmisTxDisableDirect(
       usleep(20 * 1000);
       bus_->moduleWrite(
           oneIndexedModuleId,
-          {TransceiverI2CApi::ADDR_QSFP, offset, length},
+          {TransceiverAccessParameter::ADDR_QSFP, offset, length},
           &savedPage);
     } catch (const I2cError& ex) {
       XLOG(ERR) << fmt::format(

@@ -28,7 +28,7 @@ class QsfpFieldInfo {
         length(length) {}
 
   QsfpFieldInfo(Pages page, int offset, int length)
-      : transceiverI2CAddress(TransceiverI2CApi::ADDR_QSFP),
+      : transceiverI2CAddress(TransceiverAccessParameter::ADDR_QSFP),
         dataAddress(static_cast<int>(page)),
         offset(offset),
         length(length) {}

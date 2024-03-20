@@ -219,10 +219,10 @@ void SffModule::readField(
     // changing page) and when the skipPageChange argument is not true
     uint8_t page = static_cast<uint8_t>(dataPage);
     qsfpImpl_->writeTransceiver(
-        {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
+        {TransceiverAccessParameter::ADDR_QSFP, 127, sizeof(page)}, &page);
   }
   qsfpImpl_->readTransceiver(
-      {TransceiverI2CApi::ADDR_QSFP, dataOffset, dataLength}, data);
+      {TransceiverAccessParameter::ADDR_QSFP, dataOffset, dataLength}, data);
 }
 
 void SffModule::writeField(
@@ -237,10 +237,10 @@ void SffModule::writeField(
     // changing page) and when the skipPageChange argument is not true
     uint8_t page = static_cast<uint8_t>(dataPage);
     qsfpImpl_->writeTransceiver(
-        {TransceiverI2CApi::ADDR_QSFP, 127, sizeof(page)}, &page);
+        {TransceiverAccessParameter::ADDR_QSFP, 127, sizeof(page)}, &page);
   }
   qsfpImpl_->writeTransceiver(
-      {TransceiverI2CApi::ADDR_QSFP, dataOffset, dataLength}, data);
+      {TransceiverAccessParameter::ADDR_QSFP, dataOffset, dataLength}, data);
 }
 
 FlagLevels SffModule::getQsfpSensorFlags(SffField fieldName) {

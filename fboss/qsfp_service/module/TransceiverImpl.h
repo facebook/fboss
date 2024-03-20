@@ -95,12 +95,6 @@ class TransceiverImpl {
   virtual folly::EventBase* getI2cEventBase() {
     return nullptr;
   }
-  // TEMPORARY:
-  // Addresses to be queried by external callers:
-  enum : uint8_t {
-    ADDR_QSFP = 0x50,
-    ADDR_QSFP_A2 = 0x51,
-  };
 
  private:
   // Forbidden copy contructor and assignment operator

@@ -36,8 +36,8 @@ void BspTransceiverIO::write(
     const uint8_t* buf) {
   auto startTime = std::chrono::steady_clock::now();
 
-  uint8_t addr =
-      param.i2cAddress ? *param.i2cAddress : TransceiverI2CApi::ADDR_QSFP;
+  uint8_t addr = param.i2cAddress ? *param.i2cAddress
+                                  : TransceiverAccessParameter::ADDR_QSFP;
   uint8_t offset = param.offset;
   uint8_t len = param.len;
   // Increment the counter for I2C write transaction issued
@@ -72,8 +72,8 @@ void BspTransceiverIO::read(
     uint8_t* buf) {
   auto startTime = std::chrono::steady_clock::now();
 
-  uint8_t addr =
-      param.i2cAddress ? *param.i2cAddress : TransceiverI2CApi::ADDR_QSFP;
+  uint8_t addr = param.i2cAddress ? *param.i2cAddress
+                                  : TransceiverAccessParameter::ADDR_QSFP;
   uint8_t offset = param.offset;
   uint8_t len = param.len;
   // Increment the counter for I2C read transaction issued

@@ -167,7 +167,8 @@ TransceiverManagementInterface WedgeQsfp::getTransceiverManagementInterface() {
 
   for (int i = 0; i < kNumInterfaceDetectionRetries; ++i) {
     try {
-      readTransceiver({TransceiverI2CApi::ADDR_QSFP, 0, 1}, buf.data());
+      readTransceiver(
+          {TransceiverAccessParameter::ADDR_QSFP, 0, 1}, buf.data());
       XLOG(DBG3) << folly::sformat(
           "Transceiver {:d}  identifier: {:#x}", module_, buf[0]);
       TransceiverManagementInterface modInterfaceType =
@@ -233,17 +234,21 @@ std::array<uint8_t, 16> WedgeQsfp::getModulePartNo() {
   // Read 16 byte part no from page 0 reg 148 for  CMIS and page 0 reg 168 for
   // SFF module. Restore the page in the end
   readTransceiver(
-      {TransceiverI2CApi::ADDR_QSFP, kCommonModulePageReg, 1}, &savedPage);
+      {TransceiverAccessParameter::ADDR_QSFP, kCommonModulePageReg, 1},
+      &savedPage);
   if (savedPage != page) {
     writeTransceiver(
-        {TransceiverI2CApi::ADDR_QSFP, kCommonModulePageReg, 1}, &page);
+        {TransceiverAccessParameter::ADDR_QSFP, kCommonModulePageReg, 1},
+        &page);
   }
 
   readTransceiver(
-      {TransceiverI2CApi::ADDR_QSFP, partNoRegOffset, 16}, partNo.data());
+      {TransceiverAccessParameter::ADDR_QSFP, partNoRegOffset, 16},
+      partNo.data());
   if (savedPage != page) {
     writeTransceiver(
-        {TransceiverI2CApi::ADDR_QSFP, kCommonModulePageReg, 1}, &savedPage);
+        {TransceiverAccessParameter::ADDR_QSFP, kCommonModulePageReg, 1},
+        &savedPage);
   }
 
   return partNo;
@@ -260,7 +265,8 @@ std::array<uint8_t, 2> WedgeQsfp::getFirmwareVer() {
 
   // Read 2 byte firmware version from base page reg 39-40 for CMIS module
   readTransceiver(
-      {TransceiverI2CApi::ADDR_QSFP, kCommonModuleFwVerReg, 2}, fwVer.data());
+      {TransceiverAccessParameter::ADDR_QSFP, kCommonModuleFwVerReg, 2},
+      fwVer.data());
   return fwVer;
 }
 
