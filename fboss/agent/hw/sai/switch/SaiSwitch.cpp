@@ -1805,6 +1805,7 @@ prbs::InterfacePrbsState SaiSwitch::getPortPrbsState(PortID portId) {
 }
 
 std::vector<phy::PrbsLaneStats> SaiSwitch::getPortAsicPrbsStats(PortID portId) {
+  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
   return managerTable_->portManager().getPortAsicPrbsStats(portId);
 }
 
