@@ -19,7 +19,7 @@ enum class Sff8472Pages : int {
 class Sff8472Module : public QsfpModule {
  public:
   explicit Sff8472Module(
-      TransceiverManager* transceiverManager,
+      std::set<std::string> portNames,
       TransceiverImpl* qsfpImpl);
   virtual ~Sff8472Module() override;
 

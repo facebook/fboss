@@ -559,26 +559,31 @@ void WedgeManager::updateTransceiverMap() {
       cmisSupportRemediate = false;
     }
     for (auto idx : tcvrsToCreate) {
+      TransceiverID tcvrID(idx);
       if (futInterfaces[idx].value() == TransceiverManagementInterface::CMIS) {
         XLOG(INFO) << "Making CMIS QSFP for TransceiverID=" << idx;
         lockedTransceiversWPtr->emplace(
-            TransceiverID(idx),
+            tcvrID,
             std::make_unique<CmisModule>(
-                this, qsfpImpls_[idx].get(), tcvrConfig, cmisSupportRemediate));
+                getPortNames(tcvrID),
+                qsfpImpls_[idx].get(),
+                tcvrConfig,
+                cmisSupportRemediate));
       } else if (
           futInterfaces[idx].value() == TransceiverManagementInterface::SFF) {
         XLOG(INFO) << "Making Sff QSFP for TransceiverID=" << idx;
         lockedTransceiversWPtr->emplace(
-            TransceiverID(idx),
+            tcvrID,
             std::make_unique<SffModule>(
-                this, qsfpImpls_[idx].get(), tcvrConfig));
+                getPortNames(tcvrID), qsfpImpls_[idx].get(), tcvrConfig));
       } else if (
           futInterfaces[idx].value() ==
           TransceiverManagementInterface::SFF8472) {
         XLOG(INFO) << "Making Sff8472 module for TransceiverID=" << idx;
         lockedTransceiversWPtr->emplace(
-            TransceiverID(idx),
-            std::make_unique<Sff8472Module>(this, qsfpImpls_[idx].get()));
+            tcvrID,
+            std::make_unique<Sff8472Module>(
+                getPortNames(tcvrID), qsfpImpls_[idx].get()));
       } else {
         XLOG(ERR) << "Unknown Transceiver interface: "
                   << static_cast<int>(futInterfaces[idx].value())
@@ -600,7 +605,7 @@ void WedgeManager::updateTransceiverMap() {
         // Check if we have expected ports info synced over and if all of
         // the ports are down. If any of them is not down then we will not
         // perform the reset.
-        bool safeToReset = areAllPortsDown(TransceiverID(idx)).first;
+        bool safeToReset = areAllPortsDown(tcvrID).first;
         if (std::time(nullptr) <= pauseRemediationUntil_) {
           XLOG(WARN) << "Remediation is paused, won't hard reset a present "
                      << "transceiver with unknown interface. TransceiverID="

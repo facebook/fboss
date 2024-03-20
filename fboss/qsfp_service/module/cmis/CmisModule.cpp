@@ -509,11 +509,11 @@ CmisModule::getApplicationField(uint8_t application, uint8_t startHostLane)
 }
 
 CmisModule::CmisModule(
-    TransceiverManager* transceiverManager,
+    std::set<std::string> portNames,
     TransceiverImpl* qsfpImpl,
     std::shared_ptr<const TransceiverConfig> cfg,
     bool supportRemediate)
-    : QsfpModule(transceiverManager, qsfpImpl),
+    : QsfpModule(std::move(portNames), qsfpImpl),
       tcvrConfig_(std::move(cfg)),
       supportRemediate_(supportRemediate) {}
 

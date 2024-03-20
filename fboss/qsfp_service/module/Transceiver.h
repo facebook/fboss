@@ -76,13 +76,7 @@ class FbossFirmware;
 
 class Transceiver {
  public:
-  explicit Transceiver(TransceiverManager* transceiverManager)
-      : transceiverManager_(transceiverManager) {
-    // As Transceiver needs to use state machine while TransceiverManager is
-    // the main class to maintain state machine update, we need to make sure
-    // transceiverManager_ can't be nullptr
-    CHECK(transceiverManager_ != nullptr);
-  }
+  explicit Transceiver() {}
   virtual ~Transceiver() {}
 
   /*

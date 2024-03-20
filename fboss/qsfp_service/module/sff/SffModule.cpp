@@ -182,10 +182,10 @@ void getQsfpFieldAddress(
 }
 
 SffModule::SffModule(
-    TransceiverManager* transceiverManager,
+    std::set<std::string> portNames,
     TransceiverImpl* qsfpImpl,
     std::shared_ptr<const TransceiverConfig> cfg)
-    : QsfpModule(transceiverManager, qsfpImpl), tcvrConfig_(std::move(cfg)) {}
+    : QsfpModule(std::move(portNames), qsfpImpl), tcvrConfig_(std::move(cfg)) {}
 
 SffModule::~SffModule() {}
 

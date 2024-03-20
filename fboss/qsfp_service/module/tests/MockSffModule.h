@@ -33,10 +33,10 @@ namespace fboss {
 class MockSffModule : public SffModule {
  public:
   explicit MockSffModule(
-      TransceiverManager* transceiverManager,
+      std::set<std::string> portNames,
       TransceiverImpl* qsfpImpl,
       std::shared_ptr<const TransceiverConfig> cfgOverridePtr)
-      : SffModule(transceiverManager, qsfpImpl, cfgOverridePtr) {
+      : SffModule(portNames, qsfpImpl, cfgOverridePtr) {
     ON_CALL(*this, updateQsfpData(testing::_))
         .WillByDefault(testing::Assign(&dirty_, false));
     ON_CALL(*this, ensureTransceiverReadyLocked())

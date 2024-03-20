@@ -21,11 +21,11 @@ class MockCmisModule : public CmisModule {
  public:
   template <typename XcvrImplT>
   explicit MockCmisModule(
-      TransceiverManager* transceiverManager,
+      std::set<std::string> portNames,
       XcvrImplT* qsfpImpl,
       std::shared_ptr<const TransceiverConfig> cfgPtr)
       : CmisModule(
-            transceiverManager,
+            std::move(portNames),
             qsfpImpl,
             cfgPtr,
             true /*supportRemediate*/) {
@@ -63,7 +63,7 @@ class CmisTest : public TransceiverManagerTestHelper {
         transceiverManager_->overrideTransceiverForTesting(
             id,
             std::make_unique<MockCmisModule>(
-                transceiverManager_.get(),
+                transceiverManager_->getPortNames(id),
                 qsfpImpls_.back().get(),
                 tcvrConfig_)));
 

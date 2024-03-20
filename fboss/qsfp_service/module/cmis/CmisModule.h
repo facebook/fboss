@@ -65,7 +65,7 @@ enum VdmConfigType {
 class CmisModule : public QsfpModule {
  public:
   explicit CmisModule(
-      TransceiverManager* transceiverManager,
+      std::set<std::string> portNames,
       TransceiverImpl* qsfpImpl,
       std::shared_ptr<const TransceiverConfig> cfg,
       bool supportRemediate);

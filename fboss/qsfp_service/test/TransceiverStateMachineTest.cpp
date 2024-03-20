@@ -8,6 +8,7 @@
  *
  */
 
+#include <string>
 #include "fboss/qsfp_service/test/TransceiverManagerTestHelper.h"
 
 #include "fboss/qsfp_service/TransceiverStateMachine.h"
@@ -40,9 +41,9 @@ class MockSff8472TransceiverImpl : public Sfp10GTransceiver {
 class MockSff8472Module : public Sff8472Module {
  public:
   explicit MockSff8472Module(
-      TransceiverManager* transceiverManager,
+      std::set<std::string> portNames,
       MockSff8472TransceiverImpl* qsfpImpl)
-      : Sff8472Module(transceiverManager, qsfpImpl) {
+      : Sff8472Module(std::move(portNames), qsfpImpl) {
     ON_CALL(*this, ensureTransceiverReadyLocked())
         .WillByDefault(testing::Return(true));
     ON_CALL(*this, numHostLanes()).WillByDefault(testing::Return(1));
@@ -84,14 +85,10 @@ class MockCmisTransceiverImpl : public Cmis200GTransceiver {
 class MockCmisModule : public CmisModule {
  public:
   explicit MockCmisModule(
-      TransceiverManager* transceiverManager,
+      std::set<std::string> portNames,
       MockCmisTransceiverImpl* qsfpImpl,
       std::shared_ptr<const TransceiverConfig> cfgPtr)
-      : CmisModule(
-            transceiverManager,
-            qsfpImpl,
-            cfgPtr,
-            true /*supportRemediate*/) {
+      : CmisModule(portNames, qsfpImpl, cfgPtr, true /*supportRemediate*/) {
     ON_CALL(*this, updateQsfpData(testing::_))
         .WillByDefault(testing::Assign(&dirty_, false));
     ON_CALL(*this, ensureTransceiverReadyLocked())
@@ -166,7 +163,7 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
         return transceiverManager_->overrideTransceiverForTesting(
             id_,
             std::make_unique<MockCmisModule>(
-                transceiverManager_.get(),
+                transceiverManager_->getPortNames(id_),
                 cmisQsfpImpls_.back().get(),
                 tcvrConfig_));
       } else {
@@ -183,7 +180,7 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
         return transceiverManager_->overrideTransceiverForTesting(
             id_,
             std::make_unique<CmisModule>(
-                transceiverManager_.get(),
+                transceiverManager_->getPortNames(id_),
                 qsfpImpls_.back().get(),
                 tcvrConfig_,
                 true /*supportRemediate*/));
@@ -201,7 +198,9 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
       auto xcvr = transceiverManager_->overrideTransceiverForTesting(
           id_,
           std::make_unique<MockSffModule>(
-              transceiverManager_.get(), qsfpImpls_.back().get(), tcvrConfig_));
+              transceiverManager_->getPortNames(id_),
+              qsfpImpls_.back().get(),
+              tcvrConfig_));
       return xcvr;
     };
 
@@ -217,7 +216,8 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
       return transceiverManager_->overrideTransceiverForTesting(
           id_,
           std::make_unique<MockSff8472Module>(
-              transceiverManager_.get(), sff8472QsfpImpls_.back().get()));
+              transceiverManager_->getPortNames(id_),
+              sff8472QsfpImpls_.back().get()));
     };
 
     Transceiver* xcvr;
@@ -2030,7 +2030,7 @@ TEST_F(TransceiverStateMachineTest, reseatTransceiver) {
           transceiverManager_->overrideTransceiverForTesting(
               id_,
               std::make_unique<MockCmisModule>(
-                  transceiverManager_.get(),
+                  transceiverManager_->getPortNames(id_),
                   cmisQsfpImpls_.back().get(),
                   tcvrConfig_)));
     }

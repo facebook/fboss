@@ -24,7 +24,7 @@ enum class SffFr1Field;
 class SffModule : public QsfpModule {
  public:
   explicit SffModule(
-      TransceiverManager* transceiverManager,
+      std::set<std::string> portNames,
       TransceiverImpl* qsfpImpl,
       std::shared_ptr<const TransceiverConfig> cfg);
   virtual ~SffModule() override;

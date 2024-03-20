@@ -8,8 +8,16 @@
  *
  */
 #pragma once
+
 #include <cstdint>
 #include <mutex>
+#include <optional>
+#include <set>
+
+#include <folly/Synchronized.h>
+#include <folly/experimental/FunctionScheduler.h>
+#include <folly/futures/Future.h>
+
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/lib/firmware_storage/FbossFirmware.h"
 #include "fboss/lib/link_snapshots/SnapshotManager-defs.h"
@@ -18,11 +26,6 @@
 #include "fboss/qsfp_service/if/gen-cpp2/qsfp_service_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 #include "fboss/qsfp_service/module/Transceiver.h"
-
-#include <folly/Synchronized.h>
-#include <folly/experimental/FunctionScheduler.h>
-#include <folly/futures/Future.h>
-#include <optional>
 
 #define QSFP_LOG(level, tcvr) \
   XLOG(level) << "Transceiver " << tcvr->getNameString() << ": "
@@ -79,7 +82,7 @@ class QsfpModule : public Transceiver {
   using LengthAndGauge = std::pair<double, uint8_t>;
 
   explicit QsfpModule(
-      TransceiverManager* transceiverManager,
+      std::set<std::string> portNames,
       TransceiverImpl* qsfpImpl);
   virtual ~QsfpModule() override;
 

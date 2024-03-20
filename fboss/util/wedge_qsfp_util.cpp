@@ -1153,9 +1153,13 @@ DOMDataUnion fetchDataFromLocalI2CBus(
     cmisSupportRemediate = false;
   }
 
+  auto tcvrID = TransceiverID(qsfpImpl->getNum());
   if (mgmtInterface == TransceiverManagementInterface::CMIS) {
     auto cmisModule = std::make_unique<CmisModule>(
-        tcvrMgr, qsfpImpl.get(), cfgPtr, cmisSupportRemediate);
+        tcvrMgr->getPortNames(tcvrID),
+        qsfpImpl.get(),
+        cfgPtr,
+        cmisSupportRemediate);
     try {
       cmisModule->refresh();
     } catch (FbossError& e) {
@@ -1166,7 +1170,7 @@ DOMDataUnion fetchDataFromLocalI2CBus(
     return cmisModule->getDOMDataUnion();
   } else if (mgmtInterface == TransceiverManagementInterface::SFF) {
     auto sffModule = std::make_unique<SffModule>(
-        i2cInfo.transceiverManager, qsfpImpl.get(), cfgPtr);
+        tcvrMgr->getPortNames(tcvrID), qsfpImpl.get(), cfgPtr);
     sffModule->refresh();
     return sffModule->getDOMDataUnion();
   } else {
