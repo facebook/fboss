@@ -190,8 +190,10 @@ struct SaiAclTableTraits {
         SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_ETHER_TYPE, bool>;
     using FieldOuterVlanId =
         SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_OUTER_VLAN_ID, bool>;
+#if !defined(TAJO_SDK)
     using FieldBthOpcode =
         SaiAttribute<EnumType, SAI_ACL_TABLE_ATTR_FIELD_BTH_OPCODE, bool>;
+#endif
   };
 
   using AdapterKey = AclTableSaiId;
@@ -222,8 +224,12 @@ struct SaiAclTableTraits {
       std::optional<Attributes::FieldRouteDstUserMeta>,
       std::optional<Attributes::FieldNeighborDstUserMeta>,
       std::optional<Attributes::FieldEthertype>,
-      std::optional<Attributes::FieldOuterVlanId>,
-      std::optional<Attributes::FieldBthOpcode>>;
+      std::optional<Attributes::FieldOuterVlanId>
+#if !defined(TAJO_SDK)
+      ,
+      std::optional<Attributes::FieldBthOpcode>
+#endif
+      >;
 
   using AdapterHostKey = std::string;
 };
@@ -258,7 +264,9 @@ SAI_ATTRIBUTE_NAME(AclTable, AvailableEntry);
 SAI_ATTRIBUTE_NAME(AclTable, AvailableCounter);
 SAI_ATTRIBUTE_NAME(AclTable, FieldEthertype);
 SAI_ATTRIBUTE_NAME(AclTable, FieldOuterVlanId);
+#if !defined(TAJO_SDK)
 SAI_ATTRIBUTE_NAME(AclTable, FieldBthOpcode);
+#endif
 
 struct SaiAclEntryTraits {
   static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_ACL_ENTRY;
@@ -374,10 +382,12 @@ struct SaiAclEntryTraits {
         EnumType,
         SAI_ACL_ENTRY_ATTR_FIELD_OUTER_VLAN_ID,
         AclEntryFieldU16>;
+#if !defined(TAJO_SDK)
     using FieldBthOpcode = SaiAttribute<
         EnumType,
         SAI_ACL_ENTRY_ATTR_FIELD_BTH_OPCODE,
         AclEntryFieldU8>;
+#endif
     using ActionPacketAction = SaiAttribute<
         EnumType,
         SAI_ACL_ENTRY_ATTR_ACTION_PACKET_ACTION,
@@ -446,7 +456,9 @@ struct SaiAclEntryTraits {
       std::optional<Attributes::FieldNeighborDstUserMeta>,
       std::optional<Attributes::FieldEthertype>,
       std::optional<Attributes::FieldOuterVlanId>,
+#if !defined(TAJO_SDK)
       std::optional<Attributes::FieldBthOpcode>,
+#endif
       std::optional<Attributes::ActionPacketAction>,
       std::optional<Attributes::ActionCounter>,
       std::optional<Attributes::ActionSetTC>,
@@ -488,7 +500,9 @@ SAI_ATTRIBUTE_NAME(AclEntry, FieldRouteDstUserMeta);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldNeighborDstUserMeta);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldEthertype);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldOuterVlanId);
+#if !defined(TAJO_SDK)
 SAI_ATTRIBUTE_NAME(AclEntry, FieldBthOpcode);
+#endif
 SAI_ATTRIBUTE_NAME(AclEntry, ActionPacketAction);
 SAI_ATTRIBUTE_NAME(AclEntry, ActionCounter);
 SAI_ATTRIBUTE_NAME(AclEntry, ActionSetTC);

@@ -801,6 +801,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
             addedAclEntry->getVlanID().value(), kOuterVlanIdMask))};
   }
 
+#if !defined(TAJO_SDK)
   std::optional<SaiAclEntryTraits::Attributes::FieldBthOpcode> fieldBthOpcode{
       std::nullopt};
   if (addedAclEntry->getRoceOpcode()) {
@@ -808,6 +809,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
         AclEntryFieldU8(std::make_pair(
             addedAclEntry->getRoceOpcode().value(), kBthOpcodeMask))};
   }
+#endif
 
   std::optional<SaiAclEntryTraits::Attributes::FieldFdbDstUserMeta>
       fieldFdbDstUserMeta{std::nullopt};
@@ -1086,9 +1088,13 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
         fieldIcmpV4Type, fieldIcmpV4Code, fieldIcmpV6Type, fieldIcmpV6Code,
         fieldDscp, fieldDstMac, fieldIpType, fieldTtl, fieldFdbDstUserMeta,
         fieldRouteDstUserMeta, fieldNeighborDstUserMeta, fieldEtherType,
-        fieldOuterVlanId, fieldBthOpcode, aclActionPacketAction,
-        aclActionCounter, aclActionSetTC, aclActionSetDSCP,
-        aclActionMirrorIngress, aclActionMirrorEgress, aclActionMacsecFlow,
+        fieldOuterVlanId,
+#if !defined(TAJO_SDK)
+        fieldBthOpcode,
+#endif
+        aclActionPacketAction, aclActionCounter, aclActionSetTC,
+        aclActionSetDSCP, aclActionMirrorIngress, aclActionMirrorEgress,
+        aclActionMacsecFlow,
 // action not supported by tajo. Besides, user defined trap
 // is used to make ACL take precedence over Hostif trap.
 // Tajo already supports this behavior
@@ -1561,10 +1567,14 @@ bool SaiAclTableManager::isQualifierSupported(
               std::optional<SaiAclTableTraits::Attributes::FieldOuterVlanId>>(
               attributes));
     case cfg::AclTableQualifier::BTH_OPCODE:
+#if !defined(TAJO_SDK)
       return hasField(
           std::get<
               std::optional<SaiAclTableTraits::Attributes::FieldBthOpcode>>(
               attributes));
+#else
+      return false;
+#endif
     case cfg::AclTableQualifier::UDF:
       /* not supported */
       return false;

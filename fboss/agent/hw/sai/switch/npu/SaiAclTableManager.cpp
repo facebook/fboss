@@ -143,41 +143,40 @@ std::
     return qualifierSet.find(qualifier) != qualifierSet.end();
   };
 
-  SaiAclTableTraits::CreateAttributes attributes{
-      tableStage,
-      bindPointList,
-      actionTypeList,
-      qualifierExistsFn(cfg::AclTableQualifier::SRC_IPV6),
-      qualifierExistsFn(cfg::AclTableQualifier::DST_IPV6),
-      qualifierExistsFn(cfg::AclTableQualifier::SRC_IPV4),
-      qualifierExistsFn(cfg::AclTableQualifier::DST_IPV4),
-      qualifierExistsFn(cfg::AclTableQualifier::L4_SRC_PORT),
-      qualifierExistsFn(cfg::AclTableQualifier::L4_DST_PORT),
-      qualifierExistsFn(cfg::AclTableQualifier::IP_PROTOCOL),
-      qualifierExistsFn(cfg::AclTableQualifier::TCP_FLAGS),
-      qualifierExistsFn(cfg::AclTableQualifier::SRC_PORT),
-      qualifierExistsFn(cfg::AclTableQualifier::OUT_PORT),
-      qualifierExistsFn(cfg::AclTableQualifier::IP_FRAG),
-      qualifierExistsFn(cfg::AclTableQualifier::ICMPV4_TYPE),
-      qualifierExistsFn(cfg::AclTableQualifier::ICMPV4_CODE),
-      qualifierExistsFn(cfg::AclTableQualifier::ICMPV6_TYPE),
-      qualifierExistsFn(cfg::AclTableQualifier::ICMPV6_CODE),
-      qualifierExistsFn(cfg::AclTableQualifier::DSCP),
-      qualifierExistsFn(cfg::AclTableQualifier::DST_MAC),
-      qualifierExistsFn(cfg::AclTableQualifier::IP_TYPE),
-      qualifierExistsFn(cfg::AclTableQualifier::TTL),
-      qualifierExistsFn(cfg::AclTableQualifier::LOOKUP_CLASS_L2),
-      qualifierExistsFn(cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR),
-      qualifierExistsFn(cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE),
-      qualifierExistsFn(cfg::AclTableQualifier::ETHER_TYPE),
-      qualifierExistsFn(cfg::AclTableQualifier::OUTER_VLAN),
-      // TODO(daiweix): avoid setting BTH_OPCODE=false, which would fail 9.2+
-      // brcm-sai and leaba sdk, remove it after BTH_OPCODE is properly
-      // supported on XGS and leaba platforms
-      qualifierExistsFn(cfg::AclTableQualifier::BTH_OPCODE)
-          ? std::optional<bool>(true)
-          : std::nullopt,
-
+  SaiAclTableTraits::CreateAttributes attributes {
+    tableStage, bindPointList, actionTypeList,
+        qualifierExistsFn(cfg::AclTableQualifier::SRC_IPV6),
+        qualifierExistsFn(cfg::AclTableQualifier::DST_IPV6),
+        qualifierExistsFn(cfg::AclTableQualifier::SRC_IPV4),
+        qualifierExistsFn(cfg::AclTableQualifier::DST_IPV4),
+        qualifierExistsFn(cfg::AclTableQualifier::L4_SRC_PORT),
+        qualifierExistsFn(cfg::AclTableQualifier::L4_DST_PORT),
+        qualifierExistsFn(cfg::AclTableQualifier::IP_PROTOCOL),
+        qualifierExistsFn(cfg::AclTableQualifier::TCP_FLAGS),
+        qualifierExistsFn(cfg::AclTableQualifier::SRC_PORT),
+        qualifierExistsFn(cfg::AclTableQualifier::OUT_PORT),
+        qualifierExistsFn(cfg::AclTableQualifier::IP_FRAG),
+        qualifierExistsFn(cfg::AclTableQualifier::ICMPV4_TYPE),
+        qualifierExistsFn(cfg::AclTableQualifier::ICMPV4_CODE),
+        qualifierExistsFn(cfg::AclTableQualifier::ICMPV6_TYPE),
+        qualifierExistsFn(cfg::AclTableQualifier::ICMPV6_CODE),
+        qualifierExistsFn(cfg::AclTableQualifier::DSCP),
+        qualifierExistsFn(cfg::AclTableQualifier::DST_MAC),
+        qualifierExistsFn(cfg::AclTableQualifier::IP_TYPE),
+        qualifierExistsFn(cfg::AclTableQualifier::TTL),
+        qualifierExistsFn(cfg::AclTableQualifier::LOOKUP_CLASS_L2),
+        qualifierExistsFn(cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR),
+        qualifierExistsFn(cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE),
+        qualifierExistsFn(cfg::AclTableQualifier::ETHER_TYPE),
+        qualifierExistsFn(cfg::AclTableQualifier::OUTER_VLAN),
+    // TODO(daiweix): avoid setting BTH_OPCODE=false, which would fail 9.2+
+    // brcm-sai and leaba sdk, remove it after BTH_OPCODE is properly
+    // supported on XGS and leaba platforms
+#if !defined(TAJO_SDK)
+        qualifierExistsFn(cfg::AclTableQualifier::BTH_OPCODE)
+        ? std::optional<bool>(true)
+        : std::nullopt,
+#endif
   };
 
   SaiAclTableTraits::AdapterHostKey adapterHostKey{addedAclTable->getID()};
