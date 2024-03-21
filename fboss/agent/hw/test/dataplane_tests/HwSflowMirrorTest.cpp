@@ -117,15 +117,20 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
   }
 
   cfg::SwitchConfig initialConfig() const override {
-    auto cfg = utility::onePortPerInterfaceConfig(
+    return utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         getPortsForSampling(),
         getAsic()->desiredLoopbackModes());
+  }
+
+  void addTrapPacketv4Acl(cfg::SwitchConfig* cfg) {
     auto v4Prefix = folly::CIDRNetwork{"101.101.101.101", 32};
+    utility::addTrapPacketAcl(cfg, v4Prefix);
+  }
+
+  void addTrapPacketv6Acl(cfg::SwitchConfig* cfg) {
     auto v6Prefix = folly::CIDRNetwork{"2401:101:101::101", 128};
-    utility::addTrapPacketAcl(&cfg, v4Prefix);
-    utility::addTrapPacketAcl(&cfg, v6Prefix);
-    return cfg;
+    utility::addTrapPacketAcl(cfg, v6Prefix);
   }
 
   HwSwitchEnsemble::Features featuresDesired() const override {
@@ -153,6 +158,11 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
     config->mirrors()[0].name() = "mirror";
     config->mirrors()[0].destination() = destination;
     config->mirrors()[0].truncate() = truncate;
+    if (isV4) {
+      addTrapPacketv4Acl(config);
+    } else {
+      addTrapPacketv6Acl(config);
+    }
   }
 
   void configSampling(cfg::SwitchConfig* config, int sampleRate) const {
