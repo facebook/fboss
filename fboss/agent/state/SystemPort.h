@@ -95,6 +95,24 @@ class SystemPort
     }
   }
 
+  std::optional<RemoteSystemPortType> getRemoteSystemPortType() const {
+    if (auto remoteSystemPortType =
+            cref<ctrl_if_tags::remoteSystemPortType>()) {
+      return remoteSystemPortType->cref();
+    }
+    return std::nullopt;
+  }
+
+  void setRemoteSystemPortType(
+      const std::optional<RemoteSystemPortType>& remoteSystemPortType =
+          std::nullopt) {
+    if (remoteSystemPortType) {
+      set<ctrl_if_tags::remoteSystemPortType>(remoteSystemPortType.value());
+    } else {
+      ref<ctrl_if_tags::remoteSystemPortType>().reset();
+    }
+  }
+
  private:
   // Inherit the constructors required for clone()
   using Base::Base;
