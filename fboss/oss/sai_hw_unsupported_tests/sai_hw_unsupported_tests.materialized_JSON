@@ -1868,6 +1868,9 @@
           "test_name_regex": "HwCoppTest/[01].Ipv6LinkLocalMcastNetworkControlDscpToHighPriQ$"
         },
         {
+          "test_name_regex": "HwCoppTest/[01].Ipv6LinkLocalMcastToMidPriQ$"
+        },
+        {
           "test_name_regex": "HwCoppTest/[01].CpuPortIpv6LinkLocalUcastIp$"
         },
         {
