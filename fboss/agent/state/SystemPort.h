@@ -27,8 +27,11 @@ class SystemPort
     : public ThriftStructNode<SystemPort, state::SystemPortFields> {
  public:
   using Base = ThriftStructNode<SystemPort, state::SystemPortFields>;
-  explicit SystemPort(SystemPortID id) {
+  explicit SystemPort(
+      SystemPortID id,
+      std::optional<RemoteSystemPortType> remoteSystemPortType = std::nullopt) {
     set<ctrl_if_tags::portId>(static_cast<int64_t>(id));
+    setRemoteSystemPortType(remoteSystemPortType);
   }
   SystemPortID getID() const {
     return static_cast<SystemPortID>(cref<ctrl_if_tags::portId>()->toThrift());
