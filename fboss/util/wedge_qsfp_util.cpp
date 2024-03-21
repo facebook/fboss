@@ -3301,38 +3301,188 @@ void doCdbCommand(DirectI2cInfo i2cInfo, unsigned int module) {
 }
 
 /*
- * printVdmInfo
+ * printVdmInfoViaService
  *
- * Read the VDM information and print. The VDM config is present in page 20
- * (2 bytes per config entry) and the VDM values are present in page 24 (2
- * bytes value).
+ * Get the VDM Performance Monitoring stats from qsfp_service ad display the
+ * values
  */
-bool printVdmInfo(DirectI2cInfo i2cInfo, unsigned int port) {
+bool printVdmInfoViaService(unsigned int port) {
+  printf("Displaying VDM info for module %d via service:", port);
+
+  folly::EventBase& evb = QsfpUtilContainer::getInstance()->getEventBase();
+  std::vector<int32_t> portList;
+  unsigned int zeroBasedPortId = port - 1;
+  portList.push_back(zeroBasedPortId);
+  auto tcvrInfo = fetchInfoFromQsfpService(portList, evb);
+  if (tcvrInfo.find(zeroBasedPortId) == tcvrInfo.end()) {
+    printf("Could not get TransceiverInfo for port %d\n", port);
+    return false;
+  }
+
+  auto vdmStatsOpt =
+      tcvrInfo[zeroBasedPortId].tcvrStats().value().vdmPerfMonitorStats();
+  if (!vdmStatsOpt.has_value()) {
+    printf("VDM stats not available for port %d\n", port);
+    return false;
+  }
+
+  for (auto& [portName, mediaPortStats] :
+       vdmStatsOpt.value().mediaPortVdmStats().value()) {
+    printf("\n\nPort %s Media stats:\n", portName.c_str());
+    printf("           Min        Max        Avg        Cur\n");
+    printf(
+        "  BER    : %.2e   %.2e   %.2e   %.2e\n",
+        mediaPortStats.datapathBER().value().min().value(),
+        mediaPortStats.datapathBER().value().max().value(),
+        mediaPortStats.datapathBER().value().avg().value(),
+        mediaPortStats.datapathBER().value().cur().value());
+    printf(
+        "  FEC Err: %.2e   %.2e   %.2e   %.2e\n",
+        mediaPortStats.datapathErroredFrames().value().min().value(),
+        mediaPortStats.datapathErroredFrames().value().max().value(),
+        mediaPortStats.datapathErroredFrames().value().avg().value(),
+        mediaPortStats.datapathErroredFrames().value().cur().value());
+
+    if (!mediaPortStats.laneSNR().value().empty()) {
+      printf("\n  Channels ->    ");
+      for (auto& [channel, val] : mediaPortStats.laneSNR().value()) {
+        printf("%d       ", channel);
+      }
+    }
+    if (!mediaPortStats.laneSNR().value().empty()) {
+      printf("\n  SNR        :  ");
+      for (auto& [channel, val] : mediaPortStats.laneSNR().value()) {
+        printf("%4.2f   ", val);
+      }
+    }
+    if (!mediaPortStats.lanePam4Level0SD().value().empty()) {
+      printf("\n  PAM4 L0 SD :  ");
+      for (auto& [channel, val] : mediaPortStats.lanePam4Level0SD().value()) {
+        printf("%4.2f    ", val);
+      }
+    }
+    if (!mediaPortStats.lanePam4Level1SD().value().empty()) {
+      printf("\n  PAM4 L1 SD :  ");
+      for (auto& [channel, val] : mediaPortStats.lanePam4Level1SD().value()) {
+        printf("%4.2f    ", val);
+      }
+    }
+    if (!mediaPortStats.lanePam4Level2SD().value().empty()) {
+      printf("\n  PAM4 L2 SD :  ");
+      for (auto& [channel, val] : mediaPortStats.lanePam4Level2SD().value()) {
+        printf("%4.2f    ", val);
+      }
+    }
+    if (!mediaPortStats.lanePam4Level3SD().value().empty()) {
+      printf("\n  PAM4 L3 SD :  ");
+      for (auto& [channel, val] : mediaPortStats.lanePam4Level3SD().value()) {
+        printf("%4.2f    ", val);
+      }
+    }
+    if (!mediaPortStats.lanePam4MPI().value().empty()) {
+      printf("\n  PAM4 MPI   :  ");
+      for (auto& [channel, val] : mediaPortStats.lanePam4MPI().value()) {
+        printf("%4.2f    ", val);
+      }
+    }
+    if (!mediaPortStats.lanePam4LTP().value().empty()) {
+      printf("\n  PAM4 LTP   :  ");
+      for (auto& [channel, val] : mediaPortStats.lanePam4LTP().value()) {
+        printf("%4.2f  ", val);
+      }
+    }
+  }
+  printf("\n");
+  for (auto& [portName, hostPortStats] :
+       vdmStatsOpt.value().hostPortVdmStats().value()) {
+    printf("\nPort %s Host stats:\n", portName.c_str());
+    printf("           Min        Max        Avg        Cur\n");
+    printf(
+        "  BER    : %.2e   %.2e   %.2e   %.2e\n",
+        hostPortStats.datapathBER().value().min().value(),
+        hostPortStats.datapathBER().value().max().value(),
+        hostPortStats.datapathBER().value().avg().value(),
+        hostPortStats.datapathBER().value().cur().value());
+    printf(
+        "  FEC Err: %.2e   %.2e   %.2e   %.2e\n",
+        hostPortStats.datapathErroredFrames().value().min().value(),
+        hostPortStats.datapathErroredFrames().value().max().value(),
+        hostPortStats.datapathErroredFrames().value().avg().value(),
+        hostPortStats.datapathErroredFrames().value().cur().value());
+
+    if (!hostPortStats.laneSNR().value().empty()) {
+      printf("\n  Channel ->    ");
+      for (auto& [channel, val] : hostPortStats.laneSNR().value()) {
+        printf("%d       ", channel);
+      }
+    }
+    if (!hostPortStats.laneSNR().value().empty()) {
+      printf("\n  SNR     :  ");
+      for (auto& [channel, val] : hostPortStats.laneSNR().value()) {
+        printf("%4.2f   ", val);
+      }
+    }
+    if (!hostPortStats.lanePam4Level0SD().value().empty()) {
+      printf("\n  PAM4 L0 SD :  ");
+      for (auto& [channel, val] : hostPortStats.lanePam4Level0SD().value()) {
+        printf("%4.2f    ", val);
+      }
+    }
+    if (!hostPortStats.lanePam4Level1SD().value().empty()) {
+      printf("\n  PAM4 L1 SD :  ");
+      for (auto& [channel, val] : hostPortStats.lanePam4Level1SD().value()) {
+        printf("%4.2f    ", val);
+      }
+    }
+    if (!hostPortStats.lanePam4Level2SD().value().empty()) {
+      printf("\n  PAM4 L2 SD:  ");
+      for (auto& [channel, val] : hostPortStats.lanePam4Level2SD().value()) {
+        printf("%4.2f    ", val);
+      }
+    }
+    if (!hostPortStats.lanePam4Level3SD().value().empty()) {
+      printf("\n  PAM4 L3 SD :  ");
+      for (auto& [channel, val] : hostPortStats.lanePam4Level3SD().value()) {
+        printf("%4.2f    ", val);
+      }
+    }
+    if (!hostPortStats.lanePam4MPI().value().empty()) {
+      printf("\n  PAM4 MPI   :  ");
+      for (auto& [channel, val] : hostPortStats.lanePam4MPI().value()) {
+        printf("%4.2f    ", val);
+      }
+    }
+    if (!hostPortStats.lanePam4LTP().value().empty()) {
+      printf("\n  PAM4 LTP   :  ");
+      for (auto& [channel, val] : hostPortStats.lanePam4LTP().value()) {
+        printf("%4.2f  ", val);
+      }
+    }
+  }
+  printf(
+      "\nTime Collected: %s\n",
+      getLocalTime(vdmStatsOpt.value().statsCollectionTme().value()).c_str());
+  return true;
+}
+
+/*
+ * printVdmInfoDirect
+ *
+ * Read the VDM information from the optics and print. The VDM config is
+ * present in page 20 (2 bytes per config entry) and the VDM values are present
+ * in page 24 (2 bytes value).
+ */
+bool printVdmInfoDirect(DirectI2cInfo i2cInfo, unsigned int port) {
   DOMDataUnion domDataUnion;
 
-  printf("Displaying VDM info for module %d:\n", port);
+  printf("Displaying VDM info for module %d directly:\n", port);
 
-  if (!FLAGS_direct_i2c) {
-    // Read the optics data from qsfp_service
-    folly::EventBase evb;
-
-    int32_t idx = port - 1;
-    auto domDataUnionMap = fetchDataFromQsfpService({idx}, evb);
-    auto iter = domDataUnionMap.find(idx);
-    if (iter == domDataUnionMap.end()) {
-      fprintf(stderr, "Port %d is not present in QsfpService data\n", idx + 1);
-      return false;
-    } else {
-      domDataUnion = iter->second;
-    }
-  } else {
-    // Read the optics data directly from this process
-    try {
-      domDataUnion = fetchDataFromLocalI2CBus(i2cInfo, port);
-    } catch (const std::exception& ex) {
-      fprintf(stderr, "error reading QSFP data %u: %s\n", port, ex.what());
-      return false;
-    }
+  // Read the optics data directly from this process
+  try {
+    domDataUnion = fetchDataFromLocalI2CBus(i2cInfo, port);
+  } catch (const std::exception& ex) {
+    fprintf(stderr, "error reading QSFP data %u: %s\n", port, ex.what());
+    return false;
   }
 
   if (domDataUnion.getType() != DOMDataUnion::Type::cmis) {
@@ -3423,6 +3573,25 @@ bool printVdmInfo(DirectI2cInfo i2cInfo, unsigned int port) {
   }
 
   return true;
+}
+
+/*
+ * printVdmInfo
+ *
+ * Get and print the VDM performance monitoring diagsnostic data either
+ * directly from hardware or through qsfp_service
+ */
+bool printVdmInfo(DirectI2cInfo i2cInfo, unsigned int port) {
+  if (!FLAGS_direct_i2c) {
+    if (QsfpServiceDetector::getInstance()->isQsfpServiceActive()) {
+      return printVdmInfoViaService(port);
+    } else {
+      printf("Qsfp service is not active, pl provide --direct_i2c option\n");
+      return false;
+    }
+  } else {
+    return printVdmInfoDirect(i2cInfo, port);
+  }
 }
 
 /*
