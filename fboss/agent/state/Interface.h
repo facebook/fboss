@@ -68,7 +68,8 @@ class Interface : public ThriftStructNode<Interface, state::InterfaceFields> {
       int mtu,
       bool isVirtual,
       bool isStateSyncDisabled,
-      cfg::InterfaceType type = cfg::InterfaceType::VLAN) {
+      cfg::InterfaceType type = cfg::InterfaceType::VLAN,
+      std::optional<RemoteInterfaceType> remoteIntfType = std::nullopt) {
     set<switch_state_tags::interfaceId>(id);
     setRouterID(router);
     if (vlan) {
@@ -80,6 +81,7 @@ class Interface : public ThriftStructNode<Interface, state::InterfaceFields> {
     setIsVirtual(isVirtual);
     setIsStateSyncDisabled(isStateSyncDisabled);
     setType(type);
+    setRemoteInterfaceType(remoteIntfType);
   }
 
   InterfaceID getID() const {
