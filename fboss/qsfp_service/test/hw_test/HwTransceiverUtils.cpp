@@ -215,7 +215,8 @@ void HwTransceiverUtils::verifyOpticsSettings(
               cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL)
           << "Transceiver:" << *tcvrState.port()
           << ", Lane=" << *mediaLane.lane()
-          << " txSquelch doesn't match expected";
+          << " txSquelch doesn't match expected."
+          << " Profile was " << apache::thrift::util::enumNameSafe(profile);
     }
   }
 
