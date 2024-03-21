@@ -124,7 +124,6 @@ class HwQueuePerHostRouteTest : public HwLinkStateDependentTest {
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
 
     utility::verifyQueuePerHostMapping(
-        getHwSwitch(),
         getHwSwitchEnsemble(),
         vlanId,
         srcMac,

@@ -233,7 +233,6 @@ void HwProdInvariantHelper::verifyQueuePerHostMapping(bool dscpMarkingTest) {
   }
 
   utility::verifyQueuePerHostMapping(
-      ensemble_->getHwSwitch(),
       ensemble_,
       vlanId,
       srcMac,

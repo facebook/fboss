@@ -26,8 +26,11 @@
 
 namespace facebook::fboss::utility {
 
-void verifyQueuePerHostMapping(
-    HwSwitchEnsemble* ensemble,
+namespace {
+
+template <typename Hw>
+void verifyQueuePerHostMappingImpl(
+    Hw* hwOrEnsemble,
     std::shared_ptr<SwitchState> swState,
     const std::vector<PortID>& portIds,
     std::optional<VlanID> vlanId,
@@ -42,7 +45,12 @@ void verifyQueuePerHostMapping(
     std::optional<uint16_t> l4SrcPort,
     std::optional<uint16_t> l4DstPort,
     std::optional<uint8_t> dscp) {
-  auto hwSwitch = ensemble->getHwSwitch();
+  HwSwitch* hwSwitch;
+  if constexpr (std::is_same_v<Hw, HwSwitchEnsemble>) {
+    hwSwitch = hwOrEnsemble->getHwSwitch();
+  } else {
+    hwSwitch = hwOrEnsemble;
+  }
   auto ttlAclName = utility::getQueuePerHostTtlAclName();
   auto ttlCounterName = utility::getQueuePerHostTtlCounterName();
 
@@ -81,22 +89,22 @@ void verifyQueuePerHostMapping(
 
   if (useFrontPanel) {
     utility::ensureSendPacketOutOfPort(
-        ensemble,
+        hwOrEnsemble,
         std::move(txPacket),
         PortID(portIds[1]),
         portIds,
         getHwPortStatsFn);
     utility::ensureSendPacketOutOfPort(
-        ensemble,
+        hwOrEnsemble,
         std::move(txPacket2),
         PortID(portIds[1]),
         portIds,
         getHwPortStatsFn);
   } else {
     utility::ensureSendPacketSwitched(
-        ensemble, std::move(txPacket), portIds, getHwPortStatsFn);
+        hwOrEnsemble, std::move(txPacket), portIds, getHwPortStatsFn);
     utility::ensureSendPacketSwitched(
-        ensemble, std::move(txPacket2), portIds, getHwPortStatsFn);
+        hwOrEnsemble, std::move(txPacket2), portIds, getHwPortStatsFn);
   }
 
   std::map<int, int64_t> afterQueueOutPkts;
@@ -161,9 +169,75 @@ void verifyQueuePerHostMapping(
   EXPECT_TRUE(utility::waitStatsCondition(
       aclStatsMatch, updateStats, 20, std::chrono::milliseconds(20)));
 }
+} // namespace
 
 void verifyQueuePerHostMapping(
-    const HwSwitch* hwSwitch,
+    HwSwitchEnsemble* ensemble,
+    std::shared_ptr<SwitchState> swState,
+    const std::vector<PortID>& portIds,
+    std::optional<VlanID> vlanId,
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    const folly::IPAddress& srcIp,
+    const folly::IPAddress& dstIp,
+    bool useFrontPanel,
+    bool blockNeighbor,
+    std::function<std::map<PortID, HwPortStats>(const std::vector<PortID>&)>
+        getHwPortStatsFn,
+    std::optional<uint16_t> l4SrcPort,
+    std::optional<uint16_t> l4DstPort,
+    std::optional<uint8_t> dscp) {
+  verifyQueuePerHostMappingImpl(
+      ensemble,
+      std::move(swState),
+      portIds,
+      vlanId,
+      std::move(srcMac),
+      std::move(dstMac),
+      srcIp,
+      dstIp,
+      useFrontPanel,
+      blockNeighbor,
+      std::move(getHwPortStatsFn),
+      l4SrcPort,
+      l4DstPort,
+      dscp);
+}
+
+void verifyQueuePerHostMapping(
+    HwSwitch* hwSwitch,
+    std::shared_ptr<SwitchState> swState,
+    const std::vector<PortID>& portIds,
+    std::optional<VlanID> vlanId,
+    folly::MacAddress srcMac,
+    folly::MacAddress dstMac,
+    const folly::IPAddress& srcIp,
+    const folly::IPAddress& dstIp,
+    bool useFrontPanel,
+    bool blockNeighbor,
+    std::function<std::map<PortID, HwPortStats>(const std::vector<PortID>&)>
+        getHwPortStatsFn,
+    std::optional<uint16_t> l4SrcPort,
+    std::optional<uint16_t> l4DstPort,
+    std::optional<uint8_t> dscp) {
+  verifyQueuePerHostMappingImpl(
+      hwSwitch,
+      std::move(swState),
+      portIds,
+      vlanId,
+      std::move(srcMac),
+      std::move(dstMac),
+      srcIp,
+      dstIp,
+      useFrontPanel,
+      blockNeighbor,
+      std::move(getHwPortStatsFn),
+      l4SrcPort,
+      l4DstPort,
+      dscp);
+}
+
+void verifyQueuePerHostMapping(
     HwSwitchEnsemble* ensemble,
     std::optional<VlanID> vlanId,
     folly::MacAddress srcMac,
