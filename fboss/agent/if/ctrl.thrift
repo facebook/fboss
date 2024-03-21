@@ -400,6 +400,10 @@ struct SystemPortThrift {
   9: bool enabled_DEPRECATED = true;
   10: optional string qosPolicy;
   11: list<PortQueueFields> queues;
+  /*
+   * Set only on Remote System Ports of VOQ switches.
+   */
+  12: optional common.RemoteSystemPortType remoteSystemPortType;
 }
 
 struct PortHardwareDetails {
