@@ -419,6 +419,22 @@ class Interface : public ThriftStructNode<Interface, state::InterfaceFields> {
     return std::nullopt;
   }
 
+  std::optional<RemoteInterfaceType> getRemoteInterfaceType() const {
+    if (auto remoteIntfType = cref<switch_state_tags::remoteIntfType>()) {
+      return remoteIntfType->cref();
+    }
+    return std::nullopt;
+  }
+
+  void setRemoteInterfaceType(
+      const std::optional<RemoteInterfaceType>& remoteIntfType = std::nullopt) {
+    if (remoteIntfType) {
+      set<switch_state_tags::remoteIntfType>(remoteIntfType.value());
+    } else {
+      ref<switch_state_tags::remoteIntfType>().reset();
+    }
+  }
+
   /*
    * Inherit the constructors required for clone().
    * This needs to be public, as std::make_shared requires
