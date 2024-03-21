@@ -84,6 +84,8 @@ class CmdShowInterfaceCountersFecBer
         }
       }
     }
+    // Get Transceiver BER
+    getPreFecBerFromTransceiverInfo(transceiverInfo, model);
 
     return model;
   }
@@ -105,6 +107,26 @@ class CmdShowInterfaceCountersFecBer
       }
     }
     return std::nullopt;
+  }
+
+  void getPreFecBerFromTransceiverInfo(
+      const std::map<int, TransceiverInfo>& transceiverInfo,
+      RetType& model) {
+    for (auto& [tcvrId, tcvrInfo] : transceiverInfo) {
+      if (tcvrInfo.tcvrStats()->vdmPerfMonitorStats().has_value()) {
+        auto& vdmStats = tcvrInfo.tcvrStats()->vdmPerfMonitorStats().value();
+        for (auto& [portName, portSideStats] :
+             vdmStats.mediaPortVdmStats().value()) {
+          model.fecBer()[portName][phy::PortComponent::TRANSCEIVER_LINE] =
+              portSideStats.datapathBER().value().max().value();
+        }
+        for (auto& [portName, portSideStats] :
+             vdmStats.hostPortVdmStats().value()) {
+          model.fecBer()[portName][phy::PortComponent::TRANSCEIVER_SYSTEM] =
+              portSideStats.datapathBER().value().max().value();
+        }
+      }
+    }
   }
 
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
