@@ -4,7 +4,7 @@
 
 #include <algorithm>
 
-#include <boost/function_output_iterator.hpp>
+#include <boost/iterator/function_output_iterator.hpp>
 
 #include <thrift/lib/cpp2/Thrift.h>
 #include <thrift/lib/cpp2/op/Get.h>

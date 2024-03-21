@@ -7,7 +7,7 @@
 #include "folly/Conv.h"
 #include "folly/ScopeGuard.h"
 
-#include <boost/function_output_iterator.hpp>
+#include <boost/iterator/function_output_iterator.hpp>
 
 #include <thrift/lib/cpp2/Thrift.h>
 #include <thrift/lib/cpp2/TypeClass.h>
