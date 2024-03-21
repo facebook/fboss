@@ -6,12 +6,6 @@
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/AclMap.h"
-#include "fboss/agent/state/AclTable.h"
-#include "fboss/agent/state/AclTableGroup.h"
-#include "fboss/agent/state/AclTableMap.h"
-#include "fboss/agent/state/DeltaFunctions.h"
-#include "fboss/agent/state/NodeBase-defs.h"
-#include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/state/SwitchState.h"
 
 namespace facebook::fboss {
