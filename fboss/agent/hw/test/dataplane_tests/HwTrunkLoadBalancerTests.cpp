@@ -160,8 +160,14 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
     }
     auto firstVlanID = getProgrammedState()->getVlans()->getFirstVlanID();
     auto mac = utility::getInterfaceMac(getProgrammedState(), firstVlanID);
+
     utility::pumpTraffic(
-        isV6, getHwSwitch(), mac, firstVlanID, frontPanelPortToLoopTraffic);
+        isV6,
+        utility::getAllocatePktFn(getHwSwitchEnsemble()),
+        utility::getSendPktFunc(getHwSwitchEnsemble()),
+        mac,
+        firstVlanID,
+        frontPanelPortToLoopTraffic);
   }
 
   void pumpMPLSTraffic(
@@ -179,7 +185,8 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
     auto mac = utility::getInterfaceMac(getProgrammedState(), firstVlanID);
     utility::pumpMplsTraffic(
         isV6,
-        getHwSwitch(),
+        utility::getAllocatePktFn(getHwSwitchEnsemble()),
+        utility::getSendPktFunc(getHwSwitchEnsemble()),
         label,
         mac,
         firstVlanID,

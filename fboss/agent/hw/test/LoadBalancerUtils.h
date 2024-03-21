@@ -34,14 +34,38 @@ class SwitchState;
 class LoadBalancer;
 class HwSwitchEnsemble;
 class SwitchIdScopeResolver;
-
+class SwSwitch;
 } // namespace facebook::fboss
 
 namespace facebook::fboss::utility {
 
+struct SendPktFunc {
+  using FuncType3 = std::function<void(
+      std::unique_ptr<TxPacket>,
+      std::optional<PortDescriptor>,
+      std::optional<uint8_t>)>;
+
+  explicit SendPktFunc(FuncType3 func) : func3_(std::move(func)) {}
+
+  void operator()(
+      std::unique_ptr<TxPacket> pkt,
+      std::optional<PortDescriptor> port = std::nullopt,
+      std::optional<uint8_t> queue = std::nullopt);
+
+ private:
+  const FuncType3 func3_;
+};
+SendPktFunc getSendPktFunc(TestEnsembleIf* ensemble);
+SendPktFunc getSendPktFunc(SwSwitch* sw);
+
+using AllocatePktFunc = std::function<std::unique_ptr<TxPacket>(uint32_t size)>;
+AllocatePktFunc getAllocatePktFn(TestEnsembleIf* ensemble);
+AllocatePktFunc getAllocatePktFn(SwSwitch* sw);
+
 size_t pumpTraffic(
     bool isV6,
-    HwSwitch* hw,
+    AllocatePktFunc allocateFn,
+    SendPktFunc sendFn,
     folly::MacAddress dstMac,
     std::optional<VlanID> vlan,
     std::optional<PortID> frontPanelPortToLoopTraffic = std::nullopt,
@@ -51,7 +75,8 @@ size_t pumpTraffic(
 
 size_t pumpRoCETraffic(
     bool isV6,
-    HwSwitch* hw,
+    AllocatePktFunc allocateFn,
+    SendPktFunc sendFn,
     folly::MacAddress dstMac,
     std::optional<VlanID> vlan,
     std::optional<PortID> frontPanelPortToLoopTraffic,
@@ -61,7 +86,8 @@ size_t pumpRoCETraffic(
     int packetCount = 50000);
 
 size_t pumpTrafficWithSourceFile(
-    HwSwitch* hw,
+    AllocatePktFunc allocateFn,
+    SendPktFunc sendFn,
     folly::MacAddress dstMac,
     std::optional<VlanID> vlan,
     std::optional<PortID> frontPanelPortToLoopTraffic = std::nullopt,
@@ -69,7 +95,8 @@ size_t pumpTrafficWithSourceFile(
     std::optional<folly::MacAddress> srcMacAddr = std::nullopt);
 
 void pumpTraffic(
-    HwSwitch* hw,
+    AllocatePktFunc allocateFn,
+    SendPktFunc sendFn,
     folly::MacAddress dstMac,
     std::vector<folly::IPAddress> srcIp,
     std::vector<folly::IPAddress> dstIp,
@@ -84,7 +111,8 @@ void pumpTraffic(
 
 void pumpDeterministicRandomTraffic(
     bool isV6,
-    HwSwitch* hw,
+    AllocatePktFunc allocateFn,
+    SendPktFunc sendFn,
     folly::MacAddress intfMac,
     VlanID vlan,
     std::optional<PortID> frontPanelPortToLoopTraffic = std::nullopt,
@@ -92,7 +120,8 @@ void pumpDeterministicRandomTraffic(
 
 void pumpMplsTraffic(
     bool isV6,
-    HwSwitch* hw,
+    AllocatePktFunc allocateFn,
+    SendPktFunc sendFn,
     uint32_t label,
     folly::MacAddress intfMac,
     VlanID vlanId,

@@ -162,7 +162,8 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
     auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     return utility::pumpRoCETraffic(
         true,
-        getHwSwitch(),
+        utility::getAllocatePktFn(getHwSwitchEnsemble()),
+        utility::getSendPktFunc(getHwSwitchEnsemble()),
         intfMac,
         vlanId,
         frontPanelEgrPort,

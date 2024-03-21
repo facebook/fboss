@@ -1626,7 +1626,8 @@ TEST_F(HwVoqSwitchFullScaleDsfNodesTest, remoteNeighborWithEcmpGroup) {
         [&]() {
           utility::pumpTraffic(
               true, /* isV6 */
-              getHwSwitch(), /* hw */
+              utility::getAllocatePktFn(getHwSwitchEnsemble()),
+              utility::getSendPktFunc(getHwSwitchEnsemble()),
               utility::kLocalCpuMac(), /* dstMac */
               std::nullopt, /* vlan */
               std::nullopt, /* frontPanelPortToLoopTraffic */
@@ -1698,7 +1699,8 @@ TEST_F(HwVoqSwitchFullScaleDsfNodesTest, remoteAndLocalLoadBalance) {
         [&]() {
           utility::pumpTraffic(
               true, /* isV6 */
-              getHwSwitch(), /* hw */
+              utility::getAllocatePktFn(getHwSwitchEnsemble()),
+              utility::getSendPktFunc(getHwSwitchEnsemble()),
               utility::kLocalCpuMac(), /* dstMac */
               std::nullopt, /* vlan */
               std::nullopt, /* frontPanelPortToLoopTraffic */

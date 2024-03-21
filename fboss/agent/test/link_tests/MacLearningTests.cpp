@@ -93,7 +93,8 @@ class MacLearningTest : public LinkTest {
     }
     utility::pumpTraffic(
         true,
-        platform()->getHwSwitch(),
+        utility::getAllocatePktFn(sw()),
+        utility::getSendPktFunc(sw()),
         sw()->getLocalMac(switchId),
         sw()->getState()->getVlans()->getFirstVlanID(),
         txPort,

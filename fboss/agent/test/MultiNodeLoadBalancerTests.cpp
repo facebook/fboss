@@ -128,7 +128,11 @@ TEST_F(MultiNodeLoadBalancerTest, verifyFullHashLoadBalance) {
     auto localMac = state->getInterfaces()->getInterfaceInVlan(vlan)->getMac();
     for (auto isV6 : {true, false}) {
       facebook::fboss::utility::pumpTraffic(
-          isV6, platform()->getHwSwitch(), localMac, vlan);
+          isV6,
+          utility::getAllocatePktFn(sw()),
+          utility::getSendPktFunc(sw()),
+          localMac,
+          vlan);
     }
     // Let all packets get through
     sleep(5);

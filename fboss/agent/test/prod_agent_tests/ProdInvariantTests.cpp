@@ -148,7 +148,8 @@ void ProdInvariantTest::sendTraffic() {
       sw()->getState(), sw()->getState()->getVlans()->getFirstVlanID());
   utility::pumpTraffic(
       true,
-      platform()->getHwSwitch(),
+      utility::getAllocatePktFn(sw()),
+      utility::getSendPktFunc(sw()),
       mac,
       sw()->getState()->getVlans()->getFirstVlanID());
 }

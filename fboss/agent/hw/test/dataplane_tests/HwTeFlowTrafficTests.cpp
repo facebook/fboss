@@ -155,7 +155,8 @@ class HwTeFlowTrafficTest : public HwLinkStateDependentTest {
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
 
     utility::pumpTraffic(
-        getHwSwitch(),
+        utility::getAllocatePktFn(getHwSwitchEnsemble()),
+        utility::getSendPktFunc(getHwSwitchEnsemble()),
         intfMac,
         {folly::IPAddress("1::10")},
         {dstIp},

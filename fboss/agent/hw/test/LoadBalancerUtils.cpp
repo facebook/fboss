@@ -17,7 +17,8 @@
 #include "fboss/agent/LoadBalancerConfigApplier.h"
 #include "fboss/agent/LoadBalancerUtils.h"
 #include "fboss/agent/Platform.h"
-#include "fboss/agent/SwitchIdScopeResolver.h"
+#include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestAclUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
@@ -57,7 +58,8 @@ std::vector<std::string> kTrafficFields = {"sip", "dip", "sport", "dport"};
  */
 size_t pumpRoCETraffic(
     bool isV6,
-    HwSwitch* hw,
+    AllocatePktFunc allocateFn,
+    SendPktFunc sendFn,
     folly::MacAddress dstMac,
     std::optional<VlanID> vlan,
     std::optional<PortID> frontPanelPortToLoopTraffic,
@@ -91,7 +93,7 @@ size_t pumpRoCETraffic(
         roceEndPayload.end(),
         std::back_inserter(rocePayload));
     auto pkt = makeUDPTxPacket(
-        hw,
+        allocateFn,
         vlan,
         srcMac,
         dstMac,
@@ -104,10 +106,10 @@ size_t pumpRoCETraffic(
         rocePayload);
     txPacketSize = pkt->buf()->length();
     if (frontPanelPortToLoopTraffic) {
-      hw->sendPacketOutOfPortSync(
-          std::move(pkt), frontPanelPortToLoopTraffic.value());
+      sendFn(
+          std::move(pkt), PortDescriptor(frontPanelPortToLoopTraffic.value()));
     } else {
-      hw->sendPacketSwitchedSync(std::move(pkt));
+      sendFn(std::move(pkt));
     }
   }
   return txPacketSize;
@@ -125,7 +127,8 @@ size_t pumpRoCETraffic(
  *   Please see P827101297 for an example of how this file should be formatted.
  */
 size_t pumpTrafficWithSourceFile(
-    HwSwitch* hw,
+    AllocatePktFunc allocateFn,
+    SendPktFunc sendFn,
     folly::MacAddress dstMac,
     std::optional<VlanID> vlan,
     std::optional<PortID> frontPanelPortToLoopTraffic,
@@ -169,7 +172,7 @@ size_t pumpTrafficWithSourceFile(
       std::vector<std::string> parsedLine;
       folly::split(',', line, parsedLine);
       auto pkt = makeUDPTxPacket(
-          hw,
+          allocateFn,
           vlan,
           srcMac,
           dstMac,
@@ -181,10 +184,11 @@ size_t pumpTrafficWithSourceFile(
           hopLimit);
       pktSize = pkt->buf()->length();
       if (frontPanelPortToLoopTraffic) {
-        hw->sendPacketOutOfPortSync(
-            std::move(pkt), frontPanelPortToLoopTraffic.value());
+        sendFn(
+            std::move(pkt),
+            PortDescriptor(frontPanelPortToLoopTraffic.value()));
       } else {
-        hw->sendPacketSwitchedSync(std::move(pkt));
+        sendFn(std::move(pkt));
       }
     }
   } else {
@@ -196,7 +200,8 @@ size_t pumpTrafficWithSourceFile(
 
 size_t pumpTraffic(
     bool isV6,
-    HwSwitch* hw,
+    AllocatePktFunc allocateFn,
+    SendPktFunc sendFn,
     folly::MacAddress dstMac,
     std::optional<VlanID> vlan,
     std::optional<PortID> frontPanelPortToLoopTraffic,
@@ -205,7 +210,13 @@ size_t pumpTraffic(
     std::optional<folly::MacAddress> srcMacAddr) {
   if (!FLAGS_load_balance_traffic_src.empty()) {
     return pumpTrafficWithSourceFile(
-        hw, dstMac, vlan, frontPanelPortToLoopTraffic, hopLimit, srcMacAddr);
+        allocateFn,
+        sendFn,
+        dstMac,
+        vlan,
+        frontPanelPortToLoopTraffic,
+        hopLimit,
+        srcMacAddr);
   }
   size_t pktSize = 0;
   folly::MacAddress srcMac(
@@ -218,7 +229,7 @@ size_t pumpTraffic(
       auto dstIp = folly::IPAddress(folly::sformat(
           isV6 ? "2001::{}:{}" : "201.0.{}.{}", (j + 1) / 256, (j + 1) % 256));
       auto pkt = makeUDPTxPacket(
-          hw,
+          allocateFn,
           vlan,
           srcMac,
           dstMac,
@@ -230,10 +241,11 @@ size_t pumpTraffic(
           hopLimit);
       pktSize = pkt->buf()->length();
       if (frontPanelPortToLoopTraffic) {
-        hw->sendPacketOutOfPortSync(
-            std::move(pkt), frontPanelPortToLoopTraffic.value());
+        sendFn(
+            std::move(pkt),
+            PortDescriptor(frontPanelPortToLoopTraffic.value()));
       } else {
-        hw->sendPacketSwitchedSync(std::move(pkt));
+        sendFn(std::move(pkt));
       }
     }
   }
@@ -241,7 +253,8 @@ size_t pumpTraffic(
 }
 
 void pumpTraffic(
-    HwSwitch* hw,
+    AllocatePktFunc allocateFn,
+    SendPktFunc sendFn,
     folly::MacAddress dstMac,
     std::vector<folly::IPAddress> srcIps,
     std::vector<folly::IPAddress> dstIps,
@@ -262,7 +275,7 @@ void pumpTraffic(
       for (auto i = 0; i < streams; i++) {
         while (numPkts--) {
           auto pkt = makeUDPTxPacket(
-              hw,
+              allocateFn,
               vlan,
               srcMac,
               dstMac,
@@ -273,10 +286,11 @@ void pumpTraffic(
               0,
               hopLimit);
           if (frontPanelPortToLoopTraffic) {
-            hw->sendPacketOutOfPortSync(
-                std::move(pkt), frontPanelPortToLoopTraffic.value());
+            sendFn(
+                std::move(pkt),
+                PortDescriptor(frontPanelPortToLoopTraffic.value()));
           } else {
-            hw->sendPacketSwitchedSync(std::move(pkt));
+            sendFn(std::move(pkt));
           }
         }
       }
@@ -297,7 +311,8 @@ void pumpTraffic(
  */
 void pumpDeterministicRandomTraffic(
     bool isV6,
-    HwSwitch* hw,
+    AllocatePktFunc allocateFn,
+    SendPktFunc sendFn,
     folly::MacAddress intfMac,
     VlanID vlan,
     std::optional<PortID> frontPanelPortToLoopTraffic,
@@ -329,7 +344,7 @@ void pumpDeterministicRandomTraffic(
           : folly::IPAddress(folly::sformat("200.0.0.{}", dstV4()));
 
       auto pkt = makeUDPTxPacket(
-          hw,
+          allocateFn,
           vlan,
           srcMac,
           intfMac,
@@ -340,11 +355,13 @@ void pumpDeterministicRandomTraffic(
           0,
           hopLimit);
       if (frontPanelPortToLoopTraffic) {
-        hw->sendPacketOutOfPortSync(
-            std::move(pkt), frontPanelPortToLoopTraffic.value());
+        sendFn(
+            std::move(pkt),
+            PortDescriptor(frontPanelPortToLoopTraffic.value()));
       } else {
-        hw->sendPacketSwitchedSync(std::move(pkt));
+        sendFn(std::move(pkt));
       }
+
       count++;
       if (count % 1000 == 0) {
         XLOG(DBG2) << counter << " . sent " << count << " packets";
@@ -357,7 +374,8 @@ void pumpDeterministicRandomTraffic(
 
 void pumpMplsTraffic(
     bool isV6,
-    HwSwitch* hw,
+    AllocatePktFunc allocateFn,
+    SendPktFunc sendFn,
     uint32_t label,
     folly::MacAddress intfMac,
     VlanID vlanId,
@@ -391,18 +409,16 @@ void pumpMplsTraffic(
                               vlanId);
 
       if (isV6) {
-        pkt = frame.getTxPacket(
-            [hw](uint32_t size) { return hw->allocatePacket(size); });
+        pkt = frame.getTxPacket(allocateFn);
       } else {
-        pkt = frame.getTxPacket(
-            [hw](uint32_t size) { return hw->allocatePacket(size); });
+        pkt = frame.getTxPacket(allocateFn);
       }
-
       if (frontPanelPortToLoopTraffic) {
-        hw->sendPacketOutOfPortSync(
-            std::move(pkt), frontPanelPortToLoopTraffic.value());
+        sendFn(
+            std::move(pkt),
+            PortDescriptor(frontPanelPortToLoopTraffic.value()));
       } else {
-        hw->sendPacketSwitchedSync(std::move(pkt));
+        sendFn(std::move(pkt));
       }
     }
   }
@@ -433,6 +449,39 @@ bool isHwDeterministicSeed(
   }
   auto lb = state->getLoadBalancers()->getNode(id);
   return lb->getSeed() == hwSwitch->generateDeterministicSeed(id);
+}
+
+void SendPktFunc::operator()(
+    std::unique_ptr<TxPacket> pkt,
+    std::optional<PortDescriptor> port,
+    std::optional<uint8_t> queue) {
+  func3_(std::move(pkt), std::move(port), queue);
+}
+
+AllocatePktFunc getAllocatePktFn(TestEnsembleIf* ensemble) {
+  return [ensemble](uint32_t size) { return ensemble->allocatePacket(size); };
+}
+
+AllocatePktFunc getAllocatePktFn(SwSwitch* sw) {
+  return [sw](uint32_t size) { return sw->allocatePacket(size); };
+}
+
+SendPktFunc getSendPktFunc(TestEnsembleIf* ensemble) {
+  return SendPktFunc([ensemble](
+                         std::unique_ptr<TxPacket> pkt,
+                         std::optional<PortDescriptor> port,
+                         std::optional<uint8_t> queue) {
+    ensemble->sendPacketAsync(std::move(pkt), std::move(port), queue);
+  });
+}
+
+SendPktFunc getSendPktFunc(SwSwitch* sw) {
+  return SendPktFunc([sw](
+                         std::unique_ptr<TxPacket> pkt,
+                         std::optional<PortDescriptor> port,
+                         std::optional<uint8_t> queue) {
+    sw->sendPacketAsync(std::move(pkt), std::move(port), queue);
+  });
 }
 
 } // namespace facebook::fboss::utility

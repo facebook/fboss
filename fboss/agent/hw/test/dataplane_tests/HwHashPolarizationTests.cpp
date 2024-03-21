@@ -142,7 +142,8 @@ class HwHashPolarizationTests : public HwLinkStateDependentTest {
       for (auto isV6 : {true, false}) {
         utility::pumpTraffic(
             isV6,
-            getHwSwitch(),
+            utility::getAllocatePktFn(getHwSwitchEnsemble()),
+            utility::getSendPktFunc(getHwSwitchEnsemble()),
             mac,
             firstVlan,
             masterLogicalInterfacePortIds()[kEcmpWidth]);
@@ -519,7 +520,13 @@ class HwHashTrunkPolarizationTests : public HwHashPolarizationTests {
       auto portIter = logicalPorts.end() - 1;
 
       for (auto isV6 : {true, false}) {
-        utility::pumpTraffic(isV6, getHwSwitch(), mac, firstVlan, *portIter);
+        utility::pumpTraffic(
+            isV6,
+            utility::getAllocatePktFn(getHwSwitchEnsemble()),
+            utility::getSendPktFunc(getHwSwitchEnsemble()),
+            mac,
+            firstVlan,
+            *portIter);
       }
     } // stop capture
 

@@ -187,8 +187,8 @@ class HwSwitchEnsemble : public TestEnsembleIf {
   // use ensure send packet for synchronous send
   void sendPacketAsync(
       std::unique_ptr<TxPacket> pkt,
-      std::optional<PortDescriptor> portDescriptor,
-      std::optional<uint8_t> queueId) override;
+      std::optional<PortDescriptor> portDescriptor = std::nullopt,
+      std::optional<uint8_t> queueId = std::nullopt) override;
 
   /*
    * Depending on the implementation of the underlying forwarding plane, it is

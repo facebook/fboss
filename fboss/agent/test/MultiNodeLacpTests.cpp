@@ -288,7 +288,8 @@ class MultiNodeLacpTest : public MultiNodeTest {
       for (const auto& sendV6 : {true, false}) {
         utility::pumpTraffic(
             sendV6,
-            platform()->getHwSwitch(),
+            utility::getAllocatePktFn(sw()),
+            utility::getSendPktFunc(sw()),
             destMac,
             vlan,
             std::nullopt,
@@ -476,7 +477,8 @@ class MultiNodeRoutingLoop : public MultiNodeLacpTest {
             state->getInterfaces()->getInterfaceInVlan(vlan)->getID())
             .first;
     utility::pumpTraffic(
-        platform()->getHwSwitch(),
+        utility::getAllocatePktFn(sw()),
+        utility::getSendPktFunc(sw()),
         destMac,
         {folly::IPAddress("200::10")},
         {folly::IPAddress("100::10")},

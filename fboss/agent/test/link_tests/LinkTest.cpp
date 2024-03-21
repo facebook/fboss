@@ -284,7 +284,11 @@ void LinkTest::createL3DataplaneFlood(
                     ->cbegin()
                     ->second->getID();
   utility::pumpTraffic(
-      true, platform()->getHwSwitch(), sw()->getLocalMac(switchId), vlanID);
+      true,
+      utility::getAllocatePktFn(sw()),
+      utility::getSendPktFunc(sw()),
+      sw()->getLocalMac(switchId),
+      vlanID);
   // TODO: Assert that traffic reached a certain rate
   XLOG(DBG2) << "Created L3 Data Plane Flood";
 }

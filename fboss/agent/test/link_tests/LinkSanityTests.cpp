@@ -451,7 +451,8 @@ TEST_F(LinkTest, fabricLinkHealth) {
   auto beforeFabricStats = getPortStats(fabricPorts);
 
   utility::pumpTraffic(
-      platform()->getHwSwitch(), /* HwSwitch */
+      utility::getAllocatePktFn(sw()),
+      utility::getSendPktFunc(sw()),
       sw()->getLocalMac(scope({kDstPortDesc})), /* dstMac */
       {ecmpHelper.ip(kSrcPortDesc)}, /* srcIps */
       {ecmpHelper.ip(kDstPortDesc)}, /* dstIps */
