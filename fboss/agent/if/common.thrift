@@ -110,3 +110,15 @@ enum RemoteInterfaceType {
    */
   STATIC_ENTRY = 1,
 }
+
+enum RemoteSystemPortType {
+  /*
+   * Remote System ports dynamically created by DSF Control Plane Sync.
+   */
+  DYNAMIC_ENTRY = 0,
+
+  /*
+   * Remote System ports statically created by DSF Node map processing.
+   */
+  STATIC_ENTRY = 1,
+}
