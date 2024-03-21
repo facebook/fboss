@@ -28,6 +28,7 @@ enum AclType {
   L4_DST_PORT,
   UDF,
   FLOWLET,
+  BTH_OPCODE,
 };
 }
 
@@ -93,6 +94,9 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
       case AclType::L4_DST_PORT:
         aclName = "test-l4-port-acl";
         break;
+      case AclType::BTH_OPCODE:
+        aclName = "test-bth-opcode-acl";
+        break;
     }
     return aclName;
   }
@@ -120,6 +124,9 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
         break;
       case AclType::L4_DST_PORT:
         counterName = "test-l4-port-acl-stats";
+        break;
+      case AclType::BTH_OPCODE:
+        counterName = "test-bth-opcode-acl-stats";
         break;
     }
     return counterName;
@@ -322,7 +329,7 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
       utility::setEcmpMemberStatus(getHwSwitch());
       sendRoce = true;
     }
-    if (aclType == AclType::UDF) {
+    if (aclType == AclType::UDF || aclType == AclType::BTH_OPCODE) {
       sendRoce = true;
     }
     // for udf or flowlet testing, send roce packets
@@ -409,6 +416,9 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
         acl->srcPort() = helper_->ecmpPortDescriptorAt(0).phyPortID();
         acl->l4DstPort() = kL4DstPort2();
         break;
+      case AclType::BTH_OPCODE:
+        acl->roceOpcode() = utility::kUdfRoceOpcode;
+        break;
     }
     std::vector<cfg::CounterType> setCounterTypes{
         cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
@@ -463,6 +473,13 @@ TYPED_TEST(HwAclCounterTest, VerifyCounterNoTtlHitNoBumpFrontPanel) {
       false /* no hit, no bump */,
       true /* front panel port */,
       {AclType::TCP_TTLD, AclType::UDP_TTLD});
+}
+
+TYPED_TEST(HwAclCounterTest, VerifyCounterBumpOnBthOpcodeHitFrontPanel) {
+  this->counterBumpOnHitHelper(
+      true /* bump on hit */,
+      true /* front panel port */,
+      {AclType::BTH_OPCODE});
 }
 
 // Verify that traffic originating on the CPU increments ACL counter.

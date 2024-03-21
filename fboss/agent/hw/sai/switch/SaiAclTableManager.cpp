@@ -1054,6 +1054,9 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
        fieldTtl.has_value() || fieldFdbDstUserMeta.has_value() ||
        fieldRouteDstUserMeta.has_value() || fieldEtherType.has_value() ||
        fieldNeighborDstUserMeta.has_value() ||
+#if !defined(TAJO_SDK)
+       fieldBthOpcode.has_value() ||
+#endif
        platform_->getAsic()->isSupported(HwAsic::Feature::EMPTY_ACL_MATCHER));
   if (fieldSrcPort.has_value()) {
     auto srcPortQualifierSupported = platform_->getAsic()->isSupported(
@@ -1374,7 +1377,8 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet()
         cfg::AclTableQualifier::TTL,
         cfg::AclTableQualifier::IP_PROTOCOL,
         cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR,
-        cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE};
+        cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE,
+        cfg::AclTableQualifier::BTH_OPCODE};
     return jericho3Qualifiers;
   } else {
     std::set<cfg::AclTableQualifier> bcmQualifiers = {
