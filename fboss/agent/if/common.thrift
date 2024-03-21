@@ -98,3 +98,15 @@ enum SwitchRunState {
   FIB_SYNCED = 3,
   EXITING = 4,
 }
+
+enum RemoteInterfaceType {
+  /*
+   * Remote interfaces dynamically created by DSF Control Plane Sync.
+   */
+  DYNAMIC_ENTRY = 0,
+
+  /*
+   * Remote interfaces statically created by DSF Node map processing.
+   */
+  STATIC_ENTRY = 1,
+}
