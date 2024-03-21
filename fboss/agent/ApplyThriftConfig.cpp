@@ -965,7 +965,9 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
         9000,
         true,
         true,
-        cfg::InterfaceType::SYSTEM_PORT);
+        cfg::InterfaceType::SYSTEM_PORT,
+        isLocal(node) ? std::optional<RemoteInterfaceType>(std::nullopt)
+                      : std::make_optional(RemoteInterfaceType::STATIC_ENTRY));
     auto intfs = new_->getRemoteInterfaces()->modify(&new_);
     intfs->addNode(intf, scopeResolver_.scope(intf, new_));
     processLoopbacks(node, dsfNodeAsic.get());
