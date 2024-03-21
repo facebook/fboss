@@ -15,13 +15,6 @@
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/agent/state/SwitchState.h"
-#include "folly/IPAddress.h"
-#include "folly/MacAddress.h"
-
-using folly::IPAddress;
-using folly::MacAddress;
-using folly::to;
-using std::string;
 
 namespace facebook::fboss {
 
