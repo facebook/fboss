@@ -79,6 +79,15 @@ std::optional<int> PlatformPort::getCorePortIndex() const {
   return corePortIndex;
 }
 
+std::optional<int> PlatformPort::getVirtualDeviceId() const {
+  const auto& mapping = getPlatformPortEntry().mapping();
+  std::optional<int> virtualDeviceId;
+  if (mapping->virtualDeviceId()) {
+    virtualDeviceId = *mapping->virtualDeviceId();
+  }
+  return virtualDeviceId;
+}
+
 const cfg::PlatformPortEntry& PlatformPort::getPlatformPortEntry() const {
   const auto& platformPorts = platform_->getPlatformPorts();
   if (auto itPlatformPort = platformPorts.find(id_);
