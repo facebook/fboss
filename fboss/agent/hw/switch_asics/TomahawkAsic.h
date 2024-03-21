@@ -69,6 +69,14 @@ class TomahawkAsic : public BroadcomXgsAsic {
   uint32_t getMaxEcmpSize() const override {
     return 128;
   }
+  std::optional<uint32_t> getMaxEcmpGroups() const override {
+    // 56960-DS113
+    return 1024;
+  }
+  std::optional<uint32_t> getMaxEcmpMembers() const override {
+    // 56960-DS113
+    return 16000;
+  }
   uint32_t getStaticQueueLimitBytes() const override {
     return getMMUSizeBytes();
   }

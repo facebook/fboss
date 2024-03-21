@@ -113,6 +113,14 @@ class EbroAsic : public TajoAsic {
   uint32_t getMaxEcmpSize() const override {
     return 512;
   }
+  std::optional<uint32_t> getMaxEcmpGroups() const override {
+    // MT-697
+    return 16000;
+  }
+  std::optional<uint32_t> getMaxEcmpMembers() const override {
+    // MT-697
+    return 96000;
+  }
   uint32_t getNumCores() const override {
     return 12;
   }

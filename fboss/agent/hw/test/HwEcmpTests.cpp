@@ -101,6 +101,16 @@ class HwEcmpTest : public HwLinkStateDependentTest {
   void verifyResolvedUcmp(
       const folly::CIDRNetwork& routePrefix,
       const std::vector<NextHopWeight>& hwWs);
+  uint32_t getMaxEcmpGroups(const HwAsic* asic) const {
+    auto maxEcmpGroups = asic->getMaxEcmpGroups();
+    CHECK(maxEcmpGroups.has_value());
+    return maxEcmpGroups.value();
+  }
+  uint32_t getMaxEcmpMembers(const HwAsic* asic) const {
+    auto maxEcmpMembers = asic->getMaxEcmpMembers();
+    CHECK(maxEcmpMembers.has_value());
+    return maxEcmpMembers.value();
+  }
 };
 
 void HwEcmpTest::programResolvedUcmp(

@@ -91,6 +91,14 @@ class Jericho3Asic : public BroadcomAsic {
   uint32_t getMaxEcmpSize() const override {
     return 4096;
   }
+  std::optional<uint32_t> getMaxEcmpGroups() const override {
+    // 88890-DG300
+    return 4096;
+  }
+  std::optional<uint32_t> getMaxEcmpMembers() const override {
+    // 88890-DG300
+    return 32000;
+  }
   uint32_t getSflowShimHeaderSize() const override {
     return 0;
   }
