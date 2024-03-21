@@ -487,6 +487,11 @@ struct InterfaceFields {
   17: optional string dhcpV6Relay;
   18: map<string, string> dhcpRelayOverridesV4;
   19: map<string, string> dhcpRelayOverridesV6;
+
+  /*
+   * Set only on Remote Interfaces of VOQ switches.
+   */
+  20: optional common.RemoteInterfaceType remoteIntfType;
 }
 
 enum LacpState {
