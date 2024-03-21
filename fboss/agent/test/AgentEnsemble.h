@@ -213,6 +213,11 @@ class AgentEnsemble : public TestEnsembleIf {
       const uint64_t desiredBps,
       int secondsToWaitPerIteration = 1);
 
+  void sendPacketAsync(
+      std::unique_ptr<TxPacket> pkt,
+      std::optional<PortDescriptor> portDescriptor,
+      std::optional<uint8_t> queueId) override;
+
  protected:
   void joinAsyncInitThread() {
     if (asyncInitThread_) {

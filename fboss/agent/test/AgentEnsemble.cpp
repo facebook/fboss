@@ -9,6 +9,7 @@
 #include <folly/io/async/ScopedEventBaseThread.h>
 #include "fboss/agent/CommonInit.h"
 #include "fboss/agent/EncapIndexAllocator.h"
+#include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/lib/CommonUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
@@ -393,5 +394,17 @@ void AgentEnsemble::waitForSpecificRateOnPort(
   }
 
   throw FbossError("Desired rate ", desiredBps, " bps was never reached");
+}
+
+void AgentEnsemble::sendPacketAsync(
+    std::unique_ptr<TxPacket> pkt,
+    std::optional<PortDescriptor> portDescriptor,
+    std::optional<uint8_t> queueId) {
+  if (!portDescriptor.has_value()) {
+    getSw()->sendPacketSwitchedAsync(std::move(pkt));
+    return;
+  }
+  getSw()->sendPacketOutOfPortAsync(
+      std::move(pkt), portDescriptor->phyPortID(), queueId);
 }
 } // namespace facebook::fboss

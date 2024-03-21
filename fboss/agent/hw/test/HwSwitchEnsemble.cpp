@@ -518,7 +518,7 @@ bool HwSwitchEnsemble::ensureSendPacketSwitched(std::unique_ptr<TxPacket> pkt) {
   };
 
   return utility::ensureSendPacketSwitched(
-      getHwSwitch(),
+      this,
       std::move(pkt),
       masterLogicalPortIds({cfg::PortType::INTERFACE_PORT}),
       getPortStats,
@@ -536,7 +536,7 @@ bool HwSwitchEnsemble::ensureSendPacketOutOfPort(
     return getLatestPortStats(portIds);
   };
   return utility::ensureSendPacketOutOfPort(
-      getHwSwitch(),
+      this,
       std::move(pkt),
       portID,
       masterLogicalPortIds({cfg::PortType::INTERFACE_PORT}),
@@ -986,4 +986,22 @@ void HwSwitchEnsemble::storeWarmBootState(const state::WarmbootState& state) {
 LinkStateToggler* HwSwitchEnsemble::getLinkToggler() {
   return linkToggler_.get();
 }
+
+void HwSwitchEnsemble::sendPacketAsync(
+    std::unique_ptr<TxPacket> pkt,
+    std::optional<PortDescriptor> portDescriptor,
+    std::optional<uint8_t> queueId) {
+  if (!portDescriptor.has_value()) {
+    getHwSwitch()->sendPacketSwitchedSync(std::move(pkt));
+    return;
+  }
+  if (!portDescriptor->isPhysicalPort()) {
+    throw FbossError(
+        "sendPacketAsync only supports physical ports, but got ",
+        portDescriptor->str());
+  }
+  getHwSwitch()->sendPacketOutOfPortAsync(
+      std::move(pkt), portDescriptor->phyPortID(), queueId);
+}
+
 } // namespace facebook::fboss

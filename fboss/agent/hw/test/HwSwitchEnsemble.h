@@ -184,6 +184,12 @@ class HwSwitchEnsemble : public TestEnsembleIf {
 
   static Features getAllFeatures();
 
+  // use ensure send packet for synchronous send
+  void sendPacketAsync(
+      std::unique_ptr<TxPacket> pkt,
+      std::optional<PortDescriptor> portDescriptor,
+      std::optional<uint8_t> queueId) override;
+
   /*
    * Depending on the implementation of the underlying forwarding plane, it is
    * possible that HwSwitch::sendPacketSwitchedSync and

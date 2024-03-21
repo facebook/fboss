@@ -12,6 +12,7 @@
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/test/HwTestAclUtils.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
+#include "fboss/agent/test/TestEnsembleIf.h"
 
 #include <folly/logging/xlog.h>
 
@@ -104,12 +105,13 @@ bool waitStatsCondition(
 }
 
 bool waitForAnyPorAndQueutOutBytesIncrement(
-    HwSwitch* hwSwitch,
+    TestEnsembleIf* ensemble,
     const std::map<PortID, HwPortStats>& originalPortStats,
     const std::vector<PortID>& portIds,
     const HwPortStatsFunc& getHwPortStats) {
   auto queueStatsSupported =
-      hwSwitch->getPlatform()->getAsic()->isSupported(HwAsic::Feature::L3_QOS);
+      ensemble->getHwAsicTable()->isFeatureSupportedOnAnyAsic(
+          HwAsic::Feature::L3_QOS);
   auto conditionFn = [&originalPortStats,
                       queueStatsSupported](const auto& newPortStats) {
     for (const auto& [portId, portStat] : originalPortStats) {
@@ -133,11 +135,12 @@ bool waitForAnyPorAndQueutOutBytesIncrement(
 }
 
 bool waitForAnyVoQOutBytesIncrement(
-    HwSwitch* hwSwitch,
+    TestEnsembleIf* ensemble,
     const std::map<SystemPortID, HwSysPortStats>& originalPortStats,
     const std::vector<SystemPortID>& portIds,
     const HwSysPortStatsFunc& getHwPortStats) {
-  if (!hwSwitch->getPlatform()->getAsic()->isSupported(HwAsic::Feature::VOQ)) {
+  if (!ensemble->getHwAsicTable()->isFeatureSupportedOnAnyAsic(
+          HwAsic::Feature::VOQ)) {
     throw FbossError("VOQs are unsupported on platform");
   }
   auto conditionFn = [&originalPortStats](const auto& newPortStats) {
@@ -156,7 +159,7 @@ bool waitForAnyVoQOutBytesIncrement(
 }
 
 bool ensureSendPacketSwitched(
-    HwSwitch* hwSwitch,
+    TestEnsembleIf* ensemble,
     std::unique_ptr<TxPacket> pkt,
     const std::vector<PortID>& portIds,
     const HwPortStatsFunc& getHwPortStats,
@@ -164,26 +167,26 @@ bool ensureSendPacketSwitched(
     const HwSysPortStatsFunc& getHwSysPortStats) {
   auto originalPortStats = getHwPortStats(portIds);
   auto originalSysPortStats = getHwSysPortStats(sysPortIds);
-  bool result = hwSwitch->sendPacketSwitchedSync(std::move(pkt));
+  ensemble->sendPacketAsync(std::move(pkt));
   bool waitForVoqs = sysPortIds.size() &&
-      hwSwitch->getPlatform()->getAsic()->isSupported(HwAsic::Feature::VOQ);
-  return result &&
-      waitForAnyPorAndQueutOutBytesIncrement(
-             hwSwitch, originalPortStats, portIds, getHwPortStats) &&
+      ensemble->getHwAsicTable()->isFeatureSupportedOnAnyAsic(
+          HwAsic::Feature::VOQ);
+  return waitForAnyPorAndQueutOutBytesIncrement(
+             ensemble, originalPortStats, portIds, getHwPortStats) &&
       (!waitForVoqs ||
        waitForAnyVoQOutBytesIncrement(
-           hwSwitch, originalSysPortStats, sysPortIds, getHwSysPortStats));
+           ensemble, originalSysPortStats, sysPortIds, getHwSysPortStats));
 }
 
 bool ensureSendPacketSwitched(
-    HwSwitch* hwSwitch,
+    TestEnsembleIf* ensemble,
     std::unique_ptr<TxPacket> pkt,
     const std::vector<PortID>& portIds,
     const HwPortStatsFunc& getHwPortStats) {
   auto noopGetSysPortStats = [](const std::vector<SystemPortID>&)
       -> std::map<SystemPortID, HwSysPortStats> { return {}; };
   return ensureSendPacketSwitched(
-      hwSwitch,
+      ensemble,
       std::move(pkt),
       portIds,
       getHwPortStats,
@@ -192,18 +195,16 @@ bool ensureSendPacketSwitched(
 }
 
 bool ensureSendPacketOutOfPort(
-    HwSwitch* hwSwitch,
+    TestEnsembleIf* ensemble,
     std::unique_ptr<TxPacket> pkt,
     PortID portID,
     const std::vector<PortID>& ports,
     const HwPortStatsFunc& getHwPortStats,
     std::optional<uint8_t> queue) {
   auto originalPortStats = getHwPortStats(ports);
-  bool result =
-      hwSwitch->sendPacketOutOfPortSync(std::move(pkt), portID, queue);
-  return result &&
-      waitForAnyPorAndQueutOutBytesIncrement(
-             hwSwitch, originalPortStats, ports, getHwPortStats);
+  ensemble->sendPacketAsync(std::move(pkt), PortDescriptor(portID), queue);
+  return waitForAnyPorAndQueutOutBytesIncrement(
+      ensemble, originalPortStats, ports, getHwPortStats);
 }
 
 } // namespace facebook::fboss::utility

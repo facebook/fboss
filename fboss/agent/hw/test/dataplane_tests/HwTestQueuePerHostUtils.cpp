@@ -27,7 +27,7 @@
 namespace facebook::fboss::utility {
 
 void verifyQueuePerHostMapping(
-    HwSwitch* hwSwitch,
+    HwSwitchEnsemble* ensemble,
     std::shared_ptr<SwitchState> swState,
     const std::vector<PortID>& portIds,
     std::optional<VlanID> vlanId,
@@ -42,6 +42,7 @@ void verifyQueuePerHostMapping(
     std::optional<uint16_t> l4SrcPort,
     std::optional<uint16_t> l4DstPort,
     std::optional<uint8_t> dscp) {
+  auto hwSwitch = ensemble->getHwSwitch();
   auto ttlAclName = utility::getQueuePerHostTtlAclName();
   auto ttlCounterName = utility::getQueuePerHostTtlCounterName();
 
@@ -80,22 +81,22 @@ void verifyQueuePerHostMapping(
 
   if (useFrontPanel) {
     utility::ensureSendPacketOutOfPort(
-        hwSwitch,
+        ensemble,
         std::move(txPacket),
         PortID(portIds[1]),
         portIds,
         getHwPortStatsFn);
     utility::ensureSendPacketOutOfPort(
-        hwSwitch,
+        ensemble,
         std::move(txPacket2),
         PortID(portIds[1]),
         portIds,
         getHwPortStatsFn);
   } else {
     utility::ensureSendPacketSwitched(
-        hwSwitch, std::move(txPacket), portIds, getHwPortStatsFn);
+        ensemble, std::move(txPacket), portIds, getHwPortStatsFn);
     utility::ensureSendPacketSwitched(
-        hwSwitch, std::move(txPacket2), portIds, getHwPortStatsFn);
+        ensemble, std::move(txPacket2), portIds, getHwPortStatsFn);
   }
 
   std::map<int, int64_t> afterQueueOutPkts;
@@ -181,7 +182,7 @@ void verifyQueuePerHostMapping(
   };
 
   verifyQueuePerHostMapping(
-      const_cast<HwSwitch*>(hwSwitch),
+      ensemble,
       ensemble->getProgrammedState(),
       ensemble->masterLogicalPortIds(),
       vlanId,
