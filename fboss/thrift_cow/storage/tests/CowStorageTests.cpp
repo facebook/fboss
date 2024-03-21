@@ -695,3 +695,25 @@ TEST(CowStorageTests, PatchRoot) {
   EXPECT_EQ(
       storage.root()->ref<k::member>()->toThrift(), *testStructB.member());
 }
+
+TEST(SubscribableStorageTests, PatchInvalidDeltaPath) {
+  using namespace facebook::fboss::fsdb;
+
+  auto testStructA = createTestStruct();
+  auto storage = CowStorage<TestStruct>(testStructA);
+
+  OperDelta delta;
+  OperDeltaUnit unit;
+  unit.path()->raw() = {"invalid", "path"};
+  unit.newState() = facebook::fboss::thrift_cow::serialize<
+      apache::thrift::type_class::structure>(OperProtocol::BINARY, testStructA);
+  delta.changes() = {unit};
+
+  // should fail gracefully
+  EXPECT_EQ(storage.patch(delta), StorageError::INVALID_PATH);
+
+  // partially valid path should still fail
+  unit.path()->raw() = {"inlineStruct", "invalid", "path"};
+  delta.changes() = {unit};
+  EXPECT_EQ(storage.patch(delta), StorageError::INVALID_PATH);
+}

@@ -171,7 +171,10 @@ class CowStorage : public Storage<Root, CowStorage<Root, Node>> {
 
   std::optional<StorageError>
   set_encoded_impl(PathIter begin, PathIter end, const OperState& state) {
-    StorageImpl::modifyPath(&root_, begin, end);
+    auto modifyResult = StorageImpl::modifyPath(&root_, begin, end);
+    if (modifyResult != thrift_cow::ThriftTraverseResult::OK) {
+      return detail::parseTraverseResult(modifyResult);
+    }
     thrift_cow::SetEncodedPathVisitorOperator op(
         *state.protocol(), *state.contents());
     auto traverseResult = thrift_cow::RootPathVisitor::visit(

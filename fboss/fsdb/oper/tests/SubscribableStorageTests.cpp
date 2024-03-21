@@ -929,3 +929,29 @@ TEST(SubscribableStorageTests, ApplyPatch) {
   EXPECT_EQ(*memberStruct->min(), 999);
   EXPECT_EQ(*memberStruct->max(), 1001);
 }
+
+TEST(SubscribableStorageTests, PatchInvalidDeltaPath) {
+  using namespace facebook::fboss::fsdb;
+
+  thriftpath::RootThriftPath<TestStruct> root;
+
+  auto testDyn = createTestDynamic();
+  auto testStruct = facebook::thrift::from_dynamic<TestStruct>(
+      testDyn, facebook::thrift::dynamic_format::JSON_1);
+  auto storage = TestSubscribableStorage(testStruct);
+  TestStructSimple newStruct;
+
+  OperDelta delta;
+  OperDeltaUnit unit;
+  unit.path()->raw() = {"invalid", "path"};
+  unit.newState() = facebook::fboss::thrift_cow::serialize<
+      apache::thrift::type_class::structure>(OperProtocol::BINARY, newStruct);
+
+  // should fail gracefully
+  delta.changes() = {unit};
+  EXPECT_EQ(storage.patch(delta), StorageError::INVALID_PATH);
+
+  // partially valid path should still fail
+  unit.path()->raw() = {"inlineStruct", "invalid", "path"};
+  delta.changes() = {unit};
+}
