@@ -286,7 +286,8 @@ TEST(PacketUtilTest, TxMPLSv4UDP) {
           mplsHdr,
           utility::IPv4Packet(v4Hdr, utility::UDPDatagram(udpHdr, payload))));
 
-  auto txPacket = ethPkt.getTxPacket(&hwSwitch);
+  auto txPacket = ethPkt.getTxPacket(
+      [&hwSwitch](uint32_t size) { return hwSwitch.allocatePacket(size); });
   folly::io::Cursor cursor{txPacket->buf()};
   auto ethPkt2 = utility::EthFrame(cursor);
   EXPECT_EQ(ethPkt, ethPkt2);
@@ -325,7 +326,8 @@ TEST(PacketUtilTest, TxMPLSv6UDP) {
           mplsHdr,
           utility::IPv6Packet(v6Hdr, utility::UDPDatagram(udpHdr, payload))));
 
-  auto txPacket = ethPkt.getTxPacket(&hwSwitch);
+  auto txPacket = ethPkt.getTxPacket(
+      [&hwSwitch](uint32_t size) { return hwSwitch.allocatePacket(size); });
   folly::io::Cursor cursor{txPacket->buf()};
   auto ethPkt2 = utility::EthFrame(cursor);
   EXPECT_EQ(ethPkt, ethPkt2);
@@ -344,7 +346,8 @@ TEST(PacketUtilTest, GetEthFrameV4) {
       10020,
       kVlan1);
 
-  auto txPkt = ethFrame0.getTxPacket(&hwSwitch);
+  auto txPkt = ethFrame0.getTxPacket(
+      [&hwSwitch](uint32_t size) { return hwSwitch.allocatePacket(size); });
   folly::io::Cursor cursor(txPkt->buf());
 
   auto ethFrame1 = utility::EthFrame(cursor);
@@ -365,7 +368,8 @@ TEST(PacketUtilTest, GetEthFrameV6) {
       10020,
       kVlan1);
 
-  auto txPkt = ethFrame0.getTxPacket(&hwSwitch);
+  auto txPkt = ethFrame0.getTxPacket(
+      [&hwSwitch](uint32_t size) { return hwSwitch.allocatePacket(size); });
   folly::io::Cursor cursor(txPkt->buf());
 
   auto ethFrame1 = utility::EthFrame(cursor);
@@ -391,7 +395,8 @@ TEST(PacketUtilTest, GetEthFrameV4MPLS) {
       10010,
       10020);
 
-  auto txPkt = ethFrame0.getTxPacket(&hwSwitch);
+  auto txPkt = ethFrame0.getTxPacket(
+      [&hwSwitch](uint32_t size) { return hwSwitch.allocatePacket(size); });
   folly::io::Cursor cursor(txPkt->buf());
 
   auto ethFrame1 = utility::EthFrame(cursor);
@@ -417,7 +422,8 @@ TEST(PacketUtilTest, GetEthFrameV6MPLS) {
       10010,
       10020);
 
-  auto txPkt = ethFrame0.getTxPacket(&hwSwitch);
+  auto txPkt = ethFrame0.getTxPacket(
+      [&hwSwitch](uint32_t size) { return hwSwitch.allocatePacket(size); });
   folly::io::Cursor cursor(txPkt->buf());
 
   auto ethFrame1 = utility::EthFrame(cursor);

@@ -41,7 +41,8 @@ class MPLSPacket {
 
   // construct TxPacket by encapsulating l3 payload
   std::unique_ptr<facebook::fboss::TxPacket> getTxPacket(
-      const HwSwitch* hw) const;
+      std::function<std::unique_ptr<facebook::fboss::TxPacket>(uint32_t)>
+          allocatePacket) const;
 
   void serialize(folly::io::RWPrivateCursor& cursor) const;
 

@@ -17,8 +17,9 @@ TCPPacket::TCPPacket(folly::io::Cursor& cursor, uint32_t length) {
 TCPPacket::~TCPPacket() = default;
 
 std::unique_ptr<facebook::fboss::TxPacket> TCPPacket::getTxPacket(
-    const HwSwitch* hw) const {
-  auto txPacket = hw->allocatePacket(length());
+    std::function<std::unique_ptr<facebook::fboss::TxPacket>(uint32_t)>
+        allocatePacket) const {
+  auto txPacket = allocatePacket(length());
   folly::io::RWPrivateCursor rwCursor(txPacket->buf());
   tcpHdr_.write(&rwCursor);
   for (auto byte : payload_) {

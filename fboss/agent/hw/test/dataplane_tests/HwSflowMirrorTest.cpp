@@ -110,7 +110,9 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
     auto ports = getPortsForSampling();
     for (auto i = 1; i < ports.size(); i++) {
       auto pkt = genPacket(i, payloadSize);
-      sendPkt(ports[i], pkt.getTxPacket(getHwSwitch()));
+      sendPkt(ports[i], pkt.getTxPacket([hw = getHwSwitch()](uint32_t size) {
+        return hw->allocatePacket(size);
+      }));
     }
   }
 
@@ -305,7 +307,11 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
     bringDownPorts(std::vector<PortID>(ports.begin() + 2, ports.end()));
     auto pkt = genPacket(1, 256);
     HwTestPacketSnooper snooper(getHwSwitchEnsemble());
-    sendPkt(getPortsForSampling()[1], pkt.getTxPacket(getHwSwitch()));
+    sendPkt(
+        getPortsForSampling()[1],
+        pkt.getTxPacket([hw = getHwSwitch()](uint32_t size) {
+          return hw->allocatePacket(size);
+        }));
     auto capturedPkt = snooper.waitForPacket(10);
     ASSERT_TRUE(capturedPkt.has_value());
 
@@ -409,11 +415,17 @@ TEST_F(HwSflowMirrorTest, VerifySampledPacketWithTruncateV4) {
     bringDownPorts(std::vector<PortID>(ports.begin() + 2, ports.end()));
     auto pkt = genPacket(1, 8000);
     HwTestPacketSnooper snooper(getHwSwitchEnsemble());
-    sendPkt(getPortsForSampling()[1], pkt.getTxPacket(getHwSwitch()));
+    sendPkt(
+        getPortsForSampling()[1],
+        pkt.getTxPacket([hw = getHwSwitch()](uint32_t size) {
+          return hw->allocatePacket(size);
+        }));
     auto capturedPkt = snooper.waitForPacket(10);
     ASSERT_TRUE(capturedPkt.has_value());
 
-    auto _ = capturedPkt->getTxPacket(getHwSwitch());
+    auto _ = capturedPkt->getTxPacket([hw = getHwSwitch()](uint32_t size) {
+      return hw->allocatePacket(size);
+    });
     auto __ = folly::io::Cursor(_->buf());
     XLOG(DBG2) << PktUtil::hexDump(__);
 
@@ -453,11 +465,17 @@ TEST_F(HwSflowMirrorTest, VerifySampledPacketWithTruncateV6) {
     bringDownPorts(std::vector<PortID>(ports.begin() + 2, ports.end()));
     auto pkt = genPacket(1, 8000);
     HwTestPacketSnooper snooper(getHwSwitchEnsemble());
-    sendPkt(getPortsForSampling()[1], pkt.getTxPacket(getHwSwitch()));
+    sendPkt(
+        getPortsForSampling()[1],
+        pkt.getTxPacket([hw = getHwSwitch()](uint32_t size) {
+          return hw->allocatePacket(size);
+        }));
     auto capturedPkt = snooper.waitForPacket(10);
     ASSERT_TRUE(capturedPkt.has_value());
 
-    auto _ = capturedPkt->getTxPacket(getHwSwitch());
+    auto _ = capturedPkt->getTxPacket([hw = getHwSwitch()](uint32_t size) {
+      return hw->allocatePacket(size);
+    });
     auto __ = folly::io::Cursor(_->buf());
     XLOG(DBG2) << PktUtil::hexDump(__);
 
@@ -513,11 +531,17 @@ TEST_F(HwSflowMirrorTest, VerifySampledPacketWithLagMemberAsEgressPort) {
     bringDownPorts(std::vector<PortID>(ports.begin() + 2, ports.end()));
     auto pkt = genPacket(1, 8000);
     HwTestPacketSnooper snooper(getHwSwitchEnsemble());
-    sendPkt(getPortsForSampling()[1], pkt.getTxPacket(getHwSwitch()));
+    sendPkt(
+        getPortsForSampling()[1],
+        pkt.getTxPacket([hw = getHwSwitch()](uint32_t size) {
+          return hw->allocatePacket(size);
+        }));
     auto capturedPkt = snooper.waitForPacket(10);
     ASSERT_TRUE(capturedPkt.has_value());
 
-    auto _ = capturedPkt->getTxPacket(getHwSwitch());
+    auto _ = capturedPkt->getTxPacket([hw = getHwSwitch()](uint32_t size) {
+      return hw->allocatePacket(size);
+    });
     auto __ = folly::io::Cursor(_->buf());
     XLOG(DBG2) << PktUtil::hexDump(__);
 

@@ -60,17 +60,18 @@ void IPPacket<AddrT>::setUDPCheckSum(folly::IOBuf* buffer) const {
 
 template <typename AddrT>
 std::unique_ptr<facebook::fboss::TxPacket> IPPacket<AddrT>::getTxPacket(
-    const HwSwitch* hw) const {
-  auto txPacket = hw->allocatePacket(length());
+    std::function<std::unique_ptr<facebook::fboss::TxPacket>(uint32_t)>
+        allocatePacket) const {
+  auto txPacket = allocatePacket(length());
   folly::io::RWPrivateCursor rwCursor(txPacket->buf());
   hdr_.serialize(&rwCursor);
   if (udpPayLoad_) {
-    auto udpPkt = udpPayLoad_->getTxPacket(hw);
+    auto udpPkt = udpPayLoad_->getTxPacket(allocatePacket);
     folly::io::Cursor cursor(udpPkt->buf());
     rwCursor.push(cursor, udpPayLoad_->length());
     setUDPCheckSum(txPacket->buf());
   } else if (tcpPayLoad_) {
-    auto tcpPkt = tcpPayLoad_->getTxPacket(hw);
+    auto tcpPkt = tcpPayLoad_->getTxPacket(allocatePacket);
     folly::io::Cursor cursor(tcpPkt->buf());
     rwCursor.push(cursor, tcpPayLoad_->length());
   } else if (ipPayload_) {

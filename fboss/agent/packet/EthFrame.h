@@ -14,7 +14,6 @@
 
 namespace facebook::fboss {
 
-class HwSwitch;
 class TxPacket;
 
 namespace utility {
@@ -63,7 +62,8 @@ class EthFrame {
   }
   // construct TxPacket by encapsulating payload
   std::unique_ptr<facebook::fboss::TxPacket> getTxPacket(
-      const HwSwitch* hw) const;
+      std::function<std::unique_ptr<facebook::fboss::TxPacket>(uint32_t)>
+          allocatePacket) const;
 
   std::optional<IPPacket<folly::IPAddressV4>> v4PayLoad() const {
     return v4PayLoad_;

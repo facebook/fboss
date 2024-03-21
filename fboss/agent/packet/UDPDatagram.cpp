@@ -17,8 +17,9 @@ UDPDatagram::UDPDatagram(folly::io::Cursor& cursor) {
 UDPDatagram::~UDPDatagram() = default;
 
 std::unique_ptr<facebook::fboss::TxPacket> UDPDatagram::getTxPacket(
-    const HwSwitch* hw) const {
-  auto txPacket = hw->allocatePacket(length());
+    std::function<std::unique_ptr<facebook::fboss::TxPacket>(uint32_t)>
+        allocatePacket) const {
+  auto txPacket = allocatePacket(length());
   folly::io::RWPrivateCursor rwCursor(txPacket->buf());
   udpHdr_.write(&rwCursor);
   for (auto byte : payload_) {

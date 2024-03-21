@@ -391,9 +391,11 @@ void pumpMplsTraffic(
                               vlanId);
 
       if (isV6) {
-        pkt = frame.getTxPacket(hw);
+        pkt = frame.getTxPacket(
+            [hw](uint32_t size) { return hw->allocatePacket(size); });
       } else {
-        pkt = frame.getTxPacket(hw);
+        pkt = frame.getTxPacket(
+            [hw](uint32_t size) { return hw->allocatePacket(size); });
       }
 
       if (frontPanelPortToLoopTraffic) {

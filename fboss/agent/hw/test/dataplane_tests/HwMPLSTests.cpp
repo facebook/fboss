@@ -241,7 +241,9 @@ class HwMPLSTest : public HwLinkStateDependentTest {
     utility::UDPDatagram datagram(udp, {0xff});
     auto pkt = utility::EthFrame(
                    eth, utility::IPPacket<folly::IPAddressV6>(ip6, datagram))
-                   .getTxPacket(getHwSwitch());
+                   .getTxPacket([hw = getHwSwitch()](uint32_t size) {
+                     return hw->allocatePacket(size);
+                   });
     XLOG(DBG2) << "sending packet: ";
     XLOG(DBG2) << PktUtil::hexDump(pkt->buf());
     // send pkt on src port, let it loop back in switch and be l3 switched
@@ -282,7 +284,9 @@ class HwMPLSTest : public HwLinkStateDependentTest {
         20000,
         VlanID(vlanId));
 
-    auto pkt = frame.getTxPacket(getHwSwitch());
+    auto pkt = frame.getTxPacket([hw = getHwSwitch()](uint32_t size) {
+      return hw->allocatePacket(size);
+    });
     XLOG(DBG2) << "sending packet: ";
     XLOG(DBG2) << PktUtil::hexDump(pkt->buf());
     // send pkt on src port, let it loop back in switch and be l3 switched

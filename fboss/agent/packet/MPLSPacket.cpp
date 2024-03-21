@@ -24,17 +24,18 @@ MPLSPacket::MPLSPacket(folly::io::Cursor& cursor) {
 }
 
 std::unique_ptr<facebook::fboss::TxPacket> MPLSPacket::getTxPacket(
-    const HwSwitch* hw) const {
-  auto txPacket = hw->allocatePacket(length());
+    std::function<std::unique_ptr<facebook::fboss::TxPacket>(uint32_t)>
+        allocatePacket) const {
+  auto txPacket = allocatePacket(length());
   folly::io::RWPrivateCursor rwCursor(txPacket->buf());
 
   hdr_.serialize(&rwCursor);
   if (v4PayLoad_) {
-    auto v4Packet = v4PayLoad_->getTxPacket(hw);
+    auto v4Packet = v4PayLoad_->getTxPacket(allocatePacket);
     folly::io::Cursor cursor(v4Packet->buf());
     rwCursor.push(cursor, v4PayLoad_->length());
   } else if (v6PayLoad_) {
-    auto v6Packet = v6PayLoad_->getTxPacket(hw);
+    auto v6Packet = v6PayLoad_->getTxPacket(allocatePacket);
     folly::io::Cursor cursor(v6Packet->buf());
     rwCursor.push(cursor, v6PayLoad_->length());
   }

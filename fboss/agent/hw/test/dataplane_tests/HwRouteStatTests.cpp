@@ -128,7 +128,9 @@ class HwRouteStatTest : public HwLinkStateDependentTest {
     // get tx packet
     auto ethFrame = utility::EthFrame(
         eth, utility::IPPacket<folly::IPAddressV6>(ip6, datagram));
-    auto pkt = ethFrame.getTxPacket(getHwSwitch());
+    auto pkt = ethFrame.getTxPacket([hw = getHwSwitch()](uint32_t size) {
+      return hw->allocatePacket(size);
+    });
     // send pkt on src port, let it loop back in switch and be l3 switched
     getHwSwitchEnsemble()->ensureSendPacketOutOfPort(std::move(pkt), from);
     return ethFrame.length();

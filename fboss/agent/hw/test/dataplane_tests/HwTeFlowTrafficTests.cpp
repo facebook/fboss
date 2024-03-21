@@ -100,7 +100,9 @@ class HwTeFlowTrafficTest : public HwLinkStateDependentTest {
     utility::UDPDatagram datagram(udp, {0xff});
     auto ethFrame = utility::EthFrame(
         eth, utility::IPPacket<folly::IPAddressV6>(ip6, datagram));
-    auto pkt = ethFrame.getTxPacket(getHwSwitch());
+    auto pkt = ethFrame.getTxPacket([hw = getHwSwitch()](uint32_t size) {
+      return hw->allocatePacket(size);
+    });
     XLOG(DBG5) << "sending packet: ";
     XLOG(DBG5) << PktUtil::hexDump(pkt->buf());
     // send pkt on src port, let it loop back in switch and be l3 switched
