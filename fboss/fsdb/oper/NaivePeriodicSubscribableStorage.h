@@ -86,7 +86,8 @@ class NaivePeriodicSubscribableStorage
           std::chrono::seconds(5),
       bool trackMetadata = false,
       const std::string& metricPrefix = "fsdb",
-      bool convertToIDPaths = false)
+      bool convertToIDPaths = false,
+      bool requireResponseOnInitialSync = false)
       : currentState_(std::in_place_t{}, initialState),
         lastPublishedState_(*currentState_.rlock()),
         subscriptionServeInterval_(subscriptionServeInterval),
@@ -96,6 +97,8 @@ class NaivePeriodicSubscribableStorage
         serveSubMs_(fmt::format("{}.{}", metricPrefix, kServeSubMs)),
         serveSubNum_(fmt::format("{}.{}", metricPrefix, kServeSubNum)),
         convertSubsToIDPaths_(convertToIDPaths) {
+    subscriptions_.wlock()->setRequireResponseOnInitialSync(
+        requireResponseOnInitialSync);
 #ifdef ENABLE_PATCH_APIS
     subscriptions_.wlock()->useIdPaths(convertToIDPaths);
 #endif

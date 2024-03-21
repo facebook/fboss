@@ -192,7 +192,8 @@ ServiceHandler::ServiceHandler(
           std::chrono::seconds(FLAGS_stateSubscriptionHeartbeat_s),
           FLAGS_trackMetadata,
           "fsdb",
-          options.serveIdPathSubs),
+          options.serveIdPathSubs,
+          true),
 #ifndef IS_OSS
       operDbWriter_(operStorage_),
 #endif

@@ -193,6 +193,12 @@ class SubscriptionManager {
     useIdPaths_ = idPaths;
   }
 
+  // Serve response (even if empty) on initial sync, even when
+  // no data is published for subscribed path
+  void setRequireResponseOnInitialSync(bool requireResponse) {
+    requireResponseOnInitialSync_ = requireResponse;
+  }
+
  private:
   void registerSubscription(
       std::string name,
@@ -239,6 +245,8 @@ class SubscriptionManager {
   SubscriptionPathStore lookup_;
 
   bool useIdPaths_{false};
+
+  bool requireResponseOnInitialSync_{false};
 };
 
 } // namespace facebook::fboss::fsdb
