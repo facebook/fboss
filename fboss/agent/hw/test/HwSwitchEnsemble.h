@@ -304,6 +304,8 @@ class HwSwitchEnsemble : public TestEnsembleIf {
     return getHwSwitch()->getPlatform()->getLocalMac();
   }
 
+  std::unique_ptr<TxPacket> allocatePacket(uint32_t size) override;
+
  protected:
   /*
    * Setup ensemble

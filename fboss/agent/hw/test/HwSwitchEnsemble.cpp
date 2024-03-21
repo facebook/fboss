@@ -1004,4 +1004,7 @@ void HwSwitchEnsemble::sendPacketAsync(
       std::move(pkt), portDescriptor->phyPortID(), queueId);
 }
 
+std::unique_ptr<TxPacket> HwSwitchEnsemble::allocatePacket(uint32_t size) {
+  return getHwSwitch()->allocatePacket(size);
+}
 } // namespace facebook::fboss

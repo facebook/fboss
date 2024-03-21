@@ -407,4 +407,8 @@ void AgentEnsemble::sendPacketAsync(
   getSw()->sendPacketOutOfPortAsync(
       std::move(pkt), portDescriptor->phyPortID(), queueId);
 }
+
+std::unique_ptr<TxPacket> AgentEnsemble::allocatePacket(uint32_t size) {
+  return getSw()->allocatePacket(size);
+}
 } // namespace facebook::fboss

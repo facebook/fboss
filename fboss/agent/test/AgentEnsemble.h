@@ -218,6 +218,8 @@ class AgentEnsemble : public TestEnsembleIf {
       std::optional<PortDescriptor> portDescriptor,
       std::optional<uint8_t> queueId) override;
 
+  std::unique_ptr<TxPacket> allocatePacket(uint32_t size) override;
+
  protected:
   void joinAsyncInitThread() {
     if (asyncInitThread_) {
