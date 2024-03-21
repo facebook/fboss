@@ -59,15 +59,4 @@ std::unique_ptr<facebook::fboss::TxPacket> makeLLDPPacket(
 bool isPtpEventPacket(folly::io::Cursor& cursor);
 uint8_t getIpHopLimit(folly::io::Cursor& cursor);
 
-struct RandomNumberGenerator {
-  RandomNumberGenerator(int seed, uint64_t begin, uint64_t end)
-      : generator(seed), distibution(begin, end) {}
-  auto operator()() {
-    return distibution(generator);
-  }
-
-  std::mt19937_64 generator;
-  std::uniform_int_distribution<> distibution;
-};
-
 } // namespace facebook::fboss::utility

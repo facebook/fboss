@@ -6,6 +6,7 @@
 #include <folly/IPAddressV6.h>
 #include <folly/MacAddress.h>
 #include <cstdint>
+#include <random>
 #include <type_traits>
 
 #include "fboss/agent/state/Route.h"
@@ -237,6 +238,17 @@ class SakKeyIdHexGenerator : public ResourceGenerator<std::string, uint64_t> {
   using ResourceT = std::string;
   using IdT = uint64_t;
   ResourceT get(IdT id) const override;
+};
+
+struct RandomNumberGenerator {
+  RandomNumberGenerator(int seed, uint64_t begin, uint64_t end)
+      : generator(seed), distibution(begin, end) {}
+  auto operator()() {
+    return distibution(generator);
+  }
+
+  std::mt19937_64 generator;
+  std::uniform_int_distribution<> distibution;
 };
 
 } // namespace facebook::fboss::utility

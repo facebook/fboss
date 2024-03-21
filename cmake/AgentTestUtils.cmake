@@ -154,6 +154,9 @@ target_link_libraries(load_balancer_test_utils
   loadbalancer_utils
   acl_test_utils
   config_utils
+  packet
+  packet_factory
+  resourcelibutil
 )
 
 add_library(dscp_marking_utils
