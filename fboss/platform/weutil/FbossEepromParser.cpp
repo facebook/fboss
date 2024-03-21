@@ -12,6 +12,8 @@
 #include <utility>
 #include <vector>
 
+#include "fboss/platform/weutil/Crc16CcittAug.h"
+
 namespace {
 
 auto constexpr kMaxEepromSize = 2048;
@@ -155,6 +157,8 @@ std::string parseMacHelper(int len, unsigned char* ptr, bool useBigEndian) {
 constexpr int kHeaderSize = 4;
 // Field Type and Length are 1 byte each.
 constexpr int kEepromTypeLengthSize = 2;
+// CRC size (16 bits)
+constexpr int kCrcSize = 2;
 
 } // namespace
 
@@ -184,6 +188,17 @@ FbossEepromParser::getContents() {
   }
 
   return prepareEepromFieldMap(parsedValue, eepromVer);
+}
+
+// Calculate the CRC16 of the EEPROM. The last 4 bytes of EEPROM
+// contents are the TLV (Type, Length, Value) of CRC, and should not
+// be included in the CRC calculation.
+uint16_t FbossEepromParser::calculateCrc16(const uint8_t* buffer, size_t len) {
+  if (len <= (kEepromTypeLengthSize + kCrcSize)) {
+    throw std::runtime_error("EEPROM blob size is too small.");
+  }
+  const size_t eepromSizeWithoutCrc = len - kEepromTypeLengthSize - kCrcSize;
+  return helpers::crc_ccitt_aug(buffer, eepromSizeWithoutCrc);
 }
 
 /*
@@ -365,6 +380,16 @@ std::unordered_map<int, std::string> FbossEepromParser::parseEepromBlobTLV(
     cursor += itemLength + kEepromTypeLengthSize;
     // the CRC16 is the last content, parsing must stop.
     if (key == "CRC16") {
+      uint16_t crcProgrammed = std::stoi(value, nullptr, 16);
+      uint16_t crcCalculated = calculateCrc16(buffer, cursor);
+      if (crcProgrammed == crcCalculated) {
+        parsedValue[itemCode] = value + " (CRC Matched)";
+      } else {
+        std::stringstream ss;
+        ss << std::hex << crcCalculated;
+        parsedValue[itemCode] =
+            value + " (CRC Mismatch. Expected 0x" + ss.str() + ")";
+      }
       break;
     }
   }

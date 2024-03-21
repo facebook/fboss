@@ -46,6 +46,7 @@ class FbossEepromParser {
   std::string parseV5Mac(int len, unsigned char* ptr);
   std::string parseLegacyMac(int len, unsigned char* ptr);
   std::string parseDate(int len, unsigned char* ptr);
+  uint16_t calculateCrc16(const uint8_t* buffer, size_t len);
 
   std::string eepromPath_;
   uint16_t offset_;

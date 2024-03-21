@@ -13,6 +13,7 @@ add_fbthrift_cpp_library(
 
 add_library(weutil_fboss_eeprom_parser
   fboss/platform/weutil/FbossEepromParser.cpp
+  fboss/platform/weutil/Crc16CcittAug.cpp
 )
 
 add_library(weutil_lib
