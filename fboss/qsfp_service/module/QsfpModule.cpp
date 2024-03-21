@@ -424,19 +424,29 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
       latchAndReadVdmDataLocked();
     }
 
-    if (auto vdmStats = getVdmDiagsStatsInfo()) {
+    auto vdmStats = getVdmDiagsStatsInfo();
+    auto vdmPerfMonStats = getVdmPerfMonitorStats();
+
+    if (vdmStats.has_value() && vdmPerfMonStats.has_value()) {
       tcvrStats.vdmDiagsStats() = *vdmStats;
+      tcvrStats.vdmPerfMonitorStats() = *vdmPerfMonStats;
 
       // If the StatsPublisher thread has triggered the VDM data capture then
       // capure this data into transceiverInfo cache
       if (captureVdmStats_) {
         tcvrStats.vdmDiagsStatsForOds() = *vdmStats;
+        tcvrStats.vdmPerfMonitorStatsForOds() =
+            getVdmPerfMonitorStatsForOds(*vdmPerfMonStats);
       } else {
         // If the VDM is not updated in this cycle then retain older values
         auto cachedTcvrInfo = getTransceiverInfo();
         if (cachedTcvrInfo.tcvrStats()->vdmDiagsStatsForOds()) {
           tcvrStats.vdmDiagsStatsForOds() =
               cachedTcvrInfo.tcvrStats()->vdmDiagsStatsForOds().value();
+        }
+        if (cachedTcvrInfo.tcvrStats()->vdmPerfMonitorStatsForOds()) {
+          tcvrStats.vdmPerfMonitorStatsForOds() =
+              cachedTcvrInfo.tcvrStats()->vdmPerfMonitorStatsForOds().value();
         }
       }
       captureVdmStats_ = false;
