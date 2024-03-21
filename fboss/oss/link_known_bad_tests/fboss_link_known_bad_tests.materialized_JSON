@@ -3479,6 +3479,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -3533,6 +3536,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -3591,6 +3597,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -3645,6 +3654,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -3703,6 +3715,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -3757,6 +3772,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -3815,6 +3833,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -3871,6 +3892,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -3925,6 +3949,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -3986,6 +4013,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -4043,6 +4073,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -4104,6 +4137,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -4161,6 +4197,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -4222,6 +4261,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -4279,6 +4321,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -4340,6 +4385,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -4397,6 +4445,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -4458,6 +4509,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -4517,6 +4571,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -4571,6 +4628,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -4629,6 +4689,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -4683,6 +4746,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -4741,6 +4807,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -4795,6 +4864,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -4853,6 +4925,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -4909,6 +4984,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -4963,6 +5041,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -5024,6 +5105,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -5081,6 +5165,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -5142,6 +5229,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -5199,6 +5289,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -5260,6 +5353,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -5317,6 +5413,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -5378,6 +5477,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -5437,6 +5539,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -5494,6 +5599,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -5567,6 +5675,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -5633,6 +5744,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -5703,6 +5817,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -5769,6 +5886,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -5839,6 +5959,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -5905,6 +6028,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -5975,6 +6101,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -6041,6 +6170,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -6111,6 +6243,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -6177,6 +6312,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -6247,6 +6385,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -6313,6 +6454,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -6383,6 +6527,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -6449,6 +6596,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -6519,6 +6669,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -6585,6 +6738,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -6655,6 +6811,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -6723,6 +6882,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -6774,6 +6936,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -6829,6 +6994,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -6880,6 +7048,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -6935,6 +7106,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -6986,6 +7160,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -7041,6 +7218,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -7092,6 +7272,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -7147,6 +7330,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -7198,6 +7384,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -7256,6 +7445,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -7310,6 +7502,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -7368,6 +7563,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -7422,6 +7620,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -7480,6 +7681,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -7534,6 +7738,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -7592,6 +7799,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -7646,6 +7856,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -7704,6 +7917,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -7760,6 +7976,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -7811,6 +8030,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -7866,6 +8088,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -7917,6 +8142,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -7972,6 +8200,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -8023,6 +8254,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -8078,6 +8312,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -8131,6 +8368,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -8182,6 +8422,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -8240,6 +8483,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -8294,6 +8540,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -8352,6 +8601,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -8406,6 +8658,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -8464,6 +8719,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -8518,6 +8776,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -8576,6 +8837,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -8632,6 +8896,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -8686,6 +8953,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -9079,6 +9349,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -9156,6 +9429,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -9230,6 +9506,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -9302,6 +9581,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -10350,6 +10632,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -10407,6 +10692,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -10468,6 +10756,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -10525,6 +10816,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -10586,6 +10880,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -10643,6 +10940,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -10704,6 +11004,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -10763,6 +11066,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -10820,6 +11126,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -10884,6 +11193,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -10944,6 +11256,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -11008,6 +11323,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -11068,6 +11386,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -11132,6 +11453,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -11192,6 +11516,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -11256,6 +11583,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -11318,6 +11648,9 @@
           "test_name_regex": "LinkTest.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -11378,6 +11711,9 @@
         },
         {
           "test_name_regex": "LinkTest.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -11443,6 +11779,9 @@
         },
         {
           "test_name_regex": "warm_boot.PtpTests.verifyPtpTcDelayRequest$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -11513,6 +11852,9 @@
           "test_name_regex": "warm_boot.PtpTests.verifyPtpTcDelayRequest$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -11579,6 +11921,9 @@
         },
         {
           "test_name_regex": "warm_boot.PtpTests.verifyPtpTcDelayRequest$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -11649,6 +11994,9 @@
           "test_name_regex": "warm_boot.PtpTests.verifyPtpTcDelayRequest$"
         },
         {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
+        },
+        {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
         },
         {
@@ -11715,6 +12063,9 @@
         },
         {
           "test_name_regex": "warm_boot.PtpTests.verifyPtpTcDelayRequest$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
@@ -11786,6 +12137,9 @@
         },
         {
           "test_name_regex": "warm_boot.PtpTests.verifyPtpTcDelayRequest$"
+        },
+        {
+          "test_name_regex": "LinkTest.opticsVdmPerformanceMonitoring$"
         },
         {
           "test_name_regex": "LinkTest.verifyIphyFecBerCounters$"
