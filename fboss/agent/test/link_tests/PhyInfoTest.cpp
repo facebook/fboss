@@ -21,6 +21,8 @@ using namespace ::testing;
 using namespace facebook::fboss;
 
 static constexpr int kSecondsBetweenSnapshots = 20;
+static constexpr int kRsFec528CodewordBins = 8;
+static constexpr int kRsFec544CodewordBins = 15;
 
 namespace {
 
@@ -453,4 +455,136 @@ TEST_F(LinkTest, verifyIphyFecCounters) {
               fecStatsBefore.get_uncorrectedCodewords());
         }
       });
+}
+
+TEST_F(LinkTest, verifyIphyFecBerCounters) {
+  /*
+   * Collects 5 phyInfos and verifies
+   * 1. No uncorrected codewords
+   * 2. If there are corrected codewords, expect pre-FEC BER to be non-zero
+   * 3. Pre-FEC BER should always be >= e-5 (e-4 is the FEC correction limit)
+   * 4. If the hardware supports FEC histogram, we should always have something
+   * populated in bin 0. Bin 0 indicates the number of codewords that didn't
+   * require correction
+   * 5. If the hardware supports FEC histogram and there are some corrected
+   * codewords, we should expect to see some non-zero values in bins >= 1.
+   */
+  auto verify = [this]() {
+    auto cabledPorts = getCabledPorts();
+    auto previousPhyInfoTime = std::chrono::duration_cast<std::chrono::seconds>(
+        std::chrono::system_clock::now().time_since_epoch());
+
+    // Collect 5 PhyInfo updates and ensure that the counters are within the
+    // thresholds
+    std::vector<std::map<PortID, const phy::PhyInfo>> phyInfos;
+    WITH_RETRIES_N_TIMED(
+        120 /* retries */,
+        std::chrono::milliseconds(1000) /* msBetweenRetry */,
+        {
+          auto newPhyInfo = sw()->getIPhyInfo(cabledPorts);
+          for (const auto& port : cabledPorts) {
+            auto phyIt = newPhyInfo.find(port);
+            ASSERT_EVENTUALLY_NE(phyIt, newPhyInfo.end());
+            // If the time stamp hasn't advanced, no need to check the counters.
+            // Thus this is an ASSERT_EVENTUALLY_GT and not EXPECT_EVENTUALLY_GT
+            ASSERT_EVENTUALLY_GT(
+                *(newPhyInfo[port].stats()->timeCollected()),
+                previousPhyInfoTime.count());
+          }
+          phyInfos.push_back(newPhyInfo);
+          ASSERT_EVENTUALLY_EQ(phyInfos.size(), 5);
+        });
+
+    ASSERT_EQ(phyInfos.size(), 5);
+
+    for (int idx = 1; idx < phyInfos.size(); idx++) {
+      auto phyInfoNow = phyInfos[idx];
+      auto phyInfoBefore = phyInfos.at(idx - 1);
+      for (const auto& port : cabledPorts) {
+        auto phyIt = phyInfoNow.find(port);
+        // We always expect the port to be present in the map. So this is a
+        // hard assert
+        ASSERT_NE(phyIt, phyInfoNow.end());
+        auto pcsStatsBefore = phyInfoBefore[port].stats()->line()->pcs();
+        auto pcsStatsNow = phyInfoNow[port].stats()->line()->pcs();
+        if (pcsStatsBefore.has_value() || pcsStatsNow.has_value()) {
+          // We always expect pcsStats to be present in both the phyInfos
+          // or in none
+          ASSERT_TRUE(pcsStatsBefore.has_value());
+          ASSERT_TRUE(pcsStatsNow.has_value());
+        } else {
+          // Port doesn't support PCS stats so no checks required
+          continue;
+        }
+        auto rsFecBefore = pcsStatsBefore->rsFec();
+        auto rsFecNow = pcsStatsNow->rsFec();
+        if (rsFecBefore.has_value() || rsFecNow.has_value()) {
+          // We always expect rsFec to be present in both the phyInfos
+          // or in none
+          ASSERT_TRUE(rsFecBefore.has_value());
+          ASSERT_TRUE(rsFecNow.has_value());
+        } else {
+          // Port doesn't support FEC stats so no checks required
+          continue;
+        }
+
+        XLOG(INFO)
+            << "Before: RS FEC stats for port " << port
+            << apache::thrift::SimpleJSONSerializer::serialize<std::string>(
+                   rsFecBefore.value());
+        XLOG(INFO)
+            << "Now: RS FEC stats for port " << port
+            << apache::thrift::SimpleJSONSerializer::serialize<std::string>(
+                   rsFecNow.value());
+
+        // Expect no uncorrected codewords
+        EXPECT_EQ(
+            rsFecNow->get_uncorrectedCodewords(),
+            rsFecBefore->get_uncorrectedCodewords());
+        // Expect pre-FEC BER to be lower than e-5
+        // TODO: Make the threshold stricter once
+        // 1) we start using a SAI version that supports FEC corrected bits.
+        // Before 10.2 SAI, ASIC doesn't support FEC corrected bits and we
+        // approximate pre-FEC BER using FEC corrected codewords.
+        // 2) we cleanup existing bad links in the lab
+        auto preFecBerThreshold = 1e-5;
+        EXPECT_LT(rsFecNow->get_preFECBer(), preFecBerThreshold);
+        // If there were corrected codewords in the interval, expect pre-FEC
+        // BER non-zero
+        bool hasCorrectedCodewords = rsFecNow->get_correctedCodewords() !=
+            rsFecBefore->get_correctedCodewords();
+        if (hasCorrectedCodewords) {
+          EXPECT_NE(rsFecNow->get_preFECBer(), 0);
+        }
+        // If the codewordStats is supported, it should either have 9 keys or
+        // 16. For Rs528, there are 8 codeword bins. For Rs544, there are 15.
+        // We need to add 1 to the expected codewordStats keys since the first
+        // key will be for codewords with 0 corrections
+        if (!rsFecNow->get_codewordStats().empty()) {
+          EXPECT_TRUE(
+              rsFecNow->codewordStats()->size() ==
+                  (kRsFec528CodewordBins + 1) ||
+              rsFecNow->codewordStats()->size() == (kRsFec544CodewordBins + 1));
+          // Expect bin 0 to be always non-zero since there are always bits
+          // that didn't need correction.
+          EXPECT_TRUE(
+              rsFecNow->codewordStats()->find(0) !=
+              rsFecNow->codewordStats()->end());
+
+          // If there were corrected codewords in the interval, then expect
+          // one of the other bins to be non-zero
+          int countNonZeroBins = 0;
+          for (auto it : *rsFecNow->codewordStats()) {
+            if (it.first != 0 && it.second) {
+              countNonZeroBins++;
+            }
+          }
+          if (hasCorrectedCodewords) {
+            EXPECT_GT(countNonZeroBins, 0);
+          }
+        }
+      }
+    }
+  };
+  verifyAcrossWarmBoots([]() {}, verify);
 }
