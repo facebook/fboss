@@ -106,15 +106,6 @@ TEST_F(SensorServiceHwTest, GetSomeSensors) {
   EXPECT_GT((float)valid / total, 0.9);
 }
 
-TEST_F(SensorServiceHwTest, GetSensorsByFruTypes) {
-  std::vector<FruType> fruTypes{FruType::ALL};
-  SensorReadResponse response;
-  sensorServiceHandler_->getSensorValuesByFruTypes(
-      response, std::make_unique<std::vector<FruType>>(fruTypes));
-  // TODO assert for non empty response once this thrift API is implemented
-  EXPECT_EQ(response.sensorData()->size(), 0);
-}
-
 TEST_F(SensorServiceHwTest, GetSomeSensorsViaThrift) {
   apache::thrift::ScopedServerInterfaceThread server(sensorServiceHandler_);
   auto client = server.newClient<apache::thrift::Client<SensorServiceThrift>>();

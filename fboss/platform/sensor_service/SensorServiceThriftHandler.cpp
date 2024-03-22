@@ -34,10 +34,4 @@ void SensorServiceThriftHandler::getSensorValuesByNames(
   }
 }
 
-void SensorServiceThriftHandler::getSensorValuesByFruTypes(
-    SensorReadResponse& /*response*/,
-    std::unique_ptr<std::vector<FruType>> /*request*/) {
-  auto log = LOG_THRIFT_CALL(DBG1);
-  // ToDo: implement here
-}
 } // namespace facebook::fboss::platform::sensor_service

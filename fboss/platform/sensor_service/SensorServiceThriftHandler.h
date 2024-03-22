@@ -25,30 +25,9 @@ class SensorServiceThriftHandler : public SensorServiceThriftSvIf {
       std::shared_ptr<SensorServiceImpl> sensorServiceImpl)
       : sensorServiceImpl_(std::move(sensorServiceImpl)) {}
 
-#if FOLLY_HAS_COROUTINES
-  folly::coro::Task<std::unique_ptr<SensorReadResponse>>
-  co_getSensorValuesByNames(
-      std::unique_ptr<std::vector<std::string>> request) override {
-    auto response = std::make_unique<SensorReadResponse>();
-    getSensorValuesByNames(*response, std::move(request));
-    co_return response;
-  }
-
-  folly::coro::Task<std::unique_ptr<SensorReadResponse>>
-  co_getSensorValuesByFruTypes(
-      std::unique_ptr<std::vector<FruType>> request) override {
-    auto response = std::make_unique<SensorReadResponse>();
-    getSensorValuesByFruTypes(*response, std::move(request));
-    co_return response;
-  }
-#endif
   void getSensorValuesByNames(
       SensorReadResponse& response,
       std::unique_ptr<std::vector<std::string>> request) override;
-
-  void getSensorValuesByFruTypes(
-      SensorReadResponse& response,
-      std::unique_ptr<std::vector<FruType>> request) override;
 
   SensorServiceImpl* getServiceImpl() {
     return sensorServiceImpl_.get();

@@ -38,7 +38,4 @@ service SensorServiceThrift {
   SensorReadResponse getSensorValuesByNames(
     1: list<string> sensorNames,
   ) throws (1: fboss.FbossBaseError error);
-  SensorReadResponse getSensorValuesByFruTypes(
-    1: list<FruType> fruTypes,
-  ) throws (1: fboss.FbossBaseError error);
 }
