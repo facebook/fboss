@@ -23,6 +23,7 @@
 #include "fboss/agent/hw/sai/switch/SaiSystemPortManager.h"
 
 namespace facebook::fboss {
+
 void SaiSwitch::updateStatsImpl() {
   auto now =
       std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
@@ -107,5 +108,7 @@ void SaiSwitch::updateStatsImpl() {
     std::lock_guard<std::mutex> locked(saiSwitchMutex_);
     managerTable_->switchManager().updateStats(updateWatermarks);
   }
+  reportAsymmetricTopology();
 }
+
 } // namespace facebook::fboss

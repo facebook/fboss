@@ -249,6 +249,7 @@ class SaiSwitch : public HwSwitch {
   std::vector<EcmpDetails> getAllEcmpDetails() const override;
 
   void updateStatsImpl() override;
+  void reportAsymmetricTopology() const;
   template <typename LockPolicyT>
   void updateResourceUsage(const LockPolicyT& lockPolicy);
   /*
