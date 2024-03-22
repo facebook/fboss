@@ -25,6 +25,11 @@
 namespace facebook::fboss {
 
 void SaiSwitch::updateStatsImpl() {
+  if (FLAGS_skip_stats_update_for_debug) {
+    // Skip collecting any ASIC stats while debugs are in progress
+    return;
+  }
+
   auto now =
       std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
   bool updateWatermarks = now - watermarkStatsUpdateTime_ >=

@@ -52,6 +52,11 @@ DEFINE_bool(
     false,
     "Flag to turn on flowlet stats collection for DLB");
 
+DEFINE_bool(
+    skip_stats_update_for_debug,
+    false,
+    "Skip reading stats from ASIC to allow diag shell debugging!");
+
 namespace {
 constexpr auto kBuildSdkVersion = "SDK Version";
 
