@@ -280,7 +280,6 @@ set(hw_switch_test_srcs
   fboss/agent/hw/test/dataplane_tests/HwMacLearningAndNeighborResolutionTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwMirroringTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwMmuTuningTests.cpp
-  fboss/agent/hw/test/dataplane_tests/HwOlympicQosTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwOlympicQosSchedulerTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwOverflowTest.cpp
   fboss/agent/hw/test/dataplane_tests/HwTeFlowTrafficTests.cpp
