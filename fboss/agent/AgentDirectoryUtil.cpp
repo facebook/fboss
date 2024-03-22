@@ -271,4 +271,8 @@ std::string AgentDirectoryUtil::getHwSwitchCanWarmBootFile(
   return folly::to<std::string>(
       getWarmBootDir(), "/can_warm_boot_", switchIndex);
 }
+
+std::string AgentDirectoryUtil::agentEnsembleConfigDir() const {
+  return folly::to<std::string>(getPersistentStateDir(), "/agent_ensemble/");
+}
 } // namespace facebook::fboss

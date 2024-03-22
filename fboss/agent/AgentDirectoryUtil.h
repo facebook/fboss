@@ -183,6 +183,8 @@ class AgentDirectoryUtil {
 
   std::string exitHwSwitchForColdBootFile(int switchIndex) const;
 
+  std::string agentEnsembleConfigDir() const;
+
  private:
   const std::string volatileStateDir_;
   const std::string persistentStateDir_;
