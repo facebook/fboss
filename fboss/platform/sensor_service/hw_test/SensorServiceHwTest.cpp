@@ -28,7 +28,6 @@ void SensorServiceHwTest::SetUp() {
   sensorServiceImpl_ = std::make_shared<SensorServiceImpl>();
   sensorServiceHandler_ =
       std::make_shared<SensorServiceThriftHandler>(sensorServiceImpl_);
-
   auto sensorServiceConfigJson = ConfigLib().getSensorServiceConfig();
   apache::thrift::SimpleJSONSerializer::deserialize<SensorConfig>(
       sensorServiceConfigJson, sensorConfig_);
@@ -37,7 +36,6 @@ void SensorServiceHwTest::SetUp() {
 SensorReadResponse SensorServiceHwTest::getSensors(
     const std::vector<std::string>& sensors) {
   sensorServiceImpl_->fetchSensorData();
-
   SensorReadResponse response;
   sensorServiceHandler_->getSensorValuesByNames(
       response, std::make_unique<std::vector<std::string>>(sensors));
@@ -67,7 +65,9 @@ TEST_F(SensorServiceHwTest, GetBogusSensor) {
 TEST_F(SensorServiceHwTest, GetSomeSensors) {
   std::vector<std::string> sensorNames;
   for (const auto& [fruName, sensorMap] : *sensorConfig_.sensorMapList()) {
-    sensorNames.push_back(sensorMap.begin()->first);
+    if (sensorMap.size() > 0) {
+      sensorNames.push_back(sensorMap.begin()->first);
+    }
   }
 
   auto response1 = getSensors(sensorNames);
