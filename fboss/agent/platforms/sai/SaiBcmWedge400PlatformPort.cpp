@@ -13,12 +13,20 @@
 namespace facebook::fboss {
 
 void SaiBcmWedge400PlatformPort::linkStatusChanged(bool up, bool adminUp) {
+  if (FLAGS_led_controlled_through_led_service) {
+    return;
+  }
   currentLedState_ = Wedge400LedUtils::getLedState(
       getHwPortLanes(getCurrentProfile()).size(), up, adminUp);
   setLedStatus(currentLedState_);
 }
 
 void SaiBcmWedge400PlatformPort::externalState(PortLedExternalState lfs) {
+  if (FLAGS_led_controlled_through_led_service) {
+    XLOG(ERR)
+        << "Set LED external state for port: " << getPortID()
+        << " is called, please use led_service to call this thrift function";
+  }
   currentLedState_ =
       (lfs == PortLedExternalState::NONE
            ? currentLedState_
