@@ -3786,9 +3786,6 @@
         },
         {
           "test_name_regex": "HwRouteTest/[01].UnresolvedAndResolvedNextHop"
-        },
-        {
-          "test_name_regex": "HwVoqSwitchTest.localSystemPortEcmp"
         }
     ],
     "brcm/7.2.0.0_odp/7.2.0.0_odp/tomahawk": [
