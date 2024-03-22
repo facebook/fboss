@@ -354,6 +354,7 @@ target_link_libraries(hw_switch_test
   core
   sflow_shim_utils
   hardware_stats_cpp2
+  queue_per_host_test_utils
   route_distribution_gen
   route_scale_gen
   trunk_utils
@@ -399,6 +400,7 @@ add_library(hw_queue_per_host_utils
 )
 
 target_link_libraries(hw_queue_per_host_utils
+  queue_per_host_test_utils
   traffic_policy_utils
   fboss_types
   hw_switch
