@@ -17,6 +17,8 @@ add_fbthrift_cpp_library(
   OPTIONS
     json
     reflection
+  DEPENDS
+    fsdb_oper_cpp2
 )
 
 add_fbthrift_cpp_library(
