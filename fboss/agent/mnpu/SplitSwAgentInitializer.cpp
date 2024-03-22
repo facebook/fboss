@@ -107,9 +107,9 @@ void SplitSwAgentInitializer::stopAgent(
 }
 
 void SplitSwAgentInitializer::exitForColdBoot() {
+  initializer_->stopFunctionScheduler();
   sw_->stop(false /* gracefulStop */, true /* revertToMinAlpmState */);
   sw_->getHwSwitchHandler()->stop();
-  initializer_->stopFunctionScheduler();
   stopServer();
   initializer_.reset();
 }
