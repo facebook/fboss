@@ -107,11 +107,22 @@ TEST_F(SensorServiceHwTest, GetSomeSensors) {
 }
 
 TEST_F(SensorServiceHwTest, GetSomeSensorsViaThrift) {
+  std::vector<std::string> sensorNames;
+  for (const auto& [fruName, sensorMap] : *sensorConfig_.sensorMapList()) {
+    if (sensorMap.size() > 0) {
+      sensorNames.push_back(sensorMap.begin()->first);
+    }
+  }
+  // Trigger a fetch before the thrift request hits the server.
+  sensorServiceImpl_->fetchSensorData();
   apache::thrift::ScopedServerInterfaceThread server(sensorServiceHandler_);
   auto client = server.newClient<apache::thrift::Client<SensorServiceThrift>>();
   SensorReadResponse response;
-  client->sync_getSensorValuesByNames(response, {"PCH_TEMP"});
-  EXPECT_EQ(response.sensorData()->size(), 1);
+  client->sync_getSensorValuesByNames(response, sensorNames);
+  EXPECT_EQ(response.sensorData()->size(), sensorNames.size());
+  for (const auto& sensorData : *response.sensorData()) {
+    EXPECT_TRUE(sensorData.value().has_value());
+  }
 }
 
 TEST_F(SensorServiceHwTest, SensorFetchODSCheck) {
@@ -122,10 +133,8 @@ TEST_F(SensorServiceHwTest, SensorFetchODSCheck) {
 
 TEST_F(SensorServiceHwTest, PublishStats) {
   sensorServiceImpl_->fetchSensorData();
-
   SensorStatsPub publisher(sensorServiceImpl_.get());
   publisher.publishStats();
-
   auto sensorMap = sensorServiceImpl_->getAllSensorData();
   for (const auto& [sensorName, sensorData] : sensorMap) {
     EXPECT_EQ(
@@ -135,10 +144,7 @@ TEST_F(SensorServiceHwTest, PublishStats) {
 } // namespace facebook::fboss::platform::sensor_service
 
 int main(int argc, char* argv[]) {
-  // Parse command line flags
   testing::InitGoogleTest(&argc, argv);
   facebook::fboss::platform::helpers::init(&argc, &argv);
-
-  // Run the tests
   return RUN_ALL_TESTS();
 }
