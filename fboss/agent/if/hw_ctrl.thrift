@@ -49,4 +49,8 @@ service FbossHwCtrl {
   list<ctrl.L2EntryThrift> getHwL2Table() throws (
     1: fboss.FbossBaseError error,
   );
+  map<
+    i64,
+    map<i64, list<RemoteEndpoint>>
+  > getVirtualDeviceToConnectionGroups() throws (1: fboss.FbossBaseError error);
 }
