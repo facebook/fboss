@@ -16602,6 +16602,9 @@
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
         },
         {
+          "test_name_regex": "roundtrip.*$"
+        },
+        {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
@@ -16668,6 +16671,9 @@
         },
         {
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "roundtrip.*$"
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
@@ -16738,6 +16744,9 @@
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
         },
         {
+          "test_name_regex": "roundtrip.*$"
+        },
+        {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
@@ -16806,6 +16815,9 @@
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
         },
         {
+          "test_name_regex": "roundtrip.*$"
+        },
+        {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
@@ -16872,6 +16884,9 @@
         },
         {
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "roundtrip.*$"
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
@@ -16943,6 +16958,9 @@
         },
         {
           "test_name_regex": "warm_boot.LacpTest.lacpFlap$"
+        },
+        {
+          "test_name_regex": "roundtrip.*$"
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
