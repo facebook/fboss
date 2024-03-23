@@ -3739,28 +3739,27 @@ HwSwitchWatermarkStats SaiSwitch::getSwitchWatermarkStats() const {
  * have only a single RemoteConnectionGroup.
  */
 void SaiSwitch::reportAsymmetricTopology() const {
+  std::lock_guard<std::mutex> locked(saiSwitchMutex_);
+  int64_t virtualDevicesWithAsymmetricConnectivity{0};
   // Virtual device Id ->  map<numConnections, list<RemoteEndpoint>>
-
   std::map<int64_t, FabricConnectivityManager::RemoteConnectionGroups>
       virtualDevice2RemoteConnectionGroups;
-  {
-    std::lock_guard<std::mutex> locked(saiSwitchMutex_);
-    if (getSwitchType() != cfg::SwitchType::FABRIC) {
-      return;
-    }
-    auto lookupVirtualDeviceId = [this](PortID portId) {
-      auto virtualDeviceId =
-          platform_->getPlatformPort(portId)->getVirtualDeviceId();
-      CHECK(virtualDeviceId.has_value());
-      return *virtualDeviceId;
-    };
-    virtualDevice2RemoteConnectionGroups =
-        fabricConnectivityManager_->getVirtualDeviceToRemoteConnectionGroups(
-            lookupVirtualDeviceId);
+  if (getSwitchType() != cfg::SwitchType::FABRIC) {
+    return;
   }
+  auto lookupVirtualDeviceId = [this](PortID portId) {
+    auto virtualDeviceId =
+        platform_->getPlatformPort(portId)->getVirtualDeviceId();
+    CHECK(virtualDeviceId.has_value());
+    return *virtualDeviceId;
+  };
+  virtualDevice2RemoteConnectionGroups =
+      fabricConnectivityManager_->getVirtualDeviceToRemoteConnectionGroups(
+          lookupVirtualDeviceId);
   for (const auto& [virtualDeviceId, remoteConnectionGroups] :
        virtualDevice2RemoteConnectionGroups) {
     if (remoteConnectionGroups.size() > 1) {
+      ++virtualDevicesWithAsymmetricConnectivity;
       XLOG(DBG4) << " Asymmetric topology detected on virtual device: "
                  << virtualDeviceId;
       for (const auto& [numConnections, remoteConnections] :
@@ -3770,5 +3769,7 @@ void SaiSwitch::reportAsymmetricTopology() const {
       }
     }
   }
+  getSwitchStats()->virtualDevicesWithAsymmetricConnectivity(
+      virtualDevicesWithAsymmetricConnectivity);
 }
 } // namespace facebook::fboss

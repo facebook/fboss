@@ -94,6 +94,7 @@ class HwSwitchFb303Stats {
   }
   void fabricReachabilityMissingCount(int64_t value);
   void fabricReachabilityMismatchCount(int64_t value);
+  void virtualDevicesWithAsymmetricConnectivity(int64_t value);
 
   void bcmSdkVer(int64_t ver);
   void bcmSaiSdkVer(int64_t ver);

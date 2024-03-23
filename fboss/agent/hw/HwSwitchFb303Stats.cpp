@@ -146,7 +146,7 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           getCounterPrefix() + "fabric_reachability_mismatch"),
       virtualDevicesWithAsymmetricConnectivity_(
           map,
-          getCounterPrefix() + "virtual_devices_with_asymetric_connectivity"),
+          getCounterPrefix() + "virtual_devices_with_asymmetric_connectivity"),
       ireErrors_(map, getCounterPrefix() + vendor + ".ire.errors", SUM, RATE),
       itppErrors_(map, getCounterPrefix() + vendor + ".itpp.errors", SUM, RATE),
       epniErrors_(map, getCounterPrefix() + vendor + ".epni.errors", SUM, RATE),
@@ -349,6 +349,12 @@ void HwSwitchFb303Stats::fabricReachabilityMissingCount(int64_t value) {
 
 void HwSwitchFb303Stats::fabricReachabilityMismatchCount(int64_t value) {
   fb303::fbData->setCounter(fabricReachabilityMismatchCount_.name(), value);
+}
+
+void HwSwitchFb303Stats::virtualDevicesWithAsymmetricConnectivity(
+    int64_t value) {
+  fb303::fbData->setCounter(
+      virtualDevicesWithAsymmetricConnectivity_.name(), value);
 }
 
 void HwSwitchFb303Stats::bcmSdkVer(int64_t ver) {
