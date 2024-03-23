@@ -80,8 +80,6 @@
 #include <boost/range/combine.hpp>
 #include <chrono>
 #include <optional>
-#include <ostream>
-#include <sstream>
 
 extern "C" {
 #include <sai.h>
@@ -150,26 +148,6 @@ std::string fdbEventToString(sai_fdb_event_t event) {
 static std::set<facebook::fboss::cfg::PacketRxReason> kAllowedRxReasons = {
     facebook::fboss::cfg::PacketRxReason::TTL_1};
 
-struct RemoteEndpoint {
-  int64_t switchId;
-  std::string switchName;
-  std::vector<facebook::fboss::PortID> connectingPorts;
-  bool operator<(const RemoteEndpoint& r) const {
-    return switchId < r.switchId;
-  }
-  std::string toStr() const {
-    std::stringstream ss;
-    ss << " switchId : " << switchId << " switch name: " << switchName
-       << " connecting ports: " << folly::join(", ", connectingPorts);
-    return ss.str();
-  }
-};
-void toAppend(const RemoteEndpoint& endpoint, folly::fbstring* result) {
-  result->append(endpoint.toStr());
-}
-void toAppend(const RemoteEndpoint& endpoint, std::string* result) {
-  *result += endpoint.toStr();
-}
 } // namespace
 
 namespace facebook::fboss {
@@ -3763,60 +3741,22 @@ HwSwitchWatermarkStats SaiSwitch::getSwitchWatermarkStats() const {
 void SaiSwitch::reportAsymmetricTopology() const {
   // Virtual device Id ->  map<numConnections, list<RemoteEndpoint>>
 
-  using RemoteConnectionGroups = std::map<int, std::set<RemoteEndpoint>>;
-  std::map<int64_t, RemoteConnectionGroups>
+  std::map<int64_t, FabricConnectivityManager::RemoteConnectionGroups>
       virtualDevice2RemoteConnectionGroups;
   {
     std::lock_guard<std::mutex> locked(saiSwitchMutex_);
     if (getSwitchType() != cfg::SwitchType::FABRIC) {
       return;
     }
-    // Local cache to maintain current state of remote endpoints for
-    // a virtual device.
-    std::map<int64_t, std::set<RemoteEndpoint>> virtualDevice2RemoteEndpoints;
-    const auto& port2FabricConnectivity =
-        fabricConnectivityManager_->getConnectivityInfo();
-    for (const auto& [portId, fabricEndpoint] : port2FabricConnectivity) {
-      if (!*fabricEndpoint.isAttached()) {
-        continue;
-      }
+    auto lookupVirtualDeviceId = [this](PortID portId) {
       auto virtualDeviceId =
           platform_->getPlatformPort(portId)->getVirtualDeviceId();
       CHECK(virtualDeviceId.has_value());
-      // get connections for virtual device
-      auto& virtualDeviceRemoteEndpoints =
-          virtualDevice2RemoteEndpoints[*virtualDeviceId];
-      auto& remoteConnectionGroups =
-          virtualDevice2RemoteConnectionGroups[*virtualDeviceId];
-      // Append to list of ports connecting to this virtual device
-      RemoteEndpoint remoteEndpoint{
-          *fabricEndpoint.switchId(),
-          fabricEndpoint.switchName().value_or(""),
-          {portId}};
-      auto ritr = virtualDeviceRemoteEndpoints.find(remoteEndpoint);
-      if (ritr != virtualDeviceRemoteEndpoints.end()) {
-        // Remote endpoint is already connected to this virtual device
-        auto numExistingConnections = ritr->connectingPorts.size();
-        CHECK_NE(numExistingConnections, 0);
-        // Remove this from remoteConnectionGroups as the numConnections will
-        // change after we add portId. We will re add the entry after adding
-        // portId
-        remoteConnectionGroups[numExistingConnections].erase(remoteEndpoint);
-        if (remoteConnectionGroups[numExistingConnections].size() == 0) {
-          remoteConnectionGroups.erase(numExistingConnections);
-        }
-        // Add portId to this remote endpoint
-        remoteEndpoint = *ritr;
-        remoteEndpoint.connectingPorts.push_back(portId);
-        // Erase and add back new endpoint (can't update value in set)
-        virtualDeviceRemoteEndpoints.erase(ritr);
-      }
-      // Add back updated(or newly discovered) remoteEndpoint
-      virtualDeviceRemoteEndpoints.insert(remoteEndpoint);
-      // Insert updated remote endpoint
-      remoteConnectionGroups[remoteEndpoint.connectingPorts.size()].insert(
-          remoteEndpoint);
-    }
+      return *virtualDeviceId;
+    };
+    virtualDevice2RemoteConnectionGroups =
+        fabricConnectivityManager_->getVirtualDeviceToRemoteConnectionGroups(
+            lookupVirtualDeviceId);
   }
   for (const auto& [virtualDeviceId, remoteConnectionGroups] :
        virtualDevice2RemoteConnectionGroups) {

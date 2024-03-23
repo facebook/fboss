@@ -20,6 +20,7 @@
 #include "fboss/agent/hw/switch_asics/Ramon3Asic.h"
 #include "fboss/agent/hw/switch_asics/RamonAsic.h"
 
+#include <sstream>
 using facebook::fboss::DeltaFunctions::forEachAdded;
 using facebook::fboss::DeltaFunctions::forEachChanged;
 using facebook::fboss::DeltaFunctions::forEachRemoved;
@@ -463,4 +464,64 @@ FabricConnectivityManager::getConnectivityInfo() const {
   return currentNeighborConnectivity_;
 }
 
+std::string RemoteEndpoint::toStr() const {
+  std::stringstream ss;
+  ss << " switchId : " << switchId << " switch name: " << switchName
+     << " connecting ports: " << folly::join(", ", connectingPorts);
+  return ss.str();
+}
+
+std::map<int64_t, FabricConnectivityManager::RemoteConnectionGroups>
+FabricConnectivityManager::getVirtualDeviceToRemoteConnectionGroups(
+    const std::function<int(PortID)>& portToVirtualDevice) const {
+  // Virtual device Id ->  map<numConnections, list<RemoteEndpoint>>
+  std::map<int64_t, RemoteConnectionGroups>
+      virtualDevice2RemoteConnectionGroups;
+
+  // Local cache to maintain current state of remote endpoints for
+  // a virtual device.
+  std::map<int64_t, std::set<RemoteEndpoint>> virtualDevice2RemoteEndpoints;
+  for (const auto& [portId, fabricEndpoint] : currentNeighborConnectivity_) {
+    if (!*fabricEndpoint.isAttached()) {
+      continue;
+    }
+    auto virtualDeviceId = portToVirtualDevice(portId);
+    //      platform_->getPlatformPort(portId)->getVirtualDeviceId();
+    // CHECK(virtualDeviceId.has_value());
+    // get connections for virtual device
+    auto& virtualDeviceRemoteEndpoints =
+        virtualDevice2RemoteEndpoints[virtualDeviceId];
+    auto& remoteConnectionGroups =
+        virtualDevice2RemoteConnectionGroups[virtualDeviceId];
+    // Append to list of ports connecting to this virtual device
+    RemoteEndpoint remoteEndpoint{
+        *fabricEndpoint.switchId(),
+        fabricEndpoint.switchName().value_or(""),
+        {portId}};
+    auto ritr = virtualDeviceRemoteEndpoints.find(remoteEndpoint);
+    if (ritr != virtualDeviceRemoteEndpoints.end()) {
+      // Remote endpoint is already connected to this virtual device
+      auto numExistingConnections = ritr->connectingPorts.size();
+      CHECK_NE(numExistingConnections, 0);
+      // Remove this from remoteConnectionGroups as the numConnections will
+      // change after we add portId. We will re add the entry after adding
+      // portId
+      remoteConnectionGroups[numExistingConnections].erase(remoteEndpoint);
+      if (remoteConnectionGroups[numExistingConnections].size() == 0) {
+        remoteConnectionGroups.erase(numExistingConnections);
+      }
+      // Add portId to this remote endpoint
+      remoteEndpoint = *ritr;
+      remoteEndpoint.connectingPorts.push_back(portId);
+      // Erase and add back new endpoint (can't update value in set)
+      virtualDeviceRemoteEndpoints.erase(ritr);
+    }
+    // Add back updated(or newly discovered) remoteEndpoint
+    virtualDeviceRemoteEndpoints.insert(remoteEndpoint);
+    // Insert updated remote endpoint
+    remoteConnectionGroups[remoteEndpoint.connectingPorts.size()].insert(
+        remoteEndpoint);
+  }
+  return virtualDevice2RemoteConnectionGroups;
+}
 } // namespace facebook::fboss
