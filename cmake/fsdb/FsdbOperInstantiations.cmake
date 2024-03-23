@@ -12,6 +12,16 @@ target_link_libraries(fsdb_cow_root
   thrift_cow_nodes
 )
 
+add_library(fsdb_cow_root_path_visitor
+  fboss/fsdb/oper/instantiations/FsdbCowRootPathVisitor.cpp
+)
+
+target_link_libraries(fsdb_cow_root_path_visitor
+  fsdb_cow_root
+  fsdb_model
+  thrift_cow_visitors
+)
+
 add_library(fsdb_cow_storage
   fboss/fsdb/oper/instantiations/FsdbCowStorage.cpp
 )
@@ -20,6 +30,7 @@ target_link_libraries(fsdb_cow_storage
   fsdb_model
   cow_storage
   fsdb_cow_root
+  fsdb_cow_root_path_visitor
 )
 
 add_library(fsdb_cow_subscription_manager
