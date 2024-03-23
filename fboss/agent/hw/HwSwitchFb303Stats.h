@@ -213,6 +213,7 @@ class HwSwitchFb303Stats {
   // fabric reachability errors
   TLCounter fabricReachabilityMissingCount_;
   TLCounter fabricReachabilityMismatchCount_;
+  TLCounter virtualDevicesWithAsymmetricConnectivity_;
   TLTimeseries ireErrors_;
   TLTimeseries itppErrors_;
   TLTimeseries epniErrors_;
