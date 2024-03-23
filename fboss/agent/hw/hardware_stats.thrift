@@ -233,6 +233,7 @@ struct TeFlowStats {
 struct FabricReachabilityStats {
   1: i64 mismatchCount;
   2: i64 missingCount;
+  3: i64 virtualDevicesWithAsymmetricConnectivity;
 }
 
 struct HwRxReasonStats {

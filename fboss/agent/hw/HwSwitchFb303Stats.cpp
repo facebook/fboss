@@ -340,6 +340,8 @@ FabricReachabilityStats HwSwitchFb303Stats::getFabricReachabilityStats() {
   FabricReachabilityStats stats;
   stats.mismatchCount() = getFabricReachabilityMismatchCount();
   stats.missingCount() = getFabricReachabilityMissingCount();
+  stats.virtualDevicesWithAsymmetricConnectivity() =
+      getVirtualDevicesWithAsymmetricConnectivityCount();
   return stats;
 }
 
@@ -377,6 +379,13 @@ int64_t HwSwitchFb303Stats::getFabricReachabilityMismatchCount() const {
 int64_t HwSwitchFb303Stats::getFabricReachabilityMissingCount() const {
   auto counterVal =
       fb303::fbData->getCounterIfExists(fabricReachabilityMissingCount_.name());
+  return counterVal ? *counterVal : 0;
+}
+
+int64_t HwSwitchFb303Stats::getVirtualDevicesWithAsymmetricConnectivityCount()
+    const {
+  auto counterVal = fb303::fbData->getCounterIfExists(
+      virtualDevicesWithAsymmetricConnectivity_.name());
   return counterVal ? *counterVal : 0;
 }
 
