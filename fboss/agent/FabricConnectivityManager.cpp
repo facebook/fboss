@@ -264,6 +264,7 @@ void FabricConnectivityManager::addPort(const std::shared_ptr<Port>& swPort) {
     return;
   }
 
+  fabricPortId2Name_[swPort->getID()] = swPort->getName();
   FabricEndpoint expectedEndpoint;
   const auto& expectedNeighbors =
       swPort->getExpectedNeighborValues()->toThrift();
@@ -281,6 +282,7 @@ void FabricConnectivityManager::addPort(const std::shared_ptr<Port>& swPort) {
 void FabricConnectivityManager::removePort(
     const std::shared_ptr<Port>& swPort) {
   currentNeighborConnectivity_.erase(swPort->getID());
+  fabricPortId2Name_.erase(swPort->getID());
 }
 
 void FabricConnectivityManager::addDsfNode(
