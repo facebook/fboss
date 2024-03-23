@@ -144,4 +144,25 @@ void SaiHandler::getHwL2Table(std::vector<L2EntryThrift>& l2Table) {
   hw_->fetchL2Table(&l2Table);
 }
 
+void SaiHandler::getVirtualDeviceToConnectionGroups(
+    std::map<
+        int64_t,
+        std::map<int64_t, std::vector<facebook::fboss::RemoteEndpoint>>>&
+        virtualDevice2ConnectionGroups) {
+  auto deviceToConnectionGroups =
+      hw_->getVirtualDeviceToRemoteConnectionGroups();
+  // Convert to format required by thrift handler
+  for (const auto& [vid, connGroups] : deviceToConnectionGroups) {
+    auto& outVidConnGroups = virtualDevice2ConnectionGroups[vid];
+    for (const auto& [groupSize, group] : connGroups) {
+      auto& outVidGroup = outVidConnGroups[groupSize];
+      std::for_each(
+          group.begin(),
+          group.end(),
+          [&outVidGroup](const auto& remoteEndpoint) {
+            outVidGroup.push_back(remoteEndpoint);
+          });
+    }
+  }
+}
 } // namespace facebook::fboss

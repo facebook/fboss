@@ -55,9 +55,7 @@ class SaiHandler : public apache::thrift::ServiceHandler<SaiCtrl> {
       std::map<
           int64_t,
           std::map<int64_t, std::vector<facebook::fboss::RemoteEndpoint>>>&
-      /*virtualDevice2ConnectionGroups*/) override {
-    // TODO
-  }
+          virtualDevice2ConnectionGroups) override;
 
  private:
   SaiSwitch* hw_;
