@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "fboss/agent/FabricConnectivityManager.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/L2Entry.h"
 #include "fboss/agent/hw/HwSwitchFb303Stats.h"
@@ -35,7 +36,6 @@ namespace facebook::fboss {
 
 struct ConcurrentIndices;
 class SaiStore;
-class FabricConnectivityManager;
 
 /*
  * This is equivalent to sai_fdb_event_notification_data_t. Copy only the
@@ -219,6 +219,8 @@ class SaiSwitch : public HwSwitch {
   const std::map<PortID, FabricEndpoint>& getFabricConnectivity()
       const override;
   std::vector<PortID> getSwitchReachability(SwitchID switchId) const override;
+  std::map<int64_t, FabricConnectivityManager::RemoteConnectionGroups>
+  getVirtualDeviceToRemoteConnectionGroups() const;
 
   void rollbackInTest(const StateDelta& delta);
 
@@ -298,6 +300,9 @@ class SaiSwitch : public HwSwitch {
   const std::map<PortID, FabricEndpoint>& getFabricConnectivityLocked() const;
 
   std::vector<PortID> getSwitchReachabilityLocked(SwitchID switchId) const;
+  std::map<int64_t, FabricConnectivityManager::RemoteConnectionGroups>
+  getVirtualDeviceToRemoteConnectionGroupsLocked(
+      const std::lock_guard<std::mutex>& lock) const;
 
   void gracefulExitLocked(const std::lock_guard<std::mutex>& lock);
 

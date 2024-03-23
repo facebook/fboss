@@ -1712,6 +1712,28 @@ std::vector<PortID> SaiSwitch::getSwitchReachabilityLocked(
   return managerTable_->portManager().getFabricReachabilityForSwitch(switchId);
 }
 
+std::map<int64_t, FabricConnectivityManager::RemoteConnectionGroups>
+SaiSwitch::getVirtualDeviceToRemoteConnectionGroups() const {
+  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+  return getVirtualDeviceToRemoteConnectionGroupsLocked(lock);
+}
+
+std::map<int64_t, FabricConnectivityManager::RemoteConnectionGroups>
+SaiSwitch::getVirtualDeviceToRemoteConnectionGroupsLocked(
+    const std::lock_guard<std::mutex>& lock) const {
+  if (getSwitchType() != cfg::SwitchType::FABRIC) {
+    return {};
+  }
+  auto lookupVirtualDeviceId = [this](PortID portId) {
+    auto virtualDeviceId =
+        platform_->getPlatformPort(portId)->getVirtualDeviceId();
+    CHECK(virtualDeviceId.has_value());
+    return *virtualDeviceId;
+  };
+  return fabricConnectivityManager_->getVirtualDeviceToRemoteConnectionGroups(
+      lookupVirtualDeviceId);
+}
+
 void SaiSwitch::fetchL2Table(std::vector<L2EntryThrift>* l2Table) const {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
   fetchL2TableLocked(lock, l2Table);
