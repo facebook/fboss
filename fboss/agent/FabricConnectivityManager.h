@@ -3,8 +3,8 @@
 #pragma once
 
 #include <memory>
-#include <ostream>
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
+#include "fboss/agent/if/gen-cpp2/FbossHwCtrl.h"
 #include "fboss/agent/state/DsfNode.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/types.h"
@@ -14,23 +14,16 @@ class HwAsic;
 class SwitchState;
 class PlatformMapping;
 
-struct RemoteEndpoint {
-  int64_t switchId;
-  std::string switchName;
-  std::vector<std::string> connectingPorts;
-  bool operator<(const RemoteEndpoint& r) const {
-    return switchId < r.switchId;
-  }
-  std::string toStr() const;
-};
-inline void toAppend(const RemoteEndpoint& endpoint, folly::fbstring* result) {
-  result->append(endpoint.toStr());
-}
-inline void toAppend(const RemoteEndpoint& endpoint, std::string* result) {
-  *result += endpoint.toStr();
-}
+void toAppend(const RemoteEndpoint& endpoint, folly::fbstring* result);
+void toAppend(const RemoteEndpoint& endpoint, std::string* result);
 
 class FabricConnectivityManager {
+  struct CompareRemoteEndpoint {
+    bool operator()(const RemoteEndpoint& l, const RemoteEndpoint& r) const {
+      return l.switchId() < r.switchId();
+    }
+  };
+
  public:
   FabricConnectivityManager() = default;
 
@@ -44,7 +37,8 @@ class FabricConnectivityManager {
   bool isConnectivityInfoMissing(const PortID& portId);
   bool isConnectivityInfoMismatch(const PortID& portId);
 
-  using RemoteConnectionGroups = std::map<int, std::set<RemoteEndpoint>>;
+  using RemoteEndpoints = std::set<RemoteEndpoint, CompareRemoteEndpoint>;
+  using RemoteConnectionGroups = std::map<int, RemoteEndpoints>;
   std::map<int64_t, RemoteConnectionGroups>
   getVirtualDeviceToRemoteConnectionGroups(
       const std::function<int(PortID)>& portToVirtualDevice) const;

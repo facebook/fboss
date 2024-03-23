@@ -190,9 +190,23 @@ uint32_t getFabricPortsPerVirtualDevice(const cfg::AsicType asicType) {
       "Invalid Asic Type: ", apache::thrift::util::enumNameSafe(asicType));
 }
 
+std::string toStr(const RemoteEndpoint& r) {
+  std::stringstream ss;
+  ss << " switchId : " << *r.switchId() << " switch name: " << *r.switchName()
+     << " connecting ports: " << folly::join(", ", *r.connectingPorts());
+  return ss.str();
+}
+
 } // namespace
 
 namespace facebook::fboss {
+
+void toAppend(const RemoteEndpoint& endpoint, folly::fbstring* result) {
+  result->append(toStr(endpoint));
+}
+void toAppend(const RemoteEndpoint& endpoint, std::string* result) {
+  *result += toStr(endpoint);
+}
 
 void FabricConnectivityManager::updateExpectedSwitchIdAndPortIdForPort(
     PortID portID) {
@@ -466,13 +480,6 @@ FabricConnectivityManager::getConnectivityInfo() const {
   return currentNeighborConnectivity_;
 }
 
-std::string RemoteEndpoint::toStr() const {
-  std::stringstream ss;
-  ss << " switchId : " << switchId << " switch name: " << switchName
-     << " connecting ports: " << folly::join(", ", connectingPorts);
-  return ss.str();
-}
-
 std::map<int64_t, FabricConnectivityManager::RemoteConnectionGroups>
 FabricConnectivityManager::getVirtualDeviceToRemoteConnectionGroups(
     const std::function<int(PortID)>& portToVirtualDevice) const {
@@ -482,7 +489,7 @@ FabricConnectivityManager::getVirtualDeviceToRemoteConnectionGroups(
 
   // Local cache to maintain current state of remote endpoints for
   // a virtual device.
-  std::map<int64_t, std::set<RemoteEndpoint>> virtualDevice2RemoteEndpoints;
+  std::map<int64_t, RemoteEndpoints> virtualDevice2RemoteEndpoints;
   for (const auto& [portId, fabricEndpoint] : currentNeighborConnectivity_) {
     if (!*fabricEndpoint.isAttached()) {
       continue;
@@ -497,14 +504,14 @@ FabricConnectivityManager::getVirtualDeviceToRemoteConnectionGroups(
     auto& remoteConnectionGroups =
         virtualDevice2RemoteConnectionGroups[virtualDeviceId];
     // Append to list of ports connecting to this virtual device
-    RemoteEndpoint remoteEndpoint{
-        *fabricEndpoint.switchId(),
-        fabricEndpoint.switchName().value_or(""),
-        {portName}};
+    RemoteEndpoint remoteEndpoint;
+    remoteEndpoint.switchId() = *fabricEndpoint.switchId();
+    remoteEndpoint.switchName() = fabricEndpoint.switchName().value_or("");
+    remoteEndpoint.connectingPorts()->push_back(portName);
     auto ritr = virtualDeviceRemoteEndpoints.find(remoteEndpoint);
     if (ritr != virtualDeviceRemoteEndpoints.end()) {
       // Remote endpoint is already connected to this virtual device
-      auto numExistingConnections = ritr->connectingPorts.size();
+      auto numExistingConnections = ritr->connectingPorts()->size();
       CHECK_NE(numExistingConnections, 0);
       // Remove this from remoteConnectionGroups as the numConnections will
       // change after we add portId. We will re add the entry after adding
@@ -515,14 +522,14 @@ FabricConnectivityManager::getVirtualDeviceToRemoteConnectionGroups(
       }
       // Add portId to this remote endpoint
       remoteEndpoint = *ritr;
-      remoteEndpoint.connectingPorts.push_back(portName);
+      remoteEndpoint.connectingPorts()->push_back(portName);
       // Erase and add back new endpoint (can't update value in set)
       virtualDeviceRemoteEndpoints.erase(ritr);
     }
     // Add back updated(or newly discovered) remoteEndpoint
     virtualDeviceRemoteEndpoints.insert(remoteEndpoint);
     // Insert updated remote endpoint
-    remoteConnectionGroups[remoteEndpoint.connectingPorts.size()].insert(
+    remoteConnectionGroups[remoteEndpoint.connectingPorts()->size()].insert(
         remoteEndpoint);
   }
   return virtualDevice2RemoteConnectionGroups;

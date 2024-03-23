@@ -9,6 +9,12 @@ include "fboss/agent/if/common.thrift"
 include "fboss/agent/if/fboss.thrift"
 include "fboss/agent/if/ctrl.thrift"
 
+struct RemoteEndpoint {
+  1: i64 switchId;
+  2: string switchName;
+  3: list<string> connectingPorts;
+}
+
 service FbossHwCtrl {
   /*
    * Enables submitting diag cmds to the switch
