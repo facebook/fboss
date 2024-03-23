@@ -487,6 +487,7 @@ FabricConnectivityManager::getVirtualDeviceToRemoteConnectionGroups(
     if (!*fabricEndpoint.isAttached()) {
       continue;
     }
+    auto portName = fabricPortId2Name_.find(portId)->second;
     auto virtualDeviceId = portToVirtualDevice(portId);
     //      platform_->getPlatformPort(portId)->getVirtualDeviceId();
     // CHECK(virtualDeviceId.has_value());
@@ -499,7 +500,7 @@ FabricConnectivityManager::getVirtualDeviceToRemoteConnectionGroups(
     RemoteEndpoint remoteEndpoint{
         *fabricEndpoint.switchId(),
         fabricEndpoint.switchName().value_or(""),
-        {portId}};
+        {portName}};
     auto ritr = virtualDeviceRemoteEndpoints.find(remoteEndpoint);
     if (ritr != virtualDeviceRemoteEndpoints.end()) {
       // Remote endpoint is already connected to this virtual device
@@ -514,7 +515,7 @@ FabricConnectivityManager::getVirtualDeviceToRemoteConnectionGroups(
       }
       // Add portId to this remote endpoint
       remoteEndpoint = *ritr;
-      remoteEndpoint.connectingPorts.push_back(portId);
+      remoteEndpoint.connectingPorts.push_back(portName);
       // Erase and add back new endpoint (can't update value in set)
       virtualDeviceRemoteEndpoints.erase(ritr);
     }

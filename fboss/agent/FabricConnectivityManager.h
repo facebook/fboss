@@ -17,7 +17,7 @@ class PlatformMapping;
 struct RemoteEndpoint {
   int64_t switchId;
   std::string switchName;
-  std::vector<facebook::fboss::PortID> connectingPorts;
+  std::vector<std::string> connectingPorts;
   bool operator<(const RemoteEndpoint& r) const {
     return switchId < r.switchId;
   }
