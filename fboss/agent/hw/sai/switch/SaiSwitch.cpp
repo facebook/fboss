@@ -3761,23 +3761,10 @@ HwSwitchWatermarkStats SaiSwitch::getSwitchWatermarkStats() const {
  * have only a single RemoteConnectionGroup.
  */
 void SaiSwitch::reportAsymmetricTopology() const {
-  std::lock_guard<std::mutex> locked(saiSwitchMutex_);
-  int64_t virtualDevicesWithAsymmetricConnectivity{0};
-  // Virtual device Id ->  map<numConnections, list<RemoteEndpoint>>
-  std::map<int64_t, FabricConnectivityManager::RemoteConnectionGroups>
-      virtualDevice2RemoteConnectionGroups;
-  if (getSwitchType() != cfg::SwitchType::FABRIC) {
-    return;
-  }
-  auto lookupVirtualDeviceId = [this](PortID portId) {
-    auto virtualDeviceId =
-        platform_->getPlatformPort(portId)->getVirtualDeviceId();
-    CHECK(virtualDeviceId.has_value());
-    return *virtualDeviceId;
-  };
-  virtualDevice2RemoteConnectionGroups =
-      fabricConnectivityManager_->getVirtualDeviceToRemoteConnectionGroups(
-          lookupVirtualDeviceId);
+  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+  auto virtualDevice2RemoteConnectionGroups =
+      getVirtualDeviceToRemoteConnectionGroupsLocked(lock);
+  int virtualDevicesWithAsymmetricConnectivity{0};
   for (const auto& [virtualDeviceId, remoteConnectionGroups] :
        virtualDevice2RemoteConnectionGroups) {
     if (remoteConnectionGroups.size() > 1) {
