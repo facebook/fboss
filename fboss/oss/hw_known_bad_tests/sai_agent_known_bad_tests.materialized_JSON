@@ -14,6 +14,18 @@
           "test_name_regex": "AgentCoppTest/[01].DhcpPacketToMidPriQ$"
         },
         {
+          "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
+        },
+        {
+          "test_name_regex": "AgentOlympicQosSchedulerTest.VerifyWRRForOlympicToOlympicV2$"
+        },
+        {
+          "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
+        },
+        {
+          "test_name_regex": "AgentUdfAclCounterTest$"
+        },
+        {
           "test_name_regex": "AgentEmptyTest.*$"
         },
         {
@@ -27,6 +39,18 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DhcpPacketToMidPriQ$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
+        },
+        {
+          "test_name_regex": "AgentOlympicQosSchedulerTest.VerifyWRRForOlympicToOlympicV2$"
+        },
+        {
+          "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
+        },
+        {
+          "test_name_regex": "AgentUdfAclCounterTest$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -46,6 +70,18 @@
           "test_name_regex": "AgentCoppTest/[01].DhcpPacketToMidPriQ$"
         },
         {
+          "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
+        },
+        {
+          "test_name_regex": "AgentOlympicQosSchedulerTest.VerifyWRRForOlympicToOlympicV2$"
+        },
+        {
+          "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
+        },
+        {
+          "test_name_regex": "AgentUdfAclCounterTest$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -56,6 +92,18 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DhcpPacketToMidPriQ$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
+        },
+        {
+          "test_name_regex": "AgentOlympicQosSchedulerTest.VerifyWRRForOlympicToOlympicV2$"
+        },
+        {
+          "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
+        },
+        {
+          "test_name_regex": "AgentUdfAclCounterTest$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -78,6 +126,18 @@
           "test_name_regex": "AgentCoppTest/[01].DhcpPacketToMidPriQ$"
         },
         {
+          "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
+        },
+        {
+          "test_name_regex": "AgentOlympicQosSchedulerTest.VerifyWRRForOlympicToOlympicV2$"
+        },
+        {
+          "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
+        },
+        {
+          "test_name_regex": "AgentUdfAclCounterTest$"
+        },
+        {
           "test_name_regex": "AgentEmptyTest.*$"
         },
         {
@@ -91,6 +151,18 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DhcpPacketToMidPriQ$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
+        },
+        {
+          "test_name_regex": "AgentOlympicQosSchedulerTest.VerifyWRRForOlympicToOlympicV2$"
+        },
+        {
+          "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
+        },
+        {
+          "test_name_regex": "AgentUdfAclCounterTest$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -113,6 +185,18 @@
           "test_name_regex": "AgentCoppTest/[01].DhcpPacketToMidPriQ$"
         },
         {
+          "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
+        },
+        {
+          "test_name_regex": "AgentOlympicQosSchedulerTest.VerifyWRRForOlympicToOlympicV2$"
+        },
+        {
+          "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
+        },
+        {
+          "test_name_regex": "AgentUdfAclCounterTest$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -123,6 +207,18 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DhcpPacketToMidPriQ$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
+        },
+        {
+          "test_name_regex": "AgentOlympicQosSchedulerTest.VerifyWRRForOlympicToOlympicV2$"
+        },
+        {
+          "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
+        },
+        {
+          "test_name_regex": "AgentUdfAclCounterTest$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -142,6 +238,18 @@
           "test_name_regex": "AgentCoppTest/[01].DhcpPacketToMidPriQ$"
         },
         {
+          "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
+        },
+        {
+          "test_name_regex": "AgentOlympicQosSchedulerTest.VerifyWRRForOlympicToOlympicV2$"
+        },
+        {
+          "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
+        },
+        {
+          "test_name_regex": "AgentUdfAclCounterTest$"
+        },
+        {
           "test_name_regex": "AgentEmptyTest.*$"
         },
         {
@@ -155,6 +263,18 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DhcpPacketToMidPriQ$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
+        },
+        {
+          "test_name_regex": "AgentOlympicQosSchedulerTest.VerifyWRRForOlympicToOlympicV2$"
+        },
+        {
+          "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
+        },
+        {
+          "test_name_regex": "AgentUdfAclCounterTest$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -174,6 +294,18 @@
           "test_name_regex": "AgentCoppTest/[01].DhcpPacketToMidPriQ$"
         },
         {
+          "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
+        },
+        {
+          "test_name_regex": "AgentOlympicQosSchedulerTest.VerifyWRRForOlympicToOlympicV2$"
+        },
+        {
+          "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
+        },
+        {
+          "test_name_regex": "AgentUdfAclCounterTest$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -184,6 +316,18 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DhcpPacketToMidPriQ$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
+        },
+        {
+          "test_name_regex": "AgentOlympicQosSchedulerTest.VerifyWRRForOlympicToOlympicV2$"
+        },
+        {
+          "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
+        },
+        {
+          "test_name_regex": "AgentUdfAclCounterTest$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -203,6 +347,18 @@
           "test_name_regex": "AgentCoppTest/[01].DhcpPacketToMidPriQ$"
         },
         {
+          "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
+        },
+        {
+          "test_name_regex": "AgentOlympicQosSchedulerTest.VerifyWRRForOlympicToOlympicV2$"
+        },
+        {
+          "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
+        },
+        {
+          "test_name_regex": "AgentUdfAclCounterTest$"
+        },
+        {
           "test_name_regex": "AgentEmptyTest.*$"
         },
         {
@@ -216,6 +372,18 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DhcpPacketToMidPriQ$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
+        },
+        {
+          "test_name_regex": "AgentOlympicQosSchedulerTest.VerifyWRRForOlympicToOlympicV2$"
+        },
+        {
+          "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
+        },
+        {
+          "test_name_regex": "AgentUdfAclCounterTest$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -266,6 +434,18 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DhcpPacketToMidPriQ$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
+        },
+        {
+          "test_name_regex": "AgentOlympicQosSchedulerTest.VerifyWRRForOlympicToOlympicV2$"
+        },
+        {
+          "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
+        },
+        {
+          "test_name_regex": "AgentUdfAclCounterTest$"
         }
     ],
     "leaba/1.42.8/1.42.8/gibraltar/multi_switch": [
@@ -313,6 +493,18 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DhcpPacketToMidPriQ$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
+        },
+        {
+          "test_name_regex": "AgentOlympicQosSchedulerTest.VerifyWRRForOlympicToOlympicV2$"
+        },
+        {
+          "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
+        },
+        {
+          "test_name_regex": "AgentUdfAclCounterTest$"
         },
         {
           "test_name_regex": "AgentEmptyTest.*$"
@@ -363,6 +555,18 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DhcpPacketToMidPriQ$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
+        },
+        {
+          "test_name_regex": "AgentOlympicQosSchedulerTest.VerifyWRRForOlympicToOlympicV2$"
+        },
+        {
+          "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
+        },
+        {
+          "test_name_regex": "AgentUdfAclCounterTest$"
         }
     ],
     "leaba/1.65.1/1.65.1/gibraltar/multi_switch": [
@@ -410,6 +614,18 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DhcpPacketToMidPriQ$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/0.VerifyCoppPpsLowPri$"
+        },
+        {
+          "test_name_regex": "AgentOlympicQosSchedulerTest.VerifyWRRForOlympicToOlympicV2$"
+        },
+        {
+          "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
+        },
+        {
+          "test_name_regex": "AgentUdfAclCounterTest$"
         },
         {
           "test_name_regex": "AgentEmptyTest.*$"
