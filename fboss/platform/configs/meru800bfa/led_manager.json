@@ -1,5 +1,104 @@
 {
-  "systemLedConfig": {},
-  "fruTypeLedConfigs": {},
-  "fruConfigs": []
+  "systemLedConfig": {
+    "presentLedColor": 1,
+    "presentLedSysfsPath": "/sys/class/leds/status_led1:green:status/brightness",
+    "absentLedColor": 2,
+    "absentLedSysfsPath": "/sys/class/leds/status_led1:red:status/brightness"
+  },
+  "fruTypeLedConfigs": {
+    "FAN": {
+      "presentLedColor": 1,
+      "presentLedSysfsPath": "/sys/class/leds/status_led2:green:status/brightness",
+      "absentLedColor": 2,
+      "absentLedSysfsPath": "/sys/class/leds/status_led2:red:status/brightness"
+    },
+    "PSU": {
+      "presentLedColor": 1,
+      "presentLedSysfsPath": "/sys/class/leds/status_led3:green:status/brightness",
+      "absentLedColor": 2,
+      "absentLedSysfsPath": "/sys/class/leds/status_led3:red:status/brightness"
+    }
+  },
+  "fruConfigs": [
+    {
+      "fruName": "FAN1",
+      "fruType": "FAN",
+      "presenceSysfsPath": "/run/devmap/sensors/FAN_CPLD0/fan1_present"
+    },
+    {
+      "fruName": "FAN2",
+      "fruType": "FAN",
+      "presenceSysfsPath": "/run/devmap/sensors/FAN_CPLD0/fan2_present"
+    },
+    {
+      "fruName": "FAN3",
+      "fruType": "FAN",
+      "presenceSysfsPath": "/run/devmap/sensors/FAN_CPLD0/fan3_present"
+    },
+    {
+      "fruName": "FAN4",
+      "fruType": "FAN",
+      "presenceSysfsPath": "/run/devmap/sensors/FAN_CPLD0/fan4_present"
+    },
+    {
+      "fruName": "FAN5",
+      "fruType": "FAN",
+      "presenceSysfsPath": "/run/devmap/sensors/FAN_CPLD1/fan1_present"
+    },
+    {
+      "fruName": "FAN6",
+      "fruType": "FAN",
+      "presenceSysfsPath": "/run/devmap/sensors/FAN_CPLD1/fan2_present"
+    },
+    {
+      "fruName": "FAN7",
+      "fruType": "FAN",
+      "presenceSysfsPath": "/run/devmap/sensors/FAN_CPLD1/fan3_present"
+    },
+    {
+      "fruName": "FAN8",
+      "fruType": "FAN",
+      "presenceSysfsPath": "/run/devmap/sensors/FAN_CPLD1/fan4_present"
+    },
+    {
+      "fruName": "FAN9",
+      "fruType": "FAN",
+      "presenceSysfsPath": "/run/devmap/sensors/FAN_CPLD2/fan1_present"
+    },
+    {
+      "fruName": "FAN10",
+      "fruType": "FAN",
+      "presenceSysfsPath": "/run/devmap/sensors/FAN_CPLD2/fan2_present"
+    },
+    {
+      "fruName": "FAN11",
+      "fruType": "FAN",
+      "presenceSysfsPath": "/run/devmap/sensors/FAN_CPLD2/fan3_present"
+    },
+    {
+      "fruName": "FAN12",
+      "fruType": "FAN",
+      "presenceSysfsPath": "/run/devmap/sensors/FAN_CPLD2/fan4_present"
+    },
+    {
+      "fruName": "PSU1",
+      "fruType": "PSU",
+      "presenceSysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/psu1_prsnt"
+    },
+    {
+      "fruName": "PSU2",
+      "fruType": "PSU",
+      "presenceSysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/psu2_prsnt"
+    },
+    {
+      "fruName": "PSU3",
+      "fruType": "PSU",
+      "presenceSysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/psu3_prsnt"
+    },
+    {
+      "fruName": "PSU4",
+      "fruType": "PSU",
+      "presenceSysfsPath": "/run/devmap/fpgas/MERU800BFA_SMB_FPGA0/psu4_prsnt"
+    }
+  ]
 }
