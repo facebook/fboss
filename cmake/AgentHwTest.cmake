@@ -173,19 +173,11 @@ add_library(load_balancer_utils
 )
 
 target_link_libraries(load_balancer_utils
-  hw_packet_utils
-  core
   fboss_types
-  switch_config_cpp2
-  hw_switch_ensemble
-  load_balancer_test_utils
-  resourcelibutil
-  packet_factory
+  hw_switch
+  platform_base
+  switch_asics
   state
-  Folly::folly
-  config_factory
-  hw_test_acl_utils
-  test_ensemble_if
   loadbalancer_utils
 )
 

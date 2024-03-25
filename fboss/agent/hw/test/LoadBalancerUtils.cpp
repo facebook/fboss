@@ -10,28 +10,11 @@
 
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
 
-#include <folly/IPAddress.h>
-
-#include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/HwSwitch.h"
-#include "fboss/agent/LoadBalancerConfigApplier.h"
-#include "fboss/agent/LoadBalancerUtils.h"
 #include "fboss/agent/Platform.h"
-#include "fboss/agent/SwSwitch.h"
-#include "fboss/agent/TxPacket.h"
-#include "fboss/agent/hw/test/ConfigFactory.h"
-#include "fboss/agent/hw/test/HwTestAclUtils.h"
-#include "fboss/agent/hw/test/HwTestPacketUtils.h"
-#include "fboss/agent/packet/EthFrame.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/LoadBalancer.h"
 #include "fboss/agent/state/SwitchState.h"
-#include "fboss/agent/test/ResourceLibUtil.h"
-
-#include "folly/MacAddress.h"
-
-#include <folly/gen/Base.h>
-#include <gtest/gtest.h>
-#include <sstream>
 
 namespace facebook::fboss::utility {
 

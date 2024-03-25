@@ -9,61 +9,15 @@
  */
 #pragma once
 
-#include "fboss/agent/Utils.h"
-#include "fboss/agent/gen-cpp2/switch_config_types.h"
-#include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
-#include "fboss/agent/hw/switch_asics/HwAsic.h"
-#include "fboss/agent/hw/test/HwSwitchEnsemble.h"
-#include "fboss/agent/state/PortDescriptor.h"
-#include "fboss/agent/state/RouteNextHop.h"
-#include "fboss/agent/test/TestEnsembleIf.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/agent/types.h"
-#include "folly/MacAddress.h"
-
-#include <folly/gen/Base.h>
-#include <optional>
-#include <vector>
 
 namespace facebook::fboss {
 class HwSwitch;
-class Platform;
 class SwitchState;
-class LoadBalancer;
-class HwSwitchEnsemble;
-class SwitchIdScopeResolver;
-class SwSwitch;
 } // namespace facebook::fboss
 
 namespace facebook::fboss::utility {
-
-template <typename PortIdT, typename PortStatsT>
-bool isLoadBalanced(
-    TestEnsembleIf* ensemble,
-    const std::vector<PortDescriptor>& ecmpPorts,
-    const std::vector<NextHopWeight>& weights,
-    int maxDeviationPct,
-    /* Flag to control whether having no traffic on a link is ok */
-    bool noTrafficOk = false) {
-  auto getPortStatsFn = [&](const std::vector<PortIdT>& portIds)
-      -> std::map<PortIdT, PortStatsT> {
-    return ensemble->getLatestPortStats(portIds);
-  };
-  return isLoadBalanced<PortIdT, PortStatsT>(
-      ecmpPorts, weights, getPortStatsFn, maxDeviationPct, noTrafficOk);
-}
-
-template <typename PortIdT, typename PortStatsT>
-bool isLoadBalanced(
-    HwSwitchEnsemble* hwSwitchEnsemble,
-    const std::vector<PortDescriptor>& ecmpPorts,
-    int maxDeviationPct) {
-  return isLoadBalanced<PortIdT, PortStatsT>(
-      hwSwitchEnsemble,
-      ecmpPorts,
-      std::vector<NextHopWeight>(),
-      maxDeviationPct);
-}
 
 bool isHwDeterministicSeed(
     HwSwitch* hwSwitch,
