@@ -14,8 +14,4 @@ std::unique_ptr<WeutilInterface> createWeUtilIntf(
     const std::string& eepromName,
     const std::string& eepromPath);
 
-/*
- * Get the EEPROM Names based on the default config of the platform.
- */
-std::vector<std::string> getEepromNames();
 } // namespace facebook::fboss::platform

@@ -21,27 +21,6 @@ using namespace facebook;
 
 FOLLY_INIT_LOGGING_CONFIG(".=FATAL; default:async=true");
 
-namespace {
-void printUsage() {
-  std::cout
-      << "weutil [--h] [--json] [--eeprom <eeprom-name>] [--path absolute_path_to_eeprom]"
-      << std::endl;
-  std::cout << "usage examples:" << std::endl;
-  std::cout << "    weutil" << std::endl;
-  std::cout << "    weutil --eeprom pem" << std::endl;
-  std::cout << "    weutil --path /sys/bus/i2c/devices/6-0051/eeprom"
-            << std::endl;
-  try {
-    auto eepromNames = getEepromNames();
-    std::cout << "The <eeprom-name>s supported on this platform are: "
-              << folly::join(", ", eepromNames) << std::endl;
-  } catch (const std::exception& ex) {
-    std::cout << "Failed to get supported eeprom names: " << ex.what()
-              << std::endl;
-  }
-}
-} // namespace
-
 // If config file is not specified, we detect the platform type and load
 // the proper platform config. If no flags/args are specified, weutil will
 // output the chassis eeprom. If flags/args are used, check that either
@@ -58,18 +37,12 @@ bool validFlags(int argc) {
   return true;
 }
 
-// This utility program will output Chassis info for Darwin
 int main(int argc, char* argv[]) {
   helpers::initCli(&argc, &argv, "weutil");
   std::unique_ptr<WeutilInterface> weutilInstance;
 
-  // Check if the flags/args are valid
   if (!validFlags(argc)) {
     return 1;
-  }
-  if (FLAGS_h) {
-    printUsage();
-    return 0;
   }
 
   try {
