@@ -1746,8 +1746,6 @@ void printSff8472DetailService(
   const TcvrState& tcvrState = *can_throw(transceiverInfo.tcvrState());
   auto settings = *(tcvrState.settings());
 
-  printf("Port %d\n", port);
-
   // ------ Module Status -------
   printf("  Module Status:\n");
   if (auto identifier = tcvrState.identifier()) {
@@ -1794,8 +1792,6 @@ void printSffDetailService(
   const TcvrState& tcvrState = *can_throw(transceiverInfo.tcvrState());
 
   auto& settings = *(tcvrState.settings());
-
-  printf("Port %d\n", port);
 
   // ------ Module Status -------
   printf("  Module Status:\n");
@@ -1870,7 +1866,6 @@ void printSffDetail(const DOMDataUnion& domDataUnion, unsigned int port) {
   auto lowerBuf = sffData.lower()->data();
   auto page0Buf = sffData.page0()->data();
 
-  printf("Port %d\n", port);
   printf("  ID: %#04x\n", lowerBuf[0]);
   printf("  Status: 0x%02x 0x%02x\n", lowerBuf[1], lowerBuf[2]);
   printf("  Module State: 0x%02x\n", lowerBuf[3]);
@@ -2094,7 +2089,6 @@ void printCmisDetailService(
 
   auto moduleStatus = tcvrState.status();
   auto channels = *(tcvrStats.channels());
-  printf("Port %d\n", port);
   auto settings = *(tcvrState.settings());
 
   printManagementInterface(
@@ -2177,7 +2171,6 @@ void printCmisDetail(const DOMDataUnion& domDataUnion, unsigned int port) {
     page14Buf = can_throw(cmisData.page14())->data();
   }
 
-  printf("Port %d\n", port);
   printf("  Module Interface Type: CMIS (200G or above)\n");
 
   printf(
@@ -2354,11 +2347,16 @@ void printCmisDetail(const DOMDataUnion& domDataUnion, unsigned int port) {
   printf("\n\n");
 }
 
-void printPortDetail(const DOMDataUnion& domDataUnion, unsigned int port) {
+void printPortDetail(
+    const DOMDataUnion& domDataUnion,
+    unsigned int port,
+    const std::string& portNames) {
   if (domDataUnion.__EMPTY__) {
     fprintf(stderr, "DOMDataUnion object is empty\n");
     return;
   }
+  printf("Port %d\n", port);
+  printf("Logical Ports: %s\n", portNames.c_str());
   if (domDataUnion.getType() == DOMDataUnion::Type::sff8636) {
     printSffDetail(domDataUnion, port);
   } else if (domDataUnion.getType() == DOMDataUnion::Type::cmis) {
@@ -2372,9 +2370,12 @@ void printPortDetail(const DOMDataUnion& domDataUnion, unsigned int port) {
 void printPortDetailService(
     const TransceiverInfo& transceiverInfo,
     unsigned int port,
-    bool verbose) {
+    bool verbose,
+    const std::string& portNames) {
   if (auto mgmtInterface = can_throw(transceiverInfo.tcvrState())
                                ->transceiverManagementInterface()) {
+    printf("Port %d\n", port);
+    printf("Logical Ports: %s\n", portNames.c_str());
     if (*mgmtInterface == TransceiverManagementInterface::SFF) {
       printSffDetailService(transceiverInfo, port, verbose);
     } else if (*mgmtInterface == TransceiverManagementInterface::SFF8472) {

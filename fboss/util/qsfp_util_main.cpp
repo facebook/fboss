@@ -193,7 +193,9 @@ int main(int argc, char* argv[]) {
           if (iter == domDataUnionMap.end()) {
             fprintf(stderr, "Port %d is not present.\n", tcvrId + 1);
           } else {
-            printPortDetail(iter->second, iter->first + 1);
+            auto logicalPorts = folly::join(
+                ", ", wedgeManager->getPortNames(TransceiverID(tcvrId)));
+            printPortDetail(iter->second, iter->first + 1, logicalPorts);
           }
         }
       } else {
@@ -204,8 +206,10 @@ int main(int argc, char* argv[]) {
             fprintf(
                 stderr, "qsfp_service didn't return data for Port %d\n", i + 1);
           } else {
+            auto logicalPorts =
+                folly::join(", ", wedgeManager->getPortNames(TransceiverID(i)));
             printPortDetailService(
-                iter->second, iter->first + 1, FLAGS_verbose);
+                iter->second, iter->first + 1, FLAGS_verbose, logicalPorts);
           }
         }
       }
@@ -303,7 +307,10 @@ int main(int argc, char* argv[]) {
       try {
         // Get the port details from the direct i2c read and then print out
         // the i2c info from module
-        printPortDetail(fetchDataFromLocalI2CBus(i2cInfo, portNum), portNum);
+        auto logicalPorts = folly::join(
+            ", ", wedgeManager->getPortNames(TransceiverID(portNum - 1)));
+        printPortDetail(
+            fetchDataFromLocalI2CBus(i2cInfo, portNum), portNum, logicalPorts);
       } catch (const I2cError& ex) {
         // This generally means the QSFP module is not present.
         fprintf(stderr, "Port %d: not present: %s\n", portNum, ex.what());

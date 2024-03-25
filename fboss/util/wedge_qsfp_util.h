@@ -207,11 +207,15 @@ void printCmisDetailService(
     unsigned int port,
     bool verbose);
 
-void printPortDetail(const DOMDataUnion& domDataUnion, unsigned int port);
+void printPortDetail(
+    const DOMDataUnion& domDataUnion,
+    unsigned int port,
+    const std::string& portNames);
 void printPortDetailService(
     const TransceiverInfo& transceiverInfo,
     unsigned int port,
-    bool verbose);
+    bool verbose,
+    const std::string& portNames);
 
 void tryOpenBus(TransceiverI2CApi* bus);
 
