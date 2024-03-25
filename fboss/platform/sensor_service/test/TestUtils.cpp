@@ -25,11 +25,8 @@ std::string mockSensorConfig(const std::string& tmpPath) {
   value = "11.875";
   folly::writeFile(value, (*mock_fru_2_sensor_1.path()).c_str());
 
-  Thresholds thresholds{};
-  thresholds.lowerCriticalVal_ref() = 105;
-  mock_fru_1_sensor_1.thresholds_ref() = thresholds;
-  mock_fru_1_sensor_2.thresholds_ref() = thresholds;
-  mock_fru_2_sensor_1.thresholds_ref() = thresholds;
+  mock_fru_1_sensor_1.compute() = "@/1000";
+  mock_fru_2_sensor_1.compute() = "@ + 5";
 
   mock_fru_1_sensor_1.type_ref() = SensorType::TEMPERTURE;
   mock_fru_1_sensor_2.type_ref() = SensorType::FAN;
@@ -60,8 +57,8 @@ std::shared_ptr<SensorServiceImpl> createSensorServiceImplForTest(
 
 std::map<std::string, float> getDefaultMockSensorData() {
   return std::map<std::string, float>{
-      {"MOCK_FRU_1_SENSOR_1", 25},
+      {"MOCK_FRU_1_SENSOR_1", 0.025 /* 25/10000 */},
       {"MOCK_FRU_1_SENSOR_2", 11152},
-      {"MOCK_FRU_2_SENSOR_1", 11.875},
+      {"MOCK_FRU_2_SENSOR_1", 16.875 /* 11.875 + 5*/},
   };
 }

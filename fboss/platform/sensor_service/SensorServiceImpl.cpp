@@ -71,10 +71,9 @@ std::vector<SensorData> SensorServiceImpl::getSensorsData(
   auto allSensorData = getAllSensorData();
   for (const auto& sensorName : sensorNames) {
     auto it = allSensorData.find(sensorName);
-    if (it == allSensorData.end()) {
-      continue;
+    if (it != allSensorData.end()) {
+      sensorDataVec.push_back(it->second);
     }
-    sensorDataVec.push_back(it->second);
   }
   return sensorDataVec;
 }
