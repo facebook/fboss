@@ -245,7 +245,9 @@ struct HwRxReasonStats {
 // will be marked as deprecated everywhere until it has some other
 // stats in it.
 struct HwBufferPoolStats {
-  1: i64 deviceWatermarkBytes_DEPRECATED;
+  // Deprecate deviceWatermarkBytes once HwSwitchWatermarkStats is
+  // available in prod!
+  1: i64 deviceWatermarkBytes;
 }
 
 struct HwSwitchWatermarkStats {

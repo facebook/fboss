@@ -22870,10 +22870,10 @@ class ChildThriftPath<::facebook::fboss::HwBufferPoolStats, ::facebook::fboss::f
     ChildTag,
     Self
   >;
-  using Children = fatal::tuple<std::pair<strings::deviceWatermarkBytes_DEPRECATED, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
+  using Children = fatal::tuple<std::pair<strings::deviceWatermarkBytes, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
   template <typename Name>
-  using NameToId = fatal::tuple<std::pair<strings::deviceWatermarkBytes_DEPRECATED, std::integral_constant<apache::thrift::field_id_t, 1>>>::template type_of<Name>;
+  using NameToId = fatal::tuple<std::pair<strings::deviceWatermarkBytes, std::integral_constant<apache::thrift::field_id_t, 1>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -22887,11 +22887,11 @@ class ChildThriftPath<::facebook::fboss::HwBufferPoolStats, ::facebook::fboss::f
    ::apache::thrift::type::struct_t<::facebook::fboss::HwBufferPoolStats>,
    Parent>(std::move(tokens), std::move(idTokens)) {}
   
-    STRUCT_CHILD_GETTERS(deviceWatermarkBytes_DEPRECATED, 1);
+    STRUCT_CHILD_GETTERS(deviceWatermarkBytes, 1);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
-    if constexpr (__id == 1) { return deviceWatermarkBytes_DEPRECATED(); }
+    if constexpr (__id == 1) { return deviceWatermarkBytes(); }
   }
 
   template <typename T, T... Values>
@@ -23265,7 +23265,7 @@ std::pair<strings::hwAsicErrors, ChildThriftPath<::facebook::fboss::HwAsicErrors
 std::pair<strings::linkFlaps, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
 std::pair<strings::sysPortStats, ChildThriftPath<::std::map<::std::string, ::facebook::fboss::HwSysPortStats>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
 std::pair<strings::teFlowStats, ChildThriftPath<::facebook::fboss::TeFlowStats, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
-std::pair<strings::bufferPoolStats_DEPRECATED, ChildThriftPath<::facebook::fboss::HwBufferPoolStats, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
+std::pair<strings::bufferPoolStats, ChildThriftPath<::facebook::fboss::HwBufferPoolStats, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
 std::pair<strings::hwResourceStatsMap, ChildThriftPath<::std::map<::std::int16_t, ::facebook::fboss::HwResourceStats>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
 std::pair<strings::hwAsicErrorsMap, ChildThriftPath<::std::map<::std::int16_t, ::facebook::fboss::HwAsicErrors>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
 std::pair<strings::teFlowStatsMap, ChildThriftPath<::std::map<::std::int16_t, ::facebook::fboss::TeFlowStats>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
@@ -23316,7 +23316,7 @@ std::pair<strings::hwAsicErrors, std::integral_constant<apache::thrift::field_id
 std::pair<strings::linkFlaps, std::integral_constant<apache::thrift::field_id_t, 5>>,
 std::pair<strings::sysPortStats, std::integral_constant<apache::thrift::field_id_t, 7>>,
 std::pair<strings::teFlowStats, std::integral_constant<apache::thrift::field_id_t, 8>>,
-std::pair<strings::bufferPoolStats_DEPRECATED, std::integral_constant<apache::thrift::field_id_t, 9>>,
+std::pair<strings::bufferPoolStats, std::integral_constant<apache::thrift::field_id_t, 9>>,
 std::pair<strings::hwResourceStatsMap, std::integral_constant<apache::thrift::field_id_t, 10>>,
 std::pair<strings::hwAsicErrorsMap, std::integral_constant<apache::thrift::field_id_t, 11>>,
 std::pair<strings::teFlowStatsMap, std::integral_constant<apache::thrift::field_id_t, 12>>,
@@ -23354,7 +23354,7 @@ std::pair<strings::switchWatermarkStatsMap, std::integral_constant<apache::thrif
     STRUCT_CHILD_GETTERS(linkFlaps, 5);
     STRUCT_CHILD_GETTERS(sysPortStats, 7);
     STRUCT_CHILD_GETTERS(teFlowStats, 8);
-    STRUCT_CHILD_GETTERS(bufferPoolStats_DEPRECATED, 9);
+    STRUCT_CHILD_GETTERS(bufferPoolStats, 9);
     STRUCT_CHILD_GETTERS(hwResourceStatsMap, 10);
     STRUCT_CHILD_GETTERS(hwAsicErrorsMap, 11);
     STRUCT_CHILD_GETTERS(teFlowStatsMap, 12);
@@ -23382,7 +23382,7 @@ std::pair<strings::switchWatermarkStatsMap, std::integral_constant<apache::thrif
     else if constexpr (__id == 5) { return linkFlaps(); }
     else if constexpr (__id == 7) { return sysPortStats(); }
     else if constexpr (__id == 8) { return teFlowStats(); }
-    else if constexpr (__id == 9) { return bufferPoolStats_DEPRECATED(); }
+    else if constexpr (__id == 9) { return bufferPoolStats(); }
     else if constexpr (__id == 10) { return hwResourceStatsMap(); }
     else if constexpr (__id == 11) { return hwAsicErrorsMap(); }
     else if constexpr (__id == 12) { return teFlowStatsMap(); }

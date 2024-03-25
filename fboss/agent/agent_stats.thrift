@@ -35,7 +35,9 @@ struct AgentStats {
   5: i64 linkFlaps;
   7: map<string, hardware_stats.HwSysPortStats> sysPortStats;
   8: hardware_stats.TeFlowStats teFlowStats;
-  9: hardware_stats.HwBufferPoolStats bufferPoolStats_DEPRECATED;
+  // Deprecate this once newly added switchWatermarkStatsMap is
+  // available in prod!
+  9: hardware_stats.HwBufferPoolStats bufferPoolStats;
   10: map<i16, hardware_stats.HwResourceStats> hwResourceStatsMap;
   11: map<i16, hardware_stats.HwAsicErrors> hwAsicErrorsMap;
   12: map<i16, hardware_stats.TeFlowStats> teFlowStatsMap;
