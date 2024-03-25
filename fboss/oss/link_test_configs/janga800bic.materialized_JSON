@@ -12447,18 +12447,6 @@
     ],
     "acls": [
       {
-        "dscp": 48,
-        "name": "cpuPolicing-high-NetworkControl-dstLocalIp6",
-        "actionType": 1,
-        "lookupClassNeighbor": 2
-      },
-      {
-        "dscp": 48,
-        "name": "cpuPolicing-high-NetworkControl-dstLocalIp4",
-        "actionType": 1,
-        "lookupClassNeighbor": 1
-      },
-      {
         "dstIp": "ff02::/16",
         "srcPort": 0,
         "name": "cpuPolicing-CPU-Port-Mcast-v6",
@@ -12474,6 +12462,11 @@
         "dstIp": "ff02::/16",
         "dscp": 48,
         "name": "cpuPolicing-high-NetworkControl-ff02::/16",
+        "actionType": 1
+      },
+      {
+        "dscp": 48,
+        "name": "cpuPolicing-high-NetworkControl-dstLocal-127.0.0.1/32",
         "actionType": 1
       },
       {
@@ -12549,36 +12542,6 @@
       "trafficPolicy": {
         "matchToAction": [
           {
-            "matcher": "cpuPolicing-high-NetworkControl-dstLocalIp6",
-            "action": {
-              "sendToQueue": {
-                "queueId": 9
-              },
-              "toCpuAction": 0,
-              "setTc": {
-                "tcValue": 9
-              },
-              "userDefinedTrap": {
-                "queueId": 9
-              }
-            }
-          },
-          {
-            "matcher": "cpuPolicing-high-NetworkControl-dstLocalIp4",
-            "action": {
-              "sendToQueue": {
-                "queueId": 9
-              },
-              "toCpuAction": 0,
-              "setTc": {
-                "tcValue": 9
-              },
-              "userDefinedTrap": {
-                "queueId": 9
-              }
-            }
-          },
-          {
             "matcher": "cpuPolicing-CPU-Port-Mcast-v6",
             "action": {
             }
@@ -12587,14 +12550,11 @@
             "matcher": "cpuPolicing-high-NetworkControl-linkLocal-v6",
             "action": {
               "sendToQueue": {
-                "queueId": 9
+                "queueId": 7
               },
               "toCpuAction": 0,
               "setTc": {
-                "tcValue": 9
-              },
-              "userDefinedTrap": {
-                "queueId": 9
+                "tcValue": 7
               }
             }
           },
@@ -12602,14 +12562,23 @@
             "matcher": "cpuPolicing-high-NetworkControl-ff02::/16",
             "action": {
               "sendToQueue": {
-                "queueId": 9
+                "queueId": 7
               },
               "toCpuAction": 0,
               "setTc": {
-                "tcValue": 9
+                "tcValue": 7
+              }
+            }
+          },
+          {
+            "matcher": "cpuPolicing-high-NetworkControl-dstLocal-127.0.0.1/32",
+            "action": {
+              "sendToQueue": {
+                "queueId": 7
               },
-              "userDefinedTrap": {
-                "queueId": 9
+              "toCpuAction": 0,
+              "setTc": {
+                "tcValue": 7
               }
             }
           },
@@ -12622,9 +12591,6 @@
               "toCpuAction": 0,
               "setTc": {
                 "tcValue": 2
-              },
-              "userDefinedTrap": {
-                "queueId": 2
               }
             }
           },
@@ -12637,9 +12603,6 @@
               "toCpuAction": 0,
               "setTc": {
                 "tcValue": 2
-              },
-              "userDefinedTrap": {
-                "queueId": 2
               }
             }
           }
@@ -12648,27 +12611,27 @@
       "rxReasonToQueueOrderedList": [
         {
           "rxReason": 8,
-          "queueId": 9
+          "queueId": 7
         },
         {
           "rxReason": 1,
-          "queueId": 9
+          "queueId": 7
         },
         {
           "rxReason": 10,
-          "queueId": 9
+          "queueId": 7
         },
         {
           "rxReason": 11,
-          "queueId": 9
+          "queueId": 7
         },
         {
           "rxReason": 12,
-          "queueId": 9
+          "queueId": 7
         },
         {
           "rxReason": 13,
-          "queueId": 9
+          "queueId": 7
         },
         {
           "rxReason": 9,
