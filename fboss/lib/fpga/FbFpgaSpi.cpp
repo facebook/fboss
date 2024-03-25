@@ -286,7 +286,7 @@ FbFpgaSpiController::FbFpgaSpiController(
     FbDomFpga* fpga,
     uint32_t spiId,
     uint32_t pim)
-    : syncedFbSpi_(folly::in_place, fpga, spiId, pim),
+    : syncedFbSpi_(std::in_place, fpga, spiId, pim),
       eventBase_(std::make_unique<folly::EventBase>()),
       thread_(new std::thread([&, pim, spiId]() {
         initThread(fmt::format("SPI_pim{:d}_spi{:d}", pim, spiId));
@@ -300,7 +300,7 @@ FbFpgaSpiController::FbFpgaSpiController(
     std::unique_ptr<FpgaMemoryRegion> io,
     uint32_t spiId,
     uint32_t pim)
-    : syncedFbSpi_(folly::in_place, std::move(io), spiId, pim),
+    : syncedFbSpi_(std::in_place, std::move(io), spiId, pim),
       eventBase_(std::make_unique<folly::EventBase>()),
       thread_(new std::thread([&, pim, spiId]() {
         initThread(fmt::format("SPI_pim{:d}_spi{:d}", pim, spiId));
