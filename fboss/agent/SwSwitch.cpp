@@ -682,6 +682,19 @@ void SwSwitch::updateLldpStats() {
   stats()->LldpNeighborsSize(lldpManager_->getDB()->pruneExpiredNeighbors());
 }
 
+HwBufferPoolStats SwSwitch::getBufferPoolStatsFromSwitchWatermarkStats() {
+  uint64_t deviceWatermarkBytes{0};
+  auto lockedStats = hwSwitchStats_.wlock();
+  for (auto& [switchIdx, hwSwitchStats] : *lockedStats) {
+    deviceWatermarkBytes = std::max<uint64_t>(
+        deviceWatermarkBytes,
+        *hwSwitchStats.switchWatermarkStats()->deviceWatermarkBytes());
+  }
+  HwBufferPoolStats stats{};
+  stats.deviceWatermarkBytes() = deviceWatermarkBytes;
+  return stats;
+}
+
 AgentStats SwSwitch::fillFsdbStats() {
   AgentStats agentStats;
   {
@@ -731,6 +744,8 @@ AgentStats SwSwitch::fillFsdbStats() {
   agentStats.teFlowStats() = agentStats.teFlowStatsMap()->begin()->second;
   agentStats.sysPortStats() = agentStats.sysPortStatsMap()->begin()->second;
   agentStats.flowletStats() = agentStats.flowletStatsMap()->begin()->second;
+  // TODO: Remove this once switchWatermarkStats is rolled out to fleet!
+  agentStats.bufferPoolStats() = getBufferPoolStatsFromSwitchWatermarkStats();
   return agentStats;
 }
 

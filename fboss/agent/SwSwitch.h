@@ -1060,6 +1060,8 @@ class SwSwitch : public HwSwitchCallback {
 
   void updateMultiSwitchGlobalFb303Stats();
   void updateFabricReachabilityStats();
+  // TODO: To be removed once switchWatermarkStats is available in prod
+  HwBufferPoolStats getBufferPoolStatsFromSwitchWatermarkStats();
 
   std::optional<cfg::SdkVersion> sdkVersion_;
   std::unique_ptr<MultiHwSwitchHandler> multiHwSwitchHandler_;
