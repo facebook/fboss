@@ -19,6 +19,12 @@
     "PDB2": {
       "path": "/run/devmap/eeproms/PDB2_EEPROM"
     },
+    "PSU1": {
+      "path": "/run/devmap/eeproms/PSU1_EEPROM"
+    },
+    "PSU2": {
+      "path": "/run/devmap/eeproms/PSU2_EEPROM"
+    },
     "JUMPER": {
       "path": "/run/devmap/eeproms/JUMPER_EEPROM"
     },
