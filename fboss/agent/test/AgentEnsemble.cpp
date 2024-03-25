@@ -11,6 +11,7 @@
 #include "fboss/agent/EncapIndexAllocator.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/CommonUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
@@ -31,7 +32,8 @@ std::optional<facebook::fboss::cfg::StreamType> kStreamTypeOpt{std::nullopt};
 
 namespace facebook::fboss {
 AgentEnsemble::AgentEnsemble(const std::string& configFileName) {
-  configFile_ = configFileName;
+  setConfigFiles(configFileName);
+  setBootType();
 }
 
 void AgentEnsemble::setupEnsemble(
@@ -40,16 +42,19 @@ void AgentEnsemble::setupEnsemble(
     AgentEnsemblePlatformConfigFn platformConfigFn) {
   FLAGS_verify_apply_oper_delta = true;
 
-  if (platformConfigFn) {
+  if (bootType_ == BootType::COLD_BOOT) {
     auto agentConf =
         AgentConfig::fromFile(AgentEnsemble::getInputConfigFile())->thrift;
-    platformConfigFn(*(agentConf.platform()));
+    if (platformConfigFn) {
+      platformConfigFn(*(agentConf.platform()));
+    }
     // some platform config may need cold boots. so overwrite the config before
     // creating a switch
-    writeConfig(agentConf, FLAGS_config);
+    writeConfig(agentConf, configFile_);
   }
+  overrideConfigFlag(configFile_);
   createSwitch(
-      AgentConfig::fromDefaultFile(), hwFeaturesDesired, kPlatformInitFn);
+      AgentConfig::fromFile(configFile_), hwFeaturesDesired, kPlatformInitFn);
 
   // TODO: Handle multiple Asics
   HwAsic* asic = getHwAsicTable()->getHwAsicIf(SwitchID(0));
@@ -75,10 +80,14 @@ void AgentEnsemble::setupEnsemble(
       getSw()->getPlatformSupportsAddRemovePort(),
       masterLogicalPortIds_);
 
-  initialConfig_ = initialConfigFn(*this);
-  applyInitialConfig(initialConfig_);
-  // reload the new config
-  reloadPlatformConfig();
+  if (bootType_ == BootType::COLD_BOOT) {
+    initialConfig_ = initialConfigFn(*this);
+    applyInitialConfig(initialConfig_);
+    // reload the new config
+    reloadPlatformConfig();
+  } else {
+    initialConfig_ = *(AgentConfig::fromFile(configFile_)->thrift.sw());
+  }
 
   // Setup LinkStateToggler and start agent
   if (hwFeaturesDesired & HwSwitch::FeaturesDesired::LINKSCAN_DESIRED) {
@@ -110,18 +119,17 @@ void AgentEnsemble::startAgent() {
 
 void AgentEnsemble::writeConfig(const cfg::SwitchConfig& config) {
   auto* initializer = agentInitializer();
-  auto agentConfig = initializer->sw()->getAgentConfig();
+  auto isSwConfigured =
+      initializer->sw() && initializer->sw()->isFullyConfigured();
+  auto agentConfig = isSwConfigured
+      ? initializer->sw()->getAgentConfig()
+      : AgentConfig::fromFile(configFile_)->thrift;
   agentConfig.sw() = config;
   writeConfig(agentConfig);
 }
 
 void AgentEnsemble::writeConfig(const cfg::AgentConfig& agentConfig) {
-  auto* initializer = agentInitializer();
-  auto testConfigDir =
-      initializer->sw()->getDirUtil()->agentEnsembleConfigDir();
-  utilCreateDir(testConfigDir);
-  auto fileName = testConfigDir + configFile_;
-  writeConfig(agentConfig, fileName);
+  writeConfig(agentConfig, configFile_);
 }
 
 void AgentEnsemble::writeConfig(
@@ -132,12 +140,12 @@ void AgentEnsemble::writeConfig(
       apache::thrift::SimpleJSONSerializer::serialize<std::string>(
           agentConfig));
   newAgentConfig.dumpConfig(fileName);
-  if (kInputConfigFile.empty()) {
-    // saving the original config file.
-    kInputConfigFile = FLAGS_config;
-  }
+}
+
+void AgentEnsemble::overrideConfigFlag(const std::string& fileName) {
   FLAGS_config = fileName;
-  initFlagDefaults(*newAgentConfig.thrift.defaultCommandLineArgs());
+  initFlagDefaults(
+      *(AgentConfig::fromFile(fileName)->thrift.defaultCommandLineArgs()));
 }
 
 AgentEnsemble::~AgentEnsemble() {
@@ -237,9 +245,24 @@ void AgentEnsemble::setupLinkStateToggler() {
 
 std::string AgentEnsemble::getInputConfigFile() {
   if (kInputConfigFile.empty()) {
-    return FLAGS_config;
+    kInputConfigFile = FLAGS_config;
   }
   return kInputConfigFile;
+}
+
+void AgentEnsemble::setConfigFiles(const std::string& fileName) {
+  if (kInputConfigFile.empty()) {
+    kInputConfigFile = FLAGS_config;
+  }
+  utilCreateDir(AgentDirectoryUtil().agentEnsembleConfigDir());
+  configFile_ = AgentDirectoryUtil().agentEnsembleConfigDir() + fileName;
+}
+
+void AgentEnsemble::setBootType() {
+  auto dirUtil = AgentDirectoryUtil();
+  bootType_ = (checkFileExists(dirUtil.getSwSwitchCanWarmBootFile()))
+      ? BootType::WARM_BOOT
+      : BootType::COLD_BOOT;
 }
 
 void initEnsemble(
