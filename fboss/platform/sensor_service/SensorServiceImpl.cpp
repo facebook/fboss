@@ -29,14 +29,6 @@ DEFINE_int32(
     5,
     "Interval at which stats subscriptions are served");
 
-namespace {
-auto constexpr kReadFailure = "sensor_read.{}.failure";
-auto constexpr kReadValue = "sensor_read.{}.value";
-auto constexpr kReadTotal = "sensor_read.total";
-auto constexpr kTotalReadFailure = "sensor_read.total.failures";
-auto constexpr kHasReadFailure = "sensor_read.has.failures";
-} // namespace
-
 namespace facebook::fboss::platform::sensor_service {
 
 SensorServiceImpl::SensorServiceImpl() {

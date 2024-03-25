@@ -28,6 +28,12 @@ using namespace facebook::fboss::platform::sensor_config;
 
 class SensorServiceImpl {
  public:
+  auto static constexpr kReadFailure = "sensor_read.{}.failure";
+  auto static constexpr kReadValue = "sensor_read.{}.value";
+  auto static constexpr kReadTotal = "sensor_read.total";
+  auto static constexpr kTotalReadFailure = "sensor_read.total.failures";
+  auto static constexpr kHasReadFailure = "sensor_read.has.failures";
+
   explicit SensorServiceImpl();
   ~SensorServiceImpl();
 

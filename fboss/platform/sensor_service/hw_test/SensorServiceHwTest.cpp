@@ -127,18 +127,19 @@ TEST_F(SensorServiceHwTest, GetSomeSensorsViaThrift) {
 
 TEST_F(SensorServiceHwTest, SensorFetchODSCheck) {
   sensorServiceImpl_->fetchSensorData();
-  EXPECT_EQ(fb303::fbData->getCounter("sensor_read.total.failures"), 0);
-  EXPECT_EQ(fb303::fbData->getCounter("sensor_read.has.failures"), 0);
-}
-
-TEST_F(SensorServiceHwTest, PublishStats) {
-  sensorServiceImpl_->fetchSensorData();
-  SensorStatsPub publisher(sensorServiceImpl_.get());
-  publisher.publishStats();
+  EXPECT_EQ(fb303::fbData->getCounter(SensorServiceImpl::kHasReadFailure), 0);
+  EXPECT_EQ(fb303::fbData->getCounter(SensorServiceImpl::kTotalReadFailure), 0);
   auto sensorMap = sensorServiceImpl_->getAllSensorData();
+  EXPECT_GT(fb303::fbData->getCounter(SensorServiceImpl::kReadTotal), 0);
   for (const auto& [sensorName, sensorData] : sensorMap) {
     EXPECT_EQ(
-        fb303::fbData->getCounter(sensorName), (int64_t)*sensorData.value());
+        fb303::fbData->getCounter(
+            fmt::format(SensorServiceImpl::kReadValue, sensorName)),
+        (int64_t)*sensorData.value());
+    EXPECT_EQ(
+        fb303::fbData->getCounter(
+            fmt::format(SensorServiceImpl::kReadFailure, sensorName)),
+        0);
   }
 }
 } // namespace facebook::fboss::platform::sensor_service
