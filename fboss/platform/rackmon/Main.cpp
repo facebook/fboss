@@ -23,7 +23,7 @@ int main(int argc, char** argv) {
   server->setPort(FLAGS_port);
   server->setInterface(handler);
   server->setAllowPlaintextOnLoopback(true);
-  helpers::runThriftService(server, handler, "DataCorralService", FLAGS_port);
+  helpers::runThriftService(server, handler, "Rackmon", FLAGS_port);
 
   return 0;
 }
