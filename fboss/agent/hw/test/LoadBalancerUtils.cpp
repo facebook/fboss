@@ -26,7 +26,6 @@
 #include "fboss/agent/state/LoadBalancer.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
-#include "fboss/lib/CommonUtils.h"
 
 #include "folly/MacAddress.h"
 
@@ -35,20 +34,6 @@
 #include <sstream>
 
 namespace facebook::fboss::utility {
-
-void pumpTrafficAndVerifyLoadBalanced(
-    std::function<void()> pumpTraffic,
-    std::function<void()> clearPortStats,
-    std::function<bool()> isLoadBalanced,
-    bool loadBalanceExpected) {
-  clearPortStats();
-  pumpTraffic();
-  if (loadBalanceExpected) {
-    WITH_RETRIES(EXPECT_EVENTUALLY_TRUE(isLoadBalanced()));
-  } else {
-    EXPECT_FALSE(isLoadBalanced());
-  }
-}
 
 bool isHwDeterministicSeed(
     HwSwitch* hwSwitch,

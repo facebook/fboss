@@ -145,6 +145,7 @@ add_library(load_balancer_test_utils
 )
 
 target_link_libraries(load_balancer_test_utils
+  ${GTEST}
   state
   Folly::folly
   test_ensemble_if
@@ -157,6 +158,7 @@ target_link_libraries(load_balancer_test_utils
   packet
   packet_factory
   resourcelibutil
+  common_utils
 )
 
 add_library(dscp_marking_utils

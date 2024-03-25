@@ -209,4 +209,10 @@ std::shared_ptr<SwitchState> addLoadBalancers(
     const std::shared_ptr<SwitchState>& inputState,
     const std::vector<cfg::LoadBalancer>& loadBalancers,
     const SwitchIdScopeResolver& resolver);
+
+void pumpTrafficAndVerifyLoadBalanced(
+    std::function<void()> pumpTraffic,
+    std::function<void()> clearPortStats,
+    std::function<bool()> isLoadBalanced,
+    bool loadBalanceExpected = true);
 } // namespace facebook::fboss::utility

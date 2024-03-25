@@ -11,8 +11,11 @@
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
+#include "fboss/lib/CommonUtils.h"
 
 #include <folly/gen/Base.h>
+
+#include <gtest/gtest.h>
 
 DEFINE_string(
     load_balance_traffic_src,
@@ -757,6 +760,20 @@ SendPktFunc getSendPktFunc(SwSwitch* sw) {
                          std::optional<uint8_t> queue) {
     sw->sendPacketAsync(std::move(pkt), std::move(port), queue);
   });
+}
+
+void pumpTrafficAndVerifyLoadBalanced(
+    std::function<void()> pumpTraffic,
+    std::function<void()> clearPortStats,
+    std::function<bool()> isLoadBalanced,
+    bool loadBalanceExpected) {
+  clearPortStats();
+  pumpTraffic();
+  if (loadBalanceExpected) {
+    WITH_RETRIES(EXPECT_EVENTUALLY_TRUE(isLoadBalanced()));
+  } else {
+    EXPECT_FALSE(isLoadBalanced());
+  }
 }
 
 template bool isLoadBalancedImpl<SystemPortID, HwSysPortStats>(

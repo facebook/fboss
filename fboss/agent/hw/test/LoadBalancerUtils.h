@@ -65,12 +65,6 @@ bool isLoadBalanced(
       maxDeviationPct);
 }
 
-void pumpTrafficAndVerifyLoadBalanced(
-    std::function<void()> pumpTraffic,
-    std::function<void()> clearPortStats,
-    std::function<bool()> isLoadBalanced,
-    bool loadBalanceExpected = true);
-
 bool isHwDeterministicSeed(
     HwSwitch* hwSwitch,
     const std::shared_ptr<SwitchState>& state,
