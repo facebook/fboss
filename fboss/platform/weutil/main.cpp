@@ -11,7 +11,6 @@
 #include <glog/logging.h>
 
 #include "fboss/platform/helpers/Init.h"
-#include "fboss/platform/weutil/Flags.h"
 #include "fboss/platform/weutil/Weutil.h"
 #include "fboss/platform/weutil/WeutilDarwin.h"
 
@@ -20,6 +19,16 @@ using namespace facebook::fboss;
 using namespace facebook;
 
 FOLLY_INIT_LOGGING_CONFIG(".=FATAL; default:async=true");
+
+DEFINE_bool(json, false, "Output in JSON format");
+DEFINE_string(
+    eeprom,
+    "",
+    "EEPROM name or device type, default is chassis eeprom");
+DEFINE_string(
+    path,
+    "",
+    "When set, ignore config and read the eeprom specified by the path");
 
 // If config file is not specified, we detect the platform type and load
 // the proper platform config. If no flags/args are specified, weutil will
