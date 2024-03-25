@@ -36,6 +36,7 @@
 #include "fboss/cli/fboss2/commands/show/dsfnodes/CmdShowDsfNodes.h"
 #include "fboss/cli/fboss2/commands/show/fabric/CmdShowFabric.h"
 #include "fboss/cli/fboss2/commands/show/fabric/reachability/CmdShowFabricReachability.h"
+#include "fboss/cli/fboss2/commands/show/fabric/topology/CmdShowFabricTopology.h"
 #include "fboss/cli/fboss2/commands/show/flowlet/CmdShowFlowlet.h"
 #include "fboss/cli/fboss2/commands/show/host/CmdShowHost.h"
 #include "fboss/cli/fboss2/commands/show/hwagent/CmdShowHwAgentStatus.h"
@@ -119,7 +120,11 @@ const CommandTree& kCommandTree() {
            {"reachability",
             "Show Fabric ports that can reach the given switch name",
             commandHandler<CmdShowFabricReachability>,
-            argTypeHandler<CmdShowFabricReachabilityTraits>}}},
+            argTypeHandler<CmdShowFabricReachabilityTraits>},
+           {"topology",
+            "Show Fabric topology per virtual device",
+            commandHandler<CmdShowFabricTopology>,
+            argTypeHandler<CmdShowFabricTopologyTraits>}}},
 
       {"show",
        "flowlet",

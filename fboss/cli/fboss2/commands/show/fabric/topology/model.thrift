@@ -10,4 +10,5 @@ struct FabricVirtualDeviceTopology {
   3: i64 remoteSwitchId;
   4: string remoteSwitchName;
   5: list<string> connectingPorts;
+  6: bool isSymmetric;
 }
