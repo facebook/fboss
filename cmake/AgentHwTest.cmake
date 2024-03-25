@@ -209,6 +209,23 @@ add_fbthrift_cpp_library(
     visitation
 )
 
+add_library(
+  ecmp_dataplane_test_util
+  fboss/agent/hw/test/dataplane_tests/HwEcmpDataPlaneTestUtil.cpp
+)
+
+target_link_libraries(ecmp_dataplane_test_util
+  route_update_wrapper
+  packet
+  state
+  ecmp_helper
+  linkstate_toggler
+  test_ensemble_if
+  load_balancer_test_utils
+  fboss_types
+  route_update_wrapper
+)
+
 set(hw_switch_test_srcs
   fboss/agent/hw/test/HwEcmpTests.cpp
   fboss/agent/hw/test/HwTestFabricUtils.cpp
@@ -257,7 +274,6 @@ set(hw_switch_test_srcs
   fboss/agent/hw/test/dataplane_tests/HwConfigVerifyQosTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwCoppTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwDeepPacketInspectionTests.cpp
-  fboss/agent/hw/test/dataplane_tests/HwEcmpDataPlaneTestUtil.cpp
   fboss/agent/hw/test/dataplane_tests/HwAqmTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwJumboFramesTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwInDiscardCounterTests.cpp
@@ -338,6 +354,7 @@ target_link_libraries(hw_switch_test
   acl_test_utils
   copp_test_utils
   dscp_marking_utils
+  ecmp_dataplane_test_util
   fabric_test_utils
   hw_packet_utils
   hw_switch_ensemble

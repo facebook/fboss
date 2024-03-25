@@ -106,6 +106,10 @@ class BaseEcmpSetupHelper {
   AddrT ip(PortDescriptor portDesc) const {
     return nhop(portDesc).ip;
   }
+  bool forAggregatePorts() const {
+    CHECK(!portDesc2Interface_.empty());
+    return ecmpPortDescriptorAt(0).isAggregatePort();
+  }
 
   /*
    * resolveNextHops and unresolveNextHops resolves/unresolves the list

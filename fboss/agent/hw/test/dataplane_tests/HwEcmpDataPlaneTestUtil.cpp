@@ -2,13 +2,11 @@
 
 #include "fboss/agent/hw/test/dataplane_tests/HwEcmpDataPlaneTestUtil.h"
 
-#include "fboss/agent/Platform.h"
-#include "fboss/agent/hw/test/ConfigFactory.h"
-#include "fboss/agent/hw/test/HwTestPacketUtils.h"
-#include "fboss/agent/hw/test/LoadBalancerUtils.h"
+#include "fboss/agent/RouteUpdateWrapper.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/LinkStateToggler.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
+#include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 
 namespace facebook::fboss::utility {
 
@@ -72,9 +70,8 @@ bool HwEcmpDataPlaneTestUtil<EcmpSetupHelperT>::isLoadBalanced(
     int ecmpWidth,
     const std::vector<NextHopWeight>& weights,
     uint8_t deviation) {
-  auto ecmpPorts = helper_->ecmpPortDescs(ecmpWidth);
-  return utility::isLoadBalanced<PortID, HwPortStats>(
-      ensemble_, ecmpPorts, weights, deviation);
+  std::vector<PortDescriptor> ecmpPorts = helper_->ecmpPortDescs(ecmpWidth);
+  return isLoadBalanced(ecmpPorts, weights, deviation);
 }
 
 template <typename EcmpSetupHelperT>
@@ -82,8 +79,15 @@ bool HwEcmpDataPlaneTestUtil<EcmpSetupHelperT>::isLoadBalanced(
     const std::vector<PortDescriptor>& portDescs,
     const std::vector<NextHopWeight>& weights,
     uint8_t deviation) {
-  return utility::isLoadBalanced<PortID, HwPortStats>(
-      ensemble_, portDescs, weights, deviation);
+  auto rc = utility::isLoadBalanced<PortID, HwPortStats>(
+      portDescs,
+      weights,
+      [ensemble = ensemble_](
+          const std::vector<PortID>& portIds) -> std::map<PortID, HwPortStats> {
+        return ensemble->getLatestPortStats(portIds);
+      },
+      deviation);
+  return rc;
 }
 
 template <typename AddrT>
