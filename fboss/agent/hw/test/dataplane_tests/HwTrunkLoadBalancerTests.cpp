@@ -16,10 +16,10 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
-#include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/state/LabelForwardingAction.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/TrunkUtils.h"
+#include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "folly/IPAddressV4.h"
 
 #include "fboss/agent/state/SwitchState.h"
@@ -255,7 +255,12 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
         [=, this]() { clearPortStats(aggInfo); },
         [=, this]() {
           return utility::isLoadBalanced<PortID, HwPortStats>(
-              getHwSwitchEnsemble(), getPhysicalPorts(aggInfo), deviation);
+              getPhysicalPorts(aggInfo),
+              std::vector<NextHopWeight>(),
+              [=](const std::vector<PortID>& portIds) {
+                return getHwSwitchEnsemble()->getLatestPortStats(portIds);
+              },
+              deviation);
         });
   }
 
@@ -277,7 +282,12 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
         [=, this]() { clearPortStats(aggInfo); },
         [=, this]() {
           return utility::isLoadBalanced<PortID, HwPortStats>(
-              getHwSwitchEnsemble(), getPhysicalPorts(aggInfo), deviation);
+              getPhysicalPorts(aggInfo),
+              std::vector<NextHopWeight>(),
+              [=](const std::vector<PortID>& portIds) {
+                return getHwSwitchEnsemble()->getLatestPortStats(portIds);
+              },
+              deviation);
         });
   }
 
