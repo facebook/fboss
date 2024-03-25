@@ -12729,6 +12729,17 @@
             },
             "switchMac": "02:00:00:00:00:01",
             "connectionHandle": "15:00"
+        },
+        "4": {
+            "switchType": 2,
+            "asicType": 14,
+            "switchIndex": 1,
+            "portIdRange": {
+              "minimum": 2048,
+              "maximum": 4095
+            },
+            "switchMac": "02:00:00:00:00:01",
+            "connectionHandle": "18:00"
         }
       },
       "vendorMacOuis": [
