@@ -42,31 +42,18 @@ namespace facebook::fboss::platform::sensor_service {
 SensorServiceImpl::SensorServiceImpl() {
   std::string sensorConfJson = ConfigLib().getSensorServiceConfig();
   XLOG(DBG2) << "Read sensor config: " << sensorConfJson;
-
-  SensorConfig sensorTable{};
   apache::thrift::SimpleJSONSerializer::deserialize<SensorConfig>(
-      sensorConfJson, sensorTable);
-
-  liveDataTable_.withWLock([&](auto& table) {
-    for (const auto& [fruName, sensorMap] : *sensorTable.sensorMapList()) {
-      for (const auto& [sensorName, sensor] : sensorMap) {
-        std::string path = *sensor.path();
-        table[sensorName].path = path;
-        table[sensorName].fru = fruName;
-        if (sensor.compute().has_value()) {
-          table[sensorName].compute = *sensor.compute();
-        }
-        table[sensorName].thresholds = *sensor.thresholds();
-        XLOG(INFO) << fmt::format(
-            "{}: Path={}, Compute={}, FRU={}",
-            sensorName,
-            table[sensorName].path,
-            table[sensorName].compute,
-            table[sensorName].fru);
-      }
+      sensorConfJson, sensorConfig_);
+  for (const auto& [fruName, sensorMap] : *sensorConfig_.sensorMapList()) {
+    for (const auto& [sensorName, sensor] : sensorMap) {
+      XLOG(INFO) << fmt::format(
+          "{}: Path={}, Compute={}, FRU={}",
+          sensorName,
+          *sensor.path(),
+          sensor.compute().value_or(""),
+          fruName);
     }
-  });
-
+  }
   fsdbSyncer_ = std::make_unique<FsdbSyncer>();
   XLOG(INFO) << "========================================================";
 }
@@ -81,104 +68,81 @@ SensorServiceImpl::~SensorServiceImpl() {
 std::vector<SensorData> SensorServiceImpl::getSensorsData(
     const std::vector<std::string>& sensorNames) {
   std::vector<SensorData> sensorDataVec;
-  liveDataTable_.withRLock([&](auto& table) {
-    for (const auto& sensorName : sensorNames) {
-      auto it = table.find(sensorName);
-      if (it == table.end()) {
-        continue;
-      }
-      SensorData d;
-      d.name() = it->first;
-      d.value().from_optional(it->second.value);
-      d.timeStamp().from_optional(it->second.timeStamp);
-      sensorDataVec.push_back(d);
+  auto allSensorData = getAllSensorData();
+  for (const auto& sensorName : sensorNames) {
+    auto it = allSensorData.find(sensorName);
+    if (it == allSensorData.end()) {
+      continue;
     }
-  });
+    sensorDataVec.push_back(it->second);
+  }
   return sensorDataVec;
 }
 
 std::map<std::string, SensorData> SensorServiceImpl::getAllSensorData() {
-  std::map<std::string, SensorData> sensorDataMap;
-  liveDataTable_.withRLock([&](auto& table) {
-    for (auto& pair : table) {
-      SensorData d;
-      d.name() = pair.first;
-      d.value().from_optional(pair.second.value);
-      d.timeStamp().from_optional(pair.second.timeStamp);
-      sensorDataMap[pair.first] = d;
-    }
-  });
-  return sensorDataMap;
+  return polledData_.copy();
 }
 
 void SensorServiceImpl::fetchSensorData() {
-  SCOPE_EXIT {
-    if (FLAGS_publish_stats_to_fsdb) {
-      auto now = std::chrono::steady_clock::now();
-      if (!publishedStatsToFsdbAt_ ||
-          std::chrono::duration_cast<std::chrono::seconds>(
-              now - *publishedStatsToFsdbAt_)
-                  .count() >= FLAGS_fsdb_statsStream_interval_seconds) {
-        stats::SensorServiceStats sensorServiceStats;
-        sensorServiceStats.sensorData() = getAllSensorData();
-        fsdbSyncer_->statsUpdated(std::move(sensorServiceStats));
-        publishedStatsToFsdbAt_ = now;
-      }
-    }
-  };
-  fetchSensorDataFromSysfs();
-}
-
-void SensorServiceImpl::fetchSensorDataFromSysfs() {
-  liveDataTable_.withWLock([&](auto& liveDataTable) {
-    auto now = Utils::nowInSecs();
-    auto readFailures{0};
-    for (auto& [sensorName, sensorLiveData] : liveDataTable) {
+  std::map<std::string, SensorData> polledData;
+  auto nowTs = Utils::nowInSecs();
+  auto readFailures{0};
+  for (const auto& [fruName, sensorMap] : *sensorConfig_.sensorMapList()) {
+    for (const auto& [sensorName, sensor] : sensorMap) {
+      SensorData sensorData{};
+      sensorData.name() = sensorName;
       std::string sensorValue;
       bool sysfsFileExists =
-          std::filesystem::exists(std::filesystem::path(sensorLiveData.path));
+          std::filesystem::exists(std::filesystem::path(*sensor.path()));
       if (sysfsFileExists &&
-          folly::readFile(sensorLiveData.path.c_str(), sensorValue)) {
-        sensorLiveData.value = folly::to<float>(sensorValue);
-        sensorLiveData.timeStamp = now;
-        if (!sensorLiveData.compute.empty()) {
-          sensorLiveData.value = Utils::computeExpression(
-              sensorLiveData.compute, *sensorLiveData.value);
+          folly::readFile(sensor.path()->c_str(), sensorValue)) {
+        sensorData.value() = folly::to<float>(sensorValue);
+        sensorData.timeStamp() = nowTs;
+        if (sensor.compute()) {
+          sensorData.value() =
+              Utils::computeExpression(*sensor.compute(), *sensorData.value());
         }
         XLOG(DBG1) << fmt::format(
-            "{} ({}) : {}",
-            sensorName,
-            sensorLiveData.path,
-            *sensorLiveData.value);
+            "{} ({}) : {}", sensorName, *sensor.path(), *sensorData.value());
         fb303::fbData->setCounter(fmt::format(kReadFailure, sensorName), 0);
       } else {
-        sensorLiveData.value = std::nullopt;
-        sensorLiveData.timeStamp = std::nullopt;
         XLOG(ERR) << fmt::format(
             "Could not read data for {} from path:{}, error:{}",
             sensorName,
-            sensorLiveData.path,
+            *sensor.path(),
             sysfsFileExists ? folly::errnoStr(errno) : "File does not exist");
         fb303::fbData->setCounter(fmt::format(kReadFailure, sensorName), 1);
         readFailures++;
       }
       // We log 0 if there is a read failure.  If we dont log 0 on failure,
-      // fb303 will pick up the last reported (on read success) value and keep
-      // reporting that as the value. For 0 values, it is accurate to read the
-      // value along with the kReadFailure counter. Alternative is to delete
-      // this counter if there is a failure.
+      // fb303 will pick up the last reported (on read success) value and
+      // keep reporting that as the value. For 0 values, it is accurate to
+      // read the value along with the kReadFailure counter. Alternative is
+      // to delete this counter if there is a failure.
       fb303::fbData->setCounter(
-          fmt::format(kReadValue, sensorName),
-          sensorLiveData.value.value_or(0));
+          fmt::format(kReadValue, sensorName), sensorData.value().value_or(0));
+      polledData[sensorName] = sensorData;
     }
-    fb303::fbData->setCounter(kTotalReadFailure, readFailures);
-    fb303::fbData->setCounter(kReadTotal, liveDataTable.size());
-    fb303::fbData->setCounter(kHasReadFailure, readFailures > 0 ? 1 : 0);
-    XLOG(INFO) << fmt::format(
-        "Processed {} Sensors. {} Failures.",
-        liveDataTable.size(),
-        readFailures);
-  });
+  }
+  fb303::fbData->setCounter(kTotalReadFailure, readFailures);
+  fb303::fbData->setCounter(kReadTotal, polledData.size());
+  fb303::fbData->setCounter(kHasReadFailure, readFailures > 0 ? 1 : 0);
+  XLOG(INFO) << fmt::format(
+      "Processed {} Sensors. {} Failures.", polledData.size(), readFailures);
+  polledData_.swap(polledData);
+
+  if (FLAGS_publish_stats_to_fsdb) {
+    auto now = std::chrono::steady_clock::now();
+    if (!publishedStatsToFsdbAt_ ||
+        std::chrono::duration_cast<std::chrono::seconds>(
+            now - *publishedStatsToFsdbAt_)
+                .count() >= FLAGS_fsdb_statsStream_interval_seconds) {
+      stats::SensorServiceStats sensorServiceStats;
+      sensorServiceStats.sensorData() = getAllSensorData();
+      fsdbSyncer_->statsUpdated(std::move(sensorServiceStats));
+      publishedStatsToFsdbAt_ = now;
+    }
+  }
 }
 
 } // namespace facebook::fboss::platform::sensor_service

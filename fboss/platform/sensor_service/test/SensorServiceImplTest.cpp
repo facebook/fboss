@@ -41,7 +41,7 @@ class SensorServiceImplTest : public ::testing::Test {
   }
 };
 
-TEST_F(SensorServiceImplTest, fetchAndCheckSensorDataSYFSFailure) {
+TEST_F(SensorServiceImplTest, fetchAndCheckSensorData) {
   folly::test::TemporaryDirectory tmpDir = folly::test::TemporaryDirectory();
   auto sensorServiceImpl =
       createSensorServiceImplForTest(tmpDir.path().string());
