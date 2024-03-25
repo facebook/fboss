@@ -5,8 +5,6 @@
 
 #include <string>
 
-#include <folly/experimental/FunctionScheduler.h>
-
 #include "fboss/platform/platform_manager/DataStore.h"
 #include "fboss/platform/platform_manager/DevicePathResolver.h"
 #include "fboss/platform/platform_manager/I2cExplorer.h"
@@ -17,10 +15,7 @@
 namespace facebook::fboss::platform::platform_manager {
 class PlatformExplorer {
  public:
-  explicit PlatformExplorer(
-      std::chrono::seconds exploreInterval,
-      const PlatformConfig& config,
-      bool runOnce = false);
+  explicit PlatformExplorer(const PlatformConfig& config);
 
   // Explore the platform.
   void explore();
@@ -71,7 +66,6 @@ class PlatformExplorer {
       uint16_t busNum,
       const I2cAddr& addr);
 
-  folly::FunctionScheduler scheduler_;
   PlatformConfig platformConfig_{};
   I2cExplorer i2cExplorer_{};
   PciExplorer pciExplorer_{};
