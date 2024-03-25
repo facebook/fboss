@@ -61,7 +61,9 @@ Table::Row& Table::setHeader(const std::vector<Table::RowData>& data) {
   return row;
 }
 
-Table::Row& Table::addRow(const std::vector<Table::RowData>& data) {
+Table::Row& Table::addRow(
+    const std::vector<Table::RowData>& data,
+    Table::Style rowStyle) {
   // transform all items to StyledCells, using StyledCell's implicit constructor
   std::vector<StyledCell> cells;
   cells.reserve(data.size());
@@ -92,8 +94,10 @@ Table::Row& Table::addRow(const std::vector<Table::RowData>& data) {
   // apply extra styling, if provided
   for (auto i = 0; i < cells.size(); i++) {
     const auto& cell = cells[i];
-    if (cell.getStyle() != Table::Style::NONE) {
-      newRow.setCellStyle(i, cell.getStyle());
+    auto style =
+        cell.getStyle() != Table::Style::NONE ? cell.getStyle() : rowStyle;
+    if (style != Table::Style::NONE) {
+      newRow.setCellStyle(i, style);
     }
   }
   return newRow;

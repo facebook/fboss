@@ -71,7 +71,9 @@ class Table {
     table.addRow({"val1", StyledCell("val2", Style::WARN), "val3"});
   */
   Row& setHeader(const std::vector<RowData>& data);
-  Row& addRow(const std::vector<RowData>& data);
+  Row& addRow(
+      const std::vector<RowData>& data,
+      Table::Style rowStyle = Table::Style::NONE);
 
  private:
   friend std::ostream& operator<<(std::ostream& stream, const Table& table);
