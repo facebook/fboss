@@ -187,3 +187,20 @@ target_link_libraries(trap_packet_utils
 add_library(stats_test_utils
   fboss/agent/test/utils/StatsTestUtils.cpp
 )
+
+add_library(
+  ecmp_dataplane_test_util
+  fboss/agent/test/utils/EcmpDataPlaneTestUtil.cpp
+)
+
+target_link_libraries(ecmp_dataplane_test_util
+  route_update_wrapper
+  packet
+  state
+  ecmp_helper
+  linkstate_toggler
+  test_ensemble_if
+  load_balancer_test_utils
+  fboss_types
+  route_update_wrapper
+)

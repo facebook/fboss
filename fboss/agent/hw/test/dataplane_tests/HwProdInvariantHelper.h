@@ -14,7 +14,7 @@
 
 #include "fboss/agent/hw/test/HwTestProdConfigUtils.h"
 
-#include "fboss/agent/hw/test/dataplane_tests/HwEcmpDataPlaneTestUtil.h"
+#include "fboss/agent/test/utils/EcmpDataPlaneTestUtil.h"
 
 /*
  * FLAGS_config is declared here specifically with HwProdInvariantTests.cpp in

@@ -7,7 +7,7 @@
 #include "fboss/agent/hw/test/HwTestFlowletSwitchingUtils.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/hw/test/ProdConfigFactory.h"
-#include "fboss/agent/hw/test/dataplane_tests/HwEcmpDataPlaneTestUtil.h"
+#include "fboss/agent/test/utils/EcmpDataPlaneTestUtil.h"
 
 #include <boost/preprocessor/cat.hpp>
 #include <boost/preprocessor/facilities/expand.hpp>

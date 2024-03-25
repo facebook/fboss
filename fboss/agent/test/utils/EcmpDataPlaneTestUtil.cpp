@@ -1,6 +1,6 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-#include "fboss/agent/hw/test/dataplane_tests/HwEcmpDataPlaneTestUtil.h"
+#include "fboss/agent/test/utils/EcmpDataPlaneTestUtil.h"
 
 #include "fboss/agent/RouteUpdateWrapper.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
