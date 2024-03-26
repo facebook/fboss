@@ -37,10 +37,25 @@ class CmdShowInterfacePrbsCapabilities
       const HostInfo& hostInfo,
       const std::vector<std::string>& queriedIfs,
       const std::vector<std::string>& components) {
-    return createModel(
-        hostInfo,
-        queriedIfs,
-        prbsComponents(components, true /* returnAllIfEmpty */));
+    if (queriedIfs.empty()) {
+      std::vector<std::string> allIfs;
+      std::map<int32_t, facebook::fboss::PortInfoThrift> portEntries_;
+      auto agentClient =
+          utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
+      agentClient->sync_getAllPortInfo(portEntries_);
+      for (const auto& port : portEntries_) {
+        allIfs.push_back(port.second.get_name());
+      }
+      return createModel(
+          hostInfo,
+          allIfs,
+          prbsComponents(components, true /* returnAllIfEmpty */));
+    } else {
+      return createModel(
+          hostInfo,
+          queriedIfs,
+          prbsComponents(components, true /* returnAllIfEmpty */));
+    }
   }
 
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
@@ -88,16 +103,21 @@ class CmdShowInterfacePrbsCapabilities
       const std::string& interfaceName,
       const phy::PortComponent& component) {
     std::vector<prbs::PrbsPolynomial> polynomials;
-    if (component == phy::PortComponent::TRANSCEIVER_LINE ||
-        component == phy::PortComponent::TRANSCEIVER_SYSTEM) {
-      auto qsfpClient = utils::createClient<QsfpServiceAsyncClient>(hostInfo);
-      qsfpClient->sync_getSupportedPrbsPolynomials(
-          polynomials, interfaceName, component);
-    } else if (component == phy::PortComponent::ASIC) {
-      auto agentClient =
-          utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(hostInfo);
-      agentClient->sync_getSupportedPrbsPolynomials(
-          polynomials, interfaceName, component);
+    try {
+      if (component == phy::PortComponent::TRANSCEIVER_LINE ||
+          component == phy::PortComponent::TRANSCEIVER_SYSTEM) {
+        auto qsfpClient =
+            utils::createClient<apache::thrift::Client<QsfpService>>(hostInfo);
+        qsfpClient->sync_getSupportedPrbsPolynomials(
+            polynomials, interfaceName, component);
+      } else if (component == phy::PortComponent::ASIC) {
+        auto agentClient =
+            utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
+        agentClient->sync_getSupportedPrbsPolynomials(
+            polynomials, interfaceName, component);
+      }
+    } catch (const std::exception& e) {
+      std::cerr << e.what();
     }
     return polynomials;
   }
