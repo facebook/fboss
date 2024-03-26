@@ -218,18 +218,6 @@ class AgentVoqSwitchTest : public AgentHwTest {
   }
 };
 
-TEST_F(AgentVoqSwitchTest, addRemoveNeighbor) {
-  auto setup = [this]() {
-    const PortDescriptor kPort(getAgentEnsemble()->masterLogicalPortIds(
-        {cfg::PortType::INTERFACE_PORT})[0]);
-    // Add neighbor
-    addRemoveNeighbor(kPort, true);
-    // Remove neighbor
-    addRemoveNeighbor(kPort, false);
-  };
-  verifyAcrossWarmBoots(setup, [] {});
-}
-
 class AgentVoqSwitchWithFabricPortsTest : public AgentVoqSwitchTest {
  public:
   cfg::SwitchConfig initialConfig(
@@ -682,6 +670,18 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, fdrCellDrops) {
     checkNoStatsChange(30 /*retries*/);
   };
   verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentVoqSwitchTest, addRemoveNeighbor) {
+  auto setup = [this]() {
+    const PortDescriptor kPort(getAgentEnsemble()->masterLogicalPortIds(
+        {cfg::PortType::INTERFACE_PORT})[0]);
+    // Add neighbor
+    addRemoveNeighbor(kPort, true);
+    // Remove neighbor
+    addRemoveNeighbor(kPort, false);
+  };
+  verifyAcrossWarmBoots(setup, [] {});
 }
 
 TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
