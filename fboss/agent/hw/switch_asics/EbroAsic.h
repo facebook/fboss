@@ -115,11 +115,15 @@ class EbroAsic : public TajoAsic {
   }
   std::optional<uint32_t> getMaxEcmpGroups() const override {
     // MT-697
-    return 16000;
+    // fbsource/third-party/tp2/leaba-sdk/1.42.8/sdk-1.42.8/sai/src/sai_device.h
+    // MAX_NEXT_HOPS = 4096
+    return 4096;
   }
   std::optional<uint32_t> getMaxEcmpMembers() const override {
     // MT-697
-    return 96000;
+    // fbsource/third-party/tp2/leaba-sdk/1.42.8/sdk-1.42.8/sai/src/sai_device.h
+    // MAX_NEXT_HOP_GROUP_MEMBERS = 32768
+    return 32768;
   }
   uint32_t getNumCores() const override {
     return 12;

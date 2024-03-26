@@ -70,8 +70,9 @@ class TomahawkAsic : public BroadcomXgsAsic {
     return 128;
   }
   std::optional<uint32_t> getMaxEcmpGroups() const override {
-    // 56960-DS113
-    return 1024;
+    // 56960-DS113: With Config change(l3_max_ecmp_mode = 1): 1024
+    // CS00012341838
+    return 895;
   }
   std::optional<uint32_t> getMaxEcmpMembers() const override {
     // 56960-DS113
