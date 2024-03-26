@@ -55,4 +55,8 @@ struct AgentStats {
   24: map<i16, HwAgentEventSyncStatus> hwAgentEventSyncStatusMap;
   25: map<i16, i16> fabricOverdrainPct;
   26: map<i16, hardware_stats.HwSwitchWatermarkStats> switchWatermarkStatsMap;
+  27: map<
+    i16,
+    hardware_stats.FabricReachabilityStats
+  > fabricReachabilityStatsMap;
 }
