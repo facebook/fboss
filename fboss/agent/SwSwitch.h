@@ -1056,7 +1056,7 @@ class SwSwitch : public HwSwitchCallback {
   std::shared_ptr<SwitchState> preInit(
       SwitchFlags flags = SwitchFlags::DEFAULT);
 
-  void postInit(const HwInitResult* HwInitResult = nullptr);
+  void postInit();
 
   void updateMultiSwitchGlobalFb303Stats();
   void updateFabricReachabilityStats();

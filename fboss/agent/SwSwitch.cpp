@@ -1240,7 +1240,7 @@ void SwSwitch::init(
       << "Time to init switch and start all threads and apply the state"
       << duration_cast<duration<float>>(steady_clock::now() - begin).count();
 
-  postInit(&hwInitRet);
+  postInit();
 
   if (scopeResolver_->hasL3()) {
     SwSwitchRouteUpdateWrapper(this, rib_.get()).programMinAlpmState();
@@ -2155,13 +2155,13 @@ void SwSwitch::startThreads() {
       [this] { this->threadLoop("fbossLacpThread", &lacpEventBase_); }));
 }
 
-void SwSwitch::postInit(const HwInitResult* hwInitResult) {
+void SwSwitch::postInit() {
   if (flags_ & SwitchFlags::ENABLE_LLDP) {
     lldpManager_ = std::make_unique<LldpManager>(this);
   }
 
-  if (flags_ & SwitchFlags::PUBLISH_STATS && hwInitResult) {
-    switch (hwInitResult->bootType) {
+  if (flags_ & SwitchFlags::PUBLISH_STATS) {
+    switch (bootType_) {
       case BootType::COLD_BOOT:
         stats()->coldBoot();
         break;
