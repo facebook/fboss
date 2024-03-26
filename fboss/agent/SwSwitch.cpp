@@ -801,6 +801,8 @@ void SwSwitch::updateStats() {
   }
   if (!isRunModeMultiSwitch()) {
     multiswitch::HwSwitchStats hwStats;
+    auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
+    hwStats.timestamp() = now.count();
     hwStats.hwPortStats() = multiHwSwitchHandler_->getPortStats();
     hwStats.sysPortStats() = multiHwSwitchHandler_->getSysPortStats();
     hwStats.switchDropStats() = multiHwSwitchHandler_->getSwitchDropStats();

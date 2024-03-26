@@ -12,6 +12,8 @@
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
+DECLARE_int32(hwswitch_query_timeout);
+
 namespace {
 constexpr uint8_t kDefaultQueue = 0;
 }
@@ -232,6 +234,8 @@ class AgentVoqSwitchWithFabricPortsTest : public AgentVoqSwitchTest {
  public:
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
+    // Increase the query timeout to be 5sec
+    FLAGS_hwswitch_query_timeout = 5000;
     auto config = utility::onePortPerInterfaceConfig(
         ensemble.getSw(),
         ensemble.masterLogicalPortIds(),
