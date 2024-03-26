@@ -677,7 +677,17 @@
             "MCB_MUX_B@7"
           ]
         }
-      }
+      },
+      "embeddedSensorConfigs": [
+        {
+          "pmUnitScopedName": "CPU_CORE_TEMP",
+          "sysfsPath": "/sys/bus/platform/devices/coretemp.0"
+        },
+        {
+          "pmUnitScopedName": "NVME",
+          "sysfsPath": "/sys/class/nvme/nvme0"
+        }
+      ]
     },
     "RUNBMC": {
       "pluggedInSlotType": "RUNBMC_SLOT",
@@ -3360,6 +3370,8 @@
     "/run/devmap/sensors/SCM_TPS53688_0X62": "/JUMPER_SLOT@0/SCM_SLOT@0/[SCM_CPU_VRM1]",
     "/run/devmap/sensors/SCM_TPS53688_0X63": "/JUMPER_SLOT@0/SCM_SLOT@0/[SCM_CPU_VRM2]",
     "/run/devmap/sensors/SCM_TPS53688_0X66": "/JUMPER_SLOT@0/SCM_SLOT@0/[SCM_CPU_VRM4]",
+    "/run/devmap/sensors/CPU_CORE_TEMP": "/JUMPER_SLOT@0/SCM_SLOT@0/[CPU_CORE_TEMP]",
+    "/run/devmap/sensors/NVME": "/JUMPER_SLOT@0/SCM_SLOT@0/[NVME]",
     "/run/devmap/sensors/SMB_TMP421_0X4C": "/SMB_SLOT@0/[SMB_TMP421_0X4C]",
     "/run/devmap/sensors/SMB_TMP421_0X4D": "/SMB_SLOT@0/[SMB_TMP421_0X4D]",
     "/run/devmap/sensors/SMB_TMP421_0X4E": "/SMB_SLOT@0/[SMB_TMP421_0X4E]",

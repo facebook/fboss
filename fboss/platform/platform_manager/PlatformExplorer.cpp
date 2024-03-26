@@ -98,12 +98,19 @@ void PlatformExplorer::explorePmUnit(
       pmUnitConfig.i2cDeviceConfigs()->size());
   exploreI2cDevices(slotPath, *pmUnitConfig.i2cDeviceConfigs());
 
-  for (const auto& embeddedSensorConfig :
-       *pmUnitConfig.embeddedSensorConfigs()) {
-    dataStore_.updateSysfsPath(
-        Utils().createDevicePath(
-            slotPath, *embeddedSensorConfig.pmUnitScopedName()),
-        *embeddedSensorConfig.sysfsPath());
+  if (!pmUnitConfig.embeddedSensorConfigs()->empty()) {
+    XLOG(INFO) << fmt::format(
+        "Processing Embedded Sensors for PmUnit {} at SlotPath {}. Count {}",
+        pmUnitName,
+        slotPath,
+        pmUnitConfig.embeddedSensorConfigs()->size());
+    for (const auto& embeddedSensorConfig :
+         *pmUnitConfig.embeddedSensorConfigs()) {
+      dataStore_.updateSysfsPath(
+          Utils().createDevicePath(
+              slotPath, *embeddedSensorConfig.pmUnitScopedName()),
+          *embeddedSensorConfig.sysfsPath());
+    }
   }
 
   XLOG(INFO) << fmt::format(
