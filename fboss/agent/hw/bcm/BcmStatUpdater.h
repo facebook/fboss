@@ -14,7 +14,7 @@
 #include "fboss/agent/hw/bcm/BcmRouteCounter.h"
 #include "fboss/agent/hw/bcm/BcmTableStats.h"
 #include "fboss/agent/hw/bcm/types.h"
-#include "fboss/agent/hw/common/LanePrbsStatsEntry.h"
+#include "fboss/agent/hw/common/PrbsStatsEntry.h"
 #include "fboss/agent/types.h"
 
 #include <boost/container/flat_map.hpp>
@@ -38,7 +38,7 @@ class StateDelta;
 
 class BcmStatUpdater {
  public:
-  using LanePrbsStatsTable = std::vector<LanePrbsStatsEntry>;
+  using PrbsStatsTable = std::vector<PrbsStatsEntry>;
 
   explicit BcmStatUpdater(BcmSwitch* hw);
   ~BcmStatUpdater() {}
@@ -171,7 +171,7 @@ class BcmStatUpdater {
           std::pair<std::unique_ptr<MonotonicCounter>, uint64_t>>>>
       aclStats_;
 
-  folly::Synchronized<std::map<int32_t, LanePrbsStatsTable>> portAsicPrbsStats_;
+  folly::Synchronized<std::map<int32_t, PrbsStatsTable>> portAsicPrbsStats_;
 
   /* Route stats */
   uint64_t getRouteTrafficStats(BcmRouteCounterID id);

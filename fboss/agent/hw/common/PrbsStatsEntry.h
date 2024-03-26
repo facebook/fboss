@@ -18,10 +18,15 @@ namespace facebook::fboss {
 using std::chrono::milliseconds;
 using std::chrono::steady_clock;
 
-class LanePrbsStatsEntry {
+class PrbsStatsEntry {
  public:
-  LanePrbsStatsEntry(int32_t laneId, int32_t gportId, double laneRate)
-      : laneId_(laneId), gportId_(gportId), laneRate_(laneRate) {
+  PrbsStatsEntry(int32_t laneId, int32_t gportId, double rate)
+      : laneId_(laneId), gportId_(gportId), rate_(rate) {
+    timeLastCleared_ = steady_clock::now();
+    timeLastLocked_ = steady_clock::time_point();
+  }
+
+  PrbsStatsEntry(int32_t portId, double rate) : portId_(portId), rate_(rate) {
     timeLastCleared_ = steady_clock::now();
     timeLastLocked_ = steady_clock::time_point();
   }
@@ -34,27 +39,28 @@ class LanePrbsStatsEntry {
     return gportId_;
   }
 
-  double getLaneRate() const {
-    return laneRate_;
+  int32_t getPortId() const {
+    return portId_;
   }
 
-  void setLaneRate(double laneRate) {
-    laneRate_ = laneRate;
+  double getRate() const {
+    return rate_;
+  }
+
+  void setRate(double rate) {
+    rate_ = rate;
   }
 
   void handleOk() {
-    steady_clock::time_point now = steady_clock::now();
-    locked_ = true;
-    accuErrorCount_ = 0;
-    if (!locked_) {
-      timeLastLocked_ = now;
-    }
-    timeLastCollect_ = now;
+    handleLockWithErrors(0);
   }
 
   void handleLockWithErrors(uint32_t num_errors) {
+    if (!locked_) {
+      handleLossOfLock();
+      return;
+    }
     steady_clock::time_point now = steady_clock::now();
-    locked_ = true;
     accuErrorCount_ += num_errors;
     milliseconds duration =
         std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -62,7 +68,7 @@ class LanePrbsStatsEntry {
     if (duration.count() == 0) {
       return;
     }
-    double ber = (num_errors * 1000) / (laneRate_ * duration.count());
+    double ber = (num_errors * 1000) / (rate_ * duration.count());
     if (ber > maxBer_) {
       maxBer_ = ber;
     }
@@ -70,20 +76,25 @@ class LanePrbsStatsEntry {
   }
 
   void handleNotLocked() {
-    locked_ = false;
+    steady_clock::time_point now = steady_clock::now();
     if (locked_) {
+      locked_ = false;
+      accuErrorCount_ = 0;
       numLossOfLock_++;
     }
+    timeLastCollect_ = now;
   }
 
   void handleLossOfLock() {
     steady_clock::time_point now = steady_clock::now();
     locked_ = true;
+    accuErrorCount_ = 0;
     numLossOfLock_++;
     timeLastLocked_ = now;
+    timeLastCollect_ = now;
   }
 
-  phy::PrbsLaneStats getPrbsLaneStats() const {
+  phy::PrbsLaneStats getPrbsStats() const {
     phy::PrbsLaneStats prbsLaneStats = phy::PrbsLaneStats();
     steady_clock::time_point now = steady_clock::now();
     *prbsLaneStats.laneId() = laneId_;
@@ -98,7 +109,7 @@ class LanePrbsStatsEntry {
         *prbsLaneStats.ber() = 0.;
       } else {
         *prbsLaneStats.ber() =
-            (accuErrorCount_ * 1000) / (laneRate_ * duration.count());
+            (accuErrorCount_ * 1000) / (rate_ * duration.count());
       }
     }
     *prbsLaneStats.maxBer() = maxBer_;
@@ -115,7 +126,7 @@ class LanePrbsStatsEntry {
     return prbsLaneStats;
   }
 
-  void clearLaneStats() {
+  void clearPrbsStats() {
     accuErrorCount_ = 0;
     maxBer_ = -1.;
     numLossOfLock_ = 0;
@@ -126,7 +137,8 @@ class LanePrbsStatsEntry {
  private:
   const int32_t laneId_ = -1;
   const int32_t gportId_ = -1;
-  double laneRate_ = 0.;
+  const int32_t portId_ = -1;
+  double rate_ = 0.;
   bool locked_ = false;
   int64_t accuErrorCount_ = 0;
   double maxBer_ = -1.;

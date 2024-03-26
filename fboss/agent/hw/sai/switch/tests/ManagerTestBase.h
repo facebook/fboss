@@ -261,7 +261,7 @@ class ManagerTestBase : public ::testing::Test {
 
   static constexpr int kSysPortOffset = 100;
   static constexpr double kSpeedConversionFactor = 1000.;
-  static constexpr double kLaneRateConversionFactor = 1024. * 1024. * 1024.;
+  static constexpr double kRateConversionFactor = 1024. * 1024. * 1024.;
 
   const SwitchIdScopeResolver& scopeResolver() const;
 

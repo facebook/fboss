@@ -57,8 +57,8 @@ add_library(hw_resource_stats_publisher
   fboss/agent/hw/HwResourceStatsPublisher.cpp
 )
 
-add_library(lane_prbs_stats_entry
-  fboss/agent/hw/common/LanePrbsStatsEntry.h
+add_library(prbs_stats_entry
+  fboss/agent/hw/common/PrbsStatsEntry.h
 )
 
 add_library(hw_stat_printers
@@ -126,6 +126,6 @@ target_link_libraries(hw_resource_stats_publisher
   hardware_stats_cpp2
 )
 
-target_link_libraries(lane_prbs_stats_entry
+target_link_libraries(prbs_stats_entry
   ctrl_cpp2
 )

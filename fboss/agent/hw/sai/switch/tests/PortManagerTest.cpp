@@ -492,32 +492,32 @@ TEST_F(PortManagerTest, getFabricReachabilityForSwitch) {
   EXPECT_EQ(portIds.size(), 2);
 }
 
-TEST_F(PortManagerTest, calculateLaneRate) {
+TEST_F(PortManagerTest, calculateRate) {
   // test ports have default speed of 25G
   auto speed = cfg::PortSpeed::TWENTYFIVEG;
   for (const auto& testInterface : testInterfaces) {
     for (const auto& remoteHost : testInterface.remoteHosts) {
       std::shared_ptr<Port> swPort = makePort(remoteHost.port);
-      auto laneRate = saiManagerTable->portManager().calculateLaneRate(swPort);
+      auto rate = saiManagerTable->portManager().calculateRate(swPort);
       EXPECT_EQ(
-          laneRate,
+          rate,
           static_cast<int>(speed) / kSpeedConversionFactor *
-              kLaneRateConversionFactor);
+              kRateConversionFactor);
     }
   }
 }
 
-TEST_F(PortManagerTest, updateLaneRate) {
+TEST_F(PortManagerTest, updateRate) {
   std::shared_ptr<Port> swPort0 = makePort(p0);
   auto newSpeed = cfg::PortSpeed::FIFTYG;
   saiManagerTable->portManager().addPort(swPort0);
   swPort0->setSpeed(newSpeed);
-  saiManagerTable->portManager().updateLaneRate(swPort0);
+  saiManagerTable->portManager().updateRate(swPort0);
   EXPECT_EQ(
       saiManagerTable->portManager()
           .portAsicPrbsStats_[swPort0->getID()][0]
-          .getLaneRate(),
+          .getRate(),
       static_cast<int>(newSpeed) / kSpeedConversionFactor *
-          kLaneRateConversionFactor);
+          kRateConversionFactor);
 }
 } // namespace facebook::fboss

@@ -250,20 +250,20 @@ void BcmStatUpdater::updatePrbsStats() {
   uint32 status;
   auto lockedAsicPrbsStats = portAsicPrbsStats_.wlock();
   for (auto& entry : *lockedAsicPrbsStats) {
-    auto& lanePrbsStatsTable = entry.second;
+    auto& prbsStatsTable = entry.second;
 
-    for (auto& lanePrbsStatsEntry : lanePrbsStatsTable) {
-      bcm_gport_t gport = lanePrbsStatsEntry.getGportId();
+    for (auto& prbsStatsEntry : prbsStatsTable) {
+      bcm_gport_t gport = prbsStatsEntry.getGportId();
       bcm_port_phy_control_get(
           hw_->getUnit(), gport, BCM_PORT_PHY_CONTROL_PRBS_RX_STATUS, &status);
       if ((int32_t)status == -2) {
-        lanePrbsStatsEntry.handleLossOfLock();
+        prbsStatsEntry.handleLossOfLock();
       } else if ((int32_t)status == -1) {
-        lanePrbsStatsEntry.handleNotLocked();
+        prbsStatsEntry.handleNotLocked();
       } else if (status == 0) {
-        lanePrbsStatsEntry.handleOk();
+        prbsStatsEntry.handleOk();
       } else if (status > 0) {
-        lanePrbsStatsEntry.handleLockWithErrors(status);
+        prbsStatsEntry.handleLockWithErrors(status);
       } else {
         continue;
       }
@@ -366,20 +366,20 @@ void BcmStatUpdater::clearPortStats(
 
 std::vector<phy::PrbsLaneStats> BcmStatUpdater::getPortAsicPrbsStats(
     PortID portId) {
-  std::vector<phy::PrbsLaneStats> prbsStats;
+  std::vector<phy::PrbsLaneStats> portAsicPrbsStats;
   auto lockedPortAsicPrbsStats = portAsicPrbsStats_.rlock();
   auto portAsicPrbsStatIter = lockedPortAsicPrbsStats->find(portId);
   if (portAsicPrbsStatIter == lockedPortAsicPrbsStats->end()) {
     throw FbossError(
         "Asic prbs lane error map not initialized for port ", portId);
   }
-  auto lanePrbsStatsTable = portAsicPrbsStatIter->second;
-  XLOG(DBG3) << "lanePrbsStatsMap size: " << lanePrbsStatsTable.size();
+  auto prbsStatsTable = portAsicPrbsStatIter->second;
+  XLOG(DBG3) << "prbsStatsMap size: " << prbsStatsTable.size();
 
-  for (const auto& lanePrbsStats : lanePrbsStatsTable) {
-    prbsStats.push_back(lanePrbsStats.getPrbsLaneStats());
+  for (auto& prbsStatsEntry : prbsStatsTable) {
+    portAsicPrbsStats.push_back(prbsStatsEntry.getPrbsStats());
   }
-  return prbsStats;
+  return portAsicPrbsStats;
 }
 
 void BcmStatUpdater::clearPortAsicPrbsStats(PortID portId) {
@@ -389,9 +389,9 @@ void BcmStatUpdater::clearPortAsicPrbsStats(PortID portId) {
     XLOG(ERR) << "Asic prbs lane error map not initialized for port " << portId;
     return;
   }
-  auto& lanePrbsStatsTable = portAsicPrbsStatIter->second;
-  for (auto& lanePrbsStats : lanePrbsStatsTable) {
-    lanePrbsStats.clearLaneStats();
+  auto& prbsStatsTable = portAsicPrbsStatIter->second;
+  for (auto& prbsStatsEntry : prbsStatsTable) {
+    prbsStatsEntry.clearPrbsStats();
   }
 }
 
@@ -506,17 +506,17 @@ void BcmStatUpdater::refreshPrbsStats(const StateDelta& delta) {
               newPort->getName());
         }
 
-        auto lanePrbsStatsTable = LanePrbsStatsTable();
+        auto prbsStatsTable = PrbsStatsTable();
         for (int lane = 0;
              lane < platformPortConfig->second.pins()->iphy()->size();
              lane++) {
           bcm_gport_t gport;
           BCM_PHY_GPORT_LANE_PORT_SET(gport, lane, newPort->getID());
-          lanePrbsStatsTable.push_back(
-              LanePrbsStatsEntry(lane, gport, calculateLaneRate(newPort)));
+          prbsStatsTable.push_back(
+              PrbsStatsEntry(lane, gport, calculateLaneRate(newPort)));
         }
         (*lockedPortAsicPrbsStats)[newPort->getID()] =
-            std::move(lanePrbsStatsTable);
+            std::move(prbsStatsTable);
       });
 }
 
