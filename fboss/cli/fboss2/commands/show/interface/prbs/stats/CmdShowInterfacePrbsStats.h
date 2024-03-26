@@ -38,10 +38,24 @@ class CmdShowInterfacePrbsStats : public CmdHandler<
       const HostInfo& hostInfo,
       const std::vector<std::string>& queriedIfs,
       const std::vector<std::string>& components) {
-    return createModel(
-        hostInfo,
-        queriedIfs,
-        prbsComponents(components, true /* returnAllIfEmpty */));
+    auto agentClient =
+        utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
+    agentClient->sync_getAllPortInfo(portEntries_);
+    if (queriedIfs.empty()) {
+      std::vector<std::string> allIfs;
+      for (const auto& port : portEntries_) {
+        allIfs.push_back(port.second.get_name());
+      }
+      return createModel(
+          hostInfo,
+          allIfs,
+          prbsComponents(components, true /* returnAllIfEmpty */));
+    } else {
+      return createModel(
+          hostInfo,
+          queriedIfs,
+          prbsComponents(components, true /* returnAllIfEmpty */));
+    }
   }
 
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
@@ -130,17 +144,13 @@ class CmdShowInterfacePrbsStats : public CmdHandler<
           component == phy::PortComponent::TRANSCEIVER_SYSTEM ||
           component == phy::PortComponent::GB_LINE ||
           component == phy::PortComponent::GB_SYSTEM) {
-        auto qsfpClient = utils::createClient<QsfpServiceAsyncClient>(hostInfo);
+        auto qsfpClient =
+            utils::createClient<apache::thrift::Client<QsfpService>>(hostInfo);
         qsfpClient->sync_getInterfacePrbsStats(
             prbsStats, interfaceName, component);
       } else if (component == phy::PortComponent::ASIC) {
         auto agentClient =
-            utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(
-                hostInfo);
-        if (portEntries_.empty()) {
-          // Fetch all the port info once
-          agentClient->sync_getAllPortInfo(portEntries_);
-        }
+            utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
         agentClient->sync_getPortPrbsStats(
             prbsStats,
             utils::getPortIDList({interfaceName}, portEntries_)[0],
