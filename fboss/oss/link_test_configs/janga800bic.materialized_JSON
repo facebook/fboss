@@ -12406,6 +12406,18 @@
         "type": 2
       },
       {
+        "intfID": 261,
+        "routerID": 0,
+        "vlanID": 0,
+        "ipAddresses": [
+          
+        ],
+        "mtu": 9000,
+        "isVirtual": false,
+        "isStateSyncDisabled": true,
+        "type": 2
+      },
+      {
         "intfID": 2151,
         "routerID": 0,
         "vlanID": 0,
@@ -12738,6 +12750,10 @@
               "minimum": 2048,
               "maximum": 4095
             },
+            "systemPortRange": {
+              "minimum": 260,
+              "maximum": 300
+            },
             "switchMac": "02:00:00:00:00:01",
             "connectionHandle": "18:00"
         }
@@ -12760,6 +12776,21 @@
           "systemPortRange": {
             "minimum": 100,
             "maximum": 140
+          },
+          "nodeMac": "02:00:00:00:0F:0B",
+          "asicType": 14,
+          "platformType": 32
+      },
+      "4": {
+          "name": "intfNode4",
+          "switchId": 4,
+          "type": 2,
+          "loopbackIps": [
+            
+          ],
+          "systemPortRange": {
+            "minimum": 260,
+            "maximum": 300
           },
           "nodeMac": "02:00:00:00:0F:0B",
           "asicType": 14,
