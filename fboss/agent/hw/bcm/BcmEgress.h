@@ -117,6 +117,8 @@ class BcmEgress : public BcmEgressBase {
     return intfId_;
   }
 
+  static bool isFlowletEnabled(int unit, bcm_if_t id);
+
  protected:
   virtual void prepareEgressObject(
       bcm_if_t intfId,
@@ -186,6 +188,7 @@ class BcmEcmpEgress : public BcmEgressBase {
    * Update ecmp egress entries in HW
    */
   static bool addEgressIdHwLocked(
+      const BcmSwitchIf* hw,
       int unit,
       EgressId ecmpId,
       const EgressId2Weight& egressIdInSw,
@@ -233,6 +236,7 @@ class BcmEcmpEgress : public BcmEgressBase {
  private:
   void program();
   bool isFlowletConfigUpdateNeeded();
+  bool isFlowletEnabledOnAllEgress(const EgressId2Weight& egressId2Weight);
   static bool isWideEcmpEnabled(bool wideEcmpSupported);
   const EgressId2Weight egressId2Weight_;
   bool ucmpEnabled_{false};

@@ -207,6 +207,7 @@ void BcmMultiPathNextHopTable::egressResolutionChangedHwLocked(
       switch (action) {
         case BcmEcmpEgress::Action::EXPAND:
           BcmEcmpEgress::addEgressIdHwLocked(
+              hw,
               hw->getUnit(),
               ecmpAndEgressIds.first,
               ecmpAndEgressIds.second,
