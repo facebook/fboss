@@ -179,6 +179,61 @@ HwPortStats AgentHwTest::getLatestPortStats(const PortID& port) {
   return getLatestPortStats(std::vector<PortID>({port})).begin()->second;
 }
 
+// return last incremented port stats. the port stats contains a timer
+// which callers can use to determine when traffic stopped by checking the out
+// bytes
+HwPortStats AgentHwTest::getLastIncrementedPortStats(const PortID& port) {
+  HwPortStats lastPortStats = getLatestPortStats(port);
+  // wait till port stats starts incrementing
+  WITH_RETRIES({
+    auto currentPortStats = getLatestPortStats(port);
+    EXPECT_EVENTUALLY_TRUE(
+        *currentPortStats.outBytes_() > *lastPortStats.outBytes_());
+    lastPortStats = currentPortStats;
+  });
+  // wait till port stats stops incrementing
+  WITH_RETRIES({
+    auto currentPortStats = getLatestPortStats(port);
+    if ((*currentPortStats.timestamp_() != *lastPortStats.timestamp_()) &&
+        (*currentPortStats.outBytes_() == *lastPortStats.outBytes_())) {
+      return lastPortStats;
+    }
+    lastPortStats = currentPortStats;
+    EXPECT_EVENTUALLY_TRUE(false);
+  });
+  return lastPortStats;
+}
+
+// returns a pair of ports stats corresponding to
+// start and end of traffic measurement duration
+std::map<PortID, std::pair<HwPortStats, HwPortStats>>
+AgentHwTest::sendTrafficAndCollectStats(
+    const std::vector<PortID>& ports,
+    int timeIntervalInSec,
+    const std::function<void()>& startSendFn,
+    const std::function<void()>& stopSendFn,
+    bool keepTrafficRunning) {
+  std::map<PortID, std::pair<HwPortStats, HwPortStats>> portStats;
+  std::vector<HwPortStats> portStatsBefore;
+  startSendFn();
+  for (const auto& port : ports) {
+    portStatsBefore.push_back(getLatestPortStats(port));
+  }
+  sleep(timeIntervalInSec);
+  if (!keepTrafficRunning) {
+    stopSendFn();
+  }
+  auto index = 0;
+  for (const auto& port : ports) {
+    portStats.insert(
+        {port,
+         {portStatsBefore[index++],
+          keepTrafficRunning ? getLatestPortStats(port)
+                             : getLastIncrementedPortStats(port)}});
+  }
+  return portStats;
+}
+
 std::map<SystemPortID, HwSysPortStats> AgentHwTest::getLatestSysPortStats(
     const std::vector<SystemPortID>& ports) {
   std::map<std::string, HwSysPortStats> systemPortStats;

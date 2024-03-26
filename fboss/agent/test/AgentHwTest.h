@@ -125,6 +125,14 @@ class AgentHwTest : public ::testing::Test {
       const std::vector<PortID>& ports);
 
   HwPortStats getLatestPortStats(const PortID& port);
+  HwPortStats getLastIncrementedPortStats(const PortID& port);
+  std::map<PortID, std::pair<HwPortStats, HwPortStats>>
+  sendTrafficAndCollectStats(
+      const std::vector<PortID>& ports,
+      int timeIntervalInSec,
+      const std::function<void()>& startSendFn,
+      const std::function<void()>& stopSendFn = []() {},
+      bool keepTrafficRunning = false);
 
   std::map<SystemPortID, HwSysPortStats> getLatestSysPortStats(
       const std::vector<SystemPortID>& ports);
@@ -148,6 +156,12 @@ class AgentHwTest : public ::testing::Test {
     });
     auto wrapper = getSw()->getRouteUpdater();
     ecmp.programRoutes(&wrapper, width);
+  }
+
+  template <typename EcmpHelperT>
+  void unprogramRoutes(const EcmpHelperT& ecmp) {
+    auto wrapper = getSw()->getRouteUpdater();
+    ecmp.unprogramRoutes(&wrapper);
   }
 
   void checkNoStatsChange(int trys = 1);
