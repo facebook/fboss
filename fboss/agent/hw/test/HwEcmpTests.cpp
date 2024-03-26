@@ -492,6 +492,29 @@ TEST_F(HwEcmpTest, UcmpL2ResolveBothNhopsInThenLinkFlap) {
   EXPECT_EQ(10, totalWeightInHw2);
 }
 
+// Generate all possible combinations of k selections of the input
+// vector.
+// taken from fbcode/axon/common/coro_util.h
+std::vector<std::vector<PortDescriptor>> genCombinations(
+    const std::vector<PortDescriptor>& inputs,
+    size_t k) {
+  size_t n = inputs.size();
+  std::vector<std::vector<PortDescriptor>> output;
+  std::vector<bool> picked(n);
+  std::fill(picked.begin(), picked.begin() + k, true);
+  do {
+    std::vector<PortDescriptor> currentCombination;
+    for (size_t idx = 0; idx < n; idx++) {
+      if (picked[idx]) {
+        currentCombination.push_back(inputs[idx]);
+      }
+    }
+    output.push_back(currentCombination);
+  } while (std::prev_permutation(picked.begin(), picked.end()));
+
+  return output;
+}
+
 template <bool enableIntfNbrTable>
 struct EnableIntfNbrTable {
   static constexpr auto intfNbrTable = enableIntfNbrTable;
