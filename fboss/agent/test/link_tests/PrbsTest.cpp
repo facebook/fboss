@@ -130,30 +130,35 @@ class PrbsTest : public LinkTest {
     // 4. Let PRBS warm up for 10 seconds
     /* sleep override */ std::this_thread::sleep_for(10s);
 
-    // 5. Clear the PRBS stats to clear the instability at PRBS startup
-    XLOG(DBG2) << "Clearing PRBS stats before monitoring BER";
+    // 5. Do an initial check of PRBS stats to account for lock loss
+    // at startup.
+    XLOG(DBG2) << "Initially checking PRBS stats";
+    checkPrbsStatsOnAllInterfaces(true);
+
+    // 6. Clear the PRBS stats to clear the instability at PRBS startup
+    XLOG(DBG2) << "Clearing PRBS stats before monitoring stats";
     clearPrbsStatsOnAllInterfaces();
 
-    // 6. Let PRBS run for 10 seconds so that we can check the BER later
+    // 7. Let PRBS run for 10 seconds so that we can check the BER later
     /* sleep override */ std::this_thread::sleep_for(10s);
 
-    // 7. Check PRBS stats, expect no loss of lock
+    // 8. Check PRBS stats, expect no loss of lock
     XLOG(DBG2) << "Verifying PRBS stats";
     checkPrbsStatsOnAllInterfaces();
 
-    // 8. Clear PRBS stats
+    // 9. Clear PRBS stats
     timestampBeforeClear = std::time(nullptr);
     /* sleep override */ std::this_thread::sleep_for(1s);
     XLOG(DBG2) << "Clearing PRBS stats";
     clearPrbsStatsOnAllInterfaces();
 
-    // 9. Verify the last clear timestamp advanced and that there was no
+    // 10. Verify the last clear timestamp advanced and that there was no
     // impact on some of the other fields
     XLOG(DBG2) << "Verifying PRBS stats after clear";
     checkPrbsStatsAfterClearOnAllInterfaces(
         timestampBeforeClear, true /* prbsEnabled */);
 
-    // 10. Disable PRBS on all Ports
+    // 11. Disable PRBS on all Ports
     XLOG(DBG2) << "Disabling PRBS";
     // Retry for a minute to give the qsfp_service enough chance to
     // successfully refresh a transceiver
@@ -161,7 +166,7 @@ class PrbsTest : public LinkTest {
       EXPECT_EVENTUALLY_TRUE(setPrbsOnAllInterfaces(disabledState));
     });
 
-    // 11. Check Prbs State on all ports, they all should be disabled
+    // 12. Check Prbs State on all ports, they all should be disabled
     XLOG(DBG2) << "Checking PRBS state after disabling PRBS";
     // Retry for a minute to give the qsfp_service enough chance to
     // successfully refresh a transceiver
@@ -169,7 +174,7 @@ class PrbsTest : public LinkTest {
       EXPECT_EVENTUALLY_TRUE(checkPrbsStateOnAllInterfaces(disabledState));
     });
 
-    // 12. Link and traffic should come back up now
+    // 13. Link and traffic should come back up now
     XLOG(DBG2) << "Waiting for links and traffic to come back up";
     EXPECT_NO_THROW(waitForAllCabledPorts(true));
     waitForLldpOnCabledPorts();
@@ -296,14 +301,14 @@ class PrbsTest : public LinkTest {
     }
   }
 
-  void checkPrbsStatsOnAllInterfaces() {
+  void checkPrbsStatsOnAllInterfaces(bool initial = false) {
     for (const auto& testPort : portsToTest_) {
       auto interfaceName = testPort.portName;
       auto component = testPort.component;
       if (component == phy::PortComponent::ASIC) {
         auto agentClient = utils::createWedgeAgentClient();
         checkPrbsStatsOnInterface<apache::thrift::Client<FbossCtrl>>(
-            agentClient.get(), interfaceName, component);
+            agentClient.get(), interfaceName, component, initial);
       } else if (
           component == phy::PortComponent::GB_LINE ||
           component == phy::PortComponent::GB_SYSTEM) {
@@ -312,7 +317,7 @@ class PrbsTest : public LinkTest {
       } else {
         auto qsfpServiceClient = utils::createQsfpServiceClient();
         checkPrbsStatsOnInterface<apache::thrift::Client<QsfpService>>(
-            qsfpServiceClient.get(), interfaceName, component);
+            qsfpServiceClient.get(), interfaceName, component, initial);
       }
     }
   }
@@ -321,14 +326,17 @@ class PrbsTest : public LinkTest {
   void checkPrbsStatsOnInterface(
       Client* client,
       std::string& interfaceName,
-      phy::PortComponent component) {
+      phy::PortComponent component,
+      bool initial = false) {
     WITH_RETRIES_N_TIMED(12, std::chrono::milliseconds(5000), {
       phy::PrbsStats stats;
       client->sync_getInterfacePrbsStats(stats, interfaceName, component);
       ASSERT_EVENTUALLY_FALSE(stats.get_laneStats().empty());
       for (const auto& laneStat : stats.get_laneStats()) {
         EXPECT_EVENTUALLY_TRUE(laneStat.get_locked());
-        EXPECT_EVENTUALLY_FALSE(laneStat.get_numLossOfLock());
+        if (!initial) {
+          EXPECT_EVENTUALLY_FALSE(laneStat.get_numLossOfLock());
+        }
         EXPECT_EVENTUALLY_TRUE(
             laneStat.get_ber() >= 0 && laneStat.get_ber() < 1);
         EXPECT_EVENTUALLY_TRUE(
@@ -408,7 +416,7 @@ class PrbsTest : public LinkTest {
         EXPECT_LT(laneStat.get_timeSinceLastClear(), timestampBeforeClear);
       }
     } catch (const std::exception& ex) {
-      XLOG(ERR) << "Setting PRBS on " << interfaceName << " failed with "
+      XLOG(ERR) << "Checking PRBS Stats on " << interfaceName << " failed with "
                 << ex.what();
       return false;
     }
@@ -452,7 +460,7 @@ class PrbsTest : public LinkTest {
     try {
       client->sync_clearInterfacePrbsStats(interfaceName, component);
     } catch (const std::exception& ex) {
-      XLOG(ERR) << "Setting PRBS on " << interfaceName << " failed with "
+      XLOG(ERR) << "Clearing PRBS Stats on " << interfaceName << " failed with "
                 << ex.what();
       return false;
     }
