@@ -734,6 +734,8 @@ AgentStats SwSwitch::fillFsdbStats() {
           {switchIdx, *hwSwitchStats.cpuPortStats()});
       agentStats.switchWatermarkStatsMap()->insert(
           {switchIdx, *hwSwitchStats.switchWatermarkStats()});
+      agentStats.fabricReachabilityStatsMap()->insert(
+          {switchIdx, *hwSwitchStats.fabricReachabilityStats()});
     }
   }
   stats()->fillAgentStats(agentStats);
