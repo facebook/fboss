@@ -199,7 +199,7 @@ void Sff8472Module::updateQsfpData(bool allPages) {
 
 TransceiverSettings Sff8472Module::getTransceiverSettingsInfo() {
   TransceiverSettings settings = TransceiverSettings();
-  settings.powerControl() = getPowerControlValue();
+  settings.powerControl() = getPowerControlValue(true /* readFromCache */);
   settings.mediaInterface() = std::vector<MediaInterfaceId>(numMediaLanes());
   if (!getMediaInterfaceId(*(settings.mediaInterface()))) {
     settings.mediaInterface().reset();

@@ -451,7 +451,7 @@ class QsfpModule : public Transceiver {
   /*
    * Return what power control capability is currently enabled
    */
-  virtual PowerControlState getPowerControlValue() = 0;
+  virtual PowerControlState getPowerControlValue(bool readFromCache) = 0;
   /*
    * Return TransceiverStats
    */

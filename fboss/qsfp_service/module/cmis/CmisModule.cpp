@@ -794,7 +794,7 @@ TransceiverSettings CmisModule::getTransceiverSettingsInfo() {
   settings.powerMeasurement() =
       flatMem_ ? FeatureState::UNSUPPORTED : FeatureState::ENABLED;
 
-  settings.powerControl() = getPowerControlValue();
+  settings.powerControl() = getPowerControlValue(true /* readFromCache */);
   settings.rateSelect() = flatMem_ ? RateSelectState::UNSUPPORTED
                                    : RateSelectState::APPLICATION_RATE_SELECT;
   settings.rateSelectSetting() = RateSelectSetting::UNSUPPORTED;
@@ -1130,9 +1130,16 @@ void CmisModule::getApplicationCapabilities() {
   }
 }
 
-PowerControlState CmisModule::getPowerControlValue() {
-  if (getSettingsValue(
-          CmisField::MODULE_CONTROL, uint8_t(POWER_CONTROL_MASK))) {
+PowerControlState CmisModule::getPowerControlValue(bool readFromCache) {
+  uint8_t moduleControl;
+  if (readFromCache) {
+    moduleControl = getSettingsValue(
+        CmisField::MODULE_CONTROL, uint8_t(POWER_CONTROL_MASK));
+  } else {
+    readCmisField(CmisField::MODULE_CONTROL, &moduleControl);
+    moduleControl &= POWER_CONTROL_MASK;
+  }
+  if (moduleControl) {
     return PowerControlState::POWER_LPMODE;
   } else {
     return PowerControlState::HIGH_POWER_OVERRIDE;
@@ -2381,10 +2388,9 @@ void CmisModule::customizeTransceiverLocked(TransceiverPortState& portState) {
    * This must be called with a lock held on qsfpModuleMutex_
    */
   if (customizationSupported()) {
-    TransceiverSettings settings = getTransceiverSettingsInfo();
-
     // We want this on regardless of speed
-    setPowerOverrideIfSupportedLocked(*settings.powerControl());
+    setPowerOverrideIfSupportedLocked(
+        getPowerControlValue(false /* readFromCache */));
 
     if (speed != cfg::PortSpeed::DEFAULT) {
       setApplicationCodeLocked(speed, startHostLane);

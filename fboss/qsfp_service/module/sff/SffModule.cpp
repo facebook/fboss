@@ -427,7 +427,7 @@ TransceiverSettings SffModule::getTransceiverSettingsInfo() {
       getSettingsValue(SffField::CDR_CONTROL, LOWER_BITS_MASK));
   settings.powerMeasurement() = SffFieldInfo::getFeatureState(getSettingsValue(
       SffField::DIAGNOSTIC_MONITORING_TYPE, POWER_MEASUREMENT_MASK));
-  settings.powerControl() = getPowerControlValue();
+  settings.powerControl() = getPowerControlValue(true /* readFromCache */);
   settings.rateSelect() = getRateSelectValue();
   settings.rateSelectSetting() =
       getRateSelectSettingValue(*settings.rateSelect());
@@ -536,9 +536,16 @@ RateSelectState SffModule::getRateSelectValue() {
   return RateSelectState::UNSUPPORTED;
 }
 
-PowerControlState SffModule::getPowerControlValue() {
-  switch (static_cast<PowerControl>(getSettingsValue(
-      SffField::POWER_CONTROL, uint8_t(PowerControl::POWER_CONTROL_MASK)))) {
+PowerControlState SffModule::getPowerControlValue(bool readFromCache) {
+  uint8_t powerControl;
+  if (readFromCache) {
+    powerControl = getSettingsValue(
+        SffField::POWER_CONTROL, uint8_t(PowerControl::POWER_CONTROL_MASK));
+  } else {
+    readSffField(SffField::POWER_CONTROL, &powerControl);
+    powerControl &= uint8_t(PowerControl::POWER_CONTROL_MASK);
+  }
+  switch (static_cast<PowerControl>(powerControl)) {
     case PowerControl::POWER_SET_BY_HW:
       return PowerControlState::POWER_SET_BY_HW;
     case PowerControl::HIGH_POWER_OVERRIDE:
@@ -1427,7 +1434,8 @@ void SffModule::customizeTransceiverLocked(TransceiverPortState& portState) {
     overwriteChannelControlSettings();
 
     // We want this on regardless of speed
-    setPowerOverrideIfSupportedLocked(*settings.powerControl());
+    setPowerOverrideIfSupportedLocked(
+        getPowerControlValue(false /* readFromCache */));
 
     if (speed != cfg::PortSpeed::DEFAULT) {
       setCdrIfSupported(speed, *settings.cdrTx(), *settings.cdrRx());

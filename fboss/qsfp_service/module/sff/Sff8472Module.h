@@ -99,7 +99,7 @@ class Sff8472Module : public QsfpModule {
 
   TransceiverSettings getTransceiverSettingsInfo() override;
 
-  PowerControlState getPowerControlValue() override {
+  PowerControlState getPowerControlValue(bool /* readFromCache */) override {
     return PowerControlState::HIGH_POWER_OVERRIDE;
   }
 
