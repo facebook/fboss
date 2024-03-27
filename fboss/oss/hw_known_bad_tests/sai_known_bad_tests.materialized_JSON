@@ -3237,9 +3237,6 @@
           "test_name_regex": "HwDataPlaneMirrorTest/[01].ErspanMirrorWithLagMember"
         },
         {
-          "test_name_regex": "HwAqmTest.*"
-        },
-        {
           "test_name_regex": "HwNeighborOnMultiplePortsTest.*"
         },
         {
