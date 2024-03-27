@@ -75,6 +75,21 @@ std::shared_ptr<SwitchState> DsfStateUpdaterUtil::getUpdatedState(
   };
 
   auto makeRemoteSysPort = [&](const auto& oldNode, const auto& newNode) {
+    /*
+     * RemoteSystemPorts synced from a remote peer R contain:
+     *  o RemoteSystemPorts corresponding to remote recycle ports.
+     *    - These are already programmed statically based on DSF node config
+     *      and are used to bring up the control plane. Thus, don't overwrite
+     *      statically programmed entries.
+     *  o RemoteSystemPorts corresponding to remote NIF ports.
+     *    - remoteSystemPortType and remoteLivenessStatus is applicable only for
+     *      remoteSystemPorts.
+     *    - However, these ports are localSystemPorts for peer R, and thus
+     *      remoteSystemPortType and remoteLivenessStatus is not set. Set those.
+     *    - remoteSystemPortType = DYNAMIC as these are synced dynamically.
+     *    - remoteLivenessStatus = LIVE as these are synced from control plane.
+     *      The remoteLivenessStatus will be changed to STALE on GR timeout.
+     */
     CHECK(!oldNode || oldNode->getID() == newNode->getID());
     if (oldNode && oldNode->getRemoteSystemPortType().has_value() &&
         oldNode->getRemoteSystemPortType().value() ==
