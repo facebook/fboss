@@ -794,16 +794,17 @@ void SwSwitch::updateStats() {
   stats()->maxNumOfPhysicalHostsPerQueue(
       getLookupClassUpdater()->getMaxNumHostsPerQueue());
 
-  try {
-    multiHwSwitchHandler_->updateAllPhyInfo();
-  } catch (const std::exception& ex) {
-    XLOG(ERR) << "Error running updateAllPhyInfo: " << folly::exceptionStr(ex);
-  }
   if (!isRunModeMultiSwitch()) {
     multiswitch::HwSwitchStats hwStats;
     auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
     hwStats.timestamp() = now.count();
     auto monoHwSwitchHandler = getMonolithicHwSwitchHandler();
+    try {
+      monoHwSwitchHandler->updateAllPhyInfo();
+    } catch (const std::exception& ex) {
+      XLOG(ERR) << "Error running updateAllPhyInfo: "
+                << folly::exceptionStr(ex);
+    }
     hwStats.hwPortStats() = monoHwSwitchHandler->getPortStats();
     hwStats.sysPortStats() = monoHwSwitchHandler->getSysPortStats();
     hwStats.switchDropStats() = multiHwSwitchHandler_->getSwitchDropStats();
@@ -814,7 +815,7 @@ void SwSwitch::updateStats() {
     }
     hwStats.teFlowStats() = getTeFlowStats();
     for (auto& [portId, phyInfoPerPort] :
-         multiHwSwitchHandler_->getAllPhyInfo()) {
+         monoHwSwitchHandler->getAllPhyInfo()) {
       hwStats.phyInfo()->emplace(portId, phyInfoPerPort);
     }
     hwStats.flowletStats() = getHwFlowletStats();

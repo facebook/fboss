@@ -50,9 +50,6 @@ class MultiSwitchHwSwitchHandler : public HwSwitchHandler {
 
   void updateStats() override;
 
-  void updateAllPhyInfo() override;
-  std::map<PortID, phy::PhyInfo> getAllPhyInfo() const override;
-
   uint64_t getDeviceWatermarkBytes() const override;
 
   HwFlowletStats getHwFlowletStats() const override;

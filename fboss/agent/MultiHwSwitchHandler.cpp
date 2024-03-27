@@ -265,14 +265,6 @@ void MultiHwSwitchHandler::updateStats() {
   return hwSwitchSyncers_.begin()->second->updateStats();
 }
 
-void MultiHwSwitchHandler::updateAllPhyInfo() {
-  hwSwitchSyncers_.begin()->second->updateAllPhyInfo();
-}
-
-std::map<PortID, phy::PhyInfo> MultiHwSwitchHandler::getAllPhyInfo() const {
-  return hwSwitchSyncers_.begin()->second->getAllPhyInfo();
-}
-
 uint64_t MultiHwSwitchHandler::getDeviceWatermarkBytes() {
   // TODO - support with multiple switches
   CHECK_EQ(hwSwitchSyncers_.size(), 1);

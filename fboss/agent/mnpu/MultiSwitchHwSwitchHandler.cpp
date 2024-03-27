@@ -104,13 +104,6 @@ HwSwitchDropStats MultiSwitchHwSwitchHandler::getSwitchDropStats() const {
 // not used in split
 void MultiSwitchHwSwitchHandler::updateStats() {}
 
-// not used in split
-void MultiSwitchHwSwitchHandler::updateAllPhyInfo() {}
-std::map<PortID, phy::PhyInfo> MultiSwitchHwSwitchHandler::getAllPhyInfo()
-    const {
-  return {};
-}
-
 uint64_t MultiSwitchHwSwitchHandler::getDeviceWatermarkBytes() const {
   // TODO: implement this
   return 0;

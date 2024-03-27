@@ -96,9 +96,6 @@ class HwSwitchHandler {
   virtual HwSwitchDropStats getSwitchDropStats() const = 0;
   virtual void updateStats() = 0;
 
-  virtual void updateAllPhyInfo() = 0;
-  virtual std::map<PortID, phy::PhyInfo> getAllPhyInfo() const = 0;
-
   virtual uint64_t getDeviceWatermarkBytes() const = 0;
 
   virtual HwFlowletStats getHwFlowletStats() const = 0;
