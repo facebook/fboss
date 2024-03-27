@@ -23,6 +23,8 @@ class AgentVoqSwitchTest : public AgentHwTest {
  public:
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
+    // Increase the query timeout to be 5sec
+    FLAGS_hwswitch_query_timeout = 5000;
     // Before m-mpu agent test, use first Asic for initialization.
     auto switchIds = ensemble.getSw()->getHwAsicTable()->getSwitchIDs();
     CHECK_GE(switchIds.size(), 1);
@@ -511,6 +513,44 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, overdrainPct) {
     });
   };
   verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentVoqSwitchTest, fdrRciAndCoreRciWatermarks) {
+  auto verify = [this]() {
+    std::string out;
+    for (const auto& switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
+      getAgentEnsemble()->runDiagCommand(
+          "setreg CIG_RCI_DEVICE_MAPPING 0\nsetreg CIG_RCI_CORE_MAPPING 0\n",
+          out,
+          switchId);
+      getAgentEnsemble()->runDiagCommand("quit\n", out, switchId);
+    }
+
+    uint64_t fdrRciWatermarkBytes{};
+    uint64_t coreRciWatermarkBytes{};
+
+    WITH_RETRIES({
+      getSw()->updateStats();
+      for (const auto& switchWatermarksIter : getAllSwitchWatermarkStats()) {
+        auto switchWatermarks = switchWatermarksIter.second;
+        if (switchWatermarks.fdrRciWatermarkBytes().has_value()) {
+          fdrRciWatermarkBytes +=
+              switchWatermarks.fdrRciWatermarkBytes().value();
+        }
+        if (switchWatermarks.coreRciWatermarkBytes().has_value()) {
+          coreRciWatermarkBytes +=
+              switchWatermarks.coreRciWatermarkBytes().value();
+        }
+      }
+      // Make sure that both counters have non zero values
+      EXPECT_EVENTUALLY_GT(fdrRciWatermarkBytes, 0);
+      EXPECT_EVENTUALLY_GT(coreRciWatermarkBytes, 0);
+      XLOG(DBG2) << "FDR RCI watermark bytes : " << fdrRciWatermarkBytes
+                 << ", Core DRM RCI watermark bytes : "
+                 << coreRciWatermarkBytes;
+    });
+  };
+  verifyAcrossWarmBoots([]() {}, verify);
 }
 
 class AgentVoqSwitchWithFabricPortsStartDrained
