@@ -116,6 +116,25 @@ class SystemPort
     }
   }
 
+  std::optional<RemoteLivenessStatus> getRemoteLivenessStatus() const {
+    if (auto remoteSystemPortLivenessStatus =
+            cref<ctrl_if_tags::remoteSystemPortLivenessStatus>()) {
+      return remoteSystemPortLivenessStatus->cref();
+    }
+    return std::nullopt;
+  }
+
+  void setRemoteLivenessStatus(
+      const std::optional<RemoteLivenessStatus>&
+          remoteSystemPortLivenessStatus = std::nullopt) {
+    if (remoteSystemPortLivenessStatus) {
+      set<ctrl_if_tags::remoteSystemPortLivenessStatus>(
+          remoteSystemPortLivenessStatus.value());
+    } else {
+      ref<ctrl_if_tags::remoteSystemPortLivenessStatus>().reset();
+    }
+  }
+
  private:
   // Inherit the constructors required for clone()
   using Base::Base;
