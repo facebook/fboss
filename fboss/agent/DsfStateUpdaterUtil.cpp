@@ -74,7 +74,21 @@ std::shared_ptr<SwitchState> DsfStateUpdaterUtil::getUpdatedState(
     }
   };
 
-  auto makeRemoteSysPort = [&](const auto& /*oldNode*/, const auto& newNode) {
+  auto makeRemoteSysPort = [&](const auto& oldNode, const auto& newNode) {
+    CHECK(!oldNode || oldNode->getID() == newNode->getID());
+    if (oldNode && oldNode->getRemoteSystemPortType().has_value() &&
+        oldNode->getRemoteSystemPortType().value() ==
+            RemoteSystemPortType::STATIC_ENTRY) {
+      XLOG(DBG2)
+          << "Skip overwriting STATIC remoteSystemPorts: "
+          << " STATIC: "
+          << apache::thrift::SimpleJSONSerializer::serialize<std::string>(
+                 oldNode->toThrift())
+          << " non-STATIC: "
+          << apache::thrift::SimpleJSONSerializer::serialize<std::string>(
+                 newNode->toThrift());
+      return oldNode;
+    }
     return newNode;
   };
   auto makeRemoteRif = [&](const auto& oldNode, const auto& newNode) {
