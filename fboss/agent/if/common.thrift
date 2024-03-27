@@ -122,3 +122,15 @@ enum RemoteSystemPortType {
    */
   STATIC_ENTRY = 1,
 }
+
+enum RemoteLivenessStatus {
+  /*
+   * Remote System Ports or Remote Interfaces confirmed by DSF Control Plane.
+   */
+  LIVE = 0,
+
+  /*
+   * Remote System Ports or Remote Interfaces not confirmed by DSF Control Plane
+   */
+  STALE = 1,
+}
