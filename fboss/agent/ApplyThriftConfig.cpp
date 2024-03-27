@@ -855,6 +855,40 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
     CHECK(node->getSystemPortRange().has_value());
     return *node->getSystemPortRange()->minimum() + 1;
   };
+  auto getRecyclePortName = [](const std::shared_ptr<DsfNode>& node) {
+    int asicCore;
+    switch (node->getAsicType()) {
+      case cfg::AsicType::ASIC_TYPE_MOCK:
+      case cfg::AsicType::ASIC_TYPE_FAKE:
+      case cfg::AsicType::ASIC_TYPE_JERICHO2:
+        asicCore = 1;
+        break;
+      case cfg::AsicType::ASIC_TYPE_JERICHO3:
+        asicCore = 55;
+        break;
+      case cfg::AsicType::ASIC_TYPE_TRIDENT2:
+      case cfg::AsicType::ASIC_TYPE_TOMAHAWK:
+      case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
+      case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
+      case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
+      case cfg::AsicType::ASIC_TYPE_EBRO:
+      case cfg::AsicType::ASIC_TYPE_GARONNE:
+      case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
+      case cfg::AsicType::ASIC_TYPE_RAMON:
+      case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
+      case cfg::AsicType::ASIC_TYPE_YUBA:
+      case cfg::AsicType::ASIC_TYPE_RAMON3:
+        throw FbossError(
+            "Recycle ports are not applicable for AsicType: ",
+            apache::thrift::util::enumNameSafe(node->getAsicType()));
+    }
+
+    // Recycle port name format:
+    //    rcy<pim_id>/<npu_id>/<npu_core>
+    // pmi_id is always 1 for Recycle port.
+    // npu_id = 1, TODO process DsfNodeMap to derive.
+    return folly::sformat("{}:rcy1/1/{}", node->getName(), asicCore);
+  };
   auto isLocal = [localSwitchIds](const std::shared_ptr<DsfNode>& node) {
     return localSwitchIds.find(node->getSwitchId()) != localSwitchIds.end();
   };
@@ -942,7 +976,7 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
         SystemPortID(recyclePortId),
         std::make_optional(RemoteSystemPortType::STATIC_ENTRY));
     sysPort->setSwitchId(node->getSwitchId());
-    sysPort->setPortName(folly::sformat("{}:rcy1/1/1", node->getName()));
+    sysPort->setPortName(getRecyclePortName(node));
     const auto& recyclePortInfo = dsfNodeAsic->getRecyclePortInfo();
     sysPort->setCoreIndex(recyclePortInfo.coreId);
     sysPort->setCorePortIndex(recyclePortInfo.corePortIndex);
