@@ -190,6 +190,9 @@ class ServiceHandler : public FsdbServiceSvIf,
  private:
   void registerSubscription(const OperSubscriberInfo& info);
   void unregisterSubscription(const OperSubscriberInfo& info);
+  void updateSubscriptionCounters(
+      const OperSubscriberInfo& info,
+      bool isConnected);
   void registerPublisher(const OperPublisherInfo& info);
   void unregisterPublisher(
       const OperPublisherInfo& info,
@@ -253,9 +256,12 @@ class ServiceHandler : public FsdbServiceSvIf,
   TLCounter num_instances_;
   TLCounter num_publishers_;
   TLCounter num_subscribers_;
+  TLCounter num_subscriptions_;
   TLCounter num_disconnected_subscribers_;
+  TLCounter num_disconnected_subscriptions_;
   TLCounter num_disconnected_publishers_;
   std::map<SubscriberId, TLCounter> disconnectedSubscribers_;
+  std::map<SubscriberId, TLCounter> disconnectedSubscriptions_;
   std::map<PublisherKey, TLCounter> disconnectedPublishers_;
   TLTimeseries num_subscriptions_rejected_;
   TLTimeseries num_publisher_unknown_requests_rejected_;

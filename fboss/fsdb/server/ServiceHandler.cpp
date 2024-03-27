@@ -141,11 +141,21 @@ ServiceHandler::ServiceHandler(
           folly::to<std::string>(
               fsdb_common_constants::kFsdbServiceHandlerNativeStatsPrefix(),
               "num_subscribers")),
+      num_subscriptions_(
+          fb303::ThreadCachedServiceData::get()->getThreadStats(),
+          folly::to<std::string>(
+              fsdb_common_constants::kFsdbServiceHandlerNativeStatsPrefix(),
+              "num_subscriptions")),
       num_disconnected_subscribers_(
           fb303::ThreadCachedServiceData::get()->getThreadStats(),
           folly::to<std::string>(
               fsdb_common_constants::kFsdbServiceHandlerNativeStatsPrefix(),
               "num_disconnected_subscribers")),
+      num_disconnected_subscriptions_(
+          fb303::ThreadCachedServiceData::get()->getThreadStats(),
+          folly::to<std::string>(
+              fsdb_common_constants::kFsdbServiceHandlerNativeStatsPrefix(),
+              "num_disconnected_subscriptions")),
       num_disconnected_publishers_(
           fb303::ThreadCachedServiceData::get()->getThreadStats(),
           folly::to<std::string>(
@@ -552,6 +562,30 @@ OperSubscriberInfo makeSubscriberInfo(
 
 } // namespace
 
+void ServiceHandler::updateSubscriptionCounters(
+    const OperSubscriberInfo& info,
+    bool isConnected) {
+  auto connectedCountIncrement = isConnected ? 1 : -1;
+  auto disconnectCountIncrement = isConnected ? -1 : 1;
+
+  num_subscribers_.incrementValue(connectedCountIncrement);
+  num_subscriptions_.incrementValue(connectedCountIncrement);
+
+  auto config = fsdbConfig_->getSubscriberConfig(*info.subscriberId());
+  if (config.has_value() && *config.value().second.get().trackReconnect()) {
+    num_disconnected_subscribers_.incrementValue(disconnectCountIncrement);
+    if (auto counter = disconnectedSubscribers_.find(config.value().first);
+        counter != disconnectedSubscribers_.end()) {
+      counter->second.incrementValue(disconnectCountIncrement);
+    }
+    num_disconnected_subscriptions_.incrementValue(disconnectCountIncrement);
+    if (auto counter = disconnectedSubscriptions_.find(config.value().first);
+        counter != disconnectedSubscriptions_.end()) {
+      counter->second.incrementValue(disconnectCountIncrement);
+    }
+  }
+}
+
 void ServiceHandler::registerSubscription(const OperSubscriberInfo& info) {
   if (info.subscriberId()->empty()) {
     throw Utils::createFsdbException(
@@ -577,15 +611,7 @@ void ServiceHandler::registerSubscription(const OperSubscriberInfo& info) {
         "Dup subscriber id: ",
         *info.subscriberId());
   }
-  num_subscribers_.incrementValue(1);
-  auto config = fsdbConfig_->getSubscriberConfig(*info.subscriberId());
-  if (config.has_value() && *config.value().second.get().trackReconnect()) {
-    num_disconnected_subscribers_.incrementValue(-1);
-    auto counter = disconnectedSubscribers_.find(config.value().first);
-    if (counter != disconnectedSubscribers_.end()) {
-      counter->second.incrementValue(-1);
-    }
-  }
+  updateSubscriptionCounters(info, true);
 }
 void ServiceHandler::unregisterSubscription(const OperSubscriberInfo& info) {
   XLOG(DBG2) << " Subscription complete " << *info.subscriberId() << " : "
@@ -596,15 +622,7 @@ void ServiceHandler::unregisterSubscription(const OperSubscriberInfo& info) {
       *info.type(),
       *info.isStats());
   activeSubscriptions_.wlock()->erase(std::move(key));
-  num_subscribers_.incrementValue(-1);
-  auto config = fsdbConfig_->getSubscriberConfig(*info.subscriberId());
-  if (config.has_value() && *config.value().second.get().trackReconnect()) {
-    num_disconnected_subscribers_.incrementValue(1);
-    auto counter = disconnectedSubscribers_.find(config.value().first);
-    if (counter != disconnectedSubscribers_.end()) {
-      counter->second.incrementValue(1);
-    }
-  }
+  updateSubscriptionCounters(info, false);
 }
 
 folly::coro::AsyncGenerator<DeltaValue<OperState>&&>
@@ -1105,9 +1123,23 @@ void ServiceHandler::initPerStreamCounters(void) {
                   fsdb_common_constants::kFsdbServiceHandlerNativeStatsPrefix(),
                   "disconnected_subscriber.",
                   key)));
-      auto counter = disconnectedSubscribers_.find(key);
-      counter->second.incrementValue(count);
-      num_disconnected_subscribers_.incrementValue(count);
+      if (auto counter = disconnectedSubscribers_.find(key);
+          counter != disconnectedSubscribers_.end()) {
+        counter->second.incrementValue(count);
+      }
+      disconnectedSubscriptions_.emplace(
+          key,
+          TLCounter(
+              fb303::ThreadCachedServiceData::get()->getThreadStats(),
+              folly::to<std::string>(
+                  fsdb_common_constants::kFsdbServiceHandlerNativeStatsPrefix(),
+                  "disconnected_subscriptions.",
+                  key)));
+      if (auto counter = disconnectedSubscriptions_.find(key);
+          counter != disconnectedSubscriptions_.end()) {
+        counter->second.incrementValue(count);
+      }
+      num_disconnected_subscriptions_.incrementValue(count);
     }
   }
 
