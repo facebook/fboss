@@ -908,6 +908,11 @@ static void populateInterfaceDetail(
   if (intf->getRemoteInterfaceType().has_value()) {
     interfaceDetail.remoteIntfType() = intf->getRemoteInterfaceType().value();
   }
+
+  if (intf->getRemoteLivenessStatus().has_value()) {
+    interfaceDetail.remoteIntfLivenessStatus() =
+        intf->getRemoteLivenessStatus().value();
+  }
 }
 
 void ThriftHandler::getAllInterfaces(
