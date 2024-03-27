@@ -404,6 +404,10 @@ struct SystemPortThrift {
    * Set only on Remote System Ports of VOQ switches.
    */
   12: optional common.RemoteSystemPortType remoteSystemPortType;
+  /*
+   * Set only on Remote System Ports of VOQ switches.
+   */
+  13: optional common.RemoteLivenessStatus remoteSystemPortLivenessStatus;
 }
 
 struct PortHardwareDetails {
