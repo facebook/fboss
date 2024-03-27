@@ -36,6 +36,10 @@ inline bool isDisconnected(SubscriptionState state) {
       (state == SubscriptionState::CANCELLED);
 }
 
+inline bool isGRHoldExpired(const SubscriptionState& state) {
+  return state == SubscriptionState::DISCONNECTED_GR_HOLD_EXPIRED;
+}
+
 inline std::string subscriptionStateToString(SubscriptionState state) {
   switch (state) {
     case SubscriptionState::CONNECTED:
