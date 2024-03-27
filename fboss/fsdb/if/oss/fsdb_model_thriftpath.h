@@ -17592,7 +17592,8 @@ std::pair<strings::dhcpV4Relay, Child<::std::string, ::apache::thrift::type_clas
 std::pair<strings::dhcpV6Relay, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
 std::pair<strings::dhcpRelayOverridesV4, ChildThriftPath<::std::map<::std::string, ::std::string>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
 std::pair<strings::dhcpRelayOverridesV6, ChildThriftPath<::std::map<::std::string, ::std::string>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
-std::pair<strings::remoteIntfType, Child<::facebook::fboss::RemoteInterfaceType, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::RemoteInterfaceType>>>>;
+std::pair<strings::remoteIntfType, Child<::facebook::fboss::RemoteInterfaceType, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::RemoteInterfaceType>>>,
+std::pair<strings::remoteIntfLivenessStatus, Child<::facebook::fboss::RemoteLivenessStatus, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::RemoteLivenessStatus>>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
@@ -17612,7 +17613,8 @@ std::pair<strings::remoteIntfType, Child<::facebook::fboss::RemoteInterfaceType,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 17>, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 18>, ChildThriftPath<::std::map<::std::string, ::std::string>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 19>, ChildThriftPath<::std::map<::std::string, ::std::string>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 20>, Child<::facebook::fboss::RemoteInterfaceType, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::RemoteInterfaceType>>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 20>, Child<::facebook::fboss::RemoteInterfaceType, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::RemoteInterfaceType>>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 21>, Child<::facebook::fboss::RemoteLivenessStatus, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::RemoteLivenessStatus>>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::interfaceId, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::routerId, std::integral_constant<apache::thrift::field_id_t, 2>>,
@@ -17633,7 +17635,8 @@ std::pair<strings::dhcpV4Relay, std::integral_constant<apache::thrift::field_id_
 std::pair<strings::dhcpV6Relay, std::integral_constant<apache::thrift::field_id_t, 17>>,
 std::pair<strings::dhcpRelayOverridesV4, std::integral_constant<apache::thrift::field_id_t, 18>>,
 std::pair<strings::dhcpRelayOverridesV6, std::integral_constant<apache::thrift::field_id_t, 19>>,
-std::pair<strings::remoteIntfType, std::integral_constant<apache::thrift::field_id_t, 20>>>::template type_of<Name>;
+std::pair<strings::remoteIntfType, std::integral_constant<apache::thrift::field_id_t, 20>>,
+std::pair<strings::remoteIntfLivenessStatus, std::integral_constant<apache::thrift::field_id_t, 21>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -17667,6 +17670,7 @@ std::pair<strings::remoteIntfType, std::integral_constant<apache::thrift::field_
     STRUCT_CHILD_GETTERS(dhcpRelayOverridesV4, 18);
     STRUCT_CHILD_GETTERS(dhcpRelayOverridesV6, 19);
     STRUCT_CHILD_GETTERS(remoteIntfType, 20);
+    STRUCT_CHILD_GETTERS(remoteIntfLivenessStatus, 21);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -17690,6 +17694,7 @@ std::pair<strings::remoteIntfType, std::integral_constant<apache::thrift::field_
     else if constexpr (__id == 18) { return dhcpRelayOverridesV4(); }
     else if constexpr (__id == 19) { return dhcpRelayOverridesV6(); }
     else if constexpr (__id == 20) { return remoteIntfType(); }
+    else if constexpr (__id == 21) { return remoteIntfLivenessStatus(); }
   }
 
   template <typename T, T... Values>
