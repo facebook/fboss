@@ -67,6 +67,7 @@
 #include "fboss/cli/fboss2/commands/show/port/CmdShowPortQueue.h"
 #include "fboss/cli/fboss2/commands/show/product/CmdShowProduct.h"
 #include "fboss/cli/fboss2/commands/show/product/CmdShowProductDetails.h"
+#include "fboss/cli/fboss2/commands/show/rif/CmdShowRif.h"
 #include "fboss/cli/fboss2/commands/show/route/CmdShowRoute.h"
 #include "fboss/cli/fboss2/commands/show/route/CmdShowRouteDetails.h"
 #include "fboss/cli/fboss2/commands/show/route/CmdShowRouteSummary.h"
@@ -175,6 +176,13 @@ const CommandTree& kCommandTree() {
             "Show Port queue information",
             commandHandler<CmdShowPortQueue>,
             argTypeHandler<CmdShowPortQueueTraits>}}},
+
+      {"show",
+       "rif",
+       "Show RIF information",
+       commandHandler<CmdShowRif>,
+       validFilterHandler<CmdShowRif>,
+       argTypeHandler<CmdShowRifTraits>},
 
       {"show",
        "interface",

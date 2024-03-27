@@ -91,6 +91,8 @@
 #include "fboss/cli/fboss2/commands/show/port/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/commands/show/product/CmdShowProduct.h"
 #include "fboss/cli/fboss2/commands/show/product/CmdShowProductDetails.h"
+#include "fboss/cli/fboss2/commands/show/rif/CmdShowRif.h"
+#include "fboss/cli/fboss2/commands/show/rif/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/commands/show/route/CmdShowRoute.h"
 #include "fboss/cli/fboss2/commands/show/route/CmdShowRouteDetails.h"
 #include "fboss/cli/fboss2/commands/show/route/CmdShowRouteSummary.h"
@@ -209,6 +211,7 @@ CmdHandler<CmdSetInterfacePrbsState, CmdSetInterfacePrbsStateTraits>::run();
 template void CmdHandler<CmdShowTeFlow, CmdShowTeFlowTraits>::run();
 template void CmdHandler<CmdStartPcap, CmdStartPcapTraits>::run();
 template void CmdHandler<CmdStopPcap, CmdStopPcapTraits>::run();
+template void CmdHandler<CmdShowRif, CmdShowRifTraits>::run();
 
 template const ValidFilterMapType
 CmdHandler<CmdShowArp, CmdShowArpTraits>::getValidFilters();
@@ -327,5 +330,7 @@ template const ValidFilterMapType CmdHandler<
     CmdSetInterfacePrbsStateTraits>::getValidFilters();
 template const ValidFilterMapType
 CmdHandler<CmdShowAcl, CmdShowAclTraits>::getValidFilters();
+template const ValidFilterMapType
+CmdHandler<CmdShowRif, CmdShowRifTraits>::getValidFilters();
 
 } // namespace facebook::fboss
