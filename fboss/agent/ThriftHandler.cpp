@@ -904,6 +904,10 @@ static void populateInterfaceDetail(
     *temp.prefixLength() = addrAndMask.second;
     interfaceDetail.address()->push_back(temp);
   }
+
+  if (intf->getRemoteInterfaceType().has_value()) {
+    interfaceDetail.remoteIntfType() = intf->getRemoteInterfaceType().value();
+  }
 }
 
 void ThriftHandler::getAllInterfaces(
