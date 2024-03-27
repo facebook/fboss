@@ -96,7 +96,7 @@ class SaiAclTableManager {
   static auto constexpr kIcmpTypeMask = 0xFF;
   static auto constexpr kIcmpCodeMask = 0xFF;
   static auto constexpr kEtherTypeMask = 0xFFFF;
-  static auto constexpr kOuterVlanIdMask = 0xFFFF;
+  static auto constexpr kOuterVlanIdMask = 0xFFF;
   static auto constexpr kBthOpcodeMask = 0xFF;
 
   static const folly::MacAddress& kMacMask() {

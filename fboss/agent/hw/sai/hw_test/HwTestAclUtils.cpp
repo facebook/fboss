@@ -279,6 +279,14 @@ void checkSwHwAclMatch(
     EXPECT_EQ(dstMacMask, SaiAclTableManager::kMacMask());
   }
 
+  if (swAcl->getVlanID()) {
+    auto aclFieldVlanIdGot = SaiApiTable::getInstance()->aclApi().getAttribute(
+        aclEntryId, SaiAclEntryTraits::Attributes::FieldOuterVlanId());
+    auto [vlanVal, vlanMask] = aclFieldVlanIdGot.getDataAndMask();
+    EXPECT_EQ(vlanVal, swAcl->getVlanID().value());
+    EXPECT_EQ(vlanMask, SaiAclTableManager::kOuterVlanIdMask);
+  }
+
   if (swAcl->getIpType()) {
     auto aclFieldIpTypeDataExpected =
         aclTableManager.cfgIpTypeToSaiIpType(swAcl->getIpType().value());

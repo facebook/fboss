@@ -1053,7 +1053,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
        fieldDstMac.has_value() || fieldIpType.has_value() ||
        fieldTtl.has_value() || fieldFdbDstUserMeta.has_value() ||
        fieldRouteDstUserMeta.has_value() || fieldEtherType.has_value() ||
-       fieldNeighborDstUserMeta.has_value() ||
+       fieldNeighborDstUserMeta.has_value() || fieldOuterVlanId.has_value() ||
 #if !defined(TAJO_SDK)
        fieldBthOpcode.has_value() ||
 #endif
@@ -1322,6 +1322,8 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet()
       platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2;
   bool isJericho3 =
       platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3;
+  bool isTomahawk5 =
+      platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK5;
 
   if (isTajo) {
     std::set<cfg::AclTableQualifier> tajoQualifiers = {
@@ -1401,6 +1403,7 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet()
         cfg::AclTableQualifier::DST_MAC,
         cfg::AclTableQualifier::IP_TYPE,
         cfg::AclTableQualifier::TTL,
+        cfg::AclTableQualifier::OUTER_VLAN,
         cfg::AclTableQualifier::LOOKUP_CLASS_L2,
         cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR,
         cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE};
@@ -1415,6 +1418,11 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet()
      */
     if (isTrident2) {
       bcmQualifiers.erase(cfg::AclTableQualifier::LOOKUP_CLASS_L2);
+    }
+    // TH5 fails creating ACL table after adding vlan as qualifier with 10.0
+    // CS00012342272
+    if (isTomahawk5) {
+      bcmQualifiers.erase(cfg::AclTableQualifier::OUTER_VLAN);
     }
 
     return bcmQualifiers;
