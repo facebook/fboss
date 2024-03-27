@@ -26,9 +26,11 @@ enum AclType {
   SRC_PORT,
   SRC_PORT_DENY,
   L4_DST_PORT,
+  L4_DST_PORT_VLAN,
   UDF,
   FLOWLET,
   BTH_OPCODE,
+  VLAN,
 };
 }
 
@@ -97,6 +99,12 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
       case AclType::BTH_OPCODE:
         aclName = "test-bth-opcode-acl";
         break;
+      case AclType::L4_DST_PORT_VLAN:
+        aclName = "test-l4-port-vlan-acl";
+        break;
+      case AclType::VLAN:
+        aclName = "test-vlan-acl";
+        break;
     }
     return aclName;
   }
@@ -116,6 +124,9 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
       case AclType::UDP_TTLD:
         counterName = "test-udp-acl-stats";
         break;
+      case AclType::VLAN:
+        counterName = "test-vlan-acl-stats";
+        break;
       case AclType::UDF:
         counterName = "test-udf-acl-stats";
         break;
@@ -124,6 +135,9 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
         break;
       case AclType::L4_DST_PORT:
         counterName = "test-l4-port-acl-stats";
+        break;
+      case AclType::L4_DST_PORT_VLAN:
+        counterName = "test-l4-port-vlan-acl-stats";
         break;
       case AclType::BTH_OPCODE:
         counterName = "test-bth-opcode-acl-stats";
@@ -190,7 +204,8 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
     auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     int l4DstPort = kL4DstPort();
-    if (aclType == AclType::L4_DST_PORT) {
+    if (aclType == AclType::L4_DST_PORT ||
+        aclType == AclType::L4_DST_PORT_VLAN) {
       l4DstPort = kL4DstPort2();
     }
 
@@ -284,7 +299,7 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
     verifyAcrossWarmBoots(setup, verify);
   }
 
-  void aclPriorityTestHelper2() {
+  void aclPriorityTestHelperSrcPort() {
     auto setup = [this]() {
       applyNewState(helper_->resolveNextHops(getProgrammedState(), 2));
       helper_->programRoutes(getRouteUpdater(), kEcmpWidth);
@@ -303,6 +318,30 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
       verifyAclType(true, true, AclType::L4_DST_PORT);
       // Sends a packet with dst port 8001
       verifyAclType(true, true, AclType::SRC_PORT);
+    };
+
+    verifyAcrossWarmBoots(setup, verify);
+  }
+
+  void aclPriorityTestHelperVlan() {
+    auto setup = [this]() {
+      applyNewState(helper_->resolveNextHops(getProgrammedState(), 2));
+      helper_->programRoutes(getRouteUpdater(), kEcmpWidth);
+      auto newCfg{initialConfig()};
+      // match on VLAN=2000 + L4_DST_PORT=8002
+      this->aclActionType_ = cfg::AclActionType::PERMIT;
+      addAclAndStat(&newCfg, AclType::L4_DST_PORT_VLAN);
+      // match on VLAN=2000
+      this->aclActionType_ = cfg::AclActionType::DENY;
+      addAclAndStat(&newCfg, AclType::VLAN);
+      applyNewConfig(newCfg);
+    };
+
+    auto verify = [this]() {
+      // Sends a packet with dst port 8002
+      verifyAclType(true, true, AclType::L4_DST_PORT_VLAN);
+      // Sends a packet with dst port 8001
+      verifyAclType(true, true, AclType::VLAN);
     };
 
     verifyAcrossWarmBoots(setup, verify);
@@ -389,6 +428,7 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
     auto aclName = getAclName(aclType);
     auto counterName = getCounterName(aclType);
     auto acl = utility::addAcl(config, aclName, aclActionType_);
+    auto vlanId = utility::firstVlanID(initialConfig()).value();
     switch (aclType) {
       case AclType::TCP_TTLD:
       case AclType::UDP_TTLD:
@@ -412,12 +452,19 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
         break;
       case AclType::FLOWLET:
         break;
+      case AclType::VLAN:
+        acl->vlanID() = vlanId;
+        break;
       case AclType::L4_DST_PORT:
         acl->srcPort() = helper_->ecmpPortDescriptorAt(0).phyPortID();
         acl->l4DstPort() = kL4DstPort2();
         break;
       case AclType::BTH_OPCODE:
         acl->roceOpcode() = utility::kUdfRoceOpcode;
+        break;
+      case AclType::L4_DST_PORT_VLAN:
+        acl->vlanID() = vlanId;
+        acl->l4DstPort() = kL4DstPort2();
         break;
     }
     std::vector<cfg::CounterType> setCounterTypes{
@@ -448,6 +495,10 @@ TYPED_TEST(HwAclCounterTest, VerifyCounterBumpOnL4DstportHitFrontPanel) {
       true /* bump on hit */,
       true /* front panel port */,
       {AclType::L4_DST_PORT});
+}
+TYPED_TEST(HwAclCounterTest, VerifyCounterBumpOnVlanHitFrontPanel) {
+  this->counterBumpOnHitHelper(
+      true /* bump on hit */, true /* front panel port */, {AclType::VLAN});
 }
 TYPED_TEST(HwAclCounterTest, VerifyCounterBumpOnSportHitFrontPanelWithDrop) {
   this->aclActionType_ = cfg::AclActionType::DENY;
@@ -495,7 +546,11 @@ TYPED_TEST(HwAclCounterTest, VerifyAclPrioritySportHitFrontPanel) {
 }
 
 TYPED_TEST(HwAclCounterTest, VerifyAclPriorityL4DstportHitFrontPanel) {
-  this->aclPriorityTestHelper2();
+  this->aclPriorityTestHelperSrcPort();
+}
+
+TYPED_TEST(HwAclCounterTest, VerifyAclPriorityVlanHitFrontPanel) {
+  this->aclPriorityTestHelperVlan();
 }
 
 /*
