@@ -232,6 +232,7 @@ struct InterfaceDetail {
   6: list<IpPrefix> address;
   7: i32 mtu;
   8: optional common.RemoteInterfaceType remoteIntfType;
+  9: optional common.RemoteLivenessStatus remoteIntfLivenessStatus;
 }
 
 /*
