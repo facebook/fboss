@@ -261,6 +261,7 @@ class ServiceHandler : public FsdbServiceSvIf,
   TLCounter num_disconnected_subscriptions_;
   TLCounter num_disconnected_publishers_;
   std::map<SubscriberId, TLCounter> disconnectedSubscribers_;
+  std::map<SubscriberId, TLCounter> connectedSubscriptions_;
   std::map<SubscriberId, TLCounter> disconnectedSubscriptions_;
   std::map<PublisherKey, TLCounter> disconnectedPublishers_;
   TLTimeseries num_subscriptions_rejected_;

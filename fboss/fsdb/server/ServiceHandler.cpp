@@ -583,6 +583,10 @@ void ServiceHandler::updateSubscriptionCounters(
         counter != disconnectedSubscriptions_.end()) {
       counter->second.incrementValue(disconnectCountIncrement);
     }
+    if (auto counter = connectedSubscriptions_.find(config.value().first);
+        counter != connectedSubscriptions_.end()) {
+      counter->second.incrementValue(connectedCountIncrement);
+    }
   }
 }
 
@@ -1140,6 +1144,14 @@ void ServiceHandler::initPerStreamCounters(void) {
         counter->second.incrementValue(count);
       }
       num_disconnected_subscriptions_.incrementValue(count);
+      connectedSubscriptions_.emplace(
+          key,
+          TLCounter(
+              fb303::ThreadCachedServiceData::get()->getThreadStats(),
+              folly::to<std::string>(
+                  fsdb_common_constants::kFsdbServiceHandlerNativeStatsPrefix(),
+                  "connected_subscriptions.",
+                  key)));
     }
   }
 
