@@ -938,7 +938,9 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
       return;
     }
     auto recyclePortId = getRecyclePortId(node);
-    auto sysPort = std::make_shared<SystemPort>(SystemPortID(recyclePortId));
+    auto sysPort = std::make_shared<SystemPort>(
+        SystemPortID(recyclePortId),
+        std::make_optional(RemoteSystemPortType::STATIC_ENTRY));
     sysPort->setSwitchId(node->getSwitchId());
     sysPort->setPortName(folly::sformat("{}:rcy1/1/1", node->getName()));
     const auto& recyclePortInfo = dsfNodeAsic->getRecyclePortInfo();
