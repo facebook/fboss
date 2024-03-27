@@ -437,6 +437,25 @@ class Interface : public ThriftStructNode<Interface, state::InterfaceFields> {
     }
   }
 
+  std::optional<RemoteLivenessStatus> getRemoteLivenessStatus() const {
+    if (auto remoteIntfLivenessStatus =
+            cref<switch_state_tags::remoteIntfLivenessStatus>()) {
+      return remoteIntfLivenessStatus->cref();
+    }
+    return std::nullopt;
+  }
+
+  void setRemoteLivenessStatus(
+      const std::optional<RemoteLivenessStatus>& remoteIntfLivenessStatus =
+          std::nullopt) {
+    if (remoteIntfLivenessStatus) {
+      set<switch_state_tags::remoteIntfLivenessStatus>(
+          remoteIntfLivenessStatus.value());
+    } else {
+      ref<switch_state_tags::remoteIntfLivenessStatus>().reset();
+    }
+  }
+
   /*
    * Inherit the constructors required for clone().
    * This needs to be public, as std::make_shared requires
