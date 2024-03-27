@@ -46,14 +46,6 @@ class MultiSwitchHwSwitchHandler : public HwSwitchHandler {
   bool transactionsSupported(
       std::optional<cfg::SdkVersion> sdkVersion) const override;
 
-  HwSwitchDropStats getSwitchDropStats() const override;
-
-  uint64_t getDeviceWatermarkBytes() const override;
-
-  HwFlowletStats getHwFlowletStats() const override;
-
-  HwSwitchFb303Stats* getSwitchStats() const override;
-
   void clearPortStats(
       const std::unique_ptr<std::vector<int32_t>>& ports) override;
 

@@ -87,14 +87,6 @@ class MultiHwSwitchHandler {
 
   bool transactionsSupported() const;
 
-  HwSwitchFb303Stats* getSwitchStats();
-
-  HwSwitchDropStats getSwitchDropStats() const;
-
-  uint64_t getDeviceWatermarkBytes();
-
-  HwFlowletStats getHwFlowletStats();
-
   void clearPortStats(const std::unique_ptr<std::vector<int32_t>>& ports);
 
   std::vector<phy::PrbsLaneStats> getPortAsicPrbsStats(PortID portId);

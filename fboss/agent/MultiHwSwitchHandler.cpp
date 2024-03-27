@@ -249,30 +249,6 @@ bool MultiHwSwitchHandler::transactionsSupported(
   return true;
 }
 
-HwSwitchFb303Stats* MultiHwSwitchHandler::getSwitchStats() {
-  // TODO - support with multiple switches
-  CHECK_EQ(hwSwitchSyncers_.size(), 1);
-  return hwSwitchSyncers_.begin()->second->getSwitchStats();
-}
-
-HwSwitchDropStats MultiHwSwitchHandler::getSwitchDropStats() const {
-  // TODO - support with multiple switches
-  CHECK_EQ(hwSwitchSyncers_.size(), 1);
-  return hwSwitchSyncers_.begin()->second->getSwitchDropStats();
-}
-
-uint64_t MultiHwSwitchHandler::getDeviceWatermarkBytes() {
-  // TODO - support with multiple switches
-  CHECK_EQ(hwSwitchSyncers_.size(), 1);
-  return hwSwitchSyncers_.begin()->second->getDeviceWatermarkBytes();
-}
-
-HwFlowletStats MultiHwSwitchHandler::getHwFlowletStats() {
-  // TODO - support with multiple switches
-  CHECK_EQ(hwSwitchSyncers_.size(), 1);
-  return hwSwitchSyncers_.begin()->second->getHwFlowletStats();
-}
-
 void MultiHwSwitchHandler::clearPortStats(
     const std::unique_ptr<std::vector<int32_t>>& ports) {
   // TODO - support with multiple switches

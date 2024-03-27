@@ -50,18 +50,18 @@ class MonolithicHwSwitchHandler : public HwSwitchHandler {
   folly::F14FastMap<std::string, HwPortStats> getPortStats() const;
 
   std::map<std::string, HwSysPortStats> getSysPortStats() const;
-  HwSwitchDropStats getSwitchDropStats() const override;
+  HwSwitchDropStats getSwitchDropStats() const;
 
   void updateStats();
 
   void updateAllPhyInfo();
   std::map<PortID, phy::PhyInfo> getAllPhyInfo() const;
 
-  uint64_t getDeviceWatermarkBytes() const override;
+  uint64_t getDeviceWatermarkBytes() const;
 
-  HwFlowletStats getHwFlowletStats() const override;
+  HwFlowletStats getHwFlowletStats() const;
 
-  HwSwitchFb303Stats* getSwitchStats() const override;
+  HwSwitchFb303Stats* getSwitchStats() const;
 
   void clearPortStats(
       const std::unique_ptr<std::vector<int32_t>>& ports) override;

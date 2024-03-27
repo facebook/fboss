@@ -807,10 +807,10 @@ void SwSwitch::updateStats() {
     }
     hwStats.hwPortStats() = monoHwSwitchHandler->getPortStats();
     hwStats.sysPortStats() = monoHwSwitchHandler->getSysPortStats();
-    hwStats.switchDropStats() = multiHwSwitchHandler_->getSwitchDropStats();
+    hwStats.switchDropStats() = monoHwSwitchHandler->getSwitchDropStats();
     hwStats.switchWatermarkStats() =
-        getMonolithicHwSwitchHandler()->getSwitchWatermarkStats();
-    if (auto hwSwitchStats = multiHwSwitchHandler_->getSwitchStats()) {
+        monoHwSwitchHandler->getSwitchWatermarkStats();
+    if (auto hwSwitchStats = monoHwSwitchHandler->getSwitchStats()) {
       hwStats.hwAsicErrors() = hwSwitchStats->getHwAsicErrors();
     }
     hwStats.teFlowStats() = getTeFlowStats();
@@ -818,7 +818,7 @@ void SwSwitch::updateStats() {
          monoHwSwitchHandler->getAllPhyInfo()) {
       hwStats.phyInfo()->emplace(portId, phyInfoPerPort);
     }
-    hwStats.flowletStats() = getHwFlowletStats();
+    hwStats.flowletStats() = monoHwSwitchHandler->getHwFlowletStats();
     hwStats.cpuPortStats() = monoHwSwitchHandler->getCpuPortStats();
     hwStats.aclStats() = multiHwSwitchHandler_->getAclStats();
     updateHwSwitchStats(0 /*switchIndex*/, std::move(hwStats));
@@ -1023,16 +1023,12 @@ void SwSwitch::getAllCpuPortStats(
 
 void SwSwitch::updateFlowletStats() {
   uint64_t dlbErrorPackets = 0;
-  auto runMode = (*agentConfig_.rlock())->getRunMode();
-  if (runMode == cfg::AgentRunMode::MULTI_SWITCH) {
+  {
     auto lockedStats = hwSwitchStats_.rlock();
     for (auto& [switchIdx, hwSwitchStats] : *lockedStats) {
       dlbErrorPackets +=
           hwSwitchStats.flowletStats()->l3EcmpDlbFailPackets().value();
     }
-  } else {
-    auto flowletStats = getHwSwitchHandler()->getHwFlowletStats();
-    dlbErrorPackets = flowletStats.l3EcmpDlbFailPackets().value();
   }
   fb303::fbData->setCounter(
       SwitchStats::kCounterPrefix + "dlb_error_packets", dlbErrorPackets);
@@ -1068,10 +1064,6 @@ TeFlowStats SwSwitch::getTeFlowStats() {
   teFlowStats.timestamp() = now.count();
   teFlowStats.hwTeFlowStats() = std::move(hwTeFlowStats);
   return teFlowStats;
-}
-
-HwFlowletStats SwSwitch::getHwFlowletStats() const {
-  return multiHwSwitchHandler_->getHwFlowletStats();
 }
 
 void SwSwitch::registerNeighborListener(

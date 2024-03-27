@@ -96,27 +96,6 @@ bool MultiSwitchHwSwitchHandler::transactionsSupported(
   return false;
 }
 
-HwSwitchDropStats MultiSwitchHwSwitchHandler::getSwitchDropStats() const {
-  // TODO: implement this
-  return HwSwitchDropStats{};
-}
-
-uint64_t MultiSwitchHwSwitchHandler::getDeviceWatermarkBytes() const {
-  // TODO: implement this
-  return 0;
-}
-
-HwFlowletStats MultiSwitchHwSwitchHandler::getHwFlowletStats() const {
-  // TODO: implement this
-  return {};
-}
-
-HwSwitchFb303Stats* MultiSwitchHwSwitchHandler::getSwitchStats() const {
-  // TODO: implement this
-  // @lint-ignore CLANGTIDY
-  return nullptr;
-}
-
 void MultiSwitchHwSwitchHandler::clearPortStats(
     const std::unique_ptr<std::vector<int32_t>>& /*ports*/) {
   // TODO: implement this
