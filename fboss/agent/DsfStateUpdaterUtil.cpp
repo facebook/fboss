@@ -89,7 +89,11 @@ std::shared_ptr<SwitchState> DsfStateUpdaterUtil::getUpdatedState(
                  newNode->toThrift());
       return oldNode;
     }
-    return newNode;
+
+    auto clonedNode = newNode->isPublished() ? newNode->clone() : newNode;
+    clonedNode->setRemoteLivenessStatus(RemoteLivenessStatus::LIVE);
+
+    return clonedNode;
   };
   auto makeRemoteRif = [&](const auto& oldNode, const auto& newNode) {
     auto clonedNode = newNode->clone();
