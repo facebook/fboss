@@ -164,24 +164,24 @@ void addNetworkAIQueueConfig(
   std::vector<cfg::PortQueue> portQueues;
 
   cfg::PortQueue queue0;
-  queue0.id() = getNetworkAIQueueId(NetworkAIQueueType::MONITORING);
-  queue0.name() = "queue0.monitoring";
+  queue0.id() = getNetworkAIQueueId(NetworkAIQueueType::RDMA);
+  queue0.name() = "queue2.rdma";
   queue0.streamType() = streamType;
   queue0.scheduling() = cfg::QueueScheduling::STRICT_PRIORITY;
   portQueues.push_back(queue0);
 
   cfg::PortQueue queue1;
-  queue0.id() = getNetworkAIQueueId(NetworkAIQueueType::RDMA);
-  queue0.name() = "queue6.rdma";
-  queue0.streamType() = streamType;
-  queue0.scheduling() = cfg::QueueScheduling::STRICT_PRIORITY;
+  queue1.id() = getNetworkAIQueueId(NetworkAIQueueType::MONITORING);
+  queue1.name() = "queue6.monitoring";
+  queue1.streamType() = streamType;
+  queue1.scheduling() = cfg::QueueScheduling::STRICT_PRIORITY;
   portQueues.push_back(queue1);
 
   cfg::PortQueue queue2;
-  queue0.id() = getNetworkAIQueueId(NetworkAIQueueType::NC);
-  queue0.name() = "queue7.nc";
-  queue0.streamType() = streamType;
-  queue0.scheduling() = cfg::QueueScheduling::STRICT_PRIORITY;
+  queue2.id() = getNetworkAIQueueId(NetworkAIQueueType::NC);
+  queue2.name() = "queue7.nc";
+  queue2.streamType() = streamType;
+  queue2.scheduling() = cfg::QueueScheduling::STRICT_PRIORITY;
   portQueues.push_back(queue2);
 
   config->portQueueConfigs()["queue_config"] = portQueues;

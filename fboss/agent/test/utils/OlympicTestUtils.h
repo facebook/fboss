@@ -107,13 +107,9 @@ constexpr int kQueueConfigAqmsWredThresholdMinMax = 48600;
 constexpr int kQueueConfigAqmsWredDropProbability = 100;
 
 /* network AI Qos queues*/
-constexpr int kNetworkAIMonitoringQueueId = 0;
-constexpr int kNetworkAIRdmaQueueId = 6;
+constexpr int kNetworkAIMonitoringQueueId = 6;
+constexpr int kNetworkAIRdmaQueueId = 2;
 constexpr int kNetworkAINCQueueId = 7;
-
-constexpr int kNetworkAIMonitoringQueueId2 = 7;
-constexpr int kNetworkAIRdmaQueueId2 = 2;
-constexpr int kNetworkAINCQueueId2 = 1;
 
 constexpr int kNetworkAIHighestQueueId = kNetworkAINCQueueId;
 

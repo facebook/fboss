@@ -862,7 +862,10 @@ bool HwSwitchEnsemble::waitForRateOnPort(
     auto curPortBytes = *curPortStats.outBytes_() + packetPaddingBytes;
     auto rate = static_cast<uint64_t>((curPortBytes - prevPortBytes) * 8) /
         secondsToWaitPerIteration;
-    if (rate >= desiredBps) {
+    if (desiredBps == 0 && rate == desiredBps) {
+      XLOG(DBG0) << "Expect no traffic: Current rate " << rate << " bps!";
+      return true;
+    } else if (desiredBps > 0 && rate >= desiredBps) {
       XLOG(DBG0) << ": Current rate " << rate << " bps!";
       return true;
     } else {

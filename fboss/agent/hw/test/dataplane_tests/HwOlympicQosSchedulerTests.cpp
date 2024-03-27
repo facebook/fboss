@@ -140,16 +140,36 @@ class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
       const std::vector<int>& queueIds,
       const std::map<int, std::vector<uint8_t>>& queueToDscp,
       bool frontPanel = true) {
-    // Higher speed ports need more packets to reach line rate
+    auto port = getProgrammedState()->getPort(outPort());
+    auto queues = port->getPortQueues()->impl();
+    std::set<int> wrrQueues;
+    std::set<int> spQueues;
+    for (auto queue : std::as_const(queues)) {
+      if (std::find(queueIds.begin(), queueIds.end(), queue->getID()) !=
+          queueIds.end()) {
+        if (queue->getScheduling() ==
+            cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN) {
+          wrrQueues.insert(queue->getID());
+        } else if (
+            queue->getScheduling() == cfg::QueueScheduling::STRICT_PRIORITY) {
+          spQueues.insert(queue->getID());
+        }
+      }
+    }
     auto pktsToSend = getHwSwitchEnsemble()->getMinPktsForLineRate(outPort());
-    for (const auto& queueId : queueIds) {
-      sendUdpPkts(queueToDscp.at(queueId).front(), pktsToSend, frontPanel);
+    // send traffic to wrr queues first
+    for (auto queue : wrrQueues) {
+      XLOG(DBG2) << "send traffic to wrr queue " << queue;
+      sendUdpPkts(queueToDscp.at(queue).front(), pktsToSend, frontPanel);
+    }
+    // send traffic to sp queues from low priority to high priority
+    for (auto queue : spQueues) {
+      XLOG(DBG2) << "send traffic to sp queue " << queue;
+      sendUdpPkts(queueToDscp.at(queue).front(), pktsToSend, frontPanel);
     }
   }
 
-  void _setup(
-      const utility::EcmpSetupAnyNPorts6& ecmpHelper6,
-      const std::vector<int>& queueIds) {
+  void _setup(const utility::EcmpSetupAnyNPorts6& ecmpHelper6) {
     resolveNeigborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
     utility::ttlDecrementHandlingForLoopbackTraffic(
         getHwSwitchEnsemble(), ecmpHelper6.getRouterId(), ecmpHelper6.nhop(0));
@@ -169,12 +189,60 @@ class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
 
   void verifyWRRAndSP(const std::vector<int>& queueIds, int trafficQueueId) {
     utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
-    auto setup = [=, this]() { _setup(ecmpHelper6, queueIds); };
+    auto setup = [=, this]() { _setup(ecmpHelper6); };
 
     auto verify = [=, this]() {
       sendUdpPktsForAllQueues(
           queueIds, utility::kOlympicQueueToDscp(getAsic()));
       EXPECT_TRUE(verifySPHelper(trafficQueueId));
+      for (auto queue : queueIds) {
+        if (queue != trafficQueueId) {
+          // toggle route to stop traffic, and then send traffic to each WRR
+          // queue and SP queue
+          XLOG(DBG2) << "unprogram routes";
+          ecmpHelper6.unprogramRoutes(getRouteUpdater());
+          // wait for no traffic going out of port
+          getHwSwitchEnsemble()->waitForSpecificRateOnPort(outPort(), 0);
+
+          XLOG(DBG2) << "program routes";
+          ecmpHelper6.programRoutes(getRouteUpdater(), kEcmpWidthForTest);
+          XLOG(DBG2) << "send traffic to WRR queue " << queue
+                     << " and SP queue " << trafficQueueId;
+          sendUdpPktsForAllQueues(
+              {queue, trafficQueueId}, utility::kOlympicQueueToDscp(getAsic()));
+          EXPECT_TRUE(verifySPHelper(trafficQueueId));
+        }
+      }
+    };
+
+    verifyAcrossWarmBoots(setup, verify);
+  }
+
+  void verifySingleWRRAndSP(
+      const std::vector<int>& queueIds,
+      int trafficQueueId) {
+    utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
+    auto setup = [=, this]() { _setup(ecmpHelper6); };
+
+    auto verify = [=, this]() {
+      for (auto queue : queueIds) {
+        if (queue != trafficQueueId) {
+          XLOG(DBG2) << "send traffic to WRR queue " << queue
+                     << " and SP queue " << trafficQueueId;
+          sendUdpPktsForAllQueues(
+              {queue, trafficQueueId}, utility::kOlympicQueueToDscp(getAsic()));
+          EXPECT_TRUE(verifySPHelper(trafficQueueId));
+          // toggle route to stop traffic, and then send traffic to each WRR
+          // queue and SP queue
+          XLOG(DBG2) << "unprogram routes";
+          ecmpHelper6.unprogramRoutes(getRouteUpdater());
+          // wait for no traffic going out of port
+          getHwSwitchEnsemble()->waitForSpecificRateOnPort(outPort(), 0);
+
+          XLOG(DBG2) << "program routes";
+          ecmpHelper6.programRoutes(getRouteUpdater(), kEcmpWidthForTest);
+        }
+      }
     };
 
     verifyAcrossWarmBoots(setup, verify);
@@ -200,6 +268,7 @@ class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
   void verifySP(bool frontPanelTraffic = true);
   void verifyWRRAndICP();
   void verifyWRRAndNC();
+  void verifySingleWRRAndNC();
 
   void verifyWRRToAllSPDscpToQueue();
   void verifyWRRToAllSPTraffic();
@@ -299,11 +368,8 @@ bool HwOlympicQosSchedulerTest::verifySPHelper(int trafficQueueId) {
       auto queueId = queueStat.first;
       auto statVal = queueStat.second - queueStatsBefore[queueId];
       XLOG(DBG0) << "QueueId: " << queueId << " stats: " << statVal;
-      distributionOk =
+      distributionOk = distributionOk &&
           (queueId != trafficQueueId ? statVal == 0 : statVal != 0);
-      if (!distributionOk) {
-        break;
-      }
     }
     if (distributionOk) {
       return true;
@@ -316,9 +382,7 @@ bool HwOlympicQosSchedulerTest::verifySPHelper(int trafficQueueId) {
 void HwOlympicQosSchedulerTest::verifyWRR() {
   utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
 
-  auto setup = [=, this]() {
-    _setup(ecmpHelper6, utility::kOlympicWRRQueueIds(getAsic()));
-  };
+  auto setup = [=, this]() { _setup(ecmpHelper6); };
 
   auto verify = [=, this]() {
     sendUdpPktsForAllQueues(
@@ -336,9 +400,7 @@ void HwOlympicQosSchedulerTest::verifyWRR() {
 void HwOlympicQosSchedulerTest::verifySP(bool frontPanelTraffic) {
   utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
 
-  auto setup = [=, this]() {
-    _setup(ecmpHelper6, utility::kOlympicSPQueueIds(getAsic()));
-  };
+  auto setup = [=, this]() { _setup(ecmpHelper6); };
 
   auto verify = [=, this]() {
     sendUdpPktsForAllQueues(
@@ -369,6 +431,14 @@ void HwOlympicQosSchedulerTest::verifyWRRAndNC() {
       utility::getOlympicQueueId(
           utility::OlympicQueueType::NC)); // SP should starve WRR
                                            // queues altogether
+}
+
+void HwOlympicQosSchedulerTest::verifySingleWRRAndNC() {
+  verifySingleWRRAndSP(
+      utility::kOlympicWRRAndNCQueueIds(getAsic()),
+      utility::getOlympicQueueId(
+          utility::OlympicQueueType::NC)); // SP should starve each
+                                           // WRR queues
 }
 
 /*
@@ -414,9 +484,7 @@ void HwOlympicQosSchedulerTest::verifyWRRToAllSPDscpToQueue() {
 void HwOlympicQosSchedulerTest::verifyWRRToAllSPTraffic() {
   utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
 
-  auto setup = [=, this]() {
-    _setup(ecmpHelper6, utility::kOlympicWRRQueueIds(getAsic()));
-  };
+  auto setup = [=, this]() { _setup(ecmpHelper6); };
 
   auto verify = [=]() {};
 
@@ -480,9 +548,7 @@ void HwOlympicQosSchedulerTest::verifyDscpToQueueOlympicToOlympicV2() {
 void HwOlympicQosSchedulerTest::verifyWRRForOlympicToOlympicV2() {
   utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
 
-  auto setup = [=, this]() {
-    _setup(ecmpHelper6, utility::kOlympicWRRQueueIds(getAsic()));
-  };
+  auto setup = [=, this]() { _setup(ecmpHelper6); };
 
   auto verify = [=]() {};
 
@@ -549,7 +615,7 @@ void HwOlympicQosSchedulerTest::verifyOlympicV2WRRToAllSPTraffic() {
   utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
 
   auto setup = [=, this]() {
-    _setup(ecmpHelper6, utility::kOlympicV2WRRQueueIds(getAsic()));
+    _setup(ecmpHelper6);
     _setupOlympicV2Queues();
   };
 
@@ -590,7 +656,7 @@ void HwOlympicQosSchedulerTest::verifyOlympicV2AllSPTrafficToWRR() {
   utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
 
   auto setup = [=, this]() {
-    _setup(ecmpHelper6, utility::kOlympicV2WRRQueueIds(getAsic()));
+    _setup(ecmpHelper6);
     auto newCfg{initialConfig()};
     auto streamType = *(getPlatform()
                             ->getAsic()
@@ -661,6 +727,10 @@ TEST_F(HwOlympicQosSchedulerTest, VerifyWRRAndICP) {
 
 TEST_F(HwOlympicQosSchedulerTest, VerifyWRRAndNC) {
   verifyWRRAndNC();
+}
+
+TEST_F(HwOlympicQosSchedulerTest, VerifySingleWRRAndNC) {
+  verifySingleWRRAndNC();
 }
 
 TEST_F(HwOlympicQosSchedulerTest, VerifyWRRToAllSPDscpToQueue) {
