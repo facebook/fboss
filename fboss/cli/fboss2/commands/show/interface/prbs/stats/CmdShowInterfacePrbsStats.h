@@ -97,7 +97,8 @@ class CmdShowInterfacePrbsStats : public CmdHandler<
                     now.count() - *laneStat.timeSinceLastClear())
               : "N/A";
           table.addRow(
-              {std::to_string(*laneStat.laneId()),
+              {(*laneStat.laneId() == -1) ? "-"
+                                          : std::to_string(*laneStat.laneId()),
                *laneStat.locked() ? "True" : "False",
                ber.str(),
                maxBer.str(),
