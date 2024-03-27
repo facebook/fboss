@@ -129,7 +129,8 @@ class CmdShowSystemPort
            "QosPolicy",
            "CoreIndex",
            "CorePortIndex",
-           "RemoteSystemPortType"});
+           "RemoteSystemPortType",
+           "RemoteSystemPortLivenessStatus"});
 
       for (auto const& systemportInfo : model.get_sysPortEntries()) {
         table.addRow(
@@ -140,8 +141,9 @@ class CmdShowSystemPort
              systemportInfo.get_qosPolicy(),
              folly::to<std::string>(systemportInfo.get_coreIndex()),
              folly::to<std::string>(systemportInfo.get_corePortIndex()),
+             folly::to<std::string>(systemportInfo.get_remoteSystemPortType()),
              folly::to<std::string>(
-                 systemportInfo.get_remoteSystemPortType())});
+                 systemportInfo.get_remoteSystemPortLivenessStatus())});
       }
       out << table << std::endl;
     }
@@ -187,6 +189,23 @@ class CmdShowSystemPort
         };
         systemPortDetails.remoteSystemPortType() =
             getRemoteSystemPortTypeStr(systemPortInfo.remoteSystemPortType());
+
+        auto getRemoteSystemPortLivenessStatusStr =
+            [](const auto& remoteSystemPortLivenessStatus) {
+              if (remoteSystemPortLivenessStatus.has_value()) {
+                switch (remoteSystemPortLivenessStatus.value()) {
+                  case RemoteLivenessStatus::LIVE:
+                    return "LIVE";
+                  case RemoteLivenessStatus::STALE:
+                    return "STALE";
+                }
+              } else {
+                return "--";
+              }
+            };
+        systemPortDetails.remoteSystemPortLivenessStatus() =
+            getRemoteSystemPortLivenessStatusStr(
+                systemPortInfo.remoteSystemPortLivenessStatus());
 
         const auto& iter = systemportHwStats.find(systemPortName);
         // see if we have any detailed hw stats
