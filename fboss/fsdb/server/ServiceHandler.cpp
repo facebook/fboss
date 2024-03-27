@@ -568,16 +568,10 @@ void ServiceHandler::updateSubscriptionCounters(
   auto connectedCountIncrement = isConnected ? 1 : -1;
   auto disconnectCountIncrement = isConnected ? -1 : 1;
 
-  num_subscribers_.incrementValue(connectedCountIncrement);
   num_subscriptions_.incrementValue(connectedCountIncrement);
 
   auto config = fsdbConfig_->getSubscriberConfig(*info.subscriberId());
   if (config.has_value() && *config.value().second.get().trackReconnect()) {
-    num_disconnected_subscribers_.incrementValue(disconnectCountIncrement);
-    if (auto counter = disconnectedSubscribers_.find(config.value().first);
-        counter != disconnectedSubscribers_.end()) {
-      counter->second.incrementValue(disconnectCountIncrement);
-    }
     num_disconnected_subscriptions_.incrementValue(disconnectCountIncrement);
     if (auto counter = disconnectedSubscriptions_.find(config.value().first);
         counter != disconnectedSubscriptions_.end()) {
@@ -586,6 +580,18 @@ void ServiceHandler::updateSubscriptionCounters(
     if (auto counter = connectedSubscriptions_.find(config.value().first);
         counter != connectedSubscriptions_.end()) {
       counter->second.incrementValue(connectedCountIncrement);
+      bool isFirstSubscriptionConnected =
+          isConnected && counter->second.value() == 1;
+      bool isLastSubscriptionDisconnected =
+          !isConnected && counter->second.value() == 0;
+      if (isFirstSubscriptionConnected || isLastSubscriptionDisconnected) {
+        num_subscribers_.incrementValue(connectedCountIncrement);
+        num_disconnected_subscribers_.incrementValue(disconnectCountIncrement);
+        if (auto counter1 = disconnectedSubscribers_.find(config.value().first);
+            counter1 != disconnectedSubscribers_.end()) {
+          counter1->second.incrementValue(disconnectCountIncrement);
+        }
+      }
     }
   }
 }
@@ -1118,7 +1124,6 @@ ServiceHandler::co_getOperSubscriberInfos(
 void ServiceHandler::initPerStreamCounters(void) {
   for (const auto& [key, value] : *fsdbConfig_->getThrift().subscribers()) {
     if (value.trackReconnect().value()) {
-      auto count = value.numExpectedSubscriptions().value();
       disconnectedSubscribers_.emplace(
           key,
           TLCounter(
@@ -1129,8 +1134,9 @@ void ServiceHandler::initPerStreamCounters(void) {
                   key)));
       if (auto counter = disconnectedSubscribers_.find(key);
           counter != disconnectedSubscribers_.end()) {
-        counter->second.incrementValue(count);
+        counter->second.incrementValue(1);
       }
+      auto count = value.numExpectedSubscriptions().value();
       disconnectedSubscriptions_.emplace(
           key,
           TLCounter(
