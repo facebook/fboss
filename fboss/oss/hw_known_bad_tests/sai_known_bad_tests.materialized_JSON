@@ -3174,9 +3174,6 @@
           "test_name_regex": "HwPfcTest.*"
         },
         {
-          "test_name_regex": "HwTrafficPfcTest.*"
-        },
-        {
           "test_name_regex": "HwIngressBufferTest.*"
         },
         {
@@ -3315,7 +3312,7 @@
           "test_name_regex": "HwSplitAgentCallbackTest.txPacket"
         },
         {
-          "test_name_regex": "HwVoqSwitchWithFabricPortsTest.verifyNifMulticastTrafficDropped"
+          "test_name_regex": "HwTrafficPfcTest/HwTrafficPfcGenTest.verifyPfc/WithZeroGlobalHeadRoomCfg"
         }
     ],
     "brcm/11.0_ea_dnx_odp/11.0_ea_dnx_odp/jericho3/simulator": [
