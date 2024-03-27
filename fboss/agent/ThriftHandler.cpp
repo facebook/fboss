@@ -914,14 +914,19 @@ void ThriftHandler::getAllInterfaces(
     std::map<int32_t, InterfaceDetail>& interfaces) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  const auto interfaceMap = sw_->getState()->getInterfaces();
-  for (const auto& [_, intfs] : std::as_const(*interfaceMap)) {
-    for (auto iter : std::as_const(*intfs)) {
-      const auto& intf = iter.second;
-      auto& interfaceDetail = interfaces[intf->getID()];
-      populateInterfaceDetail(interfaceDetail, intf);
+
+  auto getAllInterfacesHelper = [&interfaces](const auto& interfaceMap) {
+    for (const auto& [_, intfs] : std::as_const(*interfaceMap)) {
+      for (auto iter : std::as_const(*intfs)) {
+        const auto& intf = iter.second;
+        auto& interfaceDetail = interfaces[intf->getID()];
+        populateInterfaceDetail(interfaceDetail, intf);
+      }
     }
-  }
+  };
+
+  getAllInterfacesHelper(sw_->getState()->getInterfaces());
+  getAllInterfacesHelper(sw_->getState()->getRemoteInterfaces());
 }
 
 void ThriftHandler::getInterfaceList(std::vector<std::string>& interfaceList) {
