@@ -47,6 +47,19 @@ class CmdShowRif : public CmdHandler<CmdShowRif, CmdShowRifTraits> {
       std::map<int32_t, facebook::fboss::InterfaceDetail> rifs) {
     RetType model;
 
+    auto getRemoteIntfTypeStr = [](const auto& remoteIntfType) {
+      if (remoteIntfType.has_value()) {
+        switch (remoteIntfType.value()) {
+          case RemoteInterfaceType::DYNAMIC_ENTRY:
+            return "DYNAMIC";
+          case RemoteInterfaceType::STATIC_ENTRY:
+            return "STATIC";
+        }
+      } else {
+        return "--";
+      }
+    };
+
     for (const auto& [rifId, rif] : rifs) {
       cli::RifEntry rifEntry;
 
@@ -58,6 +71,8 @@ class CmdShowRif : public CmdHandler<CmdShowRif, CmdShowRifTraits> {
       rifEntry.routerID() = *rif.routerId();
       rifEntry.mac() = *rif.mac();
       rifEntry.mtu() = *rif.mtu();
+      rifEntry.remoteInterfaceType() =
+          getRemoteIntfTypeStr(rif.remoteIntfType());
 
       model.rifs()->push_back(rifEntry);
     }
@@ -67,7 +82,8 @@ class CmdShowRif : public CmdHandler<CmdShowRif, CmdShowRifTraits> {
 
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
     Table outTable;
-    outTable.setHeader({"RIF", "RIFID", "VlanID", "RouterID", "MAC", "MTU"});
+    outTable.setHeader(
+        {"RIF", "RIFID", "VlanID", "RouterID", "MAC", "MTU", "TYPE"});
 
     for (const auto& rif : model.get_rifs()) {
       outTable.addRow({
@@ -77,6 +93,7 @@ class CmdShowRif : public CmdHandler<CmdShowRif, CmdShowRifTraits> {
           std::to_string(rif.get_routerID()),
           rif.get_mac(),
           std::to_string(rif.get_mtu()),
+          rif.get_remoteInterfaceType(),
       });
     }
 

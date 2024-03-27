@@ -12,4 +12,5 @@ struct RifEntry {
   5: string mac;
   6: list<string> addrs;
   7: i32 mtu;
+  8: string remoteInterfaceType;
 }
