@@ -60,6 +60,20 @@ class CmdShowRif : public CmdHandler<CmdShowRif, CmdShowRifTraits> {
       }
     };
 
+    auto getRemoteIntfLivenessStatusStr =
+        [](const auto& remoteIntfLivenessStatus) {
+          if (remoteIntfLivenessStatus.has_value()) {
+            switch (remoteIntfLivenessStatus.value()) {
+              case RemoteLivenessStatus::LIVE:
+                return "LIVE";
+              case RemoteLivenessStatus::STALE:
+                return "STALE";
+            }
+          } else {
+            return "--";
+          }
+        };
+
     for (const auto& [rifId, rif] : rifs) {
       cli::RifEntry rifEntry;
 
@@ -73,6 +87,8 @@ class CmdShowRif : public CmdHandler<CmdShowRif, CmdShowRifTraits> {
       rifEntry.mtu() = *rif.mtu();
       rifEntry.remoteInterfaceType() =
           getRemoteIntfTypeStr(rif.remoteIntfType());
+      rifEntry.remoteInterfaceLivenessStatus() =
+          getRemoteIntfLivenessStatusStr(rif.remoteIntfLivenessStatus());
 
       model.rifs()->push_back(rifEntry);
     }
@@ -83,7 +99,14 @@ class CmdShowRif : public CmdHandler<CmdShowRif, CmdShowRifTraits> {
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
     Table outTable;
     outTable.setHeader(
-        {"RIF", "RIFID", "VlanID", "RouterID", "MAC", "MTU", "TYPE"});
+        {"RIF",
+         "RIFID",
+         "VlanID",
+         "RouterID",
+         "MAC",
+         "MTU",
+         "TYPE",
+         "Liveness"});
 
     for (const auto& rif : model.get_rifs()) {
       outTable.addRow({
@@ -94,6 +117,7 @@ class CmdShowRif : public CmdHandler<CmdShowRif, CmdShowRifTraits> {
           rif.get_mac(),
           std::to_string(rif.get_mtu()),
           rif.get_remoteInterfaceType(),
+          rif.get_remoteInterfaceLivenessStatus(),
       });
     }
 

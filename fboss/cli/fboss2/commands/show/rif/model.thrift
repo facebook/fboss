@@ -13,4 +13,5 @@ struct RifEntry {
   6: list<string> addrs;
   7: i32 mtu;
   8: string remoteInterfaceType;
+  9: string remoteInterfaceLivenessStatus;
 }
