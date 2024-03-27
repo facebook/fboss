@@ -25,9 +25,9 @@ enum class SubscriptionState : uint16_t {
   CONNECTED_GR_HOLD,
 };
 
-inline bool isConnected(SubscriptionState state) {
-  return (state == SubscriptionState::CONNECTED) ||
-      (state == SubscriptionState::CONNECTED_GR_HOLD);
+inline bool isConnected(const SubscriptionState& state) {
+  return state == SubscriptionState::CONNECTED ||
+      state == SubscriptionState::CONNECTED_GR_HOLD;
 }
 
 inline bool isDisconnected(SubscriptionState state) {
