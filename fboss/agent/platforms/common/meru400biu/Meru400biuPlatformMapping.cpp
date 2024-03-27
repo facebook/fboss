@@ -70114,7 +70114,7 @@ constexpr auto kJsonMultiNpuDsfScaleTestPlatformMappingStr = R"(
     "2049": {
         "mapping": {
           "id": 2049,
-          "name": "rcy2/1/1",
+          "name": "rcy1/2/1",
           "controllingPort": 2049,
           "pins": [
             {
