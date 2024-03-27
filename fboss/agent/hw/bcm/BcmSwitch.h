@@ -394,7 +394,7 @@ class BcmSwitch : public BcmSwitchIf {
     return {};
   }
 
-  CpuPortStats getCpuPortStats(bool getIncrement) const override;
+  CpuPortStats getCpuPortStats() const override;
 
   uint64_t getDeviceWatermarkBytes() const override;
 

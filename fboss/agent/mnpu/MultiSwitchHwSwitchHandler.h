@@ -46,9 +46,6 @@ class MultiSwitchHwSwitchHandler : public HwSwitchHandler {
   bool transactionsSupported(
       std::optional<cfg::SdkVersion> sdkVersion) const override;
 
-  folly::F14FastMap<std::string, HwPortStats> getPortStats() const override;
-
-  std::map<std::string, HwSysPortStats> getSysPortStats() const override;
   HwSwitchDropStats getSwitchDropStats() const override;
 
   void updateStats() override;
@@ -91,8 +88,6 @@ class MultiSwitchHwSwitchHandler : public HwSwitchHandler {
       const fsdb::OperDelta& delta,
       bool transaction,
       const std::shared_ptr<SwitchState>& newState) override;
-
-  CpuPortStats getCpuPortStats(bool getIncrement) const override;
 
   std::map<PortID, FabricEndpoint> getFabricConnectivity() const override;
 

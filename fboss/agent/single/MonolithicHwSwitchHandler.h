@@ -47,9 +47,9 @@ class MonolithicHwSwitchHandler : public HwSwitchHandler {
 
   std::optional<uint32_t> getHwLogicalPortId(PortID portID) const override;
 
-  folly::F14FastMap<std::string, HwPortStats> getPortStats() const override;
+  folly::F14FastMap<std::string, HwPortStats> getPortStats() const;
 
-  std::map<std::string, HwSysPortStats> getSysPortStats() const override;
+  std::map<std::string, HwSysPortStats> getSysPortStats() const;
   HwSwitchDropStats getSwitchDropStats() const override;
 
   void updateStats() override;
@@ -108,7 +108,7 @@ class MonolithicHwSwitchHandler : public HwSwitchHandler {
     return platform_;
   }
 
-  CpuPortStats getCpuPortStats(bool getIncrement) const override;
+  CpuPortStats getCpuPortStats() const;
 
   std::map<PortID, FabricEndpoint> getFabricConnectivity() const override;
 

@@ -3118,10 +3118,15 @@ void ThriftHandler::getSysPortStats(
   sw_->getAllHwSysPortStats(hwSysPortStats);
 }
 
+// TODO - delete this api after callers migrate to getAllCpuPortStats
 void ThriftHandler::getCpuPortStats(CpuPortStats& cpuPortStats) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  cpuPortStats = sw_->getHwSwitchHandler()->getCpuPortStats(true);
+  std::map<int, CpuPortStats> hwCpuPortStats;
+  sw_->getAllCpuPortStats(hwCpuPortStats);
+  if (hwCpuPortStats.size() > 0) {
+    cpuPortStats = hwCpuPortStats.begin()->second;
+  }
 }
 
 void ThriftHandler::getAllCpuPortStats(

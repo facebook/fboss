@@ -357,8 +357,7 @@ void BcmCosQueueManager::updateQueueStats(
 }
 
 std::map<int32_t, int64_t> BcmCosQueueManager::getQueueStats(
-    BcmCosQueueStatType statType,
-    bool getIncrement) {
+    BcmCosQueueStatType statType) {
   std::map<int32_t, int64_t> queueOutPkts;
   auto queueFlexCounterStatsLock = queueFlexCounterStats_.rlock();
   if (queueFlexCounterStatsLock) {
@@ -367,9 +366,8 @@ std::map<int32_t, int64_t> BcmCosQueueManager::getQueueStats(
       if (cntr.first.isScopeQueues()) {
         if (cntr.first.statType == statType) {
           for (const auto& queue : cntr.second.queues) {
-            queueOutPkts[queue.first] = getIncrement
-                ? queue.second->get()
-                : getCumulativeCounter(statMap, queue.second->getName());
+            queueOutPkts[queue.first] =
+                getCumulativeCounter(statMap, queue.second->getName());
           }
         }
       }

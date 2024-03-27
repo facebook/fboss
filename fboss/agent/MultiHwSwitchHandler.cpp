@@ -255,23 +255,6 @@ HwSwitchFb303Stats* MultiHwSwitchHandler::getSwitchStats() {
   return hwSwitchSyncers_.begin()->second->getSwitchStats();
 }
 
-folly::F14FastMap<std::string, HwPortStats>
-MultiHwSwitchHandler::getPortStats() {
-  // TODO - support with multiple switches
-  CHECK_EQ(hwSwitchSyncers_.size(), 1);
-  return hwSwitchSyncers_.begin()->second->getPortStats();
-}
-
-CpuPortStats MultiHwSwitchHandler::getCpuPortStats(bool getIncrement) {
-  return hwSwitchSyncers_.begin()->second->getCpuPortStats(getIncrement);
-}
-
-std::map<std::string, HwSysPortStats> MultiHwSwitchHandler::getSysPortStats() {
-  // TODO - support with multiple switches
-  CHECK_EQ(hwSwitchSyncers_.size(), 1);
-  return hwSwitchSyncers_.begin()->second->getSysPortStats();
-}
-
 HwSwitchDropStats MultiHwSwitchHandler::getSwitchDropStats() const {
   // TODO - support with multiple switches
   CHECK_EQ(hwSwitchSyncers_.size(), 1);

@@ -4223,13 +4223,13 @@ void BcmSwitch::syncLinkStates() {
   });
 }
 
-CpuPortStats BcmSwitch::getCpuPortStats(bool getIncrement) const {
+CpuPortStats BcmSwitch::getCpuPortStats() const {
   CpuPortStats cpuPortStats;
   auto queueManager = getControlPlane()->getQueueManager();
-  cpuPortStats.queueInPackets_() = queueManager->getQueueStats(
-      BcmCosQueueStatType::OUT_PACKETS, getIncrement);
-  cpuPortStats.queueDiscardPackets_() = queueManager->getQueueStats(
-      BcmCosQueueStatType::DROPPED_PACKETS, getIncrement);
+  cpuPortStats.queueInPackets_() =
+      queueManager->getQueueStats(BcmCosQueueStatType::OUT_PACKETS);
+  cpuPortStats.queueDiscardPackets_() =
+      queueManager->getQueueStats(BcmCosQueueStatType::DROPPED_PACKETS);
   return cpuPortStats;
 }
 

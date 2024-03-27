@@ -89,11 +89,6 @@ class MultiHwSwitchHandler {
 
   HwSwitchFb303Stats* getSwitchStats();
 
-  folly::F14FastMap<std::string, HwPortStats> getPortStats();
-
-  CpuPortStats getCpuPortStats(bool getIncrement);
-
-  std::map<std::string, HwSysPortStats> getSysPortStats();
   HwSwitchDropStats getSwitchDropStats() const;
 
   void updateStats();

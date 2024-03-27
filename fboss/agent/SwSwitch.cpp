@@ -803,8 +803,9 @@ void SwSwitch::updateStats() {
     multiswitch::HwSwitchStats hwStats;
     auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
     hwStats.timestamp() = now.count();
-    hwStats.hwPortStats() = multiHwSwitchHandler_->getPortStats();
-    hwStats.sysPortStats() = multiHwSwitchHandler_->getSysPortStats();
+    auto monoHwSwitchHandler = getMonolithicHwSwitchHandler();
+    hwStats.hwPortStats() = monoHwSwitchHandler->getPortStats();
+    hwStats.sysPortStats() = monoHwSwitchHandler->getSysPortStats();
     hwStats.switchDropStats() = multiHwSwitchHandler_->getSwitchDropStats();
     hwStats.switchWatermarkStats() =
         getMonolithicHwSwitchHandler()->getSwitchWatermarkStats();
@@ -817,8 +818,7 @@ void SwSwitch::updateStats() {
       hwStats.phyInfo()->emplace(portId, phyInfoPerPort);
     }
     hwStats.flowletStats() = getHwFlowletStats();
-    hwStats.cpuPortStats() =
-        multiHwSwitchHandler_->getCpuPortStats(false /*getIncrement*/);
+    hwStats.cpuPortStats() = monoHwSwitchHandler->getCpuPortStats();
     hwStats.aclStats() = multiHwSwitchHandler_->getAclStats();
     updateHwSwitchStats(0 /*switchIndex*/, std::move(hwStats));
   }

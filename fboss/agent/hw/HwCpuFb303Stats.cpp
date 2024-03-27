@@ -34,15 +34,8 @@ int64_t HwCpuFb303Stats::getCounterLastIncrement(
   return queueCounters_.getCounterLastIncrement(statKey.str(), std::nullopt);
 }
 
-int64_t HwCpuFb303Stats::getCounter(
-    fb303::ExportedStatMapImpl* statsMap,
-    const folly::StringPiece statName) const {
-  auto statPtr = statsMap->getStatPtrNoExport(
-      queueCounters_.getMonotonicCounterName(statName.toString()));
-  auto lockedStatPtr = statPtr->lock();
-  auto numLevels = lockedStatPtr->numLevels();
-  // Cumulative (ALLTIME) counters are at (numLevels - 1)
-  return lockedStatPtr->sum(numLevels - 1);
+int64_t HwCpuFb303Stats::getCounter(const folly::StringPiece statName) const {
+  return queueCounters_.getCumulativeValueIf(statName.str());
 }
 
 void HwCpuFb303Stats::setupStats() {
@@ -111,34 +104,22 @@ void HwCpuFb303Stats::updateStats(
   }
 }
 
-CpuPortStats HwCpuFb303Stats::getCpuPortStats(bool getIncrement) const {
+CpuPortStats HwCpuFb303Stats::getCpuPortStats() const {
   CpuPortStats cpuPortStats;
   int64_t ingressPackets = 0;
   int64_t discardPackets = 0;
 
-  auto statMap = facebook::fb303::fbData->getStatMap();
-
   cpuPortStats.queueToName_()->insert(
       queueId2Name_.begin(), queueId2Name_.end());
   for (const auto& queueIdAndName : queueId2Name_) {
-    ingressPackets = getIncrement
-        ? getCounterLastIncrement(
-              statName(kInPkts(), queueIdAndName.first, queueIdAndName.second))
-        : getCounter(
-              statMap,
-              statName(kInPkts(), queueIdAndName.first, queueIdAndName.second));
+    ingressPackets = getCounter(
+        statName(kInPkts(), queueIdAndName.first, queueIdAndName.second));
     cpuPortStats.queueInPackets_()->emplace(
         queueIdAndName.first, ingressPackets);
 
-    discardPackets = getIncrement
-        ? getCounterLastIncrement(statName(
-              kInDroppedPkts(), queueIdAndName.first, queueIdAndName.second))
-        : getCounter(
-              statMap,
-              statName(
-                  kInDroppedPkts(),
-                  queueIdAndName.first,
-                  queueIdAndName.second));
+    discardPackets = getCounter(statName(
+        kInDroppedPkts(), queueIdAndName.first, queueIdAndName.second));
+
     cpuPortStats.queueDiscardPackets_()->emplace(
         queueIdAndName.first, discardPackets);
   }

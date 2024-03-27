@@ -55,7 +55,7 @@ class SimSwitch : public HwSwitch {
   std::map<std::string, HwSysPortStats> getSysPortStats() const override {
     return {};
   }
-  CpuPortStats getCpuPortStats(bool /*getIncrement*/) const override {
+  CpuPortStats getCpuPortStats() const override {
     return {};
   }
   FabricReachabilityStats getFabricReachabilityStats() const override {

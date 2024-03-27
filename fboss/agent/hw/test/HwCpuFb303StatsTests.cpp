@@ -251,7 +251,7 @@ TEST(HwCpuFb303Stats, getCpuStats) {
   HwCpuFb303Stats cpuStats(kQueue2Name);
   updateStats(cpuStats);
 
-  const auto cpuPortStats = cpuStats.getCpuPortStats(true);
+  const auto cpuPortStats = cpuStats.getCpuPortStats();
   EXPECT_EQ(cpuPortStats.queueToName_()->size(), 2);
   EXPECT_EQ(cpuPortStats.queueInPackets_()->size(), 2);
   EXPECT_EQ(cpuPortStats.queueDiscardPackets_()->size(), 2);

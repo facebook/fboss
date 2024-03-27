@@ -96,18 +96,6 @@ bool MultiSwitchHwSwitchHandler::transactionsSupported(
   return false;
 }
 
-folly::F14FastMap<std::string, HwPortStats>
-MultiSwitchHwSwitchHandler::getPortStats() const {
-  // TODO: implement this
-  return {};
-}
-
-std::map<std::string, HwSysPortStats>
-MultiSwitchHwSwitchHandler::getSysPortStats() const {
-  // TODO: implement this
-  return {};
-}
-
 HwSwitchDropStats MultiSwitchHwSwitchHandler::getSwitchDropStats() const {
   // TODO: implement this
   return HwSwitchDropStats{};
@@ -176,12 +164,6 @@ std::shared_ptr<SwitchState> MultiSwitchHwSwitchHandler::stateChanged(
     bool /*transaction*/) {
   // TODO: implement this
   return nullptr;
-}
-
-CpuPortStats MultiSwitchHwSwitchHandler::getCpuPortStats(
-    bool /*getIncrement*/) const {
-  // TODO: implement this
-  return CpuPortStats{};
 }
 
 std::map<PortID, FabricEndpoint>

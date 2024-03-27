@@ -237,7 +237,7 @@ class HwSwitch {
   multiswitch::HwSwitchStats getHwSwitchStats();
 
   virtual folly::F14FastMap<std::string, HwPortStats> getPortStats() const = 0;
-  virtual CpuPortStats getCpuPortStats(bool getIncrement = true) const = 0;
+  virtual CpuPortStats getCpuPortStats() const = 0;
 
   virtual void fetchL2Table(std::vector<L2EntryThrift>* l2Table) const = 0;
 
