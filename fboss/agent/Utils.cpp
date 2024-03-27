@@ -757,4 +757,32 @@ uint64_t getMacOui(const folly::MacAddress macAddress) {
   return macAddress.u64HBO() & 0x0000FFFFFF000000;
 }
 
+/*
+ * For Multi-NPU devices, each NPU appears once in the DsfNodeMap with
+ * identical name but different switchID.
+ * Build a switchName to (sorted switchIDs) map.
+ * e.g. rdsw002 => [4, 8]
+ * assign switchIndex to switchID starting 0 i.e.
+ * [4 => 0], [8 => 1]...
+ */
+std::unordered_map<uint64_t, uint16_t> computeSwitchIdToSwitchIndex(
+    const std::shared_ptr<MultiSwitchDsfNodeMap>& dsfNodeMap) {
+  std::unordered_map<std::string, std::set<uint64_t>> switchNameToSwitchIDs;
+  for (const auto& [_, dsfNodes] : std::as_const(*dsfNodeMap)) {
+    for (const auto& [_, node] : std::as_const(*dsfNodes)) {
+      switchNameToSwitchIDs[node->getName()].insert(node->getSwitchId());
+    }
+  }
+
+  std::unordered_map<uint64_t, uint16_t> switchIdToSwitchIndex;
+  for (const auto& [switchName, switchIDs] : switchNameToSwitchIDs) {
+    auto switchIndex = 0;
+    for (const auto& switchID : switchIDs) {
+      switchIdToSwitchIndex[switchID] = switchIndex++;
+    }
+  }
+
+  return switchIdToSwitchIndex;
+}
+
 } // namespace facebook::fboss

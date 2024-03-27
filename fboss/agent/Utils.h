@@ -30,6 +30,7 @@
 
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/agent/state/DsfNodeMap.h"
 #include "fboss/agent/types.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 
@@ -382,5 +383,8 @@ cfg::SwitchDrainState computeActualSwitchDrainState(
     int numActiveFabricPorts);
 
 uint64_t getMacOui(const folly::MacAddress macAddress);
+
+std::unordered_map<uint64_t, uint16_t> computeSwitchIdToSwitchIndex(
+    const std::shared_ptr<MultiSwitchDsfNodeMap>& dsfNodeMap);
 
 } // namespace facebook::fboss
