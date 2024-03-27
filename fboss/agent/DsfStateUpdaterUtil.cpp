@@ -91,6 +91,7 @@ std::shared_ptr<SwitchState> DsfStateUpdaterUtil::getUpdatedState(
     }
 
     auto clonedNode = newNode->isPublished() ? newNode->clone() : newNode;
+    clonedNode->setRemoteSystemPortType(RemoteSystemPortType::DYNAMIC_ENTRY);
     clonedNode->setRemoteLivenessStatus(RemoteLivenessStatus::LIVE);
 
     return clonedNode;
