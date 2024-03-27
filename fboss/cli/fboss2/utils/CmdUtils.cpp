@@ -175,7 +175,7 @@ bool comparePortName(
 bool compareSystemPortName(
     const std::basic_string<char>& nameA,
     const std::basic_string<char>& nameB) {
-  static const RE2 exp("([^:]+):([a-z][a-z][a-z])(\\d+)/(\\d+)/(\\d)");
+  static const RE2 exp("([^:]+):([a-z][a-z][a-z])(\\d+)/(\\d+)/(\\d+)");
   std::string switchNameA, moduleNameA, moduleNumStrA, portNumStrA,
       subportNumStrA;
   std::string switchNameB, moduleNameB, moduleNumStrB, portNumStrB,
