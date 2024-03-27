@@ -231,6 +231,7 @@ struct InterfaceDetail {
   5: string mac;
   6: list<IpPrefix> address;
   7: i32 mtu;
+  8: optional common.RemoteInterfaceType remoteIntfType;
 }
 
 /*
