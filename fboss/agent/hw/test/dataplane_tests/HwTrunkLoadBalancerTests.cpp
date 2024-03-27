@@ -257,7 +257,7 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
           return utility::isLoadBalanced<PortID, HwPortStats>(
               getPhysicalPorts(aggInfo),
               std::vector<NextHopWeight>(),
-              [=](const std::vector<PortID>& portIds) {
+              [=, this](const std::vector<PortID>& portIds) {
                 return getHwSwitchEnsemble()->getLatestPortStats(portIds);
               },
               deviation);
@@ -284,7 +284,7 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
           return utility::isLoadBalanced<PortID, HwPortStats>(
               getPhysicalPorts(aggInfo),
               std::vector<NextHopWeight>(),
-              [=](const std::vector<PortID>& portIds) {
+              [=, this](const std::vector<PortID>& portIds) {
                 return getHwSwitchEnsemble()->getLatestPortStats(portIds);
               },
               deviation);
