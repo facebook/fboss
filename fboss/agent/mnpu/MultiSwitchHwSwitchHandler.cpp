@@ -101,9 +101,6 @@ HwSwitchDropStats MultiSwitchHwSwitchHandler::getSwitchDropStats() const {
   return HwSwitchDropStats{};
 }
 
-// not used in split
-void MultiSwitchHwSwitchHandler::updateStats() {}
-
 uint64_t MultiSwitchHwSwitchHandler::getDeviceWatermarkBytes() const {
   // TODO: implement this
   return 0;

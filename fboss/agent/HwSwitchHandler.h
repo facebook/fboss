@@ -94,7 +94,6 @@ class HwSwitchHandler {
   virtual HwSwitchFb303Stats* getSwitchStats() const = 0;
 
   virtual HwSwitchDropStats getSwitchDropStats() const = 0;
-  virtual void updateStats() = 0;
 
   virtual uint64_t getDeviceWatermarkBytes() const = 0;
 

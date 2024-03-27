@@ -261,10 +261,6 @@ HwSwitchDropStats MultiHwSwitchHandler::getSwitchDropStats() const {
   return hwSwitchSyncers_.begin()->second->getSwitchDropStats();
 }
 
-void MultiHwSwitchHandler::updateStats() {
-  return hwSwitchSyncers_.begin()->second->updateStats();
-}
-
 uint64_t MultiHwSwitchHandler::getDeviceWatermarkBytes() {
   // TODO - support with multiple switches
   CHECK_EQ(hwSwitchSyncers_.size(), 1);

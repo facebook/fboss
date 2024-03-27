@@ -91,8 +91,6 @@ class MultiHwSwitchHandler {
 
   HwSwitchDropStats getSwitchDropStats() const;
 
-  void updateStats();
-
   uint64_t getDeviceWatermarkBytes();
 
   HwFlowletStats getHwFlowletStats();

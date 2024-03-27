@@ -783,12 +783,6 @@ void SwSwitch::updateStats() {
   updatePortInfo();
   updateLldpStats();
   updateTeFlowStats();
-  try {
-    multiHwSwitchHandler_->updateStats();
-  } catch (const std::exception& ex) {
-    stats()->updateStatsException();
-    XLOG(ERR) << "Error running updateStats: " << folly::exceptionStr(ex);
-  }
   updateMultiSwitchGlobalFb303Stats();
   updateFabricReachabilityStats();
   stats()->maxNumOfPhysicalHostsPerQueue(
@@ -799,6 +793,12 @@ void SwSwitch::updateStats() {
     auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
     hwStats.timestamp() = now.count();
     auto monoHwSwitchHandler = getMonolithicHwSwitchHandler();
+    try {
+      monoHwSwitchHandler->updateStats();
+    } catch (const std::exception& ex) {
+      stats()->updateStatsException();
+      XLOG(ERR) << "Error running updateStats: " << folly::exceptionStr(ex);
+    }
     try {
       monoHwSwitchHandler->updateAllPhyInfo();
     } catch (const std::exception& ex) {

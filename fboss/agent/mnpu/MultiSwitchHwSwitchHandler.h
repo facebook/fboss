@@ -48,8 +48,6 @@ class MultiSwitchHwSwitchHandler : public HwSwitchHandler {
 
   HwSwitchDropStats getSwitchDropStats() const override;
 
-  void updateStats() override;
-
   uint64_t getDeviceWatermarkBytes() const override;
 
   HwFlowletStats getHwFlowletStats() const override;
