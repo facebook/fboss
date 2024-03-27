@@ -90,7 +90,7 @@ void DsfSubscriber::scheduleUpdate(
     for (const auto& [switchId, _] : switchId2Objects) {
       if (this->isLocal(switchId)) {
         throw FbossError(
-            " Got updates for a local switch ID, from: ",
+            "Got updates for a local switch ID, from: ",
             nodeName,
             " id: ",
             switchId);
@@ -141,7 +141,7 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
       // If we had a fsdbManager, it implies that we went from having VOQ
       // switches to no VOQ switches. This is not supported.
       XLOG(FATAL)
-          << " Transition from VOQ to non-VOQ swtich type is not supported";
+          << "Transition from VOQ to non-VOQ swtich type is not supported";
     }
     // No processing needed on non VOQ switches
     return;
@@ -192,7 +192,7 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
     dsfSessions_.wlock()->emplace(nodeName, nodeName);
     for (const auto& network : node->getLoopbackIpsSorted()) {
       auto dstIP = network.first.str();
-      XLOG(DBG2) << "Setting up DSF subscriptions to : " << nodeName
+      XLOG(DBG2) << "Setting up DSF subscriptions to:: " << nodeName
                  << " dstIP: " << dstIP;
 
       // Subscription is not established until state becomes CONNECTED
@@ -228,7 +228,7 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
 
     for (const auto& network : node->getLoopbackIpsSorted()) {
       auto dstIP = network.first.str();
-      XLOG(DBG2) << "Removing DSF subscriptions to : " << nodeName
+      XLOG(DBG2) << "Removing DSF subscriptions to:: " << nodeName
                  << " dstIP: " << dstIP;
 
       if (fsdbPubSubMgr_->getStatePathSubsriptionState(
@@ -296,7 +296,7 @@ void DsfSubscriber::handleFsdbUpdate(
 
   for (const auto& change : *operStateUnit.changes()) {
     if (getSystemPortsPath().matchesPath(*change.path()->path())) {
-      XLOG(DBG2) << " Got sys port update from : " << nodeName;
+      XLOG(DBG2) << "Got sys port update from : " << nodeName;
       MultiSwitchSystemPortMap mswitchSysPorts;
       mswitchSysPorts.fromThrift(thrift_cow::deserialize<
                                  MultiSwitchSystemPortMapTypeClass,
@@ -307,7 +307,7 @@ void DsfSubscriber::handleFsdbUpdate(
         switchId2SystemPorts[matcher.switchId()] = sysPortMap;
       }
     } else if (getInterfacesPath().matchesPath(*change.path()->path())) {
-      XLOG(DBG2) << " Got rif update from : " << nodeName;
+      XLOG(DBG2) << "Got rif update from : " << nodeName;
       MultiSwitchInterfaceMap mswitchIntfs;
       mswitchIntfs.fromThrift(thrift_cow::deserialize<
                               MultiSwitchInterfaceMapTypeClass,
@@ -319,7 +319,7 @@ void DsfSubscriber::handleFsdbUpdate(
       }
     } else if (getDsfSubscriptionsPath(localNodeName_)
                    .matchesPath(*change.path()->path())) {
-      XLOG(DBG2) << " Got dsf sub update from : " << nodeName;
+      XLOG(DBG2) << "Got dsf sub update from : " << nodeName;
 
       using targetType = fsdb::FsdbSubscriptionState;
       using targetTypeClass = apache::thrift::type_class::enumeration;
@@ -335,7 +335,7 @@ void DsfSubscriber::handleFsdbUpdate(
       }
     } else {
       throw FbossError(
-          " Got unexpected state update for : ",
+          "Got unexpected state update for : ",
           folly::join("/", *change.path()->path()),
           " from node: ",
           nodeName);
