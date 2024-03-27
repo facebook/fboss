@@ -49,7 +49,16 @@ class CmdShowRif : public CmdHandler<CmdShowRif, CmdShowRifTraits> {
 
     for (const auto& [rifId, rif] : rifs) {
       cli::RifEntry rifEntry;
+
       rifEntry.name() = *rif.interfaceName();
+      rifEntry.rifID() = *rif.interfaceId();
+      if (*rif.vlanId() != ctrl_constants::NO_VLAN()) {
+        rifEntry.vlanID() = *rif.vlanId();
+      }
+      rifEntry.routerID() = *rif.routerId();
+      rifEntry.mac() = *rif.mac();
+      rifEntry.mtu() = *rif.mtu();
+
       model.rifs()->push_back(rifEntry);
     }
 
@@ -58,10 +67,17 @@ class CmdShowRif : public CmdHandler<CmdShowRif, CmdShowRifTraits> {
 
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
     Table outTable;
-    outTable.setHeader({"RIF"});
+    outTable.setHeader({"RIF", "RIFID", "VlanID", "RouterID", "MAC", "MTU"});
 
     for (const auto& rif : model.get_rifs()) {
-      outTable.addRow({rif.get_name()});
+      outTable.addRow({
+          rif.get_name(),
+          std::to_string(rif.get_rifID()),
+          (rif.vlanID() ? std::to_string(*rif.vlanID()) : "--"),
+          std::to_string(rif.get_routerID()),
+          rif.get_mac(),
+          std::to_string(rif.get_mtu()),
+      });
     }
 
     out << outTable << std::endl;
