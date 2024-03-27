@@ -30,10 +30,10 @@ inline bool isConnected(const SubscriptionState& state) {
       state == SubscriptionState::CONNECTED_GR_HOLD;
 }
 
-inline bool isDisconnected(SubscriptionState state) {
-  return (state == SubscriptionState::DISCONNECTED) ||
-      (state == SubscriptionState::DISCONNECTED_GR_HOLD_EXPIRED) ||
-      (state == SubscriptionState::CANCELLED);
+inline bool isDisconnected(const SubscriptionState& state) {
+  return state == SubscriptionState::DISCONNECTED ||
+      state == SubscriptionState::DISCONNECTED_GR_HOLD_EXPIRED ||
+      state == SubscriptionState::CANCELLED;
 }
 
 inline bool isGRHoldExpired(const SubscriptionState& state) {
