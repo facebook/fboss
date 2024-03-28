@@ -1,34 +1,38 @@
 {
   "fwConfigs": {
     "bios": {
-      "preUpgradeCmd": "eeprom_tmp_path=/home/meru_meta_eeprom;dd if=/run/devmap/eeproms/MERU_SCM_EEPROM of=$eeprom_tmp_path skip=15 bs=1024 count=1;if [ $? != 0 ]; then echo 'product not supported';exit 1;fi;product_ver=$(weutil --path $eeprom_tmp_path | grep 'Product Version' | cut -d ':' -f 2);product_sub_ver=$(weutil --path $eeprom_tmp_path | grep 'Product Sub-Version' | cut -d ':' -f 2);if [ $product_ver -ne 1 ] || [ $product_sub_ver -ne 0 ];then echo 'product not supported';exit 1;fi;printf '3000000:3FFFFFF image' > /home/bios_spi_layout",
-      "getVersionCmd": "cat /sys/devices/virtual/dmi/id/bios_version | cut -d ':' -f 2 | cut -d '-' -f 3",
-      "priority": 1,
-      "upgradeCmd": "bios_filename=$(head -n 1 /home/bios_filename.txt);flashrom -p internal -l /home/bios_spi_layout -i image --noverify-all -w $bios_filename",
-      "postUpgradeCmd": "bios_filename=$(head -n 1 /home/bios_filename.txt);flashrom -p internal -l /home/bios_spi_layout -i image --noverify-all -v $bios_filename;rm $bios_filename;rm /home/bios_spi_layout;rm /home/meru_meta_eeprom;",
-      "verifyFwCmd": "bios_filename=$(head -n 1 /home/bios_filename.txt);flashrom -p internal -l /home/bios_spi_layout -i image --noverify-all -v $bios_filename;rm /home/bios_filename;rm /home/bios_spi_layout",
-      "readFwCmd": "bios_filename=$(head -n 1 /home/bios_filename.txt);flashrom -p internal -l /home/bios_spi_layout -i image --noverify-all -r $bios_filename;rm $bios_filename;rm /home/bios_spi_layout"
+      "preUpgradeCmd": "printf '3000000:3FFFFFF image' > /home/bios_spi_layout",
+      "getVersionCmd": "cat /sys/devices/virtual/dmi/id/bios_version",
+      "priority": 4,
+      "upgradeCmd": "bios_filename=$(head -n 1 /home/bios_filename.txt); flashrom -p internal -l /home/bios_spi_layout -i image --noverify-all -w $bios_filename",
+      "postUpgradeCmd": "bios_filename=$(head -n 1 /home/bios_filename.txt); flashrom -p internal -l /home/bios_spi_layout -i image --noverify-all -v $bios_filename;rm /home/bios_spi_layout;rm /home/meru_meta_eeprom;",
+      "verifyFwCmd": "bios_filename=$(head -n 1 /home/bios_filename.txt); flashrom -p internal -l /home/bios_spi_layout -i image --noverify-all -v $bios_filename;rm /home/bios_spi_layout",
+      "readFwCmd": "bios_filename=$(head -n 1 /home/bios_filename.txt); flashrom -p internal -l /home/bios_spi_layout -i image --noverify-all -r $bios_filename;rm /home/bios_spi_layout",
+      "sha1sum": "2ab9d0ad7accd1b5dfa270e33af24a53cebc4338"
     },
     "scm_cpld": {
-      "preUpgradeCmd": "eeprom_tmp_path=/home/meru_meta_eeprom;dd if=/run/devmap/eeproms/MERU_SCM_EEPROM of=$eeprom_tmp_path skip=15 bs=1024 count=1;if [ $? != 0 ]; then echo 'product not supported';exit 1;fi;product_ver=$(weutil --path $eeprom_tmp_path | grep 'Product Version' | cut -d ':' -f 2);product_sub_ver=$(weutil --path $eeprom_tmp_path | grep 'Product Sub-Version' | cut -d ':' -f 2);if [ $product_ver -ne 1 ] || [ $product_sub_ver -ne 0 ];then echo 'product not supported';exit 1;fi;",
+      "preUpgradeCmd": "",
       "getVersionCmd": "cpu_cpld_ver=$((`cat /run/devmap/fpgas/MERU_SCM_CPLD/fpga_ver`));cpu_cpld_subver=$((`cat /run/devmap/fpgas/MERU_SCM_CPLD/fpga_sub_ver`));echo $cpu_cpld_ver'.'$cpu_cpld_subver",
-      "priority": 2,
-      "upgradeCmd": "cpu_cpld_filename=$(head -n 1 /home/meru_scm_cpld_filename.txt);jam -aprogram -fmeru_cpu_cpld -v $cpu_cpld_filename",
-      "postUpgradeCmd": "rm /home/meru_meta_eeprom"
+      "priority": 3,
+      "upgradeCmd": "cpu_cpld_filename=$(head -n 1 /home/scm_cpld_filename.txt);jam -aprogram -fmeru_cpu_cpld -v $cpu_cpld_filename",
+      "postUpgradeCmd": "rm /home/meru_meta_eeprom",
+      "sha1sum": "c70d2d76113142ae7c598de973b780c3f315d8df"
     },
     "smb_fpga": {
-      "preUpgradeCmd": "eeprom_tmp_path=/home/meru_meta_eeprom;dd if=/run/devmap/eeproms/MERU_SCM_EEPROM of=$eeprom_tmp_path skip=15 bs=1024 count=1;if [ $? != 0 ]; then echo 'product not supported';exit 1;fi;product_ver=$(weutil --path $eeprom_tmp_path | grep 'Product Version' | cut -d ':' -f 2);product_sub_ver=$(weutil --path $eeprom_tmp_path | grep 'Product Sub-Version' | cut -d ':' -f 2);if [ $product_ver -ne 1 ] || [ $product_sub_ver -ne 0 ];then echo 'product not supported';exit 1;fi;smb_fpga_filename=$(head -n 1 /home/meru_smb_fpga_filename.txt);printf '0:3FFFFF image' > /home/meru_smb_fpga_layout;modprobe spidev;fpga_spidev=$(echo $(ls /run/devmap/fpgas/MERU800BIA_SMB_FPGA/*spi*/spi_master/spi* | grep spi*.*) | cut -c 4-);echo 'spidev' > /sys/bus/spi/devices/spi$fpga_spidev/driver_override;echo spi$fpga_spidev > /sys/bus/spi/drivers/spidev/bind;/usr/bin/flashrom -p linux_spi:dev=/dev/spidev$fpga_spidev > /home/flashrom_output;(grep 'MT25QL256' /home/flashrom_output && echo 'MT25QL256' > /home/flash_chip_name) || (grep 'MX25L25635F' /home/flashrom_output && echo 'MX25L25635F/MX25L25645G' > /home/flash_chip_name) || echo 'NONE' > /home/flash_chip_name",
+      "preUpgradeCmd": "printf '0:3FFFFF image' > /home/smb_fpga_layout;modprobe spidev;fpga_spidev=$(echo $(ls /run/devmap/fpgas/MERU800BIA_SMB_FPGA/*spi*/spi_master/spi* | grep spi*.*) | cut -c 4-);echo 'spidev' > /sys/bus/spi/devices/spi$fpga_spidev/driver_override;echo spi$fpga_spidev > /sys/bus/spi/drivers/spidev/bind;flashrom -p linux_spi:dev=/dev/spidev$fpga_spidev > /home/flashrom_output;(grep 'MT25QL256' /home/flashrom_output && echo 'MT25QL256' > /home/flash_chip_name) || (grep 'MX25L25635F' /home/flashrom_output && echo 'MX25L25635F/MX25L25645G' > /home/flash_chip_name) || echo 'NONE' > /home/flash_chip_name",
       "getVersionCmd": "smb_fpga_ver=$((`cat /run/devmap/fpgas/MERU800BIA_SMB_FPGA/fpga_ver`));smb_fpga_subver=$((`cat /run/devmap/fpgas/MERU800BIA_SMB_FPGA/fpga_sub_ver`));echo $smb_fpga_ver'.'$smb_fpga_subver",
-      "priority": 3,
-      "upgradeCmd": "smb_fpga_filename=$(head -n 1 /home/smb_fpga_filename.txt);fpga_spidev=$(echo $(ls /run/devmap/fpgas/MERU800BIA_SMB_FPGA/*spi*/spi_master/spi* | grep spi*.*) | cut -c 4-);chip=$(head -n 1 /home/flash_chip_name);if [ $chip = 'NONE' ];then cmd_chip_option='' cmd_chip_name='';else cmd_chip_option='-c' cmd_chip_name=$chip;fi;/usr/bin/flashrom -p linux_spi:dev=/dev/spidev$fpga_spidev $cmd_chip_option $cmd_chip_name -l /home/meru_smb_fpga_layout -i image -w $smb_fpga_filename",
-      "postUpgradeCmd": "rm /home/meru_meta_eeprom; rm /home/meru_smb_fpga_layout; rm /home/flash_chip_name"
+      "priority": 2,
+      "upgradeCmd": "smb_fpga_binary_name=$(head -n 1 /home/smb_fpga_filename.txt);fpga_spidev=$(echo $(ls /run/devmap/fpgas/MERU800BIA_SMB_FPGA/*spi*/spi_master/spi* | grep spi*.*) | cut -c 4-);chip=$(head -n 1 /home/flash_chip_name);if [ $chip = 'NONE' ];then cmd_chip_option='' cmd_chip_name='';else cmd_chip_option='-c' cmd_chip_name=$chip;fi;flashrom -p linux_spi:dev=/dev/spidev$fpga_spidev $cmd_chip_option $cmd_chip_name -l /home/smb_fpga_layout -i image -w $smb_fpga_binary_name",
+      "postUpgradeCmd": "rm /home/meru_meta_eeprom; rm /home/smb_fpga_layout; rm /home/flash_chip_name",
+      "sha1sum": "a9200e802de53b6c8d6c554b24027b606c60ea37"
     },
     "fan_cpld": {
-      "preUpgradeCmd": "eeprom_tmp_path=/home/meru_meta_eeprom;dd if=/run/devmap/eeproms/MERU_SCM_EEPROM of=$eeprom_tmp_path skip=15 bs=1024 count=1;if [ $? != 0 ]; then echo 'product not supported';exit 1;fi;product_ver=$(weutil --path $eeprom_tmp_path | grep 'Product Version' | cut -d ':' -f 2);product_sub_ver=$(weutil --path $eeprom_tmp_path | grep 'Product Sub-Version' | cut -d ':' -f 2);if [ $product_ver -ne 1 ] || [ $product_sub_ver -ne 0 ];then echo 'product not supported';exit 1;fi;echo 1 > /run/devmap/fpgas/MERU_SCM_CPLD/switch_jtag_enable",
+      "preUpgradeCmd": "echo 1 > /run/devmap/fpgas/MERU_SCM_CPLD/switch_jtag_enable",
       "getVersionCmd": "fan_cpld_ver=$((`cat /run/devmap/cplds/FAN_CPLD/hwmon/hwmon*/cpld_ver`));fan_cpld_subver=$((`cat /run/devmap/cplds/FAN_CPLD/hwmon/hwmon*/cpld_sub_ver`));echo $fan_cpld_ver'.'$fan_cpld_subver",
-      "priority": 4,
-      "upgradeCmd": "fan_cpld_filename=$(head -n 1 /home/meru_fan_cpld_filename.txt);jam -aprogram -fmeru_fan_cpld -v $fan_cpld_filename",
-      "postUpgradeCmd": "rm /home/meru_meta_eeprom"
+      "priority": 1,
+      "upgradeCmd": "fan_cpld_filename=$(head -n 1 /home/fan_cpld_filename.txt);jam -aprogram -fmeru_fan_cpld -v $fan_cpld_filename",
+      "postUpgradeCmd": "rm /home/meru_meta_eeprom",
+      "sha1sum": "91db2986653caaa117b040f7dd36e8774725c477"
     }
   }
 }
