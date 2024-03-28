@@ -355,11 +355,15 @@ void FabricConnectivityManager::stateUpdated(const StateDelta& delta) {
   updateDsfNodes(delta);
 }
 
-FabricEndpoint FabricConnectivityManager::processConnectivityInfoForPort(
+std::optional<FabricConnectivityDelta>
+FabricConnectivityManager::processConnectivityInfoForPort(
     const PortID& portId,
     const FabricEndpoint& hwEndpoint) {
+  std::optional<FabricConnectivityDelta> delta;
+  std::optional<FabricEndpoint> old;
   auto iter = currentNeighborConnectivity_.find(portId);
   if (iter != currentNeighborConnectivity_.end()) {
+    old = iter->second;
     // Populate actual isAttached, switchId, switchName, portId, portName
     iter->second.isAttached() = *hwEndpoint.isAttached();
     iter->second.switchId() = *hwEndpoint.switchId();
@@ -383,11 +387,13 @@ FabricEndpoint FabricConnectivityManager::processConnectivityInfoForPort(
         iter->second.expectedPortName().has_value()) {
       iter->second.portName() = iter->second.expectedPortName().value();
     }
-
   } else {
     iter = currentNeighborConnectivity_.insert({portId, hwEndpoint}).first;
   }
-  return iter->second;
+  if (!old || (old != iter->second)) {
+    delta = FabricConnectivityDelta{old, iter->second};
+  }
+  return delta;
 }
 
 // Detect mismatch in expected vs. actual connectivity.

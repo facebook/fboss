@@ -3,6 +3,7 @@
 #pragma once
 
 #include <memory>
+#include "fboss/agent/HwSwitchCallback.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/agent/if/gen-cpp2/FbossHwCtrl.h"
 #include "fboss/agent/state/DsfNode.h"
@@ -29,7 +30,7 @@ class FabricConnectivityManager {
 
   void stateUpdated(const StateDelta& stateDelta);
   const std::map<PortID, FabricEndpoint>& getConnectivityInfo() const;
-  FabricEndpoint processConnectivityInfoForPort(
+  std::optional<FabricConnectivityDelta> processConnectivityInfoForPort(
       const PortID& portId,
       const FabricEndpoint& hwConnectivity);
   bool isConnectivityInfoMissing(const PortID& portId);
