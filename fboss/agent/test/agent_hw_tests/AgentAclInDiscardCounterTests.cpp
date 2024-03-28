@@ -90,8 +90,8 @@ TEST_F(AgentAclInDiscardsCounterTest, aclInDiscards) {
       if (port == masterLogicalInterfacePortIds()[1]) {
         continue;
       }
-      EXPECT_EQ(otherPortStats.inDiscards_(), 0);
-      EXPECT_EQ(otherPortStats.inAclDiscards_(), 0);
+      EXPECT_EQ(*otherPortStats.inDiscards_(), 0);
+      EXPECT_EQ(*otherPortStats.inAclDiscards_(), 0);
     }
   };
   verifyAcrossWarmBoots(setup, verify);
