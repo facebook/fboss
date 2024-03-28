@@ -56,7 +56,6 @@ class SpeedChangeTest : public LinkTest {
     newCfg.dumpConfig(pathOfNewConfig);
   }
 
- private:
   std::string originalConfigCopy;
 };
 
@@ -149,6 +148,43 @@ TEST_F(SpeedChangeTest, secondarySpeed) {
             RouterID(0),
             ecmpSizeInSw),
         ecmpSizeInSw);
+  };
+
+  verifyAcrossWarmBoots(speedChangeSetup, speedChangeVerify);
+}
+
+/*
+ * Coldboot Iteration
+ *   - create a new config with changed speeds. Replace the original config
+ * 1st Warmboot Iteration
+ *   - Warm boot with the new config
+ *   - Verify link health
+ *   - Restore the original coldboot config
+ * 2nd Warmboot Iteration
+ *   - Warm boot with the original cold boot config
+ *   - Verify link health
+ */
+TEST_F(SpeedChangeTest, speedChangeActivatedByWb) {
+  auto speedChangeSetup = [this]() {
+    // Create a new config with changed speeds
+    createSecondarySpeedConfig(FLAGS_config);
+  };
+  auto speedChangeVerify = [this]() {
+    /*
+     * Verify the following on all cabled ports
+     * 1. Link comes up at secondary speeds
+     * 2. LLDP neighbor is discovered
+     */
+    EXPECT_NO_THROW(waitForAllCabledPorts(true));
+    checkWithRetry(
+        [this]() { return sendAndCheckReachabilityOnAllCabledPorts(); });
+
+    if (platform()->getHwSwitch()->getBootType() == BootType::WARM_BOOT) {
+      boost::filesystem::copy_file(
+          originalConfigCopy,
+          FLAGS_config,
+          boost::filesystem::copy_option::overwrite_if_exists);
+    }
   };
 
   verifyAcrossWarmBoots(speedChangeSetup, speedChangeVerify);
