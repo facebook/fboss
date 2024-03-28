@@ -50,9 +50,8 @@ FsdbTestServer::FsdbTestServer(
         serviceFramework_ = std::make_unique<services::ServiceFrameworkLight>(
             sfName.c_str(),
             true /* threadsafe */,
-            services::ServiceFrameworkLight::Options()
-                .setDisableScubaLogging(true)
-                .setDisableRequestIdLogging(true));
+            services::ServiceFrameworkLight::Options().setDisableScubaLogging(
+                true));
         auto server = std::make_shared<apache::thrift::ThriftServer>();
         server->setAllowPlaintextOnLoopback(true);
         server->setPort(port);
