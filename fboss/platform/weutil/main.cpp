@@ -21,6 +21,7 @@ using namespace facebook;
 FOLLY_INIT_LOGGING_CONFIG(".=FATAL; default:async=true");
 
 DEFINE_bool(json, false, "Output in JSON format");
+DEFINE_bool(list, false, "List all eeproms in config");
 DEFINE_string(
     eeprom,
     "",
@@ -52,6 +53,16 @@ int main(int argc, char* argv[]) {
 
   if (!validFlags(argc)) {
     return 1;
+  }
+
+  if (FLAGS_list) {
+    try {
+      auto eeproms = getEepromPaths();
+      std::cout << folly::join("\n", eeproms) << std::endl;
+    } catch (const std::exception& ex) {
+      std::cout << "Failed to get list of eeproms: " << ex.what() << std::endl;
+    }
+    return 0;
   }
 
   try {

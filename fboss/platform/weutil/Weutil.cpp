@@ -64,6 +64,22 @@ std::optional<PlatformType> getPlatformType() {
 }
 } // namespace
 
+std::vector<std::string> getEepromPaths() {
+  auto config = getWeUtilConfig();
+  std::vector<std::string> eepromPaths;
+
+  for (const auto& [eepromName, eepromConfig] : *config.fruEepromList()) {
+    std::string fruName = eepromName;
+    std::transform(fruName.begin(), fruName.end(), fruName.begin(), ::toupper);
+    auto& fruPath = *eepromConfig.path();
+    auto fruOffset = *eepromConfig.offset();
+    std::string eepromInfo =
+        fmt::format("Name:{} Path:{} Offset:{}", fruName, fruPath, fruOffset);
+    eepromPaths.push_back(eepromInfo);
+  }
+  return eepromPaths;
+}
+
 std::unique_ptr<WeutilInterface> createWeUtilIntf(
     const std::string& eepromName,
     const std::string& eepromPath) {

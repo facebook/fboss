@@ -29,6 +29,10 @@ TEST_F(WeutilTest, getWedgeInfo) {
   EXPECT_GT(weutilInstance->getContents().size(), 0);
 }
 
+TEST_F(WeutilTest, getEepromPaths) {
+  EXPECT_GT(getEepromPaths().size(), 0);
+}
+
 } // namespace facebook::fboss::platform
 
 int main(int argc, char* argv[]) {
