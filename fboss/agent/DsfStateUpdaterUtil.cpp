@@ -128,6 +128,8 @@ std::shared_ptr<SwitchState> DsfStateUpdaterUtil::getUpdatedState(
     }
 
     auto clonedNode = newNode->clone();
+    clonedNode->setRemoteInterfaceType(RemoteInterfaceType::DYNAMIC_ENTRY);
+
     if (newNode->isPublished()) {
       clonedNode->setArpTable(newNode->getArpTable()->toThrift());
       clonedNode->setNdpTable(newNode->getNdpTable()->toThrift());
