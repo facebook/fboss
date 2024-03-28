@@ -132,6 +132,27 @@ TEST(RefMap, ref) {
   EXPECT_EQ(identityMap.size(), 1);
 }
 
+TEST(RefMap, find) {
+  UnorderedRefMap<int, A> identityMap;
+  bool ins;
+  std::shared_ptr<A> a1;
+  std::tie(a1, ins) = identityMap.refOrEmplace(42, 42);
+  EXPECT_EQ(ins, true);
+  EXPECT_EQ(a1->x, 42);
+  EXPECT_EQ(a1.use_count(), 1);
+  EXPECT_EQ(identityMap.size(), 1);
+  {
+    std::weak_ptr<A> wk = identityMap.find(42);
+    std::shared_ptr<A> a2 = wk.lock();
+    EXPECT_EQ(a2->x, 42);
+    EXPECT_EQ(a1.use_count(), 2);
+    EXPECT_EQ(a2.use_count(), 2);
+    EXPECT_EQ(identityMap.size(), 1);
+  }
+  EXPECT_EQ(a1.use_count(), 1);
+  EXPECT_EQ(identityMap.size(), 1);
+}
+
 TEST(RefMap, getNonExistent) {
   UnorderedRefMap<int, A> identityMap;
   bool ins;
@@ -149,6 +170,13 @@ TEST(RefMap, getNonExistent) {
 TEST(RefMap, refNonExistent) {
   UnorderedRefMap<int, A> identityMap;
   EXPECT_EQ(identityMap.ref(42), nullptr);
+}
+
+TEST(RefMap, findNonExistent) {
+  UnorderedRefMap<int, A> identityMap;
+  std::weak_ptr<A> wk = identityMap.find(42);
+  std::shared_ptr<A> a3 = wk.lock();
+  EXPECT_EQ(a3, nullptr);
 }
 
 TEST(RefMap, getExpired) {

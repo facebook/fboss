@@ -73,6 +73,14 @@ class RefMap {
     return itr->second.lock();
   }
 
+  std::weak_ptr<V> find(const K& k) const {
+    auto itr = map_.find(k);
+    if (itr == map_.end()) {
+      return std::weak_ptr<V>{};
+    }
+    return itr->second;
+  }
+
   V* get(const K& k) {
     return getImpl(k);
   }
