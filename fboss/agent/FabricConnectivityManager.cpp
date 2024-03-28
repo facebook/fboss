@@ -358,7 +358,7 @@ void FabricConnectivityManager::stateUpdated(const StateDelta& delta) {
 FabricEndpoint FabricConnectivityManager::processConnectivityInfoForPort(
     const PortID& portId,
     const FabricEndpoint& hwEndpoint) {
-  const auto& iter = currentNeighborConnectivity_.find(portId);
+  auto iter = currentNeighborConnectivity_.find(portId);
   if (iter != currentNeighborConnectivity_.end()) {
     // Populate actual isAttached, switchId, switchName, portId, portName
     iter->second.isAttached() = *hwEndpoint.isAttached();
@@ -383,8 +383,10 @@ FabricEndpoint FabricConnectivityManager::processConnectivityInfoForPort(
         iter->second.expectedPortName().has_value()) {
       iter->second.portName() = iter->second.expectedPortName().value();
     }
-  }
 
+  } else {
+    iter = currentNeighborConnectivity_.insert({portId, hwEndpoint}).first;
+  }
   return iter->second;
 }
 
