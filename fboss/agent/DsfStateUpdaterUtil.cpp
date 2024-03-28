@@ -112,8 +112,22 @@ std::shared_ptr<SwitchState> DsfStateUpdaterUtil::getUpdatedState(
     return clonedNode;
   };
   auto makeRemoteRif = [&](const auto& oldNode, const auto& newNode) {
-    auto clonedNode = newNode->clone();
+    CHECK(!oldNode || oldNode->getID() == newNode->getID());
+    if (oldNode && oldNode->getRemoteInterfaceType().has_value() &&
+        oldNode->getRemoteInterfaceType().value() ==
+            RemoteInterfaceType::STATIC_ENTRY) {
+      XLOG(DBG2)
+          << "Skip overwriting STATIC remoteInterface: "
+          << " STATIC: "
+          << apache::thrift::SimpleJSONSerializer::serialize<std::string>(
+                 oldNode->toThrift())
+          << " non-STATIC: "
+          << apache::thrift::SimpleJSONSerializer::serialize<std::string>(
+                 newNode->toThrift());
+      return oldNode;
+    }
 
+    auto clonedNode = newNode->clone();
     if (newNode->isPublished()) {
       clonedNode->setArpTable(newNode->getArpTable()->toThrift());
       clonedNode->setNdpTable(newNode->getNdpTable()->toThrift());
