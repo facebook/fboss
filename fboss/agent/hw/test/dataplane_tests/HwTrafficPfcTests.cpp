@@ -102,10 +102,12 @@ bool getPfcCountersRetry(
     XLOG(DBG0) << " Port: " << portId << " PFC TX/RX PFC/RX_PFC_XON "
                << txPfcCtr << "/" << rxPfcCtr << "/" << rxPfcXonCtr
                << ", priority: " << pfcPriority;
-    if (txPfcCtr > 0 && rxPfcCtr > 0 && rxPfcXonCtr > 0) {
-      return true;
+
+    if (ensemble->getAsic()->isSupported(
+            facebook::fboss::HwAsic::Feature::PFC_XON_TO_XOFF_COUNTER)) {
+      return (txPfcCtr > 0 && rxPfcCtr > 0 && rxPfcXonCtr > 0);
     }
-    return false;
+    return (txPfcCtr > 0 && rxPfcCtr > 0);
   };
 
   return ensemble->waitPortStatsCondition(
