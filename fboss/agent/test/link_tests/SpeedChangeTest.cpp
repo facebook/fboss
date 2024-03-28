@@ -26,6 +26,36 @@ class SpeedChangeTest : public LinkTest {
   std::optional<SpeedAndProfile> getSecondarySpeedAndProfile(
       cfg::PortProfileID profileID) const;
 
+  void createSecondarySpeedConfig(std::string pathOfNewConfig) {
+    cfg::AgentConfig testConfig = platform()->config()->thrift;
+    auto swConfig = *testConfig.sw();
+    bool speedChanged = false;
+    for (auto& port : *swConfig.ports()) {
+      if (auto speedAndProfile =
+              getSecondarySpeedAndProfile(*port.profileID())) {
+        XLOG(INFO) << folly::sformat(
+            "Changing speed and profile on port {:s} from speed={:s},profile={:s} to speed={:s},profile={:s}",
+            port.name().ensure(),
+            apache::thrift::util::enumName(*port.speed()),
+            apache::thrift::util::enumName(*port.profileID()),
+            apache::thrift::util::enumName(speedAndProfile->speed),
+            apache::thrift::util::enumName(speedAndProfile->profileID));
+        port.speed() = speedAndProfile->speed;
+        port.profileID() = speedAndProfile->profileID;
+        speedChanged = true;
+      }
+    }
+    CHECK(speedChanged);
+    *testConfig.sw() = swConfig;
+
+    // Dump the new config to the config file
+    auto newCfg = AgentConfig(
+        testConfig,
+        apache::thrift::SimpleJSONSerializer::serialize<std::string>(
+            testConfig));
+    newCfg.dumpConfig(pathOfNewConfig);
+  }
+
  private:
   std::string originalConfigCopy;
 };
@@ -90,33 +120,7 @@ std::optional<SpeedAndProfile> SpeedChangeTest::getSecondarySpeedAndProfile(
 TEST_F(SpeedChangeTest, secondarySpeed) {
   auto speedChangeSetup = [this]() {
     // Create a new config with secondary speed
-    cfg::AgentConfig testConfig = platform()->config()->thrift;
-    auto swConfig = *testConfig.sw();
-    bool speedChanged = false;
-    for (auto& port : *swConfig.ports()) {
-      if (auto speedAndProfile =
-              getSecondarySpeedAndProfile(*port.profileID())) {
-        XLOG(INFO) << folly::sformat(
-            "Changing speed and profile on port {:s} from speed={:s},profile={:s} to speed={:s},profile={:s}",
-            *port.name(),
-            apache::thrift::util::enumName(*port.speed()),
-            apache::thrift::util::enumName(*port.profileID()),
-            apache::thrift::util::enumName(speedAndProfile->speed),
-            apache::thrift::util::enumName(speedAndProfile->profileID));
-        port.speed() = speedAndProfile->speed;
-        port.profileID() = speedAndProfile->profileID;
-        speedChanged = true;
-      }
-    }
-    CHECK(speedChanged);
-    *testConfig.sw() = swConfig;
-
-    // Dump the new config to the config file
-    auto newcfg = AgentConfig(
-        testConfig,
-        apache::thrift::SimpleJSONSerializer::serialize<std::string>(
-            testConfig));
-    newcfg.dumpConfig(FLAGS_config);
+    createSecondarySpeedConfig(FLAGS_config);
 
     // Apply the new config
     sw()->applyConfig("set secondary speeds", true);
