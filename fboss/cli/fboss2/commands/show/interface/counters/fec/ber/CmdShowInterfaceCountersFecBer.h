@@ -136,13 +136,12 @@ class CmdShowInterfaceCountersFecBer
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
     Table table;
 
-    table.setHeader(
-        {"Interface Name",
-         "ASIC",
-         "XPHY_SYSTEM",
-         "XPHY_LINE",
-         "TRANSCEIVER_SYSTEM",
-         "TRANSCEIVER_LINE"});
+    if (model.direction() == phy::Direction::RECEIVE) {
+      table.setHeader(
+          {"Interface Name", "ASIC", "XPHY_LINE", "TRANSCEIVER_LINE"});
+    } else {
+      table.setHeader({"Interface Name", "XPHY_SYSTEM", "TRANSCEIVER_SYSTEM"});
+    }
 
     for (const auto& [interfaceName, fecBer] : *model.fecBer()) {
       std::optional<double> iphyBer, xphySystemBer, xphyLineBer, tcvrSystemBer,
@@ -162,21 +161,29 @@ class CmdShowInterfaceCountersFecBer
       if (fecBer.find(phy::PortComponent::TRANSCEIVER_LINE) != fecBer.end()) {
         tcvrLineBer = fecBer.at(phy::PortComponent::TRANSCEIVER_LINE);
       }
-      table.addRow({
-          interfaceName,
-          iphyBer.has_value() ? styledBer(*iphyBer)
-                              : Table::StyledCell("-", Table::Style::NONE),
-          xphySystemBer.has_value()
-              ? styledBer(*xphySystemBer)
-              : Table::StyledCell("-", Table::Style::NONE),
-          xphyLineBer.has_value() ? styledBer(*xphyLineBer)
-                                  : Table::StyledCell("-", Table::Style::NONE),
-          tcvrSystemBer.has_value()
-              ? styledBer(*tcvrSystemBer)
-              : Table::StyledCell("-", Table::Style::NONE),
-          tcvrLineBer.has_value() ? styledBer(*tcvrLineBer)
-                                  : Table::StyledCell("-", Table::Style::NONE),
-      });
+      if (model.direction() == phy::Direction::RECEIVE) {
+        table.addRow({
+            interfaceName,
+            iphyBer.has_value() ? styledBer(*iphyBer)
+                                : Table::StyledCell("-", Table::Style::NONE),
+            xphyLineBer.has_value()
+                ? styledBer(*xphyLineBer)
+                : Table::StyledCell("-", Table::Style::NONE),
+            tcvrLineBer.has_value()
+                ? styledBer(*tcvrLineBer)
+                : Table::StyledCell("-", Table::Style::NONE),
+        });
+      } else {
+        table.addRow({
+            interfaceName,
+            xphySystemBer.has_value()
+                ? styledBer(*xphySystemBer)
+                : Table::StyledCell("-", Table::Style::NONE),
+            tcvrSystemBer.has_value()
+                ? styledBer(*tcvrSystemBer)
+                : Table::StyledCell("-", Table::Style::NONE),
+        });
+      }
     }
     out << table << std::endl;
   }
