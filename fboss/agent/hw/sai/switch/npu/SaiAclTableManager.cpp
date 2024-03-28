@@ -169,13 +169,8 @@ std::
         qualifierExistsFn(cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE),
         qualifierExistsFn(cfg::AclTableQualifier::ETHER_TYPE),
         qualifierExistsFn(cfg::AclTableQualifier::OUTER_VLAN),
-    // TODO(daiweix): avoid setting BTH_OPCODE=false, which would fail 9.2+
-    // brcm-sai and leaba sdk, remove it after BTH_OPCODE is properly
-    // supported on XGS and leaba platforms
 #if !defined(TAJO_SDK)
-        qualifierExistsFn(cfg::AclTableQualifier::BTH_OPCODE)
-        ? std::optional<bool>(true)
-        : std::nullopt,
+        qualifierExistsFn(cfg::AclTableQualifier::BTH_OPCODE),
 #endif
   };
 
