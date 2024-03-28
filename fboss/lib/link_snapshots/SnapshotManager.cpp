@@ -14,6 +14,11 @@
 
 using namespace std::chrono;
 
+DEFINE_bool(
+    enable_snapshot_debugs,
+    true,
+    "Print link snapshot debugs on console");
+
 namespace {
 // Default max rsyslog line length is 12k (currently qsfp_service allows up to
 // 16k, but we shouldn't actually have lines that long anymore)
@@ -25,6 +30,9 @@ constexpr auto kMaxLogLineLength = 12000;
 namespace facebook::fboss {
 
 void SnapshotWrapper::publish(const std::set<std::string>& portNames) {
+  if (!FLAGS_enable_snapshot_debugs) {
+    return;
+  }
   auto serializedSnapshot =
       apache::thrift::SimpleJSONSerializer::serialize<std::string>(snapshot_);
   if (!published_) {

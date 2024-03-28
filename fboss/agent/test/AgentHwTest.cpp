@@ -15,6 +15,7 @@ DEFINE_bool(
     "list production feature needed for every single test");
 DECLARE_bool(disable_neighbor_updates);
 DECLARE_bool(disable_icmp_error_response);
+DECLARE_bool(enable_snapshot_debugs);
 
 namespace {
 int kArgc;
@@ -29,6 +30,7 @@ void AgentHwTest::SetUp() {
     return;
   }
   fbossCommonInit(kArgc, kArgv);
+  FLAGS_enable_snapshot_debugs = false;
   FLAGS_verify_apply_oper_delta = true;
   FLAGS_hide_fabric_ports = hideFabricPorts();
   // Reset any global state being tracked in singletons
