@@ -21,6 +21,10 @@ struct HwInitResult {
 
 struct FabricConnectivityDelta {
   std::optional<FabricEndpoint> oldConnectivity, newConnectivity;
+  bool operator==(const FabricConnectivityDelta& rhs) const {
+    return std::tie(oldConnectivity, newConnectivity) ==
+        std::tie(rhs.oldConnectivity, rhs.newConnectivity);
+  }
 };
 
 class StateObserver;
