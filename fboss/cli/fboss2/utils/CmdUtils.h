@@ -276,6 +276,33 @@ class PortState : public BaseObjectArgType<std::string> {
   }
 };
 
+class LinkDirection : public BaseObjectArgType<std::string> {
+ public:
+  /* implicit */ LinkDirection(std::vector<std::string> v) {
+    if (v.empty()) {
+      throw std::runtime_error(
+          "Incomplete command, expecting '<ingress|egress>'");
+    }
+
+    direction = getLinkDirection(v);
+  }
+  phy::Direction direction;
+  const static ObjectArgTypeId id =
+      ObjectArgTypeId::OBJECT_ARG_TYPE_LINK_DIRECTION;
+
+ private:
+  phy::Direction getLinkDirection(std::vector<std::string>& v) {
+    if (std::find(v.begin(), v.end(), "ingress") != v.end()) {
+      return phy::Direction::RECEIVE;
+    } else if (std::find(v.begin(), v.end(), "egress") != v.end()) {
+      return phy::Direction::TRANSMIT;
+    } else {
+      throw std::runtime_error(folly::to<std::string>(
+          "Unexpected direction '", v[0], "', expecting 'ingress|egress'"));
+    }
+  }
+};
+
 class FsdbPath : public BaseObjectArgType<std::string> {
  public:
   /* implicit */ FsdbPath(std::vector<std::string> fsdbPath) {

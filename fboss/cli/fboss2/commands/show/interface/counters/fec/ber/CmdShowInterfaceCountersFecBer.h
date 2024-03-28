@@ -30,7 +30,8 @@ class CmdShowInterfaceCountersFecBer
 
   RetType queryClient(
       const HostInfo& hostInfo,
-      const utils::PortList& queriedIfs) {
+      const utils::PortList& queriedIfs,
+      const utils::LinkDirection& direction) {
     std::map<std::string, phy::PhyInfo> iPhyInfo;
     std::map<std::string, phy::PhyInfo> xPhyInfo;
     std::map<int, TransceiverInfo> transceiverInfo;
@@ -60,14 +61,17 @@ class CmdShowInterfaceCountersFecBer
     } catch (apache::thrift::transport::TTransportException& e) {
       std::cerr << "Cannot connect to qsfp_service\n";
     }
-    return createModel(iPhyInfo, xPhyInfo, transceiverInfo);
+    return createModel(
+        iPhyInfo, xPhyInfo, transceiverInfo, direction.direction);
   }
 
   RetType createModel(
       const std::map<std::string, phy::PhyInfo>& iPhyInfo,
       const std::map<std::string, phy::PhyInfo>& xPhyInfo,
-      const std::map<int, TransceiverInfo>& transceiverInfo) {
+      const std::map<int, TransceiverInfo>& transceiverInfo,
+      const phy::Direction direction) {
     RetType model;
+    model.direction() = direction;
     // Use interfaces in iPhyInfo as the SOT for the ports in the system
     for (auto& [interfaceName, phyInfo] : iPhyInfo) {
       if (auto ber = getPreFecBerFromPhyInfo(phyInfo, phy::Side::LINE)) {

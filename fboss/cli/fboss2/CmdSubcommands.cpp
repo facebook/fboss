@@ -164,6 +164,11 @@ CLI::App* CmdSubcommands::addCommand(
               "'disable' -> Disables port\n");
           break;
         }
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_LINK_DIRECTION: {
+          subCmd->add_option(
+              "direction", args, "Link direction - ingress|egress\n");
+          break;
+        }
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_FSDB_PATH: {
           subCmd->add_option(
               "fsdb_path",

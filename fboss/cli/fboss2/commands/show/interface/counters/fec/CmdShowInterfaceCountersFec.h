@@ -3,6 +3,7 @@
 #pragma once
 
 #include <fboss/agent/if/gen-cpp2/ctrl_types.h>
+#include <fboss/cli/fboss2/utils/CmdUtils.h>
 #include <folly/String.h>
 #include <folly/gen/Base.h>
 #include <cstdint>
@@ -15,8 +16,8 @@ namespace facebook::fboss {
 struct CmdShowInterfaceCountersFecTraits : public BaseCommandTraits {
   using ParentCmd = CmdShowInterfaceCounters;
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
-      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
-  using ObjectArgType = std::monostate;
+      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_LINK_DIRECTION;
+  using ObjectArgType = utils::LinkDirection;
   using RetType = std::string;
 };
 
@@ -29,7 +30,8 @@ class CmdShowInterfaceCountersFec : public CmdHandler<
 
   RetType queryClient(
       const HostInfo& /* hostInfo */,
-      const std::vector<std::string>& /* queriedIfs */) {
+      const std::vector<std::string>& /* queriedIfs */,
+      const ObjectArgType& /* ingress|egress */) {
     throw std::runtime_error(
         "Incomplete command, please use one the subcommands");
     return RetType();
