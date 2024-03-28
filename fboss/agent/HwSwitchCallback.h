@@ -19,6 +19,10 @@ struct HwInitResult {
   float bootTime{0.0};
 };
 
+struct FabricConnectivityDelta {
+  std::optional<FabricEndpoint> oldConnectivity, newConnectivity;
+};
+
 class StateObserver;
 
 class HwSwitchCallback {
@@ -46,6 +50,10 @@ class HwSwitchCallback {
    */
   virtual void linkActiveStateChanged(
       const std::map<PortID, bool>& port2IsActive) = 0;
+
+  virtual void linkConnectivityChanged(
+      const std::map<PortID, FabricConnectivityDelta>&
+          port2OldAndNewConnectivity) = 0;
 
   /*
    * l2LearningUpdateReceived() is invoked by the HwSwitch when there is

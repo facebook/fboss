@@ -83,6 +83,9 @@ class HwSwitchEnsemble : public TestEnsembleIf {
     virtual void linkStateChanged(PortID port, bool up) = 0;
     virtual void linkActiveStateChanged(
         const std::map<PortID, bool>& port2IsActive) = 0;
+    virtual void linkConnectivityChanged(
+        const std::map<PortID, FabricConnectivityDelta>&
+            port2OldAndNewConnectivity) = 0;
     virtual void l2LearningUpdateReceived(
         L2Entry l2Entry,
         L2EntryUpdateType l2EntryUpdateType) = 0;
@@ -172,6 +175,10 @@ class HwSwitchEnsemble : public TestEnsembleIf {
           std::nullopt) override;
   void linkActiveStateChanged(
       const std::map<PortID, bool>& /*port2IsActive */) override;
+  void linkConnectivityChanged(const std::map<PortID, FabricConnectivityDelta>&
+                               /*port2OldAndNewConnectivity*/) override {
+    // TODO
+  }
   void l2LearningUpdateReceived(
       L2Entry l2Entry,
       L2EntryUpdateType l2EntryUpdateType) override;

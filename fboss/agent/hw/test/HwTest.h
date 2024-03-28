@@ -70,6 +70,8 @@ class HwTest : public ::testing::Test,
   void l2LearningUpdateReceived(
       L2Entry /*l2Entry*/,
       L2EntryUpdateType /*l2EntryUpdateType*/) override {}
+  void linkConnectivityChanged(const std::map<PortID, FabricConnectivityDelta>&
+                               /*port2OldAndNewConnectivity*/) override {}
 
   HwSwitchEnsemble* getHwSwitchEnsemble() {
     return hwSwitchEnsemble_.get();

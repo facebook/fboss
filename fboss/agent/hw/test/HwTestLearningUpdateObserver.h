@@ -36,6 +36,8 @@ class HwTestLearningUpdateObserver
   void linkStateChanged(PortID /*port*/, bool /*up*/) override {}
   void linkActiveStateChanged(
       const std::map<PortID, bool>& /*port2IsActive */) override {}
+  void linkConnectivityChanged(const std::map<PortID, FabricConnectivityDelta>&
+                               /*port2OldAndNewConnectivity*/) override {}
 
   void applyStateUpdateHelper(
       L2Entry l2Entry,
