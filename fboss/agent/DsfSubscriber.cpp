@@ -256,36 +256,64 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
 void DsfSubscriber::processGRHoldTimerExpired(
     const std::string& nodeName,
     const SwitchID& nodeSwitchId) {
-  auto updateDsfStateFn =
-      [this, nodeName, nodeSwitchId](const std::shared_ptr<SwitchState>& in) {
-        bool changed{false};
-        auto out = in->clone();
+  auto updateDsfStateFn = [this, nodeName, nodeSwitchId](
+                              const std::shared_ptr<SwitchState>& in) {
+    bool changed{false};
+    auto out = in->clone();
 
-        auto remoteSystemPorts = out->getRemoteSystemPorts()->modify(&out);
-        for (auto& [_, remoteSystemPortMap] : *remoteSystemPorts) {
-          for (auto& [_, remoteSystemPort] : *remoteSystemPortMap) {
-            // GR timeout expired for nodeSwitchId.
-            // Mark all remote system ports synced over control plane (i.e.
-            // DYNAMIC) as STALE.
-            if (remoteSystemPort->getSwitchId() == nodeSwitchId &&
-                remoteSystemPort->getRemoteSystemPortType().has_value() &&
-                remoteSystemPort->getRemoteSystemPortType().value() ==
-                    RemoteSystemPortType::DYNAMIC_ENTRY) {
-              auto clonedNode = remoteSystemPort->isPublished()
-                  ? remoteSystemPort->clone()
-                  : remoteSystemPort;
-              clonedNode->setRemoteLivenessStatus(RemoteLivenessStatus::STALE);
-              remoteSystemPorts->updateNode(
-                  clonedNode, sw_->getScopeResolver()->scope(clonedNode));
-              changed = true;
-            }
+    auto remoteSystemPorts = out->getRemoteSystemPorts()->modify(&out);
+    for (auto& [_, remoteSystemPortMap] : *remoteSystemPorts) {
+      for (auto& [_, remoteSystemPort] : *remoteSystemPortMap) {
+        // GR timeout expired for nodeSwitchId.
+        // Mark all remote system ports synced over control plane (i.e.
+        // DYNAMIC) as STALE.
+        if (remoteSystemPort->getSwitchId() == nodeSwitchId &&
+            remoteSystemPort->getRemoteSystemPortType().has_value() &&
+            remoteSystemPort->getRemoteSystemPortType().value() ==
+                RemoteSystemPortType::DYNAMIC_ENTRY) {
+          auto clonedNode = remoteSystemPort->isPublished()
+              ? remoteSystemPort->clone()
+              : remoteSystemPort;
+          clonedNode->setRemoteLivenessStatus(RemoteLivenessStatus::STALE);
+          remoteSystemPorts->updateNode(
+              clonedNode, sw_->getScopeResolver()->scope(clonedNode));
+          changed = true;
+        }
+      }
+    }
+
+    auto remoteInterfaces = out->getRemoteInterfaces()->modify(&out);
+    for (auto& [_, remoteInterfaceMap] : *remoteInterfaces) {
+      for (auto& [_, remoteInterface] : *remoteInterfaceMap) {
+        const auto& remoteSystemPort =
+            remoteSystemPorts->getNodeIf(*remoteInterface->getSystemPortID());
+
+        if (remoteSystemPort) {
+          auto switchID = remoteSystemPort->getSwitchId();
+          // GR timeout expired for nodeSwitchId.
+          // Mark all remote interfaces synced over control plane (i.e.
+          // DYNAMIC) as STALE.
+          if (switchID == nodeSwitchId &&
+              remoteInterface->getRemoteInterfaceType().has_value() &&
+              remoteInterface->getRemoteInterfaceType().value() ==
+                  RemoteInterfaceType::DYNAMIC_ENTRY) {
+            auto clonedNode = remoteInterface->isPublished()
+                ? remoteInterface->clone()
+                : remoteInterface;
+            clonedNode->setRemoteLivenessStatus(RemoteLivenessStatus::STALE);
+            remoteInterfaces->updateNode(
+                clonedNode, sw_->getScopeResolver()->scope(clonedNode, out));
+            changed = true;
           }
         }
-        if (changed) {
-          return out;
-        }
-        return std::shared_ptr<SwitchState>{};
-      };
+      }
+    }
+
+    if (changed) {
+      return out;
+    }
+    return std::shared_ptr<SwitchState>{};
+  };
 
   sw_->updateState(
       folly::sformat(
