@@ -40,6 +40,7 @@ void SaiSwitch::updateStatsImpl() {
 
   int64_t missingCount = 0, mismatchCount = 0;
   auto portsIter = concurrentIndices_->portSaiId2PortInfo.begin();
+  std::map<PortID, FabricConnectivityDelta> connectivityDelta;
   while (portsIter != concurrentIndices_->portSaiId2PortInfo.end()) {
     {
       std::lock_guard<std::mutex> locked(saiSwitchMutex_);
@@ -47,8 +48,11 @@ void SaiSwitch::updateStatsImpl() {
       auto endpointOpt = managerTable_->portManager().getFabricConnectivity(
           portsIter->second.portID);
       if (endpointOpt.has_value()) {
-        fabricConnectivityManager_->processConnectivityInfoForPort(
+        auto delta = fabricConnectivityManager_->processConnectivityInfoForPort(
             portsIter->second.portID, *endpointOpt);
+        if (delta) {
+          connectivityDelta.insert({portsIter->second.portID, *delta});
+        }
         if (fabricConnectivityManager_->isConnectivityInfoMissing(
                 portsIter->second.portID)) {
           missingCount++;
