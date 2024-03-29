@@ -43,6 +43,7 @@ constexpr auto kAclName = "flowlet";
 constexpr auto kAclCounterName = "flowletStat";
 constexpr auto kDstIp = "2001::/16";
 const int kMaxLinks = 4;
+const int kEcmpStartId = 200000;
 } // namespace
 
 namespace facebook::fboss {
@@ -51,6 +52,7 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
  protected:
   void SetUp() override {
     FLAGS_flowletSwitchingEnable = true;
+    FLAGS_flowletStatsEnable = true;
     HwLinkStateDependentTest::SetUp();
     ecmpHelper_ = std::make_unique<utility::EcmpSetupAnyNPorts6>(
         getProgrammedState(), RouterID(0));
@@ -289,6 +291,17 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
         portFlowletConfig,
         false,
         true));
+  }
+
+  void validateEcmpDetails(const cfg::FlowletSwitchingConfig& flowletCfg) {
+    auto ecmpDetails = getHwSwitch()->getAllEcmpDetails();
+    CHECK_EQ(ecmpDetails.size(), 1);
+    for (const auto& entry : ecmpDetails) {
+      CHECK_GE(*(entry.ecmpId()), kEcmpStartId);
+      if (*flowletCfg.flowletTableSize() > 0) {
+        EXPECT_TRUE(*(entry.flowletEnabled()));
+      }
+    }
   }
 
   std::unique_ptr<utility::EcmpSetupAnyNPorts<folly::IPAddressV6>> ecmpHelper_;
@@ -547,6 +560,46 @@ TEST_F(HwFlowletSwitchingTest, VerifyFlowletConfigRemoval) {
     cfg = getDefaultConfig();
     applyNewConfig(cfg);
     verifyRemoveFlowletConfig();
+    // Modify to initial config to verify after warmboot
+    applyNewConfig(initialConfig());
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(HwFlowletSwitchingTest, VerifyGetEcmpDetails) {
+  if (this->skipTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
+    return;
+  }
+
+  auto setup = [&]() { resolveNextHopsAddRoute(kMaxLinks); };
+
+  auto verify = [&]() {
+    auto cfg = initialConfig();
+    verifyConfig(cfg);
+
+    // start a new thread to verify the ecmp details
+    std::atomic<bool> done{false};
+    auto flowletCfg = *cfg.flowletSwitchingConfig();
+    std::thread ecmpDetails([&flowletCfg, &done, this]() {
+      while (!done) {
+        validateEcmpDetails(flowletCfg);
+      }
+    });
+
+    // Modify the flowlet config
+    modifyFlowletSwitchingConfig(cfg);
+    // Modify the port flowlet config
+    updatePortFlowletConfigs(cfg, kScalingFactor2, kLoadWeight2, kQueueWeight2);
+    applyNewConfig(cfg);
+    verifyModifiedConfig();
+
+    done = true;
+    ecmpDetails.join();
+
     // Modify to initial config to verify after warmboot
     applyNewConfig(initialConfig());
   };
