@@ -126,10 +126,32 @@ class AgentOlympicQosSchedulerTest : public AgentHwTest {
       const std::vector<int>& queueIds,
       const std::map<int, std::vector<uint8_t>>& queueToDscp,
       bool frontPanel = true) {
-    // Higher speed ports need more packets to reach line rate
+    auto port = getProgrammedState()->getPort(outPort());
+    auto queues = port->getPortQueues()->impl();
+    std::set<int> wrrQueues;
+    std::set<int> spQueues;
+    for (auto queue : std::as_const(queues)) {
+      if (std::find(queueIds.begin(), queueIds.end(), queue->getID()) !=
+          queueIds.end()) {
+        if (queue->getScheduling() ==
+            cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN) {
+          wrrQueues.insert(queue->getID());
+        } else if (
+            queue->getScheduling() == cfg::QueueScheduling::STRICT_PRIORITY) {
+          spQueues.insert(queue->getID());
+        }
+      }
+    }
     auto pktsToSend = getAgentEnsemble()->getMinPktsForLineRate(outPort());
-    for (const auto& queueId : queueIds) {
-      sendUdpPkts(queueToDscp.at(queueId).front(), pktsToSend, frontPanel);
+    // send traffic to wrr queues first
+    for (auto queue : wrrQueues) {
+      XLOG(DBG2) << "send traffic to wrr queue " << queue;
+      sendUdpPkts(queueToDscp.at(queue).front(), pktsToSend, frontPanel);
+    }
+    // send traffic to sp queues from low priority to high priority
+    for (auto queue : spQueues) {
+      XLOG(DBG2) << "send traffic to sp queue " << queue;
+      sendUdpPkts(queueToDscp.at(queue).front(), pktsToSend, frontPanel);
     }
   }
 
@@ -156,6 +178,40 @@ class AgentOlympicQosSchedulerTest : public AgentHwTest {
     };
 
     verifyAcrossWarmBoots([]() {}, verify);
+  }
+
+  void verifySingleWRRAndSP(
+      const std::vector<int>& queueIds,
+      int trafficQueueId) {
+    utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
+    auto setup = [=, this]() { _setup(ecmpHelper6); };
+
+    auto verify = [=, this]() {
+      for (auto queue : queueIds) {
+        if (queue != trafficQueueId) {
+          XLOG(DBG2) << "send traffic to WRR queue " << queue
+                     << " and SP queue " << trafficQueueId;
+          sendUdpPktsForAllQueues(
+              {queue, trafficQueueId}, utility::kOlympicQueueToDscp(getAsic()));
+          EXPECT_TRUE(verifySPHelper(
+              trafficQueueId,
+              queueIds,
+              utility::kOlympicQueueToDscp(getAsic())));
+          // toggle route to stop traffic, and then send traffic to each WRR
+          // queue and SP queue
+          XLOG(DBG2) << "unprogram routes";
+          unprogramRoutes(ecmpHelper6);
+          // wait for no traffic going out of port
+          getAgentEnsemble()->waitForSpecificRateOnPort(outPort(), 0);
+
+          XLOG(DBG2) << "program routes";
+          auto wrapper = getSw()->getRouteUpdater();
+          ecmpHelper6.programRoutes(&wrapper, kEcmpWidthForTest);
+        }
+      }
+    };
+
+    verifyAcrossWarmBoots(setup, verify);
   }
 
   void _verifyDscpQueueMappingHelper(
@@ -199,6 +255,7 @@ class AgentOlympicQosSchedulerTest : public AgentHwTest {
   void verifySP(bool frontPanelTraffic = true);
   void verifyWRRAndICP();
   void verifyWRRAndNC();
+  void verifySingleWRRAndNC();
 
   void verifyWRRToAllSPDscpToQueue();
   void verifyWRRToAllSPTraffic();
@@ -388,6 +445,14 @@ void AgentOlympicQosSchedulerTest::verifyWRRAndICP() {
 
 void AgentOlympicQosSchedulerTest::verifyWRRAndNC() {
   verifyWRRAndSP(
+      utility::kOlympicWRRAndNCQueueIds(getAsic()),
+      utility::getOlympicQueueId(
+          utility::OlympicQueueType::NC)); // SP should starve WRR
+                                           // queues altogether
+}
+
+void AgentOlympicQosSchedulerTest::verifySingleWRRAndNC() {
+  verifySingleWRRAndSP(
       utility::kOlympicWRRAndNCQueueIds(getAsic()),
       utility::getOlympicQueueId(
           utility::OlympicQueueType::NC)); // SP should starve WRR
@@ -660,6 +725,10 @@ TEST_F(AgentOlympicQosSchedulerTest, VerifyWRRAndICP) {
 
 TEST_F(AgentOlympicQosSchedulerTest, VerifyWRRAndNC) {
   verifyWRRAndNC();
+}
+
+TEST_F(AgentOlympicQosSchedulerTest, VerifySingleWRRAndNC) {
+  verifySingleWRRAndNC();
 }
 
 TEST_F(AgentOlympicQosSchedulerTest, VerifyWRRToAllSPDscpToQueue) {
