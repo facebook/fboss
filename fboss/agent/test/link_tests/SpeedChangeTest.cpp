@@ -168,6 +168,7 @@ TEST_F(SpeedChangeTest, speedChangeActivatedByWb) {
   auto speedChangeSetup = [this]() {
     // Create a new config with changed speeds
     createSecondarySpeedConfig(FLAGS_config);
+    createL3DataplaneFlood();
   };
   auto speedChangeVerify = [this]() {
     /*
