@@ -82,7 +82,6 @@ class BcmMultiPathNextHopTable : public BcmMultiPathNextHopTableBase {
   long getEcmpEgressCount() const;
   void updateEcmpsForFlowletSwitching();
   bool updateEcmpsForFlowletTableLocked();
-  HwFlowletStats getHwFlowletStats() const;
 
  private:
   bool ucmpSupported_{false};
@@ -112,6 +111,7 @@ class BcmMultiPathNextHopStatsManager {
   }
 
   std::vector<EcmpDetails> getAllEcmpDetails() const;
+  HwFlowletStats getHwFlowletStats() const;
 
  private:
   // map of all the bcm multipath nexthop keys and weak ptr

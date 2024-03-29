@@ -1327,12 +1327,13 @@ bool BcmEcmpEgress::updateEcmpDynamicMode() {
 
 uint64_t BcmEcmpEgress::getL3EcmpDlbFailPackets() {
   uint64_t dlbDropCount = 0;
-  // TODO: we are piggy backing TH4 feature FLOWLET_PORT_ATTRIBUTES
-  // since bcm dlb stat SDK API is not supported for TH3 now.
-  // will remove this when TH3 also gets support for the SDK API
-  if (FLAGS_flowletSwitchingEnable &&
-      (hw_->getPlatform()->getAsic()->isSupported(
-          HwAsic::Feature::FLOWLET_PORT_ATTRIBUTES))) {
+  // Flowlet switching might not be enabled all the ecmp groups during the init
+  // or during lot of link flaps event due to flowset resource scarce.
+  // Reading the dlb stats on non flowlet enabled ecmp group will throw SDK
+  // error and subsequently crash in bcmCheckError
+  auto ecmpDetails = getEcmpDetails();
+  if (FLAGS_flowletSwitchingEnable && ecmpDetails.flowletEnabled().value()) {
+    XLOG(DBG3) << "Read l3 ecmp dlb stats: " << id_;
     auto rv = bcm_l3_ecmp_dlb_stat_get(
         hw_->getUnit(), id_, bcmL3ECMPDlbStatFailPackets, &dlbDropCount);
     bcmCheckError(rv, "failed to get l3 ecmp dlb stat ", id_);

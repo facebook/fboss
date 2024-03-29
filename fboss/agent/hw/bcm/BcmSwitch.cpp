@@ -3193,7 +3193,7 @@ uint64_t BcmSwitch::getDeviceWatermarkBytes() const {
 }
 
 HwFlowletStats BcmSwitch::getHwFlowletStats() const {
-  return multiPathNextHopTable_->getHwFlowletStats();
+  return multiPathNextHopStatsManager_->getHwFlowletStats();
 }
 
 HwSwitchWatermarkStats BcmSwitch::getSwitchWatermarkStats() const {
