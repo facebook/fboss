@@ -155,6 +155,8 @@ class SaiSwitch : public HwSwitch {
       uint32_t count);
 
   void txReadyStatusChangeCallbackTopHalf(SwitchSaiId switchId);
+  void linkConnectivityChanged(
+      const std::map<PortID, FabricConnectivityDelta>& connectivityDelta);
 
   /**
    * Runs a diag cmd on the corresponding unit

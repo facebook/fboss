@@ -2026,6 +2026,11 @@ void SaiSwitch::txReadyStatusChangeCallbackBottomHalf() {
 #endif
 }
 
+void SaiSwitch::linkConnectivityChanged(
+    const std::map<PortID, FabricConnectivityDelta>& connectivityDelta) {
+  callback_->linkConnectivityChanged(connectivityDelta);
+}
+
 BootType SaiSwitch::getBootType() const {
   return bootType_;
 }
