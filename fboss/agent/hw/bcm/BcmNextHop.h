@@ -89,6 +89,11 @@ class BcmNextHopTable {
     return nexthops_.get(key);
   }
 
+  const std::weak_ptr<NextHopT> getNextHopWeakPtr(
+      const NextHopKeyT& key) const {
+    return nexthops_.find(key);
+  }
+
   const NextHopT* getNextHop(const NextHopKeyT& key) const;
 
   std::shared_ptr<NextHopT> referenceOrEmplaceNextHop(const NextHopKeyT& key);

@@ -63,6 +63,7 @@ class BcmL3NextHop;
 class BcmLabeledHostKey;
 class BcmMplsNextHop;
 class BcmMultiPathNextHopTable;
+class BcmMultiPathNextHopStatsManager;
 class BcmNeighborTable;
 template <class K, class V>
 class BcmNextHopTable;
@@ -156,6 +157,12 @@ class BcmSwitchIf : public HwSwitch {
   virtual const BcmMultiPathNextHopTable* getMultiPathNextHopTable() const = 0;
 
   virtual BcmMultiPathNextHopTable* writableMultiPathNextHopTable() const = 0;
+
+  virtual const BcmMultiPathNextHopStatsManager*
+  getMultiPathNextHopStatsManager() const = 0;
+
+  virtual BcmMultiPathNextHopStatsManager*
+  writableMultiPathNextHopStatsManager() const = 0;
 
   virtual const BcmAclTable* getAclTable() const = 0;
 
@@ -347,6 +354,15 @@ class BcmSwitch : public BcmSwitchIf {
   }
   BcmMultiPathNextHopTable* writableMultiPathNextHopTable() const override {
     return multiPathNextHopTable_.get();
+  }
+
+  const BcmMultiPathNextHopStatsManager* getMultiPathNextHopStatsManager()
+      const override {
+    return multiPathNextHopStatsManager_.get();
+  }
+  BcmMultiPathNextHopStatsManager* writableMultiPathNextHopStatsManager()
+      const override {
+    return multiPathNextHopStatsManager_.get();
   }
 
   const BcmQosPolicyTable* getQosPolicyTable() const override {
@@ -1146,6 +1162,8 @@ class BcmSwitch : public BcmSwitchIf {
   std::unique_ptr<BcmNextHopTable<BcmLabeledHostKey, BcmMplsNextHop>>
       mplsNextHopTable_;
   std::unique_ptr<BcmMultiPathNextHopTable> multiPathNextHopTable_;
+  std::unique_ptr<BcmMultiPathNextHopStatsManager>
+      multiPathNextHopStatsManager_;
   std::unique_ptr<BcmLabelMap> labelMap_;
   std::unique_ptr<BcmRouteCounterTableBase> routeCounterTable_;
   std::unique_ptr<BcmRouteTable> routeTable_;

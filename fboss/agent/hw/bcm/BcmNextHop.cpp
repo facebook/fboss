@@ -233,6 +233,24 @@ BcmNextHopTable<NextHopKeyT, NextHopT>::referenceOrEmplaceNextHop(
   auto rv = nexthops_.refOrEmplace(key, hw_, key);
   if (rv.second) {
     XLOG(DBG3) << "inserted reference to next hop " << nextHopKeyStr(key);
+    // Check if the current instantiation is
+    // BcmNextHopTable<BcmMultiPathNextHopKey, BcmMultiPathNextHop> and
+    // flowlet stats is enabled then add the nexthop key
+    // to the bcm multipath stats manager
+    if constexpr (
+        std::is_same_v<NextHopKeyT, BcmMultiPathNextHopKey> &&
+        std::is_same_v<NextHopT, BcmMultiPathNextHop>) {
+      if (FLAGS_flowletStatsEnable) {
+        auto& nextHopRef = rv.first;
+        if (nextHopRef->getEcmpEgressId() != BcmEgressBase::INVALID) {
+          auto weakPtr = getNextHopWeakPtr(key);
+          hw_->writableMultiPathNextHopStatsManager()
+              ->addBcmMultiPathNextHopKey(key, weakPtr);
+          XLOG(DBG3) << "Added the next hop key to bcm multipath stats manager "
+                     << nextHopKeyStr(key);
+        }
+      }
+    }
   } else {
     XLOG(DBG3) << "accessed reference to next hop " << nextHopKeyStr(key);
   }

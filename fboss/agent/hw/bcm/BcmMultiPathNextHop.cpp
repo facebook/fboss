@@ -13,7 +13,7 @@ namespace facebook::fboss {
 BcmMultiPathNextHop::BcmMultiPathNextHop(
     const BcmSwitchIf* hw,
     BcmMultiPathNextHopKey key)
-    : hw_(hw), vrf_(key.first) {
+    : hw_(hw), vrf_(key.first), key_(key) {
   auto& fwd = key.second;
   CHECK_GT(fwd.size(), 0);
   BcmEcmpEgress::EgressId2Weight egressId2Weight;
@@ -64,6 +64,10 @@ BcmMultiPathNextHop::~BcmMultiPathNextHop() {
   // Deref ECMP egress first since the ECMP egress entry holds references
   // to egress entries.
   XLOG(DBG3) << "Removing egress object for " << fwd_;
+  if (FLAGS_flowletStatsEnable && ecmpEgress_) {
+    hw_->writableMultiPathNextHopStatsManager()->removeBcmMultiPathNextHopKey(
+        key_);
+  }
 }
 
 long BcmMultiPathNextHopTable::getEcmpEgressCount() const {
@@ -94,28 +98,6 @@ HwFlowletStats BcmMultiPathNextHopTable::getHwFlowletStats() const {
   }
   flowletStats.l3EcmpDlbFailPackets() = l3EcmpDlbFailPackets;
   return flowletStats;
-}
-
-std::vector<EcmpDetails> BcmMultiPathNextHopTable::getAllEcmpDetails() const {
-  std::vector<EcmpDetails> ecmpDetails;
-  // TODO
-  // flowletStatsEnable flag is used to disable getting ecmp details
-  // temporarily while addressing S398583
-  if (!FLAGS_flowletStatsEnable) {
-    return ecmpDetails;
-  }
-
-  for (const auto& nextHopsAndEcmpHostInfo : getNextHops()) {
-    auto& weakPtr = nextHopsAndEcmpHostInfo.second;
-    auto ecmpHost = weakPtr.lock();
-    auto ecmpEgress = ecmpHost->getEgress();
-    if (!ecmpEgress) {
-      continue;
-    }
-    auto ecmp = ecmpEgress->getEcmpDetails();
-    ecmpDetails.emplace_back(ecmp);
-  }
-  return ecmpDetails;
 }
 
 void BcmMultiPathNextHopTable::updateEcmpsForFlowletSwitching() {
@@ -235,6 +217,32 @@ void BcmMultiPathNextHopTable::egressResolutionChangedHwLocked(
       }
     }
   }
+}
+
+std::vector<EcmpDetails> BcmMultiPathNextHopStatsManager::getAllEcmpDetails()
+    const {
+  std::vector<EcmpDetails> ecmpDetails;
+  // TODO Remove this flag after one or two releases once stat code
+  // is solid. If we need to disable flowlet stats,
+  // we can use this flag without hotfix.
+  if (!FLAGS_flowletStatsEnable) {
+    return ecmpDetails;
+  }
+  auto bcmMultiPathNextHopKeys = getBcmMultiPathNextHopKeysExpensive();
+  for (const auto& key : bcmMultiPathNextHopKeys) {
+    // get the multipath nextHop
+    auto& weakPtr = key.second;
+    auto multipathNextHop = weakPtr.lock();
+    if (!multipathNextHop) {
+      continue;
+    }
+    // get the ecmp egress
+    auto ecmpEgress = multipathNextHop->getEgress();
+    CHECK(ecmpEgress) << "egress object does not exist for multipath next hop";
+    auto ecmp = ecmpEgress->getEcmpDetails();
+    ecmpDetails.emplace_back(ecmp);
+  }
+  return ecmpDetails;
 }
 
 } // namespace facebook::fboss

@@ -358,6 +358,7 @@ BcmSwitch::BcmSwitch(BcmPlatform* platform, uint32_t featuresDesired)
       l3NextHopTable_(new BcmL3NextHopTable(this)),
       mplsNextHopTable_(new BcmMplsNextHopTable(this)),
       multiPathNextHopTable_(new BcmMultiPathNextHopTable(this)),
+      multiPathNextHopStatsManager_(new BcmMultiPathNextHopStatsManager()),
       labelMap_(new BcmLabelMap(this)),
       routeCounterTable_(
           getPlatform()->getAsic()->isSupported(
@@ -430,6 +431,7 @@ void BcmSwitch::resetTables() {
   // host references now.
   intfTable_.reset();
   egressManager_.reset();
+  multiPathNextHopStatsManager_.reset();
   multiPathNextHopTable_.reset();
   hostTable_.reset();
   toCPUEgress_.reset();
@@ -3155,7 +3157,7 @@ TeFlowStats BcmSwitch::getTeFlowStats() const {
 }
 
 std::vector<EcmpDetails> BcmSwitch::getAllEcmpDetails() const {
-  return multiPathNextHopTable_->getAllEcmpDetails();
+  return multiPathNextHopStatsManager_->getAllEcmpDetails();
 }
 
 shared_ptr<BcmSwitchEventCallback> BcmSwitch::registerSwitchEventCallback(
