@@ -292,7 +292,8 @@ void DsfSubscriber::processGRHoldTimerExpired(
           auto switchID = remoteSystemPort->getSwitchId();
           // GR timeout expired for nodeSwitchId.
           // Mark all remote interfaces synced over control plane (i.e.
-          // DYNAMIC) as STALE.
+          // DYNAMIC) as STALE and remove all the neighbor entries on that
+          // interface.
           if (switchID == nodeSwitchId &&
               remoteInterface->getRemoteInterfaceType().has_value() &&
               remoteInterface->getRemoteInterfaceType().value() ==
@@ -301,6 +302,9 @@ void DsfSubscriber::processGRHoldTimerExpired(
                 ? remoteInterface->clone()
                 : remoteInterface;
             clonedNode->setRemoteLivenessStatus(RemoteLivenessStatus::STALE);
+            clonedNode->setArpTable(state::NeighborEntries{});
+            clonedNode->setNdpTable(state::NeighborEntries{});
+
             remoteInterfaces->updateNode(
                 clonedNode, sw_->getScopeResolver()->scope(clonedNode, out));
             changed = true;
