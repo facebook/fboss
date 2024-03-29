@@ -384,7 +384,7 @@ cfg::SwitchDrainState computeActualSwitchDrainState(
 
 uint64_t getMacOui(const folly::MacAddress macAddress);
 
-std::unordered_map<uint64_t, uint16_t> computeSwitchIdToSwitchIndex(
+std::unordered_map<SwitchID, SwitchIndex> computeSwitchIdToSwitchIndex(
     const std::shared_ptr<MultiSwitchDsfNodeMap>& dsfNodeMap);
 
 } // namespace facebook::fboss
