@@ -136,6 +136,10 @@ void Platform::init(
     XLOG(DBG2) << " Setting platform mac to: " << macStr.value();
     localMac_ = folly::MacAddress(*macStr);
   }
+
+  XLOG(DBG2) << "Initializing Platform with switch ID: " << switchId.value_or(0)
+             << " switch Index: " << switchIndex;
+
   setupAsic(switchType, switchId, switchIndex, systemPortRange, localMac_);
   initImpl(hwFeaturesDesired);
   // We should always initPorts() here instead of leaving the hw/ to call

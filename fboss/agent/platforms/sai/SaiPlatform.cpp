@@ -292,11 +292,14 @@ void SaiPlatform::initPorts() {
   auto platformMode = getType();
   auto switchId =
       SwitchID(getAsic()->getSwitchId() ? *getAsic()->getSwitchId() : 0);
+  XLOG(DBG4) << "Platform ports are initialized with switch ID: " << switchId;
   HwSwitchMatcher matcher(std::unordered_set<SwitchID>({switchId}));
   for (auto& port : getPlatformPorts()) {
     std::unique_ptr<SaiPlatformPort> saiPort;
     PortID portId(port.first);
     if (scopeResolver()->scope(portId) != matcher) {
+      XLOG(DBG5) << "Skipping platform port " << portId
+                 << " due to scope mismatch";
       continue;
     }
     if (platformMode == PlatformType::PLATFORM_WEDGE400C ||
