@@ -253,6 +253,26 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
       rmDsfNode);
 }
 
+void DsfSubscriber::processGRHoldTimerExpired(
+    const std::string& nodeName,
+    const SwitchID& nodeSwitchId) {
+  auto updateDsfStateFn =
+      [nodeName, nodeSwitchId](const std::shared_ptr<SwitchState>& in) {
+        bool changed{false};
+        auto out = in->clone();
+
+        if (changed) {
+          return out;
+        }
+        return std::shared_ptr<SwitchState>{};
+      };
+
+  sw_->updateState(
+      folly::sformat(
+          "Update state on GR Hold Timer expired for node: {}", nodeName),
+      std::move(updateDsfStateFn));
+}
+
 void DsfSubscriber::handleFsdbSubscriptionStateUpdate(
     const std::string& nodeName,
     const SwitchID& nodeSwitchId,
@@ -285,6 +305,10 @@ void DsfSubscriber::handleFsdbSubscriptionStateUpdate(
         it != lockedDsfSessions->end()) {
       it->second.localSubStateChanged(newThriftState);
     }
+  }
+
+  if (fsdb::isGRHoldExpired(newState)) {
+    processGRHoldTimerExpired(nodeName, nodeSwitchId);
   }
 }
 

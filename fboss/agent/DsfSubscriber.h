@@ -70,6 +70,10 @@ class DsfSubscriber : public StateObserver {
       const std::string& nodeName,
       fsdb::OperSubPathUnit&& operStateUnit);
   bool isLocal(SwitchID nodeSwitchId) const;
+  void processGRHoldTimerExpired(
+      const std::string& nodeName,
+      const SwitchID& nodeSwitchId);
+
   // Paths
   static const auto& getSystemPortsPath();
   static const auto& getInterfacesPath();
