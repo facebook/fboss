@@ -82,12 +82,32 @@ class FabricConnectivityManagerTest : public ::testing::Test {
     return {nbr};
   }
 
+ private:
+  std::optional<FabricEndpoint> getCurrentConnectivity(PortID port) const {
+    std::optional<FabricEndpoint> portConnectivity;
+    auto curConnectivity = fabricConnectivityManager_->getConnectivityInfo();
+    auto itr = curConnectivity.find(port);
+    if (itr != curConnectivity.end()) {
+      portConnectivity = itr->second;
+    }
+    return portConnectivity;
+  }
+
  protected:
   std::map<PortID, FabricEndpoint> processConnectivityInfo(
       const std::map<PortID, FabricEndpoint>& hwConnectivity) {
     for (const auto& [port, endpoint] : hwConnectivity) {
-      fabricConnectivityManager_->processConnectivityInfoForPort(
+      auto beforeConnectivity = getCurrentConnectivity(port);
+      auto delta = fabricConnectivityManager_->processConnectivityInfoForPort(
           port, endpoint);
+      auto afterConectivity = getCurrentConnectivity(port);
+      if (beforeConnectivity == afterConectivity) {
+        EXPECT_EQ(delta, std::nullopt);
+      } else {
+        FabricConnectivityDelta expected{beforeConnectivity, afterConectivity};
+
+        EXPECT_EQ(*delta, expected);
+      }
     }
     return fabricConnectivityManager_->getConnectivityInfo();
   }
