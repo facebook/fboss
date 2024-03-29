@@ -257,10 +257,30 @@ void DsfSubscriber::processGRHoldTimerExpired(
     const std::string& nodeName,
     const SwitchID& nodeSwitchId) {
   auto updateDsfStateFn =
-      [nodeName, nodeSwitchId](const std::shared_ptr<SwitchState>& in) {
+      [this, nodeName, nodeSwitchId](const std::shared_ptr<SwitchState>& in) {
         bool changed{false};
         auto out = in->clone();
 
+        auto remoteSystemPorts = out->getRemoteSystemPorts()->modify(&out);
+        for (auto& [_, remoteSystemPortMap] : *remoteSystemPorts) {
+          for (auto& [_, remoteSystemPort] : *remoteSystemPortMap) {
+            // GR timeout expired for nodeSwitchId.
+            // Mark all remote system ports synced over control plane (i.e.
+            // DYNAMIC) as STALE.
+            if (remoteSystemPort->getSwitchId() == nodeSwitchId &&
+                remoteSystemPort->getRemoteSystemPortType().has_value() &&
+                remoteSystemPort->getRemoteSystemPortType().value() ==
+                    RemoteSystemPortType::DYNAMIC_ENTRY) {
+              auto clonedNode = remoteSystemPort->isPublished()
+                  ? remoteSystemPort->clone()
+                  : remoteSystemPort;
+              clonedNode->setRemoteLivenessStatus(RemoteLivenessStatus::STALE);
+              remoteSystemPorts->updateNode(
+                  clonedNode, sw_->getScopeResolver()->scope(clonedNode));
+              changed = true;
+            }
+          }
+        }
         if (changed) {
           return out;
         }
