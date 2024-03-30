@@ -47,8 +47,9 @@ class SplitAgentThriftSyncer : public HwSwitchCallback {
           std::nullopt) override;
   void linkActiveStateChanged(
       const std::map<PortID, bool>& port2IsActive) override;
-  void linkConnectivityChanged(const std::map<PortID, FabricConnectivityDelta>&
-                               /*port2OldAndNewConnectivity*/) override {
+  void linkConnectivityChanged(
+      const std::map<PortID, multiswitch::FabricConnectivityDelta>&
+      /*port2OldAndNewConnectivity*/) override {
     // TODO
   }
   void l2LearningUpdateReceived(

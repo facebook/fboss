@@ -5,6 +5,7 @@
 #include "fboss/agent/L2Entry.h"
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/agent/if/gen-cpp2/multiswitch_ctrl_types.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/types.h"
@@ -17,14 +18,6 @@ struct HwInitResult {
   BootType bootType{BootType::UNINITIALIZED};
   float initializedTime{0.0};
   float bootTime{0.0};
-};
-
-struct FabricConnectivityDelta {
-  std::optional<FabricEndpoint> oldConnectivity, newConnectivity;
-  bool operator==(const FabricConnectivityDelta& rhs) const {
-    return std::tie(oldConnectivity, newConnectivity) ==
-        std::tie(rhs.oldConnectivity, rhs.newConnectivity);
-  }
 };
 
 class StateObserver;
@@ -56,7 +49,7 @@ class HwSwitchCallback {
       const std::map<PortID, bool>& port2IsActive) = 0;
 
   virtual void linkConnectivityChanged(
-      const std::map<PortID, FabricConnectivityDelta>&
+      const std::map<PortID, multiswitch::FabricConnectivityDelta>&
           port2OldAndNewConnectivity) = 0;
 
   /*

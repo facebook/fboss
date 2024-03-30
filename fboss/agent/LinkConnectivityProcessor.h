@@ -20,6 +20,7 @@ class LinkConnectivityProcessor {
  public:
   static std::shared_ptr<SwitchState> process(
       const std::shared_ptr<SwitchState>& in,
-      const std::map<PortID, FabricConnectivityDelta>& connectivityDelta);
+      const std::map<PortID, multiswitch::FabricConnectivityDelta>&
+          connectivityDelta);
 };
 } // namespace facebook::fboss

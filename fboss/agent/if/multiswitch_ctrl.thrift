@@ -25,6 +25,11 @@ struct LinkActiveEvent {
   1: map<i32, bool> port2IsActive;
 }
 
+struct FabricConnectivityDelta {
+  1: optional ctrl.FabricEndpoint oldConnectivity;
+  2: optional ctrl.FabricEndpoint newConnectivity;
+}
+
 struct FdbEvent {
   1: ctrl.L2EntryThrift entry;
   2: ctrl.L2EntryUpdateType updateType;

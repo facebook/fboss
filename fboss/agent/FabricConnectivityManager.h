@@ -30,7 +30,8 @@ class FabricConnectivityManager {
 
   void stateUpdated(const StateDelta& stateDelta);
   const std::map<PortID, FabricEndpoint>& getConnectivityInfo() const;
-  std::optional<FabricConnectivityDelta> processConnectivityInfoForPort(
+  std::optional<multiswitch::FabricConnectivityDelta>
+  processConnectivityInfoForPort(
       const PortID& portId,
       const FabricEndpoint& hwConnectivity);
   bool isConnectivityInfoMissing(const PortID& portId);

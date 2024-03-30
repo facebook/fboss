@@ -141,8 +141,9 @@ class AgentEnsemble : public TestEnsembleIf {
       const std::map<PortID, bool>& port2IsActive) override {
     getSw()->linkActiveStateChanged(port2IsActive);
   }
-  void linkConnectivityChanged(const std::map<PortID, FabricConnectivityDelta>&
-                                   port2OldAndNewConnectivity) override {
+  void linkConnectivityChanged(
+      const std::map<PortID, multiswitch::FabricConnectivityDelta>&
+          port2OldAndNewConnectivity) override {
     getSw()->linkConnectivityChanged(port2OldAndNewConnectivity);
   }
 

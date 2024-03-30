@@ -104,8 +104,13 @@ class FabricConnectivityManagerTest : public ::testing::Test {
       if (beforeConnectivity == afterConectivity) {
         EXPECT_EQ(delta, std::nullopt);
       } else {
-        FabricConnectivityDelta expected{beforeConnectivity, afterConectivity};
-
+        multiswitch::FabricConnectivityDelta expected;
+        if (beforeConnectivity.has_value()) {
+          expected.oldConnectivity() = *beforeConnectivity;
+        }
+        if (afterConectivity.has_value()) {
+          expected.newConnectivity() = *afterConectivity;
+        }
         EXPECT_EQ(*delta, expected);
       }
     }
@@ -433,8 +438,8 @@ TEST_F(FabricConnectivityManagerTest, validateConnectivityDelta) {
   auto delta1 = fabricConnectivityManager_->processConnectivityInfoForPort(
       PortID(kLocalPortId), endpoint);
   EXPECT_TRUE(delta1.has_value());
-  EXPECT_TRUE(delta1->oldConnectivity.has_value());
-  EXPECT_TRUE(delta1->newConnectivity.has_value());
+  EXPECT_TRUE(delta1->oldConnectivity().has_value());
+  EXPECT_TRUE(delta1->newConnectivity().has_value());
 
   auto delta2 = fabricConnectivityManager_->processConnectivityInfoForPort(
       PortID(kLocalPortId), endpoint);
@@ -446,9 +451,9 @@ TEST_F(FabricConnectivityManagerTest, validateConnectivityDelta) {
       PortID(kLocalPortId), endpoint);
 
   EXPECT_TRUE(delta3.has_value());
-  EXPECT_TRUE(delta3->oldConnectivity.has_value());
-  EXPECT_TRUE(delta3->newConnectivity.has_value());
-  EXPECT_EQ(*delta3->oldConnectivity, *delta1->newConnectivity);
+  EXPECT_TRUE(delta3->oldConnectivity().has_value());
+  EXPECT_TRUE(delta3->newConnectivity().has_value());
+  EXPECT_EQ(*delta3->oldConnectivity(), *delta1->newConnectivity());
   // Same connectivity info, should not expect any changes.
   auto delta4 = fabricConnectivityManager_->processConnectivityInfoForPort(
       PortID(kLocalPortId), endpoint);

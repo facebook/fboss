@@ -355,11 +355,11 @@ void FabricConnectivityManager::stateUpdated(const StateDelta& delta) {
   updateDsfNodes(delta);
 }
 
-std::optional<FabricConnectivityDelta>
+std::optional<multiswitch::FabricConnectivityDelta>
 FabricConnectivityManager::processConnectivityInfoForPort(
     const PortID& portId,
     const FabricEndpoint& hwEndpoint) {
-  std::optional<FabricConnectivityDelta> delta;
+  std::optional<multiswitch::FabricConnectivityDelta> delta;
   std::optional<FabricEndpoint> old;
   auto iter = currentNeighborConnectivity_.find(portId);
   if (iter != currentNeighborConnectivity_.end()) {
@@ -391,7 +391,11 @@ FabricConnectivityManager::processConnectivityInfoForPort(
     iter = currentNeighborConnectivity_.insert({portId, hwEndpoint}).first;
   }
   if (!old || (old != iter->second)) {
-    delta = FabricConnectivityDelta{old, iter->second};
+    delta = multiswitch::FabricConnectivityDelta();
+    if (old.has_value()) {
+      delta->oldConnectivity() = *old;
+    }
+    delta->newConnectivity() = iter->second;
   }
   return delta;
 }

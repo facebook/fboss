@@ -17,7 +17,8 @@ namespace facebook::fboss {
 
 std::shared_ptr<SwitchState> LinkConnectivityProcessor::process(
     const std::shared_ptr<SwitchState>& in,
-    const std::map<PortID, FabricConnectivityDelta>& port2ConnectivityDelta) {
+    const std::map<PortID, multiswitch::FabricConnectivityDelta>&
+        port2ConnectivityDelta) {
   auto out = in->clone();
   bool changed = false;
   auto setPortState = [&out, &changed](
@@ -32,7 +33,7 @@ std::shared_ptr<SwitchState> LinkConnectivityProcessor::process(
   };
   for (const auto& [portId, connectivityDelta] : port2ConnectivityDelta) {
     auto port = out->getPorts()->getNode(portId);
-    auto newConnectivity = connectivityDelta.newConnectivity;
+    auto newConnectivity = connectivityDelta.newConnectivity();
     if (newConnectivity.has_value() &&
         FabricConnectivityManager::isConnectivityInfoMismatch(
             *newConnectivity)) {

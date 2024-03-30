@@ -40,7 +40,7 @@ void SaiSwitch::updateStatsImpl() {
 
   int64_t missingCount = 0, mismatchCount = 0;
   auto portsIter = concurrentIndices_->portSaiId2PortInfo.begin();
-  std::map<PortID, FabricConnectivityDelta> connectivityDelta;
+  std::map<PortID, multiswitch::FabricConnectivityDelta> connectivityDelta;
   while (portsIter != concurrentIndices_->portSaiId2PortInfo.end()) {
     {
       std::lock_guard<std::mutex> locked(saiSwitchMutex_);

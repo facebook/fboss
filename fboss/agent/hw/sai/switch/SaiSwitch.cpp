@@ -2027,7 +2027,8 @@ void SaiSwitch::txReadyStatusChangeCallbackBottomHalf() {
 }
 
 void SaiSwitch::linkConnectivityChanged(
-    const std::map<PortID, FabricConnectivityDelta>& connectivityDelta) {
+    const std::map<PortID, multiswitch::FabricConnectivityDelta>&
+        connectivityDelta) {
   callback_->linkConnectivityChanged(connectivityDelta);
 }
 
