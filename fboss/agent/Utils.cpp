@@ -316,12 +316,23 @@ PortID getPortID(
     SystemPortID sysPortId,
     const std::shared_ptr<SwitchState>& state) {
   auto sysPort = state->getSystemPorts()->getNode(sysPortId);
-  auto voqSwitchId = sysPort->getSwitchId();
-  auto sysPortRange = state->getDsfNodes()
-                          ->getNodeIf(SwitchID(voqSwitchId))
-                          ->getSystemPortRange();
+  auto switchId = sysPort->getSwitchId();
+  auto switchIdToSwitchInfo = state->getSwitchSettings()
+                                  ->getSwitchSettings(HwSwitchMatcher(
+                                      std::unordered_set<SwitchID>({switchId})))
+                                  ->getSwitchIdToSwitchInfo();
+  auto switchInfo = switchIdToSwitchInfo.find(switchId);
+  if (switchInfo == switchIdToSwitchInfo.end()) {
+    throw FbossError(
+        "switchId: ", switchId, " not found in switchToSwitchInfo");
+  }
+  auto sysPortRange = switchInfo->second.systemPortRange();
   CHECK(sysPortRange.has_value());
-  return PortID(static_cast<int64_t>(sysPortId) - *sysPortRange->minimum());
+  auto portIdRange = switchInfo->second.portIdRange();
+  CHECK(portIdRange.has_value());
+  return PortID(
+      static_cast<int64_t>(sysPortId) - *sysPortRange->minimum() +
+      *portIdRange->minimum());
 }
 
 SystemPortID getSystemPortID(
