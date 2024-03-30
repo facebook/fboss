@@ -34,6 +34,12 @@ struct LinkConnectivityEvent {
   1: map<i32, FabricConnectivityDelta> port2ConnectivityDelta;
 }
 
+struct LinkChangeEvent {
+  1: optional LinkEvent linkStateEvent;
+  2: LinkActiveEvent linkActiveEvents;
+  3: LinkConnectivityEvent linkConnectivityEvents;
+}
+
 struct FdbEvent {
   1: ctrl.L2EntryThrift entry;
   2: ctrl.L2EntryUpdateType updateType;
