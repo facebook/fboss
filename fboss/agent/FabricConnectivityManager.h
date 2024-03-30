@@ -35,6 +35,7 @@ class FabricConnectivityManager {
       const FabricEndpoint& hwConnectivity);
   bool isConnectivityInfoMissing(const PortID& portId);
   bool isConnectivityInfoMismatch(const PortID& portId);
+  static bool isConnectivityInfoMismatch(const FabricEndpoint& endpoint);
 
   using RemoteEndpoints = std::set<RemoteEndpoint, CompareRemoteEndpoint>;
   using RemoteConnectionGroups = std::map<int, RemoteEndpoints>;
