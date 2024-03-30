@@ -306,4 +306,20 @@ uint64_t getAclInOutPackets(
   }
   return statValue;
 }
+
+uint64_t getAclInOutPackets(
+    const HwSwitch* hw,
+    const std::string& statName,
+    bool bytes) {
+  auto statStr = bytes ? statName + ".bytes" : statName + ".packets";
+  int64_t statValue = 0;
+  const_cast<HwSwitch*>(hw)->updateStats();
+  auto aclStats = hw->getAclStats();
+  auto entry = aclStats.statNameToCounterMap()->find(statStr);
+  if (entry != aclStats.statNameToCounterMap()->end()) {
+    statValue += entry->second;
+  }
+  return statValue;
+}
+
 } // namespace facebook::fboss::utility

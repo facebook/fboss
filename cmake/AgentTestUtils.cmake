@@ -9,6 +9,7 @@ add_library(acl_test_utils
 
 target_link_libraries(acl_test_utils
   fboss_error
+  hw_switch
   switch_config_cpp2
   switch_state_cpp2
 )

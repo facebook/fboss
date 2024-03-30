@@ -390,6 +390,7 @@ add_library(hw_queue_per_host_utils
 )
 
 target_link_libraries(hw_queue_per_host_utils
+  acl_test_utils
   queue_per_host_test_utils
   traffic_policy_utils
   fboss_types

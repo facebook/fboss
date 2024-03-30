@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/AclEntry.h"
@@ -18,6 +19,13 @@
 class SwSwitch;
 
 namespace facebook::fboss::utility {
+
+using AclStatGetFunc = std::function<int64_t(
+    std::shared_ptr<SwitchState>,
+    const std::string&,
+    const std::string&,
+    cfg::AclStage,
+    const std::optional<std::string>&)>;
 
 std::string kDefaultAclTable();
 
@@ -96,5 +104,22 @@ uint64_t getAclInOutPackets(
     const SwSwitch* sw,
     const std::string& statName,
     bool bytes = false);
+
+uint64_t getAclInOutPackets(
+    const HwSwitch* hw,
+    const std::string& statName,
+    bool bytes = false);
+
+template <typename SwitchT>
+AclStatGetFunc getAclStatGetFn(SwitchT* sw) {
+  return [sw](
+             std::shared_ptr<SwitchState> /*state*/,
+             const std::string& /*aclName*/,
+             const std::string& statName,
+             cfg::AclStage /*aclStage*/,
+             const std::optional<std::string>& /*aclTableName*/) {
+    return getAclInOutPackets(sw, statName);
+  };
+}
 
 } // namespace facebook::fboss::utility
