@@ -437,7 +437,7 @@ class Interface : public ThriftStructNode<Interface, state::InterfaceFields> {
     }
   }
 
-  std::optional<RemoteLivenessStatus> getRemoteLivenessStatus() const {
+  std::optional<LivenessStatus> getRemoteLivenessStatus() const {
     if (auto remoteIntfLivenessStatus =
             cref<switch_state_tags::remoteIntfLivenessStatus>()) {
       return remoteIntfLivenessStatus->cref();
@@ -446,7 +446,7 @@ class Interface : public ThriftStructNode<Interface, state::InterfaceFields> {
   }
 
   void setRemoteLivenessStatus(
-      const std::optional<RemoteLivenessStatus>& remoteIntfLivenessStatus =
+      const std::optional<LivenessStatus>& remoteIntfLivenessStatus =
           std::nullopt) {
     if (remoteIntfLivenessStatus) {
       set<switch_state_tags::remoteIntfLivenessStatus>(

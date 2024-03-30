@@ -194,9 +194,9 @@ class CmdShowSystemPort
             [](const auto& remoteSystemPortLivenessStatus) {
               if (remoteSystemPortLivenessStatus.has_value()) {
                 switch (remoteSystemPortLivenessStatus.value()) {
-                  case RemoteLivenessStatus::LIVE:
+                  case LivenessStatus::LIVE:
                     return "LIVE";
-                  case RemoteLivenessStatus::STALE:
+                  case LivenessStatus::STALE:
                     return "STALE";
                 }
               } else {

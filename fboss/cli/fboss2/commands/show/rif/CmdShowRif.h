@@ -64,9 +64,9 @@ class CmdShowRif : public CmdHandler<CmdShowRif, CmdShowRifTraits> {
         [](const auto& remoteIntfLivenessStatus) {
           if (remoteIntfLivenessStatus.has_value()) {
             switch (remoteIntfLivenessStatus.value()) {
-              case RemoteLivenessStatus::LIVE:
+              case LivenessStatus::LIVE:
                 return "LIVE";
-              case RemoteLivenessStatus::STALE:
+              case LivenessStatus::STALE:
                 return "STALE";
             }
           } else {

@@ -274,7 +274,7 @@ void DsfSubscriber::processGRHoldTimerExpired(
           auto clonedNode = remoteSystemPort->isPublished()
               ? remoteSystemPort->clone()
               : remoteSystemPort;
-          clonedNode->setRemoteLivenessStatus(RemoteLivenessStatus::STALE);
+          clonedNode->setRemoteLivenessStatus(LivenessStatus::STALE);
           remoteSystemPorts->updateNode(
               clonedNode, sw_->getScopeResolver()->scope(clonedNode));
           changed = true;
@@ -301,7 +301,7 @@ void DsfSubscriber::processGRHoldTimerExpired(
             auto clonedNode = remoteInterface->isPublished()
                 ? remoteInterface->clone()
                 : remoteInterface;
-            clonedNode->setRemoteLivenessStatus(RemoteLivenessStatus::STALE);
+            clonedNode->setRemoteLivenessStatus(LivenessStatus::STALE);
             clonedNode->setArpTable(state::NeighborEntries{});
             clonedNode->setNdpTable(state::NeighborEntries{});
 

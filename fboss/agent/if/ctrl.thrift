@@ -232,7 +232,7 @@ struct InterfaceDetail {
   6: list<IpPrefix> address;
   7: i32 mtu;
   8: optional common.RemoteInterfaceType remoteIntfType;
-  9: optional common.RemoteLivenessStatus remoteIntfLivenessStatus;
+  9: optional common.LivenessStatus remoteIntfLivenessStatus;
 }
 
 /*
@@ -409,7 +409,7 @@ struct SystemPortThrift {
   /*
    * Set only on Remote System Ports of VOQ switches.
    */
-  13: optional common.RemoteLivenessStatus remoteSystemPortLivenessStatus;
+  13: optional common.LivenessStatus remoteSystemPortLivenessStatus;
 }
 
 struct PortHardwareDetails {

@@ -123,7 +123,7 @@ enum RemoteSystemPortType {
   STATIC_ENTRY = 1,
 }
 
-enum RemoteLivenessStatus {
+enum LivenessStatus {
   /*
    * Remote System Ports or Remote Interfaces confirmed by DSF Control Plane.
    */

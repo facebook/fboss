@@ -116,7 +116,7 @@ class SystemPort
     }
   }
 
-  std::optional<RemoteLivenessStatus> getRemoteLivenessStatus() const {
+  std::optional<LivenessStatus> getRemoteLivenessStatus() const {
     if (auto remoteSystemPortLivenessStatus =
             cref<ctrl_if_tags::remoteSystemPortLivenessStatus>()) {
       return remoteSystemPortLivenessStatus->cref();
@@ -125,8 +125,8 @@ class SystemPort
   }
 
   void setRemoteLivenessStatus(
-      const std::optional<RemoteLivenessStatus>&
-          remoteSystemPortLivenessStatus = std::nullopt) {
+      const std::optional<LivenessStatus>& remoteSystemPortLivenessStatus =
+          std::nullopt) {
     if (remoteSystemPortLivenessStatus) {
       set<ctrl_if_tags::remoteSystemPortLivenessStatus>(
           remoteSystemPortLivenessStatus.value());
