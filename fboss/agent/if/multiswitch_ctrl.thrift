@@ -30,6 +30,10 @@ struct FabricConnectivityDelta {
   2: optional ctrl.FabricEndpoint newConnectivity;
 }
 
+struct LinkConnectivityEvent {
+  1: map<i32, FabricConnectivityDelta> port2ConnectivityDelta;
+}
+
 struct FdbEvent {
   1: ctrl.L2EntryThrift entry;
   2: ctrl.L2EntryUpdateType updateType;
