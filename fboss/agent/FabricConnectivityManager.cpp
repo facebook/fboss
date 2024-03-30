@@ -402,15 +402,9 @@ FabricConnectivityManager::processConnectivityInfoForPort(
 bool FabricConnectivityManager::isConnectivityInfoMismatch(
     const FabricEndpoint& endpoint) {
   if (!*endpoint.isAttached()) {
-    // endpoint not attached, points to cabling connectivity issues
-    // unless in cfg also we don't expect it to be present
-    if (!endpoint.expectedSwitchId().has_value() &&
-        !endpoint.expectedPortId().has_value()) {
-      // not attached, not expected to be attached ..thse are fabric ports
-      // which are down and only contribute to the noise.
-      return false;
-    }
-    return true;
+    // No connectivity seen - typically implies a DOWN port.
+    // Cannot conclude its a mismatch
+    return false;
   }
   if (endpoint.expectedSwitchId().has_value() &&
       (endpoint.switchId() != endpoint.expectedSwitchId().value())) {
@@ -458,9 +452,15 @@ bool FabricConnectivityManager::isConnectivityInfoMissing(
 
   const auto& endpoint = iter->second;
   if (!*endpoint.isAttached()) {
-    // absence of attached point implies issue with connectivity/cabling
-    // but can be tracked by mismatch check above
-    return false;
+    // endpoint not attached, points to cabling connectivity issues
+    // unless in cfg also we don't expect it to be present
+    if (!endpoint.expectedSwitchId().has_value() &&
+        !endpoint.expectedPortId().has_value()) {
+      // not attached, not expected to be attached ..thse are fabric ports
+      // which are down and only contribute to the noise.
+      return false;
+    }
+    return true;
   }
 
   // if any of these parameters are not populated, we have missing

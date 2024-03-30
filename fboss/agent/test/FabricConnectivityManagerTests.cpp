@@ -251,10 +251,10 @@ TEST_F(FabricConnectivityManagerTest, validateUnattachedEndpoint) {
     EXPECT_FALSE(*neighbor.isAttached());
   }
 
+  // unattached port implies connectivity missing
+  EXPECT_TRUE(fabricConnectivityManager_->isConnectivityInfoMissing(PortID(1)));
+  // unattached port does not imply connectivity mismatch
   EXPECT_FALSE(
-      fabricConnectivityManager_->isConnectivityInfoMissing(PortID(1)));
-  // unattached port implies connectivity issues
-  EXPECT_TRUE(
       fabricConnectivityManager_->isConnectivityInfoMismatch(PortID(1)));
 
   // another case for unattached endpoint is where its not having
