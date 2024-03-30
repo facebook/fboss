@@ -19,11 +19,15 @@ add_library(copp_test_utils
 
 target_link_libraries(copp_test_utils
   common_test_utils
-  switch_asics
-  packet_factory
   Folly::folly
+  hw_switch
+  load_balancer_test_utils
+  packet
+  packet_factory
   resourcelibutil
+  switch_asics
   switch_config_cpp2
+  test_ensemble_if
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
 )

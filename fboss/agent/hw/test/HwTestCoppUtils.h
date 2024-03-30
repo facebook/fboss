@@ -42,18 +42,6 @@ std::pair<uint64_t, uint64_t> getCpuQueueOutDiscardPacketsAndBytes(
 HwPortStats getCpuQueueStats(HwSwitch* hwSwitch);
 HwPortStats getCpuQueueWatermarkStats(HwSwitch* hwSwitch);
 
-std::unique_ptr<facebook::fboss::TxPacket> createUdpPkt(
-    const HwSwitch* hwSwitch,
-    std::optional<VlanID> vlanId,
-    folly::MacAddress srcMac,
-    folly::MacAddress dstMac,
-    const folly::IPAddress& srcIpAddress,
-    const folly::IPAddress& dstIpAddress,
-    int l4SrcPort,
-    int l4DstPort,
-    uint8_t ttl,
-    std::optional<uint8_t> dscp);
-
 uint64_t getQueueOutPacketsWithRetry(
     HwSwitch* hwSwitch,
     int queueId,

@@ -32,32 +32,6 @@ const auto kNetworkControlDscp = 48;
 
 namespace facebook::fboss::utility {
 
-std::unique_ptr<facebook::fboss::TxPacket> createUdpPkt(
-    const HwSwitch* hwSwitch,
-    std::optional<VlanID> vlanId,
-    folly::MacAddress srcMac,
-    folly::MacAddress dstMac,
-    const folly::IPAddress& srcIpAddress,
-    const folly::IPAddress& dstIpAddress,
-    int l4SrcPort,
-    int l4DstPort,
-    uint8_t ttl,
-    std::optional<uint8_t> dscp) {
-  auto txPacket = utility::makeUDPTxPacket(
-      hwSwitch,
-      vlanId,
-      srcMac,
-      dstMac,
-      srcIpAddress,
-      dstIpAddress,
-      l4SrcPort,
-      l4DstPort,
-      (dscp.has_value() ? dscp.value() : 48) << 2,
-      ttl);
-
-  return txPacket;
-}
-
 uint64_t getQueueOutPacketsWithRetry(
     HwSwitch* hwSwitch,
     int queueId,
