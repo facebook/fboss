@@ -16,10 +16,13 @@
 #include "fboss/agent/hw/test/HwTestAclUtils.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestUtils.h"
+#include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
+#include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/agent/test/utils/QueuePerHostTestUtils.h"
-#include "fboss/agent/test/utils/TrafficPolicyTestUtils.h"
+
+#include "fboss/lib/CommonUtils.h"
 
 #include <folly/logging/xlog.h>
 
@@ -27,12 +30,38 @@
 
 namespace facebook::fboss::utility {
 
+using UpdateStatFunc = std::function<void()>;
+using GetPortStatsFunc =
+    std::function<std::map<PortID, HwPortStats>(const std::vector<PortID>&)>;
+using SendPacketFunc = std::function<void(
+    std::unique_ptr<TxPacket>,
+    std::vector<PortID>,
+    GetPortStatsFunc,
+    bool)>;
+
+SendPacketFunc getSendPacketFunc(HwSwitch* hwSwitch) {
+  return [hwSwitch](
+             std::unique_ptr<TxPacket> pkt,
+             std::vector<PortID> portIds,
+             GetPortStatsFunc portStatsFn,
+             bool useFrontPanel) {
+    if (useFrontPanel) {
+      return utility::ensureSendPacketOutOfPort(
+          hwSwitch, std::move(pkt), PortID(portIds[1]), portIds, portStatsFn);
+    } else {
+      return utility::ensureSendPacketSwitched(
+          hwSwitch, std::move(pkt), portIds, portStatsFn);
+    }
+  };
+}
+
 namespace {
 
-template <typename Hw>
 void verifyQueuePerHostMappingImpl(
-    Hw* hwOrEnsemble,
+    AllocatePktFunc allocatePktFn,
+    SendPacketFunc sendPktFn,
     AclStatGetFunc getAclStatFn,
+    UpdateStatFunc updateStatFn,
     std::shared_ptr<SwitchState> swState,
     const std::vector<PortID>& portIds,
     std::optional<VlanID> vlanId,
@@ -42,17 +71,10 @@ void verifyQueuePerHostMappingImpl(
     const folly::IPAddress& dstIp,
     bool useFrontPanel,
     bool blockNeighbor,
-    std::function<std::map<PortID, HwPortStats>(const std::vector<PortID>&)>
-        getHwPortStatsFn,
+    GetPortStatsFunc getHwPortStatsFn,
     std::optional<uint16_t> l4SrcPort,
     std::optional<uint16_t> l4DstPort,
     std::optional<uint8_t> dscp) {
-  HwSwitch* hwSwitch;
-  if constexpr (std::is_same_v<Hw, HwSwitchEnsemble>) {
-    hwSwitch = hwOrEnsemble->getHwSwitch();
-  } else {
-    hwSwitch = hwOrEnsemble;
-  }
   auto ttlAclName = utility::getQueuePerHostTtlAclName();
   auto ttlCounterName = utility::getQueuePerHostTtlCounterName();
 
@@ -70,8 +92,8 @@ void verifyQueuePerHostMappingImpl(
         hwPortStatsMap[portIds[0]].get_queueOutPackets_().at(queueId);
   }
 
-  auto txPacket = utility::createUdpPkt(
-      hwSwitch,
+  auto txPacket = utility::makeUDPTxPacket(
+      allocatePktFn,
       vlanId,
       srcMac,
       dstMac,
@@ -79,39 +101,23 @@ void verifyQueuePerHostMappingImpl(
       dstIp,
       l4SrcPort.has_value() ? l4SrcPort.value() : 8000,
       l4DstPort.has_value() ? l4DstPort.value() : 8001,
-      64 /* ttl < 128 */,
-      dscp);
-  auto txPacket2 = createUdpPkt(
-      hwSwitch,
-      vlanId,
-      srcMac,
-      dstMac,
-      srcIp,
-      dstIp,
-      l4SrcPort.has_value() ? l4SrcPort.value() : 8000,
-      l4DstPort.has_value() ? l4DstPort.value() : 8001,
-      128 /* ttl >= 128 */,
-      dscp);
+      (dscp.has_value() ? dscp.value() : 48) << 2,
+      64 /* ttl < 128 */);
 
-  if (useFrontPanel) {
-    utility::ensureSendPacketOutOfPort(
-        hwOrEnsemble,
-        std::move(txPacket),
-        PortID(portIds[1]),
-        portIds,
-        getHwPortStatsFn);
-    utility::ensureSendPacketOutOfPort(
-        hwOrEnsemble,
-        std::move(txPacket2),
-        PortID(portIds[1]),
-        portIds,
-        getHwPortStatsFn);
-  } else {
-    utility::ensureSendPacketSwitched(
-        hwOrEnsemble, std::move(txPacket), portIds, getHwPortStatsFn);
-    utility::ensureSendPacketSwitched(
-        hwOrEnsemble, std::move(txPacket2), portIds, getHwPortStatsFn);
-  }
+  auto txPacket2 = utility::makeUDPTxPacket(
+      allocatePktFn,
+      vlanId,
+      srcMac,
+      dstMac,
+      srcIp,
+      dstIp,
+      l4SrcPort.has_value() ? l4SrcPort.value() : 8000,
+      l4DstPort.has_value() ? l4DstPort.value() : 8001,
+      (dscp.has_value() ? dscp.value() : 48) << 2,
+      128 /* ttl >= 128 */);
+
+  sendPktFn(std::move(txPacket), portIds, getHwPortStatsFn, useFrontPanel);
+  sendPktFn(std::move(txPacket2), portIds, getHwPortStatsFn, useFrontPanel);
 
   WITH_RETRIES({
     std::map<int, int64_t> afterQueueOutPkts;
@@ -176,7 +182,7 @@ void verifyQueuePerHostMappingImpl(
        */
       return statAfter - statBefore == 1;
     };
-    hwSwitch->updateStats();
+    updateStatFn();
     EXPECT_EVENTUALLY_TRUE(aclStatsMatch());
   });
 }
@@ -199,8 +205,10 @@ void verifyQueuePerHostMapping(
     std::optional<uint16_t> l4DstPort,
     std::optional<uint8_t> dscp) {
   verifyQueuePerHostMappingImpl(
-      ensemble,
+      utility::getAllocatePktFn(ensemble),
+      getSendPacketFunc(ensemble->getHwSwitch()),
       getAclStatGetFn(ensemble->getHwSwitch()),
+      [ensemble]() { ensemble->getHwSwitch()->updateStats(); },
       std::move(swState),
       portIds,
       vlanId,
@@ -233,8 +241,10 @@ void verifyQueuePerHostMapping(
     std::optional<uint16_t> l4DstPort,
     std::optional<uint8_t> dscp) {
   verifyQueuePerHostMappingImpl(
-      hwSwitch,
+      [hwSwitch](uint32_t size) { return hwSwitch->allocatePacket(size); },
+      getSendPacketFunc(hwSwitch),
       getAclStatGetFn(hwSwitch),
+      [hwSwitch]() { hwSwitch->updateStats(); },
       std::move(swState),
       portIds,
       vlanId,
