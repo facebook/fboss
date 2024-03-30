@@ -19,6 +19,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/FibHelpers.h"
+#include "fboss/agent/LinkConnectivityProcessor.h"
 #include "fboss/agent/Utils.h"
 
 #include "fboss/agent/HwAsicTable.h"
@@ -887,6 +888,14 @@ void SwSwitch::updatePortInfo() {
       fb303::fbData->setExportedValue(idKey, port.second->getName());
     }
   }
+}
+
+void SwSwitch::linkConnectivityChanged(
+    const std::map<PortID, FabricConnectivityDelta>& connectivityDelta) {
+  auto updateFn = [=](const shared_ptr<SwitchState>& state) {
+    return LinkConnectivityProcessor::process(state, connectivityDelta);
+  };
+  updateState("update fabric connectivity info", updateFn);
 }
 
 void SwSwitch::updateFabricConnectivityInfo() {

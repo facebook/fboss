@@ -548,9 +548,7 @@ class SwSwitch : public HwSwitchCallback {
   void linkActiveStateChanged(
       const std::map<PortID, bool>& port2IsActive) override;
   void linkConnectivityChanged(const std::map<PortID, FabricConnectivityDelta>&
-                               /*port2OldAndNewConnectivity*/) override {
-    // TODO
-  }
+                                   port2OldAndNewConnectivity) override;
   void pfcWatchdogStateChanged(
       const PortID& portId,
       const bool deadlockDetected) override;
