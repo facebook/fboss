@@ -10,13 +10,37 @@
 
 #include "fboss/agent/LinkConnectivityProcessor.h"
 #include <memory>
+#include "fboss/agent/FabricConnectivityManager.h"
 #include "fboss/agent/state/SwitchState.h"
 
 namespace facebook::fboss {
 
 std::shared_ptr<SwitchState> LinkConnectivityProcessor::process(
     const std::shared_ptr<SwitchState>& in,
-    const std::map<PortID, FabricConnectivityDelta>& connectivityDelta) {
-  return std::shared_ptr<SwitchState>();
+    const std::map<PortID, FabricConnectivityDelta>& port2ConnectivityDelta) {
+  auto out = in->clone();
+  bool changed = false;
+  auto setPortState = [&out, &changed](
+                          PortID portId, PortLedExternalState desiredLedState) {
+    auto curPort = out->getPorts()->getNode(portId);
+    if (curPort->getLedPortExternalState() == desiredLedState) {
+      return;
+    }
+    auto newPort = curPort->modify(&out);
+    newPort->setLedPortExternalState(desiredLedState);
+    changed = true;
+  };
+  for (const auto& [portId, connectivityDelta] : port2ConnectivityDelta) {
+    auto port = out->getPorts()->getNode(portId);
+    auto newConnectivity = connectivityDelta.newConnectivity;
+    if (newConnectivity.has_value() &&
+        FabricConnectivityManager::isConnectivityInfoMismatch(
+            *newConnectivity)) {
+      setPortState(portId, PortLedExternalState::CABLING_ERROR);
+    } else {
+      setPortState(portId, PortLedExternalState::NONE);
+    }
+  }
+  return changed ? out : std::shared_ptr<SwitchState>();
 }
 } // namespace facebook::fboss
