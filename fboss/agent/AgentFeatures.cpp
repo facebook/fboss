@@ -23,10 +23,20 @@ DEFINE_bool(
 
 DEFINE_bool(hide_fabric_ports, false, "Elide ports of type fabric");
 
+// DSF Subscriber flags
 DEFINE_bool(
     dsf_subscribe,
     true,
     "Issue DSF subscriptions to all DSF Interface nodes");
+DEFINE_bool(dsf_subscriber_skip_hw_writes, false, "Skip writing to HW");
+DEFINE_bool(
+    dsf_subscriber_cache_updated_state,
+    false,
+    "Cache switch state after update by dsf subsriber");
+DEFINE_uint32(
+    dsf_gr_hold_time,
+    0,
+    "GR hold time for FSDB DsfSubscription in sec");
 
 DEFINE_bool(
     classid_for_connected_subnet_routes,
