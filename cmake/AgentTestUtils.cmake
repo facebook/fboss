@@ -136,9 +136,15 @@ add_library(queue_per_host_test_utils
 target_link_libraries(queue_per_host_test_utils
   common_test_utils
   acl_test_utils
+  common_utils
   config_utils
+  config_factory
   copp_test_utils
   traffic_policy_utils
+  load_balancer_test_utils
+  hw_switch
+  packet
+  packet_factory
   ecmp_helper
   fboss_types
   switch_asics
