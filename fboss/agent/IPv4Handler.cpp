@@ -146,6 +146,18 @@ void IPv4Handler::handlePacket(
              << " --> " << v4Hdr.dstAddr.str() << " proto: 0x" << std::hex
              << static_cast<int>(v4Hdr.protocol);
 
+  auto payloadLength = pkt->getLength() - (cursor - Cursor(pkt->buf()));
+  if (v4Hdr.length - v4Hdr.size() > payloadLength) {
+    sw_->portStats(pkt->getSrcPort())->pktBogus();
+    XLOG(DBG3) << "Discarding pkt with invalid length field. length: "
+               << " (" << v4Hdr.length - v4Hdr.size() << ")"
+               << " payload length: "
+               << " (" << payloadLength << ")"
+               << " src: " << v4Hdr.srcAddr.str() << " (" << src << ")"
+               << " dst: " << v4Hdr.dstAddr.str() << " (" << dst << ")";
+    return;
+  }
+
   // Additional data (such as FCS) may be appended after the IP payload
   auto payload =
       folly::IOBuf::wrapBuffer(cursor.data(), v4Hdr.length - v4Hdr.size());
