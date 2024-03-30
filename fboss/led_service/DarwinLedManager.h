@@ -26,7 +26,7 @@ class DarwinLedManager : public LedManager {
   DarwinLedManager();
   virtual ~DarwinLedManager() override {}
 
-  led::LedColor onColor() const override {
+  led::LedColor forcedOnColor() const override {
     return led::LedColor::GREEN;
   }
 

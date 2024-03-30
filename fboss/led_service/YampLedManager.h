@@ -26,7 +26,7 @@ class YampLedManager : public LedManager {
   YampLedManager();
   virtual ~YampLedManager() override {}
 
-  led::LedColor onColor() const override {
+  led::LedColor forcedOnColor() const override {
     return led::LedColor::GREEN;
   }
 

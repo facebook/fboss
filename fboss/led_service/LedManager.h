@@ -78,7 +78,8 @@ class LedManager {
 
   led::LedColor getCurrentLedColor(int32_t portNum) const;
 
-  virtual led::LedColor onColor() const {
+  // Derived platforms can set the forcedforcedOnColor
+  virtual led::LedColor forcedOnColor() const {
     return led::LedColor::BLUE;
   }
 

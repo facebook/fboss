@@ -103,7 +103,7 @@ TEST_F(LedServiceTest, checkLedColorChange) {
     ledManager->setExternalLedState(
         swPort, PortLedExternalState::EXTERNAL_FORCE_ON);
     auto onLedColorCurrent = ledManager->getCurrentLedColor(swPort);
-    auto onLedColorExpected = ledManager->onColor();
+    auto onLedColorExpected = ledManager->forcedOnColor();
     ledState = ledManager->getLedState(swPortName.value());
     EXPECT_EQ(onLedColorCurrent, onLedColorExpected);
     EXPECT_EQ(ledState.currentLedColor().value(), onLedColorExpected);

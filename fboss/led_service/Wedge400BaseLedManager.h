@@ -35,6 +35,10 @@ class Wedge400BaseLedManager : public LedManager {
       uint32_t portId,
       cfg::PortProfileID portProfile) const override;
 
+  led::LedColor forcedOnColor() const override {
+    return led::LedColor::WHITE;
+  }
+
   virtual void setLedColor(
       uint32_t portId,
       cfg::PortProfileID portProfile,

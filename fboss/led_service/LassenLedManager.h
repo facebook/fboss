@@ -26,7 +26,7 @@ class LassenLedManager : public LedManager {
   LassenLedManager();
   virtual ~LassenLedManager() override {}
 
-  led::LedColor onColor() const override {
+  led::LedColor forcedOnColor() const override {
     return led::LedColor::GREEN;
   }
 
