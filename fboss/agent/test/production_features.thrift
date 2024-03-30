@@ -28,6 +28,11 @@ enum ProductionFeature {
   VOQ_DNX_INTERRUPTS = 15,
   SINGLE_ACL_TABLE = 16,
   MULTI_ACL_TABLE = 17,
+  BTH_OPCODE_ACL = 18,
+  DLB = 19,
+  ECN = 20,
+  WRED = 21,
+  QUEUE_PER_HOST = 22,
 }
 
 struct AsicToProductionFeatures {
