@@ -9,7 +9,6 @@
  */
 
 #include "fboss/agent/hw/sai/hw_test/SaiRollbackTest.h"
-#include "fboss/agent/hw/test/dataplane_tests/HwTestQueuePerHostUtils.h"
 #include "fboss/agent/test/utils/QueuePerHostTestUtils.h"
 
 namespace facebook::fboss {

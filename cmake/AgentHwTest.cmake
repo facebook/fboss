@@ -289,7 +289,6 @@ set(hw_switch_test_srcs
   fboss/agent/hw/test/dataplane_tests/Hw2QueueToOlympicQoSTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwTestAqmUtils.cpp
   fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.cpp
-  fboss/agent/hw/test/dataplane_tests/HwTestQueuePerHostUtils.cpp
   fboss/agent/hw/test/dataplane_tests/HwTestPfcUtils.cpp
   fboss/agent/hw/test/dataplane_tests/HwTestUtils.cpp
   fboss/agent/hw/test/dataplane_tests/HwTrunkLoadBalancerTests.cpp
@@ -377,28 +376,9 @@ target_link_libraries(prod_config_factory
   hw_copp_utils
   dscp_marking_utils
   olympic_qos_utils
-  hw_queue_per_host_utils
+  queue_per_host_test_utils
   load_balancer_utils
   hw_pfc_utils
-  ${GTEST}
-  ${LIBGMOCK_LIBRARIES}
-)
-
-add_library(hw_queue_per_host_utils
-  fboss/agent/hw/test/HwTestAclUtils.cpp
-  fboss/agent/hw/test/dataplane_tests/HwTestQueuePerHostUtils.cpp
-)
-
-target_link_libraries(hw_queue_per_host_utils
-  acl_test_utils
-  common_utils
-  load_balancer_test_utils
-  packet_factory
-  queue_per_host_test_utils
-  traffic_policy_utils
-  fboss_types
-  hw_switch
-  switch_config_cpp2
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
 )

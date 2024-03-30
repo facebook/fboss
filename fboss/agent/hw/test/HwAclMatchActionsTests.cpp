@@ -12,8 +12,8 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTest.h"
 #include "fboss/agent/hw/test/HwTestAclUtils.h"
-#include "fboss/agent/hw/test/dataplane_tests/HwTestQueuePerHostUtils.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/test/utils/QueuePerHostTestUtils.h"
 #include "fboss/agent/test/utils/TrafficPolicyTestUtils.h"
 
 #include <string>
