@@ -400,4 +400,54 @@ TEST_F(FabricConnectivityManagerTest, validateMissingNeighborInfo) {
   EXPECT_TRUE(fabricConnectivityManager_->isConnectivityInfoMissing(PortID(1)));
 }
 
+TEST_F(FabricConnectivityManagerTest, validateConnectivityDelta) {
+  auto oldState = std::make_shared<SwitchState>();
+  auto newState = std::make_shared<SwitchState>();
+  constexpr auto kRemotePortId = 79;
+  constexpr auto kLocalPortId = 1;
+
+  // create port with neighbor connectivity
+  std::shared_ptr<Port> swPort = makePort(kLocalPortId);
+  swPort->setExpectedNeighborReachability(
+      createPortNeighbor("fab1/2/4", "fdswA"));
+  newState->getPorts()->addNode(swPort, getScope(swPort));
+
+  auto dsfNode10 = makeDsfNode(10, "fdswA", cfg::AsicType::ASIC_TYPE_RAMON);
+  auto dsfNode11 = makeDsfNode(11, "fdswB", cfg::AsicType::ASIC_TYPE_RAMON);
+  auto dsfNodeMap = std::make_shared<MultiSwitchDsfNodeMap>();
+  dsfNodeMap->addNode(dsfNode10, getScope(dsfNode10));
+  dsfNodeMap->addNode(dsfNode11, getScope(dsfNode11));
+  newState->resetDsfNodes(dsfNodeMap);
+  fabricConnectivityManager_->stateUpdated(StateDelta(oldState, newState));
+
+  FabricEndpoint endpoint;
+  endpoint.portId() = kRemotePortId; // known from platforom mapping for ramon
+  endpoint.switchId() = 10;
+  endpoint.isAttached() = true;
+  // Update connectivity before processing port. Old connectivity should
+  // be null and new connectivity should get updated
+  auto delta1 = fabricConnectivityManager_->processConnectivityInfoForPort(
+      PortID(kLocalPortId), endpoint);
+  EXPECT_TRUE(delta1.has_value());
+  EXPECT_TRUE(delta1->oldConnectivity.has_value());
+  EXPECT_TRUE(delta1->newConnectivity.has_value());
+
+  auto delta2 = fabricConnectivityManager_->processConnectivityInfoForPort(
+      PortID(kLocalPortId), endpoint);
+  // Same connectivity info, should not expect any changes.
+  EXPECT_FALSE(delta2.has_value());
+  // Update switch id
+  endpoint.switchId() = 11;
+  auto delta3 = fabricConnectivityManager_->processConnectivityInfoForPort(
+      PortID(kLocalPortId), endpoint);
+
+  EXPECT_TRUE(delta3.has_value());
+  EXPECT_TRUE(delta3->oldConnectivity.has_value());
+  EXPECT_TRUE(delta3->newConnectivity.has_value());
+  EXPECT_EQ(*delta3->oldConnectivity, *delta1->newConnectivity);
+  // Same connectivity info, should not expect any changes.
+  auto delta4 = fabricConnectivityManager_->processConnectivityInfoForPort(
+      PortID(kLocalPortId), endpoint);
+  EXPECT_FALSE(delta4.has_value());
+}
 } // namespace facebook::fboss
