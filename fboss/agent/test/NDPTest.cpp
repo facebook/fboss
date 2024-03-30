@@ -631,8 +631,8 @@ TYPED_TEST(NdpTest, TriggerSolicitation) {
       "86 dd"
       // Version 6, traffic class, flow label
       "6e 00 00 00"
-      // Payload length: 24
-      "00 18"
+      // Payload length: 8
+      "00 08"
       // Next Header: 17 (UDP), Hop Limit (255)
       "11 ff"
       // src addr (2401:db00:2110:1234::1:0)
@@ -685,8 +685,8 @@ TYPED_TEST(NdpTest, TriggerSolicitation) {
       "86 dd"
       // Version 6, traffic class, flow label
       "6e 00 00 00"
-      // Payload length: 24
-      "00 18"
+      // Payload length: 8
+      "00 08"
       // Next Header: 17 (UDP), Hop Limit (255)
       "11 ff"
       // src addr (2401:db00:2110:1234::1:0)
@@ -1128,8 +1128,8 @@ TYPED_TEST(NdpTest, PendingNdp) {
       "86 dd"
       // Version 6, traffic class, flow label
       "6e 00 00 00"
-      // Payload length: 24
-      "00 18"
+      // Payload length: 8
+      "00 08"
       // Next Header: 17 (UDP), Hop Limit (255)
       "11 ff"
       // src addr (2401:db00:2110:1234::1:0)
@@ -1236,8 +1236,8 @@ TYPED_TEST(NdpTest, PendingNdpCleanup) {
       "86 dd"
       // Version 6, traffic class, flow label
       "6e 00 00 00"
-      // Payload length: 24
-      "00 18"
+      // Payload length: 8
+      "00 08"
       // Next Header: 17 (UDP), Hop Limit (255)
       "11 ff"
       // src addr (2401:db00:2110:1234::1:0)
@@ -1296,8 +1296,8 @@ TYPED_TEST(NdpTest, PendingNdpCleanup) {
       "86 dd"
       // Version 6, traffic class, flow label
       "6e 00 00 00"
-      // Payload length: 24
-      "00 18"
+      // Payload length: 8
+      "00 08"
       // Next Header: 17 (UDP), Hop Limit (255)
       "11 ff"
       // src addr (2401:db00:2110:1234::1:0)
@@ -1423,8 +1423,8 @@ TYPED_TEST(NdpTest, NdpExpiration) {
       "86 dd"
       // Version 6, traffic class, flow label
       "6e 00 00 00"
-      // Payload length: 24
-      "00 18"
+      // Payload length: 8
+      "00 08"
       // Next Header: 17 (UDP), Hop Limit (255)
       "11 ff"
       // src addr (2401:db00:2110:1234::1:0)
@@ -1481,8 +1481,8 @@ TYPED_TEST(NdpTest, NdpExpiration) {
       "86 dd"
       // Version 6, traffic class, flow label
       "6e 00 00 00"
-      // Payload length: 24
-      "00 18"
+      // Payload length: 8
+      "00 08"
       // Next Header: 17 (UDP), Hop Limit (255)
       "11 ff"
       // src addr (2401:db00:2110:1234::1:0)
@@ -1779,8 +1779,8 @@ TYPED_TEST(NdpTest, PortFlapRecover) {
       "86 dd"
       // Version 6, traffic class, flow label
       "6e 00 00 00"
-      // Payload length: 24
-      "00 18"
+      // Payload length: 8
+      "00 08"
       // Next Header: 17 (UDP), Hop Limit (255)
       "11 ff"
       // src addr (2401:db00:2110:1234::1:0)
@@ -1838,8 +1838,8 @@ TYPED_TEST(NdpTest, PortFlapRecover) {
       "86 dd"
       // Version 6, traffic class, flow label
       "6e 00 00 00"
-      // Payload length: 24
-      "00 18"
+      // Payload length: 8
+      "00 08"
       // Next Header: 17 (UDP), Hop Limit (255)
       "11 ff"
       // src addr (2401:db00:2110:1234::1:0)

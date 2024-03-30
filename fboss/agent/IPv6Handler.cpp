@@ -156,6 +156,18 @@ void IPv6Handler::handlePacket(
              << " dst: " << ipv6.dstAddr.str() << " (" << dst << ")"
              << " nextHeader: " << static_cast<int>(ipv6.nextHeader);
 
+  auto payloadLength = pkt->getLength() - (cursor - Cursor(pkt->buf()));
+  if (ipv6.payloadLength > payloadLength) {
+    sw_->portStats(pkt->getSrcPort())->pktBogus();
+    XLOG(DBG3) << "Discarding pkt with invalid length field. length: "
+               << " (" << ipv6.payloadLength << ")"
+               << "payload length: "
+               << " (" << payloadLength << ")"
+               << " src: " << ipv6.srcAddr.str() << " (" << src << ")"
+               << " dst: " << ipv6.dstAddr.str() << " (" << dst << ")";
+    return;
+  }
+
   // Additional data (such as FCS) may be appended after the IP payload
   auto payload = folly::IOBuf::wrapBuffer(cursor.data(), ipv6.payloadLength);
   cursor.reset(payload.get());
