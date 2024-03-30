@@ -196,14 +196,8 @@ SwSwitch::StateUpdateFn NeighborCacheImpl<NTable>::getUpdateFnToProgramEntry(
         fields.encapIndex =
             EncapIndexAllocator::getNextAvailableEncapIdx(state, *asic);
       }
-
-      auto systemPortRange = sw_->getState()->getAssociatedSystemPortRangeIf(
-          fields.port.phyPortID());
-      CHECK(systemPortRange.has_value());
-      systemPortID = *systemPortRange->minimum() + fields.port.phyPortID();
-
-      // interfaceID is same as the systemPortID
-      interfaceID = InterfaceID(systemPortID.value());
+      interfaceID =
+          sw_->getState()->getInterfaceIDForPort(fields.port.phyPortID());
     } else {
       interfaceID = intfID_;
     }
@@ -376,11 +370,6 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramPendingEntry(
     std::optional<int64_t> encapIndex;
 
     if (switchType == cfg::SwitchType::VOQ) {
-      auto systemPortRange =
-          sw_->getState()->getAssociatedSystemPortRangeIf(port.phyPortID());
-      CHECK(systemPortRange.has_value());
-      systemPortID = *systemPortRange->minimum() + port.phyPortID();
-
       auto switchIds =
           sw_->getScopeResolver()->scope(fields.port.phyPortID()).switchIds();
       CHECK_EQ(switchIds.size(), 1);
@@ -390,8 +379,7 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramPendingEntry(
             EncapIndexAllocator::getNextAvailableEncapIdx(state, *asic);
       }
 
-      // interfaceID is same as the systemPortID
-      interfaceID = InterfaceID(systemPortID);
+      interfaceID = sw_->getState()->getInterfaceIDForPort(port.phyPortID());
     } else {
       interfaceID = intfID_;
     }
