@@ -263,17 +263,21 @@ TEST_F(FabricConnectivityManagerTest, validateUnattachedEndpoint) {
   auto newState2 = std::make_shared<SwitchState>();
   std::shared_ptr<Port> swPort2 = makePort(2);
   newState->getPorts()->addNode(swPort2, getScope(swPort2));
-  FabricEndpoint endpoint2;
-  // dont set anything in the endpoint
-  endpoint2.isAttached() = false;
-  hwConnectivityMap.emplace(swPort2->getID(), endpoint2);
 
   // update
   StateDelta delta2(newState, newState2);
   fabricConnectivityManager_->stateUpdated(delta2);
 
+  // No connectivity expected nor available - neither mismatch nor missing
   EXPECT_FALSE(
       fabricConnectivityManager_->isConnectivityInfoMismatch(PortID(2)));
+  EXPECT_FALSE(
+      fabricConnectivityManager_->isConnectivityInfoMissing(PortID(2)));
+  // Non existent port - neither mismatch nor missing
+  EXPECT_FALSE(
+      fabricConnectivityManager_->isConnectivityInfoMismatch(PortID(42)));
+  EXPECT_FALSE(
+      fabricConnectivityManager_->isConnectivityInfoMissing(PortID(42)));
 }
 
 TEST_F(FabricConnectivityManagerTest, validateUnexpectedNeighbors) {

@@ -445,9 +445,10 @@ bool FabricConnectivityManager::isConnectivityInfoMissing(
     const PortID& portId) {
   const auto& iter = currentNeighborConnectivity_.find(portId);
   if (iter == currentNeighborConnectivity_.end()) {
-    // specific port is missing from the reachability DB
-    // treat it like mimssing info
-    return true;
+    // specific port is missing from the reachability DB and
+    // also switch state (else we would have added it during addPort).
+    // So no connectivity is expected here
+    return false;
   }
 
   const auto& endpoint = iter->second;
