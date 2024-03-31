@@ -217,3 +217,15 @@ target_link_libraries(ecmp_dataplane_test_util
   fboss_types
   route_update_wrapper
 )
+
+add_library(port_stats_test_utils
+  fboss/agent/test/utils/PortStatsTestUtils.cpp
+)
+
+target_link_libraries(port_stats_test_utils
+  fboss_types
+  stats
+  Folly::folly
+  switch_config_cpp2
+  FBThrift::thriftcpp2
+)
