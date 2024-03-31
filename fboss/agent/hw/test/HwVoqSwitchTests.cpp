@@ -18,7 +18,6 @@
 #include "fboss/agent/hw/test/HwTestPacketSnooper.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/HwTestPortUtils.h"
-#include "fboss/agent/hw/test/HwTestStatUtils.h"
 #include "fboss/agent/hw/test/HwVoqUtils.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/state/Interface.h"

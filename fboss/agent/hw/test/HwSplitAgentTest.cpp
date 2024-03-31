@@ -115,11 +115,11 @@ TEST_F(HwSplitAgentCallbackTest, txPacket) {
   txPacket.data() = Packet::extractIOBuf(std::move(pkt));
 
   auto statBefore =
-      getPortOutPkts(getLatestPortStats(masterLogicalPortIds()[0]));
+      utility::getPortOutPkts(getLatestPortStats(masterLogicalPortIds()[0]));
   getHwSwitchEnsemble()->enqueueTxPacket(std::move(txPacket));
   WITH_RETRIES({
     auto statAfter =
-        getPortOutPkts(getLatestPortStats(masterLogicalPortIds()[0]));
+        utility::getPortOutPkts(getLatestPortStats(masterLogicalPortIds()[0]));
     EXPECT_EVENTUALLY_EQ(statAfter - statBefore, 1);
   });
 }

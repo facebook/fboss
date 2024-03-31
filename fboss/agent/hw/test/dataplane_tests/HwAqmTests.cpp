@@ -317,7 +317,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
       stats.wredDroppedPackets += portStats.get_wredDroppedPackets_();
     }
     // Always populate outPackets
-    stats.outPackets += getPortOutPkts(portStats);
+    stats.outPackets += utility::getPortOutPkts(portStats);
   }
 
   // For VoQ systems, WRED stat is collected from sysPorts and

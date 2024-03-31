@@ -80,11 +80,13 @@ class HwLoopBackTest : public HwLinkStateDependentTest {
       // Therefore, the counter would plus one compared to the cpu port.
       if (frontPanel) {
         EXPECT_EQ(
-            getPortOutPkts(afterPortStats) - getPortOutPkts(beforePortStats),
+            utility::getPortOutPkts(afterPortStats) -
+                utility::getPortOutPkts(beforePortStats),
             pktTtl);
       } else {
         EXPECT_EQ(
-            getPortOutPkts(afterPortStats) - getPortOutPkts(beforePortStats),
+            utility::getPortOutPkts(afterPortStats) -
+                utility::getPortOutPkts(beforePortStats),
             pktTtl - 1);
       }
     };

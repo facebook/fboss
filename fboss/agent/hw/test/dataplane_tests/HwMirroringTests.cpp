@@ -5,13 +5,13 @@
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTestMirrorUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
-#include "fboss/agent/hw/test/HwTestStatUtils.h"
 #include "fboss/agent/hw/test/HwTestTrunkUtils.h"
 #include "fboss/agent/state/Mirror.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/RouteTypes.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/TrunkUtils.h"
+#include "fboss/agent/test/utils/PortStatsTestUtils.h"
 #include "fboss/agent/types.h"
 
 #include <folly/IPAddressV4.h>
@@ -110,7 +110,7 @@ class HwDataPlaneMirrorTest : public HwLinkStateDependentTest {
     auto vlanId = utility::firstVlanID(initialConfig());
     auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     std::vector<uint8_t> payload(payloadSize, 0xff);
-    auto oldOutPkts = getPortOutPkts(getLatestPortStats(trafficPort_));
+    auto oldOutPkts = utility::getPortOutPkts(getLatestPortStats(trafficPort_));
     auto i = 0;
     while (i < count) {
       auto pkt = utility::makeUDPTxPacket(
@@ -231,16 +231,16 @@ class HwDataPlaneMirrorTest : public HwLinkStateDependentTest {
     EXPECT_EQ(mirror->isResolved(), true);
 
     auto trafficPortPktsBefore =
-        getPortOutPkts(getLatestPortStats(trafficPort_));
+        utility::getPortOutPkts(getLatestPortStats(trafficPort_));
     auto mirroredPortPktsBefore =
-        getPortOutPkts(getLatestPortStats(mirrorToPort_));
+        utility::getPortOutPkts(getLatestPortStats(mirrorToPort_));
 
     this->sendPackets(1, payloadSize);
 
     auto trafficPortPktsAfter =
-        getPortOutPkts(getLatestPortStats(trafficPort_));
+        utility::getPortOutPkts(getLatestPortStats(trafficPort_));
     auto mirroredPortPktsAfter =
-        getPortOutPkts(getLatestPortStats(mirrorToPort_));
+        utility::getPortOutPkts(getLatestPortStats(mirrorToPort_));
 
     EXPECT_EQ(trafficPortPktsAfter - trafficPortPktsBefore, 1);
     /*

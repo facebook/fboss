@@ -412,7 +412,7 @@ TYPED_TEST(HwMPLSTest, Push) {
     });
     [[maybe_unused]] auto verifier = this->getPacketVerifer(expectedMplsHdr);
 
-    auto outPktsBefore = getPortOutPkts(
+    auto outPktsBefore = utility::getPortOutPkts(
         this->getLatestPortStats(this->masterLogicalPortIds()[0]));
 
     // generate the packet entering  port 1
@@ -421,7 +421,7 @@ TYPED_TEST(HwMPLSTest, Push) {
         this->masterLogicalPortIds()[1],
         DSCP(16)); // tc = 2 for dscp = 16
 
-    auto outPktsAfter = getPortOutPkts(
+    auto outPktsAfter = utility::getPortOutPkts(
         this->getLatestPortStats(this->masterLogicalPortIds()[0]));
     EXPECT_EQ((outPktsAfter - outPktsBefore), 1);
   };
@@ -447,7 +447,7 @@ TYPED_TEST(HwMPLSTest, Swap) {
     });
     [[maybe_unused]] auto verifier = this->getPacketVerifer(expectedMplsHdr);
 
-    auto outPktsBefore = getPortOutPkts(
+    auto outPktsBefore = utility::getPortOutPkts(
         this->getLatestPortStats(this->masterLogicalPortIds()[0]));
 
     // generate the packet entering  port 1
@@ -456,7 +456,7 @@ TYPED_TEST(HwMPLSTest, Swap) {
         this->masterLogicalPortIds()[1],
         EXP(5)); // send packet with exp 5
 
-    auto outPktsAfter = getPortOutPkts(
+    auto outPktsAfter = utility::getPortOutPkts(
         this->getLatestPortStats(this->masterLogicalPortIds()[0]));
     EXPECT_EQ((outPktsAfter - outPktsBefore), 1);
   };
@@ -555,12 +555,12 @@ TYPED_TEST(HwMPLSTest, Pop) {
         folly::IPAddressV6("2001::"), 128, this->getPortDescriptor(0));
   };
   auto verify = [=, this]() {
-    auto outPktsBefore = getPortOutPkts(
+    auto outPktsBefore = utility::getPortOutPkts(
         this->getLatestPortStats(this->masterLogicalPortIds()[0]));
     // send mpls packet with label and let it pop
     this->sendMplsPacket(1101, this->masterLogicalPortIds()[1]);
     // ip packet should be forwarded as per route for 2001::/128
-    auto outPktsAfter = getPortOutPkts(
+    auto outPktsAfter = utility::getPortOutPkts(
         this->getLatestPortStats(this->masterLogicalPortIds()[0]));
     EXPECT_EQ((outPktsAfter - outPktsBefore), 1);
   };
@@ -584,12 +584,12 @@ TYPED_TEST(HwMPLSTest, Php) {
         LabelForwardingAction::LabelForwardingType::PHP);
   };
   auto verify = [=, this]() {
-    auto outPktsBefore = getPortOutPkts(
+    auto outPktsBefore = utility::getPortOutPkts(
         this->getLatestPortStats(this->masterLogicalPortIds()[0]));
     // send mpls packet with label and let it forward with php
     this->sendMplsPacket(1101, this->masterLogicalPortIds()[1]);
     // ip packet should be forwarded through port 0
-    auto outPktsAfter = getPortOutPkts(
+    auto outPktsAfter = utility::getPortOutPkts(
         this->getLatestPortStats(this->masterLogicalPortIds()[0]));
     EXPECT_EQ((outPktsAfter - outPktsBefore), 1);
   };
@@ -725,13 +725,13 @@ TYPED_TEST(HwMPLSTest, AclRedirectToNexthop) {
         MPLSHdr::Label{201, 5, 1, 254},
     });
     [[maybe_unused]] auto verifier = this->getPacketVerifer(expectedMplsHdr);
-    auto outPktsBefore = getPortOutPkts(
+    auto outPktsBefore = utility::getPortOutPkts(
         this->getLatestPortStats(this->masterLogicalPortIds()[0]));
     this->sendL3Packet(
         folly::IPAddressV6("2401::201:ab01"),
         this->masterLogicalPortIds()[1],
         DSCP(16));
-    auto outPktsAfter = getPortOutPkts(
+    auto outPktsAfter = utility::getPortOutPkts(
         this->getLatestPortStats(this->masterLogicalPortIds()[0]));
     EXPECT_EQ((outPktsAfter - outPktsBefore), 1);
   };
@@ -765,13 +765,13 @@ TYPED_TEST(HwMPLSTest, AclRedirectToNexthopDrop) {
         kAclName, ingressVlan, dstPrefix, {"1000::1"}, portIntfs, {});
   };
   auto verify = [=, this]() {
-    auto outPktsBefore = getPortOutPkts(
+    auto outPktsBefore = utility::getPortOutPkts(
         this->getLatestPortStats(this->masterLogicalPortIds()[0]));
     this->sendL3Packet(
         folly::IPAddressV6("2401::201:ab01"),
         this->masterLogicalPortIds()[1],
         DSCP(16));
-    auto outPktsAfter = getPortOutPkts(
+    auto outPktsAfter = utility::getPortOutPkts(
         this->getLatestPortStats(this->masterLogicalPortIds()[0]));
     // Packet drop expected
     EXPECT_EQ(outPktsAfter, outPktsBefore);
@@ -816,13 +816,13 @@ TYPED_TEST(HwMPLSTest, AclRedirectToNexthopMismatch) {
     // Since ACL qualifiers do not match packet fields, packet must
     // exit via RIB route nexthops
     [[maybe_unused]] auto verifier = this->getPacketVerifer(expectedMplsHdr);
-    auto outPktsBefore = getPortOutPkts(
+    auto outPktsBefore = utility::getPortOutPkts(
         this->getLatestPortStats(this->masterLogicalPortIds()[0]));
     this->sendL3Packet(
         folly::IPAddressV6("2401::201:ab01"),
         this->masterLogicalPortIds()[1],
         DSCP(16));
-    auto outPktsAfter = getPortOutPkts(
+    auto outPktsAfter = utility::getPortOutPkts(
         this->getLatestPortStats(this->masterLogicalPortIds()[0]));
     EXPECT_EQ((outPktsAfter - outPktsBefore), 1);
   };
@@ -865,12 +865,14 @@ TYPED_TEST(HwMPLSTest, AclRedirectToNexthopMultipleNexthops) {
   auto verify = [=, this]() {
     std::vector<PortID> ports{
         this->masterLogicalPortIds()[0], this->masterLogicalPortIds()[1]};
-    auto outPktsBefore = getPortOutPkts(this->getLatestPortStats(ports));
+    auto outPktsBefore =
+        utility::getPortOutPkts(this->getLatestPortStats(ports));
     this->sendL3Packet(
         folly::IPAddressV6("2401::201:ab01"),
         this->masterLogicalPortIds()[2],
         DSCP(16));
-    auto outPktsAfter = getPortOutPkts(this->getLatestPortStats(ports));
+    auto outPktsAfter =
+        utility::getPortOutPkts(this->getLatestPortStats(ports));
     EXPECT_EQ((outPktsAfter - outPktsBefore), 1);
   };
   this->verifyAcrossWarmBoots(setup, verify);

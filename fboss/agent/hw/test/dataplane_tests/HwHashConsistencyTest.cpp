@@ -155,11 +155,12 @@ class HwHashConsistencyTest : public HwLinkStateDependentTest {
                << " expecting increment of 1 on port at index: " << index;
     WITH_RETRIES({
       EXPECT_EVENTUALLY_EQ(
-          getPortOutPkts(this->getLatestPortStats(ports_[index])), 1);
+          utility::getPortOutPkts(this->getLatestPortStats(ports_[index])), 1);
       auto pktCnt = 0;
       for (auto i = 0; i < kEcmpWidth4; i++) {
         srcAndDstPort = getFlowPort(index, flowType);
-        auto pkts = getPortOutPkts(this->getLatestPortStats(ports_[i]));
+        auto pkts =
+            utility::getPortOutPkts(this->getLatestPortStats(ports_[i]));
         XLOG(DBG2) << " For flow ports: (" << srcAndDstPort.first << ", "
                    << srcAndDstPort.second << ")"
                    << " pkt egress increment on port at index: " << i
@@ -251,22 +252,22 @@ TEST_F(HwHashConsistencyTest, TcpEgressLinksOnEcmpExpand) {
     clearPortStats();
     sendFlow(0 /* flow 0 */, FlowType::TCP);
     sendFlow(1 /* flow 0 */, FlowType::TCP);
-    EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(ports_[0])), 1);
-    EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(ports_[1])), 1);
+    EXPECT_EQ(utility::getPortOutPkts(this->getLatestPortStats(ports_[0])), 1);
+    EXPECT_EQ(utility::getPortOutPkts(this->getLatestPortStats(ports_[1])), 1);
 
     clearPortStats();
     resolveNhop(0 /* nhop0 */, false /* unresolve */);
     sendFlow(0 /* flow 0 */, FlowType::TCP);
     sendFlow(1 /* flow 0 */, FlowType::TCP);
-    EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(ports_[0])), 0);
-    EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(ports_[1])), 2);
+    EXPECT_EQ(utility::getPortOutPkts(this->getLatestPortStats(ports_[0])), 0);
+    EXPECT_EQ(utility::getPortOutPkts(this->getLatestPortStats(ports_[1])), 2);
 
     clearPortStats();
     resolveNhop(0 /* nhop0 */, true /* resolve */);
     sendFlow(0 /* flow 0 */, FlowType::TCP);
     sendFlow(1 /* flow 0 */, FlowType::TCP);
-    EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(ports_[0])), 1);
-    EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(ports_[1])), 1);
+    EXPECT_EQ(utility::getPortOutPkts(this->getLatestPortStats(ports_[0])), 1);
+    EXPECT_EQ(utility::getPortOutPkts(this->getLatestPortStats(ports_[1])), 1);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -298,22 +299,22 @@ TEST_F(HwHashConsistencyTest, UdpEgressLinksOnEcmpExpand) {
     clearPortStats();
     sendFlow(0 /* flow 0 */, FlowType::UDP);
     sendFlow(1 /* flow 0 */, FlowType::UDP);
-    EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(ports_[0])), 1);
-    EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(ports_[1])), 1);
+    EXPECT_EQ(utility::getPortOutPkts(this->getLatestPortStats(ports_[0])), 1);
+    EXPECT_EQ(utility::getPortOutPkts(this->getLatestPortStats(ports_[1])), 1);
 
     clearPortStats();
     resolveNhop(0 /* nhop0 */, false /* unresolve */);
     sendFlow(0 /* flow 0 */, FlowType::UDP);
     sendFlow(1 /* flow 0 */, FlowType::UDP);
-    EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(ports_[0])), 0);
-    EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(ports_[1])), 2);
+    EXPECT_EQ(utility::getPortOutPkts(this->getLatestPortStats(ports_[0])), 0);
+    EXPECT_EQ(utility::getPortOutPkts(this->getLatestPortStats(ports_[1])), 2);
 
     clearPortStats();
     resolveNhop(0 /* nhop0 */, true /* resolve */);
     sendFlow(0 /* flow 0 */, FlowType::UDP);
     sendFlow(1 /* flow 0 */, FlowType::UDP);
-    EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(ports_[0])), 1);
-    EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(ports_[1])), 1);
+    EXPECT_EQ(utility::getPortOutPkts(this->getLatestPortStats(ports_[0])), 1);
+    EXPECT_EQ(utility::getPortOutPkts(this->getLatestPortStats(ports_[1])), 1);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -327,7 +328,7 @@ TEST_F(HwHashConsistencyTest, VerifyMemberOrderEffect) {
     clearPortStats();
     sendFlow(0 /* flow 0 */, FlowType::TCP);
     sendFlow(0 /* flow 0 */, FlowType::UDP);
-    EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(ports_[0])), 2);
+    EXPECT_EQ(utility::getPortOutPkts(this->getLatestPortStats(ports_[0])), 2);
 
     clearPortStats();
 
@@ -339,7 +340,7 @@ TEST_F(HwHashConsistencyTest, VerifyMemberOrderEffect) {
     }
     sendFlow(0 /* flow 0 */, FlowType::TCP);
     sendFlow(0 /* flow 0 */, FlowType::UDP);
-    EXPECT_EQ(getPortOutPkts(this->getLatestPortStats(ports_[0])), 2);
+    EXPECT_EQ(utility::getPortOutPkts(this->getLatestPortStats(ports_[0])), 2);
   };
   verifyAcrossWarmBoots(setup, verify);
 }

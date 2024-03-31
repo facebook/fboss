@@ -353,6 +353,7 @@ target_link_libraries(hw_switch_test
   hwswitch_matcher
   switchid_scope_resolver
   hw_stat_printers
+  port_stats_test_utils
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
 )

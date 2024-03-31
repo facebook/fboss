@@ -1014,8 +1014,8 @@ class HwMacLearningBatchEntriesTest : public HwMacLearningTest {
         getHwSwitchEnsemble()->getLatestPortStats(masterLogicalPortIds());
     int totalPackets = srcMacs.size() * dstMacs.size();
     auto allSent = [&originalStats, totalPackets](const auto& newStats) {
-      auto originalPkts = getPortInPkts(originalStats);
-      auto newPkts = getPortInPkts(newStats);
+      auto originalPkts = utility::getPortInPkts(originalStats);
+      auto newPkts = utility::getPortInPkts(newStats);
       auto expectedPkts = originalPkts + totalPackets;
       XLOGF(
           INFO,

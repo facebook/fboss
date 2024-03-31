@@ -70,12 +70,12 @@ class HwJumboFramesTest : public HwLinkStateDependentTest {
           getProgrammedState(), RouterID(0));
       auto port = ecmpHelper.ecmpPortDescriptorAt(0).phyPortID();
       auto portStatsBefore = getLatestPortStats(port);
-      auto pktsBefore = getPortOutPkts(portStatsBefore);
+      auto pktsBefore = utility::getPortOutPkts(portStatsBefore);
       auto bytesBefore = *portStatsBefore.outBytes_();
       sendPkt(payloadSize);
       WITH_RETRIES({
         auto portStatsAfter = getLatestPortStats(port);
-        auto pktsAfter = getPortOutPkts(portStatsAfter);
+        auto pktsAfter = utility::getPortOutPkts(portStatsAfter);
         auto bytesAfter = *portStatsAfter.outBytes_();
         if (expectPacketDrop) {
           EXPECT_EVENTUALLY_EQ(pktsBefore, pktsAfter);

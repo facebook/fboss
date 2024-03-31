@@ -77,8 +77,8 @@ class HwL4PortBlackHolingTest : public HwLinkStateDependentTest {
       PortID portId = masterLogicalInterfacePortIds()[0];
       auto expectPackets = [&originalPortStats, numL4Ports, portId](
                                const auto& newPortStats) -> bool {
-        auto original = getPortOutPkts(originalPortStats.at(portId));
-        auto current = getPortOutPkts(newPortStats.at(portId));
+        auto original = utility::getPortOutPkts(originalPortStats.at(portId));
+        auto current = utility::getPortOutPkts(newPortStats.at(portId));
         XLOGF(
             INFO,
             "Checking current port outPkts ({}) - "

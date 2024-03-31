@@ -14,8 +14,6 @@
 #include "fboss/agent/hw/bcm/tests/BcmTest.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 
-#include "fboss/agent/hw/test/HwTestStatUtils.h"
-
 namespace facebook::fboss {
 
 TEST_F(BcmTest, onlyExpectedQueueStatsSeen) {
