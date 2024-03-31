@@ -218,7 +218,6 @@ set(hw_switch_test_srcs
   fboss/agent/hw/test/HwTestConstants.cpp
   fboss/agent/hw/test/HwTestMacUtils.cpp
   fboss/agent/hw/test/HwTestPortUtils.cpp
-  fboss/agent/hw/test/HwTestStatUtils.cpp
   fboss/agent/hw/test/HwTestCoppUtils.cpp
   fboss/agent/hw/test/HwRouteScaleTest.cpp
   fboss/agent/hw/test/HwRouteTests.cpp
