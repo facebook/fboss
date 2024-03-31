@@ -16,13 +16,6 @@
 
 namespace facebook::fboss {
 
-namespace {
-constexpr auto kTransceiverID = "id";
-constexpr auto kCableLength = "cableLength";
-constexpr auto kMediaInterface = "mediaInterface";
-constexpr auto kManagementInterface = "managementInterface";
-} // namespace
-
 TransceiverSpec::TransceiverSpec(TransceiverID id) {
   set<switch_state_tags::id>(id);
 }
