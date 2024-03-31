@@ -21,18 +21,7 @@
 using apache::thrift::TEnumTraits;
 using folly::IPAddress;
 
-namespace {
-constexpr auto kTtlValue = "value";
-constexpr auto kTtlMask = "mask";
-constexpr auto kLookupClassL2 = "lookupClassL2";
-constexpr auto kLookupClass = "lookupClass";
-constexpr auto kLookupClassNeighbor = "lookupClassNeighbor";
-constexpr auto kLookupClassRoute = "lookupClassRoute";
-constexpr auto kPacketLookupResult = "packetLookupResult";
-constexpr auto kVlanID = "vlanID";
-constexpr auto kAclAction = "aclAction";
-constexpr auto kEnabled = "enabled";
-} // namespace
+namespace {} // namespace
 
 namespace facebook::fboss {
 

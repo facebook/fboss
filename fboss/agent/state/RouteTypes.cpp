@@ -11,12 +11,9 @@
 #include "fboss/agent/AddressUtil.h"
 
 namespace {
-constexpr auto kAddress = "address";
-constexpr auto kMask = "mask";
 constexpr auto kDrop = "Drop";
 constexpr auto kToCpu = "ToCPU";
 constexpr auto kNexthops = "Nexthops";
-constexpr auto kLabel = "label";
 } // namespace
 
 namespace facebook::fboss {
