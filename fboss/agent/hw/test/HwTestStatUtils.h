@@ -19,7 +19,6 @@ namespace facebook::fboss {
 
 class HwSwitch;
 
-void updateHwSwitchStats(HwSwitch* hw);
 uint64_t getPortOutPkts(const HwPortStats& portStats);
 uint64_t getPortOutPkts(const std::map<PortID, HwPortStats>& port2Stats);
 uint64_t getPortInPkts(const HwPortStats& portStats);

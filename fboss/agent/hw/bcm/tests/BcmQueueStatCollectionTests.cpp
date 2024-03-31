@@ -27,7 +27,7 @@ TEST_F(BcmTest, onlyExpectedQueueStatsSeen) {
   };
   auto verify = [this] {
     for (auto i = 0; i < 10; ++i) {
-      updateHwSwitchStats(getHwSwitch());
+      getHwSwitch()->updateStats();
     }
     for (auto portId : masterLogicalPortIds()) {
       auto port = getHwSwitch()->getPortTable()->getBcmPort(portId);

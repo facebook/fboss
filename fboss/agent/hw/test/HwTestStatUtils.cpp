@@ -30,10 +30,6 @@ uint64_t accumalatePortStats(
 
 } // namespace
 
-void updateHwSwitchStats(HwSwitch* hw) {
-  hw->updateStats();
-}
-
 uint64_t getPortOutPkts(const HwPortStats& portStats) {
   return *portStats.outUnicastPkts_() + *portStats.outMulticastPkts_() +
       *portStats.outBroadcastPkts_();
