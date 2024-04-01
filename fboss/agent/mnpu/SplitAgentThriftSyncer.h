@@ -25,6 +25,7 @@ class HwSwitch;
 class FdbEventSyncer;
 class LinkEventSyncer;
 class LinkActiveEventSyncer;
+class LinkChangeEventSyncer;
 class RxPktEventSyncer;
 class TxPktEventSyncer;
 class OperDeltaSyncer;
@@ -71,6 +72,7 @@ class SplitAgentThriftSyncer : public HwSwitchCallback {
   SwitchID switchId_;
   std::unique_ptr<LinkEventSyncer> linkEventSinkClient_;
   std::unique_ptr<LinkActiveEventSyncer> linkActiveEventSinkClient_;
+  std::unique_ptr<LinkChangeEventSyncer> linkChangeEventSinkClient_;
   std::unique_ptr<TxPktEventSyncer> txPktEventStreamClient_;
   std::unique_ptr<OperDeltaSyncer> operDeltaClient_;
   std::unique_ptr<FdbEventSyncer> fdbEventSinkClient_;
