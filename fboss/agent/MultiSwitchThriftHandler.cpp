@@ -63,36 +63,6 @@ void MultiSwitchThriftHandler::processLinkState(
 }
 
 #if FOLLY_HAS_COROUTINES
-folly::coro::Task<apache::thrift::SinkConsumer<multiswitch::LinkEvent, bool>>
-MultiSwitchThriftHandler::co_notifyLinkEvent(int64_t switchId) {
-  ensureConfigured(__func__);
-  co_return apache::thrift::SinkConsumer<multiswitch::LinkEvent, bool>{
-      [this,
-       switchId](folly::coro::AsyncGenerator<multiswitch::LinkEvent&&> gen)
-          -> folly::coro::Task<bool> {
-        auto switchIndex = sw_->getSwitchInfoTable().getSwitchIndexFromSwitchId(
-            SwitchID(switchId));
-        sw_->stats()->hwAgentLinkEventSinkConnectionStatus(switchIndex, true);
-        try {
-          while (auto item = co_await gen.next()) {
-            multiswitch::LinkChangeEvent linkChangeEvent;
-            linkChangeEvent.linkStateEvent() = *item;
-            processLinkState(SwitchID(switchId), linkChangeEvent);
-          }
-        } catch (const std::exception& e) {
-          XLOG(DBG2) << "link event sink cancelled for switch " << switchId
-                     << " with exception " << e.what();
-          sw_->stats()->hwAgentLinkEventSinkConnectionStatus(
-              switchIndex, false);
-          co_return false;
-        }
-        co_return true;
-      },
-      10 /* buffer size */
-  }
-      .setChunkTimeout(std::chrono::milliseconds(0));
-}
-
 folly::coro::Task<
     apache::thrift::SinkConsumer<multiswitch::LinkChangeEvent, bool>>
 MultiSwitchThriftHandler::co_notifyLinkChangeEvent(int64_t switchId) {

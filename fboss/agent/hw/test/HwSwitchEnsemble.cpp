@@ -70,24 +70,6 @@ class HwEnsembleMultiSwitchThriftHandler
       : ensemble_(ensemble) {}
 
 #if FOLLY_HAS_COROUTINES
-  folly::coro::Task<apache::thrift::SinkConsumer<multiswitch::LinkEvent, bool>>
-  co_notifyLinkEvent(int64_t switchId) override {
-    co_return apache::thrift::SinkConsumer<multiswitch::LinkEvent, bool>{
-        [switchId,
-         this](folly::coro::AsyncGenerator<multiswitch::LinkEvent&&> gen)
-            -> folly::coro::Task<bool> {
-          while (auto item = co_await gen.next()) {
-            XLOG(DBG3) << "Got link event from switch " << switchId
-                       << " for port " << *item->port()
-                       << " up :" << *item->up();
-            ensemble_->linkStateChanged(PortID(*item->port()), *item->up());
-          }
-          co_return true;
-        },
-        1000 /* buffer size */
-    };
-  }
-
   folly::coro::Task<
       apache::thrift::SinkConsumer<multiswitch::LinkActiveEvent, bool>>
   co_notifyLinkActiveEvent(int64_t switchId) override {
