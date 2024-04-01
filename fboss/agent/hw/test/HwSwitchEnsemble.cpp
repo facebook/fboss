@@ -79,7 +79,7 @@ class HwEnsembleMultiSwitchThriftHandler
             -> folly::coro::Task<bool> {
           std::map<PortID, bool> port2IsActive;
           while (auto item = co_await gen.next()) {
-            XLOG(DBG3) << "Got link active event from switch " << switchId;
+            XLOG(DBG2) << "Got link active event from switch " << switchId;
             for (const auto& [portID, isActive] : *item->port2IsActive()) {
               port2IsActive[PortID(portID)] = isActive;
             }
@@ -101,7 +101,7 @@ class HwEnsembleMultiSwitchThriftHandler
           while (auto item = co_await gen.next()) {
             if (item->linkStateEvent().has_value()) {
               const auto& linkEvent = *item->linkStateEvent();
-              XLOG(DBG3) << "Got link state change event from switch "
+              XLOG(DBG2) << "Got link state change event from switch "
                          << switchId << " for port " << *linkEvent.port()
                          << " up :" << *linkEvent.up();
               ensemble_->linkStateChanged(
