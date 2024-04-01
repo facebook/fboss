@@ -127,10 +127,9 @@ MultiSwitchThriftHandler::co_notifyLinkActiveEvent(int64_t switchId) {
         try {
           while (auto item = co_await gen.next()) {
             XLOG(DBG3) << "Got link active event from switch " << switchId;
-            for (const auto& [portID, isActive] : *item->port2IsActive()) {
-              port2IsActive[PortID(portID)] = isActive;
-            }
-            sw_->linkActiveStateChanged(port2IsActive);
+            multiswitch::LinkChangeEvent changeEvent;
+            changeEvent.linkActiveEvents() = *item;
+            processLinkActiveState(SwitchID(switchId), changeEvent);
           }
         } catch (const std::exception& e) {
           XLOG(DBG2) << "link event sink cancelled for switch " << switchId
