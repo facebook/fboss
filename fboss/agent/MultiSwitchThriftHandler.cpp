@@ -62,6 +62,24 @@ void MultiSwitchThriftHandler::processLinkState(
   sw_->linkStateChanged(portId, *linkStateEvent.up(), faultStatus);
 }
 
+void MultiSwitchThriftHandler::processLinkActiveState(
+    SwitchID switchId,
+    const multiswitch::LinkChangeEvent& linkChangeEvent) {
+  if (linkChangeEvent.linkActiveEvents()->port2IsActive()->size() == 0) {
+    return;
+  }
+  XLOG(DBG3) << "Got link active event from switch " << switchId << " for : "
+             << linkChangeEvent.linkActiveEvents()->port2IsActive()->size()
+             << " ports";
+
+  std::map<PortID, bool> port2IsActive;
+  for (const auto& [portID, isActive] :
+       *linkChangeEvent.linkActiveEvents()->port2IsActive()) {
+    port2IsActive[PortID(portID)] = isActive;
+  }
+  sw_->linkActiveStateChanged(port2IsActive);
+}
+
 #if FOLLY_HAS_COROUTINES
 folly::coro::Task<
     apache::thrift::SinkConsumer<multiswitch::LinkChangeEvent, bool>>
