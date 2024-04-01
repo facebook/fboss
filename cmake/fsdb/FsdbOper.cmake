@@ -3,15 +3,7 @@
 # In general, libraries and binaries in fboss/foo/bar are built by
 # cmake/FooBar.cmake
 
-add_library(db_writer
-  fboss/fsdb/oper/DbWriter.cpp
-)
-
-target_link_libraries(db_writer
-  Folly::folly
-  fsdb_common_cpp2
-  fsdb_oper_cpp2
-)
+if (FBOSS_CENTOS9)
 
 add_library(subscription_manager
   fboss/fsdb/oper/DeltaValue.h
@@ -75,3 +67,4 @@ target_link_libraries(subscribable_storage
   Folly::folly
   fb303::fb303
 )
+endif()

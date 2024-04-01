@@ -33,6 +33,7 @@ target_link_libraries(fsdb_cow_storage
   fsdb_cow_root_path_visitor
 )
 
+if (FBOSS_CENTOS9)
 add_library(fsdb_cow_subscription_manager
   fboss/fsdb/oper/instantiations/FsdbCowSubscriptionManager.cpp
 )
@@ -54,3 +55,4 @@ target_link_libraries(fsdb_naive_periodic_subscribable_storage
   fsdb_cow_subscription_manager
   subscribable_storage
 )
+endif()
