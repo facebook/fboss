@@ -101,6 +101,9 @@ MultiSwitchThriftHandler::co_notifyLinkChangeEvent(int64_t switchId) {
       [this, switchId](
           folly::coro::AsyncGenerator<multiswitch::LinkChangeEvent&&> gen)
           -> folly::coro::Task<bool> {
+        auto switchIndex = sw_->getSwitchInfoTable().getSwitchIndexFromSwitchId(
+            SwitchID(switchId));
+        sw_->stats()->hwAgentLinkEventSinkConnectionStatus(switchIndex, true);
         try {
           while (auto item = co_await gen.next()) {
             XLOG(DBG3) << "Got link change event from switch " << switchId;
@@ -109,6 +112,8 @@ MultiSwitchThriftHandler::co_notifyLinkChangeEvent(int64_t switchId) {
         } catch (const std::exception& e) {
           XLOG(DBG2) << "link change event sink cancelled for switch "
                      << switchId << " with exception " << e.what();
+          sw_->stats()->hwAgentLinkEventSinkConnectionStatus(
+              switchIndex, false);
           co_return false;
         }
         co_return true;
