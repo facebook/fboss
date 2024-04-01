@@ -49,6 +49,9 @@ class MultiSwitchThriftHandler
   static L2Entry getL2Entry(L2EntryThrift thriftEntry);
 
  private:
+  void processLinkState(
+      SwitchID switchId,
+      const multiswitch::LinkChangeEvent& linkChangeEvent);
   void ensureConfigured(folly::StringPiece function) const;
   SwSwitch* sw_;
 };

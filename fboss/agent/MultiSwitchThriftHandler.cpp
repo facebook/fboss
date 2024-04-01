@@ -44,6 +44,24 @@ L2Entry MultiSwitchThriftHandler::getL2Entry(L2EntryThrift thriftEntry) {
       classID);
 }
 
+void MultiSwitchThriftHandler::processLinkState(
+    SwitchID switchId,
+    const multiswitch::LinkChangeEvent& linkChangeEvent) {
+  if (!linkChangeEvent.linkStateEvent().has_value()) {
+    return;
+  }
+  const auto& linkStateEvent = *linkChangeEvent.linkStateEvent();
+  XLOG(DBG2) << "Got link event from switch " << switchId << " for port "
+             << *linkStateEvent.port()
+             << " up :" << (*linkStateEvent.up() ? "UP" : "DOWN");
+  PortID portId = PortID(*linkStateEvent.port());
+  std::optional<phy::LinkFaultStatus> faultStatus;
+  if (linkStateEvent.iPhyLinkFaultStatus()) {
+    faultStatus = *linkStateEvent.iPhyLinkFaultStatus();
+  }
+  sw_->linkStateChanged(portId, *linkStateEvent.up(), faultStatus);
+}
+
 #if FOLLY_HAS_COROUTINES
 folly::coro::Task<apache::thrift::SinkConsumer<multiswitch::LinkEvent, bool>>
 MultiSwitchThriftHandler::co_notifyLinkEvent(int64_t switchId) {
