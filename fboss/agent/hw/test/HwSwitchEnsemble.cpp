@@ -109,6 +109,29 @@ class HwEnsembleMultiSwitchThriftHandler
     };
   }
 
+  folly::coro::Task<
+      apache::thrift::SinkConsumer<multiswitch::LinkChangeEvent, bool>>
+  co_notifyLinkChangeEvent(int64_t switchId) override {
+    co_return apache::thrift::SinkConsumer<multiswitch::LinkChangeEvent, bool>{
+        [switchId,
+         this](folly::coro::AsyncGenerator<multiswitch::LinkChangeEvent&&> gen)
+            -> folly::coro::Task<bool> {
+          while (auto item = co_await gen.next()) {
+            if (item->linkStateEvent().has_value()) {
+              const auto& linkEvent = *item->linkStateEvent();
+              XLOG(DBG3) << "Got link state change event from switch "
+                         << switchId << " for port " << *linkEvent.port()
+                         << " up :" << *linkEvent.up();
+              ensemble_->linkStateChanged(
+                  PortID(*linkEvent.port()), *linkEvent.up());
+            }
+          }
+          co_return true;
+        },
+        1000 /* buffer size */
+    };
+  }
+
   folly::coro::Task<apache::thrift::SinkConsumer<multiswitch::FdbEvent, bool>>
   co_notifyFdbEvent(int64_t switchId) override {
     co_return apache::thrift::SinkConsumer<multiswitch::FdbEvent, bool>{
