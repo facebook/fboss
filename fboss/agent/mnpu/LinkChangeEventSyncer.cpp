@@ -41,7 +41,7 @@ LinkChangeEventSyncer::EventSink LinkChangeEventSyncer::initLinkChangeEventSink(
 }
 
 void LinkChangeEventSyncer::connected() {
-  // TODO
+  hw_->syncLinkStates();
 }
 
 } // namespace facebook::fboss
