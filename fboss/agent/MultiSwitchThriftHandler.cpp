@@ -75,15 +75,9 @@ MultiSwitchThriftHandler::co_notifyLinkEvent(int64_t switchId) {
         sw_->stats()->hwAgentLinkEventSinkConnectionStatus(switchIndex, true);
         try {
           while (auto item = co_await gen.next()) {
-            XLOG(DBG3) << "Got link event from switch " << switchId
-                       << " for port " << *item->port()
-                       << " up :" << *item->up();
-            PortID portId = PortID(*item->port());
-            std::optional<phy::LinkFaultStatus> faultStatus;
-            if (item->iPhyLinkFaultStatus()) {
-              faultStatus = *item->iPhyLinkFaultStatus();
-            }
-            sw_->linkStateChanged(portId, *item->up(), faultStatus);
+            multiswitch::LinkChangeEvent linkChangeEvent;
+            linkChangeEvent.linkStateEvent() = *item;
+            processLinkState(SwitchID(switchId), linkChangeEvent);
           }
         } catch (const std::exception& e) {
           XLOG(DBG2) << "link event sink cancelled for switch " << switchId
