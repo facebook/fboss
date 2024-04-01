@@ -88,7 +88,9 @@ void SplitAgentThriftSyncer::linkStateChanged(
   if (iPhyFaultStatus) {
     event.iPhyLinkFaultStatus() = *iPhyFaultStatus;
   }
-  linkEventSinkClient_->enqueue(std::move(event));
+  multiswitch::LinkChangeEvent changeEvent;
+  changeEvent.linkStateEvent() = event;
+  linkChangeEventSinkClient_->enqueue(std::move(changeEvent));
 }
 
 void SplitAgentThriftSyncer::linkActiveStateChanged(
