@@ -13,7 +13,6 @@
 #include "fboss/agent/mnpu/HwSwitchStatsSinkClient.h"
 #include "fboss/agent/mnpu/LinkActiveEventSyncer.h"
 #include "fboss/agent/mnpu/LinkChangeEventSyncer.h"
-#include "fboss/agent/mnpu/LinkEventSyncer.h"
 #include "fboss/agent/mnpu/OperDeltaSyncer.h"
 #include "fboss/agent/mnpu/RxPktEventSyncer.h"
 #include "fboss/agent/mnpu/TxPktEventSyncer.h"
@@ -28,11 +27,6 @@ SplitAgentThriftSyncer::SplitAgentThriftSyncer(
     : retryThread_(std::make_shared<folly::ScopedEventBaseThread>(
           "SplitAgentThriftRetryThread")),
       switchId_(switchId),
-      linkEventSinkClient_(std::make_unique<LinkEventSyncer>(
-          serverPort,
-          switchId_,
-          retryThread_->getEventBase(),
-          hw)),
       linkActiveEventSinkClient_(std::make_unique<LinkActiveEventSyncer>(
           serverPort,
           switchId_,
@@ -165,7 +159,6 @@ void SplitAgentThriftSyncer::start() {
 
 void SplitAgentThriftSyncer::stop() {
   // Stop any started services
-  linkEventSinkClient_->cancel();
   linkActiveEventSinkClient_->cancel();
   linkChangeEventSinkClient_->cancel();
   txPktEventStreamClient_->cancel();
