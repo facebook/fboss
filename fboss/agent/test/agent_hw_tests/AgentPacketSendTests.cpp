@@ -65,4 +65,47 @@ TEST_F(AgentPacketSendTest, LldpToFrontPanelOutOfPort) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(AgentPacketSendTest, ArpRequestToFrontPanelPortSwitched) {
+  auto setup = [=]() {};
+  auto verify = [=, this]() {
+    auto portStatsBefore =
+        getLatestPortStats(masterLogicalInterfacePortIds()[0]);
+    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+    auto randomIP = folly::IPAddressV4("1.1.1.5");
+    auto txPacket = utility::makeARPTxPacket(
+        getSw(),
+        vlanId,
+        srcMac,
+        folly::MacAddress("ff:ff:ff:ff:ff:ff"),
+        folly::IPAddress("1.1.1.2"),
+        randomIP,
+        ARP_OPER::ARP_OPER_REQUEST,
+        std::nullopt);
+    getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+    WITH_RETRIES({
+      auto portStatsAfter =
+          getLatestPortStats(masterLogicalInterfacePortIds()[0]);
+      XLOG(DBG2) << "ARP Packet:"
+                 << " before pkts:" << *portStatsBefore.outBroadcastPkts_()
+                 << ", after pkts:" << *portStatsAfter.outBroadcastPkts_()
+                 << ", before bytes:" << *portStatsBefore.outBytes_()
+                 << ", after bytes:" << *portStatsAfter.outBytes_();
+      EXPECT_EVENTUALLY_NE(
+          0, *portStatsAfter.outBytes_() - *portStatsBefore.outBytes_());
+      auto portSwitchId =
+          scopeResolver().scope(masterLogicalPortIds()[0]).switchId();
+      auto asicType = getAsic(portSwitchId).getAsicType();
+      if (asicType != cfg::AsicType::ASIC_TYPE_EBRO &&
+          asicType != cfg::AsicType::ASIC_TYPE_YUBA) {
+        EXPECT_EVENTUALLY_EQ(
+            1,
+            *portStatsAfter.outBroadcastPkts_() -
+                *portStatsBefore.outBroadcastPkts_());
+      }
+    });
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
 } // namespace facebook::fboss
