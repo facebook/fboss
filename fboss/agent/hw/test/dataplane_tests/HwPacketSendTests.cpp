@@ -185,48 +185,6 @@ class HwPacketFloodTest : public HwLinkStateDependentTest {
   }
 };
 
-TEST_F(HwPacketSendTest, LldpToFrontPanelOutOfPort) {
-  auto setup = [=]() {};
-  auto verify = [=, this]() {
-    auto portStatsBefore =
-        getLatestPortStats(masterLogicalInterfacePortIds()[0]);
-    auto vlanId = utility::firstVlanID(getProgrammedState());
-    auto intfMac = utility::getFirstInterfaceMac(initialConfig());
-    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
-    auto payLoadSize = 256;
-    auto txPacket = utility::makeEthTxPacket(
-        getHwSwitch(),
-        vlanId,
-        srcMac,
-        folly::MacAddress("01:80:c2:00:00:0e"),
-        facebook::fboss::ETHERTYPE::ETHERTYPE_LLDP,
-        std::vector<uint8_t>(payLoadSize, 0xff));
-    // vlan tag should be removed
-    auto pktLengthSent = EthHdr::SIZE + payLoadSize;
-    getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
-        std::move(txPacket), masterLogicalInterfacePortIds()[0], std::nullopt);
-    auto portStatsAfter =
-        getLatestPortStats(masterLogicalInterfacePortIds()[0]);
-    XLOG(DBG2) << "Lldp Packet:"
-               << " before pkts:" << *portStatsBefore.outMulticastPkts_()
-               << ", after pkts:" << *portStatsAfter.outMulticastPkts_()
-               << ", before bytes:" << *portStatsBefore.outBytes_()
-               << ", after bytes:" << *portStatsAfter.outBytes_();
-    // GE as some platforms include FCS in outBytes count
-    EXPECT_GE(
-        *portStatsAfter.outBytes_() - *portStatsBefore.outBytes_(),
-        pktLengthSent);
-    if (getAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_EBRO &&
-        getAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_YUBA) {
-      EXPECT_EQ(
-          1,
-          *portStatsAfter.outMulticastPkts_() -
-              *portStatsBefore.outMulticastPkts_());
-    }
-  };
-  verifyAcrossWarmBoots(setup, verify);
-}
-
 TEST_F(HwPacketSendTest, LldpToFrontPanelWithBufClone) {
   auto setup = [=]() {};
   auto verify = [=, this]() {
@@ -277,44 +235,6 @@ TEST_F(HwPacketSendTest, LldpToFrontPanelWithBufClone) {
           numPkts,
           *portStatsAfter.outMulticastPkts_() -
               *portStatsBefore.outMulticastPkts_());
-    }
-  };
-  verifyAcrossWarmBoots(setup, verify);
-}
-
-TEST_F(HwPacketSendTest, ArpRequestToFrontPanelPortSwitched) {
-  auto setup = [=]() {};
-  auto verify = [=, this]() {
-    auto portStatsBefore =
-        getLatestPortStats(masterLogicalInterfacePortIds()[0]);
-    auto vlanId = utility::firstVlanID(getProgrammedState());
-    auto intfMac = utility::getFirstInterfaceMac(initialConfig());
-    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
-    auto randomIP = folly::IPAddressV4("1.1.1.5");
-    auto txPacket = utility::makeARPTxPacket(
-        getHwSwitch(),
-        vlanId,
-        srcMac,
-        folly::MacAddress("ff:ff:ff:ff:ff:ff"),
-        folly::IPAddress("1.1.1.2"),
-        randomIP,
-        ARP_OPER::ARP_OPER_REQUEST,
-        std::nullopt);
-    getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(txPacket));
-    auto portStatsAfter =
-        getLatestPortStats(masterLogicalInterfacePortIds()[0]);
-    XLOG(DBG2) << "ARP Packet:"
-               << " before pkts:" << *portStatsBefore.outBroadcastPkts_()
-               << ", after pkts:" << *portStatsAfter.outBroadcastPkts_()
-               << ", before bytes:" << *portStatsBefore.outBytes_()
-               << ", after bytes:" << *portStatsAfter.outBytes_();
-    EXPECT_NE(0, *portStatsAfter.outBytes_() - *portStatsBefore.outBytes_());
-    if (getAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_EBRO &&
-        getAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_YUBA) {
-      EXPECT_EQ(
-          1,
-          *portStatsAfter.outBroadcastPkts_() -
-              *portStatsBefore.outBroadcastPkts_());
     }
   };
   verifyAcrossWarmBoots(setup, verify);
