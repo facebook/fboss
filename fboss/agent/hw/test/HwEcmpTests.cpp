@@ -515,6 +515,67 @@ std::vector<std::vector<PortDescriptor>> genCombinations(
   return output;
 }
 
+// Generate all possible combinations of k selections of the input starting from
+// minGroupSize to inputs.size()
+std::vector<std::vector<PortDescriptor>> generateEcmpGroupScale(
+    const std::vector<PortDescriptor>& inputs,
+    const int maxEcmpGroups) {
+  const int minGroupSize = 2;
+  int groupsGenerated = 0;
+  std::vector<std::vector<PortDescriptor>> currCombination;
+  std::vector<std::vector<PortDescriptor>> allCombinations;
+  for (int i = minGroupSize; i <= inputs.size(); i++) {
+    currCombination = genCombinations(inputs, i);
+    if ((groupsGenerated + currCombination.size()) >= maxEcmpGroups) {
+      int remainingGrp = maxEcmpGroups - groupsGenerated;
+      allCombinations.insert(
+          allCombinations.end(),
+          currCombination.begin(),
+          currCombination.begin() + remainingGrp);
+      break;
+    }
+    groupsGenerated += currCombination.size();
+    allCombinations.insert(
+        allCombinations.end(), currCombination.begin(), currCombination.end());
+  }
+  EXPECT_EQ(allCombinations.size(), maxEcmpGroups);
+  return allCombinations;
+}
+
+// Generate all possible combinations of k selections of the input starting from
+// inputs.size() to minGroupSize
+std::vector<std::vector<PortDescriptor>> generateEcmpMemberScale(
+    const std::vector<PortDescriptor>& inputs,
+    const int maxEcmpMembers) {
+  const int minGroupSize = 2;
+  int membersGenerated = 0;
+  std::vector<std::vector<PortDescriptor>> currCombination;
+  std::vector<std::vector<PortDescriptor>> allCombinations;
+  for (int i = inputs.size(); i >= minGroupSize; i--) {
+    currCombination = genCombinations(inputs, i);
+    // Check if after adding currCombination we would hit maxEcmpMembers
+    if ((membersGenerated + currCombination.size() * i) >= maxEcmpMembers) {
+      int remainingMem = maxEcmpMembers - membersGenerated;
+      int remainingGrp = remainingMem / i;
+      allCombinations.insert(
+          allCombinations.end(),
+          currCombination.begin(),
+          currCombination.begin() + remainingGrp);
+      if (remainingMem % i > 0) {
+        allCombinations.push_back(std::vector<PortDescriptor>(
+            inputs.begin(), inputs.begin() + (remainingMem % i)));
+      }
+      membersGenerated += remainingMem;
+      break;
+    }
+    allCombinations.insert(
+        allCombinations.end(), currCombination.begin(), currCombination.end());
+    membersGenerated += currCombination.size() * i;
+  }
+  EXPECT_EQ(membersGenerated, maxEcmpMembers);
+  return allCombinations;
+}
+
 template <bool enableIntfNbrTable>
 struct EnableIntfNbrTable {
   static constexpr auto intfNbrTable = enableIntfNbrTable;
