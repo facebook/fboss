@@ -95,7 +95,9 @@ void SplitAgentThriftSyncer::linkActiveStateChanged(
     event.port2IsActive()[portID] = isActive;
   }
 
-  linkActiveEventSinkClient_->enqueue(std::move(event));
+  multiswitch::LinkChangeEvent changeEvent;
+  changeEvent.linkActiveEvents() = event;
+  linkChangeEventSinkClient_->enqueue(std::move(changeEvent));
 }
 
 void SplitAgentThriftSyncer::l2LearningUpdateReceived(
