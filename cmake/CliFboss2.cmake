@@ -291,6 +291,13 @@ add_fbthrift_cpp_library(
     json
 )
 
+add_fbthrift_cpp_library(
+  show_rif
+  fboss/cli/fboss2/commands/show/rif/model.thrift
+  OPTIONS
+    json
+)
+
 find_package(CLI11 CONFIG REQUIRED)
 
 add_executable(fboss2
@@ -435,6 +442,7 @@ target_link_libraries(fboss2
   show_hwagent_status_model
   show_interface_counters_fec_ber
   show_fabric_topology_model
+  show_rif
   ${RE2}
 )
 
