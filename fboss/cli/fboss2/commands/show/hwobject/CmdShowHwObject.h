@@ -33,9 +33,24 @@ class CmdShowHwObject
       const HostInfo& hostInfo,
       const ObjectArgType& queriedHwObjectTypes) {
     std::string hwObjectInfo;
-    auto client =
-        utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(hostInfo);
-    client->sync_listHwObjects(hwObjectInfo, queriedHwObjectTypes.data(), true);
+
+    if (utils::isFbossFeatureEnabled(hostInfo.getName(), "multi_switch")) {
+      auto hwAgentQueryFn =
+          [&hwObjectInfo, queriedHwObjectTypes](
+              apache::thrift::Client<facebook::fboss::FbossHwCtrl>& client) {
+            std::string hwAgentObjectInfo;
+            client.sync_listHwObjects(
+                hwAgentObjectInfo, queriedHwObjectTypes.data(), true);
+            hwObjectInfo += hwAgentObjectInfo;
+          };
+      utils::runOnAllHwAgents(hostInfo, hwAgentQueryFn);
+    } else {
+      auto client =
+          utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(hostInfo);
+      client->sync_listHwObjects(
+          hwObjectInfo, queriedHwObjectTypes.data(), true);
+    }
+
     return hwObjectInfo;
   }
 
