@@ -55,9 +55,8 @@ class CmdShowRif : public CmdHandler<CmdShowRif, CmdShowRifTraits> {
           case RemoteInterfaceType::STATIC_ENTRY:
             return "STATIC";
         }
-      } else {
-        return "--";
       }
+      return "--";
     };
 
     auto getRemoteIntfLivenessStatusStr =
@@ -69,9 +68,8 @@ class CmdShowRif : public CmdHandler<CmdShowRif, CmdShowRifTraits> {
               case LivenessStatus::STALE:
                 return "STALE";
             }
-          } else {
-            return "--";
           }
+          return "--";
         };
 
     for (const auto& [rifId, rif] : rifs) {

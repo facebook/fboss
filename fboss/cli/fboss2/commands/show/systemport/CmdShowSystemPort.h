@@ -183,9 +183,8 @@ class CmdShowSystemPort
               case RemoteSystemPortType::STATIC_ENTRY:
                 return "STATIC";
             }
-          } else {
-            return "--";
           }
+          return "--";
         };
         systemPortDetails.remoteSystemPortType() =
             getRemoteSystemPortTypeStr(systemPortInfo.remoteSystemPortType());
@@ -199,9 +198,8 @@ class CmdShowSystemPort
                   case LivenessStatus::STALE:
                     return "STALE";
                 }
-              } else {
-                return "--";
               }
+              return "--";
             };
         systemPortDetails.remoteSystemPortLivenessStatus() =
             getRemoteSystemPortLivenessStatusStr(
