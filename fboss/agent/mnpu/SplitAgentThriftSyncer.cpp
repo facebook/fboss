@@ -94,6 +94,20 @@ void SplitAgentThriftSyncer::linkActiveStateChanged(
   linkChangeEventSinkClient_->enqueue(std::move(changeEvent));
 }
 
+void SplitAgentThriftSyncer::linkConnectivityChanged(
+    const std::map<PortID, multiswitch::FabricConnectivityDelta>&
+        port2ConnectivityDelta) {
+  multiswitch::LinkConnectivityEvent event;
+
+  for (const auto& [portID, connectivityDelta] : port2ConnectivityDelta) {
+    event.port2ConnectivityDelta()[portID] = connectivityDelta;
+  }
+
+  multiswitch::LinkChangeEvent changeEvent;
+  changeEvent.linkConnectivityEvents() = event;
+  linkChangeEventSinkClient_->enqueue(std::move(changeEvent));
+}
+
 void SplitAgentThriftSyncer::l2LearningUpdateReceived(
     L2Entry l2Entry,
     L2EntryUpdateType l2EntryUpdateType) {
