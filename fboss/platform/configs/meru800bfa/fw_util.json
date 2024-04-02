@@ -15,72 +15,63 @@
       "getVersionCmd": "cpu_cpld_ver=$((`cat /run/devmap/fpgas/MERU_SCM_CPLD/fpga_ver`));cpu_cpld_subver=$((`cat /run/devmap/fpgas/MERU_SCM_CPLD/fpga_sub_ver`));echo $cpu_cpld_ver'.'$cpu_cpld_subver",
       "priority": 4,
       "upgradeCmd": "cpu_cpld_filename=$(head -n 1 /home/scm_cpld_filename.txt);jam -aprogram -fmeru_cpu_cpld -v $cpu_cpld_filename",
-      "postUpgradeCmd": "rm /home/meru_meta_eeprom",
-      "sha1sum": "c70d2d76113142ae7c598de973b780c3f315d8df"
+      "postUpgradeCmd": "rm /home/meru_meta_eeprom"
     },
     "smb_cpld": {
       "preUpgradeCmd": "echo 1 > /run/devmap/fpgas/MERU_SCM_CPLD/switch_jtag_enable",
       "getVersionCmd": "smb_cpld_ver=$((`head -1 /run/devmap/cplds/MERU800BFA_SMB_CPLD/cpld_ver`));smb_cpld_subver=$((`head -1 /run/devmap/cplds/MERU800BFA_SMB_CPLD/cpld_sub_ver`));echo $smb_cpld_ver'.'$smb_cpld_subver",
       "priority": 3,
       "upgradeCmd": "smb_cpld_filename=$(head -n 1 /home/smb_cpld_filename.txt);jam -aprogram -fmeru_switch_cpld -v $smb_cpld_filename",
-      "postUpgradeCmd": "rm /home/meru_meta_eeprom;sleep 30",
-      "sha1sum": "92b99f5f58cc5257d11ab11fb7de3a638cdf5190"
+      "postUpgradeCmd": "rm /home/meru_meta_eeprom;sleep 30"
     },
     "smb_fpga0": {
       "preUpgradeCmd": "printf '0:3FFFFF image' > /home/smb_fpga0_layout;modprobe spidev;fpga_spidev=$(echo $(ls /run/devmap/fpgas/MERU800BFA_SMB_FPGA0/*spi*/spi_master/spi* | grep spi*.*) | cut -c 4-);echo 'spidev' > /sys/bus/spi/devices/spi$fpga_spidev/driver_override;echo spi$fpga_spidev > /sys/bus/spi/drivers/spidev/bind;flashrom -p linux_spi:dev=/dev/spidev$fpga_spidev > /home/flashrom_output;(grep 'MX25U25635F' /home/flashrom_output && echo 'MX25U25635F' > /home/flash_chip_name) || (grep 'GD25LQ256D' /home/flashrom_output && echo 'GD25LQ256D' > /home/flash_chip_name) || echo 'NONE' > /home/flash_chip_name",
       "getVersionCmd": "smb_fpga0_ver=$((`cat /run/devmap/fpgas/MERU800BFA_SMB_FPGA0/fpga_ver`));smb_fpga0_subver=$((`cat /run/devmap/fpgas/MERU800BFA_SMB_FPGA0/fpga_sub_ver`));echo $smb_fpga0_ver'.'$smb_fpga0_subver",
       "priority": 2,
       "upgradeCmd": "smb_fpga0_binary_name=$(head -n 1 /home/smb_fpga0_filename.txt);fpga0_spidev=$(echo $(ls /run/devmap/fpgas/MERU800BFA_SMB_FPGA0/*spi*/spi_master/spi* | grep spi*.*) | cut -c 4-);chip=$(head -n 1 /home/flash_chip_name);if [ $chip = 'NONE' ];then cmd_chip_option='' cmd_chip_name='';else cmd_chip_option='-c' cmd_chip_name=$chip;fi;flashrom -p linux_spi:dev=/dev/spidev$fpga0_spidev $cmd_chip_option $cmd_chip_name -l /home/smb_fpga0_layout -i image -w $smb_fpga0_binary_name",
-      "postUpgradeCmd": "rm /home/smb_fpga0_layout;rm /home/meru_meta_eeprom;rm /home/flash_chip_name",
-      "sha1sum": "ea3f463ca61a98a77797a12887403d513f3748c8"
+      "postUpgradeCmd": "rm /home/smb_fpga0_layout;rm /home/meru_meta_eeprom;rm /home/flash_chip_name"
     },
     "smb_fpga1": {
       "preUpgradeCmd": "printf '0:3FFFFF image' > /home/smb_fpga1_layout;modprobe spidev;fpga_spidev=$(echo $(ls /run/devmap/fpgas/MERU800BFA_SMB_FPGA1/*spi*/spi_master/spi* | grep spi*.*) | cut -c 4-);echo 'spidev' > /sys/bus/spi/devices/spi$fpga_spidev/driver_override;echo spi$fpga_spidev > /sys/bus/spi/drivers/spidev/bind;flashrom -p linux_spi:dev=/dev/spidev$fpga_spidev > /home/flashrom_output;(grep 'MX25U25635F' /home/flashrom_output && echo 'MX25U25635F' > /home/flash_chip_name) || (grep 'GD25LQ256D' /home/flashrom_output && echo 'GD25LQ256D' > /home/flash_chip_name) || echo 'NONE' > /home/flash_chip_name",
       "getVersionCmd": "smb_fpga1_ver=$((`cat /run/devmap/fpgas/MERU800BFA_SMB_FPGA1/fpga_ver`));smb_fpga1_subver=$((`cat /run/devmap/fpgas/MERU800BFA_SMB_FPGA1/fpga_sub_ver`));echo $smb_fpga1_ver'.'$smb_fpga1_subver",
       "priority": 2,
       "upgradeCmd": "smb_fpga1_binary_name=$(head -n 1 /home/smb_fpga1_filename.txt);fpga1_spidev=$(echo $(ls /run/devmap/fpgas/MERU800BFA_SMB_FPGA1/*spi*/spi_master/spi* | grep spi*.*) | cut -c 4-);chip=$(head -n 1 /home/flash_chip_name);if [ $chip = 'NONE' ];then cmd_chip_option='' cmd_chip_name='';else cmd_chip_option='-c' cmd_chip_name=$chip;fi;flashrom -p linux_spi:dev=/dev/spidev$fpga1_spidev $cmd_chip_option $cmd_chip_name -l /home/smb_fpga1_layout -i image -w $smb_fpga1_binary_name",
-      "postUpgradeCmd": "rm /home/smb_fpga1_layout;rm /home/meru_meta_eeprom;rm /home/flash_chip_name",
-      "sha1sum": "796ee8419214beb9821782bf34444b5cdb505e91"
+      "postUpgradeCmd": "rm /home/smb_fpga1_layout;rm /home/meru_meta_eeprom;rm /home/flash_chip_name"
     },
     "smb_fpga2": {
       "preUpgradeCmd": "printf '0:3FFFFF image' > /home/smb_fpga2_layout;modprobe spidev;fpga_spidev=$(echo $(ls /run/devmap/fpgas/MERU800BFA_SMB_FPGA2/*spi*/spi_master/spi* | grep spi*.*) | cut -c 4-);echo 'spidev' > /sys/bus/spi/devices/spi$fpga_spidev/driver_override;echo spi$fpga_spidev > /sys/bus/spi/drivers/spidev/bind;flashrom -p linux_spi:dev=/dev/spidev$fpga_spidev > /home/flashrom_output;(grep 'MX25U25635F' /home/flashrom_output && echo 'MX25U25635F' > /home/flash_chip_name) || (grep 'GD25LQ256D' /home/flashrom_output && echo 'GD25LQ256D' > /home/flash_chip_name) || echo 'NONE' > /home/flash_chip_name",
       "getVersionCmd": "smb_fpga2_ver=$((`cat /run/devmap/fpgas/MERU800BFA_SMB_FPGA2/fpga_ver`));smb_fpga2_subver=$((`cat /run/devmap/fpgas/MERU800BFA_SMB_FPGA2/fpga_sub_ver`));echo $smb_fpga2_ver'.'$smb_fpga2_subver",
       "priority": 2,
       "upgradeCmd": "smb_fpga2_binary_name=$(head -n 1 /home/smb_fpga2_filename.txt);fpga2_spidev=$(echo $(ls /run/devmap/fpgas/MERU800BFA_SMB_FPGA2/*spi*/spi_master/spi* | grep spi*.*) | cut -c 4-);chip=$(head -n 1 /home/flash_chip_name);if [ $chip = 'NONE' ];then cmd_chip_option='' cmd_chip_name='';else cmd_chip_option='-c' cmd_chip_name=$chip;fi;flashrom -p linux_spi:dev=/dev/spidev$fpga2_spidev $cmd_chip_option $cmd_chip_name -l /home/smb_fpga2_layout -i image -w $smb_fpga2_binary_name",
-      "postUpgradeCmd": "rm /home/smb_fpga2_layout;rm /home/meru_meta_eeprom;rm /home/flash_chip_name",
-      "sha1sum": "69e85b441d62fc986dde62705cb5cfca3ff758cb"
+      "postUpgradeCmd": "rm /home/smb_fpga2_layout;rm /home/meru_meta_eeprom;rm /home/flash_chip_name"
     },
     "smb_fpga3": {
       "preUpgradeCmd": "printf '0:3FFFFF image' > /home/smb_fpga3_layout;modprobe spidev;fpga_spidev=$(echo $(ls /run/devmap/fpgas/MERU800BFA_SMB_FPGA3/*spi*/spi_master/spi* | grep spi*.*) | cut -c 4-);echo 'spidev' > /sys/bus/spi/devices/spi$fpga_spidev/driver_override;echo spi$fpga_spidev > /sys/bus/spi/drivers/spidev/bind;flashrom -p linux_spi:dev=/dev/spidev$fpga_spidev > /home/flashrom_output;(grep 'MX25U25635F' /home/flashrom_output && echo 'MX25U25635F' > /home/flash_chip_name) || (grep 'GD25LQ256D' /home/flashrom_output && echo 'GD25LQ256D' > /home/flash_chip_name) || echo 'NONE' > /home/flash_chip_name",
       "getVersionCmd": "smb_fpga3_ver=$((`cat /run/devmap/fpgas/MERU800BFA_SMB_FPGA3/fpga_ver`));smb_fpga3_subver=$((`cat /run/devmap/fpgas/MERU800BFA_SMB_FPGA3/fpga_sub_ver`));echo $smb_fpga3_ver'.'$smb_fpga3_subver",
       "priority": 2,
       "upgradeCmd": "smb_fpga3_binary_name=$(head -n 1 /home/smb_fpga3_filename.txt);fpga3_spidev=$(echo $(ls /run/devmap/fpgas/MERU800BFA_SMB_FPGA3/*spi*/spi_master/spi* | grep spi*.*) | cut -c 4-);chip=$(head -n 1 /home/flash_chip_name);if [ $chip = 'NONE' ];then cmd_chip_option='' cmd_chip_name='';else cmd_chip_option='-c' cmd_chip_name=$chip;fi;flashrom -p linux_spi:dev=/dev/spidev$fpga3_spidev $cmd_chip_option $cmd_chip_name -l /home/smb_fpga3_layout -i image -w $smb_fpga3_binary_name",
-      "postUpgradeCmd": "rm /home/smb_fpga3_layout; rm /home/meru_meta_eeprom; rm /home/flash_chip_name",
-      "sha1sum": "e21d7e2135ab9fed60ec1aec8e04b84db70943ba"
+      "postUpgradeCmd": "rm /home/smb_fpga3_layout; rm /home/meru_meta_eeprom; rm /home/flash_chip_name"
     },
     "fan_cpld0": {
       "preUpgradeCmd": "echo 1 > /run/devmap/fpgas/MERU_SCM_CPLD/switch_jtag_enable && echo 5 > /run/devmap/cplds/MERU800BFA_SMB_CPLD/jtag_mux_sel",
       "getVersionCmd": "fan_cpld_ver=$((`cat /run/devmap/cplds/FAN0_CPLD/hwmon/hwmon*/cpld_ver`));fan_cpld_subver=$((`cat /run/devmap/cplds/FAN0_CPLD/hwmon/hwmon*/cpld_sub_ver`));echo $fan_cpld_ver'.'$fan_cpld_subver",
       "priority": 1,
       "upgradeCmd": "fan_cpld_filename=$(head -n 1 /home/fan_cpld0_filename.txt);jam -aprogram -fmeru_fan_cpld -v $fan_cpld_filename",
-      "postUpgradeCmd": "rm /home/meru_meta_eeprom",
-      "sha1sum": "6aec16e478c992aaa7c309b3d2a8a3b8f77ba07e"
+      "postUpgradeCmd": "rm /home/meru_meta_eeprom"
     },
     "fan_cpld1": {
       "preUpgradeCmd": "echo 1 > /run/devmap/fpgas/MERU_SCM_CPLD/switch_jtag_enable && echo 6 > /run/devmap/cplds/MERU800BFA_SMB_CPLD/jtag_mux_sel",
       "getVersionCmd": "fan_cpld_ver=$((`cat /run/devmap/cplds/FAN1_CPLD/hwmon/hwmon*/cpld_ver`));fan_cpld_subver=$((`cat /run/devmap/cplds/FAN1_CPLD/hwmon/hwmon*/cpld_sub_ver`));echo $fan_cpld_ver'.'$fan_cpld_subver",
       "priority": 1,
       "upgradeCmd": "fan_cpld_filename=$(head -n 1 /home/fan_cpld1_filename.txt);jam -aprogram -fmeru_fan_cpld -v $fan_cpld_filename",
-      "postUpgradeCmd": "rm /home/meru_meta_eeprom",
-      "sha1sum": "6aec16e478c992aaa7c309b3d2a8a3b8f77ba07e"
+      "postUpgradeCmd": "rm /home/meru_meta_eeprom"
     },
     "fan_cpld2": {
       "preUpgradeCmd": "echo 1 > /run/devmap/fpgas/MERU_SCM_CPLD/switch_jtag_enable && echo 7 > /run/devmap/cplds/MERU800BFA_SMB_CPLD/jtag_mux_sel",
       "getVersionCmd": "fan_cpld_ver=$((`cat /run/devmap/cplds/FAN2_CPLD/hwmon/hwmon*/cpld_ver`));fan_cpld_subver=$((`cat /run/devmap/cplds/FAN2_CPLD/hwmon/hwmon*/cpld_sub_ver`));echo $fan_cpld_ver'.'$fan_cpld_subver",
       "priority": 1,
       "upgradeCmd": "fan_cpld_filename=$(head -n 1 /home/fan_cpld2_filename.txt);jam -aprogram -fmeru_fan_cpld -v $fan_cpld_filename",
-      "postUpgradeCmd": "rm /home/meru_meta_eeprom",
-      "sha1sum": "6aec16e478c992aaa7c309b3d2a8a3b8f77ba07e"
+      "postUpgradeCmd": "rm /home/meru_meta_eeprom"
     }
   }
 }
