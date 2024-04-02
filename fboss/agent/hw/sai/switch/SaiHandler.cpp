@@ -61,11 +61,13 @@ void SaiHandler::diagCmd(
 }
 
 SwitchRunState SaiHandler::getHwSwitchRunState() {
+  auto log = LOG_THRIFT_CALL(DBG1);
   return hw_->getRunState();
 }
 
 void SaiHandler::getHwFabricReachability(
     std::map<::std::int64_t, ::facebook::fboss::FabricEndpoint>& reachability) {
+  auto log = LOG_THRIFT_CALL(DBG1);
   hw_->ensureVoqOrFabric(__func__);
   auto reachabilityInfo = hw_->getFabricConnectivity();
   for (auto&& entry : reachabilityInfo) {
@@ -75,6 +77,7 @@ void SaiHandler::getHwFabricReachability(
 
 void SaiHandler::getHwFabricConnectivity(
     std::map<::std::string, ::facebook::fboss::FabricEndpoint>& connectivity) {
+  auto log = LOG_THRIFT_CALL(DBG1);
   hw_->ensureVoqOrFabric(__func__);
   auto connectivityInfo = hw_->getFabricConnectivity();
   for (auto& entry : connectivityInfo) {
@@ -88,6 +91,7 @@ void SaiHandler::getHwFabricConnectivity(
 void SaiHandler::getHwSwitchReachability(
     std::map<::std::string, std::vector<::std::string>>& reachability,
     std::unique_ptr<::std::vector<::std::string>> switchNames) {
+  auto log = LOG_THRIFT_CALL(DBG1, *switchNames);
   hw_->ensureVoqOrFabric(__func__);
   if (switchNames->empty()) {
     throw FbossError("Empty switch name list input for getSwitchReachability.");
@@ -149,6 +153,7 @@ void SaiHandler::getVirtualDeviceToConnectionGroups(
         int64_t,
         std::map<int64_t, std::vector<facebook::fboss::RemoteEndpoint>>>&
         virtualDevice2ConnectionGroups) {
+  auto log = LOG_THRIFT_CALL(DBG1);
   auto deviceToConnectionGroups =
       hw_->getVirtualDeviceToRemoteConnectionGroups();
   // Convert to format required by thrift handler
