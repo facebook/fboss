@@ -35,7 +35,7 @@ class AgentJumboFramesTest : public AgentHwTest {
  private:
   std::vector<production_features::ProductionFeature>
   getProductionFeaturesVerified() const override {
-    return {};
+    return {production_features::ProductionFeature::JUMBO_FRAMES};
   }
 
   void sendPkt(int payloadSize) {
