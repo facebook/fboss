@@ -25,8 +25,8 @@ using namespace ::testing;
 
 class QsfpModuleTest : public TransceiverManagerTestHelper {
  public:
-  TransceiverPortState fortyGState{kPortName, 0, cfg::PortSpeed::FORTYG};
-  TransceiverPortState hundredGState{kPortName, 0, cfg::PortSpeed::HUNDREDG};
+  TransceiverPortState fortyGState{kPortName, 0, cfg::PortSpeed::FORTYG, 4};
+  TransceiverPortState hundredGState{kPortName, 0, cfg::PortSpeed::HUNDREDG, 4};
 
   void SetUp() override {
     TransceiverManagerTestHelper::SetUp();
@@ -90,8 +90,9 @@ TEST_F(QsfpModuleTest, setRateSelect) {
     InSequence a;
     // Unsupported
     EXPECT_CALL(*transImpl_, writeTransceiver(_, _, _)).Times(0);
-    TransceiverPortState fortyGState{kPortName, 0, cfg::PortSpeed::FORTYG};
-    TransceiverPortState hundredGState{kPortName, 0, cfg::PortSpeed::HUNDREDG};
+    TransceiverPortState fortyGState{kPortName, 0, cfg::PortSpeed::FORTYG, 4};
+    TransceiverPortState hundredGState{
+        kPortName, 0, cfg::PortSpeed::HUNDREDG, 4};
     qsfp_->customizeTransceiver(fortyGState);
     qsfp_->customizeTransceiver(hundredGState);
 
@@ -434,6 +435,7 @@ TEST_F(QsfpModuleTest, verifyLaneToPortMapping) {
   portState.portName = "eth1/1/1";
   portState.startHostLane = 0;
   portState.speed = cfg::PortSpeed::FIFTYG;
+  portState.numHostLanes = 2;
   programTcvrState.ports.emplace(portState.portName, portState);
   qsfp_->programTransceiver(programTcvrState, false /* needResetDataPath */);
   qsfp_->useActualGetTransceiverInfo();
@@ -445,6 +447,7 @@ TEST_F(QsfpModuleTest, verifyLaneToPortMapping) {
   portState.portName = "eth1/1/3";
   portState.startHostLane = 2;
   portState.speed = cfg::PortSpeed::FIFTYG;
+  portState.numHostLanes = 2;
   programTcvrState.ports.emplace(portState.portName, portState);
   qsfp_->programTransceiver(programTcvrState, false /* needResetDataPath */);
   expectedMap = {{"eth1/1/1", {0, 1}}, {"eth1/1/3", {2, 3}}};
@@ -468,14 +471,17 @@ TEST_F(QsfpModuleTest, verifyLaneToPortMapping) {
   portState.portName = "eth1/1/1";
   portState.startHostLane = 0;
   portState.speed = cfg::PortSpeed::TWENTYFIVEG;
+  portState.numHostLanes = 1;
   programTcvrState.ports.emplace(portState.portName, portState);
   portState.portName = "eth1/1/2";
   portState.startHostLane = 1;
   portState.speed = cfg::PortSpeed::TWENTYFIVEG;
+  portState.numHostLanes = 1;
   programTcvrState.ports.emplace(portState.portName, portState);
   portState.portName = "eth1/1/3";
   portState.startHostLane = 2;
   portState.speed = cfg::PortSpeed::FIFTYG;
+  portState.numHostLanes = 2;
   programTcvrState.ports.emplace(portState.portName, portState);
   qsfp_->programTransceiver(programTcvrState, false /* needResetDataPath */);
   expectedMap = {{"eth1/1/1", {0}}, {"eth1/1/2", {1}}, {"eth1/1/3", {2, 3}}};

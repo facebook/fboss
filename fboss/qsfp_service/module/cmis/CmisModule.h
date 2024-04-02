@@ -197,7 +197,10 @@ class CmisModule : public QsfpModule {
   /*
    * Set appropriate application code for PortSpeed, if supported
    */
-  void setApplicationCodeLocked(cfg::PortSpeed speed, uint8_t startHostLane);
+  void setApplicationCodeLocked(
+      cfg::PortSpeed speed,
+      uint8_t startHostLane,
+      uint8_t numHostLanesForPort);
   /*
    * returns individual sensor values after scaling
    */

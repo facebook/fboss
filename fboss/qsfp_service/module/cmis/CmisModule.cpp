@@ -2003,7 +2003,8 @@ void CmisModule::updateQsfpData(bool allPages) {
 
 void CmisModule::setApplicationCodeLocked(
     cfg::PortSpeed speed,
-    uint8_t startHostLane) {
+    uint8_t startHostLane,
+    uint8_t numHostLanesForPort) {
   QSFP_LOG(INFO, this) << folly::sformat(
       "Trying to set application code for speed {} on startHostLane {}",
       apache::thrift::util::enumNameSafe(speed),
@@ -2081,6 +2082,11 @@ void CmisModule::setApplicationCodeLocked(
     }
 
     auto numHostLanes = capability->hostLaneCount;
+    if (speed == cfg::PortSpeed::HUNDREDG &&
+        numHostLanesForPort != numHostLanes) {
+      continue;
+    }
+
     uint8_t hostLaneMask = laneMask(startHostLane, numHostLanes);
 
     auto setApplicationSelectCode = [this,
@@ -2379,6 +2385,7 @@ void CmisModule::customizeTransceiverLocked(TransceiverPortState& portState) {
   auto& portName = portState.portName;
   auto speed = portState.speed;
   auto startHostLane = portState.startHostLane;
+  auto numHostLanes = portState.numHostLanes;
   QSFP_LOG(INFO, this) << folly::sformat(
       "customizeTransceiverLocked: PortName {}, Speed {}, StartHostLane {}",
       portName,
@@ -2393,7 +2400,7 @@ void CmisModule::customizeTransceiverLocked(TransceiverPortState& portState) {
         getPowerControlValue(false /* readFromCache */));
 
     if (speed != cfg::PortSpeed::DEFAULT) {
-      setApplicationCodeLocked(speed, startHostLane);
+      setApplicationCodeLocked(speed, startHostLane, numHostLanes);
     }
 
     // For 200G-FR4 module operating in 2x50G mode, disable squelch on all lanes

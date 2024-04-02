@@ -1086,6 +1086,7 @@ void TransceiverManager::programTransceiver(
     portState.portName = *portName;
     portState.startHostLane = tcvrStartLane;
     portState.speed = speed;
+    portState.numHostLanes = tcvrHostLanes.size();
     programTcvrState.ports.emplace(*portName, portState);
   }
 

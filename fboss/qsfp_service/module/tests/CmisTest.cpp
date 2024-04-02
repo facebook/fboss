@@ -768,10 +768,12 @@ TEST_F(CmisTest, cmis2x400GFr4TransceiverVdmTest) {
   portState.portName = "eth1/1/1";
   portState.startHostLane = 0;
   portState.speed = cfg::PortSpeed::FOURHUNDREDG;
+  portState.numHostLanes = 4;
   programTcvrState.ports.emplace(portState.portName, portState);
   portState.portName = "eth1/1/5";
   portState.startHostLane = 4;
   portState.speed = cfg::PortSpeed::FOURHUNDREDG;
+  portState.numHostLanes = 4;
   programTcvrState.ports.emplace(portState.portName, portState);
 
   xcvr->programTransceiver(programTcvrState, false);

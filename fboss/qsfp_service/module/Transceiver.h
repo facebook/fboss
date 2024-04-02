@@ -51,6 +51,7 @@ struct TransceiverPortState {
   std::string portName;
   uint8_t startHostLane;
   cfg::PortSpeed speed = cfg::PortSpeed::DEFAULT;
+  uint8_t numHostLanes;
 
   bool operator==(const TransceiverPortState& other) const {
     return speed == other.speed && portName == other.portName &&
