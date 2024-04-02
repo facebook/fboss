@@ -87,9 +87,6 @@ struct HwSwitchStats {
 }
 
 service MultiSwitchCtrl {
-  /* notify link active event through sink */
-  sink<LinkActiveEvent, bool> notifyLinkActiveEvent(1: i64 switchId);
-
   /* notify fdb event through sink */
   sink<FdbEvent, bool> notifyFdbEvent(1: i64 switchId);
 
