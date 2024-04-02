@@ -30,8 +30,8 @@ class HwEcmpDataPlaneTestUtil {
   void pumpTraffic(int ecmpWidth, bool loopThroughFrontPanel);
   void unresolveNextHop(unsigned int id);
   void resolveNextHopsandClearStats(unsigned int ecmpWidth);
-  void shrinkECMP(unsigned int ecmpWidth);
-  void expandECMP(unsigned int ecmpWidth);
+  void shrinkECMP(unsigned int ecmpWidth, bool clearStats = true);
+  void expandECMP(unsigned int ecmpWidth, bool clearStats = true);
   EcmpSetupHelperT* ecmpSetupHelper() const {
     return helper_.get();
   }
@@ -46,6 +46,23 @@ class HwEcmpDataPlaneTestUtil {
       const std::vector<PortDescriptor>& portDescs,
       const std::vector<NextHopWeight>& weights,
       uint8_t deviation);
+
+  void programLoadBalancer(const cfg::LoadBalancer& lb);
+
+  void programRoutesAndLoadBalancer(
+      int ecmpWidth,
+      const std::vector<NextHopWeight>& weights,
+      const cfg::LoadBalancer& lb) {
+    programRoutes(ecmpWidth, weights);
+    programLoadBalancer(lb);
+  }
+
+  void pumpTrafficPortAndVerifyLoadBalanced(
+      unsigned int ecmpWidth,
+      bool loopThroughFrontPanel,
+      const std::vector<NextHopWeight>& weights,
+      int deviation,
+      bool loadBalanceExpected);
 
  private:
   virtual void pumpTrafficThroughPort(std::optional<PortID> port) = 0;

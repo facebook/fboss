@@ -53,16 +53,24 @@ void HwEcmpDataPlaneTestUtil<EcmpSetupHelperT>::resolveNextHopsandClearStats(
 
 template <typename EcmpSetupHelperT>
 void HwEcmpDataPlaneTestUtil<EcmpSetupHelperT>::shrinkECMP(
-    unsigned int ecmpWidth) {
+    unsigned int ecmpWidth,
+    bool clearStats) {
   std::vector<PortID> ports = {helper_->nhop(ecmpWidth).portDesc.phyPortID()};
   ensemble_->getLinkToggler()->bringDownPorts(ports);
+  if (clearStats) {
+    resolveNextHopsandClearStats(ecmpWidth);
+  }
 }
 
 template <typename EcmpSetupHelperT>
 void HwEcmpDataPlaneTestUtil<EcmpSetupHelperT>::expandECMP(
-    unsigned int ecmpWidth) {
+    unsigned int ecmpWidth,
+    bool clearStats) {
   std::vector<PortID> ports = {helper_->nhop(ecmpWidth).portDesc.phyPortID()};
   ensemble_->getLinkToggler()->bringUpPorts(ports);
+  if (clearStats) {
+    resolveNextHopsandClearStats(ecmpWidth);
+  }
 }
 
 template <typename EcmpSetupHelperT>
@@ -88,6 +96,58 @@ bool HwEcmpDataPlaneTestUtil<EcmpSetupHelperT>::isLoadBalanced(
       },
       deviation);
   return rc;
+}
+
+template <typename AddrT>
+void HwEcmpDataPlaneTestUtil<AddrT>::programLoadBalancer(
+    const cfg::LoadBalancer& lb) {
+  if (ensemble_->isSai()) {
+    // always program half lag hash for sai switches, see CS00012317640
+    ensemble_->applyNewState(
+        [this, lb](const std::shared_ptr<SwitchState>& state) {
+          return utility::addLoadBalancers(
+              ensemble_,
+              state,
+              {lb,
+               utility::getTrunkHalfHashConfig(
+                   *ensemble_->getHwAsicTable()->getHwAsic(SwitchID(0)))},
+              ensemble_->scopeResolver());
+        },
+        "program lb");
+  } else {
+    ensemble_->applyNewState(
+        [this, lb](const std::shared_ptr<SwitchState>& state) {
+          return utility::setLoadBalancer(
+              ensemble_, state, lb, ensemble_->scopeResolver());
+        },
+        "program lb");
+  }
+}
+
+template <typename AddrT>
+void HwEcmpDataPlaneTestUtil<AddrT>::pumpTrafficPortAndVerifyLoadBalanced(
+    unsigned int ecmpWidth,
+    bool loopThroughFrontPanel,
+    const std::vector<NextHopWeight>& weights,
+    int deviation,
+    bool loadBalanceExpected) {
+  utility::pumpTrafficAndVerifyLoadBalanced(
+      [=, this]() { this->pumpTraffic(ecmpWidth, loopThroughFrontPanel); },
+      [=, this]() {
+        auto helper = this->ecmpSetupHelper();
+        auto portDescs = helper->getPortDescs(ecmpWidth);
+        auto ports = std::make_unique<std::vector<int32_t>>();
+        for (const auto& portDesc : portDescs) {
+          if (portDesc.isPhysicalPort()) {
+            ports->push_back(portDesc.phyPortID());
+          }
+        }
+        ensemble_->clearPortStats(ports);
+      },
+      [=, this]() {
+        return this->isLoadBalanced(ecmpWidth, weights, deviation);
+      },
+      loadBalanceExpected);
 }
 
 template <typename AddrT>

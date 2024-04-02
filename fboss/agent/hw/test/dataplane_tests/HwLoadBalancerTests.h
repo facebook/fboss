@@ -161,72 +161,7 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
     return cfg;
   }
 
-  void programECMP(
-      unsigned int ecmpWidth,
-      const cfg::LoadBalancer& loadBalancer,
-      const std::vector<NextHopWeight>& weights) {
-    getEcmpSetupHelper()->programRoutes(ecmpWidth, weights);
-    if (getHwSwitchEnsemble()->isSai()) {
-      // always program half lag hash for sai switches, see CS00012317640
-      applyNewState(utility::addLoadBalancers(
-          getHwSwitchEnsemble(),
-          getProgrammedState(),
-          {loadBalancer,
-           utility::getTrunkHalfHashConfig(*getPlatform()->getAsic())},
-          scopeResolver()));
-    } else {
-      applyNewState(utility::setLoadBalancer(
-          getHwSwitchEnsemble(),
-          getProgrammedState(),
-          loadBalancer,
-          scopeResolver()));
-    }
-  }
-
   virtual std::unique_ptr<EcmpTestHelperT> getECMPHelper() = 0;
-
-  void pumpTrafficPortAndVerifyLoadBalanced(
-      unsigned int ecmpWidth,
-      const std::vector<NextHopWeight>& weights,
-      bool loopThroughFrontPanel,
-      uint8_t deviation,
-      bool loadBalanceExpected) {
-    utility::pumpTrafficAndVerifyLoadBalanced(
-        [=, this]() { helper_->pumpTraffic(ecmpWidth, loopThroughFrontPanel); },
-        [=, this]() {
-          auto helper = helper_->ecmpSetupHelper();
-          auto portDescs = helper->getPortDescs(ecmpWidth);
-          auto ports = std::make_unique<std::vector<int32_t>>();
-          for (auto portDesc : portDescs) {
-            if (portDesc.isPhysicalPort()) {
-              ports->push_back(portDesc.phyPortID());
-            }
-          }
-          getHwSwitch()->clearPortStats(ports);
-        },
-        [=, this]() {
-          return helper_->isLoadBalanced(ecmpWidth, weights, deviation);
-        },
-        loadBalanceExpected);
-  }
-
-  void resolveNextHopsandClearStats(unsigned int ecmpWidth) {
-    helper_->resolveNextHopsandClearStats(ecmpWidth);
-  }
-
-  void unresolveNextHop(unsigned int id) {
-    helper_->unresolveNextHop(id);
-  }
-
-  void shrinkECMP(unsigned int ecmpWidth) {
-    helper_->shrinkECMP(ecmpWidth);
-    resolveNextHopsandClearStats(ecmpWidth);
-  }
-
-  void expandECMP(unsigned int ecmpWidth) {
-    helper_->expandECMP(ecmpWidth);
-    resolveNextHopsandClearStats(ecmpWidth);
-  }
 
  protected:
   virtual bool skipTest() const {
@@ -251,12 +186,14 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
 #endif
       return;
     }
-    auto setup = [=, this]() { programECMP(ecmpWidth, loadBalancer, weights); };
+    auto setup = [=, this]() {
+      helper_->programRoutesAndLoadBalancer(ecmpWidth, weights, loadBalancer);
+    };
     auto verify = [=, this]() {
-      pumpTrafficPortAndVerifyLoadBalanced(
+      helper_->pumpTrafficPortAndVerifyLoadBalanced(
           ecmpWidth,
-          weights,
           loopThroughFrontPanel,
+          weights,
           deviation,
           loadBalanceExpected);
     };
@@ -275,10 +212,10 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
         XLOG(DBG3) << "setting ECMP Member Status: ";
         utility::setEcmpMemberStatus(getHwSwitch());
         loadBalanceExpected = true;
-        pumpTrafficPortAndVerifyLoadBalanced(
+        helper_->pumpTrafficPortAndVerifyLoadBalanced(
             ecmpWidth,
-            weights,
             loopThroughFrontPanel,
+            weights,
             deviation,
             loadBalanceExpected);
         auto l3EcmpDlbFailPackets =
@@ -304,30 +241,32 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
     }
     unsigned int minLinksLoadbalanceTest = 1;
     auto setup = [=, this]() {
-      programECMP(ecmpWidth, loadBalancer, {} /*weights*/);
+      helper_->programRoutesAndLoadBalancer(
+          ecmpWidth, {} /*weights*/, loadBalancer);
     };
     auto verify = [=, this]() {
       unsigned int width = ecmpWidth;
 
       while (width > minLinksLoadbalanceTest) {
         width--;
-        shrinkECMP(width);
-        pumpTrafficPortAndVerifyLoadBalanced(
+        helper_->shrinkECMP(width);
+
+        helper_->pumpTrafficPortAndVerifyLoadBalanced(
             width,
+            false, /*loopThroughFrontPanel*/
             {}, /*weights*/
-            false /*loopThroughFrontPanel*/,
             deviation,
             true);
         // Now that we are done checking, unresolve the shrunk next hop
-        unresolveNextHop(width);
+        helper_->unresolveNextHop(width);
       }
 
       while (width < ecmpWidth) {
-        expandECMP(width);
-        pumpTrafficPortAndVerifyLoadBalanced(
+        helper_->expandECMP(width);
+        helper_->pumpTrafficPortAndVerifyLoadBalanced(
             width,
+            false, /*loopThroughFrontPanel*/
             {}, /*weights*/
-            false /*loopThroughFrontPanel*/,
             deviation,
             true);
         width++;
@@ -353,7 +292,9 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
 #endif
       return;
     }
-    auto setup = [=, this]() { programECMP(ecmpWidth, loadBalancer, weights); };
+    auto setup = [=, this]() {
+      helper_->programRoutesAndLoadBalancer(ecmpWidth, weights, loadBalancer);
+    };
     auto verify = [=, this]() {
       // DLB engine can not detect port member hardware status
       // when in "phy" loopback mode.
@@ -362,10 +303,10 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
         XLOG(DBG3) << "setting ECMP Member Status: ";
         utility::setEcmpMemberStatus(getHwSwitch());
       }
-      pumpTrafficPortAndVerifyLoadBalanced(
+      helper_->pumpTrafficPortAndVerifyLoadBalanced(
           ecmpWidth,
-          weights,
           loopThroughFrontPanel,
+          weights,
           deviation,
           loadBalanceExpected);
     };
@@ -385,10 +326,10 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
       // all the traffic will move via single ECMP path.
       // Hence set the loadBalanceExpected as false.
       loadBalanceExpected = false;
-      pumpTrafficPortAndVerifyLoadBalanced(
+      helper_->pumpTrafficPortAndVerifyLoadBalanced(
           ecmpWidth,
-          weights,
           loopThroughFrontPanel,
+          weights,
           deviation,
           loadBalanceExpected);
     };
