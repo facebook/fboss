@@ -1403,7 +1403,6 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet()
         cfg::AclTableQualifier::DST_MAC,
         cfg::AclTableQualifier::IP_TYPE,
         cfg::AclTableQualifier::TTL,
-        cfg::AclTableQualifier::OUTER_VLAN,
         cfg::AclTableQualifier::LOOKUP_CLASS_L2,
         cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR,
         cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE};

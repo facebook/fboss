@@ -494,10 +494,6 @@ TYPED_TEST(HwAclCounterTest, VerifyCounterBumpOnL4DstportHitFrontPanel) {
       true /* front panel port */,
       {AclType::L4_DST_PORT});
 }
-TYPED_TEST(HwAclCounterTest, VerifyCounterBumpOnVlanHitFrontPanel) {
-  this->counterBumpOnHitHelper(
-      true /* bump on hit */, true /* front panel port */, {AclType::VLAN});
-}
 // Verify that traffic originating on the CPU increments ACL counter.
 TYPED_TEST(HwAclCounterTest, VerifyCounterBumpOnTtlHitCpu) {
   this->counterBumpOnHitHelper(
@@ -540,10 +536,6 @@ TYPED_TEST(HwAclCounterTest, VerifyAclPrioritySportHitFrontPanel) {
 
 TYPED_TEST(HwAclCounterTest, VerifyAclPriorityL4DstportHitFrontPanel) {
   this->aclPriorityTestHelperSrcPort();
-}
-
-TYPED_TEST(HwAclCounterTest, VerifyAclPriorityVlanHitFrontPanel) {
-  this->aclPriorityTestHelperVlan();
 }
 
 /*
