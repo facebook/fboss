@@ -1,94 +1,54 @@
 {
-  "fwConfigs" : {
-      "bios" : {
-          "preUpgradeCmd" : "echo 0 > /proc/sys/kernel/nmi_watchdog",
-          "getVersionCmd" : "dmidecode -s bios-version",
-          "priority" : 1,
-          "upgradeCmd" : "afulnx_64 $bios_filename /p /b /n /me /x /k /RLC:F",
-          "postUpgradeCmd" : "echo 1 > /proc/sys/kernel/nmi_watchdog"
-      },
-      "iob_fpga" : {
-          "getVersionCmd" : "iob_fpga_ver=$((`cat /sys/bus/pci/devices/0000:17:00.0/fpga_ver`));echo $iob_fpga_ver",
-          "priority" : 2,
-          "upgradeCmd" : "flashrom -p linux_spi:dev=/run/devmap/spi-busses/IOB_FlASH -w $iob_fpga_filename -c MT25QL128",
-          "verifyFwCmd" : "flashrom -p linux_spi:dev=/run/devmap/spi-busses/IOB_FlASH -v $iob_fpga_filename",
-          "readFwCmd" : "flashrom -p linux_spi:dev=/run/devmap/spi-busses/IOB_FlASH -r /tmp/iob_fpga_file_backup"
-      },
-      "dom_fpga" : {
-          "preUpgradeCmd" : "gpioset /run/devmap/gpio/GPIO_CHIP_0 9=1",
-          "getVersionCmd" : "dom_fpga_ver=$((`cat /sys/bus/pci/devices/0000:17:00.0/dom_fpga_ver`));echo $dom_fpga_ver",
-          "priority" : 3,
-          "upgradeCmd" : "flashrom -p linux_spi:dev=/run/devmap/spi-busses/DOM1_FLASH -w $dom_fpga_filename -c MT25QL128",
-          "verifyFwCmd" : "flashrom -p linux_spi:dev=/run/devmap/spi-busses/DOM1_FLASH -v $dom_fpga_filename",
-          "readFwCmd" : "flashrom -p linux_spi:dev=/run/devmap/spi-busses/DOM1_FLASH -r /tmp/dom_fpga_file_backup",
-          "postUpgradeCmd" : "gpioget /run/devmap/gpio/GPIO_CHIP_0 9"
-      },
-      "pwr_cpld" : {
-          "preUpgradeCmd" : "gpioset /run/devmap/gpio/GPIO_CHIP_0 3=1",
-          "getVersionCmd" : "pwr_cpld_ver=$((`i2cget -y -f 'fbiob iob_i2c_master.15 at 0xfb504f00' 0x60 0x01`));pwr_cpld_subver=$((`i2cget -y -f 'fbiob iob_i2c_master.15 at 0xfb504f00' 0x60 0x02`));echo $pwr_cpld_ver'.'$pwr_cpld_subver",
-          "priority" : 4,
-          "upgradeCmd" : "flashrom -p linux_spi:dev=/run/devmap/spi-busses/PWRCPLD_FLASH -w $pwr_cpld_filename -c W25X20",
-          "verifyFwCmd" : "flashrom -p linux_spi:dev=/run/devmap/spi-busses/PWRCPLD_FLASH -v $pwr_cpld_filename",
-          "readFwCmd" : "flashrom -p linux_spi:dev=/run/devmap/spi-busses/PWRCPLD_FLASH -r /tmp/pwr_cpld_file_backup",
-          "postUpgradeCmd" : "gpioget /run/devmap/gpio/GPIO_CHIP_0 3"
-      },
-      "smb_cpld_1" : {
-          "preUpgradeCmd" : "gpioset /run/devmap/gpio/GPIO_CHIP_0 1=1",
-          "getVersionCmd" : "smb_cpld_1_ver=$((`i2cget -y -f 'fbiob iob_i2c_master.2 at 0xfb504200' 0x35 0x01`));smb_cpld_1_subver=$((`i2cget -y -f 'fbiob iob_i2c_master.2 at 0xfb504200' 0x35 0x02`));echo $smb_cpld_1_ver'.'$smb_cpld_1_subver",
-          "priority" : 5,
-          "upgradeCmd" : "flashrom -p linux_spi:dev=/run/devmap/spi-busses/SMBCPLD1_FLASH -w $smb_cpld_1_filename -c W25X20",
-          "verifyFwCmd" : "flashrom -p linux_spi:dev=/run/devmap/spi-busses/SMBCPLD1_FLASH -v $smb_cpld_1_filename",
-          "readFwCmd" : "flashrom -p linux_spi:dev=/run/devmap/spi-busses/SMBCPLD1_FLASH -r /tmp/smb_cpld_1_file_backup",
-          "postUpgradeCmd" : "gpioget /run/devmap/gpio/GPIO_CHIP_0 1"
-      },
-      "smb_cpld_2" : {
-          "preUpgradeCmd" : "gpioset /run/devmap/gpio/GPIO_CHIP_0 7=1",
-          "getVersionCmd" : "smb_cpld_2_ver=$((`i2cget -y -f 'fbiob iob_i2c_master.9 at 0xfb504900' 0x33 0x01`));smb_cpld_2_subver=$((`i2cget -y -f 'fbiob iob_i2c_master.9 at 0xfb504900' 0x33 0x02`));echo $smb_cpld_2_ver'.'$smb_cpld_2_subver",
-          "priority" : 6,
-          "upgradeCmd" : "flashrom -p linux_spi:dev=/run/devmap/spi-busses/SMBCPLD2_FLASH -w $smb_cpld_2_filename -c W25X20",
-          "verifyFwCmd" : "flashrom -p linux_spi:dev=/run/devmap/spi-busses/SMBCPLD2_FLASH -v $smb_cpld_2_filename",
-          "readFwCmd" : "flashrom -p linux_spi:dev=/run/devmap/spi-busses/SMBCPLD2_FLASH -r /tmp/smb_cpld_2_file_backup",
-          "postUpgradeCmd" : "gpioget /run/devmap/gpio/GPIO_CHIP_0 7"
-      },
-      "i210" : {
-          "preUpgradeCmd" : "gpioset /run/devmap/gpio/GPIO_CHIP_0 2=1",
-          "getVersionCmd" : "eeupdate64e /nic=1 /adapterinfo|grep NVM",
-          "priority" : 7,
-          "upgradeCmd" : "flashrom -p linux_spi:dev=/run/devmap/spi-busses/I210_SCMCPLD_FLASH -w $i210_filename -c W25Q32JV",
-          "verifyFwCmd" : "flashrom -p linux_spi:dev=/run/devmap/spi-busses/I210_SCMCPLD_FLASH -v $i210_filename",
-          "readFwCmd" : "flashrom -p linux_spi:dev=/run/devmap/spi-busses/I210_SCMCPLD_FLASH -r /tmp/i210_file_backup",
-          "postUpgradeCmd" : "gpioget /run/devmap/gpio/GPIO_CHIP_0 2"
-      },
-      "j3_a" : {
-          "preUpgradeCmd" : "gpioset /run/devmap/gpio/GPIO_CHIP_0 8=1",
-          "priority" : 8,
-          "upgradeCmd" : "flashrom -p linux_spi:dev=/run/devmap/spi-busses/J3A_FLASH -w $j3_a_filename -c MT25QU256",
-          "verifyFwCmd" : "flashrom -p linux_spi:dev=/run/devmap/spi-busses/J3A_FLASH -v $j3_a_filename",
-          "readFwCmd" : "flashrom -p linux_spi:dev=/run/devmap/spi-busses/J3A_FLASH -r /tmp/j3_a_file_backup",
-          "postUpgradeCmd" : "gpioget /run/devmap/gpio/GPIO_CHIP_0 8"
-      },
-      "j3_b" : {
-          "preUpgradeCmd" : "gpioset /run/devmap/gpio/GPIO_CHIP_0 10=1",
-          "priority" : 9,
-          "upgradeCmd" : "flashrom -p linux_spi:dev=/run/devmap/spi-busses/J3B_FLASH -w $j3_b_filename -c MT25QU256",
-          "verifyFwCmd" : "flashrom -p linux_spi:dev=/run/devmap/spi-busses/J3B_FLASH -v $j3_b_filename",
-          "readFwCmd" : "flashrom -p linux_spi:dev=/run/devmap/spi-busses/J3B_FLASH -r /tmp/j3_b_file_backup",
-          "postUpgradeCmd" : "gpioget /run/devmap/gpio/GPIO_CHIP_0 10"
-      },
-      "smb_fru" : {
-          "priority" : 10,
-          "getVersionCmd" : "hexdump -C /run/devmap/eeprom/SMB_EEPROM -n 1 -s 2 | awk '{print $2}'",
-          "upgradeCmd" : "dd if=$smb_eeprom_filename of=/run/devmap/eeprom/SMB_EEPROM"
-      },
-      "brd_fru" : {
-          "priority" : 11,
-          "getVersionCmd" : "hexdump -C /run/devmap/eeprom/COME_EEPROM -n 1 -s 2 | awk '{print $2}'",
-          "upgradeCmd" : "dd if=$come_eeprom_filename of=/run/devmap/eeprom/COME_EEPROM"
-      },
-      "bmc_fru" : {
-          "priority" : 12,
-          "getVersionCmd" : "hexdump -C /run/devmap/eeprom/BMC_EEPROM -n 1 -s 2 | awk '{print $2}'",
-          "upgradeCmd" : "dd if=$bmc_eeprom_filename of=/run/devmap/eeprom/BMC_EEPROM"
-      }
- }
+    "fwConfigs": {
+        "bios": {
+            "preUpgradeCmd": "echo -e '\\x15' | dd of=/dev/port bs=1 seek=$((0xb2)) count=1",
+            "getVersionCmd": "dmidecode -s bios-version | sed 's/[^0-9]//g' ",
+            "priority": 1,
+            "upgradeCmd": "bios_filename=$(head -n 1 /home/bios_filename.txt);flashrom -p internal --ifd -i bios --noverify-all -w $bios_filename",
+            "postUpgradeCmd": "echo -e '\\x16' | dd of=/dev/port bs=1 seek=$((0xb2)) count=1"
+        },
+        "iob_fpga": {
+            "getVersionCmd": "iob_fpga_ver=$((`cat /run/devmap/fpgas/SMB_IOB_INFO_ROM/fpga_ver`));echo 0.$iob_fpga_ver",
+            "priority": 2,
+            "upgradeCmd": "iob_fpga_filename=$(head -n 1 /home/iob_fpga_filename.txt);flashrom -p linux_spi:dev=/run/devmap/flashes/SMB_SPI_MASTER_1_DEVICE_1;flashrom -p linux_spi:dev=/run/devmap/flashes/SMB_SPI_MASTER_1_DEVICE_1 -w $iob_fpga_filename -c N25Q128..3E",
+            "verifyFwCmd": "iob_fpga_filename=$(head -n 1 /home/iob_fpga_filename.txt);flashrom -p linux_spi:dev=/run/devmap/flashes/SMB_SPI_MASTER_1_DEVICE_1;flashrom -p linux_spi:dev=/run/devmap/flashes/SMB_SPI_MASTER_1_DEVICE_1 -v $iob_fpga_filename -c N25Q128..3E",
+            "readFwCmd": "flashrom -p linux_spi:dev=/run/devmap/flashes/SMB_SPI_MASTER_1_DEVICE_1;flashrom -p linux_spi:dev=/run/devmap/flashes/SMB_SPI_MASTER_1_DEVICE_1 -r /tmp/iob_fpga_file_backup -c N25Q128..3E"
+        },
+        "dom_fpga": {
+            "preUpgradeCmd": "gpioset $(gpiodetect | grep -E 'fbiob_pci.gpiochip.*' | awk '{print $1}') 9=1",
+            "getVersionCmd": "dom_fpga_ver=$((`cat /run/devmap/fpgas/SMB_DOM_INFO_ROM/fpga_ver`));echo 0.$dom_fpga_ver",
+            "priority": 3,
+            "upgradeCmd": "dom_fpga_filename=$(head -n 1 /home/dom_fpga_filename.txt);flashrom -p linux_spi:dev=/run/devmap/flashes/SMB_SPI_MASTER_2_DEVICE_1 -w $dom_fpga_filename -c N25Q128..3E",
+            "verifyFwCmd": "dom_fpga_filename=$(head -n 1 /home/dom_fpga_filename.txt);flashrom -p linux_spi:dev=/run/devmap/flashes/SMB_SPI_MASTER_2_DEVICE_1 -v $dom_fpga_filename -c N25Q128..3E",
+            "readFwCmd": "flashrom -p linux_spi:dev=/run/devmap/flashes/SMB_SPI_MASTER_2_DEVICE_1 -r /tmp/dom_fpga_file_backup -c N25Q128..3E",
+            "postUpgradeCmd": "gpioget $(gpiodetect | grep -E 'fbiob_pci.gpiochip.*' | awk '{print $1}') 9"
+        },
+        "pwr_cpld": {
+            "preUpgradeCmd": "gpioset $(gpiodetect | grep -E 'fbiob_pci.gpiochip.*' | awk '{print $1}') 3=1",
+            "getVersionCmd": "pwr_bus=$(readlink /run/devmap/i2c-busses/SMB_IOB_I2C_MASTER_16 | awk -F '-' '{print $2}');pwr_cpld_ver=$((`i2cget -y -f $pwr_bus 0x60 0x01`));pwr_cpld_subver=$((`i2cget -y -f $pwr_bus 0x60 0x02`));echo $pwr_cpld_ver'.'$pwr_cpld_subver",
+            "priority": 4,
+            "upgradeCmd": "pwr_cpld_filename=$(head -n 1 /home/pwr_cpld_filename.txt);flashrom -p linux_spi:dev=/run/devmap/flashes/SMB_SPI_MASTER_4_DEVICE_1 -w $pwr_cpld_filename -c W25X20",
+            "verifyFwCmd": "pwr_cpld_filename=$(head -n 1 /home/pwr_cpld_filename.txt);flashrom -p linux_spi:dev=/run/devmap/flashes/SMB_SPI_MASTER_4_DEVICE_1 -v $pwr_cpld_filename -c W25X20",
+            "readFwCmd": "flashrom -p linux_spi:dev=/run/devmap/flashes/SMB_SPI_MASTER_4_DEVICE_1 -r /tmp/pwr_cpld_file_backup -c W25X20",
+            "postUpgradeCmd": "gpioget $(gpiodetect | grep -E 'fbiob_pci.gpiochip.*' | awk '{print $1}') 3"
+        },
+        "smb_cpld1": {
+            "preUpgradeCmd": "gpioset $(gpiodetect | grep -E 'fbiob_pci.gpiochip.*' | awk '{print $1}') 1=1",
+            "getVersionCmd": "scm_bus=$(readlink /run/devmap/i2c-busses/SMB_IOB_I2C_MASTER_3 | awk -F '-' '{print $2}');scm_cpld_ver=$((`i2cget -y -f $scm_bus 0x35 0x01`));scm_cpld_subver=$((`i2cget -y -f $scm_bus 0x35 0x02`));echo $scm_cpld_ver'.'$scm_cpld_subver",
+            "priority": 5,
+            "upgradeCmd": "smb_cpld1_filename=$(head -n 1 /home/smb_cpld1_filename.txt);flashrom -p linux_spi:dev=/run/devmap/flashes/SMB_SPI_MASTER_7_DEVICE_1 -w $smb_cpld1_filename -c W25X20",
+            "verifyFwCmd": "smb_cpld1_filename=$(head -n 1 /home/smb_cpld1_filename.txt);flashrom -p linux_spi:dev=/run/devmap/flashes/SMB_SPI_MASTER_7_DEVICE_1 -v $smb_cpld1_filename -c W25X20",
+            "readFwCmd": "flashrom -p linux_spi:dev=/run/devmap/flashes/SMB_SPI_MASTER_7_DEVICE_1 -r /tmp/smb_cpld1_file_backup -c W25X20",
+            "postUpgradeCmd": "gpioget $(gpiodetect | grep -E 'fbiob_pci.gpiochip.*' | awk '{print $1}') 1"
+        },
+        "smb_cpld2": {
+            "preUpgradeCmd": "gpioset $(gpiodetect | grep -E 'fbiob_pci.gpiochip.*' | awk '{print $1}') 7=1",
+            "getVersionCmd": "smb_bus=$(readlink /run/devmap/i2c-busses/SMB_IOB_I2C_MASTER_10 | awk -F '-' '{print $2}');smb_cpld_ver=$((`i2cget -y -f $smb_bus 0x33 0x01`));smb_cpld_subver=$((`i2cget -y -f $smb_bus 0x33 0x02`));echo $smb_cpld_ver'.'$smb_cpld_subver",
+            "priority": 6,
+            "upgradeCmd": "smb_cpld2_filename=$(head -n 1 /home/smb_cpld2_filename.txt);flashrom -p linux_spi:dev=/run/devmap/flashes/SMB_SPI_MASTER_5_DEVICE_1 -w $smb_cpld2_filename -c W25X20",
+            "verifyFwCmd": "smb_cpld2_filename=$(head -n 1 /home/smb_cpld2_filename.txt);flashrom -p linux_spi:dev=/run/devmap/flashes/SMB_SPI_MASTER_5_DEVICE_1 -v $smb_cpld2_filename -c W25X20",
+            "readFwCmd": "flashrom -p linux_spi:dev=/run/devmap/flashes/SMB_SPI_MASTER_5_DEVICE_1 -r /tmp/smb_cpld2_file_backup -c W25X20",
+            "postUpgradeCmd": "gpioget $(gpiodetect | grep -E 'fbiob_pci.gpiochip.*' | awk '{print $1}') 7"
+        }
+    }
 }
