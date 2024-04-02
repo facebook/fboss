@@ -215,4 +215,19 @@ void pumpTrafficAndVerifyLoadBalanced(
     std::function<void()> clearPortStats,
     std::function<bool()> isLoadBalanced,
     bool loadBalanceExpected = true);
+
+/*
+ * Used to determine whether full-hash or half-hash config should be used when
+ * enabling load balancing via addLoadBalancerToConfig().
+ *
+ * (LBHash = Load Balancer Hash)
+ */
+enum class LBHash : uint8_t {
+  FULL_HASH = 0,
+  HALF_HASH = 1,
+};
+void addLoadBalancerToConfig(
+    cfg::SwitchConfig& config,
+    const HwAsic* hwAsic,
+    LBHash hashType);
 } // namespace facebook::fboss::utility

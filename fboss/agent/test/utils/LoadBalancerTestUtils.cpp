@@ -776,6 +776,32 @@ void pumpTrafficAndVerifyLoadBalanced(
   }
 }
 
+/*
+ * Enable load balancing on provided config. Uses an enum, declared in
+ * ConfigFactory.h, to decide whether to apply full-hash or half-hash config.
+ * These are the only two current hashing algorithms at the time of writing; if
+ * any more are added, this function and the enum can be modified accordingly.
+ */
+void addLoadBalancerToConfig(
+    cfg::SwitchConfig& config,
+    const HwAsic* hwAsic,
+    LBHash hashType) {
+  if (!hwAsic->isSupported(HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
+    return;
+  }
+  switch (hashType) {
+    case LBHash::FULL_HASH:
+      config.loadBalancers()->push_back(getEcmpFullHashConfig(*hwAsic));
+      break;
+    case LBHash::HALF_HASH:
+      config.loadBalancers()->push_back(getEcmpHalfHashConfig(*hwAsic));
+      break;
+    default:
+      throw FbossError("invalid hashing option ", hashType);
+      break;
+  }
+}
+
 template bool isLoadBalancedImpl<SystemPortID, HwSysPortStats>(
     const std::map<SystemPortID, HwSysPortStats>& portIdToStats,
     const std::vector<NextHopWeight>& weights,

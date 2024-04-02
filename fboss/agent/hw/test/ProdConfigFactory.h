@@ -14,6 +14,8 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 
+#include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
+
 namespace facebook::fboss::utility {
 
 void addOlympicQosToConfig(
@@ -30,25 +32,9 @@ void addOlympicQosToConfig(
     bool enableStrictPriority);
 void addNetworkAIQosToConfig(cfg::SwitchConfig& config, const HwAsic* hwSwitch);
 
-/*
- * Used to determine whether full-hash or half-hash config should be used when
- * enabling load balancing via addLoadBalancerToConfig().
- *
- * (LBHash = Load Balancer Hash)
- */
-enum class LBHash : uint8_t {
-  FULL_HASH = 0,
-  HALF_HASH = 1,
-};
-
 void addLoadBalancerToConfig(
     cfg::SwitchConfig& config,
     const HwSwitch* hwSwitch,
-    LBHash hashType);
-
-void addLoadBalancerToConfig(
-    cfg::SwitchConfig& config,
-    const HwAsic* hwAsic,
     LBHash hashType);
 
 void addMplsConfig(cfg::SwitchConfig& config);

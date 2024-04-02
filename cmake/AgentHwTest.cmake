@@ -377,6 +377,7 @@ target_link_libraries(prod_config_factory
   olympic_qos_utils
   queue_per_host_test_utils
   load_balancer_utils
+  load_balancer_test_utils
   hw_pfc_utils
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
