@@ -53,7 +53,6 @@ class CmdShowHwAgentStatus
          "SwitchId",
          "State",
          "Link Sync",
-         "LinkActive Sync",
          "Stats Sync",
          "Fdb Sync",
          "RxPkt Sync",
@@ -65,7 +64,6 @@ class CmdShowHwAgentStatus
            folly::to<std::string>(statusEntry.get_switchId()),
            statusEntry.get_runState(),
            folly::to<std::string>(statusEntry.get_linkSyncActive()),
-           folly::to<std::string>(statusEntry.get_linkActiveSyncActive()),
            folly::to<std::string>(statusEntry.get_statsSyncActive()),
            folly::to<std::string>(statusEntry.get_fdbSyncActive()),
            folly::to<std::string>(statusEntry.get_rxPktSyncActive()),
@@ -87,8 +85,6 @@ class CmdShowHwAgentStatus
       hwStatusEntry.runState() = getRunStateStr(runState.second);
       hwStatusEntry.linkSyncActive() =
           hwAgentStatus[switchIndex].get_linkEventSyncActive();
-      hwStatusEntry.linkActiveSyncActive() =
-          hwAgentStatus[switchIndex].get_linkActiveEventSyncActive();
       hwStatusEntry.statsSyncActive() =
           hwAgentStatus[switchIndex].get_statsEventSyncActive();
       hwStatusEntry.fdbSyncActive() =

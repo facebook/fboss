@@ -22,7 +22,6 @@ HwAgentEventSyncStatus createHwAgentStatusEntry() {
   HwAgentEventSyncStatus statusEntry;
   statusEntry.linkEventSyncActive() = 1;
   statusEntry.fdbEventSyncActive() = 1;
-  statusEntry.linkActiveEventSyncActive() = 1;
   statusEntry.statsEventSyncActive() = 1;
   statusEntry.statsEventSyncActive() = 1;
   statusEntry.rxPktEventSyncActive() = 1;
@@ -37,7 +36,6 @@ cli::ShowHwAgentStatusModel createHwAgentStatusModel() {
   statusEntry.switchIndex() = 0;
   statusEntry.runState() = "CONFIGURED";
   statusEntry.linkSyncActive() = 1;
-  statusEntry.linkActiveSyncActive() = 1;
   statusEntry.linkSyncActive() = 1;
   statusEntry.linkSyncActive() = 1;
   statusEntry.statsSyncActive() = 1;
