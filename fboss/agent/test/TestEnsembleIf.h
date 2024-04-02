@@ -45,6 +45,7 @@ class TestEnsembleIf : public HwSwitchCallback {
   virtual void switchRunStateChanged(SwitchRunState runState) = 0;
   virtual const SwitchIdScopeResolver& scopeResolver() const = 0;
   virtual HwAsicTable* getHwAsicTable() = 0;
+  virtual const HwAsicTable* getHwAsicTable() const = 0;
   virtual std::map<PortID, FabricEndpoint> getFabricConnectivity(
       SwitchID switchId) const = 0;
   virtual FabricReachabilityStats getFabricReachabilityStats() const = 0;
@@ -66,6 +67,8 @@ class TestEnsembleIf : public HwSwitchCallback {
       std::optional<PortDescriptor> portDescriptor = std::nullopt,
       std::optional<uint8_t> queueId = std::nullopt) = 0;
   virtual std::unique_ptr<TxPacket> allocatePacket(uint32_t size) = 0;
+  virtual bool supportsAddRemovePort() const = 0;
+  virtual const PlatformMapping* getPlatformMapping() const = 0;
 };
 
 } // namespace facebook::fboss

@@ -14,6 +14,7 @@
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/test/TestEnsembleIf.h"
 #include "fboss/agent/test/utils/CommonUtils.h"
 #include "fboss/agent/test/utils/PortTestUtils.h"
 
@@ -430,6 +431,31 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
       setInterfaceMac,
       baseIntfId,
       1, /* portPerIntf*/
+      enableFabricPorts);
+}
+
+cfg::SwitchConfig onePortPerInterfaceConfig(
+    const TestEnsembleIf* ensemble,
+    const std::vector<PortID>& ports,
+    bool interfaceHasSubnet,
+    bool setInterfaceMac,
+    int baseIntfId,
+    bool enableFabricPorts) {
+  auto platformMapping = ensemble->getPlatformMapping();
+  auto switchIds = ensemble->getHwAsicTable()->getSwitchIDs();
+  CHECK_GE(switchIds.size(), 1);
+  auto asic = ensemble->getHwAsicTable()->getHwAsic(*switchIds.cbegin());
+  auto supportsAddRemovePort = ensemble->supportsAddRemovePort();
+
+  return onePortPerInterfaceConfig(
+      platformMapping,
+      asic,
+      ports,
+      supportsAddRemovePort,
+      asic->desiredLoopbackModes(),
+      interfaceHasSubnet,
+      setInterfaceMac,
+      baseIntfId,
       enableFabricPorts);
 }
 

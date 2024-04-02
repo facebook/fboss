@@ -103,6 +103,7 @@ target_link_libraries(config_utils
   Folly::folly
   platform_mapping
   switch_config_cpp2
+  test_ensemble_if
 )
 
 add_library(common_test_utils

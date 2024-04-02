@@ -180,6 +180,10 @@ class AgentEnsemble : public TestEnsembleIf {
     return getSw()->getHwAsicTable();
   }
 
+  const HwAsicTable* getHwAsicTable() const override {
+    return getSw()->getHwAsicTable();
+  }
+
   std::map<PortID, FabricEndpoint> getFabricConnectivity(
       SwitchID switchId) const override;
 
@@ -224,6 +228,14 @@ class AgentEnsemble : public TestEnsembleIf {
       std::optional<uint8_t> queueId) override;
 
   std::unique_ptr<TxPacket> allocatePacket(uint32_t size) override;
+
+  bool supportsAddRemovePort() const override {
+    return getSw()->getPlatformSupportsAddRemovePort();
+  }
+
+  const PlatformMapping* getPlatformMapping() const override {
+    return getSw()->getPlatformMapping();
+  }
 
  protected:
   void joinAsyncInitThread() {

@@ -2,12 +2,13 @@
 
 #pragma once
 
-#include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTestFlowletSwitchingUtils.h"
-#include "fboss/agent/hw/test/LoadBalancerUtils.h"
-#include "fboss/agent/hw/test/ProdConfigFactory.h"
+#include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/EcmpDataPlaneTestUtil.h"
+#include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
+
+#include "fboss/agent/hw/test/LoadBalancerUtils.h"
 
 #include <boost/preprocessor/cat.hpp>
 #include <boost/preprocessor/facilities/expand.hpp>
@@ -155,9 +156,7 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
  private:
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = utility::onePortPerInterfaceConfig(
-        getHwSwitch(),
-        masterLogicalPortIds(),
-        getAsic()->desiredLoopbackModes());
+        getHwSwitchEnsemble(), masterLogicalPortIds());
     return cfg;
   }
 
@@ -272,6 +271,7 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
         width++;
       }
 
+      // TODO: move this out to different class of tests
       EXPECT_TRUE(utility::isHwDeterministicSeed(
           getHwSwitch(), getProgrammedState(), LoadBalancerID::ECMP));
     };
@@ -313,10 +313,8 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
 
     auto setupPostWB = [&]() {
       auto cfg = utility::onePortPerInterfaceConfig(
-          getHwSwitch(),
-          masterLogicalPortIds(),
-          getAsic()->desiredLoopbackModes());
-      addLoadBalancerToConfig(cfg, getHwSwitch(), utility::LBHash::FULL_HASH);
+          getHwSwitchEnsemble(), masterLogicalPortIds());
+      addLoadBalancerToConfig(cfg, getAsic(), utility::LBHash::FULL_HASH);
       // Remove the flowlet configs
       applyNewConfig(cfg);
     };

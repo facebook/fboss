@@ -33,6 +33,7 @@ namespace facebook::fboss {
 class PortMap;
 class MultiSwitchPortMap;
 class SwSwitch;
+class TestEnsembleIf;
 } // namespace facebook::fboss
 
 namespace facebook::fboss::utility {
@@ -101,6 +102,14 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
     const std::vector<PortID>& ports,
     bool supportsAddRemovePort,
     const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap,
+    bool interfaceHasSubnet = true,
+    bool setInterfaceMac = true,
+    int baseIntfId = kBaseVlanId,
+    bool enableFabricPorts = false);
+
+cfg::SwitchConfig onePortPerInterfaceConfig(
+    const TestEnsembleIf* ensemble,
+    const std::vector<PortID>& ports,
     bool interfaceHasSubnet = true,
     bool setInterfaceMac = true,
     int baseIntfId = kBaseVlanId,

@@ -25,9 +25,8 @@ class HwLoadBalancerTestV6Flowlet
 
  private:
   cfg::SwitchConfig initialConfig() const override {
-    auto hwSwitch = getHwSwitch();
     auto cfg = utility::onePortPerInterfaceConfig(
-        hwSwitch, masterLogicalPortIds(), getAsic()->desiredLoopbackModes());
+        getHwSwitchEnsemble(), masterLogicalPortIds());
     utility::addFlowletConfigs(cfg, masterLogicalPortIds());
     return cfg;
   }

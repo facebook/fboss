@@ -147,6 +147,10 @@ class HwSwitchEnsemble : public TestEnsembleIf {
   HwAsicTable* getHwAsicTable() override {
     return hwAsicTable_.get();
   }
+  const HwAsicTable* getHwAsicTable() const override {
+    return hwAsicTable_.get();
+  }
+
   const std::map<int32_t, cfg::PlatformPortEntry>& getPlatformPorts()
       const override {
     return getPlatform()->getPlatformPorts();
@@ -313,6 +317,14 @@ class HwSwitchEnsemble : public TestEnsembleIf {
   }
 
   std::unique_ptr<TxPacket> allocatePacket(uint32_t size) override;
+
+  bool supportsAddRemovePort() const override {
+    return getHwSwitch()->getPlatform()->supportsAddRemovePort();
+  }
+
+  const PlatformMapping* getPlatformMapping() const override {
+    return getHwSwitch()->getPlatform()->getPlatformMapping();
+  }
 
  protected:
   /*

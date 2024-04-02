@@ -322,6 +322,7 @@ target_link_libraries(hw_switch_test
   config_factory
   agent_test_utils
   acl_test_utils
+  config_utils
   copp_test_utils
   dscp_marking_utils
   ecmp_dataplane_test_util
