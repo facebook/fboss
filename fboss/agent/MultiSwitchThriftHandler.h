@@ -48,6 +48,9 @@ class MultiSwitchThriftHandler
   void processLinkActiveState(
       SwitchID switchId,
       const multiswitch::LinkChangeEvent& linkChangeEvent);
+  void processLinkConnectivity(
+      SwitchID switchId,
+      const multiswitch::LinkChangeEvent& linkChangeEvent);
   void ensureConfigured(folly::StringPiece function) const;
   SwSwitch* sw_;
 };

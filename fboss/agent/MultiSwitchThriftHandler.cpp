@@ -80,6 +80,28 @@ void MultiSwitchThriftHandler::processLinkActiveState(
   sw_->linkActiveStateChanged(port2IsActive);
 }
 
+void MultiSwitchThriftHandler::processLinkConnectivity(
+    SwitchID switchId,
+    const multiswitch::LinkChangeEvent& linkChangeEvent) {
+  if (linkChangeEvent.linkConnectivityEvents()
+          ->port2ConnectivityDelta()
+          ->size() == 0) {
+    return;
+  }
+  XLOG(DBG3) << "Got link connectivity change event from switch " << switchId
+             << " for : "
+             << linkChangeEvent.linkConnectivityEvents()
+                    ->port2ConnectivityDelta()
+                    ->size()
+             << " ports";
+
+  std::map<PortID, multiswitch::FabricConnectivityDelta> port2ConnectivityDelta;
+  for (const auto& [portID, connectivityDelta] :
+       *linkChangeEvent.linkConnectivityEvents()->port2ConnectivityDelta()) {
+    port2ConnectivityDelta[PortID(portID)] = connectivityDelta;
+  }
+  sw_->linkConnectivityChanged(port2ConnectivityDelta);
+}
 #if FOLLY_HAS_COROUTINES
 folly::coro::Task<
     apache::thrift::SinkConsumer<multiswitch::LinkChangeEvent, bool>>
@@ -97,6 +119,7 @@ MultiSwitchThriftHandler::co_notifyLinkChangeEvent(int64_t switchId) {
             XLOG(DBG3) << "Got link change event from switch " << switchId;
             processLinkState(SwitchID(switchId), *item);
             processLinkActiveState(SwitchID(switchId), *item);
+            processLinkConnectivity(SwitchID(switchId), *item);
           }
         } catch (const std::exception& e) {
           XLOG(DBG2) << "link change event sink cancelled for switch "
