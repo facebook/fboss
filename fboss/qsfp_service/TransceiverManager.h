@@ -87,7 +87,6 @@ class TransceiverManager {
   virtual void writeTransceiverRegister(
       std::map<int32_t, WriteResponse>& response,
       std::unique_ptr<WriteRequest> request) = 0;
-  virtual void customizeTransceiver(int32_t idx, cfg::PortSpeed speed) = 0;
   virtual void syncPorts(
       std::map<int32_t, TransceiverInfo>& info,
       std::unique_ptr<std::map<int32_t, PortStatus>> ports) = 0;

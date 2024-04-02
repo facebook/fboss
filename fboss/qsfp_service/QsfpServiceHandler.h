@@ -63,12 +63,6 @@ class QsfpServiceHandler
       std::unique_ptr<std::map<int32_t, PortStatus>> ports) override;
 
   /*
-   * Customise the transceiver based on the speed at which it has
-   * been configured to operate at
-   */
-  void customizeTransceiver(int32_t idx, cfg::PortSpeed speed) override;
-
-  /*
    * Return a pointer to the transceiver manager.
    */
   TransceiverManager* getTransceiverManager() const {

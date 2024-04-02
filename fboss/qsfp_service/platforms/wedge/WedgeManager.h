@@ -47,7 +47,6 @@ class WedgeManager : public TransceiverManager {
   void writeTransceiverRegister(
       std::map<int32_t, WriteResponse>& response,
       std::unique_ptr<WriteRequest> request) override;
-  void customizeTransceiver(int32_t idx, cfg::PortSpeed speed) override;
   void syncPorts(TransceiverMap& info, std::unique_ptr<PortMap> ports) override;
 
   PlatformType getPlatformType() const override {
