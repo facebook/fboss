@@ -230,3 +230,15 @@ target_link_libraries(port_stats_test_utils
   switch_config_cpp2
   FBThrift::thriftcpp2
 )
+
+add_library(packet_snooper
+  fboss/agent/test/utils/PacketSnooper.cpp
+)
+
+target_link_libraries(packet_snooper
+  fboss_types
+  packet
+  packet_observer
+  packet_factory
+  Folly::folly
+)

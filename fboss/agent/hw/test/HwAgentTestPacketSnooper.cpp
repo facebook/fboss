@@ -4,7 +4,7 @@
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/packet/PktUtil.h"
 
-#include <folly/logging/xlog.h>
+#include <memory>
 
 namespace facebook::fboss {
 
@@ -14,7 +14,7 @@ namespace facebook::fboss {
 HwAgentTestPacketSnooper::HwAgentTestPacketSnooper(
     PacketObservers* observers,
     std::optional<PortID> port)
-    : observers_(observers), ingressPort_(port) {
+    : observers_(observers), snooper_(port) {
   observers_->registerPacketObserver(this, "TestPktSnooper");
 }
 
@@ -23,35 +23,19 @@ HwAgentTestPacketSnooper::~HwAgentTestPacketSnooper() {
 }
 
 void HwAgentTestPacketSnooper::packetReceived(const RxPacket* pkt) noexcept {
-  XLOG(DBG5) << "pkt received on port " << pkt->getSrcPort();
-  if (ingressPort_.has_value() && ingressPort_.value() != pkt->getSrcPort()) {
-    // packet arrived on port not of interest.
-    return;
-  }
-  std::lock_guard<std::mutex> lock(mtx_);
-  data_ = pkt->buf()->clone();
-  cv_.notify_all();
+  snooper_.packetReceived(pkt);
 }
 
 std::optional<std::unique_ptr<folly::IOBuf>>
 HwAgentTestPacketSnooper::waitForPacket(uint32_t timeout_s) {
-  std::unique_lock<std::mutex> lock(mtx_);
-  while (!data_) {
-    if (cv_.wait_for(lock, std::chrono::seconds(timeout_s), [&]() {
-          return data_ ? true : false;
-        })) {
-      break;
-    } else {
-      return {};
-    }
-  };
-  // create another copy for  processing by invoker of this API, as we want to
-  // continue snooping multiple  packets e.g PTP we want to reset data_  so
-  // waitForPacket is triggerred for any new packet only else it will continue
-  // to trigger for the same pkt over and over again
-  auto buf =
-      IOBuf::copyBuffer(data_->data(), data_->length(), data_->headroom(), 0);
-  data_.reset();
+  auto frame = snooper_.waitForPacket(timeout_s);
+  if (!frame) {
+    return {};
+  }
+  auto buf = folly::IOBuf::create(frame->length());
+  buf->append(frame->length());
+  folly::io::RWPrivateCursor cursor(buf.get());
+  frame->serialize(cursor);
   return std::move(buf);
 }
 

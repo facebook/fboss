@@ -38,6 +38,7 @@ add_library(hw_agent_packet_utils
 target_link_libraries(hw_agent_packet_utils
   Folly::folly
   packet_factory
+  packet_snooper
 )
 
 add_library(hw_packet_utils
@@ -50,6 +51,7 @@ add_library(hw_packet_utils
 target_link_libraries(hw_packet_utils
   hw_switch_ensemble
   packet_factory
+  packet_snooper
   Folly::folly
   resourcelibutil
 )

@@ -5,6 +5,8 @@
 #include "fboss/agent/PacketObserver.h"
 #include "fboss/agent/packet/PktFactory.h"
 
+#include "fboss/agent/test/utils/PacketSnooper.h"
+
 #include <folly/Optional.h>
 #include <folly/io/IOBuf.h>
 #include <condition_variable>
@@ -27,10 +29,7 @@ class HwAgentTestPacketSnooper : public PacketObserverIf {
 
  private:
   PacketObservers* observers_;
-  std::optional<PortID> ingressPort_;
-  std::mutex mtx_;
-  std::condition_variable cv_;
-  std::unique_ptr<folly::IOBuf> data_;
+  utility::PacketSnooper snooper_;
 };
 
 } // namespace facebook::fboss
