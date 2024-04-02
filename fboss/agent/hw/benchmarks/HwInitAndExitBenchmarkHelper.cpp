@@ -241,6 +241,10 @@ void initandExitBenchmarkHelper(
     switch (switchType) {
       case cfg::SwitchType::VOQ:
         ensemble = createAgentEnsemble(voqInitialConfig);
+        ensemble->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+          return utility::setupRemoteIntfAndSysPorts(
+              in, ensemble->scopeResolver(), ensemble->getSw()->getConfig());
+        });
         break;
       case cfg::SwitchType::NPU:
         ensemble = createAgentEnsemble(npuInitialConfig);
