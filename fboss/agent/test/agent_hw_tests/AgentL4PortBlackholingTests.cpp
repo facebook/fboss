@@ -8,35 +8,34 @@
  *
  */
 
-#include "fboss/agent/Platform.h"
-#include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
-#include "fboss/agent/hw/test/HwTestPacketUtils.h"
+#include "fboss/agent/test/AgentHwTest.h"
+
+#include "fboss/agent/packet/PktFactory.h"
+#include "fboss/lib/CommonUtils.h"
+
+#include "fboss/agent/test/gen-cpp2/production_features_types.h"
+
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/SwitchState.h"
 
-#include "fboss/agent/hw/test/ConfigFactory.h"
-
 #include <folly/IPAddress.h>
+#include "fboss/agent/TxPacket.h"
 
 using folly::IPAddress;
 using folly::IPAddressV6;
-using std::string;
 
 namespace facebook::fboss {
 
-class HwL4PortBlackHolingTest : public HwLinkStateDependentTest {
+class AgentL4PortBlackHolingTest : public AgentHwTest {
  private:
   int kNumL4Ports() const {
     return pow(2, 16) - 1;
   }
-  cfg::SwitchConfig initialConfig() const override {
-    auto cfg = utility::onePortPerInterfaceConfig(
-        getHwSwitch(),
-        masterLogicalPortIds(),
-        getAsic()->desiredLoopbackModes());
-    return cfg;
+  std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const override {
+    return {production_features::ProductionFeature::L3_FORWARDING};
   }
   void pumpTraffic(bool isV6) {
     auto srcIp = IPAddress(isV6 ? "1001::1" : "101.0.0.1");
@@ -47,7 +46,7 @@ class HwL4PortBlackHolingTest : public HwLinkStateDependentTest {
     for (auto l4Port = 1; l4Port <= kNumL4Ports(); ++l4Port) {
       for (auto dir : {Dir::SRC_PORT, Dir::DST_PORT}) {
         auto pkt = utility::makeUDPTxPacket(
-            getHwSwitch(),
+            getSw(),
             vlanId,
             mac,
             mac,
@@ -55,7 +54,7 @@ class HwL4PortBlackHolingTest : public HwLinkStateDependentTest {
             dstIp,
             dir == Dir::SRC_PORT ? l4Port : 1,
             dir == Dir::DST_PORT ? l4Port : 1);
-        getHwSwitch()->sendPacketSwitchedSync(std::move(pkt));
+        getSw()->sendPacketSwitchedAsync(std::move(pkt));
       }
     }
   }
@@ -63,7 +62,6 @@ class HwL4PortBlackHolingTest : public HwLinkStateDependentTest {
  protected:
   void runTest(bool isV6) {
     auto setup = [=, this]() {
-      auto cfg = initialConfig();
       const RouterID kRid{0};
       resolveNeigborAndProgramRoutes(
           utility::EcmpSetupAnyNPorts6(getProgrammedState(), kRid), 1);
@@ -71,14 +69,15 @@ class HwL4PortBlackHolingTest : public HwLinkStateDependentTest {
           utility::EcmpSetupAnyNPorts4(getProgrammedState(), kRid), 1);
     };
     auto verify = [=, this]() {
-      auto originalPortStats =
-          getLatestPortStats(masterLogicalInterfacePortIds());
       int numL4Ports = kNumL4Ports();
       PortID portId = masterLogicalInterfacePortIds()[0];
-      auto expectPackets = [&originalPortStats, numL4Ports, portId](
-                               const auto& newPortStats) -> bool {
-        auto original = utility::getPortOutPkts(originalPortStats.at(portId));
-        auto current = utility::getPortOutPkts(newPortStats.at(portId));
+      auto originalPortStats = getLatestPortStats(portId);
+      auto original = *originalPortStats.outUnicastPkts_();
+      pumpTraffic(isV6);
+
+      WITH_RETRIES({
+        auto newPortStats = getLatestPortStats(portId);
+        auto current = *newPortStats.outUnicastPkts_();
         XLOGF(
             INFO,
             "Checking current port outPkts ({}) - "
@@ -87,21 +86,18 @@ class HwL4PortBlackHolingTest : public HwLinkStateDependentTest {
             current,
             original,
             2 * numL4Ports);
-        return current - original == 2 * numL4Ports;
-      };
-      pumpTraffic(isV6);
-      EXPECT_TRUE(getHwSwitchEnsemble()->waitPortStatsCondition(
-          expectPackets, 10 /*retries*/, std::chrono::milliseconds(1000)));
+        EXPECT_EVENTUALLY_EQ(current - original, 2 * numL4Ports);
+      });
     };
     verifyAcrossWarmBoots(setup, verify);
   }
 };
 
-TEST_F(HwL4PortBlackHolingTest, v6UDP) {
+TEST_F(AgentL4PortBlackHolingTest, v6UDP) {
   runTest(true);
 }
 
-TEST_F(HwL4PortBlackHolingTest, v4UDP) {
+TEST_F(AgentL4PortBlackHolingTest, v4UDP) {
   runTest(false);
 }
 
