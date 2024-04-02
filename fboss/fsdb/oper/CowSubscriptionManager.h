@@ -356,7 +356,7 @@ class CowSubscriptionManager
           newRoot,
           thrift_cow::DeltaVisitOptions(
               thrift_cow::DeltaVisitMode::FULL,
-              thrift_cow::DeltaVisitOrder::PARENTS_FIRST,
+              thrift_cow::DeltaVisitOrder::CHILDREN_FIRST,
               this->useIdPaths_),
           std::move(processChange));
     } else if (!oldRoot || !newRoot) {
