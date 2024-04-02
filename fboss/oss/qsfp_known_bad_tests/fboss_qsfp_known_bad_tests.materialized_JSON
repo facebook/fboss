@@ -357,6 +357,20 @@
           "test_name_regex": "HwTest_PROFILE_800G_8_PAM4_RS544X2N_OPTICAL.TestProfile$"
         }
     ],
+    "tahan800bc/physdk-credo-0.7.2/credo-0.7.2": [
+        {
+          "test_name_regex": "HwTransceiverTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "HwTransceiverResetTest.resetTranscieverAndDetectStateChanged$"
+        },
+        {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
+        },
+        {
+          "test_name_regex": "HwTest_PROFILE_800G_8_PAM4_RS544X2N_OPTICAL.TestProfile$"
+        }
+    ],
     "wedge100s/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "HwTransceiverTest.resetTranscieverAndDetectStateChanged$"
