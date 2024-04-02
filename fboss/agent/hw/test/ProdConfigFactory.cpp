@@ -35,9 +35,8 @@ namespace facebook::fboss::utility {
  */
 void addOlympicQosToConfig(
     cfg::SwitchConfig& config,
-    const HwSwitch* hwSwitch,
+    const HwAsic* hwAsic,
     bool enableStrictPriority) {
-  auto hwAsic = hwSwitch->getPlatform()->getAsic();
   addOlympicQosMaps(config, hwAsic);
   auto streamType =
       *hwAsic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin();
@@ -48,16 +47,28 @@ void addOlympicQosToConfig(
   }
 }
 
-void addNetworkAIQosToConfig(
+void addOlympicQosToConfig(
     cfg::SwitchConfig& config,
-    const HwSwitch* hwSwitch) {
-  auto hwAsic = hwSwitch->getPlatform()->getAsic();
+    const HwSwitch* hwSwitch,
+    bool enableStrictPriority) {
+  addOlympicQosToConfig(
+      config, hwSwitch->getPlatform()->getAsic(), enableStrictPriority);
+}
+
+void addNetworkAIQosToConfig(cfg::SwitchConfig& config, const HwAsic* hwAsic) {
   // network AI qos map is the same as olympic
   addOlympicQosMaps(config, hwAsic);
   auto streamType =
       *hwAsic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin();
   // queue configuration is different
   addNetworkAIQueueConfig(&config, streamType, hwAsic);
+}
+
+void addNetworkAIQosToConfig(
+    cfg::SwitchConfig& config,
+    const HwSwitch* hwSwitch) {
+  auto hwAsic = hwSwitch->getPlatform()->getAsic();
+  addNetworkAIQosToConfig(config, hwAsic);
 }
 
 /*
@@ -68,10 +79,8 @@ void addNetworkAIQosToConfig(
  */
 void addLoadBalancerToConfig(
     cfg::SwitchConfig& config,
-    const HwSwitch* hwSwitch,
+    const HwAsic* hwAsic,
     LBHash hashType) {
-  auto platform = hwSwitch->getPlatform();
-  auto hwAsic = platform->getAsic();
   if (!hwAsic->isSupported(HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
     return;
   }
@@ -86,6 +95,13 @@ void addLoadBalancerToConfig(
       throw FbossError("invalid hashing option ", hashType);
       break;
   }
+}
+
+void addLoadBalancerToConfig(
+    cfg::SwitchConfig& config,
+    const HwSwitch* hwSwitch,
+    LBHash hashType) {
+  addLoadBalancerToConfig(config, hwSwitch->getPlatform()->getAsic(), hashType);
 }
 
 void addMplsConfig(cfg::SwitchConfig& config) {
@@ -106,8 +122,7 @@ void addMplsConfig(cfg::SwitchConfig& config) {
  * from HwInitAndExitBenchmarkHelper.cpp, to return the number of uplinks for
  * each platform.
  */
-uint16_t uplinksCountFromSwitch(const HwSwitch* hwSwitch) {
-  auto mode = hwSwitch->getPlatform()->getType();
+uint16_t uplinksCountFromSwitch(PlatformType mode) {
   using PM = PlatformType;
   switch (mode) {
     case PM::PLATFORM_WEDGE:
@@ -133,9 +148,13 @@ uint16_t uplinksCountFromSwitch(const HwSwitch* hwSwitch) {
   }
 }
 
-cfg::PortSpeed getPortSpeed(const HwSwitch* hwSwitch) {
-  auto hwAsicType = hwSwitch->getPlatform()->getAsic()->getAsicType();
-  auto platformType = hwSwitch->getPlatform()->getType();
+uint16_t uplinksCountFromSwitch(const HwSwitch* hwSwitch) {
+  return uplinksCountFromSwitch(hwSwitch->getPlatform()->getType());
+}
+
+cfg::PortSpeed getPortSpeed(
+    cfg::AsicType hwAsicType,
+    PlatformType platformType) {
   cfg::PortSpeed portSpeed = cfg::PortSpeed::DEFAULT;
 
   switch (hwAsicType) {
@@ -171,6 +190,11 @@ cfg::PortSpeed getPortSpeed(const HwSwitch* hwSwitch) {
   return portSpeed;
 }
 
+cfg::PortSpeed getPortSpeed(const HwSwitch* hwSwitch) {
+  return getPortSpeed(
+      hwSwitch->getPlatform()->getAsic()->getAsicType(),
+      hwSwitch->getPlatform()->getType());
+}
 /*
  * Adds queue-per-host mapping to config, based on HwQueuePerHostRouteTests.cpp.
  * Other helper functions (i.e. addRoutes, updateRoutesClassID) are called on
@@ -228,25 +252,25 @@ cfg::SwitchConfig createProdRtswConfig(
  * used anywhere else it might be useful to have a prod RSW config.
  */
 cfg::SwitchConfig createProdRswConfig(
-    const HwSwitch* hwSwitch,
+    const HwAsic* hwAsic,
+    PlatformType platformType,
+    const PlatformMapping* platformMapping,
+    bool supportsAddRemovePort,
     const std::vector<PortID>& masterLogicalPortIds,
     bool isSai,
     bool enableStrictPriority) {
-  auto platform = hwSwitch->getPlatform();
-  auto hwAsic = platform->getAsic();
-
-  auto numUplinks = uplinksCountFromSwitch(hwSwitch);
+  auto numUplinks = uplinksCountFromSwitch(platformType);
 
   // its the same speed used for the uplink and downlink for now
-  auto uplinkSpeed = getPortSpeed(hwSwitch);
-  auto downlinkSpeed = getPortSpeed(hwSwitch);
+  auto uplinkSpeed = getPortSpeed(hwAsic->getAsicType(), platformType);
+  auto downlinkSpeed = getPortSpeed(hwAsic->getAsicType(), platformType);
 
   // Create initial config to which we can add the rest of the features.
   auto config = createUplinkDownlinkConfig(
-      hwSwitch->getPlatform()->getPlatformMapping(),
-      hwSwitch->getPlatform()->getAsic(),
-      hwSwitch->getPlatform()->getType(),
-      hwSwitch->getPlatform()->supportsAddRemovePort(),
+      platformMapping,
+      hwAsic,
+      platformType,
+      supportsAddRemovePort,
       masterLogicalPortIds,
       numUplinks,
       uplinkSpeed,
@@ -256,11 +280,11 @@ cfg::SwitchConfig createProdRswConfig(
   addCpuQueueConfig(config, hwAsic, isSai);
 
   if (hwAsic->isSupported(HwAsic::Feature::L3_QOS)) {
-    addOlympicQosToConfig(config, hwSwitch, enableStrictPriority);
+    addOlympicQosToConfig(config, hwAsic, enableStrictPriority);
   }
   setDefaultCpuTrafficPolicyConfig(config, hwAsic, isSai);
   if (hwAsic->isSupported(HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
-    addLoadBalancerToConfig(config, hwSwitch, LBHash::FULL_HASH);
+    addLoadBalancerToConfig(config, hwAsic, LBHash::FULL_HASH);
   }
 
   if (hwAsic->isSupported(HwAsic::Feature::MPLS) && !isSai) {
@@ -269,29 +293,43 @@ cfg::SwitchConfig createProdRswConfig(
   return config;
 }
 
+cfg::SwitchConfig createProdRswConfig(
+    const HwSwitch* hwSwitch,
+    const std::vector<PortID>& masterLogicalPortIds,
+    bool isSai,
+    bool enableStrictPriority) {
+  return createProdRswConfig(
+      hwSwitch->getPlatform()->getAsic(),
+      hwSwitch->getPlatform()->getType(),
+      hwSwitch->getPlatform()->getPlatformMapping(),
+      hwSwitch->getPlatform()->supportsAddRemovePort(),
+      masterLogicalPortIds,
+      isSai,
+      enableStrictPriority);
+}
 /*
  * Returns a prod-setting FSW config. Can be modified as desired for more
  * features to be added to config.
  */
 cfg::SwitchConfig createProdFswConfig(
-    const HwSwitch* hwSwitch,
+    const HwAsic* hwAsic,
+    PlatformType platformType,
+    const PlatformMapping* platformMapping,
+    bool supportsAddRemovePort,
     const std::vector<PortID>& masterLogicalPortIds,
     bool isSai,
     bool enableStrictPriority) {
-  auto platform = hwSwitch->getPlatform();
-  auto hwAsic = platform->getAsic();
-
-  auto numUplinks = uplinksCountFromSwitch(hwSwitch);
+  auto numUplinks = uplinksCountFromSwitch(platformType);
 
   // its the same speed used for the uplink and downlink for now
-  auto uplinkSpeed = getPortSpeed(hwSwitch);
-  auto downlinkSpeed = getPortSpeed(hwSwitch);
+  auto uplinkSpeed = getPortSpeed(hwAsic->getAsicType(), platformType);
+  auto downlinkSpeed = getPortSpeed(hwAsic->getAsicType(), platformType);
 
   auto config = createUplinkDownlinkConfig(
-      hwSwitch->getPlatform()->getPlatformMapping(),
-      hwSwitch->getPlatform()->getAsic(),
-      hwSwitch->getPlatform()->getType(),
-      hwSwitch->getPlatform()->supportsAddRemovePort(),
+      platformMapping,
+      hwAsic,
+      platformType,
+      supportsAddRemovePort,
       masterLogicalPortIds,
       numUplinks,
       uplinkSpeed,
@@ -300,11 +338,70 @@ cfg::SwitchConfig createProdFswConfig(
 
   addCpuQueueConfig(config, hwAsic, isSai);
   if (hwAsic->isSupported(HwAsic::Feature::L3_QOS)) {
-    addOlympicQosToConfig(config, hwSwitch, enableStrictPriority);
+    addOlympicQosToConfig(config, hwAsic, enableStrictPriority);
   }
   setDefaultCpuTrafficPolicyConfig(config, hwAsic, isSai);
   if (hwAsic->isSupported(HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
-    addLoadBalancerToConfig(config, hwSwitch, LBHash::HALF_HASH);
+    addLoadBalancerToConfig(config, hwAsic, LBHash::HALF_HASH);
+  }
+  if (hwAsic->isSupported(HwAsic::Feature::MPLS) && !isSai) {
+    addMplsConfig(config);
+  }
+  return config;
+}
+
+cfg::SwitchConfig createProdFswConfig(
+    const HwSwitch* hwSwitch,
+    const std::vector<PortID>& masterLogicalPortIds,
+    bool isSai,
+    bool enableStrictPriority) {
+  return createProdFswConfig(
+      hwSwitch->getPlatform()->getAsic(),
+      hwSwitch->getPlatform()->getType(),
+      hwSwitch->getPlatform()->getPlatformMapping(),
+      hwSwitch->getPlatform()->supportsAddRemovePort(),
+      masterLogicalPortIds,
+      isSai,
+      enableStrictPriority);
+}
+
+cfg::SwitchConfig createProdRswMhnicConfig(
+    const HwAsic* hwAsic,
+    PlatformType platformType,
+    const PlatformMapping* platformMapping,
+    bool supportsAddRemovePort,
+    const std::vector<PortID>& masterLogicalPortIds,
+    bool isSai) {
+  auto numUplinks = uplinksCountFromSwitch(platformType);
+  auto uplinkSpeed = getPortSpeed(hwAsic->getAsicType(), platformType);
+  auto downlinkSpeed = getPortSpeed(hwAsic->getAsicType(), platformType);
+
+  auto config = createUplinkDownlinkConfig(
+      platformMapping,
+      hwAsic,
+      platformType,
+      supportsAddRemovePort,
+      masterLogicalPortIds,
+      numUplinks,
+      uplinkSpeed,
+      downlinkSpeed,
+      hwAsic->desiredLoopbackModes());
+
+  addCpuQueueConfig(config, hwAsic, isSai);
+  setDefaultCpuTrafficPolicyConfig(config, hwAsic, isSai);
+  if (hwAsic->isSupported(HwAsic::Feature::L3_QOS)) {
+    addQueuePerHostToConfig(config, isSai);
+    // DSCP Marking ACLs must be programmed AFTER queue-per-host ACLs or else
+    // traffic matching DSCP Marking ACLs will only hit DSCP Marking ACLs and
+    // thus suffer from noisy neighbor.
+    // The queue-per-host ACLs match on traffic to downlinks.
+    // Thus, putting DSCP Marking ACLs before queue-per-host ACLs would cause
+    // noisy neighbor problem for traffic between ports connected to the same
+    // switch.
+    utility::addDscpMarkingAcls(&config, hwAsic, isSai);
+  }
+  if (hwAsic->isSupported(HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
+    addLoadBalancerToConfig(config, hwAsic, LBHash::FULL_HASH);
   }
   if (hwAsic->isSupported(HwAsic::Feature::MPLS) && !isSai) {
     addMplsConfig(config);
@@ -316,45 +413,12 @@ cfg::SwitchConfig createProdRswMhnicConfig(
     const HwSwitch* hwSwitch,
     const std::vector<PortID>& masterLogicalPortIds,
     bool isSai) {
-  auto platform = hwSwitch->getPlatform();
-  auto hwAsic = platform->getAsic();
-
-  auto numUplinks = uplinksCountFromSwitch(hwSwitch);
-  auto uplinkSpeed = getPortSpeed(hwSwitch);
-  auto downlinkSpeed = getPortSpeed(hwSwitch);
-
-  auto config = createUplinkDownlinkConfig(
-      hwSwitch->getPlatform()->getPlatformMapping(),
+  return createProdRswMhnicConfig(
       hwSwitch->getPlatform()->getAsic(),
       hwSwitch->getPlatform()->getType(),
+      hwSwitch->getPlatform()->getPlatformMapping(),
       hwSwitch->getPlatform()->supportsAddRemovePort(),
       masterLogicalPortIds,
-      numUplinks,
-      uplinkSpeed,
-      downlinkSpeed,
-      hwAsic->desiredLoopbackModes());
-
-  addCpuQueueConfig(config, hwAsic, isSai);
-  setDefaultCpuTrafficPolicyConfig(config, hwAsic, isSai);
-  if (hwAsic->isSupported(HwAsic::Feature::L3_QOS)) {
-    addQueuePerHostToConfig(config, hwSwitch->getPlatform()->isSai());
-    // DSCP Marking ACLs must be programmed AFTER queue-per-host ACLs or else
-    // traffic matching DSCP Marking ACLs will only hit DSCP Marking ACLs and
-    // thus suffer from noisy neighbor.
-    // The queue-per-host ACLs match on traffic to downlinks.
-    // Thus, putting DSCP Marking ACLs before queue-per-host ACLs would cause
-    // noisy neighbor problem for traffic between ports connected to the same
-    // switch.
-    utility::addDscpMarkingAcls(
-        &config, hwAsic, hwSwitch->getPlatform()->isSai());
-  }
-  if (hwAsic->isSupported(HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
-    addLoadBalancerToConfig(config, hwSwitch, LBHash::FULL_HASH);
-  }
-  if (hwAsic->isSupported(HwAsic::Feature::MPLS) && !isSai) {
-    addMplsConfig(config);
-  }
-  return config;
+      isSai);
 }
-
 } // namespace facebook::fboss::utility

@@ -24,6 +24,12 @@ void addNetworkAIQosToConfig(
     cfg::SwitchConfig& config,
     const HwSwitch* hwSwitch);
 
+void addOlympicQosToConfig(
+    cfg::SwitchConfig& config,
+    const HwAsic* asic,
+    bool enableStrictPriority);
+void addNetworkAIQosToConfig(cfg::SwitchConfig& config, const HwAsic* hwSwitch);
+
 /*
  * Used to determine whether full-hash or half-hash config should be used when
  * enabling load balancing via addLoadBalancerToConfig().
@@ -40,12 +46,26 @@ void addLoadBalancerToConfig(
     const HwSwitch* hwSwitch,
     LBHash hashType);
 
+void addLoadBalancerToConfig(
+    cfg::SwitchConfig& config,
+    const HwAsic* hwAsic,
+    LBHash hashType);
+
 void addMplsConfig(cfg::SwitchConfig& config);
 
 uint16_t uplinksCountFromSwitch(const HwSwitch* hwSwitch);
+uint16_t uplinksCountFromSwitch(PlatformType mode);
 
 cfg::SwitchConfig createProdRswConfig(
     const HwSwitch* hwSwitch,
+    const std::vector<PortID>& masterLogicalPortIds,
+    bool isSai = false,
+    bool enableStrictPriority = false);
+
+cfg::SwitchConfig createProdRswConfig(
+    const HwAsic* hwAsic,
+    PlatformType platformType,
+    const PlatformMapping* platformMapping,
     const std::vector<PortID>& masterLogicalPortIds,
     bool isSai = false,
     bool enableStrictPriority = false);
@@ -56,10 +76,27 @@ cfg::SwitchConfig createProdFswConfig(
     bool isSai = false,
     bool enableStrictPriority = false);
 
+cfg::SwitchConfig createProdFswConfig(
+    const HwAsic* hwAsic,
+    PlatformType platformType,
+    const PlatformMapping* platformMapping,
+    bool supportsAddRemovePort,
+    const std::vector<PortID>& masterLogicalPortIds,
+    bool isSai = false,
+    bool enableStrictPriority = false);
+
 cfg::PortSpeed getPortSpeed(const HwSwitch* hwSwitch);
+cfg::PortSpeed getPortSpeed(
+    cfg::AsicType hwAsicType,
+    PlatformType platformType);
 
 cfg::SwitchConfig createProdRswMhnicConfig(
     const HwSwitch* hwSwitch,
+    const std::vector<PortID>& masterLogicalPortIds,
+    bool isSai);
+
+cfg::SwitchConfig createProdRswMhnicConfig(
+    const HwAsicTable& table,
     const std::vector<PortID>& masterLogicalPortIds,
     bool isSai);
 
