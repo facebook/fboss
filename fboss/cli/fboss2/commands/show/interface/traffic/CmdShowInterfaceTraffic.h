@@ -10,7 +10,9 @@
 
 #pragma once
 
+#ifndef IS_OSS
 #include "common/thrift/thrift/gen-cpp2/MonitorAsyncClient.h"
+#endif
 #include "fboss/agent/if/gen-cpp2/FbossHwCtrl.h"
 #include "fboss/cli/fboss2/CmdGlobalOptions.h"
 #include "fboss/cli/fboss2/CmdHandler.h"
@@ -61,6 +63,7 @@ class CmdShowInterfaceTraffic : public CmdHandler<
 
     std::map<std::string, int64_t> counters;
     if (utils::isFbossFeatureEnabled(hostInfo.getName(), "multi_switch")) {
+#ifndef IS_OSS
       auto hwAgentQueryFn =
           [&counters](
               apache::thrift::Client<facebook::fboss::FbossHwCtrl>& client) {
@@ -71,6 +74,7 @@ class CmdShowInterfaceTraffic : public CmdHandler<
             counters.merge(hwAgentCounters);
           };
       utils::runOnAllHwAgents(hostInfo, hwAgentQueryFn);
+#endif
     } else {
       auto entries =
           client->semifuture_getCounters().via(executor.getEventBase());
