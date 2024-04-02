@@ -824,7 +824,6 @@ void SwSwitch::updateStats() {
     hwStats.aclStats() = multiHwSwitchHandler_->getAclStats();
     updateHwSwitchStats(0 /*switchIndex*/, std::move(hwStats));
   }
-  updateFabricConnectivityInfo();
   updateFlowletStats();
 
   std::map<PortID, phy::PhyInfo> phyInfo;
@@ -895,60 +894,6 @@ void SwSwitch::linkConnectivityChanged(
         connectivityDelta) {
   auto updateFn = [=](const shared_ptr<SwitchState>& state) {
     return LinkConnectivityProcessor::process(state, connectivityDelta);
-  };
-  updateState("update fabric connectivity info", updateFn);
-}
-
-void SwSwitch::updateFabricConnectivityInfo() {
-  auto state = getState();
-  if (!state) {
-    return;
-  }
-  if (!getSwitchInfoTable().haveVoqSwitches() &&
-      !getSwitchInfoTable().haveFabricSwitches()) {
-    return;
-  }
-  std::map<std::string, HwPortStats> hwPortStats;
-  getAllHwPortStats(hwPortStats);
-  auto updateFn = [allHwPortStats = std::move(hwPortStats)](
-                      const shared_ptr<SwitchState>& state) {
-    auto newState = state->clone();
-    bool connectivityChanged{false};
-    for (const auto& portMap : std::as_const(*state->getPorts())) {
-      for (const auto& port : std::as_const(*portMap.second)) {
-        if (port.second->getPortType() == cfg::PortType::FABRIC_PORT) {
-          auto hwPortStatsItr = allHwPortStats.find(port.second->getName());
-          if (hwPortStatsItr != allHwPortStats.end()) {
-            if (hwPortStatsItr->second.fabricConnectivityMismatch()
-                    .has_value() &&
-                hwPortStatsItr->second.fabricConnectivityMismatch().value() ==
-                    1) {
-              if (!port.second->getLedPortExternalState().has_value() ||
-                  port.second->getLedPortExternalState().value() !=
-                      PortLedExternalState::CABLING_ERROR) {
-                connectivityChanged = true;
-                auto newPort = newState->getPorts()
-                                   ->getNodeIf(port.first)
-                                   ->modify(&newState);
-                newPort->setLedPortExternalState(
-                    PortLedExternalState::CABLING_ERROR);
-              }
-            } else if (
-                port.second->getLedPortExternalState().has_value() &&
-                port.second->getLedPortExternalState().value() ==
-                    PortLedExternalState::CABLING_ERROR) {
-              // clear the led state = cabling error if needed
-              connectivityChanged = true;
-              auto newPort = newState->getPorts()
-                                 ->getNodeIf(port.first)
-                                 ->modify(&newState);
-              newPort->setLedPortExternalState(PortLedExternalState::NONE);
-            }
-          }
-        }
-      }
-    }
-    return connectivityChanged ? newState : nullptr;
   };
   updateState("update fabric connectivity info", updateFn);
 }

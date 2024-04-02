@@ -979,7 +979,6 @@ class SwSwitch : public HwSwitchCallback {
   void updateRouteStats();
   void updateTeFlowStats();
   void updateFlowletStats();
-  void updateFabricConnectivityInfo();
   void setSwitchRunState(SwitchRunState desiredState);
   SwitchStats* createSwitchStats();
 
