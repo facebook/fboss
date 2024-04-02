@@ -6355,9 +6355,6 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_400G.*$"
         },
         {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
@@ -6427,9 +6424,6 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_400G.*$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
@@ -6503,9 +6497,6 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_400G.*$"
         },
         {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
@@ -6575,9 +6566,6 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_400G.*$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
@@ -6651,9 +6639,6 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_400G.*$"
         },
         {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
@@ -6723,9 +6708,6 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_400G.*$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
@@ -6799,9 +6781,6 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_400G.*$"
         },
         {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
@@ -6871,9 +6850,6 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_400G.*$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
@@ -6947,9 +6923,6 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_400G.*$"
         },
         {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
@@ -7019,9 +6992,6 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_400G.*$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
@@ -7095,9 +7065,6 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_400G.*$"
         },
         {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
@@ -7164,9 +7131,6 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_400G.*$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
@@ -7237,9 +7201,6 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_400G.*$"
         },
         {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
@@ -7306,9 +7267,6 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_400G.*$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
@@ -7379,9 +7337,6 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_400G.*$"
         },
         {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
@@ -7448,9 +7403,6 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_400G.*$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
@@ -7521,9 +7473,6 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_400G.*$"
         },
         {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
@@ -7590,9 +7539,6 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_400G.*$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
@@ -7663,9 +7609,6 @@
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_400G.*$"
         },
         {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
@@ -7732,9 +7675,6 @@
         },
         {
           "test_name_regex": "Prbs.*ASIC.*TRANSCEIVER_SYS.*FR4_400G.*$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
