@@ -198,6 +198,8 @@ SwSwitch::StateUpdateFn NeighborCacheImpl<NTable>::getUpdateFnToProgramEntry(
       }
       interfaceID =
           sw_->getState()->getInterfaceIDForPort(fields.port.phyPortID());
+      // SystemPortID is always same as the InterfaceID
+      systemPortID = SystemPortID(interfaceID);
     } else {
       interfaceID = intfID_;
     }
