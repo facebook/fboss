@@ -37,6 +37,56 @@ constexpr bool is_shared_ptr_v = is_shared_ptr<T>::value;
 
 } // namespace
 
+namespace csm_detail {
+template <typename NodeT>
+class OperDeltaUnitCache {
+ public:
+  OperDeltaUnitCache(
+      const std::vector<std::string>& path,
+      const NodeT& oldNode,
+      const NodeT& newNode)
+      : path_(path), oldNode_(oldNode), newNode_(newNode) {}
+
+  const OperDeltaUnit& binaryUnit() {
+    return getOrBuild(binaryUnit_, fsdb::OperProtocol::BINARY);
+  }
+
+  const OperDeltaUnit& compactUnit() {
+    return getOrBuild(compactUnit_, fsdb::OperProtocol::COMPACT);
+  }
+
+  const OperDeltaUnit& jsonUnit() {
+    return getOrBuild(jsonUnit_, fsdb::OperProtocol::SIMPLE_JSON);
+  }
+
+  const OperDeltaUnit& getEncoded(fsdb::OperProtocol protocol) {
+    switch (protocol) {
+      case fsdb::OperProtocol::BINARY:
+        return binaryUnit();
+      case fsdb::OperProtocol::COMPACT:
+        return compactUnit();
+      case fsdb::OperProtocol::SIMPLE_JSON:
+        return jsonUnit();
+    }
+  }
+
+ private:
+  const OperDeltaUnit& getOrBuild(
+      std::optional<OperDeltaUnit>& unit,
+      fsdb::OperProtocol protocol) {
+    if (!unit.has_value()) {
+      unit = buildOperDeltaUnit(path_, oldNode_, newNode_, protocol);
+    }
+    return *unit;
+  }
+
+  const std::vector<std::string>& path_;
+  const NodeT& oldNode_;
+  const NodeT& newNode_;
+  std::optional<OperDeltaUnit> binaryUnit_, compactUnit_, jsonUnit_;
+};
+} // namespace csm_detail
+
 template <typename _Root>
 class CowSubscriptionManager
     : public SubscriptionManager<_Root, CowSubscriptionManager<_Root>> {
@@ -241,7 +291,7 @@ class CowSubscriptionManager
       DCHECK(lookup);
 
       const auto& exactSubscriptions = lookup->subscriptions();
-      std::optional<OperDeltaUnit> binaryUnit, compactUnit, jsonUnit;
+      csm_detail::OperDeltaUnitCache deltaUnitCache(path, oldNode, newNode);
 
       for (auto& relevant : exactSubscriptions) {
         if (relevant->type() == PubSubType::PATH) {
@@ -267,30 +317,16 @@ class CowSubscriptionManager
           if (visitTag == thrift_cow::DeltaElemTag::MINIMAL || !oldNode ||
               !newNode) {
             auto* deltaSubscription = static_cast<DeltaSubscription*>(relevant);
-
-            auto protocol = *relevant->operProtocol();
-            if (protocol == OperProtocol::BINARY) {
-              if (!binaryUnit) {
-                binaryUnit =
-                    buildOperDeltaUnit(path, oldNode, newNode, protocol);
-              }
-              deltaSubscription->appendRootDeltaUnit(*binaryUnit);
-            } else if (protocol == OperProtocol::COMPACT) {
-              if (!compactUnit) {
-                compactUnit =
-                    buildOperDeltaUnit(path, oldNode, newNode, protocol);
-              }
-              deltaSubscription->appendRootDeltaUnit(*compactUnit);
-            } else if (protocol == OperProtocol::SIMPLE_JSON) {
-              if (!jsonUnit) {
-                jsonUnit = buildOperDeltaUnit(path, oldNode, newNode, protocol);
-              }
-              deltaSubscription->appendRootDeltaUnit(*jsonUnit);
-            } else {
-              throw std::runtime_error("Unexpected protocol");
-            }
+            deltaSubscription->appendRootDeltaUnit(
+                deltaUnitCache.getEncoded(*relevant->operProtocol()));
           }
         }
+      }
+
+      if (visitTag != thrift_cow::DeltaElemTag::MINIMAL) {
+        // Done with path subs which need full traversal. Now only care about
+        // MINIMAL changes for delta subs
+        return;
       }
 
       // serve MINIMAL changes to delta subscription at parent paths
@@ -302,33 +338,9 @@ class CowSubscriptionManager
           if (relevant->type() != PubSubType::DELTA) {
             continue;
           }
-          if (visitTag != thrift_cow::DeltaElemTag::MINIMAL) {
-            // only emit MINIMAL changes in to delta subscriptions
-            continue;
-          }
           auto* deltaSubscription = static_cast<DeltaSubscription*>(relevant);
-
-          // TODO: refactor to avoid code dup
-          auto protocol = *relevant->operProtocol();
-          if (protocol == OperProtocol::BINARY) {
-            if (!binaryUnit) {
-              binaryUnit = buildOperDeltaUnit(path, oldNode, newNode, protocol);
-            }
-            deltaSubscription->appendRootDeltaUnit(*binaryUnit);
-          } else if (protocol == OperProtocol::COMPACT) {
-            if (!compactUnit) {
-              compactUnit =
-                  buildOperDeltaUnit(path, oldNode, newNode, protocol);
-            }
-            deltaSubscription->appendRootDeltaUnit(*compactUnit);
-          } else if (protocol == OperProtocol::SIMPLE_JSON) {
-            if (!jsonUnit) {
-              jsonUnit = buildOperDeltaUnit(path, oldNode, newNode, protocol);
-            }
-            deltaSubscription->appendRootDeltaUnit(*jsonUnit);
-          } else {
-            throw std::runtime_error("Unexpected protocol");
-          }
+          deltaSubscription->appendRootDeltaUnit(
+              deltaUnitCache.getEncoded(*relevant->operProtocol()));
         }
       }
     };
