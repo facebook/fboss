@@ -8970,9 +8970,6 @@
           "test_name_regex": "LinkTest.fabricLinkHealth$"
         },
         {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -9027,9 +9024,6 @@
         },
         {
           "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -9088,9 +9082,6 @@
           "test_name_regex": "LinkTest.fabricLinkHealth$"
         },
         {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -9145,9 +9136,6 @@
         },
         {
           "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -9206,9 +9194,6 @@
           "test_name_regex": "LinkTest.fabricLinkHealth$"
         },
         {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -9263,9 +9248,6 @@
         },
         {
           "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -9324,9 +9306,6 @@
           "test_name_regex": "LinkTest.fabricLinkHealth$"
         },
         {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -9381,9 +9360,6 @@
         },
         {
           "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -9442,9 +9418,6 @@
           "test_name_regex": "LinkTest.fabricLinkHealth$"
         },
         {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -9499,9 +9472,6 @@
         },
         {
           "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -9560,9 +9530,6 @@
           "test_name_regex": "LinkTest.fabricLinkHealth$"
         },
         {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -9617,9 +9584,6 @@
         },
         {
           "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -9678,9 +9642,6 @@
           "test_name_regex": "LinkTest.fabricLinkHealth$"
         },
         {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -9735,9 +9696,6 @@
         },
         {
           "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -9796,9 +9754,6 @@
           "test_name_regex": "LinkTest.fabricLinkHealth$"
         },
         {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -9853,9 +9808,6 @@
         },
         {
           "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -9914,9 +9866,6 @@
           "test_name_regex": "LinkTest.fabricLinkHealth$"
         },
         {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -9971,9 +9920,6 @@
         },
         {
           "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -10032,9 +9978,6 @@
           "test_name_regex": "LinkTest.fabricLinkHealth$"
         },
         {
-          "test_name_regex": "SpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -10089,9 +10032,6 @@
         },
         {
           "test_name_regex": "LinkTest.fabricLinkHealth$"
-        },
-        {
-          "test_name_regex": "SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
