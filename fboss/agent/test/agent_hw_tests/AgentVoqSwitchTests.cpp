@@ -386,16 +386,15 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, fabricConnectivityMismatch) {
     applyNewConfig(cfg);
 
     WITH_RETRIES({
-      auto portStats = getLatestPortStats(fabricPortId);
-      EXPECT_EVENTUALLY_EQ(*portStats.get_fabricConnectivityMismatch(), 1);
-    });
-
-    WITH_RETRIES({
       auto port = getProgrammedState()->getPorts()->getNodeIf(fabricPortId);
-      EXPECT_EVENTUALLY_EQ(port->getLedPortExternalState().has_value(), true);
+      EXPECT_EVENTUALLY_TRUE(port->getLedPortExternalState().has_value());
       EXPECT_EVENTUALLY_EQ(
           port->getLedPortExternalState().value(),
           PortLedExternalState::CABLING_ERROR);
+      auto portStats = getLatestPortStats(fabricPortId);
+      EXPECT_EVENTUALLY_TRUE(
+          portStats.fabricConnectivityMismatch().has_value());
+      EXPECT_EVENTUALLY_EQ(*portStats.fabricConnectivityMismatch(), 1);
     });
   };
   verifyAcrossWarmBoots(setup, verify);
