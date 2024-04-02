@@ -25,6 +25,7 @@ target_link_libraries(link_tests
   hw_agent_packet_utils
   hw_packet_utils
   packet
+  packet_snooper
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
 )

@@ -19,7 +19,7 @@ namespace facebook::fboss::utility {
 
 class PacketSnooper : public PacketObserverIf {
  public:
-  explicit PacketSnooper(
+  PacketSnooper(
       std::optional<PortID> port = std::nullopt,
       std::optional<utility::EthFrame> expectedFrame = std::nullopt)
       : port_(port), expectedFrame_(std::move(expectedFrame)) {}
@@ -36,6 +36,24 @@ class PacketSnooper : public PacketObserverIf {
   std::mutex mtx_;
   std::condition_variable cv_;
   std::unique_ptr<utility::EthFrame> receivedFrame_;
+};
+
+class SwSwitchPacketSnooper : public PacketSnooper {
+ public:
+  SwSwitchPacketSnooper(
+      SwSwitch* sw,
+      const std::string& name,
+      std::optional<PortID> port = std::nullopt,
+      std::optional<utility::EthFrame> expectedFrame = std::nullopt);
+
+  std::optional<std::unique_ptr<folly::IOBuf>> waitForPacket(
+      uint32_t timeout_s);
+
+  virtual ~SwSwitchPacketSnooper() override;
+
+ private:
+  SwSwitch* sw_;
+  std::string name_;
 };
 
 } // namespace facebook::fboss::utility

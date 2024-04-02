@@ -236,6 +236,7 @@ add_library(packet_snooper
 )
 
 target_link_libraries(packet_snooper
+  core
   fboss_types
   packet
   packet_observer

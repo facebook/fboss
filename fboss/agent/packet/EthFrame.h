@@ -110,6 +110,7 @@ class EthFrame {
     hdr_.setVlan(vlan);
   }
   std::string toString() const;
+  std::unique_ptr<folly::IOBuf> toIOBuf() const;
 
  private:
   EthHdr hdr_;

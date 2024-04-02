@@ -110,6 +110,14 @@ void EthFrame::serialize(folly::io::RWPrivateCursor& cursor) const {
   }
 }
 
+std::unique_ptr<folly::IOBuf> EthFrame::toIOBuf() const {
+  auto buf = folly::IOBuf::create(length());
+  buf->append(length());
+  folly::io::RWPrivateCursor cursor(buf.get());
+  serialize(cursor);
+  return buf;
+}
+
 template <typename AddrT>
 EthFrame getEthFrame(
     folly::MacAddress srcMac,

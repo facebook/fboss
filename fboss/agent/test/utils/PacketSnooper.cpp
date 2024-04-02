@@ -1,8 +1,10 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/test/utils/PacketSnooper.h"
+#include <string>
 
 #include "fboss/agent/RxPacket.h"
+#include "fboss/agent/SwSwitch.h"
 
 namespace facebook::fboss::utility {
 
@@ -43,4 +45,28 @@ std::optional<utility::EthFrame> PacketSnooper::waitForPacket(
   receivedFrame_.reset();
   return ret;
 }
+
+SwSwitchPacketSnooper::SwSwitchPacketSnooper(
+    SwSwitch* sw,
+    const std::string& name,
+    std::optional<PortID> port,
+    std::optional<utility::EthFrame> expectedFrame)
+    : PacketSnooper(port, std::move(expectedFrame)), sw_(sw), name_(name) {
+  sw_->getPacketObservers()->registerPacketObserver(this, name_);
+}
+
+SwSwitchPacketSnooper::~SwSwitchPacketSnooper() {
+  sw_->getPacketObservers()->unregisterPacketObserver(this, name_);
+}
+
+std::optional<std::unique_ptr<folly::IOBuf>>
+SwSwitchPacketSnooper::waitForPacket(uint32_t timeout_s) {
+  auto frame = PacketSnooper::waitForPacket(timeout_s);
+  if (!frame) {
+    return {};
+  }
+  auto buf = frame->toIOBuf();
+  return std::move(buf);
+}
+
 } // namespace facebook::fboss::utility
