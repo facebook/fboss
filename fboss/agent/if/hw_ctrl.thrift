@@ -53,4 +53,12 @@ service FbossHwCtrl {
     i64,
     map<i64, list<RemoteEndpoint>>
   > getVirtualDeviceToConnectionGroups() throws (1: fboss.FbossBaseError error);
+
+  /*
+   * String formatted information of givens Hw Objects.
+   */
+  string listHwObjects(
+    1: list<ctrl.HwObjectType> objects,
+    2: bool cached,
+  ) throws (1: fboss.FbossBaseError error);
 }

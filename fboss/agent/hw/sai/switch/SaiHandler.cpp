@@ -165,4 +165,14 @@ void SaiHandler::getVirtualDeviceToConnectionGroups(
     }
   }
 }
+
+void SaiHandler::listHwObjects(
+    std::string& out,
+    std::unique_ptr<std::vector<HwObjectType>> hwObjects,
+    bool cached) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  hw_->ensureConfigured(__func__);
+  out = hw_->listObjects(*hwObjects, cached);
+}
+
 } // namespace facebook::fboss
