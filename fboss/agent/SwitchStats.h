@@ -474,18 +474,6 @@ class SwitchStats : public boost::noncopyable {
         connected);
   }
 
-  void hwAgentLinkActiveEventSinkConnectionStatus(
-      int switchIndex,
-      bool connected) {
-    CHECK_LT(switchIndex, thriftStreamConnectionStatus_.size());
-    if (!connected) {
-      thriftStreamConnectionStatus_[switchIndex]
-          .linkActiveEventSinkDisconnected();
-    }
-    thriftStreamConnectionStatus_[switchIndex].setLinkActiveEventSinkStatus(
-        connected);
-  }
-
   void hwAgentFdbEventSinkConnectionStatus(int switchIndex, bool connected) {
     CHECK_LT(switchIndex, thriftStreamConnectionStatus_.size());
     if (!connected) {
@@ -544,9 +532,6 @@ class SwitchStats : public boost::noncopyable {
     void setLinkEventSinkStatus(bool connected) {
       linkEventSinkStatus_.incrementValue(connected ? 1 : -1);
     }
-    void setLinkActiveEventSinkStatus(bool connected) {
-      linkActiveEventSinkStatus_.incrementValue(connected ? 1 : -1);
-    }
     void setFdbEventSinkStatus(bool connected) {
       fdbEventSinkStatus_.incrementValue(connected ? 1 : -1);
     }
@@ -562,9 +547,6 @@ class SwitchStats : public boost::noncopyable {
     void linkEventSinkDisconnected() {
       linkEventSinkDisconnects_.addValue(1);
     }
-    void linkActiveEventSinkDisconnected() {
-      linkActiveEventSinkDisconnects_.addValue(1);
-    }
     void fdbEventSinkDisconnected() {
       fdbEventSinkDisconnects_.addValue(1);
     }
@@ -579,10 +561,6 @@ class SwitchStats : public boost::noncopyable {
     }
     int64_t getLinkEventSinkStatus() const {
       return getCumulativeValue(linkEventSinkStatus_, false /*hasSumSuffix*/);
-    }
-    int64_t getLinkActiveEventSinkStatus() const {
-      return getCumulativeValue(
-          linkActiveEventSinkStatus_, false /*hasSumSuffix*/);
     }
     int64_t getFdbEventSinkStatus() const {
       return getCumulativeValue(fdbEventSinkStatus_, false /*hasSumSuffix*/);
@@ -600,9 +578,6 @@ class SwitchStats : public boost::noncopyable {
     int64_t getLinkEventSinkDisconnectCount() const {
       return getCumulativeValue(linkEventSinkDisconnects_);
     }
-    int64_t getLinkActiveEventSinkDisconnectCount() const {
-      return getCumulativeValue(linkActiveEventSinkDisconnects_);
-    }
     int64_t getFdbEventSinkDisconnectCount() const {
       return getCumulativeValue(fdbEventSinkDisconnects_);
     }
@@ -616,14 +591,12 @@ class SwitchStats : public boost::noncopyable {
    private:
     TLCounter statsEventSinkStatus_;
     TLCounter linkEventSinkStatus_;
-    TLCounter linkActiveEventSinkStatus_;
     TLCounter fdbEventSinkStatus_;
     TLCounter rxPktEventSinkStatus_;
     TLCounter txPktEventStreamStatus_;
 
     TLTimeseries statsEventSinkDisconnects_;
     TLTimeseries linkEventSinkDisconnects_;
-    TLTimeseries linkActiveEventSinkDisconnects_;
     TLTimeseries fdbEventSinkDisconnects_;
     TLTimeseries rxPktEventSinkDisconnects_;
     TLTimeseries txPktEventStreamDisconnects_;

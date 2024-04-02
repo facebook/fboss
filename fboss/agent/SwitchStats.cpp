@@ -391,8 +391,6 @@ void SwitchStats::getHwAgentStatus(
     HwAgentEventSyncStatus syncStatus;
     syncStatus.statsEventSyncActive() = stats.getStatsEventSinkStatus();
     syncStatus.linkEventSyncActive() = stats.getLinkEventSinkStatus();
-    syncStatus.linkActiveEventSyncActive() =
-        stats.getLinkActiveEventSinkStatus();
     syncStatus.fdbEventSyncActive() = stats.getFdbEventSinkStatus();
     syncStatus.rxPktEventSyncActive() = stats.getRxPktEventSinkStatus();
     syncStatus.txPktEventSyncActive() = stats.getTxPktEventStreamStatus();
@@ -402,8 +400,6 @@ void SwitchStats::getHwAgentStatus(
         stats.getFdbEventSinkDisconnectCount();
     syncStatus.linkEventSyncDisconnects() =
         stats.getLinkEventSinkDisconnectCount();
-    syncStatus.linkActiveEventSyncDisconnects() =
-        stats.getLinkActiveEventSinkDisconnectCount();
     syncStatus.rxPktEventSyncDisconnects() =
         stats.getRxPktEventSinkDisconnectCount();
     syncStatus.txPktEventSyncDisconnects() =
@@ -432,14 +428,6 @@ SwitchStats::HwAgentStreamConnectionStatus::HwAgentStreamConnectionStatus(
               switchIndex,
               ".",
               "link_event_sync_active"))),
-      linkActiveEventSinkStatus_(TLCounter(
-          map,
-          folly::to<std::string>(
-              kCounterPrefix,
-              "switch.",
-              switchIndex,
-              ".",
-              "link_active_event_sync_active"))),
       fdbEventSinkStatus_(TLCounter(
           map,
           folly::to<std::string>(
@@ -482,16 +470,6 @@ SwitchStats::HwAgentStreamConnectionStatus::HwAgentStreamConnectionStatus(
               switchIndex,
               ".",
               "link_event_sync_disconnects"),
-          SUM,
-          RATE)),
-      linkActiveEventSinkDisconnects_(TLTimeseries(
-          map,
-          folly::to<std::string>(
-              kCounterPrefix,
-              "switch.",
-              switchIndex,
-              ".",
-              "link_active_event_sync_disconnects"),
           SUM,
           RATE)),
       fdbEventSinkDisconnects_(TLTimeseries(
