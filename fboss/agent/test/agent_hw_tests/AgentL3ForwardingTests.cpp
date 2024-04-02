@@ -154,7 +154,7 @@ TEST_F(AgentL3ForwardingTest, ttl255) {
   auto verify = [=, this]() {
     ThriftHandler handler(getSw());
     verifyHwAgentConnectionState(handler);
-    auto pumpTraffic = [=]() {
+    auto pumpTraffic = [=, this]() {
       for (auto isV6 : {true, false}) {
         auto vlanId = utility::firstVlanID(getProgrammedState());
         auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
