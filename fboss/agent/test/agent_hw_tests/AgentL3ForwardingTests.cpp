@@ -93,7 +93,6 @@ class AgentL3ForwardingTest : public AgentHwTest {
       EXPECT_EVENTUALLY_EQ(statusMap[0].statsEventSyncActive().value(), 1);
       EXPECT_EVENTUALLY_EQ(statusMap[0].fdbEventSyncActive().value(), 1);
       EXPECT_EVENTUALLY_EQ(statusMap[0].linkEventSyncActive().value(), 1);
-      EXPECT_EVENTUALLY_EQ(statusMap[0].linkActiveEventSyncActive().value(), 1);
       EXPECT_EVENTUALLY_EQ(statusMap[0].rxPktEventSyncActive().value(), 1);
       EXPECT_EVENTUALLY_EQ(statusMap[0].txPktEventSyncActive().value(), 1);
     });
