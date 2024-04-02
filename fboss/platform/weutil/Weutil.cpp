@@ -82,13 +82,16 @@ std::vector<std::string> getEepromPaths() {
 
 std::unique_ptr<WeutilInterface> createWeUtilIntf(
     const std::string& eepromName,
-    const std::string& eepromPath) {
+    const std::string& eepromPath,
+    const int eepromOffset) {
   auto platform = getPlatformType();
+  // When path is specified, read from it directly. For platform bringup, we can
+  // use the --path and --offset options without a valid config.
   if (!eepromPath.empty()) {
     if (platform && platform.value() == PlatformType::PLATFORM_DARWIN) {
       return std::make_unique<WeutilDarwin>(eepromPath);
     } else {
-      return std::make_unique<WeutilImpl>(eepromPath, 0);
+      return std::make_unique<WeutilImpl>(eepromPath, eepromOffset);
     }
   }
   if (!platform) {

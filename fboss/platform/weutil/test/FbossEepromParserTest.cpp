@@ -10,6 +10,7 @@
 #include <gtest/gtest.h>
 
 #include "fboss/platform/weutil/FbossEepromParser.h"
+#include "fboss/platform/weutil/Weutil.h"
 
 namespace {
 using EepromData = std::vector<uint8_t>;
@@ -176,6 +177,43 @@ TEST(FbossEepromParserTest, Basic) {
     ASSERT_EQ(expectedContents.size(), parsedContents.size());
     for (size_t i = 0; i < expectedContents.size(); i++) {
       EXPECT_EQ(parsedContents[i], expectedContents[i]);
+    }
+  }
+}
+
+TEST(FbossEepromParserTest, Offset) {
+  for (auto& [eepromData, expectedContents] : EepromTestInfo) {
+    folly::test::TemporaryDirectory tmpDir = folly::test::TemporaryDirectory();
+    std::string fileName = tmpDir.path().string() + "/eepromContent";
+    folly::writeFile(eepromData, fileName.c_str());
+    auto weutilInstanceNoOffset = createWeUtilIntf("", fileName, 0);
+    auto parsedContentsNoOffset = weutilInstanceNoOffset->getContents();
+
+    folly::writeFile(eepromData, fileName.c_str(), O_WRONLY | O_APPEND);
+    auto weutilInstanceWithOffset =
+        createWeUtilIntf("", fileName, eepromData.size());
+    auto parsedContentsWithOffset = weutilInstanceWithOffset->getContents();
+
+    ASSERT_EQ(expectedContents.size(), parsedContentsNoOffset.size());
+    ASSERT_EQ(expectedContents.size(), parsedContentsWithOffset.size());
+    for (size_t i = 0; i < expectedContents.size(); i++) {
+      EXPECT_EQ(parsedContentsNoOffset[i], expectedContents[i]);
+      EXPECT_EQ(parsedContentsWithOffset[i], expectedContents[i]);
+    }
+
+    EepromData junkPrefix;
+    for (int i = 0; i < 77; i++) {
+      junkPrefix.push_back(0xff);
+    }
+    folly::writeFile(junkPrefix, fileName.c_str());
+    folly::writeFile(eepromData, fileName.c_str(), O_WRONLY | O_APPEND);
+    weutilInstanceWithOffset =
+        createWeUtilIntf("", fileName, junkPrefix.size());
+    parsedContentsWithOffset = weutilInstanceWithOffset->getContents();
+
+    ASSERT_EQ(expectedContents.size(), parsedContentsWithOffset.size());
+    for (size_t i = 0; i < expectedContents.size(); i++) {
+      EXPECT_EQ(parsedContentsWithOffset[i], expectedContents[i]);
     }
   }
 }

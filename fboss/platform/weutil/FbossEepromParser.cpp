@@ -12,6 +12,7 @@
 #include <utility>
 #include <vector>
 
+#include <folly/logging/xlog.h>
 #include "fboss/platform/weutil/Crc16CcittAug.h"
 
 namespace {
@@ -182,8 +183,9 @@ FbossEepromParser::getContents() {
           eepromVer, buffer, std::min(readCount, kMaxEepromSize));
       break;
     default:
-      throw std::runtime_error(
-          "EEPROM version is not supported. Only ver 4+ is supported.");
+      throw std::runtime_error(fmt::format(
+          "EEPROM version {} is not supported. Only ver 4+ is supported.",
+          eepromVer));
       break;
   }
 

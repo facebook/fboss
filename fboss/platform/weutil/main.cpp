@@ -22,6 +22,7 @@ FOLLY_INIT_LOGGING_CONFIG(".=FATAL; default:async=true");
 
 DEFINE_bool(json, false, "Output in JSON format");
 DEFINE_bool(list, false, "List all eeproms in config");
+DEFINE_int32(offset, 0, "Offset for eeprom specified by --path");
 DEFINE_string(
     eeprom,
     "",
@@ -66,7 +67,7 @@ int main(int argc, char* argv[]) {
   }
 
   try {
-    weutilInstance = createWeUtilIntf(FLAGS_eeprom, FLAGS_path);
+    weutilInstance = createWeUtilIntf(FLAGS_eeprom, FLAGS_path, FLAGS_offset);
   } catch (const std::exception& ex) {
     std::cout << "Failed creation of proper parser. " << ex.what() << std::endl;
     return 1;

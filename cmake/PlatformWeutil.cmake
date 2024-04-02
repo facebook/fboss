@@ -16,6 +16,10 @@ add_library(weutil_fboss_eeprom_parser
   fboss/platform/weutil/Crc16CcittAug.cpp
 )
 
+target_link_libraries(weutil_fboss_eeprom_parser
+  Folly::folly
+)
+
 add_library(weutil_lib
   fboss/platform/weutil/WeutilDarwin.cpp
   fboss/platform/weutil/WeutilImpl.cpp

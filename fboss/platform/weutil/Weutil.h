@@ -11,7 +11,8 @@ namespace facebook::fboss::platform {
 // eepromPath. If eepromPath is specified, we ignore the eepromName.
 std::unique_ptr<WeutilInterface> createWeUtilIntf(
     const std::string& eepromName,
-    const std::string& eepromPath);
+    const std::string& eepromPath,
+    const int eepromOffset);
 
 // Get EEPROM info (name, path, offset) based on the default config of the
 // platform.
