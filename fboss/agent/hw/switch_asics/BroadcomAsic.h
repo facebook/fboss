@@ -66,5 +66,16 @@ class BroadcomAsic : public HwAsic {
     CHECK(0) << "Should never get here";
     return -1;
   }
+  std::vector<prbs::PrbsPolynomial> getSupportedPrbsPolynomials()
+      const override {
+    return {
+        prbs::PrbsPolynomial::PRBS7,
+        prbs::PrbsPolynomial::PRBS15,
+        prbs::PrbsPolynomial::PRBS23,
+        prbs::PrbsPolynomial::PRBS31,
+        prbs::PrbsPolynomial::PRBS9,
+        prbs::PrbsPolynomial::PRBS11,
+        prbs::PrbsPolynomial::PRBS58};
+  }
 };
 } // namespace facebook::fboss
