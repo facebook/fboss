@@ -359,7 +359,7 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
     auto sendRoce = false;
     if (aclType == AclType::FLOWLET && FLAGS_flowletSwitchingEnable) {
       XLOG(DBG3) << "setting ECMP Member Status: ";
-      utility::setEcmpMemberStatus(getHwSwitch());
+      utility::setEcmpMemberStatus(getHwSwitchEnsemble());
       sendRoce = true;
     }
     if (aclType == AclType::UDF || aclType == AclType::BTH_OPCODE) {

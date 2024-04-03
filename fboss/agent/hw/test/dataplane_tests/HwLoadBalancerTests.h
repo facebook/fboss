@@ -209,7 +209,7 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
     auto verifyPostWB = [&]() {
       if (FLAGS_flowletSwitchingEnable) {
         XLOG(DBG3) << "setting ECMP Member Status: ";
-        utility::setEcmpMemberStatus(getHwSwitch());
+        utility::setEcmpMemberStatus(getHwSwitchEnsemble());
         loadBalanceExpected = true;
         helper_->pumpTrafficPortAndVerifyLoadBalanced(
             ecmpWidth,
@@ -218,7 +218,7 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
             deviation,
             loadBalanceExpected);
         auto l3EcmpDlbFailPackets =
-            getHwSwitch()->getHwFlowletStats().l3EcmpDlbFailPackets().value();
+            utility::getL3EcmpDlbFailPackets(getHwSwitchEnsemble());
         XLOG(INFO) << " L3 ECMP Dlb fail packets: " << l3EcmpDlbFailPackets;
         // verfiy the Dlb fail packets is zero
         EXPECT_EQ(l3EcmpDlbFailPackets, 0);
@@ -301,7 +301,7 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
       // Hence we are setting it forcibly here again for all the ecmp members.
       if (FLAGS_flowletSwitchingEnable) {
         XLOG(DBG3) << "setting ECMP Member Status: ";
-        utility::setEcmpMemberStatus(getHwSwitch());
+        utility::setEcmpMemberStatus(getHwSwitchEnsemble());
       }
       helper_->pumpTrafficPortAndVerifyLoadBalanced(
           ecmpWidth,

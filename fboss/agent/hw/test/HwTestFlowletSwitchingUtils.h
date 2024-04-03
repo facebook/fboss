@@ -12,6 +12,9 @@
 
 #include "fboss/agent/HwSwitch.h"
 
+namespace facebook::fboss {
+class TestEnsembleIf;
+}
 namespace facebook::fboss::utility {
 
 const int KMaxFlowsetTableSize = 32768;
@@ -35,11 +38,13 @@ bool validatePortFlowletQuality(
 
 bool validateFlowletSwitchingDisabled(const facebook::fboss::HwSwitch* hw);
 
-void setEcmpMemberStatus(const facebook::fboss::HwSwitch* hw);
+void setEcmpMemberStatus(const facebook::fboss::TestEnsembleIf* hw);
 
 bool validateFlowSetTable(
     const facebook::fboss::HwSwitch* hw,
     const bool expectFlowsetSizeZero,
     const int flowSetTableSize);
+
+int getL3EcmpDlbFailPackets(const facebook::fboss::TestEnsembleIf* hw);
 
 } // namespace facebook::fboss::utility

@@ -11,6 +11,10 @@
 #include "fboss/agent/hw/test/HwTestFlowletSwitchingUtils.h"
 #include <gtest/gtest.h>
 
+namespace facebook::fboss {
+class TestEnsembleIf;
+}
+
 namespace facebook::fboss::utility {
 
 bool validateFlowletSwitchingEnabled(
@@ -53,7 +57,7 @@ bool validateFlowletSwitchingDisabled(const HwSwitch* /* unused */) {
   return false;
 }
 
-void setEcmpMemberStatus(const HwSwitch* /* unused */) {
+void setEcmpMemberStatus(const TestEnsembleIf* /* unused */) {
   // This function is not implemented yet.
   // If the test is running on SAI Switches,
   // it should throw an error.
@@ -66,6 +70,11 @@ bool validateFlowSetTable(
     const int /*flowletTableSize*/) {
   EXPECT_TRUE(false);
   return false;
+}
+
+int getL3EcmpDlbFailPackets(const TestEnsembleIf* /*ensemble*/) {
+  throw FbossError("getL3EcmpDlbFailPackets : unsupported in Sai Switch");
+  return 0;
 }
 
 } // namespace facebook::fboss::utility

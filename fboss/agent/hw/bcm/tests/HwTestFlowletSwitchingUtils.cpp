@@ -14,8 +14,10 @@
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmSdkVer.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
+#include "fboss/agent/hw/bcm/tests/BcmSwitchEnsemble.h"
 #include "fboss/agent/hw/bcm/tests/BcmTestUtils.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/test/TestEnsembleIf.h"
 
 using namespace facebook::fboss;
 
@@ -256,8 +258,9 @@ bool validateFlowletSwitchingDisabled(const facebook::fboss::HwSwitch* hw) {
   return true;
 }
 
-void setEcmpMemberStatus(const facebook::fboss::HwSwitch* hw) {
-  const auto bcmSwitch = static_cast<const BcmSwitch*>(hw);
+void setEcmpMemberStatus(const TestEnsembleIf* ensemble) {
+  const auto bcmEnsemble = dynamic_cast<const BcmSwitchEnsemble*>(ensemble);
+  auto bcmSwitch = bcmEnsemble->getHwSwitch();
   auto ecmpMembers = utility::getEcmpMembersInHw(bcmSwitch);
   for (const auto ecmpMember : ecmpMembers) {
     bcm_l3_egress_ecmp_member_status_set(
@@ -265,4 +268,9 @@ void setEcmpMemberStatus(const facebook::fboss::HwSwitch* hw) {
   }
 }
 
+int getL3EcmpDlbFailPackets(const TestEnsembleIf* ensemble) {
+  const auto bcmEnsemble = dynamic_cast<const BcmSwitchEnsemble*>(ensemble);
+  auto bcmSwitch = bcmEnsemble->getHwSwitch();
+  return bcmSwitch->getHwFlowletStats().l3EcmpDlbFailPackets().value();
+}
 } // namespace facebook::fboss::utility
