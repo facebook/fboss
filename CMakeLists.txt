@@ -684,4 +684,9 @@ add_dependencies(fboss_fake_agent_targets
   sai_agent_hw_test-fake
   multi_switch_agent_hw_test
 )
+if (BUILD_SAI_FAKE_LINK_TEST)
+add_dependencies(fboss_fake_agent_targets
+  sai_link_test-fake
+)
+endif()
 endif()
