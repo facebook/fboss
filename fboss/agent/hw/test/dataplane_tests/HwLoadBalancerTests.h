@@ -149,7 +149,7 @@
 
 namespace facebook::fboss {
 
-template <typename EcmpTestHelperT>
+template <typename EcmpTestHelperT, bool kFlowLetSwitching = false>
 class HwLoadBalancerTest : public HwLinkStateDependentTest {
  private:
   cfg::SwitchConfig initialConfig() const override {
@@ -208,7 +208,7 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
     };
 
     auto setupPostWB = [&]() {
-      if (FLAGS_flowletSwitchingEnable) {
+      if constexpr (kFlowLetSwitching) {
         auto cfg = initialConfig();
         // Add flowlet config to convert ECMP to DLB
         utility::addFlowletConfigs(cfg, masterLogicalPortIds());
@@ -217,7 +217,7 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
     };
 
     auto verifyPostWB = [&]() {
-      if (FLAGS_flowletSwitchingEnable) {
+      if constexpr (kFlowLetSwitching) {
         XLOG(DBG3) << "setting ECMP Member Status: ";
         utility::setEcmpMemberStatus(getHwSwitchEnsemble());
         loadBalanceExpected = true;
@@ -309,7 +309,7 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
       // DLB engine can not detect port member hardware status
       // when in "phy" loopback mode.
       // Hence we are setting it forcibly here again for all the ecmp members.
-      if (FLAGS_flowletSwitchingEnable) {
+      if constexpr (kFlowLetSwitching) {
         XLOG(DBG3) << "setting ECMP Member Status: ";
         utility::setEcmpMemberStatus(getHwSwitchEnsemble());
       }

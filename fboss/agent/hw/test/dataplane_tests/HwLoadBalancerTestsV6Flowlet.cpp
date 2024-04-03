@@ -16,7 +16,9 @@
 namespace facebook::fboss {
 
 class HwLoadBalancerTestV6Flowlet
-    : public HwLoadBalancerTest<utility::HwIpV6RoCEEcmpDataPlaneTestUtil> {
+    : public HwLoadBalancerTest<
+          utility::HwIpV6RoCEEcmpDataPlaneTestUtil,
+          true /* flowletSwitchingEnable */> {
   std::unique_ptr<utility::HwIpV6RoCEEcmpDataPlaneTestUtil> getECMPHelper()
       override {
     return std::make_unique<utility::HwIpV6RoCEEcmpDataPlaneTestUtil>(
