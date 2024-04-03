@@ -150,36 +150,47 @@
 namespace facebook::fboss {
 
 template <typename EcmpTestHelperT, bool kFlowLetSwitching = false>
-class HwLoadBalancerTest : public HwLinkStateDependentTest {
- private:
-  cfg::SwitchConfig initialConfig() const override {
-    auto cfg = utility::onePortPerInterfaceConfig(
-        getHwSwitchEnsemble(), masterLogicalPortIds());
-    return cfg;
-  }
+class HwLoadBalancerTestRunner {
+ public:
+  using SETUP_FN = std::function<void()>;
+  using VERIFY_FN = std::function<void()>;
+  using SETUP_POSTWB_FN = std::function<void()>;
+  using VERIFY_POSTWB_FN = std::function<void()>;
+
+  virtual ~HwLoadBalancerTestRunner() = default;
+
+ protected:
+  virtual void runTestAcrossWarmBoots(
+      SETUP_FN setup,
+      VERIFY_FN verify,
+      SETUP_POSTWB_FN setupPostWarmboot,
+      VERIFY_POSTWB_FN verifyPostWarmboot) = 0;
 
   virtual std::unique_ptr<EcmpTestHelperT> getECMPHelper() = 0;
 
- protected:
+  virtual TestEnsembleIf* getEnsemble() = 0;
+  virtual const TestEnsembleIf* getEnsemble() const = 0;
+  std::vector<PortID> getMasterLogicalPortIds() const {
+    return getEnsemble()->masterLogicalPortIds();
+  }
+
+  void setEcmpHelper() {
+    helper_ = getECMPHelper();
+  }
+
   virtual bool skipTest() const {
     return false;
   }
 
   bool isFeatureSupported(HwAsic::Feature feature) const {
-    return getHwSwitchEnsemble()->getHwAsicTable()->isFeatureSupportedOnAnyAsic(
+    return getEnsemble()->getHwAsicTable()->isFeatureSupportedOnAnyAsic(
         feature);
   }
 
   const HwAsic* getHwAsic() const {
-    auto switchIds = getHwSwitchEnsemble()->getHwAsicTable()->getSwitchIDs();
+    auto switchIds = getEnsemble()->getHwAsicTable()->getSwitchIDs();
     CHECK_EQ(switchIds.size(), 1);
-    return getHwSwitchEnsemble()->getHwAsicTable()->getHwAsic(
-        *switchIds.begin());
-  }
-
-  void SetUp() override {
-    HwLinkStateDependentTest::SetUp();
-    helper_ = getECMPHelper();
+    return getEnsemble()->getHwAsicTable()->getHwAsic(*switchIds.begin());
   }
 
   void runLoadBalanceTest(
@@ -209,17 +220,18 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
 
     auto setupPostWB = [&]() {
       if constexpr (kFlowLetSwitching) {
-        auto cfg = initialConfig();
+        auto cfg = utility::onePortPerInterfaceConfig(
+            getEnsemble(), getMasterLogicalPortIds());
         // Add flowlet config to convert ECMP to DLB
-        utility::addFlowletConfigs(cfg, masterLogicalPortIds());
-        applyNewConfig(cfg);
+        utility::addFlowletConfigs(cfg, getMasterLogicalPortIds());
+        getEnsemble()->applyNewConfig(cfg);
       }
     };
 
     auto verifyPostWB = [&]() {
       if constexpr (kFlowLetSwitching) {
         XLOG(DBG3) << "setting ECMP Member Status: ";
-        utility::setEcmpMemberStatus(getHwSwitchEnsemble());
+        utility::setEcmpMemberStatus(getEnsemble());
         loadBalanceExpected = true;
         helper_->pumpTrafficPortAndVerifyLoadBalanced(
             ecmpWidth,
@@ -228,14 +240,14 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
             deviation,
             loadBalanceExpected);
         auto l3EcmpDlbFailPackets =
-            utility::getL3EcmpDlbFailPackets(getHwSwitchEnsemble());
+            utility::getL3EcmpDlbFailPackets(getEnsemble());
         XLOG(INFO) << " L3 ECMP Dlb fail packets: " << l3EcmpDlbFailPackets;
         // verfiy the Dlb fail packets is zero
         EXPECT_EQ(l3EcmpDlbFailPackets, 0);
       }
     };
 
-    verifyAcrossWarmBoots(setup, verify, setupPostWB, verifyPostWB);
+    runTestAcrossWarmBoots(setup, verify, setupPostWB, verifyPostWB);
   }
 
   void runEcmpShrinkExpandLoadBalanceTest(
@@ -280,10 +292,6 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
             true);
         width++;
       }
-
-      // TODO: move this out to different class of tests
-      EXPECT_TRUE(utility::isHwDeterministicSeed(
-          getHwSwitch(), getProgrammedState(), LoadBalancerID::ECMP));
     };
     setup();
     verify();
@@ -311,7 +319,7 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
       // Hence we are setting it forcibly here again for all the ecmp members.
       if constexpr (kFlowLetSwitching) {
         XLOG(DBG3) << "setting ECMP Member Status: ";
-        utility::setEcmpMemberStatus(getHwSwitchEnsemble());
+        utility::setEcmpMemberStatus(getEnsemble());
       }
       helper_->pumpTrafficPortAndVerifyLoadBalanced(
           ecmpWidth,
@@ -323,10 +331,10 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
 
     auto setupPostWB = [&]() {
       auto cfg = utility::onePortPerInterfaceConfig(
-          getHwSwitchEnsemble(), masterLogicalPortIds());
-      addLoadBalancerToConfig(cfg, getAsic(), utility::LBHash::FULL_HASH);
+          getEnsemble(), getMasterLogicalPortIds());
+      addLoadBalancerToConfig(cfg, getHwAsic(), utility::LBHash::FULL_HASH);
       // Remove the flowlet configs
-      applyNewConfig(cfg);
+      getEnsemble()->applyNewConfig(cfg);
     };
 
     auto verifyPostWB = [&]() {
@@ -342,7 +350,7 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
           loadBalanceExpected);
     };
 
-    verifyAcrossWarmBoots(setup, verify, setupPostWB, verifyPostWB);
+    runTestAcrossWarmBoots(setup, verify, setupPostWB, verifyPostWB);
   }
 
   EcmpTestHelperT* getEcmpSetupHelper() const {
@@ -353,4 +361,93 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
   std::unique_ptr<EcmpTestHelperT> helper_;
 };
 
+template <typename EcmpTestHelperT, bool kFlowLetSwitching = false>
+class HwLoadBalancerTest
+    : public HwLinkStateDependentTest,
+      public HwLoadBalancerTestRunner<EcmpTestHelperT, kFlowLetSwitching> {
+ public:
+  using Runner = HwLoadBalancerTestRunner<EcmpTestHelperT, kFlowLetSwitching>;
+  using Test = HwLinkStateDependentTest;
+
+  using SETUP_FN = typename Runner::SETUP_FN;
+  using VERIFY_FN = typename Runner::VERIFY_FN;
+  using SETUP_POSTWB_FN = typename Runner::SETUP_POSTWB_FN;
+  using VERIFY_POSTWB_FN = typename Runner::VERIFY_POSTWB_FN;
+
+  cfg::SwitchConfig initialConfig() const override {
+    auto cfg = utility::onePortPerInterfaceConfig(
+        getHwSwitchEnsemble(), masterLogicalPortIds());
+    return cfg;
+  }
+
+  void SetUp() override {
+    Test::SetUp();
+    Runner::setEcmpHelper();
+  }
+
+  void runLoadBalanceTest(
+      unsigned int ecmpWidth,
+      const cfg::LoadBalancer& loadBalancer,
+      const std::vector<NextHopWeight>& weights,
+      bool loopThroughFrontPanel = false,
+      bool loadBalanceExpected = true,
+      uint8_t deviation = 25) {
+    Runner::runLoadBalanceTest(
+        ecmpWidth,
+        loadBalancer,
+        weights,
+        loopThroughFrontPanel,
+        loadBalanceExpected,
+        deviation);
+  }
+
+  void runDynamicLoadBalanceTest(
+      unsigned int ecmpWidth,
+      const cfg::LoadBalancer& loadBalancer,
+      const std::vector<NextHopWeight>& weights,
+      bool loopThroughFrontPanel = false,
+      bool loadBalanceExpected = true,
+      uint8_t deviation = 25) {
+    Runner::runDynamicLoadBalanceTest(
+        ecmpWidth,
+        loadBalancer,
+        weights,
+        loopThroughFrontPanel,
+        loadBalanceExpected,
+        deviation);
+  }
+
+  void runEcmpShrinkExpandLoadBalanceTest(
+      unsigned int ecmpWidth,
+      const cfg::LoadBalancer& loadBalancer,
+      uint8_t deviation = 25) {
+    Runner::runEcmpShrinkExpandLoadBalanceTest(
+        ecmpWidth, loadBalancer, deviation);
+  }
+
+ private:
+  void runTestAcrossWarmBoots(
+      SETUP_FN setup,
+      VERIFY_FN verify,
+      SETUP_POSTWB_FN setupPostWarmboot,
+      VERIFY_POSTWB_FN verifyPostWarmboot) override {
+    Test::verifyAcrossWarmBoots(
+        setup,
+        [&] {
+          verify;
+          EXPECT_TRUE(utility::isHwDeterministicSeed(
+              getHwSwitch(), getProgrammedState(), LoadBalancerID::ECMP));
+        },
+        setupPostWarmboot,
+        [&] { verifyPostWarmboot; });
+  }
+
+  TestEnsembleIf* getEnsemble() override {
+    return getHwSwitchEnsemble();
+  }
+
+  const TestEnsembleIf* getEnsemble() const override {
+    return getHwSwitchEnsemble();
+  }
+};
 } // namespace facebook::fboss

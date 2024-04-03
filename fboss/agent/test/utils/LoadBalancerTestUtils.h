@@ -230,4 +230,5 @@ void addLoadBalancerToConfig(
     cfg::SwitchConfig& config,
     const HwAsic* hwAsic,
     LBHash hashType);
+
 } // namespace facebook::fboss::utility
