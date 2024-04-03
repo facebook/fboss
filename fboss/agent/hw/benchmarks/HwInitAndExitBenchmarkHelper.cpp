@@ -204,14 +204,23 @@ void initandExitBenchmarkHelper(
 
   AgentEnsembleSwitchConfigFn voqInitialConfig =
       [](const AgentEnsemble& ensemble) {
+        FLAGS_hide_fabric_ports = false;
         auto config = utility::onePortPerInterfaceConfig(
-            ensemble.getSw(), ensemble.masterLogicalPortIds());
+            ensemble.getSw(),
+            ensemble.masterLogicalPortIds(),
+            true, /*interfaceHasSubnet*/
+            true, /*setInterfaceMac*/
+            utility::kBaseVlanId,
+            true /*enable fabric ports*/);
+        utility::populatePortExpectedNeighbors(
+            ensemble.masterLogicalPortIds(), config);
         config.dsfNodes() = *utility::addRemoteDsfNodeCfg(*config.dsfNodes());
         return config;
       };
 
   AgentEnsembleSwitchConfigFn fabricInitialConfig =
       [](const AgentEnsemble& ensemble) {
+        FLAGS_hide_fabric_ports = false;
         auto config = utility::onePortPerInterfaceConfig(
             ensemble.getSw(),
             ensemble.masterLogicalPortIds(),
@@ -241,10 +250,12 @@ void initandExitBenchmarkHelper(
     switch (switchType) {
       case cfg::SwitchType::VOQ:
         ensemble = createAgentEnsemble(voqInitialConfig);
-        ensemble->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
-          return utility::setupRemoteIntfAndSysPorts(
-              in, ensemble->scopeResolver(), ensemble->getSw()->getConfig());
-        });
+        if (ensemble->getSw()->getBootType() == BootType::COLD_BOOT) {
+          ensemble->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+            return utility::setupRemoteIntfAndSysPorts(
+                in, ensemble->scopeResolver(), ensemble->getSw()->getConfig());
+          });
+        }
         break;
       case cfg::SwitchType::NPU:
         ensemble = createAgentEnsemble(npuInitialConfig);
