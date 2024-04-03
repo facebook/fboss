@@ -126,6 +126,8 @@ class AgentDirectoryUtil {
 
   std::string getRoutingProtocolColdBootDrainTimeFile() const;
 
+  std::string getRoutingProtocolColdBootDrainTimeFile(int switchIndex) const;
+
   std::string getSwSwitchCanWarmBootFile() const;
 
   std::string getHwSwitchCanWarmBootFile(int switchIndex) const;
