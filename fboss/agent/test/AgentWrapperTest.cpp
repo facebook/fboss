@@ -28,15 +28,24 @@ DEFINE_int32(wait_timeout, 15, "number of seconds to wait before retry");
 namespace facebook::fboss {
 
 namespace {
-using TestTypes = ::testing::Types<std::false_type, std::true_type>;
-}
+
+template <bool cppWrapper = false, bool multiSwitch = false>
+struct Wrapper {
+  static constexpr bool kCppWrapper = cppWrapper;
+  static constexpr bool kMultiSwitch = multiSwitch;
+};
+using PythonWrapper = Wrapper<false, false>;
+using CppWrapper = Wrapper<true, false>;
+using CppMultiSwitchWrapper = Wrapper<true, true>;
+using TestTypes = ::testing::Types<PythonWrapper, CppWrapper>;
+} // namespace
 
 template <typename T>
 void AgentWrapperTest<T>::SetUp() {
   whoami_ = std::make_unique<AgentNetWhoAmI>();
   config_ = AgentConfig::fromFile("/etc/coop/agent/current");
   createDirectoryTree(util_.getWarmBootDir());
-  if constexpr (T()) {
+  if constexpr (T::kCppWrapper) {
     createDirectoryTree(parentDirectoryTree(util_.getWrapperRefactorFlag()));
     touchFile(util_.getWrapperRefactorFlag());
   }
@@ -45,7 +54,7 @@ void AgentWrapperTest<T>::SetUp() {
 template <typename T>
 void AgentWrapperTest<T>::TearDown() {
   stop();
-  if constexpr (T()) {
+  if constexpr (T::kCppWrapper) {
     removeFile(util_.getWrapperRefactorFlag());
     removeDir(parentDirectoryTree(util_.getWrapperRefactorFlag()));
   }
