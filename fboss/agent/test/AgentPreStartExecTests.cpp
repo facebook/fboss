@@ -131,14 +131,7 @@ class AgentPreStartExecTests : public ::testing::Test {
       // drain config needed for fdsw
       touchFile(util_->getAgentDrainConfig());
     }
-    if (!TestAttr::kCppRefactor) {
-      if (TestAttr::kMultiSwitch) {
-        EXPECT_CALL(
-            executor,
-            runShellCommand(util_->getMultiSwitchPreStartScript(), true))
-            .Times(1);
-      }
-    } else {
+    if (TestAttr::kCppRefactor) {
       ::testing::InSequence seq;
       EXPECT_CALL(*netwhoami, isFdsw()).WillOnce(Return(fdsw));
       EXPECT_CALL(*netwhoami, isFdsw()).WillOnce(Return(fdsw));
@@ -221,17 +214,10 @@ class AgentPreStartExecTests : public ::testing::Test {
       EXPECT_CALL(
           executor, runShellCommand("/usr/local/bin/fboss-build-info", false))
           .Times(1);
-      if (TestAttr::kMultiSwitch) {
-        EXPECT_CALL(
-            executor,
-            runShellCommand(util_->getMultiSwitchPreStartScript(), true))
-            .Times(1);
-      }
     }
 
     exec.run(
         &executor,
-        &drainer,
         std::move(netwhoami),
         *util_,
         std::make_unique<AgentConfig>(getConfig()),
@@ -298,7 +284,6 @@ class AgentPreStartExecTests : public ::testing::Test {
       EXPECT_THROW(
           exec.run(
               &executor,
-              &drainer,
               std::move(netwhoami),
               *util_,
               std::make_unique<AgentConfig>(getConfig()),
@@ -307,7 +292,6 @@ class AgentPreStartExecTests : public ::testing::Test {
     } else {
       exec.run(
           &executor,
-          &drainer,
           std::move(netwhoami),
           *util_,
           std::make_unique<AgentConfig>(getConfig()),
