@@ -45,7 +45,7 @@ static const std::unordered_set<TransceiverID> kEmptryTransceiverIDs = {};
 
 static const std::string kQsfpToBmcSyncDataVersion{"1.0"};
 
-static const int kOpticsThermalSyncInterval = 300;
+static const int kOpticsThermalSyncInterval = 10;
 
 } // namespace
 
