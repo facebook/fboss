@@ -32,7 +32,12 @@ std::shared_ptr<SwitchState> LinkConnectivityProcessor::process(
     changed = true;
   };
   for (const auto& [portId, connectivityDelta] : port2ConnectivityDelta) {
-    auto port = out->getPorts()->getNode(portId);
+    auto port = in->getPorts()->getNodeIf(portId);
+    if (!port) {
+      XLOG(ERR) << " Got connectivity delta for unknown port: " << portId;
+      continue;
+    }
+    XLOG(DBG2) << " Connectivity changed for  port : " << port->getName();
     auto newConnectivity = connectivityDelta.newConnectivity();
     if (newConnectivity.has_value() &&
         FabricConnectivityManager::isConnectivityInfoMismatch(
