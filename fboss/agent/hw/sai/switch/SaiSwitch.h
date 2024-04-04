@@ -389,6 +389,7 @@ class SaiSwitch : public HwSwitch {
       const std::shared_ptr<SwitchSettings>& newSwitchSettings);
 
   void syncLinkStatesLocked(const std::lock_guard<std::mutex>& lock);
+  void syncLinkConnectivityLocked(const std::lock_guard<std::mutex>& lock);
 
   template <typename LockPolicyT>
   void processDefaultDataPlanePolicyDelta(

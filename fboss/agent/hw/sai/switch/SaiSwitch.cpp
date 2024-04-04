@@ -330,6 +330,15 @@ void SaiSwitch::unregisterCallbacks() noexcept {
     txReadyStatusChangeBottomHalfThread_->join();
     // tx ready status change processing is completely shut-off
   }
+  if (runState_ >= SwitchRunState::CONFIGURED &&
+      platform_->getAsic()->isSupported(HwAsic::Feature::FABRIC_PORTS)) {
+    linkConnectivityChangeBottomHalfEventBase_.runInEventBaseThreadAndWait(
+        [this]() {
+          linkConnectivityChangeBottomHalfEventBase_.terminateLoopSoon();
+        });
+    linkConnectivityChangeBottomHalfThread_->join();
+    // link connectivity change processing is completely shut-off
+  }
 
   if (runState_ >= SwitchRunState::INITIALIZED) {
     fdbEventBottomHalfEventBase_.runInEventBaseThreadAndWait(
@@ -2368,6 +2377,20 @@ void SaiSwitch::syncLinkStates() {
       [=, this, &lock]() { syncLinkStatesLocked(lock); });
 }
 
+void SaiSwitch::initLinkConnectivityChangeLocked(
+    const std::lock_guard<std::mutex>& lock) {
+  linkConnectivityChangeBottomHalfThread_ =
+      std::make_unique<std::thread>([this]() {
+        initThread("fbossLnkCnctBH");
+        linkConnectivityChangeBottomHalfEventBase_.loopForever();
+      });
+  syncLinkConnectivityLocked(lock);
+}
+
+void SaiSwitch::syncLinkConnectivityLocked(
+    const std::lock_guard<std::mutex>& lock) {
+  // TODO - Perform full connectivity sync
+}
 void SaiSwitch::syncLinkActiveStates() {
   // Link active state is valid only for fabric ports
   if (platform_->getAsic()->isSupported(HwAsic::Feature::FABRIC_PORTS)) {
@@ -3083,11 +3106,6 @@ void SaiSwitch::switchRunStateChangedImplLocked(
       break;
   }
   runState_ = newState;
-}
-
-void SaiSwitch::initLinkConnectivityChangeLocked(
-    const std::lock_guard<std::mutex>& /*lock*/) {
-  // TODO
 }
 
 void SaiSwitch::exitFatalLocked(
