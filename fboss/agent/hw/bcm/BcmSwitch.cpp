@@ -2031,6 +2031,10 @@ void BcmSwitch::processChangedPorts(const StateDelta& delta) {
         if (oldPort->getZeroPreemphasis() != newPort->getZeroPreemphasis()) {
           bcmPort->processChangedZeroPreemphasis(oldPort, newPort);
         }
+
+        if (oldPort->getTxEnable() != newPort->getTxEnable()) {
+          bcmPort->processChangedTxEnable(oldPort, newPort);
+        }
       });
 }
 

@@ -3032,26 +3032,36 @@ void BcmPort::processChangedZeroPreemphasis(
     if (!newPort->getZeroPreemphasis()) {
       throw FbossError("Reverting zero preemphasis on port is not supported.");
     }
-    auto portID = newPort->getID();
     int rv;
     auto preemphasis = 0;
     if (!platformPort_->shouldUsePortResourceAPIs()) {
       rv = bcm_port_phy_control_set(
-          hw_->getUnit(),
-          portID,
-          BCM_PORT_PHY_CONTROL_PREEMPHASIS,
-          preemphasis);
+          hw_->getUnit(), port_, BCM_PORT_PHY_CONTROL_PREEMPHASIS, preemphasis);
     } else {
       bcm_port_phy_tx_t tx;
       bcm_port_phy_tx_t_init(&tx);
-      rv = bcm_port_phy_tx_get(hw_->getUnit(), portID, &tx);
+      rv = bcm_port_phy_tx_get(hw_->getUnit(), port_, &tx);
       bcmCheckError(rv, "Failed to get port tx settings");
       tx.pre = preemphasis & 0xf; // 0-3 bits
       tx.main = (preemphasis & 0x3f0) >> 4; // 4-9 bits
       tx.post = (preemphasis & 0x7c00) >> 10; // 10-14 bits
-      rv = bcm_port_phy_tx_set(hw_->getUnit(), portID, &tx);
+      rv = bcm_port_phy_tx_set(hw_->getUnit(), port_, &tx);
     }
     bcmCheckError(rv, "Failed to set port preemphasis");
+  }
+}
+
+void BcmPort::processChangedTxEnable(
+    const std::shared_ptr<Port>& oldPort,
+    const std::shared_ptr<Port>& newPort) {
+  if (oldPort->getTxEnable() != newPort->getTxEnable()) {
+    CHECK(newPort->getTxEnable().has_value());
+    auto rv = bcm_port_control_set(
+        hw_->getUnit(),
+        port_,
+        bcmPortControlTxEnable,
+        newPort->getTxEnable().value() ? 1 : 0);
+    bcmCheckError(rv, "failed to disable TX");
   }
 }
 
