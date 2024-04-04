@@ -3074,11 +3074,20 @@ void SaiSwitch::switchRunStateChangedImplLocked(
               HwAsic::Feature::LINK_INACTIVE_BASED_ISOLATE)) {
         initTxReadyStatusChangeLocked(lock);
       }
+
+      if (platform_->getAsic()->isSupported(HwAsic::Feature::FABRIC_PORTS)) {
+        initLinkConnectivityChangeLocked(lock);
+      }
     } break;
     default:
       break;
   }
   runState_ = newState;
+}
+
+void SaiSwitch::initLinkConnectivityChangeLocked(
+    const std::lock_guard<std::mutex>& /*lock*/) {
+  // TODO
 }
 
 void SaiSwitch::exitFatalLocked(
