@@ -114,9 +114,12 @@ void SaiSwitch::updateStatsImpl() {
     managerTable_->switchManager().updateStats(updateWatermarks);
   }
   reportAsymmetricTopology();
-  if (connectivityDelta.size()) {
-    linkConnectivityChanged(connectivityDelta);
-  }
+  linkConnectivityChangeBottomHalfEventBase_.runInEventBaseThread(
+      [this, connectivityDelta = std::move(connectivityDelta)] {
+        if (connectivityDelta.size()) {
+          linkConnectivityChanged(connectivityDelta);
+        }
+      });
 }
 
 } // namespace facebook::fboss
