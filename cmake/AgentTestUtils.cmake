@@ -231,6 +231,17 @@ target_link_libraries(port_stats_test_utils
   FBThrift::thriftcpp2
 )
 
+add_library(packet_snooper
+  fboss/agent/test/utils/PacketSnooper.cpp
+)
+
+target_link_libraries(packet_snooper
+  core
+  fboss_types
+  packet
+  packet_factory
+  Folly::folly
+)
 
 add_library(mac_test_utils
   fboss/agent/test/utils/MacTestUtils.cpp
@@ -242,17 +253,24 @@ target_link_libraries(mac_test_utils
   network_address_cpp2
 )
 
-add_library(packet_snooper
-  fboss/agent/test/utils/PacketSnooper.cpp
+add_library(
+  load_balancer_test_runner_h
+  fboss/agent/test/utils/LoadBalancerTestRunner.h
 )
 
-target_link_libraries(packet_snooper
-  core
+
+target_link_libraries(load_balancer_test_runner_h
+  config_utils
+  ecmp_dataplane_test_util
+  load_balancer_test_utils
+  ${GTEST}
+
+  ecmp_helper
+  linkstate_toggler
+  test_ensemble_if
+  load_balancer_test_utils
   fboss_types
-  packet
-  packet_observer
-  packet_factory
-  Folly::folly
+  route_update_wrapper
 )
 
 add_library(aqm_test_utils
