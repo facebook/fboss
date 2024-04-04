@@ -651,7 +651,8 @@ void HwSwitchEnsemble::setupEnsemble(
         getPlatform()->getHwSwitch(),
         swSwitchTestServer_->getPort(),
         asic->getSwitchId() ? SwitchID(*asic->getSwitchId()) : SwitchID(0),
-        0 /*switchIndex*/);
+        0 /*switchIndex*/,
+        std::nullopt /*multiSwitchStatsPrefix*/);
   }
 
   auto bootType = swSwitchWarmBootHelper_->canWarmBoot() ? BootType::WARM_BOOT

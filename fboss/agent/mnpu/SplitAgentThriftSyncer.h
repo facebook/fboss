@@ -36,7 +36,8 @@ class SplitAgentThriftSyncer : public HwSwitchCallback {
       HwSwitch* hw,
       uint16_t serverPort,
       SwitchID switchId,
-      uint16_t switchIndex);
+      uint16_t switchIndex,
+      std::optional<std::string> multiSwitchStatsPrefix);
   ~SplitAgentThriftSyncer() override;
 
   void packetReceived(std::unique_ptr<RxPacket> pkt) noexcept override;
@@ -63,10 +64,14 @@ class SplitAgentThriftSyncer : public HwSwitchCallback {
   void start();
   void stop();
   void updateHwSwitchStats(multiswitch::HwSwitchStats stats);
+  void updateStats();
 
  private:
+  std::string getRxPktEventDropCounterName() const;
+
   std::shared_ptr<folly::ScopedEventBaseThread> retryThread_;
   SwitchID switchId_;
+  std::optional<std::string> multiSwitchStatsPrefix_;
   std::unique_ptr<LinkChangeEventSyncer> linkChangeEventSinkClient_;
   std::unique_ptr<TxPktEventSyncer> txPktEventStreamClient_;
   std::unique_ptr<OperDeltaSyncer> operDeltaClient_;
@@ -74,5 +79,6 @@ class SplitAgentThriftSyncer : public HwSwitchCallback {
   std::unique_ptr<RxPktEventSyncer> rxPktEventSinkClient_;
   std::unique_ptr<HwSwitchStatsSinkClient> hwSwitchStatsSinkClient_;
   bool isRunning_{false};
+  folly::Synchronized<uint64_t> rxPktEventsDropped_{0};
 };
 } // namespace facebook::fboss

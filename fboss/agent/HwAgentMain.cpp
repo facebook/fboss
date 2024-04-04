@@ -64,6 +64,7 @@ void updateStats(
     facebook::fboss::SplitAgentThriftSyncer* syncer) {
   if (hw->getRunState() >= SwitchRunState::CONFIGURED) {
     hw->updateStats();
+    syncer->updateStats();
     auto hwSwitchStats = hw->getHwSwitchStats();
     hw->updateAllPhyInfo();
     hwSwitchStats.phyInfo() = getPhyInfoForSwitchStats(hw->getAllPhyInfo());
@@ -145,7 +146,8 @@ int hwAgentMain(
       hwAgent->getPlatform()->getHwSwitch(),
       FLAGS_swswitch_port,
       SwitchID(*hwAgent->getPlatform()->getAsic()->getSwitchId()),
-      FLAGS_switchIndex);
+      FLAGS_switchIndex,
+      hwAgent->getPlatform()->getMultiSwitchStatsPrefix());
 
   auto ret =
       hwAgent->initAgent(true /* failHwCallsOnWarmboot */, thriftSyncer.get());

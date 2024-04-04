@@ -22,10 +22,12 @@ SplitAgentThriftSyncer::SplitAgentThriftSyncer(
     HwSwitch* hw,
     uint16_t serverPort,
     SwitchID switchId,
-    uint16_t switchIndex)
+    uint16_t switchIndex,
+    std::optional<std::string> multiSwitchStatsPrefix)
     : retryThread_(std::make_shared<folly::ScopedEventBaseThread>(
           "SplitAgentThriftRetryThread")),
       switchId_(switchId),
+      multiSwitchStatsPrefix_(multiSwitchStatsPrefix),
       linkChangeEventSinkClient_(std::make_unique<LinkChangeEventSyncer>(
           serverPort,
           switchId_,
@@ -55,7 +57,7 @@ SplitAgentThriftSyncer::SplitAgentThriftSyncer(
 void SplitAgentThriftSyncer::packetReceived(
     std::unique_ptr<RxPacket> pkt) noexcept {
   if (!rxPktEventSinkClient_->isConnectedToServer()) {
-    // TODO - update stat
+    (*rxPktEventsDropped_.wlock())++;
     return;
   }
   multiswitch::RxPacket rxPkt;
@@ -180,6 +182,17 @@ void SplitAgentThriftSyncer::stop() {
   rxPktEventSinkClient_->cancel();
   hwSwitchStatsSinkClient_->cancel();
   isRunning_ = false;
+}
+
+std::string SplitAgentThriftSyncer::getRxPktEventDropCounterName() const {
+  return multiSwitchStatsPrefix_.has_value()
+      ? *multiSwitchStatsPrefix_ + ".rx_pkt_event_dropped"
+      : "rx_pkt_event_dropped";
+}
+
+void SplitAgentThriftSyncer::updateStats() {
+  fb303::fbData->setCounter(
+      getRxPktEventDropCounterName(), *(rxPktEventsDropped_.rlock()));
 }
 
 SplitAgentThriftSyncer::~SplitAgentThriftSyncer() {
