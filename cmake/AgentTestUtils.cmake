@@ -243,3 +243,13 @@ target_link_libraries(packet_snooper
   packet_factory
   Folly::folly
 )
+
+add_library(aqm_test_utils
+  fboss/agent/test/utils/AqmTestUtils.cpp
+)
+
+target_link_libraries(aqm_test_utils
+  switch_asics
+  switch_config_cpp2
+  fboss_error
+)
