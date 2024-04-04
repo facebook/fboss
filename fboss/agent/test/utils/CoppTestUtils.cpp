@@ -922,4 +922,15 @@ std::unique_ptr<facebook::fboss::TxPacket> createUdpPkt(
       dscp);
 }
 
+std::pair<uint64_t, uint64_t> getCpuQueueOutPacketsAndBytes(
+    HwPortStats& stats,
+    int queueId) {
+  auto queueIter = stats.queueOutPackets_()->find(queueId);
+  auto outPackets =
+      (queueIter != stats.queueOutPackets_()->end()) ? queueIter->second : 0;
+  queueIter = stats.queueOutBytes_()->find(queueId);
+  auto outBytes =
+      (queueIter != stats.queueOutBytes_()->end()) ? queueIter->second : 0;
+  return std::pair(outPackets, outBytes);
+}
 } // namespace facebook::fboss::utility

@@ -134,6 +134,10 @@ std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueues(
     const HwAsic* hwAsic,
     bool isSai);
 
+std::pair<uint64_t, uint64_t> getCpuQueueOutPacketsAndBytes(
+    HwPortStats& stats,
+    int queueId);
+
 void setPortQueueSharedBytes(cfg::PortQueue& queue, bool isSai);
 
 void setTTLZeroCpuConfig(const HwAsic* hwAsic, cfg::SwitchConfig& config);

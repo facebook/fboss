@@ -259,9 +259,10 @@ struct HwSwitchWatermarkStats {
 }
 
 struct CpuPortStats {
-  1: map<i32, i64> queueInPackets_;
-  2: map<i32, i64> queueDiscardPackets_;
-  3: map<i32, string> queueToName_;
+  1: map<i32, i64> queueInPackets_; // TODO: Deprecate this
+  2: map<i32, i64> queueDiscardPackets_; // TODO: Deprecate this
+  3: map<i32, string> queueToName_; // TODO: Deprecate this
+  4: HwPortStats portStats_;
 }
 
 struct HwSwitchDropStats {

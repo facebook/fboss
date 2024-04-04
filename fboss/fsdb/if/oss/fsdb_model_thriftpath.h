@@ -21518,14 +21518,17 @@ class ChildThriftPath<::facebook::fboss::CpuPortStats, ::facebook::fboss::fsdb::
   >;
   using Children = fatal::tuple<std::pair<strings::queueInPackets_, ChildThriftPath<::std::map<::std::int32_t, ::std::int64_t>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
 std::pair<strings::queueDiscardPackets_, ChildThriftPath<::std::map<::std::int32_t, ::std::int64_t>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
-std::pair<strings::queueToName_, ChildThriftPath<::std::map<::std::int32_t, ::std::string>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>>;
+std::pair<strings::queueToName_, ChildThriftPath<::std::map<::std::int32_t, ::std::string>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
+std::pair<strings::portStats_, ChildThriftPath<::facebook::fboss::HwPortStats, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, ChildThriftPath<::std::map<::std::int32_t, ::std::int64_t>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, ChildThriftPath<::std::map<::std::int32_t, ::std::int64_t>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, ChildThriftPath<::std::map<::std::int32_t, ::std::string>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, ChildThriftPath<::std::map<::std::int32_t, ::std::string>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 4>, ChildThriftPath<::facebook::fboss::HwPortStats, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::queueInPackets_, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::queueDiscardPackets_, std::integral_constant<apache::thrift::field_id_t, 2>>,
-std::pair<strings::queueToName_, std::integral_constant<apache::thrift::field_id_t, 3>>>::template type_of<Name>;
+std::pair<strings::queueToName_, std::integral_constant<apache::thrift::field_id_t, 3>>,
+std::pair<strings::portStats_, std::integral_constant<apache::thrift::field_id_t, 4>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -21542,12 +21545,14 @@ std::pair<strings::queueToName_, std::integral_constant<apache::thrift::field_id
     STRUCT_CHILD_GETTERS(queueInPackets_, 1);
     STRUCT_CHILD_GETTERS(queueDiscardPackets_, 2);
     STRUCT_CHILD_GETTERS(queueToName_, 3);
+    STRUCT_CHILD_GETTERS(portStats_, 4);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
     if constexpr (__id == 1) { return queueInPackets_(); }
     else if constexpr (__id == 2) { return queueDiscardPackets_(); }
     else if constexpr (__id == 3) { return queueToName_(); }
+    else if constexpr (__id == 4) { return portStats_(); }
   }
 
   template <typename T, T... Values>

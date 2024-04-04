@@ -4236,6 +4236,9 @@ CpuPortStats BcmSwitch::getCpuPortStats() const {
       queueManager->getQueueStats(BcmCosQueueStatType::OUT_PACKETS);
   cpuPortStats.queueDiscardPackets_() =
       queueManager->getQueueStats(BcmCosQueueStatType::DROPPED_PACKETS);
+  HwPortStats portStats;
+  getControlPlane()->updateQueueCounters(&portStats);
+  cpuPortStats.portStats_() = portStats;
   return cpuPortStats;
 }
 
