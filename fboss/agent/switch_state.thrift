@@ -130,6 +130,7 @@ struct PortFields {
   //  - if portOperState is UP, portActiveState is either ACTIVE or INACTIVE.
   49: optional bool portActiveState;
   50: optional bool disableTTLDecrement;
+  51: optional bool txEnable;
 }
 
 typedef ctrl.SystemPortThrift SystemPortFields
@@ -371,6 +372,7 @@ struct SwitchSettingsFields {
   36: list<string> metaMacOuis;
   37: ctrl.SwitchRunState swSwitchRunState;
   38: optional bool forceTrafficOverFabric;
+  39: optional bool creditWatchdog;
 }
 
 struct RoutePrefix {
