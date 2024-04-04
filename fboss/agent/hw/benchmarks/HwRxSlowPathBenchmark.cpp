@@ -9,13 +9,13 @@
  */
 
 #include "fboss/agent/HwAsicTable.h"
-#include "fboss/agent/Platform.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
-#include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
+
+#include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/QosTestUtils.h"
 #include "fboss/agent/test/utils/TrapPacketUtils.h"
 
@@ -83,8 +83,6 @@ BENCHMARK(RxSlowPathBenchmark) {
 
   auto ensemble = createAgentEnsemble(initialConfigFn);
 
-  // TODO(zecheng): Deprecate agent access to HwSwitch
-  auto hwSwitch = ensemble->getHwSwitch();
   // capture packet exiting port 0 (entering due to loopback)
   auto dstMac = utility::getFirstInterfaceMac(ensemble->getProgrammedState());
   auto ecmpHelper =
@@ -112,19 +110,25 @@ BENCHMARK(RxSlowPathBenchmark) {
       folly::IPAddressV6(kDstIp),
       8000,
       8001);
-  hwSwitch->sendPacketSwitchedSync(std::move(txPacket));
+  ensemble->getSw()->sendPacketSwitchedAsync(std::move(txPacket));
 
   constexpr auto kBurnIntevalInSeconds = 5;
   // Let the packet flood warm up
   std::this_thread::sleep_for(std::chrono::seconds(kBurnIntevalInSeconds));
   constexpr uint8_t kCpuQueue = 0;
-  auto [pktsBefore, bytesBefore] =
-      utility::getCpuQueueOutPacketsAndBytes(hwSwitch, kCpuQueue);
+  std::map<int, CpuPortStats> cpuStatsBefore;
+  ensemble->getSw()->getAllCpuPortStats(cpuStatsBefore);
+  auto statsBefore = cpuStatsBefore[0];
+  auto [pktsBefore, bytesBefore] = utility::getCpuQueueOutPacketsAndBytes(
+      *statsBefore.portStats_(), kCpuQueue);
   auto timeBefore = std::chrono::steady_clock::now();
   CHECK_NE(pktsBefore, 0);
   std::this_thread::sleep_for(std::chrono::seconds(kBurnIntevalInSeconds));
-  auto [pktsAfter, bytesAfter] =
-      utility::getCpuQueueOutPacketsAndBytes(hwSwitch, kCpuQueue);
+  std::map<int, CpuPortStats> cpuStatsAfter;
+  ensemble->getSw()->getAllCpuPortStats(cpuStatsAfter);
+  auto statsAfter = cpuStatsAfter[0];
+  auto [pktsAfter, bytesAfter] = utility::getCpuQueueOutPacketsAndBytes(
+      *statsAfter.portStats_(), kCpuQueue);
   auto timeAfter = std::chrono::steady_clock::now();
   std::chrono::duration<double, std::milli> durationMillseconds =
       timeAfter - timeBefore;
