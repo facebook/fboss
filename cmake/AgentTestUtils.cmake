@@ -231,6 +231,17 @@ target_link_libraries(port_stats_test_utils
   FBThrift::thriftcpp2
 )
 
+
+add_library(mac_test_utils
+  fboss/agent/test/utils/MacTestUtils.cpp
+)
+
+target_link_libraries(mac_test_utils
+  state
+  test_ensemble_if
+  network_address_cpp2
+)
+
 add_library(packet_snooper
   fboss/agent/test/utils/PacketSnooper.cpp
 )

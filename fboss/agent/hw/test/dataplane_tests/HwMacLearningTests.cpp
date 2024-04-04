@@ -20,6 +20,7 @@
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/TrunkUtils.h"
+#include "fboss/agent/test/utils/MacTestUtils.h"
 
 #include "fboss/agent/MacTableUtils.h"
 #include "fboss/agent/Platform.h"
@@ -28,7 +29,6 @@
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwSwitchEnsembleRouteUpdateWrapper.h"
 #include "fboss/agent/hw/test/HwTestLearningUpdateObserver.h"
-#include "fboss/agent/hw/test/HwTestMacUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 
 #include "fboss/agent/hw/test/ConfigFactory.h"

@@ -208,7 +208,6 @@ set(hw_switch_test_srcs
   fboss/agent/hw/test/HwTest.cpp
   fboss/agent/hw/test/HwTestAclUtils.cpp
   fboss/agent/hw/test/HwTestConstants.cpp
-  fboss/agent/hw/test/HwTestMacUtils.cpp
   fboss/agent/hw/test/HwTestPortUtils.cpp
   fboss/agent/hw/test/HwTestCoppUtils.cpp
   fboss/agent/hw/test/HwRouteScaleTest.cpp
@@ -324,6 +323,7 @@ target_link_libraries(hw_switch_test
   hw_voq_utils
   linkstate_toggler
   load_balancer_utils
+  mac_test_utils
   olympic_qos_utils
   prod_config_factory
   prod_config_utils
