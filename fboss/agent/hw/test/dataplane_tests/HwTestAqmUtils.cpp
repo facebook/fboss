@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/test/dataplane_tests/HwTestAqmUtils.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestPortUtils.h"
+#include "fboss/agent/test/utils/AqmTestUtils.h"
 
 namespace {
 static constexpr auto kJerichoWordSize{16};
@@ -23,109 +24,13 @@ int getRoundedBufferThreshold(
     HwSwitch* hwSwitch,
     int expectedThreshold,
     bool roundUp) {
-  int threshold{};
-  if (cfg::AsicType::ASIC_TYPE_EBRO ==
-      hwSwitch->getPlatform()->getAsic()->getAsicType()) {
-    /*
-     * Ebro splits queue buffers into 16 blocks, watermarks and
-     * ECN/WRED thresholds can only be reported / configured in
-     * the order of these block thresholds as captured below.
-     *
-     * Doc: https://fburl.com/nil3f15m
-     */
-    const std::vector<int> kEbroQuantizedThresholds{
-        (50 * 384),
-        (256 * 384),
-        (512 * 384),
-        (1024 * 384),
-        (2 * 1024 * 384),
-        (3 * 1024 * 384),
-        (6 * 1024 * 384),
-        (7 * 1024 * 384),
-        (8 * 1024 * 384),
-        (9 * 1024 * 384),
-        (10 * 1024 * 384),
-        (11 * 1024 * 384),
-        (12 * 1024 * 384),
-        (15 * 1024 * 384),
-        (16000 * 384)};
-    auto it = std::lower_bound(
-        kEbroQuantizedThresholds.begin(),
-        kEbroQuantizedThresholds.end(),
-        expectedThreshold);
-
-    if (roundUp) {
-      if (it == kEbroQuantizedThresholds.end()) {
-        FbossError("Invalid threshold for ASIC, ", expectedThreshold);
-      } else {
-        threshold = *it;
-      }
-    } else {
-      if (it != kEbroQuantizedThresholds.end() && *it == expectedThreshold) {
-        threshold = *it;
-      } else if (it != kEbroQuantizedThresholds.begin()) {
-        threshold = *(std::prev(it));
-      } else {
-        FbossError("Invalid threshold for ASIC, ", expectedThreshold);
-      }
-    }
-  } else if (
-      hwSwitch->getPlatform()->getAsic()->getAsicType() ==
-      cfg::AsicType::ASIC_TYPE_JERICHO2) {
-    // Jericho2 ECN thresholds are in multiples of 1K
-    threshold = kJerichoEcnThresholdIncrements *
-        ceil(static_cast<double>(expectedThreshold) /
-             kJerichoEcnThresholdIncrements);
-  } else {
-    // Thresholds are applied in multiples of unit buffer size
-    auto bufferUnitSize =
-        hwSwitch->getPlatform()->getAsic()->getPacketBufferUnitSize();
-    /*
-     * Round up:
-     * For expected threshold of 300B with round up, we need 2 cells worth
-     * bytes in case of TH3, to get the same, we do 300 / CELLSIZE to find
-     * the number of CELLs needed to accommodate this size, which comes out
-     * to be 1.18 (rounded up to 2) and then multiply it by CELLSIZE
-     * to get the number of bytes for 2 cells, which will be 508B.
-     *
-     * Round down:
-     * For expected threshold of 600B with round down, we need 2 cell worth
-     * bytes in case of TH3 (no use case), to get the same, we do
-     * 600 / CELLSIZE to find the number of CELLs needed to accommodate this
-     * size, which comes out to be 2.36 (integer round down to 2) and then
-     * multiply it by CELLSIZE to get the number of bytes for 2 cells, which
-     * will be 508B.
-     */
-    threshold = roundUp ? bufferUnitSize *
-            ceil(static_cast<double>(expectedThreshold) / bufferUnitSize)
-                        : bufferUnitSize *
-            floor(static_cast<double>(expectedThreshold) / bufferUnitSize);
-  }
-
-  return threshold;
+  return getRoundedBufferThreshold(
+      hwSwitch->getPlatform()->getAsic(), expectedThreshold, roundUp);
 }
 
 size_t getEffectiveBytesPerPacket(HwSwitch* hwSwitch, int pktSizeBytes) {
-  auto bufferDescriptorBytes =
-      hwSwitch->getPlatform()->getAsic()->getPacketBufferDescriptorSize();
-
-  size_t effectiveBytesPerPkt;
-  if (hwSwitch->getPlatform()->getAsic()->getAsicType() ==
-      cfg::AsicType::ASIC_TYPE_JERICHO2) {
-    // For Jericho2, the buffer unit size does not matter, each packet has
-    // the overhead added to it and rounded to the next multiple of word size.
-    effectiveBytesPerPkt = kJerichoWordSize *
-        ((pktSizeBytes + bufferDescriptorBytes + kJerichoWordSize - 1) /
-         kJerichoWordSize);
-  } else {
-    auto packetBufferUnitBytes =
-        hwSwitch->getPlatform()->getAsic()->getPacketBufferUnitSize();
-    assert(packetBufferUnitBytes);
-    effectiveBytesPerPkt = packetBufferUnitBytes *
-        ((pktSizeBytes + bufferDescriptorBytes + packetBufferUnitBytes - 1) /
-         packetBufferUnitBytes);
-  }
-  return effectiveBytesPerPkt;
+  return getEffectiveBytesPerPacket(
+      hwSwitch->getPlatform()->getAsic(), pktSizeBytes);
 }
 
 HwPortStats sendPacketsWithQueueBuildup(
@@ -206,10 +111,8 @@ HwPortStats sendPacketsWithQueueBuildup(
 double getAlphaFromScalingFactor(
     HwSwitch* hwSwitch,
     cfg::MMUScalingFactor scalingFactor) {
-  int powof =
-      hwSwitch->getPlatform()->getAsic()->getBufferDynThreshFromScalingFactor(
-          scalingFactor);
-  return pow(2, powof);
+  return getAlphaFromScalingFactor(
+      hwSwitch->getPlatform()->getAsic(), scalingFactor);
 }
 
 uint32_t getQueueLimitBytes(
