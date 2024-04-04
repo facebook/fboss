@@ -618,6 +618,12 @@ cfg::SwitchConfig genPortVlanCfg(
   switchInfo.asicType() = asicType;
   if (asicType == cfg::AsicType::ASIC_TYPE_RAMON) {
     switchInfo.connectionHandle() = "0c:00";
+  } else if (asicType == cfg::AsicType::ASIC_TYPE_RAMON3) {
+    switchInfo.connectionHandle() = "15:00";
+  } else if (asicType == cfg::AsicType::ASIC_TYPE_JERICHO2) {
+    switchInfo.connectionHandle() = "68:00";
+  } else if (asicType == cfg::AsicType::ASIC_TYPE_JERICHO3) {
+    switchInfo.connectionHandle() = "15:00";
   } else if (
       asicType == cfg::AsicType::ASIC_TYPE_EBRO ||
       asicType == cfg::AsicType::ASIC_TYPE_YUBA) {
