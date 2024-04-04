@@ -692,6 +692,21 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
     }
   }
 
+  std::optional<bool> getTxEnable() const {
+    if (auto value = cref<switch_state_tags::txEnable>()) {
+      return value->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setTxEnable(std::optional<bool> txEnable) {
+    if (txEnable.has_value()) {
+      set<switch_state_tags::txEnable>(*txEnable);
+    } else {
+      ref<switch_state_tags::txEnable>().reset();
+    }
+  }
+
   Port* modify(std::shared_ptr<SwitchState>* state);
 
  private:

@@ -498,6 +498,21 @@ class SwitchSettings
     }
   }
 
+  std::optional<bool> getCreditWatchdog() const {
+    if (auto creditWatchdog = cref<switch_state_tags::creditWatchdog>()) {
+      return creditWatchdog->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setCreditWatchdog(std::optional<bool> creditWatchdog) {
+    if (!creditWatchdog) {
+      ref<switch_state_tags::creditWatchdog>().reset();
+    } else {
+      set<switch_state_tags::creditWatchdog>(creditWatchdog.value());
+    }
+  }
+
   SwitchSettings* modify(std::shared_ptr<SwitchState>* state);
 
  private:
