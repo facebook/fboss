@@ -2384,13 +2384,24 @@ void SaiSwitch::initLinkConnectivityChangeLocked(
         initThread("fbossLnkCnctBH");
         linkConnectivityChangeBottomHalfEventBase_.loopForever();
       });
-  syncLinkConnectivityLocked(lock);
+  linkConnectivityChangeBottomHalfEventBase_.runInEventBaseThread(
+      [=, this, &lock] { syncLinkConnectivityLocked(lock); });
 }
 
 void SaiSwitch::syncLinkConnectivityLocked(
     const std::lock_guard<std::mutex>& lock) {
-  // TODO - Perform full connectivity sync
+  auto connectivity = fabricConnectivityManager_->getConnectivityInfo();
+  std::map<PortID, multiswitch::FabricConnectivityDelta> connectivityDelta;
+  for (const auto& [port, connectivityInfo] : connectivity) {
+    multiswitch::FabricConnectivityDelta delta;
+    delta.newConnectivity() = connectivityInfo;
+    connectivityDelta.insert({port, delta});
+  }
+  if (connectivityDelta.size()) {
+    callback_->linkConnectivityChanged(connectivityDelta);
+  }
 }
+
 void SaiSwitch::syncLinkActiveStates() {
   // Link active state is valid only for fabric ports
   if (platform_->getAsic()->isSupported(HwAsic::Feature::FABRIC_PORTS)) {
