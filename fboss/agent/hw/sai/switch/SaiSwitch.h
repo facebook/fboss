@@ -229,7 +229,7 @@ class SaiSwitch : public HwSwitch {
 
   void syncLinkStates() override;
   void syncLinkActiveStates() override;
-  void syncLinkConnectivity() override {}
+  void syncLinkConnectivity() override;
 
   AclStats getAclStats() const override;
 

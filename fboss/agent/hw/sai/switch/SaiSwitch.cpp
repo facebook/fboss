@@ -2385,9 +2385,16 @@ void SaiSwitch::initLinkConnectivityChangeLocked(
         linkConnectivityChangeBottomHalfEventBase_.loopForever();
       });
   linkConnectivityChangeBottomHalfEventBase_.runInEventBaseThread(
-      [=, this, &lock] { syncLinkConnectivityLocked(lock); });
+      [this, &lock] { syncLinkConnectivityLocked(lock); });
 }
 
+void SaiSwitch::syncLinkConnectivity() {
+  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+  if (linkConnectivityChangeBottomHalfThread_) {
+    linkConnectivityChangeBottomHalfEventBase_.runInEventBaseThread(
+        [this, &lock] { syncLinkConnectivityLocked(lock); });
+  }
+}
 void SaiSwitch::syncLinkConnectivityLocked(
     const std::lock_guard<std::mutex>& lock) {
   auto connectivity = fabricConnectivityManager_->getConnectivityInfo();
