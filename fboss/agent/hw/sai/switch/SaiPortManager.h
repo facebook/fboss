@@ -211,10 +211,7 @@ class SaiPortManager {
   std::vector<phy::PrbsLaneStats> getPortAsicPrbsStats(PortID portId);
   void clearPortAsicPrbsStats(PortID portId);
   prbs::InterfacePrbsState getPortPrbsState(PortID portId);
-  void updateStats(
-      PortID portID,
-      bool updateWatermarks = false,
-      int isConnectivityInfoMismatch = 0);
+  void updateStats(PortID portID, bool updateWatermarks = false);
 
   void updateConnectivityStats(PortID portID);
 

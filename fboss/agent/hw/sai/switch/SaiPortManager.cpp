@@ -1668,10 +1668,7 @@ void SaiPortManager::clearPortAsicPrbsStats(PortID portId) {
   prbsStatsEntry.clearPrbsStats();
 }
 
-void SaiPortManager::updateStats(
-    PortID portId,
-    bool updateWatermarks,
-    int isConnectivityInfoMismatch) {
+void SaiPortManager::updateStats(PortID portId, bool updateWatermarks) {
   auto handlesItr = handles_.find(portId);
   if (handlesItr == handles_.end()) {
     return;
@@ -1698,7 +1695,6 @@ void SaiPortManager::updateStats(
   setUninitializedStatsToZero(*curPortStats.inDiscardsRaw_());
   setUninitializedStatsToZero(*curPortStats.inPause_());
 
-  curPortStats.fabricConnectivityMismatch() = isConnectivityInfoMismatch;
   curPortStats.timestamp_() = now.count();
   handle->port->updateStats(supportedStats(portId), SAI_STATS_MODE_READ);
 

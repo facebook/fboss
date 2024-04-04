@@ -22467,7 +22467,7 @@ std::pair<strings::inCongestionDiscards_, Child<::std::int64_t, ::apache::thrift
 std::pair<strings::inAclDiscards_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
 std::pair<strings::inTrapDiscards_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
 std::pair<strings::outForwardingDiscards_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
-std::pair<strings::fabricConnectivityMismatch, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
+std::pair<strings::fabricConnectivityMismatch_DEPRECATED, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
@@ -22562,7 +22562,7 @@ std::pair<strings::inCongestionDiscards_, std::integral_constant<apache::thrift:
 std::pair<strings::inAclDiscards_, std::integral_constant<apache::thrift::field_id_t, 56>>,
 std::pair<strings::inTrapDiscards_, std::integral_constant<apache::thrift::field_id_t, 57>>,
 std::pair<strings::outForwardingDiscards_, std::integral_constant<apache::thrift::field_id_t, 58>>,
-std::pair<strings::fabricConnectivityMismatch, std::integral_constant<apache::thrift::field_id_t, 59>>>::template type_of<Name>;
+std::pair<strings::fabricConnectivityMismatch_DEPRECATED, std::integral_constant<apache::thrift::field_id_t, 59>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -22622,7 +22622,7 @@ std::pair<strings::fabricConnectivityMismatch, std::integral_constant<apache::th
     STRUCT_CHILD_GETTERS(inAclDiscards_, 56);
     STRUCT_CHILD_GETTERS(inTrapDiscards_, 57);
     STRUCT_CHILD_GETTERS(outForwardingDiscards_, 58);
-    STRUCT_CHILD_GETTERS(fabricConnectivityMismatch, 59);
+    STRUCT_CHILD_GETTERS(fabricConnectivityMismatch_DEPRECATED, 59);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -22672,7 +22672,7 @@ std::pair<strings::fabricConnectivityMismatch, std::integral_constant<apache::th
     else if constexpr (__id == 56) { return inAclDiscards_(); }
     else if constexpr (__id == 57) { return inTrapDiscards_(); }
     else if constexpr (__id == 58) { return outForwardingDiscards_(); }
-    else if constexpr (__id == 59) { return fabricConnectivityMismatch(); }
+    else if constexpr (__id == 59) { return fabricConnectivityMismatch_DEPRECATED(); }
   }
 
   template <typename T, T... Values>

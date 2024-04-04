@@ -370,13 +370,8 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, fabricIsolate) {
 }
 
 TEST_F(AgentVoqSwitchWithFabricPortsTest, fabricConnectivityMismatch) {
-  auto fabricPortId = masterLogicalFabricPortIds()[0];
-  auto setup = [=, this]() {
-    applyNewConfig(initialConfig(*getAgentEnsemble()));
-    auto portStats = getLatestPortStats(fabricPortId);
-    EXPECT_EQ(*portStats.get_fabricConnectivityMismatch(), 0);
-  };
-  auto verify = [=, this]() {
+  auto verify = [this]() {
+    auto fabricPortId = masterLogicalFabricPortIds()[0];
     auto cfg = initialConfig(*getAgentEnsemble());
     cfg::PortNeighbor nbr;
     nbr.remoteSystem() = "RemoteA";
@@ -391,13 +386,9 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, fabricConnectivityMismatch) {
       EXPECT_EVENTUALLY_EQ(
           port->getLedPortExternalState().value(),
           PortLedExternalState::CABLING_ERROR);
-      auto portStats = getLatestPortStats(fabricPortId);
-      EXPECT_EVENTUALLY_TRUE(
-          portStats.fabricConnectivityMismatch().has_value());
-      EXPECT_EVENTUALLY_EQ(*portStats.fabricConnectivityMismatch(), 1);
     });
   };
-  verifyAcrossWarmBoots(setup, verify);
+  verifyAcrossWarmBoots([]() {}, verify);
 }
 
 TEST_F(AgentVoqSwitchWithFabricPortsTest, switchIsolate) {
