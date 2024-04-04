@@ -1,19 +1,24 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/hw/test/HwTestMacUtils.h"
-#include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/test/TestEnsembleIf.h"
 
 namespace facebook::fboss::utility {
 
 void setMacAgeTimerSeconds(
-    facebook::fboss::HwSwitchEnsemble* hwSwitchEnsemble,
+    facebook::fboss::TestEnsembleIf* ensemble,
     uint32_t seconds) {
-  auto newState = hwSwitchEnsemble->getProgrammedState()->clone();
-  auto switchSettings = utility::getFirstNodeIf(newState->getSwitchSettings());
-  auto newSwitchSettings = switchSettings->modify(&newState);
-  newSwitchSettings->setL2AgeTimerSeconds(seconds);
-  hwSwitchEnsemble->applyNewState(newState);
+  ensemble->applyNewState(
+      [&](const std::shared_ptr<SwitchState>& in) {
+        auto newState = in->clone();
+        auto switchSettings =
+            utility::getFirstNodeIf(newState->getSwitchSettings());
+        auto newSwitchSettings = switchSettings->modify(&newState);
+        newSwitchSettings->setL2AgeTimerSeconds(seconds);
+        return newState;
+      },
+      "set mac age timer");
 }
 
 } // namespace facebook::fboss::utility
