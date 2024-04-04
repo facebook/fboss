@@ -54,6 +54,10 @@ SplitAgentThriftSyncer::SplitAgentThriftSyncer(
 
 void SplitAgentThriftSyncer::packetReceived(
     std::unique_ptr<RxPacket> pkt) noexcept {
+  if (!rxPktEventSinkClient_->isConnectedToServer()) {
+    // TODO - update stat
+    return;
+  }
   multiswitch::RxPacket rxPkt;
   rxPkt.port() = pkt->getSrcPort();
   if (pkt->getSrcVlanIf()) {
@@ -62,7 +66,7 @@ void SplitAgentThriftSyncer::packetReceived(
   if (pkt->getSrcAggregatePort()) {
     rxPkt.aggPort() = pkt->getSrcAggregatePort();
   }
-  rxPkt.data() = Packet::extractIOBuf(std::move(pkt));
+  rxPkt.data() = IOBuf::copyBuffer(pkt->buf()->data(), pkt->buf()->length());
   rxPktEventSinkClient_->enqueue(std::move(rxPkt));
 }
 
