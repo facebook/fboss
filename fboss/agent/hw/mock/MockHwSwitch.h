@@ -150,6 +150,7 @@ class MockHwSwitch : public HwSwitch {
   MOCK_METHOD0(initialStateApplied, void());
   MOCK_METHOD0(syncLinkStates, void());
   MOCK_METHOD0(syncLinkActiveStates, void());
+  MOCK_METHOD0(syncLinkConnectivity, void());
 
   MockPlatform* platform_;
 

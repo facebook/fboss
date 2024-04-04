@@ -385,6 +385,7 @@ class HwSwitch {
 
   virtual void syncLinkStates() = 0;
   virtual void syncLinkActiveStates() = 0;
+  virtual void syncLinkConnectivity() = 0;
 
   virtual AclStats getAclStats() const = 0;
 
