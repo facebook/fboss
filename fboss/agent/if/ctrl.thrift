@@ -51,6 +51,7 @@ enum PortLedExternalState {
   CABLING_ERROR = 1,
   EXTERNAL_FORCE_ON = 2,
   EXTERNAL_FORCE_OFF = 3,
+  CABLING_ERROR_LOOP_DETECTED = 4,
 }
 
 struct IpPrefix {

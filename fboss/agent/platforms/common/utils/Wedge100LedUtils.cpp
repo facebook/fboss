@@ -36,6 +36,7 @@ Wedge100LedUtils::LedColor Wedge100LedUtils::getDesiredLEDState(
       color = currentColor;
       break;
     case PortLedExternalState::CABLING_ERROR:
+    case PortLedExternalState::CABLING_ERROR_LOOP_DETECTED:
       color = Wedge100LedUtils::LedColor::YELLOW;
       break;
     case PortLedExternalState::EXTERNAL_FORCE_ON:

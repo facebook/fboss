@@ -49,6 +49,7 @@ std::ostream& operator<<(std::ostream& os, PortLedExternalState lfs) {
       os << "None";
       break;
     case PortLedExternalState::CABLING_ERROR:
+    case PortLedExternalState::CABLING_ERROR_LOOP_DETECTED:
       os << "Cabling Error";
       break;
     case PortLedExternalState::EXTERNAL_FORCE_ON:

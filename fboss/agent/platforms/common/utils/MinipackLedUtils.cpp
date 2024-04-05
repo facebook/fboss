@@ -19,6 +19,7 @@ MinipackLed::Color MinipackLedUtils::getLedExternalState(
     case PortLedExternalState::NONE:
       return internalState;
     case PortLedExternalState::CABLING_ERROR:
+    case PortLedExternalState::CABLING_ERROR_LOOP_DETECTED:
       return MinipackLed::Color::YELLOW;
     case PortLedExternalState::EXTERNAL_FORCE_ON:
       return MinipackLed::Color::WHITE;
