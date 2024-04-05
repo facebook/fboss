@@ -73,17 +73,24 @@ TEST_F(AgentEgressForwardingDiscardsCounterTest, outForwardingDiscards) {
         std::move(pkt), masterLogicalInterfacePortIds()[1]);
     WITH_RETRIES({
       auto portStatsAfter = getLatestPortStats(port);
-      XLOG(INFO) << " Out forwading discards, before:"
+      XLOG(INFO) << " Out forwarding discards, before:"
                  << *portStatsBefore.outForwardingDiscards_()
                  << " after:" << *portStatsAfter.outForwardingDiscards_()
                  << std::endl
-                 << " Out dicards, before:" << *portStatsBefore.outDiscards_()
-                 << " after:" << *portStatsAfter.outDiscards_();
+                 << " Out discards, before:" << *portStatsBefore.outDiscards_()
+                 << " after:" << *portStatsAfter.outDiscards_() << std::endl
+                 << " Out congestion discards, before:"
+                 << *portStatsBefore.outCongestionDiscardPkts_()
+                 << " after:" << *portStatsAfter.outCongestionDiscardPkts_();
       EXPECT_EVENTUALLY_EQ(
           *portStatsAfter.outDiscards_(), *portStatsBefore.outDiscards_() + 1);
       EXPECT_EVENTUALLY_EQ(
           *portStatsAfter.outForwardingDiscards_(),
           *portStatsBefore.outForwardingDiscards_() + 1);
+      // Out congestion discards should not increment
+      EXPECT_EQ(
+          *portStatsAfter.outCongestionDiscardPkts_(),
+          *portStatsBefore.outCongestionDiscardPkts_());
     });
     // Collect once more and assert that counter remains same.
     // We expect this to be a cumulative counter and not a read
@@ -94,12 +101,19 @@ TEST_F(AgentEgressForwardingDiscardsCounterTest, outForwardingDiscards) {
                << " after:" << *portStatsAfter.outForwardingDiscards_()
                << std::endl
                << " Out dicards, before:" << *portStatsBefore.outDiscards_()
-               << " after:" << *portStatsAfter.outDiscards_();
+               << " after:" << *portStatsAfter.outDiscards_() << std::endl
+               << " Out congestion discards, before:"
+               << *portStatsBefore.outCongestionDiscardPkts_()
+               << " after:" << *portStatsAfter.outCongestionDiscardPkts_();
     EXPECT_EQ(
         *portStatsAfter.outDiscards_(), *portStatsBefore.outDiscards_() + 1);
     EXPECT_EQ(
         *portStatsAfter.outForwardingDiscards_(),
         *portStatsBefore.outForwardingDiscards_() + 1);
+    // Out congestion discards should NOT increment
+    EXPECT_EQ(
+        *portStatsAfter.outCongestionDiscardPkts_(),
+        *portStatsBefore.outCongestionDiscardPkts_());
     // Assert that other ports did not see any in discard
     // counter increment
     auto allPortStats = getLatestPortStats(masterLogicalInterfacePortIds());
@@ -109,6 +123,7 @@ TEST_F(AgentEgressForwardingDiscardsCounterTest, outForwardingDiscards) {
       }
       EXPECT_EQ(otherPortStats.outDiscards_(), 0);
       EXPECT_EQ(otherPortStats.outForwardingDiscards_(), 0);
+      EXPECT_EQ(otherPortStats.outCongestionDiscardPkts_(), 0);
     }
   };
   verifyAcrossWarmBoots(setup, verify);
