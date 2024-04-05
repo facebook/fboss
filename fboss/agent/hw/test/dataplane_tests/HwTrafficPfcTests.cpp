@@ -344,21 +344,28 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
     }
 
     // create lossy pgs
-    for (auto pgId : kLossyPgIds) {
-      cfg::PortPgConfig pgConfig;
-      pgConfig.id() = pgId;
-      pgConfig.bufferPoolName() = "bufferNew";
-      // provide atleast 1 cell worth of minLimit
-      pgConfig.minLimitBytes() = pgLimit;
-      // headroom set 0 identifies lossy pgs
-      pgConfig.headroomLimitBytes() = 0;
-      // resume offset
-      pgConfig.resumeOffsetBytes() = resumeOffset;
-      // set scaling factor
-      if (scalingFactor) {
-        pgConfig.scalingFactor() = *scalingFactor;
+    if (!FLAGS_allow_zero_headroom_for_lossless_pg) {
+      // If the flag is set, we already have lossless PGs being created
+      // with headroom as 0 and there is no way to differentiate lossy
+      // and lossless PGs now that headroom is set to zero for lossless.
+      // So, avoid creating lossy PGs as this will result in PFC being
+      // enabled for 3 priorities, which is not supported for TAJO.
+      for (auto pgId : kLossyPgIds) {
+        cfg::PortPgConfig pgConfig;
+        pgConfig.id() = pgId;
+        pgConfig.bufferPoolName() = "bufferNew";
+        // provide atleast 1 cell worth of minLimit
+        pgConfig.minLimitBytes() = pgLimit;
+        // headroom set 0 identifies lossy pgs
+        pgConfig.headroomLimitBytes() = 0;
+        // resume offset
+        pgConfig.resumeOffsetBytes() = resumeOffset;
+        // set scaling factor
+        if (scalingFactor) {
+          pgConfig.scalingFactor() = *scalingFactor;
+        }
+        portPgConfigs.emplace_back(pgConfig);
       }
-      portPgConfigs.emplace_back(pgConfig);
     }
 
     portPgConfigMap["foo"] = portPgConfigs;
