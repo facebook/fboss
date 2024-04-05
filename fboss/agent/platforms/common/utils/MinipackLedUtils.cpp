@@ -25,9 +25,8 @@ MinipackLed::Color MinipackLedUtils::getLedExternalState(
       return MinipackLed::Color::WHITE;
     case PortLedExternalState::EXTERNAL_FORCE_OFF:
       return MinipackLed::Color::OFF;
-    default:
-      throw FbossError("Invalid port led external state");
-      break;
   }
+  // Should never get here.
+  throw FbossError("Invalid port led external state");
 }
 } // namespace facebook::fboss
