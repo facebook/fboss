@@ -16,6 +16,7 @@
 namespace facebook::fboss {
 
 std::shared_ptr<SwitchState> LinkConnectivityProcessor::process(
+    const SwitchIdScopeResolver& /*scopeResolver*/,
     const std::shared_ptr<SwitchState>& in,
     const std::map<PortID, multiswitch::FabricConnectivityDelta>&
         port2ConnectivityDelta) {

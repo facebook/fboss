@@ -15,10 +15,12 @@
 
 namespace facebook::fboss {
 class SwitchState;
+class SwitchIdScopeResolver;
 
 class LinkConnectivityProcessor {
  public:
   static std::shared_ptr<SwitchState> process(
+      const SwitchIdScopeResolver& scopeResolver,
       const std::shared_ptr<SwitchState>& in,
       const std::map<PortID, multiswitch::FabricConnectivityDelta>&
           connectivityDelta);

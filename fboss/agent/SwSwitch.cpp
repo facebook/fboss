@@ -893,7 +893,8 @@ void SwSwitch::linkConnectivityChanged(
     const std::map<PortID, multiswitch::FabricConnectivityDelta>&
         connectivityDelta) {
   auto updateFn = [=](const shared_ptr<SwitchState>& state) {
-    return LinkConnectivityProcessor::process(state, connectivityDelta);
+    return LinkConnectivityProcessor::process(
+        *getScopeResolver(), state, connectivityDelta);
   };
   updateState("update fabric connectivity info", updateFn);
 }
