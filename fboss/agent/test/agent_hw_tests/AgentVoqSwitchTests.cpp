@@ -385,7 +385,7 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, fabricConnectivityMismatch) {
       EXPECT_EVENTUALLY_TRUE(port->getLedPortExternalState().has_value());
       EXPECT_EVENTUALLY_EQ(
           port->getLedPortExternalState().value(),
-          PortLedExternalState::CABLING_ERROR);
+          PortLedExternalState::CABLING_ERROR_LOOP_DETECTED);
     });
   };
   verifyAcrossWarmBoots([]() {}, verify);
