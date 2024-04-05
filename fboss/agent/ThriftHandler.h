@@ -42,7 +42,7 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
                       public fb303::FacebookBase2 {
  public:
   template <typename T>
-  using ThriftCallback = typename apache::thrift::HandlerCallback<T>::Ptr;
+  using ThriftCallback = std::unique_ptr<apache::thrift::HandlerCallback<T>>;
   using TConnectionContext = apache::thrift::server::TConnectionContext;
 
   typedef network::thrift::Address Address;

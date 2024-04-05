@@ -76,8 +76,8 @@ class MockFbossCtrlAgent : public FbossCtrlSvIf {
   MOCK_METHOD2(
       async_eb_getRegexCounters,
       void(
-          apache::thrift::HandlerCallback<
-              std::unique_ptr<std::map<std::string, int64_t>>>::Ptr,
+          std::unique_ptr<apache::thrift::HandlerCallback<
+              std::unique_ptr<std::map<std::string, int64_t>>>>,
           std::unique_ptr<std::string> regex));
   MOCK_METHOD(
       void,
