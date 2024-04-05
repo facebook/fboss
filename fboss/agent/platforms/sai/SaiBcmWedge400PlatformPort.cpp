@@ -28,9 +28,7 @@ void SaiBcmWedge400PlatformPort::externalState(PortLedExternalState lfs) {
         << " is called, please use led_service to call this thrift function";
   }
   currentLedState_ =
-      (lfs == PortLedExternalState::NONE
-           ? currentLedState_
-           : Wedge400LedUtils::getLedExternalState(lfs));
+      Wedge400LedUtils::getLedExternalState(lfs, currentLedState_);
   setLedStatus(currentLedState_);
 }
 

@@ -33,9 +33,7 @@ void SaiWedge400CPlatformPort::externalState(PortLedExternalState lfs) {
     return;
   }
   currentLedState_ =
-      (lfs == PortLedExternalState::NONE
-           ? currentLedState_
-           : Wedge400LedUtils::getLedExternalState(lfs));
+      Wedge400LedUtils::getLedExternalState(lfs, currentLedState_);
   setLedStatus(currentLedState_);
 }
 

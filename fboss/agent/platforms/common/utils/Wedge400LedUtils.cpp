@@ -25,10 +25,11 @@ Wedge400LedUtils::getLedState(uint8_t numLanes, bool up, bool adminUp) {
 }
 
 FbDomFpga::LedColor Wedge400LedUtils::getLedExternalState(
-    PortLedExternalState lfs) {
+    PortLedExternalState lfs,
+    FbDomFpga::LedColor currentColor) {
   switch (lfs) {
     case PortLedExternalState::NONE:
-      break;
+      return currentColor;
     case PortLedExternalState::CABLING_ERROR:
     case PortLedExternalState::CABLING_ERROR_LOOP_DETECTED:
       return FbDomFpga::LedColor::YELLOW;

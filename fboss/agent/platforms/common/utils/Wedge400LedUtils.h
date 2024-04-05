@@ -12,7 +12,9 @@ class Wedge400LedUtils {
  public:
   static FbDomFpga::LedColor
   getLedState(uint8_t numLanes, bool up, bool adminUp);
-  static FbDomFpga::LedColor getLedExternalState(PortLedExternalState lfs);
+  static FbDomFpga::LedColor getLedExternalState(
+      PortLedExternalState lfs,
+      FbDomFpga::LedColor currentColor);
 };
 
 } // namespace facebook::fboss
