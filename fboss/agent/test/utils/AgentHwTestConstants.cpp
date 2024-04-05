@@ -1,6 +1,6 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-#include "fboss/agent/hw/test/HwTestConstants.h"
+#include "fboss/agent/test/utils/AgentHwTestConstants.h"
 
 namespace facebook::fboss::utility {
 std::vector<facebook::fboss::MplsLabelStack> kHwTestLabelStacks() {

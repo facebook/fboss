@@ -1,11 +1,13 @@
-// Copyright 2004-present Facebook. All Rights Reserved.
+// (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #pragma once
 
+#include "fboss/agent/if/gen-cpp2/mpls_types.h"
+
 #include <vector>
-#include "fboss/agent/HwSwitch.h"
 
 namespace facebook::fboss::utility {
+
 std::vector<facebook::fboss::MplsLabelStack> kHwTestLabelStacks();
 
 std::vector<uint64_t> kHwTestEcmpWeights();

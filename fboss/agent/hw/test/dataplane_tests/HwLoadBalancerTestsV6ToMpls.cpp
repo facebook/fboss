@@ -12,8 +12,8 @@
 
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
-#include "fboss/agent/hw/test/HwTestConstants.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
+#include "fboss/agent/test/utils/AgentHwTestConstants.h"
 
 namespace facebook::fboss {
 
