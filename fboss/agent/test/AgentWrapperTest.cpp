@@ -37,7 +37,8 @@ struct Wrapper {
 using PythonWrapper = Wrapper<false, false>;
 using CppWrapper = Wrapper<true, false>;
 using CppMultiSwitchWrapper = Wrapper<true, true>;
-using TestTypes = ::testing::Types<PythonWrapper, CppWrapper>;
+using TestTypes =
+    ::testing::Types<PythonWrapper, CppWrapper, CppMultiSwitchWrapper>;
 } // namespace
 
 template <typename T>
@@ -49,6 +50,18 @@ void AgentWrapperTest<T>::SetUp() {
     createDirectoryTree(parentDirectoryTree(util_.getWrapperRefactorFlag()));
     touchFile(util_.getWrapperRefactorFlag());
   }
+  if constexpr (T::kMultiSwitch) {
+    auto newConfigThrift = config_->thrift;
+    newConfigThrift.defaultCommandLineArgs()["multi_switch"] = "true";
+    newConfigThrift.defaultCommandLineArgs()["multi_npu_platform_mapping"] =
+        "true";
+    config_ = std::make_unique<AgentConfig>(newConfigThrift);
+    std::filesystem::copy_options opt =
+        std::filesystem::copy_options::overwrite_existing;
+    std::filesystem::copy(
+        "/etc/coop/agent/current", "/etc/coop/agent/current.backup", opt);
+    config_->dumpConfig("/etc/coop/agent/current");
+  }
 }
 
 template <typename T>
@@ -58,7 +71,17 @@ void AgentWrapperTest<T>::TearDown() {
     removeFile(util_.getWrapperRefactorFlag());
     removeDir(parentDirectoryTree(util_.getWrapperRefactorFlag()));
   }
+  if constexpr (T::kMultiSwitch) {
+    std::filesystem::copy_options opt =
+        std::filesystem::copy_options::overwrite_existing;
+    std::filesystem::copy(
+        "/etc/coop/agent/current.backup", "/etc/coop/agent/current", opt);
+  }
   removeDir(util_.getWarmBootDir());
+}
+template <typename T>
+bool AgentWrapperTest<T>::isMultiSwitch() const {
+  return T::kMultiSwitch;
 }
 
 template <typename T>
@@ -112,10 +135,10 @@ void AgentWrapperTest<T>::waitForStart(const std::string& unit) {
 
 template <typename T>
 void AgentWrapperTest<T>::waitForStart() {
-  auto multiSwitch = config_->getRunMode() == cfg::AgentRunMode::MULTI_SWITCH;
-  if (multiSwitch) {
-    // TODO: wait for hw_agent as well
+  if constexpr (T::kMultiSwitch) {
     waitForStart("fboss_sw_agent.service");
+    // add support for other hw_agent instances
+    waitForStart("fboss_hw_agent@0.service");
   } else {
     waitForStart("wedge_agent.service");
   }
@@ -125,7 +148,7 @@ template <typename T>
 void AgentWrapperTest<T>::waitForStop(const std::string& unit, bool crash) {
   bool wrapperRefactored =
       checkFileExists(this->util_.getWrapperRefactorFlag());
-  auto multiSwitch = config_->getRunMode() == cfg::AgentRunMode::MULTI_SWITCH;
+  constexpr auto multiSwitch = T::kMultiSwitch;
   WITH_RETRIES_N_TIMED(
       FLAGS_num_retries, std::chrono::seconds(FLAGS_wait_timeout), {
         facebook::tupperware::systemd::Service service{unit};
@@ -150,8 +173,7 @@ void AgentWrapperTest<T>::waitForStop(const std::string& unit, bool crash) {
 
 template <typename T>
 void AgentWrapperTest<T>::waitForStop(bool crash) {
-  auto multiSwitch = (config_->getRunMode() == cfg::AgentRunMode::MULTI_SWITCH);
-  if (multiSwitch) {
+  if constexpr (T::kMultiSwitch) {
     waitForStop("fboss_sw_agent.service", crash);
     // TODO: wait for hw_agent as well
   } else {
@@ -212,27 +234,89 @@ std::string AgentWrapperTest<T>::getCoreMetaData(
   return directory + "/metadata";
 }
 
+template <typename T>
+std::vector<std::string> AgentWrapperTest<T>::getDrainFiles() const {
+  std::vector<std::string> drainFiles;
+  drainFiles.push_back(this->util_.getRoutingProtocolColdBootDrainTimeFile());
+
+  if (T::kMultiSwitch) {
+    auto iter = this->config_->thrift.sw()
+                    ->switchSettings()
+                    ->switchIdToSwitchInfo()
+                    ->begin();
+    while (iter !=
+           this->config_->thrift.sw()
+               ->switchSettings()
+               ->switchIdToSwitchInfo()
+               ->end()) {
+      auto switchIndex = *(iter->second.switchIndex());
+      drainFiles.push_back(
+          this->util_.getRoutingProtocolColdBootDrainTimeFile(switchIndex));
+      iter++;
+    }
+  }
+  return drainFiles;
+}
+template <typename T>
+void AgentWrapperTest<T>::setupDrainFiles() {
+  std::vector<char> data = {'0', '5'};
+  for (const auto& file : this->getDrainFiles()) {
+    if (!this->whoami_->isNotDrainable() && !this->whoami_->isFdsw()) {
+      touchFile(file);
+      folly::writeFile(data, file.c_str());
+    }
+  }
+}
+
+template <typename T>
+void AgentWrapperTest<T>::cleanupDrainFiles() {
+  for (const auto& file : this->getDrainFiles()) {
+    removeFile(file);
+  }
+}
+
+template <typename T>
+bool AgentWrapperTest<T>::isSai() const {
+  if (whoami_->isCiscoSaiPlatform()) {
+    return true;
+  }
+  if (auto sdkVersion = config_->thrift.sw()->sdkVersion()) {
+    return sdkVersion->saiSdk().has_value();
+  }
+  throw FbossError("No sdkVersion found in config");
+}
+
+template <typename T>
+bool AgentWrapperTest<T>::skipTest() const {
+  if (T::kMultiSwitch && !isSai()) {
+    // multi-switch is only for SAI
+    return true;
+  }
+  return false;
+}
+
 TYPED_TEST_SUITE(AgentWrapperTest, TestTypes);
 
 TYPED_TEST(AgentWrapperTest, ColdBootStartAndStop) {
+  if (this->skipTest()) {
+    GTEST_SKIP();
+    return;
+  }
   SCOPE_EXIT {
-    removeFile(this->util_.getRoutingProtocolColdBootDrainTimeFile());
+    this->cleanupDrainFiles();
     removeFile(this->util_.getUndrainedFlag());
     removeFile(this->util_.getColdBootOnceFile());
   };
-  auto drainTimeFile = this->util_.getRoutingProtocolColdBootDrainTimeFile();
-  std::vector<char> data = {'0', '5'};
-  if (!this->whoami_->isNotDrainable() && !this->whoami_->isFdsw()) {
-    touchFile(drainTimeFile);
-    folly::writeFile(data, drainTimeFile.c_str());
-  }
+  this->setupDrainFiles();
   touchFile(this->util_.getColdBootOnceFile());
   touchFile(this->util_.getUndrainedFlag());
   this->start();
   this->waitForStart();
   if (!this->whoami_->isNotDrainable() && !this->whoami_->isFdsw()) {
     // @lint-ignore CLANGTIDY
-    EXPECT_FALSE(checkFileExists(drainTimeFile));
+    for (auto file : this->getDrainFiles()) {
+      EXPECT_FALSE(checkFileExists(file));
+    }
   }
   EXPECT_EQ(this->getBootType(), BootType::COLD_BOOT);
   this->stop();
@@ -240,6 +324,10 @@ TYPED_TEST(AgentWrapperTest, ColdBootStartAndStop) {
 }
 
 TYPED_TEST(AgentWrapperTest, StartAndStopAndStart) {
+  if (this->skipTest()) {
+    GTEST_SKIP();
+    return;
+  }
   SCOPE_EXIT {
     removeFile(this->util_.getColdBootOnceFile());
   };
@@ -260,6 +348,10 @@ TYPED_TEST(AgentWrapperTest, StartAndStopAndStart) {
 }
 
 TYPED_TEST(AgentWrapperTest, StartAndCrash) {
+  if (this->skipTest()) {
+    GTEST_SKIP();
+    return;
+  }
   SCOPE_EXIT {
     removeFile(this->util_.sleepSwSwitchOnSigTermFile());
     removeFile(this->util_.getMaxPostSignalWaitTimeFile());
@@ -275,9 +367,7 @@ TYPED_TEST(AgentWrapperTest, StartAndCrash) {
   touchFile(maxPostSignalWaitTime);
   std::vector<char> data = {'1'};
   folly::writeFile(data, maxPostSignalWaitTime.c_str());
-  auto multiSwitch =
-      this->config_->getRunMode() == cfg::AgentRunMode::MULTI_SWITCH;
-  auto agent = multiSwitch ? "fboss_sw_agent" : "wedge_agent";
+  auto agent = this->isMultiSwitch() ? "fboss_sw_agent" : "wedge_agent";
   auto pid = this->getAgentPid(agent);
   this->stop();
   this->waitForStop(true /* expect sigabrt to crash */);
@@ -295,6 +385,10 @@ TYPED_TEST(AgentWrapperTest, StartAndCrash) {
 }
 
 TYPED_TEST(AgentWrapperTest, StartStopRemoveHwSwitchWarmBoot) {
+  if (this->skipTest()) {
+    GTEST_SKIP();
+    return;
+  }
   SCOPE_EXIT {
     removeFile(this->util_.getColdBootOnceFile());
     removeFile(this->util_.getUndrainedFlag());
@@ -310,18 +404,16 @@ TYPED_TEST(AgentWrapperTest, StartStopRemoveHwSwitchWarmBoot) {
   EXPECT_TRUE(checkFileExists(this->util_.getHwSwitchCanWarmBootFile(0)));
   removeFile(this->util_.getSwSwitchCanWarmBootFile());
   removeFile(this->util_.getHwSwitchCanWarmBootFile(0));
-  auto drainTimeFile = this->util_.getRoutingProtocolColdBootDrainTimeFile();
-  std::vector<char> data = {'0', '5'};
-  if (!this->whoami_->isNotDrainable() && !this->whoami_->isFdsw()) {
-    touchFile(drainTimeFile);
-    folly::writeFile(data, drainTimeFile.c_str());
-  }
+
+  this->setupDrainFiles();
   touchFile(this->util_.getUndrainedFlag());
   this->start();
   this->waitForStart();
   if (!this->whoami_->isNotDrainable() && !this->whoami_->isFdsw()) {
     // @lint-ignore CLANGTIDY
-    EXPECT_FALSE(checkFileExists(drainTimeFile));
+    for (auto file : this->getDrainFiles()) {
+      EXPECT_FALSE(checkFileExists(file));
+    }
   }
   EXPECT_EQ(this->getBootType(), BootType::COLD_BOOT);
 }

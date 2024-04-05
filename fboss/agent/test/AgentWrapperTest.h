@@ -17,6 +17,8 @@ class AgentWrapperTest : public ::testing::Test {
   void SetUp() override;
   void TearDown() override;
 
+  bool isMultiSwitch() const;
+
  protected:
   void startWedgeAgent();
   void stopWedgeAgent();
@@ -35,7 +37,12 @@ class AgentWrapperTest : public ::testing::Test {
   std::string getCoreFile(const std::string& directory) const;
   std::string getCoreMetaData(const std::string& directory) const;
   BootType getBootType();
+  void setupDrainFiles();
+  void cleanupDrainFiles();
+  std::vector<std::string> getDrainFiles() const;
 
+  bool isSai() const;
+  bool skipTest() const;
   std::unique_ptr<AgentConfig> config_;
   AgentDirectoryUtil util_;
   std::unique_ptr<AgentNetWhoAmI> whoami_;
