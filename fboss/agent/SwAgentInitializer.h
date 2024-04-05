@@ -26,14 +26,18 @@ class SwSwitchInitializer {
   explicit SwSwitchInitializer(SwSwitch* sw);
   virtual ~SwSwitchInitializer();
   void start();
-  void start(HwSwitchCallback* callback);
+  void start(HwSwitchCallback* callback, bool failHwCallsOnWarmboot = false);
   void stopFunctionScheduler();
   void waitForInitDone();
-  void init(HwSwitchCallback* callback);
+  void init(HwSwitchCallback* callback, bool failHwCallsOnWarmboot = false);
 
  protected:
-  virtual void initImpl(HwSwitchCallback*) = 0;
-  void initThread(HwSwitchCallback* callback);
+  virtual void initImpl(
+      HwSwitchCallback*,
+      bool failHwCallsOnWarmboot = false) = 0;
+  void initThread(
+      HwSwitchCallback* callback,
+      bool failHwCallsOnWarmboot = false);
   SwitchFlags setupFlags();
 
   SwSwitch* sw_;
@@ -74,7 +78,7 @@ class SwAgentInitializer : public AgentInitializer {
   void stopAgent(bool setupWarmboot, bool gracefulExit) override;
 
   int initAgent() override;
-  int initAgent(HwSwitchCallback* callback);
+  int initAgent(HwSwitchCallback* callback, bool failHwCallsOnWarmboot = false);
 
  protected:
   virtual std::vector<std::shared_ptr<apache::thrift::AsyncProcessorFactory>>

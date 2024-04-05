@@ -16,7 +16,9 @@
 
 namespace facebook::fboss {
 
-void SplitSwSwitchInitializer::initImpl(HwSwitchCallback* callback) {
+void SplitSwSwitchInitializer::initImpl(
+    HwSwitchCallback* /* callback */,
+    bool /* failHwCallsOnWarmboot */) {
   // this blocks until at least one hardware switch is up
   sw_->init(setupFlags());
 }

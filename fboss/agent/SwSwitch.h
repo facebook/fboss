@@ -239,6 +239,7 @@ class SwSwitch : public HwSwitchCallback {
       HwSwitchCallback* callback,
       std::unique_ptr<TunManager> tunMgr,
       HwSwitchInitFn hwSwitchInitFn,
+      bool failHwCallsOnWarmboot = false,
       SwitchFlags flags = SwitchFlags::DEFAULT);
 
   void init(SwitchFlags flags = SwitchFlags::DEFAULT);

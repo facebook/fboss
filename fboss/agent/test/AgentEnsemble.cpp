@@ -98,7 +98,7 @@ void AgentEnsemble::startAgent() {
   asyncInitThread_.reset(new std::thread([this, initializer] {
     // hardware switch events will be dispatched to agent ensemble
     // agent ensemble is responsible to dispatch them to SwSwitch
-    initializer->initAgent(this);
+    initializer->initAgent(this, true);
   }));
   initializer->initializer()->waitForInitDone();
   // if cold booting, invoke link toggler

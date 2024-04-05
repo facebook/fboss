@@ -364,13 +364,6 @@ HwInitResult HwSwitch::init(
     ret.switchState = getProgrammedState();
     ret.rib = std::make_unique<RoutingInformationBase>();
   }
-  if (ret.bootType == BootType::WARM_BOOT) {
-    // apply state only for warm boot. cold boot state is already applied.
-    auto writeBehavior = getWarmBootWriteBehavior(failHwCallsOnWarmboot);
-    ret.switchState = stateChanged(
-        StateDelta(getProgrammedState(), ret.switchState), writeBehavior);
-    setProgrammedState(ret.switchState);
-  }
   ret.bootTime =
       duration_cast<duration<float>>(steady_clock::now() - begin).count();
   initialStateApplied();
@@ -417,6 +410,13 @@ HwInitResult HwSwitch::initLight(
   ret.bootTime = duration_cast<duration<float>>(end - begin).count();
   getSwitchStats()->bootTime(
       duration_cast<std::chrono::milliseconds>(end - begin).count());
+  if (ret.bootType == BootType::WARM_BOOT) {
+    // apply state only for warm boot. cold boot state is already applied.
+    auto writeBehavior = getWarmBootWriteBehavior(failHwCallsOnWarmboot);
+    ret.switchState = stateChanged(
+        StateDelta(getProgrammedState(), ret.switchState), writeBehavior);
+    setProgrammedState(ret.switchState);
+  }
   return ret;
 }
 
