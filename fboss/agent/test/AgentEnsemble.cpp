@@ -111,7 +111,13 @@ void AgentEnsemble::startAgent() {
 void AgentEnsemble::writeConfig(const cfg::SwitchConfig& config) {
   auto* initializer = agentInitializer();
   auto agentConfig = initializer->sw()->getAgentConfig();
+
   agentConfig.sw() = config;
+  // Inherit SDK version from previous config
+  auto inputConfig = AgentConfig::fromFile(FLAGS_config)->thrift;
+  if (inputConfig.sw()->sdkVersion().has_value()) {
+    agentConfig.sw()->sdkVersion() = inputConfig.sw()->sdkVersion().value();
+  }
   writeConfig(agentConfig);
 }
 
