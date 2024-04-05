@@ -237,6 +237,15 @@ class AgentEnsemble : public TestEnsembleIf {
     return getSw()->getPlatformMapping();
   }
 
+  void bringUpPort(PortID port) {
+    bringUpPorts({port});
+  }
+  void bringDownPort(PortID port) {
+    bringDownPorts({port});
+  }
+  void bringUpPorts(const std::vector<PortID>& ports);
+  void bringDownPorts(const std::vector<PortID>& ports);
+
  protected:
   void joinAsyncInitThread() {
     if (asyncInitThread_) {

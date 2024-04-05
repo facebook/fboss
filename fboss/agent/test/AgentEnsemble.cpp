@@ -410,4 +410,15 @@ void AgentEnsemble::sendPacketAsync(
 std::unique_ptr<TxPacket> AgentEnsemble::allocatePacket(uint32_t size) {
   return getSw()->allocatePacket(size);
 }
+
+void AgentEnsemble::bringUpPorts(const std::vector<PortID>& ports) {
+  CHECK(linkToggler_);
+  linkToggler_->bringUpPorts(ports);
+}
+
+void AgentEnsemble::bringDownPorts(const std::vector<PortID>& ports) {
+  CHECK(linkToggler_);
+  linkToggler_->bringDownPorts(ports);
+}
+
 } // namespace facebook::fboss
