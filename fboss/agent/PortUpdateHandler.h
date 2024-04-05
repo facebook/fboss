@@ -24,6 +24,9 @@ class PortUpdateHandler : public StateObserver {
   void stateUpdated(const StateDelta& delta) override;
 
  private:
+  void disableIfLooped(
+      const std::shared_ptr<Port>& newPort,
+      const std::shared_ptr<SwitchState>& newState);
   // Forbidden copy constructor and assignment operator
   PortUpdateHandler(PortUpdateHandler const&) = delete;
   PortUpdateHandler& operator=(PortUpdateHandler const&) = delete;
