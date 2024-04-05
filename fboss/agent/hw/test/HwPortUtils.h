@@ -44,6 +44,11 @@ void assertPortsSampleDestination(
     const HwSwitch* hw,
     const std::map<PortID, int>& port2SampleDestination);
 
+bool portsExistsInPortGroup(
+    const Platform* platform,
+    const std::vector<PortID>& allPortsInGroup,
+    cfg::PortSpeed speed);
+
 void enablePortsInPortGroup(
     cfg::SwitchConfig* config,
     cfg::PortSpeed enabledLaneSpeed,

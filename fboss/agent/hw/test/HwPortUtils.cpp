@@ -77,9 +77,38 @@ void updateFlexConfig(
         allPortsinGroup,
         platform,
         kFirstPortEnabled);
+  } else if (flexMode == FlexPortMode::ONEX400G) {
+    enablePortsInPortGroup(
+        config,
+        cfg::PortSpeed::FOURHUNDREDG,
+        cfg::PortSpeed::HUNDREDG,
+        allPortsinGroup,
+        platform,
+        kFirstPortEnabled);
   } else {
     throw FbossError("invalid FlexConfig Mode");
   }
+}
+
+bool portsExistsInPortGroup(
+    const Platform* platform,
+    const std::vector<PortID>& allPortsInGroup,
+    cfg::PortSpeed speed) {
+  for (auto portIdx = 0; portIdx < allPortsInGroup.size(); portIdx++) {
+    auto portID = allPortsInGroup.at(portIdx);
+    const auto& platformPortEntry =
+        platform->getPlatformPort(portID)->getPlatformPortEntry();
+    for (const auto& profile : *platformPortEntry.supportedProfiles()) {
+      auto profileID = profile.first;
+      if (auto profileCfg = platform->getPortProfileConfig(
+              PlatformPortProfileConfigMatcher(profileID, portID))) {
+        if (*profileCfg->speed() == speed) {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
 }
 
 void enablePortsInPortGroup(
@@ -96,7 +125,6 @@ void enablePortsInPortGroup(
   //    the config
   // 2) Otherwise, update the speed with disabledLaneSpeed and state with
   //    cfg::PortState::DISABLED
-  CHECK_EQ(allPortsInGroup.size(), enabledPortsOption.size());
   for (auto portIdx = 0; portIdx < allPortsInGroup.size(); portIdx++) {
     auto portID = allPortsInGroup.at(portIdx);
     bool isPortEnabled = enabledPortsOption.at(portIdx);

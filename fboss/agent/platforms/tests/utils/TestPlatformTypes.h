@@ -17,5 +17,6 @@ enum class FlexPortMode {
   ONEX40G,
   TWOX50G,
   ONEX100G,
+  ONEX400G,
 };
 } // namespace facebook::fboss

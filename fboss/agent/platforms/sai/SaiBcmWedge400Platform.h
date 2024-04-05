@@ -37,7 +37,8 @@ class SaiBcmWedge400Platform : public SaiBcmPlatform {
         FlexPortMode::FOURX25G,
         FlexPortMode::ONEX40G,
         FlexPortMode::TWOX50G,
-        FlexPortMode::ONEX100G};
+        FlexPortMode::ONEX100G,
+        FlexPortMode::ONEX400G};
   }
 
   bool isSerdesApiSupported() const override {

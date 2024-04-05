@@ -45,6 +45,30 @@ void assertFlexConfig(
         cfg::PortSpeed::HUNDREDG,
         cfg::PortSpeed::TWENTYFIVEG,
         allPortsinGroup);
+  } else if (flexMode == FlexPortMode::ONEX400G) {
+    facebook::fboss::utility::assertSINGLEMode(
+        hw,
+        cfg::PortSpeed::FOURHUNDREDG,
+        cfg::PortSpeed::HUNDREDG,
+        allPortsinGroup);
+  } else {
+    throw FbossError("invalid FlexConfig Mode");
+  }
+}
+
+cfg::PortSpeed getPortSpeed(FlexPortMode flexMode) {
+  if (flexMode == FlexPortMode::FOURX10G) {
+    return cfg::PortSpeed::XG;
+  } else if (flexMode == FlexPortMode::FOURX25G) {
+    return cfg::PortSpeed::TWENTYFIVEG;
+  } else if (flexMode == FlexPortMode::ONEX40G) {
+    return cfg::PortSpeed::FORTYG;
+  } else if (flexMode == FlexPortMode::TWOX50G) {
+    return cfg::PortSpeed::FIFTYG;
+  } else if (flexMode == FlexPortMode::ONEX100G) {
+    return cfg::PortSpeed::HUNDREDG;
+  } else if (flexMode == FlexPortMode::ONEX400G) {
+    return cfg::PortSpeed::FOURHUNDREDG;
   } else {
     throw FbossError("invalid FlexConfig Mode");
   }
@@ -63,11 +87,23 @@ class HwFlexPortTest : public HwTest {
 #endif
       return;
     }
-    auto allPortsinGroup = getAllPortsInGroup(masterLogicalPortIds()[0]);
 
-    auto setup = [this, &allPortsinGroup, flexMode]() {
-      auto cfg =
-          utility::oneL3IntfConfig(getHwSwitch(), masterLogicalPortIds()[0]);
+    std::vector<PortID> allPortsinGroup;
+    int index = 0;
+
+    for (; index < masterLogicalPortIds().size(); index++) {
+      allPortsinGroup = getAllPortsInGroup(masterLogicalPortIds()[index]);
+      if (utility::portsExistsInPortGroup(
+              getHwSwitch()->getPlatform(),
+              allPortsinGroup,
+              getPortSpeed(flexMode)))
+        break;
+    }
+
+    PortID masterLogicalPortId = masterLogicalPortIds()[index];
+
+    auto setup = [this, &allPortsinGroup, flexMode, masterLogicalPortId]() {
+      auto cfg = utility::oneL3IntfConfig(getHwSwitch(), masterLogicalPortId);
       facebook::fboss::utility::cleanPortConfig(&cfg, allPortsinGroup);
       applyNewConfig(cfg);
 
@@ -84,9 +120,8 @@ class HwFlexPortTest : public HwTest {
       applyNewConfig(cfg);
     };
 
-    auto verify = [this, &allPortsinGroup, flexMode]() {
-      utility::assertPortStatus(
-          getHwSwitch(), PortID(masterLogicalPortIds()[0]));
+    auto verify = [this, &allPortsinGroup, flexMode, masterLogicalPortId]() {
+      utility::assertPortStatus(getHwSwitch(), masterLogicalPortId);
       assertFlexConfig(getHwSwitch(), flexMode, allPortsinGroup);
     };
 
@@ -112,4 +147,8 @@ TEST_F(HwFlexPortTest, FlexPortONEX40G) {
 
 TEST_F(HwFlexPortTest, FlexPortONEX100G) {
   flexPortApplyConfigTest(FlexPortMode::ONEX100G, "ONEX100G");
+}
+
+TEST_F(HwFlexPortTest, FlexPortONEX400G) {
+  flexPortApplyConfigTest(FlexPortMode::ONEX400G, "ONEX400G");
 }
