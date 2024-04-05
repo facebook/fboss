@@ -16,6 +16,7 @@ DEFINE_bool(
 DECLARE_bool(disable_neighbor_updates);
 DECLARE_bool(disable_icmp_error_response);
 DECLARE_bool(enable_snapshot_debugs);
+DECLARE_bool(disable_looped_fabric_ports);
 
 namespace {
 int kArgc;
@@ -53,6 +54,8 @@ void AgentHwTest::SetUp() {
   // Disable FSDB publishing on single-box test
   FLAGS_publish_stats_to_fsdb = false;
   FLAGS_publish_state_to_fsdb = false;
+  // Looped ports are the common case in tests
+  FLAGS_disable_looped_fabric_ports = false;
 
   AgentEnsembleSwitchConfigFn initialConfigFn =
       [this](const AgentEnsemble& ensemble) { return initialConfig(ensemble); };

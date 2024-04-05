@@ -26,6 +26,7 @@ DEFINE_bool(run_forever, false, "run the test forever");
 DEFINE_bool(run_forever_on_failure, false, "run the test forever on failure");
 
 DECLARE_string(config);
+DECLARE_bool(disable_looped_fabric_ports);
 
 namespace facebook::fboss {
 
@@ -45,6 +46,8 @@ void AgentTest::setupAgent() {
     hwAsicTableEntry->setDefaultStreamType(streamTypeOpt.value());
   }
   FLAGS_verify_apply_oper_delta = true;
+  // Looped ports are the common case in tests
+  FLAGS_disable_looped_fabric_ports = false;
   utilCreateDir(getAgentTestDir());
   setupConfigFlag();
   asyncInitThread_.reset(
