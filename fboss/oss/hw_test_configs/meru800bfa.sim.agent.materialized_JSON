@@ -134,6 +134,7 @@
           "custom_feature_use_new_access.BCM8892X_ADAPTER": "1",
           "appl_param_module_id.BCM8892X": "100",
           "phy_simul.BCM8892X": "1",
+          "fabric_distributed_system_enable": "1",
           "fabric_num_pipes.BCM8892X": "1",
           "fabric_pipe_map.BCM8892X": "0",
           "system_contains_multiple_pipe_device.BCM8892X": "0",
