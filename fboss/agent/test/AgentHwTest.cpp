@@ -31,31 +31,12 @@ void AgentHwTest::SetUp() {
     return;
   }
   fbossCommonInit(kArgc, kArgv);
-  FLAGS_enable_snapshot_debugs = false;
-  FLAGS_verify_apply_oper_delta = true;
-  FLAGS_hide_fabric_ports = hideFabricPorts();
   // Reset any global state being tracked in singletons
   // Each test then sets up its own state as needed.
   folly::SingletonVault::singleton()->destroyInstances();
   folly::SingletonVault::singleton()->reenableInstances();
-  // Set watermark stats update interval to 0 so we always refresh BST stats
-  // in each updateStats call
-  FLAGS_update_watermark_stats_interval_s = 0;
-  // Don't send/receive periodic lldp packets. They will
-  // interfere with tests.
-  FLAGS_enable_lldp = false;
-  // Disable tun intf, else pkts from host will interfere
-  // with tests
-  FLAGS_tun_intf = false;
-  // disable neighbor updates
-  FLAGS_disable_neighbor_updates = true;
-  // disable icmp error response
-  FLAGS_disable_icmp_error_response = true;
-  // Disable FSDB publishing on single-box test
-  FLAGS_publish_stats_to_fsdb = false;
-  FLAGS_publish_state_to_fsdb = false;
-  // Looped ports are the common case in tests
-  FLAGS_disable_looped_fabric_ports = false;
+
+  setCmdLineFlagOverrides();
 
   AgentEnsembleSwitchConfigFn initialConfigFn =
       [this](const AgentEnsemble& ensemble) { return initialConfig(ensemble); };
@@ -66,6 +47,30 @@ void AgentHwTest::SetUp() {
   }
 }
 
+void AgentHwTest::setCmdLineFlagOverrides() const {
+  // Default values for flags which maybe overridden by derived class tests
+  FLAGS_enable_snapshot_debugs = false;
+  FLAGS_verify_apply_oper_delta = true;
+  FLAGS_hide_fabric_ports = true;
+  // Don't send/receive periodic lldp packets. They will
+  // interfere with tests.
+  FLAGS_enable_lldp = false;
+  // Disable tun intf, else pkts from host will interfere
+  // with tests
+  FLAGS_tun_intf = false;
+  // Set watermark stats update interval to 0 so we always refresh BST stats
+  // in each updateStats call
+  FLAGS_update_watermark_stats_interval_s = 0;
+  // disable neighbor updates
+  FLAGS_disable_neighbor_updates = true;
+  // disable icmp error response
+  FLAGS_disable_icmp_error_response = true;
+  // Disable FSDB publishing on single-box test
+  FLAGS_publish_stats_to_fsdb = false;
+  FLAGS_publish_state_to_fsdb = false;
+  // Looped ports are the common case in tests
+  FLAGS_disable_looped_fabric_ports = false;
+}
 void AgentHwTest::TearDown() {
   if (FLAGS_run_forever ||
       (::testing::Test::HasFailure() && FLAGS_run_forever_on_failure)) {

@@ -296,6 +296,16 @@ class AgentVoqSwitchWithFabricPortsTest : public AgentVoqSwitchTest {
   }
 
  private:
+  /*
+   * API to all flag overrides for individual tests. Primarily
+   * used for features which we don't want to enable for
+   * all tests, but still want to tweak/test this behavior in
+   * our test.
+   */
+  void setCmdLineFlagOverrides() const override {
+    AgentHwTest::setCmdLineFlagOverrides();
+    FLAGS_hide_fabric_ports = false;
+  }
   bool hideFabricPorts() const override {
     return false;
   }
