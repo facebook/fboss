@@ -42,8 +42,9 @@ class AgentFabricSwitchTest : public AgentHwTest {
   }
 
  private:
-  bool hideFabricPorts() const override {
-    return false;
+  void setCmdLineFlagOverrides() const override {
+    AgentHwTest::setCmdLineFlagOverrides();
+    FLAGS_hide_fabric_ports = false;
   }
 };
 

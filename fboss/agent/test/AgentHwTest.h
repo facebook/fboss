@@ -186,8 +186,6 @@ class AgentHwTest : public ::testing::Test {
     return true;
   }
 
-  virtual bool hideFabricPorts() const;
-
   virtual std::vector<production_features::ProductionFeature>
   getProductionFeaturesVerified() const = 0;
   void printProductionFeatures() const;

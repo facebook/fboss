@@ -306,9 +306,6 @@ class AgentVoqSwitchWithFabricPortsTest : public AgentVoqSwitchTest {
     AgentHwTest::setCmdLineFlagOverrides();
     FLAGS_hide_fabric_ports = false;
   }
-  bool hideFabricPorts() const override {
-    return false;
-  }
 };
 
 TEST_F(AgentVoqSwitchWithFabricPortsTest, init) {

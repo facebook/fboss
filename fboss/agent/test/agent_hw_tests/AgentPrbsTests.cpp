@@ -91,9 +91,9 @@ class AgentPrbsTest : public AgentHwTest {
     verifyAcrossWarmBoots(setup, verify);
   }
 
- private:
-  bool hideFabricPorts() const override {
-    return false;
+  void setCmdLineFlagOverrides() const override {
+    AgentHwTest::setCmdLineFlagOverrides();
+    FLAGS_hide_fabric_ports = false;
   }
 };
 
