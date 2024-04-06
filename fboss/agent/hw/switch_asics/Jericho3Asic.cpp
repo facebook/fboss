@@ -256,8 +256,8 @@ cfg::Range64 Jericho3Asic::getReservedEncapIndexRange() const {
 
 HwAsic::RecyclePortInfo Jericho3Asic::getRecyclePortInfo() const {
   return {
-      .coreId = 0,
-      .corePortIndex = 1,
+      .coreId = 2,
+      .corePortIndex = 2,
       .speedMbps = 10000 // 10G
   };
 }
