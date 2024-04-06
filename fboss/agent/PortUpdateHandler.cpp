@@ -94,7 +94,32 @@ void PortUpdateHandler::disableIfLooped(
       });
 }
 
+void PortUpdateHandler::checkNewlyUndrained(const StateDelta& delta) {
+  bool newlyUndrained{false};
+  DeltaFunctions::forEachChanged(
+      delta.getSwitchSettingsDelta(),
+      [&](const std::shared_ptr<SwitchSettings>& oldSwitchSettings,
+          const std::shared_ptr<SwitchSettings>& newSwitchSettings) {
+        newlyUndrained |=
+            (!newSwitchSettings->isSwitchDrained() &&
+             newSwitchSettings->isSwitchDrained() !=
+                 oldSwitchSettings->isSwitchDrained());
+      },
+      [&](const std::shared_ptr<SwitchSettings>& newSwitchSettings) {
+        newlyUndrained |= !newSwitchSettings->isSwitchDrained();
+      },
+      [](const std::shared_ptr<SwitchSettings>& oldSwitchSettings) {});
+  if (newlyUndrained) {
+    auto state = delta.newState();
+    for (auto& portMap : std::as_const(*state->getPorts())) {
+      for (auto& [_, port] : std::as_const(*portMap.second)) {
+        disableIfLooped(port, state);
+      }
+    }
+  }
+}
 void PortUpdateHandler::stateUpdated(const StateDelta& delta) {
+  checkNewlyUndrained(delta);
   DeltaFunctions::forEachChanged(
       delta.getPortsDelta(),
       [&](const std::shared_ptr<Port>& oldPort,
