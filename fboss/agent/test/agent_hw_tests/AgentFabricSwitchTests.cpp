@@ -6,6 +6,9 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/utils/FabricTestUtils.h"
+#include "fboss/lib/CommonUtils.h"
+
+DECLARE_bool(disable_looped_fabric_ports);
 
 namespace facebook::fboss {
 class AgentFabricSwitchTest : public AgentHwTest {
@@ -39,7 +42,7 @@ class AgentFabricSwitchTest : public AgentHwTest {
     return {production_features::ProductionFeature::FABRIC};
   }
 
- private:
+ protected:
   void setCmdLineFlagOverrides() const override {
     AgentHwTest::setCmdLineFlagOverrides();
     FLAGS_hide_fabric_ports = false;
@@ -141,5 +144,42 @@ TEST_F(AgentFabricSwitchTest, fabricSwitchIsolate) {
     }
   };
   verifyAcrossWarmBoots(setup, verify);
+}
+
+class AgentFabricSwitchSelfLoopTest : public AgentFabricSwitchTest {
+ public:
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto config = AgentFabricSwitchTest::initialConfig(ensemble);
+    // Start off as drained else all looped ports will get disabled
+    config.switchSettings()->switchDrainState() =
+        cfg::SwitchDrainState::DRAINED;
+    return config;
+  }
+
+ private:
+  void setCmdLineFlagOverrides() const override {
+    AgentFabricSwitchTest::setCmdLineFlagOverrides();
+    FLAGS_hide_fabric_ports = false;
+    FLAGS_disable_looped_fabric_ports = true;
+  }
+};
+
+TEST_F(AgentFabricSwitchSelfLoopTest, selfLoopDetection) {
+  auto verify = [this]() {
+    auto verifyState = [this](cfg::PortState desiredState) {
+      WITH_RETRIES({
+        auto state = getProgrammedState();
+        for (auto& portMap : std::as_const(*state->getPorts())) {
+          for (auto& port : std::as_const(*portMap.second)) {
+            EXPECT_EQ(port.second->getAdminState(), desiredState);
+          }
+        }
+      });
+    };
+    // Since switch is drained, ports should stay enabled
+    verifyState(cfg::PortState::ENABLED);
+  };
+  verifyAcrossWarmBoots([]() {}, verify);
 }
 } // namespace facebook::fboss
