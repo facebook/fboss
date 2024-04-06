@@ -80,7 +80,7 @@ void PortUpdateHandler::disableIfLooped(
     return;
   }
   XLOG(DBG2) << " Loop detected on : " << newPort->getName()
-             << ", disabling port: ";
+             << ", disabling port ";
 
   auto portId = newPort->getID();
   sw_->updateState(

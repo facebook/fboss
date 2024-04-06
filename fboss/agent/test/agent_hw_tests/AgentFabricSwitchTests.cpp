@@ -172,13 +172,19 @@ TEST_F(AgentFabricSwitchSelfLoopTest, selfLoopDetection) {
         auto state = getProgrammedState();
         for (auto& portMap : std::as_const(*state->getPorts())) {
           for (auto& port : std::as_const(*portMap.second)) {
-            EXPECT_EQ(port.second->getAdminState(), desiredState);
+            EXPECT_EVENTUALLY_EQ(port.second->getAdminState(), desiredState);
           }
         }
       });
     };
     // Since switch is drained, ports should stay enabled
     verifyState(cfg::PortState::ENABLED);
+    // Undrain
+    setSwitchDrainState(getSw()->getConfig(), cfg::SwitchDrainState::UNDRAINED);
+    // Ports should now get disabled
+    verifyState(cfg::PortState::DISABLED);
+    // Restore drain state so we start from the same point post warm boot
+    setSwitchDrainState(getSw()->getConfig(), cfg::SwitchDrainState::DRAINED);
   };
   verifyAcrossWarmBoots([]() {}, verify);
 }
