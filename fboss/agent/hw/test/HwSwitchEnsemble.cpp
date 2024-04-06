@@ -326,15 +326,18 @@ std::shared_ptr<SwitchState> HwSwitchEnsemble::applyNewConfig(
         getPlatform()->getPlatformMapping(),
         hwAsicTable_.get(),
         &routeUpdater));
+    currentConfig_ = config;
     routeUpdater.program();
     return getProgrammedState();
   }
-  return applyNewState(applyThriftConfig(
+  auto newState = applyNewState(applyThriftConfig(
       originalState,
       &config,
       getPlatform()->supportsAddRemovePort(),
       getPlatform()->getPlatformMapping(),
       hwAsicTable_.get()));
+  currentConfig_ = config;
+  return newState;
 }
 
 std::shared_ptr<SwitchState> HwSwitchEnsemble::updateEncapIndices(

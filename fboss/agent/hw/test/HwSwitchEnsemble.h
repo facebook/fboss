@@ -326,6 +326,10 @@ class HwSwitchEnsemble : public TestEnsembleIf {
     return getHwSwitch()->getPlatform()->getPlatformMapping();
   }
 
+  cfg::SwitchConfig getCurrentConfig() const override {
+    return currentConfig_;
+  }
+
  protected:
   /*
    * Setup ensemble
@@ -386,6 +390,7 @@ class HwSwitchEnsemble : public TestEnsembleIf {
   std::unique_ptr<MultiSwitchTestServer> swSwitchTestServer_;
   std::unique_ptr<SwSwitchWarmBootHelper> swSwitchWarmBootHelper_;
   HwEnsembleMultiSwitchThriftHandler* multiSwitchThriftHandler_{nullptr};
+  cfg::SwitchConfig currentConfig_;
 };
 
 } // namespace facebook::fboss

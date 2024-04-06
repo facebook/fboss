@@ -246,6 +246,10 @@ class AgentEnsemble : public TestEnsembleIf {
   void bringUpPorts(const std::vector<PortID>& ports);
   void bringDownPorts(const std::vector<PortID>& ports);
 
+  cfg::SwitchConfig getCurrentConfig() const override {
+    return getSw()->getConfig();
+  }
+
  protected:
   void joinAsyncInitThread() {
     if (asyncInitThread_) {
