@@ -823,7 +823,7 @@ void SwSwitch::updateStats() {
     }
     hwStats.flowletStats() = monoHwSwitchHandler->getHwFlowletStats();
     hwStats.cpuPortStats() = monoHwSwitchHandler->getCpuPortStats();
-    hwStats.aclStats() = multiHwSwitchHandler_->getAclStats();
+    hwStats.aclStats() = monoHwSwitchHandler->getAclStats();
     updateHwSwitchStats(0 /*switchIndex*/, std::move(hwStats));
   }
   updateFlowletStats();
