@@ -7,8 +7,6 @@
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/utils/FabricTestUtils.h"
 
-DECLARE_bool(enable_stats_update_thread);
-
 namespace facebook::fboss {
 class AgentFabricSwitchTest : public AgentHwTest {
  public:
