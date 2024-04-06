@@ -79,6 +79,10 @@ void PortUpdateHandler::disableIfLooped(
     // Not a fabric switch, nothing to do
     return;
   }
+  if (newPort->getAdminState() == cfg::PortState::DISABLED) {
+    // Port already disabled, nothing to do
+    return;
+  }
   XLOG(DBG2) << " Loop detected on : " << newPort->getName()
              << ", disabling port ";
 
