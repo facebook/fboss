@@ -809,6 +809,8 @@ void SwSwitch::updateStats() {
     hwStats.hwPortStats() = monoHwSwitchHandler->getPortStats();
     hwStats.sysPortStats() = monoHwSwitchHandler->getSysPortStats();
     hwStats.switchDropStats() = monoHwSwitchHandler->getSwitchDropStats();
+    hwStats.fabricReachabilityStats() =
+        monoHwSwitchHandler->getFabricReachabilityStats();
     hwStats.switchWatermarkStats() =
         monoHwSwitchHandler->getSwitchWatermarkStats();
     if (auto hwSwitchStats = monoHwSwitchHandler->getSwitchStats()) {
