@@ -81,12 +81,16 @@ struct TrafficTestParams {
 };
 
 std::tuple<int, int, int> getPfcTxRxXonHwPortStats(
+    facebook::fboss::HwSwitchEnsemble* ensemble,
     const facebook::fboss::HwPortStats& portStats,
     const int pfcPriority) {
   return {
       portStats.get_outPfc_().at(pfcPriority),
       portStats.get_inPfc_().at(pfcPriority),
-      portStats.get_inPfcXon_().at(pfcPriority)};
+      ensemble->getAsic()->isSupported(
+          facebook::fboss::HwAsic::Feature::PFC_XON_TO_XOFF_COUNTER)
+          ? portStats.get_inPfcXon_().at(pfcPriority)
+          : 0};
 }
 
 bool getPfcCountersRetry(
@@ -98,7 +102,7 @@ bool getPfcCountersRetry(
   auto pfcCountersIncrementing = [&](const auto& newStats) {
     auto portStatsIter = newStats.find(portId);
     std::tie(txPfcCtr, rxPfcCtr, rxPfcXonCtr) =
-        getPfcTxRxXonHwPortStats(portStatsIter->second, pfcPriority);
+        getPfcTxRxXonHwPortStats(ensemble, portStatsIter->second, pfcPriority);
     XLOG(DBG0) << " Port: " << portId << " PFC TX/RX PFC/RX_PFC_XON "
                << txPfcCtr << "/" << rxPfcCtr << "/" << rxPfcXonCtr
                << ", priority: " << pfcPriority;
@@ -408,7 +412,8 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
       const facebook::fboss::PortID& portId,
       const int pfcPriority) {
     auto portStats = getLatestPortStats(portId);
-    return getPfcTxRxXonHwPortStats(portStats, pfcPriority);
+    return getPfcTxRxXonHwPortStats(
+        getHwSwitchEnsemble(), portStats, pfcPriority);
   }
 
   void validateInitPfcCounters(
