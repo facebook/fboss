@@ -29,8 +29,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 3,
-          "attachedCoreId": 0,
-          "attachedCorePortIndex": 1,
+          "attachedCoreId": 2,
+          "attachedCorePortIndex": 2,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -11349,7 +11349,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 2,
-          "attachedCorePortIndex": 2,
+          "attachedCorePortIndex": 12,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
@@ -22496,8 +22496,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 4,
-          "attachedCoreId": 1,
-          "attachedCorePortIndex": 10,
+          "attachedCoreId": 2,
+          "attachedCorePortIndex": 11,
           "virtualDeviceId": 0
         },
         "supportedProfiles": {
