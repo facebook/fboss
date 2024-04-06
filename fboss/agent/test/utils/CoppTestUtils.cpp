@@ -484,9 +484,15 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAclsForSai(
       true /*isSai*/);
 
   if (hwAsic->isSupported(HwAsic::Feature::ACL_METADATA_QUALIFER)) {
-    // Unresolved route class ID to low pri queue
+    /*
+     * Unresolved route class ID to low pri queue.
+     * For unresolved route ACL, both the hostif trap and the ACL will
+     * be hit on TAJO and 2 packets will be punted to CPU.
+     * Do not rely on getCpuActionType but explicitly configure
+     * the cpu action to TRAP.
+     */
     addLowPriAclForUnresolvedRoutes(
-        getCpuActionType(hwAsic), acls, true /*isSai*/);
+        cfg::ToCpuAction::TRAP, acls, true /*isSai*/);
     // Connected subnet route class ID to low pri queue
     addLowPriAclForConnectedSubnetRoutes(
         getCpuActionType(hwAsic), acls, true /*isSai*/);
