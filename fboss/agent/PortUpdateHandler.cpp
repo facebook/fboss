@@ -79,6 +79,19 @@ void PortUpdateHandler::disableIfLooped(
     // Not a fabric switch, nothing to do
     return;
   }
+  XLOG(DBG2) << " Loop detected on : " << newPort->getName()
+             << ", disabling port: ";
+
+  auto portId = newPort->getID();
+  sw_->updateState(
+      "Disable undrained, looped port",
+      [portId](const std::shared_ptr<SwitchState>& in) {
+        auto out = in->clone();
+        auto curPort = out->getPorts()->getNode(portId);
+        auto port = curPort->modify(&out);
+        port->setAdminState(cfg::PortState::DISABLED);
+        return out;
+      });
 }
 
 void PortUpdateHandler::stateUpdated(const StateDelta& delta) {
