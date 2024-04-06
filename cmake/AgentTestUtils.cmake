@@ -282,3 +282,11 @@ target_link_libraries(aqm_test_utils
   switch_config_cpp2
   fboss_error
 )
+
+add_library(agent_hw_test_constants
+  fboss/agent/test/utils/AgentHwTestConstants.cpp
+)
+
+target_link_libraries(agent_hw_test_constants
+  mpls_cpp2
+)

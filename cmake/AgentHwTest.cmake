@@ -344,6 +344,7 @@ target_link_libraries(hw_switch_test
   switchid_scope_resolver
   hw_stat_printers
   port_stats_test_utils
+  agent_hw_test_constants
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
 )
