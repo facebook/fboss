@@ -12,6 +12,8 @@
 #include "fboss/fsdb/server/RocksDb.h"
 
 #include <folly/Conv.h>
+#include <folly/experimental/coro/BlockingWait.h>
+#include <folly/system/ThreadName.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <chrono>
 #include <filesystem>
