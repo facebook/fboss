@@ -14,6 +14,7 @@ add_library(subscription_manager
   fboss/fsdb/oper/Subscription.cpp
   fboss/fsdb/oper/Subscription.h
   fboss/fsdb/oper/SubscriptionManager.h
+  fboss/fsdb/oper/SubscriptionManager.cpp
   fboss/fsdb/oper/SubscriptionMetadataServer.cpp
   fboss/fsdb/oper/SubscriptionMetadataServer.h
   fboss/fsdb/oper/SubscriptionPathStore.cpp
