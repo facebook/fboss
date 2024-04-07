@@ -160,11 +160,6 @@ void LinkStateToggler::waitForPortDown(PortID port) {
 void LinkStateToggler::applyInitialConfig(const cfg::SwitchConfig& initCfg) {
   applyInitialConfigWithPortsDown(initCfg);
   bringUpPorts(initCfg);
-
-  // Initial config is applied with ports down to later bring up the ports.
-  // This causes the config to be written as loopback mode = None.
-  // Reapply the init config again to write the proper config.
-  ensemble_->applyNewConfig(initCfg);
 }
 
 std::shared_ptr<SwitchState> LinkStateToggler::applyInitialConfigWithPortsDown(
