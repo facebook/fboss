@@ -252,8 +252,8 @@ class NaivePeriodicSubscribableStorage
   template <typename T, typename TC>
   folly::coro::AsyncGenerator<DeltaValue<T>&&>
   subscribe_impl(SubscriberId subscriber, PathIter begin, PathIter end) {
-    auto sourceGen = subscribe_internal<OperState>(
-        subscriber, begin, end, OperProtocol::BINARY);
+    auto sourceGen =
+        subscribe_encoded_impl(subscriber, begin, end, OperProtocol::BINARY);
     return folly::coro::co_invoke(
         [&, gen = std::move(sourceGen)]() mutable
         -> folly::coro::AsyncGenerator<DeltaValue<T>&&> {
@@ -282,7 +282,16 @@ class NaivePeriodicSubscribableStorage
       PathIter begin,
       PathIter end,
       OperProtocol protocol) {
-    return subscribe_internal<OperState>(subscriber, begin, end, protocol);
+    auto path = convertPath(ConcretePath(begin, end));
+    auto [gen, subscription] = PathSubscription<DeltaValue<OperState>>::create(
+        std::move(subscriber),
+        path.begin(),
+        path.end(),
+        getPublisherRoot(path.begin(), path.end()),
+        protocol);
+    auto subscriptions = subscriptions_.wlock();
+    subscriptions->registerSubscription(std::move(subscription));
+    return std::move(gen);
   }
 
   folly::coro::AsyncGenerator<OperDelta&&> subscribe_delta_impl(
@@ -415,25 +424,6 @@ class NaivePeriodicSubscribableStorage
   void setConvertToIDPaths(bool convertToIDPaths) {
     convertSubsToIDPaths_ = convertToIDPaths;
     subscriptions_.wlock()->useIdPaths(convertToIDPaths);
-  }
-
- private:
-  template <typename TargetType, typename... Args>
-  folly::coro::AsyncGenerator<DeltaValue<TargetType>&&> subscribe_internal(
-      SubscriberId subscriber,
-      PathIter begin,
-      PathIter end,
-      Args&&... args) {
-    auto path = convertPath(ConcretePath(begin, end));
-    auto [gen, subscription] = PathSubscription<DeltaValue<TargetType>>::create(
-        std::move(subscriber),
-        path.begin(),
-        path.end(),
-        getPublisherRoot(path.begin(), path.end()),
-        std::forward<Args>(args)...);
-    auto subscriptions = subscriptions_.wlock();
-    subscriptions->registerSubscription(std::move(subscription));
-    return std::move(gen);
   }
 
   ConcretePath convertPath(ConcretePath&& path) const override {
