@@ -42,6 +42,12 @@ std::shared_ptr<SwitchState> LinkConnectivityProcessor::process(
     XLOG(DBG2) << " Connectivity changed for  port : " << port->getName();
     auto newConnectivity = connectivityDelta.newConnectivity();
     if (newConnectivity.has_value()) {
+      if (!*newConnectivity->isAttached()) {
+        // Not connected (port maybe down). Retain whatever cabling
+        // error state we had from before. When we get connectivity info
+        // again, we will determine cabling states based on that.
+        continue;
+      }
       auto localSwitchId = scopeResolver.scope(portId).switchId();
       if (localSwitchId == SwitchID(*newConnectivity->switchId())) {
         // Loop detected - we do this regardless of expected connectivity.
