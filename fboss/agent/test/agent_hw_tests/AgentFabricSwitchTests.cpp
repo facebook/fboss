@@ -159,6 +159,14 @@ class AgentFabricSwitchSelfLoopTest : public AgentFabricSwitchTest {
 
  protected:
   void verifyState(cfg::PortState desiredState, const PortMap& ports) const {
+    std::vector<PortID> portIds;
+    for (const auto& [portId, _] : ports) {
+      portIds.push_back(PortID(portId));
+    }
+    verifyState(desiredState, portIds);
+  }
+  void verifyState(cfg::PortState desiredState, std::vector<PortID>& ports)
+      const {
     WITH_RETRIES({
       if (desiredState == cfg::PortState::DISABLED) {
         auto numPorts = ports.size();
@@ -171,7 +179,7 @@ class AgentFabricSwitchSelfLoopTest : public AgentFabricSwitchTest {
         // When disabled all ports should lose connectivity info
         EXPECT_EVENTUALLY_EQ(missingConnectivity, numPorts);
       }
-      for (auto& [portId, _] : ports) {
+      for (const auto& portId : ports) {
         auto port = getProgrammedState()->getPorts()->getNode(portId);
         EXPECT_EVENTUALLY_EQ(port->getAdminState(), desiredState);
         auto ledExternalState = port->getLedPortExternalState();
@@ -199,12 +207,36 @@ TEST_F(AgentFabricSwitchSelfLoopTest, selfLoopDetection) {
     // Since switch is drained, ports should stay enabled
     verifyState(cfg::PortState::ENABLED, *allPorts);
     // Undrain
-    setSwitchDrainState(getSw()->getConfig(), cfg::SwitchDrainState::UNDRAINED);
+    applySwitchDrainState(cfg::SwitchDrainState::UNDRAINED);
     // Ports should now get disabled
     verifyState(cfg::PortState::DISABLED, *allPorts);
-    // Restore drain state so we start from the same point post warm boot
-    setSwitchDrainState(getSw()->getConfig(), cfg::SwitchDrainState::DRAINED);
   };
   verifyAcrossWarmBoots([]() {}, verify);
+}
+
+TEST_F(AgentFabricSwitchSelfLoopTest, portDrained) {
+  const auto kPortId =
+      getProgrammedState()->getPorts()->getAllNodes()->begin()->first;
+  auto setup = [this, kPortId]() {
+    // Drain port
+    applyNewState([&, kPortId](const std::shared_ptr<SwitchState>& in) {
+      auto out = in->clone();
+      auto port = out->getPorts()->getNodeIf(kPortId);
+      auto newPort = port->modify(&out);
+      newPort->setPortDrainState(cfg::PortDrainState::DRAINED);
+      return out;
+    });
+  };
+  auto verify = [this, kPortId]() {
+    auto portsToCheck = getProgrammedState()->getPorts()->getAllNodes();
+    // Since switch is drained, ports should stay enabled
+    verifyState(cfg::PortState::ENABLED, *portsToCheck);
+    // Undrain
+    applySwitchDrainState(cfg::SwitchDrainState::UNDRAINED);
+    // All but the drained ports should now get disabled
+    portsToCheck->removeNode(kPortId);
+    verifyState(cfg::PortState::DISABLED, *portsToCheck);
+  };
+  verifyAcrossWarmBoots(setup, verify);
 }
 } // namespace facebook::fboss
