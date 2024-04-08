@@ -570,7 +570,6 @@ TYPED_TEST(ThriftTestAllSwitchTypes, getHwPortStats) {
 TYPED_TEST(ThriftTestAllSwitchTypes, getFabricReachabilityStats) {
   ThriftHandler handler(this->sw_);
   FabricReachabilityStats stats;
-  EXPECT_HW_CALL(this->sw_, getFabricReachabilityStats()).Times(1);
   handler.getFabricReachabilityStats(stats);
 }
 

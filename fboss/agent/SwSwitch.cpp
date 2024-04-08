@@ -785,7 +785,6 @@ void SwSwitch::updateStats() {
   updateLldpStats();
   updateTeFlowStats();
   updateMultiSwitchGlobalFb303Stats();
-  updateFabricReachabilityStats();
   stats()->maxNumOfPhysicalHostsPerQueue(
       getLookupClassUpdater()->getMaxNumHostsPerQueue());
 
@@ -924,24 +923,6 @@ void SwSwitch::updateMultiSwitchGlobalFb303Stats() {
   CHECK(multiSwitchFb303Stats_);
   multiSwitchFb303Stats_->updateStats(globalStats);
   multiSwitchFb303Stats_->updateStats(globalCpuPortStats);
-}
-
-void SwSwitch::updateFabricReachabilityStats() {
-  FabricReachabilityStats fabricReachabilityStats;
-  auto runMode = (*agentConfig_.rlock())->getRunMode();
-  if (runMode == cfg::AgentRunMode::MULTI_SWITCH) {
-    auto lockedStats = hwSwitchStats_.rlock();
-    for (auto& [switchIdx, hwSwitchStats] : *lockedStats) {
-      fabricReachabilityStats.mismatchCount() =
-          hwSwitchStats.fabricReachabilityStats()->mismatchCount().value();
-      fabricReachabilityStats.missingCount() =
-          hwSwitchStats.fabricReachabilityStats()->missingCount().value();
-    }
-  } else {
-    fabricReachabilityStats =
-        getHwSwitchHandler()->getFabricReachabilityStats();
-  }
-  *fabricReachabilityStats_.wlock() = fabricReachabilityStats;
 }
 
 bool SwSwitch::isRunModeMultiSwitch() {
@@ -3146,12 +3127,19 @@ SwSwitch::getHwSwitchStatsExpensive() const {
 }
 
 FabricReachabilityStats SwSwitch::getFabricReachabilityStats() {
-  auto runMode = (*agentConfig_.rlock())->getRunMode();
-  if (runMode == cfg::AgentRunMode::MULTI_SWITCH) {
-    return *fabricReachabilityStats_.rlock();
-  } else {
-    return getHwSwitchHandler()->getFabricReachabilityStats();
+  auto lockedStats = hwSwitchStats_.rlock();
+  std::map<uint16_t, FabricReachabilityStats> fabricReachStats;
+  FabricReachabilityStats reachStats;
+  for (const auto& [_, stats] : *lockedStats) {
+    *reachStats.missingCount() +=
+        *stats.fabricReachabilityStats()->missingCount();
+    *reachStats.mismatchCount() +=
+        *stats.fabricReachabilityStats()->mismatchCount();
+    *reachStats.virtualDevicesWithAsymmetricConnectivity() +=
+        *stats.fabricReachabilityStats()
+             ->virtualDevicesWithAsymmetricConnectivity();
   }
+  return reachStats;
 }
 
 void SwSwitch::setPortsDownForSwitch(SwitchID switchId) {
