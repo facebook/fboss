@@ -636,4 +636,120 @@ TEST_F(HwEcmpFlowletSwitchingTest, VerifyEcmpFlowletSwitchingEnable) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(HwFlowletSwitchingFlowsetMultipleEcmpTests, ValidateEcmpDetailsThread) {
+  if (this->skipTest()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
+    return;
+  }
+
+  auto setup = [&]() {
+    // create 2 different ECMP objects
+    resolveNextHopsAddRoute(
+        {masterLogicalPortIds()[0], masterLogicalPortIds()[1]}, kAddr1);
+    resolveNextHopsAddRoute(
+        {masterLogicalPortIds()[2], masterLogicalPortIds()[3]}, kAddr2);
+  };
+
+  auto verify = [&]() {
+    auto cfg = initialConfig();
+    auto portFlowletConfig =
+        getPortFlowletConfig(kScalingFactor1, kLoadWeight1, kQueueWeight1);
+
+    utility::verifyEcmpForFlowletSwitching(
+        getHwSwitch(),
+        kAddr2Prefix, // second route
+        *cfg.flowletSwitchingConfig(),
+        portFlowletConfig,
+        true /* flowletEnable */,
+        true /* expectFlowsetSizeZero */);
+
+    // start a new thread to poll the ecmp details
+    std::atomic<bool> done{false};
+    auto hwSwitch = getHwSwitch();
+    std::thread readEcmpDetails([&hwSwitch, &done]() {
+      while (!done) {
+        auto ecmpDetails = hwSwitch->getAllEcmpDetails();
+      }
+    });
+
+    // remove ECMP object for the first route
+    ecmpHelper_->unprogramRoutes(
+        getRouteUpdater(), {RoutePrefixV6{kAddr1, 64}});
+
+    utility::verifyEcmpForFlowletSwitching(
+        getHwSwitch(),
+        kAddr2Prefix,
+        *cfg.flowletSwitchingConfig(),
+        portFlowletConfig,
+        true /* flowletEnable */,
+        false /* expectFlowsetSizeZero */);
+
+    done = true;
+    readEcmpDetails.join();
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(HwFlowletSwitchingFlowsetMultipleEcmpTests, ValidateFlowletStatsThread) {
+  if (this->skipTest() ||
+      (getPlatform()->getAsic()->getAsicType() ==
+       cfg::AsicType::ASIC_TYPE_FAKE)) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
+    return;
+  }
+
+  auto setup = [&]() {
+    // create 2 different ECMP objects
+    resolveNextHopsAddRoute(
+        {masterLogicalPortIds()[0], masterLogicalPortIds()[1]}, kAddr1);
+    resolveNextHopsAddRoute(
+        {masterLogicalPortIds()[2], masterLogicalPortIds()[3]}, kAddr2);
+  };
+
+  auto verify = [&]() {
+    auto cfg = initialConfig();
+    auto portFlowletConfig =
+        getPortFlowletConfig(kScalingFactor1, kLoadWeight1, kQueueWeight1);
+
+    utility::verifyEcmpForFlowletSwitching(
+        getHwSwitch(),
+        kAddr2Prefix, // second route
+        *cfg.flowletSwitchingConfig(),
+        portFlowletConfig,
+        true /* flowletEnable */,
+        true /* expectFlowsetSizeZero */);
+
+    // start a new thread to poll the flowlet stats
+    std::atomic<bool> done{false};
+    auto hwSwitch = getHwSwitch();
+    std::thread readFlowletStats([&hwSwitch, &done]() {
+      while (!done) {
+        auto l3EcmpDlbFailPackets =
+            hwSwitch->getHwFlowletStats().l3EcmpDlbFailPackets().value();
+        EXPECT_EQ(l3EcmpDlbFailPackets, 0);
+      }
+    });
+
+    // remove ECMP object for the first route
+    ecmpHelper_->unprogramRoutes(
+        getRouteUpdater(), {RoutePrefixV6{kAddr1, 64}});
+
+    utility::verifyEcmpForFlowletSwitching(
+        getHwSwitch(),
+        kAddr2Prefix,
+        *cfg.flowletSwitchingConfig(),
+        portFlowletConfig,
+        true /* flowletEnable */,
+        false /* expectFlowsetSizeZero */);
+
+    done = true;
+    readFlowletStats.join();
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
