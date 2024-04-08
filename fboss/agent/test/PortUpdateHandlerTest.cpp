@@ -227,7 +227,7 @@ class PortUpdateHandlerLoopDetectionTest : public ::testing::Test {
       auto ports = sw->getState()->getPorts()->getAllNodes();
       for (const auto& [id, port] : *ports) {
         if (PortID(id) == kPortId()) {
-          EXPECT_EVENTUALLY_TRUE(port->getLedPortExternalState().has_value());
+          ASSERT_EVENTUALLY_TRUE(port->getLedPortExternalState().has_value());
           EXPECT_EVENTUALLY_EQ(*port->getLedPortExternalState(), expectedState);
         } else {
           EXPECT_EVENTUALLY_FALSE(port->getLedPortExternalState().has_value());
@@ -236,9 +236,11 @@ class PortUpdateHandlerLoopDetectionTest : public ::testing::Test {
     });
   }
   std::map<PortID, multiswitch::FabricConnectivityDelta> makeConnectivity(
-      FabricEndpoint endpoint) const {
+      std::optional<FabricEndpoint> endpoint) const {
     multiswitch::FabricConnectivityDelta delta;
-    delta.newConnectivity() = endpoint;
+    if (endpoint) {
+      delta.newConnectivity() = *endpoint;
+    }
     std::map<PortID, multiswitch::FabricConnectivityDelta> connectivity;
     connectivity.insert({kPortId(), delta});
     return connectivity;
@@ -255,8 +257,14 @@ TYPED_TEST(PortUpdateHandlerLoopDetectionTest, createLoop) {
   endpoint.switchId() = this->switchId();
   endpoint.portId() = this->kPortId();
   this->sw->linkConnectivityChanged(this->makeConnectivity(endpoint));
-  this->checkPortState(this->getLoopedPortExpectedState());
   this->checkPortLedState(PortLedExternalState::CABLING_ERROR_LOOP_DETECTED);
+  this->checkPortState(this->getLoopedPortExpectedState());
+  // Reset connectivity old admin state should be retained, i.e.
+  // we don't re-enable on missing connectivity but led state should
+  // get reset
+  this->sw->linkConnectivityChanged(this->makeConnectivity(std::nullopt));
+  this->checkPortLedState(PortLedExternalState::NONE);
+  this->checkPortState(this->getLoopedPortExpectedState());
 }
 
 } // unnamed namespace
