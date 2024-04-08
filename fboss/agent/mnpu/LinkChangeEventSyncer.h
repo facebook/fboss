@@ -30,7 +30,8 @@ class LinkChangeEventSyncer
       uint16_t serverPort,
       SwitchID switchId,
       folly::EventBase* connRetryEvb,
-      HwSwitch* hw);
+      HwSwitch* hw,
+      std::optional<std::string> multiSwitchStatsPrefix);
 
   static EventSink initLinkChangeEventSink(
       SwitchID switchId,

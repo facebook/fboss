@@ -64,7 +64,6 @@ void updateStats(
     facebook::fboss::SplitAgentThriftSyncer* syncer) {
   if (hw->getRunState() >= SwitchRunState::CONFIGURED) {
     hw->updateStats();
-    syncer->updateStats();
     auto hwSwitchStats = hw->getHwSwitchStats();
     hw->updateAllPhyInfo();
     hwSwitchStats.phyInfo() = getPhyInfoForSwitchStats(hw->getAllPhyInfo());

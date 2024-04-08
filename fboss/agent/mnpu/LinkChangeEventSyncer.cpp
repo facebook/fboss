@@ -19,7 +19,8 @@ LinkChangeEventSyncer::LinkChangeEventSyncer(
     uint16_t serverPort,
     SwitchID switchId,
     folly::EventBase* connRetryEvb,
-    HwSwitch* hw)
+    HwSwitch* hw,
+    std::optional<std::string> multiSwitchStatsPrefix)
     : ThriftSinkClient<multiswitch::LinkChangeEvent>::ThriftSinkClient(
           "LinkChangeEventThriftSyncer",
           serverPort,
@@ -27,7 +28,8 @@ LinkChangeEventSyncer::LinkChangeEventSyncer(
           LinkChangeEventSyncer::initLinkChangeEventSink,
           std::make_shared<folly::ScopedEventBaseThread>(
               "LinkChangeEventSyncerThread"),
-          connRetryEvb),
+          connRetryEvb,
+          multiSwitchStatsPrefix),
       hw_(hw) {}
 
 LinkChangeEventSyncer::EventSink LinkChangeEventSyncer::initLinkChangeEventSink(

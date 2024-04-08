@@ -17,7 +17,8 @@ namespace facebook::fboss {
 RxPktEventSyncer::RxPktEventSyncer(
     uint16_t serverPort,
     SwitchID switchId,
-    folly::EventBase* connRetryEvb)
+    folly::EventBase* connRetryEvb,
+    std::optional<std::string> multiSwitchStatsPrefix)
     : ThriftSinkClient<multiswitch::RxPacket>::ThriftSinkClient(
           "RxPktEventThriftSyncer",
           serverPort,
@@ -25,7 +26,8 @@ RxPktEventSyncer::RxPktEventSyncer(
           RxPktEventSyncer::initRxPktEventSink,
           std::make_shared<folly::ScopedEventBaseThread>(
               "RxPktEventSyncerThread"),
-          connRetryEvb) {}
+          connRetryEvb,
+          multiSwitchStatsPrefix) {}
 
 ThriftSinkClient<multiswitch::RxPacket>::EventNotifierSinkClient
 RxPktEventSyncer::initRxPktEventSink(

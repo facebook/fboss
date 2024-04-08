@@ -27,12 +27,12 @@ SplitAgentThriftSyncer::SplitAgentThriftSyncer(
     : retryThread_(std::make_shared<folly::ScopedEventBaseThread>(
           "SplitAgentThriftRetryThread")),
       switchId_(switchId),
-      multiSwitchStatsPrefix_(multiSwitchStatsPrefix),
       linkChangeEventSinkClient_(std::make_unique<LinkChangeEventSyncer>(
           serverPort,
           switchId_,
           retryThread_->getEventBase(),
-          hw)),
+          hw,
+          multiSwitchStatsPrefix)),
       txPktEventStreamClient_(std::make_unique<TxPktEventSyncer>(
           serverPort,
           switchId_,
@@ -43,23 +43,22 @@ SplitAgentThriftSyncer::SplitAgentThriftSyncer(
       fdbEventSinkClient_(std::make_unique<FdbEventSyncer>(
           serverPort,
           switchId_,
-          retryThread_->getEventBase())),
+          retryThread_->getEventBase(),
+          multiSwitchStatsPrefix)),
       rxPktEventSinkClient_(std::make_unique<RxPktEventSyncer>(
           serverPort,
           switchId_,
-          retryThread_->getEventBase())),
+          retryThread_->getEventBase(),
+          multiSwitchStatsPrefix)),
       hwSwitchStatsSinkClient_(std::make_unique<HwSwitchStatsSinkClient>(
           serverPort,
           switchId_,
           switchIndex,
-          retryThread_->getEventBase())) {}
+          retryThread_->getEventBase(),
+          multiSwitchStatsPrefix)) {}
 
 void SplitAgentThriftSyncer::packetReceived(
     std::unique_ptr<RxPacket> pkt) noexcept {
-  if (!rxPktEventSinkClient_->isConnectedToServer()) {
-    (*rxPktEventsDropped_.wlock())++;
-    return;
-  }
   multiswitch::RxPacket rxPkt;
   rxPkt.port() = pkt->getSrcPort();
   if (pkt->getSrcVlanIf()) {
@@ -182,17 +181,6 @@ void SplitAgentThriftSyncer::stop() {
   rxPktEventSinkClient_->cancel();
   hwSwitchStatsSinkClient_->cancel();
   isRunning_ = false;
-}
-
-std::string SplitAgentThriftSyncer::getRxPktEventDropCounterName() const {
-  return multiSwitchStatsPrefix_.has_value()
-      ? *multiSwitchStatsPrefix_ + ".rx_pkt_event_dropped"
-      : "rx_pkt_event_dropped";
-}
-
-void SplitAgentThriftSyncer::updateStats() {
-  fb303::fbData->setCounter(
-      getRxPktEventDropCounterName(), *(rxPktEventsDropped_.rlock()));
 }
 
 SplitAgentThriftSyncer::~SplitAgentThriftSyncer() {

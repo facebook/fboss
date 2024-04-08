@@ -116,7 +116,8 @@ ThriftSinkClient<CallbackObjectT>::ThriftSinkClient(
     SwitchID switchId,
     ThriftSinkConnectFn connectFn,
     std::shared_ptr<folly::ScopedEventBaseThread> eventThread,
-    folly::EventBase* retryEvb)
+    folly::EventBase* retryEvb,
+    std::optional<std::string> multiSwitchStatsPrefix)
     : SplitAgentThriftClient(
           std::string(name),
           eventThread,
@@ -125,7 +126,14 @@ ThriftSinkClient<CallbackObjectT>::ThriftSinkClient(
           [](State, State) {},
           serverPort,
           switchId),
-      connectFn_(std::move(connectFn)) {}
+      connectFn_(std::move(connectFn)),
+      eventsDroppedCount_(
+          folly::to<std::string>(
+              multiSwitchStatsPrefix ? *multiSwitchStatsPrefix + "." : "",
+              name,
+              ".events_dropped"),
+          fb303::SUM,
+          fb303::RATE) {}
 
 template <typename CallbackObjectT>
 void ThriftSinkClient<CallbackObjectT>::startClientService() {

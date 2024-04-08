@@ -27,7 +27,8 @@ class HwSwitchStatsSinkClient
       uint16_t serverPort,
       SwitchID switchId,
       uint16_t switchIndex,
-      folly::EventBase* connRetryEvb);
+      folly::EventBase* connRetryEvb,
+      std::optional<std::string> multiSwitchStatsPrefix);
 
   ThriftSinkClient<multiswitch::HwSwitchStats>::EventNotifierSinkClient
   initHwSwitchStatsSinkClient(

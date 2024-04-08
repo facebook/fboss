@@ -25,7 +25,8 @@ class RxPktEventSyncer : public ThriftSinkClient<multiswitch::RxPacket> {
   RxPktEventSyncer(
       uint16_t serverPort,
       SwitchID switchId,
-      folly::EventBase* connRetryEvb);
+      folly::EventBase* connRetryEvb,
+      std::optional<std::string> multiSwitchStatsPrefix);
 
   static ThriftSinkClient<multiswitch::RxPacket>::EventNotifierSinkClient
   initRxPktEventSink(

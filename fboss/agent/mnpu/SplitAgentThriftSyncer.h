@@ -64,14 +64,10 @@ class SplitAgentThriftSyncer : public HwSwitchCallback {
   void start();
   void stop();
   void updateHwSwitchStats(multiswitch::HwSwitchStats stats);
-  void updateStats();
 
  private:
-  std::string getRxPktEventDropCounterName() const;
-
   std::shared_ptr<folly::ScopedEventBaseThread> retryThread_;
   SwitchID switchId_;
-  std::optional<std::string> multiSwitchStatsPrefix_;
   std::unique_ptr<LinkChangeEventSyncer> linkChangeEventSinkClient_;
   std::unique_ptr<TxPktEventSyncer> txPktEventStreamClient_;
   std::unique_ptr<OperDeltaSyncer> operDeltaClient_;

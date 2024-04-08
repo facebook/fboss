@@ -17,7 +17,8 @@ namespace facebook::fboss {
 FdbEventSyncer::FdbEventSyncer(
     uint16_t serverPort,
     SwitchID switchId,
-    folly::EventBase* connRetryEvb)
+    folly::EventBase* connRetryEvb,
+    std::optional<std::string> multiSwitchStatsPrefix)
     : ThriftSinkClient<multiswitch::FdbEvent>::ThriftSinkClient(
           "FdbEventThriftSyncer",
           serverPort,
@@ -25,7 +26,8 @@ FdbEventSyncer::FdbEventSyncer(
           FdbEventSyncer::initFdbEventSink,
           std::make_shared<folly::ScopedEventBaseThread>(
               "FdbEventSyncerThread"),
-          connRetryEvb) {}
+          connRetryEvb,
+          multiSwitchStatsPrefix) {}
 
 ThriftSinkClient<multiswitch::FdbEvent>::EventNotifierSinkClient
 FdbEventSyncer::initFdbEventSink(

@@ -11,6 +11,7 @@
 #include <memory>
 
 #include <folly/CancellationToken.h>
+#include <folly/Synchronized.h>
 #include <folly/io/async/EventBase.h>
 #include <folly/io/async/ScopedEventBaseThread.h>
 #include <gflags/gflags.h>
@@ -81,10 +82,15 @@ class ThriftSinkClient : public SplitAgentThriftClient {
       SwitchID switchId,
       ThriftSinkConnectFn connectFn,
       std::shared_ptr<folly::ScopedEventBaseThread> eventThread,
-      folly::EventBase* connRetryEvb);
+      folly::EventBase* connRetryEvb,
+      std::optional<std::string> multiSwitchStatsPrefix);
   ~ThriftSinkClient() override;
   void resetClient() override;
   void enqueue(CallbackObjectT callbackObject) {
+    if (!isConnectedToServer()) {
+      eventsDroppedCount_.add(1);
+      return;
+    }
 #if FOLLY_HAS_COROUTINES
     eventsQueue_.enqueue(std::move(callbackObject));
 #endif
@@ -102,6 +108,7 @@ class ThriftSinkClient : public SplitAgentThriftClient {
 #endif
   std::unique_ptr<EventNotifierSinkClient> sinkClient_;
   ThriftSinkConnectFn connectFn_;
+  fb303::TimeseriesWrapper eventsDroppedCount_;
   int32_t serverPort_;
 };
 

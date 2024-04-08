@@ -25,7 +25,8 @@ class FdbEventSyncer : public ThriftSinkClient<multiswitch::FdbEvent> {
   FdbEventSyncer(
       uint16_t serverPort,
       SwitchID switchId,
-      folly::EventBase* connRetryEvb);
+      folly::EventBase* connRetryEvb,
+      std::optional<std::string> multiSwitchStatsPrefix);
 
   static ThriftSinkClient<multiswitch::FdbEvent>::EventNotifierSinkClient
   initFdbEventSink(
