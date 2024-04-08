@@ -185,7 +185,14 @@ class PortUpdateHandlerLoopDetectionTest : public ::testing::Test {
                                                  : cfg::PortState::ENABLED;
   }
   PortID kPortId() const {
-    return PortID(sw->getState()->getPorts()->getAllNodes()->begin()->first);
+    auto allPorts = sw->getState()->getPorts()->getAllNodes();
+    // Return first fabric port
+    for (const auto& [id, port] : *allPorts) {
+      if (port->getPortType() == cfg::PortType::FABRIC_PORT) {
+        return PortID(id);
+      }
+    }
+    throw FbossError("No fabric port found");
   }
   void checkPortState(cfg::PortState expectedState) const {
     WITH_RETRIES({
