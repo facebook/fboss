@@ -19,6 +19,7 @@
 #include "fboss/agent/test/CounterCache.h"
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/TestUtils.h"
+#include "fboss/lib/CommonUtils.h"
 
 using namespace facebook::fboss;
 using std::string;
@@ -161,4 +162,56 @@ TEST_F(PortUpdateHandlerTest, PortChanged) {
   expectPortCounterExist(counters, newPorts);
   expectPortCounterNotExist(counters, initPorts);
 }
+
+class PortUpdateHandlerLoopDetectionTest : public ::testing::Test {
+ public:
+  std::shared_ptr<SwitchState> initState() const {
+    return testStateAWithPortsUp(cfg::SwitchType::FABRIC);
+  }
+  void SetUp() override {
+    handle = createTestHandle(initState());
+    sw = handle->getSw();
+  }
+  void TearDown() override {
+    sw = nullptr;
+  }
+  int switchId() const {
+    return 2;
+  }
+  PortID kPortId() const {
+    return PortID(sw->getState()->getPorts()->getAllNodes()->begin()->first);
+  }
+  void checkPortState(cfg::PortState expectedState) const {
+    WITH_RETRIES({
+      auto ports = sw->getState()->getPorts()->getAllNodes();
+      for (const auto& [id, port] : *ports) {
+        if (PortID(id) == kPortId()) {
+          EXPECT_EVENTUALLY_EQ(port->getAdminState(), expectedState);
+        } else {
+          EXPECT_EVENTUALLY_EQ(port->getAdminState(), cfg::PortState::ENABLED);
+        }
+      }
+    });
+  }
+  std::map<PortID, multiswitch::FabricConnectivityDelta> makeConnectivity(
+      FabricEndpoint endpoint) const {
+    multiswitch::FabricConnectivityDelta delta;
+    delta.newConnectivity() = endpoint;
+    std::map<PortID, multiswitch::FabricConnectivityDelta> connectivity;
+    connectivity.insert({kPortId(), delta});
+    return connectivity;
+  }
+  SwSwitch* sw{nullptr};
+  std::unique_ptr<HwTestHandle> handle{nullptr};
+};
+
+TEST_F(PortUpdateHandlerLoopDetectionTest, createLoop) {
+  FabricEndpoint endpoint;
+  endpoint.isAttached() = true;
+  endpoint.switchId() = switchId();
+  endpoint.portId() = kPortId();
+  sw->linkConnectivityChanged(makeConnectivity(endpoint));
+  checkPortState(cfg::PortState::DISABLED);
+}
+
 } // unnamed namespace
