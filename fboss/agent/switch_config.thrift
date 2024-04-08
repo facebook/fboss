@@ -1901,6 +1901,7 @@ struct SwitchConfig {
   19: map<i32, i32> clientIdToAdminDistance = {
     2: 0, // INTERFACE_ROUTE
     3: 0, // LINKLOCAL_ROUTE
+    4: 0, // REMOTE_INTERFACE_ROUTE
     1: 1, // STATIC_ROUTE
     786: 10, // OPENR
     0: 20, // BGPD

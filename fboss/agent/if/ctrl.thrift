@@ -568,6 +568,12 @@ enum ClientID {
   LINKLOCAL_ROUTE = 3,
 
   /*
+   * Interface routes that are derived from remote interface nodes in the DSF cluster.
+   * These routes are propagated by DSF subscriptions.
+   */
+  REMOTE_INTERFACE_ROUTE = 4,
+
+  /*
    * Auto generated routes by Agent. Agent by default programs default (v4 & v6)
    * route pointing to NULL if they're not specified by any other clients. These
    * routes should be least preferred and act as last resort.
