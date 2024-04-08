@@ -387,9 +387,9 @@ class NaivePeriodicSubscribableStorage
       }
 
       if (FLAGS_serveHeartbeats &&
-          start - lastHeartbeatTime >= subscriptionHeartbeatInterval_) {
+          start - lastHeartbeatTime_ >= subscriptionHeartbeatInterval_) {
         subscriptions_.wlock()->serveHeartbeat();
-        lastHeartbeatTime = start;
+        lastHeartbeatTime_ = start;
       }
 
       exportServeMetrics(start);

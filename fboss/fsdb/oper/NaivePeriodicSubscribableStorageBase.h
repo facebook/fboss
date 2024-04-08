@@ -73,26 +73,28 @@ class NaivePeriodicSubscribableStorageBase {
 
   folly::Synchronized<bool> running_{false};
 
-  folly::coro::CancellableAsyncScope backgroundScope_;
-  std::unique_ptr<std::thread> subscriptionServingThread_;
-  folly::EventBase evb_;
-  std::shared_ptr<ThreadHeartbeat> threadHeartbeat_;
   const std::chrono::milliseconds subscriptionServeInterval_;
   const std::chrono::milliseconds subscriptionHeartbeatInterval_;
   folly::Synchronized<std::unique_ptr<FsdbOperTreeMetadataTracker>>
       metadataTracker_;
   const bool trackMetadata_{false};
 
+  bool convertSubsToIDPaths_{false};
+
+  std::chrono::steady_clock::time_point lastHeartbeatTime_;
+
+ private:
+  folly::coro::CancellableAsyncScope backgroundScope_;
+  std::unique_ptr<std::thread> subscriptionServingThread_;
+  folly::EventBase evb_;
+
+  std::shared_ptr<ThreadHeartbeat> threadHeartbeat_;
+
   // metric names
   const std::string rss_{""};
   const std::string serveSubMs_{""};
   const std::string serveSubNum_{""};
 
-  bool convertSubsToIDPaths_{false};
-
-  std::chrono::steady_clock::time_point lastHeartbeatTime;
-
- private:
   // delete copy constructors
   NaivePeriodicSubscribableStorageBase(
       NaivePeriodicSubscribableStorageBase const&) = delete;

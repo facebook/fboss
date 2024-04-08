@@ -37,10 +37,10 @@ NaivePeriodicSubscribableStorageBase::NaivePeriodicSubscribableStorageBase(
     : subscriptionServeInterval_(subscriptionServeInterval),
       subscriptionHeartbeatInterval_(subscriptionHeartbeatInterval),
       trackMetadata_(trackMetadata),
+      convertSubsToIDPaths_(convertToIDPaths),
       rss_(fmt::format("{}.{}", metricPrefix, kRss)),
       serveSubMs_(fmt::format("{}.{}", metricPrefix, kServeSubMs)),
-      serveSubNum_(fmt::format("{}.{}", metricPrefix, kServeSubNum)),
-      convertSubsToIDPaths_(convertToIDPaths) {
+      serveSubNum_(fmt::format("{}.{}", metricPrefix, kServeSubNum)) {
   if (trackMetadata) {
     metadataTracker_ = std::make_unique<FsdbOperTreeMetadataTracker>();
   }
@@ -88,7 +88,7 @@ void NaivePeriodicSubscribableStorageBase::start_impl() {
       heartbeatStatsFunc);
 
   // serve first heartbeat 1 interval away
-  lastHeartbeatTime = std::chrono::steady_clock::now();
+  lastHeartbeatTime_ = std::chrono::steady_clock::now();
 
   backgroundScope_.add(serveSubscriptions().scheduleOn(&evb_));
 
