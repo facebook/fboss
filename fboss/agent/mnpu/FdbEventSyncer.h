@@ -20,7 +20,8 @@ namespace facebook::fboss {
 
 class HwSwitch;
 
-class FdbEventSyncer : public ThriftSinkClient<multiswitch::FdbEvent> {
+class FdbEventSyncer
+    : public ThriftSinkClient<multiswitch::FdbEvent, FdbEventQueueType> {
  public:
   FdbEventSyncer(
       uint16_t serverPort,
@@ -28,12 +29,17 @@ class FdbEventSyncer : public ThriftSinkClient<multiswitch::FdbEvent> {
       folly::EventBase* connRetryEvb,
       std::optional<std::string> multiSwitchStatsPrefix);
 
-  static ThriftSinkClient<multiswitch::FdbEvent>::EventNotifierSinkClient
-  initFdbEventSink(
-      SwitchID switchId,
-      apache::thrift::Client<multiswitch::MultiSwitchCtrl>* client);
+  static ThriftSinkClient<multiswitch::FdbEvent, FdbEventQueueType>::
+      EventNotifierSinkClient
+      initFdbEventSink(
+          SwitchID switchId,
+          apache::thrift::Client<multiswitch::MultiSwitchCtrl>* client);
 
  private:
   void connected() override {}
+
+#if FOLLY_HAS_COROUTINES
+  FdbEventQueueType eventQueue_;
+#endif
 };
 } // namespace facebook::fboss

@@ -90,11 +90,19 @@ folly::coro::Task<void> SplitAgentThriftClient::serviceLoopWrapper() {
   try {
     co_await serveStream();
   } catch (const folly::OperationCancelled&) {
+    bool wasConnected = isConnectedToServer();
     setState(State::CANCELLED);
+    if (wasConnected) {
+      disconnected();
+    }
   } catch (const std::exception& ex) {
     XLOG(ERR) << "Error while notifying events from " << clientId() << " : "
               << ex.what();
+    bool wasConnected = isConnectedToServer();
     setState(State::DISCONNECTED);
+    if (wasConnected) {
+      disconnected();
+    }
   }
   co_return;
 }
@@ -109,13 +117,16 @@ void SplitAgentThriftClient::resetClient() {
   multiSwitchClient_.reset();
 }
 
-template <typename CallbackObjectT>
-ThriftSinkClient<CallbackObjectT>::ThriftSinkClient(
+template <typename CallbackObjectT, typename EventQueueT>
+ThriftSinkClient<CallbackObjectT, EventQueueT>::ThriftSinkClient(
     folly::StringPiece name,
     uint16_t serverPort,
     SwitchID switchId,
     ThriftSinkConnectFn connectFn,
     std::shared_ptr<folly::ScopedEventBaseThread> eventThread,
+#if FOLLY_HAS_COROUTINES
+    EventQueueT& eventsQueue,
+#endif
     folly::EventBase* retryEvb,
     std::optional<std::string> multiSwitchStatsPrefix)
     : SplitAgentThriftClient(
@@ -126,6 +137,9 @@ ThriftSinkClient<CallbackObjectT>::ThriftSinkClient(
           [](State, State) {},
           serverPort,
           switchId),
+#if FOLLY_HAS_COROUTINES
+      eventsQueue_(eventsQueue),
+#endif
       connectFn_(std::move(connectFn)),
       eventsDroppedCount_(
           folly::to<std::string>(
@@ -133,23 +147,35 @@ ThriftSinkClient<CallbackObjectT>::ThriftSinkClient(
               name,
               ".events_dropped"),
           fb303::SUM,
-          fb303::RATE) {}
+          fb303::RATE) {
+}
 
-template <typename CallbackObjectT>
-void ThriftSinkClient<CallbackObjectT>::startClientService() {
+template <typename CallbackObjectT, typename EventQueueT>
+void ThriftSinkClient<CallbackObjectT, EventQueueT>::startClientService() {
   sinkClient_.reset(new EventNotifierSinkClient(
       connectFn_(getSwitchId(), getThriftClient())));
 }
 
-template <typename CallbackObjectT>
-void ThriftSinkClient<CallbackObjectT>::resetClient() {
+template <typename CallbackObjectT, typename EventQueueT>
+void ThriftSinkClient<CallbackObjectT, EventQueueT>::disconnected() {
+  while (!eventsQueue_.empty()) {
+    eventsQueue_.try_dequeue();
+    eventsDroppedCount_.add(1);
+  }
+  XLOG(DBG2) << "Discarded events from queue for " << clientId()
+             << " on sw agent disconnect";
+}
+
+template <typename CallbackObjectT, typename EventQueueT>
+void ThriftSinkClient<CallbackObjectT, EventQueueT>::resetClient() {
   sinkClient_.reset();
   SplitAgentThriftClient::resetClient();
 }
 
 #if FOLLY_HAS_COROUTINES
-template <typename CallbackObjectT>
-folly::coro::Task<void> ThriftSinkClient<CallbackObjectT>::serveStream() {
+template <typename CallbackObjectT, typename EventQueueT>
+folly::coro::Task<void>
+ThriftSinkClient<CallbackObjectT, EventQueueT>::serveStream() {
   connected();
   co_await sinkClient_->sink(
       [&]() -> folly::coro::AsyncGenerator<CallbackObjectT&&> {
@@ -165,8 +191,8 @@ folly::coro::Task<void> ThriftSinkClient<CallbackObjectT>::serveStream() {
 }
 #endif
 
-template <typename CallbackObjectT>
-ThriftSinkClient<CallbackObjectT>::~ThriftSinkClient() {
+template <typename CallbackObjectT, typename EventQueueT>
+ThriftSinkClient<CallbackObjectT, EventQueueT>::~ThriftSinkClient() {
   CHECK(isCancelled());
 }
 
@@ -232,12 +258,14 @@ ThriftStreamClient<StreamObjectT>::~ThriftStreamClient() {
   CHECK(isCancelled());
 }
 
-template class ThriftSinkClient<multiswitch::LinkEvent>;
-template class ThriftSinkClient<multiswitch::LinkActiveEvent>;
-template class ThriftSinkClient<multiswitch::LinkChangeEvent>;
-template class ThriftSinkClient<multiswitch::FdbEvent>;
-template class ThriftSinkClient<multiswitch::RxPacket>;
+template class ThriftSinkClient<
+    multiswitch::LinkChangeEvent,
+    LinkChangeEventQueueType>;
+template class ThriftSinkClient<multiswitch::FdbEvent, FdbEventQueueType>;
+template class ThriftSinkClient<multiswitch::RxPacket, RxPktEventQueueType>;
 template class ThriftStreamClient<multiswitch::TxPacket>;
-template class ThriftSinkClient<multiswitch::HwSwitchStats>;
+template class ThriftSinkClient<
+    multiswitch::HwSwitchStats,
+    StatsEventQueueType>;
 
 } // namespace facebook::fboss

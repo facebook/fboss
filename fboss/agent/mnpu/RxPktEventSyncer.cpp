@@ -19,20 +19,26 @@ RxPktEventSyncer::RxPktEventSyncer(
     SwitchID switchId,
     folly::EventBase* connRetryEvb,
     std::optional<std::string> multiSwitchStatsPrefix)
-    : ThriftSinkClient<multiswitch::RxPacket>::ThriftSinkClient(
-          "RxPktEventThriftSyncer",
-          serverPort,
-          switchId,
-          RxPktEventSyncer::initRxPktEventSink,
-          std::make_shared<folly::ScopedEventBaseThread>(
-              "RxPktEventSyncerThread"),
-          connRetryEvb,
-          multiSwitchStatsPrefix) {}
+    : ThriftSinkClient<multiswitch::RxPacket, RxPktEventQueueType>::
+          ThriftSinkClient(
+              "RxPktEventThriftSyncer",
+              serverPort,
+              switchId,
+              RxPktEventSyncer::initRxPktEventSink,
+              std::make_shared<folly::ScopedEventBaseThread>(
+                  "RxPktEventSyncerThread"),
+#if FOLLY_HAS_COROUTINES
+              eventQueue_,
+#endif
+              connRetryEvb,
+              multiSwitchStatsPrefix) {
+}
 
-ThriftSinkClient<multiswitch::RxPacket>::EventNotifierSinkClient
-RxPktEventSyncer::initRxPktEventSink(
-    SwitchID switchId,
-    apache::thrift::Client<multiswitch::MultiSwitchCtrl>* client) {
+ThriftSinkClient<multiswitch::RxPacket, RxPktEventQueueType>::
+    EventNotifierSinkClient
+    RxPktEventSyncer::initRxPktEventSink(
+        SwitchID switchId,
+        apache::thrift::Client<multiswitch::MultiSwitchCtrl>* client) {
 #if FOLLY_HAS_COROUTINES
   return folly::coro::blockingWait(client->co_notifyRxPacket(switchId));
 #else

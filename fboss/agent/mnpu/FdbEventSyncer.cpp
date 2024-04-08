@@ -19,20 +19,26 @@ FdbEventSyncer::FdbEventSyncer(
     SwitchID switchId,
     folly::EventBase* connRetryEvb,
     std::optional<std::string> multiSwitchStatsPrefix)
-    : ThriftSinkClient<multiswitch::FdbEvent>::ThriftSinkClient(
-          "FdbEventThriftSyncer",
-          serverPort,
-          switchId,
-          FdbEventSyncer::initFdbEventSink,
-          std::make_shared<folly::ScopedEventBaseThread>(
-              "FdbEventSyncerThread"),
-          connRetryEvb,
-          multiSwitchStatsPrefix) {}
+    : ThriftSinkClient<multiswitch::FdbEvent, FdbEventQueueType>::
+          ThriftSinkClient(
+              "FdbEventThriftSyncer",
+              serverPort,
+              switchId,
+              FdbEventSyncer::initFdbEventSink,
+              std::make_shared<folly::ScopedEventBaseThread>(
+                  "FdbEventSyncerThread"),
+#if FOLLY_HAS_COROUTINES
+              eventQueue_,
+#endif
+              connRetryEvb,
+              multiSwitchStatsPrefix) {
+}
 
-ThriftSinkClient<multiswitch::FdbEvent>::EventNotifierSinkClient
-FdbEventSyncer::initFdbEventSink(
-    SwitchID switchId,
-    apache::thrift::Client<multiswitch::MultiSwitchCtrl>* client) {
+ThriftSinkClient<multiswitch::FdbEvent, FdbEventQueueType>::
+    EventNotifierSinkClient
+    FdbEventSyncer::initFdbEventSink(
+        SwitchID switchId,
+        apache::thrift::Client<multiswitch::MultiSwitchCtrl>* client) {
 #if FOLLY_HAS_COROUTINES
   return folly::coro::blockingWait(client->co_notifyFdbEvent(switchId));
 #else

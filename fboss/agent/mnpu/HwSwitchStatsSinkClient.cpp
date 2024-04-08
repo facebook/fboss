@@ -20,25 +20,32 @@ HwSwitchStatsSinkClient::HwSwitchStatsSinkClient(
     uint16_t switchIndex,
     folly::EventBase* connRetryEvb,
     std::optional<std::string> multiSwitchStatsPrefix)
-    : ThriftSinkClient<multiswitch::HwSwitchStats>::ThriftSinkClient(
-          "HwSwitchStatsSinkClient",
-          serverPort,
-          switchId,
-          [this, switchIdx = switchIndex](
-              SwitchID switchId,
-              apache::thrift::Client<multiswitch::MultiSwitchCtrl>* client) {
-            return initHwSwitchStatsSinkClient(switchId, switchIdx, client);
-          },
-          std::make_shared<folly::ScopedEventBaseThread>(
-              "HwSwitchStatsSinkClientThread"),
-          connRetryEvb,
-          multiSwitchStatsPrefix) {}
+    : ThriftSinkClient<multiswitch::HwSwitchStats, StatsEventQueueType>::
+          ThriftSinkClient(
+              "HwSwitchStatsSinkClient",
+              serverPort,
+              switchId,
+              [this, switchIdx = switchIndex](
+                  SwitchID switchId,
+                  apache::thrift::Client<multiswitch::MultiSwitchCtrl>*
+                      client) {
+                return initHwSwitchStatsSinkClient(switchId, switchIdx, client);
+              },
+              std::make_shared<folly::ScopedEventBaseThread>(
+                  "HwSwitchStatsSinkClientThread"),
+#if FOLLY_HAS_COROUTINES
+              eventQueue_,
+#endif
+              connRetryEvb,
+              multiSwitchStatsPrefix) {
+}
 
-ThriftSinkClient<multiswitch::HwSwitchStats>::EventNotifierSinkClient
-HwSwitchStatsSinkClient::initHwSwitchStatsSinkClient(
-    SwitchID /*switchId*/,
-    uint16_t switchIndex,
-    apache::thrift::Client<multiswitch::MultiSwitchCtrl>* client) {
+ThriftSinkClient<multiswitch::HwSwitchStats, StatsEventQueueType>::
+    EventNotifierSinkClient
+    HwSwitchStatsSinkClient::initHwSwitchStatsSinkClient(
+        SwitchID /*switchId*/,
+        uint16_t switchIndex,
+        apache::thrift::Client<multiswitch::MultiSwitchCtrl>* client) {
 #if FOLLY_HAS_COROUTINES
   return folly::coro::blockingWait(client->co_syncHwStats(switchIndex));
 #else
