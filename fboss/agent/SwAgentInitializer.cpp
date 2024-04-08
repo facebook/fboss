@@ -64,11 +64,9 @@ void SwSwitchInitializer::start() {
   start(sw_);
 }
 
-void SwSwitchInitializer::start(
-    HwSwitchCallback* callback,
-    bool failHwCallsOnWarmboot) {
+void SwSwitchInitializer::start(HwSwitchCallback* callback) {
   initThread_ = std::make_unique<std::thread>(
-      &SwSwitchInitializer::initThread, this, callback, failHwCallsOnWarmboot);
+      &SwSwitchInitializer::initThread, this, callback);
 }
 
 SwitchFlags SwSwitchInitializer::setupFlags() {
@@ -102,22 +100,18 @@ void SwSwitchInitializer::waitForInitDone() {
   initCondition_.wait(lk, [&] { return sw_->isFullyConfigured(); });
 }
 
-void SwSwitchInitializer::initThread(
-    HwSwitchCallback* callback,
-    bool failHwCallsOnWarmboot) {
+void SwSwitchInitializer::initThread(HwSwitchCallback* callback) {
   try {
-    init(callback, failHwCallsOnWarmboot);
+    init(callback);
   } catch (const std::exception& ex) {
     XLOG(FATAL) << "switch initialization failed: " << folly::exceptionStr(ex);
   }
 }
 
-void SwSwitchInitializer::init(
-    HwSwitchCallback* hwSwitchCallback,
-    bool failHwCallsOnWarmboot) {
+void SwSwitchInitializer::init(HwSwitchCallback* hwSwitchCallback) {
   auto startTime = steady_clock::now();
   std::lock_guard<std::mutex> g(initLock_);
-  initImpl(hwSwitchCallback, failHwCallsOnWarmboot);
+  initImpl(hwSwitchCallback);
   sw_->applyConfig("apply initial config");
   // Enable route update logging for all routes so that when we are told
   // the first set of routes after a warm boot, we can log any changes
@@ -186,9 +180,7 @@ int SwAgentInitializer::initAgent() {
   return initAgent(sw_.get());
 }
 
-int SwAgentInitializer::initAgent(
-    HwSwitchCallback* callback,
-    bool failHwCallsOnWarmboot) {
+int SwAgentInitializer::initAgent(HwSwitchCallback* callback) {
   auto swHandler = std::make_shared<ThriftHandler>(sw_.get());
   swHandler->setIdleTimeout(FLAGS_thrift_idle_timeout);
   auto handlers = getThrifthandlers();
@@ -210,7 +202,7 @@ int SwAgentInitializer::initAgent(
   // At this point, we are guaranteed no other agent process will initialize
   // the ASIC because such a process would have crashed attempting to bind to
   // the Thrift port 5909
-  initializer_->start(callback, failHwCallsOnWarmboot);
+  initializer_->start(callback);
 
   /*
    * Updating stats could be expensive as each update must acquire lock. To

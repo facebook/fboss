@@ -16,8 +16,7 @@ class SplitSwSwitchInitializer : public SwSwitchInitializer {
   explicit SplitSwSwitchInitializer(SwSwitch* sw) : SwSwitchInitializer(sw) {}
 
  private:
-  void initImpl(HwSwitchCallback* callback, bool failHwCallsOnWarmboot = false)
-      override;
+  void initImpl(HwSwitchCallback* callback) override;
 };
 
 class SplitSwAgentInitializer : public SwAgentInitializer {

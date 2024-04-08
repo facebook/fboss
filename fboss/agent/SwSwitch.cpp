@@ -1109,11 +1109,10 @@ void SwSwitch::init(
     HwSwitchCallback* callback,
     std::unique_ptr<TunManager> tunMgr,
     HwSwitchInitFn hwSwitchInitFn,
-    bool failHwCallsOnWarmboot,
     SwitchFlags flags) {
   auto begin = steady_clock::now();
   flags_ = flags;
-  auto hwInitRet = hwSwitchInitFn(callback, failHwCallsOnWarmboot);
+  auto hwInitRet = hwSwitchInitFn(callback, false /*failHwCallsOnWarmboot*/);
   auto initialState = preInit(flags);
   if (hwInitRet.bootType != bootType_) {
     // this is being done for preprod2trunk migration. further until tooling
@@ -1189,7 +1188,7 @@ void SwSwitch::init(
     std::unique_ptr<TunManager> tunMgr,
     HwSwitchInitFn hwSwitchInitFn,
     SwitchFlags flags) {
-  this->init(this, std::move(tunMgr), hwSwitchInitFn, false, flags);
+  this->init(this, std::move(tunMgr), hwSwitchInitFn, flags);
 }
 
 void SwSwitch::init(SwitchFlags flags) {

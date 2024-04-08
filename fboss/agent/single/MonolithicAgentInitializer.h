@@ -38,8 +38,7 @@ class MonolithicSwSwitchInitializer : public SwSwitchInitializer {
   }
 
  private:
-  void initImpl(HwSwitchCallback* callback, bool failHwCallsOnWarmboot = false)
-      override;
+  void initImpl(HwSwitchCallback* callback) override;
   HwAgent* hwAgent_;
 };
 
