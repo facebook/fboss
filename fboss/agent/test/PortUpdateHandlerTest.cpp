@@ -178,7 +178,7 @@ class PortUpdateHandlerLoopDetectionTest : public ::testing::Test {
     sw = nullptr;
   }
   int switchId() const {
-    return 2;
+    return switchType == cfg::SwitchType::VOQ ? 1 : 2;
   }
   cfg::PortState getLoopedPortExpectedState() const {
     if (switchType != cfg::SwitchType::FABRIC) {
@@ -222,6 +222,19 @@ class PortUpdateHandlerLoopDetectionTest : public ::testing::Test {
       }
     });
   }
+  void checkPortLedState(PortLedExternalState expectedState) const {
+    WITH_RETRIES({
+      auto ports = sw->getState()->getPorts()->getAllNodes();
+      for (const auto& [id, port] : *ports) {
+        if (PortID(id) == kPortId()) {
+          EXPECT_EVENTUALLY_TRUE(port->getLedPortExternalState().has_value());
+          EXPECT_EVENTUALLY_EQ(*port->getLedPortExternalState(), expectedState);
+        } else {
+          EXPECT_EVENTUALLY_FALSE(port->getLedPortExternalState().has_value());
+        }
+      }
+    });
+  }
   std::map<PortID, multiswitch::FabricConnectivityDelta> makeConnectivity(
       FabricEndpoint endpoint) const {
     multiswitch::FabricConnectivityDelta delta;
@@ -243,6 +256,7 @@ TYPED_TEST(PortUpdateHandlerLoopDetectionTest, createLoop) {
   endpoint.portId() = this->kPortId();
   this->sw->linkConnectivityChanged(this->makeConnectivity(endpoint));
   this->checkPortState(this->getLoopedPortExpectedState());
+  this->checkPortLedState(PortLedExternalState::CABLING_ERROR_LOOP_DETECTED);
 }
 
 } // unnamed namespace
