@@ -181,8 +181,24 @@ class PortUpdateHandlerLoopDetectionTest : public ::testing::Test {
     return 2;
   }
   cfg::PortState getLoopedPortExpectedState() const {
-    return switchType == cfg::SwitchType::FABRIC ? cfg::PortState::DISABLED
-                                                 : cfg::PortState::ENABLED;
+    if (switchType != cfg::SwitchType::FABRIC) {
+      return cfg::PortState::ENABLED;
+    }
+    HwSwitchMatcher matcher(
+        std::unordered_set<SwitchID>({SwitchID(switchId())}));
+    auto switchSettings =
+        sw->getState()->getSwitchSettings()->getSwitchSettings(matcher);
+    if (switchSettings->isSwitchDrained()) {
+      // Switch is drained, no looped port disable
+      return cfg::PortState::ENABLED;
+    }
+    auto port = sw->getState()->getPorts()->getNode(kPortId());
+    if (port->isDrained() ||
+        (port->getActiveState().has_value() && !port->isActive().value())) {
+      // Port is drained, no looped port disable
+      return cfg::PortState::ENABLED;
+    }
+    return cfg::PortState::DISABLED;
   }
   PortID kPortId() const {
     auto allPorts = sw->getState()->getPorts()->getAllNodes();
