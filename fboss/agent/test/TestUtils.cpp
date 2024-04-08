@@ -871,71 +871,82 @@ shared_ptr<SwitchState> testStateA(cfg::SwitchType switchType) {
       {SwitchID(switchIdToSwitchInfo.begin()->first)})};
 
   // Add VLAN 1, and ports 1-10 which belong to it.
-  auto vlan1 = make_shared<Vlan>(VlanID(1), std::string("Vlan1"));
-  state->getVlans()->addNode(vlan1, matcher);
-  for (int idx = 1; idx <= 10; ++idx) {
-    registerPort(state, PortID(idx), folly::to<string>("port", idx), matcher);
-    vlan1->addPort(PortID(idx), false);
-    auto port = state->getPorts()->getNodeIf(PortID(idx));
-    port->addVlan(vlan1->getID(), false);
-    port->setInterfaceIDs({1});
+  if (switchType != cfg::SwitchType::FABRIC) {
+    auto vlan1 = make_shared<Vlan>(VlanID(1), std::string("Vlan1"));
+    state->getVlans()->addNode(vlan1, matcher);
+    for (int idx = 1; idx <= 10; ++idx) {
+      registerPort(state, PortID(idx), folly::to<string>("port", idx), matcher);
+      vlan1->addPort(PortID(idx), false);
+      auto port = state->getPorts()->getNodeIf(PortID(idx));
+      port->addVlan(vlan1->getID(), false);
+      port->setInterfaceIDs({1});
+    }
+    // Add VLAN 55, and ports 11-20 which belong to it.
+    auto vlan55 = make_shared<Vlan>(VlanID(55), std::string("Vlan55"));
+    state->getVlans()->addNode(vlan55, matcher);
+    for (int idx = 11; idx <= 20; ++idx) {
+      registerPort(state, PortID(idx), folly::to<string>("port", idx), matcher);
+      vlan55->addPort(PortID(idx), false);
+      auto port = state->getPorts()->getNodeIf(PortID(idx));
+      port->addVlan(vlan55->getID(), false);
+      port->setInterfaceIDs({55});
+    }
+    // Add Interface 1 to VLAN 1
+    auto intf1 = make_shared<Interface>(
+        InterfaceID(1),
+        RouterID(0),
+        std::optional<VlanID>(1),
+        folly::StringPiece("fboss1"),
+        MacAddress("00:02:00:00:00:01"),
+        9000,
+        false, /* is virtual */
+        false /* is state_sync disabled */);
+    Interface::Addresses addrs1;
+    addrs1.emplace(IPAddress("10.0.0.1"), 24);
+    addrs1.emplace(IPAddress("192.168.0.1"), 24);
+    addrs1.emplace(IPAddress("169.254.0.0"), 16); // link local
+
+    addrs1.emplace(IPAddress("2401:db00:2110:3001::0001"), 64);
+    addrs1.emplace(IPAddress("fe80::"), 64); // link local
+
+    intf1->setAddresses(addrs1);
+    auto allIntfs = state->getInterfaces()->modify(&state);
+    allIntfs->addNode(intf1, matcher);
+    vlan1->setInterfaceID(InterfaceID(1));
+
+    // Add Interface 55 to VLAN 55
+    auto intf55 = make_shared<Interface>(
+        InterfaceID(55),
+        RouterID(0),
+        std::optional<VlanID>(55),
+        folly::StringPiece("fboss55"),
+        MacAddress("00:02:00:00:00:55"),
+        9000,
+        false, /* is virtual */
+        false /* is state_sync disabled */);
+    Interface::Addresses addrs55;
+    addrs55.emplace(IPAddress("10.0.55.1"), 24);
+    addrs55.emplace(IPAddress("192.168.55.1"), 24);
+    addrs55.emplace(IPAddress("2401:db00:2110:3055::0001"), 64);
+    intf55->setAddresses(addrs55);
+    allIntfs->addNode(intf55, matcher);
+    vlan55->setInterfaceID(InterfaceID(55));
+  } else {
+    for (int idx = 1; idx <= 20; ++idx) {
+      registerPort(
+          state,
+          PortID(idx),
+          folly::to<string>("port", idx),
+          matcher,
+          cfg::PortType::FABRIC_PORT);
+    }
   }
-  // Add VLAN 55, and ports 11-20 which belong to it.
-  auto vlan55 = make_shared<Vlan>(VlanID(55), std::string("Vlan55"));
-  state->getVlans()->addNode(vlan55, matcher);
-  for (int idx = 11; idx <= 20; ++idx) {
-    registerPort(state, PortID(idx), folly::to<string>("port", idx), matcher);
-    vlan55->addPort(PortID(idx), false);
-    auto port = state->getPorts()->getNodeIf(PortID(idx));
-    port->addVlan(vlan55->getID(), false);
-    port->setInterfaceIDs({55});
-  }
-  // Add Interface 1 to VLAN 1
-  auto intf1 = make_shared<Interface>(
-      InterfaceID(1),
-      RouterID(0),
-      std::optional<VlanID>(1),
-      folly::StringPiece("fboss1"),
-      MacAddress("00:02:00:00:00:01"),
-      9000,
-      false, /* is virtual */
-      false /* is state_sync disabled */);
-  Interface::Addresses addrs1;
-  addrs1.emplace(IPAddress("10.0.0.1"), 24);
-  addrs1.emplace(IPAddress("192.168.0.1"), 24);
-  addrs1.emplace(IPAddress("169.254.0.0"), 16); // link local
-
-  addrs1.emplace(IPAddress("2401:db00:2110:3001::0001"), 64);
-  addrs1.emplace(IPAddress("fe80::"), 64); // link local
-
-  intf1->setAddresses(addrs1);
-  auto allIntfs = state->getInterfaces()->modify(&state);
-  allIntfs->addNode(intf1, matcher);
-  vlan1->setInterfaceID(InterfaceID(1));
-
-  // Add Interface 55 to VLAN 55
-  auto intf55 = make_shared<Interface>(
-      InterfaceID(55),
-      RouterID(0),
-      std::optional<VlanID>(55),
-      folly::StringPiece("fboss55"),
-      MacAddress("00:02:00:00:00:55"),
-      9000,
-      false, /* is virtual */
-      false /* is state_sync disabled */);
-  Interface::Addresses addrs55;
-  addrs55.emplace(IPAddress("10.0.55.1"), 24);
-  addrs55.emplace(IPAddress("192.168.55.1"), 24);
-  addrs55.emplace(IPAddress("2401:db00:2110:3055::0001"), 64);
-  intf55->setAddresses(addrs55);
-  allIntfs->addNode(intf55, matcher);
-  vlan55->setInterfaceID(InterfaceID(55));
 
   return state;
 }
 
-shared_ptr<SwitchState> testStateAWithPortsUp() {
-  return bringAllPortsUp(testStateA());
+shared_ptr<SwitchState> testStateAWithPortsUp(cfg::SwitchType switchType) {
+  return bringAllPortsUp(testStateA(switchType));
 }
 
 shared_ptr<SwitchState> testStateAWithLookupClasses() {
