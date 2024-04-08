@@ -157,6 +157,34 @@ class AgentFabricSwitchSelfLoopTest : public AgentFabricSwitchTest {
     return config;
   }
 
+ protected:
+  void verifyState(cfg::PortState desiredState, const PortMap& ports) const {
+    WITH_RETRIES({
+      if (desiredState == cfg::PortState::DISABLED) {
+        auto numPorts = ports.size();
+        auto switch2SwitchStats = getSw()->getHwSwitchStatsExpensive();
+        int missingConnectivity{0};
+        for (const auto& [_, switchStats] : switch2SwitchStats) {
+          missingConnectivity +=
+              *switchStats.fabricReachabilityStats()->missingCount();
+        }
+        // When disabled all ports should lose connectivity info
+        EXPECT_EVENTUALLY_EQ(missingConnectivity, numPorts);
+      }
+      for (auto& [portId, _] : ports) {
+        auto port = getProgrammedState()->getPorts()->getNode(portId);
+        EXPECT_EVENTUALLY_EQ(port->getAdminState(), desiredState);
+        auto ledExternalState = port->getLedPortExternalState();
+        EXPECT_EVENTUALLY_TRUE(ledExternalState.has_value());
+        // Even post disable, we retain cabling error info
+        // until we learn of new connectivity info
+        EXPECT_EVENTUALLY_EQ(
+            *ledExternalState,
+            PortLedExternalState::CABLING_ERROR_LOOP_DETECTED);
+      }
+    });
+  }
+
  private:
   void setCmdLineFlagOverrides() const override {
     AgentFabricSwitchTest::setCmdLineFlagOverrides();
@@ -167,40 +195,13 @@ class AgentFabricSwitchSelfLoopTest : public AgentFabricSwitchTest {
 
 TEST_F(AgentFabricSwitchSelfLoopTest, selfLoopDetection) {
   auto verify = [this]() {
-    auto verifyState = [this](cfg::PortState desiredState) {
-      WITH_RETRIES({
-        auto state = getProgrammedState();
-        if (desiredState == cfg::PortState::DISABLED) {
-          auto numPorts = state->getPorts()->numNodes();
-          auto switch2SwitchStats = getSw()->getHwSwitchStatsExpensive();
-          int missingConnectivity{0};
-          for (const auto& [_, switchStats] : switch2SwitchStats) {
-            missingConnectivity +=
-                *switchStats.fabricReachabilityStats()->missingCount();
-          }
-          // When disabled all ports should lose connectivity info
-          EXPECT_EVENTUALLY_EQ(missingConnectivity, numPorts);
-        }
-        for (auto& portMap : std::as_const(*state->getPorts())) {
-          for (auto& [_, port] : std::as_const(*portMap.second)) {
-            EXPECT_EVENTUALLY_EQ(port->getAdminState(), desiredState);
-            auto ledExternalState = port->getLedPortExternalState();
-            EXPECT_EVENTUALLY_TRUE(ledExternalState.has_value());
-            // Even post disable, we retain cabling error info
-            // until we learn of new connectivity info
-            EXPECT_EVENTUALLY_EQ(
-                *ledExternalState,
-                PortLedExternalState::CABLING_ERROR_LOOP_DETECTED);
-          }
-        }
-      });
-    };
+    auto allPorts = getProgrammedState()->getPorts()->getAllNodes();
     // Since switch is drained, ports should stay enabled
-    verifyState(cfg::PortState::ENABLED);
+    verifyState(cfg::PortState::ENABLED, *allPorts);
     // Undrain
     setSwitchDrainState(getSw()->getConfig(), cfg::SwitchDrainState::UNDRAINED);
     // Ports should now get disabled
-    verifyState(cfg::PortState::DISABLED);
+    verifyState(cfg::PortState::DISABLED, *allPorts);
     // Restore drain state so we start from the same point post warm boot
     setSwitchDrainState(getSw()->getConfig(), cfg::SwitchDrainState::DRAINED);
   };
