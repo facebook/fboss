@@ -180,14 +180,16 @@ class PortUpdateHandlerLoopDetectionTest : public ::testing::Test {
   int switchId() const {
     return switchType == cfg::SwitchType::VOQ ? 1 : 2;
   }
+  HwSwitchMatcher matcher() const {
+    return HwSwitchMatcher(
+        std::unordered_set<SwitchID>({SwitchID(switchId())}));
+  }
   cfg::PortState getLoopedPortExpectedState() const {
     if (switchType != cfg::SwitchType::FABRIC) {
       return cfg::PortState::ENABLED;
     }
-    HwSwitchMatcher matcher(
-        std::unordered_set<SwitchID>({SwitchID(switchId())}));
     auto switchSettings =
-        sw->getState()->getSwitchSettings()->getSwitchSettings(matcher);
+        sw->getState()->getSwitchSettings()->getSwitchSettings(matcher());
     if (switchSettings->isSwitchDrained()) {
       // Switch is drained, no looped port disable
       return cfg::PortState::ENABLED;
@@ -274,6 +276,33 @@ TYPED_TEST(PortUpdateHandlerLoopDetectionTest, createLoopPortDrained) {
         auto port = out->getPorts()->getNodeIf(this->kPortId());
         auto newPort = port->modify(&out);
         newPort->setPortDrainState(cfg::PortDrainState::DRAINED);
+        return out;
+      });
+  FabricEndpoint endpoint;
+  endpoint.isAttached() = true;
+  endpoint.switchId() = this->switchId();
+  endpoint.portId() = this->kPortId();
+  this->sw->linkConnectivityChanged(this->makeConnectivity(endpoint));
+  // Drained ports don't get disabled
+  EXPECT_EQ(this->getLoopedPortExpectedState(), cfg::PortState::ENABLED);
+  this->checkPortLedState(PortLedExternalState::CABLING_ERROR_LOOP_DETECTED);
+  this->checkPortState(this->getLoopedPortExpectedState());
+  // Reset connectivity old admin state should be retained
+  this->sw->linkConnectivityChanged(this->makeConnectivity(std::nullopt));
+  // Still enabled
+  EXPECT_EQ(this->getLoopedPortExpectedState(), cfg::PortState::ENABLED);
+  this->checkPortLedState(PortLedExternalState::NONE);
+  this->checkPortState(this->getLoopedPortExpectedState());
+}
+
+TYPED_TEST(PortUpdateHandlerLoopDetectionTest, createLoopSwitchDrained) {
+  this->sw->updateStateBlocking(
+      "Drain switch", [this](const std::shared_ptr<SwitchState>& in) {
+        auto out = in->clone();
+        auto settings =
+            out->getSwitchSettings()->getSwitchSettings(this->matcher());
+        auto newSettings = settings->modify(&out);
+        newSettings->setActualSwitchDrainState(cfg::SwitchDrainState::DRAINED);
         return out;
       });
   FabricEndpoint endpoint;
