@@ -163,10 +163,12 @@ TEST_F(PortUpdateHandlerTest, PortChanged) {
   expectPortCounterNotExist(counters, initPorts);
 }
 
+template <typename SwitchTypeT>
 class PortUpdateHandlerLoopDetectionTest : public ::testing::Test {
  public:
+  static auto constexpr switchType = SwitchTypeT::switchType;
   std::shared_ptr<SwitchState> initState() const {
-    return testStateAWithPortsUp(cfg::SwitchType::FABRIC);
+    return testStateAWithPortsUp(switchType);
   }
   void SetUp() override {
     handle = createTestHandle(initState());
@@ -177,6 +179,10 @@ class PortUpdateHandlerLoopDetectionTest : public ::testing::Test {
   }
   int switchId() const {
     return 2;
+  }
+  cfg::PortState getLoopedPortExpectedState() const {
+    return switchType == cfg::SwitchType::FABRIC ? cfg::PortState::DISABLED
+                                                 : cfg::PortState::ENABLED;
   }
   PortID kPortId() const {
     return PortID(sw->getState()->getPorts()->getAllNodes()->begin()->first);
@@ -205,13 +211,15 @@ class PortUpdateHandlerLoopDetectionTest : public ::testing::Test {
   std::unique_ptr<HwTestHandle> handle{nullptr};
 };
 
-TEST_F(PortUpdateHandlerLoopDetectionTest, createLoop) {
+TYPED_TEST_SUITE(PortUpdateHandlerLoopDetectionTest, SwitchTypeTestTypes);
+
+TYPED_TEST(PortUpdateHandlerLoopDetectionTest, createLoop) {
   FabricEndpoint endpoint;
   endpoint.isAttached() = true;
-  endpoint.switchId() = switchId();
-  endpoint.portId() = kPortId();
-  sw->linkConnectivityChanged(makeConnectivity(endpoint));
-  checkPortState(cfg::PortState::DISABLED);
+  endpoint.switchId() = this->switchId();
+  endpoint.portId() = this->kPortId();
+  this->sw->linkConnectivityChanged(this->makeConnectivity(endpoint));
+  this->checkPortState(this->getLoopedPortExpectedState());
 }
 
 } // unnamed namespace
