@@ -931,8 +931,16 @@ shared_ptr<SwitchState> testStateA(cfg::SwitchType switchType) {
     intf55->setAddresses(addrs55);
     allIntfs->addNode(intf55, matcher);
     vlan55->setInterfaceID(InterfaceID(55));
-  } else {
-    for (int idx = 1; idx <= 20; ++idx) {
+  }
+  std::optional<int> fabricPortIdxStart;
+  if (switchType == cfg::SwitchType::VOQ) {
+    fabricPortIdxStart = 21;
+  } else if (switchType == cfg::SwitchType::FABRIC) {
+    fabricPortIdxStart = 1;
+  }
+  if (fabricPortIdxStart.has_value()) {
+    for (int idx = *fabricPortIdxStart; idx <= *fabricPortIdxStart + 20;
+         ++idx) {
       registerPort(
           state,
           PortID(idx),
@@ -941,7 +949,6 @@ shared_ptr<SwitchState> testStateA(cfg::SwitchType switchType) {
           cfg::PortType::FABRIC_PORT);
     }
   }
-
   return state;
 }
 
