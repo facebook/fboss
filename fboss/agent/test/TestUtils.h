@@ -91,6 +91,9 @@ using SwitchTypeTestTypes = ::testing::Types<
     SwitchTypeT<cfg::SwitchType::VOQ>,
     SwitchTypeT<cfg::SwitchType::FABRIC>>;
 
+using DsfSwitchTypeTestTypes = ::testing::Types<
+    SwitchTypeT<cfg::SwitchType::VOQ>,
+    SwitchTypeT<cfg::SwitchType::FABRIC>>;
 /*
  * In the non unit test code state passed to apply*Config is the state
  * returned from SwSwitch init, which is always published. However this

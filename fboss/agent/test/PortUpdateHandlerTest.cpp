@@ -211,7 +211,7 @@ class PortUpdateHandlerLoopDetectionTest : public ::testing::Test {
   std::unique_ptr<HwTestHandle> handle{nullptr};
 };
 
-TYPED_TEST_SUITE(PortUpdateHandlerLoopDetectionTest, SwitchTypeTestTypes);
+TYPED_TEST_SUITE(PortUpdateHandlerLoopDetectionTest, DsfSwitchTypeTestTypes);
 
 TYPED_TEST(PortUpdateHandlerLoopDetectionTest, createLoop) {
   FabricEndpoint endpoint;
