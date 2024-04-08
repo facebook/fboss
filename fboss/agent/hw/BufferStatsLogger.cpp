@@ -11,7 +11,6 @@
 #include "fboss/agent/hw/BufferStatsLogger.h"
 
 #include <folly/logging/xlog.h>
-#include <glog/logging.h>
 
 using std::string;
 

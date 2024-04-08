@@ -84,7 +84,7 @@ void DiagCmdFilter::setCfgFile(const std::string& filterCfgFile) {
     return;
   }
   folly::splitTo<std::string>(
-      "\n",
+      '\n',
       data,
       std::inserter(fileCfgFilters_, fileCfgFilters_.begin()),
       true /*ignore empty*/);

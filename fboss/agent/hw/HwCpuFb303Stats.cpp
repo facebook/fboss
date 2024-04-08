@@ -10,7 +10,6 @@
 
 #include "fboss/agent/hw/HwCpuFb303Stats.h"
 
-#include "fboss/agent/hw/CounterUtils.h"
 #include "fboss/agent/hw/StatsConstants.h"
 
 #include <folly/logging/xlog.h>
