@@ -120,6 +120,7 @@ class AgentHwTest : public ::testing::Test {
   void setSwitchDrainState(
       const cfg::SwitchConfig& curConfig,
       cfg::SwitchDrainState drainState);
+  void applySwitchDrainState(cfg::SwitchDrainState drainState);
 
   std::map<PortID, HwPortStats> getLatestPortStats(
       const std::vector<PortID>& ports);

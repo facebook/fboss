@@ -145,6 +145,18 @@ void AgentHwTest::setSwitchDrainState(
   applyNewConfig(newCfg);
 }
 
+void AgentHwTest::applySwitchDrainState(cfg::SwitchDrainState drainState) {
+  applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+    auto out = in->clone();
+    for (const auto& [_, switchSetting] :
+         std::as_const(*out->getSwitchSettings())) {
+      auto newSwitchSettings = switchSetting->modify(&out);
+      newSwitchSettings->setActualSwitchDrainState(drainState);
+    }
+    return out;
+  });
+}
+
 cfg::SwitchConfig AgentHwTest::initialConfig(
     const AgentEnsemble& ensemble) const {
   return utility::onePortPerInterfaceConfig(
