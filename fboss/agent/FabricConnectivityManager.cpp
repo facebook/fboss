@@ -63,26 +63,6 @@ getPlatformMappingForDsfNode(const PlatformType platformType) {
   return nullptr;
 }
 
-uint32_t getRemotePortOffset(const PlatformType platformType) {
-  switch (platformType) {
-    case PlatformType::PLATFORM_MERU400BIU:
-      return 256;
-    case PlatformType::PLATFORM_MERU400BIA:
-      return 256;
-    case PlatformType::PLATFORM_MERU400BFU:
-      return 0;
-    case PlatformType::PLATFORM_MERU800BFA:
-      return 0;
-    case PlatformType::PLATFORM_MERU800BIA:
-    case PlatformType::PLATFORM_JANGA800BIC:
-      return 1024;
-
-    default:
-      return 0;
-  }
-  return 0;
-}
-
 static const HwAsic& getHwAsicForAsicType(const cfg::AsicType& asicType) {
   /*
    * hwAsic is used to invoke methods such as getMaxPorts,
