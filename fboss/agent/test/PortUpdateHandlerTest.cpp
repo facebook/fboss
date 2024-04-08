@@ -267,4 +267,29 @@ TYPED_TEST(PortUpdateHandlerLoopDetectionTest, createLoop) {
   this->checkPortState(this->getLoopedPortExpectedState());
 }
 
+TYPED_TEST(PortUpdateHandlerLoopDetectionTest, createLoopPortDrained) {
+  this->sw->updateStateBlocking(
+      "Drain port", [this](const std::shared_ptr<SwitchState>& in) {
+        auto out = in->clone();
+        auto port = out->getPorts()->getNodeIf(this->kPortId());
+        auto newPort = port->modify(&out);
+        newPort->setPortDrainState(cfg::PortDrainState::DRAINED);
+        return out;
+      });
+  FabricEndpoint endpoint;
+  endpoint.isAttached() = true;
+  endpoint.switchId() = this->switchId();
+  endpoint.portId() = this->kPortId();
+  this->sw->linkConnectivityChanged(this->makeConnectivity(endpoint));
+  // Drained ports don't get disabled
+  EXPECT_EQ(this->getLoopedPortExpectedState(), cfg::PortState::ENABLED);
+  this->checkPortLedState(PortLedExternalState::CABLING_ERROR_LOOP_DETECTED);
+  this->checkPortState(this->getLoopedPortExpectedState());
+  // Reset connectivity old admin state should be retained
+  this->sw->linkConnectivityChanged(this->makeConnectivity(std::nullopt));
+  // Still enabled
+  EXPECT_EQ(this->getLoopedPortExpectedState(), cfg::PortState::ENABLED);
+  this->checkPortLedState(PortLedExternalState::NONE);
+  this->checkPortState(this->getLoopedPortExpectedState());
+}
 } // unnamed namespace
