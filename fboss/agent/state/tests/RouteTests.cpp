@@ -13,10 +13,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/state/DeltaFunctions.h"
-#include "fboss/agent/state/Interface.h"
-#include "fboss/agent/state/InterfaceMap.h"
 
-#include "fboss/agent/state/NodeMapDelta.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/state/StateDelta.h"

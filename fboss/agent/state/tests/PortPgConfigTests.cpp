@@ -11,9 +11,7 @@
 #include "fboss/agent/EnumUtils.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
-#include "fboss/agent/state/BufferPoolConfig.h"
 #include "fboss/agent/state/Port.h"
-#include "fboss/agent/state/PortQueue.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/TestUtils.h"
 

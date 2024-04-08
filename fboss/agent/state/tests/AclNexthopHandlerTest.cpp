@@ -23,7 +23,6 @@
 
 #include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
-#include "fboss/agent/GtestDefs.h"
 
 using namespace facebook::fboss;
 using facebook::fboss::InterfaceID;

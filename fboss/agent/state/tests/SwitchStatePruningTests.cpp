@@ -11,7 +11,6 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/state/ArpTable.h"
-#include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState-defs.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"

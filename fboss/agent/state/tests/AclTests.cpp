@@ -14,12 +14,10 @@
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/AclMap.h"
-#include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/TestUtils.h"
 #include "folly/IPAddress.h"
 
-#include <folly/IPAddress.h>
 #include <folly/MacAddress.h>
 #include <gtest/gtest.h>
 
@@ -677,7 +675,7 @@ TEST(Acl, SerializeRedirectToNextHop) {
     int outIntfID = 0;
     int weight = 100;
     for (auto nhAddr : nhAddrs) {
-      if (nhAddr.isV6() and nhAddr.isLinkLocal()) {
+      if (nhAddr.isV6() && nhAddr.isLinkLocal()) {
         nhset.insert(ResolvedNextHop(nhAddr, InterfaceID(outIntfID), weight));
         ++outIntfID;
       } else {

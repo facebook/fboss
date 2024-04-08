@@ -15,7 +15,6 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/TestUtils.h"
 
-#include <boost/container/flat_map.hpp>
 #include <gtest/gtest.h>
 
 using namespace facebook::fboss;

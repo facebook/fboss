@@ -7,7 +7,6 @@
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
-#include "fboss/agent/state/LabelForwardingInformationBase.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/LabelForwardingUtils.h"

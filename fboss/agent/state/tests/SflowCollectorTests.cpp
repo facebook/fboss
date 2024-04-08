@@ -11,7 +11,6 @@
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/state/SflowCollector.h"
 #include "fboss/agent/state/SflowCollectorMap.h"
-#include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/TestUtils.h"
 
 #include <gtest/gtest.h>

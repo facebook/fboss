@@ -10,7 +10,6 @@
 #include "folly/MacAddress.h"
 
 #include <folly/IPAddress.h>
-#include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
 
 namespace facebook::fboss {
