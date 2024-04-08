@@ -589,6 +589,9 @@ TYPED_TEST(ThriftTestAllSwitchTypes, getAllEcmpDetails) {
 }
 
 TYPED_TEST(ThriftTestAllSwitchTypes, getAclTableGroup) {
+  SCOPE_EXIT {
+    FLAGS_enable_acl_table_group = false;
+  };
   FLAGS_enable_acl_table_group = true;
   ThriftHandler handler(this->sw_);
 
