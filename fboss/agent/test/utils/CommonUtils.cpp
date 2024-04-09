@@ -25,4 +25,9 @@ SwitchID getFirstSwitchId(SwSwitch* sw) {
 const HwAsic* getFirstAsic(SwSwitch* sw) {
   return sw->getHwAsicTable()->getHwAsic(getFirstSwitchId(sw));
 }
+
+const HwAsic* getAsic(const SwSwitch& sw, PortID port) {
+  auto switchId = sw.getScopeResolver()->scope(port).switchId();
+  return sw.getHwAsicTable()->getHwAsic(switchId);
+}
 } // namespace facebook::fboss::utility

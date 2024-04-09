@@ -19,5 +19,6 @@ class SwSwitch;
 namespace utility {
 SwitchID getFirstSwitchId(SwSwitch* sw);
 const HwAsic* getFirstAsic(SwSwitch* sw);
+const HwAsic* getAsic(const SwSwitch& sw, PortID port);
 } // namespace utility
 } // namespace facebook::fboss
