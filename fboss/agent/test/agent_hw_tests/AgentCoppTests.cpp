@@ -63,9 +63,9 @@ namespace facebook::fboss {
 
 template <typename TestType>
 class AgentCoppTest : public AgentHwTest {
-  void SetUp() override {
+  void setCmdLineFlagOverrides() const override {
     FLAGS_sai_user_defined_trap = true;
-    AgentHwTest::SetUp();
+    AgentHwTest::setCmdLineFlagOverrides();
   }
 
   std::vector<production_features::ProductionFeature>
