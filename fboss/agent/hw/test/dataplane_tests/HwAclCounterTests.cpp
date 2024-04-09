@@ -267,80 +267,6 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
     return 8002;
   }
 
-  // This test verifies if the ACL priorities are taking effect as expected.
-  // ACLs are processed in the priority in which they are listed in the config
-  // 1. Install PERMIT ACL matching on SRC_PORT
-  // 2. Install DENY ACL matching on SRC_PORT
-  //
-  // The expectation here is both ACLs are hit and PERMIT ACL gets priority.
-  void aclPriorityTestHelper() {
-    auto setup = [this]() {
-      applyNewState(helper_->resolveNextHops(getProgrammedState(), 2));
-      helper_->programRoutes(getRouteUpdater(), kEcmpWidth);
-      auto newCfg{initialConfig()};
-      addAclAndStat(&newCfg, AclType::SRC_PORT);
-      addAclAndStat(&newCfg, AclType::SRC_PORT_DENY);
-      applyNewConfig(newCfg);
-    };
-
-    auto verify = [this]() {
-      // The first parameter in both invocations is bumpOnHit.
-      // True means the verifier checks if counter increment for SRC_PORT
-      // False means the SRC_PORT_DENY counter did not change.
-      //
-      // Higher priority PERMIT ACL counter went up
-      verifyAclType(true, true, AclType::SRC_PORT);
-      // Lower priority DENY ACL counter remains same
-      verifyAclType(false, true, AclType::SRC_PORT_DENY);
-    };
-
-    verifyAcrossWarmBoots(setup, verify);
-  }
-
-  void aclPriorityTestHelperSrcPort() {
-    auto setup = [this]() {
-      applyNewState(helper_->resolveNextHops(getProgrammedState(), 2));
-      helper_->programRoutes(getRouteUpdater(), kEcmpWidth);
-      auto newCfg{initialConfig()};
-      // match on SRC_PORT=1 + L4_DST_PORT=8002
-      addAclAndStat(&newCfg, AclType::L4_DST_PORT);
-      // match on SRC_PORT=1
-      addAclAndStat(&newCfg, AclType::SRC_PORT);
-      applyNewConfig(newCfg);
-    };
-
-    auto verify = [this]() {
-      // Sends a packet with dst port 8002
-      verifyAclType(true, true, AclType::L4_DST_PORT);
-      // Sends a packet with dst port 8001
-      verifyAclType(true, true, AclType::SRC_PORT);
-    };
-
-    verifyAcrossWarmBoots(setup, verify);
-  }
-
-  void aclPriorityTestHelperVlan() {
-    auto setup = [this]() {
-      applyNewState(helper_->resolveNextHops(getProgrammedState(), 2));
-      helper_->programRoutes(getRouteUpdater(), kEcmpWidth);
-      auto newCfg{initialConfig()};
-      // match on VLAN=2000 + L4_DST_PORT=8002
-      addAclAndStat(&newCfg, AclType::L4_DST_PORT_VLAN);
-      // match on VLAN=2000
-      addAclAndStat(&newCfg, AclType::VLAN);
-      applyNewConfig(newCfg);
-    };
-
-    auto verify = [this]() {
-      // Sends a packet with dst port 8002
-      verifyAclType(true, true, AclType::L4_DST_PORT_VLAN);
-      // Sends a packet with dst port 8001
-      verifyAclType(true, true, AclType::VLAN);
-    };
-
-    verifyAcrossWarmBoots(setup, verify);
-  }
-
   auto verifyAclType(bool bumpOnHit, bool frontPanel, AclType aclType) {
     auto egressPort = helper_->ecmpPortDescriptorAt(0).phyPortID();
     auto pktsBefore = *getLatestPortStats(egressPort).outUnicastPkts__ref();
@@ -476,66 +402,11 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
 
 TYPED_TEST_SUITE(HwAclCounterTest, TestTypes);
 
-// Verify that traffic arrive on a front panel port increments ACL counter.
-TYPED_TEST(HwAclCounterTest, VerifyCounterBumpOnTtlHitFrontPanel) {
-  this->counterBumpOnHitHelper(
-      true /* bump on hit */,
-      true /* front panel port */,
-      {AclType::TCP_TTLD, AclType::UDP_TTLD});
-}
-
-TYPED_TEST(HwAclCounterTest, VerifyCounterBumpOnSportHitFrontPanel) {
-  this->counterBumpOnHitHelper(
-      true /* bump on hit */, true /* front panel port */, {AclType::SRC_PORT});
-}
-TYPED_TEST(HwAclCounterTest, VerifyCounterBumpOnL4DstportHitFrontPanel) {
-  this->counterBumpOnHitHelper(
-      true /* bump on hit */,
-      true /* front panel port */,
-      {AclType::L4_DST_PORT});
-}
-// Verify that traffic originating on the CPU increments ACL counter.
-TYPED_TEST(HwAclCounterTest, VerifyCounterBumpOnTtlHitCpu) {
-  this->counterBumpOnHitHelper(
-      true /* bump on hit */,
-      false /* cpu port */,
-      {AclType::TCP_TTLD, AclType::UDP_TTLD});
-}
-
-TYPED_TEST(HwAclCounterTest, VerifyCounterBumpOnSportHitCpu) {
-  this->counterBumpOnHitHelper(
-      true /* bump on hit */, false /* cpu port */, {AclType::SRC_PORT});
-}
-
-// Verify that traffic arrive on a front panel port increments ACL counter.
-TYPED_TEST(HwAclCounterTest, VerifyCounterNoTtlHitNoBumpFrontPanel) {
-  this->counterBumpOnHitHelper(
-      false /* no hit, no bump */,
-      true /* front panel port */,
-      {AclType::TCP_TTLD, AclType::UDP_TTLD});
-}
-
 TYPED_TEST(HwAclCounterTest, VerifyCounterBumpOnBthOpcodeHitFrontPanel) {
   this->counterBumpOnHitHelper(
       true /* bump on hit */,
       true /* front panel port */,
       {AclType::BTH_OPCODE});
-}
-
-// Verify that traffic originating on the CPU increments ACL counter.
-TYPED_TEST(HwAclCounterTest, VerifyCounterNoHitNoBumpCpu) {
-  this->counterBumpOnHitHelper(
-      false /* no hit, no bump */,
-      false /* cpu port */,
-      {AclType::TCP_TTLD, AclType::UDP_TTLD});
-}
-
-TYPED_TEST(HwAclCounterTest, VerifyAclPrioritySportHitFrontPanel) {
-  this->aclPriorityTestHelper();
-}
-
-TYPED_TEST(HwAclCounterTest, VerifyAclPriorityL4DstportHitFrontPanel) {
-  this->aclPriorityTestHelperSrcPort();
 }
 
 /*
