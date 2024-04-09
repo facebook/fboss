@@ -1,0 +1,615 @@
+{
+  "sensorMapList": {
+    "FCB_B_CARD": {
+      "FCB_B_U1_TEMP": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/FCB_B_TSENSOR1/temp1_input",
+        "type": 3
+      },
+      "FCB_B_U5_TEMP": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/FCB_B_TSENSOR2/temp1_input",
+        "type": 3
+      },
+      "FCB_T_U1_TEMP": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/FCB_T_TSENSOR1/temp1_input",
+        "type": 3
+      },
+      "FCB_T_U5_TEMP": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/FCB_T_TSENSOR2/temp1_input",
+        "type": 3
+      }
+    },
+    "MCB_CARD": {
+      "FAN 1_F_RPM": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/MCB_FAN_CPLD/fan1_input",
+        "type": 4
+      },
+      "FAN 1_R_RPM": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/MCB_FAN_CPLD/fan2_input",
+        "type": 4
+      },
+      "FAN 3_F_RPM": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/MCB_FAN_CPLD/fan3_input",
+        "type": 4
+      },
+      "FAN 3_R_RPM": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/MCB_FAN_CPLD/fan4_input",
+        "type": 4
+      },
+      "FAN 5_F_RPM": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/MCB_FAN_CPLD/fan5_input",
+        "type": 4
+      },
+      "FAN 5_R_RPM": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/MCB_FAN_CPLD/fan6_input",
+        "type": 4
+      },
+      "FAN 7_F_RPM": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/MCB_FAN_CPLD/fan7_input",
+        "type": 4
+      },
+      "FAN 7_R_RPM": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/MCB_FAN_CPLD/fan8_input",
+        "type": 4
+      },
+      "FAN 2_F_RPM": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/MCB_FAN_CPLD/fan9_input",
+        "type": 4
+      },
+      "FAN 2_R_RPM": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/MCB_FAN_CPLD/fan10_input",
+        "type": 4
+      },
+      "FAN 4_F_RPM": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/MCB_FAN_CPLD/fan11_input",
+        "type": 4
+      },
+      "FAN 4_R_RPM": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/MCB_FAN_CPLD/fan12_input",
+        "type": 4
+      },
+      "FAN 6_F_RPM": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/MCB_FAN_CPLD/fan13_input",
+        "type": 4
+      },
+      "FAN 6_R_RPM": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/MCB_FAN_CPLD/fan14_input",
+        "type": 4
+      },
+      "FAN 8_F_RPM": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/MCB_FAN_CPLD/fan15_input",
+        "type": 4
+      },
+      "FAN 8_R_RPM": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/MCB_FAN_CPLD/fan16_input",
+        "type": 4
+      },
+      "MCB_U35_TEMP": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/MCB_TSENSOR/temp1_input",
+        "type": 4
+      },
+      "XP1R0V_IOB_VOLTAGE": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/MCB_VOLTAGE_MONITOR/in0_input",
+        "type": 1
+      },
+      "XP3R3V_MCB_VOLTAGE": {
+        "compute": "(8/5)*@/1000",
+        "path": "/run/devmap/sensors/MCB_VOLTAGE_MONITOR/in1_input",
+        "type": 1
+      },
+      "XP3R3V_FCB_VOLTAGE": {
+        "compute": "(8/5)*@/1000",
+        "path": "/run/devmap/sensors/MCB_VOLTAGE_MONITOR/in2_input",
+        "type": 1
+      },
+      "XP1R8V_IOB_VOLTAGE": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/MCB_VOLTAGE_MONITOR/in3_input",
+        "type": 1
+      },
+      "XP1R2V_IOB_VOLTAGE": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/MCB_VOLTAGE_MONITOR/in4_input",
+        "type": 1
+      },
+      "XP3R3V_IOB_VOLTAGE": {
+        "compute": "(8/5)*@/1000",
+        "path": "/run/devmap/sensors/MCB_VOLTAGE_MONITOR/in5_input",
+        "type": 1
+      }
+    },
+    "PDB_L_CARD": {
+      "PDB_L_U1_TEMP": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/PDB-L-TSENSOR/temp1_input",
+        "type": 3
+      }
+    },
+    "PDB_R_CARD": {
+      "PDB_R_U1_TEMP": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/PDB-R-TSENSOR/temp1_input",
+        "type": 3
+      }
+    },
+    "PSU1_CARD": {
+      "PSU1_L_VIN": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/PSU1_PMBUS/in1_input",
+        "type": 1
+      },
+      "PSU1_L_12V_MAIN_VOUT": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/PSU1_PMBUS/in2_input",
+        "type": 1
+      },
+      "PSU1_L_12V_STBY_VOUT": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/PSU1_PMBUS/in3_input",
+        "type": 1
+      },
+      "PSU1_L_IIN": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/PSU1_PMBUS/curr1_input",
+        "type": 2
+      },
+      "PSU1_L_12V_MAIN_IOUT": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/PSU1_PMBUS/curr2_input",
+        "type": 2
+      },
+      "PSU1_L_12V_STBY_IOUT": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/PSU1_PMBUS/curr3_input",
+        "type": 2
+      },
+      "PSU1_L_PIN": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/PSU1_PMBUS/power1_input",
+        "type": 0
+      },
+      "PSU1_L_12V_MAIN_POUT": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/PSU1_PMBUS/power2_input",
+        "type": 0
+      },
+      "PSU1_L_12V_STBY_POUT": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/PSU1_PMBUS/power3_input",
+        "type": 0
+      },
+      "PSU1_fan_F_RPM": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/PSU1_PMBUS/fan1_input",
+        "type": 4
+      },
+      "PSU1_fan_R_RPM": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/PSU1_PMBUS/fan2_input",
+        "type": 4
+      },
+      "PSU1_TEMP_1": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/PSU1_PMBUS/temp1_input",
+        "type": 3
+      },
+      "PSU1_TEMP_2": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/PSU1_PMBUS/temp2_input",
+        "type": 3
+      },
+      "PSU1_TEMP_3": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/PSU1_PMBUS/temp3_input",
+        "type": 3
+      }
+    },
+    "PSU2_CARD": {
+      "PSU2_L_VIN": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/PSU2_PMBUS/in1_input",
+        "type": 1
+      },
+      "PSU2_L_12V_MAIN_VOUT": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/PSU2_PMBUS/in2_input",
+        "type": 1
+      },
+      "PSU2_L_12V_STBY_VOUT": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/PSU2_PMBUS/in3_input",
+        "type": 1
+      },
+      "PSU2_L_IIN": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/PSU2_PMBUS/curr1_input",
+        "type": 2
+      },
+      "PSU2_L_12V_MAIN_IOUT": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/PSU2_PMBUS/curr2_input",
+        "type": 2
+      },
+      "PSU2_L_12V_STBY_IOUT": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/PSU2_PMBUS/curr3_input",
+        "type": 2
+      },
+      "PSU2_L_PIN": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/PSU2_PMBUS/power1_input",
+        "type": 0
+      },
+      "PSU2_L_12V_MAIN_POUT": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/PSU2_PMBUS/power2_input",
+        "type": 0
+      },
+      "PSU2_L_12V_STBY_POUT": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/PSU2_PMBUS/power3_input",
+        "type": 0
+      },
+      "PSU2_fan_F_RPM": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/PSU2_PMBUS/fan1_input",
+        "type": 4
+      },
+      "PSU2_fan_R_RPM": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/PSU2_PMBUS/fan2_input",
+        "type": 4
+      },
+      "PSU2_TEMP_1": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/PSU2_PMBUS/temp1_input",
+        "type": 3
+      },
+      "PSU2_TEMP_2": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/PSU2_PMBUS/temp2_input",
+        "type": 3
+      },
+      "PSU2_TEMP_3": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/PSU2_PMBUS/temp3_input",
+        "type": 3
+      }
+    },
+    "SCM_CARD": {
+      "SCM_12V_HSC_IIN": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/SCM_SENSOR/curr1_input",
+        "type": 2
+      },
+      "SCM_12V_HSC_VIN": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/SCM_SENSOR/in1_input",
+        "type": 1
+      },
+      "SCM_12V_HSC_PIN": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/SCM_SENSOR/power1_input",
+        "type": 0
+      },
+      "SCM_12V_HSC_TEMP": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/SCM_SENSOR/temp1_input",
+        "type": 3
+      },
+      "SCM_INLET_U36_TEMP": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/SCM_TSENSOR1/temp1_input",
+        "type": 3
+      },
+      "SCM_OUTLET_U37_TEMP": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/SCM_TSENSOR2/temp1_input",
+        "type": 3
+      },
+      "XP1R5V_OOB_VOLTAGE": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/SCM_VOLTAGE_MONITOR/in0_input",
+        "type": 1
+      },
+      "XP3R3V_BMC_VOLTAGE": {
+        "compute": "(8/5)*@/1000",
+        "path": "/run/devmap/sensors/SCM_VOLTAGE_MONITOR/in1_input",
+        "type": 1
+      },
+      "XP3R3V_SSD_VOLTAGE": {
+        "compute": "(8/5)*@/1000",
+        "path": "/run/devmap/sensors/SCM_VOLTAGE_MONITOR/in2_input",
+        "type": 1
+      },
+      "XP2R5V_OOB_VOLTAGE": {
+        "compute": "2*@/1000",
+        "path": "/run/devmap/sensors/SCM_VOLTAGE_MONITOR/in3_input",
+        "type": 1
+      },
+      "XP1R1V_OOB_VOLTAGE": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/SCM_VOLTAGE_MONITOR/in4_input",
+        "type": 1
+      },
+      "XP3R3V_I210_VOLTAGE": {
+        "compute": "(8/5)*@/1000",
+        "path": "/run/devmap/sensors/SCM_VOLTAGE_MONITOR/in5_input",
+        "type": 1
+      },
+      "XP12R0V_COME_VOLTAGE": {
+        "compute": "(100/9)*@/1000",
+        "path": "/run/devmap/sensors/SCM_VOLTAGE_MONITOR/in6_input",
+        "type": 1
+      },
+      "XP5R0V_COME_VOLTAGE": {
+        "compute": "(8/5)*@/1000",
+        "path": "/run/devmap/sensors/SCM_VOLTAGE_MONITOR/in7_input",
+        "type": 1
+      }
+    },
+    "SMB_CARD": {
+      "SMB_LEFT_U51_TEMP": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/SMB_TSENSOR1/temp1_input",
+        "type": 3
+      },
+      "SMB_OUTLET_U57_TEMP": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/SMB_TSENSOR2/temp1_input",
+        "type": 3
+      },
+      "SMB_BEHIND_TH5_U39_TEMP": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/SMB_TSENSOR3/temp1_input",
+        "type": 3
+      },
+      "SMB_RIGHT_U182_TEMP": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/SMB_TSENSOR4/temp1_input",
+        "type": 3
+      },
+      "3V3_L_U8_TEMP": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/SMB_TSENSOR5/temp1_input",
+        "type": 3
+      },
+      "3V3_R_U8_TEMP": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/SMB_TSENSOR6/temp1_input",
+        "type": 3
+      },
+      "XP3R3V_CLK": {
+        "compute": "(8/5)*@/1000",
+        "path": "/run/devmap/sensors/SMB_VOLTAGE_MONITOR2/in0_input",
+        "type": 1
+      },
+      "XP0R9V_TH5_TSC_PLL_0": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/SMB_VOLTAGE_MONITOR2/in1_input",
+        "type": 1
+      },
+      "XP1R8V_TH5": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/SMB_VOLTAGE_MONITOR2/in2_input",
+        "type": 1
+      },
+      "XP0R9V_TH5_TSC_PLL_1": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/SMB_VOLTAGE_MONITOR2/in3_input",
+        "type": 1
+      },
+      "XP1R5V_TH5_VDDH": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/SMB_VOLTAGE_MONITOR2/in4_input",
+        "type": 1
+      },
+      "XP1R1V_DOM_1": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/SMB_VOLTAGE_MONITOR2/in5_input",
+        "type": 1
+      },
+      "XP2R5V_DOM_1": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/SMB_VOLTAGE_MONITOR2/in6_input",
+        "type": 1
+      },
+      "XP3R3V": {
+        "compute": "(8/5)*@/1000",
+        "path": "/run/devmap/sensors/SMB_VOLTAGE_MONITOR2/in7_input",
+        "type": 1
+      },
+      "XP1R8V_CLK": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/SMB_VOLTAGE_MONITOR3/in0_input",
+        "type": 1
+      },
+      "XP1R1V_DOM_2": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/SMB_VOLTAGE_MONITOR3/in1_input",
+        "type": 1
+      },
+      "XP0R9V_TH5_TSC_PLL_2": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/SMB_VOLTAGE_MONITOR3/in2_input",
+        "type": 1
+      },
+      "XP2R5V_DOM_2": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/SMB_VOLTAGE_MONITOR3/in3_input",
+        "type": 1
+      },
+      "XP0R8V_TH5_VDDA": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/SMB_VOLTAGE_MONITOR3/in4_input",
+        "type": 1
+      },
+      "XP1R5V_TH5_ANLG": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/SMB_VOLTAGE_MONITOR3/in5_input",
+        "type": 1
+      },
+      "XP1R2V_TH5": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/SMB_VOLTAGE_MONITOR3/in6_input",
+        "type": 1
+      },
+      "XP0R9V_TH5_TSC_PLL_3": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/SMB_VOLTAGE_MONITOR3/in7_input",
+        "type": 1
+      },
+      "SMB_VDDC_VRM_IOUT": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/SMB_VRM1/curr1_input",
+        "type": 2
+      },
+      "SMB_VDDC_VRM_VIN": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/SMB_VRM1/in1_input",
+        "type": 1
+      },
+      "SMB_VDDC_VRM_VOUT": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/SMB_VRM1/in2_input",
+        "type": 1
+      },
+      "SMB_VDDC_VRM_PIN": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/SMB_VRM1/power1_input",
+        "type": 0
+      },
+      "SMB_VDDC_VRM_POUT": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/SMB_VRM1/power2_input",
+        "type": 0
+      },
+      "SMB_VDDC_VRM1_TEMP": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/SMB_VRM1/temp1_input",
+        "type": 3
+      },
+      "SMB_0V75_0V9_R_VRM1_IIN": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/SMB_VRM2/curr1_input",
+        "type": 2
+      },
+      "SMB_0V9_R_VRM1_IOUT": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/SMB_VRM2/curr2_input",
+        "type": 2
+      },
+      "SMB_0V75_R_VRM1_IOUT": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/SMB_VRM2/curr6_input",
+        "type": 2
+      },
+      "SMB_0V75_0V9_R_VRM1_VIN": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/SMB_VRM2/in1_input",
+        "type": 1
+      },
+      "SMB_0V9_R_VRM1_VOUT": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/SMB_VRM2/in2_input",
+        "type": 1
+      },
+      "SMB_0V75_R_VRM1_VOUT": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/SMB_VRM2/in3_input",
+        "type": 1
+      },
+      "SMB_0V75_0V9_R_VRM1_PIN": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/SMB_VRM2/power1_input",
+        "type": 0
+      },
+      "SMB_0V9_R_VRM1_POUT": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/SMB_VRM2/power2_input",
+        "type": 0
+      },
+      "SMB_0V75_R_VRM1_POUT": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/SMB_VRM2/power3_input",
+        "type": 0
+      },
+      "SMB_0V75_0V9_R_VRM1_TEMP": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/SMB_VRM2/temp1_input",
+        "type": 3
+      },
+      "SMB_0V75_0V9_L_VRM0_IIN": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/SMB_VRM3/curr1_input",
+        "type": 2
+      },
+      "SMB_0V9_L_VRM0_IOUT": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/SMB_VRM3/curr2_input",
+        "type": 2
+      },
+      "SMB_0V75_L_VRM0_IOUT": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/SMB_VRM3/curr6_input",
+        "type": 2
+      },
+      "SMB_0V75_0V9_L_VRM0_VIN": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/SMB_VRM3/in1_input",
+        "type": 1
+      },
+      "SMB_0V9_L_VRM0_VOUT": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/SMB_VRM3/in2_input",
+        "type": 1
+      },
+      "SMB_0V75_L_VRM0_VOUT": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/SMB_VRM3/in3_input",
+        "type": 1
+      },
+      "SMB_0V75_0V9_L_VRM0_PIN": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/SMB_VRM3/power1_input",
+        "type": 0
+      },
+      "SMB_0V9_L_VRM0_POUT": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/SMB_VRM3/power2_input",
+        "type": 0
+      },
+      "SMB_0V75_L_VRM0_POUT": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/SMB_VRM3/power3_input",
+        "type": 0
+      },
+      "SMB_0V75_0V9_L_VRM0_TEMP": {
+        "compute": "@/1000",
+        "path": "/run/devmap/sensors/SMB_VRM3/temp1_input",
+        "type": 3
+      }
+    }
+  }
+}
