@@ -3154,6 +3154,7 @@ void ThriftHandler::getMultiSwitchRunState(MultiSwitchRunState& runState) {
   runState.swSwitchRunState() = sw_->getSwitchRunState();
   runState.hwIndexToRunState() =
       sw_->getHwSwitchHandler()->getHwSwitchRunStates();
+  runState.multiSwitchEnabled() = sw_->isRunModeMultiSwitch();
 }
 
 void ThriftHandler::getAllEcmpDetails(std::vector<EcmpDetails>& ecmpDetails) {

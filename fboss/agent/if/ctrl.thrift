@@ -734,6 +734,7 @@ struct MultiSwitchRunState {
   1: SwitchRunState swSwitchRunState;
   // SwitchIndex to SwitchRunState
   2: map<i32, SwitchRunState> hwIndexToRunState;
+  3: bool multiSwitchEnabled;
 }
 
 struct EcmpDetails {
