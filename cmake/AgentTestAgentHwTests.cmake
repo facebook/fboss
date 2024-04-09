@@ -7,6 +7,7 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentCoppTests.cpp
   fboss/agent/test/agent_hw_tests/AgentDscpMarkingTests.cpp
   fboss/agent/test/agent_hw_tests/AgentDscpQueueMappingTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentDeepPacketInspectionTests.cpp
   fboss/agent/test/agent_hw_tests/AgentEmptyTests.cpp
   fboss/agent/test/agent_hw_tests/AgentEgressForwardingDiscardCounterTests.cpp
   fboss/agent/test/agent_hw_tests/AgentAclInDiscardCounterTests.cpp
@@ -31,7 +32,9 @@ target_link_libraries(agent_hw_test_src
   dscp_marking_utils
   pkt_test_utils
   packet
+  packet_snooper
   queue_per_host_test_utils
+  trap_packet_utils
   core
   hw_switch_fb303_stats
   config_factory
