@@ -574,7 +574,7 @@ class PhyToTransceiverSystemPrbsTest : public PrbsTest {
   }
 };
 
-template <MediaInterfaceCode Media, prbs::PrbsPolynomial Polynomial>
+template <prbs::PrbsPolynomial Polynomial>
 class AsicToAsicPrbsTest : public PrbsTest {
  protected:
   std::vector<TestPort> getPortsToTest() override {
@@ -584,9 +584,7 @@ class AsicToAsicPrbsTest : public PrbsTest {
       auto portName1 = this->getPortName(port1);
       auto portName2 = this->getPortName(port2);
 
-      if (!this->checkValidMedia(port1, Media) ||
-          !this->checkValidMedia(port2, Media) ||
-          !this->checkPrbsSupported(
+      if (!this->checkPrbsSupported(
               portName1, phy::PortComponent::ASIC, Polynomial) ||
           !this->checkPrbsSupported(
               portName2, phy::PortComponent::ASIC, Polynomial)) {
@@ -617,6 +615,9 @@ class AsicToAsicPrbsTest : public PrbsTest {
       PRBS_TEST_NAME(COMPONENT_A, COMPONENT_Z, POLYNOMIAL_A, POLYNOMIAL_Z), \
       BOOST_PP_CAT(_, MEDIA))
 
+#define PRBS_ASIC_TEST_NAME(COMPONENT_A, POLYNOMIAL_A) \
+  PRBS_TEST_NAME(COMPONENT_A, COMPONENT_A, POLYNOMIAL_A, POLYNOMIAL_A)
+
 #define PRBS_TRANSCEIVER_LINE_TRANSCEIVER_LINE_TEST(MEDIA, POLYNOMIAL)        \
   struct PRBS_TRANSCEIVER_TEST_NAME(                                          \
       MEDIA, TRANSCEIVER_LINE, TRANSCEIVER_LINE, POLYNOMIAL, POLYNOMIAL)      \
@@ -646,15 +647,11 @@ class AsicToAsicPrbsTest : public PrbsTest {
     runTest();                                                              \
   }
 
-#define PRBS_ASIC_ASIC_TEST(MEDIA, POLYNOMIAL)                                 \
-  struct PRBS_TRANSCEIVER_TEST_NAME(MEDIA, ASIC, ASIC, POLYNOMIAL, POLYNOMIAL) \
-      : public AsicToAsicPrbsTest<                                             \
-            MediaInterfaceCode::MEDIA,                                         \
-            prbs::PrbsPolynomial::POLYNOMIAL> {};                              \
-  TEST_F(                                                                      \
-      PRBS_TRANSCEIVER_TEST_NAME(MEDIA, ASIC, ASIC, POLYNOMIAL, POLYNOMIAL),   \
-      prbsSanity) {                                                            \
-    runTest(true);                                                             \
+#define PRBS_ASIC_ASIC_TEST(POLYNOMIAL)                                 \
+  struct PRBS_ASIC_TEST_NAME(ASIC, POLYNOMIAL)                          \
+      : public AsicToAsicPrbsTest<prbs::PrbsPolynomial::POLYNOMIAL> {}; \
+  TEST_F(PRBS_ASIC_TEST_NAME(ASIC, POLYNOMIAL), prbsSanity) {           \
+    runTest(true);                                                      \
   }
 
 PRBS_TRANSCEIVER_LINE_TRANSCEIVER_LINE_TEST(FR1_100G, PRBS31);
@@ -667,6 +664,4 @@ PRBS_PHY_TRANSCEIVER_SYSTEM_TEST(FR4_200G, PRBS31, ASIC, PRBS31Q);
 
 PRBS_PHY_TRANSCEIVER_SYSTEM_TEST(FR4_400G, PRBS31, ASIC, PRBS31Q);
 
-PRBS_ASIC_ASIC_TEST(DR4_400G, PRBS31);
-
-PRBS_ASIC_ASIC_TEST(FR8_800G, PRBS31);
+PRBS_ASIC_ASIC_TEST(PRBS31);
