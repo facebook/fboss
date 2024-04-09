@@ -228,6 +228,21 @@ target_link_libraries(hw_teflow_stats_collection_speed
   Folly::follybenchmark
 )
 
+add_library(hw_flowlet_stats_collection_speed
+  fboss/agent/hw/benchmarks/HwFlowletStatsCollectionBenchmark.cpp
+)
+
+target_link_libraries(hw_flowlet_stats_collection_speed
+  config_factory
+  hw_packet_utils
+  ecmp_helper
+  load_balancer_utils
+  mono_agent_ensemble
+  mono_agent_benchmarks
+  Folly::folly
+  Folly::follybenchmark
+)
+
 add_library(hw_ecmp_shrink_speed
   fboss/agent/hw/benchmarks/HwEcmpShrinkSpeedBenchmark.cpp
 )
