@@ -1626,7 +1626,40 @@ std::vector<phy::PrbsLaneStats> SaiPortManager::getPortAsicPrbsStats(
     return prbsStats;
   }
 #if SAI_API_VERSION >= SAI_VERSION(1, 8, 1)
+  auto portAsicPrbsStatsItr = portAsicPrbsStats_.find(portId);
+  if (portAsicPrbsStatsItr == portAsicPrbsStats_.end()) {
+    throw FbossError(
+        "Asic prbs lane error map not initialized for port ", portId);
+  }
+  auto& prbsStatsTable = portAsicPrbsStatsItr->second;
+  for (const auto& prbsStatsEntry : prbsStatsTable) {
+    prbsStats.push_back(prbsStatsEntry.getPrbsStats());
+  }
+#endif
+  return prbsStats;
+}
+
+void SaiPortManager::clearPortAsicPrbsStats(PortID portId) {
+  auto portAsicPrbsStatsItr = portAsicPrbsStats_.find(portId);
+  if (portAsicPrbsStatsItr == portAsicPrbsStats_.end()) {
+    throw FbossError(
+        "Asic prbs lane error map not initialized for port ", portId);
+  }
+  auto& prbsStatsTable = portAsicPrbsStatsItr->second;
+  auto& prbsStatsEntry = prbsStatsTable.front();
+  prbsStatsEntry.clearPrbsStats();
+}
+
+void SaiPortManager::updatePrbsStats(PortID portId) {
+  if (!platform_->getAsic()->isSupported(HwAsic::Feature::SAI_PRBS)) {
+    return;
+  }
+#if SAI_API_VERSION >= SAI_VERSION(1, 8, 1)
   auto* handle = getPortHandleImpl(PortID(portId));
+  auto prbsConfig = GET_OPT_ATTR(Port, PrbsConfig, handle->port->attributes());
+  if (prbsConfig == SAI_PORT_PRBS_CONFIG_DISABLE) {
+    return;
+  }
   auto prbsRxState = SaiApiTable::getInstance()->portApi().getAttribute(
       handle->port->adapterKey(), SaiPortTraits::Attributes::PrbsRxState{});
   auto portAsicPrbsStatsItr = portAsicPrbsStats_.find(portId);
@@ -1652,20 +1685,7 @@ std::vector<phy::PrbsLaneStats> SaiPortManager::getPortAsicPrbsStats(
       prbsStatsEntry.handleLossOfLock();
       break;
   }
-  prbsStats.push_back(prbsStatsEntry.getPrbsStats());
 #endif
-  return prbsStats;
-}
-
-void SaiPortManager::clearPortAsicPrbsStats(PortID portId) {
-  auto portAsicPrbsStatsItr = portAsicPrbsStats_.find(portId);
-  if (portAsicPrbsStatsItr == portAsicPrbsStats_.end()) {
-    throw FbossError(
-        "Asic prbs lane error map not initialized for port ", portId);
-  }
-  auto& prbsStatsTable = portAsicPrbsStatsItr->second;
-  auto& prbsStatsEntry = prbsStatsTable.front();
-  prbsStatsEntry.clearPrbsStats();
 }
 
 void SaiPortManager::updateStats(PortID portId, bool updateWatermarks) {
@@ -1760,6 +1780,7 @@ void SaiPortManager::updateStats(PortID portId, bool updateWatermarks) {
   managerTable_->bufferManager().updateIngressPriorityGroupStats(
       portId, *curPortStats.portName_(), updateWatermarks);
   portStats_[portId]->updateStats(curPortStats, now);
+  updatePrbsStats(portId);
 }
 
 const std::vector<sai_stat_id_t>& SaiPortManager::supportedStats(PortID port) {
