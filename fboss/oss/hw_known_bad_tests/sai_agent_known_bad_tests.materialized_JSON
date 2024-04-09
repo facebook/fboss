@@ -1052,6 +1052,9 @@
           "test_name_regex": "AgentQueuePerHostRouteTest/[01].VerifyHostToQueueMappingClassID$"
         },
         {
+          "test_name_regex": "AgentDeepPacketInspectionTest.*$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -1121,6 +1124,9 @@
         },
         {
           "test_name_regex": "AgentQueuePerHostRouteTest/[01].VerifyHostToQueueMappingClassID$"
+        },
+        {
+          "test_name_regex": "AgentDeepPacketInspectionTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
