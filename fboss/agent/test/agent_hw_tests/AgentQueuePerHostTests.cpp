@@ -46,13 +46,14 @@ class AgentQueuePerHostTest : public AgentHwTest {
       ArpTable,
       NdpTable>;
 
- protected:
-  void SetUp() override {
-    AgentHwTest::SetUp();
+  void setCmdLineFlagOverrides() const override {
+    FLAGS_intf_nbr_tables = isIntfNbrTable;
+    AgentHwTest::setCmdLineFlagOverrides();
   }
+
+ protected:
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
-    FLAGS_intf_nbr_tables = isIntfNbrTable;
     auto cfg = utility::onePortPerInterfaceConfig(
         ensemble.getSw(),
         ensemble.masterLogicalPortIds(),
