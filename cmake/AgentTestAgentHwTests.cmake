@@ -24,6 +24,7 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentVoqSwitchInterruptsTests.cpp
   fboss/agent/test/agent_hw_tests/AgentFabricSwitchTests.cpp
   fboss/agent/test/agent_hw_tests/AgentPrbsTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentAclCounterTests.cpp
 )
 
 target_link_libraries(agent_hw_test_src
