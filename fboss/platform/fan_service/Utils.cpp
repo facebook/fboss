@@ -39,6 +39,18 @@ std::unordered_set<std::string> sensorPwmCalcTypes = {
 
 namespace facebook::fboss::platform::fan_service {
 bool Utils::isValidConfig(const FanServiceConfig& config) {
+  if (config.controlInterval()) {
+    if (*config.controlInterval()->pwmUpdateInterval() <= 0) {
+      XLOG(ERR) << "Invalid pwm update interval: "
+                << *config.controlInterval()->pwmUpdateInterval();
+      return false;
+    }
+    if (*config.controlInterval()->sensorReadInterval() <= 0) {
+      XLOG(ERR) << "Invalid sensor read interval: "
+                << *config.controlInterval()->sensorReadInterval();
+      return false;
+    }
+  }
   for (const auto& sensor : *config.sensors()) {
     if (!accessMethodTypes.count(*sensor.access()->accessType())) {
       XLOG(ERR) << "Invalid access method: " << *sensor.access()->accessType();

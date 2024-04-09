@@ -85,7 +85,13 @@ struct Sensor {
   17: float ki;
 }
 
+struct ControlInterval {
+  1: i32 sensorReadInterval;
+  2: i32 pwmUpdateInterval;
+}
+
 struct FanServiceConfig {
+  1: optional ControlInterval controlInterval;
   2: string shutdownCmd;
   3: list<Zone> zones;
   4: list<Sensor> sensors;

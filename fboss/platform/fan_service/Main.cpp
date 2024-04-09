@@ -21,8 +21,8 @@ using namespace facebook::fboss::platform::fan_service;
 DEFINE_int32(thrift_port, 5972, "Port for the thrift service");
 DEFINE_int32(
     control_interval,
-    5,
-    "How often we will read sensors and change fan pwm");
+    1,
+    "How often we will check whether sensor read and pwm control is needed");
 
 FOLLY_INIT_LOGGING_CONFIG("fboss=DBG2; default:async=true");
 

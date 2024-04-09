@@ -49,10 +49,16 @@ FanServiceImpl::FanServiceImpl() {
 }
 
 unsigned int FanServiceImpl::getControlFrequency() const {
+  if (config_.controlInterval()) {
+    return *config_.controlInterval()->pwmUpdateInterval();
+  }
   return kDefaultFanControlFrequencyInSec;
 }
 
 unsigned int FanServiceImpl::getSensorFetchFrequency() const {
+  if (config_.controlInterval()) {
+    return *config_.controlInterval()->sensorReadInterval();
+  }
   return kDefaultSensorReadFrequencyInSec;
 }
 
