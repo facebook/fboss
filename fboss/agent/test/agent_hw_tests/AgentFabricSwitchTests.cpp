@@ -239,4 +239,39 @@ TEST_F(AgentFabricSwitchSelfLoopTest, portDrained) {
   };
   verifyAcrossWarmBoots(setup, verify);
 }
+
+TEST_F(AgentFabricSwitchTest, reachDiscard) {
+  auto verify = [this]() {
+    for (auto switchId : getSw()->getSwitchInfoTable().getSwitchIdsOfType(
+             cfg::SwitchType::FABRIC)) {
+      auto beforeSwitchDrops =
+          *getSw()->getHwSwitchStatsExpensive(switchId).switchDropStats();
+      std::string out;
+      getAgentEnsemble()->runDiagCommand(
+          "TX 1 destination=-1 destinationModid=-1 flags=0x8000\n",
+          out,
+          switchId);
+      WITH_RETRIES({
+        auto afterSwitchDrops =
+            *getSw()->getHwSwitchStatsExpensive(switchId).switchDropStats();
+        XLOG(INFO) << " Before reach drops: "
+                   << *beforeSwitchDrops.globalReachabilityDrops()
+                   << " After reach drops: "
+                   << *afterSwitchDrops.globalReachabilityDrops()
+                   << " Before global drops: "
+                   << *beforeSwitchDrops.globalDrops()
+                   << " After global drops: : "
+                   << *afterSwitchDrops.globalDrops();
+        EXPECT_EVENTUALLY_EQ(
+            *afterSwitchDrops.globalReachabilityDrops(),
+            *beforeSwitchDrops.globalReachabilityDrops() + 1);
+        // Global drops are in bytes
+        EXPECT_EVENTUALLY_GT(
+            *afterSwitchDrops.globalDrops(), *beforeSwitchDrops.globalDrops());
+      });
+    }
+    checkNoStatsChange();
+  };
+  verifyAcrossWarmBoots([]() {}, verify);
+}
 } // namespace facebook::fboss
