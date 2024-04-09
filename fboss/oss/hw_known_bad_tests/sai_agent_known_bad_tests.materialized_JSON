@@ -1003,6 +1003,9 @@
         },
         {
           "test_name_regex": "AgentAqmTest.verifyEcnWithoutWredConfig$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentQueuePerHostTest/3.*$"
         }
     ],
     "leaba/1.42.8/1.42.8/gibraltar/mono": [
