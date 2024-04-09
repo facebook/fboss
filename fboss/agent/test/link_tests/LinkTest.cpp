@@ -351,16 +351,32 @@ std::set<std::pair<PortID, PortID>> LinkTest::getConnectedPairs() const {
   waitForLldpOnCabledPorts();
   std::set<std::pair<PortID, PortID>> connectedPairs;
   for (auto cabledPort : cabledPorts_) {
-    auto lldpNeighbors = sw()->getLldpMgr()->getDB()->getNeighbors(cabledPort);
-    if (lldpNeighbors.size() != 1) {
-      XLOG(WARN) << "Wrong lldp neighbor size for port "
-                 << getPortName(cabledPort) << ", should be 1 but got "
-                 << lldpNeighbors.size();
-      continue;
+    PortID neighborPort;
+    auto portType = platform()->getPlatformPort(cabledPort)->getPortType();
+    if (portType == cfg::PortType::FABRIC_PORT) {
+      auto fabricReachabilityEntries =
+          platform()->getHwSwitch()->getFabricConnectivity();
+      auto fabricPortEndpoint = fabricReachabilityEntries.find(cabledPort);
+      if (fabricPortEndpoint == fabricReachabilityEntries.end() ||
+          !*fabricPortEndpoint->second.isAttached()) {
+        XLOG(DBG2) << " No fabric end points on : " << getPortName(cabledPort);
+        continue;
+      }
+      neighborPort = PortID(fabricPortEndpoint->second.get_portId()) +
+          getRemotePortOffset(platform()->getType());
+    } else {
+      auto lldpNeighbors =
+          sw()->getLldpMgr()->getDB()->getNeighbors(cabledPort);
+      if (lldpNeighbors.size() != 1) {
+        XLOG(WARN) << "Wrong lldp neighbor size for port "
+                   << getPortName(cabledPort) << ", should be 1 but got "
+                   << lldpNeighbors.size();
+        continue;
+      }
+      neighborPort = getPortID((*lldpNeighbors.begin())->getPortId());
     }
-    auto neighborPort = getPortID((*lldpNeighbors.begin())->getPortId());
-    // Insert sorted pairs, so that the same pair does not show up twice in the
-    // set
+    // Insert sorted pairs, so that the same pair does not show up twice in
+    // the set
     auto connectedPair = cabledPort < neighborPort
         ? std::make_pair(cabledPort, neighborPort)
         : std::make_pair(neighborPort, cabledPort);
