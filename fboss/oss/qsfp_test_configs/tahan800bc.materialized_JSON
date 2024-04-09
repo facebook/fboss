@@ -24,6 +24,14 @@
             }
           ]
       },
+      "FTCE4717E1PCB-FB": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "1.10"
+            }
+          ]
+      },
       "T-DQ4CNT-NF2": {
           "versions": [
             {
