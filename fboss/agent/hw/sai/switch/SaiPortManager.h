@@ -432,6 +432,7 @@ class SaiPortManager {
   bool tcToQueueMapAllowedOnPort_;
   bool globalQosMapSupported_;
   std::unordered_map<PortID, time_t> lastFecCounterReadTime_;
+  std::unordered_map<PortID, time_t> lastPrbsRxStateReadTime_;
   FRIEND_TEST(PortManagerTest, calculateRate);
   FRIEND_TEST(PortManagerTest, updateRate);
 };

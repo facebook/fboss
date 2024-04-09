@@ -55,6 +55,11 @@ DEFINE_int32(
     10,
     "Interval in seconds for reading fec counters");
 
+DEFINE_int32(
+    prbs_update_interval_s,
+    10,
+    "Interval in seconds for reading PRBS RX State");
+
 using namespace std::chrono;
 
 namespace facebook::fboss {
@@ -1780,7 +1785,13 @@ void SaiPortManager::updateStats(PortID portId, bool updateWatermarks) {
   managerTable_->bufferManager().updateIngressPriorityGroupStats(
       portId, *curPortStats.portName_(), updateWatermarks);
   portStats_[portId]->updateStats(curPortStats, now);
-  updatePrbsStats(portId);
+  auto lastPrbsRxStateReadTimeIt = lastPrbsRxStateReadTime_.find(portId);
+  if (lastPrbsRxStateReadTimeIt == lastPrbsRxStateReadTime_.end() ||
+      (now.count() - lastPrbsRxStateReadTimeIt->second) >=
+          FLAGS_prbs_update_interval_s) {
+    lastPrbsRxStateReadTime_[portId] = now.count();
+    updatePrbsStats(portId);
+  }
 }
 
 const std::vector<sai_stat_id_t>& SaiPortManager::supportedStats(PortID port) {
