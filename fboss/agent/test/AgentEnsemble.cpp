@@ -106,6 +106,10 @@ void AgentEnsemble::startAgent() {
       linkToggler_ != nullptr) {
     linkToggler_->applyInitialConfig(initialConfig_);
   }
+  // With link state toggler, initial config is applied with ports down to later
+  // bring up the ports. This causes the config to be written as loopback mode =
+  // None. Write the init config again to have the proper config.
+  applyNewConfig(initialConfig_);
 }
 
 void AgentEnsemble::writeConfig(const cfg::SwitchConfig& config) {
