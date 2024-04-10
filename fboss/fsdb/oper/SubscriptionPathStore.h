@@ -62,25 +62,13 @@ class SubscriptionPathStore {
   void debugPrint() const;
 
   uint32_t numSubs() const {
-    return numDeltaSubs_ + numPathSubs_;
+    return numSubs_;
   }
   uint32_t numChildSubs() const {
-    return numChildDeltaSubs_ + numChildPathSubs_;
+    return numChildSubs_;
   }
   uint32_t numSubsRecursive() const {
     return numSubs() + numChildSubs();
-  }
-  uint32_t numDeltaSubs() const {
-    return numDeltaSubs_;
-  }
-  uint32_t numPathSubs() const {
-    return numPathSubs_;
-  }
-  uint32_t numChildDeltaSubs() const {
-    return numChildDeltaSubs_;
-  }
-  uint32_t numChildPathSubs() const {
-    return numChildPathSubs_;
   }
   uint32_t numPathStores() const {
     auto totalPathStores = children_.size();
@@ -118,10 +106,8 @@ class SubscriptionPathStore {
   // as we add to the store, we keep a count of children subscriptions by type
   // for fast lookup this will track count of subscriptions at this path and at
   // children
-  uint32_t numDeltaSubs_{0};
-  uint32_t numPathSubs_{0};
-  uint32_t numChildDeltaSubs_{0};
-  uint32_t numChildPathSubs_{0};
+  uint32_t numSubs_{0};
+  uint32_t numChildSubs_{0};
 };
 
 } // namespace facebook::fboss::fsdb

@@ -246,42 +246,20 @@ bool SubscriptionPathStore::remove(
 void SubscriptionPathStore::incrementCounts(
     Subscription* subscription,
     bool isChild) {
-  switch (subscription->type()) {
-    case PubSubType::PATH:
-      if (isChild) {
-        ++numChildPathSubs_;
-      } else {
-        ++numPathSubs_;
-      }
-      return;
-    case PubSubType::DELTA:
-      if (isChild) {
-        ++numChildDeltaSubs_;
-      } else {
-        ++numDeltaSubs_;
-      }
-      return;
+  if (isChild) {
+    ++numChildSubs_;
+  } else {
+    ++numSubs_;
   }
 }
 
 void SubscriptionPathStore::decrementCounts(
     Subscription* subscription,
     bool isChild) {
-  switch (subscription->type()) {
-    case PubSubType::PATH:
-      if (isChild) {
-        --numChildPathSubs_;
-      } else {
-        --numPathSubs_;
-      }
-      return;
-    case PubSubType::DELTA:
-      if (isChild) {
-        --numChildDeltaSubs_;
-      } else {
-        --numDeltaSubs_;
-      }
-      return;
+  if (isChild) {
+    --numChildSubs_;
+  } else {
+    --numSubs_;
   }
 }
 
