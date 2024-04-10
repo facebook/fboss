@@ -464,6 +464,8 @@ void NeighborCacheImpl<NTable>::repopulate(std::shared_ptr<NTable> table) {
       case state::NeighborEntryType::STATIC_ENTRY:
         // We don't need to run Neighbor entry state machine for static
         // entries. Thus, skip adding to the neighbor cache
+        XLOG(DBG2) << "Skip adding static entry to neighbor cache: "
+                   << entry->getIP().str();
         break;
     }
   }
