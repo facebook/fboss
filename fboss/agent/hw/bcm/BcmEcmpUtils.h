@@ -49,4 +49,6 @@ bcm_if_t getEgressIdForRoute(
 
 bool isNativeUcmpEnabled(const BcmSwitch* hw, bcm_if_t ecmp);
 
+void setEcmpDynamicMemberUp(const BcmSwitch* hw);
+
 } // namespace facebook::fboss::utility

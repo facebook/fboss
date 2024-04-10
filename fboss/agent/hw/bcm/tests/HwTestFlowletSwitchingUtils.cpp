@@ -261,11 +261,7 @@ bool validateFlowletSwitchingDisabled(const facebook::fboss::HwSwitch* hw) {
 void setEcmpMemberStatus(const TestEnsembleIf* ensemble) {
   const auto bcmEnsemble = dynamic_cast<const BcmSwitchEnsemble*>(ensemble);
   auto bcmSwitch = bcmEnsemble->getHwSwitch();
-  auto ecmpMembers = utility::getEcmpMembersInHw(bcmSwitch);
-  for (const auto ecmpMember : ecmpMembers) {
-    bcm_l3_egress_ecmp_member_status_set(
-        bcmSwitch->getUnit(), ecmpMember, BCM_L3_ECMP_DYNAMIC_MEMBER_FORCE_UP);
-  }
+  setEcmpDynamicMemberUp(bcmSwitch);
 }
 
 int getL3EcmpDlbFailPackets(const TestEnsembleIf* ensemble) {
