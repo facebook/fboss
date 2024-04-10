@@ -158,12 +158,14 @@ void ThriftSinkClient<CallbackObjectT, EventQueueT>::startClientService() {
 
 template <typename CallbackObjectT, typename EventQueueT>
 void ThriftSinkClient<CallbackObjectT, EventQueueT>::disconnected() {
+#if FOLLY_HAS_COROUTINES
   while (!eventsQueue_.empty()) {
     eventsQueue_.try_dequeue();
     eventsDroppedCount_.add(1);
   }
   XLOG(DBG2) << "Discarded events from queue for " << clientId()
              << " on sw agent disconnect";
+#endif
 }
 
 template <typename CallbackObjectT, typename EventQueueT>
