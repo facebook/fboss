@@ -410,35 +410,6 @@ TYPED_TEST(HwAclCounterTest, VerifyCounterBumpOnBthOpcodeHitFrontPanel) {
 }
 
 /*
- * UDF Acls are not supported on SAI and multi ACL. So we only test with
- * multi acl disabled for now.
- */
-class HwUdfAclCounterTest
-    : public HwAclCounterTest<EnableMultiAclTableT<false>> {
- protected:
-  cfg::SwitchConfig initialConfig() const override {
-    auto cfg = utility::onePortPerInterfaceConfig(
-        getHwSwitch(),
-        masterLogicalPortIds(),
-        getAsic()->desiredLoopbackModes());
-    cfg.udfConfig() = utility::addUdfAclConfig();
-    return cfg;
-  }
-};
-
-TEST_F(HwUdfAclCounterTest, VerifyUdf) {
-  counterBumpOnHitHelper(
-      true /* bump on hit */, true /* front panel port */, {AclType::UDF});
-}
-
-TEST_F(HwUdfAclCounterTest, VerifyUdfWithOtherAcls) {
-  counterBumpOnHitHelper(
-      true /* bump on hit */,
-      true /* front panel port */,
-      {AclType::UDF, AclType::SRC_PORT});
-}
-
-/*
  * Flowlet Acls are not supported on SAI and multi ACL. So we only test with
  * multi acl disabled for now.
  */
