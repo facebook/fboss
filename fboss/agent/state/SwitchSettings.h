@@ -513,6 +513,24 @@ class SwitchSettings
     }
   }
 
+  std::optional<bool> getForceEcmpDynamicMemberUp() const {
+    if (auto forceEcmpDynamicMemberUp =
+            cref<switch_state_tags::forceEcmpDynamicMemberUp>()) {
+      return forceEcmpDynamicMemberUp->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setForceEcmpDynamicMemberUp(
+      std::optional<bool> forceEcmpDynamicMemberUp) {
+    if (!forceEcmpDynamicMemberUp) {
+      ref<switch_state_tags::forceEcmpDynamicMemberUp>().reset();
+    } else {
+      set<switch_state_tags::forceEcmpDynamicMemberUp>(
+          forceEcmpDynamicMemberUp.value());
+    }
+  }
+
   SwitchSettings* modify(std::shared_ptr<SwitchState>* state);
 
  private:
