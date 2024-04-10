@@ -34,7 +34,6 @@ bool YubaAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::TELEMETRY_AND_MONITORING:
     case HwAsic::Feature::REMOVE_PORTS_FOR_COLDBOOT:
     case HwAsic::Feature::DEFAULT_VLAN:
-    case HwAsic::Feature::L2_LEARNING:
     case HwAsic::Feature::CPU_PORT:
     case HwAsic::Feature::ACL_COPY_TO_CPU:
     case HwAsic::Feature::SWITCH_ATTR_INGRESS_ACL:
