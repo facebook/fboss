@@ -26,6 +26,7 @@ enum AclType {
   SRC_PORT_DENY,
   L4_DST_PORT,
   UDF,
+  BTH_OPCODE,
 };
 }
 
@@ -107,6 +108,9 @@ class AgentAclCounterTest : public AgentHwTest {
       case AclType::UDF:
         aclName = "test-udf-acl";
         break;
+      case AclType::BTH_OPCODE:
+        aclName = "test-bth-opcode-acl";
+        break;
     }
     return aclName;
   }
@@ -131,6 +135,9 @@ class AgentAclCounterTest : public AgentHwTest {
         break;
       case AclType::UDF:
         counterName = "test-udf-acl-stats";
+        break;
+      case AclType::BTH_OPCODE:
+        counterName = "test-bth-opcode-acl-stats";
         break;
     }
     return counterName;
@@ -319,12 +326,8 @@ class AgentAclCounterTest : public AgentHwTest {
     auto aclBytesCountBefore = utility::getAclInOutPackets(
         getSw(), getCounterName(aclType), true /* bytes */);
     size_t sizeOfPacketSent = 0;
-    auto sendRoce = false;
-    if (aclType == AclType::UDF) {
-      sendRoce = true;
-    }
-    // for udf or flowlet testing, send roce packets
-    if (sendRoce) {
+    // for udf or bth_opcode testing, send roce packets
+    if (aclType == AclType::UDF || aclType == AclType::BTH_OPCODE) {
       sizeOfPacketSent = sendRoceTraffic(egressPort);
     } else {
       sizeOfPacketSent = sendPacket(frontPanel, bumpOnHit, aclType);
@@ -393,6 +396,9 @@ class AgentAclCounterTest : public AgentHwTest {
         break;
       case AclType::UDF:
         acl->udfGroups() = {utility::kUdfAclRoceOpcodeGroupName};
+        acl->roceOpcode() = utility::kUdfRoceOpcode;
+        break;
+      case AclType::BTH_OPCODE:
         acl->roceOpcode() = utility::kUdfRoceOpcode;
         break;
     }
@@ -495,5 +501,25 @@ TEST_F(AgentUdfAclCounterTest, VerifyUdfWithOtherAcls) {
       true /* bump on hit */,
       true /* front panel port */,
       {AclType::UDF, AclType::SRC_PORT});
+}
+
+class AgentBthOpcodeAclCounterTest
+    : public AgentAclCounterTest<EnableMultiAclTable<false>> {
+ public:
+  std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const override {
+    return {
+        production_features::ProductionFeature::BTH_OPCODE_ACL,
+        production_features::ProductionFeature::SINGLE_ACL_TABLE};
+  }
+};
+
+TEST_F(
+    AgentBthOpcodeAclCounterTest,
+    VerifyCounterBumpOnBthOpcodeHitFrontPanel) {
+  this->counterBumpOnHitHelper(
+      true /* bump on hit */,
+      true /* front panel port */,
+      {AclType::BTH_OPCODE});
 }
 } // namespace facebook::fboss
