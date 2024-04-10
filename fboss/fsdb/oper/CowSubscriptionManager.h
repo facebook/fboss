@@ -198,8 +198,9 @@ class CowSubscriptionManager
             *this, subscription, pathNum, emptyPathSoFar);
 
         const auto& path = paths.at(pathNum);
+        thrift_cow::ExtPathVisitorOptions options(this->useIdPaths_);
         thrift_cow::RootExtendedPathVisitor::visit(
-            root, path.path()->begin(), path.path()->end(), process);
+            root, path.path()->begin(), path.path()->end(), options, process);
       }
       it = this->initialSyncNeededExtended_.erase(it);
     }

@@ -139,8 +139,9 @@ class CowStorage : public Storage<Root, CowStorage<Root, Node>> {
       OperProtocol protocol) const {
     std::vector<TaggedOperState> result;
     const auto& rootNode = *root_;
+    thrift_cow::ExtPathVisitorOptions options;
     thrift_cow::RootExtendedPathVisitor::visit(
-        rootNode, begin, end, [&](auto& path, auto& node) {
+        rootNode, begin, end, options, [&](auto& path, auto& node) {
           TaggedOperState state;
           state.path()->path() = path;
           state.state()->contents() = node.encode(protocol);

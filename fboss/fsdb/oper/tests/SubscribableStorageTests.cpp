@@ -30,6 +30,7 @@ using namespace facebook::fboss::fsdb;
 
 // TODO: templatize test cases
 using TestSubscribableStorage = NaivePeriodicSubscribableCowStorage<TestStruct>;
+using TestStructMembers = apache::thrift::reflect_struct<TestStruct>::member;
 
 dynamic createTestDynamic() {
   return dynamic::object("tx", true)(
@@ -336,8 +337,12 @@ TEST(SubscribableStorageTests, SubscribeExtendedPathSimple) {
   auto testStruct = facebook::thrift::from_dynamic<TestStruct>(
       testDyn, facebook::thrift::dynamic_format::JSON_1);
   auto storage = TestSubscribableStorage(testStruct);
+  storage.setConvertToIDPaths(true);
 
-  auto path = ext_path_builder::raw("mapOfStringToI32").regex("test1.*").get();
+  auto path =
+      ext_path_builder::raw(TestStructMembers::mapOfStringToI32::id::value)
+          .regex("test1.*")
+          .get();
   auto generator = storage.subscribe_encoded_extended(
       kSubscriber, {path}, OperProtocol::SIMPLE_JSON);
   storage.start();
@@ -358,7 +363,10 @@ TEST(SubscribableStorageTests, SubscribeExtendedPathSimple) {
 
   EXPECT_THAT(
       *newVal->path()->path(),
-      ::testing::ElementsAre("mapOfStringToI32", "test1"));
+      ::testing::ElementsAre(
+          folly::to<std::string>(
+              TestStructMembers::mapOfStringToI32::id::value),
+          "test1"));
 
   auto deserialized = facebook::fboss::thrift_cow::
       deserialize<apache::thrift::type_class::integral, int>(

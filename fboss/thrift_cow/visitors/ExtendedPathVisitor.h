@@ -4,6 +4,7 @@
 
 #include <type_traits>
 
+#include <fboss/thrift_cow/visitors/VisitorUtils.h>
 #include <re2/re2.h>
 #include <thrift/lib/cpp2/Thrift.h>
 #include <thrift/lib/cpp2/TypeClass.h>
@@ -26,6 +27,13 @@ struct ExtendedPathVisitor;
 struct NodeType;
 struct FieldsType;
 
+struct ExtPathVisitorOptions {
+  explicit ExtPathVisitorOptions(bool outputIdPaths = false)
+      : outputIdPaths(outputIdPaths) {}
+
+  bool outputIdPaths;
+};
+
 namespace epv_detail {
 
 using ExtPathIter = typename std::vector<fsdb::OperPathElem>::const_iterator;
@@ -42,6 +50,7 @@ void visitNode(
     Node& node,
     ExtPathIter begin,
     ExtPathIter end,
+    const ExtPathVisitorOptions& options,
     Func&& f) {
   if (begin == end) {
     f(path, node);
@@ -50,10 +59,15 @@ void visitNode(
 
   if constexpr (std::is_const_v<Node>) {
     ExtendedPathVisitor<TC>::visit(
-        path, *node.getFields(), begin, end, std::forward<Func>(f));
+        path, *node.getFields(), begin, end, options, std::forward<Func>(f));
   } else {
     ExtendedPathVisitor<TC>::visit(
-        path, *node.writableFields(), begin, end, std::forward<Func>(f));
+        path,
+        *node.writableFields(),
+        begin,
+        end,
+        options,
+        std::forward<Func>(f));
   }
 }
 
@@ -130,8 +144,10 @@ struct ExtendedPathVisitor<apache::thrift::type_class::set<ValueTypeClass>> {
       Node& node,
       epv_detail::ExtPathIter begin,
       epv_detail::ExtPathIter end,
+      const ExtPathVisitorOptions& options,
       Func&& f) {
-    epv_detail::visitNode<TC>(path, node, begin, end, std::forward<Func>(f));
+    epv_detail::visitNode<TC>(
+        path, node, begin, end, options, std::forward<Func>(f));
   }
 
   template <
@@ -146,6 +162,7 @@ struct ExtendedPathVisitor<apache::thrift::type_class::set<ValueTypeClass>> {
       Fields& fields,
       epv_detail::ExtPathIter begin,
       epv_detail::ExtPathIter end,
+      const ExtPathVisitorOptions& options,
       Func&& f) {
     const auto& elem = *begin++;
 
@@ -155,7 +172,7 @@ struct ExtendedPathVisitor<apache::thrift::type_class::set<ValueTypeClass>> {
       if (matching) {
         path.push_back(*matching);
         ExtendedPathVisitor<ValueTypeClass>::visit(
-            path, *val, begin, end, std::forward<Func>(f));
+            path, *val, begin, end, options, std::forward<Func>(f));
         path.pop_back();
       }
     }
@@ -180,8 +197,10 @@ struct ExtendedPathVisitor<apache::thrift::type_class::list<ValueTypeClass>> {
       Node& node,
       epv_detail::ExtPathIter begin,
       epv_detail::ExtPathIter end,
+      const ExtPathVisitorOptions& options,
       Func&& f) {
-    epv_detail::visitNode<TC>(path, node, begin, end, std::forward<Func>(f));
+    epv_detail::visitNode<TC>(
+        path, node, begin, end, options, std::forward<Func>(f));
   }
 
   template <
@@ -196,6 +215,7 @@ struct ExtendedPathVisitor<apache::thrift::type_class::list<ValueTypeClass>> {
       Fields& fields,
       epv_detail::ExtPathIter begin,
       epv_detail::ExtPathIter end,
+      const ExtPathVisitorOptions& options,
       Func&& f) {
     const auto& elem = *begin++;
     for (int i = 0; i < fields.size(); ++i) {
@@ -207,10 +227,10 @@ struct ExtendedPathVisitor<apache::thrift::type_class::list<ValueTypeClass>> {
         if constexpr (std::is_const_v<Fields>) {
           const auto& next = *fields.ref(i);
           ExtendedPathVisitor<ValueTypeClass>::visit(
-              path, next, begin, end, std::forward<Func>(f));
+              path, next, begin, end, options, std::forward<Func>(f));
         } else {
           ExtendedPathVisitor<ValueTypeClass>::visit(
-              path, *fields.ref(i), begin, end, std::forward<Func>(f));
+              path, *fields.ref(i), begin, end, options, std::forward<Func>(f));
         }
         path.pop_back();
       }
@@ -237,8 +257,10 @@ struct ExtendedPathVisitor<
       Node& node,
       epv_detail::ExtPathIter begin,
       epv_detail::ExtPathIter end,
+      const ExtPathVisitorOptions& options,
       Func&& f) {
-    epv_detail::visitNode<TC>(path, node, begin, end, std::forward<Func>(f));
+    epv_detail::visitNode<TC>(
+        path, node, begin, end, options, std::forward<Func>(f));
   }
 
   template <
@@ -253,6 +275,7 @@ struct ExtendedPathVisitor<
       Fields& fields,
       epv_detail::ExtPathIter begin,
       epv_detail::ExtPathIter end,
+      const ExtPathVisitorOptions& options,
       Func&& f) {
     const auto& elem = *begin++;
     for (auto& [key, val] : fields) {
@@ -265,10 +288,10 @@ struct ExtendedPathVisitor<
         if constexpr (std::is_const_v<Fields>) {
           const auto& next = *val;
           ExtendedPathVisitor<MappedTypeClass>::visit(
-              path, next, begin, end, std::forward<Func>(f));
+              path, next, begin, end, options, std::forward<Func>(f));
         } else {
           ExtendedPathVisitor<MappedTypeClass>::visit(
-              path, *val, begin, end, std::forward<Func>(f));
+              path, *val, begin, end, options, std::forward<Func>(f));
         }
 
         path.pop_back();
@@ -295,8 +318,10 @@ struct ExtendedPathVisitor<apache::thrift::type_class::variant> {
       Node& node,
       epv_detail::ExtPathIter begin,
       epv_detail::ExtPathIter end,
+      const ExtPathVisitorOptions& options,
       Func&& f) {
-    epv_detail::visitNode<TC>(path, node, begin, end, std::forward<Func>(f));
+    epv_detail::visitNode<TC>(
+        path, node, begin, end, options, std::forward<Func>(f));
   }
 
   template <
@@ -311,6 +336,7 @@ struct ExtendedPathVisitor<apache::thrift::type_class::variant> {
       Fields& fields,
       epv_detail::ExtPathIter begin,
       epv_detail::ExtPathIter end,
+      const ExtPathVisitorOptions& options,
       Func&& f) {
     const auto& elem = *begin++;
     auto raw = elem.raw_ref();
@@ -321,36 +347,36 @@ struct ExtendedPathVisitor<apache::thrift::type_class::variant> {
 
     // TODO: A lot of shared logic with PathVisitor. Could we share code?
     using MemberTypes = typename Fields::MemberTypes;
-    fatal::trie_find<MemberTypes, fatal::get_type::name>(
-        raw->begin(), raw->end(), [&](auto tag) {
-          using descriptor = typename decltype(fatal::tag_type(tag))::member;
-          using name = typename descriptor::metadata::name;
-          using tc = typename descriptor::metadata::type_class;
+    visitMember<MemberTypes>(*raw, [&](auto tag) {
+      using descriptor = typename decltype(fatal::tag_type(tag))::member;
+      using name = typename descriptor::metadata::name;
+      using tc = typename descriptor::metadata::type_class;
 
-          if (fields.type() != descriptor::metadata::id::value) {
-            // TODO: error handling
-            return;
-          }
+      if (fields.type() != descriptor::metadata::id::value) {
+        // TODO: error handling
+        return;
+      }
 
-          const std::string memberName =
-              std::string(fatal::z_data<name>(), fatal::size<name>::value);
+      std::string memberName = options.outputIdPaths
+          ? folly::to<std::string>(descriptor::metadata::id::value)
+          : std::string(fatal::z_data<name>(), fatal::size<name>::value);
 
-          path.push_back(memberName);
+      path.push_back(std::move(memberName));
 
-          // ensure we propagate constness, since children will have type
-          // const shared_ptr<T>, not shared_ptr<const T>.
-          auto& child = fields.template ref<name>();
-          if constexpr (std::is_const_v<Fields>) {
-            const auto& next = *child;
-            ExtendedPathVisitor<tc>::visit(
-                path, next, begin, end, std::forward<Func>(f));
-          } else {
-            ExtendedPathVisitor<tc>::visit(
-                path, *child, begin, end, std::forward<Func>(f));
-          }
+      // ensure we propagate constness, since children will have type
+      // const shared_ptr<T>, not shared_ptr<const T>.
+      auto& child = fields.template ref<name>();
+      if constexpr (std::is_const_v<Fields>) {
+        const auto& next = *child;
+        ExtendedPathVisitor<tc>::visit(
+            path, next, begin, end, options, std::forward<Func>(f));
+      } else {
+        ExtendedPathVisitor<tc>::visit(
+            path, *child, begin, end, options, std::forward<Func>(f));
+      }
 
-          path.pop_back();
-        });
+      path.pop_back();
+    });
   }
 };
 
@@ -371,9 +397,10 @@ struct ExtendedPathVisitor<apache::thrift::type_class::structure> {
       Node& node,
       epv_detail::ExtPathIter begin,
       epv_detail::ExtPathIter end,
+      const ExtPathVisitorOptions& options,
       Func&& f) {
     std::vector<std::string> path;
-    visit(path, node, begin, end, std::forward<Func>(f));
+    visit(path, node, begin, end, options, std::forward<Func>(f));
   }
 
   template <
@@ -387,8 +414,10 @@ struct ExtendedPathVisitor<apache::thrift::type_class::structure> {
       Node& node,
       epv_detail::ExtPathIter begin,
       epv_detail::ExtPathIter end,
+      const ExtPathVisitorOptions& options,
       Func&& f) {
-    epv_detail::visitNode<TC>(path, node, begin, end, std::forward<Func>(f));
+    epv_detail::visitNode<TC>(
+        path, node, begin, end, options, std::forward<Func>(f));
   }
 
   template <
@@ -403,6 +432,7 @@ struct ExtendedPathVisitor<apache::thrift::type_class::structure> {
       Fields& fields,
       epv_detail::ExtPathIter begin,
       epv_detail::ExtPathIter end,
+      const ExtPathVisitorOptions& options,
       Func&& f) {
     using Members = typename Fields::Members;
 
@@ -414,38 +444,37 @@ struct ExtendedPathVisitor<apache::thrift::type_class::structure> {
     }
 
     // Perform trie search over all members for key
-    fatal::trie_find<Members, fatal::get_type::name>(
-        raw->begin(), raw->end(), [&](auto indexed) {
-          using member = decltype(fatal::tag_type(indexed));
-          using name = typename member::name;
-          using tc = typename member::type_class;
+    visitMember<Members>(*raw, [&](auto indexed) {
+      using member = decltype(fatal::tag_type(indexed));
+      using name = typename member::name;
+      using tc = typename member::type_class;
 
-          // Recurse further
-          auto& child = fields.template ref<name>();
+      // Recurse further
+      auto& child = fields.template ref<name>();
 
-          if (!child) {
-            // child is unset, cannot traverse through missing optional child
-            return;
-          }
+      if (!child) {
+        // child is unset, cannot traverse through missing optional child
+        return;
+      }
+      std::string memberName = options.outputIdPaths
+          ? folly::to<std::string>(member::id::value)
+          : std::string(fatal::z_data<name>(), fatal::size<name>::value);
 
-          const std::string memberName =
-              std::string(fatal::z_data<name>(), fatal::size<name>::value);
+      path.push_back(std::move(memberName));
 
-          path.push_back(memberName);
+      // ensure we propagate constness, since children will have type
+      // const shared_ptr<T>, not shared_ptr<const T>.
+      if constexpr (std::is_const_v<Fields>) {
+        const auto& next = *child;
+        ExtendedPathVisitor<tc>::visit(
+            path, next, begin, end, options, std::forward<Func>(f));
+      } else {
+        ExtendedPathVisitor<tc>::visit(
+            path, *child, begin, end, options, std::forward<Func>(f));
+      }
 
-          // ensure we propagate constness, since children will have type
-          // const shared_ptr<T>, not shared_ptr<const T>.
-          if constexpr (std::is_const_v<Fields>) {
-            const auto& next = *child;
-            ExtendedPathVisitor<tc>::visit(
-                path, next, begin, end, std::forward<Func>(f));
-          } else {
-            ExtendedPathVisitor<tc>::visit(
-                path, *child, begin, end, std::forward<Func>(f));
-          }
-
-          path.pop_back();
-        });
+      path.pop_back();
+    });
   }
 };
 
@@ -470,6 +499,7 @@ struct ExtendedPathVisitor {
       Node& node,
       epv_detail::ExtPathIter begin,
       epv_detail::ExtPathIter end,
+      const ExtPathVisitorOptions& /* options */,
       Func&& f) {
     f(path, node);
   }

@@ -9,6 +9,7 @@
 
 #include <fboss/thrift_cow/visitors/ExtendedPathVisitor.h>
 #include <thrift/lib/cpp2/reflection/folly_dynamic.h>
+#include <vector>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/fsdb/oper/ExtendedPathBuilder.h"
 #include "fboss/thrift_cow/nodes/Types.h"
@@ -19,6 +20,7 @@ using namespace facebook::fboss;
 using namespace facebook::fboss::fsdb;
 using namespace facebook::fboss::thrift_cow;
 using k = facebook::fboss::test_tags::strings;
+using TestStructMembers = apache::thrift::reflect_struct<TestStruct>::member;
 
 namespace {
 
@@ -41,7 +43,6 @@ TestStruct createTestStruct() {
   return apache::thrift::from_dynamic<TestStruct>(
       testDyn, apache::thrift::dynamic_format::JSON_1);
 }
-
 } // namespace
 
 TEST(ExtendedPathVisitorTests, AccessFieldSimple) {
@@ -49,14 +50,31 @@ TEST(ExtendedPathVisitorTests, AccessFieldSimple) {
 
   auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
   folly::dynamic dyn;
-  auto processPath = [&dyn](auto&&, auto&& node) {
+  std::vector<std::string> recvPath;
+  auto processPath = [&dyn, &recvPath](auto&& path, auto&& node) {
     dyn = node.toFollyDynamic();
+    recvPath = path;
   };
 
   auto path = ext_path_builder::raw("inlineInt").get();
+  ExtPathVisitorOptions options;
   RootExtendedPathVisitor::visit(
-      *nodeA, path.path()->begin(), path.path()->end(), std::move(processPath));
+      *nodeA, path.path()->begin(), path.path()->end(), options, processPath);
   EXPECT_EQ(dyn, 54);
+
+  dyn = dynamic::object;
+  path = ext_path_builder::raw(TestStructMembers::inlineInt::id::value).get();
+  options.outputIdPaths = true;
+  RootExtendedPathVisitor::visit(
+      *nodeA,
+      path.path()->begin(),
+      path.path()->end(),
+      options,
+      std::move(processPath));
+  EXPECT_EQ(dyn, 54);
+  std::vector<std::string> expectPath = {
+      folly::to<std::string>(TestStructMembers::inlineInt::id::value)};
+  EXPECT_EQ(recvPath, expectPath);
 }
 
 TEST(ExtendedPathVisitorTests, AccessFieldInContainer) {
@@ -73,8 +91,13 @@ TEST(ExtendedPathVisitorTests, AccessFieldInContainer) {
   };
 
   auto path = ext_path_builder::raw("mapOfEnumToStruct").raw("3").get();
+  ExtPathVisitorOptions options;
   RootExtendedPathVisitor::visit(
-      *nodeA, path.path()->begin(), path.path()->end(), std::move(processPath));
+      *nodeA,
+      path.path()->begin(),
+      path.path()->end(),
+      options,
+      std::move(processPath));
   EXPECT_EQ(*got.min(), 100);
   EXPECT_EQ(*got.max(), 200);
 }
@@ -89,15 +112,16 @@ TEST(ExtendedPathVisitorTests, AccessOptional) {
   };
 
   auto path = ext_path_builder::raw("optionalString").get();
+  ExtPathVisitorOptions options;
   RootExtendedPathVisitor::visit(
-      *nodeA, path.path()->begin(), path.path()->end(), processPath);
+      *nodeA, path.path()->begin(), path.path()->end(), options, processPath);
   EXPECT_EQ(got, "bla");
   structA.optionalString().reset();
   nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
 
   got.clear();
   RootExtendedPathVisitor::visit(
-      *nodeA, path.path()->begin(), path.path()->end(), processPath);
+      *nodeA, path.path()->begin(), path.path()->end(), options, processPath);
   EXPECT_TRUE(got.empty());
 }
 
@@ -125,8 +149,9 @@ TEST(ExtendedPathVisitorTests, AccessRegexMap) {
       {{"mapOfStringToI32", "test19"}, 19},
   };
 
+  ExtPathVisitorOptions options;
   RootExtendedPathVisitor::visit(
-      *nodeA, path.path()->begin(), path.path()->end(), processPath);
+      *nodeA, path.path()->begin(), path.path()->end(), options, processPath);
   EXPECT_THAT(visited, ::testing::ContainerEq(expected));
 
   auto path2 = ext_path_builder::raw("mapOfI32ToListOfStructs")
@@ -161,7 +186,7 @@ TEST(ExtendedPathVisitorTests, AccessRegexMap) {
 
   visited.clear();
   RootExtendedPathVisitor::visit(
-      *nodeA, path2.path()->begin(), path2.path()->end(), processPath);
+      *nodeA, path2.path()->begin(), path2.path()->end(), options, processPath);
   EXPECT_THAT(visited, ::testing::ContainerEq(expected2));
 }
 
@@ -199,8 +224,9 @@ TEST(ExtendedPathVisitorTests, AccessAnyMap) {
       {{"mapOfStringToI32", "test20"}, 20},
   };
 
+  ExtPathVisitorOptions options;
   RootExtendedPathVisitor::visit(
-      *nodeA, path.path()->begin(), path.path()->end(), processPath);
+      *nodeA, path.path()->begin(), path.path()->end(), options, processPath);
   EXPECT_THAT(visited, ::testing::ContainerEq(expected));
 }
 
@@ -228,8 +254,9 @@ TEST(ExtendedPathVisitorTests, AccessRegexList) {
       {{"listOfPrimitives", "19"}, 19},
   };
 
+  ExtPathVisitorOptions options;
   RootExtendedPathVisitor::visit(
-      *nodeA, path.path()->begin(), path.path()->end(), processPath);
+      *nodeA, path.path()->begin(), path.path()->end(), options, processPath);
   EXPECT_THAT(visited, ::testing::ContainerEq(expected));
 }
 
@@ -257,8 +284,9 @@ TEST(ExtendedPathVisitorTests, AccessAnyList) {
       {{"listOfPrimitives", "20"}, 20},
   };
 
+  ExtPathVisitorOptions options;
   RootExtendedPathVisitor::visit(
-      *nodeA, path.path()->begin(), path.path()->end(), processPath);
+      *nodeA, path.path()->begin(), path.path()->end(), options, processPath);
   EXPECT_THAT(visited, ::testing::ContainerEq(expected));
 }
 
@@ -286,8 +314,9 @@ TEST(ExtendedPathVisitorTests, AccessRegexSet) {
       {{"setOfI32", "19"}, 19},
   };
 
+  ExtPathVisitorOptions options;
   RootExtendedPathVisitor::visit(
-      *nodeA, path.path()->begin(), path.path()->end(), processPath);
+      *nodeA, path.path()->begin(), path.path()->end(), options, processPath);
   EXPECT_THAT(visited, ::testing::ContainerEq(expected));
 }
 
@@ -315,7 +344,8 @@ TEST(ExtendedPathVisitorTests, AccessAnySet) {
       {{"setOfI32", "20"}, 20},
   };
 
+  ExtPathVisitorOptions options;
   RootExtendedPathVisitor::visit(
-      *nodeA, path.path()->begin(), path.path()->end(), processPath);
+      *nodeA, path.path()->begin(), path.path()->end(), options, processPath);
   EXPECT_THAT(visited, ::testing::ContainerEq(expected));
 }
