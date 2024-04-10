@@ -61,4 +61,9 @@ service FbossHwCtrl {
     1: list<ctrl.HwObjectType> objects,
     2: bool cached,
   ) throws (1: fboss.FbossBaseError error);
+
+  /*
+   * Type of boot performed by the hw agent
+   */
+  ctrl.BootType getBootType();
 }

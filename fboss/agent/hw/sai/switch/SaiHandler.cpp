@@ -180,4 +180,10 @@ void SaiHandler::listHwObjects(
   out = hw_->listObjects(*hwObjects, cached);
 }
 
+BootType SaiHandler::getBootType() {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  hw_->ensureConfigured(__func__);
+  return hw_->getBootType();
+}
+
 } // namespace facebook::fboss
