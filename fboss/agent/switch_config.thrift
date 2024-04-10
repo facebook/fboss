@@ -1803,6 +1803,15 @@ struct PortFlowletConfig {
   3: i16 queueWeight;
 }
 
+enum FlowletSwitchingMode {
+  // flowlet is disabled
+  FLOWLET_SWITCHING_MODE_FIXED = 0,
+  // flowlet regular quality based reassignments
+  FLOWLET_SWITCHING_MODE_QUALITY = 1,
+  // flowlet random assignments
+  FLOWLET_SWITCHING_MODE_SPRAY = 2,
+}
+
 struct FlowletSwitchingConfig {
   // wait for lack of activitiy interval on the flow before load balancing
   1: i16 inactivityIntervalUsecs;
@@ -1829,6 +1838,8 @@ struct FlowletSwitchingConfig {
   // maximum links used for flowlet switching.
   // Needed for scaling flowset table
   11: i16 maxLinks;
+  // flowlet switching mode
+  12: FlowletSwitchingMode flowletSwitchingMode = FLOWLET_SWITCHING_MODE_QUALITY;
 }
 
 /**
