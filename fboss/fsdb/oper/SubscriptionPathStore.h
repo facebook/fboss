@@ -5,6 +5,7 @@
 #include "fboss/fsdb/oper/Subscription.h"
 
 #include <folly/CppAttributes.h>
+#include <folly/FBString.h>
 #include <folly/String.h>
 #include <folly/container/F14Map.h>
 #include <folly/logging/xlog.h>
@@ -98,7 +99,7 @@ class SubscriptionPathStore {
   void incrementCounts(Subscription* subscription, bool isChild);
   void decrementCounts(Subscription* subscription, bool isChild);
 
-  folly::F14FastMap<std::string, std::shared_ptr<SubscriptionPathStore>>
+  folly::F14FastMap<folly::fbstring, std::shared_ptr<SubscriptionPathStore>>
       children_;
   std::vector<Subscription*> subscriptions_;
   std::vector<PartiallyResolvedExtendedSubscription> partiallyResolvedSubs_;
