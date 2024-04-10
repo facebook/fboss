@@ -10,52 +10,32 @@
 
 #pragma once
 
-#include <fboss/fsdb/oper/SubscriptionPathStore.h>
-#include <fboss/thrift_cow/visitors/TraverseHelper.h>
+#include "fboss/fsdb/oper/SubscriptionManager.h"
+#include "fboss/fsdb/oper/SubscriptionPathStore.h"
+#include "fboss/thrift_cow/visitors/TraverseHelper.h"
 
 namespace facebook::fboss::fsdb {
 
-template <typename Manager>
 struct CowPublishAndAddTraverseHelper
-    : thrift_cow::TraverseHelper<CowPublishAndAddTraverseHelper<Manager>> {
-  using Base =
-      thrift_cow::TraverseHelper<CowPublishAndAddTraverseHelper<Manager>>;
+    : thrift_cow::TraverseHelper<CowPublishAndAddTraverseHelper> {
+  using Base = thrift_cow::TraverseHelper<CowPublishAndAddTraverseHelper>;
 
   using Base::path;
   using Base::shouldShortCircuit;
 
-  CowPublishAndAddTraverseHelper(SubscriptionPathStore* root, Manager* manager)
-      : manager_(manager) {
-    pathStores_.emplace_back(root);
-  }
+  CowPublishAndAddTraverseHelper(
+      SubscriptionPathStore* root,
+      SubscriptionManagerBase* manager);
 
-  bool shouldShortCircuitImpl(thrift_cow::VisitorType visitorType) const {
-    return false;
-  }
+  bool shouldShortCircuitImpl(thrift_cow::VisitorType visitorType) const;
 
-  void onPushImpl(thrift_cow::ThriftTCType /* tc */) {
-    const auto& currPath = path();
-    const auto& newTok = currPath.back();
-    auto* lastPathStore = pathStores_.back();
-    auto* child = lastPathStore->getOrCreateChild(newTok);
+  void onPushImpl(thrift_cow::ThriftTCType /* tc */);
 
-    // this assumes currPath has size > 0, which we know because we
-    // would have added at least one elem in TraverseHelper::push().
-    lastPathStore->processAddedPath(
-        *manager_, currPath.begin(), currPath.end() - 1, currPath.end());
-
-    pathStores_.emplace_back(child);
-  }
-
-  void onPopImpl(
-      std::string&& /* popped */,
-      thrift_cow::ThriftTCType /* tc */) {
-    pathStores_.pop_back();
-  }
+  void onPopImpl(std::string&& /* popped */, thrift_cow::ThriftTCType /* tc */);
 
  private:
   std::vector<SubscriptionPathStore*> pathStores_;
-  Manager* manager_{nullptr};
+  SubscriptionManagerBase* manager_{nullptr};
 };
 
 } // namespace facebook::fboss::fsdb

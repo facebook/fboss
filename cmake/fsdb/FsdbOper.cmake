@@ -9,6 +9,7 @@ add_library(subscription_manager
   fboss/fsdb/oper/DeltaValue.h
   fboss/fsdb/oper/CowDeletePathTraverseHelper.h
   fboss/fsdb/oper/CowPublishAndAddTraverseHelper.h
+  fboss/fsdb/oper/CowPublishAndAddTraverseHelper.cpp
   fboss/fsdb/oper/CowSubscriptionManager.h
   fboss/fsdb/oper/CowSubscriptionTraverseHelper.h
   fboss/fsdb/oper/Subscription.cpp
