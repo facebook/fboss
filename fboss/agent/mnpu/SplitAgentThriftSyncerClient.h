@@ -76,7 +76,7 @@ using FdbEventQueueType = folly::coro::UnboundedQueue<
     true /*SingleProducer*/,
     true /* SingleConsumer*/>;
 #else
-using FdbEventQueueType = std::queue;
+using FdbEventQueueType = std::queue<multiswitch::FdbEvent>;
 #endif
 
 #if FOLLY_HAS_COROUTINES
@@ -85,7 +85,7 @@ using StatsEventQueueType = folly::coro::UnboundedQueue<
     true /*SingleProducer*/,
     true /* SingleConsumer*/>;
 #else
-using FdbEventQueueType = std::queue;
+using FdbEventQueueType = std::queue<multiswitch::HwSwitchStats>;
 #endif
 
 #if FOLLY_HAS_COROUTINES
@@ -94,7 +94,7 @@ using LinkChangeEventQueueType = folly::coro::UnboundedQueue<
     true /*SingleProducer*/,
     true /* SingleConsumer*/>;
 #else
-using LinkChangeEventQueueType = std::queue;
+using LinkChangeEventQueueType = std::queue<multiswitch::LinkChangeEvent>;
 #endif
 
 #if FOLLY_HAS_COROUTINES
@@ -103,7 +103,7 @@ using RxPktEventQueueType = folly::coro::BoundedQueue<
     true /*SingleProducer*/,
     true /* SingleConsumer*/>;
 #else
-using RxPktEventQueueType = std::queue;
+using RxPktEventQueueType = std::queue<multiswitch::RxPacket>;
 #endif
 
 template <typename CallbackObjectT, typename EventQueueT>
