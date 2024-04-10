@@ -58,7 +58,7 @@ TEST_F(AgentVoqSwitchInterruptTest, ireError) {
     constexpr auto kIreErrorIncjectorCintStr = R"(
   cint_reset();
   bcm_switch_event_control_t event_ctrl;
-  event_ctrl.event_id = 2034;
+  event_ctrl.event_id = 2064;
   event_ctrl.index = 0; /* core ID */
   event_ctrl.action = bcmSwitchEventForce;
   print bcm_switch_event_control_set(0, BCM_SWITCH_EVENT_DEVICE_INTERRUPT, event_ctrl, 1);
