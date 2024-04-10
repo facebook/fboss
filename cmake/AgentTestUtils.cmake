@@ -290,3 +290,12 @@ add_library(agent_hw_test_constants
 target_link_libraries(agent_hw_test_constants
   mpls_cpp2
 )
+
+add_library(scale_test_utils
+  fboss/agent/test/utils/ScaleTestUtils.cpp
+)
+
+target_link_libraries(scale_test_utils
+  core
+  switch_asics
+)
