@@ -15,7 +15,7 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
 #include "fboss/agent/test/utils/AclTestUtils.h"
-#include "fboss/agent/test/utils/CommonUtils.h"
+#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/DscpMarkingUtils.h"

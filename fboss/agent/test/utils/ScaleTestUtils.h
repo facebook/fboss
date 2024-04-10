@@ -12,7 +12,6 @@
 
 #include <gtest/gtest.h>
 #include "fboss/agent/SwSwitch.h"
-#include "fboss/agent/test/utils/CommonUtils.h"
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss {

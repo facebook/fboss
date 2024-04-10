@@ -8,7 +8,7 @@
  *
  */
 
-#include "fboss/agent/test/utils/CommonUtils.h"
+#include "fboss/agent/test/utils/AsicUtils.h"
 #include <memory>
 
 #include "fboss/agent/SwSwitch.h"
