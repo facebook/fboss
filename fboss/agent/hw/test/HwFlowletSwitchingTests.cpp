@@ -24,6 +24,7 @@ static folly::IPAddressV6 kAddr1{"2803:6080:d038:3063::"};
 static folly::IPAddressV6 kAddr2{"2803:6080:d038:3000::"};
 folly::CIDRNetwork kAddr1Prefix{folly::IPAddress("2803:6080:d038:3063::"), 64};
 folly::CIDRNetwork kAddr2Prefix{folly::IPAddress("2803:6080:d038:3000::"), 64};
+constexpr auto kAddr3 = "2803:6080:d048";
 const int kDefaultScalingFactor = 10;
 const int kScalingFactor1 = 100;
 const int kScalingFactor2 = 200;
@@ -437,9 +438,8 @@ class HwFlowletSwitchingFlowsetMultipleEcmpTests
 
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = getDefaultConfig();
-    // just enough on flowset to succeed for first ECMP group, but fail for
-    // others
-    updateFlowletConfigs(cfg, utility::KMaxFlowsetTableSize);
+    // 2048 is current size for TH3 and TH4
+    updateFlowletConfigs(cfg, kFlowletTableSize2);
     updatePortFlowletConfigName(cfg);
     return cfg;
   }
@@ -460,9 +460,25 @@ TEST_F(
   }
 
   auto setup = [&]() {
-    // create 2 different ECMP objects
+    // create 15 different ECMP objects
+    // 32768 / 2048 = 16
+    int numEcmp = int(utility::KMaxFlowsetTableSize / kFlowletTableSize2);
+    int totalEcmp = 1;
+    for (int i = 1; i < 8 && totalEcmp < numEcmp; i++) {
+      for (int j = i + 1; j < 8 && totalEcmp < numEcmp; j++) {
+        std::vector<PortID> portIds;
+        portIds.push_back(masterLogicalPortIds()[0]);
+        portIds.push_back(masterLogicalPortIds()[i]);
+        portIds.push_back(masterLogicalPortIds()[j]);
+        resolveNextHopsAddRoute(
+            portIds,
+            folly::IPAddressV6(
+                folly::sformat("{}:{:x}::", kAddr3, totalEcmp++)));
+      }
+    }
+    // create 2 more ECMP objects
     resolveNextHopsAddRoute(
-        {masterLogicalPortIds()[0], masterLogicalPortIds()[1]}, kAddr1);
+        {masterLogicalPortIds()[1], masterLogicalPortIds()[2]}, kAddr1);
     resolveNextHopsAddRoute(
         {masterLogicalPortIds()[2], masterLogicalPortIds()[3]}, kAddr2);
   };
@@ -472,8 +488,8 @@ TEST_F(
     auto portFlowletConfig =
         getPortFlowletConfig(kScalingFactor1, kLoadWeight1, kQueueWeight1);
 
-    // ensure that DLB is not programmed for second route as we started with
-    // high flowset limits we expect flowset size is zero for the second object
+    // ensure that DLB is not programmed for 17th route as we already have 16
+    // ECMP objects with DLB. Expect flowset size is zero for the 17th object
     utility::verifyEcmpForFlowletSwitching(
         getHwSwitch(),
         kAddr2Prefix, // second route
