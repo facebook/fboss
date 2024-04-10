@@ -126,6 +126,14 @@ class FlowletSwitchingConfig : public ThriftStructNode<
     return get<switch_config_tags::maxLinks>()->cref();
   }
 
+  void setFlowletSwitchingMode(cfg::FlowletSwitchingMode mode) {
+    set<switch_config_tags::flowletSwitchingMode>(mode);
+  }
+
+  cfg::FlowletSwitchingMode getFlowletSwitchingMode() const {
+    return get<switch_config_tags::flowletSwitchingMode>()->cref();
+  }
+
  private:
   // Inherit the constructors required for clone()
   using BaseT::BaseT;
