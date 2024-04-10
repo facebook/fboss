@@ -88,12 +88,15 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
       EntryFields fields,
       folly::EventBase* evb,
       Cache* cache,
-      NeighborEntryState state)
+      NeighborEntryState state,
+      state::NeighborEntryType type)
       : AsyncTimeout(evb),
         fields_(fields),
         cache_(cache),
         evb_(evb),
-        probesLeft_(cache_->getMaxNeighborProbes()) {
+        probesLeft_(cache_->getMaxNeighborProbes()),
+        type_(type) {
+    CHECK(type == state::NeighborEntryType::DYNAMIC_ENTRY);
     enter(state);
   }
 
@@ -415,6 +418,7 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
   folly::EventBase* evb_;
   NeighborEntryState state_{NeighborEntryState::UNINITIALIZED};
   uint32_t probesLeft_{0};
+  state::NeighborEntryType type_{state::NeighborEntryType::DYNAMIC_ENTRY};
   std::chrono::time_point<std::chrono::steady_clock> expireTime_;
 };
 

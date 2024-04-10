@@ -166,6 +166,7 @@ class NeighborCacheImpl {
   Entry* setEntryInternal(
       const EntryFields& fields,
       NeighborEntryState state,
+      state::NeighborEntryType type,
       bool add = true);
 
   // Forbidden copy constructor and assignment operator
