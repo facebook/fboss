@@ -373,6 +373,7 @@ struct SwitchSettingsFields {
   37: ctrl.SwitchRunState swSwitchRunState;
   38: optional bool forceTrafficOverFabric;
   39: optional bool creditWatchdog;
+  40: optional bool forceEcmpDynamicMemberUp;
 }
 
 struct RoutePrefix {

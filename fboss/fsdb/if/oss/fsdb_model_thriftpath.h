@@ -18524,7 +18524,8 @@ std::pair<strings::vendorMacOuis, ChildThriftPath<::std::vector<::std::string>, 
 std::pair<strings::metaMacOuis, ChildThriftPath<::std::vector<::std::string>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
 std::pair<strings::swSwitchRunState, Child<::facebook::fboss::SwitchRunState, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::SwitchRunState>>>,
 std::pair<strings::forceTrafficOverFabric, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
-std::pair<strings::creditWatchdog, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>>;
+std::pair<strings::creditWatchdog, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
+std::pair<strings::forceEcmpDynamicMemberUp, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::facebook::fboss::cfg::L2LearningMode, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::L2LearningMode>>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
@@ -18562,7 +18563,8 @@ std::pair<strings::creditWatchdog, Child<bool, ::apache::thrift::type_class::int
    std::pair<std::integral_constant<apache::thrift::field_id_t, 36>, ChildThriftPath<::std::vector<::std::string>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 37>, Child<::facebook::fboss::SwitchRunState, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::SwitchRunState>>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 38>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 39>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 39>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 40>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::l2LearningMode, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::qcmEnable, std::integral_constant<apache::thrift::field_id_t, 2>>,
@@ -18601,7 +18603,8 @@ std::pair<strings::vendorMacOuis, std::integral_constant<apache::thrift::field_i
 std::pair<strings::metaMacOuis, std::integral_constant<apache::thrift::field_id_t, 36>>,
 std::pair<strings::swSwitchRunState, std::integral_constant<apache::thrift::field_id_t, 37>>,
 std::pair<strings::forceTrafficOverFabric, std::integral_constant<apache::thrift::field_id_t, 38>>,
-std::pair<strings::creditWatchdog, std::integral_constant<apache::thrift::field_id_t, 39>>>::template type_of<Name>;
+std::pair<strings::creditWatchdog, std::integral_constant<apache::thrift::field_id_t, 39>>,
+std::pair<strings::forceEcmpDynamicMemberUp, std::integral_constant<apache::thrift::field_id_t, 40>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -18653,6 +18656,7 @@ std::pair<strings::creditWatchdog, std::integral_constant<apache::thrift::field_
     STRUCT_CHILD_GETTERS(swSwitchRunState, 37);
     STRUCT_CHILD_GETTERS(forceTrafficOverFabric, 38);
     STRUCT_CHILD_GETTERS(creditWatchdog, 39);
+    STRUCT_CHILD_GETTERS(forceEcmpDynamicMemberUp, 40);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -18694,6 +18698,7 @@ std::pair<strings::creditWatchdog, std::integral_constant<apache::thrift::field_
     else if constexpr (__id == 37) { return swSwitchRunState(); }
     else if constexpr (__id == 38) { return forceTrafficOverFabric(); }
     else if constexpr (__id == 39) { return creditWatchdog(); }
+    else if constexpr (__id == 40) { return forceEcmpDynamicMemberUp(); }
   }
 
   template <typename T, T... Values>
