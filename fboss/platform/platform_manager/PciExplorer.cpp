@@ -81,7 +81,12 @@ PciDevice::PciDevice(
   }
   if (!fs::exists(charDevPath_)) {
     throw std::runtime_error(fmt::format(
-        "No character device found at {} for {}", charDevPath_, name));
+        "No character device found at {} for {}. This could either mean the "
+        "FPGA does not show up as PCI device (see lspci output), or the kmods "
+        "are not setting up the character device for the PCI device at {}.",
+        charDevPath_,
+        name,
+        charDevPath_));
   }
   XLOG(INFO) << fmt::format(
       "Found character device {} for {}", charDevPath_, name);
