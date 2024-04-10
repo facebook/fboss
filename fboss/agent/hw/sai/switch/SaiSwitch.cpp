@@ -2793,7 +2793,11 @@ void SaiSwitch::unregisterCallbacksLocked(
     switchApi.unregisterTamEventCallback(saiSwitchId_);
 #endif
   }
-  switchApi.unregisterFdbEventCallback(saiSwitchId_);
+
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::BRIDGE_PORT_8021Q)) {
+    switchApi.unregisterFdbEventCallback(saiSwitchId_);
+  }
+
   if (pfcDeadlockEnabled_) {
     switchApi.unregisterQueuePfcDeadlockNotificationCallback(saiSwitchId_);
   }
@@ -3077,7 +3081,15 @@ void SaiSwitch::switchRunStateChangedImplLocked(
         fdbEventBottomHalfEventBase_.loopForever();
       });
       auto& switchApi = SaiApiTable::getInstance()->switchApi();
-      switchApi.registerFdbEventCallback(saiSwitchId_, __gFdbEventCallback);
+
+      // FDB callback is only applicable if l2Learning mode is set.
+      // L2 learning mode is set on Bridge port. Thus, enable the callback only
+      // if Bridge prots are supported.
+      if (platform_->getAsic()->isSupported(
+              HwAsic::Feature::BRIDGE_PORT_8021Q)) {
+        switchApi.registerFdbEventCallback(saiSwitchId_, __gFdbEventCallback);
+      }
+
     } break;
     case SwitchRunState::CONFIGURED: {
       if (getFeaturesDesired() & FeaturesDesired::LINKSCAN_DESIRED) {
