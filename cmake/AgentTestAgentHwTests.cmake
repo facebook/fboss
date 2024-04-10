@@ -25,6 +25,7 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentFabricSwitchTests.cpp
   fboss/agent/test/agent_hw_tests/AgentPrbsTests.cpp
   fboss/agent/test/agent_hw_tests/AgentAclCounterTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentAqmTests.cpp
 )
 
 target_link_libraries(agent_hw_test_src
@@ -50,6 +51,7 @@ target_link_libraries(agent_hw_test_src
   stats
   resourcelibutil
   load_balancer_test_utils
+  port_stats_test_utils
 )
 
 add_executable(multi_switch_agent_hw_test
