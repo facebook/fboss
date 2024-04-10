@@ -6,6 +6,7 @@
 #include <chrono>
 
 #include <fboss/fsdb/oper/Subscription.h>
+#include <fboss/fsdb/oper/SubscriptionManager.h>
 #include <fboss/fsdb/oper/SubscriptionPathStore.h>
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 #include "fboss/fsdb/oper/ExtendedPathBuilder.h"
@@ -75,8 +76,8 @@ std::unique_ptr<TestDeltaSubscription> makeDeltaSubscription(
   return std::make_unique<TestDeltaSubscription>(std::move(path));
 }
 
-struct StubSubscriptionManager {
-  void registerSubscription(std::unique_ptr<Subscription> sub) {
+struct StubSubscriptionManager : public SubscriptionManagerBase {
+  void registerSubscription(std::unique_ptr<Subscription> sub) override {
     subs.emplace(subs.size(), std::move(sub));
   }
 

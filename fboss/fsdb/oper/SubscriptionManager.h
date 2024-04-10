@@ -18,6 +18,8 @@ class SubscriptionMetadataServer;
 
 class SubscriptionManagerBase {
  public:
+  virtual ~SubscriptionManagerBase() = default;
+
   void pruneSimpleSubscriptions();
 
   std::vector<std::string> markExtendedSubscriptionsThatNeedPruning();
@@ -33,7 +35,7 @@ class SubscriptionManagerBase {
   void registerExtendedSubscription(
       std::shared_ptr<ExtendedSubscription> subscription);
 
-  void registerSubscription(std::unique_ptr<Subscription> subscription);
+  virtual void registerSubscription(std::unique_ptr<Subscription> subscription);
 
   void unregisterSubscription(const std::string& name);
 

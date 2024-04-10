@@ -15,6 +15,108 @@ void SubscriptionPathStore::remove(Subscription* subscription) {
   remove(path.begin(), path.end(), subscription);
 }
 
+void SubscriptionPathStore::incrementallyResolve(
+    SubscriptionManagerBase& manager,
+    std::shared_ptr<ExtendedSubscription> subscription,
+    std::size_t pathIdx,
+    std::vector<std::string>& pathSoFar) {
+  // This incrementally extends our subscription tree based on an extended
+  // path. Logic is to build up tree until next wildcard, or end of the path.
+
+  const auto& path = subscription->pathAt(pathIdx).path().value();
+  auto idx = pathSoFar.size();
+
+  if (idx == path.size()) {
+    // have reached the end of the extended path, add a
+    // resolved Subscription*
+    XLOG(DBG2) << this << ": Saving fully resolved extended subscription at "
+               << folly::join('/', pathSoFar);
+    auto resolvedSub = subscription->resolve(pathSoFar);
+    manager.registerSubscription(std::move(resolvedSub));
+    return;
+  } else if (path.at(idx).getType() != OperPathElem::Type::raw) {
+    // we hit another wildcard element. Add a partially resolved subscription
+    PartiallyResolvedExtendedSubscription partial;
+    partial.subscription = subscription;
+    partial.pathIdx = pathIdx;
+    partial.elemIdx = idx;
+
+    XLOG(DBG2) << this << ": Saving partially resolved subscription at "
+               << folly::join('/', pathSoFar);
+    partiallyResolvedSubs_.emplace_back(std::move(partial));
+
+    return;
+  }
+
+  const auto& key = path.at(idx).raw_ref().value();
+  if (auto it = children_.find(key); it == children_.end()) {
+    children_.emplace(key, std::make_shared<SubscriptionPathStore>());
+  }
+  pathSoFar.emplace_back(key);
+  children_.at(key)->incrementallyResolve(
+      manager, std::move(subscription), pathIdx, pathSoFar);
+  pathSoFar.pop_back();
+}
+
+void SubscriptionPathStore::processAddedPath(
+    SubscriptionManagerBase& manager,
+    PathIter begin,
+    PathIter curr,
+    PathIter end) {
+  // this takes in a newly added path and then ensures that we
+  // resolve any relevant partially resolved subscriptions
+
+  if (curr == end) {
+    return;
+  }
+
+  auto key = *curr++;
+  if (auto it = children_.find(key); it == children_.end()) {
+    children_.emplace(key, std::make_shared<SubscriptionPathStore>());
+  }
+
+  auto it = partiallyResolvedSubs_.begin();
+  while (it != partiallyResolvedSubs_.end()) {
+    auto& partial = *it;
+
+    auto subscription = partial.subscription.lock();
+    if (!subscription) {
+      XLOG(DBG2) << this << ": Removing defunct partial subscription";
+      it = partiallyResolvedSubs_.erase(it);
+      continue;
+    }
+
+    if (auto findIt = partial.previouslyResolved.find(key);
+        findIt != partial.previouslyResolved.end()) {
+      ++it;
+      continue;
+    }
+    partial.previouslyResolved.insert(key);
+
+    const auto& path = subscription->pathAt(partial.pathIdx).path().value();
+    const auto& elem = path.at(partial.elemIdx);
+    bool matches{false};
+
+    if (elem.getType() == OperPathElem::Type::any) {
+      matches = true;
+    } else if (auto regexStr = elem.regex_ref()) {
+      matches = re2::RE2::FullMatch(key, *regexStr);
+    }
+
+    if (matches) {
+      // we match this wildcard, incrementally resolve the
+      // partial subscription to next wilcard or the end.
+      std::vector<std::string> pathSoFar(begin, curr);
+      children_.at(key)->incrementallyResolve(
+          manager, std::move(subscription), partial.pathIdx, pathSoFar);
+    }
+
+    ++it;
+  }
+
+  children_.at(key)->processAddedPath(manager, begin, curr, end);
+}
+
 std::vector<Subscription*> SubscriptionPathStore::find(
     PathIter begin,
     PathIter end,
