@@ -34,6 +34,7 @@ enum ProductionFeature {
   WRED = 21,
   QUEUE_PER_HOST = 22,
   JUMBO_FRAMES = 23,
+  TRAP_DISCARDS_COUNTER = 24,
 }
 
 struct AsicToProductionFeatures {
