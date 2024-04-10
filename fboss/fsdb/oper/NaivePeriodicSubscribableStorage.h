@@ -82,40 +82,6 @@ class NaivePeriodicSubscribableStorage
   using NaivePeriodicSubscribableStorageBase::start_impl;
   using NaivePeriodicSubscribableStorageBase::stop_impl;
 
-  void registerPublisher(PathIter begin, PathIter end) {
-    if (!trackMetadata_) {
-      return;
-    }
-    metadataTracker_.withWLock([&](auto& tracker) {
-      CHECK(tracker);
-      tracker->registerPublisherRoot(*getPublisherRoot(begin, end));
-    });
-  }
-  void unregisterPublisher(
-      PathIter begin,
-      PathIter end,
-      FsdbErrorCode disconnectReason = FsdbErrorCode::ALL_PUBLISHERS_GONE) {
-    if (!trackMetadata_) {
-      return;
-    }
-    // Acquire subscriptions lock since we may need to
-    // trim subscriptions is corresponding publishers goes
-    // away. Acquiring locks in the same order subscriptionMgr,
-    // metadataTracker to keep TSAN happy
-    auto subscriptions = subscriptions_.wlock();
-    metadataTracker_.withWLock([&](auto& tracker) {
-      CHECK(tracker);
-      auto publisherRoot = getPublisherRoot(begin, end);
-      CHECK(publisherRoot);
-      tracker->unregisterPublisherRoot(*publisherRoot);
-      if (!tracker->getPublisherRootMetadata(*publisherRoot)) {
-        subscriptions->closeNoPublisherActiveSubscriptions(
-            SubscriptionMetadataServer(tracker->getAllMetadata()),
-            disconnectReason);
-      }
-    });
-  }
-
   using Base::add;
   using Base::get;
   using Base::get_encoded;
@@ -249,101 +215,11 @@ class NaivePeriodicSubscribableStorage
     return state->patch(operState);
   }
 
-  template <typename T, typename TC>
-  folly::coro::AsyncGenerator<DeltaValue<T>&&>
-  subscribe_impl(SubscriberId subscriber, PathIter begin, PathIter end) {
-    auto sourceGen =
-        subscribe_encoded_impl(subscriber, begin, end, OperProtocol::BINARY);
-    return folly::coro::co_invoke(
-        [&, gen = std::move(sourceGen)]() mutable
-        -> folly::coro::AsyncGenerator<DeltaValue<T>&&> {
-          while (auto item = co_await gen.next()) {
-            auto&& encodedValue = *item;
-            DeltaValue<T> typedValue;
-            if (encodedValue.oldVal) {
-              if (auto contents = encodedValue.oldVal->contents()) {
-                typedValue.oldVal = thrift_cow::deserialize<TC, T>(
-                    OperProtocol::BINARY, *contents);
-              }
-            }
-            if (encodedValue.newVal) {
-              if (auto contents = encodedValue.newVal->contents()) {
-                typedValue.newVal = thrift_cow::deserialize<TC, T>(
-                    OperProtocol::BINARY, *contents);
-              }
-            }
-            co_yield std::move(typedValue);
-          }
-        });
-  }
-
-  folly::coro::AsyncGenerator<DeltaValue<OperState>&&> subscribe_encoded_impl(
-      SubscriberId subscriber,
-      PathIter begin,
-      PathIter end,
-      OperProtocol protocol) {
-    auto path = convertPath(ConcretePath(begin, end));
-    auto [gen, subscription] = PathSubscription<DeltaValue<OperState>>::create(
-        std::move(subscriber),
-        path.begin(),
-        path.end(),
-        getPublisherRoot(path.begin(), path.end()),
-        protocol);
-    auto subscriptions = subscriptions_.wlock();
-    subscriptions->registerSubscription(std::move(subscription));
-    return std::move(gen);
-  }
-
-  folly::coro::AsyncGenerator<OperDelta&&> subscribe_delta_impl(
-      SubscriberId subscriber,
-      PathIter begin,
-      PathIter end,
-      OperProtocol protocol) {
-    auto path = convertPath(ConcretePath(begin, end));
-    auto [gen, subscription] = DeltaSubscription::create(
-        std::move(subscriber),
-        path.begin(),
-        path.end(),
-        protocol,
-        getPublisherRoot(path.begin(), path.end()));
-    auto subscriptions = subscriptions_.wlock();
-    subscriptions->registerSubscription(std::move(subscription));
-    return std::move(gen);
-  }
-
-  folly::coro::AsyncGenerator<std::vector<DeltaValue<TaggedOperState>>&&>
-  subscribe_encoded_extended_impl(
-      SubscriberId subscriber,
-      std::vector<ExtendedOperPath> paths,
-      OperProtocol protocol) {
-    paths = convertExtPaths(paths);
-    auto publisherRoot = getPublisherRoot(paths);
-    auto [gen, subscription] = ExtendedPathSubscription::create(
-        std::move(subscriber),
-        std::move(paths),
-        std::move(publisherRoot),
-        protocol);
-    auto subscriptions = subscriptions_.wlock();
-    subscriptions->registerExtendedSubscription(std::move(subscription));
-    return std::move(gen);
-  }
-
-  folly::coro::AsyncGenerator<std::vector<TaggedOperDelta>&&>
-  subscribe_delta_extended_impl(
-      SubscriberId subscriber,
-      std::vector<ExtendedOperPath> paths,
-      OperProtocol protocol) {
-    paths = convertExtPaths(paths);
-    auto publisherRoot = getPublisherRoot(paths);
-    auto [gen, subscription] = ExtendedDeltaSubscription::create(
-        std::move(subscriber),
-        std::move(paths),
-        std::move(publisherRoot),
-        protocol);
-    auto subscriptions = subscriptions_.wlock();
-    subscriptions->registerExtendedSubscription(std::move(subscription));
-    return std::move(gen);
-  }
+  using NaivePeriodicSubscribableStorageBase::subscribe_delta_extended_impl;
+  using NaivePeriodicSubscribableStorageBase::subscribe_delta_impl;
+  using NaivePeriodicSubscribableStorageBase::subscribe_encoded_extended_impl;
+  using NaivePeriodicSubscribableStorageBase::subscribe_encoded_impl;
+  using NaivePeriodicSubscribableStorageBase::subscribe_impl;
 
   folly::coro::Task<void> serveSubscriptions() override {
     while (true) {
@@ -398,15 +274,11 @@ class NaivePeriodicSubscribableStorage
     }
   }
 
-  size_t numSubscriptions() const {
-    return subscriptions_.rlock()->numSubscriptions();
-  }
-  std::vector<OperSubscriberInfo> getSubscriptions() const {
-    return subscriptions_.rlock()->getSubscriptions();
-  }
-  size_t numPathStores() const {
-    return subscriptions_.rlock()->numPathStores();
-  }
+  using NaivePeriodicSubscribableStorageBase::getSubscriptions;
+  using NaivePeriodicSubscribableStorageBase::numPathStores;
+  using NaivePeriodicSubscribableStorageBase::numSubscriptions;
+  using NaivePeriodicSubscribableStorageBase::setConvertToIDPaths;
+
   /*
    * Expensive API to copy current root. To be used only
    * in tests
@@ -421,9 +293,16 @@ class NaivePeriodicSubscribableStorage
     return *lastState->get_encoded(rootPath.begin(), rootPath.end(), protocol);
   }
 
-  void setConvertToIDPaths(bool convertToIDPaths) {
-    convertSubsToIDPaths_ = convertToIDPaths;
-    subscriptions_.wlock()->useIdPaths(convertToIDPaths);
+ protected:
+  void withSubMgrRLockedImpl(
+      folly::FunctionRef<void(const SubscriptionManagerBase&)> f)
+      const override {
+    f(*subscriptions_.rlock());
+  }
+
+  void withSubMgrWLockedImpl(
+      folly::FunctionRef<void(SubscriptionManagerBase&)> f) override {
+    f(*subscriptions_.wlock());
   }
 
   ConcretePath convertPath(ConcretePath&& path) const override {
@@ -455,5 +334,4 @@ template <typename Root>
 using NaivePeriodicSubscribableCowStorage = NaivePeriodicSubscribableStorage<
     CowStorage<Root>,
     CowSubscriptionManager<CowStorage<Root>>>;
-
 } // namespace facebook::fboss::fsdb

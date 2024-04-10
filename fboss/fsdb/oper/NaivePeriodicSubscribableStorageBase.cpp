@@ -214,4 +214,83 @@ NaivePeriodicSubscribableStorageBase::convertExtPaths(
   return convertedPaths;
 }
 
+folly::coro::AsyncGenerator<DeltaValue<OperState>&&>
+NaivePeriodicSubscribableStorageBase::subscribe_encoded_impl(
+    SubscriberId subscriber,
+    PathIter begin,
+    PathIter end,
+    OperProtocol protocol) {
+  auto path = convertPath(ConcretePath(begin, end));
+  auto [gen, subscription] = PathSubscription<DeltaValue<OperState>>::create(
+      std::move(subscriber),
+      path.begin(),
+      path.end(),
+      getPublisherRoot(path.begin(), path.end()),
+      protocol);
+  std::unique_ptr<Subscription> subscriptionPtr = std::move(subscription);
+  withSubMgrWLocked([subscriptionPtr = std::move(subscriptionPtr)](
+                        SubscriptionManagerBase& mgr) mutable {
+    mgr.registerSubscription(std::move(subscriptionPtr));
+  });
+  return std::move(gen);
+}
+
+folly::coro::AsyncGenerator<OperDelta&&>
+NaivePeriodicSubscribableStorageBase::subscribe_delta_impl(
+    SubscriberId subscriber,
+    PathIter begin,
+    PathIter end,
+    OperProtocol protocol) {
+  auto path = convertPath(ConcretePath(begin, end));
+  auto [gen, subscription] = DeltaSubscription::create(
+      std::move(subscriber),
+      path.begin(),
+      path.end(),
+      protocol,
+      getPublisherRoot(path.begin(), path.end()));
+  withSubMgrWLocked([subscription = std::move(subscription)](
+                        SubscriptionManagerBase& mgr) mutable {
+    mgr.registerSubscription(std::move(subscription));
+  });
+  return std::move(gen);
+}
+
+folly::coro::AsyncGenerator<std::vector<DeltaValue<TaggedOperState>>&&>
+NaivePeriodicSubscribableStorageBase::subscribe_encoded_extended_impl(
+    SubscriberId subscriber,
+    std::vector<ExtendedOperPath> paths,
+    OperProtocol protocol) {
+  paths = convertExtPaths(paths);
+  auto publisherRoot = getPublisherRoot(paths);
+  auto [gen, subscription] = ExtendedPathSubscription::create(
+      std::move(subscriber),
+      std::move(paths),
+      std::move(publisherRoot),
+      protocol);
+  withSubMgrWLocked(
+      [subscription = std::move(subscription)](SubscriptionManagerBase& mgr) {
+        mgr.registerExtendedSubscription(std::move(subscription));
+      });
+  return std::move(gen);
+}
+
+folly::coro::AsyncGenerator<std::vector<TaggedOperDelta>&&>
+NaivePeriodicSubscribableStorageBase::subscribe_delta_extended_impl(
+    SubscriberId subscriber,
+    std::vector<ExtendedOperPath> paths,
+    OperProtocol protocol) {
+  paths = convertExtPaths(paths);
+  auto publisherRoot = getPublisherRoot(paths);
+  auto [gen, subscription] = ExtendedDeltaSubscription::create(
+      std::move(subscriber),
+      std::move(paths),
+      std::move(publisherRoot),
+      protocol);
+  withSubMgrWLocked(
+      [subscription = std::move(subscription)](SubscriptionManagerBase& mgr) {
+        mgr.registerExtendedSubscription(std::move(subscription));
+      });
+  return std::move(gen);
+}
+
 } // namespace facebook::fboss::fsdb
