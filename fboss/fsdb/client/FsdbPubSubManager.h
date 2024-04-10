@@ -150,6 +150,16 @@ class FsdbPubSubManager {
       SubscriptionStateChangeCb stateChangeCb,
       FsdbExtStateSubscriber::FsdbOperStateUpdateCb operStateCb,
       FsdbStreamClient::ServerOptions&& serverOptions);
+  void addStateExtDeltaSubscription(
+      const std::vector<ExtendedOperPath>& subscribePaths,
+      SubscriptionStateChangeCb stateChangeCb,
+      FsdbExtDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaCb,
+      FsdbStreamClient::ServerOptions&& serverOptions);
+  void addStatExtDeltaSubscription(
+      const std::vector<ExtendedOperPath>& subscribePaths,
+      SubscriptionStateChangeCb stateChangeCb,
+      FsdbExtDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaCb,
+      FsdbStreamClient::ServerOptions&& serverOptions);
 
   /* Subscriber remove APIs */
   void removeStateDeltaSubscription(
@@ -176,6 +186,12 @@ class FsdbPubSubManager {
       const std::string& fsdbHost = "::1");
   void removeStatPathSubscription(
       const MultiPath& subscribePath,
+      const std::string& fsdbHost = "::1");
+  void removeStateExtDeltaSubscription(
+      const std::vector<ExtendedOperPath>& subscribePath,
+      const std::string& fsdbHost = "::1");
+  void removeStatExtDeltaSubscription(
+      const std::vector<ExtendedOperPath>& subscribePath,
       const std::string& fsdbHost = "::1");
 
   FsdbStreamClient::State getStatePathSubsriptionState(

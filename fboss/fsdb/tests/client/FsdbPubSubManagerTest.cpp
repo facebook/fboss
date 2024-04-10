@@ -3,6 +3,7 @@
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
 #include <fboss/fsdb/client/FsdbStreamClient.h>
 #include <gtest/gtest.h>
+#include "fboss/fsdb/oper/ExtendedPathBuilder.h"
 #include "fboss/fsdb/tests/client/FsdbTestClients.h"
 #include "fboss/fsdb/tests/utils/FsdbTestServer.h"
 #include "fboss/lib/CommonUtils.h"
@@ -218,6 +219,20 @@ class FsdbPubSubManagerTest : public ::testing::Test {
   std::vector<std::string> subscriptionPath() const {
     return kPublishRoot;
   }
+  std::vector<ExtendedOperPath> extSubscriptionPaths() const {
+    using StateRootMembers =
+        apache::thrift::reflect_struct<FsdbOperStateRoot>::member;
+    using AgentRootMembers = apache::thrift::reflect_struct<AgentData>::member;
+    using AgentConfigRootMembers =
+        apache::thrift::reflect_struct<cfg::AgentConfig>::member;
+    ExtendedOperPath path =
+        ext_path_builder::raw(StateRootMembers::agent::id::value)
+            .raw(AgentRootMembers::config::id::value)
+            .raw(AgentConfigRootMembers::defaultCommandLineArgs::id::value)
+            .any()
+            .get();
+    return {std::move(path)};
+  }
 
   void addStatDeltaSubscription(
       FsdbDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaUpdate,
@@ -280,6 +295,14 @@ class FsdbPubSubManagerTest : public ::testing::Test {
         operPathUpdate,
         std::move(serverOpts));
   }
+  void addStateExtDeltaSubscription(
+      FsdbExtDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaCb,
+      SubscriptionStateChangeCb stChangeCb) {
+    ReconnectingThriftClient::ServerOptions serverOpts{
+        "::1", fsdbTestServer_->getFsdbPort()};
+    pubSubManager_->addStateExtDeltaSubscription(
+        extSubscriptionPaths(), stChangeCb, operDeltaCb, std::move(serverOpts));
+  }
   void addSubscriptions(
       FsdbStateSubscriber::FsdbOperStateUpdateCb operPathUpdate) {
     addStatPathSubscription(operPathUpdate, subscrStateChangeCb());
@@ -292,6 +315,12 @@ class FsdbPubSubManagerTest : public ::testing::Test {
   FsdbStateSubscriber::FsdbOperStateUpdateCb makeOperStateCb(
       folly::Synchronized<std::vector<OperState>>& states) {
     return [&states](OperState&& state) { states.wlock()->push_back(state); };
+  }
+  FsdbExtDeltaSubscriber::FsdbOperDeltaUpdateCb makeExtOperDeltaCb(
+      folly::Synchronized<std::vector<OperSubDeltaUnit>>& deltas) {
+    return [&deltas](OperSubDeltaUnit&& delta) {
+      deltas.wlock()->push_back(delta);
+    };
   }
 
  private:
@@ -560,6 +589,16 @@ TYPED_TEST(FsdbPubSubManagerGRHoldTest, verifyResyncWithinGRHoldTime) {
   // Reset pubsub manager while local vector objects are in scope,
   // since we reference them in state change callbacks
   this->pubSubManager_.reset();
+}
+
+TYPED_TEST(FsdbPubSubManagerTest, pubSubExtDelta) {
+  folly::Synchronized<std::vector<OperSubDeltaUnit>> deltas;
+  this->createPublishers();
+  this->addStateExtDeltaSubscription(
+      this->makeExtOperDeltaCb(deltas), this->subscrStateChangeCb());
+  // Initial sync only after first publish
+  this->publishAndVerifyConfig({{"foo", "bar"}});
+  WITH_RETRIES(ASSERT_EVENTUALLY_EQ(deltas.rlock()->size(), 1));
 }
 
 } // namespace facebook::fboss::fsdb::test
