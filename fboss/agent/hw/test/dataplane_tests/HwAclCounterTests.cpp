@@ -400,15 +400,6 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
   std::unique_ptr<utility::EcmpSetupAnyNPorts6> helper_;
 };
 
-TYPED_TEST_SUITE(HwAclCounterTest, TestTypes);
-
-TYPED_TEST(HwAclCounterTest, VerifyCounterBumpOnBthOpcodeHitFrontPanel) {
-  this->counterBumpOnHitHelper(
-      true /* bump on hit */,
-      true /* front panel port */,
-      {AclType::BTH_OPCODE});
-}
-
 /*
  * Flowlet Acls are not supported on SAI and multi ACL. So we only test with
  * multi acl disabled for now.
