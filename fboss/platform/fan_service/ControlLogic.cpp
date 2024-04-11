@@ -56,24 +56,18 @@ ControlLogic::ControlLogic(
 
 std::tuple<bool, int, uint64_t> ControlLogic::readFanRpm(const Fan& fan) {
   std::string fanName = *fan.fanName();
-  XLOG(INFO) << fmt::format("Control :: Reading {} rpm", fanName);
-
   bool fanRpmReadSuccess = false;
   int fanRpm = 0;
   uint64_t rpmTimeStamp = 0;
   if (isFanPresentInDevice(fan)) {
-    if (*fan.rpmAccess()->accessType() != constants::ACCESS_TYPE_SYSFS()) {
-      facebook::fboss::FbossError("Invalid rpm access type for fan :", fanName);
-    }
     try {
-      fanRpm = pBsp_->readSysfs(*fan.rpmAccess()->path());
+      fanRpm = pBsp_->readSysfs(*fan.rpmSysfsPath());
       rpmTimeStamp = pBsp_->getCurrentTime();
       fanRpmReadSuccess = true;
     } catch (std::exception& e) {
-      XLOG(ERR) << "Fan RPM access failed " << *fan.rpmAccess()->path();
+      XLOG(ERR) << "Fan RPM access failed " << *fan.rpmSysfsPath();
     }
   }
-
   fb303::fbData->setCounter(
       fmt::format(kFanReadRpmFailure, fanName), !fanRpmReadSuccess);
   if (fanRpmReadSuccess) {
@@ -457,43 +451,17 @@ bool ControlLogic::isSensorPresentInConfig(const std::string& sensorName) {
 bool ControlLogic::isFanPresentInDevice(const Fan& fan) {
   unsigned int readVal;
   bool readSuccessful = false;
-  uint64_t nowSec;
-
-  // If no access method is listed in config,
-  // skip any check and return true
-  if ((*fan.presenceAccess()->path()).empty()) {
-    return true;
-  }
-
-  std::string presenceKey = *fan.fanName() + "_presence";
-  auto presenceAccessType = *fan.presenceAccess()->accessType();
-  if (presenceAccessType == constants::ACCESS_TYPE_THRIFT()) {
-    // In the case of Thrift, we use the last data from Thrift read
-    readVal = pSensor_->getSensorDataFloat(presenceKey);
+  try {
+    readVal = static_cast<unsigned>(pBsp_->readSysfs(*fan.presenceSysfsPath()));
     readSuccessful = true;
-  } else if (presenceAccessType == constants::ACCESS_TYPE_SYSFS()) {
-    nowSec = facebook::WallClockUtil::NowInSecFast();
-    try {
-      readVal = static_cast<unsigned>(
-          pBsp_->readSysfs(*fan.presenceAccess()->path()));
-      readSuccessful = true;
-    } catch (std::exception& e) {
-      XLOG(ERR) << "Failed to read sysfs " << *fan.presenceAccess()->path();
-    }
-    // If the read is successful, also update the SW state
-    if (readSuccessful) {
-      pSensor_->updateEntryFloat(presenceKey, readVal, nowSec);
-    }
-  } else {
-    throw facebook::fboss::FbossError(
-        "Only Thrift and sysfs are supported for fan presence detection!");
+  } catch (std::exception& e) {
+    XLOG(ERR) << "Failed to read sysfs " << *fan.presenceSysfsPath();
   }
-
   auto fanPresent = (readSuccessful && readVal == *fan.fanPresentVal());
-  XLOG(INFO) << fmt::format(
-      "Control :: {} is {} in the host",
-      *fan.fanName(),
-      fanPresent ? "present" : "absent");
+  if (!fanPresent) {
+    XLOG(INFO) << fmt::format(
+        "Control :: {} is absent in the host", *fan.fanName());
+  }
   fb303::fbData->setCounter(
       fmt::format(kFanAbsent, *fan.fanName()), !fanPresent);
   return fanPresent;
@@ -504,7 +472,6 @@ std::pair<bool, float> ControlLogic::programFan(
     const Fan& fan,
     float currentPwm,
     float pwmSoFar) {
-  auto srcType = *fan.pwmAccess()->accessType();
   float pwmToProgram = 0;
   bool writeSuccess{false};
   if ((*zone.slope() == 0) || (currentPwm == 0)) {
@@ -533,15 +500,11 @@ std::pair<bool, float> ControlLogic::programFan(
   } else if (pwmInt > *fan.pwmMax()) {
     pwmInt = *fan.pwmMax();
   }
-  if (srcType == constants::ACCESS_TYPE_SYSFS()) {
-    writeSuccess = pBsp_->setFanPwmSysfs(*fan.pwmAccess()->path(), pwmInt);
-  } else {
-    XLOG(ERR) << "Unsupported PWM access type for : ", *fan.fanName();
-  }
+  writeSuccess = pBsp_->setFanPwmSysfs(*fan.pwmSysfsPath(), pwmInt);
   fb303::fbData->setCounter(
       fmt::format(kFanWriteFailure, *zone.zoneName(), *fan.fanName()),
       !writeSuccess);
-  XLOG(INFO) << folly ::sformat(
+  XLOG(INFO) << fmt::format(
       "Programmed Fan {} with PWM {} and Returned {} as PWM to program.",
       *fan.fanName(),
       pwmInt,
@@ -550,20 +513,14 @@ std::pair<bool, float> ControlLogic::programFan(
 }
 
 void ControlLogic::programLed(const Fan& fan, bool fanFailed) {
-  XLOG(INFO) << "Control :: Enter LED for " << *fan.fanName();
   unsigned int valueToWrite =
       (fanFailed ? *fan.fanFailLedVal() : *fan.fanGoodLedVal());
-  if (*fan.ledAccess()->accessType() == constants::ACCESS_TYPE_SYSFS()) {
-    pBsp_->setFanLedSysfs(*fan.ledAccess()->path(), valueToWrite);
-  } else {
-    XLOG(ERR) << folly::sformat(
-        "Unsupported LED access type {} for : {}",
-        *fan.ledAccess()->accessType(),
-        *fan.fanName());
-  }
-  XLOG(INFO) << "Control :: Set the LED of " << *fan.fanName() << " to "
-             << (fanFailed ? "Fail" : "Good") << "(" << valueToWrite << ") "
-             << *fan.fanFailLedVal() << " vs " << *fan.fanGoodLedVal();
+  pBsp_->setFanLedSysfs(*fan.ledSysfsPath(), valueToWrite);
+  XLOG(INFO) << fmt::format(
+      "Control :: Setting the LED of {} to {} (value: {})",
+      *fan.fanName(),
+      (fanFailed ? "Fail" : "Good"),
+      valueToWrite);
 }
 
 float ControlLogic::calculateZonePwm(const Zone& zone, bool boostMode) {

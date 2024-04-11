@@ -68,10 +68,10 @@ struct Alarm {
 
 struct Fan {
   1: string fanName;
-  2: AccessMethod rpmAccess;
-  3: AccessMethod pwmAccess;
-  4: AccessMethod presenceAccess;
-  5: AccessMethod ledAccess;
+  2: string rpmSysfsPath;
+  3: string pwmSysfsPath;
+  4: string presenceSysfsPath;
+  5: string ledSysfsPath;
   6: i32 pwmMin;
   7: i32 pwmMax;
   8: i32 fanPresentVal;

@@ -77,24 +77,20 @@ bool Utils::isValidConfig(const FanServiceConfig& config) {
   }
 
   for (const auto& fan : *config.fans()) {
-    if (!accessMethodTypes.count(*fan.rpmAccess()->accessType())) {
-      XLOG(ERR) << "Invalid rpmAccess method: "
-                << *fan.rpmAccess()->accessType();
+    if (fan.rpmSysfsPath()->empty()) {
+      XLOG(ERR) << "rpmSysfsPath cannot be empty";
       return false;
     }
-    if (!accessMethodTypes.count(*fan.pwmAccess()->accessType())) {
-      XLOG(ERR) << "Invalid pwmAccess method: "
-                << *fan.pwmAccess()->accessType();
+    if (fan.pwmSysfsPath()->empty()) {
+      XLOG(ERR) << "pwmSysfsPath cannot be empty";
       return false;
     }
-    if (!accessMethodTypes.count(*fan.presenceAccess()->accessType())) {
-      XLOG(ERR) << "Invalid presenceAccess method: "
-                << *fan.presenceAccess()->accessType();
+    if (fan.presenceSysfsPath()->empty()) {
+      XLOG(ERR) << "presenceSysfsPath cannot be empty";
       return false;
     }
-    if (!accessMethodTypes.count(*fan.ledAccess()->accessType())) {
-      XLOG(ERR) << "Invalid ledAccess method: "
-                << *fan.ledAccess()->accessType();
+    if (fan.ledSysfsPath()->empty()) {
+      XLOG(ERR) << "ledSysfsPath cannot be empty";
       return false;
     }
   }

@@ -1,13 +1,12 @@
 {
-  "pwmBoostOnNumDeadFan" : 1,
-  "pwmBoostOnNumDeadSensor" : 0,
-  "pwmBoostOnNoQsfpAfterInSec" : 80,
-  "pwmBoostValue" : 80,
-  "pwmTransitionValue" : 50,
-  "pwmLowerThreshold" : 30,
-  "pwmUpperThreshold" : 80,
-  "shutdownCmd" : "wedge_power reset -s",
-
+  "pwmBoostOnNumDeadFan": 1,
+  "pwmBoostOnNumDeadSensor": 0,
+  "pwmBoostOnNoQsfpAfterInSec": 80,
+  "pwmBoostValue": 80,
+  "pwmTransitionValue": 50,
+  "pwmLowerThreshold": 30,
+  "pwmUpperThreshold": 80,
+  "shutdownCmd": "wedge_power reset -s",
   "sensors": [
     {
       "sensorName": "SMB_U104_OUTER_LM75_TEMP",
@@ -15,12 +14,12 @@
         "accessType": "ACCESS_TYPE_THRIFT"
       },
       "alarm": {
-        "highMajor": 105.0,
-        "highMinor": 90.0,
+        "highMajor": 105,
+        "highMinor": 90,
         "minorSoakSeconds": 15
       },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "scale": 1000.0,
+      "scale": 1000,
       "normalUpTable": {
         "15": 24,
         "110": 100
@@ -44,12 +43,12 @@
         "accessType": "ACCESS_TYPE_THRIFT"
       },
       "alarm": {
-        "highMajor": 105.0,
-        "highMinor": 90.0,
+        "highMajor": 105,
+        "highMinor": 90,
         "minorSoakSeconds": 15
       },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "scale": 1000.0,
+      "scale": 1000,
       "normalUpTable": {
         "15": 24,
         "110": 100
@@ -73,12 +72,12 @@
         "accessType": "ACCESS_TYPE_THRIFT"
       },
       "alarm": {
-        "highMajor": 105.0,
-        "highMinor": 90.0,
+        "highMajor": 105,
+        "highMinor": 90,
         "minorSoakSeconds": 15
       },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "scale": 1000.0,
+      "scale": 1000,
       "normalUpTable": {
         "15": 24,
         "110": 100
@@ -102,12 +101,12 @@
         "accessType": "ACCESS_TYPE_THRIFT"
       },
       "alarm": {
-        "highMajor": 105.0,
-        "highMinor": 90.0,
+        "highMajor": 105,
+        "highMinor": 90,
         "minorSoakSeconds": 15
       },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "scale": 1000.0,
+      "scale": 1000,
       "normalUpTable": {
         "15": 24,
         "110": 100
@@ -131,12 +130,12 @@
         "accessType": "ACCESS_TYPE_THRIFT"
       },
       "alarm": {
-        "highMajor": 105.0,
-        "highMinor": 90.0,
+        "highMajor": 105,
+        "highMinor": 90,
         "minorSoakSeconds": 15
       },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "scale": 1000.0,
+      "scale": 1000,
       "normalUpTable": {
         "15": 24,
         "110": 100
@@ -160,12 +159,12 @@
         "accessType": "ACCESS_TYPE_THRIFT"
       },
       "alarm": {
-        "highMajor": 105.0,
-        "highMinor": 90.0,
+        "highMajor": 105,
+        "highMinor": 90,
         "minorSoakSeconds": 15
       },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "scale": 1000.0,
+      "scale": 1000,
       "normalUpTable": {
         "15": 24,
         "110": 100
@@ -189,12 +188,12 @@
         "accessType": "ACCESS_TYPE_THRIFT"
       },
       "alarm": {
-        "highMajor": 105.0,
-        "highMinor": 90.0,
+        "highMajor": 105,
+        "highMinor": 90,
         "minorSoakSeconds": 15
       },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "scale": 1000.0,
+      "scale": 1000,
       "normalUpTable": {
         "15": 24,
         "110": 100
@@ -218,12 +217,12 @@
         "accessType": "ACCESS_TYPE_THRIFT"
       },
       "alarm": {
-        "highMajor": 105.0,
-        "highMinor": 90.0,
+        "highMajor": 105,
+        "highMinor": 90,
         "minorSoakSeconds": 15
       },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "scale": 1000.0,
+      "scale": 1000,
       "normalUpTable": {
         "15": 24,
         "110": 100
@@ -245,22 +244,10 @@
   "fans": [
     {
       "fanName": "fan_1",
-      "rpmAccess": {
-        "accessType": "ACCESS_TYPE_SYSFS",
-        "path": "/run/devmap/sensors/BCB_FAN_CPLD/fan1_input"
-      },
-      "pwmAccess": {
-        "accessType": "ACCESS_TYPE_SYSFS",
-        "path": "/run/devmap/sensors/BCB_FAN_CPLD/pwm1"
-      },
-      "presenceAccess": {
-        "accessType": "ACCESS_TYPE_SYSFS",
-        "path": "/run/devmap/sensors/BCB_FAN_CPLD/fan1_present"
-      },
-      "ledAccess": {
-        "accessType": "ACCESS_TYPE_SYSFS",
-        "path": "/sys/class/leds/fan1:blue:status/brightness"
-      },
+      "rpmSysfsPath": "/run/devmap/sensors/BCB_FAN_CPLD/fan1_input",
+      "pwmSysfsPath": "/run/devmap/sensors/BCB_FAN_CPLD/pwm1",
+      "presenceSysfsPath": "/run/devmap/sensors/BCB_FAN_CPLD/fan1_present",
+      "ledSysfsPath": "/sys/class/leds/fan1:blue:status/brightness",
       "pwmMin": 1,
       "pwmMax": 255,
       "fanPresentVal": 1,
@@ -270,22 +257,10 @@
     },
     {
       "fanName": "fan_8",
-      "rpmAccess": {
-        "accessType": "ACCESS_TYPE_SYSFS",
-        "path": "/run/devmap/sensors/BCB_FAN_CPLD/fan8_input"
-      },
-      "pwmAccess": {
-        "accessType": "ACCESS_TYPE_SYSFS",
-        "path": "/run/devmap/sensors/BCB_FAN_CPLD/pwm3"
-      },
-      "presenceAccess": {
-        "accessType": "ACCESS_TYPE_SYSFS",
-        "path": "/run/devmap/sensors/BCB_FAN_CPLD/fan8_present"
-      },
-      "ledAccess": {
-        "accessType": "ACCESS_TYPE_SYSFS",
-        "path": "/sys/class/leds/fan2:blue:status/brightness"
-      },
+      "rpmSysfsPath": "/run/devmap/sensors/BCB_FAN_CPLD/fan8_input",
+      "pwmSysfsPath": "/run/devmap/sensors/BCB_FAN_CPLD/pwm3",
+      "presenceSysfsPath": "/run/devmap/sensors/BCB_FAN_CPLD/fan8_present",
+      "ledSysfsPath": "/sys/class/leds/fan2:blue:status/brightness",
       "pwmMin": 1,
       "pwmMax": 255,
       "fanPresentVal": 1,
@@ -295,22 +270,10 @@
     },
     {
       "fanName": "fan_4",
-      "rpmAccess": {
-        "accessType": "ACCESS_TYPE_SYSFS",
-        "path": "/run/devmap/sensors/BCB_FAN_CPLD/fan4_input"
-      },
-      "pwmAccess": {
-        "accessType": "ACCESS_TYPE_SYSFS",
-        "path": "/run/devmap/sensors/BCB_FAN_CPLD/pwm4"
-      },
-      "presenceAccess": {
-        "accessType": "ACCESS_TYPE_SYSFS",
-        "path": "/run/devmap/sensors/BCB_FAN_CPLD/fan4_present"
-      },
-      "ledAccess": {
-        "accessType": "ACCESS_TYPE_SYSFS",
-        "path": "/sys/class/leds/fan3:blue:status/brightness"
-      },
+      "rpmSysfsPath": "/run/devmap/sensors/BCB_FAN_CPLD/fan4_input",
+      "pwmSysfsPath": "/run/devmap/sensors/BCB_FAN_CPLD/pwm4",
+      "presenceSysfsPath": "/run/devmap/sensors/BCB_FAN_CPLD/fan4_present",
+      "ledSysfsPath": "/sys/class/leds/fan3:blue:status/brightness",
       "pwmMin": 1,
       "pwmMax": 255,
       "fanPresentVal": 1,
@@ -320,22 +283,10 @@
     },
     {
       "fanName": "fan_11",
-      "rpmAccess": {
-        "accessType": "ACCESS_TYPE_SYSFS",
-        "path": "/run/devmap/sensors/BCB_FAN_CPLD/fan11_input"
-      },
-      "pwmAccess": {
-        "accessType": "ACCESS_TYPE_SYSFS",
-        "path": "/run/devmap/sensors/BCB_FAN_CPLD/pwm6"
-      },
-      "presenceAccess": {
-        "accessType": "ACCESS_TYPE_SYSFS",
-        "path": "/run/devmap/sensors/BCB_FAN_CPLD/fan11_present"
-      },
-      "ledAccess": {
-        "accessType": "ACCESS_TYPE_SYSFS",
-        "path": "/sys/class/leds/fan4:blue:status/brightness"
-      },
+      "rpmSysfsPath": "/run/devmap/sensors/BCB_FAN_CPLD/fan11_input",
+      "pwmSysfsPath": "/run/devmap/sensors/BCB_FAN_CPLD/pwm6",
+      "presenceSysfsPath": "/run/devmap/sensors/BCB_FAN_CPLD/fan11_present",
+      "ledSysfsPath": "/sys/class/leds/fan4:blue:status/brightness",
       "pwmMin": 1,
       "pwmMax": 255,
       "fanPresentVal": 1,
@@ -343,30 +294,28 @@
       "fanGoodLedVal": 2,
       "fanFailLedVal": 1
     }
-
   ],
   "zones": [
     {
-      "zoneType" : "ZONE_TYPE_MAX",
-      "zoneName" : "zone1",
-      "sensorNames" : [
-         "SMB_U104_OUTER_LM75_TEMP",
-	 "SMB_U15_OSFP_OUTER_LM75_TEMP",
-	 "SMB_U16_POWER_INNER_LM75_TEMP",
-	 "SMB_U17_INNER_RIGHT_LM75_TEMP",
-	 "SMB_U19_SSD_INNER_LM75_TEMP",
-	 "PDB_U1_LM75_TEMP",
-	 "SMB_U25_INNER_RIGHT_BOTTOM_LM75_TEMP",
-	 "SMB_U72_INNER_LEFT_LM75_TEMP"
+      "zoneType": "ZONE_TYPE_MAX",
+      "zoneName": "zone1",
+      "sensorNames": [
+        "SMB_U104_OUTER_LM75_TEMP",
+        "SMB_U15_OSFP_OUTER_LM75_TEMP",
+        "SMB_U16_POWER_INNER_LM75_TEMP",
+        "SMB_U17_INNER_RIGHT_LM75_TEMP",
+        "SMB_U19_SSD_INNER_LM75_TEMP",
+        "PDB_U1_LM75_TEMP",
+        "SMB_U25_INNER_RIGHT_BOTTOM_LM75_TEMP",
+        "SMB_U72_INNER_LEFT_LM75_TEMP"
       ],
       "fanNames": [
         "fan_1",
         "fan_8",
         "fan_4",
         "fan_11"
-
       ],
-      "slope" : 3
+      "slope": 3
     }
   ]
 }
