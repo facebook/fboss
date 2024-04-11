@@ -20,6 +20,35 @@ static constexpr auto kJerichoEcnThresholdIncrements{1024};
 
 namespace facebook::fboss::utility {
 
+int applyYubaFloatingPointRounding(int threshold) {
+  uint64_t val = static_cast<uint64_t>(threshold);
+  constexpr int mantissaLength = 5;
+  constexpr int maxMantissa = 0b11111;
+  constexpr int maxExponent = 0b1111;
+  constexpr int u64BitLength = 64;
+
+  // Edge Case
+  if (val == 0) {
+    return 0;
+  }
+
+  // length of a uint64_t - MSB of the value gives
+  // the number of bits to represent the value.
+  int bitLength = u64BitLength - __builtin_clzll(val);
+
+  // Number of bits preceding the 5 most significant bits
+  int exponent = std::max(bitLength - mantissaLength, 0);
+  int mantissa = val >> exponent;
+
+  // Check upper limit for exponent.
+  if (exponent > maxExponent) {
+    mantissa = maxMantissa;
+    exponent = maxExponent;
+  }
+
+  return mantissa << exponent;
+}
+
 int getRoundedBufferThreshold(
     const HwAsic* asic,
     int expectedThreshold,
@@ -69,6 +98,10 @@ int getRoundedBufferThreshold(
         FbossError("Invalid threshold for ASIC, ", expectedThreshold);
       }
     }
+  } else if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA) {
+    threshold = (applyYubaFloatingPointRounding(expectedThreshold) /
+                 asic->getPacketBufferUnitSize()) *
+        asic->getPacketBufferUnitSize();
   } else if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2) {
     // Jericho2 ECN thresholds are in multiples of 1K
     threshold = kJerichoEcnThresholdIncrements *
