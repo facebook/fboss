@@ -28,7 +28,8 @@ std::unordered_set<std::string> opticTypes = {
     constants::OPTIC_TYPE_400_GENERIC()};
 
 std::unordered_set<std::string> opticAggregationTypes = {
-    constants::OPTIC_AGGREGATION_TYPE_MAX()};
+    constants::OPTIC_AGGREGATION_TYPE_MAX(),
+    constants::OPTIC_AGGREGATION_TYPE_PID()};
 
 std::unordered_set<std::string> sensorPwmCalcTypes = {
     constants::SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE(),
@@ -116,6 +117,21 @@ bool Utils::isValidConfig(const FanServiceConfig& config) {
       XLOG(ERR) << "Invalid optic aggregation type: "
                 << *optic.aggregationType();
       return false;
+    }
+    if (*optic.aggregationType() == constants::OPTIC_AGGREGATION_TYPE_PID()) {
+      if (optic.pidSettings()->empty()) {
+        XLOG(ERR) << "PID settings cannot be empty for optic aggregation type: "
+                  << *optic.aggregationType();
+        return false;
+      }
+    } else if (
+        *optic.aggregationType() == constants::OPTIC_AGGREGATION_TYPE_MAX()) {
+      if (optic.tempToPwmMaps()->empty()) {
+        XLOG(ERR)
+            << "tempToPwmMaps settings cannot be empty for optic aggregation type: "
+            << *optic.aggregationType();
+        return false;
+      }
     }
   }
 
