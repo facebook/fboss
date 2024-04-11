@@ -98,7 +98,7 @@ class YubaAsic : public TajoAsic {
     return 50;
   }
   uint32_t getPacketBufferUnitSize() const override {
-    return 384;
+    return 512;
   }
   uint32_t getPacketBufferDescriptorSize() const override {
     return 40;
@@ -113,7 +113,7 @@ class YubaAsic : public TajoAsic {
     return 12;
   }
   uint32_t getStaticQueueLimitBytes() const override {
-    return 16000 * getPacketBufferUnitSize();
+    return 512 * 1024 * getPacketBufferUnitSize();
   }
   uint32_t getNumMemoryBuffers() const override {
     return 1;
