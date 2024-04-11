@@ -46,6 +46,9 @@ TEST(FlowletSwitching, addUpdate) {
   EXPECT_EQ(
       flowletCfg1->getFlowletTableSize(),
       cfg::switch_config_constants::DEFAULT_FLOWLET_TABLE_SIZE());
+  EXPECT_EQ(
+      flowletCfg1->getFlowletSwitchingMode(),
+      cfg::FlowletSwitchingMode::FLOWLET_SWITCHING_MODE_QUALITY);
 
   flowletCfg.inactivityIntervalUsecs() = 60;
   flowletCfg.flowletTableSize() = 1024;
@@ -58,6 +61,8 @@ TEST(FlowletSwitching, addUpdate) {
   flowletCfg.dynamicEgressMaxThresholdBytes() = 10000;
   flowletCfg.dynamicPhysicalQueueExponent() = 3;
   flowletCfg.maxLinks() = 9;
+  flowletCfg.flowletSwitchingMode() =
+      cfg::FlowletSwitchingMode::FLOWLET_SWITCHING_MODE_SPRAY;
 
   flowletSwitchingConfig->fromThrift(flowletCfg);
   switchSettings = std::make_shared<SwitchSettings>();
@@ -79,6 +84,24 @@ TEST(FlowletSwitching, addUpdate) {
   EXPECT_EQ(flowletCfg2->getDynamicEgressMaxThresholdBytes(), 10000);
   EXPECT_EQ(flowletCfg2->getDynamicPhysicalQueueExponent(), 3);
   EXPECT_EQ(flowletCfg2->getMaxLinks(), 9);
+  EXPECT_EQ(
+      flowletCfg2->getFlowletSwitchingMode(),
+      cfg::FlowletSwitchingMode::FLOWLET_SWITCHING_MODE_SPRAY);
+
+  flowletCfg.flowletSwitchingMode() =
+      cfg::FlowletSwitchingMode::FLOWLET_SWITCHING_MODE_FIXED;
+  flowletSwitchingConfig->fromThrift(flowletCfg);
+  switchSettings = std::make_shared<SwitchSettings>();
+  switchSettings->setFlowletSwitchingConfig(flowletSwitchingConfig);
+  multiSwitchSwitchSettings = std::make_shared<MultiSwitchSettings>();
+  multiSwitchSwitchSettings->addNode(scope().matcherString(), switchSettings);
+  state->resetSwitchSettings(multiSwitchSwitchSettings);
+  flowletCfg2 = state->getFlowletSwitchingConfig();
+  EXPECT_TRUE(flowletCfg2);
+  EXPECT_FALSE(flowletCfg2->isPublished());
+  EXPECT_EQ(
+      flowletCfg2->getFlowletSwitchingMode(),
+      cfg::FlowletSwitchingMode::FLOWLET_SWITCHING_MODE_FIXED);
 }
 
 TEST(FlowletSwitching, publish) {
@@ -115,6 +138,8 @@ TEST(FlowletSwitching, serDeserSwitchState) {
   flowletCfg.dynamicEgressMaxThresholdBytes() = 10000;
   flowletCfg.dynamicPhysicalQueueExponent() = 3;
   flowletCfg.maxLinks() = 7;
+  flowletCfg.flowletSwitchingMode() =
+      cfg::FlowletSwitchingMode::FLOWLET_SWITCHING_MODE_SPRAY;
 
   // convert to state
   flowletSwitchingConfig->fromThrift(flowletCfg);
@@ -154,6 +179,9 @@ TEST(FlowletSwitching, applyConfig) {
   EXPECT_EQ(
       flowletCfg1->getFlowletTableSize(),
       cfg::switch_config_constants::DEFAULT_FLOWLET_TABLE_SIZE());
+  EXPECT_EQ(
+      flowletCfg1->getFlowletSwitchingMode(),
+      cfg::FlowletSwitchingMode::FLOWLET_SWITCHING_MODE_QUALITY);
 
   // change config
   flowletCfg.inactivityIntervalUsecs() = 60;
@@ -166,6 +194,8 @@ TEST(FlowletSwitching, applyConfig) {
   flowletCfg.dynamicEgressMinThresholdBytes() = 1000;
   flowletCfg.dynamicEgressMaxThresholdBytes() = 10000;
   flowletCfg.dynamicPhysicalQueueExponent() = 3;
+  flowletCfg.flowletSwitchingMode() =
+      cfg::FlowletSwitchingMode::FLOWLET_SWITCHING_MODE_SPRAY;
 
   config.flowletSwitchingConfig() = flowletCfg;
   auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
@@ -183,6 +213,22 @@ TEST(FlowletSwitching, applyConfig) {
   EXPECT_EQ(flowletCfg2->getDynamicEgressMinThresholdBytes(), 1000);
   EXPECT_EQ(flowletCfg2->getDynamicEgressMaxThresholdBytes(), 10000);
   EXPECT_EQ(flowletCfg2->getDynamicPhysicalQueueExponent(), 3);
+  EXPECT_EQ(
+      flowletCfg2->getFlowletSwitchingMode(),
+      cfg::FlowletSwitchingMode::FLOWLET_SWITCHING_MODE_SPRAY);
+
+  flowletCfg.flowletSwitchingMode() =
+      cfg::FlowletSwitchingMode::FLOWLET_SWITCHING_MODE_FIXED;
+
+  config.flowletSwitchingConfig() = flowletCfg;
+  auto stateV4 = publishAndApplyConfig(stateV2, &config, platform.get());
+  ASSERT_NE(nullptr, stateV4);
+  flowletCfg2 = stateV4->getFlowletSwitchingConfig();
+  EXPECT_TRUE(flowletCfg2);
+  EXPECT_FALSE(flowletCfg2->isPublished());
+  EXPECT_EQ(
+      flowletCfg2->getFlowletSwitchingMode(),
+      cfg::FlowletSwitchingMode::FLOWLET_SWITCHING_MODE_FIXED);
 
   // Ensure that the global and switchSettings field are set for
   // backward/forward compatibility
@@ -193,7 +239,7 @@ TEST(FlowletSwitching, applyConfig) {
 
   // undo flowlet switching cfg
   config.flowletSwitchingConfig().reset();
-  auto stateV4 = publishAndApplyConfig(stateV3, &config, platform.get());
+  auto stateV5 = publishAndApplyConfig(stateV3, &config, platform.get());
   ASSERT_NE(nullptr, stateV4);
-  EXPECT_EQ(stateV4->getFlowletSwitchingConfig(), nullptr);
+  EXPECT_EQ(stateV5->getFlowletSwitchingConfig(), nullptr);
 }
