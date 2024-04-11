@@ -33,6 +33,17 @@ std::optional<TempToPwmMap> getConfigOpticTable(
   return std::nullopt;
 }
 
+std::optional<PidSetting> getConfigOpticPid(
+    const Optic& optic,
+    const std::string& opticType) {
+  for (const auto& [tableType, pidSetting] : *optic.pidSettings()) {
+    if (tableType == opticType) {
+      return pidSetting;
+    }
+  }
+  return std::nullopt;
+}
+
 } // namespace
 
 namespace facebook::fboss::platform::fan_service {
@@ -347,6 +358,7 @@ void ControlLogic::getOpticsUpdate() {
       auto opticData = pSensor_->getOpticEntry(opticName);
       int pwmSoFar = 0;
       int dataSize = 0;
+      const auto& aggregationType = optic.aggregationType();
       if (opticData != nullptr) {
         dataSize = opticData->data.size();
       }
@@ -354,23 +366,75 @@ void ControlLogic::getOpticsUpdate() {
         // This data set is empty, already processed. Ignore.
         continue;
       } else {
-        for (const auto& [opticType, value] : opticData->data) {
-          int pwmForThis = 0;
-          auto tablePointer = getConfigOpticTable(optic, opticType);
-          // We have <type, value> pair. If we have table entry for this
-          // optics type, get the matching pwm value using the optics value
-          if (tablePointer) {
-            // Start with the minumum, then continue the comparison
-            pwmForThis = tablePointer->begin()->second;
-            for (const auto& [temp, pwm] : *tablePointer) {
-              if (value >= temp) {
-                pwmForThis = pwm;
+        if (aggregationType == constants::OPTIC_AGGREGATION_TYPE_MAX()) {
+          // Conventional one-table conversion, followed by
+          // the aggregation using the max value
+          for (const auto& [opticType, value] : opticData->data) {
+            int pwmForThis = 0;
+            auto tablePointer = getConfigOpticTable(optic, opticType);
+            // We have <type, value> pair. If we have table entry for this
+            // optics type, get the matching pwm value using the optics value
+            if (tablePointer) {
+              // Start with the minumum, then continue the comparison
+              pwmForThis = tablePointer->begin()->second;
+              for (const auto& [temp, pwm] : *tablePointer) {
+                if (value >= temp) {
+                  pwmForThis = pwm;
+                }
+              }
+            }
+            if (pwmForThis > pwmSoFar) {
+              pwmSoFar = pwmForThis;
+            }
+          }
+        } else if (aggregationType == constants::OPTIC_AGGREGATION_TYPE_PID()) {
+          // PID based conversion. First calculate the max temperature
+          // per optic type, and use the max temperature for calculating
+          // pwm using PID method
+          // Step 1. Get the max temperature per optic type
+          std::unordered_map<std::string, float> maxValue;
+          for (const auto& [opticType, value] : opticData->data) {
+            if (maxValue.find(opticType) == maxValue.end()) {
+              maxValue[opticType] = value;
+            } else {
+              if (value > maxValue[opticType]) {
+                maxValue[opticType] = value;
               }
             }
           }
-          if (pwmForThis > pwmSoFar) {
-            pwmSoFar = pwmForThis;
+          // Step 2. Get the pwm per optic type using PID
+          for (const auto& [opticType, value] : maxValue) {
+            // Get PID setting
+            auto pidSetting = getConfigOpticPid(optic, opticType);
+            // Cache values are stored per optic type
+            auto& readCache = sensorReadCaches_[opticType];
+            auto& pwmCalcCache = pwmCalcCaches_[opticType];
+            float kp = *pidSetting->kp();
+            float ki = *pidSetting->ki();
+            float kd = *pidSetting->kd();
+            uint64_t dT = pBsp_->getCurrentTime() - lastControlUpdateSec_;
+            float minVal =
+                *pidSetting->setPoint() - *pidSetting->negHysteresis();
+            float maxVal =
+                *pidSetting->setPoint() + *pidSetting->posHysteresis();
+            float pwm = calculatePid(
+                opticType,
+                value,
+                readCache,
+                pwmCalcCache,
+                kp,
+                ki,
+                kd,
+                dT,
+                minVal,
+                maxVal);
+            if (pwm > pwmSoFar) {
+              pwmSoFar = pwm;
+            }
           }
+        } else {
+          throw facebook::fboss::FbossError(
+              "Only max and pid aggregation is supported for optics!");
         }
         opticData->calculatedPwm = pwmSoFar;
         // As we consumed the data, clear the vector
