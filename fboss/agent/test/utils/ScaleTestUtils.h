@@ -18,5 +18,15 @@ namespace facebook::fboss {
 class HwAsic;
 class SwSwitch;
 
-namespace utility {} // namespace utility
+namespace utility {
+
+std::vector<std::vector<PortDescriptor>> generateEcmpGroupScale(
+    const std::vector<PortDescriptor>& inputs,
+    const int maxEcmpGroups);
+
+std::vector<std::vector<PortDescriptor>> generateEcmpMemberScale(
+    const std::vector<PortDescriptor>& inputs,
+    const int maxEcmpMembers);
+
+} // namespace utility
 } // namespace facebook::fboss
