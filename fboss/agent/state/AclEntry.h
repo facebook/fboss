@@ -87,6 +87,8 @@ class AclEntry : public ThriftStructNode<AclEntry, state::AclEntryFields> {
   using BaseT = ThriftStructNode<AclEntry, state::AclEntryFields>;
   using BaseT::modify;
   using UdfGroups = std::vector<std::string>;
+  using RoceBytes = std::vector<signed char>;
+  using RoceMask = std::vector<signed char>;
   static const uint8_t kProtoIcmp = 1;
   static const uint8_t kProtoIcmpv6 = 58;
   static const uint8_t kMaxIcmpType = 0xFF;
@@ -358,6 +360,28 @@ class AclEntry : public ThriftStructNode<AclEntry, state::AclEntryFields> {
     set<switch_state_tags::roceOpcode>(opcode);
   }
 
+  std::optional<RoceBytes> getRoceBytes() const {
+    if (auto roceBytes = cref<switch_state_tags::roceBytes>()) {
+      return roceBytes->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setRoceBytes(RoceBytes roceBytes) {
+    set<switch_state_tags::roceBytes>(roceBytes);
+  }
+
+  std::optional<RoceMask> getRoceMask() const {
+    if (auto roceMask = cref<switch_state_tags::roceMask>()) {
+      return roceMask->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setRoceMask(RoceMask roceMask) {
+    set<switch_state_tags::roceMask>(roceMask);
+  }
+
   std::optional<cfg::AclLookupClass> getLookupClassRoute() const {
     if (auto lookupClassRoute = cref<switch_state_tags::lookupClassRoute>()) {
       return lookupClassRoute->cref();
@@ -407,7 +431,7 @@ class AclEntry : public ThriftStructNode<AclEntry, state::AclEntryFields> {
         getL4SrcPort() || getL4DstPort() || getLookupClassL2() ||
         getLookupClassNeighbor() || getLookupClassRoute() ||
         getPacketLookupResult() || getEtherType() || getVlanID() ||
-        getUdfGroups() || getRoceOpcode();
+        getUdfGroups() || getRoceOpcode() || getRoceBytes() || getRoceMask();
   }
 
   std::set<cfg::AclTableQualifier> getRequiredAclTableQualifiers() const;

@@ -36,6 +36,8 @@ HwSwitchMatcher scope() {
 }
 
 const std::vector<std::string> kUdfList = {"foo1", "foo2"};
+const std::vector<signed char> kRoceBytes = {0x40, 0x40};
+const std::vector<signed char> kRoceMask = {0x40, 0x40};
 static int kUdpProto(17);
 static int kUdpDstPort(4791);
 } // namespace
@@ -370,6 +372,42 @@ TEST(Acl, Udf) {
   auto aclV2 = stateV2->getAcl("aclUdf");
   ASSERT_NE(nullptr, aclV2);
   EXPECT_EQ(aclV2->getUdfGroups().value(), newUdfList);
+}
+
+TEST(Acl, UdfRoceBytesMask) {
+  FLAGS_enable_acl_table_group = false;
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+
+  cfg::SwitchConfig config;
+  config.acls()->resize(1);
+  *config.acls()[0].name() = "aclUdf";
+  *config.acls()[0].actionType() = cfg::AclActionType::DENY;
+  config.acls()[0].udfGroups() = kUdfList;
+  config.udfConfig() = makeUdfConfig(kUdfList);
+  config.acls()[0].roceBytes() = kRoceBytes;
+  config.acls()[0].roceMask() = kRoceMask;
+
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  EXPECT_NE(nullptr, stateV1);
+  auto aclV1 = stateV1->getAcl("aclUdf");
+  ASSERT_NE(nullptr, aclV1);
+  EXPECT_EQ(cfg::AclActionType::DENY, aclV1->getActionType());
+  EXPECT_EQ(aclV1->getUdfGroups().value(), kUdfList);
+  EXPECT_EQ(aclV1->getRoceBytes().value(), kRoceBytes);
+  EXPECT_EQ(aclV1->getRoceMask().value(), kRoceMask);
+
+  const std::vector<signed char> roceBytes = {0x40};
+  const std::vector<signed char> roceMask = {0x40};
+  config.acls()[0].roceBytes() = roceBytes;
+  config.acls()[0].roceMask() = roceMask;
+
+  auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
+  EXPECT_NE(nullptr, stateV2);
+  auto aclV2 = stateV2->getAcl("aclUdf");
+  ASSERT_NE(nullptr, aclV2);
+  EXPECT_EQ(aclV2->getRoceBytes().value(), roceBytes);
+  EXPECT_EQ(aclV2->getRoceMask().value(), roceMask);
 }
 
 TEST(Acl, validateUdfAclGroupFields) {
@@ -1174,6 +1212,8 @@ TEST(Acl, GetRequiredAclTableQualifiers) {
     acl.lookupClassRoute() = cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_2;
     acl.actionType() = cfg::AclActionType::DENY;
     acl.udfGroups() = kUdfList;
+    acl.roceBytes() = kRoceBytes;
+    acl.roceMask() = kRoceMask;
     return acl;
   };
   config.acls()[0] = setAclQualifiers("10.0.0.1/32", "acl0");
