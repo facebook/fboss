@@ -81,7 +81,7 @@ class HwFlexPortTest : public HwTest {
   void flexPortApplyConfigTest(FlexPortMode flexMode, std::string configName) {
     auto modes = getHwSwitchEnsemble()->getSupportedFlexPortModes();
     if (find(modes.begin(), modes.end(), flexMode) == modes.end()) {
-      XLOG(DBG2) << "Skipping flexport mode: " << configName;
+      XLOG(DBG2) << "Skipping: unsupported flexport mode: " << configName;
 #if defined(GTEST_SKIP)
       GTEST_SKIP();
 #endif
@@ -98,6 +98,16 @@ class HwFlexPortTest : public HwTest {
               allPortsinGroup,
               getPortSpeed(flexMode)))
         break;
+    }
+
+    if (index == masterLogicalPortIds().size()) {
+      XLOG(DBG2)
+          << "Skipping: No ports found with matching profile for flexport mode: "
+          << configName;
+#if defined(GTEST_SKIP)
+      GTEST_SKIP();
+#endif
+      return;
     }
 
     PortID masterLogicalPortId = masterLogicalPortIds()[index];
