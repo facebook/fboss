@@ -14,12 +14,6 @@ DEFINE_bool(mpls_rib, true, "Enable mpls rib");
 
 namespace facebook::fboss {
 
-namespace {
-auto constexpr kIncomingLabel = "topLabel";
-auto constexpr kLabelNextHop = "labelNextHop";
-auto constexpr kLabelNextHopsByClient = "labelNextHopMulti";
-} // namespace
-
 LabelForwardingInformationBase::LabelForwardingInformationBase() = default;
 
 LabelForwardingInformationBase::~LabelForwardingInformationBase() = default;

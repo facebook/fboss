@@ -13,20 +13,6 @@
 #include "fboss/agent/state/StateUtils.h"
 
 namespace {
-constexpr auto kQueueId = "queueId";
-constexpr auto kDscp = "dscp";
-constexpr auto kExp = "exp";
-constexpr auto kRules = "rules";
-constexpr auto kName = "name";
-constexpr auto kTrafficClass = "trafficClass";
-constexpr auto kDscpMap = "dscpMap";
-constexpr auto kExpMap = "expMap";
-constexpr auto kTrafficClassToQueueId = "trafficClassToQueueId";
-constexpr auto kPfcPriorityToQueueId = "pfcPriorityToQueueId";
-constexpr auto kPfcPriority = "pfcPriority";
-constexpr auto kFrom = "from";
-constexpr auto kTo = "to";
-constexpr auto kTrafficClassToPgId = "trafficClassToPgId";
 constexpr auto kPgId = "pgId";
 constexpr auto kPfcPriorityToPgId = "pfcPriorityToPgId";
 constexpr auto kAttr = "attr";
