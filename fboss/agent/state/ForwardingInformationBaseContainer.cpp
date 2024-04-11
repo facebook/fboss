@@ -13,12 +13,6 @@
 
 #include <folly/logging/xlog.h>
 
-namespace {
-constexpr auto kFibV4{"fibV4"};
-constexpr auto kFibV6{"fibV6"};
-constexpr auto kVrf{"vrf"};
-} // namespace
-
 namespace facebook::fboss {
 
 ForwardingInformationBaseContainer::ForwardingInformationBaseContainer(

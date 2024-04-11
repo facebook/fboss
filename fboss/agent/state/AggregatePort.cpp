@@ -18,25 +18,6 @@
 #include <tuple>
 #include <utility>
 
-namespace {
-constexpr auto kId = "id";
-constexpr auto kName = "name";
-constexpr auto kDescription = "description";
-constexpr auto kMinimumLinkCount = "minimumLinkCount";
-constexpr auto kSubports = "subports";
-constexpr auto kSystemID = "systemID";
-constexpr auto kSystemPriority = "systemPriority";
-constexpr auto kPortID = "portId";
-constexpr auto kRate = "rate";
-constexpr auto kActivity = "activity";
-constexpr auto kPriority = "priority";
-constexpr auto kForwarding = "forwarding";
-constexpr auto kForwardingStates = "forwardingStates";
-constexpr auto kPartnerInfo = "partnerInfo";
-constexpr auto kPartnerInfos = "partnerInfos";
-constexpr auto kHoldTimerMultiplier = "holdTimerMultiplier";
-} // namespace
-
 namespace facebook::fboss {
 
 AggregatePort::AggregatePort(
