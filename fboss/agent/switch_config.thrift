@@ -1804,12 +1804,12 @@ struct PortFlowletConfig {
 }
 
 enum FlowletSwitchingMode {
-  // flowlet is disabled
-  FLOWLET_SWITCHING_MODE_FIXED = 0,
   // flowlet regular quality based reassignments
-  FLOWLET_SWITCHING_MODE_QUALITY = 1,
+  FLOWLET_SWITCHING_MODE_QUALITY = 0,
   // flowlet random assignments
-  FLOWLET_SWITCHING_MODE_SPRAY = 2,
+  FLOWLET_SWITCHING_MODE_SPRAY = 1,
+  // flowlet is disabled
+  FLOWLET_SWITCHING_MODE_FIXED = 2,
 }
 
 struct FlowletSwitchingConfig {
