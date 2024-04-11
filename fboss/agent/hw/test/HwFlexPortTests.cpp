@@ -92,7 +92,9 @@ class HwFlexPortTest : public HwTest {
     int index = 0;
 
     for (; index < masterLogicalPortIds().size(); index++) {
-      allPortsinGroup = getAllPortsInGroup(masterLogicalPortIds()[index]);
+      allPortsinGroup = utility::getAllPortsInGroup(
+          getHwSwitch()->getPlatform()->getPlatformMapping(),
+          masterLogicalPortIds()[index]);
       if (utility::portsExistsInPortGroup(
               getHwSwitch()->getPlatform(),
               allPortsinGroup,

@@ -28,7 +28,7 @@ class SaiTajoPlatform : public SaiPlatform {
     return {};
   }
   std::vector<FlexPortMode> getSupportedFlexPortModes() const override {
-    return {};
+    return {FlexPortMode::ONEX400G};
   }
   std::optional<sai_port_interface_type_t> getInterfaceType(
       TransmitterTechnology /*transmitterTech*/,
