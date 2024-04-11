@@ -192,6 +192,17 @@ bool checkArrayHasNonZero(Param (&param)[size]) {
   return false;
 }
 
+template <typename Param>
+bool checkArrayHasNonZero(Param* param, size_t size) {
+  // as long as the param has one non-zero item, we consider it valid
+  for (size_t i = 0; i < size; i++) {
+    if (param[i]) {
+      return true;
+    }
+  }
+  return false;
+}
+
 /**
  * `bcm_field_qualify_SrcIp6` and `bcm_field_qualify_DstIp6` will use this func.
  *  Cause they use bcm_ip6_t, which is uint8[16]
@@ -237,7 +248,7 @@ bool isBcmQualFieldStateSame(
 /**
  * `bcm_field_qualify_udf` will use this func.
  */
-template <typename Func, typename Param, size_t size>
+template <typename Func, typename Param>
 bool isBcmQualFieldStateSame(
     Func getBcmQualifierFn,
     int unit,
@@ -245,21 +256,23 @@ bool isBcmQualFieldStateSame(
     int id,
     int maxLength,
     bool existInSW,
-    const Param (&swData)[size],
-    const Param (&swMask)[size],
+    const Param* swData,
+    const Param* swMask,
+    size_t size,
     const std::string& aclMsg,
     const std::string& qualMsg,
     bool verifyMask = true,
     bool verifyLength = true) {
-  Param hwData[size];
-  Param hwMask[size];
+  std::shared_ptr<Param[]> hwData(new Param[size]);
+  std::shared_ptr<Param[]> hwMask(new Param[size]);
   int hwLength = 0;
-  auto rv =
-      getBcmQualifierFn(unit, entry, id, maxLength, hwData, hwMask, &hwLength);
+  auto rv = getBcmQualifierFn(
+      unit, entry, id, maxLength, hwData.get(), hwMask.get(), &hwLength);
   bcmCheckError(rv, aclMsg, " failed to get ", qualMsg, " qualifier");
 
-  bool isNotExistInBoth = !existInSW && !checkArrayHasNonZero(hwData) &&
-      !checkArrayHasNonZero(hwMask);
+  bool isNotExistInBoth = !existInSW &&
+      !checkArrayHasNonZero(hwData.get(), size) &&
+      !checkArrayHasNonZero(hwMask.get(), size);
   // only check match if exist in both
   bool isValueSameInBoth = existInSW;
   if (existInSW) {

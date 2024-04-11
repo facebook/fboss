@@ -314,7 +314,34 @@ void BcmAclEntry::createAclQualifiers() {
           &mask[0]);
       bcmCheckError(
           rv,
-          "failed to qualify udf ",
+          "failed to qualify udf opcode ",
+          group,
+          " bcmUdfGroupId:",
+          bcmUdfGroupId);
+    }
+  }
+
+  if (acl_->getUdfGroups() && acl_->getRoceBytes() && acl_->getRoceMask()) {
+    const auto groups = acl_->getUdfGroups().value();
+    for (const auto& group : groups) {
+      const int bcmUdfGroupId = hw_->getUdfMgr()->getBcmUdfGroupId(group);
+      const auto roceBytes = acl_->getRoceBytes().value();
+      const auto roceMask = acl_->getRoceMask().value();
+      size_t size = roceBytes.size();
+      uint8 data[8], mask[8];
+      std::copy(roceBytes.begin(), roceBytes.end(), data);
+      std::copy(roceMask.begin(), roceMask.end(), mask);
+
+      rv = bcm_field_qualify_udf(
+          hw_->getUnit(),
+          handle_,
+          bcmUdfGroupId,
+          size /*length*/,
+          &data[0],
+          &mask[0]);
+      bcmCheckError(
+          rv,
+          "failed to qualify udf bytes/mask ",
           group,
           " bcmUdfGroupId:",
           bcmUdfGroupId);
@@ -886,6 +913,33 @@ bool BcmAclEntry::isStateSame(
           true,
           swData,
           swMask,
+          1 /* size */,
+          aclMsg,
+          "BcmUdfGroupId");
+    }
+  }
+
+  if (acl->getUdfGroups() && acl->getRoceBytes() && acl->getRoceMask()) {
+    const auto groups = acl->getUdfGroups().value();
+    for (const auto& group : groups) {
+      const int bcmUdfGroupId = hw->getUdfMgr()->getBcmUdfGroupId(group);
+      const auto roceBytes = acl->getRoceBytes().value();
+      const auto roceMask = acl->getRoceMask().value();
+      size_t size = roceBytes.size();
+      uint8 swData[8], swMask[8];
+      std::copy(roceBytes.begin(), roceBytes.end(), swData);
+      std::copy(roceMask.begin(), roceMask.end(), swMask);
+
+      isSame &= isBcmQualFieldStateSame(
+          bcm_field_qualify_udf_get,
+          hw->getUnit(),
+          handle,
+          bcmUdfGroupId,
+          size /* max_length */,
+          true,
+          swData,
+          swMask,
+          size,
           aclMsg,
           "BcmUdfGroupId");
     }
