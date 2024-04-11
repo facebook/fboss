@@ -415,10 +415,26 @@ EcmpDetails BcmEcmpEgress::getEcmpDetails() {
   bcmCheckError(ret, "Unable to get ECMP:  ", id_);
   ecmpDetails.ecmpId() = id_;
   ecmpDetails.flowletEnabled() =
-      (obj.dynamic_mode == BCM_L3_ECMP_DYNAMIC_MODE_NORMAL ? true : false);
+      ((obj.dynamic_mode == BCM_L3_ECMP_DYNAMIC_MODE_NORMAL ||
+        (obj.dynamic_mode == BCM_L3_ECMP_DYNAMIC_MODE_OPTIMAL))
+           ? true
+           : false);
   ecmpDetails.flowletInterval() = obj.dynamic_age;
   ecmpDetails.flowletTableSize() = obj.dynamic_size;
   return ecmpDetails;
+}
+
+uint32 BcmEcmpEgress::getFlowletDynamicMode(
+    const cfg::SwitchingMode& switchingMode) {
+  switch (switchingMode) {
+    case cfg::SwitchingMode::FLOWLET_QUALITY:
+      return BCM_L3_ECMP_DYNAMIC_MODE_NORMAL;
+    case cfg::SwitchingMode::PER_PACKET_QUALITY:
+      return BCM_L3_ECMP_DYNAMIC_MODE_OPTIMAL;
+    case cfg::SwitchingMode::FIXED_ASSIGNMENT:
+      return BCM_L3_ECMP_DYNAMIC_MODE_DISABLED;
+  }
+  throw FbossError("Invalid switching mode: ", switchingMode);
 }
 
 bool BcmEcmpEgress::isFlowletConfigUpdateNeeded() {
@@ -459,8 +475,10 @@ bool BcmEcmpEgress::isFlowletConfigUpdateNeeded() {
       (obj.dynamic_size != neededDynamicSize)) {
     updateNeeded = true;
   }
-  if ((neededDynamicSize != 0) &&
-      (obj.dynamic_mode != BCM_L3_ECMP_DYNAMIC_MODE_NORMAL)) {
+
+  const auto configDynamicMode =
+      getFlowletDynamicMode(bcmEcmpFlowletConfig.switchingMode);
+  if ((neededDynamicSize != 0) && (obj.dynamic_mode != configDynamicMode)) {
     updateNeeded = true;
   }
 
@@ -535,13 +553,14 @@ void BcmEcmpEgress::program() {
             numPaths,
             bcmFlowletConfig.maxLinks);
         if (obj.dynamic_size > 0) {
-          obj.dynamic_mode = BCM_L3_ECMP_DYNAMIC_MODE_NORMAL;
+          obj.dynamic_mode =
+              getFlowletDynamicMode(bcmFlowletConfig.switchingMode);
           enableFlowletMemberStatus = true;
         }
       }
       XLOG(DBG2) << "Programmed FlowletTableSize=" << obj.dynamic_size
                  << " InactivityIntervalUsecs=" << obj.dynamic_age
-                 << " for ECMP object "
+                 << " DynamicMode =" << obj.dynamic_mode << " for ECMP object "
                  << ((id_ != INVALID) ? folly::to<std::string>(id_)
                                       : "(invalid id)");
     }
@@ -1269,14 +1288,17 @@ bool BcmEcmpEgress::updateEcmpDynamicMode() {
   }
   bcmCheckError(ret, "Unable to get ECMP:  ", id_);
 
-  if (obj.dynamic_mode == BCM_L3_ECMP_DYNAMIC_MODE_NORMAL) {
-    XLOG(DBG3) << "ECMP: " << id_
-               << " is already in dynamic mode. Skip dynamic mode update.";
-    return updateComplete;
-  }
-
   // get copy of the ecmpFlowletConfig
   auto bcmEcmpFlowletConfig = hw_->getEgressManager()->getBcmFlowletConfig();
+  const auto configDynamicMode =
+      getFlowletDynamicMode(bcmEcmpFlowletConfig.switchingMode);
+  // check if the current dynamic mode is same as configured dynamic mode
+  // if it is same nothing to do
+  if (obj.dynamic_mode == configDynamicMode) {
+    XLOG(DBG3) << "ECMP: " << id_ << " is already in dynamic mode "
+               << obj.dynamic_mode << " Skip dynamic mode update.";
+    return updateComplete;
+  }
 
   // just ensure we are still running in flowlet mode which is reflected
   // in the cfg cached here.
@@ -1294,11 +1316,11 @@ bool BcmEcmpEgress::updateEcmpDynamicMode() {
           bcmEcmpFlowletConfig.maxLinks);
 
   const auto adjustedDynamicMode = (adjustedFlowletTableSize > 0)
-      ? BCM_L3_ECMP_DYNAMIC_MODE_NORMAL
+      ? configDynamicMode
       : BCM_L3_ECMP_DYNAMIC_MODE_DISABLED;
   // if the HW state i.e. dynamic_mode doesn't match the expectation after
   // adjust, lets fix it
-  if (adjustedDynamicMode == BCM_L3_ECMP_DYNAMIC_MODE_NORMAL) {
+  if (adjustedDynamicMode != BCM_L3_ECMP_DYNAMIC_MODE_DISABLED) {
     int option = BCM_L3_ECMP_O_REPLACE | BCM_L3_ECMP_O_CREATE_WITH_ID;
     obj.flags |= BCM_L3_REPLACE | BCM_L3_WITH_ID;
     obj.dynamic_size = adjustedFlowletTableSize;
@@ -1315,7 +1337,8 @@ bool BcmEcmpEgress::updateEcmpDynamicMode() {
     bcmCheckError(ret, "failed to re-program L3 ECMP egress object ", id_);
 
     XLOG(DBG2) << "Perform ecmp object adjustment for ECMP: " << id_
-               << " , with dynamic size: " << adjustedFlowletTableSize;
+               << " , with dynamic size: " << adjustedFlowletTableSize
+               << " , with dynamic mode: " << adjustedDynamicMode;
 
     setEgressEcmpMemberStatus(hw_, egressId2Weight_);
   } else {

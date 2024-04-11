@@ -237,6 +237,7 @@ class BcmEcmpEgress : public BcmEgressBase {
   void program();
   bool isFlowletConfigUpdateNeeded();
   bool isFlowletEnabledOnAllEgress(const EgressId2Weight& egressId2Weight);
+  static uint32 getFlowletDynamicMode(const cfg::SwitchingMode& switchingMode);
   static bool isWideEcmpEnabled(bool wideEcmpSupported);
   const EgressId2Weight egressId2Weight_;
   bool ucmpEnabled_{false};
