@@ -1,294 +1,224 @@
 {
-  "watchdog" : {
-    "access" : {
-      "accessType" : "ACCESS_TYPE_SYSFS",
-      "path" : "/sys/bus/i2c/drivers/iob_cpld/watchdog"
-    },
-    "value" : 1
-  },
-  "pwmBoostOnNumDeadFan" : 1,
-  "pwmBoostOnNumDeadSensor" : 0,
-  "pwmBoostOnNoQsfpAfterInSec" : 90,
-  "pwmBoostValue" : 70,
-  "pwmLowerThreshold" : 10,
-  "pwmUpperThreshold" : 70,
-  "shutdownCmd" : "wedge_power reset -s",
-  "optics" : [
+  "pwmBoostOnNumDeadFan": 1,
+  "pwmBoostOnNumDeadSensor": 0,
+  "pwmBoostOnNoQsfpAfterInSec": 90,
+  "pwmBoostValue": 60,
+  "pwmTransitionValue": 50,
+  "pwmLowerThreshold": 24,
+  "pwmUpperThreshold": 100,
+  "optics": [
     {
-      "opticName" : "qsfp_group_1",
-      "access" : {
-        "accessType" : "ACCESS_TYPE_QSFP"
+      "opticName": "qsfp_group_1",
+      "access": {
+        "accessType": "ACCESS_TYPE_QSFP"
       },
-      "portList" : [],
-      "aggregationType" : "OPTIC_AGGREGATION_TYPE_MAX",
-      "tempToPwmMaps" : {
-        "OPTIC_TYPE_100_GENERIC" : {
-          "40" : 35,
-          "42" : 50,
-          "44" : 75,
-          "50" : 100
+      "portList": [],
+      "aggregationType": "OPTIC_AGGREGATION_TYPE_MAX",
+      "tempToPwmMaps": {
+        "OPTIC_TYPE_100_GENERIC": {
+          "5": 24,
+          "38": 26,
+          "40": 28,
+          "41": 30,
+          "42": 32,
+          "44": 34,
+          "45": 36,
+          "48": 38,
+          "49": 40,
+          "52": 44,
+          "53": 46,
+          "54": 50
         },
-        "OPTIC_TYPE_200_GENERIC" : {
-          "42" : 35,
-          "44" : 50,
-          "46" : 75,
-          "52" : 100
+        "OPTIC_TYPE_200_GENERIC": {
+          "5": 26,
+          "43": 28,
+          "45": 30,
+          "47": 32,
+          "49": 34,
+          "50": 36,
+          "54": 40,
+          "56": 44,
+          "58": 46,
+          "61": 50
         },
-        "OPTIC_TYPE_400_GENERIC" : {
-          "46" : 35,
-          "48" : 50,
-          "50" : 75,
-          "52" : 100
+        "OPTIC_TYPE_400_GENERIC": {
+          "5": 36,
+          "59": 40,
+          "62": 42,
+          "66": 46,
+          "67": 48,
+          "68": 50,
+          "71": 52,
+          "73": 55,
+          "74": 60
         }
       }
     }
   ],
-  "sensors" : [
+  "sensors": [
     {
-      "sensorName" : "test_sensor_1",
-      "scale" : 1000.0,
-      "access" : {
-        "accessType" : "ACCESS_TYPE_THRIFT"
+      "sensorName": "SC_TH3_DIODE1_TEMP",
+      "access": {
+        "accessType": "ACCESS_TYPE_THRIFT"
       },
-      "pwmCalcType" : "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "normalUpTable" : {
-        "28" : 30,
-        "29" : 35,
-        "30" : 40,
-        "31" : 45,
-        "33" : 50,
-        "34" : 55,
-        "35" : 60
+      "alarm": {
+        "highMajor": 105,
+        "highMinor": 90,
+        "minorSoakSeconds": 15
       },
-      "normalDownTable" : {
-        "26" : 30,
-        "27" : 35,
-        "28" : 40,
-        "29" : 45,
-        "30" : 50,
-        "31" : 55,
-        "33" : 60
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
+      "scale": 1000,
+      "normalUpTable": {
+        "15": 24,
+        "110": 100
       },
-      "failUpTable" : {
-        "27" : 40,
-        "28" : 45,
-        "29" : 50,
-        "31" : 55,
-        "33" : 60,
-        "34" : 65,
-        "35" : 70
+      "normalDownTable": {
+        "15": 24,
+        "110": 100
       },
-      "failDownTable" : {
-        "25" : 40,
-        "26" : 45,
-        "27" : 50,
-        "29" : 55,
-        "31" : 60,
-        "32" : 65,
-        "33" : 70
+      "failUpTable": {
+        "15": 24,
+        "110": 100
       },
-      "alarm" : {
-        "highMajor" : 70.0,
-        "highMinor" : 65.0,
-        "minorSoakSeconds" : 15
+      "failDownTable": {
+        "15": 24,
+        "110": 100
       }
     },
     {
-      "sensorName" : "test_sensor_2",
-      "scale" : 1000.0,
-      "access" : {
-        "accessType" : "ACCESS_TYPE_THRIFT"
+      "sensorName": "SC_TH3_DIODE2_TEMP",
+      "access": {
+        "accessType": "ACCESS_TYPE_THRIFT"
       },
-      "pwmCalcType" : "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
-      "normalUpTable" : {
-        "28" : 30,
-        "29" : 35,
-        "30" : 40,
-        "31" : 45,
-        "33" : 50,
-        "34" : 55,
-        "35" : 60
+      "alarm": {
+        "highMajor": 105,
+        "highMinor": 90,
+        "minorSoakSeconds": 15
       },
-      "normalDownTable" : {
-        "26" : 30,
-        "27" : 35,
-        "28" : 40,
-        "29" : 45,
-        "30" : 50,
-        "31" : 55,
-        "33" : 60
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
+      "scale": 1000,
+      "type": "linear_four_curves",
+      "normalUpTable": {
+        "15": 24,
+        "110": 100
       },
-      "failUpTable" : {
-        "27" : 40,
-        "28" : 45,
-        "29" : 50,
-        "31" : 55,
-        "33" : 60,
-        "34" : 65,
-        "35" : 70
+      "normalDownTable": {
+        "15": 24,
+        "110": 100
       },
-      "failDownTable" : {
-        "25" : 40,
-        "26" : 45,
-        "27" : 50,
-        "29" : 55,
-        "31" : 60,
-        "32" : 65,
-        "33" : 70
+      "failUpTable": {
+        "15": 24,
+        "110": 100
       },
-      "alarm" : {
-        "highMajor" : 70.0,
-        "highMinor" : 65.0,
-        "minorSoakSeconds" : 15
-      }
-    },
-    {
-      "sensorName" : "test_sensor_3",
-      "scale" : 1000.0,
-      "access" : {
-        "accessType" : "ACCESS_TYPE_THRIFT"
-      },
-      "pwmCalcType" : "SENSOR_PWM_CALC_TYPE_PID",
-      "setPoint" : 92,
-      "posHysteresis" : 0,
-      "negHysteresis" : 3,
-      "kp" : 2,
-      "ki" : 0.1,
-      "kd" : 0.1,
-      "alarm" : {
-        "highMajor" : 120.0,
-        "highMinor" : 105.0,
-        "minorSoakSeconds" : 30
-      }
-    },
-    {
-      "sensorName" : "test_sensor_4",
-      "scale" : 1000.0,
-      "access" : {
-        "accessType" : "ACCESS_TYPE_THRIFT"
-      },
-      "pwmCalcType" : "SENSOR_PWM_CALC_TYPE_INCREMENT_PID",
-      "setPoint" : 92,
-      "posHysteresis" : 0,
-      "negHysteresis" : 3,
-      "kp" : 2,
-      "ki" : 0.5,
-      "kd" : 0.5,
-      "alarm" : {
-        "highMajor" : 120.0,
-        "highMinor" : 105.0,
-        "minorSoakSeconds" : 30
+      "failDownTable": {
+        "15": 24,
+        "110": 100
       }
     }
   ],
-  "fans" : [
+  "fans": [
     {
-      "fanName" : "fan_1",
-      "rpmAccess" : {
-        "accessType" : "ACCESS_TYPE_SYSFS",
-        "path" : "/sys/bus/i2c/drivers/fan_cpld/fan1_rpm"
-      },
-      "pwmAccess" : {
-        "accessType" : "ACCESS_TYPE_SYSFS",
-        "path" : "/sys/bus/i2c/drivers/fan_cpld/fan1_pwm"
-      },
-      "presenceAccess" : {
-        "accessType" : "ACCESS_TYPE_SYSFS",
-        "path" : "/sys/bus/i2c/drivers/fan_cpld/fan1_presence"
-      },
-      "ledAccess" : {
-        "accessType" : "ACCESS_TYPE_SYSFS",
-        "path" : "/sys/bus/i2c/drivers/fan_cpld/fan1_led"
-      },
-      "fanPresentVal" : 1,
-      "fanMissingVal" : 0,
-      "fanGoodLedVal" : 1,
-      "fanFailLedVal" : 0
+      "fanName": "fan_1",
+      "rpmSysfsPath": "/run/devmap/sensors/FAN_CPLD/fan1_input",
+      "pwmSysfsPath": "/run/devmap/sensors/FAN_CPLD/pwm1",
+      "presenceSysfsPath": "/run/devmap/sensors/FAN_CPLD/fan1_present",
+      "ledSysfsPath": "/run/devmap/sensors/FAN_CPLD/fan1_led",
+      "pwmMin": 1,
+      "pwmMax": 255,
+      "fanPresentVal": 1,
+      "fanMissingVal": 0,
+      "fanGoodLedVal": 2,
+      "fanFailLedVal": 1
     },
     {
-      "fanName" : "fan_2",
-      "rpmAccess" : {
-        "accessType" : "ACCESS_TYPE_SYSFS",
-        "path" : "/sys/bus/i2c/drivers/fan_cpld/fan2_rpm"
-      },
-      "pwmAccess" : {
-        "accessType" : "ACCESS_TYPE_SYSFS",
-        "path" : "/sys/bus/i2c/drivers/fan_cpld/fan2_pwm"
-      },
-      "presenceAccess" : {
-        "accessType" : "ACCESS_TYPE_SYSFS",
-        "path" : "/sys/bus/i2c/drivers/fan_cpld/fan2_presence"
-      },
-      "ledAccess" : {
-        "accessType" : "ACCESS_TYPE_SYSFS",
-        "path" : "/sys/bus/i2c/drivers/fan_cpld/fan2_led"
-      },
-      "fanPresentVal" : 1,
-      "fanMissingVal" : 0,
-      "fanGoodLedVal" : 1,
-      "fanFailLedVal" : 0
+      "fanName": "fan_2",
+      "rpmSysfsPath": "/run/devmap/sensors/FAN_CPLD/fan2_input",
+      "pwmSysfsPath": "/run/devmap/sensors/FAN_CPLD/pwm2",
+      "presenceSysfsPath": "/run/devmap/sensors/FAN_CPLD/fan2_present",
+      "ledSysfsPath": "/run/devmap/sensors/FAN_CPLD/fan2_led",
+      "pwmMin": 1,
+      "pwmMax": 255,
+      "fanPresentVal": 1,
+      "fanMissingVal": 0,
+      "fanGoodLedVal": 2,
+      "fanFailLedVal": 1
     },
     {
-      "fanName" : "fan_3",
-      "rpmAccess" : {
-        "accessType" : "ACCESS_TYPE_SYSFS",
-        "path" : "/sys/bus/i2c/drivers/fan_cpld/fan3_rpm"
-      },
-      "pwmAccess" : {
-        "accessType" : "ACCESS_TYPE_SYSFS",
-        "path" : "/sys/bus/i2c/drivers/fan_cpld/fan3_pwm"
-      },
-      "presenceAccess" : {
-        "accessType" : "ACCESS_TYPE_SYSFS",
-        "path" : "/sys/bus/i2c/drivers/fan_cpld/fan3_presence"
-      },
-      "ledAccess" : {
-        "accessType" : "ACCESS_TYPE_SYSFS",
-        "path" : "/sys/bus/i2c/drivers/fan_cpld/fan3_led"
-      },
-      "fanPresentVal" : 1,
-      "fanMissingVal" : 0,
-      "fanGoodLedVal" : 1,
-      "fanFailLedVal" : 0
+      "fanName": "fan_3",
+      "rpmSysfsPath": "/run/devmap/sensors/FAN_CPLD/fan3_input",
+      "pwmSysfsPath": "/run/devmap/sensors/FAN_CPLD/pwm3",
+      "presenceSysfsPath": "/run/devmap/sensors/FAN_CPLD/fan3_present",
+      "ledSysfsPath": "/run/devmap/sensors/FAN_CPLD/fan3_led",
+      "pwmMin": 1,
+      "pwmMax": 255,
+      "fanPresentVal": 1,
+      "fanMissingVal": 0,
+      "fanGoodLedVal": 2,
+      "fanFailLedVal": 1
+    },
+    {
+      "fanName": "fan_4",
+      "rpmSysfsPath": "/run/devmap/sensors/FAN_CPLD/fan4_input",
+      "pwmSysfsPath": "/run/devmap/sensors/FAN_CPLD/pwm4",
+      "presenceSysfsPath": "/run/devmap/sensors/FAN_CPLD/fan4_present",
+      "ledSysfsPath": "/run/devmap/sensors/FAN_CPLD/fan4_led",
+      "pwmMin": 1,
+      "pwmMax": 255,
+      "fanPresentVal": 1,
+      "fanMissingVal": 0,
+      "fanGoodLedVal": 2,
+      "fanFailLedVal": 1
+    },
+    {
+      "fanName": "fan_5",
+      "rpmSysfsPath": "/run/devmap/sensors/FAN_CPLD/fan5_input",
+      "pwmSysfsPath": "/run/devmap/sensors/FAN_CPLD/pwm5",
+      "presenceSysfsPath": "/run/devmap/sensors/FAN_CPLD/fan5_present",
+      "ledSysfsPath": "/run/devmap/sensors/FAN_CPLD/fan5_led",
+      "pwmMin": 1,
+      "pwmMax": 255,
+      "fanPresentVal": 1,
+      "fanMissingVal": 0,
+      "fanGoodLedVal": 2,
+      "fanFailLedVal": 1
     }
   ],
-  "zones" : [
+  "zones": [
     {
-      "zoneType" : "ZONE_TYPE_MAX",
-      "zoneName" : "left_zone",
-      "sensorNames" : [
-        "test_sensor_1",
-        "test_sensor_2",
-        "qsfp_group_1"
+      "zoneType": "ZONE_TYPE_MAX",
+      "zoneName": "zone1",
+      "sensorNames": [
+        "SC_TH3_DIODE1_TEMP"
       ],
-      "fanNames" : [
+      "fanNames": [
+        "fan_5",
+        "fan_6"
+      ],
+      "slope": 3
+    },
+    {
+      "zoneType": "ZONE_TYPE_MIN",
+      "zoneName": "zone2",
+      "sensorNames": [
+        "SC_TH3_DIODE2_TEMP"
+      ],
+      "fanNames": [
         "fan_1",
-        "qsfp_group_1"
-      ],
-      "slope" : 3
-    },
-    {
-      "zoneType" : "ZONE_TYPE_AVG",
-      "zoneName" : "center_zone",
-      "sensorNames" : [
-        "test_sensor_3",
-        "qsfp_group_1"
-      ],
-      "fanNames" : [
         "fan_2"
       ],
-      "slope" : 3
+      "slope": 1
     },
     {
-      "zoneType" : "ZONE_TYPE_MIN",
-      "zoneName" : "right_zone",
-      "sensorNames" : [
-        "test_sensor_4"
+      "zoneType": "ZONE_TYPE_AVG",
+      "zoneName": "zone3",
+      "sensorNames": [
+        "qsfp_group_1"
       ],
-      "fanNames" : [
-        "fan_3"
+      "fanNames": [
+        "fan_3",
+        "fan_4"
       ],
-      "slope" : 3
+      "slope": 2
     }
   ]
 }

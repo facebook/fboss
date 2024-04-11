@@ -42,8 +42,7 @@ class MockBsp : public Bsp {
 class ControlLogicTests : public testing::Test {
  public:
   void SetUp() override {
-    std::string confName =
-        "fboss/platform/fan_service/tests/configs/MockFanServiceConfig.json";
+    std::string confName = "fboss/platform/configs/sample/fan_service.json";
     std::string fanServiceConfJson;
     if (!folly::readFile(confName.c_str(), fanServiceConfJson)) {
       throw std::runtime_error("Fail to read config file: " + confName);
