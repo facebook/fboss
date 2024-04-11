@@ -1803,13 +1803,13 @@ struct PortFlowletConfig {
   3: i16 queueWeight;
 }
 
-enum FlowletSwitchingMode {
+enum SwitchingMode {
   // flowlet regular quality based reassignments
-  FLOWLET_SWITCHING_MODE_QUALITY = 0,
-  // flowlet random assignments
-  FLOWLET_SWITCHING_MODE_SPRAY = 1,
+  FLOWLET_QUALITY = 0,
+  // per packet assignments
+  PER_PACKET_QUALITY = 1,
   // flowlet is disabled
-  FLOWLET_SWITCHING_MODE_FIXED = 2,
+  FIXED_ASSIGNMENT = 2,
 }
 
 struct FlowletSwitchingConfig {
@@ -1838,8 +1838,8 @@ struct FlowletSwitchingConfig {
   // maximum links used for flowlet switching.
   // Needed for scaling flowset table
   11: i16 maxLinks;
-  // flowlet switching mode
-  12: FlowletSwitchingMode flowletSwitchingMode = FLOWLET_SWITCHING_MODE_QUALITY;
+  // switching mode
+  12: SwitchingMode switchingMode = FLOWLET_QUALITY;
 }
 
 /**
