@@ -285,41 +285,51 @@ class CowSubscriptionManager
                              auto& oldNode,
                              auto& newNode,
                              thrift_cow::DeltaElemTag visitTag) {
+      const auto* lookup = traverser.currentStore();
+      if (!FLAGS_lazyPathStoreCreation) {
+        // lookup can't be none or we wouldn't be serving this subscription
+        DCHECK(lookup);
+      } else {
+        // with lazy path store creation, we may not have created the PathStore
+        // yet. But there can still be subscriptions at parent nodes to serve.
+        // So proceed with processing the change.
+      }
+
       auto path = traverser.path();
 
-      // lookup can't be none or we wouldn't be serving this subscription
-      const auto* lookup = traverser.currentStore();
-      DCHECK(lookup);
-
-      const auto& exactSubscriptions = lookup->subscriptions();
       csm_detail::OperDeltaUnitCache deltaUnitCache(path, oldNode, newNode);
 
-      for (auto& relevant : exactSubscriptions) {
-        if (relevant->type() == PubSubType::PATH) {
-          auto* pathSubscription = static_cast<BasePathSubscription*>(relevant);
+      if (lookup) {
+        const auto& exactSubscriptions = lookup->subscriptions();
+        for (auto& relevant : exactSubscriptions) {
+          if (relevant->type() == PubSubType::PATH) {
+            auto* pathSubscription =
+                static_cast<BasePathSubscription*>(relevant);
 
-          if (auto proto = pathSubscription->operProtocol(); proto) {
-            servePathEncoded(
-                pathSubscription,
-                oldNode,
-                newNode,
-                *proto,
-                newStorage,
-                metadataServer);
-          }
-        } else {
-          // serve delta subscriptions if it's a MINIMAL change
-          // OR
-          // if this is a fully added/removed node and there are exact
-          // delta subscriptions, we serve them. This handles the case
-          // where a change won't be "MINIMAL" relative to the root,
-          // but is relative to the subscription point. This is mainly
-          // for children of a fully added/removed node higher in the tree.
-          if (visitTag == thrift_cow::DeltaElemTag::MINIMAL || !oldNode ||
-              !newNode) {
-            auto* deltaSubscription = static_cast<DeltaSubscription*>(relevant);
-            deltaSubscription->appendRootDeltaUnit(
-                deltaUnitCache.getEncoded(*relevant->operProtocol()));
+            if (auto proto = pathSubscription->operProtocol(); proto) {
+              servePathEncoded(
+                  pathSubscription,
+                  oldNode,
+                  newNode,
+                  *proto,
+                  newStorage,
+                  metadataServer);
+            }
+          } else {
+            // serve delta subscriptions if it's a MINIMAL change
+            // OR
+            // if this is a fully added/removed node and there are exact
+            // delta subscriptions, we serve them. This handles the case
+            // where a change won't be "MINIMAL" relative to the root,
+            // but is relative to the subscription point. This is mainly
+            // for children of a fully added/removed node higher in the tree.
+            if (visitTag == thrift_cow::DeltaElemTag::MINIMAL || !oldNode ||
+                !newNode) {
+              auto* deltaSubscription =
+                  static_cast<DeltaSubscription*>(relevant);
+              deltaSubscription->appendRootDeltaUnit(
+                  deltaUnitCache.getEncoded(*relevant->operProtocol()));
+            }
           }
         }
       }
@@ -334,6 +344,10 @@ class CowSubscriptionManager
       const auto& traverseElements = traverser.elementsAlongPath();
       for (auto it = traverseElements.begin(); it != traverseElements.end() - 1;
            ++it) {
+        if (!it->lookup) {
+          // no path store for this path, so subscriptions to serve
+          continue;
+        }
         const auto& parentSubscriptions = it->lookup->subscriptions();
         for (auto& relevant : parentSubscriptions) {
           if (relevant->type() != PubSubType::DELTA) {

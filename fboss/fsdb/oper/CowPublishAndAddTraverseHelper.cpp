@@ -21,13 +21,21 @@ void CowPublishAndAddTraverseHelper::onPushImpl(
   const auto& currPath = path();
   const auto& newTok = currPath.back();
   auto* lastPathStore = pathStores_.back();
-  auto* child = lastPathStore->getOrCreateChild(newTok);
 
-  // this assumes currPath has size > 0, which we know because we
-  // would have added at least one elem in TraverseHelper::push().
-  lastPathStore->processAddedPath(
-      *manager_, currPath.begin(), currPath.end() - 1, currPath.end());
-
+  SubscriptionPathStore* child{nullptr};
+  if (lastPathStore) {
+    if (FLAGS_lazyPathStoreCreation) {
+      child = lastPathStore->child(newTok);
+    } else {
+      child = lastPathStore->getOrCreateChild(newTok);
+    }
+    // this assumes currPath has size > 0, which we know because we
+    // would have added at least one elem in TraverseHelper::push().
+    lastPathStore->processAddedPath(
+        *manager_, currPath.begin(), currPath.end() - 1, currPath.end());
+  }
+  // on push, always add the child to the pathStores_ even if lastPathStore
+  // is null, so that pathStores_.size() is always equal to pathlen()
   pathStores_.emplace_back(child);
 }
 

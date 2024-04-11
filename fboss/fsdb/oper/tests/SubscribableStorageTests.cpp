@@ -887,7 +887,13 @@ TEST(SubscribableStorageTests, PruneSubscriptionPathStores) {
 
   auto maxNumPathStores = storage.numPathStores();
   XLOG(DBG2) << "maxNumPathStores: " << maxNumPathStores;
-  EXPECT_GT(maxNumPathStores, initialNumPathStores);
+  if (FLAGS_lazyPathStoreCreation) {
+    // with lazy PathStore creation, numPathStores should not change
+    // for exact subscriptions when adding/deleting paths.
+    EXPECT_EQ(maxNumPathStores, initialNumPathStores);
+  } else {
+    EXPECT_GT(maxNumPathStores, initialNumPathStores);
+  }
 
   // now delete the added path
   storage.remove(root.structMap()[99]);
@@ -899,7 +905,11 @@ TEST(SubscribableStorageTests, PruneSubscriptionPathStores) {
   // after path deletion, numPathStores should drop
   auto finalNumPathStores = storage.numPathStores();
   XLOG(DBG2) << "finalNumPathStores : " << finalNumPathStores;
-  EXPECT_LT(finalNumPathStores, maxNumPathStores);
+  if (FLAGS_lazyPathStoreCreation) {
+    EXPECT_EQ(finalNumPathStores, maxNumPathStores);
+  } else {
+    EXPECT_LT(finalNumPathStores, maxNumPathStores);
+  }
   EXPECT_EQ(finalNumPathStores, initialNumPathStores);
 }
 

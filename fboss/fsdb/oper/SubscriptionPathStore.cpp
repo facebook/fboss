@@ -5,6 +5,8 @@
 
 namespace facebook::fboss::fsdb {
 
+DEFINE_bool(lazyPathStoreCreation, true, "Lazy path store creation");
+
 void SubscriptionPathStore::add(Subscription* subscription) {
   auto path = subscription->path();
   add(path.begin(), path.end(), subscription);
@@ -71,8 +73,16 @@ void SubscriptionPathStore::processAddedPath(
   }
 
   auto key = *curr++;
+
+  // if child PathStore is not already created, don't create one unless
+  // there are any partially resolved subscriptions that match this key
+  bool childStorePresent{true};
   if (auto it = children_.find(key); it == children_.end()) {
-    children_.emplace(key, std::make_shared<SubscriptionPathStore>());
+    if (!FLAGS_lazyPathStoreCreation) {
+      children_.emplace(key, std::make_shared<SubscriptionPathStore>());
+    } else {
+      childStorePresent = false;
+    }
   }
 
   auto it = partiallyResolvedSubs_.begin();
@@ -107,6 +117,10 @@ void SubscriptionPathStore::processAddedPath(
       // we match this wildcard, incrementally resolve the
       // partial subscription to next wilcard or the end.
       std::vector<std::string> pathSoFar(begin, curr);
+      if (!childStorePresent) {
+        children_.emplace(key, std::make_shared<SubscriptionPathStore>());
+        childStorePresent = true;
+      }
       children_.at(key)->incrementallyResolve(
           manager, std::move(subscription), partial.pathIdx, pathSoFar);
     }
@@ -114,7 +128,12 @@ void SubscriptionPathStore::processAddedPath(
     ++it;
   }
 
-  children_.at(key)->processAddedPath(manager, begin, curr, end);
+  // if child PathStore is not created, that means there is no subscription
+  // to resolve under this key. So process further only if child PathStore
+  // is present.
+  if (childStorePresent) {
+    children_.at(key)->processAddedPath(manager, begin, curr, end);
+  }
 }
 
 std::vector<Subscription*> SubscriptionPathStore::find(

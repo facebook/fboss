@@ -16,6 +16,8 @@
 
 namespace facebook::fboss::fsdb {
 
+DECLARE_bool(lazyPathStoreCreation);
+
 enum class LookupType { PARENTS, TARGET, CHILDREN };
 
 struct PartiallyResolvedExtendedSubscription {
