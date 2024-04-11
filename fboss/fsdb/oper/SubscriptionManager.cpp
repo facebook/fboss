@@ -83,6 +83,10 @@ void SubscriptionManagerBase::registerExtendedSubscription(
 
 void SubscriptionManagerBase::registerSubscription(
     std::unique_ptr<Subscription> subscription) {
+  if (subscription->type() == PubSubType::PATCH && !useIdPaths_) {
+    throw std::runtime_error(
+        "Cannot support patch type subscriptions without id paths");
+  }
   // This flavor of registerSubscription automatically chooses a name.
   auto uuid = boost::uuids::to_string(boost::uuids::random_generator()());
   const auto& path = subscription->path();

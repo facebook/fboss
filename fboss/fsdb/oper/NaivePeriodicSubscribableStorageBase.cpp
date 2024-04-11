@@ -293,4 +293,24 @@ NaivePeriodicSubscribableStorageBase::subscribe_delta_extended_impl(
   return std::move(gen);
 }
 
+#ifdef ENABLE_PATCH_APIS
+folly::coro::AsyncGenerator<thrift_cow::Patch&&>
+NaivePeriodicSubscribableStorageBase::subscribe_patch_impl(
+    SubscriberId subscriber,
+    PathIter begin,
+    PathIter end,
+    OperProtocol protocol) {
+  auto path = convertPath(ConcretePath(begin, end));
+  auto [gen, subscription] = PatchSubscription::create(
+      std::move(subscriber),
+      path.begin(),
+      path.end(),
+      protocol,
+      getPublisherRoot(path.begin(), path.end()));
+  auto subscriptions = subscriptions_.wlock();
+  subscriptions->registerSubscription(std::move(subscription));
+  return std::move(gen);
+}
+#endif
+
 } // namespace facebook::fboss::fsdb

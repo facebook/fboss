@@ -188,6 +188,7 @@ class NaivePeriodicSubscribableStorage
     updateMetadata(path.begin(), path.end(), metadata);
     return state->patch(std::move(patch));
   }
+  using NaivePeriodicSubscribableStorageBase::subscribe_patch_impl;
 #endif
 
   std::optional<StorageError> patch_impl(const fsdb::OperDelta& delta) {

@@ -6,6 +6,8 @@
 
 #include <boost/core/noncopyable.hpp>
 
+#include <fboss/thrift_cow/gen-cpp2/patch_types.h>
+#include <fboss/thrift_cow/visitors/ThriftTCType.h>
 #include "fboss/fsdb/if/FsdbModel.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_common_types.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
@@ -37,9 +39,7 @@ class BaseSubscription {
     return std::nullopt;
   }
 
-  virtual bool isActive() const {
-    return true;
-  }
+  virtual bool isActive() const = 0;
 
   virtual bool shouldPrune() const {
     return !isActive();
@@ -531,6 +531,75 @@ class ExtendedDeltaSubscription : public ExtendedSubscription,
   OperProtocol protocol_;
   folly::coro::AsyncPipe<gen_type> pipe_;
   std::optional<gen_type> buffered_;
+};
+
+class PatchSubscription : public Subscription, private boost::noncopyable {
+ public:
+  using PathIter = std::vector<std::string>::const_iterator;
+
+  static std::pair<
+      folly::coro::AsyncGenerator<thrift_cow::Patch&&>,
+      std::unique_ptr<PatchSubscription>>
+  create(
+      SubscriberId subscriber,
+      PathIter begin,
+      PathIter end,
+      OperProtocol protocol,
+      std::optional<std::string> publisherRoot) {
+    auto [generator, pipe] =
+        folly::coro::AsyncPipe<thrift_cow::Patch>::create();
+    std::vector<std::string> path(begin, end);
+    auto subscription = std::make_unique<PatchSubscription>(
+        std::move(subscriber),
+        std::move(path),
+        std::move(pipe),
+        std::move(protocol),
+        std::move(publisherRoot));
+    return std::make_pair(std::move(generator), std::move(subscription));
+  }
+
+  PatchSubscription(
+      SubscriberId subscriber,
+      std::vector<std::string> path,
+      folly::coro::AsyncPipe<thrift_cow::Patch> pipe,
+      OperProtocol protocol,
+      std::optional<std::string> publisherTreeRoot = std::nullopt)
+      : Subscription(
+            std::move(subscriber),
+            std::move(path),
+            std::move(publisherTreeRoot)),
+        protocol_(std::move(protocol)),
+        pipe_(std::move(pipe)) {}
+
+  virtual ~PatchSubscription() override = default;
+
+  PubSubType type() const override {
+    return PubSubType::PATCH;
+  }
+
+  std::optional<OperProtocol> operProtocol() const override {
+    return protocol_;
+  }
+
+  std::optional<thrift_cow::Patch> moveFromCurrPatch(
+      const SubscriptionMetadataServer& /* metadataServer */);
+
+  void serveHeartbeat() override;
+
+  void flush(const SubscriptionMetadataServer& /*metadataServer*/) override;
+
+  bool isActive() const override {
+    return !pipe_.isClosed();
+  }
+
+  virtual void allPublishersGone(
+      FsdbErrorCode disconnectReason = FsdbErrorCode::ALL_PUBLISHERS_GONE,
+      const std::string& msg = "All publishers dropped") override;
+
+ private:
+  OperProtocol protocol_;
+  std::optional<thrift_cow::Patch> currPatch_;
+  folly::coro::AsyncPipe<thrift_cow::Patch> pipe_;
 };
 
 } // namespace facebook::fboss::fsdb

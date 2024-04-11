@@ -7,6 +7,7 @@
 #include "fboss/fsdb/server/FsdbOperTreeMetadataTracker.h"
 #include "fboss/fsdb/server/OperPathToPublisherRoot.h"
 #include "fboss/lib/ThreadHeartbeat.h"
+#include "fboss/thrift_cow/gen-cpp2/patch_types.h"
 
 #include <folly/Synchronized.h>
 #include <folly/experimental/coro/AsyncScope.h>
@@ -134,6 +135,14 @@ class NaivePeriodicSubscribableStorageBase {
       SubscriberId subscriber,
       std::vector<ExtendedOperPath> paths,
       OperProtocol protocol);
+
+#ifdef ENABLE_PATCH_APIS
+  folly::coro::AsyncGenerator<thrift_cow::Patch&&> subscribe_patch_impl(
+      SubscriberId subscriber,
+      PathIter begin,
+      PathIter end,
+      OperProtocol protocol);
+#endif
 
   size_t numSubscriptions() const {
     return withSubMgrRLocked([](const SubscriptionManagerBase& mgr) {

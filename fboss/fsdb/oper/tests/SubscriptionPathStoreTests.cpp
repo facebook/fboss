@@ -23,6 +23,11 @@ class TestSubscription : public Subscription {
   void allPublishersGone(
       FsdbErrorCode /* disconnectReason */,
       const std::string& /* msg */) override {}
+
+  bool isActive() const override {
+    return true;
+  }
+
   void flush(const SubscriptionMetadataServer&) override {}
   void serveHeartbeat() override {}
 
@@ -39,6 +44,11 @@ class TestDeltaSubscription : public Subscription {
   void allPublishersGone(
       FsdbErrorCode /* disconnectReason */,
       const std::string& /* msg */) override {}
+
+  bool isActive() const override {
+    return true;
+  }
+
   void flush(const SubscriptionMetadataServer&) override {}
   void serveHeartbeat() override {}
 
@@ -58,6 +68,11 @@ class TestExtendedSubscription : public ExtendedSubscription {
   void allPublishersGone(
       FsdbErrorCode /* disconnectReason */,
       const std::string& /* msg */) override {}
+
+  bool isActive() const override {
+    return true;
+  }
+
   void flush(const SubscriptionMetadataServer&) override {}
   void serveHeartbeat() override {}
   std::unique_ptr<Subscription> resolve(

@@ -115,4 +115,5 @@ struct OperSubDeltaUnit {
 enum PubSubType {
   PATH = 0,
   DELTA = 1,
+  PATCH = 2,
 }

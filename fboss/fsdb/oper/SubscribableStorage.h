@@ -141,6 +141,34 @@ class SubscribableStorage {
         subscriber, std::move(paths), protocol);
   }
 
+#ifdef ENABLE_PATCH_APIS
+  template <
+      typename Path,
+      typename = std::enable_if_t<
+          std::is_same_v<typename folly::remove_cvref_t<Path>::RootT, RootT>,
+          void>>
+  folly::coro::AsyncGenerator<thrift_cow::Patch&&>
+  subscribe_patch(SubscriberId subscriber, Path&& path, OperProtocol protocol) {
+    return this->subscribe_patch(
+        subscriber, path.begin(), path.end(), protocol);
+  }
+  folly::coro::AsyncGenerator<thrift_cow::Patch&&> subscribe_patch(
+      SubscriberId subscriber,
+      const ConcretePath& path,
+      OperProtocol protocol) {
+    return this->subscribe_patch(
+        subscriber, path.begin(), path.end(), protocol);
+  }
+  folly::coro::AsyncGenerator<thrift_cow::Patch&&> subscribe_patch(
+      SubscriberId subscriber,
+      PathIter begin,
+      PathIter end,
+      OperProtocol protocol) {
+    return static_cast<Impl*>(this)->subscribe_patch_impl(
+        subscriber, begin, end, protocol);
+  }
+#endif
+
   // wrapper calls to underlying storage
 
   template <
@@ -257,9 +285,11 @@ class SubscribableStorage {
     static_cast<Impl*>(this)->remove_impl(begin, end);
   }
 
+#ifdef ENABLE_PATCH_APIS
   std::optional<StorageError> patch(thrift_cow::Patch&& patch) {
     return static_cast<Impl*>(this)->patch_impl(std::move(patch));
   }
+#endif
 
   std::optional<StorageError> patch(const fsdb::OperDelta& delta) {
     return static_cast<Impl*>(this)->patch_impl(delta);
