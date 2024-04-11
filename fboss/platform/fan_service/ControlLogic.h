@@ -70,6 +70,26 @@ class ControlLogic {
       const Fan& fan,
       float currentPwm,
       float pwmSoFar);
+  float calculatePid(
+      const std::string& name,
+      float value,
+      SensorReadCache& readCache,
+      PwmCalcCache& pwmCalcCache,
+      float kp,
+      float ki,
+      float kd,
+      uint64_t dt,
+      float minVal,
+      float maxVal);
+  float calculateIncrementalPid(
+      const std::string& name,
+      float value,
+      SensorReadCache& readCache,
+      PwmCalcCache& pwmCalcCache,
+      float kp,
+      float ki,
+      float kd,
+      float setPoint);
   float calculateZonePwm(const Zone& zone, bool boostMode);
   void updateTargetPwm(const Sensor& sensorItem);
   void programLed(const Fan& fan, bool fanFailed);

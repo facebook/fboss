@@ -74,11 +74,77 @@ std::tuple<bool, int, uint64_t> ControlLogic::readFanRpm(const Fan& fan) {
   return std::make_tuple(!fanRpmReadSuccess, fanRpm, rpmTimeStamp);
 }
 
+float ControlLogic::calculatePid(
+    const std::string& name,
+    float value,
+    SensorReadCache& readCache,
+    PwmCalcCache& pwmCalcCache,
+    float kp,
+    float ki,
+    float kd,
+    uint64_t dT,
+    float minVal,
+    float maxVal) {
+  float lastPwm, previousRead1, error, pwm;
+  lastPwm = pwmCalcCache.previousTargetPwm;
+  pwm = lastPwm;
+  previousRead1 = pwmCalcCache.previousRead1;
+
+  if (value < minVal) {
+    pwmCalcCache.integral = 0;
+    pwmCalcCache.previousTargetPwm = 0;
+  }
+  if (value > maxVal) {
+    error = maxVal - value;
+    pwmCalcCache.integral = pwmCalcCache.integral + error * dT;
+    auto derivative = (error - pwmCalcCache.last_error) / dT;
+    pwm = kp * error + ki * pwmCalcCache.integral + kd * derivative;
+    readCache.targetPwmCache = pwm;
+    pwmCalcCache.previousTargetPwm = pwm;
+    pwmCalcCache.last_error = error;
+  }
+  pwmCalcCache.previousRead2 = previousRead1;
+  pwmCalcCache.previousRead1 = value;
+  XLOG(DBG1) << "Control :: Sensor : " << name << " Value : " << value
+             << " [PID] Pwm : " << pwm;
+  XLOG(DBG1) << "               dT : " << dT
+             << " Time : " << pBsp_->getCurrentTime()
+             << " LUD : " << lastControlUpdateSec_ << " Min : " << minVal
+             << " Max : " << maxVal;
+  return pwm;
+}
+
+float ControlLogic::calculateIncrementalPid(
+    const std::string& name,
+    float value,
+    SensorReadCache& readCache,
+    PwmCalcCache& pwmCalcCache,
+    float kp,
+    float ki,
+    float kd,
+    float setPoint) {
+  float pwm, lastPwm, previousRead1, previousRead2;
+  lastPwm = pwmCalcCache.previousTargetPwm;
+  previousRead1 = pwmCalcCache.previousRead1;
+  previousRead2 = pwmCalcCache.previousRead2;
+  pwm = lastPwm + (kp * (value - previousRead1)) + (ki * (value - setPoint)) +
+      (kd * (value - 2 * previousRead1 + previousRead2));
+  // Even though the previous Target Pwm should be the zone pwm,
+  // the best effort is made here. Zone should update this value.
+  pwmCalcCache.previousTargetPwm = pwm;
+  readCache.targetPwmCache = pwm;
+  pwmCalcCache.previousRead2 = previousRead1;
+  pwmCalcCache.previousRead1 = value;
+  XLOG(DBG1) << "Control :: Sensor : " << name << " Value : " << value
+             << " [IPID] Pwm : " << pwm;
+  XLOG(DBG1) << "           Prev1  : " << previousRead1
+             << " Prev2 : " << previousRead2;
+  return pwm;
+}
+
 void ControlLogic::updateTargetPwm(const Sensor& sensor) {
   bool accelerate, deadFanExists;
-  float previousSensorValue, sensorValue, targetPwm;
-  float value, lastPwm, kp, ki, kd, previousRead1, previousRead2, pwm;
-  float error;
+  float previousSensorValue, sensorValue, targetPwm, pwm;
   float minVal = *sensor.setPoint() - *sensor.negHysteresis();
   float maxVal = *sensor.setPoint() + *sensor.posHysteresis();
   uint64_t dT;
@@ -129,60 +195,32 @@ void ControlLogic::updateTargetPwm(const Sensor& sensor) {
   }
 
   if (pwmCalcType == constants::SENSOR_PWM_CALC_TYPE_INCREMENT_PID()) {
-    value = readCache.adjustedReadCache;
-    lastPwm = pwmCalcCache.previousTargetPwm;
-    kp = *sensor.kp();
-    ki = *sensor.ki();
-    kd = *sensor.kd();
-    previousRead1 = pwmCalcCache.previousRead1;
-    previousRead2 = pwmCalcCache.previousRead2;
-    pwm = lastPwm + (kp * (value - previousRead1)) +
-        (ki * (value - *sensor.setPoint())) +
-        (kd * (value - 2 * previousRead1 + previousRead2));
-    // Even though the previous Target Pwm should be the zone pwm,
-    // the best effort is made here. Zone should update this value.
-    pwmCalcCache.previousTargetPwm = pwm;
+    pwm = calculateIncrementalPid(
+        *sensor.sensorName(),
+        readCache.adjustedReadCache,
+        readCache,
+        pwmCalcCache,
+        *sensor.kp(),
+        *sensor.ki(),
+        *sensor.kd(),
+        *sensor.setPoint());
     readCache.targetPwmCache = pwm;
-    pwmCalcCache.previousRead2 = previousRead1;
-    pwmCalcCache.previousRead1 = value;
-    XLOG(INFO) << "Control :: Sensor : " << *sensor.sensorName()
-               << " Value : " << value << " [IPID] Pwm : " << pwm;
-    XLOG(INFO) << "           Prev1  : " << previousRead1
-               << " Prev2 : " << previousRead2;
   }
 
   if (pwmCalcType == constants::SENSOR_PWM_CALC_TYPE_PID()) {
-    value = readCache.adjustedReadCache;
-    lastPwm = pwmCalcCache.previousTargetPwm;
-    pwm = lastPwm;
-    kp = *sensor.kp();
-    ki = *sensor.ki();
-    kd = *sensor.kd();
-    previousRead1 = pwmCalcCache.previousRead1;
-    previousRead2 = pwmCalcCache.previousRead2;
     dT = pBsp_->getCurrentTime() - lastControlUpdateSec_;
-
-    if (value < minVal) {
-      pwmCalcCache.integral = 0;
-      pwmCalcCache.previousTargetPwm = 0;
-    }
-    if (value > maxVal) {
-      error = maxVal - value;
-      pwmCalcCache.integral = pwmCalcCache.integral + error * dT;
-      auto derivative = (error - pwmCalcCache.last_error) / dT;
-      pwm = kp * error + ki * pwmCalcCache.integral + kd * derivative;
-      readCache.targetPwmCache = pwm;
-      pwmCalcCache.previousTargetPwm = pwm;
-      pwmCalcCache.last_error = error;
-    }
-    pwmCalcCache.previousRead2 = previousRead1;
-    pwmCalcCache.previousRead1 = value;
-    XLOG(INFO) << "Control :: Sensor : " << *sensor.sensorName()
-               << " Value : " << value << " [PID] Pwm : " << pwm;
-    XLOG(INFO) << "               dT : " << dT
-               << " Time : " << pBsp_->getCurrentTime()
-               << " LUD : " << lastControlUpdateSec_ << " Min : " << minVal
-               << " Max : " << maxVal;
+    pwm = calculatePid(
+        *sensor.sensorName(),
+        readCache.adjustedReadCache,
+        readCache,
+        pwmCalcCache,
+        *sensor.kp(),
+        *sensor.ki(),
+        *sensor.kd(),
+        dT,
+        minVal,
+        maxVal);
+    readCache.targetPwmCache = pwm;
   }
 
   // No matter what, PWM should be within
