@@ -207,6 +207,8 @@ struct AclEntryFields {
   27: optional bool enabled;
   28: optional list<string> udfGroups;
   29: optional byte roceOpcode;
+  30: optional list<byte> roceBytes;
+  31: optional list<byte> roceMask;
 }
 
 enum NeighborState {

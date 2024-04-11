@@ -508,6 +508,10 @@ struct AclEntry {
   31: optional list<string> udfGroups;
 
   32: optional byte roceOpcode;
+
+  33: optional list<byte> roceBytes;
+
+  34: optional list<byte> roceMask;
 }
 
 enum AclTableActionType {
