@@ -138,7 +138,9 @@ TEST_F(PlatformMappingTest, VerifyWedge400PortIphyPinConfigs) {
           if (profile.first ==
                   cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_COPPER ||
               profile.first ==
-                  cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544X2N_COPPER) {
+                  cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544X2N_COPPER ||
+              profile.first ==
+                  cfg::PortProfileID::PROFILE_50G_1_PAM4_RS544_COPPER) {
             EXPECT_TRUE(tx.has_value());
             verifyTxSettings(*tx, {4, -20, 140, 0, 0, 0});
           } else {
