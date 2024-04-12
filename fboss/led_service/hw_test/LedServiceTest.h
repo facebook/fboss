@@ -31,6 +31,8 @@ class LedServiceTest : public ::testing::Test {
 
   void SetUp() override;
   void TearDown() override;
+  facebook::fboss::LedManager* ledManager_ = nullptr;
+  const facebook::fboss::PlatformMapping* platformMap_ = nullptr;
 
  private:
   // Forbidden copy constructor and assignment operator
