@@ -79,6 +79,14 @@ void verifyPlatformNameMatches(
     return;
   }
 
+#ifndef IS_OSS
+  if (platformNameFromBios == "NOT SPECIFIED") {
+    XLOG(ERR)
+        << "Platform name is not specified in BIOS. Skipping comparison with config.";
+    return;
+  }
+#endif
+
   XLOGF(
       FATAL,
       "Platform name in config does not match the inferred platform name from "
