@@ -117,7 +117,7 @@ class CowSubscriptionManager
       newState->metadata() = subscription->getMetadata(metadataServer);
     }
     auto value = DeltaValue<OperState>(oldState, newState);
-    subscription->offer(std::any(std::move(value)));
+    subscription->offer(std::move(value));
   }
 
   void doInitialSyncSimple(
@@ -150,7 +150,7 @@ class CowSubscriptionManager
             state->protocol() = *proto;
             state->metadata() = subscription->getMetadata(metadataServer);
             auto value = DeltaValue<OperState>(std::nullopt, std::move(state));
-            pathSubscription->offer(std::any(std::move(value)));
+            pathSubscription->offer(std::move(value));
           }
         } else {
           // Delta subscription

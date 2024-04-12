@@ -221,7 +221,7 @@ NaivePeriodicSubscribableStorageBase::subscribe_encoded_impl(
     PathIter end,
     OperProtocol protocol) {
   auto path = convertPath(ConcretePath(begin, end));
-  auto [gen, subscription] = PathSubscription<DeltaValue<OperState>>::create(
+  auto [gen, subscription] = PathSubscription::create(
       std::move(subscriber),
       path.begin(),
       path.end(),

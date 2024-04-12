@@ -72,11 +72,11 @@ class BaseSubscription {
   BaseSubscription(
       SubscriberId subscriber,
       std::optional<std::string> publisherRoot)
-      : subscriber_(subscriber), publisherTreeRoot_(publisherRoot) {}
+      : subscriber_(std::move(subscriber)),
+        publisherTreeRoot_(std::move(publisherRoot)) {}
 
  private:
   const SubscriberId subscriber_;
-  const std::vector<std::string> path_;
   const std::optional<std::string> publisherTreeRoot_;
 };
 
@@ -91,7 +91,8 @@ class Subscription : public BaseSubscription {
       SubscriberId subscriber,
       std::vector<std::string> path,
       std::optional<std::string> publisherRoot)
-      : BaseSubscription(subscriber, publisherRoot), path_(std::move(path)) {}
+      : BaseSubscription(std::move(subscriber), std::move(publisherRoot)),
+        path_(std::move(path)) {}
 
  private:
   const std::vector<std::string> path_;
@@ -130,7 +131,8 @@ class ExtendedSubscription : public BaseSubscription {
       SubscriberId subscriber,
       std::vector<ExtendedOperPath> paths,
       std::optional<std::string> publisherRoot)
-      : BaseSubscription(subscriber, publisherRoot), paths_(std::move(paths)) {}
+      : BaseSubscription(std::move(subscriber), std::move(publisherRoot)),
+        paths_(std::move(paths)) {}
 
  private:
   const std::vector<ExtendedOperPath> paths_;
@@ -143,25 +145,24 @@ class BasePathSubscription : public Subscription {
 
   using Subscription::Subscription;
 
-  virtual void offer(std::any newVal) = 0;
+  virtual void offer(DeltaValue<OperState> newVal) = 0;
 
   PubSubType type() const override {
     return PubSubType::PATH;
   }
 };
 
-template <typename T>
 class PathSubscription : public BasePathSubscription,
                          private boost::noncopyable {
  public:
+  using value_type = DeltaValue<OperState>;
+
   virtual ~PathSubscription() override = default;
-  using Self = PathSubscription<T>;
-  using value_type = typename T::value_type;
   using PathIter = std::vector<std::string>::const_iterator;
 
-  void offer(std::any newVal) override {
+  void offer(DeltaValue<OperState> newVal) override {
     // use bounded pipe?
-    pipe_.write(std::any_cast<T>(newVal));
+    pipe_.write(std::move(newVal));
   }
 
   std::optional<OperProtocol> operProtocol() const override {
@@ -172,40 +173,18 @@ class PathSubscription : public BasePathSubscription,
     return !pipe_.isClosed();
   }
 
-  template <
-      typename Tgt = Self,
-      std::enable_if_t<
-          !std::is_same_v<typename Tgt::value_type, OperState>,
-          bool> = true>
-  static decltype(auto) create(
-      SubscriberId subscriber,
-      PathIter begin,
-      PathIter end,
-      std::optional<std::string> publisherRoot) {
-    auto [generator, pipe] = folly::coro::AsyncPipe<T>::create();
-    std::vector<std::string> path(begin, end);
-    auto subscription = std::make_unique<PathSubscription<T>>(
-        std::move(subscriber),
-        std::move(path),
-        std::move(pipe),
-        std::move(publisherRoot));
-    return std::make_pair(std::move(generator), std::move(subscription));
-  }
-
-  template <
-      typename Tgt = Self,
-      std::enable_if_t<
-          std::is_same_v<typename Tgt::value_type, OperState>,
-          bool> = true>
-  static decltype(auto) create(
+  static std::pair<
+      folly::coro::AsyncGenerator<value_type&&>,
+      std::unique_ptr<PathSubscription>>
+  create(
       SubscriberId subscriber,
       PathIter begin,
       PathIter end,
       std::optional<std::string> publisherRoot,
       std::optional<OperProtocol> protocol) {
-    auto [generator, pipe] = folly::coro::AsyncPipe<T>::create();
+    auto [generator, pipe] = folly::coro::AsyncPipe<value_type>::create();
     std::vector<std::string> path(begin, end);
-    auto subscription = std::make_unique<PathSubscription<T>>(
+    auto subscription = std::make_unique<PathSubscription>(
         std::move(subscriber),
         std::move(path),
         std::move(pipe),
@@ -215,7 +194,7 @@ class PathSubscription : public BasePathSubscription,
   }
 
   bool shouldConvertToDynamic() const override {
-    return std::is_same_v<T, DeltaValue<folly::dynamic>>;
+    return false;
   }
 
   void allPublishersGone(FsdbErrorCode disconnectReason, const std::string& msg)
@@ -228,19 +207,17 @@ class PathSubscription : public BasePathSubscription,
   }
 
   void serveHeartbeat() override {
-    T t;
-    t.newVal = value_type();
+    value_type t;
+    t.newVal = OperState();
     // need to explicitly set a flag for OperState else it looks like a deletion
-    if constexpr (std::is_same_v<value_type, OperState>) {
-      t.newVal->isHeartbeat() = true;
-    }
+    t.newVal->isHeartbeat() = true;
     pipe_.write(std::move(t));
   }
 
   PathSubscription(
       SubscriberId subscriber,
       std::vector<std::string> path,
-      folly::coro::AsyncPipe<T> pipe,
+      folly::coro::AsyncPipe<value_type> pipe,
       std::optional<OperProtocol> protocol = std::nullopt,
       std::optional<std::string> publisherTreeRoot = std::nullopt)
       : BasePathSubscription(
@@ -253,7 +230,7 @@ class PathSubscription : public BasePathSubscription,
   PathSubscription(
       SubscriberId subscriber,
       std::vector<std::string> path,
-      folly::coro::AsyncPipe<T> pipe,
+      folly::coro::AsyncPipe<value_type> pipe,
       std::optional<std::string> publisherTreeRoot = std::nullopt)
       : PathSubscription(
             std::move(subscriber),
@@ -264,7 +241,7 @@ class PathSubscription : public BasePathSubscription,
 
  private:
   std::optional<OperProtocol> protocol_;
-  folly::coro::AsyncPipe<T> pipe_;
+  folly::coro::AsyncPipe<value_type> pipe_;
 };
 
 class BaseDeltaSubscription : public Subscription {
@@ -363,7 +340,7 @@ class FullyResolvedExtendedPathSubscription : public BasePathSubscription,
 
   std::optional<OperProtocol> operProtocol() const override;
 
-  void offer(std::any newVal) override;
+  void offer(DeltaValue<OperState> newVal) override;
 
   void allPublishersGone(FsdbErrorCode disconnectReason, const std::string& msg)
       override;

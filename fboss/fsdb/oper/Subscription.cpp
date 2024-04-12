@@ -120,9 +120,8 @@ FullyResolvedExtendedPathSubscription::operProtocol() const {
   return subscription_.operProtocol();
 }
 
-void FullyResolvedExtendedPathSubscription::offer(std::any newVal) {
-  auto source = std::any_cast<DeltaValue<OperState>>(newVal);
-
+void FullyResolvedExtendedPathSubscription::offer(
+    DeltaValue<OperState> source) {
   // Convert to DeltaValue<TaggedOperState>. Could do this in the
   // SubscriberImpl, but this should do.
 
