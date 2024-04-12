@@ -12,7 +12,6 @@
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
-DECLARE_int32(hwswitch_query_timeout);
 DECLARE_bool(disable_looped_fabric_ports);
 
 namespace {

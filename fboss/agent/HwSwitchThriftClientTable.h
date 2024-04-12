@@ -16,6 +16,8 @@
 #include "fboss/agent/if/gen-cpp2/FbossHwCtrl.h"
 #include "fboss/agent/types.h"
 
+DECLARE_int32(hwswitch_query_timeout);
+
 namespace facebook::fboss {
 std::unique_ptr<apache::thrift::Client<FbossHwCtrl>> createFbossHwClient(
     int16_t port,
