@@ -352,7 +352,7 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
     auto aclName = getAclName(aclType);
     auto counterName = getCounterName(aclType);
     auto acl = utility::addAcl(config, aclName, aclActionType_);
-    auto vlanId = utility::firstVlanID(initialConfig()).value();
+    auto vlanId = utility::firstVlanID(initialConfig());
     switch (aclType) {
       case AclType::TCP_TTLD:
       case AclType::UDP_TTLD:
@@ -377,7 +377,7 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
       case AclType::FLOWLET:
         break;
       case AclType::VLAN:
-        acl->vlanID() = vlanId;
+        acl->vlanID() = vlanId.value();
         break;
       case AclType::L4_DST_PORT:
         acl->srcPort() = helper_->ecmpPortDescriptorAt(0).phyPortID();
@@ -387,7 +387,7 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
         acl->roceOpcode() = utility::kUdfRoceOpcode;
         break;
       case AclType::L4_DST_PORT_VLAN:
-        acl->vlanID() = vlanId;
+        acl->vlanID() = vlanId.value();
         acl->l4DstPort() = kL4DstPort2();
         break;
     }

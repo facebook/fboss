@@ -337,6 +337,7 @@ TEST_F(HwVoqSwitchTest, trapPktsOnPort) {
   auto setup = [this, kPort, &ecmpHelper]() {
     auto cfg = initialConfig();
     utility::addTrapPacketAcl(&cfg, kPort.phyPortID());
+    applyNewConfig(cfg);
     applyNewState(ecmpHelper.resolveNextHops(getProgrammedState(), {kPort}));
   };
   auto verify = [this, kPort, &ecmpHelper]() {
