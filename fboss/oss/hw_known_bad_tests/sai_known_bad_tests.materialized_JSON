@@ -3192,9 +3192,6 @@
           "test_name_regex": "HwResourceStatsTest/[01].aclStats"
         },
         {
-          "test_name_regex": "HwAclQualifierTest/[01].*Ip4*"
-        },
-        {
           "test_name_regex": "HwAclQualifierTest/[01].*Tcp*"
         },
         {
@@ -3265,9 +3262,6 @@
         },
         {
           "test_name_regex": "HwWatermarkTest.VerifyQueueWatermarkAccuracy"
-        },
-        {
-          "test_name_regex": "HwVoqSwitchTest.trapPktsOnPort"
         },
         {
           "test_name_regex": "HwWideEcmpTest.*"
