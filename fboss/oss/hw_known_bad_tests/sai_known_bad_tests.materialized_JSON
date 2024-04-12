@@ -10418,6 +10418,12 @@
         },
         {
           "test_name_regex": "HwCoppTest/[01].CpuPortIpv6LinkLocalUcastIp"
+        },
+        {
+          "test_name_regex": "HwMacLearningTest.VerifyHwLearningForPort"
+        },
+        {
+          "test_name_regex": "HwMacLearningTest.VerifyHwLearningForTrunk"
         }
     ],
     "leaba/1.68.0/1.68.0/graphene200/simulator": [
@@ -11400,6 +11406,12 @@
         },
         {
           "test_name_regex": "HwCoppTest/[01].CpuPortIpv6LinkLocalUcastIp"
+        },
+        {
+          "test_name_regex": "HwMacLearningTest.VerifyHwLearningForPort"
+        },
+        {
+          "test_name_regex": "HwMacLearningTest.VerifyHwLearningForTrunk"
         },
         {
           "test_name_regex": "HwLabelEdgeRouteTest.*$"
