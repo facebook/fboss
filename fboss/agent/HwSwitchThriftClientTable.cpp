@@ -47,7 +47,7 @@ std::unique_ptr<apache::thrift::Client<FbossHwCtrl>> createFbossHwClient(
                       auto channel =
                           apache::thrift::RocketClientChannel::newChannel(
                               std::move(socket));
-                      channel->setTimeout(FLAGS_hwswitch_query_timeout);
+                      channel->setTimeout(FLAGS_hwswitch_query_timeout * 1000);
                       return channel;
                     }));
           });
