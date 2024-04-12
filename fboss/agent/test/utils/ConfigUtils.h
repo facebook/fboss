@@ -195,4 +195,27 @@ void delMatcher(cfg::SwitchConfig* config, const std::string& matcherName);
  */
 std::unordered_map<PortID, cfg::PortProfileID>& getPortToDefaultProfileIDMap();
 
+bool isRswPlatform(PlatformType type);
+
+/*
+ * Functions to get uplinks and downlinks return a pair of vectors, which is a
+ * lot to write out, so we define a simple type that's descriptive and saves a
+ * few keystrokes.
+ */
+typedef std::pair<std::vector<PortID>, std::vector<PortID>> UplinkDownlinkPair;
+
+UplinkDownlinkPair getRswUplinkDownlinkPorts(
+    const cfg::SwitchConfig& config,
+    const int ecmpWidth);
+
+UplinkDownlinkPair getRtswUplinkDownlinkPorts(
+    const cfg::SwitchConfig& config,
+    const int ecmpWidth);
+
+UplinkDownlinkPair getAllUplinkDownlinkPorts(
+    PlatformType platformType,
+    const cfg::SwitchConfig& config,
+    const int ecmpWidth = 4,
+    const bool mmu_lossless = false);
+
 } // namespace facebook::fboss::utility

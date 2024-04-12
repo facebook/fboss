@@ -902,4 +902,130 @@ void delMatcher(cfg::SwitchConfig* config, const std::string& matcherName) {
   }
 }
 
+bool isRswPlatform(PlatformType type) {
+  switch (type) {
+    case PlatformType::PLATFORM_WEDGE:
+    case PlatformType::PLATFORM_WEDGE100:
+    case PlatformType::PLATFORM_WEDGE400:
+    case PlatformType::PLATFORM_WEDGE400_GRANDTETON:
+    case PlatformType::PLATFORM_WEDGE400C:
+      return true;
+    default:
+      return false;
+  };
+  return false;
+}
+
+/*
+ * Returns a pair of vectors of the form (uplinks, downlinks). Pertains
+ * specifically to default RSW platforms, where all downlink ports are
+ * configured to be on ingressVlan 2000.
+ *
+ * Created to verify load balancing based on the switch's config, but can be
+ * used anywhere it's useful. Likely will also be used in verifying
+ * queue-per-host QoS for MHNIC platforms.
+ */
+UplinkDownlinkPair getRswUplinkDownlinkPorts(
+    const cfg::SwitchConfig& config,
+    const int ecmpWidth) {
+  std::vector<PortID> uplinks, downlinks;
+
+  auto confPorts = *config.ports();
+  XLOG_IF(WARN, confPorts.empty()) << "no ports found in config.ports_ref()";
+
+  for (const auto& port : confPorts) {
+    auto logId = port.get_logicalID();
+    if (port.get_state() != cfg::PortState::ENABLED) {
+      continue;
+    }
+
+    auto portId = PortID(logId);
+    auto vlanId = port.get_ingressVlan();
+    if (vlanId == kDownlinkBaseVlanId) {
+      downlinks.push_back(portId);
+    } else if (uplinks.size() < ecmpWidth) {
+      uplinks.push_back(portId);
+    }
+  }
+
+  XLOG(DBG2) << "Uplinks : " << uplinks.size()
+             << " downlinks: " << downlinks.size();
+  return std::pair(uplinks, downlinks);
+}
+
+UplinkDownlinkPair getRtswUplinkDownlinkPorts(
+    const cfg::SwitchConfig& config,
+    const int ecmpWidth) {
+  std::vector<PortID> uplinks, downlinks;
+
+  auto confPorts = *config.ports();
+  XLOG_IF(WARN, confPorts.empty()) << "no ports found in config.ports_ref()";
+
+  for (const auto& port : confPorts) {
+    auto logId = port.get_logicalID();
+    if (port.get_state() != cfg::PortState::ENABLED) {
+      continue;
+    }
+
+    // for RTSW we can select uplinks/downlinks based on multiple conditions
+    // we could use the vlanId as we used for Rsw, but that requires
+    // substantial changes to the setup for RTSW. Avoiding that
+    // used
+    auto portId = PortID(logId);
+    if (port.pfc().has_value()) {
+      auto pfc = port.pfc().value();
+      auto pgName = pfc.portPgConfigName().value();
+      if (pgName.find("downlinks") != std::string::npos) {
+        downlinks.push_back(portId);
+      } else if (
+          (pgName.find("uplinks") != std::string::npos) &&
+          uplinks.size() < ecmpWidth) {
+        uplinks.push_back(portId);
+      }
+    }
+  }
+
+  XLOG(DBG2) << "Uplinks : " << uplinks.size()
+             << " downlinks: " << downlinks.size();
+  return std::pair(uplinks, downlinks);
+}
+
+/*
+ * Generic function to separate uplinks and downlinks, given a HwSwitch* and a
+ * SwitchConfig.
+ *
+ * Calls already-defined RSW helper functions if HwSwitch* is an RSW platform,
+ * otherwise separates the config's ports.
+ */
+UplinkDownlinkPair getAllUplinkDownlinkPorts(
+    PlatformType platformType,
+    const cfg::SwitchConfig& config,
+    const int ecmpWidth,
+    const bool mmu_lossless) {
+  if (mmu_lossless) {
+    return getRtswUplinkDownlinkPorts(config, ecmpWidth);
+  } else if (isRswPlatform(platformType)) {
+    return getRswUplinkDownlinkPorts(config, ecmpWidth);
+  }
+
+  // If the platform is not an RSW, consider the first ecmpWidth-many ports to
+  // be uplinks and the rest to be downlinks.
+  // First populate masterPorts with all ports, analogous to
+  // masterLogicalPortIds, then slice uplinks/downlinks according to ecmpWidth.
+
+  // just for brevity, mostly in return statement
+  using PortList = std::vector<PortID>;
+  PortList masterPorts;
+
+  for (const auto& port : *config.ports()) {
+    if (isEnabledPortWithSubnet(port, config)) {
+      masterPorts.push_back(PortID(port.get_logicalID()));
+    }
+  }
+
+  auto begin = masterPorts.begin();
+  auto mid = masterPorts.begin() + ecmpWidth;
+  auto end = masterPorts.end();
+  return std::pair(PortList(begin, mid), PortList(mid, end));
+}
 } // namespace facebook::fboss::utility
