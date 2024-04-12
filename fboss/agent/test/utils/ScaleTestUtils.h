@@ -28,5 +28,7 @@ std::vector<std::vector<PortDescriptor>> generateEcmpMemberScale(
     const std::vector<PortDescriptor>& inputs,
     const int maxEcmpMembers);
 
+uint32_t getMaxEcmpGroups(const HwAsic* asic);
+uint32_t getMaxEcmpMembers(const HwAsic* asic);
 } // namespace utility
 } // namespace facebook::fboss

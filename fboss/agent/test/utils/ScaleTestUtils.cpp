@@ -107,5 +107,4 @@ std::vector<std::vector<PortDescriptor>> generateEcmpMemberScale(
   EXPECT_EQ(membersGenerated, maxEcmpMembers);
   return allCombinations;
 }
-
 } // namespace facebook::fboss::utility
