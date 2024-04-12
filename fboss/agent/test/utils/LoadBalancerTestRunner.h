@@ -221,6 +221,7 @@ class HwLoadBalancerTestRunner {
         auto cfg = utility::onePortPerInterfaceConfig(
             getEnsemble(), getMasterLogicalPortIds());
         // Add flowlet config to convert ECMP to DLB
+        cfg.udfConfig() = utility::addUdfFlowletAclConfig();
         utility::addFlowletConfigs(cfg, getMasterLogicalPortIds());
         getEnsemble()->applyNewConfig(cfg);
       }

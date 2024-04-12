@@ -29,6 +29,7 @@ class HwLoadBalancerTestV6Flowlet
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitchEnsemble(), masterLogicalPortIds());
+    cfg.udfConfig() = utility::addUdfFlowletAclConfig();
     utility::addFlowletConfigs(cfg, masterLogicalPortIds());
     return cfg;
   }

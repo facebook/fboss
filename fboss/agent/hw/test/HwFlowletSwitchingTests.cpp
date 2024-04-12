@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTestAclUtils.h"
 #include "fboss/agent/hw/test/HwTestFlowletSwitchingUtils.h"
+#include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/hw/test/ProdConfigFactory.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
@@ -89,15 +90,26 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
     acl->proto() = kUdpProto;
     acl->l4DstPort() = kUdpDstPort;
     acl->dstIp() = kDstIp;
+    acl->udfGroups() = {utility::kRoceUdfFlowletGroupName};
+    acl->roceBytes() = {utility::kRoceReserved};
+    acl->roceMask() = {utility::kRoceReserved};
     cfg::MatchAction matchAction = cfg::MatchAction();
     matchAction.flowletAction() = cfg::FlowletAction::FORWARD;
-    matchAction.counter() = kAclCounterName;
-    std::vector<cfg::CounterType> counterTypes{
-        cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
-    auto counter = cfg::TrafficCounter();
-    *counter.name() = kAclCounterName;
-    *counter.types() = counterTypes;
-    cfg.trafficCounters()->push_back(counter);
+    // presence of UDF configuration causes the FP group to be cleared out
+    // completely and re-populates the table again. It has a bug where counters
+    // are not cleared before the group is destroyed. The specific method is
+    // clearFPGroup. This only affects fake SDK. So leaving counter creation for
+    // fake SDK out until the issue is appropriately resolved.
+    if (getPlatform()->getAsic()->getAsicType() !=
+        cfg::AsicType::ASIC_TYPE_FAKE) {
+      matchAction.counter() = kAclCounterName;
+      std::vector<cfg::CounterType> counterTypes{
+          cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
+      auto counter = cfg::TrafficCounter();
+      *counter.name() = kAclCounterName;
+      *counter.types() = counterTypes;
+      cfg.trafficCounters()->push_back(counter);
+    }
     utility::addMatcher(&cfg, kAclName, matchAction);
   }
 
@@ -118,6 +130,7 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
         getFlowletSwitchingConfig(kInactivityIntervalUsecs1, flowletTableSize);
     cfg.flowletSwitchingConfig() = flowletCfg;
     updatePortFlowletConfigs(cfg, kScalingFactor1, kLoadWeight1, kQueueWeight1);
+    cfg.udfConfig() = utility::addUdfFlowletAclConfig();
     addFlowletAcl(cfg);
   }
 
@@ -186,7 +199,10 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
   }
 
   bool skipTest() {
-    return !getPlatform()->getAsic()->isSupported(HwAsic::Feature::FLOWLET);
+    return (
+        !getPlatform()->getAsic()->isSupported(HwAsic::Feature::FLOWLET) ||
+        (getPlatform()->getAsic()->getAsicType() ==
+         cfg::AsicType::ASIC_TYPE_FAKE));
   }
 
   std::vector<NextHopWeight> swSwitchWeights_ = {

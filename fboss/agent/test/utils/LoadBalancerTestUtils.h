@@ -63,7 +63,8 @@ size_t pumpRoCETraffic(
     int roceDestPort = kUdfL4DstPort, /* RoCE fixed dst port */
     int hopLimit = 255,
     std::optional<folly::MacAddress> srcMacAddr = std::nullopt,
-    int packetCount = 50000);
+    int packetCount = 50000,
+    uint8_t reserved = kRoceReserved);
 
 size_t pumpTrafficWithSourceFile(
     AllocatePktFunc allocateFn,
@@ -179,6 +180,8 @@ inline const int kQueueWeight(30);
 
 cfg::UdfConfig addUdfHashConfig();
 cfg::UdfConfig addUdfAclConfig();
+cfg::UdfConfig addUdfFlowletAclConfig();
+cfg::UdfConfig addUdfAckAndFlowletAclConfig();
 cfg::UdfConfig addUdfHashAclConfig();
 
 cfg::FlowletSwitchingConfig getDefaultFlowletSwitchingConfig();

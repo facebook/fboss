@@ -161,6 +161,32 @@ cfg::UdfConfig addUdfAclConfig(void) {
       cfg::UdfGroupType::ACL);
 }
 
+cfg::UdfConfig addUdfFlowletAclConfig(void) {
+  std::map<std::string, cfg::UdfGroup> udfMap;
+  return addUdfConfig(
+      udfMap,
+      kRoceUdfFlowletGroupName,
+      kRoceUdfFlowletStartOffsetInBytes,
+      kRoceUdfFlowletFieldSizeInBytes,
+      cfg::UdfGroupType::ACL);
+}
+
+cfg::UdfConfig addUdfAckAndFlowletAclConfig(void) {
+  std::map<std::string, cfg::UdfGroup> udfMap;
+  addUdfConfig(
+      udfMap,
+      kUdfAclRoceOpcodeGroupName,
+      kUdfAclRoceOpcodeStartOffsetInBytes,
+      kUdfAclRoceOpcodeFieldSizeInBytes,
+      cfg::UdfGroupType::ACL);
+  return addUdfConfig(
+      udfMap,
+      kRoceUdfFlowletGroupName,
+      kRoceUdfFlowletStartOffsetInBytes,
+      kRoceUdfFlowletFieldSizeInBytes,
+      cfg::UdfGroupType::ACL);
+}
+
 cfg::UdfConfig addUdfHashConfig(void) {
   std::map<std::string, cfg::UdfGroup> udfMap;
   return addUdfConfig(
@@ -171,6 +197,7 @@ cfg::UdfConfig addUdfHashConfig(void) {
       cfg::UdfGroupType::HASH);
 }
 
+// kitchen sink for all udf groups
 cfg::UdfConfig addUdfHashAclConfig(void) {
   std::map<std::string, cfg::UdfGroup> udfMap;
   addUdfConfig(
@@ -209,6 +236,9 @@ void addFlowletAcl(cfg::SwitchConfig& cfg) {
   acl->proto() = 17;
   acl->l4DstPort() = 4791;
   acl->dstIp() = "2001::/16";
+  acl->udfGroups() = {utility::kRoceUdfFlowletGroupName};
+  acl->roceBytes() = {utility::kRoceReserved};
+  acl->roceMask() = {utility::kRoceReserved};
   cfg::MatchAction matchAction = cfg::MatchAction();
   matchAction.flowletAction() = cfg::FlowletAction::FORWARD;
   matchAction.counter() = "test-flowlet-acl-stats";
@@ -371,7 +401,8 @@ size_t pumpRoCETraffic(
     int destPort,
     int hopLimit,
     std::optional<folly::MacAddress> srcMacAddr,
-    int packetCount) {
+    int packetCount,
+    uint8_t reserved) {
   folly::MacAddress srcMac(
       srcMacAddr.has_value() ? *srcMacAddr
                              : MacAddressGenerator().get(dstMac.u64HBO() + 1));
@@ -382,7 +413,10 @@ size_t pumpRoCETraffic(
   XLOG(INFO) << "Send traffic with RoCE payload ..";
   for (auto i = 0; i < packetCount; ++i) {
     std::vector<uint8_t> rocePayload = {kUdfRoceOpcode, 0x40, 0xff, 0xff, 0x00};
-    std::vector<uint8_t> roceEndPayload = {0x40, 0x00, 0x00, 0x03};
+    // ack req is 0x40 for packet which can be re-ordered
+    // 0x0 means the packet cannot be re-ordered
+    // default is 0x40
+    std::vector<uint8_t> roceEndPayload = {reserved, 0x00, 0x00, 0x03};
 
     // vary dst queues pair ids ONLY in the RoCE pkt
     // to verify that we can hash on it

@@ -178,7 +178,7 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
     verifyAcrossWarmBoots(setup, verify);
   }
 
-  size_t sendRoceTraffic(const PortID frontPanelEgrPort) {
+  size_t sendRoceTraffic(const PortID frontPanelEgrPort, uint8_t reserved = 0) {
     auto vlanId = utility::firstVlanID(initialConfig());
     auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     return utility::pumpRoCETraffic(
@@ -191,7 +191,8 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
         utility::kUdfL4DstPort,
         255,
         std::nullopt,
-        1 /* one packet */);
+        1 /* one packet */,
+        reserved);
   }
 
   size_t sendPacket(bool frontPanel, bool bumpOnHit, AclType aclType) {
@@ -294,7 +295,11 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
     // for udf or flowlet testing, send roce packets
     if (sendRoce) {
       auto outPort = helper_->ecmpPortDescriptorAt(0).phyPortID();
-      sizeOfPacketSent = sendRoceTraffic(outPort);
+      if (bumpOnHit) {
+        sizeOfPacketSent = sendRoceTraffic(outPort, utility::kRoceReserved);
+      } else {
+        sizeOfPacketSent = sendRoceTraffic(outPort);
+      }
     } else {
       sizeOfPacketSent = sendPacket(frontPanel, bumpOnHit, aclType);
     }
@@ -412,8 +417,8 @@ class HwFlowletAclCounterTest
         getHwSwitch(),
         masterLogicalPortIds(),
         getAsic()->desiredLoopbackModes());
+    cfg.udfConfig() = utility::addUdfAckAndFlowletAclConfig();
     utility::addFlowletConfigs(cfg, masterLogicalPortIds());
-    cfg.udfConfig() = utility::addUdfAclConfig();
     return cfg;
   }
 
@@ -429,6 +434,11 @@ class HwFlowletAclCounterTest
 TEST_F(HwFlowletAclCounterTest, VerifyFlowlet) {
   counterBumpOnHitHelper(
       true /* bump on hit */, true /* front panel port */, {AclType::FLOWLET});
+}
+
+TEST_F(HwFlowletAclCounterTest, VerifyFlowletNegative) {
+  counterBumpOnHitHelper(
+      false /* bump on hit */, true /* front panel port */, {AclType::FLOWLET});
 }
 
 TEST_F(HwFlowletAclCounterTest, VerifyFlowletWithOtherAcls) {
