@@ -181,5 +181,30 @@ void QsfpFsdbSyncManager::updatePhyStat(
   pendingPhyStatsWLockedPtr->clear();
 }
 
+void QsfpFsdbSyncManager::updatePortStats(PortStatsMap stats) {
+  if (!FLAGS_publish_stats_to_fsdb) {
+    return;
+  }
+
+  statsSyncer_->updateState([stats = std::move(stats)](const auto& in) {
+    auto out = in->clone();
+    out->template modify<stats::qsfp_stats_tags::strings::portStats>();
+    out->template ref<stats::qsfp_stats_tags::strings::portStats>()->fromThrift(
+        stats);
+    return out;
+  });
+}
+
+void QsfpFsdbSyncManager::updatePortStat(
+    std::string&& portName,
+    HwPortStats&& stat) {
+  if (!FLAGS_publish_stats_to_fsdb) {
+    return;
+  }
+  auto pendingPortStatsWLockedPtr = pendingPortStats_.wlock();
+  (*pendingPortStatsWLockedPtr)[portName] = stat;
+  updatePortStats(*pendingPortStatsWLockedPtr);
+}
+
 } // namespace fboss
 } // namespace facebook

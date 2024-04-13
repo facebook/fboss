@@ -23,6 +23,7 @@ class QsfpFsdbSyncManager {
  public:
   using TcvrStatsMap = std::map<int32_t, TcvrStats>;
   using PhyStatsMap = std::map<std::string, phy::PhyStats>;
+  using PortStatsMap = std::map<std::string, HwPortStats>;
 
   QsfpFsdbSyncManager();
 
@@ -47,6 +48,10 @@ class QsfpFsdbSyncManager {
   /// next cycle.
   void updatePhyStat(std::string&& portName, phy::PhyStats&& stat);
 
+  // Accumuate all port stats in pendingPortStats_ and push them to FSDB
+  void updatePortStats(PortStatsMap stats);
+  void updatePortStat(std::string&& portName, HwPortStats&& stat);
+
  private:
   std::unique_ptr<fsdb::FsdbSyncManager<state::QsfpServiceData>> stateSyncer_;
   std::unique_ptr<fsdb::FsdbSyncManager<stats::QsfpStats>> statsSyncer_;
@@ -54,6 +59,7 @@ class QsfpFsdbSyncManager {
   // port from every PIM evb. So calls to this function from ports on different
   // PIMs is racy, and hence needs to be synchronized
   folly::Synchronized<PhyStatsMap> pendingPhyStats_;
+  folly::Synchronized<PortStatsMap> pendingPortStats_;
 };
 
 } // namespace fboss
