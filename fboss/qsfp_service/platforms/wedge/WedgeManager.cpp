@@ -967,6 +967,14 @@ void WedgeManager::publishPhyStatToFsdb(
   }
 }
 
+void WedgeManager::publishPortStatToFsdb(
+    std::string&& portName,
+    HwPortStats&& stat) const {
+  if (FLAGS_publish_stats_to_fsdb) {
+    fsdbSyncManager_->updatePortStat(std::move(portName), std::move(stat));
+  }
+}
+
 /*
  * getQsfpToBmcSyncData
  *

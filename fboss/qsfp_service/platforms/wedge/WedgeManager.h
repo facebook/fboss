@@ -142,6 +142,9 @@ class WedgeManager : public TransceiverManager {
       std::string&& portName,
       phy::PhyStats&& stat) const override;
 
+  virtual void publishPortStatToFsdb(std::string&& portName, HwPortStats&& stat)
+      const override;
+
   void loadConfig() override;
 
   void createQsfpToBmcSyncInterface();

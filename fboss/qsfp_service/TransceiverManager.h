@@ -482,6 +482,10 @@ class TransceiverManager {
       std::string&& /* portName */,
       phy::PhyStats&& /* stat */) const {}
 
+  virtual void publishPortStatToFsdb(
+      std::string&& /* portName */,
+      HwPortStats&& /* stat */) const {}
+
   std::optional<TransceiverID> getTransceiverID(PortID id);
 
   QsfpServiceRunState getRunState() const;
