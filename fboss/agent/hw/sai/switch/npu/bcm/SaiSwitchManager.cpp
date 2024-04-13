@@ -36,7 +36,6 @@ void fillHwSwitchDramStats(
 
 void fillHwSwitchWatermarkStats(
     const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
-    uint64_t deviceWatermarkBytes,
     HwSwitchWatermarkStats& hwSwitchWatermarkStats) {
   hwSwitchWatermarkStats = {};
   for (auto counterIdAndValue : counterId2Value) {
@@ -57,8 +56,6 @@ void fillHwSwitchWatermarkStats(
         throw FbossError("Got unexpected switch counter id: ", counterId);
     }
   }
-  // Device watermarks are collected by BufferManager, update the latest!
-  hwSwitchWatermarkStats.deviceWatermarkBytes() = deviceWatermarkBytes;
 }
 
 } // namespace facebook::fboss

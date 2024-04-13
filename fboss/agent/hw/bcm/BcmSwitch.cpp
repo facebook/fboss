@@ -3215,6 +3215,12 @@ HwFlowletStats BcmSwitch::getHwFlowletStats() const {
 HwSwitchWatermarkStats BcmSwitch::getSwitchWatermarkStats() const {
   HwSwitchWatermarkStats stats{};
   stats.deviceWatermarkBytes() = bstStatsMgr_->getDeviceWatermarkBytes();
+  stats.globalHeadroomWatermarkBytes()->insert(
+      bstStatsMgr_->getGlobalHeadroomWatermarkBytes().begin(),
+      bstStatsMgr_->getGlobalHeadroomWatermarkBytes().end());
+  stats.globalSharedWatermarkBytes()->insert(
+      bstStatsMgr_->getGlobalSharedWatermarkBytes().begin(),
+      bstStatsMgr_->getGlobalSharedWatermarkBytes().end());
   return stats;
 }
 

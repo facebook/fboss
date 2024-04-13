@@ -765,6 +765,31 @@ const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedWatermarkStats()
   return stats;
 }
 
+const HwSwitchWatermarkStats SaiSwitchManager::getHwSwitchWatermarkStats()
+    const {
+  HwSwitchWatermarkStats switchWatermarkStats;
+  // Get NPU specific watermark stats!
+  auto supportedStats = supportedWatermarkStats();
+  if (supportedStats.size()) {
+    switch_->updateStats(supportedStats, SAI_STATS_MODE_READ_AND_CLEAR);
+  }
+  fillHwSwitchWatermarkStats(
+      switch_->getStats(supportedStats), switchWatermarkStats);
+  // SAI_SWITCH_STAT_DEVICE_WATERMARK_BYTES is always needed, however,
+  // this stats as such is not supported as of now. Instead, the needed
+  // watermarks at device level is fetched via the buffer pool watermark
+  // SAI_BUFFER_POOL_STAT_WATERMARK_BYTES and available in SaiSwitch.
+  switchWatermarkStats.deviceWatermarkBytes() =
+      managerTable_->bufferManager().getDeviceWatermarkBytes();
+  switchWatermarkStats.globalHeadroomWatermarkBytes()->insert(
+      managerTable_->bufferManager().getGlobalHeadroomWatermarkBytes().begin(),
+      managerTable_->bufferManager().getGlobalHeadroomWatermarkBytes().end());
+  switchWatermarkStats.globalSharedWatermarkBytes()->insert(
+      managerTable_->bufferManager().getGlobalSharedWatermarkBytes().begin(),
+      managerTable_->bufferManager().getGlobalSharedWatermarkBytes().end());
+  return switchWatermarkStats;
+}
+
 void SaiSwitchManager::updateStats(bool updateWatermarks) {
   auto switchDropStats = supportedDropStats();
   if (switchDropStats.size()) {
@@ -818,23 +843,8 @@ void SaiSwitchManager::updateStats(bool updateWatermarks) {
     platform_->getHwSwitch()->getSwitchStats()->update(dramStats);
   }
   if (updateWatermarks) {
-    auto supportedStats = supportedWatermarkStats();
-    if (supportedStats.size()) {
-      switch_->updateStats(supportedStats, SAI_STATS_MODE_READ_AND_CLEAR);
-    }
-    HwSwitchWatermarkStats watermarkStats;
-    // SAI_SWITCH_STAT_DEVICE_WATERMARK_BYTES is always needed, however,
-    // this stats as such is not supported as of now. Instead, the needed
-    // watermarks at device level is fetched via the buffer pool watermark
-    // SAI_BUFFER_POOL_STAT_WATERMARK_BYTES and available in SaiSwitch.
-    // This stats needs to be filled in and published at a minimum in the
-    // below.
-    fillHwSwitchWatermarkStats(
-        switch_->getStats(supportedStats),
-        managerTable_->bufferManager().getDeviceWatermarkBytes(),
-        watermarkStats);
-    switchWatermarkStats_ = watermarkStats;
-    publishSwitchWatermarks(watermarkStats);
+    switchWatermarkStats_ = getHwSwitchWatermarkStats();
+    publishSwitchWatermarks(switchWatermarkStats_);
   }
 }
 
