@@ -9,9 +9,11 @@
  */
 
 #include "fboss/agent/hw/test/dataplane_tests/HwTestAqmUtils.h"
+#include <gtest/gtest.h>
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestPortUtils.h"
 #include "fboss/agent/test/utils/AqmTestUtils.h"
+#include "fboss/lib/CommonUtils.h"
 
 namespace {
 static constexpr auto kJerichoWordSize{16};
@@ -45,66 +47,53 @@ HwPortStats sendPacketsWithQueueBuildup(
         (*before.outMulticastPkts_() + *before.outBroadcastPkts_() +
          *before.outUnicastPkts_()));
   };
-  /*
-   * Packets are sent in 2 blocks, 80% first and 20% later. This is
-   * to ensure that stats read will give the right numbers for
-   * watermarks if thats is of interest, which means we need a minimum
-   * of 5 packets to split as 4:1.
-   */
-  CHECK_GE(numPackets, 5) << "Number of packets to send should be >= 5";
-  int eightyPercentPackets = (numPackets * 80) / 100;
   auto statsAtStart = ensemble->getLatestPortStats(port);
+  auto prevStats = statsAtStart;
   // Disable TX to allow queue to build up
   utility::setCreditWatchdogAndPortTx(ensemble->getHwSwitch(), port, false);
-  sendPktsFn(port, eightyPercentPackets);
+  // Start by sending half the number of packets. Note that though TX is
+  // disabled, some packets will leak through due to some credits being
+  // available and the leak is different for different ASICs.
+  sendPktsFn(port, numPackets / 2);
+  int totalPacketsSent = numPackets / 2;
 
-  auto waitForStatsIncrement = [&](const auto& newStats) {
-    static auto prevStats = statsAtStart;
-    auto portStatsIter = newStats.find(port);
-    uint64_t netOut{0}, newOut{0};
-    if (portStatsIter != newStats.end()) {
-      netOut = getOutPacketDelta(portStatsIter->second, statsAtStart);
-      newOut = getOutPacketDelta(portStatsIter->second, prevStats);
-    }
-    prevStats = portStatsIter->second;
-    /*
-     * Wait for stats to be different from statsAtStart, but remains
-     * the same for atleast one iteration, to ensure stats stop
-     * incrementing before we return
-     */
-    return netOut > 0 && newOut == 0;
+  auto getStatsIncrement = [&]() {
+    auto newStats = ensemble->getLatestPortStats(port);
+    uint64_t netOut = getOutPacketDelta(newStats, statsAtStart);
+    uint64_t newOut = getOutPacketDelta(newStats, prevStats);
+    prevStats = newStats;
+    return std::pair(netOut, newOut);
   };
 
-  constexpr auto kNumRetries{5};
-  ensemble->waitPortStatsCondition(
-      waitForStatsIncrement,
-      kNumRetries,
-      std::chrono::milliseconds(std::chrono::seconds(1)));
-  auto statsWithTxDisabled = ensemble->getLatestPortStats(port);
-  auto txedPackets = getOutPacketDelta(statsWithTxDisabled, statsAtStart);
-  /*
-   * The expectation is that 80% of packets is sufficiently
-   * large to have some packets TXed out and some remain in
-   * the queue. If all of these 80% packets are being sent
-   * out, more packets are needed to ensure we have some
-   * packets left in the queue!
-   */
-  CHECK_NE(txedPackets, eightyPercentPackets)
-      << "Need to send more than " << numPackets
-      << " packets to trigger queue build up";
+  std::pair<uint64_t, uint64_t> statsInfo;
+  WITH_RETRIES_N_TIMED(10, std::chrono::milliseconds(1000), {
+    statsInfo = getStatsIncrement();
+    if (statsInfo.first == totalPacketsSent) {
+      // TX is not disabled yet, needs more packet TX to get to the point
+      // of running out of initial credits before TX is stopped!
+      sendPktsFn(port, numPackets / 2);
+      totalPacketsSent += numPackets / 2;
+    }
+    EXPECT_EVENTUALLY_TRUE(statsInfo.first < totalPacketsSent);
+    // TX disable is in effect once we see that no more packets are
+    // getting transmitted.
+    EXPECT_EVENTUALLY_EQ(statsInfo.second, 0);
+  });
+  const auto statsWithTxDisabled = prevStats;
 
-  XLOG(DBG3) << "Number of packets TXed with TX disable set is " << txedPackets;
-  /*
-   * TXed packets dont contribute to queue build up, hence send
-   * those many packets again to build the queue as expected, along
-   * with the remaning 20% packets.
-   */
-  sendPktsFn(port, txedPackets + (numPackets - eightyPercentPackets));
+  XLOG(DBG3) << "Number of packets TXed with TX disable set is "
+             << statsInfo.first;
+  // TXed packets dont contribute to queue build up. Resend the number of
+  // packets that got transmitted to ensure numPackets are in the queue.
+  auto queuedPackets = totalPacketsSent - statsInfo.first;
+  if (queuedPackets < numPackets) {
+    sendPktsFn(port, numPackets - queuedPackets);
+  }
 
   // Enable TX to send traffic out
   utility::setCreditWatchdogAndPortTx(ensemble->getHwSwitch(), port, true);
 
-  // Return the stats before numPackets were sent
+  // Return the stats at the point when port stopped actual TX!
   return statsWithTxDisabled;
 }
 
