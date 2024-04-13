@@ -251,6 +251,7 @@ void BcmPortIngressBufferManager::resetPgsToDefault(
   pgIdList.clear();
   programLosslessMode(port);
   setPgIdListInHw(pgIdList);
+  bufferPoolName_ = kDefaultBufferPoolName;
 }
 
 void BcmPortIngressBufferManager::programPgLosslessMode(int pgId, int value) {
@@ -350,6 +351,12 @@ void BcmPortIngressBufferManager::reprogramPgs(
 void BcmPortIngressBufferManager::reprogramIngressPools(
     const std::shared_ptr<Port> port) {
   const auto& portPgCfgs = port->getPortPgConfigs();
+  if (portPgCfgs->size()) {
+    // All PGs should have the same buffer pool associated!
+    bufferPoolName_ = (*std::as_const(*portPgCfgs).begin())
+                          ->cref<switch_state_tags::bufferPoolName>()
+                          ->toThrift();
+  }
   for (const auto& portPgCfg : std::as_const(*portPgCfgs)) {
     auto portPgId = portPgCfg->cref<switch_state_tags::id>()->cref();
     if (auto bufferPoolCfg =
@@ -504,8 +511,7 @@ void BcmPortIngressBufferManager::getPgParamsHw(
 
 BufferPoolCfgPtr BcmPortIngressBufferManager::getCurrentIngressPoolSettings()
     const {
-  const std::string bufferName = "currentIngressPool";
-  auto cfg = std::make_shared<BufferPoolCfg>(bufferName);
+  auto cfg = std::make_shared<BufferPoolCfg>(bufferPoolName_);
   // pick the settings for pgid = 0, since its global pool
   // all others will have the same values
   cfg->setHeadroomBytes(getIngressPoolHeadroomBytes(kDefaultPgId));

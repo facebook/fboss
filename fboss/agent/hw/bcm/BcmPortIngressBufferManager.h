@@ -55,6 +55,9 @@ class BcmPortIngressBufferManager {
   int getProgrammedPfcStatusInPg(const int pgId) const;
   int getPgMinLimitBytes(const int pgId) const;
   int getIngressSharedBytes(bcm_cos_queue_t cosQ) const;
+  const std::string& getBufferPoolName() const {
+    return bufferPoolName_;
+  }
 
  private:
   /* read APIs to the BCM SDK */
@@ -99,6 +102,7 @@ class BcmPortIngressBufferManager {
 
   BcmSwitch* hw_;
   std::string portName_;
+  std::string bufferPoolName_;
   bcm_gport_t gport_;
   int unit_{-1};
   PgIdSet pgIdListInHw_;

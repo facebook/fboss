@@ -2971,6 +2971,10 @@ const BufferPoolCfg& BcmPort::getDefaultIngressPoolSettings() const {
   return ingressBufferManager_->getDefaultIngressPoolSettings();
 }
 
+const std::string& BcmPort::getIngressBufferPoolName() const {
+  return ingressBufferManager_->getBufferPoolName();
+}
+
 int BcmPort::getProgrammedPgLosslessMode(const int pgId) const {
   return ingressBufferManager_->getProgrammedPgLosslessMode(pgId);
 }
