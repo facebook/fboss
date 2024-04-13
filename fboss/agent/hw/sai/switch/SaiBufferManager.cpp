@@ -171,6 +171,7 @@ void SaiBufferManager::setupEgressBufferPool() {
 }
 
 void SaiBufferManager::setupIngressBufferPool(
+    const std::string& bufferPoolName,
     const state::BufferPoolFields& bufferPoolCfg) {
   if (ingressBufferPoolHandle_) {
     return;
@@ -197,6 +198,7 @@ void SaiBufferManager::setupIngressBufferPool(
       xoffSize};
   ingressBufferPoolHandle_->bufferPool =
       store.setObject(SAI_BUFFER_POOL_TYPE_INGRESS, c);
+  ingressBufferPoolHandle_->bufferPoolName = bufferPoolName;
 }
 
 void SaiBufferManager::createOrUpdateIngressEgressBufferPool(
@@ -223,6 +225,7 @@ void SaiBufferManager::createOrUpdateIngressEgressBufferPool(
 }
 
 void SaiBufferManager::setupIngressEgressBufferPool(
+    const std::optional<std::string>& bufferPoolName,
     const std::optional<state::BufferPoolFields>& bufferPoolCfg) {
   uint64_t poolSize{0};
   if (FLAGS_ingress_egress_buffer_pool_size) {
@@ -259,6 +262,9 @@ void SaiBufferManager::setupIngressEgressBufferPool(
         (oldXoffSize.value() != newXoffSize.value())) {
       createOrUpdateIngressEgressBufferPool(poolSize, newXoffSize);
     }
+  }
+  if (bufferPoolName.has_value()) {
+    ingressEgressBufferPoolHandle_->bufferPoolName = *bufferPoolName;
   }
 }
 
@@ -417,14 +423,15 @@ SaiBufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
 }
 
 void SaiBufferManager::setupBufferPool(
-    std::optional<state::BufferPoolFields> bufferPoolCfg) {
+    const std::optional<std::string>& bufferPoolName,
+    const std::optional<state::BufferPoolFields>& bufferPoolCfg) {
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL)) {
-    setupIngressEgressBufferPool(bufferPoolCfg);
+    setupIngressEgressBufferPool(bufferPoolName, bufferPoolCfg);
   } else {
     // Call ingress or egress buffer pool based on the cfg passed in!
     if (bufferPoolCfg) {
-      setupIngressBufferPool(*bufferPoolCfg);
+      setupIngressBufferPool(*bufferPoolName, *bufferPoolCfg);
     } else {
       setupEgressBufferPool();
     }
@@ -477,7 +484,8 @@ std::shared_ptr<SaiBufferProfile> SaiBufferManager::getOrCreateIngressProfile(
   if (!portPgConfig.bufferPoolConfig()) {
     XLOG(FATAL) << "Empty buffer pool config from portPgConfig.";
   }
-  setupBufferPool(*portPgConfig.bufferPoolConfig());
+  setupBufferPool(
+      *portPgConfig.bufferPoolName(), *portPgConfig.bufferPoolConfig());
   auto attributes = ingressProfileCreateAttrs(portPgConfig);
   auto& store = saiStore_->get<SaiBufferProfileTraits>();
   SaiBufferProfileTraits::AdapterHostKey k = tupleProjection<
@@ -506,6 +514,7 @@ void SaiBufferManager::createIngressBufferPool(
       const auto& portPgCfg = (*portPgCfgs).at(0);
       // THRIFT_COPY
       setupBufferPool(
+          portPgCfg->cref<switch_state_tags::bufferPoolName>()->toThrift(),
           portPgCfg->cref<switch_state_tags::bufferPoolConfig>()->toThrift());
     }
   }

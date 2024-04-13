@@ -36,6 +36,7 @@ using SaiIngressPriorityGroup =
 
 struct SaiBufferPoolHandle {
   std::shared_ptr<SaiBufferPool> bufferPool;
+  std::string bufferPoolName;
 };
 
 struct SaiIngressPriorityGroupHandle {
@@ -62,7 +63,9 @@ class SaiBufferManager {
       const state::PortPgFields& portPgConfig);
 
   void setupBufferPool(
-      const std::optional<state::BufferPoolFields> ingressPgCfg = std::nullopt);
+      const std::optional<std::string>& bufferPoolName = std::nullopt,
+      const std::optional<state::BufferPoolFields>& ingressPgCfg =
+          std::nullopt);
 
   void updateStats();
   void updateIngressBufferPoolStats();
@@ -107,8 +110,11 @@ class SaiBufferManager {
       std::shared_ptr<SaiBufferPoolHandle> bufferPoolHandle,
       const PortPgConfig* portPgCfg);
   void setupEgressBufferPool();
-  void setupIngressBufferPool(const state::BufferPoolFields& bufferPoolCfg);
+  void setupIngressBufferPool(
+      const std::string& bufferPoolName,
+      const state::BufferPoolFields& bufferPoolCfg);
   void setupIngressEgressBufferPool(
+      const std::optional<std::string>& bufferPoolName,
       const std::optional<state::BufferPoolFields>& ingressPgCfg);
   void createOrUpdateIngressEgressBufferPool(
       uint64_t poolSize,
