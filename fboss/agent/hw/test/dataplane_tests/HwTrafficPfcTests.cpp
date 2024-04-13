@@ -132,22 +132,29 @@ void validateBufferPoolWatermarkCounters(
     facebook::fboss::HwSwitchEnsemble* ensemble,
     const int /* pri */,
     const std::vector<facebook::fboss::PortID>& /* portIds */) {
-  auto globalSharedWatermarksIncrementing = [&]() {
-    // Native implementation reports per ITM watermark!
-    std::string itmInfo = ensemble->isSai() ? "" : ".itm0";
-    auto counters = facebook::fb303::fbData->getRegexCounters({folly::sformat(
-        "buffer_watermark_global_(shared|headroom){}.*.p100.60", itmInfo)});
-    for (const auto& ctr : counters) {
-      XLOG(DBG0) << ctr.first << " : " << ctr.second;
-      if (!ctr.second) {
-        return false;
-      }
+  uint64_t globalHeadroomWatermark{};
+  uint64_t globalSharedWatermark{};
+  WITH_RETRIES({
+    ensemble->getHwSwitch()->updateStats();
+    auto switchWatermarkStats =
+        ensemble->getHwSwitch()->getSwitchWatermarkStats();
+    for (auto& headroomStats :
+         *switchWatermarkStats.globalHeadroomWatermarkBytes()) {
+      globalHeadroomWatermark += headroomStats.second;
     }
-    return true;
-  };
-  auto updateStats = [&]() { ensemble->getHwSwitch()->updateStats(); };
-  EXPECT_TRUE(ensemble->waitStatsCondition(
-      globalSharedWatermarksIncrementing, updateStats));
+    for (auto& sharedStats :
+         *switchWatermarkStats.globalSharedWatermarkBytes()) {
+      globalSharedWatermark += sharedStats.second;
+    }
+    XLOG(DBG0) << "Global headroom watermark: " << globalHeadroomWatermark
+               << ", Global shared watermark: " << globalSharedWatermark;
+    if (ensemble->getAsic()->isSupported(
+            facebook::fboss::HwAsic::Feature::
+                INGRESS_PRIORITY_GROUP_HEADROOM_WATERMARK)) {
+      EXPECT_EVENTUALLY_GT(globalHeadroomWatermark, 0);
+    }
+    EXPECT_EVENTUALLY_GT(globalSharedWatermark, 0);
+  });
 }
 
 void validateIngressPriorityGroupWatermarkCounters(
