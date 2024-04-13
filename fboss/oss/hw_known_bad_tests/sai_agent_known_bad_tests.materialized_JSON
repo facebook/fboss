@@ -23,13 +23,13 @@
           "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
         },
         {
-          "test_name_regex": "AgentUdfAclCounterTest$"
+          "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest$"
+          "test_name_regex": "AgentFlowletAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentEmptyTest.*$"
+          "test_name_regex": "warm_boot.AgentDeepPacketInspectionTest.l3ForwardedPkt$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -53,10 +53,10 @@
           "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
         },
         {
-          "test_name_regex": "AgentUdfAclCounterTest$"
+          "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest$"
+          "test_name_regex": "AgentFlowletAclCounterTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -85,10 +85,10 @@
           "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
         },
         {
-          "test_name_regex": "AgentUdfAclCounterTest$"
+          "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest$"
+          "test_name_regex": "AgentFlowletAclCounterTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -112,10 +112,10 @@
           "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
         },
         {
-          "test_name_regex": "AgentUdfAclCounterTest$"
+          "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest$"
+          "test_name_regex": "AgentFlowletAclCounterTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -162,13 +162,13 @@
           "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
         },
         {
-          "test_name_regex": "AgentUdfAclCounterTest$"
+          "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest$"
+          "test_name_regex": "AgentFlowletAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentEmptyTest.*$"
+          "test_name_regex": "warm_boot.AgentDeepPacketInspectionTest.l3ForwardedPkt$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -192,10 +192,10 @@
           "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
         },
         {
-          "test_name_regex": "AgentUdfAclCounterTest$"
+          "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest$"
+          "test_name_regex": "AgentFlowletAclCounterTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -242,10 +242,10 @@
           "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
         },
         {
-          "test_name_regex": "AgentUdfAclCounterTest$"
+          "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest$"
+          "test_name_regex": "AgentFlowletAclCounterTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -269,10 +269,10 @@
           "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
         },
         {
-          "test_name_regex": "AgentUdfAclCounterTest$"
+          "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest$"
+          "test_name_regex": "AgentFlowletAclCounterTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -319,13 +319,13 @@
           "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
         },
         {
-          "test_name_regex": "AgentUdfAclCounterTest$"
+          "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest$"
+          "test_name_regex": "AgentFlowletAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentEmptyTest.*$"
+          "test_name_regex": "warm_boot.AgentDeepPacketInspectionTest.l3ForwardedPkt$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -349,10 +349,10 @@
           "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
         },
         {
-          "test_name_regex": "AgentUdfAclCounterTest$"
+          "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest$"
+          "test_name_regex": "AgentFlowletAclCounterTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -399,10 +399,10 @@
           "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
         },
         {
-          "test_name_regex": "AgentUdfAclCounterTest$"
+          "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest$"
+          "test_name_regex": "AgentFlowletAclCounterTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -426,10 +426,10 @@
           "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
         },
         {
-          "test_name_regex": "AgentUdfAclCounterTest$"
+          "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest$"
+          "test_name_regex": "AgentFlowletAclCounterTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -461,13 +461,13 @@
           "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
         },
         {
-          "test_name_regex": "AgentUdfAclCounterTest$"
+          "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest$"
+          "test_name_regex": "AgentFlowletAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentEmptyTest.*$"
+          "test_name_regex": "warm_boot.AgentDeepPacketInspectionTest.l3ForwardedPkt$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -491,10 +491,10 @@
           "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
         },
         {
-          "test_name_regex": "AgentUdfAclCounterTest$"
+          "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest$"
+          "test_name_regex": "AgentFlowletAclCounterTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -526,10 +526,10 @@
           "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
         },
         {
-          "test_name_regex": "AgentUdfAclCounterTest$"
+          "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest$"
+          "test_name_regex": "AgentFlowletAclCounterTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -553,10 +553,10 @@
           "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
         },
         {
-          "test_name_regex": "AgentUdfAclCounterTest$"
+          "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest$"
+          "test_name_regex": "AgentFlowletAclCounterTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -588,13 +588,13 @@
           "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
         },
         {
-          "test_name_regex": "AgentUdfAclCounterTest$"
+          "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest$"
+          "test_name_regex": "AgentFlowletAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentEmptyTest.*$"
+          "test_name_regex": "warm_boot.AgentDeepPacketInspectionTest.l3ForwardedPkt$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -618,10 +618,10 @@
           "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
         },
         {
-          "test_name_regex": "AgentUdfAclCounterTest$"
+          "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest$"
+          "test_name_regex": "AgentFlowletAclCounterTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -653,10 +653,10 @@
           "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
         },
         {
-          "test_name_regex": "AgentUdfAclCounterTest$"
+          "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest$"
+          "test_name_regex": "AgentFlowletAclCounterTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -680,10 +680,10 @@
           "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
         },
         {
-          "test_name_regex": "AgentUdfAclCounterTest$"
+          "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest$"
+          "test_name_regex": "AgentFlowletAclCounterTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -715,13 +715,13 @@
           "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
         },
         {
-          "test_name_regex": "AgentUdfAclCounterTest$"
+          "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest$"
+          "test_name_regex": "AgentFlowletAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentEmptyTest.*$"
+          "test_name_regex": "warm_boot.AgentDeepPacketInspectionTest.l3ForwardedPkt$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -745,10 +745,10 @@
           "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
         },
         {
-          "test_name_regex": "AgentUdfAclCounterTest$"
+          "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest$"
+          "test_name_regex": "AgentFlowletAclCounterTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -780,10 +780,10 @@
           "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
         },
         {
-          "test_name_regex": "AgentUdfAclCounterTest$"
+          "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest$"
+          "test_name_regex": "AgentFlowletAclCounterTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -807,10 +807,10 @@
           "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
         },
         {
-          "test_name_regex": "AgentUdfAclCounterTest$"
+          "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest$"
+          "test_name_regex": "AgentFlowletAclCounterTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -839,13 +839,13 @@
           "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
         },
         {
-          "test_name_regex": "AgentUdfAclCounterTest$"
+          "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest$"
+          "test_name_regex": "AgentFlowletAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentEmptyTest.*$"
+          "test_name_regex": "warm_boot.AgentDeepPacketInspectionTest.l3ForwardedPkt$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -869,10 +869,10 @@
           "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
         },
         {
-          "test_name_regex": "AgentUdfAclCounterTest$"
+          "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest$"
+          "test_name_regex": "AgentFlowletAclCounterTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -901,10 +901,10 @@
           "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
         },
         {
-          "test_name_regex": "AgentUdfAclCounterTest$"
+          "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest$"
+          "test_name_regex": "AgentFlowletAclCounterTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -928,10 +928,10 @@
           "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
         },
         {
-          "test_name_regex": "AgentUdfAclCounterTest$"
+          "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest$"
+          "test_name_regex": "AgentFlowletAclCounterTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -963,13 +963,13 @@
           "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
         },
         {
-          "test_name_regex": "AgentUdfAclCounterTest$"
+          "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest$"
+          "test_name_regex": "AgentFlowletAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentEmptyTest.*$"
+          "test_name_regex": "warm_boot.AgentDeepPacketInspectionTest.l3ForwardedPkt$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -993,10 +993,10 @@
           "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
         },
         {
-          "test_name_regex": "AgentUdfAclCounterTest$"
+          "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest$"
+          "test_name_regex": "AgentFlowletAclCounterTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -1073,10 +1073,10 @@
           "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
         },
         {
-          "test_name_regex": "AgentUdfAclCounterTest$"
+          "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest$"
+          "test_name_regex": "AgentFlowletAclCounterTest.*$"
         }
     ],
     "leaba/1.42.8/1.42.8/gibraltar/multi_switch": [
@@ -1147,13 +1147,13 @@
           "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
         },
         {
-          "test_name_regex": "AgentUdfAclCounterTest$"
+          "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest$"
+          "test_name_regex": "AgentFlowletAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentEmptyTest.*$"
+          "test_name_regex": "warm_boot.AgentDeepPacketInspectionTest.l3ForwardedPkt$"
         }
     ],
     "leaba/1.65.1/1.65.1/gibraltar/mono": [
@@ -1221,10 +1221,10 @@
           "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
         },
         {
-          "test_name_regex": "AgentUdfAclCounterTest$"
+          "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest$"
+          "test_name_regex": "AgentFlowletAclCounterTest.*$"
         }
     ],
     "leaba/1.65.1/1.65.1/gibraltar/multi_switch": [
@@ -1292,13 +1292,13 @@
           "test_name_regex": "AgentOlympicV2SPToWRRQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
         },
         {
-          "test_name_regex": "AgentUdfAclCounterTest$"
+          "test_name_regex": "AgentUdfAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentFlowletAclCounterTest$"
+          "test_name_regex": "AgentFlowletAclCounterTest.*$"
         },
         {
-          "test_name_regex": "AgentEmptyTest.*$"
+          "test_name_regex": "warm_boot.AgentDeepPacketInspectionTest.l3ForwardedPkt$"
         }
     ]
   }
