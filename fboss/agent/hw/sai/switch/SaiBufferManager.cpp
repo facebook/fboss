@@ -310,10 +310,14 @@ void SaiBufferManager::updateIngressBufferPoolStats() {
   ingressBufferPoolHandle->bufferPool->updateStats(
       counterIdsToReadAndClear, SAI_STATS_MODE_READ_AND_CLEAR);
   auto counters = ingressBufferPoolHandle->bufferPool->getStats();
-  auto maxGlobalSharedBytes = counters[SAI_BUFFER_POOL_STAT_WATERMARK_BYTES];
-  auto maxGlobalHeadroomBytes =
+  // Store the buffer pool watermarks!
+  globalSharedWatermarkBytes_[ingressBufferPoolHandle->bufferPoolName] =
+      counters[SAI_BUFFER_POOL_STAT_WATERMARK_BYTES];
+  globalHeadroomWatermarkBytes_[ingressBufferPoolHandle->bufferPoolName] =
       counters[SAI_BUFFER_POOL_STAT_XOFF_ROOM_WATERMARK_BYTES];
-  publishGlobalWatermarks(maxGlobalHeadroomBytes, maxGlobalSharedBytes);
+  publishGlobalWatermarks(
+      globalHeadroomWatermarkBytes_[ingressBufferPoolHandle->bufferPoolName],
+      globalSharedWatermarkBytes_[ingressBufferPoolHandle->bufferPoolName]);
 
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL)) {

@@ -80,7 +80,7 @@ class BcmBstStatsMgr {
       const uint64_t& globalHeadroomBytes,
       const uint64_t& globalSharedBytes) const;
   void getAndPublishGlobalWatermarks(
-      const std::map<int, bcm_port_t>& itmToPortMap) const;
+      const std::map<int, bcm_port_t>& itmToPortMap);
   void createItmToPortMap(std::map<int, bcm_port_t>& itmToPortMap) const;
 
   BufferStatsLogger* getBufferStatsLogger() const {
