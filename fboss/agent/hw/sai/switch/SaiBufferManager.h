@@ -75,6 +75,13 @@ class SaiBufferManager {
   uint64_t getDeviceWatermarkBytes() const {
     return deviceWatermarkBytes_;
   }
+  const std::map<std::string, uint64_t>& getGlobalHeadroomWatermarkBytes()
+      const {
+    return globalHeadroomWatermarkBytes_;
+  }
+  const std::map<std::string, uint64_t>& getGlobalSharedWatermarkBytes() const {
+    return globalSharedWatermarkBytes_;
+  }
   static uint64_t getMaxEgressPoolBytes(const SaiPlatform* platform);
   void setIngressPriorityGroupBufferProfile(
       const std::shared_ptr<SaiIngressPriorityGroup> ingressPriorityGroup,
@@ -118,6 +125,8 @@ class SaiBufferManager {
   UnorderedRefMap<SaiBufferProfileTraits::AdapterHostKey, SaiBufferProfile>
       bufferProfiles_;
   uint64_t deviceWatermarkBytes_{0};
+  std::map<std::string, uint64_t> globalHeadroomWatermarkBytes_{};
+  std::map<std::string, uint64_t> globalSharedWatermarkBytes_{};
 };
 
 } // namespace facebook::fboss
