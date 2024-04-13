@@ -2,6 +2,7 @@
   "defaultCommandLineArgs": {
     "check_wb_handles": "true",
     "intf_nbr_tables": "true",
+    "log_variable_name": "true",
     "mode": "meru400biu",
     "skip_transceiver_programming": "true"
   },

@@ -1,6 +1,7 @@
 {
   "defaultCommandLineArgs": {
     "check_wb_handles": "true",
+    "log_variable_name": "true",
     "skip_transceiver_programming": "true"
   },
   "sw": {
