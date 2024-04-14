@@ -14,7 +14,7 @@ FsdbDeltaPublisher::setupStream() {
       [&](const OperPubInitResponse& /* initResponse */) -> bool {
     return !isCancelled();
   };
-  auto result = co_await(
+  auto result = co_await (
       isStats() ? client_->co_publishOperStatsDelta(createRequest())
                 : client_->co_publishOperStateDelta(createRequest()));
   initResponseReceiver(result.response);

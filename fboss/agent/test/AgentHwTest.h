@@ -75,8 +75,7 @@ class AgentHwTest : public ::testing::Test {
 
   template <typename SETUP_FN, typename VERIFY_FN>
   void verifyAcrossWarmBoots(SETUP_FN setup, VERIFY_FN verify) {
-    verifyAcrossWarmBoots(
-        setup, verify, []() {}, []() {});
+    verifyAcrossWarmBoots(setup, verify, []() {}, []() {});
   }
   template <typename VERIFY_FN>
   void verifyAcrossWarmBoots(VERIFY_FN verify) {

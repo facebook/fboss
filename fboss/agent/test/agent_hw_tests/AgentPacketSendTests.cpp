@@ -41,8 +41,8 @@ TEST_F(AgentPacketSendTest, LldpToFrontPanelOutOfPort) {
     WITH_RETRIES({
       auto portStatsAfter =
           getLatestPortStats(masterLogicalInterfacePortIds()[0]);
-      XLOG(DBG2) << "Lldp Packet:"
-                 << " before pkts:" << *portStatsBefore.outMulticastPkts_()
+      XLOG(DBG2) << "Lldp Packet:" << " before pkts:"
+                 << *portStatsBefore.outMulticastPkts_()
                  << ", after pkts:" << *portStatsAfter.outMulticastPkts_()
                  << ", before bytes:" << *portStatsBefore.outBytes_()
                  << ", after bytes:" << *portStatsAfter.outBytes_();
@@ -87,8 +87,8 @@ TEST_F(AgentPacketSendTest, ArpRequestToFrontPanelPortSwitched) {
     WITH_RETRIES({
       auto portStatsAfter =
           getLatestPortStats(masterLogicalInterfacePortIds()[0]);
-      XLOG(DBG2) << "ARP Packet:"
-                 << " before pkts:" << *portStatsBefore.outBroadcastPkts_()
+      XLOG(DBG2) << "ARP Packet:" << " before pkts:"
+                 << *portStatsBefore.outBroadcastPkts_()
                  << ", after pkts:" << *portStatsAfter.outBroadcastPkts_()
                  << ", before bytes:" << *portStatsBefore.outBytes_()
                  << ", after bytes:" << *portStatsAfter.outBytes_();

@@ -786,8 +786,8 @@ milliseconds CP2112::waitForTransfer(
     uint8_t status1 = usbBuf[2];
     // Bytes 3-4 are status2, and bytes 5-6 are status3.  However we currently
     // don't use these values other than logging them here.
-    VLOG(5) << operation << " xfer status:"
-            << " status0=" << (int)status0 << " status1=" << (int)status1
+    VLOG(5) << operation << " xfer status:" << " status0=" << (int)status0
+            << " status1=" << (int)status1
             << " status2=" << readBE<uint16_t>(usbBuf + 3)
             << " status3=" << readBE<uint16_t>(usbBuf + 5);
 

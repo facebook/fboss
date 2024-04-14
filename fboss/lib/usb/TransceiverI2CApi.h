@@ -68,20 +68,20 @@ class TransceiverI2CApi {
    * Function bring transceiver out of reset whenever a transceiver has been
    * detected plugging in.
    */
-  virtual void ensureOutOfReset(unsigned int module){};
+  virtual void ensureOutOfReset(unsigned int module) {};
 
   /* This function does a hard reset to the QSFP through I2C/CPLD interface
    * in the given platform. This is a virtual function at this level and it
    * will be overridden by appropriate platform class like wedge100I2CBus etc.
    */
-  virtual void triggerQsfpHardReset(unsigned int module){};
+  virtual void triggerQsfpHardReset(unsigned int module) {};
 
   /* This function will bring all the transceivers out of reset. This is a
    * virtual function at this level and it will be overridden by appropriate
    * platform class. Some platforms clear transceiver from reset by default.
    * So function we will stay no op for those platforms.
    */
-  virtual void clearAllTransceiverReset(){};
+  virtual void clearAllTransceiverReset() {};
 
   /*
    * Function that returns the eventbase that suppose to execute the I2C txn

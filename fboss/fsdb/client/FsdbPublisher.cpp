@@ -77,7 +77,7 @@ FsdbPublisher<PubUnit>::createGenerator() {
     {
       auto pipeRPtr = asyncPipe_.rlock();
       if (*pipeRPtr) {
-        auto pubUnit = co_await(*pipeRPtr)->first.next();
+        auto pubUnit = co_await (*pipeRPtr)->first.next();
         if (!pubUnit) {
           continue;
         }

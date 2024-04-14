@@ -85,8 +85,9 @@ bool SaiPortManager::checkPortSerdesAttributes(
           fromStore)) &&
       (!iDriver.has_value() ||
        iDriver ==
-           std::get<std::optional<std::decay_t<decltype(
-               SaiPortSerdesTraits::Attributes::IDriver{})>>>(fromStore)));
+           std::get<std::optional<std::decay_t<
+               decltype(SaiPortSerdesTraits::Attributes::IDriver{})>>>(
+               fromStore)));
 }
 
 std::shared_ptr<SaiPort> SaiPortManager::createPortWithBasicAttributes(
@@ -106,12 +107,11 @@ std::shared_ptr<SaiPort> SaiPortManager::createPortWithBasicAttributes(
   XLOG(DBG2) << "add new port " << portId << " with basic attribtues only";
   SaiPortTraits::CreateAttributes attributes =
       attributesFromSwPort(swPort, false, true);
-  SaiPortTraits::AdapterHostKey portKey {
+  SaiPortTraits::AdapterHostKey portKey{
 #if defined(BRCM_SAI_SDK_DNX)
-    GET_ATTR(Port, Type, attributes),
+      GET_ATTR(Port, Type, attributes),
 #endif
-        GET_ATTR(Port, HwLaneList, attributes)
-  };
+      GET_ATTR(Port, HwLaneList, attributes)};
   auto& portStore = saiStore_->get<SaiPortTraits>();
   return portStore.setObject(portKey, attributes, portId);
 }

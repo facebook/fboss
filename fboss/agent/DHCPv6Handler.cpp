@@ -109,8 +109,7 @@ void sendDHCPv6Packet(
   udpHdr.updateChecksum(ipHdr, payloadStart);
   csumCursor.writeBE<uint16_t>(udpHdr.csum);
 
-  XLOG(DBG4) << " Send dhcp packet:"
-             << " Eth header: " << ethHdr.toString()
+  XLOG(DBG4) << " Send dhcp packet:" << " Eth header: " << ethHdr.toString()
              << " IP header: " << ipHdr.toString()
              << " UDP Header: " << udpHdr.toString()
              << " dhcpLength: " << dhcpLength;

@@ -151,11 +151,13 @@ struct LambdaPathVisitorOperator {
   explicit LambdaPathVisitorOperator(Func&& f) : f_(std::forward<Func>(f)) {}
 
   template <typename Node>
-  inline auto visitTyped(
-      Node& node,
-      pv_detail::PathIter begin,
-      pv_detail::PathIter end) -> std::
-      invoke_result_t<Func, Node&, pv_detail::PathIter, pv_detail::PathIter> {
+  inline auto
+  visitTyped(Node& node, pv_detail::PathIter begin, pv_detail::PathIter end)
+      -> std::invoke_result_t<
+          Func,
+          Node&,
+          pv_detail::PathIter,
+          pv_detail::PathIter> {
     return f_(node, begin, end);
   }
 

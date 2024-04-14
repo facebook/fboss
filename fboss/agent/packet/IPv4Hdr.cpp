@@ -120,9 +120,8 @@ string IPv4Hdr::toString() const {
      << " DontFragment : " << (dontFragment ? "True" : "False")
      << " MoreFragments : " << (moreFragments ? "True" : "False")
      << " FragmentOffset : " << fragmentOffset << " Ttl :" << (int)ttl
-     << " Protocol : "
-     << "0x" << std::hex << (int)protocol << std::dec << " Csum :" << csum
-     << " SrcAddr :" << srcAddr << " DstAddr :" << dstAddr;
+     << " Protocol : " << "0x" << std::hex << (int)protocol << std::dec
+     << " Csum :" << csum << " SrcAddr :" << srcAddr << " DstAddr :" << dstAddr;
   return ss.str();
 }
 

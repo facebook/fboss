@@ -126,9 +126,8 @@ void sendDHCPPacket(
   uint16_t csum = udpHdr.computeChecksum(ipHdr, payloadStart);
   csumCursor.writeBE<uint16_t>(csum);
 
-  XLOG(DBG4) << " Sent dhcp packet :"
-             << " Eth header : " << ethHdr << " IPv4 Header : " << ipHdr
-             << " UDP Header : " << udpHdr;
+  XLOG(DBG4) << " Sent dhcp packet :" << " Eth header : " << ethHdr
+             << " IPv4 Header : " << ipHdr << " UDP Header : " << udpHdr;
   // Send packet
   sw->sendPacketSwitchedAsync(std::move(txPacket));
 }

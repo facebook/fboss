@@ -28,29 +28,34 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _MacsecPortMap{
     SAI_ATTR_MAP(MacsecPort, MacsecDirection),
 };
 
-std::map<int32_t, std::pair<std::string, std::size_t>> _MacsecSAMap {
-  SAI_ATTR_MAP(MacsecSA, AssocNum), SAI_ATTR_MAP(MacsecSA, AuthKey),
-      SAI_ATTR_MAP(MacsecSA, MacsecDirection),
+std::map<int32_t, std::pair<std::string, std::size_t>> _MacsecSAMap{
+    SAI_ATTR_MAP(MacsecSA, AssocNum),
+    SAI_ATTR_MAP(MacsecSA, AuthKey),
+    SAI_ATTR_MAP(MacsecSA, MacsecDirection),
 #if SAI_API_VERSION >= SAI_VERSION(1, 7, 1)
-      SAI_ATTR_MAP(MacsecSA, SSCI),
+    SAI_ATTR_MAP(MacsecSA, SSCI),
 #endif
-      SAI_ATTR_MAP(MacsecSA, MinimumXpn), SAI_ATTR_MAP(MacsecSA, SAK),
-      SAI_ATTR_MAP(MacsecSA, Salt), SAI_ATTR_MAP(MacsecSA, SCID),
+    SAI_ATTR_MAP(MacsecSA, MinimumXpn),
+    SAI_ATTR_MAP(MacsecSA, SAK),
+    SAI_ATTR_MAP(MacsecSA, Salt),
+    SAI_ATTR_MAP(MacsecSA, SCID),
 #if SAI_API_VERSION >= SAI_VERSION(1, 8, 1)
-      SAI_ATTR_MAP(MacsecSA, CurrentXpn),
+    SAI_ATTR_MAP(MacsecSA, CurrentXpn),
 #endif
 };
 
-std::map<int32_t, std::pair<std::string, std::size_t>> _MacsecSCMap {
-  SAI_ATTR_MAP(MacsecSC, SCI), SAI_ATTR_MAP(MacsecSC, MacsecDirection),
-      SAI_ATTR_MAP(MacsecSC, ActiveEgressSAID), SAI_ATTR_MAP(MacsecSC, FlowID),
+std::map<int32_t, std::pair<std::string, std::size_t>> _MacsecSCMap{
+    SAI_ATTR_MAP(MacsecSC, SCI),
+    SAI_ATTR_MAP(MacsecSC, MacsecDirection),
+    SAI_ATTR_MAP(MacsecSC, ActiveEgressSAID),
+    SAI_ATTR_MAP(MacsecSC, FlowID),
 #if SAI_API_VERSION >= SAI_VERSION(1, 7, 1)
-      SAI_ATTR_MAP(MacsecSC, CipherSuite),
+    SAI_ATTR_MAP(MacsecSC, CipherSuite),
 #endif
-      SAI_ATTR_MAP(MacsecSC, SCIEnable),
-      SAI_ATTR_MAP(MacsecSC, ReplayProtectionEnable),
-      SAI_ATTR_MAP(MacsecSC, ReplayProtectionWindow),
-      SAI_ATTR_MAP(MacsecSC, SectagOffset),
+    SAI_ATTR_MAP(MacsecSC, SCIEnable),
+    SAI_ATTR_MAP(MacsecSC, ReplayProtectionEnable),
+    SAI_ATTR_MAP(MacsecSC, ReplayProtectionWindow),
+    SAI_ATTR_MAP(MacsecSC, SectagOffset),
 };
 
 std::map<int32_t, std::pair<std::string, std::size_t>> _MacsecFlowMap{

@@ -73,7 +73,8 @@ class HwTransceiverResetTest : public HwTransceiverTest {
       return false;
     }
     auto moduleState =
-        (CmisModuleState)((curr.get_data().data()[0] & MODULE_STATUS_MASK) >> MODULE_STATUS_BITSHIFT);
+        (CmisModuleState)((curr.get_data().data()[0] & MODULE_STATUS_MASK) >>
+                          MODULE_STATUS_BITSHIFT);
 
     if (expectInReset && moduleState != CmisModuleState::UNKNOWN) {
       return false;

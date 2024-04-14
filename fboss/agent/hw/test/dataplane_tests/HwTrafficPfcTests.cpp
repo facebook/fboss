@@ -516,8 +516,7 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
     };
     auto verify = [&]() { verifyCommon(false /* postWb */); };
     auto verifyPostWb = [&]() { verifyCommon(true /* postWb */); };
-    verifyAcrossWarmBoots(
-        setup, verify, []() {}, verifyPostWb);
+    verifyAcrossWarmBoots(setup, verify, []() {}, verifyPostWb);
   }
 
   void setupEcmpTraffic() {

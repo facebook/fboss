@@ -232,8 +232,7 @@ TYPED_TEST(HwAclPriorityTest, AclsChanged) {
     this->applyNewConfig(config);
   };
 
-  this->verifyAcrossWarmBoots(
-      setup, []() {}, setupPostWb, []() {});
+  this->verifyAcrossWarmBoots(setup, []() {}, setupPostWb, []() {});
 }
 
 TYPED_TEST(HwAclPriorityTest, Reprioritize) {
@@ -277,7 +276,6 @@ TYPED_TEST(HwAclPriorityTest, Reprioritize) {
     this->applyNewConfig(config);
   };
 
-  this->verifyAcrossWarmBoots(
-      setup, []() {}, setupPostWb, []() {});
+  this->verifyAcrossWarmBoots(setup, []() {}, setupPostWb, []() {});
 }
 } // namespace facebook::fboss

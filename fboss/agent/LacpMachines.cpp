@@ -163,12 +163,12 @@ void ReceiveMachine::stop() {
 void ReceiveMachine::rx(LACPDU lacpdu) {
   CHECK(controller_.evb()->inRunningEventBaseThread());
 
-  XLOG(DBG4) << "ReceiveMachine[" << controller_.portID() << "]: "
-             << "RX(" << lacpdu.describe() << ")";
+  XLOG(DBG4) << "ReceiveMachine[" << controller_.portID() << "]: " << "RX("
+             << lacpdu.describe() << ")";
 
   if (state_ == ReceiveState::DISABLED) {
-    XLOG(DBG4) << "ReceiveMachine[" << controller_.portID() << "]: "
-               << "Ignoring frame reception in DISABLED state";
+    XLOG(DBG4) << "ReceiveMachine[" << controller_.portID()
+               << "]: " << "Ignoring frame reception in DISABLED state";
     return;
   }
 
@@ -254,8 +254,8 @@ void ReceiveMachine::updateSelected(LACPDU& lacpdu) {
           (partnerInfo_.state & LacpState::AGGREGATABLE)) {
     return;
   }
-  XLOG(DBG4) << "ReceiveMachine[" << controller_.portID() << "]: "
-             << "Partner claimed " << lacpdu.actorInfo.describe()
+  XLOG(DBG4) << "ReceiveMachine[" << controller_.portID()
+             << "]: " << "Partner claimed " << lacpdu.actorInfo.describe()
              << " but I have " << partnerInfo_.describe();
   controller_.unselected();
 }
@@ -327,8 +327,7 @@ void ReceiveMachine::recordPDU(LACPDU& lacpdu) {
     // if partner transitions out of sync, LACP will disable fwding on the port
     if (partnerInfo_.state & LacpState::IN_SYNC) {
       XLOG(WARNING) << PortAlert() << "ReceiveMachine[" << controller_.portID()
-                    << "]: "
-                    << "Partner not in sync. Got LACP PDU ("
+                    << "]: " << "Partner not in sync. Got LACP PDU ("
                     << lacpdu.describe() << ") Previous State ("
                     << partnerInfo_.describe() << ")";
       servicer_->recordLacpMismatchPduTeardown();
@@ -528,8 +527,8 @@ void TransmitMachine::ntt(LACPDU lacpdu) {
 
   if (transmissionsLeft_ == 0) {
     // TODO(samank): figure out stale ntt details
-    XLOG(DBG4) << "TransmitMachine[" << controller_.portID() << "]: "
-               << "skipping ntt request";
+    XLOG(DBG4) << "TransmitMachine[" << controller_.portID()
+               << "]: " << "skipping ntt request";
     return;
   }
 
@@ -538,8 +537,8 @@ void TransmitMachine::ntt(LACPDU lacpdu) {
     return;
   }
 
-  XLOG(DBG4) << "TransmitMachine[" << controller_.portID() << "]: "
-             << "TX(" << lacpdu.describe() << ")";
+  XLOG(DBG4) << "TransmitMachine[" << controller_.portID() << "]: " << "TX("
+             << lacpdu.describe() << ")";
 
   --transmissionsLeft_;
   XLOG(DBG4) << transmissionsLeft_ << " transmissions left";

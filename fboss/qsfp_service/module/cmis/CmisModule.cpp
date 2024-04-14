@@ -2453,8 +2453,8 @@ bool CmisModule::ensureTransceiverReadyLocked() {
     uint8_t moduleStatus;
     readCmisField(CmisField::MODULE_STATE, &moduleStatus);
     bool isReady =
-        ((CmisModuleState)((moduleStatus & MODULE_STATUS_MASK) >> MODULE_STATUS_BITSHIFT) ==
-         CmisModuleState::READY);
+        ((CmisModuleState)((moduleStatus & MODULE_STATUS_MASK) >>
+                           MODULE_STATUS_BITSHIFT) == CmisModuleState::READY);
     return isReady;
   }
 

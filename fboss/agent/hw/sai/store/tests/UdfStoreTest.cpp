@@ -37,11 +37,11 @@ class UdfStoreTest : public SaiStoreTest {
         AclEntryFieldU16(l4DstPortTypePair)};
 #endif
     return saiApiTable->udfApi().create<SaiUdfMatchTraits>(
-        {
-          l2Type, l3Type
+        {l2Type,
+         l3Type
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
-              ,
-              l4DstPortType
+         ,
+         l4DstPortType
 #endif
         },
         0);
@@ -74,11 +74,12 @@ class UdfStoreTest : public SaiStoreTest {
     SaiUdfMatchTraits::Attributes::L4DstPortType l4DstPortType{
         AclEntryFieldU16(l4DstPortTypePair)};
 #endif
-    return SaiUdfMatchTraits::AdapterHostKey {
-      l2Type, l3Type
+    return SaiUdfMatchTraits::AdapterHostKey{
+        l2Type,
+        l3Type
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
-          ,
-          l4DstPortType
+        ,
+        l4DstPortType
 #endif
     };
   }

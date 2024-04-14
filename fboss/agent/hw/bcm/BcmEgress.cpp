@@ -591,8 +591,7 @@ void BcmEcmpEgress::program() {
               idx++;
             } else {
               XLOG(DBG1) << "Skipping unresolved egress : " << path.first
-                         << " while "
-                         << "programming ECMP group ";
+                         << " while " << "programming ECMP group ";
             }
           }
         }
@@ -619,8 +618,7 @@ void BcmEcmpEgress::program() {
               pathsArray[index++] = path.first;
             } else {
               XLOG(DBG1) << "Skipping unresolved egress : " << path.first
-                         << " while "
-                         << "programming ECMP group ";
+                         << " while " << "programming ECMP group ";
             }
           }
         }

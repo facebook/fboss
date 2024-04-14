@@ -38,7 +38,7 @@ class MinipackBaseLedManager : public LedManager {
   virtual void setLedColor(
       uint32_t portId,
       cfg::PortProfileID portProfile,
-      led::LedColor ledColor) override{};
+      led::LedColor ledColor) override {};
 };
 
 } // namespace facebook::fboss

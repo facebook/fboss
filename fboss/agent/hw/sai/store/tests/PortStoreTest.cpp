@@ -25,45 +25,45 @@ class PortStoreTest : public SaiStoreTest {
       std::optional<bool> adminStateOpt = true) {
     std::vector<uint32_t> lanes;
     lanes.push_back(lane);
-    return SaiPortTraits::CreateAttributes {
-      lanes, speed, adminStateOpt, std::nullopt,
+    return SaiPortTraits::CreateAttributes{
+        lanes,        speed,        adminStateOpt, std::nullopt,
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
-          std::nullopt, std::nullopt,
+        std::nullopt, std::nullopt,
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
-          std::nullopt, // Port Fabric Isolate
+        std::nullopt, // Port Fabric Isolate
 #endif
-          std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
-          std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
-          std::nullopt, // Ingress Mirror Session
-          std::nullopt, // Egress Mirror Session
-          std::nullopt, // Ingress Sample Packet
-          std::nullopt, // Egress Sample Packet
-          std::nullopt, // Ingress mirror sample session
-          std::nullopt, // Egress mirror sample session
-          std::nullopt, // PRBS Polynomial
-          std::nullopt, // PRBS Config
-          std::nullopt, // Ingress macsec acl
-          std::nullopt, // Egress macsec acl
-          std::nullopt, // System Port Id
-          std::nullopt, // PTP Mode
-          std::nullopt, // PFC Mode
-          std::nullopt, // PFC Priorities
+        std::nullopt, std::nullopt, std::nullopt,  std::nullopt, std::nullopt,
+        std::nullopt, std::nullopt, std::nullopt,  std::nullopt, std::nullopt,
+        std::nullopt, // Ingress Mirror Session
+        std::nullopt, // Egress Mirror Session
+        std::nullopt, // Ingress Sample Packet
+        std::nullopt, // Egress Sample Packet
+        std::nullopt, // Ingress mirror sample session
+        std::nullopt, // Egress mirror sample session
+        std::nullopt, // PRBS Polynomial
+        std::nullopt, // PRBS Config
+        std::nullopt, // Ingress macsec acl
+        std::nullopt, // Egress macsec acl
+        std::nullopt, // System Port Id
+        std::nullopt, // PTP Mode
+        std::nullopt, // PFC Mode
+        std::nullopt, // PFC Priorities
 #if !defined(TAJO_SDK)
-          std::nullopt, // PFC Rx Priorities
-          std::nullopt, // PFC Tx Priorities
+        std::nullopt, // PFC Rx Priorities
+        std::nullopt, // PFC Tx Priorities
 #endif
-          std::nullopt, // TC to Priority Group map
-          std::nullopt, // PFC Priority to Queue map
+        std::nullopt, // TC to Priority Group map
+        std::nullopt, // PFC Priority to Queue map
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
-          std::nullopt, // Inter Frame Gap
+        std::nullopt, // Inter Frame Gap
 #endif
-          std::nullopt, // Link Training Enable
-          std::nullopt, // FDR Enable
-          std::nullopt, // Rx Lane Squelch Enable
+        std::nullopt, // Link Training Enable
+        std::nullopt, // FDR Enable
+        std::nullopt, // Rx Lane Squelch Enable
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
-          std::nullopt, // PFC Deadlock Detection Interval
-          std::nullopt, // PFC Deadlock Recovery Interval
+        std::nullopt, // PFC Deadlock Detection Interval
+        std::nullopt, // PFC Deadlock Recovery Interval
 #endif
     };
   }

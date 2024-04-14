@@ -70,12 +70,11 @@ sai_int32_t getPortTypeFromCfg(const cfg::PortType& cfgPortType) {
 
 SaiPortTraits::AdapterHostKey getPortAdapterHostKeyFromAttr(
     const SaiPortTraits::CreateAttributes& attributes) {
-  SaiPortTraits::AdapterHostKey portKey {
+  SaiPortTraits::AdapterHostKey portKey{
 #if defined(BRCM_SAI_SDK_DNX)
-    GET_ATTR(Port, Type, attributes),
+      GET_ATTR(Port, Type, attributes),
 #endif
-        GET_ATTR(Port, HwLaneList, attributes)
-  };
+      GET_ATTR(Port, HwLaneList, attributes)};
 
   return portKey;
 }
@@ -557,85 +556,121 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   }
   auto portPfcInfo = getPortPfcAttributes(swPort);
   if (basicAttributeOnly) {
-    return SaiPortTraits::CreateAttributes {
+    return SaiPortTraits::CreateAttributes{
 #if defined(BRCM_SAI_SDK_DNX)
-      getPortTypeFromCfg(swPort->getPortType()),
+        getPortTypeFromCfg(swPort->getPortType()),
 #endif
-          hwLaneList, static_cast<uint32_t>(speed), adminState, fecMode,
+        hwLaneList,
+        static_cast<uint32_t>(speed),
+        adminState,
+        fecMode,
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
-          std::nullopt, std::nullopt,
+        std::nullopt,
+        std::nullopt,
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
-          std::nullopt, // Port Fabric Isolate
+        std::nullopt, // Port Fabric Isolate
 #endif
-          std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
-          std::nullopt, std::nullopt, disableTtl, std::nullopt, std::nullopt,
-          std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
-          std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
-          std::nullopt, std::nullopt, std::nullopt, std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        disableTtl,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
 #if !defined(TAJO_SDK)
-          std::nullopt, std::nullopt,
+        std::nullopt,
+        std::nullopt,
 #endif
-          std::nullopt, std::nullopt,
+        std::nullopt,
+        std::nullopt,
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
-          std::nullopt,
+        std::nullopt,
 #endif
-          std::nullopt, // Link Training Enable
-          std::nullopt, // FDR Enable
-          std::nullopt, // Rx Squelch Enable
-#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
-          std::nullopt, // PFC Deadlock Detection Interval
-          std::nullopt, // PFC Deadlock Recovery Interval
-#endif
-    };
-  }
-  return SaiPortTraits::CreateAttributes {
-#if defined(BRCM_SAI_SDK_DNX)
-    getPortTypeFromCfg(swPort->getPortType()),
-#endif
-        hwLaneList, static_cast<uint32_t>(speed), adminState, fecMode,
-#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
-        std::nullopt, std::nullopt,
-#endif
-#if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
-        isDrained,
-#endif
-#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
-        loopbackMode,
-#else
-        internalLoopbackMode,
-#endif
-        mediaType, globalFlowControlMode, vlanId, mtu, std::nullopt,
-        std::nullopt, disableTtl, interfaceType, std::nullopt,
-        std::nullopt, // Ingress Mirror Session
-        std::nullopt, // Egress Mirror Session
-        std::nullopt, // Ingress Sample Packet
-        std::nullopt, // Egress Sample Packet
-        std::nullopt, // Ingress mirror sample session
-        std::nullopt, // Egress mirror sample session
-        prbsPolynomial, // PRBS Polynomial
-        prbsConfig, // PRBS Config
-        std::nullopt, // Ingress MacSec ACL
-        std::nullopt, // Egress MacSec ACL
-        systemPortId, // System Port Id
-        ptpStatusOpt, // PTP Mode, can be std::nullopt
-        portPfcInfo.pfcMode, // PFC Mode
-        portPfcInfo.pfcTxRx, // PFC Priorities
-#if !defined(TAJO_SDK)
-        portPfcInfo.pfcRx, // PFC Rx Priorities
-        portPfcInfo.pfcTx, // PFC Tx Priorities
-#endif
-        std::nullopt, // TC to Priority Group map
-        std::nullopt, // PFC Priority to Queue map
-#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
-        interFrameGap, // Inter Frame Gap
-#endif
-        linkTrainingEnable,
-        fdrEnable, // FDR Enable,
-        std::nullopt, // Rx Lane Squelch Enable
+        std::nullopt, // Link Training Enable
+        std::nullopt, // FDR Enable
+        std::nullopt, // Rx Squelch Enable
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
         std::nullopt, // PFC Deadlock Detection Interval
         std::nullopt, // PFC Deadlock Recovery Interval
+#endif
+    };
+  }
+  return SaiPortTraits::CreateAttributes{
+#if defined(BRCM_SAI_SDK_DNX)
+      getPortTypeFromCfg(swPort->getPortType()),
+#endif
+      hwLaneList,
+      static_cast<uint32_t>(speed),
+      adminState,
+      fecMode,
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+      std::nullopt,
+      std::nullopt,
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
+      isDrained,
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+      loopbackMode,
+#else
+      internalLoopbackMode,
+#endif
+      mediaType,
+      globalFlowControlMode,
+      vlanId,
+      mtu,
+      std::nullopt,
+      std::nullopt,
+      disableTtl,
+      interfaceType,
+      std::nullopt,
+      std::nullopt, // Ingress Mirror Session
+      std::nullopt, // Egress Mirror Session
+      std::nullopt, // Ingress Sample Packet
+      std::nullopt, // Egress Sample Packet
+      std::nullopt, // Ingress mirror sample session
+      std::nullopt, // Egress mirror sample session
+      prbsPolynomial, // PRBS Polynomial
+      prbsConfig, // PRBS Config
+      std::nullopt, // Ingress MacSec ACL
+      std::nullopt, // Egress MacSec ACL
+      systemPortId, // System Port Id
+      ptpStatusOpt, // PTP Mode, can be std::nullopt
+      portPfcInfo.pfcMode, // PFC Mode
+      portPfcInfo.pfcTxRx, // PFC Priorities
+#if !defined(TAJO_SDK)
+      portPfcInfo.pfcRx, // PFC Rx Priorities
+      portPfcInfo.pfcTx, // PFC Tx Priorities
+#endif
+      std::nullopt, // TC to Priority Group map
+      std::nullopt, // PFC Priority to Queue map
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+      interFrameGap, // Inter Frame Gap
+#endif
+      linkTrainingEnable,
+      fdrEnable, // FDR Enable,
+      std::nullopt, // Rx Lane Squelch Enable
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+      std::nullopt, // PFC Deadlock Detection Interval
+      std::nullopt, // PFC Deadlock Recovery Interval
 #endif
   };
 }
@@ -703,8 +738,8 @@ void SaiPortManager::enableAfeAdaptiveMode(PortID portId) {
   auto& store = saiStore_->get<SaiPortSerdesTraits>();
   SaiPortSerdesTraits::AdapterHostKey serdesKey{portHandle->port->adapterKey()};
   auto serdesAttributes = portHandle->serdes->attributes();
-  std::get<std::optional<std::decay_t<decltype(
-      SaiPortSerdesTraits::Attributes::RxAfeAdaptiveEnable{})>>>(
+  std::get<std::optional<std::decay_t<
+      decltype(SaiPortSerdesTraits::Attributes::RxAfeAdaptiveEnable{})>>>(
       serdesAttributes) = rxAfeAdaptiveEnable;
   portHandle->serdes.reset();
   portHandle->serdes = store.setObject(serdesKey, serdesAttributes);
@@ -961,11 +996,11 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
     if (platform_->getHwSwitch()->getBootType() == BootType::WARM_BOOT &&
         platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO &&
         serdes) {
-      auto rxDspModeFromStore = std::get<std::optional<std::decay_t<decltype(
-          SaiPortSerdesTraits::Attributes::RxDspMode{})>>>(
+      auto rxDspModeFromStore = std::get<std::optional<std::decay_t<
+          decltype(SaiPortSerdesTraits::Attributes::RxDspMode{})>>>(
           serdes->attributes());
-      auto rxAfeTrimFromStore = std::get<std::optional<std::decay_t<decltype(
-          SaiPortSerdesTraits::Attributes::RxAfeTrim{})>>>(
+      auto rxAfeTrimFromStore = std::get<std::optional<std::decay_t<
+          decltype(SaiPortSerdesTraits::Attributes::RxAfeTrim{})>>>(
           serdes->attributes());
       if (!rxDspMode.empty() && !rxAfeTrim.empty() &&
           rxDspModeFromStore.has_value() && rxAfeTrimFromStore.has_value() &&

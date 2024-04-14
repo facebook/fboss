@@ -130,8 +130,7 @@ void SaiPhyManager::updateAllXphyPortsStats() {
                   updateXphyInfo(portId, std::move(phyInfo));
                 }
               } catch (const std::exception& e) {
-                XLOG(INFO) << "Stats collection failed on : "
-                           << "switch: "
+                XLOG(INFO) << "Stats collection failed on : " << "switch: "
                            << platformInfo->getHwSwitch()->getSaiSwitchId()
                            << " xphy: " << xphy << " error: " << e.what();
               }

@@ -184,10 +184,10 @@ struct ThriftMapFields {
 
   template <typename T = Self>
   auto remove(const key_type& key) -> std::enable_if_t<
-      !std::is_same_v<
-          typename T::KeyTypeClass,
-          apache::thrift::type_class::string>,
-      bool> {
+                                       !std::is_same_v<
+                                           typename T::KeyTypeClass,
+                                           apache::thrift::type_class::string>,
+                                       bool> {
     return storage_.erase(key);
   }
 
@@ -381,10 +381,10 @@ class ThriftMapNode
 
   template <typename T = Fields>
   auto remove(const key_type& key) -> std::enable_if_t<
-      !std::is_same_v<
-          typename T::KeyTypeClass,
-          apache::thrift::type_class::string>,
-      bool> {
+                                       !std::is_same_v<
+                                           typename T::KeyTypeClass,
+                                           apache::thrift::type_class::string>,
+                                       bool> {
     return this->writableFields()->remove(key);
   }
 

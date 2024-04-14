@@ -370,16 +370,14 @@ bool AgentOlympicQosSchedulerTest::verifySPHelper(
     bool fromFrontPanel) {
   XLOG(DBG0) << "trafficQueueId: " << trafficQueueId;
   auto portId = outPort();
-  auto startTrafficFun = [this,
-                          portId,
-                          queueIds,
-                          queueToDscp,
-                          fromFrontPanel]() {
-    utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
-    _setup(ecmpHelper6);
-    sendUdpPktsForAllQueues(queueIds, queueToDscp, fromFrontPanel);
-    getAgentEnsemble()->waitForLineRateOnPort(portId);
-  };
+  auto startTrafficFun =
+      [this, portId, queueIds, queueToDscp, fromFrontPanel]() {
+        utility::EcmpSetupAnyNPorts6 ecmpHelper6{
+            getProgrammedState(), dstMac()};
+        _setup(ecmpHelper6);
+        sendUdpPktsForAllQueues(queueIds, queueToDscp, fromFrontPanel);
+        getAgentEnsemble()->waitForLineRateOnPort(portId);
+      };
   WITH_RETRIES_N(10, {
     auto [portStatsBefore, portStatsAfter] = sendTrafficAndCollectStats(
                                                  {portId},

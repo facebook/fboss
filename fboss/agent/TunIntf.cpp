@@ -88,8 +88,7 @@ TunIntf::TunIntf(
   disableIPv6AddrGenMode(ifIndex_);
 
   XLOG(DBG2) << "Added interface " << name_ << " with fd " << fd_ << " @ index "
-             << ifIndex_ << ", "
-             << "DOWN";
+             << ifIndex_ << ", " << "DOWN";
 }
 
 TunIntf::TunIntf(

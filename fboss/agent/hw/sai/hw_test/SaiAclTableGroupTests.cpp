@@ -674,8 +674,7 @@ TEST_F(SaiAclTableGroupTest, AddFirstTableAfterWarmboot) {
         getHwSwitch(), utility::getTtlAclTableName()));
   };
 
-  verifyAcrossWarmBoots(
-      setup, []() {}, setupPostWarmboot, verifyPostWarmboot);
+  verifyAcrossWarmBoots(setup, []() {}, setupPostWarmboot, verifyPostWarmboot);
 }
 
 TEST_F(SaiAclTableGroupTest, AddSecondTableAfterWarmboot) {
@@ -694,8 +693,7 @@ TEST_F(SaiAclTableGroupTest, AddSecondTableAfterWarmboot) {
         getHwSwitch(), utility::getTtlAclTableName()));
   };
 
-  verifyAcrossWarmBoots(
-      setup, []() {}, setupPostWarmboot, verifyPostWarmboot);
+  verifyAcrossWarmBoots(setup, []() {}, setupPostWarmboot, verifyPostWarmboot);
 }
 
 TEST_F(SaiAclTableGroupTest, DeleteFirstTableAfterWarmboot) {
@@ -714,8 +712,7 @@ TEST_F(SaiAclTableGroupTest, DeleteFirstTableAfterWarmboot) {
         getHwSwitch(), utility::getTtlAclTableName()));
   };
 
-  verifyAcrossWarmBoots(
-      setup, []() {}, setupPostWarmboot, verifyPostWarmboot);
+  verifyAcrossWarmBoots(setup, []() {}, setupPostWarmboot, verifyPostWarmboot);
 }
 
 TEST_F(SaiAclTableGroupTest, DeleteSecondTableAfterWarmboot) {
@@ -734,8 +731,7 @@ TEST_F(SaiAclTableGroupTest, DeleteSecondTableAfterWarmboot) {
         getHwSwitch(), utility::getTtlAclTableName()));
   };
 
-  verifyAcrossWarmBoots(
-      setup, []() {}, setupPostWarmboot, verifyPostWarmboot);
+  verifyAcrossWarmBoots(setup, []() {}, setupPostWarmboot, verifyPostWarmboot);
 }
 
 TEST_F(SaiAclTableGroupTest, TestAclTableGroupRoundtrip) {

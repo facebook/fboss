@@ -66,8 +66,7 @@ TEST_F(HwPtpTcTest, VerifyPtpTcEnable) {
     EXPECT_TRUE(utility::getPtpTcEnabled(getHwSwitch()));
   };
 
-  verifyAcrossWarmBoots(
-      setup, verify, []() {}, verifyPostWarmboot);
+  verifyAcrossWarmBoots(setup, verify, []() {}, verifyPostWarmboot);
 }
 
 TEST_F(HwPtpTcTest, VerifyPtpTcToggle) {

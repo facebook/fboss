@@ -58,11 +58,12 @@ SaiUdfMatchTraits::CreateAttributes SaiUdfManager::udfMatchAttr(
         AclEntryFieldU16(std::make_pair(*l4DstPort, kL4PortMask))};
   }
 #endif
-  return SaiUdfMatchTraits::CreateAttributes {
-    l2MatchAttr, l3MatchAttr
+  return SaiUdfMatchTraits::CreateAttributes{
+      l2MatchAttr,
+      l3MatchAttr
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
-        ,
-        l4DstPortAttr
+      ,
+      l4DstPortAttr
 #endif
   };
 }

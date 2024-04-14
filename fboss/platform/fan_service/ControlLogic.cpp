@@ -494,7 +494,8 @@ std::pair<bool, float> ControlLogic::programFan(
     }
   }
   int pwmInt =
-      (int)(((*fan.pwmMax()) - (*fan.pwmMin())) * pwmToProgram / 100.0 + *fan.pwmMin());
+      (int)(((*fan.pwmMax()) - (*fan.pwmMin())) * pwmToProgram / 100.0 +
+            *fan.pwmMin());
   if (pwmInt < *fan.pwmMin()) {
     pwmInt = *fan.pwmMin();
   } else if (pwmInt > *fan.pwmMax()) {

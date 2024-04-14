@@ -14,7 +14,7 @@ FsdbStatePublisher::setupStream() {
       [&](const OperPubInitResponse& /* initResponse */) -> bool {
     return !isCancelled();
   };
-  auto result = co_await(
+  auto result = co_await (
       isStats() ? client_->co_publishOperStatsPath(createRequest())
                 : client_->co_publishOperStatePath(createRequest()));
   initResponseReceiver(result.response);

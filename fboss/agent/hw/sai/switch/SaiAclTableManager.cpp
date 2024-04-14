@@ -486,22 +486,24 @@ SaiAclTableManager::addAclCounter(
     }
   }
 
-  SaiAclCounterTraits::AdapterHostKey adapterHostKey {
-    aclTableId,
+  SaiAclCounterTraits::AdapterHostKey adapterHostKey{
+      aclTableId,
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
-        aclCounterLabel,
+      aclCounterLabel,
 #endif
-        enablePacketCount, enableByteCount,
+      enablePacketCount,
+      enableByteCount,
   };
 
-  SaiAclCounterTraits::CreateAttributes attributes {
-    aclTableId,
+  SaiAclCounterTraits::CreateAttributes attributes{
+      aclTableId,
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
-        aclCounterLabel,
+      aclCounterLabel,
 #endif
-        enablePacketCount, enableByteCount,
-        std::nullopt, // counterPackets
-        std::nullopt, // counterBytes
+      enablePacketCount,
+      enableByteCount,
+      std::nullopt, // counterPackets
+      std::nullopt, // counterBytes
   };
 
   // The following logic is added temporarily for 5.1 -> 7.2 warmboot
@@ -1084,25 +1086,49 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
     return AclEntrySaiId{0};
   }
 
-  SaiAclEntryTraits::CreateAttributes attributes {
-    aclTableId, priority, true, fieldSrcIpV6, fieldDstIpV6, fieldSrcIpV4,
-        fieldDstIpV4, fieldSrcPort, fieldOutPort, fieldL4SrcPort,
-        fieldL4DstPort, fieldIpProtocol, fieldTcpFlags, fieldIpFrag,
-        fieldIcmpV4Type, fieldIcmpV4Code, fieldIcmpV6Type, fieldIcmpV6Code,
-        fieldDscp, fieldDstMac, fieldIpType, fieldTtl, fieldFdbDstUserMeta,
-        fieldRouteDstUserMeta, fieldNeighborDstUserMeta, fieldEtherType,
-        fieldOuterVlanId,
+  SaiAclEntryTraits::CreateAttributes attributes{
+      aclTableId,
+      priority,
+      true,
+      fieldSrcIpV6,
+      fieldDstIpV6,
+      fieldSrcIpV4,
+      fieldDstIpV4,
+      fieldSrcPort,
+      fieldOutPort,
+      fieldL4SrcPort,
+      fieldL4DstPort,
+      fieldIpProtocol,
+      fieldTcpFlags,
+      fieldIpFrag,
+      fieldIcmpV4Type,
+      fieldIcmpV4Code,
+      fieldIcmpV6Type,
+      fieldIcmpV6Code,
+      fieldDscp,
+      fieldDstMac,
+      fieldIpType,
+      fieldTtl,
+      fieldFdbDstUserMeta,
+      fieldRouteDstUserMeta,
+      fieldNeighborDstUserMeta,
+      fieldEtherType,
+      fieldOuterVlanId,
 #if !defined(TAJO_SDK)
-        fieldBthOpcode,
+      fieldBthOpcode,
 #endif
-        aclActionPacketAction, aclActionCounter, aclActionSetTC,
-        aclActionSetDSCP, aclActionMirrorIngress, aclActionMirrorEgress,
-        aclActionMacsecFlow,
+      aclActionPacketAction,
+      aclActionCounter,
+      aclActionSetTC,
+      aclActionSetDSCP,
+      aclActionMirrorIngress,
+      aclActionMirrorEgress,
+      aclActionMacsecFlow,
 // action not supported by tajo. Besides, user defined trap
 // is used to make ACL take precedence over Hostif trap.
 // Tajo already supports this behavior
 #if !defined(TAJO_SDK)
-        aclActionSetUserTrap,
+      aclActionSetUserTrap,
 #endif
   };
 

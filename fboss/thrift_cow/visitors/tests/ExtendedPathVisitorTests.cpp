@@ -25,10 +25,15 @@ using TestStructMembers = apache::thrift::reflect_struct<TestStruct>::member;
 namespace {
 
 TestStruct createTestStruct() {
-  dynamic
-      testDyn =
-          dynamic::
-              object("inlineBool", true)("inlineInt", 54)("inlineString", "testname")("optionalString", "bla")("inlineStruct", dynamic::object("min", 10)("max", 20))("inlineVariant", dynamic::object("inlineInt", 99))("mapOfEnumToStruct", dynamic::object("3", dynamic::object("min", 100)("max", 200)))("mapOfStringToI32", dynamic::object)("listOfPrimitives", dynamic::array())("setOfI32", dynamic::array())("mapOfI32ToListOfStructs", dynamic::object());
+  dynamic testDyn = dynamic::object("inlineBool", true)("inlineInt", 54)(
+      "inlineString", "testname")("optionalString", "bla")(
+      "inlineStruct", dynamic::object("min", 10)("max", 20))(
+      "inlineVariant", dynamic::object("inlineInt", 99))(
+      "mapOfEnumToStruct",
+      dynamic::object("3", dynamic::object("min", 100)("max", 200)))(
+      "mapOfStringToI32", dynamic::object)(
+      "listOfPrimitives", dynamic::array())("setOfI32", dynamic::array())(
+      "mapOfI32ToListOfStructs", dynamic::object());
 
   for (int i = 0; i <= 20; ++i) {
     testDyn["mapOfStringToI32"][fmt::format("test{}", i)] = i;

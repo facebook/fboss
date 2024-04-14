@@ -1014,9 +1014,9 @@ void BcmPort::enableL3(bool enableV4, bool enableV6) {
               (std::get<2>(l3Option) ? "ENABLED" : "DISABLED"),
               bcm_errmsg(rv)));
     } else {
-      XLOG(DBG5) << "No need to program port control L3. "
-                 << "Current " << std::get<0>(l3Option) << " for port " << port_
-                 << " is " << (currVal ? "ENABLED" : "DISABLED")
+      XLOG(DBG5) << "No need to program port control L3. " << "Current "
+                 << std::get<0>(l3Option) << " for port " << port_ << " is "
+                 << (currVal ? "ENABLED" : "DISABLED")
                  << ", which is the same to expected: "
                  << (std::get<2>(l3Option) ? "ENABLED" : "DISABLED");
     }
@@ -2546,8 +2546,8 @@ bool BcmPort::pfcWatchdogNeedsReprogramming(const std::shared_ptr<Port>& port) {
                << " detectionAndRecoveryEnable: "
                << programmedPfcWatchdogMap
                       [bcmCosqPFCDeadlockDetectionAndRecoveryEnable];
-    XLOG(DBG2) << "New PFC watchdog params: "
-               << " recoveryTimer: " << newPfcDeadlockRecoveryTimer
+    XLOG(DBG2) << "New PFC watchdog params: " << " recoveryTimer: "
+               << newPfcDeadlockRecoveryTimer
                << " detectionTimer: " << newPfcDeadlockDetectionTimer
                << " detectionAndRecoveryEnable: " << pfcWatchdogEnabledInSw;
     // Mismatch between SW and HW configs, reprogram!

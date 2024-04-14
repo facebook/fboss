@@ -198,7 +198,7 @@ MultiSwitchThriftHandler::co_notifyRxPacket(int64_t switchId) {
                      << " with exception " << e.what();
           sw_->stats()->hwAgentRxPktEventSinkConnectionStatus(
               switchIndex, false);
-          co_return(false);
+          co_return (false);
         }
         co_return true;
       },

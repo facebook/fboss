@@ -25,10 +25,11 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _UdfMap{
     SAI_ATTR_MAP(Udf, Offset),
 };
 
-std::map<int32_t, std::pair<std::string, std::size_t>> _UdfMatchMap {
-  SAI_ATTR_MAP(UdfMatch, L2Type), SAI_ATTR_MAP(UdfMatch, L3Type),
+std::map<int32_t, std::pair<std::string, std::size_t>> _UdfMatchMap{
+    SAI_ATTR_MAP(UdfMatch, L2Type),
+    SAI_ATTR_MAP(UdfMatch, L3Type),
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
-      SAI_ATTR_MAP(UdfMatch, L4DstPortType),
+    SAI_ATTR_MAP(UdfMatch, L4DstPortType),
 #endif
 };
 

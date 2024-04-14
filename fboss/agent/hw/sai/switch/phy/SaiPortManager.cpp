@@ -244,32 +244,40 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   }
   XLOG(DBG2) << dbgOutput;
 
-  return SaiPortTraits::CreateAttributes {
-    laneList, static_cast<uint32_t>(speed), enabled, fecMode,
+  return SaiPortTraits::CreateAttributes{
+      laneList,       static_cast<uint32_t>(speed),
+      enabled,        fecMode,
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
-        useExtendedFec, extendedFecMode,
+      useExtendedFec, extendedFecMode,
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
-        std::nullopt, // Port Fabric Isolate
+      std::nullopt, // Port Fabric Isolate
 #endif
-        std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
-        std::nullopt, std::nullopt, std::nullopt, intfType, std::nullopt,
-        std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
-        std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
-        std::nullopt, std::nullopt, std::nullopt, std::nullopt,
+      std::nullopt,   std::nullopt,
+      std::nullopt,   std::nullopt,
+      std::nullopt,   std::nullopt,
+      std::nullopt,   std::nullopt,
+      intfType,       std::nullopt,
+      std::nullopt,   std::nullopt,
+      std::nullopt,   std::nullopt,
+      std::nullopt,   std::nullopt,
+      std::nullopt,   std::nullopt,
+      std::nullopt,   std::nullopt,
+      std::nullopt,   std::nullopt,
+      std::nullopt,   std::nullopt,
 #if !defined(TAJO_SDK)
-        std::nullopt, std::nullopt,
+      std::nullopt,   std::nullopt,
 #endif
-        std::nullopt, std::nullopt,
+      std::nullopt,   std::nullopt,
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
-        std::nullopt,
+      std::nullopt,
 #endif
-        std::nullopt, // Link Training Enable
-        std::nullopt, // FDR Enable
-        std::nullopt, // Rx Squelch Enable
+      std::nullopt, // Link Training Enable
+      std::nullopt, // FDR Enable
+      std::nullopt, // Rx Squelch Enable
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
-        std::nullopt, // PFC Deadlock Detection Interval
-        std::nullopt, // PFC Deadlock Recovery Interval
+      std::nullopt, // PFC Deadlock Detection Interval
+      std::nullopt, // PFC Deadlock Recovery Interval
 #endif
   };
 }

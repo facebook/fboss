@@ -159,12 +159,11 @@ void IPv6Handler::handlePacket(
   auto payloadLength = pkt->getLength() - (cursor - Cursor(pkt->buf()));
   if (ipv6.payloadLength > payloadLength) {
     sw_->portStats(pkt->getSrcPort())->pktBogus();
-    XLOG(DBG3) << "Discarding pkt with invalid length field. length: "
-               << " (" << ipv6.payloadLength << ")"
-               << "payload length: "
-               << " (" << payloadLength << ")"
-               << " src: " << ipv6.srcAddr.str() << " (" << src << ")"
-               << " dst: " << ipv6.dstAddr.str() << " (" << dst << ")";
+    XLOG(DBG3) << "Discarding pkt with invalid length field. length: " << " ("
+               << ipv6.payloadLength << ")" << "payload length: " << " ("
+               << payloadLength << ")" << " src: " << ipv6.srcAddr.str() << " ("
+               << src << ")" << " dst: " << ipv6.dstAddr.str() << " (" << dst
+               << ")";
     return;
   }
 
@@ -857,8 +856,8 @@ void IPv6Handler::sendUnicastNeighborSolicitation(
   }
 
   XLOG(DBG4) << "sending unicast neighbor solicitation to " << targetIP << "("
-             << targetMac << ")"
-             << " on interface " << intfID << " from " << srcIP << "(" << srcMac
+             << targetMac << ")" << " on interface " << intfID << " from "
+             << srcIP << "(" << srcMac
              << ")  portDescriptor:" << portDescriptor.str()
              << " portToSend: " << portToSend.str();
 

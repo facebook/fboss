@@ -530,15 +530,18 @@ MacsecSCSaiId SaiMacsecManager::addMacsecSecureChannel(
     replayProtectionWindow = kReplayProtectionWindow;
   }
 
-  SaiMacsecSCTraits::CreateAttributes attributes {
-    secureChannelId, direction, flowId,
+  SaiMacsecSCTraits::CreateAttributes attributes{
+      secureChannelId,
+      direction,
+      flowId,
 #if SAI_API_VERSION >= SAI_VERSION(1, 7, 1)
-        xpn64Enable ? SAI_MACSEC_CIPHER_SUITE_GCM_AES_XPN_256
-                    : SAI_MACSEC_CIPHER_SUITE_GCM_AES_256, /* ciphersuite */
+      xpn64Enable ? SAI_MACSEC_CIPHER_SUITE_GCM_AES_XPN_256
+                  : SAI_MACSEC_CIPHER_SUITE_GCM_AES_256, /* ciphersuite */
 #endif
-        secureChannelEnable, replayProtectionWindow.has_value(),
-        replayProtectionWindow, kSectagOffset
-  };
+      secureChannelEnable,
+      replayProtectionWindow.has_value(),
+      replayProtectionWindow,
+      kSectagOffset};
   SaiMacsecSCTraits::AdapterHostKey secureChannelKey{
       secureChannelId, direction};
 
@@ -657,12 +660,17 @@ MacsecSASaiId SaiMacsecManager::addMacsecSecureAssoc(
         " direction: ");
   }
 
-  SaiMacsecSATraits::CreateAttributes attributes {
-    scHandle->secureChannel->adapterKey(), assocNum, authKey, direction,
+  SaiMacsecSATraits::CreateAttributes attributes{
+      scHandle->secureChannel->adapterKey(),
+      assocNum,
+      authKey,
+      direction,
 #if SAI_API_VERSION >= SAI_VERSION(1, 7, 1)
-        shortSecureChannelId,
+      shortSecureChannelId,
 #endif
-        secureAssociationKey, salt, std::nullopt /* minimumXpn */
+      secureAssociationKey,
+      salt,
+      std::nullopt /* minimumXpn */
   };
   SaiMacsecSATraits::AdapterHostKey key{
       scHandle->secureChannel->adapterKey(), assocNum, direction};

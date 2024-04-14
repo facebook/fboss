@@ -46,7 +46,7 @@ class BspPimContainer : public MultiPimPlatformPimContainer {
   virtual bool isPimPresent() const override {
     return true;
   };
-  virtual void initHW(bool forceReset = false) override{};
+  virtual void initHW(bool forceReset = false) override {};
   folly::EventBase* FOLLY_NULLABLE getIOEventBase(unsigned int tcvrID) const {
     if (tcvrToIOEvb_.find(tcvrID) == tcvrToIOEvb_.end()) {
       return nullptr;

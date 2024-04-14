@@ -94,8 +94,8 @@ class LacpServiceInterceptor : public LacpServicerIf {
     (*portToIsForwardingLocked)[portID] = true;
 
     // "Enable" forwarding
-    XLOG(DBG2) << "Enabling member " << portID << " in "
-               << "aggregate " << aggPortID;
+    XLOG(DBG2) << "Enabling member " << portID << " in " << "aggregate "
+               << aggPortID;
   }
   void disableForwardingAndSetPartnerState(
       PortID portID,
@@ -106,8 +106,8 @@ class LacpServiceInterceptor : public LacpServicerIf {
     (*portToIsForwardingLocked)[portID] = false;
 
     // "Disable" forwarding
-    XLOG(DBG2) << "Disabling member " << portID << " in "
-               << "aggregate " << aggPortID;
+    XLOG(DBG2) << "Disabling member " << portID << " in " << "aggregate "
+               << aggPortID;
   }
 
   void recordLacpTimeout() override {
@@ -208,15 +208,15 @@ class MockLacpServicer : public LacpServicerIf {
       PortID portID,
       AggregatePortID aggPortID,
       const ParticipantInfo& /* unused */) override {
-    XLOG(DBG2) << "Enabling member " << portID << " in "
-               << "aggregate " << aggPortID;
+    XLOG(DBG2) << "Enabling member " << portID << " in " << "aggregate "
+               << aggPortID;
   }
   void disableForwardingAndSetPartnerState(
       PortID portID,
       AggregatePortID aggPortID,
       const ParticipantInfo& /* unused */) override {
-    XLOG(DBG2) << "Disabling member " << portID << " in "
-               << "aggregate " << aggPortID;
+    XLOG(DBG2) << "Disabling member " << portID << " in " << "aggregate "
+               << aggPortID;
   }
   void recordLacpTimeout() override {}
   void recordLacpMismatchPduTeardown() override {}

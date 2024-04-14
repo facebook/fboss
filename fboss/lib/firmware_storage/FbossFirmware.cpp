@@ -29,8 +29,8 @@ void FbossFirmware::load() {
   struct stat fileStat;
   int retval = fstat(fwFileHandle.fd(), &fileStat);
   if (retval == -1) {
-    XLOG(ERR) << "FbossFirmware: Can't get the information "
-              << "on the file " << firmwareAttributes_.filename;
+    XLOG(ERR) << "FbossFirmware: Can't get the information " << "on the file "
+              << firmwareAttributes_.filename;
     // Folly file destructor will close the fd
     throw FbossFirmwareError("Bad Firmware file");
   }
@@ -64,8 +64,8 @@ void FbossFirmware::load() {
     fwFileHandle.close();
     throw FbossFirmwareError("Firmware file can't be read");
   } else if (nRead < fileSize) {
-    XLOG(ERR) << "FbossFirmware: Failed to read completely from "
-              << "file " << firmwareAttributes_.filename << " size "
+    XLOG(ERR) << "FbossFirmware: Failed to read completely from " << "file "
+              << firmwareAttributes_.filename << " size "
               << folly::to<std::string>(fileSize)
               << " number of bytes read only " << folly::to<std::string>(nRead);
     fwFileHandle.close();

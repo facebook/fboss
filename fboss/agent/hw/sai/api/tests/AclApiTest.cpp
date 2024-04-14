@@ -521,14 +521,14 @@ class AclApiTest : public ::testing::Test {
         kCounterBytes()};
 
     return aclApi->create<SaiAclCounterTraits>(
-        {
-          aclTableIdAttribute,
+        {aclTableIdAttribute,
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
-              label,
+         label,
 #endif
-              enablePacketCountAttribute, enableByteCountAttribute,
-              counterPacketsAttribute, counterBytesAttribute
-        },
+         enablePacketCountAttribute,
+         enableByteCountAttribute,
+         counterPacketsAttribute,
+         counterBytesAttribute},
         kSwitchID());
   }
 

@@ -16,7 +16,7 @@ FsdbDeltaSubscriberImpl<SubUnit, PathElement>::setupStream() {
     return !this->isCancelled();
   };
   if constexpr (std::is_same_v<SubUnit, OperDelta>) {
-    auto result = co_await(
+    auto result = co_await (
         this->isStats() ? this->client_->co_subscribeOperStatsDelta(
                               this->getRpcOptions(), this->createRequest())
                         : this->client_->co_subscribeOperStateDelta(
@@ -24,7 +24,7 @@ FsdbDeltaSubscriberImpl<SubUnit, PathElement>::setupStream() {
     initResponseReceiver(result.response);
     co_return std::move(result.stream);
   } else {
-    auto result = co_await(
+    auto result = co_await (
         this->isStats() ? this->client_->co_subscribeOperStatsDeltaExtended(
                               this->getRpcOptions(), this->createRequest())
                         : this->client_->co_subscribeOperStateDeltaExtended(

@@ -22,7 +22,13 @@ using k = thriftpath_test_tags::strings;
 namespace {
 
 TestStruct createTestStruct() {
-  dynamic testDyn = dynamic::object("tx", true)("rx", false)("name", "testname")("optionalString", "bla")("member", dynamic::object("min", 10)("max", 20))("variantMember", dynamic::object("integral", 99))("structMap", dynamic::object("3", dynamic::object("min", 100)("max", 200)))("enumSet", dynamic::array(1))("integralSet", dynamic::array(5));
+  dynamic testDyn = dynamic::object("tx", true)("rx", false)(
+      "name", "testname")("optionalString", "bla")(
+      "member", dynamic::object("min", 10)("max", 20))(
+      "variantMember", dynamic::object("integral", 99))(
+      "structMap",
+      dynamic::object("3", dynamic::object("min", 100)("max", 200)))(
+      "enumSet", dynamic::array(1))("integralSet", dynamic::array(5));
 
   return apache::thrift::from_dynamic<TestStruct>(
       testDyn, apache::thrift::dynamic_format::JSON_1);

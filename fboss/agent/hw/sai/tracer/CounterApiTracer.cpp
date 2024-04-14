@@ -19,10 +19,10 @@
 using folly::to;
 
 namespace {
-std::map<int32_t, std::pair<std::string, std::size_t>> _CounterMap {
-  SAI_ATTR_MAP(Counter, Type),
+std::map<int32_t, std::pair<std::string, std::size_t>> _CounterMap{
+    SAI_ATTR_MAP(Counter, Type),
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
-      SAI_ATTR_MAP(Counter, Label),
+    SAI_ATTR_MAP(Counter, Label),
 #endif
 };
 } // namespace

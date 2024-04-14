@@ -95,8 +95,7 @@ std::shared_ptr<SwitchState> DsfStateUpdaterUtil::getUpdatedState(
         oldNode->getRemoteSystemPortType().value() ==
             RemoteSystemPortType::STATIC_ENTRY) {
       XLOG(DBG2)
-          << "Skip overwriting STATIC remoteSystemPorts: "
-          << " STATIC: "
+          << "Skip overwriting STATIC remoteSystemPorts: " << " STATIC: "
           << apache::thrift::SimpleJSONSerializer::serialize<std::string>(
                  oldNode->toThrift())
           << " non-STATIC: "
@@ -117,8 +116,7 @@ std::shared_ptr<SwitchState> DsfStateUpdaterUtil::getUpdatedState(
         oldNode->getRemoteInterfaceType().value() ==
             RemoteInterfaceType::STATIC_ENTRY) {
       XLOG(DBG2)
-          << "Skip overwriting STATIC remoteInterface: "
-          << " STATIC: "
+          << "Skip overwriting STATIC remoteInterface: " << " STATIC: "
           << apache::thrift::SimpleJSONSerializer::serialize<std::string>(
                  oldNode->toThrift())
           << " non-STATIC: "

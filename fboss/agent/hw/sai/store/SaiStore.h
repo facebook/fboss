@@ -168,8 +168,7 @@ class SaiObjectStore {
       auto ins = objects_.refOrInsert(adapterHostKey, std::move(obj));
       if (!ins.second) {
         XLOG(FATAL) << "[" << saiObjectTypeToString(SaiObjectTraits::ObjectType)
-                    << "]"
-                    << " Unexpected duplicate adapterHostKey";
+                    << "]" << " Unexpected duplicate adapterHostKey";
       }
       warmBootHandles_.emplace(adapterHostKey, ins.first);
     }

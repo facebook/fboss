@@ -17,7 +17,7 @@ FsdbStateSubscriberImpl<SubUnit, PathElement>::setupStream() {
     return !this->isCancelled();
   };
   if constexpr (std::is_same_v<SubUnit, OperState>) {
-    auto result = co_await(
+    auto result = co_await (
         this->isStats() ? this->client_->co_subscribeOperStatsPath(
                               this->getRpcOptions(), this->createRequest())
                         : this->client_->co_subscribeOperStatePath(
@@ -25,7 +25,7 @@ FsdbStateSubscriberImpl<SubUnit, PathElement>::setupStream() {
     initResponseReceiver(result.response);
     co_return std::move(result.stream);
   } else {
-    auto result = co_await(
+    auto result = co_await (
         this->isStats() ? this->client_->co_subscribeOperStatsPathExtended(
                               this->getRpcOptions(), this->createRequest())
                         : this->client_->co_subscribeOperStatePathExtended(

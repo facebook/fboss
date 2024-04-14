@@ -67,7 +67,7 @@ TEST_F(RouteApiTest, createV6Route) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
       { packetActionAttribute, nextHopIdAttribute, std::nullopt, std::nullopt }
 #else
-      { packetActionAttribute, nextHopIdAttribute, std::nullopt }
+      {packetActionAttribute, nextHopIdAttribute, std::nullopt}
 #endif
   );
   EXPECT_EQ(
@@ -84,7 +84,7 @@ TEST_F(RouteApiTest, createV4Drop) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
       { packetActionAttribute, std::nullopt, std::nullopt, std::nullopt }
 #else
-      { packetActionAttribute, std::nullopt, std::nullopt }
+      {packetActionAttribute, std::nullopt, std::nullopt}
 #endif
   );
   EXPECT_EQ(
@@ -102,7 +102,7 @@ TEST_F(RouteApiTest, createV6Drop) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
       { packetActionAttribute, std::nullopt, std::nullopt, std::nullopt }
 #else
-      { packetActionAttribute, std::nullopt, std::nullopt }
+      {packetActionAttribute, std::nullopt, std::nullopt}
 #endif
   );
   EXPECT_EQ(
@@ -121,7 +121,7 @@ TEST_F(RouteApiTest, setRouteNextHop) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
       { packetActionAttribute, nextHopIdAttribute, std::nullopt, std::nullopt }
 #else
-      { packetActionAttribute, nextHopIdAttribute, std::nullopt }
+      {packetActionAttribute, nextHopIdAttribute, std::nullopt}
 #endif
   );
   SaiRouteTraits::Attributes::NextHopId nextHopIdAttribute2(0);
@@ -144,7 +144,7 @@ TEST_F(RouteApiTest, setV4RouteMetadata) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
       { packetActionAttribute, std::nullopt, std::nullopt, std::nullopt }
 #else
-      { packetActionAttribute, std::nullopt, std::nullopt }
+      {packetActionAttribute, std::nullopt, std::nullopt}
 #endif
   );
   SaiRouteTraits::Attributes::Metadata metadata(42);
@@ -163,7 +163,7 @@ TEST_F(RouteApiTest, setV6RouteMetaData) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
       { packetActionAttribute, std::nullopt, std::nullopt, std::nullopt }
 #else
-      { packetActionAttribute, std::nullopt, std::nullopt }
+      {packetActionAttribute, std::nullopt, std::nullopt}
 #endif
   );
   SaiRouteTraits::Attributes::Metadata metadata(42);
@@ -182,7 +182,7 @@ TEST_F(RouteApiTest, setPacketAction) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
       { packetActionAttribute, std::nullopt, std::nullopt, std::nullopt }
 #else
-      { packetActionAttribute, std::nullopt, std::nullopt }
+      {packetActionAttribute, std::nullopt, std::nullopt}
 #endif
   );
 
@@ -207,7 +207,7 @@ TEST_F(RouteApiTest, routeCount) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
       { packetActionAttribute, nextHopIdAttribute, std::nullopt, std::nullopt }
 #else
-      { packetActionAttribute, nextHopIdAttribute, std::nullopt }
+      {packetActionAttribute, nextHopIdAttribute, std::nullopt}
 #endif
   );
   count = getObjectCount<SaiRouteTraits>(0);
@@ -225,7 +225,7 @@ TEST_F(RouteApiTest, routeKeys) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
       { packetActionAttribute, nextHopIdAttribute, std::nullopt, std::nullopt }
 #else
-      { packetActionAttribute, nextHopIdAttribute, std::nullopt }
+      {packetActionAttribute, nextHopIdAttribute, std::nullopt}
 #endif
   );
   auto routeKeys = getObjectKeys<SaiRouteTraits>(0);

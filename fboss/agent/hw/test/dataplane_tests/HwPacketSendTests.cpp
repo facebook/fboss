@@ -219,8 +219,8 @@ TEST_F(HwPacketSendTest, LldpToFrontPanelWithBufClone) {
     }
     auto portStatsAfter =
         getLatestPortStats(masterLogicalInterfacePortIds()[0]);
-    XLOG(DBG2) << "Lldp Packet:"
-               << " before pkts:" << *portStatsBefore.outMulticastPkts_()
+    XLOG(DBG2) << "Lldp Packet:" << " before pkts:"
+               << *portStatsBefore.outMulticastPkts_()
                << ", after pkts:" << *portStatsAfter.outMulticastPkts_()
                << ", before bytes:" << *portStatsBefore.outBytes_()
                << ", after bytes:" << *portStatsAfter.outBytes_();

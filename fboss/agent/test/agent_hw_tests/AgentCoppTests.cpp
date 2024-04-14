@@ -429,8 +429,9 @@ class AgentCoppTest : public AgentHwTest {
     sendArpPkts(numPktsToSend, dstIpAddress, arpType, outOfPort);
     auto afterOutPkts = getQueueOutPacketsWithRetry(
         queueId, kGetQueueOutPktsRetryTimes, beforeOutPkts + 1);
-    XLOG(DBG0) << "Packet of DstIp=" << dstIpAddress.str() << ", dstMac="
-               << ". Queue=" << queueId << ", before pkts:" << beforeOutPkts
+    XLOG(DBG0) << "Packet of DstIp=" << dstIpAddress.str()
+               << ", dstMac=" << ". Queue=" << queueId
+               << ", before pkts:" << beforeOutPkts
                << ", after pkts:" << afterOutPkts;
     EXPECT_EQ(expectedPktDelta, afterOutPkts - beforeOutPkts);
   }
@@ -565,8 +566,8 @@ class AgentCoppTest : public AgentHwTest {
         queueId, kGetQueueOutPktsRetryTimes, beforeOutPkts + expectedPktDelta);
     auto msgType =
         dhcpType == DHCPv6Type::DHCPv6_SOLICIT ? "SOLICIT" : "ADVERTISEMENT";
-    XLOG(DBG0) << "DHCPv6 " << msgType << " packet"
-               << ". Queue=" << queueId << ", before pkts:" << beforeOutPkts
+    XLOG(DBG0) << "DHCPv6 " << msgType << " packet" << ". Queue=" << queueId
+               << ", before pkts:" << beforeOutPkts
                << ", after pkts:" << afterOutPkts;
     EXPECT_EQ(expectedPktDelta, afterOutPkts - beforeOutPkts);
   }

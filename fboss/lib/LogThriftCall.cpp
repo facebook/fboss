@@ -79,8 +79,7 @@ LogThriftCall::~LogThriftCall() {
   } else {
     FB_LOG_RAW_WITH_CONTEXT(logger_, level_, file_, line_, "")
         << func_ << " thrift request " << result << " in " << ms.count()
-        << "ms. "
-        << "params: " << paramsStr_;
+        << "ms. " << "params: " << paramsStr_;
   }
 }
 

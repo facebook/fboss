@@ -31,7 +31,7 @@ TEST_F(SaiStoreTest, loadRoute) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
       { packetActionAttribute, nextHopIdAttribute, metadata, std::nullopt }
 #else
-      { packetActionAttribute, nextHopIdAttribute, metadata }
+      {packetActionAttribute, nextHopIdAttribute, metadata}
 #endif
   );
 
@@ -66,7 +66,7 @@ TEST_F(SaiStoreTest, routeLoadCtor) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
       { packetActionAttribute, nextHopIdAttribute, metadata, std::nullopt }
 #else
-      { packetActionAttribute, nextHopIdAttribute, metadata }
+      {packetActionAttribute, nextHopIdAttribute, metadata}
 #endif
   );
 
@@ -83,10 +83,12 @@ TEST_F(SaiStoreTest, routeCreateCtor) {
   folly::IPAddress ip4{"10.10.10.1"};
   folly::CIDRNetwork dest(ip4, 24);
   SaiRouteTraits::RouteEntry r(0, 0, dest);
-  SaiRouteTraits::CreateAttributes c {
-    SAI_PACKET_ACTION_FORWARD, 5, 42,
+  SaiRouteTraits::CreateAttributes c{
+      SAI_PACKET_ACTION_FORWARD,
+      5,
+      42,
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
-        std::nullopt
+      std::nullopt
 #endif
   };
   auto obj = createObj<SaiRouteTraits>(r, c, 0);
@@ -102,10 +104,12 @@ TEST_F(SaiStoreTest, routeSetToPunt) {
   folly::IPAddress ip4{"10.10.10.1"};
   folly::CIDRNetwork dest(ip4, 24);
   SaiRouteTraits::RouteEntry r(0, 0, dest);
-  SaiRouteTraits::CreateAttributes c {
-    SAI_PACKET_ACTION_FORWARD, 5, 42,
+  SaiRouteTraits::CreateAttributes c{
+      SAI_PACKET_ACTION_FORWARD,
+      5,
+      42,
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
-        std::nullopt
+      std::nullopt
 #endif
   };
   auto obj = createObj<SaiRouteTraits>(r, c, 0);
@@ -116,10 +120,12 @@ TEST_F(SaiStoreTest, routeSetToPunt) {
   EXPECT_EQ(GET_OPT_ATTR(Route, NextHopId, obj.attributes()), 5);
   EXPECT_EQ(GET_OPT_ATTR(Route, Metadata, obj.attributes()), 42);
 
-  SaiRouteTraits::CreateAttributes newAttrs {
-    SAI_PACKET_ACTION_TRAP, std::nullopt, 42,
+  SaiRouteTraits::CreateAttributes newAttrs{
+      SAI_PACKET_ACTION_TRAP,
+      std::nullopt,
+      42,
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
-        std::nullopt
+      std::nullopt
 #endif
   };
   obj.setAttributes(newAttrs);
@@ -135,10 +141,12 @@ TEST_F(SaiStoreTest, formatTest) {
   folly::IPAddress ip4{"10.10.10.1"};
   folly::CIDRNetwork dest(ip4, 24);
   SaiRouteTraits::RouteEntry r(0, 0, dest);
-  SaiRouteTraits::CreateAttributes c {
-    SAI_PACKET_ACTION_FORWARD, 5, 42,
+  SaiRouteTraits::CreateAttributes c{
+      SAI_PACKET_ACTION_FORWARD,
+      5,
+      42,
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
-        1
+      1
 #endif
   };
   auto obj = createObj<SaiRouteTraits>(r, c, 0);
@@ -166,7 +174,7 @@ TEST_F(SaiStoreTest, serDeserV4Route) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
       { packetActionAttribute, nextHopIdAttribute, metadata, std::nullopt }
 #else
-      { packetActionAttribute, nextHopIdAttribute, metadata }
+      {packetActionAttribute, nextHopIdAttribute, metadata}
 #endif
   );
 
@@ -187,7 +195,7 @@ TEST_F(SaiStoreTest, serDeserV6Route) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
       { packetActionAttribute, nextHopIdAttribute, metadata, std::nullopt }
 #else
-      { packetActionAttribute, nextHopIdAttribute, metadata }
+      {packetActionAttribute, nextHopIdAttribute, metadata}
 #endif
   );
 
@@ -208,7 +216,7 @@ TEST_F(SaiStoreTest, toStrV4Route) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
       { packetActionAttribute, nextHopIdAttribute, metadata, std::nullopt }
 #else
-      { packetActionAttribute, nextHopIdAttribute, metadata }
+      {packetActionAttribute, nextHopIdAttribute, metadata}
 #endif
   );
 
@@ -229,7 +237,7 @@ TEST_F(SaiStoreTest, toStrV6Route) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
       { packetActionAttribute, nextHopIdAttribute, metadata, std::nullopt }
 #else
-      { packetActionAttribute, nextHopIdAttribute, metadata }
+      {packetActionAttribute, nextHopIdAttribute, metadata}
 #endif
   );
 

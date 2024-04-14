@@ -20,9 +20,15 @@ namespace {
 
 using namespace facebook::fboss::fsdb;
 dynamic createTestDynamic() {
-  return dynamic::object("tx", true)(
-      "rx",
-      false)("name", "testname")("optionalString", "bla")("enumeration", 1)("enumMap", dynamic::object)("member", dynamic::object("min", 10)("max", 20))("variantMember", dynamic::object("integral", 99))("structMap", dynamic::object(3, dynamic::object("min", 100)("max", 200)))("structList", dynamic::array())("enumSet", dynamic::array())("integralSet", dynamic::array())("mapOfStringToI32", dynamic::object())("listOfPrimitives", dynamic::array())("setOfI32", dynamic::array())("stringToStruct", dynamic::object())("listTypedef", dynamic::array());
+  return dynamic::object("tx", true)("rx", false)("name", "testname")(
+      "optionalString", "bla")("enumeration", 1)("enumMap", dynamic::object)(
+      "member", dynamic::object("min", 10)("max", 20))(
+      "variantMember", dynamic::object("integral", 99))(
+      "structMap", dynamic::object(3, dynamic::object("min", 100)("max", 200)))(
+      "structList", dynamic::array())("enumSet", dynamic::array())(
+      "integralSet", dynamic::array())("mapOfStringToI32", dynamic::object())(
+      "listOfPrimitives", dynamic::array())("setOfI32", dynamic::array())(
+      "stringToStruct", dynamic::object())("listTypedef", dynamic::array());
 }
 
 TestStruct createTestStruct() {

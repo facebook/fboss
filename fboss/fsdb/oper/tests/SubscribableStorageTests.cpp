@@ -33,8 +33,14 @@ using TestSubscribableStorage = NaivePeriodicSubscribableCowStorage<TestStruct>;
 using TestStructMembers = apache::thrift::reflect_struct<TestStruct>::member;
 
 dynamic createTestDynamic() {
-  return dynamic::object("tx", true)(
-      "rx", false)("name", "testname")("optionalString", "bla")("enumeration", 1)("enumMap", dynamic::object)("member", dynamic::object("min", 10)("max", 20))("variantMember", dynamic::object("integral", 99))("structMap", dynamic::object(3, dynamic::object("min", 100)("max", 200)))("structList", dynamic::array())("enumSet", dynamic::array())("integralSet", dynamic::array())("mapOfStringToI32", dynamic::object())("listOfPrimitives", dynamic::array())("setOfI32", dynamic::array());
+  return dynamic::object("tx", true)("rx", false)("name", "testname")(
+      "optionalString", "bla")("enumeration", 1)("enumMap", dynamic::object)(
+      "member", dynamic::object("min", 10)("max", 20))(
+      "variantMember", dynamic::object("integral", 99))(
+      "structMap", dynamic::object(3, dynamic::object("min", 100)("max", 200)))(
+      "structList", dynamic::array())("enumSet", dynamic::array())(
+      "integralSet", dynamic::array())("mapOfStringToI32", dynamic::object())(
+      "listOfPrimitives", dynamic::array())("setOfI32", dynamic::array());
 }
 
 TestStruct createTestStructForExtendedTests() {
