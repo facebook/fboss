@@ -12,6 +12,7 @@
 #include "fboss/agent/platforms/common/meru400bfu/Meru400bfuPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru400bia/Meru400biaPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru400biu/Meru400biuPlatformMapping.h"
+#include "fboss/agent/platforms/common/meru800bfa/Meru800bfaP1PlatformMapping.h"
 #include "fboss/agent/platforms/common/meru800bfa/Meru800bfaPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru800bia/Meru800biaPlatformMapping.h"
 
@@ -44,9 +45,13 @@ getPlatformMappingForDsfNode(const PlatformType platformType) {
       static Meru400bfuPlatformMapping meru400bfu;
       return &meru400bfu;
     }
-    case PlatformType::PLATFORM_MERU800BFA:
-    case PlatformType::PLATFORM_MERU800BFA_P1: {
+    case PlatformType::PLATFORM_MERU800BFA: {
       static Meru800bfaPlatformMapping meru800bfa{
+          true /*multiNpuPlatformMapping*/};
+      return &meru800bfa;
+    }
+    case PlatformType::PLATFORM_MERU800BFA_P1: {
+      static Meru800bfaP1PlatformMapping meru800bfa{
           true /*multiNpuPlatformMapping*/};
       return &meru800bfa;
     }
