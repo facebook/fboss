@@ -63,7 +63,7 @@ size_t pumpRoCETraffic(
     int roceDestPort = kUdfL4DstPort, /* RoCE fixed dst port */
     int hopLimit = 255,
     std::optional<folly::MacAddress> srcMacAddr = std::nullopt,
-    int packetCount = 50000,
+    int packetCount = 200000,
     uint8_t reserved = kRoceReserved);
 
 size_t pumpTrafficWithSourceFile(
@@ -184,11 +184,13 @@ cfg::UdfConfig addUdfFlowletAclConfig();
 cfg::UdfConfig addUdfAckAndFlowletAclConfig();
 cfg::UdfConfig addUdfHashAclConfig();
 
-cfg::FlowletSwitchingConfig getDefaultFlowletSwitchingConfig();
+cfg::FlowletSwitchingConfig getDefaultFlowletSwitchingConfig(
+    cfg::SwitchingMode switchingMode = cfg::SwitchingMode::FLOWLET_QUALITY);
 void addFlowletAcl(cfg::SwitchConfig& cfg);
 void addFlowletConfigs(
     cfg::SwitchConfig& cfg,
-    const std::vector<PortID>& ports);
+    const std::vector<PortID>& ports,
+    cfg::SwitchingMode switchingMode = cfg::SwitchingMode::FLOWLET_QUALITY);
 
 cfg::LoadBalancer getTrunkHalfHashConfig(const HwAsic& asic);
 cfg::LoadBalancer getEcmpHalfHashConfig(const HwAsic& asic);

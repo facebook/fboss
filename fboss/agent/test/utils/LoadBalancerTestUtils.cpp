@@ -214,7 +214,8 @@ cfg::UdfConfig addUdfHashAclConfig(void) {
       cfg::UdfGroupType::ACL);
 }
 
-cfg::FlowletSwitchingConfig getDefaultFlowletSwitchingConfig(void) {
+cfg::FlowletSwitchingConfig getDefaultFlowletSwitchingConfig(
+    cfg::SwitchingMode switchingMode) {
   cfg::FlowletSwitchingConfig flowletCfg;
   flowletCfg.inactivityIntervalUsecs() = 16;
   flowletCfg.flowletTableSize() = 2048;
@@ -228,6 +229,7 @@ cfg::FlowletSwitchingConfig getDefaultFlowletSwitchingConfig(void) {
   flowletCfg.dynamicEgressMinThresholdBytes() = 1000;
   flowletCfg.dynamicEgressMaxThresholdBytes() = 10000;
   flowletCfg.dynamicPhysicalQueueExponent() = 4;
+  flowletCfg.switchingMode() = switchingMode;
   return flowletCfg;
 }
 
@@ -253,9 +255,10 @@ void addFlowletAcl(cfg::SwitchConfig& cfg) {
 
 void addFlowletConfigs(
     cfg::SwitchConfig& cfg,
-    const std::vector<PortID>& ports) {
+    const std::vector<PortID>& ports,
+    cfg::SwitchingMode switchingMode) {
   cfg::FlowletSwitchingConfig flowletCfg =
-      utility::getDefaultFlowletSwitchingConfig();
+      utility::getDefaultFlowletSwitchingConfig(switchingMode);
   cfg.flowletSwitchingConfig() = flowletCfg;
 
   std::map<std::string, cfg::PortFlowletConfig> portFlowletCfgMap;
@@ -410,7 +413,8 @@ size_t pumpRoCETraffic(
   auto dstIp = folly::IPAddress(isV6 ? "2001::1" : "200.0.0.1");
 
   size_t txPacketSize = 0;
-  XLOG(INFO) << "Send traffic with RoCE payload ..";
+  XLOG(INFO) << "Send traffic with RoCE payload .. Packet Count = "
+             << packetCount;
   for (auto i = 0; i < packetCount; ++i) {
     std::vector<uint8_t> rocePayload = {kUdfRoceOpcode, 0x40, 0xff, 0xff, 0x00};
     // ack req is 0x40 for packet which can be re-ordered
