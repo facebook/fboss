@@ -73,11 +73,12 @@ namespace facebook::fboss {
 std::shared_ptr<SwitchState> DsfStateUpdaterUtil::getUpdatedState(
     const std::shared_ptr<SwitchState>& in,
     const SwitchIdScopeResolver* scopeResolver,
-    RoutingInformationBase* /* rib */,
+    RoutingInformationBase* rib,
     const std::map<SwitchID, std::shared_ptr<SystemPortMap>>&
         switchId2SystemPorts,
     const std::map<SwitchID, std::shared_ptr<InterfaceMap>>& switchId2Intfs) {
   bool changed{false};
+  bool intfChanged{false};
   auto out = in->clone();
 
   auto skipProgramming = [&](const auto& nbrEntryIter) -> bool {
@@ -263,6 +264,11 @@ std::shared_ptr<SwitchState> DsfStateUpdaterUtil::getUpdatedState(
     InterfaceMapDelta delta(origRifs.get(), newRifs.get());
     auto remoteRifs = out->getRemoteInterfaces()->modify(&out);
     processDelta(delta, remoteRifs, makeRemoteRif);
+    intfChanged |= (delta.begin() != delta.end());
+  }
+
+  if (intfChanged) {
+    updateRemoteConnectedRoutes(out, scopeResolver, rib);
   }
 
   if (changed) {
