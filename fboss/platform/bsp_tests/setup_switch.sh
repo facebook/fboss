@@ -49,5 +49,5 @@ if [ ${#POSITIONAL_ARGS[@]} -lt 1 ]; then
 fi
 hostname=${POSITIONAL_ARGS[0]}
 
-ssh root@$hostname "mkdir -p /tmp/bsp_tests/"
+ssh "root@$hostname" "mkdir -p /tmp/bsp_tests/"
 scp ./tests/* "root@$hostname:/tmp/bsp_tests/"
