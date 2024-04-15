@@ -2,8 +2,28 @@
 
 #include "fboss/agent/DsfStateUpdaterUtil.h"
 
+#include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/StateDelta.h"
+
+namespace {
+std::shared_ptr<facebook::fboss::SwitchState> updateFibForRemoteConnectedRoutes(
+    const facebook::fboss::SwitchIdScopeResolver* resolver,
+    facebook::fboss::RouterID vrf,
+    const facebook::fboss::IPv4NetworkToRouteMap& v4NetworkToRoute,
+    const facebook::fboss::IPv6NetworkToRouteMap& v6NetworkToRoute,
+    const facebook::fboss::LabelToRouteMap& labelToRoute,
+    void* cookie) {
+  facebook::fboss::ForwardingInformationBaseUpdater fibUpdater(
+      resolver, vrf, v4NetworkToRoute, v6NetworkToRoute, labelToRoute);
+
+  auto nextStatePtr =
+      static_cast<std::shared_ptr<facebook::fboss::SwitchState>*>(cookie);
+
+  fibUpdater(*nextStatePtr);
+  return *nextStatePtr;
+}
+} // namespace
 
 namespace facebook::fboss {
 
