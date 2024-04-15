@@ -501,8 +501,12 @@ TEST_F(FabricConnectivityManagerTest, virtualDeviceToRemoteConnectionGroups) {
     auto remoteConnectionGroups =
         fabricConnectivityManager_->getVirtualDeviceToRemoteConnectionGroups(
             getVirtualDevice);
-    EXPECT_EQ(remoteConnectionGroups.size(), 2);
     // Symmetric connectivity
+    EXPECT_EQ(
+        FabricConnectivityManager::virtualDevicesWithAsymmetricConnectivity(
+            remoteConnectionGroups),
+        0);
+    EXPECT_EQ(remoteConnectionGroups.size(), 2);
     const auto& connectionGroupDevice0 = remoteConnectionGroups.find(0)->second;
     EXPECT_EQ(connectionGroupDevice0.size(), 1);
     auto numConnectionsDevice0 = connectionGroupDevice0.begin()->first;
@@ -534,9 +538,14 @@ TEST_F(FabricConnectivityManagerTest, virtualDeviceToRemoteConnectionGroups) {
     auto remoteConnectionGroups =
         fabricConnectivityManager_->getVirtualDeviceToRemoteConnectionGroups(
             getVirtualDevice);
+    // Symmetric connectivity, VD0 has connectivity group of size 1 and
+    // VD1 has connectivity group of size 2. But each VD is still symmetric
+    EXPECT_EQ(
+        FabricConnectivityManager::virtualDevicesWithAsymmetricConnectivity(
+            remoteConnectionGroups),
+        0);
     EXPECT_EQ(remoteConnectionGroups.size(), 2);
     const auto& connectionGroupDevice0 = remoteConnectionGroups.find(0)->second;
-    // Asymmetric connectivity
     EXPECT_EQ(connectionGroupDevice0.size(), 1);
     const auto& connectionGroupDevice1 = remoteConnectionGroups.find(1)->second;
     EXPECT_EQ(connectionGroupDevice1.size(), 1);
@@ -567,6 +576,12 @@ TEST_F(FabricConnectivityManagerTest, virtualDeviceToRemoteConnectionGroups) {
     auto remoteConnectionGroups =
         fabricConnectivityManager_->getVirtualDeviceToRemoteConnectionGroups(
             getVirtualDevice0);
+    // Asymmetric connectivity, VD0 has connectivity groups of size 1 (to switch
+    // 10) and 2 (to switch11)
+    EXPECT_EQ(
+        FabricConnectivityManager::virtualDevicesWithAsymmetricConnectivity(
+            remoteConnectionGroups),
+        1);
     EXPECT_EQ(remoteConnectionGroups.size(), 1);
     // No connectivity from VD 1
     EXPECT_EQ(remoteConnectionGroups.find(1), remoteConnectionGroups.end());
