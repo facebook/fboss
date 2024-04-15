@@ -9,7 +9,7 @@
   "optics": [],
   "sensors": [
     {
-      "sensorName": "SMB_TMP75_FRONT",
+      "sensorName": "SMB_BOARD_FRONT_TEMP",
       "access": {
         "accessType": "ACCESS_TYPE_THRIFT"
       },
