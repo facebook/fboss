@@ -5,6 +5,7 @@
 
 add_library(meru800bfa_platform_mapping
   fboss/agent/platforms/common/meru800bfa/Meru800bfaPlatformMapping.cpp
+  fboss/agent/platforms/common/meru800bfa/Meru800bfaP1PlatformMapping.cpp
 )
 
 target_link_libraries(meru800bfa_platform_mapping
