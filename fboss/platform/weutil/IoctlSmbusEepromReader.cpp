@@ -77,6 +77,7 @@ void IoctlSmbusEepromReader::readEeprom(
   if (readCtrl.outputFile.fail()) {
     throw std::runtime_error("Failed to write to output file");
   }
+  // std::cout << fmt::format("Wrote to {}", readCtrl.outputFile) << std::endl;
 }
 
 int IoctlSmbusEepromReader::setSlaveAddr(int file, int address) {
