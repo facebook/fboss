@@ -91,6 +91,7 @@ class CmdShowInterfaceCountersFecBer
     // Get Transceiver BER
     getPreFecBerFromTransceiverInfo(transceiverInfo, model);
 
+    model.hasXphy() = xPhyInfo.size() > 0;
     return model;
   }
 
@@ -135,14 +136,23 @@ class CmdShowInterfaceCountersFecBer
 
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
     Table table;
+    bool hasXphy = model.hasXphy().value();
 
+    std::vector<facebook::fboss::utils::Table::RowData> header = {
+        "Interface Name"};
     if (model.direction() == phy::Direction::RECEIVE) {
-      table.setHeader(
-          {"Interface Name", "ASIC", "XPHY_LINE", "TRANSCEIVER_LINE"});
+      header.push_back("ASIC");
+      if (hasXphy) {
+        header.push_back("XPHY_LINE");
+      }
+      header.push_back("TRANSCEIVER_LINE");
     } else {
-      table.setHeader({"Interface Name", "XPHY_SYSTEM", "TRANSCEIVER_SYSTEM"});
+      if (hasXphy) {
+        header.push_back("XPHY_SYSTEM");
+      }
+      header.push_back("TRANSCEIVER_SYSTEM");
     }
-
+    table.setHeader(header);
     for (const auto& [interfaceName, fecBer] : *model.fecBer()) {
       std::optional<double> iphyBer, xphySystemBer, xphyLineBer, tcvrSystemBer,
           tcvrLineBer;
@@ -161,29 +171,36 @@ class CmdShowInterfaceCountersFecBer
       if (fecBer.find(phy::PortComponent::TRANSCEIVER_LINE) != fecBer.end()) {
         tcvrLineBer = fecBer.at(phy::PortComponent::TRANSCEIVER_LINE);
       }
+      std::vector<facebook::fboss::utils::Table::RowData> rowData = {
+          interfaceName};
       if (model.direction() == phy::Direction::RECEIVE) {
-        table.addRow({
-            interfaceName,
+        rowData.push_back({
             iphyBer.has_value() ? styledBer(*iphyBer)
                                 : Table::StyledCell("-", Table::Style::NONE),
-            xphyLineBer.has_value()
-                ? styledBer(*xphyLineBer)
-                : Table::StyledCell("-", Table::Style::NONE),
+        });
+        if (hasXphy) {
+          rowData.push_back(
+              xphyLineBer.has_value()
+                  ? styledBer(*xphyLineBer)
+                  : Table::StyledCell("-", Table::Style::NONE));
+        }
+        rowData.push_back(
             tcvrLineBer.has_value()
                 ? styledBer(*tcvrLineBer)
-                : Table::StyledCell("-", Table::Style::NONE),
-        });
+                : Table::StyledCell("-", Table::Style::NONE));
       } else {
-        table.addRow({
-            interfaceName,
-            xphySystemBer.has_value()
-                ? styledBer(*xphySystemBer)
-                : Table::StyledCell("-", Table::Style::NONE),
+        if (hasXphy) {
+          rowData.push_back(
+              xphySystemBer.has_value()
+                  ? styledBer(*xphySystemBer)
+                  : Table::StyledCell("-", Table::Style::NONE));
+        }
+        rowData.push_back(
             tcvrSystemBer.has_value()
                 ? styledBer(*tcvrSystemBer)
-                : Table::StyledCell("-", Table::Style::NONE),
-        });
+                : Table::StyledCell("-", Table::Style::NONE));
       }
+      table.addRow(rowData);
     }
     out << table << std::endl;
   }
