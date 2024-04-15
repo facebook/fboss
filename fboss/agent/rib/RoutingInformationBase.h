@@ -278,6 +278,13 @@ class RoutingInformationBase {
       FibUpdateFunction fibUpdateCallback,
       void* cookie);
 
+  void reconfigureRemoteInterfaceRoutes(
+      const SwitchIdScopeResolver* resolver,
+      const RouterIDAndNetworkToInterfaceRoutes&
+          routerIDToRemoteInterfaceRoutes,
+      const FibUpdateFunction& fibUpdateCallback,
+      void* cookie);
+
   void setClassID(
       const SwitchIdScopeResolver* resolver,
       RouterID rid,

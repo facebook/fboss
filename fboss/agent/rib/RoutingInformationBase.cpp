@@ -515,6 +515,19 @@ void RoutingInformationBase::reconfigure(
   ribUpdateEventBase_.runInEventBaseThreadAndWait(updateFn);
 }
 
+void RoutingInformationBase::reconfigureRemoteInterfaceRoutes(
+    const SwitchIdScopeResolver* resolver,
+    const RouterIDAndNetworkToInterfaceRoutes& routerIDToRemoteInterfaceRoutes,
+    const FibUpdateFunction& fibUpdateCallback,
+    void* cookie) {
+  ensureRunning();
+  auto updateFn = [&] {
+    ribTables_.reconfigureRemoteInterfaceRoutes(
+        resolver, routerIDToRemoteInterfaceRoutes, fibUpdateCallback, cookie);
+  };
+  ribUpdateEventBase_.runInEventBaseThreadAndWait(updateFn);
+}
+
 template <typename TraitsType>
 RoutingInformationBase::UpdateStatistics RoutingInformationBase::updateImpl(
     const SwitchIdScopeResolver* resolver,
