@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/platform/platform_manager/PlatformExplorer.h"
+#include "fboss/platform/weutil/IoctlSmbusEepromReader.h"
 
 #include <chrono>
 #include <exception>
@@ -213,14 +214,32 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
     auto idpromConfig = *slotTypeConfig.idpromConfig_ref();
     auto eepromI2cBusNum =
         dataStore_.getI2cBusNum(slotPath, *idpromConfig.busName());
-    createI2cDevice(
-        Utils().createDevicePath(slotPath, "IDPROM"),
-        *idpromConfig.kernelDeviceName(),
-        eepromI2cBusNum,
-        I2cAddr(*idpromConfig.address()));
-    auto eepromPath = i2cExplorer_.getDeviceI2cPath(
-        eepromI2cBusNum, I2cAddr(*idpromConfig.address()));
-    eepromPath = eepromPath + "/eeprom";
+    std::string eepromPath = "";
+
+    /*
+    Because of upstream kernel issues, we have to manually read the
+    SCM EEPROM for the Meru800BFA/BIA platforms. It is read directly
+    with ioctl and written to the /run/devmap file.
+    See: https://github.com/facebookexternal/fboss.bsp.arista/pull/31/files
+    */
+    if ((platformConfig_.platformName().value() == "meru800bfa" ||
+         platformConfig_.platformName().value() == "meru800bia") &&
+        (!(idpromConfig.busName()->starts_with("INCOMING")) &&
+         *idpromConfig.address() == "0x50")) {
+      std::string eepromDir = "/run/devmap/eeproms/";
+      std::string eepromName = "MERU_SCM_EEPROM";
+      eepromPath = eepromDir + eepromName;
+      IoctlSmbusEepromReader::readEeprom(eepromDir, eepromName);
+    } else {
+      createI2cDevice(
+          Utils().createDevicePath(slotPath, "IDPROM"),
+          *idpromConfig.kernelDeviceName(),
+          eepromI2cBusNum,
+          I2cAddr(*idpromConfig.address()));
+      eepromPath = i2cExplorer_.getDeviceI2cPath(
+          eepromI2cBusNum, I2cAddr(*idpromConfig.address()));
+      eepromPath = eepromPath + "/eeprom";
+    }
     try {
       pmUnitNameInEeprom =
           eepromParser_.getProductName(eepromPath, *idpromConfig.offset());
