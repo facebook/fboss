@@ -3832,21 +3832,8 @@ void SaiSwitch::reportAsymmetricTopology() const {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
   auto virtualDevice2RemoteConnectionGroups =
       getVirtualDeviceToRemoteConnectionGroupsLocked(lock);
-  int virtualDevicesWithAsymmetricConnectivity{0};
-  for (const auto& [virtualDeviceId, remoteConnectionGroups] :
-       virtualDevice2RemoteConnectionGroups) {
-    if (remoteConnectionGroups.size() > 1) {
-      ++virtualDevicesWithAsymmetricConnectivity;
-      XLOG(DBG4) << " Asymmetric topology detected on virtual device: "
-                 << virtualDeviceId;
-      for (const auto& [numConnections, remoteConnections] :
-           remoteConnectionGroups) {
-        XLOG(DBG4) << " Remote endpoints with : " << numConnections
-                   << " connections : " << folly::join(",", remoteConnections);
-      }
-    }
-  }
   getSwitchStats()->virtualDevicesWithAsymmetricConnectivity(
-      virtualDevicesWithAsymmetricConnectivity);
+      FabricConnectivityManager::virtualDevicesWithAsymmetricConnectivity(
+          virtualDevice2RemoteConnectionGroups));
 }
 } // namespace facebook::fboss

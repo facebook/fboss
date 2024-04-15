@@ -43,6 +43,9 @@ class FabricConnectivityManager {
   std::map<int64_t, RemoteConnectionGroups>
   getVirtualDeviceToRemoteConnectionGroups(
       const std::function<int(PortID)>& portToVirtualDevice) const;
+  static int virtualDevicesWithAsymmetricConnectivity(
+      const std::map<int64_t, RemoteConnectionGroups>&
+          virtualDevice2RemoteConnectionGroups);
 
  private:
   void updateExpectedSwitchIdAndPortIdForPort(PortID portID);

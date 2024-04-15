@@ -528,4 +528,24 @@ FabricConnectivityManager::getVirtualDeviceToRemoteConnectionGroups(
   }
   return virtualDevice2RemoteConnectionGroups;
 }
+
+int FabricConnectivityManager::virtualDevicesWithAsymmetricConnectivity(
+    const std::map<int64_t, RemoteConnectionGroups>&
+        virtualDevice2RemoteConnectionGroups) {
+  int virtualDevicesWithAsymmetricConnectivity{0};
+  for (const auto& [virtualDeviceId, remoteConnectionGroups] :
+       virtualDevice2RemoteConnectionGroups) {
+    if (remoteConnectionGroups.size() > 1) {
+      ++virtualDevicesWithAsymmetricConnectivity;
+      XLOG(DBG4) << " Asymmetric topology detected on virtual device: "
+                 << virtualDeviceId;
+      for (const auto& [numConnections, remoteConnections] :
+           remoteConnectionGroups) {
+        XLOG(DBG4) << " Remote endpoints with : " << numConnections
+                   << " connections : " << folly::join(",", remoteConnections);
+      }
+    }
+  }
+  return virtualDevicesWithAsymmetricConnectivity;
+}
 } // namespace facebook::fboss
