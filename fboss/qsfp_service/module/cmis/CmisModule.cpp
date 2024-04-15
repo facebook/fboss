@@ -447,6 +447,88 @@ std::array<CmisField, 4> prbsChkHostPatternFields = {
     CmisField::HOST_CHECKER_PATTERN_SELECT_LANE_8_7,
 };
 
+const std::vector<
+    std::array<SMFMediaInterfaceCode, CmisModule::kMaxOsfpNumLanes>>
+    osfpValidSpeedCombination = {
+        {
+            // 2x400G-FR4
+            SMFMediaInterfaceCode::FR4_400G,
+            SMFMediaInterfaceCode::FR4_400G,
+            SMFMediaInterfaceCode::FR4_400G,
+            SMFMediaInterfaceCode::FR4_400G,
+            SMFMediaInterfaceCode::FR4_400G,
+            SMFMediaInterfaceCode::FR4_400G,
+            SMFMediaInterfaceCode::FR4_400G,
+            SMFMediaInterfaceCode::FR4_400G,
+        },
+        {
+            // 2x200G-FR4
+            SMFMediaInterfaceCode::FR4_200G,
+            SMFMediaInterfaceCode::FR4_200G,
+            SMFMediaInterfaceCode::FR4_200G,
+            SMFMediaInterfaceCode::FR4_200G,
+            SMFMediaInterfaceCode::FR4_200G,
+            SMFMediaInterfaceCode::FR4_200G,
+            SMFMediaInterfaceCode::FR4_200G,
+            SMFMediaInterfaceCode::FR4_200G,
+        },
+        {
+            // 400G-FR4 + 200G-FR4
+            SMFMediaInterfaceCode::FR4_400G,
+            SMFMediaInterfaceCode::FR4_400G,
+            SMFMediaInterfaceCode::FR4_400G,
+            SMFMediaInterfaceCode::FR4_400G,
+            SMFMediaInterfaceCode::FR4_200G,
+            SMFMediaInterfaceCode::FR4_200G,
+            SMFMediaInterfaceCode::FR4_200G,
+            SMFMediaInterfaceCode::FR4_200G,
+        },
+        {
+            // 200G-FR4 + 400G-FR4
+            SMFMediaInterfaceCode::FR4_200G,
+            SMFMediaInterfaceCode::FR4_200G,
+            SMFMediaInterfaceCode::FR4_200G,
+            SMFMediaInterfaceCode::FR4_200G,
+            SMFMediaInterfaceCode::FR4_400G,
+            SMFMediaInterfaceCode::FR4_400G,
+            SMFMediaInterfaceCode::FR4_400G,
+            SMFMediaInterfaceCode::FR4_400G,
+        },
+        {
+            // 8x100G-FR1
+            SMFMediaInterfaceCode::FR1_100G,
+            SMFMediaInterfaceCode::FR1_100G,
+            SMFMediaInterfaceCode::FR1_100G,
+            SMFMediaInterfaceCode::FR1_100G,
+            SMFMediaInterfaceCode::FR1_100G,
+            SMFMediaInterfaceCode::FR1_100G,
+            SMFMediaInterfaceCode::FR1_100G,
+            SMFMediaInterfaceCode::FR1_100G,
+        },
+        {
+            // 2x100G-CWDM4
+            SMFMediaInterfaceCode::CWDM4_100G,
+            SMFMediaInterfaceCode::CWDM4_100G,
+            SMFMediaInterfaceCode::CWDM4_100G,
+            SMFMediaInterfaceCode::CWDM4_100G,
+            SMFMediaInterfaceCode::CWDM4_100G,
+            SMFMediaInterfaceCode::CWDM4_100G,
+            SMFMediaInterfaceCode::CWDM4_100G,
+            SMFMediaInterfaceCode::CWDM4_100G,
+        },
+        {
+            // 1x800G-2FR4
+            SMFMediaInterfaceCode::FR8_800G,
+            SMFMediaInterfaceCode::FR8_800G,
+            SMFMediaInterfaceCode::FR8_800G,
+            SMFMediaInterfaceCode::FR8_800G,
+            SMFMediaInterfaceCode::FR8_800G,
+            SMFMediaInterfaceCode::FR8_800G,
+            SMFMediaInterfaceCode::FR8_800G,
+            SMFMediaInterfaceCode::FR8_800G,
+        },
+};
+
 void getQsfpFieldAddress(
     CmisField field,
     int& dataAddress,

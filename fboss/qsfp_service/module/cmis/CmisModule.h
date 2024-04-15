@@ -113,6 +113,8 @@ class CmisModule : public QsfpModule {
     MAX_QSFP_PAGE_SIZE = 128,
   };
 
+  static constexpr int kMaxOsfpNumLanes = 8;
+
   using LengthAndGauge = std::pair<double, uint8_t>;
 
   using VdmDiagsLocationStatus = struct VdmDiagsLocationStatus_t {
