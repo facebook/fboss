@@ -3171,10 +3171,16 @@
           "test_name_regex": "HwHashConsistencyTest.*"
         },
         {
-          "test_name_regex": "HwPfcTest.*"
+          "test_name_regex": "HwPfcTest.PfcWatchdog*"
         },
         {
-          "test_name_regex": "HwIngressBufferTest.*"
+          "test_name_regex": "HwIngressBufferTest.validateIngressPoolParamChange"
+        },
+        {
+          "test_name_regex": "HwIngressBufferTest.validatePGParamChange"
+        },
+        {
+          "test_name_regex": "HwIngressBufferTest.validatePGQueueChanges"
         },
         {
           "test_name_regex": "HwInDiscardsCounterTest.*"
