@@ -246,6 +246,7 @@ class HwLoadBalancerTestRunner {
 
         auto cfg = utility::onePortPerInterfaceConfig(
             getEnsemble(), getMasterLogicalPortIds());
+        cfg.udfConfig() = utility::addUdfFlowletAclConfig();
         // Add flowlet config to convert flowlet QUALITY to PER_PACKET_QUALITY
         // run the load balance test and verify again
         utility::addFlowletConfigs(
