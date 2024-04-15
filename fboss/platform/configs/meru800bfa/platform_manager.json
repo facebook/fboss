@@ -16,7 +16,7 @@
       "numOutgoingI2cBuses": 4,
       "idpromConfig": {
         "busName": "INCOMING@0",
-        "address": "0x50",
+        "address": "0x52",
         "kernelDeviceName": "24c512",
         "offset": 15360
       },
@@ -118,12 +118,6 @@
     "SMB": {
       "pluggedInSlotType": "SMB_SLOT",
       "i2cDeviceConfigs": [
-        {
-          "busName": "INCOMING@0",
-          "address": "0x52",
-          "kernelDeviceName": "24c512",
-          "pmUnitScopedName": "SMB_IDPROM"
-        },
         {
           "busName": "INCOMING@0",
           "address": "0x23",
@@ -4288,7 +4282,7 @@
     "/run/devmap/i2c-busses/MERU800BFA_SMB_FPGA3_SMBUS4_CH5": "/SMB_SLOT@0/[SMB_FPGA3_I2C_MASTER4@5]",
     "/run/devmap/i2c-busses/MERU800BFA_SMB_FPGA3_SMBUS4_CH6": "/SMB_SLOT@0/[SMB_FPGA3_I2C_MASTER4@6]",
     "/run/devmap/i2c-busses/MERU800BFA_SMB_FPGA3_SMBUS4_CH7": "/SMB_SLOT@0/[SMB_FPGA3_I2C_MASTER4@7]",
-    "/run/devmap/eeproms/MERU800BFA_SMB_EEPROM": "/SMB_SLOT@0/[SMB_IDPROM]",
+    "/run/devmap/eeproms/MERU800BFA_SMB_EEPROM": "/SMB_SLOT@0/[IDPROM]",
     "/run/devmap/cplds/MERU800BFA_SMB_CPLD": "/SMB_SLOT@0/[SMB_CPLD]",
     "/run/devmap/sensors/CPU_CORE_TEMP": "/[CPU_CORE_TEMP]",
     "/run/devmap/sensors/SMB_MAX6581": "/SMB_SLOT@0/[SMB_MAX6581]",
