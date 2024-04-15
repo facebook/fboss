@@ -6815,6 +6815,11 @@
         "actionType": 1
       },
       {
+        "name": "cpuPolicing-low-unresolved-route",
+        "actionType": 1,
+        "lookupClassRoute": 2
+      },
+      {
         "dstIp": "ff02::/16",
         "name": "cpuPolicing-mid-ff02::/16",
         "actionType": 1
@@ -6936,6 +6941,18 @@
               "toCpuAction": 1,
               "setTc": {
                 "tcValue": 2
+              }
+            }
+          },
+          {
+            "matcher": "cpuPolicing-low-unresolved-route",
+            "action": {
+              "sendToQueue": {
+                "queueId": 0
+              },
+              "toCpuAction": 1,
+              "setTc": {
+                "tcValue": 0
               }
             }
           },
