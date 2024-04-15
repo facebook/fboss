@@ -14,6 +14,7 @@
 namespace facebook::fboss {
 
 class Ramon3Asic;
+class Meru800bfaP1PlatformMapping;
 
 class SaiMeru800bfaPlatform : public SaiBcmPlatform {
  public:
@@ -56,6 +57,12 @@ class SaiMeru800bfaPlatform : public SaiBcmPlatform {
     return std::nullopt;
   }
 
+ protected:
+  SaiMeru800bfaPlatform(
+      std::unique_ptr<PlatformProductInfo> productInfo,
+      std::unique_ptr<Meru800bfaP1PlatformMapping> mapping,
+      folly::MacAddress localMac);
+
  private:
   void setupAsic(
       cfg::SwitchType switchType,
@@ -66,4 +73,11 @@ class SaiMeru800bfaPlatform : public SaiBcmPlatform {
   std::unique_ptr<Ramon3Asic> asic_;
 };
 
+class SaiMeru800P1bfaPlatform : public SaiMeru800bfaPlatform {
+ public:
+  SaiMeru800P1bfaPlatform(
+      std::unique_ptr<PlatformProductInfo> productInfo,
+      folly::MacAddress localMac,
+      const std::string& platformMappingStr);
+};
 } // namespace facebook::fboss

@@ -11,6 +11,7 @@
 #include "fboss/agent/platforms/sai/SaiMeru800bfaPlatform.h"
 
 #include "fboss/agent/hw/switch_asics/Ramon3Asic.h"
+#include "fboss/agent/platforms/common/meru800bfa/Meru800bfaP1PlatformMapping.h"
 #include "fboss/agent/platforms/common/meru800bfa/Meru800bfaPlatformMapping.h"
 
 #include <cstdio>
@@ -28,6 +29,12 @@ SaiMeru800bfaPlatform::SaiMeru800bfaPlatform(
               : std::make_unique<Meru800bfaPlatformMapping>(platformMappingStr),
           localMac) {}
 
+SaiMeru800bfaPlatform::SaiMeru800bfaPlatform(
+    std::unique_ptr<PlatformProductInfo> productInfo,
+    std::unique_ptr<Meru800bfaP1PlatformMapping> mapping,
+    folly::MacAddress localMac)
+    : SaiBcmPlatform(std::move(productInfo), std::move(mapping), localMac) {}
+
 void SaiMeru800bfaPlatform::setupAsic(
     cfg::SwitchType switchType,
     std::optional<int64_t> switchId,
@@ -43,5 +50,17 @@ HwAsic* SaiMeru800bfaPlatform::getAsic() const {
 }
 
 SaiMeru800bfaPlatform::~SaiMeru800bfaPlatform() = default;
+
+SaiMeru800P1bfaPlatform::SaiMeru800P1bfaPlatform(
+    std::unique_ptr<PlatformProductInfo> productInfo,
+    folly::MacAddress localMac,
+    const std::string& platformMappingStr)
+    : SaiMeru800bfaPlatform(
+          std::move(productInfo),
+          platformMappingStr.empty()
+              ? std::make_unique<Meru800bfaP1PlatformMapping>()
+              : std::make_unique<Meru800bfaP1PlatformMapping>(
+                    platformMappingStr),
+          localMac) {}
 
 } // namespace facebook::fboss
