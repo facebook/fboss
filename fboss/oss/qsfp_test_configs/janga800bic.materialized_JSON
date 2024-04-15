@@ -1,6 +1,7 @@
 {
   "defaultCommandLineArgs": {
-    "mode": "janga800bic"
+    "mode": "janga800bic",
+    "multi_npu_platform_mapping": "true"
   },
   "transceiverConfigOverrides": [
     
