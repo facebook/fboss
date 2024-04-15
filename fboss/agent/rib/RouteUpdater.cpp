@@ -41,6 +41,8 @@ static const RoutePrefixV6 kIPv6LinkLocalPrefix{
     folly::IPAddressV6("fe80::"),
     64};
 static const auto kInterfaceRouteClientId = ClientID::INTERFACE_ROUTE;
+static const auto kRemoteInterfaceRouteClientId =
+    ClientID::REMOTE_INTERFACE_ROUTE;
 
 RibRouteUpdater::RibRouteUpdater(
     IPv4NetworkToRouteMap* v4Routes,
@@ -592,7 +594,8 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
         if (nh.intfID().has_value()) {
           // It is either an interface route or v6 link-local
           CHECK(
-              clientId == kInterfaceRouteClientId or
+              clientId == kInterfaceRouteClientId ||
+              clientId == kRemoteInterfaceRouteClientId ||
               (addr.isV6() and addr.isLinkLocal()));
           nhToFwds[nh].emplace(nh);
           continue;
@@ -655,7 +658,8 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
     updatedRoute = writableRoute<AddressT>(ritr);
     if (nhop) {
       updatedRoute->setResolved(*nhop);
-      if (clientId == kInterfaceRouteClientId &&
+      if ((clientId == kInterfaceRouteClientId ||
+           clientId == kRemoteInterfaceRouteClientId) &&
           !nhop->getNextHopSet().empty()) {
         updatedRoute->setConnected();
       }

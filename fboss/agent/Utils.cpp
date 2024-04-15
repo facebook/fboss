@@ -224,6 +224,7 @@ std::vector<ClientID> AllClientIDs() {
       ClientID::BGPD,
       ClientID::STATIC_ROUTE,
       ClientID::INTERFACE_ROUTE,
+      ClientID::REMOTE_INTERFACE_ROUTE,
       ClientID::LINKLOCAL_ROUTE,
       ClientID::STATIC_INTERNAL,
       ClientID::OPENR,

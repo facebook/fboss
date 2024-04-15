@@ -94,6 +94,14 @@ class RibRouteTables {
       const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToCpu,
       FibUpdateFunction fibUpdateCallback,
       void* cookie);
+
+  void reconfigureRemoteInterfaceRoutes(
+      const SwitchIdScopeResolver* resolver,
+      const RouterIDAndNetworkToInterfaceRoutes&
+          routerIDToRemoteInterfaceRoutes,
+      const FibUpdateFunction& fibUpdateCallback,
+      void* cookie);
+
   /*
    * FIB assisted fromThrift. With shared data structure of routes
    * all except the unresolved routes are shared b/w rib and FIB, so
