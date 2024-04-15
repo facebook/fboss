@@ -1377,7 +1377,11 @@ void ThriftHandler::patchCurrentStateJSONForPaths(
   auto updateDsfStateFn = [this, switchId2SystemPorts, switchId2Rifs](
                               const std::shared_ptr<SwitchState>& in) {
     auto newState = DsfStateUpdaterUtil::getUpdatedState(
-        in, sw_->getScopeResolver(), switchId2SystemPorts, switchId2Rifs);
+        in,
+        sw_->getScopeResolver(),
+        sw_->getRib(),
+        switchId2SystemPorts,
+        switchId2Rifs);
     return newState;
   };
 

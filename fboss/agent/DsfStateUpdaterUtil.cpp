@@ -2,6 +2,7 @@
 
 #include "fboss/agent/DsfStateUpdaterUtil.h"
 
+#include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/StateDelta.h"
 
 namespace facebook::fboss {
@@ -9,6 +10,7 @@ namespace facebook::fboss {
 std::shared_ptr<SwitchState> DsfStateUpdaterUtil::getUpdatedState(
     const std::shared_ptr<SwitchState>& in,
     const SwitchIdScopeResolver* scopeResolver,
+    RoutingInformationBase* /* rib */,
     const std::map<SwitchID, std::shared_ptr<SystemPortMap>>&
         switchId2SystemPorts,
     const std::map<SwitchID, std::shared_ptr<InterfaceMap>>& switchId2Intfs) {

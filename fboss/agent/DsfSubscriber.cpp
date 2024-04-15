@@ -95,7 +95,11 @@ void DsfSubscriber::scheduleUpdate(
       [this, nodeName, nodeSwitchId, switchId2SystemPorts, switchId2Intfs](
           const std::shared_ptr<SwitchState>& in) {
         auto out = DsfStateUpdaterUtil::getUpdatedState(
-            in, sw_->getScopeResolver(), switchId2SystemPorts, switchId2Intfs);
+            in,
+            sw_->getScopeResolver(),
+            sw_->getRib(),
+            switchId2SystemPorts,
+            switchId2Intfs);
 
         if (FLAGS_dsf_subscriber_cache_updated_state) {
           cachedState_ = out;
