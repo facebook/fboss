@@ -81,7 +81,9 @@ std::unique_ptr<WedgeManager> createWedgeManager() {
     return createMeru400biuWedgeManager(platformMappingStr);
   } else if (mode == PlatformType::PLATFORM_MERU800BIA) {
     return createMeru800biaWedgeManager(platformMappingStr);
-  } else if (mode == PlatformType::PLATFORM_MERU800BFA) {
+  } else if (
+      mode == PlatformType::PLATFORM_MERU800BFA ||
+      mode == PlatformType::PLATFORM_MERU800BFA_P1) {
     return createMeru800bfaWedgeManager(platformMappingStr);
   } else if (mode == PlatformType::PLATFORM_MONTBLANC) {
     return createMontblancWedgeManager(platformMappingStr);

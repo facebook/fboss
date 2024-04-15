@@ -43,7 +43,9 @@ std::unique_ptr<LedManager> createLedManager() {
     return std::make_unique<LassenLedManager>();
   } else if (mode == PlatformType::PLATFORM_WEDGE400) {
     return std::make_unique<Wedge400LedManager>();
-  } else if (mode == PlatformType::PLATFORM_MERU800BFA) {
+  } else if (
+      mode == PlatformType::PLATFORM_MERU800BFA ||
+      mode == PlatformType::PLATFORM_MERU800BFA_P1) {
     return std::make_unique<Meru800bfaLedManager>();
   } else if (mode == PlatformType::PLATFORM_MERU800BIA) {
     return std::make_unique<Meru800biaLedManager>();

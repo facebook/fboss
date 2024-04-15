@@ -149,6 +149,7 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
           ? std::make_unique<Meru800biaPlatformMapping>()
           : std::make_unique<Meru800biaPlatformMapping>(platformMappingStr);
     case PlatformType::PLATFORM_MERU800BFA:
+    case PlatformType::PLATFORM_MERU800BFA_P1:
       return platformMappingStr.empty()
           ? std::make_unique<Meru800bfaPlatformMapping>()
           : std::make_unique<Meru800bfaPlatformMapping>(platformMappingStr);

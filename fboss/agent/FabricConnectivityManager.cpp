@@ -44,7 +44,8 @@ getPlatformMappingForDsfNode(const PlatformType platformType) {
       static Meru400bfuPlatformMapping meru400bfu;
       return &meru400bfu;
     }
-    case PlatformType::PLATFORM_MERU800BFA: {
+    case PlatformType::PLATFORM_MERU800BFA:
+    case PlatformType::PLATFORM_MERU800BFA_P1: {
       static Meru800bfaPlatformMapping meru800bfa{
           true /*multiNpuPlatformMapping*/};
       return &meru800bfa;

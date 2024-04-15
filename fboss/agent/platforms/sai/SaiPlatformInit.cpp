@@ -89,7 +89,9 @@ std::unique_ptr<SaiPlatform> chooseSaiPlatform(
   } else if (productInfo->getType() == PlatformType::PLATFORM_MERU800BIA) {
     return std::make_unique<SaiMeru800biaPlatform>(
         std::move(productInfo), localMac, platformMappingStr);
-  } else if (productInfo->getType() == PlatformType::PLATFORM_MERU800BFA) {
+  } else if (
+      productInfo->getType() == PlatformType::PLATFORM_MERU800BFA ||
+      productInfo->getType() == PlatformType::PLATFORM_MERU800BFA_P1) {
     return std::make_unique<SaiMeru800bfaPlatform>(
         std::move(productInfo), localMac, platformMappingStr);
   } else if (productInfo->getType() == PlatformType::PLATFORM_MERU400BIA) {

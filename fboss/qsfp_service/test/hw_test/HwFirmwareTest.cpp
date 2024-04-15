@@ -43,6 +43,7 @@ TEST_F(HwTest, CheckDefaultXphyFirmwareVersion) {
     case PlatformType::PLATFORM_MERU400BIU:
     case PlatformType::PLATFORM_MERU800BIA:
     case PlatformType::PLATFORM_MERU800BFA:
+    case PlatformType::PLATFORM_MERU800BFA_P1:
     case PlatformType::PLATFORM_MERU400BIA:
     case PlatformType::PLATFORM_MERU400BFU:
     case PlatformType::PLATFORM_MONTBLANC:

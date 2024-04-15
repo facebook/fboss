@@ -348,7 +348,9 @@ void SaiPlatform::initPorts() {
       saiPort = std::make_unique<SaiMeru400biaPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_MERU400BFU) {
       saiPort = std::make_unique<SaiMeru400bfuPlatformPort>(portId, this);
-    } else if (platformMode == PlatformType::PLATFORM_MERU800BFA) {
+    } else if (
+        platformMode == PlatformType::PLATFORM_MERU800BFA ||
+        platformMode == PlatformType::PLATFORM_MERU800BFA_P1) {
       saiPort = std::make_unique<SaiMeru800bfaPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_MONTBLANC) {
       saiPort = std::make_unique<SaiBcmMontblancPlatformPort>(portId, this);

@@ -208,6 +208,8 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_MERU800BIA;
     } else if (FLAGS_mode == "meru800bfa") {
       type_ = PlatformType::PLATFORM_MERU800BFA;
+    } else if (FLAGS_mode == "meru800bfa_p1") {
+      type_ = PlatformType::PLATFORM_MERU800BFA_P1;
     } else if (FLAGS_mode == "meru400bia") {
       type_ = PlatformType::PLATFORM_MERU400BIA;
     } else if (FLAGS_mode == "meru400bfu") {

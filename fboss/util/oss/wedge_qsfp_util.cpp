@@ -123,7 +123,9 @@ std::pair<std::unique_ptr<TransceiverI2CApi>, int> getTransceiverAPI() {
             .get();
     auto ioBus = std::make_unique<BspIOBus>(systemContainer);
     return std::make_pair(std::move(ioBus), 0);
-  } else if (mode == PlatformType::PLATFORM_MERU800BFA) {
+  } else if (
+      mode == PlatformType::PLATFORM_MERU800BFA ||
+      mode == PlatformType::PLATFORM_MERU800BFA_P1) {
     auto systemContainer =
         BspGenericSystemContainer<Meru800bfaBspPlatformMapping>::getInstance()
             .get();
@@ -167,6 +169,8 @@ getTransceiverPlatformAPI(TransceiverI2CApi* i2cBus) {
       mode = PlatformType::PLATFORM_MERU800BIA;
     } else if (FLAGS_platform == "meru800bfa") {
       mode = PlatformType::PLATFORM_MERU800BFA;
+    } else if (FLAGS_platform == "meru800bfa_p1") {
+      mode = PlatformType::PLATFORM_MERU800BFA_P1;
     } else if (FLAGS_platform == "morgan800cc") {
       mode = PlatformType::PLATFORM_MORGAN800CC;
     } else if (FLAGS_platform == "wedge400c") {
@@ -210,7 +214,9 @@ getTransceiverPlatformAPI(TransceiverI2CApi* i2cBus) {
             .get();
     return std::make_pair(
         std::make_unique<BspTransceiverApi>(systemContainer), 0);
-  } else if (mode == PlatformType::PLATFORM_MERU800BFA) {
+  } else if (
+      mode == PlatformType::PLATFORM_MERU800BFA ||
+      mode == PlatformType::PLATFORM_MERU800BFA_P1) {
     auto systemContainer =
         BspGenericSystemContainer<Meru800bfaBspPlatformMapping>::getInstance()
             .get();
