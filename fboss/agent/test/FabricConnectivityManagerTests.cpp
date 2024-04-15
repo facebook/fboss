@@ -459,4 +459,65 @@ TEST_F(FabricConnectivityManagerTest, validateConnectivityDelta) {
       PortID(kLocalPortId), endpoint);
   EXPECT_FALSE(delta4.has_value());
 }
+
+TEST_F(FabricConnectivityManagerTest, virtualDeviceToRemoteConnectionGroups) {
+  auto oldState = std::make_shared<SwitchState>();
+  auto newState = std::make_shared<SwitchState>();
+  constexpr auto kRemotePortIdBase = 79;
+  constexpr auto kLocalPortIdBase = 1;
+  constexpr auto kRemoteSwitchIdBase = 10;
+
+  // create port with neighbor connectivity
+  for (auto i = 1; i <= 3; ++i) {
+    std::shared_ptr<Port> swPort = makePort(i);
+    newState->getPorts()->addNode(swPort, getScope(swPort));
+  }
+
+  auto dsfNode10 =
+      makeDsfNode(kRemoteSwitchIdBase, "fdswA", cfg::AsicType::ASIC_TYPE_RAMON);
+  auto dsfNode11 = makeDsfNode(
+      kRemoteSwitchIdBase + 1, "fdswB", cfg::AsicType::ASIC_TYPE_RAMON);
+  auto dsfNodeMap = std::make_shared<MultiSwitchDsfNodeMap>();
+  dsfNodeMap->addNode(dsfNode10, getScope(dsfNode10));
+  dsfNodeMap->addNode(dsfNode11, getScope(dsfNode11));
+  newState->resetDsfNodes(dsfNodeMap);
+  fabricConnectivityManager_->stateUpdated(StateDelta(oldState, newState));
+
+  // 1 port each from each virtual device 2 a remote endpoint
+  for (auto i = 0; i < 2; ++i) {
+    FabricEndpoint endpoint;
+    endpoint.portId() = kRemotePortIdBase + i;
+    endpoint.switchId() = kRemoteSwitchIdBase + i;
+    endpoint.isAttached() = true;
+    fabricConnectivityManager_->processConnectivityInfoForPort(
+        PortID(kLocalPortIdBase + i), endpoint);
+  }
+  auto getVirtualDevice = [](PortID port) { return port == PortID(1) ? 0 : 1; };
+  {
+    /*
+     * VD 0 -> {Port1, switchID 10}
+     * VD 1 -> {Port2, switchID 11}
+     */
+    auto remoteConnectionGroups =
+        fabricConnectivityManager_->getVirtualDeviceToRemoteConnectionGroups(
+            getVirtualDevice);
+    EXPECT_EQ(remoteConnectionGroups.size(), 2);
+    // Symmetric connectivity
+    const auto& connectionGroupDevice0 = remoteConnectionGroups.find(0)->second;
+    EXPECT_EQ(connectionGroupDevice0.size(), 1);
+    auto numConnectionsDevice0 = connectionGroupDevice0.begin()->first;
+    EXPECT_EQ(numConnectionsDevice0, 1);
+    auto remoteEndpointDevice0 =
+        *connectionGroupDevice0.begin()->second.begin();
+    EXPECT_EQ(
+        remoteEndpointDevice0.connectingPorts(),
+        std::vector<std::string>({"port1"}));
+    const auto& connectionGroupDevice1 = remoteConnectionGroups.find(1)->second;
+    auto remoteEndpointDevice1 =
+        *connectionGroupDevice1.begin()->second.begin();
+    EXPECT_EQ(
+        remoteEndpointDevice1.connectingPorts(),
+        std::vector<std::string>({"port2"}));
+  }
+}
 } // namespace facebook::fboss
