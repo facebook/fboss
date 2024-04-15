@@ -486,12 +486,12 @@ EcmpSetupTargetedPorts<IPAddrT>::nhop(PortDescriptor portDesc) const {
 }
 
 template <typename IPAddrT>
-void EcmpSetupTargetedPorts<IPAddrT>::programRoutes(
+void EcmpSetupTargetedPorts<IPAddrT>::addRoutesToUpdater(
     RouteUpdateWrapper* updater,
     const flat_set<PortDescriptor>& portDescriptors,
     const std::vector<RouteT>& prefixes,
     const std::vector<NextHopWeight>& weights,
-    std::optional<RouteCounterID> counterID) const {
+    const std::optional<RouteCounterID>& counterID) const {
   if (prefixes.empty()) {
     return;
   }
@@ -520,6 +520,38 @@ void EcmpSetupTargetedPorts<IPAddrT>::programRoutes(
         prefix.mask(),
         ClientID::BGPD,
         RouteNextHopEntry(nhops, AdminDistance::EBGP, counterID));
+  }
+}
+
+template <typename IPAddrT>
+void EcmpSetupTargetedPorts<IPAddrT>::programRoutes(
+    RouteUpdateWrapper* updater,
+    const flat_set<PortDescriptor>& portDescriptors,
+    const std::vector<RouteT>& prefixes,
+    const std::vector<NextHopWeight>& weights,
+    std::optional<RouteCounterID> counterID) const {
+  addRoutesToUpdater(updater, portDescriptors, prefixes, weights, counterID);
+  updater->program();
+}
+
+template <typename IPAddrT>
+void EcmpSetupTargetedPorts<IPAddrT>::programRoutes(
+    RouteUpdateWrapper* updater,
+    const std::vector<flat_set<PortDescriptor>>& portDescriptors,
+    const std::vector<RouteT>& prefixes,
+    const std::vector<std::vector<NextHopWeight>>& weights,
+    std::optional<RouteCounterID> counterID) const {
+  std::vector<std::vector<NextHopWeight>> hopWeights = weights;
+  if (!weights.size()) {
+    for (int i = 0; i < portDescriptors.size(); i++) {
+      hopWeights.push_back(std::vector<NextHopWeight>());
+    }
+  }
+  CHECK_EQ(portDescriptors.size(), hopWeights.size());
+  CHECK_EQ(portDescriptors.size(), prefixes.size());
+  for (int i = 0; i < portDescriptors.size(); i++) {
+    addRoutesToUpdater(
+        updater, portDescriptors[i], {prefixes[i]}, hopWeights[i], counterID);
   }
   updater->program();
 }

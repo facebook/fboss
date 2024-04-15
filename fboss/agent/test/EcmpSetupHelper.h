@@ -241,6 +241,23 @@ class EcmpSetupTargetedPorts
       const std::vector<NextHopWeight>& weights = std::vector<NextHopWeight>(),
       std::optional<RouteCounterID> counterID = std::nullopt) const;
 
+  void programRoutes(
+      std::unique_ptr<RouteUpdateWrapper> wrapper,
+      const std::vector<boost::container::flat_set<PortDescriptor>>& nhops,
+      const std::vector<RouteT>& prefixes = {RouteT{IPAddrT(), 0}},
+      const std::vector<std::vector<NextHopWeight>>& weights =
+          std::vector<std::vector<NextHopWeight>>(),
+      std::optional<RouteCounterID> counterID = std::nullopt) const {
+    programRoutes(wrapper.get(), nhops, prefixes, weights, counterID);
+  }
+  void programRoutes(
+      RouteUpdateWrapper* wrapper,
+      const std::vector<boost::container::flat_set<PortDescriptor>>& nhops,
+      const std::vector<RouteT>& prefixes = {RouteT{IPAddrT(), 0}},
+      const std::vector<std::vector<NextHopWeight>>& weights =
+          std::vector<std::vector<NextHopWeight>>(),
+      std::optional<RouteCounterID> counterID = std::nullopt) const;
+
   void programMplsRoutes(
       std::unique_ptr<RouteUpdateWrapper> wrapper,
       const boost::container::flat_set<PortDescriptor>& portDescriptors,
@@ -277,6 +294,12 @@ class EcmpSetupTargetedPorts
       std::map<PortDescriptor, LabelForwardingAction::LabelStack>& stacks,
       LabelForwardingAction::LabelForwardingType labelActionType,
       const std::vector<NextHopWeight>& weights) const;
+  void addRoutesToUpdater(
+      RouteUpdateWrapper* wrapper,
+      const boost::container::flat_set<PortDescriptor>& nhops,
+      const std::vector<RouteT>& prefixes = {RouteT{IPAddrT(), 0}},
+      const std::vector<NextHopWeight>& weights = std::vector<NextHopWeight>(),
+      const std::optional<RouteCounterID>& counterID = std::nullopt) const;
 
   RouterID routerId_;
 };
