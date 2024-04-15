@@ -174,6 +174,7 @@ static QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     {CmisField::CHANNEL_TX_BIAS, {CmisPages::PAGE11, 170, 16}},
     {CmisField::CHANNEL_RX_PWR, {CmisPages::PAGE11, 186, 16}},
     {CmisField::CONFIG_ERROR_LANES, {CmisPages::PAGE11, 202, 4}},
+    {CmisField::ACTIVE_CTRL_ALL_LANES, {CmisPages::PAGE11, 206, 8}},
     {CmisField::ACTIVE_CTRL_LANE_1, {CmisPages::PAGE11, 206, 1}},
     {CmisField::ACTIVE_CTRL_LANE_2, {CmisPages::PAGE11, 207, 1}},
     {CmisField::ACTIVE_CTRL_LANE_3, {CmisPages::PAGE11, 208, 1}},
@@ -588,6 +589,17 @@ CmisModule::getApplicationField(uint8_t application, uint8_t startHostLane)
     }
   }
   return std::nullopt;
+}
+
+SMFMediaInterfaceCode CmisModule::getApplicationFromApSelCode(
+    uint8_t apSelCode) const {
+  for (const auto& capability : moduleCapabilities_) {
+    if (capability.ApSelCode == apSelCode) {
+      return static_cast<SMFMediaInterfaceCode>(
+          capability.moduleMediaInterface);
+    }
+  }
+  return SMFMediaInterfaceCode::UNKNOWN;
 }
 
 CmisModule::CmisModule(
@@ -2294,6 +2306,36 @@ void CmisModule::setApplicationCodeLocked(
       "Port: ",
       qsfpImpl_->getName(),
       " Unsupported Application by the module: "));
+}
+
+/*
+ * getMediaIntfCodeFromSpeed
+ *
+ * Returns the media interface code for a given speed and the number of lanes on
+ * this optics. This function uses the optics static value from register cache.
+ * Pl note that the different optics can implement the same media interface code
+ * using diferent number of lanes. ie: QSFP 400G-FR4 implements 400G-FR4 (code
+ * 0x1d) using 8 lanes of 50G serdes on host whereas OSFP 2x400G-FR4 implements
+ * the same 400G-FR4 (code 0x1d) using 4 lanes of 100G serdes on host.
+ */
+SMFMediaInterfaceCode CmisModule::getMediaIntfCodeFromSpeed(
+    cfg::PortSpeed speed,
+    uint8_t numLanes) {
+  auto applicationIter = speedApplicationMapping.find(speed);
+  if (applicationIter == speedApplicationMapping.end()) {
+    return SMFMediaInterfaceCode::UNKNOWN;
+  }
+
+  for (auto application : applicationIter->second) {
+    for (const auto& capability : moduleCapabilities_) {
+      if (capability.moduleMediaInterface ==
+              static_cast<uint8_t>(application) &&
+          capability.hostLaneCount == numLanes) {
+        return application;
+      }
+    }
+  }
+  return SMFMediaInterfaceCode::UNKNOWN;
 }
 
 /*

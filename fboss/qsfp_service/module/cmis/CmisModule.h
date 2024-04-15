@@ -385,6 +385,8 @@ class CmisModule : public QsfpModule {
       uint8_t application,
       uint8_t startHostLane) const;
 
+  SMFMediaInterfaceCode getApplicationFromApSelCode(uint8_t apSelCode) const;
+
   // Returns the list of host lanes configured in the same datapath as the
   // provided startHostLane
   std::vector<uint8_t> configuredHostLanes(
@@ -544,6 +546,10 @@ class CmisModule : public QsfpModule {
   double f16ToDouble(uint8_t byte0, uint8_t byte1);
   std::pair<std::optional<const uint8_t*>, int> getVdmDataValPtr(
       VdmConfigType vdmConf);
+
+  SMFMediaInterfaceCode getMediaIntfCodeFromSpeed(
+      cfg::PortSpeed speed,
+      uint8_t numLanes);
 
   // Private functions to extract and fill in VDM performance monitoring stats
   bool fillVdmPerfMonitorSnr(VdmPerfMonitorStats& vdmStats);
