@@ -157,8 +157,8 @@ void addNoActionAclForUnicastLinkLocal(
     std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>& acls);
 
 uint64_t getQueueOutPacketsWithRetry(
-    int queueId,
     SwSwitch* swSwitch,
+    int queueId,
     int retryTimes,
     uint64_t expectedNumPkts,
     int postMatchRetryTimes = 2);
@@ -170,16 +170,16 @@ void sendPktAndVerifyCpuQueue(
     SendFn sendPkts,
     const int expectedPktDelta) {
   auto beforeOutPkts = getQueueOutPacketsWithRetry(
-      queueId,
       swSwitch,
+      queueId,
       0 /* retryTimes */,
       0 /* expectedNumPkts */,
       2 /* postMatchRetryTimes */);
   sendPkts();
   constexpr auto kGetQueueOutPktsRetryTimes = 5;
   auto afterOutPkts = getQueueOutPacketsWithRetry(
-      queueId,
       swSwitch,
+      queueId,
       kGetQueueOutPktsRetryTimes,
       beforeOutPkts + expectedPktDelta);
   XLOG(DBG0) << "Queue=" << queueId << ", before pkts:" << beforeOutPkts

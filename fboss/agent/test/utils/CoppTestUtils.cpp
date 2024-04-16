@@ -844,8 +844,8 @@ uint64_t getCpuQueueInPackets(SwSwitch* sw, SwitchID switchId, int queueId) {
 }
 
 uint64_t getQueueOutPacketsWithRetry(
-    int queueId,
     SwSwitch* sw,
+    int queueId,
     int retryTimes,
     uint64_t expectedNumPkts,
     int postMatchRetryTimes) {
