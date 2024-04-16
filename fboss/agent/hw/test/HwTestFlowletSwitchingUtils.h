@@ -18,6 +18,7 @@ class TestEnsembleIf;
 namespace facebook::fboss::utility {
 
 const int KMaxFlowsetTableSize = 32768;
+const int kDlbEcmpMaxId = 200128;
 
 bool validateFlowletSwitchingEnabled(
     const facebook::fboss::HwSwitch* hw,
@@ -30,6 +31,11 @@ bool verifyEcmpForFlowletSwitching(
     const cfg::PortFlowletConfig& portFlowletCfg,
     const bool flowletEnable,
     const bool expectFlowsetSizeZero = false);
+
+bool verifyEcmpForNonFlowlet(
+    const facebook::fboss::HwSwitch* hw,
+    const folly::CIDRNetwork& routePrefix,
+    const bool expectFlowsetFree);
 
 bool validatePortFlowletQuality(
     const facebook::fboss::HwSwitch* hw,

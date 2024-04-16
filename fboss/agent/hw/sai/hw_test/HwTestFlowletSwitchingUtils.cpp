@@ -40,6 +40,17 @@ bool verifyEcmpForFlowletSwitching(
   return false;
 }
 
+bool verifyEcmpForNonFlowlet(
+    const HwSwitch* /* unused */,
+    const folly::CIDRNetwork& /* unused */,
+    const bool /* unused */) {
+  // This function is not implemented yet.
+  // If the test is running on SAI Switches,
+  // it should throw an error.
+  EXPECT_TRUE(false);
+  return false;
+}
+
 bool validatePortFlowletQuality(
     const HwSwitch* /* unused */,
     const PortID& /* unused */,

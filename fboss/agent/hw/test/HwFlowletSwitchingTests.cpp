@@ -26,6 +26,7 @@ static folly::IPAddressV6 kAddr2{"2803:6080:d038:3000::"};
 folly::CIDRNetwork kAddr1Prefix{folly::IPAddress("2803:6080:d038:3063::"), 64};
 folly::CIDRNetwork kAddr2Prefix{folly::IPAddress("2803:6080:d038:3000::"), 64};
 constexpr auto kAddr3 = "2803:6080:d048";
+constexpr auto kAddr4 = "2803:6080:e048";
 const int kDefaultScalingFactor = 10;
 const int kScalingFactor1 = 100;
 const int kScalingFactor2 = 200;
@@ -46,6 +47,7 @@ constexpr auto kAclCounterName = "flowletStat";
 constexpr auto kDstIp = "2001::/16";
 const int kMaxLinks = 4;
 const int kEcmpStartId = 200000;
+const int kNumEcmp = 64;
 } // namespace
 
 namespace facebook::fboss {
@@ -528,6 +530,69 @@ TEST_F(
         portFlowletConfig,
         true /* flowletEnable */,
         false /* expectFlowsetSizeZero */);
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+// This test creates more than 128 ECMP groups and
+// try to update the ECMP group id 200128 to be flowlet enabled and
+// verify it fails.
+
+TEST_F(
+    HwFlowletSwitchingFlowsetMultipleEcmpTests,
+    ValidateMaxEcmpIdFlowletUpdate) {
+  if (this->skipTest() ||
+      (getPlatform()->getAsic()->getAsicType() ==
+       cfg::AsicType::ASIC_TYPE_FAKE)) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
+    return;
+  }
+
+  auto setup = [&]() {
+    // create 128 different ECMP objects
+    for (int i = 1; i <= kNumEcmp; i++) {
+      std::vector<PortID> portIds;
+      portIds.push_back(masterLogicalPortIds()[i % 64]);
+      portIds.push_back(masterLogicalPortIds()[(i + 1) % 64]);
+      resolveNextHopsAddRoute(
+          portIds, folly::IPAddressV6(folly::sformat("{}:{:x}::", kAddr3, i)));
+      std::vector<PortID> portIds2;
+      portIds2.push_back(masterLogicalPortIds()[i % 64]);
+      portIds2.push_back(masterLogicalPortIds()[(i + 2) % 64]);
+      resolveNextHopsAddRoute(
+          portIds2, folly::IPAddressV6(folly::sformat("{}:{:x}::", kAddr4, i)));
+    }
+
+    // create 1 more ECMP object
+    resolveNextHopsAddRoute(
+        {masterLogicalPortIds()[1], masterLogicalPortIds()[4]}, kAddr1);
+
+    // check to ensure we have created more than 128 ECMP objects
+    auto ecmpDetails = getHwSwitch()->getAllEcmpDetails();
+    CHECK_GT(ecmpDetails.size(), kNumEcmp * 2);
+    // verify the ECMP Id more than Max dlb Ecmp Id
+    // not enabled with flowlet config and flowset available is zero.
+    utility::verifyEcmpForNonFlowlet(getHwSwitch(), kAddr1Prefix, false);
+  };
+
+  auto verify = [&]() {
+    // Delete the 124 ECMP groups, so that we have enough flowset resources
+    // available and try to update the ECMP group Id more than Max dlb Ecmp Id
+    // not enabled with flowlet config and
+    // verify flowset available is more than 2K.
+    for (int i = 1; i < kNumEcmp - 1; i++) {
+      ecmpHelper_->unprogramRoutes(
+          getRouteUpdater(),
+          {RoutePrefixV6{
+              folly::IPAddressV6(folly::sformat("{}:{:x}::", kAddr3, i)), 64}});
+      ecmpHelper_->unprogramRoutes(
+          getRouteUpdater(),
+          {RoutePrefixV6{
+              folly::IPAddressV6(folly::sformat("{}:{:x}::", kAddr4, i)), 64}});
+    }
+    utility::verifyEcmpForNonFlowlet(getHwSwitch(), kAddr1Prefix, true);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
