@@ -77,7 +77,8 @@ BcmUdfGroup::~BcmUdfGroup() {
   XLOG(DBG2) << "Destroying BcmUdfGroup";
 
   // Detach the udfPacketMatchedIds associated with the UdfGroup
-  for (auto packetMatcherId : udfPacketMatcherIds_) {
+  auto udfPacketMatcherIdCopy = udfPacketMatcherIds_;
+  for (auto packetMatcherId : udfPacketMatcherIdCopy) {
     udfPacketMatcherDelete(packetMatcherId.first, packetMatcherId.second);
   }
 
@@ -138,6 +139,7 @@ int BcmUdfGroup::udfPacketMatcherDelete(
     bcm_udf_pkt_format_id_t packetMatcherId,
     const std::string& udfPacketMatcherName) {
   int rv = 0;
+  XLOG(DBG2) << "Detaching udf packet matcher " << udfPacketMatcherName;
   /* Detach packet matcher id from Udf Group */
   rv = bcm_udf_pkt_format_delete(hw_->getUnit(), udfId_, packetMatcherId);
   bcmLogFatal(
