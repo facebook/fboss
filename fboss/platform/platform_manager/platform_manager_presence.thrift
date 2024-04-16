@@ -1,6 +1,7 @@
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 
 namespace cpp2 facebook.fboss.platform.platform_manager
+namespace py3 fboss.platform.platform_manager
 
 // `devicePath`: DevicePath of the device which will create the sysfs file
 // indicating the presence.
