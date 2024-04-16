@@ -347,12 +347,16 @@ TEST_F(HwWatermarkTest, VerifyDeviceWatermark) {
         masterLogicalInterfacePortIds()[0]);
     // Assert non zero watermark
     assertDeviceWatermark(false, 10);
-    auto counters =
-        fb303::fbData->getSelectedCounters({"buffer_watermark_device.p100.60"});
-    // Unfortunately since  we use quantile stats, which compute
-    // a MAX over a period, we can't really assert on the exact
-    // value, just on its presence
-    EXPECT_EQ(1, counters.size());
+
+    WITH_RETRIES({
+      getHwSwitchEnsemble()->getHwSwitch()->updateStats();
+      EXPECT_EVENTUALLY_GT(
+          getHwSwitchEnsemble()
+              ->getHwSwitch()
+              ->getSwitchWatermarkStats()
+              .deviceWatermarkBytes(),
+          0);
+    });
 
     // Now, break the loop to make sure traffic goes to zero!
     bringDownPort(masterLogicalInterfacePortIds()[0]);
