@@ -33,8 +33,10 @@ class PhySnapshotManager;
 
 class PhyManager {
  public:
-  using PublishPhyCb =
-      std::function<void(std::string&&, std::optional<phy::PhyInfo>&&)>;
+  using PublishPhyCb = std::function<void(
+      std::string&&,
+      std::optional<phy::PhyInfo>&&,
+      std::optional<HwPortStats>&&)>;
 
   explicit PhyManager(const PlatformMapping* platformMapping);
   virtual ~PhyManager();

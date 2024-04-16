@@ -289,7 +289,8 @@ bool PhyManager::setPortToPortCacheInfoLocked(
   if (!lockedCache->speed || lockedCache->systemLanes.empty() ||
       lockedCache->lineLanes.empty()) {
     if (publishPhyCb_) {
-      publishPhyCb_(std::string(getPortName(portID)), std::nullopt);
+      publishPhyCb_(
+          std::string(getPortName(portID)), std::nullopt, std::nullopt);
     }
   }
 
@@ -783,7 +784,8 @@ void PhyManager::publishXphyInfoSnapshots(PortID port) const {
 void PhyManager::updateXphyInfo(PortID portID, phy::PhyInfo&& phyInfo) {
   xphySnapshotManager_->updatePhyInfo(portID, phyInfo);
   if (publishPhyCb_) {
-    publishPhyCb_(std::string(getPortName(portID)), std::move(phyInfo));
+    publishPhyCb_(
+        std::string(getPortName(portID)), std::move(phyInfo), std::nullopt);
   }
 }
 

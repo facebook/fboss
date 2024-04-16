@@ -548,15 +548,20 @@ class TransceiverManager {
 
   void setPhyManager(std::unique_ptr<PhyManager> phyManager) {
     phyManager_ = std::move(phyManager);
-    phyManager_->setPublishPhyCb([this](auto&& portName, auto&& newInfo) {
-      if (newInfo.has_value()) {
-        publishPhyStateToFsdb(
-            std::string(portName), std::move(*newInfo->state()));
-        publishPhyStatToFsdb(std::move(portName), std::move(*newInfo->stats()));
-      } else {
-        publishPhyStateToFsdb(std::string(portName), std::nullopt);
-      }
-    });
+    phyManager_->setPublishPhyCb(
+        [this](auto&& portName, auto&& newInfo, auto&& portStats) {
+          if (newInfo.has_value()) {
+            publishPhyStateToFsdb(
+                std::string(portName), std::move(*newInfo->state()));
+            publishPhyStatToFsdb(
+                std::string(portName), std::move(*newInfo->stats()));
+          } else {
+            publishPhyStateToFsdb(std::string(portName), std::nullopt);
+          }
+          if (portStats.has_value()) {
+            publishPortStatToFsdb(std::move(portName), std::move(*portStats));
+          }
+        });
   }
 
   // Update the cached PortStatus of TransceiverToPortInfo based on the input
