@@ -785,7 +785,9 @@ void PhyManager::updateXphyInfo(PortID portID, phy::PhyInfo&& phyInfo) {
   xphySnapshotManager_->updatePhyInfo(portID, phyInfo);
   if (publishPhyCb_) {
     publishPhyCb_(
-        std::string(getPortName(portID)), std::move(phyInfo), std::nullopt);
+        std::string(getPortName(portID)),
+        std::move(phyInfo),
+        getHwPortStats(getPortName(portID)));
   }
 }
 

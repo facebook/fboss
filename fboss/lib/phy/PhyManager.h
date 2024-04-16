@@ -162,6 +162,11 @@ class PhyManager {
         "Attempted to call getMacsecPortStats from non-SaiPhyManager");
   }
 
+  virtual std::optional<HwPortStats> getHwPortStats(
+      const std::string& /* portName */) const {
+    return std::nullopt;
+  }
+
   virtual std::string listHwObjects(
       std::vector<HwObjectType>& /* hwObjects */,
       bool /* cached */) {

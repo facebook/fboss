@@ -865,6 +865,17 @@ mka::MacsecSaStats SaiPhyManager::getMacsecSecureAssocStats(
   }
 }
 
+std::optional<HwPortStats> SaiPhyManager::getHwPortStats(
+    const std::string& portName) const {
+  auto portId = getPortId(portName);
+  auto saiSwitch = getSaiSwitch(portId);
+  auto hwPortStats = saiSwitch->getPortStats();
+  if (hwPortStats.find(portName) != hwPortStats.end()) {
+    return hwPortStats.at(portName);
+  }
+  return std::nullopt;
+}
+
 std::string SaiPhyManager::listHwObjects(
     std::vector<HwObjectType>& hwObjects,
     bool cached) {

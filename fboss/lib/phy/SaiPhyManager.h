@@ -76,6 +76,9 @@ class SaiPhyManager : public PhyManager {
       const std::vector<std::string>& portName,
       bool readFromHw) override;
 
+  std::optional<HwPortStats> getHwPortStats(
+      const std::string& /* portName */) const override;
+
   std::string listHwObjects(std::vector<HwObjectType>& hwObjects, bool cached)
       override;
 
