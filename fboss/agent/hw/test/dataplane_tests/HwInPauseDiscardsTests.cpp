@@ -90,8 +90,10 @@ class HwInPauseDiscardsCounterTest : public HwLinkStateDependentTest {
        * ---------------------------------------------------------------------
        */
       auto expectedPktCount = !enableRxPause &&
-              getHwSwitch()->getPlatform()->getAsic()->getAsicType() ==
-                  cfg::AsicType::ASIC_TYPE_EBRO
+              (getHwSwitch()->getPlatform()->getAsic()->getAsicType() ==
+                   cfg::AsicType::ASIC_TYPE_EBRO ||
+               getHwSwitch()->getPlatform()->getAsic()->getAsicType() ==
+                   cfg::AsicType::ASIC_TYPE_YUBA)
           ? 0
           : 1;
       auto expectedDiscardsIncrement =
