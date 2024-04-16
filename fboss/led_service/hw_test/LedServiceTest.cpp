@@ -59,7 +59,7 @@ std::vector<TransceiverID> LedServiceTest::getAllTransceivers(
  * Set the LED state by updating the LED manager and check if the LED color
  * changes accordingly
  */
-TEST_F(LedServiceTest, checkLedColorChange) {
+TEST_F(LedServiceTest, checkForceLed) {
   // Test for all the modules
   // Use the ports max speed and profile
   auto transceivers = getAllTransceivers(platformMap_);
@@ -103,7 +103,7 @@ TEST_F(LedServiceTest, checkLedColorChange) {
     EXPECT_EQ(ledState.currentLedColor().value(), led::LedColor::OFF);
     EXPECT_TRUE(ledState.forcedOffState().value());
 
-    // Verify link Up, the expected LED color is either Blue or Green
+    // Verify forcing LED to on state that LED is set accordingly.
     ledManager_->setExternalLedState(
         swPort, PortLedExternalState::EXTERNAL_FORCE_ON);
     auto onLedColorCurrent = ledManager_->getCurrentLedColor(swPort);
@@ -125,6 +125,126 @@ TEST_F(LedServiceTest, checkLedColorChange) {
     EXPECT_EQ(offLedColor, led::LedColor::OFF);
     EXPECT_EQ(ledState.currentLedColor().value(), led::LedColor::OFF);
     EXPECT_TRUE(ledState.forcedOffState().value());
+  }
+}
+
+void LedServiceTest::checkLedColor(PortID port, enum led::LedColor color) {
+  auto portName = platformMap_->getPortNameByPortId(port);
+  CHECK(portName.has_value());
+  auto currentColor = ledManager_->getCurrentLedColor(port);
+  auto ledState = ledManager_->getLedState(portName.value());
+  EXPECT_EQ(currentColor, color)
+      << "LED color should be " << enumToName<led::LedColor>(color)
+      << " for port " << portName.value();
+  EXPECT_EQ(ledState.currentLedColor().value(), color)
+      << "LED state should be " << enumToName<led::LedColor>(color)
+      << " for port " << portName.value();
+  // If the flags is specified, add a delay to enable seeing the LED change
+  sleep(FLAGS_visual_delay_sec);
+}
+
+TEST_F(LedServiceTest, checkLedColorChange) {
+  auto transceivers = getAllTransceivers(platformMap_);
+  std::sort(transceivers.begin(), transceivers.end());
+
+  for (auto tcvr : transceivers) {
+    auto swPorts = platformMap_->getSwPortListFromTransceiverId(tcvr);
+    for (auto& swPort : swPorts) {
+      // Do the first update from FSDB to LedService. LED set to inactive.
+      auto maxSpeed = platformMap_->getPortMaxSpeed(swPort);
+      auto profile = platformMap_->getProfileIDBySpeed(swPort, maxSpeed);
+      LedManager::LedSwitchStateUpdate ledUpdate = {
+          static_cast<short>(swPort),
+          "",
+          enumToName<cfg::PortProfileID>(profile),
+          false /*operationalState*/,
+          PortLedExternalState::NONE};
+
+      std::map<short, LedManager::LedSwitchStateUpdate> updateMap;
+      updateMap[swPort] = ledUpdate;
+      ledManager_->updateLedStatus(updateMap);
+
+      auto swPortName = platformMap_->getPortNameByPortId(swPort);
+      CHECK(swPortName.has_value());
+
+      // 1- Verify Default creation with operational state = false that the
+      // LED color is off.
+      checkLedColor(swPort, led::LedColor::OFF);
+
+      // 2- Set the operational state to true, verify that the LED color
+      // is not off anymore. Platform determines its own on color.
+      updateMap[swPort].operState = true;
+      ledManager_->updateLedStatus(updateMap);
+      auto colorBefore = ledManager_->getCurrentLedColor(swPort);
+      auto ledState = ledManager_->getLedState(swPortName.value());
+      EXPECT_NE(colorBefore, led::LedColor::OFF);
+      EXPECT_EQ(ledState.currentLedColor().value(), colorBefore);
+
+      // If the flags is specified, add a delay before forcing LED off
+      // to enable seeing the LED change
+      sleep(FLAGS_visual_delay_sec);
+
+      // 3- Force LED to be off. The LED color should be off.
+      ledManager_->setExternalLedState(
+          swPort, PortLedExternalState::EXTERNAL_FORCE_OFF);
+      checkLedColor(swPort, led::LedColor::OFF);
+
+      // 4- Unforce LED Off. LED should go back to the previous color.
+      ledManager_->setExternalLedState(swPort, PortLedExternalState::NONE);
+      checkLedColor(swPort, colorBefore);
+
+      // 5- Force LED to be on. The LED color should not be off.
+      // Each platform determines its own on color.
+      ledManager_->setExternalLedState(
+          swPort, PortLedExternalState::EXTERNAL_FORCE_ON);
+      auto onLedColorExpected = ledManager_->forcedOnColor();
+      checkLedColor(swPort, onLedColorExpected);
+
+      // 6- Unforce LED On. LED should go back to the previous color.
+      ledManager_->setExternalLedState(swPort, PortLedExternalState::NONE);
+      checkLedColor(swPort, colorBefore);
+
+      // 7- Set the cabling error, expect yellow LED.
+      updateMap[swPort].ledExternalState = PortLedExternalState::CABLING_ERROR;
+      ledManager_->updateLedStatus(updateMap);
+      checkLedColor(swPort, led::LedColor::YELLOW);
+
+      // 8- Remove the cabling error, check the LED color goes back
+      updateMap[swPort].ledExternalState = PortLedExternalState::NONE;
+      ledManager_->updateLedStatus(updateMap);
+      checkLedColor(swPort, colorBefore);
+
+      // 9- Set the cabling error, force LED ON, check the LED color is on, and
+      // not yellow.
+      updateMap[swPort].ledExternalState = PortLedExternalState::CABLING_ERROR;
+      ledManager_->updateLedStatus(updateMap);
+      ledManager_->setExternalLedState(
+          swPort, PortLedExternalState::EXTERNAL_FORCE_ON);
+      checkLedColor(swPort, onLedColorExpected);
+
+      // 10 - Remove force on, LED should go back to cabling error.
+      ledManager_->setExternalLedState(swPort, PortLedExternalState::NONE);
+      checkLedColor(swPort, led::LedColor::YELLOW);
+
+      // 11- Force LED Off.
+      ledManager_->setExternalLedState(
+          swPort, PortLedExternalState::EXTERNAL_FORCE_OFF);
+      checkLedColor(swPort, led::LedColor::OFF);
+
+      // 12 - Remove force off, LED should go back to cabling error.
+      ledManager_->setExternalLedState(swPort, PortLedExternalState::NONE);
+      checkLedColor(swPort, led::LedColor::YELLOW);
+
+      // 13 - Remove Cabling Error, LED should go back to original color.
+      updateMap[swPort].ledExternalState = PortLedExternalState::NONE;
+      ledManager_->updateLedStatus(updateMap);
+      checkLedColor(swPort, colorBefore);
+
+      // 14 - Force LED Off.
+      ledManager_->setExternalLedState(
+          swPort, PortLedExternalState::EXTERNAL_FORCE_OFF);
+      checkLedColor(swPort, led::LedColor::OFF);
+    }
   }
 }
 
