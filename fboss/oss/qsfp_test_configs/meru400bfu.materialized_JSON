@@ -47,6 +47,14 @@
             }
           ]
       },
+      "SPTSHP3CLCKS": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "2.6"
+            }
+          ]
+      },
       "T-DQ4CNT-NF2": {
           "versions": [
             {
