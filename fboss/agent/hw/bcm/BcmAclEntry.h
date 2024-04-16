@@ -64,6 +64,7 @@ class BcmAclEntry {
   }
 
   void createNewAclEntry();
+  void deleteAclEntry();
 
  private:
   void createAclQualifiers();

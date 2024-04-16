@@ -3338,6 +3338,8 @@ void BcmSwitch::processDefaultAclgroupForUdf(
              << aclIdsToString(udfQsetIdsInHW)
              << " .Config ids: " << aclIdsToString(udfAclIds);
 
+  writableAclTable()->clearAclTable(
+      platform_->getAsic()->getDefaultACLGroupID());
   clearFPGroup(unit_, platform_->getAsic()->getDefaultACLGroupID());
   createAclGroup(
       udfAclIds.size() ? std::optional<std::set<bcm_udf_id_t>>(udfAclIds)

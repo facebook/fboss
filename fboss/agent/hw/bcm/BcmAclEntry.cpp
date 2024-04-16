@@ -483,6 +483,7 @@ void BcmAclEntry::createAclStat() {
         counterName, counterTypes, warmBootItr->second.stat);
     warmBootCache->programmed(warmBootItr);
   } else {
+    XLOG(DBG3) << "Reattaching counter " << counterName;
     auto bcmAclStat =
         aclTable->incRefOrCreateBcmAclStat(counterName, counterTypes, gid_);
     bcmAclStat->attach(handle_);
@@ -555,7 +556,7 @@ BcmAclEntry::BcmAclEntry(
   }
 }
 
-BcmAclEntry::~BcmAclEntry() {
+void BcmAclEntry::deleteAclEntry() {
   int rv;
   auto aclTable = hw_->writableAclTable();
 
@@ -586,6 +587,10 @@ BcmAclEntry::~BcmAclEntry() {
   // Destroy the ACL entry
   rv = bcm_field_entry_destroy(hw_->getUnit(), handle_);
   bcmLogFatal(rv, hw_, "failed to destroy the acl entry");
+}
+
+BcmAclEntry::~BcmAclEntry() {
+  deleteAclEntry();
 }
 
 bool BcmAclEntry::isStateSame(
