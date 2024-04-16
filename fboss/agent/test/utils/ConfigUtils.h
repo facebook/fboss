@@ -218,4 +218,20 @@ UplinkDownlinkPair getAllUplinkDownlinkPorts(
     const int ecmpWidth = 4,
     const bool mmu_lossless = false);
 
+void configurePortGroup(
+    const PlatformMapping* platformMapping,
+    bool supportsAddRemovePort,
+    cfg::SwitchConfig& config,
+    cfg::PortSpeed speed,
+    std::vector<PortID> allPortsInGroup);
+
+std::vector<PortID> getAllPortsInGroup(
+    const PlatformMapping* platformMapping,
+    PortID portID);
+
+void removeSubsumedPorts(
+    cfg::SwitchConfig& config,
+    const cfg::PlatformPortConfig& profile,
+    bool supportsAddRemovePort);
+
 } // namespace facebook::fboss::utility

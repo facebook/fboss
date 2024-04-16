@@ -17,6 +17,7 @@
 #include "fboss/agent/test/TestEnsembleIf.h"
 #include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/PortTestUtils.h"
+#include "fboss/lib/config/PlatformConfigUtils.h"
 
 #include <folly/Format.h>
 
@@ -24,7 +25,28 @@ DEFINE_bool(nodeZ, false, "Setup test config as node Z");
 
 namespace {
 constexpr auto kSysPortOffset = 100;
+void removePort(
+    facebook::fboss::cfg::SwitchConfig& config,
+    facebook::fboss::PortID port,
+    bool supportsAddRemovePort) {
+  auto cfgPort = facebook::fboss::utility::findCfgPortIf(config, port);
+  if (cfgPort == config.ports()->end()) {
+    return;
+  }
+  if (supportsAddRemovePort) {
+    config.ports()->erase(cfgPort);
+    auto removed = std::remove_if(
+        config.vlanPorts()->begin(),
+        config.vlanPorts()->end(),
+        [port](auto vlanPort) {
+          return facebook::fboss::PortID(*vlanPort.logicalPort()) == port;
+        });
+    config.vlanPorts()->erase(removed, config.vlanPorts()->end());
+  } else {
+    cfgPort->state() = facebook::fboss::cfg::PortState::DISABLED;
+  }
 }
+} // namespace
 
 namespace facebook::fboss::utility {
 
@@ -1027,5 +1049,71 @@ UplinkDownlinkPair getAllUplinkDownlinkPorts(
   auto mid = masterPorts.begin() + ecmpWidth;
   auto end = masterPorts.end();
   return std::pair(PortList(begin, mid), PortList(mid, end));
+}
+// Set any ports in this port group to use the specified speed,
+// and disables any ports that don't support this speed.
+void configurePortGroup(
+    const PlatformMapping* platformMapping,
+    bool supportsAddRemovePort,
+    cfg::SwitchConfig& config,
+    cfg::PortSpeed speed,
+    std::vector<PortID> allPortsInGroup) {
+  for (auto portID : allPortsInGroup) {
+    // We might have removed a subsumed port already in a previous
+    // iteration of the loop.
+    auto cfgPort = findCfgPortIf(config, portID);
+    if (cfgPort == config.ports()->end()) {
+      continue;
+    }
+
+    const auto& platPortEntry = platformMapping->getPlatformPort(portID);
+    auto profileID = platformMapping->getProfileIDBySpeedIf(portID, speed);
+    if (!profileID.has_value()) {
+      XLOG(WARNING) << "Port " << static_cast<int>(portID)
+                    << "Doesn't support speed " << static_cast<int>(speed)
+                    << ", disabling it instead";
+      // Port doesn't support this speed, just disable it.
+      cfgPort->state() = cfg::PortState::DISABLED;
+      continue;
+    }
+
+    auto supportedProfiles = *platPortEntry.supportedProfiles();
+    auto profile = supportedProfiles.find(profileID.value());
+    if (profile == supportedProfiles.end()) {
+      throw std::runtime_error(folly::to<std::string>(
+          "No profile ", profileID.value(), " found for port ", portID));
+    }
+
+    cfgPort->profileID() = profileID.value();
+    cfgPort->speed() = speed;
+    cfgPort->state() = cfg::PortState::ENABLED;
+    removeSubsumedPorts(config, profile->second, supportsAddRemovePort);
+  }
+}
+
+std::vector<PortID> getAllPortsInGroup(
+    const PlatformMapping* platformMapping,
+    PortID portID) {
+  std::vector<PortID> allPortsinGroup;
+  if (const auto& platformPorts = platformMapping->getPlatformPorts();
+      !platformPorts.empty()) {
+    const auto& portList =
+        utility::getPlatformPortsByControllingPort(platformPorts, portID);
+    for (const auto& port : portList) {
+      allPortsinGroup.push_back(PortID(*port.mapping()->id()));
+    }
+  }
+  return allPortsinGroup;
+}
+
+void removeSubsumedPorts(
+    cfg::SwitchConfig& config,
+    const cfg::PlatformPortConfig& profile,
+    bool supportsAddRemovePort) {
+  if (auto subsumedPorts = profile.subsumedPorts()) {
+    for (auto& subsumedPortID : subsumedPorts.value()) {
+      removePort(config, PortID(subsumedPortID), supportsAddRemovePort);
+    }
+  }
 }
 } // namespace facebook::fboss::utility
