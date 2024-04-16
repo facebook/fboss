@@ -15,6 +15,7 @@
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
+#include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/agent/test/utils/PacketTestUtils.h"
 #include "fboss/agent/test/utils/TrafficPolicyTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
@@ -167,9 +168,7 @@ class AgentAclAndDscpQueueMappingTest : public AgentDscpQueueMappingTestBase {
         ensemble.masterLogicalPortIds(),
         true /*interfaceHasSubnet*/);
     // QosMap
-    utility::addDscpQosPolicy(&cfg, "qp1", {{kQueueId(), {kDscp()}}});
-    utility::setCPUQosPolicy(&cfg, "qp1");
-    utility::setDefaultQosPolicy(&cfg, "qp1");
+    utility::addOlympicQosMaps(cfg, asic);
 
     // ACL
     auto* acl = utility::addAcl(&cfg, "acl0");
@@ -235,9 +234,7 @@ class AgentAclConflictAndDscpQueueMappingTest
     // The QoS map sends packets to queue kQueueIdQosMap() i.e. 7,
     // The ACL sends them to queue kQueueIdAcl() i.e. 2.
     // QosMap
-    utility::addDscpQosPolicy(&cfg, "qp1", {{kQueueIdQosMap(), {kDscp()}}});
-    utility::setCPUQosPolicy(&cfg, "qp1");
-    utility::setDefaultQosPolicy(&cfg, "qp1");
+    utility::addOlympicQosMaps(cfg, asic);
 
     // ACL
     utility::addDscpAclToCfg(&cfg, "acl0", kDscp());
