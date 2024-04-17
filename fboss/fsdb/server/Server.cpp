@@ -25,20 +25,6 @@ DEFINE_int32(
     "Delay after which connection to a publisher that has not "
     "published to any metric is closed");
 
-// NOTE: we create/open rocksdb instances per publisher before accepting
-// connections from publishers (or subscribers). The delay incurred
-// by rocksdb::DB::Open() is significant and may cause publisher
-// connection to time out if invoked in the Thrift handler thread.
-// We avoid that by creating/opening the rocksdb instance at startup.
-// This has the downside of requiring the list of publishers to be available
-// when FSDB starts. We use gflag (joined by comma) for this purpose
-// (FSDB config can override).
-DEFINE_string(
-    publisherIdsToOpenRocksDbAtStartFor,
-    "wedge_agent,qsfp_service,bgp,openr",
-    "PublisherIds for which RocksDB instances will be created/opened"
-    " when FSDB starts and before accepting any incoming connections");
-
 DEFINE_int32(
     stat_publish_interval_ms,
     1000,
@@ -126,7 +112,6 @@ std::shared_ptr<ServiceHandler> createThriftHandler(
     std::shared_ptr<FsdbConfig> fsdbConfig) {
   return std::make_shared<ServiceHandler>(
       fsdbConfig,
-      FLAGS_publisherIdsToOpenRocksDbAtStartFor,
       ServiceHandler::Options().setServeIdPathSubs(FLAGS_useIdPathsForSubs));
 }
 

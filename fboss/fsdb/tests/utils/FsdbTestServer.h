@@ -50,7 +50,6 @@ class FsdbTestServer {
   std::unique_ptr<std::thread> thriftThread_;
   std::shared_ptr<ServiceHandler> handler_;
   uint16_t fsdbPort_{};
-  std::unique_ptr<folly::test::TemporaryDirectory> tmpDir_;
 };
 
 } // namespace facebook::fboss::fsdb::test

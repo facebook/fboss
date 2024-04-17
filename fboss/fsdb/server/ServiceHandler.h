@@ -19,11 +19,6 @@
 #include "fboss/lib/ThreadHeartbeat.h"
 #include "re2/re2.h"
 
-#ifndef IS_OSS
-#include "fboss/fsdb/oper/DbWriter.h"
-#include "fboss/fsdb/server/RocksDb.h"
-#endif
-
 DECLARE_bool(checkSubscriberConfig);
 DECLARE_bool(enforceSubscriberConfig);
 DECLARE_bool(checkOperOwnership);
@@ -38,9 +33,6 @@ class ServiceHandler : public FsdbServiceSvIf,
   struct Options {
     Options() {}
 
-    /* variable names absurd by design */
-    bool eraseRocksDbsInCtorAndDtor_CAUTION_DO_NOT_USE_IN_PRODUCTION{false};
-    bool useFakeRocksDb_CAUTION_DO_NOT_USE_IN_PRODUCTION{false};
     bool serveIdPathSubs{false};
 
     Options&& setServeIdPathSubs(bool val) && {
@@ -51,7 +43,6 @@ class ServiceHandler : public FsdbServiceSvIf,
 
   ServiceHandler(
       std::shared_ptr<FsdbConfig> fsdbConfig,
-      const std::string& publisherIdsToOpenRocksDbAtStartFor,
       Options options = Options());
   ~ServiceHandler() override;
 
@@ -228,13 +219,6 @@ class ServiceHandler : public FsdbServiceSvIf,
 
   void initPerStreamCounters();
 
-#ifndef IS_OSS
-  using RocksDbPtr = std::shared_ptr<RocksDbIf>;
-  template <typename T>
-  folly::F14FastMap<PublisherId, RocksDbPtr> createIfNeededAndOpenRocksDbs(
-      folly::F14FastSet<PublisherId> publisherIds) const;
-#endif
-
   void validateSubscriptionPermissions(
       SubscriberId id,
       PubSubType type,
@@ -270,10 +254,6 @@ class ServiceHandler : public FsdbServiceSvIf,
   TLTimeseries num_dropped_stats_changes_;
   TLTimeseries num_dropped_state_changes_;
   FsdbNaivePeriodicSubscribableStorage operStorage_;
-#ifndef IS_OSS
-  folly::F14FastMap<PublisherId, RocksDbPtr> rocksDbs_; // const after ctor
-  DbWriter operDbWriter_;
-#endif
   // TODO - decide on right DB abstraction for stats
   FsdbNaivePeriodicSubscribableStatsStorage operStatsStorage_;
 

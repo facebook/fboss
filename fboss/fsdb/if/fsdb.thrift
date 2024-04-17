@@ -41,38 +41,6 @@ struct OperSubscriberInfo {
   6: optional i64 subscribedSince;
 }
 
-// ----------------------------------------------------------------------------
-
-struct StatsSubUnitPayloadControlCtor {}
-
-struct StatsSubUnitPayloadControlDtor {}
-
-typedef list<i64> Vector
-typedef string ExportTypeStr
-@cpp.Type{template = "folly::F14FastMap"}
-typedef map<ExportTypeStr, Vector> Vectors
-
-// `fb303c -s ${TESTSWITCH}:5909 getCounters` data representation
-@cpp.Type{template = "folly::F14FastMap"}
-typedef map<string, i64> Counters
-
-struct StatsSubUnitPayloadDataCompressed {
-  1: Vectors vectors;
-}
-
-struct StatsSubUnitPayloadData {
-  1: Counters counters;
-}
-
-union StatsSubUnitPayload {
-  1: StatsSubUnitPayloadControlCtor available;
-  2: StatsSubUnitPayloadControlDtor unavailable;
-  3: StatsSubUnitPayloadData data;
-  4: StatsSubUnitPayloadDataCompressed dataCompressed; // for rocksdb only
-}
-
-// ----------------------------------------------------------------------------
-
 @cpp.Type{template = "folly::F14FastMap"}
 typedef map<
   fsdb_common.PublisherId,

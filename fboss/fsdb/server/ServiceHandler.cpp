@@ -47,11 +47,6 @@ DEFINE_int32(
     "Interval at which heartbeats are sent for state subscribers");
 
 DEFINE_bool(
-    enableOperDB,
-    false,
-    "Enable writing oper state changes to rocksdb");
-
-DEFINE_bool(
     checkSubscriberConfig,
     true,
     "whether to check SubscriberConfig on subscription requests");
@@ -121,7 +116,6 @@ namespace facebook::fboss::fsdb {
 
 ServiceHandler::ServiceHandler(
     std::shared_ptr<FsdbConfig> fsdbConfig,
-    const std::string& publisherIdsToOpenRocksDbAtStartFor,
     Options options)
     : FacebookBase2("FsdbService"),
       fsdbConfig_(std::move(fsdbConfig)),
@@ -204,9 +198,6 @@ ServiceHandler::ServiceHandler(
           "fsdb",
           options.serveIdPathSubs,
           true),
-#ifndef IS_OSS
-      operDbWriter_(operStorage_),
-#endif
       operStatsStorage_(
           {},
           std::chrono::seconds(FLAGS_statsSubscriptionServe_s),
@@ -214,10 +205,6 @@ ServiceHandler::ServiceHandler(
           FLAGS_trackMetadata,
           "fsdb",
           options.serveIdPathSubs) {
-  std::vector<PublisherId> publisherIds;
-  // find publisherIds specified
-  folly::split(',', publisherIdsToOpenRocksDbAtStartFor, publisherIds);
-
   num_instances_.incrementValue(1);
 
   initPerStreamCounters();
@@ -243,45 +230,7 @@ ServiceHandler::ServiceHandler(
   heartbeatWatchdog_->startMonitoringHeartbeat(
       operStatsStorage_.getThreadHeartbeat());
   heartbeatWatchdog_->start();
-
-#ifndef IS_OSS
-  if (FLAGS_enableOperDB) {
-    rocksDbs_ = options_.useFakeRocksDb_CAUTION_DO_NOT_USE_IN_PRODUCTION
-        ? createIfNeededAndOpenRocksDbs<RocksDbFake>(
-              {publisherIds.begin(), publisherIds.end()})
-        : createIfNeededAndOpenRocksDbs<RocksDb>(
-              {publisherIds.begin(), publisherIds.end()});
-    operDbWriter_.start();
-  }
-#endif
 }
-
-#ifndef IS_OSS
-template <typename T>
-folly::F14FastMap<PublisherId, std::shared_ptr<RocksDbIf>>
-ServiceHandler::createIfNeededAndOpenRocksDbs(
-    folly::F14FastSet<PublisherId> publisherIds) const {
-  folly::F14FastMap<PublisherId, RocksDbPtr> ret;
-  for (const auto& publisherId : publisherIds) {
-    auto rocksDb = std::make_shared<T>(
-        "stats",
-        publisherId,
-        std::chrono::seconds(FLAGS_metricsTtl_s),
-        options_.eraseRocksDbsInCtorAndDtor_CAUTION_DO_NOT_USE_IN_PRODUCTION);
-    const auto logPrefix = fmt::format("[P:{}]", publisherId);
-    if (!rocksDb->open()) {
-      throw Utils::createFsdbException(
-          FsdbErrorCode::ROCKSDB_OPEN_OR_CREATE_FAILED,
-          logPrefix,
-          " could not open or create rocksdb");
-    }
-    XLOG(INFO) << logPrefix << " pre-created rocksdb";
-    ret.insert({publisherId, rocksDb});
-  }
-
-  return ret;
-}
-#endif
 
 ServiceHandler::~ServiceHandler() {
   if (heartbeatWatchdog_) {

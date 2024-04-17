@@ -19,30 +19,13 @@ FsdbTestServer::FsdbTestServer(
   gflags::SetCommandLineOptionWithMode(
       "checkOperOwnership", "false", gflags::SET_FLAG_IF_DEFAULT);
 
-  // Pick different dir for tests
-  tmpDir_ = std::make_unique<folly::test::TemporaryDirectory>("fsdb_tests");
-  gflags::SetCommandLineOptionWithMode(
-      "rocksdbDir",
-      tmpDir_->path().string().c_str(),
-      gflags::SET_FLAG_IF_DEFAULT);
-
   folly::Baton<> serverStartedBaton;
   thriftThread_ =
       std::make_unique<std::thread>([=, &serverStartedBaton, &config] {
-        std::vector<std::string> publisherIdsToOpenRocksDbAtStartFor;
-        for (auto i = 0; i < kMaxPublishers_; ++i) {
-          publisherIdsToOpenRocksDbAtStartFor.push_back(getPublisherId(i));
-        }
-
         ServiceHandler::Options options;
-        options.eraseRocksDbsInCtorAndDtor_CAUTION_DO_NOT_USE_IN_PRODUCTION =
-            true;
         options.serveIdPathSubs = true;
 
-        handler_ = std::make_shared<ServiceHandler>(
-            std::move(config),
-            folly::join(",", publisherIdsToOpenRocksDbAtStartFor),
-            options);
+        handler_ = std::make_shared<ServiceHandler>(std::move(config), options);
         // Uniquify SF name for different test runs, since they may run in
         // parallel
         std::string sfName = folly::to<std::string>(
@@ -76,7 +59,6 @@ FsdbTestServer::~FsdbTestServer() {
   serviceFramework_->waitForStop();
   thriftThread_->join();
   thriftThread_.reset();
-  tmpDir_.reset();
 }
 
 std::string FsdbTestServer::getPublisherId(int publisherIndex) const {
