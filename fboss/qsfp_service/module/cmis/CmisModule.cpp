@@ -2924,6 +2924,22 @@ void CmisModule::setDiagsCapability() {
           diags.cdbFirmwareReadback() =
               commandBlockBuf.getCdbLplFlatMemory()[6] != 0;
         }
+
+        // Check CDB symbol error histogram command support. If command does
+        // not fail then it is implemented
+        commandBlockBuf.createCdbCmdSymbolErrorHistogram(0, true);
+        diags.cdbSymbolErrorHistogramLine() =
+            commandBlockBuf.cmisRunCdbCommand(qsfpImpl_);
+        commandBlockBuf.createCdbCmdSymbolErrorHistogram(0, false);
+        diags.cdbSymbolErrorHistogramSystem() =
+            commandBlockBuf.cmisRunCdbCommand(qsfpImpl_);
+        // CDB Rx error histogram
+        commandBlockBuf.createCdbCmdRxErrorHistogram(0, true);
+        diags.cdbRxErrorHistogramLine() =
+            commandBlockBuf.cmisRunCdbCommand(qsfpImpl_);
+        commandBlockBuf.createCdbCmdRxErrorHistogram(0, false);
+        diags.cdbRxErrorHistogramSystem() =
+            commandBlockBuf.cmisRunCdbCommand(qsfpImpl_);
       }
       *diagsCapability = diags;
     }
