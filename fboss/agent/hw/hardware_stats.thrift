@@ -318,6 +318,7 @@ struct HwSwitchFb303GlobalStats {
 
 struct HwFlowletStats {
   1: i64 l3EcmpDlbFailPackets;
+  2: i64 l3EcmpDlbPortReassignmentCount;
 }
 
 struct AclStats {

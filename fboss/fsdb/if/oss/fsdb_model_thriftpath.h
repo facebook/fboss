@@ -21021,10 +21021,13 @@ class ChildThriftPath<::facebook::fboss::HwFlowletStats, ::facebook::fboss::fsdb
     ChildTag,
     Self
   >;
-  using Children = fatal::tuple<std::pair<strings::l3EcmpDlbFailPackets, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
-  using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
+  using Children = fatal::tuple<std::pair<strings::l3EcmpDlbFailPackets, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<strings::l3EcmpDlbPortReassignmentCount, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
+  using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
   template <typename Name>
-  using NameToId = fatal::tuple<std::pair<strings::l3EcmpDlbFailPackets, std::integral_constant<apache::thrift::field_id_t, 1>>>::template type_of<Name>;
+  using NameToId = fatal::tuple<std::pair<strings::l3EcmpDlbFailPackets, std::integral_constant<apache::thrift::field_id_t, 1>>,
+std::pair<strings::l3EcmpDlbPortReassignmentCount, std::integral_constant<apache::thrift::field_id_t, 2>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -21039,10 +21042,12 @@ class ChildThriftPath<::facebook::fboss::HwFlowletStats, ::facebook::fboss::fsdb
    Parent>(std::move(tokens), std::move(idTokens)) {}
   
     STRUCT_CHILD_GETTERS(l3EcmpDlbFailPackets, 1);
+    STRUCT_CHILD_GETTERS(l3EcmpDlbPortReassignmentCount, 2);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
     if constexpr (__id == 1) { return l3EcmpDlbFailPackets(); }
+    else if constexpr (__id == 2) { return l3EcmpDlbPortReassignmentCount(); }
   }
 
   template <typename T, T... Values>
