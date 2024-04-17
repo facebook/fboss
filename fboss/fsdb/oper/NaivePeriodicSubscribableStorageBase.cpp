@@ -307,8 +307,10 @@ NaivePeriodicSubscribableStorageBase::subscribe_patch_impl(
       path.end(),
       protocol,
       getPublisherRoot(path.begin(), path.end()));
-  auto subscriptions = subscriptions_.wlock();
-  subscriptions->registerSubscription(std::move(subscription));
+  withSubMgrWLocked([subscription = std::move(subscription)](
+                        SubscriptionManagerBase& mgr) mutable {
+    mgr.registerSubscription(std::move(subscription));
+  });
   return std::move(gen);
 }
 #endif
