@@ -226,10 +226,24 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
          platformConfig_.platformName().value() == "meru800bia") &&
         (!(idpromConfig.busName()->starts_with("INCOMING")) &&
          *idpromConfig.address() == "0x50")) {
-      std::string eepromDir = "/run/devmap/eeproms/";
-      std::string eepromName = "MERU_SCM_EEPROM";
-      eepromPath = eepromDir + eepromName;
-      IoctlSmbusEepromReader::readEeprom(eepromDir, eepromName);
+      try {
+        std::string eepromDir = "/run/devmap/eeproms/";
+        std::string eepromName = "MERU_SCM_EEPROM";
+        eepromPath = eepromDir + eepromName;
+        IoctlSmbusEepromReader::readEeprom(
+            eepromDir,
+            eepromName,
+            0,
+            std::stoi(*idpromConfig.address(), nullptr, 16),
+            dataStore_.getI2cBusNum(slotPath, *idpromConfig.busName()));
+      } catch (const std::exception& e) {
+        auto errMsg = fmt::format(
+            "Could not read MERU_SCM_EEPROM for {}: {}",
+            *idpromConfig.address(),
+            e.what());
+        XLOG(ERR) << errMsg;
+        errorMessages_[slotPath].push_back(errMsg);
+      }
     } else {
       createI2cDevice(
           Utils().createDevicePath(slotPath, "IDPROM"),
