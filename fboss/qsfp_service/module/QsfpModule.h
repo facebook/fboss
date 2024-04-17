@@ -309,7 +309,7 @@ class QsfpModule : public Transceiver {
       phy::Side side,
       bool setLoopback) override;
 
-  std::map<uint32_t, CdbDatapathSymErrHistogram> getSymbolErrorHistogram()
+  std::map<std::string, CdbDatapathSymErrHistogram> getSymbolErrorHistogram()
       override;
 
  protected:
@@ -587,7 +587,7 @@ class QsfpModule : public Transceiver {
     return VdmPerfMonitorStatsForOds{};
   }
 
-  virtual std::map<uint32_t, CdbDatapathSymErrHistogram>
+  virtual std::map<std::string, CdbDatapathSymErrHistogram>
   getCdbSymbolErrorHistogramLocked() {
     return {};
   }

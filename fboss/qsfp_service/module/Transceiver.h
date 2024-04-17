@@ -289,7 +289,7 @@ class Transceiver {
 
   virtual std::string getFwStorageHandle() const = 0;
 
-  virtual std::map<uint32_t, CdbDatapathSymErrHistogram>
+  virtual std::map<std::string, CdbDatapathSymErrHistogram>
   getSymbolErrorHistogram() = 0;
 
  protected:

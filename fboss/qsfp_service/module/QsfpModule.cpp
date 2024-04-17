@@ -609,9 +609,9 @@ void QsfpModule::setTransceiverLoopback(
   }
 }
 
-std::map<uint32_t, CdbDatapathSymErrHistogram>
+std::map<std::string, CdbDatapathSymErrHistogram>
 QsfpModule::getSymbolErrorHistogram() {
-  std::map<uint32_t, CdbDatapathSymErrHistogram> symErr;
+  std::map<std::string, CdbDatapathSymErrHistogram> symErr;
 
   // Lambda to call Qsfp function
   auto getSymErrFn = [&]() {

@@ -1618,15 +1618,15 @@ CmisModule::getCdbSymbolErrorHistogramLocked(
  * Return symbol error histogram data for all bins for all datapaths for the
  * both media/host side
  */
-std::map<uint32_t, CdbDatapathSymErrHistogram>
+std::map<std::string, CdbDatapathSymErrHistogram>
 CmisModule::getCdbSymbolErrorHistogramLocked() {
-  std::map<uint32_t, CdbDatapathSymErrHistogram> cdbDpSymErrHist;
+  std::map<std::string, CdbDatapathSymErrHistogram> cdbDpSymErrHist;
   for (auto& [portName, hostLanes] : getPortNameToHostLanes()) {
     // Datapath Id is same as first lane Id
     int datapathId = *hostLanes.begin();
-    cdbDpSymErrHist[datapathId].media() =
+    cdbDpSymErrHist[portName].media() =
         getCdbSymbolErrorHistogramLocked(datapathId, true);
-    cdbDpSymErrHist[datapathId].host() =
+    cdbDpSymErrHist[portName].host() =
         getCdbSymbolErrorHistogramLocked(datapathId, false);
   }
   return cdbDpSymErrHist;

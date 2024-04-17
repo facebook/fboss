@@ -524,7 +524,7 @@ struct TcvrStats {
   11: i64 lastFwUpgradeEndTime;
   12: optional VdmPerfMonitorStats vdmPerfMonitorStats;
   13: optional VdmPerfMonitorStatsForOds vdmPerfMonitorStatsForOds;
-  14: map<i32, CdbDatapathSymErrHistogram> cdbDatapathSymErrHistogram;
+  14: map<string, CdbDatapathSymErrHistogram> cdbDatapathSymErrHistogram;
 }
 
 struct TransceiverInfo {

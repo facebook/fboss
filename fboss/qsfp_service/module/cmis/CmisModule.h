@@ -363,7 +363,7 @@ class CmisModule : public QsfpModule {
   virtual VdmPerfMonitorStatsForOds getVdmPerfMonitorStatsForOds(
       VdmPerfMonitorStats& vdmPerfMonStats) override;
 
-  virtual std::map<uint32_t, CdbDatapathSymErrHistogram>
+  virtual std::map<std::string, CdbDatapathSymErrHistogram>
   getCdbSymbolErrorHistogramLocked() override;
 
   /*
