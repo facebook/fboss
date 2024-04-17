@@ -438,6 +438,17 @@ struct VdmDiagsStats {
   24: map<i32, double> pam4LtpMediaChannel;
 }
 
+struct SymErrHistogramBin {
+  1: double nbitSymbolErrorMax;
+  2: double nbitSymbolErrorAvg;
+  3: double nbitSymbolErrorCur;
+}
+
+struct CdbDatapathSymErrHistogram {
+  1: map<i32, SymErrHistogramBin> media;
+  2: map<i32, SymErrHistogramBin> host;
+}
+
 struct TransceiverSettings {
   1: FeatureState cdrTx;
   2: FeatureState cdrRx;
@@ -513,6 +524,7 @@ struct TcvrStats {
   11: i64 lastFwUpgradeEndTime;
   12: optional VdmPerfMonitorStats vdmPerfMonitorStats;
   13: optional VdmPerfMonitorStatsForOds vdmPerfMonitorStatsForOds;
+  14: map<i32, CdbDatapathSymErrHistogram> cdbDatapathSymErrHistogram;
 }
 
 struct TransceiverInfo {
