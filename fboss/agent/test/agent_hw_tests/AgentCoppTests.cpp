@@ -22,6 +22,7 @@
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
+#include "fboss/agent/test/utils/PacketSnooper.h"
 #include "fboss/agent/test/utils/PacketTestUtils.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/CommonUtils.h"
@@ -206,6 +207,8 @@ class AgentCoppTest : public AgentHwTest {
                << folly::hexDump(pkt->buf()->data(), pkt->buf()->length());
 
     auto ethFrame = utility::makeEthFrame(*pkt, true /*skipTtlDecrement*/);
+    utility::SwSwitchPacketSnooper snooper(
+        getSw(), "snoop", std::nullopt, ethFrame);
     if (outOfPort) {
       getSw()->sendPacketOutOfPortAsync(
           std::move(pkt),
@@ -214,7 +217,10 @@ class AgentCoppTest : public AgentHwTest {
       getSw()->sendPacketSwitchedAsync(std::move(pkt));
     }
     if (snoopAndVerify) {
-      // TODO - Add support for snoop and verify
+      WITH_RETRIES({
+        auto frameRx = snooper.waitForPacket(1);
+        EXPECT_EVENTUALLY_TRUE(frameRx.has_value());
+      });
     }
   }
 
