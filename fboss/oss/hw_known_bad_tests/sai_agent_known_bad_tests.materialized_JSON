@@ -32,6 +32,9 @@
           "test_name_regex": "warm_boot.AgentDeepPacketInspectionTest.l3ForwardedPkt$"
         },
         {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -169,6 +172,9 @@
         },
         {
           "test_name_regex": "warm_boot.AgentDeepPacketInspectionTest.l3ForwardedPkt$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -328,6 +334,9 @@
           "test_name_regex": "warm_boot.AgentDeepPacketInspectionTest.l3ForwardedPkt$"
         },
         {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -470,6 +479,9 @@
           "test_name_regex": "warm_boot.AgentDeepPacketInspectionTest.l3ForwardedPkt$"
         },
         {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -595,6 +607,9 @@
         },
         {
           "test_name_regex": "warm_boot.AgentDeepPacketInspectionTest.l3ForwardedPkt$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -724,6 +739,9 @@
           "test_name_regex": "warm_boot.AgentDeepPacketInspectionTest.l3ForwardedPkt$"
         },
         {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -846,6 +864,9 @@
         },
         {
           "test_name_regex": "warm_boot.AgentDeepPacketInspectionTest.l3ForwardedPkt$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -972,6 +993,9 @@
           "test_name_regex": "warm_boot.AgentDeepPacketInspectionTest.l3ForwardedPkt$"
         },
         {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -1032,6 +1056,12 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRoutesToLowPriQueue$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].CpuPortIpv6LinkLocalUcastIp$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalMcastNetworkControlDscpToHighPriQ$"
         },
         {
           "test_name_regex": "AgentDscpMarkingTest.VerifyDscpMarking$"
@@ -1108,6 +1138,12 @@
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRoutesToLowPriQueue$"
         },
         {
+          "test_name_regex": "AgentCoppTest/[01].CpuPortIpv6LinkLocalUcastIp$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalMcastNetworkControlDscpToHighPriQ$"
+        },
+        {
           "test_name_regex": "AgentDscpMarkingTest.VerifyDscpMarking$"
         },
         {
@@ -1154,6 +1190,9 @@
         },
         {
           "test_name_regex": "warm_boot.AgentDeepPacketInspectionTest.l3ForwardedPkt$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         }
     ],
     "leaba/1.65.1/1.65.1/gibraltar/mono": [
@@ -1183,6 +1222,12 @@
         },
         {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRoutesToLowPriQueue$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].CpuPortIpv6LinkLocalUcastIp$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalMcastNetworkControlDscpToHighPriQ$"
         },
         {
           "test_name_regex": "AgentDscpMarkingTest.VerifyDscpMarking$"
@@ -1256,6 +1301,12 @@
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRoutesToLowPriQueue$"
         },
         {
+          "test_name_regex": "AgentCoppTest/[01].CpuPortIpv6LinkLocalUcastIp$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].Ipv6LinkLocalMcastNetworkControlDscpToHighPriQ$"
+        },
+        {
           "test_name_regex": "AgentDscpMarkingTest.VerifyDscpMarking$"
         },
         {
@@ -1299,6 +1350,9 @@
         },
         {
           "test_name_regex": "warm_boot.AgentDeepPacketInspectionTest.l3ForwardedPkt$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         }
     ]
   }
