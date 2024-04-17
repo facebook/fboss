@@ -124,6 +124,13 @@ void QsfpServiceHandler::getRemediationUntilTime(
   manager_->getPauseRemediationUntil(info, std::move(portList));
 }
 
+void QsfpServiceHandler::getSymbolErrorHistogram(
+    CdbDatapathSymErrHistogram& symErr,
+    std::unique_ptr<std::string> portName) {
+  auto log = LOG_THRIFT_CALL(INFO);
+  manager_->getSymbolErrorHistogram(symErr, *portName);
+}
+
 void QsfpServiceHandler::readTransceiverRegister(
     std::map<int32_t, ReadResponse>& response,
     std::unique_ptr<ReadRequest> request) {

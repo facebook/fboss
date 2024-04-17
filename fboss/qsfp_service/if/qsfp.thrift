@@ -162,6 +162,10 @@ service QsfpService extends phy.FbossCommonPhyCtrl {
     3: bool setAdminUp = true,
   ) throws (1: fboss.FbossBaseError error);
 
+  transceiver.CdbDatapathSymErrHistogram getSymbolErrorHistogram(
+    1: string portName,
+  ) throws (1: fboss.FbossBaseError error);
+
   string saiPhyRegisterAccess(
     1: string portName,
     2: bool opRead = true,

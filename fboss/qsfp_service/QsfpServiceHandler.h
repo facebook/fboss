@@ -231,6 +231,10 @@ class QsfpServiceHandler
   void getAllInterfacePhyInfo(
       std::map<std::string, phy::PhyInfo>& phyInfos) override;
 
+  void getSymbolErrorHistogram(
+      CdbDatapathSymErrHistogram& symErr,
+      std::unique_ptr<std::string> portName) override;
+
 #if FOLLY_HAS_COROUTINES
   folly::coro::Task<bool> co_sakInstallRx(
       std::unique_ptr<mka::MKASak> sak,
