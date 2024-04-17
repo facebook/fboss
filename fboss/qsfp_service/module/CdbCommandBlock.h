@@ -57,6 +57,10 @@ class CdbCommandBlock {
   void createCdbCmdModuleQuery();
   // Create firmware feature info query command
   void createCdbCmdGetFwFeatureInfo();
+  // Create Symbol Error Histogram command
+  void createCdbCmdSymbolErrorHistogram(uint8_t datapathId, bool mediaSide);
+  // Create Rx Error Histogram command
+  void createCdbCmdRxErrorHistogram(uint8_t laneId, bool mediaSide);
   // Create generic command structure
   void createCdbCmdGeneric(uint16_t commandCode, std::vector<uint8_t>& lplData);
 

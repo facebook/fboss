@@ -20,6 +20,8 @@ static constexpr uint16_t kCdbCommandFirmwareDownloadRun = 0x0109;
 static constexpr uint16_t kCdbCommandFirmwareDownloadCommit = 0x010a;
 static constexpr uint16_t kCdbCommandFirmwareDownloadFeature = 0x0041;
 static constexpr uint16_t kCdbCommandModuleQuery = 0x0000;
+static constexpr uint16_t kCdbCommandSymbolErrorHistogram = 0x9000;
+static constexpr uint16_t kCdbCommandRxErrorHistogram = 0x9001;
 
 // CDB command status values
 static constexpr uint8_t kCdbCommandStatusSuccess = 0x01;
@@ -444,6 +446,45 @@ void CdbCommandBlock::createCdbCmdGetFwFeatureInfo() {
   cdbFields_.cdbEplLength = 0;
 
   cdbFields_.cdbLplLength = 0;
+  cdbFields_.cdbChecksum = onesComplementSum();
+}
+
+/*
+ * createCdbCmdSymbolErrorHistogram
+ *
+ * This function creates the CDB command block to get the Symbol Error Histogram
+ * data for a data path on Media/Host side. The datapath id is 0 based and
+ * corresponds to the software port
+ */
+void CdbCommandBlock::createCdbCmdSymbolErrorHistogram(
+    uint8_t datapathId,
+    bool mediaSide) {
+  resetCdbBlock();
+  cdbFields_.cdbCommandCode = htons(kCdbCommandSymbolErrorHistogram);
+  cdbFields_.cdbEplLength = 0;
+  cdbFields_.cdbLplLength = 3;
+
+  cdbFields_.cdbLplMemory.cdbLplFlatMemory[1] = datapathId;
+  cdbFields_.cdbLplMemory.cdbLplFlatMemory[2] = mediaSide ? 0x0 : 0x1;
+  cdbFields_.cdbChecksum = onesComplementSum();
+}
+
+/*
+ * createCdbCmdRxErrorHistogram
+ *
+ * This function creates the CDB command block to get the Rx Error Histogram
+ * data for a lane on Media/Host side
+ */
+void CdbCommandBlock::createCdbCmdRxErrorHistogram(
+    uint8_t laneId,
+    bool mediaSide) {
+  resetCdbBlock();
+  cdbFields_.cdbCommandCode = htons(kCdbCommandRxErrorHistogram);
+  cdbFields_.cdbEplLength = 0;
+  cdbFields_.cdbLplLength = 4;
+
+  cdbFields_.cdbLplMemory.cdbLplFlatMemory[1] = laneId;
+  cdbFields_.cdbLplMemory.cdbLplFlatMemory[2] = mediaSide ? 0x0 : 0x1;
   cdbFields_.cdbChecksum = onesComplementSum();
 }
 
