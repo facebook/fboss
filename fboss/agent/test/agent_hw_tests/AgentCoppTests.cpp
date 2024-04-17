@@ -1010,6 +1010,41 @@ TYPED_TEST(AgentCoppTest, UnresolvedRoutesToLowPriQueue) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
+TYPED_TEST(AgentCoppTest, UnresolvedRouteNextHopToLowPriQueue) {
+  static const std::vector<RoutePrefixV6> routePrefixes = {
+      RoutePrefix<folly::IPAddressV6>{
+          folly::IPAddressV6{"2803:6080:d038:3063::"}, 64},
+      RoutePrefix<folly::IPAddressV6>{
+          folly::IPAddressV6{"2803:6080:d038:3065::1"}, 128}};
+  auto setup = [=, this]() {
+    FLAGS_classid_for_unresolved_routes = true;
+    this->setup();
+    utility::EcmpSetupAnyNPorts6 ecmp6(this->getProgrammedState());
+    auto wrapper = this->getSw()->getRouteUpdater();
+    ecmp6.programRoutes(&wrapper, 1, routePrefixes);
+  };
+  // Different from UnresolvedRoutesToLowPriQueue as traffic is
+  // destined to a remote route for which next hop is unresolved.
+  const auto randomNonsubnetUnicastIpAddresses = {
+      folly::IPAddressV6("2803:6080:d038:3063::1"),
+      folly::IPAddressV6("2803:6080:d038:3065::1")};
+  auto verify = [=, this]() {
+    for (auto& randomNonsubnetUnicastIpAddress :
+         randomNonsubnetUnicastIpAddresses) {
+      this->sendTcpPktAndVerifyCpuQueue(
+          utility::kCoppLowPriQueueId,
+          randomNonsubnetUnicastIpAddress,
+          utility::kNonSpecialPort1,
+          utility::kNonSpecialPort2,
+          std::nullopt,
+          0 /* trafficClass */,
+          std::nullopt,
+          true /* expectQueueHit */);
+    }
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
 TYPED_TEST(AgentCoppTest, JumboFramesToQueues) {
   auto setup = [=, this]() { this->setup(); };
 
