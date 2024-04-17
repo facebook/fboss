@@ -168,6 +168,14 @@
               "version": "106.1"
             }
           ]
+      },
+      "T-OL8CNT-NF2": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "103.130"
+            }
+          ]
       }
     }
   }
