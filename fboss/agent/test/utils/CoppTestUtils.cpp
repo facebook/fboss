@@ -359,7 +359,8 @@ void addLowPriAclForConnectedSubnetRoutes(
     bool isSai) {
   cfg::AclEntry acl;
   acl.name() = folly::to<std::string>("cpu-connected-subnet-route-acl");
-  acl.lookupClassRoute() = cfg::AclLookupClass::CLASS_CONNECTED_ROUTE_TO_INTF;
+  acl.lookupClassRoute() =
+      cfg::AclLookupClass::DEPRECATED_CLASS_CONNECTED_ROUTE_TO_INTF;
   acls.push_back(std::make_pair(
       acl,
       createQueueMatchAction(utility::kCoppLowPriQueueId, isSai, toCpuAction)));
@@ -371,7 +372,8 @@ void addLowPriAclForUnresolvedRoutes(
     bool isSai) {
   cfg::AclEntry acl;
   acl.name() = folly::to<std::string>("cpu-unresolved-route-acl");
-  acl.lookupClassRoute() = cfg::AclLookupClass::CLASS_UNRESOLVED_ROUTE_TO_CPU;
+  acl.lookupClassRoute() =
+      cfg::AclLookupClass::DEPRECATED_CLASS_UNRESOLVED_ROUTE_TO_CPU;
   acls.push_back(std::make_pair(
       acl,
       createQueueMatchAction(utility::kCoppLowPriQueueId, isSai, toCpuAction)));
@@ -549,8 +551,8 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAclsForBcm(
         isSrcPort ? "srcPort:" : "dstPrt:",
         utility::kBgpPort);
     acl.lookupClassNeighbor() = isV4
-        ? cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP4
-        : cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP6;
+        ? cfg::AclLookupClass::DST_CLASS_L3_LOCAL_1
+        : cfg::AclLookupClass::DST_CLASS_L3_LOCAL_2;
 
     if (isSrcPort) {
       acl.l4SrcPort() = utility::kBgpPort;
@@ -577,8 +579,8 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAclsForBcm(
         "-network-control");
     acl.dscp() = 48;
     acl.lookupClassNeighbor() = isV4
-        ? cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP4
-        : cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP6;
+        ? cfg::AclLookupClass::DST_CLASS_L3_LOCAL_1
+        : cfg::AclLookupClass::DST_CLASS_L3_LOCAL_2;
 
     acls.emplace_back(
         acl,
@@ -631,8 +633,8 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAclsForBcm(
     acl.name() = folly::to<std::string>(
         "cpuPolicing-mid-", isV4 ? "dstLocalIp4" : "dstLocalIp6");
     acl.lookupClassNeighbor() = isV4
-        ? cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP4
-        : cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP6;
+        ? cfg::AclLookupClass::DST_CLASS_L3_LOCAL_1
+        : cfg::AclLookupClass::DST_CLASS_L3_LOCAL_2;
 
     acls.emplace_back(
         acl,

@@ -44,8 +44,8 @@ std::set<AclLookupClass> mergeLookupClasses(
 }
 
 const std::set<AclLookupClass> kAllLookupClasses = mergeLookupClasses(
-    {AclLookupClass::DST_CLASS_L3_LOCAL_IP4,
-     AclLookupClass::DST_CLASS_L3_LOCAL_IP6,
+    {AclLookupClass::DST_CLASS_L3_LOCAL_1,
+     AclLookupClass::DST_CLASS_L3_LOCAL_2,
      AclLookupClass::DST_CLASS_L3_DPR},
     kQueuePerHostLookupClasses);
 

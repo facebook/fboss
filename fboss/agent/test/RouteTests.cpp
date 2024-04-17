@@ -77,7 +77,7 @@ const std::optional<RouteCounterID> kCounterID2("route.counter.1");
 const std::optional<cfg::AclLookupClass> kClassID1(
     cfg::AclLookupClass::DST_CLASS_L3_DPR);
 const std::optional<cfg::AclLookupClass> kClassID2(
-    cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP6);
+    cfg::AclLookupClass::DST_CLASS_L3_LOCAL_2);
 
 constexpr AdminDistance DISTANCE = AdminDistance::MAX_ADMIN_DISTANCE;
 constexpr AdminDistance EBGP_DISTANCE = AdminDistance::EBGP;

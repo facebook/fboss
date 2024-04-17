@@ -59,11 +59,11 @@ void configureAllIpQualifiers(
     configureQualifier(
         acl->lookupClassNeighbor(),
         enable,
-        cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP6);
+        cfg::AclLookupClass::DST_CLASS_L3_LOCAL_2);
     configureQualifier(
         acl->lookupClassRoute(),
         enable,
-        cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP6);
+        cfg::AclLookupClass::DST_CLASS_L3_LOCAL_2);
 
   } else {
     configureQualifier(acl->srcIp(), enable, "192.168.0.1");
@@ -72,11 +72,11 @@ void configureAllIpQualifiers(
     configureQualifier(
         acl->lookupClassNeighbor(),
         enable,
-        cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP4);
+        cfg::AclLookupClass::DST_CLASS_L3_LOCAL_1);
     configureQualifier(
         acl->lookupClassRoute(),
         enable,
-        cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP4);
+        cfg::AclLookupClass::DST_CLASS_L3_LOCAL_1);
   }
   configureQualifier(
       acl->ipFrag(), enable, cfg::IpFragMatch::MATCH_FIRST_FRAGMENT);
@@ -222,15 +222,15 @@ class HwAclQualifierTest : public HwTest {
         configureQualifier(
             acl->lookupClassNeighbor(),
             true,
-            isIpV4 ? cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP4
-                   : cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP6);
+            isIpV4 ? cfg::AclLookupClass::DST_CLASS_L3_LOCAL_1
+                   : cfg::AclLookupClass::DST_CLASS_L3_LOCAL_2);
         break;
       case QualifierType::LOOKUPCLASS_ROUTE:
         configureQualifier(
             acl->lookupClassRoute(),
             true,
-            isIpV4 ? cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP4
-                   : cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP6);
+            isIpV4 ? cfg::AclLookupClass::DST_CLASS_L3_LOCAL_1
+                   : cfg::AclLookupClass::DST_CLASS_L3_LOCAL_2);
         break;
       default:
         CHECK(false);

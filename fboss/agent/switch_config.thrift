@@ -362,8 +362,23 @@ enum AclActionType {
  * The look up class for an acl
  */
 enum AclLookupClass {
-  DST_CLASS_L3_LOCAL_IP4 = 1,
-  DST_CLASS_L3_LOCAL_IP6 = 2,
+  /*
+   * Use cases:
+   * 1. on sai switches: class ID for my ip /32 /128 routes pointing to cpu
+   * 2. on native bcm switches: ipv4 routes point to cpu
+   */
+  DST_CLASS_L3_LOCAL_1 = 1,
+
+  /*
+   * Use cases:
+   * 1. on sai switches: routes that uses single nexthop and are unresolved points to
+   * cpu port as the nexthop to trigger neighbor resolution. Associate
+   * a class ID for those routes which will be matched against an ACL
+   * to send the packet to default queue. Refer to S390808 for more details.
+   * 2. on sai switches: class ID for connected subnet routes pointing to router interface.
+   * 3. on native bcm switches: ipv6 routes point to cpu
+   */
+  DST_CLASS_L3_LOCAL_2 = 2,
 
   // Class for DROP ACL
   CLASS_DROP = 9,
@@ -386,16 +401,9 @@ enum AclLookupClass {
   // set by BGP for deterministic path routes
   DST_CLASS_L3_DPR = 20,
 
-  /*
-   * Routes that uses single nexthop and are unresolved points to
-   * cpu port as the nexthop to trigger neighbor resolution. Associate
-   * a class ID for those routes which will be matched against an ACL
-   * to send the packet to default queue. Refer to S390808 for more details.
-   */
-  CLASS_UNRESOLVED_ROUTE_TO_CPU = 21,
-
-  // class ID for connected subnet routes pointing to router interface
-  CLASS_CONNECTED_ROUTE_TO_INTF = 22,
+  // will be replaced by DST_CLASS_L3_LOCAL_1 and DST_CLASS_L3_LOCAL_2
+  DEPRECATED_CLASS_UNRESOLVED_ROUTE_TO_CPU = 21,
+  DEPRECATED_CLASS_CONNECTED_ROUTE_TO_INTF = 22,
 }
 
 enum PacketLookupResultType {

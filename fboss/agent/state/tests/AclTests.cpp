@@ -1007,7 +1007,7 @@ TEST(Acl, LookupClass) {
   *config.acls()[0].actionType() = cfg::AclActionType::DENY;
 
   // set lookupClassL2
-  auto lookupClassL2 = cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP4;
+  auto lookupClassL2 = cfg::AclLookupClass::DST_CLASS_L3_LOCAL_1;
   config.acls()[0].lookupClassL2() = lookupClassL2;
 
   // apply lookupClassL2 config and validate

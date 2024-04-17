@@ -236,7 +236,7 @@ void SaiRouteManager::addOrUpdateRoute(
 #if !defined(TAJO_SDK)
         if (FLAGS_classid_for_connected_subnet_routes) {
           metadata = static_cast<uint32_t>(
-              cfg::AclLookupClass::CLASS_CONNECTED_ROUTE_TO_INTF);
+              cfg::AclLookupClass::DEPRECATED_CLASS_CONNECTED_ROUTE_TO_INTF);
         }
 #endif
         RouterInterfaceSaiId routerInterfaceId{
@@ -343,7 +343,7 @@ void SaiRouteManager::addOrUpdateRoute(
           platform_->getAsic()->isSupported(HwAsic::Feature::ROUTE_METADATA)) {
         if (nextHopId == managerTable_->switchManager().getCpuPort()) {
           metadata = static_cast<uint32_t>(
-              cfg::AclLookupClass::CLASS_UNRESOLVED_ROUTE_TO_CPU);
+              cfg::AclLookupClass::DEPRECATED_CLASS_UNRESOLVED_ROUTE_TO_CPU);
         }
       }
 

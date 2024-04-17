@@ -1923,7 +1923,7 @@ TEST_F(ThriftTest, UnicastRoutesWithClassID) {
   std::optional<cfg::AclLookupClass> classID1(
       cfg::AclLookupClass::DST_CLASS_L3_DPR);
   std::optional<cfg::AclLookupClass> classID2(
-      cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP6);
+      cfg::AclLookupClass::DST_CLASS_L3_LOCAL_2);
 
   // Add BGP routes with class ID
   handler.addUnicastRoute(

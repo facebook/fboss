@@ -185,10 +185,10 @@ class CmdShowRouteDetails
   std::string getClassID(cfg::AclLookupClass classID) {
     int classId = static_cast<int>(classID);
     switch (classID) {
-      case cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP4:
-        return fmt::format("DST_CLASS_L3_LOCAL_IP4({})", classId);
-      case cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP6:
-        return fmt::format("DST_CLASS_L3_LOCAL_IP6({})", classId);
+      case cfg::AclLookupClass::DST_CLASS_L3_LOCAL_1:
+        return fmt::format("DST_CLASS_L3_LOCAL_1({})", classId);
+      case cfg::AclLookupClass::DST_CLASS_L3_LOCAL_2:
+        return fmt::format("DST_CLASS_L3_LOCAL_2({})", classId);
       case cfg::AclLookupClass::CLASS_DROP:
         return fmt::format("CLASS_DROP({})", classId);
       case cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0:
@@ -213,9 +213,9 @@ class CmdShowRouteDetails
         return fmt::format("CLASS_QUEUE_PER_HOST_QUEUE_9({})", classId);
       case cfg::AclLookupClass::DST_CLASS_L3_DPR:
         return fmt::format("DST_CLASS_L3_DPR({})", classId);
-      case cfg::AclLookupClass::CLASS_UNRESOLVED_ROUTE_TO_CPU:
+      case cfg::AclLookupClass::DEPRECATED_CLASS_UNRESOLVED_ROUTE_TO_CPU:
         return fmt::format("CLASS_UNRESOLVED_ROUTE_TO_CPU({})", classId);
-      case cfg::AclLookupClass::CLASS_CONNECTED_ROUTE_TO_INTF:
+      case cfg::AclLookupClass::DEPRECATED_CLASS_CONNECTED_ROUTE_TO_INTF:
         return fmt::format("CLASS_CONNECTED_ROUTE_TO_INTF({})", classId);
     }
     throw std::runtime_error(
