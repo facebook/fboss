@@ -672,6 +672,13 @@ struct DiagsCapability {
   11: bool rxOutputControl = false;
   12: bool snrLine = false;
   13: bool snrSystem = false;
+  14: bool cdbFirmwareUpgrade = false;
+  15: bool cdbFirmwareReadback = false;
+  16: bool cdbEplMemorySupported = false;
+  17: bool cdbSymbolErrorHistogramLine = false;
+  18: bool cdbSymbolErrorHistogramSystem = false;
+  19: bool cdbRxErrorHistogramLine = false;
+  20: bool cdbRxErrorHistogramSystem = false;
 }
 
 enum TransceiverStateMachineState {

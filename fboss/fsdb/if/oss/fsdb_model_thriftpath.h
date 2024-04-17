@@ -437,7 +437,14 @@ std::pair<strings::prbsLineCapabilities, ChildThriftPath<::std::vector<::faceboo
 std::pair<strings::txOutputControl, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
 std::pair<strings::rxOutputControl, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
 std::pair<strings::snrLine, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
-std::pair<strings::snrSystem, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>>;
+std::pair<strings::snrSystem, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
+std::pair<strings::cdbFirmwareUpgrade, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
+std::pair<strings::cdbFirmwareReadback, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
+std::pair<strings::cdbEplMemorySupported, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
+std::pair<strings::cdbSymbolErrorHistogramLine, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
+std::pair<strings::cdbSymbolErrorHistogramSystem, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
+std::pair<strings::cdbRxErrorHistogramLine, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
+std::pair<strings::cdbRxErrorHistogramSystem, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
@@ -450,7 +457,14 @@ std::pair<strings::snrSystem, Child<bool, ::apache::thrift::type_class::integral
    std::pair<std::integral_constant<apache::thrift::field_id_t, 10>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 11>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 12>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 13>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 13>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 14>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 15>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 16>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 17>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 18>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 19>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 20>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::diagnostics, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::vdm, std::integral_constant<apache::thrift::field_id_t, 2>>,
@@ -464,7 +478,14 @@ std::pair<strings::prbsLineCapabilities, std::integral_constant<apache::thrift::
 std::pair<strings::txOutputControl, std::integral_constant<apache::thrift::field_id_t, 10>>,
 std::pair<strings::rxOutputControl, std::integral_constant<apache::thrift::field_id_t, 11>>,
 std::pair<strings::snrLine, std::integral_constant<apache::thrift::field_id_t, 12>>,
-std::pair<strings::snrSystem, std::integral_constant<apache::thrift::field_id_t, 13>>>::template type_of<Name>;
+std::pair<strings::snrSystem, std::integral_constant<apache::thrift::field_id_t, 13>>,
+std::pair<strings::cdbFirmwareUpgrade, std::integral_constant<apache::thrift::field_id_t, 14>>,
+std::pair<strings::cdbFirmwareReadback, std::integral_constant<apache::thrift::field_id_t, 15>>,
+std::pair<strings::cdbEplMemorySupported, std::integral_constant<apache::thrift::field_id_t, 16>>,
+std::pair<strings::cdbSymbolErrorHistogramLine, std::integral_constant<apache::thrift::field_id_t, 17>>,
+std::pair<strings::cdbSymbolErrorHistogramSystem, std::integral_constant<apache::thrift::field_id_t, 18>>,
+std::pair<strings::cdbRxErrorHistogramLine, std::integral_constant<apache::thrift::field_id_t, 19>>,
+std::pair<strings::cdbRxErrorHistogramSystem, std::integral_constant<apache::thrift::field_id_t, 20>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -491,6 +512,13 @@ std::pair<strings::snrSystem, std::integral_constant<apache::thrift::field_id_t,
     STRUCT_CHILD_GETTERS(rxOutputControl, 11);
     STRUCT_CHILD_GETTERS(snrLine, 12);
     STRUCT_CHILD_GETTERS(snrSystem, 13);
+    STRUCT_CHILD_GETTERS(cdbFirmwareUpgrade, 14);
+    STRUCT_CHILD_GETTERS(cdbFirmwareReadback, 15);
+    STRUCT_CHILD_GETTERS(cdbEplMemorySupported, 16);
+    STRUCT_CHILD_GETTERS(cdbSymbolErrorHistogramLine, 17);
+    STRUCT_CHILD_GETTERS(cdbSymbolErrorHistogramSystem, 18);
+    STRUCT_CHILD_GETTERS(cdbRxErrorHistogramLine, 19);
+    STRUCT_CHILD_GETTERS(cdbRxErrorHistogramSystem, 20);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -507,6 +535,13 @@ std::pair<strings::snrSystem, std::integral_constant<apache::thrift::field_id_t,
     else if constexpr (__id == 11) { return rxOutputControl(); }
     else if constexpr (__id == 12) { return snrLine(); }
     else if constexpr (__id == 13) { return snrSystem(); }
+    else if constexpr (__id == 14) { return cdbFirmwareUpgrade(); }
+    else if constexpr (__id == 15) { return cdbFirmwareReadback(); }
+    else if constexpr (__id == 16) { return cdbEplMemorySupported(); }
+    else if constexpr (__id == 17) { return cdbSymbolErrorHistogramLine(); }
+    else if constexpr (__id == 18) { return cdbSymbolErrorHistogramSystem(); }
+    else if constexpr (__id == 19) { return cdbRxErrorHistogramLine(); }
+    else if constexpr (__id == 20) { return cdbRxErrorHistogramSystem(); }
   }
 
   template <typename T, T... Values>
