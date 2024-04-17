@@ -254,6 +254,10 @@ class TransceiverManager {
   std::vector<phy::TxRxEnableResponse> setInterfaceTxRx(
       const std::vector<phy::TxRxEnableRequest>& txRxEnableRequests);
 
+  void getSymbolErrorHistogram(
+      CdbDatapathSymErrHistogram& symErr,
+      const std::string& portName);
+
   virtual std::string saiPhyRegisterAccess(
       std::string /* portName */,
       bool /* opRead */,
