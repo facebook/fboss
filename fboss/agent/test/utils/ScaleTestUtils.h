@@ -14,6 +14,8 @@
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/types.h"
 
+DECLARE_int32(ecmp_resource_percentage);
+
 namespace facebook::fboss {
 class HwAsic;
 class SwSwitch;
