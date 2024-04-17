@@ -309,6 +309,9 @@ class QsfpModule : public Transceiver {
       phy::Side side,
       bool setLoopback) override;
 
+  std::map<uint32_t, CdbDatapathSymErrHistogram> getSymbolErrorHistogram()
+      override;
+
  protected:
   /* Qsfp Internal Implementation */
   TransceiverImpl* qsfpImpl_;

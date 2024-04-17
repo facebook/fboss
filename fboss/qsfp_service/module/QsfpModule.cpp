@@ -609,6 +609,29 @@ void QsfpModule::setTransceiverLoopback(
   }
 }
 
+std::map<uint32_t, CdbDatapathSymErrHistogram>
+QsfpModule::getSymbolErrorHistogram() {
+  std::map<uint32_t, CdbDatapathSymErrHistogram> symErr;
+
+  // Lambda to call Qsfp function
+  auto getSymErrFn = [&]() {
+    lock_guard<std::mutex> g(qsfpModuleMutex_);
+    symErr = getCdbSymbolErrorHistogramLocked();
+  };
+
+  auto i2cEvb = qsfpImpl_->getI2cEventBase();
+  if (!i2cEvb) {
+    // In non-multithreaded environment, run the function in current thread
+    getSymErrFn();
+  } else {
+    // In mulththreaded environment, run the function in event base thread
+    via(i2cEvb)
+        .thenValue([getSymErrFn](auto&&) mutable { getSymErrFn(); })
+        .get();
+  }
+  return symErr;
+}
+
 /*
  * isTransceiverFeatureSupported
  *
