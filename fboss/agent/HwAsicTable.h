@@ -27,6 +27,8 @@ class HwAsicTable {
       cfg::PortType portType) const;
   std::unordered_set<SwitchID> getSwitchIDs() const;
 
+  std::unordered_set<SwitchID> getSwitchIDs(HwAsic::Feature feature) const;
+
  private:
   HwAsic* getHwAsicIfImpl(SwitchID switchID) const;
   std::unordered_set<SwitchID> getSwitchIdsOfType(cfg::SwitchType type) const;

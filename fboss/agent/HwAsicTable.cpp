@@ -161,4 +161,15 @@ std::set<cfg::StreamType> HwAsicTable::getQueueStreamTypes(
   return asic->getQueueStreamTypes(portType);
 }
 
+std::unordered_set<SwitchID> HwAsicTable::getSwitchIDs(
+    HwAsic::Feature feature) const {
+  std::unordered_set<SwitchID> result{};
+  for (const auto& entry : hwAsics_) {
+    if (isFeatureSupported(entry.first, feature)) {
+      result.insert(entry.first);
+    }
+  }
+  return result;
+}
+
 } // namespace facebook::fboss
