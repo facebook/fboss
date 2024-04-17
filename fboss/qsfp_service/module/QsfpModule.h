@@ -584,6 +584,11 @@ class QsfpModule : public Transceiver {
     return VdmPerfMonitorStatsForOds{};
   }
 
+  virtual std::map<uint32_t, CdbDatapathSymErrHistogram>
+  getCdbSymbolErrorHistogramLocked() {
+    return {};
+  }
+
   virtual bool setTransceiverTxLocked(
       const std::string& /* portName */,
       phy::Side /* side */,

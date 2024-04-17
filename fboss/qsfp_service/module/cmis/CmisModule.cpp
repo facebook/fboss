@@ -47,6 +47,12 @@ constexpr int kUsecDatapathStatePollTime = 500000; // 500 ms
 constexpr double kU16TypeLsbDivisor = 256.0;
 constexpr int kVdmDescriptorLength = 2;
 
+// Definitions for CDB Histogram
+constexpr int kCdbSymErrHistBinSize = 6;
+constexpr int kCdbSymErrHistMaxOffset = 1;
+constexpr int kCdbSymErrHistAvgOffset = 3;
+constexpr int kCdbSymErrHistCurOffset = 5;
+
 std::array<std::string, 9> channelConfigErrorMsg = {
     "No status available, config under progress",
     "Config accepted and applied",
@@ -1564,6 +1570,66 @@ CmisModule::VdmDiagsLocationStatus CmisModule::getVdmDiagsValLocation(
     return CmisModule::VdmDiagsLocationStatus{};
   }
   return vdmConfigDataLocations_.at(vdmConf);
+}
+
+/*
+ * getCdbSymbolErrorHistogramLocked
+ *
+ * Return symbol error histogram data for all bins for a given datapath id and
+ * the media/host side
+ */
+std::map<int32_t, SymErrHistogramBin>
+CmisModule::getCdbSymbolErrorHistogramLocked(
+    uint8_t datapathId,
+    bool mediaSide) {
+  std::map<int32_t, SymErrHistogramBin> histData;
+  CdbCommandBlock commandBlockBuf;
+
+  commandBlockBuf.createCdbCmdSymbolErrorHistogram(datapathId, mediaSide);
+  auto ret = commandBlockBuf.cmisRunCdbCommand(qsfpImpl_);
+  if (ret && commandBlockBuf.getCdbRlplLength() >= 1) {
+    int numBins = commandBlockBuf.getCdbLplFlatMemory()[0];
+    for (auto bin = 0; bin < numBins; bin++) {
+      SymErrHistogramBin binHistData;
+      binHistData.nbitSymbolErrorMax() = f16ToDouble(
+          commandBlockBuf.getCdbLplFlatMemory()
+              [bin * kCdbSymErrHistBinSize + kCdbSymErrHistMaxOffset],
+          commandBlockBuf.getCdbLplFlatMemory()
+              [bin * kCdbSymErrHistBinSize + kCdbSymErrHistMaxOffset + 1]);
+      binHistData.nbitSymbolErrorAvg() = f16ToDouble(
+          commandBlockBuf.getCdbLplFlatMemory()
+              [bin * kCdbSymErrHistBinSize + kCdbSymErrHistAvgOffset],
+          commandBlockBuf.getCdbLplFlatMemory()
+              [bin * kCdbSymErrHistBinSize + kCdbSymErrHistAvgOffset + 1]);
+      binHistData.nbitSymbolErrorCur() = f16ToDouble(
+          commandBlockBuf.getCdbLplFlatMemory()
+              [bin * kCdbSymErrHistBinSize + kCdbSymErrHistCurOffset],
+          commandBlockBuf.getCdbLplFlatMemory()
+              [bin * kCdbSymErrHistBinSize + kCdbSymErrHistCurOffset + 1]);
+      histData[bin] = binHistData;
+    }
+  }
+  return histData;
+}
+
+/*
+ * getCdbSymbolErrorHistogramLocked
+ *
+ * Return symbol error histogram data for all bins for all datapaths for the
+ * both media/host side
+ */
+std::map<uint32_t, CdbDatapathSymErrHistogram>
+CmisModule::getCdbSymbolErrorHistogramLocked() {
+  std::map<uint32_t, CdbDatapathSymErrHistogram> cdbDpSymErrHist;
+  for (auto& [portName, hostLanes] : getPortNameToHostLanes()) {
+    // Datapath Id is same as first lane Id
+    int datapathId = *hostLanes.begin();
+    cdbDpSymErrHist[datapathId].media() =
+        getCdbSymbolErrorHistogramLocked(datapathId, true);
+    cdbDpSymErrHist[datapathId].host() =
+        getCdbSymbolErrorHistogramLocked(datapathId, false);
+  }
+  return cdbDpSymErrHist;
 }
 
 std::optional<VdmDiagsStats> CmisModule::getVdmDiagsStatsInfo() {

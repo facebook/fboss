@@ -363,6 +363,9 @@ class CmisModule : public QsfpModule {
   virtual VdmPerfMonitorStatsForOds getVdmPerfMonitorStatsForOds(
       VdmPerfMonitorStats& vdmPerfMonStats) override;
 
+  virtual std::map<uint32_t, CdbDatapathSymErrHistogram>
+  getCdbSymbolErrorHistogramLocked() override;
+
   /*
    * Trigger next VDM stats capture
    */
@@ -561,6 +564,9 @@ class CmisModule : public QsfpModule {
   const std::shared_ptr<const TransceiverConfig> tcvrConfig_;
 
   bool supportRemediate_;
+  std::map<int32_t, SymErrHistogramBin> getCdbSymbolErrorHistogramLocked(
+      uint8_t datapathId,
+      bool mediaSide);
 };
 
 } // namespace fboss
