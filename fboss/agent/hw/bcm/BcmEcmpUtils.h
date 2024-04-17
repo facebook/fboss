@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include "fboss/agent/Utils.h"
+
 #include <cstdint>
 #include <set>
 #include <vector>
@@ -50,5 +52,7 @@ bcm_if_t getEgressIdForRoute(
 bool isNativeUcmpEnabled(const BcmSwitch* hw, bcm_if_t ecmp);
 
 void setEcmpDynamicMemberUp(const BcmSwitch* hw);
+
+uint32 getFlowletDynamicMode(const cfg::SwitchingMode& switchingMode);
 
 } // namespace facebook::fboss::utility

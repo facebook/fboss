@@ -430,19 +430,6 @@ EcmpDetails BcmEcmpEgress::getEcmpDetails() {
   return ecmpDetails;
 }
 
-uint32 BcmEcmpEgress::getFlowletDynamicMode(
-    const cfg::SwitchingMode& switchingMode) {
-  switch (switchingMode) {
-    case cfg::SwitchingMode::FLOWLET_QUALITY:
-      return BCM_L3_ECMP_DYNAMIC_MODE_NORMAL;
-    case cfg::SwitchingMode::PER_PACKET_QUALITY:
-      return BCM_L3_ECMP_DYNAMIC_MODE_OPTIMAL;
-    case cfg::SwitchingMode::FIXED_ASSIGNMENT:
-      return BCM_L3_ECMP_DYNAMIC_MODE_DISABLED;
-  }
-  throw FbossError("Invalid switching mode: ", switchingMode);
-}
-
 bool BcmEcmpEgress::isFlowletConfigUpdateNeeded() {
   bcm_l3_egress_ecmp_t obj;
   bcm_l3_egress_ecmp_t_init(&obj);
@@ -483,7 +470,7 @@ bool BcmEcmpEgress::isFlowletConfigUpdateNeeded() {
   }
 
   const auto configDynamicMode =
-      getFlowletDynamicMode(bcmEcmpFlowletConfig.switchingMode);
+      utility::getFlowletDynamicMode(bcmEcmpFlowletConfig.switchingMode);
   if ((neededDynamicSize != 0) && (obj.dynamic_mode != configDynamicMode)) {
     updateNeeded = true;
   }
@@ -521,7 +508,7 @@ bool BcmEcmpEgress::updateFlowletConfig(
       }
       if (obj.dynamic_size > 0) {
         obj.dynamic_mode =
-            getFlowletDynamicMode(bcmFlowletConfig.switchingMode);
+            utility::getFlowletDynamicMode(bcmFlowletConfig.switchingMode);
         flowletConfigUpdated = true;
       }
     }
@@ -1345,7 +1332,7 @@ bool BcmEcmpEgress::updateEcmpDynamicMode() {
   // get copy of the ecmpFlowletConfig
   auto bcmEcmpFlowletConfig = hw_->getEgressManager()->getBcmFlowletConfig();
   const auto configDynamicMode =
-      getFlowletDynamicMode(bcmEcmpFlowletConfig.switchingMode);
+      utility::getFlowletDynamicMode(bcmEcmpFlowletConfig.switchingMode);
   // check if the current dynamic mode is same as configured dynamic mode
   // if it is same nothing to do
   if (obj.dynamic_mode == configDynamicMode) {

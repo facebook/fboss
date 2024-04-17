@@ -196,4 +196,16 @@ void setEcmpDynamicMemberUp(const BcmSwitch* hw) {
   }
 }
 
+uint32 getFlowletDynamicMode(const cfg::SwitchingMode& switchingMode) {
+  switch (switchingMode) {
+    case cfg::SwitchingMode::FLOWLET_QUALITY:
+      return BCM_L3_ECMP_DYNAMIC_MODE_NORMAL;
+    case cfg::SwitchingMode::PER_PACKET_QUALITY:
+      return BCM_L3_ECMP_DYNAMIC_MODE_OPTIMAL;
+    case cfg::SwitchingMode::FIXED_ASSIGNMENT:
+      return BCM_L3_ECMP_DYNAMIC_MODE_DISABLED;
+  }
+  throw FbossError("Invalid switching mode: ", switchingMode);
+}
+
 } // namespace facebook::fboss::utility

@@ -127,9 +127,11 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
 
   void updateFlowletConfigs(
       cfg::SwitchConfig& cfg,
+      const cfg::SwitchingMode switchingMode =
+          cfg::SwitchingMode::FLOWLET_QUALITY,
       const int flowletTableSize = kFlowletTableSize1) const {
-    auto flowletCfg =
-        getFlowletSwitchingConfig(kInactivityIntervalUsecs1, flowletTableSize);
+    auto flowletCfg = getFlowletSwitchingConfig(
+        switchingMode, kInactivityIntervalUsecs1, flowletTableSize);
     cfg.flowletSwitchingConfig() = flowletCfg;
     updatePortFlowletConfigs(cfg, kScalingFactor1, kLoadWeight1, kQueueWeight1);
     cfg.udfConfig() = utility::addUdfFlowletAclConfig();
@@ -169,6 +171,7 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
   }
 
   cfg::FlowletSwitchingConfig getFlowletSwitchingConfig(
+      cfg::SwitchingMode switchingMode,
       uint16_t inactivityIntervalUsecs,
       int flowletTableSize) const {
     cfg::FlowletSwitchingConfig flowletCfg;
@@ -183,12 +186,15 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
     flowletCfg.dynamicEgressMaxThresholdBytes() = 10000;
     flowletCfg.dynamicPhysicalQueueExponent() = 3;
     flowletCfg.maxLinks() = kMaxLinks;
+    flowletCfg.switchingMode() = switchingMode;
     return flowletCfg;
   }
 
   void modifyFlowletSwitchingConfig(cfg::SwitchConfig& cfg) const {
     auto flowletCfg = getFlowletSwitchingConfig(
-        kInactivityIntervalUsecs2, kFlowletTableSize2);
+        cfg::SwitchingMode::PER_PACKET_QUALITY,
+        kInactivityIntervalUsecs2,
+        kFlowletTableSize2);
     cfg.flowletSwitchingConfig() = flowletCfg;
   }
 
@@ -290,7 +296,9 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
     verifyPortFlowletConfig(portFlowletConfig);
 
     auto flowletCfg = getFlowletSwitchingConfig(
-        kInactivityIntervalUsecs2, kFlowletTableSize2);
+        cfg::SwitchingMode::PER_PACKET_QUALITY,
+        kInactivityIntervalUsecs2,
+        kFlowletTableSize2);
 
     EXPECT_TRUE(
         utility::validateFlowletSwitchingEnabled(getHwSwitch(), flowletCfg));
@@ -303,7 +311,8 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
         kDefaultScalingFactor, kDefaultLoadWeight, kDefaultQueueWeight);
     verifyPortFlowletConfig(portFlowletConfig);
 
-    auto flowletCfg = getFlowletSwitchingConfig(0, 0);
+    auto flowletCfg =
+        getFlowletSwitchingConfig(cfg::SwitchingMode::FIXED_ASSIGNMENT, 0, 0);
 
     EXPECT_TRUE(utility::validateFlowletSwitchingDisabled(getHwSwitch()));
     EXPECT_TRUE(utility::verifyEcmpForFlowletSwitching(
@@ -350,7 +359,8 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
           expectFlowsetSizeZero));
     } else {
       // verify the flowlet config is not programmed in ECMP for TH3
-      auto flowletCfg = getFlowletSwitchingConfig(0, 0);
+      auto flowletCfg =
+          getFlowletSwitchingConfig(cfg::SwitchingMode::FIXED_ASSIGNMENT, 0, 0);
       EXPECT_TRUE(utility::verifyEcmpForFlowletSwitching(
           getHwSwitch(),
           kAddr1Prefix,
@@ -395,7 +405,10 @@ class HwFlowletSwitchingFlowsetTests : public HwFlowletSwitchingTest {
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = getDefaultConfig();
     // go one higher than max allowed
-    updateFlowletConfigs(cfg, utility::KMaxFlowsetTableSize + 1);
+    updateFlowletConfigs(
+        cfg,
+        cfg::SwitchingMode::FLOWLET_QUALITY,
+        utility::KMaxFlowsetTableSize + 1);
     updatePortFlowletConfigName(cfg);
     return cfg;
   }
@@ -457,7 +470,8 @@ class HwFlowletSwitchingFlowsetMultipleEcmpTests
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = getDefaultConfig();
     // 2048 is current size for TH3 and TH4
-    updateFlowletConfigs(cfg, kFlowletTableSize2);
+    updateFlowletConfigs(
+        cfg, cfg::SwitchingMode::FLOWLET_QUALITY, kFlowletTableSize2);
     updatePortFlowletConfigName(cfg);
     return cfg;
   }
@@ -669,16 +683,20 @@ TEST_F(HwFlowletSwitchingTest, VerifyFlowletConfigChange) {
   auto setup = [&]() { resolveNextHopsAddRoute(kMaxLinks); };
 
   auto verify = [&]() {
+    // switchingMode starts out as FLOWLET_QUALITY
     auto cfg = initialConfig();
     verifyConfig(cfg);
-    // Modify the flowlet config
+    // Modify the flowlet config switching mode to PER_PACKET_QUALITY
     modifyFlowletSwitchingConfig(cfg);
     // Modify the port flowlet config
     updatePortFlowletConfigs(cfg, kScalingFactor2, kLoadWeight2, kQueueWeight2);
     applyNewConfig(cfg);
     verifyModifiedConfig();
     // Modify to initial config to verify after warmboot
-    applyNewConfig(initialConfig());
+    // switching mode back to FLOWLET_QUALITY
+    cfg = initialConfig();
+    applyNewConfig(cfg);
+    verifyConfig(cfg);
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -770,6 +788,13 @@ TEST_F(HwEcmpFlowletSwitchingTest, VerifyEcmpFlowletSwitchingEnable) {
     auto cfg = initialConfig();
     // Modify the flowlet config to convert ECMP to DLB
     updateFlowletConfigs(cfg);
+    updatePortFlowletConfigName(cfg);
+    applyNewConfig(cfg);
+    // verify the flowlet config
+    verifyConfig(cfg);
+    // modify switchingMode to per_packet
+    cfg = getDefaultConfig();
+    updateFlowletConfigs(cfg, cfg::SwitchingMode::PER_PACKET_QUALITY);
     updatePortFlowletConfigName(cfg);
     applyNewConfig(cfg);
     // verify the flowlet config

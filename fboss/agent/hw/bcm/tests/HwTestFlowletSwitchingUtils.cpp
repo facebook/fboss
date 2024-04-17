@@ -171,7 +171,8 @@ bool verifyEcmpForFlowletSwitching(
       validateFlowSetTable(hw, expectFlowsetSizeZero, flowletTableSize);
 
   if (flowletEnable && flowletTableSize > 0) {
-    if ((existing.dynamic_mode != BCM_L3_ECMP_DYNAMIC_MODE_NORMAL) ||
+    auto dynamicMode = getFlowletDynamicMode(*flowletCfg.switchingMode());
+    if ((existing.dynamic_mode != dynamicMode) ||
         (existing.dynamic_age != *flowletCfg.inactivityIntervalUsecs()) ||
         (existing.dynamic_size != flowletTableSize) ||
         (expectFlowsetSizeZero != 0)) {
