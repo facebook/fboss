@@ -76,4 +76,43 @@ TEST_F(AgentEcmpTest, CreateMaxEcmpGroups) {
   verifyAcrossWarmBoots(setup, [] {});
 }
 
+TEST_F(AgentEcmpTest, CreateMaxEcmpMembers) {
+  const auto kMaxEcmpMembers =
+      utility::getMaxEcmpMembers(utility::getFirstAsic(this->getSw()));
+  auto setup = [&]() {
+    utility::EcmpSetupTargetedPorts6 ecmpHelper(getProgrammedState());
+    std::vector<PortID> portIds = masterLogicalInterfacePortIds();
+    std::vector<PortDescriptor> portDescriptorIds;
+    std::vector<RoutePrefixV6> prefixes;
+    for (auto& portId : portIds) {
+      portDescriptorIds.push_back(PortDescriptor(portId));
+    }
+    std::vector<std::vector<PortDescriptor>> allCombinations =
+        utility::generateEcmpMemberScale(portDescriptorIds, kMaxEcmpMembers);
+    std::vector<flat_set<PortDescriptor>> newCombinations;
+    for (auto& combination : allCombinations) {
+      newCombinations.push_back(
+          flat_set<PortDescriptor>{combination.begin(), combination.end()});
+    }
+    applyNewState([&portDescriptorIds,
+                   &ecmpHelper](const std::shared_ptr<SwitchState>& in) {
+      return ecmpHelper.resolveNextHops(
+          in,
+          flat_set<PortDescriptor>(
+              std::make_move_iterator(portDescriptorIds.begin()),
+              std::make_move_iterator(portDescriptorIds.end())));
+    });
+    std::generate_n(
+        std::back_inserter(prefixes),
+        allCombinations.size(),
+        [i = 0]() mutable {
+          return RoutePrefixV6{
+              folly::IPAddressV6(folly::to<std::string>(2401, "::", i++)), 128};
+        });
+    auto wrapper = getSw()->getRouteUpdater();
+    ecmpHelper.programRoutes(&wrapper, newCombinations, prefixes);
+  };
+  verifyAcrossWarmBoots(setup, [] {});
+}
+
 } // namespace facebook::fboss
