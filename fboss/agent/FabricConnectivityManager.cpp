@@ -203,6 +203,15 @@ std::string toStr(const FabricEndpoint& endpoint) {
      << " name:" << endpoint.expectedPortName().value_or("--") << std::endl;
   return ss.str();
 }
+
+std::string toStr(const multiswitch::FabricConnectivityDelta& delta) {
+  std::stringstream ss;
+  ss << " Old endpoint: "
+     << (delta.oldConnectivity() ? toStr(*delta.oldConnectivity()) : "null");
+  ss << " New endpoint: "
+     << (delta.newConnectivity() ? toStr(*delta.newConnectivity()) : "null");
+  return ss.str();
+}
 } // namespace
 
 namespace facebook::fboss {
@@ -219,6 +228,17 @@ void toAppend(const FabricEndpoint& endpoint, folly::fbstring* result) {
 }
 void toAppend(const FabricEndpoint& endpoint, std::string* result) {
   *result += toStr(endpoint);
+}
+
+void toAppend(
+    const multiswitch::FabricConnectivityDelta& delta,
+    folly::fbstring* result) {
+  result->append(toStr(delta));
+}
+void toAppend(
+    const multiswitch::FabricConnectivityDelta& delta,
+    std::string* result) {
+  *result += toStr(delta);
 }
 
 void FabricConnectivityManager::updateExpectedSwitchIdAndPortIdForPort(
