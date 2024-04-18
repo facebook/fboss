@@ -11,6 +11,7 @@
 #include "fboss/agent/LinkConnectivityProcessor.h"
 #include <memory>
 #include "fboss/agent/FabricConnectivityManager.h"
+#include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/state/SwitchState.h"
 
@@ -18,6 +19,7 @@ namespace facebook::fboss {
 
 std::shared_ptr<SwitchState> LinkConnectivityProcessor::process(
     const SwitchIdScopeResolver& scopeResolver,
+    const HwAsicTable& asicTable,
     const std::shared_ptr<SwitchState>& in,
     const std::map<PortID, multiswitch::FabricConnectivityDelta>&
         port2ConnectivityDelta) {
@@ -48,8 +50,13 @@ std::shared_ptr<SwitchState> LinkConnectivityProcessor::process(
         // again, we will determine cabling states based on that.
         continue;
       }
-      auto localSwitchId = scopeResolver.scope(portId).switchId();
-      if (localSwitchId == SwitchID(*newConnectivity->switchId())) {
+      auto connectedSwitchId = SwitchID(*newConnectivity->switchId());
+      auto localBaseSwitchId = scopeResolver.scope(portId).switchId();
+      auto localPortAsic = asicTable.getHwAsic(localBaseSwitchId);
+      if (connectedSwitchId >= localBaseSwitchId &&
+          connectedSwitchId < SwitchID(
+                                  static_cast<int>(localBaseSwitchId) +
+                                  localPortAsic->getVirtualDevices())) {
         // Loop detected - we do this regardless of expected connectivity.
         // On DSF its pretty risky to have this condition set on fabric
         // switches. For undrained ports it can hose a % of traffic

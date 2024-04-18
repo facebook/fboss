@@ -895,7 +895,7 @@ void SwSwitch::linkConnectivityChanged(
         connectivityDelta) {
   auto updateFn = [=, this](const shared_ptr<SwitchState>& state) {
     return LinkConnectivityProcessor::process(
-        *getScopeResolver(), state, connectivityDelta);
+        *getScopeResolver(), *getHwAsicTable(), state, connectivityDelta);
   };
   updateState("update fabric connectivity info", updateFn);
 }
