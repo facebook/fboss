@@ -25,16 +25,16 @@ std::shared_ptr<SwitchState> LinkConnectivityProcessor::process(
         port2ConnectivityDelta) {
   auto out = in->clone();
   bool changed = false;
-  auto setPortState = [&out, &changed](
-                          PortID portId, PortLedExternalState desiredLedState) {
-    auto curPort = out->getPorts()->getNode(portId);
-    if (curPort->getLedPortExternalState() == desiredLedState) {
-      return;
-    }
-    auto newPort = curPort->modify(&out);
-    newPort->setLedPortExternalState(desiredLedState);
-    changed = true;
-  };
+  auto setPortLedState =
+      [&out, &changed](PortID portId, PortLedExternalState desiredLedState) {
+        auto curPort = out->getPorts()->getNode(portId);
+        if (curPort->getLedPortExternalState() == desiredLedState) {
+          return;
+        }
+        auto newPort = curPort->modify(&out);
+        newPort->setLedPortExternalState(desiredLedState);
+        changed = true;
+      };
   for (const auto& [portId, connectivityDelta] : port2ConnectivityDelta) {
     auto port = in->getPorts()->getNodeIf(portId);
     if (!port) {
@@ -64,16 +64,17 @@ std::shared_ptr<SwitchState> LinkConnectivityProcessor::process(
         // going through that R3. With cell spraying this impact
         // can be quite wide. So can't risk config always getting this
         // righte
-        setPortState(portId, PortLedExternalState::CABLING_ERROR_LOOP_DETECTED);
+        setPortLedState(
+            portId, PortLedExternalState::CABLING_ERROR_LOOP_DETECTED);
       } else if (FabricConnectivityManager::isConnectivityInfoMismatch(
                      *newConnectivity)) {
         // Fabric connectivity mismatched.
-        setPortState(portId, PortLedExternalState::CABLING_ERROR);
+        setPortLedState(portId, PortLedExternalState::CABLING_ERROR);
       } else {
-        setPortState(portId, PortLedExternalState::NONE);
+        setPortLedState(portId, PortLedExternalState::NONE);
       }
     } else {
-      setPortState(portId, PortLedExternalState::NONE);
+      setPortLedState(portId, PortLedExternalState::NONE);
     }
   }
   return changed ? out : std::shared_ptr<SwitchState>();
