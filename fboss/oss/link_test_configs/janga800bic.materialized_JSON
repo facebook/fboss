@@ -12518,7 +12518,7 @@
         "name": "cpuQueue-high"
       },
       {
-        "id": 2,
+        "id": 3,
         "streamType": 0,
         "weight": 2,
         "scheduling": 0,

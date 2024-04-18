@@ -6855,7 +6855,7 @@
         "name": "cpuQueue-high"
       },
       {
-        "id": 2,
+        "id": 3,
         "streamType": 0,
         "weight": 2,
         "scheduling": 0,
@@ -6936,11 +6936,11 @@
             "matcher": "cpuPolicing-mid-linkLocal-v6",
             "action": {
               "sendToQueue": {
-                "queueId": 2
+                "queueId": 3
               },
               "toCpuAction": 1,
               "setTc": {
-                "tcValue": 2
+                "tcValue": 3
               }
             }
           },
@@ -6960,11 +6960,11 @@
             "matcher": "cpuPolicing-mid-ff02::/16",
             "action": {
               "sendToQueue": {
-                "queueId": 2
+                "queueId": 3
               },
               "toCpuAction": 1,
               "setTc": {
-                "tcValue": 2
+                "tcValue": 3
               }
             }
           }
@@ -6997,19 +6997,19 @@
         },
         {
           "rxReason": 9,
-          "queueId": 2
+          "queueId": 3
         },
         {
           "rxReason": 7,
-          "queueId": 2
+          "queueId": 3
         },
         {
           "rxReason": 2,
-          "queueId": 2
+          "queueId": 3
         },
         {
           "rxReason": 17,
-          "queueId": 2
+          "queueId": 3
         },
         {
           "rxReason": 6,
