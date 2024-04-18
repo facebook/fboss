@@ -20,11 +20,6 @@
 #include "folly/IPAddress.h"
 
 namespace {
-constexpr auto kNexthops = "nexthops";
-constexpr auto kAction = "action";
-constexpr auto kAdminDistance = "adminDistance";
-constexpr auto kCounterID = "counterID";
-constexpr auto kClassID = "classID";
 static constexpr int kMinSizeForWideEcmp{128};
 
 std::vector<facebook::fboss::NextHopThrift> thriftNextHopsFromAddresses(
