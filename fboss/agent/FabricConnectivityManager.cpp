@@ -183,6 +183,26 @@ std::string toStr(const RemoteEndpoint& r) {
   return ss.str();
 }
 
+std::string toStr(const FabricEndpoint& endpoint) {
+  std::stringstream ss;
+  ss << " Attached: " << *endpoint.isAttached() << std::endl;
+  if (*endpoint.isAttached()) {
+    ss << " Remote switch, id: " << *endpoint.switchId()
+       << " name:" << endpoint.switchName().value_or("--") << std::endl;
+    ss << " Remote port, id: " << *endpoint.portId()
+       << " name:" << endpoint.portName().value_or("--") << std::endl;
+    ss << " Switch Type: "
+       << apache::thrift::util::enumNameSafe(*endpoint.switchType())
+       << std::endl;
+  }
+
+  // Expected switch, port
+  ss << " Expected switch, id: " << endpoint.expectedSwitchId().value_or(-1)
+     << " name:" << endpoint.expectedSwitchName().value_or("--") << std::endl;
+  ss << " Expected port, id: " << endpoint.expectedPortId().value_or(-1)
+     << " name:" << endpoint.expectedPortName().value_or("--") << std::endl;
+  return ss.str();
+}
 } // namespace
 
 namespace facebook::fboss {
@@ -191,6 +211,13 @@ void toAppend(const RemoteEndpoint& endpoint, folly::fbstring* result) {
   result->append(toStr(endpoint));
 }
 void toAppend(const RemoteEndpoint& endpoint, std::string* result) {
+  *result += toStr(endpoint);
+}
+
+void toAppend(const FabricEndpoint& endpoint, folly::fbstring* result) {
+  result->append(toStr(endpoint));
+}
+void toAppend(const FabricEndpoint& endpoint, std::string* result) {
   *result += toStr(endpoint);
 }
 

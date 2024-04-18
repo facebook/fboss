@@ -18,6 +18,9 @@ class PlatformMapping;
 void toAppend(const RemoteEndpoint& endpoint, folly::fbstring* result);
 void toAppend(const RemoteEndpoint& endpoint, std::string* result);
 
+void toAppend(const FabricEndpoint& endpoint, folly::fbstring* result);
+void toAppend(const FabricEndpoint& endpoint, std::string* result);
+
 class FabricConnectivityManager {
   struct CompareRemoteEndpoint {
     bool operator()(const RemoteEndpoint& l, const RemoteEndpoint& r) const {
