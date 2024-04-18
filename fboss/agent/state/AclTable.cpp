@@ -19,12 +19,6 @@ using apache::thrift::TEnumTraits;
 using folly::IPAddress;
 
 namespace {
-constexpr auto kPriority = "priority";
-constexpr auto kName = "name";
-constexpr auto kAclMap = "aclMap";
-constexpr auto kActionTypes = "actionTypes";
-constexpr auto kQualifiers = "qualifiers";
-constexpr auto kAcls = "acls";
 // Same Priority and name as the default table created */
 constexpr auto kAclTablePriority = 0;
 constexpr auto kAclTable1 = "AclTable1";
