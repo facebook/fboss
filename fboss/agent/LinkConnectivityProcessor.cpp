@@ -41,7 +41,8 @@ std::shared_ptr<SwitchState> LinkConnectivityProcessor::process(
       XLOG(ERR) << " Got connectivity delta for unknown port: " << portId;
       continue;
     }
-    XLOG(DBG2) << " Connectivity changed for  port : " << port->getName();
+    XLOG(DBG2) << " Connectivity changed for  port : " << port->getName()
+               << " Delta: " << connectivityDelta;
     auto newConnectivity = connectivityDelta.newConnectivity();
     if (newConnectivity.has_value()) {
       if (!*newConnectivity->isAttached()) {

@@ -241,6 +241,21 @@ void toAppend(
   *result += toStr(delta);
 }
 
+std::ostream& operator<<(std::ostream& os, const RemoteEndpoint& endpoint) {
+  os << toStr(endpoint);
+  return os;
+}
+std::ostream& operator<<(std::ostream& os, const FabricEndpoint& endpoint) {
+  os << toStr(endpoint);
+  return os;
+}
+std::ostream& operator<<(
+    std::ostream& os,
+    const multiswitch::FabricConnectivityDelta& delta) {
+  os << toStr(delta);
+  return os;
+}
+
 void FabricConnectivityManager::updateExpectedSwitchIdAndPortIdForPort(
     PortID portID) {
   auto& fabricEndpoint = currentNeighborConnectivity_[portID];

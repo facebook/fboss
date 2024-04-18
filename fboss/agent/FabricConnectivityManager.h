@@ -3,6 +3,7 @@
 #pragma once
 
 #include <memory>
+#include <ostream>
 #include "fboss/agent/HwSwitchCallback.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/agent/if/gen-cpp2/FbossHwCtrl.h"
@@ -25,6 +26,12 @@ void toAppend(
 void toAppend(
     const multiswitch::FabricConnectivityDelta& delta,
     std::string* result);
+
+std::ostream& operator<<(std::ostream& os, const RemoteEndpoint& endpoint);
+std::ostream& operator<<(std::ostream& os, const FabricEndpoint& endpoint);
+std::ostream& operator<<(
+    std::ostream& os,
+    const multiswitch::FabricConnectivityDelta& delta);
 
 class FabricConnectivityManager {
   struct CompareRemoteEndpoint {
