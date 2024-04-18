@@ -14,10 +14,6 @@
 #include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/state/StateUtils.h"
 
-namespace {
-constexpr auto kNexthopDelim = "@";
-}
-
 namespace facebook::fboss {
 
 //
