@@ -13,13 +13,6 @@
 
 #include <sstream>
 
-namespace {
-constexpr auto kMac = "mac";
-constexpr auto kMacEntryPort = "portId";
-constexpr auto kClassID = "classID";
-constexpr auto kType = "type";
-} // namespace
-
 namespace facebook::fboss {
 
 std::string MacEntry::str() const {
