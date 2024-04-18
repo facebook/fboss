@@ -90,6 +90,7 @@ class SaiSwitchManager {
     return switchDropStats_;
   }
   void setForceTrafficOverFabric(bool forceTrafficOverFabric);
+  void setCreditWatchdog(bool creditWatchdog);
   HwSwitchWatermarkStats getSwitchWatermarkStats() const {
     return switchWatermarkStats_;
   }

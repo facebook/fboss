@@ -875,4 +875,10 @@ void SaiSwitchManager::setForceTrafficOverFabric(bool forceTrafficOverFabric) {
           forceTrafficOverFabric});
 }
 
+void SaiSwitchManager::setCreditWatchdog(bool creditWatchdog) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  switch_->setOptionalAttribute(
+      SaiSwitchTraits::Attributes::CreditWd{creditWatchdog});
+#endif
+}
 } // namespace facebook::fboss

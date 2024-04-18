@@ -1224,6 +1224,15 @@ void SaiSwitch::processSwitchSettingsChangedEntryLocked(
           newVal.has_value() ? newVal.value() : false);
     }
   }
+
+  {
+    const auto oldVal = oldSwitchSettings->getCreditWatchdog();
+    const auto newVal = newSwitchSettings->getCreditWatchdog();
+    if (oldVal != newVal) {
+      managerTable_->switchManager().setCreditWatchdog(
+          newVal.has_value() ? newVal.value() : false);
+    }
+  }
 }
 
 template <typename LockPolicyT>
