@@ -12,13 +12,6 @@
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/agent/state/StateUtils.h"
 
-namespace {
-constexpr auto kPgId = "pgId";
-constexpr auto kPfcPriorityToPgId = "pfcPriorityToPgId";
-constexpr auto kAttr = "attr";
-
-} // namespace
-
 namespace facebook::fboss {
 
 DscpMap::DscpMap(std::vector<cfg::DscpQosMap> cfg) {
