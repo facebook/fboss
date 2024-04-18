@@ -88,7 +88,7 @@ void PortUpdateHandler::disableIfLooped(
 
   auto portId = newPort->getID();
   sw_->updateState(
-      "Disable undrained, looped port",
+      folly::sformat("Disable undrained, looped port: {}", newPort->getName()),
       [portId](const std::shared_ptr<SwitchState>& in) {
         auto out = in->clone();
         auto curPort = out->getPorts()->getNode(portId);
