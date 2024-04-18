@@ -407,7 +407,11 @@ void HwSwitchEnsemble::applyInitialConfig(const cfg::SwitchConfig& initCfg) {
   CHECK(haveFeature(HwSwitchEnsemble::LINKSCAN))
       << "Link scan feature must be enabled for exercising "
       << "applyInitialConfig";
+
   linkToggler_->applyInitialConfig(initCfg);
+  /* link togglers apply config with ports down and bring ports up differently
+   */
+  currentConfig_ = initCfg;
 }
 
 void HwSwitchEnsemble::linkStateChanged(

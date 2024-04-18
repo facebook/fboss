@@ -101,27 +101,25 @@ bool HwEcmpDataPlaneTestUtil<EcmpSetupHelperT>::isLoadBalanced(
 template <typename AddrT>
 void HwEcmpDataPlaneTestUtil<AddrT>::programLoadBalancer(
     const cfg::LoadBalancer& lb) {
+  if (ensemble_->getHwAsicTable()
+          ->getSwitchIDs(HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)
+          .empty()) {
+    return;
+  }
+  auto config = ensemble_->getCurrentConfig();
+  config.loadBalancers()->clear();
+  config.loadBalancers()->push_back(lb);
   if (ensemble_->isSai()) {
     // always program half lag hash for sai switches, see CS00012317640
-    ensemble_->applyNewState(
-        [this, lb](const std::shared_ptr<SwitchState>& state) {
-          return utility::addLoadBalancers(
-              ensemble_,
-              state,
-              {lb,
-               utility::getTrunkHalfHashConfig(
-                   *ensemble_->getHwAsicTable()->getHwAsic(SwitchID(0)))},
-              ensemble_->scopeResolver());
-        },
-        "program lb");
-  } else {
-    ensemble_->applyNewState(
-        [this, lb](const std::shared_ptr<SwitchState>& state) {
-          return utility::setLoadBalancer(
-              ensemble_, state, lb, ensemble_->scopeResolver());
-        },
-        "program lb");
+    auto switchIds = ensemble_->getHwAsicTable()->getSwitchIDs(
+        HwAsic::Feature::SAI_LAG_HASH);
+    if (!switchIds.empty()) {
+      config.loadBalancers()->push_back(utility::getTrunkHalfHashConfig(
+          *ensemble_->getHwAsicTable()->getHwAsic(*switchIds.begin())));
+    }
   }
+  XLOG(INFO) << "Programming load balancer: " << *lb.id();
+  ensemble_->applyNewConfig(config);
 }
 
 template <typename AddrT>

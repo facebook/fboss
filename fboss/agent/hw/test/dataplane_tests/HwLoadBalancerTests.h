@@ -47,9 +47,18 @@ class HwLoadBalancerTest
       bool loopThroughFrontPanel = false,
       bool loadBalanceExpected = true,
       uint8_t deviation = 25) {
+    /* TODO: remove this hack.
+     * apply thrift config relies on sdk version in switch config to determine
+     * how to compute load balancer seeds. however sdk version is unavailable in
+     * hw tests unlike agent tests. remove this hack when hw tests can inject
+     * sdk version in thrift config.
+     */
+    auto lbConfig = loadBalancer;
+    auto seed = getHwSwitch()->generateDeterministicSeed(*lbConfig.id());
+    lbConfig.seed() = seed;
     Runner::runLoadBalanceTest(
         ecmpWidth,
-        loadBalancer,
+        lbConfig,
         weights,
         loopThroughFrontPanel,
         loadBalanceExpected,
@@ -63,9 +72,12 @@ class HwLoadBalancerTest
       bool loopThroughFrontPanel = false,
       bool loadBalanceExpected = true,
       uint8_t deviation = 25) {
+    auto lbConfig = loadBalancer;
+    auto seed = getHwSwitch()->generateDeterministicSeed(*lbConfig.id());
+    lbConfig.seed() = seed;
     Runner::runDynamicLoadBalanceTest(
         ecmpWidth,
-        loadBalancer,
+        lbConfig,
         weights,
         loopThroughFrontPanel,
         loadBalanceExpected,

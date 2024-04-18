@@ -244,11 +244,7 @@ class HwLoadBalancerTestRunner {
         // verfiy the Dlb fail packets is zero
         EXPECT_EQ(l3EcmpDlbFailPackets, 0);
 
-        auto cfg = utility::onePortPerInterfaceConfig(
-            getEnsemble(), getMasterLogicalPortIds());
-        cfg.udfConfig() = utility::addUdfFlowletAclConfig();
-        // Add flowlet config to convert flowlet QUALITY to PER_PACKET_QUALITY
-        // run the load balance test and verify again
+        auto cfg = getEnsemble()->getCurrentConfig();
         utility::addFlowletConfigs(
             cfg,
             getMasterLogicalPortIds(),
