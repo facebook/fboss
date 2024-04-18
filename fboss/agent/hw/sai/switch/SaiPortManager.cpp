@@ -2710,4 +2710,20 @@ void SaiPortManager::changeZeroPreemphasis(
     }
   }
 }
+
+void SaiPortManager::changeTxEnable(
+    const std::shared_ptr<Port>& oldPort,
+    const std::shared_ptr<Port>& newPort) {
+  if (oldPort->getTxEnable() != newPort->getTxEnable()) {
+    auto portHandle = getPortHandle(newPort->getID());
+    if (!portHandle) {
+      throw FbossError(
+          "Cannot change tx enable on non existent port: ", newPort->getID());
+    }
+    portHandle->port->setOptionalAttribute(
+        SaiPortTraits::Attributes::PktTxEnable{
+            newPort->getTxEnable().has_value() ? newPort->getTxEnable().value()
+                                               : false});
+  }
+}
 } // namespace facebook::fboss
