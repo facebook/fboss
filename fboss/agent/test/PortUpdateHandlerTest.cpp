@@ -261,11 +261,13 @@ TYPED_TEST(PortUpdateHandlerLoopDetectionTest, createLoop) {
   this->sw->linkConnectivityChanged(this->makeConnectivity(endpoint));
   this->checkPortLedState(PortLedExternalState::CABLING_ERROR_LOOP_DETECTED);
   this->checkPortState(this->getLoopedPortExpectedState());
-  // Reset connectivity old admin state should be retained, i.e.
-  // we don't re-enable on missing connectivity but led state should
-  // get reset
+  // Reset connectivity to mark port as unattached - this is what will
+  // happen once link goes down due to port being admin disabled.
+  // Both port admin state and loop error state should be retained
+  // though.
+  endpoint.isAttached() = false;
   this->sw->linkConnectivityChanged(this->makeConnectivity(std::nullopt));
-  this->checkPortLedState(PortLedExternalState::NONE);
+  this->checkPortLedState(PortLedExternalState::CABLING_ERROR_LOOP_DETECTED);
   this->checkPortState(this->getLoopedPortExpectedState());
 }
 
