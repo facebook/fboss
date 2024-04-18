@@ -212,7 +212,8 @@ class PortUpdateHandlerLoopDetectionTest : public ::testing::Test {
     }
     throw FbossError("No fabric port found");
   }
-  void checkPortState(cfg::PortState expectedState) const {
+  void checkPortState(cfg::PortState expectedState) {
+    ensureAllQueuedUpdatesDone();
     WITH_RETRIES({
       auto ports = sw->getState()->getPorts()->getAllNodes();
       for (const auto& [id, port] : *ports) {
@@ -224,7 +225,8 @@ class PortUpdateHandlerLoopDetectionTest : public ::testing::Test {
       }
     });
   }
-  void checkPortLedState(PortLedExternalState expectedState) const {
+  void checkPortLedState(PortLedExternalState expectedState) {
+    ensureAllQueuedUpdatesDone();
     WITH_RETRIES({
       auto ports = sw->getState()->getPorts()->getAllNodes();
       for (const auto& [id, port] : *ports) {
@@ -236,6 +238,11 @@ class PortUpdateHandlerLoopDetectionTest : public ::testing::Test {
         }
       }
     });
+  }
+  void ensureAllQueuedUpdatesDone() {
+    sw->updateStateBlocking(
+        "empty update",
+        [](const std::shared_ptr<SwitchState>) { return nullptr; });
   }
   std::map<PortID, multiswitch::FabricConnectivityDelta> makeConnectivity(
       std::optional<FabricEndpoint> endpoint) const {
@@ -266,7 +273,7 @@ TYPED_TEST(PortUpdateHandlerLoopDetectionTest, createLoop) {
   // Both port admin state and loop error state should be retained
   // though.
   endpoint.isAttached() = false;
-  this->sw->linkConnectivityChanged(this->makeConnectivity(std::nullopt));
+  this->sw->linkConnectivityChanged(this->makeConnectivity(endpoint));
   this->checkPortLedState(PortLedExternalState::CABLING_ERROR_LOOP_DETECTED);
   this->checkPortState(this->getLoopedPortExpectedState());
 }
