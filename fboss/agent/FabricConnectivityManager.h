@@ -65,7 +65,7 @@ class FabricConnectivityManager {
  private:
   void updateExpectedSwitchIdAndPortIdForPort(PortID portID);
 
-  void addPort(const std::shared_ptr<Port>& swPort);
+  void addOrUpdatePort(const std::shared_ptr<Port>& swPort);
   void removePort(const std::shared_ptr<Port>& swPort);
   void updatePorts(const StateDelta& delta);
 

@@ -320,14 +320,15 @@ void FabricConnectivityManager::updateExpectedSwitchIdAndPortIdForPort(
              << fabricEndpoint.expectedPortId().value();
 }
 
-void FabricConnectivityManager::addPort(const std::shared_ptr<Port>& swPort) {
+void FabricConnectivityManager::addOrUpdatePort(
+    const std::shared_ptr<Port>& swPort) {
   // Non-Faric port connectivity is handled by LLDP
   if (swPort->getPortType() != cfg::PortType::FABRIC_PORT) {
     return;
   }
 
   fabricPortId2Name_[swPort->getID()] = swPort->getName();
-  FabricEndpoint expectedEndpoint;
+  auto& expectedEndpoint = currentNeighborConnectivity_[swPort->getID()];
   const auto& expectedNeighbors =
       swPort->getExpectedNeighborValues()->toThrift();
   if (expectedNeighbors.size()) {
@@ -337,7 +338,6 @@ void FabricConnectivityManager::addPort(const std::shared_ptr<Port>& swPort) {
     expectedEndpoint.expectedPortName() = *neighbor.remotePort();
   }
 
-  currentNeighborConnectivity_[swPort->getID()] = expectedEndpoint;
   updateExpectedSwitchIdAndPortIdForPort(swPort->getID());
 }
 
@@ -364,10 +364,9 @@ void FabricConnectivityManager::updatePorts(const StateDelta& delta) {
       delta.getPortsDelta(),
       [&](const std::shared_ptr<Port>& oldSwPort,
           const std::shared_ptr<Port>& newSwPort) {
-        removePort(oldSwPort);
-        addPort(newSwPort);
+        addOrUpdatePort(newSwPort);
       },
-      [&](const std::shared_ptr<Port>& newPort) { addPort(newPort); },
+      [&](const std::shared_ptr<Port>& newPort) { addOrUpdatePort(newPort); },
       [&](const std::shared_ptr<Port>& deletePort) { removePort(deletePort); });
 }
 
