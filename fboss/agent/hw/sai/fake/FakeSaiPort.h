@@ -11,6 +11,7 @@
 
 #include "fboss/agent/hw/sai/fake/FakeManager.h"
 
+#include <optional>
 #include <unordered_map>
 #include <vector>
 

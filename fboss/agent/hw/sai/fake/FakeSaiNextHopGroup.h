@@ -9,6 +9,8 @@
  */
 #pragma once
 
+#include <optional>
+
 #include "fboss/agent/hw/sai/fake/FakeManager.h"
 
 extern "C" {
