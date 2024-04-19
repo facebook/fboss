@@ -131,6 +131,8 @@ struct PortFields {
   49: optional bool portActiveState;
   50: optional bool disableTTLDecrement;
   51: optional bool txEnable;
+  // Current active errors seen on port
+  52: list<ctrl.PortError> activeErrors;
 }
 
 typedef ctrl.SystemPortThrift SystemPortFields
