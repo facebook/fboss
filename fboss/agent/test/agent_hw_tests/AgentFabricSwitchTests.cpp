@@ -42,8 +42,10 @@ class AgentFabricSwitchTest : public AgentHwTest {
     return {production_features::ProductionFeature::FABRIC};
   }
   std::unordered_set<SwitchID> getFabricSwitchIds() const {
-    return getSw()->getSwitchInfoTable().getSwitchIdsOfType(
+    auto fabSwitchIds = getSw()->getSwitchInfoTable().getSwitchIdsOfType(
         cfg::SwitchType::FABRIC);
+    CHECK_GT(fabSwitchIds.size(), 0) << " No fab switch ids found";
+    return fabSwitchIds;
   }
 
  protected:
