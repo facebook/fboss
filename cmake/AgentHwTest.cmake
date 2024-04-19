@@ -250,7 +250,6 @@ set(hw_switch_test_srcs
   fboss/agent/hw/test/dataplane_tests/HwLoadBalancerTestsV6InMplsPhp.cpp
   fboss/agent/hw/test/dataplane_tests/HwLoadBalancerTestsV4InMplsSwap.cpp
   fboss/agent/hw/test/dataplane_tests/HwLoadBalancerTestsV6InMplsSwap.cpp
-  fboss/agent/hw/test/dataplane_tests/HwLoopBackTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwRouteOverDifferentAddressFamilyNhopTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwMacLearningAndNeighborResolutionTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwMirroringTests.cpp
