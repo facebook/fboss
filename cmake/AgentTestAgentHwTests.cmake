@@ -27,6 +27,7 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentAclCounterTests.cpp
   fboss/agent/test/agent_hw_tests/AgentAqmTests.cpp
   fboss/agent/test/agent_hw_tests/AgentOverflowTestBase.cpp
+  fboss/agent/test/agent_hw_tests/AgentLoopBackTests.cpp
 )
 
 target_link_libraries(agent_hw_test_src
@@ -34,6 +35,7 @@ target_link_libraries(agent_hw_test_src
   copp_test_utils
   dscp_marking_utils
   pkt_test_utils
+  port_stats_test_utils
   packet
   packet_snooper
   queue_per_host_test_utils
