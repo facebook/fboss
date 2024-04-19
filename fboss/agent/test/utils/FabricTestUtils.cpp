@@ -18,6 +18,8 @@
 namespace facebook::fboss::utility {
 
 void checkFabricReachability(TestEnsembleIf* ensemble, SwitchID switchId) {
+  auto expectedSwitchType =
+      ensemble->getHwAsicTable()->getHwAsic(switchId)->getSwitchType();
   WITH_RETRIES({
     ensemble->updateStats();
     auto reachability = ensemble->getFabricConnectivity(switchId);
@@ -43,10 +45,13 @@ void checkFabricReachability(TestEnsembleIf* ensemble, SwitchID switchId) {
                  << " expected port id: " << expectedPortId
                  << " got port id: " << *endpoint.portId()
                  << " got switch type: "
-                 << apache::thrift::util::enumNameSafe(*endpoint.switchType());
+                 << apache::thrift::util::enumNameSafe(*endpoint.switchType())
+                 << " expected switch type: "
+                 << apache::thrift::util::enumNameSafe(expectedSwitchType);
 
       EXPECT_EVENTUALLY_EQ(*endpoint.switchId(), expectedSwitchId);
       EXPECT_EVENTUALLY_EQ(*endpoint.portId(), expectedPortId);
+      EXPECT_EVENTUALLY_EQ(*endpoint.switchType(), expectedSwitchType);
     }
 
     EXPECT_EVENTUALLY_EQ(
