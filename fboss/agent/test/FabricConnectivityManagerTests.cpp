@@ -82,7 +82,7 @@ class FabricConnectivityManagerTest : public ::testing::Test {
     return {nbr};
   }
 
- private:
+ protected:
   std::optional<FabricEndpoint> getCurrentConnectivity(PortID port) const {
     std::optional<FabricEndpoint> portConnectivity;
     auto curConnectivity = fabricConnectivityManager_->getConnectivityInfo();
@@ -93,7 +93,6 @@ class FabricConnectivityManagerTest : public ::testing::Test {
     return portConnectivity;
   }
 
- protected:
   std::map<PortID, FabricEndpoint> processConnectivityInfo(
       const std::map<PortID, FabricEndpoint>& hwConnectivity) {
     for (const auto& [port, endpoint] : hwConnectivity) {
@@ -212,6 +211,60 @@ TEST_F(FabricConnectivityManagerTest, validateProcessConnectivityInfo) {
       fabricConnectivityManager_->isConnectivityInfoMissing(PortID(1)));
   EXPECT_FALSE(
       fabricConnectivityManager_->isConnectivityInfoMismatch(PortID(1)));
+}
+
+TEST_F(FabricConnectivityManagerTest, connectivityRetainedOnPortUpdates) {
+  auto oldState = std::make_shared<SwitchState>();
+  auto newState = std::make_shared<SwitchState>();
+
+  // create port with neighbor connectivity
+  std::shared_ptr<Port> swPort = makePort(1);
+  swPort->setExpectedNeighborReachability(
+      createPortNeighbor("fab1/2/4", "fdswA"));
+  newState->getPorts()->addNode(swPort, getScope(swPort));
+
+  std::map<PortID, FabricEndpoint> hwConnectivityMap;
+  FabricEndpoint endpoint;
+  endpoint.portId() = 79; // known from platforom mapping for ramon
+  endpoint.switchId() = 10;
+  endpoint.isAttached() = true;
+
+  hwConnectivityMap.emplace(swPort->getID(), endpoint);
+
+  auto dsfNode = makeDsfNode(10, "fdswA", cfg::AsicType::ASIC_TYPE_RAMON);
+  auto dsfNodeMap = std::make_shared<MultiSwitchDsfNodeMap>();
+  dsfNodeMap->addNode(dsfNode, getScope(dsfNode));
+  newState->resetDsfNodes(dsfNodeMap);
+
+  StateDelta delta(oldState, newState);
+  fabricConnectivityManager_->stateUpdated(delta);
+
+  processConnectivityInfo(hwConnectivityMap);
+
+  auto prevConnectivityInfo = getCurrentConnectivity(swPort->getID());
+  auto assertConnectivity = [](const FabricEndpoint& endpoint) {
+    EXPECT_EQ(endpoint.expectedPortId(), 79);
+    EXPECT_EQ(endpoint.expectedSwitchId(), 10);
+    EXPECT_EQ(endpoint.switchId(), 10);
+    EXPECT_EQ(endpoint.expectedSwitchName(), "fdswA");
+    EXPECT_EQ(endpoint.expectedPortName(), "fab1/2/4");
+    EXPECT_TRUE(*endpoint.isAttached());
+    EXPECT_EQ(*endpoint.expectedPortId(), *endpoint.portId());
+    EXPECT_EQ(endpoint.expectedPortName(), endpoint.portName());
+  };
+
+  EXPECT_TRUE(prevConnectivityInfo.has_value());
+  assertConnectivity(*prevConnectivityInfo);
+  auto newerState = newState->clone();
+  auto curPort = newerState->getPorts()->getPort(swPort->getName());
+  auto newPort = curPort->modify(&newerState);
+  EXPECT_EQ(newPort->getAdminState(), cfg::PortState::ENABLED);
+  newPort->setAdminState(cfg::PortState::DISABLED);
+  fabricConnectivityManager_->stateUpdated(StateDelta(newState, newerState));
+  auto newConnectivityInfo = getCurrentConnectivity(swPort->getID());
+  EXPECT_TRUE(newConnectivityInfo.has_value());
+  assertConnectivity(*newConnectivityInfo);
+  EXPECT_EQ(prevConnectivityInfo, newConnectivityInfo);
 }
 
 TEST_F(FabricConnectivityManagerTest, validateUnattachedEndpoint) {
@@ -430,7 +483,7 @@ TEST_F(FabricConnectivityManagerTest, validateConnectivityDelta) {
   fabricConnectivityManager_->stateUpdated(StateDelta(oldState, newState));
 
   FabricEndpoint endpoint;
-  endpoint.portId() = kRemotePortId; // known from platforom mapping for ramon
+  endpoint.portId() = kRemotePortId; // known from platform mapping for ramon
   endpoint.switchId() = 10;
   endpoint.isAttached() = true;
   // Update connectivity before processing port. Old connectivity should
