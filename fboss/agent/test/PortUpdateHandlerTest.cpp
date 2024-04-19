@@ -219,8 +219,18 @@ class PortUpdateHandlerLoopDetectionTest : public ::testing::Test {
       for (const auto& [id, port] : *ports) {
         if (PortID(id) == kPortId()) {
           EXPECT_EVENTUALLY_EQ(port->getAdminState(), expectedState);
+          if (expectedState == cfg::PortState::DISABLED) {
+            EXPECT_EVENTUALLY_EQ(
+                port->getActiveErrors(),
+                std::vector<PortError>(
+                    {PortError::ERROR_DISABLE_LOOP_DETECTED}));
+          } else {
+            EXPECT_EVENTUALLY_TRUE(port->getActiveErrors().empty());
+          }
+
         } else {
           EXPECT_EVENTUALLY_EQ(port->getAdminState(), cfg::PortState::ENABLED);
+          EXPECT_EVENTUALLY_TRUE(port->getActiveErrors().empty());
         }
       }
     });
