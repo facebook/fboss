@@ -94,6 +94,7 @@ void PortUpdateHandler::disableIfLooped(
         auto curPort = out->getPorts()->getNode(portId);
         auto port = curPort->modify(&out);
         port->setAdminState(cfg::PortState::DISABLED);
+        port->addError(PortError::ERROR_DISABLE_LOOP_DETECTED);
         return out;
       });
 }
