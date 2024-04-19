@@ -1096,8 +1096,16 @@ TEST(Port, portErrors) {
           PortError::ERROR_DISABLE_LOOP_DETECTED};
       newPort->addError(PortError::ERROR_DISABLE_LOOP_DETECTED);
       EXPECT_EQ(newPort->getActiveErrors(), expectedErrors);
-      auto newerPort = std::make_shared<Port>(newPort->toThrift());
-      EXPECT_EQ(newerPort->getActiveErrors(), expectedErrors);
+      {
+        auto newerPort = std::make_shared<Port>(newPort->toThrift());
+        EXPECT_EQ(newerPort->getActiveErrors(), expectedErrors);
+      }
+      newPort->removeError(PortError::ERROR_DISABLE_LOOP_DETECTED);
+      EXPECT_TRUE(newPort->getActiveErrors().empty());
+      {
+        auto newerPort = std::make_shared<Port>(newPort->toThrift());
+        EXPECT_TRUE(newerPort->getActiveErrors().empty());
+      }
     }
   }
 }
