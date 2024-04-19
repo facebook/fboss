@@ -85,6 +85,22 @@ InterfaceID Port::getInterfaceID() const {
   return InterfaceID(intfs.at(0));
 }
 
+void Port::addError(PortError error) {
+  auto& errors = safe_cref<switch_state_tags::activeErrors>()->impl();
+  if (std::find(errors.cbegin(), errors.cend(), error) != errors.end()) {
+    return;
+  }
+  auto portErrors = getActiveErrors();
+  portErrors.push_back(error);
+  set<switch_state_tags::activeErrors>(portErrors);
+}
+
+void Port::removeError(PortError error) {
+  auto errors = getActiveErrors();
+  std::erase(errors, error);
+  set<switch_state_tags::activeErrors>(errors);
+}
+
 template class ThriftStructNode<Port, state::PortFields>;
 
 } // namespace facebook::fboss

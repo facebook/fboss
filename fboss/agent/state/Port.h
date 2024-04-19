@@ -707,6 +707,11 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
     }
   }
 
+  std::vector<PortError> getActiveErrors() const {
+    return safe_cref<switch_state_tags::activeErrors>()->toThrift();
+  }
+  void addError(PortError error);
+  void removeError(PortError error);
   Port* modify(std::shared_ptr<SwitchState>* state);
 
  private:
