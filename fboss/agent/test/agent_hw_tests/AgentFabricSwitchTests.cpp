@@ -179,9 +179,15 @@ class AgentFabricSwitchSelfLoopTest : public AgentFabricSwitchTest {
         // When disabled all ports should lose connectivity info
         EXPECT_EVENTUALLY_EQ(missingConnectivity, numPorts);
       }
+      std::vector<PortError> expectedErrors;
+      if (desiredState == cfg::PortState::DISABLED) {
+        expectedErrors.push_back(PortError::ERROR_DISABLE_LOOP_DETECTED);
+      }
       for (const auto& portId : ports) {
         auto port = getProgrammedState()->getPorts()->getNode(portId);
         EXPECT_EVENTUALLY_EQ(port->getAdminState(), desiredState);
+        EXPECT_EVENTUALLY_EQ(port->getActiveErrors(), expectedErrors);
+
         auto ledExternalState = port->getLedPortExternalState();
         EXPECT_EVENTUALLY_TRUE(ledExternalState.has_value());
 
