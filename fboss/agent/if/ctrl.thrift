@@ -54,6 +54,10 @@ enum PortLedExternalState {
   CABLING_ERROR_LOOP_DETECTED = 4,
 }
 
+enum PortError {
+  ERROR_DISABLE_LOOP_DETECTED = 1,
+}
+
 struct IpPrefix {
   1: required Address.BinaryAddress ip;
   2: required i16 prefixLength;
