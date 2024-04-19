@@ -123,6 +123,35 @@ void PortUpdateHandler::checkNewlyUndrained(const StateDelta& delta) {
     }
   }
 }
+void PortUpdateHandler::clearErrorDisableLoopDetected(
+    const std::shared_ptr<Port>& newPort,
+    const std::shared_ptr<SwitchState>& newState) {
+  const auto& errors = newPort->getActiveErrors();
+  if (std::find(
+          errors.begin(),
+          errors.end(),
+          PortError::ERROR_DISABLE_LOOP_DETECTED) == errors.end()) {
+    return;
+  }
+  XLOG(DBG2) << " Clearing error disable loop detected on : "
+             << newPort->getName();
+
+  auto portId = newPort->getID();
+  sw_->updateState(
+      folly::sformat(
+          "Clear error disable loop detected on: {}", newPort->getName()),
+      [portId](const std::shared_ptr<SwitchState>& in) {
+        auto out = in->clone();
+        auto curPort = out->getPorts()->getNode(portId);
+        if (!curPort->isEnabled()) {
+          return std::shared_ptr<SwitchState>();
+        }
+        auto port = curPort->modify(&out);
+        port->removeError(PortError::ERROR_DISABLE_LOOP_DETECTED);
+        return out;
+      });
+}
+
 void PortUpdateHandler::stateUpdated(const StateDelta& delta) {
   checkNewlyUndrained(delta);
   DeltaFunctions::forEachChanged(
@@ -155,10 +184,18 @@ void PortUpdateHandler::stateUpdated(const StateDelta& delta) {
           sw_->publishPhyInfoSnapshots(oldPort->getID());
         }
         disableIfLooped(newPort, delta.newState());
+        // Clear error
+        if (newPort->isEnabled() && !oldPort->isEnabled()) {
+          clearErrorDisableLoopDetected(newPort, delta.newState());
+        }
       },
       [&](const std::shared_ptr<Port>& newPort) {
         sw_->portStats(newPort->getID())->setPortStatus(newPort->isUp());
         disableIfLooped(newPort, delta.newState());
+        if (newPort->isEnabled()) {
+          // For WB case where all ports will show up as newly added
+          clearErrorDisableLoopDetected(newPort, delta.newState());
+        }
       },
       [&](const std::shared_ptr<Port>& oldPort) {
         for (SwitchStats& switchStats : sw_->getAllThreadsSwitchStats()) {
