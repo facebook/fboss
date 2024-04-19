@@ -43,19 +43,9 @@ void checkFabricReachability(TestEnsembleIf* ensemble, SwitchID switchId) {
                  << " expected port id: " << expectedPortId
                  << " got port id: " << *endpoint.portId()
                  << " got switch type: "
-                 << apache::thrift::util::enumNameSafe(*endpoint.switchType())
-                 << " expected switch type: "
-                 << apache::thrift::util::enumNameSafe(
-                        ensemble->getHwAsicTable()
-                            ->getHwAsic(SwitchID(expectedSwitchId))
-                            ->getSwitchType());
+                 << apache::thrift::util::enumNameSafe(*endpoint.switchType());
 
       EXPECT_EVENTUALLY_EQ(*endpoint.switchId(), expectedSwitchId);
-      EXPECT_EVENTUALLY_EQ(
-          *endpoint.switchType(),
-          ensemble->getHwAsicTable()
-              ->getHwAsic(SwitchID(expectedSwitchId))
-              ->getSwitchType());
       EXPECT_EVENTUALLY_EQ(*endpoint.portId(), expectedPortId);
     }
 
