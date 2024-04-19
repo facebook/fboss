@@ -184,11 +184,15 @@ class AgentFabricSwitchSelfLoopTest : public AgentFabricSwitchTest {
         EXPECT_EVENTUALLY_EQ(port->getAdminState(), desiredState);
         auto ledExternalState = port->getLedPortExternalState();
         EXPECT_EVENTUALLY_TRUE(ledExternalState.has_value());
-        // Even post disable, we retain cabling error info
-        // until we learn of new connectivity info
-        EXPECT_EVENTUALLY_EQ(
-            *ledExternalState,
-            PortLedExternalState::CABLING_ERROR_LOOP_DETECTED);
+
+        // If port is disabled, connectivity info would disappear
+        // so cabling error should clear out.
+        auto desiredLedState =
+            (desiredState == cfg::PortState::DISABLED
+                 ? PortLedExternalState::NONE
+                 : PortLedExternalState::CABLING_ERROR_LOOP_DETECTED);
+        EXPECT_EVENTUALLY_EQ(*ledExternalState, desiredLedState)
+            << " LED State mismatch for port: " << port->getName();
       }
     });
   }
