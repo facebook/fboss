@@ -1,4 +1,4 @@
-# CMake to build libraries and binaries in fboss/cli/fboss2
+  # CMake to build libraries and binaries in fboss/cli/fboss2
 
 # In general, libraries and binaries in fboss/foo/bar are built by
 # cmake/FooBar.cmake
@@ -298,6 +298,15 @@ add_fbthrift_cpp_library(
     json
 )
 
+add_fbthrift_cpp_library(
+  show_interface_counters_fec_uncorrectable
+  fboss/cli/fboss2/commands/show/interface/counters/fec/uncorrectable/model.thrift
+  OPTIONS
+    json
+  DEPENDS
+    phy_cpp2
+)
+
 find_package(CLI11 CONFIG REQUIRED)
 
 add_executable(fboss2
@@ -352,6 +361,7 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/show/interface/traffic/CmdShowInterfaceTraffic.h
   fboss/cli/fboss2/commands/show/interface/counters/fec/CmdShowInterfaceCountersFec.h
   fboss/cli/fboss2/commands/show/interface/counters/fec/ber/CmdShowInterfaceCountersFecBer.h
+  fboss/cli/fboss2/commands/show/interface/counters/fec/uncorrectable/CmdShowInterfaceCountersFecUncorrectable.h
   fboss/cli/fboss2/commands/show/interface/counters/mka/CmdShowInterfaceCountersMKA.h
   fboss/cli/fboss2/commands/show/interface/phy/CmdShowInterfacePhy.h
   fboss/cli/fboss2/commands/show/interface/phymap/CmdShowInterfacePhymap.h
@@ -443,6 +453,7 @@ target_link_libraries(fboss2
   show_interface_counters_fec_ber
   show_fabric_topology_model
   show_rif
+  show_interface_counters_fec_uncorrectable
   ${RE2}
 )
 

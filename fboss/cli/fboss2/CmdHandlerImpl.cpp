@@ -53,6 +53,8 @@
 #include "fboss/cli/fboss2/commands/show/interface/counters/fec/CmdShowInterfaceCountersFec.h"
 #include "fboss/cli/fboss2/commands/show/interface/counters/fec/ber/CmdShowInterfaceCountersFecBer.h"
 #include "fboss/cli/fboss2/commands/show/interface/counters/fec/ber/gen-cpp2/model_visitation.h"
+#include "fboss/cli/fboss2/commands/show/interface/counters/fec/uncorrectable/CmdShowInterfaceCountersFecUncorrectable.h"
+#include "fboss/cli/fboss2/commands/show/interface/counters/fec/uncorrectable/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/commands/show/interface/counters/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/commands/show/interface/counters/mka/CmdShowInterfaceCountersMKA.h"
 #include "fboss/cli/fboss2/commands/show/interface/counters/mka/gen-cpp2/model_visitation.h"
@@ -161,6 +163,9 @@ template void CmdHandler<
     CmdShowInterfaceCountersFecBer,
     CmdShowInterfaceCountersFecBerTraits>::run();
 template void CmdHandler<
+    CmdShowInterfaceCountersFecUncorrectable,
+    CmdShowInterfaceCountersFecUncorrectableTraits>::run();
+template void CmdHandler<
     CmdShowInterfaceCountersMKA,
     CmdShowInterfaceCountersMKATraits>::run();
 template void
@@ -255,6 +260,9 @@ template const ValidFilterMapType CmdHandler<
 template const ValidFilterMapType CmdHandler<
     CmdShowInterfaceCountersFecBer,
     CmdShowInterfaceCountersFecBerTraits>::getValidFilters();
+template const ValidFilterMapType CmdHandler<
+    CmdShowInterfaceCountersFecUncorrectable,
+    CmdShowInterfaceCountersFecUncorrectableTraits>::getValidFilters();
 template const ValidFilterMapType CmdHandler<
     CmdShowInterfaceErrors,
     CmdShowInterfaceErrorsTraits>::getValidFilters();
