@@ -11,15 +11,6 @@
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/state/Thrifty.h"
 
-namespace {
-
-// These names match the thrift definition in switch_config.thrift
-constexpr auto kThriftAction = "action";
-constexpr auto kThriftTrafficCounter = "trafficCounter";
-constexpr auto kThriftSetDscp = "setDscp";
-constexpr auto kThriftToCpuAction = "toCpuAction";
-} // namespace
-
 namespace facebook::fboss {
 
 state::MatchAction MatchAction::toThrift() const {
