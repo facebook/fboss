@@ -56,11 +56,12 @@ TEST_F(AgentFabricSwitchTest, init) {
     for (auto& portMap : std::as_const(*state->getPorts())) {
       for (auto& port : std::as_const(*portMap.second)) {
         EXPECT_EQ(port.second->getAdminState(), cfg::PortState::ENABLED);
+        auto portSwitchId =
+            getSw()->getScopeResolver()->scope(port.second->getID()).switchId();
+        auto portAsic = getSw()->getHwAsicTable()->getHwAsic(portSwitchId);
         EXPECT_EQ(
             port.second->getLoopbackMode(),
-            // TODO: Handle multiple Asics
-            getAsics().cbegin()->second->getDesiredLoopbackMode(
-                port.second->getPortType()));
+            portAsic->getDesiredLoopbackMode(port.second->getPortType()));
       }
     }
   };
