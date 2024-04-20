@@ -366,6 +366,7 @@ struct PortInfoThrift {
   23: optional i32 hwLogicalPortId;
   24: bool isDrained;
   25: optional PortActiveState activeState;
+  26: list<PortError> activeErrors;
 }
 
 // Port queueing configuration
