@@ -10,26 +10,40 @@
 
 namespace facebook::fboss {
 
-std::vector<PortID> TestEnsembleIf::masterLogicalPortIds(
-    const std::set<cfg::PortType>& filter) const {
+std::vector<PortID> TestEnsembleIf::masterLogicalPortIdsImpl(
+    const std::set<cfg::PortType>& portTypesFilter,
+    const std::set<SwitchID>& switchIdFilter) const {
   auto portIDs = masterLogicalPortIds();
   std::vector<PortID> filteredPortIDs;
   auto platformPorts = getPlatformPorts();
 
   folly::gen::from(portIDs) |
-      folly::gen::filter([&platformPorts, filter](const auto& portID) {
-        if (filter.empty()) {
-          // if no filter is requested, allow all
-          return true;
-        }
-        auto portItr = platformPorts.find(static_cast<int>(portID));
-        if (portItr == platformPorts.end()) {
-          return false;
-        }
-        auto portType = *portItr->second.mapping()->portType();
+      folly::gen::filter(
+          [this, &platformPorts, &portTypesFilter, &switchIdFilter](
+              PortID portID) {
+            if (portTypesFilter.empty() && switchIdFilter.empty()) {
+              // if no filter is requested, allow all
+              return true;
+            }
+            if (portTypesFilter.size()) {
+              auto portItr = platformPorts.find(static_cast<int>(portID));
+              if (portItr == platformPorts.end()) {
+                return false;
+              }
+              auto portType = *portItr->second.mapping()->portType();
 
-        return filter.find(portType) != filter.end();
-      }) |
+              if (portTypesFilter.find(portType) == portTypesFilter.end()) {
+                return false;
+              }
+            }
+            if (switchIdFilter.size()) {
+              auto portSwitchId = scopeResolver().scope(portID).switchId();
+              if (switchIdFilter.find(portSwitchId) == switchIdFilter.end()) {
+                return false;
+              }
+            }
+            return true;
+          }) |
       folly::gen::appendTo(filteredPortIDs);
 
   return filteredPortIDs;
