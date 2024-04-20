@@ -348,6 +348,7 @@ void getPortInfoHelper(
     portInfo.activeState() = PortActiveState(
         port->getActiveState().value() == Port::ActiveState::ACTIVE);
   }
+  portInfo.activeErrors() = port->getActiveErrors();
 
   *portInfo.profileID() = apache::thrift::util::enumName(port->getProfileID());
 
