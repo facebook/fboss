@@ -56,10 +56,12 @@ void AgentEnsemble::setupEnsemble(
   createSwitch(
       AgentConfig::fromFile(configFile_), hwFeaturesDesired, kPlatformInitFn);
 
-  // TODO: Handle multiple Asics
-  HwAsic* asic = getHwAsicTable()->getHwAsicIf(SwitchID(0));
-  if (kStreamTypeOpt.has_value()) {
-    asic->setDefaultStreamType(kStreamTypeOpt.value());
+  for (auto switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
+    HwAsic* asic = getHwAsicTable()->getHwAsicIf(switchId);
+    if (kStreamTypeOpt.has_value()) {
+      asic->setDefaultStreamType(kStreamTypeOpt.value());
+    }
+    switchId2PortIds_[switchId] = std::vector<PortID>();
   }
 
   auto portsByControllingPort = utility::getSubsidiaryPortIDs(
@@ -71,14 +73,20 @@ void AgentEnsemble::setupEnsemble(
                 ->second.mapping()
                 ->portType() != cfg::PortType::FABRIC_PORT) {
       masterLogicalPortIds_.push_back(port.first);
+      auto switchId = getSw()->getScopeResolver()->scope(port.first).switchId();
+      switchId2PortIds_[switchId].push_back(port.first);
     }
   }
-  utility::setPortToDefaultProfileIDMap(
-      std::make_shared<MultiSwitchPortMap>(),
-      getSw()->getPlatformMapping(),
-      asic,
-      getSw()->getPlatformSupportsAddRemovePort(),
-      masterLogicalPortIds_);
+
+  for (auto switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
+    HwAsic* asic = getHwAsicTable()->getHwAsicIf(switchId);
+    utility::setPortToDefaultProfileIDMap(
+        std::make_shared<MultiSwitchPortMap>(), /* unused */
+        getSw()->getPlatformMapping(),
+        asic,
+        getSw()->getPlatformSupportsAddRemovePort(),
+        switchId2PortIds_[switchId]);
+  }
 
   if (bootType_ == BootType::COLD_BOOT) {
     initialConfig_ = initialConfigFn(*this);
@@ -99,9 +107,9 @@ void AgentEnsemble::setupEnsemble(
 void AgentEnsemble::startAgent() {
   // TODO: provide a way to enable tun intf, for now disable it expressedly,
   // this can also be done with CLI option, however netcastle runners can not
-  // use that option, because hw tests and hw benchmarks using hwswitch ensemble
-  // doesn't have CLI option to disable tun intf. Also get rid of explicit
-  // setting this flag and emply CLI option to disable tun manager.
+  // use that option, because hw tests and hw benchmarks using hwswitch
+  // ensemble doesn't have CLI option to disable tun intf. Also get rid of
+  // explicit setting this flag and emply CLI option to disable tun manager.
   FLAGS_tun_intf = false;
   auto* initializer = agentInitializer();
   asyncInitThread_.reset(new std::thread([this, initializer] {
@@ -115,9 +123,10 @@ void AgentEnsemble::startAgent() {
       linkToggler_ != nullptr) {
     linkToggler_->applyInitialConfig(initialConfig_);
   }
-  // With link state toggler, initial config is applied with ports down to later
-  // bring up the ports. This causes the config to be written as loopback mode =
-  // None. Write the init config again to have the proper config.
+  // With link state toggler, initial config is applied with ports down to
+  // later bring up the ports. This causes the config to be written as
+  // loopback mode = None. Write the init config again to have the proper
+  // config.
   applyNewConfig(initialConfig_);
 }
 
@@ -454,4 +463,8 @@ void AgentEnsemble::bringDownPorts(const std::vector<PortID>& ports) {
   linkToggler_->bringDownPorts(ports);
 }
 
+std::vector<PortID> AgentEnsemble::masterLogicalPortIds(
+    SwitchID switchId) const {
+  return switchId2PortIds_.at(switchId);
+}
 } // namespace facebook::fboss

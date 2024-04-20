@@ -101,6 +101,8 @@ class AgentEnsemble : public TestEnsembleIf {
 
   std::vector<PortID> masterLogicalPortIds() const override;
 
+  std::vector<PortID> masterLogicalPortIds(SwitchID switchID) const;
+
   void switchRunStateChanged(SwitchRunState runState) override;
 
   void programRoutes(
@@ -273,7 +275,9 @@ class AgentEnsemble : public TestEnsembleIf {
 
   cfg::SwitchConfig initialConfig_;
   std::unique_ptr<std::thread> asyncInitThread_{nullptr};
-  std::vector<PortID> masterLogicalPortIds_;
+  std::vector<PortID> masterLogicalPortIds_; /* all ports */
+  std::map<SwitchID, std::vector<PortID>>
+      switchId2PortIds_; /* per switch ports */
   std::string configFile_{};
   std::unique_ptr<LinkStateToggler> linkToggler_;
   cfg::PortLoopbackMode mode_{cfg::PortLoopbackMode::MAC};
