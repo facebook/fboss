@@ -244,26 +244,32 @@ TEST_F(AgentFabricSwitchSelfLoopTest, selfLoopDetection) {
 }
 
 TEST_F(AgentFabricSwitchSelfLoopTest, portDrained) {
-  const auto kPortId =
-      getProgrammedState()->getPorts()->getAllNodes()->begin()->first;
-  auto setup = [this, kPortId]() {
+  std::vector<PortID> drainedPorts;
+  for (const auto& [_, ports] : switch2PortIds()) {
+    drainedPorts.push_back(ports[0]);
+  }
+  auto setup = [this, drainedPorts]() {
     // Drain port
-    applyNewState([&, kPortId](const std::shared_ptr<SwitchState>& in) {
+    applyNewState([&, drainedPorts](const std::shared_ptr<SwitchState>& in) {
       auto out = in->clone();
-      auto port = out->getPorts()->getNodeIf(kPortId);
-      auto newPort = port->modify(&out);
-      newPort->setPortDrainState(cfg::PortDrainState::DRAINED);
+      for (auto portId : drainedPorts) {
+        auto port = out->getPorts()->getNodeIf(portId);
+        auto newPort = port->modify(&out);
+        newPort->setPortDrainState(cfg::PortDrainState::DRAINED);
+      }
       return out;
     });
   };
-  auto verify = [this, kPortId]() {
+  auto verify = [this, drainedPorts]() {
     auto portsToCheck = getProgrammedState()->getPorts()->getAllNodes();
     // Since switch is drained, ports should stay enabled
     verifyState(cfg::PortState::ENABLED, *portsToCheck);
     // Undrain
     applySwitchDrainState(cfg::SwitchDrainState::UNDRAINED);
     // All but the drained ports should now get disabled
-    portsToCheck->removeNode(kPortId);
+    for (auto port : drainedPorts) {
+      portsToCheck->removeNode(port);
+    }
     verifyState(cfg::PortState::DISABLED, *portsToCheck);
   };
   verifyAcrossWarmBoots(setup, verify);
