@@ -192,6 +192,7 @@ cli::ShowPortModel createPortModel() {
   // when pfc exists, pause shouldn't
   entry1.pfc() = "TX RX WD";
   entry1.isDrained() = "Yes";
+  entry1.activeErrors() = "--";
 
   entry2.id() = 2;
   entry2.hwLogicalPortId() = 2;
@@ -206,6 +207,7 @@ cli::ShowPortModel createPortModel() {
   entry2.numUnicastQueues() = 0;
   entry2.pause() = "RX";
   entry2.isDrained() = "No";
+  entry2.activeErrors() = "--";
 
   entry3.id() = 3;
   entry3.hwLogicalPortId() = 3;
@@ -220,6 +222,7 @@ cli::ShowPortModel createPortModel() {
   entry3.numUnicastQueues() = 0;
   entry3.pause() = "";
   entry3.isDrained() = "No";
+  entry3.activeErrors() = "--";
 
   entry4.id() = 8;
   entry4.hwLogicalPortId() = 8;
@@ -234,6 +237,7 @@ cli::ShowPortModel createPortModel() {
   entry4.numUnicastQueues() = 0;
   entry4.pause() = "";
   entry4.isDrained() = "Yes";
+  entry4.activeErrors() = "--";
 
   entry5.id() = 7;
   entry5.hwLogicalPortId() = 7;
@@ -248,6 +252,7 @@ cli::ShowPortModel createPortModel() {
   entry5.numUnicastQueues() = 0;
   entry5.pause() = "";
   entry5.isDrained() = "No";
+  entry5.activeErrors() = "--";
 
   entry6.id() = 9;
   entry6.hwLogicalPortId() = 9;
@@ -262,6 +267,7 @@ cli::ShowPortModel createPortModel() {
   entry6.numUnicastQueues() = 0;
   entry6.pause() = "";
   entry6.isDrained() = "Yes";
+  entry6.activeErrors() = "--";
 
   // sorted by name
   model.portEntries() = {entry6, entry1, entry2, entry3, entry5, entry4};
@@ -359,14 +365,14 @@ TEST_F(CmdShowPortTestFixture, printOutput) {
 
   std::string output = ss.str();
   std::string expectOutput =
-      " ID  Name        AdminState  LinkState  ActiveState  Transceiver  TcvrID  Speed  ProfileID                        HwLogicalPortId  Drained \n"
-      "-------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-      " 9   eth1/4/1    Enabled     Up         --           Present      5       100G   PROFILE_100G_4_NRZ_CL91_OPTICAL  9                Yes     \n"
-      " 1   eth1/5/1    Enabled     Down       --           Present      0       100G   PROFILE_100G_4_NRZ_CL91_COPPER   1                Yes     \n"
-      " 2   eth1/5/2    Disabled    Down       --           Present      1       25G    PROFILE_25G_1_NRZ_CL74_COPPER    2                No      \n"
-      " 3   eth1/5/3    Enabled     Up         --           Absent       2       100G   PROFILE_100G_4_NRZ_CL91_COPPER   3                No      \n"
-      " 7   eth1/10/2   Enabled     Up         --           Present      4       100G   PROFILE_100G_4_NRZ_CL91_OPTICAL  7                No      \n"
-      " 8   fab402/9/1  Enabled     Up         --           Absent       3       100G   PROFILE_100G_4_NRZ_NOFEC_COPPER  8                Yes     \n\n";
+      " ID  Name        AdminState  LinkState  ActiveState  Transceiver  TcvrID  Speed  ProfileID                        HwLogicalPortId  Drained  Errors \n"
+      "----------------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+      " 9   eth1/4/1    Enabled     Up         --           Present      5       100G   PROFILE_100G_4_NRZ_CL91_OPTICAL  9                Yes      --     \n"
+      " 1   eth1/5/1    Enabled     Down       --           Present      0       100G   PROFILE_100G_4_NRZ_CL91_COPPER   1                Yes      --     \n"
+      " 2   eth1/5/2    Disabled    Down       --           Present      1       25G    PROFILE_25G_1_NRZ_CL74_COPPER    2                No       --     \n"
+      " 3   eth1/5/3    Enabled     Up         --           Absent       2       100G   PROFILE_100G_4_NRZ_CL91_COPPER   3                No       --     \n"
+      " 7   eth1/10/2   Enabled     Up         --           Present      4       100G   PROFILE_100G_4_NRZ_CL91_OPTICAL  7                No       --     \n"
+      " 8   fab402/9/1  Enabled     Up         --           Absent       3       100G   PROFILE_100G_4_NRZ_NOFEC_COPPER  8                Yes      --     \n\n";
 
   EXPECT_EQ(output, expectOutput);
 }
