@@ -121,7 +121,7 @@ TEST_F(AgentFabricSwitchTest, checkFabricReachability) {
   verifyAcrossWarmBoots([] {}, verify);
 }
 
-TEST_F(AgentFabricSwitchTest, fabricIsolate) {
+TEST_F(AgentFabricSwitchTest, fabricPortIsolate) {
   std::map<SwitchID, PortID> switchId2FabricPortId;
   std::set<PortID> fabricPortIds;
   for (const auto& [switchId, portIds] : switch2PortIds()) {
