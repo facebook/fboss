@@ -414,7 +414,10 @@ class SwitchStats : public boost::noncopyable {
   void remoteResolvedArp(int value) {
     remoteResolvedArp_.incrementValue(value);
   }
-  void failedDsfSubscription(const SwitchID& peer, int value) {
+  void failedDsfSubscription(
+      const SwitchID& peer,
+      const std::string& peerName,
+      int value) {
     failedDsfSubscription_.incrementValue(value);
     if (failedDsfSubscriptionByPeerSwitchId_.find(peer) ==
         failedDsfSubscriptionByPeerSwitchId_.end()) {
@@ -423,7 +426,7 @@ class SwitchStats : public boost::noncopyable {
           TLCounter(
               fb303::ThreadCachedServiceData::get()->getThreadStats(),
               folly::to<std::string>(
-                  kCounterPrefix, "failedDsfSubscriptionTo.", peer)));
+                  kCounterPrefix, "failedDsfSubscriptionTo.", peerName)));
     }
     auto counter = failedDsfSubscriptionByPeerSwitchId_.find(peer);
     counter->second.incrementValue(value);

@@ -190,7 +190,7 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
                  << " dstIP: " << dstIP;
 
       // Subscription is not established until state becomes CONNECTED
-      this->sw_->stats()->failedDsfSubscription(nodeSwitchId, 1);
+      this->sw_->stats()->failedDsfSubscription(nodeSwitchId, nodeName, 1);
 
       auto subscriberId = folly::sformat("{}_{}:agent", localNodeName_, dstIP);
       fsdb::FsdbExtStateSubscriber::SubscriptionOptions opts{
@@ -230,7 +230,7 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
               getAllSubscribePaths(localNodeName_), dstIP) !=
           fsdb::FsdbStreamClient::State::CONNECTED) {
         // Subscription was not established - decrement failedDSF counter.
-        this->sw_->stats()->failedDsfSubscription(nodeSwitchId, -1);
+        this->sw_->stats()->failedDsfSubscription(nodeSwitchId, nodeName, -1);
       }
 
       fsdbPubSubMgr_->removeStatePathSubscription(
@@ -339,9 +339,9 @@ void DsfSubscriber::handleFsdbSubscriptionStateUpdate(
 
   if (oldThriftState != newThriftState) {
     if (newThriftState == fsdb::FsdbSubscriptionState::CONNECTED) {
-      this->sw_->stats()->failedDsfSubscription(nodeSwitchId, -1);
+      this->sw_->stats()->failedDsfSubscription(nodeSwitchId, nodeName, -1);
     } else {
-      this->sw_->stats()->failedDsfSubscription(nodeSwitchId, 1);
+      this->sw_->stats()->failedDsfSubscription(nodeSwitchId, nodeName, 1);
     }
 
     this->sw_->updateDsfSubscriberState(
