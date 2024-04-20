@@ -260,7 +260,7 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
              portInfo.get_profileId(),
              hwLogicalPortId,
              portInfo.get_isDrained(),
-             portInfo.get_activeErrors()});
+             getStyledErrors(portInfo.get_activeErrors())});
       }
       out << table << std::endl;
     }
@@ -341,6 +341,13 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
     if (isPresent)
       return "Present";
     return "Absent";
+  }
+  Table::StyledCell getStyledErrors(std::string errors) {
+    if (errors == "--") {
+      return Table::StyledCell(errors, Table::Style::NONE);
+    } else {
+      return Table::StyledCell(errors, Table::Style::ERROR);
+    }
   }
 
   RetType createModel(
