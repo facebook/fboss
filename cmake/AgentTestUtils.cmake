@@ -89,6 +89,7 @@ target_link_libraries(port_test_utils
   Folly::folly
   switch_config_cpp2
   transceiver_cpp2
+  test_ensemble_if
   state
 )
 

@@ -13,11 +13,20 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
-namespace facebook::fboss::utility {
+namespace facebook::fboss {
+
+class TestEnsembleIf;
+class PortID;
+
+namespace utility {
 
 cfg::PortSpeed getSpeed(cfg::PortProfileID profile);
 TransmitterTechnology getMediaType(cfg::PortProfileID profile);
 cfg::PortSpeed getDefaultFabricSpeed(const cfg::AsicType& asicType);
 cfg::PortSpeed getDefaultInterfaceSpeed(const cfg::AsicType& asicType);
-
-} // namespace facebook::fboss::utility
+void setCreditWatchdogAndPortTx(
+    TestEnsembleIf* ensemble,
+    PortID port,
+    bool enable);
+} // namespace utility
+} // namespace facebook::fboss

@@ -13,6 +13,7 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/test/TestEnsembleIf.h"
 
 namespace facebook::fboss::utility {
 cfg::PortSpeed getSpeed(cfg::PortProfileID profile) {
@@ -171,6 +172,33 @@ cfg::PortSpeed getDefaultFabricSpeed(const cfg::AsicType& asicType) {
       throw FbossError(
           "Unsupported fabric speed for asic type: ", (int)asicType);
   }
+}
+
+void setCreditWatchdogAndPortTx(
+    TestEnsembleIf* ensemble,
+    PortID port,
+    bool enable) {
+  bool setCreditWatchdog =
+      ensemble->getHwAsicTable()
+          ->getHwAsic(ensemble->scopeResolver().scope(port).switchId())
+          ->getSwitchType() == cfg::SwitchType::VOQ;
+  auto updateCreditWatchdogAndPortTx =
+      [&](const std::shared_ptr<SwitchState>& in) {
+        auto switchState = in->clone();
+        auto newPort =
+            switchState->getPorts()->getNodeIf(port)->modify(&switchState);
+        newPort->setTxEnable(enable);
+
+        if (setCreditWatchdog) {
+          for (const auto& [_, switchSetting] :
+               std::as_const(*switchState->getSwitchSettings())) {
+            auto newSwitchSettings = switchSetting->modify(&switchState);
+            newSwitchSettings->setCreditWatchdog(enable);
+          }
+        }
+        return switchState;
+      };
+  ensemble->applyNewState(updateCreditWatchdogAndPortTx);
 }
 
 } // namespace facebook::fboss::utility
