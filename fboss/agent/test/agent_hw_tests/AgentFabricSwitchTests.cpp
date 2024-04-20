@@ -122,14 +122,20 @@ TEST_F(AgentFabricSwitchTest, checkFabricReachability) {
 }
 
 TEST_F(AgentFabricSwitchTest, fabricIsolate) {
+  std::map<SwitchID, PortID> switchId2FabricPortId;
+  std::set<PortID> fabricPortIds;
+  for (const auto& [switchId, portIds] : switch2PortIds()) {
+    fabricPortIds.insert(portIds[0]);
+    switchId2FabricPortId.insert({switchId, portIds[0]});
+  }
+  ASSERT_GT(fabricPortIds.size(), 0);
+  ASSERT_GT(switchId2FabricPortId.size(), 0);
   auto setup = [=, this]() {
     auto newCfg = getSw()->getConfig();
-    auto fabricPortId =
-        PortID(masterLogicalPortIds({cfg::PortType::FABRIC_PORT})[0]);
     for (auto& portCfg : *newCfg.ports()) {
-      if (PortID(*portCfg.logicalID()) == fabricPortId) {
+      if (fabricPortIds.find(PortID(*portCfg.logicalID())) !=
+          fabricPortIds.end()) {
         *portCfg.drainState() = cfg::PortDrainState::DRAINED;
-        break;
       }
     }
     applyNewConfig(newCfg);
@@ -137,9 +143,7 @@ TEST_F(AgentFabricSwitchTest, fabricIsolate) {
 
   auto verify = [=, this]() {
     EXPECT_GT(getProgrammedState()->getPorts()->numNodes(), 0);
-    auto fabricPortId =
-        PortID(masterLogicalPortIds({cfg::PortType::FABRIC_PORT})[0]);
-    for (const auto& switchId : getFabricSwitchIds()) {
+    for (auto [switchId, fabricPortId] : switchId2FabricPortId) {
       utility::checkPortFabricReachability(
           getAgentEnsemble(), switchId, fabricPortId);
     }
