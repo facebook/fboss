@@ -49,6 +49,14 @@ class AgentFabricSwitchTest : public AgentHwTest {
   }
 
  protected:
+  std::map<SwitchID, std::vector<PortID>> switch2PortIds() const {
+    std::map<SwitchID, std::vector<PortID>> switch2PortIds;
+    for (auto switchId : getFabricSwitchIds()) {
+      switch2PortIds[switchId] =
+          getAgentEnsemble()->masterLogicalFabricPortIds(switchId);
+    }
+    return switch2PortIds;
+  }
   void setCmdLineFlagOverrides() const override {
     AgentHwTest::setCmdLineFlagOverrides();
     FLAGS_hide_fabric_ports = false;
