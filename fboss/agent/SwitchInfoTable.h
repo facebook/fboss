@@ -13,6 +13,7 @@ class SwitchInfoTable {
   SwitchInfoTable(
       const std::map<int64_t, cfg::SwitchInfo>& switchIdToSwitchInfo);
   std::unordered_set<SwitchID> getSwitchIdsOfType(cfg::SwitchType type) const;
+  std::unordered_set<SwitchID> getL3SwitchIDs() const;
   std::unordered_set<SwitchID> getSwitchIDs() const;
   std::unordered_set<uint16_t> getSwitchIndicesOfType(
       cfg::SwitchType type) const;

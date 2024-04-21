@@ -36,6 +36,11 @@ std::unordered_set<SwitchID> SwitchInfoTable::getSwitchIdsOfType(
   return switchIds;
 }
 
+std::unordered_set<SwitchID> SwitchInfoTable::getL3SwitchIDs() const {
+  return haveL3Switches() ? getSwitchIdsOfType(l3SwitchType())
+                          : std::unordered_set<SwitchID>();
+}
+
 std::unordered_set<SwitchID> SwitchInfoTable::getSwitchIDs() const {
   CHECK_NE(switchIdToSwitchInfo_.size(), 0);
   std::unordered_set<SwitchID> switchIds;
