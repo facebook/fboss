@@ -103,6 +103,14 @@ TYPED_TEST(SwitchInfoTableTest, l3SwitchType) {
   }
 }
 
+TYPED_TEST(SwitchInfoTableTest, getL3SwitchIDs) {
+  if (this->isVoq() || this->isNpu()) {
+    EXPECT_EQ(this->infoTable->getL3SwitchIDs().size(), 2);
+  } else {
+    EXPECT_EQ(this->infoTable->getL3SwitchIDs().size(), 0);
+  }
+}
+
 TYPED_TEST(SwitchInfoTableTest, getSwitchIndex) {
   for (auto switchId : this->infoTable->getSwitchIDs()) {
     EXPECT_EQ(
