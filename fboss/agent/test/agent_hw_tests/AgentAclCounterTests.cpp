@@ -18,6 +18,8 @@
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
+DECLARE_bool(flowletSwitchingEnable);
+
 namespace {
 enum AclType {
   TCP_TTLD,
@@ -27,6 +29,7 @@ enum AclType {
   L4_DST_PORT,
   UDF,
   BTH_OPCODE,
+  FLOWLET,
 };
 }
 
@@ -111,6 +114,9 @@ class AgentAclCounterTest : public AgentHwTest {
       case AclType::BTH_OPCODE:
         aclName = "test-bth-opcode-acl";
         break;
+      case AclType::FLOWLET:
+        aclName = "test-flowlet-acl";
+        break;
     }
     return aclName;
   }
@@ -139,6 +145,9 @@ class AgentAclCounterTest : public AgentHwTest {
       case AclType::BTH_OPCODE:
         counterName = "test-bth-opcode-acl-stats";
         break;
+      case AclType::FLOWLET:
+        counterName = "test-flowlet-acl-stats";
+        break;
     }
     return counterName;
   }
@@ -164,6 +173,47 @@ class AgentAclCounterTest : public AgentHwTest {
       for (auto aclType : aclTypes) {
         verifyAclType(bumpOnHit, frontPanel, aclType);
       }
+    };
+
+    verifyAcrossWarmBoots(setup, verify);
+  }
+
+  void counterBumpOnFlowletAclHitHelper(
+      bool bumpOnHit,
+      bool frontPanel,
+      std::vector<AclType> aclTypes) {
+    auto setup = [this, aclTypes]() {
+      applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+        return helper_->resolveNextHops(in, 2);
+      });
+      auto wrapper = getSw()->getRouteUpdater();
+      helper_->programRoutes(&wrapper, kEcmpWidth);
+      auto newCfg{initialConfig(*getAgentEnsemble())};
+      for (auto aclType : aclTypes) {
+        // FLOWLET Acl config already added in addFlowletConfigs() as part of
+        // initial config setup. Hence skipping it here.
+        if (aclType != AclType::FLOWLET) {
+          addAclAndStat(&newCfg, aclType);
+        }
+      }
+      applyNewConfig(newCfg);
+
+      XLOG(DBG3) << "setting ECMP Member Status: ";
+      applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+        auto out = in->clone();
+        for (const auto& [_, switchSetting] :
+             std::as_const(*out->getSwitchSettings())) {
+          auto newSwitchSettings = switchSetting->modify(&out);
+          newSwitchSettings->setForceEcmpDynamicMemberUp(true);
+        }
+        return out;
+      });
+    };
+
+    auto verify = [this, bumpOnHit, frontPanel, aclTypes]() {
+      // since FLOWLET Acl presents ahead of UDF Acl in TCAM
+      // the packet always hit the FLOWLET Acl. Hence verify the FLOWLET Acl
+      verifyAclType(bumpOnHit, frontPanel, AclType::FLOWLET);
     };
 
     verifyAcrossWarmBoots(setup, verify);
@@ -326,8 +376,10 @@ class AgentAclCounterTest : public AgentHwTest {
     auto aclBytesCountBefore = utility::getAclInOutPackets(
         getSw(), getCounterName(aclType), true /* bytes */);
     size_t sizeOfPacketSent = 0;
+
     // for udf or bth_opcode testing, send roce packets
-    if (aclType == AclType::UDF || aclType == AclType::BTH_OPCODE) {
+    if (aclType == AclType::UDF || aclType == AclType::BTH_OPCODE ||
+        aclType == AclType::FLOWLET) {
       sizeOfPacketSent = sendRoceTraffic(egressPort);
     } else {
       sizeOfPacketSent = sendPacket(frontPanel, bumpOnHit, aclType);
@@ -400,6 +452,8 @@ class AgentAclCounterTest : public AgentHwTest {
         break;
       case AclType::BTH_OPCODE:
         acl->roceOpcode() = utility::kUdfRoceOpcode;
+        break;
+      case AclType::FLOWLET:
         break;
     }
     std::vector<cfg::CounterType> setCounterTypes{
@@ -521,5 +575,58 @@ TEST_F(
       true /* bump on hit */,
       true /* front panel port */,
       {AclType::BTH_OPCODE});
+}
+
+/*
+ * Flowlet Acls are not supported on SAI and multi ACL. So we only test with
+ * multi acl disabled for now.
+ */
+class AgentFlowletAclCounterTest
+    : public AgentAclCounterTest<EnableMultiAclTable<false>> {
+ public:
+  std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const override {
+    return {
+        production_features::ProductionFeature::DLB,
+        production_features::ProductionFeature::SINGLE_ACL_TABLE};
+  }
+
+ protected:
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto cfg = utility::onePortPerInterfaceConfig(
+        ensemble.getSw(),
+        ensemble.masterLogicalPortIds(),
+        true /*interfaceHasSubnet*/);
+    cfg.udfConfig() = utility::addUdfAckAndFlowletAclConfig();
+    utility::addFlowletConfigs(cfg, ensemble.masterLogicalPortIds());
+    return cfg;
+  }
+
+  void setCmdLineFlagOverrides() const override {
+    AgentHwTest::setCmdLineFlagOverrides();
+    FLAGS_flowletSwitchingEnable = true;
+  }
+};
+
+TEST_F(AgentFlowletAclCounterTest, VerifyFlowlet) {
+  counterBumpOnFlowletAclHitHelper(
+      true /* bump on hit */, true /* front panel port */, {AclType::FLOWLET});
+}
+
+TEST_F(AgentFlowletAclCounterTest, VerifyFlowletWithOtherAcls) {
+  counterBumpOnFlowletAclHitHelper(
+      true /* bump on hit */,
+      true /* front panel port */,
+      {AclType::FLOWLET, AclType::SRC_PORT});
+}
+
+// Verifying the FLOWLET Acl always hit ahead of UDF Acl
+// when FLOWLET Acl present before UDF Acl
+TEST_F(AgentFlowletAclCounterTest, VerifyFlowletWithUdf) {
+  counterBumpOnFlowletAclHitHelper(
+      true /* bump on hit */,
+      true /* front panel port */,
+      {AclType::FLOWLET, AclType::UDF});
 }
 } // namespace facebook::fboss
