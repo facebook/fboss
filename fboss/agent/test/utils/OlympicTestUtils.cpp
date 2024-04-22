@@ -159,8 +159,7 @@ void addQueueWredConfig(
 
 void addNetworkAIQueueConfig(
     cfg::SwitchConfig* config,
-    cfg::StreamType streamType,
-    const HwAsic* hwAsic) {
+    cfg::StreamType streamType) {
   std::vector<cfg::PortQueue> portQueues;
 
   cfg::PortQueue queue0;

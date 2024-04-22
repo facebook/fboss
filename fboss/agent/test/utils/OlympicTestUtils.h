@@ -115,8 +115,7 @@ constexpr int kNetworkAIHighestQueueId = kNetworkAINCQueueId;
 
 void addNetworkAIQueueConfig(
     cfg::SwitchConfig* config,
-    cfg::StreamType streamType,
-    const HwAsic* hwAsic);
+    cfg::StreamType streamType);
 
 void addOlympicQueueOptionalEcnWredConfigWithSchedulingHelper(
     cfg::SwitchConfig* config,
