@@ -597,7 +597,7 @@ const std::map<int, uint8_t> kOlympicWRRQueueToWeight() {
   return wrrQueueToWeight;
 }
 
-const std::map<int, uint8_t> kOlympicV2WRRQueueToWeight(const HwAsic* hwAsic) {
+const std::map<int, uint8_t> kOlympicV2WRRQueueToWeight() {
   const std::map<int, uint8_t> wrrQueueToWeight = {
       {getOlympicV2QueueId(OlympicV2QueueType::NCNF), kOlympicV2NCNFWeight},
       {getOlympicV2QueueId(OlympicV2QueueType::BRONZE), kOlympicV2BronzeWeight},

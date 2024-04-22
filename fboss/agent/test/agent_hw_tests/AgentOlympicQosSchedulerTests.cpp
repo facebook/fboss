@@ -561,9 +561,8 @@ void AgentOlympicQosSchedulerTest::verifyWRRForOlympicToOlympicV2() {
      * Verify whether the WRR weights are being honored
      */
     EXPECT_TRUE(verifyWRRHelper(
-        utility::getMaxWeightWRRQueue(
-            utility::kOlympicV2WRRQueueToWeight(getAsic())),
-        utility::kOlympicV2WRRQueueToWeight(getAsic()),
+        utility::getMaxWeightWRRQueue(utility::kOlympicV2WRRQueueToWeight()),
+        utility::kOlympicV2WRRQueueToWeight(),
         utility::kOlympicV2WRRQueueIds(getAsic()),
         utility::kOlympicV2QueueToDscp(getAsic())));
   };
@@ -669,9 +668,8 @@ void AgentOlympicQosSchedulerTest::verifyOlympicV2AllSPTrafficToWRR() {
   auto verifyPostWarmboot = [=, this]() {
     // Verify whether the WRR weights are being honored
     EXPECT_TRUE(verifyWRRHelper(
-        utility::getMaxWeightWRRQueue(
-            utility::kOlympicV2WRRQueueToWeight(getAsic())),
-        utility::kOlympicV2WRRQueueToWeight(getAsic()),
+        utility::getMaxWeightWRRQueue(utility::kOlympicV2WRRQueueToWeight()),
+        utility::kOlympicV2WRRQueueToWeight(),
         utility::kOlympicV2WRRQueueIds(getAsic()),
         utility::kOlympicV2QueueToDscp(getAsic())));
   };
