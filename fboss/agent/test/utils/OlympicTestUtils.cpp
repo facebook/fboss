@@ -618,7 +618,7 @@ const std::vector<int> kOlympicWRRQueueIds() {
   return wrrQueueIds;
 }
 
-const std::vector<int> kOlympicV2WRRQueueIds(const HwAsic* hwAsic) {
+const std::vector<int> kOlympicV2WRRQueueIds() {
   const std::vector<int> queueIds = {
       getOlympicV2QueueId(OlympicV2QueueType::NCNF),
       getOlympicV2QueueId(OlympicV2QueueType::BRONZE),
@@ -628,7 +628,7 @@ const std::vector<int> kOlympicV2WRRQueueIds(const HwAsic* hwAsic) {
   return queueIds;
 }
 
-const std::vector<int> kOlympicSPQueueIds(const HwAsic* hwAsic) {
+const std::vector<int> kOlympicSPQueueIds() {
   const std::vector<int> spQueueIds = {
       getOlympicQueueId(OlympicQueueType::ICP),
       getOlympicQueueId(OlympicQueueType::NC)};

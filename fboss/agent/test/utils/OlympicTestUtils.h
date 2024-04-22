@@ -152,8 +152,8 @@ const std::map<int, uint8_t> kOlympicWRRQueueToWeight();
 const std::map<int, uint8_t> kOlympicV2WRRQueueToWeight();
 
 const std::vector<int> kOlympicWRRQueueIds();
-const std::vector<int> kOlympicV2WRRQueueIds(const HwAsic* hwAsic);
-const std::vector<int> kOlympicSPQueueIds(const HwAsic* hwAsic);
+const std::vector<int> kOlympicV2WRRQueueIds();
+const std::vector<int> kOlympicSPQueueIds();
 const std::vector<int> kOlympicWRRAndICPQueueIds(const HwAsic* hwAsic);
 const std::vector<int> kOlympicWRRAndNCQueueIds(const HwAsic* hwAsic);
 

@@ -422,7 +422,7 @@ void AgentOlympicQosSchedulerTest::verifySP(bool frontPanelTraffic) {
         // should starve other SP queues
         // altogether
         utility::getOlympicQueueId(utility::OlympicQueueType::NC),
-        utility::kOlympicSPQueueIds(getAsic()),
+        utility::kOlympicSPQueueIds(),
         utility::kOlympicQueueToDscp(),
         frontPanelTraffic));
   };
@@ -563,7 +563,7 @@ void AgentOlympicQosSchedulerTest::verifyWRRForOlympicToOlympicV2() {
     EXPECT_TRUE(verifyWRRHelper(
         utility::getMaxWeightWRRQueue(utility::kOlympicV2WRRQueueToWeight()),
         utility::kOlympicV2WRRQueueToWeight(),
-        utility::kOlympicV2WRRQueueIds(getAsic()),
+        utility::kOlympicV2WRRQueueIds(),
         utility::kOlympicV2QueueToDscp(getAsic())));
   };
 
@@ -670,7 +670,7 @@ void AgentOlympicQosSchedulerTest::verifyOlympicV2AllSPTrafficToWRR() {
     EXPECT_TRUE(verifyWRRHelper(
         utility::getMaxWeightWRRQueue(utility::kOlympicV2WRRQueueToWeight()),
         utility::kOlympicV2WRRQueueToWeight(),
-        utility::kOlympicV2WRRQueueIds(getAsic()),
+        utility::kOlympicV2WRRQueueIds(),
         utility::kOlympicV2QueueToDscp(getAsic())));
   };
 
@@ -692,7 +692,7 @@ TEST_F(AgentOlympicQosSchedulerTest, VerifySP) {
  * tests front panel traffic.
  */
 TEST_F(AgentOlympicQosSchedulerTest, VerifySPPreemptionCPUTraffic) {
-  auto spQueueIds = utility::kOlympicSPQueueIds(getAsic());
+  auto spQueueIds = utility::kOlympicSPQueueIds();
   auto getQueueIndex = [&](int queueId) {
     for (auto i = 0; i < spQueueIds.size(); ++i) {
       if (spQueueIds[i] == queueId) {
