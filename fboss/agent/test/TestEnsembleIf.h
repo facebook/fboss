@@ -96,6 +96,7 @@ class TestEnsembleIf : public HwSwitchCallback {
   virtual bool supportsAddRemovePort() const = 0;
   virtual const PlatformMapping* getPlatformMapping() const = 0;
   virtual cfg::SwitchConfig getCurrentConfig() const = 0;
+  std::vector<const HwAsic*> getL3Asics() const;
 
  private:
   std::vector<PortID> masterLogicalPortIdsImpl(
