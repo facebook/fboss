@@ -404,7 +404,7 @@ void AgentOlympicQosSchedulerTest::verifyWRR() {
     EXPECT_TRUE(verifyWRRHelper(
         utility::getMaxWeightWRRQueue(utility::kOlympicWRRQueueToWeight()),
         utility::kOlympicWRRQueueToWeight(),
-        utility::kOlympicWRRQueueIds(getAsic()),
+        utility::kOlympicWRRQueueIds(),
         utility::kOlympicQueueToDscp()));
   };
 

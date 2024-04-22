@@ -71,7 +71,7 @@ class BcmQcmDataTest : public BcmLinkStateDependentTests {
     // of gport matches WRR queue count * 2.
     FLAGS_init_gport_available_count = 4 * 2;
     BcmLinkStateDependentTests::SetUp();
-    const auto& queueIds = utility::kOlympicWRRQueueIds(getAsic());
+    const auto& queueIds = utility::kOlympicWRRQueueIds();
     CHECK_EQ(FLAGS_init_gport_available_count, queueIds.size() * 2);
     ecmpHelper6_ = std::make_unique<utility::EcmpSetupTargetedPorts6>(
         getProgrammedState(), RouterID(0));
@@ -104,7 +104,7 @@ class BcmQcmDataTest : public BcmLinkStateDependentTests {
     const auto& portList = {
         masterLogicalPortIds()[0], masterLogicalPortIds()[1]};
     for (const auto& port : portList) {
-      for (const auto& queueId : utility::kOlympicWRRQueueIds(getAsic())) {
+      for (const auto& queueId : utility::kOlympicWRRQueueIds()) {
         qcmCfg.port2QosQueueIds()[port].push_back(queueId);
       }
     }
@@ -155,7 +155,7 @@ class BcmQcmDataTest : public BcmLinkStateDependentTests {
 
     for (const auto& port : monitorPortList) {
       qcmCfg.monitorQcmPortList()->emplace_back(port);
-      for (const auto& queueId : utility::kOlympicWRRQueueIds(getAsic())) {
+      for (const auto& queueId : utility::kOlympicWRRQueueIds()) {
         qcmCfg.port2QosQueueIds()[port].push_back(queueId);
       }
     }
@@ -327,7 +327,7 @@ TEST_F(BcmQcmDataTest, VerifyPortMonitoringPriorityPortsConfigured) {
   };
   auto verify = [&]() {
     Port2QosQueueIdMap portMap;
-    const auto& queueIds = utility::kOlympicWRRQueueIds(getAsic());
+    const auto& queueIds = utility::kOlympicWRRQueueIds();
     const std::set<int> queueIdSet(queueIds.begin(), queueIds.end());
     portMap[masterLogicalPortIds()[0]] = queueIdSet;
     portMap[masterLogicalPortIds()[1]] = queueIdSet;
@@ -381,7 +381,7 @@ TEST_F(BcmQcmDataTest, VerifyPortMonitoringNoneConfigured) {
 
   auto verify = [&]() {
     Port2QosQueueIdMap portMap;
-    const auto& queueIds = utility::kOlympicWRRQueueIds(getAsic());
+    const auto& queueIds = utility::kOlympicWRRQueueIds();
     const std::set<int> queueIdSet(queueIds.begin(), queueIds.end());
 
     getHwSwitch()->getBcmQcmMgr()->setAvailableGPorts(queueIdSet.size() - 1);
