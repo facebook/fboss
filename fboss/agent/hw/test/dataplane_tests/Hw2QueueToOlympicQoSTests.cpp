@@ -132,11 +132,9 @@ class Hw2QueueToOlympicQoSTest : public HwLinkStateDependentTest {
 
     auto verifyPostWarmboot = [=, this]() {
       XLOG(DBG2) << "verify send packets switched";
-      _verifyDscpQueueMappingHelper(
-          utility::kOlympicQueueToDscp(getPlatform()->getAsic()), false);
+      _verifyDscpQueueMappingHelper(utility::kOlympicQueueToDscp(), false);
       XLOG(DBG2) << "verify send packets out of port";
-      _verifyDscpQueueMappingHelper(
-          utility::kOlympicQueueToDscp(getPlatform()->getAsic()), true);
+      _verifyDscpQueueMappingHelper(utility::kOlympicQueueToDscp(), true);
     };
 
     verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);

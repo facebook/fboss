@@ -120,7 +120,7 @@ class HwPortBandwidthTest : public HwLinkStateDependentTest {
   }
 
   uint8_t kQueueId0Dscp(const HwAsic* hwAsic) const {
-    return utility::kOlympicQueueToDscp(hwAsic).at(kQueueId0()).front();
+    return utility::kOlympicQueueToDscp().at(kQueueId0()).front();
   }
 
   uint32_t kMinPps() const {
@@ -136,7 +136,7 @@ class HwPortBandwidthTest : public HwLinkStateDependentTest {
   }
 
   uint8_t kQueueId1Dscp(const HwAsic* hwAsic) const {
-    return utility::kOlympicQueueToDscp(hwAsic).at(kQueueId1()).front();
+    return utility::kOlympicQueueToDscp().at(kQueueId1()).front();
   }
 
   uint32_t kMinKbps() const {

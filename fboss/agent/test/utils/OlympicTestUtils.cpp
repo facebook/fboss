@@ -553,8 +553,7 @@ std::string getOlympicCounterNameForDscp(uint8_t dscp) {
   return folly::to<std::string>("dscp", dscp, "_counter");
 }
 
-const std::map<int, std::vector<uint8_t>> kOlympicQueueToDscp(
-    const HwAsic* hwAsic) {
+const std::map<int, std::vector<uint8_t>> kOlympicQueueToDscp() {
   const std::map<int, std::vector<uint8_t>> queueToDscp = {
       {getOlympicQueueId(OlympicQueueType::SILVER),
        {0,  1,  2,  3,  4,  6,  7,  8,  9,  12, 13,
@@ -730,7 +729,7 @@ void addQosMapsHelper(
 }
 
 void addOlympicQosMaps(cfg::SwitchConfig& cfg, const HwAsic* hwAsic) {
-  addQosMapsHelper(cfg, kOlympicQueueToDscp(hwAsic), "olympic", hwAsic);
+  addQosMapsHelper(cfg, kOlympicQueueToDscp(), "olympic", hwAsic);
 }
 
 void addOlympicV2QosMaps(cfg::SwitchConfig& cfg, const HwAsic* hwAsic) {

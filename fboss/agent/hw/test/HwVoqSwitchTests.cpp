@@ -994,7 +994,7 @@ TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, verifyDscpToVoqMapping) {
   };
 
   auto verify = [=, this]() {
-    for (const auto& q2dscps : utility::kOlympicQueueToDscp(getAsic())) {
+    for (const auto& q2dscps : utility::kOlympicQueueToDscp()) {
       auto queueId = q2dscps.first;
       for (auto dscp : q2dscps.second) {
         XLOG(DBG2) << "verify packet with dscp " << dscp << " goes to queue "

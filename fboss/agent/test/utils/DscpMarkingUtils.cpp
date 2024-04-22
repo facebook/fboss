@@ -46,7 +46,7 @@ std::string kCounterName() {
 }
 
 uint8_t kIcpDscp(const HwAsic* hwAsic) {
-  return utility::kOlympicQueueToDscp(hwAsic)
+  return utility::kOlympicQueueToDscp()
       .at(utility::getOlympicQueueId(utility::OlympicQueueType::ICP))
       .front();
 }

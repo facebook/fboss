@@ -174,7 +174,7 @@ class AgentOlympicQosSchedulerTest : public AgentHwTest {
   void verifyWRRAndSP(const std::vector<int>& queueIds, int trafficQueueId) {
     auto verify = [=, this]() {
       EXPECT_TRUE(verifySPHelper(
-          trafficQueueId, queueIds, utility::kOlympicQueueToDscp(getAsic())));
+          trafficQueueId, queueIds, utility::kOlympicQueueToDscp()));
     };
 
     verifyAcrossWarmBoots([]() {}, verify);
@@ -192,11 +192,9 @@ class AgentOlympicQosSchedulerTest : public AgentHwTest {
           XLOG(DBG2) << "send traffic to WRR queue " << queue
                      << " and SP queue " << trafficQueueId;
           sendUdpPktsForAllQueues(
-              {queue, trafficQueueId}, utility::kOlympicQueueToDscp(getAsic()));
+              {queue, trafficQueueId}, utility::kOlympicQueueToDscp());
           EXPECT_TRUE(verifySPHelper(
-              trafficQueueId,
-              queueIds,
-              utility::kOlympicQueueToDscp(getAsic())));
+              trafficQueueId, queueIds, utility::kOlympicQueueToDscp()));
           // toggle route to stop traffic, and then send traffic to each WRR
           // queue and SP queue
           XLOG(DBG2) << "unprogram routes";
@@ -408,7 +406,7 @@ void AgentOlympicQosSchedulerTest::verifyWRR() {
             utility::kOlympicWRRQueueToWeight(getAsic())),
         utility::kOlympicWRRQueueToWeight(getAsic()),
         utility::kOlympicWRRQueueIds(getAsic()),
-        utility::kOlympicQueueToDscp(getAsic())));
+        utility::kOlympicQueueToDscp()));
   };
 
   verifyAcrossWarmBoots([]() {}, verify);
@@ -426,7 +424,7 @@ void AgentOlympicQosSchedulerTest::verifySP(bool frontPanelTraffic) {
         // altogether
         utility::getOlympicQueueId(utility::OlympicQueueType::NC),
         utility::kOlympicSPQueueIds(getAsic()),
-        utility::kOlympicQueueToDscp(getAsic()),
+        utility::kOlympicQueueToDscp(),
         frontPanelTraffic));
   };
 
@@ -470,7 +468,7 @@ void AgentOlympicQosSchedulerTest::verifyWRRToAllSPDscpToQueue() {
   };
 
   auto verify = [=, this]() {
-    _verifyDscpQueueMappingHelper(utility::kOlympicQueueToDscp(getAsic()));
+    _verifyDscpQueueMappingHelper(utility::kOlympicQueueToDscp());
   };
 
   auto setupPostWarmboot = [=, this]() {
@@ -538,7 +536,7 @@ void AgentOlympicQosSchedulerTest::verifyDscpToQueueOlympicToOlympicV2() {
   };
 
   auto verify = [=, this]() {
-    _verifyDscpQueueMappingHelper(utility::kOlympicQueueToDscp(getAsic()));
+    _verifyDscpQueueMappingHelper(utility::kOlympicQueueToDscp());
   };
 
   auto setupPostWarmboot = [=, this]() { _setupOlympicV2Queues(); };
@@ -602,7 +600,7 @@ void AgentOlympicQosSchedulerTest::verifyDscpToQueueOlympicV2ToOlympic() {
   };
 
   auto verifyPostWarmboot = [=, this]() {
-    _verifyDscpQueueMappingHelper(utility::kOlympicQueueToDscp(getAsic()));
+    _verifyDscpQueueMappingHelper(utility::kOlympicQueueToDscp());
   };
 
   verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);

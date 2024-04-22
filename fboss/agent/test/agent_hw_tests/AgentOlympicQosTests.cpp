@@ -47,7 +47,6 @@ class AgentOlympicQosTests : public AgentHwTest {
     auto verify = [=, this]() {
       utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
       auto portId = ecmpHelper.ecmpPortDescriptorAt(0).phyPortID();
-      auto asic = utility::getFirstAsic(getAgentEnsemble()->getSw());
       std::optional<SystemPortID> sysPortId;
       if (getSw()->getSwitchInfoTable().haveVoqSwitches()) {
         auto switchId = utility::getFirstSwitchId(getSw());
@@ -57,7 +56,7 @@ class AgentOlympicQosTests : public AgentHwTest {
         XLOG(DBG2) << "verify send packets "
                    << (frontPanel ? "out of port" : "switched");
         utility::sendPktAndVerifyQueueHit(
-            utility::kOlympicQueueToDscp(asic),
+            utility::kOlympicQueueToDscp(),
             getSw(),
             [this, frontPanel](int dscp) { sendPacket(dscp, frontPanel); },
             portId,

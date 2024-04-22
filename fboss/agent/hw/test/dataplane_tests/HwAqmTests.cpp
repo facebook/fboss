@@ -576,7 +576,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
       auto sendPackets = [=, this](PortID /* port */, int numPacketsToSend) {
         // Single port config, traffic gets forwarded out of the same!
         sendPkts(
-            utility::kOlympicQueueToDscp(getAsic()).at(kQueueId).front(),
+            utility::kOlympicQueueToDscp().at(kQueueId).front(),
             ecnVal,
             numPacketsToSend,
             kPayloadLength);
@@ -694,7 +694,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
       const int kNumPacketsToSend =
           getHwSwitchEnsemble()->getMinPktsForLineRate(portId);
       sendPkts(
-          utility::kOlympicQueueToDscp(getAsic()).at(queueId).front(),
+          utility::kOlympicQueueToDscp().at(queueId).front(),
           kECT1,
           kNumPacketsToSend);
     };
@@ -770,7 +770,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
       constexpr auto kNumPacketsToSend{1000};
       for (auto queueId : wredQueueIds) {
         sendPkts(
-            utility::kOlympicQueueToDscp(getAsic()).at(queueId).front(),
+            utility::kOlympicQueueToDscp().at(queueId).front(),
             false,
             kNumPacketsToSend);
       }
@@ -871,7 +871,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
           utility::getOlympicQueueId(utility::OlympicQueueType::SILVER);
       for (auto const& port : ports) {
         sendPkts(
-            utility::kOlympicQueueToDscp(getAsic()).at(queueId).front(),
+            utility::kOlympicQueueToDscp().at(queueId).front(),
             ecnVal,
             numPacketsToSend,
             kPayloadLength,
