@@ -117,19 +117,6 @@ void addNetworkAIQueueConfig(
     cfg::SwitchConfig* config,
     cfg::StreamType streamType);
 
-void addOlympicQueueOptionalEcnWredConfigWithSchedulingHelper(
-    cfg::SwitchConfig* config,
-    cfg::StreamType streamType,
-    const HwAsic* asic,
-    bool addWredConfig,
-    bool addEcnConfig,
-    cfg::QueueScheduling schedType);
-void addOlympicQueueConfigWithSchedulingHelper(
-    cfg::SwitchConfig* config,
-    cfg::StreamType streamType,
-    const HwAsic* asic,
-    bool addWredConfig,
-    cfg::QueueScheduling schedType);
 void addOlympicQueueConfig(
     cfg::SwitchConfig* config,
     cfg::StreamType streamType,

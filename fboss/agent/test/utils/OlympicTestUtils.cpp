@@ -56,7 +56,115 @@ void addVoqAqmConfig(
   }
   config->defaultVoqConfig() = voqConfig;
 }
+
+// XXX This is FSW config, add RSW config. Prefix queue names with portName
+void addOlympicQueueOptionalEcnWredConfigWithSchedulingHelper(
+    cfg::SwitchConfig* config,
+    cfg::StreamType streamType,
+    const HwAsic* asic,
+    bool addWredConfig,
+    bool addEcnConfig,
+    cfg::QueueScheduling schedType) {
+  std::vector<cfg::PortQueue> portQueues;
+
+  cfg::PortQueue queue0;
+  *queue0.id() = getOlympicQueueId(OlympicQueueType::SILVER);
+  queue0.name() = "queue0.silver";
+  queue0.streamType() = streamType;
+  *queue0.scheduling() = schedType;
+  queue0.weight() = kOlympicSilverWeight;
+  if (asic->scalingFactorBasedDynamicThresholdSupported()) {
+    queue0.scalingFactor() = cfg::MMUScalingFactor::ONE;
+  }
+  if (!asic->mmuQgroupsEnabled()) {
+    queue0.reservedBytes() = 3328;
+  }
+  portQueues.push_back(queue0);
+
+  cfg::PortQueue queue1;
+  *queue1.id() = getOlympicQueueId(OlympicQueueType::GOLD);
+  queue1.name() = "queue1.gold";
+  queue1.streamType() = streamType;
+  *queue1.scheduling() = schedType;
+  queue1.weight() = kOlympicGoldWeight;
+  if (asic->scalingFactorBasedDynamicThresholdSupported()) {
+    queue1.scalingFactor() = cfg::MMUScalingFactor::EIGHT;
+  }
+  if (!asic->mmuQgroupsEnabled()) {
+    queue1.reservedBytes() = 9984;
+  }
+  portQueues.push_back(queue1);
+
+  cfg::PortQueue queue2;
+  *queue2.id() = getOlympicQueueId(OlympicQueueType::ECN1);
+  queue2.name() = "queue2.ecn1";
+  queue2.streamType() = streamType;
+  *queue2.scheduling() = schedType;
+  queue2.weight() = kOlympicEcn1Weight;
+  if (asic->scalingFactorBasedDynamicThresholdSupported()) {
+    queue2.scalingFactor() = cfg::MMUScalingFactor::ONE;
+  }
+  queue2.aqms() = {};
+  if (addEcnConfig) {
+    queue2.aqms()->push_back(kGetOlympicEcnConfig());
+  }
+  if (addWredConfig) {
+    queue2.aqms()->push_back(kGetWredConfig());
+  }
+  portQueues.push_back(queue2);
+
+  cfg::PortQueue queue4;
+  *queue4.id() = getOlympicQueueId(OlympicQueueType::BRONZE);
+  queue4.name() = "queue4.bronze";
+  queue4.streamType() = streamType;
+  *queue4.scheduling() = schedType;
+  queue4.weight() = kOlympicBronzeWeight;
+  portQueues.push_back(queue4);
+
+  cfg::PortQueue queue6;
+  *queue6.id() = getOlympicQueueId(OlympicQueueType::ICP);
+  queue6.name() = "queue6.platinum";
+  queue6.streamType() = streamType;
+  *queue6.scheduling() = cfg::QueueScheduling::STRICT_PRIORITY;
+  if (!asic->mmuQgroupsEnabled()) {
+    queue6.reservedBytes() = 9984;
+  }
+  if (asic->scalingFactorBasedDynamicThresholdSupported()) {
+    queue6.scalingFactor() = cfg::MMUScalingFactor::EIGHT;
+  }
+  portQueues.push_back(queue6);
+
+  cfg::PortQueue queue7;
+  *queue7.id() = getOlympicQueueId(OlympicQueueType::NC);
+  queue7.name() = "queue7.network_control";
+  queue7.streamType() = streamType;
+  *queue7.scheduling() = cfg::QueueScheduling::STRICT_PRIORITY;
+  portQueues.push_back(queue7);
+
+  config->portQueueConfigs()["queue_config"] = portQueues;
+  for (auto& port : *config->ports()) {
+    if (*port.portType() == cfg::PortType::INTERFACE_PORT) {
+      // Apply queue configs on INTERFACE_PORTS only
+      port.portQueueConfigName() = "queue_config";
+    }
+  }
+  // For VoQ switches, add AQM config to VoQ as well.
+  if (asic->getSwitchType() == cfg::SwitchType::VOQ) {
+    addVoqAqmConfig(config, streamType, asic, addWredConfig, addEcnConfig);
+  }
+}
+
+void addOlympicQueueConfigWithSchedulingHelper(
+    cfg::SwitchConfig* config,
+    cfg::StreamType streamType,
+    const HwAsic* asic,
+    bool addWredConfig,
+    cfg::QueueScheduling schedType) {
+  addOlympicQueueOptionalEcnWredConfigWithSchedulingHelper(
+      config, streamType, asic, addWredConfig, true, schedType);
+}
 } // namespace
+
 int getOlympicQueueId(OlympicQueueType queueType) {
   switch (queueType) {
     case OlympicQueueType::SILVER:
@@ -228,113 +336,6 @@ void addNetworkAIQueueConfig(
   config->portQueueConfigs()["queue_config"] = portQueues;
   for (auto& port : *config->ports()) {
     port.portQueueConfigName() = "queue_config";
-  }
-}
-
-void addOlympicQueueConfigWithSchedulingHelper(
-    cfg::SwitchConfig* config,
-    cfg::StreamType streamType,
-    const HwAsic* asic,
-    bool addWredConfig,
-    cfg::QueueScheduling schedType) {
-  addOlympicQueueOptionalEcnWredConfigWithSchedulingHelper(
-      config, streamType, asic, addWredConfig, true, schedType);
-}
-
-// XXX This is FSW config, add RSW config. Prefix queue names with portName
-void addOlympicQueueOptionalEcnWredConfigWithSchedulingHelper(
-    cfg::SwitchConfig* config,
-    cfg::StreamType streamType,
-    const HwAsic* asic,
-    bool addWredConfig,
-    bool addEcnConfig,
-    cfg::QueueScheduling schedType) {
-  std::vector<cfg::PortQueue> portQueues;
-
-  cfg::PortQueue queue0;
-  *queue0.id() = getOlympicQueueId(OlympicQueueType::SILVER);
-  queue0.name() = "queue0.silver";
-  queue0.streamType() = streamType;
-  *queue0.scheduling() = schedType;
-  queue0.weight() = kOlympicSilverWeight;
-  if (asic->scalingFactorBasedDynamicThresholdSupported()) {
-    queue0.scalingFactor() = cfg::MMUScalingFactor::ONE;
-  }
-  if (!asic->mmuQgroupsEnabled()) {
-    queue0.reservedBytes() = 3328;
-  }
-  portQueues.push_back(queue0);
-
-  cfg::PortQueue queue1;
-  *queue1.id() = getOlympicQueueId(OlympicQueueType::GOLD);
-  queue1.name() = "queue1.gold";
-  queue1.streamType() = streamType;
-  *queue1.scheduling() = schedType;
-  queue1.weight() = kOlympicGoldWeight;
-  if (asic->scalingFactorBasedDynamicThresholdSupported()) {
-    queue1.scalingFactor() = cfg::MMUScalingFactor::EIGHT;
-  }
-  if (!asic->mmuQgroupsEnabled()) {
-    queue1.reservedBytes() = 9984;
-  }
-  portQueues.push_back(queue1);
-
-  cfg::PortQueue queue2;
-  *queue2.id() = getOlympicQueueId(OlympicQueueType::ECN1);
-  queue2.name() = "queue2.ecn1";
-  queue2.streamType() = streamType;
-  *queue2.scheduling() = schedType;
-  queue2.weight() = kOlympicEcn1Weight;
-  if (asic->scalingFactorBasedDynamicThresholdSupported()) {
-    queue2.scalingFactor() = cfg::MMUScalingFactor::ONE;
-  }
-  queue2.aqms() = {};
-  if (addEcnConfig) {
-    queue2.aqms()->push_back(kGetOlympicEcnConfig());
-  }
-  if (addWredConfig) {
-    queue2.aqms()->push_back(kGetWredConfig());
-  }
-  portQueues.push_back(queue2);
-
-  cfg::PortQueue queue4;
-  *queue4.id() = getOlympicQueueId(OlympicQueueType::BRONZE);
-  queue4.name() = "queue4.bronze";
-  queue4.streamType() = streamType;
-  *queue4.scheduling() = schedType;
-  queue4.weight() = kOlympicBronzeWeight;
-  portQueues.push_back(queue4);
-
-  cfg::PortQueue queue6;
-  *queue6.id() = getOlympicQueueId(OlympicQueueType::ICP);
-  queue6.name() = "queue6.platinum";
-  queue6.streamType() = streamType;
-  *queue6.scheduling() = cfg::QueueScheduling::STRICT_PRIORITY;
-  if (!asic->mmuQgroupsEnabled()) {
-    queue6.reservedBytes() = 9984;
-  }
-  if (asic->scalingFactorBasedDynamicThresholdSupported()) {
-    queue6.scalingFactor() = cfg::MMUScalingFactor::EIGHT;
-  }
-  portQueues.push_back(queue6);
-
-  cfg::PortQueue queue7;
-  *queue7.id() = getOlympicQueueId(OlympicQueueType::NC);
-  queue7.name() = "queue7.network_control";
-  queue7.streamType() = streamType;
-  *queue7.scheduling() = cfg::QueueScheduling::STRICT_PRIORITY;
-  portQueues.push_back(queue7);
-
-  config->portQueueConfigs()["queue_config"] = portQueues;
-  for (auto& port : *config->ports()) {
-    if (*port.portType() == cfg::PortType::INTERFACE_PORT) {
-      // Apply queue configs on INTERFACE_PORTS only
-      port.portQueueConfigName() = "queue_config";
-    }
-  }
-  // For VoQ switches, add AQM config to VoQ as well.
-  if (asic->getSwitchType() == cfg::SwitchType::VOQ) {
-    addVoqAqmConfig(config, streamType, asic, addWredConfig, addEcnConfig);
   }
 }
 
