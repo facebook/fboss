@@ -151,6 +151,14 @@ std::unordered_set<SwitchID> HwAsicTable::getL3SwitchIds() const {
   return switchIds;
 }
 
+std::vector<const HwAsic*> HwAsicTable::getL3Asics() const {
+  std::vector<const HwAsic*> l3Asics;
+  for (auto switchId : getL3SwitchIds()) {
+    l3Asics.push_back(getHwAsic(switchId));
+  }
+  return l3Asics;
+}
+
 std::set<cfg::StreamType> HwAsicTable::getQueueStreamTypes(
     SwitchID switchId,
     cfg::PortType portType) const {

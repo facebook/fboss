@@ -28,6 +28,7 @@ class HwAsicTable {
   std::unordered_set<SwitchID> getSwitchIDs() const;
 
   std::unordered_set<SwitchID> getSwitchIDs(HwAsic::Feature feature) const;
+  std::vector<const HwAsic*> getL3Asics() const;
 
  private:
   HwAsic* getHwAsicIfImpl(SwitchID switchID) const;
