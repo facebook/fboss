@@ -402,9 +402,8 @@ bool AgentOlympicQosSchedulerTest::verifySPHelper(
 void AgentOlympicQosSchedulerTest::verifyWRR() {
   auto verify = [=, this]() {
     EXPECT_TRUE(verifyWRRHelper(
-        utility::getMaxWeightWRRQueue(
-            utility::kOlympicWRRQueueToWeight(getAsic())),
-        utility::kOlympicWRRQueueToWeight(getAsic()),
+        utility::getMaxWeightWRRQueue(utility::kOlympicWRRQueueToWeight()),
+        utility::kOlympicWRRQueueToWeight(),
         utility::kOlympicWRRQueueIds(getAsic()),
         utility::kOlympicQueueToDscp()));
   };

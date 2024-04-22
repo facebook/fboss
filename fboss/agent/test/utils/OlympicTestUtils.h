@@ -148,7 +148,7 @@ void addOlympicQosMaps(cfg::SwitchConfig& cfg, const HwAsic* hwAsic);
 std::string getOlympicCounterNameForDscp(uint8_t dscp);
 
 const std::map<int, std::vector<uint8_t>> kOlympicQueueToDscp();
-const std::map<int, uint8_t> kOlympicWRRQueueToWeight(const HwAsic* hwAsic);
+const std::map<int, uint8_t> kOlympicWRRQueueToWeight();
 const std::map<int, uint8_t> kOlympicV2WRRQueueToWeight(const HwAsic* hwAsic);
 
 const std::vector<int> kOlympicWRRQueueIds(const HwAsic* hwAsic);
