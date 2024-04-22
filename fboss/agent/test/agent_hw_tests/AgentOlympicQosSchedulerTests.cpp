@@ -481,7 +481,7 @@ void AgentOlympicQosSchedulerTest::verifyWRRToAllSPDscpToQueue() {
   };
 
   auto verifyPostWarmboot = [=, this]() {
-    _verifyDscpQueueMappingHelper(utility::kOlympicV2QueueToDscp(getAsic()));
+    _verifyDscpQueueMappingHelper(utility::kOlympicV2QueueToDscp());
   };
 
   verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
@@ -516,7 +516,7 @@ void AgentOlympicQosSchedulerTest::verifyWRRToAllSPTraffic() {
         // altogether
         utility::getOlympicV2QueueId(utility::OlympicV2QueueType::NC),
         utility::kOlympicAllSPQueueIds(),
-        utility::kOlympicV2QueueToDscp(getAsic())));
+        utility::kOlympicV2QueueToDscp()));
   };
 
   verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
@@ -542,7 +542,7 @@ void AgentOlympicQosSchedulerTest::verifyDscpToQueueOlympicToOlympicV2() {
 
   auto verifyPostWarmboot = [=, this]() {
     // Verify DSCP to Queue mapping
-    _verifyDscpQueueMappingHelper(utility::kOlympicV2QueueToDscp(getAsic()));
+    _verifyDscpQueueMappingHelper(utility::kOlympicV2QueueToDscp());
   };
 
   verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
@@ -564,7 +564,7 @@ void AgentOlympicQosSchedulerTest::verifyWRRForOlympicToOlympicV2() {
         utility::getMaxWeightWRRQueue(utility::kOlympicV2WRRQueueToWeight()),
         utility::kOlympicV2WRRQueueToWeight(),
         utility::kOlympicV2WRRQueueIds(),
-        utility::kOlympicV2QueueToDscp(getAsic())));
+        utility::kOlympicV2QueueToDscp()));
   };
 
   verifyAcrossWarmBoots(
@@ -584,7 +584,7 @@ void AgentOlympicQosSchedulerTest::verifyDscpToQueueOlympicV2ToOlympic() {
   };
 
   auto verify = [=, this]() {
-    _verifyDscpQueueMappingHelper(utility::kOlympicV2QueueToDscp(getAsic()));
+    _verifyDscpQueueMappingHelper(utility::kOlympicV2QueueToDscp());
   };
 
   auto setupPostWarmboot = [=, this]() {
@@ -636,7 +636,7 @@ void AgentOlympicQosSchedulerTest::verifyOlympicV2WRRToAllSPTraffic() {
         // altogether
         utility::getOlympicV2QueueId(utility::OlympicV2QueueType::NC),
         utility::kOlympicAllSPQueueIds(),
-        utility::kOlympicV2QueueToDscp(getAsic())));
+        utility::kOlympicV2QueueToDscp()));
   };
 
   verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
@@ -671,7 +671,7 @@ void AgentOlympicQosSchedulerTest::verifyOlympicV2AllSPTrafficToWRR() {
         utility::getMaxWeightWRRQueue(utility::kOlympicV2WRRQueueToWeight()),
         utility::kOlympicV2WRRQueueToWeight(),
         utility::kOlympicV2WRRQueueIds(),
-        utility::kOlympicV2QueueToDscp(getAsic())));
+        utility::kOlympicV2QueueToDscp()));
   };
 
   verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);

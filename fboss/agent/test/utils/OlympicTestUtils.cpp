@@ -569,8 +569,7 @@ const std::map<int, std::vector<uint8_t>> kOlympicQueueToDscp() {
   return queueToDscp;
 }
 
-const std::map<int, std::vector<uint8_t>> kOlympicV2QueueToDscp(
-    const HwAsic* hwAsic) {
+const std::map<int, std::vector<uint8_t>> kOlympicV2QueueToDscp() {
   const std::map<int, std::vector<uint8_t>> queueToDscp = {
       {getOlympicV2QueueId(OlympicV2QueueType::NCNF),
        {50, 51, 52, 53, 54, 55, 56, 57, 58, 59}},
@@ -733,7 +732,7 @@ void addOlympicQosMaps(cfg::SwitchConfig& cfg, const HwAsic* hwAsic) {
 }
 
 void addOlympicV2QosMaps(cfg::SwitchConfig& cfg, const HwAsic* hwAsic) {
-  addQosMapsHelper(cfg, kOlympicV2QueueToDscp(hwAsic), "olympic_v2", hwAsic);
+  addQosMapsHelper(cfg, kOlympicV2QueueToDscp(), "olympic_v2", hwAsic);
 }
 
 int getMaxWeightWRRQueue(const std::map<int, uint8_t>& queueToWeight) {
