@@ -1022,7 +1022,7 @@ TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, verifyDscpToVoqMapping) {
   verifyAcrossWarmBoots(setup, verify);
 };
 
-// FullScaleDsfNode Test sets up 128 remote DSF nodes for J2 and 256 for J3.
+// FullScaleDsfNode Test sets up 128 remote DSF nodes for J2 and 512 for J3.
 class HwVoqSwitchFullScaleDsfNodesTest
     : public HwVoqSwitchWithMultipleDsfNodesTest {
  public:
