@@ -20,5 +20,6 @@ namespace utility {
 SwitchID getFirstSwitchId(SwSwitch* sw);
 const HwAsic* getFirstAsic(SwSwitch* sw);
 const HwAsic* getAsic(const SwSwitch& sw, PortID port);
+void checkSameAsicType(const std::vector<const HwAsic*>& asics);
 } // namespace utility
 } // namespace facebook::fboss

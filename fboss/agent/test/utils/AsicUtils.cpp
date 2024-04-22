@@ -30,4 +30,12 @@ const HwAsic* getAsic(const SwSwitch& sw, PortID port) {
   auto switchId = sw.getScopeResolver()->scope(port).switchId();
   return sw.getHwAsicTable()->getHwAsic(switchId);
 }
+
+void checkSameAsicType(const std::vector<const HwAsic*>& asics) {
+  std::set<cfg::AsicType> types;
+  std::for_each(asics.begin(), asics.end(), [&types](const auto asic) {
+    types.insert(asic->getAsicType());
+  });
+  CHECK_LE(types.size(), 1) << "Expect <= 1 asic type, got: " << types.size();
+}
 } // namespace facebook::fboss::utility
