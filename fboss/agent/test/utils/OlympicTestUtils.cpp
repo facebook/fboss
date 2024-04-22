@@ -15,6 +15,48 @@
 
 namespace facebook::fboss::utility {
 
+namespace {
+
+void addVoqAqmConfig(
+    cfg::SwitchConfig* config,
+    cfg::StreamType streamType,
+    const HwAsic* asic,
+    bool addWredConfig,
+    bool addEcnConfig) {
+  std::vector<cfg::PortQueue> voqConfig;
+  std::vector<OlympicQueueType> kQueueTypes{
+      OlympicQueueType::SILVER,
+      OlympicQueueType::GOLD,
+      OlympicQueueType::ECN1,
+      OlympicQueueType::ICP,
+      OlympicQueueType::NC};
+  for (auto queueType : kQueueTypes) {
+    auto queueId = getOlympicQueueId(queueType);
+    cfg::PortQueue queue;
+    *queue.id() = queueId;
+    queue.streamType() = streamType;
+    queue.name() = folly::to<std::string>("queue", queueId);
+    *queue.scheduling() = cfg::QueueScheduling::INTERNAL;
+
+    if (asic->scalingFactorBasedDynamicThresholdSupported()) {
+      queue.scalingFactor() = cfg::MMUScalingFactor::ONE;
+    }
+    queue.reservedBytes() = 1500; // Set to possible MTU!
+
+    if (queueId == getOlympicQueueId(OlympicQueueType::ECN1)) {
+      queue.aqms() = {};
+      if (addEcnConfig) {
+        queue.aqms()->push_back(kGetOlympicEcnConfig());
+      }
+      if (addWredConfig) {
+        queue.aqms()->push_back(kGetWredConfig());
+      }
+    }
+    voqConfig.push_back(queue);
+  }
+  config->defaultVoqConfig() = voqConfig;
+}
+} // namespace
 int getOlympicQueueId(OlympicQueueType queueType) {
   switch (queueType) {
     case OlympicQueueType::SILVER:
@@ -187,46 +229,6 @@ void addNetworkAIQueueConfig(
   for (auto& port : *config->ports()) {
     port.portQueueConfigName() = "queue_config";
   }
-}
-
-void addVoqAqmConfig(
-    cfg::SwitchConfig* config,
-    cfg::StreamType streamType,
-    const HwAsic* asic,
-    bool addWredConfig,
-    bool addEcnConfig) {
-  std::vector<cfg::PortQueue> voqConfig;
-  std::vector<OlympicQueueType> kQueueTypes{
-      OlympicQueueType::SILVER,
-      OlympicQueueType::GOLD,
-      OlympicQueueType::ECN1,
-      OlympicQueueType::ICP,
-      OlympicQueueType::NC};
-  for (auto queueType : kQueueTypes) {
-    auto queueId = getOlympicQueueId(queueType);
-    cfg::PortQueue queue;
-    *queue.id() = queueId;
-    queue.streamType() = streamType;
-    queue.name() = folly::to<std::string>("queue", queueId);
-    *queue.scheduling() = cfg::QueueScheduling::INTERNAL;
-
-    if (asic->scalingFactorBasedDynamicThresholdSupported()) {
-      queue.scalingFactor() = cfg::MMUScalingFactor::ONE;
-    }
-    queue.reservedBytes() = 1500; // Set to possible MTU!
-
-    if (queueId == getOlympicQueueId(OlympicQueueType::ECN1)) {
-      queue.aqms() = {};
-      if (addEcnConfig) {
-        queue.aqms()->push_back(kGetOlympicEcnConfig());
-      }
-      if (addWredConfig) {
-        queue.aqms()->push_back(kGetWredConfig());
-      }
-    }
-    voqConfig.push_back(queue);
-  }
-  config->defaultVoqConfig() = voqConfig;
 }
 
 void addOlympicQueueConfigWithSchedulingHelper(
