@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/TrafficPolicyTestUtils.h"
 
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
@@ -61,10 +62,13 @@ void addVoqAqmConfig(
 void addOlympicQueueOptionalEcnWredConfigWithSchedulingHelper(
     cfg::SwitchConfig* config,
     cfg::StreamType streamType,
-    const HwAsic* asic,
+    std::vector<const HwAsic*> asics,
     bool addWredConfig,
     bool addEcnConfig,
     cfg::QueueScheduling schedType) {
+  // Qos queue config for diverse asic type not supported yet
+  checkSameAsicType(asics);
+  auto asic = *asics.begin();
   std::vector<cfg::PortQueue> portQueues;
 
   cfg::PortQueue queue0;
@@ -161,7 +165,7 @@ void addOlympicQueueConfigWithSchedulingHelper(
     bool addWredConfig,
     cfg::QueueScheduling schedType) {
   addOlympicQueueOptionalEcnWredConfigWithSchedulingHelper(
-      config, streamType, asic, addWredConfig, true, schedType);
+      config, streamType, {asic}, addWredConfig, true, schedType);
 }
 } // namespace
 
@@ -348,7 +352,7 @@ void addOlympicQueueConfig(
   addOlympicQueueOptionalEcnWredConfigWithSchedulingHelper(
       config,
       streamType,
-      asic,
+      {asic},
       addWredConfig,
       addEcnConfig,
       cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN);

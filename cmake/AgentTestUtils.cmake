@@ -75,6 +75,7 @@ add_library(olympic_qos_utils
 
 target_link_libraries(olympic_qos_utils
   fboss_types
+  asic_test_utils
   packet_factory
   Folly::folly
   switch_config_cpp2
