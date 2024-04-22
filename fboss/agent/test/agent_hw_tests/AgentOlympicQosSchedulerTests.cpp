@@ -432,7 +432,7 @@ void AgentOlympicQosSchedulerTest::verifySP(bool frontPanelTraffic) {
 
 void AgentOlympicQosSchedulerTest::verifyWRRAndICP() {
   verifyWRRAndSP(
-      utility::kOlympicWRRAndICPQueueIds(getAsic()),
+      utility::kOlympicWRRAndICPQueueIds(),
       utility::getOlympicQueueId(
           utility::OlympicQueueType::ICP)); // SP should starve WRR
                                             // queues altogether
@@ -440,7 +440,7 @@ void AgentOlympicQosSchedulerTest::verifyWRRAndICP() {
 
 void AgentOlympicQosSchedulerTest::verifyWRRAndNC() {
   verifyWRRAndSP(
-      utility::kOlympicWRRAndNCQueueIds(getAsic()),
+      utility::kOlympicWRRAndNCQueueIds(),
       utility::getOlympicQueueId(
           utility::OlympicQueueType::NC)); // SP should starve WRR
                                            // queues altogether
@@ -448,7 +448,7 @@ void AgentOlympicQosSchedulerTest::verifyWRRAndNC() {
 
 void AgentOlympicQosSchedulerTest::verifySingleWRRAndNC() {
   verifySingleWRRAndSP(
-      utility::kOlympicWRRAndNCQueueIds(getAsic()),
+      utility::kOlympicWRRAndNCQueueIds(),
       utility::getOlympicQueueId(
           utility::OlympicQueueType::NC)); // SP should starve WRR
                                            // queues altogether
@@ -515,7 +515,7 @@ void AgentOlympicQosSchedulerTest::verifyWRRToAllSPTraffic() {
         // should starve other SP queues
         // altogether
         utility::getOlympicV2QueueId(utility::OlympicV2QueueType::NC),
-        utility::kOlympicAllSPQueueIds(getAsic()),
+        utility::kOlympicAllSPQueueIds(),
         utility::kOlympicV2QueueToDscp(getAsic())));
   };
 
@@ -635,7 +635,7 @@ void AgentOlympicQosSchedulerTest::verifyOlympicV2WRRToAllSPTraffic() {
         // should starve other SP queues
         // altogether
         utility::getOlympicV2QueueId(utility::OlympicV2QueueType::NC),
-        utility::kOlympicAllSPQueueIds(getAsic()),
+        utility::kOlympicAllSPQueueIds(),
         utility::kOlympicV2QueueToDscp(getAsic())));
   };
 

@@ -154,8 +154,9 @@ const std::map<int, uint8_t> kOlympicV2WRRQueueToWeight();
 const std::vector<int> kOlympicWRRQueueIds();
 const std::vector<int> kOlympicV2WRRQueueIds();
 const std::vector<int> kOlympicSPQueueIds();
-const std::vector<int> kOlympicWRRAndICPQueueIds(const HwAsic* hwAsic);
-const std::vector<int> kOlympicWRRAndNCQueueIds(const HwAsic* hwAsic);
+const std::vector<int> kOlympicWRRAndICPQueueIds();
+const std::vector<int> kOlympicWRRAndNCQueueIds();
+const std::vector<int> kOlympicAllSPQueueIds();
 
 int getMaxWeightWRRQueue(const std::map<int, uint8_t>& queueToWeight);
 
@@ -167,7 +168,6 @@ void addOlympicV2QosMaps(cfg::SwitchConfig& cfg, const HwAsic* asic);
 
 const std::map<int, std::vector<uint8_t>> kOlympicV2QueueToDscp(
     const HwAsic* hwAsic);
-const std::vector<int> kOlympicAllSPQueueIds(const HwAsic* hwAsic);
 cfg::ActiveQueueManagement kGetOlympicEcnConfig(
     int minLength = 41600,
     int maxLength = 41600);
