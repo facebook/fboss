@@ -138,6 +138,14 @@ std::pair<uint64_t, uint64_t> getCpuQueueOutPacketsAndBytes(
     HwPortStats& stats,
     int queueId);
 
+std::pair<uint64_t, uint64_t>
+getCpuQueueOutPacketsAndBytes(SwSwitch* sw, int queueId, SwitchID switchId);
+
+std::pair<uint64_t, uint64_t> getCpuQueueOutPacketsAndBytes(
+    HwSwitch* hw,
+    int queueId,
+    SwitchID switchId = SwitchID(0));
+
 void setPortQueueSharedBytes(cfg::PortQueue& queue, bool isSai);
 
 void setTTLZeroCpuConfig(const HwAsic* hwAsic, cfg::SwitchConfig& config);
@@ -156,21 +164,25 @@ void addNoActionAclForUnicastLinkLocal(
     const folly::CIDRNetwork& nw,
     std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>>& acls);
 
+template <typename SwitchT>
 uint64_t getQueueOutPacketsWithRetry(
-    SwSwitch* swSwitch,
+    SwitchT* switchPtr,
+    SwitchID switchId,
     int queueId,
     int retryTimes,
     uint64_t expectedNumPkts,
     int postMatchRetryTimes = 2);
 
-template <typename SendFn>
+template <typename SendFn, typename SwitchT>
 void sendPktAndVerifyCpuQueue(
-    SwSwitch* swSwitch,
+    SwitchT* switchPtr,
     int queueId,
     SendFn sendPkts,
     const int expectedPktDelta) {
   auto beforeOutPkts = getQueueOutPacketsWithRetry(
-      swSwitch,
+      switchPtr,
+      // TODO: Handle this in next diff
+      SwitchID(0),
       queueId,
       0 /* retryTimes */,
       0 /* expectedNumPkts */,
@@ -178,7 +190,9 @@ void sendPktAndVerifyCpuQueue(
   sendPkts();
   constexpr auto kGetQueueOutPktsRetryTimes = 5;
   auto afterOutPkts = getQueueOutPacketsWithRetry(
-      swSwitch,
+      switchPtr,
+      // TODO: Handle this in next diff
+      SwitchID(0),
       queueId,
       kGetQueueOutPktsRetryTimes,
       beforeOutPkts + expectedPktDelta);

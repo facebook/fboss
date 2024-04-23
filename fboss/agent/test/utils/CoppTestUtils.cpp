@@ -845,22 +845,31 @@ uint64_t getCpuQueueInPackets(SwSwitch* sw, SwitchID switchId, int queueId) {
       : cpuPortStats.queueInPackets_()->at(queueId);
 }
 
+template <typename SwitchT>
 uint64_t getQueueOutPacketsWithRetry(
-    SwSwitch* sw,
+    SwitchT* switchPtr,
+    SwitchID switchId,
     int queueId,
     int retryTimes,
     uint64_t expectedNumPkts,
     int postMatchRetryTimes) {
   uint64_t outPkts = 0;
-  auto asic = getFirstAsic(sw);
+  const HwAsic* asic;
+  if constexpr (std::is_same_v<SwitchT, SwSwitch>) {
+    asic = static_cast<SwSwitch*>(switchPtr)->getHwAsicTable()->getHwAsicIf(
+        switchId);
+  } else {
+    asic = static_cast<HwSwitch*>(switchPtr)->getPlatform()->getAsic();
+  }
+
   do {
     for (auto i = 0; i <= utility::getCoppHighPriQueueId(asic); i++) {
       auto qOutPkts =
-          utility::getCpuQueueInPackets(sw, getFirstSwitchId(sw), i);
+          getCpuQueueOutPacketsAndBytes(switchPtr, queueId, switchId).first;
       XLOG(DBG2) << "QueueID: " << i << " qOutPkts: " << qOutPkts;
     }
 
-    outPkts = utility::getCpuQueueInPackets(sw, getFirstSwitchId(sw), queueId);
+    outPkts = getCpuQueueOutPacketsAndBytes(switchPtr, queueId, switchId).first;
     if (retryTimes == 0 || (outPkts >= expectedNumPkts)) {
       break;
     }
@@ -876,7 +885,7 @@ uint64_t getQueueOutPacketsWithRetry(
   } while (retryTimes-- > 0);
 
   while ((outPkts == expectedNumPkts) && postMatchRetryTimes--) {
-    outPkts = utility::getCpuQueueInPackets(sw, getFirstSwitchId(sw), queueId);
+    outPkts = getCpuQueueOutPacketsAndBytes(switchPtr, queueId, switchId).first;
   }
 
   return outPkts;
@@ -930,6 +939,21 @@ std::unique_ptr<facebook::fboss::TxPacket> createUdpPkt(
       dscp);
 }
 
+std::pair<uint64_t, uint64_t>
+getCpuQueueOutPacketsAndBytes(SwSwitch* sw, int queueId, SwitchID switchId) {
+  HwPortStats stats = *getLatestCpuStats(sw, switchId).portStats_();
+  return getCpuQueueOutPacketsAndBytes(stats, queueId);
+}
+
+std::pair<uint64_t, uint64_t> getCpuQueueOutPacketsAndBytes(
+    HwSwitch* hw,
+    int queueId,
+    SwitchID /* switchId */) {
+  hw->updateStats();
+  HwPortStats stats = *hw->getCpuPortStats().portStats_();
+  return getCpuQueueOutPacketsAndBytes(stats, queueId);
+}
+
 std::pair<uint64_t, uint64_t> getCpuQueueOutPacketsAndBytes(
     HwPortStats& stats,
     int queueId) {
@@ -941,4 +965,20 @@ std::pair<uint64_t, uint64_t> getCpuQueueOutPacketsAndBytes(
       (queueIter != stats.queueOutBytes_()->end()) ? queueIter->second : 0;
   return std::pair(outPackets, outBytes);
 }
+
+template uint64_t getQueueOutPacketsWithRetry<SwSwitch>(
+    SwSwitch* switchPtr,
+    SwitchID switchId,
+    int queueId,
+    int retryTimes,
+    uint64_t expectedNumPkts,
+    int postMatchRetryTimes);
+
+template uint64_t getQueueOutPacketsWithRetry<HwSwitch>(
+    HwSwitch* switchPtr,
+    SwitchID switchId,
+    int queueId,
+    int retryTimes,
+    uint64_t expectedNumPkts,
+    int postMatchRetryTimes);
 } // namespace facebook::fboss::utility

@@ -38,53 +38,13 @@ uint64_t getQueueOutPacketsWithRetry(
     int retryTimes,
     uint64_t expectedNumPkts,
     int postMatchRetryTimes) {
-  uint64_t outPkts = 0, outBytes = 0;
-  do {
-    for (auto i = 0; i <=
-         utility::getCoppHighPriQueueId(hwSwitch->getPlatform()->getAsic());
-         i++) {
-      auto [qOutPkts, qOutBytes] =
-          utility::getCpuQueueOutPacketsAndBytes(hwSwitch, i);
-      XLOG(DBG2) << "QueueID: " << i << " qOutPkts: " << qOutPkts
-                 << " outBytes: " << qOutBytes;
-    }
-    std::tie(outPkts, outBytes) =
-        getCpuQueueOutPacketsAndBytes(hwSwitch, queueId);
-    if (retryTimes == 0 || (outPkts >= expectedNumPkts)) {
-      break;
-    }
-
-    /*
-     * Post warmboot, the packet always gets processed by the right CPU
-     * queue (as per ACL/rxreason etc.) but sometimes it is delayed.
-     * Retrying a few times to avoid test noise.
-     */
-    XLOG(DBG0) << "Retry...";
-    /* sleep override */
-    sleep(1);
-  } while (retryTimes-- > 0);
-
-  while ((outPkts == expectedNumPkts) && postMatchRetryTimes--) {
-    std::tie(outPkts, outBytes) =
-        getCpuQueueOutPacketsAndBytes(hwSwitch, queueId);
-  }
-
-  return outPkts;
-}
-
-std::pair<uint64_t, uint64_t> getCpuQueueOutPacketsAndBytes(
-    HwSwitch* hwSwitch,
-    int queueId) {
-  auto hwPortStats = getCpuQueueStats(hwSwitch);
-  auto queueIter = hwPortStats.queueOutPackets_()->find(queueId);
-  auto outPackets = (queueIter != hwPortStats.queueOutPackets_()->end())
-      ? queueIter->second
-      : 0;
-  queueIter = hwPortStats.queueOutBytes_()->find(queueId);
-  auto outBytes = (queueIter != hwPortStats.queueOutBytes_()->end())
-      ? queueIter->second
-      : 0;
-  return std::pair(outPackets, outBytes);
+  return getQueueOutPacketsWithRetry(
+      hwSwitch,
+      SwitchID(0),
+      queueId,
+      retryTimes,
+      expectedNumPkts,
+      postMatchRetryTimes);
 }
 
 std::pair<uint64_t, uint64_t> getCpuQueueOutDiscardPacketsAndBytes(

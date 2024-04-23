@@ -33,9 +33,6 @@ class SwitchState;
 
 namespace utility {
 
-std::pair<uint64_t, uint64_t> getCpuQueueOutPacketsAndBytes(
-    HwSwitch* hwSwitch,
-    int queueId);
 std::pair<uint64_t, uint64_t> getCpuQueueOutDiscardPacketsAndBytes(
     HwSwitch* hwSwitch,
     int queueId);
