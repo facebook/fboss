@@ -299,9 +299,10 @@ class AgentCoppTest : public AgentHwTest {
       bool outOfPort = false) {
     auto beforeOutPkts = utility::getQueueOutPacketsWithRetry(
         getSw(),
-        scopeResolver()
-            .scope(masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0])
-            .switchId(),
+
+        switchIdForPort(
+            masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0]),
+
         queueId,
         0 /* retryTimes */,
         0 /* expectedNumPkts */);
@@ -310,9 +311,10 @@ class AgentCoppTest : public AgentHwTest {
         dstIpAddress, l4SrcPort, l4DstPort, ttl, outOfPort, expectPktTrap);
     auto afterOutPkts = utility::getQueueOutPacketsWithRetry(
         getSw(),
-        scopeResolver()
-            .scope(masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0])
-            .switchId(),
+
+        switchIdForPort(
+            masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0]),
+
         queueId,
         kGetQueueOutPktsRetryTimes,
         beforeOutPkts + 1);
@@ -347,9 +349,10 @@ class AgentCoppTest : public AgentHwTest {
       const std::optional<folly::MacAddress>& dstMac = std::nullopt) {
     auto beforeOutPkts = utility::getQueueOutPacketsWithRetry(
         getSw(),
-        scopeResolver()
-            .scope(masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0])
-            .switchId(),
+
+        switchIdForPort(
+            masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0]),
+
         queueId,
         0 /* retryTimes */,
         0 /* expectedNumPkts */);
@@ -358,9 +361,10 @@ class AgentCoppTest : public AgentHwTest {
     sendEthPkts(1, etherType, dstMac, payload);
     auto afterOutPkts = utility::getQueueOutPacketsWithRetry(
         getSw(),
-        scopeResolver()
-            .scope(masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0])
-            .switchId(),
+
+        switchIdForPort(
+            masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0]),
+
         queueId,
         kGetQueueOutPktsRetryTimes,
         beforeOutPkts + 1);
@@ -423,18 +427,16 @@ class AgentCoppTest : public AgentHwTest {
       const int expectedPktDelta = 1) {
     auto beforeOutPkts = utility::getQueueOutPacketsWithRetry(
         getSw(),
-        scopeResolver()
-            .scope(masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0])
-            .switchId(),
+        switchIdForPort(
+            masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0]),
         queueId,
         0 /* retryTimes */,
         0 /* expectedNumPkts */);
     sendArpPkts(numPktsToSend, dstIpAddress, arpType, outOfPort);
     auto afterOutPkts = utility::getQueueOutPacketsWithRetry(
         getSw(),
-        scopeResolver()
-            .scope(masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0])
-            .switchId(),
+        switchIdForPort(
+            masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0]),
         queueId,
         kGetQueueOutPktsRetryTimes,
         beforeOutPkts + 1);
@@ -486,18 +488,20 @@ class AgentCoppTest : public AgentHwTest {
       const int expectedPktDelta = 1) {
     auto beforeOutPkts = utility::getQueueOutPacketsWithRetry(
         getSw(),
-        scopeResolver()
-            .scope(masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0])
-            .switchId(),
+
+        switchIdForPort(
+            masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0]),
+
         queueId,
         0 /* retryTimes */,
         0 /* expectedNumPkts */);
     sendNdpPkts(numPktsToSend, neighborIp, ndpType, outOfPort, selfSolicit);
     auto afterOutPkts = utility::getQueueOutPacketsWithRetry(
         getSw(),
-        scopeResolver()
-            .scope(masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0])
-            .switchId(),
+
+        switchIdForPort(
+            masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0]),
+
         queueId,
         kGetQueueOutPktsRetryTimes,
         beforeOutPkts + expectedPktDelta);
@@ -516,9 +520,10 @@ class AgentCoppTest : public AgentHwTest {
     auto neighborMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     auto beforeOutPkts = utility::getQueueOutPacketsWithRetry(
         getSw(),
-        scopeResolver()
-            .scope(masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0])
-            .switchId(),
+
+        switchIdForPort(
+            masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0]),
+
         queueId,
         0 /* retryTimes */,
         0 /* expectedNumPkts */);
@@ -537,9 +542,10 @@ class AgentCoppTest : public AgentHwTest {
     }
     auto afterOutPkts = utility::getQueueOutPacketsWithRetry(
         getSw(),
-        scopeResolver()
-            .scope(masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0])
-            .switchId(),
+
+        switchIdForPort(
+            masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0]),
+
         queueId,
         kGetQueueOutPktsRetryTimes,
         beforeOutPkts + 1);
@@ -594,18 +600,20 @@ class AgentCoppTest : public AgentHwTest {
       const int expectedPktDelta = 1) {
     auto beforeOutPkts = utility::getQueueOutPacketsWithRetry(
         getSw(),
-        scopeResolver()
-            .scope(masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0])
-            .switchId(),
+
+        switchIdForPort(
+            masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0]),
+
         queueId,
         0 /* retryTimes */,
         0 /* expectedNumPkts */);
     sendDHCPv6Pkts(numPktsToSend, dhcpType, ttl, outOfPort);
     auto afterOutPkts = utility::getQueueOutPacketsWithRetry(
         getSw(),
-        scopeResolver()
-            .scope(masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0])
-            .switchId(),
+
+        switchIdForPort(
+            masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0]),
+
         queueId,
         kGetQueueOutPktsRetryTimes,
         beforeOutPkts + expectedPktDelta);
@@ -630,10 +638,8 @@ TYPED_TEST(AgentCoppTest, VerifyCoppPpsLowPri) {
 
     auto beforeOutPkts = utility::getQueueOutPacketsWithRetry(
         this->getSw(),
-        this->scopeResolver()
-            .scope(
-                this->masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0])
-            .switchId(),
+        this->switchIdForPort(
+            this->masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0]),
         utility::kCoppLowPriQueueId,
         0 /* retryTimes */,
         0 /* expectedNumPkts */);
@@ -658,10 +664,8 @@ TYPED_TEST(AgentCoppTest, VerifyCoppPpsLowPri) {
 
     auto afterOutPkts = utility::getQueueOutPacketsWithRetry(
         this->getSw(),
-        this->scopeResolver()
-            .scope(
-                this->masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0])
-            .switchId(),
+        this->switchIdForPort(
+            this->masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0]),
         utility::kCoppLowPriQueueId,
         0 /* retryTimes */,
         0 /* expectedNumPkts */);
@@ -732,10 +736,8 @@ TYPED_TEST(AgentCoppTest, LocalDstIpNonBgpPortToMidPriQ) {
           0,
           utility::getQueueOutPacketsWithRetry(
               this->getSw(),
-              this->scopeResolver()
-                  .scope(this->masterLogicalPortIds(
-                      {cfg::PortType::INTERFACE_PORT})[0])
-                  .switchId(),
+              this->switchIdForPort(this->masterLogicalPortIds(
+                  {cfg::PortType::INTERFACE_PORT})[0]),
               utility::getCoppHighPriQueueId(
                   utility::getFirstAsic(this->getSw())),
               kGetQueueOutPktsRetryTimes,
@@ -765,10 +767,8 @@ TYPED_TEST(AgentCoppTest, Ipv6LinkLocalMcastToMidPriQ) {
           0,
           utility::getQueueOutPacketsWithRetry(
               this->getSw(),
-              this->scopeResolver()
-                  .scope(this->masterLogicalPortIds(
-                      {cfg::PortType::INTERFACE_PORT})[0])
-                  .switchId(),
+              this->switchIdForPort(this->masterLogicalPortIds(
+                  {cfg::PortType::INTERFACE_PORT})[0]),
               utility::getCoppHighPriQueueId(
                   utility::getFirstAsic(this->getSw())),
               kGetQueueOutPktsRetryTimes,
@@ -814,10 +814,8 @@ TYPED_TEST(AgentCoppTest, Ipv6LinkLocalUcastToMidPriQ) {
           0,
           utility::getQueueOutPacketsWithRetry(
               this->getSw(),
-              this->scopeResolver()
-                  .scope(this->masterLogicalPortIds(
-                      {cfg::PortType::INTERFACE_PORT})[0])
-                  .switchId(),
+              this->switchIdForPort(this->masterLogicalPortIds(
+                  {cfg::PortType::INTERFACE_PORT})[0]),
               utility::getCoppHighPriQueueId(
                   utility::getFirstAsic(this->getSw())),
               kGetQueueOutPktsRetryTimes,
@@ -836,10 +834,8 @@ TYPED_TEST(AgentCoppTest, Ipv6LinkLocalUcastToMidPriQ) {
           0,
           utility::getQueueOutPacketsWithRetry(
               this->getSw(),
-              this->scopeResolver()
-                  .scope(this->masterLogicalPortIds(
-                      {cfg::PortType::INTERFACE_PORT})[0])
-                  .switchId(),
+              this->switchIdForPort(this->masterLogicalPortIds(
+                  {cfg::PortType::INTERFACE_PORT})[0]),
               utility::getCoppHighPriQueueId(
                   utility::getFirstAsic(this->getSw())),
               kGetQueueOutPktsRetryTimes,
