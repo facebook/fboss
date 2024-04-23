@@ -25,6 +25,7 @@ bool Ramon3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::DTL_WATERMARK_COUNTER:
     case HwAsic::Feature::ZERO_SDK_WRITE_WARMBOOT:
     case HwAsic::Feature::SAI_PRBS:
+    case HwAsic::Feature::PORT_SERDES_ZERO_PREEMPHASIS:
       return true;
     case HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET:
     case HwAsic::Feature::FABRIC_TX_QUEUES:
