@@ -50,6 +50,7 @@ target_link_libraries(agent_hw_test_src
   traffic_policy_utils
   olympic_qos_utils
   qos_test_utils
+  invariant_test_utils
   prod_config_factory
   state
   stats

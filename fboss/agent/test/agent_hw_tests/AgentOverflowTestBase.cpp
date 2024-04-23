@@ -6,6 +6,7 @@
 #include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
+#include "fboss/agent/test/utils/InvariantTestUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
 #include "fboss/agent/test/utils/PacketTestUtils.h"
 
@@ -52,13 +53,7 @@ class AgentOverflowTestBase : public AgentHwTest {
           // that they don't step over the invariant tests
           // hence explicitly pick a port to send traffic from
           // else can result in test failures
-          utility::getAllUplinkDownlinkPorts(
-              getSw()->getPlatformType(),
-              getSw()->getConfig(),
-              kEcmpWidth,
-              /* TODO: For RTSW invariant enable mmu lossless */
-              false /* mmu_lossless*/)
-              .second[0]);
+          getDownlinkPort());
     };
     packetRxVerifyThread_ =
         std::make_unique<std::thread>([this, sendBgpPktToMe]() {
@@ -86,6 +81,25 @@ class AgentOverflowTestBase : public AgentHwTest {
     // traffic from packetTxRxThread send loop. Else the infligh traffic can
     // effect subsequent verifications by bumping up counters
     sleep(kTxRxThresholdMs / 1000 + 1);
+  }
+
+  PortID getDownlinkPort() {
+    // pick the first downlink in the list
+    return utility::getAllUplinkDownlinkPorts(
+               getSw()->getPlatformType(),
+               getSw()->getConfig(),
+               kEcmpWidth,
+               /* TODO: For RTSW invariant enable mmu lossless */
+               false /* mmu_lossless*/)
+        .second[0];
+  }
+
+  void verifyInvariants() {
+    utility::verifySafeDiagCmds(
+        getAgentEnsemble(), utility::getFirstAsic(getSw()));
+    // TODO: Iterate all ASICs and verify copp on the port of each ASIC.
+    utility::verifyCopp(
+        getSw(), utility::getFirstSwitchId(getSw()), getDownlinkPort());
   }
 
  private:
