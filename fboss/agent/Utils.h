@@ -67,6 +67,8 @@ inline const std::string kRoceUdfFlowletGroupName("roceUdfFlowlet");
 inline const int kRoceUdfFlowletStartOffsetInBytes(16);
 inline const int kRoceUdfFlowletFieldSizeInBytes(1);
 inline const int kRoceReserved(0x40); // offset 16
+inline const std::string kFlowletAclName("test-udf-flowlet_acl");
+inline const std::string kFlowletAclCounterName("test-udf-flowlet-acl-stats");
 } // namespace utility
 
 class SwitchState;

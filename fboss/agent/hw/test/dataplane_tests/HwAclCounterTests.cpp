@@ -29,6 +29,7 @@ enum AclType {
   L4_DST_PORT_VLAN,
   UDF,
   FLOWLET,
+  UDF_FLOWLET,
   BTH_OPCODE,
   VLAN,
 };
@@ -51,6 +52,7 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
 
  public:
   cfg::AclActionType aclActionType_ = cfg::AclActionType::DENY;
+  uint8_t roceReservedByte_ = utility::kRoceReserved;
 
  protected:
   void SetUp() override {
@@ -93,6 +95,9 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
       case AclType::FLOWLET:
         aclName = "test-flowlet-acl";
         break;
+      case AclType::UDF_FLOWLET:
+        aclName = utility::kFlowletAclName;
+        break;
       case AclType::L4_DST_PORT:
         aclName = "test-l4-port-acl";
         break;
@@ -133,6 +138,9 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
       case AclType::FLOWLET:
         counterName = "test-flowlet-acl-stats";
         break;
+      case AclType::UDF_FLOWLET:
+        counterName = utility::kFlowletAclCounterName;
+        break;
       case AclType::L4_DST_PORT:
         counterName = "test-l4-port-acl-stats";
         break;
@@ -155,10 +163,22 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
       helper_->programRoutes(getRouteUpdater(), kEcmpWidth);
       auto newCfg{initialConfig()};
       for (auto aclType : aclTypes) {
-        // FLOWLET Acl config already added in addFlowletConfigs() as part of
-        // initial config setup. Hence skipping it here.
-        if (aclType != AclType::FLOWLET) {
-          addAclAndStat(&newCfg, aclType);
+        // existing flowlet will not have UDF configuration
+        switch (aclType) {
+          case AclType::UDF_FLOWLET:
+          case AclType::FLOWLET:
+            newCfg.udfConfig() = utility::addUdfAckAndFlowletAclConfig();
+            utility::addFlowletConfigs(
+                newCfg,
+                masterLogicalPortIds(),
+                cfg::SwitchingMode::FLOWLET_QUALITY,
+                getAclName(aclType),
+                getCounterName(aclType),
+                aclType != AclType::FLOWLET);
+            break;
+          default:
+            addAclAndStat(&newCfg, aclType);
+            break;
         }
       }
       applyNewConfig(newCfg);
@@ -171,6 +191,9 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
         if (aclTypes[0] == AclType::FLOWLET) {
           aclType = AclType::FLOWLET;
         }
+        if (aclTypes[0] == AclType::UDF_FLOWLET) {
+          aclType = AclType::UDF_FLOWLET;
+        }
         verifyAclType(bumpOnHit, frontPanel, aclType);
       }
     };
@@ -178,7 +201,7 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
     verifyAcrossWarmBoots(setup, verify);
   }
 
-  size_t sendRoceTraffic(const PortID frontPanelEgrPort, uint8_t reserved = 0) {
+  size_t sendRoceTraffic(const PortID frontPanelEgrPort) {
     auto vlanId = utility::firstVlanID(initialConfig());
     auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     return utility::pumpRoCETraffic(
@@ -192,7 +215,7 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
         255,
         std::nullopt,
         1 /* one packet */,
-        reserved);
+        this->roceReservedByte_);
   }
 
   size_t sendPacket(bool frontPanel, bool bumpOnHit, AclType aclType) {
@@ -284,7 +307,8 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
         getCounterName(aclType));
     size_t sizeOfPacketSent = 0;
     auto sendRoce = false;
-    if (aclType == AclType::FLOWLET && FLAGS_flowletSwitchingEnable) {
+    if ((aclType == AclType::FLOWLET || aclType == AclType::UDF_FLOWLET) &&
+        FLAGS_flowletSwitchingEnable) {
       XLOG(DBG3) << "setting ECMP Member Status: ";
       utility::setEcmpMemberStatus(getHwSwitchEnsemble());
       sendRoce = true;
@@ -295,11 +319,7 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
     // for udf or flowlet testing, send roce packets
     if (sendRoce) {
       auto outPort = helper_->ecmpPortDescriptorAt(0).phyPortID();
-      if (bumpOnHit) {
-        sizeOfPacketSent = sendRoceTraffic(outPort, utility::kRoceReserved);
-      } else {
-        sizeOfPacketSent = sendRoceTraffic(outPort);
-      }
+      sizeOfPacketSent = sendRoceTraffic(outPort);
     } else {
       sizeOfPacketSent = sendPacket(frontPanel, bumpOnHit, aclType);
     }
@@ -380,6 +400,7 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
         acl->roceOpcode() = utility::kUdfRoceOpcode;
         break;
       case AclType::FLOWLET:
+      case AclType::UDF_FLOWLET:
         break;
       case AclType::VLAN:
         acl->vlanID() = vlanId.value();
@@ -417,8 +438,6 @@ class HwFlowletAclCounterTest
         getHwSwitch(),
         masterLogicalPortIds(),
         getAsic()->desiredLoopbackModes());
-    cfg.udfConfig() = utility::addUdfAckAndFlowletAclConfig();
-    utility::addFlowletConfigs(cfg, masterLogicalPortIds());
     return cfg;
   }
 
@@ -436,9 +455,19 @@ TEST_F(HwFlowletAclCounterTest, VerifyFlowlet) {
       true /* bump on hit */, true /* front panel port */, {AclType::FLOWLET});
 }
 
-TEST_F(HwFlowletAclCounterTest, VerifyFlowletNegative) {
+TEST_F(HwFlowletAclCounterTest, VerifyUdfFlowlet) {
   counterBumpOnHitHelper(
-      false /* bump on hit */, true /* front panel port */, {AclType::FLOWLET});
+      true /* bump on hit */,
+      true /* front panel port */,
+      {AclType::UDF_FLOWLET});
+}
+
+TEST_F(HwFlowletAclCounterTest, VerifyFlowletNegative) {
+  this->roceReservedByte_ = 0x0;
+  counterBumpOnHitHelper(
+      false /* bump on hit */,
+      true /* front panel port */,
+      {AclType::UDF_FLOWLET});
 }
 
 TEST_F(HwFlowletAclCounterTest, VerifyFlowletWithOtherAcls) {
@@ -448,13 +477,29 @@ TEST_F(HwFlowletAclCounterTest, VerifyFlowletWithOtherAcls) {
       {AclType::FLOWLET, AclType::SRC_PORT});
 }
 
+TEST_F(HwFlowletAclCounterTest, VerifyUdfFlowletWithOtherAcls) {
+  counterBumpOnHitHelper(
+      true /* bump on hit */,
+      true /* front panel port */,
+      {AclType::UDF_FLOWLET, AclType::SRC_PORT});
+}
+
 // Verifying the FLOWLET Acl always hit ahead of UDF Acl
 // when FLOWLET Acl present before UDF Acl
-TEST_F(HwFlowletAclCounterTest, VerifyFlowletWithUdf) {
+TEST_F(HwFlowletAclCounterTest, VerifyFlowletWithUdfAck) {
   counterBumpOnHitHelper(
       true /* bump on hit */,
       true /* front panel port */,
       {AclType::FLOWLET, AclType::UDF});
+}
+
+// Verifying the UDF_FLOWLET Acl always hit ahead of UDF Acl
+// when UDF_FLOWLET Acl present before UDF Acl
+TEST_F(HwFlowletAclCounterTest, VerifyUdfFlowletWithUdfAck) {
+  counterBumpOnHitHelper(
+      true /* bump on hit */,
+      true /* front panel port */,
+      {AclType::UDF_FLOWLET, AclType::UDF});
 }
 
 } // namespace facebook::fboss
