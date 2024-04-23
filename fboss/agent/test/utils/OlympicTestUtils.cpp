@@ -62,7 +62,7 @@ void addVoqAqmConfig(
 void addOlympicQueueOptionalEcnWredConfigWithSchedulingHelper(
     cfg::SwitchConfig* config,
     cfg::StreamType streamType,
-    std::vector<const HwAsic*> asics,
+    const std::vector<const HwAsic*>& asics,
     bool addWredConfig,
     bool addEcnConfig,
     cfg::QueueScheduling schedType) {
@@ -160,7 +160,7 @@ void addOlympicQueueOptionalEcnWredConfigWithSchedulingHelper(
 void addOlympicQueueConfigWithSchedulingHelper(
     cfg::SwitchConfig* config,
     cfg::StreamType streamType,
-    std::vector<const HwAsic*> asics,
+    const std::vector<const HwAsic*>& asics,
     bool addWredConfig,
     cfg::QueueScheduling schedType) {
   addOlympicQueueOptionalEcnWredConfigWithSchedulingHelper(
@@ -345,7 +345,7 @@ void addNetworkAIQueueConfig(
 void addOlympicQueueConfig(
     cfg::SwitchConfig* config,
     cfg::StreamType streamType,
-    std::vector<const HwAsic*> asics,
+    const std::vector<const HwAsic*>& asics,
     bool addWredConfig,
     bool addEcnConfig) {
   addOlympicQueueOptionalEcnWredConfigWithSchedulingHelper(
@@ -361,7 +361,7 @@ void addOlympicQueueConfig(
 void addFswRswAllSPOlympicQueueConfig(
     cfg::SwitchConfig* config,
     cfg::StreamType streamType,
-    std::vector<const HwAsic*> asics,
+    const std::vector<const HwAsic*>& asics,
     bool addWredConfig) {
   addOlympicQueueConfigWithSchedulingHelper(
       config,
@@ -462,7 +462,7 @@ void addOlympicAllSPQueueConfig(
 void addOlympicV2WRRQueueConfig(
     cfg::SwitchConfig* config,
     cfg::StreamType streamType,
-    std::vector<const HwAsic*> asics,
+    const std::vector<const HwAsic*>& asics,
     bool addWredConfig) {
   // Only same type of ASICs supported
   auto asic = checkSameAndGetAsic(asics);
