@@ -160,11 +160,11 @@ void addOlympicQueueOptionalEcnWredConfigWithSchedulingHelper(
 void addOlympicQueueConfigWithSchedulingHelper(
     cfg::SwitchConfig* config,
     cfg::StreamType streamType,
-    const HwAsic* asic,
+    std::vector<const HwAsic*> asics,
     bool addWredConfig,
     cfg::QueueScheduling schedType) {
   addOlympicQueueOptionalEcnWredConfigWithSchedulingHelper(
-      config, streamType, {asic}, addWredConfig, true, schedType);
+      config, streamType, asics, addWredConfig, true, schedType);
 }
 } // namespace
 
@@ -361,12 +361,12 @@ void addOlympicQueueConfig(
 void addFswRswAllSPOlympicQueueConfig(
     cfg::SwitchConfig* config,
     cfg::StreamType streamType,
-    const HwAsic* asic,
+    std::vector<const HwAsic*> asics,
     bool addWredConfig) {
   addOlympicQueueConfigWithSchedulingHelper(
       config,
       streamType,
-      asic,
+      asics,
       addWredConfig,
       cfg::QueueScheduling::STRICT_PRIORITY);
 }

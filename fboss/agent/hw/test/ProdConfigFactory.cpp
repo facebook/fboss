@@ -41,7 +41,7 @@ void addOlympicQosToConfig(
   auto streamType =
       *hwAsic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin();
   if (enableStrictPriority) {
-    addFswRswAllSPOlympicQueueConfig(&config, streamType, hwAsic);
+    addFswRswAllSPOlympicQueueConfig(&config, streamType, {hwAsic});
   } else {
     addOlympicQueueConfig(&config, streamType, {hwAsic});
   }
