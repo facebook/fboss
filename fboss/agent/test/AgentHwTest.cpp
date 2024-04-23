@@ -405,6 +405,14 @@ void AgentHwTest::checkNoStatsChange(int trys) {
                  }));
 }
 
+SwitchID AgentHwTest::switchIdForPort(PortID port) const {
+  return scopeResolver().scope(port).switchId();
+}
+
+const HwAsic* AgentHwTest::hwAsicForPort(PortID port) const {
+  return getSw()->getHwAsicTable()->getHwAsic(switchIdForPort(port));
+}
+
 void initAgentHwTest(
     int argc,
     char* argv[],

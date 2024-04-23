@@ -175,6 +175,9 @@ class AgentHwTest : public ::testing::Test {
    */
   virtual void setCmdLineFlagOverrides() const;
 
+  SwitchID switchIdForPort(PortID port) const;
+  const HwAsic* hwAsicForPort(PortID port) const;
+
  private:
   void applyNewStateImpl(
       StateUpdateFn fn,
