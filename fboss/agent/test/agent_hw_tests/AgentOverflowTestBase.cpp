@@ -7,6 +7,7 @@
 #include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
+#include "fboss/agent/test/utils/EcmpDataPlaneTestUtil.h"
 #include "fboss/agent/test/utils/InvariantTestUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
 #include "fboss/agent/test/utils/PacketTestUtils.h"
@@ -17,6 +18,21 @@ constexpr auto kEcmpWidth = 4;
 } // namespace
 
 namespace facebook::fboss {
+
+void AgentOverflowTestBase::SetUp() {
+  AgentHwTest::SetUp();
+  if (!IsSkipped()) {
+    auto ecmpHelper = std::make_unique<utility::HwIpV6EcmpDataPlaneTestUtil>(
+        getAgentEnsemble(), RouterID(0));
+
+    std::vector<PortDescriptor> ecmpPortDesc;
+    for (const auto& port : getUplinkPorts()) {
+      ecmpPortDesc.emplace_back(port);
+    }
+    ecmpHelper->programRoutesVecHelper(
+        ecmpPortDesc, std::vector<NextHopWeight>(kEcmpWidth, 1));
+  }
+}
 
 cfg::SwitchConfig AgentOverflowTestBase::initialConfig(
     const AgentEnsemble& ensemble) const {

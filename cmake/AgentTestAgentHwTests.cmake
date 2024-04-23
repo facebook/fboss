@@ -45,6 +45,7 @@ target_link_libraries(agent_hw_test_src
   config_factory
   agent_hw_test
   ecmp_helper
+  ecmp_dataplane_test_util
   fabric_test_utils
   trunk_utils
   traffic_policy_utils
