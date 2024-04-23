@@ -31,6 +31,15 @@ cfg::SwitchConfig AgentOverflowTestBase::initialConfig(
       ensemble.masterLogicalPortIds(),
       ensemble.isSai());
 }
+
+std::vector<production_features::ProductionFeature>
+AgentOverflowTestBase::getProductionFeaturesVerified() const {
+  return {
+      production_features::ProductionFeature::COPP,
+      production_features::ProductionFeature::ECMP_LOAD_BALANCER,
+      production_features::ProductionFeature::L3_QOS};
+}
+
 void AgentOverflowTestBase::startPacketTxRxVerify() {
   CHECK(!packetRxVerifyRunning_);
   packetRxVerifyRunning_ = true;
