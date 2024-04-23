@@ -678,7 +678,9 @@ void addQosMapsHelper(
     cfg::SwitchConfig& cfg,
     const std::map<int, std::vector<uint8_t>>& queueToDscpMap,
     const std::string& qosPolicyName,
-    const HwAsic* hwAsic) {
+    const std::vector<const HwAsic*>& asics) {
+  // Qos config for diverse asic type not supported yet
+  auto hwAsic = checkSameAndGetAsic(asics);
   cfg::QosMap qosMap;
   qosMap.dscpMaps()->resize(queueToDscpMap.size());
   ssize_t qosMapIdx = 0;
@@ -735,11 +737,11 @@ void addQosMapsHelper(
 }
 
 void addOlympicQosMaps(cfg::SwitchConfig& cfg, const HwAsic* hwAsic) {
-  addQosMapsHelper(cfg, kOlympicQueueToDscp(), "olympic", hwAsic);
+  addQosMapsHelper(cfg, kOlympicQueueToDscp(), "olympic", {hwAsic});
 }
 
 void addOlympicV2QosMaps(cfg::SwitchConfig& cfg, const HwAsic* hwAsic) {
-  addQosMapsHelper(cfg, kOlympicV2QueueToDscp(), "olympic_v2", hwAsic);
+  addQosMapsHelper(cfg, kOlympicV2QueueToDscp(), "olympic_v2", {hwAsic});
 }
 
 int getMaxWeightWRRQueue(const std::map<int, uint8_t>& queueToWeight) {

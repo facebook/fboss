@@ -68,7 +68,7 @@ std::string get2QueueCounterNameForDscp(uint8_t dscp) {
 }
 
 void add2QueueQosMaps(cfg::SwitchConfig& cfg, const HwAsic* hwAsic) {
-  addQosMapsHelper(cfg, k2QueueToDscp(), "2queue", hwAsic);
+  addQosMapsHelper(cfg, k2QueueToDscp(), "2queue", {hwAsic});
 }
 
 const std::map<int, std::vector<uint8_t>>& k2QueueToDscp() {
