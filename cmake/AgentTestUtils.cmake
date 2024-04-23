@@ -319,3 +319,13 @@ target_link_libraries(invariant_test_utils
   test_ensemble_if
   validated_shell_commands_cpp2
 )
+
+add_library(route_test_utils
+  fboss/agent/test/utils/RouteTestUtils.cpp
+)
+
+target_link_libraries(route_test_utils
+  route_update_wrapper
+  ctrl_cpp2
+  route_distribution_gen
+)
