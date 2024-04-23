@@ -1094,7 +1094,10 @@ class HwVoqSwitchFullScaleDsfNodesTest
 TEST_F(HwVoqSwitchFullScaleDsfNodesTest, systemPortScaleTest) {
   auto setup = [this]() {
     applyNewState(utility::setupRemoteIntfAndSysPorts(
-        getProgrammedState(), scopeResolver(), initialConfig()));
+        getProgrammedState(),
+        scopeResolver(),
+        initialConfig(),
+        getAsic()->isSupported(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE)));
   };
   verifyAcrossWarmBoots(setup, [] {});
 }
@@ -1106,7 +1109,10 @@ TEST_F(HwVoqSwitchFullScaleDsfNodesTest, remoteNeighborWithEcmpGroup) {
   std::vector<PortDescriptor> sysPortDescs;
   auto setup = [&]() {
     applyNewState(utility::setupRemoteIntfAndSysPorts(
-        getProgrammedState(), scopeResolver(), initialConfig()));
+        getProgrammedState(),
+        scopeResolver(),
+        initialConfig(),
+        getAsic()->isSupported(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE)));
     utility::EcmpSetupTargetedPorts6 ecmpHelper(getProgrammedState());
     // Trigger config apply to add remote interface routes as directly connected
     // in RIB. This is to resolve ECMP members pointing to remote nexthops.
@@ -1175,7 +1181,10 @@ TEST_F(HwVoqSwitchFullScaleDsfNodesTest, remoteAndLocalLoadBalance) {
   std::vector<PortDescriptor> sysPortDescs;
   auto setup = [&]() {
     applyNewState(utility::setupRemoteIntfAndSysPorts(
-        getProgrammedState(), scopeResolver(), initialConfig()));
+        getProgrammedState(),
+        scopeResolver(),
+        initialConfig(),
+        getAsic()->isSupported(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE)));
     utility::EcmpSetupTargetedPorts6 ecmpHelper(getProgrammedState());
     // Trigger config apply to add remote interface routes as directly connected
     // in RIB. This is to resolve ECMP members pointing to remote nexthops.
@@ -1246,7 +1255,10 @@ TEST_F(HwVoqSwitchFullScaleDsfNodesTest, stressProgramEcmpRoutes) {
   const auto numIterations = 40;
   auto setup = [&]() {
     applyNewState(utility::setupRemoteIntfAndSysPorts(
-        getProgrammedState(), scopeResolver(), initialConfig()));
+        getProgrammedState(),
+        scopeResolver(),
+        initialConfig(),
+        getAsic()->isSupported(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE)));
     utility::EcmpSetupTargetedPorts6 ecmpHelper(getProgrammedState());
     // Trigger config apply to add remote interface routes as directly connected
     // in RIB. This is to resolve ECMP members pointing to remote nexthops.

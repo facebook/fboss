@@ -53,6 +53,7 @@ std::shared_ptr<SwitchState> addRemoveRemoteNeighbor(
 std::shared_ptr<SwitchState> setupRemoteIntfAndSysPorts(
     std::shared_ptr<SwitchState> currState,
     const SwitchIdScopeResolver& scopeResolver,
-    const cfg::SwitchConfig& config);
+    const cfg::SwitchConfig& config,
+    bool useEncapIndex);
 
 } // namespace facebook::fboss::utility

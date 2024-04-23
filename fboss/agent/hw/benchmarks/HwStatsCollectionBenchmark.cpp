@@ -91,7 +91,11 @@ BENCHMARK(HwStatsCollection) {
   if (ensemble->getSw()->getSwitchInfoTable().haveVoqSwitches()) {
     ensemble->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
       return utility::setupRemoteIntfAndSysPorts(
-          in, ensemble->scopeResolver(), ensemble->getSw()->getConfig());
+          in,
+          ensemble->scopeResolver(),
+          ensemble->getSw()->getConfig(),
+          ensemble->getSw()->getHwAsicTable()->isFeatureSupportedOnAllAsic(
+              HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE));
     });
     // For VOQ switches we have 2K - 4K remote system ports (each with 4-8
     // VOQs). This is >10x of local ports on NPU platforms. Therefore, only run

@@ -253,7 +253,13 @@ void initandExitBenchmarkHelper(
         if (ensemble->getSw()->getBootType() == BootType::COLD_BOOT) {
           ensemble->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
             return utility::setupRemoteIntfAndSysPorts(
-                in, ensemble->scopeResolver(), ensemble->getSw()->getConfig());
+                in,
+                ensemble->scopeResolver(),
+                ensemble->getSw()->getConfig(),
+                ensemble->getSw()
+                    ->getHwAsicTable()
+                    ->isFeatureSupportedOnAllAsic(
+                        HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE));
           });
         }
         break;

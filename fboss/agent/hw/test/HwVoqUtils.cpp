@@ -170,7 +170,8 @@ std::shared_ptr<SwitchState> addRemoveRemoteNeighbor(
 std::shared_ptr<SwitchState> setupRemoteIntfAndSysPorts(
     std::shared_ptr<SwitchState> currState,
     const SwitchIdScopeResolver& scopeResolver,
-    const cfg::SwitchConfig& config) {
+    const cfg::SwitchConfig& config,
+    bool useEncapIndex) {
   auto newState = currState->clone();
   for (const auto& [remoteSwitchId, dsfNode] : *config.dsfNodes()) {
     if (remoteSwitchId == 0) {
@@ -185,7 +186,8 @@ std::shared_ptr<SwitchState> setupRemoteIntfAndSysPorts(
       const SystemPortID remoteSysPortId(newSysPortId);
       const InterfaceID remoteIntfId(newSysPortId);
       const PortDescriptor portDesc(remoteSysPortId);
-      const uint64_t encapEndx = 0x200001 + i;
+      const std::optional<uint64_t> encapEndx =
+          useEncapIndex ? std::optional<uint64_t>(0x200001 + i) : std::nullopt;
 
       // Use subnet 100+(dsfNodeId/256):(dsfNodeId%256):(localIntfId)::1/64
       // and 100+(dsfNodeId/256).(dsfNodeId%256).(localIntfId).1/24
