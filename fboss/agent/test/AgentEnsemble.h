@@ -209,9 +209,7 @@ class AgentEnsemble : public TestEnsembleIf {
       std::optional<SwitchID> switchId = std::nullopt) override;
 
   void clearPortStats(
-      const std::unique_ptr<std::vector<int32_t>>& ports) override {
-    getSw()->clearPortStats(ports);
-  }
+      const std::unique_ptr<std::vector<int32_t>>& ports) override;
 
   LinkStateToggler* getLinkToggler() override;
 

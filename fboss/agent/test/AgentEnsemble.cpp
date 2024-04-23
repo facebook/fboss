@@ -9,6 +9,7 @@
 #include <folly/io/async/ScopedEventBaseThread.h>
 #include "fboss/agent/CommonInit.h"
 #include "fboss/agent/EncapIndexAllocator.h"
+#include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/lib/CommonFileUtils.h"
@@ -466,5 +467,11 @@ void AgentEnsemble::bringDownPorts(const std::vector<PortID>& ports) {
 std::vector<PortID> AgentEnsemble::masterLogicalPortIds(
     SwitchID switchId) const {
   return switchId2PortIds_.at(switchId);
+}
+
+void AgentEnsemble::clearPortStats(
+    const std::unique_ptr<std::vector<int32_t>>& ports) {
+  ThriftHandler(getSw()).clearPortStats(
+      std::make_unique<std::vector<int32_t>>(std::move(*ports)));
 }
 } // namespace facebook::fboss

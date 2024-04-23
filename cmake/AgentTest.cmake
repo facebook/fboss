@@ -155,6 +155,7 @@ add_library(agent_ensemble
 )
 
 target_link_libraries(agent_ensemble
+  handler
   hw_link_state_toggler
   route_distribution_gen
   main
