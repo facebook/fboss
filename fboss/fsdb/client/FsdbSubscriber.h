@@ -133,8 +133,12 @@ class FsdbSubscriber : public FsdbStreamClient {
         connectionStateChangeCb_(connectionStateChangeCb),
         subscriptionStateChangeCb_(stateChangeCb),
         staleStateTimer_(folly::AsyncTimeout::make(
-            *connRetryEvb,
+            *streamEvb,
             [this]() noexcept { staleStateTimeoutExpired(); })) {}
+
+  virtual ~FsdbSubscriber() override {
+    cancelStaleStateTimeout();
+  }
 
  protected:
   auto createRequest() const {
@@ -162,12 +166,9 @@ class FsdbSubscriber : public FsdbStreamClient {
       return;
     }
     *locked = newState;
-    if (staleStateTimer_ && staleStateTimer_->isScheduled()) {
-      if ((newState == SubscriptionState::CONNECTED) ||
-          (newState == SubscriptionState::CANCELLED)) {
-        connRetryEvb_->runImmediatelyOrRunInEventBaseThreadAndWait(
-            [this] { staleStateTimer_->cancelTimeout(); });
-      }
+    if ((newState == SubscriptionState::CONNECTED) ||
+        (newState == SubscriptionState::CANCELLED)) {
+      cancelStaleStateTimeout();
     }
     if (subscriptionStateChangeCb_.has_value()) {
       subscriptionStateChangeCb_.value()(oldState, newState);
@@ -183,10 +184,7 @@ class FsdbSubscriber : public FsdbStreamClient {
         return;
       } else if (getSubscriptionState() == SubscriptionState::CONNECTED) {
         grDisconnectEvents_.add(1);
-        connRetryEvb_->runInEventBaseThread([this] {
-          staleStateTimer_->scheduleTimeout(
-              std::chrono::seconds(subscriptionOptions_.grHoldTimeSec_));
-        });
+        scheduleStaleStateTimeout();
         updateSubscriptionState(SubscriptionState::CONNECTED_GR_HOLD);
       }
     } else if (newState == State::CANCELLED) {
@@ -198,6 +196,23 @@ class FsdbSubscriber : public FsdbStreamClient {
     if (connectionStateChangeCb_.has_value()) {
       connectionStateChangeCb_.value()(oldState, newState);
     }
+  }
+
+  void scheduleStaleStateTimeout() {
+    getStreamEventBase()->runInEventBaseThread([this] {
+      if (staleStateTimer_) {
+        staleStateTimer_->scheduleTimeout(
+            std::chrono::seconds(subscriptionOptions_.grHoldTimeSec_));
+      }
+    });
+  }
+
+  void cancelStaleStateTimeout() {
+    getStreamEventBase()->runImmediatelyOrRunInEventBaseThreadAndWait([this] {
+      if (staleStateTimer_ && staleStateTimer_->isScheduled()) {
+        staleStateTimer_->cancelTimeout();
+      }
+    });
   }
 
   void staleStateTimeoutExpired() noexcept {

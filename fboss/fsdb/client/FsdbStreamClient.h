@@ -108,6 +108,9 @@ class FsdbStreamClient : public ReconnectingThriftClient {
 #endif
 
  protected:
+  folly::EventBase* getStreamEventBase() const {
+    return streamEvb_;
+  }
   void setDisconnectReason(FsdbErrorCode reason) {
     auto disconnectReason = disconnectReason_.wlock();
     *disconnectReason = reason;
