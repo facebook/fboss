@@ -165,7 +165,8 @@ class AgentOlympicQosSchedulerTest : public AgentHwTest {
     auto newCfg{initialConfig(*getAgentEnsemble())};
     auto streamType = *(
         getAsic()->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin());
-    utility::addOlympicV2WRRQueueConfig(&newCfg, streamType, getAsic());
+    utility::addOlympicV2WRRQueueConfig(
+        &newCfg, streamType, getAgentEnsemble()->getL3Asics());
     utility::addOlympicV2QosMaps(newCfg, getAsic());
     utility::setTTLZeroCpuConfig(getAsic(), newCfg);
     applyNewConfig(newCfg);
@@ -749,7 +750,8 @@ class AgentOlympicV2MigrationQosSchedulerTest
     auto cfg = AgentOlympicQosSchedulerTest::initialConfig(ensemble);
     auto streamType =
         *(asic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin());
-    utility::addOlympicV2WRRQueueConfig(&cfg, streamType, asic);
+    utility::addOlympicV2WRRQueueConfig(
+        &cfg, streamType, ensemble.getL3Asics());
     utility::addOlympicV2QosMaps(cfg, asic);
     utility::setTTLZeroCpuConfig(asic, cfg);
     return cfg;
