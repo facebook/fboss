@@ -52,6 +52,7 @@ cfg::SwitchConfig createProdRswConfig(
     const HwAsic* hwAsic,
     PlatformType platformType,
     const PlatformMapping* platformMapping,
+    bool supportsAddRemovePort,
     const std::vector<PortID>& masterLogicalPortIds,
     bool isSai = false,
     bool enableStrictPriority = false);
