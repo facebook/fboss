@@ -304,3 +304,13 @@ target_link_libraries(scale_test_utils
   core
   switch_asics
 )
+
+add_library(invariant_test_utils
+  fboss/agent/test/utils/InvariantTestUtils.cpp
+)
+
+target_link_libraries(invariant_test_utils
+  copp_test_utils
+  test_ensemble_if
+  validated_shell_commands_cpp2
+)
