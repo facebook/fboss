@@ -621,15 +621,6 @@ void SaiHostifManager::setCpuQosPolicy(
   if (!qosMapHandle) {
     throw FbossError("empty qos map handle for cpu port");
   }
-
-  //
-  // XGS:
-  //  - Setting tcToQueueMap to non SAI_NULL_OBJECT_ID fails.
-  //  - Instead, we need to clear (SAI_NULL_OBJECT_ID) and set tcToQueueMap.
-  //  - CS00012322624 to debug.
-  setCpuPortQosPolicy(
-      QosMapSaiId(SAI_NULL_OBJECT_ID), QosMapSaiId(SAI_NULL_OBJECT_ID));
-
   setCpuPortQosPolicy(
       qosMapHandle->dscpToTcMap->adapterKey(),
       qosMapHandle->tcToQueueMap->adapterKey());
@@ -656,16 +647,37 @@ void SaiHostifManager::clearQosPolicy() {
   qosPolicy_.reset();
 }
 
+//
+// XGS:
+//  - Setting tcToQueueMap to non SAI_NULL_OBJECT_ID fails.
+//  - Instead, we need to clear (SAI_NULL_OBJECT_ID) and set tcToQueueMap.
+//  - CS00012322624 to debug.
 void SaiHostifManager::setCpuPortQosPolicy(
     QosMapSaiId dscpToTc,
     QosMapSaiId tcToQueue) {
   auto& portApi = SaiApiTable::getInstance()->portApi();
-  portApi.setAttribute(
-      cpuPortHandle_->cpuPortId,
-      SaiPortTraits::Attributes::QosDscpToTcMap{dscpToTc});
-  portApi.setAttribute(
-      cpuPortHandle_->cpuPortId,
-      SaiPortTraits::Attributes::QosTcToQueueMap{tcToQueue});
+  auto oldDscpToTc = portApi.getAttribute(
+      cpuPortHandle_->cpuPortId, SaiPortTraits::Attributes::QosDscpToTcMap{});
+  auto oldTcToQueue = portApi.getAttribute(
+      cpuPortHandle_->cpuPortId, SaiPortTraits::Attributes::QosTcToQueueMap{});
+  if (oldDscpToTc != dscpToTc) {
+    portApi.setAttribute(
+        cpuPortHandle_->cpuPortId,
+        SaiPortTraits::Attributes::QosDscpToTcMap{
+            QosMapSaiId(SAI_NULL_OBJECT_ID)});
+    portApi.setAttribute(
+        cpuPortHandle_->cpuPortId,
+        SaiPortTraits::Attributes::QosDscpToTcMap{dscpToTc});
+  }
+  if (oldTcToQueue != tcToQueue) {
+    portApi.setAttribute(
+        cpuPortHandle_->cpuPortId,
+        SaiPortTraits::Attributes::QosTcToQueueMap{
+            QosMapSaiId(SAI_NULL_OBJECT_ID)});
+    portApi.setAttribute(
+        cpuPortHandle_->cpuPortId,
+        SaiPortTraits::Attributes::QosTcToQueueMap{tcToQueue});
+  }
 }
 
 void SaiHostifManager::setCpuSystemPortQosPolicy(QosMapSaiId tcToQueue) {
@@ -673,9 +685,14 @@ void SaiHostifManager::setCpuSystemPortQosPolicy(QosMapSaiId tcToQueue) {
     return;
   }
   auto& systemPortApi = SaiApiTable::getInstance()->systemPortApi();
-  systemPortApi.setAttribute(
+  auto oldTcToQueue = systemPortApi.getAttribute(
       cpuPortHandle_->cpuSystemPortId.value(),
-      SaiSystemPortTraits::Attributes::QosTcToQueueMap{tcToQueue});
+      SaiSystemPortTraits::Attributes::QosTcToQueueMap{});
+  if (oldTcToQueue != tcToQueue) {
+    systemPortApi.setAttribute(
+        cpuPortHandle_->cpuSystemPortId.value(),
+        SaiSystemPortTraits::Attributes::QosTcToQueueMap{tcToQueue});
+  }
 }
 
 } // namespace facebook::fboss
