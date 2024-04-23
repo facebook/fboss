@@ -742,8 +742,10 @@ void addOlympicQosMaps(
   addQosMapsHelper(cfg, kOlympicQueueToDscp(), "olympic", asics);
 }
 
-void addOlympicV2QosMaps(cfg::SwitchConfig& cfg, const HwAsic* hwAsic) {
-  addQosMapsHelper(cfg, kOlympicV2QueueToDscp(), "olympic_v2", {hwAsic});
+void addOlympicV2QosMaps(
+    cfg::SwitchConfig& cfg,
+    const std::vector<const HwAsic*>& asics) {
+  addQosMapsHelper(cfg, kOlympicV2QueueToDscp(), "olympic_v2", asics);
 }
 
 int getMaxWeightWRRQueue(const std::map<int, uint8_t>& queueToWeight) {

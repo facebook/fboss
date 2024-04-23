@@ -167,7 +167,7 @@ class AgentOlympicQosSchedulerTest : public AgentHwTest {
         getAsic()->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin());
     utility::addOlympicV2WRRQueueConfig(
         &newCfg, streamType, getAgentEnsemble()->getL3Asics());
-    utility::addOlympicV2QosMaps(newCfg, getAsic());
+    utility::addOlympicV2QosMaps(newCfg, getAgentEnsemble()->getL3Asics());
     utility::setTTLZeroCpuConfig(getAsic(), newCfg);
     applyNewConfig(newCfg);
   }
@@ -476,7 +476,7 @@ void AgentOlympicQosSchedulerTest::verifyWRRToAllSPDscpToQueue() {
     auto streamType = *(
         getAsic()->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin());
     utility::addOlympicAllSPQueueConfig(&newCfg, streamType, getAsic());
-    utility::addOlympicV2QosMaps(newCfg, getAsic());
+    utility::addOlympicV2QosMaps(newCfg, getAgentEnsemble()->getL3Asics());
     utility::setTTLZeroCpuConfig(getAsic(), newCfg);
     applyNewConfig(newCfg);
   };
@@ -505,7 +505,7 @@ void AgentOlympicQosSchedulerTest::verifyWRRToAllSPTraffic() {
     auto streamType = *(
         getAsic()->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin());
     utility::addOlympicAllSPQueueConfig(&newCfg, streamType, getAsic());
-    utility::addOlympicV2QosMaps(newCfg, getAsic());
+    utility::addOlympicV2QosMaps(newCfg, getAgentEnsemble()->getL3Asics());
     utility::setTTLZeroCpuConfig(getAsic(), newCfg);
     applyNewConfig(newCfg);
   };
@@ -626,7 +626,7 @@ void AgentOlympicQosSchedulerTest::verifyOlympicV2WRRToAllSPTraffic() {
     auto streamType = *(
         getAsic()->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin());
     utility::addOlympicAllSPQueueConfig(&newCfg, streamType, getAsic());
-    utility::addOlympicV2QosMaps(newCfg, getAsic());
+    utility::addOlympicV2QosMaps(newCfg, getAgentEnsemble()->getL3Asics());
     utility::setTTLZeroCpuConfig(getAsic(), newCfg);
     applyNewConfig(newCfg);
   };
@@ -658,7 +658,7 @@ void AgentOlympicQosSchedulerTest::verifyOlympicV2AllSPTrafficToWRR() {
     auto streamType = *(
         getAsic()->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin());
     utility::addOlympicAllSPQueueConfig(&newCfg, streamType, getAsic());
-    utility::addOlympicV2QosMaps(newCfg, getAsic());
+    utility::addOlympicV2QosMaps(newCfg, getAgentEnsemble()->getL3Asics());
     utility::setTTLZeroCpuConfig(getAsic(), newCfg);
     applyNewConfig(newCfg);
   };
@@ -752,7 +752,7 @@ class AgentOlympicV2MigrationQosSchedulerTest
         *(asic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin());
     utility::addOlympicV2WRRQueueConfig(
         &cfg, streamType, ensemble.getL3Asics());
-    utility::addOlympicV2QosMaps(cfg, asic);
+    utility::addOlympicV2QosMaps(cfg, ensemble.getL3Asics());
     utility::setTTLZeroCpuConfig(asic, cfg);
     return cfg;
   }
@@ -777,7 +777,7 @@ class AgentOlympicV2SPToWRRQosSchedulerTest
     auto streamType =
         *(asic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin());
     utility::addOlympicAllSPQueueConfig(&cfg, streamType, asic);
-    utility::addOlympicV2QosMaps(cfg, asic);
+    utility::addOlympicV2QosMaps(cfg, ensemble.getL3Asics());
     utility::setTTLZeroCpuConfig(asic, cfg);
     return cfg;
   }

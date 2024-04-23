@@ -147,6 +147,13 @@ void addQosMapsHelper(
 void addOlympicQosMaps(
     cfg::SwitchConfig& cfg,
     const std::vector<const HwAsic*>& asics);
+void addOlympicAllSPQueueConfig(
+    cfg::SwitchConfig* config,
+    cfg::StreamType streamType,
+    const HwAsic* asic);
+void addOlympicV2QosMaps(
+    cfg::SwitchConfig& cfg,
+    const std::vector<const HwAsic*>& asics);
 
 std::string getOlympicCounterNameForDscp(uint8_t dscp);
 
@@ -163,12 +170,6 @@ const std::vector<int> kOlympicAllSPQueueIds();
 const std::map<int, std::vector<uint8_t>> kOlympicV2QueueToDscp();
 
 int getMaxWeightWRRQueue(const std::map<int, uint8_t>& queueToWeight);
-
-void addOlympicAllSPQueueConfig(
-    cfg::SwitchConfig* config,
-    cfg::StreamType streamType,
-    const HwAsic* asic);
-void addOlympicV2QosMaps(cfg::SwitchConfig& cfg, const HwAsic* asic);
 
 cfg::ActiveQueueManagement kGetOlympicEcnConfig(
     int minLength = 41600,
