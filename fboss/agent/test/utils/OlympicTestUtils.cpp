@@ -67,8 +67,7 @@ void addOlympicQueueOptionalEcnWredConfigWithSchedulingHelper(
     bool addEcnConfig,
     cfg::QueueScheduling schedType) {
   // Qos queue config for diverse asic type not supported yet
-  checkSameAsicType(asics);
-  auto asic = *asics.begin();
+  auto asic = checkSameAndGetAsic(asics);
   std::vector<cfg::PortQueue> portQueues;
 
   cfg::PortQueue queue0;
