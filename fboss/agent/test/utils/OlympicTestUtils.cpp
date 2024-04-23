@@ -346,13 +346,13 @@ void addNetworkAIQueueConfig(
 void addOlympicQueueConfig(
     cfg::SwitchConfig* config,
     cfg::StreamType streamType,
-    const HwAsic* asic,
+    std::vector<const HwAsic*> asics,
     bool addWredConfig,
     bool addEcnConfig) {
   addOlympicQueueOptionalEcnWredConfigWithSchedulingHelper(
       config,
       streamType,
-      {asic},
+      asics,
       addWredConfig,
       addEcnConfig,
       cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN);

@@ -237,7 +237,7 @@ class AgentOlympicQosSchedulerTest : public AgentHwTest {
         true /*interfaceHasSubnet*/);
     auto streamType =
         *(asic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin());
-    utility::addOlympicQueueConfig(&cfg, streamType, asic);
+    utility::addOlympicQueueConfig(&cfg, streamType, ensemble.getL3Asics());
     utility::addOlympicQosMaps(cfg, asic);
     utility::setTTLZeroCpuConfig(asic, cfg);
     return cfg;
@@ -591,7 +591,8 @@ void AgentOlympicQosSchedulerTest::verifyDscpToQueueOlympicV2ToOlympic() {
     auto newCfg{initialConfig(*getAgentEnsemble())};
     auto streamType = *(
         getAsic()->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin());
-    utility::addOlympicQueueConfig(&newCfg, streamType, getAsic());
+    utility::addOlympicQueueConfig(
+        &newCfg, streamType, getAgentEnsemble()->getL3Asics());
     utility::addOlympicQosMaps(newCfg, getAsic());
     utility::setTTLZeroCpuConfig(getAsic(), newCfg);
     applyNewConfig(newCfg);

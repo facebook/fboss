@@ -38,7 +38,8 @@ class AgentAqmTest : public AgentHwTest {
     if (asic->isSupported(HwAsic::Feature::L3_QOS)) {
       auto streamType =
           *(asic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin());
-      utility::addOlympicQueueConfig(&config, streamType, asic);
+      utility::addOlympicQueueConfig(
+          &config, streamType, ensemble.getL3Asics());
       utility::addOlympicQosMaps(config, asic);
     }
     utility::setTTLZeroCpuConfig(asic, config);
@@ -136,7 +137,11 @@ class AgentAqmTest : public AgentHwTest {
       auto streamType =
           *(asic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin());
       utility::addOlympicQueueConfig(
-          &config, streamType, asic, enableWred, enableEcn);
+          &config,
+          streamType,
+          getAgentEnsemble()->getL3Asics(),
+          enableWred,
+          enableEcn);
       utility::addOlympicQosMaps(config, asic);
     }
     utility::setTTLZeroCpuConfig(asic, config);

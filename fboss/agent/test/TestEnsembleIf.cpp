@@ -51,7 +51,7 @@ std::vector<PortID> TestEnsembleIf::masterLogicalPortIdsImpl(
 
 std::vector<const HwAsic*> TestEnsembleIf::getL3Asics() const {
   auto l3Asics = getHwAsicTable()->getL3Asics();
-  CHECK(l3Asics.empty()) << " No l3 asics found";
+  CHECK(!l3Asics.empty()) << " No l3 asics found";
   return l3Asics;
 }
 } // namespace facebook::fboss

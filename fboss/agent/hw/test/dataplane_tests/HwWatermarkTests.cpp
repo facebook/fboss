@@ -44,7 +44,7 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
                 ->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT)
                 .begin());
       utility::addOlympicQueueConfig(
-          &cfg, streamType, getPlatform()->getAsic());
+          &cfg, streamType, getHwSwitchEnsemble()->getL3Asics());
       utility::addOlympicQosMaps(cfg, getPlatform()->getAsic());
     }
     utility::setTTLZeroCpuConfig(getAsic(), cfg);

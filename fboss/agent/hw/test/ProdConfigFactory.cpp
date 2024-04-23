@@ -43,7 +43,7 @@ void addOlympicQosToConfig(
   if (enableStrictPriority) {
     addFswRswAllSPOlympicQueueConfig(&config, streamType, hwAsic);
   } else {
-    addOlympicQueueConfig(&config, streamType, hwAsic);
+    addOlympicQueueConfig(&config, streamType, {hwAsic});
   }
 }
 

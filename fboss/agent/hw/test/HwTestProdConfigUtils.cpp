@@ -37,7 +37,7 @@ void addProdFeaturesToConfig(
      */
     auto streamType =
         *(hwAsic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin());
-    utility::addOlympicQueueConfig(&config, streamType, hwAsic, true);
+    utility::addOlympicQueueConfig(&config, streamType, {hwAsic}, true);
   }
   /*
    * Configure COPP, CPU traffic policy and ACLs

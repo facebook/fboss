@@ -91,7 +91,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
                 ->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT)
                 .begin());
       utility::addOlympicQueueConfig(
-          &cfg, streamType, getPlatform()->getAsic());
+          &cfg, streamType, getHwSwitchEnsemble()->getL3Asics());
       utility::addOlympicQosMaps(cfg, getPlatform()->getAsic());
     }
     utility::setTTLZeroCpuConfig(getAsic(), cfg);
@@ -131,7 +131,11 @@ class HwAqmTest : public HwLinkStateDependentTest {
                 ->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT)
                 .begin());
       utility::addOlympicQueueConfig(
-          &cfg, streamType, getPlatform()->getAsic(), enableWred, enableEcn);
+          &cfg,
+          streamType,
+          getHwSwitchEnsemble()->getL3Asics(),
+          enableWred,
+          enableEcn);
       utility::addOlympicQosMaps(cfg, getPlatform()->getAsic());
     }
     utility::setTTLZeroCpuConfig(getAsic(), cfg);
@@ -152,7 +156,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
                 ->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT)
                 .begin());
       utility::addOlympicQueueConfig(
-          &cfg, streamType, getPlatform()->getAsic());
+          &cfg, streamType, getHwSwitchEnsemble()->getL3Asics());
       utility::addOlympicQosMaps(cfg, getPlatform()->getAsic());
     }
     return cfg;
