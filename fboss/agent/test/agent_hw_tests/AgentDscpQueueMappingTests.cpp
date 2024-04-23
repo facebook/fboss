@@ -168,7 +168,7 @@ class AgentAclAndDscpQueueMappingTest : public AgentDscpQueueMappingTestBase {
         ensemble.masterLogicalPortIds(),
         true /*interfaceHasSubnet*/);
     // QosMap
-    utility::addOlympicQosMaps(cfg, asic);
+    utility::addOlympicQosMaps(cfg, ensemble.getL3Asics());
 
     // ACL
     auto* acl = utility::addAcl(&cfg, "acl0");
@@ -234,7 +234,7 @@ class AgentAclConflictAndDscpQueueMappingTest
     // The QoS map sends packets to queue kQueueIdQosMap() i.e. 7,
     // The ACL sends them to queue kQueueIdAcl() i.e. 2.
     // QosMap
-    utility::addOlympicQosMaps(cfg, asic);
+    utility::addOlympicQosMaps(cfg, ensemble.getL3Asics());
 
     // ACL
     utility::addDscpAclToCfg(&cfg, "acl0", kDscp());

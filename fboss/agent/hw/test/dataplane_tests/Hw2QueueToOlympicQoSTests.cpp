@@ -126,7 +126,7 @@ class Hw2QueueToOlympicQoSTest : public HwLinkStateDependentTest {
                 .begin());
       utility::addOlympicQueueConfig(
           &newCfg, streamType, getHwSwitchEnsemble()->getL3Asics());
-      utility::addOlympicQosMaps(newCfg, getPlatform()->getAsic());
+      utility::addOlympicQosMaps(newCfg, getHwSwitchEnsemble()->getL3Asics());
       applyNewConfig(newCfg);
     };
 

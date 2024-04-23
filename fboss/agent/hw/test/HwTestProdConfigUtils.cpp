@@ -30,7 +30,7 @@ void addProdFeaturesToConfig(
     /*
      * Enable Olympic QOS
      */
-    utility::addOlympicQosMaps(config, hwAsic);
+    utility::addOlympicQosMaps(config, {hwAsic});
 
     /*
      * Enable Olympic Queue Config

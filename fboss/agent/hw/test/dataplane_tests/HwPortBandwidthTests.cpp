@@ -37,7 +37,7 @@ class HwPortBandwidthTest : public HwLinkStateDependentTest {
                 .begin());
       utility::addOlympicQueueConfig(
           &cfg, streamType, getHwSwitchEnsemble()->getL3Asics());
-      utility::addOlympicQosMaps(cfg, getPlatform()->getAsic());
+      utility::addOlympicQosMaps(cfg, getHwSwitchEnsemble()->getL3Asics());
     }
     utility::setTTLZeroCpuConfig(getAsic(), cfg);
     return cfg;

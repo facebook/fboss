@@ -961,7 +961,7 @@ TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, verifyDscpToVoqMapping) {
   const SystemPortID kRemoteSysPortId(remotePortId);
   auto setup = [=, this]() {
     auto newCfg{initialConfig()};
-    utility::addOlympicQosMaps(newCfg, getAsic());
+    utility::addOlympicQosMaps(newCfg, getHwSwitchEnsemble()->getL3Asics());
     applyNewConfig(newCfg);
 
     // in addRemoteDsfNodeCfg, we use numCores to calculate the remoteSwitchId

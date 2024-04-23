@@ -144,7 +144,9 @@ void addQosMapsHelper(
     const std::map<int, std::vector<uint8_t>>& queueToDscpMap,
     const std::string& qosPolicyName,
     const std::vector<const HwAsic*>& asics);
-void addOlympicQosMaps(cfg::SwitchConfig& cfg, const HwAsic* hwAsic);
+void addOlympicQosMaps(
+    cfg::SwitchConfig& cfg,
+    const std::vector<const HwAsic*>& asics);
 
 std::string getOlympicCounterNameForDscp(uint8_t dscp);
 

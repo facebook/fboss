@@ -24,8 +24,7 @@ class AgentDeepPacketInspectionTest : public AgentHwTest {
       const AgentEnsemble& ensemble) const override {
     auto config = AgentHwTest::initialConfig(ensemble);
     auto port = ensemble.masterLogicalInterfacePortIds()[0];
-    utility::addOlympicQosMaps(
-        config, utility::getAsic(*ensemble.getSw(), port));
+    utility::addOlympicQosMaps(config, ensemble.getL3Asics());
     utility::addTrapPacketAcl(&config, port);
     return config;
   }

@@ -95,7 +95,7 @@ class AgentCoppTest : public AgentHwTest {
         ensemble.masterLogicalPortIds(),
         true /*interfaceHasSubnet*/);
 
-    utility::addOlympicQosMaps(cfg, asic);
+    utility::addOlympicQosMaps(cfg, ensemble.getL3Asics());
     utility::setDefaultCpuTrafficPolicyConfig(cfg, asic, ensemble.isSai());
     utility::addCpuQueueConfig(cfg, asic, ensemble.isSai());
     return cfg;

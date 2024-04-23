@@ -736,8 +736,10 @@ void addQosMapsHelper(
   }
 }
 
-void addOlympicQosMaps(cfg::SwitchConfig& cfg, const HwAsic* hwAsic) {
-  addQosMapsHelper(cfg, kOlympicQueueToDscp(), "olympic", {hwAsic});
+void addOlympicQosMaps(
+    cfg::SwitchConfig& cfg,
+    const std::vector<const HwAsic*>& asics) {
+  addQosMapsHelper(cfg, kOlympicQueueToDscp(), "olympic", asics);
 }
 
 void addOlympicV2QosMaps(cfg::SwitchConfig& cfg, const HwAsic* hwAsic) {

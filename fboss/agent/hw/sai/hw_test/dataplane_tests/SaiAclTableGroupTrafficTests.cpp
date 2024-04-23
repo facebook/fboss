@@ -571,7 +571,7 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
 
       if (this->isSupported()) {
         auto newCfg{initialConfig()};
-        utility::addOlympicQosMaps(newCfg, getAsic());
+        utility::addOlympicQosMaps(newCfg, {getAsic()});
         utility::addDscpAclTable(
             &newCfg,
             1 /*priority*/,

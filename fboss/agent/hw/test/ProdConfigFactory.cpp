@@ -37,7 +37,7 @@ void addOlympicQosToConfig(
     cfg::SwitchConfig& config,
     const HwAsic* hwAsic,
     bool enableStrictPriority) {
-  addOlympicQosMaps(config, hwAsic);
+  addOlympicQosMaps(config, {hwAsic});
   auto streamType =
       *hwAsic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin();
   if (enableStrictPriority) {
@@ -57,7 +57,7 @@ void addOlympicQosToConfig(
 
 void addNetworkAIQosToConfig(cfg::SwitchConfig& config, const HwAsic* hwAsic) {
   // network AI qos map is the same as olympic
-  addOlympicQosMaps(config, hwAsic);
+  addOlympicQosMaps(config, {hwAsic});
   auto streamType =
       *hwAsic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin();
   // queue configuration is different

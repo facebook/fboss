@@ -40,7 +40,7 @@ class AgentAqmTest : public AgentHwTest {
           *(asic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin());
       utility::addOlympicQueueConfig(
           &config, streamType, ensemble.getL3Asics());
-      utility::addOlympicQosMaps(config, asic);
+      utility::addOlympicQosMaps(config, ensemble.getL3Asics());
     }
     utility::setTTLZeroCpuConfig(asic, config);
     return config;
@@ -142,7 +142,7 @@ class AgentAqmTest : public AgentHwTest {
           getAgentEnsemble()->getL3Asics(),
           enableWred,
           enableEcn);
-      utility::addOlympicQosMaps(config, asic);
+      utility::addOlympicQosMaps(config, getAgentEnsemble()->getL3Asics());
     }
     utility::setTTLZeroCpuConfig(asic, config);
     return config;
