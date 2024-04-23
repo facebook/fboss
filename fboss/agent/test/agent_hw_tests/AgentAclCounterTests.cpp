@@ -14,6 +14,7 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
+#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
@@ -428,12 +429,17 @@ class AgentAclCounterTest : public AgentHwTest {
     auto aclName = getAclName(aclType);
     auto counterName = getCounterName(aclType);
     auto acl = utility::addAcl(config, aclName, aclActionType_);
+    auto asic = hwAsicForPort(
+        masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[kEcmpWidth]);
     switch (aclType) {
       case AclType::TCP_TTLD:
       case AclType::UDP_TTLD:
         acl->srcIp() = "2620:0:1cfe:face:b00c::/64";
         acl->proto() = aclType == AclType::UDP_TTLD ? 17 : 6;
-        acl->ipType() = cfg::IpType::IP6;
+        if (asic->getAsicType() != cfg::AsicType::ASIC_TYPE_JERICHO3) {
+          // TODO(daiweix): remove after J3 ACL supports IP_TYPE
+          acl->ipType() = cfg::IpType::IP6;
+        }
         acl->ttl() = cfg::Ttl();
         *acl->ttl()->value() = 128;
         *acl->ttl()->mask() = 128;
