@@ -32,7 +32,6 @@ const std::map<int64_t, cfg::SwitchInfo> getSwitchInfoFromConfigImpl(
         switchInfo.portIdRange()->maximum() =
             cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX();
       }
-      switchInfoMap.emplace(entry.first, switchInfo);
       if (switchInfo.switchType() == cfg::SwitchType::VOQ &&
           !switchInfo.systemPortRange()) {
         auto dsfItr =
