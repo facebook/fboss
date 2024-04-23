@@ -117,6 +117,7 @@ add_library(agent_hw_test
 )
 
 target_link_libraries(agent_hw_test
+  agent_hw_test_constants
   mono_agent_ensemble
   production_features_cpp2
   core

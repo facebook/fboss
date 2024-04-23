@@ -6,6 +6,7 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/test/AgentEnsemble.h"
 #include "fboss/agent/test/gen-cpp2/production_features_types.h"
+#include "fboss/agent/test/utils/AgentHwTestConstants.h"
 
 #include <gflags/gflags.h>
 #include <gtest/gtest.h>
