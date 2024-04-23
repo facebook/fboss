@@ -215,9 +215,7 @@ std::shared_ptr<SwitchState> LinkStateToggler::applyInitialConfigWithPortsDown(
       auto port = switchState->getPorts()
                       ->getNodeIf(PortID(*cfgPort.logicalID()))
                       ->modify(&switchState);
-      if (cfgPort.portType() != cfg::PortType::FABRIC_PORT) {
-        port->setZeroPreemphasis(true);
-      }
+      port->setZeroPreemphasis(true);
       *cfgPort.state() = portId2DesiredState[*cfgPort.logicalID()];
     }
     return switchState;
