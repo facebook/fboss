@@ -52,18 +52,8 @@ void sendPktAndVerifyCpuQueue(
     int queueId,
     SendFn sendPkts,
     const int expectedPktDelta) {
-  auto beforeOutPkts = getQueueOutPacketsWithRetry(
-      hwSwitch, queueId, 0 /* retryTimes */, 0 /* expectedNumPkts */);
-  sendPkts();
-  constexpr auto kGetQueueOutPktsRetryTimes = 5;
-  auto afterOutPkts = getQueueOutPacketsWithRetry(
-      hwSwitch,
-      queueId,
-      kGetQueueOutPktsRetryTimes,
-      beforeOutPkts + expectedPktDelta);
-  XLOG(DBG0) << "Queue=" << queueId << ", before pkts:" << beforeOutPkts
-             << ", after pkts:" << afterOutPkts;
-  EXPECT_EQ(expectedPktDelta, afterOutPkts - beforeOutPkts);
+  sendPktAndVerifyCpuQueue(
+      hwSwitch, SwitchID(0), queueId, sendPkts, expectedPktDelta);
 }
 
 void sendAndVerifyPkts(

@@ -21,31 +21,7 @@
 
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 
-DECLARE_bool(enable_acl_table_group);
-
-namespace {
-
-const auto kIPv6LinkLocalUcastAddress = folly::IPAddressV6("fe80::2");
-const auto kNetworkControlDscp = 48;
-
-} // unnamed namespace
-
 namespace facebook::fboss::utility {
-
-uint64_t getQueueOutPacketsWithRetry(
-    HwSwitch* hwSwitch,
-    int queueId,
-    int retryTimes,
-    uint64_t expectedNumPkts,
-    int postMatchRetryTimes) {
-  return getQueueOutPacketsWithRetry(
-      hwSwitch,
-      SwitchID(0),
-      queueId,
-      retryTimes,
-      expectedNumPkts,
-      postMatchRetryTimes);
-}
 
 std::pair<uint64_t, uint64_t> getCpuQueueOutDiscardPacketsAndBytes(
     HwSwitch* hwSwitch,
@@ -64,6 +40,21 @@ std::pair<uint64_t, uint64_t> getCpuQueueOutDiscardPacketsAndBytes(
   return std::pair(outDiscardPackets, outDiscardBytes);
 }
 
+uint64_t getQueueOutPacketsWithRetry(
+    HwSwitch* hwSwitch,
+    int queueId,
+    int retryTimes,
+    uint64_t expectedNumPkts,
+    int postMatchRetryTimes) {
+  return getQueueOutPacketsWithRetry(
+      hwSwitch,
+      SwitchID(0),
+      queueId,
+      retryTimes,
+      expectedNumPkts,
+      postMatchRetryTimes);
+}
+
 void sendAndVerifyPkts(
     HwSwitch* hwSwitch,
     std::shared_ptr<SwitchState> swState,
@@ -72,44 +63,15 @@ void sendAndVerifyPkts(
     uint8_t queueId,
     PortID srcPort,
     uint8_t trafficClass) {
-  auto sendPkts = [&] {
-    auto vlanId = utility::firstVlanID(swState);
-    auto intfMac = utility::getFirstInterfaceMac(swState);
-    utility::sendTcpPkts(
-        hwSwitch,
-        1 /*numPktsToSend*/,
-        vlanId,
-        intfMac,
-        destIp,
-        utility::kNonSpecialPort1,
-        destPort,
-        srcPort,
-        trafficClass);
-  };
-
-  sendPktAndVerifyCpuQueue(hwSwitch, queueId, sendPkts, 1);
-}
-
-/*
- * Pick a common copp Acl (link local + NC) and run dataplane test
- * to verify whether a common COPP acl is being hit.
- * TODO: Enhance this to cover every copp invariant acls.
- * Implement a similar function to cover all rxreasons invariant as well
- */
-void verifyCoppAcl(
-    HwSwitch* hwSwitch,
-    const HwAsic* hwAsic,
-    std::shared_ptr<SwitchState> swState,
-    PortID srcPort) {
-  XLOG(DBG2) << "Verifying Copp ACL";
   sendAndVerifyPkts(
       hwSwitch,
+      SwitchID(0),
       swState,
-      kIPv6LinkLocalUcastAddress,
-      utility::kNonSpecialPort2,
-      utility::getCoppHighPriQueueId(hwAsic),
+      destIp,
+      destPort,
+      queueId,
       srcPort,
-      kNetworkControlDscp);
+      trafficClass);
 }
 
 void verifyCoppInvariantHelper(
@@ -117,38 +79,6 @@ void verifyCoppInvariantHelper(
     const HwAsic* hwAsic,
     std::shared_ptr<SwitchState> swState,
     PortID srcPort) {
-  auto intf = getEligibleInterface(swState);
-  if (!intf) {
-    throw FbossError(
-        "No eligible uplink/downlink interfaces in config to verify COPP invariant");
-  }
-  for (auto iter : std::as_const(*intf->getAddresses())) {
-    auto destIp = folly::IPAddress(iter.first);
-    if (destIp.isLinkLocal()) {
-      // three elements in the address vector: ipv4, ipv6 and a link local one
-      // if the address qualifies as link local, it will loop back to the queue
-      // again, adding an extra packet to the queue and failing the verification
-      // thus, we skip the last one and only send BGP packets to v4 and v6 addr
-      continue;
-    }
-    sendAndVerifyPkts(
-        hwSwitch,
-        swState,
-        destIp,
-        utility::kBgpPort,
-        utility::getCoppHighPriQueueId(hwAsic),
-        srcPort);
-  }
-  auto addrs = intf->getAddressesCopy();
-  sendAndVerifyPkts(
-      hwSwitch,
-      swState,
-      addrs.begin()->first,
-      utility::kNonSpecialPort2,
-      utility::kCoppMidPriQueueId,
-      srcPort);
-
-  verifyCoppAcl(hwSwitch, hwAsic, swState, srcPort);
+  verifyCoppInvariantHelper(hwSwitch, SwitchID(0), hwAsic, swState, srcPort);
 }
-
 } // namespace facebook::fboss::utility

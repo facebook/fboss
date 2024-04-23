@@ -251,7 +251,11 @@ class AgentCoppTest : public AgentHwTest {
       sendPkt(std::move(pkt), outOfPort, expectQueueHit /*snoopAndVerify*/);
     };
     utility::sendPktAndVerifyCpuQueue(
-        getSw(), queueId, sendAndInspect, expectQueueHit ? kNumPktsToSend : 0);
+        getSw(),
+        utility::getFirstSwitchId(getSw()),
+        queueId,
+        sendAndInspect,
+        expectQueueHit ? kNumPktsToSend : 0);
   }
 
   void sendUdpPkt(

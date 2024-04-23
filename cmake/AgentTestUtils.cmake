@@ -24,6 +24,7 @@ target_link_libraries(copp_test_utils
   hw_switch
   load_balancer_test_utils
   packet
+  pkt_test_utils
   packet_factory
   resourcelibutil
   switch_asics

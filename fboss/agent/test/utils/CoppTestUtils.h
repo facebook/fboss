@@ -176,13 +176,13 @@ uint64_t getQueueOutPacketsWithRetry(
 template <typename SendFn, typename SwitchT>
 void sendPktAndVerifyCpuQueue(
     SwitchT* switchPtr,
+    SwitchID switchId,
     int queueId,
     SendFn sendPkts,
     const int expectedPktDelta) {
   auto beforeOutPkts = getQueueOutPacketsWithRetry(
       switchPtr,
-      // TODO: Handle this in next diff
-      SwitchID(0),
+      switchId,
       queueId,
       0 /* retryTimes */,
       0 /* expectedNumPkts */,
@@ -191,8 +191,7 @@ void sendPktAndVerifyCpuQueue(
   constexpr auto kGetQueueOutPktsRetryTimes = 5;
   auto afterOutPkts = getQueueOutPacketsWithRetry(
       switchPtr,
-      // TODO: Handle this in next diff
-      SwitchID(0),
+      switchId,
       queueId,
       kGetQueueOutPktsRetryTimes,
       beforeOutPkts + expectedPktDelta);
@@ -227,6 +226,25 @@ std::unique_ptr<facebook::fboss::TxPacket> createUdpPkt(
     int l4DstPort,
     uint8_t ttl,
     std::optional<uint8_t> dscp);
+
+template <typename SwitchT>
+void sendAndVerifyPkts(
+    SwitchT* switchPtr,
+    SwitchID switchId,
+    std::shared_ptr<SwitchState> swState,
+    const folly::IPAddress& destIp,
+    uint16_t destPort,
+    uint8_t queueId,
+    PortID srcPort,
+    uint8_t trafficClass = 0);
+
+template <typename SwitchT>
+void verifyCoppInvariantHelper(
+    SwitchT* switchPtr,
+    SwitchID switchId,
+    const HwAsic* hwAsic,
+    std::shared_ptr<SwitchState> swState,
+    PortID srcPort);
 
 } // namespace utility
 } // namespace facebook::fboss

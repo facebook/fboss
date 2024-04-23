@@ -23,6 +23,7 @@
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
+#include "fboss/agent/test/utils/PacketTestUtils.h"
 
 DECLARE_bool(enable_acl_table_group);
 
@@ -64,6 +65,10 @@ std::unique_ptr<facebook::fboss::TxPacket> createUdpPktImpl(
 
   return txPacket;
 }
+
+const auto kIPv6LinkLocalUcastAddress = folly::IPAddressV6("fe80::2");
+const auto kNetworkControlDscp = 48;
+
 } // namespace
 
 std::string getMplsDestNoMatchCounterName() {
@@ -981,4 +986,134 @@ template uint64_t getQueueOutPacketsWithRetry<HwSwitch>(
     int retryTimes,
     uint64_t expectedNumPkts,
     int postMatchRetryTimes);
+
+template <typename SwitchT>
+void sendAndVerifyPkts(
+    SwitchT* switchPtr,
+    SwitchID switchId,
+    std::shared_ptr<SwitchState> swState,
+    const folly::IPAddress& destIp,
+    uint16_t destPort,
+    uint8_t queueId,
+    PortID srcPort,
+    uint8_t trafficClass) {
+  auto sendPkts = [&] {
+    auto vlanId = utility::firstVlanID(swState);
+    auto intfMac = utility::getFirstInterfaceMac(swState);
+    utility::sendTcpPkts(
+        switchPtr,
+        1 /*numPktsToSend*/,
+        vlanId,
+        intfMac,
+        destIp,
+        utility::kNonSpecialPort1,
+        destPort,
+        srcPort,
+        trafficClass);
+  };
+
+  sendPktAndVerifyCpuQueue(switchPtr, switchId, queueId, sendPkts, 1);
+}
+
+/*
+ * Pick a common copp Acl (link local + NC) and run dataplane test
+ * to verify whether a common COPP acl is being hit.
+ * TODO: Enhance this to cover every copp invariant acls.
+ * Implement a similar function to cover all rxreasons invariant as well
+ */
+template <typename SwitchT>
+void verifyCoppAcl(
+    SwitchT* switchPtr,
+    SwitchID switchId,
+    const HwAsic* hwAsic,
+    std::shared_ptr<SwitchState> swState,
+    PortID srcPort) {
+  XLOG(DBG2) << "Verifying Copp ACL";
+  sendAndVerifyPkts(
+      switchPtr,
+      switchId,
+      swState,
+      kIPv6LinkLocalUcastAddress,
+      utility::kNonSpecialPort2,
+      utility::getCoppHighPriQueueId(hwAsic),
+      srcPort,
+      kNetworkControlDscp);
+}
+
+template <typename SwitchT>
+void verifyCoppInvariantHelper(
+    SwitchT* switchPtr,
+    SwitchID switchId,
+    const HwAsic* hwAsic,
+    std::shared_ptr<SwitchState> swState,
+    PortID srcPort) {
+  auto intf = getEligibleInterface(swState);
+  if (!intf) {
+    throw FbossError(
+        "No eligible uplink/downlink interfaces in config to verify COPP invariant");
+  }
+  for (auto iter : std::as_const(*intf->getAddresses())) {
+    auto destIp = folly::IPAddress(iter.first);
+    if (destIp.isLinkLocal()) {
+      // three elements in the address vector: ipv4, ipv6 and a link local one
+      // if the address qualifies as link local, it will loop back to the queue
+      // again, adding an extra packet to the queue and failing the verification
+      // thus, we skip the last one and only send BGP packets to v4 and v6 addr
+      continue;
+    }
+    sendAndVerifyPkts(
+        switchPtr,
+        switchId,
+        swState,
+        destIp,
+        utility::kBgpPort,
+        utility::getCoppHighPriQueueId(hwAsic),
+        srcPort);
+  }
+  auto addrs = intf->getAddressesCopy();
+  sendAndVerifyPkts(
+      switchPtr,
+      switchId,
+      swState,
+      addrs.begin()->first,
+      utility::kNonSpecialPort2,
+      utility::kCoppMidPriQueueId,
+      srcPort);
+
+  verifyCoppAcl(switchPtr, switchId, hwAsic, swState, srcPort);
+}
+
+template void sendAndVerifyPkts<SwSwitch>(
+    SwSwitch* switchPtr,
+    SwitchID switchId,
+    std::shared_ptr<SwitchState> swState,
+    const folly::IPAddress& destIp,
+    uint16_t destPort,
+    uint8_t queueId,
+    PortID srcPort,
+    uint8_t trafficClass);
+
+template void sendAndVerifyPkts<HwSwitch>(
+    HwSwitch* switchPtr,
+    SwitchID switchId,
+    std::shared_ptr<SwitchState> swState,
+    const folly::IPAddress& destIp,
+    uint16_t destPort,
+    uint8_t queueId,
+    PortID srcPort,
+    uint8_t trafficClass);
+
+template void verifyCoppInvariantHelper<SwSwitch>(
+    SwSwitch* switchPtr,
+    SwitchID switchId,
+    const HwAsic* hwAsic,
+    std::shared_ptr<SwitchState> swState,
+    PortID srcPort);
+
+template void verifyCoppInvariantHelper<HwSwitch>(
+    HwSwitch* switchPtr,
+    SwitchID switchId,
+    const HwAsic* hwAsic,
+    std::shared_ptr<SwitchState> swState,
+    PortID srcPort);
 } // namespace facebook::fboss::utility
