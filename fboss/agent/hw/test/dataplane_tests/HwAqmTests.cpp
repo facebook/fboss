@@ -110,7 +110,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
                 ->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT)
                 .begin());
       utility::addQueueWredDropConfig(
-          &cfg, streamType, getPlatform()->getAsic());
+          &cfg, streamType, {getPlatform()->getAsic()});
       utility::addOlympicQosMaps(cfg, getPlatform()->getAsic());
     }
     utility::setTTLZeroCpuConfig(getAsic(), cfg);

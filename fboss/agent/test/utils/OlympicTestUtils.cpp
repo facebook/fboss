@@ -377,7 +377,9 @@ void addFswRswAllSPOlympicQueueConfig(
 void addQueueWredDropConfig(
     cfg::SwitchConfig* config,
     cfg::StreamType streamType,
-    const HwAsic* asic) {
+    const std::vector<const HwAsic*>& asics) {
+  // All asics must be of the same type
+  auto asic = checkSameAndGetAsic(asics);
   std::vector<cfg::PortQueue> portQueues;
 
   // 256 packets in the test, where each packet has a payload of 7000 bytes

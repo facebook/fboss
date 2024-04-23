@@ -137,7 +137,7 @@ void addFswRswAllSPOlympicQueueConfig(
 void addQueueWredDropConfig(
     cfg::SwitchConfig* config,
     cfg::StreamType streamType,
-    const HwAsic* asic);
+    const std::vector<const HwAsic*>& asics);
 
 void addQosMapsHelper(
     cfg::SwitchConfig& cfg,
