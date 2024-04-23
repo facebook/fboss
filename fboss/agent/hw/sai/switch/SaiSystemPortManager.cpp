@@ -72,18 +72,8 @@ SaiSystemPortManager::attributesFromSwSystemPort(
       .speed = static_cast<uint32_t>(swSystemPort->getSpeedMbps()),
       .num_voq = static_cast<uint32_t>(swSystemPort->getNumVoqs()),
   };
-  std::optional<SaiSystemPortTraits::Attributes::QosTcToQueueMap>
-      qosTcToQueueMap = std::nullopt;
-  auto qosMapHandle =
-      managerTable_->qosMapManager().getQosMap(swSystemPort->getQosPolicy());
-  if (qosMapHandle && qosMapHandle->tcToVoqMap) {
-    auto qosMap = qosMapHandle->tcToVoqMap;
-    auto qosMapId = qosMap->adapterKey();
-    qosTcToQueueMap =
-        SaiSystemPortTraits::Attributes::QosTcToQueueMap{qosMapId};
-  }
   return SaiSystemPortTraits::CreateAttributes{
-      config, true /*enabled*/, qosTcToQueueMap};
+      config, true /*enabled*/, std::nullopt};
 }
 
 SystemPortSaiId SaiSystemPortManager::addSystemPort(
@@ -120,6 +110,7 @@ SystemPortSaiId SaiSystemPortManager::addSystemPort(
   concurrentIndices_->sysPortSaiIds.insert(
       {swSystemPort->getID(), saiSystemPort->adapterKey()});
   configureQueues(swSystemPort, swSystemPort->getPortQueues()->impl());
+  setQosPolicy(swSystemPort->getID(), swSystemPort->getQosPolicy());
   return saiSystemPort->adapterKey();
 }
 
