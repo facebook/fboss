@@ -111,6 +111,13 @@ class AgentOverflowTestBase : public AgentHwTest {
     // TODO: Iterate all ASICs and verify copp on the port of each ASIC.
     utility::verifyCopp(
         getSw(), utility::getFirstSwitchId(getSw()), getDownlinkPort());
+
+    std::vector<PortDescriptor> ecmpPortDesc;
+    for (const auto& port : getUplinkPorts()) {
+      ecmpPortDesc.emplace_back(port);
+    }
+    utility::verifyLoadBalance(getSw(), kEcmpWidth, ecmpPortDesc);
+    utility::verifyDscpToQueueMapping(getSw(), getUplinkPorts());
   }
 
  private:
