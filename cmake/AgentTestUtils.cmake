@@ -310,8 +310,12 @@ add_library(invariant_test_utils
 )
 
 target_link_libraries(invariant_test_utils
+  config_utils
   copp_test_utils
   load_balancer_test_utils
+  qos_test_utils
+  packet
+  packet_factory
   test_ensemble_if
   validated_shell_commands_cpp2
 )

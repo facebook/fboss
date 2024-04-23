@@ -28,6 +28,6 @@ void verifyLoadBalance(
     SwSwitch* sw,
     int ecmpWidth,
     const std::vector<PortDescriptor>& ecmpPorts);
-
+void verifyDscpToQueueMapping(SwSwitch* sw, const std::vector<PortID>& ports);
 } // namespace utility
 } // namespace facebook::fboss

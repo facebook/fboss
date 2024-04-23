@@ -9,10 +9,14 @@
  */
 
 #include "fboss/agent/test/utils/InvariantTestUtils.h"
+#include "fboss/agent/TxPacket.h"
 #include "fboss/agent/gen-cpp2/validated_shell_commands_constants.h"
+#include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
+#include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
+#include "fboss/agent/test/utils/QosTestUtils.h"
 
 namespace facebook::fboss::utility {
 
@@ -99,6 +103,19 @@ void verifyLoadBalance(
             getPortStatsFn,
             25);
       });
+}
+
+void verifyDscpToQueueMapping(SwSwitch* sw, const std::vector<PortID>& ports) {
+  if (!sw->getHwAsicTable()->isFeatureSupportedOnAllAsic(
+          HwAsic::Feature::L3_QOS)) {
+    return;
+  }
+  // lambda that returns HwPortStats for the given port
+  auto getPortStats = [&]() { return sw->getHwPortStats(ports); };
+
+  auto q2dscpMap = utility::getOlympicQosMaps(sw->getConfig());
+  EXPECT_TRUE(utility::verifyQueueMappingsInvariantHelper(
+      q2dscpMap, sw, sw->getState(), getPortStats, ports));
 }
 
 } // namespace facebook::fboss::utility

@@ -234,4 +234,7 @@ void removeSubsumedPorts(
     const cfg::PlatformPortConfig& profile,
     bool supportsAddRemovePort);
 
+std::map<int, std::vector<uint8_t>> getOlympicQosMaps(
+    const cfg::SwitchConfig& config);
+
 } // namespace facebook::fboss::utility

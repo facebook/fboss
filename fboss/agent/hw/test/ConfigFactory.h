@@ -116,9 +116,6 @@ void setPortToDefaultProfileIDMap(
     bool supportsAddRemove,
     std::optional<std::vector<PortID>> masterLogicalPortIds = std::nullopt);
 
-std::map<int, std::vector<uint8_t>> getOlympicQosMaps(
-    const cfg::SwitchConfig& config);
-
 UplinkDownlinkPair getAllUplinkDownlinkPorts(
     const HwSwitch* hwSwitch,
     const cfg::SwitchConfig& config,
