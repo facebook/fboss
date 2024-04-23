@@ -143,10 +143,10 @@ class HwMplsEcmpDataPlaneTestUtil
 
   void programRoutes(int ecmpWidth, const std::vector<NextHopWeight>& weights)
       override;
-
- private:
   /* pump MPLS traffic */
   void pumpTrafficThroughPort(std::optional<PortID> port) override;
+
+ private:
   MPLSHdr::Label label_;
 };
 
