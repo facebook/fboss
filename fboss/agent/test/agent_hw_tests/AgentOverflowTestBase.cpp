@@ -94,6 +94,17 @@ class AgentOverflowTestBase : public AgentHwTest {
         .second[0];
   }
 
+  std::vector<PortID> getUplinkPorts() {
+    // pick the first downlink in the list
+    return utility::getAllUplinkDownlinkPorts(
+               getSw()->getPlatformType(),
+               getSw()->getConfig(),
+               kEcmpWidth,
+               /* TODO: For RTSW invariant enable mmu lossless */
+               false /* mmu_lossless*/)
+        .first;
+  }
+
   void verifyInvariants() {
     utility::verifySafeDiagCmds(
         getAgentEnsemble(), utility::getFirstAsic(getSw()));

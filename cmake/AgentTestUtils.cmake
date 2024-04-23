@@ -311,6 +311,7 @@ add_library(invariant_test_utils
 
 target_link_libraries(invariant_test_utils
   copp_test_utils
+  load_balancer_test_utils
   test_ensemble_if
   validated_shell_commands_cpp2
 )

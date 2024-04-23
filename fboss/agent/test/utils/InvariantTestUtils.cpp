@@ -12,6 +12,7 @@
 #include "fboss/agent/gen-cpp2/validated_shell_commands_constants.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
+#include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 
 namespace facebook::fboss::utility {
 
@@ -64,6 +65,40 @@ void verifySafeDiagCmds(TestEnsembleIf* ensemble, const HwAsic* asic) {
     std::string out;
     ensemble->runDiagCommand("quit\n", out);
   }
+}
+
+void verifyLoadBalance(
+    SwSwitch* sw,
+    int ecmpWidth,
+    const std::vector<PortDescriptor>& ecmpPorts) {
+  std::function<std::map<PortID, HwPortStats>(const std::vector<PortID>&)>
+      getPortStatsFn = [&](const std::vector<PortID>& portIds) {
+        return sw->getHwPortStats(portIds);
+      };
+  utility::pumpTrafficAndVerifyLoadBalanced(
+      [=]() {
+        auto intfMac = utility::getFirstInterfaceMac(sw->getState());
+        utility::pumpTraffic(
+            true,
+            utility::getAllocatePktFn(sw),
+            utility::getSendPktFunc(sw),
+            intfMac,
+            sw->getState()->getVlans()->getFirstVlanID());
+      },
+      [=]() {
+        auto ports = std::make_unique<std::vector<int32_t>>();
+        for (const auto& ecmpPort : ecmpPorts) {
+          ports->push_back(static_cast<int32_t>(ecmpPort.phyPortID()));
+        }
+        sw->clearPortStats(ports);
+      },
+      [=]() {
+        return utility::isLoadBalanced(
+            ecmpPorts,
+            std::vector<NextHopWeight>(ecmpWidth, 1),
+            getPortStatsFn,
+            25);
+      });
 }
 
 } // namespace facebook::fboss::utility
