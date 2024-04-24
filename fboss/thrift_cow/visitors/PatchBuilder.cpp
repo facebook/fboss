@@ -1,6 +1,9 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/thrift_cow/visitors/PatchBuilder.h"
+#include "fboss/thrift_cow/visitors/PatchHelpers.h"
+
+#include <thrift/lib/cpp2/protocol/Serializer.h>
 
 namespace facebook::fboss::thrift_cow {
 
@@ -33,7 +36,10 @@ PatchNode constructEmptyPatch(ThriftTCType tc) {
 
 } // namespace detail_pb
 
-PatchNodeBuilder::PatchNodeBuilder(ThriftTCType rootTC) {
+PatchNodeBuilder::PatchNodeBuilder(
+    ThriftTCType rootTC,
+    bool incrementallyCompress)
+    : incrementallyCompress_(incrementallyCompress) {
   root_ = detail_pb::constructEmptyPatch(rootTC);
   curPath_ = {root_};
 }
@@ -69,6 +75,9 @@ void PatchNodeBuilder::onPathPop(std::string&& tok, ThriftTCType /* tc */) {
             });
         shouldPrune = checkChild(patch);
       });
+  if (!shouldPrune && incrementallyCompress_) {
+    compressPatch(curPath_.back().get());
+  }
   curPath_.pop_back();
   if (shouldPrune) {
     apache::thrift::visit_union(

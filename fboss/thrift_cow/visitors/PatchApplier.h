@@ -4,6 +4,7 @@
 #include <fboss/thrift_cow/gen-cpp2/patch_types.h>
 #include <fboss/thrift_cow/nodes/NodeUtils.h>
 #include <fboss/thrift_cow/nodes/Serializer.h>
+#include <fboss/thrift_cow/visitors/PatchHelpers.h>
 #include <thrift/lib/cpp2/reflection/reflection.h>
 
 #include <optional>
@@ -79,6 +80,7 @@ struct PatchApplier<
 
     PatchResult result = PatchResult::OK;
 
+    decompressPatch(patch);
     auto mapPatch = patch.move_map_node();
     for (auto&& [key, childPatch] : *std::move(mapPatch).children()) {
       if (auto parsedKey = parseKey(key)) {
@@ -126,6 +128,7 @@ struct PatchApplier<apache::thrift::type_class::list<ValueTypeClass>> {
 
     PatchResult result = PatchResult::OK;
 
+    decompressPatch(patch);
     auto listPatch = patch.move_list_node();
 
     // In case of removals, we want to make sure we resolve later indices first.
@@ -197,6 +200,7 @@ struct PatchApplier<apache::thrift::type_class::set<ValueTypeClass>> {
 
     PatchResult result = PatchResult::OK;
 
+    decompressPatch(patch);
     auto setPatch = patch.move_set_node();
     for (auto&& [key, childPatch] : *std::move(setPatch).children()) {
       // for sets keys are our values
@@ -291,6 +295,7 @@ struct PatchApplier<apache::thrift::type_class::structure> {
 
     using Fields = typename Node::Fields;
     PatchResult result = PatchResult::OK;
+    decompressPatch(patch);
     auto structPatch = patch.move_struct_node();
     for (auto&& [key, childPatch] : *std::move(structPatch).children()) {
       auto invalidMember = true;

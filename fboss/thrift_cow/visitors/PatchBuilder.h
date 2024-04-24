@@ -19,9 +19,10 @@ namespace facebook::fboss::thrift_cow {
 // patch from two nodes, use PatchBuilder below
 class PatchNodeBuilder {
  public:
-  explicit PatchNodeBuilder(ThriftTCType rootTC);
+  PatchNodeBuilder(ThriftTCType rootTC, bool incrementallyCompress);
 
-  PatchNodeBuilder() : PatchNodeBuilder(ThriftTCType::STRUCTURE) {}
+  explicit PatchNodeBuilder(bool incrementallyCompress)
+      : PatchNodeBuilder(ThriftTCType::STRUCTURE, incrementallyCompress) {}
 
   void onPathPush(const std::string& tok, ThriftTCType tc);
 
@@ -47,6 +48,7 @@ class PatchNodeBuilder {
  private:
   void insertChild(PatchNode& node, const std::string& key, ThriftTCType tc);
 
+  bool incrementallyCompress_;
   PatchNode root_;
   std::vector<std::reference_wrapper<PatchNode>> curPath_;
 };
@@ -83,12 +85,13 @@ struct PatchBuilder {
   static thrift_cow::Patch build(
       const std::shared_ptr<Node>& oldNode,
       const std::shared_ptr<Node>& newNode,
-      const std::vector<std::string>& basePath) {
+      const std::vector<std::string>& basePath,
+      bool incrementallyCompress = false) {
     using TC = typename Node::TC;
     // TODO: validate type at path == Node
     thrift_cow::Patch patch;
     patch.basePath() = basePath;
-    PatchNodeBuilder nodeBuilder(TCType<TC>);
+    PatchNodeBuilder nodeBuilder(TCType<TC>, incrementallyCompress);
 
     auto processDelta = [&](const PatchBuilderTraverser& traverser,
                             auto /* oldNode */,
