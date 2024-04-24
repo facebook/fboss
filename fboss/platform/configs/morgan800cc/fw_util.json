@@ -8,7 +8,8 @@
       "verifyFwCmd": "chip=$(head -n 1 /home/bios-chip.txt); bios_filename=$(head -n 1 /home/bios_filename.txt); flashrom -p internal -c \"$chip\" -l /home/bios_spi_layout -i normal -v $bios_filename\n",
       "readFwCmd": "chip=$(head -n 1 /home/bios-chip.txt); bios_filename=$(head -n 1 /home/bios_filename.txt); flashrom -p internal -c \"$chip\" -l /home/bios_spi_layout -i normal -r $bios_filename\n",
       "sha1sum": "cea2c73a517d8e3c939995c4acf03db1bf654c52",
-      "priority": 1
+      "priority": 1,
+      "desiredVersion": "2.7"
     },
     "dom1_fpga": {
       "preUpgradeCmd": "printf '000000:43FFFF golden\\n800000:C3FFFF primary\\n' > /home/dom_spi_layout; ls -l /run/devmap/flashes/DOM1_SPI_MASTER | awk '{print $11}' > /home/dom1_spi.txt; programmer=$(head -n 1 /home/dom1_spi.txt); flashrom -p linux_spi:dev=$programmer 2>&1 > /home/dom1-flashrom-output.txt; grep -w \"flash chip\" /home/dom1-flashrom-output.txt | cut -d '\"' -f 2 > /home/dom1-chip.txt || echo '****** error finding chip ****** ...'\n",
@@ -18,7 +19,8 @@
       "verifyFwCmd": "chip=$(head -n 1 /home/dom1-chip.txt); dom1_fpga_filename=$(head -n 1 /home/dom1_fpga_filename.txt); programmer=$(head -n 1 /home/dom1_spi.txt); flashrom -p linux_spi:dev=$programmer -c \"$chip\" -l /home/dom_spi_layout -i primary --noverify-all -v $dom1_fpga_filename\n",
       "readFwCmd": "chip=$(head -n 1 /home/dom1-chip.txt); dom1_fpga_filename=$(head -n 1 /home/dom1_fpga_filename.txt); programmer=$(head -n 1 /home/dom1_spi.txt); flashrom -p linux_spi:dev=$programmer -c \"$chip\" -l /home/dom_spi_layout -i primary --noverify-all -r $dom1_fpga_filename\n",
       "sha1sum": "9d443e9d6ddba5fdc91ea5e28e1bbecab48cc489",
-      "priority": 2
+      "priority": 2,
+      "desiredVersion": "0.4"
     },
     "dom2_fpga": {
       "preUpgradeCmd": "printf '000000:43FFFF golden\\n800000:C3FFFF primary\\n' > /home/dom_spi_layout; ls -l /run/devmap/flashes/DOM2_SPI_MASTER | awk '{print $11}' > /home/dom2_spi.txt; programmer=$(head -n 1 /home/dom2_spi.txt); flashrom -p linux_spi:dev=$programmer 2>&1 > /home/dom2-flashrom-output.txt; grep -w \"flash chip\" /home/dom2-flashrom-output.txt | cut -d '\"' -f 2 > /home/dom2-chip.txt || echo '****** error finding chip ****** ...'\n",
@@ -28,7 +30,8 @@
       "verifyFwCmd": "chip=$(head -n 1 /home/dom2-chip.txt); dom2_fpga_filename=$(head -n 1 /home/dom2_fpga_filename.txt); programmer=$(head -n 1 /home/dom2_spi.txt); flashrom -p linux_spi:dev=$programmer -c \"$chip\" -l /home/dom_spi_layout -i primary --noverify-all -v $dom2_fpga_filename\n",
       "readFwCmd": "chip=$(head -n 1 /home/dom2-chip.txt); dom2_fpga_filename=$(head -n 1 /home/dom2_fpga_filename.txt); programmer=$(head -n 1 /home/dom2_spi.txt); flashrom -p linux_spi:dev=$programmer -c \"$chip\" -l /home/dom_spi_layout -i primary --noverify-all -r $dom2_fpga_filename\n",
       "sha1sum": "9d443e9d6ddba5fdc91ea5e28e1bbecab48cc489",
-      "priority": 3
+      "priority": 3,
+      "desiredVersion": "0.4"
     },
     "mcb_fpga": {
       "preUpgradeCmd": "printf '000000:43FFFF golden\\n800000:C3FFFF primary\\n' > /home/mcb_spi_layout; ls -l /run/devmap/flashes/MCB_SPI_MASTER | awk '{print $11}' > /home/mcb_spi.txt; programmer=$(head -n 1 /home/mcb_spi.txt); flashrom -p linux_spi:dev=$programmer 2>&1 > /home/mcb-flashrom-output.txt; grep -w \"flash chip\" /home/mcb-flashrom-output.txt | cut -d '\"' -f 2 > /home/mcb-chip.txt || echo '****** error finding chip ****** ...'\n",
@@ -38,7 +41,8 @@
       "verifyFwCmd": "chip=$(head -n 1 /home/mcb-chip.txt); mcb_fpga_filename=$(head -n 1 /home/mcb_fpga_filename.txt); programmer=$(head -n 1 /home/mcb_spi.txt); flashrom -p linux_spi:dev=$programmer -c \"$chip\" -l /home/mcb_spi_layout -i primary --noverify-all -v $mcb_fpga_filename\n",
       "readFwCmd": "chip=$(head -n 1 /home/mcb-chip.txt); mcb_fpga_filename=$(head -n 1 /home/mcb_fpga_filename.txt); programmer=$(head -n 1 /home/mcb_spi.txt); flashrom -p linux_spi:dev=$programmer -c \"$chip\" -l /home/mcb_spi_layout -i primary --noverify-all -r $mcb_fpga_filename\n",
       "sha1sum": "67702726872cefc887904de2b2a785d171176321",
-      "priority": 4
+      "priority": 4,
+      "desiredVersion": "0.8"
     },
     "iob_fpga": {
       "preUpgradeCmd": "printf '000000:43FFFF golden\\n800000:C3FFFF primary\\n' > /home/iob_spi_layout; ls -l /run/devmap/flashes/IOB_SPI_MASTER | awk '{print $11}' > /home/iob_spi.txt; programmer=$(head -n 1 /home/iob_spi.txt); flashrom -p linux_spi:dev=$programmer 2>&1 > /home/iob-flashrom-output.txt; grep -w \"flash chip\" /home/iob-flashrom-output.txt | cut -d '\"' -f 2 > /home/iob-chip.txt || echo '****** error finding chip ****** ...'\n",
@@ -48,7 +52,8 @@
       "verifyFwCmd": "chip=$(head -n 1 /home/iob-chip.txt); iob_fpga_filename=$(head -n 1 /home/iob_fpga_filename.txt); programmer=$(head -n 1 /home/iob_spi.txt); flashrom -p linux_spi:dev=$programmer -c \"$chip\" -l /home/iob_spi_layout -i primary --noverify-all -v $iob_fpga_filename\n",
       "readFwCmd": "chip=$(head -n 1 /home/iob-chip.txt); iob_fpga_filename=$(head -n 1 /home/iob_fpga_filename.txt); programmer=$(head -n 1 /home/iob_spi.txt); flashrom -p linux_spi:dev=$programmer -c \"$chip\" -l /home/iob_spi_layout -i primary --noverify-all -r $iob_fpga_filename\n",
       "sha1sum": "5f76d52cc6fd96e7e9fb215c8743f40eded88bad",
-      "priority": 5
+      "priority": 5,
+      "desiredVersion": "0.13"
     },
     "scm_fpga": {
       "preUpgradeCmd": "printf '000000:43FFFF golden\\n800000:C3FFFF primary\\n' > /home/scm_spi_layout; ls -l /run/devmap/flashes/SCM_SPI_MASTER | awk '{print $11}' > /home/scm_spi.txt; programmer=$(head -n 1 /home/scm_spi.txt); flashrom -p linux_spi:dev=$programmer 2>&1 > /home/scm-flashrom-output.txt; grep -w \"flash chip\" /home/scm-flashrom-output.txt | cut -d '\"' -f 2 > /home/scm-chip.txt || echo '****** error finding chip ****** ...'\n",
@@ -58,7 +63,8 @@
       "verifyFwCmd": "chip=$(head -n 1 /home/scm-chip.txt); scm_fpga_filename=$(head -n 1 /home/scm_fpga_filename.txt); programmer=$(head -n 1 /home/scm_spi.txt); flashrom -p linux_spi:dev=$programmer -c \"$chip\" -l /home/scm_spi_layout -i primary --noverify-all -v $scm_fpga_filename\n",
       "readFwCmd": "chip=$(head -n 1 /home/scm-chip.txt); scm_fpga_filename=$(head -n 1 /home/scm_fpga_filename.txt); programmer=$(head -n 1 /home/scm_spi.txt); flashrom -p linux_spi:dev=$programmer -c \"$chip\" -l /home/scm_spi_layout -i primary --noverify-all -r $scm_fpga_filename\n",
       "sha1sum": "f3844c7a608162e7391b227932bcf5c1d179ee7c",
-      "priority": 6
+      "priority": 6,
+      "desiredVersion": "0.24"
     },
     "oob": {
       "preUpgradeCmd": "cd /run/devmap/gpiochips; ls -l | grep MCB_FPGA_GPIO1 | cut -d '>' -f 2 | cut -d ' ' -f 2 > /home/gpiochip.txt; gpiochip=$(head -n 1 /home/gpiochip.txt); gpioset $gpiochip 58=1; gpioset $gpiochip 60=1; i2c_mux=$(i2cdetect -l | grep 0x12000 | awk '{ print $1 }'); i2c_dev=$(i2cdetect -l | grep \"$i2c_mux.*chan_id 4\" | awk '{ print $1 }'); cd /sys/bus/i2c/devices/$i2c_dev; cd *0050 2>/dev/null; if [ $? -ne 0 ]; then echo 24c04 0x50 > new_device 2>&1; cd *0050; fi; echo $(pwd) > /home/eeprom_path.txt\n",

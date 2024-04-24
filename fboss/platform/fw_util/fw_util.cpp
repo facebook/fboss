@@ -76,6 +76,8 @@ int main(int argc, char* argv[]) {
     fwUtilImpl.removeFilePath(fwUtilImpl.toLower(FLAGS_fw_target_name));
   } else if (FLAGS_fw_action == "list") {
     XLOG(INFO) << "supported Binary names are: " << fwUtilImpl.printFpdList();
+  } else if (FLAGS_fw_action == "audit") {
+    fwUtilImpl.doVersionAudit();
   } else {
     XLOG(ERR)
         << "Wrong usage. please run ./fw-util --helpon=Flags for the flags needed for proper usage";

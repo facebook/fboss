@@ -40,6 +40,7 @@ class FwUtilImpl {
   void doPreUpgrade(const std::string&, const std::string&);
   std::string printFpdList();
   void verifySha1sum(const std::string&, const std::string&);
+  void doVersionAudit();
 
  private:
   FwUtilConfig fwUtilConfig_{};

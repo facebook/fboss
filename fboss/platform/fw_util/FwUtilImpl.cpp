@@ -166,6 +166,37 @@ void FwUtilImpl::verifySha1sum(
   }
 }
 
+void FwUtilImpl::doVersionAudit() {
+  bool mismatch = false;
+  for (const auto& [fpdName, fwConfig] : *fwUtilConfig_.fwConfigs()) {
+    std::string desiredVersion = *fwConfig.desiredVersion();
+    if (desiredVersion.empty()) {
+      XLOGF(
+          INFO,
+          "{} does not have a desired version specified in the config.",
+          fpdName);
+      continue;
+    }
+    folly::StringPiece actualVersion =
+        folly::trimWhitespace(runVersionCmd(*fwConfig.getVersionCmd()));
+    if (actualVersion != desiredVersion) {
+      XLOGF(
+          INFO,
+          "{} is at version {} which does not match config's desired version {}.",
+          fpdName,
+          actualVersion,
+          desiredVersion);
+      mismatch = true;
+    }
+  }
+  if (mismatch) {
+    XLOG(INFO, "Firmware version mismatch found.");
+    exit(1);
+  } else {
+    XLOG(INFO, "All firmware versions match the config.");
+  }
+}
+
 void FwUtilImpl::doFirmwareAction(
     const std::string& fpd,
     const std::string& action) {
@@ -176,10 +207,11 @@ void FwUtilImpl::doFirmwareAction(
         << " is not part of the firmware target_name list Please run ./fw-util --helpon=Flags for the right usage";
     return;
   }
+  auto fwConfig = iter->second;
 
-  const std::string upgradeCmd = *iter->second.upgradeCmd();
-  const std::string readFwCmd = *iter->second.readFwCmd();
-  const std::string verifyFwCmd = *iter->second.verifyFwCmd();
+  const std::string upgradeCmd = *fwConfig.upgradeCmd();
+  const std::string readFwCmd = *fwConfig.readFwCmd();
+  const std::string verifyFwCmd = *fwConfig.verifyFwCmd();
 
   if (action == "program" && !upgradeCmd.empty()) {
     // Verify sha1sum of the firmware matches the one in the config json
@@ -187,31 +219,31 @@ void FwUtilImpl::doFirmwareAction(
     // in a respective fpd. During EVT, we will leave the config without sha1sum
     // since the binary will change a lot. We will add the sha1sum during DVT
     // since firmware binary is expected to start being stable at that stage.
-    if (!iter->second.sha1sum()->empty()) {
-      verifySha1sum(fpd, *iter->second.sha1sum());
+    if (!fwConfig.sha1sum()->empty()) {
+      verifySha1sum(fpd, *fwConfig.sha1sum());
     }
-    if (iter->second.preUpgradeCmd().has_value()) {
-      doPreUpgrade(fpd, *iter->second.preUpgradeCmd());
+    if (fwConfig.preUpgradeCmd().has_value()) {
+      doPreUpgrade(fpd, *fwConfig.preUpgradeCmd());
     }
     XLOG(INFO) << "running upgradeCmd";
     exitStatus = runCmd(upgradeCmd);
     checkCmdStatus(upgradeCmd, exitStatus);
-    if (iter->second.postUpgradeCmd().has_value()) {
+    if (fwConfig.postUpgradeCmd().has_value()) {
       XLOG(INFO) << "running postUpgradeCmd";
-      const std::string postUpgradeCmd = *iter->second.postUpgradeCmd();
+      const std::string postUpgradeCmd = *fwConfig.postUpgradeCmd();
       exitStatus = runCmd(postUpgradeCmd);
       checkCmdStatus(postUpgradeCmd, exitStatus);
     }
   } else if (action == "read" && !readFwCmd.empty()) {
-    if (iter->second.preUpgradeCmd().has_value()) {
-      doPreUpgrade(fpd, *iter->second.preUpgradeCmd());
+    if (fwConfig.preUpgradeCmd().has_value()) {
+      doPreUpgrade(fpd, *fwConfig.preUpgradeCmd());
     }
     XLOG(INFO) << "running readFwCmd";
     exitStatus = runCmd(readFwCmd);
     checkCmdStatus(readFwCmd, exitStatus);
   } else if (action == "verify" && !verifyFwCmd.empty()) {
-    if (iter->second.preUpgradeCmd().has_value()) {
-      doPreUpgrade(fpd, *iter->second.preUpgradeCmd());
+    if (fwConfig.preUpgradeCmd().has_value()) {
+      doPreUpgrade(fpd, *fwConfig.preUpgradeCmd());
     }
     exitStatus = runCmd(verifyFwCmd);
     checkCmdStatus(verifyFwCmd, exitStatus);
