@@ -148,7 +148,9 @@ std::pair<uint64_t, uint64_t> getCpuQueueOutPacketsAndBytes(
 
 void setPortQueueSharedBytes(cfg::PortQueue& queue, bool isSai);
 
-void setTTLZeroCpuConfig(const HwAsic* hwAsic, cfg::SwitchConfig& config);
+void setTTLZeroCpuConfig(
+    const std::vector<const HwAsic*>& asics,
+    cfg::SwitchConfig& config);
 
 void addTrafficCounter(
     cfg::SwitchConfig* config,

@@ -63,7 +63,7 @@ class HwTeFlowTrafficTest : public HwLinkStateDependentTest {
     };
     auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(), std::move(ports), getAsic()->desiredLoopbackModes());
-    utility::setTTLZeroCpuConfig(getAsic(), cfg);
+    utility::setTTLZeroCpuConfig(getHwSwitchEnsemble()->getL3Asics(), cfg);
     return cfg;
   }
 
@@ -522,7 +522,7 @@ class HwUdfAclTeFlowTrafficTest : public HwTeFlowTrafficTest {
     };
     auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(), std::move(ports), getAsic()->desiredLoopbackModes());
-    utility::setTTLZeroCpuConfig(getAsic(), cfg);
+    utility::setTTLZeroCpuConfig(getHwSwitchEnsemble()->getL3Asics(), cfg);
     // run exact match with UDF acls
     cfg.udfConfig() = utility::addUdfAclConfig();
     auto acl = utility::addAcl(&cfg, kUdfAclName);

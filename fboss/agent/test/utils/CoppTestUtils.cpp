@@ -21,6 +21,7 @@
 #include "fboss/lib/CommonUtils.h"
 
 #include "fboss/agent/test/utils/AclTestUtils.h"
+#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/agent/test/utils/PacketTestUtils.h"
@@ -412,7 +413,10 @@ std::shared_ptr<facebook::fboss::Interface> getEligibleInterface(
   return nullptr;
 }
 
-void setTTLZeroCpuConfig(const HwAsic* hwAsic, cfg::SwitchConfig& config) {
+void setTTLZeroCpuConfig(
+    const std::vector<const HwAsic*>& asics,
+    cfg::SwitchConfig& config) {
+  auto hwAsic = checkSameAndGetAsic(asics);
   if (!hwAsic->isSupported(HwAsic::Feature::SAI_TTL0_PACKET_FORWARD_ENABLE)) {
     // don't configure if not supported
     return;

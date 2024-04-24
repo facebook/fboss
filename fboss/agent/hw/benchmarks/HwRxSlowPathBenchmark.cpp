@@ -76,7 +76,7 @@ BENCHMARK(RxSlowPathBenchmark) {
     // forward TTL=0 packet.
     if (ensemble.getSw()->getHwAsicTable()->isFeatureSupportedOnAllAsic(
             HwAsic::Feature::CPU_TX_VIA_RECYCLE_PORT)) {
-      utility::setTTLZeroCpuConfig(asic, config);
+      utility::setTTLZeroCpuConfig(ensemble.getL3Asics(), config);
     }
     return config;
   };

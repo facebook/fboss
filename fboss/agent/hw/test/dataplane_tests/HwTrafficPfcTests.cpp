@@ -222,7 +222,7 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
         getHwSwitch(),
         masterLogicalPortIds(),
         getAsic()->desiredLoopbackModes());
-    utility::setTTLZeroCpuConfig(getAsic(), cfg);
+    utility::setTTLZeroCpuConfig(getHwSwitchEnsemble()->getL3Asics(), cfg);
     return cfg;
   }
   folly::IPAddressV6 kDestIp1() const {

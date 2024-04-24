@@ -42,7 +42,7 @@ class AgentAqmTest : public AgentHwTest {
           &config, streamType, ensemble.getL3Asics());
       utility::addOlympicQosMaps(config, ensemble.getL3Asics());
     }
-    utility::setTTLZeroCpuConfig(asic, config);
+    utility::setTTLZeroCpuConfig(ensemble.getL3Asics(), config);
     return config;
   }
 
@@ -144,7 +144,7 @@ class AgentAqmTest : public AgentHwTest {
           enableEcn);
       utility::addOlympicQosMaps(config, getAgentEnsemble()->getL3Asics());
     }
-    utility::setTTLZeroCpuConfig(asic, config);
+    utility::setTTLZeroCpuConfig(getAgentEnsemble()->getL3Asics(), config);
     return config;
   }
 
