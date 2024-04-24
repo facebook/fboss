@@ -42,6 +42,7 @@ enum ProductionFeature {
   SFLOWv4_SAMPLING = 29,
   SFLOWv6_SAMPLING = 30,
   MIRROR_PACKET_TRUNCATION = 31,
+  WIDE_ECMP = 32,
 }
 
 struct AsicToProductionFeatures {

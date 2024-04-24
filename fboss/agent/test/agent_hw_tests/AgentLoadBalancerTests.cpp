@@ -9,7 +9,7 @@
 
 namespace facebook::fboss {
 
-template <typename EcmpTestHelperT>
+template <typename EcmpTestHelperT, bool kWideEcmp>
 class AgentLoadBalancerTest
     : public AgentHwTest,
       public utility::HwLoadBalancerTestRunner<EcmpTestHelperT, false> {
@@ -28,9 +28,16 @@ class AgentLoadBalancerTest
 
   std::vector<production_features::ProductionFeature>
   getProductionFeaturesVerified() const override {
-    return {
-        production_features::ProductionFeature::ECMP_LOAD_BALANCER,
-    };
+    if constexpr (!kWideEcmp) {
+      return {
+          production_features::ProductionFeature::ECMP_LOAD_BALANCER,
+      };
+    } else {
+      return {
+          production_features::ProductionFeature::ECMP_LOAD_BALANCER,
+          production_features::ProductionFeature::WIDE_ECMP,
+      };
+    }
   }
 
   void runLoadBalanceTest(
@@ -95,9 +102,9 @@ class AgentLoadBalancerTest
   }
 };
 
-template <typename EcmpDataPlateUtils>
+template <typename EcmpDataPlateUtils, bool kWideEcmp = false>
 class AgentIpLoadBalancerTest
-    : public AgentLoadBalancerTest<EcmpDataPlateUtils> {
+    : public AgentLoadBalancerTest<EcmpDataPlateUtils, kWideEcmp> {
  public:
   std::unique_ptr<EcmpDataPlateUtils> getECMPHelper() override {
     if (!this->getEnsemble()) {
@@ -109,9 +116,9 @@ class AgentIpLoadBalancerTest
   }
 };
 
-template <typename EcmpDataPlateUtils>
+template <typename EcmpDataPlateUtils, bool kWideEcmp = false>
 class AgentIp2MplsLoadBalancerTest
-    : public AgentLoadBalancerTest<EcmpDataPlateUtils> {
+    : public AgentLoadBalancerTest<EcmpDataPlateUtils, kWideEcmp> {
  public:
   std::unique_ptr<EcmpDataPlateUtils> getECMPHelper() override {
     if (!this->getEnsemble()) {
@@ -127,7 +134,7 @@ template <
     typename EcmpDataPlateUtils,
     LabelForwardingAction::LabelForwardingType type>
 class AgentMpls2MplsLoadBalancerTest
-    : public AgentLoadBalancerTest<EcmpDataPlateUtils> {
+    : public AgentLoadBalancerTest<EcmpDataPlateUtils, false> {
  public:
   std::unique_ptr<EcmpDataPlateUtils> getECMPHelper() override {
     if (!this->getEnsemble()) {
@@ -144,16 +151,34 @@ class AgentMpls2MplsLoadBalancerTest
 class AgentLoadBalancerTestV4
     : public AgentIpLoadBalancerTest<utility::HwIpV4EcmpDataPlaneTestUtil> {};
 
+class AgentLoadBalancerTestV4Wide : public AgentIpLoadBalancerTest<
+                                        utility::HwIpV4EcmpDataPlaneTestUtil,
+                                        true> {};
+
 class AgentLoadBalancerTestV6
     : public AgentIpLoadBalancerTest<utility::HwIpV6EcmpDataPlaneTestUtil> {};
+
+class AgentLoadBalancerTestV6Wide : public AgentIpLoadBalancerTest<
+                                        utility::HwIpV6EcmpDataPlaneTestUtil,
+                                        true> {};
 
 class AgentLoadBalancerTestV4ToMpls
     : public AgentIp2MplsLoadBalancerTest<
           utility::HwIpV4EcmpDataPlaneTestUtil> {};
 
+class AgentLoadBalancerTestV4ToMplsWide
+    : public AgentIp2MplsLoadBalancerTest<
+          utility::HwIpV4EcmpDataPlaneTestUtil,
+          true> {};
+
 class AgentLoadBalancerTestV6ToMpls
     : public AgentIp2MplsLoadBalancerTest<
           utility::HwIpV6EcmpDataPlaneTestUtil> {};
+
+class AgentLoadBalancerTestV6ToMplsWide
+    : public AgentIp2MplsLoadBalancerTest<
+          utility::HwIpV6EcmpDataPlaneTestUtil,
+          true> {};
 
 class AgentLoadBalancerTestV4InMplsSwap
     : public AgentMpls2MplsLoadBalancerTest<
@@ -185,6 +210,11 @@ RUN_ALL_HW_LOAD_BALANCER_UCMP_TEST_CPU(AgentLoadBalancerTestV6)
 RUN_ALL_HW_LOAD_BALANCER_UCMP_TEST_CPU(AgentLoadBalancerTestV4ToMpls)
 RUN_ALL_HW_LOAD_BALANCER_UCMP_TEST_CPU(AgentLoadBalancerTestV6ToMpls)
 
+RUN_ALL_HW_LOAD_BALANCER_WIDE_UCMP_TEST_CPU(AgentLoadBalancerTestV4Wide)
+RUN_ALL_HW_LOAD_BALANCER_WIDE_UCMP_TEST_CPU(AgentLoadBalancerTestV6Wide)
+RUN_ALL_HW_LOAD_BALANCER_WIDE_UCMP_TEST_CPU(AgentLoadBalancerTestV4ToMplsWide)
+RUN_ALL_HW_LOAD_BALANCER_WIDE_UCMP_TEST_CPU(AgentLoadBalancerTestV6ToMplsWide)
+
 RUN_ALL_HW_LOAD_BALANCER_ECMP_TEST_FRONT_PANEL(AgentLoadBalancerTestV4)
 RUN_ALL_HW_LOAD_BALANCER_ECMP_TEST_FRONT_PANEL(AgentLoadBalancerTestV6)
 RUN_ALL_HW_LOAD_BALANCER_ECMP_TEST_FRONT_PANEL(AgentLoadBalancerTestV4ToMpls)
@@ -194,6 +224,13 @@ RUN_ALL_HW_LOAD_BALANCER_UCMP_TEST_FRONT_PANEL(AgentLoadBalancerTestV4)
 RUN_ALL_HW_LOAD_BALANCER_UCMP_TEST_FRONT_PANEL(AgentLoadBalancerTestV6)
 RUN_ALL_HW_LOAD_BALANCER_UCMP_TEST_FRONT_PANEL(AgentLoadBalancerTestV4ToMpls)
 RUN_ALL_HW_LOAD_BALANCER_UCMP_TEST_FRONT_PANEL(AgentLoadBalancerTestV6ToMpls)
+
+RUN_ALL_HW_LOAD_BALANCER_WIDE_UCMP_TEST_FRONT_PANEL(AgentLoadBalancerTestV4Wide)
+RUN_ALL_HW_LOAD_BALANCER_WIDE_UCMP_TEST_FRONT_PANEL(AgentLoadBalancerTestV6Wide)
+RUN_ALL_HW_LOAD_BALANCER_WIDE_UCMP_TEST_FRONT_PANEL(
+    AgentLoadBalancerTestV4ToMplsWide)
+RUN_ALL_HW_LOAD_BALANCER_WIDE_UCMP_TEST_FRONT_PANEL(
+    AgentLoadBalancerTestV6ToMplsWide)
 
 RUN_ALL_HW_LOAD_BALANCER_ECMP_TEST_FRONT_PANEL(
     AgentLoadBalancerTestV4InMplsSwap)
