@@ -5,13 +5,11 @@
 #include <iostream>
 #include <memory>
 
-#include <folly/init/Init.h>
 #include <folly/logging/xlog.h>
-#include <glog/logging.h>
 
 #include "fboss/platform/fw_util/Flags.h"
 #include "fboss/platform/fw_util/FwUtilImpl.h"
-#include "fboss/platform/helpers/Init.h"
+#include "fboss/platform/helpers/InitCli.h"
 
 using namespace facebook::fboss::platform::fw_util;
 using namespace facebook::fboss::platform;

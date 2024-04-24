@@ -2,15 +2,14 @@
 
 #include <string.h>
 #include <sysexits.h>
+#include <iostream>
 #include <memory>
 
-#include <folly/init/Init.h>
+#include <folly/String.h>
 #include <folly/logging/Init.h>
 #include <folly/logging/xlog.h>
-#include <gflags/gflags.h>
-#include <glog/logging.h>
 
-#include "fboss/platform/helpers/Init.h"
+#include "fboss/platform/helpers/InitCli.h"
 #include "fboss/platform/weutil/Weutil.h"
 #include "fboss/platform/weutil/WeutilDarwin.h"
 

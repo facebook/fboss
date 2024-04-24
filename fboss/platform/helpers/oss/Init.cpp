@@ -2,6 +2,7 @@
 //
 //
 #include "fboss/platform/helpers/Init.h"
+#include "fboss/platform/helpers/InitCli.h"
 
 #include <folly/init/Init.h>
 
