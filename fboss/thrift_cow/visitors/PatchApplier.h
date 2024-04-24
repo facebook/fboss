@@ -60,30 +60,12 @@ struct PatchApplier<
     using Fields = typename Node::Fields;
     using key_type = typename Fields::key_type;
 
-    auto parseKey = [](auto&& key) {
-      key_type parsedKey;
-      if constexpr (std::is_same_v<
-                        KeyTypeClass,
-                        apache::thrift::type_class::enumeration>) {
-        if (fatal::enum_traits<key_type>::try_parse(
-                parsedKey, std::move(key))) {
-          return std::make_optional(parsedKey);
-        }
-      } else {
-        auto keyTry = folly::tryTo<key_type>(std::move(key));
-        if (keyTry.hasValue()) {
-          return std::make_optional(keyTry.value());
-        }
-      }
-      return std::optional<key_type>();
-    };
-
     PatchResult result = PatchResult::OK;
 
     decompressPatch(patch);
     auto mapPatch = patch.move_map_node();
     for (auto&& [key, childPatch] : *std::move(mapPatch).children()) {
-      if (auto parsedKey = parseKey(key)) {
+      if (auto parsedKey = tryParseKey<key_type, KeyTypeClass>(key)) {
         if (childPatch.getType() == PatchNode::Type::del) {
           node.remove(std::move(*parsedKey));
         } else {
@@ -180,31 +162,14 @@ struct PatchApplier<apache::thrift::type_class::set<ValueTypeClass>> {
 
     using ValueTType = typename Node::ValueTType;
 
-    auto parseKey = [](auto&& key) {
-      ValueTType parsedKey;
-      if constexpr (std::is_same_v<
-                        ValueTType,
-                        apache::thrift::type_class::enumeration>) {
-        if (fatal::enum_traits<ValueTType>::try_parse(
-                parsedKey, std::move(key))) {
-          return std::make_optional(parsedKey);
-        }
-      } else {
-        auto keyTry = folly::tryTo<ValueTType>(std::move(key));
-        if (keyTry.hasValue()) {
-          return std::make_optional(std::move(keyTry.value()));
-        }
-      }
-      return std::optional<ValueTType>();
-    };
-
     PatchResult result = PatchResult::OK;
 
     decompressPatch(patch);
     auto setPatch = patch.move_set_node();
     for (auto&& [key, childPatch] : *std::move(setPatch).children()) {
       // for sets keys are our values
-      std::optional<ValueTType> value = parseKey(key);
+      std::optional<ValueTType> value =
+          tryParseKey<ValueTType, ValueTypeClass>(key);
       if (!value) {
         result = PatchResult::KEY_PARSE_ERROR;
         break;
