@@ -150,6 +150,16 @@ class FsdbPubSubManager {
       SubscriptionStateChangeCb stateChangeCb,
       FsdbExtStateSubscriber::FsdbOperStateUpdateCb operStateCb,
       FsdbStreamClient::ServerOptions&& serverOptions);
+  void addStateExtPathSubscription(
+      const std::vector<ExtendedOperPath>& subscribePaths,
+      SubscriptionStateChangeCb stateChangeCb,
+      FsdbExtStateSubscriber::FsdbOperStateUpdateCb operStateCb,
+      FsdbStreamClient::ServerOptions&& serverOptions);
+  void addStatExtPathSubscription(
+      const std::vector<ExtendedOperPath>& subscribePaths,
+      SubscriptionStateChangeCb stateChangeCb,
+      FsdbExtStateSubscriber::FsdbOperStateUpdateCb operStateCb,
+      FsdbStreamClient::ServerOptions&& serverOptions);
   void addStateExtDeltaSubscription(
       const std::vector<ExtendedOperPath>& subscribePaths,
       SubscriptionStateChangeCb stateChangeCb,

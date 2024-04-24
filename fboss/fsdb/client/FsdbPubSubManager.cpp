@@ -454,6 +454,32 @@ void FsdbPubSubManager::addStatePathSubscription(
       std::move(serverOptions));
 }
 
+void FsdbPubSubManager::addStateExtPathSubscription(
+    const std::vector<ExtendedOperPath>& subscribePaths,
+    SubscriptionStateChangeCb stateChangeCb,
+    FsdbExtStateSubscriber::FsdbOperStateUpdateCb operStateCb,
+    FsdbStreamClient::ServerOptions&& serverOptions) {
+  addSubscriptionImpl<FsdbExtStateSubscriber>(
+      subscribePaths,
+      stateChangeCb,
+      operStateCb,
+      false /*subscribeStat*/,
+      std::move(serverOptions));
+}
+
+void FsdbPubSubManager::addStatExtPathSubscription(
+    const std::vector<ExtendedOperPath>& subscribePaths,
+    SubscriptionStateChangeCb stateChangeCb,
+    FsdbExtStateSubscriber::FsdbOperStateUpdateCb operStateCb,
+    FsdbStreamClient::ServerOptions&& serverOptions) {
+  addSubscriptionImpl<FsdbExtStateSubscriber>(
+      subscribePaths,
+      stateChangeCb,
+      operStateCb,
+      true /*subscribeStat*/,
+      std::move(serverOptions));
+}
+
 void FsdbPubSubManager::addStateExtDeltaSubscription(
     const std::vector<ExtendedOperPath>& subscribePaths,
     SubscriptionStateChangeCb stateChangeCb,
