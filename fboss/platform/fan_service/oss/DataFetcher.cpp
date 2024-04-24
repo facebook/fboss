@@ -17,7 +17,9 @@ namespace facebook::fboss::platform::fan_service {
 void getTransceivers(
     std::map<int32_t, TransceiverInfo>& cacheTable,
     folly::EventBase& evb) {
-  XLOG(ERR) << "OSS Build does not support reading data from qsfp_service";
+  const std::vector<int32_t> ports{};
+  auto client = std::move(QsfpClient::createClient(&evb)).getVia(&evb);
+  client->sync_getTransceiverInfo(cacheTable, ports);
 }
 
 sensor_service::SensorReadResponse getSensorValueThroughThrift(
