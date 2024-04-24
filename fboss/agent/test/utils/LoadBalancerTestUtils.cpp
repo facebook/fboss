@@ -349,8 +349,8 @@ bool isLoadBalancedImpl(
       }) |
       folly::gen::as<std::set<uint64_t>>();
 
-  auto lowest = *portBytes.begin();
-  auto highest = *portBytes.rbegin();
+  auto lowest = portBytes.empty() ? 0 : *portBytes.begin();
+  auto highest = portBytes.empty() ? 0 : *portBytes.rbegin();
   XLOG(DBG0) << " Highest bytes: " << highest << " lowest bytes: " << lowest;
   if (!lowest) {
     return !highest && noTrafficOk;
