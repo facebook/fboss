@@ -186,18 +186,11 @@ cfg::UdfConfig addUdfHashAclConfig();
 
 cfg::FlowletSwitchingConfig getDefaultFlowletSwitchingConfig(
     cfg::SwitchingMode switchingMode = cfg::SwitchingMode::FLOWLET_QUALITY);
-void addFlowletAcl(
-    cfg::SwitchConfig& cfg,
-    const std::string& aclName,
-    const std::string& aclCounterName,
-    bool udfFlowlet = true);
+void addFlowletAcl(cfg::SwitchConfig& cfg);
 void addFlowletConfigs(
     cfg::SwitchConfig& cfg,
     const std::vector<PortID>& ports,
-    cfg::SwitchingMode switchingMode = cfg::SwitchingMode::FLOWLET_QUALITY,
-    const std::string& aclName = kFlowletAclName,
-    const std::string& aclCounterName = kFlowletAclCounterName,
-    bool udfFlowlet = true);
+    cfg::SwitchingMode switchingMode = cfg::SwitchingMode::FLOWLET_QUALITY);
 
 cfg::LoadBalancer getTrunkHalfHashConfig(const HwAsic& asic);
 cfg::LoadBalancer getEcmpHalfHashConfig(const HwAsic& asic);
