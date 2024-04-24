@@ -69,6 +69,11 @@ enum RouteForwardAction {
   NEXTHOPS = 2,
 }
 
+enum Scope {
+  LOCAL = 0,
+  GLOBAL = 1,
+}
+
 typedef string RouteCounterID
 
 struct UnicastRoute {
@@ -416,6 +421,7 @@ struct SystemPortThrift {
    * Set only on Remote System Ports of VOQ switches.
    */
   13: optional common.LivenessStatus remoteSystemPortLivenessStatus;
+  14: Scope scope = Scope.GLOBAL;
 }
 
 struct PortHardwareDetails {

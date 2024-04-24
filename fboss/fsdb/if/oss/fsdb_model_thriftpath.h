@@ -3949,7 +3949,8 @@ std::pair<strings::enabled_DEPRECATED, Child<bool, ::apache::thrift::type_class:
 std::pair<strings::qosPolicy, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
 std::pair<strings::queues, ChildThriftPath<::std::vector<::facebook::fboss::PortQueueFields>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
 std::pair<strings::remoteSystemPortType, Child<::facebook::fboss::RemoteSystemPortType, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::RemoteSystemPortType>>>,
-std::pair<strings::remoteSystemPortLivenessStatus, Child<::facebook::fboss::LivenessStatus, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::LivenessStatus>>>>;
+std::pair<strings::remoteSystemPortLivenessStatus, Child<::facebook::fboss::LivenessStatus, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::LivenessStatus>>>,
+std::pair<strings::scope, Child<::facebook::fboss::Scope, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::Scope>>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
@@ -3961,7 +3962,8 @@ std::pair<strings::remoteSystemPortLivenessStatus, Child<::facebook::fboss::Live
    std::pair<std::integral_constant<apache::thrift::field_id_t, 10>, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 11>, ChildThriftPath<::std::vector<::facebook::fboss::PortQueueFields>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 12>, Child<::facebook::fboss::RemoteSystemPortType, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::RemoteSystemPortType>>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 13>, Child<::facebook::fboss::LivenessStatus, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::LivenessStatus>>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 13>, Child<::facebook::fboss::LivenessStatus, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::LivenessStatus>>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 14>, Child<::facebook::fboss::Scope, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::Scope>>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::portId, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::switchId, std::integral_constant<apache::thrift::field_id_t, 2>>,
@@ -3974,7 +3976,8 @@ std::pair<strings::enabled_DEPRECATED, std::integral_constant<apache::thrift::fi
 std::pair<strings::qosPolicy, std::integral_constant<apache::thrift::field_id_t, 10>>,
 std::pair<strings::queues, std::integral_constant<apache::thrift::field_id_t, 11>>,
 std::pair<strings::remoteSystemPortType, std::integral_constant<apache::thrift::field_id_t, 12>>,
-std::pair<strings::remoteSystemPortLivenessStatus, std::integral_constant<apache::thrift::field_id_t, 13>>>::template type_of<Name>;
+std::pair<strings::remoteSystemPortLivenessStatus, std::integral_constant<apache::thrift::field_id_t, 13>>,
+std::pair<strings::scope, std::integral_constant<apache::thrift::field_id_t, 14>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -4000,6 +4003,7 @@ std::pair<strings::remoteSystemPortLivenessStatus, std::integral_constant<apache
     STRUCT_CHILD_GETTERS(queues, 11);
     STRUCT_CHILD_GETTERS(remoteSystemPortType, 12);
     STRUCT_CHILD_GETTERS(remoteSystemPortLivenessStatus, 13);
+    STRUCT_CHILD_GETTERS(scope, 14);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -4015,6 +4019,7 @@ std::pair<strings::remoteSystemPortLivenessStatus, std::integral_constant<apache
     else if constexpr (__id == 11) { return queues(); }
     else if constexpr (__id == 12) { return remoteSystemPortType(); }
     else if constexpr (__id == 13) { return remoteSystemPortLivenessStatus(); }
+    else if constexpr (__id == 14) { return scope(); }
   }
 
   template <typename T, T... Values>
