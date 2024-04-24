@@ -132,9 +132,9 @@ std::vector<PortID> AgentOverflowTestBase::getUplinkPorts() {
 void AgentOverflowTestBase::verifyInvariants() {
   utility::verifySafeDiagCmds(
       getAgentEnsemble(), utility::getFirstAsic(getSw()));
-  // TODO: Iterate all ASICs and verify copp on the port of each ASIC.
-  utility::verifyCopp(
-      getSw(), utility::getFirstSwitchId(getSw()), getDownlinkPort());
+  for (const auto& switchId : getSw()->getSwitchInfoTable().getL3SwitchIDs()) {
+    utility::verifyCopp(getSw(), switchId, getDownlinkPort());
+  }
 
   std::vector<PortDescriptor> ecmpPortDesc;
   for (const auto& port : getUplinkPorts()) {

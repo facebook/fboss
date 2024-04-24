@@ -49,7 +49,7 @@ class AgentOlympicQosTests : public AgentHwTest {
       auto portId = ecmpHelper.ecmpPortDescriptorAt(0).phyPortID();
       std::optional<SystemPortID> sysPortId;
       if (getSw()->getSwitchInfoTable().haveVoqSwitches()) {
-        auto switchId = utility::getFirstSwitchId(getSw());
+        auto switchId = switchIdForPort(portId);
         sysPortId = getSystemPortID(portId, getProgrammedState(), switchId);
       }
       for (bool frontPanel : {false, true}) {

@@ -16,14 +16,10 @@
 
 namespace facebook::fboss::utility {
 
-SwitchID getFirstSwitchId(SwSwitch* sw) {
+const HwAsic* getFirstAsic(SwSwitch* sw) {
   auto switchIds = sw->getHwAsicTable()->getSwitchIDs();
   CHECK_GE(switchIds.size(), 1);
-  return *switchIds.cbegin();
-}
-
-const HwAsic* getFirstAsic(SwSwitch* sw) {
-  return sw->getHwAsicTable()->getHwAsic(getFirstSwitchId(sw));
+  return sw->getHwAsicTable()->getHwAsic(*switchIds.cbegin());
 }
 
 const HwAsic* getAsic(const SwSwitch& sw, PortID port) {

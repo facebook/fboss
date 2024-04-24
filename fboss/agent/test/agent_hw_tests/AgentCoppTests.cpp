@@ -182,8 +182,8 @@ class AgentCoppTest : public AgentHwTest {
                      .interfaces()[0]
                      .ipAddresses()));
 
-    auto switchId = utility::getFirstSwitchId(getAgentEnsemble()->getSw());
-    if (switchId) {
+    for (const auto& switchId :
+         getSw()->getSwitchInfoTable().getL3SwitchIDs()) {
       auto dsfNode = getProgrammedState()->getDsfNodes()->getNodeIf(switchId);
       if (dsfNode) {
         auto loopbackIps = dsfNode->getLoopbackIps();
@@ -252,7 +252,8 @@ class AgentCoppTest : public AgentHwTest {
     };
     utility::sendPktAndVerifyCpuQueue(
         getSw(),
-        utility::getFirstSwitchId(getSw()),
+        switchIdForPort(
+            masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0]),
         queueId,
         sendAndInspect,
         expectQueueHit ? kNumPktsToSend : 0);
