@@ -149,8 +149,7 @@ void addOlympicQosMaps(
     const std::vector<const HwAsic*>& asics);
 void addOlympicAllSPQueueConfig(
     cfg::SwitchConfig* config,
-    cfg::StreamType streamType,
-    const HwAsic* asic);
+    cfg::StreamType streamType);
 void addOlympicV2QosMaps(
     cfg::SwitchConfig& cfg,
     const std::vector<const HwAsic*>& asics);

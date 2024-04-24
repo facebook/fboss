@@ -442,8 +442,7 @@ kOlympicV2QueueIdToQueueName() {
 
 void addOlympicAllSPQueueConfig(
     cfg::SwitchConfig* config,
-    cfg::StreamType streamType,
-    const HwAsic* asic) {
+    cfg::StreamType streamType) {
   std::vector<cfg::PortQueue> portQueues;
 
   for (const auto& [queueType, queueName] : kOlympicV2QueueIdToQueueName()) {
