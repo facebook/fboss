@@ -163,7 +163,7 @@ class AgentVoqSwitchTest : public AgentHwTest {
         &newCfg,
         kDscpAclName(),
         kDscpAclCounterName(),
-        utility::getAclCounterTypes(utility::getFirstAsic(this->getSw())));
+        utility::getAclCounterTypes(getAgentEnsemble()->getL3Asics()));
     applyNewConfig(newCfg);
   }
 

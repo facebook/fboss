@@ -105,7 +105,7 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
         &newCfg,
         kDscpAclName(),
         kDscpAclCounterName(),
-        utility::getAclCounterTypes(getHwSwitch()->getPlatform()->getAsic()));
+        utility::getAclCounterTypes(getHwSwitchEnsemble()->getL3Asics()));
     applyNewConfig(newCfg);
   }
   void addRemoveNeighbor(
@@ -392,7 +392,7 @@ TEST_F(HwVoqSwitchTest, AclQualifiersWithCounter) {
         &newCfg,
         kAclName,
         kAclCounterName,
-        utility::getAclCounterTypes(getHwSwitch()->getPlatform()->getAsic()));
+        utility::getAclCounterTypes(getHwSwitchEnsemble()->getL3Asics()));
 
     applyNewConfig(newCfg);
   };
@@ -414,7 +414,7 @@ TEST_F(HwVoqSwitchTest, AclQualifiersWithCounter) {
         getProgrammedState(),
         {kAclName},
         kAclCounterName,
-        utility::getAclCounterTypes(getHwSwitch()->getPlatform()->getAsic()));
+        utility::getAclCounterTypes(getHwSwitchEnsemble()->getL3Asics()));
   };
 
   verifyAcrossWarmBoots(setup, verify);

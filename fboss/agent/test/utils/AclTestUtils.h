@@ -98,7 +98,8 @@ void renameAclStat(
     const std::string& oldCounterName,
     const std::string& newCounterName);
 
-std::vector<cfg::CounterType> getAclCounterTypes(const HwAsic* asic);
+std::vector<cfg::CounterType> getAclCounterTypes(
+    const std::vector<const HwAsic*>& asics);
 
 uint64_t getAclInOutPackets(
     const SwSwitch* sw,

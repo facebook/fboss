@@ -9,6 +9,8 @@
  */
 
 #include "fboss/agent/test/utils/AclTestUtils.h"
+#include "fboss/agent/test/utils/AsicUtils.h"
+
 #include <memory>
 
 #include "fboss/agent/FbossError.h"
@@ -275,7 +277,9 @@ void renameAclStat(
   addAclStat(cfg, matcher, newCounterName);
 }
 
-std::vector<cfg::CounterType> getAclCounterTypes(const HwAsic* asic) {
+std::vector<cfg::CounterType> getAclCounterTypes(
+    const std::vector<const HwAsic*>& asics) {
+  auto asic = checkSameAndGetAsic(asics);
   // At times, it is non-trivial for SAI implementations to support enabling
   // bytes counters only or packet counters only. In such cases, SAI
   // implementations enable bytes as well as packet counters even if only

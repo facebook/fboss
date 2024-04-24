@@ -88,8 +88,7 @@ TYPED_TEST(HwAclStatTest, AclStatCreate) {
         &newCfg,
         "acl0",
         "stat0",
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic()));
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
     this->applyNewConfig(newCfg);
   };
 
@@ -99,16 +98,14 @@ TYPED_TEST(HwAclStatTest, AclStatCreate) {
         /*ACLs*/ 1,
         /*stats*/ 1,
         /*counters*/
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic())
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics())
             .size());
     utility::checkAclStat(
         this->getHwSwitch(),
         this->getProgrammedState(),
         {"acl0"},
         "stat0",
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic()));
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
   };
 
   this->verifyAcrossWarmBoots(setup, verify);
@@ -122,8 +119,7 @@ TYPED_TEST(HwAclStatTest, AclStatCreateDeleteCreate) {
         &newCfg,
         "acl0",
         "stat0",
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic()));
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
     this->applyNewConfig(newCfg);
   };
 
@@ -142,8 +138,7 @@ TYPED_TEST(HwAclStatTest, AclStatCreateDeleteCreate) {
         &newCfg2,
         "acl0",
         "stat0",
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic()));
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
     this->applyNewConfig(newCfg2);
     EXPECT_TRUE(facebook::fb303::fbData->getStatMap()->contains(
         utility::statNameFromCounterType("stat0", cfg::CounterType::PACKETS)));
@@ -227,14 +222,12 @@ TYPED_TEST(HwAclStatTest, AclStatCreateShared) {
         &newCfg,
         "acl0",
         "stat",
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic()));
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
     utility::addAclStat(
         &newCfg,
         "acl1",
         "stat",
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic()));
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
     this->applyNewConfig(newCfg);
   };
 
@@ -244,16 +237,14 @@ TYPED_TEST(HwAclStatTest, AclStatCreateShared) {
         /*ACLs*/ 2,
         /*stats*/ 1,
         /*counters*/
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic())
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics())
             .size());
     utility::checkAclStat(
         this->getHwSwitch(),
         this->getProgrammedState(),
         {"acl0", "acl1"},
         "stat",
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic()));
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
   };
 
   this->verifyAcrossWarmBoots(setup, verify);
@@ -268,14 +259,12 @@ TYPED_TEST(HwAclStatTest, AclStatCreateMultiple) {
         &newCfg,
         "acl0",
         "stat0",
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic()));
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
     utility::addAclStat(
         &newCfg,
         "acl1",
         "stat1",
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic()));
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
     this->applyNewConfig(newCfg);
   };
 
@@ -286,22 +275,20 @@ TYPED_TEST(HwAclStatTest, AclStatCreateMultiple) {
         /*stats*/ 2,
         /*counters*/ 2 *
             utility::getAclCounterTypes(
-                this->getHwSwitch()->getPlatform()->getAsic())
+                this->getHwSwitchEnsemble()->getL3Asics())
                 .size());
     utility::checkAclStat(
         this->getHwSwitch(),
         this->getProgrammedState(),
         {"acl0"},
         "stat0",
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic()));
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
     utility::checkAclStat(
         this->getHwSwitch(),
         this->getProgrammedState(),
         {"acl1"},
         "stat1",
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic()));
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
   };
 
   this->verifyAcrossWarmBoots(setup, verify);
@@ -316,8 +303,7 @@ TYPED_TEST(HwAclStatTest, AclStatMultipleActions) {
         &newCfg,
         "acl0",
         "stat0",
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic()));
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
     cfg::MatchAction matchAction =
         utility::getToQueueAction(0, this->getHwSwitchEnsemble()->isSai());
     cfg::MatchToAction action = cfg::MatchToAction();
@@ -333,16 +319,14 @@ TYPED_TEST(HwAclStatTest, AclStatMultipleActions) {
         /*ACLs*/ 1,
         /*stats*/ 1,
         /*counters*/
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic())
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics())
             .size());
     utility::checkAclStat(
         this->getHwSwitch(),
         this->getProgrammedState(),
         {"acl0"},
         "stat0",
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic()));
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
   };
 
   this->verifyAcrossWarmBoots(setup, verify);
@@ -356,8 +340,7 @@ TYPED_TEST(HwAclStatTest, AclStatDelete) {
         &newCfg,
         "acl0",
         "stat0",
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic()));
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
     this->applyNewConfig(newCfg);
   };
 
@@ -367,16 +350,14 @@ TYPED_TEST(HwAclStatTest, AclStatDelete) {
         /* ACLs */ 1,
         /* Stats */ 1,
         /*counters*/
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic())
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics())
             .size());
     utility::checkAclStat(
         this->getHwSwitch(),
         this->getProgrammedState(),
         {"acl0"},
         "stat0",
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic()));
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
   };
 
   auto setupPostWB = [&]() {
@@ -408,14 +389,13 @@ TYPED_TEST(HwAclStatTest, AclStatCreatePostWarmBoot) {
         &newCfg,
         "acl0",
         "stat0",
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic()));
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
     this->applyNewConfig(newCfg);
   };
 
   auto verifyPostWB = [=, this]() {
-    const auto& aclCounter = utility::getAclCounterTypes(
-        this->getHwSwitch()->getPlatform()->getAsic());
+    const auto& aclCounter =
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics());
     utility::checkAclEntryAndStatCount(
         this->getHwSwitch(),
         /*ACLs*/ 1,
@@ -441,14 +421,12 @@ TYPED_TEST(HwAclStatTest, AclStatDeleteSharedPostWarmBoot) {
         &newCfg,
         "acl0",
         "stat",
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic()));
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
     utility::addAclStat(
         &newCfg,
         "acl1",
         "stat",
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic()));
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
     this->applyNewConfig(newCfg);
   };
 
@@ -458,16 +436,14 @@ TYPED_TEST(HwAclStatTest, AclStatDeleteSharedPostWarmBoot) {
         /* ACLs */ 2,
         /* Stats */ 1,
         /*counters*/
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic())
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics())
             .size());
     utility::checkAclStat(
         this->getHwSwitch(),
         this->getProgrammedState(),
         {"acl0", "acl1"},
         "stat",
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic()));
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
   };
 
   auto setupPostWB = [&]() {
@@ -500,14 +476,12 @@ TYPED_TEST(HwAclStatTest, AclStatCreateSharedPostWarmBoot) {
         &newCfg,
         "acl0",
         "stat",
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic()));
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
     utility::addAclStat(
         &newCfg,
         "acl1",
         "stat",
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic()));
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
     this->applyNewConfig(newCfg);
   };
 
@@ -517,16 +491,14 @@ TYPED_TEST(HwAclStatTest, AclStatCreateSharedPostWarmBoot) {
         /*ACLs*/ 2,
         /*stats*/ 1,
         /*counters*/
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic())
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics())
             .size());
     utility::checkAclStat(
         this->getHwSwitch(),
         this->getProgrammedState(),
         {"acl0", "acl1"},
         "stat",
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic()));
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
   };
 
   this->verifyAcrossWarmBoots(setup, verify, setupPostWB, verifyPostWB);
@@ -541,14 +513,12 @@ TYPED_TEST(HwAclStatTest, AclStatDeleteShared) {
         &newCfg,
         "acl0",
         "stat",
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic()));
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
     utility::addAclStat(
         &newCfg,
         "acl1",
         "stat",
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic()));
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
     this->applyNewConfig(newCfg);
   };
 
@@ -558,16 +528,14 @@ TYPED_TEST(HwAclStatTest, AclStatDeleteShared) {
         /* ACLs */ 2,
         /* Stats */ 1,
         /*counters*/
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic())
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics())
             .size());
     utility::checkAclStat(
         this->getHwSwitch(),
         this->getProgrammedState(),
         {"acl0", "acl1"},
         "stat",
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic()));
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
   };
 
   auto setupPostWB = [=, this]() {
@@ -577,8 +545,7 @@ TYPED_TEST(HwAclStatTest, AclStatDeleteShared) {
         &newCfg,
         "acl1",
         "stat",
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic()));
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
     this->applyNewConfig(newCfg);
   };
 
@@ -588,16 +555,14 @@ TYPED_TEST(HwAclStatTest, AclStatDeleteShared) {
         /*ACLs*/ 1,
         /*stats*/ 1,
         /*counters*/
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic())
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics())
             .size());
     utility::checkAclStat(
         this->getHwSwitch(),
         this->getProgrammedState(),
         {"acl1"},
         "stat",
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic()));
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
   };
 
   this->verifyAcrossWarmBoots(setup, verify, setupPostWB, verifyPostWB);
@@ -611,8 +576,7 @@ TYPED_TEST(HwAclStatTest, AclStatRename) {
         &newCfg,
         "acl0",
         "stat0",
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic()));
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
     this->applyNewConfig(newCfg);
   };
 
@@ -622,16 +586,14 @@ TYPED_TEST(HwAclStatTest, AclStatRename) {
         /* ACLs */ 1,
         /* Stats */ 1,
         /*counters*/
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic())
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics())
             .size());
     utility::checkAclStat(
         this->getHwSwitch(),
         this->getProgrammedState(),
         {"acl0"},
         "stat0",
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic()));
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
   };
 
   auto setupPostWB = [=, this]() {
@@ -641,8 +603,7 @@ TYPED_TEST(HwAclStatTest, AclStatRename) {
         &newCfg,
         "acl0",
         "stat1",
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic()));
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
     this->applyNewConfig(newCfg);
   };
 
@@ -652,16 +613,14 @@ TYPED_TEST(HwAclStatTest, AclStatRename) {
         /*ACLs*/ 1,
         /*stats*/ 1,
         /*counters*/
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic())
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics())
             .size());
     utility::checkAclStat(
         this->getHwSwitch(),
         this->getProgrammedState(),
         {"acl0"},
         "stat1",
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic()));
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
     utility::checkAclStatDeleted(this->getHwSwitch(), "stat0");
   };
 
@@ -677,14 +636,12 @@ TYPED_TEST(HwAclStatTest, AclStatRenameShared) {
         &newCfg,
         "acl0",
         "stat0",
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic()));
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
     utility::addAclStat(
         &newCfg,
         "acl1",
         "stat0",
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic()));
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
     this->applyNewConfig(newCfg);
   };
 
@@ -694,16 +651,14 @@ TYPED_TEST(HwAclStatTest, AclStatRenameShared) {
         /* ACLs */ 2,
         /* Stats */ 1,
         /*counters*/
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic())
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics())
             .size());
     utility::checkAclStat(
         this->getHwSwitch(),
         this->getProgrammedState(),
         {"acl0", "acl1"},
         "stat0",
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic()));
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
   };
 
   auto setupPostWB = [=, this]() {
@@ -714,14 +669,12 @@ TYPED_TEST(HwAclStatTest, AclStatRenameShared) {
         &newCfg,
         "acl0",
         "stat0",
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic()));
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
     utility::addAclStat(
         &newCfg,
         "acl1",
         "stat1",
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic()));
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
     this->applyNewConfig(newCfg);
   };
 
@@ -732,22 +685,20 @@ TYPED_TEST(HwAclStatTest, AclStatRenameShared) {
         /*stats*/ 2,
         /*counters*/ 2 *
             utility::getAclCounterTypes(
-                this->getHwSwitch()->getPlatform()->getAsic())
+                this->getHwSwitchEnsemble()->getL3Asics())
                 .size());
     utility::checkAclStat(
         this->getHwSwitch(),
         this->getProgrammedState(),
         {"acl0"},
         "stat0",
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic()));
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
     utility::checkAclStat(
         this->getHwSwitch(),
         this->getProgrammedState(),
         {"acl1"},
         "stat1",
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic()));
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
   };
 
   this->verifyAcrossWarmBoots(setup, verify, setupPostWB, verifyPostWB);
@@ -761,8 +712,7 @@ TYPED_TEST(HwAclStatTest, AclStatCreateSameTwice) {
       &newCfg,
       "acl0",
       "stat0",
-      utility::getAclCounterTypes(
-          this->getHwSwitch()->getPlatform()->getAsic()));
+      utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
   this->applyNewConfig(newCfg);
   StateDelta delta(state, this->getProgrammedState());
   // adding same ACL twice with oper delta and state maintained in HW switch
@@ -777,8 +727,7 @@ TYPED_TEST(HwAclStatTest, AclStatDeleteNonExistent) {
       &newCfg,
       "acl0",
       "stat0",
-      utility::getAclCounterTypes(
-          this->getHwSwitch()->getPlatform()->getAsic()));
+      utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
   this->applyNewConfig(newCfg);
 
   auto state = this->getProgrammedState();
@@ -799,8 +748,7 @@ TYPED_TEST(HwAclStatTest, AclStatModify) {
         &newCfg,
         "acl0",
         "stat0",
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic()));
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
     this->applyNewConfig(newCfg);
   };
 
@@ -810,16 +758,14 @@ TYPED_TEST(HwAclStatTest, AclStatModify) {
         /* ACLs */ 1,
         /* Stats */ 1,
         /*counters*/
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic())
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics())
             .size());
     utility::checkAclStat(
         this->getHwSwitch(),
         this->getProgrammedState(),
         {"acl0"},
         "stat0",
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic()));
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
   };
 
   auto setupPostWB = [=, this]() {
@@ -830,8 +776,7 @@ TYPED_TEST(HwAclStatTest, AclStatModify) {
         &newCfg,
         "acl0",
         "stat0",
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic()));
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
     this->applyNewConfig(newCfg);
   };
 
@@ -847,14 +792,12 @@ TYPED_TEST(HwAclStatTest, AclStatShuffle) {
         &newCfg,
         "acl0",
         "stat0",
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic()));
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
     utility::addAclStat(
         &newCfg,
         "acl1",
         "stat1",
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic()));
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
     this->applyNewConfig(newCfg);
   };
 
@@ -865,22 +808,20 @@ TYPED_TEST(HwAclStatTest, AclStatShuffle) {
         /* Stats */ 2,
         /*counters*/ 2 *
             utility::getAclCounterTypes(
-                this->getHwSwitch()->getPlatform()->getAsic())
+                this->getHwSwitchEnsemble()->getL3Asics())
                 .size());
     utility::checkAclStat(
         this->getHwSwitch(),
         this->getProgrammedState(),
         {"acl0"},
         "stat0",
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic()));
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
     utility::checkAclStat(
         this->getHwSwitch(),
         this->getProgrammedState(),
         {"acl1"},
         "stat1",
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic()));
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
   };
 
   auto setupPostWB = [=, this]() {
@@ -891,14 +832,12 @@ TYPED_TEST(HwAclStatTest, AclStatShuffle) {
         &newCfg,
         "acl1",
         "stat1",
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic()));
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
     utility::addAclStat(
         &newCfg,
         "acl0",
         "stat0",
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic()));
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
     this->applyNewConfig(newCfg);
   };
 
@@ -913,8 +852,7 @@ TYPED_TEST(HwAclStatTest, StatNumberOfCounters) {
         &newCfg,
         "acl0",
         "stat0",
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic()));
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
     this->applyNewConfig(newCfg);
   };
 
@@ -924,16 +862,14 @@ TYPED_TEST(HwAclStatTest, StatNumberOfCounters) {
         /* ACLs */ 1,
         /* Stats */ 1,
         /*counters*/
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic())
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics())
             .size());
     utility::checkAclStat(
         this->getHwSwitch(),
         this->getProgrammedState(),
         {"acl0"},
         "stat0",
-        utility::getAclCounterTypes(
-            this->getHwSwitch()->getPlatform()->getAsic()));
+        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
   };
 
   auto setupPostWB = [=]() {};
