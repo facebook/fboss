@@ -132,9 +132,10 @@ class AgentIp2MplsLoadBalancerTest
 
 template <
     typename EcmpDataPlateUtils,
-    LabelForwardingAction::LabelForwardingType type>
+    LabelForwardingAction::LabelForwardingType type,
+    bool kWideEcmp = false>
 class AgentMpls2MplsLoadBalancerTest
-    : public AgentLoadBalancerTest<EcmpDataPlateUtils, false> {
+    : public AgentLoadBalancerTest<EcmpDataPlateUtils, kWideEcmp> {
  public:
   std::unique_ptr<EcmpDataPlateUtils> getECMPHelper() override {
     if (!this->getEnsemble()) {
@@ -185,20 +186,44 @@ class AgentLoadBalancerTestV4InMplsSwap
           utility::HwMplsV4EcmpDataPlaneTestUtil,
           LabelForwardingAction::LabelForwardingType::SWAP> {};
 
+class AgentLoadBalancerTestV4InMplsSwapWide
+    : public AgentMpls2MplsLoadBalancerTest<
+          utility::HwMplsV4EcmpDataPlaneTestUtil,
+          LabelForwardingAction::LabelForwardingType::SWAP,
+          true> {};
+
 class AgentLoadBalancerTestV6InMplsSwap
     : public AgentMpls2MplsLoadBalancerTest<
           utility::HwMplsV6EcmpDataPlaneTestUtil,
           LabelForwardingAction::LabelForwardingType::SWAP> {};
+
+class AgentLoadBalancerTestV6InMplsSwapWide
+    : public AgentMpls2MplsLoadBalancerTest<
+          utility::HwMplsV6EcmpDataPlaneTestUtil,
+          LabelForwardingAction::LabelForwardingType::SWAP,
+          true> {};
 
 class AgentLoadBalancerTestV4InMplsPhp
     : public AgentMpls2MplsLoadBalancerTest<
           utility::HwMplsV4EcmpDataPlaneTestUtil,
           LabelForwardingAction::LabelForwardingType::PHP> {};
 
+class AgentLoadBalancerTestV4InMplsPhpWide
+    : public AgentMpls2MplsLoadBalancerTest<
+          utility::HwMplsV4EcmpDataPlaneTestUtil,
+          LabelForwardingAction::LabelForwardingType::PHP,
+          true> {};
+
 class AgentLoadBalancerTestV6InMplsPhp
     : public AgentMpls2MplsLoadBalancerTest<
           utility::HwMplsV6EcmpDataPlaneTestUtil,
           LabelForwardingAction::LabelForwardingType::PHP> {};
+
+class AgentLoadBalancerTestV6InMplsPhpWide
+    : public AgentMpls2MplsLoadBalancerTest<
+          utility::HwMplsV6EcmpDataPlaneTestUtil,
+          LabelForwardingAction::LabelForwardingType::PHP,
+          true> {};
 
 RUN_ALL_HW_LOAD_BALANCER_ECMP_TEST_CPU(AgentLoadBalancerTestV4)
 RUN_ALL_HW_LOAD_BALANCER_ECMP_TEST_CPU(AgentLoadBalancerTestV6)
@@ -245,4 +270,14 @@ RUN_ALL_HW_LOAD_BALANCER_UCMP_TEST_FRONT_PANEL(
     AgentLoadBalancerTestV6InMplsSwap)
 RUN_ALL_HW_LOAD_BALANCER_UCMP_TEST_FRONT_PANEL(AgentLoadBalancerTestV4InMplsPhp)
 RUN_ALL_HW_LOAD_BALANCER_UCMP_TEST_FRONT_PANEL(AgentLoadBalancerTestV6InMplsPhp)
+
+RUN_ALL_HW_LOAD_BALANCER_WIDE_UCMP_TEST_FRONT_PANEL(
+    AgentLoadBalancerTestV4InMplsSwapWide)
+RUN_ALL_HW_LOAD_BALANCER_WIDE_UCMP_TEST_FRONT_PANEL(
+    AgentLoadBalancerTestV6InMplsSwapWide)
+RUN_ALL_HW_LOAD_BALANCER_WIDE_UCMP_TEST_FRONT_PANEL(
+    AgentLoadBalancerTestV4InMplsPhpWide)
+RUN_ALL_HW_LOAD_BALANCER_WIDE_UCMP_TEST_FRONT_PANEL(
+    AgentLoadBalancerTestV6InMplsPhpWide)
+
 } // namespace facebook::fboss
