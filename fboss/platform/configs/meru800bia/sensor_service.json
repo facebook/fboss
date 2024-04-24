@@ -269,6 +269,78 @@
         "compute": "@/1000.0",
         "type": 3
       },
+      "SMB_J3_BOARD_TEMP": {
+        "path": "/run/devmap/sensors/SMB_MAX6581/temp1_input",
+        "thresholds": {
+          "upperCriticalVal": 90.0,
+          "maxAlarmVal": 85.0
+        },
+        "compute": "@/1000.0",
+        "type": 3
+      },
+      "SMB_J3_DIODE_CORE_TEMP": {
+        "path": "/run/devmap/sensors/SMB_MAX6581/temp2_input",
+        "thresholds": {
+          "upperCriticalVal": 135.0,
+          "maxAlarmVal": 120.0
+        },
+        "compute": "@/1000.0",
+        "type": 3
+      },
+      "SMB_J3_DIODE_FAB0_TEMP": {
+        "path": "/run/devmap/sensors/SMB_MAX6581/temp3_input",
+        "thresholds": {
+          "upperCriticalVal": 135.0,
+          "maxAlarmVal": 120.0
+        },
+        "compute": "@/1000.0",
+        "type": 3
+      },
+      "SMB_J3_DIODE_FAB1_TEMP": {
+        "path": "/run/devmap/sensors/SMB_MAX6581/temp4_input",
+        "thresholds": {
+          "upperCriticalVal": 135.0,
+          "maxAlarmVal": 120.0
+        },
+        "compute": "@/1000.0",
+        "type": 3
+      },
+      "SMB_J3_DIODE_NIF0_TEMP": {
+        "path": "/run/devmap/sensors/SMB_MAX6581/temp5_input",
+        "thresholds": {
+          "upperCriticalVal": 135.0,
+          "maxAlarmVal": 120.0
+        },
+        "compute": "@/1000.0",
+        "type": 3
+      },
+      "SMB_J3_DIODE_NIF1_TEMP": {
+        "path": "/run/devmap/sensors/SMB_MAX6581/temp6_input",
+        "thresholds": {
+          "upperCriticalVal": 135.0,
+          "maxAlarmVal": 120.0
+        },
+        "compute": "@/1000.0",
+        "type": 3
+      },
+      "SMB_J3_DIODE_HBM0_TEMP": {
+        "path": "/run/devmap/sensors/SMB_MAX6581/temp7_input",
+        "thresholds": {
+          "upperCriticalVal": 135.0,
+          "maxAlarmVal": 120.0
+        },
+        "compute": "@/1000.0",
+        "type": 3
+      },
+      "SMB_J3_DIODE_HBM1_TEMP": {
+        "path": "/run/devmap/sensors/SMB_MAX6581/temp8_input",
+        "thresholds": {
+          "upperCriticalVal": 135.0,
+          "maxAlarmVal": 120.0
+        },
+        "compute": "@/1000.0",
+        "type": 3
+      },
       "FAN_BOARD_TEMP": {
         "path": "/run/devmap/sensors/FAN_TMP75/temp1_input",
         "thresholds": {
@@ -391,6 +463,15 @@
         "thresholds": {
           "upperCriticalVal": 120.0,
           "maxAlarmVal": 115.0
+        },
+        "compute": "@/1000.0",
+        "type": 3
+      },
+      "SMB_MGMT_INLET_TEMP": {
+        "path": "/run/devmap/sensors/SMB_MGMT_TMP75/temp1_input",
+        "thresholds": {
+          "upperCriticalVal": 75.0,
+          "maxAlarmVal": 70.0
         },
         "compute": "@/1000.0",
         "type": 3

@@ -144,6 +144,12 @@
           "pmUnitScopedName": "SMB_TMP75_REAR"
         },
         {
+          "busName": "INCOMING@1",
+          "address": "0x4d",
+          "kernelDeviceName": "max6581",
+          "pmUnitScopedName": "SMB_MAX6581"
+        },
+        {
           "busName": "INCOMING@2",
           "address": "0x48",
           "kernelDeviceName": "tmp75",
@@ -172,6 +178,12 @@
           "address": "0x55",
           "kernelDeviceName": "isl68226",
           "pmUnitScopedName": "SMB_ISL68226_OPTICS"
+        },
+        {
+          "busName": "SMB_I2C_MASTER0@2",
+          "address": "0x48",
+          "kernelDeviceName": "tmp75",
+          "pmUnitScopedName": "SMB_MGMT_TMP75"
         }
       ],
       "outgoingSlotConfigs": {
@@ -1496,9 +1508,11 @@
     "/run/devmap/gpiochips/SMB_PCA": "/SMB_SLOT@0/[SMB_PCA]",
     "/run/devmap/sensors/SMB_TMP75_FRONT": "/SMB_SLOT@0/[SMB_TMP75_FRONT]",
     "/run/devmap/sensors/SMB_TMP75_REAR": "/SMB_SLOT@0/[SMB_TMP75_REAR]",
+    "/run/devmap/sensors/SMB_MAX6581": "/SMB_SLOT@0/[SMB_MAX6581]",
     "/run/devmap/sensors/SMB_RAA228926_J3": "/SMB_SLOT@0/[SMB_RAA228926_J3]",
     "/run/devmap/sensors/SMB_ISL68226_J3": "/SMB_SLOT@0/[SMB_ISL68226_J3]",
     "/run/devmap/sensors/SMB_ISL68226_OPTICS": "/SMB_SLOT@0/[SMB_ISL68226_OPTICS]",
+    "/run/devmap/sensors/SMB_MGMT_TMP75": "/SMB_SLOT@0/[SMB_MGMT_TMP75]",
     "/run/devmap/sensors/FAN_TMP75": "/SMB_SLOT@0/[FAN_TMP75]",
     "/run/devmap/cplds/FAN_CPLD": "/SMB_SLOT@0/[FAN_CPLD]",
     "/run/devmap/sensors/FAN_CPLD": "/SMB_SLOT@0/[FAN_CPLD]",
