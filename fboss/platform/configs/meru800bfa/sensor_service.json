@@ -530,7 +530,7 @@
         "compute": "@/1000.0",
         "type": 3
       },
-      "SMB_VRM_R3R1_ANLG0_TEMP0V75": {
+      "SMB_VRM_R3R1_ANLG0_TEMP_0V75": {
         "path": "/run/devmap/sensors/SMB_ISL68226_R3R1_ANLG0/temp2_input",
         "thresholds": {
           "upperCriticalVal": 120.0,
@@ -593,7 +593,7 @@
         "compute": "@/1000.0",
         "type": 3
       },
-      "SMB_VRM_R3R1_ANLG1_TEMP0V75": {
+      "SMB_VRM_R3R1_ANLG1_TEMP_0V75": {
         "path": "/run/devmap/sensors/SMB_ISL68226_R3R1_ANLG1/temp2_input",
         "thresholds": {
           "upperCriticalVal": 120.0,
@@ -718,6 +718,60 @@
         },
         "compute": "@/1000.0",
         "type": 3
+      },
+      "SMB_DPM_12V": {
+        "path": "/run/devmap/sensors/SMB_UCD90320/in1_input",
+        "thresholds": {
+          "upperCriticalVal": 14.4,
+          "lowerCriticalVal": 9.6
+        },
+        "compute": "@/1000.0",
+        "type": 1
+      },
+      "SMB_DPM_3V3_DKR": {
+        "path": "/run/devmap/sensors/SMB_UCD90320/in2_input",
+        "thresholds": {
+          "upperCriticalVal": 3.96,
+          "lowerCriticalVal": 2.64
+        },
+        "compute": "@/1000.0",
+        "type": 1
+      },
+      "SMB_DPM_1V9_DKR": {
+        "path": "/run/devmap/sensors/SMB_UCD90320/in3_input",
+        "thresholds": {
+          "upperCriticalVal": 2.16,
+          "lowerCriticalVal": 1.44
+        },
+        "compute": "@/1000.0",
+        "type": 1
+      },
+      "SMB_DPM_1V2_DKR": {
+        "path": "/run/devmap/sensors/SMB_UCD90320/in4_input",
+        "thresholds": {
+          "upperCriticalVal": 1.44,
+          "lowerCriticalVal": 0.96
+        },
+        "compute": "@/1000.0",
+        "type": 1
+      },
+      "SMB_DPM_3V3": {
+        "path": "/run/devmap/sensors/SMB_UCD90320/in7_input",
+        "thresholds": {
+          "upperCriticalVal": 3.96,
+          "lowerCriticalVal": 2.64
+        },
+        "compute": "@/1000.0",
+        "type": 1
+      },
+      "SMB_DPM_5V0": {
+        "path": "/run/devmap/sensors/SMB_UCD90320/in8_input",
+        "thresholds": {
+          "upperCriticalVal": 6.0,
+          "lowerCriticalVal": 4.0
+        },
+        "compute": "@/1000.0",
+        "type": 1
       },
       "FAN_BOARD0_TEMP": {
         "path": "/run/devmap/sensors/FAN0_TMP75/temp1_input",
