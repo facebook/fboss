@@ -1133,6 +1133,22 @@ SMFMediaInterfaceCode CmisModule::getSmfMediaInterface(uint8_t lane) const {
   return (SMFMediaInterfaceCode)currentApplication;
 }
 
+std::vector<MediaInterfaceCode> CmisModule::getSupportedMediaInterfacesLocked()
+    const {
+  std::vector<MediaInterfaceCode> supportedMediaInterfaces;
+
+  for (const auto& capability : moduleCapabilities_) {
+    auto smfMediaInterface =
+        static_cast<SMFMediaInterfaceCode>(capability.moduleMediaInterface);
+    if (mediaInterfaceMapping.find(smfMediaInterface) !=
+        mediaInterfaceMapping.end()) {
+      supportedMediaInterfaces.push_back(
+          mediaInterfaceMapping.at(smfMediaInterface));
+    }
+  }
+  return supportedMediaInterfaces;
+}
+
 MediaTypeEncodings CmisModule::getMediaTypeEncoding() const {
   return static_cast<MediaTypeEncodings>(
       getSettingsValue(CmisField::MEDIA_TYPE_ENCODINGS));

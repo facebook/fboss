@@ -314,10 +314,18 @@ class CmisModule : public QsfpModule {
    * Gets the Media Type encoding (byte 85 in CMIS)
    */
   MediaTypeEncodings getMediaTypeEncoding() const;
+
   /*
    * Gets the Single Mode Fiber Interface codes from SFF-8024
    */
   SMFMediaInterfaceCode getSmfMediaInterface(uint8_t lane = 0) const;
+
+  /*
+   * Returns the list of media interfaces supported by the module
+   */
+  std::vector<MediaInterfaceCode> getSupportedMediaInterfacesLocked()
+      const override;
+
   /*
    * Returns the firmware version
    * <Module firmware version, DSP version, Build revision>
