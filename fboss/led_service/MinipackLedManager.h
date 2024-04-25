@@ -31,10 +31,10 @@ class MinipackLedManager : public MinipackBaseLedManager {
   MinipackLedManager& operator=(MinipackLedManager const&) = delete;
 
  protected:
-  virtual void setLedColor(
+  virtual void setLedState(
       uint32_t portId,
       cfg::PortProfileID portProfile,
-      led::LedColor ledColor) override;
+      led::LedState ledState) override;
 };
 
 } // namespace facebook::fboss

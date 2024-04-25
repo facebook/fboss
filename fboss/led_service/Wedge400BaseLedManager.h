@@ -39,10 +39,10 @@ class Wedge400BaseLedManager : public LedManager {
     return led::LedColor::WHITE;
   }
 
-  virtual void setLedColor(
+  virtual void setLedState(
       uint32_t portId,
       cfg::PortProfileID portProfile,
-      led::LedColor ledColor) override;
+      led::LedState ledState) override;
 };
 
 } // namespace facebook::fboss

@@ -53,10 +53,10 @@ class BspLedManager : public LedManager {
       uint32_t portId,
       cfg::PortProfileID portProfile) const override;
 
-  virtual void setLedColor(
+  virtual void setLedState(
       uint32_t portId,
       cfg::PortProfileID portProfile,
-      led::LedColor ledColor) override;
+      led::LedState ledState) override;
 
   std::set<int> getLedIdFromSwPort(
       uint32_t portId,

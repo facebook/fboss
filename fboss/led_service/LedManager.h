@@ -42,7 +42,9 @@ class LedManager {
     bool cablingError{false};
     bool forcedOn{false};
     bool forcedOff{false};
-    led::LedColor currentLedColor{led::LedColor::UNKNOWN};
+    led::LedState currentLedState{utility::constructLedState(
+        led::LedColor::UNKNOWN,
+        led::Blink::UNKNOWN)};
   };
 
  public:
@@ -108,10 +110,10 @@ class LedManager {
       uint32_t /* portId */,
       cfg::PortProfileID /* portProfiled */) const = 0;
 
-  virtual void setLedColor(
-      uint32_t /* portIdd */,
-      cfg::PortProfileID /* portProfiled */,
-      led::LedColor /* ledColord */) {}
+  virtual void setLedState(
+      uint32_t /* portId */,
+      cfg::PortProfileID /* portProfile */,
+      led::LedState /* ledState */) = 0;
 
  private:
   std::unique_ptr<std::thread> ledManagerThread_{nullptr};

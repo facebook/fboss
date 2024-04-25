@@ -13,15 +13,15 @@ namespace facebook::fboss {
 FujiLedManager::FujiLedManager() : MinipackBaseLedManager() {}
 
 /*
- * setLedColor
+ * setLedState
  *
  * Set the LED color in HW for the LED on a given port. This function should
  * not depend on FSDB provided values from portDisplayMap_
  */
-void FujiLedManager::setLedColor(
+void FujiLedManager::setLedState(
     uint32_t portId,
     cfg::PortProfileID portProfile,
-    led::LedColor ledColor) {
+    led::LedState ledState) {
   return;
 }
 

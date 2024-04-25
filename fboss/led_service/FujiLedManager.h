@@ -30,10 +30,10 @@ class FujiLedManager : public MinipackBaseLedManager {
   FujiLedManager& operator=(FujiLedManager const&) = delete;
 
  protected:
-  virtual void setLedColor(
+  virtual void setLedState(
       uint32_t portId,
       cfg::PortProfileID portProfile,
-      led::LedColor ledColor) override;
+      led::LedState ledState) override;
 };
 
 } // namespace facebook::fboss

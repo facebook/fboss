@@ -205,16 +205,16 @@ led::LedState BspLedManager::calculateLedState(
 }
 
 /*
- * setLedColor
+ * setLedState
  *
  * Set the LED color in HW for the LED(s) on a given port. This function will
  * find all the LED for the SW port and set their color. This function should
  * not depend on FSDB provided values from portDisplayMap_
  */
-void BspLedManager::setLedColor(
+void BspLedManager::setLedState(
     uint32_t portId,
     cfg::PortProfileID portProfile,
-    led::LedColor ledColor) {
+    led::LedState ledState) {
   auto ledIds = getLedIdFromSwPort(portId, portProfile);
   if (ledIds.empty()) {
     XLOG(ERR) << "No Led Id found or the port " << portId;
@@ -227,7 +227,7 @@ void BspLedManager::setLedColor(
        bspSystemContainer_->getLedController(tcvrId + 1)) {
     if (std::find(ledIds.begin(), ledIds.end(), ledController.first) !=
         ledIds.end()) {
-      ledController.second->setColor(ledColor);
+      ledController.second->setColor(ledState.ledColor().value());
     }
   }
 }

@@ -93,11 +93,12 @@ void LedManager::updateLedStatus(
     if (portDisplayMap_.find(portId) != portDisplayMap_.end()) {
       // If the port info exists then carry the current color and port forced
       // LED info
-      portInfo.currentLedColor = portDisplayMap_.at(portId).currentLedColor;
+      portInfo.currentLedState = portDisplayMap_.at(portId).currentLedState;
       portInfo.forcedOn = portDisplayMap_.at(portId).forcedOn;
       portInfo.forcedOff = portDisplayMap_.at(portId).forcedOff;
     } else {
-      portInfo.currentLedColor = led::LedColor::UNKNOWN;
+      portInfo.currentLedState = utility::constructLedState(
+          led::LedColor::UNKNOWN, led::Blink::UNKNOWN);
     }
 
     portDisplayMap_[portId] = portInfo;
@@ -117,15 +118,15 @@ void LedManager::updateLedStatus(
     auto portProfile = switchStateUpdate.portProfile;
     auto portProfileEnumVal = nameToEnum<cfg::PortProfileID>(portProfile);
     try {
-      auto newLedColor =
-          calculateLedState(portId, portProfileEnumVal).ledColor().value();
-      if (newLedColor != portDisplayMap_[portId].currentLedColor) {
-        setLedColor(portId, portProfileEnumVal, newLedColor);
-        portDisplayMap_[portId].currentLedColor = newLedColor;
+      auto newLedState = calculateLedState(portId, portProfileEnumVal);
+      if (newLedState != portDisplayMap_[portId].currentLedState) {
+        setLedState(portId, portProfileEnumVal, newLedState);
+        portDisplayMap_[portId].currentLedState = newLedState;
         XLOG(DBG2) << folly::sformat(
-            "Port {:s} LED color changed to {:s}",
+            "Port {:s} LED color changed to {:s}, Blink changed to {:s}",
             portName,
-            enumToName<led::LedColor>(newLedColor));
+            enumToName<led::LedColor>(newLedState.ledColor().value()),
+            enumToName<led::Blink>(newLedState.blink().value()));
       }
     } catch (const std::exception& ex) {
       XLOG(ERR) << "Failed to update LED color for port " << portName << ": "
@@ -162,14 +163,15 @@ void LedManager::setExternalLedState(
   // Step 2. Update LED color if required
   auto portName = portDisplayMap_[portNum].portName;
   auto portProfile = portDisplayMap_[portNum].portProfileId;
-  auto newLedColor = calculateLedState(portNum, portProfile).ledColor().value();
-  if (newLedColor != portDisplayMap_[portNum].currentLedColor) {
-    setLedColor(portNum, portProfile, newLedColor);
-    portDisplayMap_[portNum].currentLedColor = newLedColor;
+  auto newLedState = calculateLedState(portNum, portProfile);
+  if (newLedState != portDisplayMap_[portNum].currentLedState) {
+    setLedState(portNum, portProfile, newLedState);
+    portDisplayMap_[portNum].currentLedState = newLedState;
     XLOG(DBG2) << folly::sformat(
-        "Port {:s} LED color changed to {:s}",
+        "Port {:s} LED color changed to {:s}, Blink changed to {:s}",
         portName,
-        enumToName<led::LedColor>(newLedColor));
+        enumToName<led::LedColor>(newLedState.ledColor().value()),
+        enumToName<led::Blink>(newLedState.blink().value()));
   }
 }
 
@@ -197,7 +199,7 @@ led::LedColor LedManager::getCurrentLedColor(int32_t portNum) const {
   led::LedColor ledColor = led::LedColor::UNKNOWN;
 
   if (portDisplayMap_.find(portNum) != portDisplayMap_.end()) {
-    ledColor = portDisplayMap_.at(portNum).currentLedColor;
+    ledColor = portDisplayMap_.at(portNum).currentLedState.ledColor().value();
   } else {
     auto portName = platformMapping_->getPortNameByPortId(PortID(portNum));
     XLOG(ERR) << folly::sformat(
@@ -225,9 +227,7 @@ led::PortLedState LedManager::getPortLedState(
     throw FbossError(folly::sformat(
         "getPortLedState: Port info not available for {:s} yet", swPortName));
   }
-  led::LedState ledState;
-  ledState.ledColor() = portDisplayMap_.at(portId).currentLedColor;
-  ledState.blink() = led::Blink::OFF;
+  led::LedState ledState = portDisplayMap_.at(portId).currentLedState;
 
   portLedState.swPortId() = portId;
   portLedState.swPortName() = swPortName;
