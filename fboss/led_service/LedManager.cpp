@@ -216,7 +216,7 @@ led::LedColor LedManager::getCurrentLedColor(int32_t portNum) const {
  */
 led::PortLedState LedManager::getPortLedState(
     const std::string& swPortName) const {
-  led::PortLedState ledState;
+  led::PortLedState portLedState;
 
   auto portId = platformMapping_->getPortID(swPortName);
   if (portDisplayMap_.find(portId) == portDisplayMap_.end()) {
@@ -224,14 +224,17 @@ led::PortLedState LedManager::getPortLedState(
     throw FbossError(folly::sformat(
         "getPortLedState: Port info not available for {:s} yet", swPortName));
   }
+  led::LedState ledState;
+  ledState.ledColor() = portDisplayMap_.at(portId).currentLedColor;
+  ledState.blink() = led::Blink::OFF;
 
-  ledState.swPortId() = portId;
-  ledState.swPortName() = swPortName;
-  ledState.currentLedColor() = portDisplayMap_.at(portId).currentLedColor;
-  ledState.forcedOnState() = portDisplayMap_.at(portId).forcedOn;
-  ledState.forcedOffState() = portDisplayMap_.at(portId).forcedOff;
+  portLedState.swPortId() = portId;
+  portLedState.swPortName() = swPortName;
+  portLedState.currentLedState() = ledState;
+  portLedState.forcedOnState() = portDisplayMap_.at(portId).forcedOn;
+  portLedState.forcedOffState() = portDisplayMap_.at(portId).forcedOff;
 
-  return ledState;
+  return portLedState;
 }
 
 } // namespace facebook::fboss
