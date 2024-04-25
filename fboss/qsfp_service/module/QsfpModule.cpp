@@ -57,12 +57,6 @@ using std::mutex;
 namespace facebook {
 namespace fboss {
 
-// Module state machine Timeout (seconds) for Agent to qsfp_service port status
-// sync up first time
-static constexpr int kStateMachineAgentPortSyncupTimeout = 120;
-// Module State machine optics remediation/bringup interval (seconds)
-static constexpr int kStateMachineOpticsRemediateInterval = 30;
-
 TransceiverID QsfpModule::getID() const {
   return TransceiverID(qsfpImpl_->getNum());
 }
