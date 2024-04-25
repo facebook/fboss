@@ -269,6 +269,9 @@ class QsfpModule : public Transceiver {
       const uint8_t moduleId,
       const unsigned int oneBasedPort);
 
+  virtual std::vector<MediaInterfaceCode> getSupportedMediaInterfaces()
+      const override;
+
   virtual std::vector<uint8_t> configuredHostLanes(
       uint8_t hostStartLane) const = 0;
 
@@ -471,6 +474,11 @@ class QsfpModule : public Transceiver {
   virtual std::optional<ExtendedSpecComplianceCode>
   getExtendedSpecificationComplianceCode() const {
     return std::nullopt;
+  }
+
+  virtual std::vector<MediaInterfaceCode> getSupportedMediaInterfacesLocked()
+      const {
+    return std::vector<MediaInterfaceCode>();
   }
 
   double mwToDb(double value);

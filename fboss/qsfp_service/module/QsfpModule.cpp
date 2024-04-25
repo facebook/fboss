@@ -1237,6 +1237,12 @@ TransceiverManagementInterface QsfpModule::getTransceiverManagementInterface(
   return TransceiverManagementInterface::NONE;
 }
 
+std::vector<MediaInterfaceCode> QsfpModule::getSupportedMediaInterfaces()
+    const {
+  lock_guard<std::mutex> g(qsfpModuleMutex_);
+  return getSupportedMediaInterfacesLocked();
+}
+
 void QsfpModule::programTransceiver(
     ProgramTransceiverState& programTcvrState,
     bool needResetDataPath) {
