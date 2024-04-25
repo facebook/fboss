@@ -138,6 +138,16 @@ include "fboss/platform/platform_manager/platform_manager_presence.thrift"
 
 // ============================================================================
 
+// Defines desired value of the given I2C register(s).
+//
+// `regOffset`: I2C device register offset.
+//
+// `ioBuf`: Data to be written to the device register.
+struct I2cRegData {
+  1: i32 regOffset;
+  2: list<byte> ioBuf;
+}
+
 // `I2cDeviceConfig` defines a i2c device within any PmUnit.
 //
 // `busName`: Refer to Bus Naming Convention above.
@@ -162,6 +172,8 @@ include "fboss/platform/platform_manager/platform_manager_presence.thrift"
 //
 // `hasReservedMac`: Whether this has Reserved MAC addresses (applies only to
 // EEPROM)
+//
+// `initRegSettings`: initial I2c register values before device creation.
 //
 // For example, the three i2c devices in the below Sample PmUnit will be modeled
 // as follows
@@ -199,6 +211,7 @@ struct I2cDeviceConfig {
   8: bool hasCpuMac;
   9: bool hasSwitchAsicMac;
   10: bool hasReservedMac;
+  11: optional list<I2cRegData> initRegSettings;
 }
 
 // Configs for sensors which are embedded (eg within CPU).
