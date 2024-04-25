@@ -789,4 +789,27 @@ std::optional<cfg::PortProfileID> PlatformMapping::getProfileIDBySpeedIf(
              << ", speed=" << apache::thrift::util::enumNameSafe(speed);
   return std::nullopt;
 }
+
+/*
+ * getAllPortProfiles
+ *
+ * Returns a map of all port names in the system to the list of supported port
+ * profile ids for that port.
+ */
+std::map<std::string, std::vector<cfg::PortProfileID>>
+PlatformMapping::getAllPortProfiles() const {
+  std::map<std::string, std::vector<cfg::PortProfileID>> portProfileIds;
+
+  for (auto& platformPort : platformPorts_) {
+    auto& portName = *platformPort.second.mapping()->name();
+    auto& portProfiles = *platformPort.second.supportedProfiles();
+    std::vector<cfg::PortProfileID> profiles;
+    for (auto& profile : portProfiles) {
+      profiles.push_back(profile.first);
+    }
+    portProfileIds[portName] = profiles;
+  }
+  return portProfileIds;
+}
+
 } // namespace facebook::fboss
