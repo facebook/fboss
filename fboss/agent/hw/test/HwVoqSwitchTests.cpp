@@ -32,7 +32,6 @@
 
 namespace {
 constexpr uint8_t kDefaultQueue = 0;
-constexpr auto kSystemPortCountPerNode = 15;
 } // namespace
 
 using namespace facebook::fb303;

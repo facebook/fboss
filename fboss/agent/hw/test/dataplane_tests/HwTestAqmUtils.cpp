@@ -15,11 +15,6 @@
 #include "fboss/agent/test/utils/AqmTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
-namespace {
-static constexpr auto kJerichoWordSize{16};
-static constexpr auto kJerichoEcnThresholdIncrements{1024};
-} // namespace
-
 namespace facebook::fboss::utility {
 
 int getRoundedBufferThreshold(
