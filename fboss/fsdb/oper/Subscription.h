@@ -558,12 +558,11 @@ class PatchSubscription : public Subscription, private boost::noncopyable {
     return protocol_;
   }
 
-  std::optional<thrift_cow::Patch> moveFromCurrPatch(
-      const SubscriptionMetadataServer& /* metadataServer */);
+  void setPatchRoot(thrift_cow::PatchNode node);
 
   void serveHeartbeat() override;
 
-  void flush(const SubscriptionMetadataServer& /*metadataServer*/) override;
+  void flush(const SubscriptionMetadataServer& metadataServer) override;
 
   bool isActive() const override {
     return !pipe_.isClosed();
@@ -574,6 +573,9 @@ class PatchSubscription : public Subscription, private boost::noncopyable {
       const std::string& msg = "All publishers dropped") override;
 
  private:
+  std::optional<thrift_cow::Patch> moveFromCurrPatch(
+      const SubscriptionMetadataServer& /* metadataServer */);
+
   OperProtocol protocol_;
   std::optional<thrift_cow::Patch> currPatch_;
   folly::coro::AsyncPipe<thrift_cow::Patch> pipe_;

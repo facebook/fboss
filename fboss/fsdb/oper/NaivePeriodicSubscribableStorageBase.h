@@ -141,7 +141,20 @@ class NaivePeriodicSubscribableStorageBase {
       SubscriberId subscriber,
       PathIter begin,
       PathIter end,
-      OperProtocol protocol);
+      OperProtocol protocol) {
+    auto path = convertPath(ConcretePath(begin, end));
+    auto [gen, subscription] = PatchSubscription::create(
+        std::move(subscriber),
+        path.begin(),
+        path.end(),
+        protocol,
+        getPublisherRoot(path.begin(), path.end()));
+    withSubMgrWLocked([subscription = std::move(subscription)](
+                          SubscriptionManagerBase& mgr) mutable {
+      mgr.registerSubscription(std::move(subscription));
+    });
+    return std::move(gen);
+  }
 #endif
 
   size_t numSubscriptions() const {

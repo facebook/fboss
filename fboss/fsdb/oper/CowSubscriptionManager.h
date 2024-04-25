@@ -18,6 +18,7 @@
 #include <fboss/thrift_cow/storage/CowStorage.h>
 #include <fboss/thrift_cow/visitors/DeltaVisitor.h>
 #include <fboss/thrift_cow/visitors/ExtendedPathVisitor.h>
+#include <fboss/thrift_cow/visitors/PatchBuilder.h>
 #include <fboss/thrift_cow/visitors/PathVisitor.h>
 #include <fboss/thrift_cow/visitors/RecurseVisitor.h>
 #include <folly/Traits.h>
@@ -152,7 +153,7 @@ class CowSubscriptionManager
             auto value = DeltaValue<OperState>(std::nullopt, std::move(state));
             pathSubscription->offer(std::move(value));
           }
-        } else {
+        } else if (subscription->type() == PubSubType::DELTA) {
           // Delta subscription
           CHECK(subscription->operProtocol());
           OperDeltaUnit deltaUnit;
@@ -162,6 +163,16 @@ class CowSubscriptionManager
               static_cast<BaseDeltaSubscription*>(subscription);
           deltaSubscription->appendRootDeltaUnit(std::move(deltaUnit));
           deltaSubscription->flush(metadataServer);
+        } else if (subscription->type() == PubSubType::PATCH) {
+          auto patchSubscription =
+              static_cast<PatchSubscription*>(subscription);
+          thrift_cow::PatchNode patchNode;
+          // TODO: try to change to a shared holding a IOBuf instead of copying
+          // from an fbstring
+          auto buf = folly::IOBuf::copyBuffer(op.val->data(), op.val->length());
+          patchNode.set_val(*buf);
+          patchSubscription->setPatchRoot(std::move(patchNode));
+          patchSubscription->flush(metadataServer);
         }
       } else if (this->requireResponseOnInitialSync_) {
         // on initialSync, offer even an empty value
@@ -285,6 +296,13 @@ class CowSubscriptionManager
                              auto& oldNode,
                              auto& newNode,
                              thrift_cow::DeltaElemTag visitTag) {
+      // build out patch before trying to send to subscribers.
+      // Patches are only supported if we're using id paths
+      if (visitTag == thrift_cow::DeltaElemTag::MINIMAL &&
+          traverser.patchBuilder()) {
+        traverser.patchBuilder()->setLeafPatch(newNode);
+      }
+
       const auto* lookup = traverser.currentStore();
       if (!FLAGS_lazyPathStoreCreation) {
         // lookup can't be none or we wouldn't be serving this subscription
@@ -295,7 +313,7 @@ class CowSubscriptionManager
         // So proceed with processing the change.
       }
 
-      auto path = traverser.path();
+      auto& path = traverser.path();
 
       csm_detail::OperDeltaUnitCache deltaUnitCache(path, oldNode, newNode);
 
@@ -315,7 +333,7 @@ class CowSubscriptionManager
                   newStorage,
                   metadataServer);
             }
-          } else {
+          } else if (relevant->type() == PubSubType::DELTA) {
             // serve delta subscriptions if it's a MINIMAL change
             // OR
             // if this is a fully added/removed node and there are exact
@@ -330,6 +348,13 @@ class CowSubscriptionManager
               deltaSubscription->appendRootDeltaUnit(
                   deltaUnitCache.getEncoded(*relevant->operProtocol()));
             }
+          } else if (
+              relevant->type() == PubSubType::PATCH &&
+              traverser.patchBuilder()) {
+            // patches only supported when using id paths
+            auto* patchSubscription = static_cast<PatchSubscription*>(relevant);
+            patchSubscription->setPatchRoot(
+                traverser.patchBuilder()->curPatch());
           }
         }
       }
@@ -363,7 +388,12 @@ class CowSubscriptionManager
     const auto& [oldRoot, newRoot] =
         std::tie(oldStorage.root(), newStorage.root());
 
-    CowSubscriptionTraverseHelper traverser(&this->lookup_);
+    // can only build patches with id paths
+    std::optional<thrift_cow::PatchNodeBuilder> patchBuilder;
+    if (this->useIdPaths_) {
+      patchBuilder.emplace();
+    }
+    CowSubscriptionTraverseHelper traverser(&this->lookup_, patchBuilder);
     if (oldRoot && newRoot) {
       thrift_cow::RootDeltaVisitor::visit(
           traverser,

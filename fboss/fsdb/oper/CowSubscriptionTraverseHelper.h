@@ -11,6 +11,7 @@
 #pragma once
 
 #include <fboss/fsdb/oper/SubscriptionPathStore.h>
+#include <fboss/thrift_cow/visitors/PatchBuilder.h>
 #include <fboss/thrift_cow/visitors/TraverseHelper.h>
 
 namespace facebook::fboss::fsdb {
@@ -32,7 +33,10 @@ struct CowSubscriptionTraverseHelper
   using Base::path;
   using Base::shouldShortCircuit;
 
-  CowSubscriptionTraverseHelper(const SubscriptionPathStore* root) {
+  CowSubscriptionTraverseHelper(
+      const SubscriptionPathStore* root,
+      std::optional<thrift_cow::PatchNodeBuilder>& patchBuilder)
+      : patchBuilder_(patchBuilder) {
     bool hasRootSubs = root->numSubs() > 0;
     elementsAlongPath_.emplace_back(root, hasRootSubs);
   }
@@ -56,19 +60,24 @@ struct CowSubscriptionTraverseHelper
     }
   }
 
-  void onPushImpl(thrift_cow::ThriftTCType /* tc */) {
+  void onPushImpl(thrift_cow::ThriftTCType tc) {
     const auto& newTok = path().back();
     const auto& lastElem = elementsAlongPath_.back();
     auto* child = (lastElem.lookup) ? lastElem.lookup->child(newTok) : nullptr;
     bool hasAncestorSubs =
         lastElem.hasAncestorSubs || (child && child->numSubs());
     elementsAlongPath_.emplace_back(child, hasAncestorSubs);
+    if (patchBuilder_) {
+      patchBuilder_->onPathPush(newTok, tc);
+    }
   }
 
-  void onPopImpl(
-      std::string&& /* popped */,
-      thrift_cow::ThriftTCType /* tc */) {
+  void onPopImpl(std::string&& popped, thrift_cow::ThriftTCType tc) {
+    // TODO: for every patch subscription along path, call bubbleUpFromSubNode
     elementsAlongPath_.pop_back();
+    if (patchBuilder_) {
+      patchBuilder_->onPathPop(std::move(popped), tc);
+    }
   }
 
   const SubscriptionPathStore* currentStore() const {
@@ -81,8 +90,13 @@ struct CowSubscriptionTraverseHelper
     return elementsAlongPath_;
   }
 
+  std::optional<thrift_cow::PatchNodeBuilder>& patchBuilder() const {
+    return patchBuilder_;
+  }
+
  private:
   std::vector<CowSubscriptionTraverseHelperElem> elementsAlongPath_;
+  std::optional<thrift_cow::PatchNodeBuilder>& patchBuilder_;
 };
 
 } // namespace facebook::fboss::fsdb

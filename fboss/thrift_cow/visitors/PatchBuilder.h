@@ -21,7 +21,7 @@ class PatchNodeBuilder {
  public:
   PatchNodeBuilder(ThriftTCType rootTC, bool incrementallyCompress);
 
-  explicit PatchNodeBuilder(bool incrementallyCompress)
+  explicit PatchNodeBuilder(bool incrementallyCompress = false)
       : PatchNodeBuilder(ThriftTCType::STRUCTURE, incrementallyCompress) {}
 
   void onPathPush(const std::string& tok, ThriftTCType tc);

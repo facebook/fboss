@@ -335,8 +335,18 @@ void PatchSubscription::serveHeartbeat() {
 }
 
 void PatchSubscription::flush(
-    const SubscriptionMetadataServer& /*metadataServer*/) {
-  // TODO: write into pipe
+    const SubscriptionMetadataServer& metadataServer) {
+  if (auto patch = moveFromCurrPatch(metadataServer)) {
+    pipe_.write(*patch);
+  }
+}
+
+void PatchSubscription::setPatchRoot(thrift_cow::PatchNode node) {
+  if (!currPatch_) {
+    currPatch_ = thrift_cow::Patch();
+    // TODO: set path, protocol
+  }
+  currPatch_->patch() = std::move(node);
 }
 
 } // namespace facebook::fboss::fsdb
