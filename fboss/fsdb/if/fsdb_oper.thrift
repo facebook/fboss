@@ -5,6 +5,7 @@ namespace cpp2 facebook.fboss.fsdb
 namespace go facebook.fboss.fsdb_oper
 
 include "fboss/fsdb/if/fsdb_common.thrift"
+include "fboss/thrift_cow/patch.thrift"
 include "thrift/annotation/cpp.thrift"
 
 @cpp.Type{name = "::folly::fbstring"}
@@ -116,4 +117,32 @@ enum PubSubType {
   PATH = 0,
   DELTA = 1,
   PATCH = 2,
+}
+
+struct PubRequest {
+  1: RawOperPath path;
+  2: fsdb_common.ClientId clientId;
+}
+
+typedef i32 SubscriptionKey
+
+struct SubRequest {
+  1: map<SubscriptionKey, RawOperPath> paths;
+  2: OperProtocol protocol = OperProtocol.COMPACT;
+  3: fsdb_common.ClientId clientId;
+// TODO: option to request shallow patches?
+}
+
+union PublisherMessage {
+  1: patch.Patch chunk;
+}
+
+struct SubscriberChunk {
+  1: SubscriptionKey key;
+  2: patch.Patch patch;
+}
+
+union SubscriberMessage {
+  1: SubscriberChunk chunk;
+// TODO: add heartbeats
 }

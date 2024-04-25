@@ -29,6 +29,7 @@ add_fbthrift_cpp_library(
     reflection
   DEPENDS
     fsdb_common_cpp2
+    patch_cpp2
 )
 
 if (FBOSS_CENTOS9)

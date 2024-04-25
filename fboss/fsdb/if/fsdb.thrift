@@ -147,6 +147,34 @@ service FsdbService extends fb303.FacebookService {
     1: OperGetRequestExtended request,
   ) throws (1: fsdb_common.FsdbException e);
 
+  // New Oper APIs
+  // TODO: phase out above apis
+  fsdb_oper.OperPubInitResponse, sink<
+    fsdb_oper.PublisherMessage throws (1: fsdb_common.FsdbException e),
+    fsdb_oper.OperPubFinalResponse throws (1: fsdb_common.FsdbException e)
+  > publishState(1: fsdb_oper.PubRequest request) throws (
+    1: fsdb_common.FsdbException e,
+  );
+
+  fsdb_oper.OperPubInitResponse, sink<
+    fsdb_oper.PublisherMessage throws (1: fsdb_common.FsdbException e),
+    fsdb_oper.OperPubFinalResponse throws (1: fsdb_common.FsdbException e)
+  > publishStats(1: fsdb_oper.PubRequest request) throws (
+    1: fsdb_common.FsdbException e,
+  );
+
+  fsdb_oper.OperSubInitResponse, stream<
+    fsdb_oper.SubscriberMessage throws (1: fsdb_common.FsdbException e)
+  > subscribeState(1: fsdb_oper.SubRequest request) throws (
+    1: fsdb_common.FsdbException e,
+  );
+
+  fsdb_oper.OperSubInitResponse, stream<
+    fsdb_oper.SubscriberMessage throws (1: fsdb_common.FsdbException e)
+  > subscribeStats(1: fsdb_oper.SubRequest request) throws (
+    1: fsdb_common.FsdbException e,
+  );
+
   // Custom Oper getters: add specific state getters here if
   // desired.
 
