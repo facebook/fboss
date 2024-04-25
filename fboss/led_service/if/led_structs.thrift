@@ -19,9 +19,10 @@ enum LedColor {
 }
 
 enum Blink {
-  OFF = 0x0,
-  SLOW = 0x1,
-  FAST = 0x2,
+  UNKNOWN = 0x0,
+  OFF = 0x1,
+  SLOW = 0x2,
+  FAST = 0x3,
 }
 
 struct LedState {

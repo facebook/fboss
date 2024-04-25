@@ -13,14 +13,15 @@ namespace facebook::fboss {
 YampLedManager::YampLedManager() : LedManager() {}
 
 /*
- * calculateLedColor
+ * calculateLedState
  *
  * This function will return the LED color for a given port.
  */
-led::LedColor YampLedManager::calculateLedColor(
+led::LedState YampLedManager::calculateLedState(
     uint32_t portId,
     cfg::PortProfileID /* portProfile */) const {
-  return led::LedColor::UNKNOWN;
+  return utility::constructLedState(
+      led::LedColor::UNKNOWN, led::Blink::UNKNOWN);
 }
 
 /*

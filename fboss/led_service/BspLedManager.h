@@ -49,7 +49,7 @@ class BspLedManager : public LedManager {
   // System container to get LED controller
   BspSystemContainer* bspSystemContainer_{nullptr};
 
-  virtual led::LedColor calculateLedColor(
+  virtual led::LedState calculateLedState(
       uint32_t portId,
       cfg::PortProfileID portProfile) const override;
 

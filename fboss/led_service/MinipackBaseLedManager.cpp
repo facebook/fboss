@@ -17,7 +17,7 @@ namespace facebook::fboss {
 MinipackBaseLedManager::MinipackBaseLedManager() : LedManager() {}
 
 /*
- * calculateLedColor
+ * calculateLedState
  *
  * This function will return the LED color for a given port. This function will
  * act on LedManager struct portDisplayMap_ to find the color. This function
@@ -25,14 +25,15 @@ MinipackBaseLedManager::MinipackBaseLedManager() : LedManager() {}
  * is already updated with latest. This function will take care of port
  * operational state, LLDP cabling error, user forced LED color also
  */
-led::LedColor MinipackBaseLedManager::calculateLedColor(
+led::LedState MinipackBaseLedManager::calculateLedState(
     uint32_t portId,
     cfg::PortProfileID /* portProfile */) const {
   if (portDisplayMap_.find(portId) == portDisplayMap_.end()) {
     XLOG(ERR) << folly::sformat(
         "Port {:d} LED color undetermined as the port operational info is not available",
         portId);
-    return led::LedColor::UNKNOWN;
+    return utility::constructLedState(
+        led::LedColor::UNKNOWN, led::Blink::UNKNOWN);
   }
 
   auto portName = portDisplayMap_.at(portId).portName;
@@ -67,7 +68,7 @@ led::LedColor MinipackBaseLedManager::calculateLedColor(
       (cablingError ? "True" : "False"),
       (forcedOn ? "On" : (forcedOff ? "Off" : "None")));
 
-  return ledColor;
+  return utility::constructLedState(ledColor, led::Blink::OFF);
 }
 
 } // namespace facebook::fboss

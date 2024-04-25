@@ -20,6 +20,7 @@
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
 #include "fboss/led_service/FsdbSwitchStateSubscriber.h"
 #include "fboss/led_service/LedConfig.h"
+#include "fboss/led_service/LedUtils.h"
 #include "fboss/lib/led/LedIO.h"
 #include "fboss/lib/led/gen-cpp2/led_mapping_types.h"
 
@@ -103,11 +104,9 @@ class LedManager {
 
   std::unique_ptr<LedConfig> ledConfig_;
 
-  virtual led::LedColor calculateLedColor(
+  virtual led::LedState calculateLedState(
       uint32_t /* portId */,
-      cfg::PortProfileID /* portProfiled */) const {
-    return led::LedColor::UNKNOWN;
-  }
+      cfg::PortProfileID /* portProfiled */) const = 0;
 
   virtual void setLedColor(
       uint32_t /* portIdd */,

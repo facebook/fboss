@@ -117,7 +117,8 @@ void LedManager::updateLedStatus(
     auto portProfile = switchStateUpdate.portProfile;
     auto portProfileEnumVal = nameToEnum<cfg::PortProfileID>(portProfile);
     try {
-      auto newLedColor = calculateLedColor(portId, portProfileEnumVal);
+      auto newLedColor =
+          calculateLedState(portId, portProfileEnumVal).ledColor().value();
       if (newLedColor != portDisplayMap_[portId].currentLedColor) {
         setLedColor(portId, portProfileEnumVal, newLedColor);
         portDisplayMap_[portId].currentLedColor = newLedColor;
@@ -161,7 +162,7 @@ void LedManager::setExternalLedState(
   // Step 2. Update LED color if required
   auto portName = portDisplayMap_[portNum].portName;
   auto portProfile = portDisplayMap_[portNum].portProfileId;
-  auto newLedColor = calculateLedColor(portNum, portProfile);
+  auto newLedColor = calculateLedState(portNum, portProfile).ledColor().value();
   if (newLedColor != portDisplayMap_[portNum].currentLedColor) {
     setLedColor(portNum, portProfile, newLedColor);
     portDisplayMap_[portNum].currentLedColor = newLedColor;

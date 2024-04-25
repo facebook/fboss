@@ -13,14 +13,15 @@ namespace facebook::fboss {
 ElbertLedManager::ElbertLedManager() : LedManager() {}
 
 /*
- * calculateLedColor
+ * calculateLedState
  *
  * This function will return the LED color for a given port.
  */
-led::LedColor ElbertLedManager::calculateLedColor(
+led::LedState ElbertLedManager::calculateLedState(
     uint32_t portId,
     cfg::PortProfileID /* portProfile */) const {
-  return led::LedColor::UNKNOWN;
+  return utility::constructLedState(
+      led::LedColor::UNKNOWN, led::Blink::UNKNOWN);
 }
 
 /*

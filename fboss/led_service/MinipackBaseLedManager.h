@@ -31,7 +31,7 @@ class MinipackBaseLedManager : public LedManager {
   MinipackBaseLedManager& operator=(MinipackBaseLedManager const&) = delete;
 
  protected:
-  virtual led::LedColor calculateLedColor(
+  virtual led::LedState calculateLedState(
       uint32_t portId,
       cfg::PortProfileID portProfile) const override;
 
