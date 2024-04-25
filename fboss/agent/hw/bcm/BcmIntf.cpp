@@ -114,11 +114,6 @@ void BcmStation::program(MacAddress mac, int intfId) {
   CHECK_NE(id_, INVALID);
 }
 
-namespace {
-auto constexpr kMtu = "mtu";
-auto constexpr kIntfs = "intfs";
-} // namespace
-
 BcmIntf::BcmIntf(BcmSwitch* hw) : hw_(hw) {}
 
 void BcmIntf::program(const shared_ptr<Interface>& intf) {

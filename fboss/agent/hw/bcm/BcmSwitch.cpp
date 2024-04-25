@@ -193,8 +193,6 @@ enum : uint8_t {
 };
 
 namespace {
-constexpr auto kHostTable = "hostTable";
-constexpr int kLogBcmErrorFreqMs = 3000;
 // On new platforms we found sflow samplig rate to be inconsistent
 // BRCM found this seed provides better results (see CS00011944544)
 constexpr auto kHSDKSflowSamplingSeed = 0x2f64c448;

@@ -23,7 +23,6 @@ extern "C" {
 
 namespace {
 using namespace facebook::fboss;
-constexpr auto kQosMapIngressL3Flags = BCM_QOS_MAP_INGRESS | BCM_QOS_MAP_L3;
 
 BcmQosMap::Type getType(int flags) {
   if ((flags & (BCM_QOS_MAP_INGRESS | BCM_QOS_MAP_L3)) ==
