@@ -184,6 +184,11 @@ class BcmEcmpEgress : public BcmEgressBase {
   bool updateEcmpDynamicMode();
   uint64_t getL3EcmpDlbFailPackets();
   EcmpDetails getEcmpDetails();
+  int getEcmpObject(
+      bcm_l3_egress_ecmp_t* obj,
+      int* pathsInHwCount,
+      bcm_l3_ecmp_member_t* membersInHw,
+      bcm_if_t* pathsInHw);
   /*
    * Update ecmp egress entries in HW
    */
