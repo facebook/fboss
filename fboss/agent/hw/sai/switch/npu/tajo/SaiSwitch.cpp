@@ -33,11 +33,11 @@ std::string eventName(sai_switch_event_type_t type) {
     case SAI_SWITCH_EVENT_TYPE_PARITY_ERROR:
       return "SAI_SWITCH_EVENT_TYPE_PARITY_ERROR";
 #if defined(TAJO_SDK_EBRO) || defined(TAJO_SDK_VERSION_24_1_0) || \
-    defined(TAJO_SDK_VERSION_24_3_0)
+    defined(TAJO_SDK_VERSION_24_3_0) || defined(TAJO_SDK_VERSION_24_4_90)
     case SAI_SWITCH_EVENT_TYPE_LACK_OF_RESOURCES:
       return "SAI_SWITCH_EVENT_TYPE_LACK_OF_RESOURCES";
 #endif
-#if defined(TAJO_SDK_VERSION_24_3_0)
+#if defined(TAJO_SDK_VERSION_24_3_0) || defined(TAJO_SDK_VERSION_24_4_90)
     case SAI_SWITCH_EVENT_TYPE_MAX:
       return "SAI_SWITCH_EVENT_TYPE_MAX";
 #endif
@@ -82,7 +82,7 @@ std::string lackOfResourceType(
 #endif
 
 #if defined(TAJO_SDK_VERSION_1_65_1) || defined(TAJO_SDK_VERSION_24_1_0) || \
-    defined(TAJO_SDK_VERSION_24_3_0)
+    defined(TAJO_SDK_VERSION_24_3_0) || defined(TAJO_SDK_VERSION_24_4_90)
 std::string lackOfResourceType(
     const sai_tam_switch_event_lack_of_resources_err_type_t& type) {
   switch (type) {
@@ -135,7 +135,7 @@ void SaiSwitch::tamEventCallback(
       sstream << ", correction type=" << correctionType(errorType);
     } break;
 #if defined(TAJO_SDK_EBRO) || defined(TAJO_SDK_VERSION_24_1_0) || \
-    defined(TAJO_SDK_VERSION_24_3_0)
+    defined(TAJO_SDK_VERSION_24_3_0) || defined(TAJO_SDK_VERSION_24_4_90)
     case SAI_SWITCH_EVENT_TYPE_LACK_OF_RESOURCES:
       // Log error for now!
       XLOG(ERR) << lackOfResourceType(eventDesc->event.switch_event.data
@@ -151,7 +151,7 @@ void SaiSwitch::tamEventCallback(
       getSwitchStats()->asicError();
       break;
     case SAI_SWITCH_EVENT_TYPE_NONE:
-#if defined(TAJO_SDK_VERSION_24_3_0)
+#if defined(TAJO_SDK_VERSION_24_3_0) || defined(TAJO_SDK_VERSION_24_4_90)
     case SAI_SWITCH_EVENT_TYPE_MAX:
 #endif
       // no-op
