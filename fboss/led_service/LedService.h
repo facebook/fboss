@@ -44,14 +44,15 @@ class LedService {
     });
   }
 
-  led::LedState getLedState(const std::string& swPortName) {
+  led::PortLedState getPortLedState(const std::string& swPortName) {
     auto evb = pLedManager_->getEventBase();
     if (!evb) {
       throw FbossError("Event base not available for Led Manager");
     }
     return folly::via(evb)
-        .thenValue(
-            [=, this](auto&&) { return pLedManager_->getLedState(swPortName); })
+        .thenValue([=, this](auto&&) {
+          return pLedManager_->getPortLedState(swPortName);
+        })
         .get();
   }
 

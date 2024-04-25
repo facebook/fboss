@@ -22,10 +22,10 @@ class LedServiceHandler : public facebook::fboss::led_service::LedServiceSvIf {
     service_->setExternalLedState(portNum, ledState);
   }
 
-  void getLedState(
-      led::LedState& returnState,
+  void getPortLedState(
+      led::PortLedState& returnState,
       std::unique_ptr<std::string> swPortName) override {
-    returnState = service_->getLedState(*swPortName);
+    returnState = service_->getPortLedState(*swPortName);
   }
 
   int64_t serviceRunningForMsec() override {

@@ -98,7 +98,7 @@ TEST_F(LedServiceTest, checkForceLed) {
 
     // Verify link Down, the expected LED color is OFF
     auto offLedColor = ledManager_->getCurrentLedColor(swPort);
-    auto ledState = ledManager_->getLedState(swPortName.value());
+    auto ledState = ledManager_->getPortLedState(swPortName.value());
     EXPECT_EQ(offLedColor, led::LedColor::OFF);
     EXPECT_EQ(ledState.currentLedColor().value(), led::LedColor::OFF);
     EXPECT_TRUE(ledState.forcedOffState().value());
@@ -108,7 +108,7 @@ TEST_F(LedServiceTest, checkForceLed) {
         swPort, PortLedExternalState::EXTERNAL_FORCE_ON);
     auto onLedColorCurrent = ledManager_->getCurrentLedColor(swPort);
     auto onLedColorExpected = ledManager_->forcedOnColor();
-    ledState = ledManager_->getLedState(swPortName.value());
+    ledState = ledManager_->getPortLedState(swPortName.value());
     EXPECT_EQ(onLedColorCurrent, onLedColorExpected);
     EXPECT_EQ(ledState.currentLedColor().value(), onLedColorExpected);
     EXPECT_TRUE(ledState.forcedOnState().value());
@@ -121,7 +121,7 @@ TEST_F(LedServiceTest, checkForceLed) {
     ledManager_->setExternalLedState(
         swPort, PortLedExternalState::EXTERNAL_FORCE_OFF);
     offLedColor = ledManager_->getCurrentLedColor(swPort);
-    ledState = ledManager_->getLedState(swPortName.value());
+    ledState = ledManager_->getPortLedState(swPortName.value());
     EXPECT_EQ(offLedColor, led::LedColor::OFF);
     EXPECT_EQ(ledState.currentLedColor().value(), led::LedColor::OFF);
     EXPECT_TRUE(ledState.forcedOffState().value());
@@ -132,7 +132,7 @@ void LedServiceTest::checkLedColor(PortID port, enum led::LedColor color) {
   auto portName = platformMap_->getPortNameByPortId(port);
   CHECK(portName.has_value());
   auto currentColor = ledManager_->getCurrentLedColor(port);
-  auto ledState = ledManager_->getLedState(portName.value());
+  auto ledState = ledManager_->getPortLedState(portName.value());
   EXPECT_EQ(currentColor, color)
       << "LED color should be " << enumToName<led::LedColor>(color)
       << " for port " << portName.value();
@@ -176,7 +176,7 @@ TEST_F(LedServiceTest, checkLedColorChange) {
       updateMap[swPort].operState = true;
       ledManager_->updateLedStatus(updateMap);
       auto colorBefore = ledManager_->getCurrentLedColor(swPort);
-      auto ledState = ledManager_->getLedState(swPortName.value());
+      auto ledState = ledManager_->getPortLedState(swPortName.value());
       EXPECT_NE(colorBefore, led::LedColor::OFF);
       EXPECT_EQ(ledState.currentLedColor().value(), colorBefore);
 

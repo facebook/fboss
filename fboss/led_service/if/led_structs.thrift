@@ -18,7 +18,7 @@ enum LedColor {
   YELLOW = 0xA,
 }
 
-struct LedState {
+struct PortLedState {
   1: i16 swPortId;
   2: string swPortName;
   3: LedColor currentLedColor;

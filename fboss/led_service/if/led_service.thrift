@@ -14,7 +14,7 @@ service LedService {
     2: ctrl.PortLedExternalState ledState,
   ) throws (1: fboss.FbossBaseError error);
 
-  led_structs.LedState getLedState(1: string swPortName) throws (
+  led_structs.PortLedState getPortLedState(1: string swPortName) throws (
     1: fboss.FbossBaseError error,
   );
 
