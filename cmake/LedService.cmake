@@ -51,6 +51,7 @@ add_library(led_manager_lib
   fboss/led_service/oss/YampLedManager.cpp
   fboss/led_service/LedManager.cpp
   fboss/led_service/LedManagerInit.cpp
+  fboss/led_service/LedUtils.cpp
   fboss/led_service/MinipackBaseLedManager.cpp
   fboss/led_service/MontblancLedManager.cpp
   fboss/led_service/Meru800biaLedManager.cpp
