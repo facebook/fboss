@@ -10,4 +10,5 @@ target_link_libraries(ledIO
   led_mapping_cpp2
   led_structs_types_cpp2
   error
+  led_utils
 )

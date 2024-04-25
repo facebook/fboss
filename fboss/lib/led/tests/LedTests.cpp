@@ -5,6 +5,7 @@
 #include <folly/experimental/TestUtil.h>
 #include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
+#include "fboss/led_service/LedUtils.h"
 #include "fboss/lib/led/LedIO.h"
 
 namespace facebook::fboss {
@@ -34,27 +35,33 @@ class LedTests : public ::testing::Test {
     VerifyLedOff();
 
     // Since current color is Off, setting it to Off again will be noop
-    led_->setColor(led::LedColor::OFF);
+    led_->setLedState(
+        utility::constructLedState(led::LedColor::OFF, led::Blink::OFF));
     VerifyLedOff();
 
     // Change current color from Off to Blue
-    led_->setColor(led::LedColor::BLUE);
+    led_->setLedState(
+        utility::constructLedState(led::LedColor::BLUE, led::Blink::OFF));
     VerifyBlueOn();
 
     // Since current color is Blue, setting it to Blue again will be noop
-    led_->setColor(led::LedColor::BLUE);
+    led_->setLedState(
+        utility::constructLedState(led::LedColor::BLUE, led::Blink::OFF));
     VerifyBlueOn();
 
     // Change current color from Blue to Off
-    led_->setColor(led::LedColor::OFF);
+    led_->setLedState(
+        utility::constructLedState(led::LedColor::OFF, led::Blink::OFF));
     VerifyLedOff();
 
     // Change current color from Off to Yellow
-    led_->setColor(led::LedColor::YELLOW);
+    led_->setLedState(
+        utility::constructLedState(led::LedColor::YELLOW, led::Blink::OFF));
     VerifyYellowOn();
 
     // Since current color is Yellow, setting it to Yellow again will be noop
-    led_->setColor(led::LedColor::YELLOW);
+    led_->setLedState(
+        utility::constructLedState(led::LedColor::YELLOW, led::Blink::OFF));
     VerifyYellowOn();
 
     close(blueFd_);
@@ -88,7 +95,7 @@ class LedTests : public ::testing::Test {
   void VerifyLedOff() {
     EXPECT_EQ('0', ReadLedFile(blueFd_));
     EXPECT_EQ('0', ReadLedFile(yellowFd_));
-    EXPECT_EQ(led::LedColor::OFF, led_->getColor());
+    EXPECT_EQ(led::LedColor::OFF, led_->getLedState().get_ledColor());
   }
 
   // Verify that the blue file contains a single 1, the yellow file
@@ -96,7 +103,7 @@ class LedTests : public ::testing::Test {
   void VerifyBlueOn() {
     EXPECT_EQ('1', ReadLedFile(blueFd_));
     EXPECT_EQ('0', ReadLedFile(yellowFd_));
-    EXPECT_EQ(led::LedColor::BLUE, led_->getColor());
+    EXPECT_EQ(led::LedColor::BLUE, led_->getLedState().get_ledColor());
   }
 
   // Verify that the yellow file contains a single 1, the blue file
@@ -104,7 +111,7 @@ class LedTests : public ::testing::Test {
   void VerifyYellowOn() {
     EXPECT_EQ('0', ReadLedFile(blueFd_));
     EXPECT_EQ('1', ReadLedFile(yellowFd_));
-    EXPECT_EQ(led::LedColor::YELLOW, led_->getColor());
+    EXPECT_EQ(led::LedColor::YELLOW, led_->getLedState().get_ledColor());
   }
 
   folly::test::TemporaryDirectory tmpDir_;

@@ -13,6 +13,7 @@
 #include <fstream>
 #include <string>
 #include "fboss/agent/FbossError.h"
+#include "fboss/led_service/LedUtils.h"
 #include "fboss/lib/led/gen-cpp2/led_mapping_types.h"
 
 namespace {
@@ -37,42 +38,45 @@ LedIO::LedIO(LedMapping ledMapping) {
   init();
 }
 
-void LedIO::setColor(led::LedColor color) {
-  if (color == currColor_) {
+void LedIO::setLedState(led::LedState ledState) {
+  if (currState_ == ledState) {
     return;
   }
+  auto toSetColor = ledState.ledColor().value();
+  auto currentColor = currState_.ledColor().value();
 
-  switch (color) {
+  switch (toSetColor) {
     case led::LedColor::BLUE:
-      currColor_ = led::LedColor::BLUE;
       blueOn();
       break;
     case led::LedColor::YELLOW:
-      currColor_ = led::LedColor::YELLOW;
       yellowOn();
       break;
     case led::LedColor::OFF:
-      if (led::LedColor::BLUE == currColor_) {
+      if (led::LedColor::BLUE == currentColor) {
         blueOff();
-      } else if (led::LedColor::YELLOW == currColor_) {
+      } else if (led::LedColor::YELLOW == currentColor) {
         yellowOff();
       }
 
-      currColor_ = led::LedColor::OFF;
       XLOG(INFO) << fmt::format("Trace: set LED {:d} (0 base) to OFF", id_);
       break;
     default:
       throw LedIOError(
-          fmt::format("setColor() invalid color for ID {:d} (0 base)", id_));
+          fmt::format("setLedState() invalid color for ID {:d} (0 base)", id_));
   }
+  currState_ = ledState;
 }
 
-led::LedColor LedIO::getColor() const {
-  return currColor_;
+led::LedState LedIO::getLedState() const {
+  return currState_;
 }
 
 void LedIO::init() {
-  currColor_ = led::LedColor::OFF;
+  led::LedState ledState =
+      utility::constructLedState(led::LedColor::OFF, led::Blink::OFF);
+
+  currState_ = ledState;
   if (bluePath_.has_value()) {
     blueOff();
   }

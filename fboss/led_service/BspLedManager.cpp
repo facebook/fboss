@@ -227,7 +227,7 @@ void BspLedManager::setLedState(
        bspSystemContainer_->getLedController(tcvrId + 1)) {
     if (std::find(ledIds.begin(), ledIds.end(), ledController.first) !=
         ledIds.end()) {
-      ledController.second->setColor(ledState.ledColor().value());
+      ledController.second->setLedState(ledState);
     }
   }
 }
