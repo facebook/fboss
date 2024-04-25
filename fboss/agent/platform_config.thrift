@@ -53,6 +53,7 @@ struct PlatformPortMapping {
   6: optional i32 attachedCoreId;
   7: optional i32 attachedCorePortIndex;
   8: optional i32 virtualDeviceId;
+  9: bool localScope = true;
 }
 
 struct PlatformPortConfig {
