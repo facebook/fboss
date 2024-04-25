@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/platform/platform_manager/I2cExplorer.h"
+#include "fboss/lib/i2c/I2cDevIo.h"
 
 #include <folly/FileUtil.h>
 #include <folly/String.h>
@@ -95,6 +96,34 @@ std::optional<std::string> I2cExplorer::getI2cDeviceName(
   return folly::trimWhitespace(deviceName).str();
 }
 
+void I2cExplorer::setupI2cDevice(
+    uint16_t busNum,
+    const I2cAddr& addr,
+    const std::vector<I2cRegData>& initRegSettings) {
+  if (initRegSettings.size() == 0) {
+    return;
+  }
+
+  auto path = getI2cBusCharDevPath(busNum);
+  std::unique_ptr<I2cDevIo> i2cIoHandle = std::make_unique<I2cDevIo>(path);
+
+  for (const auto& regInfo : initRegSettings) {
+    int size = regInfo.ioBuf()->size();
+    if (size == 0) {
+      continue;
+    }
+
+    XLOG(INFO) << fmt::format(
+        "Setting up i2c device {}-{}. Writing {} bytes at register {}",
+        busNum,
+        addr.hex4Str(),
+        size,
+        *regInfo.regOffset());
+    const uint8_t* buf = (const uint8_t*)regInfo.ioBuf()->data();
+    i2cIoHandle->write(addr.raw(), regInfo.get_regOffset(), buf, size);
+  }
+}
+
 void I2cExplorer::createI2cDevice(
     const std::string& pmUnitScopedName,
     const std::string& deviceName,
@@ -184,6 +213,10 @@ std::string I2cExplorer::getDeviceI2cPath(
     uint16_t busNum,
     const I2cAddr& addr) {
   return fmt::format("/sys/bus/i2c/devices/{}-{}", busNum, addr.hex4Str());
+}
+
+std::string I2cExplorer::getI2cBusCharDevPath(uint16_t busNum) {
+  return fmt::format("/dev/i2c-{}", busNum);
 }
 
 bool I2cExplorer::isI2cDeviceCreated(uint16_t busNum, const I2cAddr& addr)

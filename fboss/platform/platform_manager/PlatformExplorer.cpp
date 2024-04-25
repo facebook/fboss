@@ -297,15 +297,20 @@ void PlatformExplorer::exploreI2cDevices(
     const std::string& slotPath,
     const std::vector<I2cDeviceConfig>& i2cDeviceConfigs) {
   for (const auto& i2cDeviceConfig : i2cDeviceConfigs) {
+    auto busNum = dataStore_.getI2cBusNum(slotPath, *i2cDeviceConfig.busName());
+    auto devAddr = I2cAddr(*i2cDeviceConfig.address());
+    if (i2cDeviceConfig.initRegSettings()) {
+      setupI2cDevice(
+          slotPath, busNum, devAddr, *i2cDeviceConfig.initRegSettings());
+    }
     createI2cDevice(
         Utils().createDevicePath(slotPath, *i2cDeviceConfig.pmUnitScopedName()),
         *i2cDeviceConfig.kernelDeviceName(),
-        dataStore_.getI2cBusNum(slotPath, *i2cDeviceConfig.busName()),
-        I2cAddr(*i2cDeviceConfig.address()));
+        busNum,
+        devAddr);
     if (i2cDeviceConfig.numOutgoingChannels()) {
-      auto channelToBusNums = i2cExplorer_.getMuxChannelI2CBuses(
-          dataStore_.getI2cBusNum(slotPath, *i2cDeviceConfig.busName()),
-          I2cAddr(*i2cDeviceConfig.address()));
+      auto channelToBusNums =
+          i2cExplorer_.getMuxChannelI2CBuses(busNum, devAddr);
       if (channelToBusNums.size() != *i2cDeviceConfig.numOutgoingChannels()) {
         throw std::runtime_error(fmt::format(
             "Unexpected number mux channels for {}. Expected: {}. Actual: {}",
@@ -322,9 +327,7 @@ void PlatformExplorer::exploreI2cDevices(
       }
     }
     if (*i2cDeviceConfig.isGpioChip()) {
-      auto i2cDevicePath = i2cExplorer_.getDeviceI2cPath(
-          dataStore_.getI2cBusNum(slotPath, *i2cDeviceConfig.busName()),
-          I2cAddr(*i2cDeviceConfig.address()));
+      auto i2cDevicePath = i2cExplorer_.getDeviceI2cPath(busNum, devAddr);
       std::optional<uint16_t> gpioNum{std::nullopt};
       for (const auto& childDirEntry :
            std::filesystem::directory_iterator(i2cDevicePath)) {
@@ -548,6 +551,19 @@ void PlatformExplorer::reportExplorationSummary() {
     for (const auto& errMsg : errMsgs) {
       XLOG(INFO) << fmt::format("{}. {}", i++, errMsg);
     }
+  }
+}
+
+void PlatformExplorer::setupI2cDevice(
+    const std::string& slotPath,
+    uint16_t busNum,
+    const I2cAddr& addr,
+    const std::vector<I2cRegData>& initRegSettings) {
+  try {
+    i2cExplorer_.setupI2cDevice(busNum, addr, initRegSettings);
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << ex.what();
+    errorMessages_[slotPath].push_back(ex.what());
   }
 }
 

@@ -15,6 +15,7 @@
 #include <re2/re2.h>
 
 #include "fboss/platform/helpers/PlatformUtils.h"
+#include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_types.h"
 
 namespace facebook::fboss::platform::platform_manager {
 
@@ -30,13 +31,17 @@ struct I2cAddr {
   bool operator==(const I2cAddr& b) const {
     return addr_ == b.addr_;
   }
-  // Returned string is in the format 0x0f
+  // Returns string in the format 0x0f
   std::string hex2Str() const {
     return fmt::format("{:#04x}", addr_);
   }
-  // Returned string is in the format 000f
+  // Returns string in the format 000f
   std::string hex4Str() const {
     return fmt::format("{:04x}", addr_);
+  }
+  // Returns integer
+  uint16_t raw() const {
+    return addr_;
   }
 
  private:
@@ -79,6 +84,13 @@ class I2cExplorer {
       uint16_t busNum,
       const I2cAddr& addr);
 
+  // Setup/Initialize an I2C device by updating device registers with
+  // the supplied values. Called before createI2cDevice().
+  void setupI2cDevice(
+      uint16_t busNum,
+      const I2cAddr& addr,
+      const std::vector<I2cRegData>& initRegSettings);
+
   // Returns the I2C Buses which were created for the channels behind the I2C
   // Mux at `busNum`@`addr`. It reads the children of
   // /sys/bus/i2c/devices/`busNum`-`addr`/ to obtain this. This function needs
@@ -90,6 +102,9 @@ class I2cExplorer {
 
   // Return sysfs path to the device at `addr` on `busNum`.
   static std::string getDeviceI2cPath(uint16_t busNum, const I2cAddr& addr);
+
+  // Return character device path (/dev/i2c-#) of the given i2c bus.
+  static std::string getI2cBusCharDevPath(uint16_t busNum);
 
  private:
   virtual bool isI2cDeviceCreated(uint16_t busNum, const I2cAddr& addr) const;
