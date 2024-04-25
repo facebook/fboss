@@ -247,6 +247,7 @@ class HwLoadBalancerTestRunner {
         // Add flowlet config to convert ECMP to DLB
         cfg.udfConfig() = utility::addUdfFlowletAclConfig();
         utility::addFlowletConfigs(cfg, getMasterLogicalPortIds());
+        utility::addFlowletAcl(cfg);
         getEnsemble()->applyNewConfig(cfg);
       }
     };
@@ -273,6 +274,7 @@ class HwLoadBalancerTestRunner {
             cfg,
             getMasterLogicalPortIds(),
             cfg::SwitchingMode::PER_PACKET_QUALITY);
+        utility::addFlowletAcl(cfg);
         getEnsemble()->applyNewConfig(cfg);
         setEcmpMemberStatus(getEnsemble());
         helper_->pumpTrafficPortAndVerifyLoadBalanced(

@@ -233,24 +233,30 @@ cfg::FlowletSwitchingConfig getDefaultFlowletSwitchingConfig(
   return flowletCfg;
 }
 
-void addFlowletAcl(cfg::SwitchConfig& cfg) {
-  auto* acl = utility::addAcl(&cfg, "test-flowlet-acl");
+void addFlowletAcl(
+    cfg::SwitchConfig& cfg,
+    const std::string& aclName,
+    const std::string& aclCounterName,
+    bool udfFlowlet) {
+  auto* acl = utility::addAcl(&cfg, aclName);
   acl->proto() = 17;
   acl->l4DstPort() = 4791;
   acl->dstIp() = "2001::/16";
-  acl->udfGroups() = {utility::kRoceUdfFlowletGroupName};
-  acl->roceBytes() = {utility::kRoceReserved};
-  acl->roceMask() = {utility::kRoceReserved};
+  if (udfFlowlet) {
+    acl->udfGroups() = {utility::kRoceUdfFlowletGroupName};
+    acl->roceBytes() = {utility::kRoceReserved};
+    acl->roceMask() = {utility::kRoceReserved};
+  }
   cfg::MatchAction matchAction = cfg::MatchAction();
   matchAction.flowletAction() = cfg::FlowletAction::FORWARD;
-  matchAction.counter() = "test-flowlet-acl-stats";
+  matchAction.counter() = aclCounterName;
   std::vector<cfg::CounterType> counterTypes{
       cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
   auto counter = cfg::TrafficCounter();
-  *counter.name() = "test-flowlet-acl-stats";
+  *counter.name() = aclCounterName;
   *counter.types() = counterTypes;
   cfg.trafficCounters()->push_back(counter);
-  utility::addMatcher(&cfg, "test-flowlet-acl", matchAction);
+  utility::addMatcher(&cfg, aclName, matchAction);
 }
 
 void addFlowletConfigs(
@@ -274,7 +280,6 @@ void addFlowletConfigs(
     auto portCfg = utility::findCfgPort(cfg, portId);
     portCfg->flowletConfigName() = "default";
   }
-  addFlowletAcl(cfg);
 }
 
 std::shared_ptr<SwitchState> setLoadBalancer(

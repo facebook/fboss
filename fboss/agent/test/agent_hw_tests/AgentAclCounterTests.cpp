@@ -31,6 +31,8 @@ enum AclType {
   UDF,
   BTH_OPCODE,
   FLOWLET,
+  // UDF flowlet also matches on udf in addtion to FLOWLET fields
+  UDF_FLOWLET,
 };
 }
 
@@ -51,6 +53,7 @@ class AgentAclCounterTest : public AgentHwTest {
 
  public:
   cfg::AclActionType aclActionType_ = cfg::AclActionType::PERMIT;
+  uint8_t roceReservedByte_ = utility::kRoceReserved;
 
   std::vector<production_features::ProductionFeature>
   getProductionFeaturesVerified() const override {
@@ -118,6 +121,9 @@ class AgentAclCounterTest : public AgentHwTest {
       case AclType::FLOWLET:
         aclName = "test-flowlet-acl";
         break;
+      case AclType::UDF_FLOWLET:
+        aclName = utility::kFlowletAclName;
+        break;
     }
     return aclName;
   }
@@ -148,6 +154,9 @@ class AgentAclCounterTest : public AgentHwTest {
         break;
       case AclType::FLOWLET:
         counterName = "test-flowlet-acl-stats";
+        break;
+      case AclType::UDF_FLOWLET:
+        counterName = utility::kFlowletAclCounterName;
         break;
     }
     return counterName;
@@ -191,10 +200,18 @@ class AgentAclCounterTest : public AgentHwTest {
       helper_->programRoutes(&wrapper, kEcmpWidth);
       auto newCfg{initialConfig(*getAgentEnsemble())};
       for (auto aclType : aclTypes) {
-        // FLOWLET Acl config already added in addFlowletConfigs() as part of
-        // initial config setup. Hence skipping it here.
-        if (aclType != AclType::FLOWLET) {
-          addAclAndStat(&newCfg, aclType);
+        switch (aclType) {
+          case AclType::FLOWLET:
+          case AclType::UDF_FLOWLET:
+            utility::addFlowletAcl(
+                newCfg,
+                getAclName(aclType),
+                getCounterName(aclType),
+                aclType != AclType::FLOWLET);
+            break;
+          default:
+            addAclAndStat(&newCfg, aclType);
+            break;
         }
       }
       applyNewConfig(newCfg);
@@ -214,7 +231,7 @@ class AgentAclCounterTest : public AgentHwTest {
     auto verify = [this, bumpOnHit, frontPanel, aclTypes]() {
       // since FLOWLET Acl presents ahead of UDF Acl in TCAM
       // the packet always hit the FLOWLET Acl. Hence verify the FLOWLET Acl
-      verifyAclType(bumpOnHit, frontPanel, AclType::FLOWLET);
+      verifyAclType(bumpOnHit, frontPanel, aclTypes[0]);
     };
 
     verifyAcrossWarmBoots(setup, verify);
@@ -233,7 +250,8 @@ class AgentAclCounterTest : public AgentHwTest {
         utility::kUdfL4DstPort,
         255,
         std::nullopt,
-        1 /* one packet */);
+        1 /* one packet */,
+        this->roceReservedByte_);
   }
 
   size_t sendPacket(bool frontPanel, bool bumpOnHit, AclType aclType) {
@@ -380,7 +398,7 @@ class AgentAclCounterTest : public AgentHwTest {
 
     // for udf or bth_opcode testing, send roce packets
     if (aclType == AclType::UDF || aclType == AclType::BTH_OPCODE ||
-        aclType == AclType::FLOWLET) {
+        aclType == AclType::FLOWLET || aclType == AclType::UDF_FLOWLET) {
       sizeOfPacketSent = sendRoceTraffic(egressPort);
     } else {
       sizeOfPacketSent = sendPacket(frontPanel, bumpOnHit, aclType);
@@ -460,6 +478,7 @@ class AgentAclCounterTest : public AgentHwTest {
         acl->roceOpcode() = utility::kUdfRoceOpcode;
         break;
       case AclType::FLOWLET:
+      case AclType::UDF_FLOWLET:
         break;
     }
     std::vector<cfg::CounterType> setCounterTypes{
@@ -620,6 +639,21 @@ TEST_F(AgentFlowletAclCounterTest, VerifyFlowlet) {
       true /* bump on hit */, true /* front panel port */, {AclType::FLOWLET});
 }
 
+TEST_F(AgentFlowletAclCounterTest, VerifyUdfFlowlet) {
+  counterBumpOnFlowletAclHitHelper(
+      true /* bump on hit */,
+      true /* front panel port */,
+      {AclType::UDF_FLOWLET});
+}
+
+TEST_F(AgentFlowletAclCounterTest, VerifyFlowletNegative) {
+  this->roceReservedByte_ = 0x0;
+  counterBumpOnFlowletAclHitHelper(
+      false /* bump on hit */,
+      true /* front panel port */,
+      {AclType::UDF_FLOWLET});
+}
+
 TEST_F(AgentFlowletAclCounterTest, VerifyFlowletWithOtherAcls) {
   counterBumpOnFlowletAclHitHelper(
       true /* bump on hit */,
@@ -627,12 +661,26 @@ TEST_F(AgentFlowletAclCounterTest, VerifyFlowletWithOtherAcls) {
       {AclType::FLOWLET, AclType::SRC_PORT});
 }
 
-// Verifying the FLOWLET Acl always hit ahead of UDF Acl
-// when FLOWLET Acl present before UDF Acl
+TEST_F(AgentFlowletAclCounterTest, VerifyUdfFlowletWithOtherAcls) {
+  counterBumpOnFlowletAclHitHelper(
+      true /* bump on hit */,
+      true /* front panel port */,
+      {AclType::UDF_FLOWLET, AclType::SRC_PORT});
+}
+
 TEST_F(AgentFlowletAclCounterTest, VerifyFlowletWithUdf) {
   counterBumpOnFlowletAclHitHelper(
       true /* bump on hit */,
       true /* front panel port */,
       {AclType::FLOWLET, AclType::UDF});
+}
+
+// Verifying the FLOWLET Acl always hit ahead of UDF Acl
+// when FLOWLET Acl present before UDF Acl
+TEST_F(AgentFlowletAclCounterTest, VerifyUdfFlowletWithUdf) {
+  counterBumpOnFlowletAclHitHelper(
+      true /* bump on hit */,
+      true /* front panel port */,
+      {AclType::UDF_FLOWLET, AclType::UDF});
 }
 } // namespace facebook::fboss

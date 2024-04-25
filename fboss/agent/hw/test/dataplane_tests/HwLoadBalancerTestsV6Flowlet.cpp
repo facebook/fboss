@@ -31,6 +31,7 @@ class HwLoadBalancerTestV6Flowlet
         getHwSwitchEnsemble(), masterLogicalPortIds());
     cfg.udfConfig() = utility::addUdfFlowletAclConfig();
     utility::addFlowletConfigs(cfg, masterLogicalPortIds());
+    utility::addFlowletAcl(cfg);
     return cfg;
   }
 

@@ -186,7 +186,11 @@ cfg::UdfConfig addUdfHashAclConfig();
 
 cfg::FlowletSwitchingConfig getDefaultFlowletSwitchingConfig(
     cfg::SwitchingMode switchingMode = cfg::SwitchingMode::FLOWLET_QUALITY);
-void addFlowletAcl(cfg::SwitchConfig& cfg);
+void addFlowletAcl(
+    cfg::SwitchConfig& cfg,
+    const std::string& aclName = kFlowletAclName,
+    const std::string& aclCounterName = kFlowletAclCounterName,
+    bool udfFlowlet = true);
 void addFlowletConfigs(
     cfg::SwitchConfig& cfg,
     const std::vector<PortID>& ports,
