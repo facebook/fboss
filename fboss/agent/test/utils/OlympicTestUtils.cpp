@@ -61,13 +61,14 @@ void addVoqAqmConfig(
 // XXX This is FSW config, add RSW config. Prefix queue names with portName
 void addOlympicQueueOptionalEcnWredConfigWithSchedulingHelper(
     cfg::SwitchConfig* config,
-    cfg::StreamType streamType,
     const std::vector<const HwAsic*>& asics,
     bool addWredConfig,
     bool addEcnConfig,
     cfg::QueueScheduling schedType) {
   // Qos queue config for diverse asic type not supported yet
   auto asic = checkSameAndGetAsic(asics);
+  cfg::StreamType streamType =
+      *(asic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin());
   std::vector<cfg::PortQueue> portQueues;
 
   cfg::PortQueue queue0;
@@ -159,12 +160,11 @@ void addOlympicQueueOptionalEcnWredConfigWithSchedulingHelper(
 
 void addOlympicQueueConfigWithSchedulingHelper(
     cfg::SwitchConfig* config,
-    cfg::StreamType streamType,
     const std::vector<const HwAsic*>& asics,
     bool addWredConfig,
     cfg::QueueScheduling schedType) {
   addOlympicQueueOptionalEcnWredConfigWithSchedulingHelper(
-      config, streamType, asics, addWredConfig, true, schedType);
+      config, asics, addWredConfig, true, schedType);
 }
 } // namespace
 
@@ -344,13 +344,11 @@ void addNetworkAIQueueConfig(
 
 void addOlympicQueueConfig(
     cfg::SwitchConfig* config,
-    cfg::StreamType streamType,
     const std::vector<const HwAsic*>& asics,
     bool addWredConfig,
     bool addEcnConfig) {
   addOlympicQueueOptionalEcnWredConfigWithSchedulingHelper(
       config,
-      streamType,
       asics,
       addWredConfig,
       addEcnConfig,
@@ -360,15 +358,10 @@ void addOlympicQueueConfig(
 // copied from addOlympicQueueConfig. RSWs might need a separate config
 void addFswRswAllSPOlympicQueueConfig(
     cfg::SwitchConfig* config,
-    cfg::StreamType streamType,
     const std::vector<const HwAsic*>& asics,
     bool addWredConfig) {
   addOlympicQueueConfigWithSchedulingHelper(
-      config,
-      streamType,
-      asics,
-      addWredConfig,
-      cfg::QueueScheduling::STRICT_PRIORITY);
+      config, asics, addWredConfig, cfg::QueueScheduling::STRICT_PRIORITY);
 }
 
 // Configure two queues (silver and ecn) with the same weight but different drop

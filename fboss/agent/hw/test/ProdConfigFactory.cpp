@@ -38,12 +38,10 @@ void addOlympicQosToConfig(
     const HwAsic* hwAsic,
     bool enableStrictPriority) {
   addOlympicQosMaps(config, {hwAsic});
-  auto streamType =
-      *hwAsic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin();
   if (enableStrictPriority) {
-    addFswRswAllSPOlympicQueueConfig(&config, streamType, {hwAsic});
+    addFswRswAllSPOlympicQueueConfig(&config, {hwAsic});
   } else {
-    addOlympicQueueConfig(&config, streamType, {hwAsic});
+    addOlympicQueueConfig(&config, {hwAsic});
   }
 }
 

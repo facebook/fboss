@@ -30,13 +30,7 @@ class HwPortBandwidthTest : public HwLinkStateDependentTest {
         getAsic()->desiredLoopbackModes());
 
     if (isSupported(HwAsic::Feature::L3_QOS)) {
-      auto streamType =
-          *(getPlatform()
-                ->getAsic()
-                ->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT)
-                .begin());
-      utility::addOlympicQueueConfig(
-          &cfg, streamType, getHwSwitchEnsemble()->getL3Asics());
+      utility::addOlympicQueueConfig(&cfg, getHwSwitchEnsemble()->getL3Asics());
       utility::addOlympicQosMaps(cfg, getHwSwitchEnsemble()->getL3Asics());
     }
     utility::setTTLZeroCpuConfig(getHwSwitchEnsemble()->getL3Asics(), cfg);

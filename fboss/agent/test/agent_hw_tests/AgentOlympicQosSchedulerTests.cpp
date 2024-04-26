@@ -230,14 +230,11 @@ class AgentOlympicQosSchedulerTest : public AgentHwTest {
  protected:
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
-    auto asic = utility::getFirstAsic(ensemble.getSw());
     auto cfg = utility::onePortPerInterfaceConfig(
         ensemble.getSw(),
         ensemble.masterLogicalPortIds(),
         true /*interfaceHasSubnet*/);
-    auto streamType =
-        *(asic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin());
-    utility::addOlympicQueueConfig(&cfg, streamType, ensemble.getL3Asics());
+    utility::addOlympicQueueConfig(&cfg, ensemble.getL3Asics());
     utility::addOlympicQosMaps(cfg, ensemble.getL3Asics());
     utility::setTTLZeroCpuConfig(ensemble.getL3Asics(), cfg);
     return cfg;
@@ -589,10 +586,7 @@ void AgentOlympicQosSchedulerTest::verifyDscpToQueueOlympicV2ToOlympic() {
 
   auto setupPostWarmboot = [=, this]() {
     auto newCfg{initialConfig(*getAgentEnsemble())};
-    auto streamType = *(
-        getAsic()->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin());
-    utility::addOlympicQueueConfig(
-        &newCfg, streamType, getAgentEnsemble()->getL3Asics());
+    utility::addOlympicQueueConfig(&newCfg, getAgentEnsemble()->getL3Asics());
     utility::addOlympicQosMaps(newCfg, getAgentEnsemble()->getL3Asics());
     utility::setTTLZeroCpuConfig(getAgentEnsemble()->getL3Asics(), newCfg);
     applyNewConfig(newCfg);

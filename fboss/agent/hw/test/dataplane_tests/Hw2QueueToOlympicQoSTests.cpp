@@ -119,13 +119,8 @@ class Hw2QueueToOlympicQoSTest : public HwLinkStateDependentTest {
 
     auto setupPostWarmboot = [=, this]() {
       auto newCfg{initialConfig()};
-      auto streamType =
-          *(getPlatform()
-                ->getAsic()
-                ->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT)
-                .begin());
       utility::addOlympicQueueConfig(
-          &newCfg, streamType, getHwSwitchEnsemble()->getL3Asics());
+          &newCfg, getHwSwitchEnsemble()->getL3Asics());
       utility::addOlympicQosMaps(newCfg, getHwSwitchEnsemble()->getL3Asics());
       applyNewConfig(newCfg);
     };

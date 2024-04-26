@@ -119,7 +119,6 @@ void addNetworkAIQueueConfig(
 
 void addOlympicQueueConfig(
     cfg::SwitchConfig* config,
-    cfg::StreamType streamType,
     const std::vector<const HwAsic*>& asics,
     bool addWredConfig = false,
     bool addEcnConfig = true);
@@ -131,7 +130,6 @@ void addOlympicV2WRRQueueConfig(
     bool addWredConfig = false);
 void addFswRswAllSPOlympicQueueConfig(
     cfg::SwitchConfig* config,
-    cfg::StreamType streamType,
     const std::vector<const HwAsic*>& asics,
     bool addWredConfig = false);
 void addQueueWredDropConfig(
