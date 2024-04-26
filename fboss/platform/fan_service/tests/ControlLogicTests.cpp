@@ -144,7 +144,7 @@ TEST_F(ControlLogicTests, UpdateControlSuccess) {
     EXPECT_EQ(*fanStatus.pwmToProgram(), kExpectedPwms[i++]);
     EXPECT_EQ(fb303::fbData->getCounter(fmt::format("{}.absent", fanName)), 0);
     EXPECT_EQ(
-        fb303::fbData->getCounter(fmt::format("{}.read_rpm_failure", fanName)),
+        fb303::fbData->getCounter(fmt::format("{}.rpm_read.failure", fanName)),
         0);
   }
 }
@@ -175,7 +175,7 @@ TEST_F(ControlLogicTests, UpdateControlFailureDueToMissingFans) {
     EXPECT_EQ(*fanStatus.pwmToProgram(), kExpectedPwms[i++]);
     EXPECT_EQ(fb303::fbData->getCounter(fmt::format("{}.absent", fanName)), 1);
     EXPECT_EQ(
-        fb303::fbData->getCounter(fmt::format("{}.read_rpm_failure", fanName)),
+        fb303::fbData->getCounter(fmt::format("{}.rpm_read.failure", fanName)),
         1);
   }
 }
@@ -208,7 +208,7 @@ TEST_F(ControlLogicTests, UpdateControlFailureDueToFanInaccessible) {
     EXPECT_EQ(*fanStatus.pwmToProgram(), kExpectedPwms[i++]);
     EXPECT_EQ(fb303::fbData->getCounter(fmt::format("{}.absent", fanName)), 0);
     EXPECT_EQ(
-        fb303::fbData->getCounter(fmt::format("{}.read_rpm_failure", fanName)),
+        fb303::fbData->getCounter(fmt::format("{}.rpm_read.failure", fanName)),
         1);
   }
 }
@@ -249,7 +249,7 @@ TEST_F(
     EXPECT_GE(*fanStatus.lastSuccessfulAccessTime(), startTime);
     EXPECT_EQ(fb303::fbData->getCounter(fmt::format("{}.absent", fanName)), 0);
     EXPECT_EQ(
-        fb303::fbData->getCounter(fmt::format("{}.read_rpm_failure", fanName)),
+        fb303::fbData->getCounter(fmt::format("{}.rpm_read.failure", fanName)),
         1);
   }
 }

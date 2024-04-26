@@ -12,9 +12,11 @@
 #include "fboss/platform/fan_service/if/gen-cpp2/fan_service_config_types.h"
 
 namespace {
-auto constexpr kFanWriteFailure = "{}.{}.write_pwm_failure";
+auto constexpr kFanWriteFailure = "{}.{}.pwm_write.failure";
+auto constexpr kFanWriteValue = "{}.{}.pwm_write.value";
 auto constexpr kFanAbsent = "{}.absent";
-auto constexpr kFanReadRpmFailure = "{}.read_rpm_failure";
+auto constexpr kFanReadRpmFailure = "{}.rpm_read.failure";
+auto constexpr kFanReadRpmValue = "{}.rpm_read.value";
 auto constexpr kFanFailThresholdInSec = 300;
 auto constexpr kSensorFailThresholdInSec = 300;
 
@@ -71,6 +73,7 @@ std::tuple<bool, int, uint64_t> ControlLogic::readFanRpm(const Fan& fan) {
   fb303::fbData->setCounter(
       fmt::format(kFanReadRpmFailure, fanName), !fanRpmReadSuccess);
   if (fanRpmReadSuccess) {
+    fb303::fbData->setCounter(fmt::format(kFanReadRpmValue, fanName), fanRpm);
     XLOG(INFO) << fmt::format(
         "Control :: {}'s latest rpm is {}", fanName, fanRpm);
   } else {
@@ -505,11 +508,23 @@ std::pair<bool, float> ControlLogic::programFan(
   fb303::fbData->setCounter(
       fmt::format(kFanWriteFailure, *zone.zoneName(), *fan.fanName()),
       !writeSuccess);
-  XLOG(INFO) << fmt::format(
-      "Programmed Fan {} with PWM {} and Returned {} as PWM to program.",
-      *fan.fanName(),
-      pwmInt,
-      pwmToProgram);
+  if (writeSuccess) {
+    fb303::fbData->setCounter(
+        fmt::format(kFanWriteValue, *zone.zoneName(), *fan.fanName()), pwmInt);
+    XLOG(INFO) << fmt::format(
+        "Programmed Fan {} with PWM {} and Returned {} as PWM to program.",
+        *fan.fanName(),
+        pwmInt,
+        pwmToProgram);
+  } else {
+    XLOG(INFO) << fmt::format(
+        "Failed to program Fan {} with PWM {} and Returned {} as "
+        "PWM to program.",
+        *fan.fanName(),
+        pwmInt,
+        pwmToProgram);
+  }
+
   return std::make_pair(!writeSuccess, pwmToProgram);
 }
 
