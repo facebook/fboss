@@ -30,7 +30,7 @@ namespace facebook::fboss {
 
 class SaiManagerTable;
 class SaiPlatform;
-class SaiNextHopGroupHandle;
+struct SaiNextHopGroupHandle;
 class SaiStore;
 class SaiRouteManager;
 struct SaiCounterHandle;

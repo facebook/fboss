@@ -27,7 +27,7 @@
 
 namespace facebook::fboss {
 class HwSwitchEnsemble;
-struct HwPortStats;
+class HwPortStats;
 class HwSwitch;
 class PortDescriptor;
 class SwitchState;

@@ -14,7 +14,7 @@
 
 namespace facebook::fboss {
 
-struct HwResourceStats;
+class HwResourceStats;
 
 constexpr folly::StringPiece kHwTableStatsStale{"hw_table_stats_stale"};
 constexpr folly::StringPiece kL3HostMax{"l3_host_max"};

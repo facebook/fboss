@@ -11,7 +11,7 @@ class BcmSwitch;
 class AclEntry;
 class Mirror;
 class BcmPort;
-class MirrorTunnel;
+struct MirrorTunnel;
 
 class BcmMirrorDestination {
  public:

@@ -13,7 +13,7 @@
 namespace facebook::fboss {
 
 class Mirror;
-class MirrorTunnel;
+struct MirrorTunnel;
 class SwSwitch;
 
 template <typename AddrT>
