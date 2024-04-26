@@ -319,8 +319,6 @@ void SaiSwitch::unregisterCallbacks() noexcept {
   // tx ready status change is turned off and the evb loop is set to break
   // just need to block until the last event is processed
   if (runState_ >= SwitchRunState::CONFIGURED &&
-      (getFeaturesDesired() &
-       FeaturesDesired::LINK_ACTIVE_INACTIVE_NOTIFY_DESIRED) &&
       platform_->getAsic()->isSupported(
           HwAsic::Feature::LINK_ACTIVE_INACTIVE_NOTIFY)) {
     txReadyStatusChangeBottomHalfEventBase_.runInEventBaseThreadAndWait(
@@ -2813,9 +2811,7 @@ void SaiSwitch::unregisterCallbacksLocked(
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
   if (isFeatureSetupLocked(FeaturesDesired::LINKSCAN_DESIRED, lock)) {
-    if ((getFeaturesDesired() &
-         FeaturesDesired::LINK_ACTIVE_INACTIVE_NOTIFY_DESIRED) &&
-        platform_->getAsic()->isSupported(
+    if (platform_->getAsic()->isSupported(
             HwAsic::Feature::LINK_ACTIVE_INACTIVE_NOTIFY)) {
       switchApi.unregisterTxReadyStatusChangeCallback(saiSwitchId_);
     }
@@ -3135,9 +3131,7 @@ void SaiSwitch::switchRunStateChangedImplLocked(
 #endif
       }
 
-      if ((getFeaturesDesired() &
-           FeaturesDesired::LINK_ACTIVE_INACTIVE_NOTIFY_DESIRED) &&
-          platform_->getAsic()->isSupported(
+      if (platform_->getAsic()->isSupported(
               HwAsic::Feature::LINK_ACTIVE_INACTIVE_NOTIFY)) {
         initTxReadyStatusChangeLocked(lock);
       }

@@ -24,8 +24,7 @@ int main(int argc, char* argv[]) {
       std::move(config),
       (HwSwitch::FeaturesDesired::PACKET_RX_DESIRED |
        HwSwitch::FeaturesDesired::LINKSCAN_DESIRED |
-       HwSwitch::FeaturesDesired::TAM_EVENT_NOTIFY_DESIRED |
-       HwSwitch::FeaturesDesired::LINK_ACTIVE_INACTIVE_NOTIFY_DESIRED),
+       HwSwitch::FeaturesDesired::TAM_EVENT_NOTIFY_DESIRED),
       initSaiPlatform);
   return facebook::fboss::fbossMain(argc, argv, std::move(fbossInitializer));
 }
