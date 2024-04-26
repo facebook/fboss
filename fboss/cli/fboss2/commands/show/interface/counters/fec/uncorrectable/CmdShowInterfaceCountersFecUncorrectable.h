@@ -43,25 +43,35 @@ class CmdShowInterfaceCountersFecUncorrectable
     auto qsfpClient =
         utils::createClient<facebook::fboss::QsfpServiceAsyncClient>(hostInfo);
 
-    std::map<std::string, int64_t> fb303CountersIPhyUcSum;
-    std::map<std::string, int64_t> fb303CountersXPhyUcSum;
-    std::map<std::string, int64_t> fb303CountersTcvrUcSum;
+    std::map<std::string, int64_t> fb303CountersIPhyIngressUcSum;
+    std::map<std::string, int64_t> fb303CountersXPhyIngressUcSum;
+    std::map<std::string, int64_t> fb303CountersTcvrIngressUcSum;
+    std::map<std::string, int64_t> fb303CountersXPhyEgressUcSum;
+    std::map<std::string, int64_t> fb303CountersTcvrEgressUcSum;
 
 #ifdef IS_OSS
     // TODO - figure out why getRegexCounters fails for OSS
-    agentClient->sync_getCounters(fb303CountersIPhyUcSum);
-    qsfpClient->sync_getCounters(fb303CountersTcvrUcSum);
+    agentClient->sync_getCounters(fb303CountersIPhyIngressUcSum);
+    qsfpClient->sync_geCounters(fb303CountersXPhyIngressUcSum);
+    qsfpClient->sync_getCounters(fb303CountersTcvrIngressUcSum);
+    qsfpClient->sync_getCounters(fb303CountersXPhyEgressUcSum);
+    qsfpClient->sync_getCounters(fb303CountersTcvrEgressUcSum);
 #else
     agentClient->sync_getRegexCounters(
-        fb303CountersIPhyUcSum, "^(eth|fab).*fec_uncorrectable_errors.sum.*");
+        fb303CountersIPhyIngressUcSum,
+        "^(eth|fab).*fec_uncorrectable_errors.sum.*");
     qsfpClient->sync_getRegexCounters(
-        fb303CountersXPhyUcSum, ".*xphy.line.fec_uncorrectable.sum.*");
+        fb303CountersXPhyIngressUcSum, ".*xphy.line.fec_uncorrectable.sum.*");
     qsfpClient->sync_getRegexCounters(
-        fb303CountersTcvrUcSum, "^qsfp.*media.uncorrectable.sum.*");
+        fb303CountersTcvrIngressUcSum, "^qsfp.*media.uncorrectable.sum.*");
+    qsfpClient->sync_getRegexCounters(
+        fb303CountersXPhyEgressUcSum, ".*xphy.system.fec_uncorrectable.sum.*");
+    qsfpClient->sync_getRegexCounters(
+        fb303CountersTcvrEgressUcSum, "^qsfp.*host.uncorrectable.sum.*");
 #endif
 
     std::unordered_set<std::string> distinctInterfaceNames;
-    for (const auto& counter : fb303CountersIPhyUcSum) {
+    for (const auto& counter : fb303CountersIPhyIngressUcSum) {
       std::vector<std::string> result;
       boost::split(result, counter.first, boost::is_any_of("."));
       distinctInterfaceNames.insert(result[0]);
@@ -71,18 +81,22 @@ class CmdShowInterfaceCountersFecUncorrectable
 
     return createModel(
         ifNames,
-        fb303CountersIPhyUcSum,
-        fb303CountersXPhyUcSum,
-        fb303CountersTcvrUcSum,
+        fb303CountersIPhyIngressUcSum,
+        fb303CountersXPhyIngressUcSum,
+        fb303CountersTcvrIngressUcSum,
+        fb303CountersXPhyEgressUcSum,
+        fb303CountersTcvrEgressUcSum,
         queriedIfs,
         direction.direction);
   }
 
   RetType createModel(
       std::vector<std::string>& ifNames,
-      const std::map<std::string, int64_t>& iPhyUcSum,
-      const std::map<std::string, int64_t>& xPhyUcSum,
-      const std::map<std::string, int64_t>& tcvrUcSum,
+      const std::map<std::string, int64_t>& iPhyIngressUcSum,
+      const std::map<std::string, int64_t>& xPhyIngressUcSum,
+      const std::map<std::string, int64_t>& tcvrIngressUcSum,
+      const std::map<std::string, int64_t>& xPhyEgressUcSum,
+      const std::map<std::string, int64_t>& tcvrEgressUcSum,
       const std::vector<std::string>& queriedIfs,
       const phy::Direction direction) {
     RetType model;
@@ -96,45 +110,74 @@ class CmdShowInterfaceCountersFecUncorrectable
         std::string counterName;
 
         counterName = interface + ".fec_uncorrectable_errors.sum";
-        if (iPhyUcSum.find(counterName) != iPhyUcSum.end()) {
+        if (iPhyIngressUcSum.find(counterName) != iPhyIngressUcSum.end()) {
           model.uncorrectableFrames()[interface][phy::PortComponent::ASIC]
-              .totalCount() = iPhyUcSum.at(counterName);
+              .totalCount() = iPhyIngressUcSum.at(counterName);
         }
 
         counterName = interface + ".fec_uncorrectable_errors.sum.600";
-        if (iPhyUcSum.find(counterName) != iPhyUcSum.end()) {
+        if (iPhyIngressUcSum.find(counterName) != iPhyIngressUcSum.end()) {
           model.uncorrectableFrames()[interface][phy::PortComponent::ASIC]
-              .tenMinuteCount() = iPhyUcSum.at(counterName);
+              .tenMinuteCount() = iPhyIngressUcSum.at(counterName);
         }
 
         counterName = interface + ".xphy.line.fec_uncorrectable.sum";
-        if (xPhyUcSum.find(counterName) != xPhyUcSum.end()) {
+        if (xPhyIngressUcSum.find(counterName) != xPhyIngressUcSum.end()) {
           model.uncorrectableFrames()[interface][phy::PortComponent::GB_LINE]
-              .totalCount() = xPhyUcSum.at(counterName);
+              .totalCount() = xPhyIngressUcSum.at(counterName);
         }
 
         counterName = interface + ".xphy.line.fec_uncorrectable.sum.600";
-        if (xPhyUcSum.find(counterName) != xPhyUcSum.end()) {
+        if (xPhyIngressUcSum.find(counterName) != xPhyIngressUcSum.end()) {
           model.uncorrectableFrames()[interface][phy::PortComponent::GB_LINE]
-              .tenMinuteCount() = xPhyUcSum.at(counterName);
+              .tenMinuteCount() = xPhyIngressUcSum.at(counterName);
         }
 
         counterName =
             "qsfp.interface." + interface + ".media.uncorrectable.sum";
-        if (tcvrUcSum.find(counterName) != tcvrUcSum.end()) {
+        if (tcvrIngressUcSum.find(counterName) != tcvrIngressUcSum.end()) {
           model
               .uncorrectableFrames()[interface]
                                     [phy::PortComponent::TRANSCEIVER_LINE]
-              .totalCount() = tcvrUcSum.at(counterName);
+              .totalCount() = tcvrIngressUcSum.at(counterName);
         }
 
         counterName =
             "qsfp.interface." + interface + ".media.uncorrectable.sum.600";
-        if (tcvrUcSum.find(counterName) != tcvrUcSum.end()) {
+        if (tcvrIngressUcSum.find(counterName) != tcvrIngressUcSum.end()) {
           model
               .uncorrectableFrames()[interface]
                                     [phy::PortComponent::TRANSCEIVER_LINE]
-              .tenMinuteCount() = tcvrUcSum.at(counterName);
+              .tenMinuteCount() = tcvrIngressUcSum.at(counterName);
+        }
+
+        counterName = interface + ".xphy.system.fec_uncorrectable.sum";
+        if (xPhyEgressUcSum.find(counterName) != xPhyEgressUcSum.end()) {
+          model.uncorrectableFrames()[interface][phy::PortComponent::GB_SYSTEM]
+              .totalCount() = xPhyEgressUcSum.at(counterName);
+        }
+
+        counterName = interface + ".xphy.system.fec_uncorrectable.sum.600";
+        if (xPhyEgressUcSum.find(counterName) != xPhyEgressUcSum.end()) {
+          model.uncorrectableFrames()[interface][phy::PortComponent::GB_SYSTEM]
+              .tenMinuteCount() = xPhyEgressUcSum.at(counterName);
+        }
+
+        counterName = "qsfp.interface." + interface + ".host.uncorrectable.sum";
+        if (tcvrEgressUcSum.find(counterName) != tcvrEgressUcSum.end()) {
+          model
+              .uncorrectableFrames()[interface]
+                                    [phy::PortComponent::TRANSCEIVER_SYSTEM]
+              .totalCount() = tcvrEgressUcSum.at(counterName);
+        }
+
+        counterName =
+            "qsfp.interface." + interface + ".host.uncorrectable.sum.600";
+        if (tcvrEgressUcSum.find(counterName) != tcvrEgressUcSum.end()) {
+          model
+              .uncorrectableFrames()[interface]
+                                    [phy::PortComponent::TRANSCEIVER_SYSTEM]
+              .tenMinuteCount() = tcvrEgressUcSum.at(counterName);
         }
       }
     }
@@ -154,14 +197,21 @@ class CmdShowInterfaceCountersFecUncorrectable
            "XPHY_LINE_10min",
            "TRANSCEIVER_LINE",
            "TRANSCEIVER_LINE_10min"});
+    } else {
+      table.setHeader(
+          {"Interface Name",
+           "XPHY_SYSTEM",
+           "XPHY_SYSTEM_10min",
+           "TRANSCEIVER_SYSTEM",
+           "TRANSCEIVER_SYSTEM_10min"});
     }
 
     for (const auto& [interfaceName, ucCounters] :
          *model.uncorrectableFrames()) {
-      std::optional<int64_t> iphyUc, iphyUc10m, xphyUc, xphyUc10m, tcvrUc,
-          tcvrUc10m;
-
       if (model.direction() == phy::Direction::RECEIVE) {
+        std::optional<int64_t> iphyUc, iphyUc10m, xphyUc, xphyUc10m, tcvrUc,
+            tcvrUc10m;
+
         if (ucCounters.find(phy::PortComponent::ASIC) != ucCounters.end()) {
           iphyUc = ucCounters.at(phy::PortComponent::ASIC).totalCount().value();
           iphyUc10m =
@@ -192,6 +242,39 @@ class CmdShowInterfaceCountersFecUncorrectable
                                : Table::StyledCell("-", Table::Style::NONE),
             iphyUc10m.has_value() ? styledUc(*iphyUc10m)
                                   : Table::StyledCell("-", Table::Style::NONE),
+            xphyUc.has_value() ? styledUc(*xphyUc)
+                               : Table::StyledCell("-", Table::Style::NONE),
+            xphyUc10m.has_value() ? styledUc(*xphyUc10m)
+                                  : Table::StyledCell("-", Table::Style::NONE),
+            tcvrUc.has_value() ? styledUc(*tcvrUc)
+                               : Table::StyledCell("-", Table::Style::NONE),
+            tcvrUc10m.has_value() ? styledUc(*tcvrUc10m)
+                                  : Table::StyledCell("-", Table::Style::NONE),
+        });
+      } else {
+        std::optional<int64_t> xphyUc, xphyUc10m, tcvrUc, tcvrUc10m;
+
+        if (ucCounters.find(phy::PortComponent::GB_SYSTEM) !=
+            ucCounters.end()) {
+          xphyUc =
+              ucCounters.at(phy::PortComponent::GB_SYSTEM).totalCount().value();
+          xphyUc10m = ucCounters.at(phy::PortComponent::GB_SYSTEM)
+                          .tenMinuteCount()
+                          .value();
+        }
+
+        if (ucCounters.find(phy::PortComponent::TRANSCEIVER_SYSTEM) !=
+            ucCounters.end()) {
+          tcvrUc = ucCounters.at(phy::PortComponent::TRANSCEIVER_SYSTEM)
+                       .totalCount()
+                       .value();
+          tcvrUc10m = ucCounters.at(phy::PortComponent::TRANSCEIVER_SYSTEM)
+                          .tenMinuteCount()
+                          .value();
+        }
+
+        table.addRow({
+            interfaceName,
             xphyUc.has_value() ? styledUc(*xphyUc)
                                : Table::StyledCell("-", Table::Style::NONE),
             xphyUc10m.has_value() ? styledUc(*xphyUc10m)
