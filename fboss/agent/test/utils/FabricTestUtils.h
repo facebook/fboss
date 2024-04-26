@@ -24,4 +24,8 @@ void checkPortFabricReachability(
     TestEnsembleIf* ensemble,
     SwitchID switchId,
     PortID portId);
+void checkFabricPortsActiveState(
+    TestEnsembleIf* ensemble,
+    const std::vector<PortID>& fabricPortIds,
+    bool expectActive);
 } // namespace facebook::fboss::utility

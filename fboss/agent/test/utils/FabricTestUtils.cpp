@@ -126,4 +126,17 @@ void checkPortFabricReachability(
   });
 }
 
+void checkFabricPortsActiveState(
+    TestEnsembleIf* ensemble,
+    const std::vector<PortID>& fabricPortIds,
+    bool expectActive) {
+  WITH_RETRIES({
+    for (const auto& portId : fabricPortIds) {
+      auto fabricPort =
+          ensemble->getProgrammedState()->getPorts()->getNodeIf(portId);
+      EXPECT_EVENTUALLY_TRUE(fabricPort->isActive().has_value());
+      EXPECT_EVENTUALLY_EQ(*fabricPort->isActive(), expectActive);
+    }
+  });
+}
 } // namespace facebook::fboss::utility
