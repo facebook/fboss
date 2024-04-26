@@ -91,6 +91,11 @@ std::optional<int> PlatformPort::getVirtualDeviceId() const {
   return virtualDeviceId;
 }
 
+bool PlatformPort::getLocalScope() const {
+  const auto& mapping = getPlatformPortEntry().mapping();
+  return *mapping->localScope();
+}
+
 const cfg::PlatformPortEntry& PlatformPort::getPlatformPortEntry() const {
   const auto& platformPorts = platform_->getPlatformPorts();
   if (auto itPlatformPort = platformPorts.find(id_);

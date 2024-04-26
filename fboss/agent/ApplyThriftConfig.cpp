@@ -994,6 +994,7 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
     sysPort->setCorePortIndex(recyclePortInfo.corePortIndex);
     sysPort->setSpeedMbps(recyclePortInfo.speedMbps); // 10G
     sysPort->setNumVoqs(8);
+    sysPort->setScope(Scope::GLOBAL);
     if (auto cpuTrafficPolicy = cfg_->cpuTrafficPolicy()) {
       if (auto trafficPolicy = cpuTrafficPolicy->trafficPolicy()) {
         if (auto defaultQosPolicy = trafficPolicy->defaultQosPolicy()) {
@@ -1397,6 +1398,11 @@ shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
       sysPort->setNumVoqs(kNumVoqs);
       sysPort->setQosPolicy(port.second->getQosPolicy());
       sysPort->resetPortQueues(switchSettings->getDefaultVoqConfig());
+      if (platformPort.mapping()->localScope().value()) {
+        sysPort->setScope(Scope::LOCAL);
+      } else {
+        sysPort->setScope(Scope::GLOBAL);
+      }
       sysPorts->addSystemPort(std::move(sysPort));
     }
   }

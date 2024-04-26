@@ -135,6 +135,14 @@ class SystemPort
     }
   }
 
+  void setScope(const Scope& scope) {
+    set<ctrl_if_tags::scope>(scope);
+  }
+
+  Scope getScope() const {
+    return cref<ctrl_if_tags::scope>()->cref();
+  }
+
  private:
   // Inherit the constructors required for clone()
   using Base::Base;
