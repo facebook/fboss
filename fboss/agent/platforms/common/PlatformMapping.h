@@ -178,6 +178,13 @@ class PlatformMapping {
     return false;
   }
 
+  std::vector<cfg::PortProfileID> getPortProfileFromLinkProperties(
+      cfg::PortSpeed speed,
+      uint16_t numLanes,
+      phy::IpModulation modulation,
+      phy::FecMode fec,
+      std::optional<TransmitterTechnology> medium) const;
+
  protected:
   std::map<int32_t, cfg::PlatformPortEntry> platformPorts_;
   std::vector<cfg::PlatformPortProfileConfigEntry> platformSupportedProfiles_;

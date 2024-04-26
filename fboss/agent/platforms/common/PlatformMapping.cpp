@@ -812,4 +812,47 @@ PlatformMapping::getAllPortProfiles() const {
   return portProfileIds;
 }
 
+/*
+ * getPortProfileFromLinkProperties
+ *
+ * Returns the Port Profile ID based on the link properties. The following 5
+ * link properties can uniquely identify a Port Profile:
+ *   - Speed (100G/200G/...)
+ *   - Number of Host Lanes
+ *   - IP Modulation (NRZ/PAM4)
+ *   - FEC (RS528/RS544/RS544_2N/...)
+ *   - Transmitter Media (OPTICAL/COPPER/...)
+ */
+std::vector<cfg::PortProfileID>
+PlatformMapping::getPortProfileFromLinkProperties(
+    cfg::PortSpeed speed,
+    uint16_t numLanes,
+    phy::IpModulation modulation,
+    phy::FecMode fec,
+    std::optional<TransmitterTechnology> medium) const {
+  std::vector<cfg::PortProfileID> profiles;
+
+  for (auto& supportedProfile : platformSupportedProfiles_) {
+    auto& profile = supportedProfile.profile().value();
+    if (profile.speed().value() == speed &&
+        profile.iphy().value().numLanes().value() == numLanes &&
+        profile.iphy().value().modulation().value() == modulation &&
+        profile.iphy().value().fec().value() == fec) {
+      if (medium.has_value() && profile.iphy().value().medium().has_value()) {
+        if (medium.value() != profile.iphy().value().medium().value()) {
+          if (medium.value() == TransmitterTechnology::OPTICAL &&
+              profile.iphy().value().medium().value() ==
+                  TransmitterTechnology::BACKPLANE) {
+            profiles.push_back(
+                supportedProfile.factor().value().profileID().value());
+          }
+          continue;
+        }
+      }
+      profiles.push_back(supportedProfile.factor().value().profileID().value());
+    }
+  }
+  return profiles;
+}
+
 } // namespace facebook::fboss
