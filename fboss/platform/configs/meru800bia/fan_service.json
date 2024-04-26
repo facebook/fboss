@@ -97,7 +97,7 @@
       "zoneType": "ZONE_TYPE_MAX",
       "zoneName": "zone1",
       "sensorNames": [
-        "SMB_TMP75_FRONT"
+        "SMB_BOARD_FRONT_TEMP"
       ],
       "fanNames": [
         "fan_1",
