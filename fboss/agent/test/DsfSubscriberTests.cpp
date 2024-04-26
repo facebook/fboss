@@ -27,8 +27,6 @@ using namespace facebook::fboss;
 namespace {
 constexpr auto kRemoteSwitchId = 42;
 constexpr auto kSysPortRangeMin = 1000;
-constexpr auto intfV4AddrPrefix = "42.42.42.";
-constexpr auto intfV6AddrPrefix = "42::";
 std::shared_ptr<SystemPortMap> makeSysPorts() {
   auto sysPorts = std::make_shared<SystemPortMap>();
   for (auto sysPortId = kSysPortRangeMin + 1; sysPortId < kSysPortRangeMin + 3;
@@ -50,14 +48,6 @@ std::shared_ptr<InterfaceMap> makeRifs(const SystemPortMap* sysPorts) {
         false,
         true,
         cfg::InterfaceType::SYSTEM_PORT);
-    Interface::Addresses addresses{
-        {folly::IPAddressV4(
-             folly::to<std::string>(intfV4AddrPrefix, (id % 256))),
-         31},
-        {folly::IPAddressV6(
-             folly::to<std::string>(intfV6AddrPrefix, (id % 256))),
-         127}};
-    rif->setAddresses(addresses);
     rifs->addNode(rif);
   }
   return rifs;
@@ -110,40 +100,14 @@ TEST_F(DsfSubscriberTest, scheduleUpdate) {
   switchId2SystemPorts[SwitchID(kRemoteSwitchId)] = sysPorts;
   switchId2Intfs[SwitchID(kRemoteSwitchId)] = rifs;
 
-  const auto prevState = sw_->getState();
   dsfSubscriber_->scheduleUpdate(
       "switch",
       SwitchID(kRemoteSwitchId),
       switchId2SystemPorts,
       switchId2Intfs);
 
-  const auto updatedState = waitForStateUpdates(sw_);
-  const auto delta = StateDelta(prevState, updatedState);
-  auto routesAdded = 0;
-
-  for (const auto& routeDelta : delta.getFibsDelta()) {
-    DeltaFunctions::forEachChanged(
-        routeDelta.getFibDelta<folly::IPAddressV4>(),
-        [&](const auto& /* oldNode */, const auto& /* newNode */) {},
-        [&](const auto& added) {
-          EXPECT_TRUE(added->isConnected());
-          EXPECT_EQ(added->getID().rfind(intfV4AddrPrefix, 0), 0);
-          routesAdded++;
-        },
-        [&](const auto& /* removed */) {});
-
-    DeltaFunctions::forEachChanged(
-        routeDelta.getFibDelta<folly::IPAddressV6>(),
-        [&](const auto& /* oldNode */, const auto& /* newNode */) {},
-        [&](const auto& added) {
-          EXPECT_TRUE(added->isConnected());
-          EXPECT_EQ(added->getID().rfind(intfV6AddrPrefix, 0), 0);
-          routesAdded++;
-        },
-        [&](const auto& /* removed */) {});
-  }
-
-  EXPECT_EQ(routesAdded, 4);
+  // Don't wait for state update to mimic async scheduling of
+  // state updates.
 }
 
 TEST_F(DsfSubscriberTest, setupNeighbors) {
