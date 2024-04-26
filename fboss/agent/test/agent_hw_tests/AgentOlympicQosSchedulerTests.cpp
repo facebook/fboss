@@ -22,7 +22,6 @@
 #include <folly/IPAddress.h>
 
 namespace {
-auto constexpr kRetries = 10;
 auto constexpr kRateSamplingInterval = 25;
 auto constexpr kEcmpWidthForTest = 1;
 } // namespace
