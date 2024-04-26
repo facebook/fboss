@@ -239,22 +239,6 @@ class AgentVoqSwitchWithFabricPortsTest : public AgentVoqSwitchTest {
   }
 
  protected:
-  void assertPortActiveState(PortID fabricPortId, bool expectActive) const {
-    WITH_RETRIES({
-      auto port = getProgrammedState()->getPorts()->getNodeIf(fabricPortId);
-      EXPECT_EVENTUALLY_TRUE(port->isActive().has_value());
-      EXPECT_EVENTUALLY_EQ(*port->isActive(), expectActive);
-    });
-  }
-  void assertPortsActiveState(bool expectActive) const {
-    WITH_RETRIES({
-      for (const auto& fabricPortId : masterLogicalFabricPortIds()) {
-        auto port = getProgrammedState()->getPorts()->getNodeIf(fabricPortId);
-        EXPECT_EVENTUALLY_TRUE(port->isActive().has_value());
-        EXPECT_EVENTUALLY_EQ(*port->isActive(), expectActive);
-      }
-    });
-  }
   void assertPortAndDrainState(cfg::SwitchDrainState expectDrainState) const {
     bool expectDrained =
         expectDrainState == cfg::SwitchDrainState::DRAINED ? true : false;
@@ -268,7 +252,8 @@ class AgentVoqSwitchWithFabricPortsTest : public AgentVoqSwitchTest {
     }
     // Drained - expect inactive
     // Undrained - expect active
-    assertPortsActiveState(!expectDrained);
+    utility::checkFabricPortsActiveState(
+        getAgentEnsemble(), masterLogicalFabricPortIds(), !expectDrained);
   }
   void verifyLocalForwarding() {
     // Setup neighbor entry
@@ -362,7 +347,9 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, fabricIsolate) {
       });
       // Drained port == inactive, undrained port == active
       auto expectActive = !drain;
-      assertPortActiveState(fabricPortId, expectActive);
+      std::vector<PortID> fabricPortIds({static_cast<PortID>(fabricPortId)});
+      utility::checkFabricPortsActiveState(
+          getAgentEnsemble(), fabricPortIds, expectActive);
       // Fabric reachability should be unchanged regardless of drain
       utility::checkPortFabricReachability(
           getAgentEnsemble(), SwitchID(0), fabricPortId);
@@ -398,7 +385,10 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, fabricConnectivityMismatch) {
 TEST_F(AgentVoqSwitchWithFabricPortsTest, switchIsolate) {
   auto setup = [=, this]() {
     // Before drain all fabric ports should be active
-    assertPortsActiveState(true);
+    utility::checkFabricPortsActiveState(
+        getAgentEnsemble(),
+        masterLogicalFabricPortIds(),
+        true /*expectActive*/);
     // Local forwarding works
     verifyLocalForwarding();
     auto newCfg = initialConfig(*getAgentEnsemble());
