@@ -24,7 +24,7 @@ class EventBase;
 namespace facebook::fboss {
 
 class AggregatePort;
-class LacpServicerIf;
+struct LacpServicerIf;
 
 class LacpController : public std::enable_shared_from_this<LacpController> {
  public:
