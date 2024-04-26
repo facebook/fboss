@@ -384,6 +384,11 @@ class TransceiverManager {
   // with present filed is false.
   TransceiverInfo getTransceiverInfo(TransceiverID id) const;
 
+  void getAllPortSupportedProfiles(
+      std::map<std::string, std::vector<cfg::PortProfileID>>&
+          supportedPortProfiles,
+      bool checkOptics);
+
   // Function to convert port name string to software port id
   std::optional<PortID> getPortIDByPortName(const std::string& portName) const;
 
