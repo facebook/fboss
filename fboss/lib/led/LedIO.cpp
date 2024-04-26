@@ -19,6 +19,7 @@
 namespace {
 constexpr auto kLedOn = "1";
 constexpr auto kLedOff = "0";
+constexpr auto kLedBrightnessPath = "/brightness";
 } // namespace
 
 namespace facebook::fboss {
@@ -107,7 +108,8 @@ void LedIO::yellowOff() {
   setLed(*yellowPath_, kLedOff);
 }
 
-void LedIO::setLed(const std::string& ledPath, const std::string& ledOp) {
+void LedIO::setLed(const std::string& ledBasePath, const std::string& ledOp) {
+  std::string ledPath = ledBasePath + kLedBrightnessPath;
   std::fstream fs;
   fs.open(ledPath, std::fstream::out);
 

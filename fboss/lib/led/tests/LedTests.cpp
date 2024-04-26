@@ -21,17 +21,22 @@ class LedTests : public ::testing::Test {
   }
 
   void testFakeLed() {
+    mkdir(blueBasePath_.c_str(), 0777);
+    blueFd_ = open(bluePath_.c_str(), O_RDWR | O_CREAT, 0777);
+    EXPECT_GE(blueFd_, 0);
+
+    mkdir(yellowBasePath_.c_str(), 0777);
+    yellowFd_ = open(yellowPath_.c_str(), O_RDWR | O_CREAT, 0777);
+    EXPECT_GE(yellowFd_, 0);
+
     LedMapping ledMapping;
     ledMapping.id() = 0;
-    ledMapping.bluePath() = bluePath_;
-    ledMapping.yellowPath() = yellowPath_;
+    ledMapping.bluePath() = blueBasePath_;
+    ledMapping.yellowPath() = yellowBasePath_;
     // Instantiating Led object will write 0 to both blue and yellow LED
     // files and set current color to Off
     led_ = std::make_unique<LedIO>(ledMapping);
-    blueFd_ = open(bluePath_.c_str(), O_RDWR);
-    EXPECT_GE(blueFd_, 0);
-    yellowFd_ = open(yellowPath_.c_str(), O_RDWR);
-    EXPECT_GE(yellowFd_, 0);
+
     VerifyLedOff();
 
     // Since current color is Off, setting it to Off again will be noop
@@ -115,8 +120,10 @@ class LedTests : public ::testing::Test {
   }
 
   folly::test::TemporaryDirectory tmpDir_;
-  std::string bluePath_ = tmpDir_.path().string() + "/invalidBlueLed";
-  std::string yellowPath_ = tmpDir_.path().string() + "/invalidYellowLed";
+  std::string blueBasePath_ = tmpDir_.path().string() + "/invalidBlueLed";
+  std::string yellowBasePath_ = tmpDir_.path().string() + "/invalidYellowLed";
+  std::string bluePath_ = blueBasePath_ + "/brightness";
+  std::string yellowPath_ = yellowBasePath_ + "/brightness";
   int blueFd_;
   int yellowFd_;
   std::unique_ptr<LedIO> led_;

@@ -1176,398 +1176,398 @@ constexpr auto kJsonBspPlatformMappingStr = R"(
         "ledMapping": {
           "1": {
               "id": 1,
-              "bluePath": "/sys/class/leds/port1_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port1_led1:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port1_led1:blue:status",
+              "yellowPath": "/sys/class/leds/port1_led1:yellow:status",
               "transceiverId": 1
           },
           "2": {
               "id": 2,
-              "bluePath": "/sys/class/leds/port1_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port1_led2:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port1_led2:blue:status",
+              "yellowPath": "/sys/class/leds/port1_led2:yellow:status",
               "transceiverId": 1
           },
           "3": {
               "id": 3,
-              "bluePath": "/sys/class/leds/port2_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port2_led1:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port2_led1:blue:status",
+              "yellowPath": "/sys/class/leds/port2_led1:yellow:status",
               "transceiverId": 2
           },
           "4": {
               "id": 4,
-              "bluePath": "/sys/class/leds/port2_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port2_led2:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port2_led2:blue:status",
+              "yellowPath": "/sys/class/leds/port2_led2:yellow:status",
               "transceiverId": 2
           },
           "5": {
               "id": 5,
-              "bluePath": "/sys/class/leds/port3_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port3_led1:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port3_led1:blue:status",
+              "yellowPath": "/sys/class/leds/port3_led1:yellow:status",
               "transceiverId": 3
           },
           "6": {
               "id": 6,
-              "bluePath": "/sys/class/leds/port3_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port3_led2:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port3_led2:blue:status",
+              "yellowPath": "/sys/class/leds/port3_led2:yellow:status",
               "transceiverId": 3
           },
           "7": {
               "id": 7,
-              "bluePath": "/sys/class/leds/port4_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port4_led1:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port4_led1:blue:status",
+              "yellowPath": "/sys/class/leds/port4_led1:yellow:status",
               "transceiverId": 4
           },
           "8": {
               "id": 8,
-              "bluePath": "/sys/class/leds/port4_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port4_led2:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port4_led2:blue:status",
+              "yellowPath": "/sys/class/leds/port4_led2:yellow:status",
               "transceiverId": 4
           },
           "9": {
               "id": 9,
-              "bluePath": "/sys/class/leds/port5_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port5_led1:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port5_led1:blue:status",
+              "yellowPath": "/sys/class/leds/port5_led1:yellow:status",
               "transceiverId": 5
           },
           "10": {
               "id": 10,
-              "bluePath": "/sys/class/leds/port5_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port5_led2:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port5_led2:blue:status",
+              "yellowPath": "/sys/class/leds/port5_led2:yellow:status",
               "transceiverId": 5
           },
           "11": {
               "id": 11,
-              "bluePath": "/sys/class/leds/port6_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port6_led1:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port6_led1:blue:status",
+              "yellowPath": "/sys/class/leds/port6_led1:yellow:status",
               "transceiverId": 6
           },
           "12": {
               "id": 12,
-              "bluePath": "/sys/class/leds/port6_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port6_led2:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port6_led2:blue:status",
+              "yellowPath": "/sys/class/leds/port6_led2:yellow:status",
               "transceiverId": 6
           },
           "13": {
               "id": 13,
-              "bluePath": "/sys/class/leds/port7_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port7_led1:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port7_led1:blue:status",
+              "yellowPath": "/sys/class/leds/port7_led1:yellow:status",
               "transceiverId": 7
           },
           "14": {
               "id": 14,
-              "bluePath": "/sys/class/leds/port7_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port7_led2:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port7_led2:blue:status",
+              "yellowPath": "/sys/class/leds/port7_led2:yellow:status",
               "transceiverId": 7
           },
           "15": {
               "id": 15,
-              "bluePath": "/sys/class/leds/port8_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port8_led1:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port8_led1:blue:status",
+              "yellowPath": "/sys/class/leds/port8_led1:yellow:status",
               "transceiverId": 8
           },
           "16": {
               "id": 16,
-              "bluePath": "/sys/class/leds/port8_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port8_led2:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port8_led2:blue:status",
+              "yellowPath": "/sys/class/leds/port8_led2:yellow:status",
               "transceiverId": 8
           },
           "17": {
               "id": 17,
-              "bluePath": "/sys/class/leds/port9_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port9_led1:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port9_led1:blue:status",
+              "yellowPath": "/sys/class/leds/port9_led1:yellow:status",
               "transceiverId": 9
           },
           "18": {
               "id": 18,
-              "bluePath": "/sys/class/leds/port9_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port9_led2:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port9_led2:blue:status",
+              "yellowPath": "/sys/class/leds/port9_led2:yellow:status",
               "transceiverId": 9
           },
           "19": {
               "id": 19,
-              "bluePath": "/sys/class/leds/port10_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port10_led1:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port10_led1:blue:status",
+              "yellowPath": "/sys/class/leds/port10_led1:yellow:status",
               "transceiverId": 10
           },
           "20": {
               "id": 20,
-              "bluePath": "/sys/class/leds/port10_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port10_led2:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port10_led2:blue:status",
+              "yellowPath": "/sys/class/leds/port10_led2:yellow:status",
               "transceiverId": 10
           },
           "21": {
               "id": 21,
-              "bluePath": "/sys/class/leds/port11_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port11_led1:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port11_led1:blue:status",
+              "yellowPath": "/sys/class/leds/port11_led1:yellow:status",
               "transceiverId": 11
           },
           "22": {
               "id": 22,
-              "bluePath": "/sys/class/leds/port11_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port11_led2:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port11_led2:blue:status",
+              "yellowPath": "/sys/class/leds/port11_led2:yellow:status",
               "transceiverId": 11
           },
           "23": {
               "id": 23,
-              "bluePath": "/sys/class/leds/port12_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port12_led1:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port12_led1:blue:status",
+              "yellowPath": "/sys/class/leds/port12_led1:yellow:status",
               "transceiverId": 12
           },
           "24": {
               "id": 24,
-              "bluePath": "/sys/class/leds/port12_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port12_led2:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port12_led2:blue:status",
+              "yellowPath": "/sys/class/leds/port12_led2:yellow:status",
               "transceiverId": 12
           },
           "25": {
               "id": 25,
-              "bluePath": "/sys/class/leds/port13_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port13_led1:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port13_led1:blue:status",
+              "yellowPath": "/sys/class/leds/port13_led1:yellow:status",
               "transceiverId": 13
           },
           "26": {
               "id": 26,
-              "bluePath": "/sys/class/leds/port13_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port13_led2:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port13_led2:blue:status",
+              "yellowPath": "/sys/class/leds/port13_led2:yellow:status",
               "transceiverId": 13
           },
           "27": {
               "id": 27,
-              "bluePath": "/sys/class/leds/port14_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port14_led1:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port14_led1:blue:status",
+              "yellowPath": "/sys/class/leds/port14_led1:yellow:status",
               "transceiverId": 14
           },
           "28": {
               "id": 28,
-              "bluePath": "/sys/class/leds/port14_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port14_led2:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port14_led2:blue:status",
+              "yellowPath": "/sys/class/leds/port14_led2:yellow:status",
               "transceiverId": 14
           },
           "29": {
               "id": 29,
-              "bluePath": "/sys/class/leds/port15_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port15_led1:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port15_led1:blue:status",
+              "yellowPath": "/sys/class/leds/port15_led1:yellow:status",
               "transceiverId": 15
           },
           "30": {
               "id": 30,
-              "bluePath": "/sys/class/leds/port15_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port15_led2:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port15_led2:blue:status",
+              "yellowPath": "/sys/class/leds/port15_led2:yellow:status",
               "transceiverId": 15
           },
           "31": {
               "id": 31,
-              "bluePath": "/sys/class/leds/port16_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port16_led1:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port16_led1:blue:status",
+              "yellowPath": "/sys/class/leds/port16_led1:yellow:status",
               "transceiverId": 16
           },
           "32": {
               "id": 32,
-              "bluePath": "/sys/class/leds/port16_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port16_led2:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port16_led2:blue:status",
+              "yellowPath": "/sys/class/leds/port16_led2:yellow:status",
               "transceiverId": 16
           },
           "33": {
               "id": 33,
-              "bluePath": "/sys/class/leds/port17_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port17_led1:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port17_led1:blue:status",
+              "yellowPath": "/sys/class/leds/port17_led1:yellow:status",
               "transceiverId": 17
           },
           "34": {
               "id": 34,
-              "bluePath": "/sys/class/leds/port17_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port17_led2:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port17_led2:blue:status",
+              "yellowPath": "/sys/class/leds/port17_led2:yellow:status",
               "transceiverId": 17
           },
           "35": {
               "id": 35,
-              "bluePath": "/sys/class/leds/port18_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port18_led1:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port18_led1:blue:status",
+              "yellowPath": "/sys/class/leds/port18_led1:yellow:status",
               "transceiverId": 18
           },
           "36": {
               "id": 36,
-              "bluePath": "/sys/class/leds/port18_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port18_led2:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port18_led2:blue:status",
+              "yellowPath": "/sys/class/leds/port18_led2:yellow:status",
               "transceiverId": 18
           },
           "37": {
               "id": 37,
-              "bluePath": "/sys/class/leds/port19_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port19_led1:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port19_led1:blue:status",
+              "yellowPath": "/sys/class/leds/port19_led1:yellow:status",
               "transceiverId": 19
           },
           "38": {
               "id": 38,
-              "bluePath": "/sys/class/leds/port19_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port19_led2:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port19_led2:blue:status",
+              "yellowPath": "/sys/class/leds/port19_led2:yellow:status",
               "transceiverId": 19
           },
           "39": {
               "id": 39,
-              "bluePath": "/sys/class/leds/port20_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port20_led1:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port20_led1:blue:status",
+              "yellowPath": "/sys/class/leds/port20_led1:yellow:status",
               "transceiverId": 20
           },
           "40": {
               "id": 40,
-              "bluePath": "/sys/class/leds/port20_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port20_led2:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port20_led2:blue:status",
+              "yellowPath": "/sys/class/leds/port20_led2:yellow:status",
               "transceiverId": 20
           },
           "41": {
               "id": 41,
-              "bluePath": "/sys/class/leds/port21_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port21_led1:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port21_led1:blue:status",
+              "yellowPath": "/sys/class/leds/port21_led1:yellow:status",
               "transceiverId": 21
           },
           "42": {
               "id": 42,
-              "bluePath": "/sys/class/leds/port21_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port21_led2:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port21_led2:blue:status",
+              "yellowPath": "/sys/class/leds/port21_led2:yellow:status",
               "transceiverId": 21
           },
           "43": {
               "id": 43,
-              "bluePath": "/sys/class/leds/port22_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port22_led1:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port22_led1:blue:status",
+              "yellowPath": "/sys/class/leds/port22_led1:yellow:status",
               "transceiverId": 22
           },
           "44": {
               "id": 44,
-              "bluePath": "/sys/class/leds/port22_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port22_led2:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port22_led2:blue:status",
+              "yellowPath": "/sys/class/leds/port22_led2:yellow:status",
               "transceiverId": 22
           },
           "45": {
               "id": 45,
-              "bluePath": "/sys/class/leds/port23_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port23_led1:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port23_led1:blue:status",
+              "yellowPath": "/sys/class/leds/port23_led1:yellow:status",
               "transceiverId": 23
           },
           "46": {
               "id": 46,
-              "bluePath": "/sys/class/leds/port23_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port23_led2:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port23_led2:blue:status",
+              "yellowPath": "/sys/class/leds/port23_led2:yellow:status",
               "transceiverId": 23
           },
           "47": {
               "id": 47,
-              "bluePath": "/sys/class/leds/port24_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port24_led1:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port24_led1:blue:status",
+              "yellowPath": "/sys/class/leds/port24_led1:yellow:status",
               "transceiverId": 24
           },
           "48": {
               "id": 48,
-              "bluePath": "/sys/class/leds/port24_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port24_led2:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port24_led2:blue:status",
+              "yellowPath": "/sys/class/leds/port24_led2:yellow:status",
               "transceiverId": 24
           },
           "49": {
               "id": 49,
-              "bluePath": "/sys/class/leds/port25_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port25_led1:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port25_led1:blue:status",
+              "yellowPath": "/sys/class/leds/port25_led1:yellow:status",
               "transceiverId": 25
           },
           "50": {
               "id": 50,
-              "bluePath": "/sys/class/leds/port25_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port25_led2:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port25_led2:blue:status",
+              "yellowPath": "/sys/class/leds/port25_led2:yellow:status",
               "transceiverId": 25
           },
           "51": {
               "id": 51,
-              "bluePath": "/sys/class/leds/port26_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port26_led1:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port26_led1:blue:status",
+              "yellowPath": "/sys/class/leds/port26_led1:yellow:status",
               "transceiverId": 26
           },
           "52": {
               "id": 52,
-              "bluePath": "/sys/class/leds/port26_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port26_led2:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port26_led2:blue:status",
+              "yellowPath": "/sys/class/leds/port26_led2:yellow:status",
               "transceiverId": 26
           },
           "53": {
               "id": 53,
-              "bluePath": "/sys/class/leds/port27_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port27_led1:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port27_led1:blue:status",
+              "yellowPath": "/sys/class/leds/port27_led1:yellow:status",
               "transceiverId": 27
           },
           "54": {
               "id": 54,
-              "bluePath": "/sys/class/leds/port27_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port27_led2:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port27_led2:blue:status",
+              "yellowPath": "/sys/class/leds/port27_led2:yellow:status",
               "transceiverId": 27
           },
           "55": {
               "id": 55,
-              "bluePath": "/sys/class/leds/port28_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port28_led1:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port28_led1:blue:status",
+              "yellowPath": "/sys/class/leds/port28_led1:yellow:status",
               "transceiverId": 28
           },
           "56": {
               "id": 56,
-              "bluePath": "/sys/class/leds/port28_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port28_led2:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port28_led2:blue:status",
+              "yellowPath": "/sys/class/leds/port28_led2:yellow:status",
               "transceiverId": 28
           },
           "57": {
               "id": 57,
-              "bluePath": "/sys/class/leds/port29_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port29_led1:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port29_led1:blue:status",
+              "yellowPath": "/sys/class/leds/port29_led1:yellow:status",
               "transceiverId": 29
           },
           "58": {
               "id": 58,
-              "bluePath": "/sys/class/leds/port29_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port29_led2:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port29_led2:blue:status",
+              "yellowPath": "/sys/class/leds/port29_led2:yellow:status",
               "transceiverId": 29
           },
           "59": {
               "id": 59,
-              "bluePath": "/sys/class/leds/port30_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port30_led1:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port30_led1:blue:status",
+              "yellowPath": "/sys/class/leds/port30_led1:yellow:status",
               "transceiverId": 30
           },
           "60": {
               "id": 60,
-              "bluePath": "/sys/class/leds/port30_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port30_led2:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port30_led2:blue:status",
+              "yellowPath": "/sys/class/leds/port30_led2:yellow:status",
               "transceiverId": 30
           },
           "61": {
               "id": 61,
-              "bluePath": "/sys/class/leds/port31_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port31_led1:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port31_led1:blue:status",
+              "yellowPath": "/sys/class/leds/port31_led1:yellow:status",
               "transceiverId": 31
           },
           "62": {
               "id": 62,
-              "bluePath": "/sys/class/leds/port31_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port31_led2:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port31_led2:blue:status",
+              "yellowPath": "/sys/class/leds/port31_led2:yellow:status",
               "transceiverId": 31
           },
           "63": {
               "id": 63,
-              "bluePath": "/sys/class/leds/port32_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port32_led1:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port32_led1:blue:status",
+              "yellowPath": "/sys/class/leds/port32_led1:yellow:status",
               "transceiverId": 32
           },
           "64": {
               "id": 64,
-              "bluePath": "/sys/class/leds/port32_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port32_led2:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port32_led2:blue:status",
+              "yellowPath": "/sys/class/leds/port32_led2:yellow:status",
               "transceiverId": 32
           },
           "65": {
               "id": 65,
-              "bluePath": "/sys/class/leds/port33_led1:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port33_led1:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port33_led1:blue:status",
+              "yellowPath": "/sys/class/leds/port33_led1:yellow:status",
               "transceiverId": 33
           },
           "66": {
               "id": 66,
-              "bluePath": "/sys/class/leds/port33_led2:blue:status/brightness",
-              "yellowPath": "/sys/class/leds/port33_led2:yellow:status/brightness",
+              "bluePath": "/sys/class/leds/port33_led2:blue:status",
+              "yellowPath": "/sys/class/leds/port33_led2:yellow:status",
               "transceiverId": 33
           }
         }
