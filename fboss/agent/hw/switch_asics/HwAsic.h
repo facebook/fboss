@@ -172,6 +172,7 @@ class HwAsic {
     SAI_PRBS,
     RCI_WATERMARK_COUNTER,
     DTL_WATERMARK_COUNTER,
+    LINK_ACTIVE_INACTIVE_NOTIFY,
   };
 
   enum class AsicMode {
