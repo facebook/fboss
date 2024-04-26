@@ -130,8 +130,7 @@ std::vector<PortID> AgentOverflowTestBase::getUplinkPorts() {
 }
 
 void AgentOverflowTestBase::verifyInvariants() {
-  utility::verifySafeDiagCmds(
-      getAgentEnsemble(), utility::getFirstAsic(getSw()));
+  utility::verifySafeDiagCmds(getAgentEnsemble());
   for (const auto& switchId : getSw()->getSwitchInfoTable().getL3SwitchIDs()) {
     utility::verifyCopp(getSw(), switchId, getDownlinkPort());
   }

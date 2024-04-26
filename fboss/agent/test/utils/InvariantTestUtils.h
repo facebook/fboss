@@ -23,7 +23,7 @@ class PortDescriptor;
 namespace utility {
 
 void verifyCopp(SwSwitch* sw, SwitchID switchId, PortID port);
-void verifySafeDiagCmds(TestEnsembleIf* ensemble, const HwAsic* asic);
+void verifySafeDiagCmds(TestEnsembleIf* ensemble);
 void verifyLoadBalance(
     SwSwitch* sw,
     int ecmpWidth,
