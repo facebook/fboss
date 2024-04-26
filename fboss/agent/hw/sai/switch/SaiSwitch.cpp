@@ -322,7 +322,7 @@ void SaiSwitch::unregisterCallbacks() noexcept {
       (getFeaturesDesired() &
        FeaturesDesired::LINK_ACTIVE_INACTIVE_NOTIFY_DESIRED) &&
       platform_->getAsic()->isSupported(
-          HwAsic::Feature::LINK_INACTIVE_BASED_ISOLATE)) {
+          HwAsic::Feature::LINK_ACTIVE_INACTIVE_NOTIFY)) {
     txReadyStatusChangeBottomHalfEventBase_.runInEventBaseThreadAndWait(
         [this]() {
           txReadyStatusChangeBottomHalfEventBase_.terminateLoopSoon();
@@ -2816,7 +2816,7 @@ void SaiSwitch::unregisterCallbacksLocked(
     if ((getFeaturesDesired() &
          FeaturesDesired::LINK_ACTIVE_INACTIVE_NOTIFY_DESIRED) &&
         platform_->getAsic()->isSupported(
-            HwAsic::Feature::LINK_INACTIVE_BASED_ISOLATE)) {
+            HwAsic::Feature::LINK_ACTIVE_INACTIVE_NOTIFY)) {
       switchApi.unregisterTxReadyStatusChangeCallback(saiSwitchId_);
     }
   }
@@ -3138,7 +3138,7 @@ void SaiSwitch::switchRunStateChangedImplLocked(
       if ((getFeaturesDesired() &
            FeaturesDesired::LINK_ACTIVE_INACTIVE_NOTIFY_DESIRED) &&
           platform_->getAsic()->isSupported(
-              HwAsic::Feature::LINK_INACTIVE_BASED_ISOLATE)) {
+              HwAsic::Feature::LINK_ACTIVE_INACTIVE_NOTIFY)) {
         initTxReadyStatusChangeLocked(lock);
       }
 
