@@ -69,6 +69,6 @@ VlanID MultiSwitchVlanMap::getFirstVlanID() const {
   throw FbossError("No Vlans in MultiSwitchVlanMap");
 }
 
-template class ThriftMapNode<VlanMap, VlanMapTraits>;
+template struct ThriftMapNode<VlanMap, VlanMapTraits>;
 
 } // namespace facebook::fboss

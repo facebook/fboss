@@ -16,7 +16,7 @@
 namespace facebook::fboss {
 
 class TestEnsembleIf;
-class PortID;
+struct PortID;
 
 namespace utility {
 

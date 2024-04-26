@@ -15,7 +15,7 @@
 
 namespace facebook::fboss {
 
-class AgentConfig;
+struct AgentConfig;
 class Platform;
 class SaiPlatform;
 class PlatformProductInfo;
