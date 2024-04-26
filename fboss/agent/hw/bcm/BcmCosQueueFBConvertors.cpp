@@ -16,17 +16,6 @@
 #include <boost/container/flat_map.hpp>
 
 namespace {
-// Discard probability at queue size == max_thresh
-//            ______  | 100
-//                    |
-//           .        | kWredDiscardProbability
-//          /         |
-//         /          | (probability of drop)
-//        /           |
-// ______/            |
-//      min  max
-//   (queue length)
-constexpr int kWredDiscardProbability = 100;
 
 using facebook::fboss::cfg::QueueCongestionBehavior;
 static const boost::container::flat_map<QueueCongestionBehavior, int>
