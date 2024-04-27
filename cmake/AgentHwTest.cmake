@@ -318,6 +318,7 @@ target_link_libraries(hw_switch_test
   linkstate_toggler
   load_balancer_utils
   mac_test_utils
+  mirror_test_utils
   olympic_qos_utils
   prod_config_factory
   prod_config_utils

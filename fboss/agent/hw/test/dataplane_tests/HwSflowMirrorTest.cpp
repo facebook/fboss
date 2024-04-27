@@ -13,6 +13,7 @@
 #include "fboss/agent/state/Mirror.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/TrunkUtils.h"
+#include "fboss/agent/test/utils/MirrorTestUtils.h"
 #include "fboss/agent/test/utils/TrapPacketUtils.h"
 
 #include <gtest/gtest.h>
@@ -124,12 +125,14 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
   }
 
   void addTrapPacketv4Acl(cfg::SwitchConfig* cfg) {
-    auto v4Prefix = folly::CIDRNetwork{"101.101.101.101", 32};
+    auto ip = utility::getSflowMirrorDestination(true);
+    auto v4Prefix = folly::CIDRNetwork{ip, 32};
     utility::addTrapPacketAcl(cfg, v4Prefix);
   }
 
   void addTrapPacketv6Acl(cfg::SwitchConfig* cfg) {
-    auto v6Prefix = folly::CIDRNetwork{"2401:101:101::101", 128};
+    auto ip = utility::getSflowMirrorDestination(false);
+    auto v6Prefix = folly::CIDRNetwork{ip, 128};
     utility::addTrapPacketAcl(cfg, v6Prefix);
   }
 
@@ -143,36 +146,15 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
 
   void
   configMirror(cfg::SwitchConfig* config, bool truncate, bool isV4 = true) {
-    cfg::SflowTunnel sflowTunnel;
-    sflowTunnel.ip() = isV4 ? "101.101.101.101" : "2401:101:101::101";
-    sflowTunnel.udpSrcPort() = 6545;
-    sflowTunnel.udpDstPort() = 5343;
-
-    cfg::MirrorTunnel tunnel;
-    tunnel.sflowTunnel() = sflowTunnel;
-
-    cfg::MirrorDestination destination;
-    destination.tunnel() = tunnel;
-
-    config->mirrors()->resize(1);
-    config->mirrors()[0].name() = "mirror";
-    config->mirrors()[0].destination() = destination;
-    config->mirrors()[0].truncate() = truncate;
-    if (isV4) {
-      addTrapPacketv4Acl(config);
-    } else {
-      addTrapPacketv6Acl(config);
-    }
+    utility::configureSflowMirror(*config, truncate, isV4);
   }
 
   void configSampling(cfg::SwitchConfig* config, int sampleRate) const {
-    for (auto i = 1; i < getPortsForSampling().size(); i++) {
-      auto portId = getPortsForSampling()[i];
-      auto portCfg = utility::findCfgPort(*config, portId);
-      portCfg->sFlowIngressRate() = sampleRate;
-      portCfg->sampleDest() = cfg::SampleDestination::MIRROR;
-      portCfg->ingressMirror() = "mirror";
-    }
+    auto ports = getPortsForSampling();
+    utility::configureSflowSampling(
+        *config,
+        std::vector<PortID>(ports.begin() + 1, ports.end()),
+        sampleRate);
   }
 
   void resolveMirror(int portIdx = 0, bool useRandomMac = false) {
@@ -181,7 +163,7 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
         : utility::getFirstInterfaceMac(getProgrammedState());
     auto state = getProgrammedState()->clone();
     auto mirrors = state->getMirrors()->modify(&state);
-    auto mirror = mirrors->getNodeIf("mirror")->clone();
+    auto mirror = mirrors->getNodeIf("sflow_mirror")->clone();
     ASSERT_NE(mirror, nullptr);
 
     auto ip = mirror->getDestinationIp().value();
