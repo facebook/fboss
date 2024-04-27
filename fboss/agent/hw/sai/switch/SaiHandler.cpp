@@ -230,4 +230,19 @@ void SaiHandler::getAllInterfacePrbsStats(
     }
   }
 }
+
+void SaiHandler::bulkClearInterfacePrbsStats(
+    std::unique_ptr<std::vector<std::string>> interfaces,
+    phy::PortComponent component) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  if (component != phy::PortComponent::ASIC) {
+    throw FbossError("Unsupported component");
+  }
+  hw_->ensureConfigured(__func__);
+  std::shared_ptr<SwitchState> swState = hw_->getProgrammedState();
+  for (const auto& interface : *interfaces) {
+    auto port = swState->getPorts()->getPort(interface);
+    hw_->clearPortAsicPrbsStats(port->getID());
+  }
+}
 } // namespace facebook::fboss
