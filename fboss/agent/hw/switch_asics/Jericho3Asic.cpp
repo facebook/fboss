@@ -66,6 +66,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_PRBS:
     case HwAsic::Feature::PORT_SERDES_ZERO_PREEMPHASIS:
     case HwAsic::Feature::LINK_ACTIVE_INACTIVE_NOTIFY:
+    case HwAsic::Feature::WARMBOOT:
       return true;
     // Features not expected to work on SIM
     case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:
@@ -131,7 +132,6 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::XPHY_PORT_STATE_TOGGLE:
     case HwAsic::Feature::SAI_PORT_GET_PMD_LANES:
     case HwAsic::Feature::SAI_PORT_VCO_CHANGE:
-    case HwAsic::Feature::WARMBOOT:
     case HwAsic::Feature::ROUTE_METADATA:
     case HwAsic::Feature::FLOWLET:
     case HwAsic::Feature::P4_WARMBOOT:
