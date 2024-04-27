@@ -638,13 +638,17 @@ cfg::SwitchConfig genPortVlanCfg(
   switchInfo.switchIndex() = 0;
   switchInfo.switchType() = switchType;
   switchInfo.asicType() = asicType;
+  // TODO: Instead of using hard codings for connection handle and
+  // src mac, get the configs from AgentConfig
   if (asicType == cfg::AsicType::ASIC_TYPE_RAMON) {
     switchInfo.connectionHandle() = "0c:00";
   } else if (asicType == cfg::AsicType::ASIC_TYPE_RAMON3) {
     switchInfo.connectionHandle() = "15:00";
   } else if (asicType == cfg::AsicType::ASIC_TYPE_JERICHO2) {
+    switchInfo.switchMac() = "02:00:00:00:00:01";
     switchInfo.connectionHandle() = "68:00";
   } else if (asicType == cfg::AsicType::ASIC_TYPE_JERICHO3) {
+    switchInfo.switchMac() = "02:00:00:00:00:01";
     switchInfo.connectionHandle() = "15:00";
   } else if (
       asicType == cfg::AsicType::ASIC_TYPE_EBRO ||
