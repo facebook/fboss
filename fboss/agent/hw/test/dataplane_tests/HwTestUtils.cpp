@@ -78,14 +78,13 @@ bool featureSupported(TestEnsembleIf* ensemble, HwAsic::Feature feature) {
   return ensemble->getHwAsicTable()->isFeatureSupportedOnAnyAsic(feature);
 }
 
-template <typename Hw>
 bool waitForAnyPorAndQueutOutBytesIncrement(
-    Hw* hwOrEnsemble,
+    TestEnsembleIf* ensemble,
     const std::map<PortID, HwPortStats>& originalPortStats,
     const std::vector<PortID>& portIds,
     const HwPortStatsFunc& getHwPortStats) {
   bool queueStatsSupported =
-      featureSupported(hwOrEnsemble, HwAsic::Feature::L3_QOS);
+      featureSupported(ensemble, HwAsic::Feature::L3_QOS);
   auto conditionFn = [&originalPortStats,
                       queueStatsSupported](const auto& newPortStats) {
     for (const auto& [portId, portStat] : originalPortStats) {
@@ -108,13 +107,12 @@ bool waitForAnyPorAndQueutOutBytesIncrement(
       conditionFn, portIds, 20, std::chrono::milliseconds(20), getHwPortStats);
 }
 
-template <typename Hw>
 bool waitForAnyVoQOutBytesIncrement(
-    Hw* hwOrEnsemble,
+    TestEnsembleIf* ensemble,
     const std::map<SystemPortID, HwSysPortStats>& originalPortStats,
     const std::vector<SystemPortID>& portIds,
     const HwSysPortStatsFunc& getHwPortStats) {
-  if (!featureSupported(hwOrEnsemble, HwAsic::Feature::VOQ)) {
+  if (!featureSupported(ensemble, HwAsic::Feature::VOQ)) {
     throw FbossError("VOQs are unsupported on platform");
   }
   auto conditionFn = [&originalPortStats](const auto& newPortStats) {
