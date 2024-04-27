@@ -74,6 +74,7 @@ struct HwPortStats {
    * fecCodewords_[1] = number of codewords with 1 symbol errors etc..
    */
   37: map<i16, i64> fecCodewords_ = {};
+  38: optional i64 pqpErrorEgressDroppedPackets_;
 
   // seconds from epoch
   50: i64 timestamp_ = STAT_UNINITIALIZED;
