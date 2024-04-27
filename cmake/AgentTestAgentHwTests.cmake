@@ -56,6 +56,8 @@ target_link_libraries(agent_hw_test_src
   prod_config_factory
   state
   stats
+  route_scale_gen
+  route_test_utils
   resourcelibutil
   load_balancer_test_utils
   port_stats_test_utils

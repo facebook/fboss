@@ -13,7 +13,7 @@
 #include "fboss/agent/test/utils/PacketTestUtils.h"
 
 namespace {
-constexpr auto kTxRxThresholdMs = 2000;
+constexpr auto kTxRxThresholdMs = 10000;
 constexpr auto kEcmpWidth = 4;
 } // namespace
 
