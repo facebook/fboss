@@ -444,6 +444,18 @@ bool isAnyInterfacePortInLoopbackMode(
   return false;
 }
 
+bool isAnyInterfacePortRecyclePort(
+    std::shared_ptr<SwitchState> swState,
+    const std::shared_ptr<Interface> interface) {
+  for (auto portId : getPortsForInterface(interface->getID(), swState)) {
+    auto port = swState->getPorts()->getNodeIf(portId);
+    if (port && port->getPortType() == cfg::PortType::RECYCLE_PORT) {
+      return true;
+    }
+  }
+  return false;
+}
+
 StopWatch::StopWatch(std::optional<std::string> name, bool json)
     : name_(name), json_(json), startTime_(std::chrono::steady_clock::now()) {}
 

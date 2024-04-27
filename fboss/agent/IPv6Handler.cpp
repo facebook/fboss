@@ -1010,6 +1010,16 @@ void IPv6Handler::floodNeighborAdvertisements() {
                    << intf->getName();
         continue;
       }
+
+      // If NDP is flooded on recycle port interface, it will be resolved and
+      // will get added as DYNAMIC entry, which is incorrect.
+      if (isAnyInterfacePortRecyclePort(sw_->getState(), intf)) {
+        XLOG(DBG2)
+            << "Do not flood neighbor advertisement on recycle port interface: "
+            << intf->getName();
+        continue;
+      }
+
       for (auto iter : std::as_const(*intf->getAddresses())) {
         auto addrEntry = folly::IPAddress(iter.first);
         if (!addrEntry.isV6()) {
