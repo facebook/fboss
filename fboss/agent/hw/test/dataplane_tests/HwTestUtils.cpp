@@ -10,8 +10,6 @@
 #include "fboss/agent/hw/test/dataplane_tests/HwTestUtils.h"
 
 #include "fboss/agent/TxPacket.h"
-#include "fboss/agent/hw/test/HwTestAclUtils.h"
-#include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
 
 #include <folly/logging/xlog.h>
