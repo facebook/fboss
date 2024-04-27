@@ -186,4 +186,20 @@ BootType SaiHandler::getBootType() {
   return hw_->getBootType();
 }
 
+void SaiHandler::getAllInterfacePrbsStates(
+    std::map<std::string, prbs::InterfacePrbsState>& prbsStates,
+    phy::PortComponent component) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  if (component != phy::PortComponent::ASIC) {
+    throw FbossError("Unsupported component");
+  }
+  hw_->ensureConfigured(__func__);
+  std::shared_ptr<SwitchState> swState = hw_->getProgrammedState();
+  for (const auto& portMap : std::as_const(*(swState->getPorts()))) {
+    for (const auto& port : std::as_const(*portMap.second)) {
+      prbsStates[port.second->getName()] =
+          hw_->getPortPrbsState(port.second->getID());
+    }
+  }
+}
 } // namespace facebook::fboss
