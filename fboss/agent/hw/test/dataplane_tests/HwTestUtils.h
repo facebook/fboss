@@ -43,30 +43,8 @@ bool ensureSendPacketSwitched(
     const std::vector<PortID>& portIds,
     const HwPortStatsFunc& getHwPortStats);
 
-bool ensureSendPacketSwitched(
-    HwSwitch* ensemble,
-    std::unique_ptr<TxPacket> pkt,
-    const std::vector<PortID>& portIds,
-    const HwPortStatsFunc& getHwPortStats,
-    const std::vector<SystemPortID>& sysPortIds,
-    const HwSysPortStatsFunc& getHwSysPortStats);
-
-bool ensureSendPacketSwitched(
-    HwSwitch* ensemble,
-    std::unique_ptr<TxPacket> pkt,
-    const std::vector<PortID>& portIds,
-    const HwPortStatsFunc& getHwPortStats);
-
 bool ensureSendPacketOutOfPort(
     TestEnsembleIf* ensemble,
-    std::unique_ptr<TxPacket> pkt,
-    PortID portID,
-    const std::vector<PortID>& ports,
-    const HwPortStatsFunc& getHwPortStats,
-    std::optional<uint8_t> queue = std::nullopt);
-
-bool ensureSendPacketOutOfPort(
-    HwSwitch* hwSwitch,
     std::unique_ptr<TxPacket> pkt,
     PortID portID,
     const std::vector<PortID>& ports,

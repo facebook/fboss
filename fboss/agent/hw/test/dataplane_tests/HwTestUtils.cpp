@@ -78,10 +78,6 @@ bool featureSupported(TestEnsembleIf* ensemble, HwAsic::Feature feature) {
   return ensemble->getHwAsicTable()->isFeatureSupportedOnAnyAsic(feature);
 }
 
-bool featureSupported(const HwSwitch* hwSwitch, HwAsic::Feature feature) {
-  return hwSwitch->getPlatform()->getAsic()->isSupported(feature);
-}
-
 template <typename Hw>
 bool waitForAnyPorAndQueutOutBytesIncrement(
     Hw* hwOrEnsemble,
@@ -187,41 +183,6 @@ bool ensureSendPacketSwitched(
 }
 
 bool ensureSendPacketSwitched(
-    HwSwitch* hwSwitch,
-    std::unique_ptr<TxPacket> pkt,
-    const std::vector<PortID>& portIds,
-    const HwPortStatsFunc& getHwPortStats) {
-  auto noopGetSysPortStats = [](const std::vector<SystemPortID>&)
-      -> std::map<SystemPortID, HwSysPortStats> { return {}; };
-  return ensureSendPacketSwitched(
-      hwSwitch,
-      std::move(pkt),
-      portIds,
-      getHwPortStats,
-      {},
-      noopGetSysPortStats);
-}
-
-bool ensureSendPacketSwitched(
-    HwSwitch* hwSwitch,
-    std::unique_ptr<TxPacket> pkt,
-    const std::vector<PortID>& portIds,
-    const HwPortStatsFunc& getHwPortStats,
-    const std::vector<SystemPortID>& sysPortIds,
-    const HwSysPortStatsFunc& getHwSysPortStats) {
-  auto originalPortStats = getHwPortStats(portIds);
-  auto originalSysPortStats = getHwSysPortStats(sysPortIds);
-  hwSwitch->sendPacketSwitchedSync(std::move(pkt));
-  bool waitForVoqs =
-      sysPortIds.size() && featureSupported(hwSwitch, HwAsic::Feature::VOQ);
-  return waitForAnyPorAndQueutOutBytesIncrement(
-             hwSwitch, originalPortStats, portIds, getHwPortStats) &&
-      (!waitForVoqs ||
-       waitForAnyVoQOutBytesIncrement(
-           hwSwitch, originalSysPortStats, sysPortIds, getHwSysPortStats));
-}
-
-bool ensureSendPacketSwitched(
     TestEnsembleIf* ensemble,
     std::unique_ptr<TxPacket> pkt,
     const std::vector<PortID>& portIds,
@@ -250,18 +211,4 @@ bool ensureSendPacketOutOfPort(
       ensemble, originalPortStats, ports, getHwPortStats);
 }
 
-bool ensureSendPacketOutOfPort(
-    HwSwitch* hwSwitch,
-    std::unique_ptr<TxPacket> pkt,
-    PortID portID,
-    const std::vector<PortID>& ports,
-    const HwPortStatsFunc& getHwPortStats,
-    std::optional<uint8_t> queue) {
-  auto originalPortStats = getHwPortStats(ports);
-  bool result =
-      hwSwitch->sendPacketOutOfPortSync(std::move(pkt), portID, queue);
-  return result &&
-      waitForAnyPorAndQueutOutBytesIncrement(
-             hwSwitch, originalPortStats, ports, getHwPortStats);
-}
 } // namespace facebook::fboss::utility
