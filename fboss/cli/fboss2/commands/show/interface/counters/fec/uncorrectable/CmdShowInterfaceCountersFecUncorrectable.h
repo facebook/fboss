@@ -52,7 +52,7 @@ class CmdShowInterfaceCountersFecUncorrectable
 #ifdef IS_OSS
     // TODO - figure out why getRegexCounters fails for OSS
     agentClient->sync_getCounters(fb303CountersIPhyIngressUcSum);
-    qsfpClient->sync_geCounters(fb303CountersXPhyIngressUcSum);
+    qsfpClient->sync_getCounters(fb303CountersXPhyIngressUcSum);
     qsfpClient->sync_getCounters(fb303CountersTcvrIngressUcSum);
     qsfpClient->sync_getCounters(fb303CountersXPhyEgressUcSum);
     qsfpClient->sync_getCounters(fb303CountersTcvrEgressUcSum);
