@@ -82,4 +82,12 @@ service FbossHwCtrl {
   map<string, phy.PrbsStats> getAllInterfacePrbsStats(
     1: phy.PortComponent component,
   ) throws (1: fboss.FbossBaseError error);
+
+  /*
+   * Bulk clear the PRBS stats counters on interfaces.
+   */
+  void bulkClearInterfacePrbsStats(
+    1: list<string> interfaces,
+    2: phy.PortComponent component,
+  ) throws (1: fboss.FbossBaseError error);
 }
