@@ -330,3 +330,15 @@ target_link_libraries(route_test_utils
   ctrl_cpp2
   route_distribution_gen
 )
+
+add_library(mirror_test_utils
+  fboss/agent/test/utils/MirrorTestUtils.cpp
+)
+
+target_link_libraries(mirror_test_utils
+  config_utils
+  fboss_types
+  trap_packet_utils
+  switch_config_cpp2
+  Folly::folly
+)
