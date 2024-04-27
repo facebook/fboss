@@ -15,6 +15,9 @@
 #include <folly/logging/xlog.h>
 #include "fboss/lib/LogThriftCall.h"
 
+using std::chrono::seconds;
+using std::chrono::system_clock;
+
 namespace facebook::fboss {
 
 SaiHandler::SaiHandler(SaiSwitch* hw)
@@ -199,6 +202,31 @@ void SaiHandler::getAllInterfacePrbsStates(
     for (const auto& port : std::as_const(*portMap.second)) {
       prbsStates[port.second->getName()] =
           hw_->getPortPrbsState(port.second->getID());
+    }
+  }
+}
+
+void SaiHandler::getAllInterfacePrbsStats(
+    std::map<std::string, phy::PrbsStats>& prbsStats,
+    phy::PortComponent component) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  if (component != phy::PortComponent::ASIC) {
+    throw FbossError("Unsupported component");
+  }
+  hw_->ensureConfigured(__func__);
+  std::shared_ptr<SwitchState> swState = hw_->getProgrammedState();
+  for (const auto& portMap : std::as_const(*(swState->getPorts()))) {
+    for (const auto& port : std::as_const(*portMap.second)) {
+      phy::PrbsStats prbsStatsEntry;
+      auto asicPrbsStats = hw_->getPortAsicPrbsStats(port.second->getID());
+      prbsStatsEntry.portId() = port.second->getID();
+      prbsStatsEntry.component() = phy::PortComponent::ASIC;
+      for (const auto& lane : asicPrbsStats) {
+        prbsStatsEntry.laneStats()->push_back(lane);
+      }
+      auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
+      prbsStatsEntry.timeCollected() = now.count();
+      prbsStats[port.second->getName()] = prbsStatsEntry;
     }
   }
 }
