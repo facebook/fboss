@@ -300,6 +300,9 @@ void fillHwPortStats(
         break;
       }
 #endif
+      case SAI_PORT_STAT_OUT_CONFIGURED_DROP_REASONS_0_DROPPED_PKTS:
+        hwPortStats.pqpErrorEgressDroppedPackets_() = value;
+        break;
       default:
         auto configuredDebugCounters =
             debugCounterManager.getConfiguredDebugStatIds();

@@ -171,6 +171,11 @@ void SaiPortManager::fillInSupportedStats(PortID port) {
       counterIds.emplace_back(SAI_PORT_STAT_ETHER_STATS_TX_NO_ERRORS);
       counterIds.emplace_back(SAI_PORT_STAT_ETHER_STATS_RX_NO_ERRORS);
     }
+    if (platform_->getAsic()->isSupported(
+            HwAsic::Feature::PQP_ERROR_EGRESS_DROP_COUNTER)) {
+      counterIds.emplace_back(
+          SAI_PORT_STAT_OUT_CONFIGURED_DROP_REASONS_0_DROPPED_PKTS);
+    }
     return counterIds;
   };
   port2SupportedStats_.emplace(port, getSupportedStats());
