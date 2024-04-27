@@ -262,10 +262,16 @@ TEST_F(ResourceAccountantTest, computeWeightedEcmpMemberCount) {
       this->resourceAccountant_->computeWeightedEcmpMemberCount(
           ecmpNextHopEntry, cfg::AsicType::ASIC_TYPE_TOMAHAWK4),
       4 * ecmpNexthops.size());
-  EXPECT_THROW(
+  // Assume ECMP replication for devices without specifying UCMP computation.
+  uint32_t totalWeight = 0;
+  for (const auto& nhop : ecmpNextHopEntry.normalizedNextHops()) {
+    totalWeight += nhop.weight() ? nhop.weight() : 1;
+    XLOG(INFO) << "Weighted ECMP member count: " << nhop.weight();
+  }
+  EXPECT_EQ(
       this->resourceAccountant_->computeWeightedEcmpMemberCount(
           ecmpNextHopEntry, cfg::AsicType::ASIC_TYPE_MOCK),
-      FbossError);
+      totalWeight);
 }
 
 } // namespace facebook::fboss

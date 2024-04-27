@@ -51,9 +51,18 @@ int ResourceAccountant::computeWeightedEcmpMemberCount(
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
       // For TH4, UCMP members take 4x of ECMP members in the same table.
       return 4 * fwd.getNextHopSet().size();
+    case cfg::AsicType::ASIC_TYPE_YUBA:
+      // Yuba asic natively supports UCMP members with no extra cost.
+      return fwd.getNextHopSet().size();
     default:
-      throw FbossError(
-          "Unsupported ASIC type for Ucmp member resource computation");
+      XLOG(
+          WARNING,
+          "Unsupported ASIC type for Ucmp member resource computation. Assuming UCMP member usage is computed by ECMP replication");
+      auto totalWeight = 0;
+      for (const auto& nhop : fwd.normalizedNextHops()) {
+        totalWeight += nhop.weight() ? nhop.weight() : 1;
+      }
+      return totalWeight;
   }
 }
 
