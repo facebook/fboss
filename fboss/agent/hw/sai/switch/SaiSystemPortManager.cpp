@@ -353,11 +353,7 @@ std::shared_ptr<SystemPortMap> SaiSystemPortManager::constructSystemPorts(
       sysPort->setCorePortIndex(*platformPort->getCorePortIndex());
       sysPort->setSpeedMbps(static_cast<int>(port.second->getSpeed()));
       sysPort->setNumVoqs(8);
-      if (platformPort->getLocalScope()) {
-        sysPort->setScope(Scope::LOCAL);
-      } else {
-        sysPort->setScope(Scope::GLOBAL);
-      }
+      sysPort->setScope(platformPort->getScope());
       sysPort->setQosPolicy(port.second->getQosPolicy());
       sysPortMap->addSystemPort(std::move(sysPort));
     }

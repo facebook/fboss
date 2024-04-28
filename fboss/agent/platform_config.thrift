@@ -25,6 +25,11 @@ enum PlatformMappingProfile {
   INFERENCE = 1,
 }
 
+enum Scope {
+  LOCAL = 0,
+  GLOBAL = 1,
+}
+
 union ChipConfig {
   1: bcm_config.BcmConfig bcm;
   2: asic_config.AsicConfig asic;
@@ -53,7 +58,7 @@ struct PlatformPortMapping {
   6: optional i32 attachedCoreId;
   7: optional i32 attachedCorePortIndex;
   8: optional i32 virtualDeviceId;
-  9: bool localScope = true;
+  9: Scope scope = Scope.LOCAL;
 }
 
 struct PlatformPortConfig {

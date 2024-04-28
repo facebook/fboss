@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "fboss/agent/gen-cpp2/platform_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/agent/state/NodeBase.h"
@@ -135,11 +136,11 @@ class SystemPort
     }
   }
 
-  void setScope(const Scope& scope) {
+  void setScope(const cfg::Scope& scope) {
     set<ctrl_if_tags::scope>(scope);
   }
 
-  Scope getScope() const {
+  cfg::Scope getScope() const {
     return cref<ctrl_if_tags::scope>()->cref();
   }
 
