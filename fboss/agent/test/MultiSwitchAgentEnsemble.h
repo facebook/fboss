@@ -23,6 +23,7 @@ class MultiSwitchAgentEnsemble : public AgentEnsemble {
   bool isSai() const override;
   const HwSwitch* getHwSwitch() const override;
   HwSwitch* getHwSwitch() override;
+  void ensureHwSwitchConnected(SwitchID switchId) override;
 
  private:
   std::unique_ptr<SplitSwAgentInitializer> agentInitializer_;

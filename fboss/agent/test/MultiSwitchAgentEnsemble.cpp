@@ -3,6 +3,8 @@
 #include "fboss/agent/test/MultiSwitchAgentEnsemble.h"
 #include <gtest/gtest.h>
 
+#include "fboss/agent/SwitchStats.h"
+
 namespace facebook::fboss {
 MultiSwitchAgentEnsemble::~MultiSwitchAgentEnsemble() {
   bool gracefulExit = !::testing::Test::HasFailure();
@@ -66,6 +68,20 @@ std::unique_ptr<AgentEnsemble> createAgentEnsemble(
       std::make_unique<MultiSwitchAgentEnsemble>();
   ensemble->setupEnsemble(featuresDesired, initialConfigFn, platformConfigFn);
   return ensemble;
+}
+
+void MultiSwitchAgentEnsemble::ensureHwSwitchConnected(SwitchID switchId) {
+  auto switchIndex =
+      getSw()->getSwitchInfoTable().getSwitchIndexFromSwitchId(switchId);
+  WITH_RETRIES({
+    std::map<int16_t, HwAgentEventSyncStatus> statusMap;
+    getSw()->stats()->getHwAgentStatus(statusMap);
+    EXPECT_EVENTUALLY_EQ(*(statusMap[switchIndex].fdbEventSyncActive()), 1);
+    EXPECT_EVENTUALLY_EQ(*(statusMap[switchIndex].txPktEventSyncActive()), 1);
+    EXPECT_EVENTUALLY_EQ(*(statusMap[switchIndex].rxPktEventSyncActive()), 1);
+    EXPECT_EVENTUALLY_EQ(*(statusMap[switchIndex].linkEventSyncActive()), 1);
+    EXPECT_EVENTUALLY_EQ(*(statusMap[switchIndex].statsEventSyncActive()), 1);
+  });
 }
 
 } // namespace facebook::fboss

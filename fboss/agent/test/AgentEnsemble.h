@@ -250,6 +250,8 @@ class AgentEnsemble : public TestEnsembleIf {
     return getSw()->getConfig();
   }
 
+  virtual void ensureHwSwitchConnected(SwitchID switchId) = 0;
+
  protected:
   void joinAsyncInitThread() {
     if (asyncInitThread_) {

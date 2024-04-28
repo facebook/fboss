@@ -103,6 +103,10 @@ void AgentEnsemble::setupEnsemble(
     setupLinkStateToggler();
   }
   startAgent();
+
+  for (const auto& switchId : getSw()->getSwitchInfoTable().getSwitchIDs()) {
+    ensureHwSwitchConnected(switchId);
+  }
 }
 
 void AgentEnsemble::startAgent() {
