@@ -39,5 +39,6 @@ class TxPktEventSyncer : public ThriftStreamClient<multiswitch::TxPacket> {
 
  private:
   void connected() override {}
+  static apache::thrift::RpcOptions getRpcOptions();
 };
 } // namespace facebook::fboss

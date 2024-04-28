@@ -15,7 +15,15 @@
 #include <folly/experimental/coro/BlockingWait.h>
 #endif
 
+DEFINE_int32(tx_pkt_stream_buffer_size, 1000, "TxPktEventStream buffer size");
+
 namespace facebook::fboss {
+
+apache::thrift::RpcOptions TxPktEventSyncer::getRpcOptions() {
+  apache::thrift::RpcOptions options;
+  options.setChunkBufferSize(FLAGS_tx_pkt_stream_buffer_size);
+  return options;
+}
 
 TxPktEventSyncer::TxPktEventSyncer(
     uint16_t serverPort,
@@ -41,7 +49,8 @@ ThriftStreamClient<multiswitch::TxPacket>::EventNotifierStreamClient
 TxPktEventSyncer::initTxPktEventStream(
     SwitchID switchId,
     apache::thrift::Client<multiswitch::MultiSwitchCtrl>* client) {
-  return folly::coro::blockingWait(client->co_getTxPackets(switchId))
+  auto options = TxPktEventSyncer::getRpcOptions();
+  return folly::coro::blockingWait(client->co_getTxPackets(options, switchId))
       .toAsyncGenerator();
 }
 #endif
