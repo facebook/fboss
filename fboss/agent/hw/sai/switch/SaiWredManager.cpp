@@ -17,7 +17,9 @@
 
 namespace facebook::fboss {
 
+#if !defined(BRCM_SAI_SDK_XGS_AND_DNX)
 constexpr auto kDefaultDropProbability = 100;
+#endif
 
 std::shared_ptr<SaiWred> SaiWredManager::getOrCreateProfile(
     const PortQueue& queue) {

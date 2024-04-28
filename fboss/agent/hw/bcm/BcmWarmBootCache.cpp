@@ -89,7 +89,6 @@ using namespace facebook::fboss::utility;
 namespace {
 auto constexpr kEcmpObjects = "ecmpObjects";
 auto constexpr kTrunks = "trunks";
-auto constexpr kVlanForCPUEgressEntries = 0;
 
 struct AddrTables {
   AddrTables()
