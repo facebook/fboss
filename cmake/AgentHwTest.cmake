@@ -122,16 +122,6 @@ target_link_libraries(hw_link_state_toggler
   Folly::folly
 )
 
-add_library(hw_test_utils
-  fboss/agent/hw/test/dataplane_tests/HwTestUtils.cpp
-)
-
-target_link_libraries(hw_test_utils
-  fboss_types
-  hardware_stats_cpp2
-  agent_test_utils
-)
-
 add_library(hw_switch_ensemble
   fboss/agent/hw/test/HwSwitchEnsemble.cpp
   fboss/agent/hw/test/HwSwitchEnsembleRouteUpdateWrapper.cpp
@@ -142,7 +132,7 @@ target_link_libraries(hw_switch_ensemble
   hw_link_state_toggler
   switchid_scope_resolver
   core
-  hw_test_utils
+  pkt_test_utils
   test_ensemble_if
   sw_switch_warmboot_helper
   multiswitch_test_server
@@ -272,7 +262,6 @@ set(hw_switch_test_srcs
   fboss/agent/hw/test/dataplane_tests/HwTestAqmUtils.cpp
   fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.cpp
   fboss/agent/hw/test/dataplane_tests/HwTestPfcUtils.cpp
-  fboss/agent/hw/test/dataplane_tests/HwTestUtils.cpp
   fboss/agent/hw/test/dataplane_tests/HwTrunkLoadBalancerTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwWatermarkTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwRouteStatTests.cpp

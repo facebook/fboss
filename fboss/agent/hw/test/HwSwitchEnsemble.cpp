@@ -9,7 +9,7 @@
  */
 
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
-#include "fboss/agent/hw/test/dataplane_tests/HwTestUtils.h"
+#include "fboss/agent/test/utils/PacketSendUtils.h"
 
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/AlpmUtils.h"
