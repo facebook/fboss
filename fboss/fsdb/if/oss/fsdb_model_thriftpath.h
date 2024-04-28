@@ -22955,6 +22955,7 @@ std::pair<strings::queueEcnMarkedPackets_, ChildThriftPath<::std::map<::std::int
 std::pair<strings::fecCorrectedBits_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
 std::pair<strings::fecCodewords_, ChildThriftPath<::std::map<::std::int16_t, ::std::int64_t>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
 std::pair<strings::pqpErrorEgressDroppedPackets_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<strings::fabricLinkDownDroppedCells_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
 std::pair<strings::timestamp_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
 std::pair<strings::portName_, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
 std::pair<strings::macsecStats, ChildThriftPath<::facebook::fboss::MacsecStats, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
@@ -23003,6 +23004,7 @@ std::pair<strings::fabricConnectivityMismatch_DEPRECATED, Child<::std::int64_t, 
    std::pair<std::integral_constant<apache::thrift::field_id_t, 36>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 37>, ChildThriftPath<::std::map<::std::int16_t, ::std::int64_t>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 38>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 39>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 50>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 51>, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 52>, ChildThriftPath<::facebook::fboss::MacsecStats, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
@@ -23052,6 +23054,7 @@ std::pair<strings::queueEcnMarkedPackets_, std::integral_constant<apache::thrift
 std::pair<strings::fecCorrectedBits_, std::integral_constant<apache::thrift::field_id_t, 36>>,
 std::pair<strings::fecCodewords_, std::integral_constant<apache::thrift::field_id_t, 37>>,
 std::pair<strings::pqpErrorEgressDroppedPackets_, std::integral_constant<apache::thrift::field_id_t, 38>>,
+std::pair<strings::fabricLinkDownDroppedCells_, std::integral_constant<apache::thrift::field_id_t, 39>>,
 std::pair<strings::timestamp_, std::integral_constant<apache::thrift::field_id_t, 50>>,
 std::pair<strings::portName_, std::integral_constant<apache::thrift::field_id_t, 51>>,
 std::pair<strings::macsecStats, std::integral_constant<apache::thrift::field_id_t, 52>>,
@@ -23113,6 +23116,7 @@ std::pair<strings::fabricConnectivityMismatch_DEPRECATED, std::integral_constant
     STRUCT_CHILD_GETTERS(fecCorrectedBits_, 36);
     STRUCT_CHILD_GETTERS(fecCodewords_, 37);
     STRUCT_CHILD_GETTERS(pqpErrorEgressDroppedPackets_, 38);
+    STRUCT_CHILD_GETTERS(fabricLinkDownDroppedCells_, 39);
     STRUCT_CHILD_GETTERS(timestamp_, 50);
     STRUCT_CHILD_GETTERS(portName_, 51);
     STRUCT_CHILD_GETTERS(macsecStats, 52);
@@ -23164,6 +23168,7 @@ std::pair<strings::fabricConnectivityMismatch_DEPRECATED, std::integral_constant
     else if constexpr (__id == 36) { return fecCorrectedBits_(); }
     else if constexpr (__id == 37) { return fecCodewords_(); }
     else if constexpr (__id == 38) { return pqpErrorEgressDroppedPackets_(); }
+    else if constexpr (__id == 39) { return fabricLinkDownDroppedCells_(); }
     else if constexpr (__id == 50) { return timestamp_(); }
     else if constexpr (__id == 51) { return portName_(); }
     else if constexpr (__id == 52) { return macsecStats(); }

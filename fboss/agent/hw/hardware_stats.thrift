@@ -75,6 +75,7 @@ struct HwPortStats {
    */
   37: map<i16, i64> fecCodewords_ = {};
   38: optional i64 pqpErrorEgressDroppedPackets_;
+  39: optional i64 fabricLinkDownDroppedCells_;
 
   // seconds from epoch
   50: i64 timestamp_ = STAT_UNINITIALIZED;

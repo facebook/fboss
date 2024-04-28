@@ -136,6 +136,7 @@ HwPortStats getInitedStats() {
       0, // fecCorrectedBits_
       {{0, 100}, {1, 10}, {2, 1}}, // fecCodewords
       26, // pqpErrorEgressDroppedPackets_
+      27, // fabricLinkDownDroppedCells_
       0, // timestamp
       "test", // portName
       macsecStats,
