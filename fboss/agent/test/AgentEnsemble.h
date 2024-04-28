@@ -168,6 +168,8 @@ class AgentEnsemble : public TestEnsembleIf {
       const std::vector<PortID>& ports) override;
 
   HwPortStats getLatestPortStats(const PortID& port);
+  std::map<SystemPortID, HwSysPortStats> getLatestSysPortStats(
+      const std::vector<SystemPortID>& ports) override;
 
   void setLoopbackMode(cfg::PortLoopbackMode mode) {
     mode_ = mode;

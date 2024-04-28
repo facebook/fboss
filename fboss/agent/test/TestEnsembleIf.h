@@ -85,6 +85,8 @@ class TestEnsembleIf : public HwSwitchCallback {
       const std::unique_ptr<std::vector<int32_t>>& ports) = 0;
   virtual std::map<PortID, HwPortStats> getLatestPortStats(
       const std::vector<PortID>& ports) = 0;
+  virtual std::map<SystemPortID, HwSysPortStats> getLatestSysPortStats(
+      const std::vector<SystemPortID>& ports) = 0;
   virtual LinkStateToggler* getLinkToggler() = 0;
   virtual bool isSai() const = 0;
   virtual folly::MacAddress getLocalMac(SwitchID id) const = 0;

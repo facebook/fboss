@@ -249,7 +249,7 @@ class HwSwitchEnsemble : public TestEnsembleIf {
    * Get latest sys port stats for given sys ports
    */
   virtual std::map<SystemPortID, HwSysPortStats> getLatestSysPortStats(
-      const std::vector<SystemPortID>& ports);
+      const std::vector<SystemPortID>& ports) override;
   HwSysPortStats getLatestSysPortStats(SystemPortID port);
   /*
    * Get latest stats for given aggregate ports
