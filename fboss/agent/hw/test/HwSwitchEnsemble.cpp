@@ -542,10 +542,6 @@ bool HwSwitchEnsemble::waitStatsCondition(
       conditionFn, updateStatsFn, retries, msBetweenRetry);
 }
 
-HwPortStats HwSwitchEnsemble::getLatestPortStats(PortID port) {
-  return getLatestPortStats(std::vector<PortID>{port})[port];
-}
-
 std::map<PortID, HwPortStats> HwSwitchEnsemble::getLatestPortStats(
     const std::vector<PortID>& ports) {
   std::map<PortID, HwPortStats> portIdStatsMap;
@@ -561,10 +557,6 @@ std::map<PortID, HwPortStats> HwSwitchEnsemble::getLatestPortStats(
     portIdStatsMap.emplace((PortID)portId, stats);
   }
   return portIdStatsMap;
-}
-
-HwSysPortStats HwSwitchEnsemble::getLatestSysPortStats(SystemPortID port) {
-  return getLatestSysPortStats(std::vector<SystemPortID>{port})[port];
 }
 
 std::map<SystemPortID, HwSysPortStats> HwSwitchEnsemble::getLatestSysPortStats(

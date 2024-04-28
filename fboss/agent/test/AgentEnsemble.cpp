@@ -302,10 +302,6 @@ std::map<PortID, HwPortStats> AgentEnsemble::getLatestPortStats(
   return getSw()->getHwPortStats(ports);
 }
 
-HwPortStats AgentEnsemble::getLatestPortStats(const PortID& port) {
-  return getLatestPortStats(std::vector<PortID>{port})[port];
-}
-
 std::map<SystemPortID, HwSysPortStats> AgentEnsemble::getLatestSysPortStats(
     const std::vector<SystemPortID>& ports) {
   return getSw()->getHwSysPortStats(ports);

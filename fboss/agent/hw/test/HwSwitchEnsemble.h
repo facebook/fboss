@@ -104,6 +104,8 @@ class HwSwitchEnsemble : public TestEnsembleIf {
     MULTISWITCH_THRIFT_SERVER, /* Start multiswitch service on test server */
   };
   using Features = std::set<Feature>;
+  using TestEnsembleIf::getLatestPortStats;
+  using TestEnsembleIf::getLatestSysPortStats;
 
   explicit HwSwitchEnsemble(const Features& featuresDesired);
   ~HwSwitchEnsemble() override;
@@ -244,13 +246,11 @@ class HwSwitchEnsemble : public TestEnsembleIf {
    */
   virtual std::map<PortID, HwPortStats> getLatestPortStats(
       const std::vector<PortID>& ports) override;
-  HwPortStats getLatestPortStats(PortID port);
   /*
    * Get latest sys port stats for given sys ports
    */
   virtual std::map<SystemPortID, HwSysPortStats> getLatestSysPortStats(
       const std::vector<SystemPortID>& ports) override;
-  HwSysPortStats getLatestSysPortStats(SystemPortID port);
   /*
    * Get latest stats for given aggregate ports
    */

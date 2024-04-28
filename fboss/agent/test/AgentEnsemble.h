@@ -38,6 +38,8 @@ class AgentEnsemble : public TestEnsembleIf {
   virtual ~AgentEnsemble() override;
   using TestEnsembleIf::masterLogicalPortIds;
   using StateUpdateFn = SwSwitch::StateUpdateFn;
+  using TestEnsembleIf::getLatestPortStats;
+  using TestEnsembleIf::getLatestSysPortStats;
 
   void setupEnsemble(
       uint32_t hwFeaturesDesired,
@@ -167,7 +169,6 @@ class AgentEnsemble : public TestEnsembleIf {
   std::map<PortID, HwPortStats> getLatestPortStats(
       const std::vector<PortID>& ports) override;
 
-  HwPortStats getLatestPortStats(const PortID& port);
   std::map<SystemPortID, HwSysPortStats> getLatestSysPortStats(
       const std::vector<SystemPortID>& ports) override;
 
