@@ -303,6 +303,11 @@ void fillHwPortStats(
       case SAI_PORT_STAT_OUT_CONFIGURED_DROP_REASONS_0_DROPPED_PKTS:
         hwPortStats.pqpErrorEgressDroppedPackets_() = value;
         break;
+#if defined(SAI_VERSION_11_0_EA_DNX_ODP)
+      case SAI_PORT_STAT_IF_IN_LINK_DOWN_CELL_DROP:
+        hwPortStats.fabricLinkDownDroppedCells_() = value;
+        break;
+#endif
       default:
         auto configuredDebugCounters =
             debugCounterManager.getConfiguredDebugStatIds();
