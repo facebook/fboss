@@ -100,6 +100,7 @@ void LedManager::updateLedStatus(
       portInfo.currentLedState = utility::constructLedState(
           led::LedColor::UNKNOWN, led::Blink::UNKNOWN);
     }
+    portInfo.activeState = switchStateUpdate.activeState;
 
     portDisplayMap_[portId] = portInfo;
   }

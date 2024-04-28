@@ -69,6 +69,9 @@ void FsdbSwitchStateSubscriber::subscribeToState(
             ledSwitchStateUpdate[onePortId].ledExternalState =
                 onePortInfo.portLedExternalState().value();
           }
+          if (auto activeState = onePortInfo.portActiveState()) {
+            ledSwitchStateUpdate[onePortId].activeState = *activeState;
+          }
         }
       }
 
