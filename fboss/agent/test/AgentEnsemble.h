@@ -252,6 +252,11 @@ class AgentEnsemble : public TestEnsembleIf {
   cfg::SwitchConfig getCurrentConfig() const override {
     return getSw()->getConfig();
   }
+  bool ensureSendPacketSwitched(std::unique_ptr<TxPacket> pkt);
+  bool ensureSendPacketOutOfPort(
+      std::unique_ptr<TxPacket> pkt,
+      PortID portID,
+      std::optional<uint8_t> queue = std::nullopt);
 
   virtual void ensureHwSwitchConnected(SwitchID switchId) = 0;
 

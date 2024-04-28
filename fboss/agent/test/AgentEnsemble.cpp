@@ -12,6 +12,7 @@
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/test/utils/PacketSendUtils.h"
 #include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/CommonUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
@@ -479,4 +480,43 @@ void AgentEnsemble::clearPortStats(
   ThriftHandler(getSw()).clearPortStats(
       std::make_unique<std::vector<int32_t>>(std::move(*ports)));
 }
+
+bool AgentEnsemble::ensureSendPacketSwitched(std::unique_ptr<TxPacket> pkt) {
+  // lambda that returns HwPortStats for the given port(s)
+  auto getPortStats =
+      [&](const std::vector<PortID>& portIds) -> std::map<PortID, HwPortStats> {
+    return getLatestPortStats(portIds);
+  };
+  auto getSysPortStats = [&](const std::vector<SystemPortID>& portIds)
+      -> std::map<SystemPortID, HwSysPortStats> {
+    return getLatestSysPortStats(portIds);
+  };
+
+  return utility::ensureSendPacketSwitched(
+      this,
+      std::move(pkt),
+      masterLogicalPortIds({cfg::PortType::INTERFACE_PORT}),
+      getPortStats,
+      masterLogicalSysPortIds(),
+      getSysPortStats);
+}
+
+bool AgentEnsemble::ensureSendPacketOutOfPort(
+    std::unique_ptr<TxPacket> pkt,
+    PortID portID,
+    std::optional<uint8_t> queue) {
+  // lambda that returns HwPortStats for the given port(s)
+  auto getPortStats =
+      [&](const std::vector<PortID>& portIds) -> std::map<PortID, HwPortStats> {
+    return getLatestPortStats(portIds);
+  };
+  return utility::ensureSendPacketOutOfPort(
+      this,
+      std::move(pkt),
+      portID,
+      masterLogicalPortIds({cfg::PortType::INTERFACE_PORT}),
+      getPortStats,
+      queue);
+}
+
 } // namespace facebook::fboss
