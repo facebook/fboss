@@ -97,6 +97,7 @@ class TestEnsembleIf : public HwSwitchCallback {
   virtual const PlatformMapping* getPlatformMapping() const = 0;
   virtual cfg::SwitchConfig getCurrentConfig() const = 0;
   std::vector<const HwAsic*> getL3Asics() const;
+  std::vector<SystemPortID> masterLogicalSysPortIds() const;
 
  private:
   std::vector<PortID> masterLogicalPortIdsImpl(

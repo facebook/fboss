@@ -478,25 +478,6 @@ void HwSwitchEnsemble::createEqualDistributedUplinkDownlinks(
   throw FbossError("Needs to be implemented by the derived class");
 }
 
-std::vector<SystemPortID> HwSwitchEnsemble::masterLogicalSysPortIds() const {
-  std::vector<SystemPortID> sysPorts;
-  if (getAsic()->getSwitchType() != cfg::SwitchType::VOQ) {
-    return sysPorts;
-  }
-  auto switchId = getHwSwitch()->getSwitchId();
-  CHECK(switchId.has_value());
-  auto sysPortRange = getProgrammedState()
-                          ->getDsfNodes()
-                          ->getNodeIf(SwitchID(*switchId))
-                          ->getSystemPortRange();
-  CHECK(sysPortRange.has_value());
-  for (auto port : masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})) {
-    sysPorts.push_back(
-        SystemPortID(*sysPortRange->minimum() + static_cast<int>(port)));
-  }
-  return sysPorts;
-}
-
 bool HwSwitchEnsemble::ensureSendPacketSwitched(std::unique_ptr<TxPacket> pkt) {
   // lambda that returns HwPortStats for the given port(s)
   auto getPortStats =

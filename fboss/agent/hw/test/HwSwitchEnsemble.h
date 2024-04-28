@@ -233,7 +233,6 @@ class HwSwitchEnsemble : public TestEnsembleIf {
       const std::chrono::duration<uint32_t, std::milli> msBetweenRetry =
           std::chrono::milliseconds(20));
 
-  std::vector<SystemPortID> masterLogicalSysPortIds() const;
   virtual std::vector<PortID> getAllPortsInGroup(PortID portID) const = 0;
   virtual std::vector<FlexPortMode> getSupportedFlexPortModes() const = 0;
   virtual bool isRouteScaleEnabled() const = 0;

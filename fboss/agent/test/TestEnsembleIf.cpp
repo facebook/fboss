@@ -54,4 +54,27 @@ std::vector<const HwAsic*> TestEnsembleIf::getL3Asics() const {
   CHECK(!l3Asics.empty()) << " No l3 asics found";
   return l3Asics;
 }
+
+std::vector<SystemPortID> TestEnsembleIf::masterLogicalSysPortIds() const {
+  std::vector<SystemPortID> sysPorts;
+  for (const auto& asic : getHwAsicTable()->getL3Asics()) {
+    if (asic->getSwitchType() != cfg::SwitchType::VOQ) {
+      continue;
+    }
+    auto switchId = asic->getSwitchId();
+    CHECK(switchId.has_value());
+    auto sysPortRange = getProgrammedState()
+                            ->getDsfNodes()
+                            ->getNodeIf(SwitchID(*switchId))
+                            ->getSystemPortRange();
+    CHECK(sysPortRange.has_value());
+    for (auto port : masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})) {
+      if (scopeResolver().scope(port).switchId() == SwitchID(*switchId)) {
+        sysPorts.push_back(
+            SystemPortID(*sysPortRange->minimum() + static_cast<int>(port)));
+      }
+    }
+  }
+  return sysPorts;
+}
 } // namespace facebook::fboss
