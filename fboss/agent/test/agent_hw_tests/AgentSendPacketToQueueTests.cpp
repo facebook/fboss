@@ -7,10 +7,10 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include "fboss/agent/TxPacket.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
-#include "fboss/agent/hw/test/ConfigFactory.h"
-#include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
-#include "fboss/agent/hw/test/HwTestPacketUtils.h"
+#include "fboss/agent/packet/PktFactory.h"
+#include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/lib/CommonUtils.h"
 
@@ -23,20 +23,18 @@ constexpr uint8_t kTestingQueue = 7;
 
 namespace facebook::fboss {
 
-class HwSendPacketToQueueTest : public HwLinkStateDependentTest {
- protected:
-  cfg::SwitchConfig initialConfig() const override {
-    auto cfg = utility::onePortPerInterfaceConfig(
-        getHwSwitch(),
-        masterLogicalPortIds(),
-        getAsic()->desiredLoopbackModes());
-    return cfg;
+class AgentSendPacketToQueueTest : public AgentHwTest {
+ public:
+  std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const override {
+    return {production_features::ProductionFeature::L3_FORWARDING};
   }
 
+ protected:
   void checkSendPacket(std::optional<uint8_t> ucQueue, bool isOutOfPort);
 };
 
-void HwSendPacketToQueueTest::checkSendPacket(
+void AgentSendPacketToQueueTest::checkSendPacket(
     std::optional<uint8_t> ucQueue,
     bool isOutOfPort) {
   auto setup = [=, this]() {
@@ -55,11 +53,11 @@ void HwSendPacketToQueueTest::checkSendPacket(
 
     auto beforeOutPkts =
         getLatestPortStats(port).get_queueOutPackets_().at(queueID);
-    auto vlanId = utility::firstVlanID(initialConfig());
+    auto vlanId = utility::firstVlanID(getProgrammedState());
     auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     // packet format shouldn't be matter in this test
     auto pkt = utility::makeUDPTxPacket(
-        getHwSwitch(),
+        getSw(),
         vlanId,
         intfMac,
         intfMac,
@@ -70,13 +68,13 @@ void HwSendPacketToQueueTest::checkSendPacket(
 
     if (isOutOfPort) {
       if (ucQueue) {
-        getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
+        getAgentEnsemble()->ensureSendPacketOutOfPort(
             std::move(pkt), port, *ucQueue);
       } else {
-        getHwSwitchEnsemble()->ensureSendPacketOutOfPort(std::move(pkt), port);
+        getAgentEnsemble()->ensureSendPacketOutOfPort(std::move(pkt), port);
       }
     } else {
-      getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(pkt));
+      getAgentEnsemble()->ensureSendPacketSwitched(std::move(pkt));
     }
 
     WITH_RETRIES({
@@ -98,15 +96,15 @@ void HwSendPacketToQueueTest::checkSendPacket(
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwSendPacketToQueueTest, SendPacketOutOfPortToUCQueue) {
+TEST_F(AgentSendPacketToQueueTest, SendPacketOutOfPortToUCQueue) {
   checkSendPacket(kTestingQueue, true);
 }
 
-TEST_F(HwSendPacketToQueueTest, SendPacketOutOfPortToDefaultUCQueue) {
+TEST_F(AgentSendPacketToQueueTest, SendPacketOutOfPortToDefaultUCQueue) {
   checkSendPacket(std::nullopt, true);
 }
 
-TEST_F(HwSendPacketToQueueTest, SendPacketSwitchedToDefaultUCQueue) {
+TEST_F(AgentSendPacketToQueueTest, SendPacketSwitchedToDefaultUCQueue) {
   checkSendPacket(std::nullopt, false);
 }
 

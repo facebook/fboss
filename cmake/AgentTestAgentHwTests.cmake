@@ -29,6 +29,7 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentAqmTests.cpp
   fboss/agent/test/agent_hw_tests/AgentOverflowTestBase.cpp
   fboss/agent/test/agent_hw_tests/AgentLoopBackTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentSendPacketToQueueTests.cpp
 )
 
 target_link_libraries(agent_hw_test_src
