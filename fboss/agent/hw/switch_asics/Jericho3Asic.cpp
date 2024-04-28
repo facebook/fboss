@@ -68,6 +68,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::LINK_ACTIVE_INACTIVE_NOTIFY:
     case HwAsic::Feature::WARMBOOT:
     case HwAsic::Feature::PQP_ERROR_EGRESS_DROP_COUNTER:
+    case HwAsic::Feature::FABRIC_LINK_DOWN_CELL_DROP_COUNTER:
       return true;
     // Features not expected to work on SIM
     case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:
