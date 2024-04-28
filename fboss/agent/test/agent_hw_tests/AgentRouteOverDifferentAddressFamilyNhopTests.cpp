@@ -134,7 +134,7 @@ class AgentRouteOverDifferentAddressFamilyNhopTest : public AgentHwTest {
     };
     auto verify = [this]() {
       for (auto ecmp : {true, false}) {
-        getSw()->sendPacketSwitchedAsync(
+        getAgentEnsemble()->ensureSendPacketSwitched(
             makeTxPacket(getDstIp<RouteAddrT>(ecmp)));
       }
     };
