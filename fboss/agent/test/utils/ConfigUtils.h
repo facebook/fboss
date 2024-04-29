@@ -168,7 +168,7 @@ cfg::SwitchConfig twoL3IntfConfig(
         kDefaultLoopbackMap());
 cfg::SwitchConfig twoL3IntfConfig(
     const PlatformMapping* platformMapping,
-    const HwAsic* asic,
+    const std::vector<const HwAsic*>& asics,
     bool supportsAddRemovePort,
     PortID port1,
     PortID port2,

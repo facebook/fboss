@@ -154,7 +154,7 @@ cfg::SwitchConfig twoL3IntfConfig(
     const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap) {
   return twoL3IntfConfig(
       hwSwitch->getPlatform()->getPlatformMapping(),
-      hwSwitch->getPlatform()->getAsic(),
+      std::vector<const HwAsic*>({hwSwitch->getPlatform()->getAsic()}),
       hwSwitch->getPlatform()->supportsAddRemovePort(),
       port1,
       port2,

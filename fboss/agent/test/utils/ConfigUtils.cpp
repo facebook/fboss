@@ -814,7 +814,7 @@ cfg::SwitchConfig twoL3IntfConfig(
     const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap) {
   return twoL3IntfConfig(
       swSwitch->getPlatformMapping(),
-      utility::getFirstAsic(swSwitch),
+      swSwitch->getHwAsicTable()->getL3Asics(),
       swSwitch->getPlatformSupportsAddRemovePort(),
       port1,
       port2,
@@ -823,11 +823,12 @@ cfg::SwitchConfig twoL3IntfConfig(
 
 cfg::SwitchConfig twoL3IntfConfig(
     const PlatformMapping* platformMapping,
-    const HwAsic* asic,
+    const std::vector<const HwAsic*>& asics,
     bool supportsAddRemovePort,
     PortID port1,
     PortID port2,
     const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap) {
+  auto asic = checkSameAndGetAsic(asics);
   std::map<PortID, VlanID> port2vlan;
   std::vector<PortID> ports{port1, port2};
   std::vector<VlanID> vlans;
