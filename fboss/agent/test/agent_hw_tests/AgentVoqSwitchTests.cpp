@@ -834,11 +834,11 @@ TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
 
             EXPECT_EVENTUALLY_EQ(afterOutPkts - 1, beforeOutPkts);
             int extraByteOffset = 0;
-            auto asicType = utility::getFirstAsic(this->getSw())->getAsicType();
-            auto asicMode = utility::getFirstAsic(this->getSw())->getAsicMode();
-            if (asicMode != HwAsic::AsicMode::ASIC_MODE_SIM &&
-                (asicType == cfg::AsicType::ASIC_TYPE_JERICHO2 ||
-                 asicType == cfg::AsicType::ASIC_TYPE_JERICHO3)) {
+            auto asic =
+                utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+            const auto asicMode = asic->getAsicMode();
+            const auto asicType = asic->getAsicType();
+            if (asic->getAsicMode() != HwAsic::AsicMode::ASIC_MODE_SIM) {
               // Account for Ethernet FCS being counted in TX out bytes.
               extraByteOffset = utility::EthFrame::FCS_SIZE;
             }
