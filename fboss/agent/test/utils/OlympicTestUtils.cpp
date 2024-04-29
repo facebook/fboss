@@ -750,4 +750,10 @@ int getMaxWeightWRRQueue(const std::map<int, uint8_t>& queueToWeight) {
   return maxItr->first;
 }
 
+std::set<cfg::StreamType> getStreamType(
+    cfg::PortType portType,
+    const std::vector<const HwAsic*>& asics) {
+  auto asic = checkSameAndGetAsic(asics);
+  return asic->getQueueStreamTypes(portType);
+}
 }; // namespace facebook::fboss::utility

@@ -205,4 +205,8 @@ int getOlympicV2QueueId(OlympicV2QueueType queueType);
 
 int getNetworkAIQueueId(NetworkAIQueueType queueType);
 
+std::set<cfg::StreamType> getStreamType(
+    cfg::PortType portType,
+    const std::vector<const HwAsic*>& asics);
+
 } // namespace facebook::fboss::utility
