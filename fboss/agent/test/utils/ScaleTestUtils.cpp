@@ -23,6 +23,16 @@ uint32_t getMaxEcmpMembers(const HwAsic* asic) {
   CHECK(maxEcmpMembers.has_value());
   return maxEcmpMembers.value();
 }
+uint32_t getMaxUcmpMembers(const HwAsic* asic) {
+  auto maxUcmpMembers = asic->getMaxEcmpMembers();
+  CHECK(maxUcmpMembers.has_value());
+  if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK4) {
+    return maxUcmpMembers.value() / 4;
+  }
+  return maxUcmpMembers.value();
+}
+constexpr auto oddUcmpWeight = 3;
+constexpr auto evenUcmpWeight = 2;
 
 // Generate all possible combinations of k selections of the input
 // vector.
@@ -106,5 +116,52 @@ std::vector<std::vector<PortDescriptor>> generateEcmpMemberScale(
   }
   EXPECT_EQ(membersGenerated, maxEcmpMembers);
   return allCombinations;
+}
+
+// Create weightsOutputs where sum of weights {2,3,2,3,2,3} = maxEcmpMembers
+// and return the corresponding ecmp members which are subset of inputs
+std::vector<std::vector<PortDescriptor>> getUcmpMembersAndWeight(
+    const std::vector<std::vector<PortDescriptor>>& inputs,
+    std::vector<std::vector<NextHopWeight>>& weightsOutput,
+    const int maxEcmpMembers) {
+  int runningWeight = 0;
+  std::vector<std::vector<PortDescriptor>> output;
+  for (int i = 0; i < inputs.size(); i++) {
+    std::vector<NextHopWeight> weightsTemp;
+    std::vector<PortDescriptor> outputTemp;
+    for (int j = 0; j < inputs[i].size(); j++) {
+      // Assign weights 3 and 2 to ECMP members.
+      int currWeight = (j % 2) ? oddUcmpWeight : evenUcmpWeight;
+      if (runningWeight + currWeight > maxEcmpMembers) {
+        currWeight = 1;
+      }
+      runningWeight += currWeight;
+      weightsTemp.push_back(currWeight);
+      outputTemp.push_back(inputs[i][j]);
+      if (runningWeight == maxEcmpMembers) {
+        weightsOutput.push_back(std::move(weightsTemp));
+        output.push_back(std::move(outputTemp));
+        return output;
+      }
+    }
+    weightsOutput.push_back(std::move(weightsTemp));
+    output.push_back(std::move(outputTemp));
+  }
+  return output;
+}
+
+// Create weightsOutputs {2,3,2,3,2,3} for all the inputs
+// Currently used for TH4
+void getUcmpMembersAndWeight(
+    const std::vector<std::vector<PortDescriptor>>& inputs,
+    std::vector<std::vector<NextHopWeight>>& weightsOutput) {
+  for (int i = 0; i < inputs.size(); i++) {
+    std::vector<NextHopWeight> temp;
+    for (int j = 0; j < inputs[i].size(); j++) {
+      int num = (j % 2) ? oddUcmpWeight : evenUcmpWeight;
+      temp.push_back(num);
+    }
+    weightsOutput.push_back(std::move(temp));
+  }
 }
 } // namespace facebook::fboss::utility
