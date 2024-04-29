@@ -166,8 +166,7 @@ class AgentAqmTest : public AgentHwTest {
       bool useQueueStatsForAqm,
       AqmTestStats& stats) {
     if (useQueueStatsForAqm) {
-      if (utility::getFirstAsic(getSw())->isSupported(
-              HwAsic::Feature::QUEUE_ECN_COUNTER)) {
+      if (isSupportedOnAllAsics(HwAsic::Feature::QUEUE_ECN_COUNTER)) {
         stats.outEcnCounter +=
             portStats.get_queueEcnMarkedPackets_().find(queueId)->second;
       }
@@ -220,18 +219,20 @@ class AgentAqmTest : public AgentHwTest {
       const bool useQueueStatsForAqm) {
     AqmTestStats stats{};
     uint64_t queueWatermark{};
-    const auto asic = utility::getFirstAsic(getSw());
+    const auto switchType =
+        utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+            ->getSwitchType();
     // Always collect port stats!
     auto portStats = getLatestPortStats(portId);
-    if (isEct(ecnVal) || asic->getSwitchType() != cfg::SwitchType::VOQ) {
+    if (isEct(ecnVal) || switchType != cfg::SwitchType::VOQ) {
       // Get ECNs marked packet stats for VoQ/non-voq switches and
       // watermarks for non-voq switches.
       extractAqmTestStats(portStats, queueId, useQueueStatsForAqm, stats);
-      if (asic->getSwitchType() != cfg::SwitchType::VOQ) {
+      if (switchType != cfg::SwitchType::VOQ) {
         queueWatermark = extractQueueWatermarkStats(portStats, queueId);
       }
     }
-    if (asic->getSwitchType() == cfg::SwitchType::VOQ) {
+    if (switchType == cfg::SwitchType::VOQ) {
       // Gets watermarks + WRED drops in case of non-ECN traffic and
       // watermarks for ECN traffic for VoQ switches.
       auto sysPortId = getSystemPortID(
@@ -266,7 +267,8 @@ class AgentAqmTest : public AgentHwTest {
     auto kQueueId = utility::getOlympicQueueId(utility::OlympicQueueType::ECN1);
     // For VoQ switch, AQM stats are collected from queue!
     auto useQueueStatsForAqm =
-        utility::getFirstAsic(getSw())->getSwitchType() == cfg::SwitchType::VOQ;
+        utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+            ->getSwitchType() == cfg::SwitchType::VOQ;
     auto statsIncremented = [this](
                                 const AqmTestStats& aqmStats, uint8_t ecnVal) {
       auto increment =
