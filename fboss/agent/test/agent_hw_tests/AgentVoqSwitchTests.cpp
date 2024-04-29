@@ -786,7 +786,7 @@ TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
       auto txPacketSize = sendPacket(ecmpHelper.ip(kPort), frontPanelPort);
 
       auto [maxRetryCount, sleepTimeMsecs] =
-          utility::getRetryCountAndDelay(utility::getFirstAsic(this->getSw()));
+          utility::getRetryCountAndDelay(getSw()->getHwAsicTable());
       WITH_RETRIES_N_TIMED(
           maxRetryCount, std::chrono::milliseconds(sleepTimeMsecs), {
             if (isSupportedOnAllAsics(HwAsic::Feature::L3_QOS)) {

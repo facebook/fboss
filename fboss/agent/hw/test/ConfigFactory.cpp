@@ -34,8 +34,9 @@ using namespace facebook::fboss::utility;
 
 namespace facebook::fboss::utility {
 
-std::pair<int, int> getRetryCountAndDelay(const HwAsic* asic) {
-  if (asic->isSupported(HwAsic::Feature::SLOW_STAT_UPDATE)) {
+std::pair<int, int> getRetryCountAndDelay(const HwAsicTable* hwAsicTable) {
+  if (hwAsicTable->isFeatureSupportedOnAllAsic(
+          HwAsic::Feature::SLOW_STAT_UPDATE)) {
     return std::make_pair(50, 5000);
   }
   // default

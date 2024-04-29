@@ -22,6 +22,7 @@ namespace facebook::fboss {
 class PortMap;
 class MultiSwitchPortMap;
 class HwSwitchEnsemble;
+class HwAsicTable;
 } // namespace facebook::fboss
 
 /*
@@ -107,7 +108,7 @@ cfg::SwitchConfig createRtswUplinkDownlinkConfig(
     std::vector<PortID>& uplinks,
     std::vector<PortID>& downlinks);
 
-std::pair<int, int> getRetryCountAndDelay(const HwAsic* asic);
+std::pair<int, int> getRetryCountAndDelay(const HwAsicTable* hwAsicTable);
 
 void setPortToDefaultProfileIDMap(
     const std::shared_ptr<MultiSwitchPortMap>& ports,
