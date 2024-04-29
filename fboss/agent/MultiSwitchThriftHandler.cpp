@@ -10,6 +10,11 @@
 
 namespace facebook::fboss {
 
+DEFINE_uint64(link_event_buffer_size, 1000, "Link eßvent buffer size");
+DEFINE_uint64(stats_event_buffer_size, 10, "Stats event buffer size");
+DEFINE_uint64(fdb_event_buffer_size, 100, "Fdb event buffer size");
+DEFINE_uint64(rx_pkt_buffer_size, 1000, "Rx pkt buffer size");
+
 void MultiSwitchThriftHandler::ensureConfigured(
     folly::StringPiece function) const {
   if (sw_->isFullyConfigured()) {
@@ -130,8 +135,7 @@ MultiSwitchThriftHandler::co_notifyLinkChangeEvent(int64_t switchId) {
         }
         co_return true;
       },
-      10 /* buffer size */
-  }
+      FLAGS_link_event_buffer_size}
       .setChunkTimeout(std::chrono::milliseconds(0));
 }
 
@@ -160,8 +164,7 @@ MultiSwitchThriftHandler::co_notifyFdbEvent(int64_t switchId) {
         }
         co_return true;
       },
-      10 /* buffer size */
-  }
+      FLAGS_fdb_event_buffer_size}
       .setChunkTimeout(std::chrono::milliseconds(0));
 }
 
@@ -202,8 +205,7 @@ MultiSwitchThriftHandler::co_notifyRxPacket(int64_t switchId) {
         }
         co_return true;
       },
-      1000 /* buffer size */
-  }
+      FLAGS_rx_pkt_buffer_size}
       .setChunkTimeout(std::chrono::milliseconds(0));
 }
 
@@ -253,8 +255,7 @@ MultiSwitchThriftHandler::co_syncHwStats(int16_t switchIndex) {
         }
         co_return true;
       },
-      100 /* buffer size */
-  };
+      FLAGS_stats_event_buffer_size};
 }
 
 #endif

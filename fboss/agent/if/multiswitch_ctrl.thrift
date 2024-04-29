@@ -97,6 +97,7 @@ service MultiSwitchCtrl {
   stream<TxPacket> getTxPackets(1: i64 switchId);
 
   /* notify link change event*/
+  @thrift.Priority{level = thrift.RpcPriority.IMPORTANT}
   sink<LinkChangeEvent, bool> notifyLinkChangeEvent(1: i64 switchId);
 
   /* get next oper delta from SwSwitch */
