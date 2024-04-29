@@ -87,26 +87,6 @@ std::unique_ptr<WeutilInterface> createWeUtilIntf(
     const int eepromOffset) {
   auto platform = getPlatformType();
 
-  // SCM eeprom must be read directly for Meru800BIA/BFA.
-  // See https://github.com/facebookexternal/fboss.bsp.arista/pull/31/files
-  if ((platform &&
-       (platform.value() == PlatformType::PLATFORM_MERU800BIA ||
-        platform.value() == PlatformType::PLATFORM_MERU800BFA)) &&
-      eepromName == "scm") {
-    auto thriftConfig = getWeUtilConfig();
-    weutil_config::FruEepromConfig fruEepromConfig =
-        getFruEepromConfig("scm", thriftConfig);
-    try {
-      IoctlSmbusEepromReader::readEeprom(
-          "/run/devmap/eeproms", "MERU_SCM_EEPROM");
-    } catch (const std::exception& ex) {
-      throw std::runtime_error(
-          fmt::format("Failed to read SCM EEPROM: {}", ex.what()));
-    }
-    return std::make_unique<WeutilImpl>(
-        "/run/devmap/eeproms/MERU_SCM_EEPROM", *fruEepromConfig.offset());
-  }
-
   // When path is specified, read from it directly. For platform bringup, we can
   // use the --path and --offset options without a valid config.
   if (!eepromPath.empty()) {
