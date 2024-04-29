@@ -149,6 +149,7 @@ add_library(test_ensemble_if
 
 target_link_libraries(test_ensemble_if
   state
+  hw_switch
 )
 
 add_library(agent_ensemble
