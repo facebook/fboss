@@ -761,7 +761,7 @@ TYPED_TEST(AgentCoppTest, Ipv6LinkLocalMcastToMidPriQ) {
           address,
           utility::kNonSpecialPort1,
           utility::kNonSpecialPort2,
-          kMcastMacAddress);
+          kDhcpV6McastMacAddress);
 
       // Also high-pri queue should always be 0
       EXPECT_EQ(
@@ -982,7 +982,7 @@ TYPED_TEST(AgentCoppTest, Ipv6LinkLocalMcastNetworkControlDscpToHighPriQ) {
           address,
           utility::kNonSpecialPort1,
           utility::kNonSpecialPort2,
-          kMcastMacAddress,
+          kDhcpV6McastMacAddress,
           kNetworkControlDscp);
     }
   };
