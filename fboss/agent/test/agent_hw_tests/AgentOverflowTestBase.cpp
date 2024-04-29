@@ -40,7 +40,7 @@ cfg::SwitchConfig AgentOverflowTestBase::initialConfig(
   // most common switch role (i.e. rsw) for convenience of testing.
   // Not intended to extend coverage for every platform
   return utility::createProdRswConfig(
-      utility::getFirstAsic(ensemble.getSw()),
+      ensemble.getL3Asics(),
       ensemble.getSw()->getPlatformType(),
       ensemble.getSw()->getPlatformMapping(),
       ensemble.getSw()->getPlatformSupportsAddRemovePort(),

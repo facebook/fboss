@@ -224,13 +224,14 @@ cfg::SwitchConfig createProdRtswConfig(
  * used anywhere else it might be useful to have a prod RSW config.
  */
 cfg::SwitchConfig createProdRswConfig(
-    const HwAsic* hwAsic,
+    const std::vector<const HwAsic*>& asics,
     PlatformType platformType,
     const PlatformMapping* platformMapping,
     bool supportsAddRemovePort,
     const std::vector<PortID>& masterLogicalPortIds,
     bool isSai,
     bool enableStrictPriority) {
+  auto hwAsic = checkSameAndGetAsic(asics);
   auto numUplinks = uplinksCountFromSwitch(platformType);
 
   // its the same speed used for the uplink and downlink for now
@@ -271,7 +272,7 @@ cfg::SwitchConfig createProdRswConfig(
     bool isSai,
     bool enableStrictPriority) {
   return createProdRswConfig(
-      hwSwitch->getPlatform()->getAsic(),
+      std::vector<const HwAsic*>({hwSwitch->getPlatform()->getAsic()}),
       hwSwitch->getPlatform()->getType(),
       hwSwitch->getPlatform()->getPlatformMapping(),
       hwSwitch->getPlatform()->supportsAddRemovePort(),
