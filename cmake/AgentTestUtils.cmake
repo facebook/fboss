@@ -303,6 +303,7 @@ add_library(scale_test_utils
 )
 
 target_link_libraries(scale_test_utils
+  asic_test_utils
   core
   switch_asics
 )

@@ -10,6 +10,7 @@
 
 #include "fboss/agent/test/utils/ScaleTestUtils.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/test/utils/AsicUtils.h"
 
 namespace facebook::fboss::utility {
 
@@ -23,7 +24,8 @@ uint32_t getMaxEcmpMembers(const HwAsic* asic) {
   CHECK(maxEcmpMembers.has_value());
   return maxEcmpMembers.value();
 }
-uint32_t getMaxUcmpMembers(const HwAsic* asic) {
+uint32_t getMaxUcmpMembers(const std::vector<const HwAsic*>& asics) {
+  auto asic = checkSameAndGetAsic(asics);
   auto maxUcmpMembers = asic->getMaxEcmpMembers();
   CHECK(maxUcmpMembers.has_value());
   if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK4) {
@@ -152,7 +154,7 @@ std::vector<std::vector<PortDescriptor>> getUcmpMembersAndWeight(
 
 // Create weightsOutputs {2,3,2,3,2,3} for all the inputs
 // Currently used for TH4
-void getUcmpMembersAndWeight(
+void assignUcmpWeights(
     const std::vector<std::vector<PortDescriptor>>& inputs,
     std::vector<std::vector<NextHopWeight>>& weightsOutput) {
   for (int i = 0; i < inputs.size(); i++) {
