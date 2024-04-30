@@ -25,8 +25,7 @@ class HwPfcTest : public HwTest {
 
   // Basic config with 2 L3 interface config
   void setupBaseConfig() {
-    currentConfig = initialConfig();
-    applyNewConfig(currentConfig);
+    applyNewConfig(initialConfig());
   }
 
   // Initialize a PFC watchdog configuration with passed in params
@@ -87,13 +86,14 @@ class HwPfcTest : public HwTest {
     poolConfig.sharedBytes() = 10000;
     poolConfig.headroomBytes() = 2000;
     bufferPoolCfgMap.insert(std::make_pair("bufferNew", poolConfig));
-    currentConfig.bufferPoolConfigs() = bufferPoolCfgMap;
+    cfg.bufferPoolConfigs() = bufferPoolCfgMap;
 
     portPgConfigMap.insert({"foo", portPgConfigs});
     cfg.portPgConfigs() = portPgConfigMap;
   }
 
   std::shared_ptr<SwitchState> setupPfcAndPfcWatchdog(
+      cfg::SwitchConfig& currentConfig,
       const PortID& portId,
       const cfg::PfcWatchdog& watchdog) {
     addPfcConfig(
@@ -114,6 +114,7 @@ class HwPfcTest : public HwTest {
 
   // Setup and apply the new config with passed in PFC watchdog config
   void setupPfcWatchdog(
+      cfg::SwitchConfig& currentConfig,
       const PortID& portId,
       const cfg::PfcWatchdog& watchdog) {
     auto portCfg = utility::findCfgPort(currentConfig, portId);
@@ -128,7 +129,9 @@ class HwPfcTest : public HwTest {
   }
 
   // Removes the PFC watchdog configuration and applies the same
-  void removePfcWatchdogConfig(const PortID& portId) {
+  void removePfcWatchdogConfig(
+      cfg::SwitchConfig& currentConfig,
+      const PortID& portId) {
     auto portCfg = utility::findCfgPort(currentConfig, portId);
     if (portCfg->pfc().has_value()) {
       portCfg->pfc()->watchdog().reset();
@@ -142,9 +145,9 @@ class HwPfcTest : public HwTest {
   // Cross check PFC watchdog HW programming with SW config
   void runPfcWatchdogTest(const cfg::PfcWatchdog& pfcWatchdogConfig) {
     auto setup = [=, this]() {
-      currentConfig = initialConfig();
+      auto cfg = initialConfig();
       setupPfcAndPfcWatchdog(
-          masterLogicalInterfacePortIds()[0], pfcWatchdogConfig);
+          cfg, masterLogicalInterfacePortIds()[0], pfcWatchdogConfig);
     };
 
     auto verify = [=, this]() {
@@ -178,8 +181,8 @@ class HwPfcTest : public HwTest {
   // Test to verify PFC watchdog is not configured in HW
   void runPfcWatchdogNotConfiguredTest() {
     auto setup = [=, this]() {
-      currentConfig = initialConfig();
-      setupPfc(masterLogicalInterfacePortIds()[0], true, true);
+      auto currentConfig = initialConfig();
+      setupPfc(currentConfig, masterLogicalInterfacePortIds()[0], true, true);
     };
 
     auto verify = [=, this]() {
@@ -199,6 +202,7 @@ class HwPfcTest : public HwTest {
 
   // Setup and apply the new config with passed in PFC configurations
   void setupPfc(
+      cfg::SwitchConfig& currentConfig,
       const PortID& portId,
       const bool pfcRxEnable,
       const bool pfcTxEnable) {
@@ -209,7 +213,7 @@ class HwPfcTest : public HwTest {
   }
 
   // Removes PFC configuration for port and applies the config
-  void removePfcConfig(const PortID& portId) {
+  void removePfcConfig(cfg::SwitchConfig& currentConfig, const PortID& portId) {
     auto portCfg = utility::findCfgPort(currentConfig, portId);
     portCfg->pfc().reset();
     applyNewConfig(currentConfig);
@@ -218,8 +222,12 @@ class HwPfcTest : public HwTest {
   // Run the various enabled/disabled combinations of PFC RX/TX
   void runPfcTest(bool rxEnabled, bool txEnabled) {
     auto setup = [=, this]() {
-      currentConfig = initialConfig();
-      setupPfc(masterLogicalInterfacePortIds()[0], rxEnabled, txEnabled);
+      auto currentConfig = initialConfig();
+      setupPfc(
+          currentConfig,
+          masterLogicalInterfacePortIds()[0],
+          rxEnabled,
+          txEnabled);
     };
 
     auto verify = [=, this]() {
@@ -242,9 +250,9 @@ class HwPfcTest : public HwTest {
       const cfg::PfcWatchdog& pfcWatchdogConfig,
       const int expectedBcmGranularity) {
     auto setup = [=, this]() {
-      currentConfig = initialConfig();
+      auto cfg = initialConfig();
       setupPfcAndPfcWatchdog(
-          masterLogicalInterfacePortIds()[0], pfcWatchdogConfig);
+          cfg, masterLogicalInterfacePortIds()[0], pfcWatchdogConfig);
     };
 
     auto verify = [=, this]() {
@@ -264,13 +272,12 @@ class HwPfcTest : public HwTest {
   }
 
   // Removes PFC configuration for port, but dont apply
-  void removePfcConfigSkipApply(const PortID& portId) {
+  void removePfcConfigSkipApply(
+      cfg::SwitchConfig& currentConfig,
+      const PortID& portId) {
     auto portCfg = utility::findCfgPort(currentConfig, portId);
     portCfg->pfc().reset();
   }
-
- private:
-  cfg::SwitchConfig currentConfig;
 };
 
 TEST_F(HwPfcTest, PfcDefaultProgramming) {
@@ -314,31 +321,32 @@ TEST_F(HwPfcTest, PfcWatchdogProgrammingSequence) {
     cfg::PfcWatchdog pfcWatchdogConfig{};
     auto portId = masterLogicalInterfacePortIds()[0];
     cfg::PfcWatchdog defaultPfcWatchdogConfig{};
+    auto currentConfig = initialConfig();
 
     // Enable PFC and PFC wachdog
     XLOG(DBG0) << "Verify PFC watchdog is enabled with specified configs";
     initalizePfcConfigWatchdogValues(
         pfcWatchdogConfig, 1, 400, cfg::PfcWatchdogRecoveryAction::DROP);
-    setupPfcAndPfcWatchdog(portId, pfcWatchdogConfig);
+    setupPfcAndPfcWatchdog(currentConfig, portId, pfcWatchdogConfig);
     utility::pfcWatchdogProgrammingMatchesConfig(
         getHwSwitch(), portId, true, pfcWatchdogConfig);
 
     XLOG(DBG0) << "Change just the detection timer and ensure programming";
     initalizePfcConfigWatchdogValues(
         pfcWatchdogConfig, 150, 400, cfg::PfcWatchdogRecoveryAction::DROP);
-    setupPfcWatchdog(portId, pfcWatchdogConfig);
+    setupPfcWatchdog(currentConfig, portId, pfcWatchdogConfig);
     utility::pfcWatchdogProgrammingMatchesConfig(
         getHwSwitch(), portId, true, pfcWatchdogConfig);
 
     XLOG(DBG0) << "Change just the recovery timer and ensure programming";
     initalizePfcConfigWatchdogValues(
         pfcWatchdogConfig, 150, 200, cfg::PfcWatchdogRecoveryAction::DROP);
-    setupPfcWatchdog(portId, pfcWatchdogConfig);
+    setupPfcWatchdog(currentConfig, portId, pfcWatchdogConfig);
     utility::pfcWatchdogProgrammingMatchesConfig(
         getHwSwitch(), portId, true, pfcWatchdogConfig);
 
     XLOG(DBG0) << "Verify removing PFC watchdog removes the programming";
-    removePfcWatchdogConfig(portId);
+    removePfcWatchdogConfig(currentConfig, portId);
     utility::pfcWatchdogProgrammingMatchesConfig(
         getHwSwitch(), portId, false, defaultPfcWatchdogConfig);
 
@@ -351,13 +359,13 @@ TEST_F(HwPfcTest, PfcWatchdogProgrammingSequence) {
     XLOG(DBG0) << "Verify programming PFC watchdog after unconfiguring works";
     initalizePfcConfigWatchdogValues(
         pfcWatchdogConfig, 2, 11, cfg::PfcWatchdogRecoveryAction::NO_DROP);
-    setupPfcWatchdog(portId, pfcWatchdogConfig);
+    setupPfcWatchdog(currentConfig, portId, pfcWatchdogConfig);
     utility::pfcWatchdogProgrammingMatchesConfig(
         getHwSwitch(), portId, true, pfcWatchdogConfig);
 
     XLOG(DBG0)
         << "Verify removing PFC will remove PFC watchdog programming as well";
-    removePfcConfig(portId);
+    removePfcConfig(currentConfig, portId);
     utility::getPfcEnabledStatus(getHwSwitch(), portId, pfcRx, pfcTx);
     EXPECT_FALSE(pfcRx);
     EXPECT_FALSE(pfcTx);
@@ -445,12 +453,13 @@ TEST_F(HwPfcTest, PfcWatchdogDeadlockRecoveryAction) {
     auto portId1 = masterLogicalInterfacePortIds()[0];
     auto portId2 = masterLogicalInterfacePortIds()[1];
     cfg::PfcWatchdog pfcWatchdogConfig{};
+    auto currentConfig = initialConfig();
 
     XLOG(DBG0)
         << "Verify PFC watchdog recovery action is configured as expected";
     initalizePfcConfigWatchdogValues(
         pfcWatchdogConfig, 15, 20, cfg::PfcWatchdogRecoveryAction::DROP);
-    setupPfcAndPfcWatchdog(portId1, pfcWatchdogConfig);
+    setupPfcAndPfcWatchdog(currentConfig, portId1, pfcWatchdogConfig);
     utility::pfcWatchdogProgrammingMatchesConfig(
         getHwSwitch(), portId1, true, pfcWatchdogConfig);
     EXPECT_EQ(
@@ -460,21 +469,21 @@ TEST_F(HwPfcTest, PfcWatchdogDeadlockRecoveryAction) {
     XLOG(DBG0) << "Enable PFC watchdog on more ports and validate programming";
     initalizePfcConfigWatchdogValues(
         pfcWatchdogConfig, 140, 500, cfg::PfcWatchdogRecoveryAction::DROP);
-    setupPfcAndPfcWatchdog(portId2, pfcWatchdogConfig);
+    setupPfcAndPfcWatchdog(currentConfig, portId2, pfcWatchdogConfig);
     EXPECT_EQ(
         utility::getPfcWatchdogRecoveryAction(getHwSwitch(), portId2),
         *pfcWatchdogConfig.recoveryAction());
 
     XLOG(DBG0) << "Remove PFC watchdog programming on one port and make"
                << " sure watchdog recovery action is not impacted";
-    removePfcWatchdogConfig(portId1);
+    removePfcWatchdogConfig(currentConfig, portId1);
     EXPECT_EQ(
         utility::getPfcWatchdogRecoveryAction(getHwSwitch(), portId1),
         cfg::PfcWatchdogRecoveryAction::DROP);
 
     XLOG(DBG0) << "Remove PFC watchdog programming on the remaining port, "
                << "make sure the watchdog recovery action goes to default";
-    removePfcWatchdogConfig(portId2);
+    removePfcWatchdogConfig(currentConfig, portId2);
     EXPECT_EQ(
         utility::getPfcWatchdogRecoveryAction(getHwSwitch(), portId2),
         cfg::PfcWatchdogRecoveryAction::NO_DROP);
@@ -482,14 +491,14 @@ TEST_F(HwPfcTest, PfcWatchdogDeadlockRecoveryAction) {
     XLOG(DBG0) << "Enable PFC watchdog config again on the port";
     initalizePfcConfigWatchdogValues(
         pfcWatchdogConfig, 20, 100, cfg::PfcWatchdogRecoveryAction::DROP);
-    setupPfcAndPfcWatchdog(portId2, pfcWatchdogConfig);
+    setupPfcAndPfcWatchdog(currentConfig, portId2, pfcWatchdogConfig);
     EXPECT_EQ(
         utility::getPfcWatchdogRecoveryAction(getHwSwitch(), portId2),
         *pfcWatchdogConfig.recoveryAction());
 
     XLOG(DBG0) << "Unconfigure PFC on port and make sure PFC "
                << "watchdog recovery action is reverted to default";
-    removePfcConfig(portId2);
+    removePfcConfig(currentConfig, portId2);
     EXPECT_EQ(
         utility::getPfcWatchdogRecoveryAction(getHwSwitch(), portId2),
         cfg::PfcWatchdogRecoveryAction::NO_DROP);
@@ -509,11 +518,13 @@ TEST_F(HwPfcTest, PfcWatchdogDeadlockRecoveryActionMismatch) {
     auto portId2 = masterLogicalInterfacePortIds()[1];
     cfg::PfcWatchdog pfcWatchdogConfig{};
     cfg::PfcWatchdog defaultPfcWatchdogConfig{};
+    auto currentConfig = initialConfig();
 
     XLOG(DBG0) << "Enable PFC watchdog and make sure programming is fine";
     initalizePfcConfigWatchdogValues(
         pfcWatchdogConfig, 1000, 3000, cfg::PfcWatchdogRecoveryAction::NO_DROP);
-    auto state = setupPfcAndPfcWatchdog(portId1, pfcWatchdogConfig);
+    auto state =
+        setupPfcAndPfcWatchdog(currentConfig, portId1, pfcWatchdogConfig);
     utility::pfcWatchdogProgrammingMatchesConfig(
         getHwSwitch(), portId1, true, pfcWatchdogConfig);
     EXPECT_EQ(
@@ -530,7 +541,8 @@ TEST_F(HwPfcTest, PfcWatchdogDeadlockRecoveryActionMismatch) {
      * In HwTests we call the isValidStateUpdate api directly to verify
      * the check since there is no SwSwitch present
      */
-    auto newState = setupPfcAndPfcWatchdog(portId2, pfcWatchdogConfig);
+    auto newState =
+        setupPfcAndPfcWatchdog(currentConfig, portId2, pfcWatchdogConfig);
     EXPECT_FALSE(
         getHwSwitch()->isValidStateUpdate(StateDelta(state, newState)));
 
@@ -540,10 +552,10 @@ TEST_F(HwPfcTest, PfcWatchdogDeadlockRecoveryActionMismatch) {
      */
     XLOG(DBG0)
         << "Disable PFC on one and enable with new action on the other port";
-    removePfcConfigSkipApply(portId1);
+    removePfcConfigSkipApply(currentConfig, portId1);
     initalizePfcConfigWatchdogValues(
         pfcWatchdogConfig, 1200, 6000, cfg::PfcWatchdogRecoveryAction::DROP);
-    setupPfcAndPfcWatchdog(portId2, pfcWatchdogConfig);
+    setupPfcAndPfcWatchdog(currentConfig, portId2, pfcWatchdogConfig);
     utility::pfcWatchdogProgrammingMatchesConfig(
         getHwSwitch(), portId2, true, pfcWatchdogConfig);
     EXPECT_EQ(
