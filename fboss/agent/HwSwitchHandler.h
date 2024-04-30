@@ -89,16 +89,6 @@ class HwSwitchHandler {
   virtual bool transactionsSupported(
       std::optional<cfg::SdkVersion> sdkVersion) const = 0;
 
-  virtual std::vector<phy::PrbsLaneStats> getPortAsicPrbsStats(
-      PortID portId) = 0;
-
-  virtual void clearPortAsicPrbsStats(PortID portId) = 0;
-
-  virtual std::vector<prbs::PrbsPolynomial> getPortPrbsPolynomials(
-      int32_t portId) = 0;
-
-  virtual prbs::InterfacePrbsState getPortPrbsState(PortID portId) = 0;
-
   virtual void switchRunStateChanged(SwitchRunState newState) = 0;
 
   virtual std::shared_ptr<SwitchState> stateChanged(

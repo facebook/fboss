@@ -44,15 +44,6 @@ class MultiSwitchHwSwitchHandler : public HwSwitchHandler {
   bool transactionsSupported(
       std::optional<cfg::SdkVersion> sdkVersion) const override;
 
-  std::vector<phy::PrbsLaneStats> getPortAsicPrbsStats(PortID portId) override;
-
-  void clearPortAsicPrbsStats(PortID portId) override;
-
-  std::vector<prbs::PrbsPolynomial> getPortPrbsPolynomials(
-      int32_t portId) override;
-
-  prbs::InterfacePrbsState getPortPrbsState(PortID portId) override;
-
   void switchRunStateChanged(SwitchRunState newState) override;
 
   // platform access apis

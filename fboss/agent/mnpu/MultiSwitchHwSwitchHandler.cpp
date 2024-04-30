@@ -91,28 +91,6 @@ bool MultiSwitchHwSwitchHandler::transactionsSupported(
   return false;
 }
 
-std::vector<phy::PrbsLaneStats>
-MultiSwitchHwSwitchHandler::getPortAsicPrbsStats(PortID /*portId*/) {
-  // TODO: implement this
-  return {};
-}
-
-void MultiSwitchHwSwitchHandler::clearPortAsicPrbsStats(PortID /*portId*/) {
-  // TODO: implement this
-}
-
-std::vector<prbs::PrbsPolynomial>
-MultiSwitchHwSwitchHandler::getPortPrbsPolynomials(int32_t /*portId*/) {
-  // TODO: implement this
-  return {};
-}
-
-prbs::InterfacePrbsState MultiSwitchHwSwitchHandler::getPortPrbsState(
-    PortID /* portId */) {
-  // TODO: implement this
-  return prbs::InterfacePrbsState{};
-}
-
 void MultiSwitchHwSwitchHandler::switchRunStateChanged(
     SwitchRunState /*newState*/) {
   // TODO: implement this

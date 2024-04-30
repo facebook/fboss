@@ -243,32 +243,6 @@ bool MultiHwSwitchHandler::transactionsSupported(
   return true;
 }
 
-std::vector<phy::PrbsLaneStats> MultiHwSwitchHandler::getPortAsicPrbsStats(
-    PortID portId) {
-  // TODO - support with multiple switches
-  CHECK_EQ(hwSwitchSyncers_.size(), 1);
-  return hwSwitchSyncers_.begin()->second->getPortAsicPrbsStats(portId);
-}
-
-void MultiHwSwitchHandler::clearPortAsicPrbsStats(PortID portId) {
-  // TODO - support with multiple switches
-  CHECK_EQ(hwSwitchSyncers_.size(), 1);
-  return hwSwitchSyncers_.begin()->second->clearPortAsicPrbsStats(portId);
-}
-
-std::vector<prbs::PrbsPolynomial> MultiHwSwitchHandler::getPortPrbsPolynomials(
-    int32_t portId) {
-  // TODO - support with multiple switches
-  CHECK_EQ(hwSwitchSyncers_.size(), 1);
-  return hwSwitchSyncers_.begin()->second->getPortPrbsPolynomials(portId);
-}
-
-prbs::InterfacePrbsState MultiHwSwitchHandler::getPortPrbsState(PortID portId) {
-  // TODO - support with multiple switches
-  CHECK_EQ(hwSwitchSyncers_.size(), 1);
-  return hwSwitchSyncers_.begin()->second->getPortPrbsState(portId);
-}
-
 std::vector<EcmpDetails> MultiHwSwitchHandler::getAllEcmpDetails() {
   // TODO - support with multiple switches
   CHECK_EQ(hwSwitchSyncers_.size(), 1);

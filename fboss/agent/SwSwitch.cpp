@@ -2784,11 +2784,21 @@ void SwSwitch::clearPortStats(
 }
 
 std::vector<phy::PrbsLaneStats> SwSwitch::getPortAsicPrbsStats(PortID portId) {
-  return multiHwSwitchHandler_->getPortAsicPrbsStats(portId);
+  if (isRunModeMonolithic()) {
+    return getMonolithicHwSwitchHandler()->getPortAsicPrbsStats(portId);
+  } else {
+    throw fboss::FbossError(
+        "getPortAsicPrbsStats() not supported for multi switch");
+  }
 }
 
 void SwSwitch::clearPortAsicPrbsStats(PortID portId) {
-  multiHwSwitchHandler_->clearPortAsicPrbsStats(portId);
+  if (isRunModeMonolithic()) {
+    return getMonolithicHwSwitchHandler()->clearPortAsicPrbsStats(portId);
+  } else {
+    throw fboss::FbossError(
+        "clearPortAsicPrbsStats() not supported for multi switch");
+  }
 }
 
 std::vector<prbs::PrbsPolynomial> SwSwitch::getPortPrbsPolynomials(
@@ -2799,7 +2809,12 @@ std::vector<prbs::PrbsPolynomial> SwSwitch::getPortPrbsPolynomials(
 }
 
 prbs::InterfacePrbsState SwSwitch::getPortPrbsState(PortID portId) {
-  return multiHwSwitchHandler_->getPortPrbsState(portId);
+  if (isRunModeMonolithic()) {
+    return getMonolithicHwSwitchHandler()->getPortPrbsState(portId);
+  } else {
+    throw fboss::FbossError(
+        "getPortPrbsState() not supported for multi switch");
+  }
 }
 
 template <typename AddressT>

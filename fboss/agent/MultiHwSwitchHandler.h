@@ -85,14 +85,6 @@ class MultiHwSwitchHandler {
 
   bool transactionsSupported() const;
 
-  std::vector<phy::PrbsLaneStats> getPortAsicPrbsStats(PortID portId);
-
-  void clearPortAsicPrbsStats(PortID portId);
-
-  std::vector<prbs::PrbsPolynomial> getPortPrbsPolynomials(int32_t portId);
-
-  prbs::InterfacePrbsState getPortPrbsState(PortID portId);
-
   void switchRunStateChanged(SwitchRunState newState);
 
   // platform access apis
