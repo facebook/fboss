@@ -52,10 +52,9 @@ TEST_F(AgentEcmpTest, CreateMaxEcmpGroups) {
     }
     std::vector<std::vector<PortDescriptor>> allCombinations =
         utility::generateEcmpGroupScale(portDescriptorIds, kMaxEcmpGroup);
-    std::vector<flat_set<PortDescriptor>> newCombinations;
-    for (auto& combination : allCombinations) {
-      newCombinations.push_back(
-          flat_set<PortDescriptor>{combination.begin(), combination.end()});
+    std::vector<flat_set<PortDescriptor>> nhopSets;
+    for (const auto& combination : allCombinations) {
+      nhopSets.emplace_back(combination.begin(), combination.end());
     }
     applyNewState([&portDescriptorIds,
                    &ecmpHelper](const std::shared_ptr<SwitchState>& in) {
@@ -72,7 +71,7 @@ TEST_F(AgentEcmpTest, CreateMaxEcmpGroups) {
               folly::IPAddressV6(folly::to<std::string>(2401, "::", i++)), 128};
         });
     auto wrapper = getSw()->getRouteUpdater();
-    ecmpHelper.programRoutes(&wrapper, newCombinations, prefixes);
+    ecmpHelper.programRoutes(&wrapper, nhopSets, prefixes);
   };
   verifyAcrossWarmBoots(setup, [] {});
 }
@@ -85,15 +84,14 @@ TEST_F(AgentEcmpTest, CreateMaxEcmpMembers) {
     std::vector<PortID> portIds = masterLogicalInterfacePortIds();
     std::vector<PortDescriptor> portDescriptorIds;
     std::vector<RoutePrefixV6> prefixes;
-    for (auto& portId : portIds) {
+    for (const auto& portId : portIds) {
       portDescriptorIds.push_back(PortDescriptor(portId));
     }
     std::vector<std::vector<PortDescriptor>> allCombinations =
         utility::generateEcmpMemberScale(portDescriptorIds, kMaxEcmpMembers);
-    std::vector<flat_set<PortDescriptor>> newCombinations;
-    for (auto& combination : allCombinations) {
-      newCombinations.push_back(
-          flat_set<PortDescriptor>{combination.begin(), combination.end()});
+    std::vector<flat_set<PortDescriptor>> nhopSets;
+    for (const auto& combination : allCombinations) {
+      nhopSets.emplace_back(combination.begin(), combination.end());
     }
     applyNewState([&portDescriptorIds,
                    &ecmpHelper](const std::shared_ptr<SwitchState>& in) {
@@ -111,7 +109,7 @@ TEST_F(AgentEcmpTest, CreateMaxEcmpMembers) {
               folly::IPAddressV6(folly::to<std::string>(2401, "::", i++)), 128};
         });
     auto wrapper = getSw()->getRouteUpdater();
-    ecmpHelper.programRoutes(&wrapper, newCombinations, prefixes);
+    ecmpHelper.programRoutes(&wrapper, nhopSets, prefixes);
   };
   verifyAcrossWarmBoots(setup, [] {});
 }
@@ -127,7 +125,7 @@ TEST_F(AgentEcmpTest, CreateMaxUcmpMembers) {
     std::vector<RoutePrefixV6> prefixes;
     std::vector<std::vector<PortDescriptor>> allCombinations;
     std::vector<std::vector<NextHopWeight>> swWeights;
-    for (auto& portId : portIds) {
+    for (const auto& portId : portIds) {
       portDescriptorIds.emplace_back(portId);
     }
     applyNewState([&portDescriptorIds,
@@ -150,7 +148,7 @@ TEST_F(AgentEcmpTest, CreateMaxUcmpMembers) {
     }
 
     std::vector<flat_set<PortDescriptor>> nhopSets;
-    for (auto& combination : allCombinations) {
+    for (const auto& combination : allCombinations) {
       nhopSets.emplace_back(combination.begin(), combination.end());
     }
     std::generate_n(
