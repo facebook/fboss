@@ -85,8 +85,6 @@ class MultiHwSwitchHandler {
 
   bool transactionsSupported() const;
 
-  void clearPortStats(const std::unique_ptr<std::vector<int32_t>>& ports);
-
   std::vector<phy::PrbsLaneStats> getPortAsicPrbsStats(PortID portId);
 
   void clearPortAsicPrbsStats(PortID portId);

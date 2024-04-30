@@ -243,13 +243,6 @@ bool MultiHwSwitchHandler::transactionsSupported(
   return true;
 }
 
-void MultiHwSwitchHandler::clearPortStats(
-    const std::unique_ptr<std::vector<int32_t>>& ports) {
-  // TODO - support with multiple switches
-  CHECK_EQ(hwSwitchSyncers_.size(), 1);
-  return hwSwitchSyncers_.begin()->second->clearPortStats(ports);
-}
-
 std::vector<phy::PrbsLaneStats> MultiHwSwitchHandler::getPortAsicPrbsStats(
     PortID portId) {
   // TODO - support with multiple switches

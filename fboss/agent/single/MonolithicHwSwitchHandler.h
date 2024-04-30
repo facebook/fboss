@@ -63,8 +63,7 @@ class MonolithicHwSwitchHandler : public HwSwitchHandler {
 
   HwSwitchFb303Stats* getSwitchStats() const;
 
-  void clearPortStats(
-      const std::unique_ptr<std::vector<int32_t>>& ports) override;
+  void clearPortStats(const std::unique_ptr<std::vector<int32_t>>& ports);
 
   std::vector<phy::PrbsLaneStats> getPortAsicPrbsStats(PortID portId) override;
 

@@ -1029,9 +1029,8 @@ bool SwSwitch::getAndClearNeighborHit(RouterID vrf, folly::IPAddress ip) {
 
 void SwSwitch::exitFatal() const noexcept {
   folly::dynamic switchState = folly::dynamic::object;
-  if (isRunModeMultiSwitch()) {
-    // No hwswitch dump for multi swagent exit
-  } else {
+  // No hwswitch dump for multi swagent exit
+  if (isRunModeMonolithic()) {
     switchState[kHwSwitch] = getMonolithicHwSwitchHandler()->toFollyDynamic();
   }
   state::WarmbootState thriftSwitchState;
@@ -2778,7 +2777,10 @@ AdminDistance SwSwitch::clientIdToAdminDistance(int clientId) const {
 
 void SwSwitch::clearPortStats(
     const std::unique_ptr<std::vector<int32_t>>& ports) {
-  multiHwSwitchHandler_->clearPortStats(ports);
+  // For multi switch mode, hwswitch clear api gets called instead
+  if (isRunModeMonolithic()) {
+    getMonolithicHwSwitchHandler()->clearPortStats(ports);
+  }
 }
 
 std::vector<phy::PrbsLaneStats> SwSwitch::getPortAsicPrbsStats(PortID portId) {

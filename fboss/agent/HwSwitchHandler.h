@@ -89,9 +89,6 @@ class HwSwitchHandler {
   virtual bool transactionsSupported(
       std::optional<cfg::SdkVersion> sdkVersion) const = 0;
 
-  virtual void clearPortStats(
-      const std::unique_ptr<std::vector<int32_t>>& ports) = 0;
-
   virtual std::vector<phy::PrbsLaneStats> getPortAsicPrbsStats(
       PortID portId) = 0;
 

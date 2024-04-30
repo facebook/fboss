@@ -91,11 +91,6 @@ bool MultiSwitchHwSwitchHandler::transactionsSupported(
   return false;
 }
 
-void MultiSwitchHwSwitchHandler::clearPortStats(
-    const std::unique_ptr<std::vector<int32_t>>& /*ports*/) {
-  // TODO: implement this
-}
-
 std::vector<phy::PrbsLaneStats>
 MultiSwitchHwSwitchHandler::getPortAsicPrbsStats(PortID /*portId*/) {
   // TODO: implement this
