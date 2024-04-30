@@ -8976,6 +8976,9 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
         },
         {
@@ -9030,6 +9033,9 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -9088,6 +9094,9 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
         },
         {
@@ -9142,6 +9151,9 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -9200,6 +9212,9 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
         },
         {
@@ -9254,6 +9269,9 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -9312,6 +9330,9 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
         },
         {
@@ -9366,6 +9387,9 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -9424,6 +9448,9 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
         },
         {
@@ -9478,6 +9505,9 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -9536,6 +9566,9 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
         },
         {
@@ -9590,6 +9623,9 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -9648,6 +9684,9 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
         },
         {
@@ -9702,6 +9741,9 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -9760,6 +9802,9 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
         },
         {
@@ -9814,6 +9859,9 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -9872,6 +9920,9 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
         },
         {
@@ -9926,6 +9977,9 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
@@ -9984,6 +10038,9 @@
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
         },
         {
+          "test_name_regex": "SpeedChangeTest.*$"
+        },
+        {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
         },
         {
@@ -10038,6 +10095,9 @@
         },
         {
           "test_name_regex": "roundtrip.*.testOpticsRemediation$"
+        },
+        {
+          "test_name_regex": "SpeedChangeTest.*$"
         },
         {
           "test_name_regex": "LinkTest.opticsTxDisableRandomPorts$"
