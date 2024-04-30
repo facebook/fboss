@@ -18,13 +18,27 @@ class I2cLogBufferTest : public ::testing::Test {
   ~I2cLogBufferTest() override = default;
   void SetUp() override {}
   void TearDown() override {}
+
+  I2cLogBuffer createBuffer(
+      const size_t size,
+      bool read = true,
+      bool write = true,
+      bool disableOnFail = false) {
+    cfg::TransceiverI2cLogging config;
+    config.readLog() = read;
+    config.writeLog() = write;
+    config.disableOnFail() = disableOnFail;
+    config.bufferSlots() = size;
+    return I2cLogBuffer(config);
+  }
+
   std::vector<uint8_t> data_;
   TransceiverAccessParameter param_;
 };
 
 TEST_F(I2cLogBufferTest, basic) {
   // Create a buffer with a size of kFullBuffer.
-  I2cLogBuffer logBuffer(kFullBuffer);
+  I2cLogBuffer logBuffer = createBuffer(kFullBuffer);
 
   // insert 1 element less
   const size_t kNumElements = kFullBuffer - 1;
@@ -49,7 +63,7 @@ TEST_F(I2cLogBufferTest, basic) {
 }
 
 TEST_F(I2cLogBufferTest, basicFullBuffer) {
-  I2cLogBuffer logBuffer(kFullBuffer);
+  I2cLogBuffer logBuffer = createBuffer(kFullBuffer);
 
   // insert kFullBuffer elements
   for (int i = 0; i < kFullBuffer; i++) {
@@ -73,7 +87,7 @@ TEST_F(I2cLogBufferTest, basicFullBuffer) {
 }
 
 TEST_F(I2cLogBufferTest, basicFullBufferAnd1Element) {
-  I2cLogBuffer logBuffer(kFullBuffer);
+  I2cLogBuffer logBuffer = createBuffer(kFullBuffer);
 
   // insert kFullBuffer + 1 elements
   const size_t kNumElements = kFullBuffer + 1;
@@ -109,7 +123,7 @@ TEST_F(I2cLogBufferTest, testRange) {
 
   for (auto bufferSize : bufferSizes) {
     for (size_t inserts = 0; inserts < maxNumInserts; inserts++) {
-      I2cLogBuffer logBuffer(bufferSize);
+      I2cLogBuffer logBuffer = createBuffer(bufferSize);
 
       // insert entry elements. Use the first byte of data and the
       // i2c address as a way to track what was inserted in the buffer
@@ -154,7 +168,7 @@ TEST_F(I2cLogBufferTest, testRange) {
 }
 
 TEST_F(I2cLogBufferTest, testLargeData) {
-  I2cLogBuffer logBuffer(kFullBuffer);
+  I2cLogBuffer logBuffer = createBuffer(kFullBuffer);
 
   std::vector<uint8_t> largeData(kMaxI2clogDataSize * 2);
   for (int i = 0; i < largeData.size(); i++) {
@@ -185,13 +199,83 @@ TEST_F(I2cLogBufferTest, testLargeData) {
 
 TEST_F(I2cLogBufferTest, edgeCases) {
   // Size 0 is not allowed.
-  EXPECT_THROW(I2cLogBuffer logBuffer(0), std::invalid_argument);
+  EXPECT_THROW(createBuffer(0), std::invalid_argument);
 
-  I2cLogBuffer logBuffer(kFullBuffer);
+  I2cLogBuffer logBuffer = createBuffer(kFullBuffer);
   // nullptr data
   EXPECT_THROW(
       logBuffer.log(param_, nullptr, I2cLogBuffer::Operation::Read),
       std::invalid_argument);
 }
 
+TEST_F(I2cLogBufferTest, testOnlyRead) {
+  I2cLogBuffer logBuffer =
+      createBuffer(kFullBuffer, /*read*/ true, /*write*/ false);
+  // insert 3 elements Read
+  for (int i = 0; i < 3; i++) {
+    logBuffer.log(param_, data_.data(), I2cLogBuffer::Operation::Read);
+  }
+  // insert 4 elements write (should not log)
+  for (int i = 0; i < 4; i++) {
+    logBuffer.log(param_, data_.data(), I2cLogBuffer::Operation::Write);
+  }
+  std::vector<I2cLogBuffer::I2cLogEntry> entries;
+  size_t count = logBuffer.dump(entries);
+  EXPECT_EQ(count, 3);
+}
+
+TEST_F(I2cLogBufferTest, testOnlyWrite) {
+  I2cLogBuffer logBuffer =
+      createBuffer(kFullBuffer, /*read*/ false, /*write*/ true);
+  // insert 3 elements Read (should not log)
+  for (int i = 0; i < 3; i++) {
+    logBuffer.log(param_, data_.data(), I2cLogBuffer::Operation::Read);
+  }
+  // insert 4 elements write
+  for (int i = 0; i < 4; i++) {
+    logBuffer.log(param_, data_.data(), I2cLogBuffer::Operation::Write);
+  }
+  std::vector<I2cLogBuffer::I2cLogEntry> entries;
+  size_t count = logBuffer.dump(entries);
+  EXPECT_EQ(count, 4);
+}
+
+TEST_F(I2cLogBufferTest, testDisableOnFail) {
+  I2cLogBuffer logBuffer = createBuffer(
+      kFullBuffer, /*read*/ true, /*write*/ true, /*disableOnFail*/ true);
+  // insert 1 elements Read
+  logBuffer.log(param_, data_.data(), I2cLogBuffer::Operation::Read);
+  // insert 1 elements write
+  logBuffer.log(param_, data_.data(), I2cLogBuffer::Operation::Write);
+  // disable
+  logBuffer.transactionError();
+  // insert 1 element Read (should not log)
+  logBuffer.log(param_, data_.data(), I2cLogBuffer::Operation::Read);
+  // insert 1 element write (should not log)
+  logBuffer.log(param_, data_.data(), I2cLogBuffer::Operation::Write);
+  // check that we have 2 elements
+  std::vector<I2cLogBuffer::I2cLogEntry> entries;
+  size_t count = logBuffer.dump(entries);
+  EXPECT_EQ(count, 2);
+}
+
+TEST_F(I2cLogBufferTest, testNoDisableOnFail) {
+  // check that if we dont have disable on fail that we contiue logging.
+  I2cLogBuffer logBuffer = createBuffer(
+      kFullBuffer, /*read*/ true, /*write*/ true, /*disableOnFail*/ false);
+  // insert 1 elements Read
+  logBuffer.log(param_, data_.data(), I2cLogBuffer::Operation::Read);
+  // insert 1 elements write
+  logBuffer.log(param_, data_.data(), I2cLogBuffer::Operation::Write);
+  // disable
+  logBuffer.transactionError();
+  // insert 1 element Read
+  logBuffer.log(param_, data_.data(), I2cLogBuffer::Operation::Read);
+  // insert 1 element write
+  logBuffer.log(param_, data_.data(), I2cLogBuffer::Operation::Write);
+  // check that we have 4 elements since we dont disable logging on fail
+  std::vector<I2cLogBuffer::I2cLogEntry> entries;
+  size_t count = logBuffer.dump(entries);
+  EXPECT_EQ(count, 4);
+}
 } // namespace facebook::fboss

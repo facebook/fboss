@@ -7,8 +7,11 @@
 
 namespace facebook::fboss {
 
-I2cLogBuffer::I2cLogBuffer(size_t size) : buffer_(size), size_(size) {
-  if (size == 0) {
+I2cLogBuffer::I2cLogBuffer(cfg::TransceiverI2cLogging config)
+    : buffer_(config.bufferSlots().value()),
+      size_(config.bufferSlots().value()),
+      config_(config) {
+  if (size_ == 0) {
     throw std::invalid_argument("I2cLogBuffer size must be > 0");
   }
 }
@@ -21,22 +24,25 @@ void I2cLogBuffer::log(
     throw std::invalid_argument("I2cLogBuffer data must be non-null");
   }
   std::lock_guard<std::mutex> g(mutex_);
-  buffer_[head_].steadyTime = std::chrono::steady_clock::now();
-  buffer_[head_].systemTime = std::chrono::system_clock::now();
-  buffer_[head_].param = param;
-  std::copy(
-      data,
-      data + std::min(kMaxI2clogDataSize, param.len),
-      buffer_[head_].data.begin());
-  buffer_[head_].op = op;
+  if ((op == Operation::Read && config_.readLog().value()) ||
+      (op == Operation::Write && config_.writeLog().value())) {
+    buffer_[head_].steadyTime = std::chrono::steady_clock::now();
+    buffer_[head_].systemTime = std::chrono::system_clock::now();
+    buffer_[head_].param = param;
+    std::copy(
+        data,
+        data + std::min(kMaxI2clogDataSize, param.len),
+        buffer_[head_].data.begin());
+    buffer_[head_].op = op;
 
-  // Let tail track the oldest entry.
-  if ((head_ == tail_) && (totalEntries_ != 0)) {
-    tail_ = (tail_ + 1) % size_;
+    // Let tail track the oldest entry.
+    if ((head_ == tail_) && (totalEntries_ != 0)) {
+      tail_ = (tail_ + 1) % size_;
+    }
+    // advance head_
+    head_ = (head_ + 1) % size_;
+    totalEntries_++;
   }
-  // advance head_
-  head_ = (head_ + 1) % size_;
-  totalEntries_++;
 }
 
 size_t I2cLogBuffer::dump(std::vector<I2cLogEntry>& entriesOut) {
@@ -81,4 +87,11 @@ size_t I2cLogBuffer::dump(std::vector<I2cLogEntry>& entriesOut) {
   return entries;
 }
 
+void I2cLogBuffer::transactionError() {
+  std::lock_guard<std::mutex> g(mutex_);
+  if (config_.disableOnFail().value()) {
+    config_.readLog() = false;
+    config_.writeLog() = false;
+  }
+}
 } // namespace facebook::fboss

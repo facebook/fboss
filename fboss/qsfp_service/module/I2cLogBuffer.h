@@ -2,12 +2,14 @@
 
 #pragma once
 
-#include "fboss/lib/usb/TransceiverAccessParameter.h"
-
 #include <array>
 #include <chrono>
 #include <mutex>
 #include <vector>
+
+#include "fboss/lib/usb/TransceiverAccessParameter.h"
+
+#include "fboss/qsfp_service/if/gen-cpp2/qsfp_service_config_types.h"
 
 namespace facebook::fboss {
 
@@ -52,7 +54,7 @@ class I2cLogBuffer {
     I2cLogEntry() : param(TransceiverAccessParameter(0, 0, 0)) {}
   };
 
-  explicit I2cLogBuffer(size_t size);
+  explicit I2cLogBuffer(cfg::TransceiverI2cLogging config);
 
   // Insert a log entry into the buffer.
   void log(
@@ -70,15 +72,20 @@ class I2cLogBuffer {
   // on the stack before calling this function (reduce allocation latency).
   size_t dump(std::vector<I2cLogEntry>& entriesOut);
 
-  // Get the number of entries in the buffer. The size of the
+  // Get the number of entries logged to the buffer. The size of the
   // buffer can be smaller than total entries logged.
   size_t getTotalEntries() const {
     return totalEntries_;
   }
 
+  // Disable Logging for both read/write operations if
+  // disableOnError is set in config.
+  void transactionError();
+
  private:
   std::vector<I2cLogEntry> buffer_;
   const size_t size_;
+  cfg::TransceiverI2cLogging config_;
   size_t head_{0};
   size_t tail_{0};
   size_t totalEntries_{0};
