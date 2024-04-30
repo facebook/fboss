@@ -8,4 +8,5 @@ struct Subscription {
   1: string name;
   2: string state;
   3: list<string> paths;
+  4: string establishedSince;
 }
