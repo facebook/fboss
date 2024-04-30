@@ -152,7 +152,7 @@ float ControlLogic::calculateIncrementalPid(
 
 void ControlLogic::updateTargetPwm(const Sensor& sensor) {
   bool accelerate, deadFanExists;
-  float previousSensorValue, sensorValue, targetPwm, pwm;
+  float previousSensorValue, sensorValue, targetPwm{0};
   float minVal = *sensor.setPoint() - *sensor.negHysteresis();
   float maxVal = *sensor.setPoint() + *sensor.posHysteresis();
   uint64_t dT;
@@ -162,10 +162,8 @@ void ControlLogic::updateTargetPwm(const Sensor& sensor) {
   const auto& pwmCalcType = *sensor.pwmCalcType();
 
   if (pwmCalcType == constants::SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE()) {
-    accelerate = true;
     previousSensorValue = pwmCalcCache.previousSensorRead;
     sensorValue = readCache.adjustedReadCache;
-    targetPwm = 0.0;
     deadFanExists = (numFanFailed_ > 0);
     accelerate =
         ((previousSensorValue == 0) || (sensorValue > previousSensorValue));
@@ -197,13 +195,10 @@ void ControlLogic::updateTargetPwm(const Sensor& sensor) {
       }
     }
     pwmCalcCache.previousSensorRead = sensorValue;
-    readCache.targetPwmCache = targetPwm;
-    XLOG(INFO) << "Control :: Sensor : " << *sensor.sensorName()
-               << " Value : " << sensorValue << " [4CUV] Pwm : " << targetPwm;
   }
 
   if (pwmCalcType == constants::SENSOR_PWM_CALC_TYPE_INCREMENT_PID()) {
-    pwm = calculateIncrementalPid(
+    targetPwm = calculateIncrementalPid(
         *sensor.sensorName(),
         readCache.adjustedReadCache,
         readCache,
@@ -212,12 +207,11 @@ void ControlLogic::updateTargetPwm(const Sensor& sensor) {
         *sensor.ki(),
         *sensor.kd(),
         *sensor.setPoint());
-    readCache.targetPwmCache = pwm;
   }
 
   if (pwmCalcType == constants::SENSOR_PWM_CALC_TYPE_PID()) {
     dT = pBsp_->getCurrentTime() - lastControlUpdateSec_;
-    pwm = calculatePid(
+    targetPwm = calculatePid(
         *sensor.sensorName(),
         readCache.adjustedReadCache,
         readCache,
@@ -228,16 +222,17 @@ void ControlLogic::updateTargetPwm(const Sensor& sensor) {
         dT,
         minVal,
         maxVal);
-    readCache.targetPwmCache = pwm;
   }
 
-  // No matter what, PWM should be within
-  // predefined upper and lower thresholds
-  if (readCache.targetPwmCache > *config_.pwmUpperThreshold()) {
-    readCache.targetPwmCache = *config_.pwmUpperThreshold();
-  } else if (readCache.targetPwmCache < *config_.pwmLowerThreshold()) {
-    readCache.targetPwmCache = *config_.pwmLowerThreshold();
+  if (targetPwm > *config_.pwmUpperThreshold()) {
+    targetPwm = *config_.pwmUpperThreshold();
+  } else if (targetPwm < *config_.pwmLowerThreshold()) {
+    targetPwm = *config_.pwmLowerThreshold();
   }
+
+  XLOG(INFO) << fmt::format(
+      "{}: Calculated PWM is {}", *sensor.sensorName(), targetPwm);
+  readCache.targetPwmCache = targetPwm;
 }
 
 void ControlLogic::getSensorUpdate() {
