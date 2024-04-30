@@ -35,6 +35,7 @@ class AgentEcmpTest : public AgentHwTest {
   void setCmdLineFlagOverrides() const override {
     AgentHwTest::setCmdLineFlagOverrides();
     FLAGS_ecmp_resource_percentage = 100;
+    FLAGS_ecmp_width = 512;
   }
 };
 
@@ -115,4 +116,51 @@ TEST_F(AgentEcmpTest, CreateMaxEcmpMembers) {
   verifyAcrossWarmBoots(setup, [] {});
 }
 
+TEST_F(AgentEcmpTest, CreateMaxUcmpMembers) {
+  const auto kMaxUcmpMembers =
+      utility::getMaxUcmpMembers(getAgentEnsemble()->getL3Asics());
+
+  auto setup = [&]() {
+    utility::EcmpSetupTargetedPorts6 ecmpHelper(getProgrammedState());
+    std::vector<PortID> portIds = masterLogicalInterfacePortIds();
+    std::vector<PortDescriptor> portDescriptorIds;
+    std::vector<RoutePrefixV6> prefixes;
+    std::vector<std::vector<PortDescriptor>> allCombinations;
+    std::vector<std::vector<NextHopWeight>> swWeights;
+    for (auto& portId : portIds) {
+      portDescriptorIds.emplace_back(portId);
+    }
+    applyNewState([&portDescriptorIds,
+                   &ecmpHelper](const std::shared_ptr<SwitchState>& in) {
+      return ecmpHelper.resolveNextHops(
+          in,
+          flat_set<PortDescriptor>(
+              std::make_move_iterator(portDescriptorIds.begin()),
+              std::make_move_iterator(portDescriptorIds.end())));
+    });
+    if (isSupportedOnAllAsics(HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER)) {
+      allCombinations =
+          utility::generateEcmpMemberScale(portDescriptorIds, kMaxUcmpMembers);
+      utility::assignUcmpWeights(allCombinations, swWeights);
+    } else {
+      allCombinations =
+          utility::generateEcmpMemberScale(portDescriptorIds, kMaxUcmpMembers);
+      allCombinations = utility::getUcmpMembersAndWeight(
+          allCombinations, swWeights, kMaxUcmpMembers);
+    }
+
+    std::vector<flat_set<PortDescriptor>> nhopSets;
+    for (auto& combination : allCombinations) {
+      nhopSets.emplace_back(combination.begin(), combination.end());
+    }
+    std::generate_n(
+        std::back_inserter(prefixes), nhopSets.size(), [i = 0]() mutable {
+          return RoutePrefixV6{
+              folly::IPAddressV6(folly::to<std::string>(2401, "::", i++)), 128};
+        });
+    auto wrapper = getSw()->getRouteUpdater();
+    ecmpHelper.programRoutes(&wrapper, nhopSets, prefixes, swWeights);
+  };
+  verifyAcrossWarmBoots(setup, [] {});
+}
 } // namespace facebook::fboss
