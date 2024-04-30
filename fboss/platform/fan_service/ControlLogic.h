@@ -12,14 +12,11 @@ struct SensorReadCache {
   float lastReadValue{0};
   float targetPwmCache{0};
   uint64_t lastUpdatedTime;
-  bool enabled{false};
   bool soakStarted{false};
-  uint64_t sensorAccessLostAt;
   bool sensorFailed{false};
   bool minorAlarmTriggered{false};
   bool majorAlarmTriggered{false};
   uint64_t soakStartedAt;
-  int32_t invalidRangeCheckCount{0};
 };
 
 struct PwmCalcCache {
