@@ -100,8 +100,6 @@ class MultiHwSwitchHandler {
 
   std::vector<PortID> getSwitchReachability(SwitchID switchId);
 
-  std::string getDebugDump();
-
   bool needL2EntryForNeighbor(const cfg::SwitchConfig* config) const;
 
   // For test purpose

@@ -114,8 +114,6 @@ class HwSwitchHandler {
   virtual std::vector<PortID> getSwitchReachability(
       SwitchID switchId) const = 0;
 
-  virtual std::string getDebugDump() const = 0;
-
   virtual bool needL2EntryForNeighbor(
       const cfg::SwitchConfig* config) const = 0;
 

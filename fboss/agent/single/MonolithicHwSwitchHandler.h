@@ -114,7 +114,7 @@ class MonolithicHwSwitchHandler : public HwSwitchHandler {
 
   std::vector<PortID> getSwitchReachability(SwitchID switchId) const override;
 
-  std::string getDebugDump() const override;
+  std::string getDebugDump() const;
 
   void fetchL2Table(std::vector<L2EntryThrift>* l2Table) const;
 

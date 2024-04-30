@@ -114,10 +114,6 @@ std::vector<PortID> MultiSwitchHwSwitchHandler::getSwitchReachability(
   return std::vector<PortID>();
 }
 
-std::string MultiSwitchHwSwitchHandler::getDebugDump() const {
-  throw FbossError("getDebugDump not implemented");
-}
-
 FabricReachabilityStats MultiSwitchHwSwitchHandler::getFabricReachabilityStats()
     const {
   // TODO: implement this

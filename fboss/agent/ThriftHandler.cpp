@@ -2699,7 +2699,11 @@ void ThriftHandler::getMplsRouteDetails(
 void ThriftHandler::getHwDebugDump(std::string& out) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  out = sw_->getHwSwitchHandler()->getDebugDump();
+  if (sw_->isRunModeMonolithic()) {
+    out = sw_->getMonolithicHwSwitchHandler()->getDebugDump();
+  } else {
+    throw FbossError("getHwDebugDump is not supported onmulti switch");
+  }
 }
 
 void ThriftHandler::getPlatformMapping(cfg::PlatformMapping& ret) {

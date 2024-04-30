@@ -283,12 +283,6 @@ std::vector<PortID> MultiHwSwitchHandler::getSwitchReachability(
   return hwSwitchSyncers_.begin()->second->getSwitchReachability(switchId);
 }
 
-std::string MultiHwSwitchHandler::getDebugDump() {
-  // TODO - support with multiple switches
-  CHECK_EQ(hwSwitchSyncers_.size(), 1);
-  return hwSwitchSyncers_.begin()->second->getDebugDump();
-}
-
 bool MultiHwSwitchHandler::needL2EntryForNeighbor(
     const cfg::SwitchConfig* config) const {
   for (auto& entry : hwSwitchSyncers_) {

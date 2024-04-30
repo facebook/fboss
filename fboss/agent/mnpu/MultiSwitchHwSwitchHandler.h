@@ -68,8 +68,6 @@ class MultiSwitchHwSwitchHandler : public HwSwitchHandler {
 
   std::vector<PortID> getSwitchReachability(SwitchID switchId) const override;
 
-  std::string getDebugDump() const override;
-
   bool needL2EntryForNeighbor(const cfg::SwitchConfig* config) const override;
 
   multiswitch::StateOperDelta getNextStateOperDelta(
