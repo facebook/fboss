@@ -178,26 +178,18 @@ class HwPfcTest : public HwTest {
     verifyAcrossWarmBoots(setup, verify);
   }
 
-  // Test to verify PFC watchdog is not configured in HW
-  void runPfcWatchdogNotConfiguredTest() {
-    auto setup = [=, this]() {
-      auto currentConfig = initialConfig();
-      setupPfc(currentConfig, masterLogicalInterfacePortIds()[0], true, true);
-    };
+  // Verify PFC watchdog is not configured in HW
+  void verifyPfcWatchdogNotConfigured() {
+    auto currentConfig = initialConfig();
+    setupPfc(currentConfig, masterLogicalInterfacePortIds()[0], true, true);
+    cfg::PfcWatchdog defaultPfcWatchdogConfig{};
 
-    auto verify = [=, this]() {
-      cfg::PfcWatchdog defaultPfcWatchdogConfig{};
-
-      XLOG(DBG0)
-          << "Verify PFC watchdog is disabled by default on enabling PFC";
-      utility::pfcWatchdogProgrammingMatchesConfig(
-          getHwSwitch(),
-          masterLogicalInterfacePortIds()[0],
-          false,
-          defaultPfcWatchdogConfig);
-    };
-
-    verifyAcrossWarmBoots(setup, verify);
+    XLOG(DBG0) << "Verify PFC watchdog is disabled by default on enabling PFC";
+    utility::pfcWatchdogProgrammingMatchesConfig(
+        getHwSwitch(),
+        masterLogicalInterfacePortIds()[0],
+        false,
+        defaultPfcWatchdogConfig);
   }
 
   // Setup and apply the new config with passed in PFC configurations
@@ -300,10 +292,6 @@ TEST_F(HwPfcTest, PfcRxEnabledTxEnabled) {
   runPfcTest(true, true);
 }
 
-TEST_F(HwPfcTest, PfcWatchdogDefaultProgramming) {
-  runPfcWatchdogNotConfiguredTest();
-}
-
 TEST_F(HwPfcTest, PfcWatchdogProgramming) {
   cfg::PfcWatchdog pfcWatchdogConfig{};
   initalizePfcConfigWatchdogValues(
@@ -316,6 +304,9 @@ TEST_F(HwPfcTest, PfcWatchdogProgrammingSequence) {
   auto setup = [&]() { setupBaseConfig(); };
 
   auto verify = [&]() {
+    // Make sure that we start with no PFC configured
+    verifyPfcWatchdogNotConfigured();
+
     bool pfcRx = false;
     bool pfcTx = false;
     cfg::PfcWatchdog pfcWatchdogConfig{};
