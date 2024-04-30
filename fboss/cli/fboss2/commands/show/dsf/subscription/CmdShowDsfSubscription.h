@@ -38,17 +38,28 @@ class CmdShowDsfSubscription
         utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
     std::vector<facebook::fboss::FsdbSubscriptionThrift> subscriptions;
     client->sync_getDsfSubscriptions(subscriptions);
-    return createModel(subscriptions);
+    std::vector<facebook::fboss::DsfSessionThrift> sessions;
+    client->sync_getDsfSessions(sessions);
+    return createModel(subscriptions, sessions);
   }
 
   RetType createModel(
-      std::vector<facebook::fboss::FsdbSubscriptionThrift> subscriptions) {
+      const std::vector<facebook::fboss::FsdbSubscriptionThrift>& subscriptions,
+      const std::vector<facebook::fboss::DsfSessionThrift>& sessions) {
     RetType model;
 
+    std::map<std::string, DsfSessionThrift> remoteNode2DsfSession;
+    std::for_each(
+        sessions.begin(),
+        sessions.end(),
+        [&remoteNode2DsfSession](const auto& session) {
+          remoteNode2DsfSession[*session.remoteName()] = session;
+        });
     for (const auto& subscriptionThrift : subscriptions) {
       cli::Subscription subscription;
       subscription.name() = *subscriptionThrift.name();
-      subscription.state() = *subscriptionThrift.state();
+      subscription.state() = apache::thrift::util::enumNameSafe(
+          *remoteNode2DsfSession.find(*subscription.name())->second.state());
       subscription.paths() = *subscriptionThrift.paths();
       model.subscriptions()->push_back(subscription);
     }
