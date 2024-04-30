@@ -236,38 +236,37 @@ void ControlLogic::updateTargetPwm(const Sensor& sensor) {
 }
 
 void ControlLogic::getSensorUpdate() {
-  std::string sensorItemName;
   float rawValue = 0.0, adjustedValue;
   uint64_t calculatedTime = 0;
   for (auto& sensor : *config_.sensors()) {
     XLOG(INFO) << "Control :: Sensor Name : " << *sensor.sensorName();
     bool sensorAccessFail = false;
-    sensorItemName = *sensor.sensorName();
-    if (pSensor_->checkIfEntryExists(sensorItemName)) {
+    const auto sensorName = *sensor.sensorName();
+    if (pSensor_->checkIfEntryExists(sensorName)) {
       XLOG(INFO) << "Control :: Sensor Exists. Getting the entry type";
       // 1.a Get the reading
-      SensorEntryType entryType = pSensor_->getSensorEntryType(sensorItemName);
+      SensorEntryType entryType = pSensor_->getSensorEntryType(sensorName);
       switch (entryType) {
         case SensorEntryType::kSensorEntryInt:
-          rawValue = pSensor_->getSensorDataInt(sensorItemName);
+          rawValue = pSensor_->getSensorDataInt(sensorName);
           rawValue = rawValue / *sensor.scale();
           break;
         case SensorEntryType::kSensorEntryFloat:
-          rawValue = pSensor_->getSensorDataFloat(sensorItemName);
+          rawValue = pSensor_->getSensorDataFloat(sensorName);
           rawValue = rawValue / *sensor.scale();
           break;
         default:
           facebook::fboss::FbossError(
-              "Invalid Sensor Entry Type in entry name : ", sensorItemName);
+              "Invalid Sensor Entry Type in entry name : ", sensorName);
           break;
       }
     } else {
-      XLOG(ERR) << "Control :: Sensor Read Fail : " << sensorItemName;
+      XLOG(INFO) << "Control :: Sensor Read Fail : " << sensorName;
       sensorAccessFail = true;
     }
     XLOG(INFO) << "Control :: Done raw sensor reading";
 
-    auto& readCache = sensorReadCaches_[sensorItemName];
+    auto& readCache = sensorReadCaches_[sensorName];
 
     if (sensorAccessFail) {
       // If the sensor data cache is stale for a while, we consider it as the
@@ -279,7 +278,7 @@ void ControlLogic::getSensorUpdate() {
         numSensorFailed_++;
       }
     } else {
-      calculatedTime = pSensor_->getLastUpdated(sensorItemName);
+      calculatedTime = pSensor_->getLastUpdated(sensorName);
       readCache.lastUpdatedTime = calculatedTime;
       readCache.sensorFailed = false;
     }
@@ -294,11 +293,11 @@ void ControlLogic::getSensorUpdate() {
         (adjustedValue >= *sensor.alarm()->highMajor());
     // If major alarm was triggered, write it as a ERR log
     if (!prevMajorAlarm && readCache.majorAlarmTriggered) {
-      XLOG(ERR) << "Major Alarm Triggered on " << *sensor.sensorName()
-                << " at value " << adjustedValue;
+      XLOG(ERR) << "Major Alarm Triggered on " << sensorName << " at value "
+                << adjustedValue;
     } else if (prevMajorAlarm && !readCache.majorAlarmTriggered) {
-      XLOG(WARN) << "Major Alarm Cleared on " << *sensor.sensorName()
-                 << " at value " << adjustedValue;
+      XLOG(WARN) << "Major Alarm Cleared on " << sensorName << " at value "
+                 << adjustedValue;
     }
     bool prevMinorAlarm = readCache.minorAlarmTriggered;
     if (adjustedValue >= *sensor.alarm()->highMinor()) {
@@ -319,18 +318,18 @@ void ControlLogic::getSensorUpdate() {
     }
     // If minor alarm was triggered, write it as a WARN log
     if (!prevMinorAlarm && readCache.minorAlarmTriggered) {
-      XLOG(WARN) << "Minor Alarm Triggered on " << *sensor.sensorName()
-                 << " at value " << adjustedValue;
+      XLOG(WARN) << "Minor Alarm Triggered on " << sensorName << " at value "
+                 << adjustedValue;
     }
     if (prevMinorAlarm && !readCache.minorAlarmTriggered) {
-      XLOG(WARN) << "Minor Alarm Cleared on " << *sensor.sensorName()
-                 << " at value " << adjustedValue;
+      XLOG(WARN) << "Minor Alarm Cleared on " << sensorName << " at value "
+                 << adjustedValue;
     }
     // 1.c Calculate the target pwm in percent
     //     (the table or incremental pid should produce
     //      percent as its output)
     updateTargetPwm(sensor);
-    XLOG(INFO) << *sensor.sensorName() << " has the target PWM of "
+    XLOG(INFO) << sensorName << " has the target PWM of "
                << readCache.targetPwmCache;
   }
 }
