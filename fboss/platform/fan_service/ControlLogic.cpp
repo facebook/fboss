@@ -53,7 +53,7 @@ ControlLogic::ControlLogic(
     const FanServiceConfig& config,
     std::shared_ptr<Bsp> pB)
     : config_(config),
-      pBsp_(pB),
+      pBsp_(std::move(pB)),
       lastControlUpdateSec_(pBsp_->getCurrentTime()) {}
 
 std::tuple<bool, int, uint64_t> ControlLogic::readFanRpm(const Fan& fan) {
@@ -229,14 +229,13 @@ void ControlLogic::updateTargetPwm(const Sensor& sensor) {
 }
 
 void ControlLogic::getSensorUpdate() {
-  float readValue{0};
-  uint64_t calculatedTime = 0;
-  for (auto& sensor : *config_.sensors()) {
+  for (const auto& sensor : *config_.sensors()) {
     bool sensorAccessFail = false;
     const auto sensorName = *sensor.sensorName();
     auto& readCache = sensorReadCaches_[sensorName];
 
     // STEP 1: Get reading.
+    float readValue{0};
     if (pSensor_->checkIfEntryExists(sensorName)) {
       SensorEntryType entryType = pSensor_->getSensorEntryType(sensorName);
       switch (entryType) {
@@ -273,48 +272,11 @@ void ControlLogic::getSensorUpdate() {
         numSensorFailed_++;
       }
     } else {
-      calculatedTime = pSensor_->getLastUpdated(sensorName);
-      readCache.lastUpdatedTime = calculatedTime;
+      readCache.lastUpdatedTime = pSensor_->getLastUpdated(sensorName);
       readCache.sensorFailed = false;
     }
 
-    // STEP 2: Check alarm thresholds
-    bool prevMajorAlarm = readCache.majorAlarmTriggered;
-    readCache.majorAlarmTriggered = (readValue >= *sensor.alarm()->highMajor());
-    if (!prevMajorAlarm && readCache.majorAlarmTriggered) {
-      XLOG(ERR) << "Major Alarm Triggered on " << sensorName << " at value "
-                << readValue;
-    } else if (prevMajorAlarm && !readCache.majorAlarmTriggered) {
-      XLOG(WARN) << "Major Alarm Cleared on " << sensorName << " at value "
-                 << readValue;
-    }
-    bool prevMinorAlarm = readCache.minorAlarmTriggered;
-    if (readValue >= *sensor.alarm()->highMinor()) {
-      if (readCache.soakStarted) {
-        uint64_t timeDiffInSec =
-            pBsp_->getCurrentTime() - readCache.soakStartedAt;
-        if (timeDiffInSec >= *sensor.alarm()->minorSoakSeconds()) {
-          readCache.minorAlarmTriggered = true;
-          readCache.soakStarted = false;
-        }
-      } else {
-        readCache.soakStarted = true;
-        readCache.soakStartedAt = calculatedTime;
-      }
-    } else {
-      readCache.minorAlarmTriggered = false;
-      readCache.soakStarted = false;
-    }
-    if (!prevMinorAlarm && readCache.minorAlarmTriggered) {
-      XLOG(WARN) << "Minor Alarm Triggered on " << sensorName << " at value "
-                 << readValue;
-    }
-    if (prevMinorAlarm && !readCache.minorAlarmTriggered) {
-      XLOG(WARN) << "Minor Alarm Cleared on " << sensorName << " at value "
-                 << readValue;
-    }
-
-    // STEP 3: Calculate target pwm
+    // STEP 2: Calculate target pwm
     updateTargetPwm(sensor);
   }
 }
