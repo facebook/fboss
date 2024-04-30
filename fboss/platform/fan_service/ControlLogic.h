@@ -9,7 +9,7 @@
 namespace facebook::fboss::platform::fan_service {
 
 struct SensorReadCache {
-  float adjustedReadCache{0};
+  float lastReadValue{0};
   float targetPwmCache{0};
   uint64_t lastUpdatedTime;
   bool enabled{false};

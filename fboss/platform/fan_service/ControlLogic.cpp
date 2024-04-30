@@ -162,7 +162,7 @@ void ControlLogic::updateTargetPwm(const Sensor& sensor) {
 
   if (pwmCalcType == constants::SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE()) {
     previousSensorValue = pwmCalcCache.previousSensorRead;
-    sensorValue = readCache.adjustedReadCache;
+    sensorValue = readCache.lastReadValue;
     deadFanExists = (numFanFailed_ > 0);
     accelerate =
         ((previousSensorValue == 0) || (sensorValue > previousSensorValue));
@@ -199,7 +199,7 @@ void ControlLogic::updateTargetPwm(const Sensor& sensor) {
   if (pwmCalcType == constants::SENSOR_PWM_CALC_TYPE_INCREMENT_PID()) {
     targetPwm = calculateIncrementalPid(
         *sensor.sensorName(),
-        readCache.adjustedReadCache,
+        readCache.lastReadValue,
         readCache,
         pwmCalcCache,
         *sensor.kp(),
@@ -212,7 +212,7 @@ void ControlLogic::updateTargetPwm(const Sensor& sensor) {
     dT = pBsp_->getCurrentTime() - lastControlUpdateSec_;
     targetPwm = calculatePid(
         *sensor.sensorName(),
-        readCache.adjustedReadCache,
+        readCache.lastReadValue,
         readCache,
         pwmCalcCache,
         *sensor.kp(),
@@ -235,30 +235,33 @@ void ControlLogic::updateTargetPwm(const Sensor& sensor) {
 }
 
 void ControlLogic::getSensorUpdate() {
-  float rawValue = 0.0, adjustedValue;
+  float readValue{0};
   uint64_t calculatedTime = 0;
   for (auto& sensor : *config_.sensors()) {
     bool sensorAccessFail = false;
     const auto sensorName = *sensor.sensorName();
+    auto& readCache = sensorReadCaches_[sensorName];
+
     // STEP 1: Get reading.
     if (pSensor_->checkIfEntryExists(sensorName)) {
       SensorEntryType entryType = pSensor_->getSensorEntryType(sensorName);
       switch (entryType) {
         case SensorEntryType::kSensorEntryInt:
-          rawValue = pSensor_->getSensorDataInt(sensorName);
-          rawValue = rawValue / *sensor.scale();
+          readValue = pSensor_->getSensorDataInt(sensorName);
+          readValue = readValue / *sensor.scale();
           break;
         case SensorEntryType::kSensorEntryFloat:
-          rawValue = pSensor_->getSensorDataFloat(sensorName);
-          rawValue = rawValue / *sensor.scale();
+          readValue = pSensor_->getSensorDataFloat(sensorName);
+          readValue = readValue / *sensor.scale();
           break;
         default:
           facebook::fboss::FbossError(
               "Invalid Sensor Entry Type in entry name : ", sensorName);
           break;
       }
+      readCache.lastReadValue = readValue;
       XLOG(ERR) << fmt::format(
-          "{}: Sensor raw value is {}", sensorName, rawValue);
+          "{}: Sensor read value (after scaling) is {}", sensorName, readValue);
     } else {
       XLOG(INFO) << fmt::format(
           "{}: Failure to get data (either wrong entry or read failure)",
@@ -266,7 +269,6 @@ void ControlLogic::getSensorUpdate() {
       sensorAccessFail = true;
     }
 
-    auto& readCache = sensorReadCaches_[sensorName];
     if (sensorAccessFail) {
       // If the sensor data cache is stale for a while, we consider it as the
       // failure of such sensor
@@ -281,24 +283,19 @@ void ControlLogic::getSensorUpdate() {
       readCache.lastUpdatedTime = calculatedTime;
       readCache.sensorFailed = false;
     }
-    adjustedValue = rawValue;
-    readCache.adjustedReadCache = adjustedValue;
-    XLOG(INFO) << fmt::format(
-        "{}: Adjusted value is {}", sensorName, adjustedValue);
 
     // STEP 2: Check alarm thresholds
     bool prevMajorAlarm = readCache.majorAlarmTriggered;
-    readCache.majorAlarmTriggered =
-        (adjustedValue >= *sensor.alarm()->highMajor());
+    readCache.majorAlarmTriggered = (readValue >= *sensor.alarm()->highMajor());
     if (!prevMajorAlarm && readCache.majorAlarmTriggered) {
       XLOG(ERR) << "Major Alarm Triggered on " << sensorName << " at value "
-                << adjustedValue;
+                << readValue;
     } else if (prevMajorAlarm && !readCache.majorAlarmTriggered) {
       XLOG(WARN) << "Major Alarm Cleared on " << sensorName << " at value "
-                 << adjustedValue;
+                 << readValue;
     }
     bool prevMinorAlarm = readCache.minorAlarmTriggered;
-    if (adjustedValue >= *sensor.alarm()->highMinor()) {
+    if (readValue >= *sensor.alarm()->highMinor()) {
       if (readCache.soakStarted) {
         uint64_t timeDiffInSec =
             pBsp_->getCurrentTime() - readCache.soakStartedAt;
@@ -316,11 +313,11 @@ void ControlLogic::getSensorUpdate() {
     }
     if (!prevMinorAlarm && readCache.minorAlarmTriggered) {
       XLOG(WARN) << "Minor Alarm Triggered on " << sensorName << " at value "
-                 << adjustedValue;
+                 << readValue;
     }
     if (prevMinorAlarm && !readCache.minorAlarmTriggered) {
       XLOG(WARN) << "Minor Alarm Cleared on " << sensorName << " at value "
-                 << adjustedValue;
+                 << readValue;
     }
 
     // STEP 3: Calculate target pwm
