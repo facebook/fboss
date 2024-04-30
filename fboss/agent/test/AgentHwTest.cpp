@@ -360,7 +360,7 @@ cfg::SwitchConfig AgentHwTest::addCoppConfig(
       asic->getQueueStreamTypes(cfg::PortType::CPU_PORT);
   utility::setDefaultCpuTrafficPolicyConfig(
       config, ensemble.getL3Asics(), ensemble.isSai());
-  utility::addCpuQueueConfig(config, asic, ensemble.isSai());
+  utility::addCpuQueueConfig(config, ensemble.getL3Asics(), ensemble.isSai());
   return config;
 }
 

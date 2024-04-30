@@ -25,7 +25,7 @@ void addProdFeaturesToConfig(
   /*
    * Configures port queue for cpu port
    */
-  utility::addCpuQueueConfig(config, hwAsic, isSai);
+  utility::addCpuQueueConfig(config, {hwAsic}, isSai);
   if (hwAsic->isSupported(HwAsic::Feature::L3_QOS)) {
     /*
      * Enable Olympic QOS

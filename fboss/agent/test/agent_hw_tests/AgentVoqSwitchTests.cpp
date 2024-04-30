@@ -41,7 +41,8 @@ class AgentVoqSwitchTest : public AgentHwTest {
               cpuStreamType, cfg::PortType::CPU_PORT)) {
         // cpu queues supported
         addCpuTrafficPolicy(config, asic);
-        utility::addCpuQueueConfig(config, asic, ensemble.isSai());
+        utility::addCpuQueueConfig(
+            config, ensemble.getL3Asics(), ensemble.isSai());
         break;
       }
     }

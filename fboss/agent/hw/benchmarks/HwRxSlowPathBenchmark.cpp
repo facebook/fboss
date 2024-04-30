@@ -47,11 +47,6 @@ BENCHMARK(RxSlowPathBenchmark) {
     std::vector<PortID> ports = {
         ensemble.masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0]};
 
-    // Before m-mpu agent test, use first Asic for initialization.
-    auto switchIds = ensemble.getSw()->getHwAsicTable()->getSwitchIDs();
-    CHECK_GE(switchIds.size(), 1);
-    auto asic =
-        ensemble.getSw()->getHwAsicTable()->getHwAsic(*switchIds.cbegin());
     // For J2 and J3, initialize recycle port as well to allow l3 lookup on
     // recycle port
     if (ensemble.getSw()->getHwAsicTable()->isFeatureSupportedOnAllAsic(
@@ -66,7 +61,7 @@ BENCHMARK(RxSlowPathBenchmark) {
     // We don't want to set queue rate that limits the number of rx pkts
     utility::addCpuQueueConfig(
         config,
-        asic,
+        ensemble.getL3Asics(),
         ensemble.isSai(),
         /* setQueueRate */ false);
     auto trapDstIp = folly::CIDRNetwork{kDstIp, 128};

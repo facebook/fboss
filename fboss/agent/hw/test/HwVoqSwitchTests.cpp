@@ -61,7 +61,9 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
             getHwSwitchEnsemble()->getL3Asics(),
             getHwSwitchEnsemble()->isSai());
         utility::addCpuQueueConfig(
-            cfg, getAsic(), getHwSwitchEnsemble()->isSai());
+            cfg,
+            getHwSwitchEnsemble()->getL3Asics(),
+            getHwSwitchEnsemble()->isSai());
         break;
       }
     }

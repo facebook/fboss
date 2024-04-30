@@ -198,7 +198,7 @@ cfg::SwitchConfig createProdRtswConfig(
       uplinks,
       downlinks);
 
-  addCpuQueueConfig(config, hwAsic, ensemble->isSai());
+  addCpuQueueConfig(config, ensemble->getL3Asics(), ensemble->isSai());
 
   if (hwAsic->isSupported(HwAsic::Feature::L3_QOS)) {
     addNetworkAIQosToConfig(config, hwSwitch);
@@ -251,7 +251,7 @@ cfg::SwitchConfig createProdRswConfig(
       downlinkSpeed,
       hwAsic->desiredLoopbackModes());
 
-  addCpuQueueConfig(config, hwAsic, isSai);
+  addCpuQueueConfig(config, asics, isSai);
 
   if (hwAsic->isSupported(HwAsic::Feature::L3_QOS)) {
     addOlympicQosToConfig(config, hwAsic, enableStrictPriority);
@@ -311,7 +311,7 @@ cfg::SwitchConfig createProdFswConfig(
       downlinkSpeed,
       hwAsic->desiredLoopbackModes());
 
-  addCpuQueueConfig(config, hwAsic, isSai);
+  addCpuQueueConfig(config, {hwAsic}, isSai);
   if (hwAsic->isSupported(HwAsic::Feature::L3_QOS)) {
     addOlympicQosToConfig(config, hwAsic, enableStrictPriority);
   }
@@ -363,7 +363,7 @@ cfg::SwitchConfig createProdRswMhnicConfig(
       downlinkSpeed,
       hwAsic->desiredLoopbackModes());
 
-  addCpuQueueConfig(config, hwAsic, isSai);
+  addCpuQueueConfig(config, {hwAsic}, isSai);
   setDefaultCpuTrafficPolicyConfig(
       config, std::vector<const HwAsic*>({hwAsic}), isSai);
   if (hwAsic->isSupported(HwAsic::Feature::L3_QOS)) {

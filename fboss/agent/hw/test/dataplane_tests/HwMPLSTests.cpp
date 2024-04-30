@@ -153,7 +153,9 @@ class HwMPLSTest : public HwLinkStateDependentTest {
         getHwSwitchEnsemble()->getL3Asics(),
         getHwSwitchEnsemble()->isSai());
     utility::addCpuQueueConfig(
-        config, getAsic(), getHwSwitchEnsemble()->isSai());
+        config,
+        getHwSwitchEnsemble()->getL3Asics(),
+        getHwSwitchEnsemble()->isSai());
 
     utility::addTrapPacketAcl(&config, masterLogicalPortIds()[0]);
     return config;

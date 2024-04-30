@@ -214,9 +214,10 @@ cfg::PortQueueRate setPortQueueRate(const HwAsic* hwAsic, uint16_t queueId) {
 
 void addCpuQueueConfig(
     cfg::SwitchConfig& config,
-    const HwAsic* hwAsic,
+    const std::vector<const HwAsic*>& asics,
     bool isSai,
     bool setQueueRate) {
+  auto hwAsic = checkSameAndGetAsic(asics);
   std::vector<cfg::PortQueue> cpuQueues;
 
   cfg::PortQueue queue0;

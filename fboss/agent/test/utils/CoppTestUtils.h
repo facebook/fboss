@@ -68,7 +68,7 @@ constexpr uint16_t kNonSpecialPort2 = 60001;
 // For benchmark tests, we don't want to set queue rate for low priority queues.
 void addCpuQueueConfig(
     cfg::SwitchConfig& config,
-    const HwAsic* hwAsic,
+    const std::vector<const HwAsic*>& asics,
     bool isSai,
     bool setQueueRate = true);
 

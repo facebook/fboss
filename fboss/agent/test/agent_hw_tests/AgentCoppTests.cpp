@@ -89,7 +89,6 @@ class AgentCoppTest : public AgentHwTest {
       return getTrunkInitialConfig(ensemble);
     }
 
-    auto asic = utility::getFirstAsic(ensemble.getSw());
     auto cfg = utility::onePortPerInterfaceConfig(
         ensemble.getSw(),
         ensemble.masterLogicalPortIds(),
@@ -98,7 +97,7 @@ class AgentCoppTest : public AgentHwTest {
     utility::addOlympicQosMaps(cfg, ensemble.getL3Asics());
     utility::setDefaultCpuTrafficPolicyConfig(
         cfg, ensemble.getL3Asics(), ensemble.isSai());
-    utility::addCpuQueueConfig(cfg, asic, ensemble.isSai());
+    utility::addCpuQueueConfig(cfg, ensemble.getL3Asics(), ensemble.isSai());
     return cfg;
   }
 
@@ -113,7 +112,7 @@ class AgentCoppTest : public AgentHwTest {
         asic->desiredLoopbackModes());
     utility::setDefaultCpuTrafficPolicyConfig(
         cfg, ensemble.getL3Asics(), ensemble.isSai());
-    utility::addCpuQueueConfig(cfg, asic, ensemble.isSai());
+    utility::addCpuQueueConfig(cfg, ensemble.getL3Asics(), ensemble.isSai());
     utility::addAggPort(
         1,
         {ensemble.masterLogicalPortIds()[0],

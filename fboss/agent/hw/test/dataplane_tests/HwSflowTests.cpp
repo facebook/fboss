@@ -29,7 +29,9 @@ class HwSflowTest : public HwLinkStateDependentTest {
         getHwSwitchEnsemble()->getL3Asics(),
         getHwSwitchEnsemble()->isSai());
     utility::addCpuQueueConfig(
-        cfg, this->getAsic(), getHwSwitchEnsemble()->isSai());
+        cfg,
+        getHwSwitchEnsemble()->getL3Asics(),
+        getHwSwitchEnsemble()->isSai());
     return cfg;
   }
 

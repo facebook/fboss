@@ -219,7 +219,7 @@ class MultiNodeOpenrTest : public MultiNodeTest {
         std::vector<const HwAsic*>({platform()->getAsic()}),
         platform()->isSai());
     utility::addCpuQueueConfig(
-        config, platform()->getAsic(), platform()->isSai());
+        config, {platform()->getAsic()}, platform()->isSai());
 
     return config;
   }
