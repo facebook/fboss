@@ -1,7 +1,11 @@
+from typing import List
+
 from fboss.platform.bsp_tests.test_runner import TestBase
 
 
 class TestKmods(TestBase):
+    kmods: List[str] = []
+
     @classmethod
     def setup_class(cls):
         super().setup_class()

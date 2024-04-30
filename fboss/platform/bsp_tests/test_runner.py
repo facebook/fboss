@@ -1,23 +1,27 @@
 import argparse
-import json
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 import pkg_resources
 import pytest
+from dataclasses_json import dataclass_json
+
+from fboss.platform.bsp_tests.cdev_types import FpgaSpec
 
 
+@dataclass_json
 @dataclass
 class Config:
     platform: str
     kmods: List[str]
+    fpgas: List[FpgaSpec]
 
 
-CONFIG = None
+CONFIG: Optional[Config] = None
 
-PLATFORMS = ["meru800bia"]
+PLATFORMS = ["meru800bia", "meru800bfa"]
 
 
 def parse_args():
@@ -31,8 +35,8 @@ def set_config(args):
     global CONFIG
     if args.config_file:
         with open(Path(args.config_file), "r") as f:
-            data = json.load(f)
-        CONFIG = Config(**data)
+            json_string = f.read()
+        CONFIG = Config.from_json(json_string)
         return
 
     if args.platform not in PLATFORMS:
@@ -41,12 +45,10 @@ def set_config(args):
         )
 
     # Use config file from the directory
-    data = json.loads(
-        pkg_resources.resource_string(__name__, f"configs/{args.platform}.json").decode(
-            "utf-8"
-        )
-    )
-    CONFIG = Config(**data)
+    json_string = pkg_resources.resource_string(
+        __name__, f"configs/{args.platform}.json"
+    ).decode("utf-8")
+    CONFIG = Config.from_json(json_string)
     return
 
 
@@ -57,9 +59,16 @@ def get_config():
 
 
 class TestBase:
+    kmods: List[str] = []
+
     @classmethod
     def setup_class(cls):
         cls.config = get_config()
+        cls.kmods = cls.config.kmods
+
+    def load_kmods(self) -> None:
+        for kmod in self.kmods:
+            self.check_cmd(["modprobe", kmod])
 
     def run_cmd(self, cmd, **kwargs):
         result = subprocess.run(cmd, **kwargs)

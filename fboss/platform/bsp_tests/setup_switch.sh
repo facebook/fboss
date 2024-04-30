@@ -50,4 +50,4 @@ fi
 hostname=${POSITIONAL_ARGS[0]}
 
 ssh "root@$hostname" "mkdir -p /tmp/bsp_tests/"
-scp ./tests/* "root@$hostname:/tmp/bsp_tests/"
+scp $HOME/fbsource/fbcode/fboss/platform/bsp_tests/tests/* "root@$hostname:/tmp/bsp_tests/"

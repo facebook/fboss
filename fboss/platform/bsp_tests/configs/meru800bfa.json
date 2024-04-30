@@ -1,0 +1,60 @@
+{
+    "platform": "merubfa",
+    "kmods": [
+        "scd",
+        "scd-spi",
+        "scd-leds",
+        "scd-xcvr",
+        "scd-smbus",
+        "dsf-fan-cpld",
+        "decker_cpld"
+    ],
+    "fpgas": [
+        {
+            "name": "SMB_FPGA0",
+            "vendorId": "0x3475",
+            "deviceId": "0x0001",
+            "subSystemVendorId": "0x3475",
+            "subSystemDeviceId": "0x0004",
+            "testAuxDevices": [
+                {
+                    "deviceName": "osfp_led",
+                    "type": "LED",
+                    "csrOffset": "0x6100",
+                    "ledInfo": {
+                        "portNumber": 1,
+                        "ledId": 1
+                    }
+                }
+            ]
+        },
+        {
+            "name": "SMB_FPGA1",
+            "vendorId": "0x3475",
+            "deviceId": "0x0001",
+            "subSystemVendorId": "0x3475",
+            "subSystemDeviceId": "0x0005"
+        },
+        {
+            "name": "SMB_FPGA2",
+            "vendorId": "0x3475",
+            "deviceId": "0x0001",
+            "subSystemVendorId": "0x3475",
+            "subSystemDeviceId": "0x0006"
+        },
+        {
+            "name": "SMB_FPGA3",
+            "vendorId": "0x3475",
+            "deviceId": "0x0001",
+            "subSystemVendorId": "0x3475",
+            "subSystemDeviceId": "0x0007"
+        },
+        {
+            "name": "SCM_FPGA",
+            "vendorId": "0x3475",
+            "deviceId": "0x0001",
+            "subSystemVendorId": "0x3475",
+            "subSystemDeviceId": "0x0008"
+        }
+    ]
+}

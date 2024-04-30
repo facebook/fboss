@@ -7,5 +7,21 @@
         "scd-xcvr",
         "scd-smbus",
         "dsf-fan-cpld"
+    ],
+    "fpgas": [
+        {
+            "name": "SMB_FPGA",
+            "vendorId": "0x3475",
+            "deviceId": "0x0001",
+            "subSystemVendorId": "0x3475",
+            "subSystemDeviceId": "0x0003"
+        },
+        {
+            "name": "SCM_FPGA",
+            "vendorId": "0x3475",
+            "deviceId": "0x0001",
+            "subSystemVendorId": "0x3475",
+            "subSystemDeviceId": "0x0008"
+        }
     ]
 }
