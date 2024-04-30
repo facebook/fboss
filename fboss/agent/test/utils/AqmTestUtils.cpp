@@ -46,7 +46,13 @@ int applyYubaFloatingPointRounding(int threshold) {
     exponent = maxExponent;
   }
 
-  return mantissa << exponent;
+  // Threshold is a rounded value based on 9-bit representation.
+  // Setting the lower bits to 1 will round up to max representable
+  // value for the given 9-bits.
+  int lower_bits = (1 << exponent) - 1;
+
+  // Add one more buffer, since q_size must be pass threshold to mark/drop
+  return ((mantissa << exponent) | lower_bits) + 1;
 }
 
 int getRoundedBufferThreshold(
