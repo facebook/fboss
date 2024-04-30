@@ -70,8 +70,6 @@ class MultiSwitchHwSwitchHandler : public HwSwitchHandler {
 
   std::string getDebugDump() const override;
 
-  void fetchL2Table(std::vector<L2EntryThrift>* l2Table) const override;
-
   std::string listObjects(const std::vector<HwObjectType>& types, bool cached)
       const override;
 

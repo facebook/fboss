@@ -289,12 +289,6 @@ std::string MultiHwSwitchHandler::getDebugDump() {
   return hwSwitchSyncers_.begin()->second->getDebugDump();
 }
 
-void MultiHwSwitchHandler::fetchL2Table(std::vector<L2EntryThrift>* l2Table) {
-  // TODO - support with multiple switches
-  CHECK_EQ(hwSwitchSyncers_.size(), 1);
-  return hwSwitchSyncers_.begin()->second->fetchL2Table(l2Table);
-}
-
 std::string MultiHwSwitchHandler::listObjects(
     const std::vector<HwObjectType>& types,
     bool cached) {

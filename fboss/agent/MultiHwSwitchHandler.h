@@ -102,8 +102,6 @@ class MultiHwSwitchHandler {
 
   std::string getDebugDump();
 
-  void fetchL2Table(std::vector<L2EntryThrift>* l2Table);
-
   std::string listObjects(const std::vector<HwObjectType>& types, bool cached);
 
   bool needL2EntryForNeighbor(const cfg::SwitchConfig* config) const;

@@ -116,8 +116,6 @@ class HwSwitchHandler {
 
   virtual std::string getDebugDump() const = 0;
 
-  virtual void fetchL2Table(std::vector<L2EntryThrift>* l2Table) const = 0;
-
   virtual std::string listObjects(
       const std::vector<HwObjectType>& types,
       bool cached) const = 0;

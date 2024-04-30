@@ -118,11 +118,6 @@ std::string MultiSwitchHwSwitchHandler::getDebugDump() const {
   throw FbossError("getDebugDump not implemented");
 }
 
-void MultiSwitchHwSwitchHandler::fetchL2Table(
-    std::vector<L2EntryThrift>* /*l2Table*/) const {
-  throw FbossError("fetchL2Table not implemented");
-}
-
 std::string MultiSwitchHwSwitchHandler::listObjects(
     const std::vector<HwObjectType>& /*types*/,
     bool /*cached*/) const {

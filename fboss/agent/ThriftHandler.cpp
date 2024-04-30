@@ -1081,7 +1081,7 @@ void ThriftHandler::getL2Table(std::vector<L2EntryThrift>& l2Table) {
           l2Table.end(), l2TableForSwitch.begin(), l2TableForSwitch.end());
     }
   } else {
-    sw_->getHwSwitchHandler()->fetchL2Table(&l2Table);
+    sw_->getMonolithicHwSwitchHandler()->fetchL2Table(&l2Table);
   }
   XLOG(DBG6) << "L2 Table size:" << l2Table.size();
 }
