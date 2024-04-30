@@ -46,6 +46,8 @@ const std::vector<folly::StringPiece>& HwPortFb303Stats::kPortStatKeys() const {
       kInAclDiscards(),
       kInTrapDiscards(),
       kOutForwardingDiscards(),
+      kPqpErrorEgressDroppedPackets(),
+      kFabricLinkDownDroppedCells(),
   };
   return kPortKeys;
 }
@@ -172,6 +174,18 @@ void HwPortFb303Stats::updateStats(
         timeRetrieved_,
         kOutForwardingDiscards(),
         *curPortStats.outForwardingDiscards_());
+  }
+  if (curPortStats.pqpErrorEgressDroppedPackets_().has_value()) {
+    updateStat(
+        timeRetrieved_,
+        kPqpErrorEgressDroppedPackets(),
+        *curPortStats.pqpErrorEgressDroppedPackets_());
+  }
+  if (curPortStats.fabricLinkDownDroppedCells_().has_value()) {
+    updateStat(
+        timeRetrieved_,
+        kFabricLinkDownDroppedCells(),
+        *curPortStats.fabricLinkDownDroppedCells_());
   }
 
   // Update queue stats

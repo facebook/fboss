@@ -283,4 +283,12 @@ inline folly::StringPiece constexpr kInCongestionDiscards() {
 inline folly::StringPiece constexpr kOutForwardingDiscards() {
   return "out_forwarding_discards";
 }
+
+inline folly::StringPiece constexpr kPqpErrorEgressDroppedPackets() {
+  return "pqp_error_egress_dropped_packets";
+}
+
+inline folly::StringPiece constexpr kFabricLinkDownDroppedCells() {
+  return "fabric_link_down_dropped_cells";
+}
 } // namespace facebook::fboss
