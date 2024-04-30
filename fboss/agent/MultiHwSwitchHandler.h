@@ -123,8 +123,6 @@ class MultiHwSwitchHandler {
 
   void fillHwAgentConnectionStatus(AgentStats& agentStats);
 
-  AclStats getAclStats();
-
  private:
   bool transactionsSupported(std::optional<cfg::SdkVersion> sdkVersion) const;
 

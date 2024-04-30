@@ -85,10 +85,6 @@ class MultiSwitchHwSwitchHandler : public HwSwitchHandler {
 
   SwitchRunState getHwSwitchRunState() override;
 
-  AclStats getAclStats() const override {
-    return AclStats();
-  }
-
  private:
   bool checkOperSyncStateLocked(
       HwSwitchOperDeltaSyncState state,

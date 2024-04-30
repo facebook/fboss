@@ -137,7 +137,7 @@ class MonolithicHwSwitchHandler : public HwSwitchHandler {
 
   void cancelOperDeltaSync() override {}
 
-  AclStats getAclStats() const override;
+  AclStats getAclStats() const;
 
   HwSwitchWatermarkStats getSwitchWatermarkStats() const;
 
