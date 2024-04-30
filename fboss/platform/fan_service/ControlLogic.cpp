@@ -58,16 +58,17 @@ ControlLogic::ControlLogic(
 
 std::tuple<bool, int, uint64_t> ControlLogic::readFanRpm(const Fan& fan) {
   std::string fanName = *fan.fanName();
-  bool fanRpmReadSuccess = false;
-  int fanRpm = 0;
-  uint64_t rpmTimeStamp = 0;
+  bool fanRpmReadSuccess{false};
+  int fanRpm{0};
+  uint64_t rpmTimeStamp{0};
   if (isFanPresentInDevice(fan)) {
     try {
       fanRpm = pBsp_->readSysfs(*fan.rpmSysfsPath());
       rpmTimeStamp = pBsp_->getCurrentTime();
       fanRpmReadSuccess = true;
     } catch (std::exception& e) {
-      XLOG(ERR) << "Fan RPM access failed " << *fan.rpmSysfsPath();
+      XLOG(ERR) << fmt::format(
+          "{}: Failed to read rpm from {}", fanName, *fan.rpmSysfsPath());
     }
   }
   fb303::fbData->setCounter(
@@ -75,8 +76,6 @@ std::tuple<bool, int, uint64_t> ControlLogic::readFanRpm(const Fan& fan) {
   if (fanRpmReadSuccess) {
     fb303::fbData->setCounter(fmt::format(kFanReadRpmValue, fanName), fanRpm);
     XLOG(INFO) << fmt::format("{}: RPM read is {}", fanName, fanRpm);
-  } else {
-    XLOG(INFO) << fmt::format("{}: Failed to read rpm", fanName);
   }
   return std::make_tuple(!fanRpmReadSuccess, fanRpm, rpmTimeStamp);
 }
