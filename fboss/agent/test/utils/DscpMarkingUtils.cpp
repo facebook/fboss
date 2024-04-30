@@ -45,7 +45,7 @@ std::string kCounterName() {
   return "dscp_counter";
 }
 
-uint8_t kIcpDscp(const HwAsic* hwAsic) {
+uint8_t kIcpDscp() {
   return utility::kOlympicQueueToDscp()
       .at(utility::getOlympicQueueId(utility::OlympicQueueType::ICP))
       .front();
@@ -74,7 +74,7 @@ void addDscpMarkingAclsHelper(
     utility::addSetDscpAndEgressQueueActionToCfg(
         config,
         l4SrcPortAclName,
-        kIcpDscp(hwAsic),
+        kIcpDscp(),
         utility::getOlympicQueueId(utility::OlympicQueueType::ICP),
         isSai);
 
@@ -83,7 +83,7 @@ void addDscpMarkingAclsHelper(
     utility::addSetDscpAndEgressQueueActionToCfg(
         config,
         l4DstPortAclName,
-        kIcpDscp(hwAsic),
+        kIcpDscp(),
         utility::getOlympicQueueId(utility::OlympicQueueType::ICP),
         isSai);
   }
@@ -101,8 +101,7 @@ void addDscpMarkingAcls(
 
 void addDscpCounterAcl(cfg::SwitchConfig* config, const HwAsic* hwAsic) {
   // Create ACL to count the number of packets with DSCP == ICP
-  utility::addDscpAclToCfg(
-      config, kDscpCounterAclName(), utility::kIcpDscp(hwAsic));
+  utility::addDscpAclToCfg(config, kDscpCounterAclName(), utility::kIcpDscp());
   std::vector<cfg::CounterType> counterTypes{cfg::CounterType::PACKETS};
   utility::addTrafficCounter(config, kCounterName(), counterTypes);
   cfg::MatchAction matchAction = cfg::MatchAction();
@@ -145,7 +144,7 @@ void addDscpMarkingAclsTableHelper(
     utility::addSetDscpAndEgressQueueActionToCfg(
         config,
         l4SrcPortAclName,
-        kIcpDscp(hwAsic),
+        kIcpDscp(),
         utility::getOlympicQueueId(utility::OlympicQueueType::ICP),
         isSai);
 
@@ -157,7 +156,7 @@ void addDscpMarkingAclsTableHelper(
     utility::addSetDscpAndEgressQueueActionToCfg(
         config,
         l4DstPortAclName,
-        kIcpDscp(hwAsic),
+        kIcpDscp(),
         utility::getOlympicQueueId(utility::OlympicQueueType::ICP),
         isSai);
   }
@@ -183,7 +182,7 @@ void addDscpAclEntryWithCounter(
   utility::addTrafficCounter(config, kCounterName(), counterTypes);
   auto* dscpAcl = utility::addAcl(
       config, kDscpCounterAclName(), cfg::AclActionType::PERMIT, aclTableName);
-  dscpAcl->dscp() = utility::kIcpDscp(hwAsic);
+  dscpAcl->dscp() = utility::kIcpDscp();
 
   utility::addAclStat(
       config, kDscpCounterAclName(), kCounterName(), counterTypes);

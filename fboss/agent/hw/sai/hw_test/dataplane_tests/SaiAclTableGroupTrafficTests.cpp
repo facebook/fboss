@@ -509,8 +509,7 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
         intermediateAclStatsMatch, updateStats));
 
     auto intermediateAclPkts = pktCounterHelper();
-    sendAllPacketshelper<AddrT>(
-        dstIP, frontPanel, utility::kIcpDscp(getAsic()));
+    sendAllPacketshelper<AddrT>(dstIP, frontPanel, utility::kIcpDscp());
     auto afterAclStatsMatch = [&]() {
       auto [dscpAclPkts, ttlAclPkts] = pktCounterHelper();
       XLOG(DBG2) << "Intermediate ICP pkts: " << intermediateAclPkts.first

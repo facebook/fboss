@@ -28,7 +28,7 @@ std::string getDscpAclTableName();
 std::string kDscpCounterAclName();
 std::string kCounterName();
 std::string getIngressAclTableGroupName();
-uint8_t kIcpDscp(const HwAsic* hwAsic);
+uint8_t kIcpDscp();
 
 void addDscpMarkingAcls(
     cfg::SwitchConfig* config,

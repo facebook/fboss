@@ -116,12 +116,12 @@ class AgentDscpMarkingTest : public AgentHwTest {
             portStatsBefore, utility::kOlympicICPQueueId, getSw(), portId);
 
         sendAllPackets(
-            utility::kIcpDscp(utility::getFirstAsic(getSw())),
+            utility::kIcpDscp(),
             frontPanel,
             IP_PROTO::IP_PROTO_UDP,
             utility::kUdpPorts());
         sendAllPackets(
-            utility::kIcpDscp(utility::getFirstAsic(getSw())),
+            utility::kIcpDscp(),
             frontPanel,
             IP_PROTO::IP_PROTO_TCP,
             utility::kTcpPorts());
