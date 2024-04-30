@@ -57,7 +57,9 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
               cpuStreamType, cfg::PortType::CPU_PORT)) {
         // cpu queues supported
         utility::setDefaultCpuTrafficPolicyConfig(
-            cfg, getAsic(), getHwSwitchEnsemble()->isSai());
+            cfg,
+            getHwSwitchEnsemble()->getL3Asics(),
+            getHwSwitchEnsemble()->isSai());
         utility::addCpuQueueConfig(
             cfg, getAsic(), getHwSwitchEnsemble()->isSai());
         break;

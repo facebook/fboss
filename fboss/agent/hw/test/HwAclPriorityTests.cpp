@@ -218,7 +218,7 @@ TYPED_TEST(HwAclPriorityTest, AclsChanged) {
     // Get Acls from COPP policy
     setDefaultCpuTrafficPolicyConfig(
         config,
-        this->getPlatform()->getAsic(),
+        this->getHwSwitchEnsemble()->getL3Asics(),
         this->getHwSwitchEnsemble()->isSai());
     addPermitIpAcl(config, "acl1", kIp);
     this->applyNewConfig(config);

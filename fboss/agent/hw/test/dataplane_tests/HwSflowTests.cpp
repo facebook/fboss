@@ -25,7 +25,9 @@ class HwSflowTest : public HwLinkStateDependentTest {
         masterLogicalPortIds()[0],
         getAsic()->desiredLoopbackModes());
     utility::setDefaultCpuTrafficPolicyConfig(
-        cfg, getAsic(), getHwSwitchEnsemble()->isSai());
+        cfg,
+        getHwSwitchEnsemble()->getL3Asics(),
+        getHwSwitchEnsemble()->isSai());
     utility::addCpuQueueConfig(
         cfg, this->getAsic(), getHwSwitchEnsemble()->isSai());
     return cfg;

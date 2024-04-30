@@ -40,7 +40,8 @@ void addProdFeaturesToConfig(
   /*
    * Configure COPP, CPU traffic policy and ACLs
    */
-  utility::setDefaultCpuTrafficPolicyConfig(config, hwAsic, isSai);
+  utility::setDefaultCpuTrafficPolicyConfig(
+      config, std::vector<const HwAsic*>({hwAsic}), isSai);
 
   /*
    * Enable Load balancer

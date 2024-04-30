@@ -24,7 +24,9 @@ class HwRxReasonTests : public HwLinkStateDependentTest {
         true /*interfaceHasSubnet*/);
 
     utility::setDefaultCpuTrafficPolicyConfig(
-        cfg, getAsic(), getHwSwitchEnsemble()->isSai());
+        cfg,
+        getHwSwitchEnsemble()->getL3Asics(),
+        getHwSwitchEnsemble()->isSai());
     // Remove DHCP from rxReason list
     auto rxReasonListWithoutDHCP = utility::getCoppRxReasonToQueues(
         getAsic(), getHwSwitchEnsemble()->isSai());

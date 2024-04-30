@@ -270,8 +270,9 @@ void addCpuQueueConfig(
 
 void setDefaultCpuTrafficPolicyConfig(
     cfg::SwitchConfig& config,
-    const HwAsic* hwAsic,
+    const std::vector<const HwAsic*>& asics,
     bool isSai) {
+  auto hwAsic = checkSameAndGetAsic(asics);
   auto cpuAcls = utility::defaultCpuAcls(hwAsic, config, isSai);
 
   for (int i = 0; i < cpuAcls.size(); i++) {
