@@ -90,6 +90,12 @@ void SaiPortManager::fillInSupportedStats(PortID port) {
           SAI_PORT_STAT_IF_IN_ERRORS,
           SAI_PORT_STAT_IF_OUT_OCTETS,
       };
+#if defined(SAI_VERSION_11_0_EA_DNX_ODP)
+      if (platform_->getAsic()->isSupported(
+              HwAsic::Feature::FABRIC_LINK_DOWN_CELL_DROP_COUNTER)) {
+        counterIds.emplace_back(SAI_PORT_STAT_IF_IN_LINK_DOWN_CELL_DROP);
+      }
+#endif
       return counterIds;
     }
     if (getPortType(port) == cfg::PortType::RECYCLE_PORT) {
@@ -176,12 +182,6 @@ void SaiPortManager::fillInSupportedStats(PortID port) {
       counterIds.emplace_back(
           SAI_PORT_STAT_OUT_CONFIGURED_DROP_REASONS_0_DROPPED_PKTS);
     }
-#if defined(SAI_VERSION_11_0_EA_DNX_ODP)
-    if (platform_->getAsic()->isSupported(
-            HwAsic::Feature::FABRIC_LINK_DOWN_CELL_DROP_COUNTER)) {
-      counterIds.emplace_back(SAI_PORT_STAT_IF_IN_LINK_DOWN_CELL_DROP);
-    }
-#endif
     return counterIds;
   };
   port2SupportedStats_.emplace(port, getSupportedStats());
