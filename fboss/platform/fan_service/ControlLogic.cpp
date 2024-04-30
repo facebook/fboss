@@ -84,7 +84,6 @@ std::tuple<bool, int, uint64_t> ControlLogic::readFanRpm(const Fan& fan) {
 float ControlLogic::calculatePid(
     const std::string& name,
     float value,
-    SensorReadCache& readCache,
     PwmCalcCache& pwmCalcCache,
     float kp,
     float ki,
@@ -106,7 +105,6 @@ float ControlLogic::calculatePid(
     pwmCalcCache.integral = pwmCalcCache.integral + error * dT;
     auto derivative = (error - pwmCalcCache.last_error) / dT;
     pwm = kp * error + ki * pwmCalcCache.integral + kd * derivative;
-    readCache.targetPwmCache = pwm;
     pwmCalcCache.previousTargetPwm = pwm;
     pwmCalcCache.last_error = error;
   }
@@ -124,7 +122,6 @@ float ControlLogic::calculatePid(
 float ControlLogic::calculateIncrementalPid(
     const std::string& name,
     float value,
-    SensorReadCache& readCache,
     PwmCalcCache& pwmCalcCache,
     float kp,
     float ki,
@@ -139,7 +136,6 @@ float ControlLogic::calculateIncrementalPid(
   // Even though the previous Target Pwm should be the zone pwm,
   // the best effort is made here. Zone should update this value.
   pwmCalcCache.previousTargetPwm = pwm;
-  readCache.targetPwmCache = pwm;
   pwmCalcCache.previousRead2 = previousRead1;
   pwmCalcCache.previousRead1 = value;
   XLOG(DBG1) << fmt::format(
@@ -200,7 +196,6 @@ void ControlLogic::updateTargetPwm(const Sensor& sensor) {
     targetPwm = calculateIncrementalPid(
         *sensor.sensorName(),
         readCache.lastReadValue,
-        readCache,
         pwmCalcCache,
         *sensor.kp(),
         *sensor.ki(),
@@ -213,7 +208,6 @@ void ControlLogic::updateTargetPwm(const Sensor& sensor) {
     targetPwm = calculatePid(
         *sensor.sensorName(),
         readCache.lastReadValue,
-        readCache,
         pwmCalcCache,
         *sensor.kp(),
         *sensor.ki(),
@@ -400,16 +394,8 @@ void ControlLogic::getOpticsUpdate() {
             float maxVal =
                 *pidSetting->setPoint() + *pidSetting->posHysteresis();
             float pwm = calculatePid(
-                opticType,
-                value,
-                readCache,
-                pwmCalcCache,
-                kp,
-                ki,
-                kd,
-                dT,
-                minVal,
-                maxVal);
+                opticType, value, pwmCalcCache, kp, ki, kd, dT, minVal, maxVal);
+            readCache.targetPwmCache = pwm;
             if (pwm > pwmSoFar) {
               pwmSoFar = pwm;
             }

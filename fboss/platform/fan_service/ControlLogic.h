@@ -73,7 +73,6 @@ class ControlLogic {
   float calculatePid(
       const std::string& name,
       float value,
-      SensorReadCache& readCache,
       PwmCalcCache& pwmCalcCache,
       float kp,
       float ki,
@@ -84,7 +83,6 @@ class ControlLogic {
   float calculateIncrementalPid(
       const std::string& name,
       float value,
-      SensorReadCache& readCache,
       PwmCalcCache& pwmCalcCache,
       float kp,
       float ki,
