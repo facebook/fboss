@@ -74,10 +74,9 @@ std::tuple<bool, int, uint64_t> ControlLogic::readFanRpm(const Fan& fan) {
       fmt::format(kFanReadRpmFailure, fanName), !fanRpmReadSuccess);
   if (fanRpmReadSuccess) {
     fb303::fbData->setCounter(fmt::format(kFanReadRpmValue, fanName), fanRpm);
-    XLOG(INFO) << fmt::format(
-        "Control :: {}'s latest rpm is {}", fanName, fanRpm);
+    XLOG(INFO) << fmt::format("{}: RPM read is {}", fanName, fanRpm);
   } else {
-    XLOG(INFO) << fmt::format("Control :: Failed to read {}'s rpm", fanName);
+    XLOG(INFO) << fmt::format("{}: Failed to read rpm", fanName);
   }
   return std::make_tuple(!fanRpmReadSuccess, fanRpm, rpmTimeStamp);
 }
@@ -113,8 +112,8 @@ float ControlLogic::calculatePid(
   }
   pwmCalcCache.previousRead2 = previousRead1;
   pwmCalcCache.previousRead1 = value;
-  XLOG(DBG1) << "Control :: Sensor : " << name << " Value : " << value
-             << " [PID] Pwm : " << pwm;
+  XLOG(DBG1) << fmt::format(
+      "{}: Sensor Value: {}, PWM [PID]: {}", name, value, pwm);
   XLOG(DBG1) << "               dT : " << dT
              << " Time : " << pBsp_->getCurrentTime()
              << " LUD : " << lastControlUpdateSec_ << " Min : " << minVal
@@ -143,8 +142,8 @@ float ControlLogic::calculateIncrementalPid(
   readCache.targetPwmCache = pwm;
   pwmCalcCache.previousRead2 = previousRead1;
   pwmCalcCache.previousRead1 = value;
-  XLOG(DBG1) << "Control :: Sensor : " << name << " Value : " << value
-             << " [IPID] Pwm : " << pwm;
+  XLOG(DBG1) << fmt::format(
+      "{}: Sensor Value: {}, PWM [PID]: {}", name, value, pwm);
   XLOG(DBG1) << "           Prev1  : " << previousRead1
              << " Prev2 : " << previousRead2;
   return pwm;
@@ -239,12 +238,10 @@ void ControlLogic::getSensorUpdate() {
   float rawValue = 0.0, adjustedValue;
   uint64_t calculatedTime = 0;
   for (auto& sensor : *config_.sensors()) {
-    XLOG(INFO) << "Control :: Sensor Name : " << *sensor.sensorName();
     bool sensorAccessFail = false;
     const auto sensorName = *sensor.sensorName();
+    // STEP 1: Get reading.
     if (pSensor_->checkIfEntryExists(sensorName)) {
-      XLOG(INFO) << "Control :: Sensor Exists. Getting the entry type";
-      // 1.a Get the reading
       SensorEntryType entryType = pSensor_->getSensorEntryType(sensorName);
       switch (entryType) {
         case SensorEntryType::kSensorEntryInt:
@@ -260,14 +257,16 @@ void ControlLogic::getSensorUpdate() {
               "Invalid Sensor Entry Type in entry name : ", sensorName);
           break;
       }
+      XLOG(ERR) << fmt::format(
+          "{}: Sensor raw value is {}", sensorName, rawValue);
     } else {
-      XLOG(INFO) << "Control :: Sensor Read Fail : " << sensorName;
+      XLOG(INFO) << fmt::format(
+          "{}: Failure to get data (either wrong entry or read failure)",
+          sensorName);
       sensorAccessFail = true;
     }
-    XLOG(INFO) << "Control :: Done raw sensor reading";
 
     auto& readCache = sensorReadCaches_[sensorName];
-
     if (sensorAccessFail) {
       // If the sensor data cache is stale for a while, we consider it as the
       // failure of such sensor
@@ -282,16 +281,15 @@ void ControlLogic::getSensorUpdate() {
       readCache.lastUpdatedTime = calculatedTime;
       readCache.sensorFailed = false;
     }
-
     adjustedValue = rawValue;
-
     readCache.adjustedReadCache = adjustedValue;
-    XLOG(INFO) << "Control :: Adjusted Value : " << adjustedValue;
-    // 1.b Check and trigger alarm
+    XLOG(INFO) << fmt::format(
+        "{}: Adjusted value is {}", sensorName, adjustedValue);
+
+    // STEP 2: Check alarm thresholds
     bool prevMajorAlarm = readCache.majorAlarmTriggered;
     readCache.majorAlarmTriggered =
         (adjustedValue >= *sensor.alarm()->highMajor());
-    // If major alarm was triggered, write it as a ERR log
     if (!prevMajorAlarm && readCache.majorAlarmTriggered) {
       XLOG(ERR) << "Major Alarm Triggered on " << sensorName << " at value "
                 << adjustedValue;
@@ -316,7 +314,6 @@ void ControlLogic::getSensorUpdate() {
       readCache.minorAlarmTriggered = false;
       readCache.soakStarted = false;
     }
-    // If minor alarm was triggered, write it as a WARN log
     if (!prevMinorAlarm && readCache.minorAlarmTriggered) {
       XLOG(WARN) << "Minor Alarm Triggered on " << sensorName << " at value "
                  << adjustedValue;
@@ -325,12 +322,9 @@ void ControlLogic::getSensorUpdate() {
       XLOG(WARN) << "Minor Alarm Cleared on " << sensorName << " at value "
                  << adjustedValue;
     }
-    // 1.c Calculate the target pwm in percent
-    //     (the table or incremental pid should produce
-    //      percent as its output)
+
+    // STEP 3: Calculate target pwm
     updateTargetPwm(sensor);
-    XLOG(INFO) << sensorName << " has the target PWM of "
-               << readCache.targetPwmCache;
   }
 }
 
