@@ -3165,7 +3165,11 @@ void ThriftHandler::getMultiSwitchRunState(MultiSwitchRunState& runState) {
 void ThriftHandler::getAllEcmpDetails(std::vector<EcmpDetails>& ecmpDetails) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  ecmpDetails = sw_->getHwSwitchHandler()->getAllEcmpDetails();
+  if (sw_->isRunModeMonolithic()) {
+    ecmpDetails = sw_->getMonolithicHwSwitchHandler()->getAllEcmpDetails();
+  } else {
+    throw FbossError("getAllEcmpDetails is not supported in multi-switch mode");
+  }
 }
 
 } // namespace facebook::fboss

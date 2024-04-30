@@ -127,8 +127,6 @@ class MultiHwSwitchHandler {
     connectionStatusTable_.disconnected(switchId);
   }
 
-  std::vector<EcmpDetails> getAllEcmpDetails();
-
   void fillHwAgentConnectionStatus(AgentStats& agentStats);
 
   AclStats getAclStats();

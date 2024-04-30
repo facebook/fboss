@@ -92,8 +92,6 @@ class MultiSwitchHwSwitchHandler : public HwSwitchHandler {
 
   SwitchRunState getHwSwitchRunState() override;
 
-  std::vector<EcmpDetails> getAllEcmpDetails() const override;
-
   AclStats getAclStats() const override {
     return AclStats();
   }

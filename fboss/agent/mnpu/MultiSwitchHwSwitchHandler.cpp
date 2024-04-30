@@ -135,11 +135,6 @@ FabricReachabilityStats MultiSwitchHwSwitchHandler::getFabricReachabilityStats()
   return {};
 }
 
-std::vector<EcmpDetails> MultiSwitchHwSwitchHandler::getAllEcmpDetails() const {
-  // TODO: implement this
-  return {};
-}
-
 bool MultiSwitchHwSwitchHandler::needL2EntryForNeighbor(
     const cfg::SwitchConfig* config) const {
   // if config is not present, fall back to true
