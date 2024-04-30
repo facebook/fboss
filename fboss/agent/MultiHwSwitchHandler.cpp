@@ -229,12 +229,6 @@ bool MultiHwSwitchHandler::getAndClearNeighborHit(
   return false;
 }
 
-folly::dynamic MultiHwSwitchHandler::toFollyDynamic() {
-  // Not supported with multiple switches
-  CHECK_EQ(hwSwitchSyncers_.size(), 1);
-  return hwSwitchSyncers_.begin()->second->toFollyDynamic();
-}
-
 bool MultiHwSwitchHandler::transactionsSupported() const {
   return transactionsSupported_;
 }
@@ -398,8 +392,8 @@ std::optional<uint32_t> MultiHwSwitchHandler::getHwLogicalPortId(
   return hwSwitchSyncers_.begin()->second->getHwLogicalPortId(portID);
 }
 
-std::map<SwitchID, HwSwitchHandler*>
-MultiHwSwitchHandler::getHwSwitchHandlers() {
+std::map<SwitchID, HwSwitchHandler*> MultiHwSwitchHandler::getHwSwitchHandlers()
+    const {
   std::map<SwitchID, HwSwitchHandler*> handlers;
   for (const auto& [switchId, syncer] : hwSwitchSyncers_) {
     auto handler = static_cast<HwSwitchHandler*>(syncer.get());

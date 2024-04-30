@@ -63,11 +63,6 @@ bool MultiSwitchHwSwitchHandler::getAndClearNeighborHit(
   return true; // TODO: implement this
 }
 
-folly::dynamic MultiSwitchHwSwitchHandler::toFollyDynamic() const {
-  // TODO: implement this
-  return folly::dynamic::object;
-}
-
 std::optional<uint32_t> MultiSwitchHwSwitchHandler::getHwLogicalPortId(
     PortID /*portID*/) const {
   // TODO: query hwswitch and return logical port id

@@ -81,8 +81,6 @@ class MultiHwSwitchHandler {
 
   bool getAndClearNeighborHit(RouterID vrf, folly::IPAddress& ip);
 
-  folly::dynamic toFollyDynamic();
-
   std::optional<uint32_t> getHwLogicalPortId(PortID portID);
 
   bool transactionsSupported() const;
@@ -121,7 +119,7 @@ class MultiHwSwitchHandler {
   bool needL2EntryForNeighbor(const cfg::SwitchConfig* config) const;
 
   // For test purpose
-  std::map<SwitchID, HwSwitchHandler*> getHwSwitchHandlers();
+  std::map<SwitchID, HwSwitchHandler*> getHwSwitchHandlers() const;
 
   /*
    * blocks till atleast one HwSwitch is connected.

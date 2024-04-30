@@ -943,8 +943,11 @@ class SwSwitch : public HwSwitchCallback {
       const std::vector<SystemPortID>& portId) const;
   void getAllHwPortStats(std::map<std::string, HwPortStats>& hwPortStats) const;
   void getAllCpuPortStats(std::map<int, CpuPortStats>& hwCpuPortStats) const;
-  bool isRunModeMultiSwitch();
-  MonolithicHwSwitchHandler* getMonolithicHwSwitchHandler();
+  bool isRunModeMultiSwitch() const;
+  bool isRunModeMonolithic() const {
+    return !isRunModeMultiSwitch();
+  }
+  MonolithicHwSwitchHandler* getMonolithicHwSwitchHandler() const;
 
  private:
   std::optional<folly::MacAddress> getSourceMac(

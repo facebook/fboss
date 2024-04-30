@@ -84,8 +84,6 @@ class HwSwitchHandler {
 
   virtual bool getAndClearNeighborHit(RouterID vrf, folly::IPAddress& ip) = 0;
 
-  virtual folly::dynamic toFollyDynamic() const = 0;
-
   virtual std::optional<uint32_t> getHwLogicalPortId(PortID portID) const = 0;
 
   virtual bool transactionsSupported(

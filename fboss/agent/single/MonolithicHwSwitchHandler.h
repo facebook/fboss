@@ -43,7 +43,7 @@ class MonolithicHwSwitchHandler : public HwSwitchHandler {
 
   bool getAndClearNeighborHit(RouterID vrf, folly::IPAddress& ip) override;
 
-  folly::dynamic toFollyDynamic() const override;
+  folly::dynamic toFollyDynamic() const;
 
   std::optional<uint32_t> getHwLogicalPortId(PortID portID) const override;
 

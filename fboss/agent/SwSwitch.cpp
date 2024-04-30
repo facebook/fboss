@@ -759,7 +759,7 @@ void SwSwitch::publishStatsToFsdb() {
   });
 }
 
-MonolithicHwSwitchHandler* SwSwitch::getMonolithicHwSwitchHandler() {
+MonolithicHwSwitchHandler* SwSwitch::getMonolithicHwSwitchHandler() const {
   CHECK(!isRunModeMultiSwitch())
       << "Monolithic switch handler access should not be attempted in multi switch mode!";
   auto hwSwitchHandlers = getHwSwitchHandler()->getHwSwitchHandlers();
@@ -925,7 +925,7 @@ void SwSwitch::updateMultiSwitchGlobalFb303Stats() {
   multiSwitchFb303Stats_->updateStats(globalCpuPortStats);
 }
 
-bool SwSwitch::isRunModeMultiSwitch() {
+bool SwSwitch::isRunModeMultiSwitch() const {
   return FLAGS_multi_switch ||
       (*agentConfig_.rlock())->getRunMode() == cfg::AgentRunMode::MULTI_SWITCH;
 }
@@ -1029,7 +1029,11 @@ bool SwSwitch::getAndClearNeighborHit(RouterID vrf, folly::IPAddress ip) {
 
 void SwSwitch::exitFatal() const noexcept {
   folly::dynamic switchState = folly::dynamic::object;
-  switchState[kHwSwitch] = multiHwSwitchHandler_->toFollyDynamic();
+  if (isRunModeMultiSwitch()) {
+    // No hwswitch dump for multi swagent exit
+  } else {
+    switchState[kHwSwitch] = getMonolithicHwSwitchHandler()->toFollyDynamic();
+  }
   state::WarmbootState thriftSwitchState;
   *thriftSwitchState.swSwitchState() = getAppliedState()->toThrift();
   if (!dumpStateToFile(agentDirUtil_->getCrashSwitchStateFile(), switchState) ||
