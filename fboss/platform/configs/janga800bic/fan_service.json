@@ -6,7 +6,6 @@
   "pwmTransitionValue": 50,
   "pwmLowerThreshold": 30,
   "pwmUpperThreshold": 80,
-  "shutdownCmd": "wedge_power reset -s",
   "sensors": [
     {
       "sensorName": "SMB_U104_OUTER_LM75_TEMP",

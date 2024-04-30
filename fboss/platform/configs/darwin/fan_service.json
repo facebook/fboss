@@ -6,7 +6,6 @@
   "pwmTransitionValue": 50,
   "pwmLowerThreshold": 24,
   "pwmUpperThreshold": 100,
-  "shutdownCmd": "wedge_power reset -s",
   "optics": [
     {
       "opticName": "qsfp_group_1",
@@ -98,7 +97,6 @@
       },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "scale": 1000,
-      "type": "linear_four_curves",
       "normalUpTable": {
         "15": 24,
         "110": 100
