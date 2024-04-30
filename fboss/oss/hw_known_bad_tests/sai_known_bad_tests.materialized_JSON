@@ -11787,16 +11787,7 @@
     ],
     "leaba/24.4.90/24.4.90/graphene200": [
         {
-          "test_name_regex": "HwTrafficPfcTest.*"
-        },
-        {
-          "test_name_regex": "HwPfcTest.*"
-        },
-        {
           "test_name_regex": "HwProdInvariantsMmuLosslessTest.*"
-        },
-        {
-          "test_name_regex": "HwIngressBufferTest.*"
         },
         {
           "test_name_regex": "HwCoppTest/[01].EapolToHighPriQ"
@@ -11839,9 +11830,6 @@
         },
         {
           "test_name_regex": "HwInDiscardsCounterTest.*$"
-        },
-        {
-          "test_name_regex": "HwInPauseDiscardsCounterTest.rxPauseDisabled$"
         },
         {
           "test_name_regex": "HwLabelEdgeRouteTest/1.ExceedMaxLabels$"
@@ -12039,9 +12027,6 @@
           "test_name_regex": "HwHashConsistencyTest.*$"
         },
         {
-          "test_name_regex": "HwIpInIpTunnelTest.*$"
-        },
-        {
           "test_name_regex": "HwPortBandwidthTest/HwPortBandwidthParamTest.VerifyPortRateTraffic/0$"
         },
         {
@@ -12066,16 +12051,10 @@
           "test_name_regex": "HwAclStatTest/[01].AclStatDeleteSharedPostWarmBoot$"
         },
         {
-          "test_name_regex": "HwLoadBalancerTestV6RoCE.*$"
-        },
-        {
           "test_name_regex": "HwVoqSwitchWithFabricPortsTest.fabricIsolate$"
         },
         {
           "test_name_regex": "HwCoppAclTest.*$"
-        },
-        {
-          "test_name_regex": "HwUdfTest.*$"
         },
         {
           "test_name_regex": "SaiRouteRollbackTest.*WithTrunk.*$"
@@ -12093,13 +12072,16 @@
           "test_name_regex": "HwRouteTest/1.verifyCpuRouteChange$"
         },
         {
-          "test_name_regex": "HwInPauseFloodTest.rxPauseDisabledValidateFlooding$"
-        },
-        {
           "test_name_regex": "HwVoqSwitch*"
         },
         {
           "test_name_regex": "HwFabricSwitchTest.*"
+        },
+        {
+          "test_name_regex": "HwUdfTest.*$"
+        },
+        {
+          "test_name_regex": "HwIpInIpTunnelTest.*$"
         },
         {
           "test_name_regex": "warm_boot.HwMacLearningAndMyStationInteractionTest.verifyInteractionHwMacLearning$"
@@ -12108,16 +12090,7 @@
           "test_name_regex": "warm_boot.HwMacLearningAndMyStationInteractionTest.verifyInteractionSwMacLearning$"
         },
         {
-          "test_name_regex": "HwWatermarkTest.VerifyQueueWatermarkAccuracy$"
-        },
-        {
-          "test_name_regex": "HwAqmTest.verifyWredThreshold$"
-        },
-        {
           "test_name_regex": "HwPacketSendTest.PortTxEnableTest$"
-        },
-        {
-          "test_name_regex": "HwAqmTest.verifyPerQueueWredDropStats$"
         },
         {
           "test_name_regex": "warm_boot.HwOlympicQosSchedulerTest.VerifyWRRForOlympicToOlympicV2$"
@@ -12126,28 +12099,22 @@
           "test_name_regex": "warm_boot.HwOlympicQosSchedulerTest.VerifyOlympicV2AllSPTrafficToWRR$"
         },
         {
-          "test_name_regex": "HwLabelEdgeRouteTest/0.ExceedMaxLabels"
-        },
-        {
-          "test_name_regex": "HwPortBandwidthTest.VerifyQueueShaper"
-        },
-        {
-          "test_name_regex": "SaiAclTableRecreateTests.AclEntryCount"
-        },
-        {
-          "test_name_regex": "HwCoppTest/[01].CpuPortIpv6LinkLocalUcastIp"
-        },
-        {
-          "test_name_regex": "HwMacLearningTest.VerifyHwLearningForPort"
-        },
-        {
-          "test_name_regex": "HwMacLearningTest.VerifyHwLearningForTrunk"
-        },
-        {
           "test_name_regex": "HwLabelEdgeRouteTest.*$"
         },
         {
           "test_name_regex": "HwLabelSwitchRouteTest.*$"
+        },
+        {
+          "test_name_regex": "HwLabelEdgeRouteTest/0.ExceedMaxLabels$"
+        },
+        {
+          "test_name_regex": "HwPortBandwidthTest.VerifyQueueShaper$"
+        },
+        {
+          "test_name_regex": "SaiAclTableRecreateTests.AclEntryCount$"
+        },
+        {
+          "test_name_regex": "HwCoppTest/[01].CpuPortIpv6LinkLocalUcastIp$"
         }
     ]
   }
