@@ -70,9 +70,6 @@ class MultiSwitchHwSwitchHandler : public HwSwitchHandler {
 
   std::string getDebugDump() const override;
 
-  std::string listObjects(const std::vector<HwObjectType>& types, bool cached)
-      const override;
-
   bool needL2EntryForNeighbor(const cfg::SwitchConfig* config) const override;
 
   multiswitch::StateOperDelta getNextStateOperDelta(

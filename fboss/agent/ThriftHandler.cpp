@@ -2712,7 +2712,12 @@ void ThriftHandler::listHwObjects(
     bool cached) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  out = sw_->getHwSwitchHandler()->listObjects(*hwObjects, cached);
+  if (sw_->isRunModeMonolithic()) {
+    out = sw_->getMonolithicHwSwitchHandler()->listObjects(*hwObjects, cached);
+  } else {
+    throw FbossError(
+        "listHwObjects() is not supported for fboss_sw_agent. Clients should query hw agent insted");
+  }
 }
 
 void ThriftHandler::getBlockedNeighbors(

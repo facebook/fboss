@@ -119,7 +119,7 @@ class MonolithicHwSwitchHandler : public HwSwitchHandler {
   void fetchL2Table(std::vector<L2EntryThrift>* l2Table) const;
 
   std::string listObjects(const std::vector<HwObjectType>& types, bool cached)
-      const override;
+      const;
 
   bool needL2EntryForNeighbor(const cfg::SwitchConfig* config) const override;
 

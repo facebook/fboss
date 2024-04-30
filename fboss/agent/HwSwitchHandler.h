@@ -116,10 +116,6 @@ class HwSwitchHandler {
 
   virtual std::string getDebugDump() const = 0;
 
-  virtual std::string listObjects(
-      const std::vector<HwObjectType>& types,
-      bool cached) const = 0;
-
   virtual bool needL2EntryForNeighbor(
       const cfg::SwitchConfig* config) const = 0;
 

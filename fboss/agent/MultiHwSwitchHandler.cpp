@@ -289,14 +289,6 @@ std::string MultiHwSwitchHandler::getDebugDump() {
   return hwSwitchSyncers_.begin()->second->getDebugDump();
 }
 
-std::string MultiHwSwitchHandler::listObjects(
-    const std::vector<HwObjectType>& types,
-    bool cached) {
-  // TODO - support with multiple switches
-  CHECK_EQ(hwSwitchSyncers_.size(), 1);
-  return hwSwitchSyncers_.begin()->second->listObjects(types, cached);
-}
-
 bool MultiHwSwitchHandler::needL2EntryForNeighbor(
     const cfg::SwitchConfig* config) const {
   for (auto& entry : hwSwitchSyncers_) {

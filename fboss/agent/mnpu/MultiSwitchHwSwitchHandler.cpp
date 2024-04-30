@@ -118,12 +118,6 @@ std::string MultiSwitchHwSwitchHandler::getDebugDump() const {
   throw FbossError("getDebugDump not implemented");
 }
 
-std::string MultiSwitchHwSwitchHandler::listObjects(
-    const std::vector<HwObjectType>& /*types*/,
-    bool /*cached*/) const {
-  throw FbossError("listObjects not implemented");
-}
-
 FabricReachabilityStats MultiSwitchHwSwitchHandler::getFabricReachabilityStats()
     const {
   // TODO: implement this
