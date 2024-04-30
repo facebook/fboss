@@ -365,8 +365,7 @@ void addLowPriAclForConnectedSubnetRoutes(
     bool isSai) {
   cfg::AclEntry acl;
   acl.name() = folly::to<std::string>("cpu-connected-subnet-route-acl");
-  acl.lookupClassRoute() =
-      cfg::AclLookupClass::DEPRECATED_CLASS_CONNECTED_ROUTE_TO_INTF;
+  acl.lookupClassRoute() = cfg::AclLookupClass::DST_CLASS_L3_LOCAL_2;
   acls.push_back(std::make_pair(
       acl,
       createQueueMatchAction(utility::kCoppLowPriQueueId, isSai, toCpuAction)));
@@ -378,8 +377,7 @@ void addLowPriAclForUnresolvedRoutes(
     bool isSai) {
   cfg::AclEntry acl;
   acl.name() = folly::to<std::string>("cpu-unresolved-route-acl");
-  acl.lookupClassRoute() =
-      cfg::AclLookupClass::DEPRECATED_CLASS_UNRESOLVED_ROUTE_TO_CPU;
+  acl.lookupClassRoute() = cfg::AclLookupClass::DST_CLASS_L3_LOCAL_2;
   acls.push_back(std::make_pair(
       acl,
       createQueueMatchAction(utility::kCoppLowPriQueueId, isSai, toCpuAction)));
