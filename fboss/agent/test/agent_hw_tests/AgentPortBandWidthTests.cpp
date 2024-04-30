@@ -38,9 +38,7 @@ class AgentPortBandwidthTest : public AgentHwTest {
     auto asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
     CHECK(!asics.empty());
     utility::checkSameAsicType(asics);
-    auto streamType =
-        *(utility::getStreamType(cfg::PortType::INTERFACE_PORT, asics).begin());
-    utility::addOlympicQueueConfig(&config, streamType, asics);
+    utility::addOlympicQueueConfig(&config, asics);
     utility::addOlympicQosMaps(config, asics);
     utility::setTTLZeroCpuConfig(asics, config);
     return config;
