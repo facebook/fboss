@@ -75,6 +75,13 @@ struct TransceiverFirmware {
   1: map<string, Firmware> versionsMap;
 }
 
+struct TransceiverI2cLogging {
+  1: bool writeLog;
+  2: bool readLog;
+  3: bool disableOnFail;
+  4: i32 bufferSlots;
+}
+
 struct QsfpServiceConfig {
   // This is used to override the default command line arguments we
   // pass to qsfp service.
@@ -90,4 +97,6 @@ struct QsfpServiceConfig {
   4: optional QsfpTestConfig qsfpTestConfig;
 
   5: optional TransceiverFirmware transceiverFirmwareVersions;
+
+  6: optional TransceiverI2cLogging transceiverI2cLogging;
 }
