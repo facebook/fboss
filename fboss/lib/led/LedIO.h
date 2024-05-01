@@ -38,10 +38,11 @@ class LedIO {
 
  private:
   void init();
-  void blueOn();
+  void blueOn(led::Blink blink);
   void blueOff();
-  void yellowOn();
+  void yellowOn(led::Blink blink);
   void yellowOff();
+  void turnOffAllLeds();
   void setLed(const std::string& ledPath, const std::string& ledOp);
   void setBlink(const std::string& ledPath, led::Blink blink);
 

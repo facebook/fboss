@@ -51,27 +51,18 @@ void LedIO::setLedState(led::LedState ledState) {
     return;
   }
   auto toSetColor = ledState.ledColor().value();
-  auto currentColor = currState_.ledColor().value();
 
+  // Turn off all LEDs first
+  turnOffAllLeds();
   switch (toSetColor) {
     case led::LedColor::BLUE:
-      setBlink(*bluePath_, ledState.blink().value());
-      blueOn();
+      blueOn(ledState.blink().value());
       break;
     case led::LedColor::YELLOW:
-      setBlink(*yellowPath_, ledState.blink().value());
-      yellowOn();
+      yellowOn(ledState.blink().value());
       break;
     case led::LedColor::OFF:
-      if (led::LedColor::BLUE == currentColor) {
-        setBlink(*bluePath_, led::Blink::OFF);
-        blueOff();
-      } else if (led::LedColor::YELLOW == currentColor) {
-        setBlink(*yellowPath_, led::Blink::OFF);
-        yellowOff();
-      }
-
-      XLOG(INFO) << fmt::format("Trace: set LED {:d} (0 base) to OFF", id_);
+      // Leds already turned off earlier before switch
       break;
     default:
       throw LedIOError(
@@ -90,34 +81,42 @@ void LedIO::init() {
 
   currState_ = ledState;
   if (bluePath_.has_value()) {
-    setBlink(*bluePath_, led::Blink::OFF);
     blueOff();
   }
   if (yellowPath_.has_value()) {
-    setBlink(*yellowPath_, led::Blink::OFF);
     yellowOff();
   }
 }
 
-void LedIO::blueOn() {
+void LedIO::blueOn(led::Blink blink) {
   CHECK(bluePath_.has_value());
+  setBlink(*bluePath_, blink);
   setLed(*bluePath_, kLedOn);
-  XLOG(INFO) << fmt::format("Trace: set LED {:d} (0 base) to Blue", id_);
+  XLOG(INFO) << fmt::format(
+      "Trace: set LED {:d} (0 base) to Blue and blink {:s}",
+      id_,
+      apache::thrift::util::enumNameSafe(blink));
 }
 
 void LedIO::blueOff() {
   CHECK(bluePath_.has_value());
+  setBlink(*bluePath_, led::Blink::OFF);
   setLed(*bluePath_, kLedOff);
 }
 
-void LedIO::yellowOn() {
+void LedIO::yellowOn(led::Blink blink) {
   CHECK(yellowPath_.has_value());
+  setBlink(*yellowPath_, blink);
   setLed(*yellowPath_, kLedOn);
-  XLOG(INFO) << fmt::format("Trace: set LED {:d} (0 base) to Yellow", id_);
+  XLOG(INFO) << fmt::format(
+      "Trace: set LED {:d} (0 base) to Yellow and blink {:s}",
+      id_,
+      apache::thrift::util::enumNameSafe(blink));
 }
 
 void LedIO::yellowOff() {
   CHECK(yellowPath_.has_value());
+  setBlink(*yellowPath_, led::Blink::OFF);
   setLed(*yellowPath_, kLedOff);
 }
 
@@ -142,7 +141,7 @@ void LedIO::setBlink(const std::string& ledBasePath, led::Blink blink) {
     std::string ledPathOff = ledBasePath + kLedDelayOffPath;
     std::fstream fsOn, fsOff;
     fsOn.open(ledPathOn, std::fstream::out);
-    fsOff.open(ledPathOn, std::fstream::out);
+    fsOff.open(ledPathOff, std::fstream::out);
 
     if (fsOn.is_open() && fsOff.is_open()) {
       switch (blink) {
@@ -179,7 +178,11 @@ void LedIO::setBlink(const std::string& ledBasePath, led::Blink blink) {
     fs.open(ledPath, std::fstream::out);
 
     if (fs.is_open()) {
-      fs << kLedTimerTrigger;
+      if (blink == led::Blink::SLOW || blink == led::Blink::FAST) {
+        fs << kLedTimerTrigger;
+      } else {
+        fs << "";
+      }
       fs.close();
     } else {
       // Not throwing an exception here until all existing BSPs support blinking
@@ -188,6 +191,11 @@ void LedIO::setBlink(const std::string& ledBasePath, led::Blink blink) {
       return;
     }
   }
+}
+
+void LedIO::turnOffAllLeds() {
+  blueOff();
+  yellowOff();
 }
 
 } // namespace facebook::fboss
