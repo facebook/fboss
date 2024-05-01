@@ -14,64 +14,25 @@ template <typename RootT>
 class PathConverter {
  public:
   static std::vector<std::string> pathToIdTokens(
-      const std::vector<std::string>& tokens) {
-    std::vector<std::string> converted;
-    visitThriftPath(tokens, [&](auto&& path) { converted = path.idTokens(); });
-    return converted;
-  }
+      const std::vector<std::string>& tokens);
 
   static std::vector<std::string> pathToNameTokens(
-      const std::vector<std::string>& tokens) {
-    std::vector<std::string> converted;
-    visitThriftPath(tokens, [&](auto&& path) { converted = path.tokens(); });
-    return converted;
-  }
+      const std::vector<std::string>& tokens);
 
   static std::vector<OperPathElem> extPathToIdTokens(
-      const std::vector<OperPathElem>& path) {
-    std::vector<std::string> converted;
-    extVisitThriftPath(path, [&](auto&& path) { converted = path.idTokens(); });
-    return mergeOverWildcards(path, converted);
-  }
+      const std::vector<OperPathElem>& path);
 
   static std::vector<OperPathElem> extPathToNameTokens(
-      const std::vector<OperPathElem>& path) {
-    std::vector<std::string> converted;
-    extVisitThriftPath(path, [&](auto&& path) { converted = path.tokens(); });
-    return mergeOverWildcards(path, converted);
-  }
+      const std::vector<OperPathElem>& path);
 
  private:
   template <typename Func>
-  static void visitThriftPath(
-      const std::vector<std::string>& tokens,
-      Func&& f) {
-    thriftpath::RootThriftPath<RootT> root;
-    auto result =
-        RootNameToPathVisitor<thriftpath::RootThriftPath<RootT>>::visit(
-            root,
-            tokens.begin(),
-            tokens.begin(),
-            tokens.end(),
-            std::forward<Func>(f));
-    if (result != NameToPathResult::OK) {
-      throw std::runtime_error("Invalid path " + folly::join("/", tokens));
-    }
-  }
+  static void visitThriftPath(const std::vector<std::string>& tokens, Func&& f);
 
   template <typename Func>
   static void extVisitThriftPath(
       const std::vector<OperPathElem>& path,
-      Func&& f) {
-    thriftpath::RootThriftPath<RootT> root;
-    auto result =
-        RootNameToPathVisitor<thriftpath::RootThriftPath<RootT>>::visitExtended(
-            root, path.begin(), path.end(), std::forward<Func>(f));
-    if (result != NameToPathResult::OK) {
-      // TODO: include path in error message
-      throw std::runtime_error("Invalid extended path");
-    }
-  }
+      Func&& f);
 
   // wildcards elems get wiped during conversion using NameToPathVisitor. To get
   // them back, copy over the wildcard elems from the ext path. This works
@@ -97,5 +58,71 @@ class PathConverter {
     return path;
   }
 };
+
+// To avoid compiler inlining these heavy functions and allow for caching
+// template instantiations, these need to be implemented outside the class body
+template <typename RootT>
+std::vector<std::string> PathConverter<RootT>::pathToIdTokens(
+    const std::vector<std::string>& tokens) {
+  std::vector<std::string> converted;
+  visitThriftPath(tokens, [&](auto&& path) { converted = path.idTokens(); });
+  return converted;
+}
+
+template <typename RootT>
+std::vector<std::string> PathConverter<RootT>::pathToNameTokens(
+    const std::vector<std::string>& tokens) {
+  std::vector<std::string> converted;
+  visitThriftPath(tokens, [&](auto&& path) { converted = path.tokens(); });
+  return converted;
+}
+
+template <typename RootT>
+std::vector<OperPathElem> PathConverter<RootT>::extPathToIdTokens(
+    const std::vector<OperPathElem>& path) {
+  std::vector<std::string> converted;
+  extVisitThriftPath(path, [&](auto&& path) { converted = path.idTokens(); });
+  return mergeOverWildcards(path, converted);
+}
+
+template <typename RootT>
+std::vector<OperPathElem> PathConverter<RootT>::extPathToNameTokens(
+    const std::vector<OperPathElem>& path) {
+  std::vector<std::string> converted;
+  extVisitThriftPath(path, [&](auto&& path) { converted = path.tokens(); });
+  return mergeOverWildcards(path, converted);
+}
+
+template <typename RootT>
+template <typename Func>
+void PathConverter<RootT>::visitThriftPath(
+    const std::vector<std::string>& tokens,
+    Func&& f) {
+  thriftpath::RootThriftPath<RootT> root;
+  auto result = RootNameToPathVisitor<thriftpath::RootThriftPath<RootT>>::visit(
+      root,
+      tokens.begin(),
+      tokens.begin(),
+      tokens.end(),
+      std::forward<Func>(f));
+  if (result != NameToPathResult::OK) {
+    throw std::runtime_error("Invalid path " + folly::join("/", tokens));
+  }
+}
+
+template <typename RootT>
+template <typename Func>
+void PathConverter<RootT>::extVisitThriftPath(
+    const std::vector<OperPathElem>& path,
+    Func&& f) {
+  thriftpath::RootThriftPath<RootT> root;
+  auto result =
+      RootNameToPathVisitor<thriftpath::RootThriftPath<RootT>>::visitExtended(
+          root, path.begin(), path.end(), std::forward<Func>(f));
+  if (result != NameToPathResult::OK) {
+    // TODO: include path in error message
+    throw std::runtime_error("Invalid extended path");
+  }
+}
 
 } // namespace facebook::fboss::fsdb
