@@ -23,7 +23,6 @@
 DECLARE_int32(fsdb_statsStream_interval_seconds);
 
 namespace facebook::fboss::platform::sensor_service {
-
 using namespace facebook::fboss::platform::sensor_config;
 
 class SensorServiceImpl {

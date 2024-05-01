@@ -112,6 +112,11 @@ void SensorServiceImpl::fetchSensorData() {
       // to delete this counter if there is a failure.
       fb303::fbData->setCounter(
           fmt::format(kReadValue, sensorName), sensorData.value().value_or(0));
+
+      // Add thresholds and sensorType to FSDB
+      sensorData.thresholds() =
+          sensor.thresholds() ? *sensor.thresholds() : Thresholds();
+      sensorData.sensorType() = *sensor.type();
       polledData[sensorName] = sensorData;
     }
   }

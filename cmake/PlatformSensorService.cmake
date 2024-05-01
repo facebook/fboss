@@ -13,6 +13,7 @@ add_fbthrift_cpp_library(
     reflection
   DEPENDS
     fboss_cpp2
+    sensor_config_cpp2
 )
 
 add_fbthrift_cpp_library(
