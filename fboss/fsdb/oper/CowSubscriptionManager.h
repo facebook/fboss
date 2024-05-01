@@ -69,6 +69,7 @@ class OperDeltaUnitCache {
       case fsdb::OperProtocol::SIMPLE_JSON:
         return jsonUnit();
     }
+    throw std::runtime_error("Unsupported protocol");
   }
 
  private:
