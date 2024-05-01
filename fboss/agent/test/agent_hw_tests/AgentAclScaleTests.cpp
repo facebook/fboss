@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
+#include "fboss/agent/test/utils/AsicUtils.h"
 
 #include "fboss/agent/test/gen-cpp2/production_features_types.h"
 
@@ -68,6 +69,45 @@ class AgentAclScaleTest : public AgentHwTest {
           &cfg, cfg::AclStage::INGRESS, utility::getAclTableGroupName());
     }
     return cfg;
+  }
+
+  void setCmdLineFlagOverrides() const override {
+    AgentHwTest::setCmdLineFlagOverrides();
+    FLAGS_enable_acl_table_group = true;
+  }
+  std::vector<cfg::AclTableQualifier> setAclQualifiers(AclWidth width) const {
+    std::vector<cfg::AclTableQualifier> qualifiers;
+
+    if (width == AclWidth::SINGLE_WIDE) {
+      qualifiers.push_back(cfg::AclTableQualifier::DSCP); // 8 bits
+    } else if (width == AclWidth::DOUBLE_WIDE) {
+      qualifiers.push_back(cfg::AclTableQualifier::SRC_IPV6); // 128 bits
+      qualifiers.push_back(cfg::AclTableQualifier::DST_IPV6); // 128 bits
+    } else if (width == AclWidth::TRIPLE_WIDE) {
+      qualifiers.push_back(cfg::AclTableQualifier::SRC_IPV6); // 128 bits
+      qualifiers.push_back(cfg::AclTableQualifier::DST_IPV6); // 128 bits
+      qualifiers.push_back(cfg::AclTableQualifier::IP_TYPE); // 32 bits
+      qualifiers.push_back(cfg::AclTableQualifier::L4_SRC_PORT); // 16 bits
+      qualifiers.push_back(cfg::AclTableQualifier::L4_DST_PORT); // 16 bits
+      qualifiers.push_back(cfg::AclTableQualifier::LOOKUP_CLASS_L2); // 16 bits
+      qualifiers.push_back(cfg::AclTableQualifier::OUTER_VLAN); // 12 bits
+      qualifiers.push_back(cfg::AclTableQualifier::DSCP); // 8 bits
+    }
+    return qualifiers;
+  }
+
+  uint32_t getMaxSingleWideAclTables(const std::vector<const HwAsic*>& asics) {
+    auto asic = utility::checkSameAndGetAsic(asics);
+    auto maxAclTables = asic->getMaxAclTables();
+    CHECK(maxAclTables.has_value());
+    return maxAclTables.value();
+  }
+
+  uint32_t getMaxAclEntries(const std::vector<const HwAsic*>& asics) {
+    auto asic = utility::checkSameAndGetAsic(asics);
+    auto maxAclEntries = asic->getMaxAclEntries();
+    CHECK(maxAclEntries.has_value());
+    return maxAclEntries.value();
   }
 };
 
