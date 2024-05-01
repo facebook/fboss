@@ -24,38 +24,16 @@ enum class AclWidth : uint8_t {
   TRIPLE_WIDE,
 };
 
-template <bool enableMultiAclTable>
-struct EnableMultiAclTable {
-  static constexpr auto multiAclTableEnabled = enableMultiAclTable;
-};
-
-using TestTypes =
-    ::testing::Types<EnableMultiAclTable<false>, EnableMultiAclTable<true>>;
-
-template <typename EnableMultiAclTableT>
 class AgentAclScaleTest : public AgentHwTest {
-  static auto constexpr isMultiAclEnabled =
-      EnableMultiAclTableT::multiAclTableEnabled;
-
  public:
   std::vector<production_features::ProductionFeature>
   getProductionFeaturesVerified() const override {
-    if constexpr (std::is_same_v<
-                      EnableMultiAclTableT,
-                      EnableMultiAclTable<false>>) {
-      return {
-          production_features::ProductionFeature::ACL_COUNTER,
-          production_features::ProductionFeature::SINGLE_ACL_TABLE};
-    } else {
-      return {
-          production_features::ProductionFeature::ACL_COUNTER,
-          production_features::ProductionFeature::MULTI_ACL_TABLE};
-    }
+    return {production_features::ProductionFeature::MULTI_ACL_TABLE};
   }
 
  protected:
   void SetUp() override {
-    FLAGS_enable_acl_table_group = isMultiAclEnabled;
+    FLAGS_enable_acl_table_group = true;
     AgentHwTest::SetUp();
   }
   cfg::SwitchConfig initialConfig(
@@ -64,10 +42,8 @@ class AgentAclScaleTest : public AgentHwTest {
         ensemble.getSw(),
         ensemble.masterLogicalPortIds(),
         true /*interfaceHasSubnet*/);
-    if (isMultiAclEnabled) {
-      utility::addAclTableGroup(
-          &cfg, cfg::AclStage::INGRESS, utility::getAclTableGroupName());
-    }
+    utility::addAclTableGroup(
+        &cfg, cfg::AclStage::INGRESS, utility::getAclTableGroupName());
     return cfg;
   }
 
@@ -109,6 +85,34 @@ class AgentAclScaleTest : public AgentHwTest {
     CHECK(maxAclEntries.has_value());
     return maxAclEntries.value();
   }
+
+  // Create max number of single wide ACL tables
+  void createSingleWideMaxAclTableHelper() {
+    auto setup = [&]() {
+      auto cfg{initialConfig(*getAgentEnsemble())};
+      const int maxAclTables =
+          getMaxSingleWideAclTables(getAgentEnsemble()->getL3Asics());
+      std::vector<cfg::AclTableQualifier> qualifiers =
+          setAclQualifiers(AclWidth::SINGLE_WIDE);
+
+      for (auto i = 0; i < maxAclTables; i++) {
+        std::string aclTableName = "aclTable" + std::to_string(i);
+        utility::addAclTable(
+            &cfg, aclTableName, i /* priority */, {}, qualifiers);
+
+        std::string aclEntryName = "Entry0";
+        auto* aclEntry = utility::addAcl(
+            &cfg, "Entry0", cfg::AclActionType::DENY, aclTableName);
+        aclEntry->dscp() = 0x24;
+      }
+      applyNewConfig(cfg);
+    };
+    verifyAcrossWarmBoots(setup, [] {});
+  }
 };
+
+TEST_F(AgentAclScaleTest, CreateMaxAclSingleWideTables) {
+  this->createSingleWideMaxAclTableHelper();
+}
 
 } // namespace facebook::fboss
