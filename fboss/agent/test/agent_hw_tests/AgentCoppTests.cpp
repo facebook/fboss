@@ -965,13 +965,15 @@ TYPED_TEST(AgentCoppTest, CpuPortIpv6LinkLocalUcastIp) {
   auto setup = [=, this]() { this->setup(); };
 
   auto verify = [=, this]() {
+    auto nbrLinkLocalAddr = folly::IPAddressV6("fe80:face:b11c::1");
+    auto randomMac = folly::MacAddress("00:00:00:00:00:01");
     this->sendTcpPktAndVerifyCpuQueue(
         utility::getCoppHighPriQueueId(utility::checkSameAndGetAsic(
             this->getAgentEnsemble()->getL3Asics())),
-        kIPv6LinkLocalUcastAddress,
+        nbrLinkLocalAddr,
         utility::kNonSpecialPort1,
         utility::kNonSpecialPort2,
-        std::nullopt,
+        randomMac,
         kNetworkControlDscp,
         std::nullopt,
         true,
