@@ -28,9 +28,9 @@ class TraverseHelper {
   }
 
   void pop(ThriftTCType tc) {
-    std::string&& tok = std::move(currentPath_.back());
+    std::string tok = std::move(currentPath_.back());
     currentPath_.pop_back();
-    onPop(std::forward<std::string>(tok), tc);
+    onPop(std::move(tok), tc);
   }
 
   bool shouldShortCircuit(VisitorType visitorType) const {
