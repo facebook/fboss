@@ -139,6 +139,36 @@ class AgentAclScaleTest : public AgentHwTest {
     };
     verifyAcrossWarmBoots(setup, [] {});
   }
+
+  // Create max number of triple wide ACL tables
+  void createTripleWideMaxAclTableHelper() {
+    auto setup = [&]() {
+      auto cfg{initialConfig(*getAgentEnsemble())};
+      const int maxAclSingleWideTables =
+          getMaxSingleWideAclTables(getAgentEnsemble()->getL3Asics());
+      const int maxAclTables =
+          maxAclSingleWideTables / (int)AclWidth::TRIPLE_WIDE;
+      std::vector<cfg::AclTableQualifier> qualifiers =
+          setAclQualifiers(AclWidth::TRIPLE_WIDE);
+
+      for (auto i = 0; i < maxAclTables; i++) {
+        std::string aclTableName = "aclTable" + std::to_string(i);
+        utility::addAclTable(
+            &cfg, aclTableName, i /* priority */, {}, qualifiers);
+
+        auto* aclEntry = utility::addAcl(
+            &cfg, "Entry0", cfg::AclActionType::PERMIT, aclTableName);
+        aclEntry->srcIp() = "2401:db00::";
+        aclEntry->dstIp() = "2401:db00::";
+        aclEntry->ipType() = cfg::IpType::IP6;
+        aclEntry->l4SrcPort() = 8000;
+        aclEntry->l4DstPort() = 8002;
+        aclEntry->dscp() = 0x24;
+      }
+      applyNewConfig(cfg);
+    };
+    verifyAcrossWarmBoots(setup, [] {});
+  }
 };
 
 TEST_F(AgentAclScaleTest, CreateMaxAclSingleWideTables) {
@@ -147,6 +177,10 @@ TEST_F(AgentAclScaleTest, CreateMaxAclSingleWideTables) {
 
 TEST_F(AgentAclScaleTest, CreateMaxAclDobleWideTables) {
   this->createDoubleWideMaxAclTableHelper();
+}
+
+TEST_F(AgentAclScaleTest, CreateMaxAclTripleWideTables) {
+  this->createTripleWideMaxAclTableHelper();
 }
 
 } // namespace facebook::fboss
