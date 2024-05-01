@@ -55,15 +55,19 @@ void LedIO::setLedState(led::LedState ledState) {
 
   switch (toSetColor) {
     case led::LedColor::BLUE:
+      setBlink(*bluePath_, ledState.blink().value());
       blueOn();
       break;
     case led::LedColor::YELLOW:
+      setBlink(*yellowPath_, ledState.blink().value());
       yellowOn();
       break;
     case led::LedColor::OFF:
       if (led::LedColor::BLUE == currentColor) {
+        setBlink(*bluePath_, led::Blink::OFF);
         blueOff();
       } else if (led::LedColor::YELLOW == currentColor) {
+        setBlink(*yellowPath_, led::Blink::OFF);
         yellowOff();
       }
 
@@ -86,9 +90,11 @@ void LedIO::init() {
 
   currState_ = ledState;
   if (bluePath_.has_value()) {
+    setBlink(*bluePath_, led::Blink::OFF);
     blueOff();
   }
   if (yellowPath_.has_value()) {
+    setBlink(*yellowPath_, led::Blink::OFF);
     yellowOff();
   }
 }
