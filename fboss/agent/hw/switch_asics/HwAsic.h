@@ -359,6 +359,13 @@ class HwAsic {
     return {};
   }
 
+  virtual std::optional<uint32_t> getMaxAclTables() const {
+    return std::nullopt;
+  }
+  virtual std::optional<uint32_t> getMaxAclEntries() const {
+    return std::nullopt;
+  }
+
  protected:
   static cfg::Range64 makeRange(int64_t min, int64_t max);
 

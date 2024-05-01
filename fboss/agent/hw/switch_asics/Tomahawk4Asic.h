@@ -102,6 +102,13 @@ class Tomahawk4Asic : public BroadcomXgsAsic {
   uint32_t getNumMemoryBuffers() const override {
     return 2;
   }
+  std::optional<uint32_t> getMaxAclTables() const override {
+    return 5;
+  }
+  std::optional<uint32_t> getMaxAclEntries() const override {
+    // Max ACL entries per ACL table
+    return 256;
+  }
 };
 
 } // namespace facebook::fboss
