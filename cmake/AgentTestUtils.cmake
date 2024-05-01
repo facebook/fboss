@@ -109,6 +109,7 @@ target_link_libraries(config_utils
   platform_mapping
   switch_config_cpp2
   test_ensemble_if
+  port_test_utils
 )
 
 add_library(asic_test_utils
