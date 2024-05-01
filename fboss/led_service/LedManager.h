@@ -38,7 +38,6 @@ class LedManager {
     std::string portName;
     cfg::PortProfileID portProfileId;
     bool operationStateUp{false};
-    bool neighborReachable{false};
     bool cablingError{false};
     bool forcedOn{false};
     bool forcedOff{false};

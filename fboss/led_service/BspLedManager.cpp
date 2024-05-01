@@ -139,7 +139,6 @@ led::LedState BspLedManager::calculateLedState(
   }
 
   bool anyPortUp{false}, allPortsUp{true};
-  bool anyPortReachable{false}, allPortsReachable{true};
   bool anyCablingError{false};
   bool anyForcedOn{false}, anyForcedOff{false};
 
@@ -151,10 +150,6 @@ led::LedState BspLedManager::calculateLedState(
     auto thisPortUp = portDisplayMap_.at(swPort).operationStateUp;
     anyPortUp |= thisPortUp;
     allPortsUp &= thisPortUp;
-
-    auto thisPortReachable = portDisplayMap_.at(swPort).neighborReachable;
-    anyPortReachable = anyPortReachable || thisPortReachable;
-    allPortsReachable = allPortsReachable && thisPortReachable;
 
     anyCablingError |= portDisplayMap_.at(swPort).cablingError;
     anyForcedOn |= portDisplayMap_.at(swPort).forcedOn;
@@ -177,13 +172,10 @@ led::LedState BspLedManager::calculateLedState(
   }
 
   XLOG(DBG2) << fmt::format(
-      "Port {:d}, anyPortUp={:s} allPortsUp={:s} anyPortReachable={:s} \
-      allPortsReachable = {:s} anyCablingError = {:s} ",
+      "Port {:d}, anyPortUp={:s} allPortsUp={:s} anyCablingError = {:s}",
       portId,
       (anyPortUp ? "True" : "False"),
       (allPortsUp ? "True" : "False"),
-      (anyPortReachable ? "True" : "False"),
-      (allPortsReachable ? "True" : "False"),
       (anyCablingError ? "True" : "False"));
 
   // BSP LED color scheme:
@@ -196,7 +188,7 @@ led::LedState BspLedManager::calculateLedState(
 
   if (!anyPortUp) {
     currPortColor = led::LedColor::OFF;
-  } else if (allPortsUp && allPortsReachable && !anyCablingError) {
+  } else if (allPortsUp && !anyCablingError) {
     currPortColor = led::LedColor::GREEN;
   } else {
     currPortColor = kCablingErrorLedColor;
