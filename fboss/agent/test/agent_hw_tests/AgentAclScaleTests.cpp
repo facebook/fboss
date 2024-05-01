@@ -86,6 +86,13 @@ class AgentAclScaleTest : public AgentHwTest {
     return maxAclEntries.value();
   }
 
+  uint32_t getMaxDoubleWideAclTables() {
+    // CS00012346871 - Failed to create 2 consecutive double wide tables
+    // Hardcoding to create only 1 double wide table
+    // ToDo @Stuti - Revisit this once CS00012346871 is fixed
+    return 1;
+  }
+
   // Create max number of single wide ACL tables
   void createSingleWideMaxAclTableHelper() {
     auto setup = [&]() {
@@ -109,10 +116,37 @@ class AgentAclScaleTest : public AgentHwTest {
     };
     verifyAcrossWarmBoots(setup, [] {});
   }
+
+  // Create max number of double wide ACL tables
+  void createDoubleWideMaxAclTableHelper() {
+    auto setup = [&]() {
+      auto cfg{initialConfig(*getAgentEnsemble())};
+      std::vector<cfg::AclTableQualifier> qualifiers =
+          setAclQualifiers(AclWidth::DOUBLE_WIDE);
+
+      for (auto i = 0; i < getMaxDoubleWideAclTables(); i++) {
+        std::string aclTableName = "aclTable" + std::to_string(i);
+        utility::addAclTable(
+            &cfg, aclTableName, i /* priority */, {}, qualifiers);
+
+        auto* aclEntry = utility::addAcl(
+            &cfg, "Entry0", cfg::AclActionType::PERMIT, aclTableName);
+        aclEntry->srcIp() = "2401:db00::";
+        aclEntry->dstIp() = "2401:db00::";
+      }
+
+      applyNewConfig(cfg);
+    };
+    verifyAcrossWarmBoots(setup, [] {});
+  }
 };
 
 TEST_F(AgentAclScaleTest, CreateMaxAclSingleWideTables) {
   this->createSingleWideMaxAclTableHelper();
+}
+
+TEST_F(AgentAclScaleTest, CreateMaxAclDobleWideTables) {
+  this->createDoubleWideMaxAclTableHelper();
 }
 
 } // namespace facebook::fboss
