@@ -21,7 +21,10 @@ add_library(
   fboss/thrift_cow/visitors/RecurseVisitor.h
   fboss/thrift_cow/visitors/VisitorUtils.h
   fboss/thrift_cow/visitors/PatchBuilder.h
+  fboss/thrift_cow/visitors/PatchBuilder.cpp
   fboss/thrift_cow/visitors/PatchApplier.h
+  fboss/thrift_cow/visitors/PatchHelpers.h
+  fboss/thrift_cow/visitors/PatchHelpers.cpp
   fboss/thrift_cow/visitors/TraverseHelper.h
 )
 

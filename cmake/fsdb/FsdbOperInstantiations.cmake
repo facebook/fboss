@@ -43,6 +43,7 @@ target_link_libraries(fsdb_cow_subscription_manager
   cow_storage
   fsdb_cow_storage
   subscription_manager
+  thrift_cow_visitors
 )
 
 add_library(fsdb_naive_periodic_subscribable_storage
