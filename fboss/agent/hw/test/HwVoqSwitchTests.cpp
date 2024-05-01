@@ -360,7 +360,7 @@ TEST_F(HwVoqSwitchTest, rxPacketToCpu) {
   rxPacketToCpuHelper(
       utility::kNonSpecialPort1,
       utility::kNonSpecialPort2,
-      utility::kCoppMidPriQueueId);
+      utility::getCoppMidPriQueueId(this->getAsic()));
 }
 
 TEST_F(HwVoqSwitchTest, rxPacketToCpuBgpDstPort) {

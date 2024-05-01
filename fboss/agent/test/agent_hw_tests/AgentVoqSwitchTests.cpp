@@ -208,7 +208,8 @@ class AgentVoqSwitchTest : public AgentHwTest {
                 cfg::PacketRxReason::BGPV6,
                 utility::getCoppHighPriQueueId(asic)),
             std::pair(
-                cfg::PacketRxReason::CPU_IS_NHOP, utility::kCoppMidPriQueueId),
+                cfg::PacketRxReason::CPU_IS_NHOP,
+                utility::getCoppMidPriQueueId(asic)),
         };
     for (auto rxEntry : rxReasonToQueueMappings) {
       auto rxReasonToQueue = cfg::PacketRxReasonToQueue();
