@@ -895,7 +895,7 @@ uint64_t getQueueOutPacketsWithRetry(
   do {
     for (auto i = 0; i <= utility::getCoppHighPriQueueId(asic); i++) {
       auto qOutPkts =
-          getCpuQueueOutPacketsAndBytes(switchPtr, queueId, switchId).first;
+          getCpuQueueOutPacketsAndBytes(switchPtr, i, switchId).first;
       XLOG(DBG2) << "QueueID: " << i << " qOutPkts: " << qOutPkts;
     }
 

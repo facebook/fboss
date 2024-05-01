@@ -324,7 +324,10 @@ void SaiRouteManager::addOrUpdateRoute(
        * though nexthop is set to CPU port, the class ID is set
        * SUBNET_CLASS_ID which defaults to queue 0. For all unreoslved host
        * routes, the class ID is set to IP2ME class ID which will be
-       * sent to mid pri queue due to IP2ME hostif trap.
+       * sent to mid pri queue due to IP2ME hostif trap. However, brcm-sai
+       * is also implicitly programming route classID underlyingly, which
+       * could cause conflict with our programming. So, do nothing on
+       * brcm sai switches for now, until brcm-sai is enhanced to support it.
        *
        * TAJO SDK behavior:
        * For Tajo, any route (host route or subnet route) that points to
@@ -339,6 +342,7 @@ void SaiRouteManager::addOrUpdateRoute(
        * 2) Add an ACL with qualifer as CLASS_UNRESOLVED_ROUTE_TO_CPU and
        * action as low pri queue.
        */
+#if defined(TAJO_SDK)
       if (FLAGS_classid_for_unresolved_routes &&
           platform_->getAsic()->isSupported(HwAsic::Feature::ROUTE_METADATA)) {
         if (nextHopId == managerTable_->switchManager().getCpuPort()) {
@@ -346,6 +350,7 @@ void SaiRouteManager::addOrUpdateRoute(
               static_cast<uint32_t>(cfg::AclLookupClass::DST_CLASS_L3_LOCAL_2);
         }
       }
+#endif
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
       attributes = SaiRouteTraits::CreateAttributes{
