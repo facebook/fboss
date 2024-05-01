@@ -20,6 +20,13 @@ namespace {
 constexpr auto kLedOn = "1";
 constexpr auto kLedOff = "0";
 constexpr auto kLedBrightnessPath = "/brightness";
+constexpr auto kLedTriggerPath = "/trigger";
+constexpr auto kLedDelayOnPath = "/delay_on";
+constexpr auto kLedDelayOffPath = "/delay_off";
+constexpr auto kLedTimerTrigger = "timer";
+constexpr auto kLedBlinkOff = "0";
+constexpr auto kLedBlinkSlow = "1000";
+constexpr auto kLedBlinkFast = "500";
 } // namespace
 
 namespace facebook::fboss {
@@ -119,6 +126,61 @@ void LedIO::setLed(const std::string& ledBasePath, const std::string& ledOp) {
   } else {
     throw LedIOError(fmt::format(
         "setLed() failed to open {} for ID {:d} (0 base)", ledPath, id_));
+  }
+}
+
+void LedIO::setBlink(const std::string& ledBasePath, led::Blink blink) {
+  // Set blink rate
+  {
+    std::string ledPathOn = ledBasePath + kLedDelayOnPath;
+    std::string ledPathOff = ledBasePath + kLedDelayOffPath;
+    std::fstream fsOn, fsOff;
+    fsOn.open(ledPathOn, std::fstream::out);
+    fsOff.open(ledPathOn, std::fstream::out);
+
+    if (fsOn.is_open() && fsOff.is_open()) {
+      switch (blink) {
+        case led::Blink::OFF:
+        case led::Blink::UNKNOWN:
+          fsOn << kLedBlinkOff;
+          fsOff << kLedBlinkOff;
+          break;
+        case led::Blink::SLOW:
+          fsOn << kLedBlinkSlow;
+          fsOff << kLedBlinkSlow;
+          break;
+        case led::Blink::FAST:
+          fsOn << kLedBlinkFast;
+          fsOff << kLedBlinkFast;
+          break;
+      }
+      fsOn.close();
+      fsOff.close();
+    } else {
+      // Not throwing an exception here until all existing BSPs support blinking
+      XLOG(ERR) << fmt::format(
+          "setBlink() failed to open {} or {} for ID {:d} (0 base)",
+          ledPathOn,
+          ledPathOff,
+          id_);
+      return;
+    }
+  }
+  // Set trigger
+  {
+    std::string ledPath = ledBasePath + kLedTriggerPath;
+    std::fstream fs;
+    fs.open(ledPath, std::fstream::out);
+
+    if (fs.is_open()) {
+      fs << kLedTimerTrigger;
+      fs.close();
+    } else {
+      // Not throwing an exception here until all existing BSPs support blinking
+      XLOG(ERR) << fmt::format(
+          "setBlink() failed to open {} for ID {:d} (0 base)", ledPath, id_);
+      return;
+    }
   }
 }
 

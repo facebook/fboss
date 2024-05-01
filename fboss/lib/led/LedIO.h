@@ -43,6 +43,7 @@ class LedIO {
   void yellowOn();
   void yellowOff();
   void setLed(const std::string& ledPath, const std::string& ledOp);
+  void setBlink(const std::string& ledPath, led::Blink blink);
 
   led::LedState currState_;
   uint32_t id_;
