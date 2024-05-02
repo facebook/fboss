@@ -251,7 +251,6 @@ set(hw_switch_test_srcs
   fboss/agent/hw/test/dataplane_tests/HwQueuePerHostL2Tests.cpp
   fboss/agent/hw/test/dataplane_tests/HwQueuePerHostTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwQueuePerHostRouteTests.cpp
-  fboss/agent/hw/test/dataplane_tests/HwRouteOverflowTest.cpp
   fboss/agent/hw/test/dataplane_tests/HwSflowTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwSflowMirrorTest.cpp
   fboss/agent/hw/test/dataplane_tests/HwSwitchStatsTxCounterTests.cpp
