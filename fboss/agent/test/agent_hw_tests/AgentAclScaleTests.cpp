@@ -215,6 +215,30 @@ class AgentAclScaleTest : public AgentHwTest {
     };
     verifyAcrossWarmBoots(setup, [] {});
   }
+
+  // Create max number of entires for single wide ACL table
+  void createSingleWideTableMaxAclEntriesHelper() {
+    auto setup = [&]() {
+      auto cfg{initialConfig(*getAgentEnsemble())};
+      const auto maxAclEntries =
+          getMaxAclEntries(getAgentEnsemble()->getL3Asics());
+      const int maxAclTables =
+          getMaxSingleWideAclTables(getAgentEnsemble()->getL3Asics());
+      std::vector<cfg::AclTableQualifier> qualifiers =
+          setAclQualifiers(AclWidth::SINGLE_WIDE);
+
+      utility::addAclTable(&cfg, "aclTable0", 0 /* priority */, {}, qualifiers);
+      auto maxEntries = maxAclTables * maxAclEntries;
+      for (auto i = 0; i < maxEntries; i++) {
+        std::string aclEntryName = "Entry" + std::to_string(i);
+        auto* aclEntry = utility::addAcl(
+            &cfg, aclEntryName, cfg::AclActionType::DENY, "aclTable0");
+        aclEntry->dscp() = 0x24;
+      }
+      applyNewConfig(cfg);
+    };
+    verifyAcrossWarmBoots(setup, [] {});
+  }
 };
 
 TEST_F(AgentAclScaleTest, CreateMaxAclSingleWideTables) {
@@ -231,6 +255,10 @@ TEST_F(AgentAclScaleTest, CreateMaxAclTripleWideTables) {
 
 TEST_F(AgentAclScaleTest, CreateVariableWidthAclTables) {
   this->createVariableWidthAclTableHelper();
+}
+
+TEST_F(AgentAclScaleTest, CreateSingleWideTableMaxAclEntries) {
+  this->createSingleWideTableMaxAclEntriesHelper();
 }
 
 } // namespace facebook::fboss
