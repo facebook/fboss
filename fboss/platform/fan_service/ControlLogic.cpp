@@ -282,7 +282,6 @@ void ControlLogic::getSensorUpdate() {
 
 void ControlLogic::getOpticsUpdate() {
   for (const auto& optic : *config_.optics()) {
-    XLOG(INFO) << "Control :: Optics Group Name : " << *optic.opticName();
     std::string opticName = *optic.opticName();
 
     if (!pSensor_->checkIfOpticEntryExists(opticName)) {
@@ -294,8 +293,8 @@ void ControlLogic::getOpticsUpdate() {
       continue;
     }
 
-    int pwmSoFar = 0;
-    const auto& aggregationType = optic.aggregationType();
+    int aggOpticPwm = 0;
+    const auto& aggregationType = *optic.aggregationType();
 
     if (aggregationType == constants::OPTIC_AGGREGATION_TYPE_MAX()) {
       // Conventional one-table conversion, followed by
@@ -314,8 +313,13 @@ void ControlLogic::getOpticsUpdate() {
             }
           }
         }
-        if (pwmForThis > pwmSoFar) {
-          pwmSoFar = pwmForThis;
+        XLOG(INFO) << fmt::format(
+            "{}: Optic sensor read value is {}. PWM is {}",
+            opticType,
+            value,
+            pwmForThis);
+        if (pwmForThis > aggOpticPwm) {
+          aggOpticPwm = pwmForThis;
         }
       }
     } else if (aggregationType == constants::OPTIC_AGGREGATION_TYPE_PID()) {
@@ -349,15 +353,19 @@ void ControlLogic::getOpticsUpdate() {
         float pwm = calculatePid(
             opticType, value, pwmCalcCache, kp, ki, kd, dT, minVal, maxVal);
         readCache.targetPwmCache = pwm;
-        if (pwm > pwmSoFar) {
-          pwmSoFar = pwm;
+        if (pwm > aggOpticPwm) {
+          aggOpticPwm = pwm;
         }
       }
     } else {
       throw facebook::fboss::FbossError(
           "Only max and pid aggregation is supported for optics!");
     }
-    opticData->calculatedPwm = pwmSoFar;
+    XLOG(INFO) << fmt::format(
+        "Optics: Aggregation Type: {}. Aggregate PWM is {}",
+        aggregationType,
+        aggOpticPwm);
+    opticData->calculatedPwm = aggOpticPwm;
     // As we consumed the data, clear the vector
     opticData->data.clear();
     opticData->dataProcessTimeStamp = opticData->lastOpticsUpdateTimeInSec;
@@ -560,36 +568,33 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
   // So check if we read sensor data at least once. If not,
   // do it now.
   if (!pBsp_->checkIfInitialSensorDataRead()) {
-    XLOG(INFO) << "Control :: Reading sensors for the first time";
+    XLOG(INFO) << "Reading sensors for the first time";
     pBsp_->getSensorData(pSensor_);
   }
 
   // Determine proposed pwm value by each sensor read
-  XLOG(INFO) << "Control :: Reading Sensor Status and determine per sensor PWM";
+  XLOG(INFO) << "Processing Sensors ...";
   getSensorUpdate();
 
   // Determine proposed pwm value by each optics read
-  XLOG(INFO) << "Control :: Checking optics temperature to get pwm";
+  XLOG(INFO) << "Processing Optics ...";
   getOpticsUpdate();
 
-  // Check if we need to turn on boost mode
-  XLOG(INFO) << "Control :: Failed Fans : " << numFanFailed_
-             << " Failed Sensors : " << numSensorFailed_;
-
+  // Check if we need to turn on boost mode for qsfp errors
   uint64_t secondsSinceLastOpticsUpdate =
       pBsp_->getCurrentTime() - pSensor_->getLastQsfpSvcTime();
   if ((*config_.pwmBoostOnNoQsfpAfterInSec() != 0) &&
       (secondsSinceLastOpticsUpdate >= *config_.pwmBoostOnNoQsfpAfterInSec())) {
     boost_due_to_no_qsfp = true;
-    XLOG(INFO) << "Control :: Boost mode condition for no optics update "
-               << secondsSinceLastOpticsUpdate << " > "
-               << *config_.pwmBoostOnNoQsfpAfterInSec();
+    XLOG(INFO) << fmt::format(
+        "Boost mode enabled for optics update missing for {}s",
+        secondsSinceLastOpticsUpdate);
   }
 
+  XLOG(INFO) << "Processing Fans ...";
   fanStatuses_.withWLock([&](auto& fanStatuses) {
     // Now, check if Fan is in good shape, based on the previously read
     // sensor data
-    XLOG(INFO) << "Control :: Checking Fan Status";
 
     // Update fan status with new rpm and timestamp.
     for (const auto& fan : *config_.fans()) {
