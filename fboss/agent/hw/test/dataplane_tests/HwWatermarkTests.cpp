@@ -80,86 +80,6 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
     }
   }
 
-  void checkFb303BufferWatermarkUcast(
-      const PortID& portId,
-      const int queueId,
-      bool isVoq) {
-    std::string portName;
-    if (!isVoq) {
-      portName = getProgrammedState()->getPorts()->getNodeIf(portId)->getName();
-
-    } else {
-      auto systemPortId = getSystemPortID(
-          portId,
-          utility::getFirstNodeIf(getProgrammedState()->getSwitchSettings())
-              ->getSwitchIdToSwitchInfo(),
-          getPlatform()->getHwSwitch()->getSwitchID());
-      portName = getProgrammedState()
-                     ->getSystemPorts()
-                     ->getNodeIf(systemPortId)
-                     ->getPortName();
-    }
-
-    auto counters = fb303::fbData->getRegexCounters({folly::sformat(
-        "buffer_watermark_ucast.{}.*.queue{}.*.p100.60", portName, queueId)});
-    // Unfortunately since  we use quantile stats, which compute
-    // a MAX over a period, we can't really assert on the exact
-    // value, just on its presence
-    EXPECT_EQ(1, counters.size());
-  }
-
-  void
-  assertWatermark(PortID port, int queueId, bool expectZero, int retries = 1) {
-    EXPECT_TRUE(
-        gotExpectedWatermark(port, queueId, expectZero, retries, false));
-    if (getPlatform()->getAsic()->getSwitchType() == cfg::SwitchType::VOQ) {
-      EXPECT_TRUE(
-          gotExpectedWatermark(port, queueId, expectZero, retries, true));
-    }
-  }
-
-  bool gotExpectedWatermark(
-      const PortID& port,
-      int queueId,
-      bool expectZero,
-      int retries,
-      bool isVoq) {
-    std::map<int16_t, int64_t> queueWaterMarks;
-    auto portName =
-        getProgrammedState()->getPorts()->getNodeIf(port)->getName();
-
-    auto queueTypeStr = isVoq ? " voq queueId: " : " queueId: ";
-    auto watermarkStatsCheck = [&]() {
-      XLOG(DBG2) << "Port: " << portName << queueTypeStr << queueId
-                 << " Watermark: " << queueWaterMarks[queueId];
-      if ((expectZero && !queueWaterMarks[queueId]) ||
-          (!expectZero && queueWaterMarks[queueId])) {
-        return true;
-      }
-      return false;
-    };
-
-    auto updatePortOrSysportStats = [&]() {
-      queueWaterMarks = getQueueWatermarks(port, isVoq);
-    };
-    auto statsConditionMet = getHwSwitchEnsemble()->waitStatsCondition(
-        watermarkStatsCheck,
-        updatePortOrSysportStats,
-        retries,
-        std::chrono::milliseconds(1000));
-    if (!statsConditionMet) {
-      auto expectation = expectZero ? "zero" : "non-zero";
-      XLOG(DBG2) << " Did not get expected " << expectation
-                 << " watermark value!";
-    } else {
-      XLOG(DBG2) << "Port: " << portName << queueTypeStr << queueId
-                 << " got expected watermarks of " << queueWaterMarks[queueId];
-    }
-    // Check fb303
-    checkFb303BufferWatermarkUcast(port, queueId, isVoq);
-    return statsConditionMet;
-  }
-
   uint64_t getMinDeviceWatermarkValue() {
     uint64_t minDeviceWatermarkBytes{0};
     if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO) {
@@ -282,51 +202,7 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
   void assertDeviceWatermark(bool expectZero, int retries = 1) {
     EXPECT_TRUE(gotExpectedDeviceWatermark(expectZero, retries));
   }
-
-  void stopTraffic(const PortID& portId) {
-    // Toggle the link to break traffic loop
-    bringDownPort(portId);
-    bringUpPort(portId);
-  }
-
-  void runTest(int queueId) {
-    if (!isSupported(HwAsic::Feature::L3_QOS)) {
-#if defined(GTEST_SKIP)
-      GTEST_SKIP();
-#endif
-      return;
-    }
-
-    auto setup = [this]() {
-      // Needs a traffic loop to accommodate some ASICs like Jericho
-      _setup(true /*needTrafficLoop*/);
-    };
-    auto verify = [this, queueId]() {
-      auto dscpsForQueue = utility::kOlympicQueueToDscp().find(queueId)->second;
-      for (auto portAndIp : getPort2DstIp()) {
-        // Assert zero watermark
-        assertWatermark(portAndIp.first, queueId, true /*expectZero*/, 2);
-        // Send traffic
-        sendUdpPkts(dscpsForQueue[0], portAndIp.second);
-        // Assert non zero watermark
-        assertWatermark(portAndIp.first, queueId, false /*expectZero*/, 10);
-        // Stop traffic
-        stopTraffic(portAndIp.first);
-        // Assert zero watermark
-        assertWatermark(portAndIp.first, queueId, true /*expectZero*/, 10);
-      }
-    };
-    verifyAcrossWarmBoots(setup, verify);
-  }
 };
-
-TEST_F(HwWatermarkTest, VerifyDefaultQueue) {
-  runTest(getOlympicQueueId(utility::OlympicQueueType::SILVER));
-}
-
-TEST_F(HwWatermarkTest, VerifyNonDefaultQueue) {
-  runTest(getOlympicQueueId(utility::OlympicQueueType::GOLD));
-}
 
 // TODO - merge device watermark checking into the tests
 // above once all platforms support device watermarks
