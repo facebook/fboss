@@ -4110,33 +4110,21 @@ int __wrap_bcm_port_fdr_config_set(
     int unit,
     bcm_port_t port,
     bcm_port_fdr_config_t* fdr_config) {
-#ifndef BCM_SDK_TYPE_DNX_ONLY
   CALL_WRAPPERS_RV(bcm_port_fdr_config_set(unit, port, fdr_config));
-#else
-  return 0;
-#endif
 }
 
 int __wrap_bcm_port_fdr_config_get(
     int unit,
     bcm_port_t port,
     bcm_port_fdr_config_t* fdr_config) {
-#ifndef BCM_SDK_TYPE_DNX_ONLY
   CALL_WRAPPERS_RV(bcm_port_fdr_config_get(unit, port, fdr_config));
-#else
-  return 0;
-#endif
 }
 
 int __wrap_bcm_port_fdr_stats_get(
     int unit,
     bcm_port_t port,
     bcm_port_fdr_stats_t* fdr_stats) {
-#ifndef BCM_SDK_TYPE_DNX_ONLY
   CALL_WRAPPERS_RV(bcm_port_fdr_stats_get(unit, port, fdr_stats));
-#else
-  return 0;
-#endif
 }
 #endif
 
