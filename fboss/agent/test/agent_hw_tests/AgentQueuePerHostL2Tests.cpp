@@ -45,10 +45,6 @@ class AgentQueuePerHostL2Test : public AgentHwTest {
     return {production_features::ProductionFeature::QUEUE_PER_HOST};
   }
 
-  const HwAsic* getAsic() const {
-    return utility::getFirstAsic(getAgentEnsemble()->getSw());
-  }
-
   void verifyHelper(bool useFrontPanel) {
     auto ttlAclName = utility::getQueuePerHostTtlAclName();
     auto ttlCounterName = utility::getQueuePerHostTtlCounterName();
@@ -117,7 +113,8 @@ class AgentQueuePerHostL2Test : public AgentHwTest {
            * Thus, the counter get increment one additional time for the looped
            * back packet.
            */
-          if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO) {
+          if (utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+                  ->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO) {
             /* 1 pkt each for ttl < 128 and ttl >= 128 */
             EXPECT_EVENTUALLY_EQ(pktsOnQueue, 4);
           } else {
