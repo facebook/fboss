@@ -127,4 +127,68 @@ TEST_F(AgentRouteOverflowTest, overflowRoutes) {
   verifyInvariants();
 }
 
+class AgentRouteCounterOverflowTest : public AgentOverflowTestBase {
+ protected:
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto cfg = AgentOverflowTestBase::initialConfig(ensemble);
+    cfg.switchSettings()->maxRouteCounterIDs() = 1;
+    return cfg;
+  }
+
+  std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const override {
+    return {
+        production_features::ProductionFeature::ROUTE_COUNTERS,
+        production_features::ProductionFeature::COPP,
+        production_features::ProductionFeature::ECMP_LOAD_BALANCER,
+        production_features::ProductionFeature::L3_QOS};
+  }
+};
+
+TEST_F(AgentRouteCounterOverflowTest, overflowRouteCounters) {
+  applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+    return utility::EcmpSetupAnyNPorts6(in).resolveNextHops(
+        in, utility::kDefaulEcmpWidth);
+  });
+  applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+    return utility::EcmpSetupAnyNPorts4(in).resolveNextHops(
+        in, utility::kDefaulEcmpWidth);
+  });
+  auto updater = getSw()->getRouteUpdater();
+  const RouterID kRid(0);
+  auto counterID1 = std::optional<RouteCounterID>("route.counter.0");
+  auto counterID2 = std::optional<RouteCounterID>("route.counter.1");
+  // Add some V6 prefixes with a counterID
+  utility::programRoutes(
+      updater,
+      kRid,
+      ClientID::BGPD,
+      utility::RouteDistributionGenerator(
+          getProgrammedState(), {{64, 5}}, {}, 4000, 4)
+          .getThriftRoutes(counterID1));
+  // Add another set of V6 prefixes with a second counterID
+  utility::RouteDistributionGenerator::ThriftRouteChunks routeChunks =
+      utility::RouteDistributionGenerator(
+          getProgrammedState(), {{120, 5}}, {}, 4000, 4)
+          .getThriftRoutes(counterID2);
+
+  {
+    startPacketTxRxVerify();
+    SCOPE_EXIT {
+      stopPacketTxRxVerify();
+    };
+    EXPECT_THROW(
+        utility::programRoutes(updater, kRid, ClientID::BGPD, routeChunks),
+        FbossError);
+
+    auto programmedState = getProgrammedState();
+    EXPECT_TRUE(programmedState->isPublished());
+    auto updater2 = getSw()->getRouteUpdater();
+    updater2.program();
+    EXPECT_EQ(programmedState, getProgrammedState());
+  }
+  verifyInvariants();
+}
+
 } // namespace facebook::fboss
