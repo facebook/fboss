@@ -125,7 +125,6 @@ void addOlympicQueueConfig(
 
 void addOlympicV2WRRQueueConfig(
     cfg::SwitchConfig* config,
-    cfg::StreamType streamType,
     const std::vector<const HwAsic*>& asics,
     bool addWredConfig = false);
 void addFswRswAllSPOlympicQueueConfig(

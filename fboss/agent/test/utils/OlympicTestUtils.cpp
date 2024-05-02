@@ -455,11 +455,12 @@ void addOlympicAllSPQueueConfig(
 
 void addOlympicV2WRRQueueConfig(
     cfg::SwitchConfig* config,
-    cfg::StreamType streamType,
     const std::vector<const HwAsic*>& asics,
     bool addWredConfig) {
   // Only same type of ASICs supported
   auto asic = checkSameAndGetAsic(asics);
+  auto streamType =
+      *(getStreamType(cfg::PortType::INTERFACE_PORT, asics).begin());
   std::vector<cfg::PortQueue> portQueues;
 
   cfg::PortQueue queue0;
