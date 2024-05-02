@@ -58,6 +58,13 @@ class TestEnsembleIf : public HwSwitchCallback {
   std::vector<PortID> masterLogicalFabricPortIds(SwitchID switchId) const {
     return masterLogicalPortIds({cfg::PortType::FABRIC_PORT}, {switchId});
   }
+
+  size_t getMinPktsForLineRate(const PortID& port) {
+    auto portSpeed =
+        getProgrammedState()->getPorts()->getNodeIf(port)->getSpeed();
+    return (portSpeed > cfg::PortSpeed::HUNDREDG ? 1000 : 100);
+  }
+
   virtual void applyNewState(
       StateUpdateFn fn,
       const std::string& name = "test-update",

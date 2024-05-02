@@ -278,7 +278,6 @@ class HwSwitchEnsemble : public TestEnsembleIf {
     return std::make_unique<HwSwitchEnsembleRouteUpdateWrapper>(
         this, routingInformationBase_.get());
   }
-  size_t getMinPktsForLineRate(const PortID& portId);
   int readPfcDeadlockDetectionCounter(const PortID& port);
   int readPfcDeadlockRecoveryCounter(const PortID& port);
   void clearPfcDeadlockRecoveryCounter(const PortID& port);

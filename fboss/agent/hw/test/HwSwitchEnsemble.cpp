@@ -880,11 +880,6 @@ void HwSwitchEnsemble::ensureThrift() {
   }
 }
 
-size_t HwSwitchEnsemble::getMinPktsForLineRate(const PortID& port) {
-  auto portSpeed = programmedState_->getPorts()->getNodeIf(port)->getSpeed();
-  return (portSpeed > cfg::PortSpeed::HUNDREDG ? 1000 : 100);
-}
-
 void HwSwitchEnsemble::addOrUpdateCounter(
     const PortID& port,
     const bool deadlock) {
