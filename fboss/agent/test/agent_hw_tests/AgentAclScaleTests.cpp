@@ -233,7 +233,35 @@ class AgentAclScaleTest : public AgentHwTest {
         std::string aclEntryName = "Entry" + std::to_string(i);
         auto* aclEntry = utility::addAcl(
             &cfg, aclEntryName, cfg::AclActionType::DENY, "aclTable0");
-        aclEntry->dscp() = 0x24;
+        updateAclEntryFields(aclEntry, AclWidth::SINGLE_WIDE);
+      }
+      applyNewConfig(cfg);
+    };
+    verifyAcrossWarmBoots(setup, [] {});
+  }
+
+  // Create max number of entires for tripe wide ACL table
+  void createTripleWideTableMaxAclEntriesHelper() {
+    auto setup = [&]() {
+      auto cfg{initialConfig(*getAgentEnsemble())};
+      const auto maxAclSingleWideEntries =
+          getMaxAclEntries(getAgentEnsemble()->getL3Asics());
+      const auto maxAclSingleWideTables =
+          getMaxSingleWideAclTables(getAgentEnsemble()->getL3Asics());
+      // Each triple wide will consume 3 single wide entries hence reducing
+      // total numbers of entries by 3
+      const int maxTripleWideAclTables =
+          maxAclSingleWideTables / (int)AclWidth::TRIPLE_WIDE;
+      const auto maxEntries = maxAclSingleWideEntries * maxTripleWideAclTables;
+
+      std::vector<cfg::AclTableQualifier> qualifiers =
+          setAclQualifiers(AclWidth::TRIPLE_WIDE);
+      utility::addAclTable(&cfg, "aclTable1", 0 /* priority */, {}, qualifiers);
+      for (auto i = 0; i < maxEntries; i++) {
+        std::string aclEntryName = "Entry" + std::to_string(i);
+        auto* aclEntry = utility::addAcl(
+            &cfg, aclEntryName, cfg::AclActionType::PERMIT, "aclTable1");
+        updateAclEntryFields(aclEntry, AclWidth::TRIPLE_WIDE);
       }
       applyNewConfig(cfg);
     };
@@ -259,6 +287,10 @@ TEST_F(AgentAclScaleTest, CreateVariableWidthAclTables) {
 
 TEST_F(AgentAclScaleTest, CreateSingleWideTableMaxAclEntries) {
   this->createSingleWideTableMaxAclEntriesHelper();
+}
+
+TEST_F(AgentAclScaleTest, CreateTripleWideTableMaxAclEntries) {
+  this->createTripleWideTableMaxAclEntriesHelper();
 }
 
 } // namespace facebook::fboss
