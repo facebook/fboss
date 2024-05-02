@@ -48,41 +48,12 @@ class NaivePeriodicSubscribableStorageBase {
   void start_impl();
   void stop_impl();
 
-  void registerPublisher(PathIter begin, PathIter end) {
-    if (!trackMetadata_) {
-      return;
-    }
-    metadataTracker_.withWLock([&](auto& tracker) {
-      CHECK(tracker);
-      tracker->registerPublisherRoot(*getPublisherRoot(begin, end));
-    });
-  }
+  void registerPublisher(PathIter begin, PathIter end);
 
   void unregisterPublisher(
       PathIter begin,
       PathIter end,
-      FsdbErrorCode disconnectReason = FsdbErrorCode::ALL_PUBLISHERS_GONE) {
-    if (!trackMetadata_) {
-      return;
-    }
-    // Acquire subscriptions lock since we may need to
-    // trim subscriptions is corresponding publishers goes
-    // away. Acquiring locks in the same order subscriptionMgr,
-    // metadataTracker to keep TSAN happy
-    withSubMgrWLocked([&](SubscriptionManagerBase& mgr) {
-      metadataTracker_.withWLock([&](auto& tracker) {
-        CHECK(tracker);
-        auto publisherRoot = getPublisherRoot(begin, end);
-        CHECK(publisherRoot);
-        tracker->unregisterPublisherRoot(*publisherRoot);
-        if (!tracker->getPublisherRootMetadata(*publisherRoot)) {
-          mgr.closeNoPublisherActiveSubscriptions(
-              SubscriptionMetadataServer(tracker->getAllMetadata()),
-              disconnectReason);
-        }
-      });
-    });
-  }
+      FsdbErrorCode disconnectReason = FsdbErrorCode::ALL_PUBLISHERS_GONE);
 
   template <typename T, typename TC>
   folly::coro::AsyncGenerator<DeltaValue<T>&&>

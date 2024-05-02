@@ -123,6 +123,44 @@ void NaivePeriodicSubscribableStorageBase::stop_impl() {
   XLOG(INFO) << "Stopped subscribable storage";
 }
 
+void NaivePeriodicSubscribableStorageBase::registerPublisher(
+    PathIter begin,
+    PathIter end) {
+  if (!trackMetadata_) {
+    return;
+  }
+  metadataTracker_.withWLock([&](auto& tracker) {
+    CHECK(tracker);
+    tracker->registerPublisherRoot(*getPublisherRoot(begin, end));
+  });
+}
+
+void NaivePeriodicSubscribableStorageBase::unregisterPublisher(
+    PathIter begin,
+    PathIter end,
+    FsdbErrorCode disconnectReason) {
+  if (!trackMetadata_) {
+    return;
+  }
+  // Acquire subscriptions lock since we may need to
+  // trim subscriptions is corresponding publishers goes
+  // away. Acquiring locks in the same order subscriptionMgr,
+  // metadataTracker to keep TSAN happy
+  withSubMgrWLocked([&](SubscriptionManagerBase& mgr) {
+    metadataTracker_.withWLock([&](auto& tracker) {
+      CHECK(tracker);
+      auto publisherRoot = getPublisherRoot(begin, end);
+      CHECK(publisherRoot);
+      tracker->unregisterPublisherRoot(*publisherRoot);
+      if (!tracker->getPublisherRootMetadata(*publisherRoot)) {
+        mgr.closeNoPublisherActiveSubscriptions(
+            SubscriptionMetadataServer(tracker->getAllMetadata()),
+            disconnectReason);
+      }
+    });
+  });
+}
+
 SubscriptionMetadataServer
 NaivePeriodicSubscribableStorageBase::getCurrentMetadataServer() {
   std::optional<FsdbOperTreeMetadataTracker::PublisherRoot2Metadata> metadata;
