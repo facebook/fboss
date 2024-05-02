@@ -180,21 +180,17 @@ void Bsp::processOpticEntries(
     const Optic& opticsGroup,
     std::shared_ptr<SensorData> pSensorData,
     uint64_t& currentQsfpSvcTimestamp,
-    const std::map<int32_t, TransceiverData>& cacheTable,
+    const std::map<int32_t, TransceiverData>& transceiverMap,
     OpticEntry* opticData) {
-  std::pair<std::string, float> prepData;
-  for (auto& cacheEntry : cacheTable) {
-    int xvrId = static_cast<int>(cacheEntry.first);
+  for (const auto& [xvrId, transceiverData] : transceiverMap) {
     std::string opticType{};
-    // Qsfp_service send the data as double, but fan service use float.
-    // So, cast the data to float
-    auto timeStamp = cacheEntry.second.timeCollected;
+
+    auto timeStamp = transceiverData.timeCollected;
     if (timeStamp > currentQsfpSvcTimestamp) {
       currentQsfpSvcTimestamp = timeStamp;
     }
 
-    float temp =
-        static_cast<float>(*(cacheEntry.second.sensor.temp()->value()));
+    float temp = static_cast<float>(*(transceiverData.sensor.temp()->value()));
     // In the following two cases, do not process the entries and move on
     // 1. temperature from QSFP service is 0.0 - meaning the port is
     //    not populated in qsfp_service or read failure occured. So skip this.
@@ -210,10 +206,7 @@ void Bsp::processOpticEntries(
     }
 
     // Parse using the definition in qsfp_service/if/transceiver.thrift
-    // Detect the speed. If unknown, use the very first table.
-    MediaInterfaceCode mediaInterfaceCode =
-        cacheEntry.second.mediaInterfaceCode;
-    switch (mediaInterfaceCode) {
+    switch (transceiverData.mediaInterfaceCode) {
       case MediaInterfaceCode::UNKNOWN:
         // Use the first table's type for unknown/missing media type
         opticType = opticsGroup.tempToPwmMaps()->begin()->first;
@@ -230,16 +223,14 @@ void Bsp::processOpticEntries(
       case MediaInterfaceCode::LR4_400G_10KM:
         opticType = constants::OPTIC_TYPE_400_GENERIC();
         break;
-      // No 800G optic yet
       default:
-        int intVal = static_cast<int>(mediaInterfaceCode);
-        XLOG(ERR) << "Transceiver : " << xvrId
-                  << " Unsupported Media Type : " << intVal
-                  << "Ignoring this entry";
+        XLOG(ERR) << fmt::format(
+            "Transceiver id {} has unsupported media type {}. Ignoring.",
+            xvrId,
+            int(transceiverData.mediaInterfaceCode));
         break;
     }
-    prepData = {opticType, temp};
-    opticData->data.push_back(prepData);
+    opticData->data.emplace_back(opticType, temp);
   }
 }
 
