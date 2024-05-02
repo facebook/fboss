@@ -575,7 +575,6 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
             &newCfg,
             1 /*priority*/,
             addAllQualifiers,
-            getAsic(),
             this->getHwSwitchEnsemble()->isSai());
         utility::addTtlAclTable(&newCfg, 2);
         applyNewConfig(newCfg);

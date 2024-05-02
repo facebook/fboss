@@ -66,7 +66,6 @@ void addDscpMarkingAclsHelper(
     cfg::SwitchConfig* config,
     IP_PROTO proto,
     const std::vector<uint32_t>& ports,
-    const HwAsic* hwAsic,
     bool isSai) {
   for (auto port : ports) {
     auto l4SrcPortAclName = getDscpAclName(proto, "src", port);
@@ -89,17 +88,12 @@ void addDscpMarkingAclsHelper(
   }
 }
 
-void addDscpMarkingAcls(
-    cfg::SwitchConfig* config,
-    const HwAsic* hwAsic,
-    bool isSai) {
-  addDscpMarkingAclsHelper(
-      config, IP_PROTO::IP_PROTO_UDP, kUdpPorts(), hwAsic, isSai);
-  addDscpMarkingAclsHelper(
-      config, IP_PROTO::IP_PROTO_TCP, kTcpPorts(), hwAsic, isSai);
+void addDscpMarkingAcls(cfg::SwitchConfig* config, bool isSai) {
+  addDscpMarkingAclsHelper(config, IP_PROTO::IP_PROTO_UDP, kUdpPorts(), isSai);
+  addDscpMarkingAclsHelper(config, IP_PROTO::IP_PROTO_TCP, kTcpPorts(), isSai);
 }
 
-void addDscpCounterAcl(cfg::SwitchConfig* config, const HwAsic* hwAsic) {
+void addDscpCounterAcl(cfg::SwitchConfig* config) {
   // Create ACL to count the number of packets with DSCP == ICP
   utility::addDscpAclToCfg(config, kDscpCounterAclName(), utility::kIcpDscp());
   std::vector<cfg::CounterType> counterTypes{cfg::CounterType::PACKETS};
@@ -133,7 +127,6 @@ void addDscpMarkingAclsTableHelper(
     IP_PROTO proto,
     const std::vector<uint32_t>& ports,
     const std::string& aclTableName,
-    const HwAsic* hwAsic,
     bool isSai) {
   for (auto port : ports) {
     auto l4SrcPortAclName = getDscpAclName(proto, "src", port);
@@ -165,18 +158,16 @@ void addDscpMarkingAclsTableHelper(
 void addDscpMarkingAclTable(
     cfg::SwitchConfig* config,
     const std::string& aclTableName,
-    const HwAsic* hwAsic,
     bool isSai) {
   addDscpMarkingAclsTableHelper(
-      config, IP_PROTO::IP_PROTO_UDP, kUdpPorts(), aclTableName, hwAsic, isSai);
+      config, IP_PROTO::IP_PROTO_UDP, kUdpPorts(), aclTableName, isSai);
   addDscpMarkingAclsTableHelper(
-      config, IP_PROTO::IP_PROTO_TCP, kTcpPorts(), aclTableName, hwAsic, isSai);
+      config, IP_PROTO::IP_PROTO_TCP, kTcpPorts(), aclTableName, isSai);
 }
 
 void addDscpAclEntryWithCounter(
     cfg::SwitchConfig* config,
     const std::string& aclTableName,
-    const HwAsic* hwAsic,
     bool isSai) {
   std::vector<cfg::CounterType> counterTypes{cfg::CounterType::PACKETS};
   utility::addTrafficCounter(config, kCounterName(), counterTypes);
@@ -186,7 +177,7 @@ void addDscpAclEntryWithCounter(
 
   utility::addAclStat(
       config, kDscpCounterAclName(), kCounterName(), counterTypes);
-  addDscpMarkingAclTable(config, aclTableName, hwAsic, isSai);
+  addDscpMarkingAclTable(config, aclTableName, isSai);
 }
 
 // Utility to add ICP Marking ACL table to a multi acl table group
@@ -194,7 +185,6 @@ void addDscpAclTable(
     cfg::SwitchConfig* config,
     int16_t priority,
     bool addAllQualifiers,
-    const HwAsic* hwAsic,
     bool isSai) {
   std::vector<cfg::AclTableQualifier> qualifiers = {
       cfg::AclTableQualifier::L4_SRC_PORT,
@@ -220,6 +210,6 @@ void addDscpAclTable(
        cfg::AclTableActionType::SET_DSCP},
       qualifiers);
 
-  addDscpAclEntryWithCounter(config, getDscpAclTableName(), hwAsic, isSai);
+  addDscpAclEntryWithCounter(config, getDscpAclTableName(), isSai);
 }
 } // namespace facebook::fboss::utility
