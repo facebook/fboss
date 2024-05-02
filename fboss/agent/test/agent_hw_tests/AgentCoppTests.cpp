@@ -723,10 +723,9 @@ TYPED_TEST(AgentCoppTest, LocalDstIpNonBgpPortToMidPriQ) {
   auto setup = [=, this]() { this->setup(); };
 
   auto verify = [=, this]() {
-    auto asic = utility::getFirstAsic(this->getSw());
     for (const auto& ipAddress : this->getIpAddrsToSendPktsTo()) {
       this->sendTcpPktAndVerifyCpuQueue(
-          utility::getCoppMidPriQueueId(asic),
+          utility::getCoppMidPriQueueId(this->getAgentEnsemble()->getL3Asics()),
           folly::IPAddress::createNetwork(ipAddress, -1, false).first,
           utility::kNonSpecialPort1,
           utility::kNonSpecialPort2);
@@ -754,10 +753,9 @@ TYPED_TEST(AgentCoppTest, Ipv6LinkLocalMcastToMidPriQ) {
   auto verify = [=, this]() {
     const auto addresses = folly::make_array(
         kIPv6LinkLocalMcastAbsoluteAddress, kIPv6LinkLocalMcastAddress);
-    auto asic = utility::getFirstAsic(this->getSw());
     for (const auto& address : addresses) {
       this->sendTcpPktAndVerifyCpuQueue(
-          utility::getCoppMidPriQueueId(asic),
+          utility::getCoppMidPriQueueId(this->getAgentEnsemble()->getL3Asics()),
           address,
           utility::kNonSpecialPort1,
           utility::kNonSpecialPort2,
@@ -785,9 +783,8 @@ TYPED_TEST(AgentCoppTest, Ipv6LinkLocalMcastTxFromCpu) {
   auto verify = [=, this]() {
     // Intent of this test is to verify that
     // link local ipv6 address is not looped back when sent from CPU
-    auto asic = utility::getFirstAsic(this->getSw());
     this->sendUdpPktAndVerify(
-        utility::getCoppMidPriQueueId(asic),
+        utility::getCoppMidPriQueueId(this->getAgentEnsemble()->getL3Asics()),
         folly::IPAddressV6("ff02::1"),
         utility::kNonSpecialPort1,
         utility::kNonSpecialPort2,
@@ -804,9 +801,8 @@ TYPED_TEST(AgentCoppTest, Ipv6LinkLocalUcastToMidPriQ) {
     {
       const folly::IPAddressV6 linkLocalAddr = folly::IPAddressV6(
           folly::IPAddressV6::LINK_LOCAL, getLocalMacAddress());
-      auto asic = utility::getFirstAsic(this->getSw());
       this->sendTcpPktAndVerifyCpuQueue(
-          utility::getCoppMidPriQueueId(asic),
+          utility::getCoppMidPriQueueId(this->getAgentEnsemble()->getL3Asics()),
           linkLocalAddr,
           utility::kNonSpecialPort1,
           utility::kNonSpecialPort2);
@@ -825,9 +821,8 @@ TYPED_TEST(AgentCoppTest, Ipv6LinkLocalUcastToMidPriQ) {
     }
     // Non device link local unicast address should also use mid-pri queue
     {
-      auto asic = utility::getFirstAsic(this->getSw());
       this->sendTcpPktAndVerifyCpuQueue(
-          utility::getCoppMidPriQueueId(asic),
+          utility::getCoppMidPriQueueId(this->getAgentEnsemble()->getL3Asics()),
           kIPv6LinkLocalUcastAddress,
           utility::kNonSpecialPort1,
           utility::kNonSpecialPort2);
@@ -1161,7 +1156,6 @@ TYPED_TEST(AgentCoppTest, JumboFramesToQueues) {
   auto setup = [=, this]() { this->setup(); };
 
   auto verify = [=, this]() {
-    auto asic = utility::getFirstAsic(this->getSw());
     std::vector<uint8_t> jumboPayload(7000, 0xff);
     for (const auto& ipAddress : this->getIpAddrsToSendPktsTo()) {
       // High pri queue
@@ -1176,7 +1170,7 @@ TYPED_TEST(AgentCoppTest, JumboFramesToQueues) {
           jumboPayload);
       // Mid pri queue
       this->sendTcpPktAndVerifyCpuQueue(
-          utility::getCoppMidPriQueueId(asic),
+          utility::getCoppMidPriQueueId(this->getAgentEnsemble()->getL3Asics()),
           folly::IPAddress::createNetwork(ipAddress, -1, false).first,
           utility::kNonSpecialPort1,
           utility::kNonSpecialPort2,
@@ -1201,9 +1195,8 @@ TYPED_TEST(AgentCoppTest, LldpProtocolToMidPriQ) {
   auto setup = [=, this]() { this->setup(); };
 
   auto verify = [=, this]() {
-    auto asic = utility::getFirstAsic(this->getSw());
     this->sendPktAndVerifyLldpPacketsCpuQueue(
-        utility::getCoppMidPriQueueId(asic));
+        utility::getCoppMidPriQueueId(this->getAgentEnsemble()->getL3Asics()));
   };
 
   this->verifyAcrossWarmBoots(setup, verify);
@@ -1235,7 +1228,6 @@ TYPED_TEST(AgentCoppTest, DhcpPacketToMidPriQ) {
         folly::IPAddress("1.1.1.10"), folly::IPAddress("1::10")};
     std::array<std::pair<int, int>, 2> dhcpPortPairs{
         std::make_pair(67, 68), std::make_pair(546, 547)};
-    auto asic = utility::getFirstAsic(this->getSw());
     for (int i = 0; i < 2; i++) {
       for (int j = 0; j < 2; j++) {
         auto l4SrcPort =
@@ -1243,7 +1235,8 @@ TYPED_TEST(AgentCoppTest, DhcpPacketToMidPriQ) {
         auto l4DstPort =
             j == 0 ? dhcpPortPairs[i].second : dhcpPortPairs[i].first;
         this->sendUdpPktAndVerify(
-            utility::getCoppMidPriQueueId(asic),
+            utility::getCoppMidPriQueueId(
+                this->getAgentEnsemble()->getL3Asics()),
             randomSrcIP[i],
             l4SrcPort,
             l4DstPort,
@@ -1262,13 +1255,15 @@ TYPED_TEST(AgentCoppTest, DhcpPacketToMidPriQ) {
 TYPED_TEST(AgentCoppTest, DHCPv6SolicitToMidPriQ) {
   auto setup = [=, this]() { this->setup(); };
   auto verify = [=, this]() {
-    auto asic = utility::getFirstAsic(this->getSw());
     XLOG(DBG2) << "verifying DHCPv6 solicitation with TTL 1";
     this->sendPktAndVerifyDHCPv6PacketsCpuQueue(
-        utility::getCoppMidPriQueueId(asic), DHCPv6Type::DHCPv6_SOLICIT);
+        utility::getCoppMidPriQueueId(this->getAgentEnsemble()->getL3Asics()),
+        DHCPv6Type::DHCPv6_SOLICIT);
     XLOG(DBG2) << "verifying DHCPv6 solicitation with TTL 128";
     this->sendPktAndVerifyDHCPv6PacketsCpuQueue(
-        utility::getCoppMidPriQueueId(asic), DHCPv6Type::DHCPv6_SOLICIT, 128);
+        utility::getCoppMidPriQueueId(this->getAgentEnsemble()->getL3Asics()),
+        DHCPv6Type::DHCPv6_SOLICIT,
+        128);
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
@@ -1276,13 +1271,15 @@ TYPED_TEST(AgentCoppTest, DHCPv6SolicitToMidPriQ) {
 TYPED_TEST(AgentCoppTest, DHCPv6AdvertiseToMidPriQ) {
   auto setup = [=, this]() { this->setup(); };
   auto verify = [=, this]() {
-    auto asic = utility::getFirstAsic(this->getSw());
     XLOG(DBG2) << "verifying DHCPv6 Advertise with TTL 1";
     this->sendPktAndVerifyDHCPv6PacketsCpuQueue(
-        utility::getCoppMidPriQueueId(asic), DHCPv6Type::DHCPv6_ADVERTISE);
+        utility::getCoppMidPriQueueId(this->getAgentEnsemble()->getL3Asics()),
+        DHCPv6Type::DHCPv6_ADVERTISE);
     XLOG(DBG2) << "verifying DHCPv6 Advertise with TTL 128";
     this->sendPktAndVerifyDHCPv6PacketsCpuQueue(
-        utility::getCoppMidPriQueueId(asic), DHCPv6Type::DHCPv6_ADVERTISE, 128);
+        utility::getCoppMidPriQueueId(this->getAgentEnsemble()->getL3Asics()),
+        DHCPv6Type::DHCPv6_ADVERTISE,
+        128);
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
