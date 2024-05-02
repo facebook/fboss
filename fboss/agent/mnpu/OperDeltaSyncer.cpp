@@ -113,9 +113,14 @@ void OperDeltaSyncer::operSyncLoop() {
         XLOG(DBG2) << "Received full state oper delta from swswitch";
         lastUpdateResult = processFullOperDelta(*stateOperDelta.operDelta());
       } else {
+        auto oldState = hw_->getProgrammedState();
         lastUpdateResult = stateOperDelta.transaction().value()
             ? hw_->stateChangedTransaction(*stateOperDelta.operDelta())
             : hw_->stateChanged(*stateOperDelta.operDelta());
+        if (lastUpdateResult.changes()->empty()) {
+          hw_->getPlatform()->stateChanged(
+              StateDelta(oldState, hw_->getProgrammedState()));
+        }
       }
 
       // If swswitch has transitioned to configured state,
@@ -136,11 +141,12 @@ fsdb::OperDelta OperDeltaSyncer::processFullOperDelta(
   // Enable deep comparison for full oper delta
   DeltaComparison::PolicyRAII policyGuard{DeltaComparison::Policy::DEEP};
   auto fullStateDelta = StateDelta(std::make_shared<SwitchState>(), operDelta);
-  auto appliedState = hw_->stateChanged(
-      StateDelta(hw_->getProgrammedState(), fullStateDelta.newState()));
+  auto delta = StateDelta(hw_->getProgrammedState(), fullStateDelta.newState());
+  auto appliedState = hw_->stateChanged(delta);
   // return empty oper delta to indicate success. If update was not successful,
   // hwswitch would have crashed.
   CHECK(isStateDeltaEmpty(StateDelta(fullStateDelta.newState(), appliedState)));
+  hw_->getPlatform()->stateChanged(delta);
   return fsdb::OperDelta{};
 }
 

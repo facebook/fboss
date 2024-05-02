@@ -151,6 +151,8 @@ int hwAgentMain(
   auto ret =
       hwAgent->initAgent(true /* failHwCallsOnWarmboot */, thriftSyncer.get());
 
+  hwAgent->getPlatform()->onHwInitialized(nullptr /*sw*/);
+
   hwAgent->getPlatform()->getHwSwitch()->switchRunStateChanged(
       SwitchRunState::INITIALIZED);
 

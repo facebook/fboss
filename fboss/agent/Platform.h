@@ -37,6 +37,7 @@ class HwAsic;
 class HwSwitchWarmBootHelper;
 class PlatformProductInfo;
 class HwSwitchCallback;
+class StateDelta;
 
 /*
  * Platform represents a specific switch/router platform.
@@ -267,6 +268,8 @@ class Platform {
               folly::to<std::string>("switch.", FLAGS_switchIndex, "."))
         : std::optional<std::string>();
   }
+
+  virtual void stateChanged(const StateDelta& delta) = 0;
 
  private:
   /*

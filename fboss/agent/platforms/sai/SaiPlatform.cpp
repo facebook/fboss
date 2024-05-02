@@ -161,7 +161,16 @@ HwSwitch* SaiPlatform::getHwSwitch() const {
 
 void SaiPlatform::onHwInitialized(HwSwitchCallback* sw) {
   initLEDs();
-  sw->registerStateObserver(this, "SaiPlatform");
+  /*
+   * In multiswitch mode, the platform is part hw agent
+   * binary and has no access to swswitch. Skip state
+   * observer registration. The state updates will be
+   * propagated to platform as part of oper delta sync
+   * from sw agent to hw agent
+   */
+  if (sw) {
+    sw->registerStateObserver(this, "SaiPlatform");
+  }
 }
 
 void SaiPlatform::stateUpdated(const StateDelta& delta) {
@@ -628,6 +637,10 @@ const std::set<sai_api_t>& SaiPlatform::getDefaultPhyAsicSupportedApis() const {
 
 const std::set<sai_api_t>& SaiPlatform::getSupportedApiList() const {
   return getDefaultSwitchAsicSupportedApis();
+}
+
+void SaiPlatform::stateChanged(const StateDelta& delta) {
+  updatePorts(delta);
 }
 
 } // namespace facebook::fboss

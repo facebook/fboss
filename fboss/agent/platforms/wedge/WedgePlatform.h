@@ -68,6 +68,7 @@ class WedgePlatform : public BcmPlatform, public StateObserver {
       PortID port,
       cfg::PortProfileID /* profileID */) const override;
   PlatformPort* getPlatformPort(PortID id) const override;
+  void stateChanged(const StateDelta& delta) override;
 
  protected:
   std::unique_ptr<WedgePortMapping> portMapping_;

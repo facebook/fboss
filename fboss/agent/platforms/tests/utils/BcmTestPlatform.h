@@ -73,6 +73,8 @@ class BcmTestPlatform : public BcmPlatform {
     return warmBootHelper_.get();
   }
 
+  void stateChanged(const StateDelta& /*delta*/) override {}
+
   PlatformPort* getPlatformPort(PortID portID) const override;
 
   void initLEDs(int unit, folly::ByteRange led0, folly::ByteRange led1);

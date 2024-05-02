@@ -99,7 +99,16 @@ void WedgePlatform::onHwInitialized(HwSwitchCallback* sw) {
     bool up = hw_->isPortUp(entry.first);
     entry.second->linkStatusChanged(up, true);
   }
-  sw->registerStateObserver(this, "WedgePlatform");
+  /*
+   * In multiswitch mode, the platform is part hw agent
+   * binary and has no access to swswitch. Skip state
+   * observer registration. The state updates will be
+   * propagated to platform as part of oper delta sync
+   * from sw agent to hw agent
+   */
+  if (sw) {
+    sw->registerStateObserver(this, "WedgePlatform");
+  }
 }
 
 void WedgePlatform::stateUpdated(const StateDelta& delta) {
@@ -170,4 +179,9 @@ std::string WedgePlatform::loadYamlConfig() {
   }
   throw FbossError("Failed to get bcm yaml config from agent config");
 }
+
+void WedgePlatform::stateChanged(const StateDelta& delta) {
+  updatePorts(delta);
+}
+
 } // namespace facebook::fboss

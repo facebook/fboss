@@ -141,6 +141,8 @@ class SaiPlatform : public Platform, public StateObserver {
 
   std::string getHwAsicConfig();
 
+  void stateChanged(const StateDelta& delta) override;
+
  protected:
   std::unique_ptr<SaiSwitch> saiSwitch_;
   virtual void updatePorts(const StateDelta& delta);

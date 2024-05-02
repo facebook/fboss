@@ -14,6 +14,7 @@
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/switch_asics/MockAsic.h"
+#include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/types.h"
 
@@ -61,6 +62,7 @@ class MockPlatform : public Platform {
   MOCK_METHOD1(onInitialConfigApplied, void(HwSwitchCallback* sw));
   MOCK_METHOD0(initPorts, void());
   MOCK_CONST_METHOD0(supportsAddRemovePort, bool());
+  MOCK_METHOD1(stateChanged, void(const StateDelta& delta));
 
  private:
   void setupAsic(
