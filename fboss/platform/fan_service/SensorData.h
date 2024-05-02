@@ -30,8 +30,6 @@ struct SensorEntry {
 };
 
 struct OpticEntry {
-  // Last successful optics update time. Used for boost mode.
-  std::string name;
   // Map from opticType to sensor reading
   std::vector<std::pair<std::string, float>> data;
   // Timestamp of this entry updated
