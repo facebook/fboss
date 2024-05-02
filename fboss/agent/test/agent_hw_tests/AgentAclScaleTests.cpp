@@ -72,6 +72,22 @@ class AgentAclScaleTest : public AgentHwTest {
     return qualifiers;
   }
 
+  void updateAclEntryFields(cfg::AclEntry* aclEntry, AclWidth width) {
+    if (width == AclWidth::SINGLE_WIDE) {
+      aclEntry->dscp() = 0x24;
+    } else if (width == AclWidth::DOUBLE_WIDE) {
+      aclEntry->srcIp() = "2401:db00::";
+      aclEntry->dstIp() = "2401:db00::";
+    } else if (width == AclWidth::TRIPLE_WIDE) {
+      aclEntry->srcIp() = "2401:db00::";
+      aclEntry->dstIp() = "2401:db00::";
+      aclEntry->ipType() = cfg::IpType::IP6;
+      aclEntry->l4SrcPort() = 8000;
+      aclEntry->l4DstPort() = 8002;
+      aclEntry->dscp() = 0x24;
+    }
+  }
+
   uint32_t getMaxSingleWideAclTables(const std::vector<const HwAsic*>& asics) {
     auto asic = utility::checkSameAndGetAsic(asics);
     auto maxAclTables = asic->getMaxAclTables();
@@ -107,10 +123,9 @@ class AgentAclScaleTest : public AgentHwTest {
         utility::addAclTable(
             &cfg, aclTableName, i /* priority */, {}, qualifiers);
 
-        std::string aclEntryName = "Entry0";
         auto* aclEntry = utility::addAcl(
             &cfg, "Entry0", cfg::AclActionType::DENY, aclTableName);
-        aclEntry->dscp() = 0x24;
+        updateAclEntryFields(aclEntry, AclWidth::SINGLE_WIDE);
       }
       applyNewConfig(cfg);
     };
@@ -131,8 +146,7 @@ class AgentAclScaleTest : public AgentHwTest {
 
         auto* aclEntry = utility::addAcl(
             &cfg, "Entry0", cfg::AclActionType::PERMIT, aclTableName);
-        aclEntry->srcIp() = "2401:db00::";
-        aclEntry->dstIp() = "2401:db00::";
+        updateAclEntryFields(aclEntry, AclWidth::DOUBLE_WIDE);
       }
 
       applyNewConfig(cfg);
@@ -158,12 +172,44 @@ class AgentAclScaleTest : public AgentHwTest {
 
         auto* aclEntry = utility::addAcl(
             &cfg, "Entry0", cfg::AclActionType::PERMIT, aclTableName);
-        aclEntry->srcIp() = "2401:db00::";
-        aclEntry->dstIp() = "2401:db00::";
-        aclEntry->ipType() = cfg::IpType::IP6;
-        aclEntry->l4SrcPort() = 8000;
-        aclEntry->l4DstPort() = 8002;
-        aclEntry->dscp() = 0x24;
+        updateAclEntryFields(aclEntry, AclWidth::TRIPLE_WIDE);
+      }
+      applyNewConfig(cfg);
+    };
+    verifyAcrossWarmBoots(setup, [] {});
+  }
+
+  // Create max number of ACL tables
+  void createVariableWidthAclTableHelper() {
+    auto setup = [&]() {
+      auto cfg{initialConfig(*getAgentEnsemble())};
+      const int maxAclSingleWideTables =
+          getMaxSingleWideAclTables(getAgentEnsemble()->getL3Asics());
+      std::vector<cfg::AclTableQualifier> qualifiers =
+          setAclQualifiers(AclWidth::TRIPLE_WIDE);
+
+      utility::addAclTable(&cfg, "aclTable0", 0 /* priority */, {}, qualifiers);
+      auto* aclEntry0 = utility::addAcl(
+          &cfg, "Entry0", cfg::AclActionType::PERMIT, "aclTable0");
+      updateAclEntryFields(aclEntry0, AclWidth::TRIPLE_WIDE);
+
+      qualifiers = setAclQualifiers(AclWidth::DOUBLE_WIDE);
+      utility::addAclTable(&cfg, "aclTable1", 1 /* priority */, {}, qualifiers);
+      auto* aclEntry1 = utility::addAcl(
+          &cfg, "Entry0", cfg::AclActionType::PERMIT, "aclTable1");
+      updateAclEntryFields(aclEntry1, AclWidth::DOUBLE_WIDE);
+
+      int remainingAclTable = maxAclSingleWideTables -
+          (int)AclWidth::TRIPLE_WIDE - (int)AclWidth::DOUBLE_WIDE;
+      qualifiers = setAclQualifiers(AclWidth::SINGLE_WIDE);
+      for (auto i = 2; i < remainingAclTable; i++) {
+        std::string aclTableName = "aclTable" + std::to_string(i);
+        utility::addAclTable(
+            &cfg, aclTableName, i /* priority */, {}, qualifiers);
+
+        auto* aclEntry = utility::addAcl(
+            &cfg, "Entry0", cfg::AclActionType::PERMIT, aclTableName);
+        updateAclEntryFields(aclEntry, AclWidth::SINGLE_WIDE);
       }
       applyNewConfig(cfg);
     };
@@ -181,6 +227,10 @@ TEST_F(AgentAclScaleTest, CreateMaxAclDobleWideTables) {
 
 TEST_F(AgentAclScaleTest, CreateMaxAclTripleWideTables) {
   this->createTripleWideMaxAclTableHelper();
+}
+
+TEST_F(AgentAclScaleTest, CreateVariableWidthAclTables) {
+  this->createVariableWidthAclTableHelper();
 }
 
 } // namespace facebook::fboss
