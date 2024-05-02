@@ -403,59 +403,59 @@ bool ControlLogic::isFanPresentInDevice(const Fan& fan) {
 std::pair<bool, float> ControlLogic::programFan(
     const Zone& zone,
     const Fan& fan,
-    float currentPwm,
-    float pwmSoFar) {
-  float pwmToProgram = 0;
+    float currentFanPwm,
+    float calculatedZonePwm) {
+  float newFanPwm = 0;
   bool writeSuccess{false};
-  if ((*zone.slope() == 0) || (currentPwm == 0)) {
-    pwmToProgram = pwmSoFar;
+  if ((*zone.slope() == 0) || (currentFanPwm == 0)) {
+    newFanPwm = calculatedZonePwm;
   } else {
-    if (pwmSoFar > currentPwm) {
-      if ((pwmSoFar - currentPwm) > *zone.slope()) {
-        pwmToProgram = currentPwm + *zone.slope();
+    if (calculatedZonePwm > currentFanPwm) {
+      if ((calculatedZonePwm - currentFanPwm) > *zone.slope()) {
+        newFanPwm = currentFanPwm + *zone.slope();
       } else {
-        pwmToProgram = pwmSoFar;
+        newFanPwm = calculatedZonePwm;
       }
-    } else if (pwmSoFar < currentPwm) {
-      if ((currentPwm - pwmSoFar) > *zone.slope()) {
-        pwmToProgram = currentPwm - *zone.slope();
+    } else if (calculatedZonePwm < currentFanPwm) {
+      if ((currentFanPwm - calculatedZonePwm) > *zone.slope()) {
+        newFanPwm = currentFanPwm - *zone.slope();
       } else {
-        pwmToProgram = pwmSoFar;
+        newFanPwm = calculatedZonePwm;
       }
     } else {
-      pwmToProgram = pwmSoFar;
+      newFanPwm = calculatedZonePwm;
     }
   }
-  int pwmInt =
-      (int)(((*fan.pwmMax()) - (*fan.pwmMin())) * pwmToProgram / 100.0 +
+  int pwmRawValue =
+      (int)(((*fan.pwmMax()) - (*fan.pwmMin())) * newFanPwm / 100.0 +
             *fan.pwmMin());
-  if (pwmInt < *fan.pwmMin()) {
-    pwmInt = *fan.pwmMin();
-  } else if (pwmInt > *fan.pwmMax()) {
-    pwmInt = *fan.pwmMax();
+  if (pwmRawValue < *fan.pwmMin()) {
+    pwmRawValue = *fan.pwmMin();
+  } else if (pwmRawValue > *fan.pwmMax()) {
+    pwmRawValue = *fan.pwmMax();
   }
-  writeSuccess = pBsp_->setFanPwmSysfs(*fan.pwmSysfsPath(), pwmInt);
+  writeSuccess = pBsp_->setFanPwmSysfs(*fan.pwmSysfsPath(), pwmRawValue);
   fb303::fbData->setCounter(
       fmt::format(kFanWriteFailure, *zone.zoneName(), *fan.fanName()),
       !writeSuccess);
   if (writeSuccess) {
     fb303::fbData->setCounter(
-        fmt::format(kFanWriteValue, *zone.zoneName(), *fan.fanName()), pwmInt);
+        fmt::format(kFanWriteValue, *zone.zoneName(), *fan.fanName()),
+        newFanPwm);
     XLOG(INFO) << fmt::format(
-        "Programmed Fan {} with PWM {} and Returned {} as PWM to program.",
+        "{}: Programmed with PWM {} (raw value {})",
         *fan.fanName(),
-        pwmInt,
-        pwmToProgram);
+        newFanPwm,
+        pwmRawValue);
   } else {
     XLOG(INFO) << fmt::format(
-        "Failed to program Fan {} with PWM {} and Returned {} as "
-        "PWM to program.",
+        "{}: Failed to program with PWM {} (raw value {})",
         *fan.fanName(),
-        pwmInt,
-        pwmToProgram);
+        newFanPwm,
+        pwmRawValue);
   }
 
-  return std::make_pair(!writeSuccess, pwmToProgram);
+  return std::make_pair(!writeSuccess, newFanPwm);
 }
 
 void ControlLogic::programLed(const Fan& fan, bool fanFailed) {
