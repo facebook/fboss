@@ -31,6 +31,7 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentOverflowTestBase.cpp
   fboss/agent/test/agent_hw_tests/AgentLoopBackTests.cpp
   fboss/agent/test/agent_hw_tests/AgentSendPacketToQueueTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentWatermarkTests.cpp
 )
 
 target_link_libraries(agent_hw_test_src
@@ -63,6 +64,7 @@ target_link_libraries(agent_hw_test_src
   resourcelibutil
   load_balancer_test_utils
   port_stats_test_utils
+  utils
 )
 
 add_executable(multi_switch_agent_hw_test
