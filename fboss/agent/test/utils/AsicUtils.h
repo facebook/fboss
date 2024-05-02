@@ -17,7 +17,6 @@ class HwAsic;
 class SwSwitch;
 
 namespace utility {
-const HwAsic* getFirstAsic(SwSwitch* sw);
 const HwAsic* getAsic(const SwSwitch& sw, PortID port);
 void checkSameAsicType(const std::vector<const HwAsic*>& asics);
 const HwAsic* checkSameAndGetAsic(const std::vector<const HwAsic*>& asics);
