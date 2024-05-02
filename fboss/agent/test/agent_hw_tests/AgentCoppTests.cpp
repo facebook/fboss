@@ -102,21 +102,17 @@ class AgentCoppTest : public AgentHwTest {
   }
 
   cfg::SwitchConfig getTrunkInitialConfig(const AgentEnsemble& ensemble) const {
-    auto asic = utility::getFirstAsic(ensemble.getSw());
     auto cfg = utility::oneL3IntfTwoPortConfig(
-        ensemble.getSw()->getPlatformMapping(),
-        asic,
-        ensemble.masterLogicalPortIds()[0],
-        ensemble.masterLogicalPortIds()[1],
-        ensemble.getSw()->getPlatformSupportsAddRemovePort(),
-        asic->desiredLoopbackModes());
+        ensemble.getSw(),
+        ensemble.masterLogicalInterfacePortIds()[0],
+        ensemble.masterLogicalInterfacePortIds()[1]);
     utility::setDefaultCpuTrafficPolicyConfig(
         cfg, ensemble.getL3Asics(), ensemble.isSai());
     utility::addCpuQueueConfig(cfg, ensemble.getL3Asics(), ensemble.isSai());
     utility::addAggPort(
         1,
-        {ensemble.masterLogicalPortIds()[0],
-         ensemble.masterLogicalPortIds()[1]},
+        {ensemble.masterLogicalInterfacePortIds()[0],
+         ensemble.masterLogicalInterfacePortIds()[1]},
         &cfg);
     return cfg;
   }

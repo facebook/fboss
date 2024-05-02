@@ -749,6 +749,19 @@ cfg::SwitchConfig genPortVlanCfg(
   return config;
 }
 
+cfg::SwitchConfig
+oneL3IntfTwoPortConfig(const SwSwitch* sw, PortID port1, PortID port2) {
+  std::vector<PortID> ports{port1, port2};
+  auto asic = checkSameAndGetAsic(sw->getHwAsicTable()->getL3Asics());
+  return oneL3IntfTwoPortConfig(
+      sw->getPlatformMapping(),
+      asic,
+      port1,
+      port2,
+      sw->getPlatformSupportsAddRemovePort(),
+      asic->desiredLoopbackModes());
+}
+
 cfg::SwitchConfig oneL3IntfTwoPortConfig(
     const PlatformMapping* platformMapping,
     const HwAsic* asic,

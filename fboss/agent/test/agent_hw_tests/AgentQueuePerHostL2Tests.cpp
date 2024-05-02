@@ -26,14 +26,10 @@ class AgentQueuePerHostL2Test : public AgentHwTest {
  protected:
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
-    auto asic = utility::getFirstAsic(ensemble.getSw());
     auto cfg = utility::oneL3IntfTwoPortConfig(
-        ensemble.getSw()->getPlatformMapping(),
-        asic,
-        ensemble.masterLogicalPortIds()[0],
-        ensemble.masterLogicalPortIds()[1],
-        ensemble.getSw()->getPlatformSupportsAddRemovePort(),
-        asic->desiredLoopbackModes());
+        ensemble.getSw(),
+        ensemble.masterLogicalInterfacePortIds()[0],
+        ensemble.masterLogicalInterfacePortIds()[1]);
     cfg.switchSettings()->l2LearningMode() = cfg::L2LearningMode::SOFTWARE;
     utility::addQueuePerHostQueueConfig(&cfg);
     utility::addQueuePerHostAcls(&cfg, ensemble.isSai());
