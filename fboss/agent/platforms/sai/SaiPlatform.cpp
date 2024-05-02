@@ -177,8 +177,6 @@ void SaiPlatform::stateUpdated(const StateDelta& delta) {
   updatePorts(delta);
 }
 
-void SaiPlatform::onInitialConfigApplied(HwSwitchCallback* /* sw */) {}
-
 void SaiPlatform::stop() {}
 
 std::shared_ptr<apache::thrift::AsyncProcessorFactory>

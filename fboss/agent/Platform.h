@@ -160,13 +160,6 @@ class Platform {
   virtual void onHwInitialized(HwSwitchCallback* sw) = 0;
 
   /*
-   * onInitialConfigApplied() will be called after the initial
-   * configuration has been applied.  Platform-specific initialization
-   * that needs to happen after this can be performed here.
-   */
-  virtual void onInitialConfigApplied(HwSwitchCallback* sw) = 0;
-
-  /*
    * Create the handler for HwSwitch service
    */
   virtual std::shared_ptr<apache::thrift::AsyncProcessorFactory>

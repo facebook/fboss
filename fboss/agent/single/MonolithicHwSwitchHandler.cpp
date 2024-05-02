@@ -80,7 +80,7 @@ void MonolithicHwSwitchHandler::onHwInitialized(HwSwitchCallback* callback) {
 
 void MonolithicHwSwitchHandler::onInitialConfigApplied(
     HwSwitchCallback* callback) {
-  platform_->onInitialConfigApplied(callback);
+  // TODO - remove this
 }
 
 void MonolithicHwSwitchHandler::platformStop() {

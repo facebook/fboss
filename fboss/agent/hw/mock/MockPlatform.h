@@ -59,7 +59,6 @@ class MockPlatform : public Platform {
       TransceiverIdxThrift(PortID port, cfg::PortProfileID profileID));
   MOCK_METHOD0(stop, void());
   MOCK_METHOD1(onHwInitialized, void(HwSwitchCallback* sw));
-  MOCK_METHOD1(onInitialConfigApplied, void(HwSwitchCallback* sw));
   MOCK_METHOD0(initPorts, void());
   MOCK_CONST_METHOD0(supportsAddRemovePort, bool());
   MOCK_METHOD1(stateChanged, void(const StateDelta& delta));

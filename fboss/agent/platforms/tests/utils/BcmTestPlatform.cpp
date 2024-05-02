@@ -70,8 +70,6 @@ void BcmTestPlatform::onUnitCreate(int unit) {
 
 void BcmTestPlatform::onHwInitialized(HwSwitchCallback* /*sw*/) {}
 
-void BcmTestPlatform::onInitialConfigApplied(HwSwitchCallback* /*sw*/) {}
-
 void BcmTestPlatform::stop() {}
 
 void BcmTestPlatform::initImpl(uint32_t hwFeaturesDesired) {
