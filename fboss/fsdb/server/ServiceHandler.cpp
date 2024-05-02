@@ -573,8 +573,13 @@ void ServiceHandler::registerSubscription(const OperSubscriberInfo& info) {
   updateSubscriptionCounters(info, true);
 }
 void ServiceHandler::unregisterSubscription(const OperSubscriberInfo& info) {
+  std::string pathStr;
+  // TODO: handle extended path to string
+  if (info.path()) {
+    pathStr = folly::join("/", *info.path()->raw());
+  }
   XLOG(DBG2) << " Subscription complete " << *info.subscriberId() << " : "
-             << folly::join("/", *info.path()->raw());
+             << pathStr;
   auto key = ClientKey(
       *info.subscriberId(),
       buildPathUnion(info),
