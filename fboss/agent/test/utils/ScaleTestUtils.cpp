@@ -14,12 +14,14 @@
 
 namespace facebook::fboss::utility {
 
-uint32_t getMaxEcmpGroups(const HwAsic* asic) {
+uint32_t getMaxEcmpGroups(const std::vector<const HwAsic*>& asics) {
+  auto asic = checkSameAndGetAsic(asics);
   auto maxEcmpGroups = asic->getMaxEcmpGroups();
   CHECK(maxEcmpGroups.has_value());
   return maxEcmpGroups.value();
 }
-uint32_t getMaxEcmpMembers(const HwAsic* asic) {
+uint32_t getMaxEcmpMembers(const std::vector<const HwAsic*>& asics) {
+  auto asic = checkSameAndGetAsic(asics);
   auto maxEcmpMembers = asic->getMaxEcmpMembers();
   CHECK(maxEcmpMembers.has_value());
   return maxEcmpMembers.value();

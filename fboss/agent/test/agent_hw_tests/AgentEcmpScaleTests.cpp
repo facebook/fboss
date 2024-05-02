@@ -41,7 +41,7 @@ class AgentEcmpTest : public AgentHwTest {
 
 TEST_F(AgentEcmpTest, CreateMaxEcmpGroups) {
   const auto kMaxEcmpGroup =
-      utility::getMaxEcmpGroups(utility::getFirstAsic(this->getSw()));
+      utility::getMaxEcmpGroups(getAgentEnsemble()->getL3Asics());
   auto setup = [&]() {
     utility::EcmpSetupTargetedPorts6 ecmpHelper(getProgrammedState());
     std::vector<PortID> portIds = masterLogicalInterfacePortIds();
@@ -78,7 +78,7 @@ TEST_F(AgentEcmpTest, CreateMaxEcmpGroups) {
 
 TEST_F(AgentEcmpTest, CreateMaxEcmpMembers) {
   const auto kMaxEcmpMembers =
-      utility::getMaxEcmpMembers(utility::getFirstAsic(this->getSw()));
+      utility::getMaxEcmpMembers(getAgentEnsemble()->getL3Asics());
   auto setup = [&]() {
     utility::EcmpSetupTargetedPorts6 ecmpHelper(getProgrammedState());
     std::vector<PortID> portIds = masterLogicalInterfacePortIds();
