@@ -981,14 +981,16 @@ PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
   concurrentIndices_->portSaiIds.emplace(swPort->getID(), portSaiId);
   concurrentIndices_->vlanIds.emplace(
       PortDescriptorSaiId(portSaiId), swPort->getIngressVlan());
-  if (swPort->getPortType() == cfg::PortType::RECYCLE_PORT) {
+  auto platformPort = platform_->getPlatformPort(swPort->getID());
+  if (swPort->getPortType() == cfg::PortType::RECYCLE_PORT &&
+      platformPort->getScope() == cfg::Scope::GLOBAL) {
     // If Recycle port is present in the config, we expect:
-    //  - the config must have exactly one recycle port,
+    //  - the config must have exactly one global recycle port,
     //  - that recycle port must be used by CPU port
-    // Otherwise, fali check.
-    // In future, if we need to support multiple recycle ports, we would need
-    // to invent some way to determiine which of the recycle ports corresponds
-    // to the CPU port.
+    // Otherwise, fail check.
+    // In future, if we need to support multiple global recycle ports, we would
+    // need to invent some way to determiine which of the recycle ports
+    // corresponds to the CPU port.
     CHECK(!managerTable_->switchManager().getCpuRecyclePort().has_value());
     managerTable_->switchManager().setCpuRecyclePort(portSaiId);
   }
