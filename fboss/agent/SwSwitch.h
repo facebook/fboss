@@ -10,6 +10,7 @@
 #pragma once
 
 #include "fboss/agent/HwSwitchHandler.h"
+#include "fboss/agent/L2LearnEventObserver.h"
 #include "fboss/agent/MultiHwSwitchHandler.h"
 #include "fboss/agent/MultiSwitchFb303Stats.h"
 #include "fboss/agent/PacketObserver.h"
@@ -697,6 +698,10 @@ class SwSwitch : public HwSwitchCallback {
     return pktObservers_.get();
   }
 
+  L2LearnEventObservers* getL2LearnEventObservers() {
+    return l2LearnEventObservers_.get();
+  }
+
   /*
    * Get the LldpManager object
    */
@@ -1166,6 +1171,7 @@ class SwSwitch : public HwSwitchCallback {
    */
   std::map<StateObserver*, std::string> stateObservers_;
   std::unique_ptr<PacketObservers> pktObservers_;
+  std::unique_ptr<L2LearnEventObservers> l2LearnEventObservers_;
 
   std::unique_ptr<ArpHandler> arp_;
   std::unique_ptr<IPv4Handler> ipv4_;

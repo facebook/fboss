@@ -345,6 +345,7 @@ SwSwitch::SwSwitch(
       platformProductInfo_(
           std::make_unique<PlatformProductInfo>(FLAGS_fruid_filepath)),
       pktObservers_(new PacketObservers()),
+      l2LearnEventObservers_(new L2LearnEventObservers()),
       arp_(new ArpHandler(this)),
       ipv4_(new IPv4Handler(this)),
       ipv6_(new IPv6Handler(this)),
@@ -524,6 +525,7 @@ void SwSwitch::stop(bool isGracefulStop, bool revertToMinAlpmState) {
   // advertisements
   pcapMgr_.reset();
   pktObservers_.reset();
+  l2LearnEventObservers_.reset();
 
   // reset tunnel manager only after pkt thread is stopped
   // as there could be state updates in progress which will
@@ -2837,6 +2839,7 @@ template std::shared_ptr<Route<folly::IPAddressV6>> SwSwitch::longestMatch(
 void SwSwitch::l2LearningUpdateReceived(
     L2Entry l2Entry,
     L2EntryUpdateType l2EntryUpdateType) {
+  l2LearnEventObservers_->l2LearnEventReceived(l2Entry, l2EntryUpdateType);
   macTableManager_->handleL2LearningUpdate(l2Entry, l2EntryUpdateType);
 }
 

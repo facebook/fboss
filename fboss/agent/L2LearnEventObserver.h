@@ -19,7 +19,7 @@
 namespace facebook::fboss {
 
 class L2Entry;
-class L2EntryUpdateType;
+enum class L2EntryUpdateType;
 
 class L2LearnEventObserverIf : public boost::noncopyable {
  public:

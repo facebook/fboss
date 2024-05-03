@@ -277,6 +277,7 @@ set(core_libs
   hw_ctrl_cpp2
   loadbalancer_utils
   monolithic_switch_handler
+  l2learn_event_observer
 )
 
 if (FBOSS_CENTOS9)
