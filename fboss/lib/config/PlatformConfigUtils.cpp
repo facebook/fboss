@@ -234,7 +234,6 @@ std::map<int32_t, phy::PolaritySwap> getXphyLinePolaritySwapMap(
     }
   }
   if (xphyPolaritySwapMap.empty()) {
-    auto portEntryLanes = 0;
     const auto& xphyPinList = getPinsByChipType(
         chipsMap,
         *platformPortEntry.mapping()->pins(),
@@ -242,7 +241,6 @@ std::map<int32_t, phy::PolaritySwap> getXphyLinePolaritySwapMap(
     for (const auto& pin : xphyPinList) {
       checkPinType(pin, phy::DataPlanePhyChipType::XPHY);
       for (const auto& connection : *pin.get_junction().line()) {
-        portEntryLanes++;
         if (auto pn = connection.polaritySwap()) {
           xphyPolaritySwapMap.emplace(*connection.a()->lane(), *pn);
         }

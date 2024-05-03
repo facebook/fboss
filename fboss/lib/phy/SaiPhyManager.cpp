@@ -267,9 +267,8 @@ bool SaiPhyManager::setupMacsecState(
     // If macsecDesired is False and we are trying to remove Macsec from a list
     // of ports then from the portList, remove the ports which are not
     // programmed in HW for Macsec
-    PlatformInfo* platInfo;
     try {
-      platInfo = getPlatformInfo(portId);
+      getPlatformInfo(portId);
     } catch (FbossError& e) {
       if (macsecDesired) {
         throw;
