@@ -216,12 +216,6 @@ void ControlLogic::updateTargetPwm(const Sensor& sensor) {
         maxVal);
   }
 
-  if (targetPwm > *config_.pwmUpperThreshold()) {
-    targetPwm = *config_.pwmUpperThreshold();
-  } else if (targetPwm < *config_.pwmLowerThreshold()) {
-    targetPwm = *config_.pwmLowerThreshold();
-  }
-
   XLOG(INFO) << fmt::format(
       "{}: Calculated PWM is {}", *sensor.sensorName(), targetPwm);
   readCache.targetPwmCache = targetPwm;
@@ -426,6 +420,10 @@ std::pair<bool, float> ControlLogic::programFan(
       newFanPwm = calculatedZonePwm;
     }
   }
+
+  newFanPwm = std::min(newFanPwm, (float)*config_.pwmUpperThreshold());
+  newFanPwm = std::max(newFanPwm, (float)*config_.pwmLowerThreshold());
+
   int pwmRawValue =
       (int)(((*fan.pwmMax()) - (*fan.pwmMin())) * newFanPwm / 100.0 +
             *fan.pwmMin());
