@@ -1550,10 +1550,12 @@ bool SaiPortManager::rxSNRSupported() const {
 }
 
 bool SaiPortManager::fecCodewordsStatsSupported(PortID portId) const {
-#if defined(BRCM_SAI_SDK_GTE_10_0) || defined(TAJO_SDK_MORGAN)
+#if defined(BRCM_SAI_SDK_GTE_10_0) || defined(SAI_VERSION_11_0_EA_DNX_ODP) || \
+    defined(TAJO_SDK_MORGAN)
   return platform_->getAsic()->isSupported(
              HwAsic::Feature::SAI_FEC_CODEWORDS_STATS) &&
-      utility::isReedSolomonFec(getFECMode(portId));
+      utility::isReedSolomonFec(getFECMode(portId)) &&
+      getPortType(portId) == cfg::PortType::INTERFACE_PORT;
 #else
   return false;
 #endif

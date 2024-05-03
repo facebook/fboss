@@ -528,8 +528,8 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   }
 
   std::optional<bool> fdrEnable;
-#if defined(BRCM_SAI_SDK_GTE_10_0) && defined(BRCM_SAI_SDK_XGS)
-  if (swPort->getPortType() != cfg::PortType::MANAGEMENT_PORT && adminState &&
+#if defined(BRCM_SAI_SDK_GTE_10_0) || defined(SAI_VERSION_11_0_EA_DNX_ODP)
+  if (swPort->getPortType() == cfg::PortType::INTERFACE_PORT && adminState &&
       platform_->getAsic()->isSupported(
           HwAsic::Feature::SAI_FEC_CODEWORDS_STATS)) {
     fdrEnable = true;
