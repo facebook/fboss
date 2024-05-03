@@ -33,7 +33,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "portType": 3,
           "attachedCoreId": 0,
           "attachedCorePortIndex": 1,
-          "virtualDeviceId": 0
+          "virtualDeviceId": 0,
+          "scope": 1
         },
         "supportedProfiles": {
           "11": {

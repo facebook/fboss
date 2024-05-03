@@ -592,7 +592,13 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
       auto intfId = sysportRangeBegin + *port.logicalID();
       std::optional<std::vector<std::string>> subnets;
       if (*port.portType() == cfg::PortType::RECYCLE_PORT) {
-        subnets = getLoopbackIps(SwitchID(mySwitchId));
+        auto portScope = *platformMapping->getPlatformPort(*port.logicalID())
+                              .mapping()
+                              ->scope();
+        if (portScope == cfg::Scope::GLOBAL) {
+          // only set IP for global recycle ports
+          subnets = getLoopbackIps(SwitchID(mySwitchId));
+        }
       }
       addInterface(
           intfId,
