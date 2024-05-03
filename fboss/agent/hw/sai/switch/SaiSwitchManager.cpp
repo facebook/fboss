@@ -869,10 +869,16 @@ std::vector<sai_object_id_t> SaiSwitchManager::getUdfGroupIds(
 }
 
 void SaiSwitchManager::setForceTrafficOverFabric(bool forceTrafficOverFabric) {
-  SaiApiTable::getInstance()->switchApi().setAttribute(
+  auto& switchApi = SaiApiTable::getInstance()->switchApi();
+  auto oldSetForceTrafficOverFabric = switchApi.getAttribute(
       switch_->adapterKey(),
-      SaiSwitchTraits::Attributes::ForceTrafficOverFabric{
-          forceTrafficOverFabric});
+      SaiSwitchTraits::Attributes::ForceTrafficOverFabric{});
+  if (oldSetForceTrafficOverFabric != forceTrafficOverFabric) {
+    SaiApiTable::getInstance()->switchApi().setAttribute(
+        switch_->adapterKey(),
+        SaiSwitchTraits::Attributes::ForceTrafficOverFabric{
+            forceTrafficOverFabric});
+  }
 }
 
 void SaiSwitchManager::setCreditWatchdog(bool creditWatchdog) {
