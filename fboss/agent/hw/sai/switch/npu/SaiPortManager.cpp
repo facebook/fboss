@@ -566,6 +566,10 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
     disableTtl = SaiPortTraits::Attributes::DisableTtlDecrement{
         swPort->getTTLDisableDecrement().value()};
   }
+  std::optional<SaiPortTraits::Attributes::PktTxEnable> pktTxEnable{};
+  if (auto txEnable = swPort->getTxEnable()) {
+    pktTxEnable = SaiPortTraits::Attributes::PktTxEnable{txEnable.value()};
+  }
   auto portPfcInfo = getPortPfcAttributes(swPort);
   if (basicAttributeOnly) {
     return SaiPortTraits::CreateAttributes{
@@ -592,7 +596,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         std::nullopt,
         disableTtl,
         std::nullopt,
-        std::nullopt,
+        pktTxEnable, /* PktTxEnable */
         std::nullopt,
         std::nullopt,
         std::nullopt,
