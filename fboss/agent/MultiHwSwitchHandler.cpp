@@ -112,7 +112,6 @@ std::shared_ptr<SwitchState> MultiHwSwitchHandler::rollbackStateChange(
   std::map<SwitchID, const StateDelta&> switchIdAndDeltas;
   std::shared_ptr<SwitchState> newState{nullptr};
   std::set<std::unique_ptr<StateDelta>> deltas;
-  int index{0};
   for (const auto& entry : updateResults) {
     auto switchId = entry.first;
     auto status = entry.second.second;
@@ -122,7 +121,6 @@ std::shared_ptr<SwitchState> MultiHwSwitchHandler::rollbackStateChange(
       switchIdAndDeltas.emplace(switchId, *delta);
       deltas.insert(std::move(delta));
     }
-    index++;
   }
   auto results = stateChanged(switchIdAndDeltas, transaction);
   for (const auto& result : results) {
