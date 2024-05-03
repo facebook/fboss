@@ -521,22 +521,32 @@ void ServiceHandler::updateSubscriptionCounters(
 
   auto config = fsdbConfig_->getSubscriberConfig(*info.subscriberId());
   if (config.has_value() && *config.value().second.get().trackReconnect()) {
+    auto& clientId = config.value().first;
     num_disconnected_subscriptions_.incrementValue(disconnectCountIncrement);
-    if (auto counter = disconnectedSubscriptions_.find(config.value().first);
+    if (auto counter = disconnectedSubscriptions_.find(clientId);
         counter != disconnectedSubscriptions_.end()) {
       counter->second.incrementValue(disconnectCountIncrement);
     }
-    if (auto counter = connectedSubscriptions_.find(config.value().first);
+    if (auto counter = connectedSubscriptions_.find(clientId);
         counter != connectedSubscriptions_.end()) {
       counter->second.incrementValue(connectedCountIncrement);
-      bool isFirstSubscriptionConnected =
-          isConnected && counter->second.value() == 1;
-      bool isLastSubscriptionDisconnected =
-          !isConnected && counter->second.value() == 0;
+      // per-subscriber counters: checks global subscription count
+      int nSubscriptions{0};
+      activeSubscriptions_.withRLock(
+          [&clientId, &nSubscriptions](const auto& activeSubscriptions) {
+            for (const auto& it : activeSubscriptions) {
+              auto& subscription = it.second;
+              if (clientId == *subscription.subscriberId()) {
+                nSubscriptions++;
+              }
+            }
+          });
+      bool isFirstSubscriptionConnected = isConnected && nSubscriptions == 1;
+      bool isLastSubscriptionDisconnected = !isConnected && nSubscriptions == 0;
       if (isFirstSubscriptionConnected || isLastSubscriptionDisconnected) {
         num_subscribers_.incrementValue(connectedCountIncrement);
         num_disconnected_subscribers_.incrementValue(disconnectCountIncrement);
-        if (auto counter1 = disconnectedSubscribers_.find(config.value().first);
+        if (auto counter1 = disconnectedSubscribers_.find(clientId);
             counter1 != disconnectedSubscribers_.end()) {
           counter1->second.incrementValue(disconnectCountIncrement);
         }
