@@ -47,10 +47,10 @@ void addVoqAqmConfig(
     if (queueId == getOlympicQueueId(OlympicQueueType::ECN1)) {
       queue.aqms() = {};
       if (addEcnConfig) {
-        queue.aqms()->push_back(kGetOlympicEcnConfig());
+        queue.aqms()->push_back(kGetOlympicEcnConfig(asic));
       }
       if (addWredConfig) {
-        queue.aqms()->push_back(kGetWredConfig());
+        queue.aqms()->push_back(kGetWredConfig(asic));
       }
     }
     voqConfig.push_back(queue);
@@ -110,10 +110,10 @@ void addOlympicQueueOptionalEcnWredConfigWithSchedulingHelper(
   }
   queue2.aqms() = {};
   if (addEcnConfig) {
-    queue2.aqms()->push_back(kGetOlympicEcnConfig());
+    queue2.aqms()->push_back(kGetOlympicEcnConfig(asic));
   }
   if (addWredConfig) {
-    queue2.aqms()->push_back(kGetWredConfig());
+    queue2.aqms()->push_back(kGetWredConfig(asic));
   }
   portQueues.push_back(queue2);
 
@@ -216,22 +216,31 @@ int getNetworkAIQueueId(NetworkAIQueueType queueType) {
   throw FbossError("Invalid all network AI queue type ", queueType);
 }
 
-cfg::ActiveQueueManagement kGetOlympicEcnConfig(int minLength, int maxLength) {
+int getAqmGranularThreshold(const HwAsic* asic, int value) {
+  return ceil(value / asic->getThresholdGranularity()) *
+      asic->getThresholdGranularity();
+}
+
+cfg::ActiveQueueManagement
+kGetOlympicEcnConfig(const HwAsic* asic, int minLength, int maxLength) {
   cfg::ActiveQueueManagement ecnAQM;
   cfg::LinearQueueCongestionDetection ecnLQCD;
-  ecnLQCD.minimumLength() = minLength;
-  ecnLQCD.maximumLength() = maxLength;
+  ecnLQCD.minimumLength() = getAqmGranularThreshold(asic, minLength);
+  ecnLQCD.maximumLength() = getAqmGranularThreshold(asic, maxLength);
   ecnAQM.detection()->linear_ref() = ecnLQCD;
   ecnAQM.behavior() = cfg::QueueCongestionBehavior::ECN;
   return ecnAQM;
 }
 
-cfg::ActiveQueueManagement
-kGetWredConfig(int minLength, int maxLength, int probability) {
+cfg::ActiveQueueManagement kGetWredConfig(
+    const HwAsic* asic,
+    int minLength,
+    int maxLength,
+    int probability) {
   cfg::ActiveQueueManagement wredAQM;
   cfg::LinearQueueCongestionDetection wredLQCD;
-  wredLQCD.minimumLength() = minLength;
-  wredLQCD.maximumLength() = maxLength;
+  wredLQCD.minimumLength() = getAqmGranularThreshold(asic, minLength);
+  wredLQCD.maximumLength() = getAqmGranularThreshold(asic, maxLength);
   wredLQCD.probability() = probability;
   wredAQM.detection()->linear_ref() = wredLQCD;
   wredAQM.behavior() = cfg::QueueCongestionBehavior::EARLY_DROP;
@@ -285,29 +294,33 @@ void addQueueBurstSizeConfig(
 
 void addQueueEcnConfig(
     cfg::SwitchConfig* config,
+    const std::vector<const HwAsic*>& asics,
     const int queueId,
     const uint32_t minLen,
     const uint32_t maxLen,
     bool isVoq) {
+  auto asic = checkSameAndGetAsic(asics);
   auto& queue = getPortQueueConfig(config, queueId, isVoq);
   if (!queue.aqms().has_value()) {
     queue.aqms() = {};
   }
-  queue.aqms()->push_back(kGetOlympicEcnConfig(minLen, maxLen));
+  queue.aqms()->push_back(kGetOlympicEcnConfig(asic, minLen, maxLen));
 }
 
 void addQueueWredConfig(
     cfg::SwitchConfig* config,
+    const std::vector<const HwAsic*>& asics,
     const int queueId,
     const uint32_t minLen,
     const uint32_t maxLen,
     const int probability,
     bool isVoq) {
+  auto asic = checkSameAndGetAsic(asics);
   auto& queue = getPortQueueConfig(config, queueId, isVoq);
   if (!queue.aqms().has_value()) {
     queue.aqms() = {};
   }
-  queue.aqms()->push_back(kGetWredConfig(minLen, maxLen, probability));
+  queue.aqms()->push_back(kGetWredConfig(asic, minLen, maxLen, probability));
 }
 
 void addNetworkAIQueueConfig(
@@ -388,7 +401,7 @@ void addQueueWredDropConfig(
     queue0.scalingFactor() = cfg::MMUScalingFactor::ONE;
   }
   queue0.aqms() = {};
-  queue0.aqms()->push_back(kGetWredConfig(1, maxThresh, 0));
+  queue0.aqms()->push_back(kGetWredConfig(asic, 1, maxThresh, 0));
   portQueues.push_back(queue0);
 
   cfg::PortQueue queue2;
@@ -401,7 +414,7 @@ void addQueueWredDropConfig(
     queue2.scalingFactor() = cfg::MMUScalingFactor::ONE;
   }
   queue2.aqms() = {};
-  queue2.aqms()->push_back(kGetWredConfig(1, maxThresh, 5));
+  queue2.aqms()->push_back(kGetWredConfig(asic, 1, maxThresh, 5));
   portQueues.push_back(queue2);
 
   config->portQueueConfigs()["queue_config"] = portQueues;
@@ -501,9 +514,9 @@ void addOlympicV2WRRQueueConfig(
     queue2.scalingFactor() = cfg::MMUScalingFactor::ONE;
   }
   queue2.aqms() = {};
-  queue2.aqms()->push_back(kGetOlympicEcnConfig());
+  queue2.aqms()->push_back(kGetOlympicEcnConfig(asic));
   if (addWredConfig) {
-    queue2.aqms()->push_back(kGetWredConfig());
+    queue2.aqms()->push_back(kGetWredConfig(asic));
   }
   portQueues.push_back(queue2);
 

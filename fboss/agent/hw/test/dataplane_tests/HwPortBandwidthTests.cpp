@@ -328,6 +328,7 @@ void HwPortBandwidthTest::verifyQueueShaper() {
         utility::kQueueConfigBurstSizeMaxKb);
     utility::addQueueWredConfig(
         &newCfg,
+        {getPlatform()->getAsic()},
         kQueueId0(),
         utility::kQueueConfigAqmsWredThresholdMinMax,
         utility::kQueueConfigAqmsWredThresholdMinMax,
@@ -335,6 +336,7 @@ void HwPortBandwidthTest::verifyQueueShaper() {
         isVoq);
     utility::addQueueEcnConfig(
         &newCfg,
+        {getPlatform()->getAsic()},
         kQueueId0(),
         utility::kQueueConfigAqmsEcnThresholdMinMax,
         utility::kQueueConfigAqmsEcnThresholdMinMax,

@@ -116,6 +116,9 @@ class Jericho2Asic : public BroadcomAsic {
         return BroadcomAsic::getBufferDynThreshFromScalingFactor(scalingFactor);
     }
   }
+  uint32_t getThresholdGranularity() const override {
+    return 1024;
+  }
 };
 
 } // namespace facebook::fboss

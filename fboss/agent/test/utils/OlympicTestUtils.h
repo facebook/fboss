@@ -167,21 +167,27 @@ const std::map<int, std::vector<uint8_t>> kOlympicV2QueueToDscp();
 
 int getMaxWeightWRRQueue(const std::map<int, uint8_t>& queueToWeight);
 
+int getAqmGranularThreshold(const HwAsic* asic, int value);
+
 cfg::ActiveQueueManagement kGetOlympicEcnConfig(
+    const HwAsic* asic,
     int minLength = 41600,
     int maxLength = 41600);
 cfg::ActiveQueueManagement kGetWredConfig(
+    const HwAsic* asic,
     int minLength = 41600,
     int maxLength = 41600,
     int probability = 100);
 void addQueueEcnConfig(
     cfg::SwitchConfig* config,
+    const std::vector<const HwAsic*>& asics,
     const int queueId,
     const uint32_t minLen,
     const uint32_t maxLen,
     bool isVoq);
 void addQueueWredConfig(
     cfg::SwitchConfig* config,
+    const std::vector<const HwAsic*>& asics,
     const int queueId,
     const uint32_t minLen,
     const uint32_t maxLen,

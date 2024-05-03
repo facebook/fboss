@@ -351,6 +351,7 @@ void AgentPortBandwidthTest::verifyQueueShaper() {
         utility::kQueueConfigBurstSizeMaxKb);
     utility::addQueueWredConfig(
         &newCfg,
+        this->getAgentEnsemble()->getL3Asics(),
         kQueueId0(),
         utility::kQueueConfigAqmsWredThresholdMinMax,
         utility::kQueueConfigAqmsWredThresholdMinMax,
@@ -358,6 +359,7 @@ void AgentPortBandwidthTest::verifyQueueShaper() {
         isVoq);
     utility::addQueueEcnConfig(
         &newCfg,
+        this->getAgentEnsemble()->getL3Asics(),
         kQueueId0(),
         utility::kQueueConfigAqmsEcnThresholdMinMax,
         utility::kQueueConfigAqmsEcnThresholdMinMax,

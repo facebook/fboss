@@ -366,6 +366,10 @@ class HwAsic {
     return std::nullopt;
   }
 
+  virtual uint32_t getThresholdGranularity() const {
+    return 1;
+  }
+
  protected:
   static cfg::Range64 makeRange(int64_t min, int64_t max);
 
