@@ -230,14 +230,6 @@ set(hw_switch_test_srcs
   fboss/agent/hw/test/dataplane_tests/HwMPLSTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwMacLearningTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwLoadBalancerTests.cpp
-  fboss/agent/hw/test/dataplane_tests/HwLoadBalancerTestsV4.cpp
-  fboss/agent/hw/test/dataplane_tests/HwLoadBalancerTestsV6.cpp
-  fboss/agent/hw/test/dataplane_tests/HwLoadBalancerTestsV4ToMpls.cpp
-  fboss/agent/hw/test/dataplane_tests/HwLoadBalancerTestsV6ToMpls.cpp
-  fboss/agent/hw/test/dataplane_tests/HwLoadBalancerTestsV4InMplsPhp.cpp
-  fboss/agent/hw/test/dataplane_tests/HwLoadBalancerTestsV6InMplsPhp.cpp
-  fboss/agent/hw/test/dataplane_tests/HwLoadBalancerTestsV4InMplsSwap.cpp
-  fboss/agent/hw/test/dataplane_tests/HwLoadBalancerTestsV6InMplsSwap.cpp
   fboss/agent/hw/test/dataplane_tests/HwMacLearningAndNeighborResolutionTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwMirroringTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwMmuTuningTests.cpp
