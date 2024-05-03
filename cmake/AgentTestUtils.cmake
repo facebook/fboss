@@ -136,9 +136,20 @@ target_link_libraries(qos_test_utils
   Folly::folly
 )
 
+add_library(l2learn_observer_util
+  fboss/agent/test/utils/L2LearningUpdateObserverUtil.cpp
+)
+
+target_link_libraries(l2learn_observer_util
+  core
+  l2learn_event_observer
+  Folly::folly
+)
+
 add_library(queue_per_host_test_utils
   fboss/agent/test/utils/QueuePerHostTestUtils.cpp
 )
+
 
 target_link_libraries(queue_per_host_test_utils
   asic_test_utils

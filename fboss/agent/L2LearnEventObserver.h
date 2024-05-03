@@ -27,11 +27,11 @@ class L2LearnEventObserverIf : public boost::noncopyable {
   void handleL2LearnEvent(
       const L2Entry& l2entry,
       const L2EntryUpdateType& l2EntryUpdateType) noexcept {
-    l2LearnEventReceived(l2entry, l2EntryUpdateType);
+    l2LearningUpdateReceived(l2entry, l2EntryUpdateType);
   }
 
  private:
-  virtual void l2LearnEventReceived(
+  virtual void l2LearningUpdateReceived(
       const L2Entry& l2entry,
       const L2EntryUpdateType& l2EntryUpdateType) noexcept = 0;
 };
