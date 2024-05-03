@@ -2217,7 +2217,7 @@ int BcmCinter::bcm_field_qset_id_multi_set(
     bcm_field_qset_t* qset) {
   auto cint = cintForQset(*qset);
   auto cintForFn = wrapFunc(to<string>(
-      "bcm_field_group_create_id(",
+      "bcm_field_qset_id_multi_set(",
       makeParamStr(unit, qualifier, num_objects, *object_list, "&qset"),
       ")"));
 
