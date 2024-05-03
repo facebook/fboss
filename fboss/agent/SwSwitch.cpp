@@ -1073,6 +1073,8 @@ std::shared_ptr<SwitchState> SwSwitch::preInit(SwitchFlags flags) {
   flags_ = flags;
   bootType_ = swSwitchWarmbootHelper_->canWarmBoot() ? BootType::WARM_BOOT
                                                      : BootType::COLD_BOOT;
+  XLOG(INFO) << "Boot Type: " << apache::thrift::util::enumNameSafe(bootType_);
+
   multiHwSwitchHandler_->start();
   std::optional<state::WarmbootState> wbState{};
   if (bootType_ == BootType::WARM_BOOT) {
@@ -1123,11 +1125,10 @@ void SwSwitch::init(
     // this is being done for preprod2trunk migration. further until tooling
     // is updated to affect both warm boot flags, HwSwitch will override
     // SwSwitch boot flag (for monolithic agent).
-    auto bootStr = [](BootType type) {
-      return type == BootType::WARM_BOOT ? "WARM_BOOT" : "COLD_BOOT";
-    };
-    XLOG(INFO) << "Overriding boot type from " << bootStr(bootType_) << " to "
-               << bootStr(hwInitRet.bootType);
+    XLOG(INFO) << "Overriding boot type from: "
+               << apache::thrift::util::enumNameSafe(bootType_) << " to "
+               << apache::thrift::util::enumNameSafe(hwInitRet.bootType);
+
     bootType_ = hwInitRet.bootType;
   }
   if (getAppliedState()) {
