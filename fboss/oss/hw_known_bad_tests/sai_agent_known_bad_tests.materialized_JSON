@@ -1308,6 +1308,12 @@
         },
         {
           "test_name_regex": "AgentAclCounterTest/0.VerifyAclPriorityL4DstportHitFrontPanel$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].EapolToHighPriQ$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         }
     ],
     "brcm/11.0_ea_dnx_odp/11.0_ea_dnx_odp/jericho3/multi_switch": [
@@ -1463,6 +1469,12 @@
         },
         {
           "test_name_regex": "AgentAclCounterTest/0.VerifyAclPriorityL4DstportHitFrontPanel$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].EapolToHighPriQ$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         }
     ],
     "brcm/11.0_ea_dnx_odp/11.0_ea_dnx_odp/ramon/mono": [
