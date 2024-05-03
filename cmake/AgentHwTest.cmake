@@ -55,6 +55,15 @@ target_link_libraries(packet_observer
   Folly::folly
 )
 
+add_library(l2learn_event_observer
+  fboss/agent/L2LearnEventObserver.cpp
+)
+
+target_link_libraries(l2learn_event_observer
+  fboss_error
+  Folly::folly
+)
+
 add_library(hw_copp_utils
   fboss/agent/hw/test/HwTestCoppUtils.cpp
 )
