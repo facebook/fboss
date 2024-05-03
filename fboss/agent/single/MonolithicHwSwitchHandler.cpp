@@ -68,12 +68,6 @@ folly::dynamic MonolithicHwSwitchHandler::toFollyDynamic() const {
   return hw_->toFollyDynamic();
 }
 
-std::optional<uint32_t> MonolithicHwSwitchHandler::getHwLogicalPortId(
-    PortID portID) const {
-  auto platformPort = platform_->getPlatformPort(portID);
-  return platformPort->getHwLogicalPortId();
-}
-
 void MonolithicHwSwitchHandler::onHwInitialized(HwSwitchCallback* callback) {
   platform_->onHwInitialized(callback);
 }

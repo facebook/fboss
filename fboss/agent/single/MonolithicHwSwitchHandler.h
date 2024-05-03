@@ -45,8 +45,6 @@ class MonolithicHwSwitchHandler : public HwSwitchHandler {
 
   folly::dynamic toFollyDynamic() const;
 
-  std::optional<uint32_t> getHwLogicalPortId(PortID portID) const override;
-
   folly::F14FastMap<std::string, HwPortStats> getPortStats() const;
 
   std::map<std::string, HwSysPortStats> getSysPortStats() const;

@@ -3060,7 +3060,12 @@ TransceiverIdxThrift SwSwitch::getTransceiverIdxThrift(PortID portID) const {
 }
 
 std::optional<uint32_t> SwSwitch::getHwLogicalPortId(PortID portID) const {
-  return multiHwSwitchHandler_->getHwLogicalPortId(portID);
+  auto portStats = getHwPortStats({portID});
+  if (!portStats.empty() &&
+      portStats.begin()->second.logicalPortId().has_value()) {
+    return portStats.begin()->second.logicalPortId().value();
+  }
+  return std::nullopt;
 }
 
 const AgentDirectoryUtil* SwSwitch::getDirUtil() const {

@@ -63,12 +63,6 @@ bool MultiSwitchHwSwitchHandler::getAndClearNeighborHit(
   return true; // TODO: implement this
 }
 
-std::optional<uint32_t> MultiSwitchHwSwitchHandler::getHwLogicalPortId(
-    PortID /*portID*/) const {
-  // TODO: query hwswitch and return logical port id
-  return std::nullopt;
-}
-
 void MultiSwitchHwSwitchHandler::onHwInitialized(
     HwSwitchCallback* /*callback*/) {
   // TODO: implement this

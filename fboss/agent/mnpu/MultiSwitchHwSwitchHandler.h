@@ -39,8 +39,6 @@ class MultiSwitchHwSwitchHandler : public HwSwitchHandler {
 
   bool getAndClearNeighborHit(RouterID vrf, folly::IPAddress& ip) override;
 
-  std::optional<uint32_t> getHwLogicalPortId(PortID portID) const override;
-
   bool transactionsSupported(
       std::optional<cfg::SdkVersion> sdkVersion) const override;
 

@@ -81,8 +81,6 @@ class MultiHwSwitchHandler {
 
   bool getAndClearNeighborHit(RouterID vrf, folly::IPAddress& ip);
 
-  std::optional<uint32_t> getHwLogicalPortId(PortID portID);
-
   bool transactionsSupported() const;
 
   void switchRunStateChanged(SwitchRunState newState);

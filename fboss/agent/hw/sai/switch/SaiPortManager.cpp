@@ -1794,6 +1794,10 @@ void SaiPortManager::updateStats(PortID portId, bool updateWatermarks) {
   managerTable_->macsecManager().updateStats(portId, curPortStats);
   managerTable_->bufferManager().updateIngressPriorityGroupStats(
       portId, *curPortStats.portName_(), updateWatermarks);
+  auto logicalPortId = platform_->getPlatformPort(portId)->getHwLogicalPortId();
+  if (logicalPortId) {
+    curPortStats.logicalPortId() = *logicalPortId;
+  }
   portStats_[portId]->updateStats(curPortStats, now);
   auto lastPrbsRxStateReadTimeIt = lastPrbsRxStateReadTime_.find(portId);
   if (lastPrbsRxStateReadTimeIt == lastPrbsRxStateReadTime_.end() ||

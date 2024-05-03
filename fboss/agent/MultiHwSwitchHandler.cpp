@@ -328,11 +328,6 @@ bool MultiHwSwitchHandler::sendPacketSwitchedAsync(
       std::move(pkt));
 }
 
-std::optional<uint32_t> MultiHwSwitchHandler::getHwLogicalPortId(
-    PortID portID) {
-  return hwSwitchSyncers_.begin()->second->getHwLogicalPortId(portID);
-}
-
 std::map<SwitchID, HwSwitchHandler*> MultiHwSwitchHandler::getHwSwitchHandlers()
     const {
   std::map<SwitchID, HwSwitchHandler*> handlers;

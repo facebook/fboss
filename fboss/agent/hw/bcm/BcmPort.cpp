@@ -1496,6 +1496,10 @@ void BcmPort::updateStats() {
 
   // Update any platform specific port counters
   getPlatformPort()->updateStats();
+  auto logicalPortId = getPlatformPort()->getHwLogicalPortId();
+  if (logicalPortId.has_value()) {
+    curPortStats.logicalPortId() = logicalPortId.value();
+  }
 };
 
 void BcmPort::updateFecStats(
