@@ -4,7 +4,7 @@
   "pwmBoostOnNoQsfpAfterInSec": 0,
   "pwmBoostValue": 60,
   "pwmTransitionValue": 50,
-  "pwmLowerThreshold": 24,
+  "pwmLowerThreshold": 50,
   "pwmUpperThreshold": 100,
   "optics": [],
   "sensors": [
