@@ -38,24 +38,6 @@ class Utils {
     }
     return v1.end() == std::mismatch(v1.begin(), v1.end(), v2.begin()).first;
   }
-
-  static int64_t getNowSec();
-
-  static std::string stringifyTimestampSec(int64_t timestampSec);
-
-  static std::tuple<Metric, int64_t> decomposeKey(const std::string& key);
-
-  static FqMetric getFqMetric(
-      const PublisherId& publisherId,
-      const Metric& metric);
-
-  // TODO: some entries in P152478620 have only the "" and ".60" suffixes -
-  // handle that
-  static constexpr std::array<std::string_view, 4> kDurationSuffixes = {
-      "",
-      ".60",
-      ".600",
-      ".3600"};
 };
 
 template <typename NodeT>
