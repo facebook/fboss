@@ -40,6 +40,9 @@ class ControlLogic {
   const std::map<std::string, FanStatus> getFanStatuses() {
     return fanStatuses_.copy();
   }
+  const std::map<std::string, SensorReadCache>& getSensorCaches() {
+    return sensorReadCaches_;
+  }
 
  private:
   // Private Attributess :

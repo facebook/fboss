@@ -17,6 +17,8 @@ auto constexpr kFanWriteValue = "{}.{}.pwm_write.value";
 auto constexpr kFanAbsent = "{}.absent";
 auto constexpr kFanReadRpmFailure = "{}.rpm_read.failure";
 auto constexpr kFanReadRpmValue = "{}.rpm_read.value";
+auto constexpr kSensorReadFailure = "{}.sensor_read.failure";
+auto constexpr kSensorReadValue = "{}.sensor_read.value";
 auto constexpr kFanFailThresholdInSec = 300;
 auto constexpr kSensorFailThresholdInSec = 300;
 
@@ -255,6 +257,10 @@ void ControlLogic::getSensorUpdate() {
       sensorAccessFail = true;
     }
 
+    fb303::fbData->setCounter(
+        fmt::format(kSensorReadFailure, sensorName), sensorAccessFail);
+    fb303::fbData->setCounter(
+        fmt::format(kSensorReadValue, sensorName), readCache.lastReadValue);
     if (sensorAccessFail) {
       // If the sensor data cache is stale for a while, we consider it as the
       // failure of such sensor

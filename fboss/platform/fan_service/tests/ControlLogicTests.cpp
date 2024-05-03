@@ -147,6 +147,14 @@ TEST_F(ControlLogicTests, UpdateControlSuccess) {
         fb303::fbData->getCounter(fmt::format("{}.rpm_read.failure", fanName)),
         0);
   }
+  const auto& sensorCaches = controlLogic_->getSensorCaches();
+  for (const auto& [sensorName, sensorCache] : sensorCaches) {
+    EXPECT_EQ(sensorCache.sensorFailed, false);
+    EXPECT_EQ(
+        fb303::fbData->getCounter(
+            fmt::format("{}.sensor_read.failure", sensorName)),
+        0);
+  }
 }
 
 TEST_F(ControlLogicTests, UpdateControlFailureDueToMissingFans) {
@@ -250,6 +258,48 @@ TEST_F(
     EXPECT_EQ(fb303::fbData->getCounter(fmt::format("{}.absent", fanName)), 0);
     EXPECT_EQ(
         fb303::fbData->getCounter(fmt::format("{}.rpm_read.failure", fanName)),
+        1);
+  }
+}
+TEST_F(ControlLogicTests, UpdateControlSensorReadFailure) {
+  EXPECT_CALL(*mockBsp_, checkIfInitialSensorDataRead()).WillOnce(Return(true));
+  for (const auto& fan : *fanServiceConfig_.fans()) {
+    EXPECT_CALL(*mockBsp_, setFanPwmSysfs(*fan.pwmSysfsPath(), _))
+        .Times(2)
+        .WillRepeatedly(Return(true));
+    EXPECT_CALL(*mockBsp_, setFanLedSysfs(*fan.ledSysfsPath(), _))
+        .WillOnce(Return(true));
+    EXPECT_CALL(*mockBsp_, readSysfs(*fan.rpmSysfsPath()))
+        .WillOnce(Return(kDefaultRpm));
+    EXPECT_CALL(*mockBsp_, readSysfs(*fan.presenceSysfsPath()))
+        .WillOnce(Return(1 /* fan exists */));
+  }
+
+  auto startTime = mockBsp_->getCurrentTime();
+
+  controlLogic_->setTransitionValue();
+
+  auto emptySensorData = std::make_shared<SensorData>();
+  controlLogic_->updateControl(emptySensorData);
+  const auto fanStatuses = controlLogic_->getFanStatuses();
+  EXPECT_EQ(fanStatuses.size(), fanServiceConfig_.fans()->size());
+  int i = 0;
+  for (const auto& [fanName, fanStatus] : fanStatuses) {
+    EXPECT_EQ(*fanStatus.fanFailed(), false);
+    EXPECT_EQ(*fanStatus.rpm(), kDefaultRpm);
+    EXPECT_GE(*fanStatus.lastSuccessfulAccessTime(), startTime);
+    EXPECT_EQ(*fanStatus.pwmToProgram(), kExpectedPwms[i++]);
+    EXPECT_EQ(fb303::fbData->getCounter(fmt::format("{}.absent", fanName)), 0);
+    EXPECT_EQ(
+        fb303::fbData->getCounter(fmt::format("{}.rpm_read.failure", fanName)),
+        0);
+  }
+  const auto& sensorCaches = controlLogic_->getSensorCaches();
+  for (const auto& [sensorName, sensorCache] : sensorCaches) {
+    EXPECT_EQ(sensorCache.sensorFailed, true);
+    EXPECT_EQ(
+        fb303::fbData->getCounter(
+            fmt::format("{}.sensor_read.failure", sensorName)),
         1);
   }
 }
