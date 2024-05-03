@@ -616,7 +616,6 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
       if (fanFailed) {
         numFanFailed_++;
       }
-      programLed(fan, fanFailed);
       fanStatuses[*fan.fanName()].fanFailed() = fanFailed;
     }
 
@@ -650,11 +649,14 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
         fanStatuses[*fan.fanName()].pwmToProgram() = newFanPwm;
 
         if (fanFailed) {
-          programLed(fan, fanFailed);
           // Only override the fanFailed if fan programming failed.
           fanStatuses[*fan.fanName()].fanFailed() = fanFailed;
         }
       }
+    }
+
+    for (const auto& fan : *config_.fans()) {
+      programLed(fan, *fanStatuses[*fan.fanName()].fanFailed());
     }
   });
 
