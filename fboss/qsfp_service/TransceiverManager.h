@@ -487,6 +487,10 @@ class TransceiverManager {
       std::string portName,
       phy::PortComponent component);
 
+  void bulkClearInterfacePrbsStats(
+      std::unique_ptr<std::vector<std::string>> interfaces,
+      phy::PortComponent component);
+
   std::optional<DiagsCapability> getDiagsCapability(TransceiverID id) const;
 
   long getStateMachineThreadHeartbeatMissedCount() const {

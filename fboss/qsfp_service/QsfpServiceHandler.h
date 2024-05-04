@@ -162,6 +162,10 @@ class QsfpServiceHandler
       std::unique_ptr<std::string> portName,
       phy::PortComponent component) override;
 
+  void bulkClearInterfacePrbsStats(
+      std::unique_ptr<std::vector<std::string>> interfaces,
+      phy::PortComponent component) override;
+
   /*
    * Get the list of supported PRBS polynomials for the given port and
    * prbs component

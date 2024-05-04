@@ -2316,6 +2316,14 @@ void TransceiverManager::clearInterfacePrbsStats(
   }
 }
 
+void TransceiverManager::bulkClearInterfacePrbsStats(
+    std::unique_ptr<std::vector<std::string>> interfaces,
+    phy::PortComponent component) {
+  for (const auto& interface : *interfaces) {
+    clearInterfacePrbsStats(interface, component);
+  }
+}
+
 std::optional<DiagsCapability> TransceiverManager::getDiagsCapability(
     TransceiverID id) const {
   auto lockedTransceivers = transceivers_.rlock();

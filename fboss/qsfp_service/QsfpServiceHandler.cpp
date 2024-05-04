@@ -241,6 +241,13 @@ void QsfpServiceHandler::clearInterfacePrbsStats(
   manager_->clearInterfacePrbsStats(*portName, component);
 }
 
+void QsfpServiceHandler::bulkClearInterfacePrbsStats(
+    std::unique_ptr<std::vector<std::string>> interfaces,
+    phy::PortComponent component) {
+  auto log = LOG_THRIFT_CALL(INFO);
+  manager_->bulkClearInterfacePrbsStats(std::move(interfaces), component);
+}
+
 void QsfpServiceHandler::setPortPrbs(
     int32_t portId,
     phy::PortComponent component,
