@@ -467,8 +467,12 @@ class TransceiverManager {
 
   void getInterfacePrbsState(
       prbs::InterfacePrbsState& prbsState,
-      std::string portName,
-      phy::PortComponent component);
+      const std::string& portName,
+      phy::PortComponent component) const;
+
+  void getAllInterfacePrbsStates(
+      std::map<std::string, prbs::InterfacePrbsState>& prbsStates,
+      phy::PortComponent component) const;
 
   phy::PrbsStats getInterfacePrbsStats(
       std::string portName,
@@ -495,7 +499,7 @@ class TransceiverManager {
       std::string&& /* portName */,
       HwPortStats&& /* stat */) const {}
 
-  std::optional<TransceiverID> getTransceiverID(PortID id);
+  std::optional<TransceiverID> getTransceiverID(PortID id) const;
 
   QsfpServiceRunState getRunState() const;
 

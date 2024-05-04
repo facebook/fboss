@@ -212,6 +212,13 @@ void QsfpServiceHandler::getInterfacePrbsState(
   manager_->getInterfacePrbsState(prbsState, *portName, component);
 }
 
+void QsfpServiceHandler::getAllInterfacePrbsStates(
+    std::map<std::string, prbs::InterfacePrbsState>& prbsStates,
+    phy::PortComponent component) {
+  auto log = LOG_THRIFT_CALL(INFO);
+  manager_->getAllInterfacePrbsStates(prbsStates, component);
+}
+
 void QsfpServiceHandler::getInterfacePrbsStats(
     phy::PrbsStats& response,
     std::unique_ptr<std::string> portName,

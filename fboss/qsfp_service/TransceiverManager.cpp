@@ -1962,7 +1962,7 @@ void TransceiverManager::publishLinkSnapshots(PortID portID) {
 }
 
 std::optional<TransceiverID> TransceiverManager::getTransceiverID(
-    PortID portID) {
+    PortID portID) const {
   auto swPortInfo = portToSwPortInfo_.find(portID);
   if (swPortInfo == portToSwPortInfo_.end()) {
     throw FbossError("Failed to find SwPortInfo for port ID ", portID);
@@ -2246,8 +2246,8 @@ void TransceiverManager::setPortPrbs(
 
 void TransceiverManager::getInterfacePrbsState(
     prbs::InterfacePrbsState& prbsState,
-    std::string portName,
-    phy::PortComponent component) {
+    const std::string& portName,
+    phy::PortComponent component) const {
   if (auto portID = getPortIDByPortName(portName)) {
     if (component == phy::PortComponent::TRANSCEIVER_SYSTEM ||
         component == phy::PortComponent::TRANSCEIVER_LINE) {
@@ -2271,6 +2271,18 @@ void TransceiverManager::getInterfacePrbsState(
     }
   } else {
     throw FbossError("Can't find a portID for portName ", portName);
+  }
+}
+
+void TransceiverManager::getAllInterfacePrbsStates(
+    std::map<std::string, prbs::InterfacePrbsState>& prbsStates,
+    phy::PortComponent component) const {
+  const auto& platformPorts = platformMapping_->getPlatformPorts();
+  for (const auto& platformPort : platformPorts) {
+    auto portName = platformPort.second.mapping()->name_ref();
+    prbs::InterfacePrbsState prbsState;
+    getInterfacePrbsState(prbsState, *portName, component);
+    prbsStates[*portName] = prbsState;
   }
 }
 
