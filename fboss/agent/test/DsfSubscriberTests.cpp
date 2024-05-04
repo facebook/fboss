@@ -433,6 +433,7 @@ TEST_F(DsfSubscriberTest, handleFsdbUpdate) {
   auto sysPort1 =
       std::make_shared<SystemPort>(SystemPortID(kSysPortRangeMin + 1));
   sysPort1->setPortName("eth1/1/1");
+  sysPort1->setScope(cfg::Scope::GLOBAL);
 
   auto intf1 = std::make_shared<Interface>(
       InterfaceID(1001),
@@ -461,6 +462,7 @@ TEST_F(DsfSubscriberTest, handleFsdbUpdate) {
   auto sysPort2 =
       std::make_shared<SystemPort>(SystemPortID(kSysPortRangeMin + 2));
   sysPort2->setPortName("eth1/1/2");
+  sysPort2->setScope(cfg::Scope::GLOBAL);
 
   auto intf2 = std::make_shared<Interface>(
       InterfaceID(1002),

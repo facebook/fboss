@@ -114,6 +114,13 @@ std::shared_ptr<SwitchState> DsfStateUpdaterUtil::getUpdatedState(
                  newNode->toThrift());
       return oldNode;
     }
+    if (newNode && newNode->getScope() == cfg::Scope::LOCAL) {
+      XLOG(DBG3)
+          << "Ignore remote system port of local type "
+          << apache::thrift::SimpleJSONSerializer::serialize<std::string>(
+                 newNode->toThrift());
+      return oldNode;
+    }
 
     auto clonedNode = newNode->isPublished() ? newNode->clone() : newNode;
     clonedNode->setRemoteSystemPortType(RemoteSystemPortType::DYNAMIC_ENTRY);
@@ -177,6 +184,9 @@ std::shared_ptr<SwitchState> DsfStateUpdaterUtil::getUpdatedState(
         [&](const auto& newNode) {
           auto clonedNode =
               makeRemote(std::decay_t<decltype(newNode)>{nullptr}, newNode);
+          if (!clonedNode) {
+            return;
+          }
           if constexpr (std::is_same_v<MapT, MultiSwitchSystemPortMap>) {
             mapToUpdate->addNode(clonedNode, scopeResolver->scope(clonedNode));
           } else {
