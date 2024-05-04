@@ -74,6 +74,9 @@ class DsfSubscriber : public StateObserver {
       const std::string& nodeName,
       const SwitchID& nodeSwitchId);
 
+  std::set<folly::CIDRNetwork> getLoopbackIpsSortedForDsfSessions(
+      const std::set<folly::CIDRNetwork>& loopbackIpsSorted);
+
   // Paths
   static const auto& getSystemPortsPath();
   static const auto& getInterfacesPath();

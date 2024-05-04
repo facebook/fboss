@@ -117,6 +117,24 @@ void DsfSubscriber::scheduleUpdate(
       std::move(updateDsfStateFn));
 }
 
+std::set<folly::CIDRNetwork> DsfSubscriber::getLoopbackIpsSortedForDsfSessions(
+    const std::set<folly::CIDRNetwork>& loopbackIpsSorted) {
+  auto maxElems = std::min(
+      FLAGS_dsf_num_parallel_sessions,
+      static_cast<uint32_t>(loopbackIpsSorted.size()));
+
+  // Copy first n elements of loopbackIps
+  std::set<folly::CIDRNetwork> loopbackIpsSortedForDsfSessions;
+  std::copy_n(
+      loopbackIpsSorted.begin(),
+      maxElems,
+      std::inserter(
+          loopbackIpsSortedForDsfSessions,
+          loopbackIpsSortedForDsfSessions.end()));
+
+  return loopbackIpsSortedForDsfSessions;
+}
+
 void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
   if (!FLAGS_dsf_subscribe) {
     return;
@@ -184,7 +202,8 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
     auto nodeSwitchId = node->getSwitchId();
 
     dsfSessions_.wlock()->emplace(nodeName, nodeName);
-    for (const auto& network : node->getLoopbackIpsSorted()) {
+    for (const auto& network :
+         getLoopbackIpsSortedForDsfSessions(node->getLoopbackIpsSorted())) {
       auto dstIP = network.first.str();
       XLOG(DBG2) << "Setting up DSF subscriptions to:: " << nodeName
                  << " dstIP: " << dstIP;
@@ -221,7 +240,8 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
     auto nodeSwitchId = node->getSwitchId();
     dsfSessions_.wlock()->erase(nodeName);
 
-    for (const auto& network : node->getLoopbackIpsSorted()) {
+    for (const auto& network :
+         getLoopbackIpsSortedForDsfSessions(node->getLoopbackIpsSorted())) {
       auto dstIP = network.first.str();
       XLOG(DBG2) << "Removing DSF subscriptions to:: " << nodeName
                  << " dstIP: " << dstIP;

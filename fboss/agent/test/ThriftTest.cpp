@@ -155,6 +155,7 @@ class ThriftTestAllSwitchTypes : public ::testing::Test {
   ;
   void SetUp() override {
     FLAGS_intf_nbr_tables = intfNbrTable;
+    FLAGS_dsf_num_parallel_sessions = std::numeric_limits<uint32_t>::max();
     auto config = testConfigA(switchType);
     handle_ = createTestHandle(&config);
     sw_ = handle_->getSw();
