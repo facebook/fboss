@@ -2140,7 +2140,7 @@ void TransceiverManager::setInterfacePrbs(
 
 phy::PrbsStats TransceiverManager::getPortPrbsStats(
     PortID portId,
-    phy::PortComponent component) {
+    phy::PortComponent component) const {
   phy::Side side = prbsComponentToPhySide(component);
   if (component == phy::PortComponent::TRANSCEIVER_SYSTEM ||
       component == phy::PortComponent::TRANSCEIVER_LINE) {
@@ -2287,12 +2287,23 @@ void TransceiverManager::getAllInterfacePrbsStates(
 }
 
 phy::PrbsStats TransceiverManager::getInterfacePrbsStats(
-    std::string portName,
-    phy::PortComponent component) {
+    const std::string& portName,
+    phy::PortComponent component) const {
   if (auto portID = getPortIDByPortName(portName)) {
     return getPortPrbsStats(*portID, component);
   }
   throw FbossError("Can't find a portID for portName ", portName);
+}
+
+void TransceiverManager::getAllInterfacePrbsStats(
+    std::map<std::string, phy::PrbsStats>& prbsStats,
+    phy::PortComponent component) const {
+  const auto& platformPorts = platformMapping_->getPlatformPorts();
+  for (const auto& platformPort : platformPorts) {
+    auto portName = platformPort.second.mapping()->name_ref();
+    auto prbsStatsEntry = getInterfacePrbsStats(*portName, component);
+    prbsStats[*portName] = prbsStatsEntry;
+  }
 }
 
 void TransceiverManager::clearInterfacePrbsStats(

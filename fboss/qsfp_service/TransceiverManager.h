@@ -447,7 +447,8 @@ class TransceiverManager {
       phy::PortComponent component,
       const phy::PortPrbsState& state);
 
-  phy::PrbsStats getPortPrbsStats(PortID portId, phy::PortComponent component);
+  phy::PrbsStats getPortPrbsStats(PortID portId, phy::PortComponent component)
+      const;
 
   void clearPortPrbsStats(PortID portId, phy::PortComponent component);
 
@@ -475,8 +476,12 @@ class TransceiverManager {
       phy::PortComponent component) const;
 
   phy::PrbsStats getInterfacePrbsStats(
-      std::string portName,
-      phy::PortComponent component);
+      const std::string& portName,
+      phy::PortComponent component) const;
+
+  void getAllInterfacePrbsStats(
+      std::map<std::string, phy::PrbsStats>& prbsStats,
+      phy::PortComponent component) const;
 
   void clearInterfacePrbsStats(
       std::string portName,
