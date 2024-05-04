@@ -11,6 +11,7 @@ include "fboss/agent/switch_config.thrift"
 include "fboss/mka_service/if/mka_structs.thrift"
 include "fboss/agent/hw/hardware_stats.thrift"
 include "fboss/lib/phy/phy.thrift"
+include "fboss/lib/phy/prbs.thrift"
 
 service QsfpService extends phy.FbossCommonPhyCtrl {
   transceiver.QsfpServiceRunState getQsfpServiceRunState();
@@ -238,5 +239,12 @@ service QsfpService extends phy.FbossCommonPhyCtrl {
   map<string, hardware_stats.MacsecStats> getMacsecPortStats(
     1: list<string> portNames,
     2: bool readFromHw = false,
+  ) throws (1: fboss.FbossBaseError error);
+
+  /*
+   * Get the PRBS settings on all interfaces.
+   */
+  map<string, prbs.InterfacePrbsState> getAllInterfacePrbsStates(
+    1: phy.PortComponent component,
   ) throws (1: fboss.FbossBaseError error);
 }
