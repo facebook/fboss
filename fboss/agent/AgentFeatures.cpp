@@ -37,6 +37,10 @@ DEFINE_uint32(
     dsf_gr_hold_time,
     0,
     "GR hold time for FSDB DsfSubscription in sec");
+DEFINE_uint32(
+    dsf_num_parallel_sessions,
+    1,
+    "Number of parallel DSF sessions. 1 for Prod. > 1 for scale tests");
 
 DEFINE_bool(
     classid_for_connected_subnet_routes,
