@@ -43,7 +43,9 @@ void AgentHwTest::SetUp() {
   agentEnsemble_ = createAgentEnsemble(initialConfigFn);
 
   if (isSupportedOnAllAsics(HwAsic::Feature::ROUTE_METADATA)) {
-    FLAGS_classid_for_connected_subnet_routes = true;
+    // TODO: enable after classid_for_connected_subnet_routes feature is fully
+    // verified
+    FLAGS_classid_for_connected_subnet_routes = false;
   }
 }
 
