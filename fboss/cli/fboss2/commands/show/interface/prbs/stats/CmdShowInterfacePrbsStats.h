@@ -38,23 +38,26 @@ class CmdShowInterfacePrbsStats : public CmdHandler<
       const HostInfo& hostInfo,
       const std::vector<std::string>& queriedIfs,
       const std::vector<std::string>& components) {
-    auto agentClient =
-        utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
-    agentClient->sync_getAllPortInfo(portEntries_);
+    std::map<phy::PortComponent, std::map<std::string, phy::PrbsStats>>
+        allPrbsStats;
+    auto queriedPrbsComponents =
+        prbsComponents(components, true /* returnAllIfEmpty */);
+    for (const auto& component : queriedPrbsComponents) {
+      auto prbsStats = getComponentPrbsStats(hostInfo, component);
+      allPrbsStats[component] = prbsStats;
+    }
     if (queriedIfs.empty()) {
       std::vector<std::string> allIfs;
+      auto agentClient =
+          utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
+      agentClient->sync_getAllPortInfo(portEntries_);
       for (const auto& port : portEntries_) {
         allIfs.push_back(port.second.get_name());
       }
-      return createModel(
-          hostInfo,
-          allIfs,
-          prbsComponents(components, true /* returnAllIfEmpty */));
+      return createModel(hostInfo, allIfs, queriedPrbsComponents, allPrbsStats);
     } else {
       return createModel(
-          hostInfo,
-          queriedIfs,
-          prbsComponents(components, true /* returnAllIfEmpty */));
+          hostInfo, queriedIfs, queriedPrbsComponents, allPrbsStats);
     }
   }
 
@@ -117,7 +120,9 @@ class CmdShowInterfacePrbsStats : public CmdHandler<
   RetType createModel(
       const HostInfo& hostInfo,
       const std::vector<std::string>& queriedIfs,
-      const std::vector<phy::PortComponent>& components) {
+      const std::vector<phy::PortComponent>& components,
+      const std::map<phy::PortComponent, std::map<std::string, phy::PrbsStats>>&
+          allPrbsStats) {
     RetType model;
     for (const auto& intf : queriedIfs) {
       cli::PrbsStatsInterfaceEntry intfEntry;
@@ -125,7 +130,7 @@ class CmdShowInterfacePrbsStats : public CmdHandler<
         cli::PrbsStatsComponentEntry entry;
         entry.interfaceName() = intf;
         entry.component() = component;
-        entry.prbsStats() = getPrbsStats(hostInfo, intf, component);
+        entry.prbsStats() = getPrbsStats(allPrbsStats, intf, component);
         intfEntry.componentEntries()->push_back(entry);
       }
       if (intfEntry.componentEntries()->size()) {
@@ -135,36 +140,65 @@ class CmdShowInterfacePrbsStats : public CmdHandler<
     return model;
   }
 
-  phy::PrbsStats getPrbsStats(
+  std::map<std::string, phy::PrbsStats> getComponentPrbsStats(
       const HostInfo& hostInfo,
-      const std::string& interfaceName,
       const phy::PortComponent& component) {
-    phy::PrbsStats prbsStats;
-    try {
-      if (component == phy::PortComponent::TRANSCEIVER_LINE ||
-          component == phy::PortComponent::TRANSCEIVER_SYSTEM ||
-          component == phy::PortComponent::GB_LINE ||
-          component == phy::PortComponent::GB_SYSTEM) {
-        auto qsfpClient =
-            utils::createClient<apache::thrift::Client<QsfpService>>(hostInfo);
-        qsfpClient->sync_getInterfacePrbsStats(
-            prbsStats, interfaceName, component);
-      } else if (component == phy::PortComponent::ASIC) {
-        auto agentClient =
-            utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
-        agentClient->sync_getPortPrbsStats(
-            prbsStats,
-            utils::getPortIDList({interfaceName}, portEntries_)[0],
-            component);
-      } else {
-        std::runtime_error(
-            "Unsupported component " +
-            apache::thrift::util::enumNameSafe(component));
+    std::map<std::string, phy::PrbsStats> prbsStats;
+    if (component == phy::PortComponent::TRANSCEIVER_LINE ||
+        component == phy::PortComponent::TRANSCEIVER_SYSTEM ||
+        component == phy::PortComponent::GB_LINE ||
+        component == phy::PortComponent::GB_SYSTEM) {
+      auto qsfpClient =
+          utils::createClient<apache::thrift::Client<QsfpService>>(hostInfo);
+      queryPrbsStats<apache::thrift::Client<QsfpService>>(
+          std::move(qsfpClient), prbsStats, component);
+    } else {
+      auto numHwSwitches = utils::getNumHwSwitches(hostInfo);
+      for (int i = 0; i < numHwSwitches; i++) {
+        std::map<std::string, phy::PrbsStats> hwAgentPrbsStats;
+        auto hwAgentClient =
+            utils::createClient<apache::thrift::Client<FbossHwCtrl>>(
+                hostInfo, i);
+        queryPrbsStats<apache::thrift::Client<FbossHwCtrl>>(
+            std::move(hwAgentClient), hwAgentPrbsStats, component);
+        for (const auto& [interface, prbsStat] : hwAgentPrbsStats) {
+          prbsStats[interface] = prbsStat;
+        }
       }
+    }
+    return prbsStats;
+  }
+
+  template <class Client>
+  void queryPrbsStats(
+      std::unique_ptr<Client> client,
+      std::map<std::string, phy::PrbsStats>& prbsStats,
+      const phy::PortComponent& component) {
+    try {
+      client->sync_getAllInterfacePrbsStats(prbsStats, component);
     } catch (const std::exception& e) {
       std::cerr << e.what();
     }
-    return prbsStats;
+  }
+
+  phy::PrbsStats getPrbsStats(
+      const std::map<phy::PortComponent, std::map<std::string, phy::PrbsStats>>&
+          allPrbsStats,
+      const std::string& interface,
+      const phy::PortComponent& component) {
+    auto allPrbsStatsItr = allPrbsStats.find(component);
+    if (allPrbsStatsItr == allPrbsStats.end()) {
+      throw std::runtime_error(
+          "Could not find component in PRBS stats: " +
+          std::to_string((int)component));
+    }
+    auto componentPrbsStats = allPrbsStatsItr->second;
+    auto componentPrbsStatsItr = componentPrbsStats.find(interface);
+    if (componentPrbsStatsItr == componentPrbsStats.end()) {
+      throw std::runtime_error(
+          "Could not find interface in PRBS stats: " + interface);
+    }
+    return componentPrbsStatsItr->second;
   }
 
  private:
