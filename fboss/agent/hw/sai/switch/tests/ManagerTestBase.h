@@ -229,7 +229,7 @@ class ManagerTestBase : public ::testing::Test {
           cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN,
       uint8_t weight = 24,
       uint64_t minPps = 12000,
-      uint64_t maxPps = 60000);
+      uint64_t maxPps = 60000) const;
 
   QueueConfig makeQueueConfig(
       std::vector<uint8_t> queueIds,
@@ -238,7 +238,7 @@ class ManagerTestBase : public ::testing::Test {
           cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN,
       uint8_t weight = 24,
       uint64_t minPps = 12000,
-      uint64_t maxPps = 60000);
+      uint64_t maxPps = 60000) const;
 
   std::shared_ptr<QosPolicy> makeQosPolicy(
       const std::string& name,

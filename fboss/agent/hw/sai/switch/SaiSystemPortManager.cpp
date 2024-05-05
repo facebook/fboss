@@ -119,7 +119,10 @@ SystemPortSaiId SaiSystemPortManager::addSystemPort(
       {saiSystemPort->adapterKey(), swSystemPort->getID()});
   concurrentIndices_->sysPortSaiIds.insert(
       {swSystemPort->getID(), saiSystemPort->adapterKey()});
-  configureQueues(swSystemPort, swSystemPort->getPortQueues()->impl());
+  configureQueues(
+      swSystemPort,
+      getSystemPortHandleImpl(swSystemPort->getID()),
+      swSystemPort->getPortQueues()->impl());
   return saiSystemPort->adapterKey();
 }
 
@@ -142,9 +145,13 @@ SaiQueueHandle* FOLLY_NULLABLE SaiSystemPortManager::getQueueHandle(
 
 void SaiSystemPortManager::configureQueues(
     const std::shared_ptr<SystemPort>& systemPort,
+    SaiSystemPortHandle* sysPortHandle,
     const QueueConfig& newQueueConfig) {
   auto swId = systemPort->getID();
   auto pitr = portStats_.find(swId);
+
+  // Repopulate configured queues
+  sysPortHandle->configuredQueues.clear();
   for (const auto& newPortQueue : std::as_const(newQueueConfig)) {
     SaiQueueConfig saiQueueConfig =
         std::make_pair(newPortQueue->getID(), newPortQueue->getStreamType());
@@ -158,9 +165,7 @@ void SaiSystemPortManager::configureQueues(
     if (pitr != portStats_.end()) {
       pitr->second->queueChanged(newPortQueue->getID(), queueName);
     }
-    // TODO: Add configuredQueues to handle and optimize stats collection
-    // to use only configured queues. Here, will need to update configured
-    // queues based on the newQueueConfig.
+    sysPortHandle->configuredQueues.push_back(queueHandle);
   }
 }
 
@@ -168,12 +173,12 @@ void SaiSystemPortManager::changeQueue(
     const std::shared_ptr<SystemPort>& systemPort,
     const QueueConfig& oldQueueConfig,
     const QueueConfig& newQueueConfig) {
-  configureQueues(systemPort, newQueueConfig);
-  auto swId = systemPort->getID();
-  auto systemPortHandle = getSystemPortHandleImpl(swId);
+  auto systemPortHandle = getSystemPortHandleImpl(systemPort->getID());
   if (!systemPortHandle) {
     throw FbossError("Attempted to change non-existent system port!");
   }
+  configureQueues(systemPort, systemPortHandle, newQueueConfig);
+  auto swId = systemPort->getID();
   auto pitr = portStats_.find(swId);
   for (const auto& oldPortQueue : std::as_const(oldQueueConfig)) {
     auto portQueueIter = std::find_if(
@@ -227,19 +232,6 @@ const HwSysPortFb303Stats* SaiSystemPortManager::getLastPortStats(
   return pitr != portStats_.end() ? pitr->second.get() : nullptr;
 }
 
-void SaiSystemPortManager::setupVoqStats(
-    const std::shared_ptr<SystemPort>& swSystemPort) {
-  auto pitr = portStats_.find(swSystemPort->getID());
-  if (pitr != portStats_.end()) {
-    for (auto i = 0; i < swSystemPort->getNumVoqs(); ++i) {
-      // TODO pull name from qos config
-      auto queueName = folly::to<std::string>("queue", i);
-      // TODO: This should be limited to configured queues
-      pitr->second->queueChanged(i, queueName);
-    }
-  }
-}
-
 void SaiSystemPortManager::loadQueues(
     SaiSystemPortHandle& sysPortHandle,
     const std::shared_ptr<SystemPort>& swSystemPort) {
@@ -265,7 +257,6 @@ void SaiSystemPortManager::loadQueues(
         return QueueSaiId(queueId);
       });
   sysPortHandle.queues = managerTable_->queueManager().loadQueues(queueSaiIds);
-  setupVoqStats(swSystemPort);
 }
 
 void SaiSystemPortManager::removeSystemPort(
@@ -310,23 +301,19 @@ void SaiSystemPortManager::updateStats(
   if (handlesItr == handles_.end()) {
     return;
   }
-  auto* handle = handlesItr->second.get();
-  // TODO - only populate queues that show up in qos config
-  std::vector<SaiQueueHandle*> configuredQueues;
-  for (auto& confAndQueueHandle : handle->queues) {
-    configuredQueues.push_back(confAndQueueHandle.second.get());
-  }
 
-  auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
   auto portStatItr = portStats_.find(portId);
   if (portStatItr == portStats_.end()) {
     // We don't maintain port stats for disabled ports.
     return;
   }
+
+  auto* handle = handlesItr->second.get();
+  auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
   const auto& prevPortStats = portStatItr->second->portStats();
   HwSysPortStats curPortStats{prevPortStats};
   managerTable_->queueManager().updateStats(
-      configuredQueues, curPortStats, updateWatermarks);
+      handle->configuredQueues, curPortStats, updateWatermarks);
   portStats_[portId]->updateStats(curPortStats, now);
 }
 
