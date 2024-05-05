@@ -225,6 +225,7 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
     *entry.classID() =
         getClassID().has_value() ? static_cast<int>(getClassID().value()) : 0;
     *entry.interfaceID() = getIntfID();
+    *entry.portDescriptor() = getPort().toThrift();
   }
 
  private:
