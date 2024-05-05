@@ -368,7 +368,7 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramPendingEntry(
     }
 
     InterfaceID interfaceID;
-    SystemPortID systemPortID;
+    std::optional<SystemPortID> systemPortID;
     std::optional<int64_t> encapIndex;
 
     if (switchType == cfg::SwitchType::VOQ) {
@@ -382,6 +382,8 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramPendingEntry(
       }
 
       interfaceID = sw_->getState()->getInterfaceIDForPort(port.phyPortID());
+      // SystemPortID is always same as the InterfaceID
+      systemPortID = SystemPortID(interfaceID);
     } else {
       interfaceID = intfID_;
     }
@@ -415,7 +417,9 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramPendingEntry(
     if (switchType == cfg::SwitchType::VOQ) {
       // TODO: Support aggregate ports for VOQ switches
       CHECK(port.isPhysicalPort());
-      nbrEntry.portId() = PortDescriptor(SystemPortID(systemPortID)).toThrift();
+      CHECK(systemPortID.has_value());
+      nbrEntry.portId() =
+          PortDescriptor(SystemPortID(systemPortID.value())).toThrift();
       if (encapIndex.has_value()) {
         nbrEntry.encapIndex() = encapIndex.value();
       }
