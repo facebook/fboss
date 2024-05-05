@@ -972,8 +972,23 @@ void ThriftHandler::addRemoteNeighbors(
     return;
   }
   for (auto& nbr : nbrs) {
-    if (*nbr.port()) {
-      nbr.switchId() = state->getAssociatedSwitchID(PortID(*nbr.port()));
+    if (nbr.portDescriptor().has_value()) {
+      PortID portID;
+      switch (*nbr.portDescriptor().value().portType()) {
+        case cfg::PortDescriptorType::Physical:
+          portID = *nbr.portDescriptor().value().portId();
+          break;
+        case cfg::PortDescriptorType::SystemPort:
+          portID = getPortID(
+              SystemPortID(*nbr.portDescriptor().value().portId()), state);
+          break;
+        case cfg::PortDescriptorType::Aggregate:
+          throw FbossError(
+              "Aggregate ports are not yet supported for VOQ switches");
+          break;
+      }
+
+      nbr.switchId() = state->getAssociatedSwitchID(portID);
     }
   }
   const auto& remoteRifs = state->getRemoteInterfaces();
