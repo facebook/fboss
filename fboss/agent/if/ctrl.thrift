@@ -149,6 +149,7 @@ struct ArpEntryThrift {
   10: optional i64 switchId;
   11: optional i64 resolvedSince;
   12: i32 interfaceID;
+  13: switch_config.PortDescriptor portDescriptor;
 }
 
 enum L2EntryType {
@@ -440,6 +441,7 @@ struct NdpEntryThrift {
   10: optional i64 switchId;
   11: optional i64 resolvedSince;
   12: i32 interfaceID;
+  13: switch_config.PortDescriptor portDescriptor;
 }
 
 enum BootType {
