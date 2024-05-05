@@ -316,6 +316,9 @@
           "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppAclTest.*"
         },
         {
+          "test_name_regex": "HwRouteTest/[01].verifyCpuRouteChange"
+        },
+        {
           "test_name_regex": "HwUdfTest.*"
         },
         {
@@ -646,6 +649,9 @@
         },
         {
           "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppAclTest.*"
+        },
+        {
+          "test_name_regex": "HwRouteTest/[01].verifyCpuRouteChange"
         },
         {
           "test_name_regex": "HwUdfTest.*"
@@ -1217,6 +1223,9 @@
           "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppAclTest.*"
         },
         {
+          "test_name_regex": "HwRouteTest/[01].verifyCpuRouteChange"
+        },
+        {
           "test_name_regex": "HwUdfTest.*"
         },
         {
@@ -1786,6 +1795,9 @@
           "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppAclTest.*"
         },
         {
+          "test_name_regex": "HwRouteTest/[01].verifyCpuRouteChange"
+        },
+        {
           "test_name_regex": "HwTrafficPfcTest.*"
         },
         {
@@ -2101,6 +2113,9 @@
         },
         {
           "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppAclTest.*"
+        },
+        {
+          "test_name_regex": "HwRouteTest/[01].verifyCpuRouteChange"
         },
         {
           "test_name_regex": "warm_boot.HwHashPolarizationTests.fullXHalfHash"
@@ -2679,6 +2694,9 @@
         },
         {
           "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppAclTest.*"
+        },
+        {
+          "test_name_regex": "HwRouteTest/[01].verifyCpuRouteChange"
         },
         {
           "test_name_regex": "HwUdfTest.*"
@@ -4105,6 +4123,9 @@
           "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppAclTest.*"
         },
         {
+          "test_name_regex": "HwRouteTest/[01].verifyCpuRouteChange"
+        },
+        {
           "test_name_regex": "HwTrafficPfcTest.*"
         },
         {
@@ -4420,6 +4441,9 @@
         },
         {
           "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppAclTest.*"
+        },
+        {
+          "test_name_regex": "HwRouteTest/[01].verifyCpuRouteChange"
         },
         {
           "test_name_regex": "warm_boot.HwHashPolarizationTests.fullXHalfHash"
@@ -4995,6 +5019,9 @@
         },
         {
           "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppAclTest.*"
+        },
+        {
+          "test_name_regex": "HwRouteTest/[01].verifyCpuRouteChange"
         },
         {
           "test_name_regex": "HwUdfTest.*"
@@ -5671,6 +5698,9 @@
           "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppAclTest.*"
         },
         {
+          "test_name_regex": "HwRouteTest/[01].verifyCpuRouteChange"
+        },
+        {
           "test_name_regex": "HwTrafficPfcTest.*"
         },
         {
@@ -6010,6 +6040,9 @@
         },
         {
           "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppAclTest.*"
+        },
+        {
+          "test_name_regex": "HwRouteTest/[01].verifyCpuRouteChange"
         },
         {
           "test_name_regex": "warm_boot.HwHashPolarizationTests.fullXHalfHash"
@@ -6611,6 +6644,9 @@
           "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppAclTest.*"
         },
         {
+          "test_name_regex": "HwRouteTest/[01].verifyCpuRouteChange"
+        },
+        {
           "test_name_regex": "HwUdfTest.*"
         },
         {
@@ -7136,6 +7172,9 @@
         },
         {
           "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppAclTest.*"
+        },
+        {
+          "test_name_regex": "HwRouteTest/[01].verifyCpuRouteChange"
         },
         {
           "test_name_regex": "HwUdfTest.*"
@@ -7878,6 +7917,9 @@
           "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppAclTest.*"
         },
         {
+          "test_name_regex": "HwRouteTest/[01].verifyCpuRouteChange"
+        },
+        {
           "test_name_regex": "HwTrafficPfcTest.*"
         },
         {
@@ -8193,6 +8235,9 @@
         },
         {
           "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppAclTest.*"
+        },
+        {
+          "test_name_regex": "HwRouteTest/[01].verifyCpuRouteChange"
         },
         {
           "test_name_regex": "warm_boot.HwHashPolarizationTests.fullXHalfHash"
@@ -8771,6 +8816,9 @@
         },
         {
           "test_name_regex": "roundtrip..*.HwEmptyTest.CheckInit.HwCoppAclTest.*"
+        },
+        {
+          "test_name_regex": "HwRouteTest/[01].verifyCpuRouteChange"
         },
         {
           "test_name_regex": "HwUdfTest.*"
