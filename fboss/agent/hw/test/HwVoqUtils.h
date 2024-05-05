@@ -56,4 +56,6 @@ std::shared_ptr<SwitchState> setupRemoteIntfAndSysPorts(
     const cfg::SwitchConfig& config,
     bool useEncapIndex);
 
+QueueConfig getDefaultVoqConfig();
+
 } // namespace facebook::fboss::utility

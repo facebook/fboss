@@ -89,6 +89,7 @@ std::shared_ptr<SwitchState> addRemoteSysPort(
   remoteSysPort->setCoreIndex(coreIndex);
   remoteSysPort->setCorePortIndex(corePortIndex);
   remoteSysPort->setSpeedMbps(localPort->getSpeedMbps());
+  remoteSysPort->resetPortQueues(getDefaultVoqConfig());
   remoteSystemPorts->addNode(remoteSysPort, scopeResolver.scope(remoteSysPort));
   return newState;
 }
@@ -226,6 +227,36 @@ std::shared_ptr<SwitchState> setupRemoteIntfAndSysPorts(
     }
   }
   return newState;
+}
+
+QueueConfig getDefaultVoqConfig() {
+  QueueConfig queueCfg;
+
+  auto defaultQueue = std::make_shared<PortQueue>(static_cast<uint8_t>(0));
+  defaultQueue->setStreamType(cfg::StreamType::UNICAST);
+  defaultQueue->setScheduling(cfg::QueueScheduling::INTERNAL);
+  defaultQueue->setName("default");
+  queueCfg.push_back(defaultQueue);
+
+  auto rdmaQueue = std::make_shared<PortQueue>(static_cast<uint8_t>(2));
+  rdmaQueue->setStreamType(cfg::StreamType::UNICAST);
+  rdmaQueue->setScheduling(cfg::QueueScheduling::INTERNAL);
+  rdmaQueue->setName("rdma");
+  queueCfg.push_back(rdmaQueue);
+
+  auto monitoringQueue = std::make_shared<PortQueue>(static_cast<uint8_t>(6));
+  monitoringQueue->setStreamType(cfg::StreamType::UNICAST);
+  monitoringQueue->setScheduling(cfg::QueueScheduling::INTERNAL);
+  monitoringQueue->setName("monitoring");
+  queueCfg.push_back(monitoringQueue);
+
+  auto ncQueue = std::make_shared<PortQueue>(static_cast<uint8_t>(7));
+  ncQueue->setStreamType(cfg::StreamType::UNICAST);
+  ncQueue->setScheduling(cfg::QueueScheduling::INTERNAL);
+  ncQueue->setName("nc");
+  queueCfg.push_back(ncQueue);
+
+  return queueCfg;
 }
 
 } // namespace facebook::fboss::utility
