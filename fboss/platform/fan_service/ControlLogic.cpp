@@ -148,7 +148,8 @@ float ControlLogic::calculateIncrementalPid(
 
 void ControlLogic::updateTargetPwm(const Sensor& sensor) {
   bool accelerate, deadFanExists;
-  float previousSensorValue, sensorValue, targetPwm{0};
+  float previousSensorValue, sensorValue;
+  int16_t targetPwm{0};
   float minVal = *sensor.setPoint() - *sensor.negHysteresis();
   float maxVal = *sensor.setPoint() + *sensor.posHysteresis();
   uint64_t dT;
@@ -400,35 +401,35 @@ bool ControlLogic::isFanPresentInDevice(const Fan& fan) {
   return fanPresent;
 }
 
-std::pair<bool, float> ControlLogic::programFan(
+std::pair<bool, int16_t> ControlLogic::programFan(
     const Zone& zone,
     const Fan& fan,
-    float currentFanPwm,
-    float calculatedZonePwm) {
-  float newFanPwm = 0;
+    int16_t currentFanPwm,
+    int16_t zonePwm) {
+  int16_t newFanPwm = 0;
   bool writeSuccess{false};
   if ((*zone.slope() == 0) || (currentFanPwm == 0)) {
-    newFanPwm = calculatedZonePwm;
+    newFanPwm = zonePwm;
   } else {
-    if (calculatedZonePwm > currentFanPwm) {
-      if ((calculatedZonePwm - currentFanPwm) > *zone.slope()) {
+    if (zonePwm > currentFanPwm) {
+      if ((zonePwm - currentFanPwm) > *zone.slope()) {
         newFanPwm = currentFanPwm + *zone.slope();
       } else {
-        newFanPwm = calculatedZonePwm;
+        newFanPwm = zonePwm;
       }
-    } else if (calculatedZonePwm < currentFanPwm) {
-      if ((currentFanPwm - calculatedZonePwm) > *zone.slope()) {
+    } else if (zonePwm < currentFanPwm) {
+      if ((currentFanPwm - zonePwm) > *zone.slope()) {
         newFanPwm = currentFanPwm - *zone.slope();
       } else {
-        newFanPwm = calculatedZonePwm;
+        newFanPwm = zonePwm;
       }
     } else {
-      newFanPwm = calculatedZonePwm;
+      newFanPwm = zonePwm;
     }
   }
 
-  newFanPwm = std::min(newFanPwm, (float)*config_.pwmUpperThreshold());
-  newFanPwm = std::max(newFanPwm, (float)*config_.pwmLowerThreshold());
+  newFanPwm = std::min(newFanPwm, *config_.pwmUpperThreshold());
+  newFanPwm = std::max(newFanPwm, *config_.pwmLowerThreshold());
 
   int pwmRawValue =
       (int)(((*fan.pwmMax()) - (*fan.pwmMin())) * newFanPwm / 100.0 +
@@ -473,12 +474,12 @@ void ControlLogic::programLed(const Fan& fan, bool fanFailed) {
       valueToWrite);
 }
 
-float ControlLogic::calculateZonePwm(const Zone& zone, bool boostMode) {
+int16_t ControlLogic::calculateZonePwm(const Zone& zone, bool boostMode) {
   auto zoneType = *zone.zoneType();
-  float zonePwm{0};
+  int16_t zonePwm{0};
   int totalPwmConsidered{0};
   for (const auto& sensorName : *zone.sensorNames()) {
-    float pwmForThisSensor;
+    int16_t pwmForThisSensor;
     if (isSensorPresentInConfig(sensorName)) {
       pwmForThisSensor = sensorReadCaches_[sensorName].targetPwmCache;
     } else if (pSensor_->checkIfOpticEntryExists(sensorName)) {
@@ -498,10 +499,10 @@ float ControlLogic::calculateZonePwm(const Zone& zone, bool boostMode) {
     totalPwmConsidered++;
   }
   if (zoneType == constants::ZONE_TYPE_AVG() && totalPwmConsidered != 0) {
-    zonePwm /= (float)totalPwmConsidered;
+    zonePwm /= totalPwmConsidered;
   }
   if (boostMode) {
-    zonePwm = std::max(zonePwm, (float)*config_.pwmBoostValue());
+    zonePwm = std::max(zonePwm, *config_.pwmBoostValue());
   }
   XLOG(INFO) << fmt::format(
       "{}: Components: {}. Aggregation Type: {}. Aggregate PWM is {}.",
@@ -588,9 +589,6 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
 
   XLOG(INFO) << "Processing Fans ...";
   fanStatuses_.withWLock([&](auto& fanStatuses) {
-    // Now, check if Fan is in good shape, based on the previously read
-    // sensor data
-
     // Update fan status with new rpm and timestamp.
     for (const auto& fan : *config_.fans()) {
       auto [fanAccessFailed, fanRpm, fanTimestamp] = readFanRpm(fan);
@@ -621,26 +619,17 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
     XLOG(INFO) << fmt::format("Boost mode is {}", (boostMode ? "On" : "Off"));
 
     for (const auto& zone : *config_.zones()) {
-      // Finally, set pwm values per zone.
-      // It's not recommended to put a fan in multiple zones,
-      // even though it's possible to do so.
-      float calculatedZonePwm = calculateZonePwm(zone, boostMode);
+      int16_t zonePwm = calculateZonePwm(zone, boostMode);
       for (const auto& fan : *config_.fans()) {
-        // Skip if the fan doesn't belong to this zone
         if (std::find(
                 zone.fanNames()->begin(),
                 zone.fanNames()->end(),
                 *fan.fanName()) == zone.fanNames()->end()) {
           continue;
         }
-
         const auto [fanFailed, newFanPwm] = programFan(
-            zone,
-            fan,
-            *fanStatuses[*fan.fanName()].pwmToProgram(),
-            calculatedZonePwm);
+            zone, fan, *fanStatuses[*fan.fanName()].pwmToProgram(), zonePwm);
         fanStatuses[*fan.fanName()].pwmToProgram() = newFanPwm;
-
         if (fanFailed) {
           // Only override the fanFailed if fan programming failed.
           fanStatuses[*fan.fanName()].fanFailed() = fanFailed;
@@ -653,7 +642,7 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
     }
   });
 
-  // Update the time stamp
+  // Update the timestamp
   lastControlUpdateSec_ = pBsp_->getCurrentTime();
 }
 

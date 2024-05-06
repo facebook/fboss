@@ -33,7 +33,7 @@ struct Zone {
 
 # If the read temperature exceeds the specified temperature,
 # set the PWM to the specified value.
-typedef map<i32, float> TempToPwmMap
+typedef map<i32, i16> TempToPwmMap
 
 # PID specific settings
 # setPoint : Target set point, affecting ki based calculation
@@ -119,8 +119,8 @@ struct FanServiceConfig {
   11: i16 pwmBoostOnNumDeadFan;
   12: i16 pwmBoostOnNumDeadSensor;
   13: i16 pwmBoostOnNoQsfpAfterInSec;
-  14: i32 pwmBoostValue;
-  15: i32 pwmTransitionValue;
-  16: i32 pwmUpperThreshold;
-  17: i32 pwmLowerThreshold;
+  14: i16 pwmBoostValue;
+  15: i16 pwmTransitionValue;
+  16: i16 pwmUpperThreshold;
+  17: i16 pwmLowerThreshold;
 }

@@ -10,14 +10,14 @@ namespace facebook::fboss::platform::fan_service {
 
 struct SensorReadCache {
   float lastReadValue{0};
-  float targetPwmCache{0};
+  int16_t targetPwmCache{0};
   uint64_t lastUpdatedTime;
   bool sensorFailed{false};
 };
 
 struct PwmCalcCache {
   float previousSensorRead{0};
-  float previousTargetPwm{0};
+  int16_t previousTargetPwm{0};
   float previousRead1{0};
   float previousRead2{0};
   float integral{0};
@@ -61,11 +61,11 @@ class ControlLogic {
   std::tuple<bool /*fanAccessFailed*/, int /*rpm*/, uint64_t /*timestamp*/>
   readFanRpm(const Fan& fan);
   void getOpticsUpdate();
-  std::pair<bool /* pwm update fail */, float /* pwm */> programFan(
+  std::pair<bool /* pwm update fail */, int16_t /* pwm */> programFan(
       const Zone& zone,
       const Fan& fan,
-      float currentPwm,
-      float pwmSoFar);
+      int16_t currentFanPwm,
+      int16_t zonePwm);
   float calculatePid(
       const std::string& name,
       float value,
@@ -84,7 +84,7 @@ class ControlLogic {
       float ki,
       float kd,
       float setPoint);
-  float calculateZonePwm(const Zone& zone, bool boostMode);
+  int16_t calculateZonePwm(const Zone& zone, bool boostMode);
   void updateTargetPwm(const Sensor& sensorItem);
   void programLed(const Fan& fan, bool fanFailed);
   bool isFanPresentInDevice(const Fan& fan);
