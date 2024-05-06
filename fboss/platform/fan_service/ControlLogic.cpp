@@ -474,60 +474,49 @@ void ControlLogic::programLed(const Fan& fan, bool fanFailed) {
 }
 
 float ControlLogic::calculateZonePwm(const Zone& zone, bool boostMode) {
-  // First, calculate the pwm value for this zone
   auto zoneType = *zone.zoneType();
-  float calculatedZonePwm = 0;
-  int totalPwmConsidered = 0;
+  float zonePwm{0};
+  int totalPwmConsidered{0};
   for (const auto& sensorName : *zone.sensorNames()) {
-    if (isSensorPresentInConfig(sensorName) ||
-        pSensor_->checkIfOpticEntryExists(sensorName)) {
-      totalPwmConsidered++;
-      float pwmForThisSensor;
-      if (isSensorPresentInConfig(sensorName)) {
-        // If this is a sensor name
-        pwmForThisSensor = sensorReadCaches_[sensorName].targetPwmCache;
-      } else {
-        // If this is an optics name
-        pwmForThisSensor = pSensor_->getOpticsPwm(sensorName);
-      }
-      if (zoneType == constants::ZONE_TYPE_MAX()) {
-        if (calculatedZonePwm < pwmForThisSensor) {
-          calculatedZonePwm = pwmForThisSensor;
-        }
-      } else if (zoneType == constants::ZONE_TYPE_MIN()) {
-        if (calculatedZonePwm > pwmForThisSensor) {
-          calculatedZonePwm = pwmForThisSensor;
-        }
-      } else if (zoneType == constants::ZONE_TYPE_AVG()) {
-        calculatedZonePwm += pwmForThisSensor;
-      } else {
-        XLOG(ERR) << "Undefined Zone Type for zone : ", *zone.zoneName();
-      }
+    float pwmForThisSensor;
+    if (isSensorPresentInConfig(sensorName)) {
+      pwmForThisSensor = sensorReadCaches_[sensorName].targetPwmCache;
+    } else if (pSensor_->checkIfOpticEntryExists(sensorName)) {
+      pwmForThisSensor = pSensor_->getOpticsPwm(sensorName);
+    } else {
+      continue;
     }
+    if (zoneType == constants::ZONE_TYPE_MAX()) {
+      zonePwm = std::max(zonePwm, pwmForThisSensor);
+    } else if (zoneType == constants::ZONE_TYPE_MIN()) {
+      zonePwm = std::min(zonePwm, pwmForThisSensor);
+    } else if (zoneType == constants::ZONE_TYPE_AVG()) {
+      zonePwm += pwmForThisSensor;
+    } else {
+      XLOG(ERR) << "Undefined Zone Type for zone : ", *zone.zoneName();
+    }
+    totalPwmConsidered++;
   }
   if (zoneType == constants::ZONE_TYPE_AVG() && totalPwmConsidered != 0) {
-    calculatedZonePwm /= (float)totalPwmConsidered;
+    zonePwm /= (float)totalPwmConsidered;
   }
-
   if (boostMode) {
-    if (calculatedZonePwm < *config_.pwmBoostValue()) {
-      calculatedZonePwm = *config_.pwmBoostValue();
-    }
+    zonePwm = std::max(zonePwm, (float)*config_.pwmBoostValue());
   }
   XLOG(INFO) << fmt::format(
       "{}: Components: {}. Aggregation Type: {}. Aggregate PWM is {}.",
       *zone.zoneName(),
       folly::join(",", *zone.sensorNames()),
       zoneType,
-      calculatedZonePwm);
+      zonePwm);
   // Update the previous pwm value in each associated sensors,
   // so that they may be used in the next calculation.
   for (const auto& sensorName : *zone.sensorNames()) {
     if (isSensorPresentInConfig(sensorName)) {
-      pwmCalcCaches_[sensorName].previousTargetPwm = calculatedZonePwm;
+      pwmCalcCaches_[sensorName].previousTargetPwm = zonePwm;
     }
   }
-  return calculatedZonePwm;
+  return zonePwm;
 }
 
 void ControlLogic::setTransitionValue() {
