@@ -8,25 +8,18 @@
 // Standard C++ routines
 #include <unordered_map>
 #include <vector>
-// We reuse the same facebook::fboss::FbossError
-// , for consistency
+
 #include "fboss/agent/FbossError.h"
 #include "fboss/platform/fan_service/if/gen-cpp2/fan_service_config_types.h"
 
-#include <variant>
-
 namespace facebook::fboss::platform::fan_service {
-
-// Fundamental data type definition
-enum class SensorEntryType { kSensorEntryInt, kSensorEntryFloat };
 
 // One sensor data entry
 struct SensorEntry {
  public:
   std::string name;
-  SensorEntryType sensorEntryType{SensorEntryType::kSensorEntryFloat};
   uint64_t timeStampSec = 0;
-  std::variant<int, float> value{0};
+  float value{0};
 };
 
 struct OpticEntry {
@@ -44,17 +37,12 @@ struct OpticEntry {
 // The main class for storing sensor data
 class SensorData {
  public:
-  // Get sensor data and its type
-  int getSensorDataInt(const std::string& name) const;
   float getSensorDataFloat(const std::string& name) const;
-  SensorEntryType getSensorEntryType(const std::string& name) const;
   // When was this sensor reading acquired?
   uint64_t getLastUpdated(const std::string& name) const;
   // Check if key exists in sensordata hash table
   bool checkIfEntryExists(const std::string& name) const;
   bool checkIfOpticEntryExists(const std::string& name) const;
-  // Update entry
-  void updateEntryInt(const std::string& name, int data, uint64_t timeStampSec);
   void
   updateEntryFloat(const std::string& name, float data, uint64_t timeStampSec);
   void setOpticEntry(

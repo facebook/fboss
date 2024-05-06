@@ -233,21 +233,8 @@ void ControlLogic::getSensorUpdate() {
     // STEP 1: Get reading.
     float readValue{0};
     if (pSensor_->checkIfEntryExists(sensorName)) {
-      SensorEntryType entryType = pSensor_->getSensorEntryType(sensorName);
-      switch (entryType) {
-        case SensorEntryType::kSensorEntryInt:
-          readValue = pSensor_->getSensorDataInt(sensorName);
-          readValue = readValue / *sensor.scale();
-          break;
-        case SensorEntryType::kSensorEntryFloat:
-          readValue = pSensor_->getSensorDataFloat(sensorName);
-          readValue = readValue / *sensor.scale();
-          break;
-        default:
-          facebook::fboss::FbossError(
-              "Invalid Sensor Entry Type in entry name : ", sensorName);
-          break;
-      }
+      readValue = pSensor_->getSensorDataFloat(sensorName);
+      readValue = readValue / *sensor.scale();
       readCache.lastReadValue = readValue;
       XLOG(ERR) << fmt::format(
           "{}: Sensor read value (after scaling) is {}", sensorName, readValue);
