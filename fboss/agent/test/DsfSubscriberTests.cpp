@@ -64,7 +64,8 @@ class DsfSubscriberTest : public ::testing::Test {
     // Create a separate instance of DsfSubscriber (vs
     // using one from SwSwitch) for ease of testing.
     dsfSubscriber_ = std::make_unique<DsfSubscriber>(sw_);
-    FLAGS_dsf_num_parallel_sessions = std::numeric_limits<uint32_t>::max();
+    FLAGS_dsf_num_parallel_sessions_per_remote_interface_node =
+        std::numeric_limits<uint32_t>::max();
   }
 
   HwSwitchMatcher matcher(uint32_t switchID = 0) const {

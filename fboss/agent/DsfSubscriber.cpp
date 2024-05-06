@@ -28,7 +28,7 @@ const thriftpath::RootThriftPath<facebook::fboss::fsdb::FsdbOperStateRoot>
 std::set<folly::CIDRNetwork> getLoopbackIpsSortedForDsfSessions(
     const std::set<folly::CIDRNetwork>& loopbackIpsSorted) {
   auto maxElems = std::min(
-      FLAGS_dsf_num_parallel_sessions,
+      FLAGS_dsf_num_parallel_sessions_per_remote_interface_node,
       static_cast<uint32_t>(loopbackIpsSorted.size()));
 
   // Copy first n elements of loopbackIps
