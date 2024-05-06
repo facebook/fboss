@@ -40,6 +40,15 @@ using folly::IPAddressV4;
 using folly::IPAddressV6;
 
 namespace {
+// Even when running the same test repeatedly could result in different
+// learning counts based on hash insertion  order.
+// Maximum theortical is 8k for TH ..but practically we hit numbers below it
+// Putting the value ot 5K should give enough buffer
+// TODO(joseph5wu) Due to T83358080, we found out TH3 takes way longer to learn
+// MAC compared to other platforms and if the scale is too big, the tests will
+// be very flaky. For now, change 7K to 5K while waiting for Broadcom to help
+// us debug this issue.
+int constexpr L2_LEARN_MAX_MAC_COUNT = 5000;
 std::set<folly::MacAddress>
 getMacsForPort(facebook::fboss::SwSwitch* sw, int port, bool isTrunk) {
   std::set<folly::MacAddress> macs;
@@ -1009,5 +1018,408 @@ class AgentMacLearningMacMoveTest : public AgentMacLearningTest {
 
 TEST_F(AgentMacLearningMacMoveTest, VerifyMacMoveForPort) {
   testMacMoveHelper();
+}
+
+class AgentMacLearningBatchEntriesTest : public AgentMacLearningTest {
+ protected:
+  std::pair<int, int> getMacChunkSizeAndSleepUsecs() {
+    // Some platforms only support SDK Software Learning, which is usually
+    // slower
+    // than Hardware Learning to let SDK learn MAC Address from hardware.
+    // For these platforms, they will use cache mechanism to let hardware put
+    // new MAC addresses into a cache, and then SDK will either read the cache
+    // periodically or once the cache is full.
+    // Therefore, instead of adding sleep time for sending each L2 packet, we
+    // send a chunck of packets consecutively without sleep, which will shorten
+    // the whole sleep time for this test.
+    // However, we also need to make sure we don't flood the cache with a big
+    // chunck size, which will drop those MAC addresses which can't be put in
+    // the cache because cache is full. TH3 cache size is 16 so we use 16 as
+    // trunk size to maximize the speed. NOTE: There's an on-going investigation
+    // why TH3 needs significant longer sleep time than TH4. (T83358080)
+    static const std::unordered_map<cfg::AsicType, std::pair<int, int>>
+        kAsicToMacChunkSizeAndSleepUsecs = {
+            {cfg::AsicType::ASIC_TYPE_TOMAHAWK3, {16, 500000}},
+            {cfg::AsicType::ASIC_TYPE_TOMAHAWK4, {32, 10000}},
+        };
+    auto switchId = getSw()
+                        ->getScopeResolver()
+                        ->scope(masterLogicalPortIds()[0])
+                        .switchId();
+    if (auto p = kAsicToMacChunkSizeAndSleepUsecs.find(
+            getSw()->getHwAsicTable()->getHwAsic(switchId)->getAsicType());
+        p != kAsicToMacChunkSizeAndSleepUsecs.end()) {
+      return p->second;
+    } else {
+      return {1 /* No need chunk */, 0 /* No sleep time */};
+    }
+  }
+
+  std::vector<folly::MacAddress> generateMacs(int num) {
+    std::vector<folly::MacAddress> macs;
+    auto generator = utility::MacAddressGenerator();
+    // start with fixed address and increment deterministically
+    // evaluate total learnt l2 entries
+    generator.startOver(kSourceMac().u64HBO());
+    for (auto i = 0; i < num; ++i) {
+      macs.emplace_back(generator.getNext());
+    }
+    return macs;
+  }
+
+  void sendL2Pkts(
+      int vlanId,
+      std::optional<PortID> outPort,
+      const std::vector<folly::MacAddress>& srcMacs,
+      const std::vector<folly::MacAddress>& dstMacs,
+      int chunkSize = 1,
+      int sleepUsecsBetweenChunks = 0) {
+    int originalPkts = 0;
+    WITH_RETRIES({
+      auto originalStats = getLatestPortStats(masterLogicalPortIds());
+      originalPkts = utility::getPortInPkts(originalStats);
+      EXPECT_EVENTUALLY_GE(originalPkts, 0);
+    });
+    int totalPackets = srcMacs.size() * dstMacs.size();
+    int numSentPackets = 0;
+    for (auto srcMac : srcMacs) {
+      for (auto dstMac : dstMacs) {
+        auto txPacket = utility::makeEthTxPacket(
+            getSw(),
+            facebook::fboss::VlanID(vlanId),
+            srcMac,
+            dstMac,
+            facebook::fboss::ETHERTYPE::ETHERTYPE_LLDP);
+        if (outPort) {
+          getSw()->sendPacketOutOfPortAsync(
+              std::move(txPacket), outPort.value());
+        } else {
+          getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+        }
+
+        ++numSentPackets;
+        // Some platform uses software learning which takes a little bit longer
+        // for SDK learn the L2 addresses from hardware.
+        // Add an explicit sleep time to avoid flooding the cache and dropping
+        // the mac addresses.
+        if (sleepUsecsBetweenChunks > 0 && chunkSize > 0 &&
+            (numSentPackets % chunkSize == 0 ||
+             numSentPackets == totalPackets)) {
+          /* sleep override */
+          usleep(sleepUsecsBetweenChunks);
+        }
+      }
+    }
+    WITH_RETRIES({
+      auto newStats = getLatestPortStats(masterLogicalPortIds());
+      auto newPkts = utility::getPortInPkts(newStats);
+      auto expectedPkts = originalPkts + totalPackets;
+      XLOGF(
+          INFO,
+          "Checking packets sent. Old: {}, New: {}, Expected: {}",
+          originalPkts,
+          newPkts,
+          expectedPkts);
+      EXPECT_EVENTUALLY_EQ(newPkts, expectedPkts);
+    });
+  }
+
+  folly::MacAddress generateNextMac(folly::MacAddress curMac) {
+    auto generator = utility::MacAddressGenerator();
+    generator.startOver(curMac.u64HBO());
+    return generator.getNext();
+  }
+
+  void verifyAllMacsLearnt(const std::vector<folly::MacAddress>& macs) {
+    // Because the last verify() will send out some packets with kSourceMac()
+    // to verify whether macs are learnt, the SDK/HW might learn kSourceMac(),
+    // but this is not what we care and we only care whether the HW has learnt
+    // all addresses in `macs`
+    WITH_RETRIES({
+      const auto& learntMacs =
+          getMacsForPort(getSw(), masterLogicalPortIds()[0], false);
+      EXPECT_EVENTUALLY_TRUE(learntMacs.size() >= macs.size());
+    });
+
+    bringUpPort(masterLogicalPortIds()[1]);
+    auto origPortStats = getLatestPortStats(masterLogicalPortIds()[1]);
+    // Send packets to macs which are expected to have been learned now
+    sendL2Pkts(
+        *initialConfig(*getAgentEnsemble()).vlanPorts()[0].vlanID(),
+        std::nullopt,
+        {kSourceMac()},
+        macs);
+
+    WITH_RETRIES({
+      auto curPortStats = getLatestPortStats(masterLogicalPortIds()[1]);
+      // All packets should have gone through masterLogicalPortIds()[0], port
+      // on which macs were learnt and none through any other port in the same
+      // VLAN. This lack of broadcast confirms MAC learning.
+      EXPECT_EVENTUALLY_EQ(
+          *curPortStats.outBytes_(), *origPortStats.outBytes_());
+    });
+    bringDownPort(masterLogicalPortIds()[1]);
+  }
+};
+
+// Intent of this test is to attempt to learn large number of macs
+// (L2_LEARN_MAX_MAC_COUNT) and ensure HW can learn them.
+TEST_F(AgentMacLearningBatchEntriesTest, VerifyMacLearningScale) {
+  int chunkSize = 1;
+  int sleepUsecsBetweenChunks = 0;
+  std::tie(chunkSize, sleepUsecsBetweenChunks) = getMacChunkSizeAndSleepUsecs();
+
+  std::vector<folly::MacAddress> macs = generateMacs(L2_LEARN_MAX_MAC_COUNT);
+
+  auto portDescr = physPortDescr();
+  auto setup = [this, portDescr, chunkSize, sleepUsecsBetweenChunks, &macs]() {
+    setupHelper(cfg::L2LearningMode::HARDWARE, portDescr);
+    // Disable aging, so entry stays in L2 table when we verify.
+    utility::setMacAgeTimerSeconds(getAgentEnsemble(), 0);
+    l2LearningObserver_.startObserving(getAgentEnsemble());
+    bringDownPort(masterLogicalPortIds()[1]);
+    sendL2Pkts(
+        *initialConfig(*getAgentEnsemble()).vlanPorts()[0].vlanID(),
+        masterLogicalPortIds()[0],
+        macs,
+        {folly::MacAddress::BROADCAST},
+        chunkSize,
+        sleepUsecsBetweenChunks);
+  };
+
+  auto verify = [this, &macs]() { verifyAllMacsLearnt(macs); };
+
+  // MACs learned should be preserved across warm boot
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+// Intent of this test is to attempt to learn large number of macs
+// and then change age time to 1s so that SDK/HW will age all of them correctly.
+TEST_F(AgentMacLearningBatchEntriesTest, VerifyMacAgingScale) {
+  int chunkSize = 1;
+  int sleepUsecsBetweenChunks = 0;
+  std::tie(chunkSize, sleepUsecsBetweenChunks) = getMacChunkSizeAndSleepUsecs();
+
+  std::vector<folly::MacAddress> macs = generateMacs(L2_LEARN_MAX_MAC_COUNT);
+
+  auto portDescr = physPortDescr();
+  auto setup = [this, portDescr, chunkSize, sleepUsecsBetweenChunks, &macs]() {
+    setupHelper(cfg::L2LearningMode::HARDWARE, portDescr);
+
+    // First we disable aging, so entry stays in L2 table when we verify.
+    utility::setMacAgeTimerSeconds(getAgentEnsemble(), 0);
+    bringDownPort(masterLogicalPortIds()[1]);
+    l2LearningObserver_.startObserving(getAgentEnsemble());
+    sendL2Pkts(
+        *initialConfig(*getAgentEnsemble()).vlanPorts()[0].vlanID(),
+        masterLogicalPortIds()[0],
+        macs,
+        {folly::MacAddress::BROADCAST},
+        chunkSize,
+        sleepUsecsBetweenChunks);
+
+    // Confirm that the SDK has learn all the macs
+    const auto& learntMacs =
+        getMacsForPort(getSw(), masterLogicalPortIds()[0], false);
+    EXPECT_EQ(learntMacs.size(), macs.size());
+
+    // Force MAC aging to as fast as possible but min is still 1 second
+    utility::setMacAgeTimerSeconds(getAgentEnsemble(), kMinAgeInSecs());
+  };
+
+  auto verify = [this]() {
+    // We can't always guarante that even setting 1s to age, the SDK will
+    // age all the MACs out that fast. Add some retry mechanism to make the
+    // test more robust
+    // Ref: wasMacLearnt() comments
+    int waitForAging = 10;
+    while (waitForAging) {
+      /* sleep override */
+      sleep(2 * kMinAgeInSecs());
+      const auto& afterAgingMacs =
+          getMacsForPort(getSw(), masterLogicalPortIds()[0], false);
+      if (afterAgingMacs.size() == 0) {
+        break;
+      }
+      --waitForAging;
+    }
+
+    if (waitForAging == 0) {
+      // After 20 seconds, let's check whether there're still some MAC
+      // remained in HW
+      const auto& afterAgingMacs =
+          getMacsForPort(getSw(), masterLogicalPortIds()[0], false);
+      EXPECT_EQ(afterAgingMacs.size(), 0);
+    }
+  };
+
+  // MACs learned should be preserved across warm boot
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+// Intent of this test is to attempt to SDK will still be able to learn new
+// MACs if the L2 table is not full.
+// We recently noticed a bug on TH3 that the SDK internal counter wasn't
+// correctly updated, which caused the SDK not able to learn any new MAC even
+// the L2 table wasn't full.
+TEST_F(
+    AgentMacLearningBatchEntriesTest,
+    VerifyMacLearningAgingReleaseResource) {
+  int chunkSize = 1;
+  int sleepUsecsBetweenChunks = 0;
+  std::tie(chunkSize, sleepUsecsBetweenChunks) = getMacChunkSizeAndSleepUsecs();
+
+  // To make it more similar to the real production environment, we try to
+  // send 1k MAC addresses at a time, and then let them age out, and then
+  // repeat the whole process again for 9 times, and at the final time, we don't
+  // age them so that we can verify whether these 1K MACs learned.
+  // Basically let the SDK learn MAC addresses for 10K times.
+  constexpr int kMultiAgingTestMacsSize = 1000;
+  std::vector<folly::MacAddress> macs = generateMacs(kMultiAgingTestMacsSize);
+
+  auto portDescr = physPortDescr();
+  auto setup = [this, portDescr, chunkSize, sleepUsecsBetweenChunks, &macs]() {
+    setupHelper(cfg::L2LearningMode::HARDWARE, portDescr);
+    l2LearningObserver_.startObserving(getAgentEnsemble());
+    bringDownPort(masterLogicalPortIds()[1]);
+
+    constexpr int kForceAgingTimes = 10;
+    for (int i = 0; i < kForceAgingTimes; ++i) {
+      // First we disable aging, so entry stays in L2 table when we verify.
+      utility::setMacAgeTimerSeconds(getAgentEnsemble(), 0);
+      sendL2Pkts(
+          *initialConfig(*getAgentEnsemble()).vlanPorts()[0].vlanID(),
+          masterLogicalPortIds()[0],
+          macs,
+          {folly::MacAddress::BROADCAST},
+          chunkSize,
+          sleepUsecsBetweenChunks);
+
+      // Confirm that the SDK has learn all the macs
+      const auto& learntMacs =
+          getMacsForPort(getSw(), masterLogicalPortIds()[0], false);
+      EXPECT_EQ(learntMacs.size(), macs.size());
+
+      // Now force the SDK age them out if it is not the last time.
+      if (i == kForceAgingTimes - 1) {
+        break;
+      }
+
+      // Force MAC aging to as fast as possible but min is still 1 second
+      utility::setMacAgeTimerSeconds(getAgentEnsemble(), kMinAgeInSecs());
+      // We can't always guarante that even setting 1s to age, the SDK will
+      // age all the MACs out that fast. Add some retry mechanism to make the
+      // test more robust
+      int waitForAging = 5;
+      while (waitForAging) {
+        /* sleep override */
+        sleep(2 * kMinAgeInSecs());
+        const auto& afterAgingMacs =
+            getMacsForPort(getSw(), masterLogicalPortIds()[0], false);
+        if (afterAgingMacs.size() == 0) {
+          break;
+        }
+        --waitForAging;
+      }
+      if (waitForAging == 0) {
+        // After 10 seconds, let's check whether there're still some MAC
+        // remained in HW
+        const auto& afterAgingMacs =
+            getMacsForPort(getSw(), masterLogicalPortIds()[0], false);
+        EXPECT_EQ(afterAgingMacs.size(), 0);
+      } else {
+        XLOGF(INFO, "Successfully aged all MACs in HW for #{} times", i + 1);
+      }
+    }
+  };
+
+  auto verify = [this, &macs]() { verifyAllMacsLearnt(macs); };
+
+  // MACs learned should be preserved across warm boot
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+// Intent of this test is to attempt to verify if we have repeated MACs learnt,
+// the SDK will still be able to learn new MACs if the L2 table is not full.
+// We recently noticed a bug on TH3 that the SDK internal counter counter is
+// updated even if the existing table entry was just updated;
+// which caused the SDK not able to learn any new MAC even the L2 table wasn't
+// full.
+TEST_F(
+    AgentMacLearningBatchEntriesTest,
+    VerifyMacLearningUpdateExistingL2Entry) {
+  int chunkSize = 1;
+  int sleepUsecsBetweenChunks = 0;
+  std::tie(chunkSize, sleepUsecsBetweenChunks) = getMacChunkSizeAndSleepUsecs();
+
+  // To make it more similar to the real production environment, we try to
+  // send 1k MAC addresses for 11 times, and then send a new packet with new mac
+  // address.
+  // This will tell us whether updating them same 1K MAC for multiples times
+  // will make counter incorrectly and eventually stop us adding a new MAC even
+  // though the table is not full yet.
+  constexpr int kMultiAgingTestMacsSize = 1000;
+  std::vector<folly::MacAddress> macs = generateMacs(kMultiAgingTestMacsSize);
+  // Add an extra mac
+  auto extraMac = generateNextMac(macs.back());
+
+  auto portDescr = physPortDescr();
+  auto setup = [this,
+                portDescr,
+                chunkSize,
+                sleepUsecsBetweenChunks,
+                &macs,
+                &extraMac]() {
+    setupHelper(cfg::L2LearningMode::HARDWARE, portDescr);
+
+    constexpr int kRepeatTimes = 11;
+    // First we disable aging, so entry stays in L2 table when we verify.
+    utility::setMacAgeTimerSeconds(getAgentEnsemble(), 0);
+    bringDownPort(masterLogicalPortIds()[1]);
+    l2LearningObserver_.startObserving(getAgentEnsemble());
+    // Changing the source ports to trigger L2 entry change
+    for (int i = 0; i < kRepeatTimes; ++i) {
+      // Changing the same MAC to use different source port, so that trigger
+      // SDK to update the existing MAC entry.
+      auto upPortID = masterLogicalPortIds()[i % 2];
+      auto downPortID = masterLogicalPortIds()[(i + 1) % 2];
+      bringUpPort(upPortID);
+      bringDownPort(downPortID);
+
+      sendL2Pkts(
+          *initialConfig(*getAgentEnsemble()).vlanPorts()[0].vlanID(),
+          upPortID,
+          macs,
+          {folly::MacAddress::BROADCAST},
+          chunkSize,
+          sleepUsecsBetweenChunks);
+
+      // Confirm that the SDK has learn all the macs
+      const auto& upPortLearntMacs = getMacsForPort(getSw(), upPortID, false);
+      EXPECT_EQ(upPortLearntMacs.size(), macs.size());
+      const auto& downPortLearntMacs =
+          getMacsForPort(getSw(), downPortID, false);
+      EXPECT_EQ(downPortLearntMacs.size(), 0);
+      XLOGF(INFO, "Successfully updated all MACs in HW for #{} times", i + 1);
+    }
+
+    // Add an extra mac
+    sendL2Pkts(
+        *initialConfig(*getAgentEnsemble()).vlanPorts()[0].vlanID(),
+        masterLogicalPortIds()[0],
+        {extraMac},
+        {folly::MacAddress::BROADCAST},
+        chunkSize,
+        sleepUsecsBetweenChunks);
+  };
+
+  auto verify = [this, &macs, &extraMac]() {
+    // Verify all orignal 1K macs and the extra one have been learnt
+    macs.push_back(extraMac);
+    verifyAllMacsLearnt(macs);
+  };
+
+  // MACs learned should be preserved across warm boot
+  verifyAcrossWarmBoots(setup, verify);
 }
 } // namespace facebook::fboss
