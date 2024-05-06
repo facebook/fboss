@@ -568,25 +568,15 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
     pBsp_->getSensorData(pSensor_);
   }
 
-  // Determine proposed pwm value by each sensor read
+  // STEP 1: Read sensor values and calculate their PWM
   XLOG(INFO) << "Processing Sensors ...";
   getSensorUpdate();
 
-  // Determine proposed pwm value by each optics read
+  // STEP 2: Read optics values and calculate their PWM
   XLOG(INFO) << "Processing Optics ...";
   getOpticsUpdate();
 
-  // Check if we need to turn on boost mode for qsfp errors
-  uint64_t secondsSinceLastOpticsUpdate =
-      pBsp_->getCurrentTime() - pSensor_->getLastQsfpSvcTime();
-  if ((*config_.pwmBoostOnNoQsfpAfterInSec() != 0) &&
-      (secondsSinceLastOpticsUpdate >= *config_.pwmBoostOnNoQsfpAfterInSec())) {
-    boostForMissingOpticsUpdate = true;
-    XLOG(INFO) << fmt::format(
-        "Boost mode enabled for optics update missing for {}s",
-        secondsSinceLastOpticsUpdate);
-  }
-
+  // STEP 3: Check presence/rpm of fans
   XLOG(INFO) << "Processing Fans ...";
   fanStatuses_.withWLock([&](auto& fanStatuses) {
     // Update fan status with new rpm and timestamp.
@@ -598,7 +588,6 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
         fanStatuses[*fan.fanName()].rpm() = fanRpm;
         fanStatuses[*fan.fanName()].lastSuccessfulAccessTime() = fanTimestamp;
       }
-
       // Ignore last access failure if it happened < kFanFailThresholdInSec
       auto timeSinceLastSuccessfulAccess = pBsp_->getCurrentTime() -
           *fanStatuses[*fan.fanName()].lastSuccessfulAccessTime();
@@ -609,15 +598,28 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
       }
       fanStatuses[*fan.fanName()].fanFailed() = fanFailed;
     }
+  });
 
-    bool boostMode =
-        (((*config_.pwmBoostOnNumDeadFan() != 0) &&
-          (numFanFailed_ >= *config_.pwmBoostOnNumDeadFan())) ||
-         ((*config_.pwmBoostOnNumDeadSensor() != 0) &&
-          (numSensorFailed_ >= *config_.pwmBoostOnNumDeadSensor())) ||
-         boostForMissingOpticsUpdate);
-    XLOG(INFO) << fmt::format("Boost mode is {}", (boostMode ? "On" : "Off"));
+  // STEP 4: Determine whether boost mode is necessary
+  uint64_t secondsSinceLastOpticsUpdate =
+      pBsp_->getCurrentTime() - pSensor_->getLastQsfpSvcTime();
+  if ((*config_.pwmBoostOnNoQsfpAfterInSec() != 0) &&
+      (secondsSinceLastOpticsUpdate >= *config_.pwmBoostOnNoQsfpAfterInSec())) {
+    boostForMissingOpticsUpdate = true;
+    XLOG(INFO) << fmt::format(
+        "Boost mode enabled for optics update missing for {}s",
+        secondsSinceLastOpticsUpdate);
+  }
+  bool boostMode =
+      (((*config_.pwmBoostOnNumDeadFan() != 0) &&
+        (numFanFailed_ >= *config_.pwmBoostOnNumDeadFan())) ||
+       ((*config_.pwmBoostOnNumDeadSensor() != 0) &&
+        (numSensorFailed_ >= *config_.pwmBoostOnNumDeadSensor())) ||
+       boostForMissingOpticsUpdate);
+  XLOG(INFO) << fmt::format("Boost mode is {}", (boostMode ? "On" : "Off"));
 
+  // STEP 5: Calculate and program fan PWMs
+  fanStatuses_.withWLock([&](auto& fanStatuses) {
     for (const auto& zone : *config_.zones()) {
       int16_t zonePwm = calculateZonePwm(zone, boostMode);
       for (const auto& fan : *config_.fans()) {
@@ -637,6 +639,7 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
       }
     }
 
+    // STEP 6: Program fan LEDs
     for (const auto& fan : *config_.fans()) {
       programLed(fan, *fanStatuses[*fan.fanName()].fanFailed());
     }
