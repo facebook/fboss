@@ -561,4 +561,318 @@ TEST_F(AgentMacLearningStaticEntriesTest, VerifyStaticMacEntryAdd) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+class AgentMacLearningAndMyStationInteractionTest
+    : public AgentMacLearningTest {
+ public:
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto switchId = ensemble.getSw()
+                        ->getScopeResolver()
+                        ->scope(ensemble.masterLogicalPortIds()[0])
+                        .switchId();
+    auto asic = ensemble.getSw()->getHwAsicTable()->getHwAsic(switchId);
+    auto cfg = utility::onePortPerInterfaceConfig(
+        ensemble.getSw()->getPlatformMapping(),
+        asic,
+        ensemble.masterLogicalPortIds(),
+        ensemble.getSw()->getPlatformSupportsAddRemovePort(),
+        asic->desiredLoopbackModes());
+    return cfg;
+  }
+  /*
+   * Tests added in response to S234435. We hit a vendor SDK bug,
+   * whereby when router MACs aged out on a particular VLAN, the
+   * MAC got pruned  from MY STATION table in addition to the L2
+   * table. This then broke routing on ports belonging to such a VLAN
+   * The test below induces MAC learning and aging of router MAC
+   * on ALL vlans, ingresses a packet on one such port, and asserts
+   * that the packet was actually routed correctly.
+   */
+  void testMyStationInteractionHelper(cfg::L2LearningMode mode) {
+    auto setup = [this, mode] {
+      setL2LearningMode(mode);
+      utility::EcmpSetupTargetedPorts6 ecmp6(getProgrammedState());
+      applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+        auto newState = ecmp6.resolveNextHops(
+            in, {PortDescriptor(masterLogicalPortIds()[0])});
+        return newState;
+      });
+      auto wrapper = getSw()->getRouteUpdater();
+      ecmp6.programRoutes(
+          &wrapper, {PortDescriptor(masterLogicalPortIds()[0])});
+    };
+    auto verify = [this]() {
+      if (getSw()->getBootType() == BootType::WARM_BOOT) {
+        // Let mac age out learned during prior run
+        utility::setMacAgeTimerSeconds(getAgentEnsemble(), kMinAgeInSecs());
+        // @lint-ignore CLANGTIDY
+        sleep(kMinAgeInSecs() * 3);
+      }
+      utility::setMacAgeTimerSeconds(getAgentEnsemble(), 0);
+      auto induceMacLearning = [this]() {
+        // Send gratuitous ARPs so intf/router MAC is learnt on all VLANs
+        // and ports
+        for (const auto& port : masterLogicalPortIds()) {
+          l2LearningObserver_.reset();
+          auto vlanID = getProgrammedState()
+                            ->getPorts()
+                            ->getNodeIf(port)
+                            ->getVlans()
+                            .begin()
+                            ->first;
+          auto intf =
+              getProgrammedState()->getInterfaces()->getInterfaceInVlan(vlanID);
+          for (const auto& iter : std::as_const(*intf->getAddresses())) {
+            auto addrEntry = folly::IPAddress(iter.first);
+            if (!addrEntry.isV4()) {
+              continue;
+            }
+            auto v4Addr = addrEntry.asV4();
+            l2LearningObserver_.reset();
+            auto arpPacket = utility::makeARPTxPacket(
+                getSw(),
+                intf->getVlanID(),
+                intf->getMac(),
+                folly::MacAddress::BROADCAST,
+                v4Addr,
+                v4Addr,
+                ARP_OPER::ARP_OPER_REQUEST,
+                folly::MacAddress::BROADCAST);
+            getSw()->sendPacketOutOfPortAsync(std::move(arpPacket), port);
+            l2LearningObserver_.waitForLearningUpdates(1, 1);
+          }
+        }
+      };
+      induceMacLearning();
+      utility::setMacAgeTimerSeconds(getAgentEnsemble(), kMinAgeInSecs());
+      // Let mac age out
+      sleep(kMinAgeInSecs() * 3);
+      // Re learn MAC so FDB entries are learnt and the packet
+      // below is not sacrificed to a MAC learning callback event.
+      // Secondly its important to WB with L2 entries learnt for
+      // the bug seen in S234435 to repro.
+      utility::setMacAgeTimerSeconds(getAgentEnsemble(), 0);
+      induceMacLearning();
+      auto sendRoutedPkt = [this]() {
+        auto vlanId =
+            VlanID(*initialConfig(*getAgentEnsemble()).vlanPorts()[0].vlanID());
+        auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+        auto txPacket = utility::makeIpTxPacket(
+            [sw = getSw()](uint32_t size) { return sw->allocatePacket(size); },
+            vlanId,
+            intfMac,
+            intfMac,
+            folly::IPAddress("1000::1"),
+            folly::IPAddress("2000::1"));
+        getSw()->sendPacketOutOfPortAsync(
+            std::move(txPacket), masterLogicalPortIds()[1]);
+      };
+      HwPortStats oldPortStats;
+      WITH_RETRIES({
+        auto portStatsBefore = getLatestPortStats(masterLogicalPortIds());
+        EXPECT_EVENTUALLY_NE(
+            portStatsBefore.find(masterLogicalPortIds()[0]),
+            portStatsBefore.end());
+        if (portStatsBefore.find(masterLogicalPortIds()[0]) !=
+            portStatsBefore.end()) {
+          oldPortStats = portStatsBefore[masterLogicalPortIds()[0]];
+        }
+      });
+      WITH_RETRIES({
+        /*
+         * Send routed packet, with SW learning, we can get
+         * the first packet lost to MAC learning as the src mac
+         * may still be in PENDING state on some platforms. Resent
+         * here, we are looking for persisting my station breakage
+         * and not a single packet racing with mac learning
+         */
+        sendRoutedPkt();
+        auto portStatsAfter = getLatestPortStats(masterLogicalPortIds());
+        EXPECT_EVENTUALLY_NE(
+            portStatsAfter.find(masterLogicalPortIds()[0]),
+            portStatsAfter.end());
+        if (portStatsAfter.find(masterLogicalPortIds()[0]) !=
+            portStatsAfter.end()) {
+          auto newPortStats =
+              portStatsAfter.find(masterLogicalPortIds()[0])->second;
+          auto oldOutBytes = *oldPortStats.outBytes_();
+          auto newOutBytes = *newPortStats.outBytes_();
+          XLOG(DBG2) << " Port Id: " << masterLogicalPortIds()[0]
+                     << " Old out bytes: " << oldOutBytes
+                     << " New out bytes: " << newOutBytes
+                     << " Delta : " << (newOutBytes - oldOutBytes);
+          EXPECT_EVENTUALLY_TRUE(newOutBytes > oldOutBytes);
+        }
+      });
+    };
+    verifyAcrossWarmBoots(setup, verify);
+  }
+};
+
+class AgentMacLearningAndMyStationInteractionTestHw
+    : public AgentMacLearningAndMyStationInteractionTest {
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto cfg =
+        AgentMacLearningAndMyStationInteractionTest::initialConfig(ensemble);
+    cfg.switchSettings()->l2LearningMode() = cfg::L2LearningMode::HARDWARE;
+    return cfg;
+  }
+};
+
+class AgentMacLearningAndMyStationInteractionTestSw
+    : public AgentMacLearningAndMyStationInteractionTest {
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto cfg =
+        AgentMacLearningAndMyStationInteractionTest::initialConfig(ensemble);
+    cfg.switchSettings()->l2LearningMode() = cfg::L2LearningMode::SOFTWARE;
+    return cfg;
+  }
+};
+
+TEST_F(
+    AgentMacLearningAndMyStationInteractionTestHw,
+    verifyInteractionHwMacLearning) {
+  testMyStationInteractionHelper(cfg::L2LearningMode::HARDWARE);
+}
+TEST_F(
+    AgentMacLearningAndMyStationInteractionTestSw,
+    verifyInteractionSwMacLearning) {
+  testMyStationInteractionHelper(cfg::L2LearningMode::SOFTWARE);
+}
+
+TEST_F(AgentMacLearningTest, VerifyHwLearningForPort) {
+  testHwLearningHelper(physPortDescr());
+}
+
+TEST_F(AgentMacLearningTest, VerifyHwLearningForTrunk) {
+  testHwLearningHelper(aggPortDescr());
+}
+
+TEST_F(AgentMacLearningTest, VerifyHwAgingForPort) {
+  testHwAgingHelper(physPortDescr());
+}
+
+TEST_F(AgentMacLearningTest, VerifyHwAgingForTrunk) {
+  testHwAgingHelper(aggPortDescr());
+}
+
+TEST_F(AgentMacSwLearningModeTest, VerifySwLearningForPort) {
+  testSwLearningHelper(physPortDescr());
+}
+
+TEST_F(AgentMacSwLearningModeTest, VerifySwLearningForPortNoCycle) {
+  testSwLearningNoCycleHelper(physPortDescr());
+}
+
+TEST_F(AgentMacSwLearningModeTest, VerifySwLearningForTrunk) {
+  testSwLearningHelper(aggPortDescr());
+}
+
+TEST_F(AgentMacSwLearningModeTest, VerifySwAgingForPort) {
+  testSwAgingHelper(physPortDescr());
+}
+
+TEST_F(AgentMacSwLearningModeTest, VerifySwAgingForTrunk) {
+  testSwAgingHelper(aggPortDescr());
+}
+
+TEST_F(AgentMacSwLearningModeTest, VerifyNbrMacInL2Table) {
+  auto setup = [this] {
+    getAgentEnsemble()->bringDownPort(masterLogicalPortIds()[1]);
+    utility::EcmpSetupTargetedPorts6 ecmpHelper6{
+        getProgrammedState(), kSourceMac()};
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      auto newState = ecmpHelper6.resolveNextHops(in, {physPortDescr()});
+      return newState;
+    });
+  };
+  auto verify = [this] { wasMacLearnt(physPortDescr(), kSourceMac()); };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentMacSwLearningModeTest, VerifyCallbacksOnMacEntryChange) {
+  auto verify = [this]() {
+    auto switchId = getSw()
+                        ->getScopeResolver()
+                        ->scope(masterLogicalPortIds()[1])
+                        .switchId();
+    auto asic = getSw()->getHwAsicTable()->getHwAsic(switchId);
+    bool isTH3 = asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK3;
+    // Disable aging, so entry stays in L2 table when we verify.
+    utility::setMacAgeTimerSeconds(getAgentEnsemble(), 0);
+    enum class MacOp { ASSOCIATE, DISSOASSOCIATE, DELETE };
+    getAgentEnsemble()->bringDownPort(masterLogicalPortIds()[1]);
+    l2LearningObserver_.startObserving(getAgentEnsemble());
+    induceMacLearning(physPortDescr());
+    auto doMacOp = [this, isTH3](MacOp op) {
+      l2LearningObserver_.reset();
+      auto numExpectedUpdates = 0;
+      switch (op) {
+        case MacOp::ASSOCIATE:
+          XLOG(DBG2) << " Adding classs id to mac";
+          associateClassID();
+          // TH3 generates a delete and add on class ID update
+          numExpectedUpdates = isTH3 ? 2 : 0;
+          break;
+        case MacOp::DISSOASSOCIATE:
+          XLOG(DBG2) << " Removing classs id from mac";
+          disassociateClassID();
+          // TH3 generates a delete and add on class ID update
+          numExpectedUpdates = isTH3 ? 2 : 0;
+          break;
+        case MacOp::DELETE:
+          XLOG(DBG2) << " Removing mac";
+          // Force MAC aging to as fast as possible but min is still 1 second
+          utility::setMacAgeTimerSeconds(getAgentEnsemble(), kMinAgeInSecs());
+
+          // Verify if we get DELETE (aging) callback for VALIDATED entry
+          verifyL2TableCallback(
+              l2LearningObserver_.waitForLearningUpdates().front(),
+              physPortDescr(),
+              L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_DELETE,
+              L2Entry::L2EntryType::L2_ENTRY_TYPE_VALIDATED);
+          numExpectedUpdates = 1;
+          break;
+      }
+      auto assertClassID =
+          [this](std::optional<cfg::AclLookupClass> lookupClass) {
+            WITH_RETRIES({
+              auto macTable = getProgrammedState()
+                                  ->getVlans()
+                                  ->getNodeIf(kVlanID())
+                                  ->getMacTable();
+              auto macEntry = macTable->getMacIf(kSourceMac());
+              EXPECT_EVENTUALLY_NE(macEntry, nullptr);
+              if (macEntry) {
+                EXPECT_EVENTUALLY_EQ(macEntry->getClassID(), lookupClass);
+              }
+            });
+          };
+      // Wait for arbitrarily large (100) extra updates or 5 seconds
+      // whichever is sooner
+      auto updates = l2LearningObserver_.waitForLearningUpdates(
+          numExpectedUpdates + 100, 5);
+      EXPECT_EQ(updates.size(), numExpectedUpdates);
+      switch (op) {
+        case MacOp::ASSOCIATE:
+          EXPECT_TRUE(wasMacLearnt(physPortDescr(), kSourceMac()));
+          assertClassID(kClassID());
+          break;
+        case MacOp::DISSOASSOCIATE:
+          EXPECT_TRUE(wasMacLearnt(physPortDescr(), kSourceMac()));
+          assertClassID(std::nullopt);
+          break;
+        case MacOp::DELETE:
+          EXPECT_TRUE(wasMacLearnt(physPortDescr(), kSourceMac(), false));
+          break;
+      }
+    };
+    doMacOp(MacOp::ASSOCIATE);
+    doMacOp(MacOp::DISSOASSOCIATE);
+    doMacOp(MacOp::DELETE);
+  };
+  verifyAcrossWarmBoots([]() {}, verify);
+}
 } // namespace facebook::fboss
