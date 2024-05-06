@@ -18,6 +18,7 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentPacketSendTests.cpp
   fboss/agent/test/agent_hw_tests/AgentL3ForwardingTests.cpp
   fboss/agent/test/agent_hw_tests/AgentL4PortBlackholingTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentMacLearningTests.cpp
   fboss/agent/test/agent_hw_tests/AgentOlympicQosTests.cpp
   fboss/agent/test/agent_hw_tests/AgentOlympicQosSchedulerTests.cpp
   fboss/agent/test/agent_hw_tests/AgentQueuePerHostL2Tests.cpp
@@ -62,8 +63,11 @@ target_link_libraries(agent_hw_test_src
   stats
   route_scale_gen
   route_test_utils
+  switch_asics
   resourcelibutil
   load_balancer_test_utils
+  l2learn_observer_util
+  mac_test_utils
   port_stats_test_utils
   utils
 )

@@ -167,6 +167,19 @@ class AgentHwTest : public ::testing::Test {
     ecmp.unprogramRoutes(&wrapper);
   }
 
+  void bringUpPort(PortID port) {
+    agentEnsemble_->bringUpPort(port);
+  }
+  void bringDownPort(PortID port) {
+    agentEnsemble_->bringDownPort(port);
+  }
+  void bringUpPorts(const std::vector<PortID>& ports) {
+    agentEnsemble_->bringUpPorts(ports);
+  }
+  void bringDownPorts(const std::vector<PortID>& ports) {
+    agentEnsemble_->bringDownPorts(ports);
+  }
+
   void checkNoStatsChange(int trys = 1);
   /*
    * API to all flag overrides for individual tests. Primarily
