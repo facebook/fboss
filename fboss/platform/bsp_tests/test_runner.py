@@ -1,5 +1,4 @@
 import argparse
-import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional
@@ -9,6 +8,7 @@ import pytest
 from dataclasses_json import dataclass_json
 
 from fboss.platform.bsp_tests.cdev_types import FpgaSpec
+from fboss.platform.bsp_tests.utils.cmd_utils import check_cmd
 
 
 @dataclass_json
@@ -68,24 +68,7 @@ class TestBase:
 
     def load_kmods(self) -> None:
         for kmod in self.kmods:
-            self.check_cmd(["modprobe", kmod])
-
-    def run_cmd(self, cmd, **kwargs):
-        result = subprocess.run(cmd, **kwargs)
-        return result.returncode == 0
-
-    def check_cmd(self, cmd, **kwargs):
-        result = subprocess.run(
-            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs
-        )
-        ret_code = result.returncode
-        stdout = result.stdout.decode("utf-8")
-        stderr = result.stderr.decode("utf-8")
-
-        if ret_code != 0:
-            raise Exception(
-                f"Command failed: `{' '.join(cmd)}`, stdout={stdout}, stderr={stderr}"
-            )
+            check_cmd(["modprobe", kmod])
 
 
 def main():

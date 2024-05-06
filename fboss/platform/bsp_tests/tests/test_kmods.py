@@ -1,6 +1,7 @@
 from typing import List
 
 from fboss.platform.bsp_tests.test_runner import TestBase
+from fboss.platform.bsp_tests.utils.cmd_utils import check_cmd
 
 
 class TestKmods(TestBase):
@@ -24,8 +25,8 @@ class TestKmods(TestBase):
 
     def load_kmods(self) -> None:
         for kmod in self.kmods:
-            self.check_cmd(["modprobe", kmod])
+            check_cmd(["modprobe", kmod])
 
     def unload_kmods(self) -> None:
         for kmod in reversed(self.kmods):
-            self.check_cmd(["modprobe", "-r", kmod])
+            check_cmd(["modprobe", "-r", kmod])
