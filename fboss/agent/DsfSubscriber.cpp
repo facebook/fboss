@@ -24,6 +24,25 @@
 namespace {
 const thriftpath::RootThriftPath<facebook::fboss::fsdb::FsdbOperStateRoot>
     stateRoot;
+
+std::set<folly::CIDRNetwork> getLoopbackIpsSortedForDsfSessions(
+    const std::set<folly::CIDRNetwork>& loopbackIpsSorted) {
+  auto maxElems = std::min(
+      FLAGS_dsf_num_parallel_sessions,
+      static_cast<uint32_t>(loopbackIpsSorted.size()));
+
+  // Copy first n elements of loopbackIps
+  std::set<folly::CIDRNetwork> loopbackIpsSortedForDsfSessions;
+  std::copy_n(
+      loopbackIpsSorted.begin(),
+      maxElems,
+      std::inserter(
+          loopbackIpsSortedForDsfSessions,
+          loopbackIpsSortedForDsfSessions.end()));
+
+  return loopbackIpsSortedForDsfSessions;
+}
+
 } // anonymous namespace
 
 namespace facebook::fboss {
@@ -115,24 +134,6 @@ void DsfSubscriber::scheduleUpdate(
   sw_->updateState(
       folly::sformat("Update state for node: {}", nodeName),
       std::move(updateDsfStateFn));
-}
-
-std::set<folly::CIDRNetwork> DsfSubscriber::getLoopbackIpsSortedForDsfSessions(
-    const std::set<folly::CIDRNetwork>& loopbackIpsSorted) {
-  auto maxElems = std::min(
-      FLAGS_dsf_num_parallel_sessions,
-      static_cast<uint32_t>(loopbackIpsSorted.size()));
-
-  // Copy first n elements of loopbackIps
-  std::set<folly::CIDRNetwork> loopbackIpsSortedForDsfSessions;
-  std::copy_n(
-      loopbackIpsSorted.begin(),
-      maxElems,
-      std::inserter(
-          loopbackIpsSortedForDsfSessions,
-          loopbackIpsSortedForDsfSessions.end()));
-
-  return loopbackIpsSortedForDsfSessions;
 }
 
 void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
