@@ -1391,6 +1391,11 @@ std::shared_ptr<Port> SaiPortManager::swPortFromAttributes(
       port->setPortType(cfg::PortType::MANAGEMENT_PORT);
       break;
 #endif
+#if defined(SAI_VERSION_11_0_EA_DNX_ODP)
+    case SAI_PORT_TYPE_EVENTOR:
+      port->setPortType(cfg::PortType::EVENTOR_PORT);
+      break;
+#endif
     case SAI_PORT_TYPE_FABRIC:
       port->setPortType(cfg::PortType::FABRIC_PORT);
       break;
