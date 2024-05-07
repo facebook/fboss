@@ -12,4 +12,12 @@ std::vector<std::string> copyAndExtendVec(
   return out;
 }
 
+std::vector<facebook::fboss::fsdb::OperPathElem> copyAndExtendVec(
+    const std::vector<facebook::fboss::fsdb::OperPathElem>& parents,
+    facebook::fboss::fsdb::OperPathElem last) {
+  std::vector<facebook::fboss::fsdb::OperPathElem> out(parents);
+  out.emplace_back(std::move(last));
+  return out;
+}
+
 } // namespace thriftpath

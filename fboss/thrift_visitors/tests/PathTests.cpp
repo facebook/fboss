@@ -80,3 +80,22 @@ TEST(PathTests, AgentConfigTokens) {
       RootPath().defaultCommandLineArgs()["foo"].idTokens(),
       PathVec({"1", "foo"}));
 }
+
+TEST(PathTests, WildcardPaths) {
+  using namespace facebook::fboss::fsdb;
+
+  using RootPath =
+      thriftpath::RootThriftPath<facebook::fboss::cfg::AgentConfig>;
+  RootPath root;
+  OperPathElem wildcard;
+  wildcard.set_any(true);
+  auto path = root.sw().ports()[wildcard].logicalID();
+  auto extTokens = path.extendedTokens();
+  EXPECT_EQ(extTokens.size(), 4);
+  EXPECT_EQ(extTokens[0].get_raw(), "2"); // sw id
+  EXPECT_EQ(extTokens[1].get_raw(), "2"); // ports id
+  EXPECT_TRUE(extTokens[2].get_any());
+  EXPECT_EQ(extTokens[3].get_raw(), "1"); // logicalID id
+  EXPECT_THROW(path.tokens(), std::runtime_error);
+  EXPECT_THROW(path.idTokens(), std::runtime_error);
+}

@@ -16914,7 +16914,7 @@ class RootThriftPath<::facebook::fboss::fsdb::FsdbOperStateRoot> :
    ::facebook::fboss::fsdb::FsdbOperStateRoot,
    folly::Unit>;
 
-  RootThriftPath(): Self({}, {}) {};
+  RootThriftPath(): Self({}, {}, {}, false) {}
 
 };
 
@@ -22023,7 +22023,7 @@ class RootThriftPath<::facebook::fboss::fsdb::FsdbOperStatsRoot> :
    ::facebook::fboss::fsdb::FsdbOperStatsRoot,
    folly::Unit>;
 
-  RootThriftPath(): Self({}, {}) {};
+  RootThriftPath(): Self({}, {}, {}, false) {}
 
 };
 
