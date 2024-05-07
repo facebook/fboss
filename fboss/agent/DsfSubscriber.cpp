@@ -165,20 +165,18 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
     return node->getType() == cfg::DsfNodeType::INTERFACE_NODE;
   };
 
-  auto getServerOptions = [&voqSwitchIds](
-                              const auto& dstIP, const auto& state) {
-    // Use loopback IP of any local VOQ switch as src for FSDB subscriptions
-    // TODO: Evaluate what we should do if one or more VOQ switches go down
-    auto getLocalIp = [&voqSwitchIds, &state]() {
-      for (const auto& switchId : voqSwitchIds) {
-        auto localDsfNode = state->getDsfNodes()->getNodeIf(switchId);
-        CHECK(localDsfNode);
-        if (localDsfNode->getLoopbackIpsSorted().size()) {
-          return (*localDsfNode->getLoopbackIpsSorted().begin()).first.str();
+  auto getLocalIps =
+      [&voqSwitchIds](const std::shared_ptr<SwitchState>& state) {
+        for (const auto& switchId : voqSwitchIds) {
+          auto localDsfNode = state->getDsfNodes()->getNodeIf(switchId);
+          CHECK(localDsfNode);
+          if (localDsfNode->getLoopbackIpsSorted().size()) {
+            return localDsfNode->getLoopbackIpsSorted();
+          }
         }
-      }
-      throw FbossError("Could not find loopback IP for any local VOQ switch");
-    };
+        throw FbossError("Could not find loopback IP for any local VOQ switch");
+      };
+  auto getServerOptions = [](const std::string& srcIP, const auto& dstIP) {
     // Subscribe to FSDB of DSF node in the cluster with:
     //  dstIP = inband IP of that DSF node
     //  dstPort = FSDB port
@@ -187,7 +185,7 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
     auto serverOptions = fsdb::FsdbStreamClient::ServerOptions(
         dstIP,
         FLAGS_fsdbPort,
-        getLocalIp(),
+        srcIP,
         fsdb::FsdbStreamClient::Priority::CRITICAL);
 
     return serverOptions;
@@ -203,6 +201,9 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
     auto nodeSwitchId = node->getSwitchId();
 
     dsfSessions_.wlock()->emplace(nodeName, nodeName);
+    // Use loopback IP of any local VOQ switch as src for FSDB subscriptions
+    // TODO: Evaluate what we should do if one or more VOQ switches go down
+    auto localIp = getLocalIps(stateDelta.newState()).begin()->first.str();
     for (const auto& network :
          getLoopbackIpsSortedForDsfSessions(node->getLoopbackIpsSorted())) {
       auto dstIP = network.first.str();
@@ -228,7 +229,7 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
               fsdb::OperSubPathUnit&& operStateUnit) {
             handleFsdbUpdate(nodeSwitchId, nodeName, std::move(operStateUnit));
           },
-          getServerOptions(dstIP, stateDelta.newState()));
+          getServerOptions(localIp, dstIP));
     }
   };
   auto rmDsfNode = [&](const std::shared_ptr<DsfNode>& node) {
