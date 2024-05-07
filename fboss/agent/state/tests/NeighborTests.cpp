@@ -19,7 +19,6 @@
 using namespace facebook::fboss;
 
 namespace {
-auto constexpr kState = "state";
 
 HwSwitchMatcher scope() {
   return HwSwitchMatcher{std::unordered_set<SwitchID>{SwitchID(0)}};

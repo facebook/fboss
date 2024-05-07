@@ -42,19 +42,6 @@ class MultiSwitchHwSwitchHandler : public HwSwitchHandler {
   bool transactionsSupported(
       std::optional<cfg::SdkVersion> sdkVersion) const override;
 
-  void switchRunStateChanged(SwitchRunState newState) override;
-
-  // platform access apis
-  void onHwInitialized(HwSwitchCallback* callback) override;
-
-  void onInitialConfigApplied(HwSwitchCallback* sw) override;
-
-  void platformStop() override;
-
-  std::shared_ptr<SwitchState> stateChanged(
-      const StateDelta& delta,
-      bool transaction) override;
-
   std::pair<fsdb::OperDelta, HwSwitchStateUpdateStatus> stateChanged(
       const fsdb::OperDelta& delta,
       bool transaction,

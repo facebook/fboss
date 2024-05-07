@@ -35,8 +35,6 @@ using namespace facebook::fboss;
 
 namespace {
 
-const AdminDistance kDefaultAdminDistance = AdminDistance::EBGP;
-
 HwSwitchMatcher scope() {
   return HwSwitchMatcher{std::unordered_set<SwitchID>{SwitchID(10)}};
 }

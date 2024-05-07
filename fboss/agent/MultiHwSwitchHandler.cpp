@@ -241,30 +241,6 @@ bool MultiHwSwitchHandler::transactionsSupported(
   return true;
 }
 
-void MultiHwSwitchHandler::switchRunStateChanged(SwitchRunState newState) {
-  for (auto& entry : hwSwitchSyncers_) {
-    entry.second->switchRunStateChanged(newState);
-  }
-}
-
-void MultiHwSwitchHandler::onHwInitialized(HwSwitchCallback* callback) {
-  for (auto& entry : hwSwitchSyncers_) {
-    entry.second->onHwInitialized(callback);
-  }
-}
-
-void MultiHwSwitchHandler::onInitialConfigApplied(HwSwitchCallback* sw) {
-  for (auto& entry : hwSwitchSyncers_) {
-    entry.second->onInitialConfigApplied(sw);
-  }
-}
-
-void MultiHwSwitchHandler::platformStop() {
-  for (auto& entry : hwSwitchSyncers_) {
-    entry.second->platformStop();
-  }
-}
-
 std::map<PortID, FabricEndpoint> MultiHwSwitchHandler::getFabricConnectivity() {
   // TODO - retire this api after migrating clients to HwAgent api
   return hwSwitchSyncers_.begin()->second->getFabricConnectivity();

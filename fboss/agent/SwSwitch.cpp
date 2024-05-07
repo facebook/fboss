@@ -592,8 +592,10 @@ void SwSwitch::onSwitchRunStateChange(SwitchRunState newState) {
     return newSwitchState;
   };
   updateState("update switch runstate", updateFn);
-  // TODO (m-NPU): handle m-NPU support
-  multiHwSwitchHandler_->switchRunStateChanged(newState);
+  // For multiswitch, run state is part of switch state
+  if (isRunModeMonolithic()) {
+    getMonolithicHwSwitchHandler()->switchRunStateChanged(newState);
+  }
 }
 
 SwitchRunState SwSwitch::getSwitchRunState() const {
@@ -1149,7 +1151,10 @@ void SwSwitch::init(
     }
     tunMgr_->probe();
   }
-  multiHwSwitchHandler_->onHwInitialized(this);
+
+  if (isRunModeMonolithic()) {
+    getMonolithicHwSwitchHandler()->onHwInitialized(this);
+  }
 
   // Notify the state observers of the initial state
   updateEventBase_.runInEventBaseThread([initialState, this]() {
@@ -1227,8 +1232,6 @@ void SwSwitch::init(SwitchFlags flags) {
 }
 
 void SwSwitch::initialConfigApplied(const steady_clock::time_point& startTime) {
-  // notify the hw
-  multiHwSwitchHandler_->onInitialConfigApplied(this);
   setSwitchRunState(SwitchRunState::CONFIGURED);
 
   if (flags_ & SwitchFlags::ENABLE_TUN) {
@@ -2217,7 +2220,9 @@ void SwSwitch::stopThreads() {
     }
   } while (!updatesDrained);
 
-  multiHwSwitchHandler_->platformStop();
+  if (isRunModeMonolithic()) {
+    getMonolithicHwSwitchHandler()->platformStop();
+  }
 }
 
 void SwSwitch::threadLoop(StringPiece name, EventBase* eventBase) {

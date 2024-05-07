@@ -63,38 +63,12 @@ bool MultiSwitchHwSwitchHandler::getAndClearNeighborHit(
   return true; // TODO: implement this
 }
 
-void MultiSwitchHwSwitchHandler::onHwInitialized(
-    HwSwitchCallback* /*callback*/) {
-  // TODO: implement this
-}
-
-void MultiSwitchHwSwitchHandler::onInitialConfigApplied(
-    HwSwitchCallback* /*callback*/) {
-  // TODO: implement this
-}
-
-void MultiSwitchHwSwitchHandler::platformStop() {
-  // TODO: implement this
-}
-
 bool MultiSwitchHwSwitchHandler::transactionsSupported(
     std::optional<cfg::SdkVersion> sdkVersion) const {
   if (sdkVersion.has_value() && sdkVersion.value().saiSdk().has_value()) {
     return true;
   }
   return false;
-}
-
-void MultiSwitchHwSwitchHandler::switchRunStateChanged(
-    SwitchRunState /*newState*/) {
-  // TODO: implement this
-}
-
-std::shared_ptr<SwitchState> MultiSwitchHwSwitchHandler::stateChanged(
-    const StateDelta& /*delta*/,
-    bool /*transaction*/) {
-  // TODO: implement this
-  return nullptr;
 }
 
 std::map<PortID, FabricEndpoint>

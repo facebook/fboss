@@ -83,15 +83,6 @@ class MultiHwSwitchHandler {
 
   bool transactionsSupported() const;
 
-  void switchRunStateChanged(SwitchRunState newState);
-
-  // platform access apis
-  void onHwInitialized(HwSwitchCallback* callback);
-
-  void onInitialConfigApplied(HwSwitchCallback* sw);
-
-  void platformStop();
-
   std::map<PortID, FabricEndpoint> getFabricConnectivity();
 
   FabricReachabilityStats getFabricReachabilityStats();

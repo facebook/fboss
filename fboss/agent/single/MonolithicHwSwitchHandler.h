@@ -71,20 +71,14 @@ class MonolithicHwSwitchHandler : public HwSwitchHandler {
 
   prbs::InterfacePrbsState getPortPrbsState(PortID portId);
 
-  void switchRunStateChanged(SwitchRunState newState) override;
+  void switchRunStateChanged(SwitchRunState newState);
 
   std::vector<EcmpDetails> getAllEcmpDetails() const;
 
   // platform access apis
-  void onHwInitialized(HwSwitchCallback* callback) override;
+  void onHwInitialized(HwSwitchCallback* callback);
 
-  void onInitialConfigApplied(HwSwitchCallback* sw) override;
-
-  void platformStop() override;
-
-  std::shared_ptr<SwitchState> stateChanged(
-      const StateDelta& delta,
-      bool transaction) override;
+  void platformStop();
 
   std::pair<fsdb::OperDelta, HwSwitchStateUpdateStatus> stateChanged(
       const fsdb::OperDelta& delta,

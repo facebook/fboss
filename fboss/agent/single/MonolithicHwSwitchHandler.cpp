@@ -72,11 +72,6 @@ void MonolithicHwSwitchHandler::onHwInitialized(HwSwitchCallback* callback) {
   platform_->onHwInitialized(callback);
 }
 
-void MonolithicHwSwitchHandler::onInitialConfigApplied(
-    HwSwitchCallback* callback) {
-  // TODO - remove this
-}
-
 void MonolithicHwSwitchHandler::platformStop() {
   platform_->stop();
 }
@@ -162,13 +157,6 @@ void MonolithicHwSwitchHandler::switchRunStateChanged(SwitchRunState newState) {
 
 std::vector<EcmpDetails> MonolithicHwSwitchHandler::getAllEcmpDetails() const {
   return hw_->getAllEcmpDetails();
-}
-
-std::shared_ptr<SwitchState> MonolithicHwSwitchHandler::stateChanged(
-    const StateDelta& delta,
-    bool transaction) {
-  return transaction ? hw_->stateChangedTransaction(delta)
-                     : hw_->stateChanged(delta);
 }
 
 CpuPortStats MonolithicHwSwitchHandler::getCpuPortStats() const {

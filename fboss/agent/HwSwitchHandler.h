@@ -87,23 +87,10 @@ class HwSwitchHandler {
   virtual bool transactionsSupported(
       std::optional<cfg::SdkVersion> sdkVersion) const = 0;
 
-  virtual void switchRunStateChanged(SwitchRunState newState) = 0;
-
-  virtual std::shared_ptr<SwitchState> stateChanged(
-      const StateDelta& delta,
-      bool transaction) = 0;
-
   virtual HwSwitchStateOperUpdateResult stateChanged(
       const fsdb::OperDelta& delta,
       bool transaction,
       const std::shared_ptr<SwitchState>& initialState) = 0;
-
-  // platform access apis
-  virtual void onHwInitialized(HwSwitchCallback* callback) = 0;
-
-  virtual void onInitialConfigApplied(HwSwitchCallback* sw) = 0;
-
-  virtual void platformStop() = 0;
 
   virtual std::map<PortID, FabricEndpoint> getFabricConnectivity() const = 0;
 

@@ -37,6 +37,7 @@ using namespace facebook::fboss;
 class SwSwitchHandlerTest : public ::testing::Test {
  public:
   void SetUp() override {
+    FLAGS_multi_switch = true;
     auto agentConfig = createAgentConfig();
     agentDirUtil_ = std::make_unique<AgentDirectoryUtil>(
         tmpDir_.path().string() + "/volatile",

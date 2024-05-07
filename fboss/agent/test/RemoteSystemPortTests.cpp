@@ -10,6 +10,7 @@ namespace facebook::fboss {
 class RemoteSystemPortTest : public ::testing::Test {
  public:
   void SetUp() override {
+    FLAGS_multi_switch = true;
     auto config = initialConfig();
     handle_ = createTestHandle(&config);
     sw_ = handle_->getSw();
