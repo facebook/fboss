@@ -2,14 +2,11 @@
 
 #include "fboss/fsdb/client/FsdbStreamClient.h"
 
-#ifdef IS_OSS_FBOSS_CENTOS9
 #include <cstdint>
 #include <optional>
 #include "fboss/fsdb/client/Client.h"
-#endif
 
 namespace facebook::fboss::fsdb {
-#ifdef IS_OSS_FBOSS_CENTOS9
 /**
  * Default value sourced from Cfgr "neteng/qosdb/cos_utility_maps"
  * dscpToClassOfServiceMap.ClassOfService.NC : 48
@@ -54,12 +51,4 @@ void FsdbStreamClient::createClient(const ServerOptions& options) {
       !encryptedClient,
       streamEvb_->getEventBase());
 }
-
-#else
-
-void FsdbStreamClient::resetClient() {}
-
-void FsdbStreamClient::createClient(const ServerOptions& /* options */) {}
-
-#endif
 } // namespace facebook::fboss::fsdb

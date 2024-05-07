@@ -6,9 +6,7 @@
 
 #include <folly/logging/xlog.h>
 #include "common/time/Time.h"
-#if (!defined(IS_OSS)) || (defined(IS_OSS) && defined(IS_OSS_FBOSS_CENTOS9))
 #include "fboss/fsdb/client/Client.h"
-#endif
 
 DEFINE_int32(
     fsdb_reconnect_ms,

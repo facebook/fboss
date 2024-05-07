@@ -14,10 +14,8 @@
 #include <thrift/lib/cpp2/async/Sink.h>
 #include <optional>
 #include <string>
-#if (!defined(IS_OSS)) || (defined(IS_OSS) && defined(IS_OSS_FBOSS_CENTOS9))
-#include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
-#endif
 #include "fboss/fsdb/common/Utils.h"
+#include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 #include "fboss/lib/CommonThriftUtils.h"
 
 #include <atomic>
@@ -73,7 +71,6 @@ class FsdbStreamClient : public ReconnectingThriftClient {
     return *disconnectReason_.rlock();
   }
 
-#if !defined(IS_OSS) || (defined(IS_OSS) && defined(IS_OSS_FBOSS_CENTOS9))
   template <typename PubUnit>
   using PubStreamT = apache::thrift::ClientSink<PubUnit, OperPubFinalResponse>;
   template <typename SubUnit>
@@ -92,7 +89,6 @@ class FsdbStreamClient : public ReconnectingThriftClient {
       DeltaSubStreamT,
       StateExtSubStreamT,
       DeltaExtSubStreamT>;
-#endif
 
  private:
   void createClient(const ServerOptions& options);
@@ -100,8 +96,7 @@ class FsdbStreamClient : public ReconnectingThriftClient {
   void connectToServer(const ServerOptions& options) override;
   void timeoutExpired() noexcept;
 
-#if (FOLLY_HAS_COROUTINES && !defined(IS_OSS)) || \
-    (defined(IS_OSS) && defined(IS_OSS_FBOSS_CENTOS9))
+#if FOLLY_HAS_COROUTINES
   folly::coro::Task<void> serviceLoopWrapper() override;
   virtual folly::coro::Task<StreamT> setupStream() = 0;
   virtual folly::coro::Task<void> serveStream(StreamT&& stream) = 0;
@@ -125,9 +120,7 @@ class FsdbStreamClient : public ReconnectingThriftClient {
     setDisconnectReason(reason);
     setState(State::DISCONNECTED);
   }
-#if (!defined(IS_OSS)) || (defined(IS_OSS) && defined(IS_OSS_FBOSS_CENTOS9))
   std::unique_ptr<apache::thrift::Client<FsdbService>> client_;
-#endif
 
   apache::thrift::RpcOptions& getRpcOptions() {
     return rpcOptions_;

@@ -20,8 +20,7 @@ class FsdbDeltaSubscriberImpl : public FsdbSubscriber<SubUnit, PathElement> {
   }
 
  private:
-#if (FOLLY_HAS_COROUTINES && !defined(IS_OSS)) || \
-    (defined(IS_OSS) && defined(IS_OSS_FBOSS_CENTOS9))
+#if FOLLY_HAS_COROUTINES
   using StreamT = typename BaseT::StreamT;
   using SubStreamT = typename BaseT::template SubStreamT<SubUnit>;
   folly::coro::Task<StreamT> setupStream() override;

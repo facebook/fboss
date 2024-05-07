@@ -15,8 +15,7 @@ class FsdbDeltaPublisher : public FsdbPublisher<OperDelta> {
   }
 
  private:
-#if (FOLLY_HAS_COROUTINES && !defined(IS_OSS)) || \
-    (defined(IS_OSS) && defined(IS_OSS_FBOSS_CENTOS9))
+#if FOLLY_HAS_COROUTINES
   folly::coro::Task<StreamT> setupStream() override;
   folly::coro::Task<void> serveStream(StreamT&& stream) override;
 #endif
