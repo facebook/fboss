@@ -12,6 +12,7 @@
 
 #include "fboss/agent/AgentDirectoryUtil.h"
 #include "fboss/agent/AsyncLogger.h"
+#include "fboss/agent/SwSwitchWarmBootHelper.h"
 #include "fboss/agent/SysError.h"
 #include "fboss/agent/Utils.h"
 

@@ -13,8 +13,6 @@
 #include <string>
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 
-#include "fboss/agent/SwSwitchWarmBootHelper.h"
-
 namespace facebook::fboss {
 
 /*

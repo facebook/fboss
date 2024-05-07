@@ -377,7 +377,8 @@ SwSwitch::SwSwitch(
       switchStatsObserver_(new SwitchStatsObserver(this)),
       resourceAccountant_(new ResourceAccountant(hwAsicTable_.get())),
       packetStreamMap_(new MultiSwitchPacketStreamMap()),
-      swSwitchWarmbootHelper_(new SwSwitchWarmBootHelper(agentDirUtil_)),
+      swSwitchWarmbootHelper_(
+          new SwSwitchWarmBootHelper(agentDirUtil_, hwAsicTable_.get())),
       hwSwitchThriftClientTable_(new HwSwitchThriftClientTable(
           FLAGS_hwagent_base_thrift_port,
           getSwitchInfoFromConfig(config))) {

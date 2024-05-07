@@ -7,6 +7,7 @@
 
 #include "fboss/agent/AgentDirectoryUtil.h"
 #include "fboss/agent/AsyncLogger.h"
+#include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/SysError.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
@@ -26,9 +27,11 @@ DEFINE_string(
 namespace facebook::fboss {
 
 SwSwitchWarmBootHelper::SwSwitchWarmBootHelper(
-    const AgentDirectoryUtil* directoryUtil)
+    const AgentDirectoryUtil* directoryUtil,
+    HwAsicTable* asicTable)
     : directoryUtil_(directoryUtil),
-      warmBootDir_(directoryUtil_->getWarmBootDir()) {
+      warmBootDir_(directoryUtil_->getWarmBootDir()),
+      asicTable_(asicTable) {
   if (!warmBootDir_.empty()) {
     // Make sure the warm boot directory exists.
     utilCreateDir(warmBootDir_);
@@ -49,6 +52,11 @@ bool SwSwitchWarmBootHelper::canWarmBoot() const {
 
 void SwSwitchWarmBootHelper::storeWarmBootState(
     const state::WarmbootState& switchStateThrift) {
+  if (!asicTable_->isFeatureSupportedOnAllAsic(HwAsic::Feature::WARMBOOT)) {
+    XLOG(WARNING)
+        << "skip saving warm boot state, as warm boot not supported for network hardware";
+    return;
+  }
   auto rc = dumpBinaryThriftToFile(
       warmBootThriftSwitchStateFile(), switchStateThrift);
   if (!rc) {
@@ -76,6 +84,11 @@ bool SwSwitchWarmBootHelper::checkAndClearWarmBootFlags() {
   canWarmBoot = canWarmBoot || checkFileExists(warmBootFlagLegacy());
   if (forceColdBoot || !canWarmBoot) {
     // cold boot was enforced or warm boot flag is absent
+    return false;
+  }
+  if (!asicTable_->isFeatureSupportedOnAllAsic(HwAsic::Feature::WARMBOOT)) {
+    // asic does not support warm boot
+    XLOG(WARNING) << "Warm boot not supported for network hardware";
     return false;
   }
   // if warm boot flag is present, switch state must exist

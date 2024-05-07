@@ -599,8 +599,6 @@ void HwSwitchEnsemble::setupEnsemble(
     const HwSwitchEnsembleInitInfo& initInfo) {
   hwAgent_ = std::move(hwAgent);
   linkToggler_ = std::move(linkToggler);
-  swSwitchWarmBootHelper_ = std::make_unique<SwSwitchWarmBootHelper>(
-      getPlatform()->getDirectoryUtil());
   auto asic = getPlatform()->getAsic();
   cfg::SwitchInfo switchInfo;
   switchInfo.switchType() = asic->getSwitchType();
@@ -615,6 +613,8 @@ void HwSwitchEnsemble::setupEnsemble(
       {{asic->getSwitchId() ? *asic->getSwitchId() : 0, switchInfo}});
   hwAsicTable_ =
       std::make_unique<HwAsicTable>(switchIdToSwitchInfo, std::nullopt);
+  swSwitchWarmBootHelper_ = std::make_unique<SwSwitchWarmBootHelper>(
+      getPlatform()->getDirectoryUtil(), hwAsicTable_.get());
   scopeResolver_ =
       std::make_unique<SwitchIdScopeResolver>(switchIdToSwitchInfo);
   if (haveFeature(MULTISWITCH_THRIFT_SERVER)) {

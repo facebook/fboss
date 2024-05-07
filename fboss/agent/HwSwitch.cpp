@@ -433,8 +433,10 @@ HwInitResult HwSwitch::initLightImpl(
   if (getPlatform()->getAsic()->getAsicType() !=
       cfg::AsicType::ASIC_TYPE_MOCK) {
     if (auto warmBootHelper = getPlatform()->getWarmBootHelper()) {
-      bootType = warmBootHelper->canWarmBoot() ? BootType::WARM_BOOT
-                                               : BootType::COLD_BOOT;
+      bool canWarmBoot =
+          (getPlatform()->getAsic()->isSupported(HwAsic::Feature::WARMBOOT));
+      canWarmBoot &= warmBootHelper->canWarmBoot();
+      bootType = canWarmBoot ? BootType::WARM_BOOT : BootType::COLD_BOOT;
     }
   }
   // initialize hardware switch

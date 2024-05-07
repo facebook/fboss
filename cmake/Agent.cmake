@@ -581,6 +581,7 @@ add_library(sw_switch_warmboot_helper
 target_link_libraries(sw_switch_warmboot_helper
   async_logger
   fboss_error
+  hw_asic_table
   state
   standalone_rib
   utils
@@ -622,4 +623,17 @@ add_library(loadbalancer_utils
 target_link_libraries(loadbalancer_utils
   switch_config_cpp2
   Folly::folly
+)
+
+add_library(hw_asic_table
+  fboss/agent/HwAsicTable.cpp
+)
+
+target_link_libraries(hw_asic_table
+  fboss_error
+  fboss_types
+  platform_mapping_utils
+  product_info
+  switch_asics
+  utils
 )
