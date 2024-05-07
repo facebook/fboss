@@ -26,24 +26,6 @@ namespace {
 const thriftpath::RootThriftPath<facebook::fboss::fsdb::FsdbOperStateRoot>
     stateRoot;
 
-std::set<folly::CIDRNetwork> getLoopbackIpsSortedForDsfSessions(
-    const std::set<folly::CIDRNetwork>& loopbackIpsSorted) {
-  auto maxElems = std::min(
-      FLAGS_dsf_num_parallel_sessions_per_remote_interface_node,
-      static_cast<uint32_t>(loopbackIpsSorted.size()));
-
-  // Copy first n elements of loopbackIps
-  std::set<folly::CIDRNetwork> loopbackIpsSortedForDsfSessions;
-  std::copy_n(
-      loopbackIpsSorted.begin(),
-      maxElems,
-      std::inserter(
-          loopbackIpsSortedForDsfSessions,
-          loopbackIpsSortedForDsfSessions.end()));
-
-  return loopbackIpsSortedForDsfSessions;
-}
-
 fsdb::FsdbStreamClient::ServerOptions getServerOptions(
     const std::string& srcIP,
     const std::string& dstIP) {
@@ -56,6 +38,25 @@ fsdb::FsdbStreamClient::ServerOptions getServerOptions(
       dstIP, FLAGS_fsdbPort, srcIP, fsdb::FsdbStreamClient::Priority::CRITICAL);
 }
 
+std::map<folly::IPAddress, folly::IPAddress> getDsfSessionIps(
+    const std::set<folly::CIDRNetwork>& localIpsSorted,
+    const std::set<folly::CIDRNetwork>& loopbackIpsSorted) {
+  auto maxElems = std::min(
+      FLAGS_dsf_num_parallel_sessions_per_remote_interface_node,
+      static_cast<uint32_t>(
+          std::min(localIpsSorted.size(), loopbackIpsSorted.size())));
+
+  // Copy first n elements of loopbackIps
+  std::map<folly::IPAddress, folly::IPAddress> dsfSessionIps;
+  auto sitr = localIpsSorted.begin();
+  auto ditr = loopbackIpsSorted.begin();
+  for (auto i = 0; i < maxElems; ++i) {
+    dsfSessionIps.insert({sitr->first, ditr->first});
+    sitr++;
+    ditr++;
+  }
+  return dsfSessionIps;
+}
 } // anonymous namespace
 
 namespace facebook::fboss {
@@ -177,7 +178,6 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
   auto isInterfaceNode = [](const std::shared_ptr<DsfNode>& node) {
     return node->getType() == cfg::DsfNodeType::INTERFACE_NODE;
   };
-
   auto getLocalIps =
       [&voqSwitchIds](const std::shared_ptr<SwitchState>& state) {
         for (const auto& switchId : voqSwitchIds) {
@@ -199,12 +199,13 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
     auto nodeSwitchId = node->getSwitchId();
 
     dsfSessions_.wlock()->emplace(nodeName, nodeName);
+    auto localIps = getLocalIps(stateDelta.newState());
     // Use loopback IP of any local VOQ switch as src for FSDB subscriptions
     // TODO: Evaluate what we should do if one or more VOQ switches go down
-    auto localIp = getLocalIps(stateDelta.newState()).begin()->first.str();
-    for (const auto& network :
-         getLoopbackIpsSortedForDsfSessions(node->getLoopbackIpsSorted())) {
-      auto dstIP = network.first.str();
+    auto localIp = localIps.begin()->first.str();
+    for (const auto& [_, dstIPAddr] :
+         getDsfSessionIps(localIps, node->getLoopbackIpsSorted())) {
+      auto dstIP = dstIPAddr.str();
       XLOG(DBG2) << "Setting up DSF subscriptions to:: " << nodeName
                  << " dstIP: " << dstIP;
 
@@ -240,9 +241,10 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
     auto nodeSwitchId = node->getSwitchId();
     dsfSessions_.wlock()->erase(nodeName);
 
-    for (const auto& network :
-         getLoopbackIpsSortedForDsfSessions(node->getLoopbackIpsSorted())) {
-      auto dstIP = network.first.str();
+    auto localIps = getLocalIps(stateDelta.newState());
+    for (const auto& [_, dstIPAddr] :
+         getDsfSessionIps(localIps, node->getLoopbackIpsSorted())) {
+      auto dstIP = dstIPAddr.str();
       XLOG(DBG2) << "Removing DSF subscriptions to:: " << nodeName
                  << " dstIP: " << dstIP;
 
