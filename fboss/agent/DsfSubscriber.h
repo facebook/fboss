@@ -74,13 +74,6 @@ class DsfSubscriber : public StateObserver {
       const std::string& nodeName,
       const SwitchID& nodeSwitchId);
 
-  // Paths
-  static const auto& getSystemPortsPath();
-  static const auto& getInterfacesPath();
-  static auto getDsfSubscriptionsPath(const std::string& localNodeName);
-  static std::vector<std::vector<std::string>> getAllSubscribePaths(
-      const std::string& localNodeName);
-
   SwSwitch* sw_;
   std::unique_ptr<fsdb::FsdbPubSubManager> fsdbPubSubMgr_;
   std::shared_ptr<SwitchState> cachedState_;

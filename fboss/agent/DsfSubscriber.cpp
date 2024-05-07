@@ -57,6 +57,30 @@ std::map<folly::IPAddress, folly::IPAddress> getDsfSessionIps(
   }
   return dsfSessionIps;
 }
+
+const auto& getSystemPortsPath() {
+  static auto path = stateRoot.agent().switchState().systemPortMaps();
+  return path;
+}
+
+const auto& getInterfacesPath() {
+  static auto path = stateRoot.agent().switchState().interfaceMaps();
+  return path;
+}
+
+auto getDsfSubscriptionsPath(const std::string& localNodeName) {
+  static auto path = stateRoot.agent().fsdbSubscriptions();
+  return path[localNodeName];
+}
+
+std::vector<std::vector<std::string>> getAllSubscribePaths(
+    const std::string& localNodeName) {
+  return {
+      getSystemPortsPath().tokens(),
+      getInterfacesPath().tokens(),
+      getDsfSubscriptionsPath(localNodeName).tokens()};
+}
+
 } // anonymous namespace
 
 namespace facebook::fboss {
@@ -73,29 +97,6 @@ DsfSubscriber::DsfSubscriber(SwSwitch* sw)
 
 DsfSubscriber::~DsfSubscriber() {
   stop();
-}
-
-const auto& DsfSubscriber::getSystemPortsPath() {
-  static auto path = stateRoot.agent().switchState().systemPortMaps();
-  return path;
-}
-
-const auto& DsfSubscriber::getInterfacesPath() {
-  static auto path = stateRoot.agent().switchState().interfaceMaps();
-  return path;
-}
-
-auto DsfSubscriber::getDsfSubscriptionsPath(const std::string& localNodeName) {
-  static auto path = stateRoot.agent().fsdbSubscriptions();
-  return path[localNodeName];
-}
-
-std::vector<std::vector<std::string>> DsfSubscriber::getAllSubscribePaths(
-    const std::string& localNodeName) {
-  return {
-      getSystemPortsPath().tokens(),
-      getInterfacesPath().tokens(),
-      getDsfSubscriptionsPath(localNodeName).tokens()};
 }
 
 bool DsfSubscriber::isLocal(SwitchID nodeSwitchId) const {
