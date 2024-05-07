@@ -323,7 +323,9 @@ std::shared_ptr<SystemPortMap> SaiSystemPortManager::constructSystemPorts(
     int64_t switchId) {
   auto sysPortMap = std::make_shared<SystemPortMap>();
   const std::set<cfg::PortType> kCreateSysPortsFor = {
-      cfg::PortType::INTERFACE_PORT, cfg::PortType::RECYCLE_PORT};
+      cfg::PortType::INTERFACE_PORT,
+      cfg::PortType::RECYCLE_PORT,
+      cfg::PortType::EVENTOR_PORT};
   for (const auto& portMap : std::as_const(*ports)) {
     for (const auto& port : std::as_const(*portMap.second)) {
       if (kCreateSysPortsFor.find(port.second->getPortType()) ==
