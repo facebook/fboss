@@ -773,7 +773,8 @@ void SaiPortManager::programSerdes(
   if (!platform_->isSerdesApiSupported() ||
       !platform_->getAsic()->isSupported(
           HwAsic::Feature::SAI_PORT_SERDES_PROGRAMMING) ||
-      swPort->getPortType() == cfg::PortType::RECYCLE_PORT) {
+      swPort->getPortType() == cfg::PortType::RECYCLE_PORT ||
+      swPort->getPortType() == cfg::PortType::EVENTOR_PORT) {
     return;
   }
 
