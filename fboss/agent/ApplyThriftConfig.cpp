@@ -1363,7 +1363,8 @@ shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
   static const std::set<cfg::PortType> kCreateSysPortsFor = {
       cfg::PortType::INTERFACE_PORT,
       cfg::PortType::RECYCLE_PORT,
-      cfg::PortType::MANAGEMENT_PORT};
+      cfg::PortType::MANAGEMENT_PORT,
+      cfg::PortType::EVENTOR_PORT};
   auto sysPorts = std::make_shared<SystemPortMap>();
 
   for (const auto& [matcherString, portMap] : std::as_const(*ports)) {
