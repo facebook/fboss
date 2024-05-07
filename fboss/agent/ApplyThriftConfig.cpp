@@ -1187,6 +1187,7 @@ void ThriftConfigApplier::processInterfaceForPortForVoqSwitches(
       switch (portType) {
         case cfg::PortType::INTERFACE_PORT:
         case cfg::PortType::RECYCLE_PORT:
+        case cfg::PortType::EVENTOR_PORT:
         case cfg::PortType::MANAGEMENT_PORT: {
           /*
            * System port is 1:1 with every interface and recycle port.

@@ -49,6 +49,10 @@ sai_int32_t getPortTypeFromCfg(const cfg::PortType& cfgPortType) {
 #if defined(SAI_VERSION_11_0_EA_DNX_ODP)
       return SAI_PORT_TYPE_MGMT;
 #endif
+    case cfg::PortType::EVENTOR_PORT:
+#if defined(SAI_VERSION_11_0_EA_DNX_ODP)
+      return SAI_PORT_TYPE_EVENTOR;
+#endif
     case cfg::PortType::INTERFACE_PORT:
       return SAI_PORT_TYPE_LOGICAL;
     case cfg::PortType::FABRIC_PORT:

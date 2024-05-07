@@ -193,6 +193,7 @@ std::unordered_map<PortID, cfg::PortProfileID> getSafeProfileIDs(
           bestSpeed = getDefaultFabricSpeed(asicType);
           break;
         case cfg::PortType::RECYCLE_PORT:
+        case cfg::PortType::EVENTOR_PORT:
           bestSpeed = cfg::PortSpeed::XG;
           break;
         case cfg::PortType::CPU_PORT:

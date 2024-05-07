@@ -185,6 +185,7 @@ std::set<cfg::StreamType> GaronneAsic::getQueueStreamTypes(
       return {cfg::StreamType::UNICAST};
     case cfg::PortType::FABRIC_PORT:
     case cfg::PortType::RECYCLE_PORT:
+    case cfg::PortType::EVENTOR_PORT:
       break;
   }
   throw FbossError(
