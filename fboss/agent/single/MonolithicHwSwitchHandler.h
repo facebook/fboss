@@ -139,6 +139,8 @@ class MonolithicHwSwitchHandler : public HwSwitchHandler {
 
   HwSwitchWatermarkStats getSwitchWatermarkStats() const;
 
+  void getHwStats(multiswitch::HwSwitchStats& hwStats) const;
+
  private:
   Platform* platform_;
   HwSwitch* hw_;

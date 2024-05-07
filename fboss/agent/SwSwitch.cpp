@@ -793,8 +793,6 @@ void SwSwitch::updateStats() {
 
   if (!isRunModeMultiSwitch()) {
     multiswitch::HwSwitchStats hwStats;
-    auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
-    hwStats.timestamp() = now.count();
     auto monoHwSwitchHandler = getMonolithicHwSwitchHandler();
     try {
       monoHwSwitchHandler->updateStats();
@@ -808,24 +806,8 @@ void SwSwitch::updateStats() {
       XLOG(ERR) << "Error running updateAllPhyInfo: "
                 << folly::exceptionStr(ex);
     }
-    hwStats.hwPortStats() = monoHwSwitchHandler->getPortStats();
-    hwStats.sysPortStats() = monoHwSwitchHandler->getSysPortStats();
-    hwStats.switchDropStats() = monoHwSwitchHandler->getSwitchDropStats();
-    hwStats.fabricReachabilityStats() =
-        monoHwSwitchHandler->getFabricReachabilityStats();
-    hwStats.switchWatermarkStats() =
-        monoHwSwitchHandler->getSwitchWatermarkStats();
-    if (auto hwSwitchStats = monoHwSwitchHandler->getSwitchStats()) {
-      hwStats.hwAsicErrors() = hwSwitchStats->getHwAsicErrors();
-    }
+    monoHwSwitchHandler->getHwStats(hwStats);
     hwStats.teFlowStats() = getTeFlowStats();
-    for (auto& [portId, phyInfoPerPort] :
-         monoHwSwitchHandler->getAllPhyInfo()) {
-      hwStats.phyInfo()->emplace(portId, phyInfoPerPort);
-    }
-    hwStats.flowletStats() = monoHwSwitchHandler->getHwFlowletStats();
-    hwStats.cpuPortStats() = monoHwSwitchHandler->getCpuPortStats();
-    hwStats.aclStats() = monoHwSwitchHandler->getAclStats();
     updateHwSwitchStats(0 /*switchIndex*/, std::move(hwStats));
   }
   updateFlowletStats();

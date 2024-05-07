@@ -243,4 +243,26 @@ AclStats MonolithicHwSwitchHandler::getAclStats() const {
   return hw_->getAclStats();
 }
 
+void MonolithicHwSwitchHandler::getHwStats(
+    multiswitch::HwSwitchStats& hwStats) const {
+  auto now = duration_cast<std::chrono::seconds>(
+      std::chrono::system_clock::now().time_since_epoch());
+  hwStats.timestamp() = now.count();
+
+  hwStats.hwPortStats() = getPortStats();
+  hwStats.sysPortStats() = getSysPortStats();
+  hwStats.switchDropStats() = getSwitchDropStats();
+  hwStats.fabricReachabilityStats() = getFabricReachabilityStats();
+  hwStats.switchWatermarkStats() = getSwitchWatermarkStats();
+  if (auto hwSwitchStats = getSwitchStats()) {
+    hwStats.hwAsicErrors() = hwSwitchStats->getHwAsicErrors();
+  }
+  for (auto& [portId, phyInfoPerPort] : getAllPhyInfo()) {
+    hwStats.phyInfo()->emplace(portId, phyInfoPerPort);
+  }
+  hwStats.flowletStats() = getHwFlowletStats();
+  hwStats.cpuPortStats() = getCpuPortStats();
+  hwStats.aclStats() = getAclStats();
+}
+
 } // namespace facebook::fboss
