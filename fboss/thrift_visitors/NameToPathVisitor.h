@@ -49,7 +49,7 @@ struct NameToPathVisitor<apache::thrift::type::enum_t<T>> {
       path_token_citr end,
       Func&& f) {
     if (curr == end) {
-      f(path);
+      f(std::forward<Path>(path));
       return NameToPathResult::OK;
     }
 
@@ -63,7 +63,7 @@ struct NameToPathVisitor<apache::thrift::type::enum_t<T>> {
       ext_path_token_citr end,
       Func&& f) {
     if (curr == end) {
-      f(path);
+      f(std::forward<Path>(path));
       return NameToPathResult::OK;
     }
 
@@ -115,7 +115,7 @@ struct NameToPathVisitor<apache::thrift::type::set<ValueTag>> {
       Func&& f) {
     if (curr == end) {
       try {
-        f(path);
+        f(std::forward<Path>(path));
         return NameToPathResult::OK;
       } catch (const std::exception&) {
         return NameToPathResult::VISITOR_EXCEPTION;
@@ -141,7 +141,7 @@ struct NameToPathVisitor<apache::thrift::type::set<ValueTag>> {
       ext_path_token_citr end,
       Func&& f) {
     if (curr == end) {
-      f(path);
+      f(std::forward<Path>(path));
       return NameToPathResult::OK;
     }
 
@@ -191,7 +191,7 @@ struct NameToPathVisitor<apache::thrift::type::list<ValueTag>> {
       path_token_citr end,
       Func&& f) {
     if (curr == end) {
-      f(path);
+      f(std::forward<Path>(path));
       return NameToPathResult::OK;
     }
 
@@ -213,7 +213,7 @@ struct NameToPathVisitor<apache::thrift::type::list<ValueTag>> {
       ext_path_token_citr end,
       Func&& f) {
     if (curr == end) {
-      f(path);
+      f(std::forward<Path>(path));
       return NameToPathResult::OK;
     }
 
@@ -280,7 +280,7 @@ struct NameToPathVisitor<apache::thrift::type::map<KeyTag, MappedTag>> {
       Func&& f) {
     if (curr == end) {
       try {
-        f(path);
+        f(std::forward<Path>(path));
         return NameToPathResult::OK;
       } catch (const std::exception&) {
         return NameToPathResult::VISITOR_EXCEPTION;
@@ -306,7 +306,7 @@ struct NameToPathVisitor<apache::thrift::type::map<KeyTag, MappedTag>> {
       ext_path_token_citr end,
       Func&& f) {
     if (curr == end) {
-      f(path);
+      f(std::forward<Path>(path));
       return NameToPathResult::OK;
     }
 
@@ -346,7 +346,7 @@ struct NameToPathVisitor<apache::thrift::type::union_t<T>> {
       Func&& f) {
     if (curr == end) {
       try {
-        f(path);
+        f(std::forward<Path>(path));
         return NameToPathResult::OK;
       } catch (const std::exception&) {
         return NameToPathResult::VISITOR_EXCEPTION;
@@ -385,7 +385,7 @@ struct NameToPathVisitor<apache::thrift::type::union_t<T>> {
       ext_path_token_citr end,
       Func&& f) {
     if (curr == end) {
-      f(path);
+      f(std::forward<Path>(path));
       return NameToPathResult::OK;
     }
 
@@ -441,7 +441,7 @@ struct NameToPathVisitor<apache::thrift::type::struct_t<T>> {
       Func&& f) {
     if (curr == end) {
       try {
-        f(path);
+        f(std::forward<Path>(path));
         return NameToPathResult::OK;
       } catch (const std::exception&) {
         return NameToPathResult::VISITOR_EXCEPTION;
@@ -480,7 +480,7 @@ struct NameToPathVisitor<apache::thrift::type::struct_t<T>> {
       ext_path_token_citr end,
       Func&& f) {
     if (curr == end) {
-      f(path);
+      f(std::forward<Path>(path));
       return NameToPathResult::OK;
     }
 
@@ -547,7 +547,7 @@ struct NameToPathVisitor {
       path_token_citr end,
       Func&& f) {
     if (curr == end) {
-      f(path);
+      f(std::forward<Path>(path));
       return NameToPathResult::OK;
     }
 
@@ -561,7 +561,7 @@ struct NameToPathVisitor {
       ext_path_token_citr end,
       Func&& f) {
     if (curr == end) {
-      f(path);
+      f(std::forward<Path>(path));
       return NameToPathResult::OK;
     }
 

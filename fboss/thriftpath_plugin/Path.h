@@ -34,13 +34,48 @@ namespace thriftpath {
     return Child(std::move(this->tokens_), std::move(this->idTokens_)); \
   }
 
+class BasePath {
+ public:
+  BasePath(std::vector<std::string> tokens, std::vector<std::string> idTokens)
+      : tokens_(std::move(tokens)), idTokens_(std::move(idTokens)) {}
+
+  auto begin() const {
+    return tokens_.cbegin();
+  }
+
+  auto end() const {
+    return tokens_.cend();
+  }
+
+  const std::vector<std::string>& tokens() const {
+    return tokens_;
+  }
+
+  const std::vector<std::string>& idTokens() const {
+    return idTokens_;
+  }
+
+  bool matchesPath(const std::vector<std::string>& other) const {
+    return other == idTokens_ || other == tokens_;
+  }
+
+  std::string str() const {
+    // TODO: better format
+    return "/" + folly::join('/', tokens_.begin(), tokens_.end());
+  }
+
+ protected:
+  std::vector<std::string> tokens_;
+  std::vector<std::string> idTokens_;
+};
+
 template <
     typename _DataT,
     typename _RootT,
     typename _TC,
     typename _Tag,
     typename _ParentT>
-class Path {
+class Path : public BasePath {
  public:
   using DataT = _DataT;
   using RootT = _RootT;
@@ -52,8 +87,7 @@ class Path {
       std::vector<std::string> tokens,
       std::vector<std::string> idTokens,
       ParentT&& parent)
-      : tokens_(std::move(tokens)),
-        idTokens_(std::move(idTokens)),
+      : BasePath(std::move(tokens), (std::move(idTokens))),
         parent_(std::forward<ParentT>(parent)) {}
 
   Path(std::vector<std::string> tokens, std::vector<std::string> idTokens)
@@ -72,42 +106,13 @@ class Path {
           }
         }()) {}
 
-  std::string str() const {
-    // TODO: better format
-    return "/" + folly::join('/', tokens_.begin(), tokens_.end());
-  }
-
   constexpr bool root() const {
     return std::is_same_v<ParentT, folly::Unit>;
-  }
-
-  auto begin() const {
-    return tokens_.cbegin();
-  }
-
-  auto end() const {
-    return tokens_.cend();
-  }
-
-  const std::vector<std::string>& tokens() const {
-    return tokens_;
-  }
-
-  const std::vector<std::string>& idTokens() const {
-    return idTokens_;
   }
 
   const ParentT& parent() {
     return parent_;
   }
-
-  bool matchesPath(const std::vector<std::string>& other) const {
-    return other == idTokens_ || other == tokens_;
-  }
-
- protected:
-  std::vector<std::string> tokens_;
-  std::vector<std::string> idTokens_;
 
  private:
   // TODO: reduce memory usage by only storing begin/end in parent
