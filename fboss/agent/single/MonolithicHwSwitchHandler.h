@@ -41,8 +41,6 @@ class MonolithicHwSwitchHandler : public HwSwitchHandler {
 
   void gracefulExit() override;
 
-  bool getAndClearNeighborHit(RouterID vrf, folly::IPAddress& ip) override;
-
   folly::dynamic toFollyDynamic() const;
 
   folly::F14FastMap<std::string, HwPortStats> getPortStats() const;

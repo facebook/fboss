@@ -216,17 +216,6 @@ void MultiHwSwitchHandler::gracefulExit() {
   }
 }
 
-bool MultiHwSwitchHandler::getAndClearNeighborHit(
-    RouterID vrf,
-    folly::IPAddress& ip) {
-  for (auto& entry : hwSwitchSyncers_) {
-    if (entry.second->getAndClearNeighborHit(vrf, ip)) {
-      return true;
-    }
-  }
-  return false;
-}
-
 bool MultiHwSwitchHandler::transactionsSupported() const {
   return transactionsSupported_;
 }

@@ -37,8 +37,6 @@ class MultiSwitchHwSwitchHandler : public HwSwitchHandler {
 
   void gracefulExit() override;
 
-  bool getAndClearNeighborHit(RouterID vrf, folly::IPAddress& ip) override;
-
   bool transactionsSupported(
       std::optional<cfg::SdkVersion> sdkVersion) const override;
 

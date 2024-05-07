@@ -82,8 +82,6 @@ class HwSwitchHandler {
 
   virtual void gracefulExit() = 0;
 
-  virtual bool getAndClearNeighborHit(RouterID vrf, folly::IPAddress& ip) = 0;
-
   virtual bool transactionsSupported(
       std::optional<cfg::SdkVersion> sdkVersion) const = 0;
 

@@ -1129,45 +1129,18 @@ TYPED_TEST(ArpTest, ArpExpiration) {
 
   VlanID vlanID(1);
   IPAddressV4 senderIP = IPAddressV4("10.0.0.1");
-  std::array<IPAddressV4, 2> targetIP = {
-      IPAddressV4("10.0.0.2"), IPAddressV4("10.0.0.3")};
-  std::array<MacAddress, 2> targetMAC = {
-      MacAddress("02:10:20:30:40:22"), MacAddress("02:10:20:30:40:23")};
+  IPAddressV4 targetIP = IPAddressV4("10.0.0.2");
+  MacAddress targetMAC = MacAddress("02:10:20:30:40:22");
 
-  for (auto ip : targetIP) {
-    testSendArpRequest(sw, vlanID, senderIP, ip);
-  }
-
-  std::array<std::unique_ptr<WaitForArpEntryReachable>, 2> arpReachables;
-
-  std::transform(
-      targetIP.begin(),
-      targetIP.end(),
-      arpReachables.begin(),
-      [&](const IPAddressV4& ip) {
-        return make_unique<WaitForArpEntryReachable>(sw, ip);
-      });
+  testSendArpRequest(sw, vlanID, senderIP, targetIP);
+  auto arpReachable = std::make_unique<WaitForArpEntryReachable>(sw, targetIP);
 
   // Receive arp replies for our pending entries
-  for (auto tuple : boost::combine(targetIP, targetMAC)) {
-    auto ip = tuple.get<0>();
-    auto mac = tuple.get<1>();
-    sendArpReply(handle.get(), ip.str(), mac.toString(), 1);
-  }
-
-  // Have getAndClearNeighborHit return false for the first entry,
-  // but true for the second. This should result in expiration
-  // for the second entry kicking off first.
-  EXPECT_HW_CALL(sw, getAndClearNeighborHit(_, testing::Eq(targetIP[0])))
-      .WillRepeatedly(testing::Return(false));
-  EXPECT_HW_CALL(sw, getAndClearNeighborHit(_, testing::Eq(targetIP[1])))
-      .WillRepeatedly(testing::Return(true));
+  sendArpReply(handle.get(), targetIP.str(), targetMAC.toString(), 1);
 
   // The entries should now be valid instead of pending
   waitForStateUpdates(sw);
-  for (auto& arpReachable : arpReachables) {
-    EXPECT_TRUE(arpReachable->wait());
-  }
+  EXPECT_TRUE(arpReachable->wait());
 
   // Expect one more probe to be sent out before targetIP[1] is expired
   auto intfs = sw->getState()->getInterfaces();
@@ -1175,23 +1148,13 @@ TYPED_TEST(ArpTest, ArpExpiration) {
   EXPECT_SWITCHED_PKT(
       sw,
       "ARP request",
-      checkArpRequest(senderIP, intf->getMac(), targetIP[1], vlanID));
+      checkArpRequest(senderIP, intf->getMac(), targetIP, vlanID));
 
   // Wait for the second entry to expire.
   // We wait 2.5 seconds(plus change):
   // Up to 1.5 seconds for lifetime.
   // 1 more second for probe
-  EXPECT_STATE_UPDATE_TIMES_ATLEAST(sw, 1);
-  std::array<unique_ptr<WaitForArpEntryExpiration>, 2> arpExpirations;
-
-  std::transform(
-      targetIP.begin(),
-      targetIP.end(),
-      arpExpirations.begin(),
-      [&](const IPAddressV4& ip) {
-        return make_unique<WaitForArpEntryExpiration>(sw, ip);
-      });
-
+  auto arpExpiration = make_unique<WaitForArpEntryExpiration>(sw, targetIP);
   std::promise<bool> done;
 
   auto* evb = sw->getBackgroundEvb();
@@ -1199,31 +1162,7 @@ TYPED_TEST(ArpTest, ArpExpiration) {
       [&]() { evb->tryRunAfterDelay([&]() { done.set_value(true); }, 2550); });
   done.get_future().wait();
 
-  // The first entry should not be expired, but the second should be
-  EXPECT_TRUE(getArpEntry(sw, targetIP[0]) != nullptr);
-  EXPECT_TRUE(arpExpirations[1]->wait());
-
-  auto entry = getArpEntry(sw, targetIP[0], vlanID);
-  EXPECT_NE(entry, nullptr);
-
-  // Now return true for the getAndClearNeighborHit calls on the second entry
-  EXPECT_HW_CALL(sw, getAndClearNeighborHit(_, testing::Eq(targetIP[0])))
-      .WillRepeatedly(testing::Return(true));
-
-  // Expect one more probe to be sent out before targetIP is expired
-  EXPECT_SWITCHED_PKT(
-      sw,
-      "ARP request",
-      checkArpRequest(senderIP, intf->getMac(), targetIP[0], vlanID));
-
-  // Wait for the first entry to expire
-  std::promise<bool> done2;
-  evb->runInEventBaseThread(
-      [&]() { evb->tryRunAfterDelay([&]() { done2.set_value(true); }, 2050); });
-  done2.get_future().wait();
-
-  // First entry should now be expired
-  EXPECT_TRUE(arpExpirations[0]->wait());
+  EXPECT_TRUE(arpExpiration->wait());
 }
 
 TYPED_TEST(ArpTest, FlushEntryWithConcurrentUpdate) {

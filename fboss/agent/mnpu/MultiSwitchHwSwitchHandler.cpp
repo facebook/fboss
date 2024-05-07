@@ -57,12 +57,6 @@ void MultiSwitchHwSwitchHandler::gracefulExit() {
   // TODO: implement this
 }
 
-bool MultiSwitchHwSwitchHandler::getAndClearNeighborHit(
-    RouterID /*vrf*/,
-    folly::IPAddress& /*ip*/) {
-  return true; // TODO: implement this
-}
-
 bool MultiSwitchHwSwitchHandler::transactionsSupported(
     std::optional<cfg::SdkVersion> sdkVersion) const {
   if (sdkVersion.has_value() && sdkVersion.value().saiSdk().has_value()) {

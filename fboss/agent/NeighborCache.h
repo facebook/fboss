@@ -215,11 +215,6 @@ class NeighborCache {
     return impl_->processEntry(ip);
   }
 
-  // Has the entry corresponding to ip has been hit in hw
-  bool isHit(AddressType ip) {
-    return sw_->getAndClearNeighborHit(RouterID(0), ip);
-  }
-
   // Forbidden copy constructor and assignment operator
   NeighborCache(NeighborCache const&) = delete;
   NeighborCache& operator=(NeighborCache const&) = delete;

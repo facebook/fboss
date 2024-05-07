@@ -1555,16 +1555,6 @@ TYPED_TEST(NdpTest, NdpExpiration) {
   sendNeighborAdvertisement(
       handle.get(), targetIP3.str(), "02:10:20:30:40:24", 1, vlanID);
 
-  // Have getAndClearNeighborHit return false for the first entry,
-  // but true for the others. This should result in the first
-  // entry not being expired, while the others should get expired.
-  EXPECT_HW_CALL(sw, getAndClearNeighborHit(_, testing::Eq(targetIP)))
-      .WillRepeatedly(testing::Return(false));
-  EXPECT_HW_CALL(sw, getAndClearNeighborHit(_, testing::Eq(targetIP2)))
-      .WillRepeatedly(testing::Return(true));
-  EXPECT_HW_CALL(sw, getAndClearNeighborHit(_, testing::Eq(targetIP3)))
-      .WillRepeatedly(testing::Return(true));
-
   // The entries should now be valid instead of pending
   EXPECT_TRUE(neighbor0Reachable.wait());
   EXPECT_TRUE(neighbor1Reachable.wait());
@@ -1581,10 +1571,23 @@ TYPED_TEST(NdpTest, NdpExpiration) {
   EXPECT_NE(entry3, nullptr);
   EXPECT_EQ(entry3->isPending(), false);
 
-  // We should send two more neighbor solicitations for entry 2 & 3
-
+  // We should send neighbor solicitations for entries
   // before we expire them, but this time they're unicast as they're being
   // probed
+  EXPECT_OUT_OF_PORT_PKT(
+      sw,
+      "neighbor solicitation",
+      checkNeighborSolicitation(
+          MockPlatform::getMockLocalMac(),
+          IPAddressV6("2401:db00:2110:3004::"),
+          MacAddress("02:10:20:30:40:22"),
+          targetIP,
+          targetIP,
+          VlanID(5),
+          false),
+      PortID(1),
+      std::optional<uint8_t>(kNCStrictPriorityQueue));
+
   EXPECT_OUT_OF_PORT_PKT(
       sw,
       "neighbor solicitation",
@@ -1613,10 +1616,11 @@ TYPED_TEST(NdpTest, NdpExpiration) {
       PortID(1),
       std::optional<uint8_t>(kNCStrictPriorityQueue));
 
-  // Wait for the second and third entries to expire.
+  // Wait for the entries to expire.
   // We wait 2.5 seconds(plus change):
   // Up to 1.5 seconds for lifetime.
   // 1 more second for probe
+  WaitForNdpEntryExpiration expire0(sw, targetIP, vlanID);
   WaitForNdpEntryExpiration expire1(sw, targetIP2, vlanID);
   WaitForNdpEntryExpiration expire2(sw, targetIP3, vlanID);
   std::promise<bool> done;
@@ -1624,51 +1628,18 @@ TYPED_TEST(NdpTest, NdpExpiration) {
   evb->runInEventBaseThread(
       [&]() { evb->tryRunAfterDelay([&]() { done.set_value(true); }, 2550); });
   done.get_future().wait();
+  EXPECT_TRUE(expire0.wait());
   EXPECT_TRUE(expire1.wait());
   EXPECT_TRUE(expire2.wait());
 
-  // The first entry should not be expired, but the others should be
+  // The entries should be expired
   ndpTable = sw->getState()->getVlans()->getNodeIf(vlanID)->getNdpTable();
   entry = ndpTable->getEntryIf(targetIP);
   entry2 = ndpTable->getEntryIf(targetIP2);
   entry3 = ndpTable->getEntryIf(targetIP3);
-  EXPECT_NE(entry, nullptr);
-  EXPECT_EQ(entry->isPending(), false);
+  EXPECT_EQ(entry, nullptr);
   EXPECT_EQ(entry2, nullptr);
   EXPECT_EQ(entry3, nullptr);
-
-  // Now return true for the getAndClearNeighborHit calls on the first entry
-  EXPECT_HW_CALL(sw, getAndClearNeighborHit(_, testing::Eq(targetIP)))
-      .WillRepeatedly(testing::Return(true));
-
-  // We should see one more solicitation for entry 1 before we expire it
-
-  EXPECT_OUT_OF_PORT_PKT(
-      sw,
-      "neighbor solicitation",
-      checkNeighborSolicitation(
-          MockPlatform::getMockLocalMac(),
-          IPAddressV6("2401:db00:2110:3004::"),
-          MacAddress("02:10:20:30:40:22"),
-          targetIP,
-          targetIP,
-          vlanID,
-          false),
-      PortID(1),
-      std::optional<uint8_t>(kNCStrictPriorityQueue));
-  // Wait for the first entry to expire
-  WaitForNdpEntryExpiration expire0(sw, targetIP, vlanID);
-  std::promise<bool> done2;
-  evb->runInEventBaseThread(
-      [&]() { evb->tryRunAfterDelay([&]() { done2.set_value(true); }, 2050); });
-  done2.get_future().wait();
-  EXPECT_TRUE(expire0.wait());
-
-  // First entry should now be expired
-  entry =
-      sw->getState()->getVlans()->getNodeIf(vlanID)->getNdpTable()->getEntryIf(
-          targetIP);
-  EXPECT_EQ(entry, nullptr);
 }
 
 TYPED_TEST(NdpTest, FlushEntryWithConcurrentUpdate) {
@@ -1914,16 +1885,6 @@ TYPED_TEST(NdpTest, PortFlapRecover) {
   EXPECT_TRUE(neighbor1Reachable.wait());
   EXPECT_TRUE(neighbor2Reachable.wait());
 
-  // Have getAndClearNeighborHit return false for the first entry,
-  // but true for the others. This should result in the first
-  // entry not being expired, while the others should get expired.
-  EXPECT_HW_CALL(sw, getAndClearNeighborHit(_, testing::Eq(targetIP)))
-      .WillRepeatedly(testing::Return(false));
-  EXPECT_HW_CALL(sw, getAndClearNeighborHit(_, testing::Eq(targetIP2)))
-      .WillRepeatedly(testing::Return(true));
-  EXPECT_HW_CALL(sw, getAndClearNeighborHit(_, testing::Eq(targetIP3)))
-      .WillRepeatedly(testing::Return(true));
-
   // The entries should now be valid instead of pending
   ndpTable = sw->getState()->getVlans()->getNodeIf(vlanID)->getNdpTable();
   entry = ndpTable->getEntryIf(targetIP);
@@ -1952,16 +1913,13 @@ TYPED_TEST(NdpTest, PortFlapRecover) {
   // block until updates to neighbor entries have been picked up by SwitchState
   waitForStateUpdates(sw);
 
-  // The first two entries should be pending now, but not the third
+  // The first two entries should be pending now
   EXPECT_TRUE(neigbor0Pending.wait());
   EXPECT_TRUE(neigbor1Pending.wait());
 
   ndpTable = sw->getState()->getVlans()->getNodeIf(vlanID)->getNdpTable();
-  entry = ndpTable->getEntryIf(targetIP);
   entry2 = ndpTable->getEntryIf(targetIP2);
   entry3 = ndpTable->getEntryIf(targetIP3);
-  EXPECT_NE(entry, nullptr);
-  EXPECT_EQ(entry->isPending(), true);
   EXPECT_NE(entry2, nullptr);
   EXPECT_EQ(entry2->isPending(), true);
   EXPECT_NE(entry3, nullptr);

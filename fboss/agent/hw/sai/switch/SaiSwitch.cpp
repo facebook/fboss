@@ -1828,12 +1828,6 @@ bool SaiSwitch::isPortUp(PortID port) const {
   return isPortUpLocked(lock, port);
 }
 
-bool SaiSwitch::getAndClearNeighborHit(
-    RouterID /*vrf*/,
-    folly::IPAddress& /*ip*/) {
-  return true;
-}
-
 void SaiSwitch::clearPortStats(
     const std::unique_ptr<std::vector<int32_t>>& ports) {
   auto& portManager = managerTable_->portManager();

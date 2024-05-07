@@ -344,10 +344,8 @@ class NeighborCacheEntry : private folly::AsyncTimeout {
 
   void probeStaleEntryIfHit() {
     DCHECK(state_ == NeighborEntryState::STALE);
-    if (cache_->isHit(getIP())) {
-      state_ = NeighborEntryState::PROBE;
-      probeIfProbesLeft();
-    }
+    state_ = NeighborEntryState::PROBE;
+    probeIfProbesLeft();
   }
 
   void runStateMachine() {

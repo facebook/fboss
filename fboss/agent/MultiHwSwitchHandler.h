@@ -79,8 +79,6 @@ class MultiHwSwitchHandler {
 
   void gracefulExit();
 
-  bool getAndClearNeighborHit(RouterID vrf, folly::IPAddress& ip);
-
   bool transactionsSupported() const;
 
   std::map<PortID, FabricEndpoint> getFabricConnectivity();

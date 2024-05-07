@@ -319,12 +319,6 @@ class HwSwitch {
   }
 
   /*
-   * Returns true if the arp/ndp entry for the passed in ip/intf has been hit
-   * since the last call to getAndClearNeighborHit.
-   */
-  virtual bool getAndClearNeighborHit(RouterID vrf, folly::IPAddress& ip) = 0;
-
-  /*
    * Clear port stats for specified port
    */
   virtual void clearPortStats(

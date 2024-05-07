@@ -3234,18 +3234,6 @@ bcm_if_t BcmSwitch::getToCPUEgressId() const {
   }
 }
 
-bool BcmSwitch::getAndClearNeighborHit(
-    RouterID /*vrf*/,
-    folly::IPAddress& /*ip*/) {
-  // TODO(aeckert): t20059623 This should look in the host table and
-  // check the hit bit, but that currently requires grabbing the main
-  // lock and opens up the possibility of bg thread getting stuck
-  // behind update thread.  For now, stub this out to return true and
-  // work on adding a better way to communicate hit bit + stale entry
-  // garbage collection.
-  return true;
-}
-
 void BcmSwitch::exitFatal() const {
   utilCreateDir(platform_->getDirectoryUtil()->getCrashInfoDir());
   dumpState(platform_->getDirectoryUtil()->getCrashHwStateFile());

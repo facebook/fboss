@@ -58,12 +58,6 @@ void MonolithicHwSwitchHandler::gracefulExit() {
   hw_->gracefulExit();
 }
 
-bool MonolithicHwSwitchHandler::getAndClearNeighborHit(
-    RouterID vrf,
-    folly::IPAddress& ip) {
-  return hw_->getAndClearNeighborHit(vrf, ip);
-}
-
 folly::dynamic MonolithicHwSwitchHandler::toFollyDynamic() const {
   return hw_->toFollyDynamic();
 }

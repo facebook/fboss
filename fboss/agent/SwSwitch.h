@@ -805,11 +805,6 @@ class SwSwitch : public HwSwitchCallback {
       const std::vector<std::string>& added,
       const std::vector<std::string>& deleted);
 
-  /*
-   * Returns true if the arp/ndp entry for the passed in ip has been hit.
-   */
-  bool getAndClearNeighborHit(RouterID vrf, folly::IPAddress ip);
-
   std::string getConfigStr() const;
   cfg::SwitchConfig getConfig() const;
   cfg::AgentConfig getAgentConfig() const;

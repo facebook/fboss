@@ -1010,10 +1010,6 @@ void SwSwitch::invokeNeighborListener(
   }
 }
 
-bool SwSwitch::getAndClearNeighborHit(RouterID vrf, folly::IPAddress ip) {
-  return multiHwSwitchHandler_->getAndClearNeighborHit(vrf, ip);
-}
-
 void SwSwitch::exitFatal() const noexcept {
   folly::dynamic switchState = folly::dynamic::object;
   // No hwswitch dump for multi swagent exit
