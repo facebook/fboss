@@ -83,41 +83,7 @@ class Path : public BasePath {
   using Tag = _Tag;
   using ParentT = _ParentT;
 
-  Path(
-      std::vector<std::string> tokens,
-      std::vector<std::string> idTokens,
-      ParentT&& parent)
-      : BasePath(std::move(tokens), (std::move(idTokens))),
-        parent_(std::forward<ParentT>(parent)) {}
-
-  Path(std::vector<std::string> tokens, std::vector<std::string> idTokens)
-      : Path(tokens, idTokens, [&]() -> ParentT {
-          if constexpr (std::is_same_v<ParentT, folly::Unit>) {
-            assert(tokens.empty());
-            assert(idTokens.empty());
-            return folly::unit;
-          } else {
-            assert(!tokens.empty());
-            return ParentT(
-                std::vector<std::string>(
-                    tokens.begin(), std::prev(tokens.end())),
-                std::vector<std::string>(
-                    idTokens.begin(), std::prev(idTokens.end())));
-          }
-        }()) {}
-
-  constexpr bool root() const {
-    return std::is_same_v<ParentT, folly::Unit>;
-  }
-
-  const ParentT& parent() {
-    return parent_;
-  }
-
- private:
-  // TODO: reduce memory usage by only storing begin/end in parent
-  // paths as a view type
-  ParentT parent_;
+  using BasePath::BasePath;
 };
 
 template <typename T>
