@@ -455,7 +455,7 @@ TEST_P(AgentPortBandwidthParamTest, VerifyPortRateTraffic) {
   if (!profileID.has_value()) {
     XLOG(DBG0) << "No profile supporting speed " << static_cast<int>(portSpeed)
                << " for the this platform, skipping test!";
-    throw FbossError("No profile supporting speed");
+    GTEST_SKIP();
   }
   verifyPortRateTraffic(portSpeed);
 }
