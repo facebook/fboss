@@ -13,7 +13,7 @@ namespace facebook::fboss {
 
 class DsfSession {
  public:
-  explicit DsfSession(std::string nodeName);
+  explicit DsfSession(const std::string& remoteEndpoint);
   ~DsfSession() = default;
 
   void localSubStateChanged(fsdb::FsdbSubscriptionState newState);
@@ -28,7 +28,7 @@ class DsfSession {
 
   void changeSessionState(DsfSessionState newState);
 
-  std::string nodeName_;
+  std::string remoteEndpoint_;
   fsdb::FsdbSubscriptionState localSubState_{
       fsdb::FsdbSubscriptionState::DISCONNECTED};
   fsdb::FsdbSubscriptionState remoteSubState_{

@@ -11,7 +11,8 @@ namespace facebook::fboss {
 
 using fsdb::FsdbSubscriptionState;
 
-DsfSession::DsfSession(std::string nodeName) : nodeName_(std::move(nodeName)) {}
+DsfSession::DsfSession(const std::string& remoteEndpoint)
+    : remoteEndpoint_(remoteEndpoint) {}
 
 void DsfSession::localSubStateChanged(fsdb::FsdbSubscriptionState newState) {
   localSubState_ = newState;
@@ -36,8 +37,9 @@ void DsfSession::changeSessionState(DsfSessionState newState) {
   if (newState == state_) {
     return;
   }
-  XLOG(DBG2) << nodeName_ << ": " << apache::thrift::util::enumNameSafe(state_)
-             << " --> " << apache::thrift::util::enumNameSafe(newState);
+  XLOG(DBG2) << remoteEndpoint_ << ": "
+             << apache::thrift::util::enumNameSafe(state_) << " --> "
+             << apache::thrift::util::enumNameSafe(newState);
 
   if (newState == DsfSessionState::ESTABLISHED) {
     lastEstablishedAt_ =
@@ -68,7 +70,7 @@ DsfSessionState DsfSession::calculateSessionState(
 
 DsfSessionThrift DsfSession::toThrift() const {
   DsfSessionThrift ret;
-  ret.remoteName() = nodeName_;
+  ret.remoteName() = remoteEndpoint_;
   ret.state() = state_;
   ret.lastEstablishedAt().from_optional(lastEstablishedAt_);
   ret.lastDisconnectedAt().from_optional(lastDisconnectedAt_);
