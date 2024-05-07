@@ -13,7 +13,6 @@ target_link_libraries(fsdb_oper_metadata_tracker
   fsdb_oper_cpp2
 )
 
-if (FBOSS_CENTOS9)
 add_library(fsdb_handler
   fboss/fsdb/server/FsdbConfig.cpp
   fboss/fsdb/server/ServiceHandler.cpp
@@ -52,4 +51,3 @@ target_link_libraries(fsdb
   fsdb_server
   fboss_init
 )
-endif()

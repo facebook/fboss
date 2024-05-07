@@ -208,7 +208,6 @@ add_library(core
   fboss/agent/oss/FsdbSyncer.cpp
 )
 
-if (FBOSS_CENTOS9)
 add_library(
    agent_fsdb_sync_manager
    fboss/agent/AgentFsdbSyncManager.cpp
@@ -224,7 +223,6 @@ target_link_libraries(
   tuple_utils
   switch_state_cpp2
 )
-endif()
 
 set(core_libs
   agent_config_cpp2
@@ -278,11 +276,8 @@ set(core_libs
   loadbalancer_utils
   monolithic_switch_handler
   l2learn_event_observer
+  agent_fsdb_sync_manager
 )
-
-if (FBOSS_CENTOS9)
-  list(APPEND core_libs agent_fsdb_sync_manager)
-endif()
 
 target_link_libraries(core ${core_libs})
 

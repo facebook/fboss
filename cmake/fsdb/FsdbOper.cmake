@@ -3,8 +3,6 @@
 # In general, libraries and binaries in fboss/foo/bar are built by
 # cmake/FooBar.cmake
 
-if (FBOSS_CENTOS9)
-
 add_library(subscription_manager
   fboss/fsdb/oper/DeltaValue.h
   fboss/fsdb/oper/CowDeletePathTraverseHelper.h
@@ -73,4 +71,3 @@ target_link_libraries(subscribable_storage
   Folly::folly
   fb303::fb303
 )
-endif()
