@@ -72,10 +72,6 @@ void MonolithicHwSwitchHandler::onHwInitialized(HwSwitchCallback* callback) {
   platform_->onHwInitialized(callback);
 }
 
-void MonolithicHwSwitchHandler::platformStop() {
-  platform_->stop();
-}
-
 bool MonolithicHwSwitchHandler::transactionsSupported(
     std::optional<cfg::SdkVersion> /*sdkVersion*/) const {
   // TODO use sdk version to determine if transactions are supported

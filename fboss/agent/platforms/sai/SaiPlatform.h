@@ -59,7 +59,6 @@ class SaiPlatform : public Platform, public StateObserver {
   std::string getHwConfigDumpFile();
   void generateHwConfigFile();
   virtual sai_service_method_table_t* getServiceMethodTable() const;
-  void stop() override;
   HwSwitchWarmBootHelper* getWarmBootHelper() override;
   void stateUpdated(const StateDelta& delta) override;
 

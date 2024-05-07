@@ -82,8 +82,6 @@ WedgePlatform::BcmPlatformPortMap WedgePlatform::getPlatformPortMap() {
   return mapping;
 }
 
-void WedgePlatform::stop() {}
-
 void WedgePlatform::onHwInitialized(HwSwitchCallback* sw) {
   // could populate with initial ports here, but should get taken care
   // of through state changes sent to the stateUpdated method.

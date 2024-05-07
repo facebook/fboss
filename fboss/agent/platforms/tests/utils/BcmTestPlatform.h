@@ -35,7 +35,6 @@ class BcmTestPlatform : public BcmPlatform {
 
   HwSwitch* getHwSwitch() const override;
   void onHwInitialized(HwSwitchCallback* sw) override;
-  void stop() override;
   std::shared_ptr<apache::thrift::AsyncProcessorFactory> createHandler()
       override {
     return nullptr;

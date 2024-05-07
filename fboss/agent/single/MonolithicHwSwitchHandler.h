@@ -78,8 +78,6 @@ class MonolithicHwSwitchHandler : public HwSwitchHandler {
   // platform access apis
   void onHwInitialized(HwSwitchCallback* callback);
 
-  void platformStop();
-
   std::pair<fsdb::OperDelta, HwSwitchStateUpdateStatus> stateChanged(
       const fsdb::OperDelta& delta,
       bool transaction,

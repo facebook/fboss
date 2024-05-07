@@ -43,8 +43,6 @@ class WedgePlatform : public BcmPlatform, public StateObserver {
   void initPorts() override;
   BcmPlatformPortMap getPlatformPortMap() override;
 
-  void stop() override;
-
   void stateUpdated(const StateDelta& /*delta*/) override;
 
   virtual std::unique_ptr<WedgePortMapping> createPortMapping() = 0;

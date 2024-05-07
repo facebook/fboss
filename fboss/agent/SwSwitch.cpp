@@ -2219,10 +2219,6 @@ void SwSwitch::stopThreads() {
       updatesDrained = pendingUpdates_.empty();
     }
   } while (!updatesDrained);
-
-  if (isRunModeMonolithic()) {
-    getMonolithicHwSwitchHandler()->platformStop();
-  }
 }
 
 void SwSwitch::threadLoop(StringPiece name, EventBase* eventBase) {

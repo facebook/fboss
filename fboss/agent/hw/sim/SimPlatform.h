@@ -26,7 +26,6 @@ class SimPlatform : public Platform {
 
   HwSwitch* getHwSwitch() const override;
   void onHwInitialized(HwSwitchCallback* sw) override;
-  void stop() override;
   void stateChanged(const StateDelta& /*delta*/) override {}
 
   std::shared_ptr<apache::thrift::AsyncProcessorFactory> createHandler()
