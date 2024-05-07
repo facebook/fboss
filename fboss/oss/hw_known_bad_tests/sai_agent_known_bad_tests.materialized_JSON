@@ -2783,6 +2783,9 @@
           "test_name_regex": "AgentMacLearningTest.VerifyMacLearningScale$"
         },
         {
+          "test_name_regex": "AgentPacketSendTest.PortTxEnableTest$"
+        },
+        {
           "test_name_regex": "AgentDeepPacketInspectionTest.*$"
         },
         {
@@ -2900,6 +2903,9 @@
         },
         {
           "test_name_regex": "AgentMacLearningTest.VerifyMacLearningScale$"
+        },
+        {
+          "test_name_regex": "AgentPacketSendTest.PortTxEnableTest$"
         },
         {
           "test_name_regex": "AgentDeepPacketInspectionTest.*$"
@@ -3033,6 +3039,9 @@
           "test_name_regex": "AgentMacLearningTest.VerifyMacLearningScale$"
         },
         {
+          "test_name_regex": "AgentPacketSendTest.PortTxEnableTest$"
+        },
+        {
           "test_name_regex": "AgentPortBandwidthTest.VerifyQueueShaper$"
         },
         {
@@ -3144,6 +3153,9 @@
         },
         {
           "test_name_regex": "AgentMacLearningTest.VerifyMacLearningScale$"
+        },
+        {
+          "test_name_regex": "AgentPacketSendTest.PortTxEnableTest$"
         },
         {
           "test_name_regex": "AgentPortBandwidthTest.VerifyQueueShaper$"
