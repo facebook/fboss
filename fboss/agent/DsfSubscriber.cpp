@@ -21,6 +21,7 @@
 
 #include <memory>
 
+using namespace facebook::fboss;
 namespace {
 const thriftpath::RootThriftPath<facebook::fboss::fsdb::FsdbOperStateRoot>
     stateRoot;
@@ -41,6 +42,18 @@ std::set<folly::CIDRNetwork> getLoopbackIpsSortedForDsfSessions(
           loopbackIpsSortedForDsfSessions.end()));
 
   return loopbackIpsSortedForDsfSessions;
+}
+
+fsdb::FsdbStreamClient::ServerOptions getServerOptions(
+    const std::string& srcIP,
+    const std::string& dstIP) {
+  // Subscribe to FSDB of DSF node in the cluster with:
+  //  dstIP = inband IP of that DSF node
+  //  dstPort = FSDB port
+  //  srcIP = self inband IP
+  //  priority = CRITICAL
+  return fsdb::FsdbStreamClient::ServerOptions(
+      dstIP, FLAGS_fsdbPort, srcIP, fsdb::FsdbStreamClient::Priority::CRITICAL);
 }
 
 } // anonymous namespace
@@ -176,21 +189,6 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
         }
         throw FbossError("Could not find loopback IP for any local VOQ switch");
       };
-  auto getServerOptions = [](const std::string& srcIP, const auto& dstIP) {
-    // Subscribe to FSDB of DSF node in the cluster with:
-    //  dstIP = inband IP of that DSF node
-    //  dstPort = FSDB port
-    //  srcIP = self inband IP
-    //  priority = CRITICAL
-    auto serverOptions = fsdb::FsdbStreamClient::ServerOptions(
-        dstIP,
-        FLAGS_fsdbPort,
-        srcIP,
-        fsdb::FsdbStreamClient::Priority::CRITICAL);
-
-    return serverOptions;
-  };
-
   auto addDsfNode = [&](const std::shared_ptr<DsfNode>& node) {
     // No need to setup subscriptions to (local) yourself
     // Only IN nodes have control plane, so ignore non IN DSF nodes
