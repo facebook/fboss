@@ -475,6 +475,17 @@ std::vector<PortID> AgentEnsemble::masterLogicalPortIds(
   return switchId2PortIds_.at(switchId);
 }
 
+void AgentEnsemble::clearPortStats() {
+  auto portsVec = std::make_unique<std::vector<int32_t>>();
+  for (const auto& [key, ports] :
+       std::as_const(*getProgrammedState()->getPorts())) {
+    for (const auto& [id, port] : std::as_const(*ports)) {
+      portsVec->push_back(id);
+    }
+  }
+  clearPortStats(std::move(portsVec));
+}
+
 void AgentEnsemble::clearPortStats(
     const std::unique_ptr<std::vector<int32_t>>& ports) {
   ThriftHandler(getSw()).clearPortStats(
