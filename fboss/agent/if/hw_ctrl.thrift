@@ -11,6 +11,8 @@ include "fboss/agent/if/ctrl.thrift"
 include "fboss/lib/phy/phy.thrift"
 include "fboss/lib/phy/prbs.thrift"
 
+const i32 DEFAULT_HW_CTRL_BASE_PORT = 5931;
+
 struct RemoteEndpoint {
   1: i64 switchId;
   2: string switchName;
