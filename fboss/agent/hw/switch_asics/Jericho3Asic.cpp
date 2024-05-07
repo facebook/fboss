@@ -273,7 +273,8 @@ Jericho3Asic::desiredLoopbackModes() const {
       {cfg::PortType::INTERFACE_PORT, cfg::PortLoopbackMode::PHY},
       {cfg::PortType::MANAGEMENT_PORT, cfg::PortLoopbackMode::PHY},
       {cfg::PortType::FABRIC_PORT, cfg::PortLoopbackMode::MAC},
-      {cfg::PortType::RECYCLE_PORT, cfg::PortLoopbackMode::NONE}};
+      {cfg::PortType::RECYCLE_PORT, cfg::PortLoopbackMode::NONE},
+      {cfg::PortType::EVENTOR_PORT, cfg::PortLoopbackMode::NONE}};
   return kLoopbackMode;
 }
 
