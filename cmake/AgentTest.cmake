@@ -124,6 +124,7 @@ target_link_libraries(agent_hw_test
   switch_asics
   hw_copp_utils
   stats_test_utils
+  hardware_stats_cpp2
   ${GTEST}
 )
 

@@ -2,6 +2,7 @@
 
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/HwAsicTable.h"
+#include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/test/utils/StatsTestUtils.h"
@@ -184,6 +185,13 @@ std::map<PortID, HwPortStats> AgentHwTest::getLatestPortStats(
   checkWithRetry(
       [&portStats, &ports, this]() {
         portStats = getSw()->getHwPortStats(ports);
+        // Check collect timestamp is valid
+        for (const auto& [portId, portStats] : portStats) {
+          if (*portStats.timestamp__ref() ==
+              hardware_stats_constants::STAT_UNINITIALIZED()) {
+            return false;
+          }
+        }
         return !portStats.empty();
       },
       120,
