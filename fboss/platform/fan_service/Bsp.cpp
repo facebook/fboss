@@ -221,7 +221,13 @@ void Bsp::processOpticEntries(
         break;
       case MediaInterfaceCode::FR4_400G:
       case MediaInterfaceCode::LR4_400G_10KM:
+      case MediaInterfaceCode::DR4_400G:
         opticType = constants::OPTIC_TYPE_400_GENERIC();
+        break;
+      case MediaInterfaceCode::FR4_2x400G:
+      case MediaInterfaceCode::DR4_2x400G:
+      case MediaInterfaceCode::FR8_800G:
+        opticType = constants::OPTIC_TYPE_800_GENERIC();
         break;
       default:
         XLOG(ERR) << fmt::format(
