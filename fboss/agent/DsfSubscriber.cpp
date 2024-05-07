@@ -241,7 +241,7 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
     auto nodeSwitchId = node->getSwitchId();
     dsfSessions_.wlock()->erase(nodeName);
 
-    auto localIps = getLocalIps(stateDelta.newState());
+    auto localIps = getLocalIps(stateDelta.oldState());
     for (const auto& [_, dstIPAddr] :
          getDsfSessionIps(localIps, node->getLoopbackIpsSorted())) {
       auto dstIP = dstIPAddr.str();
