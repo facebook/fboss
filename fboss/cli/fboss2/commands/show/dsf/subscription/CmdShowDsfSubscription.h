@@ -58,8 +58,7 @@ class CmdShowDsfSubscription
         });
     for (const auto& subscriptionThrift : subscriptions) {
       cli::Subscription subscription;
-      subscription.name() = folly::sformat(
-          "{}::{}", *subscriptionThrift.name(), *subscriptionThrift.ip());
+      subscription.name() = *subscriptionThrift.subscriptionId();
       auto sitr = remoteNode2DsfSession.find(*subscription.name());
       if (sitr != remoteNode2DsfSession.end()) {
         auto session = remoteNode2DsfSession.find(*subscription.name())->second;
