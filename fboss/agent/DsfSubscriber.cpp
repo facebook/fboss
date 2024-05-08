@@ -294,8 +294,8 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
 
 void DsfSubscriber::processGRHoldTimerExpired(
     const std::string& nodeName,
-    const SwitchID& nodeSwitchId) {
-  auto updateDsfStateFn = [this, nodeName, nodeSwitchId](
+    const std::set<SwitchID>& allNodeSwitchIDs) {
+  auto updateDsfStateFn = [this, nodeName, allNodeSwitchIDs](
                               const std::shared_ptr<SwitchState>& in) {
     bool changed{false};
     auto out = in->clone();
@@ -303,10 +303,10 @@ void DsfSubscriber::processGRHoldTimerExpired(
     auto remoteSystemPorts = out->getRemoteSystemPorts()->modify(&out);
     for (auto& [_, remoteSystemPortMap] : *remoteSystemPorts) {
       for (auto& [_, remoteSystemPort] : *remoteSystemPortMap) {
-        // GR timeout expired for nodeSwitchId.
+        // GR timeout expired for an Interface Node.
         // Mark all remote system ports synced over control plane (i.e.
-        // DYNAMIC) as STALE.
-        if (remoteSystemPort->getSwitchId() == nodeSwitchId &&
+        // DYNAMIC) as STALE for every switchID on that Interface Node.
+        if (allNodeSwitchIDs.count(remoteSystemPort->getSwitchId()) > 0 &&
             remoteSystemPort->getRemoteSystemPortType().has_value() &&
             remoteSystemPort->getRemoteSystemPortType().value() ==
                 RemoteSystemPortType::DYNAMIC_ENTRY) {
@@ -329,11 +329,12 @@ void DsfSubscriber::processGRHoldTimerExpired(
 
         if (remoteSystemPort) {
           auto switchID = remoteSystemPort->getSwitchId();
-          // GR timeout expired for nodeSwitchId.
+          // GR timeout expired for an Interface Node.
           // Mark all remote interfaces synced over control plane (i.e.
-          // DYNAMIC) as STALE and remove all the neighbor entries on that
-          // interface.
-          if (switchID == nodeSwitchId &&
+          // DYNAMIC) as STALE for every switchID on that Interface Node,
+          // Remove all the neighbor entries on that interface.
+          if (allNodeSwitchIDs.count(switchID) > 0 &&
+
               remoteInterface->getRemoteInterfaceType().has_value() &&
               remoteInterface->getRemoteInterfaceType().value() ==
                   RemoteInterfaceType::DYNAMIC_ENTRY) {
@@ -403,7 +404,14 @@ void DsfSubscriber::handleFsdbSubscriptionStateUpdate(
   }
 
   if (fsdb::isGRHoldExpired(newState)) {
-    processGRHoldTimerExpired(remoteNodeName, remoteSwitchId);
+    // There is a single DSF subscription to every remote Interface Node even
+    // if the remote Interface Node is a multi ASIC system.
+    // Thus, when GR hold timer expires for a specific switchID, process every
+    // switchID (every ASIC) on that remote Interface Node.
+    processGRHoldTimerExpired(
+        remoteNodeName,
+        getAllSwitchIDsForSwitch(
+            this->sw_->getState()->getDsfNodes(), remoteSwitchId));
   }
 }
 

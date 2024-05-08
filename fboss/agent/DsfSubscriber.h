@@ -78,7 +78,7 @@ class DsfSubscriber : public StateObserver {
   bool isLocal(SwitchID nodeSwitchId) const;
   void processGRHoldTimerExpired(
       const std::string& nodeName,
-      const SwitchID& nodeSwitchId);
+      const std::set<SwitchID>& allNodeSwitchIDs);
 
   SwSwitch* sw_;
   std::unique_ptr<fsdb::FsdbPubSubManager> fsdbPubSubMgr_;
