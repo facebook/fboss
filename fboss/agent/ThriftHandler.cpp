@@ -3088,10 +3088,15 @@ void ThriftHandler::getDsfSubscriptions(
     for (const auto& [_, node] : std::as_const(*dsfNodes)) {
       if (node->getType() == cfg::DsfNodeType::INTERFACE_NODE &&
           node->getLoopbackIps()->size()) {
-        const auto loopbackIp = (*node->getLoopbackIps()->cbegin())->toThrift();
-        loopbackIpToName.emplace(
-            IPAddress(loopbackIp.substr(0, loopbackIp.find("/"))),
-            node->getName());
+        auto loopbackIps = node->getLoopbackIps()->toThrift();
+        std::for_each(
+            loopbackIps.begin(),
+            loopbackIps.end(),
+            [&loopbackIpToName, node = node](const auto& loopbackSubnet) {
+              loopbackIpToName.emplace(
+                  IPAddress(loopbackSubnet.substr(0, loopbackSubnet.find("/"))),
+                  node->getName());
+            });
       }
     }
   }

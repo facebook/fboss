@@ -730,10 +730,12 @@ TYPED_TEST(ThriftTestAllSwitchTypes, getDsfSubscriptions) {
     this->sw_->applyConfig("Config with 1 more IN node", config);
 
     handler.getDsfSubscriptions(subscriptions);
-    EXPECT_EQ(subscriptions.size(), 1);
-    EXPECT_EQ(*subscriptions[0].name(), *dsfNodeCfg.name());
-    EXPECT_EQ((*subscriptions[0].paths()).size(), 3);
-    EXPECT_EQ(*subscriptions[0].state(), "DISCONNECTED");
+    EXPECT_EQ(subscriptions.size(), 2);
+    for (const auto& subscription : subscriptions) {
+      EXPECT_EQ(*subscription.name(), *dsfNodeCfg.name());
+      EXPECT_EQ((*subscription.paths()).size(), 3);
+      EXPECT_EQ(*subscription.state(), "DISCONNECTED");
+    }
   }
 }
 
