@@ -652,6 +652,10 @@ void addRecylePortRifNeighbors(
       nbrThrift.ip() = facebook::network::toBinaryAddress(entry->getIP());
       nbrThrift.mac() = entry->getMac().toString();
       nbrThrift.port() = kRecyclePortId;
+      nbrThrift.portDescriptor()->portId() = kRecyclePortId;
+      nbrThrift.portDescriptor()->portType() =
+          cfg::PortDescriptorType::Physical;
+
       nbrThrift.vlanName() = "--";
       nbrThrift.interfaceID() = kRecyclePortId;
       // Local recycle port for RIF, should always be STATIC
@@ -1005,6 +1009,9 @@ void ThriftHandler::addRemoteNeighbors(
         nbrThrift.mac() = entry->getMac().toString();
         CHECK(rif->getSystemPortID().has_value());
         nbrThrift.port() = static_cast<int32_t>(*rif->getSystemPortID());
+        nbrThrift.portDescriptor()->portId() = *rif->getSystemPortID();
+        nbrThrift.portDescriptor()->portType() =
+            cfg::PortDescriptorType::SystemPort;
         nbrThrift.vlanName() = "--";
         nbrThrift.interfaceID() = static_cast<int32_t>(*rif->getSystemPortID());
 
