@@ -278,6 +278,17 @@ ExtendedSpecComplianceCode Sff8472Module::getExtendedSpecComplianceCode()
       getSettingsValue(Sff8472Field::EXTENDED_SPEC_COMPLIANCE_CODE));
 }
 
+TransmitterTechnology Sff8472Module::getQsfpTransmitterTechnology() const {
+  switch (getModuleMediaInterface()) {
+    case MediaInterfaceCode::LR_10G:
+      return TransmitterTechnology::OPTICAL;
+    case MediaInterfaceCode::BASE_T_10G:
+      return TransmitterTechnology::COPPER;
+    default:
+      return TransmitterTechnology::UNKNOWN;
+  }
+}
+
 double Sff8472Module::getSfpSensor(
     Sff8472Field field,
     double (*conversion)(uint16_t value)) {
