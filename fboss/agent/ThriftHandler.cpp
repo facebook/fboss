@@ -3112,6 +3112,8 @@ void ThriftHandler::getDsfSubscriptions(
     if (loopbackIpToName.find(serverIp) != loopbackIpToName.end()) {
       subscriptionThrift.name() = loopbackIpToName[serverIp];
       subscriptionThrift.ip() = serverIp.str();
+      subscriptionThrift.subscriptionId() = DsfSubscriber::makeRemoteEndpoint(
+          *subscriptionThrift.name(), serverIp);
       subscriptions.push_back(subscriptionThrift);
     } else {
       XLOG(ERR) << "Unable to find loopback ip " << subscriptionInfo.server

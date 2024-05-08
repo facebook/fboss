@@ -721,6 +721,8 @@ struct FsdbSubscriptionThrift {
   2: list<string> paths;
   3: string state;
   4: string ip;
+  // Unique ID for subscription to name, ip
+  5: string subscriptionId;
 }
 
 enum DsfSessionState {
