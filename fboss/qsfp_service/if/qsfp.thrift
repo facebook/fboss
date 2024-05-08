@@ -69,6 +69,14 @@ service QsfpService extends phy.FbossCommonPhyCtrl {
   void pauseRemediation(1: i32 timeout, 2: list<string> portList);
 
   /*
+  * Qsfp service has an internal remediation loop and may potentially perform
+  * interruptive operation to modules that carry no active(up) link. However
+  * it may cause some confusion for debugging. This function is to tell
+  * qsfp-service to unpause remediation.
+  */
+  void unpauseRemediation(1: list<string> portList);
+
+  /*
    * Qsfp service has an internal remediation loop and may potentially perform
    * interruptive operation to modules that carry no active(up) link. However
    * it may cause some confusion for debugging. This function is to tell
