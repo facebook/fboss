@@ -75,7 +75,7 @@ class AgentL4PortBlackHolingTest : public AgentHwTest {
       auto original = *originalPortStats.outUnicastPkts_();
       pumpTraffic(isV6);
 
-      WITH_RETRIES({
+      WITH_RETRIES_N_TIMED(90, std::chrono::milliseconds(1000), {
         auto newPortStats = getLatestPortStats(portId);
         auto current = *newPortStats.outUnicastPkts_();
         XLOGF(
