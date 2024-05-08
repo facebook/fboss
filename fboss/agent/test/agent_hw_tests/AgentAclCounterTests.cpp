@@ -389,7 +389,8 @@ class AgentAclCounterTest : public AgentHwTest {
 
   auto verifyAclType(bool bumpOnHit, bool frontPanel, AclType aclType) {
     auto egressPort = helper_->ecmpPortDescriptorAt(0).phyPortID();
-    auto pktsBefore = *getLatestPortStats(egressPort).outUnicastPkts__ref();
+    auto pktsBefore =
+        *getNextUpdatedPortStats(egressPort).outUnicastPkts__ref();
     auto aclPktCountBefore =
         utility::getAclInOutPackets(getSw(), getCounterName(aclType));
     auto aclBytesCountBefore = utility::getAclInOutPackets(
@@ -410,7 +411,8 @@ class AgentAclCounterTest : public AgentHwTest {
       auto aclBytesCountAfter = utility::getAclInOutPackets(
           getSw(), getCounterName(aclType), true /* bytes */);
 
-      auto pktsAfter = *getLatestPortStats(egressPort).outUnicastPkts__ref();
+      auto pktsAfter =
+          *getNextUpdatedPortStats(egressPort).outUnicastPkts__ref();
       XLOG(DBG2) << "\n"
                  << "PacketCounter: " << pktsBefore << " -> " << pktsAfter
                  << "\n"
