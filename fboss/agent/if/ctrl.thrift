@@ -720,6 +720,7 @@ struct FsdbSubscriptionThrift {
   1: string name;
   2: list<string> paths;
   3: string state;
+  4: string ip;
 }
 
 enum DsfSessionState {

@@ -3106,6 +3106,7 @@ void ThriftHandler::getDsfSubscriptions(
     auto serverIp = IPAddress(subscriptionInfo.server);
     if (loopbackIpToName.find(serverIp) != loopbackIpToName.end()) {
       subscriptionThrift.name() = loopbackIpToName[serverIp];
+      subscriptionThrift.ip() = serverIp.str();
       subscriptions.push_back(subscriptionThrift);
     } else {
       XLOG(ERR) << "Unable to find loopback ip " << subscriptionInfo.server
