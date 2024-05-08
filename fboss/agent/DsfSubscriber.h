@@ -52,6 +52,9 @@ class DsfSubscriber : public StateObserver {
   }
 
   std::vector<DsfSessionThrift> getDsfSessionsThrift() const;
+  static std::string makeRemoteEndpoint(
+      const std::string& remoteNode,
+      const folly::IPAddress& remoteIP);
 
  private:
   void scheduleUpdate(

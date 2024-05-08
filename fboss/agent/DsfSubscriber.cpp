@@ -58,12 +58,6 @@ std::map<folly::IPAddress, folly::IPAddress> getDsfSessionIps(
   return dsfSessionIps;
 }
 
-std::string makeRemoteEndpoint(
-    const std::string& remoteNode,
-    const folly::IPAddress& remoteIP) {
-  return folly::sformat("{}::{}", remoteNode, remoteIP.str());
-}
-
 const auto& getSystemPortsPath() {
   static auto path = stateRoot.agent().switchState().systemPortMaps();
   return path;
@@ -86,7 +80,8 @@ std::vector<std::vector<std::string>> getAllSubscribePaths(
       getSystemPortsPath().tokens(),
       getInterfacesPath().tokens(),
       // When subscribing to remote node - localNodeName, localIP is remote
-      getDsfSubscriptionsPath(makeRemoteEndpoint(localNodeName, localIP))
+      getDsfSubscriptionsPath(
+          DsfSubscriber::makeRemoteEndpoint(localNodeName, localIP))
           .tokens()};
 }
 
@@ -106,6 +101,12 @@ DsfSubscriber::DsfSubscriber(SwSwitch* sw)
 
 DsfSubscriber::~DsfSubscriber() {
   stop();
+}
+
+std::string DsfSubscriber::makeRemoteEndpoint(
+    const std::string& remoteNode,
+    const folly::IPAddress& remoteIP) {
+  return folly::sformat("{}::{}", remoteNode, remoteIP.str());
 }
 
 bool DsfSubscriber::isLocal(SwitchID nodeSwitchId) const {
