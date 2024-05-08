@@ -256,6 +256,36 @@ TEST_F(CmisTest, cmis200GTransceiverInfoTest) {
   EXPECT_TRUE(xcvr->isPrbsSupported(phy::Side::SYSTEM));
   EXPECT_FALSE(xcvr->isSnrSupported(phy::Side::LINE));
   EXPECT_FALSE(xcvr->isSnrSupported(phy::Side::SYSTEM));
+
+  TransceiverPortState goodPortState1{
+      "", 0, cfg::PortSpeed::TWOHUNDREDG, 4, TransmitterTechnology::OPTICAL};
+  TransceiverPortState goodPortState2{
+      "", 0, cfg::PortSpeed::HUNDREDG, 4, TransmitterTechnology::OPTICAL};
+  for (auto portState : {goodPortState1, goodPortState2}) {
+    EXPECT_TRUE(xcvr->tcvrPortStateSupported(portState));
+  }
+
+  TransceiverPortState badPortState1{
+      "",
+      0,
+      cfg::PortSpeed::HUNDREDG,
+      4,
+      TransmitterTechnology::COPPER}; // Copper not supported
+  TransceiverPortState badPortState2{
+      "",
+      0,
+      cfg::PortSpeed::FOURHUNDREDG,
+      8,
+      TransmitterTechnology::OPTICAL}; // 400G not supported
+  TransceiverPortState badPortState3{
+      "",
+      1,
+      cfg::PortSpeed::HUNDREDG,
+      4,
+      TransmitterTechnology::OPTICAL}; // BAD START LANE
+  for (auto portState : {badPortState1, badPortState2, badPortState3}) {
+    EXPECT_FALSE(xcvr->tcvrPortStateSupported(portState));
+  }
 }
 
 TEST_F(CmisTest, cmis400GLr4TransceiverInfoTest) {
@@ -418,6 +448,36 @@ TEST_F(CmisTest, cmis400GLr4TransceiverInfoTest) {
               static_cast<uint8_t>(supportedApplication), lane),
           std::nullopt);
     }
+  }
+
+  TransceiverPortState goodPortState1{
+      "", 0, cfg::PortSpeed::TWOHUNDREDG, 4, TransmitterTechnology::OPTICAL};
+  TransceiverPortState goodPortState2{
+      "", 0, cfg::PortSpeed::FOURHUNDREDG, 8, TransmitterTechnology::OPTICAL};
+  for (auto portState : {goodPortState1, goodPortState2}) {
+    EXPECT_TRUE(xcvr->tcvrPortStateSupported(portState));
+  }
+
+  TransceiverPortState badPortState1{
+      "",
+      0,
+      cfg::PortSpeed::HUNDREDG,
+      4,
+      TransmitterTechnology::COPPER}; // Copper not supported
+  TransceiverPortState badPortState2{
+      "",
+      0,
+      cfg::PortSpeed::HUNDREDG,
+      4,
+      TransmitterTechnology::OPTICAL}; // 100G not supported
+  TransceiverPortState badPortState3{
+      "",
+      1,
+      cfg::PortSpeed::HUNDREDG,
+      4,
+      TransmitterTechnology::OPTICAL}; // BAD START LANE
+  for (auto portState : {badPortState1, badPortState2, badPortState3}) {
+    EXPECT_FALSE(xcvr->tcvrPortStateSupported(portState));
   }
 }
 
@@ -646,6 +706,41 @@ TEST_F(CmisTest, cmis2x400GFr4TransceiverInfoTest) {
   EXPECT_TRUE(xcvr->isPrbsSupported(phy::Side::SYSTEM));
   EXPECT_TRUE(xcvr->isSnrSupported(phy::Side::LINE));
   EXPECT_TRUE(xcvr->isSnrSupported(phy::Side::SYSTEM));
+
+  TransceiverPortState goodPortState1{
+      "", 0, cfg::PortSpeed::TWOHUNDREDG, 4, TransmitterTechnology::OPTICAL};
+  TransceiverPortState goodPortState2{
+      "", 0, cfg::PortSpeed::HUNDREDG, 4, TransmitterTechnology::OPTICAL};
+  TransceiverPortState goodPortState3{
+      "", 0, cfg::PortSpeed::FOURHUNDREDG, 4, TransmitterTechnology::OPTICAL};
+  TransceiverPortState goodPortState4{
+      "", 4, cfg::PortSpeed::FOURHUNDREDG, 4, TransmitterTechnology::OPTICAL};
+  for (auto portState :
+       {goodPortState1, goodPortState2, goodPortState3, goodPortState4}) {
+    EXPECT_TRUE(xcvr->tcvrPortStateSupported(portState));
+  }
+
+  TransceiverPortState badPortState1{
+      "",
+      0,
+      cfg::PortSpeed::HUNDREDG,
+      4,
+      TransmitterTechnology::COPPER}; // Copper not supported
+  TransceiverPortState badPortState2{
+      "",
+      0,
+      cfg::PortSpeed::FORTYG,
+      4,
+      TransmitterTechnology::OPTICAL}; // 40G not supported
+  TransceiverPortState badPortState3{
+      "",
+      1,
+      cfg::PortSpeed::HUNDREDG,
+      4,
+      TransmitterTechnology::OPTICAL}; // BAD START LANE
+  for (auto portState : {badPortState1, badPortState2, badPortState3}) {
+    EXPECT_FALSE(xcvr->tcvrPortStateSupported(portState));
+  }
 }
 
 TEST_F(CmisTest, cmis2x400GFr4TransceiverVdmTest) {

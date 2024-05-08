@@ -140,6 +140,36 @@ TEST_F(SffTest, cwdm4TransceiverInfoTest) {
 
   // This test will write registers, save it to the last
   testCachedMediaSignals(xcvr);
+
+  TransceiverPortState goodPortState1{
+      "", 0, cfg::PortSpeed::HUNDREDG, 4, TransmitterTechnology::OPTICAL};
+  TransceiverPortState goodPortState2{
+      "", 0, cfg::PortSpeed::FORTYG, 4, TransmitterTechnology::OPTICAL};
+  for (auto portState : {goodPortState1, goodPortState2}) {
+    EXPECT_TRUE(xcvr->tcvrPortStateSupported(portState));
+  }
+
+  TransceiverPortState badPortState1{
+      "",
+      0,
+      cfg::PortSpeed::HUNDREDG,
+      1,
+      TransmitterTechnology::COPPER}; // Copper not supported
+  TransceiverPortState badPortState2{
+      "",
+      1,
+      cfg::PortSpeed::XG,
+      2,
+      TransmitterTechnology::OPTICAL}; // Invalid speed
+  TransceiverPortState badPortState3{
+      "",
+      0,
+      cfg::PortSpeed::FORTYG,
+      3,
+      TransmitterTechnology::OPTICAL}; // Invalid num lanes
+  for (auto portState : {badPortState1, badPortState2, badPortState3}) {
+    EXPECT_FALSE(xcvr->tcvrPortStateSupported(portState));
+  }
 }
 
 // Tests that a SFF DAC module can properly refresh
@@ -421,6 +451,20 @@ TEST_F(SfpTest, sfp10GBaseTTransceiverInfoTest) {
   tests.verifyVendorName("FACETEST");
   // Verify DOM is not read
   EXPECT_TRUE(info.tcvrStats()->channels()->empty());
+
+  TransceiverPortState goodPortState{
+      "", 0, cfg::PortSpeed::XG, 1, TransmitterTechnology::COPPER};
+  EXPECT_TRUE(xcvr->tcvrPortStateSupported(goodPortState));
+
+  TransceiverPortState badPortState1{
+      "", 0, cfg::PortSpeed::HUNDREDG, 1, TransmitterTechnology::COPPER};
+  TransceiverPortState badPortState2{
+      "", 1, cfg::PortSpeed::XG, 1, TransmitterTechnology::COPPER};
+  TransceiverPortState badPortState3{
+      "", 0, cfg::PortSpeed::XG, 1, TransmitterTechnology::OPTICAL};
+  for (auto portState : {badPortState1, badPortState2, badPortState3}) {
+    EXPECT_FALSE(xcvr->tcvrPortStateSupported(portState));
+  }
 }
 
 TEST_F(SffTest, 200GCr4TransceiverInfoTest) {
@@ -453,6 +497,32 @@ TEST_F(SffTest, 200GCr4TransceiverInfoTest) {
   // Using TransceiverTestsHelper to verify TransceiverInfo
   TransceiverTestsHelper tests(info);
   tests.verifyVendorName("FACETEST");
+
+  TransceiverPortState goodPortState1{
+      "", 0, cfg::PortSpeed::TWOHUNDREDG, 4, TransmitterTechnology::COPPER};
+  TransceiverPortState goodPortState2{
+      "", 2, cfg::PortSpeed::FIFTYG, 2, TransmitterTechnology::COPPER};
+  TransceiverPortState goodPortState3{
+      "", 1, cfg::PortSpeed::TWENTYFIVEG, 1, TransmitterTechnology::COPPER};
+  for (auto portState : {goodPortState1, goodPortState2, goodPortState3}) {
+    EXPECT_TRUE(xcvr->tcvrPortStateSupported(portState));
+  }
+
+  TransceiverPortState badPortState1{
+      "",
+      0,
+      cfg::PortSpeed::HUNDREDG,
+      4,
+      TransmitterTechnology::OPTICAL}; // Optical not supported
+  TransceiverPortState badPortState2{
+      "",
+      0,
+      cfg::PortSpeed::FORTYG,
+      3,
+      TransmitterTechnology::OPTICAL}; // Optical not supported
+  for (auto portState : {badPortState1, badPortState2}) {
+    EXPECT_FALSE(xcvr->tcvrPortStateSupported(portState));
+  }
 }
 
 } // namespace facebook::fboss
