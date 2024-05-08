@@ -809,6 +809,25 @@ std::unordered_map<SwitchID, SwitchIndex> computeSwitchIdToSwitchIndex(
   return switchIdToSwitchIndex;
 }
 
+std::set<SwitchID> getAllSwitchIDsForSwitch(
+    const std::shared_ptr<MultiSwitchDsfNodeMap>& dsfNodeMap,
+    const SwitchID& switchID) {
+  auto dsfNode = dsfNodeMap->getNodeIf(switchID);
+  CHECK(dsfNode);
+
+  auto switchName = dsfNode->getName();
+  std::set<SwitchID> allSwitchIDs;
+  for (const auto& [_, dsfNodes] : std::as_const(*dsfNodeMap)) {
+    for (const auto& [_, node] : std::as_const(*dsfNodes)) {
+      if (node->getName() == switchName) {
+        allSwitchIDs.insert(node->getSwitchId());
+      }
+    }
+  }
+
+  return allSwitchIDs;
+}
+
 uint32_t getRemotePortOffset(const PlatformType platformType) {
   switch (platformType) {
     case PlatformType::PLATFORM_MERU400BIU:

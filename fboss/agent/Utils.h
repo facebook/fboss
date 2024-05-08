@@ -397,6 +397,10 @@ uint64_t getMacOui(const folly::MacAddress macAddress);
 std::unordered_map<SwitchID, SwitchIndex> computeSwitchIdToSwitchIndex(
     const std::shared_ptr<MultiSwitchDsfNodeMap>& dsfNodeMap);
 
+std::set<SwitchID> getAllSwitchIDsForSwitch(
+    const std::shared_ptr<MultiSwitchDsfNodeMap>& dsfNodeMap,
+    const SwitchID& switchID);
+
 uint32_t getRemotePortOffset(const PlatformType platformType);
 
 } // namespace facebook::fboss
