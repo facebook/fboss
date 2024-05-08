@@ -3058,13 +3058,13 @@ void SwSwitch::storeWarmBootState(const state::WarmbootState& state) {
 }
 
 void SwSwitch::updateDsfSubscriberState(
-    const std::string& nodeName,
+    const std::string& remoteEndpoint,
     fsdb::FsdbSubscriptionState oldState,
     fsdb::FsdbSubscriptionState newState) {
-  runFsdbSyncFunction(
-      [nodeName = nodeName, oldState, newState](auto& syncer) mutable {
-        syncer->updateDsfSubscriberState(nodeName, oldState, newState);
-      });
+  runFsdbSyncFunction([remoteEndpoint = remoteEndpoint, oldState, newState](
+                          auto& syncer) mutable {
+    syncer->updateDsfSubscriberState(remoteEndpoint, oldState, newState);
+  });
 }
 
 std::string SwSwitch::getConfigStr() const {

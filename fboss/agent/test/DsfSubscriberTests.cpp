@@ -266,8 +266,20 @@ TEST_F(DsfSubscriberTest, addSubscription) {
 
   auto verifyDsfSessionState = [&](cfg::DsfNode& nodeConfig,
                                    const auto dsfSessionsThrift) {
+    std::set<std::string> remoteEndpoints;
+    std::for_each(
+        nodeConfig.loopbackIps()->begin(),
+        nodeConfig.loopbackIps()->end(),
+        [&](const auto loopbackSubnet) {
+          auto loopbackIp = folly::IPAddress::createNetwork(
+                                loopbackSubnet, -1 /*defaultCidr*/, false)
+                                .first;
+          remoteEndpoints.insert(
+              folly::sformat("{}::{}", *nodeConfig.name(), loopbackIp.str()));
+        });
     for (const auto& dsfSession : dsfSessionsThrift) {
-      if (dsfSession.remoteName() == nodeConfig.name()) {
+      if (remoteEndpoints.find(*dsfSession.remoteName()) !=
+          remoteEndpoints.end()) {
         EXPECT_EQ(*dsfSession.state(), DsfSessionState::CONNECT);
         return true;
       }
@@ -418,9 +430,15 @@ TEST_F(DsfSubscriberTest, handleFsdbUpdate) {
     fsdb::OperSubPathUnit operState;
     operState.changes() = {sysPortState, intfState};
 
+    folly::IPAddress localIP("1::1");
+
     this->dsfSubscriber_->handleFsdbUpdate(
+        localIP,
         SwitchID(*dsfNode.switchId()),
         *dsfNode.name(),
+        folly::IPAddress::createNetwork(
+            *dsfNode.loopbackIps()->cbegin(), -1 /*defaultCidr*/, false)
+            .first,
         fsdb::OperSubPathUnit(operState));
     waitForStateUpdates(sw_);
   };

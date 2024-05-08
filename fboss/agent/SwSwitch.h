@@ -908,7 +908,7 @@ class SwSwitch : public HwSwitchCallback {
   }
 
   void updateDsfSubscriberState(
-      const std::string& nodeName,
+      const std::string& remoteEndpoint,
       fsdb::FsdbSubscriptionState oldState,
       fsdb::FsdbSubscriptionState newState);
 

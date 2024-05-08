@@ -61,13 +61,16 @@ class DsfSubscriber : public StateObserver {
           switchId2SystemPorts,
       const std::map<SwitchID, std::shared_ptr<InterfaceMap>>& switchId2Intfs);
   void handleFsdbSubscriptionStateUpdate(
-      const std::string& nodeName,
-      const SwitchID& nodeSwitchId,
+      const std::string& remoteNodeName,
+      const folly::IPAddress& remoteIP,
+      const SwitchID& remoteSwitchId,
       fsdb::SubscriptionState oldState,
       fsdb::SubscriptionState newState);
   void handleFsdbUpdate(
-      SwitchID nodeSwitchId,
-      const std::string& nodeName,
+      const folly::IPAddress& localIP,
+      SwitchID remoteSwitchId,
+      const std::string& remoteNodeName,
+      const folly::IPAddress& remoteIP,
       fsdb::OperSubPathUnit&& operStateUnit);
   bool isLocal(SwitchID nodeSwitchId) const;
   void processGRHoldTimerExpired(
