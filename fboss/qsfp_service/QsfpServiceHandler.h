@@ -78,6 +78,9 @@ class QsfpServiceHandler
       int32_t timeout,
       std::unique_ptr<std::vector<std::string>> portList) override;
 
+  void unpauseRemediation(
+      std::unique_ptr<std::vector<std::string>> portList) override;
+
   void getRemediationUntilTime(
       std::map<std::string, int32_t>& info,
       std::unique_ptr<std::vector<std::string>> portList) override;
