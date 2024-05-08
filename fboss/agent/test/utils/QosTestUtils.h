@@ -127,18 +127,6 @@ void verifyQueueHit(
     SwSwitch* sw,
     facebook::fboss::PortID egressPort);
 
-bool queueHit(
-    const HwPortStats& portStatsBefore,
-    int queueId,
-    SwSwitch* sw,
-    facebook::fboss::PortID egressPort);
-
-bool voqHit(
-    const HwSysPortStats& portStatsBefore,
-    int queueId,
-    SwSwitch* sw,
-    facebook::fboss::SystemPortID egressPort);
-
 void verifyVoQHit(
     const HwSysPortStats& portStatsBefore,
     int queueId,

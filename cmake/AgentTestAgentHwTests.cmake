@@ -4,6 +4,7 @@
 # cmake/FooBar.cmake
 
 add_library(agent_hw_test_src
+  fboss/agent/test/agent_hw_tests/Agent2QueueToOlympicQoSTests.cpp
   fboss/agent/test/agent_hw_tests/AgentCoppTests.cpp
   fboss/agent/test/agent_hw_tests/AgentDscpMarkingTests.cpp
   fboss/agent/test/agent_hw_tests/AgentDscpQueueMappingTests.cpp
@@ -48,6 +49,7 @@ target_link_libraries(agent_hw_test_src
   queue_per_host_test_utils
   trap_packet_utils
   core
+  hw_asic_table
   hw_switch_fb303_stats
   config_factory
   agent_hw_test
@@ -58,6 +60,7 @@ target_link_libraries(agent_hw_test_src
   traffic_policy_utils
   olympic_qos_utils
   qos_test_utils
+  queue_test_utils
   invariant_test_utils
   prod_config_factory
   state
