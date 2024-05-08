@@ -7,10 +7,10 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/hw/test/dataplane_tests/HwTest2QueueUtils.h"
+#include "fboss/agent/test/utils/QueueTestUtils.h"
 
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
-#include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/test/utils/ConfigUtils.h"
 
 namespace facebook::fboss::utility {
 

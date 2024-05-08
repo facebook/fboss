@@ -345,6 +345,17 @@ target_link_libraries(route_test_utils
   route_distribution_gen
 )
 
+add_library(queue_test_utils
+  fboss/agent/test/utils/QueueTestUtils.cpp
+)
+
+target_link_libraries(queue_test_utils
+  config_utils
+  olympic_qos_utils
+  switch_asics
+  switch_config_cpp2
+)
+
 add_library(mirror_test_utils
   fboss/agent/test/utils/MirrorTestUtils.cpp
 )
