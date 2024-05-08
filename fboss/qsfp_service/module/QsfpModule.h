@@ -115,6 +115,11 @@ class QsfpModule : public Transceiver {
    */
   void customizeTransceiver(TransceiverPortState& portState) override;
 
+  virtual bool tcvrPortStateSupported(
+      TransceiverPortState& /* portState */) const override {
+    return false;
+  }
+
   /*
    * Returns the entire QSFP information
    */

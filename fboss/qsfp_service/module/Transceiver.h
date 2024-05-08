@@ -52,10 +52,12 @@ struct TransceiverPortState {
   uint8_t startHostLane;
   cfg::PortSpeed speed = cfg::PortSpeed::DEFAULT;
   uint8_t numHostLanes;
+  TransmitterTechnology transmitterTech;
 
   bool operator==(const TransceiverPortState& other) const {
     return speed == other.speed && portName == other.portName &&
-        startHostLane == other.startHostLane;
+        startHostLane == other.startHostLane &&
+        transmitterTech == other.transmitterTech;
   }
 };
 
@@ -294,6 +296,9 @@ class Transceiver {
 
   virtual std::vector<MediaInterfaceCode> getSupportedMediaInterfaces()
       const = 0;
+
+  virtual bool tcvrPortStateSupported(
+      TransceiverPortState& portState) const = 0;
 
  protected:
   virtual void latchAndReadVdmDataLocked() = 0;

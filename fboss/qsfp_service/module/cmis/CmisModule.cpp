@@ -2587,6 +2587,42 @@ void CmisModule::ensureRxOutputSquelchEnabled(
   }
 }
 
+bool CmisModule::tcvrPortStateSupported(TransceiverPortState& portState) const {
+  if (portState.transmitterTech != getQsfpTransmitterTechnology()) {
+    return false;
+  }
+
+  if (getQsfpTransmitterTechnology() == TransmitterTechnology::COPPER) {
+    // Return true irrespective of speed as the copper cables are mostly
+    // flexible with all speeds. We can change this later when we know of any
+    // limitations
+    return true;
+  }
+
+  auto speed = portState.speed;
+  auto startHostLane = portState.startHostLane;
+  auto numHostLanes = portState.numHostLanes;
+  auto applicationIter = speedApplicationMapping.find(speed);
+
+  if (applicationIter == speedApplicationMapping.end()) {
+    // Speed Not supported
+    return false;
+  }
+
+  for (auto application : applicationIter->second) {
+    if (auto capability = getApplicationField(
+            static_cast<uint8_t>(application), startHostLane)) {
+      // Application supported on the starting host lane
+      auto hostLaneCount = capability->hostLaneCount;
+      if (numHostLanes == hostLaneCount) {
+        // Host Lane count also matches
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 void CmisModule::customizeTransceiverLocked(TransceiverPortState& portState) {
   auto& portName = portState.portName;
   auto speed = portState.speed;

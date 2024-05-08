@@ -467,5 +467,14 @@ void Sff8472Module::remediateFlakyTransceiver(
   lastRemediateTime_ = std::time(nullptr);
 }
 
+bool Sff8472Module::tcvrPortStateSupported(
+    TransceiverPortState& portState) const {
+  if (portState.transmitterTech != getQsfpTransmitterTechnology()) {
+    return false;
+  }
+  // Only 10G is supported
+  return (portState.speed == cfg::PortSpeed::XG) &&
+      (portState.startHostLane == 0) && portState.numHostLanes == 1;
+}
 } // namespace fboss
 } // namespace facebook

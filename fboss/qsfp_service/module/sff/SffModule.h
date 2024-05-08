@@ -74,6 +74,8 @@ class SffModule : public QsfpModule {
 
   bool supportRemediate() override;
 
+  bool tcvrPortStateSupported(TransceiverPortState& portState) const override;
+
  protected:
   // QSFP+ requires a bottom 128 byte page describing important monitoring
   // information, and then an upper 128 byte page with less frequently

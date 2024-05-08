@@ -48,6 +48,8 @@ class Sff8472Module : public QsfpModule {
   void customizeTransceiverLocked(
       TransceiverPortState& /* portState */) override {}
 
+  bool tcvrPortStateSupported(TransceiverPortState& portState) const override;
+
   virtual bool ensureTransceiverReadyLocked() override {
     return true;
   }

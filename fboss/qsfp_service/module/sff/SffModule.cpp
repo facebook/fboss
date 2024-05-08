@@ -1414,6 +1414,23 @@ void SffModule::overwriteChannelControlSettings() {
   }
 }
 
+bool SffModule::tcvrPortStateSupported(TransceiverPortState& portState) const {
+  if (portState.transmitterTech != getQsfpTransmitterTechnology()) {
+    return false;
+  }
+
+  if (getQsfpTransmitterTechnology() == TransmitterTechnology::COPPER) {
+    // Return true irrespective of speed as the copper cables are mostly
+    // flexible with all speeds. We can change this later when we know of any
+    // limitations
+    return true;
+  }
+
+  return (portState.speed == cfg::PortSpeed::HUNDREDG ||
+          portState.speed == cfg::PortSpeed::FORTYG) &&
+      (portState.startHostLane == 0) && portState.numHostLanes == 4;
+}
+
 void SffModule::customizeTransceiverLocked(TransceiverPortState& portState) {
   auto& portName = portState.portName;
   auto speed = portState.speed;
