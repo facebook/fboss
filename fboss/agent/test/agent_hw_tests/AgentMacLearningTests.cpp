@@ -570,6 +570,30 @@ TEST_F(AgentMacLearningStaticEntriesTest, VerifyStaticMacEntryAdd) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(AgentMacLearningStaticEntriesTest, VerifyStaticDynamicTransformations) {
+  auto setup = [this] {
+    setupHelper(cfg::L2LearningMode::HARDWARE, physPortDescr());
+    utility::setMacAgeTimerSeconds(getAgentEnsemble(), kMinAgeInSecs());
+    addOrUpdateMacEntry(MacEntryType::STATIC_ENTRY);
+    addOrUpdateMacEntry(MacEntryType::DYNAMIC_ENTRY);
+    std::this_thread::sleep_for(std::chrono::seconds(2 * kMinAgeInSecs()));
+    // Dynamic entries should get aged out
+    EXPECT_TRUE(
+        wasMacLearnt(physPortDescr(), kSourceMac(), false /*aged in hw*/));
+    // Transform back to STATIC entry (we still have entry in switch state).
+    // Its important to test that we can update or add a static entry regardless
+    // of the HW state. Since for dynamic entries, they might get aged out in
+    // parallel to us transforming them to STATIC.
+    addOrUpdateMacEntry(MacEntryType::STATIC_ENTRY);
+  };
+  auto verify = [this] {
+    std::this_thread::sleep_for(std::chrono::seconds(2 * kMinAgeInSecs()));
+    // Static entries shouldn't age
+    EXPECT_TRUE(wasMacLearnt(physPortDescr(), kSourceMac()));
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 class AgentMacLearningAndMyStationInteractionTest
     : public AgentMacLearningTest {
  public:
