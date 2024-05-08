@@ -204,6 +204,32 @@ HwPortStats AgentHwTest::getLatestPortStats(const PortID& port) {
   return getLatestPortStats(std::vector<PortID>({port})).begin()->second;
 }
 
+std::map<PortID, HwPortStats> AgentHwTest::getNextUpdatedPortStats(
+    const std::vector<PortID>& ports) {
+  const auto lastPortStats = getLatestPortStats(ports);
+  std::map<PortID, HwPortStats> nextPortStats;
+  checkWithRetry(
+      [&lastPortStats, &nextPortStats, &ports, this]() {
+        nextPortStats = getSw()->getHwPortStats(ports);
+        // Check collect timestamp is different from last port stats
+        for (const auto& [portId, portStats] : nextPortStats) {
+          if (*portStats.timestamp__ref() ==
+              *lastPortStats.at(portId).timestamp__ref()) {
+            return false;
+          }
+        }
+        return !nextPortStats.empty();
+      },
+      120,
+      std::chrono::milliseconds(1000),
+      " fetch next port stats");
+  return nextPortStats;
+}
+
+HwPortStats AgentHwTest::getNextUpdatedPortStats(const PortID& port) {
+  return getNextUpdatedPortStats(std::vector<PortID>({port})).begin()->second;
+}
+
 // return last incremented port stats. the port stats contains a timer
 // which callers can use to determine when traffic stopped by checking the out
 // bytes
