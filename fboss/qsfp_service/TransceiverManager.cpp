@@ -1077,6 +1077,49 @@ void TransceiverManager::getAllPortSupportedProfiles(
     supportedPortProfiles = allConfiguredPortProfiles;
     return;
   }
+
+  for (auto& [portName, portProfiles] : allConfiguredPortProfiles) {
+    auto portID = getPortIDByPortName(portName);
+    if (!portID.has_value()) {
+      continue;
+    }
+    // Check if the transceiver supports the port profile
+    for (auto& profileID : portProfiles) {
+      auto tcvrHostLanes = platformMapping_->getTransceiverHostLanes(
+          PlatformPortProfileConfigMatcher(
+              profileID /* profileID */,
+              *portID /* portID */,
+              std::nullopt /* portConfigOverrideFactor */));
+      if (tcvrHostLanes.empty()) {
+        continue;
+      }
+      auto tcvrStartLane = *tcvrHostLanes.begin();
+      auto profileCfgOpt = platformMapping_->getPortProfileConfig(
+          PlatformPortProfileConfigMatcher(profileID));
+      if (!profileCfgOpt) {
+        continue;
+      }
+      const auto speed = *profileCfgOpt->speed();
+      TransceiverPortState portState;
+      portState.portName = portName;
+      portState.startHostLane = tcvrStartLane;
+      portState.speed = speed;
+      portState.numHostLanes = tcvrHostLanes.size();
+      portState.transmitterTech = profileCfgOpt->iphy()->medium().value_or({});
+
+      auto tcvrIDOpt = getTransceiverID(*portID);
+      if (!tcvrIDOpt.has_value()) {
+        continue;
+      }
+
+      auto lockedTransceivers = transceivers_.rlock();
+      auto tcvrIt = lockedTransceivers->find(*tcvrIDOpt);
+      if (tcvrIt != lockedTransceivers->end() &&
+          tcvrIt->second->tcvrPortStateSupported(portState)) {
+        supportedPortProfiles[portName].push_back(profileID);
+      }
+    }
+  }
 }
 
 void TransceiverManager::programTransceiver(
