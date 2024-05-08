@@ -936,18 +936,18 @@ sai_port_prbs_config_t SaiPortManager::getSaiPortPrbsConfig(
   }
 }
 
-double SaiPortManager::calculateRate(const std::shared_ptr<Port>& swPort) {
-  auto speed = static_cast<int>(swPort->getSpeed());
+double SaiPortManager::calculateRate(uint32_t speed) {
   auto rateGb = speed / kSpeedConversionFactor;
   return rateGb * kRateConversionFactor;
 }
 
-void SaiPortManager::updateRate(const std::shared_ptr<Port>& swPort) {
+void SaiPortManager::updatePrbsStatsEntryRate(
+    const std::shared_ptr<Port>& swPort) {
   if (!platform_->getAsic()->isSupported(HwAsic::Feature::SAI_PRBS)) {
     return;
   }
   auto portID = swPort->getID();
-  auto rate = calculateRate(swPort);
+  auto rate = calculateRate(static_cast<int>(swPort->getSpeed()));
   auto portAsicPrbsStatsItr = portAsicPrbsStats_.find(portID);
   if (portAsicPrbsStatsItr == portAsicPrbsStats_.end()) {
     throw FbossError(
@@ -959,21 +959,20 @@ void SaiPortManager::updateRate(const std::shared_ptr<Port>& swPort) {
   }
 }
 
-void SaiPortManager::initAsicPrbsStats(const std::shared_ptr<Port>& swPort) {
+void SaiPortManager::initAsicPrbsStats(PortID portId, uint32_t speed) {
   if (!platform_->getAsic()->isSupported(HwAsic::Feature::SAI_PRBS)) {
     return;
   }
-  auto rate = calculateRate(swPort);
+  auto rate = calculateRate(speed);
   auto prbsStatsTable = PrbsStatsTable();
   // Dump cumulative PRBS stats on first PrbsStatsEntry because there is no
   // per-lane PRBS counter available in SAI.
-  prbsStatsTable.push_back(PrbsStatsEntry(swPort->getID(), rate));
-  portAsicPrbsStats_[swPort->getID()] = std::move(prbsStatsTable);
+  prbsStatsTable.push_back(PrbsStatsEntry(portId, rate));
+  portAsicPrbsStats_[portId] = std::move(prbsStatsTable);
 }
 
 PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
   setPortType(swPort->getID(), swPort->getPortType());
-  initAsicPrbsStats(swPort);
   auto portSaiId = addPortImpl(swPort);
   concurrentIndices_->portSaiId2PortInfo.emplace(
       portSaiId,
@@ -1105,7 +1104,10 @@ void SaiPortManager::removePort(const std::shared_ptr<Port>& swPort) {
   portStats_.erase(swId);
   port2SupportedStats_.erase(swId);
   port2PortType_.erase(swId);
-  portAsicPrbsStats_.erase(swId);
+  auto portAsicPrbsStatsItr = portAsicPrbsStats_.find(swId);
+  if (portAsicPrbsStatsItr != portAsicPrbsStats_.end()) {
+    portAsicPrbsStats_.erase(swId);
+  }
   // TODO: do FDB entries associated with this port need to be removed
   // now?
   XLOG(DBG2) << "removed port " << swPort->getID() << " with vlan "
@@ -1457,6 +1459,13 @@ std::shared_ptr<Port> SaiPortManager::swPortFromAttributes(
   // mtu
   port->setMaxFrameSize(GET_OPT_ATTR(Port, Mtu, attributes));
 
+  // asic prbs
+  phy::PortPrbsState prbsState;
+  auto prbsConfig = GET_OPT_ATTR(Port, PrbsConfig, attributes);
+  prbsState.enabled() = (prbsConfig == SAI_PORT_PRBS_CONFIG_ENABLE_TX_RX);
+  auto prbsPolynomial = GET_OPT_ATTR(Port, PrbsPolynomial, attributes);
+  prbsState.polynominal() = prbsPolynomial;
+  port->setAsicPrbs(prbsState);
   return port;
 }
 

@@ -498,7 +498,8 @@ TEST_F(PortManagerTest, calculateRate) {
   for (const auto& testInterface : testInterfaces) {
     for (const auto& remoteHost : testInterface.remoteHosts) {
       std::shared_ptr<Port> swPort = makePort(remoteHost.port);
-      auto rate = saiManagerTable->portManager().calculateRate(swPort);
+      auto rate = saiManagerTable->portManager().calculateRate(
+          static_cast<int>(swPort->getSpeed()));
       EXPECT_EQ(
           rate,
           static_cast<int>(speed) / kSpeedConversionFactor *
@@ -507,12 +508,12 @@ TEST_F(PortManagerTest, calculateRate) {
   }
 }
 
-TEST_F(PortManagerTest, updateRate) {
+TEST_F(PortManagerTest, updatePrbsStatsEntryRate) {
   std::shared_ptr<Port> swPort0 = makePort(p0);
   auto newSpeed = cfg::PortSpeed::FIFTYG;
   saiManagerTable->portManager().addPort(swPort0);
   swPort0->setSpeed(newSpeed);
-  saiManagerTable->portManager().updateRate(swPort0);
+  saiManagerTable->portManager().updatePrbsStatsEntryRate(swPort0);
   EXPECT_EQ(
       saiManagerTable->portManager()
           .portAsicPrbsStats_[swPort0->getID()][0]

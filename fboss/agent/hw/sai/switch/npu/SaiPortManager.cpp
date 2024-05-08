@@ -262,6 +262,10 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
   auto portSaiId = saiPort->adapterKey();
   uint32_t hwLogicalPortId = static_cast<uint32_t>(portSaiId);
   platformPort->setHwLogicalPortId(hwLogicalPortId);
+  auto asicPrbs = swPort->getAsicPrbs();
+  if (asicPrbs.enabled().value()) {
+    initAsicPrbsStats(swPort->getID(), static_cast<int>(swPort->getSpeed()));
+  }
   return portSaiId;
 }
 
@@ -312,10 +316,14 @@ void SaiPortManager::changePortImpl(
                << ": old vlan: " << oldPort->getIngressVlan()
                << ", new vlan: " << newPort->getIngressVlan();
   }
+  auto oldAsicPrbsEnabled = oldPort->getAsicPrbs().enabled().value();
+  auto newAsicPrbsEnabled = newPort->getAsicPrbs().enabled().value();
   if (newPort->getProfileID() != oldPort->getProfileID()) {
     auto platformPort = platform_->getPort(newPort->getID());
     platformPort->setCurrentProfile(newPort->getProfileID());
-    updateRate(newPort);
+    if (oldAsicPrbsEnabled == newAsicPrbsEnabled && newAsicPrbsEnabled) {
+      updatePrbsStatsEntryRate(newPort);
+    }
   }
 
   changeMirror(oldPort, newPort);
@@ -352,6 +360,20 @@ void SaiPortManager::changePortImpl(
       oldPort->getPortQueues()->impl(),
       newPort->getPortQueues()->impl());
   changeQosPolicy(oldPort, newPort);
+  if (oldAsicPrbsEnabled != newAsicPrbsEnabled) {
+    if (newAsicPrbsEnabled) {
+      initAsicPrbsStats(
+          newPort->getID(), static_cast<int>(newPort->getSpeed()));
+    } else {
+      auto portAsicPrbsStatsItr = portAsicPrbsStats_.find(newPort->getID());
+      if (portAsicPrbsStatsItr == portAsicPrbsStats_.end()) {
+        throw FbossError(
+            "Asic prbs lane error map not initialized for port ",
+            newPort->getID());
+      }
+      portAsicPrbsStats_.erase(newPort->getID());
+    }
+  }
 }
 
 void SaiPortManager::attributesFromSaiStore(

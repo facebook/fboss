@@ -38,6 +38,8 @@
 #endif
 
 namespace {
+constexpr auto kPrbsPolynomial = 31;
+
 facebook::fboss::cfg::AgentConfig getDummyConfig() {
   facebook::fboss::cfg::AgentConfig config;
 
@@ -316,6 +318,10 @@ std::shared_ptr<Port> ManagerTestBase::makePort(
     swPort->resetPinConfigs(
         saiPlatform->getPlatformMapping()->getPortIphyPinConfigs(matcher));
   }
+  phy::PortPrbsState prbsState;
+  prbsState.enabled() = true;
+  prbsState.polynominal() = kPrbsPolynomial;
+  swPort->setAsicPrbs(prbsState);
   return swPort;
 }
 
