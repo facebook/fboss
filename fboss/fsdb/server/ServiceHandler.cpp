@@ -67,26 +67,37 @@ static constexpr auto kWatchdogThreadHeartbeatMissed =
 namespace {
 
 using facebook::fboss::fsdb::ExtendedOperPath;
+using facebook::fboss::fsdb::OperGetRequest;
 using facebook::fboss::fsdb::OperPath;
 using facebook::fboss::fsdb::OperPubRequest;
 using facebook::fboss::fsdb::OperSubRequest;
+using facebook::fboss::fsdb::OperSubRequestExtended;
 using facebook::fboss::fsdb::Path;
 
 template <typename OperRequest>
-std::string getPubSubRequestDetails(const OperRequest& request) {
+std::string getRequestDetails(const OperRequest& request) {
   static_assert(
       std::is_same_v<OperRequest, OperPubRequest> ||
-      std::is_same_v<OperRequest, OperSubRequest>);
+      std::is_same_v<OperRequest, OperSubRequest> ||
+      std::is_same_v<OperRequest, OperSubRequestExtended> ||
+      std::is_same_v<OperRequest, OperGetRequest>);
   std::string clientID = "";
+  std::string pathStr = "";
   if constexpr (std::is_same_v<OperRequest, OperPubRequest>) {
     clientID = request.get_publisherId();
+    pathStr = folly::join("/", *request.get_path().raw());
   } else if constexpr (std::is_same_v<OperRequest, OperSubRequest>) {
     clientID = request.get_subscriberId();
+    pathStr = folly::join("/", *request.get_path().raw());
+  } else if constexpr (std::is_same_v<OperRequest, OperSubRequestExtended>) {
+    clientID = request.get_subscriberId();
+    // TODO: set path str for extended subs
+  } else if constexpr (std::is_same_v<OperRequest, OperGetRequest>) {
+    // TODO: enforce clientId on polling apis
+    clientID = "adhoc";
+    pathStr = folly::join("/", *request.get_path().raw());
   }
-  return fmt::format(
-      "Client ID: {}, Path: {}",
-      clientID,
-      folly::join("/", request.path()->get_raw()));
+  return fmt::format("Client ID: {}, Path: {}", clientID, pathStr);
 }
 
 Path buildPathUnion(facebook::fboss::fsdb::OperSubscriberInfo info) {
@@ -445,7 +456,7 @@ folly::coro::Task<apache::thrift::ResponseAndSinkConsumer<
     OperPubFinalResponse>>
 ServiceHandler::co_publishOperStatePath(
     std::unique_ptr<OperPubRequest> request) {
-  auto log = LOG_THRIFT_CALL(INFO, getPubSubRequestDetails(*request));
+  auto log = LOG_THRIFT_CALL(INFO, getRequestDetails(*request));
   PathValidator::validateStatePath(*request->path()->raw());
   co_return {{}, makeSinkConsumer<OperState>(std::move(request), false)};
 }
@@ -456,7 +467,7 @@ folly::coro::Task<apache::thrift::ResponseAndSinkConsumer<
     OperPubFinalResponse>>
 ServiceHandler::co_publishOperStatsPath(
     std::unique_ptr<OperPubRequest> request) {
-  auto log = LOG_THRIFT_CALL(INFO, getPubSubRequestDetails(*request));
+  auto log = LOG_THRIFT_CALL(INFO, getRequestDetails(*request));
   PathValidator::validateStatsPath(*request->path()->raw());
   co_return {{}, makeSinkConsumer<OperState>(std::move(request), true)};
 }
@@ -467,7 +478,7 @@ folly::coro::Task<apache::thrift::ResponseAndSinkConsumer<
     OperPubFinalResponse>>
 ServiceHandler::co_publishOperStateDelta(
     std::unique_ptr<OperPubRequest> request) {
-  auto log = LOG_THRIFT_CALL(INFO, getPubSubRequestDetails(*request));
+  auto log = LOG_THRIFT_CALL(INFO, getRequestDetails(*request));
   PathValidator::validateStatePath(*request->path()->raw());
   co_return {{}, makeSinkConsumer<OperDelta>(std::move(request), false)};
 }
@@ -478,7 +489,7 @@ folly::coro::Task<apache::thrift::ResponseAndSinkConsumer<
     OperPubFinalResponse>>
 ServiceHandler::co_publishOperStatsDelta(
     std::unique_ptr<OperPubRequest> request) {
-  auto log = LOG_THRIFT_CALL(INFO, getPubSubRequestDetails(*request));
+  auto log = LOG_THRIFT_CALL(INFO, getRequestDetails(*request));
   PathValidator::validateStatsPath(*request->path()->raw());
   co_return {{}, makeSinkConsumer<OperDelta>(std::move(request), true)};
 }
@@ -560,6 +571,7 @@ void ServiceHandler::registerSubscription(const OperSubscriberInfo& info) {
     throw Utils::createFsdbException(
         FsdbErrorCode::EMPTY_SUBSCRIBER_ID, "Subscriber Id must not be empty");
   }
+  XLOG(INFO) << "Registering subscription " << *info.subscriberId();
   bool hasRawPath = info.path() && !info.path()->raw()->empty();
   bool hasExtendedPath = info.extendedPaths() && !info.extendedPaths()->empty();
   validateSubscriptionPermissions(
@@ -588,7 +600,7 @@ void ServiceHandler::unregisterSubscription(const OperSubscriberInfo& info) {
   if (info.path()) {
     pathStr = folly::join("/", *info.path()->raw());
   }
-  XLOG(DBG2) << " Subscription complete " << *info.subscriberId() << " : "
+  XLOG(INFO) << "Subscription complete " << *info.subscriberId() << " : "
              << pathStr;
   auto key = ClientKey(
       *info.subscriberId(),
@@ -633,7 +645,7 @@ folly::coro::Task<
     apache::thrift::ResponseAndServerStream<OperSubInitResponse, OperState>>
 ServiceHandler::co_subscribeOperStatePath(
     std::unique_ptr<OperSubRequest> request) {
-  auto log = LOG_THRIFT_CALL(INFO, getPubSubRequestDetails(*request));
+  auto log = LOG_THRIFT_CALL(INFO, getRequestDetails(*request));
   PathValidator::validateStatePath(*request->path()->raw());
 
   auto subscriberInfo = makeSubscriberInfo(*request, PubSubType::PATH, false);
@@ -671,7 +683,7 @@ folly::coro::Task<
     apache::thrift::ResponseAndServerStream<OperSubInitResponse, OperState>>
 ServiceHandler::co_subscribeOperStatsPath(
     std::unique_ptr<OperSubRequest> request) {
-  auto log = LOG_THRIFT_CALL(INFO, getPubSubRequestDetails(*request));
+  auto log = LOG_THRIFT_CALL(INFO, getRequestDetails(*request));
   PathValidator::validateStatsPath(*request->path()->raw());
 
   auto subscriberInfo = makeSubscriberInfo(*request, PubSubType::PATH, true);
@@ -735,7 +747,7 @@ folly::coro::Task<
     apache::thrift::ResponseAndServerStream<OperSubInitResponse, OperDelta>>
 ServiceHandler::co_subscribeOperStateDelta(
     std::unique_ptr<OperSubRequest> request) {
-  auto log = LOG_THRIFT_CALL(INFO, getPubSubRequestDetails(*request));
+  auto log = LOG_THRIFT_CALL(INFO, getRequestDetails(*request));
   PathValidator::validateStatePath(*request->path()->raw());
 
   auto subscriberInfo = makeSubscriberInfo(*request, PubSubType::DELTA, false);
@@ -766,7 +778,7 @@ folly::coro::Task<apache::thrift::ResponseAndServerStream<
     OperSubPathUnit>>
 ServiceHandler::co_subscribeOperStatePathExtended(
     std::unique_ptr<OperSubRequestExtended> request) {
-  auto log = LOG_THRIFT_CALL(INFO);
+  auto log = LOG_THRIFT_CALL(INFO, getRequestDetails(*request));
 
   PathValidator::validateExtendedStatePaths(*request->paths());
 
@@ -812,7 +824,7 @@ folly::coro::Task<apache::thrift::ResponseAndServerStream<
     OperSubDeltaUnit>>
 ServiceHandler::co_subscribeOperStateDeltaExtended(
     std::unique_ptr<OperSubRequestExtended> request) {
-  auto log = LOG_THRIFT_CALL(INFO);
+  auto log = LOG_THRIFT_CALL(INFO, getRequestDetails(*request));
 
   PathValidator::validateExtendedStatePaths(*request->paths());
 
@@ -849,7 +861,7 @@ folly::coro::Task<
     apache::thrift::ResponseAndServerStream<OperSubInitResponse, OperDelta>>
 ServiceHandler::co_subscribeOperStatsDelta(
     std::unique_ptr<OperSubRequest> request) {
-  auto log = LOG_THRIFT_CALL(INFO, getPubSubRequestDetails(*request));
+  auto log = LOG_THRIFT_CALL(INFO, getRequestDetails(*request));
   PathValidator::validateStatsPath(*request->path()->raw());
 
   auto subscriberInfo = makeSubscriberInfo(*request, PubSubType::DELTA, true);
@@ -879,7 +891,7 @@ folly::coro::Task<apache::thrift::ResponseAndServerStream<
     OperSubPathUnit>>
 ServiceHandler::co_subscribeOperStatsPathExtended(
     std::unique_ptr<OperSubRequestExtended> request) {
-  auto log = LOG_THRIFT_CALL(INFO);
+  auto log = LOG_THRIFT_CALL(INFO, getRequestDetails(*request));
 
   PathValidator::validateExtendedStatsPaths(*request->paths());
 
@@ -925,7 +937,7 @@ folly::coro::Task<apache::thrift::ResponseAndServerStream<
     OperSubDeltaUnit>>
 ServiceHandler::co_subscribeOperStatsDeltaExtended(
     std::unique_ptr<OperSubRequestExtended> request) {
-  auto log = LOG_THRIFT_CALL(INFO);
+  auto log = LOG_THRIFT_CALL(INFO, getRequestDetails(*request));
 
   PathValidator::validateExtendedStatsPaths(*request->paths());
 
@@ -960,7 +972,7 @@ ServiceHandler::co_subscribeOperStatsDeltaExtended(
 
 folly::coro::Task<std::unique_ptr<OperState>> ServiceHandler::co_getOperState(
     std::unique_ptr<OperGetRequest> request) {
-  auto log = LOG_THRIFT_CALL(INFO);
+  auto log = LOG_THRIFT_CALL(INFO, getRequestDetails(*request));
   PathValidator::validateStatePath(*request->path()->raw());
   auto ret =
       std::make_unique<OperState>(operStorage_
@@ -974,7 +986,7 @@ folly::coro::Task<std::unique_ptr<OperState>> ServiceHandler::co_getOperState(
 
 folly::coro::Task<std::unique_ptr<OperState>> ServiceHandler::co_getOperStats(
     std::unique_ptr<OperGetRequest> request) {
-  auto log = LOG_THRIFT_CALL(INFO);
+  auto log = LOG_THRIFT_CALL(INFO, getRequestDetails(*request));
   PathValidator::validateStatsPath(*request->path()->raw());
   auto ret =
       std::make_unique<OperState>(operStatsStorage_
@@ -1057,6 +1069,7 @@ ServiceHandler::co_getOperPublisherInfos(
 
 folly::coro::Task<std::unique_ptr<SubscriberIdToOperSubscriberInfos>>
 ServiceHandler::co_getAllOperSubscriberInfos() {
+  auto log = LOG_THRIFT_CALL(INFO);
   auto subscriptions = std::make_unique<SubscriberIdToOperSubscriberInfos>();
   activeSubscriptions_.withRLock([&](const auto& activeSubscriptions) {
     for (const auto& it : activeSubscriptions) {
