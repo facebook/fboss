@@ -95,7 +95,7 @@ class PlatformExplorer {
   std::map<std::pair<std::string, std::string>, uint16_t> gpioChipNums_{};
 
   // A collection of error messages to report at the end of an exploration.
-  // Map from SlotPath to errorMessages.
+  // Map from DevicePath to errorMessages.
   std::map<std::string, std::vector<std::string>> errorMessages_{};
 };
 

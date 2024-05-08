@@ -264,7 +264,8 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
           slotPath,
           e.what());
       XLOG(ERR) << errMsg;
-      errorMessages_[slotPath].push_back(errMsg);
+      errorMessages_[Utils().createDevicePath(slotPath, "IDPROM")].push_back(
+          errMsg);
     }
     if (pmUnitNameInEeprom) {
       XLOG(INFO) << fmt::format(
@@ -519,7 +520,7 @@ void PlatformExplorer::createDeviceSymLink(
         devicePath,
         ex.what());
     XLOG(ERR) << errMsg;
-    errorMessages_[slotPath].push_back(errMsg);
+    errorMessages_[devicePath].push_back(errMsg);
     return;
   }
 
@@ -537,12 +538,21 @@ void PlatformExplorer::createDeviceSymLink(
 }
 
 void PlatformExplorer::reportExplorationSummary() {
-  if (errorMessages_.empty()) {
+  std::map<std::string, std::vector<std::string>> errorMessagesBySlotPath;
+  for (const auto& [devicePath, errMsgs] : errorMessages_) {
+    const auto [slotPath, pmUnitScopedName] =
+        Utils().parseDevicePath(devicePath);
+    std::copy(
+        errMsgs.begin(),
+        errMsgs.end(),
+        std::back_inserter(errorMessagesBySlotPath[slotPath]));
+  }
+  if (errorMessagesBySlotPath.empty()) {
     XLOG(INFO) << "SUCCESS. Completed setting up all the devices.";
     return;
   }
   XLOG(INFO) << "Completed setting up devices with errors";
-  for (const auto& [slotPath, errMsgs] : errorMessages_) {
+  for (const auto& [slotPath, errMsgs] : errorMessagesBySlotPath) {
     XLOG(INFO) << fmt::format(
         "Failures in PmUnit {} at {}",
         dataStore_.getPmUnitName(slotPath),
@@ -578,7 +588,7 @@ void PlatformExplorer::createI2cDevice(
     i2cExplorer_.createI2cDevice(pmUnitScopedName, deviceName, busNum, addr);
   } catch (const std::exception& ex) {
     XLOG(ERR) << ex.what();
-    errorMessages_[slotPath].push_back(ex.what());
+    errorMessages_[devicePath].push_back(ex.what());
   }
 }
 
