@@ -164,6 +164,9 @@ void AgentFsdbSyncManager::updateDsfSubscriberState(
       // no change
       return agentState;
     }
+    XLOG(DBG2) << "Updating fsdbSubscriber state for " << nodeName << " from "
+               << apache::thrift::util::enumNameSafe(it->second.value().ref())
+               << " to " << apache::thrift::util::enumNameSafe(newState);
 
     auto newAgentState = agentState->clone();
     auto& newDsfSubscriptions = newAgentState->template modify<subsKey>();
