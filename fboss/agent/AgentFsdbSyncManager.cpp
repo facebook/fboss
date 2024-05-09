@@ -164,16 +164,21 @@ void AgentFsdbSyncManager::updateDsfSubscriberState(
       // no change
       return agentState;
     }
+
+    auto oldVal = it != oldDsfSubscriptions->end()
+        ? apache::thrift::util::enumNameSafe(it->second.value().ref())
+        : "None";
+
     XLOG(DBG2) << "Updating fsdbSubscriber state for " << nodeName << " from "
-               << apache::thrift::util::enumNameSafe(it->second.value().ref())
-               << " to " << apache::thrift::util::enumNameSafe(newState);
+               << oldVal << " to "
+               << apache::thrift::util::enumNameSafe(newState);
 
     auto newAgentState = agentState->clone();
-    auto& newDsfSubscriptions = newAgentState->template modify<subsKey>();
+    auto newDsfSubscriptions = newAgentState->template modify<subsKey>();
     if (it == oldDsfSubscriptions->end()) {
-      newDsfSubscriptions->emplace(std::move(nodeName), newState);
+      newDsfSubscriptions->emplace(nodeName, newState);
     } else {
-      newDsfSubscriptions->at(std::move(nodeName)) = newState;
+      newDsfSubscriptions->ref(nodeName)->set(newState);
     }
 
     newAgentState->template ref<subsKey>() = std::move(newDsfSubscriptions);
