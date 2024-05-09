@@ -42,6 +42,7 @@
 #include "fboss/cli/fboss2/commands/show/hwagent/CmdShowHwAgentStatus.h"
 #include "fboss/cli/fboss2/commands/show/hwobject/CmdShowHwObject.h"
 #include "fboss/cli/fboss2/commands/show/interface/CmdShowInterface.h"
+#include "fboss/cli/fboss2/commands/show/interface/capabilities/CmdShowInterfaceCapabilities.h"
 #include "fboss/cli/fboss2/commands/show/interface/counters/CmdShowInterfaceCounters.h"
 #include "fboss/cli/fboss2/commands/show/interface/counters/fec/CmdShowInterfaceCountersFec.h"
 #include "fboss/cli/fboss2/commands/show/interface/counters/fec/ber/CmdShowInterfaceCountersFecBer.h"
@@ -244,6 +245,10 @@ const CommandTree& kCommandTree() {
             "Show External Phy Port Map",
             commandHandler<CmdShowInterfacePhymap>,
             argTypeHandler<CmdShowInterfacePhymapTraits>},
+           {"capabilities",
+            "Show Supported Port capabilities on the ports",
+            commandHandler<CmdShowInterfaceCapabilities>,
+            argTypeHandler<CmdShowInterfaceCapabilitiesTraits>},
            {"prbs",
             "Show PRBS information",
             commandHandler<CmdShowInterfacePrbs>,

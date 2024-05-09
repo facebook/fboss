@@ -49,6 +49,8 @@
 #include "fboss/cli/fboss2/commands/show/hwagent/CmdShowHwAgentStatus.h"
 #include "fboss/cli/fboss2/commands/show/hwobject/CmdShowHwObject.h"
 #include "fboss/cli/fboss2/commands/show/interface/CmdShowInterface.h"
+#include "fboss/cli/fboss2/commands/show/interface/capabilities/CmdShowInterfaceCapabilities.h"
+#include "fboss/cli/fboss2/commands/show/interface/capabilities/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/commands/show/interface/counters/CmdShowInterfaceCounters.h"
 #include "fboss/cli/fboss2/commands/show/interface/counters/fec/CmdShowInterfaceCountersFec.h"
 #include "fboss/cli/fboss2/commands/show/interface/counters/fec/ber/CmdShowInterfaceCountersFecBer.h"
@@ -184,6 +186,9 @@ CmdHandler<CmdShowInterfacePrbsStats, CmdShowInterfacePrbsStatsTraits>::run();
 template void CmdHandler<CmdShowInterfacePhy, CmdShowInterfacePhyTraits>::run();
 template void
 CmdHandler<CmdShowInterfacePhymap, CmdShowInterfacePhymapTraits>::run();
+template void CmdHandler<
+    CmdShowInterfaceCapabilities,
+    CmdShowInterfaceCapabilitiesTraits>::run();
 template void
 CmdHandler<CmdShowInterfaceTraffic, CmdShowInterfaceTrafficTraits>::run();
 template void CmdHandler<CmdShowSdkDump, CmdShowSdkDumpTraits>::run();
@@ -285,6 +290,9 @@ CmdHandler<CmdShowInterfacePhy, CmdShowInterfacePhyTraits>::getValidFilters();
 template const ValidFilterMapType CmdHandler<
     CmdShowInterfacePhymap,
     CmdShowInterfacePhymapTraits>::getValidFilters();
+template const ValidFilterMapType CmdHandler<
+    CmdShowInterfaceCapabilities,
+    CmdShowInterfaceCapabilitiesTraits>::getValidFilters();
 template const ValidFilterMapType CmdHandler<
     CmdShowInterfaceTraffic,
     CmdShowInterfaceTrafficTraits>::getValidFilters();

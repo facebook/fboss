@@ -224,6 +224,13 @@ add_fbthrift_cpp_library(
 )
 
 add_fbthrift_cpp_library(
+  show_interface_capabilities
+  fboss/cli/fboss2/commands/show/interface/capabilities/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
   show_route_model
   fboss/cli/fboss2/commands/show/route/model.thrift
   OPTIONS
@@ -365,6 +372,7 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/show/interface/counters/mka/CmdShowInterfaceCountersMKA.h
   fboss/cli/fboss2/commands/show/interface/phy/CmdShowInterfacePhy.h
   fboss/cli/fboss2/commands/show/interface/phymap/CmdShowInterfacePhymap.h
+  fboss/cli/fboss2/commands/show/interface/capabilities/CmdShowInterfaceCapabilities.h
   fboss/cli/fboss2/commands/show/interface/status/CmdShowInterfaceStatus.h
   fboss/cli/fboss2/commands/show/interface/prbs/CmdShowInterfacePrbs.h
   fboss/cli/fboss2/commands/show/interface/prbs/capabilities/CmdShowInterfacePrbsCapabilities.h
@@ -440,6 +448,7 @@ target_link_libraries(fboss2
   show_interface_status
   show_interface_phy
   show_interface_phymap
+  show_interface_capabilities
   show_interface_prbs_capabilities
   show_interface_prbs_state
   show_interface_prbs_stats
