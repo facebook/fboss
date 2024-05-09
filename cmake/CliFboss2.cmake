@@ -292,6 +292,15 @@ add_fbthrift_cpp_library(
 )
 
 add_fbthrift_cpp_library(
+  show_interface_counters_fec_histogram
+  fboss/cli/fboss2/commands/show/interface/counters/fec/histogram/model.thrift
+  OPTIONS
+    json
+  DEPENDS
+    phy_cpp2
+)
+
+add_fbthrift_cpp_library(
   show_fabric_topology_model
   fboss/cli/fboss2/commands/show/fabric/topology/model.thrift
   OPTIONS
