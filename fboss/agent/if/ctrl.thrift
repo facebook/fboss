@@ -417,7 +417,7 @@ struct SystemPortThrift {
    * Set only on Remote System Ports of VOQ switches.
    */
   13: optional common.LivenessStatus remoteSystemPortLivenessStatus;
-  14: platform_config.Scope scope = platform_config.Scope.LOCAL;
+  14: switch_config.Scope scope = switch_config.Scope.LOCAL;
 }
 
 struct PortHardwareDetails {

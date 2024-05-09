@@ -13374,7 +13374,8 @@ std::pair<strings::counterTags, ChildThriftPath<::std::vector<::std::string>, ::
 std::pair<strings::portType, Child<::facebook::fboss::cfg::PortType, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::PortType>>>,
 std::pair<strings::expectedNeighborReachability, ChildThriftPath<::std::vector<::facebook::fboss::cfg::PortNeighbor>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
 std::pair<strings::drainState, Child<::facebook::fboss::cfg::PortDrainState, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::PortDrainState>>>,
-std::pair<strings::flowletConfigName, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>>;
+std::pair<strings::flowletConfigName, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
+std::pair<strings::scope, Child<::facebook::fboss::cfg::Scope, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::Scope>>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::facebook::fboss::cfg::PortState, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::PortState>>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
@@ -13402,7 +13403,8 @@ std::pair<strings::flowletConfigName, Child<::std::string, ::apache::thrift::typ
    std::pair<std::integral_constant<apache::thrift::field_id_t, 27>, Child<::facebook::fboss::cfg::PortType, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::PortType>>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 28>, ChildThriftPath<::std::vector<::facebook::fboss::cfg::PortNeighbor>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 29>, Child<::facebook::fboss::cfg::PortDrainState, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::PortDrainState>>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 30>, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 30>, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 31>, Child<::facebook::fboss::cfg::Scope, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::Scope>>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::logicalID, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::state, std::integral_constant<apache::thrift::field_id_t, 2>>,
@@ -13431,7 +13433,8 @@ std::pair<strings::counterTags, std::integral_constant<apache::thrift::field_id_
 std::pair<strings::portType, std::integral_constant<apache::thrift::field_id_t, 27>>,
 std::pair<strings::expectedNeighborReachability, std::integral_constant<apache::thrift::field_id_t, 28>>,
 std::pair<strings::drainState, std::integral_constant<apache::thrift::field_id_t, 29>>,
-std::pair<strings::flowletConfigName, std::integral_constant<apache::thrift::field_id_t, 30>>>::template type_of<Name>;
+std::pair<strings::flowletConfigName, std::integral_constant<apache::thrift::field_id_t, 30>>,
+std::pair<strings::scope, std::integral_constant<apache::thrift::field_id_t, 31>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -13465,6 +13468,7 @@ std::pair<strings::flowletConfigName, std::integral_constant<apache::thrift::fie
     STRUCT_CHILD_GETTERS(expectedNeighborReachability, 28);
     STRUCT_CHILD_GETTERS(drainState, 29);
     STRUCT_CHILD_GETTERS(flowletConfigName, 30);
+    STRUCT_CHILD_GETTERS(scope, 31);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -13496,6 +13500,7 @@ std::pair<strings::flowletConfigName, std::integral_constant<apache::thrift::fie
     else if constexpr (__id == 28) { return expectedNeighborReachability(); }
     else if constexpr (__id == 29) { return drainState(); }
     else if constexpr (__id == 30) { return flowletConfigName(); }
+    else if constexpr (__id == 31) { return scope(); }
   }
 
   template <typename T, T... Values>
