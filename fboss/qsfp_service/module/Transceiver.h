@@ -52,7 +52,7 @@ struct TransceiverPortState {
   uint8_t startHostLane;
   cfg::PortSpeed speed = cfg::PortSpeed::DEFAULT;
   uint8_t numHostLanes;
-  TransmitterTechnology transmitterTech;
+  TransmitterTechnology transmitterTech = TransmitterTechnology::UNKNOWN;
 
   bool operator==(const TransceiverPortState& other) const {
     return speed == other.speed && portName == other.portName &&
