@@ -21,6 +21,7 @@
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortMap.h"
+#include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/PortTestUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/platforms/PlatformMode.h"
@@ -97,18 +98,18 @@ cfg::SwitchConfig oneL3IntfConfig(
 
 cfg::SwitchConfig oneL3IntfConfig(
     const PlatformMapping* platformMapping,
-    const HwAsic* asic,
+    const std::vector<const HwAsic*>& asics,
     PortID port,
     bool supportsAddRemovePort,
-    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap,
     int baseVlanId) {
   std::vector<PortID> ports{port};
+  auto asic = checkSameAndGetAsic(asics);
   return oneL3IntfNPortConfig(
       platformMapping,
       asic,
       ports,
       supportsAddRemovePort,
-      lbModeMap,
+      asic->desiredLoopbackModes(),
       true,
       baseVlanId);
 }

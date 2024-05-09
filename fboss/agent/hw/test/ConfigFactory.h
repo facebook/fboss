@@ -38,11 +38,9 @@ cfg::SwitchConfig oneL3IntfConfig(
     int baseVlanId = kBaseVlanId);
 cfg::SwitchConfig oneL3IntfConfig(
     const PlatformMapping* platformMapping,
-    const HwAsic* asic,
+    const std::vector<const HwAsic*>& asics,
     PortID port,
     bool supportsAddRemovePort,
-    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap =
-        kDefaultLoopbackMap(),
     int baseVlanId = kBaseVlanId);
 cfg::SwitchConfig oneL3IntfNoIPAddrConfig(
     const HwSwitch* hwSwitch,

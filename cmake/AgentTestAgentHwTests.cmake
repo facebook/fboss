@@ -36,6 +36,7 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentSendPacketToQueueTests.cpp
   fboss/agent/test/agent_hw_tests/AgentWatermarkTests.cpp
   fboss/agent/test/agent_hw_tests/AgentSwitchStatsTxCounterTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentMmuTuningTests.cpp
 )
 
 target_link_libraries(agent_hw_test_src
@@ -63,6 +64,7 @@ target_link_libraries(agent_hw_test_src
   queue_test_utils
   invariant_test_utils
   prod_config_factory
+  port_test_utils
   state
   stats
   route_scale_gen
