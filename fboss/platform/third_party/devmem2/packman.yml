@@ -1,0 +1,8 @@
+packages:
+  fboss-devmem2:
+    summary: devmem2 binary built from third-party2
+    packager: fboss_platform
+    static:
+      third-party2/devmem2/1.0.0/platform010/76ebdda/bin/devmem2:
+        path: "/usr/bin/devmem2"
+        mode: "0555"
