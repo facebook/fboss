@@ -330,8 +330,7 @@ void AgentPortBandwidthTest::verifyRateDynamicChanges(
     verifyRateHelperWithRetries(testType, beforeCntPerSec, getQueueOutCntFunc);
   };
 
-  setup();
-  verify();
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 void AgentPortBandwidthTest::verifyQueueShaper() {
