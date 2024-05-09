@@ -17,6 +17,9 @@
           "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*$"
         },
         {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
+        },
+        {
           "test_name_regex": "HwTeFlowTest.*$"
         },
         {
@@ -238,6 +241,9 @@
           "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*$"
         },
         {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
+        },
+        {
           "test_name_regex": "HwTeFlowTest.*$"
         },
         {
@@ -271,6 +277,9 @@
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*$"
+        },
+        {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "HwTeFlowTest.*$"
@@ -392,6 +401,9 @@
           "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*$"
         },
         {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
+        },
+        {
           "test_name_regex": "HwTeFlowTest.*$"
         },
         {
@@ -511,6 +523,9 @@
           "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*$"
         },
         {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
+        },
+        {
           "test_name_regex": "HwTeFlowTest.*$"
         },
         {
@@ -561,6 +576,9 @@
           "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*$"
         },
         {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
+        },
+        {
           "test_name_regex": "HwTeFlowTest.*$"
         },
         {
@@ -596,6 +614,9 @@
           "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*$"
         },
         {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
+        },
+        {
           "test_name_regex": "HwTeFlowTest.*$"
         },
         {
@@ -629,6 +650,9 @@
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*$"
+        },
+        {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "HwTeFlowTest.*$"
@@ -850,6 +874,9 @@
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*$"
+        },
+        {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "HwTeFlowTest.*$"
@@ -1076,6 +1103,9 @@
           "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*$"
         },
         {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
+        },
+        {
           "test_name_regex": "HwTeFlowTest.*$"
         },
         {
@@ -1106,6 +1136,9 @@
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*$"
+        },
+        {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "HwTeFlowTest.*$"
@@ -1158,6 +1191,9 @@
           "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*$"
         },
         {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
+        },
+        {
           "test_name_regex": "HwTeFlowTest.*$"
         },
         {
@@ -1193,6 +1229,9 @@
           "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*$"
         },
         {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
+        },
+        {
           "test_name_regex": "HwTeFlowTest.*$"
         },
         {
@@ -1226,6 +1265,9 @@
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*$"
+        },
+        {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "HwTeFlowTest.*$"
@@ -1278,6 +1320,9 @@
           "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*$"
         },
         {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
+        },
+        {
           "test_name_regex": "HwTeFlowTest.*$"
         },
         {
@@ -1313,6 +1358,9 @@
           "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*$"
         },
         {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
+        },
+        {
           "test_name_regex": "HwTeFlowTest.*$"
         },
         {
@@ -1346,6 +1394,9 @@
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*$"
+        },
+        {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "HwTeFlowTest.*$"
@@ -1467,6 +1518,9 @@
           "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*$"
         },
         {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
+        },
+        {
           "test_name_regex": "HwTeFlowTest.*$"
         },
         {
@@ -1517,6 +1571,9 @@
           "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*$"
         },
         {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
+        },
+        {
           "test_name_regex": "HwTeFlowTest.*$"
         },
         {
@@ -1552,6 +1609,9 @@
           "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*$"
         },
         {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
+        },
+        {
           "test_name_regex": "HwTeFlowTest.*$"
         },
         {
@@ -1585,6 +1645,9 @@
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*$"
+        },
+        {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "HwTeFlowTest.*$"
@@ -1655,6 +1718,9 @@
           "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*$"
         },
         {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
+        },
+        {
           "test_name_regex": "HwTeFlowTest.*$"
         },
         {
@@ -1688,6 +1754,9 @@
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*$"
+        },
+        {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "HwTeFlowTest.*$"
@@ -1725,6 +1794,9 @@
           "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*$"
         },
         {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
+        },
+        {
           "test_name_regex": "HwTeFlowTest.*$"
         },
         {
@@ -1758,6 +1830,9 @@
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*$"
+        },
+        {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "HwTeFlowTest.*$"
@@ -1795,6 +1870,9 @@
           "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*$"
         },
         {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
+        },
+        {
           "test_name_regex": "HwTeFlowTest.*$"
         },
         {
@@ -1828,6 +1906,9 @@
         },
         {
           "test_name_regex": "HwLoadBalancerTestV6EcmpToFlowlet.*$"
+        },
+        {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "HwTeFlowTest.*$"
