@@ -256,6 +256,11 @@ class QsfpServiceHandler
       CdbDatapathSymErrHistogram& symErr,
       std::unique_ptr<std::string> portName) override;
 
+  void getAllPortSupportedProfiles(
+      std::map<std::string, std::vector<cfg::PortProfileID>>&
+          supportedPortProfiles,
+      bool checkOptics) override;
+
 #if FOLLY_HAS_COROUTINES
   folly::coro::Task<bool> co_sakInstallRx(
       std::unique_ptr<mka::MKASak> sak,

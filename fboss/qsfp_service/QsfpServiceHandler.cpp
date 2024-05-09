@@ -137,6 +137,14 @@ void QsfpServiceHandler::getSymbolErrorHistogram(
   manager_->getSymbolErrorHistogram(symErr, *portName);
 }
 
+void QsfpServiceHandler::getAllPortSupportedProfiles(
+    std::map<std::string, std::vector<cfg::PortProfileID>>&
+        supportedPortProfiles,
+    bool checkOptics) {
+  auto log = LOG_THRIFT_CALL(INFO);
+  manager_->getAllPortSupportedProfiles(supportedPortProfiles, checkOptics);
+}
+
 void QsfpServiceHandler::readTransceiverRegister(
     std::map<int32_t, ReadResponse>& response,
     std::unique_ptr<ReadRequest> request) {

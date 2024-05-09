@@ -175,6 +175,15 @@ service QsfpService extends phy.FbossCommonPhyCtrl {
     1: string portName,
   ) throws (1: fboss.FbossBaseError error);
 
+  /*
+   * Returns a map of all platform software port names to the list of port
+   * profile Id supported by that port. If checkOptics is set True then it will
+   * exclude the port profiles which optics does not support
+   */
+  map<string, list<switch_config.PortProfileID>> getAllPortSupportedProfiles(
+    1: bool checkOptics = true,
+  ) throws (1: fboss.FbossBaseError error);
+
   string saiPhyRegisterAccess(
     1: string portName,
     2: bool opRead = true,
