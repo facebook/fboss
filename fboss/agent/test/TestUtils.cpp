@@ -271,7 +271,7 @@ cfg::SwitchConfig testConfigAImpl(bool isMhnic, cfg::SwitchType switchType) {
     cfg.interfaces()[0].intfID() = 1;
     cfg.interfaces()[0].routerID() = 0;
     cfg.interfaces()[0].vlanID() = 1;
-    cfg.interfaces()[0].name() = "fboss1";
+    cfg.interfaces()[0].name() = "eth1/5/1";
     cfg.interfaces()[0].mac() = "00:02:00:00:00:01";
     cfg.interfaces()[0].mtu() = 9000;
     cfg.interfaces()[0].ipAddresses()->resize(4);
@@ -283,7 +283,7 @@ cfg::SwitchConfig testConfigAImpl(bool isMhnic, cfg::SwitchType switchType) {
     cfg.interfaces()[1].intfID() = 55;
     cfg.interfaces()[1].routerID() = 0;
     cfg.interfaces()[1].vlanID() = 55;
-    cfg.interfaces()[1].name() = "fboss55";
+    cfg.interfaces()[1].name() = "eth1/6/1";
     cfg.interfaces()[1].mac() = "00:02:00:00:00:55";
     cfg.interfaces()[1].mtu() = 9000;
     cfg.interfaces()[1].ipAddresses()->resize(4);
@@ -320,7 +320,8 @@ cfg::SwitchConfig testConfigAImpl(bool isMhnic, cfg::SwitchType switchType) {
         cfg.interfaces()[i].intfID() = intfId;
         cfg.interfaces()[i].routerID() = 0;
         cfg.interfaces()[i].type() = cfg::InterfaceType::SYSTEM_PORT;
-        cfg.interfaces()[i].name() = folly::sformat("fboss{}", intfId);
+        cfg.interfaces()[i].name() =
+            folly::sformat("eth1/{}/1", *cfg.ports()[i].logicalID());
         cfg.interfaces()[i].mac() = "00:02:00:00:00:55";
         cfg.interfaces()[i].mtu() = 9000;
         cfg.interfaces()[i].ipAddresses()->resize(2);
