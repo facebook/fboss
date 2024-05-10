@@ -56,6 +56,12 @@
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
+          "test_name_regex": "warm_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentSwitchStatsTxCounterTest.VerifyTxCounter$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -111,6 +117,9 @@
         },
         {
           "test_name_regex": "AgentMacSwLearningModeTest.VerifyNbrMacInL2Table$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticDynamicTransformations$"
         },
         {
           "test_name_regex": "AgentLoadBalancerTestV4.ECMPShrinkExpandLoadBalanceFullHashCpuTraffic$"
@@ -256,6 +265,9 @@
           "test_name_regex": "AgentMacSwLearningModeTest.VerifyNbrMacInL2Table$"
         },
         {
+          "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticDynamicTransformations$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].EapolToHighPriQ$"
         }
     ],
@@ -333,6 +345,12 @@
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
+          "test_name_regex": "warm_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentSwitchStatsTxCounterTest.VerifyTxCounter$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -388,6 +406,9 @@
         },
         {
           "test_name_regex": "AgentMacSwLearningModeTest.VerifyNbrMacInL2Table$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticDynamicTransformations$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].EapolToHighPriQ$"
@@ -494,6 +515,9 @@
           "test_name_regex": "AgentMacSwLearningModeTest.VerifyNbrMacInL2Table$"
         },
         {
+          "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticDynamicTransformations$"
+        },
+        {
           "test_name_regex": "AgentLoadBalancerTestV4InMplsPhp.*$"
         },
         {
@@ -568,6 +592,12 @@
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
+          "test_name_regex": "warm_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentSwitchStatsTxCounterTest.VerifyTxCounter$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -623,6 +653,9 @@
         },
         {
           "test_name_regex": "AgentMacSwLearningModeTest.VerifyNbrMacInL2Table$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticDynamicTransformations$"
         },
         {
           "test_name_regex": "AgentLoadBalancerTestV4InMplsPhp.*$"
@@ -762,6 +795,9 @@
           "test_name_regex": "AgentMacSwLearningModeTest.VerifyNbrMacInL2Table$"
         },
         {
+          "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticDynamicTransformations$"
+        },
+        {
           "test_name_regex": "AgentAqmTest.verifyEcnWithoutWredConfig$"
         },
         {
@@ -842,6 +878,12 @@
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
+          "test_name_regex": "warm_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentSwitchStatsTxCounterTest.VerifyTxCounter$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -897,6 +939,9 @@
         },
         {
           "test_name_regex": "AgentMacSwLearningModeTest.VerifyNbrMacInL2Table$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticDynamicTransformations$"
         },
         {
           "test_name_regex": "AgentAqmTest.verifyEcnWithoutWredConfig$"
@@ -1003,6 +1048,9 @@
           "test_name_regex": "AgentMacSwLearningModeTest.VerifyNbrMacInL2Table$"
         },
         {
+          "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticDynamicTransformations$"
+        },
+        {
           "test_name_regex": "AgentLoadBalancerTestV4InMplsPhp.*$"
         },
         {
@@ -1098,6 +1146,12 @@
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
+          "test_name_regex": "warm_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentSwitchStatsTxCounterTest.VerifyTxCounter$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -1153,6 +1207,9 @@
         },
         {
           "test_name_regex": "AgentMacSwLearningModeTest.VerifyNbrMacInL2Table$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticDynamicTransformations$"
         },
         {
           "test_name_regex": "AgentLoadBalancerTestV4InMplsPhp.*$"
@@ -1295,6 +1352,9 @@
           "test_name_regex": "AgentMacSwLearningModeTest.VerifyNbrMacInL2Table$"
         },
         {
+          "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticDynamicTransformations$"
+        },
+        {
           "test_name_regex": "AgentLoadBalancerTestV4InMplsPhp.*$"
         },
         {
@@ -1402,6 +1462,12 @@
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
+          "test_name_regex": "warm_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentSwitchStatsTxCounterTest.VerifyTxCounter$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -1457,6 +1523,9 @@
         },
         {
           "test_name_regex": "AgentMacSwLearningModeTest.VerifyNbrMacInL2Table$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticDynamicTransformations$"
         },
         {
           "test_name_regex": "AgentLoadBalancerTestV4InMplsPhp.*$"
@@ -1611,6 +1680,9 @@
           "test_name_regex": "AgentMacSwLearningModeTest.VerifyNbrMacInL2Table$"
         },
         {
+          "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticDynamicTransformations$"
+        },
+        {
           "test_name_regex": "AgentPrbsTest.*$"
         }
     ],
@@ -1670,6 +1742,12 @@
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
+          "test_name_regex": "warm_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentSwitchStatsTxCounterTest.VerifyTxCounter$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -1725,6 +1803,9 @@
         },
         {
           "test_name_regex": "AgentMacSwLearningModeTest.VerifyNbrMacInL2Table$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticDynamicTransformations$"
         },
         {
           "test_name_regex": "AgentPrbsTest.*$"
@@ -1831,6 +1912,9 @@
           "test_name_regex": "AgentMacSwLearningModeTest.VerifyNbrMacInL2Table$"
         },
         {
+          "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticDynamicTransformations$"
+        },
+        {
           "test_name_regex": "AgentPrbsTest.*$"
         }
     ],
@@ -1890,6 +1974,12 @@
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
+          "test_name_regex": "warm_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentSwitchStatsTxCounterTest.VerifyTxCounter$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -1945,6 +2035,9 @@
         },
         {
           "test_name_regex": "AgentMacSwLearningModeTest.VerifyNbrMacInL2Table$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticDynamicTransformations$"
         },
         {
           "test_name_regex": "AgentPrbsTest.*$"
@@ -2069,6 +2162,9 @@
           "test_name_regex": "AgentMacSwLearningModeTest.VerifyNbrMacInL2Table$"
         },
         {
+          "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticDynamicTransformations$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].EapolToHighPriQ$"
         }
     ],
@@ -2146,6 +2242,12 @@
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
+          "test_name_regex": "warm_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentSwitchStatsTxCounterTest.VerifyTxCounter$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -2201,6 +2303,9 @@
         },
         {
           "test_name_regex": "AgentMacSwLearningModeTest.VerifyNbrMacInL2Table$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticDynamicTransformations$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].EapolToHighPriQ$"
@@ -2307,6 +2412,9 @@
           "test_name_regex": "AgentMacSwLearningModeTest.VerifyNbrMacInL2Table$"
         },
         {
+          "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticDynamicTransformations$"
+        },
+        {
           "test_name_regex": "AgentLoadBalancerTestV4InMplsPhp.*$"
         },
         {
@@ -2381,6 +2489,12 @@
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
+          "test_name_regex": "warm_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentSwitchStatsTxCounterTest.VerifyTxCounter$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -2436,6 +2550,9 @@
         },
         {
           "test_name_regex": "AgentMacSwLearningModeTest.VerifyNbrMacInL2Table$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticDynamicTransformations$"
         },
         {
           "test_name_regex": "AgentLoadBalancerTestV4InMplsPhp.*$"
@@ -2575,6 +2692,9 @@
           "test_name_regex": "AgentMacSwLearningModeTest.VerifyNbrMacInL2Table$"
         },
         {
+          "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticDynamicTransformations$"
+        },
+        {
           "test_name_regex": "AgentAqmTest.verifyEcnWithoutWredConfig$"
         },
         {
@@ -2655,6 +2775,12 @@
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
+          "test_name_regex": "warm_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentSwitchStatsTxCounterTest.VerifyTxCounter$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -2710,6 +2836,9 @@
         },
         {
           "test_name_regex": "AgentMacSwLearningModeTest.VerifyNbrMacInL2Table$"
+        },
+        {
+          "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticDynamicTransformations$"
         },
         {
           "test_name_regex": "AgentAqmTest.verifyEcnWithoutWredConfig$"
@@ -2969,6 +3098,12 @@
         },
         {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentSwitchStatsTxCounterTest.VerifyTxCounter$"
         }
     ],
     "leaba/1.65.1/1.65.1/gibraltar/mono": [
@@ -3213,6 +3348,12 @@
         },
         {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentSwitchStatsTxCounterTest.VerifyTxCounter$"
         }
     ]
   }
