@@ -378,6 +378,7 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/show/interface/counters/fec/CmdShowInterfaceCountersFec.h
   fboss/cli/fboss2/commands/show/interface/counters/fec/ber/CmdShowInterfaceCountersFecBer.h
   fboss/cli/fboss2/commands/show/interface/counters/fec/uncorrectable/CmdShowInterfaceCountersFecUncorrectable.h
+  fboss/cli/fboss2/commands/show/interface/counters/fec/histogram/CmdShowInterfaceCountersFecHistogram.h
   fboss/cli/fboss2/commands/show/interface/counters/mka/CmdShowInterfaceCountersMKA.h
   fboss/cli/fboss2/commands/show/interface/phy/CmdShowInterfacePhy.h
   fboss/cli/fboss2/commands/show/interface/phymap/CmdShowInterfacePhymap.h
@@ -469,6 +470,7 @@ target_link_libraries(fboss2
   show_teflow_model
   show_hwagent_status_model
   show_interface_counters_fec_ber
+  show_interface_counters_fec_histogram
   show_fabric_topology_model
   show_rif
   show_interface_counters_fec_uncorrectable
