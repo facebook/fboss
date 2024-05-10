@@ -14,6 +14,9 @@
 namespace facebook::fboss {
 
 class HwAsic;
+class HwPortStats;
+class TestEnsembleIf;
+class PortID;
 
 namespace utility {
 int getRoundedBufferThreshold(
@@ -33,6 +36,18 @@ size_t getEffectiveBytesPerPacket(const HwAsic* asic, int packetSizeInBytes);
 double getAlphaFromScalingFactor(
     const HwAsic* asic,
     cfg::MMUScalingFactor scalingFactor);
+
+/*
+ * TX ENABLE function from vendors sometimes will end up sending some packets
+ * before it can disable further transmits. In cases where we need the queue
+ * to build up to a specific number of packets, need to account for the packets
+ * if any that gets TXed after TX is disabled and send that many packets again.
+ */
+HwPortStats sendPacketsWithQueueBuildup(
+    std::function<void(PortID port, int numPacketsToSend)> sendPktsFn,
+    TestEnsembleIf* ensemble,
+    PortID port,
+    int numPackets);
 
 } // namespace utility
 

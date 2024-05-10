@@ -286,6 +286,7 @@ target_link_libraries(hw_switch_test
   config_factory
   agent_test_utils
   acl_test_utils
+  aqm_test_utils
   config_utils
   aqm_test_utils
   copp_test_utils

@@ -21,6 +21,7 @@
 #include "fboss/agent/packet/TCPHeader.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
+#include "fboss/agent/test/utils/AqmTestUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
 
 #include "fboss/lib/CommonUtils.h"

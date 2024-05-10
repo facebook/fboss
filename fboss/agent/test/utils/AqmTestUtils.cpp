@@ -12,6 +12,11 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/test/TestEnsembleIf.h"
+#include "fboss/agent/test/utils/PortTestUtils.h"
+#include "fboss/lib/CommonUtils.h"
+
+#include <gtest/gtest.h>
 
 namespace {
 static constexpr auto kJerichoWordSize{16};
@@ -166,6 +171,68 @@ double getAlphaFromScalingFactor(
     cfg::MMUScalingFactor scalingFactor) {
   int powof = asic->getBufferDynThreshFromScalingFactor(scalingFactor);
   return pow(2, powof);
+}
+
+HwPortStats sendPacketsWithQueueBuildup(
+    std::function<void(PortID port, int numPacketsToSend)> sendPktsFn,
+    TestEnsembleIf* ensemble,
+    PortID port,
+    int numPackets) {
+  auto getOutPacketDelta = [](auto& after, auto& before) {
+    return (
+        (*after.outMulticastPkts_() + *after.outBroadcastPkts_() +
+         *after.outUnicastPkts_()) -
+        (*before.outMulticastPkts_() + *before.outBroadcastPkts_() +
+         *before.outUnicastPkts_()));
+  };
+  auto statsAtStart = ensemble->getLatestPortStats(port);
+  auto prevStats = statsAtStart;
+  // Disable TX to allow queue to build up
+  utility::setCreditWatchdogAndPortTx(ensemble, port, false);
+  // Start by sending half the number of packets. Note that though TX is
+  // disabled, some packets will leak through due to some credits being
+  // available and the leak is different for different ASICs.
+  sendPktsFn(port, numPackets / 2);
+  int totalPacketsSent = numPackets / 2;
+
+  auto getStatsIncrement = [&]() {
+    auto newStats = ensemble->getLatestPortStats(port);
+    uint64_t netOut = getOutPacketDelta(newStats, statsAtStart);
+    uint64_t newOut = getOutPacketDelta(newStats, prevStats);
+    prevStats = newStats;
+    return std::pair(netOut, newOut);
+  };
+
+  std::pair<uint64_t, uint64_t> statsInfo;
+  WITH_RETRIES_N_TIMED(10, std::chrono::milliseconds(1000), {
+    statsInfo = getStatsIncrement();
+    if (statsInfo.first == totalPacketsSent) {
+      // TX is not disabled yet, needs more packet TX to get to the point
+      // of running out of initial credits before TX is stopped!
+      sendPktsFn(port, numPackets / 2);
+      totalPacketsSent += numPackets / 2;
+    }
+    EXPECT_EVENTUALLY_TRUE(statsInfo.first < totalPacketsSent);
+    // TX disable is in effect once we see that no more packets are
+    // getting transmitted.
+    EXPECT_EVENTUALLY_EQ(statsInfo.second, 0);
+  });
+  const auto statsWithTxDisabled = prevStats;
+
+  XLOG(DBG3) << "Number of packets TXed with TX disable set is "
+             << statsInfo.first;
+  // TXed packets dont contribute to queue build up. Resend the number of
+  // packets that got transmitted to ensure numPackets are in the queue.
+  auto queuedPackets = totalPacketsSent - statsInfo.first;
+  if (queuedPackets < numPackets) {
+    sendPktsFn(port, numPackets - queuedPackets);
+  }
+
+  // Enable TX to send traffic out
+  utility::setCreditWatchdogAndPortTx(ensemble, port, true);
+
+  // Return the stats at the point when port stopped actual TX!
+  return statsWithTxDisabled;
 }
 
 }; // namespace facebook::fboss::utility

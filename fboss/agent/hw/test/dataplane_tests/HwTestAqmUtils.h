@@ -12,6 +12,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
+#include "fboss/agent/test/utils/AqmTestUtils.h"
 #include "fboss/agent/types.h"
 
 /*
@@ -45,18 +46,6 @@ int getRoundedBufferThreshold(
  * size and will be in multiples of internal buffers / cells.
  */
 size_t getEffectiveBytesPerPacket(HwSwitch* hwSwitch, int packetSizeInBytes);
-
-/*
- * TX ENABLE function from vendors sometimes will end up sending some packets
- * before it can disable further transmits. In cases where we need the queue
- * to build up to a specific number of packets, need to account for the packets
- * if any that gets TXed after TX is disabled and send that many packets again.
- */
-HwPortStats sendPacketsWithQueueBuildup(
-    std::function<void(PortID port, int numPacketsToSend)> sendPktsFn,
-    HwSwitchEnsemble* ensemble,
-    PortID port,
-    int numPackets);
 
 /*
  * Get static or dynamic queue limit for platform. In case of dynamic queue

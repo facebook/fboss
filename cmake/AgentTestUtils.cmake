@@ -300,6 +300,10 @@ target_link_libraries(aqm_test_utils
   switch_asics
   switch_config_cpp2
   fboss_error
+  port_test_utils
+  test_ensemble_if
+  common_utils
+  ${GTEST}
 )
 
 add_library(agent_hw_test_constants
