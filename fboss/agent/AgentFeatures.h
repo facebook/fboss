@@ -41,3 +41,4 @@ DECLARE_uint32(dsf_gr_hold_time);
 DECLARE_uint32(dsf_num_parallel_sessions_per_remote_interface_node);
 
 DECLARE_bool(classid_for_connected_subnet_routes);
+DECLARE_int32(stat_publish_interval_ms);

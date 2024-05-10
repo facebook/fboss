@@ -47,3 +47,9 @@ DEFINE_bool(
     classid_for_connected_subnet_routes,
     false,
     "Flag to set the class ID for connected subnet routes that point to RIF");
+
+DEFINE_int32(
+    stat_publish_interval_ms,
+    1000,
+    "How frequently to publish thread-local stats back to the "
+    "global store.  This should generally be less than 1 second.");

@@ -11,6 +11,8 @@
 #include <folly/logging/Init.h>
 #include <folly/logging/xlog.h>
 #include "fboss/agent/AgentConfig.h"
+#include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/AlpmUtils.h"
 #include "fboss/agent/CommonInit.h"
 #include "fboss/agent/FbossInit.h"
 #include "fboss/agent/HwSwitch.h"
@@ -18,8 +20,6 @@
 #include "fboss/agent/SetupThrift.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/mnpu/SplitAgentThriftSyncer.h"
-
-#include "fboss/agent/AlpmUtils.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/lib/CommonFileUtils.h"
 
@@ -200,6 +200,14 @@ int hwAgentMain(
         }
       },
       std::move(hwAgent));
+
+  /*
+   * Updating stats could be expensive as each update must acquire lock. To
+   * avoid this overhead, we use ThreadLocal version for updating stats, and
+   * start a publish thread to aggregate the counters periodically.
+   */
+  facebook::fb303::ThreadCachedServiceData::get()->startPublishThread(
+      std::chrono::milliseconds(FLAGS_stat_publish_interval_ms));
 
   restart_time::mark(RestartEvent::INITIALIZED);
 

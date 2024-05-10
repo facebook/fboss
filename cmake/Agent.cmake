@@ -422,6 +422,7 @@ add_library(hwagent-main
 )
 
 target_link_libraries(hwagent-main
+  agent_features
   fboss_common_init
   platform_base
   fboss_common_cpp2
@@ -590,6 +591,7 @@ add_library(sw_agent_initializer
 )
 
 target_link_libraries(sw_agent_initializer
+  agent_features
   core
   Folly::folly
   FBThrift::thriftcpp2
