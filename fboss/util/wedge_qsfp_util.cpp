@@ -1439,6 +1439,7 @@ void printHostLaneSignals(const std::vector<HostLaneSignals>& signals) {
       printf(
           " %-12s",
           apache::thrift::util::enumNameSafe(*(signal.cmisLaneState()))
+              .substr(0, 12)
               .c_str());
     }
   }
