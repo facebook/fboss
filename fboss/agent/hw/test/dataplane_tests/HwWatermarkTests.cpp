@@ -45,10 +45,6 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
     return cfg;
   }
 
-  MacAddress kDstMac() const {
-    return getPlatform()->getLocalMac();
-  }
-
   void sendUdpPkt(
       uint8_t dscpVal,
       const folly::IPAddressV6& dst,
@@ -80,43 +76,6 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
     }
   }
 
-  uint64_t getMinDeviceWatermarkValue() {
-    uint64_t minDeviceWatermarkBytes{0};
-    if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO) {
-      /*
-       * Ebro will always have some internal buffer utilization even
-       * when there is no traffic in the ASIC. The recommendation is
-       * to consider atleast 100 buffers, translating to 100 x 384B
-       * as steady state device watermark.
-       */
-      constexpr auto kEbroMinDeviceWatermarkBytes = 38400;
-      minDeviceWatermarkBytes = kEbroMinDeviceWatermarkBytes;
-    }
-    return minDeviceWatermarkBytes;
-  }
-
-  bool gotExpectedDeviceWatermark(bool expectZero, int retries) {
-    XLOG(DBG0) << "Expect zero watermark: " << std::boolalpha << expectZero;
-    do {
-      getQueueWatermarks(masterLogicalInterfacePortIds()[0], false /*isVoq*/);
-      auto deviceWatermarkBytes =
-          getHwSwitchEnsemble()->getHwSwitch()->getDeviceWatermarkBytes();
-      XLOG(DBG0) << "Device watermark bytes: " << deviceWatermarkBytes;
-      auto watermarkAsExpected =
-          (expectZero &&
-           (deviceWatermarkBytes <= getMinDeviceWatermarkValue())) ||
-          (!expectZero &&
-           (deviceWatermarkBytes > getMinDeviceWatermarkValue()));
-      if (watermarkAsExpected) {
-        return true;
-      }
-      XLOG(DBG0) << " Retry ...";
-      sleep(1);
-    } while (--retries > 0);
-
-    XLOG(DBG2) << " Did not get expected device watermark value";
-    return false;
-  }
   std::map<PortID, folly::IPAddressV6> getPort2DstIp() const {
     return {
         {masterLogicalInterfacePortIds()[0], kDestIp1()},
@@ -198,126 +157,7 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
       }
     }
   }
-
-  void assertDeviceWatermark(bool expectZero, int retries = 1) {
-    EXPECT_TRUE(gotExpectedDeviceWatermark(expectZero, retries));
-  }
 };
-
-// TODO - merge device watermark checking into the tests
-// above once all platforms support device watermarks
-TEST_F(HwWatermarkTest, VerifyDeviceWatermark) {
-  auto setup = [this]() { _setup(true); };
-  auto verify = [this]() {
-    auto minPktsForLineRate = getHwSwitchEnsemble()->getMinPktsForLineRate(
-        masterLogicalInterfacePortIds()[0]);
-    sendUdpPkts(0, kDestIp1(), minPktsForLineRate);
-    getHwSwitchEnsemble()->waitForLineRateOnPort(
-        masterLogicalInterfacePortIds()[0]);
-    // Assert non zero watermark
-    assertDeviceWatermark(false, 10);
-
-    WITH_RETRIES({
-      getHwSwitchEnsemble()->getHwSwitch()->updateStats();
-      EXPECT_EVENTUALLY_GT(
-          getHwSwitchEnsemble()
-              ->getHwSwitch()
-              ->getSwitchWatermarkStats()
-              .deviceWatermarkBytes(),
-          0);
-    });
-
-    // Now, break the loop to make sure traffic goes to zero!
-    bringDownPort(masterLogicalInterfacePortIds()[0]);
-    bringUpPort(masterLogicalInterfacePortIds()[0]);
-
-    // Assert zero watermark
-    assertDeviceWatermark(true, 10);
-  };
-  verifyAcrossWarmBoots(setup, verify);
-}
-
-TEST_F(HwWatermarkTest, VerifyDeviceWatermarkHigherThanQueueWatermark) {
-  auto setup = [this]() {
-    _setup(true);
-    auto minPktsForLineRate = getHwSwitchEnsemble()->getMinPktsForLineRate(
-        masterLogicalInterfacePortIds()[0]);
-    // Sending traffic on 2 queues
-    sendUdpPkts(
-        utility::kOlympicQueueToDscp()
-            .at(utility::getOlympicQueueId(utility::OlympicQueueType::SILVER))
-            .front(),
-        kDestIp1(),
-        minPktsForLineRate / 2);
-    sendUdpPkts(
-        utility::kOlympicQueueToDscp()
-            .at(utility::getOlympicQueueId(utility::OlympicQueueType::GOLD))
-            .front(),
-        kDestIp1(),
-        minPktsForLineRate / 2);
-    getHwSwitchEnsemble()->waitForLineRateOnPort(
-        masterLogicalInterfacePortIds()[0]);
-  };
-  auto verify = [this]() {
-    if (!isSupported(HwAsic::Feature::L3_QOS)) {
-#if defined(GTEST_SKIP)
-      GTEST_SKIP();
-#endif
-      return;
-    }
-    auto queueIdGold =
-        utility::getOlympicQueueId(utility::OlympicQueueType::GOLD);
-    auto queueIdSilver =
-        utility::getOlympicQueueId(utility::OlympicQueueType::SILVER);
-    auto queueWatermarkNonZero =
-        [queueIdGold,
-         queueIdSilver](std::map<int16_t, int64_t>& queueWaterMarks) {
-          if (queueWaterMarks.at(queueIdSilver) ||
-              queueWaterMarks.at(queueIdGold)) {
-            return true;
-          }
-          return false;
-        };
-
-    /*
-     * Now we are at line rate on port, make sure that queue watermark
-     * is non-zero! As of now, the assumption is as below:
-     *
-     * 1. VoQ switches has device watermarks being reported from ingress
-     *    buffers, hence compare it with VoQ watermarks
-     * 2. Non-voq switches just has egress queue watermarks which is from
-     *    the same buffer as the device watermark is reported.
-     *
-     * In case of new platforms, make sure that the assumption holds.
-     */
-    std::map<int16_t, int64_t> queueWaterMarks;
-    WITH_RETRIES_N_TIMED(10, std::chrono::milliseconds(1000), {
-      queueWaterMarks = getQueueWatermarks(
-          masterLogicalInterfacePortIds()[0],
-          getPlatform()->getAsic()->getSwitchType() ==
-              cfg::SwitchType::VOQ /*isVoq*/);
-      EXPECT_EVENTUALLY_TRUE(queueWatermarkNonZero(queueWaterMarks));
-    });
-
-    // Get device watermark now, so that it is > highest queue watermark!
-    auto deviceWaterMark =
-        getHwSwitchEnsemble()->getHwSwitch()->getDeviceWatermarkBytes();
-    XLOG(DBG2) << "For port: " << masterLogicalInterfacePortIds()[0]
-               << ", Queue" << queueIdSilver
-               << " watermark: " << queueWaterMarks.at(queueIdSilver)
-               << ", Queue" << queueIdGold
-               << " watermark: " << queueWaterMarks.at(queueIdGold)
-               << ", Device watermark: " << deviceWaterMark;
-
-    // Make sure that device watermark is > highest queue watermark
-    EXPECT_GT(
-        deviceWaterMark,
-        std::max(
-            queueWaterMarks.at(queueIdSilver),
-            queueWaterMarks.at(queueIdGold)));
-  };
-  verifyAcrossWarmBoots(setup, verify);
-}
 
 TEST_F(HwWatermarkTest, VerifyQueueWatermarkAccuracy) {
   auto setup = [this]() { _setup(false); };
