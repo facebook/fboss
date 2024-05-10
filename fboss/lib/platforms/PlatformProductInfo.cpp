@@ -113,6 +113,10 @@ void PlatformProductInfo::initMode() {
       // TODO remove FAB once fruid.json is fixed on Galaxy fabric cards
       type_ = PlatformType::PLATFORM_GALAXY_FC;
     } else if (
+        modelName.find("Montblanc") == 0 || modelName.find("MONTBLANC") == 0 ||
+        modelName.find("MINIPACK3_CHASSIS_BUNDLE") == 0) {
+      type_ = PlatformType::PLATFORM_MONTBLANC;
+    } else if (
         modelName.find("MINIPACK") == 0 || modelName.find("MINIPHOTON") == 0) {
       type_ = PlatformType::PLATFORM_MINIPACK;
     } else if (modelName.find("DCS-7368") == 0 || modelName.find("YAMP") == 0) {
@@ -142,9 +146,6 @@ void PlatformProductInfo::initMode() {
         modelName.find("Meru400bfu") == 0 ||
         modelName.find("S9705-48D-4B4") == 0) {
       type_ = PlatformType::PLATFORM_MERU400BFU;
-    } else if (
-        modelName.find("Montblanc") == 0 || modelName.find("MONTBLANC") == 0) {
-      type_ = PlatformType::PLATFORM_MONTBLANC;
     } else if (
         modelName.find("Meru800bia") == 0 ||
         modelName.find("MERU800BIA") == 0 ||
