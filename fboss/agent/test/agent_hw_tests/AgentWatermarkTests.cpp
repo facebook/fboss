@@ -143,6 +143,46 @@ class AgentWatermarkTest : public AgentHwTest {
     }
   }
 
+  uint64_t getMinDeviceWatermarkValue(SwitchID switchId) {
+    uint64_t minDeviceWatermarkBytes{0};
+    if (getSw()->getHwAsicTable()->getHwAsic(switchId)->getAsicType() ==
+        cfg::AsicType::ASIC_TYPE_EBRO) {
+      /*
+       * Ebro will always have some internal buffer utilization even
+       * when there is no traffic in the ASIC. The recommendation is
+       * to consider atleast 100 buffers, translating to 100 x 384B
+       * as steady state device watermark.
+       */
+      constexpr auto kEbroMinDeviceWatermarkBytes = 38400;
+      minDeviceWatermarkBytes = kEbroMinDeviceWatermarkBytes;
+    }
+    return minDeviceWatermarkBytes;
+  }
+
+  bool gotExpectedDeviceWatermark(bool expectZero, SwitchID switchId) {
+    XLOG(DBG0) << "Expect zero watermark: " << std::boolalpha << expectZero;
+    bool watermarkAsExpected = false;
+    WITH_RETRIES({
+      auto switchWatermarkStats = getAllSwitchWatermarkStats();
+      if (switchWatermarkStats.find(switchId) == switchWatermarkStats.end()) {
+        continue;
+      }
+      auto deviceWatermarkBytes =
+          *switchWatermarkStats.at(switchId).deviceWatermarkBytes();
+      XLOG(DBG0) << "Device watermark bytes: " << deviceWatermarkBytes;
+      watermarkAsExpected |=
+          (expectZero &&
+           (deviceWatermarkBytes <= getMinDeviceWatermarkValue(switchId))) ||
+          (!expectZero &&
+           (deviceWatermarkBytes > getMinDeviceWatermarkValue(switchId)));
+      EXPECT_EVENTUALLY_TRUE(watermarkAsExpected);
+    });
+    if (!watermarkAsExpected) {
+      XLOG(DBG2) << "Did not get expected device watermark value";
+    }
+    return watermarkAsExpected;
+  }
+
   bool gotExpectedWatermark(
       const PortID& port,
       int queueId,
@@ -245,6 +285,32 @@ TEST_F(AgentWatermarkTest, VerifyDefaultQueue) {
 
 TEST_F(AgentWatermarkTest, VerifyNonDefaultQueue) {
   runTest(getOlympicQueueId(utility::OlympicQueueType::GOLD));
+}
+
+// TODO - merge device watermark checking into the tests
+// above once all platforms support device watermarks
+TEST_F(AgentWatermarkTest, VerifyDeviceWatermark) {
+  auto setup = [this]() { _setup(true); };
+  auto verify = [this]() {
+    for (const auto& switchId : getSw()->getSwitchInfoTable().getSwitchIDs()) {
+      auto portToSendTraffic =
+          getAgentEnsemble()->masterLogicalInterfacePortIds(switchId)[0];
+      auto minPktsForLineRate =
+          getAgentEnsemble()->getMinPktsForLineRate(portToSendTraffic);
+      sendUdpPkts(0, kDestIp1(), minPktsForLineRate);
+      getAgentEnsemble()->waitForLineRateOnPort(portToSendTraffic);
+      // Assert non zero watermark
+      EXPECT_TRUE(gotExpectedDeviceWatermark(false, switchId));
+
+      // Now, break the loop to make sure traffic goes to zero!
+      getAgentEnsemble()->getLinkToggler()->bringDownPorts({portToSendTraffic});
+      getAgentEnsemble()->getLinkToggler()->bringUpPorts({portToSendTraffic});
+
+      // Assert zero watermark
+      EXPECT_TRUE(gotExpectedDeviceWatermark(true, switchId));
+    }
+  };
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 } // namespace facebook::fboss
