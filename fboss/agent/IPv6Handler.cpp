@@ -1038,14 +1038,13 @@ void IPv6Handler::floodNeighborAdvertisements() {
                      << addrEntry.str()
                      << " Using port: " << portDescriptor.value().str();
         }
-        // send unsolicited neighbor advertisements
-        const auto allNodeMulticastIP = folly::IPAddressV6("ff02::1");
+
         sendNeighborAdvertisement(
             intf->getVlanIDIf(),
             intf->getMac(),
             addrEntry.asV6(),
-            MacAddress::createMulticast(allNodeMulticastIP),
-            allNodeMulticastIP,
+            MacAddress::BROADCAST,
+            IPAddressV6(),
             portDescriptor);
       }
     }
