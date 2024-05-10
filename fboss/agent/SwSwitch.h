@@ -948,6 +948,7 @@ class SwSwitch : public HwSwitchCallback {
     return !isRunModeMultiSwitch();
   }
   MonolithicHwSwitchHandler* getMonolithicHwSwitchHandler() const;
+  int16_t getSwitchIndexForInterface(const std::string& interface) const;
 
  private:
   std::optional<folly::MacAddress> getSourceMac(

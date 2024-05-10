@@ -772,6 +772,13 @@ MonolithicHwSwitchHandler* SwSwitch::getMonolithicHwSwitchHandler() const {
       hwSwitchHandlers.begin()->second);
 }
 
+int16_t SwSwitch::getSwitchIndexForInterface(
+    const std::string& interface) const {
+  auto portId = getPlatformMapping()->getPortID(interface);
+  auto switchId = getScopeResolver()->scope(portId).switchId();
+  return getSwitchInfoTable().getSwitchIndexFromSwitchId(switchId);
+}
+
 void SwSwitch::updateStats() {
   SCOPE_EXIT {
     if (FLAGS_publish_stats_to_fsdb) {
