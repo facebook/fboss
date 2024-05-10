@@ -3211,4 +3211,22 @@ void ThriftHandler::getAllEcmpDetails(std::vector<EcmpDetails>& ecmpDetails) {
   }
 }
 
+void ThriftHandler::getSwitchIndicesForInterfaces(
+    std::map<int16_t, std::vector<std::string>>& switchIndicesForInterfaces,
+    std::unique_ptr<std::vector<std::string>> interfaces) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured(__func__);
+  for (const auto& interface : *interfaces) {
+    auto switchIndex = sw_->getSwitchIndexForInterface(interface);
+    auto switchIndicesForInterfacesItr =
+        switchIndicesForInterfaces.find(switchIndex);
+    if (switchIndicesForInterfacesItr == switchIndicesForInterfaces.end()) {
+      std::vector<std::string> switchIndexInterfaces{interface};
+      switchIndicesForInterfaces[switchIndex] = switchIndexInterfaces;
+    } else {
+      switchIndicesForInterfaces[switchIndex].push_back(interface);
+    }
+  }
+}
+
 } // namespace facebook::fboss

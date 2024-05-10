@@ -301,6 +301,9 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void getAllEcmpDetails(std::vector<EcmpDetails>& ecmpDetails) override;
   void getHwAgentConnectionStatus(
       std::map<int16_t, HwAgentEventSyncStatus>& hwAgentSyncStatusMap) override;
+  void getSwitchIndicesForInterfaces(
+      std::map<int16_t, std::vector<std::string>>& switchIndicesForInterfaces,
+      std::unique_ptr<std::vector<std::string>> interfaces) override;
 
   /*
    * Thrift handler for keepalive messages.  It's a no-op, but prevents the
