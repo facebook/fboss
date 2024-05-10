@@ -148,6 +148,7 @@ HwPortStats getInitedStats() {
       28, // outForwardingDiscards
       0, // fabricConnectivityMismatch
       1, // logicalPortId
+      2, // leakyBucketFlapCount_
   };
 }
 

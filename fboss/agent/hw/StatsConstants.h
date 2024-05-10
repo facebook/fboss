@@ -137,6 +137,10 @@ inline folly::StringPiece constexpr kFecUncorrectable() {
   return "fec_uncorrectable_errors";
 }
 
+inline folly::StringPiece constexpr kLeakyBucketFlapCnt() {
+  return "leaky_bucket_flap_cnt";
+}
+
 inline folly::StringPiece constexpr kInLabelMissDiscards() {
   return "in_label_miss_discards";
 }

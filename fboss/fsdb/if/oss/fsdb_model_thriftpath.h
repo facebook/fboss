@@ -20031,7 +20031,8 @@ std::pair<strings::inAclDiscards_, Child<::std::int64_t, ::apache::thrift::type_
 std::pair<strings::inTrapDiscards_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
 std::pair<strings::outForwardingDiscards_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
 std::pair<strings::fabricConnectivityMismatch_DEPRECATED, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
-std::pair<strings::logicalPortId, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
+std::pair<strings::logicalPortId, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+std::pair<strings::leakyBucketFlapCount_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
@@ -20081,7 +20082,8 @@ std::pair<strings::logicalPortId, Child<::std::int32_t, ::apache::thrift::type_c
    std::pair<std::integral_constant<apache::thrift::field_id_t, 57>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 58>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 59>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 60>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 60>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 61>, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::inBytes_, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::inUnicastPkts_, std::integral_constant<apache::thrift::field_id_t, 2>>,
@@ -20132,7 +20134,8 @@ std::pair<strings::inAclDiscards_, std::integral_constant<apache::thrift::field_
 std::pair<strings::inTrapDiscards_, std::integral_constant<apache::thrift::field_id_t, 57>>,
 std::pair<strings::outForwardingDiscards_, std::integral_constant<apache::thrift::field_id_t, 58>>,
 std::pair<strings::fabricConnectivityMismatch_DEPRECATED, std::integral_constant<apache::thrift::field_id_t, 59>>,
-std::pair<strings::logicalPortId, std::integral_constant<apache::thrift::field_id_t, 60>>>::template type_of<Name>;
+std::pair<strings::logicalPortId, std::integral_constant<apache::thrift::field_id_t, 60>>,
+std::pair<strings::leakyBucketFlapCount_, std::integral_constant<apache::thrift::field_id_t, 61>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -20188,6 +20191,7 @@ std::pair<strings::logicalPortId, std::integral_constant<apache::thrift::field_i
     STRUCT_CHILD_GETTERS(outForwardingDiscards_, 58);
     STRUCT_CHILD_GETTERS(fabricConnectivityMismatch_DEPRECATED, 59);
     STRUCT_CHILD_GETTERS(logicalPortId, 60);
+    STRUCT_CHILD_GETTERS(leakyBucketFlapCount_, 61);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
@@ -20241,6 +20245,7 @@ std::pair<strings::logicalPortId, std::integral_constant<apache::thrift::field_i
     else if constexpr (__id == 58) { return outForwardingDiscards_(); }
     else if constexpr (__id == 59) { return fabricConnectivityMismatch_DEPRECATED(); }
     else if constexpr (__id == 60) { return logicalPortId(); }
+    else if constexpr (__id == 61) { return leakyBucketFlapCount_(); }
   }
 
   template <typename T, T... Values>

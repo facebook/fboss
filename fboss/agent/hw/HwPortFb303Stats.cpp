@@ -42,6 +42,7 @@ const std::vector<folly::StringPiece>& HwPortFb303Stats::kPortStatKeys() const {
       kOutEcnCounter(),
       kFecCorrectable(),
       kFecUncorrectable(),
+      kLeakyBucketFlapCnt(),
       kInLabelMissDiscards(),
       kInAclDiscards(),
       kInTrapDiscards(),
@@ -157,6 +158,12 @@ void HwPortFb303Stats::updateStats(
       timeRetrieved_,
       kFecUncorrectable(),
       *curPortStats.fecUncorrectableErrors());
+  if (curPortStats.leakyBucketFlapCount_().has_value()) {
+    updateStat(
+        timeRetrieved_,
+        kLeakyBucketFlapCnt(),
+        *curPortStats.leakyBucketFlapCount_());
+  }
   updateStat(
       timeRetrieved_,
       kInLabelMissDiscards(),

@@ -90,6 +90,7 @@ struct HwPortStats {
   // This mismatch is communicated directly via callback
   59: optional i64 fabricConnectivityMismatch_DEPRECATED;
   60: optional i32 logicalPortId;
+  61: optional i64 leakyBucketFlapCount_;
 }
 
 struct HwSysPortStats {
