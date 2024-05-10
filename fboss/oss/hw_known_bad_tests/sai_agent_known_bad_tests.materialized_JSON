@@ -44,6 +44,9 @@
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
         },
         {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -102,6 +105,9 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
+        },
+        {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -208,6 +214,9 @@
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
         },
         {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -248,6 +257,9 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
+        },
+        {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -333,6 +345,9 @@
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
         },
         {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -391,6 +406,9 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
+        },
+        {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -458,6 +476,9 @@
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
         },
         {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -498,6 +519,9 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
+        },
+        {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -580,6 +604,9 @@
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
         },
         {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -638,6 +665,9 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
+        },
+        {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -738,6 +768,9 @@
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
         },
         {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -778,6 +811,9 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
+        },
+        {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -866,6 +902,9 @@
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
         },
         {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -924,6 +963,9 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
+        },
+        {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -991,6 +1033,9 @@
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
         },
         {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -1031,6 +1076,9 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
+        },
+        {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -1134,6 +1182,9 @@
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
         },
         {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -1192,6 +1243,9 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
+        },
+        {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -1295,6 +1349,9 @@
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
         },
         {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -1335,6 +1392,9 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
+        },
+        {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -1450,6 +1510,9 @@
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
         },
         {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -1508,6 +1571,9 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
+        },
+        {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -1623,6 +1689,9 @@
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
         },
         {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -1663,6 +1732,9 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
+        },
+        {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -1730,6 +1802,9 @@
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
         },
         {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -1788,6 +1863,9 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
+        },
+        {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -1855,6 +1933,9 @@
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
         },
         {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -1895,6 +1976,9 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
+        },
+        {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -1962,6 +2046,9 @@
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
         },
         {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -2020,6 +2107,9 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
+        },
+        {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -2105,6 +2195,9 @@
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
         },
         {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -2145,6 +2238,9 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
+        },
+        {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -2230,6 +2326,9 @@
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
         },
         {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -2288,6 +2387,9 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
+        },
+        {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -2355,6 +2457,9 @@
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
         },
         {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -2395,6 +2500,9 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
+        },
+        {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -2477,6 +2585,9 @@
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
         },
         {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -2535,6 +2646,9 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
+        },
+        {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -2635,6 +2749,9 @@
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
         },
         {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -2675,6 +2792,9 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
+        },
+        {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -2763,6 +2883,9 @@
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
         },
         {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -2821,6 +2944,9 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
+        },
+        {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -2964,6 +3090,9 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
+        },
+        {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         }
     ],
     "leaba/1.42.8/1.42.8/gibraltar/multi_switch": [
@@ -3086,6 +3215,9 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
+        },
+        {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
@@ -3220,6 +3352,9 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
+        },
+        {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         }
     ],
     "leaba/1.65.1/1.65.1/gibraltar/multi_switch": [
@@ -3336,6 +3471,9 @@
         },
         {
           "test_name_regex": "AgentMacLearningBatchEntriesTest.*$"
+        },
+        {
+          "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
