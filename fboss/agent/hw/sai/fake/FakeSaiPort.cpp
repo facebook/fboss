@@ -76,6 +76,7 @@ sai_status_t create_port_fn(
   std::optional<bool> rxLaneSquelchEnable;
   std::vector<sai_map_t> pfcTcDldInterval;
   std::vector<sai_map_t> pfcTcDlrInterval;
+  std::optional<sai_latch_status_t> portCrcErrDetect;
 
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
@@ -238,6 +239,11 @@ sai_status_t create_port_fn(
       case SAI_PORT_ATTR_RX_LANE_SQUELCH_ENABLE:
         rxLaneSquelchEnable = attr_list[i].value.booldata;
         break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
+      case SAI_PORT_ATTR_CRC_ERROR_TOKEN_DETECT:
+        portCrcErrDetect = attr_list[i].value.latchstatus;
+        break;
+#endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
       case SAI_PORT_ATTR_PFC_TC_DLD_INTERVAL:
         for (int j = 0; j < attr_list[i].value.maplist.count; ++j) {
@@ -377,6 +383,9 @@ sai_status_t create_port_fn(
   }
   if (pfcTcDlrInterval.size()) {
     port.pfcTcDlrInterval = pfcTcDlrInterval;
+  }
+  if (portCrcErrDetect.has_value()) {
+    port.portCrcErrDetect = portCrcErrDetect.value();
   }
 
   return SAI_STATUS_SUCCESS;
@@ -675,6 +684,12 @@ sai_status_t set_port_attribute_fn(
     case SAI_PORT_ATTR_FDR_ENABLE:
       port.fdrEnable = attr->value.booldata;
       break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
+    case SAI_PORT_ATTR_CRC_ERROR_TOKEN_DETECT:
+      port.portCrcErrDetect =
+          static_cast<sai_latch_status_t>(attr->value.latchstatus);
+      break;
+#endif
     case SAI_PORT_ATTR_RX_LANE_SQUELCH_ENABLE:
       port.rxLaneSquelchEnable = attr->value.booldata;
       break;
@@ -956,6 +971,11 @@ sai_status_t get_port_attribute_fn(
       case SAI_PORT_ATTR_FDR_ENABLE:
         attr->value.booldata = port.fdrEnable;
         break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
+      case SAI_PORT_ATTR_CRC_ERROR_TOKEN_DETECT:
+        attr[i].value.latchstatus = port.portCrcErrDetect;
+        break;
+#endif
       case SAI_PORT_ATTR_RX_LANE_SQUELCH_ENABLE:
         attr->value.booldata = port.rxLaneSquelchEnable;
         break;

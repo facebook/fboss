@@ -50,6 +50,13 @@ struct SaiPortTraits {
       std::optional<sai_attr_id_t> operator()();
     };
     using DiagModeEnable = SaiExtensionAttribute<bool, AttributeDiagModeEnable>;
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
+    struct AttributeCrcErrorDetect {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using CrcErrorDetect =
+        SaiExtensionAttribute<sai_latch_status_t, AttributeCrcErrorDetect>;
+#endif
     struct AttributeFdrEnable {
       std::optional<sai_attr_id_t> operator()();
     };
@@ -590,6 +597,9 @@ SAI_ATTRIBUTE_NAME(Port, LinkTrainingEnable)
 SAI_ATTRIBUTE_NAME(Port, SerdesLaneList)
 SAI_ATTRIBUTE_NAME(Port, DiagModeEnable)
 SAI_ATTRIBUTE_NAME(Port, FdrEnable)
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
+SAI_ATTRIBUTE_NAME(Port, CrcErrorDetect)
+#endif
 SAI_ATTRIBUTE_NAME(Port, FabricAttached);
 SAI_ATTRIBUTE_NAME(Port, FabricAttachedPortIndex);
 SAI_ATTRIBUTE_NAME(Port, FabricAttachedSwitchId);

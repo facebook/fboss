@@ -2534,6 +2534,18 @@ std::optional<sai_latch_status_t> SaiPortManager::getPcsRxLinkStatus(
 }
 #endif
 
+#if defined(BRCM_SAI_SDK_GTE_11_0)
+std::optional<sai_latch_status_t> SaiPortManager::getHighCrcErrorRate(
+    PortSaiId saiPortId,
+    PortID swPort) const {
+  if (getPortType(swPort) != cfg::PortType::FABRIC_PORT) {
+    return std::nullopt;
+  }
+  return SaiApiTable::getInstance()->portApi().getAttribute(
+      saiPortId, SaiPortTraits::Attributes::CrcErrorDetect{});
+}
+#endif
+
 std::vector<sai_port_err_status_t> SaiPortManager::getPortErrStatus(
     PortSaiId saiPortId) const {
   if (!platform_->getAsic()->isSupported(

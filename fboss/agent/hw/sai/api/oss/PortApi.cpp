@@ -47,4 +47,10 @@ std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeFdrEnable::operator()() {
   return std::nullopt;
 }
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeCrcErrorDetect::operator()() {
+  return std::nullopt;
+}
+#endif
 } // namespace facebook::fboss

@@ -260,6 +260,12 @@ class SaiPortManager {
       PortSaiId saiPortId) const;
 #endif
 
+#if defined(BRCM_SAI_SDK_GTE_11_0)
+  std::optional<sai_latch_status_t> getHighCrcErrorRate(
+      PortSaiId saiPortId,
+      PortID swPort) const;
+#endif
+
   void enableAfeAdaptiveMode(PortID portId);
 
   phy::FecMode getFECMode(PortID portId) const;

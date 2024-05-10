@@ -127,6 +127,9 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(Port, DiagModeEnable)
   SAI_EXT_ATTR_MAP(Port, FdrEnable)
   SAI_EXT_ATTR_MAP(Port, RxLaneSquelchEnable)
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
+  SAI_EXT_ATTR_MAP(Port, CrcErrorDetect)
+#endif
   SAI_EXT_ATTR_MAP(PortSerdes, RxCtleCode)
   SAI_EXT_ATTR_MAP(PortSerdes, RxDspMode)
   SAI_EXT_ATTR_MAP(PortSerdes, RxAfeTrim)

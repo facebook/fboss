@@ -77,5 +77,12 @@ std::optional<sai_attr_id_t> SaiPortSerdesTraits::Attributes::
     AttributeRxAfeAdaptiveEnableWrapper::operator()() {
   return std::nullopt;
 }
-
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeCrcErrorDetect::operator()() {
+#if defined(BRCM_SAI_SDK_GTE_11_0)
+  return SAI_PORT_ATTR_CRC_ERROR_TOKEN_DETECT;
+#else
+  return std::nullopt;
+#endif
+}
 } // namespace facebook::fboss
