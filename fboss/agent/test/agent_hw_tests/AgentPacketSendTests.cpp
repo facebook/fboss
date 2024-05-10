@@ -5,6 +5,7 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
+#include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 #include "fboss/agent/test/gen-cpp2/production_features_types.h"
@@ -245,4 +246,72 @@ TEST_F(AgentPacketSendTest, PortTxEnableTest) {
   };
   verifyAcrossWarmBoots(setup, verify);
 }
+
+class AgentPacketSendReceiveTest : public AgentHwTest, public PacketObserverIf {
+ protected:
+  std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const override {
+    return {production_features::ProductionFeature::CPU_RX_TX};
+  }
+
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto asic = utility::checkSameAndGetAsic(ensemble.getL3Asics());
+    auto cfg = AgentHwTest::initialConfig(ensemble);
+    utility::setDefaultCpuTrafficPolicyConfig(cfg, {asic}, ensemble.isSai());
+    utility::addCpuQueueConfig(cfg, {asic}, ensemble.isSai());
+    return cfg;
+  }
+
+  void packetReceived(const RxPacket* pkt) noexcept override {
+    XLOG(DBG1) << "packet received from port " << pkt->getSrcPort();
+    srcPort_ = pkt->getSrcPort();
+    numPkts_++;
+  }
+
+  int getLastPktSrcPort() {
+    return srcPort_;
+  }
+
+  bool verifyNumPktsReceived(int expectedNumPkts) {
+    return numPkts_ == expectedNumPkts;
+  }
+
+  std::atomic<int> srcPort_{-1};
+  std::atomic<int> numPkts_{0};
+};
+
+TEST_F(AgentPacketSendReceiveTest, LldpPacketReceiveSrcPort) {
+  getAgentEnsemble()->getSw()->getPacketObservers()->registerPacketObserver(
+      this, "LldpPacketReceiveSrcPort");
+  auto setup = [=]() {};
+  auto verify = [=, this]() {
+    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+    auto payLoadSize = 256;
+    auto expectedNumPktsReceived = 1;
+    for (const auto& port :
+         {masterLogicalPortIds()[0], masterLogicalPortIds().back()}) {
+      auto txPacket = utility::makeEthTxPacket(
+          [&](size_t size) { return getSw()->allocatePacket(size); },
+          vlanId,
+          srcMac,
+          folly::MacAddress("01:80:c2:00:00:0e"),
+          facebook::fboss::ETHERTYPE::ETHERTYPE_LLDP,
+          std::vector<uint8_t>(payLoadSize, 0xff));
+      getAgentEnsemble()->ensureSendPacketOutOfPort(std::move(txPacket), port);
+      WITH_RETRIES_N_TIMED(5, 20ms, {
+        ASSERT_EVENTUALLY_TRUE(
+            verifyNumPktsReceived(expectedNumPktsReceived++));
+      })
+      EXPECT_EQ(port, PortID(getLastPktSrcPort()));
+    }
+  };
+  setup();
+  verify();
+  getAgentEnsemble()->getSw()->getPacketObservers()->unregisterPacketObserver(
+      this, "LldpPacketReceiveSrcPort");
+}
+
 } // namespace facebook::fboss
