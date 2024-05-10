@@ -9,6 +9,7 @@
 #include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/clear/interface/prbs/CmdClearInterfacePrbs.h"
+#include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
 #include "fboss/cli/fboss2/utils/PrbsUtils.h"
 #include "fboss/cli/fboss2/utils/Table.h"
@@ -54,10 +55,8 @@ class CmdClearInterfacePrbsStats : public CmdHandler<
                                return apache::thrift::util::enumNameSafe(p);
                              }) |
         folly::gen::as<std::vector>();
-    for (const auto& intf : queriedIfs) {
-      for (const auto& component : components) {
-        clearPrbsStats(hostInfo, intf, component);
-      }
+    for (const auto& component : components) {
+      clearComponentPrbsStats(hostInfo, queriedIfs, component);
     }
     return fmt::format(
         "Cleared PRBS stats on interfaces {}, components {}",
@@ -65,29 +64,47 @@ class CmdClearInterfacePrbsStats : public CmdHandler<
         folly::join(",", componentsStrings));
   }
 
-  void clearPrbsStats(
+  void clearComponentPrbsStats(
       const HostInfo& hostInfo,
-      const std::string& interfaceName,
+      const std::vector<std::string>& interfaces,
       const phy::PortComponent& component) {
     if (component == phy::PortComponent::TRANSCEIVER_LINE ||
         component == phy::PortComponent::TRANSCEIVER_SYSTEM ||
         component == phy::PortComponent::GB_LINE ||
         component == phy::PortComponent::GB_SYSTEM) {
-      auto qsfpClient = utils::createClient<QsfpServiceAsyncClient>(hostInfo);
-      qsfpClient->sync_clearInterfacePrbsStats(interfaceName, component);
-    } else if (component == phy::PortComponent::ASIC) {
-      auto agentClient =
-          utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(hostInfo);
-      if (portEntries_.empty()) {
-        // Fetch all the port info once
-        agentClient->sync_getAllPortInfo(portEntries_);
-      }
-      agentClient->sync_clearPortPrbsStats(
-          utils::getPortIDList({interfaceName}, portEntries_)[0], component);
+      auto qsfpClient =
+          utils::createClient<apache::thrift::Client<QsfpService>>(hostInfo);
+      queryClearPrbsStats<apache::thrift::Client<QsfpService>>(
+          std::move(qsfpClient), interfaces, component);
     } else {
-      std::runtime_error(
-          "Unsupported component " +
-          apache::thrift::util::enumNameSafe(component));
+      auto switchIndicesForInterfaces =
+          utils::getSwitchIndicesForInterfaces(hostInfo, interfaces);
+      auto numHwSwitches = utils::getNumHwSwitches(hostInfo);
+      for (int i = 0; i < numHwSwitches; i++) {
+        auto hwAgentClient =
+            utils::createClient<apache::thrift::Client<FbossHwCtrl>>(
+                hostInfo, i);
+        auto switchIndicesForInterfacesItr = switchIndicesForInterfaces.find(i);
+        if (switchIndicesForInterfacesItr == switchIndicesForInterfaces.end()) {
+          continue;
+        }
+        queryClearPrbsStats<apache::thrift::Client<FbossHwCtrl>>(
+            std::move(hwAgentClient),
+            switchIndicesForInterfacesItr->second,
+            component);
+      }
+    }
+  }
+
+  template <class Client>
+  void queryClearPrbsStats(
+      std::unique_ptr<Client> client,
+      const std::vector<std::string>& interfaces,
+      const phy::PortComponent& component) {
+    try {
+      client->sync_bulkClearInterfacePrbsStats(interfaces, component);
+    } catch (const std::exception& e) {
+      std::cerr << e.what();
     }
   }
 

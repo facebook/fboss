@@ -22,6 +22,7 @@
 #include "fboss/agent/if/gen-cpp2/FbossCtrlAsyncClient.h"
 #include "fboss/cli/fboss2/CmdGlobalOptions.h"
 #include "fboss/cli/fboss2/gen-cpp2/cli_types.h"
+#include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 #include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
 #include "fboss/cli/fboss2/utils/PrbsUtils.h"
@@ -423,5 +424,8 @@ std::string getSubscriptionPathStr(const fsdb::OperSubscriberInfo& subscriber);
 bool isFbossFeatureEnabled(
     const std::string& hostname,
     const std::string& feature);
+std::map<int16_t, std::vector<std::string>> getSwitchIndicesForInterfaces(
+    const HostInfo& hostInfo,
+    const std::vector<std::string>& interfaces);
 
 } // namespace facebook::fboss::utils

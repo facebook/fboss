@@ -305,4 +305,19 @@ std::string getSubscriptionPathStr(const fsdb::OperSubscriberInfo& subscriber) {
   return folly::join(";", extPaths);
 }
 
+std::map<int16_t, std::vector<std::string>> getSwitchIndicesForInterfaces(
+    const HostInfo& hostInfo,
+    const std::vector<std::string>& interfaces) {
+  std::map<int16_t, std::vector<std::string>> switchIndicesForInterfaces;
+  try {
+    auto agentClient =
+        utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
+    agentClient->sync_getSwitchIndicesForInterfaces(
+        switchIndicesForInterfaces, interfaces);
+  } catch (const std::exception& e) {
+    std::cerr << e.what();
+  }
+  return switchIndicesForInterfaces;
+}
+
 } // namespace facebook::fboss::utils
