@@ -5,6 +5,8 @@
 #include "fboss/fsdb/client/FsdbStreamClient.h"
 
 #include <folly/logging/xlog.h>
+#include <random>
+
 #include "common/time/Time.h"
 #include "fboss/fsdb/client/Client.h"
 
@@ -22,6 +24,29 @@ DEFINE_int32(
     0, // disabled by default for now
     "Chunk timeout in seconds for FSDB Stat streams");
 
+namespace {
+/*
+ * When Agent Coldboots/warmboots, it will attempt to establish subscriptions
+ * to all remote interface nodes. If several remote interface nodes are
+ * unreacuable, we will periodically attempt to reconnect to all those remote
+ * nodes. This will cause periodic spikes and may cause drops. Avoid it by
+ * spacing out reconnect requests to remote nodes.
+ *
+ * This is done by adding jitter to reconnect interval.
+ */
+
+int getReconnectIntervalInMs(int value) {
+  static std::mt19937 engine{std::random_device{}()};
+  // Create a uniform distribution between 0 and value / 2
+  std::uniform_int_distribution<int> distribution(0, value * 0.5);
+  int jitter = distribution(engine);
+  bool isEven = (jitter % 2 == 0);
+  // evenly distribute jitter: add if even, subtract if odd
+  return isEven ? value + jitter : value - jitter;
+}
+
+} // namespace
+
 namespace facebook::fboss::fsdb {
 FsdbStreamClient::FsdbStreamClient(
     const std::string& clientId,
@@ -37,7 +62,7 @@ FsdbStreamClient::FsdbStreamClient(
           counterPrefix,
           "fsdb_streams",
           stateChangeCb,
-          FLAGS_fsdb_reconnect_ms),
+          getReconnectIntervalInMs(FLAGS_fsdb_reconnect_ms)),
       streamEvb_(streamEvb),
       isStats_(isStats) {
   if (isStats && FLAGS_fsdb_stat_chunk_timeout) {
