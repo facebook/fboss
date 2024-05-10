@@ -1438,6 +1438,13 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
    * Get all the ecmp object details in the HW
    */
   list<EcmpDetails> getAllEcmpDetails() throws (1: fboss.FbossBaseError error);
+
+  /*
+   * Get switch indices for interfaces
+   */
+  map<i16, list<string>> getSwitchIndicesForInterfaces(
+    1: list<string> interfaces,
+  ) throws (1: fboss.FbossBaseError error);
 }
 
 service NeighborListenerClient extends fb303.FacebookService {
