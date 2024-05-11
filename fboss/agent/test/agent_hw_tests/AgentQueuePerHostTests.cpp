@@ -15,6 +15,7 @@
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/PacketTestUtils.h"
 #include "fboss/agent/test/utils/QosTestUtils.h"
@@ -205,6 +206,36 @@ class AgentQueuePerHostTest : public AgentHwTest {
     return outState;
   }
 
+  void verifyNeighborClassId(bool blockNeighbor) {
+    WITH_RETRIES({
+      auto state = getProgrammedState();
+      for (const auto& ipToMacAndClassID : getIpToMacAndClassID()) {
+        auto ip = ipToMacAndClassID.first;
+        auto macAndClassID = ipToMacAndClassID.second;
+        auto neighborMac = macAndClassID.first;
+        auto classID = blockNeighbor ? cfg::AclLookupClass::CLASS_DROP
+                                     : macAndClassID.second;
+
+        std::shared_ptr<NeighborTableT> neighborTable;
+        if (isIntfNbrTable) {
+          neighborTable = state->getInterfaces()
+                              ->getNode(kIntfID)
+                              ->template getNeighborTable<NeighborTableT>();
+        } else {
+          neighborTable = state->getVlans()
+                              ->getNode(kVlanID)
+                              ->template getNeighborTable<NeighborTableT>();
+        }
+
+        auto entry = neighborTable->getEntryIf(ip);
+        XLOG(DBG2) << "Verify class id for " << ip
+                   << " expected classID: " << static_cast<int>(classID)
+                   << " found " << static_cast<int>(*entry->getClassID());
+        EXPECT_EVENTUALLY_EQ(entry->getClassID(), classID);
+      }
+    });
+  }
+
   std::shared_ptr<SwitchState> resolveNeighbors(
       const std::shared_ptr<SwitchState>& inState) {
     return updateNeighbors(
@@ -220,6 +251,9 @@ class AgentQueuePerHostTest : public AgentHwTest {
   void _verifyHelper(bool frontPanel, bool blockNeighbor) {
     XLOG(DBG2) << "verify send packets "
                << (frontPanel ? "out of port" : "switched");
+    // wait for pending state updates to complete
+    waitForStateUpdates(getSw());
+    verifyNeighborClassId(blockNeighbor);
     auto ttlAclName = utility::getQueuePerHostTtlAclName();
     auto ttlCounterName = utility::getQueuePerHostTtlCounterName();
 
