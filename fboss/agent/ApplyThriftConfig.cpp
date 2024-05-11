@@ -1400,7 +1400,12 @@ shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
       sysPort->setNumVoqs(kNumVoqs);
       sysPort->setQosPolicy(port.second->getQosPolicy());
       sysPort->resetPortQueues(switchSettings->getDefaultVoqConfig());
-      sysPort->setScope(platformPort.mapping()->scope().value());
+      // TODO(daiweix): remove this CHECK_EQ after verifying scope config is
+      // always correct
+      CHECK_EQ(
+          (int)platformPort.mapping()->scope().value(),
+          (int)port.second->getScope());
+      sysPort->setScope(port.second->getScope());
       sysPorts->addSystemPort(std::move(sysPort));
     }
   }
@@ -2217,6 +2222,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   newPort->setPortDrainState(*portConf->drainState());
   newPort->setFlowletConfigName(newFlowletConfigName);
   newPort->setPortFlowletConfig(portFlowletCfg);
+  newPort->setScope(*portConf->scope());
   return newPort;
 }
 

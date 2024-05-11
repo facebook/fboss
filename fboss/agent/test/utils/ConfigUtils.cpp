@@ -270,6 +270,7 @@ cfg::Port createDefaultPortConfig(
   } else {
     defaultConfig.ingressVlan() = kDefaultVlanId;
   }
+  defaultConfig.scope() = *entry.mapping()->scope();
   return defaultConfig;
 }
 

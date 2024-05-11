@@ -714,6 +714,14 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
   void removeError(PortError error);
   Port* modify(std::shared_ptr<SwitchState>* state);
 
+  void setScope(const cfg::Scope& scope) {
+    set<ctrl_if_tags::scope>(scope);
+  }
+
+  cfg::Scope getScope() const {
+    return cref<ctrl_if_tags::scope>()->cref();
+  }
+
  private:
   auto getRxSaks() const {
     return safe_cref<switch_state_tags::rxSecureAssociationKeys>();
