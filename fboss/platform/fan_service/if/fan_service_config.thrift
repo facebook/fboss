@@ -60,12 +60,6 @@ struct Optic {
   6: map<string/* optic_type */ , PidSetting> pidSettings;
 }
 
-struct Alarm {
-  1: float highMajor;
-  2: float highMinor;
-  3: i32 minorSoakSeconds;
-}
-
 struct Fan {
   1: string fanName;
   2: string rpmSysfsPath;
@@ -88,7 +82,6 @@ struct Watchdog {
 struct Sensor {
   1: string sensorName;
   2: AccessMethod access;
-  4: Alarm alarm;
   6: string pwmCalcType;
   7: float scale;
   8: TempToPwmMap normalUpTable;

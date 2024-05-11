@@ -20,23 +20,13 @@
       "negHysteresis": 3,
       "kp": 2,
       "ki": 0.5,
-      "kd": 0.5,
-      "alarm": {
-        "highMajor": 100,
-        "highMinor": 90,
-        "minorSoakSeconds": 300
-      }
+      "kd": 0.5
     },
     {
       "sensorName": "SCM_TSENSOR1",
       "access": {
         "accessType": "ACCESS_TYPE_SYSFS",
         "path": "/run/devmap/sensors/SCM_TSENSOR1/temp1_input"
-      },
-      "alarm": {
-        "highMajor": 45,
-        "highMinor": 40,
-        "minorSoakSeconds": 300
       },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "scale": 1000,

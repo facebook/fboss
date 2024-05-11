@@ -61,11 +61,6 @@
       "access": {
         "accessType": "ACCESS_TYPE_THRIFT"
       },
-      "alarm": {
-        "highMajor": 105,
-        "highMinor": 90,
-        "minorSoakSeconds": 15
-      },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "scale": 1000,
       "normalUpTable": {
@@ -89,11 +84,6 @@
       "sensorName": "SC_TH3_DIODE2_TEMP",
       "access": {
         "accessType": "ACCESS_TYPE_THRIFT"
-      },
-      "alarm": {
-        "highMajor": 105,
-        "highMinor": 90,
-        "minorSoakSeconds": 15
       },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "scale": 1000,

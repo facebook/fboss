@@ -12,11 +12,6 @@
       "access": {
         "accessType": "ACCESS_TYPE_THRIFT"
       },
-      "alarm": {
-        "highMajor": 105,
-        "highMinor": 90,
-        "minorSoakSeconds": 15
-      },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "scale": 1000,
       "normalUpTable": {
@@ -40,11 +35,6 @@
       "sensorName": "SMB_U15_OSFP_OUTER_LM75_TEMP",
       "access": {
         "accessType": "ACCESS_TYPE_THRIFT"
-      },
-      "alarm": {
-        "highMajor": 105,
-        "highMinor": 90,
-        "minorSoakSeconds": 15
       },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "scale": 1000,
@@ -70,11 +60,6 @@
       "access": {
         "accessType": "ACCESS_TYPE_THRIFT"
       },
-      "alarm": {
-        "highMajor": 105,
-        "highMinor": 90,
-        "minorSoakSeconds": 15
-      },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "scale": 1000,
       "normalUpTable": {
@@ -98,11 +83,6 @@
       "sensorName": "SMB_U17_INNER_RIGHT_LM75_TEMP",
       "access": {
         "accessType": "ACCESS_TYPE_THRIFT"
-      },
-      "alarm": {
-        "highMajor": 105,
-        "highMinor": 90,
-        "minorSoakSeconds": 15
       },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "scale": 1000,
@@ -128,11 +108,6 @@
       "access": {
         "accessType": "ACCESS_TYPE_THRIFT"
       },
-      "alarm": {
-        "highMajor": 105,
-        "highMinor": 90,
-        "minorSoakSeconds": 15
-      },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "scale": 1000,
       "normalUpTable": {
@@ -156,11 +131,6 @@
       "sensorName": "PDB_U1_LM75_TEMP",
       "access": {
         "accessType": "ACCESS_TYPE_THRIFT"
-      },
-      "alarm": {
-        "highMajor": 105,
-        "highMinor": 90,
-        "minorSoakSeconds": 15
       },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "scale": 1000,
@@ -186,11 +156,6 @@
       "access": {
         "accessType": "ACCESS_TYPE_THRIFT"
       },
-      "alarm": {
-        "highMajor": 105,
-        "highMinor": 90,
-        "minorSoakSeconds": 15
-      },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "scale": 1000,
       "normalUpTable": {
@@ -214,11 +179,6 @@
       "sensorName": "SMB_U72_INNER_LEFT_LM75_TEMP",
       "access": {
         "accessType": "ACCESS_TYPE_THRIFT"
-      },
-      "alarm": {
-        "highMajor": 105,
-        "highMinor": 90,
-        "minorSoakSeconds": 15
       },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "scale": 1000,

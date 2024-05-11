@@ -12,11 +12,6 @@
       "access": {
         "accessType": "ACCESS_TYPE_THRIFT"
       },
-      "alarm": {
-        "highMajor": 55,
-        "highMinor": -10,
-        "minorSoakSeconds": 15
-      },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "scale": 1,
       "normalUpTable": {
