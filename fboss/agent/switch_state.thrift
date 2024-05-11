@@ -133,6 +133,7 @@ struct PortFields {
   51: optional bool txEnable;
   // Current active errors seen on port
   52: list<ctrl.PortError> activeErrors;
+  53: switch_config.Scope scope = switch_config.Scope.LOCAL;
 }
 
 typedef ctrl.SystemPortThrift SystemPortFields
