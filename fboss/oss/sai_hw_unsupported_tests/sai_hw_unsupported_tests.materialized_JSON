@@ -348,6 +348,9 @@
           "test_name_regex": "HwPfcTest.*"
         },
         {
+          "test_name_regex": "HwVerifyPfcConfigInHwTest.*"
+        },
+        {
           "test_name_regex": "HwPtpTcTest.*"
         },
         {
@@ -468,6 +471,9 @@
         },
         {
           "test_name_regex": "HwPfcTest.*"
+        },
+        {
+          "test_name_regex": "HwVerifyPfcConfigInHwTest.*"
         },
         {
           "test_name_regex": "HwPtpTcTest.*"
@@ -1463,6 +1469,9 @@
         },
         {
           "test_name_regex": "HwPfcTest.*"
+        },
+        {
+          "test_name_regex": "HwVerifyPfcConfigInHwTest.*"
         },
         {
           "test_name_regex": "HwPtpTcTest.*"
