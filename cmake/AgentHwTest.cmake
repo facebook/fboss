@@ -254,7 +254,6 @@ set(hw_switch_test_srcs
   fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.cpp
   fboss/agent/hw/test/dataplane_tests/HwTestPfcUtils.cpp
   fboss/agent/hw/test/dataplane_tests/HwTrunkLoadBalancerTests.cpp
-  fboss/agent/hw/test/dataplane_tests/HwWatermarkTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwRouteStatTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwLoadBalancerTestsV6Roce.cpp
 )
