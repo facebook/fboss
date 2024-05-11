@@ -70,7 +70,6 @@ class Bsp {
   virtual bool checkIfInitialSensorDataRead() const;
   bool getEmergencyState() const;
   virtual float readSysfs(std::string path) const;
-  virtual bool initializeQsfpService();
   static apache::thrift::RpcOptions getRpcOptions();
 
   FsdbSensorSubscriber* fsdbSensorSubscriber() {

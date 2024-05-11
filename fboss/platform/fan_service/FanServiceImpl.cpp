@@ -28,19 +28,10 @@ FanServiceImpl::FanServiceImpl() {
     throw std::runtime_error("Invalid Config.  Aborting...");
   }
 
-  // Get the proper BSP object from BSP factory,
-  // according to the parsed config, then run init routine.
-  pBsp_ = BspFactory();
-  // Create and initialize QsfpCache object. This may take
-  // some time.
-  pBsp_->initializeQsfpService();
-
-  // Initialize SensorData
+  pBsp_ = std::make_shared<Bsp>(config_);
   pSensorData_ = std::make_shared<SensorData>();
-
-  // Start control logic, and attach bsp and sensors
   pControlLogic_ = std::make_shared<ControlLogic>(config_, pBsp_);
-  // Set the fans with transitional pwm value.
+
   XLOG(INFO)
       << "Upon fan_service start up, program all fan pwm with transitional value of "
       << *config_.pwmTransitionValue();
@@ -59,10 +50,6 @@ unsigned int FanServiceImpl::getSensorFetchFrequency() const {
     return *config_.controlInterval()->sensorReadInterval();
   }
   return kDefaultSensorReadFrequencyInSec;
-}
-
-std::shared_ptr<Bsp> FanServiceImpl::BspFactory() {
-  return std::make_shared<Bsp>(config_);
 }
 
 int FanServiceImpl::controlFan(/*folly::EventBase* evb*/) {

@@ -66,6 +66,7 @@ Bsp::Bsp(const FanServiceConfig& config) : config_(config) {
       fsdbSensorSubscriber_->subscribeToQsfpServiceState();
     }
   }
+  thread_.reset(new std::thread([=, this] { evbSensor_.loopForever(); }));
 }
 
 int Bsp::run(const std::string& cmd) {
@@ -462,11 +463,6 @@ bool Bsp::setFanPwmShell(std::string command, std::string fanName, int pwm) {
 bool Bsp::setFanLedShell(std::string command, std::string fanName, int value) {
   // Call the common function with _VALUE_ as the token to replace
   return setFanShell(command, "_VALUE_", fanName, value);
-}
-
-bool Bsp::initializeQsfpService() {
-  thread_.reset(new std::thread([=, this] { evbSensor_.loopForever(); }));
-  return true;
 }
 
 Bsp::~Bsp() {
