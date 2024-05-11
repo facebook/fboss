@@ -2,9 +2,13 @@
 
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/packet/EthHdr.h"
+#include "fboss/agent/packet/IPv6Hdr.h"
 #include "fboss/agent/packet/PktFactory.h"
+#include "fboss/agent/packet/UDPHeader.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/utils/AqmTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
@@ -395,4 +399,97 @@ TEST_F(AgentWatermarkTest, VerifyDeviceWatermarkHigherThanQueueWatermark) {
   };
   verifyAcrossWarmBoots(setup, verify);
 }
+
+TEST_F(AgentWatermarkTest, VerifyQueueWatermarkAccuracy) {
+  auto setup = [this]() { _setup(false); };
+  auto verify = [this]() {
+    for (const auto& switchId : getSw()->getSwitchInfoTable().getSwitchIDs()) {
+      const auto asic = getSw()->getHwAsicTable()->getHwAsic(switchId);
+      /*
+       * This test ensures that the queue watermark reported is accurate.
+       * For this, we start by clearing any watermark from previous tests.
+       * We need to know the exact number of bytes a packet will need while
+       * it is in the ASIC queue. This size includes the headers + overhead
+       * used in the ASIC for each packet. Once we know the number of bytes
+       * that will be used per packet, with TX disable function, we ensure
+       * that all the packets to be TXed is queued up, resulting in a high
+       * watermark which is predictable. Then compare and make sure that
+       * the watermark reported is as expected by the computed watermark
+       * based on the number of bytes we expect in the queue.
+       */
+      auto kQueueId =
+          utility::getOlympicQueueId(utility::OlympicQueueType::SILVER);
+      constexpr auto kTxPacketPayloadLen{200};
+      constexpr auto kNumberOfPacketsToSend{100};
+      const bool isVoq = asic->getSwitchType() == cfg::SwitchType::VOQ;
+      auto txPacketLen = kTxPacketPayloadLen + EthHdr::SIZE + IPv6Hdr::size() +
+          UDPHeader::size();
+      // Clear any watermark stats
+      getQueueWatermarks(
+          getAgentEnsemble()->masterLogicalInterfacePortIds(switchId)[0],
+          isVoq);
+
+      auto sendPackets = [=, this](PortID /*port*/, int numPacketsToSend) {
+        // Send packets out on port1, so that it gets looped back, and
+        // forwarded in the pipeline to egress port0 where the watermark
+        // will be validated.
+        sendUdpPkts(
+            utility::kOlympicQueueToDscp().at(kQueueId).front(),
+            kDestIp1(),
+            numPacketsToSend,
+            kTxPacketPayloadLen,
+            getAgentEnsemble()->masterLogicalInterfacePortIds(switchId)[1]);
+      };
+
+      utility::sendPacketsWithQueueBuildup(
+          sendPackets,
+          getAgentEnsemble(),
+          masterLogicalInterfacePortIds()[0],
+          kNumberOfPacketsToSend);
+
+      uint64_t expectedWatermarkBytes;
+      uint64_t roundedWatermarkBytes;
+      if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2) {
+        // For Jericho2, there is a limitation that one packet less than
+        // expected watermark shows up in watermark.
+        expectedWatermarkBytes =
+            utility::getEffectiveBytesPerPacket(asic, txPacketLen) *
+            (kNumberOfPacketsToSend - 1);
+        // Watermarks read in are accurate, no rounding needed
+        roundedWatermarkBytes = expectedWatermarkBytes;
+      } else if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA) {
+        // For Yuba, watermark counter is accurate to the number of buffers
+        expectedWatermarkBytes =
+            utility::getEffectiveBytesPerPacket(asic, txPacketLen) *
+            kNumberOfPacketsToSend;
+        roundedWatermarkBytes = expectedWatermarkBytes;
+      } else {
+        expectedWatermarkBytes =
+            utility::getEffectiveBytesPerPacket(asic, txPacketLen) *
+            kNumberOfPacketsToSend;
+        roundedWatermarkBytes =
+            utility::getRoundedBufferThreshold(asic, expectedWatermarkBytes);
+      }
+      std::map<int16_t, int64_t> queueWaterMarks;
+      int64_t maxWatermarks = 0;
+      WITH_RETRIES_N_TIMED(5, std::chrono::milliseconds(1000), {
+        queueWaterMarks =
+            getQueueWatermarks(masterLogicalInterfacePortIds()[0], isVoq);
+        if (queueWaterMarks.at(kQueueId) > maxWatermarks) {
+          maxWatermarks = queueWaterMarks.at(kQueueId);
+        }
+        EXPECT_EVENTUALLY_EQ(maxWatermarks, roundedWatermarkBytes);
+      });
+
+      XLOG(DBG0) << "Expected rounded watermark bytes: "
+                 << roundedWatermarkBytes
+                 << ", reported watermark bytes: " << maxWatermarks
+                 << ", pkts TXed: " << kNumberOfPacketsToSend
+                 << ", pktLen: " << txPacketLen << ", effectiveBytesPerPacket: "
+                 << utility::getEffectiveBytesPerPacket(asic, txPacketLen);
+    }
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
