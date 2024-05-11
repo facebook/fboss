@@ -200,8 +200,12 @@ void SaiHandler::getAllInterfacePrbsStates(
   std::shared_ptr<SwitchState> swState = hw_->getProgrammedState();
   for (const auto& portMap : std::as_const(*(swState->getPorts()))) {
     for (const auto& port : std::as_const(*portMap.second)) {
-      prbsStates[port.second->getName()] =
-          hw_->getPortPrbsState(port.second->getID());
+      if (port.second->getPortType() == cfg::PortType::INTERFACE_PORT ||
+          port.second->getPortType() == cfg::PortType::FABRIC_PORT ||
+          port.second->getPortType() == cfg::PortType::MANAGEMENT_PORT) {
+        prbsStates[port.second->getName()] =
+            hw_->getPortPrbsState(port.second->getID());
+      }
     }
   }
 }
