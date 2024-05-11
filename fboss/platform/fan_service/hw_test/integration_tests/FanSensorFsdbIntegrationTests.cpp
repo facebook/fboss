@@ -233,7 +233,7 @@ TEST_F(FanSensorFsdbIntegrationTests, qsfpSync) {
     getFanServiceImpl()->controlFan();
     SensorData sensorData = getFanServiceImpl()->sensorData();
     // Ensure that the optic entry is not empty
-    ASSERT_EVENTUALLY_TRUE(sensorData.opticEntrySize());
+    ASSERT_EVENTUALLY_TRUE(sensorData.getOpticEntries().size() > 0);
     for (const auto& [opticName, opticEntry] : sensorData.getOpticEntries()) {
       if (lastSyncTimeAndCountMap.find(opticName) ==
           lastSyncTimeAndCountMap.end()) {

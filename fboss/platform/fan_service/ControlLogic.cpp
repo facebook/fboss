@@ -270,12 +270,8 @@ void ControlLogic::getOpticsUpdate() {
   for (const auto& optic : *config_.optics()) {
     std::string opticName = *optic.opticName();
 
-    if (!pSensor_->checkIfOpticEntryExists(opticName)) {
-      continue;
-    }
-
-    auto opticData = pSensor_->getOpticEntry(opticName);
-    if (opticData != nullptr && opticData->data.size() == 0) {
+    auto opticEntry = pSensor_->getOpticEntry(opticName);
+    if (!opticEntry || opticEntry->data.size() == 0) {
       continue;
     }
 
@@ -285,7 +281,7 @@ void ControlLogic::getOpticsUpdate() {
     if (aggregationType == constants::OPTIC_AGGREGATION_TYPE_MAX()) {
       // Conventional one-table conversion, followed by
       // the aggregation using the max value
-      for (const auto& [opticType, value] : opticData->data) {
+      for (const auto& [opticType, value] : opticEntry->data) {
         int pwmForThis = 0;
         auto tablePointer = getConfigOpticTable(optic, opticType);
         // We have <type, value> pair. If we have table entry for this
@@ -314,7 +310,7 @@ void ControlLogic::getOpticsUpdate() {
       // pwm using PID method
       // Step 1. Get the max temperature per optic type
       std::unordered_map<std::string, float> maxValue;
-      for (const auto& [opticType, value] : opticData->data) {
+      for (const auto& [opticType, value] : opticEntry->data) {
         if (maxValue.find(opticType) == maxValue.end()) {
           maxValue[opticType] = value;
         } else {
@@ -350,9 +346,8 @@ void ControlLogic::getOpticsUpdate() {
         aggregationType,
         aggOpticPwm);
     opticReadCaches_[opticName] = aggOpticPwm;
-    // As we consumed the data, clear the vector
-    opticData->data.clear();
-    opticData->dataProcessTimeStamp = opticData->lastOpticsUpdateTimeInSec;
+    pSensor_->updateOpticDataProcessingTimestamp(
+        opticName, opticEntry->qsfpServiceTimeStamp);
   }
 }
 

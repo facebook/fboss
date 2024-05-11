@@ -8,8 +8,8 @@ namespace facebook::fboss::platform::fan_service {
 
 std::optional<SensorEntry> SensorData::getSensorEntry(
     const std::string& name) const {
-  auto itr = sensorEntry_.find(name);
-  if (itr == sensorEntry_.end()) {
+  auto itr = sensorEntries_.find(name);
+  if (itr == sensorEntries_.end()) {
     return std::nullopt;
   }
   return itr->second;
@@ -23,45 +23,53 @@ void SensorData::updateSensorEntry(
   sensorEntry.name = name;
   sensorEntry.value = value;
   sensorEntry.lastUpdated = timeStamp;
-  sensorEntry_[name] = sensorEntry;
+  sensorEntries_[name] = sensorEntry;
 }
 
-void SensorData::setLastQsfpSvcTime(uint64_t t) {
-  lastSuccessfulQsfpServiceContact_ = t;
+void SensorData::delSensorEntry(const std::string& name) {
+  sensorEntries_.erase(name);
 }
+
+std::optional<OpticEntry> SensorData::getOpticEntry(
+    const std::string& name) const {
+  auto itr = opticEntries_.find(name);
+  if (itr == opticEntries_.end()) {
+    return std::nullopt;
+  }
+  return itr->second;
+}
+
+void SensorData::updateOpticEntry(
+    const std::string& name,
+    const std::vector<std::pair<std::string, float>>& data,
+    uint64_t qsfpServiceTimeStamp) {
+  if (opticEntries_.find(name) == opticEntries_.end()) {
+    opticEntries_[name] = OpticEntry();
+  }
+  opticEntries_[name].data = data;
+  opticEntries_[name].qsfpServiceTimeStamp = qsfpServiceTimeStamp;
+  opticEntries_[name].lastOpticsUpdateTimeInSec = WallClockUtil::NowInSecFast();
+  lastSuccessfulQsfpServiceContact_ = qsfpServiceTimeStamp;
+}
+
+void SensorData::resetOpticData(const std::string& name) {
+  if (opticEntries_.find(name) == opticEntries_.end()) {
+    opticEntries_[name] = OpticEntry();
+  }
+  opticEntries_[name].data = {};
+}
+
+void SensorData::updateOpticDataProcessingTimestamp(
+    const std::string& name,
+    uint64_t ts) {
+  if (opticEntries_.find(name) == opticEntries_.end()) {
+    opticEntries_[name] = OpticEntry();
+  }
+  opticEntries_[name].dataProcessTimeStamp = ts;
+}
+
 uint64_t SensorData::getLastQsfpSvcTime() {
   return lastSuccessfulQsfpServiceContact_;
-}
-
-OpticEntry* SensorData::getOrCreateOpticEntry(const std::string& name) {
-  bool entryExist = checkIfOpticEntryExists(name);
-  OpticEntry* pEntry;
-  if (!entryExist) {
-    opticEntry_[name] = OpticEntry();
-  }
-  pEntry = &opticEntry_[name];
-  return pEntry;
-}
-
-bool SensorData::checkIfOpticEntryExists(const std::string& name) const {
-  return (opticEntry_.find(name) != opticEntry_.end());
-}
-
-OpticEntry* SensorData::getOpticEntry(const std::string& name) const {
-  auto itr = opticEntry_.find(name);
-  return itr == opticEntry_.end() ? nullptr
-                                  : const_cast<OpticEntry*>(&(itr->second));
-}
-
-void SensorData::setOpticEntry(
-    const std::string& name,
-    std::vector<std::pair<std::string, float>> input,
-    uint64_t timestamp) {
-  auto pEntry = getOrCreateOpticEntry(name);
-  pEntry->data = input;
-  pEntry->lastOpticsUpdateTimeInSec = timestamp;
-  pEntry->calculatedPwm = 0.0;
-  pEntry->dataProcessTimeStamp = 0;
 }
 
 } // namespace facebook::fboss::platform::fan_service

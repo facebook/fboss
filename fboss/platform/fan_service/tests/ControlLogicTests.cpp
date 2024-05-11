@@ -20,9 +20,9 @@ namespace {
 
 float kDefaultRpm = 31;
 
-// ControlLogicTests is added after fan service was deployed in production.
-// So kExpectedPwms is production outputs of the given test inputs.
-std::array<int, 5> kExpectedPwms = std::array<int, 5>{51, 51, 52, 52, 53};
+std::array<int, 5> kExpectedPwms = std::array<int, 5>{49, 49, 48, 48, 47};
+std::array<int, 5> kExpectedBoostModePwms =
+    std::array<int, 5>{51, 51, 52, 52, 53};
 
 }; // namespace
 
@@ -68,7 +68,7 @@ class ControlLogicTests : public testing::Test {
         opticData.emplace_back(opticType, value);
         value += 12.0;
       }
-      sensorData_->setOpticEntry(
+      sensorData_->updateOpticEntry(
           *optic.opticName(), std::move(opticData), mockBsp_->getCurrentTime());
     }
 
@@ -180,7 +180,7 @@ TEST_F(ControlLogicTests, UpdateControlFailureDueToMissingFans) {
     EXPECT_EQ(*fanStatus.fanFailed(), true);
     EXPECT_EQ(fanStatus.rpm().has_value(), false);
     EXPECT_EQ(*fanStatus.lastSuccessfulAccessTime(), 0);
-    EXPECT_EQ(*fanStatus.pwmToProgram(), kExpectedPwms[i++]);
+    EXPECT_EQ(*fanStatus.pwmToProgram(), kExpectedBoostModePwms[i++]);
     EXPECT_EQ(fb303::fbData->getCounter(fmt::format("{}.absent", fanName)), 1);
     EXPECT_EQ(
         fb303::fbData->getCounter(fmt::format("{}.rpm_read.failure", fanName)),
@@ -213,7 +213,7 @@ TEST_F(ControlLogicTests, UpdateControlFailureDueToFanInaccessible) {
     EXPECT_EQ(*fanStatus.fanFailed(), true);
     EXPECT_EQ(fanStatus.rpm().has_value(), false);
     EXPECT_EQ(*fanStatus.lastSuccessfulAccessTime(), 0);
-    EXPECT_EQ(*fanStatus.pwmToProgram(), kExpectedPwms[i++]);
+    EXPECT_EQ(*fanStatus.pwmToProgram(), kExpectedBoostModePwms[i++]);
     EXPECT_EQ(fb303::fbData->getCounter(fmt::format("{}.absent", fanName)), 0);
     EXPECT_EQ(
         fb303::fbData->getCounter(fmt::format("{}.rpm_read.failure", fanName)),
@@ -279,8 +279,10 @@ TEST_F(ControlLogicTests, UpdateControlSensorReadFailure) {
 
   controlLogic_->setTransitionValue();
 
-  auto emptySensorData = std::make_shared<SensorData>();
-  controlLogic_->updateControl(emptySensorData);
+  for (const auto& sensor : *fanServiceConfig_.sensors()) {
+    sensorData_->delSensorEntry(*sensor.sensorName());
+  }
+  controlLogic_->updateControl(sensorData_);
   const auto fanStatuses = controlLogic_->getFanStatuses();
   EXPECT_EQ(fanStatuses.size(), fanServiceConfig_.fans()->size());
   int i = 0;

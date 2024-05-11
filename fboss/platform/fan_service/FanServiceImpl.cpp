@@ -37,7 +37,6 @@ FanServiceImpl::FanServiceImpl() {
 
   // Initialize SensorData
   pSensorData_ = std::make_shared<SensorData>();
-  pSensorData_->setLastQsfpSvcTime(pBsp_->getCurrentTime());
 
   // Start control logic, and attach bsp and sensors
   pControlLogic_ = std::make_shared<ControlLogic>(config_, pBsp_);
