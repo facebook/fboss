@@ -20,6 +20,9 @@
           "test_name_regex": "HwPfcTest.PfcWatchdog*"
         },
         {
+          "test_name_regex": "HwVerifyPfcConfigInHwTest.PfcWatchdog*"
+        },
+        {
           "test_name_regex": "HwTrafficPfcTest.PfcWatchdogReset"
         },
         {
@@ -394,6 +397,9 @@
           "test_name_regex": "HwPfcTest.PfcWatchdog.*"
         },
         {
+          "test_name_regex": "HwVerifyPfcConfigInHwTest.PfcWatchdog.*"
+        },
+        {
           "test_name_regex": "HwTrafficPfcTest.PfcWatchdog.*"
         },
         {
@@ -727,6 +733,9 @@
         },
         {
           "test_name_regex": "HwPfcTest.PfcWatchdog.*"
+        },
+        {
+          "test_name_regex": "HwVerifyPfcConfigInHwTest.PfcWatchdog.*"
         },
         {
           "test_name_regex": "HwTrafficPfcTest.PfcWatchdog.*"
@@ -1301,6 +1310,9 @@
           "test_name_regex": "HwPfcTest.PfcWatchdog.*"
         },
         {
+          "test_name_regex": "HwVerifyPfcConfigInHwTest.PfcWatchdog.*"
+        },
+        {
           "test_name_regex": "HwTrafficPfcTest.PfcWatchdog.*"
         },
         {
@@ -1802,6 +1814,9 @@
         },
         {
           "test_name_regex": "HwPfcTest.*"
+        },
+        {
+          "test_name_regex": "HwVerifyPfcConfigInHwTest.*"
         },
         {
           "test_name_regex": "HwProdInvariantsMmuLosslessTest.*"
@@ -2406,6 +2421,9 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.HwPfcTest.*"
         },
         {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.HwVerifyPfcConfigInHwTest.*"
+        },
+        {
           "test_name_regex": "HwRouteScaleTest.thAlpmScale"
         },
         {
@@ -2482,6 +2500,9 @@
         },
         {
           "test_name_regex": "HwPfcTest.PfcWatchdog.*"
+        },
+        {
+          "test_name_regex": "HwVerifyPfcConfigInHwTest.PfcWatchdog.*"
         },
         {
           "test_name_regex": "HwTrafficPfcTest.PfcWatchdog.*"
@@ -2774,6 +2795,9 @@
           "test_name_regex": "HwPfcTest.PfcWatchdog.*"
         },
         {
+          "test_name_regex": "HwVerifyPfcConfigInHwTest.PfcWatchdog.*"
+        },
+        {
           "test_name_regex": "HwTrafficPfcTest.PfcWatchdog.*"
         },
         {
@@ -3046,6 +3070,9 @@
           "test_name_regex": "HwPfcTest.PfcWatchdog*"
         },
         {
+          "test_name_regex": "HwVerifyPfcConfigInHwTest.PfcWatchdog*"
+        },
+        {
           "test_name_regex": "HwTrafficPfcTest.PfcWatchdogReset"
         },
         {
@@ -3190,6 +3217,9 @@
         },
         {
           "test_name_regex": "HwPfcTest.PfcWatchdog*"
+        },
+        {
+          "test_name_regex": "HwVerifyPfcConfigInHwTest.PfcWatchdog*"
         },
         {
           "test_name_regex": "HwIngressBufferTest.validateIngressPoolParamChange"
@@ -3357,6 +3387,9 @@
         },
         {
           "test_name_regex": "HwPfcTest.PfcWatchdog*"
+        },
+        {
+          "test_name_regex": "HwVerifyPfcConfigInHwTest.PfcWatchdog*"
         },
         {
           "test_name_regex": "HwTrafficPfcTest.PfcWatchdog*"
@@ -3687,6 +3720,9 @@
         },
         {
           "test_name_regex": "HwPfcTest.*"
+        },
+        {
+          "test_name_regex": "HwVerifyPfcConfigInHwTest.*"
         },
         {
           "test_name_regex": "HwPacketSendTest.PortTxEnableTest"
@@ -4130,6 +4166,9 @@
         },
         {
           "test_name_regex": "HwPfcTest.*"
+        },
+        {
+          "test_name_regex": "HwVerifyPfcConfigInHwTest.*"
         },
         {
           "test_name_regex": "HwProdInvariantsMmuLosslessTest.*"
@@ -4734,6 +4773,9 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.HwPfcTest.*"
         },
         {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.HwVerifyPfcConfigInHwTest.*"
+        },
+        {
           "test_name_regex": "HwRouteScaleTest.thAlpmScale"
         },
         {
@@ -4810,6 +4852,9 @@
         },
         {
           "test_name_regex": "HwPfcTest.PfcWatchdog.*"
+        },
+        {
+          "test_name_regex": "HwVerifyPfcConfigInHwTest.PfcWatchdog.*"
         },
         {
           "test_name_regex": "HwTrafficPfcTest.PfcWatchdog.*"
@@ -5097,6 +5142,9 @@
         },
         {
           "test_name_regex": "HwPfcTest.PfcWatchdog.*"
+        },
+        {
+          "test_name_regex": "HwVerifyPfcConfigInHwTest.PfcWatchdog.*"
         },
         {
           "test_name_regex": "HwTrafficPfcTest.PfcWatchdog.*"
@@ -5707,6 +5755,9 @@
           "test_name_regex": "HwPfcTest.*"
         },
         {
+          "test_name_regex": "HwVerifyPfcConfigInHwTest.*"
+        },
+        {
           "test_name_regex": "HwProdInvariantsMmuLosslessTest.*"
         },
         {
@@ -5846,6 +5897,9 @@
         },
         {
           "test_name_regex": "HwPfcTest.*"
+        },
+        {
+          "test_name_regex": "HwVerifyPfcConfigInHwTest.*"
         },
         {
           "test_name_regex": "HwProdInvariantsMmuLosslessTest.*"
@@ -6333,6 +6387,9 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.HwPfcTest.*"
         },
         {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.HwVerifyPfcConfigInHwTest.*"
+        },
+        {
           "test_name_regex": "HwRouteScaleTest.thAlpmScale"
         },
         {
@@ -6411,6 +6468,9 @@
           "test_name_regex": "HwPfcTest.PfcWatchdog.*"
         },
         {
+          "test_name_regex": "HwVerifyPfcConfigInHwTest.PfcWatchdog.*"
+        },
+        {
           "test_name_regex": "HwTrafficPfcTest.PfcWatchdog.*"
         },
         {
@@ -6448,6 +6508,9 @@
         },
         {
           "test_name_regex": "HwPfcTest.*"
+        },
+        {
+          "test_name_regex": "HwVerifyPfcConfigInHwTest.*"
         },
         {
           "test_name_regex": "HwProdInvariantsMmuLosslessTest.*"
@@ -6722,6 +6785,9 @@
           "test_name_regex": "HwPfcTest.PfcWatchdog.*"
         },
         {
+          "test_name_regex": "HwVerifyPfcConfigInHwTest.PfcWatchdog.*"
+        },
+        {
           "test_name_regex": "HwTrafficPfcTest.PfcWatchdog.*"
         },
         {
@@ -6978,6 +7044,9 @@
         },
         {
           "test_name_regex": "HwPfcTest.*"
+        },
+        {
+          "test_name_regex": "HwVerifyPfcConfigInHwTest.*"
         },
         {
           "test_name_regex": "HwProdInvariantsMmuLosslessTest.*"
@@ -7250,6 +7319,9 @@
         },
         {
           "test_name_regex": "HwPfcTest.PfcWatchdog.*"
+        },
+        {
+          "test_name_regex": "HwVerifyPfcConfigInHwTest.PfcWatchdog.*"
         },
         {
           "test_name_regex": "HwTrafficPfcTest.PfcWatchdog.*"
@@ -7926,6 +7998,9 @@
           "test_name_regex": "HwPfcTest.*"
         },
         {
+          "test_name_regex": "HwVerifyPfcConfigInHwTest.*"
+        },
+        {
           "test_name_regex": "HwProdInvariantsMmuLosslessTest.*"
         },
         {
@@ -8528,6 +8603,9 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.HwPfcTest.*"
         },
         {
+          "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.HwEmptyTest.CheckInit.HwVerifyPfcConfigInHwTest.*"
+        },
+        {
           "test_name_regex": "HwRouteScaleTest.thAlpmScale"
         },
         {
@@ -8604,6 +8682,9 @@
         },
         {
           "test_name_regex": "HwPfcTest.PfcWatchdog.*"
+        },
+        {
+          "test_name_regex": "HwVerifyPfcConfigInHwTest.PfcWatchdog.*"
         },
         {
           "test_name_regex": "HwTrafficPfcTest.PfcWatchdog.*"
@@ -8896,6 +8977,9 @@
           "test_name_regex": "HwPfcTest.PfcWatchdog.*"
         },
         {
+          "test_name_regex": "HwVerifyPfcConfigInHwTest.PfcWatchdog.*"
+        },
+        {
           "test_name_regex": "HwTrafficPfcTest.PfcWatchdog.*"
         },
         {
@@ -9154,6 +9238,9 @@
         },
         {
           "test_name_regex": "HwPfcTest.*"
+        },
+        {
+          "test_name_regex": "HwVerifyPfcConfigInHwTest.*"
         },
         {
           "test_name_regex": "HwProdInvariantsMmuLosslessTest.*"
@@ -9495,6 +9582,9 @@
         },
         {
           "test_name_regex": "HwPfcTest.*"
+        },
+        {
+          "test_name_regex": "HwVerifyPfcConfigInHwTest.*"
         },
         {
           "test_name_regex": "HwProdInvariantsMmuLosslessTest.*"
@@ -10123,6 +10213,9 @@
           "test_name_regex": "HwPfcTest.*"
         },
         {
+          "test_name_regex": "HwVerifyPfcConfigInHwTest.*"
+        },
+        {
           "test_name_regex": "HwProdInvariantsMmuLosslessTest.*"
         },
         {
@@ -10480,6 +10573,9 @@
         },
         {
           "test_name_regex": "HwPfcTest.*"
+        },
+        {
+          "test_name_regex": "HwVerifyPfcConfigInHwTest.*"
         },
         {
           "test_name_regex": "HwProdInvariantsMmuLosslessTest.*"
@@ -11111,6 +11207,9 @@
           "test_name_regex": "HwPfcTest.*"
         },
         {
+          "test_name_regex": "HwVerifyPfcConfigInHwTest.*"
+        },
+        {
           "test_name_regex": "HwProdInvariantsMmuLosslessTest.*"
         },
         {
@@ -11474,6 +11573,9 @@
         },
         {
           "test_name_regex": "HwPfcTest.*"
+        },
+        {
+          "test_name_regex": "HwVerifyPfcConfigInHwTest.*"
         },
         {
           "test_name_regex": "HwProdInvariantsMmuLosslessTest.*"
