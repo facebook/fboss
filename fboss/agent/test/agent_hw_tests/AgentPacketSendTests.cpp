@@ -282,10 +282,10 @@ class AgentPacketSendReceiveTest : public AgentHwTest, public PacketObserverIf {
 };
 
 TEST_F(AgentPacketSendReceiveTest, LldpPacketReceiveSrcPort) {
-  getAgentEnsemble()->getSw()->getPacketObservers()->registerPacketObserver(
-      this, "LldpPacketReceiveSrcPort");
   auto setup = [=]() {};
   auto verify = [=, this]() {
+    getAgentEnsemble()->getSw()->getPacketObservers()->registerPacketObserver(
+        this, "LldpPacketReceiveSrcPort");
     auto vlanId = utility::firstVlanID(getProgrammedState());
     auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
@@ -294,7 +294,7 @@ TEST_F(AgentPacketSendReceiveTest, LldpPacketReceiveSrcPort) {
     for (const auto& port :
          {masterLogicalPortIds()[0], masterLogicalPortIds().back()}) {
       auto txPacket = utility::makeEthTxPacket(
-          [&](size_t size) { return getSw()->allocatePacket(size); },
+          getSw(),
           vlanId,
           srcMac,
           folly::MacAddress("01:80:c2:00:00:0e"),
@@ -307,11 +307,10 @@ TEST_F(AgentPacketSendReceiveTest, LldpPacketReceiveSrcPort) {
       })
       EXPECT_EQ(port, PortID(getLastPktSrcPort()));
     }
+    getAgentEnsemble()->getSw()->getPacketObservers()->unregisterPacketObserver(
+        this, "LldpPacketReceiveSrcPort");
   };
-  setup();
-  verify();
-  getAgentEnsemble()->getSw()->getPacketObservers()->unregisterPacketObserver(
-      this, "LldpPacketReceiveSrcPort");
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 } // namespace facebook::fboss
