@@ -127,6 +127,8 @@ void Bsp::getSensorData(std::shared_ptr<SensorData> pSensorData) {
             *sensorData.name(), *sensorData.value(), *sensorData.timeStamp());
       }
     }
+    XLOG(INFO) << fmt::format(
+        "Got sensor data from fsdb.  Item count: {}", subscribedData.size());
   }
 
   // Set flag if not set yet
@@ -407,7 +409,7 @@ void Bsp::getSensorDataThrift(std::shared_ptr<SensorData> pSensorData) {
     if (sensorData.value() && sensorData.timeStamp()) {
       pSensorData->updateEntryFloat(
           *sensorData.name(), *sensorData.value(), *sensorData.timeStamp());
-      XLOG(INFO) << fmt::format(
+      XLOG(DBG1) << fmt::format(
           "Storing sensor {} with value {} timestamp {}",
           *sensorData.name(),
           *sensorData.value(),
