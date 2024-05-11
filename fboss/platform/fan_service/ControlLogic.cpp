@@ -231,11 +231,12 @@ void ControlLogic::getSensorUpdate() {
     auto& readCache = sensorReadCaches_[sensorName];
 
     // STEP 1: Get reading.
-    float readValue{0};
-    if (pSensor_->checkIfEntryExists(sensorName)) {
-      readValue = pSensor_->getSensorDataFloat(sensorName);
-      readValue = readValue / *sensor.scale();
+    auto sensorEntry = pSensor_->getSensorEntry(sensorName);
+    if (sensorEntry) {
+      float readValue = sensorEntry->value / *sensor.scale();
       readCache.lastReadValue = readValue;
+      readCache.lastUpdatedTime = sensorEntry->lastUpdated;
+      readCache.sensorFailed = false;
       XLOG(ERR) << fmt::format(
           "{}: Sensor read value (after scaling) is {}", sensorName, readValue);
     } else {
@@ -258,9 +259,6 @@ void ControlLogic::getSensorUpdate() {
         readCache.sensorFailed = true;
         numSensorFailed_++;
       }
-    } else {
-      readCache.lastUpdatedTime = pSensor_->getLastUpdated(sensorName);
-      readCache.sensorFailed = false;
     }
 
     // STEP 2: Calculate target pwm

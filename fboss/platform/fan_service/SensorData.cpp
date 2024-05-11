@@ -1,28 +1,36 @@
 // Copyright 2021- Facebook. All rights reserved.
 
-// Implementation of SensorData class. Refer to .h file
-// for the functional description
 #include "fboss/platform/fan_service/SensorData.h"
-// Additional FB helper funtion
+
 #include "common/time/Time.h"
 
 namespace facebook::fboss::platform::fan_service {
+
+std::optional<SensorEntry> SensorData::getSensorEntry(
+    const std::string& name) const {
+  auto itr = sensorEntry_.find(name);
+  if (itr == sensorEntry_.end()) {
+    return std::nullopt;
+  }
+  return itr->second;
+}
+
+void SensorData::updateSensorEntry(
+    const std::string& name,
+    float value,
+    uint64_t timeStamp) {
+  auto sensorEntry = SensorEntry();
+  sensorEntry.name = name;
+  sensorEntry.value = value;
+  sensorEntry.lastUpdated = timeStamp;
+  sensorEntry_[name] = sensorEntry;
+}
 
 void SensorData::setLastQsfpSvcTime(uint64_t t) {
   lastSuccessfulQsfpServiceContact_ = t;
 }
 uint64_t SensorData::getLastQsfpSvcTime() {
   return lastSuccessfulQsfpServiceContact_;
-}
-
-SensorEntry* SensorData::getOrCreateSensorEntry(const std::string& name) {
-  bool entryExist = checkIfEntryExists(name);
-  SensorEntry* pEntry;
-  if (!entryExist) {
-    sensorEntry_[name] = SensorEntry();
-  }
-  pEntry = &sensorEntry_[name];
-  return pEntry;
 }
 
 OpticEntry* SensorData::getOrCreateOpticEntry(const std::string& name) {
@@ -35,42 +43,8 @@ OpticEntry* SensorData::getOrCreateOpticEntry(const std::string& name) {
   return pEntry;
 }
 
-void SensorData::updateEntryFloat(
-    const std::string& name,
-    float data,
-    uint64_t timeStamp) {
-  auto pEntry = getOrCreateSensorEntry(name);
-  pEntry->timeStampSec = timeStamp;
-  pEntry->value = data;
-}
-
-float SensorData::getSensorDataFloat(const std::string& name) const {
-  auto pEntry = getSensorEntry(name);
-  if (pEntry == nullptr) {
-    throw facebook::fboss::FbossError("Unable to find the sensor data ", name);
-  }
-  return pEntry->value;
-}
-
-uint64_t SensorData::getLastUpdated(const std::string& name) const {
-  auto pEntry = getSensorEntry(name);
-  if (pEntry == nullptr) {
-    throw facebook::fboss::FbossError("Unable to find the sensor data ", name);
-  }
-  return pEntry->timeStampSec;
-}
-
-bool SensorData::checkIfEntryExists(const std::string& name) const {
-  return (sensorEntry_.find(name) != sensorEntry_.end());
-}
-
 bool SensorData::checkIfOpticEntryExists(const std::string& name) const {
   return (opticEntry_.find(name) != opticEntry_.end());
-}
-
-const SensorEntry* SensorData::getSensorEntry(const std::string& name) const {
-  auto itr = sensorEntry_.find(name);
-  return itr == sensorEntry_.end() ? nullptr : &(itr->second);
 }
 
 OpticEntry* SensorData::getOpticEntry(const std::string& name) const {

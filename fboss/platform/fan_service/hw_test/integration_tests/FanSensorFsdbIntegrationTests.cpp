@@ -94,7 +94,7 @@ TEST_F(FanSensorFsdbIntegrationTests, sensorUpdate) {
   std::shared_ptr<SensorData> thriftSensorData = std::make_shared<SensorData>();
   getFanServiceImpl()->getSensorDataThrift(thriftSensorData);
   // Expect non-zero sensors
-  ASSERT_TRUE(thriftSensorData->size());
+  ASSERT_TRUE(thriftSensorData->getSensorEntries().size());
 
   WITH_RETRIES_N_TIMED(6, std::chrono::seconds(10), {
     // Kick off the control fan logic, which will try to fetch the sensor
@@ -104,10 +104,12 @@ TEST_F(FanSensorFsdbIntegrationTests, sensorUpdate) {
     prevSensorData = getFanServiceImpl()->sensorData();
     // Confirm that the fan service received the same sensors from fsdb as
     // returned by sensor service via thrift
-    ASSERT_EVENTUALLY_TRUE(prevSensorData.size() >= thriftSensorData->size());
-    for (auto it = thriftSensorData->begin(); it != thriftSensorData->end();
-         it++) {
-      ASSERT_EVENTUALLY_TRUE(prevSensorData.checkIfEntryExists(it->first));
+    ASSERT_EVENTUALLY_TRUE(
+        prevSensorData.getSensorEntries().size() >=
+        thriftSensorData->getSensorEntries().size());
+    for (const auto& [sensorName, sensorEntry] :
+         thriftSensorData->getSensorEntries()) {
+      ASSERT_TRUE(prevSensorData.getSensorEntry(sensorName));
     }
   });
 
@@ -117,22 +119,23 @@ TEST_F(FanSensorFsdbIntegrationTests, sensorUpdate) {
     auto currSensorData = getFanServiceImpl()->sensorData();
     auto afterLastFetchTime = getFanServiceImpl()->lastSensorFetchTimeSec();
     ASSERT_EVENTUALLY_TRUE(afterLastFetchTime > beforeLastFetchTime);
-    ASSERT_EVENTUALLY_TRUE(currSensorData.size() == prevSensorData.size());
-    for (auto it = thriftSensorData->begin(); it != thriftSensorData->end();
-         it++) {
-      ASSERT_EVENTUALLY_TRUE(currSensorData.checkIfEntryExists(it->first));
-      XLOG(INFO) << "Sensor: " << it->first << ". Previous timestamp: "
-                 << prevSensorData.getLastUpdated(it->first)
-                 << ", Current timestamp: "
-                 << currSensorData.getLastUpdated(it->first);
+    ASSERT_EVENTUALLY_TRUE(
+        currSensorData.getSensorEntries().size() ==
+        prevSensorData.getSensorEntries().size());
+    for (const auto& [sensorName, prevSensorEntry] :
+         prevSensorData.getSensorEntries()) {
+      auto currSensorEntry = currSensorData.getSensorEntry(sensorName);
+      ASSERT_TRUE(currSensorEntry);
+      XLOG(INFO) << "Sensor: " << sensorName
+                 << ". Previous timestamp: " << prevSensorEntry.lastUpdated
+                 << ", Current timestamp: " << currSensorEntry->lastUpdated;
       // The timestamps should advance. Sometimes the timestamps are 0 for
       // some sensors returned by sensor data, so add a special check for
       // that too
       ASSERT_EVENTUALLY_TRUE(
-          (currSensorData.getLastUpdated(it->first) >
-           prevSensorData.getLastUpdated(it->first)) ||
-          (currSensorData.getLastUpdated(it->first) == 0 &&
-           prevSensorData.getLastUpdated(it->first) == 0));
+          (currSensorEntry->lastUpdated > prevSensorEntry.lastUpdated) ||
+          (currSensorEntry->lastUpdated == 0 &&
+           prevSensorEntry.lastUpdated == 0));
     }
   });
 }
@@ -147,7 +150,7 @@ TEST_F(FanSensorFsdbIntegrationTests, fsdbRestart) {
   std::shared_ptr<SensorData> thriftSensorData = std::make_shared<SensorData>();
   getFanServiceImpl()->getSensorDataThrift(thriftSensorData);
   // Expect non-zero sensors
-  ASSERT_TRUE(thriftSensorData->size());
+  ASSERT_TRUE(thriftSensorData->getSensorEntries().size());
 
   // Allow time for fan_service to warm up and sync all the sensor data from
   // fsdb. We should expect to sync all the sensors that were received from
@@ -158,10 +161,12 @@ TEST_F(FanSensorFsdbIntegrationTests, fsdbRestart) {
     prevSensorData = getFanServiceImpl()->sensorData();
     // Confirm that the fan service received the same sensors from fsdb as
     // returned by sensor service via thrift
-    ASSERT_EVENTUALLY_TRUE(prevSensorData.size() >= thriftSensorData->size());
-    for (auto it = thriftSensorData->begin(); it != thriftSensorData->end();
-         it++) {
-      ASSERT_EVENTUALLY_TRUE(prevSensorData.checkIfEntryExists(it->first));
+    ASSERT_EVENTUALLY_TRUE(
+        prevSensorData.getSensorEntries().size() >=
+        thriftSensorData->getSensorEntries().size());
+    for (const auto& [sensorName, sensorEntry] :
+         thriftSensorData->getSensorEntries()) {
+      ASSERT_TRUE(prevSensorData.getSensorEntry(sensorName));
     }
   });
 
@@ -178,12 +183,11 @@ TEST_F(FanSensorFsdbIntegrationTests, fsdbRestart) {
   sleep(2 * fetchFrequencyInSec + 10);
   getFanServiceImpl()->controlFan();
   auto currSensorData = getFanServiceImpl()->sensorData();
-  for (auto it = thriftSensorData->begin(); it != thriftSensorData->end();
-       it++) {
-    ASSERT_TRUE(currSensorData.checkIfEntryExists(it->first));
-    ASSERT_EQ(
-        currSensorData.getLastUpdated(it->first),
-        prevSensorData.getLastUpdated(it->first));
+  for (const auto& [sensorName, prevSensorEntry] :
+       prevSensorData.getSensorEntries()) {
+    auto currSensorEntry = currSensorData.getSensorEntry(sensorName);
+    ASSERT_TRUE(currSensorEntry);
+    ASSERT_EQ(currSensorEntry->lastUpdated, prevSensorEntry.lastUpdated);
   }
 
   // Start FSDB
@@ -196,22 +200,23 @@ TEST_F(FanSensorFsdbIntegrationTests, fsdbRestart) {
     auto currSensorData = getFanServiceImpl()->sensorData();
     auto afterLastFetchTime = getFanServiceImpl()->lastSensorFetchTimeSec();
     ASSERT_EVENTUALLY_TRUE(afterLastFetchTime > prevLastFetchTime);
-    ASSERT_EVENTUALLY_TRUE(currSensorData.size() == prevSensorData.size());
-    for (auto it = thriftSensorData->begin(); it != thriftSensorData->end();
-         it++) {
-      ASSERT_EVENTUALLY_TRUE(currSensorData.checkIfEntryExists(it->first));
-      XLOG(INFO) << "Sensor: " << it->first << ". Previous timestamp: "
-                 << prevSensorData.getLastUpdated(it->first)
-                 << ", Current timestamp: "
-                 << currSensorData.getLastUpdated(it->first);
+    ASSERT_EVENTUALLY_TRUE(
+        currSensorData.getSensorEntries().size() ==
+        prevSensorData.getSensorEntries().size());
+    for (const auto& [sensorName, prevSensorEntry] :
+         prevSensorData.getSensorEntries()) {
+      auto currSensorEntry = currSensorData.getSensorEntry(sensorName);
+      ASSERT_TRUE(currSensorEntry);
+      XLOG(INFO) << "Sensor: " << sensorName
+                 << ". Previous timestamp: " << prevSensorEntry.lastUpdated
+                 << ", Current timestamp: " << currSensorEntry->lastUpdated;
       // The timestamps should advance. Sometimes the timestamps are 0 for
       // some sensors returned by sensor data, so add a special check for
       // that too
       ASSERT_EVENTUALLY_TRUE(
-          (currSensorData.getLastUpdated(it->first) >
-           prevSensorData.getLastUpdated(it->first)) ||
-          (currSensorData.getLastUpdated(it->first) == 0 &&
-           prevSensorData.getLastUpdated(it->first) == 0));
+          (currSensorEntry->lastUpdated > prevSensorEntry.lastUpdated) ||
+          (currSensorEntry->lastUpdated == 0 &&
+           prevSensorEntry.lastUpdated == 0));
     }
   });
 }

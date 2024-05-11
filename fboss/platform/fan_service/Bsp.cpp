@@ -101,7 +101,7 @@ void Bsp::getSensorData(std::shared_ptr<SensorData> pSensorData) {
         XLOG(ERR) << "Failed to read sysfs " << *sensor.access()->path();
       }
       if (readSuccessful) {
-        pSensorData->updateEntryFloat(*sensor.sensorName(), readVal, nowSec);
+        pSensorData->updateSensorEntry(*sensor.sensorName(), readVal, nowSec);
       }
     } else {
       throw facebook::fboss::FbossError(
@@ -123,7 +123,7 @@ void Bsp::getSensorData(std::shared_ptr<SensorData> pSensorData) {
       // fields are not set
       if (sensorData.value().has_value() &&
           sensorData.timeStamp().has_value()) {
-        pSensorData->updateEntryFloat(
+        pSensorData->updateSensorEntry(
             *sensorData.name(), *sensorData.value(), *sensorData.timeStamp());
       }
     }
@@ -407,7 +407,7 @@ void Bsp::getSensorDataThrift(std::shared_ptr<SensorData> pSensorData) {
   for (auto& sensorData : *sensorReadResponse.sensorData()) {
     // Value and Timestamp are not set for failed sensors. Skip them
     if (sensorData.value() && sensorData.timeStamp()) {
-      pSensorData->updateEntryFloat(
+      pSensorData->updateSensorEntry(
           *sensorData.name(), *sensorData.value(), *sensorData.timeStamp());
       XLOG(DBG1) << fmt::format(
           "Storing sensor {} with value {} timestamp {}",

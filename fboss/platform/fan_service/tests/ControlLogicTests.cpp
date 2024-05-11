@@ -56,7 +56,7 @@ class ControlLogicTests : public testing::Test {
 
     float value = 30.0;
     for (const auto& sensor : *fanServiceConfig_.sensors()) {
-      sensorData_->updateEntryFloat(
+      sensorData_->updateSensorEntry(
           *sensor.sensorName(), value, mockBsp_->getCurrentTime());
       value += 10.5;
     }

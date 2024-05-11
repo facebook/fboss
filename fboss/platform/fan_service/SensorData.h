@@ -5,7 +5,7 @@
 //        and also to support key-based value search.
 
 #pragma once
-// Standard C++ routines
+
 #include <unordered_map>
 #include <vector>
 
@@ -14,11 +14,10 @@
 
 namespace facebook::fboss::platform::fan_service {
 
-// One sensor data entry
 struct SensorEntry {
  public:
   std::string name;
-  uint64_t timeStampSec = 0;
+  uint64_t lastUpdated{0};
   float value{0};
 };
 
@@ -34,17 +33,13 @@ struct OpticEntry {
   int calculatedPwm{0};
 };
 
-// The main class for storing sensor data
 class SensorData {
  public:
-  float getSensorDataFloat(const std::string& name) const;
-  // When was this sensor reading acquired?
-  uint64_t getLastUpdated(const std::string& name) const;
-  // Check if key exists in sensordata hash table
-  bool checkIfEntryExists(const std::string& name) const;
+  std::optional<SensorEntry> getSensorEntry(const std::string& name) const;
+  void updateSensorEntry(const std::string& name, float data, uint64_t ts);
+
   bool checkIfOpticEntryExists(const std::string& name) const;
-  void
-  updateEntryFloat(const std::string& name, float data, uint64_t timeStampSec);
+
   void setOpticEntry(
       const std::string& name,
       std::vector<std::pair<std::string, float>> input,
@@ -53,20 +48,15 @@ class SensorData {
   OpticEntry* getOrCreateOpticEntry(const std::string& name);
   void setOpticsPwm(const std::string& name, int v);
   int getOpticsPwm(const std::string& name);
-  auto begin() const {
-    return sensorEntry_.begin();
-  }
-  auto end() const {
-    return sensorEntry_.end();
-  }
-  auto size() const {
-    return sensorEntry_.size();
-  }
   auto opticEntrySize() const {
     return opticEntry_.size();
   }
   const std::unordered_map<std::string, OpticEntry>& getOpticEntries() const {
     return opticEntry_;
+  }
+
+  std::unordered_map<std::string, SensorEntry> getSensorEntries() const {
+    return sensorEntry_;
   }
 
   void setLastQsfpSvcTime(uint64_t t);
@@ -75,8 +65,6 @@ class SensorData {
  private:
   std::unordered_map<std::string, SensorEntry> sensorEntry_;
   std::unordered_map<std::string, OpticEntry> opticEntry_;
-  const SensorEntry* getSensorEntry(const std::string& name) const;
-  SensorEntry* getOrCreateSensorEntry(const std::string& name);
   uint64_t lastSuccessfulQsfpServiceContact_;
 };
 
