@@ -93,6 +93,7 @@ class ControlLogic {
   folly::Synchronized<std::map<std::string /* fanName */, FanStatus>>
       fanStatuses_;
   std::map<std::string /* sensorName */, SensorReadCache> sensorReadCaches_;
+  std::map<std::string /* sensorName */, int16_t /* pwm */> opticReadCaches_;
   std::map<std::string /* sensorName */, PwmCalcCache> pwmCalcCaches_;
 };
 } // namespace facebook::fboss::platform::fan_service

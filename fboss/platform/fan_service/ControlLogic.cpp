@@ -328,7 +328,6 @@ void ControlLogic::getOpticsUpdate() {
         // Get PID setting
         auto pidSetting = getConfigOpticPid(optic, opticType);
         // Cache values are stored per optic type
-        auto& readCache = sensorReadCaches_[opticType];
         auto& pwmCalcCache = pwmCalcCaches_[opticType];
         float kp = *pidSetting->kp();
         float ki = *pidSetting->ki();
@@ -338,7 +337,6 @@ void ControlLogic::getOpticsUpdate() {
         float maxVal = *pidSetting->setPoint() + *pidSetting->posHysteresis();
         float pwm = calculatePid(
             opticType, value, pwmCalcCache, kp, ki, kd, dT, minVal, maxVal);
-        readCache.targetPwmCache = pwm;
         if (pwm > aggOpticPwm) {
           aggOpticPwm = pwm;
         }
@@ -351,7 +349,7 @@ void ControlLogic::getOpticsUpdate() {
         "Optics: Aggregation Type: {}. Aggregate PWM is {}",
         aggregationType,
         aggOpticPwm);
-    opticData->calculatedPwm = aggOpticPwm;
+    opticReadCaches_[opticName] = aggOpticPwm;
     // As we consumed the data, clear the vector
     opticData->data.clear();
     opticData->dataProcessTimeStamp = opticData->lastOpticsUpdateTimeInSec;
@@ -465,10 +463,10 @@ int16_t ControlLogic::calculateZonePwm(const Zone& zone, bool boostMode) {
   int totalPwmConsidered{0};
   for (const auto& sensorName : *zone.sensorNames()) {
     int16_t pwmForThisSensor;
-    if (isSensorPresentInConfig(sensorName)) {
+    if (sensorReadCaches_.find(sensorName) != sensorReadCaches_.end()) {
       pwmForThisSensor = sensorReadCaches_[sensorName].targetPwmCache;
-    } else if (pSensor_->checkIfOpticEntryExists(sensorName)) {
-      pwmForThisSensor = pSensor_->getOpticsPwm(sensorName);
+    } else if (opticReadCaches_.find(sensorName) != opticReadCaches_.end()) {
+      pwmForThisSensor = opticReadCaches_[sensorName];
     } else {
       continue;
     }
