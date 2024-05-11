@@ -64,19 +64,4 @@ void SensorData::setOpticEntry(
   pEntry->dataProcessTimeStamp = 0;
 }
 
-void SensorData::setOpticsPwm(const std::string& name, int v) {
-  auto pEntry = getOpticEntry(name);
-  if (pEntry == nullptr) {
-    throw facebook::fboss::FbossError("Unable to find the optic data ", name);
-  }
-  pEntry->calculatedPwm = v;
-}
-int SensorData::getOpticsPwm(const std::string& name) {
-  auto entry = getOpticEntry(name);
-  if (entry == nullptr) {
-    throw facebook::fboss::FbossError("Unable to find the optic data ", name);
-  }
-  return entry->calculatedPwm;
-}
-
 } // namespace facebook::fboss::platform::fan_service

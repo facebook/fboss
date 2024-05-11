@@ -46,8 +46,6 @@ class SensorData {
       uint64_t timestamp);
   OpticEntry* getOpticEntry(const std::string& name) const;
   OpticEntry* getOrCreateOpticEntry(const std::string& name);
-  void setOpticsPwm(const std::string& name, int v);
-  int getOpticsPwm(const std::string& name);
   auto opticEntrySize() const {
     return opticEntry_.size();
   }
