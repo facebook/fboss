@@ -221,23 +221,29 @@ void SaiHandler::getAllInterfacePrbsStats(
   std::shared_ptr<SwitchState> swState = hw_->getProgrammedState();
   for (const auto& portMap : std::as_const(*(swState->getPorts()))) {
     for (const auto& port : std::as_const(*portMap.second)) {
-      auto prbsState = hw_->getPortPrbsState(port.second->getID());
-      auto generatorEnabled = prbsState.generatorEnabled();
-      auto checkerEnabled = prbsState.checkerEnabled();
-      if (generatorEnabled && checkerEnabled) {
-        auto prbsEnabled = (generatorEnabled.value() && checkerEnabled.value());
-        if (prbsEnabled) {
-          phy::PrbsStats prbsStatsEntry;
-          auto asicPrbsStats = hw_->getPortAsicPrbsStats(port.second->getID());
-          prbsStatsEntry.portId() = port.second->getID();
-          prbsStatsEntry.component() = phy::PortComponent::ASIC;
-          for (const auto& lane : asicPrbsStats) {
-            prbsStatsEntry.laneStats()->push_back(lane);
+      if (port.second->getPortType() == cfg::PortType::INTERFACE_PORT ||
+          port.second->getPortType() == cfg::PortType::FABRIC_PORT ||
+          port.second->getPortType() == cfg::PortType::MANAGEMENT_PORT) {
+        auto prbsState = hw_->getPortPrbsState(port.second->getID());
+        auto generatorEnabled = prbsState.generatorEnabled();
+        auto checkerEnabled = prbsState.checkerEnabled();
+        if (generatorEnabled && checkerEnabled) {
+          auto prbsEnabled =
+              (generatorEnabled.value() && checkerEnabled.value());
+          if (prbsEnabled) {
+            phy::PrbsStats prbsStatsEntry;
+            auto asicPrbsStats =
+                hw_->getPortAsicPrbsStats(port.second->getID());
+            prbsStatsEntry.portId() = port.second->getID();
+            prbsStatsEntry.component() = phy::PortComponent::ASIC;
+            for (const auto& lane : asicPrbsStats) {
+              prbsStatsEntry.laneStats()->push_back(lane);
+            }
+            auto now =
+                duration_cast<seconds>(system_clock::now().time_since_epoch());
+            prbsStatsEntry.timeCollected() = now.count();
+            prbsStats[port.second->getName()] = prbsStatsEntry;
           }
-          auto now =
-              duration_cast<seconds>(system_clock::now().time_since_epoch());
-          prbsStatsEntry.timeCollected() = now.count();
-          prbsStats[port.second->getName()] = prbsStatsEntry;
         }
       }
     }
