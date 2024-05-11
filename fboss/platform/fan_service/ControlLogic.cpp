@@ -540,7 +540,6 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
 
   numFanFailed_ = 0;
   numSensorFailed_ = 0;
-  bool boostForMissingOpticsUpdate = false;
 
   // If we have not yet successfully read so far,
   // it does not make sense to update fan PWM out of no data.
@@ -586,20 +585,27 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
   // STEP 4: Determine whether boost mode is necessary
   uint64_t secondsSinceLastOpticsUpdate =
       pBsp_->getCurrentTime() - pSensor_->getLastQsfpSvcTime();
+  bool missingOpticsUpdate{false}, fanFailures{false}, sensorFailures{false};
   if ((*config_.pwmBoostOnNoQsfpAfterInSec() != 0) &&
       (secondsSinceLastOpticsUpdate >= *config_.pwmBoostOnNoQsfpAfterInSec())) {
-    boostForMissingOpticsUpdate = true;
+    missingOpticsUpdate = true;
     XLOG(INFO) << fmt::format(
         "Boost mode enabled for optics update missing for {}s",
         secondsSinceLastOpticsUpdate);
   }
-  bool boostMode =
-      (((*config_.pwmBoostOnNumDeadFan() != 0) &&
-        (numFanFailed_ >= *config_.pwmBoostOnNumDeadFan())) ||
-       ((*config_.pwmBoostOnNumDeadSensor() != 0) &&
-        (numSensorFailed_ >= *config_.pwmBoostOnNumDeadSensor())) ||
-       boostForMissingOpticsUpdate);
-  XLOG(INFO) << fmt::format("Boost mode is {}", (boostMode ? "On" : "Off"));
+  if ((*config_.pwmBoostOnNumDeadFan() != 0) &&
+      (numFanFailed_ >= *config_.pwmBoostOnNumDeadFan())) {
+    fanFailures = true;
+    XLOG(INFO) << fmt::format(
+        "Boost mode enabled for {} fan failures", numFanFailed_);
+  }
+  if ((*config_.pwmBoostOnNumDeadSensor() != 0) &&
+      (numSensorFailed_ >= *config_.pwmBoostOnNumDeadSensor())) {
+    sensorFailures = true;
+    XLOG(INFO) << fmt::format(
+        "Boost mode enabled for {} sensor failures", numSensorFailed_);
+  }
+  bool boostMode = (missingOpticsUpdate || fanFailures || sensorFailures);
 
   // STEP 5: Calculate and program fan PWMs
   fanStatuses_.withWLock([&](auto& fanStatuses) {
