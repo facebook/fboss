@@ -56,6 +56,16 @@ FsdbSyncer::FsdbSyncer(SwSwitch* sw)
       fsdbPubSubMgr_(std::make_shared<fsdb::FsdbPubSubManager>("agent")) {
   agentFsdbSyncManager_ =
       std::make_unique<AgentFsdbSyncManager>(fsdbPubSubMgr_);
+
+  if (FLAGS_publish_stats_to_fsdb) {
+    fsdbPubSubMgr_->createStatPathPublisher(
+        getAgentStatsPath(), [this](auto oldState, auto newState) {
+          fsdbStatPublisherStateChanged(oldState, newState);
+        });
+  }
+}
+
+void FsdbSyncer::start() {
   // full sync of initial state
   agentFsdbSyncManager_->stateUpdated(
       StateDelta(std::make_shared<SwitchState>(), sw_->getState()));
@@ -69,13 +79,6 @@ FsdbSyncer::FsdbSyncer(SwSwitch* sw)
           bitsflow::BitsflowHelper::getCurrentBitsflowLockdownLevel()));
 #endif
   agentFsdbSyncManager_->start();
-
-  if (FLAGS_publish_stats_to_fsdb) {
-    fsdbPubSubMgr_->createStatPathPublisher(
-        getAgentStatsPath(), [this](auto oldState, auto newState) {
-          fsdbStatPublisherStateChanged(oldState, newState);
-        });
-  }
 }
 
 FsdbSyncer::~FsdbSyncer() {

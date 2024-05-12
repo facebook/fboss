@@ -398,6 +398,8 @@ SwSwitch::SwSwitch(
     multiSwitchFb303Stats_ =
         std::make_unique<MultiSwitchFb303Stats>(getHwAsicTable()->getHwAsics());
   }
+  fsdbSyncer_.withWLock(
+      [this](auto& syncer) { syncer = std::make_unique<FsdbSyncer>(this); });
   if (initialState) {
     initialState->publish();
     setStateInternal(initialState);
@@ -1281,11 +1283,9 @@ void SwSwitch::initialConfigApplied(const steady_clock::time_point& startTime) {
     mkaServiceManager_ = std::make_unique<MKAServiceManager>(this);
   }
 #endif
-  fsdbSyncer_.withWLock([this](auto& syncer) {
-    // Start FSDB state syncer post initial config applied. FSDB state
-    // syncer will do a full sync upon connection establishment to FSDB
-    syncer = std::make_unique<FsdbSyncer>(this);
-  });
+  // Start FSDB state syncer post initial config applied. FSDB state
+  // syncer will do a full sync upon connection establishment to FSDB
+  runFsdbSyncFunction([](auto& syncer) { syncer->start(); });
 }
 
 void SwSwitch::logRouteUpdates(

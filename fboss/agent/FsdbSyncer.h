@@ -37,6 +37,7 @@ class FsdbSyncer {
       fsdb::FsdbSubscriptionState oldState,
       fsdb::FsdbSubscriptionState newState);
 
+  void start();
   void stop(bool gracefulStop = false);
 
   bool isReadyForStatePublishing() const {
