@@ -31,11 +31,6 @@ FOLLY_INIT_LOGGING_CONFIG("DBG2; default:async=true");
 FOLLY_INIT_LOGGING_CONFIG("fboss=DBG2; default:async=true");
 #endif
 
-DEFINE_int32(
-    hwagent_port_base,
-    5931,
-    "The first thrift server port reserved for HwAgent");
-
 DEFINE_int32(swswitch_port, 5959, "Port for SwSwitch");
 
 DEFINE_bool(enable_stats_update_thread, true, "Run stats update thread");

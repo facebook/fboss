@@ -182,13 +182,15 @@ int SwAgentInitializer::initAgent(HwSwitchCallback* callback) {
   auto handlers = getThrifthandlers();
   handlers.push_back(swHandler);
   eventBase_ = new folly::EventBase();
+  std::vector<int> ports = {FLAGS_port, FLAGS_migrated_port};
+  // serve on hw agent port in mono so that clients can access
+  // hw agent apis on mono as well
+  if (!sw_->isRunModeMultiSwitch()) {
+    ports.push_back(FLAGS_hwagent_port_base);
+  }
 
   // Start the thrift server
-  server_ = setupThriftServer(
-      *eventBase_,
-      handlers,
-      {FLAGS_port, FLAGS_migrated_port},
-      true /*setupSSL*/);
+  server_ = setupThriftServer(*eventBase_, handlers, ports, true /*setupSSL*/);
 
   server_->setStreamExpireTime(std::chrono::milliseconds(0));
   server_->setIdleTimeout(std::chrono::milliseconds(0));

@@ -53,3 +53,8 @@ DEFINE_int32(
     1000,
     "How frequently to publish thread-local stats back to the "
     "global store.  This should generally be less than 1 second.");
+
+DEFINE_int32(
+    hwagent_port_base,
+    5931,
+    "The first thrift server port reserved for HwAgent");
