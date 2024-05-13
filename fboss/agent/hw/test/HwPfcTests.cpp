@@ -328,13 +328,6 @@ TEST_F(HwPfcTest, PfcRxEnabledTxEnabled) {
   runPfcTest(true, true);
 }
 
-TEST_F(HwPfcTest, PfcWatchdogProgramming) {
-  cfg::PfcWatchdog pfcWatchdogConfig{};
-  initalizePfcConfigWatchdogValues(
-      pfcWatchdogConfig, 1, 400, cfg::PfcWatchdogRecoveryAction::DROP);
-  runPfcWatchdogTest(pfcWatchdogConfig);
-}
-
 // Try a sequence of configuring, modifying and removing PFC watchdog.
 // This test will be retained as a HwTest given there is a lot of programming
 // followed by reading back from HW.
