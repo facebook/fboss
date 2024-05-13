@@ -373,7 +373,7 @@ TEST_F(HwVerifyPfcConfigInHwTest, PfcWatchdogProgrammingSequence) {
     // All PFC WD configuration combinations to test
     std::vector<PfcWdTestConfigs> configTest;
     configTest.push_back(
-        {1,
+        {5,
          400,
          cfg::PfcWatchdogRecoveryAction::DROP,
          "Verify PFC watchdog is enabled with specified configs"});
@@ -423,34 +423,38 @@ TEST_F(HwVerifyPfcConfigInHwTest, PfcWatchdogProgrammingSequence) {
                << " sure watchdog recovery action is not impacted";
     removePfcWatchdogConfig(currentConfig, portId);
     EXPECT_EQ(
-        utility::getPfcWatchdogRecoveryAction(getHwSwitch(), portId),
+        utility::getPfcWatchdogRecoveryAction(getHwSwitch(), portId2),
         cfg::PfcWatchdogRecoveryAction::DROP);
 
     // Validate PFC WD recovery action being reset to default
     XLOG(DBG0) << "Remove PFC watchdog programming on the remaining port, "
                << "make sure the watchdog recovery action goes to default";
     removePfcWatchdogConfig(currentConfig, portId2);
-    EXPECT_EQ(
-        utility::getPfcWatchdogRecoveryAction(getHwSwitch(), portId2),
-        cfg::PfcWatchdogRecoveryAction::NO_DROP);
-
-    setupPfcWdAndValidateProgramming(
-        {20,
-         100,
-         cfg::PfcWatchdogRecoveryAction::DROP,
-         "Enable PFC watchdog config again on the port"},
-        portId,
-        currentConfig);
-
-    // Unconfigure PFC
-    XLOG(DBG0)
-        << "Verify removing PFC will remove PFC watchdog programming as well";
-    removePfcConfig(currentConfig, portId);
-    utility::getPfcEnabledStatus(getHwSwitch(), portId, pfcRx, pfcTx);
-    EXPECT_FALSE(pfcRx);
-    EXPECT_FALSE(pfcTx);
     utility::pfcWatchdogProgrammingMatchesConfig(
-        getHwSwitch(), portId, false, defaultPfcWatchdogConfig);
+        getHwSwitch(), portId2, false, defaultPfcWatchdogConfig);
+
+    if (!this->getHwSwitchEnsemble()->isSai()) {
+      // In SAI implementation, PFC and PFC WD are separate attributes
+      // and are independently configured, so unconfiguring PFC will not
+      // unconfigure PFC WD.
+      setupPfcWdAndValidateProgramming(
+          {20,
+           100,
+           cfg::PfcWatchdogRecoveryAction::DROP,
+           "Enable PFC watchdog config again on the port"},
+          portId,
+          currentConfig);
+
+      // Unconfigure PFC
+      XLOG(DBG0)
+          << "Verify removing PFC will remove PFC watchdog programming as well";
+      removePfcConfig(currentConfig, portId);
+      utility::getPfcEnabledStatus(getHwSwitch(), portId, pfcRx, pfcTx);
+      EXPECT_FALSE(pfcRx);
+      EXPECT_FALSE(pfcTx);
+      utility::pfcWatchdogProgrammingMatchesConfig(
+          getHwSwitch(), portId, false, defaultPfcWatchdogConfig);
+    }
     // At the end, make sure that we configure prod config, so that
     // in WB case, we can ensure the config is as expected post WB!
     setupPfcAndPfcWatchdog(currentConfig, portId, prodPfcWdConfig);
