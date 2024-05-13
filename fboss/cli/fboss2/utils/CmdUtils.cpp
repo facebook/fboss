@@ -258,7 +258,7 @@ std::string getCmdToRun(const std::string& hostname, const std::string& cmd) {
 }
 
 std::string runCmd(const std::string& cmd) {
-  std::array<char, 1024> buffer;
+  std::array<char, 4096> buffer;
   std::string result;
   std::unique_ptr<FILE, decltype(&pclose)> pipe(
       popen(cmd.c_str(), "r"), pclose);
