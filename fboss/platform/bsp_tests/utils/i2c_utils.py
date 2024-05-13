@@ -1,7 +1,7 @@
 import os
 import subprocess
 from collections import namedtuple
-from typing import Set, Tuple
+from typing import List, Set, Tuple
 
 from fboss.platform.bsp_tests.utils.cdev_types import FpgaSpec, I2CAdapter, I2CDevice
 from fboss.platform.bsp_tests.utils.cdev_utils import create_new_device
@@ -19,6 +19,23 @@ def parse_i2cdetect_line(line):
         name=parts[2],
         description=parts[3],
     )
+
+
+def parse_i2cdump_data(data: str) -> List[str]:
+    # first line is header
+    data_lines = data.split("\n")[1:]
+    data_bytes = []
+
+    for line in data_lines:
+        parts = line.split()
+        if len(parts) < 2:
+            continue
+        # Byte data will only contain these characters, any other string will be ignored
+        line_bytes = [
+            part for part in parts[1:] if all(c in "0123456789abcdef" for c in part)
+        ]
+        data_bytes.extend(line_bytes)
+    return data_bytes
 
 
 def detect_i2c_device(bus: int, hexAddr: str) -> bool:

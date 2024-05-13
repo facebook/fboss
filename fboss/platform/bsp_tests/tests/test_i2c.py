@@ -3,11 +3,15 @@ from typing import List
 
 from fboss.platform.bsp_tests.test_runner import FpgaSpec, TestBase
 
+from fboss.platform.bsp_tests.utils.cdev_types import I2CDevice
+
 from fboss.platform.bsp_tests.utils.cdev_utils import delete_device, make_cdev_path
+from fboss.platform.bsp_tests.utils.cmd_utils import run_cmd
 from fboss.platform.bsp_tests.utils.i2c_utils import (
     create_i2c_adapter,
     create_i2c_device,
     detect_i2c_device,
+    parse_i2cdump_data,
 )
 
 
@@ -53,7 +57,7 @@ class TestI2c(TestBase):
 
                 for device in adapter.i2cDevices:
                     print(
-                        f"Checking for device {device.address} on bus {adapterBaseBusNum + device.channel}"
+                        f"\nChecking for device {device.address} on bus {adapterBaseBusNum + device.channel}"
                     )
                     assert detect_i2c_device(
                         adapterBaseBusNum + device.channel, device.address
@@ -78,3 +82,53 @@ class TestI2c(TestBase):
                         device, busNum
                     ), f"i2c device {busNum}-00{device.address[2:]} not created"
                 self.unload_kmods()
+
+    def test_i2c_transactions(self) -> None:
+        """
+        Create bus, create devices on that bus, ensure that the bus
+        driver can be unloaded successfully.
+        """
+        for fpga in self.fpgas:
+            for adapter in fpga.i2cAdapters:
+                # if any of the i2cDevices has testData
+                if not any(device.testData for device in adapter.i2cDevices):
+                    continue
+                newAdapters, adapterBaseBusNum = create_i2c_adapter(fpga, adapter)
+                for device in adapter.i2cDevices:
+                    self.run_i2c_test_transactions(
+                        device, adapterBaseBusNum + device.channel
+                    )
+
+    def run_i2c_test_transactions(self, device: I2CDevice, busNum: int) -> None:
+        if not device.testData:
+            return
+        self.run_i2c_dump_test(device, busNum)
+        self.run_i2c_get_test(device, busNum)
+
+    def run_i2c_dump_test(self, device: I2CDevice, busNum: int) -> None:
+        for tc in device.testData.i2cDumpData:
+            output = run_cmd(
+                [
+                    "i2cdump",
+                    "-y",
+                    "-r",
+                    f"{tc.start}-{tc.end}",
+                    str(busNum),
+                    device.address,
+                ]
+            ).stdout.decode()
+            result = parse_i2cdump_data(output)
+            assert (
+                result == tc.expected
+            ), f"i2cdump output {result} did not match expected: {tc.expected} at {tc.start}-{tc.end} on {device.address}"
+
+    def run_i2c_get_test(self, device: I2CDevice, busNum: int) -> None:
+        for tc in device.testData.i2cGetData:
+            output = (
+                run_cmd(["i2cget", "-y", str(busNum), device.address, tc.reg])
+                .stdout.decode()
+                .strip()
+            )
+            assert (
+                output == tc.expected
+            ), f"Output: {output} did not match expected: {tc.expected} at {tc.reg} on {device.address}"

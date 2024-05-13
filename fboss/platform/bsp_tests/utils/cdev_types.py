@@ -137,10 +137,33 @@ class AuxDevice:
 
 @dataclass_json
 @dataclass
+class I2CDumpData:
+    start: str
+    end: str
+    expected: List[str]
+
+
+@dataclass_json
+@dataclass
+class I2CGetData:
+    reg: str
+    expected: str
+
+
+@dataclass_json
+@dataclass
+class I2CTestData:
+    i2cDumpData: List[I2CDumpData]
+    i2cGetData: List[I2CGetData]
+
+
+@dataclass_json
+@dataclass
 class I2CDevice:
     channel: int
     deviceName: str
     address: str
+    testData: Optional[I2CTestData] = None
 
 
 @dataclass_json

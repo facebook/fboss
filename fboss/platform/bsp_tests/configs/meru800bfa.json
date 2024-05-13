@@ -11,7 +11,7 @@
     ],
     "fpgas": [
         {
-            "name": "SMB_FPGA0",
+            "name": "SCM_FPGA",
             "vendorId": "0x3475",
             "deviceId": "0x0001",
             "subSystemVendorId": "0x3475",
@@ -28,6 +28,35 @@
                     },
                     "i2cDevices": [
                         {
+                            "channel": 0,
+                            "deviceName": "pmbus",
+                            "address": "0x40"
+                        },
+                        {
+                            "channel": 1,
+                            "deviceName": "24c512",
+                            "address": "0x50",
+                            "testData": {
+                                "i2cDumpData": [
+                                    {
+                                        "start": "0x00",
+                                        "end": "0x13",
+                                        "expected": ["31", "ff","ff","ff","ff","ff","ff","ff","ff","ff","ff","ff","ff","ff","ff","ff", "ff", "ff", "ff", "ff"]
+                                    }
+                                ],
+                                "i2cGetData": [
+                                    {
+                                        "reg": "0x00",
+                                        "expected": "0xff"
+                                    },
+                                    {
+                                        "reg": "0xff",
+                                        "expected": "0xff"
+                                    }
+                                ]
+                            }
+                        },
+                        {
                             "channel": 2,
                             "deviceName": "pxm1310",
                             "address": "0x30"
@@ -41,13 +70,7 @@
                             "channel": 2,
                             "deviceName": "pxm1310",
                             "address": "0x40"
-                        },
-                        {
-                            "channel": 0,
-                            "deviceName": "pmbus",
-                            "address": "0x40"
                         }
-
                     ]
                 },
                 {
