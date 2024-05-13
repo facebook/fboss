@@ -94,6 +94,7 @@ struct HwPortStats {
 }
 
 struct HwSysPortStats {
+  // These map keys are the queue and the value is the counter value
   1: map<i16, i64> queueOutDiscardBytes_ = {};
   2: map<i16, i64> queueOutBytes_ = {};
   3: map<i16, i64> queueWatermarkBytes_ = {};
