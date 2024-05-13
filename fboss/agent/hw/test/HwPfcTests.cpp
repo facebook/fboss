@@ -243,33 +243,6 @@ class HwPfcTest : public HwTest {
     verifyAcrossWarmBoots(setup, verify);
   }
 
-  // Program PFC watchdog and make sure the detection
-  // timer granularity is as expected
-  void runPfcWatchdogGranularityTest(
-      const cfg::PfcWatchdog& pfcWatchdogConfig,
-      const int expectedBcmGranularity) {
-    auto setup = [=, this]() {
-      auto cfg = initialConfig();
-      setupPfcAndPfcWatchdog(
-          cfg, masterLogicalInterfacePortIds()[0], pfcWatchdogConfig);
-    };
-
-    auto verify = [=, this]() {
-      auto portId = masterLogicalInterfacePortIds()[0];
-      utility::pfcWatchdogProgrammingMatchesConfig(
-          getHwSwitch(), portId, true, pfcWatchdogConfig);
-      // Explicitly validate granularity!
-      EXPECT_EQ(
-          utility::getProgrammedPfcWatchdogControlParam(
-              getHwSwitch(),
-              portId,
-              utility::getCosqPFCDeadlockTimerGranularity()),
-          expectedBcmGranularity);
-    };
-
-    verifyAcrossWarmBoots(setup, verify);
-  }
-
   // Removes PFC configuration for port, but dont apply
   void removePfcConfigSkipApply(
       cfg::SwitchConfig& currentConfig,
@@ -292,6 +265,46 @@ class HwPfcTest : public HwTest {
     setupPfcAndPfcWatchdog(switchConfig, portId, pfcWatchdogConfig);
     utility::pfcWatchdogProgrammingMatchesConfig(
         getHwSwitch(), portId, true, pfcWatchdogConfig);
+  }
+
+  std::vector<PfcWdTestConfigs> getPfcWdGranularityTestParam() {
+    std::vector<PfcWdTestConfigs> wdParams;
+    if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK3 ||
+        getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK4) {
+      wdParams.push_back(
+          {15,
+           20,
+           cfg::PfcWatchdogRecoveryAction::DROP,
+           "Verify PFC watchdog deadlock detection timer range 0-15msec"});
+      wdParams.push_back(
+          {16,
+           20,
+           cfg::PfcWatchdogRecoveryAction::DROP,
+           "Verify PFC watchdog deadlock detection timer range 16-159msec"});
+      wdParams.push_back(
+          {159,
+           100,
+           cfg::PfcWatchdogRecoveryAction::DROP,
+           "Verify PFC watchdog deadlock detection timer 10msec range boundary value 159msec"});
+      wdParams.push_back(
+          {160,
+           600,
+           cfg::PfcWatchdogRecoveryAction::DROP,
+           "Verify PFC watchdog deadlock detection timer 100msec range boundary value 160msec"});
+      wdParams.push_back(
+          {1599,
+           1000,
+           cfg::PfcWatchdogRecoveryAction::DROP,
+           "Verify PFC watchdog deadlock detection timer 100msec range boundary value 1599msec"});
+      wdParams.push_back(
+          {1600,
+           2000,
+           cfg::PfcWatchdogRecoveryAction::DROP,
+           "Verify PFC watchdog deadlock detection timer outside range with 1600msec"});
+    } else {
+      // TODO: Param combinations for a granularity of 1msec
+    }
+    return wdParams;
   }
 };
 
@@ -370,14 +383,10 @@ TEST_F(HwPfcTest, PfcWatchdogProgrammingSequence) {
     EXPECT_TRUE(pfcRx);
     EXPECT_TRUE(pfcTx);
 
-    // Config after unconfig works
-    setupPfcWdAndValidateProgramming(
-        {2,
-         11,
-         cfg::PfcWatchdogRecoveryAction::NO_DROP,
-         "Verify programming PFC watchdog after unconfiguring works"},
-        portId,
-        currentConfig);
+    // Granularity tests which is ASIC specific
+    for (const auto& wdTestCfg : getPfcWdGranularityTestParam()) {
+      setupPfcWdAndValidateProgramming(wdTestCfg, portId, currentConfig);
+    }
 
     // Unconfigure
     XLOG(DBG0)
@@ -393,73 +402,6 @@ TEST_F(HwPfcTest, PfcWatchdogProgrammingSequence) {
   // The test fails warmboot as there are reconfigurations done in verify
   setup();
   verify();
-}
-
-// Validate PFC watchdog deadlock detection timer in the 0-16msec range
-TEST_F(HwPfcTest, PfcWatchdogGranularity1) {
-  cfg::PfcWatchdog pfcWatchdogConfig{};
-  XLOG(DBG0) << "Verify PFC watchdog deadlock detection timer range 0-15msec";
-  initalizePfcConfigWatchdogValues(
-      pfcWatchdogConfig, 15, 20, cfg::PfcWatchdogRecoveryAction::DROP);
-  runPfcWatchdogGranularityTest(
-      pfcWatchdogConfig, utility::getPfcDeadlockDetectionTimerGranularity(15));
-}
-
-// Validate PFC watchdog deadlock detection timer in the 16-160msec range
-TEST_F(HwPfcTest, PfcWatchdogGranularity2) {
-  cfg::PfcWatchdog pfcWatchdogConfig{};
-  XLOG(DBG0) << "Verify PFC watchdog deadlock detection timer range 16-159msec";
-  initalizePfcConfigWatchdogValues(
-      pfcWatchdogConfig, 16, 20, cfg::PfcWatchdogRecoveryAction::DROP);
-  runPfcWatchdogGranularityTest(
-      pfcWatchdogConfig, utility::getPfcDeadlockDetectionTimerGranularity(16));
-}
-
-// Validate PFC watchdog deadlock detection timer in the 16-160msec range
-TEST_F(HwPfcTest, PfcWatchdogGranularity3) {
-  cfg::PfcWatchdog pfcWatchdogConfig{};
-  XLOG(DBG0) << "Verify PFC watchdog deadlock detection "
-             << "timer 10msec range boundary value 159msec";
-  initalizePfcConfigWatchdogValues(
-      pfcWatchdogConfig, 159, 100, cfg::PfcWatchdogRecoveryAction::DROP);
-  runPfcWatchdogGranularityTest(
-      pfcWatchdogConfig, utility::getPfcDeadlockDetectionTimerGranularity(159));
-}
-
-// Validate PFC watchdog deadlock detection timer in the 160-1599msec range
-TEST_F(HwPfcTest, PfcWatchdogGranularity4) {
-  cfg::PfcWatchdog pfcWatchdogConfig{};
-  XLOG(DBG0) << "Verify PFC watchdog deadlock detection "
-             << "timer 100msec range boundary value 160msec";
-  initalizePfcConfigWatchdogValues(
-      pfcWatchdogConfig, 160, 600, cfg::PfcWatchdogRecoveryAction::DROP);
-  runPfcWatchdogGranularityTest(
-      pfcWatchdogConfig, utility::getPfcDeadlockDetectionTimerGranularity(160));
-}
-
-// Validate PFC watchdog deadlock detection timer in the 160-1599msec range
-TEST_F(HwPfcTest, PfcWatchdogGranularity5) {
-  cfg::PfcWatchdog pfcWatchdogConfig{};
-  XLOG(DBG0) << "Verify PFC watchdog deadlock detection "
-             << "timer 100msec range boundary value 1599msec";
-  initalizePfcConfigWatchdogValues(
-      pfcWatchdogConfig, 1599, 1000, cfg::PfcWatchdogRecoveryAction::DROP);
-  runPfcWatchdogGranularityTest(
-      pfcWatchdogConfig,
-      utility::getPfcDeadlockDetectionTimerGranularity(1599));
-}
-
-// Validate PFC watchdog deadlock detection timer outside the 0-1599msec
-// range
-TEST_F(HwPfcTest, PfcWatchdogGranularity6) {
-  cfg::PfcWatchdog pfcWatchdogConfig{};
-  XLOG(DBG0) << "Verify PFC watchdog deadlock detection "
-             << "timer outside range with 1600msec";
-  initalizePfcConfigWatchdogValues(
-      pfcWatchdogConfig, 1600, 2000, cfg::PfcWatchdogRecoveryAction::DROP);
-  runPfcWatchdogGranularityTest(
-      pfcWatchdogConfig,
-      utility::getPfcDeadlockDetectionTimerGranularity(1600));
 }
 
 // PFC watchdog deadlock recovery action tests
