@@ -16,6 +16,13 @@
 
 namespace facebook::fboss {
 
+struct PfcWdTestConfigs {
+  uint32_t detectionTimeMsecs;
+  uint32_t recoveryTimeMsecs;
+  cfg::PfcWatchdogRecoveryAction recoveryAction;
+  std::string description;
+};
+
 class HwPfcTest : public HwTest {
  protected:
   cfg::SwitchConfig initialConfig() const {
@@ -270,6 +277,22 @@ class HwPfcTest : public HwTest {
     auto portCfg = utility::findCfgPort(currentConfig, portId);
     portCfg->pfc().reset();
   }
+
+  void setupPfcWdAndValidateProgramming(
+      const PfcWdTestConfigs& wdTestCfg,
+      const PortID& portId,
+      cfg::SwitchConfig& switchConfig) {
+    cfg::PfcWatchdog pfcWatchdogConfig{};
+    XLOG(DBG0) << wdTestCfg.description;
+    initalizePfcConfigWatchdogValues(
+        pfcWatchdogConfig,
+        wdTestCfg.detectionTimeMsecs,
+        wdTestCfg.recoveryTimeMsecs,
+        wdTestCfg.recoveryAction);
+    setupPfcAndPfcWatchdog(switchConfig, portId, pfcWatchdogConfig);
+    utility::pfcWatchdogProgrammingMatchesConfig(
+        getHwSwitch(), portId, true, pfcWatchdogConfig);
+  }
 };
 
 TEST_F(HwPfcTest, PfcDefaultProgramming) {
@@ -309,32 +332,32 @@ TEST_F(HwPfcTest, PfcWatchdogProgrammingSequence) {
 
     bool pfcRx = false;
     bool pfcTx = false;
-    cfg::PfcWatchdog pfcWatchdogConfig{};
     auto portId = masterLogicalInterfacePortIds()[0];
     cfg::PfcWatchdog defaultPfcWatchdogConfig{};
     auto currentConfig = initialConfig();
 
+    // All PFC WD configuration combinations to test
+    std::vector<PfcWdTestConfigs> configTest;
+    configTest.push_back(
+        {1,
+         400,
+         cfg::PfcWatchdogRecoveryAction::DROP,
+         "Verify PFC watchdog is enabled with specified configs"});
+    configTest.push_back(
+        {150,
+         400,
+         cfg::PfcWatchdogRecoveryAction::DROP,
+         "Change just the detection timer and ensure programming"});
+    configTest.push_back(
+        {150,
+         200,
+         cfg::PfcWatchdogRecoveryAction::DROP,
+         "Change just the recovery timer and ensure programming"});
+
     // Enable PFC and PFC wachdog
-    XLOG(DBG0) << "Verify PFC watchdog is enabled with specified configs";
-    initalizePfcConfigWatchdogValues(
-        pfcWatchdogConfig, 1, 400, cfg::PfcWatchdogRecoveryAction::DROP);
-    setupPfcAndPfcWatchdog(currentConfig, portId, pfcWatchdogConfig);
-    utility::pfcWatchdogProgrammingMatchesConfig(
-        getHwSwitch(), portId, true, pfcWatchdogConfig);
-
-    XLOG(DBG0) << "Change just the detection timer and ensure programming";
-    initalizePfcConfigWatchdogValues(
-        pfcWatchdogConfig, 150, 400, cfg::PfcWatchdogRecoveryAction::DROP);
-    setupPfcWatchdog(currentConfig, portId, pfcWatchdogConfig);
-    utility::pfcWatchdogProgrammingMatchesConfig(
-        getHwSwitch(), portId, true, pfcWatchdogConfig);
-
-    XLOG(DBG0) << "Change just the recovery timer and ensure programming";
-    initalizePfcConfigWatchdogValues(
-        pfcWatchdogConfig, 150, 200, cfg::PfcWatchdogRecoveryAction::DROP);
-    setupPfcWatchdog(currentConfig, portId, pfcWatchdogConfig);
-    utility::pfcWatchdogProgrammingMatchesConfig(
-        getHwSwitch(), portId, true, pfcWatchdogConfig);
+    for (const auto& wdTestCfg : configTest) {
+      setupPfcWdAndValidateProgramming(wdTestCfg, portId, currentConfig);
+    }
 
     XLOG(DBG0) << "Verify removing PFC watchdog removes the programming";
     removePfcWatchdogConfig(currentConfig, portId);
@@ -347,13 +370,16 @@ TEST_F(HwPfcTest, PfcWatchdogProgrammingSequence) {
     EXPECT_TRUE(pfcRx);
     EXPECT_TRUE(pfcTx);
 
-    XLOG(DBG0) << "Verify programming PFC watchdog after unconfiguring works";
-    initalizePfcConfigWatchdogValues(
-        pfcWatchdogConfig, 2, 11, cfg::PfcWatchdogRecoveryAction::NO_DROP);
-    setupPfcWatchdog(currentConfig, portId, pfcWatchdogConfig);
-    utility::pfcWatchdogProgrammingMatchesConfig(
-        getHwSwitch(), portId, true, pfcWatchdogConfig);
+    // Config after unconfig works
+    setupPfcWdAndValidateProgramming(
+        {2,
+         11,
+         cfg::PfcWatchdogRecoveryAction::NO_DROP,
+         "Verify programming PFC watchdog after unconfiguring works"},
+        portId,
+        currentConfig);
 
+    // Unconfigure
     XLOG(DBG0)
         << "Verify removing PFC will remove PFC watchdog programming as well";
     removePfcConfig(currentConfig, portId);
@@ -539,7 +565,8 @@ TEST_F(HwPfcTest, PfcWatchdogDeadlockRecoveryActionMismatch) {
 
     /*
      * Remove PFC watchdog from the first port and enable PFC watchdog with
-     * new recovery action on the second port and make sure programming is fine
+     * new recovery action on the second port and make sure programming is
+     * fine
      */
     XLOG(DBG0)
         << "Disable PFC on one and enable with new action on the other port";
@@ -557,5 +584,4 @@ TEST_F(HwPfcTest, PfcWatchdogDeadlockRecoveryActionMismatch) {
   setup();
   verify();
 }
-
 } // namespace facebook::fboss
