@@ -54,4 +54,8 @@ void checkSwHwPgCfgMatch(
     const std::shared_ptr<Port>& swPort,
     bool pfcEnable);
 
+// Compare PFC WD configs
+void checkPfcWdSwHwCfgMatch(
+    const cfg::PfcWatchdog& swCfg,
+    const cfg::PfcWatchdog& hwCfg);
 } // namespace facebook::fboss::utility

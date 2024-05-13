@@ -130,7 +130,7 @@ void pfcWatchdogProgrammingMatchesConfig(
   auto pfcWdProgrammed = getProgrammedPfcDeadlockParams(hw, portId);
   EXPECT_EQ(watchdogEnabled, pfcWdProgrammed.has_value());
   if (pfcWdProgrammed.has_value()) {
-    EXPECT_EQ(watchdog, *pfcWdProgrammed);
+    utility::checkPfcWdSwHwCfgMatch(watchdog, *pfcWdProgrammed);
   }
 }
 
