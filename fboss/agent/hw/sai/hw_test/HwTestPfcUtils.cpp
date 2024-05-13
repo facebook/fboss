@@ -63,40 +63,61 @@ std::optional<cfg::PfcWatchdog> getProgrammedPfcDeadlockParams(
                         ->managerTable()
                         ->portManager()
                         .getPortHandle(portId);
+  std::optional<cfg::PfcWatchdog> pfcWdProgramming{};
   CHECK(portHandle);
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+  cfg::PfcWatchdog pfcWd;
+  bool pfcWdEnabled{false};
+  // PFC deadlock enable/disable is a per queue config. PFC
+  // deadlock should be enabled for atleast one queue.
+  for (auto pri = 0; pri < 8 && !pfcWdEnabled; pri++) {
+    auto queueHandle = static_cast<const SaiSwitch*>(hw)
+                           ->managerTable()
+                           ->portManager()
+                           .getQueueHandle(portId, pri);
+    pfcWdEnabled = SaiApiTable::getInstance()->queueApi().getAttribute(
+        queueHandle->queue->adapterKey(),
+        SaiQueueTraits::Attributes::EnablePfcDldr{});
+  }
+
+  // Return if PFC deadlock detection/recovery is not enabled
+  // on any queue!
+  if (!pfcWdEnabled) {
+    return pfcWdProgramming;
+  }
+
+  auto pfcDlrPacketAction =
+      SaiApiTable::getInstance()->switchApi().getAttribute(
+          static_cast<const SaiSwitch*>(hw)->getSaiSwitchId(),
+          SaiSwitchTraits::Attributes::PfcDlrPacketAction{});
+  pfcWd.recoveryAction() = pfcWatchdogRecoveryAction(pfcDlrPacketAction);
+
   std::vector<sai_map_t> pfcDldTimer =
       SaiApiTable::getInstance()->portApi().getAttribute(
           portHandle->port->adapterKey(),
           SaiPortTraits::Attributes::PfcTcDldInterval{});
+  if (pfcDldTimer.size()) {
+    pfcWd.detectionTimeMsecs() = pfcDldTimer.at(0).value;
+    // Timers for all enabled priorities should be the same!
+    for (const auto& dldTimer : pfcDldTimer) {
+      EXPECT_EQ(dldTimer.value, *pfcWd.detectionTimeMsecs());
+    }
+  }
+
   std::vector<sai_map_t> pfcDlrTimer =
       SaiApiTable::getInstance()->portApi().getAttribute(
           portHandle->port->adapterKey(),
           SaiPortTraits::Attributes::PfcTcDlrInterval{});
-  // PfcWD is programmed in HW, we'll see non zero
-  // PFC DLD/DLR timers.
-  if (pfcDldTimer.size() && pfcDlrTimer.size()) {
-    cfg::PfcWatchdog pfcWd;
-    pfcWd.detectionTimeMsecs() = pfcDlrTimer.at(0).value;
-    // Timers for all priorities should be the same!
-    for (const auto& dldTimer : pfcDldTimer) {
-      EXPECT_EQ(dldTimer.value, *pfcWd.detectionTimeMsecs());
-    }
+  if (pfcDlrTimer.size()) {
     pfcWd.recoveryTimeMsecs() = pfcDlrTimer.at(0).value;
-    // Timers for all priorities should be the same!
+    // Timers for all enabled priorities should be the same!
     for (const auto& dlrTimer : pfcDlrTimer) {
       EXPECT_EQ(dlrTimer.value, *pfcWd.recoveryTimeMsecs());
     }
-
-    auto pfcDlrPacketAction =
-        SaiApiTable::getInstance()->switchApi().getAttribute(
-            static_cast<const SaiSwitch*>(hw)->getSaiSwitchId(),
-            SaiSwitchTraits::Attributes::PfcDlrPacketAction{});
-    pfcWd.recoveryAction() = pfcWatchdogRecoveryAction(pfcDlrPacketAction);
-    return pfcWd;
   }
+  pfcWdProgramming = pfcWd;
 #endif
-  return std::nullopt;
+  return pfcWdProgramming;
 }
 
 // Verifies if the PFC watchdog config provided matches the one
