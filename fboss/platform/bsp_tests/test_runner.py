@@ -7,7 +7,7 @@ import pkg_resources
 import pytest
 from dataclasses_json import dataclass_json
 
-from fboss.platform.bsp_tests.cdev_types import FpgaSpec
+from fboss.platform.bsp_tests.utils.cdev_types import FpgaSpec
 from fboss.platform.bsp_tests.utils.cmd_utils import check_cmd
 
 

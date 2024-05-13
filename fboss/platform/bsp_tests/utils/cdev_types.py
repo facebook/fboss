@@ -75,8 +75,8 @@ class fbiob_aux_data(ctypes.Structure):
 @dataclass_json
 @dataclass
 class I2cInfo:
-    busFreqHz: int
-    numChannels: int
+    busFreqHz: Optional[int] = None
+    numChannels: Optional[int] = None
 
 
 @dataclass_json
@@ -137,13 +137,46 @@ class AuxDevice:
 
 @dataclass_json
 @dataclass
+class I2CDevice:
+    channel: int
+    deviceName: str
+    address: str
+
+
+@dataclass_json
+@dataclass
+class I2CAdapter:
+    auxDevice: AuxDevice
+    i2cDevices: List[I2CDevice] = field(default_factory=list)
+
+
+@dataclass_json
+@dataclass
 class FpgaSpec:
     name: str
     vendorId: str
     deviceId: str
     subSystemVendorId: str
     subSystemDeviceId: str
-    testAuxDevices: List[AuxDevice] = field(default_factory=list)
+    i2cAdapters: List[I2CAdapter] = field(default_factory=list)
+    auxDevices: List[AuxDevice] = field(default_factory=list)
+
+
+def print_fields(obj, indent=0):
+    for field_name, field_type in obj._fields_:
+        value = getattr(obj, field_name)
+        if issubclass(field_type, (ctypes.Structure, ctypes.Union)):
+            print("  " * indent + field_name + ":")
+            print_fields(value, indent + 1)
+        elif issubclass(field_type, ctypes.Array) and issubclass(
+            field_type._type_, ctypes.Structure
+        ):
+            print("  " * indent + field_name + ":")
+            for i, item in enumerate(value):
+                print("  " * (indent + 1) + "[{}]: ".format(i))
+                print_fields(item, indent + 2)
+        else:
+            print("  " * indent + field_name + ": " + str(value))
 
 
 def getEmptyAuxData() -> fbiob_aux_data:
@@ -154,14 +187,12 @@ def getEmptyAuxData() -> fbiob_aux_data:
 def getInvalidAuxData() -> fbiob_aux_data:
     aux_data = fbiob_aux_data()
     aux_data.csr_offset = ctypes.c_uint32(-1).value
-    print("Aux Data csroffset: {}".format(aux_data.csr_offset))
     return aux_data
 
 
 def getAuxData(fpga: FpgaSpec, device: AuxDevice, id: int) -> fbiob_aux_data:
     aux_data = fbiob_aux_data()
     aux_data.id.name = device.deviceName.encode()
-    # aux_data.id.name.value = device.deviceName.encode()
     aux_data.id.id = id
     if device.csrOffset:
         aux_data.csr_offset = int(device.csrOffset, 16)
@@ -172,8 +203,10 @@ def getAuxData(fpga: FpgaSpec, device: AuxDevice, id: int) -> fbiob_aux_data:
         aux_data.u.fan_data.num_fans = device.fanInfo.numFans
     elif device.type == AuxDeviceType.I2C:
         assert device.i2cInfo
-        aux_data.u.i2c_data.bus_freq_hz = device.i2cInfo.busFreqHz
-        aux_data.u.i2c_data.num_ch = device.i2cInfo.numChannels
+        if device.i2cInfo.busFreqHz:
+            aux_data.u.i2c_data.bus_freq_hz = device.i2cInfo.busFreqHz
+        if device.i2cInfo.numChannels:
+            aux_data.u.i2c_data.num_channels = device.i2cInfo.numChannels
     elif device.type == AuxDeviceType.SPI:
         assert device.spiInfo
         spiInfo = device.spiInfo
