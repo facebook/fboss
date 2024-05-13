@@ -49,5 +49,4 @@ if [ ${#POSITIONAL_ARGS[@]} -lt 1 ]; then
 fi
 hostname=${POSITIONAL_ARGS[0]}
 
-ssh "root@$hostname" "mkdir -p /tmp/bsp_tests/"
-scp $HOME/fbsource/fbcode/fboss/platform/bsp_tests/tests/* "root@$hostname:/tmp/bsp_tests/"
+rsync -vz "$HOME/fbsource/fbcode/fboss/platform/bsp_tests/tests/*" "root@$hostname:/tmp/bsp_tests/"
