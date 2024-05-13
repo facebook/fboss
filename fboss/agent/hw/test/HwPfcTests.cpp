@@ -335,7 +335,9 @@ TEST_F(HwPfcTest, PfcWatchdogProgramming) {
   runPfcWatchdogTest(pfcWatchdogConfig);
 }
 
-// Try a sequence of configuring, modifying and removing PFC watchdog
+// Try a sequence of configuring, modifying and removing PFC watchdog.
+// This test will be retained as a HwTest given there is a lot of programming
+// followed by reading back from HW.
 TEST_F(HwPfcTest, PfcWatchdogProgrammingSequence) {
   auto setup = [&]() { setupBaseConfig(); };
 
@@ -388,7 +390,40 @@ TEST_F(HwPfcTest, PfcWatchdogProgrammingSequence) {
       setupPfcWdAndValidateProgramming(wdTestCfg, portId, currentConfig);
     }
 
-    // Unconfigure
+    // PFC watchdog deadlock config on multiple ports
+    auto portId2 = masterLogicalInterfacePortIds()[1];
+    setupPfcWdAndValidateProgramming(
+        {140,
+         500,
+         cfg::PfcWatchdogRecoveryAction::DROP,
+         "Enable PFC watchdog on more ports and validate programming"},
+        portId2,
+        currentConfig);
+
+    XLOG(DBG0) << "Remove PFC watchdog programming on one port and make"
+               << " sure watchdog recovery action is not impacted";
+    removePfcWatchdogConfig(currentConfig, portId);
+    EXPECT_EQ(
+        utility::getPfcWatchdogRecoveryAction(getHwSwitch(), portId),
+        cfg::PfcWatchdogRecoveryAction::DROP);
+
+    // Validate PFC WD recovery action being reset to default
+    XLOG(DBG0) << "Remove PFC watchdog programming on the remaining port, "
+               << "make sure the watchdog recovery action goes to default";
+    removePfcWatchdogConfig(currentConfig, portId2);
+    EXPECT_EQ(
+        utility::getPfcWatchdogRecoveryAction(getHwSwitch(), portId2),
+        cfg::PfcWatchdogRecoveryAction::NO_DROP);
+
+    setupPfcWdAndValidateProgramming(
+        {20,
+         100,
+         cfg::PfcWatchdogRecoveryAction::DROP,
+         "Enable PFC watchdog config again on the port"},
+        portId,
+        currentConfig);
+
+    // Unconfigure PFC
     XLOG(DBG0)
         << "Verify removing PFC will remove PFC watchdog programming as well";
     removePfcConfig(currentConfig, portId);
@@ -399,69 +434,6 @@ TEST_F(HwPfcTest, PfcWatchdogProgrammingSequence) {
         getHwSwitch(), portId, false, defaultPfcWatchdogConfig);
   };
 
-  // The test fails warmboot as there are reconfigurations done in verify
-  setup();
-  verify();
-}
-
-// PFC watchdog deadlock recovery action tests
-TEST_F(HwPfcTest, PfcWatchdogDeadlockRecoveryAction) {
-  auto setup = [&]() { setupBaseConfig(); };
-
-  auto verify = [&]() {
-    auto portId1 = masterLogicalInterfacePortIds()[0];
-    auto portId2 = masterLogicalInterfacePortIds()[1];
-    cfg::PfcWatchdog pfcWatchdogConfig{};
-    auto currentConfig = initialConfig();
-
-    XLOG(DBG0)
-        << "Verify PFC watchdog recovery action is configured as expected";
-    initalizePfcConfigWatchdogValues(
-        pfcWatchdogConfig, 15, 20, cfg::PfcWatchdogRecoveryAction::DROP);
-    setupPfcAndPfcWatchdog(currentConfig, portId1, pfcWatchdogConfig);
-    utility::pfcWatchdogProgrammingMatchesConfig(
-        getHwSwitch(), portId1, true, pfcWatchdogConfig);
-    EXPECT_EQ(
-        utility::getPfcWatchdogRecoveryAction(getHwSwitch(), portId1),
-        *pfcWatchdogConfig.recoveryAction());
-
-    XLOG(DBG0) << "Enable PFC watchdog on more ports and validate programming";
-    initalizePfcConfigWatchdogValues(
-        pfcWatchdogConfig, 140, 500, cfg::PfcWatchdogRecoveryAction::DROP);
-    setupPfcAndPfcWatchdog(currentConfig, portId2, pfcWatchdogConfig);
-    EXPECT_EQ(
-        utility::getPfcWatchdogRecoveryAction(getHwSwitch(), portId2),
-        *pfcWatchdogConfig.recoveryAction());
-
-    XLOG(DBG0) << "Remove PFC watchdog programming on one port and make"
-               << " sure watchdog recovery action is not impacted";
-    removePfcWatchdogConfig(currentConfig, portId1);
-    EXPECT_EQ(
-        utility::getPfcWatchdogRecoveryAction(getHwSwitch(), portId1),
-        cfg::PfcWatchdogRecoveryAction::DROP);
-
-    XLOG(DBG0) << "Remove PFC watchdog programming on the remaining port, "
-               << "make sure the watchdog recovery action goes to default";
-    removePfcWatchdogConfig(currentConfig, portId2);
-    EXPECT_EQ(
-        utility::getPfcWatchdogRecoveryAction(getHwSwitch(), portId2),
-        cfg::PfcWatchdogRecoveryAction::NO_DROP);
-
-    XLOG(DBG0) << "Enable PFC watchdog config again on the port";
-    initalizePfcConfigWatchdogValues(
-        pfcWatchdogConfig, 20, 100, cfg::PfcWatchdogRecoveryAction::DROP);
-    setupPfcAndPfcWatchdog(currentConfig, portId2, pfcWatchdogConfig);
-    EXPECT_EQ(
-        utility::getPfcWatchdogRecoveryAction(getHwSwitch(), portId2),
-        *pfcWatchdogConfig.recoveryAction());
-
-    XLOG(DBG0) << "Unconfigure PFC on port and make sure PFC "
-               << "watchdog recovery action is reverted to default";
-    removePfcConfig(currentConfig, portId2);
-    EXPECT_EQ(
-        utility::getPfcWatchdogRecoveryAction(getHwSwitch(), portId2),
-        cfg::PfcWatchdogRecoveryAction::NO_DROP);
-  };
   // The test fails warmboot as there are reconfigurations done in verify
   setup();
   verify();
