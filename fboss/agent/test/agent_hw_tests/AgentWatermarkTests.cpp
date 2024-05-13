@@ -15,6 +15,8 @@
 #include "fboss/agent/test/utils/QosTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
+#include <fb303/ServiceData.h>
+
 namespace facebook::fboss {
 
 class AgentWatermarkTest : public AgentHwTest {
@@ -180,6 +182,14 @@ class AgentWatermarkTest : public AgentHwTest {
           (!expectZero &&
            (deviceWatermarkBytes > getMinDeviceWatermarkValue(switchId)));
       EXPECT_EVENTUALLY_TRUE(watermarkAsExpected);
+      if (!FLAGS_multi_switch) {
+        auto allCtrs = facebook::fb303::fbData->getCounters();
+        auto ctr = allCtrs.find("buffer_watermark_device.p100.60");
+        // We cant look for the exact value of the watermark counter,
+        // but make sure the device watermark counter is available.
+        EXPECT_EVENTUALLY_TRUE(ctr != allCtrs.end());
+        XLOG(DBG0) << ctr->first << " : " << ctr->second;
+      }
     });
     if (!watermarkAsExpected) {
       XLOG(DBG2) << "Did not get expected device watermark value";
