@@ -1,5 +1,7 @@
 from typing import List
 
+import pytest
+
 from fboss.platform.bsp_tests.test_runner import TestBase
 from fboss.platform.bsp_tests.utils.cmd_utils import check_cmd
 
@@ -18,6 +20,7 @@ class TestKmods(TestBase):
     def test_unload_kmods(self) -> None:
         self.unload_kmods()
 
+    @pytest.mark.stress
     def test_kmod_load_unload_stress(self) -> None:
         for _ in range(100):
             self.load_kmods()

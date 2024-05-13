@@ -28,6 +28,8 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--platform", type=str)
     parser.add_argument("--config-file", type=str)
+    parser.add_argument("pytest_args", nargs=argparse.REMAINDER)
+
     return parser.parse_args()
 
 
@@ -75,7 +77,7 @@ def main():
     args = parse_args()
     set_config(args)
 
-    pytest.main(["/tmp/bsp_tests/"])
+    pytest.main(args.pytest_args[1:] + ["/tmp/bsp_tests/"])
 
 
 if __name__ == "__main__":
