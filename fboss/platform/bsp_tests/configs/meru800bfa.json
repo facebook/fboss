@@ -134,6 +134,16 @@
             "subSystemVendorId": "0x3475",
             "subSystemDeviceId": "0x0005",
             "i2cAdapters": [],
+            "xcvrCtrls": [
+                {
+                    "type": "XCVR",
+                    "deviceName": "xcvr_ctrl",
+                    "csrOffset": "0xa010",
+                    "xcvrInfo": {
+                        "portNumber": 5
+                    }
+                }
+            ],
             "auxDevices": []
         },
         {

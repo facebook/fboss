@@ -182,6 +182,7 @@ class FpgaSpec:
     subSystemVendorId: str
     subSystemDeviceId: str
     i2cAdapters: List[I2CAdapter] = field(default_factory=list)
+    xcvrCtrls: List[AuxDevice] = field(default_factory=list)
     auxDevices: List[AuxDevice] = field(default_factory=list)
 
 
