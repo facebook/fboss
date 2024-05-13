@@ -3195,9 +3195,6 @@
     ],
     "brcm/11.0_ea_dnx_odp/11.0_ea_dnx_odp/jericho3": [
         {
-          "test_name_regex": "warm_boot.*"
-        },
-        {
           "test_name_regex": "SaiRouteRollbackTest.*"
         },
         {
