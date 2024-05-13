@@ -150,6 +150,27 @@ int findExpectedHwTimerClosestToConfigured(const int configuredTimeMsec) {
   }
 }
 
+cfg::PfcWatchdog getExpectedPfcWatchdogProgrammingInHwFromConfig(
+    const HwSwitch* hw,
+    const cfg::PfcWatchdog& configuredWd) {
+  // This could be different for different platforms
+  auto asicType = static_cast<const SaiSwitch*>(hw)
+                      ->getPlatform()
+                      ->getAsic()
+                      ->getAsicType();
+  cfg::PfcWatchdog expectedWd{configuredWd};
+  // Modify the fields that we expect to be different from config
+  if (asicType == cfg::AsicType::ASIC_TYPE_JERICHO2 ||
+      asicType == cfg::AsicType::ASIC_TYPE_JERICHO3) {
+    expectedWd.detectionTimeMsecs() = findExpectedHwTimerClosestToConfigured(
+        *configuredWd.detectionTimeMsecs());
+  } else {
+    expectedWd.detectionTimeMsecs() = *configuredWd.detectionTimeMsecs();
+  }
+
+  return expectedWd;
+}
+
 // Verifies if the PFC watchdog config provided matches the one
 // programmed in HW
 void pfcWatchdogProgrammingMatchesConfig(
@@ -160,7 +181,9 @@ void pfcWatchdogProgrammingMatchesConfig(
   auto pfcWdProgrammed = getProgrammedPfcDeadlockParams(hw, portId);
   EXPECT_EQ(watchdogEnabled, pfcWdProgrammed.has_value());
   if (pfcWdProgrammed.has_value()) {
-    utility::checkPfcWdSwHwCfgMatch(watchdog, *pfcWdProgrammed);
+    auto expectedPfcWdProgramming =
+        getExpectedPfcWatchdogProgrammingInHwFromConfig(hw, watchdog);
+    utility::checkPfcWdSwHwCfgMatch(expectedPfcWdProgramming, *pfcWdProgrammed);
   }
 }
 
