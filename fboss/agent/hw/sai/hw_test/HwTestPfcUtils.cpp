@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/hw/test/HwTestPfcUtils.h"
 #include <gtest/gtest.h>
+#include <cmath>
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 
@@ -118,6 +119,35 @@ std::optional<cfg::PfcWatchdog> getProgrammedPfcDeadlockParams(
   pfcWdProgramming = pfcWd;
 #endif
   return pfcWdProgramming;
+}
+
+// DNX SDK logic returns the closest possible HW value to the configured one
+int findExpectedHwTimerClosestToConfigured(const int configuredTimeMsec) {
+  const long kCoreFrequencyHz = 1350000000;
+  long nOfClockCycles =
+      configuredTimeMsec * 1000000 * kCoreFrequencyHz / 1000000000;
+  // Follow DNX logic of finding values for roudUp and roundDown cases
+  // and taking the one closest to configured value.
+  auto getHwTimerMsec = [&](int log2Val) {
+    const int kGranularityRoundingFactor = 1;
+    return kGranularityRoundingFactor *
+        (static_cast<int>(
+            std::pow(2.0, log2Val) * 1000000000 / (kCoreFrequencyHz * 1000000) /
+            kGranularityRoundingFactor));
+  };
+
+  int hwTimerMsecUp = getHwTimerMsec(std::ceil(std::log2(nOfClockCycles)));
+  int hwTimerMsecDown = getHwTimerMsec(std::floor(std::log2(nOfClockCycles)));
+  XLOG(DBG0) << "Configured: " << configuredTimeMsec
+             << ", hwTimer roundUp: " << hwTimerMsecUp
+             << ", hwTimer roundDown: " << hwTimerMsecDown;
+  // Return the hwTimer value computed closest to the cnfigured one!
+  if (std::abs(hwTimerMsecDown - configuredTimeMsec) <=
+      std::abs(hwTimerMsecUp - configuredTimeMsec)) {
+    return hwTimerMsecDown;
+  } else {
+    return hwTimerMsecUp;
+  }
 }
 
 // Verifies if the PFC watchdog config provided matches the one
