@@ -104,11 +104,15 @@ class TestI2c(TestBase):
                     )
                 delete_device(fpga, adapter.auxDevice)
 
-    def run_i2c_test_transactions(self, device: I2CDevice, busNum: int) -> None:
+    def run_i2c_test_transactions(
+        self, device: I2CDevice, busNum: int, repeat: int = 1
+    ) -> None:
         if not device.testData:
             return
-        self.run_i2c_dump_test(device, busNum)
-        self.run_i2c_get_test(device, busNum)
+        for _ in range(repeat):
+            self.run_i2c_dump_test(device, busNum)
+        for _ in range(repeat):
+            self.run_i2c_get_test(device, busNum)
 
     def run_i2c_test_transactions_concurrent(
         self, device: I2CDevice, busNum: int
@@ -184,3 +188,32 @@ class TestI2c(TestBase):
                     pytest.fail()
                 finally:
                     delete_device(fpga, adapter.auxDevice)
+
+    @pytest.mark.stress
+    def test_looped_transactions(self) -> None:
+        """
+        Create bus, create devices on that bus, ensure that the bus
+        driver can be unloaded successfully.
+        """
+        for fpga in self.fpgas:
+            for adapter in fpga.i2cAdapters:
+                # if any of the i2cDevices has testData
+                if not any(device.testData for device in adapter.i2cDevices):
+                    continue
+                newAdapters, adapterBaseBusNum = create_i2c_adapter(fpga, adapter)
+                dmesg_line_cnt_before = int(
+                    run_cmd("dmesg | wc -l", shell=True).stdout.decode().strip()
+                )
+                # Stress test, only run on one device per adapter
+                for device in adapter.i2cDevices[1:]:
+                    self.run_i2c_test_transactions(
+                        device, adapterBaseBusNum + device.channel, 1000
+                    )
+                dmesg_line_cnt_after = int(
+                    run_cmd("dmesg | wc -l", shell=True).stdout.decode().strip()
+                )
+                assert (
+                    dmesg_line_cnt_after - dmesg_line_cnt_before < 10
+                ), "Too many dmesg log lines. Kernel log spew during i2c transactions."
+
+                delete_device(fpga, adapter.auxDevice)
