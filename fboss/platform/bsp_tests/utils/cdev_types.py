@@ -153,8 +153,8 @@ class I2CGetData:
 @dataclass_json
 @dataclass
 class I2CTestData:
-    i2cDumpData: List[I2CDumpData]
-    i2cGetData: List[I2CGetData]
+    i2cDumpData: List[I2CDumpData] = field(default_factory=list)
+    i2cGetData: List[I2CGetData] = field(default_factory=list)
 
 
 @dataclass_json

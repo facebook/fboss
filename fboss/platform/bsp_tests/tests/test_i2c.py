@@ -1,5 +1,9 @@
+import concurrent.futures
 import os
-from typing import List
+from collections import defaultdict
+from typing import Dict, List
+
+import pytest
 
 from fboss.platform.bsp_tests.test_runner import FpgaSpec, TestBase
 
@@ -98,6 +102,7 @@ class TestI2c(TestBase):
                     self.run_i2c_test_transactions(
                         device, adapterBaseBusNum + device.channel
                     )
+                delete_device(fpga, adapter.auxDevice)
 
     def run_i2c_test_transactions(self, device: I2CDevice, busNum: int) -> None:
         if not device.testData:
@@ -105,7 +110,20 @@ class TestI2c(TestBase):
         self.run_i2c_dump_test(device, busNum)
         self.run_i2c_get_test(device, busNum)
 
+    def run_i2c_test_transactions_concurrent(
+        self, device: I2CDevice, busNum: int
+    ) -> None:
+        if not device.testData:
+            return
+        futures = []
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            futures.append(executor.submit(self.run_i2c_dump_test, device, busNum))
+            futures.append(executor.submit(self.run_i2c_get_test, device, busNum))
+        concurrent.futures.wait(futures)
+
     def run_i2c_dump_test(self, device: I2CDevice, busNum: int) -> None:
+        if not device.testData:
+            return
         for tc in device.testData.i2cDumpData:
             output = run_cmd(
                 [
@@ -123,6 +141,8 @@ class TestI2c(TestBase):
             ), f"i2cdump output {result} did not match expected: {tc.expected} at {tc.start}-{tc.end} on {device.address}"
 
     def run_i2c_get_test(self, device: I2CDevice, busNum: int) -> None:
+        if not device.testData:
+            return
         for tc in device.testData.i2cGetData:
             output = (
                 run_cmd(["i2cget", "-y", str(busNum), device.address, tc.reg])
@@ -132,3 +152,35 @@ class TestI2c(TestBase):
             assert (
                 output == tc.expected
             ), f"Output: {output} did not match expected: {tc.expected} at {tc.reg} on {device.address}"
+
+    def test_simultaneous_transactions(self) -> None:
+        # for each adapter, check if at least 2 internal channels have devices with testData
+        # if so, run transaction tests simultaneously on all channels
+        for fpga in self.fpgas:
+            for adapter in fpga.i2cAdapters:
+                devicesByChannel: Dict[int, List[I2CDevice]] = defaultdict(list)
+                for device in adapter.i2cDevices:
+                    if device.testData:
+                        devicesByChannel[device.channel].append(device)
+                if len(devicesByChannel) < 2:
+                    continue
+
+                busses, adapterBaseBusNum = create_i2c_adapter(fpga, adapter)
+                try:
+                    futures = []
+                    with concurrent.futures.ThreadPoolExecutor() as executor:
+                        for channel, devices in devicesByChannel.items():
+                            for device in devices:
+                                futures.append(
+                                    executor.submit(
+                                        self.run_i2c_test_transactions_concurrent,
+                                        device,
+                                        adapterBaseBusNum + channel,
+                                    )
+                                )
+                    concurrent.futures.wait(futures)
+                except Exception as e:
+                    print(f"Failed to run concurrent i2c transactions, error {e}")
+                    pytest.fail()
+                finally:
+                    delete_device(fpga, adapter.auxDevice)

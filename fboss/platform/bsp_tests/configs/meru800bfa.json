@@ -30,7 +30,15 @@
                         {
                             "channel": 0,
                             "deviceName": "pmbus",
-                            "address": "0x40"
+                            "address": "0x40",
+                            "testData": {
+                                "i2cGetData": [
+                                    {
+                                        "reg": "0x19",
+                                        "expected": "0xd0"
+                                    }
+                                ]
+                            }
                         },
                         {
                             "channel": 1,
@@ -39,14 +47,14 @@
                             "testData": {
                                 "i2cDumpData": [
                                     {
-                                        "start": "0x00",
+                                        "start": "0x04",
                                         "end": "0x13",
-                                        "expected": ["31", "ff","ff","ff","ff","ff","ff","ff","ff","ff","ff","ff","ff","ff","ff","ff", "ff", "ff", "ff", "ff"]
+                                        "expected": ["ff","ff","ff","ff","ff","ff","ff","ff","ff","ff","ff","ff", "ff", "ff", "ff", "ff"]
                                     }
                                 ],
                                 "i2cGetData": [
                                     {
-                                        "reg": "0x00",
+                                        "reg": "0x04",
                                         "expected": "0xff"
                                     },
                                     {
