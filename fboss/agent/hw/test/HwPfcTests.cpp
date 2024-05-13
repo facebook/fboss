@@ -332,11 +332,23 @@ TEST_F(HwPfcTest, PfcRxEnabledTxEnabled) {
 // This test will be retained as a HwTest given there is a lot of programming
 // followed by reading back from HW.
 TEST_F(HwPfcTest, PfcWatchdogProgrammingSequence) {
-  auto setup = [&]() { setupBaseConfig(); };
+  auto portId = masterLogicalInterfacePortIds()[0];
+  cfg::PfcWatchdog prodPfcWdConfig;
+  initalizePfcConfigWatchdogValues(
+      prodPfcWdConfig, 200, 1000, cfg::PfcWatchdogRecoveryAction::NO_DROP);
 
-  auto verify = [&]() {
+  auto setup = [&]() {
+    setupBaseConfig();
     // Make sure that we start with no PFC configured
     verifyPfcWatchdogNotConfigured();
+    auto initialCfg = initialConfig();
+    setupPfcAndPfcWatchdog(initialCfg, portId, prodPfcWdConfig);
+  };
+
+  auto verify = [&]() {
+    // Initially, we should have the prod config applied!
+    utility::pfcWatchdogProgrammingMatchesConfig(
+        getHwSwitch(), portId, true, prodPfcWdConfig);
 
     bool pfcRx = false;
     bool pfcTx = false;
@@ -425,11 +437,12 @@ TEST_F(HwPfcTest, PfcWatchdogProgrammingSequence) {
     EXPECT_FALSE(pfcTx);
     utility::pfcWatchdogProgrammingMatchesConfig(
         getHwSwitch(), portId, false, defaultPfcWatchdogConfig);
+    // At the end, make sure that we configure prod config, so that
+    // in WB case, we can ensure the config is as expected post WB!
+    setupPfcAndPfcWatchdog(currentConfig, portId, prodPfcWdConfig);
   };
 
-  // The test fails warmboot as there are reconfigurations done in verify
-  setup();
-  verify();
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 // Verify all ports should be configured with the same
