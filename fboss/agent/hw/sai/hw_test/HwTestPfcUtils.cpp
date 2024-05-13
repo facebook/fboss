@@ -122,14 +122,17 @@ std::optional<cfg::PfcWatchdog> getProgrammedPfcDeadlockParams(
 }
 
 // DNX SDK logic returns the closest possible HW value to the configured one
-int findExpectedHwTimerClosestToConfigured(const int configuredTimeMsec) {
+int findExpectedHwTimerClosestToConfiguredDnx(
+    cfg::AsicType asicType,
+    const int configuredTimeMsec) {
   const long kCoreFrequencyHz = 1350000000;
   long nOfClockCycles =
       configuredTimeMsec * 1000000 * kCoreFrequencyHz / 1000000000;
   // Follow DNX logic of finding values for roudUp and roundDown cases
   // and taking the one closest to configured value.
   auto getHwTimerMsec = [&](int log2Val) {
-    const int kGranularityRoundingFactor = 1;
+    const int kGranularityRoundingFactor =
+        (asicType == cfg::AsicType::ASIC_TYPE_JERICHO2) ? 10 : 1;
     return kGranularityRoundingFactor *
         (static_cast<int>(
             std::pow(2.0, log2Val) * 1000000000 / (kCoreFrequencyHz * 1000000) /
@@ -162,8 +165,8 @@ cfg::PfcWatchdog getExpectedPfcWatchdogProgrammingInHwFromConfig(
   // Modify the fields that we expect to be different from config
   if (asicType == cfg::AsicType::ASIC_TYPE_JERICHO2 ||
       asicType == cfg::AsicType::ASIC_TYPE_JERICHO3) {
-    expectedWd.detectionTimeMsecs() = findExpectedHwTimerClosestToConfigured(
-        *configuredWd.detectionTimeMsecs());
+    expectedWd.detectionTimeMsecs() = findExpectedHwTimerClosestToConfiguredDnx(
+        asicType, *configuredWd.detectionTimeMsecs());
   } else {
     expectedWd.detectionTimeMsecs() = *configuredWd.detectionTimeMsecs();
   }

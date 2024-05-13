@@ -303,6 +303,21 @@ class HwPfcTest : public HwTest {
            "Verify PFC watchdog deadlock detection timer outside range with 1600msec"});
     } else {
       // TODO: Param combinations for a granularity of 1msec
+      wdParams.push_back(
+          {10,
+           100,
+           cfg::PfcWatchdogRecoveryAction::DROP,
+           "Verify PFC watchdog deadlock detection timer 10/100 msecs"});
+      wdParams.push_back(
+          {100,
+           500,
+           cfg::PfcWatchdogRecoveryAction::DROP,
+           "Verify PFC watchdog deadlock detection timer 100/500 msecs"});
+      wdParams.push_back(
+          {800,
+           1000,
+           cfg::PfcWatchdogRecoveryAction::DROP,
+           "Verify PFC watchdog deadlock detection timer 800/1000 msecs"});
     }
     return wdParams;
   }
