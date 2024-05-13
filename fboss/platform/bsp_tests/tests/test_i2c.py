@@ -6,6 +6,7 @@ from fboss.platform.bsp_tests.test_runner import FpgaSpec, TestBase
 from fboss.platform.bsp_tests.utils.cdev_utils import delete_device, make_cdev_path
 from fboss.platform.bsp_tests.utils.i2c_utils import (
     create_i2c_adapter,
+    create_i2c_device,
     detect_i2c_device,
 )
 
@@ -58,3 +59,22 @@ class TestI2c(TestBase):
                         adapterBaseBusNum + device.channel, device.address
                     )
                 delete_device(fpga, adapter.auxDevice)
+
+    def test_i2c_bus_with_devices_can_be_unloaded(self) -> None:
+        """
+        Create bus, create devices on that bus, ensure that the bus
+        driver can be unloaded successfully.
+        """
+        for fpga in self.fpgas[0:1]:
+            for adapter in reversed(fpga.i2cAdapters):
+                self.load_kmods()
+                _, adapterBaseBusNum = create_i2c_adapter(fpga, adapter)
+                for device in adapter.i2cDevices:
+                    assert detect_i2c_device(
+                        adapterBaseBusNum + device.channel, device.address
+                    )
+                    busNum = adapterBaseBusNum + device.channel
+                    assert create_i2c_device(
+                        device, busNum
+                    ), f"i2c device {busNum}-00{device.address[2:]} not created"
+                self.unload_kmods()

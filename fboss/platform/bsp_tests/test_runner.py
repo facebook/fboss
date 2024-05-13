@@ -72,6 +72,10 @@ class TestBase:
         for kmod in self.kmods:
             check_cmd(["modprobe", kmod])
 
+    def unload_kmods(self) -> None:
+        for kmod in reversed(self.kmods):
+            check_cmd(["modprobe", "-r", kmod])
+
 
 def main():
     args = parse_args()

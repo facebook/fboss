@@ -1,8 +1,9 @@
+import os
 import subprocess
 from collections import namedtuple
 from typing import Set, Tuple
 
-from fboss.platform.bsp_tests.utils.cdev_types import FpgaSpec, I2CAdapter
+from fboss.platform.bsp_tests.utils.cdev_types import FpgaSpec, I2CAdapter, I2CDevice
 from fboss.platform.bsp_tests.utils.cdev_utils import create_new_device
 from fboss.platform.bsp_tests.utils.cmd_utils import run_cmd
 
@@ -54,3 +55,24 @@ def find_i2c_busses() -> Set[I2CBus]:
         if line:
             adapters.add(parse_i2cdetect_line(line))
     return adapters
+
+
+def create_i2c_device(dev: I2CDevice, bus: int) -> bool:
+    try:
+        cmd = f"echo {dev.deviceName} {dev.address} > /sys/bus/i2c/devices/i2c-{bus}/new_device"
+        run_cmd(cmd, shell=True).stdout.decode()
+        # find the device and verify it is there
+        dev_dir = "/sys/bus/i2c/devices"
+        assert os.path.exists(
+            f"{dev_dir}/i2c-{bus}"
+        ), f"Device {dev.address} on bus {bus} not found"
+        # read the "name" file and verify it is correct
+        with open(f"{dev_dir}/{bus}-00{dev.address[2:]}/name", "r") as f:
+            name = f.read().strip()
+            assert (
+                name == dev.deviceName
+            ), f"Device {dev.address} on bus {bus}: wrong device name: expected '{dev.deviceName}' got '{name}'"
+        return True
+    except Exception as e:
+        print(f"Failed to create device {dev.deviceName}, error: {e}")
+        return False
