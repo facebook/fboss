@@ -23,7 +23,7 @@ struct PfcWdTestConfigs {
   std::string description;
 };
 
-class HwPfcTest : public HwTest {
+class HwVerifyPfcConfigInHwTest : public HwTest {
  protected:
   cfg::SwitchConfig initialConfig() const {
     return utility::onePortPerInterfaceConfig(
@@ -323,30 +323,30 @@ class HwPfcTest : public HwTest {
   }
 };
 
-TEST_F(HwPfcTest, PfcDefaultProgramming) {
+TEST_F(HwVerifyPfcConfigInHwTest, PfcDefaultProgramming) {
   runPfcNotConfiguredTest(false, false);
 }
 
-TEST_F(HwPfcTest, PfcRxDisabledTxDisabled) {
+TEST_F(HwVerifyPfcConfigInHwTest, PfcRxDisabledTxDisabled) {
   runPfcTest(false, false);
 }
 
-TEST_F(HwPfcTest, PfcRxEnabledTxDisabled) {
+TEST_F(HwVerifyPfcConfigInHwTest, PfcRxEnabledTxDisabled) {
   runPfcTest(true, false);
 }
 
-TEST_F(HwPfcTest, PfcRxDisabledTxEnabled) {
+TEST_F(HwVerifyPfcConfigInHwTest, PfcRxDisabledTxEnabled) {
   runPfcTest(false, true);
 }
 
-TEST_F(HwPfcTest, PfcRxEnabledTxEnabled) {
+TEST_F(HwVerifyPfcConfigInHwTest, PfcRxEnabledTxEnabled) {
   runPfcTest(true, true);
 }
 
 // Try a sequence of configuring, modifying and removing PFC watchdog.
 // This test will be retained as a HwTest given there is a lot of programming
 // followed by reading back from HW.
-TEST_F(HwPfcTest, PfcWatchdogProgrammingSequence) {
+TEST_F(HwVerifyPfcConfigInHwTest, PfcWatchdogProgrammingSequence) {
   auto portId = masterLogicalInterfacePortIds()[0];
   cfg::PfcWatchdog prodPfcWdConfig;
   initalizePfcConfigWatchdogValues(
@@ -367,7 +367,6 @@ TEST_F(HwPfcTest, PfcWatchdogProgrammingSequence) {
 
     bool pfcRx = false;
     bool pfcTx = false;
-    auto portId = masterLogicalInterfacePortIds()[0];
     cfg::PfcWatchdog defaultPfcWatchdogConfig{};
     auto currentConfig = initialConfig();
 
@@ -462,7 +461,7 @@ TEST_F(HwPfcTest, PfcWatchdogProgrammingSequence) {
 
 // Verify all ports should be configured with the same
 // PFC watchdog deadlock recovery action.
-TEST_F(HwPfcTest, PfcWatchdogDeadlockRecoveryActionMismatch) {
+TEST_F(HwVerifyPfcConfigInHwTest, PfcWatchdogDeadlockRecoveryActionMismatch) {
   auto setup = [&]() { setupBaseConfig(); };
 
   auto verify = [&]() {

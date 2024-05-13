@@ -216,7 +216,7 @@ set(hw_switch_test_srcs
   fboss/agent/hw/test/HwAclMatchActionsTests.cpp
   fboss/agent/hw/test/HwAclPriorityTests.cpp
   fboss/agent/hw/test/HwAclQualifierTests.cpp
-  fboss/agent/hw/test/HwPfcTests.cpp
+  fboss/agent/hw/test/HwVerifyPfcConfigInHwTest.cpp
   fboss/agent/hw/test/HwAclStatTests.cpp
   fboss/agent/hw/test/HwPortTests.cpp
   fboss/agent/hw/test/HwDiagShellStressTest.cpp
