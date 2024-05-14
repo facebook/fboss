@@ -18,7 +18,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 10000,
-        "name": "rcy1/1/55",
+        "name": "rcy1/1/441",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -53,7 +53,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 400000,
-        "name": "rcy1/1/56",
+        "name": "rcy1/1/442",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -88,7 +88,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 400000,
-        "name": "rcy1/1/57",
+        "name": "rcy1/1/443",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -123,7 +123,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 400000,
-        "name": "rcy1/1/58",
+        "name": "rcy1/1/444",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -158,7 +158,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 400000,
-        "name": "rcy1/1/59",
+        "name": "rcy1/1/445",
         "description": "",
         "queues_DEPRECATED": [
           
@@ -8476,10 +8476,14 @@
             "port_priorities": "8",
             "port_priorities_0": "2",
             "port_priorities_1": "2",
+            "port_priorities_2": "2",
             "port_priorities_200": "2",
             "port_priorities_201": "2",
             "port_priorities_202": "2",
             "port_priorities_203": "2",
+            "port_priorities_3": "2",
+            "port_priorities_4": "2",
+            "port_priorities_5": "2",
             "port_priorities_sch.BCM8889X": "8",
             "programmability_image_name.BCM8889X": "AI23",
             "programmability_ucode_relative_path.BCM8889X": "pemla/ucode/AI23/jr3native/u_code_db2pem.txt",
