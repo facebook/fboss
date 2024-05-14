@@ -2130,7 +2130,15 @@ void printCmisDetailService(
   if (moduleStatus && moduleStatus->fwStatus()) {
     auto fwStatus = *(moduleStatus->fwStatus());
     if (auto version = fwStatus.version()) {
-      printf("  FW Version: %s\n", (*version).c_str());
+      uint8_t integerPart, fractionalPart = 0;
+      size_t pos = version->find('.');
+      if (pos != std::string::npos) {
+        integerPart = stoi(version->substr(0, pos));
+        fractionalPart = stoi(version->substr(pos + 1));
+      } else {
+        integerPart = stoi(version->substr(0));
+      }
+      printf("  FW Version: %x.%x\n", integerPart, fractionalPart);
     }
     if (auto fwFault = fwStatus.fwFault()) {
       printf("  Firmware fault: 0x%x\n", *fwFault);
