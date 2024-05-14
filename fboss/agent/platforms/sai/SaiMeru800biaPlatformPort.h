@@ -23,12 +23,13 @@ class SaiMeru800biaPlatformPort : public SaiBcmPlatformPort {
 
   uint32_t getPhysicalLaneId(uint32_t chipId, uint32_t logicalLane)
       const override {
-    if (getPortType() != cfg::PortType::RECYCLE_PORT) {
+    if (getPortType() != cfg::PortType::RECYCLE_PORT &&
+        getPortType() != cfg::PortType::EVENTOR_PORT) {
       // Lanes on Meru800bia platform are 0 indexed
       return SaiBcmPlatformPort::getPhysicalLaneId(chipId, logicalLane) - 1;
     }
     // Recycle port lanes are 1 indexed
-    return SaiBcmPlatformPort::getPhysicalLaneId(chipId, logicalLane);
+    return chipId;
   }
   void portChanged(
       std::shared_ptr<Port> /*newPort*/,

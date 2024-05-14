@@ -737,8 +737,12 @@ void addQosMapsHelper(
 
   if (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
     // also apply cpu qos policy for recycle port
-    PortID kRecyclePort(1);
-    overrideQosPolicy(&cfg, kRecyclePort, cpuQosPolicyName);
+    // TODO(daiweix): properly set qos policy for rcy/mgmt ports
+    // based on port type/scope
+    int kMaxRecyclePort = 6;
+    for (int rcyPortId = 1; rcyPortId <= kMaxRecyclePort; rcyPortId++) {
+      overrideQosPolicy(&cfg, rcyPortId, cpuQosPolicyName);
+    }
   }
 }
 
