@@ -1,14 +1,16 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-#include <chrono>
+#include "fboss/agent/test/AgentHwTest.h"
+
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/packet/PktFactory.h"
-#include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 #include "fboss/agent/test/gen-cpp2/production_features_types.h"
+
+#include <chrono>
 
 namespace facebook::fboss {
 
@@ -312,4 +314,112 @@ TEST_F(AgentPacketSendReceiveTest, LldpPacketReceiveSrcPort) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+class AgentPacketFloodTest : public AgentHwTest {
+ protected:
+  std::vector<PortID> getLogicalPortIDs() const {
+    return {masterLogicalPortIds()[0], masterLogicalPortIds()[1]};
+  }
+
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
+    auto asic = utility::checkSameAndGetAsic(l3Asics);
+    auto cfg = utility::oneL3IntfNPortConfig(
+        ensemble.getSw()->getPlatformMapping(),
+        asic,
+        getLogicalPortIDs(),
+        ensemble.getSw()->getPlatformSupportsAddRemovePort(),
+        asic->desiredLoopbackModes());
+    utility::setDefaultCpuTrafficPolicyConfig(cfg, l3Asics, ensemble.isSai());
+    utility::addCpuQueueConfig(cfg, l3Asics, ensemble.isSai());
+    return cfg;
+  }
+
+  std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const override {
+    // PKTIO feature
+    return {production_features::ProductionFeature::CPU_RX_TX};
+  }
+
+  bool checkPacketFlooding(
+      std::map<PortID, HwPortStats>& portStatsBefore,
+      bool v6) {
+    auto asic = utility::checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+    auto portStatsAfter = getLatestPortStats(masterLogicalPortIds());
+    for (auto portId : getLogicalPortIDs()) {
+      auto packetsBefore = v6 ? *portStatsBefore[portId].outMulticastPkts_()
+                              : *portStatsBefore[portId].outBroadcastPkts_();
+      auto packetsAfter = v6 ? *portStatsAfter[portId].outMulticastPkts_()
+                             : *portStatsAfter[portId].outBroadcastPkts_();
+      XLOG(DBG2) << "port id: " << portId << " before pkts:" << packetsBefore
+                 << ", after pkts:" << packetsAfter
+                 << ", before bytes:" << *portStatsBefore[portId].outBytes_()
+                 << ", after bytes:" << *portStatsAfter[portId].outBytes_();
+      if (*portStatsAfter[portId].outBytes_() ==
+          *portStatsBefore[portId].outBytes_()) {
+        return false;
+      }
+      if (asic->getAsicType() != cfg::AsicType::ASIC_TYPE_EBRO &&
+          asic->getAsicType() != cfg::AsicType::ASIC_TYPE_YUBA) {
+        if (packetsAfter <= packetsBefore) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+};
+
+TEST_F(AgentPacketFloodTest, ArpRequestFloodTest) {
+  auto setup = [=]() {};
+  auto verify = [=, this]() {
+    auto portStatsBefore = getLatestPortStats(masterLogicalPortIds());
+    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+    auto randomIP = folly::IPAddressV4("1.1.1.5");
+    auto txPacket = utility::makeARPTxPacket(
+        getSw(),
+        vlanId,
+        srcMac,
+        folly::MacAddress("ff:ff:ff:ff:ff:ff"),
+        folly::IPAddress("1.1.1.2"),
+        randomIP,
+        ARP_OPER::ARP_OPER_REQUEST,
+        std::nullopt);
+    getAgentEnsemble()->ensureSendPacketOutOfPort(
+        std::move(txPacket), masterLogicalPortIds()[0]);
+    EXPECT_TRUE(checkPacketFlooding(portStatsBefore, false));
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentPacketFloodTest, NdpFloodTest) {
+  auto setup = [=]() {};
+  auto verify = [=, this]() {
+    auto retries = 5;
+    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto suceess = false;
+    while (retries--) {
+      auto portStatsBefore = getLatestPortStats(masterLogicalPortIds());
+      auto txPacket = utility::makeNeighborSolicitation(
+          getSw(),
+          vlanId,
+          intfMac,
+          folly::IPAddressV6(folly::IPAddressV6::LINK_LOCAL, intfMac),
+          folly::IPAddressV6("1::2"));
+      getAgentEnsemble()->ensureSendPacketOutOfPort(
+          std::move(txPacket), masterLogicalPortIds()[0]);
+      if (checkPacketFlooding(portStatsBefore, true)) {
+        suceess = true;
+        break;
+      }
+      std::this_thread::sleep_for(1s);
+      XLOG(DBG2) << " Retrying ... ";
+    }
+    EXPECT_TRUE(suceess);
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
 } // namespace facebook::fboss
