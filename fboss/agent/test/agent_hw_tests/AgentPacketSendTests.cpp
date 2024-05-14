@@ -5,12 +5,17 @@
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/packet/PktFactory.h"
+#include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 #include "fboss/agent/test/gen-cpp2/production_features_types.h"
 
 #include <chrono>
+
+namespace {
+constexpr int kAggId{500};
+} // unnamed namespace
 
 namespace facebook::fboss {
 
@@ -312,6 +317,92 @@ TEST_F(AgentPacketSendReceiveTest, LldpPacketReceiveSrcPort) {
         this, "LldpPacketReceiveSrcPort");
   };
   verifyAcrossWarmBoots(setup, verify);
+}
+
+class AgentPacketSendReceiveLagTest : public AgentPacketSendReceiveTest {
+ protected:
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto masterLogicalPortIds = ensemble.masterLogicalPortIds();
+    auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
+    auto asic = utility::checkSameAndGetAsic(l3Asics);
+    auto cfg = utility::oneL3IntfTwoPortConfig(
+        ensemble.getSw()->getPlatformMapping(),
+        asic,
+        masterLogicalPortIds[0],
+        masterLogicalPortIds[1],
+        ensemble.getSw()->getPlatformSupportsAddRemovePort(),
+        asic->desiredLoopbackModes());
+    utility::setDefaultCpuTrafficPolicyConfig(cfg, l3Asics, ensemble.isSai());
+    utility::addCpuQueueConfig(cfg, l3Asics, ensemble.isSai());
+
+    std::vector<int32_t> ports{
+        masterLogicalPortIds[0], masterLogicalPortIds[1]};
+    utility::addAggPort(kAggId, ports, &cfg, cfg::LacpPortRate::SLOW);
+    return cfg;
+  }
+
+  void packetReceived(const RxPacket* pkt) noexcept override {
+    XLOG(DBG1) << "packet received from port " << pkt->getSrcPort()
+               << " lag port " << pkt->getSrcAggregatePort();
+    srcPort_ = pkt->getSrcPort();
+    srcAggregatePort_ = pkt->getSrcAggregatePort();
+    numPkts_++;
+  }
+  int getLastPktSrcAggregatePort() {
+    return srcAggregatePort_;
+  }
+  std::atomic<int> srcAggregatePort_{-1};
+};
+
+TEST_F(AgentPacketSendReceiveLagTest, LacpPacketReceiveSrcPort) {
+  auto setup = [=, this]() {
+    applyNewState(
+        [](const std::shared_ptr<SwitchState>& state) {
+          return utility::enableTrunkPorts(state);
+        },
+        "enable trunk ports");
+  };
+  auto verify = [=, this]() {
+    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto payLoadSize = 256;
+    static auto payload = std::vector<uint8_t>(payLoadSize, 0xff);
+    payload[0] = 0x1; // sub-version of lacp packet
+    auto expectedNumPktsReceived = 1;
+    for (auto port : {masterLogicalPortIds()[0], masterLogicalPortIds()[1]}) {
+      // verify lacp packet properly sent and received from lag
+      auto txPacket = utility::makeEthTxPacket(
+          getAgentEnsemble()->getSw(),
+          vlanId,
+          intfMac,
+          LACPDU::kSlowProtocolsDstMac(),
+          facebook::fboss::ETHERTYPE::ETHERTYPE_SLOW_PROTOCOLS,
+          payload);
+      getAgentEnsemble()->ensureSendPacketOutOfPort(std::move(txPacket), port);
+      WITH_RETRIES_N_TIMED(5, 20ms, {
+        ASSERT_EVENTUALLY_TRUE(
+            verifyNumPktsReceived(expectedNumPktsReceived++));
+      })
+      EXPECT_EQ(port, PortID(getLastPktSrcPort()));
+      EXPECT_EQ(kAggId, getLastPktSrcAggregatePort());
+
+      // verify lldp packet properly sent and received from lag
+      txPacket = utility::makeEthTxPacket(
+          getAgentEnsemble()->getSw(),
+          vlanId,
+          intfMac,
+          folly::MacAddress("01:80:c2:00:00:0e"),
+          facebook::fboss::ETHERTYPE::ETHERTYPE_LLDP,
+          std::vector<uint8_t>(payLoadSize, 0xff));
+      getAgentEnsemble()->ensureSendPacketOutOfPort(std::move(txPacket), port);
+      ASSERT_TRUE(verifyNumPktsReceived(expectedNumPktsReceived++));
+      EXPECT_EQ(port, PortID(getLastPktSrcPort()));
+      EXPECT_EQ(kAggId, getLastPktSrcAggregatePort());
+    }
+  };
+  setup();
+  verify();
 }
 
 class AgentPacketFloodTest : public AgentHwTest {
