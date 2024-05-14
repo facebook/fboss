@@ -410,6 +410,7 @@ size_t pumpRoCETraffic(
     int hopLimit,
     std::optional<folly::MacAddress> srcMacAddr,
     int packetCount,
+    uint8_t roceOpcode,
     uint8_t reserved) {
   folly::MacAddress srcMac(
       srcMacAddr.has_value() ? *srcMacAddr
@@ -421,7 +422,7 @@ size_t pumpRoCETraffic(
   XLOG(INFO) << "Send traffic with RoCE payload .. Packet Count = "
              << packetCount;
   for (auto i = 0; i < packetCount; ++i) {
-    std::vector<uint8_t> rocePayload = {kUdfRoceOpcode, 0x40, 0xff, 0xff, 0x00};
+    std::vector<uint8_t> rocePayload = {roceOpcode, 0x40, 0xff, 0xff, 0x00};
     // ack req is 0x40 for packet which can be re-ordered
     // 0x0 means the packet cannot be re-ordered
     // default is 0x40

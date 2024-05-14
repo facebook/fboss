@@ -251,6 +251,7 @@ class AgentAclCounterTest : public AgentHwTest {
         255,
         std::nullopt,
         1 /* one packet */,
+        utility::kUdfRoceOpcode,
         this->roceReservedByte_);
   }
 
