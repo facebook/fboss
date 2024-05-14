@@ -172,15 +172,8 @@ void TransceiverManager::readWarmBootStateFile() {
 void TransceiverManager::init() {
   // Check whether we can warm boot
   canWarmBoot_ = checkWarmBootFlags();
-  if (!FLAGS_can_qsfp_service_warm_boot) {
-    canWarmBoot_ = false;
-  }
   XLOG(INFO) << "Will attempt " << (canWarmBoot_ ? "WARM" : "COLD") << " boot";
-  if (!canWarmBoot_) {
-    // Since this is going to be cold boot, we need to remove the can_warm_boot
-    // file
-    removeWarmBootFlag();
-  } else {
+  if (canWarmBoot_) {
     // Read the warm boot state file for a warm boot
     readWarmBootStateFile();
     restoreAgentConfigAppliedInfo();
@@ -2028,13 +2021,16 @@ bool TransceiverManager::checkWarmBootFlags() {
   // Return true if coldBootOnceFile does not exist and canWarmBoot file
   // exists
   const auto& forceColdBootFile = forceColdBootFileName();
+  const auto& warmBootFile = warmBootFlagFileName();
+
   bool forceColdBoot = removeFile(forceColdBootFile);
-  if (forceColdBoot) {
-    XLOG(INFO) << "Force Cold Boot file: " << forceColdBootFile << " is set";
+  if (forceColdBoot || !FLAGS_can_qsfp_service_warm_boot) {
+    XLOG(INFO) << "Force Cold Boot file: " << forceColdBootFile
+               << " is set. Removing Warm Boot file " << warmBootFile;
+    removeWarmBootFlag();
     return false;
   }
 
-  const auto& warmBootFile = warmBootFlagFileName();
   // Instead of removing the can_warm_boot file, we keep it unless it's a
   // coldboot, so that qsfp_service crash can still use warm boot.
   bool canWarmBoot = checkFileExists(warmBootFile);
