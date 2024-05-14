@@ -505,6 +505,7 @@ struct InterfaceFields {
    * Set only on Remote Interfaces of VOQ switches.
    */
   21: optional common.LivenessStatus remoteIntfLivenessStatus;
+  22: switch_config.Scope scope = switch_config.Scope.LOCAL;
 }
 
 enum LacpState {
