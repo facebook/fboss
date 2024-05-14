@@ -58,3 +58,5 @@ DEFINE_int32(
     hwagent_port_base,
     5931,
     "The first thrift server port reserved for HwAgent");
+
+DEFINE_bool(force_init_fp, true, "Force full field processor initialization");
