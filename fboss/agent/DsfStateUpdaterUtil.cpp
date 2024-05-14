@@ -142,6 +142,13 @@ std::shared_ptr<SwitchState> DsfStateUpdaterUtil::getUpdatedState(
                  newNode->toThrift());
       return oldNode;
     }
+    if (newNode && newNode->getScope() == cfg::Scope::LOCAL) {
+      XLOG(DBG3)
+          << "Ignore remote rif of local type "
+          << apache::thrift::SimpleJSONSerializer::serialize<std::string>(
+                 newNode->toThrift());
+      return oldNode;
+    }
 
     auto clonedNode = newNode->clone();
     clonedNode->setRemoteInterfaceType(RemoteInterfaceType::DYNAMIC_ENTRY);
