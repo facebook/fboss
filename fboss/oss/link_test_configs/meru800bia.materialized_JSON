@@ -46,13 +46,13 @@
       },
       {
         "logicalID": 2,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
-        "speed": 400000,
+        "speed": 10000,
         "name": "rcy1/1/442",
         "description": "",
         "queues_DEPRECATED": [
@@ -71,7 +71,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 38,
+        "profileID": 11,
         "portType": 3,
         "expectedNeighborReachability": [
           
@@ -81,13 +81,13 @@
       },
       {
         "logicalID": 3,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
-        "speed": 400000,
+        "speed": 10000,
         "name": "rcy1/1/443",
         "description": "",
         "queues_DEPRECATED": [
@@ -106,7 +106,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 38,
+        "profileID": 11,
         "portType": 3,
         "expectedNeighborReachability": [
           
@@ -116,13 +116,13 @@
       },
       {
         "logicalID": 4,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
-        "speed": 400000,
+        "speed": 10000,
         "name": "rcy1/1/444",
         "description": "",
         "queues_DEPRECATED": [
@@ -141,7 +141,7 @@
         "lookupClasses": [
           
         ],
-        "profileID": 38,
+        "profileID": 11,
         "portType": 3,
         "expectedNeighborReachability": [
           
@@ -151,13 +151,13 @@
       },
       {
         "logicalID": 5,
-        "state": 2,
+        "state": 1,
         "minFrameSize": 64,
         "maxFrameSize": 9412,
         "parserType": 1,
         "routable": true,
         "ingressVlan": 0,
-        "speed": 400000,
+        "speed": 10000,
         "name": "rcy1/1/445",
         "description": "",
         "queues_DEPRECATED": [
@@ -176,8 +176,43 @@
         "lookupClasses": [
           
         ],
-        "profileID": 38,
+        "profileID": 11,
         "portType": 3,
+        "expectedNeighborReachability": [
+          
+        ],
+        "drainState": 0,
+        "scope": 0
+      },
+      {
+        "logicalID": 6,
+        "state": 1,
+        "minFrameSize": 64,
+        "maxFrameSize": 9412,
+        "parserType": 1,
+        "routable": true,
+        "ingressVlan": 0,
+        "speed": 10000,
+        "name": "evtr1/1/506",
+        "description": "",
+        "queues_DEPRECATED": [
+          
+        ],
+        "pause": {
+          "tx": false,
+          "rx": false
+        },
+        "sFlowIngressRate": 0,
+        "sFlowEgressRate": 0,
+        "loopbackMode": 0,
+        "expectedLLDPValues": {
+          
+        },
+        "lookupClasses": [
+          
+        ],
+        "profileID": 11,
+        "portType": 5,
         "expectedNeighborReachability": [
           
         ],
@@ -8529,6 +8564,7 @@
             "sai_common_hash_crc": "0x1",
             "sai_dis_ctr_incr_on_port_ln_dn": "0",
             "sai_disable_srcmacqedstmac_ctrl": "0x1",
+            "sai_eventor_port_lane_base": "500",
             "sai_global_scoped_rcy_port": "1",
             "sai_ifp_enable_on_cpu_tx": "0x1",
             "sai_l3_max_ecmp_paths": "512",
@@ -8631,7 +8667,6 @@
             "ucode_port_218.BCM8889X_ADAPTER": "SAT:core_0.218",
             "ucode_port_22.BCM8889X": "CDGE4_16:core_1.8",
             "ucode_port_23.BCM8889X": "CDGE4_17:core_1.9",
-            "ucode_port_230.BCM8889X": "EVENTOR:core_0.230",
             "ucode_port_24.BCM8889X": "CDGE4_18:core_2.12",
             "ucode_port_240.BCM8889X": "OLP0:core_0.240",
             "ucode_port_241.BCM8889X": "OLP1:core_0.241",
