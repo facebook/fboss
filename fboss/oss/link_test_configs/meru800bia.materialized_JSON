@@ -7454,7 +7454,7 @@
             },
             "systemPortRange": {
               "minimum": 100,
-              "maximum": 140
+              "maximum": 144
             },
             "switchMac": "02:00:00:00:00:01",
             "connectionHandle": "15:00"
@@ -7477,7 +7477,7 @@
           ],
           "systemPortRange": {
             "minimum": 100,
-            "maximum": 140
+            "maximum": 144
           },
           "nodeMac": "02:00:00:00:0F:0B",
           "asicType": 14,
