@@ -141,7 +141,7 @@
             },
             "systemPortRange": {
               "minimum": 100,
-              "maximum": 140
+              "maximum": 144
             },
             "switchMac": "02:00:00:00:00:01",
             "connectionHandle": "15:00"
@@ -165,7 +165,7 @@
           ],
           "systemPortRange": {
             "minimum": 100,
-            "maximum": 140
+            "maximum": 144
           },
           "nodeMac": "02:00:00:00:0F:0B",
           "asicType": 14,
@@ -1228,6 +1228,7 @@
             "sai_common_hash_crc": "0x1",
             "sai_dis_ctr_incr_on_port_ln_dn": "0",
             "sai_disable_srcmacqedstmac_ctrl": "0x1",
+            "sai_eventor_port_lane_base": "500",
             "sai_global_scoped_rcy_port": "1",
             "sai_ifp_enable_on_cpu_tx": "0x1",
             "sai_l3_max_ecmp_paths": "512",
@@ -1308,7 +1309,6 @@
             "ucode_port_203.BCM8889X_ADAPTER": "CPU.32:core_0.203",
             "ucode_port_218.BCM8889X_ADAPTER": "SAT:core_0.218",
             "ucode_port_22.BCM8889X": "D3CE7:core_1.6",
-            "ucode_port_230.BCM8889X": "EVENTOR:core_0.230",
             "ucode_port_24.BCM8889X": "D3CE8:core_1.8",
             "ucode_port_240.BCM8889X": "OLP0:core_0.240",
             "ucode_port_241.BCM8889X": "OLP1:core_0.241",
