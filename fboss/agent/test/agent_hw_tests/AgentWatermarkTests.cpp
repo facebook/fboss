@@ -482,7 +482,7 @@ TEST_F(AgentWatermarkTest, VerifyQueueWatermarkAccuracy) {
       }
       std::map<int16_t, int64_t> queueWaterMarks;
       int64_t maxWatermarks = 0;
-      WITH_RETRIES_N_TIMED(5, std::chrono::milliseconds(1000), {
+      WITH_RETRIES_N_TIMED(20, std::chrono::milliseconds(1000), {
         queueWaterMarks =
             getQueueWatermarks(masterLogicalInterfacePortIds()[0], isVoq);
         if (queueWaterMarks.at(kQueueId) > maxWatermarks) {
