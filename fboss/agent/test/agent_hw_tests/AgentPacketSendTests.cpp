@@ -201,14 +201,13 @@ TEST_F(AgentPacketSendTest, PortTxEnableTest) {
     auto portStatsT0 = getLatestPortStats(masterLogicalInterfacePortIds()[0]);
     sendTcpPkts(kNumPacketsToSend);
     auto newStats = portStatsT0;
-    WITH_RETRIES_N_TIMED(10, std::chrono::milliseconds(500), {
-      sendTcpPkts(1);
+    WITH_RETRIES_N_TIMED(5, std::chrono::milliseconds(2000), {
       auto oldStats = newStats;
-      while (*newStats.timestamp_() <= *oldStats.timestamp_()) {
-        newStats = getLatestPortStats(masterLogicalInterfacePortIds()[0]);
-      }
-      EXPECT_EVENTUALLY_TRUE(
-          *newStats.outUnicastPkts_() == *oldStats.outUnicastPkts_());
+      sendTcpPkts(1);
+      newStats = getLatestPortStats(masterLogicalInterfacePortIds()[0]);
+      EXPECT_EVENTUALLY_GT(*newStats.timestamp_(), *oldStats.timestamp_());
+      EXPECT_EVENTUALLY_EQ(
+          *newStats.outUnicastPkts_(), *oldStats.outUnicastPkts_());
     });
     // tx is fully disabled now, stats no longer increment.
     auto portStatsT1 = getLatestPortStats(masterLogicalInterfacePortIds()[0]);
