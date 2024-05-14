@@ -1370,6 +1370,7 @@ struct Interface {
   /* Override DHCPv4/6 relayer on a per host basis */
   14: optional map<string, string> dhcpRelayOverridesV4;
   15: optional map<string, string> dhcpRelayOverridesV6;
+  16: Scope scope = Scope.LOCAL;
 }
 
 struct StaticRouteWithNextHops {
