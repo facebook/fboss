@@ -188,12 +188,12 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "6": {
         "mapping": {
           "id": 6,
-          "name": "evtr1/1/506",
+          "name": "evt1/1/506",
           "controllingPort": 6,
           "pins": [
             {
               "a": {
-                "chip": "NPU-J3_EVTR-slot1/chip1/core506",
+                "chip": "NPU-J3_EVT-slot1/chip1/core506",
                 "lane": 0
               }
             }
@@ -210,7 +210,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "iphy": [
                   {
                     "id": {
-                      "chip": "NPU-J3_EVTR-slot1/chip1/core506",
+                      "chip": "NPU-J3_EVT-slot1/chip1/core506",
                       "lane": 0
                     }
                   }
@@ -42790,7 +42790,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
       "physicalID": 445
     },
     {
-      "name": "NPU-J3_EVTR-slot1/chip1/core506",
+      "name": "NPU-J3_EVT-slot1/chip1/core506",
       "type": 1,
       "physicalID": 506
     },
