@@ -69,7 +69,9 @@ class Interface : public ThriftStructNode<Interface, state::InterfaceFields> {
       bool isVirtual,
       bool isStateSyncDisabled,
       cfg::InterfaceType type = cfg::InterfaceType::VLAN,
-      std::optional<RemoteInterfaceType> remoteIntfType = std::nullopt) {
+      std::optional<RemoteInterfaceType> remoteIntfType = std::nullopt,
+      std::optional<LivenessStatus> remoteIntfLivenessStatus = std::nullopt,
+      cfg::Scope scope = cfg::Scope::LOCAL) {
     set<switch_state_tags::interfaceId>(id);
     setRouterID(router);
     if (vlan) {
@@ -82,6 +84,7 @@ class Interface : public ThriftStructNode<Interface, state::InterfaceFields> {
     setIsStateSyncDisabled(isStateSyncDisabled);
     setType(type);
     setRemoteInterfaceType(remoteIntfType);
+    setScope(scope);
   }
 
   InterfaceID getID() const {
@@ -454,6 +457,14 @@ class Interface : public ThriftStructNode<Interface, state::InterfaceFields> {
     } else {
       ref<switch_state_tags::remoteIntfLivenessStatus>().reset();
     }
+  }
+
+  void setScope(const cfg::Scope& scope) {
+    set<switch_state_tags::scope>(scope);
+  }
+
+  cfg::Scope getScope() const {
+    return cref<switch_state_tags::scope>()->cref();
   }
 
   /*

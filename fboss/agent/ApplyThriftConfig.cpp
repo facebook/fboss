@@ -1016,7 +1016,9 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
         true,
         cfg::InterfaceType::SYSTEM_PORT,
         isLocal(node) ? std::optional<RemoteInterfaceType>(std::nullopt)
-                      : std::make_optional(RemoteInterfaceType::STATIC_ENTRY));
+                      : std::make_optional(RemoteInterfaceType::STATIC_ENTRY),
+        std::optional<LivenessStatus>(std::nullopt),
+        cfg::Scope::GLOBAL);
     auto intfs = new_->getRemoteInterfaces()->modify(&new_);
     intfs->addNode(intf, scopeResolver_.scope(intf, new_));
     processLoopbacks(node, dsfNodeAsic.get());
@@ -3448,6 +3450,7 @@ std::shared_ptr<InterfaceMap> ThriftConfigApplier::updateInterfaces() {
             "->max: ",
             *sysPortRange->maximum());
       }
+      CHECK_EQ((int)sysPort->getScope(), (int)(*interfaceCfg.scope()));
     }
     if (origIntf) {
       newIntf = updateInterface(origIntf, &interfaceCfg, newAddrs);
@@ -3487,7 +3490,10 @@ shared_ptr<Interface> ThriftConfigApplier::createInterface(
       mtu,
       *config->isVirtual(),
       *config->isStateSyncDisabled(),
-      *config->type());
+      *config->type(),
+      std::optional<RemoteInterfaceType>(std::nullopt),
+      std::optional<LivenessStatus>(std::nullopt),
+      *config->scope());
   updateNeighborResponseTablesForIntfs(intf.get(), addrs);
   updateDhcpOverrides(intf.get(), config);
   intf->setAddresses(addrs);
@@ -3570,6 +3576,7 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
   newIntf->setIsStateSyncDisabled(*config->isStateSyncDisabled());
   newIntf->setDhcpV4Relay(newDhcpV4Relay);
   newIntf->setDhcpV6Relay(newDhcpV6Relay);
+  newIntf->setScope(*config->scope());
   return newIntf;
 }
 
