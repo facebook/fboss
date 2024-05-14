@@ -329,6 +329,12 @@ void TransceiverManager::gracefulExit() {
   // Set all warm boot related files before gracefully shut down
   setWarmBootState();
   setCanWarmBoot();
+
+  // Do a graceful shutdown of the phy.
+  if (phyManager_) {
+    phyManager_->gracefulExit();
+  }
+
   steady_clock::time_point setWBFilesDone = steady_clock::now();
   XLOG(INFO) << "[Exit] Done creating Warm Boot related files. Stop time: "
              << duration_cast<duration<float>>(setWBFilesDone - stopThreadsDone)
@@ -2066,7 +2072,6 @@ void TransceiverManager::setWarmBootState() {
   steady_clock::time_point begin = steady_clock::now();
   if (phyManager_) {
     qsfpServiceState[kPhyStateKey] = phyManager_->getWarmbootState();
-    phyManager_->gracefulExit();
   }
 
   folly::dynamic agentConfigAppliedWbState = folly::dynamic::object;
