@@ -342,6 +342,8 @@ void TransceiverManager::gracefulExit() {
              << std::endl
              << "[Exit] Total TransceiverManager graceful Exit time: "
              << duration_cast<duration<float>>(setWBFilesDone - begin).count();
+  XLOG(INFO) << "[Exit] QSFP Service Warm boot state: " << std::endl
+             << qsfpServiceWarmbootState_;
 }
 
 const TransceiverManager::PortNameMap&
@@ -1612,7 +1614,12 @@ void TransceiverManager::refreshStateMachines() {
 
   if (!isFullyInitialized_) {
     isFullyInitialized_ = true;
+    // On successful initialization, set warm boot flag in case of a
+    // qsfp_service crash (no gracefulExit).
+    setCanWarmBoot();
   }
+  // Update the warmboot state if there is a change.
+  setWarmBootState();
 }
 
 void TransceiverManager::triggerAgentConfigChangeEvent() {
@@ -2084,17 +2091,24 @@ void TransceiverManager::setWarmBootState() {
   }
   qsfpServiceState[kAgentConfigAppliedInfoStateKey] = agentConfigAppliedWbState;
 
-  steady_clock::time_point getWarmbootState = steady_clock::now();
-  XLOG(INFO)
-      << "[Exit] Finish getting warm boot state. Time: "
-      << duration_cast<duration<float>>(getWarmbootState - begin).count();
-  folly::writeFile(
-      folly::toPrettyJson(qsfpServiceState), warmBootStateFileName().c_str());
-  steady_clock::time_point serializeState = steady_clock::now();
-  XLOG(INFO) << "[Exit] Finish writing warm boot state to file. Time: "
-             << duration_cast<duration<float>>(
-                    serializeState - getWarmbootState)
-                    .count();
+  std::string currentState = folly::toPrettyJson(qsfpServiceState);
+  // If there is a state change, write it to the warm boot state file.
+  if (qsfpServiceWarmbootState_ != currentState) {
+    // Update the warmboot state
+    qsfpServiceWarmbootState_ = currentState;
+
+    steady_clock::time_point getWarmbootState = steady_clock::now();
+    XLOG(INFO)
+        << "Finish updating warm boot state. Time: "
+        << duration_cast<duration<float>>(getWarmbootState - begin).count();
+    folly::writeFile(
+        qsfpServiceWarmbootState_, warmBootStateFileName().c_str());
+    steady_clock::time_point serializeState = steady_clock::now();
+    XLOG(INFO) << "Finish writing warm boot state to file. Time: "
+               << duration_cast<duration<float>>(
+                      serializeState - getWarmbootState)
+                      .count();
+  }
 }
 
 void TransceiverManager::setCanWarmBoot() {

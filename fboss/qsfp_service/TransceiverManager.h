@@ -751,7 +751,16 @@ class TransceiverManager {
    */
   void removeWarmBootFlag();
 
+  // Store the warmboot state for qsfp_service. This will be updated
+  // periodically after Transceiver State machine updates to maintain
+  // the state if graceful shutdown did not happen.
+  // Will also be called during graceful exit for qsfp_service once the state
+  // machine stops.
   void setWarmBootState();
+
+  // Set the can_warm_boot flag for qsfp service. Done after successful
+  // initialization to avoid cold booting non-XPhy systems in case of a
+  // non-graceful exit and also set during graceful exit.
   void setCanWarmBoot();
 
   void readWarmBootStateFile();
@@ -762,6 +771,11 @@ class TransceiverManager {
   // Returns the Firmware object from qsfp config for the given module.
   // If there is no firmware in config, returns empty optional
   std::optional<cfg::Firmware> getFirmwareFromCfg(Transceiver& tcvr) const;
+
+  // Store the QSFP service state for warm boots.
+  // Updated on every refresh of the state machine as well as during graceful
+  // exit.
+  std::string qsfpServiceWarmbootState_ = {};
 
   // TEST ONLY
   // This private map is an override of agent getPortStatus()
