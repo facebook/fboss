@@ -204,8 +204,9 @@ void FwUtilImpl::doFirmwareAction(
   auto iter = fwUtilConfig_.fwConfigs()->find(fpd);
   if (iter == fwUtilConfig_.fwConfigs()->end()) {
     XLOG(INFO)
+        << fpd
         << " is not part of the firmware target_name list Please run ./fw-util --helpon=Flags for the right usage";
-    return;
+    exit(1);
   }
   auto fwConfig = iter->second;
 
