@@ -538,13 +538,15 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
                           cfg::InterfaceType type,
                           bool setMac,
                           bool hasSubnet,
-                          std::optional<std::vector<std::string>> subnets) {
+                          std::optional<std::vector<std::string>> subnets,
+                          cfg::Scope scope) {
     auto i = config.interfaces()->size();
     config.interfaces()->push_back(cfg::Interface{});
     *config.interfaces()[i].intfID() = intfId;
     *config.interfaces()[i].vlanID() = vlanId;
     *config.interfaces()[i].routerID() = 0;
     *config.interfaces()[i].type() = type;
+    *config.interfaces()[i].scope() = scope;
     if (setMac) {
       config.interfaces()[i].mac() = getLocalCpuMacStr();
     }
@@ -571,7 +573,8 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
         cfg::InterfaceType::VLAN,
         setInterfaceMac,
         interfaceHasSubnet,
-        std::nullopt);
+        std::nullopt,
+        cfg::Scope::LOCAL);
   }
   // Create interfaces for local sys ports on VOQ switches
   if (switchType == cfg::SwitchType::VOQ) {
@@ -593,14 +596,13 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
           *config.dsfNodes()[mySwitchId].systemPortRange()->minimum();
       auto intfId = sysportRangeBegin + *port.logicalID();
       std::optional<std::vector<std::string>> subnets;
-      if (*port.portType() == cfg::PortType::RECYCLE_PORT) {
-        auto portScope = *platformMapping->getPlatformPort(*port.logicalID())
-                              .mapping()
-                              ->scope();
-        if (portScope == cfg::Scope::GLOBAL) {
-          // only set IP for global recycle ports
-          subnets = getLoopbackIps(SwitchID(mySwitchId));
-        }
+      auto portScope = *platformMapping->getPlatformPort(*port.logicalID())
+                            .mapping()
+                            ->scope();
+      if (*port.portType() == cfg::PortType::RECYCLE_PORT &&
+          portScope == cfg::Scope::GLOBAL) {
+        // only set IP for global recycle ports
+        subnets = getLoopbackIps(SwitchID(mySwitchId));
       }
       addInterface(
           intfId,
@@ -608,7 +610,8 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
           cfg::InterfaceType::SYSTEM_PORT,
           setInterfaceMac,
           interfaceHasSubnet,
-          subnets);
+          subnets,
+          portScope);
     }
   }
   return config;
