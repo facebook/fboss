@@ -66,13 +66,14 @@ std::string RestClient::requestWithOutput(
   if (curl) {
     /* Set the curl options */
     curl_easy_setopt(curl, CURLOPT_URL, endpoint.c_str());
-    curl_easy_setopt(curl, CURLOPT_PROTOCOLS, CURLPROTO_HTTP);
+    curl_easy_setopt(curl, CURLOPT_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS);
     curl_easy_setopt(curl, CURLOPT_PORT, port_);
     curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, timeout_.count());
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, RestClient::writer);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &write_buffer);
     curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, error);
     curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, verifyHostname_ ? 1L : 0L);
 
     /* if an interface is specified use that */
     if (!interface_.empty()) {
@@ -87,7 +88,13 @@ std::string RestClient::requestWithOutput(
       curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
     }
 
+    if (!cert_.empty() && !key_.empty()) {
+      curl_easy_setopt(curl, CURLOPT_SSLCERT, cert_.c_str());
+      curl_easy_setopt(curl, CURLOPT_SSLKEY, key_.c_str());
+    }
+
     resp = curl_easy_perform(curl);
+
     if (headers) {
       curl_slist_free_all(headers);
     }
@@ -117,6 +124,17 @@ size_t RestClient::writer(
     std::stringbuf* writer_buffer) {
   std::streamsize data_put = writer_buffer->sputn(buffer, size * entries);
   return data_put;
+}
+
+void RestClient::setClientCertAndKey(
+    std::string_view cert,
+    std::string_view key) {
+  cert_ = cert;
+  key_ = key;
+}
+
+void RestClient::setVerifyHostname(bool verify) {
+  verifyHostname_ = verify;
 }
 
 } // namespace facebook::fboss

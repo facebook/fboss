@@ -12,6 +12,7 @@
 #include <folly/IPAddress.h>
 #include <chrono>
 #include <string>
+#include <string_view>
 
 namespace facebook::fboss {
 class RestClient {
@@ -28,6 +29,9 @@ class RestClient {
       std::string path,
       std::string postData = "");
   void setTimeout(std::chrono::milliseconds timeout);
+
+  void setClientCertAndKey(std::string_view cert, std::string_view key);
+  void setVerifyHostname(bool verify);
 
  private:
   // Forbidden copy contructor and assignment operator
@@ -46,6 +50,8 @@ class RestClient {
   int port_;
   std::chrono::milliseconds timeout_{1000};
   std::string endpoint_;
+  std::string cert_, key_;
+  bool verifyHostname_ = true;
 };
 
 } // namespace facebook::fboss
