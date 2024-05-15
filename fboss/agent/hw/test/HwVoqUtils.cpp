@@ -10,6 +10,7 @@
 
 #include "fboss/agent/hw/test/HwVoqUtils.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/test/TestEnsembleIf.h"
 
 namespace facebook::fboss::utility {
 
@@ -259,6 +260,36 @@ QueueConfig getDefaultVoqConfig() {
   queueCfg.push_back(ncQueue);
 
   return queueCfg;
+}
+
+std::optional<uint64_t> getDummyEncapIndex(TestEnsembleIf* ensemble) {
+  std::optional<uint64_t> dummyEncapIndex;
+  if (ensemble->getHwAsicTable()->isFeatureSupportedOnAllAsic(
+          HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE)) {
+    dummyEncapIndex = 0x200001;
+  }
+  return dummyEncapIndex;
+}
+
+// Resolve and return list of remote nhops
+boost::container::flat_set<PortDescriptor> resolveRemoteNhops(
+    TestEnsembleIf* ensemble,
+    utility::EcmpSetupTargetedPorts6& ecmpHelper) {
+  auto remoteSysPorts =
+      ensemble->getProgrammedState()->getRemoteSystemPorts()->getAllNodes();
+  boost::container::flat_set<PortDescriptor> sysPortDescs;
+  std::for_each(
+      remoteSysPorts->begin(),
+      remoteSysPorts->end(),
+      [&sysPortDescs](const auto& idAndPort) {
+        sysPortDescs.insert(
+            PortDescriptor(static_cast<SystemPortID>(idAndPort.first)));
+      });
+  ensemble->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+    return ecmpHelper.resolveNextHops(
+        in, sysPortDescs, false, getDummyEncapIndex(ensemble));
+  });
+  return sysPortDescs;
 }
 
 } // namespace facebook::fboss::utility

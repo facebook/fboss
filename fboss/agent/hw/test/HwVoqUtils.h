@@ -6,9 +6,13 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/types.h"
 
-namespace facebook::fboss::utility {
+namespace facebook::fboss {
+class TestEnsembleIf;
+
+namespace utility {
 
 int getDsfNodeCount(const HwAsic* asic);
 
@@ -58,4 +62,11 @@ std::shared_ptr<SwitchState> setupRemoteIntfAndSysPorts(
 
 QueueConfig getDefaultVoqConfig();
 
-} // namespace facebook::fboss::utility
+std::optional<uint64_t> getDummyEncapIndex(TestEnsembleIf* ensemble);
+
+boost::container::flat_set<PortDescriptor> resolveRemoteNhops(
+    TestEnsembleIf* ensemble,
+    utility::EcmpSetupTargetedPorts6& ecmpHelper);
+
+} // namespace utility
+} // namespace facebook::fboss
