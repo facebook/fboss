@@ -238,10 +238,12 @@ void SaiHandler::getAllInterfacePrbsStats(
             prbsStatsEntry.component() = phy::PortComponent::ASIC;
             for (const auto& lane : asicPrbsStats) {
               prbsStatsEntry.laneStats()->push_back(lane);
+              auto timeCollected = lane.timeCollected().value();
+              // Store most recent timeCollected across all lane stats
+              if (timeCollected > prbsStatsEntry.timeCollected()) {
+                prbsStatsEntry.timeCollected() = timeCollected;
+              }
             }
-            auto now =
-                duration_cast<seconds>(system_clock::now().time_since_epoch());
-            prbsStatsEntry.timeCollected() = now.count();
             prbsStats[port.second->getName()] = prbsStatsEntry;
           }
         }

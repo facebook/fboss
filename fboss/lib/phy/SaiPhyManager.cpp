@@ -1025,6 +1025,8 @@ std::vector<phy::PrbsLaneStats> SaiPhyManager::getPortPrbsStats(
 
   std::vector<phy::PrbsLaneStats> lanePrbs;
   phy::PrbsLaneStats oneLanePrbs;
+  oneLanePrbs.timeCollected() =
+      duration_cast<seconds>(system_clock::now().time_since_epoch()).count();
   oneLanePrbs.laneId() = 0;
 
   bool prbsEnabled =

@@ -16,19 +16,19 @@
 namespace facebook::fboss {
 
 using std::chrono::milliseconds;
-using std::chrono::steady_clock;
+using std::chrono::system_clock;
 
 class PrbsStatsEntry {
  public:
   PrbsStatsEntry(int32_t laneId, int32_t gportId, double rate)
       : laneId_(laneId), gportId_(gportId), rate_(rate) {
-    timeLastCleared_ = steady_clock::now();
-    timeLastLocked_ = steady_clock::time_point();
+    timeLastCleared_ = system_clock::now();
+    timeLastLocked_ = system_clock::time_point();
   }
 
   PrbsStatsEntry(int32_t portId, double rate) : portId_(portId), rate_(rate) {
-    timeLastCleared_ = steady_clock::now();
-    timeLastLocked_ = steady_clock::time_point();
+    timeLastCleared_ = system_clock::now();
+    timeLastLocked_ = system_clock::time_point();
   }
 
   int32_t getLaneId() const {
@@ -60,7 +60,7 @@ class PrbsStatsEntry {
       handleLossOfLock();
       return;
     }
-    steady_clock::time_point now = steady_clock::now();
+    system_clock::time_point now = system_clock::now();
     accuErrorCount_ += num_errors;
     milliseconds duration =
         std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -76,7 +76,7 @@ class PrbsStatsEntry {
   }
 
   void handleNotLocked() {
-    steady_clock::time_point now = steady_clock::now();
+    system_clock::time_point now = system_clock::now();
     if (locked_) {
       locked_ = false;
       accuErrorCount_ = 0;
@@ -86,7 +86,7 @@ class PrbsStatsEntry {
   }
 
   void handleLossOfLock() {
-    steady_clock::time_point now = steady_clock::now();
+    system_clock::time_point now = system_clock::now();
     locked_ = true;
     accuErrorCount_ = 0;
     numLossOfLock_++;
@@ -96,7 +96,7 @@ class PrbsStatsEntry {
 
   phy::PrbsLaneStats getPrbsStats() const {
     phy::PrbsLaneStats prbsLaneStats = phy::PrbsLaneStats();
-    steady_clock::time_point now = steady_clock::now();
+    system_clock::time_point now = system_clock::now();
     *prbsLaneStats.laneId() = laneId_;
     *prbsLaneStats.locked() = locked_;
     if (!locked_) {
@@ -115,13 +115,17 @@ class PrbsStatsEntry {
     *prbsLaneStats.maxBer() = maxBer_;
     *prbsLaneStats.numLossOfLock() = numLossOfLock_;
     *prbsLaneStats.timeSinceLastLocked() =
-        (timeLastLocked_ == steady_clock::time_point())
+        (timeLastLocked_ == system_clock::time_point())
         ? 0
         : std::chrono::duration_cast<std::chrono::seconds>(
               now - timeLastLocked_)
               .count();
     *prbsLaneStats.timeSinceLastClear() =
         std::chrono::duration_cast<std::chrono::seconds>(now - timeLastCleared_)
+            .count();
+    *prbsLaneStats.timeCollected() =
+        std::chrono::duration_cast<std::chrono::seconds>(
+            timeLastCollect_.time_since_epoch())
             .count();
     return prbsLaneStats;
   }
@@ -130,8 +134,8 @@ class PrbsStatsEntry {
     accuErrorCount_ = 0;
     maxBer_ = -1.;
     numLossOfLock_ = 0;
-    timeLastLocked_ = locked_ ? timeLastCollect_ : steady_clock::time_point();
-    timeLastCleared_ = steady_clock::now();
+    timeLastLocked_ = locked_ ? timeLastCollect_ : system_clock::time_point();
+    timeLastCleared_ = system_clock::now();
   }
 
  private:
@@ -143,8 +147,8 @@ class PrbsStatsEntry {
   int64_t accuErrorCount_ = 0;
   double maxBer_ = -1.;
   int32_t numLossOfLock_ = 0;
-  steady_clock::time_point timeLastLocked_;
-  steady_clock::time_point timeLastCleared_;
-  steady_clock::time_point timeLastCollect_;
+  system_clock::time_point timeLastLocked_;
+  system_clock::time_point timeLastCleared_;
+  system_clock::time_point timeLastCollect_;
 };
 } // namespace facebook::fboss

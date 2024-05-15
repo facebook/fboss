@@ -1530,9 +1530,12 @@ void ThriftHandler::getPortPrbsStats(
     prbsStats.component() = phy::PortComponent::ASIC;
     for (const auto& lane : asicPrbsStats) {
       prbsStats.laneStats()->push_back(lane);
+      auto timeCollected = lane.timeCollected().value();
+      // Store most recent timeCollected across all lane stats
+      if (timeCollected > prbsStats.timeCollected()) {
+        prbsStats.timeCollected() = timeCollected;
+      }
     }
-    auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
-    prbsStats.timeCollected() = now.count();
   } else if (
       component == phy::PortComponent::GB_SYSTEM ||
       component == phy::PortComponent::GB_LINE) {

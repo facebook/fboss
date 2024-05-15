@@ -2223,7 +2223,15 @@ phy::PrbsStats TransceiverManager::getPortPrbsStats(
       throw FbossError("Current platform doesn't support xphy");
     }
     phy::PrbsStats stats;
-    stats.laneStats() = phyManager_->getPortPrbsStats(portId, side);
+    auto lanePrbsStats = phyManager_->getPortPrbsStats(portId, side);
+    for (const auto& lane : lanePrbsStats) {
+      stats.laneStats()->push_back(lane);
+      auto timeCollected = lane.timeCollected().value();
+      // Store most recent timeCollected across all lane stats
+      if (timeCollected > stats.timeCollected()) {
+        stats.timeCollected() = timeCollected;
+      }
+    }
     stats.portId() = portId;
     stats.component() = component;
     return stats;
