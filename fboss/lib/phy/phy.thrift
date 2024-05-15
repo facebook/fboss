@@ -324,6 +324,7 @@ struct PrbsLaneStats {
   7: i32 timeSinceLastClear;
   8: optional double snr;
   9: optional double maxSnr;
+  10: i32 timeCollected;
 }
 
 struct PrbsStats {
