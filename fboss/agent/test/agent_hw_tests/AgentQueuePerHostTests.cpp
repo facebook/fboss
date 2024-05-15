@@ -212,7 +212,6 @@ class AgentQueuePerHostTest : public AgentHwTest {
       for (const auto& ipToMacAndClassID : getIpToMacAndClassID()) {
         auto ip = ipToMacAndClassID.first;
         auto macAndClassID = ipToMacAndClassID.second;
-        auto neighborMac = macAndClassID.first;
         auto classID = blockNeighbor ? cfg::AclLookupClass::CLASS_DROP
                                      : macAndClassID.second;
 

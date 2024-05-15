@@ -65,10 +65,6 @@ class CmdShowDsfSubscription
         subscription.state() =
             apache::thrift::util::enumNameSafe(*session.state());
         if (session.state() == facebook::fboss::DsfSessionState::ESTABLISHED) {
-          auto nowSecs =
-              std::chrono::duration_cast<std::chrono::seconds>(
-                  std::chrono::system_clock::now().time_since_epoch())
-                  .count();
           subscription.establishedSince() =
               utils::getPrettyElapsedTime(*session.lastEstablishedAt());
         } else {

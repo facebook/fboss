@@ -50,6 +50,7 @@ target_link_libraries(agent_test_utils
   label_forwarding_utils
   hw_mock
   monolithic_switch_handler
+  multi_switch_hw_switch_handler
 )
 
 add_library(ecmp_helper
