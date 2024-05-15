@@ -193,7 +193,7 @@
         "routable": true,
         "ingressVlan": 0,
         "speed": 10000,
-        "name": "evtr1/1/506",
+        "name": "evt1/1/506",
         "description": "",
         "queues_DEPRECATED": [
           
