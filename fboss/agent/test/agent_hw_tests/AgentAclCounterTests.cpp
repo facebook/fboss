@@ -585,6 +585,56 @@ TEST_F(AgentUdfAclCounterTest, VerifyUdfWithOtherAcls) {
       {AclType::UDF, AclType::SRC_PORT});
 }
 
+// Add UDF for hash config after warmboot
+TEST_F(AgentUdfAclCounterTest, VerifyUdfPlusUdfHash) {
+  auto setup = [this]() {
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return helper_->resolveNextHops(in, 2);
+    });
+    auto wrapper = getSw()->getRouteUpdater();
+    helper_->programRoutes(&wrapper, kEcmpWidth);
+    auto newCfg{initialConfig(*getAgentEnsemble())};
+    addAclAndStat(&newCfg, AclType::UDF);
+    applyNewConfig(newCfg);
+  };
+
+  auto verify = [this]() { verifyAclType(true, true, AclType::UDF); };
+
+  auto setupPostWarmboot = [this]() {
+    auto newCfg{initialConfig(*getAgentEnsemble())};
+    newCfg.udfConfig() = utility::addUdfHashAclConfig();
+    addAclAndStat(&newCfg, AclType::UDF);
+    applyNewConfig(newCfg);
+  };
+
+  verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verify);
+}
+
+// Remove UDF for hash config after warmboot
+TEST_F(AgentUdfAclCounterTest, VerifyUdfMinusUdfHash) {
+  auto setup = [this]() {
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return helper_->resolveNextHops(in, 2);
+    });
+    auto wrapper = getSw()->getRouteUpdater();
+    helper_->programRoutes(&wrapper, kEcmpWidth);
+    auto newCfg{initialConfig(*getAgentEnsemble())};
+    newCfg.udfConfig() = utility::addUdfHashAclConfig();
+    addAclAndStat(&newCfg, AclType::UDF);
+    applyNewConfig(newCfg);
+  };
+
+  auto verify = [this]() { verifyAclType(true, true, AclType::UDF); };
+
+  auto setupPostWarmboot = [this]() {
+    auto newCfg{initialConfig(*getAgentEnsemble())};
+    addAclAndStat(&newCfg, AclType::UDF);
+    applyNewConfig(newCfg);
+  };
+
+  verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verify);
+}
+
 class AgentBthOpcodeAclCounterTest
     : public AgentAclCounterTest<EnableMultiAclTable<false>> {
  public:
