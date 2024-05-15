@@ -17,6 +17,8 @@ namespace {
 
 constexpr auto kNumPortPerCore = 10;
 constexpr auto kNifPortOffset = 2;
+constexpr auto kNumRdsw = 128;
+constexpr auto kNumEdsw = 16;
 
 int getPerNodeSysPorts(cfg::AsicType asicType) {
   return asicType == cfg::AsicType::ASIC_TYPE_JERICHO2 ? 20 : 40;
@@ -27,9 +29,9 @@ int getPerNodeSysPorts(const HwAsic* asic) {
 } // namespace
 
 int getDsfNodeCount(const HwAsic* asic) {
-  // J3 supports up to 6k system port. For each node with 40 system ports,
-  // 148 remote nodes gives (148 + 1) * 40 = 5960 system ports.
-  return asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2 ? 128 : 148;
+  return asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2
+      ? kNumRdsw
+      : kNumRdsw + kNumEdsw;
 }
 
 std::optional<std::map<int64_t, cfg::DsfNode>> addRemoteDsfNodeCfg(
