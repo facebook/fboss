@@ -4894,7 +4894,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2002,
@@ -4907,7 +4908,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2003,
@@ -4920,7 +4922,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2004,
@@ -4933,7 +4936,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2005,
@@ -4946,7 +4950,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2006,
@@ -4959,7 +4964,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2007,
@@ -4972,7 +4978,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2008,
@@ -4985,7 +4992,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2009,
@@ -4998,7 +5006,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2010,
@@ -5011,7 +5020,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2011,
@@ -5024,7 +5034,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2012,
@@ -5037,7 +5048,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2013,
@@ -5050,7 +5062,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2014,
@@ -5063,7 +5076,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2015,
@@ -5076,7 +5090,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2016,
@@ -5089,7 +5104,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2017,
@@ -5102,7 +5118,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2018,
@@ -5115,7 +5132,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2019,
@@ -5128,7 +5146,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2020,
@@ -5141,7 +5160,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2021,
@@ -5154,7 +5174,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2022,
@@ -5167,7 +5188,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2023,
@@ -5180,7 +5202,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2024,
@@ -5193,7 +5216,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2025,
@@ -5206,7 +5230,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2026,
@@ -5219,7 +5244,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2027,
@@ -5232,7 +5258,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2028,
@@ -5245,7 +5272,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2029,
@@ -5258,7 +5286,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2030,
@@ -5271,7 +5300,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2031,
@@ -5284,7 +5314,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2032,
@@ -5297,7 +5328,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2033,
@@ -5310,7 +5342,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2034,
@@ -5323,7 +5356,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2035,
@@ -5336,7 +5370,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2036,
@@ -5349,7 +5384,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2037,
@@ -5362,7 +5398,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2038,
@@ -5375,7 +5412,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2039,
@@ -5388,7 +5426,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2040,
@@ -5401,7 +5440,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2041,
@@ -5414,7 +5454,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2042,
@@ -5427,7 +5468,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2043,
@@ -5440,7 +5482,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2044,
@@ -5453,7 +5496,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2045,
@@ -5466,7 +5510,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2046,
@@ -5479,7 +5524,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2047,
@@ -5492,7 +5538,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2048,
@@ -5505,7 +5552,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2049,
@@ -5518,7 +5566,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2050,
@@ -5531,7 +5580,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2051,
@@ -5544,7 +5594,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2052,
@@ -5557,7 +5608,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2053,
@@ -5570,7 +5622,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2054,
@@ -5583,7 +5636,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2055,
@@ -5596,7 +5650,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2056,
@@ -5609,7 +5664,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2057,
@@ -5622,7 +5678,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2058,
@@ -5635,7 +5692,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2059,
@@ -5648,7 +5706,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2060,
@@ -5661,7 +5720,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2061,
@@ -5674,7 +5734,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2062,
@@ -5687,7 +5748,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2063,
@@ -5700,7 +5762,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2064,
@@ -5713,7 +5776,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2065,
@@ -5726,7 +5790,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2067,
@@ -5739,7 +5804,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2069,
@@ -5752,7 +5818,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2071,
@@ -5765,7 +5832,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2073,
@@ -5778,7 +5846,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2075,
@@ -5791,7 +5860,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2077,
@@ -5804,7 +5874,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2079,
@@ -5817,7 +5888,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2081,
@@ -5830,7 +5902,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2083,
@@ -5843,7 +5916,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2085,
@@ -5856,7 +5930,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2087,
@@ -5869,7 +5944,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2089,
@@ -5882,7 +5958,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2091,
@@ -5895,7 +5972,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2093,
@@ -5908,7 +5986,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2095,
@@ -5921,7 +6000,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2097,
@@ -5934,7 +6014,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2099,
@@ -5947,7 +6028,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2101,
@@ -5960,7 +6042,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2103,
@@ -5973,7 +6056,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2105,
@@ -5986,7 +6070,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2107,
@@ -5999,7 +6084,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2109,
@@ -6012,7 +6098,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2111,
@@ -6025,7 +6112,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2113,
@@ -6038,7 +6126,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2115,
@@ -6051,7 +6140,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2117,
@@ -6064,7 +6154,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2119,
@@ -6077,7 +6168,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2121,
@@ -6090,7 +6182,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2123,
@@ -6103,7 +6196,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2125,
@@ -6116,7 +6210,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2127,
@@ -6129,7 +6224,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 2129,
@@ -6142,7 +6238,8 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       },
       {
         "intfID": 10,
@@ -6155,7 +6252,8 @@
         "mtu": 9000,
         "isVirtual": true,
         "isStateSyncDisabled": true,
-        "type": 1
+        "type": 1,
+        "scope": 0
       }
     ],
     "arpTimeoutSeconds": 60,
