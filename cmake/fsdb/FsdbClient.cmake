@@ -20,7 +20,6 @@ target_link_libraries(fsdb_client
 
 add_library(fsdb_stream_client
   fboss/fsdb/client/FsdbStreamClient.cpp
-  fboss/fsdb/client/oss/FsdbStreamClient.cpp
 )
 
 set(fsdb_stream_client_libs

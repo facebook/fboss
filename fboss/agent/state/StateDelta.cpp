@@ -294,10 +294,7 @@ MultiSwitchMapDelta<MultiTeFlowTable> StateDelta::getTeFlowEntriesDelta()
 const fsdb::OperDelta& StateDelta::getOperDelta() const {
   if (!operDelta_.has_value()) {
     operDelta_.emplace(fsdb::computeOperDelta(
-        old_,
-        new_,
-        switchStateRootPath(),
-        FLAGS_state_oper_delta_use_id_paths));
+        old_, new_, {}, FLAGS_state_oper_delta_use_id_paths));
   }
   return operDelta_.value();
 }

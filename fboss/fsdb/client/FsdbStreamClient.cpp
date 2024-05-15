@@ -1,14 +1,14 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-#include <chrono>
-
 #include "fboss/fsdb/client/FsdbStreamClient.h"
-
-#include <folly/logging/xlog.h>
-#include <random>
-
 #include "common/time/Time.h"
 #include "fboss/fsdb/client/Client.h"
+
+#include <folly/logging/xlog.h>
+#include <chrono>
+#include <cstdint>
+#include <optional>
+#include <random>
 
 DEFINE_int32(
     fsdb_reconnect_ms,
@@ -131,5 +131,46 @@ folly::coro::Task<void> FsdbStreamClient::serviceLoopWrapper() {
   co_return;
 }
 #endif
+
+const uint8_t kDscpForClassOfServiceNC = 48;
+
+void FsdbStreamClient::resetClient() {
+  CHECK(streamEvb_->getEventBase()->isInEventBaseThread());
+  client_.reset();
+}
+
+std::optional<uint8_t> getTosForClientPriority(
+    const std::optional<FsdbStreamClient::Priority> priority) {
+  if (priority.has_value()) {
+    switch (*priority) {
+      case FsdbStreamClient::Priority::CRITICAL:
+        return kDscpForClassOfServiceNC;
+      case FsdbStreamClient::Priority::NORMAL:
+        // no TC marking by default
+        return std::nullopt;
+    }
+  }
+  return std::nullopt;
+}
+
+bool shouldUseEncryptedClient(const FsdbStreamClient::ServerOptions& options) {
+  // use encrypted connection for all clients except CRITICAL ones.
+  return (options.priority != FsdbStreamClient::Priority::CRITICAL);
+}
+
+void FsdbStreamClient::createClient(const ServerOptions& options) {
+  CHECK(streamEvb_->getEventBase()->isInEventBaseThread());
+  resetClient();
+
+  auto tos = getTosForClientPriority(options.priority);
+  bool encryptedClient = shouldUseEncryptedClient(options);
+
+  client_ = Client::getClient(
+      options.dstAddr /* dstAddr */,
+      options.srcAddr /* srcAddr */,
+      tos,
+      !encryptedClient,
+      streamEvb_->getEventBase());
+}
 
 } // namespace facebook::fboss::fsdb

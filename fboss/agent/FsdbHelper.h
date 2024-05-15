@@ -9,7 +9,6 @@
 namespace facebook::fboss {
 
 std::vector<std::string> fsdbAgentDataSwitchStateRootPath();
-std::vector<std::string> switchStateRootPath();
 
 std::string getOperPath(const std::vector<std::string>& tokens);
 void printOperDeltaPaths(const fsdb::OperDelta& operDelta);

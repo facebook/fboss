@@ -205,7 +205,7 @@ add_library(core
   fboss/agent/oss/PacketLogger.cpp
   fboss/agent/oss/RouteUpdateLogger.cpp
   fboss/agent/oss/SwSwitch.cpp
-  fboss/agent/oss/FsdbSyncer.cpp
+  fboss/agent/FsdbSyncer.cpp
 )
 
 add_library(
@@ -376,10 +376,11 @@ target_link_libraries(sflow_shim_utils
 
 
 add_library(fsdb_helper
-  fboss/agent/oss/FsdbHelper.cpp
+  fboss/agent/FsdbHelper.cpp
 )
 
 target_link_libraries(fsdb_helper
+  fsdb_model
   fsdb_oper_cpp2
   fsdb_utils
   state

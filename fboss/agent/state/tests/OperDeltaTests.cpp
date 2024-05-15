@@ -68,8 +68,7 @@ TEST(OperDeltaTests, OperDeltaProcess) {
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
 
-  auto operDelta =
-      fsdb::computeOperDelta(stateV0, stateV1, switchStateRootPath(), true);
+  auto operDelta = fsdb::computeOperDelta(stateV0, stateV1, {}, true);
 
   auto delta = StateDelta(stateV0, operDelta);
   auto stateV2 = delta.newState();
@@ -86,8 +85,7 @@ TEST(OperDeltaTests, DeltaCompare) {
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
 
-  auto operDelta =
-      fsdb::computeOperDelta(stateV0, stateV1, switchStateRootPath(), true);
+  auto operDelta = fsdb::computeOperDelta(stateV0, stateV1, {}, true);
   auto delta1 = StateDelta(stateV0, operDelta);
   auto delta2 = StateDelta(stateV0, operDelta);
   auto delta3 = StateDelta(delta1.newState(), delta2.newState());
