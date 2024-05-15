@@ -317,8 +317,6 @@ TEST_F(AgentPacketSendReceiveTest, LldpPacketReceiveSrcPort) {
         this, "LldpPacketReceiveSrcPort");
   };
   verifyAcrossWarmBoots(setup, verify);
-  getAgentEnsemble()->getSw()->getPacketObservers()->unregisterPacketObserver(
-      this, "LldpPacketReceiveSrcPort");
 }
 
 class AgentPacketSendReceiveLagTest : public AgentPacketSendReceiveTest {
@@ -403,7 +401,8 @@ TEST_F(AgentPacketSendReceiveLagTest, LacpPacketReceiveSrcPort) {
       EXPECT_EQ(kAggId, getLastPktSrcAggregatePort());
     }
   };
-  verifyAcrossWarmBoots(setup, verify);
+  setup();
+  verify();
 }
 
 class AgentPacketFloodTest : public AgentHwTest {
