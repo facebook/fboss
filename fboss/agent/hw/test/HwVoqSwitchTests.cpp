@@ -78,13 +78,6 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
   }
 
  protected:
-  std::optional<uint64_t> getDummyEncapIndex() const {
-    std::optional<uint64_t> dummyEncapIndex;
-    if (isSupported(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE)) {
-      dummyEncapIndex = 0x200001;
-    }
-    return dummyEncapIndex;
-  }
   std::string kDscpAclName() const {
     return "dscp_acl";
   }
@@ -743,7 +736,7 @@ TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, addRemoveRemoteNeighbor) {
         kIntfId,
         kPort,
         true,
-        getDummyEncapIndex()));
+        utility::getDummyEncapIndex(getHwSwitchEnsemble())));
     // Remove neighbor
     applyNewState(utility::addRemoveRemoteNeighbor(
         getProgrammedState(),
@@ -752,7 +745,7 @@ TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, addRemoveRemoteNeighbor) {
         kIntfId,
         kPort,
         false,
-        getDummyEncapIndex()));
+        utility::getDummyEncapIndex(getHwSwitchEnsemble())));
   };
   verifyAcrossWarmBoots(setup, [] {});
 }
@@ -793,7 +786,7 @@ TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, voqDelete) {
         kIntfId,
         kPort,
         true,
-        getDummyEncapIndex()));
+        utility::getDummyEncapIndex(getHwSwitchEnsemble())));
   };
   auto verify = [=, this]() {
     auto getVoQDeletedPkts = [=, this]() {
@@ -869,7 +862,7 @@ TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, stressAddRemoveObjects) {
           kIntfId,
           kRemotePort,
           true,
-          getDummyEncapIndex()));
+          utility::getDummyEncapIndex(getHwSwitchEnsemble())));
     };
     auto removeObjects = [&]() {
       addRemoveNeighbor(kPort, false /* remove neighbor*/);
@@ -881,7 +874,7 @@ TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, stressAddRemoveObjects) {
           kIntfId,
           kRemotePort,
           false,
-          getDummyEncapIndex()));
+          utility::getDummyEncapIndex(getHwSwitchEnsemble())));
       // Remove rif
       applyNewState(
           utility::removeRemoteInterface(getProgrammedState(), kIntfId));
@@ -949,7 +942,7 @@ TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, voqTailDropCounter) {
         kIntfId,
         kPort,
         true,
-        getDummyEncapIndex()));
+        utility::getDummyEncapIndex(getHwSwitchEnsemble())));
   };
 
   auto verify = [=, this]() {
@@ -993,7 +986,7 @@ TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, verifyDscpToVoqMapping) {
         kIntfId,
         kPort,
         true,
-        getDummyEncapIndex()));
+        utility::getDummyEncapIndex(getHwSwitchEnsemble())));
   };
 
   auto verify = [=, this]() {
@@ -1051,28 +1044,6 @@ class HwVoqSwitchFullScaleDsfNodesTest
     return 64;
   }
 
-  // Resolve and return list of remote nhops
-  std::vector<PortDescriptor> resolveRemoteNhops(
-      utility::EcmpSetupTargetedPorts6& ecmpHelper) {
-    auto remoteSysPorts =
-        getProgrammedState()->getRemoteSystemPorts()->getAllNodes();
-    std::vector<PortDescriptor> sysPortDescs;
-    std::for_each(
-        remoteSysPorts->begin(),
-        remoteSysPorts->end(),
-        [&sysPortDescs](const auto& idAndPort) {
-          sysPortDescs.push_back(
-              PortDescriptor(static_cast<SystemPortID>(idAndPort.first)));
-        });
-    auto currState = getProgrammedState();
-    for (const auto& sysPortDesc : sysPortDescs) {
-      currState = ecmpHelper.resolveNextHops(
-          currState, {sysPortDesc}, false, getDummyEncapIndex());
-    }
-    applyNewState(currState);
-    return sysPortDescs;
-  }
-
   // Resolve and return list of local nhops (excluding recycle port)
   std::vector<PortDescriptor> resolveLocalNhops(
       utility::EcmpSetupTargetedPorts6& ecmpHelper) {
@@ -1109,7 +1080,7 @@ TEST_F(HwVoqSwitchFullScaleDsfNodesTest, remoteNeighborWithEcmpGroup) {
   const auto kEcmpWidth = getMaxEcmpWidth(getAsic());
   const auto kMaxDeviation = 25;
   FLAGS_ecmp_width = kEcmpWidth;
-  std::vector<PortDescriptor> sysPortDescs;
+  boost::container::flat_set<PortDescriptor> sysPortDescs;
   auto setup = [&]() {
     applyNewState(utility::setupRemoteIntfAndSysPorts(
         getProgrammedState(),
@@ -1122,7 +1093,8 @@ TEST_F(HwVoqSwitchFullScaleDsfNodesTest, remoteNeighborWithEcmpGroup) {
     applyNewConfig(initialConfig());
 
     // Resolve remote nhops and get a list of remote sysPort descriptors
-    sysPortDescs = resolveRemoteNhops(ecmpHelper);
+    sysPortDescs =
+        utility::resolveRemoteNhops(getHwSwitchEnsemble(), ecmpHelper);
 
     for (int i = 0; i < getMaxEcmpGroup(); i++) {
       auto prefix = RoutePrefixV6{
@@ -1194,7 +1166,8 @@ TEST_F(HwVoqSwitchFullScaleDsfNodesTest, remoteAndLocalLoadBalance) {
     applyNewConfig(initialConfig());
 
     // Resolve remote and local nhops and get a list of sysPort descriptors
-    auto remoteSysPortDescs = resolveRemoteNhops(ecmpHelper);
+    auto remoteSysPortDescs =
+        utility::resolveRemoteNhops(getHwSwitchEnsemble(), ecmpHelper);
     auto localSysPortDescs = resolveLocalNhops(ecmpHelper);
 
     sysPortDescs.insert(
@@ -1268,7 +1241,8 @@ TEST_F(HwVoqSwitchFullScaleDsfNodesTest, stressProgramEcmpRoutes) {
     applyNewConfig(initialConfig());
 
     // Resolve remote nhops and get a list of remote sysPort descriptors
-    auto sysPortDescs = resolveRemoteNhops(ecmpHelper);
+    auto sysPortDescs =
+        utility::resolveRemoteNhops(getHwSwitchEnsemble(), ecmpHelper);
 
     for (int iter = 0; iter < numIterations; iter++) {
       std::vector<RoutePrefixV6> routes;
