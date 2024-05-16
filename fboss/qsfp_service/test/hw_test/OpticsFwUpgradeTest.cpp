@@ -134,6 +134,11 @@ class OpticsFwUpgradeTest : public HwTest {
   }
 };
 
+class OpticsFwUpgradeTestNoIPhySetup : public OpticsFwUpgradeTest {
+ public:
+  OpticsFwUpgradeTestNoIPhySetup() : OpticsFwUpgradeTest(false) {}
+};
+
 TEST_F(OpticsFwUpgradeTest, noUpgradeForSameVersion) {
   // In this test, firmware versions in qsfp config is not changed. Hence, the
   // firmware upgrade shouldn't be triggered under any circumstances.
@@ -289,4 +294,127 @@ TEST_F(OpticsFwUpgradeTest, upgradeOnLinkDown) {
 
   verifyAcrossWarmBoots(setup, verify);
 }
+
+TEST_F(OpticsFwUpgradeTestNoIPhySetup, noUpgradeOnWarmboot) {
+  /*
+   * This test verifies that a warmboot does not trigger any firmware upgrade
+   * Step 1: Coldboot
+   * Step 2: After modules are discovered, reload config with different fw
+   * version.
+   * Step 3: Program ports, bring the ports up
+   * Step 4: Bring the ports down, this should trigger firmware download
+   * Step 5: Warmboot
+   * Step 6: Verify that no upgrades happened during warmboot
+   */
+  std::vector<int32_t> tcvrsToTest;
+  auto allTransceivers = utility::legacyTransceiverIds(
+      utility::getCabledPortTranceivers(getHwQsfpEnsemble()));
+  auto& qsfpTestCfg = *getHwQsfpEnsemble()
+                           ->getWedgeManager()
+                           ->getQsfpConfig()
+                           ->thrift.qsfpTestConfig();
+
+  // Gather all transceivers that we need to include as part of this test
+  // The criteria is that the qsfp test config defines a firmware version for
+  // the transceiver part number
+  for (auto tcvrID : allTransceivers) {
+    auto tcvrInfo = getHwQsfpEnsemble()->getWedgeManager()->getTransceiverInfo(
+        TransceiverID(tcvrID));
+    auto& vendorPN = *tcvrInfo.tcvrState()->vendor().ensure().partNumber();
+    if (qsfpTestCfg.firmwareForUpgradeTest()->versionsMap()->find(vendorPN) !=
+        qsfpTestCfg.firmwareForUpgradeTest()->versionsMap()->end()) {
+      tcvrsToTest.push_back(tcvrID);
+    }
+  }
+
+  // Lambda to refresh state machine and return true if all transceivers are in
+  // TRANSCEIVER_PROGRAMMED state
+  auto refreshStateMachinesAndCheckTcvrProgrammed = [this, &tcvrsToTest]() {
+    auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
+    wedgeMgr->refreshStateMachines();
+    for (auto id : tcvrsToTest) {
+      auto curState = wedgeMgr->getCurrentState(TransceiverID(id));
+      if (curState != TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED) {
+        return false;
+      }
+    }
+    return true;
+  };
+
+  // Lambda to toggle port status to trigger firmware download. It waits till
+  // firmware download is complete
+  auto togglePortsAndWaitForFwDownload = [this, &tcvrsToTest]() {
+    setPortStatus(true);
+    // Bring the port down, this should trigger firmware download
+    setPortStatus(false);
+    // Wait for fwUpgradeInProgress to clear to confirm all
+    // upgrades are done
+    WITH_RETRIES_N_TIMED(
+        10 /* retries */,
+        std::chrono::milliseconds(10000) /* msBetweenRetry */,
+        {
+          getHwQsfpEnsemble()->getWedgeManager()->refreshStateMachines();
+          for (auto tcvrID : tcvrsToTest) {
+            auto tcvrInfo =
+                getHwQsfpEnsemble()->getWedgeManager()->getTransceiverInfo(
+                    TransceiverID(tcvrID));
+            auto& tcvrState = *tcvrInfo.tcvrState();
+            EXPECT_EVENTUALLY_FALSE(*tcvrState.fwUpgradeInProgress());
+          }
+        });
+  };
+
+  auto setup = [&]() {
+    // Set everything up so that ports get programmed
+    gflags::SetCommandLineOptionWithMode(
+        "override_program_iphy_ports_for_test", "1", gflags::SET_FLAGS_DEFAULT);
+    getHwQsfpEnsemble()
+        ->getWedgeManager()
+        ->setOverrideTcvrToPortAndProfileForTesting();
+    WITH_RETRIES_N_TIMED(
+        10 /* retries */,
+        std::chrono::milliseconds(10000) /* msBetweenRetry */,
+        {
+          EXPECT_EVENTUALLY_TRUE(refreshStateMachinesAndCheckTcvrProgrammed());
+        });
+
+    // Update the firmware versions in the config
+    auto qsfpCfg =
+        getHwQsfpEnsemble()->getWedgeManager()->getQsfpConfig()->thrift;
+    qsfpCfg.transceiverFirmwareVersions() =
+        *qsfpCfg.qsfpTestConfig()->firmwareForUpgradeTest();
+    std::string newCfgStr =
+        apache::thrift::SimpleJSONSerializer::serialize<std::string>(qsfpCfg);
+    auto newQsfpCfg = QsfpConfig::fromRawConfig(newCfgStr);
+    folly::test::TemporaryDirectory tmpDir = folly::test::TemporaryDirectory();
+    std::string newCfgPath =
+        tmpDir.path().string() + "/optics_upgrade_test_config";
+    newQsfpCfg->dumpConfig(newCfgPath);
+    FLAGS_qsfp_config = newCfgPath;
+    getHwQsfpEnsemble()->getWedgeManager()->loadConfig();
+
+    // Now that the config has changed, toggling port status will re-trigger
+    // firmware download
+    togglePortsAndWaitForFwDownload();
+  };
+
+  auto verify = [&]() {
+    // If we just did a warm boot, we expect no upgrades to have happened
+    if (didWarmBoot()) {
+      getHwQsfpEnsemble()->getWedgeManager()->refreshStateMachines();
+      // Another one to ensure if the upgrade was incorrectly triggered by
+      // previous refresh, this refresh will update the latest firmware upgrade
+      // timestamps in transceiverInfo causing verifyUpgrade to fail
+      getHwQsfpEnsemble()->getWedgeManager()->refreshStateMachines();
+      CHECK(verifyUpgrade(
+          false /* upgradeExpected */,
+          0 /* upgradeSinceTsSec */,
+          {} /* tcvrs */))
+          << "No upgrades expected";
+    }
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
