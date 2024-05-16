@@ -205,13 +205,11 @@ class PtpTests : public LinkTest {
 // }
 TEST_F(PtpTests, verifyPtpTcDelayRequest) {
   auto ecmpPorts = getVlanOwningCabledPorts();
-  XLOG(INFO) << "P0";
   // create ACL to trap any packets to CPU coming with given dst IP
   // Ideally we should have used the l4port (PTP_UDP_EVENT_PORT), but
   // SAI doesn't support this qualifier yet
   folly::CIDRNetwork dstPrefix = folly::CIDRNetwork{kIPv6Dst, 128};
   this->trapPackets(dstPrefix);
-  XLOG(INFO) << "P0";
   programDefaultRoute(ecmpPorts, sw()->getLocalMac(scope(ecmpPorts)));
 
   verifyPtpTcOnPorts(ecmpPorts, PTPMessageType::PTP_DELAY_REQUEST);
