@@ -17,12 +17,14 @@ namespace facebook::fboss::utility {
 namespace {
 
 constexpr auto kNumPortPerCore = 10;
-constexpr auto kNifPortOffset = 2;
+// 0: CPU port, 1: gloabl rcy port, 2-5: local recycle port, 6: eventor port,
+// 7: mgm port, 8-42 front panel nif
+constexpr auto kRemoteSysPortOffset = 7;
 constexpr auto kNumRdsw = 128;
 constexpr auto kNumEdsw = 16;
 
 int getPerNodeSysPorts(cfg::AsicType asicType) {
-  return asicType == cfg::AsicType::ASIC_TYPE_JERICHO2 ? 20 : 40;
+  return asicType == cfg::AsicType::ASIC_TYPE_JERICHO2 ? 20 : 44;
 }
 int getPerNodeSysPorts(const HwAsic* asic) {
   return getPerNodeSysPorts(asic->getAsicType());
@@ -184,7 +186,8 @@ std::shared_ptr<SwitchState> setupRemoteIntfAndSysPorts(
     CHECK(dsfNode.systemPortRange().has_value());
     const auto minPortID = *dsfNode.systemPortRange()->minimum();
     // 0th port for CPU and 1st port for recycle port
-    for (int i = kNifPortOffset; i < getPerNodeSysPorts(*dsfNode.asicType());
+    for (int i = kRemoteSysPortOffset;
+         i < getPerNodeSysPorts(*dsfNode.asicType());
          i++) {
       const auto newSysPortId = minPortID + i;
       const SystemPortID remoteSysPortId(newSysPortId);
@@ -205,8 +208,8 @@ std::shared_ptr<SwitchState> setupRemoteIntfAndSysPorts(
           scopeResolver,
           remoteSysPortId,
           SwitchID(remoteSwitchId),
-          (i - kNifPortOffset) / kNumPortPerCore,
-          (i - kNifPortOffset) % kNumPortPerCore + kNifPortOffset);
+          (i - kRemoteSysPortOffset) / kNumPortPerCore,
+          (i - kRemoteSysPortOffset) % kNumPortPerCore + kRemoteSysPortOffset);
       newState = addRemoteInterface(
           newState,
           scopeResolver,
