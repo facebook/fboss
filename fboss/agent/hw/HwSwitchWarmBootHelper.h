@@ -36,10 +36,8 @@ class HwSwitchWarmBootHelper {
 
   void storeHwSwitchWarmBootState(const folly::dynamic& switchState);
 
-  std::tuple<folly::dynamic, std::optional<state::WarmbootState>>
-  getWarmBootState() const;
+  folly::dynamic getWarmBootState() const;
 
-  state::WarmbootState getSwSwitchWarmBootState() const;
   folly::dynamic getHwSwitchWarmBootState() const;
 
   // bcm switch specific

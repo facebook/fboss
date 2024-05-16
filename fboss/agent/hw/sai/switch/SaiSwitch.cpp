@@ -2163,9 +2163,7 @@ HwInitResult SaiSwitch::initLocked(
   __gSaiIdToSwitch.insert_or_assign(saiSwitchId_, this);
   SaiApiTable::getInstance()->enableLogging(FLAGS_enable_sai_log);
   if (bootType_ == BootType::WARM_BOOT) {
-    auto [switchStateJson, switchStateThrift] =
-        platform_->getWarmBootHelper()->getWarmBootState();
-    std::ignore = switchStateThrift;
+    auto switchStateJson = platform_->getWarmBootHelper()->getWarmBootState();
     ret.switchState = std::make_shared<SwitchState>();
     if (platform_->getAsic()->isSupported(HwAsic::Feature::OBJECT_KEY_CACHE)) {
       adapterKeysJson = std::make_unique<folly::dynamic>(
@@ -2180,13 +2178,6 @@ HwInitResult SaiSwitch::initLocked(
         switchStateJson[kHwSwitch].items().end()) {
       adapterKeys2AdapterHostKeysJson = std::make_unique<folly::dynamic>(
           switchStateJson[kHwSwitch][kAdapterKey2AdapterHostKey]);
-    }
-    const auto& routeTables = *(switchStateThrift->routeTables());
-    if (!routeTables.empty()) {
-      ret.rib = RoutingInformationBase::fromThrift(
-          routeTables,
-          ret.switchState->getFibs(),
-          ret.switchState->getLabelForwardingInformationBase());
     }
   }
   initStoreAndManagersLocked(

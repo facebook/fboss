@@ -132,11 +132,8 @@ bool HwSwitchWarmBootHelper::checkAndClearWarmBootFlags() {
   return !forceColdBoot && canWarmBoot;
 }
 
-std::tuple<folly::dynamic, std::optional<state::WarmbootState>>
-HwSwitchWarmBootHelper::getWarmBootState() const {
-  folly::dynamic hwSwitchState = getHwSwitchWarmBootState();
-  state::WarmbootState thriftState = getSwSwitchWarmBootState();
-  return std::make_tuple(hwSwitchState, thriftState);
+folly::dynamic HwSwitchWarmBootHelper::getWarmBootState() const {
+  return getHwSwitchWarmBootState();
 }
 
 void HwSwitchWarmBootHelper::setupWarmBootFile() {
@@ -158,16 +155,6 @@ void HwSwitchWarmBootHelper::storeHwSwitchWarmBootState(
   };
   dumpStateToFileFn(warmBootHwSwitchStateFile(), switchState);
   setCanWarmBoot();
-}
-
-state::WarmbootState HwSwitchWarmBootHelper::getSwSwitchWarmBootState() const {
-  // TODO(pshaikh): remove this once SwSwitch loads switch state
-  state::WarmbootState thriftState;
-  if (!readThriftFromBinaryFile(warmBootThriftSwitchStateFile(), thriftState)) {
-    throw FbossError(
-        "Failed to read thrift state from ", warmBootThriftSwitchStateFile());
-  }
-  return thriftState;
 }
 
 folly::dynamic HwSwitchWarmBootHelper::getHwSwitchWarmBootState() const {
