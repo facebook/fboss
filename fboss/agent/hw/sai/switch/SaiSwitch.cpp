@@ -1723,6 +1723,8 @@ void SaiSwitch::updateRsInfo(
       } else {
         faultStatus.highCrcErrorRateChangedCount() = 1;
       }
+      managerTable_->portManager().updateLeakyBucketFb303Counter(
+          swPort, *faultStatus.highCrcErrorRateChangedCount());
     }
   }
 #endif

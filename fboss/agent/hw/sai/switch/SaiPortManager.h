@@ -265,6 +265,7 @@ class SaiPortManager {
       PortSaiId saiPortId,
       PortID swPort) const;
 #endif
+  void updateLeakyBucketFb303Counter(PortID portId, int value);
 
   void enableAfeAdaptiveMode(PortID portId);
 

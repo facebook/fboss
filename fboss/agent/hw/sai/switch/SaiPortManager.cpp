@@ -2552,6 +2552,14 @@ std::optional<sai_latch_status_t> SaiPortManager::getHighCrcErrorRate(
 }
 #endif
 
+void SaiPortManager::updateLeakyBucketFb303Counter(PortID portId, int value) {
+  auto portStatItr = portStats_.find(portId);
+  if (portStatItr == portStats_.end()) {
+    throw FbossError("PortStats_ not available for : ", portId);
+  }
+  portStatItr->second->updateLeakyBucketFlapCnt(value);
+}
+
 std::vector<sai_port_err_status_t> SaiPortManager::getPortErrStatus(
     PortSaiId saiPortId) const {
   if (!platform_->getAsic()->isSupported(

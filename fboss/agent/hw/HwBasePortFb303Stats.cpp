@@ -189,6 +189,12 @@ void HwBasePortFb303Stats::pfcPriorityChanged(
   }
 }
 
+void HwBasePortFb303Stats::updateLeakyBucketFlapCnt(int cnt) {
+  auto now = duration_cast<std::chrono::seconds>(
+      std::chrono::system_clock::now().time_since_epoch());
+  updateStat(now, kLeakyBucketFlapCnt(), cnt);
+}
+
 void HwBasePortFb303Stats::updateStat(
     const std::chrono::seconds& now,
     folly::StringPiece statKey,
