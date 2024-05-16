@@ -2421,6 +2421,77 @@ SMFMediaInterfaceCode CmisModule::getMediaIntfCodeFromSpeed(
 }
 
 /*
+ * isRequestValidMultiportSpeedConfig
+ *
+ * This function returns if the requested speed on given number of lanes will
+ * result in valid config on the overall optics. If the requested config on
+ * given lanes will result in non-supported speed config (as described in static
+ * list osfpValidSpeedCombination) then this function returns false otherwise
+ * returns true. This function does not rely on cache and does the directHW read
+ * to know the current speed config on the lanes.
+ */
+bool CmisModule::isRequestValidMultiportSpeedConfig(
+    cfg::PortSpeed speed,
+    uint8_t startHostLane,
+    uint8_t numLanes) {
+  if (!isMultiPortOptics()) {
+    // For non-multiport supporting optics, return true rightaway
+    return true;
+  }
+
+  // Sanity check
+  auto desiredMediaIntfCode = getMediaIntfCodeFromSpeed(speed, numLanes);
+  if (desiredMediaIntfCode == SMFMediaInterfaceCode::UNKNOWN) {
+    QSFP_LOG(ERR, this) << "Unsupported Speed "
+                        << apache::thrift::util::enumNameSafe(speed);
+    return false;
+  }
+
+  // Get the current speed config on the Multiport optics lanes. Avoid cache
+  // and read from HW directly
+  std::array<uint8_t, kMaxOsfpNumLanes> currHwSpeedConfig;
+  readCmisField(CmisField::ACTIVE_CTRL_ALL_LANES, currHwSpeedConfig.data());
+  for (int laneId = 0; laneId < kMaxOsfpNumLanes; laneId++) {
+    currHwSpeedConfig[laneId] =
+        (currHwSpeedConfig[laneId] & APP_SEL_MASK) >> APP_SEL_BITSHIFT;
+  }
+
+  // Find what will be the new config after applying the requested config
+  std::array<SMFMediaInterfaceCode, kMaxOsfpNumLanes> desiredSpeedConfig;
+  for (int laneId = 0; laneId < kMaxOsfpNumLanes; laneId++) {
+    if (laneId >= startHostLane && laneId < startHostLane + numLanes) {
+      desiredSpeedConfig[laneId] = desiredMediaIntfCode;
+    } else {
+      desiredSpeedConfig[laneId] =
+          getApplicationFromApSelCode(currHwSpeedConfig[laneId]);
+    }
+  }
+
+  // Check if this is supported speed config combo on this optics and return
+  for (auto& validSpeedCombo : osfpValidSpeedCombination) {
+    bool combolValid = true;
+    for (int laneId = 0; laneId < kMaxOsfpNumLanes; laneId++) {
+      if (validSpeedCombo[laneId] != desiredSpeedConfig[laneId]) {
+        combolValid = false;
+        break;
+      }
+    }
+    if (combolValid) {
+      QSFP_LOG(DBG2, this) << folly::sformat(
+          "Found the valid speed combo of media intf id {:s} for lanemask {:#x}",
+          apache::thrift::util::enumNameSafe(desiredMediaIntfCode),
+          laneMask(startHostLane, numLanes));
+      return true;
+    }
+  }
+  QSFP_LOG(DBG2, this) << folly::sformat(
+      "Could not find the valid speed combo of media intf id {:s} for lanemask {:#x}",
+      apache::thrift::util::enumNameSafe(desiredMediaIntfCode),
+      laneMask(startHostLane, numLanes));
+  return false;
+}
+
+/*
  * This function checks if the previous lane configuration has been successul
  * or rejected. It will log error and return false if config on a lane is
  * rejected. This function should be run after ApSel setting or any other
