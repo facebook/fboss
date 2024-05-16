@@ -977,6 +977,64 @@ TEST_F(CmisTest, cmis2x400GFr4TransceiverVdmTest) {
       2);
 }
 
+TEST_F(CmisTest, cmis2x400GFr4DatapathProgramTest) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<Cmis2x400GFr4Transceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+  const auto& info = xcvr->getTransceiverInfo();
+  EXPECT_TRUE(info.tcvrState()->transceiverManagementInterface());
+  EXPECT_EQ(
+      info.tcvrState()->transceiverManagementInterface(),
+      TransceiverManagementInterface::CMIS);
+  EXPECT_EQ(xcvr->numHostLanes(), 8);
+  EXPECT_EQ(xcvr->numMediaLanes(), 8);
+
+  EXPECT_TRUE(xcvr->isRequestValidMultiportSpeedConfig(
+      cfg::PortSpeed::FOURHUNDREDG, 0, 4));
+  EXPECT_TRUE(xcvr->isRequestValidMultiportSpeedConfig(
+      cfg::PortSpeed::FOURHUNDREDG, 4, 4));
+  EXPECT_TRUE(xcvr->isRequestValidMultiportSpeedConfig(
+      cfg::PortSpeed::TWOHUNDREDG, 0, 4));
+  EXPECT_TRUE(xcvr->isRequestValidMultiportSpeedConfig(
+      cfg::PortSpeed::TWOHUNDREDG, 4, 4));
+  EXPECT_FALSE(xcvr->isRequestValidMultiportSpeedConfig(
+      cfg::PortSpeed::TWOHUNDREDG, 2, 4));
+  EXPECT_FALSE(
+      xcvr->isRequestValidMultiportSpeedConfig(cfg::PortSpeed::HUNDREDG, 0, 1));
+  EXPECT_FALSE(
+      xcvr->isRequestValidMultiportSpeedConfig(cfg::PortSpeed::HUNDREDG, 0, 4));
+  EXPECT_FALSE(
+      xcvr->isRequestValidMultiportSpeedConfig(cfg::PortSpeed::HUNDREDG, 4, 4));
+
+  EXPECT_TRUE(
+      xcvr->getValidMultiportSpeedConfig(cfg::PortSpeed::FOURHUNDREDG, 0, 4)
+          .has_value());
+  EXPECT_TRUE(
+      xcvr->getValidMultiportSpeedConfig(cfg::PortSpeed::FOURHUNDREDG, 4, 4)
+          .has_value());
+
+  auto speedCfgCombo =
+      xcvr->getValidMultiportSpeedConfig(cfg::PortSpeed::FOURHUNDREDG, 0, 4);
+  EXPECT_TRUE(speedCfgCombo.has_value());
+  EXPECT_EQ(speedCfgCombo.value()[4], SMFMediaInterfaceCode::FR4_400G);
+
+  speedCfgCombo =
+      xcvr->getValidMultiportSpeedConfig(cfg::PortSpeed::HUNDREDG, 4, 4);
+  EXPECT_TRUE(speedCfgCombo.has_value());
+  EXPECT_EQ(speedCfgCombo.value()[0], SMFMediaInterfaceCode::CWDM4_100G);
+
+  speedCfgCombo =
+      xcvr->getValidMultiportSpeedConfig(cfg::PortSpeed::HUNDREDG, 5, 1);
+  EXPECT_TRUE(speedCfgCombo.has_value());
+  EXPECT_EQ(speedCfgCombo.value()[0], SMFMediaInterfaceCode::FR1_100G);
+  EXPECT_EQ(speedCfgCombo.value()[1], SMFMediaInterfaceCode::FR1_100G);
+  EXPECT_EQ(speedCfgCombo.value()[2], SMFMediaInterfaceCode::FR1_100G);
+  EXPECT_EQ(speedCfgCombo.value()[3], SMFMediaInterfaceCode::FR1_100G);
+  EXPECT_EQ(speedCfgCombo.value()[4], SMFMediaInterfaceCode::FR1_100G);
+  EXPECT_EQ(speedCfgCombo.value()[6], SMFMediaInterfaceCode::FR1_100G);
+  EXPECT_EQ(speedCfgCombo.value()[7], SMFMediaInterfaceCode::FR1_100G);
+}
+
 TEST_F(CmisTest, cmis2x400GDr4TransceiverInfoTest) {
   auto xcvrID = TransceiverID(1);
   auto xcvr = overrideCmisModule<Cmis2x400GDr4Transceiver>(
