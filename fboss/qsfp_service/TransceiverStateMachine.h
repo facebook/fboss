@@ -67,6 +67,8 @@ BOOST_MSM_EUML_DECLARE_ATTRIBUTE(bool, needResetDataPath)
 
 BOOST_MSM_EUML_DECLARE_ATTRIBUTE(bool, needToResetToDiscovered)
 
+BOOST_MSM_EUML_DECLARE_ATTRIBUTE(bool, newTransceiverInsertedAfterInit)
+
 // clang-format off
 BOOST_MSM_EUML_ACTION(resetProgrammingAttributes) {
 template <class Event, class Fsm, class State>
@@ -143,11 +145,27 @@ void operator()(
   fsm.get_attribute(needToResetToDiscovered) = true;
 }
 };
+
+BOOST_MSM_EUML_ACTION(presentStateEntry) {
+template <class Event, class Fsm, class State>
+void operator()(
+    const Event& /* event */,
+    Fsm& fsm,
+    State& currState) const {
+  auto tcvrID = fsm.get_attribute(transceiverID);
+  // TODO: Add a transceiverManager API to get this
+  auto newTcvrInsertedAfterInit = false;
+  XLOG(DBG2) << "[Transceiver:" << tcvrID << "] State changed to "
+             << apache::thrift::util::enumNameSafe(stateToStateEnum(currState))
+             << ". New transceiver inserted = " << newTcvrInsertedAfterInit;
+  fsm.get_attribute(newTransceiverInsertedAfterInit) = newTcvrInsertedAfterInit;
+}
+};
 // clang-format on
 
 // Transceiver State Machine States
 BOOST_MSM_EUML_STATE((resetProgrammingAttributes), NOT_PRESENT)
-BOOST_MSM_EUML_STATE((), PRESENT)
+BOOST_MSM_EUML_STATE((presentStateEntry), PRESENT)
 BOOST_MSM_EUML_STATE((resetProgrammingAttributes), DISCOVERED)
 BOOST_MSM_EUML_STATE((), IPHY_PORTS_PROGRAMMED)
 BOOST_MSM_EUML_STATE((), XPHY_PORTS_PROGRAMMED)
@@ -336,6 +354,9 @@ bool operator()(
       tcvrID, fsm.get_attribute(needResetDataPath));
     fsm.get_attribute(isTransceiverProgrammed) = true;
     fsm.get_attribute(needResetDataPath) = false;
+    // Clear this flag because the transceiver is not considered
+    // as new after it has been programmed
+    fsm.get_attribute(newTransceiverInsertedAfterInit) = false;
     return true;
   } catch (const std::exception& ex) {
     // We have retry mechanism to handle failure. No crash here
@@ -491,7 +512,7 @@ BOOST_MSM_EUML_DECLARE_STATE_MACHINE(
      attributes_ << isIphyProgrammed << isXphyProgrammed
                  << isTransceiverProgrammed << transceiverMgrPtr
                  << transceiverID << needMarkLastDownTime << needResetDataPath
-                 << needToResetToDiscovered),
+                 << needToResetToDiscovered << newTransceiverInsertedAfterInit),
     TransceiverStateMachine)
 
 } // namespace facebook::fboss
