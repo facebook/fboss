@@ -153,8 +153,10 @@ void operator()(
     Fsm& fsm,
     State& currState) const {
   auto tcvrID = fsm.get_attribute(transceiverID);
-  // TODO: Add a transceiverManager API to get this
-  auto newTcvrInsertedAfterInit = false;
+  // If Transceiver Manager has been fully Initialized (i.e. has had one full run of refreshStateMachines)
+  // and then a transceiver goes into Present state, this means that it was just inserted.
+  // If not, we could enter Present state for existing modules right after warm boot or cold boot
+  auto newTcvrInsertedAfterInit = fsm.get_attribute(transceiverMgrPtr)->isFullyInitialized();
   XLOG(DBG2) << "[Transceiver:" << tcvrID << "] State changed to "
              << apache::thrift::util::enumNameSafe(stateToStateEnum(currState))
              << ". New transceiver inserted = " << newTcvrInsertedAfterInit;

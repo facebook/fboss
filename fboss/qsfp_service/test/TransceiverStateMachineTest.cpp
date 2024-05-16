@@ -2089,6 +2089,9 @@ TEST_F(TransceiverStateMachineTest, reseatTransceiver) {
           .Times(2);
       setProgramCmisModuleExpectation(true);
     }
+    if (!isRemoval) {
+      EXPECT_TRUE(stateMachine2.get_attribute(newTransceiverInsertedAfterInit));
+    }
     // Refresh the state machine again which will first do a successful
     // refresh and clear the dirty_ flag and then trigger
     // PREPARE_TRANSCEIVER. Next refresh will trigger PROGRAM_TRANSCEIVER
@@ -2113,6 +2116,13 @@ TEST_F(TransceiverStateMachineTest, reseatTransceiver) {
     EXPECT_TRUE(stateMachine3.get_attribute(isIphyProgrammed));
     EXPECT_TRUE(stateMachine3.get_attribute(isXphyProgrammed));
     EXPECT_TRUE(stateMachine3.get_attribute(isTransceiverProgrammed));
+
+    // Now that transceiver is programmed, newTransceiverInsertedAfterInit
+    // should be false
+    if (!isRemoval) {
+      EXPECT_FALSE(
+          stateMachine2.get_attribute(newTransceiverInsertedAfterInit));
+    }
   };
 
   // Due to this test might need several updates, which are first removing the
