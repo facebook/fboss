@@ -456,30 +456,35 @@ bool TransceiverManager::requiresFirmwareUpgrade(Transceiver& tcvr) const {
   // qsfp config
   auto cachedTcvrInfo = tcvr.getTransceiverInfo();
   auto moduleStatus = cachedTcvrInfo.tcvrState()->status();
+  int tcvrID = tcvr.getID();
   if (!moduleStatus.has_value()) {
     XLOG(DBG4)
-        << "moduleStatus not set. Returning false from requiresFirmwareUpgrade";
+        << "Transceiver: " << tcvrID
+        << " moduleStatus not set. Returning false from requiresFirmwareUpgrade";
     return false;
   }
 
   auto fwStatus = moduleStatus->fwStatus();
   if (!fwStatus.has_value()) {
     XLOG(DBG4)
-        << "fwStatus not set. Returning false from requiresFirmwareUpgrade";
+        << "Transceiver: " << tcvrID
+        << " fwStatus not set. Returning false from requiresFirmwareUpgrade";
     return false;
   }
 
   auto fwFromConfig = getFirmwareFromCfg(tcvr);
   if (!fwFromConfig.has_value()) {
     XLOG(DBG4)
-        << "Fw not available in config. Returning false from requiresFirmwareUpgrade";
+        << "Transceiver: " << tcvrID
+        << " Fw not available in config. Returning false from requiresFirmwareUpgrade";
     return false;
   }
 
   for (auto fwIt : *fwFromConfig->versions()) {
     if (fwIt.get_fwType() == cfg::FirmwareType::APPLICATION &&
         fwStatus->version() && fwIt.get_version() != *fwStatus->version()) {
-      XLOG(INFO) << "Application Version in cfg=" << fwIt.get_version()
+      XLOG(INFO) << "Transceiver: " << tcvrID
+                 << " Application Version in cfg=" << fwIt.get_version()
                  << " current operational version= " << *fwStatus->version()
                  << ". Returning true from requiresFirmwareUpgrade for tcvr="
                  << tcvr.getID();
@@ -487,7 +492,8 @@ bool TransceiverManager::requiresFirmwareUpgrade(Transceiver& tcvr) const {
     }
     if (fwIt.get_fwType() == cfg::FirmwareType::DSP && fwStatus->dspFwVer() &&
         fwIt.get_version() != *fwStatus->dspFwVer()) {
-      XLOG(INFO) << "DSP Version in cfg=" << fwIt.get_version()
+      XLOG(INFO) << "Transceiver: " << tcvrID
+                 << " DSP Version in cfg=" << fwIt.get_version()
                  << " current operational version= " << *fwStatus->dspFwVer()
                  << ". Returning true from requiresFirmwareUpgrade for tcvr="
                  << tcvr.getID();
@@ -1420,7 +1426,7 @@ void TransceiverManager::updateTransceiverPortStatus() noexcept {
 
 void TransceiverManager::triggerFirmwareUpgradeEvents(
     std::unordered_set<TransceiverID>& tcvrs) {
-  if (!FLAGS_firmware_upgrade_supported) {
+  if (!FLAGS_firmware_upgrade_supported || tcvrs.empty()) {
     return;
   }
   BlockingStateUpdateResultList results;
@@ -1561,26 +1567,43 @@ void TransceiverManager::refreshStateMachines() {
   // TransceiverInfo
   const auto& presentXcvrIds = refreshTransceivers();
 
+  bool firstRefreshAfterColdboot = !canWarmBoot_ && !isFullyInitialized();
   // Find transceivers that were just discovered or that are still inactive
   std::unordered_set<TransceiverID> potentialTcvrsForFwUpgrade;
   for (auto tcvrID : presentXcvrIds) {
     auto curState = getCurrentState(tcvrID);
-    if (curState == TransceiverStateMachineState::DISCOVERED ||
-        curState == TransceiverStateMachineState::INACTIVE) {
+    if (curState == TransceiverStateMachineState::INACTIVE) {
+      // Anytime a module is in inactive state (link down), it's a candidate for
+      // fw upgrade
+      XLOG(INFO)
+          << "Transceiver " << static_cast<int>(tcvrID)
+          << " is in INACTIVE state, adding it to list of potentialTcvrsForFwUpgrade";
       potentialTcvrsForFwUpgrade.insert(tcvrID);
+    } else if (curState == TransceiverStateMachineState::DISCOVERED) {
+      if (firstRefreshAfterColdboot) {
+        // First refresh after cold boot and module is still in
+        // discovered state
+        XLOG(INFO)
+            << "Transceiver " << static_cast<int>(tcvrID)
+            << " just did a cold boot and is still in discovered state, adding it to list of potentialTcvrsForFwUpgrade";
+        potentialTcvrsForFwUpgrade.insert(tcvrID);
+      } else {
+        auto stateMachine = stateMachines_.find(tcvrID);
+        if (stateMachine != stateMachines_.end() &&
+            stateMachine->second->getStateMachine().rlock()->get_attribute(
+                newTransceiverInsertedAfterInit)) {
+          // Not the first refresh but the module is in discovered state and was
+          // just inserted
+          XLOG(INFO)
+              << "Transceiver " << static_cast<int>(tcvrID)
+              << " is in DISCOVERED state and was recently inserted, adding it to list of potentialTcvrsForFwUpgrade";
+          potentialTcvrsForFwUpgrade.insert(tcvrID);
+        }
+      }
     }
   }
 
-  // We only want to trigger firmware upgrade in these two cases -
-  // 1. This is the first iteration of refreshStateMachines (i.e
-  // isFullyInitialized() is false) and it's a cold boot (i.e. canWarmBoot_ ==
-  // false)
-  // 2. This is not the first iteration of refreshStateMachines (i.e
-  // isFullyInitialized() is true). This case handles new transceiver detections
-  // Therefore the condition to trigger firmware upgrade should be -
-  // (!canWarmBoot_ && !isFullyInitialized()) || (isFullyInitialized())
-  // = !canWarmBoot_ || isFullyInitialized()
-  if (!canWarmBoot_ || isFullyInitialized()) {
+  if (!potentialTcvrsForFwUpgrade.empty()) {
     triggerFirmwareUpgradeEvents(potentialTcvrsForFwUpgrade);
   }
 
