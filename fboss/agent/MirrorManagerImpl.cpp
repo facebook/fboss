@@ -156,8 +156,6 @@ MirrorManagerImpl<AddrT>::resolveMirrorNextHopNeighbor(
   InterfaceID mirrorEgressInterface = nexthop.intf();
 
   auto interface = state->getInterfaces()->getNodeIf(mirrorEgressInterface);
-  auto vlan = state->getVlans()->getNodeIf(interface->getVlanID());
-
   if (interface->hasAddress(mirrorNextHopIp)) {
     /* if mirror destination is directly connected */
     neighbor = getNeighborEntryTableHelper<AddrT>(state, interface)
