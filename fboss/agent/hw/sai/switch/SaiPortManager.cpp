@@ -2534,15 +2534,21 @@ std::optional<sai_latch_status_t> SaiPortManager::getPcsRxLinkStatus(
 }
 #endif
 
-#if defined(BRCM_SAI_SDK_GTE_11_0)
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
 std::optional<sai_latch_status_t> SaiPortManager::getHighCrcErrorRate(
     PortSaiId saiPortId,
     PortID swPort) const {
-  if (getPortType(swPort) != cfg::PortType::FABRIC_PORT) {
+#if defined(BRCM_SAI_SDK_GTE_11_0)
+  if (!platform_->getAsic()->isSupported(HwAsic::Feature::CRC_ERROR_DETECT) ||
+      getPortType(swPort) != cfg::PortType::FABRIC_PORT) {
+    // Feature is only applicable for fabric ports
     return std::nullopt;
   }
   return SaiApiTable::getInstance()->portApi().getAttribute(
       saiPortId, SaiPortTraits::Attributes::CrcErrorDetect{});
+#else
+  return std::nullopt;
+#endif
 }
 #endif
 

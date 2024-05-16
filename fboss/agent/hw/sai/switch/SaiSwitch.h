@@ -369,7 +369,9 @@ class SaiSwitch : public HwSwitch {
 
   void updateRsInfo(
       phy::PhySideState& sideState,
-      std::shared_ptr<SaiPort> port);
+      std::shared_ptr<SaiPort> port,
+      PortID swPort,
+      phy::PhySideState& lastSideState);
 
   void linkStateChangedCallbackBottomHalf(
       std::vector<sai_port_oper_status_notification_t> data);

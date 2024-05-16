@@ -9226,14 +9226,17 @@ class ChildThriftPath<::facebook::fboss::phy::LinkFaultStatus, ::facebook::fboss
   >;
   using Children = fatal::tuple<std::pair<strings::localFault, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
 std::pair<strings::remoteFault, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
-std::pair<strings::highCrcErrorRate, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>>;
+std::pair<strings::highCrcErrorRateLive, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
+std::pair<strings::highCrcErrorRateChangedCount, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 2>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
-   std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>>;
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 4>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
   template <typename Name>
   using NameToId = fatal::tuple<std::pair<strings::localFault, std::integral_constant<apache::thrift::field_id_t, 1>>,
 std::pair<strings::remoteFault, std::integral_constant<apache::thrift::field_id_t, 2>>,
-std::pair<strings::highCrcErrorRate, std::integral_constant<apache::thrift::field_id_t, 3>>>::template type_of<Name>;
+std::pair<strings::highCrcErrorRateLive, std::integral_constant<apache::thrift::field_id_t, 3>>,
+std::pair<strings::highCrcErrorRateChangedCount, std::integral_constant<apache::thrift::field_id_t, 4>>>::template type_of<Name>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -9241,13 +9244,15 @@ std::pair<strings::highCrcErrorRate, std::integral_constant<apache::thrift::fiel
   
     STRUCT_CHILD_GETTERS(localFault, 1);
     STRUCT_CHILD_GETTERS(remoteFault, 2);
-    STRUCT_CHILD_GETTERS(highCrcErrorRate, 3);
+    STRUCT_CHILD_GETTERS(highCrcErrorRateLive, 3);
+    STRUCT_CHILD_GETTERS(highCrcErrorRateChangedCount, 4);
 
   template <apache::thrift::field_id_t __id>
   auto operator()(const std::integral_constant<apache::thrift::field_id_t, __id>&) {
     if constexpr (__id == 1) { return localFault(); }
     else if constexpr (__id == 2) { return remoteFault(); }
-    else if constexpr (__id == 3) { return highCrcErrorRate(); }
+    else if constexpr (__id == 3) { return highCrcErrorRateLive(); }
+    else if constexpr (__id == 4) { return highCrcErrorRateChangedCount(); }
   }
 
   template <typename T, T... Values>

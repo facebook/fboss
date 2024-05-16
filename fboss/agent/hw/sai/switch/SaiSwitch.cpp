@@ -1439,7 +1439,11 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() {
         portHandle->port);
 
     // Update Reconciliation Sublayer (RS) Info
-    updateRsInfo(*phyParams.state()->line(), portHandle->port);
+    updateRsInfo(
+        *phyParams.state()->line(),
+        portHandle->port,
+        portID,
+        *lastPhyInfo.state()->line());
 
     // PhyInfo update timestamp
     auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
@@ -1685,7 +1689,9 @@ void SaiSwitch::updatePcsInfo(
 
 void SaiSwitch::updateRsInfo(
     phy::PhySideState& sideState,
-    std::shared_ptr<SaiPort> port) {
+    std::shared_ptr<SaiPort> port,
+    [[maybe_unused]] PortID swPort,
+    [[maybe_unused]] phy::PhySideState& lastState) {
   auto errStatus =
       managerTable_->portManager().getPortErrStatus(port->adapterKey());
   phy::LinkFaultStatus faultStatus;
@@ -1697,15 +1703,32 @@ void SaiSwitch::updateRsInfo(
       case SAI_PORT_ERR_STATUS_REMOTE_FAULT_STATUS:
         faultStatus.remoteFault() = true;
         break;
-      case SAI_PORT_ERR_STATUS_CRC_RATE:
-        faultStatus.highCrcErrorRate() = true;
-        break;
       default:
         break;
     }
   }
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
+  if (auto highCrcErrorRate = managerTable_->portManager().getHighCrcErrorRate(
+          port->adapterKey(), swPort)) {
+    faultStatus.highCrcErrorRateLive() = highCrcErrorRate->current_status;
+    if (highCrcErrorRate->changed) {
+      if (lastState.rs().has_value()) {
+        faultStatus.highCrcErrorRateChangedCount() =
+            lastState.rs()
+                ->faultStatus()
+                ->highCrcErrorRateChangedCount()
+                .value() +
+            1;
+      } else {
+        faultStatus.highCrcErrorRateChangedCount() = 1;
+      }
+    }
+  }
+#endif
+
   if (*faultStatus.localFault() || *faultStatus.remoteFault() ||
-      *faultStatus.highCrcErrorRate()) {
+      *faultStatus.highCrcErrorRateLive()) {
     phy::RsInfo rsInfo;
     rsInfo.faultStatus() = faultStatus;
     sideState.rs() = rsInfo;

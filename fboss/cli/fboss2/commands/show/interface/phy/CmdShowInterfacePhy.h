@@ -105,8 +105,12 @@ class CmdShowInterfacePhy
           {prefix + "Remote Fault Live",
            std::to_string(*(*rs).faultStatus()->remoteFault())});
       rsTable.addRow(
-          {prefix + "High CRC Error Rate",
-           std::to_string(*(*rs).faultStatus()->highCrcErrorRate())});
+          {prefix + "High CRC Error Rate Live",
+           std::to_string(*(*rs).faultStatus()->highCrcErrorRateLive())});
+      rsTable.addRow(
+          {prefix + "High CRC Error Rate Changed",
+           std::to_string(
+               *(*rs).faultStatus()->highCrcErrorRateChangedCount())});
       out << rsTable;
     }
     if (sideState.pcs().has_value() || sideStats.pcs().has_value()) {
