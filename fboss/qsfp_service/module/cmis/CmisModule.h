@@ -148,6 +148,12 @@ class CmisModule : public QsfpModule {
       uint8_t startHostLane,
       uint8_t numLanes);
 
+  std::optional<std::array<SMFMediaInterfaceCode, kMaxOsfpNumLanes>>
+  getValidMultiportSpeedConfig(
+      cfg::PortSpeed speed,
+      uint8_t startHostLane,
+      uint8_t numLanes);
+
  protected:
   // QSFP+ requires a bottom 128 byte page describing important monitoring
   // information, and then an upper 128 byte page with less frequently

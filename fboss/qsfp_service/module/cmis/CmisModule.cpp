@@ -2492,6 +2492,57 @@ bool CmisModule::isRequestValidMultiportSpeedConfig(
 }
 
 /*
+ * getValidMultiportSpeedConfig
+ *
+ * Returns the valid speed config for all the lanes of the multi-port optics
+ * which matches closely with the supported speed combo on the optics. If no
+ * valid speed combo is found then returns nullopt
+ */
+std::optional<std::array<SMFMediaInterfaceCode, CmisModule::kMaxOsfpNumLanes>>
+CmisModule::getValidMultiportSpeedConfig(
+    cfg::PortSpeed speed,
+    uint8_t startHostLane,
+    uint8_t numLanes) {
+  auto desiredMediaIntfCode = getMediaIntfCodeFromSpeed(speed, numLanes);
+  if (desiredMediaIntfCode == SMFMediaInterfaceCode::UNKNOWN) {
+    QSFP_LOG(ERR, this) << "Unsupported Speed "
+                        << apache::thrift::util::enumNameSafe(speed);
+    return std::nullopt;
+  }
+
+  CHECK_LE(startHostLane + numLanes, kMaxOsfpNumLanes);
+  for (auto& validSpeedCombo : osfpValidSpeedCombination) {
+    bool combolValid = true;
+    for (int laneId = startHostLane; laneId < startHostLane + numLanes;
+         laneId++) {
+      if (validSpeedCombo[laneId] != desiredMediaIntfCode) {
+        combolValid = false;
+        break;
+      }
+    }
+    if (combolValid) {
+      std::string speedCfgCombo;
+      for (int laneId = 0; laneId < kMaxOsfpNumLanes; laneId++) {
+        speedCfgCombo +=
+            apache::thrift::util::enumNameSafe(validSpeedCombo[laneId]);
+        speedCfgCombo += " ";
+      }
+      QSFP_LOG(DBG2, this) << folly::sformat(
+          "Returning the valid speed combo of media intf id {:s} for lanemask {:#x} = {:s}",
+          apache::thrift::util::enumNameSafe(desiredMediaIntfCode),
+          laneMask(startHostLane, numLanes),
+          speedCfgCombo);
+      return validSpeedCombo;
+    }
+  }
+  QSFP_LOG(ERR, this) << folly::sformat(
+      "No valid speed combo found for speed {:s} and lanemask {:#x}",
+      apache::thrift::util::enumNameSafe(speed),
+      laneMask(startHostLane, numLanes));
+  return std::nullopt;
+}
+
+/*
  * This function checks if the previous lane configuration has been successul
  * or rejected. It will log error and return false if config on a lane is
  * rejected. This function should be run after ApSel setting or any other
