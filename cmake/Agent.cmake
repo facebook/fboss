@@ -55,6 +55,7 @@ target_link_libraries(hw_switch_handler
   utils
   multiswitch_ctrl_cpp2
   state
+  hw_write_behavior
 )
 
 add_library(monolithic_switch_handler

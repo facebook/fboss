@@ -8,6 +8,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/types.h"
+#include "fboss/lib/HwWriteBehavior.h"
 
 #include <folly/futures/Future.h>
 #include <folly/io/async/EventBase.h>
@@ -59,7 +60,8 @@ class HwSwitchHandler {
   virtual ~HwSwitchHandler();
 
   folly::Future<HwSwitchStateUpdateResult> stateChanged(
-      HwSwitchStateUpdate update);
+      HwSwitchStateUpdate update,
+      const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE);
 
   virtual void exitFatal() const = 0;
 
@@ -88,7 +90,8 @@ class HwSwitchHandler {
   virtual HwSwitchStateOperUpdateResult stateChanged(
       const fsdb::OperDelta& delta,
       bool transaction,
-      const std::shared_ptr<SwitchState>& initialState) = 0;
+      const std::shared_ptr<SwitchState>& initialState,
+      const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE) = 0;
 
   virtual std::map<PortID, FabricEndpoint> getFabricConnectivity() const = 0;
 
@@ -120,12 +123,15 @@ class HwSwitchHandler {
       const std::shared_ptr<SwitchState>& state) const;
 
  private:
-  HwSwitchStateUpdateResult stateChangedImpl(const HwSwitchStateUpdate& update);
+  HwSwitchStateUpdateResult stateChangedImpl(
+      const HwSwitchStateUpdate& update,
+      const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE);
 
   HwSwitchStateOperUpdateResult stateChangedImpl(
       const fsdb::OperDelta& delta,
       bool transaction,
-      const std::shared_ptr<SwitchState>& newState);
+      const std::shared_ptr<SwitchState>& newState,
+      const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE);
 
   void run();
 

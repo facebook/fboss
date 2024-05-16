@@ -79,7 +79,8 @@ class MonolithicHwSwitchHandler : public HwSwitchHandler {
   std::pair<fsdb::OperDelta, HwSwitchStateUpdateStatus> stateChanged(
       const fsdb::OperDelta& delta,
       bool transaction,
-      const std::shared_ptr<SwitchState>& newState) override;
+      const std::shared_ptr<SwitchState>& newState,
+      const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE) override;
 
   bool transactionsSupported(
       std::optional<cfg::SdkVersion> sdkVersion) const override;

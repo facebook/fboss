@@ -1417,10 +1417,11 @@ std::unique_ptr<SwSwitch> createSwSwitchWithMultiSwitch(
         ON_CALL(*handler, stateChanged(_, _))
             .WillByDefault(
                 [=](const auto& delta, bool) { return delta.newState(); });
-        ON_CALL(*handler, stateChanged(_, _, _))
+        ON_CALL(*handler, stateChanged(_, _, _, _))
             .WillByDefault([=](const fsdb::OperDelta&,
                                bool,
-                               const std::shared_ptr<SwitchState>&) {
+                               const std::shared_ptr<SwitchState>&,
+                               const HwWriteBehavior&) {
               return std::make_pair<fsdb::OperDelta, HwSwitchStateUpdateStatus>(
                   fsdb::OperDelta{},
                   HwSwitchStateUpdateStatus::HWSWITCH_STATE_UPDATE_SUCCEEDED);

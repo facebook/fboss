@@ -58,7 +58,8 @@ class MultiHwSwitchHandler {
 
   std::shared_ptr<SwitchState> stateChanged(
       const StateDelta& delta,
-      bool transaction);
+      bool transaction,
+      const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE);
 
   void exitFatal();
 
@@ -117,11 +118,13 @@ class MultiHwSwitchHandler {
 
   folly::Future<HwSwitchStateUpdateResult> stateChanged(
       SwitchID switchId,
-      const HwSwitchStateUpdate& update);
+      const HwSwitchStateUpdate& update,
+      const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE);
 
   std::map<SwitchID, HwSwitchStateUpdateResult> stateChanged(
       const std::map<SwitchID, const StateDelta&>& deltas,
-      bool transaction);
+      bool transaction,
+      const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE);
 
   std::map<SwitchID, HwSwitchStateUpdateResult> getStateUpdateResult(
       const std::vector<SwitchID>& switchIds,

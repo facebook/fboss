@@ -118,10 +118,16 @@ void AgentEnsemble::startAgent() {
   // explicit setting this flag and emply CLI option to disable tun manager.
   FLAGS_tun_intf = false;
   auto* initializer = agentInitializer();
-  asyncInitThread_.reset(new std::thread([this, initializer] {
+  auto hwWriteBehavior = HwWriteBehavior::WRITE;
+  if (getSw()->getWarmBootHelper()->canWarmBoot() &&
+      getSw()->getHwAsicTable()->isFeatureSupportedOnAllAsic(
+          HwAsic::Feature::ZERO_SDK_WRITE_WARMBOOT)) {
+    hwWriteBehavior = HwWriteBehavior::FAIL;
+  }
+  asyncInitThread_.reset(new std::thread([this, initializer, hwWriteBehavior] {
     // hardware switch events will be dispatched to agent ensemble
     // agent ensemble is responsible to dispatch them to SwSwitch
-    initializer->initAgent(this);
+    initializer->initAgent(this, hwWriteBehavior);
   }));
   initializer->initializer()->waitForInitDone();
   // if cold booting, invoke link toggler

@@ -26,6 +26,7 @@
 #include "fboss/agent/single/MonolithicHwSwitchHandler.h"
 #include "fboss/agent/state/StateUpdate.h"
 #include "fboss/agent/types.h"
+#include "fboss/lib/HwWriteBehavior.h"
 #include "fboss/lib/ThreadHeartbeat.h"
 #include "fboss/lib/link_snapshots/SnapshotManager-defs.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
@@ -240,6 +241,7 @@ class SwSwitch : public HwSwitchCallback {
       HwSwitchCallback* callback,
       std::unique_ptr<TunManager> tunMgr,
       HwSwitchInitFn hwSwitchInitFn,
+      const HwWriteBehavior& hwWriteBehavior,
       SwitchFlags flags = SwitchFlags::DEFAULT);
 
   void init(SwitchFlags flags = SwitchFlags::DEFAULT);

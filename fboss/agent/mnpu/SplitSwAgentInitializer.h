@@ -16,7 +16,9 @@ class SplitSwSwitchInitializer : public SwSwitchInitializer {
   explicit SplitSwSwitchInitializer(SwSwitch* sw) : SwSwitchInitializer(sw) {}
 
  private:
-  void initImpl(HwSwitchCallback* callback) override;
+  void initImpl(
+      HwSwitchCallback* callback,
+      const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE) override;
 };
 
 class SplitSwAgentInitializer : public SwAgentInitializer {

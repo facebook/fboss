@@ -38,7 +38,9 @@ class MonolithicSwSwitchInitializer : public SwSwitchInitializer {
   }
 
  private:
-  void initImpl(HwSwitchCallback* callback) override;
+  void initImpl(
+      HwSwitchCallback* callback,
+      const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE) override;
   HwAgent* hwAgent_;
 };
 

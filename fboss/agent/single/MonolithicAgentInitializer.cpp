@@ -65,7 +65,8 @@ using facebook::fboss::ThriftHandler;
 namespace facebook::fboss {
 
 void MonolithicSwSwitchInitializer::initImpl(
-    HwSwitchCallback* hwSwitchCallback) {
+    HwSwitchCallback* hwSwitchCallback,
+    const HwWriteBehavior& hwWriteBehavior) {
   // Initialize the switch.  This operation can take close to a minute
   // on some of our current platforms.
   sw_->init(
@@ -75,6 +76,7 @@ void MonolithicSwSwitchInitializer::initImpl(
         return hwAgent_->getPlatform()->getHwSwitch()->initLight(
             callback, failHwCallsOnWarmboot);
       },
+      hwWriteBehavior,
       setupFlags());
 }
 

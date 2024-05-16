@@ -111,7 +111,8 @@ std::pair<fsdb::OperDelta, HwSwitchStateUpdateStatus>
 MultiSwitchHwSwitchHandler::stateChanged(
     const fsdb::OperDelta& delta,
     bool transaction,
-    const std::shared_ptr<SwitchState>& newState) {
+    const std::shared_ptr<SwitchState>& newState,
+    const HwWriteBehavior& /* hwWriteBehavior */) {
   multiswitch::StateOperDelta stateDelta;
   {
     std::unique_lock<std::mutex> lk(stateUpdateMutex_);

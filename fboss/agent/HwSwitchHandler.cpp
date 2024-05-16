@@ -45,14 +45,18 @@ HwSwitchHandler::~HwSwitchHandler() {
 }
 
 folly::Future<HwSwitchStateUpdateResult> HwSwitchHandler::stateChanged(
-    HwSwitchStateUpdate update) {
+    HwSwitchStateUpdate update,
+    const HwWriteBehavior& hwWriteBehavior) {
   auto [promise, semiFuture] =
       folly::makePromiseContract<HwSwitchStateUpdateResult>();
 
   hwSwitchManagerEvb_.runInEventBaseThread([promise = std::move(promise),
                                             update = std::move(update),
+                                            hwWriteBehavior = hwWriteBehavior,
                                             this]() mutable {
-    promise.setWith([update, this]() { return stateChangedImpl(update); });
+    promise.setWith([update, hwWriteBehavior, this]() {
+      return stateChangedImpl(update, hwWriteBehavior);
+    });
   });
 
   auto future = std::move(semiFuture).via(&hwSwitchManagerEvb_);
@@ -60,7 +64,8 @@ folly::Future<HwSwitchStateUpdateResult> HwSwitchHandler::stateChanged(
 }
 
 HwSwitchStateUpdateResult HwSwitchHandler::stateChangedImpl(
-    const HwSwitchStateUpdate& update) {
+    const HwSwitchStateUpdate& update,
+    const HwWriteBehavior& hwWriteBehavior) {
   auto inDelta = operDeltaFilter_.filterWithSwitchStateRootPath(update.inDelta);
   if (!inDelta) {
     // no-op
@@ -68,8 +73,8 @@ HwSwitchStateUpdateResult HwSwitchHandler::stateChangedImpl(
         update.newState,
         HwSwitchStateUpdateStatus::HWSWITCH_STATE_UPDATE_SUCCEEDED};
   }
-  auto stateUpdateResult =
-      stateChangedImpl(*inDelta, update.isTransaction, update.newState);
+  auto stateUpdateResult = stateChangedImpl(
+      *inDelta, update.isTransaction, update.newState, hwWriteBehavior);
   auto outDelta = stateUpdateResult.first;
   if (outDelta.changes()->empty()) {
     return {update.newState, stateUpdateResult.second};
@@ -86,8 +91,9 @@ HwSwitchStateUpdateResult HwSwitchHandler::stateChangedImpl(
 HwSwitchStateOperUpdateResult HwSwitchHandler::stateChangedImpl(
     const fsdb::OperDelta& delta,
     bool transaction,
-    const std::shared_ptr<SwitchState>& newState) {
-  return stateChanged(delta, transaction, newState);
+    const std::shared_ptr<SwitchState>& newState,
+    const HwWriteBehavior& hwWriteBehavior) {
+  return stateChanged(delta, transaction, newState, hwWriteBehavior);
 }
 
 fsdb::OperDelta HwSwitchHandler::getFullSyncOperDelta(

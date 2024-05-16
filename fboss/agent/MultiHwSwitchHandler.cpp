@@ -64,7 +64,8 @@ void MultiHwSwitchHandler::stop() {
 
 std::shared_ptr<SwitchState> MultiHwSwitchHandler::stateChanged(
     const StateDelta& delta,
-    bool transaction) {
+    bool transaction,
+    const HwWriteBehavior& hwWriteBehavior) {
   std::map<SwitchID, const StateDelta&> deltas;
   std::shared_ptr<SwitchState> newState{nullptr};
   bool updateFailed{false};
@@ -75,7 +76,7 @@ std::shared_ptr<SwitchState> MultiHwSwitchHandler::stateChanged(
     auto switchId = entry.first;
     deltas.emplace(switchId, delta);
   }
-  auto results = stateChanged(deltas, transaction);
+  auto results = stateChanged(deltas, transaction, hwWriteBehavior);
   for (const auto& result : results) {
     auto status = result.second.second;
     if (status == HwSwitchStateUpdateStatus::HWSWITCH_STATE_UPDATE_SUCCEEDED) {
@@ -136,25 +137,27 @@ std::shared_ptr<SwitchState> MultiHwSwitchHandler::rollbackStateChange(
 std::map<SwitchID, HwSwitchStateUpdateResult>
 MultiHwSwitchHandler::stateChanged(
     const std::map<SwitchID, const StateDelta&>& deltas,
-    bool transaction) {
+    bool transaction,
+    const HwWriteBehavior& hwWriteBehavior) {
   std::vector<SwitchID> switchIds;
   std::vector<folly::Future<HwSwitchStateUpdateResult>> futures;
   for (const auto& entry : deltas) {
     switchIds.push_back(entry.first);
     auto update = HwSwitchStateUpdate(entry.second, transaction);
-    futures.emplace_back(stateChanged(entry.first, update));
+    futures.emplace_back(stateChanged(entry.first, update, hwWriteBehavior));
   }
   return getStateUpdateResult(switchIds, futures);
 }
 
 folly::Future<HwSwitchStateUpdateResult> MultiHwSwitchHandler::stateChanged(
     SwitchID switchId,
-    const HwSwitchStateUpdate& update) {
+    const HwSwitchStateUpdate& update,
+    const HwWriteBehavior& hwWriteBehavior) {
   auto iter = hwSwitchSyncers_.find(switchId);
   if (iter == hwSwitchSyncers_.end()) {
     throw FbossError("hw switch syncer for switch id ", switchId, " not found");
   }
-  return iter->second->stateChanged(update);
+  return iter->second->stateChanged(update, hwWriteBehavior);
 }
 
 std::map<SwitchID, HwSwitchStateUpdateResult>
