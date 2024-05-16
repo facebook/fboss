@@ -79,6 +79,12 @@ class SaiApi {
           "Attempting create SAI obj with {}, while hw writes are blocked",
           createAttributes);
     }
+    if (UNLIKELY(logFailHwWrites())) {
+      XLOGF(
+          WARNING,
+          "Attempting create SAI obj with {}, while hw writes are not expected",
+          createAttributes);
+    }
     auto g{SaiApiLock::getInstance()->lock()};
     sai_status_t status;
     {
@@ -115,6 +121,12 @@ class SaiApi {
           "Attempting create SAI obj with {}, while hw writes are blocked",
           createAttributes);
     }
+    if (UNLIKELY(logFailHwWrites())) {
+      XLOGF(
+          WARNING,
+          "Attempting create SAI obj with {}, while hw writes are not expected",
+          createAttributes);
+    }
     auto g{SaiApiLock::getInstance()->lock()};
     sai_status_t status;
     {
@@ -139,6 +151,12 @@ class SaiApi {
       XLOGF(
           FATAL,
           "Attempting to remove SAI obj {} while hw writes are blocked",
+          key);
+    }
+    if (UNLIKELY(logFailHwWrites())) {
+      XLOGF(
+          WARNING,
+          "Attempting to remove SAI obj {} while hw writes are not expected",
           key);
     }
     auto g{SaiApiLock::getInstance()->lock()};
@@ -381,6 +399,13 @@ class SaiApi {
           key,
           attr);
     }
+    if (UNLIKELY(logFailHwWrites())) {
+      XLOGF(
+          WARNING,
+          "Attempting set SAI attribute of {} to {}, while hw writes are not expected",
+          key,
+          attr);
+    }
     if constexpr (IsSaiExtensionAttribute<AttrT>::value) {
       auto id = typename AttrT::AttributeId()();
       if (!id.has_value()) {
@@ -420,6 +445,11 @@ class SaiApi {
       XLOG(
           FATAL,
           "Attempting bulk set SAI attributes while hw writes are blocked");
+    }
+    if (UNLIKELY(logFailHwWrites())) {
+      XLOG(
+          WARNING,
+          "Attempting bulk set SAI attributes while hw writes are not expected");
     }
     if constexpr (IsSaiExtensionAttribute<AttrT>::value) {
       auto id = typename AttrT::AttributeId()();
@@ -537,6 +567,9 @@ class SaiApi {
   bool skipHwWrites() const {
     return getHwWriteBehavior() == HwWriteBehavior::SKIP;
   }
+  bool logFailHwWrites() const {
+    return getHwWriteBehavior() == HwWriteBehavior::LOG_FAIL;
+  }
   template <typename SaiObjectTraits>
   std::vector<uint64_t> getStatsImpl(
       const typename SaiObjectTraits::AdapterKey& key,
@@ -571,6 +604,12 @@ class SaiApi {
         XLOGF(
             FATAL,
             "Attempting clear stats {} , while hw writes are blocked",
+            saiApiTypeToString(apiType()));
+      }
+      if (UNLIKELY(logFailHwWrites())) {
+        XLOGF(
+            WARNING,
+            "Attempting clear stats {} , while hw writes are not expected",
             saiApiTypeToString(apiType()));
       }
       sai_status_t status;

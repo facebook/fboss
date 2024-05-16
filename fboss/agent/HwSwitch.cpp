@@ -384,7 +384,7 @@ HwWriteBehaviorRAII HwSwitch::getWarmBootWriteBehavior(
           HwAsic::Feature::ZERO_SDK_WRITE_WARMBOOT)) {
     return HwWriteBehaviorRAII(HwWriteBehavior::FAIL);
   }
-  return HwWriteBehaviorRAII(HwWriteBehavior::WRITE);
+  return HwWriteBehaviorRAII(HwWriteBehavior::LOG_FAIL);
 }
 
 HwInitResult HwSwitch::initLight(

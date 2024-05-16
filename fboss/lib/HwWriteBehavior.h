@@ -10,7 +10,7 @@
 #pragma once
 namespace facebook::fboss {
 
-enum class HwWriteBehavior : int { FAIL, SKIP, WRITE };
+enum class HwWriteBehavior : int { FAIL, SKIP, WRITE, LOG_FAIL };
 
 /*
  * TODO - make HwWriteBehavior granularity be per swtich

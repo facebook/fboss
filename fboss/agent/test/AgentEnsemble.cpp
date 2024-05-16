@@ -119,10 +119,12 @@ void AgentEnsemble::startAgent() {
   FLAGS_tun_intf = false;
   auto* initializer = agentInitializer();
   auto hwWriteBehavior = HwWriteBehavior::WRITE;
-  if (getSw()->getWarmBootHelper()->canWarmBoot() &&
-      getSw()->getHwAsicTable()->isFeatureSupportedOnAllAsic(
-          HwAsic::Feature::ZERO_SDK_WRITE_WARMBOOT)) {
-    hwWriteBehavior = HwWriteBehavior::FAIL;
+  if (getSw()->getWarmBootHelper()->canWarmBoot()) {
+    hwWriteBehavior = HwWriteBehavior::LOG_FAIL;
+    if (getSw()->getHwAsicTable()->isFeatureSupportedOnAllAsic(
+            HwAsic::Feature::ZERO_SDK_WRITE_WARMBOOT)) {
+      hwWriteBehavior = HwWriteBehavior::FAIL;
+    }
   }
   asyncInitThread_.reset(new std::thread([this, initializer, hwWriteBehavior] {
     // hardware switch events will be dispatched to agent ensemble
