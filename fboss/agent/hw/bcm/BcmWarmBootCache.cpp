@@ -20,6 +20,7 @@
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
 
+#include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/SysError.h"
@@ -510,47 +511,18 @@ void BcmWarmBootCache::populateUdfFromWarmBootState(
 }
 
 void BcmWarmBootCache::populateL2LearningModeFromDumpedSwSwitchState() {
-  // populate l2LeraningMode_ from dumped switch state by default
-  const auto switchSettings =
-      utility::getFirstNodeIf(getDumpedSwSwitchState().getSwitchSettings())
-      ? utility::getFirstNodeIf(getDumpedSwSwitchState().getSwitchSettings())
-      : std::make_shared<SwitchSettings>();
-  l2LearningMode_ = switchSettings->getL2LearningMode();
+  // populate l2LeraningMode_ from config
+  l2LearningMode_ = cfg::L2LearningMode::HARDWARE;
+  if (auto agentConfig = getHw()->getPlatform()->config()) {
+    l2LearningMode_ =
+        agentConfig->thrift.sw()->switchSettings()->l2LearningMode().value();
+  }
+  XLOG(DBG2) << "l2Learning mode recovered as "
+             << apache::thrift::util::enumNameSafe(l2LearningMode_);
 }
 
 void BcmWarmBootCache::populateFromWarmBootState(
-    const folly::dynamic& warmBootState,
-    std::optional<state::WarmbootState> thriftState) {
-  if (thriftState) {
-    try {
-      dumpedSwSwitchState_ =
-          SwitchState::uniquePtrFromThrift(*thriftState->swSwitchState());
-    } catch (const FbossError& error) {
-      if (!dumpBinaryThriftToFile(
-              hw_->getPlatform()
-                  ->getDirectoryUtil()
-                  ->getCrashThriftSwitchStateFile(),
-              *thriftState->swSwitchState())) {
-        XLOG(ERR) << "failed to dump switch state to file: "
-                  << hw_->getPlatform()
-                         ->getDirectoryUtil()
-                         ->getCrashThriftSwitchStateFile();
-      } else {
-        XLOG(DBG2) << "dumped switch state to file: "
-                   << hw_->getPlatform()
-                          ->getDirectoryUtil()
-                          ->getCrashThriftSwitchStateFile();
-      }
-      XLOG(FATAL) << "Failed to recover switch state from thrift. "
-                  << error.what();
-    }
-  } else {
-    XLOG(FATAL) << "Thrift switch state not found";
-  }
-  dumpedSwSwitchState_->publish();
-  CHECK(dumpedSwSwitchState_)
-      << "Was not able to recover software state after warmboot";
-
+    const folly::dynamic& warmBootState) {
   auto& hwWarmBootState = warmBootState[kHwSwitch];
   // Extract ecmps for dumped host table
   auto& hostTable = hwWarmBootState[kHostTable];
@@ -620,10 +592,8 @@ BcmWarmBootCache::findEgressFromLabeledHostKey(const BcmLabeledHostKey& key) {
       : findEgress(iter->second);
 }
 
-void BcmWarmBootCache::populate(
-    const folly::dynamic& warmBootState,
-    std::optional<state::WarmbootState> thriftState) {
-  populateFromWarmBootState(warmBootState, thriftState);
+void BcmWarmBootCache::populate(const folly::dynamic& warmBootState) {
+  populateFromWarmBootState(warmBootState);
   bcm_vlan_data_t* vlanList = nullptr;
   int vlanCount = 0;
   SCOPE_EXIT {
@@ -1276,7 +1246,6 @@ void BcmWarmBootCache::clear() {
   // since we want to delete entries only after there are no more
   // references to them.
   XLOG(DBG1) << "Warm boot: removing unreferenced entries";
-  dumpedSwSwitchState_.reset();
   hwSwitchEcmp2EgressIds_.clear();
   // First delete routes (fully qualified and others).
   //

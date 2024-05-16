@@ -962,7 +962,8 @@ HwInitResult BcmSwitch::initImpl(
         getPlatform()->getWarmBootHelper()->getWarmBootState();
     switchStateJson = std::get<0>(warmbootStates);
     switchStateThrift = std::get<1>(warmbootStates);
-    warmBootCache_->populate(switchStateJson, switchStateThrift);
+    std::ignore = switchStateThrift;
+    warmBootCache_->populate(switchStateJson);
   }
   setupToCpuEgress();
   portTable_->initPorts(&pcfg, warmBoot);
@@ -986,7 +987,7 @@ HwInitResult BcmSwitch::initImpl(
   ret.bootType = bootType_;
 
   if (warmBoot) {
-    ret.switchState = warmBootCache_->getDumpedSwSwitchState().clone();
+    ret.switchState = std::make_shared<SwitchState>();
     getPlatform()->preWarmbootStateApplied();
     const auto& routeTables = *(switchStateThrift->routeTables());
     if (!routeTables.empty()) {

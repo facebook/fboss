@@ -63,9 +63,7 @@ class BcmWarmBootCache {
  public:
   explicit BcmWarmBootCache(const BcmSwitchIf* hw);
   folly::dynamic getWarmBootStateFollyDynamic() const;
-  void populate(
-      const folly::dynamic& warmBootState,
-      std::optional<state::WarmbootState> thriftState);
+  void populate(const folly::dynamic& warmBootState);
   struct VlanInfo {
     VlanInfo(
         VlanID _vlan,
@@ -652,10 +650,6 @@ class BcmWarmBootCache {
       MirrorDirection direction) const;
   void programmedMirroredAcl(MirroredAcl2HandleCitr itr);
 
-  const SwitchState& getDumpedSwSwitchState() const {
-    return *dumpedSwSwitchState_;
-  }
-
   using Label2LabelActionMapCitr =
       typename Label2LabelActionMap::const_iterator;
   Label2LabelActionMapCitr Label2LabelActionMapBegin() const {
@@ -812,9 +806,7 @@ class BcmWarmBootCache {
    * map
    */
   const EgressId2Weight& getPathsForEcmp(EgressId ecmp) const;
-  void populateFromWarmBootState(
-      const folly::dynamic& warmBootState,
-      std::optional<state::WarmbootState> thriftState);
+  void populateFromWarmBootState(const folly::dynamic& warmBootState);
 
   void populateEcmpEntryFromWarmBootState(
       const folly::dynamic& hwWarmBootState);
@@ -912,7 +904,6 @@ class BcmWarmBootCache {
   // TeFlow  stats
   TeFlowEntry2TeFlowStat teFlowEntry2TeFlowStat_;
 
-  std::unique_ptr<SwitchState> dumpedSwSwitchState_;
   MirrorEgressPath2Handle mirrorEgressPath2Handle_;
   MirroredPort2Handle mirroredPort2Handle_;
   MirroredAcl2Handle mirroredAcl2Handle_;
