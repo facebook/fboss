@@ -592,6 +592,8 @@ class CmisModule : public QsfpModule {
   std::map<int32_t, SymErrHistogramBin> getCdbSymbolErrorHistogramLocked(
       uint8_t datapathId,
       bool mediaSide);
+
+  uint8_t datapathResetPendingMask_{0};
 };
 
 } // namespace fboss

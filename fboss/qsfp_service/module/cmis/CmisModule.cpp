@@ -2242,13 +2242,6 @@ void CmisModule::setApplicationCodeLocked(
   // check if any of those are present in the moduleCapabilities. We configure
   // the first application that both we support and the module supports
   for (auto application : applicationIter->second) {
-    // If the currently configured application is the same as what we are trying
-    // to configure, then skip the configuration
-    if (static_cast<uint8_t>(application) == currentApplication) {
-      QSFP_LOG(INFO, this) << "Speed matches. Doing nothing.";
-      return;
-    }
-
     auto capability =
         getApplicationField(static_cast<uint8_t>(application), startHostLane);
 
@@ -2264,6 +2257,21 @@ void CmisModule::setApplicationCodeLocked(
     }
 
     uint8_t hostLaneMask = laneMask(startHostLane, numHostLanes);
+
+    // If the currently configured application is the same as what we are trying
+    // to configure, then skip the configuration
+    if (static_cast<uint8_t>(application) == currentApplication) {
+      QSFP_LOG(INFO, this) << "Speed matches. Doing nothing";
+      // Make sure the datapath is initialized, otherwise initialize it before
+      // returning
+      if (datapathResetPendingMask_ & hostLaneMask) {
+        resetDataPathWithFunc(std::nullopt, hostLaneMask);
+        datapathResetPendingMask_ &= ~hostLaneMask;
+        QSFP_LOG(INFO, this) << "Reset datapath for lane mask " << hostLaneMask
+                             << " before returning";
+      }
+      return;
+    }
 
     auto setApplicationSelectCode = [this,
                                      &capability,
@@ -2357,14 +2365,63 @@ void CmisModule::setApplicationCodeLocked(
 
       writeCmisField(CmisField::STAGE_CTRL_SET_0, &applySetForConfigureLanes);
 
+      datapathResetPendingMask_ = applySetForConfigureLanes;
+
       QSFP_LOG(INFO, this) << folly::sformat(
           "set application to {:#x}", capability->moduleMediaInterface);
+    };
+
+    // Lambda to get the valid lane config combination for the given speed on
+    // start host lane and then apply this config to all the lanes. The data
+    // path setting will be applied to all the lanes
+    auto setApplicationSelectCodeAllLanes = [this,
+                                             speed,
+                                             startHostLane,
+                                             numHostLanes]() {
+      if (auto laneProgramValues = getValidMultiportSpeedConfig(
+              speed, startHostLane, numHostLanes)) {
+        std::array<uint8_t, kMaxOsfpNumLanes> stageSet0Config;
+        for (auto lane = 0; lane < kMaxOsfpNumLanes;) {
+          if (auto laneCapability = getApplicationField(
+                  static_cast<uint8_t>(laneProgramValues.value()[lane]),
+                  lane)) {
+            uint8_t currApSelCode = laneCapability.value().ApSelCode;
+            for (auto currApLane = lane;
+                 currApLane < lane + laneCapability.value().hostLaneCount;
+                 currApLane++) {
+              stageSet0Config[currApLane] = currApSelCode << APP_SEL_BITSHIFT |
+                  (lane << DATA_PATH_ID_BITSHIFT);
+            }
+            lane += laneCapability.value().hostLaneCount;
+          } else {
+            stageSet0Config[lane++] = 0;
+          }
+        }
+        writeCmisField(CmisField::APP_SEL_ALL_LANES, stageSet0Config.data());
+
+        // Trigger the Set 0 application code setting to be applied on data
+        // path init for all the lanes. The actual data-path init will be
+        // triggered from the caller function
+        uint8_t applySetForSpecificLanes = laneMask(0, kMaxOsfpNumLanes);
+        writeCmisField(CmisField::STAGE_CTRL_SET_0, &applySetForSpecificLanes);
+
+        datapathResetPendingMask_ = applySetForSpecificLanes;
+      }
     };
 
     // In 400G-FR4 case we will have 8 host lanes instead of 4. Further more,
     // we need to deactivate all the lanes when we switch to an application with
     // a different lane count. CMIS4.0-8.8.4
-    resetDataPathWithFunc(setApplicationSelectCode, hostLaneMask);
+    if (getIdentifier() == TransceiverModuleIdentifier::OSFP &&
+        !isRequestValidMultiportSpeedConfig(
+            speed, startHostLane, numHostLanes)) {
+      resetDataPathWithFunc(setApplicationSelectCodeAllLanes, hostLaneMask);
+    } else {
+      resetDataPathWithFunc(setApplicationSelectCode, hostLaneMask);
+    }
+
+    datapathResetPendingMask_ &= ~hostLaneMask;
+
     // Certain OSFP Modules require a long time to finish application
     // programming. The modules say config is accepted and applied, but
     // internally the module will still be processing the config. If we don't
