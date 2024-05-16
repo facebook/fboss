@@ -18,7 +18,7 @@ namespace {
 
 constexpr auto kNumPortPerCore = 10;
 // 0: CPU port, 1: gloabl rcy port, 2-5: local recycle port, 6: eventor port,
-// 7: mgm port, 8-42 front panel nif
+// 7: mgm port, 8-43 front panel nif
 constexpr auto kRemoteSysPortOffset = 7;
 constexpr auto kNumRdsw = 128;
 constexpr auto kNumEdsw = 16;
