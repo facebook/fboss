@@ -583,7 +583,8 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
     const std::set<cfg::PortType> kCreateIntfsFor = {
         cfg::PortType::INTERFACE_PORT,
         cfg::PortType::RECYCLE_PORT,
-        cfg::PortType::MANAGEMENT_PORT};
+        cfg::PortType::MANAGEMENT_PORT,
+        cfg::PortType::EVENTOR_PORT};
     for (const auto& port : *config.ports()) {
       if (kCreateIntfsFor.find(*port.portType()) == kCreateIntfsFor.end()) {
         continue;
