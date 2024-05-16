@@ -2165,30 +2165,8 @@ HwInitResult SaiSwitch::initLocked(
   if (bootType_ == BootType::WARM_BOOT) {
     auto [switchStateJson, switchStateThrift] =
         platform_->getWarmBootHelper()->getWarmBootState();
-    if (switchStateThrift) {
-      try {
-        ret.switchState =
-            SwitchState::fromThrift(*switchStateThrift->swSwitchState());
-      } catch (const FbossError& error) {
-        if (!dumpBinaryThriftToFile(
-                platform_->getDirectoryUtil()->getCrashThriftSwitchStateFile(),
-                *switchStateThrift->swSwitchState())) {
-          XLOG(ERR) << "failed to dump switch state to file: "
-                    << getPlatform()
-                           ->getDirectoryUtil()
-                           ->getCrashThriftSwitchStateFile();
-        } else {
-          XLOG(DBG2) << "dumped switch state to file: "
-                     << getPlatform()
-                            ->getDirectoryUtil()
-                            ->getCrashThriftSwitchStateFile();
-        }
-        XLOG(FATAL) << "Failed to recover switch state from thrift. "
-                    << error.what();
-      }
-    } else {
-      XLOG(FATAL) << "Thrift switch state not found";
-    }
+    std::ignore = switchStateThrift;
+    ret.switchState = std::make_shared<SwitchState>();
     if (platform_->getAsic()->isSupported(HwAsic::Feature::OBJECT_KEY_CACHE)) {
       adapterKeysJson = std::make_unique<folly::dynamic>(
           switchStateJson[kHwSwitch][kAdapterKeys]);
