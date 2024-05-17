@@ -47,9 +47,9 @@ class CmdSetFanHold : public CmdHandler<CmdSetFanHold, CmdSetFanHoldTraits> {
       auto fan_service = utils::createClient<
           apache::thrift::Client<platform::fan_service::FanService>>(hostInfo);
 
-      platform::fan_service::HoldRequest holdReq;
+      platform::fan_service::PwmHoldRequest holdReq;
       holdReq.pwm().from_optional(arg.pwm);
-      fan_service->sync_setHold(holdReq);
+      fan_service->sync_setPwmHold(holdReq);
 
       return createModel(arg.pwm);
     } catch (const std::exception& e) {

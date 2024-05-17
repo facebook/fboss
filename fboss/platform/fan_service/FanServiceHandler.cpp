@@ -16,14 +16,14 @@ void FanServiceHandler::getFanStatuses(FanStatusesResponse& response) {
   response.fanStatuses() = fanServiceImpl_->getFanStatuses();
 }
 
-void FanServiceHandler::setHold(std::unique_ptr<HoldRequest> req) {
+void FanServiceHandler::setPwmHold(std::unique_ptr<PwmHoldRequest> req) {
   std::optional<int> pwm = req->pwm().to_optional();
   if (!pwm.has_value() || (pwm.value() >= 0 && pwm.value() <= 100)) {
     fanServiceImpl_->setFanHold(pwm);
   }
 }
 
-void FanServiceHandler::getHold(HoldStatus& status) {
+void FanServiceHandler::getPwmHold(PwmHoldStatus& status) {
   status.pwm().from_optional(fanServiceImpl_->getFanHold());
 }
 
