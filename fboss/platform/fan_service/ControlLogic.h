@@ -44,6 +44,9 @@ class ControlLogic {
     return sensorReadCaches_;
   }
 
+  void setFanHold(std::optional<int> pwm);
+  std::optional<int> getFanHold();
+
  private:
   // Private Attributess :
   // Pointer to other classes used by Control Logic
@@ -92,6 +95,7 @@ class ControlLogic {
 
   folly::Synchronized<std::map<std::string /* fanName */, FanStatus>>
       fanStatuses_;
+  std::optional<int> fanHoldPwm_; // Locked under the fanStatuses_ lock
   std::map<std::string /* sensorName */, SensorReadCache> sensorReadCaches_;
   std::map<std::string /* sensorName */, int16_t /* pwm */> opticReadCaches_;
   std::map<std::string /* sensorName */, PwmCalcCache> pwmCalcCaches_;

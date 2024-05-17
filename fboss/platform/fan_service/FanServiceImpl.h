@@ -36,6 +36,13 @@ class FanServiceImpl {
     return pControlLogic_->getFanStatuses();
   }
 
+  void setFanHold(std::optional<int> pwm) {
+    pControlLogic_->setFanHold(pwm);
+  }
+  std::optional<int> getFanHold() {
+    return pControlLogic_->getFanHold();
+  }
+
  private:
   // Attributes
   // BSP contains platform specific I/O methonds

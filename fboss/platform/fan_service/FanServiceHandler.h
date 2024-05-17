@@ -25,6 +25,5 @@ class FanServiceHandler : public apache::thrift::ServiceHandler<FanService> {
  private:
   // Internal pointer for FanServiceImpl.
   std::unique_ptr<FanServiceImpl> fanServiceImpl_{nullptr};
-  std::optional<int> holdPwm_;
 };
 } // namespace facebook::fboss::platform::fan_service
