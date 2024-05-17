@@ -405,8 +405,6 @@ class AgentSflowMirrorTest : public AgentHwTest {
     auto setup = [=, this]() {
       auto ports = getPortsForSampling();
       auto config = initialConfig(*getAgentEnsemble());
-      utility::configureSflowMirror(
-          config, truncate, std::is_same_v<AddrT, folly::IPAddressV4>);
       configSampling(config, 1);
       applyNewConfig(config);
       resolveMirror();
