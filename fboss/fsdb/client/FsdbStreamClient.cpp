@@ -132,7 +132,9 @@ folly::coro::Task<void> FsdbStreamClient::serviceLoopWrapper() {
 }
 #endif
 
-const uint8_t kDscpForClassOfServiceNC = 48;
+// Set DSCP to 48 (Network Control)
+// 8-bit TOS = 6-bit DSCP followed by 2-bit ECN
+const uint8_t kTosForClassOfServiceNC = 48 << 2;
 
 void FsdbStreamClient::resetClient() {
   CHECK(streamEvb_->getEventBase()->isInEventBaseThread());
@@ -144,7 +146,7 @@ std::optional<uint8_t> getTosForClientPriority(
   if (priority.has_value()) {
     switch (*priority) {
       case FsdbStreamClient::Priority::CRITICAL:
-        return kDscpForClassOfServiceNC;
+        return kTosForClassOfServiceNC;
       case FsdbStreamClient::Priority::NORMAL:
         // no TC marking by default
         return std::nullopt;

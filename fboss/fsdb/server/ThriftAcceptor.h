@@ -13,8 +13,10 @@
  * bringing up network control plane and needs to be up with minimal
  * dependencies. Therefore, sourcing the const in fbcode instead of
  * a runtime configerator read.
+ *
+ * 8-bit TOS = 6-bit DSCP followed by 2-bit ECN
  */
-const uint8_t kDscpForClassOfServiceNC = 48;
+const uint8_t kTosForClassOfServiceNC = 48 << 2;
 
 namespace folly {
 class EventBase;
@@ -132,7 +134,7 @@ class FsdbThriftAcceptorFactory final
           auto rc = folly::netops::getsockopt(
               netsocket, IPPROTO_IPV6, IPV6_TCLASS, &tos, &optsize);
           if (rc == 0) {
-            if (tos == kDscpForClassOfServiceNC) {
+            if (tos == kTosForClassOfServiceNC) {
               XLOG(INFO) << "Reject connection with TOS(" << tos
                          << ") from clientIp: " << clientIp.str()
                          << ", not in trustedSubnets";
