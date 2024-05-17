@@ -56,6 +56,7 @@ enum PortLedExternalState {
 
 enum PortError {
   ERROR_DISABLE_LOOP_DETECTED = 1,
+  LANE_SWAP_DETECTED = 2,
 }
 
 struct IpPrefix {
