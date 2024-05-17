@@ -47,10 +47,14 @@ class AgentSflowMirrorTest : public AgentHwTest {
         ensemble.getSw()->getScopeResolver()->scope(port0).switchId();
     auto asic = ensemble.getSw()->getHwAsicTable()->getHwAsic(port0Switch);
     auto ports = getPortsForSampling(ensemble.masterLogicalPortIds(), asic);
-    utility::configureSflowMirror(
-        cfg, false, std::is_same_v<AddrT, folly::IPAddressV4>);
+    this->configureMirror(cfg);
     configSampling(cfg, ports, 1);
     return cfg;
+  }
+
+  virtual void configureMirror(cfg::SwitchConfig& cfg) const {
+    utility::configureSflowMirror(
+        cfg, false, std::is_same_v<AddrT, folly::IPAddressV4>);
   }
 
   std::vector<PortID> getPortsForSampling() const {
@@ -123,6 +127,10 @@ class AgentSflowMirrorTest : public AgentHwTest {
       }
       return static_cast<PortID>(sflowPayload[sourcePortOffset]);
     }
+  }
+
+  uint16_t getMirrorTruncateSize() const {
+    return getAsic()->getMirrorTruncateSize();
   }
 
   std::shared_ptr<SwitchState> updateMacAddress(
@@ -302,6 +310,39 @@ class AgentSflowMirrorTest : public AgentHwTest {
     }
   }
 
+  void verifySampledPacketWithTruncate() {
+    auto ports = getPortsForSampling();
+    getAgentEnsemble()->bringDownPorts(
+        std::vector<PortID>(ports.begin() + 2, ports.end()));
+    auto pkt = genPacket(1, 8000);
+
+    utility::SwSwitchPacketSnooper snooper(getSw(), "snooper");
+    XLOG(DBG2) << "Sending packet through port " << ports[1];
+    getAgentEnsemble()->sendPacketAsync(
+        pkt.getTxPacket(
+            [sw = getSw()](uint32_t size) { return sw->allocatePacket(size); }),
+        PortDescriptor(ports[1]),
+        std::nullopt);
+
+    std::optional<std::unique_ptr<folly::IOBuf>> capturedPktBuf;
+    WITH_RETRIES({
+      capturedPktBuf = snooper.waitForPacket(10);
+      EXPECT_EVENTUALLY_TRUE(capturedPktBuf.has_value());
+    });
+    folly::io::Cursor capturedPktCursor{capturedPktBuf->get()};
+    auto capturedPkt = utility::EthFrame(capturedPktCursor);
+
+    // captured packet has encap header on top
+    EXPECT_LE(capturedPkt.length(), pkt.length());
+    auto capturedHdrSize = getSflowPacketHeaderLength(true);
+    EXPECT_GE(capturedPkt.length(), capturedHdrSize);
+
+    EXPECT_LE(
+        capturedPkt.length() - capturedHdrSize,
+        getMirrorTruncateSize()); /* TODO: confirm length in CS00010399535 and
+                                     CS00012130950 */
+  }
+
   uint64_t getSampleCount(const std::map<PortID, HwPortStats>& stats) {
     auto portStats = stats.at(getPortsForSampling()[0]);
     return *portStats.outUnicastPkts_();
@@ -360,13 +401,27 @@ class AgentSflowMirrorTest : public AgentHwTest {
     getAgentEnsemble()->clearPortStats();
   }
 
-  void testSampledPacket() {
-    auto setup = [=, this]() { resolveMirror(); };
-    auto verify = [=, this]() { verifySampledPacket(); };
+  virtual void testSampledPacket(bool truncate = false) {
+    auto setup = [=, this]() {
+      auto ports = getPortsForSampling();
+      auto config = initialConfig(*getAgentEnsemble());
+      utility::configureSflowMirror(
+          config, truncate, std::is_same_v<AddrT, folly::IPAddressV4>);
+      configSampling(config, 1);
+      applyNewConfig(config);
+      resolveMirror();
+    };
+    auto verify = [=, this]() {
+      if (!truncate) {
+        verifySampledPacket();
+      } else {
+        verifySampledPacketWithTruncate();
+      }
+    };
     verifyAcrossWarmBoots(setup, verify);
   }
 
-  void testSampledPacketRate() {
+  void testSampledPacketRate(bool truncate = false) {
     auto setup = [=, this]() {
       auto config = initialConfig(*getAgentEnsemble());
       configSampling(config, FLAGS_sflow_test_rate);
@@ -383,8 +438,34 @@ class AgentSflowMirrorTest : public AgentHwTest {
   constexpr static auto kIpStr = "2401:db00:dead:beef:";
 };
 
+template <typename AddrT>
+class AgentSflowMirrorTruncateTest : public AgentSflowMirrorTest<AddrT> {
+ public:
+  std::vector<production_features::ProductionFeature>
+  getProductionFeaturesVerified() const override {
+    if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
+      return {
+          production_features::ProductionFeature::SFLOWv4_SAMPLING,
+          production_features::ProductionFeature::MIRROR_PACKET_TRUNCATION};
+    } else {
+      return {
+          production_features::ProductionFeature::SFLOWv6_SAMPLING,
+          production_features::ProductionFeature::MIRROR_PACKET_TRUNCATION};
+    }
+  }
+
+  virtual void configureMirror(cfg::SwitchConfig& cfg) const override {
+    utility::configureSflowMirror(
+        cfg, true /* truncate */, std::is_same_v<AddrT, folly::IPAddressV4>);
+  }
+};
+
 using AgentSflowMirrorTestV4 = AgentSflowMirrorTest<folly::IPAddressV4>;
 using AgentSflowMirrorTestV6 = AgentSflowMirrorTest<folly::IPAddressV6>;
+using AgentSflowMirrorTruncateTestV4 =
+    AgentSflowMirrorTruncateTest<folly::IPAddressV4>;
+using AgentSflowMirrorTruncateTestV6 =
+    AgentSflowMirrorTruncateTest<folly::IPAddressV6>;
 
 #define SFLOW_SAMPLING_TEST(fixture, name, code) \
   TEST_F(fixture, name) {                        \
@@ -395,9 +476,19 @@ using AgentSflowMirrorTestV6 = AgentSflowMirrorTest<folly::IPAddressV6>;
   SFLOW_SAMPLING_TEST(AgentSflowMirrorTestV4, name, code) \
   SFLOW_SAMPLING_TEST(AgentSflowMirrorTestV6, name, code)
 
+#define SFLOW_SAMPLING_TRUNCATE_TEST_V4_V6(name, code)            \
+  SFLOW_SAMPLING_TEST(AgentSflowMirrorTruncateTestV4, name, code) \
+  SFLOW_SAMPLING_TEST(AgentSflowMirrorTruncateTestV6, name, code)
+
 SFLOW_SAMPLING_TEST_V4_V6(VerifySampledPacket, { this->testSampledPacket(); })
 SFLOW_SAMPLING_TEST_V4_V6(VerifySampledPacketRate, {
   this->testSampledPacketRate();
 })
 
+SFLOW_SAMPLING_TRUNCATE_TEST_V4_V6(VerifyTruncate, {
+  this->testSampledPacket(true);
+})
+SFLOW_SAMPLING_TRUNCATE_TEST_V4_V6(VerifySampledPacketRate, {
+  this->testSampledPacketRate(true);
+})
 } // namespace facebook::fboss
