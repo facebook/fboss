@@ -455,71 +455,33 @@ TEST_F(HwVerifyPfcConfigInHwTest, PfcWatchdogProgrammingSequence) {
       utility::pfcWatchdogProgrammingMatchesConfig(
           getHwSwitch(), portId, false, defaultPfcWatchdogConfig);
     }
+
+    // Verify PFC deadlock recovery action mismatch across ports
+    cfg::PfcWatchdog pfcWatchdogConfig;
+    initalizePfcConfigWatchdogValues(
+        pfcWatchdogConfig, 300, 900, cfg::PfcWatchdogRecoveryAction::DROP);
+    auto state =
+        setupPfcAndPfcWatchdog(currentConfig, portId2, pfcWatchdogConfig);
+    XLOG(DBG0) << "Enable PFC watchdog with conflicting recovery action "
+               << "on anther port and make sure programming did not happen";
+    // Applying this config will cause a PFC deadlock recovery action
+    // mismatch between ports and will result in FbossError in SwSwitch,
+    // In HwTests we call the isValidStateUpdate api directly to verify
+    // the check.
+    auto newState =
+        setupPfcAndPfcWatchdog(currentConfig, portId, prodPfcWdConfig);
+    EXPECT_FALSE(
+        getHwSwitch()->isValidStateUpdate(StateDelta(state, newState)));
+    XLOG(DBG0)
+        << "Disable PFC on one port and enable with new recovery action on"
+        << " the other port";
+    removePfcConfigSkipApply(currentConfig, portId2);
+
     // At the end, make sure that we configure prod config, so that
     // in WB case, we can ensure the config is as expected post WB!
     setupPfcAndPfcWatchdog(currentConfig, portId, prodPfcWdConfig);
   };
 
   verifyAcrossWarmBoots(setup, verify);
-}
-
-// Verify all ports should be configured with the same
-// PFC watchdog deadlock recovery action.
-TEST_F(HwVerifyPfcConfigInHwTest, PfcWatchdogDeadlockRecoveryActionMismatch) {
-  auto setup = [&]() { setupBaseConfig(); };
-
-  auto verify = [&]() {
-    auto portId1 = masterLogicalInterfacePortIds()[0];
-    auto portId2 = masterLogicalInterfacePortIds()[1];
-    cfg::PfcWatchdog pfcWatchdogConfig{};
-    cfg::PfcWatchdog defaultPfcWatchdogConfig{};
-    auto currentConfig = initialConfig();
-
-    XLOG(DBG0) << "Enable PFC watchdog and make sure programming is fine";
-    initalizePfcConfigWatchdogValues(
-        pfcWatchdogConfig, 1000, 3000, cfg::PfcWatchdogRecoveryAction::NO_DROP);
-    auto state =
-        setupPfcAndPfcWatchdog(currentConfig, portId1, pfcWatchdogConfig);
-    utility::pfcWatchdogProgrammingMatchesConfig(
-        getHwSwitch(), portId1, true, pfcWatchdogConfig);
-    EXPECT_EQ(
-        utility::getPfcWatchdogRecoveryAction(getHwSwitch(), portId1),
-        *pfcWatchdogConfig.recoveryAction());
-
-    XLOG(DBG0) << "Enable PFC watchdog with conflicting recovery action "
-               << "on anther port and make sure programming did not happen";
-    initalizePfcConfigWatchdogValues(
-        pfcWatchdogConfig, 1200, 6000, cfg::PfcWatchdogRecoveryAction::DROP);
-    /*
-     * Applying this config will cause a PFC deadlock recovery action
-     * mismatch between ports and will result in FbossError in SwSwitch,
-     * In HwTests we call the isValidStateUpdate api directly to verify
-     * the check since there is no SwSwitch present
-     */
-    auto newState =
-        setupPfcAndPfcWatchdog(currentConfig, portId2, pfcWatchdogConfig);
-    EXPECT_FALSE(
-        getHwSwitch()->isValidStateUpdate(StateDelta(state, newState)));
-
-    /*
-     * Remove PFC watchdog from the first port and enable PFC watchdog with
-     * new recovery action on the second port and make sure programming is
-     * fine
-     */
-    XLOG(DBG0)
-        << "Disable PFC on one and enable with new action on the other port";
-    removePfcConfigSkipApply(currentConfig, portId1);
-    initalizePfcConfigWatchdogValues(
-        pfcWatchdogConfig, 1200, 6000, cfg::PfcWatchdogRecoveryAction::DROP);
-    setupPfcAndPfcWatchdog(currentConfig, portId2, pfcWatchdogConfig);
-    utility::pfcWatchdogProgrammingMatchesConfig(
-        getHwSwitch(), portId2, true, pfcWatchdogConfig);
-    EXPECT_EQ(
-        utility::getPfcWatchdogRecoveryAction(getHwSwitch(), portId2),
-        *pfcWatchdogConfig.recoveryAction());
-  };
-  // The test fails warmboot as there are reconfigurations done in verify
-  setup();
-  verify();
 }
 } // namespace facebook::fboss
