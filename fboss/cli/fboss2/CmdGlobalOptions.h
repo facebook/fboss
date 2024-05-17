@@ -439,6 +439,10 @@ class CmdGlobalOptions {
     return sensorServiceThriftPort_;
   }
 
+  int getFanServiceThriftPort() const {
+    return fanServiceThriftPort_;
+  }
+
   int getTeAgentThriftPort() const {
     return teAgentThriftPort_;
   }
@@ -545,6 +549,7 @@ class CmdGlobalOptions {
   int bmcHttpPort_{8443};
   int rackmonThriftPort_{5973};
   int sensorServiceThriftPort_{5970};
+  int fanServiceThriftPort_{5972};
   int teAgentThriftPort_{2022};
   int dataCorralServiceThriftPort_{5971};
   int vipInjectorThriftPort_{3333};
