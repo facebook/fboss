@@ -15,4 +15,13 @@ FanServiceHandler::FanServiceHandler(
 void FanServiceHandler::getFanStatuses(FanStatusesResponse& response) {
   response.fanStatuses() = fanServiceImpl_->getFanStatuses();
 }
+
+void FanServiceHandler::setHold(std::unique_ptr<HoldRequest> req) {
+  holdPwm_ = req->pwm().to_optional();
+}
+
+void FanServiceHandler::getHold(HoldStatus& status) {
+  status.pwm().from_optional(holdPwm_);
+}
+
 } // namespace facebook::fboss::platform::fan_service
