@@ -47,10 +47,28 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
+          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "warm_boot.AgentAclCounterTest/[01].*$"
+          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentRouteOverflowTest.overflowRoutes$"
@@ -60,9 +78,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentSwitchStatsTxCounterTest.VerifyTxCounter$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -110,6 +125,27 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
+          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
         },
         {
@@ -126,6 +162,9 @@
         },
         {
           "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticDynamicTransformations$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentLoadBalancerTestV4.ECMPShrinkExpandLoadBalanceFullHashCpuTraffic$"
@@ -217,6 +256,27 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
+          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -262,6 +322,27 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
+          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
         },
         {
@@ -278,6 +359,9 @@
         },
         {
           "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticDynamicTransformations$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].EapolToHighPriQ$"
@@ -348,10 +432,28 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
+          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "warm_boot.AgentAclCounterTest/[01].*$"
+          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentRouteOverflowTest.overflowRoutes$"
@@ -361,9 +463,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentSwitchStatsTxCounterTest.VerifyTxCounter$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -411,6 +510,27 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
+          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
         },
         {
@@ -427,6 +547,9 @@
         },
         {
           "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticDynamicTransformations$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].EapolToHighPriQ$"
@@ -479,6 +602,27 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
+          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -524,6 +668,27 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
+          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
         },
         {
@@ -540,6 +705,9 @@
         },
         {
           "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticDynamicTransformations$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentLoadBalancerTestV4InMplsPhp.*$"
@@ -607,10 +775,28 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
+          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "warm_boot.AgentAclCounterTest/[01].*$"
+          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentRouteOverflowTest.overflowRoutes$"
@@ -620,9 +806,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentSwitchStatsTxCounterTest.VerifyTxCounter$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -670,6 +853,27 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
+          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
         },
         {
@@ -686,6 +890,9 @@
         },
         {
           "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticDynamicTransformations$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentLoadBalancerTestV4InMplsPhp.*$"
@@ -771,6 +978,27 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
+          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -816,6 +1044,27 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
+          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
         },
         {
@@ -832,6 +1081,9 @@
         },
         {
           "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticDynamicTransformations$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentAqmTest.verifyEcnWithoutWredConfig$"
@@ -905,10 +1157,28 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
+          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "warm_boot.AgentAclCounterTest/[01].*$"
+          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentRouteOverflowTest.overflowRoutes$"
@@ -918,9 +1188,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentSwitchStatsTxCounterTest.VerifyTxCounter$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -968,6 +1235,27 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
+          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
         },
         {
@@ -984,6 +1272,9 @@
         },
         {
           "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticDynamicTransformations$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentAqmTest.verifyEcnWithoutWredConfig$"
@@ -1036,6 +1327,27 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
+          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -1081,6 +1393,27 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
+          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
         },
         {
@@ -1097,6 +1430,9 @@
         },
         {
           "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticDynamicTransformations$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentLoadBalancerTestV4InMplsPhp.*$"
@@ -1185,10 +1521,28 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
+          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "warm_boot.AgentAclCounterTest/[01].*$"
+          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentRouteOverflowTest.overflowRoutes$"
@@ -1198,9 +1552,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentSwitchStatsTxCounterTest.VerifyTxCounter$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -1248,6 +1599,27 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
+          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
         },
         {
@@ -1264,6 +1636,9 @@
         },
         {
           "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticDynamicTransformations$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentLoadBalancerTestV4InMplsPhp.*$"
@@ -1352,6 +1727,27 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
+          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -1397,6 +1793,27 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
+          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
         },
         {
@@ -1413,6 +1830,9 @@
         },
         {
           "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticDynamicTransformations$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentLoadBalancerTestV4InMplsPhp.*$"
@@ -1513,10 +1933,28 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
+          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "warm_boot.AgentAclCounterTest/[01].*$"
+          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentRouteOverflowTest.overflowRoutes$"
@@ -1526,9 +1964,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentSwitchStatsTxCounterTest.VerifyTxCounter$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -1576,6 +2011,27 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
+          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
         },
         {
@@ -1592,6 +2048,9 @@
         },
         {
           "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticDynamicTransformations$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentLoadBalancerTestV4InMplsPhp.*$"
@@ -1692,6 +2151,27 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
+          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -1737,6 +2217,27 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
+          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
         },
         {
@@ -1753,6 +2254,9 @@
         },
         {
           "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticDynamicTransformations$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentPrbsTest.*$"
@@ -1805,10 +2309,28 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
+          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "warm_boot.AgentAclCounterTest/[01].*$"
+          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentRouteOverflowTest.overflowRoutes$"
@@ -1818,9 +2340,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentSwitchStatsTxCounterTest.VerifyTxCounter$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -1868,6 +2387,27 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
+          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
         },
         {
@@ -1884,6 +2424,9 @@
         },
         {
           "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticDynamicTransformations$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentPrbsTest.*$"
@@ -1936,6 +2479,27 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
+          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -1981,6 +2545,27 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
+          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
         },
         {
@@ -1997,6 +2582,9 @@
         },
         {
           "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticDynamicTransformations$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentPrbsTest.*$"
@@ -2049,10 +2637,28 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
+          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "warm_boot.AgentAclCounterTest/[01].*$"
+          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentRouteOverflowTest.overflowRoutes$"
@@ -2062,9 +2668,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentSwitchStatsTxCounterTest.VerifyTxCounter$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -2112,6 +2715,27 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
+          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
         },
         {
@@ -2128,6 +2752,9 @@
         },
         {
           "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticDynamicTransformations$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentPrbsTest.*$"
@@ -2198,6 +2825,27 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
+          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -2243,6 +2891,27 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
+          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
         },
         {
@@ -2259,6 +2928,9 @@
         },
         {
           "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticDynamicTransformations$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].EapolToHighPriQ$"
@@ -2329,10 +3001,28 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
+          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "warm_boot.AgentAclCounterTest/[01].*$"
+          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentRouteOverflowTest.overflowRoutes$"
@@ -2342,9 +3032,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentSwitchStatsTxCounterTest.VerifyTxCounter$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -2392,6 +3079,27 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
+          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
         },
         {
@@ -2408,6 +3116,9 @@
         },
         {
           "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticDynamicTransformations$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].EapolToHighPriQ$"
@@ -2460,6 +3171,27 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
+          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -2505,6 +3237,27 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
+          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
         },
         {
@@ -2521,6 +3274,9 @@
         },
         {
           "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticDynamicTransformations$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentLoadBalancerTestV4InMplsPhp.*$"
@@ -2588,10 +3344,28 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
+          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "warm_boot.AgentAclCounterTest/[01].*$"
+          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentRouteOverflowTest.overflowRoutes$"
@@ -2601,9 +3375,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentSwitchStatsTxCounterTest.VerifyTxCounter$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -2651,6 +3422,27 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
+          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
         },
         {
@@ -2667,6 +3459,9 @@
         },
         {
           "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticDynamicTransformations$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentLoadBalancerTestV4InMplsPhp.*$"
@@ -2752,6 +3547,27 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
+          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
         },
         {
@@ -2797,6 +3613,27 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
+          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
         },
         {
@@ -2813,6 +3650,9 @@
         },
         {
           "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticDynamicTransformations$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentAqmTest.verifyEcnWithoutWredConfig$"
@@ -2886,10 +3726,28 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
+          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "warm_boot.AgentAclCounterTest/[01].*$"
+          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentRouteOverflowTest.overflowRoutes$"
@@ -2899,9 +3757,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentSwitchStatsTxCounterTest.VerifyTxCounter$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].DstIpNetworkControlDscpToHighPriQ$"
@@ -2949,6 +3804,27 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
+          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
         },
         {
@@ -2965,6 +3841,9 @@
         },
         {
           "test_name_regex": "AgentMacLearningStaticEntriesTest.VerifyStaticDynamicTransformations$"
+        },
+        {
+          "test_name_regex": "AgentWatermarkTest.VerifyQueueWatermarkAccuracy$"
         },
         {
           "test_name_regex": "AgentAqmTest.verifyEcnWithoutWredConfig$"
@@ -3041,6 +3920,30 @@
           "test_name_regex": "AgentPacketSendTest.PortTxEnableTest$"
         },
         {
+          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacketRate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacketRate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifySampledPacketRate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifySampledPacketRate$"
+        },
+        {
           "test_name_regex": "AgentDeepPacketInspectionTest.*$"
         },
         {
@@ -3093,6 +3996,27 @@
         },
         {
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
+        },
+        {
+          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
         }
     ],
     "leaba/1.42.8/1.42.8/gibraltar/multi_switch": [
@@ -3166,6 +4090,30 @@
           "test_name_regex": "AgentPacketSendTest.PortTxEnableTest$"
         },
         {
+          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacketRate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacketRate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifySampledPacketRate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifySampledPacketRate$"
+        },
+        {
           "test_name_regex": "AgentDeepPacketInspectionTest.*$"
         },
         {
@@ -3220,10 +4168,28 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
+          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "warm_boot.AgentAclCounterTest/[01].*$"
+          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentRouteOverflowTest.overflowRoutes$"
@@ -3233,9 +4199,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentSwitchStatsTxCounterTest.VerifyTxCounter$"
         }
     ],
     "leaba/1.65.1/1.65.1/gibraltar/mono": [
@@ -3309,6 +4272,30 @@
           "test_name_regex": "AgentPacketSendTest.PortTxEnableTest$"
         },
         {
+          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacketRate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacketRate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifySampledPacketRate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifySampledPacketRate$"
+        },
+        {
           "test_name_regex": "AgentPortBandwidthTest.VerifyQueueShaper$"
         },
         {
@@ -3355,6 +4342,27 @@
         },
         {
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
+        },
+        {
+          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
         }
     ],
     "leaba/1.65.1/1.65.1/gibraltar/multi_switch": [
@@ -3428,6 +4436,30 @@
           "test_name_regex": "AgentPacketSendTest.PortTxEnableTest$"
         },
         {
+          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacketRate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacketRate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifySampledPacketRate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifySampledPacketRate$"
+        },
+        {
           "test_name_regex": "AgentPortBandwidthTest.VerifyQueueShaper$"
         },
         {
@@ -3476,10 +4508,28 @@
           "test_name_regex": "AgentFlowletSwitchingTest.*$"
         },
         {
-          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
+          "test_name_regex": "AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
-          "test_name_regex": "warm_boot.AgentAclCounterTest/[01].*$"
+          "test_name_regex": "AgentPacketSendReceiveTest.LldpPacketReceiveSrcPort$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV4.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTestV6.VerifySampledPacket$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV4.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentSflowMirrorTruncateTestV6.VerifyTruncate$"
+        },
+        {
+          "test_name_regex": "AgentMacSwLearningModeTest.VerifySwAgingForTrunk$"
+        },
+        {
+          "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
           "test_name_regex": "AgentRouteOverflowTest.overflowRoutes$"
@@ -3489,9 +4539,6 @@
         },
         {
           "test_name_regex": "warm_boot.AgentRouteCounterOverflowTest.overflowRouteCounters$"
-        },
-        {
-          "test_name_regex": "warm_boot.AgentSwitchStatsTxCounterTest.VerifyTxCounter$"
         }
     ]
   }
