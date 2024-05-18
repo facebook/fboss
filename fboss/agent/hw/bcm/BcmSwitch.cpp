@@ -952,7 +952,6 @@ HwInitResult BcmSwitch::initImpl(
   setupCos();
 
   folly::dynamic switchStateJson;
-  std::optional<state::WarmbootState> switchStateThrift;
   if (warmBoot) {
     // This needs to be done after we have set
     // bcmSwitchL3EgressMode else the egress ids
@@ -986,13 +985,6 @@ HwInitResult BcmSwitch::initImpl(
   if (warmBoot) {
     ret.switchState = std::make_shared<SwitchState>();
     getPlatform()->preWarmbootStateApplied();
-    const auto& routeTables = *(switchStateThrift->routeTables());
-    if (!routeTables.empty()) {
-      ret.rib = RoutingInformationBase::fromThrift(
-          routeTables,
-          ret.switchState->getFibs(),
-          ret.switchState->getLabelForwardingInformationBase());
-    }
   } else {
     auto bootState = std::make_shared<SwitchState>();
     bootState->publish();
