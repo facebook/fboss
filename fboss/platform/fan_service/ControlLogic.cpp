@@ -409,8 +409,9 @@ std::pair<bool, int16_t> ControlLogic::programFan(
   newFanPwm = std::min(newFanPwm, *config_.pwmUpperThreshold());
   newFanPwm = std::max(newFanPwm, *config_.pwmLowerThreshold());
 
-  if (fanHoldPwm_.has_value()) {
-    newFanPwm = fanHoldPwm_.value();
+  std::optional<int> fanHoldPwm = fanHoldPwm_.load();
+  if (fanHoldPwm.has_value()) {
+    newFanPwm = fanHoldPwm.value();
     XLOG(INFO) << "Using hold PWM " << newFanPwm;
   }
 
@@ -639,12 +640,11 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
 }
 
 void ControlLogic::setFanHold(std::optional<int> pwm) {
-  fanStatuses_.withWLock([&](auto& /*fanStatuses*/) { fanHoldPwm_ = pwm; });
+  fanHoldPwm_.store(pwm);
 }
 
 std::optional<int> ControlLogic::getFanHold() {
-  return fanStatuses_.withRLock(
-      [&](auto& /*fanStatuses*/) { return fanHoldPwm_; });
+  return fanHoldPwm_.load();
 }
 
 } // namespace facebook::fboss::platform::fan_service

@@ -95,7 +95,7 @@ class ControlLogic {
 
   folly::Synchronized<std::map<std::string /* fanName */, FanStatus>>
       fanStatuses_;
-  std::optional<int> fanHoldPwm_; // Locked under the fanStatuses_ lock
+  std::atomic<std::optional<int>> fanHoldPwm_;
   std::map<std::string /* sensorName */, SensorReadCache> sensorReadCaches_;
   std::map<std::string /* sensorName */, int16_t /* pwm */> opticReadCaches_;
   std::map<std::string /* sensorName */, PwmCalcCache> pwmCalcCaches_;
