@@ -918,6 +918,8 @@ static void populateInterfaceDetail(
     interfaceDetail.remoteIntfLivenessStatus() =
         intf->getRemoteLivenessStatus().value();
   }
+
+  interfaceDetail.scope() = intf->getScope();
 }
 
 void ThriftHandler::getAllInterfaces(
