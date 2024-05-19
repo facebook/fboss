@@ -240,6 +240,7 @@ struct InterfaceDetail {
   7: i32 mtu;
   8: optional common.RemoteInterfaceType remoteIntfType;
   9: optional common.LivenessStatus remoteIntfLivenessStatus;
+  10: switch_config.Scope scope = switch_config.Scope.LOCAL;
 }
 
 /*
