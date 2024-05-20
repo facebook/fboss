@@ -14,4 +14,5 @@ struct RifEntry {
   7: i32 mtu;
   8: string remoteInterfaceType;
   9: string remoteInterfaceLivenessStatus;
+  10: string scope;
 }

@@ -87,6 +87,7 @@ class CmdShowRif : public CmdHandler<CmdShowRif, CmdShowRifTraits> {
           getRemoteIntfTypeStr(rif.remoteIntfType());
       rifEntry.remoteInterfaceLivenessStatus() =
           getRemoteIntfLivenessStatusStr(rif.remoteIntfLivenessStatus());
+      rifEntry.scope() = apache::thrift::util::enumNameSafe(*rif.scope());
 
       model.rifs()->push_back(rifEntry);
     }
@@ -104,7 +105,8 @@ class CmdShowRif : public CmdHandler<CmdShowRif, CmdShowRifTraits> {
          "MAC",
          "MTU",
          "TYPE",
-         "Liveness"});
+         "Liveness",
+         "Scope"});
 
     for (const auto& rif : model.get_rifs()) {
       outTable.addRow({
@@ -116,6 +118,7 @@ class CmdShowRif : public CmdHandler<CmdShowRif, CmdShowRifTraits> {
           std::to_string(rif.get_mtu()),
           rif.get_remoteInterfaceType(),
           rif.get_remoteInterfaceLivenessStatus(),
+          rif.get_scope(),
       });
     }
 
