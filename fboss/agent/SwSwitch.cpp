@@ -459,7 +459,9 @@ void SwSwitch::stop(bool isGracefulStop, bool revertToMinAlpmState) {
   // First tell the hw to stop sending us events by unregistering the callback
   // After this we should no longer receive packets or link state changed events
   // while we are destroying ourselves
-  multiHwSwitchHandler_->unregisterCallbacks();
+  if (isRunModeMonolithic()) {
+    getMonolithicHwSwitchHandler()->unregisterCallbacks();
+  }
 
   // Stop tunMgr so we don't get any packets to process
   // in software that were sent to the switch ip or were
@@ -654,8 +656,7 @@ void SwSwitch::gracefulExit() {
                       switchStateToFollyDone - stopThreadsAndHandlersDone)
                       .count();
     // Cleanup if we ever initialized
-    multiHwSwitchHandler_->gracefulExit();
-    multiHwSwitchHandler_->stop();
+    stopHwSwitchHandler();
     storeWarmBootState(thriftSwitchState);
     XLOG(DBG2)
         << "[Exit] SwSwitch Graceful Exit time "
@@ -1651,7 +1652,10 @@ std::shared_ptr<SwitchState> SwSwitch::applyUpdate(
     // Another thing we could try here is rolling back to the old state.
     XLOG(ERR) << "error applying state change to hardware: "
               << folly::exceptionStr(ex);
-    multiHwSwitchHandler_->exitFatal();
+
+    if (isRunModeMonolithic()) {
+      getMonolithicHwSwitchHandler()->exitFatal();
+    }
 
     dumpBadStateUpdate(oldState, newState);
     XLOG(FATAL) << "encountered a fatal error: " << folly::exceptionStr(ex);
@@ -2760,7 +2764,16 @@ bool SwSwitch::isValidStateUpdate(const StateDelta& delta) const {
     XLOG(ERR) << "More than one sflow mirrors configured";
     isValid = false;
   }
-  return isValid && multiHwSwitchHandler_->isValidStateUpdate(delta);
+
+  if (isValid) {
+    if (isRunModeMonolithic()) {
+      isValid = getMonolithicHwSwitchHandler()->isValidStateUpdate(delta);
+    } else {
+      // TODO - implement state update validation for multiswitch
+    }
+  }
+
+  return isValid;
 }
 
 AdminDistance SwSwitch::clientIdToAdminDistance(int clientId) const {
@@ -3220,6 +3233,13 @@ std::map<SystemPortID, HwSysPortStats> SwSwitch::getHwSysPortStats(
     }
   }
   return hwPortsStats;
+}
+
+void SwSwitch::stopHwSwitchHandler() {
+  if (isRunModeMonolithic()) {
+    getMonolithicHwSwitchHandler()->gracefulExit();
+  }
+  multiHwSwitchHandler_->stop();
 }
 
 } // namespace facebook::fboss

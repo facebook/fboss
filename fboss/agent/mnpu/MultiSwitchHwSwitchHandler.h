@@ -18,8 +18,6 @@ class MultiSwitchHwSwitchHandler : public HwSwitchHandler {
 
   virtual ~MultiSwitchHwSwitchHandler() override;
 
-  void exitFatal() const override;
-
   std::unique_ptr<TxPacket> allocatePacket(uint32_t size) const override;
 
   bool sendPacketOutOfPortAsync(
@@ -30,12 +28,6 @@ class MultiSwitchHwSwitchHandler : public HwSwitchHandler {
   bool sendPacketSwitchedSync(std::unique_ptr<TxPacket> pkt) noexcept override;
 
   bool sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt) noexcept override;
-
-  bool isValidStateUpdate(const StateDelta& delta) const override;
-
-  void unregisterCallbacks() override;
-
-  void gracefulExit() override;
 
   bool transactionsSupported(
       std::optional<cfg::SdkVersion> sdkVersion) const override;

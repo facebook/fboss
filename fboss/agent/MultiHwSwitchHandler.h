@@ -61,8 +61,6 @@ class MultiHwSwitchHandler {
       bool transaction,
       const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE);
 
-  void exitFatal();
-
   std::unique_ptr<TxPacket> allocatePacket(uint32_t size);
 
   bool sendPacketOutOfPortAsync(
@@ -73,12 +71,6 @@ class MultiHwSwitchHandler {
   bool sendPacketSwitchedSync(std::unique_ptr<TxPacket> pkt) noexcept;
 
   bool sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt) noexcept;
-
-  bool isValidStateUpdate(const StateDelta& delta);
-
-  void unregisterCallbacks();
-
-  void gracefulExit();
 
   bool transactionsSupported() const;
 

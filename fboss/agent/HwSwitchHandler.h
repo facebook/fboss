@@ -63,8 +63,6 @@ class HwSwitchHandler {
       HwSwitchStateUpdate update,
       const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE);
 
-  virtual void exitFatal() const = 0;
-
   virtual std::unique_ptr<TxPacket> allocatePacket(uint32_t size) const = 0;
 
   virtual bool sendPacketOutOfPortAsync(
@@ -77,12 +75,6 @@ class HwSwitchHandler {
 
   virtual bool sendPacketSwitchedAsync(
       std::unique_ptr<TxPacket> pkt) noexcept = 0;
-
-  virtual bool isValidStateUpdate(const StateDelta& delta) const = 0;
-
-  virtual void unregisterCallbacks() = 0;
-
-  virtual void gracefulExit() = 0;
 
   virtual bool transactionsSupported(
       std::optional<cfg::SdkVersion> sdkVersion) const = 0;

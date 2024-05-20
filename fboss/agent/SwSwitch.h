@@ -1065,6 +1065,9 @@ class SwSwitch : public HwSwitchCallback {
   void postInit();
 
   void updateMultiSwitchGlobalFb303Stats();
+
+  void stopHwSwitchHandler();
+
   // TODO: To be removed once switchWatermarkStats is available in prod
   HwBufferPoolStats getBufferPoolStatsFromSwitchWatermarkStats();
 

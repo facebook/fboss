@@ -22,7 +22,7 @@ class MonolithicHwSwitchHandler : public HwSwitchHandler {
 
   virtual ~MonolithicHwSwitchHandler() override = default;
 
-  void exitFatal() const override;
+  void exitFatal() const;
 
   std::unique_ptr<TxPacket> allocatePacket(uint32_t size) const override;
 
@@ -35,11 +35,11 @@ class MonolithicHwSwitchHandler : public HwSwitchHandler {
 
   bool sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt) noexcept override;
 
-  bool isValidStateUpdate(const StateDelta& delta) const override;
+  bool isValidStateUpdate(const StateDelta& delta) const;
 
-  void unregisterCallbacks() override;
+  void unregisterCallbacks();
 
-  void gracefulExit() override;
+  void gracefulExit();
 
   folly::dynamic toFollyDynamic() const;
 

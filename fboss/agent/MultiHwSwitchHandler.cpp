@@ -192,33 +192,6 @@ HwSwitchHandler* MultiHwSwitchHandler::getHwSwitchHandler(SwitchID switchId) {
   return handler->second.get();
 }
 
-void MultiHwSwitchHandler::unregisterCallbacks() {
-  for (auto& entry : hwSwitchSyncers_) {
-    entry.second->unregisterCallbacks();
-  }
-}
-
-void MultiHwSwitchHandler::exitFatal() {
-  for (auto& entry : hwSwitchSyncers_) {
-    entry.second->exitFatal();
-  }
-}
-
-bool MultiHwSwitchHandler::isValidStateUpdate(const StateDelta& delta) {
-  for (auto& entry : hwSwitchSyncers_) {
-    if (!entry.second->isValidStateUpdate(delta)) {
-      return false;
-    }
-  }
-  return true;
-}
-
-void MultiHwSwitchHandler::gracefulExit() {
-  for (auto& entry : hwSwitchSyncers_) {
-    entry.second->gracefulExit();
-  }
-}
-
 bool MultiHwSwitchHandler::transactionsSupported() const {
   return transactionsSupported_;
 }

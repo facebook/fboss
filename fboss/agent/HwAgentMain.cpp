@@ -78,6 +78,9 @@ void SplitHwAgentSignalHandler::signalReceived(int /*signum*/) noexcept {
     hwAgent_->waitForInitDone();
   }
   steady_clock::time_point begin = steady_clock::now();
+  // unregister sdk callbacks so that we do not get sdk updates while shutting
+  // down
+  hwAgent_->getPlatform()->getHwSwitch()->unregisterCallbacks();
   stopServices();
   steady_clock::time_point servicesStopped = steady_clock::now();
   XLOG(DBG2) << "[Exit] Services stop time "
@@ -93,7 +96,6 @@ void SplitHwAgentSignalHandler::signalReceived(int /*signum*/) noexcept {
     };
     XLOG(DBG2)
         << "[Exit] Cold boot detected, skipping warmboot, unregistering callbacks";
-    hwAgent_->getPlatform()->getHwSwitch()->unregisterCallbacks();
     if (hwAgent_->getPlatform()->getAsic()->isSupported(
             HwAsic::Feature::ROUTE_PROGRAMMING)) {
       auto programmedState =

@@ -17,10 +17,6 @@ MultiSwitchHwSwitchHandler::MultiSwitchHwSwitchHandler(
     SwSwitch* sw)
     : HwSwitchHandler(switchId, info), sw_(sw) {}
 
-void MultiSwitchHwSwitchHandler::exitFatal() const {
-  // TODO: implement this
-}
-
 std::unique_ptr<TxPacket> MultiSwitchHwSwitchHandler::allocatePacket(
     uint32_t size) const {
   return TxPacket::allocateTxPacket(size);
@@ -41,20 +37,6 @@ bool MultiSwitchHwSwitchHandler::sendPacketSwitchedSync(
 bool MultiSwitchHwSwitchHandler::sendPacketSwitchedAsync(
     std::unique_ptr<TxPacket> pkt) noexcept {
   return sendPacketOutViaThriftStream(std::move(pkt));
-}
-
-bool MultiSwitchHwSwitchHandler::isValidStateUpdate(
-    const StateDelta& /*delta*/) const {
-  // TODO: implement this
-  return true;
-}
-
-void MultiSwitchHwSwitchHandler::unregisterCallbacks() {
-  // TODO: implement this
-}
-
-void MultiSwitchHwSwitchHandler::gracefulExit() {
-  // TODO: implement this
 }
 
 bool MultiSwitchHwSwitchHandler::transactionsSupported(
