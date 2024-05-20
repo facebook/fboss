@@ -324,7 +324,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT1_LED1",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x6100"
               },
               "portNumber": 1,
@@ -333,7 +333,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT1_LED2",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x6110"
               },
               "portNumber": 1,
@@ -342,7 +342,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT2_LED1",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x6120"
               },
               "portNumber": 2,
@@ -351,7 +351,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT2_LED2",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x6130"
               },
               "portNumber": 2,
@@ -360,7 +360,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT3_LED1",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x6140"
               },
               "portNumber": 3,
@@ -369,7 +369,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT3_LED2",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x6150"
               },
               "portNumber": 3,
@@ -378,7 +378,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT4_LED1",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x6160"
               },
               "portNumber": 4,
@@ -387,7 +387,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT4_LED2",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x6170"
               },
               "portNumber": 4,
@@ -396,7 +396,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT5_LED1",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x6180"
               },
               "portNumber": 5,
@@ -405,7 +405,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT5_LED2",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x6190"
               },
               "portNumber": 5,
@@ -414,7 +414,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT6_LED1",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x61a0"
               },
               "portNumber": 6,
@@ -423,7 +423,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT6_LED2",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x61b0"
               },
               "portNumber": 6,
@@ -432,7 +432,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT7_LED1",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x61c0"
               },
               "portNumber": 7,
@@ -441,7 +441,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT7_LED2",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x61d0"
               },
               "portNumber": 7,
@@ -450,7 +450,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT8_LED1",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x61e0"
               },
               "portNumber": 8,
@@ -459,7 +459,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT8_LED2",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x61f0"
               },
               "portNumber": 8,
@@ -468,7 +468,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT9_LED1",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x6200"
               },
               "portNumber": 9,
@@ -477,7 +477,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT9_LED2",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x6210"
               },
               "portNumber": 9,
@@ -486,7 +486,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT10_LED1",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x6220"
               },
               "portNumber": 10,
@@ -495,7 +495,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT10_LED2",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x6230"
               },
               "portNumber": 10,
@@ -504,7 +504,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT11_LED1",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x6240"
               },
               "portNumber": 11,
@@ -513,7 +513,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT11_LED2",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x6250"
               },
               "portNumber": 11,
@@ -522,7 +522,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT12_LED1",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x6260"
               },
               "portNumber": 12,
@@ -531,7 +531,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT12_LED2",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x6270"
               },
               "portNumber": 12,
@@ -540,7 +540,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT13_LED1",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x6280"
               },
               "portNumber": 13,
@@ -549,7 +549,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT13_LED2",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x6290"
               },
               "portNumber": 13,
@@ -558,7 +558,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT14_LED1",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x62a0"
               },
               "portNumber": 14,
@@ -567,7 +567,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT14_LED2",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x62b0"
               },
               "portNumber": 14,
@@ -576,7 +576,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT15_LED1",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x62c0"
               },
               "portNumber": 15,
@@ -585,7 +585,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT15_LED2",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x62d0"
               },
               "portNumber": 15,
@@ -594,7 +594,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT16_LED1",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x62e0"
               },
               "portNumber": 16,
@@ -603,7 +603,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT16_LED2",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x62f0"
               },
               "portNumber": 16,
@@ -612,7 +612,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT17_LED1",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x6300"
               },
               "portNumber": 17,
@@ -621,7 +621,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT17_LED2",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x6310"
               },
               "portNumber": 17,
@@ -630,7 +630,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT18_LED1",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x6320"
               },
               "portNumber": 18,
@@ -639,7 +639,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT18_LED2",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x6330"
               },
               "portNumber": 18,
@@ -648,7 +648,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT19_LED1",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x6340"
               },
               "portNumber": 19,
@@ -657,7 +657,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT19_LED2",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x6350"
               },
               "portNumber": 19,
@@ -666,7 +666,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT20_LED1",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x6360"
               },
               "portNumber": 20,
@@ -675,7 +675,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT20_LED2",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x6370"
               },
               "portNumber": 20,
@@ -684,7 +684,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT21_LED1",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x6380"
               },
               "portNumber": 21,
@@ -693,7 +693,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT21_LED2",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x6390"
               },
               "portNumber": 21,
@@ -702,7 +702,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT22_LED1",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x63a0"
               },
               "portNumber": 22,
@@ -711,7 +711,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT22_LED2",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x63b0"
               },
               "portNumber": 22,
@@ -720,7 +720,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT23_LED1",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x63c0"
               },
               "portNumber": 23,
@@ -729,7 +729,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT23_LED2",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x63d0"
               },
               "portNumber": 23,
@@ -738,7 +738,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT24_LED1",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x63e0"
               },
               "portNumber": 24,
@@ -747,7 +747,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT24_LED2",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x63f0"
               },
               "portNumber": 24,
@@ -756,7 +756,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT25_LED1",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x6400"
               },
               "portNumber": 25,
@@ -765,7 +765,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT25_LED2",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x6410"
               },
               "portNumber": 25,
@@ -774,7 +774,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT26_LED1",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x6420"
               },
               "portNumber": 26,
@@ -783,7 +783,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT26_LED2",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x6430"
               },
               "portNumber": 26,
@@ -792,7 +792,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT27_LED1",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x6440"
               },
               "portNumber": 27,
@@ -801,7 +801,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT27_LED2",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x6450"
               },
               "portNumber": 27,
@@ -810,7 +810,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT28_LED1",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x6460"
               },
               "portNumber": 28,
@@ -819,7 +819,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT28_LED2",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x6470"
               },
               "portNumber": 28,
@@ -828,7 +828,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT29_LED1",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x6480"
               },
               "portNumber": 29,
@@ -837,7 +837,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT29_LED2",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x6490"
               },
               "portNumber": 29,
@@ -846,7 +846,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT30_LED1",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x64a0"
               },
               "portNumber": 30,
@@ -855,7 +855,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT30_LED2",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x64b0"
               },
               "portNumber": 30,
@@ -864,7 +864,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT31_LED1",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x64c0"
               },
               "portNumber": 31,
@@ -873,7 +873,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT31_LED2",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x64d0"
               },
               "portNumber": 31,
@@ -882,7 +882,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT32_LED1",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x64e0"
               },
               "portNumber": 32,
@@ -891,7 +891,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT32_LED2",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x64f0"
               },
               "portNumber": 32,
@@ -900,7 +900,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT33_LED1",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x6500"
               },
               "portNumber": 33,
@@ -909,7 +909,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT33_LED2",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x6510"
               },
               "portNumber": 33,
@@ -918,7 +918,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT34_LED1",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x6520"
               },
               "portNumber": 34,
@@ -927,7 +927,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT34_LED2",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x6530"
               },
               "portNumber": 34,
@@ -936,7 +936,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT35_LED1",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x6540"
               },
               "portNumber": 35,
@@ -945,7 +945,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT35_LED2",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x6550"
               },
               "portNumber": 35,
@@ -954,7 +954,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT36_LED1",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x6560"
               },
               "portNumber": 36,
@@ -963,7 +963,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT36_LED2",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x6570"
               },
               "portNumber": 36,
@@ -972,7 +972,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT37_LED1",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x6580"
               },
               "portNumber": 37,
@@ -981,7 +981,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT37_LED2",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x6590"
               },
               "portNumber": 37,
@@ -990,7 +990,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT38_LED1",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x65a0"
               },
               "portNumber": 38,
@@ -999,7 +999,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "OSFP_PORT38_LED2",
-                "deviceName": "osfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x65b0"
               },
               "portNumber": 38,
@@ -1008,7 +1008,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "QSFP_PORT39_LED1",
-                "deviceName": "qsfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x65c0"
               },
               "portNumber": 39,
@@ -1017,7 +1017,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "QSFP_PORT39_LED2",
-                "deviceName": "qsfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x65d0"
               },
               "portNumber": 39,
@@ -1026,7 +1026,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "QSFP_PORT39_LED3",
-                "deviceName": "qsfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x65e0"
               },
               "portNumber": 39,
@@ -1035,7 +1035,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "QSFP_PORT39_LED4",
-                "deviceName": "qsfp_led",
+                "deviceName": "port_led",
                 "csrOffset": "0x65f0"
               },
               "portNumber": 39,
@@ -1044,7 +1044,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "SYSTEM_STATUS_LED",
-                "deviceName": "status_led",
+                "deviceName": "sys_led",
                 "csrOffset": "0x6050"
               },
               "portNumber": -1,
@@ -1053,7 +1053,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "FAN_STATUS_LED",
-                "deviceName": "status_led",
+                "deviceName": "fan_led",
                 "csrOffset": "0x6060"
               },
               "portNumber": -1,
@@ -1062,7 +1062,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "PSU_STATUS_LED",
-                "deviceName": "status_led",
+                "deviceName": "psu_led",
                 "csrOffset": "0x6070"
               },
               "portNumber": -1,
@@ -1071,7 +1071,7 @@
             {
               "fpgaIpBlockConfig": {
                 "pmUnitScopedName": "SMB_STATUS_LED",
-                "deviceName": "status_led",
+                "deviceName": "smb_led",
                 "csrOffset": "0x6090"
               },
               "portNumber": -1,
@@ -1546,7 +1546,7 @@
     "/run/devmap/flashes/SMB_SPI_MASTER0_DEVICE1": "/SMB_SLOT@0/[SMB_SPI_MASTER0_DEVICE1]"
   },
   "bspKmodsRpmName": "arista_bsp_kmods",
-  "bspKmodsRpmVersion": "0.5.2-1",
+  "bspKmodsRpmVersion": "0.7.2-1",
   "bspKmodsToReload": [
     "scd-xcvr",
     "scd-spi",
