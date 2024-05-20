@@ -79,12 +79,12 @@ class CmdClearInterfacePrbsStats : public CmdHandler<
     } else {
       auto switchIndicesForInterfaces =
           utils::getSwitchIndicesForInterfaces(hostInfo, interfaces);
-      auto numHwSwitches = utils::getNumHwSwitches(hostInfo);
-      for (int i = 0; i < numHwSwitches; i++) {
+      for (const auto& [switchIndex, interfaces] : switchIndicesForInterfaces) {
         auto hwAgentClient =
             utils::createClient<apache::thrift::Client<FbossHwCtrl>>(
-                hostInfo, i);
-        auto switchIndicesForInterfacesItr = switchIndicesForInterfaces.find(i);
+                hostInfo, switchIndex);
+        auto switchIndicesForInterfacesItr =
+            switchIndicesForInterfaces.find(switchIndex);
         if (switchIndicesForInterfacesItr == switchIndicesForInterfaces.end()) {
           continue;
         }
