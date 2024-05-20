@@ -1,15 +1,11 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/led_service/BspLedManager.h"
+#include <optional>
 #include "fboss/agent/EnumUtils.h"
 #include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/CommonPortUtils.h"
 #include "fboss/lib/bsp/BspGenericSystemContainer.h"
-
-namespace {
-constexpr facebook::fboss::led::LedColor kCablingErrorLedColor =
-    facebook::fboss::led::LedColor::YELLOW;
-}
 
 namespace facebook::fboss {
 
@@ -141,6 +137,7 @@ led::LedState BspLedManager::calculateLedState(
   bool anyPortUp{false}, allPortsUp{true};
   bool anyCablingError{false};
   bool anyForcedOn{false}, anyForcedOff{false};
+  std::optional<bool> anyUndrainedPort{std::nullopt};
 
   for (auto swPort : commonSwPorts) {
     if (portDisplayMap_.find(swPort) == portDisplayMap_.end()) {
@@ -154,6 +151,14 @@ led::LedState BspLedManager::calculateLedState(
     anyCablingError |= portDisplayMap_.at(swPort).cablingError;
     anyForcedOn |= portDisplayMap_.at(swPort).forcedOn;
     anyForcedOff |= portDisplayMap_.at(swPort).forcedOff;
+
+    if (portDisplayMap_.at(swPort).activeState.has_value()) {
+      if (!anyUndrainedPort.has_value()) {
+        anyUndrainedPort = *portDisplayMap_.at(swPort).activeState;
+      }
+      anyUndrainedPort =
+          *anyUndrainedPort || *portDisplayMap_.at(swPort).activeState;
+    }
   }
 
   // Sanity check warning
@@ -172,27 +177,52 @@ led::LedState BspLedManager::calculateLedState(
   }
 
   XLOG(DBG2) << fmt::format(
-      "Port {:d}, anyPortUp={:s} allPortsUp={:s} anyCablingError = {:s}",
+      "Port {:d}, anyPortUp={:s} allPortsUp={:s} anyCablingError = {:s} anyUndrainedPort={:s}",
       portId,
       (anyPortUp ? "True" : "False"),
       (allPortsUp ? "True" : "False"),
-      (anyCablingError ? "True" : "False"));
+      (anyCablingError ? "True" : "False"),
+      (anyUndrainedPort.has_value() ? (*anyUndrainedPort ? "True" : "False")
+                                    : "N/A"));
 
-  // BSP LED color scheme:
-  //  - ALL ports on a fiber are down                         --> LED OFF
-  //  - ALL ports are up and have proper reachability/cabling --> LED GREEN
-  //  - Any other state                                       --> LED YELLOW
+  /*
+   * BSP LED color scheme:
+   * Undrained Port
+   *  # of ports UP and have correct reachability == 4    -> BLUE
+   *  0 < # of ports UP and have correct reachability < 4 -> AMBER
+   *  # of ports UP and have correct reachability == 0    -> OFF
+   *
+   * Drained Port
+   *  # of ports UP and have correct reachability == 4    -> SLOW FLASHING BLUE
+   *  0 < # of ports UP and have correct reachability < 4 -> FAST FLASHING AMBER
+   *  # of ports UP and have correct reachability == 0    -> SLOW FLASHING AMBER
+   */
 
   led::LedColor currPortColor{led::LedColor::UNKNOWN};
   led::Blink currBlink{led::Blink::OFF};
 
-  if (!anyPortUp) {
-    currPortColor = led::LedColor::OFF;
-  } else if (allPortsUp && !anyCablingError) {
-    currPortColor = led::LedColor::GREEN;
+  if (!anyUndrainedPort.has_value() || *anyUndrainedPort) {
+    currBlink = led::Blink::OFF;
+    if (allPortsUp && !anyCablingError) {
+      currPortColor = led::LedColor::BLUE;
+    } else if (anyPortUp) {
+      currPortColor = led::LedColor::YELLOW;
+    } else {
+      currPortColor = led::LedColor::OFF;
+    }
   } else {
-    currPortColor = kCablingErrorLedColor;
+    if (allPortsUp && !anyCablingError) {
+      currPortColor = led::LedColor::BLUE;
+      currBlink = led::Blink::SLOW;
+    } else if (anyPortUp) {
+      currPortColor = led::LedColor::YELLOW;
+      currBlink = led::Blink::FAST;
+    } else {
+      currPortColor = led::LedColor::OFF;
+      currBlink = led::Blink::SLOW;
+    }
   }
+
   return utility::constructLedState(currPortColor, currBlink);
 }
 
