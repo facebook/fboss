@@ -15,9 +15,9 @@ include "fboss/platform/sensor_service/if/sensor_config.thrift"
 //
 // `timeStamp`: Lastest timestamp of sensor read. Not set if the last read failed.
 //
-// `thresholds`: various threshold supported defined in sensor_config.thrift
+// `thresholds`: Threshold of the sensors
 //
-// `sensorType`: Enum which Represent the type of sensor
+// `sensorType`: Enum which Represent the type of the sensor
 
 struct SensorData {
   1: string name;
