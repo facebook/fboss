@@ -161,7 +161,9 @@ void PlatformProductInfo::initMode() {
         modelName.find("ASY-57651-102") == 0 ||
         modelName.find("DCS-DS-7720R4-128PE-AC-F") == 0) {
       type_ = PlatformType::PLATFORM_MERU800BFA;
-    } else if (modelName.find("MORGAN800CC") == 0) {
+    } else if (
+        modelName.find("MORGAN800CC") == 0 ||
+        modelName.find("8501-SYS-MT") == 0) {
       type_ = PlatformType::PLATFORM_MORGAN800CC;
     } else if (modelName.find("FAKE_SAI") == 0) {
       type_ = PlatformType::PLATFORM_FAKE_SAI;
