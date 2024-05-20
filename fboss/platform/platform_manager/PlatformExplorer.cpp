@@ -242,7 +242,8 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
             *idpromConfig.address(),
             e.what());
         XLOG(ERR) << errMsg;
-        errorMessages_[slotPath].push_back(errMsg);
+        errorMessages_[Utils().createDevicePath(slotPath, "IDPROM")].push_back(
+            errMsg);
       }
     } else {
       createI2cDevice(
