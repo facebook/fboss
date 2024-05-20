@@ -130,7 +130,8 @@ class CmdShowSystemPort
            "CoreIndex",
            "CorePortIndex",
            "RemoteSystemPortType",
-           "RemoteSystemPortLivenessStatus"});
+           "RemoteSystemPortLivenessStatus",
+           "Scope"});
 
       for (auto const& systemportInfo : model.get_sysPortEntries()) {
         table.addRow(
@@ -143,7 +144,8 @@ class CmdShowSystemPort
              folly::to<std::string>(systemportInfo.get_corePortIndex()),
              folly::to<std::string>(systemportInfo.get_remoteSystemPortType()),
              folly::to<std::string>(
-                 systemportInfo.get_remoteSystemPortLivenessStatus())});
+                 systemportInfo.get_remoteSystemPortLivenessStatus()),
+             systemportInfo.get_scope()});
       }
       out << table << std::endl;
     }
@@ -204,6 +206,9 @@ class CmdShowSystemPort
         systemPortDetails.remoteSystemPortLivenessStatus() =
             getRemoteSystemPortLivenessStatusStr(
                 systemPortInfo.remoteSystemPortLivenessStatus());
+
+        systemPortDetails.scope() =
+            apache::thrift::util::enumNameSafe(systemPortInfo.get_scope());
 
         const auto& iter = systemportHwStats.find(systemPortName);
         // see if we have any detailed hw stats
