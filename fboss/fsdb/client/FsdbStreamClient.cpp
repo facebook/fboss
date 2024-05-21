@@ -54,7 +54,8 @@ FsdbStreamClient::FsdbStreamClient(
     folly::EventBase* connRetryEvb,
     const std::string& counterPrefix,
     bool isStats,
-    StreamStateChangeCb stateChangeCb)
+    StreamStateChangeCb stateChangeCb,
+    int fsdbReconnectMs)
     : ReconnectingThriftClient(
           clientId,
           streamEvb,
@@ -62,7 +63,7 @@ FsdbStreamClient::FsdbStreamClient(
           counterPrefix,
           "fsdb_streams",
           stateChangeCb,
-          getReconnectIntervalInMs(FLAGS_fsdb_reconnect_ms)),
+          getReconnectIntervalInMs(fsdbReconnectMs)),
       streamEvb_(streamEvb),
       isStats_(isStats) {
   if (isStats && FLAGS_fsdb_stat_chunk_timeout) {

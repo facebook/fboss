@@ -33,6 +33,7 @@ class Client;
 
 DECLARE_int32(fsdb_state_chunk_timeout);
 DECLARE_int32(fsdb_stat_chunk_timeout);
+DECLARE_int32(fsdb_reconnect_ms);
 
 using State = facebook::fboss::ReconnectingThriftClient::State;
 
@@ -58,7 +59,8 @@ class FsdbStreamClient : public ReconnectingThriftClient {
       const std::string& counterPrefix,
       bool isStats = false,
       StreamStateChangeCb stateChangeCb = [](State /*old*/,
-                                             State /*newState*/) {});
+                                             State /*newState*/) {},
+      int fsdbReconnectMs = FLAGS_fsdb_reconnect_ms);
   virtual ~FsdbStreamClient();
 
   bool serviceLoopRunning() const {
