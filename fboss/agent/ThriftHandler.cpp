@@ -1490,16 +1490,23 @@ void ThriftHandler::setInterfacePrbs(
   if (component != phy::PortComponent::ASIC) {
     throw FbossError("Unsupported component");
   }
-  if (!state->generatorEnabled().has_value() &&
+  if ((state->generatorEnabled().has_value() &&
+       state->checkerEnabled().has_value()) &&
+      (state->generatorEnabled().value() == state->checkerEnabled().value())) {
+    auto portID = sw_->getPlatformMapping()->getPortID(*portName);
+    bool enabled =
+        (state->generatorEnabled().value() && state->checkerEnabled().value());
+    setPortPrbs(
+        portID, component, enabled, static_cast<int>(*state->polynomial_ref()));
+  } else if (
+      !state->generatorEnabled().has_value() ||
       !state->checkerEnabled().has_value()) {
-    throw FbossError("Neither generator or checker specified for PRBS setting");
+    throw FbossError(
+        "Both generator and checker must be specified for PRBS setting");
+  } else {
+    throw FbossError(
+        "ASIC only supports bidirectional PRBS. Generator and checker must be both enabled or disabled.");
   }
-  auto portID = sw_->getPlatformMapping()->getPortID(*portName);
-  bool enabled = (state->generatorEnabled().has_value() &&
-                  state->generatorEnabled().value()) ||
-      (state->checkerEnabled().has_value() && state->checkerEnabled().value());
-  setPortPrbs(
-      portID, component, enabled, static_cast<int>(*state->polynomial_ref()));
 }
 
 void ThriftHandler::clearPortPrbsStats(
