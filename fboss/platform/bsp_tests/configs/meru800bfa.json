@@ -85,12 +85,26 @@
                     "auxDevice": {
                         "type": "I2C",
                         "deviceName": "i2c_master",
-                        "csrOffset": "0x8100",
+                        "csrOffset": "0x8080",
                         "i2cInfo": {
                             "numChannels": 8
                         }
                     },
-                    "i2cDevices": []
+                    "i2cDevices": [
+                        {
+                            "channel": 3,
+                            "deviceName": "oasis_cpld0",
+                            "address": "0x60",
+                            "testData": {
+                                "i2cSetData": [
+                                    {
+                                        "reg": "0x02",
+                                        "value": "0x66"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
                 },
                 {
                     "auxDevice": {

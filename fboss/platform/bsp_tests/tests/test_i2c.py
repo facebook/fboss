@@ -15,6 +15,8 @@ from fboss.platform.bsp_tests.utils.i2c_utils import (
     create_i2c_adapter,
     create_i2c_device,
     detect_i2c_device,
+    i2cGet,
+    i2cSet,
     parse_i2cdump_data,
 )
 
@@ -113,6 +115,8 @@ class TestI2c(TestBase):
             self.run_i2c_dump_test(device, busNum)
         for _ in range(repeat):
             self.run_i2c_get_test(device, busNum)
+        for _ in range(repeat):
+            self.run_i2c_set_test(device, busNum)
 
     def run_i2c_test_transactions_concurrent(
         self, device: I2CDevice, busNum: int
@@ -148,14 +152,26 @@ class TestI2c(TestBase):
         if not device.testData:
             return
         for tc in device.testData.i2cGetData:
-            output = (
-                run_cmd(["i2cget", "-y", str(busNum), device.address, tc.reg])
-                .stdout.decode()
-                .strip()
-            )
+            output = i2cGet(str(busNum), device.address, tc.reg)
             assert (
                 output == tc.expected
             ), f"Output: {output} did not match expected: {tc.expected} at {tc.reg} on {device.address}"
+
+    def run_i2c_set_test(self, device: I2CDevice, busNum: int) -> None:
+        if not device.testData:
+            return
+        for tc in device.testData.i2cSetData:
+            original = i2cGet(str(busNum), device.address, tc.reg)
+
+            i2cSet(str(busNum), device.address, tc.reg, tc.value)
+            output = i2cGet(str(busNum), device.address, tc.reg)
+            assert (
+                output == tc.value
+            ), f"Output: {output} did not match expected value of {tc.value} at {tc.reg} on {device.address}"
+
+            i2cSet(str(busNum), device.address, tc.reg, original)
+            output = i2cGet(str(busNum), device.address, tc.reg)
+            assert output == original, "Did not successfully set value back to original"
 
     def test_simultaneous_transactions(self) -> None:
         # for each adapter, check if at least 2 internal channels have devices with testData

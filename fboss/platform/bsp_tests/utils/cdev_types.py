@@ -152,9 +152,17 @@ class I2CGetData:
 
 @dataclass_json
 @dataclass
+class I2CSetData:
+    reg: str
+    value: str
+
+
+@dataclass_json
+@dataclass
 class I2CTestData:
     i2cDumpData: List[I2CDumpData] = field(default_factory=list)
     i2cGetData: List[I2CGetData] = field(default_factory=list)
+    i2cSetData: List[I2CSetData] = field(default_factory=list)
 
 
 @dataclass_json
