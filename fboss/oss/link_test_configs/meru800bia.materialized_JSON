@@ -7184,8 +7184,9 @@
       },
       {
         "dscp": 48,
-        "name": "cpuPolicing-high-NetworkControl-dstLocal-127.0.0.1/32",
-        "actionType": 1
+        "name": "cpuPolicing-high-NetworkControl-dstLocal",
+        "actionType": 1,
+        "lookupClassRoute": 1
       },
       {
         "dstIp": "fe80::/10",
@@ -7299,7 +7300,7 @@
             }
           },
           {
-            "matcher": "cpuPolicing-high-NetworkControl-dstLocal-127.0.0.1/32",
+            "matcher": "cpuPolicing-high-NetworkControl-dstLocal",
             "action": {
               "sendToQueue": {
                 "queueId": 7
