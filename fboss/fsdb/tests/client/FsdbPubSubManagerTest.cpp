@@ -276,8 +276,7 @@ class FsdbPubSubManagerTest : public ::testing::Test {
         subscriptionPath(),
         stChangeCb,
         operPathUpdate,
-        "::1",
-        fsdbTestServer_->getFsdbPort());
+        FsdbStreamClient::ServerOptions("::1", fsdbTestServer_->getFsdbPort()));
   }
   void addStatePathSubscriptionWithGrHoldTime(
       FsdbStateSubscriber::FsdbOperStateUpdateCb operPathUpdate,

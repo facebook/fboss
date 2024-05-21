@@ -76,12 +76,6 @@ class FsdbPubSubManager {
       FsdbDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaCb,
       const std::string& fsdbHost = "::1",
       int32_t fsdbPort = FLAGS_fsdbPort);
-  void addStatePathSubscription(
-      const Path& subscribePath,
-      SubscriptionStateChangeCb subscriptionStateChangeCb,
-      FsdbStateSubscriber::FsdbOperStateUpdateCb operDeltaCb,
-      const std::string& fsdbHost = "::1",
-      int32_t fsdbPort = FLAGS_fsdbPort);
   void addStatDeltaSubscription(
       const Path& subscribePath,
       SubscriptionStateChangeCb subscriptionStateChangeCb,
@@ -126,7 +120,8 @@ class FsdbPubSubManager {
       const Path& subscribePath,
       SubscriptionStateChangeCb subscriptionStateChangeCb,
       FsdbStateSubscriber::FsdbOperStateUpdateCb operStateCb,
-      FsdbStreamClient::ServerOptions&& serverOptions);
+      FsdbStreamClient::ServerOptions&& serverOptions =
+          kDefaultServerOptions());
   void addStatePathSubscription(
       const MultiPath& subscribePaths,
       SubscriptionStateChangeCb subscriptionStateChangeCb,
@@ -229,6 +224,9 @@ class FsdbPubSubManager {
   static std::string subscriptionStateToString(FsdbStreamClient::State state);
 
  private:
+  static FsdbStreamClient::ServerOptions kDefaultServerOptions() {
+    return FsdbStreamClient::ServerOptions("::1", FLAGS_fsdbPort);
+  }
   // Publisher helpers
   template <typename PublisherT, typename PubUnitT>
   void publishImpl(PublisherT* publisher, PubUnitT&& pubUnit);

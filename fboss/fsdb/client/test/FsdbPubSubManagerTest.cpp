@@ -45,7 +45,10 @@ class PubSubManagerTest : public ::testing::Test {
       const std::vector<std::string>& path,
       const std::string& host = "::1") {
     pubSubManager_.addStatePathSubscription(
-        path, subscriptionStateChangeCb, operStateCb, host);
+        path,
+        subscriptionStateChangeCb,
+        operStateCb,
+        FsdbStreamClient::ServerOptions(host, FLAGS_fsdbPort));
   }
   void addStatPathSubscription(
       const std::vector<std::string>& path,
