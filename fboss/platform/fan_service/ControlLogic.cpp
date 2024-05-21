@@ -86,16 +86,14 @@ float ControlLogic::calculatePid(
     const std::string& name,
     float value,
     PwmCalcCache& pwmCalcCache,
-    float kp,
-    float ki,
-    float kd,
-    uint64_t dT,
-    float minVal,
-    float maxVal) {
+    const PidSetting& pidSetting,
+    uint64_t dT) {
   float lastPwm, previousRead1, error, pwm;
   lastPwm = pwmCalcCache.previousTargetPwm;
   pwm = lastPwm;
   previousRead1 = pwmCalcCache.previousRead1;
+  float minVal = *pidSetting.setPoint() - *pidSetting.negHysteresis();
+  float maxVal = *pidSetting.setPoint() + *pidSetting.posHysteresis();
 
   if (value < minVal) {
     pwmCalcCache.integral = 0;
@@ -105,7 +103,9 @@ float ControlLogic::calculatePid(
     error = maxVal - value;
     pwmCalcCache.integral = pwmCalcCache.integral + error * dT;
     auto derivative = (error - pwmCalcCache.last_error) / dT;
-    pwm = kp * error + ki * pwmCalcCache.integral + kd * derivative;
+    pwm = (*pidSetting.kp() * error) +
+        (*pidSetting.ki() * pwmCalcCache.integral) +
+        (*pidSetting.kd() * derivative);
     pwmCalcCache.previousTargetPwm = pwm;
     pwmCalcCache.last_error = error;
   }
@@ -124,16 +124,14 @@ float ControlLogic::calculateIncrementalPid(
     const std::string& name,
     float value,
     PwmCalcCache& pwmCalcCache,
-    float kp,
-    float ki,
-    float kd,
-    float setPoint) {
+    const PidSetting& pidSetting) {
   float pwm, lastPwm, previousRead1, previousRead2;
   lastPwm = pwmCalcCache.previousTargetPwm;
   previousRead1 = pwmCalcCache.previousRead1;
   previousRead2 = pwmCalcCache.previousRead2;
-  pwm = lastPwm + (kp * (value - previousRead1)) + (ki * (value - setPoint)) +
-      (kd * (value - 2 * previousRead1 + previousRead2));
+  pwm = lastPwm + (*pidSetting.kp() * (value - previousRead1)) +
+      (*pidSetting.ki() * (value - *pidSetting.setPoint())) +
+      (*pidSetting.kd() * (value - 2 * previousRead1 + previousRead2));
   // Even though the previous Target Pwm should be the zone pwm,
   // the best effort is made here. Zone should update this value.
   pwmCalcCache.previousTargetPwm = pwm;
@@ -147,22 +145,17 @@ float ControlLogic::calculateIncrementalPid(
 }
 
 void ControlLogic::updateTargetPwm(const Sensor& sensor) {
-  bool accelerate, deadFanExists;
-  float previousSensorValue, sensorValue;
   int16_t targetPwm{0};
-  float minVal = *sensor.setPoint() - *sensor.negHysteresis();
-  float maxVal = *sensor.setPoint() + *sensor.posHysteresis();
-  uint64_t dT;
   TempToPwmMap tableToUse;
   auto& readCache = sensorReadCaches_[*sensor.sensorName()];
   auto& pwmCalcCache = pwmCalcCaches_[*sensor.sensorName()];
   const auto& pwmCalcType = *sensor.pwmCalcType();
 
   if (pwmCalcType == constants::SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE()) {
-    previousSensorValue = pwmCalcCache.previousSensorRead;
-    sensorValue = readCache.lastReadValue;
-    deadFanExists = (numFanFailed_ > 0);
-    accelerate =
+    float previousSensorValue = pwmCalcCache.previousSensorRead;
+    float sensorValue = readCache.lastReadValue;
+    bool deadFanExists = (numFanFailed_ > 0);
+    bool accelerate =
         ((previousSensorValue == 0) || (sensorValue > previousSensorValue));
     if (accelerate && !deadFanExists) {
       tableToUse = *sensor.normalUpTable();
@@ -199,24 +192,17 @@ void ControlLogic::updateTargetPwm(const Sensor& sensor) {
         *sensor.sensorName(),
         readCache.lastReadValue,
         pwmCalcCache,
-        *sensor.kp(),
-        *sensor.ki(),
-        *sensor.kd(),
-        *sensor.setPoint());
+        *sensor.pidSetting());
   }
 
   if (pwmCalcType == constants::SENSOR_PWM_CALC_TYPE_PID()) {
-    dT = pBsp_->getCurrentTime() - lastControlUpdateSec_;
+    uint64_t dT = pBsp_->getCurrentTime() - lastControlUpdateSec_;
     targetPwm = calculatePid(
         *sensor.sensorName(),
         readCache.lastReadValue,
         pwmCalcCache,
-        *sensor.kp(),
-        *sensor.ki(),
-        *sensor.kd(),
-        dT,
-        minVal,
-        maxVal);
+        *sensor.pidSetting(),
+        dT);
   }
 
   XLOG(INFO) << fmt::format(
@@ -323,16 +309,16 @@ void ControlLogic::getOpticsUpdate() {
       for (const auto& [opticType, value] : maxValue) {
         // Get PID setting
         auto pidSetting = getConfigOpticPid(optic, opticType);
+        if (!pidSetting) {
+          XLOG(ERR) << fmt::format(
+              "Optic {} does not have PID setting", opticType);
+          continue;
+        }
         // Cache values are stored per optic type
         auto& pwmCalcCache = pwmCalcCaches_[opticType];
-        float kp = *pidSetting->kp();
-        float ki = *pidSetting->ki();
-        float kd = *pidSetting->kd();
         uint64_t dT = pBsp_->getCurrentTime() - lastControlUpdateSec_;
-        float minVal = *pidSetting->setPoint() - *pidSetting->negHysteresis();
-        float maxVal = *pidSetting->setPoint() + *pidSetting->posHysteresis();
-        float pwm = calculatePid(
-            opticType, value, pwmCalcCache, kp, ki, kd, dT, minVal, maxVal);
+        float pwm =
+            calculatePid(opticType, value, pwmCalcCache, *pidSetting, dT);
         if (pwm > aggOpticPwm) {
           aggOpticPwm = pwm;
         }

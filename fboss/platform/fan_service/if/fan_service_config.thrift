@@ -88,12 +88,7 @@ struct Sensor {
   9: TempToPwmMap normalDownTable;
   10: TempToPwmMap failUpTable;
   11: TempToPwmMap failDownTable;
-  12: float setPoint;
-  13: float posHysteresis;
-  14: float negHysteresis;
-  15: float kp;
-  16: float kd;
-  17: float ki;
+  12: PidSetting pidSetting;
 }
 
 struct ControlInterval {
