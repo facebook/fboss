@@ -189,6 +189,29 @@ BootType SaiHandler::getBootType() {
   return hw_->getBootType();
 }
 
+void SaiHandler::getInterfacePrbsState(
+    prbs::InterfacePrbsState& prbsState,
+    std::unique_ptr<std::string> interface,
+    phy::PortComponent component) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  if (component != phy::PortComponent::ASIC) {
+    throw FbossError("Unsupported component");
+  }
+  hw_->ensureConfigured(__func__);
+  std::shared_ptr<SwitchState> swState = hw_->getProgrammedState();
+  auto port = swState->getPorts()->getPort(*interface);
+  if (port->getPortType() == cfg::PortType::INTERFACE_PORT ||
+      port->getPortType() == cfg::PortType::FABRIC_PORT ||
+      port->getPortType() == cfg::PortType::MANAGEMENT_PORT) {
+    prbsState = hw_->getPortPrbsState(port->getID());
+  } else {
+    throw FbossError(
+        "Cannot get PRBS state for interface " + *interface +
+        " with unsupported port type " +
+        apache::thrift::util::enumNameSafe(port->getPortType()));
+  }
+}
+
 void SaiHandler::getAllInterfacePrbsStates(
     std::map<std::string, prbs::InterfacePrbsState>& prbsStates,
     phy::PortComponent component) {
