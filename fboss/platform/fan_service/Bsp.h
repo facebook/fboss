@@ -61,9 +61,6 @@ class Bsp {
   void getOpticsDataFromQsfpSvc(
       const Optic& opticsGroup,
       std::shared_ptr<SensorData> pSensorData);
-  void getOpticsDataSysfs(
-      const Optic& opticsGroup,
-      std::shared_ptr<SensorData> pSensorData);
   std::shared_ptr<std::thread> thread_{nullptr};
   // For communicating with qsfp_service
   folly::EventBase evb_;
@@ -78,8 +75,6 @@ class Bsp {
 
   // Low level access function for setting PWM and LED value
   virtual bool writeSysfs(const std::string& path, int value);
-
-  float getSensorDataSysfs(const std::string& path);
   std::vector<std::pair<std::string, float>> processOpticEntries(
       const Optic& opticsGroup,
       std::shared_ptr<SensorData> pSensorData,

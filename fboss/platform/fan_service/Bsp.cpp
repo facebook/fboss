@@ -61,12 +61,7 @@ void Bsp::getSensorData(std::shared_ptr<SensorData> pSensorData) {
   bool fetchOverThrift = false;
   bool fetchFromFsdb = false;
 
-  // Only sysfs is read one by one. For other type of read,
-  // we set the flags for each type, then read them in batch
   for (const auto& sensor : *config_.sensors()) {
-    uint64_t nowSec;
-    float readVal;
-    bool readSuccessful;
     auto sensorAccessType = *sensor.access()->accessType();
     if (sensorAccessType == constants::ACCESS_TYPE_THRIFT()) {
       if (FLAGS_subscribe_to_stats_from_fsdb) {
@@ -74,32 +69,17 @@ void Bsp::getSensorData(std::shared_ptr<SensorData> pSensorData) {
       } else {
         fetchOverThrift = true;
       }
-    } else if (sensorAccessType == constants::ACCESS_TYPE_SYSFS()) {
-      nowSec = facebook::WallClockUtil::NowInSecFast();
-      readSuccessful = false;
-      try {
-        readVal = getSensorDataSysfs(*sensor.access()->path());
-        readSuccessful = true;
-      } catch (std::exception& e) {
-        XLOG(ERR) << "Failed to read sysfs " << *sensor.access()->path();
-      }
-      if (readSuccessful) {
-        pSensorData->updateSensorEntry(*sensor.sensorName(), readVal, nowSec);
-      }
     } else {
       throw facebook::fboss::FbossError(
           "Invalid way for fetching sensor data!");
     }
   }
-  // Now, fetch data per different access type other than sysfs
-  // We don't use switch statement, as the config should support
-  // mixed read methods. (For example, one sensor is read through thrift.
-  // then another sensor is read from sysfs)
+
   if (fetchOverThrift) {
     getSensorDataThrift(pSensorData);
   }
+
   if (fetchFromFsdb) {
-    // Populate the last data that was received from FSDB into pSensorData
     auto subscribedData = fsdbSensorSubscriber_->getSensorData();
     for (const auto& [sensorName, sensorData] : subscribedData) {
       // Skip adding an entry for this sensor if either the value or timestamp
@@ -114,7 +94,6 @@ void Bsp::getSensorData(std::shared_ptr<SensorData> pSensorData) {
         "Got sensor data from fsdb.  Item count: {}", subscribedData.size());
   }
 
-  // Set flag if not set yet
   if (!initialSensorDataRead_) {
     initialSensorDataRead_ = true;
   }
@@ -295,41 +274,12 @@ void Bsp::getOpticsDataFromQsfpSvc(
       currentQsfpSvcTimestamp);
 }
 
-void Bsp::getOpticsDataSysfs(
-    const Optic& opticsGroup,
-    std::shared_ptr<SensorData> pSensorData) {
-  float readVal;
-  bool readSuccessful;
-  // If we read the data from the sysfs, there is no way
-  // to detect the optics type. So we will use the first
-  // threshold table we can find.
-  readSuccessful = false;
-  try {
-    readVal = getSensorDataSysfs(*opticsGroup.access()->path());
-    readSuccessful = true;
-  } catch (std::exception& e) {
-    XLOG(ERR) << "Failed to read sysfs " << *opticsGroup.access()->path();
-  }
-  if (readSuccessful) {
-    // Use the very first optic type to store the data, as we only have data,
-    // but without any optic type.
-    const auto& firstOpticType = opticsGroup.tempToPwmMaps()->begin()->first;
-    std::vector<std::pair<std::string, float>> prepData = {
-        {firstOpticType, static_cast<float>(readVal)}};
-    pSensorData->updateOpticEntry(*opticsGroup.opticName(), prepData, 0);
-  }
-}
-
 void Bsp::getOpticsData(std::shared_ptr<SensorData> pSensorData) {
-  // Only sysfs is read one by one. For other type of read,
-  // we set the flags for each type, then read them in batch
   for (const auto& optic : *config_.optics()) {
     auto accessType = *optic.access()->accessType();
     if (accessType == constants::ACCESS_TYPE_QSFP() ||
         accessType == constants::ACCESS_TYPE_THRIFT()) {
       getOpticsDataFromQsfpSvc(optic, pSensorData);
-    } else if (accessType == constants::ACCESS_TYPE_SYSFS()) {
-      getOpticsDataSysfs(optic, pSensorData);
     } else {
       throw facebook::fboss::FbossError(
           "Invalid way for fetching optics temperature!");
@@ -369,13 +319,6 @@ void Bsp::getSensorDataThrift(std::shared_ptr<SensorData> pSensorData) {
       sensorReadResponse.sensorData()->size());
 }
 
-// Sysfs may fail, but fan_service should keep running even
-// after these failures. Therefore, in case of failure,
-// we just throw exception and let caller handle it.
-float Bsp::getSensorDataSysfs(const std::string& path) {
-  return readSysfs(path);
-}
-
 float Bsp::readSysfs(const std::string& path) const {
   float retVal;
   std::ifstream juicejuice(path);
@@ -395,12 +338,10 @@ bool Bsp::writeSysfs(const std::string& path, int value) {
 }
 
 bool Bsp::setFanPwmSysfs(const std::string& path, int pwm) {
-  // Run the common sysfs access function
   return writeSysfs(path, pwm);
 }
 
 bool Bsp::setFanLedSysfs(const std::string& path, int pwm) {
-  // Run the common sysfs access function
   return writeSysfs(path, pwm);
 }
 
