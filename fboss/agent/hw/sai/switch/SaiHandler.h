@@ -82,6 +82,10 @@ class SaiHandler : public apache::thrift::ServiceHandler<SaiCtrl> {
       std::map<std::string, phy::PrbsStats>& prbsStats,
       phy::PortComponent component) override;
 
+  void clearInterfacePrbsStats(
+      std::unique_ptr<std::string> interface,
+      phy::PortComponent component) override;
+
   void bulkClearInterfacePrbsStats(
       std::unique_ptr<std::vector<std::string>> interfaces,
       phy::PortComponent component) override;

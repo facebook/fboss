@@ -324,6 +324,34 @@ void SaiHandler::getAllInterfacePrbsStats(
   }
 }
 
+void SaiHandler::clearInterfacePrbsStats(
+    std::unique_ptr<std::string> interface,
+    phy::PortComponent component) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  if (component != phy::PortComponent::ASIC) {
+    throw FbossError("Unsupported component");
+  }
+  hw_->ensureConfigured(__func__);
+  std::shared_ptr<SwitchState> swState = hw_->getProgrammedState();
+  auto port = swState->getPorts()->getPort(*interface);
+  auto prbsState = hw_->getPortPrbsState(port->getID());
+  auto generatorEnabled = prbsState.generatorEnabled();
+  auto checkerEnabled = prbsState.checkerEnabled();
+  if (generatorEnabled && checkerEnabled) {
+    auto prbsEnabled = (generatorEnabled.value() && checkerEnabled.value());
+    if (!prbsEnabled) {
+      throw FbossError(
+          "Cannot clear PRBS stats for interface: " + *interface +
+          " with PRBS disabled");
+    }
+  } else {
+    throw FbossError(
+        "Cannot clear PRBS stats for interface: " + *interface +
+        " with no PRBS state");
+  }
+  hw_->clearPortAsicPrbsStats(port->getID());
+}
+
 void SaiHandler::bulkClearInterfacePrbsStats(
     std::unique_ptr<std::vector<std::string>> interfaces,
     phy::PortComponent component) {
