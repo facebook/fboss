@@ -24,8 +24,6 @@ DEFINE_int32(
     1,
     "How often we will check whether sensor read and pwm control is needed");
 
-FOLLY_INIT_LOGGING_CONFIG("fboss=DBG2; default:async=true");
-
 int main(int argc, char** argv) {
   fb303::registerFollyLoggingOptionHandlers();
   helpers::init(&argc, &argv);
