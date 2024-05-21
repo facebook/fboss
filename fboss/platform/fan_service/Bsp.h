@@ -24,26 +24,6 @@
 #include "fboss/qsfp_service/if/gen-cpp2/qsfp_state_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/qsfp_stats_types.h"
 
-namespace {
-struct TransceiverData {
-  int portID;
-  facebook::fboss::GlobalSensors sensor;
-  facebook::fboss::MediaInterfaceCode mediaInterfaceCode;
-  uint32_t timeCollected;
-
-  TransceiverData(
-      int portID_,
-      facebook::fboss::GlobalSensors sensor_,
-      facebook::fboss::MediaInterfaceCode mediaInterfaceCode_,
-      uint32_t timeCollected_) {
-    portID = portID_;
-    sensor = sensor_;
-    mediaInterfaceCode = mediaInterfaceCode_;
-    timeCollected = timeCollected_;
-  }
-};
-} // namespace
-
 namespace facebook::fboss::platform::fan_service {
 
 class Bsp {
@@ -104,7 +84,7 @@ class Bsp {
       const Optic& opticsGroup,
       std::shared_ptr<SensorData> pSensorData,
       uint64_t& currentQsfpSvcTimestamp,
-      const std::map<int32_t, TransceiverData>& cacheTable);
+      const std::map<int32_t, TransceiverInfo>& transceiverInfoMap);
 
   std::unique_ptr<FsdbSensorSubscriber> fsdbSensorSubscriber_;
   std::unique_ptr<fsdb::FsdbPubSubManager> fsdbPubSubMgr_;
