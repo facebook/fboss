@@ -102,6 +102,14 @@ service FbossHwCtrl {
   ) throws (1: fboss.FbossBaseError error);
 
   /*
+   * Clear the PRBS stats counters on an interface.
+   */
+  void clearInterfacePrbsStats(
+    1: string interface,
+    2: phy.PortComponent component,
+  ) throws (1: fboss.FbossBaseError error);
+
+  /*
    * Bulk clear the PRBS stats counters on interfaces.
    */
   void bulkClearInterfacePrbsStats(
