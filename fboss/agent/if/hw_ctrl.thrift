@@ -79,6 +79,14 @@ service FbossHwCtrl {
   ) throws (1: fboss.FbossBaseError error);
 
   /*
+   * Get the PRBS stats on an interface.
+   */
+  phy.PrbsStats getInterfacePrbsStats(
+    1: string interface,
+    2: phy.PortComponent component,
+  ) throws (1: fboss.FbossBaseError error);
+
+  /*
    * Get the PRBS stats on all interfaces.
    */
   map<string, phy.PrbsStats> getAllInterfacePrbsStats(
