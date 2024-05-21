@@ -11932,7 +11932,7 @@
           "test_name_regex": "HwLabelSwitchRouteTest.*$"
         }
     ],
-    "leaba/24.4.90/24.4.90/graphene200": [
+    "leaba/24.4.90_yuba/24.4.90_yuba/graphene200": [
         {
           "test_name_regex": "HwProdInvariantsMmuLosslessTest.*"
         },
