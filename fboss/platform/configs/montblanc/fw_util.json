@@ -2,7 +2,7 @@
     "fwConfigs": {
         "bios": {
             "preUpgradeCmd": "echo -e '\\x15' | dd of=/dev/port bs=1 seek=$((0xb2)) count=1",
-            "getVersionCmd": "dmidecode -s bios-version | sed 's/[^0-9]//g' ",
+            "getVersionCmd": "dmidecode -s bios-version",
             "priority": 1,
             "upgradeCmd": "bios_filename=$(head -n 1 /home/bios_filename.txt);flashrom -p internal --ifd -i bios --noverify-all -w $bios_filename",
             "postUpgradeCmd": "echo -e '\\x16' | dd of=/dev/port bs=1 seek=$((0xb2)) count=1"
