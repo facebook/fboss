@@ -57,7 +57,6 @@ class Bsp {
   const FanServiceConfig config_;
 
  private:
-  virtual int run(const std::string& cmd);
   void getOpticsDataFromQsfpSvc(
       const Optic& opticsGroup,
       std::shared_ptr<SensorData> pSensorData);

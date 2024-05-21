@@ -4,9 +4,7 @@
 
 #include <string>
 
-#include <folly/Subprocess.h>
 #include <folly/logging/xlog.h>
-#include <folly/system/Shell.h>
 
 #include "common/time/Time.h"
 #include "fboss/fsdb/common/Flags.h"
@@ -14,6 +12,7 @@
 #include "fboss/platform/fan_service/FsdbSensorSubscriber.h"
 #include "fboss/platform/fan_service/if/gen-cpp2/fan_service_config_constants.h"
 #include "fboss/platform/fan_service/if/gen-cpp2/fan_service_config_types.h"
+#include "fboss/platform/helpers/PlatformUtils.h"
 #include "fboss/platform/sensor_service/if/gen-cpp2/sensor_service_types.h"
 
 using namespace folly::literals::shell_literals;
@@ -24,16 +23,6 @@ DEFINE_bool(
     subscribe_to_qsfp_data_from_fsdb,
     false,
     "For subscribing to qsfp state and stats from FSDB");
-
-namespace {
-int runShellCmd(const std::string& cmd) {
-  auto shellCmd = "/bin/sh -c {}"_shellify(cmd);
-  folly::Subprocess p(shellCmd, folly::Subprocess::Options().pipeStdout());
-  p.communicate();
-  return p.wait().exitStatus();
-}
-
-} // namespace
 
 namespace facebook::fboss::platform::fan_service {
 
@@ -49,12 +38,6 @@ Bsp::Bsp(const FanServiceConfig& config) : config_(config) {
     }
   }
   thread_.reset(new std::thread([=, this] { evbSensor_.loopForever(); }));
-}
-
-int Bsp::run(const std::string& cmd) {
-  int rc = 0;
-  rc = runShellCmd(cmd);
-  return rc;
 }
 
 void Bsp::getSensorData(std::shared_ptr<SensorData> pSensorData) {
@@ -110,7 +93,9 @@ int Bsp::emergencyShutdown(bool enable) {
       facebook::fboss::FbossError(
           "Emergency Shutdown Was Called But Not Defined!");
     } else {
-      rc = run(config_.shutdownCmd()->c_str());
+      auto [exitStatus, standardOut] =
+          PlatformUtils().execCommand(*config_.shutdownCmd());
+      rc = exitStatus;
     }
     setEmergencyState(enable);
   }
@@ -126,7 +111,8 @@ int Bsp::kickWatchdog() {
     if (*access.accessType() == constants::ACCESS_TYPE_UTIL()) {
       cmdLine =
           fmt::format("{} {}", *access.path(), *config_.watchdog()->value());
-      rc = run(cmdLine.c_str());
+      auto [exitStatus, standardOut] = PlatformUtils().execCommand(cmdLine);
+      rc = exitStatus;
     } else if (*access.accessType() == constants::ACCESS_TYPE_SYSFS()) {
       sysfsSuccess = writeSysfs(*access.path(), *config_.watchdog()->value());
       rc = sysfsSuccess ? 0 : -1;
