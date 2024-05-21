@@ -72,6 +72,14 @@ service FbossHwCtrl {
   ctrl.BootType getBootType();
 
   /*
+   * Get the PRBS state on an interface.
+   */
+  prbs.InterfacePrbsState getInterfacePrbsState(
+    1: string interface,
+    2: phy.PortComponent component,
+  ) throws (1: fboss.FbossBaseError error);
+
+  /*
    * Get the PRBS settings on all interfaces.
    */
   map<string, prbs.InterfacePrbsState> getAllInterfacePrbsStates(
