@@ -1900,7 +1900,7 @@
           "test_name_regex": "HwAclCounterTest/[01].VerifyCounterBumpOnBthOpcodeHitFrontPanel$"
         }
     ],
-    "leaba/24.4.90/24.4.90/graphene200": [
+    "leaba/24.4.90_yuba/24.4.90_yuba/graphene200": [
         {
           "test_name_regex": "HwFlowletAclCounterTest.*$"
         },
