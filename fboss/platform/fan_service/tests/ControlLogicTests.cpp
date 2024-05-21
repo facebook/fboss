@@ -30,13 +30,10 @@ namespace facebook::fboss::platform {
 class MockBsp : public Bsp {
  public:
   explicit MockBsp(const FanServiceConfig& config) : Bsp(config) {}
-  MOCK_METHOD(bool, setFanPwmSysfs, (std::string, int));
-  MOCK_METHOD(bool, setFanPwmShell, (std::string, std::string, int));
-  MOCK_METHOD(bool, setFanLedSysfs, (std::string, int));
-  MOCK_METHOD(bool, setFanLedShell, (std::string, std::string, int));
-
+  MOCK_METHOD(bool, setFanPwmSysfs, (const std::string&, int));
+  MOCK_METHOD(bool, setFanLedSysfs, (const std::string&, int));
   MOCK_METHOD(bool, checkIfInitialSensorDataRead, (), (const));
-  MOCK_METHOD(float, readSysfs, (std::string), (const));
+  MOCK_METHOD(float, readSysfs, (const std::string&), (const));
 };
 
 class ControlLogicTests : public testing::Test {

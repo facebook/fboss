@@ -57,19 +57,12 @@ class Bsp {
   // emergencyShutdown: function to shutdown the platform upon overheat
   virtual int emergencyShutdown(bool enable);
   int kickWatchdog();
-  // setFanPwm... : Fan pwm set function. Used by Control Logic Class
-  virtual bool setFanPwmSysfs(std::string path, int pwm);
-  virtual bool
-  setFanPwmShell(std::string command, std::string fanName, int pwm);
-  // setFanLed... : Fan pwm set function. Used by Control Logic Class
-  virtual bool setFanLedSysfs(std::string path, int pwm);
-  virtual bool
-  setFanLedShell(std::string command, std::string fanName, int pwm);
-  // Other public functions that cannot be overridden
+  virtual bool setFanPwmSysfs(const std::string& path, int pwm);
+  virtual bool setFanLedSysfs(const std::string& path, int pwm);
   virtual uint64_t getCurrentTime() const;
   virtual bool checkIfInitialSensorDataRead() const;
   bool getEmergencyState() const;
-  virtual float readSysfs(std::string path) const;
+  virtual float readSysfs(const std::string& path) const;
   static apache::thrift::RpcOptions getRpcOptions();
 
   FsdbSensorSubscriber* fsdbSensorSubscriber() {
@@ -78,11 +71,6 @@ class Bsp {
   void getSensorDataThrift(std::shared_ptr<SensorData> pSensorData);
 
  protected:
-  // replaceAllString : String replace helper function
-  std::string replaceAllString(
-      std::string original,
-      std::string src,
-      std::string tgt) const;
   // This attribute is accessed by internal function.
   void setEmergencyState(bool state);
 
@@ -109,14 +97,9 @@ class Bsp {
   bool initialSensorDataRead_{false};
 
   // Low level access function for setting PWM and LED value
-  virtual bool writeSysfs(std::string path, int value);
-  virtual bool setFanShell(
-      std::string command,
-      std::string valueSymbol,
-      std::string fanName,
-      int pwm);
+  virtual bool writeSysfs(const std::string& path, int value);
 
-  float getSensorDataSysfs(std::string path);
+  float getSensorDataSysfs(const std::string& path);
   std::vector<std::pair<std::string, float>> processOpticEntries(
       const Optic& opticsGroup,
       std::shared_ptr<SensorData> pSensorData,

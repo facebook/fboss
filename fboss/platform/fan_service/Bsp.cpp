@@ -393,11 +393,11 @@ void Bsp::getSensorDataThrift(std::shared_ptr<SensorData> pSensorData) {
 // Sysfs may fail, but fan_service should keep running even
 // after these failures. Therefore, in case of failure,
 // we just throw exception and let caller handle it.
-float Bsp::getSensorDataSysfs(std::string path) {
+float Bsp::getSensorDataSysfs(const std::string& path) {
   return readSysfs(path);
 }
 
-float Bsp::readSysfs(std::string path) const {
+float Bsp::readSysfs(const std::string& path) const {
   float retVal;
   std::ifstream juicejuice(path);
   std::string buf = facebook::fboss::readSysfs(path);
@@ -410,59 +410,19 @@ float Bsp::readSysfs(std::string path) const {
   return retVal;
 }
 
-bool Bsp::writeSysfs(std::string path, int value) {
+bool Bsp::writeSysfs(const std::string& path, int value) {
   std::string valueStr = std::to_string(value);
   return facebook::fboss::writeSysfs(path, valueStr);
 }
 
-bool Bsp::setFanPwmSysfs(std::string path, int pwm) {
+bool Bsp::setFanPwmSysfs(const std::string& path, int pwm) {
   // Run the common sysfs access function
   return writeSysfs(path, pwm);
 }
 
-bool Bsp::setFanLedSysfs(std::string path, int pwm) {
+bool Bsp::setFanLedSysfs(const std::string& path, int pwm) {
   // Run the common sysfs access function
   return writeSysfs(path, pwm);
-}
-
-std::string Bsp::replaceAllString(
-    std::string original,
-    std::string src,
-    std::string tgt) const {
-  std::string retVal = original;
-  size_t index = 0;
-  index = retVal.find(src, index);
-  while (index != std::string::npos) {
-    retVal.replace(index, src.size(), tgt);
-    index = retVal.find(src, index);
-  }
-  return retVal;
-}
-
-bool Bsp::setFanShell(
-    std::string command,
-    std::string keySymbol,
-    std::string fanName,
-    int pwm) {
-  std::string pwmStr = std::to_string(pwm);
-  command = replaceAllString(command, "_NAME_", fanName);
-  // keySymbol here is what we will replace with the actual value
-  // (from the fan_service config file.)
-  command = replaceAllString(command, keySymbol, pwmStr);
-  const char* charCmd = command.c_str();
-  int retVal = run(charCmd);
-  // Return if this command execution was successful
-  return (retVal == 0);
-}
-
-bool Bsp::setFanPwmShell(std::string command, std::string fanName, int pwm) {
-  // Call the common function with _PWM_ as the token to replace
-  return setFanShell(command, "_PWM_", fanName, pwm);
-}
-
-bool Bsp::setFanLedShell(std::string command, std::string fanName, int value) {
-  // Call the common function with _VALUE_ as the token to replace
-  return setFanShell(command, "_VALUE_", fanName, value);
 }
 
 Bsp::~Bsp() {
