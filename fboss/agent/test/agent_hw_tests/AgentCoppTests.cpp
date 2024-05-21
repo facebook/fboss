@@ -51,6 +51,7 @@ const auto kDhcpV6AllRoutersIp = folly::IPAddressV6("ff02::1:2");
 const auto kDhcpV6McastMacAddress = folly::MacAddress("33:33:00:01:00:02");
 const auto kDhcpV6ServerGlobalUnicastAddress =
     folly::IPAddressV6("2401:db00:eef0:a67::1");
+const auto kRandomIP = folly::IPAddressV6("2620:0:1cfe:face:b00c::4");
 
 static time_t getCurrentTime() {
   return std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
@@ -1004,10 +1005,9 @@ TYPED_TEST(AgentCoppTest, L3MTUErrorToLowPriQ) {
     // are sent to cpu low priority queue.
     // Port Max Frame size is set to 9412 and L3 MTU is set as 9000
     // Thus sending a packet sized between 9000 and 9412 to cause the trap.
-    auto randomIP = folly::IPAddressV6("2::2");
     this->sendTcpPktAndVerifyCpuQueue(
         utility::kCoppLowPriQueueId,
-        randomIP,
+        kRandomIP,
         utility::kNonSpecialPort1,
         utility::kNonSpecialPort2,
         std::nullopt,
