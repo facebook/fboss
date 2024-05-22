@@ -301,15 +301,14 @@ void PlatformExplorer::exploreI2cDevices(
   for (const auto& i2cDeviceConfig : i2cDeviceConfigs) {
     auto busNum = dataStore_.getI2cBusNum(slotPath, *i2cDeviceConfig.busName());
     auto devAddr = I2cAddr(*i2cDeviceConfig.address());
+    auto devicePath =
+        Utils().createDevicePath(slotPath, *i2cDeviceConfig.pmUnitScopedName());
     if (i2cDeviceConfig.initRegSettings()) {
       setupI2cDevice(
-          slotPath, busNum, devAddr, *i2cDeviceConfig.initRegSettings());
+          devicePath, busNum, devAddr, *i2cDeviceConfig.initRegSettings());
     }
     createI2cDevice(
-        Utils().createDevicePath(slotPath, *i2cDeviceConfig.pmUnitScopedName()),
-        *i2cDeviceConfig.kernelDeviceName(),
-        busNum,
-        devAddr);
+        devicePath, *i2cDeviceConfig.kernelDeviceName(), busNum, devAddr);
     if (i2cDeviceConfig.numOutgoingChannels()) {
       auto channelToBusNums =
           i2cExplorer_.getMuxChannelI2CBuses(busNum, devAddr);
@@ -566,7 +565,7 @@ void PlatformExplorer::reportExplorationSummary() {
 }
 
 void PlatformExplorer::setupI2cDevice(
-    const std::string& slotPath,
+    const std::string& devicePath,
     uint16_t busNum,
     const I2cAddr& addr,
     const std::vector<I2cRegData>& initRegSettings) {
@@ -574,7 +573,7 @@ void PlatformExplorer::setupI2cDevice(
     i2cExplorer_.setupI2cDevice(busNum, addr, initRegSettings);
   } catch (const std::exception& ex) {
     XLOG(ERR) << ex.what();
-    errorMessages_[slotPath].push_back(ex.what());
+    errorMessages_[devicePath].push_back(ex.what());
   }
 }
 

@@ -61,7 +61,7 @@ class PlatformExplorer {
       const std::string& devicePath);
   void reportExplorationSummary();
   void setupI2cDevice(
-      const std::string& slotPath,
+      const std::string& devicePath,
       uint16_t busNum,
       const I2cAddr& addr,
       const std::vector<I2cRegData>& initRegSettings);
