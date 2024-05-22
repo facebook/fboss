@@ -10,6 +10,7 @@ add_library(thrift_service_client
 
 target_link_libraries(thrift_service_client
   ctrl_cpp2
+  fsdb_cpp2
   qsfp_cpp2
   FBThrift::thriftcpp2
 )
