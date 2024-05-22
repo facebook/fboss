@@ -33,7 +33,10 @@ class PubSubManagerTest : public ::testing::Test {
       const std::vector<std::string>& path,
       const std::string& host = "::1") {
     pubSubManager_.addStateDeltaSubscription(
-        path, subscriptionStateChangeCb, operDeltaCb, host);
+        path,
+        subscriptionStateChangeCb,
+        operDeltaCb,
+        FsdbStreamClient::ServerOptions(host, FLAGS_fsdbPort));
   }
   void addStatDeltaSubscription(
       const std::vector<std::string>& path,

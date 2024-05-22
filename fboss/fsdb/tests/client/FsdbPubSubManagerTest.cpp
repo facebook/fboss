@@ -251,8 +251,7 @@ class FsdbPubSubManagerTest : public ::testing::Test {
         subscriptionPath(),
         stChangeCb,
         operDeltaUpdate,
-        "::1",
-        fsdbTestServer_->getFsdbPort());
+        FsdbStreamClient::ServerOptions("::1", fsdbTestServer_->getFsdbPort()));
   }
   void addSubscriptions(
       FsdbDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaUpdate) {
