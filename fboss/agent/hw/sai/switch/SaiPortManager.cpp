@@ -433,18 +433,22 @@ SaiPortManager::SaiPortManager(
       globalQosMapSupported_(
           managerTable_->switchManager().isGlobalQoSMapSupported()) {
 #if defined(BRCM_SAI_SDK_XGS)
-  auto& portStore = saiStore_->get<SaiPortTraits>();
-  auto saiPort = portStore.objects().begin()->second.lock();
-  auto portSaiId = saiPort->adapterKey();
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::SAI_PORT_GET_PMD_LANES)) {
-    auto pmdLanes = SaiApiTable::getInstance()->portApi().getAttribute(
-        portSaiId, SaiPortTraits::Attributes::SerdesLaneList{});
-    auto hwLanes = GET_ATTR(Port, HwLaneList, saiPort->adapterHostKey());
-    hwLaneListIsPmdLaneList_ = (pmdLanes.size() == hwLanes.size());
-    XLOG(DBG2) << "HwLaneList means pmd lane list or not: "
-               << hwLaneListIsPmdLaneList_;
+    auto& portStore = saiStore_->get<SaiPortTraits>();
+    for (auto& iter : portStore.objects()) {
+      auto saiPort = iter.second.lock();
+      auto portSaiId = saiPort->adapterKey();
+      auto pmdLanes = SaiApiTable::getInstance()->portApi().getAttribute(
+          portSaiId, SaiPortTraits::Attributes::SerdesLaneList{});
+      auto hwLanes = GET_ATTR(Port, HwLaneList, saiPort->adapterHostKey());
+      if (pmdLanes.size() != hwLanes.size()) {
+        hwLaneListIsPmdLaneList_ = false;
+      }
+    }
   }
+  XLOG(DBG2) << "HwLaneList means pmd lane list or not: "
+             << hwLaneListIsPmdLaneList_;
 #endif
 }
 
