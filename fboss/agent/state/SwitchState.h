@@ -403,6 +403,29 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
     return folly::IPAddressV6("::");
   }
 
+  std::string getHostname() const {
+    const auto switchSettings = utility::getFirstNodeIf(getSwitchSettings())
+        ? utility::getFirstNodeIf(getSwitchSettings())
+        : std::make_shared<SwitchSettings>();
+
+    auto hostname = switchSettings->getHostname();
+
+    if (hostname != std::nullopt) {
+      return (*hostname).cref();
+    }
+
+    // Should never really be hit as ApplyThriftConfig will use the system
+    // hostname by default
+    return "";
+  }
+
+  folly::IPAddressV4 getIcmpV4UnavailableSrcAddress() const {
+    const auto switchSettings = utility::getFirstNodeIf(getSwitchSettings())
+        ? utility::getFirstNodeIf(getSwitchSettings())
+        : std::make_shared<SwitchSettings>();
+    return switchSettings->getIcmpV4UnavailableSrcAddress();
+  }
+
   // THRIFT_COPY
   std::optional<cfg::PfcWatchdogRecoveryAction> getPfcWatchdogRecoveryAction()
       const;

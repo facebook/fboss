@@ -135,6 +135,10 @@ class SwitchSettings
     return safe_cref<switch_state_tags::metaMacOuis>();
   }
 
+  auto getHostname() const {
+    return safe_cref<switch_state_tags::hostname>().get();
+  }
+
   // THRIFT_COPY
   std::vector<std::pair<VlanID, folly::MacAddress>>
   getMacAddrsToBlock_DEPRECATED() const {
@@ -168,6 +172,10 @@ class SwitchSettings
 
   void setMetaMacOuis(const std::vector<std::string>& metaMacOuis) {
     set<switch_state_tags::metaMacOuis>(metaMacOuis);
+  }
+
+  void setHostname(const std::string& hostname) {
+    set<switch_state_tags::hostname>(hostname);
   }
 
   cfg::SwitchType getSwitchType(int64_t switchId) const {
@@ -415,6 +423,24 @@ class SwitchSettings
       set<switch_state_tags::dhcpV6ReplySrc>(
           network::toBinaryAddress(*dhcpV6ReplySrc));
     }
+  }
+
+  folly::IPAddressV4 getIcmpV4UnavailableSrcAddress() const {
+    auto srcAddress =
+        cref<switch_state_tags::icmpV4UnavailableSrcAddress>()->toThrift();
+    if (srcAddress.addr()->size() == 0) {
+      // RFC7600 - IANA allocated IPv4 dummy address for 192.0.0.8/32
+      // Should use this if not set
+      return folly::IPAddressV4({192, 0, 0, 8});
+    }
+
+    return network::toIPAddress(srcAddress).asV4();
+  }
+
+  void setIcmpV4UnavailableSrcAddress(
+      folly::IPAddressV4 icmpV4UnavailableSrcAddress) {
+    set<switch_state_tags::icmpV4UnavailableSrcAddress>(
+        network::toBinaryAddress(icmpV4UnavailableSrcAddress));
   }
 
   std::shared_ptr<QcmCfg> getQcmCfg() const {

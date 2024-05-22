@@ -29,6 +29,7 @@
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/SwitchInfoUtils.h"
+#include "fboss/agent/Utils.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/mpls_types.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
@@ -4263,6 +4264,25 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
       : IPAddressV6("::");
   if (oldDhcpV6ReplySrc != newDhcpV6ReplySrc) {
     newSwitchSettings->setDhcpV6ReplySrc(newDhcpV6ReplySrc);
+    switchSettingsChange = true;
+  }
+
+  auto oldIcmpV4UnavailableSrcAddress = orig_->getIcmpV4UnavailableSrcAddress();
+  auto newIcmpV4UnavailableSrcAddress = cfg_->icmpV4UnavailableSrcAddress();
+  if (newIcmpV4UnavailableSrcAddress.has_value()) {
+    auto newIcmpV4Address = IPAddressV4(*newIcmpV4UnavailableSrcAddress);
+    if (newIcmpV4Address != oldIcmpV4UnavailableSrcAddress) {
+      newSwitchSettings->setIcmpV4UnavailableSrcAddress(newIcmpV4Address);
+      switchSettingsChange = true;
+    }
+  }
+
+  auto oldHostname = orig_->getHostname();
+  auto newHostname = cfg_->hostname() && !(*cfg_->hostname()).empty()
+      ? *cfg_->hostname()
+      : getLocalHostname();
+  if (oldHostname != newHostname) {
+    newSwitchSettings->setHostname(newHostname);
     switchSettingsChange = true;
   }
 

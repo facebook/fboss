@@ -8,6 +8,7 @@ add_library(packet
   fboss/agent/packet/DHCPv4Packet.cpp
   fboss/agent/packet/DHCPv6Packet.cpp
   fboss/agent/packet/EthHdr.cpp
+  fboss/agent/packet/ICMPExtHdr.cpp
   fboss/agent/packet/ICMPHdr.cpp
   fboss/agent/packet/IPv4Hdr.cpp
   fboss/agent/packet/IPv6Hdr.cpp

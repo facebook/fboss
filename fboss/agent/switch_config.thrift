@@ -1992,4 +1992,8 @@ struct SwitchConfig {
   50: optional FlowletSwitchingConfig flowletSwitchingConfig;
   51: list<PortQueue> defaultVoqConfig = [];
   52: optional map<PortFlowletConfigName, PortFlowletConfig> portFlowletConfigs;
+  // When there's no IPv4 addresses configured, what address to use to source IPv4 ICMP packets from.
+  53: optional string icmpV4UnavailableSrcAddress;
+  // Overrides the system hostname, useful in ICMP responses
+  54: optional string hostname;
 }

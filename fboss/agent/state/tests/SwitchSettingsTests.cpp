@@ -579,6 +579,60 @@ TEST(SwitchSettingsTest, applyDhcpConfig) {
   EXPECT_EQ(switchSettingsV1->getDhcpV6ReplySrc(), kDhcpV6ReplySrc);
 }
 
+TEST(SwitchSettingsTest, applyHostnameConfig) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  addSwitchInfo(stateV0, cfg::SwitchType::NPU, 0 /* switchId*/);
+
+  // Check the default value
+  auto switchSettingsV0 = utility::getFirstNodeIf(stateV0->getSwitchSettings());
+  ASSERT_NE(nullptr, switchSettingsV0);
+  auto hostnameV0 = switchSettingsV0->getHostname();
+  EXPECT_NE(hostnameV0, std::nullopt); // System hostname by default
+
+  // Check if the value is updated
+  cfg::SwitchConfig config = testConfigA();
+  const std::string newHostname = "test-host";
+  config.hostname() = newHostname;
+
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  EXPECT_NE(nullptr, stateV1);
+  auto switchSettingsV1 = utility::getFirstNodeIf(stateV1->getSwitchSettings());
+  ASSERT_NE(nullptr, switchSettingsV1);
+  EXPECT_FALSE(switchSettingsV1->isPublished());
+  auto hostnameV1 = switchSettingsV1->getHostname();
+  ASSERT_NE(hostnameV1, std::nullopt);
+  EXPECT_EQ(hostnameV1->cref(), newHostname);
+}
+
+TEST(SwitchSettingsTest, applyIcmpV4UnavailableSrcAddress) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  addSwitchInfo(stateV0, cfg::SwitchType::NPU, 0 /* switchId*/);
+
+  const folly::IPAddressV4 kIcmpV4UnavailableSrcAddress("100.0.0.1");
+
+  // Check the default value
+  auto switchSettingsV0 = utility::getFirstNodeIf(stateV0->getSwitchSettings());
+  ASSERT_NE(nullptr, switchSettingsV0);
+  EXPECT_EQ(
+      switchSettingsV0->getIcmpV4UnavailableSrcAddress(),
+      folly::IPAddressV4({192, 0, 0, 8}));
+
+  // Check if the value is updated
+  cfg::SwitchConfig config = testConfigA();
+  config.icmpV4UnavailableSrcAddress() = "100.0.0.1";
+
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  EXPECT_NE(nullptr, stateV1);
+  auto switchSettingsV1 = utility::getFirstNodeIf(stateV1->getSwitchSettings());
+  ASSERT_NE(nullptr, switchSettingsV1);
+  EXPECT_FALSE(switchSettingsV1->isPublished());
+  EXPECT_EQ(
+      switchSettingsV1->getIcmpV4UnavailableSrcAddress(),
+      kIcmpV4UnavailableSrcAddress);
+}
+
 TEST(SwitchSettingsTest, modify) {
   auto stateV0 = make_shared<SwitchState>();
   auto multiSwitchSwitchSettingsV0 = make_shared<MultiSwitchSettings>();

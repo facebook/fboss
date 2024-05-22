@@ -23,6 +23,8 @@ class Cursor;
 }
 } // namespace folly
 
+DECLARE_bool(ipv4_ext_headers_enabled);
+
 namespace facebook::fboss {
 
 class RxPacket;

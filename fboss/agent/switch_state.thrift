@@ -379,6 +379,10 @@ struct SwitchSettingsFields {
   38: optional bool forceTrafficOverFabric;
   39: optional bool creditWatchdog;
   40: optional bool forceEcmpDynamicMemberUp;
+  // Programmable hostname, useful for ICMP responses and the like.
+  41: string hostname;
+  // When there's no IPv4 addresses configured, what address to use to source IPv4 ICMP packets from.
+  42: Address.BinaryAddress icmpV4UnavailableSrcAddress;
 }
 
 struct RoutePrefix {

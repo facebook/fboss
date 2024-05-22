@@ -8,6 +8,7 @@
  *
  */
 
+#include <gflags/gflags.h>
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/IPv6Handler.h"
 #include "fboss/agent/SwSwitch.h"
@@ -60,10 +61,30 @@ namespace {
 
 const IPAddressV4 kVlanInterfaceIP("10.0.0.1");
 
-unique_ptr<HwTestHandle> setupTestHandle(bool noIpv4VlanIntf = false) {
-  // Setup a default state object
-  auto state =
-      noIpv4VlanIntf ? testStateAWithoutIpv4VlanIntf(VlanID(1)) : testStateA();
+enum ICMPTestType {
+  DEFAULT, // Both V4 and V6 on interfaces
+  NO_IPV4_VLAN_INTF, // No V4 configured on ingress interface
+  NO_IPV4, // No IPv4 at all configured on the box
+};
+
+unique_ptr<HwTestHandle> setupTestHandle(
+    ICMPTestType testType = ICMPTestType::DEFAULT) {
+  // Setup a state object
+  std::shared_ptr<facebook::fboss::SwitchState> state = nullptr;
+  GFLAGS_NAMESPACE::SetCommandLineOption("ipv4_ext_headers_enabled", "true");
+
+  switch (testType) {
+    case ICMPTestType::DEFAULT:
+      state = testStateA();
+      break;
+    case ICMPTestType::NO_IPV4_VLAN_INTF:
+      state = testStateAWithoutIpv4VlanIntf(VlanID(1));
+      break;
+    case ICMPTestType::NO_IPV4:
+      state = testStateAWithoutIpv4();
+      break;
+  }
+
   const auto& vlans = state->getVlans();
   // Set up an arp response entry for VLAN 1, 10.0.0.1,
   // so that we can detect the packet to 10.0.0.1 is for myself
@@ -369,6 +390,43 @@ TEST(ICMPTest, TTLExceededV4) {
 
   const std::string payload = "01 02 03 04 05 06 07 08";
 
+  // 92 bytes of padding
+  const std::string padding =
+      "00 00 00 00  00 00 00 00"
+      "00 00 00 00  00 00 00 00"
+      "00 00 00 00  00 00 00 00"
+      "00 00 00 00  00 00 00 00"
+      "00 00 00 00  00 00 00 00"
+      "00 00 00 00  00 00 00 00"
+      "00 00 00 00  00 00 00 00"
+      "00 00 00 00  00 00 00 00"
+      "00 00 00 00  00 00 00 00"
+      "00 00 00 00  00 00 00 00"
+      "00 00 00 00  00 00 00 00"
+      "00 00 00 00";
+
+  // 36 bytes
+  const std::string extHeader = (
+      // ** IP Ext Header **
+      // Version/Unused, Unsed, Checksum (0x1234 faked)
+      "20 00 87 59"
+      // ** Object Header **
+      // length (2 bytes), classNum (interface_information), cType (arrived, IP
+      // obj, ifaceName)
+      "00 20 02 06"
+      // ** IP SubObject Header
+      // AFI (2 bytes, 0x02 IPv6), Reserved (2 bytes)
+      "00 01 00 00"
+      // (4 bytes, IP address)
+      "0a 00 00 01"
+      // IfaceName header (length, name). 'test.switch:port1', padded to 8 bytes
+      // (20 bytes)
+      "14 74 65 73"
+      "74 2e 73 77"
+      "69 74 63 68"
+      "3a 70 6f 72"
+      "74 31 00 00");
+
   // create an IPv4 packet with TTL = 1
   auto pkt = PktUtil::parseHexData(
       // dst mac, src mac
@@ -381,7 +439,7 @@ TEST(ICMPTest, TTLExceededV4) {
 
   auto icmpPayload = PktUtil::parseHexData(
       // icmp padding for unused field
-      "00 00 00 00" + ipHdr + udpHdr + payload);
+      "00 20 00 00" + ipHdr + udpHdr + payload + padding + extHeader);
 
   // Cache the current stats
   CounterCache counters(sw);
@@ -399,7 +457,7 @@ TEST(ICMPTest, TTLExceededV4) {
           IPAddressV4("1.2.3.4"),
           VlanID(1),
           icmpPayload.data(),
-          32));
+          168));
 
   handle->rxPacket(std::make_unique<folly::IOBuf>(pkt), portID, vlanID);
 
@@ -455,10 +513,42 @@ TEST(ICMPTest, TTLExceededV4IPExtraOptions) {
 
   const std::string payload = "01 02 03 04 05 06 07 08";
 
+  // 52 bytes of padding
+  const std::string padding =
+      "00 00 00 00  00 00 00 00"
+      "00 00 00 00  00 00 00 00"
+      "00 00 00 00  00 00 00 00"
+      "00 00 00 00  00 00 00 00"
+      "00 00 00 00  00 00 00 00"
+      "00 00 00 00  00 00 00 00"
+      "00 00 00 00";
+
+  // 36 bytes
+  const std::string extHeader = (
+      // ** IP Ext Header **
+      // Version/Unused, Unsed, Checksum (0x1234 faked)
+      "20 00 87 59"
+      // ** Object Header **
+      // length (2 bytes), classNum (interface_information), cType (arrived, IP
+      // obj, ifaceName)
+      "00 20 02 06"
+      // ** IP SubObject Header
+      // AFI (2 bytes, 0x02 IPv6), Reserved (2 bytes)
+      "00 01 00 00"
+      // (4 bytes, IP address)
+      "0a 00 00 01"
+      // IfaceName header (length, name). 'test.switch:port1', padded to 8 bytes
+      // (20 bytes)
+      "14 74 65 73"
+      "74 2e 73 77"
+      "69 74 63 68"
+      "3a 70 6f 72"
+      "74 31 00 00");
+
   auto pkt = PktUtil::parseHexData(ethHdr + ipHdr + udpHdr + payload);
   auto icmpPayload = PktUtil::parseHexData(
       // icmp padding for unused field
-      "00 00 00 00" + ipHdr + udpHdr + payload);
+      "00 20 00 00" + ipHdr + udpHdr + payload + padding + extHeader);
 
   EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
 
@@ -473,7 +563,7 @@ TEST(ICMPTest, TTLExceededV4IPExtraOptions) {
           IPAddressV4("1.2.3.4"),
           VlanID(1),
           icmpPayload.data(),
-          72));
+          168));
 
   handle->rxPacket(std::make_unique<folly::IOBuf>(pkt), portID, vlanID);
 }
@@ -530,12 +620,13 @@ TEST(ICMPTest, ExtraFrameCheckSequenceAtEnd) {
 }
 
 TEST(ICMPTest, TTLExceededV4WithoutV4Interface) {
-  auto handle = setupTestHandle(true);
+  auto handle = setupTestHandle(ICMPTestType::NO_IPV4_VLAN_INTF);
   auto sw = handle->getSw();
 
   PortID portID(1);
   VlanID vlanID(1);
 
+  // 20 bytes
   const std::string ipHdr =
       // Version(4), IHL(5), DSCP(7), ECN(1), Total Length(20+8+8=36)
       "45 1d 00 24"
@@ -548,6 +639,7 @@ TEST(ICMPTest, TTLExceededV4WithoutV4Interface) {
       // Destination IP (10.1.0.10)
       "0a 01 00 0a";
 
+  // 8 bytes
   const std::string udpHdr =
       // UDP
       // Source port (69), destination port (70)
@@ -555,7 +647,23 @@ TEST(ICMPTest, TTLExceededV4WithoutV4Interface) {
       // Length (16), checksum (0x1234, faked)
       "00 10 12 34";
 
+  // 8 bytes
   const std::string payload = "01 02 03 04 05 06 07 08";
+
+  // 92 bytes of padding
+  const std::string padding =
+      "00 00 00 00  00 00 00 00"
+      "00 00 00 00  00 00 00 00"
+      "00 00 00 00  00 00 00 00"
+      "00 00 00 00  00 00 00 00"
+      "00 00 00 00  00 00 00 00"
+      "00 00 00 00  00 00 00 00"
+      "00 00 00 00  00 00 00 00"
+      "00 00 00 00  00 00 00 00"
+      "00 00 00 00  00 00 00 00"
+      "00 00 00 00  00 00 00 00"
+      "00 00 00 00  00 00 00 00"
+      "00 00 00 00";
 
   // create an IPv4 packet with TTL = 1
   auto pkt = PktUtil::parseHexData(
@@ -567,9 +675,28 @@ TEST(ICMPTest, TTLExceededV4WithoutV4Interface) {
       "08 00" +
       ipHdr + udpHdr + payload);
 
+  // 48 bytes
+  const std::string extHeader = (
+      // ** IP Ext Header **
+      // Version/Unused, Unsed, Checksum (0x1234 faked)
+      "20 00 91 67"
+      // ** Object Header **
+      // length (2 bytes), classNum (interface_information), cType (arrived, IP
+      // obj)
+      "00 18 02 02"
+      // IfaceName header (length, name). 'test.switch:port1', padded to 8 bytes
+      // (20 bytes)
+      "14 74 65 73"
+      "74 2e 73 77"
+      "69 74 63 68"
+      "3a 70 6f 72"
+      "74 31 00 00");
+
+  // 4 bytes + 20 + 8 + 8 + 28 ==  68
   auto icmpPayload = PktUtil::parseHexData(
-      // icmp padding for unused field
-      "00 00 00 00" + ipHdr + udpHdr + payload);
+      // ICMP Header previous unused
+      // unused, length (0x09 32-bit words), unused (2 bytes)
+      "00 20 00 00" + ipHdr + udpHdr + payload + padding + extHeader);
 
   // Cache the current stats
   CounterCache counters(sw);
@@ -588,7 +715,116 @@ TEST(ICMPTest, TTLExceededV4WithoutV4Interface) {
           IPAddressV4("1.2.3.4"),
           VlanID(1),
           icmpPayload.data(),
-          32));
+          160));
+
+  handle->rxPacket(std::make_unique<folly::IOBuf>(pkt), portID, vlanID);
+
+  counters.update();
+  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.ipv4.sum", 1);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.drops.sum", 1);
+  counters.checkDelta(SwitchStats::kCounterPrefix + "ipv4.ttl_exceeded.sum", 1);
+}
+
+// To test that we can still send an V4 ICMP TTL Exceeded without any V4
+// configured on the box at all
+TEST(ICMPTest, TTLExceededV4WithoutAnyV4Interface) {
+  auto handle = setupTestHandle(ICMPTestType::NO_IPV4);
+  auto sw = handle->getSw();
+
+  PortID portID(1);
+  VlanID vlanID(1);
+
+  // 20 bytes
+  const std::string ipHdr =
+      // Version(4), IHL(5), DSCP(7), ECN(1), Total Length(20+8+8=36)
+      "45 1d 00 24"
+      // Identification(0x3456), Flags(0x1), Fragment offset(0x1345)
+      "34 56 53 45"
+      // TTL(1), Protocol(11), Checksum (0x1234, fake)
+      "01 11 12 34"
+      // Source IP (1.2.3.4)
+      "01 02 03 04"
+      // Destination IP (10.1.0.10)
+      "0a 01 00 0a";
+
+  // 8 bytes
+  const std::string udpHdr =
+      // UDP
+      // Source port (69), destination port (70)
+      "00 45 00 46"
+      // Length (16), checksum (0x1234, faked)
+      "00 10 12 34";
+
+  // 8 bytes
+  const std::string payload = "01 02 03 04 05 06 07 08";
+
+  // 92 bytes of padding
+  const std::string padding =
+      "00 00 00 00  00 00 00 00"
+      "00 00 00 00  00 00 00 00"
+      "00 00 00 00  00 00 00 00"
+      "00 00 00 00  00 00 00 00"
+      "00 00 00 00  00 00 00 00"
+      "00 00 00 00  00 00 00 00"
+      "00 00 00 00  00 00 00 00"
+      "00 00 00 00  00 00 00 00"
+      "00 00 00 00  00 00 00 00"
+      "00 00 00 00  00 00 00 00"
+      "00 00 00 00  00 00 00 00"
+      "00 00 00 00";
+
+  // create an IPv4 packet with TTL = 1
+  auto pkt = PktUtil::parseHexData(
+      // dst mac, src mac
+      "00 02 00 00 00 01  02 00 02 01 02 03"
+      // 802.1q, VLAN 1
+      "81 00 00 01"
+      // IPv4
+      "08 00" +
+      ipHdr + udpHdr + payload);
+
+  // 32 bytes
+  const std::string extHeader = (
+      // ** IP Ext Header **
+      // Version/Unused, Unsed, Checksum (0x1234 faked)
+      "20 00 91 67"
+      // ** Object Header **
+      // length (2 bytes), classNum (interface_information), cType (arrived, IP
+      // obj, Iface Name)
+      "00 18 02 02"
+      // IfaceName header (length, name). 'test.switch:port1', padded to 8 bytes
+      // (20 bytes)
+      "14 74 65 73"
+      "74 2e 73 77"
+      "69 74 63 68"
+      "3a 70 6f 72"
+      "74 31 00 00");
+
+  // 4 bytes + 20 + 8 + 8 + 28 ==  68
+  auto icmpPayload = PktUtil::parseHexData(
+      // ICMP Header previous unused
+      // unused, length (0x09 32-bit words), unused (2 bytes)
+      "00 20 00 00" + ipHdr + udpHdr + payload + padding + extHeader);
+
+  // Cache the current stats
+  CounterCache counters(sw);
+
+  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
+
+  // We should get a ICMPv4 TTL exceeded back with src IP set to
+  // VLAN55 IPv4 addres. Because VLAN 1 does not have an IPv4 address.
+  EXPECT_SWITCHED_PKT(
+      sw,
+      "ICMP TTL Exceeded",
+      checkICMPv4TTLExceeded(
+          MockPlatform::getMockLocalMac(),
+          IPAddressV4("192.0.2.1"),
+          MockPlatform::getMockLocalMac(),
+          IPAddressV4("1.2.3.4"),
+          VlanID(1),
+          icmpPayload.data(),
+          164));
 
   handle->rxPacket(std::make_unique<folly::IOBuf>(pkt), portID, vlanID);
 
