@@ -199,8 +199,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 5,
-          "attachedCoreId": 0,
-          "attachedCorePortIndex": 3,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 2,
           "virtualDeviceId": 0,
           "scope": 0
         },
