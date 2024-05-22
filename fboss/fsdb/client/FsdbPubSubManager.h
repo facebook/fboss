@@ -188,6 +188,9 @@ class FsdbPubSubManager {
       const std::vector<ExtendedOperPath>& subscribePath,
       const std::string& fsdbHost = "::1");
 
+  void clearStateSubscriptions();
+  void clearStatSubscriptions();
+
   FsdbStreamClient::State getStatePathSubsriptionState(
       const MultiPath& subscribePath,
       const std::string& fsdbHost = "::1");
@@ -195,7 +198,8 @@ class FsdbPubSubManager {
   const std::vector<SubscriptionInfo> getSubscriptionInfo() const;
 
   size_t numSubscriptions() const {
-    return path2Subscriber_.rlock()->size();
+    return statePath2Subscriber_.rlock()->size() +
+        statPath2Subscriber_.rlock()->size();
   }
 
   FsdbDeltaPublisher* getDeltaPublisher(bool stats = false) {
@@ -279,7 +283,10 @@ class FsdbPubSubManager {
   // Subscribers
   folly::Synchronized<
       std::unordered_map<std::string, std::unique_ptr<FsdbStreamClient>>>
-      path2Subscriber_;
+      statePath2Subscriber_;
+  folly::Synchronized<
+      std::unordered_map<std::string, std::unique_ptr<FsdbStreamClient>>>
+      statPath2Subscriber_;
 
 // per class placeholder for test code injection
 // only need to be setup once here

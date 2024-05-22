@@ -127,6 +127,10 @@ FsdbPubSubManager::~FsdbPubSubManager() {
   std::lock_guard<std::mutex> lk(publisherMutex_);
   stopPublisher(lk, std::move(stateDeltaPublisher_));
   stopPublisher(lk, std::move(statePathPublisher_));
+  stopPublisher(lk, std::move(statDeltaPublisher_));
+  stopPublisher(lk, std::move(statPathPublisher_));
+  clearStateSubscriptions();
+  clearStatSubscriptions();
 }
 
 void FsdbPubSubManager::stopPublisher(
@@ -465,15 +469,16 @@ void FsdbPubSubManager::addSubscriptionImpl(
       subscribePath,
       isDelta,
       subscribeStats);
-  auto path2SubscriberW = path2Subscriber_.wlock();
-  auto& path2Subscriber = *path2SubscriberW;
+  auto& path2Subscriber =
+      subscribeStats ? statPath2Subscriber_ : statePath2Subscriber_;
+  auto path2SubscriberW = path2Subscriber.wlock();
 
   auto clientStr = folly::to<std::string>(clientId_);
   if (clientIdSuffix.has_value()) {
     clientStr.append(folly::to<std::string>("_", clientIdSuffix.value()));
   }
 
-  auto [itr, inserted] = path2Subscriber.emplace(std::make_pair(
+  auto [itr, inserted] = path2SubscriberW->emplace(std::make_pair(
       subsStr,
       std::make_unique<SubscriberT>(
           clientStr,
@@ -506,10 +511,12 @@ void FsdbPubSubManager::addSubscriptionImpl(
       subscribePath,
       isDelta,
       subscriptionOptions.subscribeStats_);
-  auto path2SubscriberW = path2Subscriber_.wlock();
-  auto& path2Subscriber = *path2SubscriberW;
+  auto& path2Subscriber = subscriptionOptions.subscribeStats_
+      ? statPath2Subscriber_
+      : statePath2Subscriber_;
+  auto path2SubscriberW = path2Subscriber.wlock();
 
-  auto [itr, inserted] = path2Subscriber.emplace(std::make_pair(
+  auto [itr, inserted] = path2SubscriberW->emplace(std::make_pair(
       subsStr,
       std::make_unique<SubscriberT>(
           std::move(subscriptionOptions),
@@ -529,8 +536,19 @@ void FsdbPubSubManager::addSubscriptionImpl(
 const std::vector<FsdbPubSubManager::SubscriptionInfo>
 FsdbPubSubManager::getSubscriptionInfo() const {
   std::vector<SubscriptionInfo> subscriptionInfo;
-  auto path2SubscriberR = path2Subscriber_.rlock();
-  for (const auto& [subStr, streamClient] : *path2SubscriberR) {
+  auto statePath2SubscriberR = statePath2Subscriber_.rlock();
+  for (const auto& [subStr, streamClient] : *statePath2SubscriberR) {
+    const auto& [server, delta, stats, paths] = parseSubscriptionStr(subStr);
+    subscriptionInfo.push_back(
+        {server,
+         delta == kDelta,
+         stats == kStats,
+         paths,
+         streamClient->getState(),
+         streamClient->getDisconnectReason()});
+  }
+  auto statPath2SubscriberR = statPath2Subscriber_.rlock();
+  for (const auto& [subStr, streamClient] : *statPath2SubscriberR) {
     const auto& [server, delta, stats, paths] = parseSubscriptionStr(subStr);
     subscriptionInfo.push_back(
         {server,
@@ -622,6 +640,13 @@ void FsdbPubSubManager::removeStatExtDeltaSubscription(
       subscribePaths, fsdbHost, true /*delta*/, true /*subscribeStats*/);
 }
 
+void FsdbPubSubManager::clearStateSubscriptions() {
+  statePath2Subscriber_.wlock()->clear();
+}
+void FsdbPubSubManager::clearStatSubscriptions() {
+  statPath2Subscriber_.wlock()->clear();
+}
+
 template <typename PathElement>
 void FsdbPubSubManager::removeSubscriptionImpl(
     const std::vector<PathElement>& subscribePath,
@@ -630,7 +655,9 @@ void FsdbPubSubManager::removeSubscriptionImpl(
     bool subscribeStats) {
   auto subsStr =
       toSubscriptionStr(fsdbHost, subscribePath, isDelta, subscribeStats);
-  if (path2Subscriber_.wlock()->erase(subsStr)) {
+  auto& path2Subscriber =
+      subscribeStats ? statPath2Subscriber_ : statePath2Subscriber_;
+  if (path2Subscriber.wlock()->erase(subsStr)) {
     XLOG(DBG2) << "Erased subscription for : " << subsStr;
   }
 }
@@ -640,7 +667,7 @@ FsdbStreamClient::State FsdbPubSubManager::getStatePathSubsriptionState(
     const std::string& fsdbHost) {
   auto subsStr = toSubscriptionStr(
       fsdbHost, toExtendedOperPath(subscribePath), false, false);
-  auto path2SubscriberR = path2Subscriber_.rlock();
+  auto path2SubscriberR = statePath2Subscriber_.rlock();
   if (path2SubscriberR->find(subsStr) == path2SubscriberR->end()) {
     return FsdbStreamClient::State::CANCELLED;
   }

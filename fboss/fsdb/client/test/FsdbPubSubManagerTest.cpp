@@ -186,4 +186,20 @@ TEST_F(PubSubManagerTest, passEvbOrNot) {
   EXPECT_NE(localThreadManager.statePublisherStreamEvbThread_, nullptr);
 }
 
+TEST_F(PubSubManagerTest, removeAllSubscriptions) {
+  addStateDeltaSubscription({"foo"});
+  addStatDeltaSubscription({"foo"});
+  EXPECT_THROW(addStateDeltaSubscription({"foo"}), std::runtime_error);
+  EXPECT_THROW(addStatDeltaSubscription({"foo"}), std::runtime_error);
+
+  pubSubManager_.clearStateSubscriptions();
+  // resub should succeed
+  addStateDeltaSubscription({"foo"});
+  // still have stat sub registered
+  EXPECT_THROW(addStatDeltaSubscription({"foo"}), std::runtime_error);
+
+  pubSubManager_.clearStatSubscriptions();
+  addStatDeltaSubscription({"foo"});
+}
+
 } // namespace facebook::fboss::fsdb
