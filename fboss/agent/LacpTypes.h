@@ -33,7 +33,7 @@ class LACPError : public FbossError {
   explicit LACPError(Args&&... args)
       : FbossError(std::forward<Args>(args)...) {}
 
-  ~LACPError() throw() override {}
+  ~LACPError() noexcept override {}
 };
 
 enum LacpState : int {
