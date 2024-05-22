@@ -46,7 +46,6 @@ void initFlagDefaults(const std::map<std::string, std::string>& defaults) {
     gflags::SetCommandLineOptionWithMode(
         item.first.c_str(), item.second.c_str(), gflags::SET_FLAGS_DEFAULT);
   }
-  FLAGS_classid_for_unresolved_routes = true;
 }
 
 class SignalHandler : public AsyncSignalHandler {
@@ -179,6 +178,10 @@ void SaiSwitchEnsemble::init(
     // TODO: enable after classid_for_connected_subnet_routes feature is fully
     // verified
     FLAGS_classid_for_connected_subnet_routes = false;
+  }
+  if (getPlatform()->getAsic()->getAsicVendor() ==
+      HwAsic::AsicVendor::ASIC_VENDOR_TAJO) {
+    FLAGS_classid_for_unresolved_routes = true;
   }
   auto hw = static_cast<SaiSwitch*>(getHwSwitch());
   diagShell_ = std::make_unique<DiagShell>(hw);

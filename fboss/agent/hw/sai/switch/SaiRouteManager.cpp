@@ -231,14 +231,18 @@ void SaiRouteManager::addOrUpdateRoute(
          * the CPU even if there is a conflicting DENY ACL.
          *
          * Not-applicable to TAJO because update metadata on interface subnet
-         * route is unsupported
+         * route is unsupported. Also not supported on BRCM-SAI, which does not
+         * fuly support route classID programming yet.
+         *
+         * So, classid_for_connected_subnet_routes is currently disabled
+         * everywhere
          */
-#if !defined(TAJO_SDK)
-        if (FLAGS_classid_for_connected_subnet_routes) {
+        if (FLAGS_classid_for_connected_subnet_routes &&
+            platform_->getAsic()->isSupported(
+                HwAsic::Feature::ROUTE_METADATA)) {
           metadata =
               static_cast<uint32_t>(cfg::AclLookupClass::DST_CLASS_L3_LOCAL_2);
         }
-#endif
         RouterInterfaceSaiId routerInterfaceId{
             routerInterfaceHandle->adapterKey()};
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
@@ -333,7 +337,8 @@ void SaiRouteManager::addOrUpdateRoute(
        * For Tajo, any route (host route or subnet route) that points to
        * CPU port will be treated as MYIP. Both host and subnet routes
        * that are unresolved will be sent to mid pri queue due to the
-       * IP2ME hostif trap.
+       * IP2ME hostif trap. So, FLAGS_classid_for_unresolved_routes is
+       * currently only enabled on tajo switches.
        *
        * Fix for the issue:
        * In order to send these not MYIP routes to default queue,
@@ -342,7 +347,6 @@ void SaiRouteManager::addOrUpdateRoute(
        * 2) Add an ACL with qualifer as CLASS_UNRESOLVED_ROUTE_TO_CPU and
        * action as low pri queue.
        */
-#if defined(TAJO_SDK)
       if (FLAGS_classid_for_unresolved_routes &&
           platform_->getAsic()->isSupported(HwAsic::Feature::ROUTE_METADATA)) {
         if (nextHopId == managerTable_->switchManager().getCpuPort()) {
@@ -350,7 +354,6 @@ void SaiRouteManager::addOrUpdateRoute(
               static_cast<uint32_t>(cfg::AclLookupClass::DST_CLASS_L3_LOCAL_2);
         }
       }
-#endif
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
       attributes = SaiRouteTraits::CreateAttributes{
