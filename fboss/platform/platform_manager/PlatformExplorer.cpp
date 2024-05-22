@@ -10,6 +10,7 @@
 #include <string>
 #include <utility>
 
+#include <fb303/ServiceData.h>
 #include <folly/FileUtil.h>
 #include <folly/logging/xlog.h>
 
@@ -17,6 +18,7 @@
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_constants.h"
 
 namespace {
+auto constexpr kTotalFailures = "total_failures";
 constexpr auto kRootSlotPath = "/";
 const re2::RE2 kGpioChipNameRe{"gpiochip\\d+"};
 const std::string kGpioChip = "gpiochip";
@@ -562,6 +564,7 @@ void PlatformExplorer::reportExplorationSummary() {
       XLOG(INFO) << fmt::format("{}. {}", i++, errMsg);
     }
   }
+  fb303::fbData->setCounter(kTotalFailures, errorMessages_.size());
 }
 
 void PlatformExplorer::setupI2cDevice(
