@@ -14,16 +14,11 @@
 #include <thrift/lib/cpp2/async/PooledRequestChannel.h>
 #include <thrift/lib/cpp2/async/RocketClientChannel.h>
 
-#if FOLLY_HAS_COROUTINES
-#include <folly/experimental/coro/Timeout.h>
-#endif
-
 namespace {
 DEFINE_int32(
     hwagent_reconnect_ms,
     1000,
     "reconnect to swswitch in milliseconds");
-static const int kEventQueueTimeOut = 1;
 } // namespace
 
 namespace facebook::fboss {
@@ -187,18 +182,11 @@ ThriftSinkClient<CallbackObjectT, EventQueueT>::serveStream() {
   co_await sinkClient_->sink(
       [&]() -> folly::coro::AsyncGenerator<CallbackObjectT&&> {
         while (true) {
-          auto waitTry = co_await folly::coro::co_awaitTry(folly::coro::timeout(
-              eventsQueue_.dequeue(),
-              std::chrono::seconds(kEventQueueTimeOut)));
+          auto event = co_await eventsQueue_.dequeue();
           if (isCancelled()) {
             co_return;
           }
-          if (waitTry.hasException()) {
-            continue;
-          } else {
-            CHECK(waitTry.hasValue());
-            co_yield std::move(waitTry.value());
-          }
+          co_yield std::move(event);
         }
       }());
   co_return;
