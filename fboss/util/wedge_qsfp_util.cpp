@@ -277,6 +277,10 @@ DEFINE_uint32(
     0x00001011,
     "MSA password for module privilige operation");
 DEFINE_uint32(image_header_len, 0, "Firmware image header length");
+DEFINE_string(
+    forced_module_type,
+    "",
+    "Forced module type, values are cmis or sff");
 DEFINE_bool(
     get_module_fw_info,
     false,
@@ -1140,6 +1144,17 @@ DOMDataUnion fetchDataFromLocalI2CBus(
   auto qsfpImpl = std::make_unique<WedgeQsfp>(
       port - 1, i2cInfo.bus, i2cInfo.transceiverManager);
   auto mgmtInterface = qsfpImpl->getTransceiverManagementInterface();
+  if (!FLAGS_forced_module_type.empty()) {
+    if (FLAGS_forced_module_type == "cmis") {
+      mgmtInterface = TransceiverManagementInterface::CMIS;
+    } else if (FLAGS_forced_module_type == "sff") {
+      mgmtInterface = TransceiverManagementInterface::SFF;
+    } else {
+      throw FbossError(
+          "Invalid forced module type specified: ", FLAGS_forced_module_type);
+    }
+  }
+
   auto cfgPtr = i2cInfo.transceiverManager->getTransceiverConfig();
 
   // On these platforms, we are configuring the 200G optics in 2x50G
